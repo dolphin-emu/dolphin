@@ -161,8 +161,9 @@ void DllConfig(HWND _hParent)
 
 	frame = new ConfigDialog(&win);
 	g_FrameOpen = true;
-
-	frame->ShowModal();	
+	/* We don't need to use ShowModal() anymore becaue FreeLibrary() is not called after this function
+	   anymore */
+	frame->Show();	
 
 	#ifdef _WIN32
 		win.SetHWND(0);

@@ -35,6 +35,18 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Variables
+// ----------------
+// Trigger Type
+enum
+{
+	CTL_TRIGGER_SDL = 0, // 
+	CTL_TRIGGER_XINPUT // The XBox 360 pad
+};
+//////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Event table
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
@@ -88,6 +100,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)
 	EVT_TIMER(IDTM_SHUTDOWN, ConfigDialog::ShutDown)
 END_EVENT_TABLE()
+//////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Class
@@ -136,14 +150,15 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 	}
 }
 
-void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
+void ConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
 	SaveFile();
 	g_Config.Save();	
 	//SuccessAlert("Saved\n");
 	if (!g_EmulatorRunning) Shutdown();
-	EndModal(0);
+	// This will let the Close() function close and remove the wxDialog
+	event.Skip();
 }
 
 /* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
@@ -164,11 +179,13 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
+		// Wait for the Wiimote thread to stop, then close and shutdown
 		if(!g_EmulatorRunning)
 		{
 			WiiMoteReal::g_Shutdown = true;
 			m_ShutDownTimer->Start(10);
 		}
+		// Close directly
 		else
 		{
 			Close();
@@ -184,44 +201,8 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 }
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
-#include "CommonTypes.h" // for u16
-#include "IniFile.h"
-#include "Timer.h"
-
-#include "wiimote_real.h" // Local
-#include "wiimote_hid.h"
-#include "main.h"
-#include "ConfigDlg.h"
-#include "Config.h"
-#include "EmuMain.h" // for LoadRecordedMovements()
-#include "EmuSubroutines.h" // for WmRequestStatus
 //////////////////////////////////////
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Variables
-// ----------------
-// Trigger Type
-enum
-{
-	CTL_TRIGGER_SDL = 0, // 
-	CTL_TRIGGER_XINPUT // The XBox 360 pad
-};
-// Trigger type
-static const char* TriggerType[] =
-{
-	"SDL", // -0x8000 to 0x7fff
-	"XInput", // 0x00 to 0xff
-};
-//////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Bitmap box and dot
@@ -305,7 +286,7 @@ void ConfigDialog::CreateGUIControls()
 	}
 	else
 	{
-		StrJoyname.Add(wxString::FromAscii("<No gamepad detected>"));
+		StrJoyname.Add(wxString::FromAscii("<No Gamepad Detected>"));
 	}
 
 	// The tilt list
@@ -317,11 +298,10 @@ void ConfigDialog::CreateGUIControls()
 	wxArrayString StrTiltRange;
 	for (int i = 3; i < 15; i++) StrTiltRange.Add(wxString::Format(wxT("%i"), i*5));
 
-
 	// The Trigger type list
-	wxArrayString wxAS_TriggerType;
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_SDL]));
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_XINPUT]));
+	wxArrayString StrTriggerType;
+	StrTriggerType.Add(wxString::FromAscii("SDL")); // -0x8000 to 0x7fff
+	StrTriggerType.Add(wxString::FromAscii("XInput")); // 0x00 to 0xff
 	///////////////////////////////////////
 
 
@@ -334,48 +314,76 @@ void ConfigDialog::CreateGUIControls()
 		// ----------------
 
 		// Basic Settings
-		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Wiimote On"));
-		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_CONNECT_REAL, wxT("Connect Real Wiimote"));
-		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_USE_REAL, wxT("Use Real Wiimote"));
-		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"));
+		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Wiimote On"), wxDefaultPosition, wxSize(263, -1));
+		// Emulated Wiimote
+		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxSize(263, -1));
 		m_WideScreen[i] = new wxCheckBox(m_Controller[i], ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"));
-
-		// Extensions
-		m_NunchuckConnected[i] = new wxCheckBox(m_Controller[i], ID_NUNCHUCKCONNECTED, wxT("Nunchuck Connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_ClassicControllerConnected[i] = new wxCheckBox(m_Controller[i], ID_CLASSICCONTROLLERCONNECTED, wxT("Classic Controller Connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		// Extension
+		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Wii Motion Plus Connected"), wxDefaultPosition, wxSize(263, -1), 0, wxDefaultValidator);
+		m_NunchuckConnected[i] = new wxCheckBox(m_Controller[i], ID_NUNCHUCKCONNECTED, wxT("Nunchuck Connected"));
+		m_ClassicControllerConnected[i] = new wxCheckBox(m_Controller[i], ID_CLASSICCONTROLLERCONNECTED, wxT("Classic Controller Connected"));
+		m_BalanceBoardConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Balance Board Connected"));
+		m_GuitarHeroGuitarConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Guitar Hero Guitar Connected"));
+		m_GuitarHeroWorldTourDrumsConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Guitar Hero World Tour Drums Connected"));
+		// Real Wiimote
+		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_CONNECT_REAL, wxT("Connect Real Wiimote"), wxDefaultPosition, wxSize(263, -1));
+		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_USE_REAL, wxT("Use Real Wiimote"));
 
 		// Default values
-		m_NunchuckConnected[i]->SetValue(g_Config.bNunchuckConnected);
-		m_ClassicControllerConnected[i]->SetValue(g_Config.bClassicControllerConnected);
-		m_WiimoteOnline[i]->SetValue(true); m_WiimoteOnline[i]->Enable(false);
+		m_WiimoteOnline[0]->SetValue(true);
+		m_NunchuckConnected[0]->SetValue(g_Config.bNunchuckConnected);
+		m_ClassicControllerConnected[0]->SetValue(g_Config.bClassicControllerConnected);
+		m_SidewaysDPad[0]->SetValue(g_Config.bSidewaysDPad);
+		m_WideScreen[0]->SetValue(g_Config.bWideScreen);	
+		m_ConnectRealWiimote[0]->SetValue(g_Config.bConnectRealWiimote);
+		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
+
+		m_WiimoteOnline[0]->Enable(false);
+		m_WiiMotionPlusConnected[0]->Enable(false);
+		m_BalanceBoardConnected[0]->Enable(false);
+		m_GuitarHeroGuitarConnected[0]->Enable(false);
+		m_GuitarHeroWorldTourDrumsConnected[0]->Enable(false);
 
 		// Sizers
-		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Basic Settings"));
-		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Extension"));
+		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
+		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
+		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
+		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 
-		m_SizePadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeBasic[i]->Add(m_SizePadding[i], 0, (wxALL), 5);
-		m_SizePadding[i]->Add(m_WiimoteOnline[i], 0, (wxUP), 0);
-		m_SizePadding[i]->Add(m_ConnectRealWiimote[i], 0, (wxUP), 2);
-		m_SizePadding[i]->Add(m_UseRealWiimote[i], 0, (wxUP), 2);
-		m_SizePadding[i]->Add(m_SidewaysDPad[i], 0, (wxUP), 2);
-		m_SizePadding[i]->Add(m_WideScreen[i], 0, (wxUP), 2);
+		m_SizeBasicPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeBasic[i]->Add(m_SizeBasicPadding[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizeBasicPadding[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | (wxUP), 2);
 
-		m_SizeExtensionsPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeExtensions[i]->Add(m_SizeExtensionsPadding[i], 0, (wxALL), 5);
-		m_SizeExtensionsPadding[i]->Add(m_NunchuckConnected[i], 0, (wxUP), 0);
-		m_SizeExtensionsPadding[i]->Add(m_ClassicControllerConnected[i], 0, (wxUP), 2);		
+		m_SizeEmuPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeEmu[i]->Add(m_SizeEmuPadding[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizeEmuPadding[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeEmuPadding[i]->Add(m_WideScreen[i], 0, wxEXPAND | (wxUP), 2);
+
+		m_SizeRealPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeReal[i]->Add(m_SizeRealPadding[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizeRealPadding[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeRealPadding[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | (wxUP), 2);
+
+		m_SizeExtensionsPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeExtensions[i]->Add(m_SizeExtensionsPadding[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizeExtensionsPadding[i]->Add(m_WiiMotionPlusConnected[i], 0, (wxUP), 0);
+		m_SizeExtensionsPadding[i]->Add(m_NunchuckConnected[i], 0, (wxUP), 2);
+		m_SizeExtensionsPadding[i]->Add(m_ClassicControllerConnected[i], 0, (wxUP), 2);
+		m_SizeExtensionsPadding[i]->Add(m_BalanceBoardConnected[i], 0, (wxUP), 2);
+		m_SizeExtensionsPadding[i]->Add(m_GuitarHeroGuitarConnected[i], 0, (wxUP), 2);
+		m_SizeExtensionsPadding[i]->Add(m_GuitarHeroWorldTourDrumsConnected[i], 0, (wxUP), 2);
 
 		m_SizeBasicGeneral[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizeBasicGeneral[i]->Add(m_SizeBasic[i], 0, (wxUP), 0);
-		m_SizeBasicGeneral[i]->Add(m_SizeExtensions[i], 0, (wxLEFT), 5);
+		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
+		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
 
-		// Default values
-		m_SidewaysDPad[i]->SetValue(g_Config.bSidewaysDPad);
-		m_WideScreen[i]->SetValue(g_Config.bWideScreen);	
-		m_ConnectRealWiimote[i]->SetValue(g_Config.bConnectRealWiimote);
-		m_UseRealWiimote[i]->SetValue(g_Config.bUseRealWiimote);
-	
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);		
+
+		m_SizeBasicGeneralRight[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 0);
+
+		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 10);
+
 		// Tooltips
-		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), 1));
+		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
 		m_UseRealWiimote[i]->SetToolTip(wxT(
 			"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
@@ -392,39 +400,14 @@ void ConfigDialog::CreateGUIControls()
 		// -----------------------------
 		/**/
 		// Controls
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(476, 21), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(445, -1), StrJoyname, wxCB_READONLY);
 
 		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Gamepad"));
-		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
+		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 		
-
-		// --------------------------------------------------------------------
-		// Analog sticks
-		// -----------------------------
-		/**/
-		m_pInStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
-		m_bmpSquare[i] = new wxStaticBitmap(m_pInStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
-		m_bmpDot[i] = new wxStaticBitmap(m_pInStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
-
-		m_pRightStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
-		m_bmpSquareRight[i] = new wxStaticBitmap(m_pRightStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
-		m_bmpDotRight[i] = new wxStaticBitmap(m_pRightStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
-		
-		m_gAnalogLeft[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Analog 1"));
-		m_gAnalogLeft[i]->Add(m_pInStatus[i], 0, (wxLEFT | wxRIGHT), 5);
-
-		m_gAnalogRight[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Analog 2"));
-		m_gAnalogRight[i]->Add(m_pRightStatus[i], 0, (wxLEFT | wxRIGHT), 5);
-
-		// --------------------------------------------------------------------
-		// Analog triggers
-		// -----------------------------
-		/**/
-		m_gTrigger[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Triggers"));
-		//m_gAnalogLeft[i]->Add(m_pInStatus[i], 0, (wxLEFT | wxRIGHT), 5);
 
 		// --------------------------------------------------------------------
 		// Tilt Wiimote
@@ -447,12 +430,144 @@ void ConfigDialog::CreateGUIControls()
 		// Tooltips
 		m_TiltCombo[i]->SetToolTip(wxT("Control tilting by an analog gamepad stick, an analog trigger or the keyboard."));		
 
+		// Sizers for both the connected pads and tilt
+		m_HorizControllerTilt[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_HorizControllerTilt[i]->Add(m_gJoyname[i], 0, wxALIGN_CENTER | wxEXPAND, 0);
+		m_HorizControllerTilt[i]->Add(m_gTilt[i], 0, (wxLEFT), 5);
+
+		m_HorizControllerTiltParent[i] = new wxBoxSizer(wxBOTH);
+		m_HorizControllerTiltParent[i]->Add(m_HorizControllerTilt[i]);
+
+		// --------------------------------------------------------------------
+		// Analog sticks
+		// -----------------------------
+		/**/
+		m_pInStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
+		m_bmpSquare[i] = new wxStaticBitmap(m_pInStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
+		m_bmpDot[i] = new wxStaticBitmap(m_pInStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+		m_pRightStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
+		m_bmpSquareRight[i] = new wxStaticBitmap(m_pRightStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
+		m_bmpDotRight[i] = new wxStaticBitmap(m_pRightStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+		static const int TxtW = 50; static const int TxtH = 19; 
+
+		m_AnalogLeftX[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_LEFT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+		m_AnalogLeftY[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_LEFT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+		m_AnalogRightX[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_RIGHT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+		m_AnalogRightY[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_RIGHT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+
+		m_AnalogLeftX[i]->Enable(false);
+		m_AnalogLeftY[i]->Enable(false);
+		m_AnalogRightX[i]->Enable(false);
+		m_AnalogRightY[i]->Enable(false);
+
+		m_bAnalogLeftX[i] = new wxButton(m_Controller[i], IDB_ANALOG_LEFT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+		m_bAnalogLeftY[i] = new wxButton(m_Controller[i], IDB_ANALOG_LEFT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+		m_bAnalogRightX[i] = new wxButton(m_Controller[i], IDB_ANALOG_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+		m_bAnalogRightY[i] = new wxButton(m_Controller[i], IDB_ANALOG_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+
+		m_SizeAnalogLeft[i] = new wxBoxSizer(wxVERTICAL); m_SizeAnalogLeftHorizX[i] = new wxBoxSizer(wxHORIZONTAL); m_SizeAnalogLeftHorizY[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizeAnalogRight[i] = new wxBoxSizer(wxVERTICAL); m_SizeAnalogRightHorizX[i] = new wxBoxSizer(wxHORIZONTAL); m_SizeAnalogRightHorizY[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_tAnalogX[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("X-Axis"));
+		m_tAnalogX[i + 4] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("X-Axis"));
+		m_tAnalogY[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Y-Axis"));
+		m_tAnalogY[i + 4] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Y-Axis"));
+
+		m_SizeAnalogLeftHorizX[i]->Add(m_tAnalogX[i], 0, (wxUP), 2);
+		m_SizeAnalogLeftHorizX[i]->Add(m_AnalogLeftX[i], 0, (wxRIGHT), 2);
+		m_SizeAnalogLeftHorizX[i]->Add(m_bAnalogLeftX[i], 0, (wxUP), 2);
+		m_SizeAnalogLeftHorizY[i]->Add(m_tAnalogY[i], 0, (wxUP), 4);
+		m_SizeAnalogLeftHorizY[i]->Add(m_AnalogLeftY[i], 0, (wxUP | wxRIGHT), 2);
+		m_SizeAnalogLeftHorizY[i]->Add(m_bAnalogLeftY[i], 0, (wxUP), 4);
+
+		m_SizeAnalogRightHorizX[i]->Add(m_tAnalogX[i + 4], 0, (wxUP), 2);
+		m_SizeAnalogRightHorizX[i]->Add(m_AnalogRightX[i], 0, (wxRIGHT), 2);
+		m_SizeAnalogRightHorizX[i]->Add(m_bAnalogRightX[i], 0, (wxUP), 2);
+		m_SizeAnalogRightHorizY[i]->Add(m_tAnalogY[i + 4], 0, (wxUP), 4);
+		m_SizeAnalogRightHorizY[i]->Add(m_AnalogRightY[i], 0, (wxUP | wxRIGHT), 2);
+		m_SizeAnalogRightHorizY[i]->Add(m_bAnalogRightY[i], 0, (wxUP), 4);
+
+		m_SizeAnalogLeft[i]->AddStretchSpacer();
+		m_SizeAnalogLeft[i]->Add(m_SizeAnalogLeftHorizX[i], 0, (wxUP), 0);
+		m_SizeAnalogLeft[i]->Add(m_SizeAnalogLeftHorizY[i], 0, (wxUP), 0);
+		m_SizeAnalogLeft[i]->AddStretchSpacer();
+		m_SizeAnalogRight[i]->AddStretchSpacer();
+		m_SizeAnalogRight[i]->Add(m_SizeAnalogRightHorizX[i], 0, (wxUP), 0);
+		m_SizeAnalogRight[i]->Add(m_SizeAnalogRightHorizY[i], 0, (wxUP), 0);
+		m_SizeAnalogRight[i]->AddStretchSpacer();
+
+		m_gAnalogLeft[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Analog 1"));
+		m_gAnalogLeft[i]->Add(m_pInStatus[i], 0, (wxLEFT | wxRIGHT), 5);
+		m_gAnalogLeft[i]->Add(m_SizeAnalogLeft[i], 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
+
+		m_gAnalogRight[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Analog 2"));
+		m_gAnalogRight[i]->Add(m_pRightStatus[i], 0, (wxLEFT | wxRIGHT), 5);
+		m_gAnalogRight[i]->Add(m_SizeAnalogRight[i], 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
+
+		// --------------------------------------------------------------------
+		// Analog triggers
+		// -----------------------------
+		/**/
+		m_gTrigger[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Triggers"));
+		
+		m_TriggerStatusL[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: "));
+		m_TriggerStatusR[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right: "));
+		m_TriggerStatusLx[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("000"));
+		m_TriggerStatusRx[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("000"));
+
+		m_tAnalogTriggerInput[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Input"));
+		m_tAnalogTriggerL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
+		m_tAnalogTriggerR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
+
+		m_AnalogTriggerL[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_LEFT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+		m_AnalogTriggerR[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_LEFT, wxT(""), wxDefaultPosition, wxSize(TxtW, TxtH), wxTE_READONLY | wxTE_CENTRE);
+
+		m_AnalogTriggerL[i]->Enable(false);
+		m_AnalogTriggerR[i]->Enable(false);
+
+		m_bAnalogTriggerL[i] = new wxButton(m_Controller[i], IDB_ANALOG_LEFT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+		m_bAnalogTriggerR[i] = new wxButton(m_Controller[i], IDB_ANALOG_LEFT, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
+
+		m_TriggerType[i] = new wxComboBox(m_Controller[i], wxID_ANY, StrTriggerType[0], wxDefaultPosition, wxDefaultSize, StrTriggerType, wxCB_READONLY);
+
+		m_SizeAnalogTriggerStatusBox[i]  = new wxGridBagSizer(0, 0);
+		m_SizeAnalogTriggerHorizConfig[i] = new wxGridBagSizer(0, 0);	
+		m_SizeAnalogTriggerVertLeft[i] = new wxBoxSizer(wxVERTICAL);
+		m_SizeAnalogTriggerVertRight[i] = new wxBoxSizer(wxVERTICAL);
+		m_SizeAnalogTriggerHorizInput[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_SizeAnalogTriggerStatusBox[i]->Add(m_TriggerStatusL[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxUP), 0);
+		m_SizeAnalogTriggerStatusBox[i]->Add(m_TriggerStatusLx[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxUP), 0);
+		m_SizeAnalogTriggerStatusBox[i]->Add(m_TriggerStatusR[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxUP), 0);
+		m_SizeAnalogTriggerStatusBox[i]->Add(m_TriggerStatusRx[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxUP), 0);
+
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_tAnalogTriggerL[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxUP), 2);
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_AnalogTriggerL[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT | wxRIGHT), 2);
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_bAnalogTriggerL[i], wxGBPosition(0, 2), wxGBSpan(1, 1), (wxUP), 2);
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_tAnalogTriggerR[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxUP), 4);
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_AnalogTriggerR[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxUP | wxRIGHT), 2);
+		m_SizeAnalogTriggerHorizConfig[i]->Add(m_bAnalogTriggerR[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxUP), 5);
+
+		m_SizeAnalogTriggerHorizInput[i]->Add(m_tAnalogTriggerInput[i], 0, (wxUP), 2);
+		m_SizeAnalogTriggerHorizInput[i]->Add(m_TriggerType[i], 0, (wxLEFT), 2);
+
+		m_SizeAnalogTriggerVertLeft[i]->AddStretchSpacer();
+		m_SizeAnalogTriggerVertLeft[i]->Add(m_SizeAnalogTriggerStatusBox[i]);
+		m_SizeAnalogTriggerVertLeft[i]->AddStretchSpacer();
+
+		m_SizeAnalogTriggerVertRight[i]->Add(m_SizeAnalogTriggerHorizConfig[i], 0, (wxUP), 1);
+		m_SizeAnalogTriggerVertRight[i]->Add(m_SizeAnalogTriggerHorizInput[i], 0, (wxUP | wxDOWN), 4);
+
+		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, (wxLEFT | wxRIGHT), 5);
+
 		// Sizers
 		m_HorizControllers[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_HorizControllers[i]->Add(m_gAnalogLeft[i]);
 		m_HorizControllers[i]->Add(m_gAnalogRight[i], 0, (wxLEFT), 5);
 		m_HorizControllers[i]->Add(m_gTrigger[i], 0, (wxLEFT), 5);
-		m_HorizControllers[i]->Add(m_gTilt[i], 0, (wxLEFT), 5);
 		///////////////////////////
 
 
@@ -466,17 +581,15 @@ void ConfigDialog::CreateGUIControls()
 		/*
 		m_WmA[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-
+		m_Wm1[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_Wm2[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmP[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmM[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmH[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmL[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmR[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmU[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_WmD[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 
 		m_tWmA[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("A"));
 		m_tWmB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("B"));
@@ -484,6 +597,7 @@ void ConfigDialog::CreateGUIControls()
 		m_tWm2[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("2"));
 		m_tWmP[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("P"));
 		m_tWmM[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("M"));
+		m_tWmH[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("H"));
 		m_tWmL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
 		m_tWmR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
 		m_tWmU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
@@ -511,31 +625,91 @@ void ConfigDialog::CreateGUIControls()
 		m_WmR[i]->Enable(false);
 		m_WmU[i]->Enable(false);
 		m_WmD[i]->Enable(false);
-		*/
+		
 
 		// --------------------------------------------------------------------
 		// Nunchuck
 		// -----------------------------
 
+		m_NuZ[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_NuC[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_NuL[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_NuR[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_NuU[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_NuD[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+
+		m_tNuZ[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Z"));
+		m_tNuC[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("C"));
+		m_tNuL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
+		m_tNuR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
+		m_tNuU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
+		m_tNuD[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+
+		m_bNuZ[i] = new wxButton(m_Controller[i], IDB_WM_Z);
+		m_bNuC[i] = new wxButton(m_Controller[i], IDB_WM_C);
+		m_bNuL[i] = new wxButton(m_Controller[i], IDB_WM_L);
+		m_bNuR[i] = new wxButton(m_Controller[i], IDB_WM_R);
+		m_bNuU[i] = new wxButton(m_Controller[i], IDB_WM_U);
+		m_bNuD[i] = new wxButton(m_Controller[i], IDB_WM_D);	
+
+		// Disable
+		m_NuZ[i]->Enable(false);
+		m_NuC[i]->Enable(false);
+		m_NuL[i]->Enable(false);
+		m_NuR[i]->Enable(false);
+		m_NuU[i]->Enable(false);
+		m_NuD[i]->Enable(false);
 
 		// --------------------------------------------------------------------
 		// Classic Controller
 		// -----------------------------
 
+		m_ClY[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_ClX[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_ClA[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_ClB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_ClLx[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_ClLy[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 
+		m_tClY[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Z"));
+		m_tClX[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("C"));
+		m_tClA[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
+		m_tClB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
+		m_tClLx[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
+		m_tClLy[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+
+		m_bClY[i] = new wxButton(m_Controller[i], IDB_WM_Z);
+		m_bClX[i] = new wxButton(m_Controller[i], IDB_WM_C);
+		m_bClA[i] = new wxButton(m_Controller[i], IDB_WM_L);
+		m_bClB[i] = new wxButton(m_Controller[i], IDB_WM_R);
+		m_bClLx[i] = new wxButton(m_Controller[i], IDB_WM_U);
+		m_bClLy[i] = new wxButton(m_Controller[i], IDB_WM_D);	
+
+		// Disable
+		m_ClY[i]->Enable(false);
+		m_ClX[i]->Enable(false);
+		m_ClA[i]->Enable(false);
+		m_ClB[i]->Enable(false);
+		m_ClLx[i]->Enable(false);
+		m_ClLy[i]->Enable(false);
+		*/
 		///////////////////////////
 
 
 		////////////////////////////////////////////////////////////////
 		// Set up sizers and layout
-		// Usage: The wxGBPosition() must have a column and row
 		// ----------------
-		m_sMain[i] = new wxBoxSizer(wxVERTICAL);
-		m_sMain[i]->Add(m_SizeBasicGeneral[i], 0, wxEXPAND | (wxALL), 5);
-		m_sMain[i]->Add(m_gJoyname[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_sMain[i]->Add(m_HorizControllers[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_SizeParent[i] = new wxBoxSizer(wxVERTICAL);
+		m_SizeParent[i]->Add(m_SizeBasicGeneral[i], 0, wxBORDER_STATIC | wxEXPAND | (wxALL), 5);
+		m_SizeParent[i]->Add(m_HorizControllerTiltParent[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_SizeParent[i]->Add(m_HorizControllers[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
-		m_Controller[i]->SetSizer(m_sMain[i]); // Set the main sizer
+		// The sizer m_sMain will be expanded inside m_Controller, m_SizeParent will not
+		m_sMain[i] = new wxBoxSizer(wxVERTICAL);
+		m_sMain[i]->Add(m_SizeParent[i]);
+
+		// Set the main sizer
+		m_Controller[i]->SetSizer(m_sMain[i]);
 		/////////////////////////////////
 	}
 

@@ -50,7 +50,7 @@ class ConfigDialog : public wxDialog
 		
 		// General status
 		wxStaticText * m_TextUpdateRate;
-
+		
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
 		wxStaticText *m_TextIR, *m_TextAccNeutralCurrent;
@@ -73,16 +73,32 @@ class ConfigDialog : public wxDialog
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4], *m_PageRecording;
 		wxButton *m_About, *m_Close, *m_Apply;
-		wxBoxSizer *m_MainSizer, *m_sMain[4], *m_SizePadding[4],*m_SizeExtensionsPadding[4], *m_SizeBasicGeneral[4], *sRecordingMain, *m_HorizControllers[4], *m_TiltHoriz[4];
-		wxStaticBoxSizer *m_SizeBasic[4], *m_SizeExtensions[4], *m_gTilt[4], *m_gJoyname[4];
+		wxBoxSizer *m_MainSizer, *m_sMain[4], *m_SizeParent[4], *m_sRecordingMain;
 
-		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4]; // Emulated Wiimote settings
+		// Emulated Wiimote key settings		
+		wxBoxSizer *m_SizeBasicPadding[4], *m_SizeEmuPadding[4], *m_SizeRealPadding[4], *m_SizeExtensionsPadding[4],
+			*m_SizeBasicGeneral[4], *m_SizeBasicGeneralLeft[4], *m_SizeBasicGeneralRight[4],
+			*m_HorizControllers[4], *m_HorizControllerTiltParent[4], *m_HorizControllerTilt[4], *m_TiltHoriz[4],
+			*m_SizeAnalogLeft[4], *m_SizeAnalogLeftHorizX[4], *m_SizeAnalogLeftHorizY[4], *m_SizeAnalogRight[4], *m_SizeAnalogRightHorizX[4], *m_SizeAnalogRightHorizY[4],
+			*m_SizeAnalogTriggerVertLeft[4], *m_SizeAnalogTriggerVertRight[4], *m_SizeAnalogTriggerHorizInput[4];
+		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4];
+		wxStaticBoxSizer *m_SizeBasic[4], *m_SizeEmu[4], *m_SizeReal[4], *m_SizeExtensions[4], *m_gTilt[4], *m_gJoyname[4];
+		wxTextCtrl *m_AnalogLeftX[4], *m_AnalogLeftY[4], *m_AnalogRightX[4], *m_AnalogRightY[4],
+			*m_AnalogTriggerL[4], *m_AnalogTriggerR[4];
+		wxButton *m_bAnalogLeftX[4], *m_bAnalogLeftY[4], *m_bAnalogRightX[4], *m_bAnalogRightY[4],
+			*m_bAnalogTriggerL[4], *m_bAnalogTriggerR[4];
+		wxStaticText *m_tAnalogX[8], *m_tAnalogY[8], *m_TiltText[4],
+			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
+			*m_tAnalogTriggerInput[4], *m_tAnalogTriggerL[4], *m_tAnalogTriggerR[4];
+
+		// Emulated Wiimote settings
+		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4];
 		wxCheckBox *m_WideScreen[4];
-		wxCheckBox *m_NunchuckConnected[4], *m_ClassicControllerConnected[4];
-		wxComboBox *m_TiltCombo[4], *m_TiltComboRange[4], *m_Joyname[4];
-		wxStaticText *m_TiltText[4];
+		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
+		wxComboBox *m_TiltCombo[4], *m_TiltComboRange[4], *m_Joyname[4], *m_TriggerType[4];
 
-		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters; // Real Wiimote settings
+		// Real Wiimote settings
+		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters;
 		wxChoice *m_AccNeutralChoice[3], *m_AccNunNeutralChoice[3];
 
 		wxPanel *m_pInStatus[4], *m_pRightStatus[4];
@@ -122,7 +138,10 @@ class ConfigDialog : public wxDialog
 			ID_SIDEWAYSDPAD, // Emulated
 			ID_WIDESCREEN,
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
-			IDC_JOYNAME, IDC_JOYATTACH, ID_TILT_COMBO, ID_TILT_CHECK, 
+			IDC_JOYNAME, IDC_JOYATTACH, ID_TILT_COMBO, ID_TILT_CHECK,
+
+			ID_ANALOG_LEFT, IDB_ANALOG_LEFT, ID_ANALOG_RIGHT, IDB_ANALOG_RIGHT,
+			ID_TRIGGER, IDB_TRIGGER,
 
 			// Real
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,

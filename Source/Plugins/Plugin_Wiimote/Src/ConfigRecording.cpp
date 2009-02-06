@@ -333,15 +333,15 @@ void ConfigDialog::CreateGUIControlsRecording()
 	// Set up sizers
 	// ----------------
 	wxBoxSizer * sRealBasicStatus = new wxBoxSizer(wxHORIZONTAL);
-	sRealBasicStatus->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 5);
+	sRealBasicStatus->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 0);
 	sRealBasicStatus->Add(sbRealNeutral, 0, wxEXPAND | (wxLEFT), 5);
 
-	sRecordingMain = new wxBoxSizer(wxVERTICAL);
-	sRecordingMain->Add(sRealBasicStatus, 0, wxEXPAND | (wxALL), 5);
-	sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
-	sRecordingMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+	m_sRecordingMain = new wxBoxSizer(wxVERTICAL);
+	m_sRecordingMain->Add(sRealBasicStatus, 0, wxEXPAND | (wxALL), 5);
+	m_sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+	m_sRecordingMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
-	m_PageRecording->SetSizer(sRecordingMain);	
+	m_PageRecording->SetSizer(m_sRecordingMain);	
 }
 /////////////////////////////////
 
