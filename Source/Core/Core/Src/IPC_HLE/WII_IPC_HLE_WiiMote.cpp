@@ -1035,7 +1035,7 @@ namespace Core
 		LOGV(WII_IPC_WIIMOTE, 3, "Callback_WiimoteInput:");
 		//std::string Temp = ArrayToString(pData, _Size, 0, 50);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		LOGV(WII_IPC_WIIMOTE, 3, "   Channel: %s", _channelID);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Channel: %u", _channelID);
 
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
 		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");

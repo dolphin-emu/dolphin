@@ -750,7 +750,12 @@ void ConfigDialog::CreateGUIControls()
 	this->Layout();
 
 	Fit();
-	Center();
+
+	// Center the window if there is room for it
+	#ifdef _WIN32
+		if (GetSystemMetrics(SM_CYFULLSCREEN) > 800)
+			Center();
+	#endif
 
 	ControlsCreated = true;
 	/////////////////////////////////
