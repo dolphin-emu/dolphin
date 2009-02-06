@@ -22,7 +22,6 @@
 #include "Common.h"
 #include "Debugger/DebugInterface.h"
 
-#include <wx/wx.h>
 
 class CMemoryView
 	: public wxControl

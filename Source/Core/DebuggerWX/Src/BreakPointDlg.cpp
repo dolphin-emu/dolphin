@@ -50,19 +50,14 @@ void BreakPointDlg::CreateGUIControls()
 	
 
 	wxStaticText* WxStaticText1 = new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Address"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
-	WxStaticText1->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_pButtonOK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(192,64), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
-	m_pButtonOK->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_pButtonCancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(112,64), wxSize(73,25), 0, wxDefaultValidator, wxT("Cancel"));
-	m_pButtonCancel->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_pEditAddress = new wxTextCtrl(this, ID_ADDRESS, wxT("80000000"), wxPoint(56,24), wxSize(197,20), 0, wxDefaultValidator, wxT("WxEdit1"));
-	m_pEditAddress->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticBox* WxStaticBox1 = new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address"), wxPoint(0,0), wxSize(265,57));
-	WxStaticBox1->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 }
 
 

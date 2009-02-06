@@ -92,7 +92,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
 	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
-	attr->SetFont(DefaultFont);
+	attr->SetFont(DebuggerFont);
 
 	switch (col) {
 	case 1:
@@ -120,10 +120,9 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
 	SetTable(new CRegTable(), true);
-	EnableGridLines(false);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
-	DisableDragGridSize();
+	DisableDragRowSize();
 
 	AutoSizeColumns();
 }

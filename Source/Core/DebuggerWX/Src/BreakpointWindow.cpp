@@ -23,7 +23,6 @@
 #include "BreakPointDlg.h"
 #include "MemoryCheckDlg.h"
 #include "Host.h"
-#include "IniFile.h"
 #include "Debugger/Debugger_BreakPoints.h" // for TMemCheck
 
 #include <wx/mstream.h>

@@ -32,7 +32,6 @@
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
 
-#include "IniFile.h"
 #include "Host.h"
 
 #include "Debugger.h"
@@ -75,19 +74,15 @@ extern "C"  // Bitmaps
 	#include "../resources/toolbar_delete.c"
 	#include "../resources/toolbar_add_breakpoint.c"
 }
-///////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
-// and here are the classes
+//////////////////////////////////////////////////////////////////////////
 class CPluginInfo;
 class CPluginManager;
-//extern DynamicLibrary Common::CPlugin;
-//extern CPluginManager CPluginManager::m_Instance;
 
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
+
+// The default font
+wxFont DebuggerFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace"));
 
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -96,12 +91,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 	wxMemoryInputStream is(data, length);
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
-///////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Event table
-// ¯¯¯¯¯¯¯¯¯¯
+//////////////////////////////////////////////////////////////////////////
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
     EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
@@ -130,13 +121,14 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
 
-    EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow) // Views
+	EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow) // Views
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
 	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
+	EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
@@ -164,12 +156,10 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 
 	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 END_EVENT_TABLE()
-///////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // Class, input event handler and host message handler
-// ¯¯¯¯¯¯¯¯¯¯
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
@@ -297,6 +287,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 // --------------
 void CCodeWindow::Load_( IniFile &ini )
 {
+	// The font to override DebuggerFont with
+	std::string fontDesc;
+	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
+	if (!fontDesc.empty())
+		DebuggerFont.SetNativeFontInfoUserDesc(wxString(fontDesc.c_str(), wxConvUTF8));
 
 	// Decide what windows to use
 	ini.Get("ShowOnStart", "LogWindow", &bLogWindow, true);
@@ -332,6 +327,8 @@ void CCodeWindow::Save(IniFile &ini) const
 	ini.Set("CodeWindow", "w", GetSize().GetWidth());
 	ini.Set("CodeWindow", "h", GetSize().GetHeight());
 
+	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+
 	// Boot to pause or not
 	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
 	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
@@ -345,7 +342,6 @@ void CCodeWindow::Save(IniFile &ini) const
 	ini.Set("ShowOnStart", "SoundWindow", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
 	ini.Set("ShowOnStart", "VideoWindow", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
 }
-
 
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
@@ -530,6 +526,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
 	pVideo->Check(bVideoWindow);
+
+	pDebugDialogs->AppendSeparator();
+	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
 	pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	// -----------------
@@ -919,6 +918,12 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_JITSROFF, Pause);
 
 	GetMenuBar()->Enable(IDM_CLEARCODECACHE, Pause); // JIT Menu
+
+	// Update Fonts
+	callstack->SetFont(DebuggerFont);
+	symbols->SetFont(DebuggerFont);
+	callers->SetFont(DebuggerFont);
+	calls->SetFont(DebuggerFont);
 }
 
 void CCodeWindow::RecreateToolbar()

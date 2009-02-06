@@ -310,10 +310,12 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[2]->SetToolTip(wxT("Serial Port 1 - This is the port the network adapter uses"));
 	const wxString SlotDevices[] = {wxT("<Nothing>"),wxT("Memory Card"), wxT("Mic")};
+	static const int numSlotDevices = sizeof(SlotDevices)/sizeof(wxString);
 	const wxString SP1Devices[] = {wxT("<Nothing>"),wxT("BBA")};
-	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
-	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
-	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition, wxDefaultSize, 2, SP1Devices, 0, wxDefaultValidator);
+	static const int numSP1Devices = sizeof(SP1Devices)/sizeof(wxString);
+	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition, wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
+	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition, wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
+	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition, wxDefaultSize, numSP1Devices, SP1Devices, 0, wxDefaultValidator);
 	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
 	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
 	for (int i = 0; i < 3; ++i)
@@ -338,15 +340,18 @@ void CConfigMain::CreateGUIControls()
 	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
-	const wxString SIDevices[] = {wxT("<Nothing>"),wxT("Standard Controller")};
-	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
+	const wxString SIDevices[] = {wxT("<Nothing>"), wxT("Standard Controller"), wxT("GBA")};
+	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
+	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
 	for (int i = 0; i < 4; ++i)
 	{
 		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
+		else if (SConfig::GetInstance().m_SIDevice[i] == SI_GBA)
+			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 		else
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
 	}
@@ -697,6 +702,8 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 	TSIDevices tempType;
 	if (deviceName.compare("Standard Controller") == 0)
 		tempType = SI_GC_CONTROLLER;
+	else if (deviceName.compare("GBA") == 0)
+		tempType = SI_GBA;
 	else
 		tempType = SI_DUMMY;
 

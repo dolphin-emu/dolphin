@@ -26,7 +26,6 @@
 #include "Core.h" // for Core::GetState()
 #include "LogWindow.h"
 #include "Console.h"
-#include "IniFile.h"
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
@@ -84,7 +83,9 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	// right windows -----------------------------------------------------
 	m_log = new wxTextCtrl(this, IDM_LOG, _T(""), wxDefaultPosition, wxSize(600, 120),
 		wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+	m_log->SetFont(DebuggerFont);
 	m_cmdline = new wxTextCtrl(this, wxID_ANY, _T(""), wxDefaultPosition);
+	m_cmdline->SetFont(DebuggerFont);
 	wxButton* btn = new wxButton(this, IDM_SUBMITCMD, _T("Submit"));
 
 	sizerTop->Add(new wxButton(this, IDM_UPDATELOG, _T("Update")));
@@ -510,6 +511,6 @@ void CLogWindow::UpdateLog()
 	m_log->SetValue(wxString::FromAscii(m_logBuffer));
 	m_log->SetInsertionPoint(p - m_logBuffer - 1);
 	m_log->ShowPosition( m_log->GetLastPosition()); // show last line
+	m_log->SetFont(DebuggerFont);
+	m_cmdline->SetFont(DebuggerFont);
 }
-
-

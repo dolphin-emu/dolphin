@@ -62,15 +62,7 @@
 		#include "../../../Branches/MusicMod/Main/Src/Main.h"  // MusicMod
 	#endif
 #endif
-/////////////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ----------------
-static std::string s_DataBasePath_EUR = "Data_EUR";
-static std::string s_DataBasePath_USA = "Data_USA";
-static std::string s_DataBasePath_JAP = "Data_JAP";
 
 #if defined(HAVE_WX) && HAVE_WX
 extern CFrame* main_frame;

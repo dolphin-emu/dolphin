@@ -22,10 +22,8 @@
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
-#include "Debugger.h"
-#include "CodeView.h"
-#include "Thread.h"
 
+#include "Thread.h"
 #include "CoreParameter.h"
 
 class CRegisterWindow;
@@ -34,7 +32,6 @@ class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
 class CCodeView;
-class IniFile;
 
 class CCodeWindow
 	: public wxFrame
@@ -86,6 +83,7 @@ class CCodeWindow
 			IDM_JITSROFF,
 
 			// Views
+			IDM_FONTPICKER,
 			IDM_LOGWINDOW,
 			IDM_REGISTERWINDOW,
 			IDM_BREAKPOINTWINDOW,
@@ -201,6 +199,7 @@ class CCodeWindow
 		void OnToggleJitWindow(wxCommandEvent& event);
 		void OnToggleSoundWindow(wxCommandEvent& event);
 		void OnToggleVideoWindow(wxCommandEvent& event);
+		void OnChangeFont(wxCommandEvent& event);
 	
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);

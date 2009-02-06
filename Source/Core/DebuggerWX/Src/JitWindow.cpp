@@ -17,7 +17,6 @@
 
 #include "Debugger.h"
 
-#include "IniFile.h"
 
 #include <wx/button.h>
 #include <wx/textctrl.h>

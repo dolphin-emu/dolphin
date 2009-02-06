@@ -27,7 +27,6 @@
 #include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"
-#include "IniFile.h"
 
 #include "CoreParameter.h"
 

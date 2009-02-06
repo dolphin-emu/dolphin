@@ -34,7 +34,12 @@ enum
 #define USE_XPM_BITMAPS 1
 
 #include <wx/wx.h>
-static wxFont DefaultFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace"));
+
+#include "IniFile.h"
+
+// Defined in CodeWindow.cpp
+extern wxFont DebuggerFont;
+
 
 // define this to use XPMs everywhere (by default, BMPs are used under Win)
 // BMPs use less space, but aren't compiled into the executable on other platforms

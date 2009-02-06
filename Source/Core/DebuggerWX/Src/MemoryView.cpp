@@ -204,9 +204,9 @@ void CMemoryView::OnErase(wxEraseEvent& event)
 void CMemoryView::OnPaint(wxPaintEvent& event)
 {
 	wxPaintDC dc(this);
-	int fontSize = 9;
 	wxRect rc = GetClientRect();
-	dc.SetFont(DefaultFont);
+	dc.SetFont(DebuggerFont);
+	int fontSize = DebuggerFont.GetPointSize();
 	struct branch
 	{
 		int src, dst, srcAddr;

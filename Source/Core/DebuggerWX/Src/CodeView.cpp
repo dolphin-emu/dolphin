@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Debugger.h"
+//#include "Debugger.h"
 #include "Debugger/PPCDebugInterface.h"
 #include "PowerPC/SymbolDB.h"
 #include "HW/Memmap.h" // for Write_U32
@@ -366,7 +366,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// -------------------------
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
-	dc.SetFont(DefaultFont);
+	dc.SetFont(DebuggerFont);
 	struct branch
 	{
 		int src, dst, srcAddr;

@@ -19,7 +19,6 @@
 #include "RegisterWindow.h"
 #include "PowerPC/PowerPC.h"
 #include "RegisterView.h"
-#include "IniFile.h"
 
 extern const char* GetGRPName(unsigned int index);
 

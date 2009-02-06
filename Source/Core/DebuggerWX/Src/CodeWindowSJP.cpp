@@ -28,11 +28,11 @@
 #include <wx/thread.h>
 #include <wx/mstream.h>
 #include <wx/tipwin.h>
+#include <wx/fontdlg.h>
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
 
-#include "IniFile.h"
 #include "Host.h"
 
 #include "Debugger.h"
@@ -497,4 +497,14 @@ void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 		}
 	}
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Change the global DebuggerFont
+void CCodeWindow::OnChangeFont(wxCommandEvent& event)
+{
+	wxFontData data;
+	data.SetInitialFont(GetFont());
+
+	wxFontDialog dialog(this, data);
+	if ( dialog.ShowModal() == wxID_OK )
+		DebuggerFont = dialog.GetFontData().GetChosenFont();
+}

@@ -23,7 +23,6 @@
 #include "Debugger/DebugInterface.h"
 
 #include <vector>
-#include <wx/wx.h>
 
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
 
