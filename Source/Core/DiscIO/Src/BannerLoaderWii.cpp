@@ -96,24 +96,6 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	return true;
 }
 
-std::string 
-CBannerLoaderWii::StupidWideCharToString(u16* _pSrc, size_t _max)
-{
-	std::string temp;
-
-	u32 offset = 0;
-	while (_pSrc[offset] != 0x0000)
-	{
-		temp += (char)(_pSrc[offset] >> 8);
-		offset ++;
-
-		if (offset >= _max)
-			break;
-	}
-
-	return temp;
-}
-
 bool
 CBannerLoaderWii::GetName(std::string* _rName)
 {
@@ -131,7 +113,7 @@ CBannerLoaderWii::GetName(std::string* _rName)
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
 	std::string name;
-	if (CopyUnicodeToString(name, pBanner->m_Comment[0]))
+	if (CopyBeUnicodeToString(name, pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE))
 	{
 		for (int i = 0; i < 6; i++)
 		{
@@ -168,7 +150,7 @@ CBannerLoaderWii::GetDescription(std::string* _rDescription)
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
 	std::string description;
-	if (CopyUnicodeToString(description, pBanner->m_Comment[1]))
+	if (CopyBeUnicodeToString(description, pBanner->m_Comment[1], WII_BANNER_COMMENT_SIZE))
 	{
 		for (int i = 0; i< 6; i++)
 		{

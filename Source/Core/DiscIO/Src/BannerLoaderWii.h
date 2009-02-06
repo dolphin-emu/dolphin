@@ -73,8 +73,6 @@ class CBannerLoaderWii
 		void InitLUTTable();
 		u32 decode5A3(u16 val);
 		void decode5A3image(u32* dst, u16* src, int width, int height);
-
-		std::string StupidWideCharToString(u16* _pSrc, size_t _max);
 };
 } // namespace
 

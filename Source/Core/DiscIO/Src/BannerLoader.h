@@ -49,7 +49,12 @@ class IBannerLoader
 
 		bool CopyToStringAndCheck(std::string& _rDestination, const char* _src);
 		
-		bool CopyUnicodeToString(std::string& _rDestination, const u16* _src);
+		bool CopyBeUnicodeToString(std::string& _rDestination, const u16* _src, int length);
+	private:
+		u16 swap16(u16 data)
+		{
+			return  ((data & 0xff00) >> 8) | ((data & 0xff) << 8);
+		}
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem);

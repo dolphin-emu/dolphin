@@ -94,31 +94,44 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 	return(bResult);
 }
 
-bool IBannerLoader::CopyUnicodeToString( std::string& _rDestination, const u16* _src )
+bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16* _src, int length )
 {
+	
+
 	bool returnCode = false;
 #ifdef WIN32
 	if (_src)
 	{
-		u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
-			(LPCWSTR)_src, (int)wcslen((const wchar_t*)_src),
-			NULL, NULL, NULL, NULL);
-		if (ansiNameSize > 0)
+		u16* buffer = new u16[length];
+		if (buffer)
 		{
-			char* pAnsiStrBuffer = new char[ansiNameSize + 1];
-			if (pAnsiStrBuffer)
+			memcpy(buffer, _src, sizeof(u16)*length);
+			for (int i = 0; i < length; i++)
 			{
-				memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
-				if (WideCharToMultiByte(CP_ACP, 0, 
-					(LPCWSTR)_src, (int)wcslen((const wchar_t*)_src),
-					pAnsiStrBuffer, ansiNameSize, NULL, NULL))
-				{
-					_rDestination = pAnsiStrBuffer;
-					returnCode = true;
-				}
-				delete pAnsiStrBuffer;
+				buffer[i] = swap16(buffer[i]);
 			}
-		}	
+			
+			u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
+				(LPCWSTR)buffer, (int)wcslen((const wchar_t*)buffer),
+				NULL, NULL, NULL, NULL);
+			if (ansiNameSize > 0)
+			{
+				char* pAnsiStrBuffer = new char[ansiNameSize + 1];
+				if (pAnsiStrBuffer)
+				{
+					memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
+					if (WideCharToMultiByte(CP_ACP, 0, 
+						(LPCWSTR)buffer, (int)wcslen((const wchar_t*)buffer),
+						pAnsiStrBuffer, ansiNameSize, NULL, NULL))
+					{
+						_rDestination = pAnsiStrBuffer;
+						returnCode = true;
+					}
+					delete pAnsiStrBuffer;
+				}
+			}	
+			delete buffer;
+		}
 	}
 #else
 	// FIXME: Horribly broke on non win32
