@@ -47,6 +47,7 @@ be accessed from Core::GetWindowHandle().
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
+#include "ConsoleWindow.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -170,15 +171,25 @@ int abc = 0;
 			switch(wParam)
 			{
 			// Stop
-			case 5:
+			case OPENGL_WM_USER_STOP:
 				main_frame->DoStop();
 				return 0; // Don't bother letting wxWidgets process this at all
 			
-			case 15:
+			case OPENGL_WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
 				//PanicAlert("main call %i  %i  %i  %i", lParam, (HWND)Core::GetWindowHandle(), MSWGetParent_((HWND)Core::GetWindowHandle()), (HWND)this->GetHWND());
 				if (lParam == NULL) main_frame->bRenderToMain = false;
 					else main_frame->bRenderToMain = true;
+				return 0;
+
+			case NJOY_RELOAD:
+				// DirectInput in nJoy has failed
+				return 0;
+
+			case WIIMOTE_RECONNECT:
+				// The Wiimote plugin has been shut down, now reconnect the Wiimote
+				Console::Print("WIIMOTE_RECONNECT\n");
+				Core::ReconnectWiimote();
 				return 0;
 			}
 			break;

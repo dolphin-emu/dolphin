@@ -78,7 +78,6 @@ extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-extern u8 g_RegExtTmpReport[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 extern u8 g_ReportingMode;
@@ -95,6 +94,7 @@ struct wm_ackdelay
 extern std::vector<wm_ackdelay> AckDelay;
 
 extern wiimote_key g_ExtKey; // extension encryption key
+extern bool g_Encryption;
 
 /* An example of a factory default first bytes of the Eeprom memory. There are differences between
    different Wiimotes, my Wiimote had different neutral values for the accelerometer. */
@@ -120,11 +120,15 @@ static const u8 nunchuck_calibration[] =
 	0x80,0x80,0x80,0x00, // accelerometer x, y, z neutral
 	0xb3,0xb3,0xb3,0x00, //  x, y, z g-force values 
 
-	0xe0, 0x20, 0x80, 0xe0, // 0x80 = analog stick x and y axis center
-	0x20, 0x80, 0xee, 0x43,
-
-	0x80,0x80,0x80,0x00, 0xb3,0xb3,0xb3,0x00, // repeat
-	0xe0,0x20,0x80,0xe0, 0x20,0x80,0xee,0x43
+	0xff, 0x00, 0x80, 0xff, // 0x80 = analog stick x and y axis center
+	0x00, 0x80, 0xee, 0x43 // checksum on the last two bytes
+};
+static const u8 wireless_nunchuck_calibration[] =
+{
+	128, 128, 128, 0x00,
+	181, 181, 181, 0x00,
+	255, 0, 125, 255,
+	0, 126, 0xed, 0x43
 };
 
 /* Classic Controller calibration. 0x80 is the neutral for the analog triggers and
@@ -133,9 +137,6 @@ static const u8 nunchuck_calibration[] =
 static const u8 classic_calibration[] =
 {
 	0xe4,0x1c,0x80,0xe4, 0x1c,0x80,0xd8,0x28,
-	0x80,0xd8,0x28,0x80, 0x20,0x20,0x95,0xea,
-
-	0xe4,0x1c,0x80,0xe4, 0x1c,0x80,0xd8,0x28, // repeat
 	0x80,0xd8,0x28,0x80, 0x20,0x20,0x95,0xea
 };
 

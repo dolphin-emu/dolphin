@@ -777,57 +777,45 @@ void FillReportExtension(wm_extension& _ext)
 	// ------------------------------------
 	// The default joystick and button values unless we use them
 	// --------------
-	_ext.jx = 0x80;
-	_ext.jy = 0x80;
+	_ext.jx = g_nu.jx.center;
+	_ext.jy = g_nu.jy.center;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
 	// ---------------------
 
-
 #ifdef _WIN32
-	/* We use a 192 range (32 to 224) that match our calibration values in nunchuck_calibration[] */
-	if(GetAsyncKeyState(VK_NUMPAD4)) // left
-		_ext.jx = 0x20;
+	// Set the max values to the current calibration values
+	if(GetAsyncKeyState(VK_NUMPAD4)) // x
+		_ext.jx = g_nu.jx.min;
+	if(GetAsyncKeyState(VK_NUMPAD6))
+		_ext.jx = g_nu.jx.max;
 
+	if(GetAsyncKeyState(VK_NUMPAD5)) // y
+		_ext.jy = g_nu.jy.min;
 	if(GetAsyncKeyState(VK_NUMPAD8))
-		_ext.jy = 0xe0;
-
-	if(GetAsyncKeyState(VK_NUMPAD6)) // right
-		_ext.jx = 0xe0;
-
-	if(GetAsyncKeyState(VK_NUMPAD5))
-		_ext.jy = 0x20;
-
+		_ext.jy = g_nu.jy.max;
 
 	if(GetAsyncKeyState('C'))
 		_ext.bt = 0x01;
-
 	if(GetAsyncKeyState('Z'))
-		_ext.bt = 0x02;
-	
+		_ext.bt = 0x02;	
 	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
 		_ext.bt = 0x00;
 #else 
         // TODO linux port
 #endif
 
-	/* Here we use g_RegExtTmpReport as a temporary storage for the enryption function because
-	   the type if array may have some importance for wiimote_encrypt(). We avoid using
-	   g_RegExtTmp that is used in EmuMain.cpp because if this runs on a different thread
-	   there is a small chance that they may interfer with each other. */
+	/* Here we encrypt the report */
 
-	// Clear g_RegExtTmpReport by copying zeroes to it, this may not be needed
-	memset(g_RegExtTmpReport, 0, sizeof(g_RegExtTmp));
-
-	/* Write the nunchuck inputs to it. We begin writing at 0x08, but it could also be
-	   0x00, the important thing is that we begin at an address evenly divisible
-	   by 0x08 */
-	memcpy(g_RegExtTmpReport + 0x08, &_ext, sizeof(_ext));
-
+	// Create a temporary storage for the data
+	u8 Tmp[sizeof(_ext)];
+	// Clear the array by copying zeroes to it
+	memset(Tmp, 0, sizeof(_ext));
+	// Copy the data to it
+	memcpy(Tmp, &_ext, sizeof(_ext));
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, &g_RegExtTmpReport[0x08], 0x08, sizeof(_ext));
-
-	// Write it back to the extension
-	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	// Write it back to the struct
+	memcpy(&_ext, Tmp, sizeof(_ext));
 }
 // =======================
 
@@ -1002,17 +990,18 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
         // TODO linux port
 #endif
 
-	// Clear g_RegExtTmp by copying zeroes to it
-	memset(g_RegExtTmpReport, 0, sizeof(g_RegExtTmp));
+	/* Here we encrypt the report */
 
-	/* Write the nunchuck inputs to it. We begin writing at 0x08, see comment above. */
-	memcpy(g_RegExtTmpReport + 0x08, &_ext, sizeof(_ext));
-
+	// Create a temporary storage for the data
+	u8 Tmp[sizeof(_ext)];
+	// Clear the array by copying zeroes to it
+	memset(Tmp, 0, sizeof(_ext));
+	// Copy the data to it
+	memcpy(Tmp, &_ext, sizeof(_ext));
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, &g_RegExtTmpReport[0x08], 0x08, 0x06);
-
-	// Write it back
-	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	// Write it back to the struct
+	memcpy(&_ext, Tmp, sizeof(_ext));
 }
 // =======================
 

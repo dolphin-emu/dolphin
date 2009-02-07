@@ -50,7 +50,6 @@ u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-u8 g_RegExtTmpReport[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 u8 g_ReportingMode; // The reporting mode and channel id
@@ -59,6 +58,7 @@ u16 g_ReportingChannel;
 std::vector<wm_ackdelay> AckDelay; // Ackk delay
 
 wiimote_key g_ExtKey; // The extension encryption key
+bool g_Encryption; // Encryption on or off
 
 } // namespace
 

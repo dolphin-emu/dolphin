@@ -53,7 +53,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr);
 void WmLeds(u16 _channelID, wm_leds* leds);
 void WmReadData(u16 _channelID, wm_read_data* rd);
 void WmWriteData(u16 _channelID, wm_write_data* wd);
-void WmRequestStatus(u16 _channelID, wm_request_status* rs);
+void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension = -1);
 void WmRequestStatus_(u16 _channelID, int a);
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr);
 

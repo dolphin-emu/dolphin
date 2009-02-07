@@ -42,7 +42,10 @@ void Update();
 void SendAcc(u8 _ReportID);
 void SetDataReportingMode(u8 ReportingMode = 0);
 void ClearEvents();
+
+// The alternative Wiimote loop
 void ReadWiimote();
+bool IRDataOK(struct wiimote_t* wm);
 
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;

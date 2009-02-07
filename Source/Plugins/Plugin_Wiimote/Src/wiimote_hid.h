@@ -300,6 +300,15 @@ struct accel_cal
 	wm_accel cal_g;			/**< 1g difference around 0cal			*/
 };
 
+struct nu_js {
+	u8 max, min, center;
+};
+struct nu_cal
+{
+	wm_accel cal_zero;		// zero calibratio
+	nu_js jx;				//
+	nu_js jy;				//
+};
 
 #pragma pack(pop)
 

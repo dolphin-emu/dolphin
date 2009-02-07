@@ -60,6 +60,7 @@ namespace Core
     bool MakeScreenshot(const std::string& _rFilename);
     void* GetWindowHandle();
     bool GetRealWiimote();
+	void ReconnectWiimote();
     
     extern bool bReadTrace;
     extern bool bWriteTrace;

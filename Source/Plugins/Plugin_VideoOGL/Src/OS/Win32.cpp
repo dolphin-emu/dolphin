@@ -138,7 +138,7 @@ namespace EmuWindow
 		switch( iMsg )
 		{
 		case WM_CREATE:
-			PostMessage(m_hMain, WM_USER, 15, (int)m_hParent); // 15 = WM_USER_CREATE, make enum table if it's confusing
+			PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
 			break;
 
 		case WM_PAINT:
@@ -154,13 +154,15 @@ namespace EmuWindow
 				//PostQuitMessage(0);
 
 				/* The fullscreen option for Windows users is not very user friendly. With this the user
-				   can only get out of the fullscreen mode by pressing Esc or Alt + F4. But that also
-				   closes*/
+				   can only get out of the fullscreen mode by pressing Esc or Alt + F4. Esc also stops
+				   the emulation. Todo: But currently it hangs, so I have disabled the shutdown. */
 				//if(m_hParent == NULL) ExitProcess(0);
 				if(m_hParent == NULL)
-				{
+				{				
 					if (g_Config.bFullscreen)
-						PostMessage(m_hMain, WM_USER, 5, 0); // Stop
+					{
+						//PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0); // Stop
+					}
 					else
 						// Toggle maximize and restore
 						if (IsZoomed(hWnd)) ShowWindow(hWnd, SW_RESTORE); else ShowWindow(hWnd, SW_MAXIMIZE);

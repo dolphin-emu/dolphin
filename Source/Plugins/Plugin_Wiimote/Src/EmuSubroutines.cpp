@@ -370,6 +370,7 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 		// Add header values
 		pReply->buttons = 0;
 		pReply->error = 0;
+		// 0x1 means two bytes, 0xf means 16 bytes
 		pReply->size = (copySize - 1) & 0xf;
 		pReply->address = Common::swap16(_Address + dataOffset);
 
@@ -534,7 +535,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
    request rs and all its eventual instructions it may include (for example turn off
    rumble or something else) and just send the status report. */
 // ----------------
-void WmRequestStatus(u16 _channelID, wm_request_status* rs)
+void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 {
 	//PanicAlert("WmRequestStatus");
 	LOGV(WII_IPC_WIIMOTE, 0, "================================================");
@@ -562,11 +563,22 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 		  0x55 - 0xff: level 4 */
 	pStatus->battery = 0x5f; // fully charged
 
-	// Read config value for this one
-	if(g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
-		pStatus->extension = 1;
+	// Check if we have a specific order about the extension status
+	if (Extension == -1)
+	{
+		// Read config value for this one
+		if(g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
+			pStatus->extension = 1;
+		else
+			pStatus->extension = 0;
+	}
 	else
-		pStatus->extension = 0;
+	{
+		if(Extension)
+			pStatus->extension = 1;
+		else
+			pStatus->extension = 0;
+	}
 
 	LOGV(WII_IPC_WIIMOTE, 0, "    Extension: %x", pStatus->extension);
 	LOGV(WII_IPC_WIIMOTE, 0, "    SendStatusReport()");

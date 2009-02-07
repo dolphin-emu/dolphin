@@ -765,7 +765,7 @@ void ConfigDialog::CreateGUIControls()
 
 
 // ===================================================
-/* Do use real wiimote */
+/* Do connect real wiimote */
 // ----------------
 void ConfigDialog::DoConnectReal()
 {
@@ -777,15 +777,53 @@ void ConfigDialog::DoConnectReal()
 	}
 	else
 	{
-		if (g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
+		Console::Print("Post Message: %i\n", g_RealWiiMoteInitialized);
+		if (g_RealWiiMoteInitialized)
+		{
+			WiiMoteReal::Shutdown();
+			/*
+			if (g_WiimoteUnexpectedDisconnect)
+			{
+				#ifdef _WIN32
+					PostMessage(g_ParentHWND, WM_USER, WIIMOTE_RECONNECT, 0);
+					g_WiimoteUnexpectedDisconnect = false;
+				#endif
+			}
+			*/
+		}
 	}
 }
 
 
 // ===================================================
+/* Do use real wiimote. We let the game set up the real Wiimote reporting mode and init the Extension when we change
+   want to use it again. */
+// ----------------
+void ConfigDialog::DoUseReal()
+{
+	// Clear any eventual events in the Wiimote queue
+	WiiMoteReal::ClearEvents();
+
+	// Are we using an extension now? The report that it's removed, then reconnected.
+	bool UsingExtension = false;
+	if (g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
+		UsingExtension = true;
+
+	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
+	// Sleep this thread
+	sleep(100);
+	UsingExtension = !UsingExtension;
+	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
+	// Sleep again, to allow the approximate time it takes for the Wiimote to come online
+	sleep(200);
+}
+
+// ===================================================
 /* Generate connect/disconnect status event */
 // ----------------
-void ConfigDialog::DoExtensionConnectedDisconnected()
+void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
 	if(!g_EmulatorRunning) return; 
@@ -795,7 +833,7 @@ void ConfigDialog::DoExtensionConnectedDisconnected()
 
 	// Check if a game is running, in that case change the status
 	if(WiiMoteEmu::g_ReportingChannel > 0)
-		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs);
+		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs, Extension);
 }
 
 // ===================================================
@@ -809,9 +847,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		DoConnectReal();
 		break;
 	case ID_USE_REAL:
+		// Enable the Wiimote thread
 		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
-		//if(g_Config.bUseRealWiimote) WiiMoteReal::SetDataReportingMode();
-		if(g_Config.bUseRealWiimote) WiiMoteReal::ClearEvents();		
+		if(g_Config.bUseRealWiimote) DoUseReal();		
 		break;
 
 	case ID_SIDEWAYSDPAD:
@@ -842,8 +880,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bNunchuckConnected = m_NunchuckConnected[Page]->IsChecked();
 
 		// Copy the calibration data
-		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration,
-			sizeof(WiiMoteEmu::nunchuck_calibration));
+		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration, sizeof(WiiMoteEmu::nunchuck_calibration));
+		memcpy(WiiMoteEmu::g_RegExt + 0x30, WiiMoteEmu::nunchuck_calibration, sizeof(WiiMoteEmu::nunchuck_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
 
 		// Generate connect/disconnect status event
@@ -862,8 +900,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bClassicControllerConnected = m_ClassicControllerConnected[Page]->IsChecked();
 
 		// Copy the calibration data
-		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration,
-			sizeof(WiiMoteEmu::classic_calibration));
+		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration, sizeof(WiiMoteEmu::classic_calibration));
+		memcpy(WiiMoteEmu::g_RegExt + 0x30, WiiMoteEmu::classic_calibration, sizeof(WiiMoteEmu::classic_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
 		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
@@ -925,14 +963,13 @@ void ConfigDialog::UpdateGUI()
 {
 	Console::Print("UpdateGUI: \n");
 
-	/* We can't allow different values for this one if we are using the real and emulated wiimote
-	   side by side so that we can switch between between during gameplay. We update the checked
-	   or unchecked values from the g_Config settings, and we make sure they are up to date with
-	   unplugged and reinserted extensions. */	
+	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
+	   from the data scanning functions in main.cpp */
+	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
 	m_NunchuckConnected[Page]->SetValue(g_Config.bNunchuckConnected);
 	m_ClassicControllerConnected[Page]->SetValue(g_Config.bClassicControllerConnected);
-	m_NunchuckConnected[Page]->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_EmulatorRunning));
-	m_ClassicControllerConnected[Page]->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_EmulatorRunning));
+	m_NunchuckConnected[Page]->Enable(AllowExtensionChange);
+	m_ClassicControllerConnected[Page]->Enable(AllowExtensionChange);
 
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would

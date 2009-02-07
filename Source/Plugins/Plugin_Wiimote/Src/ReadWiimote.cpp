@@ -39,6 +39,11 @@
 
 namespace WiiMoteReal
 {
+int GetReportSize(struct wiimote_t* wm)
+{
+	// The report size is 0x33 = 18, 0x37 = 22 withouth the leading (a1) byte
+	if(WIIUSE_USING_EXP(wm)) return 22; else return 18;
+}
 
 void handle_ctrl_status(struct wiimote_t* wm)
 {
@@ -51,12 +56,11 @@ void handle_ctrl_status(struct wiimote_t* wm)
 	Console::Print("battery:         %f %%\n", wm->battery_level);
 }
 
-
 bool IRDataOK(struct wiimote_t* wm)
 {
 	//Console::Print("IRDataOK: ");
 	// The report size is 0x33 = 18, 0x37 = 22 withouth the leading (a1) byte
-	int ReportSize; if(WIIUSE_USING_EXP(wm)) ReportSize = 22; else ReportSize = 18;
+	int ReportSize = GetReportSize(wm);
 	for(int i = 0; i < ReportSize; i++)
 	{
 		//Console::Print("%02x ", wm->event_buf[i]);
@@ -246,6 +250,8 @@ void ReadWiimote()
 	   be needed. But I still use it becase it seemed like state_changed() or the threshold values or
 	   something else might fail so that only huge status changed were reported. */
 	handle_event(g_WiiMotesFromWiiUse[0]);
+
+	// Declaration
 	std::string Temp;
 
 	/* Timeout for data reading. This is used in Initialize() to read the Eeprom, if we have not gotten
@@ -282,7 +288,7 @@ void ReadWiimote()
 
 				case WIIUSE_STATUS:
 					/* a status event occured */
-					handle_ctrl_status(g_WiiMotesFromWiiUse[i]);
+					//handle_ctrl_status(g_WiiMotesFromWiiUse[i]);
 					break;
 
 				case WIIUSE_DISCONNECT:

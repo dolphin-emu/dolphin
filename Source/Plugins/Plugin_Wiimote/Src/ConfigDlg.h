@@ -156,8 +156,9 @@ class ConfigDialog : public wxDialog
 		void AboutClick(wxCommandEvent& event);
 
 		void DoConnectReal(); // Real
+		void DoUseReal();
 
-		void DoExtensionConnectedDisconnected(); // Emulated
+		void DoExtensionConnectedDisconnected(int Extension = -1); // Emulated
 
 		void GeneralSettingsChanged(wxCommandEvent& event);		
 };

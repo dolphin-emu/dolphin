@@ -108,4 +108,10 @@ namespace HW
 		AudioInterface::DoState(p);
         WII_IPCInterface::DoState(p);
 	}
+
+	// Restart Wiimote
+	void InitWiimote()
+	{
+		WII_IPCInterface::Init();
+	}
 }

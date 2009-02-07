@@ -95,16 +95,19 @@ void Close()
 // Print to screen and file
 int Print(const char *fmt, ...)
 {
+	// Maximum bytes, mind this value to avoid an overrun
+	static const int MAX_BYTES = 1024*20;
+
 #if defined(_WIN32)
 	if(__hStdOut)
 	{
 #endif
-		char s[1024*20]; // Warning, mind this value
+		char s[MAX_BYTES];
 		va_list argptr;
 		int cnt; // To store the vsnprintf return message
 
 		va_start(argptr, fmt);
-		cnt = vsnprintf(s, 500, fmt, argptr);
+		cnt = vsnprintf(s, MAX_BYTES, fmt, argptr);
 		va_end(argptr);
 
 

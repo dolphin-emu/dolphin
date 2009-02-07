@@ -71,14 +71,20 @@ struct SRecordingAll
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
 	extern bool g_EmulatedWiiMoteInitialized;
+	extern bool g_WiimoteUnexpectedDisconnect;
+	#ifdef _WIN32
+		extern HWND g_ParentHWND;
+	#endif
 
 	// Settings
 	extern accel_cal g_accel;
+	extern nu_cal g_nu;
 
 	// Debugging
 	extern bool g_DebugAccelerometer;
 	extern bool g_DebugData;
 	extern bool g_DebugComm;
+	extern bool g_DebugCustom;
 
 	// Update speed
 	extern int g_UpdateCounter;

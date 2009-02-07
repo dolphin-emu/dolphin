@@ -18,11 +18,19 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// -----------------
 #define _CRTDBG_MAP_ALLOC
 #define _CRTDBG_MAP_ALLOC_NEW
-
 #define CHECK_HEAP_INTEGRITY()
+//////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// -----------------
 #ifdef _WIN32
 	#ifdef _DEBUG
 	#include <crtdbg.h>
@@ -49,30 +57,37 @@
 #include <string.h>
 
 #include "Paths.h"
+///////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// -----------------
 
 // Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
 // This probably wouldn't break anyone either, but hey
 #ifdef __APPLE__
-#define STACKALIGN __attribute__((__force_align_arg_pointer__))
+	#define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #else
-#define STACKALIGN
+	#define STACKALIGN
 #endif
+
 
 // Function Cross-Compatibility
 #ifdef _WIN32
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#define unlink _unlink
-#define snprintf _snprintf
+	#define strcasecmp _stricmp
+	#define strncasecmp _strnicmp
+	#define unlink _unlink
+	#define snprintf _snprintf
 #else
-#define _stricmp strcasecmp
-#define _strnicmp strncasecmp
-#define _unlink unlink
-#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
+	#define _stricmp strcasecmp
+	#define _strnicmp strncasecmp
+	#define _unlink unlink
+	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #endif
 
-#ifdef _WIN32
 
+#ifdef _WIN32
 // By default, MS' stdio implementation does not support 64-bit offsets.
 // This little hack fixes that, keeping the code portable to linux where fseek and fread
 // do support 64-bit offsets in modern distributions.
@@ -164,9 +179,19 @@ template<class T>
 inline T min(const T& a, const T& b) {return a > b ? b : a;}
 template<class T>
 inline T max(const T& a, const T& b) {return a > b ? a : b;}
+///////////////////////////////////
 
+
+
+// **************************************************************************************
+// Utility functions
+// **************************************************************************************
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Byte ordering
-
+// -----------------
 namespace Common
 {
 inline u8 swap8(u8 _data) {return(_data);}
@@ -194,12 +219,12 @@ inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 3
 #endif
 
 } // end of namespace Common
+///////////////////////////////////
 
 
-// Utility functions
-
-
+//////////////////////////////////////////////////////////////////////////////////////////
 // Message alerts
+// -----------------
 enum MSG_TYPE
 {
 	INFORMATION,
@@ -223,10 +248,12 @@ extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* fo
 	#define PanicYesNo(format, ...) MsgAlert("PANIC", true, WARNING, format, ##__VA_ARGS__) 
 	#define AskYesNo(format, ...) MsgAlert("ASK", true, QUESTION, format, ##__VA_ARGS__) 
 #endif
+///////////////////////////////////
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////
 // Logging
+// -----------------
 
 // dummy class
 class LogTypes
@@ -328,9 +355,12 @@ void Host_UpdateLogDisplay();
 #define _assert_(a)
 #define _assert_msg_(...)
 #endif
+///////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
 // Compile time asserts
+// -----------------
 namespace 
 {
 
@@ -346,8 +376,9 @@ namespace
 	#endif
 #endif
 }
+///////////////////////////////////////
 
 
-#endif	// #ifndef _COMMON_H
+#endif	// _COMMON_H
 
 

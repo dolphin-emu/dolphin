@@ -18,6 +18,21 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/* Plugin communication. I place this here rather in Common.h since these messages are only received
+   at one place, by the CPanel in Frame.cpp. That way I don't have to rebuild if any of this is changed */
+// -----------------
+enum PLUGIN_COMM
+{
+	// Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
+	OPENGL_WM_USER_STOP = 10,
+	OPENGL_WM_USER_CREATE,
+	NJOY_RELOAD, // Reload nJoy if DirectInput has failed
+	WIIMOTE_RECONNECT // Reconnect the Wiimote if it has disconnected
+};
+///////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // System specific declarations and definitions
 // ------------
 

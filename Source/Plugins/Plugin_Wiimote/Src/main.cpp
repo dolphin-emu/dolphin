@@ -17,6 +17,22 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Current issues
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+The real Wiimote fails to answer the core correctly sometmes. Leading to an unwanted disconnection. And
+there is currenty no functions to reconnect with the game. There are two ways to solve this:
+	1. Make a reconnect function in the IOS emulation
+	2. Detect failed answers in this plugin and solve it by replacing them with emulated answers.
+
+The first solution seems easier, if I knew a little better how the /dev/usb/oh1 and Wiimote functions
+worked.
+
+/////////////////////////////////////////////*/
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
@@ -52,14 +68,17 @@ bool g_FrameOpen = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
 bool g_EmulatedWiiMoteInitialized = false;
+bool g_WiimoteUnexpectedDisconnect = false;
 
 // Settings
 accel_cal g_accel;
+nu_cal g_nu;
 
 // Debugging
 bool g_DebugAccelerometer = false;
 bool g_DebugData = false;
 bool g_DebugComm = true;
+bool g_DebugCustom = false;
 
 // Update speed
 int g_UpdateCounter = 0;
@@ -73,6 +92,10 @@ std::vector<SRecordingAll> VRecording(RECORDING_ROWS);
 
 // DLL instance
 HINSTANCE g_hInstance;
+
+#ifdef _WIN32
+HWND g_ParentHWND = NULL;
+#endif
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow win;
@@ -178,6 +201,10 @@ extern "C" void Initialize(void *init)
     SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
 	g_WiimoteInitialize = _WiimoteInitialize;
 
+	#ifdef _WIN32
+		g_ParentHWND = GetParent(g_WiimoteInitialize.hWnd);
+	#endif
+
 	g_EmulatorRunning = true;
 
 	#if defined(HAVE_WX) && HAVE_WX
@@ -265,6 +292,16 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
+	// Check for custom communication
+	if(_channelID == 99 && data[0] == WIIMOTE_RECONNECT)
+	{
+		Console::Print("\n\nWiimote Disconnected\n\n");
+		g_EmulatorRunning = false;
+		g_WiimoteUnexpectedDisconnect = true;
+		if (frame) frame->UpdateGUI();
+		return;
+	}
+
 	// Debugging
 	{
 		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_ControlChannel");
@@ -315,14 +352,17 @@ extern "C" void Wiimote_Update()
 
 	// Debugging
 #ifdef _WIN32
-	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false;
+	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false; // Page Down
 		else if (GetAsyncKeyState(VK_HOME) && !g_DebugComm ) g_DebugComm = true;
 
-	if( GetAsyncKeyState(VK_PRIOR) && g_DebugData ) g_DebugData = false;
+	if( GetAsyncKeyState(VK_PRIOR) && g_DebugData ) g_DebugData = false; // Page Up
 		else if (GetAsyncKeyState(VK_PRIOR) && !g_DebugData ) g_DebugData = true;
 
-	if( GetAsyncKeyState(VK_NEXT) && g_DebugAccelerometer ) g_DebugAccelerometer = false;
+	if( GetAsyncKeyState(VK_NEXT) && g_DebugAccelerometer ) g_DebugAccelerometer = false; // Home
 		else if (GetAsyncKeyState(VK_NEXT) && !g_DebugAccelerometer ) g_DebugAccelerometer = true;
+
+	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; Console::Print("Custom Debug: Off\n");} // End
+		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; Console::Print("Custom Debug: Off\n");}
 #endif
 }
 
@@ -353,6 +393,17 @@ bool IsFocus()
 #endif
 }
 
+// Turn off all extensions
+void DisableExtensions()
+{
+	//g_Config.bMotionPlus = false;
+	g_Config.bNunchuckConnected = false;
+	g_Config.bClassicControllerConnected = false;
+	//g_Config.bBalanceBoard = false;
+	//g_Config.bGuitar = false;
+	//g_Config.bDrums = false;
+}
+
 void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
@@ -361,32 +412,38 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 	int size;
 	bool DataReport = false;
-	std::string Name;
+	std::string Name, TmpData;
 	switch(data[1])
 	{
 	case WM_STATUS_REPORT: // 0x20
 		size = sizeof(wm_status_report);
 		Name = "WM_STATUS_REPORT";
 		{
-			/*wm_status_report* pStatus = (wm_status_report*)(data + 2);
-			Console::Print(""
+			wm_status_report* pStatus = (wm_status_report*)(data + 2);
+			Console::Print("\n"
 				"Extension Controller: %i\n"
-				"Speaker enabled: %i\n"
-				"IR camera enabled: %i\n"
-				"LED 1: %i\n"
-				"LED 2: %i\n"
-				"LED 3: %i\n"
-				"LED 4: %i\n"
+				//"Speaker enabled: %i\n"
+				//"IR camera enabled: %i\n"
+				//"LED 1: %i\n"
+				//"LED 2: %i\n"
+				//"LED 3: %i\n"
+				//"LED 4: %i\n"
 				"Battery low: %i\n\n",
 				pStatus->extension,
-				pStatus->speaker,
-				pStatus->ir,
-				(pStatus->leds >> 0),
-				(pStatus->leds >> 1),
-				(pStatus->leds >> 2),
-				(pStatus->leds >> 3),
+				//pStatus->speaker,
+				//pStatus->ir,
+				//(pStatus->leds >> 0),
+				//(pStatus->leds >> 1),
+				//(pStatus->leds >> 2),
+				//(pStatus->leds >> 3),
 				pStatus->battery_low
-				);*/
+				);
+			// Update the global extension settings
+			if(!Emu && !pStatus->extension)
+			{
+				DisableExtensions();
+				if (frame) frame->UpdateGUI();
+			}
 		}
 		break;
 	case WM_READ_DATA_REPLY: // 0x21
@@ -395,17 +452,56 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// data[4]: Size and error
 		// data[5, 6]: The registry offset
 
-		// Show the accelerometer neutral values
-		if (data[5] == 0x00 && data[6] == 0x10)
+		// Show the extension ID
+		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
-			Console::Print("\nGame got the Wiimote accelerometer neutral values: %i %i %i\n\n",
-				data[13], data[14], data[19]);
+			if(data[4] == 0x10)
+				Console::Print("\n\nGame got the encrypted extension ID: %02x%02x\n", data[7], data[8]);
+			else if(data[4] == 0x50)
+				Console::Print("\n\nGame got the encrypted extension ID: %02x%02x%02x%02x%02x%02x\n", data[7], data[8], data[9], data[10], data[11], data[12]);
+
+			// We have already sent the data report so we can safely decrypt it now
+			if(WiiMoteEmu::g_Encryption)
+			{
+				if(data[4] == 0x10)
+					wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x06, (data[4] >> 0x04) + 1);
+				if(data[4] == 0x50)
+					wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x02, (data[4] >> 0x04) + 1);
+			}
+
+			// Update the global extension settings
+			if(data[4] == 0x10)
+			{
+				if (!Emu) DisableExtensions();
+				if (!Emu && data[7] == 0x00 && data[8] == 0x00) g_Config.bNunchuckConnected = true;
+				if (!Emu && data[7] == 0x01 && data[8] == 0x01) g_Config.bClassicControllerConnected = true;
+				g_Config.Save();
+				WiiMoteEmu::UpdateEeprom();
+				if (frame) frame->UpdateGUI();
+				Console::Print("Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
+			}
+			else if(data[4] == 0x50)
+			{
+				if (!Emu) DisableExtensions();
+				if (!Emu && data[11] == 0x00 && data[12] == 0x00) g_Config.bNunchuckConnected = true;
+				if (!Emu && data[11] == 0x01 && data[12] == 0x01) g_Config.bClassicControllerConnected = true;
+				g_Config.Save();
+				WiiMoteEmu::UpdateEeprom();
+				if (frame) frame->UpdateGUI();
+				Console::Print("Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
+			}
 		}
+
 		// Show the nunchuck neutral values
-		// We have already sent the data report so we can safely decrypt it now
-		wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[7], 0x00, Size - 7);
-		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x20)
+		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
+			// Save the encrypted data
+			TmpData = StringFromFormat("Read[%s] (enc): %s\n", (Emu ? "Emu" : "Real"), ArrayToString(data, size + 2, 0, 30).c_str()); 
+
+			// We have already sent the data report so we can safely decrypt it now
+			if(WiiMoteEmu::g_Encryption)
+				wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
+
 			Console::Print("\nGame got the Nunchuck calibration:\n");
 			Console::Print("Cal_zero.x: %i\n", data[7 + 0]);
 			Console::Print("Cal_zero.y: %i\n", data[7 + 1]);
@@ -419,6 +515,22 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			Console::Print("Js.Max.y: %i\n",  data[7 + 11]);
 			Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
 			Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
+
+			// Save the values
+			if (!Emu && data[7 + 0] != 0xff)
+			{
+				memcpy(WiiMoteEmu::g_RegExt + 0x20, &data[7], 0x10);
+				memcpy(WiiMoteEmu::g_RegExt + 0x30, &data[7], 0x10);
+			}
+			// We got a third party nunchuck
+			else if(data[7 + 0] == 0xff)
+			{
+				memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::wireless_nunchuck_calibration, sizeof(WiiMoteEmu::wireless_nunchuck_calibration));
+				memcpy(WiiMoteEmu::g_RegExt + 0x30, WiiMoteEmu::wireless_nunchuck_calibration, sizeof(WiiMoteEmu::wireless_nunchuck_calibration));
+			}
+
+			// Show the encrypted data
+			Console::Print("%s", TmpData.c_str());
 		}
 		
 		break;
@@ -459,7 +571,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		DataReport = true;
 		break;
 	default:
-		PanicAlert("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		//PanicAlert("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		Console::Print("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		return;
 	}
 
@@ -513,29 +626,31 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	//
 	const u8* data = (const u8*)_pData;
 	
-	if (g_DebugComm) Console::Print("Write[%s] ", (Emu ? "Emu" : "Real"));
-
+	std::string Name;
 	int size;
+
+	if (g_DebugComm) Name += StringFromFormat("Write[%s] ", (Emu ? "Emu" : "Real"));
+	
 	switch(data[1])
 	{
 	case 0x10:
 		size = 4; // I don't know the size
-		if (g_DebugComm) Console::Print("0x10");
+		if (g_DebugComm) Name.append("0x10");
 		break;
 	case WM_LEDS: // 0x11
 		size = sizeof(wm_leds);
-		if (g_DebugComm) Console::Print("WM_LEDS");
+		if (g_DebugComm) Name.append("WM_LEDS");
 		break;
 	case WM_DATA_REPORTING: // 0x12
 		size = sizeof(wm_data_reporting);
-		if (g_DebugComm) Console::Print("WM_DATA_REPORTING");
+		if (g_DebugComm) Name.append("WM_DATA_REPORTING");
 		break;
 	case WM_REQUEST_STATUS: // 0x15
 		size = sizeof(wm_request_status);
-		if (g_DebugComm) Console::Print("WM_REQUEST_STATUS");
+		if (g_DebugComm) Name.append("WM_REQUEST_STATUS");
 		break;
 	case WM_WRITE_DATA: // 0x16
-		if (g_DebugComm) Console::Print("WM_WRITE_DATA");
+		if (g_DebugComm) Name.append("WM_WRITE_DATA");
 		size = sizeof(wm_write_data);
 		// data[2]: The address space 0, 1 or 2
 		// data[3]: The registry type
@@ -544,17 +659,27 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		switch(data[2] >> 0x01)
 		{
 		case WM_SPACE_EEPROM: 
-			if (g_DebugComm) Console::Print(" REG_EEPROM"); break;
+			if (g_DebugComm) Name.append(" REG_EEPROM"); break;
 		case WM_SPACE_REGS1:
 		case WM_SPACE_REGS2:
 			switch(data[3])
 			{
 			case 0xa2:
-				if (g_DebugComm) Console::Print(" REG_SPEAKER"); break;
+				if (g_DebugComm) Name.append(" REG_SPEAKER"); break;
 			case 0xa4:
-				if (g_DebugComm) Console::Print(" REG_EXT"); break;
+				if (g_DebugComm) Name.append(" REG_EXT");
+				// Update the encryption mode
+				if (data[3] == 0xa4 && data[5] == 0xf0)
+				{
+					if (data[7] == 0xaa)
+						WiiMoteEmu::g_Encryption = true;
+					else if (data[7] == 0x55)
+						WiiMoteEmu::g_Encryption = false;
+					Console::Print("\nExtension enryption turned %s\n\n", WiiMoteEmu::g_Encryption ? "On" : "Off");
+				}		
+				break;
 			case 0xb0:
-				 if (g_DebugComm) Console::Print(" REG_IR"); break;
+				 if (g_DebugComm) Name.append(" REG_IR"); break;
 			}
 			break;
 		}
@@ -565,33 +690,33 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		// data[3]: The registry type
 		// data[5]: The registry offset
 		// data[7]: The number of bytes, 6 and 7 together
-		if (g_DebugComm) Console::Print("WM_READ_DATA");
+		if (g_DebugComm) Name.append("WM_READ_DATA");
 		switch(data[2] >> 0x01)
 		{
 		case WM_SPACE_EEPROM:
-			if (g_DebugComm) Console::Print(" REG_EEPROM"); break;
+			if (g_DebugComm) Name.append(" REG_EEPROM"); break;
 		case WM_SPACE_REGS1:
 		case WM_SPACE_REGS2:
 			switch(data[3])
 			{
 			case 0xa2:
-				if (g_DebugComm) Console::Print(" REG_SPEAKER"); break;
+				if (g_DebugComm) Name.append(" REG_SPEAKER"); break;
 			case 0xa4:
-				 if (g_DebugComm) Console::Print(" REG_EXT"); break;
+				 if (g_DebugComm) Name.append(" REG_EXT"); break;
 			case 0xb0:
-				if (g_DebugComm) Console::Print(" REG_IR"); break;
+				if (g_DebugComm) Name.append(" REG_IR"); break;
 			}
 			break;
 		}
 		break;
 	case WM_IR_PIXEL_CLOCK: // 0x13
 	case WM_IR_LOGIC: // 0x1a
-		if (g_DebugComm) Console::Print("WM_IR");
+		if (g_DebugComm) Name.append("WM_IR");
 		size = 1;
 		break;
 	case WM_SPEAKER_ENABLE: // 0x14
 	case WM_SPEAKER_MUTE:
-		if (g_DebugComm) Console::Print("WM_SPEAKER");
+		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
 		break;
 	default:
@@ -603,7 +728,7 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		Console::Print(": %s\n",  Temp.c_str()); // No timestamp
+		Console::Print("%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 }

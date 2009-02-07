@@ -232,8 +232,31 @@ void UpdateEeprom()
 	g_accel.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
 	g_accel.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
+	g_nu.cal_zero.x = g_RegExt[0x20];
+	g_nu.cal_zero.y = g_RegExt[0x21];
+	g_nu.cal_zero.z = g_RegExt[0x22];
+	g_nu.jx.max = g_RegExt[0x28];
+	g_nu.jx.min = g_RegExt[0x29];
+	g_nu.jx.center = g_RegExt[0x2a];
+	g_nu.jy.max = g_RegExt[0x2b];
+	g_nu.jy.min = g_RegExt[0x2c];
+	g_nu.jy.center = g_RegExt[0x2d];
+
 	Console::Print("UpdateEeprom: %i %i %i\n",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+}
+
+// Calculate checksum for the nunchuck calibration. The last two bytes.
+void ExtensionChecksum(u8 * Calibration)
+{
+	u8 sum = 0; u8 Byte15, Byte16;
+	for (int i = 0; i < sizeof(Calibration) - 2; i++)
+	{
+		sum += Calibration[i];
+		printf("Plus 0x%02x\n", Calibration[i]);
+	}
+	Byte15 = sum + 0x55; // Byte 15
+	Byte16 = sum + 0xaa; // Byte 16
 }
 
 // Set initial values
@@ -246,6 +269,7 @@ void ResetVariables()
 
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
+	g_Encryption = false;
 
 	g_EmulatedWiiMoteInitialized = false;
 }
@@ -277,11 +301,13 @@ void Initialize()
 	if(g_Config.bNunchuckConnected)
 	{
 		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
 		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
 	}
 	else if(g_Config.bClassicControllerConnected)
 	{
 		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 

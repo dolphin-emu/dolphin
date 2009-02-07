@@ -177,12 +177,6 @@ void ReadData()
 				// Copy Buffer to LastReport
 				memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
 				m_LastReportValid = true;
-
-				/* Check if the data reporting mode is okay. This should not cause any harm outside the dual mode
-				   (being able to switch between the real and emulated wiimote) because WiiMoteEmu::g_ReportingMode
-				   should always have the right reporting mode. */
-				if (g_EmulatorRunning && pBuffer[0] != WiiMoteEmu::g_ReportingMode)
-					SetDataReportingMode();
 			}
 			else
 			{
@@ -327,89 +321,6 @@ void ClearEvents()
 		g_WiiMotes[i]->ClearEvents();
 }
 
-// Update the data reporting mode if we are switching between the emulated and the real Wiimote
-void SetDataReportingMode(u8 ReportingMode)
-{
-	// Don't allow this to run to often
-	if (Common::Timer::GetTimeSinceJan1970() == g_UpdateTime) return;
-
-	// Save the time
-	g_UpdateTime = Common::Timer::GetTimeSinceJan1970();
-
-	// Decide if we should we use custom values
-	if (ReportingMode == 0) ReportingMode = WiiMoteEmu::g_ReportingMode;
-
-	// Just in case this should happen
-	if (ReportingMode == 0) ReportingMode = 0x30;
-
-	// Shortcut
-	wiimote_t* wm = WiiMoteReal::g_WiiMotesFromWiiUse[0];
-
-	switch(ReportingMode) // See Wiimote_Update()
-	{
-	case WM_REPORT_CORE:
-		wiiuse_motion_sensing(wm, 0);
-		wiiuse_set_ir(wm, 0);
-		break;
-	case WM_REPORT_CORE_ACCEL:
-		wiiuse_motion_sensing(wm, 1);
-		wiiuse_set_ir(wm, 0);
-		break;
-	case WM_REPORT_CORE_ACCEL_IR12:
-		wiiuse_motion_sensing(wm, 1);
-		wiiuse_set_ir(wm, 1);
-		break;
-	case WM_REPORT_CORE_ACCEL_EXT16:
-		wiiuse_motion_sensing(wm, 1);
-		wiiuse_set_ir(wm, 0);
-		break;
-	case WM_REPORT_CORE_ACCEL_IR10_EXT6:
-		wiiuse_motion_sensing(wm, 1);
-		wiiuse_set_ir(wm, 1);
-		break;
-	}
-
-	/* On occasion something in this function caused an instant reboot of Windows XP SP3
-	   with Bluesoleil 6. So I'm trying to use the API functions to reach the same goal. */
-	/*byte DataReporting[MAX_PAYLOAD];
-	byte IR0[MAX_PAYLOAD];
-	byte IR1[MAX_PAYLOAD];
-
-	DataReporting[0] = 0x12; // Report 0x12
-	DataReporting[1] = 0x06; // Continuous reporting
-	DataReporting[2] = ReportingMode; // Reporting mode
-
-	IR0[0] = 0x13; // Report 0x13
-	if (IR) IR0[1] = 0x06; else IR0[1] = 0x02;
-	IR1[0] = 0x1a; // Report 0x1a
-	if (IR) IR1[1] = 0x06; else IR1[1] = 0x02;
-
-	// Calibrate IR
-	static const u8 IR_0[] = { 0x16, 0x04, 0xb0, 0x00, 0x30, 0x01,
-		0x01 };
-	static const u8 IR_1[] = { 0x16, 0x04, 0xb0, 0x00, 0x00, 0x09,
-		0x02, 0x00, 0x00, 0x71, 0x01, 0x00, 0xaa, 0x00, 0x64 };
-	static const u8 IR_2[] = { 0x16, 0x04, 0xb0, 0x00, 0x1a, 0x02,
-		0x63, 0x03 };
-	static const u8 IR_3[] = { 0x16, 0x04, 0xb0, 0x00, 0x33, 0x01,
-		0x03 };
-	static const u8 IR_4[] = { 0x16, 0x04, 0xb0, 0x00, 0x30, 0x01,
-		0x08 };
-
-	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataReporting, MAX_PAYLOAD);
-	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR0, MAX_PAYLOAD);
-	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR1, MAX_PAYLOAD);
-
-	if (IR)
-	{
-		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_0, MAX_PAYLOAD);
-		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_1, MAX_PAYLOAD);
-		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_2, MAX_PAYLOAD);
-		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_3, MAX_PAYLOAD);
-		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_4, MAX_PAYLOAD);
-	}*/
-}
-
 // Flash lights, and if connecting, also rumble
 void FlashLights(bool Connect)
 {
@@ -458,7 +369,7 @@ int Initialize()
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 		g_WiiMotes[i] = new CWiiMote(i + 1, g_WiiMotesFromWiiUse[i]);
 
-	// Create a nee thread and start listening for Wiimote data
+	// Create a new thread and start listening for Wiimote data
 	if (g_NumberOfWiiMotes > 0)
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
 
@@ -472,12 +383,11 @@ int Initialize()
 	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
 
-	// Update the global extension settings
-	g_Config.bNunchuckConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_NUNCHUK);
-	g_Config.bClassicControllerConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_CLASSIC);
+	// Don't run the Wiimote thread if no wiimotes were found
+	if (g_NumberOfWiiMotes > 0) g_Shutdown = false;
 
-	// Initialized
-	if (g_NumberOfWiiMotes > 0) { g_RealWiiMoteInitialized = true; g_Shutdown = false; }
+	// Initialized, even if we didn't find a Wiimote
+	g_RealWiiMoteInitialized = true;
 	
     return g_NumberOfWiiMotes;
 }
@@ -509,9 +419,6 @@ void Shutdown(void)
 
 	// Clean up wiiuse
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
-
-	// Uninitialized
-	g_RealWiiMoteInitialized = false;
 
 	// Uninitialized
 	g_RealWiiMoteInitialized = false;

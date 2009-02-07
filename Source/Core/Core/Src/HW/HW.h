@@ -26,6 +26,7 @@ namespace HW
 	void Init();
 	void Shutdown();
 	void DoState(PointerWrap &p);
+	void InitWiimote();
 }
 
 #endif

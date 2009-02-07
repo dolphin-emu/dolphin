@@ -144,6 +144,12 @@ bool GetRealWiimote()
 {
     return g_bRealWiimote;
 }
+// This doesn't work yet, I don't understand how the connection work yet
+void ReconnectWiimote()
+{
+	HW::InitWiimote();
+	Console::Print("ReconnectWiimote()\n");
+}
 /////////////////////////////////////
  
  
@@ -293,7 +299,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
 
 	HW::Init();	
- 
+
 	emuThreadGoing.Set();
  
 	// Load the VideoPlugin
