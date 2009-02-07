@@ -336,7 +336,7 @@ int Search_Devices()
 	// Warn the user if no gamepads are detected
 	if (NumGoodPads == 0 && emulator_running)
 	{
-		PanicAlert("No Joystick detected");
+		PanicAlert("nJoy: No Gamepad Detected");
 		return joyinfo.size();
 	}
 

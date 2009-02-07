@@ -531,7 +531,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 }
 
 // ===================================================
-/* Here we produce a status report to send to the Wii. We currently ignore the status
+/* Here we produce a 0x20 status report to send to the Wii. We currently ignore the status
    request rs and all its eventual instructions it may include (for example turn off
    rumble or something else) and just send the status report. */
 // ----------------

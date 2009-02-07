@@ -96,6 +96,9 @@ void DEBUG_QUIT()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Config::Save(int Slot)
 {
+	// If there are no good pads don't save
+	if (NumGoodPads == 0) return;
+
 	// Load ini file
 	IniFile file;
 	file.Load("nJoy.ini");
@@ -180,6 +183,9 @@ void Config::Save(int Slot)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Config::Load(bool ChangePad, bool ChangeSaveByID)
 {
+	// If there are no good pads don't load
+	if (NumGoodPads == 0) return;
+
 	// Load file
 	IniFile file;
 	file.Load("nJoy.ini");

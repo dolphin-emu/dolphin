@@ -372,17 +372,22 @@ void ConfigBox::SetButtonTextAll(int id, char text[128])
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
-			SetButtonText(id, text, i);
+		// Safety check to avoid crash
+		if(joyinfo.size() > PadMapping[i].ID)
+			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
+				SetButtonText(id, text, i);
 	};
 }
 
 void ConfigBox::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < 4; i++)
-		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
-			SaveButtonMapping(i, false, Slot);
-	
+	{
+		// This can occur when no gamepad is detected
+		if(joyinfo.size() > PadMapping[i].ID)
+			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+				SaveButtonMapping(i, false, Slot);
+	}
 }
 
 void ConfigBox::UpdateGUIAll(int Slot)
@@ -394,8 +399,12 @@ void ConfigBox::UpdateGUIAll(int Slot)
 	else
 	{
 		for (int i = 0; i < 4; i++)
-			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
-				UpdateGUI(i);
+		{
+			// Safety check to avoid crash
+			if(joyinfo.size() > PadMapping[i].ID)
+				if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+					UpdateGUI(i);
+		}
 	}
 }
 
@@ -455,6 +464,13 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 // Called from: CreateGUIControls(), ChangeControllertype()
 void ConfigBox::UpdateGUI(int _notebookpage)
 {
+	// If there are no good pads disable the entire notebook
+	if (NumGoodPads == 0)
+	{
+		m_Notebook->Enable(false);
+		return;
+	}
+
 	// Update the GUI from PadMapping[]
 	UpdateGUIKeys(_notebookpage);
 
@@ -596,7 +612,7 @@ void ConfigBox::CreateGUIControls()
 	}
 	else
 	{
-		arrayStringFor_Joyname.Add(wxString::FromAscii("No Joystick detected!"));
+		arrayStringFor_Joyname.Add(wxString::FromAscii("<No Gamepad Detected>"));
 	}
 
 	// --------------------------------------------------------------------
