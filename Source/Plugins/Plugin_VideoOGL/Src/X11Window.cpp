@@ -265,10 +265,11 @@ bool X11Window::MakeCurrent() {
                  &w, &h, &borderDummy, &depth);
 
     ERROR_LOG("GLWin Depth %d", depth);
-    if (glXIsDirect(dpy, ctx)) 
+    if (glXIsDirect(dpy, ctx)) {
         ERROR_LOG("you have Direct Rendering!");
-    else
+    } else {
         ERROR_LOG("no Direct Rendering possible!");
+	}
 
     // better for pad plugin key input (thc)
     XSelectInput(dpy, win, ExposureMask | KeyPressMask | ButtonPressMask | 
