@@ -98,6 +98,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
 
 	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)
+	EVT_TIMER(IDTM_UPDATE_ONCE, ConfigDialog::UpdateOnce)
 	EVT_TIMER(IDTM_SHUTDOWN, ConfigDialog::ShutDown)
 END_EVENT_TABLE()
 //////////////////////////////////////
@@ -113,13 +114,14 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	#if wxUSE_TIMER
 		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
 		m_ShutDownTimer = new wxTimer(this, IDTM_SHUTDOWN);
-		m_TimeoutATimer = new wxTimer(this, IDTM_UPDATEA);
+		m_TimeoutOnce = new wxTimer(this, IDTM_UPDATE_ONCE);
 		// Reset values
 		m_bWaitForRecording = false;
 		m_bRecording = false;
 	#endif
 
 	ControlsCreated = false;
+	m_bEnableUseRealWiimote = true;
 	Page = 0;
 	m_vRecording.resize(RECORDING_ROWS + 1);
 
@@ -200,6 +202,20 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 
 void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
+}
+
+// Execute a delayed function
+void ConfigDialog::UpdateOnce(wxTimerEvent& event)
+{
+	switch(event.GetId())
+	{
+	case IDTM_UPDATE_ONCE:
+		// Reenable the checkbox
+		m_bEnableUseRealWiimote = true;
+		SetCursor(wxCursor(wxCURSOR_ARROW));
+		UpdateGUI();
+		break;
+	}
 }
 //////////////////////////////////////
 
@@ -811,13 +827,21 @@ void ConfigDialog::DoUseReal()
 
 	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
-	// Sleep this thread
-	sleep(100);
+
+	// Disable the checkbox for a moment
+	SetCursor(wxCursor(wxCURSOR_WAIT));
+	m_bEnableUseRealWiimote = false;
+	// We don't need this, there is already a message queue that allows the nessesary timeout
+	//sleep(100);
+
 	UsingExtension = !UsingExtension;
 	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
-	// Sleep again, to allow the approximate time it takes for the Wiimote to come online
-	sleep(200);
+
+	/* Start the timer to allow the approximate time it takes for the Wiimote to come online
+	   it would simpler to use sleep(1000) but that doesn't work because we need the functions in main.cpp
+	   to work */
+	m_TimeoutOnce->Start(1000, true);
 }
 
 // ===================================================
@@ -880,9 +904,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bNunchuckConnected = m_NunchuckConnected[Page]->IsChecked();
 
 		// Copy the calibration data
-		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration, sizeof(WiiMoteEmu::nunchuck_calibration));
-		memcpy(WiiMoteEmu::g_RegExt + 0x30, WiiMoteEmu::nunchuck_calibration, sizeof(WiiMoteEmu::nunchuck_calibration));
-		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
+		WiiMoteEmu::SetDefaultExtensionRegistry();
 
 		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
@@ -900,9 +922,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bClassicControllerConnected = m_ClassicControllerConnected[Page]->IsChecked();
 
 		// Copy the calibration data
-		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration, sizeof(WiiMoteEmu::classic_calibration));
-		memcpy(WiiMoteEmu::g_RegExt + 0x30, WiiMoteEmu::classic_calibration, sizeof(WiiMoteEmu::classic_calibration));
-		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
+		WiiMoteEmu::SetDefaultExtensionRegistry();
 		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
 		break;
@@ -977,7 +997,7 @@ void ConfigDialog::UpdateGUI()
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
-	m_UseRealWiimote[Page]->Enable((g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || !g_EmulatorRunning);
+	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || !g_EmulatorRunning);
 
 	// Linux has no FindItem()
 	#ifdef _WIN32

@@ -424,13 +424,6 @@ void ConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 	UpdateGUI();
 }
 
-// One second timeout for another A press
-void ConfigDialog::UpdateA(wxTimerEvent& WXUNUSED(event))
-{
-	m_bAllowA = true;
-	Console::Print("A allowed again");
-}
-
 void ConfigDialog::RecordMovement(wxCommandEvent& event)
 {
 	m_iRecordTo = event.GetId() - 2000;
@@ -460,7 +453,6 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 	UpdateGUI();
 
 	m_TimeoutTimer->Start(5000, true);
-	//m_TimeoutATimer->Start(500, true);
 }
 
 void ConfigDialog::DoRecordA(bool Pressed)

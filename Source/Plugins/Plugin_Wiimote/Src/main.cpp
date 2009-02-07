@@ -517,10 +517,21 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
 
 			// Save the values
-			if (!Emu && data[7 + 0] != 0xff)
+			if (!Emu)
 			{
-				memcpy(WiiMoteEmu::g_RegExt + 0x20, &data[7], 0x10);
-				memcpy(WiiMoteEmu::g_RegExt + 0x30, &data[7], 0x10);
+				// Save the values from the Nunchuck
+				if(data[7 + 0] != 0xff)
+				{
+					memcpy(WiiMoteEmu::g_RegExt + 0x20, &data[7], 0x10);
+					memcpy(WiiMoteEmu::g_RegExt + 0x30, &data[7], 0x10);
+					
+				}
+				// Save the default values that should work with Wireless Nunchucks
+				else
+				{
+					WiiMoteEmu::SetDefaultExtensionRegistry();
+				}
+				WiiMoteEmu::UpdateEeprom();
 			}
 			// We got a third party nunchuck
 			else if(data[7 + 0] == 0xff)

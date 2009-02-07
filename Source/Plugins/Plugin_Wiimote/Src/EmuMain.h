@@ -28,7 +28,7 @@ u32 convert24bit(const u8* src);
 u16 convert16bit(const u8* src);
 void GetMousePos(float& x, float& y);
 
-void UpdateEeprom();
+// General functions
 void Initialize();
 void DoState(void* ptr, int mode);
 void Shutdown(void);
@@ -36,7 +36,12 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
 
+// Recordings
 void LoadRecordedMovements();
+
+// Registers and calibration values
+void UpdateEeprom();
+void SetDefaultExtensionRegistry();
 
 };
 

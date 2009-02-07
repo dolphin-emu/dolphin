@@ -60,15 +60,15 @@ class ConfigDialog : public wxDialog
 		void DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int IRBytes);
 		void DoRecordA(bool Pressed);
 		void ConvertToString();
-		wxTimer *m_TimeoutTimer, *m_ShutDownTimer, *m_TimeoutATimer;
+		wxTimer *m_TimeoutTimer, *m_ShutDownTimer, *m_TimeoutOnce;
 		void Update(wxTimerEvent& WXUNUSED(event));
 		void ShutDown(wxTimerEvent& WXUNUSED(event));
-		void UpdateA(wxTimerEvent& WXUNUSED(event));
+		void UpdateOnce(wxTimerEvent& event);
 
 	private:
 		DECLARE_EVENT_TABLE();
 
-		bool ControlsCreated; int Page, BoxW, BoxH;
+		bool ControlsCreated, m_bEnableUseRealWiimote; int Page, BoxW, BoxH;
 
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4], *m_PageRecording;
@@ -131,7 +131,7 @@ class ConfigDialog : public wxDialog
 			ID_CLOSE = 1000,
 			ID_APPLY,
 			ID_ABOUTOGL,
-			IDTM_EXIT, IDTM_UPDATE, IDTM_SHUTDOWN, IDTM_UPDATEA, // Timer
+			IDTM_EXIT, IDTM_UPDATE, IDTM_SHUTDOWN, IDTM_UPDATE_ONCE, // Timer
 
 			ID_NOTEBOOK, ID_CONTROLLERPAGE1, ID_CONTROLLERPAGE2, ID_CONTROLLERPAGE3, ID_CONTROLLERPAGE4, ID_PAGE_RECORDING,
 

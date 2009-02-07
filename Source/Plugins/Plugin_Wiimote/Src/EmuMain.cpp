@@ -234,7 +234,7 @@ void UpdateEeprom()
 
 	g_nu.cal_zero.x = g_RegExt[0x20];
 	g_nu.cal_zero.y = g_RegExt[0x21];
-	g_nu.cal_zero.z = g_RegExt[0x22];
+	g_nu.cal_zero.z = g_RegExt[0x26]; // Including the g-force
 	g_nu.jx.max = g_RegExt[0x28];
 	g_nu.jx.min = g_RegExt[0x29];
 	g_nu.jx.center = g_RegExt[0x2a];
@@ -242,8 +242,12 @@ void UpdateEeprom()
 	g_nu.jy.min = g_RegExt[0x2c];
 	g_nu.jy.center = g_RegExt[0x2d];
 
-	Console::Print("UpdateEeprom: %i %i %i\n",
+	Console::Print("\nUpdateEeprom: %i %i %i\n",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+
+	Console::Print("UpdateExtension: %i %i   %i %i %i\n\n",
+		WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
+		WiiMoteEmu::g_RegExt[20], WiiMoteEmu::g_RegExt[21], WiiMoteEmu::g_RegExt[26]);
 }
 
 // Calculate checksum for the nunchuck calibration. The last two bytes.
@@ -274,6 +278,26 @@ void ResetVariables()
 	g_EmulatedWiiMoteInitialized = false;
 }
 
+// Update the extension calibration values with our default values
+void SetDefaultExtensionRegistry()
+{
+	// Copy extension id and calibration to its register	
+	if(g_Config.bNunchuckConnected)
+	{
+		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+	}
+	else if(g_Config.bClassicControllerConnected)
+	{
+		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
+	}
+
+	UpdateEeprom();
+}
+
 // ===================================================
 /* Write initial values to Eeprom and registers. */
 // ----------------
@@ -289,27 +313,8 @@ void Initialize()
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 
-	// Write default accelerometer neutral values
-	UpdateEeprom();
-
-	/* Extension data for homebrew applications that use the 0x00000000 key. This
-	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */
-	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
-
-
 	// Copy extension id and calibration to its register	
-	if(g_Config.bNunchuckConnected)
-	{
-		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
-		memcpy(g_RegExt + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
-		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
-	}
-	else if(g_Config.bClassicControllerConnected)
-	{
-		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
-	}
+	SetDefaultExtensionRegistry();
 
 	g_ReportingMode = 0;
 	g_EmulatedWiiMoteInitialized = true;
@@ -327,7 +332,11 @@ void Initialize()
 		g_RecordingCurrentTime[i] = 0;
 	}
 
-	// I forgot what these were for?
+	/* The Nuncheck extension ID for homebrew applications that use the zero key. This writes 0x0000
+	   in encrypted form (0xfefe) to 0xfe in the extension register. */
+	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
+
+	// I forgot what these were for? Is this the zero key encrypted 0xa420?
 	//	g_RegExt[0xfd] = 0x1e;
 	//	g_RegExt[0xfc] = 0x9a;
 }
