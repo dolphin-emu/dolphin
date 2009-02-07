@@ -94,11 +94,6 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 bool
 CBannerLoaderGC::GetName(std::string _rName[])
 {
-	for (int i = 0; i < 6; i++)
-	{
-		_rName[i] = "no name";
-	}
-
 	bool returnCode = false;
 
 	if (!IsValid())
@@ -143,7 +138,7 @@ CBannerLoaderGC::GetName(std::string _rName[])
 bool
 CBannerLoaderGC::GetCompany(std::string& _rCompany)
 {
-	_rCompany = "invalid images";
+	_rCompany = "N/A";
 
 	if (!IsValid())
 	{
@@ -164,11 +159,6 @@ CBannerLoaderGC::GetCompany(std::string& _rCompany)
 bool
 CBannerLoaderGC::GetDescription(std::string* _rDescription)
 {
-	for (int i = 0; i< 6; i++)
-	{
-		_rDescription[i] = "";
-	}
-
 	bool returnCode = false;
 
 	if (!IsValid())

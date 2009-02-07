@@ -59,6 +59,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		if (pVolume != NULL)
 		{
 			m_Name[0] = _rFileName;
+			m_Company = "N/A";
+			m_Description[0] = "No Description";
 			m_Country  = pVolume->GetCountry();
 			m_FileSize = File::GetSize(_rFileName.c_str());
 			m_VolumeSize = pVolume->GetSize();

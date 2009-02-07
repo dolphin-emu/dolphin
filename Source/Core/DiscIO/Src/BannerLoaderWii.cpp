@@ -73,53 +73,42 @@ CBannerLoaderWii::IsValid()
 bool
 CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 {
-	if (!IsValid())
+	if (IsValid())
 	{
-		return false;
-	}
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+		static u32 Buffer[192 * 64];
+		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
 
-	static u32 Buffer[192 * 64];
-	decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
-
-	// ugly scaling :)
-	for (int y=0; y<32; y++)
-	{
-		for (int x=0; x<96; x++)
+		// ugly scaling :)
+		for (int y=0; y<32; y++)
 		{
-			_pBannerImage[y*96+x] = Buffer[(y*192*2)+(x*2)];
-		}
+			for (int x=0; x<96; x++)
+			{
+				_pBannerImage[y*96+x] = Buffer[(y*192*2)+(x*2)];
+			}
+		}	
 	}
-
-
 	return true;
 }
 
 bool
 CBannerLoaderWii::GetName(std::string* _rName)
 {
-	for (int i = 0; i < 6; i++)
+	if (IsValid())
 	{
-		_rName[i] = "no name";
-	}
+		// find Banner type
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-	if (!IsValid())
-	{
-		return false;
-	}
-
-	// find Banner type
-	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-
-	std::string name;
-	if (CopyBeUnicodeToString(name, pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE))
-	{
-		for (int i = 0; i < 6; i++)
+		std::string name;
+		if (CopyBeUnicodeToString(name, pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE))
 		{
-			_rName[i] = name;
-		}
-		return true;
+			for (int i = 0; i < 6; i++)
+			{
+				_rName[i] = name;
+			}
+			return true;
+		}	
 	}
 	return false;
 }
@@ -136,27 +125,20 @@ CBannerLoaderWii::GetCompany(std::string& _rCompany)
 bool
 CBannerLoaderWii::GetDescription(std::string* _rDescription)
 {
-	for (int i = 0; i< 6; i++)
+	if (IsValid())
 	{
-		_rDescription[i] = "";
-	}
+		// find Banner type
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-	if (!IsValid())
-	{
-		return false;
-	}
-
-	// find Banner type
-	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-
-	std::string description;
-	if (CopyBeUnicodeToString(description, pBanner->m_Comment[1], WII_BANNER_COMMENT_SIZE))
-	{
-		for (int i = 0; i< 6; i++)
+		std::string description;
+		if (CopyBeUnicodeToString(description, pBanner->m_Comment[1], WII_BANNER_COMMENT_SIZE))
 		{
-			_rDescription[i] = description;
+			for (int i = 0; i< 6; i++)
+			{
+				_rDescription[i] = description;
+			}
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
