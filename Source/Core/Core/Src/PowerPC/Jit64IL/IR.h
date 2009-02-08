@@ -201,6 +201,7 @@ namespace IREmitter {
 	}
 
 	class IRBuilder {
+	private:
 		InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
 		InstLoc EmitUOp(unsigned OpCode, InstLoc Op1,
 				unsigned extra = 0);
@@ -229,7 +230,7 @@ namespace IREmitter {
 
 		unsigned ComputeKnownZeroBits(InstLoc I);
 
-		public:
+	public:
 		InstLoc EmitIntConst(unsigned value);
 		InstLoc EmitStoreLink(InstLoc val) {
 			return FoldUOp(StoreLink, val);

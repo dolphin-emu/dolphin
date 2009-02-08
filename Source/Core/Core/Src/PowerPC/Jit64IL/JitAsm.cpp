@@ -75,6 +75,7 @@ void AsmRoutineManager::Generate()
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit.GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
+//	INT3();
 
 	const u8 *outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
@@ -389,7 +390,7 @@ void AsmRoutineManager::GenQuantizedLoads() {
 	PUNPCKLWD(XMM0, R(XMM1));
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	RET();
@@ -407,7 +408,7 @@ void AsmRoutineManager::GenQuantizedLoads() {
 	PSRAD(XMM0, 24);
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	RET();
@@ -426,7 +427,7 @@ void AsmRoutineManager::GenQuantizedLoads() {
 	PUNPCKLWD(XMM0, R(XMM1));
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	RET();
@@ -446,7 +447,7 @@ void AsmRoutineManager::GenQuantizedLoads() {
 	CVTDQ2PS(XMM0, R(XMM0));
 	SHR(32, R(EAX), Imm8(6));
 	AND(32, R(EAX), Imm32(0xFC));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	RET();

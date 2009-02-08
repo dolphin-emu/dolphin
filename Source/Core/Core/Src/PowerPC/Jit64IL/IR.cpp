@@ -180,8 +180,7 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 }
 
 #if 0
-InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2,
-			   InstLoc Op3) {
+InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc Op3) {
 	InstLoc curIndex = &InstList[InstList.size()];
 	unsigned backOp1 = curIndex - 1 - Op1;
 	if (backOp1 >= 254) {
@@ -204,8 +203,7 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2,
 		backOp1++;
 		curIndex++;
 	}
-	InstList.push_back(Opcode | (backOp1 << 8) | (backOp2 << 16) |
-				    (backOp3 << 24));
+	InstList.push_back(Opcode | (backOp1 << 8) | (backOp2 << 16) | (backOp3 << 24));
 	return curIndex;
 }
 #endif
@@ -624,7 +622,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 
 InstLoc IRBuilder::EmitIntConst(unsigned value) {
 	InstLoc curIndex = &InstList[InstList.size()];
-	InstList.push_back(CInt32 | (ConstList.size() << 8));
+	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
 	ConstList.push_back(value);
 	return curIndex;
 }
@@ -751,10 +749,27 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 }
 
 // ECX is scratch, so we don't allocate it
-static X64Reg RegAllocOrder[] = {EDI, ESI, EBP, EBX, EDX, EAX};
-static unsigned RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
-static X64Reg FRegAllocOrder[] = {XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
-static unsigned FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
+#ifdef _M_X64
+
+// 64-bit - calling conventions differ between linux & windows, so...
+#ifdef _WIN32
+static const X64Reg RegAllocOrder[] = {RSI, RDI, R12, R13, R14, R8, R9, R10, R11};
+#else
+static const X64Reg RegAllocOrder[] = {RBP, R12, R13, R14, R8, R9, R10, R11};
+#endif
+static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
+static const X64Reg FRegAllocOrder[] = {XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
+static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
+
+#else
+
+// 32-bit
+static const X64Reg RegAllocOrder[] = {EDI, ESI, EBP, EBX, EDX, EAX};
+static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
+static const X64Reg FRegAllocOrder[] = {XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
+static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
+
+#endif
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
 	for (unsigned i = 0; i < RegAllocSize; i++)
@@ -957,12 +972,12 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 			if (dest)
 				*dest = regFindFreeReg(RI);
 			if (Profiled) 
-				return M((void*)((u32)Memory::base + (addr & Memory::MEMVIEW32_MASK)));
+				return M((void*)((u8*)Memory::base + (addr & Memory::MEMVIEW32_MASK)));
 			return M((void*)addr);
 #else
 			// 64-bit
 			if (Profiled) 
-				return M((void*)((u32)Memory::base + addr));
+				return M((void*)((u8*)Memory::base + addr));
 			return M((void*)addr);
 #endif
 		}
@@ -1094,7 +1109,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
 				RI.Jit->BSWAP(Size, ECX);
 			}
 			RI.Jit->MOV(32, R(EAX), M(&GPFifo::m_gatherPipeCount));
-			RI.Jit->MOV(Size, MDisp(EAX, (u32)GPFifo::m_gatherPipe), R(ECX));
+			RI.Jit->MOV(Size, MDisp(EAX, (u32)(u64)GPFifo::m_gatherPipe), R(ECX));
 			RI.Jit->ADD(32, R(EAX), Imm8(Size >> 3));
 			RI.Jit->MOV(32, M(&GPFifo::m_gatherPipeCount), R(EAX));
 			RI.Jit->js.fifoBytesThisBlock += Size >> 3;
@@ -1120,8 +1135,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
 		regClearInst(RI, getOp1(I));
 }
 
-static void regEmitShiftInst(RegInfo& RI, InstLoc I,
-			     void (Jit64::*op)(int, OpArg, OpArg))
+static void regEmitShiftInst(RegInfo& RI, InstLoc I, void (Jit64::*op)(int, OpArg, OpArg))
 {
 	X64Reg reg = regBinLHSReg(RI, I);
 	if (isImm(*getOp2(I))) {
@@ -1136,8 +1150,7 @@ static void regEmitShiftInst(RegInfo& RI, InstLoc I,
 	regNormalRegClear(RI, I);
 }
 
-static void regStoreInstToConstLoc(RegInfo& RI, unsigned width, InstLoc I,
-				   void* loc) {
+static void regStoreInstToConstLoc(RegInfo& RI, unsigned width, InstLoc I, void* loc) {
 	if (width != 32) {
 		PanicAlert("Not implemented!");
 		return;
@@ -1198,7 +1211,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 	RI.MakeProfile = false;//!RI.UseProfile;
 	// Pass to compute liveness
 	ibuild->StartBackPass();
-	for (unsigned int index = RI.IInfo.size() - 1; index != -1U; --index) {
+	for (unsigned int index = (unsigned int)RI.IInfo.size() - 1; index != -1U; --index) {
 		InstLoc I = ibuild->ReadBackward();
 		unsigned int op = getOpcode(*I);
 		bool thisUsed = regReadUse(RI, I) ? true : false;
@@ -1678,13 +1691,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regSpill(RI, EAX);
 			regSpill(RI, EDX);
 			X64Reg reg = fregFindFreeReg(RI);
-			unsigned quantreg = *I >> 16;
+			unsigned int quantreg = *I >> 16;
 			Jit->MOVZX(32, 16, EAX, M(((char *)&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
+			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
+#ifdef _M_IX86
 			Jit->SHL(32, R(EDX), Imm8(2));
+#else
+			Jit->SHL(32, R(EDX), Imm8(3));
+#endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MDisp(EDX, (u32)asm_routines.pairedLoadQuantized));
+			Jit->CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedLoadQuantized));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1736,10 +1753,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
+#ifdef _M_IX86
 			Jit->SHL(32, R(EDX), Imm8(2));
+#else
+			Jit->SHL(32, R(EDX), Imm8(3));
+#endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MDisp(EDX, (u32)asm_routines.pairedStoreQuantized));
+			Jit->CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -2102,6 +2123,6 @@ void ProfiledReJit() {
 	u8* x = (u8*)jit.GetCodePtr();
 	jit.SetCodePtr(jit.js.rewriteStart);
 	DoWriteCode(&jit.ibuild, &jit, true);
-	jit.js.curBlock->codeSize = jit.GetCodePtr() - jit.js.rewriteStart;
+	jit.js.curBlock->codeSize = (int)(jit.GetCodePtr() - jit.js.rewriteStart);
 	jit.SetCodePtr(x);
 }
