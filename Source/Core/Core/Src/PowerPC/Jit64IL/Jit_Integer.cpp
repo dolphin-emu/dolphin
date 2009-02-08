@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifdef _MSC_VER
+#pragma warning(disable:4146)  // unary minus operator applied to unsigned type, result still unsigned
+#endif
+
 #include "../../Core.h" // include "Common.h", "CoreParameter.h", SCoreStartupParameter
 #include "../PowerPC.h"
 #include "../PPCTables.h"
@@ -398,7 +402,7 @@
 	void Jit64::rlwnmx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START
-		unsigned mask = Helper_Mask(inst.MB, inst.ME);
+		unsigned int mask = Helper_Mask(inst.MB, inst.ME);
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
 		val = ibuild.EmitRol(val, ibuild.EmitLoadGReg(inst.RB));
 		val = ibuild.EmitAnd(val, ibuild.EmitIntConst(mask));
@@ -481,7 +485,7 @@
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS), test;
 		val = ibuild.EmitSarl(val, ibuild.EmitIntConst(inst.SH));
 		ibuild.EmitStoreGReg(val, inst.RA);
-		unsigned mask = -1u << inst.SH;
+		unsigned int mask = -1u << inst.SH;
 		test = ibuild.EmitOr(val, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
 		test = ibuild.EmitICmpUgt(test, ibuild.EmitIntConst(mask));
 		

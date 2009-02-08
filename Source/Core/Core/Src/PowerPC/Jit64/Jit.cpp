@@ -37,6 +37,10 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+#ifdef JITTEST
+#error Jit64 cannot have JITTEST define
+#endif
+
 using namespace Gen;
 using namespace PowerPC;
 

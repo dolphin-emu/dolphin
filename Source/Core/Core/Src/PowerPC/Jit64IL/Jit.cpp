@@ -37,6 +37,10 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+#ifndef JITTEST
+#error JitIL needs JITTEST define
+#endif
+
 using namespace Gen;
 using namespace PowerPC;
 

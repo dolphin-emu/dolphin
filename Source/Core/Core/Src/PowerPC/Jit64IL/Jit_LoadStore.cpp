@@ -108,9 +108,9 @@ void Jit64::lXzx(UGeckoInstruction inst)
 	switch (inst.SUBOP10 & ~32)
 	{
 	default: PanicAlert("lXzx: invalid access size");
-	case 23: val = ibuild.EmitLoad32(addr); break; //lwzx
+	case 23:  val = ibuild.EmitLoad32(addr); break; //lwzx
 	case 279: val = ibuild.EmitLoad16(addr); break; //lhzx
-	case 87: val = ibuild.EmitLoad8(addr);  break; //lbzx
+	case 87:  val = ibuild.EmitLoad8(addr);  break; //lbzx
 	}
 	ibuild.EmitStoreGReg(val, inst.RD);
 }

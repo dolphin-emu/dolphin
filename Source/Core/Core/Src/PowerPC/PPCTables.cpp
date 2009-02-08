@@ -311,11 +311,7 @@ static GekkoOPTemplate table31[] =
 	{24,  Interpreter::slwx,    &Jit64::slwx,     {"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
 	{54,   Interpreter::dcbst,  &Jit64::Default,  {"dcbst",  OPTYPE_DCACHE, 0, 4}},
-#if JITTEST
 	{86,   Interpreter::dcbf,   &Jit64::DoNothing,  {"dcbf",   OPTYPE_DCACHE, 0, 4}},
-#else
-	{86,   Interpreter::dcbf,   &Jit64::Default,  {"dcbf",   OPTYPE_DCACHE, 0, 4}},
-#endif
 	{246,  Interpreter::dcbtst, &Jit64::Default,  {"dcbtst", OPTYPE_DCACHE, 0, 1}},
 	{278,  Interpreter::dcbt,   &Jit64::Default,  {"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  Interpreter::dcbi,   &Jit64::Default,  {"dcbi",   OPTYPE_DCACHE, 0, 4}},

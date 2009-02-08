@@ -51,6 +51,9 @@
 */
 // =============
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4065)  // switch statement contains 'default' but no 'case' labels
+#endif
 
 #include "WII_IPC_HLE_Device_net.h"
 
@@ -204,7 +207,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
-	switch(CommandBuffer.Parameter)
+	switch (CommandBuffer.Parameter)
 	{
 	default:
 		LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);

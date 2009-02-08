@@ -220,7 +220,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	const u8* storePairedFloat = AlignCode4();
 #ifdef _M_X64
 	MOVQ_xmm(R(RAX), XMM0);
-	ROL(64, RAX, Imm8(32));
+	ROL(64, R(RAX), Imm8(32));
 	TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch argh = J_CC(CC_NZ);
 	BSWAP(64, RAX);
@@ -350,7 +350,7 @@ void AsmRoutineManager::GenQuantizedLoads() {
 #ifdef _M_X64
 		MOV(64, R(RCX), MComplex(RBX, RCX, 1, 0));
 		BSWAP(64, RCX);
-		ROL(64, RCX, Imm8(32));
+		ROL(64, R(RCX), Imm8(32));
 		MOVQ_xmm(XMM0, R(RCX));
 #else
 #if 0

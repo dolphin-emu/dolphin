@@ -126,6 +126,10 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 
 */
 
+#ifdef _MSC_VER
+#pragma warning(disable:4146)   // unary minus operator applied to unsigned type, result still unsigned
+#endif
+
 #include "IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
@@ -948,11 +952,19 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 	if (isImm(*AI)) {
 		unsigned addr = RI.Build->GetImmValue(AI);	
 		if (Memory::IsRAMAddress(addr)) {
+#ifdef _M_IX86
+			// 32-bit
 			if (dest)
 				*dest = regFindFreeReg(RI);
 			if (Profiled) 
 				return M((void*)((u32)Memory::base + (addr & Memory::MEMVIEW32_MASK)));
 			return M((void*)addr);
+#else
+			// 64-bit
+			if (Profiled) 
+				return M((void*)((u32)Memory::base + addr));
+			return M((void*)addr);
+#endif
 		}
 	}
 	unsigned offset;
@@ -1186,10 +1198,10 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 	RI.MakeProfile = false;//!RI.UseProfile;
 	// Pass to compute liveness
 	ibuild->StartBackPass();
-	for (unsigned index = RI.IInfo.size() - 1; index != -1U; --index) {
+	for (unsigned int index = RI.IInfo.size() - 1; index != -1U; --index) {
 		InstLoc I = ibuild->ReadBackward();
-		unsigned op = getOpcode(*I);
-		bool thisUsed = regReadUse(RI, I);
+		unsigned int op = getOpcode(*I);
+		bool thisUsed = regReadUse(RI, I) ? true : false;
 		switch (op) {
 		default:
 			PanicAlert("Unexpected inst!");
@@ -1331,7 +1343,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 	ibuild->StartForwardPass();
 	for (unsigned i = 0; i != RI.IInfo.size(); i++) {
 		InstLoc I = ibuild->ReadForward();
-		bool thisUsed = regReadUse(RI, I);
+		bool thisUsed = regReadUse(RI, I) ? true : false;
 		switch (getOpcode(*I)) {
 		case InterpreterFallback: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
@@ -2063,13 +2075,15 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			exit(1);
 		}
 	}
+
 	for (unsigned i = 0; i < 8; i++) {
 		if (RI.regs[i]) {
-			PanicAlert("Incomplete cleanup!");
+			// Start a game in Burnout 2 to get this. Or animal crossing.
+			PanicAlert("Incomplete cleanup! (regs)");
 			exit(1);
 		}
 		if (RI.fregs[i]) {
-			PanicAlert("Incomplete cleanup!");
+			PanicAlert("Incomplete cleanup! (fregs)");
 			exit(1);
 		}
 	}

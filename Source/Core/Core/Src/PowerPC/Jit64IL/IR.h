@@ -22,7 +22,6 @@
 #include <vector>
 
 namespace IREmitter {
-
 	enum Opcode {
 		Nop = 0,
 
@@ -484,9 +483,9 @@ namespace IREmitter {
 		InstLoc ReadForward() { return curReadPtr++; }
 		InstLoc ReadBackward() { return --curReadPtr; }
 		InstLoc getFirstInst() { return &InstList[0]; }
-		unsigned getNumInsts() { return InstList.size(); }
-		unsigned ReadInst(InstLoc I) { return *I; }
-		unsigned GetImmValue(InstLoc I);
+		unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
+		unsigned int ReadInst(InstLoc I) { return *I; }
+		unsigned int GetImmValue(InstLoc I);
 
 		void Reset() {
 			InstList.clear();
@@ -509,7 +508,7 @@ namespace IREmitter {
 
 		IRBuilder() { Reset(); }
 
-		private:
+	private:
 		IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
 		std::vector<Inst> InstList; // FIXME: We must ensure this is 
 					    // continuous!

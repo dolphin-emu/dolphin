@@ -23,29 +23,25 @@
 #ifndef _MAPPED_FILE_H
 #define _MAPPED_FILE_H
 
-// #pragma warning (disable: 4786)
-
 #include <map>
 
 namespace Common
 {
 class IMappedFile
 {
-	public:
+public:
+	virtual ~IMappedFile() {}
 
-		virtual ~IMappedFile() {}
+	virtual bool Open(const char* _szFilename) = 0;
+	virtual bool IsOpen(void) = 0;
+	virtual void Close(void)  = 0;
+	virtual u64 GetSize(void) = 0;
+	virtual u8* Lock(u64 _offset, u64 _size) = 0;
+	virtual void Unlock(u8* ptr) = 0;
 
-
-		virtual bool Open(const char* _szFilename) = 0;
-		virtual bool IsOpen(void) = 0;
-		virtual void Close(void)  = 0;
-		virtual u64 GetSize(void) = 0;
-		virtual u8* Lock(u64 _offset, u64 _size) = 0;
-		virtual void Unlock(u8* ptr) = 0;
-
-		static IMappedFile* CreateMappedFileDEPRECATED();
+	static IMappedFile* CreateMappedFileDEPRECATED();
 };
-} // end of namespace DiscIO
+
+}  // namespace
 
 #endif
-
