@@ -56,7 +56,6 @@ files = ["Console.cpp",
          "HW/VideoInterface.cpp",
          "HW/WII_IOB.cpp",
          "HW/WII_IPC.cpp",
-         "HW/SI_Channel.cpp",
          "IPC_HLE/HW/SDInterface.cpp",
          "IPC_HLE/WII_IPC_HLE.cpp",
          "IPC_HLE/WII_IPC_HLE_Device_DI.cpp",
@@ -126,5 +125,4 @@ libs = [
 	]
 
 env_core = env.Clone();
-env_core.Append(CXXFLAGS = [ '-fPIC' ])
 env_core.StaticLibrary('core', files, LIBS=libs)
