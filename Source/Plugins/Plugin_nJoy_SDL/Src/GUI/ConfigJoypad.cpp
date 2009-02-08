@@ -39,7 +39,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern bool emulator_running;
+extern bool g_EmulatorRunning;
 ////////////////////////
 
 

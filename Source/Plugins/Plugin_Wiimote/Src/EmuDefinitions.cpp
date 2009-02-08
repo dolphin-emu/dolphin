@@ -21,10 +21,10 @@
 #ifndef _EMU_DEFINITIONS_
 #define _EMU_DEFINITIONS_
 
-#include "pluginspecs_wiimote.h"
-
 #include <vector>
 #include <string>
+
+#include "pluginspecs_wiimote.h"
 #include "Common.h"
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
@@ -59,6 +59,12 @@ std::vector<wm_ackdelay> AckDelay; // Ackk delay
 
 wiimote_key g_ExtKey; // The extension encryption key
 bool g_Encryption; // Encryption on or off
+
+// Gamepad input
+int NumPads = 0, NumGoodPads = 0; // Number of goods pads
+std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
+InputCommon::CONTROLLER_STATE PadState[4];
+InputCommon::CONTROLLER_MAPPING PadMapping[4];
 
 } // namespace
 

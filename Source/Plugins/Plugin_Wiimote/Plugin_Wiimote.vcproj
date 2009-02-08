@@ -67,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="0"
@@ -151,10 +151,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="0"
@@ -233,10 +233,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				SubSystem="0"
@@ -316,10 +316,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				SubSystem="0"
@@ -396,10 +396,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -476,10 +476,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"

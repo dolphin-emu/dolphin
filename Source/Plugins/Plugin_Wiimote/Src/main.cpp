@@ -866,8 +866,8 @@ void DoInitialize()
 	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window*/
 	// ---------------
 
-	// Load config settings
-	g_Config.Load();
+	// Load config settings, will be done after the SDL functions in EmuMain.cpp
+	//g_Config.Load();
 
 	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
 	WiiMoteEmu::Initialize();

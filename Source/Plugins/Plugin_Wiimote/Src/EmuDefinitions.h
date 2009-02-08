@@ -18,14 +18,16 @@
 #ifndef _EMU_DECLARATIONS_
 #define _EMU_DECLARATIONS_
 
-#include "pluginspecs_wiimote.h"
-
 #include <vector>
 #include <string>
 
-#include "Common.h"
+#include "../../../Core/InputCommon/Src/SDL.h" // Core
+#include "../../../Core/InputCommon/Src/XInput.h"
 
-#include "wiimote_hid.h"
+#include "Common.h"
+#include "pluginspecs_wiimote.h"
+
+#include "wiimote_hid.h" // Local
 #include "Encryption.h"
 #include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 
@@ -168,6 +170,11 @@ static const u8 partially_id[] =
 	0x00, 0x00, 0x00, 0x00, 0xff, 0xff
 };
 
+// Gamepad input
+extern int NumPads, NumGoodPads; // Number of goods pads
+extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
+extern InputCommon::CONTROLLER_STATE PadState[4];
+extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
 
 } // namespace
 

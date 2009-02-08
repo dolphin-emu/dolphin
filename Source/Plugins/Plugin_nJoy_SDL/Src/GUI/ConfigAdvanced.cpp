@@ -37,7 +37,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern bool emulator_running;
+extern bool g_EmulatorRunning;
 ////////////////////////
 
 /* If we don't use this hack m_MainSizer->GetMinSize().GetWidth() will not change

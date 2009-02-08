@@ -31,6 +31,7 @@
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
+#include "EmuDefinitions.h" // for joyinfo
 //////////////////////////////////////
 
 
@@ -294,11 +295,10 @@ void ConfigDialog::CreateGUIControls()
 
 	// Search for devices and add them to the device list
 	wxArrayString StrJoyname; // The string array
-	int NumGoodPads = 0;
-	if(NumGoodPads > 0)
+	if(WiiMoteEmu::NumGoodPads > 0)
 	{
-		//for(int x = 0; x < joyinfo.size(); x++)
-		//	arrayStringFor_Joyname.Add(wxString::FromAscii(joyinfo[x].Name.c_str()));
+		for(int x = 0; x < WiiMoteEmu::joyinfo.size(); x++)
+			StrJoyname.Add(wxString::FromAscii(WiiMoteEmu::joyinfo[x].Name.c_str()));
 	}
 	else
 	{

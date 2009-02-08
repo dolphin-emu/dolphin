@@ -39,7 +39,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern bool emulator_running;
+extern bool g_EmulatorRunning;
 
 // D-Pad type
 static const char* DPadType[] =
@@ -161,7 +161,7 @@ void ConfigBox::OnKeyDown(wxKeyEvent& event)
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
-	if(!emulator_running) Shutdown(); // Close pads, unless we are running a game
+	if(!g_EmulatorRunning) Shutdown(); // Close pads, unless we are running a game
 }
 
 // Call about dialog
@@ -946,7 +946,7 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i]->Show(g_Config.bShowAdvanced);
 
 		// Don't allow these changes when running
-		if(emulator_running)
+		if(g_EmulatorRunning)
 		{
 			m_Joyname[i]->Enable(false);
 			m_Joyattach[i]->Enable(false);

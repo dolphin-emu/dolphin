@@ -87,7 +87,7 @@ HINSTANCE nJoy_hInst = NULL;
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
-bool emulator_running = false;
+bool g_EmulatorRunning = false;
 int NumPads = 0, NumGoodPads = 0;
 HWND m_hWnd; // Handle to window
 SPADInitialize *g_PADInitialize = NULL;
@@ -191,7 +191,7 @@ void DllConfig(HWND _hParent)
 
 	#ifdef _WIN32
 		// Start the pads so we can use them in the configuration and advanced controls
-		if(!emulator_running)
+		if(!g_EmulatorRunning)
 		{
 			Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
 		}
@@ -232,7 +232,7 @@ void DllDebugger(HWND _hParent, bool Show) {}
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Information: This function can not be run twice without a Shutdown in between. If
    it's run twice the SDL_Init() will cause a crash. One solution to this is to keep a
-   global function that remembers the SDL_Init() and SDL_Quit() (emulator_running does
+   global function that remembers the SDL_Init() and SDL_Quit() (g_EmulatorRunning does
    not do that since we can open and close this without any game running). But I would
    suggest that avoiding to run this twice from the Core is better. */
 void Initialize(void *init)
@@ -241,7 +241,7 @@ void Initialize(void *init)
 	//Console::Open();
 	Console::Print("Initialize: %i\n", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
-	emulator_running = true;
+	g_EmulatorRunning = true;
 
 	#ifdef _DEBUG
 		DEBUG_INIT();
@@ -270,7 +270,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	// Warn the user if no gamepads are detected
-	if (_NumGoodPads == 0 && emulator_running)
+	if (_NumGoodPads == 0 && g_EmulatorRunning)
 	{
 		PanicAlert("nJoy: No Gamepad Detected");
 		return false;
@@ -319,7 +319,7 @@ void Shutdown()
 	//joyinfo = NULL;
 	joyinfo.clear();
 
-	emulator_running = false;
+	g_EmulatorRunning = false;
 
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK

@@ -24,6 +24,9 @@
 #include <vector>
 #include <string>
 
+#include "../../../Core/InputCommon/Src/SDL.h" // Core
+#include "../../../Core/InputCommon/Src/XInput.h"
+
 #include "Common.h" // Common
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
@@ -298,6 +301,37 @@ void SetDefaultExtensionRegistry()
 	UpdateEeprom();
 }
 
+
+// ===================================================
+// Fill joyinfo with the current connected devices
+// ----------------
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
+{
+	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
+
+	// Warn the user if no gamepads are detected
+	if (_NumGoodPads == 0 && g_EmulatorRunning)
+	{
+		//PanicAlert("nJoy: No Gamepad Detected");
+		//return false;
+	}
+
+	// Load PadMapping[] etc
+	g_Config.Load();
+
+	// Update the PadState[].joy handle
+	for (int i = 0; i < 4; i++)
+	{
+		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+			if(joyinfo.at(PadMapping[i].ID).Good)
+				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
+	}
+
+	return Success;
+}
+// ===========================
+
+
 // ===================================================
 /* Write initial values to Eeprom and registers. */
 // ----------------
@@ -331,6 +365,9 @@ void Initialize()
 		g_RecordingStart[i] = 0;
 		g_RecordingCurrentTime[i] = 0;
 	}
+
+	// Load avaliable pads
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
 
 	/* The Nuncheck extension ID for homebrew applications that use the zero key. This writes 0x0000
 	   in encrypted form (0xfefe) to 0xfe in the extension register. */
