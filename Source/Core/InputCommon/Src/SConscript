@@ -3,8 +3,10 @@
 Import('env')
 
 files = [
+	'Configuration.cpp',
 	'EventHandler.cpp',
 	'InputCommon.cpp',
+	'SDL.cpp',
 	]
 
 env_inputcommon = env.Clone()
