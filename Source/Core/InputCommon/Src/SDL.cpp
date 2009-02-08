@@ -1,0 +1,234 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+// Project description
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Name: SDL Input 
+// Description: Common SDL Input Functions
+//
+// Author: Falcon4ever (nJoy@falcon4ever.com, www.multigesture.net), JPeterson etc
+// Copyright (C) 2003-2008 Dolphin Project.
+//
+//////////////////////////////////////////////////////////////////////////////////////////
+//
+// Licensetype: GNU General Public License (GPL)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+//
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+//
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#define _SDL_MAIN_ // Avoid certain declarations in SDL.h
+#include "SDL.h" // Local
+#include "XInput.h"
+////////////////////////////////////
+
+
+namespace InputCommon
+{
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Search attached devices. Populate joyinfo for all attached physical devices.
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
+{
+	// Load config
+	#ifdef _DEBUG
+		DEBUG_INIT();
+	#endif
+
+	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+	   the SDL_INIT_VIDEO flag to */
+	if (!SDL_WasInit(0))
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+		{
+			PanicAlert("Could not initialize SDL: %s", SDL_GetError());
+			return false;
+		}
+
+	#ifdef _DEBUG
+		fprintf(pFile, "Scanning for devices\n");
+		fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
+	#endif
+
+	// Get device status
+	int numjoy = SDL_NumJoysticks();
+	for (int i = 0; i < numjoy; i++ )
+	{
+		CONTROLLER_INFO Tmp;
+
+		Tmp.joy			= SDL_JoystickOpen(i);
+		Tmp.ID			= i;
+		Tmp.NumAxes		= SDL_JoystickNumAxes(Tmp.joy);
+		Tmp.NumButtons	= SDL_JoystickNumButtons(Tmp.joy);
+		Tmp.NumBalls	= SDL_JoystickNumBalls(Tmp.joy);
+		Tmp.NumHats		= SDL_JoystickNumHats(Tmp.joy);
+		Tmp.Name		= SDL_JoystickName(i);
+
+		// Check if the device is okay
+		if (   Tmp.NumAxes == 0
+			&&  Tmp.NumBalls == 0
+			&&  Tmp.NumButtons == 0
+			&&  Tmp.NumHats == 0
+			)
+		{
+			Tmp.Good = false;
+		}
+		else
+		{
+			_NumGoodPads++;
+			Tmp.Good = true;
+		}
+
+		_joyinfo.push_back(Tmp);
+
+		#ifdef _DEBUG
+			fprintf(pFile, "ID: %d\n", i);
+			fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
+			fprintf(pFile, "Buttons: %d\n", joyinfo[i].NumButtons);
+			fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
+			fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
+			fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
+		#endif
+
+		// We have now read the values we need so we close the device
+		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
+	}
+
+	_NumPads = _joyinfo.size();
+
+	return true;
+}
+////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Supporting functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// Read current joystick status
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	The value PadMapping[].buttons[] is the number of the assigned joypad button,
+	PadState[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
+
+
+// Read buttons status. Called from GetJoyState().
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int button, int NumButtons)
+{
+	int ctl_button = _PadMapping.buttons[button];
+	if (ctl_button < NumButtons)
+	{
+		_PadState.buttons[button] = SDL_JoystickGetButton(_PadState.joy, ctl_button);
+	}
+}
+
+// Request joystick state.
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Called from: PAD_GetStatus()
+   Input: The virtual device 0, 1, 2 or 3
+   Function: Updates the PadState struct with the current pad status. The input value "controller" is
+   for a virtual controller 0 to 3. */
+void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons)
+{
+	// Update the gamepad status
+	SDL_JoystickUpdate();
+
+	// Update axis states. It doesn't hurt much if we happen to ask for nonexisting axises here.
+	_PadState.axis[CTL_MAIN_X] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_MAIN_X]);
+	_PadState.axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_MAIN_Y]);
+	_PadState.axis[CTL_SUB_X] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_SUB_X]);
+	_PadState.axis[CTL_SUB_Y] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_SUB_Y]);
+
+	// Update the analog trigger axis values
+#ifdef _WIN32
+	if (_PadMapping.triggertype == CTL_TRIGGER_SDL)
+	{
+#endif
+		// If we are using SDL analog triggers the buttons have to be mapped as 1000 or up, otherwise they are not used
+		if(_PadMapping.buttons[CTL_L_SHOULDER] >= 1000) _PadState.axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.buttons[CTL_L_SHOULDER] - 1000); else _PadState.axis[CTL_L_SHOULDER] = 0;
+		if(_PadMapping.buttons[CTL_R_SHOULDER] >= 1000) _PadState.axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.buttons[CTL_R_SHOULDER] - 1000); else _PadState.axis[CTL_R_SHOULDER] = 0;
+#ifdef _WIN32
+	}
+	else
+	{
+		_PadState.axis[CTL_L_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_L_SHOULDER] - 1000);
+		_PadState.axis[CTL_R_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_R_SHOULDER] - 1000);
+	}
+#endif
+
+	// Update button states to on or off
+	ReadButton(_PadState, _PadMapping, CTL_L_SHOULDER, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_R_SHOULDER, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_A_BUTTON, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_B_BUTTON, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_X_BUTTON, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_Y_BUTTON, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_Z_TRIGGER, NumButtons);
+	ReadButton(_PadState, _PadMapping, CTL_START, NumButtons);
+
+	//
+	if (_PadMapping.halfpress < NumButtons)
+		_PadState.halfpress = SDL_JoystickGetButton(_PadState.joy, _PadMapping.halfpress);
+
+	// Check if we have an analog or digital joypad
+	if (_PadMapping.controllertype == CTL_DPAD_HAT)
+	{
+		_PadState.dpad = SDL_JoystickGetHat(_PadState.joy, _PadMapping.dpad);
+	}
+	else
+	{
+		/* Only do this if the assigned button is in range (to allow for the current way of saving keyboard
+		   keys in the same array) */
+		if(_PadMapping.dpad2[CTL_D_PAD_UP] <= NumButtons)
+			_PadState.dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_UP]);
+		if(_PadMapping.dpad2[CTL_D_PAD_DOWN] <= NumButtons)
+			_PadState.dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_DOWN]);
+		if(_PadMapping.dpad2[CTL_D_PAD_LEFT] <= NumButtons)
+			_PadState.dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_LEFT]);
+		if(_PadMapping.dpad2[CTL_D_PAD_RIGHT] <= NumButtons)
+			_PadState.dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_RIGHT]);
+	}
+
+	/* Debugging 
+	Console::ClearScreen();
+	Console::Print(
+		"Controller and handle: %i %i\n"
+
+		"Triggers:%i  %i %i  %i %i  |  HalfPress: %i Mapping: %i\n",
+
+		controller, (int)_PadState.joy,
+
+		_PadMapping.triggertype,
+		_PadMapping.buttons[CTL_L_SHOULDER], _PadMapping.buttons[CTL_R_SHOULDER],
+		_PadState.axis[CTL_L_SHOULDER], _PadState.axis[CTL_R_SHOULDER],
+
+		_PadState.halfpress, _PadMapping.halfpress
+		);	*/
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+} // InputCommon

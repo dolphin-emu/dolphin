@@ -141,23 +141,23 @@ void Config::Save(int Slot)
 			SectionName = joyinfo[PadMapping[i].ID].Name;
 		}
 
-		file.Set(SectionName.c_str(), "l_shoulder", PadMapping[i].buttons[CTL_L_SHOULDER]);
-		file.Set(SectionName.c_str(), "r_shoulder", PadMapping[i].buttons[CTL_R_SHOULDER]);
-		file.Set(SectionName.c_str(), "a_button", PadMapping[i].buttons[CTL_A_BUTTON]);
-		file.Set(SectionName.c_str(), "b_button", PadMapping[i].buttons[CTL_B_BUTTON]);
-		file.Set(SectionName.c_str(), "x_button", PadMapping[i].buttons[CTL_X_BUTTON]);
-		file.Set(SectionName.c_str(), "y_button", PadMapping[i].buttons[CTL_Y_BUTTON]);
-		file.Set(SectionName.c_str(), "z_trigger", PadMapping[i].buttons[CTL_Z_TRIGGER]);
-		file.Set(SectionName.c_str(), "start_button", PadMapping[i].buttons[CTL_START]);
+		file.Set(SectionName.c_str(), "l_shoulder", PadMapping[i].buttons[InputCommon::CTL_L_SHOULDER]);
+		file.Set(SectionName.c_str(), "r_shoulder", PadMapping[i].buttons[InputCommon::CTL_R_SHOULDER]);
+		file.Set(SectionName.c_str(), "a_button", PadMapping[i].buttons[InputCommon::CTL_A_BUTTON]);
+		file.Set(SectionName.c_str(), "b_button", PadMapping[i].buttons[InputCommon::CTL_B_BUTTON]);
+		file.Set(SectionName.c_str(), "x_button", PadMapping[i].buttons[InputCommon::CTL_X_BUTTON]);
+		file.Set(SectionName.c_str(), "y_button", PadMapping[i].buttons[InputCommon::CTL_Y_BUTTON]);
+		file.Set(SectionName.c_str(), "z_trigger", PadMapping[i].buttons[InputCommon::CTL_Z_TRIGGER]);
+		file.Set(SectionName.c_str(), "start_button", PadMapping[i].buttons[InputCommon::CTL_START]);
 		file.Set(SectionName.c_str(), "dpad", PadMapping[i].dpad);	
-		file.Set(SectionName.c_str(), "dpad_up", PadMapping[i].dpad2[CTL_D_PAD_UP]);
-		file.Set(SectionName.c_str(), "dpad_down", PadMapping[i].dpad2[CTL_D_PAD_DOWN]);
-		file.Set(SectionName.c_str(), "dpad_left", PadMapping[i].dpad2[CTL_D_PAD_LEFT]);
-		file.Set(SectionName.c_str(), "dpad_right", PadMapping[i].dpad2[CTL_D_PAD_RIGHT]);
-		file.Set(SectionName.c_str(), "main_x", PadMapping[i].axis[CTL_MAIN_X]);
-		file.Set(SectionName.c_str(), "main_y", PadMapping[i].axis[CTL_MAIN_Y]);
-		file.Set(SectionName.c_str(), "sub_x", PadMapping[i].axis[CTL_SUB_X]);
-		file.Set(SectionName.c_str(), "sub_y", PadMapping[i].axis[CTL_SUB_Y]);
+		file.Set(SectionName.c_str(), "dpad_up", PadMapping[i].dpad2[InputCommon::CTL_D_PAD_UP]);
+		file.Set(SectionName.c_str(), "dpad_down", PadMapping[i].dpad2[InputCommon::CTL_D_PAD_DOWN]);
+		file.Set(SectionName.c_str(), "dpad_left", PadMapping[i].dpad2[InputCommon::CTL_D_PAD_LEFT]);
+		file.Set(SectionName.c_str(), "dpad_right", PadMapping[i].dpad2[InputCommon::CTL_D_PAD_RIGHT]);
+		file.Set(SectionName.c_str(), "main_x", PadMapping[i].axis[InputCommon::CTL_MAIN_X]);
+		file.Set(SectionName.c_str(), "main_y", PadMapping[i].axis[InputCommon::CTL_MAIN_Y]);
+		file.Set(SectionName.c_str(), "sub_x", PadMapping[i].axis[InputCommon::CTL_SUB_X]);
+		file.Set(SectionName.c_str(), "sub_y", PadMapping[i].axis[InputCommon::CTL_SUB_Y]);
 		
 		file.Set(SectionName.c_str(), "deadzone", PadMapping[i].deadzone);
 		file.Set(SectionName.c_str(), "halfpress", PadMapping[i].halfpress);
@@ -228,23 +228,23 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 			SectionName = joyinfo[PadMapping[i].ID].Name;
 		}
 
-		file.Get(SectionName.c_str(), "l_shoulder", &PadMapping[i].buttons[CTL_L_SHOULDER], 4);
-		file.Get(SectionName.c_str(), "r_shoulder", &PadMapping[i].buttons[CTL_R_SHOULDER], 5);
-		file.Get(SectionName.c_str(), "a_button", &PadMapping[i].buttons[CTL_A_BUTTON], 0);
-		file.Get(SectionName.c_str(), "b_button", &PadMapping[i].buttons[CTL_B_BUTTON], 1);	
-		file.Get(SectionName.c_str(), "x_button", &PadMapping[i].buttons[CTL_X_BUTTON], 3);
-		file.Get(SectionName.c_str(), "y_button", &PadMapping[i].buttons[CTL_Y_BUTTON], 2);	
-		file.Get(SectionName.c_str(), "z_trigger", &PadMapping[i].buttons[CTL_Z_TRIGGER], 7);
-		file.Get(SectionName.c_str(), "start_button", &PadMapping[i].buttons[CTL_START], 9);	
+		file.Get(SectionName.c_str(), "l_shoulder", &PadMapping[i].buttons[InputCommon::CTL_L_SHOULDER], 4);
+		file.Get(SectionName.c_str(), "r_shoulder", &PadMapping[i].buttons[InputCommon::CTL_R_SHOULDER], 5);
+		file.Get(SectionName.c_str(), "a_button", &PadMapping[i].buttons[InputCommon::CTL_A_BUTTON], 0);
+		file.Get(SectionName.c_str(), "b_button", &PadMapping[i].buttons[InputCommon::CTL_B_BUTTON], 1);	
+		file.Get(SectionName.c_str(), "x_button", &PadMapping[i].buttons[InputCommon::CTL_X_BUTTON], 3);
+		file.Get(SectionName.c_str(), "y_button", &PadMapping[i].buttons[InputCommon::CTL_Y_BUTTON], 2);	
+		file.Get(SectionName.c_str(), "z_trigger", &PadMapping[i].buttons[InputCommon::CTL_Z_TRIGGER], 7);
+		file.Get(SectionName.c_str(), "start_button", &PadMapping[i].buttons[InputCommon::CTL_START], 9);	
 		file.Get(SectionName.c_str(), "dpad", &PadMapping[i].dpad, 0);	
-		file.Get(SectionName.c_str(), "dpad_up", &PadMapping[i].dpad2[CTL_D_PAD_UP], 0);
-		file.Get(SectionName.c_str(), "dpad_down", &PadMapping[i].dpad2[CTL_D_PAD_DOWN], 0);
-		file.Get(SectionName.c_str(), "dpad_left", &PadMapping[i].dpad2[CTL_D_PAD_LEFT], 0);
-		file.Get(SectionName.c_str(), "dpad_right", &PadMapping[i].dpad2[CTL_D_PAD_RIGHT], 0);
-		file.Get(SectionName.c_str(), "main_x", &PadMapping[i].axis[CTL_MAIN_X], 0);	
-		file.Get(SectionName.c_str(), "main_y", &PadMapping[i].axis[CTL_MAIN_Y], 1);	
-		file.Get(SectionName.c_str(), "sub_x", &PadMapping[i].axis[CTL_SUB_X], 2);	
-		file.Get(SectionName.c_str(), "sub_y", &PadMapping[i].axis[CTL_SUB_Y], 3);
+		file.Get(SectionName.c_str(), "dpad_up", &PadMapping[i].dpad2[InputCommon::CTL_D_PAD_UP], 0);
+		file.Get(SectionName.c_str(), "dpad_down", &PadMapping[i].dpad2[InputCommon::CTL_D_PAD_DOWN], 0);
+		file.Get(SectionName.c_str(), "dpad_left", &PadMapping[i].dpad2[InputCommon::CTL_D_PAD_LEFT], 0);
+		file.Get(SectionName.c_str(), "dpad_right", &PadMapping[i].dpad2[InputCommon::CTL_D_PAD_RIGHT], 0);
+		file.Get(SectionName.c_str(), "main_x", &PadMapping[i].axis[InputCommon::CTL_MAIN_X], 0);	
+		file.Get(SectionName.c_str(), "main_y", &PadMapping[i].axis[InputCommon::CTL_MAIN_Y], 1);	
+		file.Get(SectionName.c_str(), "sub_x", &PadMapping[i].axis[InputCommon::CTL_SUB_X], 2);	
+		file.Get(SectionName.c_str(), "sub_y", &PadMapping[i].axis[InputCommon::CTL_SUB_Y], 3);
 
 		file.Get(SectionName.c_str(), "deadzone", &PadMapping[i].deadzone, 9);
 		file.Get(SectionName.c_str(), "halfpress", &PadMapping[i].halfpress, -1);	

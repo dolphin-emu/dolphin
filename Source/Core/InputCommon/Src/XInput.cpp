@@ -37,7 +37,7 @@
 #include <windows.h>
 #include <XInput.h> // XInput API
 
-#include "nJoy.h" // Local
+#include "SDL.h" // Local
 ///////////////////////////////////////////////
 
 
@@ -103,10 +103,10 @@ int GetXI(int Controller, int Button)
 
 	switch(Button)
 	{
-	case XI_TRIGGER_L:
+	case InputCommon::XI_TRIGGER_L:
 		return g_Controllers[0].state.Gamepad.bLeftTrigger;
 
-	case XI_TRIGGER_R:
+	case InputCommon::XI_TRIGGER_R:
 		return g_Controllers[0].state.Gamepad.bRightTrigger;
 
 	default:

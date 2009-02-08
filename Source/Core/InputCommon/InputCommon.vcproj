@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="InputCommon"
 	ProjectGUID="{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
 	RootNamespace="VideoCommon"
@@ -175,7 +175,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -412,6 +412,14 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\Src\Configuration.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Configuration.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Event.hpp"
 			>
 		</File>
@@ -433,6 +441,22 @@
 		</File>
 		<File
 			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SDL.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SDL.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XInput.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XInput.h"
 			>
 		</File>
 	</Files>

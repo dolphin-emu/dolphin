@@ -45,7 +45,9 @@
 #include <cstdio>
 #include <ctime>
 #include <cmath>
-#include <SDL.h>
+
+#include "../../../Core/InputCommon/Src/SDL.h" // Core
+#include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
 #include "pluginspecs_pad.h"
@@ -54,7 +56,6 @@
 //#include "Timer.h"
 
 #include "Config.h" // Local
-#include "XInput.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "GUI/AboutBox.h"
@@ -103,115 +104,6 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Structures
-/* ¯¯¯¯¯¯¯¯¯¯
-	CONTROLLER_STATE buttons (PadState) = 0 or 1
-	CONTROLLER_MAPPING buttons (joystick) = 0 or 1, 2, 3, 4, a certain joypad button
-
-	Please remember: The axis limit is hardcoded here, if you allow more axises (for
-	example for analog A and B buttons) you must first incrase the size of the axis array
-	size here
-	*/
-struct CONTROLLER_STATE		// GC PAD INFO/STATE
-{
-	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
-	int dpad;				// Automatic SDL D-Pad (8 directions + neutral)
-	int dpad2[4];			// D-pad using buttons
-	int axis[6];			// 2 x 2 Axes (Main & Sub)
-	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
-	SDL_Joystick *joy;		// SDL joystick device
-};
-
-struct CONTROLLER_MAPPING	// GC PAD MAPPING
-{
-	int buttons[8];			// (See above)
-	int dpad;				// (See above)
-	int dpad2[4];			// (See above)
-	int axis[6];			// (See above)
-	int halfpress;			// (See above)
-	int enabled;			// Pad attached?
-	int deadzone;			// Deadzone... what else?
-	int ID;					// SDL joystick device ID
-	int controllertype;		// Hat: Hat or custom buttons
-	int triggertype;		// Triggers range
-	std::string SDiagonal;
-	bool bSquareToCircle;
-	int eventnum;			// Linux Event Number, Can't be found dynamically yet
-};
-
-struct CONTROLLER_INFO		// CONNECTED WINDOWS DEVICES INFO
-{
-	int NumAxes;			// Amount of Axes
-	int NumButtons;			// Amount of Buttons
-	int NumBalls;			// Amount of Balls
-	int NumHats;			// Amount of Hats (POV)
-	std::string Name;		// Joypad/stickname
-	int ID;					// SDL joystick device ID
-	bool Good;
-	SDL_Joystick *joy;		// SDL joystick device
-};
-
-enum
-{
-	// CTL_L_SHOULDER and CTL_R_SHOULDER = 0 and 1
-	CTL_MAIN_X = 2,
-	CTL_MAIN_Y,
-	CTL_SUB_X,
-	CTL_SUB_Y
-};
-
-enum
-{
-	CTL_L_SHOULDER = 0,
-	CTL_R_SHOULDER,
-	CTL_A_BUTTON,
-	CTL_B_BUTTON,
-	CTL_X_BUTTON,
-	CTL_Y_BUTTON,
-	CTL_Z_TRIGGER,	
-	CTL_START	
-};
-
-// DPad Type
-enum
-{
-	CTL_DPAD_HAT = 0, // Automatically use the first hat that SDL finds
-	CTL_DPAD_CUSTOM // Custom directional pad settings
-};
-
-// Trigger Type
-enum
-{
-	CTL_TRIGGER_SDL = 0, // 
-	CTL_TRIGGER_XINPUT // The XBox 360 pad
-};
-
-enum
-{
-	CTL_D_PAD_UP = 0,
-	CTL_D_PAD_DOWN,
-	CTL_D_PAD_LEFT,
-	CTL_D_PAD_RIGHT
-};
-
-// Button type for the configuration
-enum
-{
-	CTL_AXIS = 0,
-	CTL_HAT,
-	CTL_BUTTON,	
-	CTL_KEY
-};
-
-// XInput buttons
-enum
-{
-	XI_TRIGGER_L = 0,
-	XI_TRIGGER_R
-};
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Input vector. Todo: Save the configured keys here instead of in joystick
 // ¯¯¯¯¯¯¯¯¯
 /*
@@ -225,11 +117,11 @@ extern std::vector<u8> Keys;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Variables
 // ¯¯¯¯¯¯¯¯¯
-#ifndef _CONTROLLER_STATE_H
+#ifndef _EXCLUDE_MAIN_
 	extern FILE *pFile;
-	extern std::vector<CONTROLLER_INFO> joyinfo;
-	extern CONTROLLER_STATE PadState[4];
-	extern CONTROLLER_MAPPING PadMapping[4];
+	extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
+	extern InputCommon::CONTROLLER_STATE PadState[4];
+	extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
 	extern HWND m_hWnd; // Handle to window
 	extern int NumPads, NumGoodPads; // Number of goods pads
 #endif
@@ -238,9 +130,7 @@ extern std::vector<u8> Keys;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-void GetJoyState(int controller);
-int Search_Devices();
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void DEBUG_INIT();
 void DEBUG_QUIT();
 bool IsFocus();

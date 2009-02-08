@@ -475,7 +475,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	UpdateGUIKeys(_notebookpage);
 
 	// Collect status
-	bool Hat = (PadMapping[_notebookpage].controllertype == CTL_DPAD_HAT);
+	bool Hat = (PadMapping[_notebookpage].controllertype == InputCommon::CTL_DPAD_HAT);
 	long Left, Right;
 	m_JoyShoulderL[_notebookpage]->GetValue().ToLong(&Left);
 	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
@@ -619,12 +619,12 @@ void ConfigBox::CreateGUIControls()
 	// Populate the DPad type and Trigger type list
 	// -----------------------------
 	wxArrayString wxAS_DPadType;
-	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_HAT]));
-	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_HAT]));
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_CUSTOM]));
 
 	wxArrayString wxAS_TriggerType;
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_SDL]));
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_XINPUT]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_SDL]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_XINPUT]));
 
 	// --------------------------------------------------------------------
 	// Populate the deadzone list

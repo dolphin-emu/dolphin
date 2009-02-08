@@ -56,22 +56,22 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	// Update the enabled checkbox
 	m_Joyattach[controller]->SetValue(PadMapping[controller].enabled == 1 ? true : false);
 
-	tmp << PadMapping[controller].buttons[CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << PadMapping[controller].buttons[CTL_A_BUTTON]; m_JoyButtonA[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].buttons[CTL_B_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].buttons[CTL_X_BUTTON]; m_JoyButtonX[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].buttons[CTL_Y_BUTTON]; m_JoyButtonY[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].buttons[CTL_Z_TRIGGER]; m_JoyButtonZ[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_A_BUTTON]; m_JoyButtonA[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_B_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_X_BUTTON]; m_JoyButtonX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_Y_BUTTON]; m_JoyButtonY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_Z_TRIGGER]; m_JoyButtonZ[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << PadMapping[controller].buttons[CTL_START]; m_JoyButtonStart[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[InputCommon::CTL_START]; m_JoyButtonStart[controller]->SetValue(tmp); tmp.clear();
 	tmp << PadMapping[controller].halfpress; m_JoyButtonHalfpress[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << PadMapping[controller].axis[CTL_MAIN_X]; m_JoyAnalogMainX[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].axis[CTL_MAIN_Y]; m_JoyAnalogMainY[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].axis[CTL_SUB_X]; m_JoyAnalogSubX[controller]->SetValue(tmp); tmp.clear();
-	tmp << PadMapping[controller].axis[CTL_SUB_Y]; m_JoyAnalogSubY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[InputCommon::CTL_MAIN_X]; m_JoyAnalogMainX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[InputCommon::CTL_MAIN_Y]; m_JoyAnalogMainY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[InputCommon::CTL_SUB_X]; m_JoyAnalogSubX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[InputCommon::CTL_SUB_Y]; m_JoyAnalogSubY[controller]->SetValue(tmp); tmp.clear();
 	
 	// Update the deadzone and controller type controls
 	m_ControlType[controller]->SetSelection(PadMapping[controller].controllertype);
@@ -83,16 +83,16 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
 	// Update D-Pad
-	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
+	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
 	{
 		tmp << PadMapping[controller].dpad; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();		
 	}
 	else
 	{
-		tmp << PadMapping[controller].dpad2[CTL_D_PAD_UP]; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();
-		tmp << PadMapping[controller].dpad2[CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
-		tmp << PadMapping[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
-		tmp << PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_UP]; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
 	}
 
 	// Replace "-1" with "" in the GUI controls
@@ -124,22 +124,22 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();	
 
 	// The analog buttons
-	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_MAIN_X] = value; tmp.clear();
-	m_JoyAnalogMainY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_MAIN_Y] = value; tmp.clear();
-	m_JoyAnalogSubX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_SUB_X] = value; tmp.clear();
-	m_JoyAnalogSubY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_SUB_Y] = value; tmp.clear();
+	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_MAIN_X] = value; tmp.clear();
+	m_JoyAnalogMainY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_MAIN_Y] = value; tmp.clear();
+	m_JoyAnalogSubX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_SUB_X] = value; tmp.clear();
+	m_JoyAnalogSubY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_SUB_Y] = value; tmp.clear();
 
 	// The shoulder buttons
-	m_JoyShoulderL[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_L_SHOULDER] = value;
-	m_JoyShoulderR[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_R_SHOULDER] = value;			
+	m_JoyShoulderL[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_L_SHOULDER] = value;
+	m_JoyShoulderR[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_R_SHOULDER] = value;			
 
 	// The digital buttons
-	m_JoyButtonA[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_A_BUTTON] = value; tmp.clear();
-	m_JoyButtonB[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_B_BUTTON] = value; tmp.clear();
-	m_JoyButtonX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_X_BUTTON] = value; tmp.clear();
-	m_JoyButtonY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Y_BUTTON] = value; tmp.clear();
-	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
-	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_START] = value; tmp.clear();
+	m_JoyButtonA[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_A_BUTTON] = value; tmp.clear();
+	m_JoyButtonB[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_B_BUTTON] = value; tmp.clear();
+	m_JoyButtonX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_X_BUTTON] = value; tmp.clear();
+	m_JoyButtonY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_Y_BUTTON] = value; tmp.clear();
+	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_Z_TRIGGER] = value; tmp.clear();
+	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_START] = value; tmp.clear();
 
 	//LogMsg("PadMapping[%i].triggertype = %i, m_TriggerType[%i]->GetSelection() = %i\n",
 	//	controller, PadMapping[controller].triggertype, FromSlot, m_TriggerType[FromSlot]->GetSelection());
@@ -148,16 +148,16 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	m_JoyButtonHalfpress[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].halfpress = value; tmp.clear();
 
 	// The digital pad
-	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
+	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
 	{
 		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad = value; tmp.clear();
 	}
 	else
 	{
-		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_UP] = value; tmp.clear();
-		m_JoyDpadDown[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_DOWN] = value; tmp.clear();
-		m_JoyDpadLeft[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_LEFT] = value; tmp.clear();
-		m_JoyDpadRight[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_RIGHT] = value; tmp.clear();		
+		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_UP] = value; tmp.clear();
+		m_JoyDpadDown[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_DOWN] = value; tmp.clear();
+		m_JoyDpadLeft[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_LEFT] = value; tmp.clear();
+		m_JoyDpadRight[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_RIGHT] = value; tmp.clear();		
 	}
 
 	// Replace "-1" with "" 
@@ -288,16 +288,16 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
 
 	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R)
-			   && !(TriggerType == CTL_TRIGGER_XINPUT && (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) ); // Don't allow SDL here
+			   && !(TriggerType == InputCommon::CTL_TRIGGER_XINPUT && (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) ); // Don't allow SDL here
 	
-	bool XInput = (TriggerType == CTL_TRIGGER_XINPUT);
+	bool XInput = (TriggerType == InputCommon::CTL_TRIGGER_XINPUT);
 
 	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONHALFPRESS) // All digital buttons
 			   || (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) // both shoulder buttons
-			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == CTL_DPAD_CUSTOM); // Or the custom hat mode
+			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == InputCommon::CTL_DPAD_CUSTOM); // Or the custom hat mode
 
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
-			   && (PadMapping[Controller].controllertype == CTL_DPAD_HAT); // Not with the hat option defined
+			   && (PadMapping[Controller].controllertype == InputCommon::CTL_DPAD_HAT); // Not with the hat option defined
 
 	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
 	   that is mapped to controller, for example 0, 1, 2, 3 for the first four PadMapping */
@@ -370,7 +370,7 @@ void ConfigBox::DoGetButtons(int GetId)
 				if(AvoidValues(value)) continue; // Avoid values
 
 				pressed = i + (LeftRight ? 1000 : 0); // Identify the analog triggers
-				type = CTL_AXIS;
+				type = InputCommon::CTL_AXIS;
 				Succeed = true;
 			}
 		}
@@ -383,7 +383,7 @@ void ConfigBox::DoGetButtons(int GetId)
 				if(SDL_JoystickGetHat(joy, i))
 				{
 					pressed = i;
-					type = CTL_HAT;
+					type = InputCommon::CTL_HAT;
 					Succeed = true;
 				}			
 			}
@@ -400,7 +400,7 @@ void ConfigBox::DoGetButtons(int GetId)
 				if(SDL_JoystickGetButton(joy, i))
 				{
 					pressed = i;
-					type = CTL_BUTTON;
+					type = InputCommon::CTL_BUTTON;
 					Succeed = true;
 				}
 			}
@@ -410,12 +410,12 @@ void ConfigBox::DoGetButtons(int GetId)
 		#ifdef _WIN32
 			if(XInput)
 			{
-				for(int i = 0; i <= XI_TRIGGER_R; i++)
+				for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
 				{			
 					if(XInput::GetXI(0, i))
 					{
 						pressed = i + 1000;
-						type = CTL_AXIS;
+						type = InputCommon::CTL_AXIS;
 						Succeed = true;
 					}
 				}
@@ -429,7 +429,7 @@ void ConfigBox::DoGetButtons(int GetId)
 			if(g_Pressed >= buttons)
 			{
 				pressed = g_Pressed;
-				type = CTL_BUTTON;
+				type = InputCommon::CTL_BUTTON;
 				Succeed = true;
 				g_Pressed = 0;
 				if(pressed == WXK_ESCAPE) pressed = -1; // Check for the exape key

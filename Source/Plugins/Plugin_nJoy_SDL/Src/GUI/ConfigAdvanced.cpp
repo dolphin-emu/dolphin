@@ -70,8 +70,10 @@ void ConfigBox::PadGetStatus()
 	int PhysicalDevice = PadMapping[notebookpage].ID;
 	int TriggerType = PadMapping[notebookpage].triggertype;
 
-	// Get pad status
-	GetJoyState(notebookpage);
+	// Check that Dolphin is in focus, otherwise don't update the pad status
+	if (!g_Config.bCheckFocus && IsFocus())
+		InputCommon::GetJoyState(PadState[notebookpage], PadMapping[notebookpage], notebookpage, joyinfo[PadMapping[notebookpage].ID].NumButtons);
+
 
 	//////////////////////////////////////
 	// Analog stick
@@ -81,8 +83,8 @@ void ConfigBox::PadGetStatus()
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
 
 	// Get original values
-	int main_x = PadState[notebookpage].axis[CTL_MAIN_X];
-	int main_y = PadState[notebookpage].axis[CTL_MAIN_Y];
+	int main_x = PadState[notebookpage].axis[InputCommon::CTL_MAIN_X];
+	int main_y = PadState[notebookpage].axis[InputCommon::CTL_MAIN_Y];
     //int sub_x = (PadState[_numPAD].axis[CTL_SUB_X];
 	//int sub_y = -(PadState[_numPAD].axis[CTL_SUB_Y];
 
@@ -138,11 +140,11 @@ void ConfigBox::PadGetStatus()
 	m_JoyShoulderR[notebookpage]->GetValue().ToLong(&Right);
 
 	// Get the trigger values
-	int TriggerLeft = PadState[notebookpage].axis[CTL_L_SHOULDER];
-	int TriggerRight = PadState[notebookpage].axis[CTL_R_SHOULDER];
+	int TriggerLeft = PadState[notebookpage].axis[InputCommon::CTL_L_SHOULDER];
+	int TriggerRight = PadState[notebookpage].axis[InputCommon::CTL_R_SHOULDER];
 
 	// Convert the triggers values
-	if (PadMapping[notebookpage].triggertype == CTL_TRIGGER_SDL)
+	if (PadMapping[notebookpage].triggertype == InputCommon::CTL_TRIGGER_SDL)
 	{
 		TriggerLeft = Pad_Convert(TriggerLeft);
 		TriggerRight = Pad_Convert(TriggerRight);
@@ -153,8 +155,8 @@ void ConfigBox::PadGetStatus()
 	if(Right < 1000) TriggerRight = 0;
 
 	// Get the digital values
-	if(Left < 1000 && PadState[notebookpage].buttons[CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
-	if(Right < 1000 && PadState[notebookpage].buttons[CTL_R_SHOULDER]) TriggerRight = TriggerValue;
+	if(Left < 1000 && PadState[notebookpage].buttons[InputCommon::CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
+	if(Right < 1000 && PadState[notebookpage].buttons[InputCommon::CTL_R_SHOULDER]) TriggerRight = TriggerValue;
 
 	m_TStatusTriggers[notebookpage]->SetLabel(wxString::Format(
 		wxT("Left:%03i  Right:%03i"),
@@ -233,7 +235,7 @@ std::string ShowStatus(int VirtualController)
 		//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
 
 		#ifdef _WIN32
-			XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
+			XInput::IsConnected(0), XInput::GetXI(0, InputCommon::XI_TRIGGER_L), XInput::GetXI(0, InputCommon::XI_TRIGGER_R),
 		#endif
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
