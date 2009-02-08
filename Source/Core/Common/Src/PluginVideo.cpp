@@ -1,7 +1,9 @@
 #include "PluginVideo.h"
 
-namespace Common {
-    PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo(false) {
+namespace Common
+{
+    PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo(false)
+	{
   
 	Video_Prepare = 0;
 	Video_SendFifoData = 0;

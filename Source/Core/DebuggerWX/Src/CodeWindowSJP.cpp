@@ -78,18 +78,6 @@ extern "C"  // Bitmaps
 ///////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
-// and here are the classes
-class CPluginInfo;
-class CPluginManager;
-//extern DynamicLibrary Common::CPlugin;
-//extern CPluginManager CPluginManager::m_Instance;
-///////////////////////////////////
-
-
-
 
 void CCodeWindow::CreateSymbolsMenu()
 {

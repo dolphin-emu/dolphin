@@ -42,17 +42,19 @@ private:
 
 typedef std::vector<CPluginInfo>CPluginInfos;
 
+
 class CPluginManager
 {
 public:
 	static CPluginManager& GetInstance() {return(m_Instance);}
+	Common::PluginVideo *GetVideo();
+	Common::PluginDSP *GetDSP();
 	Common::PluginPAD *GetPad(int controller);
 	Common::PluginWiimote *GetWiimote(int controller);
-	Common::PluginDSP *GetDSP();
-	Common::PluginVideo *GetVideo();
 
-	void FreePad(u32 pad);
 	void FreeVideo();
+	void FreeDSP();
+	void FreePad(u32 pad);
 
 	bool InitPlugins();
 	void ShutdownPlugins();
@@ -76,6 +78,7 @@ private:
 	SCoreStartupParameter& m_params;
 	CPluginManager();
 	~CPluginManager();
+	void GetPluginInfo(CPluginInfo *&info, std::string Filename);
 	void *LoadPlugin(const char *_rFilename, int Number = 0);
 
 };

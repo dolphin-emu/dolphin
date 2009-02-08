@@ -16,9 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
  
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+/* ¯¯¯¯¯¯¯¯¯¯¯¯
+   File description: This is the common Plugin class that links to the functions that are
+   common to all plugins. This class is inherited by all plugin classes. But it's only created
+   directly in PluginManager.cpp when we check if a plugin is valid or not.
 
-/* This file is a simpler version of Plugin_...cpp found in Core. This file
-   only loads the config and debugging windows and works with all plugins. */
+///////////////////////////////////////////////*/
+
 
 #include "Plugin.h"
 
@@ -41,50 +47,52 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
     m_Shutdown = NULL;
     m_DoState = NULL;
         
-    if (m_hInstLib.Load(_szName)) {
-        
-	m_GetDllInfo = reinterpret_cast<TGetDllInfo>
-	    (m_hInstLib.Get("GetDllInfo"));
-	m_DllConfig = reinterpret_cast<TDllConfig>
-	    (m_hInstLib.Get("DllConfig"));
-	m_DllDebugger = reinterpret_cast<TDllDebugger>
-	    (m_hInstLib.Get("DllDebugger"));
-	m_SetDllGlobals = reinterpret_cast<TSetDllGlobals>
-	    (m_hInstLib.Get("SetDllGlobals"));
-	m_Initialize = reinterpret_cast<TInitialize>
-	    (m_hInstLib.Get("Initialize"));
-	m_Shutdown = reinterpret_cast<TShutdown>
-	    (m_hInstLib.Get("Shutdown"));
-	m_DoState = reinterpret_cast<TDoState>
-	    (m_hInstLib.Get("DoState"));
+    if (m_hInstLib.Load(_szName))
+	{        
+		m_GetDllInfo = reinterpret_cast<TGetDllInfo>
+			(m_hInstLib.Get("GetDllInfo"));
+		m_DllConfig = reinterpret_cast<TDllConfig>
+			(m_hInstLib.Get("DllConfig"));
+		m_DllDebugger = reinterpret_cast<TDllDebugger>
+			(m_hInstLib.Get("DllDebugger"));
+		m_SetDllGlobals = reinterpret_cast<TSetDllGlobals>
+			(m_hInstLib.Get("SetDllGlobals"));
+		m_Initialize = reinterpret_cast<TInitialize>
+			(m_hInstLib.Get("Initialize"));
+		m_Shutdown = reinterpret_cast<TShutdown>
+			(m_hInstLib.Get("Shutdown"));
+		m_DoState = reinterpret_cast<TDoState>
+			(m_hInstLib.Get("DoState"));
 	}
 
+	// Check if the plugin has all the functions it shold have
     if (m_GetDllInfo != 0 &&
-	m_DllConfig != 0 &&
-	m_DllDebugger != 0 &&
-	m_SetDllGlobals != 0 &&
-	m_Initialize != 0 &&
-	m_Shutdown != 0 &&
-	m_DoState != 0)
+		m_DllConfig != 0 &&
+		m_DllDebugger != 0 &&
+		m_SetDllGlobals != 0 &&
+		m_Initialize != 0 &&
+		m_Shutdown != 0 &&
+		m_DoState != 0)
 	valid = true;
 
 	// Save the filename for this plugin
 	Filename = _szName;
 }
 
-void *CPlugin::LoadSymbol(const char *sym) {
+void *CPlugin::LoadSymbol(const char *sym)
+{
     return m_hInstLib.Get(sym);
 }
 
 
 
 // GetInfo: Get DLL info
-bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
+bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
+{
     if (m_GetDllInfo != NULL) {
         m_GetDllInfo(&_pluginInfo);
         return(true);
-    }
-    
+    }    
     return(false);
 }
 

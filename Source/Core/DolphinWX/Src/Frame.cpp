@@ -319,6 +319,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	Show(); // Show the window
 
+	// Create list of available plugins for the configuration window
 	CPluginManager::GetInstance().ScanForPlugins();
 
 	//if we are ever going back to optional iso caching:

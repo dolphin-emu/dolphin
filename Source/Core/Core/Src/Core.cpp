@@ -158,16 +158,15 @@ void ReconnectWiimote()
 // -----------------
 bool Init()
 {
-	//Console::Open();
-
 	if (g_pThread != NULL)
 	{
 		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
 		return false;
 	}
  
-	CPluginManager &pManager  = CPluginManager::GetInstance();
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	// Get a handle to the current instance of the plugin manager
+	CPluginManager &pManager = CPluginManager::GetInstance();
+	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_CoreStartupParameter = _CoreParameter;
 	LogManager::Init();	
@@ -176,9 +175,8 @@ bool Init()
 	// Start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
  
-	// LoadLibrary()
-	if (!pManager.InitPlugins())
-	    return false;
+	// Check that all plugins exist, potentially call LoadLibrary() for unloaded plugins
+	if (!pManager.InitPlugins()) return false;
 
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file
@@ -322,6 +320,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
+	// Needed for Stop and Start
+	Plugins.FreeVideo();
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
@@ -342,6 +342,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)&PowerPC::state;
 	dspInit.bWii = _CoreParameter.bWii;
+	// Needed for Stop and Start
+	Plugins.FreeDSP();
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin

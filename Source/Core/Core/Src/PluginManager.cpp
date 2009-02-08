@@ -15,6 +15,48 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// File description
+/* ¯¯¯¯¯¯¯¯¯¯¯¯
+
+   This file controls when plugins are loaded and unloaded from memory. Its functions scan for valid
+   plugins when Dolphin is booted, and open the debugging and config windows. The PluginManager is
+   created once when Dolphin starts and is closed when Dolphin is closed.
+
+   When plugins are freed and loaded:
+
+   In an attempt to avoid the crash that occurs when the use LoadLibrary() and FreeLibrary() often
+   (every tiem a game is stopped and started) these functions will only be used when
+		1. Dolphin is started
+		2. A plugin is changed
+		3. Dolphin is closed
+   it will not be used when we Start and Stop games. With these exceptions:
+		1. Video plugin: If FreeLibrary() is not called between Stop and Start it will fail for
+		several games on the next Start, but not for all games.
+		2. Sond plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
+		"get pointer for unknown address ffffffff" message for all games I tried.
+
+	For some reason the time when the FreeLibrary() is placed produce different results. If it's placed
+	after ShutDown() I don't get a black screen when I start SSBM (PAL) again, if I have stopped the game
+	before the first 3D appears (on the start screen), if I show the start screen and then Stop and Start
+	I get the same error again (a black screen) (with the default OpenGL settings, copy EFB to texture, no
+	hack). I also get the "Tried to get pointer ..." error then to (if DSP HLE sound has been enabled, if
+	"Enable HLE Audio" has been disabled I don't get that error message). For this reason I have to place
+	FreeVideo() and FreeDSP() before it's initialized on the next Start instead, then it works.
+
+	If it was not for the crash I always got earlier after several (perhaps as many as twenty) Stop and Start
+	I would be indifferent about how often FreeLibrary() i used, but since it seems like it can fail
+	infrequently, at least for nJoy, I'd rather use FreeLibrary() more sparingly. However, I could not
+	reproduce any crash now after several Stop and Start so maybe it has gone away or I was lucky. In any case
+	if it works I'd rather be without FreeLibrary() between Start and Stop.
+
+//////////////////////////////////////*/
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string> // System
 #include <vector>
 
@@ -29,9 +71,14 @@
 #include "StringUtil.h"
 #include "ConsoleWindow.h"
 
+// Create the plugin manager class
 CPluginManager CPluginManager::m_Instance;
+/////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // The Plugin Manager Class
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 CPluginManager::CPluginManager() : 
 	m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
@@ -40,34 +87,14 @@ CPluginManager::CPluginManager() :
 	m_PluginGlobals->config = (void *)&SConfig::GetInstance();
 	m_PluginGlobals->messageLogger = NULL;
 
+	// Set initial values to NULL, this is only done when Dolphin is started
 	m_video = NULL;
 	m_dsp = NULL;
-	for (int i = 0; i < MAXPADS; i++)
-		m_pad[i] = NULL;
-
-	for (int i = 0; i < MAXWIIMOTES; i++)
-		m_wiimote[i] = NULL;
+	for (int i = 0; i < MAXPADS; i++) m_pad[i] = NULL;
+	for (int i = 0; i < MAXWIIMOTES; i++) m_wiimote[i] = NULL;
 }
 
-/* Function: 
-
-   FreeLibrary() Called from: In an attempt to avoid the crash that occurs when
-   the use LoadLibrary() and FreeLibrary() often (every game a game is stopped
-   and started) these functions will only be used when
-		1. Dolphin is started
-		2. A plugin is changed
-		3. Dolphin is closed
-   it will not be used when we Start and Stop games. With these exceptions:
-		1. Video plugin: If FreeLibrary() is not called between Stop and Start it will fail for
-		several games on the next Start, but not for all games.
-		2. Sond plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
-		"get pointer for unknown address ffffffff" message for all games I tried.
-	If it was not for the crash I always got earlier after several (perhaps as many as twenty) Stop and Start
-	I would be indifferent about how often FreeLibrary() i used, but since it seems like it can fail
-	infrequently, at least for nJoy, I'd rather use FreeLibrary() more sparingly. However, I could not
-	reproduce any crash now after several Stop and Start so maybe it has gone away or I was lucky. In any case
-	if it works I'd rather be without FreeLibrary() between Start and Stop.
-*/
+// This will call FreeLibrary() for all plugins
 CPluginManager::~CPluginManager()
 {
 	Console::Print("Delete CPluginManager\n");
@@ -90,32 +117,41 @@ CPluginManager::~CPluginManager()
 	delete m_video;    
 
 }
+//////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Init and Shutdown Plugins 
-// Point the m_pad[] and other variables to a certain plugin
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+// Function: Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
 	if (! GetDSP()) {
 		PanicAlert("Can't init DSP Plugin");
 		return false;
 	}
+	Console::Print("Before GetVideo\n");
 
 	if (! GetVideo()) {
 		PanicAlert("Can't init Video Plugin");
 		return false;
 	}
+	Console::Print("After GetVideo\n");
 
 	// Check if we get at least one pad or wiimote
 	bool pad = false;
 	bool wiimote = false;
 
 	// Init pad
-	for (int i = 0; i < MAXPADS; i++) {
-		if (! m_params.m_strPadPlugin[i].empty())
-			GetPad(i);
-		if (m_pad[i] != NULL)
-			pad = true;
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		// Check that the plugin has a name
+		if (! m_params.m_strPadPlugin[i].empty()) GetPad(i);
+		// Check that GetPad succeeded
+		if (m_pad[i] != NULL) pad = true;
 	}
-	if (! pad) {
+	if (! pad)
+	{
 		PanicAlert("Can't init any PAD Plugins");
 		return false;
 	}
@@ -138,68 +174,120 @@ bool CPluginManager::InitPlugins()
 	return true;
 }
 
+
+// FreeLibrary() after ShutDown() is disabled for some plugins. See the comment in the file description
+// for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
 	for (int i = 0; i < MAXPADS; i++) {
 		if (m_pad[i] && OkayToInitPlugin(i)) {
 			m_pad[i]->Shutdown();
+			//delete m_pad[i];
 		}
+		//m_pad[i] = NULL;
 	}
 
-	for (int i = 0; i < MAXWIIMOTES; i++) {
+	for (int i = 0; i < MAXWIIMOTES; i++)
+	{
 		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
+		//delete m_wiimote[i];
+		//m_wiimote[i] = NULL;
 	}
 
 	if (m_video)
 	{
 		m_video->Shutdown();
 		// This is needed for Stop and Start to work
-		delete m_video;
-		m_video = NULL;
+		//delete m_video;
+		//m_video = NULL;
 	}
 
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
 		// This is needed for Stop and Start to work
-		delete m_dsp;
-		m_dsp = NULL;
+		//delete m_dsp;
+		//m_dsp = NULL;
+	}
+}
+//////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+// The PluginInfo class: Find Valid Plugins
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+/* Function: This info is used in ScanForPlugins() to check for valid plugins and and in LoadPlugin() to
+   check that the filename we want to use is a good DLL. */
+CPluginInfo::CPluginInfo(const char *_rFilename)
+	: m_Filename(_rFilename)
+	, m_Valid(false)
+{
+	if (! File::Exists(_rFilename))
+	{
+		PanicAlert("Can't find plugin %s", _rFilename);
+		return;
 	}
 
-	// Disabled FreeLibrary() for these plugins. See comment above PluginManager::~CPluginManager()
-	// for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
-	/*
-	for (int i = 0; i < MAXPADS; i++)
+	// Check if the functions that are common to all plugins are present
+	Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
+	if (plugin->IsValid())
 	{
-		if (m_pad[i] && OkayToInitPlugin(i)) {
-			Console::Print("Delete: %i\n", i);
-			delete m_pad[i];
+		if (plugin->GetInfo(m_PluginInfo))
+			m_Valid = true;
+		else
+			PanicAlert("Could not get info about plugin %s", _rFilename);
+
+		// We are now done with this plugin and will call FreeLibrary()
+		delete plugin;
+	}
+}
+///////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Supporting functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+
+/* Return the plugin info we saved when Dolphin was started. We don't even add a function to try load a
+   plugin name that was not found because in that case it must have been deleted while Dolphin was running.
+   If the user has done that he will instead get the "Can't open %s, it's missing" message. */
+void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
+{
+	for (int i = 0; i < m_PluginInfos.size(); i++)
+	{
+		if (m_PluginInfos.at(i).GetFilename() == Filename)
+		{
+			info = &m_PluginInfos.at(i);
+			return;
 		}
-		m_pad[i] = NULL;
 	}
-
-	for (int i = 0; i < MAXWIIMOTES; i++)
-	{
-		delete m_wiimote[i];
-		m_wiimote[i] = NULL;
-	}*/
 }
 
-// Supporting functions
 /* Called from: Get__() functions in this file only (not from anywhere else),
    therefore we can leave all condition checks in the Get__() functions
    below. */
 void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 {
-	CPluginInfo info(_rFilename);
-	PLUGIN_TYPE type = info.GetPluginInfo().Type;
+	// Create a string of the filename
 	std::string Filename = _rFilename;
+	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
+	   Dolphin was started */
+	CPluginInfo *info = NULL;
+	GetPluginInfo(info, Filename);
+	if (info == NULL)
+	{
+		PanicAlert("Can't open %s, it's missing", _rFilename);
+		return NULL;
+	}
+
+	PLUGIN_TYPE type = info->GetPluginInfo().Type;	
 	Common::CPlugin *plugin = NULL;
 
-	if (! File::Exists(_rFilename))
-	return NULL;
+	// Check again that the file exists, the first check is when CPluginInfo info is created
+	if (! File::Exists(_rFilename)) return NULL;
 	
-	switch (type) {
+	switch (type)
+	{
 	case PLUGIN_TYPE_VIDEO:
 		plugin = new Common::PluginVideo(_rFilename);
 		break;
@@ -220,11 +308,14 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 		PanicAlert("Trying to load unsupported type %d", type);
 	}
 	
-	if (!plugin->IsValid()) {
-		PanicAlert("Can't open %s", _rFilename);
+	// Check that the plugin has both all the common and all the type specific functions
+	if (!plugin->IsValid())
+	{
+		PanicAlert("Can't open %s, it has a missing function", _rFilename);
 		return NULL;
 	}
 	
+	// Call the DLL function SetGlobals
 	plugin->SetGlobals(m_PluginGlobals);
 	return plugin;
 }
@@ -253,18 +344,20 @@ PLUGIN_GLOBALS* CPluginManager::GetGlobals()
 void CPluginManager::ScanForPlugins()
 {
 	m_PluginInfos.clear();
-
+	// Get plugins dir
 	CFileSearch::XStringVector Directories;
 	Directories.push_back(std::string(PLUGINS_DIR));
 	
 	CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*" PLUGIN_SUFFIX);
-	
+	// Get all DLL files in the plugins dir
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
 	
-	if (rFilenames.size() > 0) {
-		for (size_t i = 0; i < rFilenames.size(); i++) {
+	if (rFilenames.size() > 0)
+	{
+		for (size_t i = 0; i < rFilenames.size(); i++)
+		{
 			std::string orig_name = rFilenames[i];
 			std::string Filename;
 			
@@ -274,16 +367,26 @@ void CPluginManager::ScanForPlugins()
 			}
 			
 			CPluginInfo PluginInfo(orig_name.c_str());
-			if (PluginInfo.IsValid()) {
+			if (PluginInfo.IsValid())
+			{
+				// Save the PluginInfo
 				m_PluginInfos.push_back(PluginInfo);
 			}
 		}
 	}
 }
+/////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
 /* Create or return the already created plugin pointers. This will be called
    often for the Pad and Wiimote from the SI_.cpp files. And often for the DSP
-   from the DSP files. */
+   from the DSP files.
+   
+   We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
+   if it's not valid.
+   */
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 Common::PluginPAD *CPluginManager::GetPad(int controller)
 {
 	if (m_pad[controller] != NULL)
@@ -325,14 +428,19 @@ Common::PluginDSP *CPluginManager::GetDSP()
 
 Common::PluginVideo *CPluginManager::GetVideo()
 {
-	if (m_video != NULL && m_video->IsValid()) {
+	/* We don't need to check if m_video->IsValid() here, because m_video will not be set by LoadPlugin()
+	   if it's not valid */
+	if (m_video != NULL)
+	{
+		// Check if the video plugin has been changed
 		if (m_video->GetFilename() == m_params.m_strVideoPlugin)
 			return m_video;
+		// Then free the current video plugin, 
 		else
 			FreeVideo();
 	}
 
-	// Else load a new plugin
+	// and load a new plugin
 	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str());
 	return m_video;
 }
@@ -344,7 +452,11 @@ void CPluginManager::FreeVideo()
 	delete m_video;
 	m_video = NULL;
 }
-
+void CPluginManager::FreeDSP()
+{
+	delete m_dsp;
+	m_dsp = NULL;
+}
 void CPluginManager::FreePad(u32 pad)
 {
 	if (pad < MAXPADS) {
@@ -352,9 +464,12 @@ void CPluginManager::FreePad(u32 pad)
 		m_pad[pad] = NULL;	
 	}
 }
-
 ///////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////
 // Call DLL functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 
 // Open config window. Input: _rFilename = Plugin filename , Type = Plugin type
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)
@@ -364,7 +479,8 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		return;
 	}
 	
-	switch(Type) {
+	switch(Type)
+	{
 	case PLUGIN_TYPE_VIDEO:
 		GetVideo()->Config((HWND)_Parent);
 		break;
@@ -385,41 +501,22 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	if (! File::Exists(_rFilename)) {
-	PanicAlert("Can't find plugin %s", _rFilename);
-	return;
-	}
-
-	switch(Type) {
-	case PLUGIN_TYPE_VIDEO:
-	GetVideo()->Debug((HWND)_Parent, Show);
-	break;
-	case PLUGIN_TYPE_DSP:
-	GetDSP()->Debug((HWND)_Parent, Show);
-	break;
-	default:
-	PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename); 
-	}
-}
-
-// Get dll info
-CPluginInfo::CPluginInfo(const char *_rFilename)
-	: m_Filename(_rFilename)
-	, m_Valid(false)
-{
-	if (! File::Exists(_rFilename)) {
+	if (! File::Exists(_rFilename))
+	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;
 	}
-	
-	Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
-	if (plugin->IsValid()) {
-		if (plugin->GetInfo(m_PluginInfo))
-			m_Valid = true;
-		else
-			PanicAlert("Could not get info about plugin %s", _rFilename);
 
-		delete plugin;
+	switch(Type) 
+	{
+	case PLUGIN_TYPE_VIDEO:
+		GetVideo()->Debug((HWND)_Parent, Show);
+		break;
+	case PLUGIN_TYPE_DSP:
+		GetDSP()->Debug((HWND)_Parent, Show);
+		break;
+	default:
+		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename); 
 	}
 }
-
+///////////////////////////////////////////
