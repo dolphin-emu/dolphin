@@ -18,6 +18,7 @@
 #define _SERIALINTERFACE_H
 
 #include "Common.h"
+#include "SI_Device.h"
 class PointerWrap;
 
 namespace SerialInterface
@@ -28,6 +29,9 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 void UpdateDevices();
+
+void RemoveDevice(int _iDeviceNumber);
+void AddDevice(const TSIDevices _device, int _iDeviceNumber);
 
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);

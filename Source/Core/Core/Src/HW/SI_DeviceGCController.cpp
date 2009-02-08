@@ -118,8 +118,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0 ,sizeof(PadStatus));
-	Common::PluginPAD* pad = 
-		CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
@@ -146,7 +145,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 void
 CSIDevice_GCController::SendCommand(u32 _Cmd)
 {
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(0);
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	UCommand command(_Cmd);
 
 	switch(command.Command)

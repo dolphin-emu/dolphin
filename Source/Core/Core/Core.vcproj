@@ -619,14 +619,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\HW\SI_Channel.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\HW\SI_Channel.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\HW\SI_Device.cpp"
 					>
 				</File>
