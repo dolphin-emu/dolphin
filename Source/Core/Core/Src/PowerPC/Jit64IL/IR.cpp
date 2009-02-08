@@ -967,10 +967,10 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 	if (isImm(*AI)) {
 		unsigned addr = RI.Build->GetImmValue(AI);	
 		if (Memory::IsRAMAddress(addr)) {
-#ifdef _M_IX86
-			// 32-bit
 			if (dest)
 				*dest = regFindFreeReg(RI);
+#ifdef _M_IX86
+			// 32-bit
 			if (Profiled) 
 				return M((void*)((u8*)Memory::base + (addr & Memory::MEMVIEW32_MASK)));
 			return M((void*)addr);
