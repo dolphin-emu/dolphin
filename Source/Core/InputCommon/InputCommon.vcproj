@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_LIB;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -245,7 +245,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -307,7 +307,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -370,7 +370,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
