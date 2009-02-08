@@ -252,7 +252,7 @@ bool AvoidValues(int value)
 {
 	// Avoid detecting very small or very big (for triggers) values
 	if(    (value > -0x2000 && value < 0x2000) // Small values
-		|| (value < -0x6000 || value > 0x6000)) // Big values
+		|| (value < -0x6000 && value > 0x6000)) // Big values
 		return true; // Avoid
 	else
 		return false; // Keep
