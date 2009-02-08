@@ -341,6 +341,9 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
+			if (changes & 3) {
+				PixelShaderManager::SetZTextureTypeChanged();
+			}
 #if defined(_DEBUG) || defined(DEBUGFAST) 
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};

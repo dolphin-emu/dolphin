@@ -91,9 +91,6 @@ const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
     if (xfregs.nNumChans > 1)
         lightMask |= xfregs.colChans[1].color.GetFullLightMask() | xfregs.colChans[1].alpha.GetFullLightMask();
 
-    bool bOutputZ = bpmem.ztex2.op==ZTEXTURE_ADD || has_zbuffer_target;
-    int ztexcoord = -1;
-
     char *p = text;
     WRITE(p, "//Vertex Shader: comp:%x, \n", components);
     WRITE(p, "typedef struct {\n"
@@ -139,18 +136,15 @@ const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
     WRITE(p, "  float4 pos : POSITION;\n");
     WRITE(p, "  float4 colors[2] : COLOR0;\n");
 
-    // if outputting Z, embed the Z coordinate in the w component of a texture coordinate
-    // if number of tex gens occupies all the texture coordinates, use the last tex coord
-    // otherwise use the next available tex coord
-    for (int i = 0; i < xfregs.numTexGens; ++i) {
-        WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", (i==(xfregs.numTexGens-1)&&bOutputZ)?4:3, i, i);
-    }
-    if (bOutputZ && xfregs.numTexGens == 0) {
-        ztexcoord = 0;
-        WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", ztexcoord, ztexcoord);
-    }
-    else if (bOutputZ)
-        ztexcoord = xfregs.numTexGens - 1;
+	if (xfregs.numTexGens < 7) {
+		for (int i = 0; i < xfregs.numTexGens; ++i)
+			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
+		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGens);
+	} else {
+		// clip position is in w of first 4 texcoords
+		for (int i = 0; i < xfregs.numTexGens; ++i)
+			WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i<4?4:3, i, i);
+	}	
 
     WRITE(p, "};\n");
     WRITE(p, "\n");
@@ -429,8 +423,15 @@ const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
         WRITE(p, "}\n");
     }
 
-    if (ztexcoord >= 0 )
-        WRITE(p, "o.tex%d.w = o.pos.z/o.pos.w;\n", ztexcoord);
+	// clipPos/w needs to be done in pixel shader, not here
+	if (xfregs.numTexGens < 7) {
+        WRITE(p, "o.clipPos = o.pos;\n");
+	} else {
+		WRITE(p, "o.tex0.w = o.pos.x;\n");
+		WRITE(p, "o.tex1.w = o.pos.y;\n");
+		WRITE(p, "o.tex2.w = o.pos.z;\n");
+		WRITE(p, "o.tex3.w = o.pos.w;\n");
+	}
 
 //    if (bpmem.fog.c_proj_fsel.fsel != 0) {
 //        switch (bpmem.fog.c_proj_fsel.fsel) {
@@ -448,6 +449,9 @@ const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 //
 //        WRITE(p, "o.fog = o.pos.z/o.pos.w;\n");
 //    }
+
+	// scale to gl clip space
+	WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
 
     WRITE(p, "return o;\n}\n");
 

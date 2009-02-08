@@ -385,10 +385,6 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     // bool bRenderZToCol0 = ; // output z and alpha to color0
     assert( !bRenderZToCol0 || bRenderZ );
 
-    int ztexcoord = -1;
-    if (bInputZ)
-        ztexcoord = numTexgen == 0 ? 0 : numTexgen-1;
-
     int nIndirectStagesUsed = 0;
     if (bpmem.genMode.numindstages > 0) {
         for (int i = 0; i < numStages; ++i) {
@@ -442,23 +438,16 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     if (bOutputZ )
         WRITE(p, "  out float depth : DEPTH,\n");
 
-    // if zcoord might come from vertex shader in texcoord
-    if (bInputZ) {
-        if (numTexgen) {
-            for (int i = 0; i < numTexgen; ++i)
-                WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i==ztexcoord?4:3, i,i);
-        }
-        else
-            WRITE(p, "  in float4 uv0 : TEXCOORD0,"); //HACK
-    }
-    else {
-        if (numTexgen) {
-            for (int i = 0; i < numTexgen; ++i)
-                WRITE(p, "  in float3 uv%d : TEXCOORD%d,\n",i,i);
-        }
-        else
-            WRITE(p, "  in float3 uv0 : TEXCOORD0,\n"); //HACK
-    }
+    // compute window position if needed because binding semantic WPOS is not widely supported
+	if (numTexgen < 7) {
+		for (int i = 0; i < numTexgen; ++i)
+			WRITE(p, "  in float3 uv%d : TEXCOORD%d, \n", i, i);
+		WRITE(p, "  in float4 clipPos : TEXCOORD%d, \n", numTexgen);
+	} else {
+		// wpos is in w of first 4 texcoords
+		for (int i = 0; i < numTexgen; ++i)
+			WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i<4?4:3, i, i);
+	}	
 
     WRITE(p, "  in float4 colors[2] : COLOR0){\n");
 
@@ -499,14 +488,23 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     for (int i = 0; i < numStages; i++)
         WriteStage(p, i, texture_mask); //build the equation for this stage
 
+	if (numTexgen >= 7) {
+		WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
+	}
+
+	if (bInputZ) {
+		// the screen space depth value = far z + (clip z / clip w) * z range		
+		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+	}
+
     if (bOutputZ) {
         // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
         if (bpmem.ztex2.op == ZTEXTURE_ADD) {
-            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + uv%d.w);\n", ztexcoord);
+            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
         }
         else {
             _assert_(bpmem.ztex2.op == ZTEXTURE_REPLACE);
-            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyz, textemp.xyz) + "I_ZBIAS"[0].w);\n");
+            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");			
         }
     }
 
@@ -539,14 +537,14 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
             if (bOutputZ )
                 WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * depth);\n");
             else
-                WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * uv%d.w);\n", ztexcoord);
+                WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * zCoord);\n");
             WRITE(p, "ocol0.w = prev.w;\n");
         }
         else {
             if (bOutputZ)
                 WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * depth);\n");
             else
-                WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * uv%d.w);\n", ztexcoord);
+                WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * zCoord);\n");
         }
     }
     WRITE(p, "}\n");

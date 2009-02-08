@@ -30,6 +30,9 @@ static int s_nIndTexMtxChanged = 0;
 static bool s_bAlphaChanged;
 static bool s_bZBiasChanged;
 static bool s_bIndTexScaleChanged;
+static bool s_bZTextureTypeChanged;
+static bool s_bDepthRangeChanged;
+static float lastDepthRange[2] = {0}; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
 static u32 lastAlpha = 0;
@@ -49,7 +52,7 @@ void PixelShaderManager::Init()
     s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
     s_nTexDimsChanged = 0;
     s_nIndTexMtxChanged = 15;
-    s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = true;
+    s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
     for (int i = 0; i < 8; ++i)
 		maptocoord[i] = -1;
 	maptocoord_mask = 0;
@@ -109,29 +112,36 @@ void PixelShaderManager::SetConstants()
 
     if (s_bAlphaChanged) {
         SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
+		s_bAlphaChanged = false;
     }
 
-    if (s_bZBiasChanged) {
-        u32 bits;
-        float ffrac = 255.0f/256.0f;
+	if (s_bZTextureTypeChanged) {    
+        static float ffrac = 255.0f/256.0f;
         float ftemp[4];
         switch (bpmem.ztex2.type) {
             case 0:
-                bits = 8;
-                ftemp[0] = ffrac/(256.0f*256.0f); ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
+                // 8 bits
+                // this breaks the menu in SSBM when it is set correctly to
+                //ftemp[0] = ffrac/(65536.0f); ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 0;
+                ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
                 break;
             case 1:
-                bits = 16;
-                ftemp[0] = 0; ftemp[1] = ffrac/(256.0f*256.0f); ftemp[2] = ffrac/256.0f; ftemp[3] = ffrac;
+                // 16 bits
+                ftemp[0] = ffrac/65536.0f; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = ffrac/256.0f;
                 break;
             case 2:
-                bits = 24;
-                ftemp[0] = ffrac/(256.0f*256.0f); ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
+                // 24 bits
+                ftemp[0] = ffrac; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac/65536.0f; ftemp[3] = 0;
                 break;
         }
-        //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        SetPSConstant4fv(C_ZBIAS, ftemp);
-        SetPSConstant4f(C_ZBIAS+1, 0, 0, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
+		SetPSConstant4fv(C_ZBIAS, ftemp);
+		s_bZTextureTypeChanged = false;
+	}
+
+	if (s_bZBiasChanged || s_bDepthRangeChanged) {
+        //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);        
+        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777215.0f, lastDepthRange[1] / 16777215.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
+		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
     // indirect incoming texture scales, update all!
@@ -276,6 +286,24 @@ void PixelShaderManager::SetZTextureBias(u32 bias)
     }
 }
 
+void PixelShaderManager::SetViewport(float* viewport)
+{
+	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+    // [0] = width/2
+    // [1] = height/2
+    // [2] = 16777215 * (farz - nearz)
+    // [3] = xorig + width/2 + 342
+    // [4] = yorig + height/2 + 342
+    // [5] = 16777215 * farz
+
+	if(lastDepthRange[0] != viewport[5] || lastDepthRange[1] != viewport[2]) {
+		lastDepthRange[0] = viewport[5];
+		lastDepthRange[1] = viewport[2];
+
+		s_bDepthRangeChanged = true;
+	}
+}
+
 void PixelShaderManager::SetIndTexScaleChanged()
 {
     s_bIndTexScaleChanged = true;
@@ -308,7 +336,11 @@ void PixelShaderManager::SetTevIndirectChanged(int id)
 
 void PixelShaderManager::SetZTextureOpChanged()
 {
-    s_bZBiasChanged = true;
+}
+
+void PixelShaderManager::SetZTextureTypeChanged()
+{
+	s_bZTextureTypeChanged = true;
 }
 
 void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
@@ -318,7 +350,7 @@ void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
             if (nonpow2tex & (0x10101 << i)) {
 				// this check was previously implicit, but should it be here?
 				if (s_nTexDimsChanged )
-					s_nTexDimsChanged |= 1 << i;				
+					s_nTexDimsChanged |= 1 << i;
             }
         }
         s_texturemask = nonpow2tex;

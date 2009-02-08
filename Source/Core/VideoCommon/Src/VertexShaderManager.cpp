@@ -252,7 +252,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 			//---------Projection[11]---------
 			// No hacks
 			if ((!proj_hax_1 && !proj_hax_2) || (proj_hax_1 && proj_hax_2))
-				g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);
+				g_fProjectionMatrix[11] = -(-0.5f - xfregs.rawProjection[5]);
 
 			// Before R945 Hack
 			if (proj_hax_1 && !proj_hax_2)
@@ -260,7 +260,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 
 			// R844 Hack
 			if (!proj_hax_1 && proj_hax_2)
-				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
+				g_fProjectionMatrix[11] = xfregs.rawProjection[5];
 
 			//--------------------------------
 
