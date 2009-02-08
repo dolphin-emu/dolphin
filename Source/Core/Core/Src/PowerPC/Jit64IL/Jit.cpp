@@ -37,7 +37,7 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-#ifndef JITTEST
+#if  !defined JITTEST || ! JITTEST
 #error JitIL needs JITTEST define
 #endif
 

@@ -37,7 +37,7 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-#ifdef JITTEST
+#if defined JITTEST && JITTEST
 #error Jit64 cannot have JITTEST define
 #endif
 
