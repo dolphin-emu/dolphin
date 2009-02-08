@@ -57,11 +57,32 @@ void CUCode_Zelda::Update()
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
+	PanicAlert("Zelda mail 0x%08X, list in progress? %s", _uMail, 
+		m_bListInProgress ? "Yes" : "No");
+	// SetupTable
+	// in WW we get SetDolbyDelay
+	// SyncFrame
+	// The last mails we get before the audio goes bye-bye
+	// 0, 0, 0
+	// 0x10000
+	// 0
+	// 0x20000
+	// 0
+	// 0x30000
+	// And then silence...
 	if (m_bListInProgress == false)
 	{
-		m_bListInProgress = true;
-		m_numSteps = _uMail;
-		m_step = 0;
+		if(_uMail == 0) {
+			g_dspInitialize.pGenerateDSPInterrupt();
+		} else if((_uMail >> 16) == 0) {
+			m_bListInProgress = true;
+			m_numSteps = _uMail;
+			m_step = 0;
+		} else {
+			// Release halt
+			m_rMailHandler.PushMail(DSP_RESUME);
+			g_dspInitialize.pGenerateDSPInterrupt();
+		}
 	}
 	else
 	{
@@ -70,7 +91,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		((u32*)m_Buffer)[m_step] = _uMail;
 		m_step++;
 
-		if (m_step == m_numSteps)
+		if (m_step >= m_numSteps)
 		{
 			ExecuteList();
 			m_bListInProgress = false;

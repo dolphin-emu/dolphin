@@ -278,7 +278,8 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
 u32 CEXIIPL::GetGCTime()
 {
-    const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
+    const u32 cJanuary2000 = 0x386D42C0;  // Seconds between 1.1.1970 and 1.1.2000
+	const u32 cWiiBias     = 0x0F111566;  // Seconds between 1.1.2000 and 5.1.2008 (Wii epoch)
 
 	// (mb2): I think we can get rid of the IPL bias.
 	// I know, it's another hack so I let the previous code for a while.
@@ -296,7 +297,10 @@ u32 CEXIIPL::GetGCTime()
     return ((u32)ltime - cJanuary2000 - Bias);
 #else
 	u64 ltime = Common::Timer::GetLocalTimeSinceJan1970();
-    return ((u32)ltime - cJanuary2000);
+	if (Core::GetStartupParameter().bWii)
+		return ((u32)ltime - cJanuary2000 - cWiiBias);
+	else
+		return ((u32)ltime - cJanuary2000);
 #endif
 }
 
