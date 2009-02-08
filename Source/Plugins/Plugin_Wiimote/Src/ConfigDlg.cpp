@@ -981,7 +981,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // -------------
 void ConfigDialog::UpdateGUI()
 {
-	Console::Print("UpdateGUI: \n");
+	//Console::Print("UpdateGUI: \n");
 
 	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
 	   from the data scanning functions in main.cpp */
