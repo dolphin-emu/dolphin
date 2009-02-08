@@ -385,7 +385,8 @@ void Host_UpdateBreakPointView()
 /////////////////////////////////////////////////////////////
 /* Update Wiimote status bar */
 // ¯¯¯¯¯¯¯¯¯
-void Host_UpdateLeds(int led_bits) {
+void Host_UpdateLeds(int led_bits)
+{
 	// Convert it to a simpler byte format
 	main_frame->g_Leds[0] = led_bits >> 0;
 	main_frame->g_Leds[1] = led_bits >> 1;
@@ -395,7 +396,8 @@ void Host_UpdateLeds(int led_bits) {
 	main_frame->UpdateLeds();
 }
 
-void Host_UpdateSpeakerStatus(int index, int speaker_bits) {
+void Host_UpdateSpeakerStatus(int index, int speaker_bits)
+{
 	main_frame->g_Speakers[index] = speaker_bits;
 	main_frame->UpdateSpeakers();
 }
@@ -411,6 +413,7 @@ void Host_UpdateStatus()
 	if(memcmp(main_frame->g_Speakers_, main_frame->g_Speakers,
 		sizeof(main_frame->g_Speakers)))
 	{
+		// Turn off the activity light again
 		main_frame->g_Speakers[2] = 0;
 		main_frame->UpdateSpeakers();
 		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));

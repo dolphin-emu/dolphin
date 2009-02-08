@@ -306,7 +306,7 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 
 	switch(BitmapType)
 	{
-	case 0:
+	case 0: // Speaker on
 	{
 		// Set outline and fill colors
 		dc.SetPen(On ? *wxMEDIUM_GREY_PEN : *wxMEDIUM_GREY_PEN);
@@ -317,7 +317,7 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 		dc.SelectObject(wxNullBitmap);
 		return bitmap;
 	}
-	case 1:
+	case 1: // Speaker unmuted
 	{
 		// Set outline and fill colors
 		dc.SetPen(On ? *wxMEDIUM_GREY_PEN : *wxMEDIUM_GREY_PEN);
@@ -328,7 +328,7 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 		dc.SelectObject(wxNullBitmap);
 		return bitmap;
 	}
-	case 2:
+	case 2: // Speaker activity
 	{
 		// Set outline and fill colors
 		dc.SetPen(On ? *wxMEDIUM_GREY_PEN : *wxMEDIUM_GREY_PEN);

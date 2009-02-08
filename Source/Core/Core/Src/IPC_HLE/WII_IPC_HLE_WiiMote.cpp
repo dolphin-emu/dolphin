@@ -400,33 +400,32 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 
 	int speaker_bits = 0;
 
-	if (SpeakersOn) {
+	if (SpeakersOn)
+	{
 		u8 Bits = 0;
-		switch (data[1]) { // Enable and disable speakers
-		case 0x14:
-			// Get the value
-			if (data[2] == 0x02)
+		switch (data[1])
+		{ 
+		case 0x14: // Enable and disable speakers
+			if (data[2] == 0x02) // Off
 				Bits = 0;
-			else if (data[2] == 0x06)
+			else if (data[2] == 0x06) // On
 				Bits = 1;
 			Host_UpdateSpeakerStatus(0, Bits);
 			break;
 
 		case 0x19: // Mute and unmute		
 			// Get the value
-			if (data[2] == 0x02)
-				Bits = 0;
-			else if (data[2] == 0x06)
+			if (data[2] == 0x02) // Unmute
 				Bits = 1;
-			Host_UpdateSpeakerStatus(0, Bits);
+			else if (data[2] == 0x06) // Mute
+				Bits = 0;
+			Host_UpdateSpeakerStatus(1, Bits);
 			break;
-
+		// Write to speaker registry, or write sound
 		case 0x16:
-			if (data[1] == 0x16) // Write to speaker registry
-			{
-				// Don't care what it does, call all activity
-				Host_UpdateSpeakerStatus(0, 1);
-			}
+		case 0x18:
+				// Turn on the activity light
+				Host_UpdateSpeakerStatus(2, 1);
 			break;
 		}
 	}

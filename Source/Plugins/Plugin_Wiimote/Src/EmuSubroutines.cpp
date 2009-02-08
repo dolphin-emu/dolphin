@@ -115,13 +115,14 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	case WM_WRITE_DATA: // 0x16
 		WmWriteData(_channelID, (wm_write_data*)sr->data);
 		break;
+
 	case WM_SPEAKER_ENABLE: // 0x14
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
 		//Console::Print("Speaker Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
 		if(sr->data[0] == 0x02) g_Speaker = 0;
 			else if(sr->data[0] == 0x06) g_Speaker = 1;
 		break;
-	case WM_SPEAKER_MUTE:
+	case WM_SPEAKER_MUTE: // 0x19
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Mute Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
 		//Console::Print("Speaker Mute/Unmute 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
 		if(sr->data[0] == 0x02) g_SpeakerVoice = 0; // g_SpeakerVoice
@@ -129,6 +130,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		break;
 	case WM_WRITE_SPEAKER_DATA: // 0x18
 		break;
+
 	default:
 		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->channel);
 		return;

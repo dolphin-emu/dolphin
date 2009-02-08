@@ -457,9 +457,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
 			if(data[4] == 0x10)
-				Console::Print("\n\nGame got the encrypted extension ID: %02x%02x\n", data[7], data[8]);
+				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x\n", data[7], data[8]));
 			else if(data[4] == 0x50)
-				Console::Print("\n\nGame got the encrypted extension ID: %02x%02x%02x%02x%02x%02x\n", data[7], data[8], data[9], data[10], data[11], data[12]);
+				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x%02x%02x%02x%02x\n", data[7], data[8], data[9], data[10], data[11], data[12]));
 
 			// We have already sent the data report so we can safely decrypt it now
 			if(WiiMoteEmu::g_Encryption)
@@ -479,6 +479,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 				if (frame) frame->UpdateGUI();
+				Console::Print("%s", TmpData.c_str());
 				Console::Print("Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
 			}
 			else if(data[4] == 0x50)
@@ -489,6 +490,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 				if (frame) frame->UpdateGUI();
+				Console::Print("%s", TmpData.c_str());
 				Console::Print("Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
@@ -756,6 +758,10 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	case WM_SPEAKER_MUTE: // 0x19
 		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
+		if(data[1] == 0x14)
+			Console::Print("\nSpeaker %s\n\n", (data[2] == 0x06) ? "On" : "Off");
+		else if(data[1] == 0x19)
+			Console::Print("\nSpeaker %s\n\n", (data[2] == 0x06) ? "Muted" : "Unmuted");
 		break;
 	case WM_WRITE_SPEAKER_DATA: // 0x18
 		if (g_DebugComm) Name.append("WM_SPEAKER_DATA");
@@ -851,13 +857,13 @@ void DoInitialize()
 	// ----------------------------------------
 	// Debugging window
 	// ----------
-	/*Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
+	/**/Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
 	Console::Print("\n\nWiimote console opened\n");
 
 	// Move window
 	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
 	//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window*/
+	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window
 	// ---------------
 
 	// Load config settings

@@ -250,9 +250,6 @@ void FillReportInfo(wm_core& _core)
 	memset(&_core, 0x00, sizeof(wm_core));
 
 #ifdef _WIN32
-	// These keys are reserved for the recording
-	if ( GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_CONTROL) ) return;
-
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
 
