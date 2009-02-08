@@ -57,8 +57,8 @@ void CUCode_Zelda::Update()
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
-	PanicAlert("Zelda mail 0x%08X, list in progress? %s", _uMail, 
-		m_bListInProgress ? "Yes" : "No");
+	//PanicAlert("Zelda mail 0x%08X, list in progress? %s", _uMail, 
+	//	m_bListInProgress ? "Yes" : "No");
 	// SetupTable
 	// in WW we get SetDolbyDelay
 	// SyncFrame
