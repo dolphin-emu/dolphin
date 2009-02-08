@@ -48,6 +48,7 @@ extern volatile u32 g_XFBUpdateRequested;
 
 void DebugLog(const char* _fmt, ...);
 
+//////////////////////////////////////////////////////////////////////////
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
 	return g_VideoInitialize.pGetMemoryPointer(_uAddress);//&g_pMemory[_uAddress & RAM_MASK];
@@ -67,7 +68,22 @@ inline u32 Memory_Read_U32(u32 _uAddress)
 {
 	return Common::swap32(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
 }
+//////////////////////////////////////////////////////////////////////////
+inline u8* Memory_Read_U8_Ptr(u32 _uAddress)
+{
+	return (u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);//g_pMemory[_uAddress & RAM_MASK];
+}
 
+inline u16* Memory_Read_U16_Unswapped_Ptr(u32 _uAddress)
+{
+	return (u16*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
+}
+
+inline u32* Memory_Read_U32_Unswapped_Ptr(u32 _uAddress)
+{
+	return (u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
+}
+//////////////////////////////////////////////////////////////////////////
 inline u32 Memory_Read_U32_Unswapped(u32 _uAddress)
 {
 	return *(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
