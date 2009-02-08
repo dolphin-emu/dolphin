@@ -127,6 +127,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		if(sr->data[0] == 0x02) g_SpeakerVoice = 0; // g_SpeakerVoice
 			else if(sr->data[0] == 0x06) g_SpeakerVoice = 1;
 		break;
+	case WM_WRITE_SPEAKER_DATA: // 0x18
+		break;
 	default:
 		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->channel);
 		return;

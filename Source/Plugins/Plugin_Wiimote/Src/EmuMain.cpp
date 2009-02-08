@@ -358,7 +358,9 @@ void Shutdown(void)
 
 // ===================================================
 /* An ack delay of 1 was not small enough, but 2 seemed to work, that was about between 20 ms and
-   100 ms in my case. I'm not sure what it means in frame delays. */
+   100 ms in my case in Zelda - TP. You may have to increase this value for other things to work, for
+   example in the wpad demo I had to set it to at least 3 for the Sound to be able to turned on (I have
+   an update rate of around 150 fps in the wpad demo) */
 // ----------------
 void CreateAckDelay(u8 _ChannelID, u16 _ReportID)
 {
@@ -435,7 +437,9 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 					// There are no 0x22 replys to these report from the real wiimote from what I could see
 					// Report 0x10 that seems to be only used for rumble
-					if(!(data[1] == WM_READ_DATA && data[2] == 0x00) && !(data[1] == WM_REQUEST_STATUS))
+					if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
+						&& !(data[1] == WM_REQUEST_STATUS)
+						&& !(data[1] == WM_WRITE_SPEAKER_DATA))
 						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 				}
 				break;

@@ -84,6 +84,7 @@ struct SRecordingAll
 	extern bool g_DebugAccelerometer;
 	extern bool g_DebugData;
 	extern bool g_DebugComm;
+	extern bool g_DebugSoundData;
 	extern bool g_DebugCustom;
 
 	// Update speed

@@ -107,7 +107,6 @@ struct wm_acknowledge
 	u8 errorID;
 };
 
-
 #define WM_READ_DATA 0x17
 struct wm_read_data {
 	u8 rumble : 1;
@@ -284,6 +283,7 @@ struct wm_report_ext21
 
 #define WM_SPEAKER_ENABLE 0x14
 #define WM_SPEAKER_MUTE 0x19 
+#define WM_WRITE_SPEAKER_DATA 0x18
 
 
 //******************************************************************************

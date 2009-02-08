@@ -474,7 +474,10 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 			break;
 
 		case L2CAP_COMMAND_REJ:
-			PanicAlert("SignalChannel - L2CAP_COMMAND_REJ (something went wrong)",pCommand->code);
+			PanicAlert(
+				"SignalChannel - L2CAP_COMMAND_REJ (something went wrong). Try to replace your"
+				"SYSCONF file with a new copy."
+				,pCommand->code);
 			break;
 
 		default:

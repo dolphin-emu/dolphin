@@ -78,6 +78,7 @@ nu_cal g_nu;
 bool g_DebugAccelerometer = false;
 bool g_DebugData = false;
 bool g_DebugComm = true;
+bool g_DebugSoundData = true;
 bool g_DebugCustom = false;
 
 // Update speed
@@ -639,6 +640,8 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	
 	std::string Name;
 	int size;
+	u16 SampleValue;
+	bool SoundData = false;
 
 	if (g_DebugComm) Name += StringFromFormat("Write[%s] ", (Emu ? "Emu" : "Real"));
 	
@@ -676,7 +679,30 @@ void InterruptDebugging(bool Emu, const void* _pData)
 			switch(data[3])
 			{
 			case 0xa2:
-				if (g_DebugComm) Name.append(" REG_SPEAKER"); break;
+				// data[8]: FF, 0x00 or 0x40
+				// data[9, 10]: RR RR, 0xd007 or 0x401f
+				// data[11]: VV, 0x00 to 0xff or 0x00 to 0x40
+				if (g_DebugComm)
+				{
+					Name.append(" REG_SPEAKER");
+					if(data[6] == 7)
+					{
+						Console::Print("\nSound configuration:\n");
+						if(data[8] == 0x00)
+						{
+							memcpy(&SampleValue, &data[9], 2);
+							Console::Print("    Data format: 4-bit ADPCM (%i Hz)\n", 6000000 / SampleValue);
+							Console::Print("    Volume: %02i%%\n\n", (data[11] / 0x40) * 100);
+						}
+						else if (data[8] == 0x40)
+						{
+							memcpy(&SampleValue, &data[9], 2);
+							Console::Print("    Data format: 8-bit PCM (%i Hz)\n", 12000000 / SampleValue);
+							Console::Print("    Volume: %02i%%\n\n", (data[11] / 0xff) * 100);
+						}
+					}
+				}
+				break;
 			case 0xa4:
 				if (g_DebugComm) Name.append(" REG_EXT");
 				// Update the encryption mode
@@ -720,28 +746,42 @@ void InterruptDebugging(bool Emu, const void* _pData)
 			break;
 		}
 		break;
+
 	case WM_IR_PIXEL_CLOCK: // 0x13
 	case WM_IR_LOGIC: // 0x1a
 		if (g_DebugComm) Name.append("WM_IR");
 		size = 1;
 		break;
 	case WM_SPEAKER_ENABLE: // 0x14
-	case WM_SPEAKER_MUTE:
+	case WM_SPEAKER_MUTE: // 0x19
 		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
 		break;
+	case WM_WRITE_SPEAKER_DATA: // 0x18
+		if (g_DebugComm) Name.append("WM_SPEAKER_DATA");
+		size = 21;
+		break;
+
 	default:
 		size = 15;
 		Console::Print("%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		break;
 	}
-	if (g_DebugComm)
+	if (g_DebugComm && !SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 		Console::Print("%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
+	if (g_DebugSoundData && SoundData)
+	{
+		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		Console::Print("%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
+		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+	}
+	
 }
 
 
@@ -812,7 +852,7 @@ void DoInitialize()
 	// Debugging window
 	// ----------
 	/*Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
-	Console::Print("\n\n\nWiimote console opened\n");
+	Console::Print("\n\nWiimote console opened\n");
 
 	// Move window
 	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window

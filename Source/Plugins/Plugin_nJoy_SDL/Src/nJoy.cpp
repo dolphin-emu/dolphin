@@ -590,26 +590,29 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	Pad_Use_Rumble(_numPAD, _pPADStatus);
 
 	/* Debugging 
-	Console::ClearScreen();
-	Console::Print(
-		"Pad %i: %i %i\n"
-		"State: L:%i R:%i HalfPress:%i\n"
-		"Trigger type: %s  StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
-		"Buttons: %i  X:%i\n"
-		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+	if(_numPAD == 1)
+	{
+		Console::ClearScreen();
+		Console::Print(
+			"Pad %i: %i %i\n"
+			"State: L:%i R:%i HalfPress:%i\n"
+			"Trigger type: %s  StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
+			"Buttons: %i  X:%i\n"
+			"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
 
-		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
+			_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
 
-		 PadState[_numPAD].buttons[CTL_L_SHOULDER], PadState[_numPAD].buttons[CTL_R_SHOULDER], PadState[_numPAD].halfpress,
+			 PadState[_numPAD].buttons[CTL_L_SHOULDER], PadState[_numPAD].buttons[CTL_R_SHOULDER], PadState[_numPAD].halfpress,
 
-		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-			_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
+			(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
+				_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
 
-		_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON],
+			_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON],
 
-		(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
-			0, 0, 0, 0
-		);*/
+			(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
+				0, 0, 0, 0
+			);
+	}*/
 }
 
 
