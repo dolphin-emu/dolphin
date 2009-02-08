@@ -30,23 +30,18 @@ public:
 
 private:
 
+	enum
+	{
+		EXI_DEVTYPE_MIC	= 0x0A000000
+	};
+
 	enum 
 	{
-		cmdID					= 0x00,
-		cmdStatus				= 0x40,
-		cmdSetStatus			= 0x80,
-		cmdGetBuffer			= 0x20,
-		cmdWriteBuffer			= 0x82,
-		cmdReadStatus			= 0x83,		
-		cmdReadID				= 0x85,
-		cmdReadErrorBuffer		= 0x86,
-		cmdWakeUp				= 0x87,
-		cmdSleep				= 0x88,		
-		cmdClearStatus			= 0x89,
-		cmdSectorErase			= 0xF1,
-		cmdPageProgram			= 0xF2,
-		cmdExtraByteProgram		= 0xF3,
-		cmdChipErase			= 0xF4,
+		cmdID			= 0x00,
+		cmdGetStatus		= 0x40,
+		cmdSetStatus	= 0x80,
+		cmdGetBuffer	= 0x20,
+		cmdWakeUp		= 0xFF,
 	};
 
 	// STATE_TO_SAVE
@@ -56,22 +51,25 @@ private:
 	{
 		u16 U16;
 		u8 U8[2];
+		struct
+		{
+			unsigned			:8; // Unknown
+			unsigned button		:1; // 1: Button Pressed
+			unsigned unk1		:1; // 1 ? Overflow?
+			unsigned unk2		:1; // Unknown related to 0 and 15 values It seems
+			unsigned sRate		:2; // Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
+			unsigned pLength	:2; // Period Length, 00-32, 01-64, 10-128, 11-???
+			unsigned sampling	:1; // If We Are Sampling or Not
+		};
 	};
 	int Index;
 	u32 m_uPosition;
-	u32 formatDelay;
-	uStatus Status;
-	
-	//! memory card parameters 
-	unsigned int ID;
-	unsigned int address;	
+	uStatus Status;	
 	
 protected:
 	virtual void TransferByte(u8 &byte);
 };
 
 void SetMic(bool Value);
-bool GetMic();
 
 #endif
-

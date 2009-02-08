@@ -23,17 +23,15 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
-    
-	bool MicButton;
-	bool IsOpen;
-// Doing it this way since it's Linux only atm due to portaudio, even though the lib is crossplatform
-// I had to include libs in the DolphinWX Sconscript file which I thought was BS.
-// So I'm committing with all the code ifdeff'ed out
-#if 1
-void SetMic(bool Value)
-{}
-bool GetMic()
-{return false;}
+
+bool MicButton = false;
+bool IsOpen;
+
+//#define USE_PORTAUDIO
+#ifndef USE_PORTAUDIO
+
+void SetMic(bool Value){}
+
 CEXIMic::CEXIMic(int _Index){}
 CEXIMic::~CEXIMic(){}
 bool CEXIMic::IsPresent() {return false;}
@@ -41,79 +39,86 @@ void CEXIMic::SetCS(int cs){}
 void CEXIMic::Update(){}
 void CEXIMic::TransferByte(u8 &byte){}
 bool CEXIMic::IsInterruptSet(){return false;}
+
 #else
-
+//////////////////////////////////////////////////////////////////////////
+// We use PortAudio for cross-platform audio input.
+// It needs the headers and a lib file for the dll
 #include <portaudio.h>
-#include <stdio.h>
 
-	unsigned char InputData[128*44100]; // Max Data is 128 samples at 44100
-	PaStream *stream;
-	PaError err;
-	unsigned short SFreq;
-	unsigned short SNum;
-	unsigned int Sample;
-	bool m_bInterruptSet;
-		bool Sampling;
+#ifdef _WIN32
+#pragma comment(lib, "C:/Users/Shawn/Desktop/portaudio/portaudio-v19/portaudio_x64.lib")
+#endif
+
+unsigned char InputData[128*44100]; // Max Data is 128 samples at 44100
+PaStream *stream;
+PaError err;
+unsigned short SFreq;
+unsigned short SNum;
+unsigned int Sample;
+bool m_bInterruptSet;
+bool Sampling;
 
 
 void SetMic(bool Value)
 {
-	if(Value != MicButton)
+	MicButton = Value;
+	if(Sampling)
 	{
-		MicButton = Value;
-		printf("Mic is set to %s\n", MicButton ? "true" : "false");
-		if(Sampling)
-		{
-			if(MicButton)
-				Pa_StartStream( stream );
-			else
-				Pa_StopStream( stream );
-		}
+		if(MicButton)
+			Pa_StartStream( stream );
+		else
+			Pa_StopStream( stream );
 	}
 }
-bool GetMic()
-{
-	return MicButton;
-}
+
 static unsigned int k = 0;
 int patestCallback( const void *inputBuffer, void *outputBuffer,
-                           unsigned long framesPerBuffer,
-                           const PaStreamCallbackTimeInfo* timeInfo,
-                           PaStreamCallbackFlags statusFlags,
-                           void *userData )
+				   unsigned long framesPerBuffer,
+				   const PaStreamCallbackTimeInfo* timeInfo,
+				   PaStreamCallbackFlags statusFlags,
+				   void *userData )
 {
-   unsigned char *data = (unsigned char*)inputBuffer; 
-    unsigned int i;
-    
-    for( i=0; i<framesPerBuffer && k < (SFreq*SNum); i++, k++ )
-    {
-        InputData[k] = data[i];
-    }
-    m_bInterruptSet = true;
-    return 0;
+	unsigned char *data = (unsigned char*)inputBuffer; 
+	unsigned int i;
+
+	for( i=0; i<framesPerBuffer && k < (SFreq*SNum); i++, k++ )
+	{
+		InputData[k] = data[i];
+	}
+	m_bInterruptSet = true;
+	return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// EXI Mic Device
+//////////////////////////////////////////////////////////////////////////
 CEXIMic::CEXIMic(int _Index)
 {
 	Index = _Index;
- 
+
+	memset(&Status.U16, 0 , sizeof(u16));
 	command = 0;
 	Sample = 0;
 	m_uPosition = 0;
-	formatDelay = 0;
-	ID = 0x0a000000;
 	m_bInterruptSet = false;
 	MicButton = false;
 	IsOpen = false;
-	Pa_Initialize();
+	err = Pa_Initialize();
+	if (err != paNoError)
+		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Initialize error %s", Pa_GetErrorText(err));
 
 }
 
 
 CEXIMic::~CEXIMic()
 {
-	Pa_CloseStream( stream );
-	Pa_Terminate();
+	err = Pa_CloseStream( stream );
+	if (err != paNoError)
+		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Close error %s", Pa_GetErrorText(err));
+	err = Pa_Terminate();
+	if (err != paNoError)
+		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Terminate error %s", Pa_GetErrorText(err));
 }
 
 bool CEXIMic::IsPresent() 
@@ -132,8 +137,15 @@ void CEXIMic::SetCS(int cs)
 	{	
 		switch (command)
 		{
-			default:
-				//printf("Don't know Command %x\n", command);
+		case cmdWakeUp:
+			// This is probably not a command, but anyway...
+			// The command 0xff seems to be used to get in sync with the microphone or to wake it up.
+			// Normally, it is issued before any other command, or to recover from errors.
+			// (shuffle2) Perhaps we should just clear the buffer and effectively "reset" here?
+			LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: WakeUp cmd");
+			break;
+		default:
+			LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: unknown CS command %02x\n", command);
 			break;
 		}
 	}
@@ -147,7 +159,7 @@ bool CEXIMic::IsInterruptSet()
 {
 	if(m_bInterruptSet)
 	{
-		//m_bInterruptSet = false;
+		m_bInterruptSet = false;
 		return true;
 	}
 	else
@@ -158,17 +170,11 @@ bool CEXIMic::IsInterruptSet()
 
 void CEXIMic::TransferByte(u8 &byte)
 {
+	LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: > %02x", byte);
 	if (m_uPosition == 0)
 	{
-		command = byte;  // first byte is command
-		byte = 0xFF; // would be tristate, but we don't care.
-
-		if(command == cmdClearStatus)
-		{
-			byte = 0xFF;
-			m_uPosition = 0;
-			m_bInterruptSet = false;
-		}
+		command = byte;	// first byte is command
+		byte = 0xFF;	// would be tristate, but we don't care.
 	} 
 	else
 	{
@@ -176,111 +182,118 @@ void CEXIMic::TransferByte(u8 &byte)
 		{
 		case cmdID:
 			if (m_uPosition == 1)
-				;//byte = 0x80; // dummy cycle
+				;//byte = 0x80; // dummy cycle - taken from memcard, it doesn't seem to need it here
 			else
-				byte = (u8)(ID >> (24-(((m_uPosition-2) & 3) * 8)));
-		break;
-		// Setting Bits: REMEMBER THIS! D:<
-		// <ector--> var |= (1 << bitnum_from_0)
-		// <ector--> var &= ~(1 << bitnum_from_0) clears
-		case cmdStatus:
-		{
-			if(GetMic())
+				byte = (u8)(EXI_DEVTYPE_MIC >> (24-(((m_uPosition-2) & 3) * 8)));
+			break;
+		case cmdGetStatus:
 			{
-				Status.U16 |= (1 << 7);
+				if (m_uPosition != 1 && m_uPosition != 2)
+					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: WARNING GetStatus @ pos: %d should never happen", m_uPosition);
+				if((!Status.button && MicButton)||(Status.button && !MicButton))
+					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Mic button %s", MicButton ? "pressed" : "released");
+
+				Status.button = MicButton ? 1 : 0;
+				byte = Status.U8[ (m_uPosition - 1) ? 0 : 1];
 			}
-			else
-			{
-				Status.U16 &= ~(1 << 7);
-			}
-			byte = (u8)(Status.U16 >> (24-(((m_uPosition-2) & 3) * 8)));
-			
-		}
-		break;
+			break;
 		case cmdSetStatus:
-		{
-			Status.U8[ (m_uPosition - 1) ? 0 : 1] = byte;
-			if(m_uPosition == 2)
 			{
-				printf("Status is 0x%04x ", Status.U16);
-				//Status is 0x7273 1 1 0 0 1 1 1 0\ 0 1 0 0 1 1 1 0
-				//Status is 0x4b00 
-				// 0 0 0 0 0 0 0 0	: Bit 0-7:	Unknown
-				// 1	: Bit 8		: 1 : Button Pressed 
-				// 1	: Bit 9		: 1 ? Overflow? 
-				// 0	: Bit 10	: Unknown related to 0 and 15 values It seems
-				// 1 0	: Bit 11-12	: Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
-				// 0 1	: Bit 13-14	: Period Length, 00-32, 01-64, 10-128, 11-??? 
-				// 0	: Bit 15	: If We Are Sampling or Not 
-				
-				if((Status.U16 >> 15) & 1) // We ARE Sampling
+				// 0x80 0xXX 0xYY
+				// cmd  pos1 pos2
+
+				// Here we assign the byte to the proper place in Status and update portaudio settings
+				Status.U8[ (m_uPosition - 1) ? 0 : 1] = byte;
+
+				if(m_uPosition == 2)
 				{
-					printf("We are now Sampling");
-					Sampling = true;
-				}
-				else
-				{
-					Sampling = false;
-					// Only set to false once we have run out of Data?
-					//m_bInterruptSet = false;
-				}
-				if(!(Status.U16 >> 11) & 1)
-					if((Status.U16 >> 12) & 1 )
-						SFreq = 22050;
-					else
+					Sampling = (Status.sampling == 1) ? true : false;
+
+					switch (Status.sRate)
+					{
+					case 0:
 						SFreq = 11025;
-				else
-					SFreq = 44100;
-					
-				if(!(Status.U16 >> 13) & 1)
-					if((Status.U16 >> 14) & 1)
-						SNum = 64;
-					else
+						break;
+					case 1:
+						SFreq = 22050;
+						break;
+					case 2:
+						SFreq = 44100;
+						break;
+					default:
+						LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Trying to set unknown sampling rate");
+						SFreq = 44100;
+						break;
+					}
+
+					switch (Status.pLength)
+					{
+					case 0:
 						SNum = 32;
-				else
-					SNum = 128;
-			
-				for(int a = 0;a < 16;a++)
-					printf("%d ", (Status.U16 >> a) & 1);
-				printf("\n");
-				if(!IsOpen)
-				{
-					// Open Our PortAudio Stream
-    				err = Pa_OpenDefaultStream( &stream,
-                                1,         
-                                0,          
-                                paUInt8 , 
-                                SFreq,
-                                SNum,        
-                                patestCallback, 
-                                NULL); 
-   					 if( err != paNoError )
-   					 	printf("error %s\n", Pa_GetErrorText (err));
-   					 IsOpen = true;
+						break;
+					case 1:
+						SNum = 64;
+						break;
+					case 2:
+						SNum = 128;
+						break;
+					default:
+						LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Trying to set unknown period length");
+						SNum = 128;
+						break;
+					}
+
+					LOGV(EXPANSIONINTERFACE, 0, "//////////////////////////////////////////////////////////////////////////");
+					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Status is now 0x%04x", Status.U16);
+					LOGV(EXPANSIONINTERFACE, 0, "\tbutton %i\tsRate %i\tpLength %i\tsampling %i\n",
+						Status.button, Status.sRate, Status.pLength, Status.sampling);
+
+					if(!IsOpen)
+					{
+						// Open Our PortAudio Stream
+						// (shuffle2) This (and the callback) are probably wrong, I can't test
+						err = Pa_OpenDefaultStream( &stream,
+							1,			// Input Channels
+							0,			// Output Channels
+							paInt16,	// Output format - GC wants PCM samples in signed 16-bit format 
+							SFreq,		// Sample Rate
+							SNum,		// Period Length (frames per buffer)
+							patestCallback,// Our callback!
+							NULL);		// Pointer passed to our callback
+						if (err != paNoError)
+						{
+							LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio error %s", Pa_GetErrorText(err));
+						}
+						else
+							IsOpen = true;
+					}
 				}
 			}
-		}
-		break;
+			break;
 		case cmdGetBuffer:
-			static unsigned long At = 0;
-			printf("POS %d\n", m_uPosition);
-			// Are we not able to return all the data then?
-			// I think if we set the Interrupt to false, it reads another 64
-			// Will Look in to it.
-			// Set to False here? Prevents lock ups maybe?
-			if(At >= SNum){
-				At = 0;
-				k = 0;
-				m_bInterruptSet = false;
+			{
+				static unsigned long At = 0;
+				LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: POS %d\n", m_uPosition);
+				// Are we not able to return all the data then?
+				// I think if we set the Interrupt to false, it reads another 64
+				// Will Look in to it.
+				// (sonicadvance1) Set to False here? Prevents lock ups maybe?
+				// (shuffle2) It seems to play nice with interrupts for the most part.
+				if(At >= SNum){
+					At = 0;
+					k = 0;
+					m_bInterruptSet = true;
+				}
+				byte = 0xAB;//InputData[At]; (shuffle2) just sending constant dummy data for now
+				At++;
 			}
-			byte = InputData[At];
-			At++;
-		break;
+			break;
 		default:
-			printf("Don't know command %x in Byte transfer\n", command);
-		break;
+			LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: unknown command byte %02x\n", command);
+			break;
 		}
 	}
 	m_uPosition++;
+	LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: < %02x", byte);
 }
 #endif

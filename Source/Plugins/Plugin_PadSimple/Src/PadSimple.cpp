@@ -334,6 +334,8 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADLEFT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_LEFT;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADRIGHT]]& 0xFF){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
+
+	_pPADStatus->MicButton = (dinput.diks[pad[_numPAD].keyForControl[CTL_MIC]] & 0xFF) ? true : false;
 }
 
 bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
@@ -380,6 +382,8 @@ bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
 		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)	{_pPADStatus->button |= PAD_BUTTON_RIGHT;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_UP)		{_pPADStatus->button |= PAD_BUTTON_UP;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)	{_pPADStatus->button |= PAD_BUTTON_DOWN;}
+
+		//_pPADStatus->MicButton = (xpad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? true : false;
 
 		return true;
 	}
@@ -742,7 +746,8 @@ void LoadConfig()
 		DIK_G,
 		DIK_F,
 		DIK_H,
-		DIK_LSHIFT
+		DIK_LSHIFT, //halfpress
+		DIK_M //Mic
 	};
 #elif defined(HAVE_X11) && HAVE_X11
 	const int defaultKeyForControl[NUMCONTROLS] =
@@ -768,7 +773,7 @@ void LoadConfig()
           XK_f,
           XK_h,
 		  XK_Shift_L, //halfpress
-		  XK_p
+		  XK_p //Mic
 	};
 #elif defined(HAVE_COCOA) && HAVE_COCOA
         const int defaultKeyForControl[NUMCONTROLS] =
@@ -794,7 +799,7 @@ void LoadConfig()
           3,
           4,
           56, //halfpress
-          35
+          35 //Mic
         };
 #endif
 	IniFile file;
