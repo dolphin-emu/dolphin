@@ -136,8 +136,6 @@ void DEBUG_QUIT();
 bool IsFocus();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
-int Pad_Convert(int _val); // Value conversion
-std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad); // Value conversion
 
 //void SaveConfig();
 //void LoadConfig();

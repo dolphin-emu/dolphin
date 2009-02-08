@@ -92,7 +92,7 @@ void ConfigBox::PadGetStatus()
 	int main_x_after = main_x, main_y_after = main_y;
 	if(PadMapping[notebookpage].bSquareToCircle)
 	{
-		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y, notebookpage);
+		std::vector<int> main_xy = InputCommon::Pad_Square_to_Circle(main_x, main_y, notebookpage, PadMapping[notebookpage]);
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
 	}
@@ -146,8 +146,8 @@ void ConfigBox::PadGetStatus()
 	// Convert the triggers values
 	if (PadMapping[notebookpage].triggertype == InputCommon::CTL_TRIGGER_SDL)
 	{
-		TriggerLeft = Pad_Convert(TriggerLeft);
-		TriggerRight = Pad_Convert(TriggerRight);
+		TriggerLeft = InputCommon::Pad_Convert(TriggerLeft);
+		TriggerRight = InputCommon::Pad_Convert(TriggerRight);
 	}
 
 	// If we don't have any axis selected for the shoulder buttons

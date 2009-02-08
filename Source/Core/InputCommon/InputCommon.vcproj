@@ -416,10 +416,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Configuration.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Event.hpp"
 			>
 		</File>

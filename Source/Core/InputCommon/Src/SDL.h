@@ -36,6 +36,7 @@
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
 #include <vector>
+#include <cmath>
 
 #include <SDL.h> // Externals
 
@@ -153,8 +154,14 @@ enum
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations
 // ¯¯¯¯¯¯¯¯¯
+
+// General functions
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads, int &NumGoodPads);
 void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons);
+
+// Value conversion
+int Pad_Convert(int _val);
+std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad, CONTROLLER_MAPPING _PadMapping);
 
 #ifndef _SDL_MAIN_
 
