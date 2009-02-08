@@ -241,7 +241,9 @@ bool RunCode(const ARCode &arcode) {
 			if (count == -1 || count < -2 || count > (int)code.ops.size())
 			{
 				LogInfo("Bad Count: %i", count);
-				PanicAlert("Action Replay: Bad Count: %i (%s)", count, code.name.c_str());
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					PanicAlert("Action Replay: Bad Count: %i (%s)", count, code.name.c_str());
+				#endif
 				return false;
 			}
 
