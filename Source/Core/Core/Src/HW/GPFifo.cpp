@@ -66,28 +66,39 @@ void ResetGatherPipe()
 
 void STACKALIGN CheckGatherPipe()
 {
+	// HyperIris: Memory::GetPointer is an expensive call, call it less, run faster
+	u8* pGatherPipe = Memory::GetPointer(CPeripheralInterface::Fifo_CPUWritePointer);
+
 	while (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{	
 		// copy the GatherPipe
-		memcpy(Memory::GetPointer(CPeripheralInterface::Fifo_CPUWritePointer), m_gatherPipe, GATHER_PIPE_SIZE);
+		memcpy(pGatherPipe, m_gatherPipe, GATHER_PIPE_SIZE);
 
         // [F|RES]: i thought GP is forced to mem1 ... strange 
 
 		// move back the spill bytes
 		m_gatherPipeCount -= GATHER_PIPE_SIZE;
-		for (u32 i=0; i < m_gatherPipeCount; i++) 
-			m_gatherPipe[i] = m_gatherPipe[i + GATHER_PIPE_SIZE];
+		
+		// HyperIris: dunno why, but I use memcpy
+		//for (u32 i=0; i < m_gatherPipeCount; i++) 
+		//	m_gatherPipe[i] = m_gatherPipe[i + GATHER_PIPE_SIZE];
+		memcpy(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
 		
 		// increase the CPUWritePointer
 		CPeripheralInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
+		// adjust
+		pGatherPipe += GATHER_PIPE_SIZE;
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer > CPeripheralInterface::Fifo_CPUEnd)
 			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds: %08x (end = %08x)", 
 						CPeripheralInterface::Fifo_CPUWritePointer, CPeripheralInterface::Fifo_CPUEnd);
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer >= CPeripheralInterface::Fifo_CPUEnd)
+		{
 			CPeripheralInterface::Fifo_CPUWritePointer = CPeripheralInterface::Fifo_CPUBase;		
-
+			// adjust, take care
+			pGatherPipe = Memory::GetPointer(CPeripheralInterface::Fifo_CPUWritePointer);
+		}
 		CommandProcessor::GatherPipeBursted();
 	}
 }

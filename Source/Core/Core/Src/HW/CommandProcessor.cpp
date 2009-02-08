@@ -644,6 +644,9 @@ void CatchUpGPU()
 	// check if we are able to run this buffer
 	if ((fifo.bFF_GPReadEnable) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 	{
+		// HyperIris: Memory::GetPointer is an expensive call, call it less, run faster
+		u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
+
 		while (fifo.CPReadWriteDistance > 0)
 		{
 			// check if we are on a breakpoint
@@ -662,21 +665,23 @@ void CatchUpGPU()
 			}
 
 			// read the data and send it to the VideoPlugin
-
-			u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
 			fifo.CPReadPointer += 32;
 			// We are going to do FP math on the main thread so have to save the current state
 			SaveSSEState();
 			LoadDefaultSSEState();
 			CPluginManager::GetInstance().GetVideo()->Video_SendFifoData(ptr,32);
 			LoadSSEState();
+			// adjust
+			ptr += 32;
 
 			fifo.CPReadWriteDistance -= 32;
 
 			// increase the ReadPtr
 			if (fifo.CPReadPointer >= fifo.CPEnd)
 			{
-				fifo.CPReadPointer = fifo.CPBase;				
+				fifo.CPReadPointer = fifo.CPBase;
+				// adjust, take care
+				ptr = Memory::GetPointer(fifo.CPReadPointer);
 				LOG(COMMANDPROCESSOR, "BUFFER LOOP");
 				// PanicAlert("loop now");
 			}
