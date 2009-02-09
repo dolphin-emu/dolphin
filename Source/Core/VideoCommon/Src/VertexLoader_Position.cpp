@@ -137,40 +137,42 @@ void LOADERDECL Pos_ReadDirect_Float()
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-#define Pos_ReadIndex_Byte(T) {																	\
-	const u8* pData = cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);\
-	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(*(pData))) * posScale;		\
-	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(*(pData+1))) * posScale;		\
-	if (pVtxAttr->PosElements)																	\
-		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(*(pData+2))) * posScale;	\
-	else																						\
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;									\
-	LOG_VTX();																					\
-	VertexManager::s_pCurBufferPointer += 12;													\
+template<class T>
+inline void Pos_ReadIndex_Byte(int Index) {
+	const u8* pData = cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);
+	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(*(pData))) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(*(pData+1))) * posScale;
+	if (pVtxAttr->PosElements)
+		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(*(pData+2))) * posScale;
+	else
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+	LOG_VTX();
+	VertexManager::s_pCurBufferPointer += 12;
 }
 
-#define Pos_ReadIndex_Short(T) {																		\
-	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION])); \
-	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(*(pData))) * posScale;	\
-	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(*(pData+1))) * posScale;\
-	if (pVtxAttr->PosElements)																			\
-	((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(*(pData+2))) * posScale;\
-	else																								\
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;											\
-	LOG_VTX();																							\
-	VertexManager::s_pCurBufferPointer += 12;															\
+template<class T>
+inline void Pos_ReadIndex_Short(int Index) {
+	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]));
+	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(*(pData))) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(*(pData+1))) * posScale;
+	if (pVtxAttr->PosElements)
+		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(*(pData+2))) * posScale;
+	else
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+	LOG_VTX();
+	VertexManager::s_pCurBufferPointer += 12;
 }
 
-#define Pos_ReadIndex_Float() {															\
-	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION])); \
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));			\
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));			\
-	if (pVtxAttr->PosElements)															\
-		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));		\
-	else																				\
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;							\
-	LOG_VTX();																			\
-	VertexManager::s_pCurBufferPointer += 12;											\
+inline void Pos_ReadIndex_Float(int Index) {
+	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
+	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));
+	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));
+	if (pVtxAttr->PosElements)
+		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));
+	else
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+	LOG_VTX();
+	VertexManager::s_pCurBufferPointer += 12;
 }
 
 // ==============================================================================
@@ -179,31 +181,31 @@ void LOADERDECL Pos_ReadDirect_Float()
 void LOADERDECL Pos_ReadIndex8_UByte() 
 { 
 	u8 Index = DataReadU8();
-	Pos_ReadIndex_Byte(u8);
+	Pos_ReadIndex_Byte<u8>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex8_Byte()
 {
 	u8 Index = DataReadU8();
-	Pos_ReadIndex_Byte(s8);
+	Pos_ReadIndex_Byte<s8>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex8_UShort()
 {
 	u8 Index = DataReadU8();
-	Pos_ReadIndex_Short(u16);
+	Pos_ReadIndex_Short<u16>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex8_Short()
 {
 	u8 Index = DataReadU8();
-	Pos_ReadIndex_Short(s16);
+	Pos_ReadIndex_Short<s16>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex8_Float()
 {
 	u8 Index = DataReadU8();
-	Pos_ReadIndex_Float();
+	Pos_ReadIndex_Float(Index);
 }
 
 // ==============================================================================
@@ -212,29 +214,29 @@ void LOADERDECL Pos_ReadIndex8_Float()
 
 void LOADERDECL Pos_ReadIndex16_UByte(){
 	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Byte(u8);
+	Pos_ReadIndex_Byte<u8>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex16_Byte(){
-	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Byte(s8);
+	u16 Index = DataReadU16();
+	Pos_ReadIndex_Byte<s8>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex16_UShort(){
 	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Short(u16);
+	Pos_ReadIndex_Short<u16>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex16_Short()
 {
 	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Short(s16);
+	Pos_ReadIndex_Short<s16>(Index);
 }
 
 void LOADERDECL Pos_ReadIndex16_Float()
 {
 	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Float();
+	Pos_ReadIndex_Float(Index);
 }
 
 #endif

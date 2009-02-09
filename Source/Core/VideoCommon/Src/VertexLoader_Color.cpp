@@ -202,8 +202,7 @@ void LOADERDECL Color_ReadIndex16_16b_4444()
 void LOADERDECL Color_ReadIndex16_24b_6666()
 {
 	u16 Index = DataReadU16();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	const u8* pData = iAddress;
+	const u8 *pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	u32 val = *(pData+2) | ((*(pData+1))<<8) | ((*pData)<<16);
 	_SetCol6666(val);
 }
