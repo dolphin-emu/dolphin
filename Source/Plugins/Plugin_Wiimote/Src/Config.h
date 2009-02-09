@@ -21,7 +21,7 @@
 struct Config
 {
     Config();
-    void Load();
+    void Load(bool ChangePad = false);
     void Save();
 
     // Emulated Wiimote

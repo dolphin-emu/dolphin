@@ -18,8 +18,13 @@
 #ifndef WIIMOTE_EMU_H
 #define WIIMOTE_EMU_H
 
-#include "wiimote_hid.h"
+
 #include <string>
+
+#include "../../../Core/InputCommon/Src/SDL.h" // Core
+
+#include "wiimote_hid.h"
+#include "EmuDefinitions.h"
 
 namespace WiiMoteEmu
 {
@@ -43,6 +48,9 @@ void LoadRecordedMovements();
 void UpdateEeprom();
 void SetDefaultExtensionRegistry();
 
+// Gamepad
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
+void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons);
 };
 
 #endif

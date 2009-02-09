@@ -63,8 +63,8 @@ bool g_Encryption; // Encryption on or off
 // Gamepad input
 int NumPads = 0, NumGoodPads = 0; // Number of goods pads
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
-InputCommon::CONTROLLER_STATE PadState[4];
-InputCommon::CONTROLLER_MAPPING PadMapping[4];
+InputCommon::CONTROLLER_STATE_NEW PadState[4];
+InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
 } // namespace
 

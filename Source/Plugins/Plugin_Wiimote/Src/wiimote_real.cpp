@@ -20,16 +20,16 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
-#include "pluginspecs_wiimote.h"
+#include <queue>
 
 #include "wiiuse.h"
-#include <queue>
 
 #include "Common.h"
 #include "Thread.h"
 #include "StringUtil.h"
 #include "ConsoleWindow.h"
 #include "Timer.h"
+#include "pluginspecs_wiimote.h"
 
 #include "wiimote_hid.h"
 #include "main.h"
@@ -148,7 +148,7 @@ void ReadData()
     {
 		//Console::Print("Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
-        wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
+		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
         m_EventWriteQueue.pop();
 
 #ifdef _WIN32
@@ -346,7 +346,7 @@ int Initialize()
 
 	// Call Wiiuse.dll
     g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
-    g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
+	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
 	Console::Print("Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
 

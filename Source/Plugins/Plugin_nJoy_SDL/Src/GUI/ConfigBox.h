@@ -48,6 +48,7 @@
 #include <wx/statbmp.h>
 #include <wx/gbsizer.h>
 
+#include "../nJoy.h"
 
 class ConfigBox : public wxDialog
 {
@@ -317,7 +318,7 @@ class ConfigBox : public wxDialog
 		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
 		void PadGetStatus(); void Update();
  
-		void UpdateGUIKeys(int controller);
+		void UpdateGUIButtonMapping(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void SaveButtonMappingAll(int Slot);
 		void UpdateGUIAll(int Slot);

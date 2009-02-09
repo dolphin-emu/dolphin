@@ -173,8 +173,8 @@ static const u8 partially_id[] =
 // Gamepad input
 extern int NumPads, NumGoodPads; // Number of goods pads
 extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
-extern InputCommon::CONTROLLER_STATE PadState[4];
-extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
+extern InputCommon::CONTROLLER_STATE_NEW PadState[4];
+extern InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
 } // namespace
 

@@ -231,4 +231,134 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Configure button mapping
+// ¯¯¯¯¯¯¯¯¯¯
+
+// Avoid extreme axis values
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
+   unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
+bool AvoidValues(int value)
+{
+	// Avoid detecting very small or very big (for triggers) values
+	if(    (value > -0x2000 && value < 0x2000) // Small values
+		|| (value < -0x6000 || value > 0x6000)) // Big values
+		return true; // Avoid
+	else
+		return false; // Keep
+}
+
+
+// Detect a pressed button
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int hats,
+				int &KeyboardKey, int &value, int &type, int &pressed, bool &Succeed, bool &Stop,
+				bool LeftRight, bool Axis, bool XInput, bool Button, bool Hat)
+{
+	// It needs the wxWidgets excape keycode
+	static const int WXK_ESCAPE = 27;
+
+	// Update the internal status
+	SDL_JoystickUpdate();
+
+	// For the triggers we accept both a digital or an analog button
+	if(Axis)
+	{
+		for(int i = 0; i < axes; i++)
+		{
+			value = SDL_JoystickGetAxis(joy, i);
+
+			if(AvoidValues(value)) continue; // Avoid values
+
+			pressed = i + (LeftRight ? 1000 : 0); // Identify the analog triggers
+			type = InputCommon::CTL_AXIS;
+			Succeed = true;
+		}
+		Console::Print("Id: %i\n", joy);
+	}
+
+	// Check for a hat
+	if(Hat)
+	{
+		for(int i = 0; i < hats; i++)
+		{	
+			if(SDL_JoystickGetHat(joy, i))
+			{
+				pressed = i;
+				type = InputCommon::CTL_HAT;
+				Succeed = true;
+			}			
+		}
+	}
+
+	// Check for a button
+	if(Button)
+	{
+		for(int i = 0; i < buttons; i++)
+		{		
+			// Some kind of bug in SDL 1.3 would give button 9 and 10 (nonexistent) the value 48 on the 360 pad
+			if (SDL_JoystickGetButton(joy, i) > 1) continue;
+
+			if(SDL_JoystickGetButton(joy, i))
+			{
+				pressed = i;
+				type = InputCommon::CTL_BUTTON;
+				Succeed = true;
+			}
+		}
+	}
+
+	// Check for a XInput trigger
+	#ifdef _WIN32
+		if(XInput)
+		{
+			for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
+			{			
+				if(XInput::GetXI(0, i))
+				{
+					pressed = i + 1000;
+					type = InputCommon::CTL_AXIS;
+					Succeed = true;
+				}
+			}
+		}
+	#endif
+
+	// Check for keyboard action
+	if (KeyboardKey)
+	{
+		if(Button)
+		{
+			// Todo: Add a separate keyboard vector to remove this restriction
+			if(KeyboardKey >= buttons)
+			{
+				pressed = KeyboardKey;
+				type = InputCommon::CTL_BUTTON;
+				Succeed = true;
+				KeyboardKey = 0;
+				if(pressed == WXK_ESCAPE) pressed = -1; // Check for the escape key
+			}
+			// Else show the error message
+			else
+			{
+				pressed = KeyboardKey;
+				KeyboardKey = -1;
+				Stop = true;
+			}
+		}
+		// Only accept the escape key
+		else
+		{	
+			Succeed = true;
+			KeyboardKey = 0;
+			pressed = -1;
+		}
+	}
+}
+/////////////////////////////////////////////////////////// Configure button mapping
+
+
+
 } // InputCommon

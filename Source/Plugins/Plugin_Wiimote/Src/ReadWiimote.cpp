@@ -77,7 +77,7 @@ void handle_event(struct wiimote_t* wm)
 {
 	//Console::Print("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
-	/* if a button is pressed, report it */
+	// if a button is pressed, report it
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		Console::Print("B pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		Console::Print("UP pressed\n");
@@ -91,10 +91,9 @@ void handle_event(struct wiimote_t* wm)
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		Console::Print("TWO pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	Console::Print("HOME pressed\n");
 
-	/*
-	 *	Pressing minus will tell the wiimote we are no longer interested in movement.
-	 *	This is useful because it saves battery power.
-	 */
+
+	// Pressing minus will tell the wiimote we are no longer interested in movement.
+	// This is useful because it saves battery power.
 	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_MINUS))
 	{
 		wiiuse_motion_sensing(wm, 0);
@@ -112,16 +111,16 @@ void handle_event(struct wiimote_t* wm)
 	if (g_MotionSensing && !WIIUSE_USING_IR(wm))
 		wiiuse_set_ir(wm, 1);
 
-	/* Print battery status */
+	// Print battery status
 	if(frame && g_Config.bUpdateRealWiimote)
 		frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 
-	/* Create shortcut to the nunchuck */
+	// Create shortcut to the nunchuck
 	struct nunchuk_t* nc = NULL;
 	if (wm->exp.type == EXP_NUNCHUK)
 		nc = (nunchuk_t*)&wm->exp.nunchuk;
 
-	/* If the accelerometer is turned on then print angles */
+	// If the accelerometer is turned on then print angles
 	if (WIIUSE_USING_ACC(wm) && WIIUSE_USING_IR(wm))
 	{
 		std::string Tmp;
@@ -333,7 +332,7 @@ void ReadWiimote()
 					break;
 
 				case WIIUSE_GUITAR_HERO_3_CTRL_INSERTED:
-					/* some expansion was inserted */
+					// some expansion was inserted
 					//handle_ctrl_status(wiimotes[i]);
 					Console::Print("Guitar Hero 3 controller inserted.\n");
 					break;
@@ -341,7 +340,7 @@ void ReadWiimote()
 				case WIIUSE_NUNCHUK_REMOVED:
 				case WIIUSE_CLASSIC_CTRL_REMOVED:
 				case WIIUSE_GUITAR_HERO_3_CTRL_REMOVED:
-					/* some expansion was removed */
+					// some expansion was removed
 					//handle_ctrl_status(wiimotes[i]);
 					Console::Print("An expansion was removed.\n");
 					break;

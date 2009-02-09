@@ -54,7 +54,8 @@ public:
 
 	void FreeVideo();
 	void FreeDSP();
-	void FreePad(u32 pad);
+	void FreePad(u32 Pad);
+	void FreeWiimote(u32 Wiimote);
 
 	bool InitPlugins();
 	void ShutdownPlugins();

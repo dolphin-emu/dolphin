@@ -19,8 +19,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
-#include "pluginspecs_wiimote.h"
-
 #include <vector>
 #include <string>
 
@@ -30,6 +28,7 @@
 #include "Common.h" // Common
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
+#include "pluginspecs_wiimote.h"
 
 #include "EmuDefinitions.h" // Local
 #include "main.h" 
@@ -130,7 +129,7 @@ void LoadRecordedMovements()
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
 		// Logging
-		Console::Print("Recording%i ", i + 1);
+		//Console::Print("Recording%i ", i + 1);
 
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i + 1);
@@ -216,10 +215,11 @@ void LoadRecordedMovements()
 		else
 			TmpIRLog = "";
 
+		/*
 		Console::Print("Size:%i HotKey:%i Speed:%i IR: %s\n",
 			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed,
 			TmpIRLog.c_str()
-			);
+			);*/
 		// ---------------------
 	}
 }
@@ -303,36 +303,6 @@ void SetDefaultExtensionRegistry()
 
 
 // ===================================================
-// Fill joyinfo with the current connected devices
-// ----------------
-bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
-{
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
-
-	// Warn the user if no gamepads are detected
-	if (_NumGoodPads == 0 && g_EmulatorRunning)
-	{
-		//PanicAlert("nJoy: No Gamepad Detected");
-		//return false;
-	}
-
-	// Load PadMapping[] etc
-	g_Config.Load();
-
-	// Update the PadState[].joy handle
-	for (int i = 0; i < 4; i++)
-	{
-		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
-			if(joyinfo.at(PadMapping[i].ID).Good)
-				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
-	}
-
-	return Success;
-}
-// ===========================
-
-
-// ===================================================
 /* Write initial values to Eeprom and registers. */
 // ----------------
 void Initialize()
@@ -389,7 +359,29 @@ void DoState(void* ptr, int mode)
    these variables. */
 void Shutdown(void) 
 {
+	Console::Print("ShutDown\n");
+
 	ResetVariables();
+
+	/* Close all devices carefully. We must check that we are not accessing any undefined
+	   vector elements or any bad devices */
+	for (int i = 0; i < 1; i++)
+	{
+		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+			if (joyinfo.at(PadMapping[i].ID).Good)
+			{
+				Console::Print("ShutDown: %i\n", PadState[i].joy);
+				/* SDL_JoystickClose() crashes for some reason so I avoid this for now, SDL_Quit() should
+				   close the pads to I think */
+				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
+			}
+	}
+
+	// Clear the physical device info
+	joyinfo.clear();
+
+	// Finally close SDL
+	if (SDL_WasInit(0)) SDL_Quit();
 }
 
 

@@ -551,6 +551,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\EmuPad.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\EmuSubroutines.cpp"
 				>
 			</File>
@@ -608,6 +612,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\ConfigDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigGamepad.cpp"
 				>
 			</File>
 			<File

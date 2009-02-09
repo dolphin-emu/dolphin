@@ -41,6 +41,7 @@
 #include <SDL.h> // Externals
 
 #include "Common.h" // Common
+#include "ConsoleWindow.h" 
 ////////////////////////////
 
 
@@ -148,6 +149,34 @@ enum
 	XI_TRIGGER_L = 0,
 	XI_TRIGGER_R
 };
+
+
+struct PadAxis
+{
+	int Lx;
+	int Ly;
+	int Rx;
+	int Ry;
+	int Tl; // Triggers
+	int Tr;
+};
+struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE
+{
+	PadAxis Axis;			// 6 Axes (Main, Sub, Triggers)
+	SDL_Joystick *joy;		// SDL joystick device
+};
+
+struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
+{
+	PadAxis Axis;			// (See above)
+	bool enabled;			// Pad attached?
+	int deadzone;			// Deadzone... what else?
+	int ID;					// SDL joystick device ID
+	int controllertype;		// D-Pad type: Hat or custom buttons
+	int triggertype;		// SDL or XInput trigger
+	std::string SDiagonal;
+	bool bSquareToCircle;
+};
 ////////////////////////////
 
 
@@ -158,6 +187,7 @@ enum
 // General functions
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads, int &NumGoodPads);
 void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons);
+void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool);
 
 // Value conversion
 int Pad_Convert(int _val);

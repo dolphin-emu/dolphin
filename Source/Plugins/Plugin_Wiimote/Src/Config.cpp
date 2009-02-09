@@ -18,7 +18,9 @@
 
 #include "Common.h"
 #include "IniFile.h"
+
 #include "Config.h"
+#include "EmuDefinitions.h" // for PadMapping
 
 Config g_Config;
 
@@ -27,7 +29,7 @@ Config::Config()
     memset(this, 0, sizeof(Config));
 }
 
-void Config::Load()
+void Config::Load(bool ChangePad)
 {
     std::string temp;
     IniFile iniFile;
@@ -49,6 +51,49 @@ void Config::Load()
 	iniFile.Get("Real", "AccNunNeutralX", &iAccNunNeutralX, 0);
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
+
+
+	for (int i = 0; i < 1; i++)
+	{
+		// ==================================================================
+		// Slot specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
+
+		// Don't update this when we are loading settings from the ConfigBox
+		if(!ChangePad)
+		{
+			iniFile.Get(SectionName.c_str(), "DeviceID", &WiiMoteEmu::PadMapping[i].ID, 0);
+			iniFile.Get(SectionName.c_str(), "Enabled", &WiiMoteEmu::PadMapping[i].enabled, true);
+		}
+		// ===================
+
+		// ==================================================================
+		// Joypad specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+			// Current joypad device ID: PadMapping[i].ID
+			// Current joypad name: joyinfo[PadMapping[i].ID].Name
+
+		/* Prevent a crash from illegal access to joyinfo that will only have values for
+		   the current amount of connected PadMapping */
+		if(WiiMoteEmu::PadMapping[i].ID >= SDL_NumJoysticks()) continue;
+
+		// Create a section name			
+		SectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
+
+		iniFile.Get(SectionName.c_str(), "left_x", &WiiMoteEmu::PadMapping[i].Axis.Lx, 0);	
+		iniFile.Get(SectionName.c_str(), "left_y", &WiiMoteEmu::PadMapping[i].Axis.Ly, 1);	
+		iniFile.Get(SectionName.c_str(), "right_x", &WiiMoteEmu::PadMapping[i].Axis.Rx, 2);	
+		iniFile.Get(SectionName.c_str(), "right_y", &WiiMoteEmu::PadMapping[i].Axis.Ry, 3);
+		iniFile.Get(SectionName.c_str(), "l_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tl, 4);
+		iniFile.Get(SectionName.c_str(), "r_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tr, 5);
+		iniFile.Get(SectionName.c_str(), "DeadZone", &WiiMoteEmu::PadMapping[i].deadzone, 0);
+		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
+		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
+		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);
+	}
+	// =============================
+	Console::Print("Load()\n");
 }
 
 void Config::Save()
@@ -70,5 +115,47 @@ void Config::Save()
 	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
 	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
 
+
+	for (int i = 0; i < 1; i++)
+	{
+		// ==================================================================
+		// Slot specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
+		iniFile.Set(SectionName.c_str(), "Enabled", WiiMoteEmu::PadMapping[i].enabled);
+
+		// Save the physical device ID number
+		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);
+		// ===================
+
+		// ==================================================================
+		// Joypad specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+			// Current joypad device ID: PadMapping[i].ID
+			// Current joypad name: joyinfo[PadMapping[i].ID].Name	
+
+		/* Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
+		   avoid reading a joyinfo that does't exist */
+		if(WiiMoteEmu::PadMapping[i].ID >= SDL_NumJoysticks()) continue;
+
+		// Create a new section name after the joypad name
+		SectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
+
+		iniFile.Set(SectionName.c_str(), "left_x", WiiMoteEmu::PadMapping[i].Axis.Lx);
+		iniFile.Set(SectionName.c_str(), "left_y", WiiMoteEmu::PadMapping[i].Axis.Ly);
+		iniFile.Set(SectionName.c_str(), "right_x", WiiMoteEmu::PadMapping[i].Axis.Rx);
+		iniFile.Set(SectionName.c_str(), "right_y", WiiMoteEmu::PadMapping[i].Axis.Ry);
+		iniFile.Set(SectionName.c_str(), "l_trigger", WiiMoteEmu::PadMapping[i].Axis.Tl);
+		iniFile.Set(SectionName.c_str(), "r_trigger", WiiMoteEmu::PadMapping[i].Axis.Tr);
+
+		//iniFile.Set(SectionName.c_str(), "deadzone", PadMapping[i].deadzone);		
+		//iniFile.Set(SectionName.c_str(), "controllertype", PadMapping[i].controllertype);
+		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
+		//iniFile.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
+		//iniFile.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);
+		// ======================================
+	}
+
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
+	Console::Print("Save()\n");
 }

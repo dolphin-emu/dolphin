@@ -457,11 +457,19 @@ void CPluginManager::FreeDSP()
 	delete m_dsp;
 	m_dsp = NULL;
 }
-void CPluginManager::FreePad(u32 pad)
+void CPluginManager::FreePad(u32 Pad)
 {
-	if (pad < MAXPADS) {
-		delete m_pad[pad];
-		m_pad[pad] = NULL;	
+	if (Pad < MAXPADS) {
+		delete m_pad[Pad];
+		m_pad[Pad] = NULL;	
+	}
+}
+void CPluginManager::FreeWiimote(u32 Wiimote)
+{
+	if (Wiimote < MAXWIIMOTES)
+	{
+		delete m_wiimote[Wiimote];
+		m_wiimote[Wiimote] = NULL;	
 	}
 }
 ///////////////////////////////////////////

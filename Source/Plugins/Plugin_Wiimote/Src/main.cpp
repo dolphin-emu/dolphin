@@ -382,10 +382,13 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 bool IsFocus()
 {
 #ifdef _WIN32
-	HWND Parent = GetParent(g_WiimoteInitialize.hWnd);
+	HWND RenderingWindow = g_WiimoteInitialize.hWnd;
+	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
+	// Allow updates when the config window is in focus to
+	HWND Config = NULL; if (frame) Config = (HWND)frame->GetHWND();
 	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_WiimoteInitialize.hWnd)
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
 		return true;
 	else
 		return false;

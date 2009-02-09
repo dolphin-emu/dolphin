@@ -45,7 +45,7 @@ extern bool g_EmulatorRunning;
 
 // Set dialog items from saved values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::UpdateGUIKeys(int controller)
+void ConfigBox::UpdateGUIButtonMapping(int controller)
 {	
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
 	wxString tmp;
@@ -244,22 +244,6 @@ wxString ConfigBox::GetButtonText(int id, int Page)
 // ¯¯¯¯¯¯¯¯¯¯
 
 
-// Avoid extreme axis values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-/* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
-   unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
-bool AvoidValues(int value)
-{
-	// Avoid detecting very small or very big (for triggers) values
-	// for the record, the only accepted value's were between -6000 & -2000 and between 2000 & 6000
-	if(    (value > -0x2000 && value < 0x2000)) // Small values
-		//|| (value < -0x6000 || value > 0x6000)) // Big values. might intervene with alot of controllers as they go way above 6000
-		return true; // Avoid
-	else
-		return false; // Keep
-}
-
-
 // Wait for button press
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Loop or timer: There are basically two ways to do this. With a while() or for() loop, or with a
@@ -272,6 +256,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 {
 	DoGetButtons(event.GetId());
 }
+
 void ConfigBox::DoGetButtons(int GetId)
 {
 	// =============================================
@@ -280,6 +265,16 @@ void ConfigBox::DoGetButtons(int GetId)
 
 	// Get the current controller	
 	int Controller = notebookpage;
+	int PadID = PadMapping[Controller].ID;
+
+	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
+	   that is mapped to controller, for example 0, 1, 2, 3 for the first four PadMapping */
+	SDL_Joystick *joy = SDL_JoystickOpen(0);
+
+	 // Get the number of axes, hats and buttons
+	int buttons = SDL_JoystickNumButtons(joy);
+	int axes = SDL_JoystickNumAxes(joy);
+	int hats = SDL_JoystickNumHats(joy);
 
 	// Get the controller and trigger type
 	int ControllerType = PadMapping[Controller].controllertype;
@@ -300,24 +295,17 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
 			   && (PadMapping[Controller].controllertype == InputCommon::CTL_DPAD_HAT); // Not with the hat option defined
 
-	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
-	   that is mapped to controller, for example 0, 1, 2, 3 for the first four PadMapping */
-	SDL_Joystick *joy = SDL_JoystickOpen(PadMapping[Controller].ID);
-
-	 // Get the number of axes, hats and buttons
-	int buttons = SDL_JoystickNumButtons(joy);
-	int axes = SDL_JoystickNumAxes(joy);
-	int hats = SDL_JoystickNumHats(joy);	
-
-	// Declare values
+	// Values used in this function
 	char format[128];
-	int value; // Axis value
-	int type; // Button type
-	bool Succeed = false;
-	bool Stop = false; // Stop the timer
-	int pressed = 0;
 	int Seconds = 4; // Seconds to wait for
 	int TimesPerSecond = 40; // How often to run the check
+
+	// Values returned from InputCommon::GetButton()
+	int value; // Axis value
+	int type; // Button type
+	int pressed = 0;
+	bool Succeed = false;
+	bool Stop = false; // Stop the timer
 	// =======================
 
 	//Console::Print("Before (%i) Id:%i %i  IsRunning:%i\n",
@@ -358,90 +346,10 @@ void ConfigBox::DoGetButtons(int GetId)
 	// If there is a timer but we should not create a new one
 	else
 	{
-		// Update the internal status
-		SDL_JoystickUpdate();
-
-		// For the triggers we accept both a digital or an analog button
-		if(Axis)
-		{
-			for(int i = 0; i < axes; i++)
-			{
-				value = SDL_JoystickGetAxis(joy, i);
-
-				if(AvoidValues(value)) continue; // Avoid values
-
-				pressed = i + (LeftRight ? 1000 : 0); // Identify the analog triggers
-				type = InputCommon::CTL_AXIS;
-				Succeed = true;
-			}
-		}
-
-		// Check for a hat
-		if(Hat)
-		{
-			for(int i = 0; i < hats; i++)
-			{	
-				if(SDL_JoystickGetHat(joy, i))
-				{
-					pressed = i;
-					type = InputCommon::CTL_HAT;
-					Succeed = true;
-				}			
-			}
-		}
-
-		// Check for a button
-		if(Button)
-		{
-			for(int i = 0; i < buttons; i++)
-			{		
-				// Some kind of bug in SDL 1.3 would give button 9 and 10 (nonexistent) the value 48 on the 360 pad
-				if (SDL_JoystickGetButton(joy, i) > 1) continue;
-
-				if(SDL_JoystickGetButton(joy, i))
-				{
-					pressed = i;
-					type = InputCommon::CTL_BUTTON;
-					Succeed = true;
-				}
-			}
-		}
-
-		// Check for a XInput trigger
-		#ifdef _WIN32
-			if(XInput)
-			{
-				for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
-				{			
-					if(XInput::GetXI(0, i))
-					{
-						pressed = i + 1000;
-						type = InputCommon::CTL_AXIS;
-						Succeed = true;
-					}
-				}
-			}
-		#endif
-
-		// Check for keyboard action
-		if (g_Pressed && Button)
-		{
-			// Todo: Add a separate keyboard vector to remove this restriction
-			if(g_Pressed >= buttons)
-			{
-				pressed = g_Pressed;
-				type = InputCommon::CTL_BUTTON;
-				Succeed = true;
-				g_Pressed = 0;
-				if(pressed == WXK_ESCAPE) pressed = -1; // Check for the exape key
-			}
-			else
-			{
-				pressed = g_Pressed;
-				g_Pressed = -1;
-				Stop = true;
-			}
-		}
+		InputCommon::GetButton(
+			joyinfo[PadID].joy, PadID, joyinfo[PadID].NumButtons, joyinfo[PadID].NumAxes, joyinfo[PadID].NumHats, 
+			g_Pressed, value, type, pressed, Succeed, Stop,
+			LeftRight, Axis, XInput, Button, Hat);
 	}
 	// ========================= Check for keys
 
@@ -508,9 +416,6 @@ void ConfigBox::DoGetButtons(int GetId)
 	}
 	// ======================== Process results
 
-	// We don't need this gamepad handle any more
-	if(SDL_JoystickOpened(PadMapping[Controller].ID)) SDL_JoystickClose(joy);
-
 	// Debugging
 	/*
 	Console::Print("Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
@@ -518,5 +423,4 @@ void ConfigBox::DoGetButtons(int GetId)
 		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
 		);*/
 }
-
 /////////////////////////////////////////////////////////// Configure button mapping

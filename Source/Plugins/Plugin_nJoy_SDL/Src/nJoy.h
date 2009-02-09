@@ -35,6 +35,9 @@
 // ¯¯¯¯¯¯¯¯¯¯
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
+
+// Show a status window with the detected axes, buttons and so on
+//#define SHOW_PAD_STATUS
 //////////////////////////
 
 

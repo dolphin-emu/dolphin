@@ -353,6 +353,8 @@ THREAD_RETURN EmuThread(void *pArg)
 		PADInitialize.hWnd = g_pWindowHandle;
 		PADInitialize.pLog = Callback_PADLog;
 		PADInitialize.padNumber = i;
+		// This is may be needed to avoid a SDL problem
+		//Plugins.FreeWiimote();
 		// Check if we should init the plugin
 		if (Plugins.OkayToInitPlugin(i))
 		{

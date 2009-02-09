@@ -472,7 +472,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	}
 
 	// Update the GUI from PadMapping[]
-	UpdateGUIKeys(_notebookpage);
+	UpdateGUIButtonMapping(_notebookpage);
 
 	// Collect status
 	bool Hat = (PadMapping[_notebookpage].controllertype == InputCommon::CTL_DPAD_HAT);
@@ -857,17 +857,13 @@ void ConfigBox::CreateGUIControls()
 		// Advanced settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-		// Populate input status
-		/**/
+		// Input status controls
 		
 		// Input status text
-		m_TStatusIn[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
-		m_TStatusOut[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
-
-		m_gStatusIn[i] = new wxStaticBoxSizer( wxHORIZONTAL, m_Controller[i], wxT("Main-stick (In) (Out)"));
 		CreateAdvancedControls(i);
-		m_GBAdvancedMainStick[i] = new wxGridBagSizer(0, 0);
 
+		// Sizers
+		m_GBAdvancedMainStick[i] = new wxGridBagSizer(0, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pInStatus[i], wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pOutStatus[i], wxGBPosition(0, 1), wxGBSpan(1, 1), wxLEFT, 5);
 		m_GBAdvancedMainStick[i]->Add(m_TStatusIn[i], wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 0);
@@ -979,7 +975,9 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	#ifdef SHOW_PAD_STATUS
+		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	#endif
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 

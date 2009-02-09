@@ -308,16 +308,15 @@ void Shutdown()
 				if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
 	}
 
-	SDL_Quit();
+	// Clear the physical device info
+	joyinfo.clear();
+
+	// Finally close SDL
+	if (SDL_WasInit(0)) SDL_Quit();
 
 	#ifdef _DEBUG
 		DEBUG_QUIT();
 	#endif
-
-	// Clear the physical device info
-	//delete [] joyinfo;
-	//joyinfo = NULL;
-	joyinfo.clear();
 
 	g_EmulatorRunning = false;
 

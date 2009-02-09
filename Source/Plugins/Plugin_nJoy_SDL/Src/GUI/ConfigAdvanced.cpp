@@ -194,6 +194,10 @@ std::string ShowStatus(int VirtualController)
 	int Hats = joyinfo[PhysicalDevice].NumHats;
 	int Buttons = joyinfo[PhysicalDevice].NumButtons;
 
+	// Get version
+	SDL_version Version;
+	SDL_GetVersion(&Version);
+
 	// Update the internal values
 	SDL_JoystickUpdate();
 
@@ -215,7 +219,7 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"PadMapping\n"
+		"Version: %i.%i.%i\n"
 		"Enabled: %i %i %i %i\n"
 		"ID: %i %i %i %i\n"
 		"Controllertype: %i %i %i %i\n"
@@ -227,6 +231,7 @@ std::string ShowStatus(int VirtualController)
 		"Hats: %s\n"
 		"But: %s\n"
 		"Device: Ax: %i Balls:%i Hats:%i But:%i",
+		Version.major, Version.minor, Version.patch,
 		PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled,
 		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
 		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
@@ -247,10 +252,12 @@ std::string ShowStatus(int VirtualController)
 void ConfigBox::Update()
 {
 	// Show the current status
-	/*
-	m_pStatusBar->SetLabel(wxString::Format(
-		"%s", ShowStatus(notebookpage).c_str()
-		));*/
+	/**/
+	#ifdef SHOW_PAD_STATUS
+		m_pStatusBar->SetLabel(wxString::Format(
+			"%s", ShowStatus(notebookpage).c_str()
+			));
+	#endif
 
 	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
 
@@ -263,6 +270,10 @@ void ConfigBox::Update()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::CreateAdvancedControls(int i)
 {
+	m_TStatusIn[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
+	m_TStatusOut[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
+	m_gStatusIn[i] = new wxStaticBoxSizer( wxHORIZONTAL, m_Controller[i], wxT("Main-stick (In) (Out)"));
+
 	m_pInStatus[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
 	m_bmpSquare[i] = new wxStaticBitmap(m_pInStatus[i], ID_STATUSBMP1 + i, CreateBitmap(),
 		//wxPoint(4, 15), wxSize(70,70));
