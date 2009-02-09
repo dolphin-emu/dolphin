@@ -38,7 +38,11 @@
 #include <vector>
 #include <cmath>
 
+#ifdef _WIN32 // UGLY HACK FIXME PLEAAAAAAASE
 #include <SDL.h> // Externals
+#else
+#include <SDL/SDL.h> // Externals
+#endif
 
 #include "Common.h" // Common
 #include "ConsoleWindow.h" 
