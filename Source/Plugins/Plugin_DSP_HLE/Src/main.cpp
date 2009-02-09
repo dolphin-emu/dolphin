@@ -232,7 +232,7 @@ void Initialize(void *init)
 		if (AOSound::isValid())
 			soundStream = new AOSound(48000, Mixer);
 	} else if(strncasecmp(g_Config.sBackend, "NullSound", 10) == 0) {
-		soundStream = new NullSound(48000, Mixer);
+		soundStream = new NullSound(48000, Mixer_MixUCode);
 	} else {
 		PanicAlert("Cannot recognize backend %s", g_Config.sBackend);
 		return;

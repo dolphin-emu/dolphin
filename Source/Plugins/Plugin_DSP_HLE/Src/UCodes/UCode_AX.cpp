@@ -326,7 +326,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger
-	if (m_frame)
+	if (m_frame && _pBuffer)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 0, false);
 	}
@@ -383,22 +383,23 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	// write back out pbs
 	WriteBackPBs(m_addressPBs, PBs, numberOfPBs);
 
-	for (int i = 0; i < _iSize; i++)
-	{
-		// Clamp into 16-bit. Maybe we should add a volume compressor here.
-		int left  = templbuffer[i] + _pBuffer[0];
-		int right = temprbuffer[i] + _pBuffer[1];
-		if (left < -32767)  left = -32767;
-		if (left > 32767)   left = 32767;
-		if (right < -32767) right = -32767;
-		if (right >  32767) right = 32767;
-		*_pBuffer++ = left;
-		*_pBuffer++ = right;
+	if(_pBuffer) {
+		for (int i = 0; i < _iSize; i++)
+		{
+			// Clamp into 16-bit. Maybe we should add a volume compressor here.
+			int left  = templbuffer[i] + _pBuffer[0];
+			int right = temprbuffer[i] + _pBuffer[1];
+			if (left < -32767)  left = -32767;
+			if (left > 32767)   left = 32767;
+			if (right < -32767) right = -32767;
+			if (right >  32767) right = 32767;
+			*_pBuffer++ = left;
+			*_pBuffer++ = right;
+		}
 	}
-
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
-	if (m_frame)
+	if (m_frame && _pBuffer)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 1, false);
 	}

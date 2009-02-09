@@ -68,13 +68,7 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 		g_dspInitialize.pGetAudioStreaming(buffer, numSamples);
 	}
 
-	//if this was called directly from the HLE, and not by timeout
-	if (g_Config.m_EnableHLEAudio && mixer_HLEready)
-	{
-		IUCode* pUCode = CDSPHandler::GetInstance().GetUCode();
-		if (pUCode != NULL)
-			pUCode->MixAdd(buffer, numSamples);
-	}
+	Mixer_MixUCode(buffer, numSamples, bits, rate, channels);
 
 	push_sync.Enter();
 	int count = 0;
@@ -94,6 +88,17 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 		queue_size-=2;
 	}
 	push_sync.Leave();
+}
+
+void Mixer_MixUCode(short *buffer, int numSamples, int bits, int rate, 
+					int channels) {
+	//if this was called directly from the HLE, and not by timeout
+	if (g_Config.m_EnableHLEAudio && mixer_HLEready)
+	{
+		IUCode* pUCode = CDSPHandler::GetInstance().GetUCode();
+		if (pUCode != NULL)
+			pUCode->MixAdd(buffer, numSamples);
+	}
 }
 
 void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {

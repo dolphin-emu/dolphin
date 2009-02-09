@@ -24,7 +24,7 @@ class IEXIDevice
 {
 private:
 	// Byte transfer function for this device
-	virtual void TransferByte(u8& _byte) {};
+	virtual void TransferByte(u8&) {};
 
 public:
 	// Immediate copy functions

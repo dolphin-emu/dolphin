@@ -23,6 +23,8 @@ extern volatile bool mixer_HLEready;
 // Called from audio threads
 void Mixer(short* buffer, int numSamples, int bits, int rate, int channels);
 
+void Mixer_MixUCode(short *buffer, int numSamples, int bits, int rate, int channels);
+
 // Called from main thread
 void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate);
 

@@ -110,7 +110,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	// -------------------------------------------
 	// write logging data to debugger
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_frame)
+	if (m_frame && _pBuffer)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
 
@@ -199,22 +199,25 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
 	// We write the sound to _pBuffer
-	for (int i = 0; i < _iSize; i++)
+	if(_pBuffer)
 	{
-		// Clamp into 16-bit. Maybe we should add a volume compressor here.
-		int left  = templbuffer[i] + _pBuffer[0];
-		int right = temprbuffer[i] + _pBuffer[1];
-		if (left < -32767)  left = -32767;
-		if (left > 32767)   left = 32767;
-		if (right < -32767) right = -32767;
-		if (right >  32767) right = 32767;
-		*_pBuffer++ = left;
-		*_pBuffer++ = right;
+		for (int i = 0; i < _iSize; i++)
+		{
+			// Clamp into 16-bit. Maybe we should add a volume compressor here.
+			int left  = templbuffer[i] + _pBuffer[0];
+			int right = temprbuffer[i] + _pBuffer[1];
+			if (left < -32767)  left = -32767;
+			if (left > 32767)   left = 32767;
+			if (right < -32767) right = -32767;
+			if (right >  32767) right = 32767;
+			*_pBuffer++ = left;
+			*_pBuffer++ = right;
+		}
 	}
-
+	
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
-	if (m_frame)
+	if (m_frame && _pBuffer)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 1, true);
 	}

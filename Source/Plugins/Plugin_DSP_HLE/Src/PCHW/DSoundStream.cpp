@@ -110,8 +110,7 @@ void DSound::SoundLoop() {
 		// No blocking inside the csection
 		soundCriticalSection->Enter();
 		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
-		int numBytesToRender = FIX128(
-			ModBufferSize(currentPos - lastPos));
+		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
 
 		if (numBytesToRender >= 256)
 		{

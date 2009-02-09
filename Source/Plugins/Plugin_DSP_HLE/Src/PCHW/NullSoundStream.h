@@ -33,6 +33,10 @@ public:
     }  
 
 	virtual bool Start() { return true; }
+
+	virtual void Update() { 
+		(*callback)(NULL, 256 >> 2, 16, sampleRate, 2); 
+	}
 };
 
 #endif //__NULLSOUNDSTREAM_H__
