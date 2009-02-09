@@ -67,23 +67,14 @@ void _SetCol565(u16 val)
 }
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-inline u32 _Read24(u32 iAddress)
+inline u32 _Read24(const u8 *iAddress)
 {
-//	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
-//	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
-//	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
-//	return col | (0xFF<<ASHIFT);
-	return Memory_Read_U32_Unswapped(iAddress)|0xFF000000;
+	return *(const u32 *)iAddress | 0xFF000000;
 }
 
-inline u32 _Read32(u32 iAddress)
+inline u32 _Read32(const u8 *iAddress)
 {
-//	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
-//	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
-//	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
-//	col     |= Memory_Read_U8(iAddress+3) << ASHIFT;
-//	return col;
-	return Memory_Read_U32_Unswapped(iAddress);
+	return *(const u32 *)iAddress;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,17 +82,17 @@ inline u32 _Read32(u32 iAddress)
 
 void LOADERDECL Color_ReadDirect_24b_888()
 {
-	u32 col = DataReadU8()<<RSHIFT;
-	col     |= DataReadU8()<<GSHIFT;
-	col     |= DataReadU8()<<BSHIFT;
-	_SetCol(col | (0xFF<<ASHIFT));
+	u32 col = DataReadU8() << RSHIFT;
+	col    |= DataReadU8() << GSHIFT;
+	col    |= DataReadU8() << BSHIFT;
+	_SetCol(col | (0xFF << ASHIFT));
 }
 
 void LOADERDECL Color_ReadDirect_32b_888x(){
-	u32 col = DataReadU8()<<RSHIFT;
-	col     |= DataReadU8()<<GSHIFT;
-	col     |= DataReadU8()<<BSHIFT;
-	_SetCol(col | (0xFF<<ASHIFT));
+	u32 col = DataReadU8() << RSHIFT;
+	col    |= DataReadU8() << GSHIFT;
+	col    |= DataReadU8() << BSHIFT;
+	_SetCol(col | (0xFF << ASHIFT));
 	DataReadU8();
 }
 void LOADERDECL Color_ReadDirect_16b_565()
@@ -131,13 +122,13 @@ void LOADERDECL Color_ReadDirect_32b_8888()
 {
 	// TODO (mb2): check this
 	u32 col = DataReadU8()<<RSHIFT;
-	col     |= DataReadU8()<<GSHIFT;
-	col     |= DataReadU8()<<BSHIFT;
-	col		|= DataReadU8()<<ASHIFT;
+	col    |= DataReadU8()<<GSHIFT;
+	col    |= DataReadU8()<<BSHIFT;
+	col    |= DataReadU8()<<ASHIFT;
 
 	// "kill" the alpha
 	if (!colElements[colIndex])	
-		col |= 0xFF<<ASHIFT;
+		col |= 0xFF << ASHIFT;
 
 	_SetCol(col);
 }
@@ -147,46 +138,38 @@ void LOADERDECL Color_ReadDirect_32b_8888()
 void LOADERDECL Color_ReadIndex8_16b_565()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u16 val = Memory_Read_U16(iAddress);
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol565(val);
 }
 void LOADERDECL Color_ReadIndex8_24b_888()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 void LOADERDECL Color_ReadIndex8_32b_888x()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR]+colIndex);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR]+colIndex);
 	_SetCol(_Read24(iAddress));
 }
 void LOADERDECL Color_ReadIndex8_16b_4444()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u16 val = Memory_Read_U16(iAddress);
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol4444(val);
 }
 void LOADERDECL Color_ReadIndex8_24b_6666()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u8* pData = Memory_Read_U8_Ptr(iAddress);
-
+	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	u32 val = *(pData+2) | ((*(pData+1))<<8) | ((*pData)<<16);
-	//u32 val = Memory_Read_U8(iAddress+2) | 
-	//		  (Memory_Read_U8(iAddress+1)<<8) |
-	//		  (Memory_Read_U8(iAddress)<<16); 
-	
 	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex8_32b_8888()
 {
 	u8 Index = DataReadU8();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
 //////////////////////////////////////////////////////////////////////////
@@ -195,46 +178,39 @@ void LOADERDECL Color_ReadIndex8_32b_8888()
 void LOADERDECL Color_ReadIndex16_16b_565()
 {
 	u16 Index = DataReadU16(); 
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u16 val = Memory_Read_U16(iAddress);
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol565(val);
 }
 void LOADERDECL Color_ReadIndex16_24b_888()
 {
 	u16 Index = DataReadU16(); 
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 void LOADERDECL Color_ReadIndex16_32b_888x()
 {
 	u16 Index = DataReadU16(); 
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 void LOADERDECL Color_ReadIndex16_16b_4444()
 {
 	u16 Index = DataReadU16();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u16 val = Memory_Read_U16(iAddress);
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol4444(val);
 }
 void LOADERDECL Color_ReadIndex16_24b_6666()
 {
 	u16 Index = DataReadU16();
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-
-	u8* pData = Memory_Read_U8_Ptr(iAddress);
-
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8* pData = iAddress;
 	u32 val = *(pData+2) | ((*(pData+1))<<8) | ((*pData)<<16);
-	//u32 val = Memory_Read_U8(iAddress+2) | 
-	//		   (Memory_Read_U8(iAddress+1)<<8) |
-	//		   (Memory_Read_U8(iAddress)<<16); 
 	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex16_32b_8888()
 {
 	u16 Index = DataReadU16(); 
-	u32 iAddress = arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
 

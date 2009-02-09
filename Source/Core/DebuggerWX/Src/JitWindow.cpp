@@ -214,13 +214,13 @@ void CJitWindow::Compare(u32 em_address)
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
-		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n", size, num_x86_instructions, 100 * num_x86_instructions / size);
-		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n", size * 4, block->codeSize, 100 * block->codeSize / (4 * size));
+		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n", size, num_x86_instructions, 100 * (num_x86_instructions / size - 1));
+		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n", size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
 
 		ppc_box->SetValue(wxString::FromAscii((char*)xDis));
 	} else {
 		ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
-		x86_box->SetValue(wxString::FromAscii("---"));
+		x86_box->SetValue(wxString::FromAscii("---"));	
 	}
 	
 

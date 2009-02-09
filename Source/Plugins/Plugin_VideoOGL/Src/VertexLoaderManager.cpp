@@ -17,6 +17,7 @@
 
 #include <map>
 
+#include "VideoCommon.h"
 #include "Statistics.h"
 
 #include "VertexShaderManager.h"
@@ -145,11 +146,20 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
-		arraybases[sub_cmd & 0xF] = value & 0xFFFFFFFF;  // huh, why the mask?
+		arraybases[sub_cmd & 0xF] = value;
+		cached_arraybases[sub_cmd & 0xF] = Memory_GetPtr(value);
 		break;
 
 	case 0xB0:
 		arraystrides[sub_cmd & 0xF] = value & 0xFF;
 		break;
+	}
+}
+
+void RecomputeCachedArraybases()
+{
+	for (int i = 0; i < 16; i++)
+	{
+		cached_arraybases[i] = Memory_GetPtr(arraybases[i]);
 	}
 }

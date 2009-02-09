@@ -138,8 +138,7 @@ void LOADERDECL Pos_ReadDirect_Float()
 }
 
 #define Pos_ReadIndex_Byte(T) {																	\
-	u32 iAddress = arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);	\
-	u8* pData = Memory_Read_U8_Ptr(iAddress);													\
+	const u8* pData = cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);\
 	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(*(pData))) * posScale;		\
 	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(*(pData+1))) * posScale;		\
 	if (pVtxAttr->PosElements)																	\
@@ -151,8 +150,7 @@ void LOADERDECL Pos_ReadDirect_Float()
 }
 
 #define Pos_ReadIndex_Short(T) {																		\
-	u32 iAddress = arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);			\
-	u16* pData = Memory_Read_U16_Unswapped_Ptr(iAddress);												\
+	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION])); \
 	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(*(pData))) * posScale;	\
 	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(*(pData+1))) * posScale;\
 	if (pVtxAttr->PosElements)																			\
@@ -164,8 +162,7 @@ void LOADERDECL Pos_ReadDirect_Float()
 }
 
 #define Pos_ReadIndex_Float() {															\
-	u32 iAddress = arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]); \
-	u32* pData = Memory_Read_U32_Unswapped_Ptr(iAddress);								\
+	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION])); \
 	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));			\
 	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));			\
 	if (pVtxAttr->PosElements)															\

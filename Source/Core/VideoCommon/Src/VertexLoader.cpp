@@ -702,22 +702,42 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 
 void VertexLoader::AppendToString(std::string *dest)
 {
-	dest->reserve(150);
+	dest->reserve(250);
 	static const char *posMode[4] = {
 		"Inv",
 		"Dir",
-		"I8 ",
+		"I8",
 		"I16",
 	};
 	static const char *posFormats[5] = {
-		"u8 ", "s8 ", "u16", "s16", "flt",
+		"u8", "s8", "u16", "s16", "flt",
 	};
-	dest->append(StringFromFormat("%ib skin: %i P: %i %s %s ",
+	static const char *colorFormat[8] = {
+		"565",
+		"888",
+		"888x",
+		"4444",
+		"6666",
+		"8888",
+		"Inv",
+		"Inv",
+	};
+
+	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
 		m_VertexSize, m_VtxDesc.PosMatIdx,
 		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
-	dest->append(StringFromFormat("Nrm: %i %s %s ",
-		m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
-
+	if (m_VtxDesc.Normal) {
+		dest->append(StringFromFormat("Nrm: %i %s-%s ",
+			m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
+	}
+	int color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	for (int i = 0; i < 2; i++)
+	{
+		if (color_mode[i])
+		{
+			dest->append(StringFromFormat("C%i: %i %s-%s ", i, m_VtxAttr.color[i].Elements, posMode[color_mode[i]], colorFormat[m_VtxAttr.color[i].Comp]));
+		}
+	}
 	int tex_mode[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord, 
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
@@ -726,7 +746,7 @@ void VertexLoader::AppendToString(std::string *dest)
 	{
 		if (tex_mode[i])
 		{
-			dest->append(StringFromFormat("T%i: %i %s %s ",
+			dest->append(StringFromFormat("T%i: %i %s-%s ",
 				i, m_VtxAttr.texCoord[i].Elements, posMode[tex_mode[i]], posFormats[m_VtxAttr.texCoord[i].Format]));
 		}
 	}

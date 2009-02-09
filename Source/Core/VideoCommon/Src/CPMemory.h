@@ -244,6 +244,7 @@ union TMatrixIndexB
 #pragma pack()
 
 extern u32 arraybases[16];
+extern u8 *cached_arraybases[16];
 extern u32 arraystrides[16];
 extern TMatrixIndexA MatrixIndexA;
 extern TMatrixIndexB MatrixIndexB;

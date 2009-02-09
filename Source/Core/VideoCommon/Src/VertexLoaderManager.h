@@ -34,4 +34,6 @@ namespace VertexLoaderManager
 	void AppendListToString(std::string *dest);
 };
 
+void RecomputeCachedArraybases();
+
 #endif  // _VERTEXLOADERMANAGER_H

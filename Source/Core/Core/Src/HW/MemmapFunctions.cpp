@@ -265,7 +265,7 @@ u32 Read_U32(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address,false,4,PC);
+		mc->Action(_var, _Address, false, 4, PC);
 	}
 #endif
 	return _var;
@@ -281,7 +281,7 @@ u64 Read_U64(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action((u32)_var, _Address,false,8,PC);
+		mc->Action((u32)_var, _Address, false, 8, PC);
 	}
 #endif
 	return _var;

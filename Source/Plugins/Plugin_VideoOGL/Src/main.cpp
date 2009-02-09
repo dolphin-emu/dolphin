@@ -253,8 +253,11 @@ void DoState(unsigned char **ptr, int mode) {
     VideoCommon_DoState(p);
     
     // Refresh state.
-    if (mode == PointerWrap::MODE_READ)
+	if (mode == PointerWrap::MODE_READ)
+	{
         BPReload();
+		RecomputeCachedArraybases();
+	}
 }
 
 // This is called after Video_Initialize() from the Core
