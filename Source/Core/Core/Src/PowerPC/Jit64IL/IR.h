@@ -310,6 +310,9 @@ namespace IREmitter {
 		InstLoc EmitICmpUgt(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpUgt, op1, op2);
 		}
+		InstLoc EmitICmpUlt(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpUlt, op1, op2);
+		}
 		InstLoc EmitICmpSgt(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpSgt, op1, op2);
 		}

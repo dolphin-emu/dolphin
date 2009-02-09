@@ -339,6 +339,18 @@
 			ComputeRC(ibuild, val);
 	}
 
+	void Jit64::addzex(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START
+		IREmitter::InstLoc lhs = ibuild.EmitLoadGReg(inst.RA),
+		                   val, newcarry;
+		val = ibuild.EmitAdd(lhs, ibuild.EmitLoadCarry());
+		ibuild.EmitStoreGReg(val, inst.RD);
+		newcarry = ibuild.EmitICmpUlt(val, lhs);
+		ibuild.EmitStoreCarry(newcarry);
+		if (inst.Rc)
+			ComputeRC(ibuild, val);
+	}
 	// This can be optimized
 	void Jit64::addex(UGeckoInstruction inst)
 	{

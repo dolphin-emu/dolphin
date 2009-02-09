@@ -209,6 +209,7 @@ public:
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
+	void addzex(UGeckoInstruction inst);
 
 	void extsbx(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);

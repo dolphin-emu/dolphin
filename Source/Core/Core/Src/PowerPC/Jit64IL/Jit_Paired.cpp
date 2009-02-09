@@ -27,137 +27,25 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-// TODO
-// ps_madds0
-// ps_muls0
-// ps_madds1
-// ps_sel
-//   cmppd, andpd, andnpd, or
-//   lfsx, ps_merge01 etc
-
-	const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-	const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-	const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
-	const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
-
 	void Jit64::ps_mr(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-		int d = inst.FD;
-		int b = inst.FB;
-		if (d == b)
-			return;
-		fpr.LoadToX64(d, false);
-		MOVAPD(fpr.RX(d), fpr.R(b));
+		Default(inst); return;
 	}
 
 	void Jit64::ps_sel(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		Default(inst);
-		return;
-		
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-		// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
-		int d = inst.FD;
-		int a = inst.FA;
-		int b = inst.FB;
-		int c = inst.FC;
-		fpr.FlushLockX(XMM7);
-		fpr.FlushLockX(XMM6);
-		fpr.Lock(a, b, c, d);
-		fpr.LoadToX64(a, true, false);
-		fpr.LoadToX64(d, false, true);
-		// BLENDPD would have been nice...
-		MOVAPD(XMM7, fpr.R(a));
-		CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
-		MOVAPD(XMM6, R(XMM7));
-		ANDPD(XMM7, fpr.R(d));
-		ANDNPD(XMM6, fpr.R(c));
-		MOVAPD(fpr.RX(d), R(XMM7));
-		ORPD(fpr.RX(d), R(XMM6));
-		fpr.UnlockAll();
-		fpr.UnlockAllX();
+		Default(inst); return;
 	}
 
 	void Jit64::ps_sign(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-		int d = inst.FD;
-		int b = inst.FB;
-
-		fpr.Lock(d, b);
-		if (d != b)
-		{
-			fpr.LoadToX64(d, false);
-			MOVAPD(fpr.RX(d), fpr.R(b));
-		}
-		else
-		{
-			fpr.LoadToX64(d, true);
-		}
-
-		switch (inst.SUBOP10)
-		{
-		case 40: //neg 
-			XORPD(fpr.RX(d), M((void*)&psSignBits));
-			break;
-		case 136: //nabs
-			ORPD(fpr.RX(d), M((void*)&psSignBits));
-			break;
-		case 264: //abs
-			ANDPD(fpr.RX(d), M((void*)&psAbsMask));
-			break;
-		}
-
-		fpr.UnlockAll();
+		Default(inst); return;
 	}
 
 	void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-		int d = inst.FD;
-		int b = inst.FB;
-		fpr.Lock(d, b);
-		SQRTPD(XMM0, fpr.R(b));
-		MOVAPD(XMM1, M((void*)&psOneOne));
-		DIVPD(XMM1, R(XMM0));
-		MOVAPD(fpr.R(d), XMM1);
-		fpr.UnlockAll();
+		Default(inst); return;
 	}
-
-	//add a, b, c
-	
-	//mov a, b
-	//add a, c
-	//we need:
-	/*
-	psq_l
-	psq_stu
-	*/
-	
-	/*
-	add a,b,a
-	*/
 
 	void Jit64::ps_arith(UGeckoInstruction inst)
 	{
@@ -187,44 +75,22 @@
 	}
 
 	void Jit64::ps_sum(UGeckoInstruction inst)
-	{	
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
+	{
+		// FIXME: This operation strikes me as a bit strange...
+		// perhaps we can optimize it depending on the users?
 		INSTRUCTION_START;
-		if (inst.Rc) {
+		if (inst.Rc || inst.SUBOP5 != 10) {
 			Default(inst); return;
 		}
-		int d = inst.FD;
-		int a = inst.FA;
-		int b = inst.FB;
-		int c = inst.FC;
-		fpr.Lock(a,b,c,d);
-		fpr.LoadToX64(d, d == a || d == b || d == c, true);
-		switch (inst.SUBOP5)
-		{
-		case 10:
-			// Do the sum in upper subregisters, merge uppers
-			MOVDDUP(XMM0, fpr.R(a));
-			MOVAPD(XMM1, fpr.R(b));
-			ADDPD(XMM0, R(XMM1));
-			UNPCKHPD(XMM0, fpr.R(c)); //merge
-			MOVAPD(fpr.R(d), XMM0);
-			break;
-		case 11:
-			// Do the sum in lower subregisters, merge lowers
-			MOVAPD(XMM0, fpr.R(a));
-			MOVAPD(XMM1, fpr.R(b));
-			SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
-			ADDPD(XMM0, R(XMM1)); // sum lowers
-			MOVAPD(XMM1, fpr.R(c));  
-			UNPCKLPD(XMM1, R(XMM0)); // merge
-			MOVAPD(fpr.R(d), XMM1);
-			break;
-		default:
-			PanicAlert("ps_sum WTF!!!");
-		}
-		ForceSinglePrecisionP(fpr.RX(d));
-		fpr.UnlockAll();
+		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), temp;
+		val = ibuild.EmitCompactMRegToPacked(val);
+		val = ibuild.EmitFPDup0(val);
+		temp = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+		val = ibuild.EmitFPAdd(val, temp);
+		temp = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+		val = ibuild.EmitFPMerge11(val, temp);
+		val = ibuild.EmitExpandPackedToMReg(val);
+		ibuild.EmitStoreFReg(val, inst.FD);
 	}
 
 

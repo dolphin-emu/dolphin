@@ -425,7 +425,11 @@ static GekkoOPTemplate table31_2[] =
 	{10,  Interpreter::addcx,   &Jit64::Default,      {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{138, Interpreter::addex,   &Jit64::addex,        {"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{234, Interpreter::addmex,  &Jit64::Default,      {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+#if JITTEST
+	{202, Interpreter::addzex,  &Jit64::addzex,       {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+#else
 	{202, Interpreter::addzex,  &Jit64::Default,      {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+#endif
 	{491, Interpreter::divwx,   &Jit64::Default,      {"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{459, Interpreter::divwux,  &Jit64::divwux,       {"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{75,  Interpreter::mulhwx,  &Jit64::Default,      {"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
