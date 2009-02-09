@@ -251,8 +251,9 @@ wxString ConfigBox::GetButtonText(int id, int Page)
 bool AvoidValues(int value)
 {
 	// Avoid detecting very small or very big (for triggers) values
-	if(    (value > -0x2000 && value < 0x2000) // Small values
-		|| (value < -0x6000 && value > 0x6000)) // Big values
+	// for the record, the only accepted value's were between -6000 & -2000 and between 2000 & 6000
+	if(    (value > -0x2000 && value < 0x2000)) // Small values
+		//|| (value < -0x6000 || value > 0x6000)) // Big values. might intervene with alot of controllers as they go way above 6000
 		return true; // Avoid
 	else
 		return false; // Keep
