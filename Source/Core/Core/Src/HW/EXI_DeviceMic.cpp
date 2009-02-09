@@ -50,12 +50,17 @@ bool CEXIMic::IsInterruptSet(){return false;}
 #pragma comment(lib, "C:/Users/Shawn/Desktop/portaudio/portaudio-v19/portaudio_x64.lib")
 #endif
 
-unsigned char InputData[128*44100]; // Max Data is 128 samples at 44100
+union InputData
+{
+	s16 word;
+	u8 byte[2];
+};
+
+InputData inputData[64]; // 64 words = Max 128 bytes returned????
 PaStream *stream;
 PaError err;
 unsigned short SFreq;
 unsigned short SNum;
-unsigned int Sample;
 bool m_bInterruptSet;
 bool Sampling;
 
@@ -64,30 +69,30 @@ void SetMic(bool Value)
 {
 	MicButton = Value;
 	if(Sampling)
-	{
-		if(MicButton)
-			Pa_StartStream( stream );
-		else
-			Pa_StopStream( stream );
-	}
+		Pa_StartStream( stream );
+	else
+		Pa_StopStream( stream );
 }
 
-static unsigned int k = 0;
 int patestCallback( const void *inputBuffer, void *outputBuffer,
-				   unsigned long framesPerBuffer,
+				   unsigned long frameCount,
 				   const PaStreamCallbackTimeInfo* timeInfo,
 				   PaStreamCallbackFlags statusFlags,
 				   void *userData )
 {
-	unsigned char *data = (unsigned char*)inputBuffer; 
-	unsigned int i;
+	s16 *data = (s16*)inputBuffer;
+	//s16 *out = (s16*)outputBuffer;
 
-	for( i=0; i<framesPerBuffer && k < (SFreq*SNum); i++, k++ )
+	if (!m_bInterruptSet && Sampling)
 	{
-		InputData[k] = data[i];
+		for(unsigned int i = 0; i < SNum; ++i)
+		{
+			inputData[i].word = data[i];
+			//out[i] = inputData[i].word;
+		}
+		m_bInterruptSet = true;
 	}
-	m_bInterruptSet = true;
-	return 0;
+	return paContinue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,9 +102,9 @@ CEXIMic::CEXIMic(int _Index)
 {
 	Index = _Index;
 
+	memset(&inputData, 0 , sizeof(inputData));
 	memset(&Status.U16, 0 , sizeof(u16));
 	command = 0;
-	Sample = 0;
 	m_uPosition = 0;
 	m_bInterruptSet = false;
 	MicButton = false;
@@ -107,9 +112,7 @@ CEXIMic::CEXIMic(int _Index)
 	err = Pa_Initialize();
 	if (err != paNoError)
 		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Initialize error %s", Pa_GetErrorText(err));
-
 }
-
 
 CEXIMic::~CEXIMic()
 {
@@ -128,20 +131,21 @@ bool CEXIMic::IsPresent()
 
 void CEXIMic::SetCS(int cs)
 {
-	if (cs)  // not-selected to selected
-	{
+	if (cs) // not-selected to selected
 		m_uPosition = 0;
-		m_bInterruptSet = false;
-	}
 	else
 	{	
 		switch (command)
 		{
+		case cmdID:
+		case cmdGetStatus:
+		case cmdSetStatus:
+		case cmdGetBuffer:
+			break;
 		case cmdWakeUp:
 			// This is probably not a command, but anyway...
 			// The command 0xff seems to be used to get in sync with the microphone or to wake it up.
 			// Normally, it is issued before any other command, or to recover from errors.
-			// (shuffle2) Perhaps we should just clear the buffer and effectively "reset" here?
 			LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: WakeUp cmd");
 			break;
 		default:
@@ -170,7 +174,6 @@ bool CEXIMic::IsInterruptSet()
 
 void CEXIMic::TransferByte(u8 &byte)
 {
-	LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: > %02x", byte);
 	if (m_uPosition == 0)
 	{
 		command = byte;	// first byte is command
@@ -195,6 +198,7 @@ void CEXIMic::TransferByte(u8 &byte)
 
 				Status.button = MicButton ? 1 : 0;
 				byte = Status.U8[ (m_uPosition - 1) ? 0 : 1];
+				LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: Status is    0x%04x", Status.U16);
 			}
 			break;
 		case cmdSetStatus:
@@ -246,13 +250,14 @@ void CEXIMic::TransferByte(u8 &byte)
 					LOGV(EXPANSIONINTERFACE, 0, "//////////////////////////////////////////////////////////////////////////");
 					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Status is now 0x%04x", Status.U16);
 					LOGV(EXPANSIONINTERFACE, 0, "\tbutton %i\tsRate %i\tpLength %i\tsampling %i\n",
-						Status.button, Status.sRate, Status.pLength, Status.sampling);
+						Status.button, SFreq, SNum, Status.sampling);
 
 					if(!IsOpen)
 					{
 						// Open Our PortAudio Stream
-						// (shuffle2) This (and the callback) are probably wrong, I can't test
-						err = Pa_OpenDefaultStream( &stream,
+						// (shuffle2) This (and the callback) could still be wrong
+						err = Pa_OpenDefaultStream(
+							&stream,	// Our PaStream
 							1,			// Input Channels
 							0,			// Output Channels
 							paInt16,	// Output format - GC wants PCM samples in signed 16-bit format 
@@ -272,20 +277,14 @@ void CEXIMic::TransferByte(u8 &byte)
 			break;
 		case cmdGetBuffer:
 			{
-				static unsigned long At = 0;
-				LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: POS %d\n", m_uPosition);
-				// Are we not able to return all the data then?
-				// I think if we set the Interrupt to false, it reads another 64
+				int pos = m_uPosition - 1;
+				// (sonicadvance1)I think if we set the Interrupt to false, it reads another 64
 				// Will Look in to it.
-				// (sonicadvance1) Set to False here? Prevents lock ups maybe?
-				// (shuffle2) It seems to play nice with interrupts for the most part.
-				if(At >= SNum){
-					At = 0;
-					k = 0;
-					m_bInterruptSet = true;
-				}
-				byte = 0xAB;//InputData[At]; (shuffle2) just sending constant dummy data for now
-				At++;
+				// (shuffle2)Seems like games just continuously get the buffer as long as
+				// they're sampling and the mic is generating interrupts
+				byte = inputData[pos].byte[ (pos & 1) ? 0 : 1 ];
+				LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: GetBuffer%s%d/%d byte: 0x%02x",
+					(pos > 9) ? " " : "  ", pos, SNum, byte);
 			}
 			break;
 		default:
@@ -294,6 +293,5 @@ void CEXIMic::TransferByte(u8 &byte)
 		}
 	}
 	m_uPosition++;
-	LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: < %02x", byte);
 }
 #endif
