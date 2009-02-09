@@ -182,7 +182,7 @@ namespace CPUCompare
 			CODE_SIZE = 1024*1024*8*8;
 
 		jo.optimizeStack = true;
-		jo.enableBlocklink = false;  // Speed boost, but not 100% safe
+		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
 #else
