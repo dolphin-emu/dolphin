@@ -1264,7 +1264,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case LoadDouble:
 		case LoadSingle:
 		case LoadPaired:
-			regMarkUse(RI, I, getOp1(I), 1);
+			if (thisUsed)
+				regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case StoreCR:
 		case StoreCarry:
