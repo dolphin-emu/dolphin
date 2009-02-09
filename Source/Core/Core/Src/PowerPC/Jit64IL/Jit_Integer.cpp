@@ -341,6 +341,8 @@
 
 	void Jit64::addzex(UGeckoInstruction inst)
 	{
+		Default(inst); return;
+		// FIXME: There's a bug in here somewhere!
 		INSTRUCTION_START
 		IREmitter::InstLoc lhs = ibuild.EmitLoadGReg(inst.RA),
 		                   val, newcarry;
