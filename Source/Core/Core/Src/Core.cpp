@@ -321,7 +321,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
 	// Needed for Stop and Start
-	Plugins.FreeVideo();
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
@@ -343,7 +342,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pEmulatorState = (int *)&PowerPC::state;
 	dspInit.bWii = _CoreParameter.bWii;
 	// Needed for Stop and Start
-	Plugins.FreeDSP();
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin
