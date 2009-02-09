@@ -195,8 +195,8 @@ std::string ShowStatus(int VirtualController)
 	int Buttons = joyinfo[PhysicalDevice].NumButtons;
 
 	// Get version
-	SDL_version Version;
-	SDL_GetVersion(&Version);
+	//SDL_version Version;
+	//SDL_GetVersion(&Version);
 
 	// Update the internal values
 	SDL_JoystickUpdate();
@@ -219,7 +219,7 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"Version: %i.%i.%i\n"
+		//"Version: %i.%i.%i\n"
 		"Enabled: %i %i %i %i\n"
 		"ID: %i %i %i %i\n"
 		"Controllertype: %i %i %i %i\n"
@@ -231,7 +231,7 @@ std::string ShowStatus(int VirtualController)
 		"Hats: %s\n"
 		"But: %s\n"
 		"Device: Ax: %i Balls:%i Hats:%i But:%i",
-		Version.major, Version.minor, Version.patch,
+		//Version.major, Version.minor, Version.patch,
 		PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled,
 		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
 		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
