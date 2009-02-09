@@ -254,6 +254,8 @@ void ConfigDialog::DoGetButtons(int GetId)
 
 	bool Hat = false; // No hats allowed
 
+	bool AdvancedMapFilter = WiiMoteEmu::PadMapping[Controller].bFilterSettings;
+
 	// Values used in this function
 	char format[128];
 	int Seconds = 4; // Seconds to wait for
@@ -312,7 +314,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		InputCommon::GetButton(
 			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
-			LeftRight, Axis, XInput, Button, Hat);
+			LeftRight, Axis, XInput, Button, Hat, AdvancedMapFilter);
 	}
 	// ========================= Check for keys
 

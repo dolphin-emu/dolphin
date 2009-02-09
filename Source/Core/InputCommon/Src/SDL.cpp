@@ -240,14 +240,23 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
    unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
-bool AvoidValues(int value)
+bool AvoidValues(int value,int AdvancedMapFilter)
 {
 	// Avoid detecting very small or very big (for triggers) values
-	if(    (value > -0x2000 && value < 0x2000) // Small values
-		|| (value < -0x6000 || value > 0x6000)) // Big values
-		return true; // Avoid
+	if( (value > -0x2000 && value < 0x2000) )// Small values
+	{
+		return true; //Avoid
+	}
 	else
-		return false; // Keep
+	{
+		if (!AdvancedMapFilter)
+		{
+			if (value < -0x6000 || value > 0x6000) // Big values
+				return true; //Avoid
+		}
+		return false; //Keep
+	}
+	
 }
 
 
@@ -255,7 +264,7 @@ bool AvoidValues(int value)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int hats,
 				int &KeyboardKey, int &value, int &type, int &pressed, bool &Succeed, bool &Stop,
-				bool LeftRight, bool Axis, bool XInput, bool Button, bool Hat)
+				bool LeftRight, bool Axis, bool XInput, bool Button, bool Hat , int FilterSet)
 {
 	// It needs the wxWidgets excape keycode
 	static const int WXK_ESCAPE = 27;
@@ -270,7 +279,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 		{
 			value = SDL_JoystickGetAxis(joy, i);
 
-			if(AvoidValues(value)) continue; // Avoid values
+			if(AvoidValues(value,FilterSet)) continue; // Avoid values
 
 			pressed = i + (LeftRight ? 1000 : 0); // Identify the analog triggers
 			type = InputCommon::CTL_AXIS;

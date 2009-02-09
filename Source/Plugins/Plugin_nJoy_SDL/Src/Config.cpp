@@ -167,7 +167,8 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "eventnum", PadMapping[i].eventnum);
 
 		file.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
-		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);		
+		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);	
+		file.Set(SectionName.c_str(), "AdvancedMapFilter", PadMapping[i].bFilterSettings);
 		// ======================================
 
 		// Debugging
@@ -254,6 +255,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 		file.Get(SectionName.c_str(), "Diagonal", &PadMapping[i].SDiagonal, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); PadMapping[i].bSquareToCircle = Tmp;
+		file.Get(SectionName.c_str(), "AdvancedMapFilter", &Tmp,false); PadMapping[i].bFilterSettings = Tmp;
 		// =============================
 
 		// Debugging

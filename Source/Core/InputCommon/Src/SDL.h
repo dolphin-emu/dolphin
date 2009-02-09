@@ -86,6 +86,7 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int triggertype;		// Triggers range
 	std::string SDiagonal;
 	bool bSquareToCircle;
+	bool bFilterSettings;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -180,6 +181,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	int triggertype;		// SDL or XInput trigger
 	std::string SDiagonal;
 	bool bSquareToCircle;
+	bool bFilterSettings;
 };
 ////////////////////////////
 
@@ -191,7 +193,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 // General functions
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads, int &NumGoodPads);
 void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons);
-void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool);
+void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool,int);
 
 // Value conversion
 int Pad_Convert(int _val);

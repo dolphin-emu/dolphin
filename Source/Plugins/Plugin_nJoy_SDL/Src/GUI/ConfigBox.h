@@ -121,6 +121,7 @@ class ConfigBox : public wxDialog
 		wxGridBagSizer * m_GBAdvancedMainStick[4];
 		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_STDiagonal[4];
 		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
+		wxCheckBox *AdvancedMapFilter[4];
 
 		wxStaticBoxSizer *m_gStatusTriggers[4]; // Triggers
 		wxStaticText *m_TStatusTriggers[4];
@@ -219,7 +220,7 @@ class ConfigBox : public wxDialog
 			IDT_STATUS_IN, IDT_STATUS_OUT,
 
 			// Advaced settings
-			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS,
+			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS,IDFILTER_SETTINGS,
 
 			// Timers
 			IDTM_CONSTANT, IDTM_BUTTON,

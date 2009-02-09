@@ -83,6 +83,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	// Advanced settings
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDFILTER_SETTINGS, ConfigBox::ChangeSettings)
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -520,7 +521,8 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);		
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDFILTER_SETTINGS)->Enable(Enabled);
 	#endif
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -896,8 +898,10 @@ void ConfigBox::CreateGUIControls()
 			"This will convert a square stick radius to a circle stick radius like the one that the actual GameCube pad produce."
 			" That is also the input the games expect to see."
 			));
+		AdvancedMapFilter[i] = new wxCheckBox(m_Controller[i],IDFILTER_SETTINGS,_("Advanced Controller filtering"));
 
 		m_gStatusInSettings[i]->Add(m_CBS_to_C[i], 0, (wxALL), 4);
+		m_gStatusInSettings[i]->Add(AdvancedMapFilter[i],0,(wxALL),4);
 		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
 
 		m_gStatusInSettingsH[i]->Add(m_STDiagonal[i], 0, wxTOP, 3);

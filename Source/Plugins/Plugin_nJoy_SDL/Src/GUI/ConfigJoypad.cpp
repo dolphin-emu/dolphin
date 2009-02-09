@@ -79,6 +79,8 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 	m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
+	AdvancedMapFilter[controller]->SetValue(PadMapping[controller].bFilterSettings);
+
 
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
@@ -122,6 +124,8 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
 	PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
 	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();	
+	PadMapping[controller].bFilterSettings = AdvancedMapFilter[FromSlot]->IsChecked();
+
 
 	// The analog buttons
 	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_MAIN_X] = value; tmp.clear();
@@ -295,6 +299,8 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
 			   && (PadMapping[Controller].controllertype == InputCommon::CTL_DPAD_HAT); // Not with the hat option defined
 
+	bool AdvancedMapFilter = PadMapping[Controller].bFilterSettings;
+
 	// Values used in this function
 	char format[128];
 	int Seconds = 4; // Seconds to wait for
@@ -349,7 +355,7 @@ void ConfigBox::DoGetButtons(int GetId)
 		InputCommon::GetButton(
 			joyinfo[PadID].joy, PadID, joyinfo[PadID].NumButtons, joyinfo[PadID].NumAxes, joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
-			LeftRight, Axis, XInput, Button, Hat);
+			LeftRight, Axis, XInput, Button, Hat, AdvancedMapFilter);
 	}
 	// ========================= Check for keys
 
