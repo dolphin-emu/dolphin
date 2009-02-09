@@ -91,7 +91,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
 		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);
-		iniFile.Get(SectionName.c_str(), "AdvancedMapFilter", &WiiMoteEmu::PadMapping[i].bFilterSettings,false);
+		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &WiiMoteEmu::PadMapping[i].bNoTriggerFilter, false);
 	}
 	// =============================
 	Console::Print("Load()\n");
@@ -154,7 +154,7 @@ void Config::Save()
 		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 		//iniFile.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
 		//iniFile.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);
-		iniFile.Set(SectionName.c_str(), "AdvancedMapFilter", WiiMoteEmu::PadMapping[i].bFilterSettings);
+		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", WiiMoteEmu::PadMapping[i].bNoTriggerFilter);
 		// ======================================
 	}
 

@@ -254,7 +254,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 
 	bool Hat = false; // No hats allowed
 
-	bool AdvancedMapFilter = WiiMoteEmu::PadMapping[Controller].bFilterSettings;
+	bool NoTriggerFilter = WiiMoteEmu::PadMapping[Controller].bNoTriggerFilter;
 
 	// Values used in this function
 	char format[128];
@@ -314,7 +314,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		InputCommon::GetButton(
 			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
-			LeftRight, Axis, XInput, Button, Hat, AdvancedMapFilter);
+			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
 	// ========================= Check for keys
 
@@ -336,8 +336,8 @@ void ConfigDialog::DoGetButtons(int GetId)
 		sprintf(format, "[%d]", TmpTime);
 		SetButtonText(GetId, format);
 
-		/* Debug */
-		Console::Print("Keyboard: %i\n", g_Pressed);
+		/* Debug 
+		Console::Print("Keyboard: %i\n", g_Pressed);*/
 	}
 
 	// Time's up

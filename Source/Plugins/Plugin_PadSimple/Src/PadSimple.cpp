@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <stdio.h>
 #include <math.h>
 
@@ -22,43 +26,61 @@
 #include "pluginspecs_pad.h"
 #include "PadSimple.h"
 #include "IniFile.h"
-
-
+#include "ConsoleWindow.h"
+#include "StringUtil.h"
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "GUI/ConfigDlg.h"
+	#include "GUI/ConfigDlg.h"
 #endif
 
 #ifdef _WIN32
-#include "XInput.h"
-#include "DirectInputBase.h"
+	#include "XInput.h"
+	#include "DirectInputBase.h"
 
-DInput dinput;
-//#elif defined(USE_SDL) && USE_SDL
-//#include <SDL.h>
+	DInput dinput;
+	//#elif defined(USE_SDL) && USE_SDL
+	//#include <SDL.h>
 
 #elif defined(HAVE_X11) && HAVE_X11
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
-#include <X11/XKBlib.h>
+	#include <X11/Xlib.h>
+	#include <X11/Xutil.h>
+	#include <X11/keysym.h>
+	#include <X11/XKBlib.h>
 
-Display* GXdsp;
-bool KeyStatus[NUMCONTROLS];
+	Display* GXdsp;
+	bool KeyStatus[NUMCONTROLS];
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-#include <Cocoa/Cocoa.h>
-bool KeyStatus[NUMCONTROLS];
+	#include <Cocoa/Cocoa.h>
+	bool KeyStatus[NUMCONTROLS];
 #endif
+////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SPads pad[4];
 
 HINSTANCE g_hInstance;
 SPADInitialize g_PADInitialize;
+////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Input Recording
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// Enable these to record or play back
+//#define RECORD_REPLAY
+//#define RECORD_STORE
+
+// Pre defined maxium storage limit
 #define RECORD_SIZE (1024 * 128)
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
+////////////////////////////////
+
 
 //******************************************************************************
 // Supporting functions
@@ -66,45 +88,59 @@ int count = 0;
 
 void RecordInput(const SPADStatus& _rPADStatus)
 {
-	if (count >= RECORD_SIZE)
-	{
-		return;
-	}
-
+	if (count >= RECORD_SIZE) return;
 	recordBuffer[count++] = _rPADStatus;
-}
 
+	// Logging
+	//u8 TmpData[sizeof(SPADStatus)];
+	//memcpy(TmpData, &recordBuffer[count - 1], sizeof(SPADStatus));
+	//Console::Print("RecordInput(): %s\n", ArrayToString(TmpData, sizeof(SPADStatus), 0, 30).c_str());
+}
 
 const SPADStatus& PlayRecord()
 {
-	if (count >= RECORD_SIZE){return(recordBuffer[0]);}
-
+	if (count >= RECORD_SIZE)
+	{
+		// Todo: Make the recording size unlimited?
+		//PanicAlert("The recording reached its end");
+		return(recordBuffer[0]);
+	}
 	return(recordBuffer[count++]);
 }
 
-
 void LoadRecord()
 {
-	FILE* pStream = fopen("c:\\pad-record.bin", "rb");
+	FILE* pStream = fopen("pad-record.bin", "rb");
 
 	if (pStream != NULL)
 	{
 		fread(recordBuffer, 1, RECORD_SIZE * sizeof(SPADStatus), pStream);
 		fclose(pStream);
 	}
+	else
+	{
+		PanicAlert("SimplePad: Could not open pad-record.bin");
+	}
 }
-
 
 void SaveRecord()
 {
-	FILE* pStream = fopen("c:\\pad-record.bin", "wb");
+	FILE* pStream = fopen("pad-record.bin", "wb");
 
 	if (pStream != NULL)
 	{
 		fwrite(recordBuffer, 1, RECORD_SIZE * sizeof(SPADStatus), pStream);
 		fclose(pStream);
 	}
+	else
+	{
+		PanicAlert("SimplePad: Could not save pad-record.bin");
+	}
+	
+	// Reset the counter
+	count = 0;
 }
+
 
 // Check if Dolphin is in focus
 bool IsFocus()
@@ -167,89 +203,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 #endif
 
 
-//******************************************************************************
-// Plugin specification functions
-//******************************************************************************
-
-
-void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-{
-	_PluginInfo->Version = 0x0100;
-	_PluginInfo->Type = PLUGIN_TYPE_PAD;
-
-#ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
-#else
-#ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad");
-#else
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
-#endif
-#endif
-
-}
-
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
-}
-
-void DllConfig(HWND _hParent)
-{
-	LoadConfig();
-#ifdef _WIN32
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigDialog frame(&win);
-	frame.ShowModal();
-	win.SetHWND(0);
-#elif defined(HAVE_WX) && HAVE_WX
-	ConfigDialog frame(NULL);
-	frame.ShowModal();
-#endif
-	SaveConfig();
-}
-
-void DllDebugger(HWND _hParent, bool Show) {
-}
-
-void Initialize(void *init)
-{
-#ifdef RECORD_REPLAY
-	LoadRecord();
-#endif
-
-	g_PADInitialize = *(SPADInitialize*)init;
-#ifdef _WIN32
-	dinput.Init((HWND)g_PADInitialize.hWnd);
-#elif defined(HAVE_X11) && HAVE_X11
-	GXdsp = (Display*)g_PADInitialize.hWnd;
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-#endif
-
-	LoadConfig();
-}
-
-void DoState(unsigned char **ptr, int mode) {
-}
-
-void Shutdown()
-{
-#ifdef RECORD_STORE
-	SaveRecord();
-#endif
-#ifdef _WIN32
-	dinput.Free();
-	// Kill xpad rumble
-	XINPUT_VIBRATION vib;
-	vib.wLeftMotorSpeed  = 0;
-	vib.wRightMotorSpeed = 0;
-	for (int i = 0; i < 4; i++)
-		if (pad[i].bRumble)
-			XInputSetState(pad[i].XPadPlayer, &vib);
-#endif
-	SaveConfig();
-}
-
-
 const float kDeadZone = 0.1f;
 
 // Implement circular deadzone
@@ -281,6 +234,92 @@ void ScaleStickValues(unsigned char* outx,
 	int iy = (int)(ny * 100);
 	*outx = 0x80 + ix;
 	*outy = 0x80 + iy;
+}
+
+
+
+//******************************************************************************
+// Plugin specification functions
+//******************************************************************************
+
+
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
+{
+	_PluginInfo->Version = 0x0100;
+	_PluginInfo->Type = PLUGIN_TYPE_PAD;
+
+#ifdef DEBUGFAST
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
+#else
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad");
+#else
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
+#endif
+#endif
+
+}
+
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
+
+void DllConfig(HWND _hParent)
+{
+	LoadConfig();
+#ifdef _WIN32
+	wxWindow win;
+	win.SetHWND(_hParent);
+	ConfigDialog frame(&win);
+	frame.ShowModal();
+	win.SetHWND(0);
+#elif defined(HAVE_WX) && HAVE_WX
+	ConfigDialog frame(NULL);
+	frame.ShowModal();
+#endif
+	SaveConfig();
+}
+
+void DllDebugger(HWND _hParent, bool Show) {}
+
+void Initialize(void *init)
+{
+	//Console::Open(70, 5000);
+
+	// Load configuration
+	LoadConfig();
+
+	// Load recorded input
+	if (pad[0].bPlayback) LoadRecord();
+
+	g_PADInitialize = *(SPADInitialize*)init;
+
+	#ifdef _WIN32
+		dinput.Init((HWND)g_PADInitialize.hWnd);
+	#elif defined(HAVE_X11) && HAVE_X11
+		GXdsp = (Display*)g_PADInitialize.hWnd;
+	#elif defined(HAVE_COCOA) && HAVE_COCOA
+
+	#endif
+}
+
+void DoState(unsigned char **ptr, int mode) {
+}
+
+void Shutdown()
+{
+	// Save recording
+	if (pad[0].bRecording) SaveRecord();
+
+#ifdef _WIN32
+	dinput.Free();
+	// Kill xpad rumble
+	XINPUT_VIBRATION vib;
+	vib.wLeftMotorSpeed  = 0;
+	vib.wRightMotorSpeed = 0;
+	for (int i = 0; i < 4; i++)
+		if (pad[i].bRumble)
+			XInputSetState(pad[i].XPadPlayer, &vib);
+#endif
+	SaveConfig();
 }
 
 
@@ -614,24 +653,23 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
 }
 
 #endif
+
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Input(u16 _Key, u8 _UpDown) {
-}
+void PAD_Input(u16 _Key, u8 _UpDown) {}
 
 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// Check if all is okay
-	if ((_pPADStatus == NULL))
+	if (_pPADStatus == NULL) return;
+
+	// Play back input instead of accepting any user input
+	if (pad[0].bPlayback)
 	{
+		*_pPADStatus = PlayRecord();
 		return;
 	}
-
-#ifdef RECORD_REPLAY
-	*_pPADStatus = PlayRecord();
-	return;
-#endif
 
 	const int base = 0x80;
 	// Clear pad
@@ -643,15 +681,18 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	_pPADStatus->substickY = base;
 	_pPADStatus->button |= PAD_USE_ORIGIN;
 #ifdef _WIN32
-	// Just update pad on focus
-	if (pad[_numPAD].bDisable)
-	{
-		if (!IsFocus()) return;
-	}
+	// Only update pad on focus, don't do this when recording
+	if (pad[_numPAD].bDisable && !pad[0].bRecording && !IsFocus()) return;
+
 	// Dolphin doesn't really care about the pad error codes anyways...
 	_pPADStatus->err = PAD_ERR_NONE;
+
+	// Read XInput
 	if (pad[_numPAD].bEnableXPad) XInput_Read(pad[_numPAD].XPadPlayer, _pPADStatus);
+
+	// Read Direct Input
 	DInput_Read(_numPAD, _pPADStatus);
+
 #elif defined(HAVE_X11) && HAVE_X11
 	_pPADStatus->err = PAD_ERR_NONE;
 	X11_Read(_numPAD, _pPADStatus);
@@ -660,9 +701,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	cocoa_Read(_numPAD, _pPADStatus);
 #endif
 
-#ifdef RECORD_STORE
-	RecordInput(*_pPADStatus);
-#endif
+	// Record input
+	if (pad[0].bRecording) RecordInput(*_pPADStatus);
 }
 
 
@@ -816,6 +856,9 @@ void LoadConfig()
 		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 		
+		file.Get(SectionName, "Recording", &pad[i].bRecording, false);
+		file.Get(SectionName, "Playback", &pad[i].bPlayback, false);
+
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{
 			file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x],
@@ -845,6 +888,9 @@ void SaveConfig()
 		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
 		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
+		// Recording
+		file.Set(SectionName, "Recording", pad[i].bRecording);
+		file.Set(SectionName, "Playback", pad[i].bPlayback);
 		
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{

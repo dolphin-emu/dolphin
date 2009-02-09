@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	 // Other settings
 	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDC_CHECKFOCUS, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDCB_CHECKFOCUS, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_TRIGGERTYPE, ConfigBox::ChangeSettings)
@@ -83,7 +83,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	// Advanced settings
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDFILTER_SETTINGS, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, ConfigBox::ChangeSettings)
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -426,7 +426,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			}
 			SizeWindow();
 			break;
-		case IDC_CHECKFOCUS:
+		case IDCB_CHECKFOCUS:
 			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
 			{
@@ -522,7 +522,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDFILTER_SETTINGS)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDCB_FILTER_SETTINGS)->Enable(Enabled);
 	#endif
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -822,12 +822,10 @@ void ConfigBox::CreateGUIControls()
 		m_gGenSettingsID[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDC_CHECKFOCUS, wxT("Allow out of focus input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		
 		// Populate general settings 3
 		m_gGenSettingsID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 3);
 		m_gGenSettingsID[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
-		m_gGenSettingsID[i]->Add(m_CBCheckFocus[i], 0, wxEXPAND | wxALL, 3);
 		
 		// Create tooltips	
 		m_ControlType[i]->SetToolTip(wxT(
@@ -842,8 +840,6 @@ void ConfigBox::CreateGUIControls()
 			"\nto save your settings if you have multiple controllers.")
 			, i+1
 			));	
-		m_CBCheckFocus[i]->SetToolTip(wxT(
-			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));	
 
 		// Populate settings
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
@@ -898,10 +894,8 @@ void ConfigBox::CreateGUIControls()
 			"This will convert a square stick radius to a circle stick radius like the one that the actual GameCube pad produce."
 			" That is also the input the games expect to see."
 			));
-		AdvancedMapFilter[i] = new wxCheckBox(m_Controller[i],IDFILTER_SETTINGS,_("Advanced Controller filtering"));
 
 		m_gStatusInSettings[i]->Add(m_CBS_to_C[i], 0, (wxALL), 4);
-		m_gStatusInSettings[i]->Add(AdvancedMapFilter[i],0,(wxALL),4);
 		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
 
 		m_gStatusInSettingsH[i]->Add(m_STDiagonal[i], 0, wxTOP, 3);
@@ -911,6 +905,20 @@ void ConfigBox::CreateGUIControls()
 		m_gStatusTriggers[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Trigger values"));
 		m_TStatusTriggers[i] = new wxStaticText(m_Controller[i], IDT_TRIGGERS, wxT("Left:  Right:"));
 		m_gStatusTriggers[i]->Add(m_TStatusTriggers[i], 0, (wxALL), 4);
+
+		m_gStatusAdvancedSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Advanced settings"));
+		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDCB_CHECKFOCUS, wxT("Allow out of focus input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_AdvancedMapFilter[i] = new wxCheckBox(m_Controller[i], IDCB_FILTER_SETTINGS , wxT("No trigger filter"));
+		m_gStatusAdvancedSettings[i]->Add(m_CBCheckFocus[i], 0, (wxALL), 4);
+		m_gStatusAdvancedSettings[i]->Add(m_AdvancedMapFilter[i], 0, (wxALL), 4);
+
+		// Tool tips
+		m_CBCheckFocus[i]->SetToolTip(wxT(
+			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));
+		m_AdvancedMapFilter[i]->SetToolTip(wxT(
+			"This will allow you to map a digital axis to the main stick or the C-stick. If you don't have"
+			" any analog triggers that will be automatically set when the trigger filter is off."
+			));
 		////////////////////////// Advanced settings		
 		
 
@@ -933,6 +941,7 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
 		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 		m_sMainRight[i]->Add(m_gStatusTriggers[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+		m_sMainRight[i]->Add(m_gStatusAdvancedSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);		
 
 		// --------------------------------------------------------------------
 		// Populate main sizer
