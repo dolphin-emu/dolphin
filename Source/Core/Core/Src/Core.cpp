@@ -453,9 +453,11 @@ THREAD_RETURN EmuThread(void *pArg)
 	   the wxDialog class. The solution was to wait for the thread to stop with a timer from the wxDialog, and the proceed to shutdown.
 	   Perhaps something like that can be done here to? I just don't exactly how since in single core mode there should only be one
 	   thread right? So how can WaitForSingleObject() hang in it? */
-	bool bRenderToMainSingleCore = false;
-	if (GetParent((HWND)g_pWindowHandle) == NULL || _CoreParameter.bUseDualCore) bRenderToMainSingleCore = true;
 
+	bool bRenderToMainSingleCore = false;
+	#ifdef _WIN32
+		if (GetParent((HWND)g_pWindowHandle) == NULL || _CoreParameter.bUseDualCore) bRenderToMainSingleCore = true;
+	#endif
 
 	/* Wait for CPU thread to exit - it should have been signaled to do so by now. On the other hand this will be called by
 	   delete cpuThread to. So now we call it twice right? */
