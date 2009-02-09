@@ -198,7 +198,7 @@ void ConfigDialog::CreateGUIControls()
 		m_CheckRecording[i]->SetValue(pad[i].bRecording);
 		m_CheckPlayback[i]->SetValue(pad[i].bPlayback);
 
-		// Only enable these options for pad 3
+		// Only enable these options for pad 0
 		m_CheckRecording[i]->Enable(false); m_CheckRecording[0]->Enable(true);
 		m_CheckPlayback[i]->Enable(false); m_CheckPlayback[0]->Enable(true);
 		m_BtnSaveRecording[i]->Enable(false); m_BtnSaveRecording[0]->Enable(true);
