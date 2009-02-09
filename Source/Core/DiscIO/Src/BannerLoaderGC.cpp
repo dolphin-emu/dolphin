@@ -107,9 +107,17 @@ CBannerLoaderGC::GetName(std::string _rName[])
 	case CBannerLoaderGC::BANNER_BNR1:
 		{
 			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-			char tempBuffer[33] = {0};
-			memcpy(tempBuffer, pBanner->comment.shortTitle, 32);
-			_rName[0] = tempBuffer;
+			char tempBuffer[65] = {0};
+			if (pBanner->comment.longTitle[0])
+			{
+				memcpy(tempBuffer, pBanner->comment.longTitle, 64);
+			}
+			else
+			{
+				memcpy(tempBuffer, pBanner->comment.shortTitle, 32);
+			}
+			
+			CopyToStringAndCheck(_rName[0], tempBuffer);
 			returnCode = true;
 		}
 		break;
@@ -120,9 +128,16 @@ CBannerLoaderGC::GetName(std::string _rName[])
 			u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
 			for (int i = 0; i < 6; i++)
 			{
-				char tempBuffer[33] = {0};
-				memcpy(tempBuffer, pBanner->comment[i].shortTitle, 32);
-				_rName[i] = tempBuffer;
+				char tempBuffer[65] = {0};
+				if (pBanner->comment[i].longTitle[0])
+				{
+					memcpy(tempBuffer, pBanner->comment[i].longTitle, 64);
+				}
+				else
+				{
+					memcpy(tempBuffer, pBanner->comment[i].shortTitle, 32);
+				}
+				CopyToStringAndCheck(_rName[i], tempBuffer);
 			}
 
 			returnCode = true;
@@ -174,7 +189,7 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
 			char tempBuffer[129] = {0};
 			memcpy(tempBuffer, pBanner->comment.comment, 128);
-			_rDescription[0] = tempBuffer;
+			CopyToStringAndCheck(_rDescription[0], tempBuffer);
 			returnCode = true;
 		}
 		break;
@@ -186,7 +201,7 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 			{
 				char tempBuffer[129] = {0};
 				memcpy(tempBuffer, pBanner->comment[i].comment, 128);
-				_rDescription[i] = tempBuffer;
+				CopyToStringAndCheck(_rDescription[i], tempBuffer);
 			}
 			returnCode = true;
 		}

@@ -43,20 +43,20 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 		}
 
 		// generate valid chars
-		for (unsigned char c = 0x20; c <= 0x80; c++)
+		for (int i = 0x20; i < 256; i++)
 		{
-			bValidChars[c] = true;
+			bValidChars[i] = true;
 		}
 
 		bValidChars[0x0a] = true;
-		bValidChars[0xa9] = true;
-		bValidChars[0xe9] = true;
+		//bValidChars[0xa9] = true;
+		//bValidChars[0xe9] = true;
 
 		bInitialized = true;
 	}
 
 	bool bResult = true;
-	char destBuffer[2048];
+	char destBuffer[2048] = {0};
 	char* dest = destBuffer;
 	const char* src = _src;
 
