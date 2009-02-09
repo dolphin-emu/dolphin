@@ -110,7 +110,7 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 	}
 #endif
 
-	/* Debugging */
+	/* Debugging 
 	Console::ClearScreen();
 	Console::Print(
 		"Controller and handle: %i %i\n"
@@ -122,7 +122,7 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 		_PadMapping.triggertype,
 		_PadMapping.Axis.Tl, _PadMapping.Axis.Tr,
 		_PadState.Axis.Tl, _PadState.Axis.Tr
-		);
+		);*/
 }
 
 
