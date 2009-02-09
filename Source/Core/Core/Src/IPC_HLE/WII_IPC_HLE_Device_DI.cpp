@@ -37,9 +37,9 @@
 //////////////////////////////////////////////////
 // Music mod
 // ¯¯¯¯¯¯¯¯¯¯
-#include "../../../../Branches/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
+#include "../../../../Externals/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
 #ifdef MUSICMOD
-#include "../../../../Branches/MusicMod/Main/Src/Main.h" 
+#include "../../../../Externals/MusicMod/Main/Src/Main.h" 
 #endif
 ///////////////////////
 
