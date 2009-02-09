@@ -70,6 +70,7 @@ class ConfigDialog : public wxDialog
 		// Recording
 		wxCheckBox *m_CheckRecording[4];
 		wxCheckBox *m_CheckPlayback[4];
+		wxButton *m_BtnSaveRecording[4];
 
 		wxButton *m_ButtonA[4];
 		wxButton *m_ButtonB[4];
@@ -111,6 +112,7 @@ class ConfigDialog : public wxDialog
 			// Input recording
 			ID_RECORDING,
 			ID_PLAYBACK,
+			ID_SAVE_RECORDING,
 
 			// General settings
 			ID_ATTACHED,

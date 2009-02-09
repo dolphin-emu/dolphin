@@ -72,6 +72,7 @@ void DoState(PointerWrap &p)
 	CPluginManager &pm = CPluginManager::GetInstance();
         pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
         pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
+		pm.GetPad(0)->DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);

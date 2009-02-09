@@ -86,9 +86,13 @@ struct SPads
 };
 
 extern SPads pad[];
+extern bool g_EmulatorRunning;
 
 void LoadConfig();
 void SaveConfig();
 bool IsFocus();
+
+// Input Recording
+void SaveRecord();
 
 #endif

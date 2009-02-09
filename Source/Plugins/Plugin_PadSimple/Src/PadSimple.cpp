@@ -28,6 +28,7 @@
 #include "IniFile.h"
 #include "ConsoleWindow.h"
 #include "StringUtil.h"
+#include "ChunkFile.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "GUI/ConfigDlg.h"
@@ -67,6 +68,7 @@ SPADInitialize g_PADInitialize;
 ////////////////////////////////
 
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Input Recording
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -79,7 +81,12 @@ SPADInitialize g_PADInitialize;
 #define RECORD_SIZE (1024 * 128)
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
+bool g_EmulatorRunning = false;
 ////////////////////////////////
+
+
+void __Log(int log, const char *format, ...) {}
+void __Logv(int log, int v, const char *format, ...) {}
 
 
 //******************************************************************************
@@ -94,11 +101,17 @@ void RecordInput(const SPADStatus& _rPADStatus)
 	// Logging
 	//u8 TmpData[sizeof(SPADStatus)];
 	//memcpy(TmpData, &recordBuffer[count - 1], sizeof(SPADStatus));
-	//Console::Print("RecordInput(): %s\n", ArrayToString(TmpData, sizeof(SPADStatus), 0, 30).c_str());
+	//Console::Print("RecordInput(%i): %s\n", count, ArrayToString(TmpData, sizeof(SPADStatus), 0, 30).c_str());
+
+	// Auto save every ten seconds
+	if (count % (60 * 10) == 0) SaveRecord();
 }
 
 const SPADStatus& PlayRecord()
 {
+	// Logging
+	//Console::Print("PlayRecord(%i)\n", count);
+
 	if (count >= RECORD_SIZE)
 	{
 		// Todo: Make the recording size unlimited?
@@ -124,10 +137,13 @@ void LoadRecord()
 	{
 		PanicAlert("SimplePad: Could not open pad-record.bin");
 	}
+
+	//Console::Print("LoadRecord()");
 }
 
 void SaveRecord()
 {
+	// Open the file in a way that clears all old data
 	FILE* pStream = fopen("pad-record.bin", "wb");
 
 	if (pStream != NULL)
@@ -139,9 +155,8 @@ void SaveRecord()
 	{
 		PanicAlert("SimplePad: Could not save pad-record.bin");
 	}
-	
-	// Reset the counter
-	count = 0;
+	//PanicAlert("SaveRecord()");
+	//Console::Print("SaveRecord()");
 }
 
 
@@ -239,92 +254,9 @@ void ScaleStickValues(unsigned char* outx,
 	*outy = 0x80 + iy;
 }
 
-
-
 //******************************************************************************
-// Plugin specification functions
+// Input
 //******************************************************************************
-
-
-void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-{
-	_PluginInfo->Version = 0x0100;
-	_PluginInfo->Type = PLUGIN_TYPE_PAD;
-
-#ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
-#else
-#ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad");
-#else
-	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
-#endif
-#endif
-
-}
-
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
-
-void DllConfig(HWND _hParent)
-{
-	LoadConfig();
-#ifdef _WIN32
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigDialog frame(&win);
-	frame.ShowModal();
-	win.SetHWND(0);
-#elif defined(HAVE_WX) && HAVE_WX
-	ConfigDialog frame(NULL);
-	frame.ShowModal();
-#endif
-	SaveConfig();
-}
-
-void DllDebugger(HWND _hParent, bool Show) {}
-
-void Initialize(void *init)
-{
-	//Console::Open(70, 5000);
-
-	// Load configuration
-	LoadConfig();
-
-	// Load recorded input
-	if (pad[0].bPlayback) LoadRecord();
-
-	g_PADInitialize = *(SPADInitialize*)init;
-
-	#ifdef _WIN32
-		dinput.Init((HWND)g_PADInitialize.hWnd);
-	#elif defined(HAVE_X11) && HAVE_X11
-		GXdsp = (Display*)g_PADInitialize.hWnd;
-	#elif defined(HAVE_COCOA) && HAVE_COCOA
-
-	#endif
-}
-
-void DoState(unsigned char **ptr, int mode) {
-}
-
-void Shutdown()
-{
-	// Save recording
-	if (pad[0].bRecording) SaveRecord();
-
-#ifdef _WIN32
-	dinput.Free();
-	// Kill xpad rumble
-	XINPUT_VIBRATION vib;
-	vib.wLeftMotorSpeed  = 0;
-	vib.wRightMotorSpeed = 0;
-	for (int i = 0; i < 4; i++)
-		if (pad[i].bRumble)
-			XInputSetState(pad[i].XPadPlayer, &vib);
-#endif
-	SaveConfig();
-}
-
 
 #ifdef _WIN32
 void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
@@ -656,6 +588,106 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
 }
 
 #endif
+
+
+
+//******************************************************************************
+// Plugin specification functions
+//******************************************************************************
+
+
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
+{
+	_PluginInfo->Version = 0x0100;
+	_PluginInfo->Type = PLUGIN_TYPE_PAD;
+
+#ifdef DEBUGFAST
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
+#else
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad");
+#else
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
+#endif
+#endif
+
+}
+
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
+
+void DllConfig(HWND _hParent)
+{
+	LoadConfig();
+#ifdef _WIN32
+	wxWindow win;
+	win.SetHWND(_hParent);
+	ConfigDialog frame(&win);
+	frame.ShowModal();
+	win.SetHWND(0);
+#elif defined(HAVE_WX) && HAVE_WX
+	ConfigDialog frame(NULL);
+	frame.ShowModal();
+#endif
+	SaveConfig();
+}
+
+void DllDebugger(HWND _hParent, bool Show) {}
+
+void Initialize(void *init)
+{
+	//Console::Open(70, 5000);
+
+	// We are now running a game
+	g_EmulatorRunning = true;
+
+	// Load configuration
+	LoadConfig();
+
+	// Load recorded input if we are to play it back, otherwise begin with a blank recording
+	if (pad[0].bPlayback) LoadRecord();
+
+	g_PADInitialize = *(SPADInitialize*)init;
+
+	#ifdef _WIN32
+		dinput.Init((HWND)g_PADInitialize.hWnd);
+	#elif defined(HAVE_X11) && HAVE_X11
+		GXdsp = (Display*)g_PADInitialize.hWnd;
+	#elif defined(HAVE_COCOA) && HAVE_COCOA
+
+	#endif
+}
+
+void DoState(unsigned char **ptr, int mode)
+{
+	// Load or save the counter
+	PointerWrap p(ptr, mode);
+	p.Do(count);
+}
+
+void Shutdown()
+{
+	//Console::Print("ShutDown()\n");
+
+	// Save recording
+	if (pad[0].bRecording) SaveRecord();
+	// Reset the counter
+	count = 0;
+	// We have stopped the game
+	g_EmulatorRunning = false;
+
+#ifdef _WIN32
+	dinput.Free();
+	// Kill xpad rumble
+	XINPUT_VIBRATION vib;
+	vib.wLeftMotorSpeed  = 0;
+	vib.wRightMotorSpeed = 0;
+	for (int i = 0; i < 4; i++)
+		if (pad[i].bRumble)
+			XInputSetState(pad[i].XPadPlayer, &vib);
+#endif
+	SaveConfig();
+}
+
 
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯

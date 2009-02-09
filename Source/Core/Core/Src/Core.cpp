@@ -437,15 +437,30 @@ THREAD_RETURN EmuThread(void *pArg)
 	    Plugins.GetVideo()->Video_EnterLoop();
 	}
  
-	// Wait for CPU thread to exit - it should have been signaled to do so by now
-	if (cpuThread)
-	    cpuThread->WaitForDeath();
-	if (g_pUpdateFPSDisplay != NULL)
-	    g_pUpdateFPSDisplay("Stopping...");
- 
+
+	// We have now exited the Video Loop and will shut down
+
+
+	/* Check if we are using single core and are rendering to the main window. In that case we must avoid the WaitForSingleObject()
+	   loop in the cpu thread thread, because it will hang on occation, perhaps one time in three or so. I had this problem in the Wiimote plugin, what happened was that if I entered the
+	   WaitForSingleObject loop or any loop at all in the main thread, the separate thread would halt at a place where it called a function in
+	   the wxDialog class. The solution was to wait for the thread to stop with a timer from the wxDialog, and the proceed to shutdown.
+	   Perhaps something like that can be done here to? I just don't exactly how since in single core mode there should only be one
+	   thread right? So how can WaitForSingleObject() hang in it? */
+	bool bRenderToMainSingleCore = false;
+	if (GetParent((HWND)g_pWindowHandle) == NULL || _CoreParameter.bUseDualCore) bRenderToMainSingleCore = true;
+
+
+	/* Wait for CPU thread to exit - it should have been signaled to do so by now. On the other hand this will be called by
+	   delete cpuThread to. So now we call it twice right? */
+	if(!bRenderToMainSingleCore) if (cpuThread) cpuThread->WaitForDeath();
+	// Write message
+	if (g_pUpdateFPSDisplay != NULL)  g_pUpdateFPSDisplay("Stopping...");
+
 	if (cpuThread)
 	{
-		delete cpuThread;  // This joins the cpu thread.
+		// This joins the cpu thread.
+		if(!bRenderToMainSingleCore) delete cpuThread;
 		// Returns after game exited
 		cpuThread = NULL;
 	}

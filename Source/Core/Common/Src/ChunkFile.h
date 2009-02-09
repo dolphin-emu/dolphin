@@ -45,7 +45,10 @@ struct LinkedListItem : public T
 class PointerWrap
 {
 public:
-	enum Mode  // also defined in pluginspecs.h. Didn't want to couple them.
+	/* READ is when we read from the save state file, WRITE is when we write to the
+	   save state file. This enumareted list is also defined in pluginspecs.h. Didn't
+	   want to couple them. */
+	enum Mode
 	{
 		MODE_READ = 1,
 		MODE_WRITE,
