@@ -231,7 +231,7 @@ void Init()
 {
 	if (Core::GetStartupParameter().bWii)
 	{
-		CPU_CORE_CLOCK = 721000000u;
+		CPU_CORE_CLOCK = 729000000u;
 		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 		
