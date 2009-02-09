@@ -646,6 +646,8 @@ void CatchUpGPU()
 	{
 		// HyperIris: Memory::GetPointer is an expensive call, call it less, run faster
 		u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
+		// HyperIris: point out by magumagu, GetVideo() is a bottleneck, so move it out of loop;
+		Common::PluginVideo * pVideo = CPluginManager::GetInstance().GetVideo();
 
 		while (fifo.CPReadWriteDistance > 0)
 		{
@@ -669,7 +671,7 @@ void CatchUpGPU()
 			// We are going to do FP math on the main thread so have to save the current state
 			SaveSSEState();
 			LoadDefaultSSEState();
-			CPluginManager::GetInstance().GetVideo()->Video_SendFifoData(ptr,32);
+			pVideo->Video_SendFifoData(ptr,32);
 			LoadSSEState();
 			// adjust
 			ptr += 32;
