@@ -254,7 +254,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 
 	const u8* storePairedU8 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_quantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	CVTPS2DQ(XMM0, R(XMM0));
@@ -271,7 +271,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 
 	const u8* storePairedS8 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_quantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	CVTPS2DQ(XMM0, R(XMM0));
@@ -288,7 +288,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 
 	const u8* storePairedU16 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_quantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	CVTPS2DQ(XMM0, R(XMM0));
@@ -309,7 +309,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 
 	const u8* storePairedS16 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
-	MOVSS(XMM1, MDisp(EAX, (u32)m_quantizeTableS));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
 	CVTPS2DQ(XMM0, R(XMM0));
