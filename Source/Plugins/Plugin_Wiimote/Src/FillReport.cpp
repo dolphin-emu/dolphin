@@ -365,10 +365,13 @@ void SingleShake(u8 &_z, u8 &_y)
 // ------------------------------------------
 /* Tilting Wiimote with gamepad. We can guess that the game will calculate a Wiimote pitch and use it as a
    measure of the tilting of the Wiimote. We are interested in this tilting range
-			90° to -90° */
+		90° to -90° */
 // ---------------
 void TiltWiimoteGamepad(u8 &_y, u8 &_z)
 {
+	// Return if we have no pads
+	if (NumGoodPads == 0) return;
+
 	// Update the pad state
 	const int Page = 0;
 	WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);

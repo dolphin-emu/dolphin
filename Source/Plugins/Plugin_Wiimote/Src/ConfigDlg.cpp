@@ -1143,9 +1143,21 @@ void ConfigDialog::UpdateGUI(int Slot)
 	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || !g_EmulatorRunning);
 
 	// Linux has no FindItem()
+	// Disable all pad items if no pads are detected
+	if(ControlsCreated)
+	{
+		bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
+		#ifdef _WIN32
+			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++) m_Notebook->FindItem(i)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);
+			m_Notebook->FindItem(ID_TRIGGER_TYPE)->Enable(PadEnabled);
+		#endif
+	}		
+
+	// Disable all recording buttons
+	bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
 	#ifdef _WIN32
-		// Disable all recording buttons
 		for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
-			if(ControlsCreated) m_Notebook->FindItem(i)->Enable(!(m_bWaitForRecording || m_bRecording));
+			if(ControlsCreated) m_Notebook->FindItem(i)->Enable(ActiveRecording);
 	#endif
 }
