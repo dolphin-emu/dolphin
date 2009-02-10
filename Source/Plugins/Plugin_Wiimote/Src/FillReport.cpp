@@ -336,6 +336,7 @@ std::vector<u8> yhist(15, 0); float KbDegree;
 // ---------------
 void SingleShake(u8 &_z, u8 &_y)
 {
+#ifdef _WIN32
 	if(GetAsyncKeyState('S'))
 	{
 		_z = 0;
@@ -358,6 +359,7 @@ void SingleShake(u8 &_z, u8 &_y)
 	{
 		z = Z;
 	}
+#endif
 }
 
 // ------------------------------------------
