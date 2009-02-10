@@ -59,6 +59,7 @@ void Config::Load(bool ChangePad)
 		// Slot specific settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
+		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &bNoTriggerFilter, false);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -91,7 +92,6 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
 		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);
-		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &WiiMoteEmu::PadMapping[i].bNoTriggerFilter, false);
 	}
 	// =============================
 	Console::Print("Load()\n");
@@ -124,6 +124,7 @@ void Config::Save()
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
 		iniFile.Set(SectionName.c_str(), "Enabled", WiiMoteEmu::PadMapping[i].enabled);
+		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", bNoTriggerFilter);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);
@@ -154,7 +155,6 @@ void Config::Save()
 		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 		//iniFile.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
 		//iniFile.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);
-		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", WiiMoteEmu::PadMapping[i].bNoTriggerFilter);
 		// ======================================
 	}
 

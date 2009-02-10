@@ -426,6 +426,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			}
 			SizeWindow();
 			break;
+		// Advanced settings
 		case IDCB_CHECKFOCUS:
 			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
@@ -433,9 +434,21 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 				m_CBCheckFocus[i]->SetValue(g_Config.bCheckFocus);
 			}
 			break;
+		case IDCB_FILTER_SETTINGS:
+			g_Config.bNoTriggerFilter = m_AdvancedMapFilter[notebookpage]->IsChecked();
+			for(int i = 0; i < 4; i++)
+			{
+				m_AdvancedMapFilter[i]->SetValue(g_Config.bNoTriggerFilter);
+			}
+			break;
+
 		case IDC_CONTROLTYPE:
 		case IDC_TRIGGERTYPE:
-			//UpdateGUI(notebookpage);
+			if(!g_Config.bSaveByID)
+			{
+				PadMapping[notebookpage].controllertype = m_ControlType[notebookpage]->GetSelection();
+				UpdateGUI(notebookpage);
+			}
 			break;
 
 		case IDC_JOYNAME: 
@@ -506,6 +519,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID);
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 	m_CBCheckFocus[_notebookpage]->SetValue(g_Config.bCheckFocus);
+	m_AdvancedMapFilter[_notebookpage]->SetValue(g_Config.bNoTriggerFilter);
 
 	LogMsg("Update: %i\n", g_Config.bSaveByID);
 

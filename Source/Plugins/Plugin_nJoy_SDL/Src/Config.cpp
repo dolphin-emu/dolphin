@@ -109,6 +109,7 @@ void Config::Save(int Slot)
 	file.Set("General", "ShowAdvanced", g_Config.bShowAdvanced);
 	file.Set("General", "SaveByID", g_Config.bSaveByID);
 	file.Set("General", "CheckForFocus", g_Config.bCheckFocus);
+	file.Set("General", "NoTriggerFilter", g_Config.bNoTriggerFilter);
 	// ========================
 
 	for (int i = 0; i < 4; i++)
@@ -167,8 +168,7 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "eventnum", PadMapping[i].eventnum);
 
 		file.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
-		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);	
-		file.Set(SectionName.c_str(), "AdvancedMapFilter", PadMapping[i].bNoTriggerFilter);
+		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);			
 		// ======================================
 
 		// Debugging
@@ -197,6 +197,8 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
 	file.Get("General", "CheckForFocus", &g_Config.bCheckFocus, false);
+	file.Get("General", "NoTriggerFilter", &g_Config.bNoTriggerFilter, false);
+
 	if(!ChangeSaveByID)
 	{
 		file.Get("General", "SaveByID", &Tmp, false); g_Config.bSaveByID = Tmp;
@@ -255,7 +257,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 		file.Get(SectionName.c_str(), "Diagonal", &PadMapping[i].SDiagonal, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); PadMapping[i].bSquareToCircle = Tmp;
-		file.Get(SectionName.c_str(), "AdvancedMapFilter", &Tmp, false); PadMapping[i].bNoTriggerFilter = Tmp;
 		// =============================
 
 		// Debugging

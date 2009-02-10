@@ -79,14 +79,14 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 	m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
-	m_AdvancedMapFilter[controller]->SetValue(PadMapping[controller].bNoTriggerFilter);
+	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
 
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
 	// Update D-Pad
 	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
 	{
-		tmp << PadMapping[controller].dpad; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();		
+		tmp << PadMapping[controller].dpad; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();		
 	}
 	else
 	{
@@ -122,8 +122,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
 	PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
-	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();	
-	PadMapping[controller].bNoTriggerFilter = m_AdvancedMapFilter[FromSlot]->IsChecked();
+	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();
 
 	// The analog buttons
 	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_MAIN_X] = value; tmp.clear();
@@ -152,7 +151,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	// The digital pad
 	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
 	{
-		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad = value; tmp.clear();
+		m_JoyDpadDown[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad = value; tmp.clear();
 	}
 	else
 	{
@@ -297,7 +296,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
 			   && (PadMapping[Controller].controllertype == InputCommon::CTL_DPAD_HAT); // Not with the hat option defined
 
-	bool NoTriggerFilter = PadMapping[Controller].bNoTriggerFilter;
+	bool NoTriggerFilter = g_Config.bNoTriggerFilter;
 
 	// Values used in this function
 	char format[128];

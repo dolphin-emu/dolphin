@@ -86,7 +86,6 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int triggertype;		// Triggers range
 	std::string SDiagonal;
 	bool bSquareToCircle;
-	bool bNoTriggerFilter;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -181,7 +180,6 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	int triggertype;		// SDL or XInput trigger
 	std::string SDiagonal;
 	bool bSquareToCircle;
-	bool bNoTriggerFilter;
 };
 ////////////////////////////
 

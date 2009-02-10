@@ -254,7 +254,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 
 	bool Hat = false; // No hats allowed
 
-	bool NoTriggerFilter = WiiMoteEmu::PadMapping[Controller].bNoTriggerFilter;
+	bool NoTriggerFilter = g_Config.bNoTriggerFilter;
 
 	// Values used in this function
 	char format[128];

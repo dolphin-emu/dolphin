@@ -33,6 +33,9 @@ struct Config
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
 	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
 	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;
+
+	// Gamepad
+	bool bNoTriggerFilter;
 };
 
 extern Config g_Config;
