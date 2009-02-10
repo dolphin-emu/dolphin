@@ -292,7 +292,8 @@ void ConfigBox::OnSaveById()
 // Change Joystick
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
-   and PadState array */
+   and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
+   the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
 void ConfigBox::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
@@ -443,10 +444,15 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			break;
 
 		case IDC_CONTROLTYPE:
-		case IDC_TRIGGERTYPE:
 			if(!g_Config.bSaveByID)
 			{
 				PadMapping[notebookpage].controllertype = m_ControlType[notebookpage]->GetSelection();
+				UpdateGUI(notebookpage);
+			}
+		case IDC_TRIGGERTYPE:
+			if(!g_Config.bSaveByID)
+			{
+				PadMapping[notebookpage].triggertype = m_TriggerType[notebookpage]->GetSelection();
 				UpdateGUI(notebookpage);
 			}
 			break;

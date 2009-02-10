@@ -268,14 +268,15 @@ void ConfigBox::DoGetButtons(int GetId)
 	int Controller = notebookpage;
 	int PadID = PadMapping[Controller].ID;
 
-	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
-	   that is mapped to controller, for example 0, 1, 2, 3 for the first four PadMapping */
-	SDL_Joystick *joy = SDL_JoystickOpen(0);
+	// Create a shortcut for the pad handle
+	SDL_Joystick *joy = PadState[Controller].joy;
 
 	 // Get the number of axes, hats and buttons
-	int buttons = SDL_JoystickNumButtons(joy);
-	int axes = SDL_JoystickNumAxes(joy);
-	int hats = SDL_JoystickNumHats(joy);
+	int Buttons = SDL_JoystickNumButtons(joy);
+	int Axes = SDL_JoystickNumAxes(joy);
+	int Hats = SDL_JoystickNumHats(joy);
+
+	Console::Print("PadID: %i Axes: %i\n", PadID, joyinfo[PadID].NumAxes, joyinfo[PadID].joy);
 
 	// Get the controller and trigger type
 	int ControllerType = PadMapping[Controller].controllertype;
@@ -350,7 +351,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	else
 	{
 		InputCommon::GetButton(
-			joyinfo[PadID].joy, PadID, joyinfo[PadID].NumButtons, joyinfo[PadID].NumAxes, joyinfo[PadID].NumHats, 
+			joy, PadID, Buttons, Axes, Hats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
