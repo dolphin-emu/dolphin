@@ -48,7 +48,6 @@
 #include <wx/statbmp.h>
 #include <wx/gbsizer.h>
 
-#include "../nJoy.h"
 
 class ConfigBox : public wxDialog
 {
@@ -113,15 +112,14 @@ class ConfigBox : public wxDialog
 
 		wxStaticBoxSizer *m_gGenSettingsID[4];
 		wxGridBagSizer * m_gGBGenSettings[4];
-		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
+		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4], *m_CBCheckFocus[4];
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
-		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4], *m_gStatusAdvancedSettings[4]; // Advanced settings
+		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
 		wxBoxSizer *m_gStatusInSettingsH[4];
 		wxGridBagSizer * m_GBAdvancedMainStick[4];
 		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_STDiagonal[4];
 		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
-		wxCheckBox *m_CBCheckFocus[4], *m_AdvancedMapFilter[4];
 
 		wxStaticBoxSizer *m_gStatusTriggers[4]; // Triggers
 		wxStaticText *m_TStatusTriggers[4];
@@ -212,7 +210,7 @@ class ConfigBox : public wxDialog
 
 			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, IDC_TRIGGERTYPE, // Controller type		
 
-			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
+			IDC_SAVEBYID, IDC_SHOWADVANCED, IDC_CHECKFOCUS, // Settings
 			
 			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,
@@ -220,7 +218,7 @@ class ConfigBox : public wxDialog
 			IDT_STATUS_IN, IDT_STATUS_OUT,
 
 			// Advaced settings
-			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
+			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS,
 
 			// Timers
 			IDTM_CONSTANT, IDTM_BUTTON,
@@ -319,7 +317,7 @@ class ConfigBox : public wxDialog
 		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
 		void PadGetStatus(); void Update();
  
-		void UpdateGUIButtonMapping(int controller);
+		void UpdateGUIKeys(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void SaveButtonMappingAll(int Slot);
 		void UpdateGUIAll(int Slot);

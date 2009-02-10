@@ -73,26 +73,19 @@ static const char* controlNames[] =
 	"Mic-button",
 };
 
-struct SPads
-{
+struct SPads {
 	bool bEnableXPad;	// Use an XPad in addition to the keyboard?
 	bool bAttached;		// Pad is "attached" to the gamecube/wii
 	bool bDisable;		// Disabled when dolphin isn't in focus
 	bool bRumble;		// Rumble for xpad
-	bool bRecording;
-	bool bPlayback;
 	int XPadPlayer;		// Player# of the xpad
 	unsigned int keyForControl[NUMCONTROLS];// Keyboard mapping
 };
 
 extern SPads pad[];
-extern bool g_EmulatorRunning;
 
 void LoadConfig();
 void SaveConfig();
 bool IsFocus();
-
-// Input Recording
-void SaveRecord();
 
 #endif

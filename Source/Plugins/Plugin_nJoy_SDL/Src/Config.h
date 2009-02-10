@@ -29,7 +29,6 @@ struct Config
 	bool bShowAdvanced; // Only allow one of these
 	bool bSaveByID;
 	bool bCheckFocus;
-	bool bNoTriggerFilter;
 };
 
 extern Config g_Config;
