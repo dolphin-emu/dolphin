@@ -39,7 +39,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern bool emulator_running;
+extern bool g_EmulatorRunning;
 
 // D-Pad type
 static const char* DPadType[] =
@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	 // Other settings
 	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDC_CHECKFOCUS, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDCB_CHECKFOCUS, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_TRIGGERTYPE, ConfigBox::ChangeSettings)
@@ -83,6 +83,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	// Advanced settings
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, ConfigBox::ChangeSettings)
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -161,7 +162,7 @@ void ConfigBox::OnKeyDown(wxKeyEvent& event)
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
-	if(!emulator_running) Shutdown(); // Close pads, unless we are running a game
+	if(!g_EmulatorRunning) Shutdown(); // Close pads, unless we are running a game
 }
 
 // Call about dialog
@@ -291,7 +292,8 @@ void ConfigBox::OnSaveById()
 // Change Joystick
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
-   and PadState array */
+   and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
+   the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
 void ConfigBox::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
@@ -425,16 +427,34 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			}
 			SizeWindow();
 			break;
-		case IDC_CHECKFOCUS:
+		// Advanced settings
+		case IDCB_CHECKFOCUS:
 			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
 			{
 				m_CBCheckFocus[i]->SetValue(g_Config.bCheckFocus);
 			}
 			break;
+		case IDCB_FILTER_SETTINGS:
+			g_Config.bNoTriggerFilter = m_AdvancedMapFilter[notebookpage]->IsChecked();
+			for(int i = 0; i < 4; i++)
+			{
+				m_AdvancedMapFilter[i]->SetValue(g_Config.bNoTriggerFilter);
+			}
+			break;
+
 		case IDC_CONTROLTYPE:
+			if(!g_Config.bSaveByID)
+			{
+				PadMapping[notebookpage].controllertype = m_ControlType[notebookpage]->GetSelection();
+				UpdateGUI(notebookpage);
+			}
 		case IDC_TRIGGERTYPE:
-			//UpdateGUI(notebookpage);
+			if(!g_Config.bSaveByID)
+			{
+				PadMapping[notebookpage].triggertype = m_TriggerType[notebookpage]->GetSelection();
+				UpdateGUI(notebookpage);
+			}
 			break;
 
 		case IDC_JOYNAME: 
@@ -472,10 +492,10 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	}
 
 	// Update the GUI from PadMapping[]
-	UpdateGUIKeys(_notebookpage);
+	UpdateGUIButtonMapping(_notebookpage);
 
 	// Collect status
-	bool Hat = (PadMapping[_notebookpage].controllertype == CTL_DPAD_HAT);
+	bool Hat = (PadMapping[_notebookpage].controllertype == InputCommon::CTL_DPAD_HAT);
 	long Left, Right;
 	m_JoyShoulderL[_notebookpage]->GetValue().ToLong(&Left);
 	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
@@ -505,6 +525,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID);
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 	m_CBCheckFocus[_notebookpage]->SetValue(g_Config.bCheckFocus);
+	m_AdvancedMapFilter[_notebookpage]->SetValue(g_Config.bNoTriggerFilter);
 
 	LogMsg("Update: %i\n", g_Config.bSaveByID);
 
@@ -520,7 +541,8 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);		
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDCB_FILTER_SETTINGS)->Enable(Enabled);
 	#endif
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -619,12 +641,12 @@ void ConfigBox::CreateGUIControls()
 	// Populate the DPad type and Trigger type list
 	// -----------------------------
 	wxArrayString wxAS_DPadType;
-	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_HAT]));
-	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_HAT]));
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_CUSTOM]));
 
 	wxArrayString wxAS_TriggerType;
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_SDL]));
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_XINPUT]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_SDL]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_XINPUT]));
 
 	// --------------------------------------------------------------------
 	// Populate the deadzone list
@@ -820,12 +842,10 @@ void ConfigBox::CreateGUIControls()
 		m_gGenSettingsID[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDC_CHECKFOCUS, wxT("Allow out of focus input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		
 		// Populate general settings 3
 		m_gGenSettingsID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 3);
 		m_gGenSettingsID[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
-		m_gGenSettingsID[i]->Add(m_CBCheckFocus[i], 0, wxEXPAND | wxALL, 3);
 		
 		// Create tooltips	
 		m_ControlType[i]->SetToolTip(wxT(
@@ -840,8 +860,6 @@ void ConfigBox::CreateGUIControls()
 			"\nto save your settings if you have multiple controllers.")
 			, i+1
 			));	
-		m_CBCheckFocus[i]->SetToolTip(wxT(
-			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));	
 
 		// Populate settings
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
@@ -857,17 +875,13 @@ void ConfigBox::CreateGUIControls()
 		// Advanced settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-		// Populate input status
-		/**/
+		// Input status controls
 		
 		// Input status text
-		m_TStatusIn[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
-		m_TStatusOut[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
-
-		m_gStatusIn[i] = new wxStaticBoxSizer( wxHORIZONTAL, m_Controller[i], wxT("Main-stick (In) (Out)"));
 		CreateAdvancedControls(i);
-		m_GBAdvancedMainStick[i] = new wxGridBagSizer(0, 0);
 
+		// Sizers
+		m_GBAdvancedMainStick[i] = new wxGridBagSizer(0, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pInStatus[i], wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pOutStatus[i], wxGBPosition(0, 1), wxGBSpan(1, 1), wxLEFT, 5);
 		m_GBAdvancedMainStick[i]->Add(m_TStatusIn[i], wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 0);
@@ -911,6 +925,20 @@ void ConfigBox::CreateGUIControls()
 		m_gStatusTriggers[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Trigger values"));
 		m_TStatusTriggers[i] = new wxStaticText(m_Controller[i], IDT_TRIGGERS, wxT("Left:  Right:"));
 		m_gStatusTriggers[i]->Add(m_TStatusTriggers[i], 0, (wxALL), 4);
+
+		m_gStatusAdvancedSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Advanced settings"));
+		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDCB_CHECKFOCUS, wxT("Allow out of focus input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_AdvancedMapFilter[i] = new wxCheckBox(m_Controller[i], IDCB_FILTER_SETTINGS , wxT("No trigger filter"));
+		m_gStatusAdvancedSettings[i]->Add(m_CBCheckFocus[i], 0, (wxALL), 4);
+		m_gStatusAdvancedSettings[i]->Add(m_AdvancedMapFilter[i], 0, (wxALL), 4);
+
+		// Tool tips
+		m_CBCheckFocus[i]->SetToolTip(wxT(
+			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));
+		m_AdvancedMapFilter[i]->SetToolTip(wxT(
+			"This will allow you to map a digital axis to the main stick or the C-stick. If you don't have"
+			" any analog triggers that will be automatically set when the trigger filter is off."
+			));
 		////////////////////////// Advanced settings		
 		
 
@@ -933,6 +961,7 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
 		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 		m_sMainRight[i]->Add(m_gStatusTriggers[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+		m_sMainRight[i]->Add(m_gStatusAdvancedSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);		
 
 		// --------------------------------------------------------------------
 		// Populate main sizer
@@ -946,7 +975,7 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i]->Show(g_Config.bShowAdvanced);
 
 		// Don't allow these changes when running
-		if(emulator_running)
+		if(g_EmulatorRunning)
 		{
 			m_Joyname[i]->Enable(false);
 			m_Joyattach[i]->Enable(false);
@@ -979,7 +1008,9 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	#ifdef SHOW_PAD_STATUS
+		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	#endif
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 

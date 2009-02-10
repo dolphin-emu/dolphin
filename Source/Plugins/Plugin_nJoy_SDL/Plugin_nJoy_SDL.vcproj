@@ -522,14 +522,6 @@
 				RelativePath=".\Src\Rumble.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\XInput.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\XInput.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="GUI"

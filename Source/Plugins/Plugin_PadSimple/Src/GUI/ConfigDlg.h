@@ -50,7 +50,7 @@ class ConfigDialog : public wxDialog
 		wxButton *m_About;
 		wxButton *m_Close;
 
-		wxStaticBoxSizer *sbDevice[4];
+		wxStaticBoxSizer *sbDevice[4], *m_SizeXInput[4], *m_SizeRecording[4];
 		wxBoxSizer *sDevice[4];
 		wxGridBagSizer *sPage[4];
 		wxStaticBoxSizer *sButtons[4];
@@ -66,6 +66,11 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_Attached[4];
 		wxCheckBox *m_Disable[4];
 		wxCheckBox *m_Rumble[4];
+
+		// Recording
+		wxCheckBox *m_CheckRecording[4];
+		wxCheckBox *m_CheckPlayback[4];
+		wxButton *m_BtnSaveRecording[4];
 
 		wxButton *m_ButtonA[4];
 		wxButton *m_ButtonB[4];
@@ -99,11 +104,19 @@ class ConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
 
+			// XInput pad
 			ID_X360PAD_CHOICE,
 			ID_X360PAD,
+			ID_RUMBLE,
+
+			// Input recording
+			ID_RECORDING,
+			ID_PLAYBACK,
+			ID_SAVE_RECORDING,
+
+			// General settings
 			ID_ATTACHED,
 			ID_DISABLE,
-			ID_RUMBLE,
 			ID_PAD_ABOUT
 		};
 	
