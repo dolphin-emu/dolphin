@@ -259,7 +259,7 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 	}
 	if (Opcode == LoadCarry) {
 		if (!CarryCache)
-			CarryCache = EmitZeroOp(LoadGReg, extra);
+			CarryCache = EmitZeroOp(LoadCarry, extra);
 		return CarryCache;
 	}
 	if (Opcode == LoadCR) {
@@ -1406,6 +1406,15 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
 			Jit->MOV(32, R(reg), M(&MSR));
+			RI.regs[reg] = I;
+			break;
+		}
+		case LoadCarry: {
+			if (!thisUsed) break;
+			X64Reg reg = regFindFreeReg(RI);
+			Jit->MOV(32, R(reg), M(&PowerPC::ppcState.spr[SPR_XER]));
+			Jit->SHR(32, R(reg), Imm8(29));
+			Jit->AND(32, R(reg), Imm8(1));
 			RI.regs[reg] = I;
 			break;
 		}
