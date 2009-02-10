@@ -525,7 +525,7 @@ void ConfigDialog::CreateGUIControls()
 
 		//Set values
 		m_TiltComboInput[i]->SetSelection(g_Config.Trigger.Type);
-		m_TiltComboRange[i]->SetValue(wxString::Format("%i", g_Config.Trigger.Range));
+		m_TiltComboRange[i]->SetValue(wxString::Format(wxT("%i"), g_Config.Trigger.Range));
 
 		// Tooltips
 		m_TiltComboInput[i]->SetToolTip(wxT("Control tilting by an analog gamepad stick, an analog trigger or the keyboard."));		
