@@ -687,6 +687,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Setup.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\stdafx.cpp"
 			>
 			<FileConfiguration

@@ -25,6 +25,7 @@
 #endif
 
 #include "Thread.h" // Common
+#include "Setup.h"
 #include "Timer.h"
 #include "Common.h"
 #include "ConsoleWindow.h"
@@ -321,7 +322,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
 	// Needed for Stop and Start
-	#ifdef _WIN32
+	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
 		Plugins.FreeVideo();
 	#endif
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
@@ -345,7 +346,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pEmulatorState = (int *)&PowerPC::state;
 	dspInit.bWii = _CoreParameter.bWii;
 	// Needed for Stop and Start
-	#ifdef _WIN32
+	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
 		Plugins.FreeDSP();
 	#endif
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
@@ -455,7 +456,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	   thread right? So how can WaitForSingleObject() hang in it? */
 
 	bool bRenderToMainSingleCore = false;
-	#ifdef _WIN32
+	#ifdef SETUP_AVOID_SINGLE_CORE_HANG_ON_STOP
 		if (GetParent((HWND)g_pWindowHandle) == NULL || _CoreParameter.bUseDualCore) bRenderToMainSingleCore = true;
 	#endif
 
