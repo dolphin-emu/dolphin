@@ -45,6 +45,7 @@
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStorePaired)
 	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)
@@ -59,6 +60,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStorePaired)
 	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)

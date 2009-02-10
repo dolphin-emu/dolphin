@@ -49,6 +49,8 @@
 
 	void Jit64::ps_arith(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
+		JITDISABLE(Paired)
 		if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25)) {
 			Default(inst); return;
 		}
@@ -78,7 +80,8 @@
 	{
 		// FIXME: This operation strikes me as a bit strange...
 		// perhaps we can optimize it depending on the users?
-		INSTRUCTION_START;
+		INSTRUCTION_START
+		JITDISABLE(Paired)
 		if (inst.Rc || inst.SUBOP5 != 10) {
 			Default(inst); return;
 		}
@@ -96,6 +99,8 @@
 
 	void Jit64::ps_muls(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
+		JITDISABLE(Paired)
 		if (inst.Rc) {
 			Default(inst); return;
 		}
@@ -119,6 +124,8 @@
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
 	void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
+		JITDISABLE(Paired)
 		if (inst.Rc) {
 			Default(inst); return;
 		}
@@ -150,6 +157,8 @@
 
 	void Jit64::ps_maddXX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
+		JITDISABLE(Paired)
 		if (inst.Rc) {
 			Default(inst); return;
 		}

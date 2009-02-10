@@ -46,6 +46,7 @@
 void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -58,6 +59,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -71,6 +73,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -85,6 +88,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -100,6 +104,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -113,6 +118,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));

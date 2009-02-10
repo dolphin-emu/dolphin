@@ -36,6 +36,7 @@
 	void Jit64::mtspr(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START
+		JITDISABLE(SystemRegisters)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		switch(iIndex) {
 			case SPR_LR:
@@ -53,6 +54,7 @@
 	void Jit64::mfspr(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START
+		JITDISABLE(SystemRegisters)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		switch (iIndex)
 		{
@@ -83,14 +85,14 @@
 	void Jit64::mfmsr(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START
+		JITDISABLE(SystemRegisters)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 	}
 
 	void Jit64::mftb(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
-			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
+		JITDISABLE(SystemRegisters)
 		mfspr(inst);
 	}
 

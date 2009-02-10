@@ -42,6 +42,7 @@
 void Jit64::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -53,7 +54,7 @@ void Jit64::lhax(UGeckoInstruction inst)
 void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-
+	JITDISABLE(LoadStore)
 	if (Core::GetStartupParameter().bSkipIdle &&
 		inst.OPCD == 32 && 
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
@@ -86,6 +87,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 void Jit64::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr =
 		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
 	if (inst.RA)
@@ -98,6 +100,7 @@ void Jit64::lha(UGeckoInstruction inst)
 void Jit64::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -142,6 +145,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   value = ibuild.EmitLoadGReg(inst.RS);
 	if (inst.RA)
@@ -160,6 +164,7 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   value = ibuild.EmitLoadGReg(inst.RS);
 	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -178,6 +183,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -192,6 +198,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
