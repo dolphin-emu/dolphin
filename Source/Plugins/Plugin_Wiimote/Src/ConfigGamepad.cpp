@@ -36,6 +36,48 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////
+// Change Joystick
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Function: When changing the joystick we save and load the settings and update the PadMapping
+   and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
+   the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
+void ConfigDialog::DoChangeJoystick()
+{
+	// Close the current pad, unless it's used by another slot
+	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
+
+	// Before changing the pad we save potential changes to the current pad
+	DoSave(true);
+	
+	// Load the settings for the new Id
+	g_Config.Load(true);
+	UpdateGUI(Page); // Update the GUI
+
+	// Open the new pad
+	if (WiiMoteEmu::PadMapping[Page].enabled) PadOpen(Page);
+}
+void ConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
+{
+	// Check that we got a good pad
+	if (!WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Open].ID).Good)
+	{
+		Console::Print("A bad pad was selected\n");
+		WiiMoteEmu::PadState[Open].joy = NULL;
+		return;
+	}
+
+	Console::Print("Update the Slot %i handle to Id %i\n", Page, WiiMoteEmu::PadMapping[Open].ID);
+	WiiMoteEmu::PadState[Open].joy = SDL_JoystickOpen(WiiMoteEmu::PadMapping[Open].ID);
+}
+void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
+{
+	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[Close].joy);
+	WiiMoteEmu::PadState[Close].joy = NULL;
+}
+//////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////
 // Change settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::SetButtonTextAll(int id, char text[128])
@@ -368,6 +410,9 @@ void ConfigDialog::DoGetButtons(int GetId)
 		   have the same id, I don't know. So we have to do this. The user may also have selected the same device for
 		   several disabled slots. */
 		SaveButtonMappingAll(Controller);
+
+		Console::Print("Timer Stopped for Pad:%i GetId:%i\n",
+			WiiMoteEmu::PadMapping[Controller].ID, GetId);
 	}
 
 	// If we got a bad button
@@ -429,9 +474,9 @@ void ConfigDialog::PadGetStatus()
 	// Get physical device status
 	int PhysicalDevice = WiiMoteEmu::PadMapping[Page].ID;
 	int TriggerType = WiiMoteEmu::PadMapping[Page].triggertype;
-
+	
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (IsFocus())
+	//if (IsFocus())
 		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page, WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Page].ID].NumButtons);
 
 

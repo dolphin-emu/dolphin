@@ -10,6 +10,7 @@ files = [
         "Config.cpp",
         "DataReports.cpp",
         "EmuDefinitions.cpp",
+		"EmuDynamics.cpp",
         "EmuMain.cpp",
         "EmuPad.cpp",
         "EmuSubroutines.cpp",

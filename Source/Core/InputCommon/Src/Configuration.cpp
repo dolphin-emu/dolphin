@@ -94,6 +94,7 @@ float SquareDistance(float deg)
 	deg = abs(deg);
 	if( (deg > 45 && deg < 135) ) deg = deg - 90;
 
+	// Calculate radians from degrees
 	float rad = deg * M_PI / 180;
 
 	float val = abs(cos(rad));

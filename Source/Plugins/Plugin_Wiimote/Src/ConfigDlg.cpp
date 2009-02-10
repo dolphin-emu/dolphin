@@ -101,6 +101,10 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 
 	// Gamepad
 	EVT_COMBOBOX(ID_TRIGGER_TYPE, ConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_INPUT, ConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_RANGE, ConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(IDC_JOYNAME, ConfigDialog::GeneralSettingsChanged)
+	
 
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
@@ -251,6 +255,47 @@ void ConfigDialog::UpdateOnce(wxTimerEvent& event)
 //////////////////////////////////////
 
 
+
+////////////////////////////////////////////////////////////////////////////
+// Save Settings
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+   Saving is currently done when:
+
+   1. Closing the configuration window
+   2. Changing the gamepad
+   3. When the gamepad is enabled or disbled
+
+   Input: ChangePad needs to be used when we change the pad for a slot. Slot needs to be used when
+   we only want to save changes to one slot.
+*/
+void ConfigDialog::DoSave(bool ChangePad, int Slot)
+{
+	// Replace "" with "-1" before we are saving
+	ToBlank(false);
+
+	if(ChangePad)
+	{
+		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
+		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
+		
+		g_Config.Save(Slot);
+		// Now we can update the ID
+		WiiMoteEmu::PadMapping[Page].ID = m_Joyname[Page]->GetSelection();
+	}
+	else
+	{
+		// Update PadMapping[] from the GUI controls
+		for(int i = 0; i < 4; i++) SaveButtonMapping(i);
+		g_Config.Save(Slot);
+	}		
+
+	// Then change it back to ""
+	ToBlank();
+}
+//////////////////////////////////////
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Bitmap box and dot
 // ----------------
@@ -338,11 +383,12 @@ void ConfigDialog::CreateGUIControls()
 	// The tilt list
 	wxArrayString StrTilt;
 	StrTilt.Add(wxString::FromAscii("<Off>"));
+	StrTilt.Add(wxString::FromAscii("Keyboard"));
 	StrTilt.Add(wxString::FromAscii("Analog stick"));
 	StrTilt.Add(wxString::FromAscii("Triggers"));
-	StrTilt.Add(wxString::FromAscii("Keyboard"));
+	// The range is in degrees and are set at even 5 degrees values
 	wxArrayString StrTiltRange;
-	for (int i = 3; i < 15; i++) StrTiltRange.Add(wxString::Format(wxT("%i"), i*5));
+	for (int i = 2; i < 19; i++) StrTiltRange.Add(wxString::Format(wxT("%i"), i*5));
 
 	// The Trigger type list
 	wxArrayString StrTriggerType;
@@ -463,23 +509,27 @@ void ConfigDialog::CreateGUIControls()
 		// -----------------------------
 		/**/
 		// Controls
-		m_TiltCombo[i] = new wxComboBox(m_Controller[i], ID_TILT_COMBO, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
-		m_TiltComboRange[i] = new wxComboBox(m_Controller[i], wxID_ANY, StrTiltRange[0], wxDefaultPosition, wxDefaultSize, StrTiltRange, wxCB_READONLY);
+		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
+		m_TiltComboRange[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE, StrTiltRange[0], wxDefaultPosition, wxDefaultSize, StrTiltRange, wxCB_READONLY);
 		m_TiltText[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Range"));
 
 		m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_TiltHoriz[i]->Add(m_TiltText[i], 0, (wxLEFT | wxTOP), 4);
 		m_TiltHoriz[i]->Add(m_TiltComboRange[i], 0, (wxLEFT | wxRIGHT), 5);
 		
-
 		m_gTilt[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Tilt Wiimote"));
 		m_gTilt[i]->AddStretchSpacer();
-		m_gTilt[i]->Add(m_TiltCombo[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gTilt[i]->Add(m_TiltComboInput[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_gTilt[i]->Add(m_TiltHoriz[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_gTilt[i]->AddStretchSpacer();
 
+		//Set values
+		m_TiltComboInput[i]->SetSelection(g_Config.Trigger.Type);
+		m_TiltComboRange[i]->SetValue(wxString::Format("%i", g_Config.Trigger.Range));
+
 		// Tooltips
-		m_TiltCombo[i]->SetToolTip(wxT("Control tilting by an analog gamepad stick, an analog trigger or the keyboard."));		
+		m_TiltComboInput[i]->SetToolTip(wxT("Control tilting by an analog gamepad stick, an analog trigger or the keyboard."));		
+		m_TiltComboRange[i]->SetToolTip(wxT("The maximum tilt in degrees"));	
 
 		// --------------------------------------------------------------------
 		// Analog triggers
@@ -938,6 +988,8 @@ void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 // ----------------
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
+	long TmpValue;
+
 	switch (event.GetId())
 	{
 	case ID_CONNECT_REAL:
@@ -1006,6 +1058,15 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_TRIGGER_TYPE:
 		WiiMoteEmu::PadMapping[Page].triggertype = m_TriggerType[Page]->GetSelection();
 		break;
+	case ID_TILT_INPUT:
+		g_Config.Trigger.Type = m_TiltComboInput[Page]->GetSelection();
+		break;
+	case ID_TILT_RANGE:
+		m_TiltComboRange[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range = TmpValue;
+		break;
+	case IDC_JOYNAME:
+		DoChangeJoystick();
+		break;
 
 	//////////////////////////
 	// Recording
@@ -1058,7 +1119,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // =======================================================
 // Update the enabled/disabled status
 // -------------
-void ConfigDialog::UpdateGUI()
+void ConfigDialog::UpdateGUI(int Slot)
 {
 	//Console::Print("UpdateGUI: \n");
 

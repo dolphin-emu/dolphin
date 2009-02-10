@@ -139,8 +139,10 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 			VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).Time, g_RecordingCurrentTime[Wm],
 			VRecording.at(g_RecordingPlaying[Wm]).Recording.size(), g_RecordingPoint[Wm]
 			);
-		Console::Print("Accel x, y, z: %03u %03u %03u\n\n", _x, _y, _z);
+		Console::Print("Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
 	}
+	//Console::Print("Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
+	//Console::Print("Accel x, y, z: %02x %02x %02x\n", _x, _y, _z);
 
 	g_RecordingCounter[Wm]++;
 
@@ -233,6 +235,15 @@ int RecordingCheckKeys(int Wiimote)
 #endif
 }
 
+// check if we have any recording playback key combination
+bool CheckKeyCombination()
+{
+	if (RecordingCheckKeys(0) == -1 && RecordingCheckKeys(1) == -1 && RecordingCheckKeys(2) == -1)
+		return false;
+	else
+		return true; // This will also start a recording
+}
+
 
 
 //******************************************************************************
@@ -252,6 +263,9 @@ void FillReportInfo(wm_core& _core)
 #ifdef _WIN32
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
+
+	// Don't interrupt a recording
+	if (CheckKeyCombination()) return;
 
 	// Check the mouse position. Don't allow mouse clicks from outside the window.
 	float x, y; GetMousePos(x, y);
@@ -299,22 +313,173 @@ void FillReportInfo(wm_core& _core)
    being [y = 0x84, x = 0x84, z = 0x9f] according to a source. The extremes are 0x00 for (-)
    and 0xff for (+). It's important that all values are not 0x80, the mouse pointer can disappear
    from the screen permanently then, until z is adjusted back. */
+
+
 // ----------
 // Global declarations for FillReportAcc: These variables are global so they can be changed during debugging
 //int A = 0, B = 128, C = 64; // for debugging
 //int a = 1, b = 1, c = 2, d = -2; // for debugging
 //int consoleDisplay = 0;
 
-u8 x, y, z;
-int shake = -1, yhistsize = 15; // for the shake function
-std::vector<u8> yhist(15); // for the tilt function
+// For all functions
+u8 x, y, z, X, Y, Z;
+
+// For the shake function
+int shake = -1;
+
+// For the tilt function, the size of this list determines how fast Y returns to its neutral value
+std::vector<u8> yhist(15, 0); float KbDegree;
+
+
+// ------------------------------------------
+// Single shake of Wiimote while holding it sideways (Wario Land pound ground)
+// ---------------
+void SingleShake(u8 &_z, u8 &_y)
+{
+	if(GetAsyncKeyState('S'))
+	{
+		_z = 0;
+		_y = 0;
+		shake = 2;
+	}
+	else if(shake == 2)
+	{
+		_z = 128;
+		_y = 0;
+		shake = 1;
+	}
+	else if(shake == 1)
+	{
+		_z = Z;
+		_y = Y;
+		shake = -1;
+	}
+	else // the default Z if nothing is pressed
+	{
+		z = Z;
+	}
+}
+
+// ------------------------------------------
+/* Tilting Wiimote with gamepad. We can guess that the game will calculate a Wiimote pitch and use it as a
+   measure of the tilting of the Wiimote. We are interested in this tilting range
+			90° to -90° */
+// ---------------
+void TiltWiimoteGamepad(u8 &_y, u8 &_z)
+{
+	// Update the pad state
+	const int Page = 0;
+	WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+
+	// Convert the big values
+	float Lx = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Lx);
+	float Ly = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Ly);
+	float Rx = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Rx);
+	float Ry = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Ry);
+	float Tl, Tr;
+
+	if (PadMapping[Page].triggertype == InputCommon::CTL_TRIGGER_SDL)
+	{
+		Tl = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Tl);
+		Tr = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Tr);
+	}
+	else
+	{
+		Tl = (float)PadState[Page].Axis.Tl;
+		Tr = (float)PadState[Page].Axis.Tr;
+	}
+
+	// It's easier to use a float here
+	float Degree = 0;
+	// Calculate the present room between the neutral and the maximum values
+	float RoomAbove = 255.0 - (float)Y;
+	float RoomBelow = (float)Y;
+	// Save the Range in degrees, 45° and 90° are good values in some games
+	float Range = (float)g_Config.Trigger.Range;
+
+	// Trigger
+	if (g_Config.Trigger.Type == g_Config.TRIGGER)
+	{
+		// Make the range the same dimension as the analog stick
+		Tl = Tl / 2;
+		Tr = Tr / 2;
+
+		Degree = Tl * (Range / 128)
+			- Tr * (Range / 128);
+	}
+
+	// Analog stick
+	else
+	{
+		// Adjust the trigger to go between negative and positive values
+		Lx = Lx - 128;
+		// Produce the final value
+		Degree = -Lx * (Range / 128);
+	}
+
+	// Calculate the acceleometer value from this tilt angle
+	PitchDegreeToAccelerometer(Degree, _y, _z);
+
+	//Console::ClearScreen();
+	/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
+		Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
+	/*Console::Print("Degree:%2.1f\n", Degree);*/
+}
+
+
+// ------------------------------------------
+// Tilting Wiimote (Wario Land aiming, Mario Kart steering) : For some reason 150 and 40
+// seemed like decent starting values.
+// ---------------
+void TiltWiimoteKeyboard(u8 &_y, u8 &_z)
+{
+#ifdef _WIN32
+	if(GetAsyncKeyState('3'))
+	{
+		// Stop at the upper end of the range
+		if(KbDegree < g_Config.Trigger.Range)
+			KbDegree += 3; // aim left
+	}
+	else if(GetAsyncKeyState('4'))
+	{
+		// Stop at the lower end of the range
+		if(KbDegree > -g_Config.Trigger.Range)
+			KbDegree -= 3; // aim right
+	}
+
+	// -----------------------------------
+	// Check for inactivity in the tilting, the Y value will be reset after ten inactive updates
+	// ----------
+
+	yhist[yhist.size() - 1] = (
+		GetAsyncKeyState('3')
+		|| GetAsyncKeyState('4')
+		|| shake > 0
+		);	
+
+	// Move all items back, and check if any of them are true
+	bool ypressed = false;
+	for (int i = 1; i < (int)yhist.size(); i++)
+	{
+		yhist[i-1] = yhist[i];
+		if(yhist[i]) ypressed = true;
+	}
+	// Tilting was not used a single time, reset y to its neutral value
+	if(!ypressed)
+	{
+		_y = Y;
+	}
+	else
+	{
+		PitchDegreeToAccelerometer(KbDegree, _y, _z);
+		//Console::Print("Degree: %2.1f\n", KbDegree);
+	}
+	// --------------------
+#endif
+}
 
 void FillReportAcc(wm_accel& _acc)
 {
-	// Create shortcut names for the default neutral values
-	int X = g_accel.cal_zero.x, Y = g_accel.cal_zero.y, Z = g_accel.cal_zero.z + g_accel.cal_g.z;
-
-#ifdef _WIN32
 	// ------------------------------------
 	// Recorded movements
 	// --------------
@@ -331,6 +496,11 @@ void FillReportAcc(wm_accel& _acc)
 	}
 	// ---------------------
 
+	// The default values can change so we need to update them all the time
+	X = g_accel.cal_zero.x;
+	Y = g_accel.cal_zero.y;
+	Z = g_accel.cal_zero.z + g_accel.cal_g.z;
+
 
 	// Check that Dolphin is in focus
 	if (!IsFocus())
@@ -341,102 +511,24 @@ void FillReportAcc(wm_accel& _acc)
 		return;
 	}
 
-	// ------------------------------------
+	// ------------------------------------------------
 	// Wiimote to Gamepad translations
-	// ----------
-	// Tilting Wiimote (Wario Land aiming, Mario Kart steering) : For some reason 150 and 40
-	// seemed like decent starting values.
-	if(GetAsyncKeyState('3'))
-	{
-		//if(a < 128) // for debugging
-		if(y < 250)
-		{
-			y += 4; // aim left
-			//a += c;  // debugging values
-			//y = A + a; // aim left
-		}
-	}
-	else if(GetAsyncKeyState('4'))
-	{
-		// if(b < 128) // for debugging
-		if(y > 5)
-		{
-			y -= 4; // aim right
-			//b -= d; // debugging values
-			//y = B + b;
-		}
-	}
+	// ------------
 
-	/* Single shake of Wiimote while holding it sideways (Wario Land pound ground)	
-	if(GetAsyncKeyState('S'))
-		z = 0;
-	else
-		z  = Z;*/
+	// Shake the Wiimote
+	SingleShake(z, y);
 
-	if(GetAsyncKeyState('S'))
-	{
-		z = 0;
-		y = 0;
-		shake = 2;
-	}
-	else
-#endif
-	    if(shake == 2)
-	{
-		z = 128;
-		y = 0;
-		shake = 1;
-	}
-	else if(shake == 1)
-	{
-		z = Z;
-		y = Y;
-		shake = -1;
-	}
-	else // the default Z if nothing is pressed
-	{
-		z = Z;
-	}
-	// ----------
-
-
-	// -----------------------------
-	// For tilting: add new value and move all back
-	// ----------
-	bool ypressed = false;
-
-#ifdef _WIN32
-	yhist[yhist.size() - 1] = (
-		GetAsyncKeyState('3') ? true : false
-		|| GetAsyncKeyState('4') ? true : false
-		|| shake > 0
-		);	
-#endif
-	if(yhistsize > (int)yhist.size()) yhistsize = (int)yhist.size();
-	for (int i = 1; i < yhistsize; i++)
-	{
-		yhist[i-1] = yhist[i];
-		if(yhist[i]) ypressed = true;
-	}
-	
-	if(!ypressed) // y was not pressed a single time
-	{
-		y = Y; // this is the default value that will occur most of the time
-		//a = 0; // for debugging
-		//b = 0;
-	}
-	//	else if(!GetAsyncKeyState('3') && !GetAsyncKeyState('4'))
-	//	{
-		// perhaps start dropping acceleration back?
-	//	}
-	// ----------
-
+	// Tilt Wiimote
+	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
+		TiltWiimoteKeyboard(y, z);
+	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
+		TiltWiimoteGamepad(y, z);
 
 	// Write values
 	_acc.x = X;
 	_acc.y = y;
 	_acc.z = z;
-
+	
 
 	// ----------------------------
 	// Debugging for translating Wiimote to Keyboard (or Gamepad)

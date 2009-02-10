@@ -99,8 +99,10 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 	{
 #endif
 		// If we are using SDL analog triggers the buttons have to be mapped as 1000 or up, otherwise they are not used
-		_PadState.Axis.Tl = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tl - 1000);
-		_PadState.Axis.Tr = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tr - 1000);
+		// We must also check that we are not asking for a negative axis number because SDL_JoystickGetAxis() has
+		// no good way of handling that
+		if ((_PadMapping.Axis.Tl - 1000) >= 0) _PadState.Axis.Tl = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tl - 1000);
+		if ((_PadMapping.Axis.Tr - 1000) >= 0) _PadState.Axis.Tr = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tr - 1000);
 #ifdef _WIN32
 	}
 	else
@@ -115,13 +117,17 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 	Console::Print(
 		"Controller and handle: %i %i\n"
 
-		"Triggers:%i  %i %i  %i %i\n",
+		"Triggers:%i  %i %i  %i %i\n"
+
+		"Analog:%06i %06i  \n",
 
 		controller, (int)_PadState.joy,
 
 		_PadMapping.triggertype,
 		_PadMapping.Axis.Tl, _PadMapping.Axis.Tr,
-		_PadState.Axis.Tl, _PadState.Axis.Tr
+		_PadState.Axis.Tl, _PadState.Axis.Tr,
+
+		_PadState.Axis.Lx, _PadState.Axis.Ly
 		);*/
 }
 

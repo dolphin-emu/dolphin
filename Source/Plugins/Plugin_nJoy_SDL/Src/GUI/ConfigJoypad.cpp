@@ -286,7 +286,8 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
 
 	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R)
-			   && !(TriggerType == InputCommon::CTL_TRIGGER_XINPUT && (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) ); // Don't allow SDL here
+		// Don't allow SDL input for the triggers when XInput is selected
+		&& !(TriggerType == InputCommon::CTL_TRIGGER_XINPUT && (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) );
 	
 	bool XInput = (TriggerType == InputCommon::CTL_TRIGGER_XINPUT);
 

@@ -44,7 +44,7 @@ class ConfigDialog : public wxDialog
 
 		// General open, close and event functions
 		void CloseClick(wxCommandEvent& event);
-		void UpdateGUI(); void UpdateGUIButtonMapping(int controller);
+		void UpdateGUI(int Slot = 0); void UpdateGUIButtonMapping(int controller);
 		void OnKeyDown(wxKeyEvent& event);
 		void LoadFile(); void SaveFile();
 		
@@ -103,7 +103,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4];
 		wxCheckBox *m_WideScreen[4];
 		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
-		wxComboBox *m_TiltCombo[4], *m_TiltComboRange[4], *m_Joyname[4], *m_TriggerType[4];
+		wxComboBox *m_TiltComboInput[4], *m_TiltComboRange[4], *m_Joyname[4], *m_TriggerType[4];
 
 		// Real Wiimote settings
 		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters;
@@ -147,7 +147,7 @@ class ConfigDialog : public wxDialog
 			ID_SIDEWAYSDPAD, // Emulated
 			ID_WIDESCREEN,
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
-			IDC_JOYNAME, IDC_JOYATTACH, ID_TILT_COMBO, ID_TILT_CHECK,
+			IDC_JOYNAME, IDC_JOYATTACH,
 
 			// Gamepad <It's important that the internal ordering of these are unchanged>
 			IDB_ANALOG_LEFT_X, IDB_ANALOG_LEFT_Y,
@@ -159,7 +159,7 @@ class ConfigDialog : public wxDialog
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
 			// Gamepad settings
-			ID_TRIGGER_TYPE,
+			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE,
 
 			// Real
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,
@@ -186,6 +186,8 @@ class ConfigDialog : public wxDialog
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1); void SaveButtonMappingAll(int Slot);
 		void ToBlank(bool ToBlank = true);
 		void PadGetStatus();
+		void DoSave(bool ChangePad = false, int Slot = -1);
+		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close);
 
 		// Configure buttons
 		int GetButtonWaitingID, GetButtonWaitingTimer;

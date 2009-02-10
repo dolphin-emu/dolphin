@@ -543,6 +543,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\EmuDynamics.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\EmuMain.cpp"
 				>
 			</File>

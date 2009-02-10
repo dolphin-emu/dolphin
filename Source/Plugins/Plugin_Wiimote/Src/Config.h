@@ -22,7 +22,21 @@ struct Config
 {
     Config();
     void Load(bool ChangePad = false);
-    void Save();
+    void Save(int Slot = -1);
+
+	struct PadTrigger
+	{
+		int Type;
+		int Range;
+	};
+
+	enum ETriggerType
+	{
+		TRIGGER_OFF = 0,
+		KEYBOARD,
+		ANALOG,
+		TRIGGER
+	};
 
     // Emulated Wiimote
 	bool bSidewaysDPad;
@@ -36,6 +50,7 @@ struct Config
 
 	// Gamepad
 	bool bNoTriggerFilter;
+	PadTrigger Trigger;
 };
 
 extern Config g_Config;

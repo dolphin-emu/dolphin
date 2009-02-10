@@ -198,13 +198,14 @@ void handle_event(struct wiimote_t* wm)
 				frame->m_GaugeAccel[2]->SetValue(AccelZ);
 
 				frame->m_TextIR->SetLabel(wxString::Format(
-														   wxT("Cursor: %03u %03u\nDistance:%4.0f"), wm->ir.x, wm->ir.y, wm->ir.z));
+					wxT("Cursor: %03u %03u\nDistance:%4.0f"), wm->ir.x, wm->ir.y, wm->ir.z));
 
 				frame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
-																		  wxT("Current: %03u %03u %03u"), AccelX, AccelY, AccelZ));
+					wxT("Current: %03u %03u %03u"), AccelX, AccelY, AccelZ));
 
 				if(frame->m_bRecording)
 					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
+					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", wm->accel.x, wm->accel.y, wm->accel.z);
 			}
 	
 			// Send the data to be saved

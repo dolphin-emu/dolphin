@@ -123,6 +123,8 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 // ----------------
 void LoadRecordedMovements()
 {
+	Console::Print("LoadRecordedMovements()");
+
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
 
@@ -130,6 +132,9 @@ void LoadRecordedMovements()
 	{
 		// Logging
 		//Console::Print("Recording%i ", i + 1);
+
+		// First clear the list
+		VRecording.at(i).Recording.clear();
 
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i + 1);
@@ -192,10 +197,10 @@ void LoadRecordedMovements()
 			// ---------------------------------
 			// Log results
 			// ---------
-			//Console::Print("Time:%f\n", Tmp.Time);
-			//std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
-			//Console::Print("IR: %s\n", TmpIRLog.c_str());
-			//Console::Print("\n");
+			/*Console::Print("Time:%f\n", Tmp.Time);
+			std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
+			Console::Print("IR: %s\n", TmpIRLog.c_str());
+			Console::Print("\n");*/
 		}
 
 		// Get HotKey
@@ -216,7 +221,7 @@ void LoadRecordedMovements()
 			TmpIRLog = "";
 
 		/*
-		Console::Print("Size:%i HotKey:%i Speed:%i IR: %s\n",
+		Console::Print("Size:%i HotKey:%i PlSpeed:%i IR: %s\n",
 			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed,
 			TmpIRLog.c_str()
 			);*/
@@ -465,10 +470,13 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					   and registry reads and writes. */
 
 					// There are no 0x22 replys to these report from the real wiimote from what I could see
-					// Report 0x10 that seems to be only used for rumble
+					// Report 0x10 that seems to be only used for rumble, and we don't need to answer that,
+					// also if we do *we should update the 0x22 to have the core keys* otherwise the game will
+					// think we release the key every time it rumbles
 					if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
 						&& !(data[1] == WM_REQUEST_STATUS)
-						&& !(data[1] == WM_WRITE_SPEAKER_DATA))
+						&& !(data[1] == WM_WRITE_SPEAKER_DATA)
+						&& !(data[1] == WM_RUMBLE))						
 						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 				}
 				break;

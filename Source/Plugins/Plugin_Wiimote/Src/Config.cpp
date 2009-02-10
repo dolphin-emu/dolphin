@@ -26,6 +26,7 @@ Config g_Config;
 
 Config::Config()
 {
+	// Set all default values to zero
     memset(this, 0, sizeof(Config));
 }
 
@@ -60,6 +61,8 @@ void Config::Load(bool ChangePad)
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
 		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &bNoTriggerFilter, false);
+		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, TRIGGER_OFF);
+		iniFile.Get(SectionName.c_str(), "TriggerRange", &Trigger.Range, 50);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -67,6 +70,9 @@ void Config::Load(bool ChangePad)
 			iniFile.Get(SectionName.c_str(), "DeviceID", &WiiMoteEmu::PadMapping[i].ID, 0);
 			iniFile.Get(SectionName.c_str(), "Enabled", &WiiMoteEmu::PadMapping[i].enabled, true);
 		}
+
+		// Check if the pad ID is within the range of avaliable pads
+		if (WiiMoteEmu::PadMapping[i].ID > (WiiMoteEmu::NumPads - 1)) WiiMoteEmu::PadMapping[i].ID = (WiiMoteEmu::NumPads - 1);
 		// ===================
 
 		// ==================================================================
@@ -86,18 +92,18 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "left_y", &WiiMoteEmu::PadMapping[i].Axis.Ly, 1);	
 		iniFile.Get(SectionName.c_str(), "right_x", &WiiMoteEmu::PadMapping[i].Axis.Rx, 2);	
 		iniFile.Get(SectionName.c_str(), "right_y", &WiiMoteEmu::PadMapping[i].Axis.Ry, 3);
-		iniFile.Get(SectionName.c_str(), "l_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tl, 4);
-		iniFile.Get(SectionName.c_str(), "r_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tr, 5);
+		iniFile.Get(SectionName.c_str(), "l_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tl, 1004);
+		iniFile.Get(SectionName.c_str(), "r_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tr, 1005);
 		iniFile.Get(SectionName.c_str(), "DeadZone", &WiiMoteEmu::PadMapping[i].deadzone, 0);
 		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
-		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);
+		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);		
 	}
 	// =============================
 	Console::Print("Load()\n");
 }
 
-void Config::Save()
+void Config::Save(int Slot)
 {
     IniFile iniFile;
     iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
@@ -124,7 +130,9 @@ void Config::Save()
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
 		iniFile.Set(SectionName.c_str(), "Enabled", WiiMoteEmu::PadMapping[i].enabled);
-		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", bNoTriggerFilter);
+		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", bNoTriggerFilter);		
+		iniFile.Set(SectionName.c_str(), "TriggerType", Trigger.Type);
+		iniFile.Set(SectionName.c_str(), "TriggerRange", Trigger.Range);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);

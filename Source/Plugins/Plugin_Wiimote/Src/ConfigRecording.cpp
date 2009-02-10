@@ -110,6 +110,7 @@ void ConfigDialog::SaveFile()
 	}
 
 	file.Save("WiimoteMovement.ini");
+	Console::Print("Wrote WiimoteMovement.ini\n");
 }
 /////////////////////////////
 
@@ -413,6 +414,8 @@ void ConfigDialog::ConvertToString()
 	}	
 
 	file.Save("WiimoteMovement.ini");
+
+	Console::Print("Save recording to WiimoteMovement.ini\n");
 }
 
 // Timeout the recording

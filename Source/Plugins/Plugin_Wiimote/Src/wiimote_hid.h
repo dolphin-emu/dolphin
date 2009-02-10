@@ -49,6 +49,7 @@ struct wm_report {
 	u8 data[0];
 };
 
+#define WM_RUMBLE 0x10
 #define WM_LEDS 0x11
 struct wm_leds {
 	u8 rumble : 1;

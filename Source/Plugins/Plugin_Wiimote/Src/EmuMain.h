@@ -51,6 +51,11 @@ void SetDefaultExtensionRegistry();
 // Gamepad
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons);
-};
+void PitchDegreeToAccelerometer(float _Degree, u8 &_y, u8 &_z);
+int PitchAccelerometerToDegree(u8 _y, u8 _z);
+
+
+}; // WiiMoteEmu
+
 
 #endif
