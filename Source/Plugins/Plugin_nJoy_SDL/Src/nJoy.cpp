@@ -257,10 +257,12 @@ void Initialize(void *init)
 	#endif
 
 	// Populate joyinfo for all attached devices if the configuration window is not already open
-	if(!m_frame) Search_Devices(joyinfo, NumPads, NumGoodPads);
-
-	// Check if a DirectInput error occured
-	if(ReloadDLL()) g_PADInitialize->padNumber = -1;
+	if(!m_frame)
+	{
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
+		// Check if a DirectInput error occured
+		if(ReloadDLL()) g_PADInitialize->padNumber = -1;
+	}
 }
 
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
