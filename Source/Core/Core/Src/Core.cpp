@@ -611,7 +611,7 @@ void Callback_VideoCopiedToXFB()
 		char temp[256];
 		sprintf(temp, "FPS:%8.2f - Core: %s | %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
 			(float)frames / t, 
-#ifdef JITTEST
+#if defined(JITTEST) && JITTEST
 #ifdef _M_IX86
 			_CoreParameter.bUseJIT ? "JIT32IL" : "Int32", 
 #else
