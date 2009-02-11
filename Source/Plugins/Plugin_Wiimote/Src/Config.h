@@ -28,6 +28,8 @@ struct Config
 	{
 		int Type;
 		int Range;
+		int Roll;
+		int Pitch;
 	};
 
 	enum ETriggerType

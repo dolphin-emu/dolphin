@@ -357,7 +357,7 @@ void SingleShake(u8 &_z, u8 &_y)
 	}
 	else // the default Z if nothing is pressed
 	{
-		z = Z;
+		_z = Z;
 	}
 #endif
 }
@@ -367,7 +367,7 @@ void SingleShake(u8 &_z, u8 &_y)
    measure of the tilting of the Wiimote. We are interested in this tilting range
 		90° to -90° */
 // ---------------
-void TiltWiimoteGamepad(u8 &_y, u8 &_z)
+void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
 {
 	// Return if we have no pads
 	if (NumGoodPads == 0) return;
@@ -395,10 +395,8 @@ void TiltWiimoteGamepad(u8 &_y, u8 &_z)
 	}
 
 	// It's easier to use a float here
-	float Degree = 0;
-	// Calculate the present room between the neutral and the maximum values
-	float RoomAbove = 255.0 - (float)Y;
-	float RoomBelow = (float)Y;
+	float Roll = 0;
+	float Pitch = 0;
 	// Save the Range in degrees, 45° and 90° are good values in some games
 	float Range = (float)g_Config.Trigger.Range;
 
@@ -409,8 +407,8 @@ void TiltWiimoteGamepad(u8 &_y, u8 &_z)
 		Tl = Tl / 2;
 		Tr = Tr / 2;
 
-		Degree = Tl * (Range / 128)
-			- Tr * (Range / 128);
+		Pitch = Tl * (Range / 128)
+				- Tr * (Range / 128);
 	}
 
 	// Analog stick
@@ -418,12 +416,14 @@ void TiltWiimoteGamepad(u8 &_y, u8 &_z)
 	{
 		// Adjust the trigger to go between negative and positive values
 		Lx = Lx - 128;
+		Ly = Ly - 128;
 		// Produce the final value
-		Degree = -Lx * (Range / 128);
+		Pitch = -Lx * (Range / 128);
+		Roll = -Ly * (Range / 128);
 	}
 
-	// Calculate the acceleometer value from this tilt angle
-	PitchDegreeToAccelerometer(Degree, _y, _z);
+	// Calculate the accelerometer value from this tilt angle
+	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
 
 	//Console::ClearScreen();
 	/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
@@ -476,7 +476,8 @@ void TiltWiimoteKeyboard(u8 &_y, u8 &_z)
 	}
 	else
 	{
-		PitchDegreeToAccelerometer(KbDegree, _y, _z);
+		u8 x;
+		PitchDegreeToAccelerometer(KbDegree, 0, x, _y, _z, false, true);
 		//Console::Print("Degree: %2.1f\n", KbDegree);
 	}
 	// --------------------
@@ -519,6 +520,11 @@ void FillReportAcc(wm_accel& _acc)
 	// ------------------------------------------------
 	// Wiimote to Gamepad translations
 	// ------------
+	
+	// The following functions may or may not update these values
+	x = X;
+	y = Y;
+	z = Z;
 
 	// Shake the Wiimote
 	SingleShake(z, y);
@@ -527,10 +533,10 @@ void FillReportAcc(wm_accel& _acc)
 	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
 		TiltWiimoteKeyboard(y, z);
 	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
-		TiltWiimoteGamepad(y, z);
+		TiltWiimoteGamepad(x, y, z);
 
-	// Write values
-	_acc.x = X;
+	// Write final values
+	_acc.x = x;
 	_acc.y = y;
 	_acc.z = z;
 	

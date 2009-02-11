@@ -63,6 +63,8 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &bNoTriggerFilter, false);
 		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, TRIGGER_OFF);
 		iniFile.Get(SectionName.c_str(), "TriggerRange", &Trigger.Range, 50);
+		iniFile.Get(SectionName.c_str(), "TriggerRoll", &Trigger.Roll, false);
+		iniFile.Get(SectionName.c_str(), "TriggerPitch", &Trigger.Pitch, false);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -133,6 +135,8 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", bNoTriggerFilter);		
 		iniFile.Set(SectionName.c_str(), "TriggerType", Trigger.Type);
 		iniFile.Set(SectionName.c_str(), "TriggerRange", Trigger.Range);
+		iniFile.Set(SectionName.c_str(), "TriggerRoll", Trigger.Roll);
+		iniFile.Set(SectionName.c_str(), "TriggerPitch", Trigger.Pitch);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);

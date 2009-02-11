@@ -70,11 +70,6 @@ void ConfigBox::PadGetStatus()
 	int PhysicalDevice = PadMapping[notebookpage].ID;
 	int TriggerType = PadMapping[notebookpage].triggertype;
 
-	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (!g_Config.bCheckFocus && IsFocus())
-		InputCommon::GetJoyState(PadState[notebookpage], PadMapping[notebookpage], notebookpage, joyinfo[PadMapping[notebookpage].ID].NumButtons);
-
-
 	//////////////////////////////////////
 	// Analog stick
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -220,13 +215,17 @@ std::string ShowStatus(int VirtualController)
 
 	return StringFromFormat(
 		//"Version: %i.%i.%i\n"
+		"All pads:\n"
 		"Enabled: %i %i %i %i\n"
 		"ID: %i %i %i %i\n"
 		"Controllertype: %i %i %i %i\n"
-		"SquareToCircle: %i %i %i %i\n\n"		
-		"Handles: %p %p %p %p\n"
+		"SquareToCircle: %i %i %i %i\n\n"	
+		#ifdef _WIN32
+			"Handles: %i %i %i %i\n"
+			"XInput: %i %i %i\n"
+		#endif
 
-		"XInput: %i %i %i\n"
+		"This pad:\n"
 		"Axes: %s\n"
 		"Hats: %s\n"
 		"But: %s\n"
@@ -236,10 +235,9 @@ std::string ShowStatus(int VirtualController)
 		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
 		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
 		PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,
-		joy0, joy1, joy2, joy3,
-		//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
-
 		#ifdef _WIN32
+			joy0, joy1, joy2, joy3,
+			//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
 			XInput::IsConnected(0), XInput::GetXI(0, InputCommon::XI_TRIGGER_L), XInput::GetXI(0, InputCommon::XI_TRIGGER_R),
 		#endif
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
@@ -251,8 +249,17 @@ std::string ShowStatus(int VirtualController)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::Update()
 {
-	// Show the current status
-	/**/
+	// Check that Dolphin is in focus, otherwise don't update the pad status
+	/* If the emulator is running and unpaused GetJoyState() is run a little more often than needed,
+	   but I allow that since it can confuse the user if the input status in the configuration window
+	   is not update when the emulator is paused. */
+	if (g_Config.bCheckFocus || IsFocus()) // && !g_EmulatorRunning)
+	{
+		for (int i = 0; i < joyinfo.size(); i++)
+			InputCommon::GetJoyState(PadState[i], PadMapping[i], i, joyinfo[PadMapping[i].ID].NumButtons);
+	}
+
+	// Show the current status in a window in the wxPanel
 	#ifdef SHOW_PAD_STATUS
 		m_pStatusBar->SetLabel(wxString::Format(
 			"%s", ShowStatus(notebookpage).c_str()

@@ -48,6 +48,7 @@ be accessed from Core::GetWindowHandle().
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
+#include "ConsoleWindow.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -537,7 +538,7 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
+			m_Panel->GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str(),
 			PLUGIN_TYPE_PAD
 			);

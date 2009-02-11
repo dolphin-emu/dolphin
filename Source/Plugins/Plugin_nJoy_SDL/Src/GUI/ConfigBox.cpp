@@ -159,10 +159,16 @@ void ConfigBox::OnKeyDown(wxKeyEvent& event)
 
 // Close window
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OnClose(wxCloseEvent& /*event*/)
+void ConfigBox::OnClose(wxCloseEvent& event)
 {
-	EndModal(0);
-	if(!g_EmulatorRunning) Shutdown(); // Close pads, unless we are running a game
+	// Allow wxWidgets to close the window
+	event.Skip();
+
+	// Stop the timer
+	m_ConstantTimer->Stop();
+
+	// Close pads, unless we are running a game
+	if(!g_EmulatorRunning) Shutdown();
 }
 
 // Call about dialog
@@ -977,9 +983,9 @@ void ConfigBox::CreateGUIControls()
 		// Don't allow these changes when running
 		if(g_EmulatorRunning)
 		{
-			m_Joyname[i]->Enable(false);
+			//m_Joyname[i]->Enable(false);
 			m_Joyattach[i]->Enable(false);
-			m_ControlType[i]->Enable(false);			
+			//m_ControlType[i]->Enable(false);			
 		}
 
 		// Update GUI

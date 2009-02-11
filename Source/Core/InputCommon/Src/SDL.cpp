@@ -38,6 +38,13 @@
 ////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+int g_LastPad = 0;
+////////////////////////////////////
+
+
 namespace InputCommon
 {
 
@@ -150,7 +157,7 @@ void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int
    Input: The virtual device 0, 1, 2 or 3
    Function: Updates the PadState struct with the current pad status. The input value "controller" is
    for a virtual controller 0 to 3. */
-void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons)
+void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int Controller, int NumButtons)
 {
 	// Update the gamepad status
 	SDL_JoystickUpdate();
@@ -211,21 +218,34 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 			_PadState.dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_RIGHT]);
 	}
 
-	/* Debugging 
-	Console::ClearScreen();
+	#ifdef SHOW_PAD_STATUS
+	// Show the status of all connected pads
+	if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console::ClearScreen();	
+	g_LastPad = Controller;
 	Console::Print(
-		"Controller and handle: %i %i\n"
+		"Pad        | Number:%i Enabled:%i Handle:%i\n"
+		"Main Stick | X:%03i  Y:%03i\n"
+		"Trigger    | Type:%s DigitalL:%i DigitalR:%i AnalogL:%03i AnalogR:%03i HalfPress:%i\n"
+		"Buttons    | A:%i X:%i\n"
+		"D-Pad      | Type:%s Hat:%i U:%i D:%i\n"
+		"======================================================\n",
 
-		"Triggers:%i  %i %i  %i %i  |  HalfPress: %i Mapping: %i\n",
+		Controller, _PadMapping.enabled, _PadState.joy,
 
-		controller, (int)_PadState.joy,
+		_PadState.axis[InputCommon::CTL_MAIN_X], _PadState.axis[InputCommon::CTL_MAIN_Y],
 
-		_PadMapping.triggertype,
-		_PadMapping.buttons[CTL_L_SHOULDER], _PadMapping.buttons[CTL_R_SHOULDER],
-		_PadState.axis[CTL_L_SHOULDER], _PadState.axis[CTL_R_SHOULDER],
+		(_PadMapping.triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
+		_PadState.buttons[InputCommon::CTL_L_SHOULDER], _PadState.buttons[InputCommon::CTL_R_SHOULDER],
+		_PadState.axis[InputCommon::CTL_L_SHOULDER], _PadState.axis[InputCommon::CTL_R_SHOULDER],
+		_PadState.halfpress,
 
-		_PadState.halfpress, _PadMapping.halfpress
-		);	*/
+		_PadState.buttons[InputCommon::CTL_A_BUTTON], _PadState.buttons[InputCommon::CTL_X_BUTTON],
+
+		(_PadMapping.controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
+			_PadState.dpad,
+			_PadState.dpad2[InputCommon::CTL_D_PAD_UP], _PadState.dpad2[InputCommon::CTL_D_PAD_DOWN]
+		);
+	#endif
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 

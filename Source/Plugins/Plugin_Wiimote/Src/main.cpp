@@ -626,10 +626,12 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			std::string Tmp2 = TmpData.substr(68, (TmpData.length() - 68));
 			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[19], data[20], data[21]) + Tmp2;
 		}
-		// Calculate the Wiimote pitch in degrees
-		std::string Pitch = StringFromFormat("%i", WiiMoteEmu::PitchAccelerometerToDegree(data[5], data[6]));
+		// Calculate the Wiimote roll and pitch in degrees
+		int Roll, Pitch;
+		WiiMoteEmu::PitchAccelerometerToDegree(data[4], data[5], data[6], Roll, Pitch);
+		std::string RollPitch = StringFromFormat("%i %i", Roll, Pitch);
 
-		Console::Print("Read[%s]: %s| %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), Pitch.c_str()); // No timestamp
+		Console::Print("Read[%s]: %s| %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	if(g_DebugAccelerometer)

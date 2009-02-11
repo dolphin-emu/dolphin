@@ -30,14 +30,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
+#ifndef __NJOY_h__
+#define __NJOY_h__
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Settings
 // ¯¯¯¯¯¯¯¯¯¯
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
-
-// Show a status window with the detected axes, buttons and so on
-//#define SHOW_PAD_STATUS
 //////////////////////////
 
 
@@ -125,8 +126,10 @@ extern std::vector<u8> Keys;
 	extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 	extern InputCommon::CONTROLLER_STATE PadState[4];
 	extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
-	extern HWND m_hWnd; // Handle to window
-	extern int NumPads, NumGoodPads; // Number of goods pads
+	#ifdef _WIN32
+		extern HWND m_hWnd, m_hConsole; // Handle to window
+	#endif
+	extern int NumPads, NumGoodPads, LastPad; // Number of goods pads
 #endif
 
 
@@ -137,8 +140,12 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 void DEBUG_INIT();
 void DEBUG_QUIT();
 bool IsFocus();
+bool ReloadDLL();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
 
 //void SaveConfig();
 //void LoadConfig();
+
+
+#endif __NJOY_h__

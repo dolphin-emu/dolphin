@@ -585,12 +585,12 @@ void ConfigDialog::PadGetStatus()
 void ConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 {
 	// Show the current status
-	/**/
+	/*
 	#ifdef SHOW_PAD_STATUS
 		m_pStatusBar->SetLabel(wxString::Format(
 			"%s", ShowStatus(notebookpage).c_str()
 			));
-	#endif
+	#endif*/
 
 	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
 

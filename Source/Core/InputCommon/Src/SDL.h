@@ -53,6 +53,13 @@ namespace InputCommon
 {
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// ¯¯¯¯¯¯¯¯¯¯
+// Show a status window with the detected axes, buttons and so on
+//#define SHOW_PAD_STATUS
+//////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Structures
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	CONTROLLER_STATE buttons (PadState) = 0 or 1
@@ -198,7 +205,7 @@ int Pad_Convert(int _val);
 std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad, CONTROLLER_MAPPING _PadMapping);
 
 #ifndef _SDL_MAIN_
-
+	extern int g_LastPad;
 #endif
 ////////////////////////////
 

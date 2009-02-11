@@ -136,7 +136,7 @@ void Config::Save(int Slot)
 		{
 			/* Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
 			   avoid reading a joyinfo that does't exist */
-			if(PadMapping[i].ID >= SDL_NumJoysticks()) continue;
+			if(PadMapping[i].ID >= joyinfo.size()) continue;
 
 			// Create a new section name after the joypad name
 			SectionName = joyinfo[PadMapping[i].ID].Name;
@@ -175,7 +175,7 @@ void Config::Save(int Slot)
 		//if(m_frame) m_frame->LogMsg("Saved: %s %i\n", SectionName.c_str(), PadMapping[i].triggertype);
 	}
 
-	//Console::Print("%i: Save: %i\n", 0, PadMapping[0].halfpress);
+	Console::Print("%i: Save: %i\n", 0, PadMapping[0].halfpress);
 
 	file.Save("nJoy.ini");
 }
@@ -224,8 +224,8 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		if(g_Config.bSaveByID)
 		{
 			/* Prevent a crash from illegal access to joyinfo that will only have values for
-			   the current amount of connected PadMapping */
-			if(PadMapping[i].ID >= SDL_NumJoysticks()) continue;
+			   the current amount of connected pads */
+			if(PadMapping[i].ID >= joyinfo.size()) continue;
 
 			// Create a section name			
 			SectionName = joyinfo[PadMapping[i].ID].Name;
@@ -263,6 +263,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		//if(m_frame) m_frame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);		
 	}
 
-	//Console::Print("%i: Load: %i\n", 0, PadMapping[0].halfpress);
+	Console::Print("%i: Load: %i\n", 0, PadMapping[0].halfpress);
 }
 

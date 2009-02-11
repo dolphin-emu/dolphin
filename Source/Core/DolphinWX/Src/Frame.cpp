@@ -47,7 +47,6 @@ be accessed from Core::GetWindowHandle().
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "ConsoleWindow.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -184,16 +183,16 @@ int abc = 0;
 
 			case NJOY_RELOAD:
 				// DirectInput in nJoy has failed
+				Core::ReconnectPad();
 				return 0;
 
 			case WIIMOTE_RECONNECT:
 				// The Wiimote plugin has been shut down, now reconnect the Wiimote
-				Console::Print("WIIMOTE_RECONNECT\n");
+				//Console::Print("WIIMOTE_RECONNECT\n");
 				Core::ReconnectWiimote();
 				return 0;
 			}
 			break;
-			
 		//default:
 		//	return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 		}

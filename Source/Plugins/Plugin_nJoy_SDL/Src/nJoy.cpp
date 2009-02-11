@@ -88,8 +88,10 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
 bool g_EmulatorRunning = false;
-int NumPads = 0, NumGoodPads = 0;
-HWND m_hWnd; // Handle to window
+int NumPads = 0, NumGoodPads = 0, LastPad = 0;
+#ifdef _WIN32
+	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
+#endif
 SPADInitialize *g_PADInitialize = NULL;
 
 // TODO: fix this dirty hack to stop missing symbols
@@ -187,28 +189,28 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
 void DllConfig(HWND _hParent)
 {
 	// Debugging
-	//Console::Open();
+	#ifdef SHOW_PAD_STATUS
+		Console::Open(100);
+		m_hConsole = Console::GetHwnd();
+	#endif
 
 	#ifdef _WIN32
 		// Start the pads so we can use them in the configuration and advanced controls
 		if(!g_EmulatorRunning)
 		{
 			Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
+
+			// Check if a DirectInput error occured
+			if(ReloadDLL())
+			{
+				PostMessage(_hParent, WM_USER, NJOY_RELOAD, 0);
+				return;
+			}
 		}
 
 		m_frame = new ConfigBox(NULL);
-		m_frame->ShowModal();
+		m_frame->Show();
 
-		/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
-		   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
-		if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
-			|| (PadMapping[1].enabled && PadState[1].joy == NULL)
-			|| (PadMapping[2].enabled && PadState[2].joy == NULL)
-			|| (PadMapping[3].enabled && PadState[3].joy == NULL))
-		{
-			//PostMessage(_hParent, 25, 0, 0);
-			Console::Print("%s\n", SDL_GetError());		
-		}
 	#else
 		if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 		{
@@ -238,7 +240,10 @@ void DllDebugger(HWND _hParent, bool Show) {}
 void Initialize(void *init)
 {
 	// Debugging
-	//Console::Open();
+	#ifdef SHOW_PAD_STATUS
+		Console::Open(100);
+		m_hConsole = Console::GetHwnd();
+	#endif
 	Console::Print("Initialize: %i\n", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
@@ -251,18 +256,11 @@ void Initialize(void *init)
 		m_hWnd = (HWND)g_PADInitialize->hWnd;
 	#endif
 
-	Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
+	// Populate joyinfo for all attached devices if the configuration window is not already open
+	if(!m_frame) Search_Devices(joyinfo, NumPads, NumGoodPads);
 
-	/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
-	   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
-	if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
-		|| (PadMapping[1].enabled && PadState[1].joy == NULL)
-		|| (PadMapping[2].enabled && PadState[2].joy == NULL)
-		|| (PadMapping[3].enabled && PadState[3].joy == NULL))
-	{
-		g_PADInitialize->padNumber = -1;
-		Console::Print("%s\n", SDL_GetError());		
-	}
+	// Check if a DirectInput error occured
+	if(ReloadDLL()) g_PADInitialize->padNumber = -1;
 }
 
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
@@ -299,26 +297,39 @@ void Shutdown()
 {
 	Console::Print("Shutdown: %i\n", SDL_WasInit(0));
 
+	// Always change this variable
+	g_EmulatorRunning = false;
+
+	// Don't shutdown if the configuration window is still showing
+	if (m_frame) return;
+
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
 	for (int i = 0; i < 4; i++)
 	{
 		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
-				if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
+				if(SDL_JoystickOpened(PadMapping[i].ID))
+				{
+					SDL_JoystickClose(PadState[i].joy);
+					PadState[i].joy = NULL;
+				}
 	}
 
 	// Clear the physical device info
 	joyinfo.clear();
+	NumPads = 0;
+	NumGoodPads = 0;
 
 	// Finally close SDL
 	if (SDL_WasInit(0)) SDL_Quit();
 
+	// Remove the pointer to the initialize data
+	g_PADInitialize = NULL;
+
 	#ifdef _DEBUG
 		DEBUG_QUIT();
 	#endif
-
-	g_EmulatorRunning = false;
 
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK
@@ -376,7 +387,7 @@ unsigned int PAD_GetAttachedPads()
 	if (PadMapping[2].enabled) connected |= 4;
 	if (PadMapping[3].enabled) connected |= 8;
 
-	//Console::Print("PAD_GetAttachedPads: %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
+	//Console::Print("PAD_GetAttachedPads: %i %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
 
 	return connected;
 }
@@ -388,16 +399,17 @@ unsigned int PAD_GetAttachedPads()
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	//Console::Print("%i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
+	//Console::Print("PAD_GetStatus(): %i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
 
-	// Check if the pad is enabled
+	/* Check if the pad is enabled and avaliable, currently we don't disable pads just because they are
+	   disconnected */
 	if (!PadMapping[_numPAD].enabled || !PadState[_numPAD].joy) return;
 
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
 
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (!g_Config.bCheckFocus && IsFocus())
+	if (g_Config.bCheckFocus || IsFocus())
 		GetJoyState(PadState[_numPAD], PadMapping[_numPAD], _numPAD, joyinfo[PadMapping[_numPAD].ID].NumButtons);
 
 	// Get type
@@ -525,35 +537,31 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Use rumble
 	Pad_Use_Rumble(_numPAD, _pPADStatus);
 
-	/* Debugging 
-	if(_numPAD == 1)
-	{
-		Console::ClearScreen();
-		Console::Print(
-			"Pad %i: %i %i\n"
-			"State: L:%i R:%i HalfPress:%i\n"
-			"Trigger type: %s  StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
-			"Buttons: %i  X:%i\n"
-			"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+	// Debugging 
+	/*
+	// Show the status of all connected pads
+	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console::ClearScreen();	
+	LastPad = _numPAD;
+	Console::Print(
+		"Pad        | Number:%i Enabled:%i Handle:%i\n"
+		"Trigger    | StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
+		"Buttons    | Overall:%i  X:%i\n"
+		"======================================================\n",
 
-			_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
+		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
 
-			 PadState[_numPAD].buttons[CTL_L_SHOULDER], PadState[_numPAD].buttons[CTL_R_SHOULDER], PadState[_numPAD].halfpress,
+		PadState[_numPAD].buttons[InputCommon::CTL_L_SHOULDER], PadState[_numPAD].buttons[InputCommon::CTL_R_SHOULDER], PadState[_numPAD].halfpress,
 
-			(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-				_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
+		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
+			_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
 
-			_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON],
-
-			(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
-				0, 0, 0, 0
-			);
-	}*/
+		_pPADStatus->button, PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
+		);
+	*/
 }
 
 
 ///////////////////////////////////////////////// Spec functions
-
 
 
 //******************************************************************************
@@ -561,17 +569,49 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 //******************************************************************************
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
+   SetDataFormat() DirectX error -2147024809" after exactly four SDL_Init() and SDL_Quit() */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+bool ReloadDLL()
+{
+	if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
+		|| (PadMapping[1].enabled && PadState[1].joy == NULL)
+		|| (PadMapping[2].enabled && PadState[2].joy == NULL)
+		|| (PadMapping[3].enabled && PadState[3].joy == NULL))
+	{
+		// Check if it was an error and not just no pads connected
+		std::string StrError = SDL_GetError();
+		if (StrError.find("IDirectInputDevice2") != std::string::npos)
+		{
+			// Clear the physical device info
+			joyinfo.clear();
+			NumPads = 0;
+			NumGoodPads = 0;
+			// Close SDL
+			if (SDL_WasInit(0)) SDL_Quit();
+			// Log message
+			Console::Print("Error: %s\n", StrError.c_str());	
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Check if Dolphin is in focus
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool IsFocus()
 {
+return true;
+
 #ifdef _WIN32
 	HWND RenderingWindow = NULL; if (g_PADInitialize) RenderingWindow = g_PADInitialize->hWnd;
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
 	HWND Config = NULL; if (m_frame) Config = (HWND)m_frame->GetHWND();
-	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
+	// Support both rendering to main window and not, and the config and eventual console window
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config || GetForegroundWindow() == m_hConsole)
 		return true;
 	else
 		return false;
