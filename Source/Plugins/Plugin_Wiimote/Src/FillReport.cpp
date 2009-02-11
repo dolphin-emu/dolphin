@@ -422,13 +422,17 @@ void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
 		Roll = -Ly * (Range / 128);
 	}
 
+	// Adjustment to prevent a slightly to high angle
+	if (Pitch >= Range) Pitch = Range - 0.1;
+
 	// Calculate the accelerometer value from this tilt angle
-	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
+	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
+	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, false, true);
 
 	//Console::ClearScreen();
 	/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
 		Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
-	/*Console::Print("Degree:%2.1f\n", Degree);*/
+	/**/Console::Print("Pitch:%2.1f\n", Pitch);
 }
 
 
