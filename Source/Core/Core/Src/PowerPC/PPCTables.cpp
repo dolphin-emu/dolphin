@@ -355,8 +355,8 @@ static GekkoOPTemplate table31[] =
 	{790, Interpreter::lhbrx, &Jit64::Default,  {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
-	{150, Interpreter::stwcxd,  &Jit64::Default,    {"stwcxd", OPTYPE_STORE, FL_EVIL}},
-	{20,  Interpreter::lwarx,   &Jit64::Default,    {"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B}},
+	{150, Interpreter::stwcxd,  &Jit64::Default,    {"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
+	{20,  Interpreter::lwarx,   &Jit64::Default,    {"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B | FL_SET_CR0}},
 
 	//load string (interpret these)
 	{533, Interpreter::lswx,  &Jit64::Default,   {"lswx",  OPTYPE_LOAD, FL_EVIL | FL_IN_A | FL_OUT_D}},
