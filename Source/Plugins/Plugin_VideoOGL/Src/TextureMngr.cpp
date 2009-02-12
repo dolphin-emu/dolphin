@@ -343,21 +343,30 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 
 	int gl_format;
+	int gl_iformat;
 	int gl_type;
 	switch (dfmt) {
 	case PC_TEX_FMT_NONE:
 		PanicAlert("Invalid PC texture format %i", dfmt); 
 	case PC_TEX_FMT_BGRA32:
 		gl_format = GL_BGRA;
+		gl_iformat = 4;
+		gl_type = GL_UNSIGNED_BYTE;
+		break;
+	case PC_TEX_FMT_I8:
+		gl_format = GL_LUMINANCE;
+		gl_iformat = GL_INTENSITY;
 		gl_type = GL_UNSIGNED_BYTE;
 		break;
 	}
     if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, gl_format, gl_type, temp);
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
         entry.bHaveMipMaps = true;
     }
     else
-        glTexImage2D(target, 0, 4, width, height, 0, gl_format, gl_type, temp);
+        glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 
     if (expandedWidth != width) // reset
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

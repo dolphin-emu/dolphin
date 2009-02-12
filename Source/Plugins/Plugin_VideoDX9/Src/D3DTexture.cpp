@@ -44,11 +44,39 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	D3DLOCKED_RECT Lock;
 	pTexture->LockRect(level, &Lock, NULL, 0 );
 
-	u32* pIn = pBuffer;
 	switch(fmt) 
 	{
+	case D3DFMT_L8:
+	case D3DFMT_A8:
+	{
+		const u8 *pIn = buffer;
+		for (int y = 0; y < height; y++)
+		{
+			u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+			memcpy(pBits, pIn, width);
+			pIn += pitch;
+		}
+	}
+	break;
+	case D3DFMT_A8L8:
+		{
+			const u8 *pIn = buffer;
+			// TODO(XK): Find a better way that does not involve either unpacking
+			//           or downsampling (i.e. A4L4)
+			for (int y = 0; y < height; y++)
+			{
+				u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+				for(int i = 0; i < width * 2; i += 2) {
+					pBits[i] = pIn[i / 2];
+					pBits[i + 1] = pIn[i / 2];
+				}
+				pIn += pitch;
+			}
+		}
+		break;
 	case D3DFMT_A8R8G8B8:
 		{
+			u32* pIn = pBuffer;
 			for (int y = 0; y < height; y++)
 			{
 				u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));

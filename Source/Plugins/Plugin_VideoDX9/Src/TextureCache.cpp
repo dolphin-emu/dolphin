@@ -176,6 +176,12 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 	case PC_TEX_FMT_BGRA32:
 		d3d_fmt = D3DFMT_A8R8G8B8;
 		break;
+	/*case PC_TEX_FMT_BGRA16: is this of any use?
+		d3d_fmt = D3DFMT_A4R4G4B4;
+		break;*/
+	case PC_TEX_FMT_I8:
+		d3d_fmt = D3DFMT_A8L8;
+		break;
 	}
 
 	//Make an entry in the table
