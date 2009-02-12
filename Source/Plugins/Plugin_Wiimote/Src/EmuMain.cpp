@@ -39,7 +39,6 @@
 #include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 ////////////////////////////////////
-
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
@@ -341,8 +340,11 @@ void Initialize()
 		g_RecordingCurrentTime[i] = 0;
 	}
 
-	// Load avaliable pads
-	Search_Devices(joyinfo, NumPads, NumGoodPads);
+	// Populate joyinfo for all attached devices if the configuration window is not already open
+	if(!g_FrameOpen)
+	{
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
+	}
 
 	/* The Nuncheck extension ID for homebrew applications that use the zero key. This writes 0x0000
 	   in encrypted form (0xfefe) to 0xfe in the extension register. */
@@ -379,11 +381,14 @@ void Shutdown(void)
 				/* SDL_JoystickClose() crashes for some reason so I avoid this for now, SDL_Quit() should
 				   close the pads to I think */
 				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
+				//PadState[i].joy = NULL;
 			}
 	}
 
 	// Clear the physical device info
 	joyinfo.clear();
+	NumPads = 0;
+	NumGoodPads = 0;
 
 	// Finally close SDL
 	if (SDL_WasInit(0)) SDL_Quit();

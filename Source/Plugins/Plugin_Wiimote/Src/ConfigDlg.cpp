@@ -1187,7 +1187,7 @@ void ConfigDialog::UpdateGUI(int Slot)
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
-	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || !g_EmulatorRunning);
+	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || (!g_EmulatorRunning && g_Config.bConnectRealWiimote));
 
 	// Linux has no FindItem()
 	// Disable all pad items if no pads are detected

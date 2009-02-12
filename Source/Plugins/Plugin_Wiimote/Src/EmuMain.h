@@ -45,6 +45,7 @@ void Update();
 void LoadRecordedMovements();
 
 // Registers and calibration values
+void ResetVariables();
 void UpdateEeprom();
 void SetDefaultExtensionRegistry();
 

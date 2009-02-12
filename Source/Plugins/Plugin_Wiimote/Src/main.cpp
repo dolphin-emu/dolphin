@@ -228,6 +228,9 @@ extern "C" void Shutdown(void)
 			if(frame) frame->UpdateGUI();
 		#endif
 
+		// Reset the variables
+		WiiMoteEmu::ResetVariables();
+
 		/* Don't shut down the wiimote when we still have the config window open, we may still want
 		   want to use the Wiimote in the config window. */
 		return;
@@ -238,7 +241,7 @@ extern "C" void Shutdown(void)
 #endif
 	WiiMoteEmu::Shutdown();
 
-	//Console::Close();
+	Console::Close();
 }
 
 

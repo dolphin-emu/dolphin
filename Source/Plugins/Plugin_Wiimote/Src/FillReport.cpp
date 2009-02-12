@@ -568,7 +568,7 @@ void FillReportAcc(wm_accel& _acc)
 	SingleShake(g_z, g_y);
 
 	// Tilt Wiimote
-
+	Tilt(g_x, g_y, g_z);
 
 	// Write final values
 	_acc.x = g_x;

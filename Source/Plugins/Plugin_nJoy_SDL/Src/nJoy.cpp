@@ -302,7 +302,13 @@ void Shutdown()
 	// Always change this variable
 	g_EmulatorRunning = false;
 
-	// Don't shutdown if the configuration window is still showing
+	// Stop debugging
+	#ifdef _DEBUG
+		DEBUG_QUIT();
+	#endif
+
+	// Don't shutdown the gamepad if the configuration window is still showing
+	// Todo: Coordinate with the Wiimote plugin, SDL_Quit() will remove the pad for it to
 	if (m_frame) return;
 
 	/* Close all devices carefully. We must check that we are not accessing any undefined
@@ -328,10 +334,6 @@ void Shutdown()
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;
-
-	#ifdef _DEBUG
-		DEBUG_QUIT();
-	#endif
 
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK

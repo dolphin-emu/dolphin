@@ -449,6 +449,8 @@ void ConfigDialog::DoGetButtons(int GetId)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::PadGetStatus()
 {
+	//Console::Print("SDL_WasInit: %i\n", SDL_WasInit(0));
+
 	// Return if it's not detected
 	if(WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
 	{
@@ -596,7 +598,5 @@ void ConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
 
 	PadGetStatus();
-
-	//Console::Print("a\n");
 }
 /////////////////////////////////////////////////////
