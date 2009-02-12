@@ -116,8 +116,10 @@ CBannerLoaderGC::GetName(std::string _rName[])
 			{
 				memcpy(tempBuffer, pBanner->comment.shortTitle, 32);
 			}
-			
-			CopyToStringAndCheck(_rName[0], tempBuffer);
+			for (int i = 0; i < 6; i++)
+			{
+				CopyToStringAndCheck(_rName[i], tempBuffer);
+			}
 			returnCode = true;
 		}
 		break;
@@ -189,7 +191,10 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
 			char tempBuffer[129] = {0};
 			memcpy(tempBuffer, pBanner->comment.comment, 128);
-			CopyToStringAndCheck(_rDescription[0], tempBuffer);
+			for (int i = 0; i < 6; i++)
+			{
+				CopyToStringAndCheck(_rDescription[i], tempBuffer);
+			}
 			returnCode = true;
 		}
 		break;
