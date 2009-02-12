@@ -188,6 +188,8 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	std::string SDiagonal;
 	bool bSquareToCircle;
 	bool bCircle2Square;
+	bool bRollInvert;
+	bool bPitchInvert;
 };
 ////////////////////////////
 

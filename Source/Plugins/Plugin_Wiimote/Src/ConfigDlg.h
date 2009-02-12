@@ -56,12 +56,14 @@ class ConfigDialog : public wxDialog
 		
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
+		wxStaticBitmap *m_bmpDotLeftIn[4], *m_bmpDotLeftOut[4], *m_bmpDotRightIn[4], *m_bmpDotRightOut[4];
 		wxStaticText *m_TextIR, *m_TextAccNeutralCurrent;
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
 		int m_iRecordTo;
 		void RecordMovement(wxCommandEvent& event);
 		void DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int IRBytes);
 		void DoRecordA(bool Pressed);
+		void Convert2Box(int &x);
 		void ConvertToString();
 		void Update(wxTimerEvent& WXUNUSED(event));
 		void ShutDown(wxTimerEvent& WXUNUSED(event));
@@ -101,7 +103,7 @@ class ConfigDialog : public wxDialog
 
 		// Emulated Wiimote settings
 		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4], *m_WideScreen[4];
-		wxCheckBox *m_CheckC2S[4];
+		wxCheckBox *m_CheckC2S[4], *m_TiltInvertRoll[4], *m_TiltInvertPitch[4];
 		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
 		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_TriggerType[4];
 
@@ -110,8 +112,7 @@ class ConfigDialog : public wxDialog
 		wxChoice *m_AccNeutralChoice[3], *m_AccNunNeutralChoice[3];
 
 		wxPanel *m_pLeftInStatus[4], *m_pLeftOutStatus[4], *m_pRightInStatus[4], *m_pRightOutStatus[4];
-		wxStaticBitmap *m_bmpDotLeftIn[4], *m_bmpDotLeftOut[4], *m_bmpDotRightIn[4], *m_bmpDotRightOut[4],
-			*m_bmpSquareLeftIn[4], *m_bmpSquareLeftOut[4], *m_bmpSquareRightIn[4], *m_bmpSquareRightOut[4];
+		wxStaticBitmap *m_bmpSquareLeftIn[4], *m_bmpSquareLeftOut[4], *m_bmpSquareRightIn[4], *m_bmpSquareRightOut[4];
 		wxStaticBoxSizer *m_gAnalogLeft[4], *m_gAnalogRight[4], *m_gTrigger[4];
 		wxBitmap CreateBitmapDot(), CreateBitmap();		
 
@@ -159,7 +160,7 @@ class ConfigDialog : public wxDialog
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
 			// Gamepad settings
-			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH,
+			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH, ID_TILT_INVERT_ROLL, ID_TILT_INVERT_PITCH,
 
 			// Real
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,

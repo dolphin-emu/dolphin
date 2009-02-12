@@ -408,26 +408,32 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 	float RollRange = (float)g_Config.Trigger.Range.Roll;
 	float PitchRange = (float)g_Config.Trigger.Range.Pitch;
 
-	// Trigger
+	// The trigger currently only controls pitch
 	if (g_Config.Trigger.Type == g_Config.TRIGGER)
 	{
 		// Make the range the same dimension as the analog stick
 		Tl = Tl / 2;
 		Tr = Tr / 2;
-
+		// Invert
+		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
+		// The final value
 		Pitch = Tl * (PitchRange / 128)
-				- Tr * (PitchRange / 128);
+			- Tr * (PitchRange / 128);
 	}
 
-	// Analog stick
+	/* For the analog stick roll us by default set to the X-axis, pitch is by default set to the Y-axis.
+	   By changing the axis mapping and the invert options this can be altered in any way */
 	else
 	{
 		// Adjust the trigger to go between negative and positive values
-		Ly = Ly - 128;
 		Lx = Lx - 128;
+		Ly = Ly - 128;
+		// Invert
+		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
+		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
-		Roll = -Ly * (RollRange / 128);
-		Pitch = -Lx * (PitchRange / 128);
+		Roll = Lx * (RollRange / 128);
+		Pitch = Ly * (PitchRange / 128);
 	}
 
 	// Adjustment to prevent a slightly to high angle
@@ -499,19 +505,12 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
 		TiltWiimoteGamepad(Roll, Pitch);
 
+	// Adjust angles, it's only needed if both roll and pitch is used together
+	if (g_Config.Trigger.Range.Roll != 0 && g_Config.Trigger.Range.Pitch != 0) AdjustAngles(Roll, Pitch);
+
 	// Calculate the accelerometer value from this tilt angle
 	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
 	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z);
-
-	/*
-	if (Roll > 90)
-	{
-		if (Pitch >= 0)
-			Pitch = 180 - Pitch;
-		else if (Pitch < 0)
-			Pitch = 180 + Pitch;
-	}
-	*/
 
 	if (g_DebugData)
 	{

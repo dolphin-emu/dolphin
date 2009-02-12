@@ -131,6 +131,8 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	//m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
 	m_ComboDiagonal[controller]->SetValue(wxString::FromAscii(WiiMoteEmu::PadMapping[controller].SDiagonal.c_str()));
 	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
+	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
+	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 }
@@ -158,6 +160,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	//WiiMoteEmu::PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].SDiagonal = m_ComboDiagonal[FromSlot]->GetLabel().mb_str();
 	WiiMoteEmu::PadMapping[controller].bCircle2Square = m_CheckC2S[FromSlot]->IsChecked();	
+	WiiMoteEmu::PadMapping[controller].bRollInvert = m_TiltInvertRoll[FromSlot]->IsChecked();	
+	WiiMoteEmu::PadMapping[controller].bPitchInvert = m_TiltInvertPitch[FromSlot]->IsChecked();	
 
 	// The analog buttons
 	m_AnalogLeftX[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Lx = value; tmp.clear();
@@ -445,6 +449,16 @@ void ConfigDialog::DoGetButtons(int GetId)
 // Show current input status
 // ¯¯¯¯¯¯¯¯¯¯
 
+// Convert the 0x8000 range values to BoxW and BoxH for the plot
+void ConfigDialog::Convert2Box(int &x)
+{
+	// Border adjustment
+	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2;
+
+	// Convert values
+	x = (BoxW_ / 2) + (x * BoxW_ / (32767 * 2));
+}
+
 // Update the input status boxes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::PadGetStatus()
@@ -506,9 +520,31 @@ void ConfigDialog::PadGetStatus()
 		std::vector<int> main_xy = InputCommon::Square2Circle(main_x, main_y, Page, WiiMoteEmu::PadMapping[Page].SDiagonal, true);
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
+		//main_x = main_xy.at(0);
+		//main_y = main_xy.at(1);
 	}	
 
-	// 
+	// -------------------------------------------
+	// Show the adjusted angles in the status box
+	// --------------
+	// Change 0x8000 to 180
+	/*
+	float x8000 = 0x8000;
+	main_x_after = main_x_after * (180 / x8000);
+	main_y_after = main_y_after * (180 / x8000);
+	float f_main_x_after = (float)main_x_after;
+	float f_main_y_after = (float)main_y_after;
+	WiiMoteEmu::AdjustAngles(f_main_x_after, f_main_y_after);
+	//WiiMoteEmu::AdjustAngles(f_main_x_after, f_main_y_after, true);
+	main_x_after = (int)f_main_x_after;
+	main_y_after = (int)f_main_y_after;
+	// Change back 180 to 0x8000 
+	main_x_after = main_x_after * (x8000 / 180);
+	main_y_after = main_y_after * (x8000 / 180);
+	*/
+	// ---------------------
+
+	// Convert the values to fractions
 	float f_x = main_x / 32767.0;
 	float f_y = main_y / 32767.0;
 	float f_x_aft = main_x_after / 32767.0;
@@ -533,25 +569,21 @@ void ConfigDialog::PadGetStatus()
 		));
 
 	// Adjust the values for the plot
-	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2; // Border adjustment
+	Convert2Box(main_x);
+	Convert2Box(main_y);
+	Convert2Box(right_x);
+	Convert2Box(right_y);
 
-	main_x = (BoxW_ / 2) + (main_x * BoxW_ / (32767 * 2));
-	main_y = (BoxH_ / 2) + (main_y * BoxH_ / (32767 * 2));
-
-	right_x = (BoxW_ / 2) + (right_x * BoxW_ / (32767 * 2));
-	right_y = (BoxH_ / 2) + (right_y * BoxH_ / (32767 * 2));
-
-	int main_x_out = (BoxW_ / 2) + (main_x_after * BoxW_ / (32767 * 2));
-	int main_y_out = (BoxH_ / 2) + (main_y_after * BoxH_ / (32767 * 2));
-	
-	int right_x_out = (BoxW_ / 2) + (right_x_after * BoxW_ / (32767 * 2));
-	int right_y_out = (BoxH_ / 2) + (right_y_after * BoxH_ / (32767 * 2));
+	Convert2Box(main_x_after);
+	Convert2Box(main_y_after);
+	Convert2Box(right_x_after);
+	Convert2Box(right_y_after);
 
 	// Adjust the dot
 	m_bmpDotLeftIn[Page]->SetPosition(wxPoint(main_x, main_y));
-	m_bmpDotLeftOut[Page]->SetPosition(wxPoint(main_x_out, main_y_out));
+	m_bmpDotLeftOut[Page]->SetPosition(wxPoint(main_x_after, main_y_after));
 	m_bmpDotRightIn[Page]->SetPosition(wxPoint(right_x, right_y));
-	m_bmpDotRightOut[Page]->SetPosition(wxPoint(right_x_out, right_y_out));
+	m_bmpDotRightOut[Page]->SetPosition(wxPoint(right_x_after, right_y_after));
 	///////////////////// Analog stick
 
 

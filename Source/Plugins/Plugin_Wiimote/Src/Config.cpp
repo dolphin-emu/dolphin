@@ -98,7 +98,9 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "DeadZone", &WiiMoteEmu::PadMapping[i].deadzone, 0);
 		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
-		iniFile.Get(SectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);		
+		iniFile.Get(SectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);	
+		iniFile.Get(SectionName.c_str(), "RollInvert", &WiiMoteEmu::PadMapping[i].bRollInvert, false);
+		iniFile.Get(SectionName.c_str(), "PitchInvert", &WiiMoteEmu::PadMapping[i].bPitchInvert, false);
 	}
 	// =============================
 	Console::Print("Load()\n");
@@ -165,6 +167,8 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 		iniFile.Set(SectionName.c_str(), "Diagonal", WiiMoteEmu::PadMapping[i].SDiagonal);
 		iniFile.Set(SectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);
+		iniFile.Set(SectionName.c_str(), "RollInvert", WiiMoteEmu::PadMapping[i].bRollInvert);
+		iniFile.Set(SectionName.c_str(), "PitchInvert", WiiMoteEmu::PadMapping[i].bPitchInvert);
 		// ======================================
 	}
 

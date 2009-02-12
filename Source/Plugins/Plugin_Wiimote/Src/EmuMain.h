@@ -56,6 +56,7 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, int&, int&);
 void TiltTest(u8 x, u8 y, u8 z);
 void Tilt(u8 &_x, u8 &_y, u8 &_z);
+void AdjustAngles(float &Roll, float &Pitch);
 
 }; // WiiMoteEmu
 

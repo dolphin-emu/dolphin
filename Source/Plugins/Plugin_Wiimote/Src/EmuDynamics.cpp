@@ -66,6 +66,32 @@ void TiltTest(u8 x, u8 y, u8 z)
 ////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/* Angles adjustment for the upside down state when both roll and pitch is used. When the absolute values
+   of the angles go over 90° the Wiimote is upside down and these adjustments are needed. */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void AdjustAngles(float &Roll, float &Pitch)
+{
+	float OldPitch = Pitch;
+
+	if (abs(Roll) > 90)
+	{
+		if (Pitch >= 0)
+			Pitch = 180 - Pitch; // 15 to 165
+		else if (Pitch < 0)	
+			Pitch = -180 - Pitch; // -15 to -165
+	}	
+
+	if (abs(OldPitch) > 90)
+	{
+		if (Roll >= 0)
+			Roll = 180 - Roll; // 15 to 165
+		else if (Roll < 0)			
+			Roll = -180 - Roll; // -15 to -165
+	}	
+}
+////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Angles to accelerometer values

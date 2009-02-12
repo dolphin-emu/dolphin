@@ -216,6 +216,25 @@ void handle_event(struct wiimote_t* wm)
 			// Turn recording on and off
 			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) frame->DoRecordA(true);
 				else frame->DoRecordA(false);
+
+			// ------------------------------------
+			// Show roll and pitch in the status box
+			// --------------
+			/*
+			if(!g_DebugData)
+			{
+				Console::ClearScreen();
+				Console::Print("Roll:%03i Pitch:%03i\n", (int)wm->orient.roll, (int)wm->orient.pitch);
+			}
+			// Convert Roll and Pitch from 180 to 0x8000
+			int Roll = (int)wm->orient.roll * (0x8000 / 180);
+			int Pitch = (int)wm->orient.pitch * (0x8000 / 180);
+			// Convert it to the box
+			frame->Convert2Box(Roll);
+			frame->Convert2Box(Pitch);
+			// Show roll and pitch in the axis boxes
+			frame->m_bmpDotRightOut[0]->SetPosition(wxPoint(Roll, Pitch));*/
+			// ---------------------
 		}
 	}
 	// Otherwise remove the values

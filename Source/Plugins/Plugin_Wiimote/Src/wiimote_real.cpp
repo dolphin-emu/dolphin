@@ -356,6 +356,9 @@ int Initialize()
 	// Set the sensor bar position, this should only affect the internal wiiuse api functions
 	wiiuse_set_ir_position(g_WiiMotesFromWiiUse[0], WIIUSE_IR_ABOVE);
 
+	// Set flags
+	//wiiuse_set_flags(g_WiiMotesFromWiiUse[0], NULL, WIIUSE_SMOOTHING);
+
 	// I don't seem to need wiiuse_connect() in Windows. But Linux needs it.
 	#ifndef _WIN32
 		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);

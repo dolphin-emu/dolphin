@@ -106,6 +106,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
 
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
@@ -497,7 +499,7 @@ void ConfigDialog::CreateGUIControls()
 		// -----------------------------
 		/**/
 		// Controller
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(205, -1), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(155, -1), StrJoyname, wxCB_READONLY);
 	
 		// Circle to square
 		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle to square"));
@@ -546,12 +548,18 @@ void ConfigDialog::CreateGUIControls()
 		m_TiltComboRangePitch[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_PITCH, StrTiltRangePitch[0], wxDefaultPosition, wxDefaultSize, StrTiltRangePitch, wxCB_READONLY);
 		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll Range"));
 		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Range"));
+		m_TiltInvertRoll[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_ROLL, wxT("Invert"));
+		m_TiltInvertPitch[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_PITCH, wxT("Invert"));
 
+		// Sizers
 		m_TiltGrid[i] = new wxGridBagSizer(0, 0);
 		m_TiltGrid[i]->Add(m_TiltTextRoll[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
-		m_TiltGrid[i]->Add(m_TiltComboRangeRoll[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT), 2);
+		m_TiltGrid[i]->Add(m_TiltComboRangeRoll[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT | wxRIGHT), 2);
+		m_TiltGrid[i]->Add(m_TiltInvertRoll[i], wxGBPosition(0, 2), wxGBSpan(1, 1), (wxTOP), 4);
+
 		m_TiltGrid[i]->Add(m_TiltTextPitch[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 4);
-		m_TiltGrid[i]->Add(m_TiltComboRangePitch[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxTOP | wxDOWN), 2);
+		m_TiltGrid[i]->Add(m_TiltComboRangePitch[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxTOP | wxDOWN | wxRIGHT), 2);
+		m_TiltGrid[i]->Add(m_TiltInvertPitch[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxTOP), 4);
 
 		// For additional padding options if needed
 		//m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -992,20 +1000,23 @@ void ConfigDialog::DoUseReal()
 	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
 
-	// Disable the checkbox for a moment
-	SetCursor(wxCursor(wxCURSOR_WAIT));
-	m_bEnableUseRealWiimote = false;
-	// We don't need this, there is already a message queue that allows the nessesary timeout
-	//sleep(100);
-
 	UsingExtension = !UsingExtension;
 	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
 
-	/* Start the timer to allow the approximate time it takes for the Wiimote to come online
-	   it would simpler to use sleep(1000) but that doesn't work because we need the functions in main.cpp
-	   to work */
-	m_TimeoutOnce->Start(1000, true);
+	if(g_EmulatorRunning)
+	{
+		// Disable the checkbox for a moment
+		SetCursor(wxCursor(wxCURSOR_WAIT));
+		m_bEnableUseRealWiimote = false;
+		// We don't need this, there is already a message queue that allows the nessesary timeout
+		//sleep(100);
+
+		/* Start the timer to allow the approximate time it takes for the Wiimote to come online
+		   it would simpler to use sleep(1000) but that doesn't work because we need the functions in main.cpp
+		   to work */
+		m_TimeoutOnce->Start(1000, true);
+	}
 }
 
 // ===================================================
@@ -1110,8 +1121,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case IDC_JOYNAME:
 		DoChangeJoystick();
+	// The are defined in PadMapping and we can run the same function to update all of them
 	case IDCB_LEFT_DIAGONAL:
 	case IDC_LEFT_C2S:
+	case ID_TILT_INVERT_ROLL:
+	case ID_TILT_INVERT_PITCH:
 		SaveButtonMappingAll(Page);
 		break;
 
