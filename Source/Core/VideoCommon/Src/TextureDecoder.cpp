@@ -262,13 +262,6 @@ inline void decodebytesC14X2(u32 *dst, const u16 *src, int tlutaddr, int tlutfmt
     }
 }
 
-//inline void decodebytesRGB565(u32 *dst, const u16 *src, int numpixels)
-inline void decodebytesRGB565(u32 *dst, const u16 *src)
-{
-    for (int x = 0; x < 4; x++)
-        *dst++ = decode565(Common::swap16(src[x]));
-}
-
 //inline void decodebytesIA4(u32 *dst, const u8 *src, int numbytes)
 inline void decodebytesIA4(u32 *dst, const u8 *src)
 {
