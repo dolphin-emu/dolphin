@@ -436,14 +436,17 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_RGB565:
-        {
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesRGB565((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-                        decodebytesRGB565((u32*)dst+(y+iy)*width+x, (u16*)src);
-        }
-        return PC_TEX_FMT_BGRA32;
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8) {
+						u16 *ptr = (u16 *)dst+(y+iy)*width+x;
+						u16 *s = (u16 *)src;
+						for(int j = 0; j < 4; j++)
+							*ptr++ = Common::swap16(*s++);
+					}
+		}
+		return PC_TEX_FMT_RGB565;
     case GX_TF_RGB5A3:
         {
             for (int y = 0; y < height; y += 4)

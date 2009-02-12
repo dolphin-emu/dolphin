@@ -358,6 +358,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		gl_iformat = GL_INTENSITY;
 		gl_type = GL_UNSIGNED_BYTE;
 		break;
+	case PC_TEX_FMT_RGB565:
+		gl_format = GL_RGB;
+		gl_iformat = GL_RGB;
+		gl_type = GL_UNSIGNED_SHORT_5_6_5;
+		break;
 	}
     if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) {
         glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);

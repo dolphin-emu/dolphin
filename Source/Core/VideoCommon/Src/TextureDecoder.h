@@ -74,6 +74,7 @@ enum PC_TexFormat
 	PC_TEX_FMT_NONE = 0,
 	PC_TEX_FMT_BGRA32,
 	PC_TEX_FMT_I8,
+	PC_TEX_FMT_RGB565,
 };
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);

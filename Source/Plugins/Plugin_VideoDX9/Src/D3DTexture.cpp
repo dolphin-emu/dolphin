@@ -58,6 +58,17 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		}
 	}
 	break;
+	case D3DFMT_R5G6B5:
+		{
+			const u16 *pIn = (u16*)buffer;
+			for (int y = 0; y < height; y++)
+			{
+				u16* pBits = (u16*)((u8*)Lock.pBits + (y * Lock.Pitch));
+				memcpy(pBits, pIn, width * 2);
+				pIn += pitch;
+			}
+		}
+		break;
 	case D3DFMT_A8L8:
 		{
 			const u8 *pIn = buffer;
