@@ -322,7 +322,7 @@ void FillReportInfo(wm_core& _core)
 //int consoleDisplay = 0;
 
 // For all functions
-u8 x, y, z, X, Y, Z;
+u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
 
 // For the shake function
 int shake = -1;
@@ -351,23 +351,24 @@ void SingleShake(u8 &_z, u8 &_y)
 	}
 	else if(shake == 1)
 	{
-		_z = Z;
-		_y = Y;
+		_z = g_Z;
+		_y = g_Y;
 		shake = -1;
 	}
 	else // the default Z if nothing is pressed
 	{
-		_z = Z;
+		_z = g_Z;
 	}
 #endif
 }
+
 
 // ------------------------------------------
 /* Tilting Wiimote with gamepad. We can guess that the game will calculate a Wiimote pitch and use it as a
    measure of the tilting of the Wiimote. We are interested in this tilting range
 		90° to -90° */
 // ---------------
-void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
+void TiltWiimoteGamepad(float &Roll, float &Pitch)
 {
 	// Return if we have no pads
 	if (NumGoodPads == 0) return;
@@ -375,6 +376,15 @@ void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
 	// Update the pad state
 	const int Page = 0;
 	WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+
+	// Check if we should make adjustments
+	if(PadMapping[Page].bCircle2Square)
+	{
+		std::vector<int> main_xy = InputCommon::Square2Circle(PadState[Page].Axis.Lx, PadState[Page].Axis.Ly, Page, PadMapping[Page].SDiagonal, true);
+		
+		PadState[Page].Axis.Lx = main_xy.at(0);
+		PadState[Page].Axis.Ly = main_xy.at(1);
+	}
 
 	// Convert the big values
 	float Lx = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Lx);
@@ -394,11 +404,9 @@ void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
 		Tr = (float)PadState[Page].Axis.Tr;
 	}
 
-	// It's easier to use a float here
-	float Roll = 0;
-	float Pitch = 0;
 	// Save the Range in degrees, 45° and 90° are good values in some games
-	float Range = (float)g_Config.Trigger.Range;
+	float RollRange = (float)g_Config.Trigger.Range.Roll;
+	float PitchRange = (float)g_Config.Trigger.Range.Pitch;
 
 	// Trigger
 	if (g_Config.Trigger.Type == g_Config.TRIGGER)
@@ -407,59 +415,49 @@ void TiltWiimoteGamepad(u8 &_x, u8 &_y, u8 &_z)
 		Tl = Tl / 2;
 		Tr = Tr / 2;
 
-		Pitch = Tl * (Range / 128)
-				- Tr * (Range / 128);
+		Pitch = Tl * (PitchRange / 128)
+				- Tr * (PitchRange / 128);
 	}
 
 	// Analog stick
 	else
 	{
 		// Adjust the trigger to go between negative and positive values
-		Lx = Lx - 128;
 		Ly = Ly - 128;
+		Lx = Lx - 128;
 		// Produce the final value
-		Pitch = -Lx * (Range / 128);
-		Roll = -Ly * (Range / 128);
+		Roll = -Ly * (RollRange / 128);
+		Pitch = -Lx * (PitchRange / 128);
 	}
 
 	// Adjustment to prevent a slightly to high angle
-	if (Pitch >= Range) Pitch = Range - 0.1;
-
-	// Calculate the accelerometer value from this tilt angle
-	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
-	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, false, true);
-
-	//Console::ClearScreen();
-	/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
-		Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
-	/**/Console::Print("Pitch:%2.1f\n", Pitch);
+	if (Pitch >= PitchRange) Pitch = PitchRange - 0.1;
+	if (Roll >= RollRange) Roll = RollRange - 0.1;
 }
 
 
 // ------------------------------------------
-// Tilting Wiimote (Wario Land aiming, Mario Kart steering) : For some reason 150 and 40
-// seemed like decent starting values.
+// Tilting Wiimote with keyboard
 // ---------------
-void TiltWiimoteKeyboard(u8 &_y, u8 &_z)
+void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 {
 #ifdef _WIN32
 	if(GetAsyncKeyState('3'))
 	{
 		// Stop at the upper end of the range
-		if(KbDegree < g_Config.Trigger.Range)
+		if(KbDegree < g_Config.Trigger.Range.Roll)
 			KbDegree += 3; // aim left
 	}
 	else if(GetAsyncKeyState('4'))
 	{
 		// Stop at the lower end of the range
-		if(KbDegree > -g_Config.Trigger.Range)
+		if(KbDegree > -g_Config.Trigger.Range.Roll)
 			KbDegree -= 3; // aim right
 	}
 
 	// -----------------------------------
 	// Check for inactivity in the tilting, the Y value will be reset after ten inactive updates
 	// ----------
-
 	yhist[yhist.size() - 1] = (
 		GetAsyncKeyState('3')
 		|| GetAsyncKeyState('4')
@@ -473,19 +471,55 @@ void TiltWiimoteKeyboard(u8 &_y, u8 &_z)
 		yhist[i-1] = yhist[i];
 		if(yhist[i]) ypressed = true;
 	}
-	// Tilting was not used a single time, reset y to its neutral value
+	// Tilting was not used a single time, reset the angle to zero
 	if(!ypressed)
 	{
-		_y = Y;
+		KbDegree = 0;
 	}
 	else
 	{
-		u8 x;
-		PitchDegreeToAccelerometer(KbDegree, 0, x, _y, _z, false, true);
+		Pitch = KbDegree;
 		//Console::Print("Degree: %2.1f\n", KbDegree);
 	}
 	// --------------------
 #endif
+}
+
+// ------------------------------------------
+// Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
+// ---------------
+void Tilt(u8 &_x, u8 &_y, u8 &_z)
+{
+	// Set to zero
+	float Roll = 0, Pitch = 0;
+
+	// Select input method and return the x, y, x values
+	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
+		TiltWiimoteKeyboard(Roll, Pitch);
+	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
+		TiltWiimoteGamepad(Roll, Pitch);
+
+	// Calculate the accelerometer value from this tilt angle
+	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
+	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z);
+
+	/*
+	if (Roll > 90)
+	{
+		if (Pitch >= 0)
+			Pitch = 180 - Pitch;
+		else if (Pitch < 0)
+			Pitch = 180 + Pitch;
+	}
+	*/
+
+	if (g_DebugData)
+	{
+		//Console::ClearScreen();
+		/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
+			Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
+		/**/Console::Print("Roll:%2.1f Pitch:%2.1f\n", Roll, Pitch);
+	}
 }
 
 void FillReportAcc(wm_accel& _acc)
@@ -507,17 +541,17 @@ void FillReportAcc(wm_accel& _acc)
 	// ---------------------
 
 	// The default values can change so we need to update them all the time
-	X = g_accel.cal_zero.x;
-	Y = g_accel.cal_zero.y;
-	Z = g_accel.cal_zero.z + g_accel.cal_g.z;
+	g_X = g_accel.cal_zero.x;
+	g_Y = g_accel.cal_zero.y;
+	g_Z = g_accel.cal_zero.z + g_accel.cal_g.z;
 
 
 	// Check that Dolphin is in focus
 	if (!IsFocus())
 	{
-		_acc.x = X;
-		_acc.y = y;
-		_acc.z = z;
+		_acc.x = g_X;
+		_acc.y = g_y;
+		_acc.z = g_z;
 		return;
 	}
 
@@ -526,23 +560,20 @@ void FillReportAcc(wm_accel& _acc)
 	// ------------
 	
 	// The following functions may or may not update these values
-	x = X;
-	y = Y;
-	z = Z;
+	g_x = g_X;
+	g_y = g_Y;
+	g_z = g_Z;
 
 	// Shake the Wiimote
-	SingleShake(z, y);
+	SingleShake(g_z, g_y);
 
 	// Tilt Wiimote
-	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
-		TiltWiimoteKeyboard(y, z);
-	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
-		TiltWiimoteGamepad(x, y, z);
+
 
 	// Write final values
-	_acc.x = x;
-	_acc.y = y;
-	_acc.z = z;
+	_acc.x = g_x;
+	_acc.y = g_y;
+	_acc.z = g_z;
 	
 
 	// ----------------------------

@@ -42,6 +42,20 @@ namespace InputCommon
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Degree to radian and back
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+float Deg2Rad(float Deg)
+{
+	return Deg * (M_PI / 180.0);
+}
+float Rad2Deg(float Rad)
+{
+	return (Rad * 180.0) / M_PI;
+}
+/////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Convert stick values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -71,7 +85,7 @@ int Pad_Convert(int _val)
 	return _val;
 }
 
- 
+//////////////////////////////////////////////////////////////////////////////////////////
 /* Convert the stick raidus from a circular to a square. I don't know what input values
    the actual GC controller produce for the GC, it may be a square, a circle or something
    in between. But one thing that is certain is that PC pads differ in their output (as
@@ -88,23 +102,24 @@ int Pad_Convert(int _val)
    GameCube Controller (Third Party) with EMS TrioLinker Plus II: 60%
 */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+/* Calculate the distance from the center of the current stick coordinates. The distance is defined
+   as at most sqrt(2) in the corners */
 float SquareDistance(float deg)
 {
 	// See if we have to adjust the angle
 	deg = abs(deg);
 	if( (deg > 45 && deg < 135) ) deg = deg - 90;
 
-	// Calculate radians from degrees
-	float rad = deg * M_PI / 180;
-
-	float val = abs(cos(rad));
+	float val = abs(cos(Deg2Rad(deg)));
 	float dist = 1 / val; // Calculate distance from center
 
 	//m_frame->m_pStatusBar2->SetLabel(wxString::Format("Deg:%f  Val:%f  Dist:%f", deg, val, dist));
 
 	return dist;
 }
-std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad, CONTROLLER_MAPPING _PadMapping)
+// Produce the circle from the original
+std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square)
 {
 	/* Do we need this? */
 	if(_x > 32767) _x = 32767; if(_y > 32767) _y = 32767; // upper limit
@@ -113,41 +128,51 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad, CONTROLLER_MAPPI
 	// ====================================
 	// Convert to circle
 	// -----------
-	int Tmp = atoi (_PadMapping.SDiagonal.substr(0, _PadMapping.SDiagonal.length() - 1).c_str());
+	// Get the manually configured diagonal distance
+	int Tmp = atoi (SDiagonal.substr(0, SDiagonal.length() - 1).c_str());
 	float Diagonal = Tmp / 100.0;
 
 	// First make a perfect square in case we don't have one already
 	float OrigDist = sqrt(  pow((float)_y, 2) + pow((float)_x, 2)  ); // Get current distance
-	float rad = atan2((float)_y, (float)_x); // Get current angle
-	float deg = rad * 180 / M_PI;
+	float deg = Rad2Deg(atan2((float)_y, (float)_x)); // Get current angle
 
-	// A diagonal of 85% means a distance of 1.20
-	float corner_circle_dist = ( Diagonal / sin(45 * M_PI / 180) );
+	// A diagonal of 85% means a maximum distance of 0.85 * sqrt(2) ~1.2 in the diagonals
+	float corner_circle_dist = ( Diagonal / sin(Deg2Rad(45)) );
 	float SquareDist = SquareDistance(deg);
-	float adj_ratio1; // The original-to-square distance adjustment
-	float adj_ratio2 = SquareDist; // The circle-to-square distance adjustment
-	// float final_ratio; // The final adjustment to the current distance //TODO: This is not used
-	float result_dist; // The resulting distance
+	// The original-to-square distance adjustment
+	float adj_ratio1;
+	// The circle-to-square distance adjustment
+	float adj_ratio2 = SquareDist;
+	 // The resulting distance
+	float result_dist;
 
 	// Calculate the corner-to-square adjustment ratio
 	if(corner_circle_dist < SquareDist) adj_ratio1 = SquareDist / corner_circle_dist;
 		else adj_ratio1 = 1;
 
 	// Calculate the resulting distance
-	result_dist = OrigDist * adj_ratio1 / adj_ratio2;
-
-	float x = result_dist * cos(rad); // calculate x
-	float y = result_dist * sin(rad); // calculate y
-
+	if(Circle2Square)
+		result_dist = OrigDist * adj_ratio1;
+	else
+		result_dist = OrigDist * adj_ratio1 / adj_ratio2;
+	
+	// Calculate x and y and return it
+	float x = result_dist * cos(Deg2Rad(deg));
+	float y = result_dist * sin(Deg2Rad(deg));
+	// Make integers
 	int int_x = (int)floor(x);
 	int int_y = (int)floor(y);
+	// Boundaries
+	if (int_x < -32767) int_x = -32767; if (int_x > 32767) int_x = 32767;
+	if (int_y < -32767) int_y = -32767; if (int_y > 32767) int_y = 32767;
+	// Return it
+	std::vector<int> vec;
+	vec.push_back(int_x);
+	vec.push_back(int_y);
 
 	// Debugging
 	//m_frame->m_pStatusBar2->SetLabel(wxString::Format("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
 
-	std::vector<int> vec;
-	vec.push_back(int_x);
-	vec.push_back(int_y);
 	return vec;
 }
 /////////////////////////////////////////////////////////////////////

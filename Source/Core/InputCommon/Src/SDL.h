@@ -187,6 +187,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	int triggertype;		// SDL or XInput trigger
 	std::string SDiagonal;
 	bool bSquareToCircle;
+	bool bCircle2Square;
 };
 ////////////////////////////
 
@@ -201,8 +202,10 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool,bool);
 
 // Value conversion
+float Deg2Rad(float Deg);
+float Rad2Deg(float Rad);
 int Pad_Convert(int _val);
-std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad, CONTROLLER_MAPPING _PadMapping);
+std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square = false);
 
 #ifndef _SDL_MAIN_
 	extern int g_LastPad;

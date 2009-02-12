@@ -432,7 +432,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Check if we should make adjustments
 	if(PadMapping[_numPAD].bSquareToCircle)
 	{
-		std::vector<int> main_xy = InputCommon::Pad_Square_to_Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD]);
+		std::vector<int> main_xy = InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
 		i_main_stick_x = main_xy.at(0);
 		i_main_stick_y = main_xy.at(1);
 	}

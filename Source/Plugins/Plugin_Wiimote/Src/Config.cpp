@@ -62,9 +62,8 @@ void Config::Load(bool ChangePad)
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
 		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &bNoTriggerFilter, false);
 		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, TRIGGER_OFF);
-		iniFile.Get(SectionName.c_str(), "TriggerRange", &Trigger.Range, 50);
-		iniFile.Get(SectionName.c_str(), "TriggerRoll", &Trigger.Roll, false);
-		iniFile.Get(SectionName.c_str(), "TriggerPitch", &Trigger.Pitch, false);
+		iniFile.Get(SectionName.c_str(), "TriggerRollRange", &Trigger.Range.Roll, 50);
+		iniFile.Get(SectionName.c_str(), "TriggerPitchRange", &Trigger.Range.Pitch, false);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -99,7 +98,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "DeadZone", &WiiMoteEmu::PadMapping[i].deadzone, 0);
 		iniFile.Get(SectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(SectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
-		iniFile.Get(SectionName.c_str(), "SquareToCircle", &WiiMoteEmu::PadMapping[i].bSquareToCircle, false);		
+		iniFile.Get(SectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);		
 	}
 	// =============================
 	Console::Print("Load()\n");
@@ -134,9 +133,8 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "Enabled", WiiMoteEmu::PadMapping[i].enabled);
 		iniFile.Set(SectionName.c_str(), "NoTriggerFilter", bNoTriggerFilter);		
 		iniFile.Set(SectionName.c_str(), "TriggerType", Trigger.Type);
-		iniFile.Set(SectionName.c_str(), "TriggerRange", Trigger.Range);
-		iniFile.Set(SectionName.c_str(), "TriggerRoll", Trigger.Roll);
-		iniFile.Set(SectionName.c_str(), "TriggerPitch", Trigger.Pitch);
+		iniFile.Set(SectionName.c_str(), "TriggerRollRange", Trigger.Range.Roll);
+		iniFile.Set(SectionName.c_str(), "TriggerPitchRange", Trigger.Range.Pitch);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);
@@ -165,8 +163,8 @@ void Config::Save(int Slot)
 		//iniFile.Set(SectionName.c_str(), "deadzone", PadMapping[i].deadzone);		
 		//iniFile.Set(SectionName.c_str(), "controllertype", PadMapping[i].controllertype);
 		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
-		//iniFile.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
-		//iniFile.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);
+		iniFile.Set(SectionName.c_str(), "Diagonal", WiiMoteEmu::PadMapping[i].SDiagonal);
+		iniFile.Set(SectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);
 		// ======================================
 	}
 

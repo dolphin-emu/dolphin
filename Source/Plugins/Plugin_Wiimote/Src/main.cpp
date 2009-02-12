@@ -627,12 +627,28 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[19], data[20], data[21]) + Tmp2;
 		}
 		// Calculate the Wiimote roll and pitch in degrees
-		int Roll, Pitch;
-		WiiMoteEmu::PitchAccelerometerToDegree(data[4], data[5], data[6], Roll, Pitch);
-		std::string RollPitch = StringFromFormat("%i %i", Roll, Pitch);
+		int Roll, Pitch, RollAdj, PitchAdj;
+		WiiMoteEmu::PitchAccelerometerToDegree(data[4], data[5], data[6], Roll, Pitch, RollAdj, PitchAdj);
+		std::string RollPitch = StringFromFormat("%s %s  %s %s",
+			(Roll >= 0) ? StringFromFormat(" %03i", Roll).c_str() : StringFromFormat("%04i", Roll).c_str(),
+			(Pitch >= 0) ? StringFromFormat(" %03i", Pitch).c_str() : StringFromFormat("%04i", Pitch).c_str(),
+			(RollAdj == Roll) ? "" : StringFromFormat("%i*", RollAdj).c_str(),
+			(PitchAdj == Pitch) ? "" : StringFromFormat("%i*", PitchAdj).c_str());
 
+		// ---------------------------------------------
+		// Test values
+		// -----------
+		Console::ClearScreen();
+		// Show a test of our calculations
+		WiiMoteEmu::TiltTest(data[4], data[5], data[6]);
+		u8 x, y, z;
+		WiiMoteEmu::Tilt(x, y, z);
+		WiiMoteEmu::TiltTest(x, y, z);
+		// -------------------------
+		
 		Console::Print("Read[%s]: %s| %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		
 	}
 	if(g_DebugAccelerometer)
 	{		

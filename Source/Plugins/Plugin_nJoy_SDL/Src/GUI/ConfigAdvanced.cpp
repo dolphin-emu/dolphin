@@ -87,7 +87,7 @@ void ConfigBox::PadGetStatus()
 	int main_x_after = main_x, main_y_after = main_y;
 	if(PadMapping[notebookpage].bSquareToCircle)
 	{
-		std::vector<int> main_xy = InputCommon::Pad_Square_to_Circle(main_x, main_y, notebookpage, PadMapping[notebookpage]);
+		std::vector<int> main_xy = InputCommon::Square2Circle(main_x, main_y, notebookpage, PadMapping[notebookpage].SDiagonal);
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
 	}

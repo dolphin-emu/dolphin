@@ -102,9 +102,10 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	// Gamepad
 	EVT_COMBOBOX(ID_TRIGGER_TYPE, ConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TILT_INPUT, ConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TILT_RANGE, ConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(IDC_JOYNAME, ConfigDialog::GeneralSettingsChanged)
-	
+	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
 
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
@@ -387,8 +388,9 @@ void ConfigDialog::CreateGUIControls()
 	StrTilt.Add(wxString::FromAscii("Analog stick"));
 	StrTilt.Add(wxString::FromAscii("Triggers"));
 	// The range is in degrees and are set at even 5 degrees values
-	wxArrayString StrTiltRange;
-	for (int i = 2; i < 19; i++) StrTiltRange.Add(wxString::Format(wxT("%i"), i*5));
+	wxArrayString StrTiltRangeRoll, StrTiltRangePitch;
+	for (int i = 0; i < 37; i++) StrTiltRangeRoll.Add(wxString::Format(wxT("%i"), i*5));
+	for (int i = 0; i < 37; i++) StrTiltRangePitch.Add(wxString::Format(wxT("%i"), i*5));
 
 	// The Trigger type list
 	wxArrayString StrTriggerType;
@@ -409,7 +411,7 @@ void ConfigDialog::CreateGUIControls()
 		static const int TxtW = 50, TxtH = 19, ChW = 245;
 
 		// Basic Settings
-		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
+		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
 		// Emulated Wiimote
 		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxSize(ChW, -1));
 		m_WideScreen[i] = new wxCheckBox(m_Controller[i], ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"));
@@ -494,15 +496,45 @@ void ConfigDialog::CreateGUIControls()
 		// Controller
 		// -----------------------------
 		/**/
-		// Controls
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(225, -1), StrJoyname, wxCB_READONLY);
+		// Controller
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(205, -1), StrJoyname, wxCB_READONLY);
+	
+		// Circle to square
+		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle to square"));
 
-		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Gamepad"));
-		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		// The label
+		m_CheckC2SLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Diagonal"));
+
+		// The drop down menu for the circle to square adjustment
+		wxArrayString asStatusInSet;
+			asStatusInSet.Add(wxT("100%"));
+			asStatusInSet.Add(wxT("95%"));
+			asStatusInSet.Add(wxT("90%"));
+			asStatusInSet.Add(wxT("85%"));
+			asStatusInSet.Add(wxT("80%"));
+		m_ComboDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_LEFT_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxDefaultSize, asStatusInSet, wxCB_READONLY);
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
-		
+		m_CheckC2S[i]->SetToolTip(wxT(
+			"This will convert a circular stick radius to a square stick radius."
+			" This can be useful for the pitch and roll emulation."
+			));
+		m_CheckC2SLabel[i]->SetToolTip(wxT(
+			"To produce a perfect square circle in the 'Out' window you have to manually set"
+			"\nyour diagonal values here from what is shown in the 'In' window."
+			));
+
+		// Sizers
+		m_gCircle2Square[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_gCircle2Square[i]->Add(m_CheckC2SLabel[i], 0, (wxUP), 4);
+		m_gCircle2Square[i]->Add(m_ComboDiagonal[i], 0, (wxLEFT), 2);
+
+		m_gJoyname[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Gamepad"));
+		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyname[i]->Add(m_CheckC2S[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyname[i]->Add(m_gCircle2Square[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+
 
 		// --------------------------------------------------------------------
 		// Tilt Wiimote
@@ -510,26 +542,35 @@ void ConfigDialog::CreateGUIControls()
 		/**/
 		// Controls
 		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
-		m_TiltComboRange[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE, StrTiltRange[0], wxDefaultPosition, wxDefaultSize, StrTiltRange, wxCB_READONLY);
-		m_TiltText[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Range"));
+		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_ROLL, StrTiltRangeRoll[0], wxDefaultPosition, wxDefaultSize, StrTiltRangeRoll, wxCB_READONLY);
+		m_TiltComboRangePitch[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_PITCH, StrTiltRangePitch[0], wxDefaultPosition, wxDefaultSize, StrTiltRangePitch, wxCB_READONLY);
+		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll Range"));
+		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Range"));
 
-		m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_TiltHoriz[i]->Add(m_TiltText[i], 0, (wxLEFT | wxTOP), 4);
-		m_TiltHoriz[i]->Add(m_TiltComboRange[i], 0, (wxLEFT | wxRIGHT), 5);
-		
-		m_gTilt[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Tilt Wiimote"));
+		m_TiltGrid[i] = new wxGridBagSizer(0, 0);
+		m_TiltGrid[i]->Add(m_TiltTextRoll[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
+		m_TiltGrid[i]->Add(m_TiltComboRangeRoll[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT), 2);
+		m_TiltGrid[i]->Add(m_TiltTextPitch[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 4);
+		m_TiltGrid[i]->Add(m_TiltComboRangePitch[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxTOP | wxDOWN), 2);
+
+		// For additional padding options if needed
+		//m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_gTilt[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Roll and pitch"));
 		m_gTilt[i]->AddStretchSpacer();
 		m_gTilt[i]->Add(m_TiltComboInput[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_gTilt[i]->Add(m_TiltHoriz[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+		m_gTilt[i]->Add(m_TiltGrid[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_gTilt[i]->AddStretchSpacer();
 
 		//Set values
 		m_TiltComboInput[i]->SetSelection(g_Config.Trigger.Type);
-		m_TiltComboRange[i]->SetValue(wxString::Format(wxT("%i"), g_Config.Trigger.Range));
+		m_TiltComboRangeRoll[i]->SetValue(wxString::Format(wxT("%i"), g_Config.Trigger.Range.Roll));
+		m_TiltComboRangePitch[i]->SetValue(wxString::Format(wxT("%i"), g_Config.Trigger.Range.Pitch));
 
 		// Tooltips
 		m_TiltComboInput[i]->SetToolTip(wxT("Control tilting by an analog gamepad stick, an analog trigger or the keyboard."));		
-		m_TiltComboRange[i]->SetToolTip(wxT("The maximum tilt in degrees"));	
+		m_TiltComboRangeRoll[i]->SetToolTip(wxT("The maximum roll in degrees. Set to 0 to turn off."));	
+		m_TiltComboRangePitch[i]->SetToolTip(wxT("The maximum pitch in degrees. Set to 0 to turn off."));
 
 		// --------------------------------------------------------------------
 		// Analog triggers
@@ -557,7 +598,7 @@ void ConfigDialog::CreateGUIControls()
 
 		m_TriggerType[i] = new wxComboBox(m_Controller[i], ID_TRIGGER_TYPE, StrTriggerType[0], wxDefaultPosition, wxDefaultSize, StrTriggerType, wxCB_READONLY);
 
-		m_SizeAnalogTriggerStatusBox[i]  = new wxGridBagSizer(0, 0);
+		m_SizeAnalogTriggerStatusBox[i] = new wxGridBagSizer(0, 0);
 		m_SizeAnalogTriggerHorizConfig[i] = new wxGridBagSizer(0, 0);	
 		m_SizeAnalogTriggerVertLeft[i] = new wxBoxSizer(wxVERTICAL);
 		m_SizeAnalogTriggerVertRight[i] = new wxBoxSizer(wxVERTICAL);
@@ -586,11 +627,11 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeAnalogTriggerVertLeft[i]->AddStretchSpacer();
 
 		// The config grid and the input type choice box
-		m_SizeAnalogTriggerVertRight[i]->Add(m_SizeAnalogTriggerHorizConfig[i], 0, (wxUP), 0);
+		m_SizeAnalogTriggerVertRight[i]->Add(m_SizeAnalogTriggerHorizConfig[i], 0, (wxUP), 2);
 		m_SizeAnalogTriggerVertRight[i]->Add(m_SizeAnalogTriggerHorizInput[i], 0, (wxUP | wxDOWN), 4);
 
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
-		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, (wxLEFT | wxRIGHT), 5);
+		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 
 
 		// --------------------------------------------------------------------
@@ -599,7 +640,7 @@ void ConfigDialog::CreateGUIControls()
 		m_HorizControllerTilt[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_HorizControllerTilt[i]->Add(m_gJoyname[i], 0, wxALIGN_CENTER | wxEXPAND, 0);
 		m_HorizControllerTilt[i]->Add(m_gTilt[i], 0, wxEXPAND | (wxLEFT), 5);
-		m_HorizControllerTilt[i]->Add(m_gTrigger[i], 0, (wxLEFT), 5);
+		m_HorizControllerTilt[i]->Add(m_gTrigger[i], 0, wxEXPAND | (wxLEFT), 5);
 
 		m_HorizControllerTiltParent[i] = new wxBoxSizer(wxBOTH);
 		m_HorizControllerTiltParent[i]->Add(m_HorizControllerTilt[i]);
@@ -1061,11 +1102,17 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_TILT_INPUT:
 		g_Config.Trigger.Type = m_TiltComboInput[Page]->GetSelection();
 		break;
-	case ID_TILT_RANGE:
-		m_TiltComboRange[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range = TmpValue;
+	case ID_TILT_RANGE_ROLL:
+		m_TiltComboRangeRoll[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range.Roll = TmpValue;
+		break;
+	case ID_TILT_RANGE_PITCH:
+		m_TiltComboRangePitch[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range.Pitch = TmpValue;
 		break;
 	case IDC_JOYNAME:
 		DoChangeJoystick();
+	case IDCB_LEFT_DIAGONAL:
+	case IDC_LEFT_C2S:
+		SaveButtonMappingAll(Page);
 		break;
 
 	//////////////////////////

@@ -24,12 +24,16 @@ struct Config
     void Load(bool ChangePad = false);
     void Save(int Slot = -1);
 
+	struct PadRange
+	{
+		int Roll;
+		int Pitch;
+	};
+
 	struct PadTrigger
 	{
 		int Type;
-		int Range;
-		int Roll;
-		int Pitch;
+		PadRange Range;
 	};
 
 	enum ETriggerType

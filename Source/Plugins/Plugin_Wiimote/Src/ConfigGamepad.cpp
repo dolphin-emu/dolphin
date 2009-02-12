@@ -94,6 +94,8 @@ void ConfigDialog::SetButtonTextAll(int id, char text[128])
 
 void ConfigDialog::SaveButtonMappingAll(int Slot)
 {
+	//Console::Print("SaveButtonMappingAll()\n");
+
 	for (int i = 0; i < 4; i++)
 	{
 		// This can occur when no gamepad is detected
@@ -127,8 +129,8 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	// Update the deadzone and controller type controls
 	m_TriggerType[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].triggertype);
 	//m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
-	//m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
-	//m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
+	m_ComboDiagonal[controller]->SetValue(wxString::FromAscii(WiiMoteEmu::PadMapping[controller].SDiagonal.c_str()));
+	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
 
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 }
@@ -154,8 +156,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	//WiiMoteEmu::PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	//WiiMoteEmu::PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
-	//WiiMoteEmu::PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
-	//WiiMoteEmu::PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();	
+	WiiMoteEmu::PadMapping[controller].SDiagonal = m_ComboDiagonal[FromSlot]->GetLabel().mb_str();
+	WiiMoteEmu::PadMapping[controller].bCircle2Square = m_CheckC2S[FromSlot]->IsChecked();	
 
 	// The analog buttons
 	m_AnalogLeftX[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Lx = value; tmp.clear();
@@ -167,8 +169,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	m_AnalogTriggerL[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tl = value;
 	m_AnalogTriggerR[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tr = value;			
 
-	//LogMsg("WiiMoteEmu::PadMapping[%i].triggertype = %i, m_TriggerType[%i]->GetSelection() = %i\n",
-	//	controller, WiiMoteEmu::PadMapping[controller].triggertype, FromSlot, m_TriggerType[FromSlot]->GetSelection());
+	//Console::Print("WiiMoteEmu::PadMapping[%i].bSquareToCircle = %i, m_CheckC2S[%i]->GetValue() = %i\n",
+	//	controller, WiiMoteEmu::PadMapping[controller].bSquareToCircle, FromSlot, m_CheckC2S[FromSlot]->GetValue());
 
 	// Replace "-1" with "" 
 	ToBlank();
@@ -496,14 +498,13 @@ void ConfigDialog::PadGetStatus()
 	// Get adjusted values
 	int main_x_after = main_x, main_y_after = main_y;
 	int right_x_after = right_x, right_y_after = right_y;
-	/*
-	if(WiiMoteEmu::PadMapping[notebookpage].bSquareToCircle)
+	// Produce square
+	if(WiiMoteEmu::PadMapping[Page].bCircle2Square)
 	{
-		std::vector<int> main_xy = InputCommon::Pad_Square_to_Circle(main_x, main_y, notebookpage, PadMapping[notebookpage]);
+		std::vector<int> main_xy = InputCommon::Square2Circle(main_x, main_y, Page, WiiMoteEmu::PadMapping[Page].SDiagonal, true);
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
-	}
-	*/
+	}	
 
 	// 
 	float f_x = main_x / 32767.0;
