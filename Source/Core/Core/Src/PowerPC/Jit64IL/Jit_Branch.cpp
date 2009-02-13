@@ -76,13 +76,7 @@ using namespace Gen;
 		ibuild.EmitBranchUncond(ibuild.EmitIntConst(destination));
 	}
 
-	void Jit64::bcx(UGeckoInstruction inst)
-	{
-		NORMALBRANCH_START
-		if (inst.LK)
-			ibuild.EmitStoreLink(
-				ibuild.EmitIntConst(js.compilerPC + 4));
-
+	static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst) {
 		IREmitter::InstLoc CRTest = 0, CTRTest = 0;
 		if ((inst.BO & 16) == 0)  // Test a CR bit
 		{
@@ -115,8 +109,18 @@ using namespace Gen;
 
 		if (!Test) {
 			Test = ibuild.EmitIntConst(1);
-			//PanicAlert("Unconditional conditional branch?!");
 		}
+		return Test;
+	}
+
+	void Jit64::bcx(UGeckoInstruction inst)
+	{
+		NORMALBRANCH_START
+		if (inst.LK)
+			ibuild.EmitStoreLink(
+				ibuild.EmitIntConst(js.compilerPC + 4));
+
+		IREmitter::InstLoc Test = TestBranch(ibuild, inst);
 
 		u32 destination;
 		if(inst.AA)
@@ -131,9 +135,30 @@ using namespace Gen;
 	void Jit64::bcctrx(UGeckoInstruction inst)
 	{
 		NORMALBRANCH_START
-		Default(inst);
-		ibuild.EmitInterpreterBranch();
-		return;
+		if ((inst.BO & 4) == 0) {
+			IREmitter::InstLoc c = ibuild.EmitLoadCTR();
+			c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
+			ibuild.EmitStoreCTR(c);
+		}
+		IREmitter::InstLoc test;
+		if ((inst.BO & 16) == 0)  // Test a CR bit
+		{
+			IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
+			IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
+			test = ibuild.EmitAnd(CRReg, CRCmp);
+			if (!(inst.BO & 8))
+				test = ibuild.EmitXor(test, CRCmp);
+		} else {
+			test = ibuild.EmitIntConst(1);
+		}
+		test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
+		ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));
+
+		IREmitter::InstLoc destination = ibuild.EmitLoadCTR();
+		destination = ibuild.EmitAnd(destination, ibuild.EmitIntConst(-4));
+		if (inst.LK)
+			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+		ibuild.EmitBranchUncond(destination);
 	}
 
 	void Jit64::bclrx(UGeckoInstruction inst)
@@ -143,8 +168,14 @@ using namespace Gen;
 			ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
 			return;
 		}
-		Default(inst);
-		ibuild.EmitInterpreterBranch();
-		return;
+		IREmitter::InstLoc test = TestBranch(ibuild, inst);
+		test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
+		ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));
+
+		IREmitter::InstLoc destination = ibuild.EmitLoadLink();
+		destination = ibuild.EmitAnd(destination, ibuild.EmitIntConst(-4));
+		if (inst.LK)
+			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+		ibuild.EmitBranchUncond(destination);
 	}
 

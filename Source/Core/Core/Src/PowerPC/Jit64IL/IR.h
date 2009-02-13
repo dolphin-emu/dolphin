@@ -33,6 +33,7 @@ namespace IREmitter {
 		LoadCarry,
 		LoadCTR,
 		LoadMSR,
+		LoadGQR,
 
 		// Unary operators
 		// Integer unary operators
@@ -54,6 +55,7 @@ namespace IREmitter {
 		StoreCTR,
 		StoreMSR,
 		StoreFPRF,
+		StoreGQR,
 		// Arbitrary interpreter instruction
 		InterpreterFallback,
 
@@ -480,6 +482,12 @@ namespace IREmitter {
 		}
 		InstLoc EmitFDCmpCR(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FDCmpCR, op1, op2);
+		}
+		InstLoc EmitLoadGQR(unsigned gqr) {
+			return FoldZeroOp(LoadGQR, gqr);
+		}
+		InstLoc EmitStoreGQR(InstLoc op1, unsigned gqr) {
+			return FoldUOp(StoreGQR, op1, gqr);
 		}
 
 		void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }

@@ -1233,6 +1233,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case LoadCTR:
 		case LoadMSR:
 		case LoadFReg:
+		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
 		case InterpreterFallback:
@@ -1281,6 +1282,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case StoreLink:
 		case StoreCTR:
 		case StoreMSR:
+		case StoreGQR:
 		case StoreFReg:
 			if (!isImm(*getOp1(I)))
 				regMarkUse(RI, I, getOp1(I), 1);
@@ -1414,6 +1416,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			RI.regs[reg] = I;
 			break;
 		}
+		case LoadGQR: {
+			if (!thisUsed) break;
+			X64Reg reg = regFindFreeReg(RI);
+			unsigned gqr = *I >> 8;
+			Jit->MOV(32, R(reg), M(&GQR(gqr)));
+			RI.regs[reg] = I;
+			break;
+		}
 		case LoadCarry: {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
@@ -1450,6 +1460,12 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case StoreMSR: {
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case StoreGQR: {
+			unsigned gqr = *I >> 16;
+			regStoreInstToConstLoc(RI, 32, getOp1(I), &GQR(gqr));
 			regNormalRegClear(RI, I);
 			break;
 		}

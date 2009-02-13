@@ -39,15 +39,25 @@
 		JITDISABLE(SystemRegisters)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		switch(iIndex) {
-			case SPR_LR:
-				ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
-				return;
-			case SPR_CTR:
-				ibuild.EmitStoreCTR(ibuild.EmitLoadGReg(inst.RD));
-				return;
-			default:
-				Default(inst);
-				return;
+		case SPR_LR:
+			ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
+			return;
+		case SPR_CTR:
+			ibuild.EmitStoreCTR(ibuild.EmitLoadGReg(inst.RD));
+			return;
+		case SPR_GQR0:
+		case SPR_GQR0 + 1:
+		case SPR_GQR0 + 2:
+		case SPR_GQR0 + 3:
+		case SPR_GQR0 + 4:
+		case SPR_GQR0 + 5:
+		case SPR_GQR0 + 6:
+		case SPR_GQR0 + 7:
+			ibuild.EmitStoreGQR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_GQR0);
+			return;
+		default:
+			Default(inst);
+			return;
 		}
 	}
 
@@ -63,6 +73,16 @@
 			return;
 		case SPR_CTR:
 			ibuild.EmitStoreGReg(ibuild.EmitLoadCTR(), inst.RD);
+			return;
+		case SPR_GQR0:
+		case SPR_GQR0 + 1:
+		case SPR_GQR0 + 2:
+		case SPR_GQR0 + 3:
+		case SPR_GQR0 + 4:
+		case SPR_GQR0 + 5:
+		case SPR_GQR0 + 6:
+		case SPR_GQR0 + 7:
+			ibuild.EmitStoreGReg(ibuild.EmitLoadGQR(iIndex - SPR_GQR0), inst.RD);
 			return;
 		default:
 			Default(inst);
