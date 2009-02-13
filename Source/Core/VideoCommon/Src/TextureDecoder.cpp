@@ -165,7 +165,7 @@ inline u32 decode5A3(u16 val)
         g=lut5to8[(val>>5 ) & 0x1f];
         b=lut5to8[(val    ) & 0x1f];
         a=0xFF;
-    }
+	}
     else
     {
         a=lut3to8[(val>>12) & 0x7];
@@ -272,13 +272,6 @@ inline void decodebytesIA4(u32 *dst, const u8 *src)
         int r = lut4to8[val&15];
         dst[x] = (a<<24) | (r<<16) | (r<<8) | r;
     }
-}
-
-//inline void decodebytesIA8(u32 *dst, const u16 *src, int numpixels)
-inline void decodebytesIA8(u32 *dst, const u16 *src)
-{
-    for (int x = 0; x < 4; x++)
-        dst[x] = decodeIA8(Common::swap16(src[x]));
 }
 
 //inline void decodebytesRGB5A3(u32 *dst, const u16 *src, int numpixels)
@@ -412,13 +405,17 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_IA8:
         {
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesIA8((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-                        decodebytesIA8((u32*)dst+(y+iy)*width+x, (u16*)src);
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8) {
+						u16 *ptr = (u16 *)dst+(y+iy)*width+x;
+						u16 *s = (u16 *)src;
+						for(int j = 0; j < 4; j++)
+							*ptr++ = Common::swap16(*s++);
+					}
+
         }
-        return PC_TEX_FMT_BGRA32;
+		return PC_TEX_FMT_IA8;
     case GX_TF_C14X2: 
         {
             for (int y = 0; y < height; y += 4)
@@ -463,7 +460,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:  // speed critical
-        {
+		{
 			// TODO: Shuffle to PC S3TC (DXTC) format instead of converting
             // 11111111 22222222 55555555 66666666
             // 33333333 44444444 77777777 88888888

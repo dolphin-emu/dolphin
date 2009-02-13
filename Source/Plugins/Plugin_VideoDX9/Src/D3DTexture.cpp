@@ -28,6 +28,12 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 
 	// crazy bitmagic, sorry :)
 	bool isPow2 = !((width&(width-1)) || (height&(height-1)));
+	bool bExpand = false;
+
+	if(fmt == D3DFMT_A8P8) {
+		fmt = D3DFMT_A8L8;
+		bExpand = true;
+	}
 
 	HRESULT hr;
 	// TODO(ector): allow mipmaps for non-pow textures on newer cards?
@@ -71,17 +77,29 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		break;
 	case D3DFMT_A8L8:
 		{
-			const u8 *pIn = buffer;
-			// TODO(XK): Find a better way that does not involve either unpacking
-			//           or downsampling (i.e. A4L4)
-			for (int y = 0; y < height; y++)
-			{
-				u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
-				for(int i = 0; i < width * 2; i += 2) {
-					pBits[i] = pIn[i / 2];
-					pBits[i + 1] = pIn[i / 2];
+			if(bExpand) { // I8
+				const u8 *pIn = buffer;
+
+				// TODO(XK): Find a better way that does not involve either unpacking
+				//           or downsampling (i.e. A4L4)
+				for (int y = 0; y < height; y++)
+				{
+					u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+					for(int i = 0; i < width * 2; i += 2) {
+						pBits[i] = pIn[i / 2];
+						pBits[i + 1] = pIn[i / 2];
+					}
+					pIn += pitch;
 				}
-				pIn += pitch;
+			} else { // IA8
+				const u16 *pIn = (u16*)buffer;
+
+				for (int y = 0; y < height; y++)
+				{
+					u16* pBits = (u16*)((u8*)Lock.pBits + (y * Lock.Pitch));
+					memcpy(pBits, pIn, width * 2);
+					pIn += pitch;
+				}
 			}
 		}
 		break;
