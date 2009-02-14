@@ -262,15 +262,15 @@ inline void decodebytesC14X2(u32 *dst, const u16 *src, int tlutaddr, int tlutfmt
     }
 }
 
-//inline void decodebytesIA4(u32 *dst, const u8 *src, int numbytes)
-inline void decodebytesIA4(u32 *dst, const u8 *src)
+//inline void decodebytesIA4(u16 *dst, const u8 *src, int numbytes)
+inline void decodebytesIA4(u16 *dst, const u8 *src)
 {
     for (int x = 0; x < 8; x++)
     {
-        int val = src[x];
-        int a = lut4to8[val>>4];
-        int r = lut4to8[val&15];
-        dst[x] = (a<<24) | (r<<16) | (r<<8) | r;
+		const u8 val = src[x];
+        const u8 a = lut4to8[val>>4];
+        const u8 l = lut4to8[val&0xF];
+        dst[x] = (a<<8) | l;
     }
 }
 
@@ -398,11 +398,12 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         {
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8) {
                         //decodebytesIA4((u32*)dst+(y+iy)*width+x, src, 8);
-                        decodebytesIA4((u32*)dst+(y+iy)*width+x, src);
+                        decodebytesIA4((u16*)dst+(y+iy)*width+x, src);
+					}
         }
-        return PC_TEX_FMT_BGRA32;
+		return PC_TEX_FMT_IA8;
     case GX_TF_IA8:
         {
 			for (int y = 0; y < height; y += 4)

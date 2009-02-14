@@ -179,6 +179,9 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 	case PC_TEX_FMT_RGB565:
 		d3d_fmt = D3DFMT_R5G6B5;
 		break;
+	case PC_TEX_FMT_IA4:
+		d3d_fmt = D3DFMT_A4L4;
+		break;
 	case PC_TEX_FMT_I8:
 		d3d_fmt = D3DFMT_A8P8;
 		break;

@@ -54,6 +54,7 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	{
 	case D3DFMT_L8:
 	case D3DFMT_A8:
+	case D3DFMT_A4L4:
 	{
 		const u8 *pIn = buffer;
 		for (int y = 0; y < height; y++)
