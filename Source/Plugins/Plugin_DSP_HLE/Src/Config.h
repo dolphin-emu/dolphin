@@ -25,7 +25,7 @@ struct CConfig
     bool m_EnableHLEAudio;
     bool m_EnableDTKMusic;
     bool m_EnableThrottle;
-    char sBackend[10];
+	std::string sBackend;
     
     CConfig();
     

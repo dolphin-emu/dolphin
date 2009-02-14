@@ -32,6 +32,8 @@ CDebugger* m_frame = NULL;
 #include "PCHW/Mixer.h"
 #include "DSPHandler.h"
 #include "Config.h"
+#include "Setup.h"
+#include "StringUtil.h"
 
 #include "PCHW/AOSoundStream.h"
 #include "PCHW/DSoundStream.h"
@@ -45,10 +47,10 @@ std::string gpName;
 
 SoundStream *soundStream = NULL;
 
-// Set this if you want to log audio. search for log_ai in this file to see the filename.
-static bool log_ai = false;
-static WaveFileWriter g_wave_writer;
 
+// Set this if you want to log audio. search for log_ai in this file to see the filename.
+bool log_ai = false;
+WaveFileWriter g_wave_writer;
 
 
 // Mailbox utility
@@ -194,17 +196,23 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	// (shuffle2) TODO: reparent dlg with DolphinApp
 	ConfigDialog dlg(NULL);
+
+	// Add avaliable output options
 	if (DSound::isValid())
 		dlg.AddBackend("DSound");
 	if (AOSound::isValid())
 		dlg.AddBackend("AOSound");
 	dlg.AddBackend("NullSound");
+
+	// Show the window
 	dlg.ShowModal();
 #endif
 }
 
 void Initialize(void *init)
 {
+	//Console::Open(80, 5000);
+
 	g_Config.Load();
 
 	g_dspInitialize = *(DSPInitialize*)init;
@@ -224,16 +232,22 @@ void Initialize(void *init)
 
 	CDSPHandler::CreateInstance();
 
-	if (strncasecmp(g_Config.sBackend, "DSound", 10) == 0) {
-		if (DSound::isValid()) {
+	if (g_Config.sBackend == "DSound")
+	{
+		if (DSound::isValid())
 			soundStream = new DSound(48000, Mixer, g_dspInitialize.hWnd);
-		}
-	} else if(strncasecmp(g_Config.sBackend, "AOSound", 10) == 0) {
+	}
+	else if(g_Config.sBackend == "AOSound")
+	{
 		if (AOSound::isValid())
 			soundStream = new AOSound(48000, Mixer);
-	} else if(strncasecmp(g_Config.sBackend, "NullSound", 10) == 0) {
+	}
+	else if(g_Config.sBackend == "NullSound")
+	{
 		soundStream = new NullSound(48000, Mixer_MixUCode);
-	} else {
+	}
+	else
+	{
 		PanicAlert("Cannot recognize backend %s", g_Config.sBackend);
 		return;
 	}
@@ -260,36 +274,47 @@ void Initialize(void *init)
 		soundStream->Start();
 	}
 
+	// Start the sound recording
+	if (log_ai)
+	{
+		g_wave_writer.Start("ai_log.wav");
+		g_wave_writer.SetSkipSilence(false);
+	}
 }
 
 void Shutdown()
 {
-	if (log_ai)
-		g_wave_writer.Stop();
-	// delete the UCodes
+	// Stop the sound recording
+	if (log_ai) g_wave_writer.Stop();
+
+	// Delete the UCodes
 	soundStream->Stop();
 	delete soundStream;
 	soundStream = NULL;
 
 	CDSPHandler::Destroy();
 
-#if defined(HAVE_WX) && HAVE_WX
-	// Reset mails
-	if(m_frame)
-	{
-		sMailLog.clear();
-		sMailTime.clear();
-		m_frame->sMail.clear();
-		m_frame->sMailEnd.clear();
-	}
-#endif
+	#if defined(HAVE_WX) && HAVE_WX
+		// Reset mails
+		if(m_frame)
+		{
+			sMailLog.clear();
+			sMailTime.clear();
+			m_frame->sMail.clear();
+			m_frame->sMailEnd.clear();
+		}
+	#endif
 }
 
-void DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode)
+{
 	PointerWrap p(ptr, mode);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////
 // Mailbox fuctions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
@@ -354,8 +379,12 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value)
 		PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
 	}
 }
+/////////////////////////////////////
 
+
+////////////////////////////////////////////////////////////////////////////////////////
 // Other DSP fuctions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_WriteControlRegister(unsigned short _Value)
 {
 	return CDSPHandler::GetInstance().WriteControlRegister(_Value);
@@ -371,28 +400,38 @@ void DSP_Update(int cycles)
 	CDSPHandler::GetInstance().Update();
 }
 
+/* Other Audio will pass through here. The kind of audio that sometimes are used together with pre-drawn
+   movies. This audio can be disabled further inside Mixer_PushSamples(), the reason that we don't disable
+   this entire function when Other Audio is disabled is that then we can't turn it back on again once the
+   game has started. */
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	if(soundStream->usesMixer()) {
+	if(soundStream->usesMixer())
+	{
 		short samples[16] = {0};  // interleaved stereo
-		if (address) {
-			for (int i = 0; i < 16; i++) {
+		if (address)
+		{
+			for (int i = 0; i < 16; i++)
+			{
 				samples[i] = Memory_Read_U16(address + i * 2);
 			}
-			if (log_ai)
-				g_wave_writer.AddStereoSamples(samples, 8);
+
+			// Write the audio to a file
+			if (log_ai) g_wave_writer.AddStereoSamples(samples, 8);
 		}
 		Mixer_PushSamples(samples, 32 / 4, sample_rate);
 	}
 
-	/*static int counter = 0;
-	counter++;
-	if ((counter & 255) == 0)*/
-
-
+/* If I don't use this in Wario Land Shake It I get bad sound, it's a lot of static and noise
+   in the sound. It's the same both with an without Enable Other Audio. I can't really say why
+   this occurs because I don't know what SoundSyncEvent->Set() does. */
+	#ifdef SETUP_AVOID_SOUND_ARTIFACTS
+		static int counter = 0;
+		counter++;
+		if ((counter & 255) == 0)
+	#endif
 	// SoundStream is updated only when necessary (there is no 70 ms limit
 	// so each sample now triggers the sound stream)
 	soundStream->Update();
 }
-
-
+/////////////////////////////////////

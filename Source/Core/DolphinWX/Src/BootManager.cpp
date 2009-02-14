@@ -57,7 +57,7 @@
 	#include "ConfigMain.h"
 	#include "Frame.h"
 	#include "CodeWindow.h"
-	#include "../../../Externals/MusicMod/Main/Src/Setup.h" 
+	#include "Setup.h" 
 	#ifdef MUSICMOD
 		#include "../../../Externals/MusicMod/Main/Src/Main.h"  // MusicMod
 	#endif

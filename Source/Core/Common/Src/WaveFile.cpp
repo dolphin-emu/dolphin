@@ -37,19 +37,31 @@ bool WaveFileWriter::Start(const char *filename)
 	if (!conv_buffer)
 		conv_buffer = new short[BUF_SIZE];
 
+	// Check if the file is already open
 	if (file)
+	{
+		PanicAlert("The file %s was alrady open, the file header will not be written.", filename);
 		return false;
+	}
+
 	file = fopen(filename, "wb");
 	if (!file)
+	{
+		PanicAlert("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
 		return false;
+	}
 
+	// ---------------------------------------------------------
+	// Write file header
+	// ---------------
 	Write4("RIFF");
 	Write(100 * 1000 * 1000);  // write big value in case the file gets truncated
 	Write4("WAVE");
 	Write4("fmt ");
 	Write(16);  // size of fmt block
 	Write(0x00020001); //two channels, uncompressed
-	const u32 sample_rate = 32000;
+	//const u32 sample_rate = 32000;
+	const u32 sample_rate = 48000;
 	Write(sample_rate);
 	Write(sample_rate * 2 * 2); //two channels, 16bit
 	Write(0x00100004);
@@ -58,8 +70,9 @@ bool WaveFileWriter::Start(const char *filename)
 	// We are now at offset 44
 	if (ftell(file) != 44)
 		PanicAlert("wrong offset: %i", ftell(file));
+	// ---------------------------
 
-        return true;
+	return true;
 }
 
 void WaveFileWriter::Stop()
@@ -92,10 +105,8 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
 	if (skip_silence) {
 		bool all_zero = true;
 		for (int i = 0; i < count * 2; i++)
-			if (sample_data[i])
-				all_zero = false;
-		if (all_zero)
-			return;
+			if (sample_data[i]) all_zero = false;
+		if (all_zero) return;
 	}
 	fwrite(sample_data, count * 4, 1, file);
 	audio_size += count * 4;

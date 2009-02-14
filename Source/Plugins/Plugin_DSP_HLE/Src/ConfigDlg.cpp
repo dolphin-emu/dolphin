@@ -42,14 +42,12 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
-	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator);
+	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
-	
 	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
 	m_buttonEnableDTKMusic->SetValue(g_Config.m_EnableDTKMusic ? true : false);
 	m_buttonEnableThrottle->SetValue(g_Config.m_EnableThrottle ? true : false);
-	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend));
 
 	// Add tooltips
 	m_buttonEnableHLEAudio->SetToolTip(wxT("This is the most common sound type"));
@@ -78,8 +76,12 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	this->SetSizerAndFit(sMain);
 }
 
-void ConfigDialog::AddBackend(const char* backend) {
+// Add audio output options
+void ConfigDialog::AddBackend(const char* backend)
+{
     m_BackendSelection->Append(wxString::FromAscii(backend));
+	// Update value
+	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend.c_str()));
 }
 
 ConfigDialog::~ConfigDialog()
@@ -91,7 +93,7 @@ void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	g_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
-	strcpy(g_Config.sBackend, m_BackendSelection->GetValue().mb_str());
+	g_Config.sBackend = m_BackendSelection->GetValue().mb_str();
 	g_Config.Save();
 
 	if (event.GetId() == wxID_OK)

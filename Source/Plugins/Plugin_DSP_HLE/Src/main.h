@@ -17,12 +17,13 @@
 
 #ifndef __MAIN_H__
 #define __MAIN_H__
+
 #include "PCHW/SoundStream.h"
 #include "Globals.h" // Local
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "Debugger/Debugger.h"
-extern CDebugger* m_frame;
+	#include "Debugger/Debugger.h"
+	extern CDebugger* m_frame;
 #endif
 
 extern SoundStream *soundStream;

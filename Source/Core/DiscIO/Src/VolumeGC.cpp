@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////
 // Music mod
 // ¯¯¯¯¯¯¯¯¯¯
-#include "../../../../Externals/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
+#include "Setup.h" // Define MUSICMOD here
 #ifdef MUSICMOD
 #include "../../../../Externals/MusicMod/Main/Src/Main.h" 
 #endif

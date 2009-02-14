@@ -411,10 +411,6 @@
 			RelativePath=".\Src\Main.h"
 			>
 		</File>
-		<File
-			RelativePath=".\Src\Setup.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

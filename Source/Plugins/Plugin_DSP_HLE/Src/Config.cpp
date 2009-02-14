@@ -36,13 +36,11 @@ void CConfig::Load()
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-
 #ifdef _WIN32
-        file.Get("Config", "Backend", &temp, "DSound");
+	file.Get("Config", "Backend", &sBackend, "DSound");
 #else
-        file.Get("Config", "Backend", &temp, "AOSound");
+	file.Get("Config", "Backend", &sBackend, "AOSound");
 #endif
-        strncpy(sBackend, temp.c_str(), 16);
 }
 
 void CConfig::Save()
@@ -52,7 +50,7 @@ void CConfig::Save()
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-        file.Set("Config", "Backend", sBackend);
+	file.Set("Config", "Backend", sBackend.c_str());
         
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }

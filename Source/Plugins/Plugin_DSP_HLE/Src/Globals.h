@@ -20,6 +20,8 @@
 
 #include "Common.h"
 #include "pluginspecs_dsp.h"
+#include "ConsoleWindow.h"
+#include "StringUtil.h"
 
 extern DSPInitialize g_dspInitialize;
 void DebugLog(const char* _fmt, ...);

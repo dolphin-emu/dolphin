@@ -18,7 +18,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // File description
-/* ¯¯¯¯¯¯¯¯¯
+/* ¯¯¯¯¯¯¯¯¯¯¯¯
 
    Compilation settings. This file can be kept on the ignore list in your SVN program. It
    allows local optional settings depending on what works on your computer.
@@ -29,7 +29,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Settings
-// ¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 
 // This may fix a problem with Stop and Start that I described in the comments to revision 2,139
 //#define SETUP_FREE_PLUGIN_ON_BOOT
@@ -37,4 +37,10 @@
 // This may fix a semi-frequent hanging that occured when I used single core and render to main frame
 //#define SETUP_AVOID_SINGLE_CORE_HANG_ON_STOP
 
-//////////////////////////
+// This may remove sound artifacts in Wario Land Shake It and perhaps other games
+//#define SETUP_AVOID_SOUND_ARTIFACTS
+
+// Build with music modification
+//#define MUSICMOD
+
+///////////////////////////

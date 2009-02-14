@@ -15,10 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <dxerr.h>
+
 #include "DSoundStream.h"
 #include "../main.h"
+#include "WaveFile.h"
 
-#include <dxerr.h>
+extern bool log_ai;
+extern WaveFileWriter g_wave_writer;
 
 bool DSound::CreateBuffer()
 {
@@ -59,6 +63,11 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 		char* soundData, // Start of our data.
 		DWORD dwSoundBytes) // Size of block to copy.
 {
+	// I want to record the regular audio to, how do I do that?
+	//std::string Data = ArrayToString((const u8*)soundData, dwSoundBytes);
+	//Console::Print("Data: %s\n\n", Data.c_str());
+	//if (log_ai) g_wave_writer.AddStereoSamples((const short*)soundData, dwSoundBytes);
+
 	void* ptr1, * ptr2;
 	DWORD numBytes1, numBytes2;
 	// Obtain memory address of write block. This will be in two parts if the block wraps around.
