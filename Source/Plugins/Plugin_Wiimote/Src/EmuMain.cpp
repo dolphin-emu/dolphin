@@ -132,6 +132,11 @@ void LoadRecordedMovements()
 		// Logging
 		//Console::Print("Recording%i ", i + 1);
 
+		// Temporary storage
+		bool bTmp;
+		int iTmp;
+		std::string STmp;
+
 		// First clear the list
 		VRecording.at(i).Recording.clear();
 
@@ -203,8 +208,10 @@ void LoadRecordedMovements()
 		}
 
 		// Get HotKey
-		int TmpRecordHotKey; file.Get(SaveName.c_str(), "HotKey", &TmpRecordHotKey, -1);
-		VRecording.at(i).HotKey = TmpRecordHotKey;
+		file.Get(SaveName.c_str(), "HotKeySwitch", &iTmp, 3); VRecording.at(i).HotKeySwitch = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyWiimote", &iTmp, 10); VRecording.at(i).HotKeyWiimote = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyNunchuck", &iTmp, 10); VRecording.at(i).HotKeyNunchuck = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyIR", &iTmp, 10); VRecording.at(i).HotKeyIR = iTmp;
 
 		// Get Recording speed
 		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
@@ -254,7 +261,7 @@ void UpdateEeprom()
 
 	Console::Print("UpdateExtension: %i %i   %i %i %i\n\n",
 		WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
-		WiiMoteEmu::g_RegExt[20], WiiMoteEmu::g_RegExt[21], WiiMoteEmu::g_RegExt[26]);
+		WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 }
 
 // Calculate checksum for the nunchuck calibration. The last two bytes.
@@ -270,7 +277,7 @@ void ExtensionChecksum(u8 * Calibration)
 	Byte16 = sum + 0xaa; // Byte 16
 }
 
-// Set initial values
+// Set initial valuesm this done both in Init and Shutdown
 void ResetVariables()
 {
 	u8 g_Leds = 0x0; // 4 bits
@@ -281,6 +288,16 @@ void ResetVariables()
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
 	g_Encryption = false;
+
+	// Set default recording values
+	for (int i = 0; i < 3; i++)
+	{
+		g_RecordingPlaying[i] = -1;
+		g_RecordingCounter[i] = 0;
+		g_RecordingPoint[i] = 0;
+		g_RecordingStart[i] = 0;
+		g_RecordingCurrentTime[i] = 0;
+	}
 
 	g_EmulatedWiiMoteInitialized = false;
 }
@@ -302,6 +319,8 @@ void SetDefaultExtensionRegistry()
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 
+	Console::Print("\nSetDefaultExtensionRegistry()\n\n");
+
 	UpdateEeprom();
 }
 
@@ -316,35 +335,26 @@ void Initialize()
 	// Reset variables
 	ResetVariables();
 
-	// Write default Eeprom data
+	// Write default Eeprom data to g_Eeprom[]
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 
-	// Copy extension id and calibration to its register	
-	SetDefaultExtensionRegistry();
-
-	g_ReportingMode = 0;
-	g_EmulatedWiiMoteInitialized = true;
-
-	// Load pre-recorded movements
-	LoadRecordedMovements();
-
-	// Set default recording values
-	for (int i = 0; i < 3; i++)
-	{
-		g_RecordingPlaying[i] = -1;
-		g_RecordingCounter[i] = 0;
-		g_RecordingPoint[i] = 0;
-		g_RecordingStart[i] = 0;
-		g_RecordingCurrentTime[i] = 0;
-	}
-
-	// Populate joyinfo for all attached devices if the configuration window is not already open
+	/* Populate joyinfo for all attached devices and do g_Config.Load() if the configuration window is
+	   not already open, if it's already open we continue with the settings we have */
 	if(!g_FrameOpen)
 	{
 		Search_Devices(joyinfo, NumPads, NumGoodPads);
 	}
+
+	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
+	SetDefaultExtensionRegistry();
+
+	// The emulated Wiimote is initialized
+	g_EmulatedWiiMoteInitialized = true;
+
+	// Load pre-recorded movements
+	LoadRecordedMovements();
 
 	/* The Nuncheck extension ID for homebrew applications that use the zero key. This writes 0x0000
 	   in encrypted form (0xfefe) to 0xfe in the extension register. */

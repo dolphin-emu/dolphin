@@ -37,42 +37,45 @@
 
 void ConfigDialog::LoadFile()
 {
-	Console::Print("LoadFile\n");
+	Console::Print("LoadFile()\n");
 
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
 
 	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
 	{
+		// Temporary storage
+		bool bTmp;
+		int iTmp;
+		std::string STmp;
+
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i);
 
 		// HotKey
-		int TmpRecordHotKey; file.Get(SaveName.c_str(), "HotKey", &TmpRecordHotKey, -1);
-		m_RecordHotKey[i]->SetSelection(TmpRecordHotKey);
+		file.Get(SaveName.c_str(), "HotKeySwitch", &iTmp, 3); m_RecordHotKeySwitch[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "HotKeyWiimote", &iTmp, 10); m_RecordHotKeyWiimote[i]->SetSelection(iTmp);		
+		file.Get(SaveName.c_str(), "HotKeyNunchuck", &iTmp, 10); m_RecordHotKeyNunchuck[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "HotKeyIR", &iTmp, 10); m_RecordHotKeyIR[i]->SetSelection(iTmp);
 
 		// Movement name
-		std::string TmpMovementName; file.Get(SaveName.c_str(), "MovementName", &TmpMovementName, "");
-		m_RecordText[i]->SetValue(wxString::FromAscii(TmpMovementName.c_str()));
+		file.Get(SaveName.c_str(), "MovementName", &STmp, ""); m_RecordText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// Game name
-		std::string TmpGameName; file.Get(SaveName.c_str(), "GameName", &TmpGameName, "");
-		m_RecordGameText[i]->SetValue(wxString::FromAscii(TmpGameName.c_str()));
+		file.Get(SaveName.c_str(), "GameName", &STmp, ""); m_RecordGameText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// IR Bytes
-		std::string TmpIRBytes; file.Get(SaveName.c_str(), "IRBytes", &TmpIRBytes, "");
-		m_RecordIRBytesText[i]->SetValue(wxString::FromAscii(TmpIRBytes.c_str()));
+		file.Get(SaveName.c_str(), "IRBytes", &STmp, ""); m_RecordIRBytesText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// Recording speed
-		int TmpRecordSpeed; file.Get(SaveName.c_str(), "RecordingSpeed", &TmpRecordSpeed, -1);
-		if(TmpRecordSpeed != -1)
-			m_RecordSpeed[i]->SetValue(wxString::Format(wxT("%i"), TmpRecordSpeed));
+		file.Get(SaveName.c_str(), "RecordingSpeed", &iTmp, -1);
+		if(iTmp != -1)
+			m_RecordSpeed[i]->SetValue(wxString::Format(wxT("%i"), iTmp));
 		else
 			m_RecordSpeed[i]->SetValue(wxT(""));
 
 		// Playback speed (currently always saved directly after a recording)
-		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
-		m_RecordPlayBackSpeed[i]->SetSelection(TmpPlaybackSpeed);
+		file.Get(SaveName.c_str(), "PlaybackSpeed", &iTmp, -1); m_RecordPlayBackSpeed[i]->SetSelection(iTmp);
 	}
 }
 void ConfigDialog::SaveFile()
@@ -88,7 +91,10 @@ void ConfigDialog::SaveFile()
 		std::string SaveName = StringFromFormat("Recording%i", i);
 
 		// HotKey
-		file.Set(SaveName.c_str(), "HotKey", m_RecordHotKey[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeySwitch", m_RecordHotKeySwitch[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyWiimote", m_RecordHotKeyWiimote[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyNunchuck", m_RecordHotKeyNunchuck[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyIR", m_RecordHotKeyIR[i]->GetSelection());
 
 		// Movement name
 		file.Set(SaveName.c_str(), "MovementName", m_RecordText[i]->GetValue().c_str());
@@ -110,7 +116,7 @@ void ConfigDialog::SaveFile()
 	}
 
 	file.Save("WiimoteMovement.ini");
-	Console::Print("Wrote WiimoteMovement.ini\n");
+	Console::Print("SaveFile()\n");
 }
 /////////////////////////////
 
@@ -261,6 +267,12 @@ void ConfigDialog::CreateGUIControlsRecording()
 	// ----------------
 	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Record movements"));
 
+	wxArrayString StrHotKeySwitch;
+	StrHotKeySwitch.Add(wxT("Shift"));
+	StrHotKeySwitch.Add(wxT("Ctrl"));
+	StrHotKeySwitch.Add(wxT("Alt"));
+	StrHotKeySwitch.Add(wxT(""));
+
 	wxArrayString StrHotKey;
 	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format(wxT("%i"), i));
 	StrHotKey.Add(wxT(""));
@@ -270,18 +282,23 @@ void ConfigDialog::CreateGUIControlsRecording()
 
 	wxBoxSizer * sRealRecord[RECORDING_ROWS + 1];
 
-	wxStaticText * m_TextRec = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(80, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextHotKey = new wxStaticText(m_PageRecording, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextMovement = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextGame = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextIRBytes = new wxStaticText(m_PageRecording, wxID_ANY, wxT("IR"), wxDefaultPosition, wxSize(20, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextRecSped = new wxStaticText(m_PageRecording, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(33, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextRec = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(80, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKey = new wxStaticText(m_PageRecording, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(170, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextMovement = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(200, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextGame = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(200, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextIRBytes = new wxStaticText(m_PageRecording, wxID_ANY, wxT("IR"), wxDefaultPosition, wxSize(20, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextRecSpeed = new wxStaticText(m_PageRecording, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(33, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, -1), wxALIGN_CENTRE);
+	
+	// Tool tips
 	m_TextRec->SetToolTip(wxT(
 		"To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n"
 		"by letting go of 'A'"));
-	m_TextHotKey->SetToolTip(wxT("The HotKey is Shift + [Number] for Wiimote movements and Ctrl + [Number] for Nunchuck movements"));
-	m_TextRecSped->SetToolTip(wxT("Recording speed in average measurements per second"));
+	m_TextHotKey->SetToolTip(
+		wxT("Select a hotkey for playback of 1. Wiimote movements, 2. Nunchuck movements, 3. IR data. You can combine it with an"
+		" option Shift, Ctrl, or Alt switch."
+		));
+	m_TextRecSpeed->SetToolTip(wxT("Recording speed in average measurements per second"));
 	m_TextPlaySpeed->SetToolTip(wxT(
 		"Playback speed: A playback speed of 100 means that the playback occurs at the same rate as it was recorded. (You can see the\n"
 		"current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n"
@@ -297,7 +314,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 	sRealRecord[0]->Add(m_TextMovement, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextGame, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextIRBytes, 0, wxEXPAND | (wxLEFT), 5);
-	sRealRecord[0]->Add(m_TextRecSped, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextRecSpeed, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextPlaySpeed, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealRecord->Add(sRealRecord[0], 0, wxEXPAND | (wxALL), 0);
 
@@ -305,7 +322,10 @@ void ConfigDialog::CreateGUIControlsRecording()
 	{
 		sRealRecord[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_RecordButton[i] = new wxButton(m_PageRecording, IDB_RECORD + i, wxEmptyString, wxDefaultPosition, wxSize(80, 20), 0, wxDefaultValidator, wxEmptyString);
-		m_RecordHotKey[i] = new wxChoice(m_PageRecording, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
+		m_RecordHotKeySwitch[i] = new wxChoice(m_PageRecording, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKeySwitch);
+		m_RecordHotKeyWiimote[i] = new wxChoice(m_PageRecording, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
+		m_RecordHotKeyNunchuck[i] = new wxChoice(m_PageRecording, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
+		m_RecordHotKeyIR[i] = new wxChoice(m_PageRecording, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
 		m_RecordText[i] = new wxTextCtrl(m_PageRecording, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordGameText[i] = new wxTextCtrl(m_PageRecording, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordIRBytesText[i] = new wxTextCtrl(m_PageRecording, IDT_RECORD_IRBYTESTEXT, wxT(""), wxDefaultPosition, wxSize(25, 19));
@@ -318,7 +338,10 @@ void ConfigDialog::CreateGUIControlsRecording()
 		m_RecordSpeed[i]->Enable(false);
 
 		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
-		sRealRecord[i]->Add(m_RecordHotKey[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordHotKeySwitch[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordHotKeyWiimote[i], 0, wxEXPAND | (wxLEFT), 2);
+		sRealRecord[i]->Add(m_RecordHotKeyNunchuck[i], 0, wxEXPAND | (wxLEFT), 2);
+		sRealRecord[i]->Add(m_RecordHotKeyIR[i], 0, wxEXPAND | (wxLEFT), 2);
 		sRealRecord[i]->Add(m_RecordText[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordGameText[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordIRBytesText[i], 0, wxEXPAND | (wxLEFT), 5);

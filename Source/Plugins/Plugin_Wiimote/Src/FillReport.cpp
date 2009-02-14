@@ -60,6 +60,9 @@ double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCu
 template<class IRReportType>
 bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 {
+	// Check if the recording is on
+	if (g_RecordingPlaying[Wm] == -1) return false;
+
 	// Return if the list is empty
 	if(VRecording.at(g_RecordingPlaying[Wm]).Recording.size() == 0)
 	{
@@ -94,7 +97,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	// Get starting time
 	if(g_RecordingCounter[Wm] == 0)
 	{
-		Console::Print("\n\nBegin\n");
+		Console::Print("\n\nBegin: %i\n", Wm);
 		g_RecordingStart[Wm] = GetDoubleTime();
 	}
 
@@ -124,7 +127,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 		g_RecordingPlaying[Wm] = -1;
 		g_RecordingStart[Wm] = 0;
 		g_RecordingCurrentTime[Wm] = 0;
-		Console::Print("End\n\n");
+		Console::Print("End: %i\n\n", Wm);
 		return false;
 	}
 
@@ -164,88 +167,72 @@ bool RecordingPlayIR(IRReportType &_IR)
 	return RecordingPlayAccIR(x, y, z, _IR, 2);
 }
 
-// Check if we should start the playback of a recording. Once it has been started it can not currently
-// be stopped, it will always run to the end of the recording.
-int RecordingCheckKeys(int Wiimote)
+// Return true if this particual numerical key is pressed
+bool IsNumericalKeyPressed(int _Key)
+{
+	// Check which key it is
+	std::string TmpKey = StringFromFormat("%i", _Key);
+	if(GetAsyncKeyState(TmpKey[0]))
+		return true;
+	else
+		// That numerical key is pressed
+		return false;
+}
+
+// Check if a switch is pressed
+bool IsSwitchPressed(int _Key)
+{
+	// Check if that switch is pressed
+	switch (_Key)
+	{
+		case 0: if (GetAsyncKeyState(VK_SHIFT)) return true;
+		case 1: if (GetAsyncKeyState(VK_CONTROL)) return true;
+		case 2: if (GetAsyncKeyState(VK_MENU)) return true;
+	}
+
+	// That switch was not pressed
+	return false;
+}
+
+// Check if we should start the playback of a recording. Once it has been started it can currently
+// not be stopped, it will always run to the end of the recording.
+int RecordingCheckKeys(int WmNuIr)
 {
 #ifdef _WIN32
 	//Console::Print("RecordingCheckKeys: %i\n", Wiimote);
 
-	// ------------------------------------
-	// Don't allow multiple action keys
-	// --------------
-	// Return if we have both a Shift, Ctrl, and Alt
-	if ( GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU) ) return -1;
-	// Return if we have both a Shift and Ctrl
-	if ( (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL)) ) return -1;
-	// Return if we have both a Ctrl and Alt
-	if ( (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU)) ) return -1;
-	// Return if we have both a Shift and Alt
-	if ( (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_MENU)) ) return -1;
-	// ---------------------
-
-	// Return if we don't have both a Wiimote and Shift
-	if ( Wiimote == 0 && !GetAsyncKeyState(VK_SHIFT) ) return -1;
-	
-	// Return if we don't have both a Nunchuck and Ctrl
-	if ( Wiimote == 1  && !GetAsyncKeyState(VK_CONTROL) ) return -1;
-
-	// Return if we don't have both a IR call and Alt
-	if ( Wiimote == 2  && !GetAsyncKeyState(VK_MENU) ) return -1;
-
-	// Check if we have exactly one numerical key
-	int Keys = 0;
-	for(int i = 0; i < 10; i++)
-	{
-		std::string Key = StringFromFormat("%i", i);
-		if(GetAsyncKeyState(Key[0])) Keys++;
-	}
-
-	//Console::Print("RecordingCheckKeys: %i\n", Keys);
-
-	// Return if we have less than or more than one
-	if (Keys != 1) return -1;
-
-	// Check which key it is
-	int Key;
-	for(int i = 0; i < 10; i++)
-	{
-		std::string TmpKey = StringFromFormat("%i", i);
-		if(GetAsyncKeyState(TmpKey[0])) { Key = i; break; }
-	}
-	
 	// Check if we have a HotKey match
 	bool Match = false;
+	int Recording = -1;
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
-		if (VRecording.at(i).HotKey == Key)
+		// Check all ten numerical keys
+		for(int j = 0; j < 10; j++)
 		{
-			//Console::Print("Match: %i %i\n", i, Key);
-			Match = true;
-			Key = i;
-			break;
+			if ((VRecording.at(i).HotKeyWiimote == j && WmNuIr == 0 && IsNumericalKeyPressed(j)
+				|| VRecording.at(i).HotKeyNunchuck == j && WmNuIr == 1 && IsNumericalKeyPressed(j)
+				|| VRecording.at(i).HotKeyIR == j && WmNuIr == 2 && IsNumericalKeyPressed(j))
+				&& (IsSwitchPressed(VRecording.at(i).HotKeySwitch) || VRecording.at(i).HotKeySwitch == 3))
+			{
+				//Console::Print("Match: %i %i\n", i, Key);
+				Match = true;
+				Recording = i;
+				break;
+			}
 		}
 	}
+
+
 
 	// Return nothing if we don't have a match
 	if (!Match) return -1;
 
 	// Return the match
-	return Key;
+	return Recording;
 #else
 	return -1;
 #endif
 }
-
-// check if we have any recording playback key combination
-bool CheckKeyCombination()
-{
-	if (RecordingCheckKeys(0) == -1 && RecordingCheckKeys(1) == -1 && RecordingCheckKeys(2) == -1)
-		return false;
-	else
-		return true; // This will also start a recording
-}
-
 
 
 //******************************************************************************
@@ -265,9 +252,6 @@ void FillReportInfo(wm_core& _core)
 #ifdef _WIN32
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
-
-	// Don't interrupt a recording
-	if (CheckKeyCombination()) return;
 
 	// Check the mouse position. Don't allow mouse clicks from outside the window.
 	float x, y; GetMousePos(x, y);
@@ -919,7 +903,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 // ----------------
 void FillReportExtension(wm_extension& _ext)
 {
-	// ------------------------------------
+	// ------------------------------------------
 	// Recorded movements
 	// --------------
 	// Check for a playback command

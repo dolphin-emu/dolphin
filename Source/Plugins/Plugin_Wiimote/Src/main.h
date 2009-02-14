@@ -59,7 +59,7 @@ struct SRecording
 struct SRecordingAll
 {
 	std::vector<SRecording> Recording;
-	int HotKey;
+	int HotKeySwitch, HotKeyWiimote, HotKeyNunchuck, HotKeyIR;
 	int PlaybackSpeed;
 	int IRBytes;
 };

@@ -555,7 +555,7 @@ void ConfigDialog::CreateGUIControls()
 		// Dead zone
 		m_ComboDeadZoneLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Dead Zone"));
 		wxArrayString TextDeadZone;
-		for (int i = 0; i <= 50; i++) TextDeadZone.Add(wxString::Format(wxT("%i%%"), i));
+		for (int j = 0; j <= 50; j++) TextDeadZone.Add(wxString::Format(wxT("%i%%"), j));
 		m_ComboDeadZoneLeft[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_LEFT, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
 		m_ComboDeadZoneRight[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_RIGHT, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
 
@@ -1235,9 +1235,12 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		{
 			int CurrentChoiceBox = (event.GetId() - IDC_RECORD);
 			if (i == CurrentChoiceBox) continue;
-			if (m_RecordHotKey[i]->GetSelection() == m_RecordHotKey[CurrentChoiceBox]->GetSelection()) m_RecordHotKey[i]->SetSelection(10);
-			Console::Print("HotKey: %i %i\n",
-				m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
+			if (m_RecordHotKeyWiimote[i]->GetSelection() == m_RecordHotKeyWiimote[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyWiimote[i]->SetSelection(10);
+			if (m_RecordHotKeyNunchuck[i]->GetSelection() == m_RecordHotKeyNunchuck[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyNunchuck[i]->SetSelection(10);
+			if (m_RecordHotKeyIR[i]->GetSelection() == m_RecordHotKeyIR[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyIR[i]->SetSelection(10);
+			
+			//Console::Print("HotKey: %i %i\n",
+			//	m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
 		}
 		break;
 		/////////////////

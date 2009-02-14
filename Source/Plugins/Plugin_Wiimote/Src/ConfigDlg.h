@@ -118,7 +118,10 @@ class ConfigDialog : public wxDialog
 		wxBitmap CreateBitmapDot(), CreateBitmap(), CreateBitmapDeadZone(int Radius), CreateBitmapClear();		
 
 		wxButton * m_RecordButton[RECORDING_ROWS + 1];
-		wxChoice * m_RecordHotKey[RECORDING_ROWS + 1];
+		wxChoice * m_RecordHotKeySwitch[RECORDING_ROWS + 1];
+		wxChoice * m_RecordHotKeyWiimote[RECORDING_ROWS + 1];
+		wxChoice * m_RecordHotKeyNunchuck[RECORDING_ROWS + 1];
+		wxChoice * m_RecordHotKeyIR[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordText[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordGameText[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordIRBytesText[RECORDING_ROWS + 1];
@@ -169,7 +172,7 @@ class ConfigDialog : public wxDialog
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,
 			IDB_RECORD = 2000,
 			IDC_RECORD = 3000,
-			IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_IRBYTESTEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
+			IDC_PLAY_WIIMOTE, IDC_PLAY_NUNCHUCK, IDC_PLAY_IR, IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_IRBYTESTEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
 		};
 
 		void OnClose(wxCloseEvent& event);
