@@ -40,7 +40,8 @@ struct Config
 	{
 		TRIGGER_OFF = 0,
 		KEYBOARD,
-		ANALOG,
+		ANALOG1,
+		ANALOG2,
 		TRIGGER
 	};
 

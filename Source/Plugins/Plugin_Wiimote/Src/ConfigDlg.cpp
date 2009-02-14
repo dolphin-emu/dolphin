@@ -106,7 +106,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_DEAD_ZONE, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_LEFT, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_RIGHT, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
@@ -162,7 +163,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	// Set control values
 	UpdateGUI();
 	// Update dead zone
-	DoChangeDeadZone();
+	DoChangeDeadZone(true); DoChangeDeadZone(false);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(ConfigDialog::OnKeyDown),
@@ -423,7 +424,8 @@ void ConfigDialog::CreateGUIControls()
 	wxArrayString StrTilt;
 	StrTilt.Add(wxString::FromAscii("<Off>"));
 	StrTilt.Add(wxString::FromAscii("Keyboard"));
-	StrTilt.Add(wxString::FromAscii("Analog stick"));
+	StrTilt.Add(wxString::FromAscii("Analog 1"));
+	StrTilt.Add(wxString::FromAscii("Analog 2"));
 	StrTilt.Add(wxString::FromAscii("Triggers"));
 	// The range is in degrees and are set at even 5 degrees values
 	wxArrayString StrTiltRangeRoll, StrTiltRangePitch;
@@ -446,7 +448,7 @@ void ConfigDialog::CreateGUIControls()
 		// ----------------
 
 		// Configuration controls
-		static const int TxtW = 50, TxtH = 19, ChW = 245;
+		static const int TxtW = 50, TxtH = 19, ChW = 261;
 
 		// Basic Settings
 		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
@@ -535,7 +537,7 @@ void ConfigDialog::CreateGUIControls()
 		// -----------------------------
 		/**/
 		// Controller
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(185, -1), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
 	
 		// Circle to square
 		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle To Square"));
@@ -554,7 +556,8 @@ void ConfigDialog::CreateGUIControls()
 		m_ComboDeadZoneLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Dead Zone"));
 		wxArrayString TextDeadZone;
 		for (int i = 0; i <= 50; i++) TextDeadZone.Add(wxString::Format(wxT("%i%%"), i));
-		m_ComboDeadZone[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
+		m_ComboDeadZoneLeft[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_LEFT, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
+		m_ComboDeadZoneRight[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_RIGHT, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
@@ -569,8 +572,11 @@ void ConfigDialog::CreateGUIControls()
 
 		// Sizers
 		m_gDeadZone[i] = new wxBoxSizer(wxVERTICAL);
-		m_gDeadZone[i]->Add(m_ComboDeadZoneLabel[i], 0, (wxUP), 0);
-		m_gDeadZone[i]->Add(m_ComboDeadZone[i], 0, (wxUP), 2);
+		m_gDeadZoneHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_gDeadZoneHoriz[i]->Add(m_ComboDeadZoneLeft[i], 0, (wxUP), 0);
+		m_gDeadZoneHoriz[i]->Add(m_ComboDeadZoneRight[i], 0, (wxUP), 0);
+		m_gDeadZone[i]->Add(m_ComboDeadZoneLabel[i], 0, wxALIGN_CENTER | (wxUP), 0);	
+		m_gDeadZone[i]->Add(m_gDeadZoneHoriz[i], 0, wxALIGN_CENTER | (wxUP), 2);
 
 		m_gCircle2Square[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_gCircle2Square[i]->Add(m_CheckC2SLabel[i], 0, (wxUP), 4);
@@ -585,8 +591,10 @@ void ConfigDialog::CreateGUIControls()
 		m_gC2SDeadZone[i]->Add(m_gCircle2SquareVert[i], 0, (wxLEFT), 8);
 
 		m_gJoyname[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Gamepad"));
+		m_gJoyname[i]->AddStretchSpacer();
 		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_gJoyname[i]->Add(m_gC2SDeadZone[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyname[i]->AddStretchSpacer();
 
 
 		// --------------------------------------------------------------------
@@ -726,6 +734,7 @@ void ConfigDialog::CreateGUIControls()
 
 		m_pRightInStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
 		m_bmpSquareRightIn[i] = new wxStaticBitmap(m_pRightInStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
+		m_bmpDeadZoneRightIn[i] = new wxStaticBitmap(m_pRightInStatus[i], wxID_ANY, CreateBitmapDeadZone(0), wxDefaultPosition, wxDefaultSize);
 		m_bmpDotRightIn[i] = new wxStaticBitmap(m_pRightInStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 
 		m_pRightOutStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -805,8 +814,10 @@ void ConfigDialog::CreateGUIControls()
 		// Row 3 Sizers
 		// -----------------------------
 		m_HorizControllers[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_HorizControllers[i]->AddStretchSpacer();
 		m_HorizControllers[i]->Add(m_gAnalogLeft[i]);
 		m_HorizControllers[i]->Add(m_gAnalogRight[i], 0, (wxLEFT), 5);
+		m_HorizControllers[i]->AddStretchSpacer();
 		///////////////////////////
 
 
@@ -1180,9 +1191,13 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_TILT_INVERT_PITCH:
 		SaveButtonMappingAll(Page);
 		break;
-	case IDCB_DEAD_ZONE:
+	case IDCB_DEAD_ZONE_LEFT:
 		SaveButtonMappingAll(Page);
-		DoChangeDeadZone();	
+		DoChangeDeadZone(true);	
+		break;
+	case IDCB_DEAD_ZONE_RIGHT:
+		SaveButtonMappingAll(Page);
+		DoChangeDeadZone(false);	
 		break;
 
 	//////////////////////////
@@ -1269,7 +1284,8 @@ void ConfigDialog::UpdateGUI(int Slot)
 			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_LEFT_C2S)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDCB_LEFT_DIAGONAL)->Enable(PadEnabled);
-			m_Notebook->FindItem(IDCB_DEAD_ZONE)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDCB_DEAD_ZONE_LEFT)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDCB_DEAD_ZONE_RIGHT)->Enable(PadEnabled);
 			m_Notebook->FindItem(ID_TRIGGER_TYPE)->Enable(PadEnabled);
 		#endif
 	}		

@@ -385,11 +385,17 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 		PadState[Page].Axis.Ly = main_xy.at(1);
 	}
 	// Check dead zone
-	float DeadZone = (float)PadMapping[Page].deadzone / 100.0;
-	if (InputCommon::IsDeadZone(DeadZone, PadState[Page].Axis.Lx, PadState[Page].Axis.Ly))
+	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0;
+	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0;
+	if (InputCommon::IsDeadZone(DeadZoneLeft, PadState[Page].Axis.Lx, PadState[Page].Axis.Ly))
 	{
 		PadState[Page].Axis.Lx = 0;
 		PadState[Page].Axis.Ly = 0;
+	}
+	if (InputCommon::IsDeadZone(DeadZoneRight, PadState[Page].Axis.Rx, PadState[Page].Axis.Ry))
+	{
+		PadState[Page].Axis.Rx = 0;
+		PadState[Page].Axis.Ry = 0;
 	}
 
 	// Convert the big values
@@ -429,7 +435,7 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 
 	/* For the analog stick roll us by default set to the X-axis, pitch is by default set to the Y-axis.
 	   By changing the axis mapping and the invert options this can be altered in any way */
-	else
+	else if (g_Config.Trigger.Type == g_Config.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
 		Lx = Lx - 128;
@@ -440,6 +446,19 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 		// Produce the final value
 		Roll = Lx * (RollRange / 128);
 		Pitch = Ly * (PitchRange / 128);
+	}
+	// Otherwise we are using ANALOG2
+	else
+	{
+		// Adjust the trigger to go between negative and positive values
+		Rx = Rx - 128;
+		Ry = Ry - 128;
+		// Invert
+		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
+		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
+		// Produce the final value
+		Roll = Rx * (RollRange / 128);
+		Pitch = Ry * (PitchRange / 128);
 	}
 
 	// Adjustment to prevent a slightly to high angle
@@ -511,7 +530,7 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 	// Select input method and return the x, y, x values
 	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
 		TiltWiimoteKeyboard(Roll, Pitch);
-	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG)
+	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG1 || g_Config.Trigger.Type == g_Config.ANALOG2)
 		TiltWiimoteGamepad(Roll, Pitch);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together

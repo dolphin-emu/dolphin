@@ -57,7 +57,7 @@ class ConfigDialog : public wxDialog
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
 		wxStaticBitmap *m_bmpDotLeftIn[4], *m_bmpDotLeftOut[4], *m_bmpDotRightIn[4], *m_bmpDotRightOut[4],
-			*m_bmpDeadZoneLeftIn[4];
+			*m_bmpDeadZoneLeftIn[4], *m_bmpDeadZoneRightIn[4];
 		wxStaticText *m_TextIR, *m_TextAccNeutralCurrent;
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
 		int m_iRecordTo;
@@ -87,7 +87,7 @@ class ConfigDialog : public wxDialog
 		// Emulated Wiimote key settings		
 		wxBoxSizer *m_SizeBasicPadding[4], *m_SizeEmuPadding[4], *m_SizeRealPadding[4], *m_SizeExtensionsPadding[4],
 			*m_SizeBasicGeneral[4], *m_SizeBasicGeneralLeft[4], *m_SizeBasicGeneralRight[4],
-			*m_HorizControllers[4], *m_gC2SDeadZone[4], *m_gCircle2Square[4], *m_gCircle2SquareVert[4], *m_gDeadZone[4], *m_HorizControllerTiltParent[4], *m_HorizControllerTilt[4], *m_TiltHoriz[4],
+			*m_HorizControllers[4], *m_gC2SDeadZone[4], *m_gCircle2Square[4], *m_gCircle2SquareVert[4], *m_gDeadZone[4], *m_gDeadZoneHoriz[4], *m_HorizControllerTiltParent[4], *m_HorizControllerTilt[4], *m_TiltHoriz[4],
 			*m_SizeAnalogLeft[4], *m_SizeAnalogLeftHorizX[4], *m_SizeAnalogLeftHorizY[4], *m_SizeAnalogRight[4], *m_SizeAnalogRightHorizX[4], *m_SizeAnalogRightHorizY[4],
 			*m_SizeAnalogTriggerVertLeft[4], *m_SizeAnalogTriggerVertRight[4], *m_SizeAnalogTriggerHorizInput[4];
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
@@ -106,7 +106,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4], *m_WideScreen[4];
 		wxCheckBox *m_CheckC2S[4], *m_TiltInvertRoll[4], *m_TiltInvertPitch[4];
 		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
-		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_ComboDeadZone[4], *m_TriggerType[4];
+		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_ComboDeadZoneLeft[4], *m_ComboDeadZoneRight[4], *m_TriggerType[4];
 
 		// Real Wiimote settings
 		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters;
@@ -162,7 +162,7 @@ class ConfigDialog : public wxDialog
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
 			// Gamepad settings
-			IDC_JOYNAME, IDC_LEFT_C2S, IDCB_LEFT_DIAGONAL, IDCB_DEAD_ZONE,
+			IDC_JOYNAME, IDC_LEFT_C2S, IDCB_LEFT_DIAGONAL, IDCB_DEAD_ZONE_LEFT, IDCB_DEAD_ZONE_RIGHT,
 			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH, ID_TILT_INVERT_ROLL, ID_TILT_INVERT_PITCH,
 
 			// Real
@@ -191,7 +191,7 @@ class ConfigDialog : public wxDialog
 		void ToBlank(bool ToBlank = true);
 		void PadGetStatus();
 		void DoSave(bool ChangePad = false, int Slot = -1);
-		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close); void DoChangeDeadZone();
+		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close); void DoChangeDeadZone(bool Left);
 
 		// Configure buttons
 		int GetButtonWaitingID, GetButtonWaitingTimer;

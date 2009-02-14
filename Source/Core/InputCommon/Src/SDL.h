@@ -181,7 +181,8 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 {
 	PadAxis Axis;			// (See above)
 	bool enabled;			// Pad attached?
-	int deadzone;			// Deadzone... what else?
+	int DeadZoneL;			// Analog 1 Deadzone
+	int DeadZoneR;			// Analog 2 Deadzone
 	int ID;					// SDL joystick device ID
 	int controllertype;		// D-Pad type: Hat or custom buttons
 	int triggertype;		// SDL or XInput trigger

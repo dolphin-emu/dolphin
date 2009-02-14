@@ -75,14 +75,26 @@ void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 	WiiMoteEmu::PadState[Close].joy = NULL;
 }
 
-void ConfigDialog::DoChangeDeadZone()
+void ConfigDialog::DoChangeDeadZone(bool Left)
 {
-	float Rad = (float)WiiMoteEmu::PadMapping[Page].deadzone * ((float)BoxW / 100.0) * 0.5;	
-	m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapClear());
-	m_bmpDeadZoneLeftIn[Page]->SetSize(0, 0);
-	m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapDeadZone((int)Rad));
-	m_bmpDeadZoneLeftIn[Page]->SetPosition(wxPoint(BoxW / 2 - (int)Rad, BoxH / 2 - (int)Rad));
-	m_bmpDeadZoneLeftIn[Page]->Refresh();	
+	if(Left)
+	{
+		float Rad = (float)WiiMoteEmu::PadMapping[Page].DeadZoneL * ((float)BoxW / 100.0) * 0.5;	
+		m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapClear());
+		m_bmpDeadZoneLeftIn[Page]->SetSize(0, 0);
+		m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapDeadZone((int)Rad));
+		m_bmpDeadZoneLeftIn[Page]->SetPosition(wxPoint(BoxW / 2 - (int)Rad, BoxH / 2 - (int)Rad));
+		m_bmpDeadZoneLeftIn[Page]->Refresh();	
+	}
+	else
+	{
+		float Rad = (float)WiiMoteEmu::PadMapping[Page].DeadZoneR * ((float)BoxW / 100.0) * 0.5;	
+		m_bmpDeadZoneRightIn[Page]->SetBitmap(CreateBitmapClear());
+		m_bmpDeadZoneRightIn[Page]->SetSize(0, 0);
+		m_bmpDeadZoneRightIn[Page]->SetBitmap(CreateBitmapDeadZone((int)Rad));
+		m_bmpDeadZoneRightIn[Page]->SetPosition(wxPoint(BoxW / 2 - (int)Rad, BoxH / 2 - (int)Rad));
+		m_bmpDeadZoneRightIn[Page]->Refresh();	
+	}
 }
 //////////////////////////////////////
 
@@ -138,7 +150,8 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	
 	// Update the deadzone and controller type controls
 	m_TriggerType[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].triggertype);
-	m_ComboDeadZone[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].deadzone);
+	m_ComboDeadZoneLeft[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].DeadZoneL);
+	m_ComboDeadZoneRight[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].DeadZoneR);
 	m_ComboDiagonal[controller]->SetValue(wxString::FromAscii(WiiMoteEmu::PadMapping[controller].SDiagonal.c_str()));
 	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
 	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
@@ -169,7 +182,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	// Set other settings
 	//WiiMoteEmu::PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
-	WiiMoteEmu::PadMapping[controller].deadzone = m_ComboDeadZone[FromSlot]->GetSelection();
+	WiiMoteEmu::PadMapping[controller].DeadZoneL = m_ComboDeadZoneLeft[FromSlot]->GetSelection();
+	WiiMoteEmu::PadMapping[controller].DeadZoneR = m_ComboDeadZoneRight[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].SDiagonal = m_ComboDiagonal[FromSlot]->GetLabel().mb_str();
 	WiiMoteEmu::PadMapping[controller].bCircle2Square = m_CheckC2S[FromSlot]->IsChecked();	
 	WiiMoteEmu::PadMapping[controller].bRollInvert = m_TiltInvertRoll[FromSlot]->IsChecked();	
@@ -536,11 +550,17 @@ void ConfigDialog::PadGetStatus()
 		//main_y = main_xy.at(1);
 	}	
 	// Check dead zone
-	float DeadZone = (float)WiiMoteEmu::PadMapping[Page].deadzone / 100.0;
-	if (InputCommon::IsDeadZone(DeadZone, main_x_after, main_y_after))
+	float DeadZoneLeft = (float)WiiMoteEmu::PadMapping[Page].DeadZoneL / 100.0;
+	float DeadZoneRight = (float)WiiMoteEmu::PadMapping[Page].DeadZoneR / 100.0;
+	if (InputCommon::IsDeadZone(DeadZoneLeft, main_x_after, main_y_after))
 	{
 		main_x_after = 0;
 		main_y_after = 0;
+	}
+	if (InputCommon::IsDeadZone(DeadZoneRight, right_x_after, right_y_after))
+	{
+		right_x_after = 0;
+		right_y_after = 0;
 	}
 
 	// -------------------------------------------

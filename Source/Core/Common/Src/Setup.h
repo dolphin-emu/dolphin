@@ -16,12 +16,18 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+#ifndef __SETUP_h__
+#define __SETUP_h__
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // File description
 /* ¯¯¯¯¯¯¯¯¯¯¯¯
 
-   Compilation settings. This file can be kept on the ignore list in your SVN program. It
-   allows local optional settings depending on what works on your computer.
+   Compilation settings. I avoid placing this in Common.h or some place where lots of files needs
+   to be rebuilt if any of these settings are changed. I'd rather have it in as few files as possible.
+   This file can be kept on the ignore list in your SVN program. It allows local optional settings
+   depending on what works on your computer.
 
 ////////////////////////*/
 
@@ -44,3 +50,6 @@
 //#define MUSICMOD
 
 ///////////////////////////
+
+
+#endif // __SETUP_h__
