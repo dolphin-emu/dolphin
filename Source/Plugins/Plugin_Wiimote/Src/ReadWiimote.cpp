@@ -204,8 +204,8 @@ void handle_event(struct wiimote_t* wm)
 					wxT("Current: %03u %03u %03u"), AccelX, AccelY, AccelZ));
 
 				if(frame->m_bRecording)
-					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
-					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", wm->accel.x, wm->accel.y, wm->accel.z);
+					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", AccelX, AccelY, AccelZ);
+					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", AccelX, AccelY, AccelZ);
 			}
 	
 			// Send the data to be saved

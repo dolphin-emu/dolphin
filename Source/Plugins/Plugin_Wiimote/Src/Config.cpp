@@ -162,8 +162,8 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "l_trigger", WiiMoteEmu::PadMapping[i].Axis.Tl);
 		iniFile.Set(SectionName.c_str(), "r_trigger", WiiMoteEmu::PadMapping[i].Axis.Tr);
 
-		//iniFile.Set(SectionName.c_str(), "deadzone", PadMapping[i].deadzone);		
-		//iniFile.Set(SectionName.c_str(), "controllertype", PadMapping[i].controllertype);
+		iniFile.Set(SectionName.c_str(), "DeadZone", WiiMoteEmu::PadMapping[i].deadzone);		
+		//iniFile.Set(SectionName.c_str(), "controllertype", WiiMoteEmu::PadMapping[i].controllertype);
 		iniFile.Set(SectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 		iniFile.Set(SectionName.c_str(), "Diagonal", WiiMoteEmu::PadMapping[i].SDiagonal);
 		iniFile.Set(SectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);

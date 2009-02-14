@@ -207,6 +207,8 @@ void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, 
 float Deg2Rad(float Deg);
 float Rad2Deg(float Rad);
 int Pad_Convert(int _val);
+float SquareDistance(float deg);
+bool IsDeadZone(float DeadZone, int x, int y);
 std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square = false);
 
 #ifndef _SDL_MAIN_

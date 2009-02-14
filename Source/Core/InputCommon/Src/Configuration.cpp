@@ -56,11 +56,32 @@ float Rad2Deg(float Rad)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Convert stick values
+// Check if the pad is within the dead zone, we assume the range is 0x8000
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+float CoordinatesToRadius(int x, int y)
+{
+	return sqrt(pow((float)x, 2) +  pow((float)y, 2));
+}
 
-/* Convert stick values.
+bool IsDeadZone(float DeadZone, int x, int y)
+{
+	// Get the distance from the center
+	float Distance = CoordinatesToRadius(x, y) / 32767.0;
 
+	//Console::Print("%f\n", Distance);
+
+	// Check if it's within the dead zone
+	if (Distance <= DeadZone)
+		return true;
+	else
+		return false;
+}
+/////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Scale down stick values from 0x8000 to 0x80
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
    The value returned by SDL_JoystickGetAxis is a signed integer s16
    (-32768 to 32767). The value used for the gamecube controller is an unsigned
    char u8 (0 to 255) with neutral at 0x80 (128), so that it's equivalent to a signed
@@ -84,46 +105,50 @@ int Pad_Convert(int _val)
 
 	return _val;
 }
+/////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/* Convert the stick raidus from a circular to a square. I don't know what input values
-   the actual GC controller produce for the GC, it may be a square, a circle or something
-   in between. But one thing that is certain is that PC pads differ in their output (as
-   shown in the list below), so it may be beneficiary to convert whatever radius they
+/* Convert the stick raidus from a square or rounded box to a circular radius. I don't know what
+   input values the actual GC controller produce for the GC, it may be a square, a circle or
+   something in between. But one thing that is certain is that PC pads differ in their output
+   (as shown in the list below), so it may be beneficiary to convert whatever radius they
    produce to the radius the GC games expect. This is the first implementation of this
    that convert a square radius to a circual radius. Use the advanced settings to enable
    and calibrate it.
 
    Observed diagonals:
-   Perfect circle: 71% = sin(45)
-   Logitech Dual Action: 100%
-   Dual Shock 2 (Original) with Super Dual Box Pro: 90%
-   XBox 360 Wireless: 85%
-   GameCube Controller (Third Party) with EMS TrioLinker Plus II: 60%
+	   Perfect circle: 71% = sin(45)
+	   Logitech Dual Action: 100%
+	   PS2 Dual Shock 2 (Original) with Super Dual Box Pro: 90%
+	   XBox 360 Wireless: 85%
+	   GameCube Controller (Third Party) with EMS Trio Linker Plus II: 60%
 */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-/* Calculate the distance from the center of the current stick coordinates. The distance is defined
-   as at most sqrt(2) in the corners */
-float SquareDistance(float deg)
+/* Calculate the distance from the outer edges of the box to the outer edges of the circle inside the box
+   at any angle from 0° to 360°. The returned value is 1 + Distance, for example at most sqrt(2) in the
+   corners and at least 1.0 at the horizontal and vertical angles. */
+float Square2CircleDistance(float deg)
 {
 	// See if we have to adjust the angle
 	deg = abs(deg);
 	if( (deg > 45 && deg < 135) ) deg = deg - 90;
 
+	// Calculate distance from center
 	float val = abs(cos(Deg2Rad(deg)));
-	float dist = 1 / val; // Calculate distance from center
+	float Distance = 1 / val;
 
 	//m_frame->m_pStatusBar2->SetLabel(wxString::Format("Deg:%f  Val:%f  Dist:%f", deg, val, dist));
 
-	return dist;
+	return Distance;
 }
-// Produce the circle from the original
+// Produce a perfect circle from an original square or rounded box
 std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square)
 {
-	/* Do we need this? */
-	if(_x > 32767) _x = 32767; if(_y > 32767) _y = 32767; // upper limit
-	if(_x < -32768) _x = -32768; if(_y > 32767) _y = 32767; // lower limit
+	// Do we need this?
+	if(_x >  32767) _x =  32767; if(_y >  32767) _y =  32767; // upper limit
+	if(_x < -32768) _x = -32768; if(_y < -32768) _y = -32768; // lower limit
 
 	// ====================================
 	// Convert to circle
@@ -136,9 +161,10 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 	float OrigDist = sqrt(  pow((float)_y, 2) + pow((float)_x, 2)  ); // Get current distance
 	float deg = Rad2Deg(atan2((float)_y, (float)_x)); // Get current angle
 
-	// A diagonal of 85% means a maximum distance of 0.85 * sqrt(2) ~1.2 in the diagonals
+	/* Calculate the actual distance between the maxium diagonal values, and the outer edges of the
+	   square. A diagonal of 85% means a maximum distance of 0.85 * sqrt(2) ~1.2 in the diagonals. */
 	float corner_circle_dist = ( Diagonal / sin(Deg2Rad(45)) );
-	float SquareDist = SquareDistance(deg);
+	float SquareDist = Square2CircleDistance(deg);
 	// The original-to-square distance adjustment
 	float adj_ratio1;
 	// The circle-to-square distance adjustment
@@ -163,8 +189,8 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 	int int_x = (int)floor(x);
 	int int_y = (int)floor(y);
 	// Boundaries
-	if (int_x < -32767) int_x = -32767; if (int_x > 32767) int_x = 32767;
-	if (int_y < -32767) int_y = -32767; if (int_y > 32767) int_y = 32767;
+	if (int_x < -32768) int_x = -32768; if (int_x > 32767) int_x = 32767;
+	if (int_y < -32768) int_y = -32768; if (int_y > 32767) int_y = 32767;
 	// Return it
 	std::vector<int> vec;
 	vec.push_back(int_x);

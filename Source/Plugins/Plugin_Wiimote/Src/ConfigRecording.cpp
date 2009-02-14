@@ -374,7 +374,6 @@ void ConfigDialog::ConvertToString()
 		int Time = (int)((m_vRecording.at(i).Time - m_vRecording.at(0).Time) * 1000);
 		TmpTime += StringFromFormat("%05i", Time);
 		if(i < (m_vRecording.size() - 1)) TmpTime += ",";
-		//Console::Print("Time: %f %i\n", m_vRecording.at(i).Time, Time);
 
 		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
 		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
@@ -383,6 +382,9 @@ void ConfigDialog::ConvertToString()
 			break;
 			PanicAlert("Your recording was to long, the entire recording was not saved.");
 		}
+
+		// Debug
+		Console::Print("Saved: [%i / %i] %03i %03i %03i\n", i, m_vRecording.size(), m_vRecording.at(i).x, m_vRecording.at(i).y, m_vRecording.at(i).z);
 	}
 	
 	// Recordings per second
@@ -499,7 +501,7 @@ void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int _IRB
 
 	if (!m_bRecording) return;
 
-	//Console::Print("DoRecordMovement\n");
+	//Console::Print("DoRecordMovement: %03i %03i %03i\n", _x, _y, _z);
 
 	SRecording Tmp;
 	Tmp.x = _x;

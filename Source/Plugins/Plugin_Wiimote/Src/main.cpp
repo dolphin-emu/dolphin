@@ -635,8 +635,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		std::string RollPitch = StringFromFormat("%s %s  %s %s",
 			(Roll >= 0) ? StringFromFormat(" %03i", Roll).c_str() : StringFromFormat("%04i", Roll).c_str(),
 			(Pitch >= 0) ? StringFromFormat(" %03i", Pitch).c_str() : StringFromFormat("%04i", Pitch).c_str(),
-			(RollAdj == Roll) ? "" : StringFromFormat("%i*", RollAdj).c_str(),
-			(PitchAdj == Pitch) ? "" : StringFromFormat("%i*", PitchAdj).c_str());
+			(RollAdj == Roll) ? "     " : StringFromFormat("%04i*", RollAdj).c_str(),
+			(PitchAdj == Pitch) ? "     " : StringFromFormat("%04i*", PitchAdj).c_str());
 
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
@@ -648,8 +648,17 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		WiiMoteEmu::Tilt(x, y, z);
 		WiiMoteEmu::TiltTest(x, y, z);*/
 		// -------------------------
+
+		// Show the number of g forces on the axes
+		float Gx = WiiMoteEmu::AccelerometerToG((float)data[4], (float)g_accel.cal_zero.x, (float)g_accel.cal_g.x);
+		float Gy = WiiMoteEmu::AccelerometerToG((float)data[5], (float)g_accel.cal_zero.y, (float)g_accel.cal_g.y);
+		float Gz = WiiMoteEmu::AccelerometerToG((float)data[6], (float)g_accel.cal_zero.z, (float)g_accel.cal_g.z);
+		std::string GForce = StringFromFormat("%s %s %s",
+			(Gx >= 0) ? StringFromFormat(" %i", (int)Gx).c_str() : StringFromFormat("%i", (int)Gx).c_str(),
+			(Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
+			(Gz >= 0) ? StringFromFormat(" %i", (int)Gz).c_str() : StringFromFormat("%i", (int)Gz).c_str());
 		
-		Console::Print("Read[%s]: %s| %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str()); // No timestamp
+		Console::Print("Read[%s]: %s| %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str(), GForce.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 		
 	}

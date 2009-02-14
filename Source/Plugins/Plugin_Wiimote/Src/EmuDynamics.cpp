@@ -159,18 +159,21 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 //////////////////////////////////////////////////////////////////////////////////////////
 // Accelerometer to roll and pitch angles
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
+float AccelerometerToG(float Current, float Neutral, float G)
+{
+	float _G = (Current - Neutral) / G;
+	return _G;
+}
+
 void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, int &_RollAdj, int &_PitchAdj)
 {
-	/* find out how much it has to move to be 1g */
-	float xg = (float)g_accel.cal_g.x;
-	float yg = (float)g_accel.cal_g.y;
-	float zg = (float)g_accel.cal_g.z;
+	// Definitions
 	float Roll = 0, Pitch = 0;
 
 	// Calculate how many g we are from the neutral
-	float x = ((float)_x - (float)g_accel.cal_zero.x) / xg;
-	float y = ((float)_y - (float)g_accel.cal_zero.y) / yg;
-	float z = ((float)_z - (float)g_accel.cal_zero.z) / zg;
+	float x = AccelerometerToG((float)_x, (float)g_accel.cal_zero.x, (float)g_accel.cal_g.x);
+	float y = AccelerometerToG((float)_y, (float)g_accel.cal_zero.y, (float)g_accel.cal_g.y);
+	float z = AccelerometerToG((float)_z, (float)g_accel.cal_zero.z, (float)g_accel.cal_g.z);
 
 	// If it is over 1g then it is probably accelerating and may not reliable
 	//if (abs(accel->x - ac->cal_zero.x) <= ac->cal_g.x)

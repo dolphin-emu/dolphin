@@ -54,6 +54,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons);
 void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_z);
 void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, int&, int&);
+float AccelerometerToG(float Current, float Neutral, float G);
 void TiltTest(u8 x, u8 y, u8 z);
 void Tilt(u8 &_x, u8 &_y, u8 &_z);
 void AdjustAngles(float &Roll, float &Pitch);

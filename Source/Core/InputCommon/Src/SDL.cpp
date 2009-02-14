@@ -65,7 +65,7 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 		DEBUG_INIT();
 	#endif
 
-	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimedia API, and with this we need 
 	   the SDL_INIT_VIDEO flag to */
 	if (!SDL_WasInit(0))
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)

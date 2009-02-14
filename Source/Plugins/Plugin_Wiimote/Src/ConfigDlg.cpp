@@ -100,11 +100,13 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
 
 	// Gamepad
+	EVT_COMBOBOX(IDC_JOYNAME, ConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TRIGGER_TYPE, ConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TILT_INPUT, ConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
@@ -157,7 +159,10 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	g_Config.Load();
 	CreateGUIControls();
 	LoadFile();
+	// Set control values
 	UpdateGUI();
+	// Update dead zone
+	DoChangeDeadZone();
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(ConfigDialog::OnKeyDown),
@@ -281,7 +286,7 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
 		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
-		
+		// Save the settings for the current pad
 		g_Config.Save(Slot);
 		// Now we can update the ID
 		WiiMoteEmu::PadMapping[Page].ID = m_Joyname[Page]->GetSelection();
@@ -295,6 +300,8 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 
 	// Then change it back to ""
 	ToBlank();
+
+	Console::Print("WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
 }
 //////////////////////////////////////
 
@@ -332,13 +339,42 @@ wxBitmap ConfigDialog::CreateBitmapDot()
 	// Set outline and fill colors
 	//wxBrush RedBrush(_T("#0383f0"));	
 	//wxPen RedPen(_T("#80c5fd"));
-	//wxPen LightGrayPen(_T("#909090"));
 	dc.SetPen(*wxRED_PEN);
 	dc.SetBrush(*wxRED_BRUSH);
 
 	dc.Clear();
 	dc.DrawRectangle(0, 0, w, h);
 	dc.SelectObject(wxNullBitmap);
+	return bitmap;
+}
+wxBitmap ConfigDialog::CreateBitmapDeadZone(int Radius)
+{
+	wxBitmap bitmap(Radius*2, Radius*2);
+	wxMemoryDC dc;
+	dc.SelectObject(bitmap);
+
+	// Set outline and fill colors
+	dc.SetPen(*wxLIGHT_GREY_PEN);
+	dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+	
+	//dc.SetBackground(*wxGREEN_BRUSH);
+	dc.Clear();
+	dc.DrawCircle(Radius, Radius, Radius);
+	//dc.SelectObject(wxNullBitmap);
+	return bitmap;
+}
+wxBitmap ConfigDialog::CreateBitmapClear()
+{
+	wxBitmap bitmap(BoxW, BoxH);
+	wxMemoryDC dc;
+	dc.SelectObject(bitmap);
+
+	// Set outline and fill colors
+	//dc.SetBrush(*wxTRANSPARENT_BRUSH);
+	
+	dc.Clear();
+	//dc.DrawRectangle(0, 0, BoxW, BoxH);
+	//dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
 //////////////////////////////////////
@@ -499,15 +535,13 @@ void ConfigDialog::CreateGUIControls()
 		// -----------------------------
 		/**/
 		// Controller
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(155, -1), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(185, -1), StrJoyname, wxCB_READONLY);
 	
 		// Circle to square
-		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle to square"));
-
-		// The label
-		m_CheckC2SLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Diagonal"));
+		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle To Square"));
 
 		// The drop down menu for the circle to square adjustment
+		m_CheckC2SLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Diagonal"));
 		wxArrayString asStatusInSet;
 			asStatusInSet.Add(wxT("100%"));
 			asStatusInSet.Add(wxT("95%"));
@@ -515,6 +549,12 @@ void ConfigDialog::CreateGUIControls()
 			asStatusInSet.Add(wxT("85%"));
 			asStatusInSet.Add(wxT("80%"));
 		m_ComboDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_LEFT_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxDefaultSize, asStatusInSet, wxCB_READONLY);
+
+		// Dead zone
+		m_ComboDeadZoneLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Dead Zone"));
+		wxArrayString TextDeadZone;
+		for (int i = 0; i <= 50; i++) TextDeadZone.Add(wxString::Format(wxT("%i%%"), i));
+		m_ComboDeadZone[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE, TextDeadZone[0], wxDefaultPosition, wxDefaultSize, TextDeadZone, wxCB_READONLY);
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
@@ -528,14 +568,25 @@ void ConfigDialog::CreateGUIControls()
 			));
 
 		// Sizers
+		m_gDeadZone[i] = new wxBoxSizer(wxVERTICAL);
+		m_gDeadZone[i]->Add(m_ComboDeadZoneLabel[i], 0, (wxUP), 0);
+		m_gDeadZone[i]->Add(m_ComboDeadZone[i], 0, (wxUP), 2);
+
 		m_gCircle2Square[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_gCircle2Square[i]->Add(m_CheckC2SLabel[i], 0, (wxUP), 4);
 		m_gCircle2Square[i]->Add(m_ComboDiagonal[i], 0, (wxLEFT), 2);
 
+		m_gCircle2SquareVert[i] = new wxBoxSizer(wxVERTICAL);
+		m_gCircle2SquareVert[i]->Add(m_CheckC2S[i], 0, wxALIGN_CENTER | (wxUP), 0);
+		m_gCircle2SquareVert[i]->Add(m_gCircle2Square[i], 0, wxALIGN_CENTER | (wxUP), 2);
+
+		m_gC2SDeadZone[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_gC2SDeadZone[i]->Add(m_gDeadZone[i], 0, (wxUP), 0);
+		m_gC2SDeadZone[i]->Add(m_gCircle2SquareVert[i], 0, (wxLEFT), 8);
+
 		m_gJoyname[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Gamepad"));
 		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_gJoyname[i]->Add(m_CheckC2S[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_gJoyname[i]->Add(m_gCircle2Square[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyname[i]->Add(m_gC2SDeadZone[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 
 		// --------------------------------------------------------------------
@@ -546,20 +597,20 @@ void ConfigDialog::CreateGUIControls()
 		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
 		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_ROLL, StrTiltRangeRoll[0], wxDefaultPosition, wxDefaultSize, StrTiltRangeRoll, wxCB_READONLY);
 		m_TiltComboRangePitch[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_PITCH, StrTiltRangePitch[0], wxDefaultPosition, wxDefaultSize, StrTiltRangePitch, wxCB_READONLY);
-		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll Range"));
-		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Range"));
+		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll"));
+		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch"));
 		m_TiltInvertRoll[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_ROLL, wxT("Invert"));
 		m_TiltInvertPitch[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_PITCH, wxT("Invert"));
 
 		// Sizers
 		m_TiltGrid[i] = new wxGridBagSizer(0, 0);
 		m_TiltGrid[i]->Add(m_TiltTextRoll[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
-		m_TiltGrid[i]->Add(m_TiltComboRangeRoll[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT | wxRIGHT), 2);
-		m_TiltGrid[i]->Add(m_TiltInvertRoll[i], wxGBPosition(0, 2), wxGBSpan(1, 1), (wxTOP), 4);
+		m_TiltGrid[i]->Add(m_TiltComboRangeRoll[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxLEFT), 2);
+		m_TiltGrid[i]->Add(m_TiltInvertRoll[i], wxGBPosition(0, 2), wxGBSpan(1, 1), (wxLEFT | wxTOP), 4);
 
-		m_TiltGrid[i]->Add(m_TiltTextPitch[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 4);
-		m_TiltGrid[i]->Add(m_TiltComboRangePitch[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxTOP | wxDOWN | wxRIGHT), 2);
-		m_TiltGrid[i]->Add(m_TiltInvertPitch[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxTOP), 4);
+		m_TiltGrid[i]->Add(m_TiltTextPitch[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 6);
+		m_TiltGrid[i]->Add(m_TiltComboRangePitch[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT | wxTOP | wxDOWN), 2);
+		m_TiltGrid[i]->Add(m_TiltInvertPitch[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxLEFT | wxTOP), 4);
 
 		// For additional padding options if needed
 		//m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -626,7 +677,7 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeAnalogTriggerHorizConfig[i]->Add(m_bAnalogTriggerR[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxUP), 5);
 
 		// The choice box and its name label
-		m_SizeAnalogTriggerHorizInput[i]->Add(m_tAnalogTriggerInput[i], 0, (wxUP), 2);
+		m_SizeAnalogTriggerHorizInput[i]->Add(m_tAnalogTriggerInput[i], 0, (wxUP), 3);
 		m_SizeAnalogTriggerHorizInput[i]->Add(m_TriggerType[i], 0, (wxLEFT), 2);
 
 		// The status text boxes
@@ -640,7 +691,6 @@ void ConfigDialog::CreateGUIControls()
 
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
-
 
 		// --------------------------------------------------------------------
 		// Row 2 Sizers: Connected pads, tilt, triggers
@@ -667,6 +717,7 @@ void ConfigDialog::CreateGUIControls()
 
 		m_pLeftInStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
 		m_bmpSquareLeftIn[i] = new wxStaticBitmap(m_pLeftInStatus[i], wxID_ANY, CreateBitmap(), wxDefaultPosition, wxDefaultSize);
+		m_bmpDeadZoneLeftIn[i] = new wxStaticBitmap(m_pLeftInStatus[i], wxID_ANY, CreateBitmapDeadZone(0), wxDefaultPosition, wxDefaultSize);
 		m_bmpDotLeftIn[i] = new wxStaticBitmap(m_pLeftInStatus[i], wxID_ANY, CreateBitmapDot(), wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 
 		m_pLeftOutStatus[i] = new wxPanel(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -1121,12 +1172,17 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case IDC_JOYNAME:
 		DoChangeJoystick();
-	// The are defined in PadMapping and we can run the same function to update all of them
+		break;
+	// These are defined in PadMapping and we can run the same function to update all of them
 	case IDCB_LEFT_DIAGONAL:
 	case IDC_LEFT_C2S:
 	case ID_TILT_INVERT_ROLL:
 	case ID_TILT_INVERT_PITCH:
 		SaveButtonMappingAll(Page);
+		break;
+	case IDCB_DEAD_ZONE:
+		SaveButtonMappingAll(Page);
+		DoChangeDeadZone();	
 		break;
 
 	//////////////////////////
@@ -1211,6 +1267,9 @@ void ConfigDialog::UpdateGUI(int Slot)
 		#ifdef _WIN32
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++) m_Notebook->FindItem(i)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDC_LEFT_C2S)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDCB_LEFT_DIAGONAL)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDCB_DEAD_ZONE)->Enable(PadEnabled);
 			m_Notebook->FindItem(ID_TRIGGER_TYPE)->Enable(PadEnabled);
 		#endif
 	}		

@@ -116,6 +116,9 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	if(g_RecordingCurrentTime[Wm] >=
 		VRecording.at(g_RecordingPlaying[Wm]).Recording.at(
 			VRecording.at(g_RecordingPlaying[Wm]).Recording.size() - 1).Time)
+	// Or if we are playing back all observations regardless of time
+	//g_RecordingPoint[Wm] = g_RecordingCounter[Wm];
+	//if (g_RecordingPoint[Wm] >= VRecording.at(g_RecordingPlaying[Wm]).Recording.size())
 	{
 		g_RecordingCounter[Wm] = 0;
 		g_RecordingPlaying[Wm] = -1;
@@ -125,24 +128,23 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 		return false;
 	}
 
-	// Update values
+	// Update accelerometer values
 	_x = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x;
 	_y = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y;
 	_z = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z;
+	// Update IR values
 	if(Wm == WM_RECORDING_IR) memcpy(&_IR, VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).IR, IRBytes);
 
-	/**/
 	if (g_DebugAccelerometer)
 	{
-		Console::ClearScreen();
-		Console::Print("Current time: %f %f  %i %i\n",
-			VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).Time, g_RecordingCurrentTime[Wm],
-			VRecording.at(g_RecordingPlaying[Wm]).Recording.size(), g_RecordingPoint[Wm]
+		//Console::ClearScreen();
+		Console::Print("Current time: [%i / %i]  %f %f\n",
+			g_RecordingPoint[Wm], VRecording.at(g_RecordingPlaying[Wm]).Recording.size(),
+			VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).Time, g_RecordingCurrentTime[Wm]
 			);
 		Console::Print("Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
 	}
 	//Console::Print("Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
-	//Console::Print("Accel x, y, z: %02x %02x %02x\n", _x, _y, _z);
 
 	g_RecordingCounter[Wm]++;
 
@@ -324,8 +326,8 @@ void FillReportInfo(wm_core& _core)
 // For all functions
 u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
 
-// For the shake function
-int shake = -1;
+// For the shake function, 0 = Wiimote, 1 = Nunchuck
+int Shake[] = {-1, -1};
 
 // For the tilt function, the size of this list determines how fast Y returns to its neutral value
 std::vector<u8> yhist(15, 0); float KbDegree;
@@ -334,32 +336,29 @@ std::vector<u8> yhist(15, 0); float KbDegree;
 // ------------------------------------------
 // Single shake of Wiimote while holding it sideways (Wario Land pound ground)
 // ---------------
-void SingleShake(u8 &_z, u8 &_y)
+void SingleShake(u8 &_y, u8 &_z, int i)
 {
 #ifdef _WIN32
-	if(GetAsyncKeyState('S'))
+	// Shake Wiimote with S, Nunchuck with D
+	if((i == 0 && GetAsyncKeyState('S')) || (i == 1 && GetAsyncKeyState('D')))
 	{
 		_z = 0;
 		_y = 0;
-		shake = 2;
+		Shake[i] = 2;
 	}
-	else if(shake == 2)
+	else if(Shake[i] == 2)
 	{
-		_z = 128;
+		// This works regardless of calibration, in Wario Land
+		_z = g_accel.cal_zero.z - 2;
 		_y = 0;
-		shake = 1;
+		Shake[i] = 1;
 	}
-	else if(shake == 1)
+	else if(Shake[i] == 1)
 	{
-		_z = g_Z;
-		_y = g_Y;
-		shake = -1;
-	}
-	else // the default Z if nothing is pressed
-	{
-		_z = g_Z;
+		Shake[i] = -1;
 	}
 #endif
+	//if (Shake[i] > -1) Console::Print("Shake: %i\n", Shake[i]);
 }
 
 
@@ -384,6 +383,13 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 		
 		PadState[Page].Axis.Lx = main_xy.at(0);
 		PadState[Page].Axis.Ly = main_xy.at(1);
+	}
+	// Check dead zone
+	float DeadZone = (float)PadMapping[Page].deadzone / 100.0;
+	if (InputCommon::IsDeadZone(DeadZone, PadState[Page].Axis.Lx, PadState[Page].Axis.Ly))
+	{
+		PadState[Page].Axis.Lx = 0;
+		PadState[Page].Axis.Ly = 0;
 	}
 
 	// Convert the big values
@@ -464,10 +470,10 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	// -----------------------------------
 	// Check for inactivity in the tilting, the Y value will be reset after ten inactive updates
 	// ----------
+	// Check for activity
 	yhist[yhist.size() - 1] = (
 		GetAsyncKeyState('3')
 		|| GetAsyncKeyState('4')
-		|| shake > 0
 		);	
 
 	// Move all items back, and check if any of them are true
@@ -496,6 +502,9 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 // ---------------
 void Tilt(u8 &_x, u8 &_y, u8 &_z)
 {
+	// Ceck if it's on
+	if (g_Config.Trigger.Type == g_Config.TRIGGER_OFF) return;
+
 	// Set to zero
 	float Roll = 0, Pitch = 0;
 
@@ -517,7 +526,7 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 		//Console::ClearScreen();
 		/*Console::Print("L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
 			Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
-		/**/Console::Print("Roll:%2.1f Pitch:%2.1f\n", Roll, Pitch);
+		/*Console::Print("Roll:%2.1f Pitch:%2.1f\n", Roll, Pitch);*/
 	}
 }
 
@@ -564,10 +573,10 @@ void FillReportAcc(wm_accel& _acc)
 	g_z = g_Z;
 
 	// Shake the Wiimote
-	SingleShake(g_z, g_y);
+	SingleShake(g_y, g_z, 0);
 
-	// Tilt Wiimote
-	Tilt(g_x, g_y, g_z);
+	// Tilt Wiimote, allow the shake function to interrupt it
+	if (Shake[0] == -1) Tilt(g_x, g_y, g_z);
 
 	// Write final values
 	_acc.x = g_x;
@@ -907,6 +916,9 @@ void FillReportExtension(wm_extension& _ext)
 		_ext.az = 0xb3;
 	}
 	// ---------------------
+
+	// Shake the Wiimote
+	SingleShake(_ext.ay, _ext.az, 1);
 
 	// ------------------------------------
 	// The default joystick and button values unless we use them

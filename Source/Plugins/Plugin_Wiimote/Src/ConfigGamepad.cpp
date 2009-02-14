@@ -74,6 +74,16 @@ void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[Close].joy);
 	WiiMoteEmu::PadState[Close].joy = NULL;
 }
+
+void ConfigDialog::DoChangeDeadZone()
+{
+	float Rad = (float)WiiMoteEmu::PadMapping[Page].deadzone * ((float)BoxW / 100.0) * 0.5;	
+	m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapClear());
+	m_bmpDeadZoneLeftIn[Page]->SetSize(0, 0);
+	m_bmpDeadZoneLeftIn[Page]->SetBitmap(CreateBitmapDeadZone((int)Rad));
+	m_bmpDeadZoneLeftIn[Page]->SetPosition(wxPoint(BoxW / 2 - (int)Rad, BoxH / 2 - (int)Rad));
+	m_bmpDeadZoneLeftIn[Page]->Refresh();	
+}
 //////////////////////////////////////
 
 
@@ -128,13 +138,13 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	
 	// Update the deadzone and controller type controls
 	m_TriggerType[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].triggertype);
-	//m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
+	m_ComboDeadZone[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].deadzone);
 	m_ComboDiagonal[controller]->SetValue(wxString::FromAscii(WiiMoteEmu::PadMapping[controller].SDiagonal.c_str()));
 	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
 	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
 	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
-	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
+	//Console::Print("m_ComboDeadZone[%i] = %i\n", controller, WiiMoteEmu::PadMapping[controller].deadzone);
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -152,12 +162,14 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	// Replace "" with "-1" in the GUI controls
 	ToBlank(false);
 
-	// Set enabled or disable status and other settings
+	// Set physical device Id
 	if(!DontChangeId) WiiMoteEmu::PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
+	// Set enabled or disable status 
 	if(FromSlot == controller) WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
+	// Set other settings
 	//WiiMoteEmu::PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
-	//WiiMoteEmu::PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
+	WiiMoteEmu::PadMapping[controller].deadzone = m_ComboDeadZone[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].SDiagonal = m_ComboDiagonal[FromSlot]->GetLabel().mb_str();
 	WiiMoteEmu::PadMapping[controller].bCircle2Square = m_CheckC2S[FromSlot]->IsChecked();	
 	WiiMoteEmu::PadMapping[controller].bRollInvert = m_TiltInvertRoll[FromSlot]->IsChecked();	
@@ -173,8 +185,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	m_AnalogTriggerL[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tl = value;
 	m_AnalogTriggerR[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tr = value;			
 
-	//Console::Print("WiiMoteEmu::PadMapping[%i].bSquareToCircle = %i, m_CheckC2S[%i]->GetValue() = %i\n",
-	//	controller, WiiMoteEmu::PadMapping[controller].bSquareToCircle, FromSlot, m_CheckC2S[FromSlot]->GetValue());
+	//Console::Print("WiiMoteEmu::PadMapping[%i].deadzone = %i, m_ComboDeadZone[%i]->GetSelection() = %i\n",
+	//	controller, WiiMoteEmu::PadMapping[controller].deadzone, FromSlot, m_ComboDeadZone[FromSlot]->GetSelection());
 
 	// Replace "-1" with "" 
 	ToBlank();
@@ -523,6 +535,13 @@ void ConfigDialog::PadGetStatus()
 		//main_x = main_xy.at(0);
 		//main_y = main_xy.at(1);
 	}	
+	// Check dead zone
+	float DeadZone = (float)WiiMoteEmu::PadMapping[Page].deadzone / 100.0;
+	if (InputCommon::IsDeadZone(DeadZone, main_x_after, main_y_after))
+	{
+		main_x_after = 0;
+		main_y_after = 0;
+	}
 
 	// -------------------------------------------
 	// Show the adjusted angles in the status box
