@@ -17,12 +17,12 @@
 
 #include "Globals.h"
 
-#include "ISOFile.h"
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "ISOProperties.h"
 #include "PatchAddEdit.h"
 #include "ARCodeAddEdit.h"
+#include "ConfigManager.h"
 
 
 DiscIO::IVolume *OpenISO = NULL;
@@ -49,6 +49,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
+	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -59,9 +60,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	pFileSystem->GetFileList(Our_Files);
 
-	GameListItem OpenISO_(fileName);
+	OpenGameListItem = new GameListItem(fileName);
 
-        bRefreshList = false;
+	bRefreshList = false;
 
 	CreateGUIControls();
 
@@ -109,19 +110,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
 	// Banner
-	// ...all the BannerLoader functions are bool...gross
-	//m_Version;
-	//if (OpenISO_.GetBNRVersion() == "BNR1")
-		m_Lang->Enable(false);
-
-	// hyperiris: temp fix, need real work
-	m_ShortName->SetValue(wxString(OpenISO_.GetName(0).c_str(), wxConvUTF8));
-	//m_LongName->SetValue(wxString(OpenISO_.GetLongName().c_str(), wxConvUTF8));
-	m_Maker->SetValue(wxString(OpenISO_.GetCompany().c_str(), wxConvUTF8));//dev too
-
-	// hyperiris: temp fix, need real work
-	m_Comment->SetValue(wxString(OpenISO_.GetDescription(0).c_str(), wxConvUTF8));
-	m_Banner->SetBitmap(OpenISO_.GetImage());
+	ChangeBannerDetails((int)SConfig::GetInstance().m_InterfaceLanguage);
+	m_Banner->SetBitmap(OpenGameListItem->GetImage());
 	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
 		wxMouseEventHandler(CISOProperties::RightClickOnBanner), (wxObject*)NULL, this);
 
@@ -134,7 +124,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	SplitPath(fileName, 0, &filename, &extension);
 
 	// hyperiris: temp fix, need real work
-	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName(0).c_str()));
+	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str(), OpenGameListItem->GetName(0).c_str()));
 }
 
 CISOProperties::~CISOProperties()
@@ -215,14 +205,7 @@ void CISOProperties::CreateGUIControls()
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_Close, 0, wxALL, 5);
-	
-	wxBoxSizer* sMain;
-	sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	
-	this->SetSizer(sMain);
-	this->Layout();
+
 
 	// GameConfig editing - Core overrides and emulation state
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
@@ -335,8 +318,6 @@ void CISOProperties::CreateGUIControls()
 	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
 	sBannerDetails = new wxGridBagSizer(0, 0);
 	sBannerDetails->AddGrowableCol(1); sBannerDetails->AddGrowableCol(2); sBannerDetails->AddGrowableCol(3);
-	m_VersionText = new wxStaticText(m_Information, ID_VERSION_TEXT, _("Version:"), wxDefaultPosition, wxDefaultSize);
-	m_Version = new wxTextCtrl(m_Information, ID_VERSION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_LangText = new wxStaticText(m_Information, ID_LANG_TEXT, _("Show Language:"), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Lang.Add(_("English"));
 	arrayStringFor_Lang.Add(_("German"));
@@ -345,11 +326,9 @@ void CISOProperties::CreateGUIControls()
 	arrayStringFor_Lang.Add(_("Italian"));
 	arrayStringFor_Lang.Add(_("Dutch"));
 	m_Lang = new wxChoice(m_Information, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang, 0, wxDefaultValidator);
-	m_Lang->SetSelection(0);
+	m_Lang->SetSelection((int)SConfig::GetInstance().m_InterfaceLanguage);
 	m_ShortText = new wxStaticText(m_Information, ID_SHORTNAME_TEXT, _("Short Name:"), wxDefaultPosition, wxDefaultSize);
 	m_ShortName = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	m_LongText = new wxStaticText(m_Information, ID_LONGNAME_TEXT, _("Long Name:"), wxDefaultPosition, wxDefaultSize);
-	m_LongName = new wxTextCtrl(m_Information, ID_LONGNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_MakerText = new wxStaticText(m_Information, ID_MAKER_TEXT, _("Maker:"), wxDefaultPosition, wxDefaultSize);
 	m_Maker = new wxTextCtrl(m_Information, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_CommentText = new wxStaticText(m_Information, ID_COMMENT_TEXT, _("Comment:"), wxDefaultPosition, wxDefaultSize);
@@ -372,21 +351,17 @@ void CISOProperties::CreateGUIControls()
 	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
-	
-	sBannerDetails->Add(m_VersionText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_Version, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_LangText, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_Lang, wxGBPosition(0, 3), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+
+	sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBannerDetails->Add(m_Lang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_ShortText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_ShortName, wxGBPosition(1, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_LongText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_LongName, wxGBPosition(2, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_MakerText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_Maker, wxGBPosition(3, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_CommentText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBannerDetails->Add(m_Comment, wxGBPosition(4, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_BannerText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBannerDetails->Add(m_Banner, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sBannerDetails->Add(m_ShortName, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sBannerDetails->Add(m_MakerText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBannerDetails->Add(m_Maker, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sBannerDetails->Add(m_CommentText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_Comment, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sBannerDetails->Add(m_BannerText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_Banner, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 0);
 	sInfoPage->Add(sbISODetails, 0, wxEXPAND|wxALL, 5);
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
@@ -406,7 +381,12 @@ void CISOProperties::CreateGUIControls()
 	m_Filesystem->SetSizer(sTreePage);
 	sTreePage->Layout();
 
-	Fit();
+	wxBoxSizer* sMain;
+	sMain = new wxBoxSizer(wxVERTICAL);
+	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	sMain->SetMinSize(wxSize(400,550));
+	SetSizerAndFit(sMain);
 }
 
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -764,4 +744,16 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 	EditCheat->Enable(false);
 	RemoveCheat->Enable(false);
+}
+
+void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
+{
+	ChangeBannerDetails(event.GetSelection());
+}
+
+void CISOProperties::ChangeBannerDetails(int lang)
+{
+	m_ShortName->SetValue(wxString(OpenGameListItem->GetName(lang).c_str(), wxConvUTF8));
+	m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), wxConvUTF8));//dev too
+	m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(lang).c_str(), wxConvUTF8));
 }

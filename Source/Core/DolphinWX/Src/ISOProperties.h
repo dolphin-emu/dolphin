@@ -29,6 +29,7 @@
 #include <wx/mimetype.h>
 #include <string>
 
+#include "ISOFile.h"
 #include "Filesystem.h"
 #include "IniFile.h"
 #include "PatchEngine.h"
@@ -44,7 +45,7 @@ class CISOProperties : public wxDialog
 			const wxString& title = wxT("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE);
+			long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
 		virtual ~CISOProperties();
 
 		bool bRefreshList;
@@ -110,10 +111,8 @@ class CISOProperties : public wxDialog
 		wxStaticText *m_MakerIDText;
 		wxStaticText *m_DateText;
 		wxStaticText *m_FSTText;
-		wxStaticText *m_VersionText;
 		wxStaticText *m_LangText;
 		wxStaticText *m_ShortText;
-		wxStaticText *m_LongText;
 		wxStaticText *m_MakerText;
 		wxStaticText *m_CommentText;
 		wxStaticText *m_BannerText;
@@ -123,11 +122,9 @@ class CISOProperties : public wxDialog
 		wxTextCtrl *m_MakerID;
 		wxTextCtrl *m_Date;
 		wxTextCtrl *m_FST;
-		wxTextCtrl *m_Version;
 		wxArrayString arrayStringFor_Lang;
 		wxChoice *m_Lang;
 		wxTextCtrl *m_ShortName;
-		wxTextCtrl *m_LongName;
 		wxTextCtrl *m_Maker;
 		wxTextCtrl *m_Comment;
 		wxStaticBitmap *m_Banner;
@@ -212,7 +209,10 @@ class CISOProperties : public wxDialog
 		void OnExtractFile(wxCommandEvent& event);
 		void OnExtractDir(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
+		void OnChangeBannerLang(wxCommandEvent& event);
 
+		GameListItem *OpenGameListItem;
+		
 		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
@@ -229,5 +229,6 @@ class CISOProperties : public wxDialog
 		void PatchList_Save();
 		void ActionReplayList_Load();
 		void ActionReplayList_Save();
+		void ChangeBannerDetails(int lang);
 };
 #endif
