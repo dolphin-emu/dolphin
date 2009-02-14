@@ -220,6 +220,8 @@ namespace IREmitter {
 		InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
+		InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
+		InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
 
 		InstLoc FoldInterpreterFallback(InstLoc Op1, InstLoc Op2);

@@ -569,6 +569,42 @@ InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(Opcode, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (isImm(*Op2)) {
+			int c1 = (int)GetImmValue(Op1),
+			    c2 = (int)GetImmValue(Op2),
+			    result;
+			if (c1 == c2)
+				result = 2;
+			else if (c1 > c2)
+				result = 4;
+			else
+				result = 8;
+			return EmitIntConst(result);
+		}
+	}
+	return EmitBiOp(ICmpCRSigned, Op1, Op2);
+}
+
+InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (isImm(*Op2)) {
+			unsigned int c1 = GetImmValue(Op1),
+			             c2 = GetImmValue(Op2),
+			             result;
+			if (c1 == c2)
+				result = 2;
+			else if (c1 > c2)
+				result = 4;
+			else
+				result = 8;
+			return EmitIntConst(result);
+		}
+	}
+	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
+}
+
 InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	for (unsigned i = 0; i < 32; i++) {
 		GRegCache[i] = 0;
@@ -614,6 +650,8 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case ICmpUgt: case ICmpUlt: case ICmpUge: case ICmpUle:
 		case ICmpSgt: case ICmpSlt: case ICmpSge: case ICmpSle:
 			return FoldICmp(Opcode, Op1, Op2);
+		case ICmpCRSigned: return FoldICmpCRSigned(Op1, Op2);
+		case ICmpCRUnsigned: return FoldICmpCRUnsigned(Op1, Op2);
 		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
 		case FDMul: case FDAdd: case FDSub: return FoldDoubleBiOp(Opcode, Op1, Op2);
 		default: return EmitBiOp(Opcode, Op1, Op2, extra);
@@ -1723,7 +1761,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regSpill(RI, EDX);
 			X64Reg reg = fregFindFreeReg(RI);
 			unsigned int quantreg = *I >> 16;
-			Jit->MOVZX(32, 16, EAX, M(((char *)&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]) + 2));
+			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
 #ifdef _M_IX86
