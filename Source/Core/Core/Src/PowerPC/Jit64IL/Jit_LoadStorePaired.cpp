@@ -65,6 +65,8 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	if (inst.OPCD == 57)
+		ibuild.EmitStoreGReg(addr, inst.RA);
 	val = ibuild.EmitLoadPaired(addr, inst.I);
 	val = ibuild.EmitExpandPackedToMReg(val);
 	ibuild.EmitStoreFReg(val, inst.RD);
