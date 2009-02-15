@@ -1049,11 +1049,11 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 	}
 
 	if (Profiled) {
+		// (Profiled mode isn't the default, at least for the moment)
 #ifdef _M_IX86
 		return MDisp(baseReg, (u32)Memory::base + offset + ProfileOffset);
 #else
-		// FIXME: TO IMPLEMENT (Profiled mode isn't the default,
-		// at least for the moment)
+		return MDisp(RBX, offset + ProfileOffset);
 #endif
 	}
 	return MDisp(baseReg, offset);
