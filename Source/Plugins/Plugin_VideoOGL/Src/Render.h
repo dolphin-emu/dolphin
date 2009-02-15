@@ -104,7 +104,6 @@ public:
 
     static int GetTargetWidth();
     static int GetTargetHeight();
-    static bool CanBlendLogicOp();
     static void SetCgErrorOutput(bool bOutput);
 
     static void ResetGLState();

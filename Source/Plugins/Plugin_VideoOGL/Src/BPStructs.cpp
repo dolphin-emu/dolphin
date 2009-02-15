@@ -45,8 +45,8 @@ static const GLenum glCmpFuncs[8] = {
 };
 
 static const GLenum glLogicOpCodes[16] = {
-    GL_CLEAR, GL_SET, GL_COPY, GL_COPY_INVERTED, GL_NOOP, GL_INVERT, GL_AND, GL_NAND,
-    GL_OR, GL_NOR, GL_XOR, GL_EQUIV, GL_AND_REVERSE, GL_AND_INVERTED, GL_OR_REVERSE, GL_OR_INVERTED
+    GL_CLEAR, GL_AND, GL_AND_REVERSE, GL_COPY, GL_AND_INVERTED, GL_NOOP, GL_XOR, 
+	GL_OR, GL_NOR, GL_EQUIV, GL_INVERT, GL_OR_REVERSE, GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND, GL_SET
 };
 
 void BPInit()
@@ -173,68 +173,49 @@ void BPWritten(int addr, int changes, int newval)
 
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
+
             PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d\n", 
                 bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
                 bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
-            
-            if (changes & 2) {
-                if (Renderer::CanBlendLogicOp()) {
-                    if (bpmem.blendmode.logicopenable) {
-                        glEnable(GL_COLOR_LOGIC_OP);
-						PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
-                        glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
-                    }
-                    else glDisable(GL_COLOR_LOGIC_OP);
-                }
-                //else {
-                //    if (bpmem.blendmode.logicopenable) {
-                //        switch(bpmem.blendmode.logicmode) {
-                //            case 0: // clear dst to 0
-                //                glEnable(GL_BLEND);
-                //                glBlendFunc(GL_ZERO, GL_ZERO);
-                //                break;
-                //            case 1: // set dst to 1
-                //                glEnable(GL_BLEND);
-                //                glBlendFunc(GL_ONE, GL_ONE);
-                //                break;
-                //            case 2: // set dst to src
-                //                glDisable(GL_BLEND);
-                //                break;
-                //            case 3: // set dst to ~src
-                //                glEnable(GL_BLEND);
-                //                glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_ZERO); //?
-                //                break;
-                //            case 4: // set dst to dst
-                //                glEnable(GL_BLEND);
-                //                glBlendFunc(GL_ZERO, GL_ONE); //?
-                //                break;
-                //            case 5: // set dst to ~dst
-                //                glEnable(GL_BLEND);
-                //                glBlendFunc(GL_ZERO, GL_ONE_MINUS_DST_COLOR); //?
-                //                break;
-                //            case 6: // set dst to src&dst
-                //            case 7: // set dst to ~(src&dst)
-                //            case 8: // set dst to src|dst
-                //            case 9: // set dst to ~(src|dst)
-                //            case 10: // set dst to src xor dst
-                //            case 11: // set dst to ~(src xor dst)
-                //            case 12: // set dst to src&~dst
-                //            case 13: // set dst to ~src&dst
-                //            case 14: // set dst to src|~dst
-                //            case 15: // set dst to ~src|dst
-                //                ERROR_LOG("logicopenable %d not supported\n", bpmem.blendmode.logicmode);
-                //                break;
 
-                //        }
-                //    }
-                //}
+			/*
+			Logic Operation Blend Modes
+			--------------------
+            0: GL_CLEAR
+            1: GL_AND
+            2: GL_AND_REVERSE
+            3: GL_COPY [Super Smash. Bro. Melee, NES Zelda I, NES Zelda II]
+            4: GL_AND_INVERTED
+            5: GL_NOOP
+            6: GL_XOR
+            7: GL_OR [Zelda: TP]
+            8: GL_NOR
+            9: GL_EQUIV
+            10: GL_INVERT
+            11: GL_OR_REVERSE
+            12: GL_COPY_INVERTED
+			13: GL_OR_INVERTED
+            14: GL_NAND
+            15: GL_SET
+			*/
+
+			// Do LogicOp Blending
+            if (changes & 2) {  
+				if (bpmem.blendmode.logicopenable) 
+				{
+					glEnable(GL_COLOR_LOGIC_OP);
+					// PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
+					glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
+				}
+				else 
+					glDisable(GL_COLOR_LOGIC_OP);
             }
-            /*if (changes & 4) {
-                // pointless
-                //if (bpmem.blendmode.dither) glEnable(GL_DITHER);
-                //else glDisable(GL_DITHER);
+
+            if (changes & 4) {
+                if (bpmem.blendmode.dither) glEnable(GL_DITHER);
+                else glDisable(GL_DITHER);
             }
-            */
+
 			if (changes & 0xFE1)
 				Renderer::SetBlendMode(false);
 

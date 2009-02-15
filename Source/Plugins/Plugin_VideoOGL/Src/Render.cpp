@@ -92,7 +92,6 @@ static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
 
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
-bool g_bBlendLogicOp = false;
 bool g_bBlendSeparate = false;
 int frameCount;
 
@@ -134,8 +133,6 @@ bool Renderer::Init()
     INFO_LOG(ptoken);     // write to the log file
     INFO_LOG("\n");
 
-    if (strstr(ptoken, "GL_EXT_blend_logic_op") != NULL)
-        g_bBlendLogicOp = true;
 	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL && strstr(ptoken, "GL_EXT_blend_equation_separate") != NULL)
         g_bBlendSeparate = true;
     if (strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
@@ -340,7 +337,6 @@ bool Renderer::Init()
 	XFB_Init();
     return glGetError() == GL_NO_ERROR && bSuccess;
 }
-
 void Renderer::Shutdown(void)
 {    
     delete s_pfont;
@@ -515,12 +511,6 @@ int Renderer::GetTargetHeight()
 {
     return (g_Config.bStretchToFit ? 480 : (int)OpenGL_GetHeight());
 }
-
-bool Renderer::CanBlendLogicOp()
-{
-	return g_bBlendLogicOp;
-}
-
 void Renderer::SetRenderTarget(GLuint targ)
 {
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB,
@@ -543,7 +533,6 @@ GLuint Renderer::GetRenderTarget()
 {
 	return s_RenderTarget;
 }
-
 GLuint Renderer::GetZBufferTarget()
 {
 	return nZBufferRender > 0 ? s_ZBufferTarget : 0;
