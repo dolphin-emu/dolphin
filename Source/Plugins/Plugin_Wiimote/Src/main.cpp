@@ -356,6 +356,10 @@ extern "C" void Wiimote_Update()
 
 	// Debugging
 #ifdef _WIN32
+	 // Open console
+	if( GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU) && GetAsyncKeyState(VK_INSERT) )
+		OpenConsole();
+
 	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false; // Page Down
 		else if (GetAsyncKeyState(VK_HOME) && !g_DebugComm ) g_DebugComm = true;
 
@@ -381,7 +385,36 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // Supporting functions
 //******************************************************************************
 
+
+// ----------------------------------------
+// Debugging window
+// ----------
+void OpenConsole(bool Open)
+{
+	// Close the console window
+	if (Console::GetHwnd() != NULL && !Open)
+	{
+		Console::Close();
+		// Wait here until we have let go of the button again
+		while(GetAsyncKeyState(VK_INSERT)) {Sleep(10);}
+		return;
+	}
+
+	// Open the console window
+	Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
+	Console::Print("\n\nWiimote console opened\n");
+
+	// Move window
+	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
+	//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
+	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window
+
+}
+// ---------------
+
+// ----------------------------------------
 // Check if Dolphin is in focus
+// ----------
 bool IsFocus()
 {
 #ifdef _WIN32
@@ -416,7 +449,11 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
 	//const u8* data = (const u8*)_pData;
-	u8* data = (u8*)_pData;
+	//u8* data = (u8*)_pData;
+	// Copy the data to a new location that we know are the right size
+	u8 data[32];
+	memset(data, 0, sizeof(data));
+	memcpy(data, _pData, Size);
 
 	int size;
 	bool DataReport = false;
@@ -612,23 +649,22 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[17], 0x00, 0x06);
 
 		// Produce string
-		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
+		//std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		std::string TmpData = StringFromFormat(
+			"%02x %02x %02x %02x "
+			"%03i %03i %03i "
+			"%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x "
+			"%03i %03i %03i %03i %03i "
+			"%02x %02x ",
+			data[0], data[1], data[2], data[3],  // Header and core buttons
+			data[4], data[5], data[6], // Wiimote accelerometer
+			data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16],
+			data[17], data[18], // Nunchuck stick
+			data[19], data[20], data[21], // Nunchuck Accelerometer
+			data[22], data[23] //  Nunchuck buttons
+			);
 
-		// Format accelerometer values to regular 10 base values
-		if(TmpData.length() > 20)
-		{
-			std::string Tmp1 = TmpData.substr(0, 12);
-			std::string Tmp2 = TmpData.substr(20, (TmpData.length() - 20));
-			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[4], data[5], data[6]) + Tmp2;
-		}
-		// Format accelerometer values for the Nunchuck to regular 10 base values
-		if(TmpData.length() > 68 && WiiMoteEmu::g_ReportingMode == 0x37)
-		{
-			std::string Tmp1 = TmpData.substr(0, 60);
-			std::string Tmp2 = TmpData.substr(68, (TmpData.length() - 68));
-			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[19], data[20], data[21]) + Tmp2;
-		}
 		// Calculate the Wiimote roll and pitch in degrees
 		int Roll, Pitch, RollAdj, PitchAdj;
 		WiiMoteEmu::PitchAccelerometerToDegree(data[4], data[5], data[6], Roll, Pitch, RollAdj, PitchAdj);
@@ -890,17 +926,8 @@ int GetUpdateRate()
 
 void DoInitialize()
 {
-	// ----------------------------------------
-	// Debugging window
-	// ----------
-	/*Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
-	Console::Print("\n\nWiimote console opened\n");
-
-	// Move window
-	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window*/
-	// ---------------
+	// Open console
+	//OpenConsole(true);
 
 	// Load config settings, will be done after the SDL functions in EmuMain.cpp
 	//g_Config.Load();

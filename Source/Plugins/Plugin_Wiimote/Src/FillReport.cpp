@@ -356,56 +356,28 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 	// Return if we have no pads
 	if (NumGoodPads == 0) return;
 
-	// Update the pad state
+	// This has to be changed if multiple Wiimotes are to be supported later
 	const int Page = 0;
-	WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
 
-	// Check if we should make adjustments
-	if(PadMapping[Page].bCircle2Square)
-	{
-		std::vector<int> main_xy = InputCommon::Square2Circle(PadState[Page].Axis.Lx, PadState[Page].Axis.Ly, Page, PadMapping[Page].SDiagonal, true);
-		
-		PadState[Page].Axis.Lx = main_xy.at(0);
-		PadState[Page].Axis.Ly = main_xy.at(1);
-	}
-	// Check dead zone
-	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0;
-	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0;
-	if (InputCommon::IsDeadZone(DeadZoneLeft, PadState[Page].Axis.Lx, PadState[Page].Axis.Ly))
-	{
-		PadState[Page].Axis.Lx = 0;
-		PadState[Page].Axis.Ly = 0;
-	}
-	if (InputCommon::IsDeadZone(DeadZoneRight, PadState[Page].Axis.Rx, PadState[Page].Axis.Ry))
-	{
-		PadState[Page].Axis.Rx = 0;
-		PadState[Page].Axis.Ry = 0;
-	}
-
-	// Convert the big values
-	float Lx = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Lx);
-	float Ly = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Ly);
-	float Rx = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Rx);
-	float Ry = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Ry);
-	float Tl, Tr;
-
-	if (PadMapping[Page].triggertype == InputCommon::CTL_TRIGGER_SDL)
-	{
-		Tl = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Tl);
-		Tr = (float)InputCommon::Pad_Convert(PadState[Page].Axis.Tr);
-	}
-	else
-	{
-		Tl = (float)PadState[Page].Axis.Tl;
-		Tr = (float)PadState[Page].Axis.Tr;
-	}
+	/* Adjust the pad state values, including a downscaling from the original 0x8000 size values
+	   to 0x80. The only reason we do this is that the code below crrently assume that the range
+	   is 0 to 255 for all axes. If we lose any precision by doing this we could consider not
+	   doing this adjustment. And instead for example upsize the XInput trigger from 0x80 to 0x8000. */
+	int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
+	PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+	float Lx = (float)_Lx;
+	float Ly = (float)_Ly;
+	float Rx = (float)_Rx;
+	float Ry = (float)_Ry;
+	float Tl = (float)_Tl;
+	float Tr = (float)_Tr;
 
 	// Save the Range in degrees, 45° and 90° are good values in some games
 	float RollRange = (float)g_Config.Trigger.Range.Roll;
 	float PitchRange = (float)g_Config.Trigger.Range.Pitch;
 
 	// The trigger currently only controls pitch
-	if (g_Config.Trigger.Type == g_Config.TRIGGER)
+	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER)
 	{
 		// Make the range the same dimension as the analog stick
 		Tl = Tl / 2;
@@ -413,36 +385,36 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 		// Invert
 		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
-		Pitch = Tl * (PitchRange / 128)
-			- Tr * (PitchRange / 128);
+		Pitch = Tl * (PitchRange / 128.0)
+			- Tr * (PitchRange / 128.0);
 	}
 
 	/* For the analog stick roll us by default set to the X-axis, pitch is by default set to the Y-axis.
 	   By changing the axis mapping and the invert options this can be altered in any way */
-	else if (g_Config.Trigger.Type == g_Config.ANALOG1)
+	else if (g_Config.Trigger.Type == g_Config.Trigger.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
-		Lx = Lx - 128;
-		Ly = Ly - 128;
+		Lx = Lx - 128.0;
+		Ly = Ly - 128.0;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
-		Roll = Lx * (RollRange / 128);
-		Pitch = Ly * (PitchRange / 128);
+		Roll = Lx * (RollRange / 128.0);
+		Pitch = Ly * (PitchRange / 128.0);
 	}
 	// Otherwise we are using ANALOG2
 	else
 	{
 		// Adjust the trigger to go between negative and positive values
-		Rx = Rx - 128;
-		Ry = Ry - 128;
+		Rx = Rx - 128.0;
+		Ry = Ry - 128.0;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
 		// Produce the final value
-		Roll = Rx * (RollRange / 128);
-		Pitch = Ry * (PitchRange / 128);
+		Roll = Rx * (RollRange / 128.0);
+		Pitch = Ry * (PitchRange / 128.0);
 	}
 
 	// Adjustment to prevent a slightly to high angle
@@ -506,15 +478,15 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 void Tilt(u8 &_x, u8 &_y, u8 &_z)
 {
 	// Ceck if it's on
-	if (g_Config.Trigger.Type == g_Config.TRIGGER_OFF) return;
+	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
 
 	// Set to zero
 	float Roll = 0, Pitch = 0;
 
 	// Select input method and return the x, y, x values
-	if (g_Config.Trigger.Type == g_Config.KEYBOARD)
+	if (g_Config.Trigger.Type == g_Config.Trigger.KEYBOARD)
 		TiltWiimoteKeyboard(Roll, Pitch);
-	else if (g_Config.Trigger.Type == g_Config.TRIGGER || g_Config.Trigger.Type == g_Config.ANALOG1 || g_Config.Trigger.Type == g_Config.ANALOG2)
+	else if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2)
 		TiltWiimoteGamepad(Roll, Pitch);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
@@ -932,16 +904,75 @@ void FillReportExtension(wm_extension& _ext)
 	// ---------------------
 
 #ifdef _WIN32
-	// Set the max values to the current calibration values
-	if(GetAsyncKeyState(VK_NUMPAD4)) // x
-		_ext.jx = g_nu.jx.min;
-	if(GetAsyncKeyState(VK_NUMPAD6))
-		_ext.jx = g_nu.jx.max;
+	// Update the analog stick
+	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
+	{
+		// Set the max values to the current calibration values
+		if(GetAsyncKeyState(VK_NUMPAD4)) // x
+			_ext.jx = g_nu.jx.min;
+		if(GetAsyncKeyState(VK_NUMPAD6))
+			_ext.jx = g_nu.jx.max;
 
-	if(GetAsyncKeyState(VK_NUMPAD5)) // y
-		_ext.jy = g_nu.jy.min;
-	if(GetAsyncKeyState(VK_NUMPAD8))
-		_ext.jy = g_nu.jy.max;
+		if(GetAsyncKeyState(VK_NUMPAD5)) // y
+			_ext.jy = g_nu.jy.min;
+		if(GetAsyncKeyState(VK_NUMPAD8))
+			_ext.jy = g_nu.jy.max;
+	}
+	else
+	{
+		// Get adjusted pad state values
+		int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
+		PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+		// The Y-axis is inverted
+		_Ly = 0xff - _Ly;
+		_Ry = 0xff - _Ry;
+
+		/* This is if we are also using a real Nunchuck that we are sharing the calibration with. It's not
+		   needed if we are using our default values. We adjust the values to the configured range, we even
+		   allow the center to not be 0x80. */
+		if(g_nu.jx.max != 0xff || g_nu.jy.max != 0xff
+			|| g_nu.jx.min != 0 || g_nu.jy.min != 0
+			|| g_nu.jx.center != 0x80 || g_nu.jy.center != 0x80)
+		{
+			float Lx = (float)_Lx;
+			float Ly = (float)_Ly;
+			float Rx = (float)_Rx;
+			float Ry = (float)_Ry;
+			float Tl = (float)_Tl;
+			float Tr = (float)_Tr;
+
+			float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
+			float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
+			float YRangePos = (float) (g_nu.jy.max - g_nu.jy.center);
+			float YRangeNeg = (float) (g_nu.jy.center - g_nu.jy.min);
+			if (Lx > 0x80) Lx = Lx * (XRangePos / 128.0);
+			if (Lx < 0x80) Lx = Lx * (XRangeNeg / 128.0);
+			if (Lx == 0x80) Lx = (float)g_nu.jx.center;
+			if (Ly > 0x80) Ly = Ly * (YRangePos / 128.0);
+			if (Ly < 0x80) Ly = Ly * (YRangeNeg / 128.0);
+			if (Ly == 0x80) Lx = (float)g_nu.jy.center;
+			// Boundaries
+			_Lx = (int)Lx;
+			_Ly = (int)Ly;
+			_Rx = (int)Rx;
+			_Ry = (int)Ry;
+			if (_Lx > 0xff) _Lx = 0xff; if (_Lx < 0) _Lx = 0;
+			if (_Rx > 0xff) _Rx = 0xff; if (_Rx < 0) _Rx = 0;
+			if (_Ly > 0xff) _Ly = 0xff; if (_Ly < 0) _Ly = 0;
+			if (_Ry > 0xff) _Ry = 0xff; if (_Ry < 0) _Ry = 0;
+		}
+
+		if (g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1)
+		{
+			_ext.jx = _Lx;
+			_ext.jy = _Ly;
+		}
+		else // ANALOG2
+		{
+			_ext.jx = _Rx;
+			_ext.jy = _Ry;
+		}
+	}
 
 	if(GetAsyncKeyState('C'))
 		_ext.bt = 0x01;

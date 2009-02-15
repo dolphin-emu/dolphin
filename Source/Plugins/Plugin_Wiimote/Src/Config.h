@@ -18,6 +18,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+
 struct Config
 {
     Config();
@@ -32,17 +33,26 @@ struct Config
 
 	struct PadTrigger
 	{
+		enum ETriggerType
+		{
+			TRIGGER_OFF = 0,
+			KEYBOARD,
+			ANALOG1,
+			ANALOG2,
+			TRIGGER
+		};
 		int Type;
 		PadRange Range;
 	};
-
-	enum ETriggerType
+	struct PadNunchuck
 	{
-		TRIGGER_OFF = 0,
-		KEYBOARD,
-		ANALOG1,
-		ANALOG2,
-		TRIGGER
+		enum ENunchuckStick
+		{
+			KEYBOARD,
+			ANALOG1,
+			ANALOG2
+		};
+		int Type;
 	};
 
     // Emulated Wiimote
@@ -58,6 +68,7 @@ struct Config
 	// Gamepad
 	bool bNoTriggerFilter;
 	PadTrigger Trigger;
+	PadNunchuck Nunchuck;
 };
 
 extern Config g_Config;

@@ -61,9 +61,10 @@ void Config::Load(bool ChangePad)
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("Wiimote%i", i + 1);
 		iniFile.Get(SectionName.c_str(), "NoTriggerFilter", &bNoTriggerFilter, false);
-		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, TRIGGER_OFF);
+		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, Trigger.TRIGGER_OFF);
 		iniFile.Get(SectionName.c_str(), "TriggerRollRange", &Trigger.Range.Roll, 50);
 		iniFile.Get(SectionName.c_str(), "TriggerPitchRange", &Trigger.Range.Pitch, false);
+		iniFile.Get(SectionName.c_str(), "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -138,6 +139,7 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "TriggerType", Trigger.Type);
 		iniFile.Set(SectionName.c_str(), "TriggerRollRange", Trigger.Range.Roll);
 		iniFile.Set(SectionName.c_str(), "TriggerPitchRange", Trigger.Range.Pitch);
+		iniFile.Set(SectionName.c_str(), "NunchuckStick", Nunchuck.Type);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);

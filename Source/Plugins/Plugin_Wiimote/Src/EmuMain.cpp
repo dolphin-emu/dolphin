@@ -575,6 +575,14 @@ void Update()
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
 	//Console::Print("Emu Update: %i\n", g_ReportingMode);
 
+	// Check if the pad state should be updated
+	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
+		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2)
+	{
+		const int Page = 0;
+		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+	}
+
 	switch(g_ReportingMode)
 	{
 	case 0:

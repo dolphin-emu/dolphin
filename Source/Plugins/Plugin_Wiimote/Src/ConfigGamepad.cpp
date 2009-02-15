@@ -608,15 +608,11 @@ void ConfigDialog::PadGetStatus()
 		));
 
 	// Adjust the values for the plot
-	Convert2Box(main_x);
-	Convert2Box(main_y);
-	Convert2Box(right_x);
-	Convert2Box(right_y);
+	Convert2Box(main_x); Convert2Box(main_y);
+	Convert2Box(right_x); Convert2Box(right_y);
 
-	Convert2Box(main_x_after);
-	Convert2Box(main_y_after);
-	Convert2Box(right_x_after);
-	Convert2Box(right_y_after);
+	Convert2Box(main_x_after); Convert2Box(main_y_after);
+	Convert2Box(right_x_after); Convert2Box(right_y_after);
 
 	// Adjust the dot
 	m_bmpDotLeftIn[Page]->SetPosition(wxPoint(main_x, main_y));

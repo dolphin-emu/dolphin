@@ -111,7 +111,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
-
+	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, ConfigDialog::GeneralSettingsChanged)
+	
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_RIGHT_X, ConfigDialog::GetButtons)
@@ -162,8 +163,6 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	LoadFile();
 	// Set control values
 	UpdateGUI();
-	// Update dead zone
-	DoChangeDeadZone(true); DoChangeDeadZone(false);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(ConfigDialog::OnKeyDown),
@@ -436,6 +435,12 @@ void ConfigDialog::CreateGUIControls()
 	wxArrayString StrTriggerType;
 	StrTriggerType.Add(wxString::FromAscii("SDL")); // -0x8000 to 0x7fff
 	StrTriggerType.Add(wxString::FromAscii("XInput")); // 0x00 to 0xff
+
+	// The Nunchuck stick list
+	wxArrayString StrNunchuck;
+	StrNunchuck.Add(wxString::FromAscii("Keyboard"));
+	StrNunchuck.Add(wxString::FromAscii("Analog 1"));
+	StrNunchuck.Add(wxString::FromAscii("Analog 2"));
 	///////////////////////////////////////
 
 
@@ -828,6 +833,8 @@ void ConfigDialog::CreateGUIControls()
 		// --------------------------------------------------------------------
 		// Wiimote
 		// -----------------------------
+		
+		m_gWiimote[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Wiimote"));
 		/*
 		m_WmA[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
@@ -875,12 +882,17 @@ void ConfigDialog::CreateGUIControls()
 		m_WmR[i]->Enable(false);
 		m_WmU[i]->Enable(false);
 		m_WmD[i]->Enable(false);
-		
+		*/
 
 		// --------------------------------------------------------------------
 		// Nunchuck
 		// -----------------------------
 
+		// Stick controls
+		m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick controls"));
+		m_NunchuckComboStick[i] = new wxComboBox(m_Controller[i], IDCB_NUNCHUCK_STICK, StrNunchuck[0], wxDefaultPosition, wxDefaultSize, StrNunchuck, wxCB_READONLY);
+
+		/*
 		m_NuZ[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_NuC[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_NuL[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
@@ -909,11 +921,24 @@ void ConfigDialog::CreateGUIControls()
 		m_NuR[i]->Enable(false);
 		m_NuU[i]->Enable(false);
 		m_NuD[i]->Enable(false);
+		*/
+
+		// Sizers
+		m_NunchuckStick[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_NunchuckStick[i]->Add(m_NunchuckTextStick[i], 0, (wxUP), 4);
+		m_NunchuckStick[i]->Add(m_NunchuckComboStick[i], 0, (wxLEFT), 2);
+
+		m_gNunchuck[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Nunchuck"));
+		m_gNunchuck[i]->Add(m_NunchuckStick[i], 0, (wxALL), 2);
+
+		//Set values
+		m_NunchuckComboStick[i]->SetSelection(g_Config.Nunchuck.Type);
 
 		// --------------------------------------------------------------------
 		// Classic Controller
 		// -----------------------------
-
+		m_gClassicController[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Classic Controller"));
+		/*
 		m_ClY[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_ClX[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 		m_ClA[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
@@ -943,6 +968,17 @@ void ConfigDialog::CreateGUIControls()
 		m_ClLx[i]->Enable(false);
 		m_ClLy[i]->Enable(false);
 		*/
+
+		
+		// --------------------------------------------------------------------
+		// Row 4 Sizers
+		// -----------------------------
+		m_HorizControllerMapping[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_HorizControllerMapping[i]->AddStretchSpacer();
+		m_HorizControllerMapping[i]->Add(m_gWiimote[i]);
+		m_HorizControllerMapping[i]->Add(m_gNunchuck[i], 0, (wxLEFT), 5);
+		m_HorizControllerMapping[i]->Add(m_gClassicController[i], 0, (wxLEFT), 5);
+		m_HorizControllerMapping[i]->AddStretchSpacer();
 		///////////////////////////
 
 
@@ -953,6 +989,7 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeParent[i]->Add(m_SizeBasicGeneral[i], 0, wxBORDER_STATIC | wxEXPAND | (wxALL), 5);
 		m_SizeParent[i]->Add(m_HorizControllerTiltParent[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_SizeParent[i]->Add(m_HorizControllers[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_SizeParent[i]->Add(m_HorizControllerMapping[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 		// The sizer m_sMain will be expanded inside m_Controller, m_SizeParent will not
 		m_sMain[i] = new wxBoxSizer(wxVERTICAL);
@@ -1184,6 +1221,10 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case IDC_JOYNAME:
 		DoChangeJoystick();
 		break;
+	case IDCB_NUNCHUCK_STICK:
+		g_Config.Nunchuck.Type = m_NunchuckComboStick[Page]->GetSelection();
+		break;
+
 	// These are defined in PadMapping and we can run the same function to update all of them
 	case IDCB_LEFT_DIAGONAL:
 	case IDC_LEFT_C2S:
@@ -1193,11 +1234,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case IDCB_DEAD_ZONE_LEFT:
 		SaveButtonMappingAll(Page);
-		DoChangeDeadZone(true);	
 		break;
 	case IDCB_DEAD_ZONE_RIGHT:
 		SaveButtonMappingAll(Page);
-		DoChangeDeadZone(false);	
 		break;
 
 	//////////////////////////
@@ -1260,6 +1299,9 @@ void ConfigDialog::UpdateGUI(int Slot)
 
 	// Update the gamepad settings
 	UpdateGUIButtonMapping(Page);
+
+	// Update dead zone
+	DoChangeDeadZone(true); DoChangeDeadZone(false);
 
 	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
 	   from the data scanning functions in main.cpp */

@@ -74,8 +74,63 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 }
 // ===========================
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Return adjusted input values
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
+{
+	// This has to be changed if multiple Wiimotes are to be supported later
+	const int Page = 0;
 
-// Request joystick state.
+	// Copy all states to a local variable
+	Lx = PadState[Page].Axis.Lx;
+	Ly = PadState[Page].Axis.Ly;
+	Rx = PadState[Page].Axis.Rx;
+	Ry = PadState[Page].Axis.Ry;
+	Tl = PadState[Page].Axis.Tl;
+	Tr = PadState[Page].Axis.Tr;
+
+	// Check the circle to square option
+	if(PadMapping[Page].bCircle2Square)
+	{
+		std::vector<int> main_xy = InputCommon::Square2Circle(Lx, Ly, Page, PadMapping[Page].SDiagonal, true);
+		
+		Lx = main_xy.at(0);
+		Ly = main_xy.at(1);
+	}
+
+	// Dead zone adjustment
+	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0;
+	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0;
+	if (InputCommon::IsDeadZone(DeadZoneLeft, Lx, Ly))
+	{
+		Lx = 0;
+		Ly = 0;
+	}
+	if (InputCommon::IsDeadZone(DeadZoneRight, Rx, Ry))
+	{
+		Rx = 0;
+		Ry = 0;
+	}
+
+	// Downsize the values from 0x8000 to 0x80
+	Lx = InputCommon::Pad_Convert(Lx);
+	Ly = InputCommon::Pad_Convert(Ly);
+	Rx = InputCommon::Pad_Convert(Rx);
+	Ry = InputCommon::Pad_Convert(Ry);
+	// The XInput range is already 0 to 0x80
+	if (PadMapping[Page].triggertype == InputCommon::CTL_TRIGGER_SDL)
+	{
+		Tl = InputCommon::Pad_Convert(PadState[Page].Axis.Tl);
+		Tr = InputCommon::Pad_Convert(PadState[Page].Axis.Tr);
+	}
+}
+
+////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Request joystick state
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Called from: PAD_GetStatus()
    Input: The virtual device 0, 1, 2 or 3
@@ -84,6 +139,9 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 
 void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons)
 {
+	// Return if we have no pads
+	if (NumGoodPads == 0) return;
+
 	// Update the gamepad status
 	SDL_JoystickUpdate();
 
@@ -130,6 +188,7 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 		_PadState.Axis.Lx, _PadState.Axis.Ly
 		);*/
 }
+////////////////////////////////////////////
 
 
 } // end of namespace WiiMoteEmu
