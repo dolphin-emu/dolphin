@@ -67,14 +67,14 @@ void _SetCol565(u16 val)
 }
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-inline u32 _Read24(const u8 *iAddress)
+inline u32 _Read24(const u8 *addr)
 {
-	return *(const u32 *)iAddress | 0xFF000000;
+	return addr[0] | (addr[1] << 8) | (addr[2] << 16) | 0xFF000000;
 }
 
-inline u32 _Read32(const u8 *iAddress)
+inline u32 _Read32(const u8 *addr)
 {
-	return *(const u32 *)iAddress;
+	return *(const u32 *)addr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,9 +105,9 @@ void LOADERDECL Color_ReadDirect_16b_4444()
 }
 void LOADERDECL Color_ReadDirect_24b_6666()
 {
-	u32 val = DataReadU8()<<16;
-	val|=DataReadU8()<<8;
-	val|=DataReadU8(); 
+	u32 val = DataReadU8() << 16;
+	val |= DataReadU8() << 8;
+	val |= DataReadU8(); 
 	_SetCol6666(val);
 }
 
@@ -121,10 +121,7 @@ void LOADERDECL Color_ReadDirect_24b_6666()
 void LOADERDECL Color_ReadDirect_32b_8888()
 {
 	// TODO (mb2): check this
-	u32 col = DataReadU8()<<RSHIFT;
-	col    |= DataReadU8()<<GSHIFT;
-	col    |= DataReadU8()<<BSHIFT;
-	col    |= DataReadU8()<<ASHIFT;
+	u32 col = DataReadU32Unswapped();
 
 	// "kill" the alpha
 	if (!colElements[colIndex])	

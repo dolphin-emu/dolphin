@@ -305,8 +305,9 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             if (!Renderer::SetScissorRect()) {
-                if (addr == BPMEM_SCISSORBR ) 
+				if (addr == BPMEM_SCISSORBR) {
                     ERROR_LOG("bad scissor!\n");
+				}
             }
         }
         break;

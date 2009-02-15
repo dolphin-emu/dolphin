@@ -54,6 +54,40 @@ inline u32 DataReadU32()
 	return tmp;
 }
 
+inline u32 DataReadU32Unswapped()
+{
+	u32 tmp = *(u32*)g_pVideoData;
+	g_pVideoData += 4;
+	return tmp;
+}
+
+
+// These are not used yet. If they don't build under Linux, delete them and let me know. -ector
+template<class T>
+inline T DataRead()
+{
+	T tmp = *(T*)g_pVideoData;
+	g_pVideoData += sizeof(T);
+	return tmp;
+}
+
+template <>
+inline u16 DataRead()
+{
+    u16 tmp = Common::swap16(*(u16*)g_pVideoData);
+	g_pVideoData += 2;
+	return tmp;
+}
+
+template <>
+inline u32 DataRead()
+{
+    u32 tmp = Common::swap32(*(u32*)g_pVideoData);
+	g_pVideoData += 4;
+	return tmp;
+}
+
+
 inline float DataReadF32()
 {
     union {u32 i; float f;} temp;
