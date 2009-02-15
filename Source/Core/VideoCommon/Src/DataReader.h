@@ -80,9 +80,25 @@ inline u16 DataRead()
 }
 
 template <>
+inline s16 DataRead()
+{
+    s16 tmp = (s16)Common::swap16(*(u16*)g_pVideoData);
+	g_pVideoData += 2;
+	return tmp;
+}
+
+template <>
 inline u32 DataRead()
 {
-    u32 tmp = Common::swap32(*(u32*)g_pVideoData);
+    u32 tmp = (u32)Common::swap32(*(u32*)g_pVideoData);
+	g_pVideoData += 4;
+	return tmp;
+}
+
+template <>
+inline s32 DataRead()
+{
+    s32 tmp = (s32)Common::swap32(*(u32*)g_pVideoData);
 	g_pVideoData += 4;
 	return tmp;
 }

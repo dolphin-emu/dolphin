@@ -18,22 +18,40 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
-void LOADERDECL Pos_ReadDirect_UByte();
-void LOADERDECL Pos_ReadDirect_Byte();
-void LOADERDECL Pos_ReadDirect_UShort();
-void LOADERDECL Pos_ReadDirect_Short();
-void LOADERDECL Pos_ReadDirect_Float();
+void LOADERDECL Pos_ReadDirect_UByte3();
+void LOADERDECL Pos_ReadDirect_Byte3();
+void LOADERDECL Pos_ReadDirect_UShort3();
+void LOADERDECL Pos_ReadDirect_Short3();
+void LOADERDECL Pos_ReadDirect_Float3();
 
-void LOADERDECL Pos_ReadIndex8_UByte();
-void LOADERDECL Pos_ReadIndex8_Byte();
-void LOADERDECL Pos_ReadIndex8_UShort();
-void LOADERDECL Pos_ReadIndex8_Short();
-void LOADERDECL Pos_ReadIndex8_Float();
+void LOADERDECL Pos_ReadIndex8_UByte3();
+void LOADERDECL Pos_ReadIndex8_Byte3();
+void LOADERDECL Pos_ReadIndex8_UShort3();
+void LOADERDECL Pos_ReadIndex8_Short3();
+void LOADERDECL Pos_ReadIndex8_Float3();
 
-void LOADERDECL Pos_ReadIndex16_UByte();
-void LOADERDECL Pos_ReadIndex16_Byte();
-void LOADERDECL Pos_ReadIndex16_UShort();
-void LOADERDECL Pos_ReadIndex16_Short();
-void LOADERDECL Pos_ReadIndex16_Float();
+void LOADERDECL Pos_ReadIndex16_UByte3();
+void LOADERDECL Pos_ReadIndex16_Byte3();
+void LOADERDECL Pos_ReadIndex16_UShort3();
+void LOADERDECL Pos_ReadIndex16_Short3();
+void LOADERDECL Pos_ReadIndex16_Float3();
+
+void LOADERDECL Pos_ReadDirect_UByte2();
+void LOADERDECL Pos_ReadDirect_Byte2();
+void LOADERDECL Pos_ReadDirect_UShort2();
+void LOADERDECL Pos_ReadDirect_Short2();
+void LOADERDECL Pos_ReadDirect_Float2();
+
+void LOADERDECL Pos_ReadIndex8_UByte2();
+void LOADERDECL Pos_ReadIndex8_Byte2();
+void LOADERDECL Pos_ReadIndex8_UShort2();
+void LOADERDECL Pos_ReadIndex8_Short2();
+void LOADERDECL Pos_ReadIndex8_Float2();
+
+void LOADERDECL Pos_ReadIndex16_UByte2();
+void LOADERDECL Pos_ReadIndex16_Byte2();
+void LOADERDECL Pos_ReadIndex16_UShort2();
+void LOADERDECL Pos_ReadIndex16_Short2();
+void LOADERDECL Pos_ReadIndex16_Float2();
 
 #endif

@@ -76,74 +76,58 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 // ==============================================================================
 // Direct
 // ==============================================================================
-void LOADERDECL Pos_ReadDirect_UByte()
-{ 
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU8() * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)DataReadU8() * posScale;
-	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)DataReadU8() * posScale;
-	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
-	LOG_VTX();
-	VertexManager::s_pCurBufferPointer += 12;
-}
 
-void LOADERDECL Pos_ReadDirect_Byte()
-{	
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)DataReadU8() * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s8)DataReadU8() * posScale;
-	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)(s8)DataReadU8() * posScale;
-	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0;
-	LOG_VTX();
-	VertexManager::s_pCurBufferPointer += 12;
-}
-
-void LOADERDECL Pos_ReadDirect_UShort()
+template <class T, bool three>
+void Pos_ReadDirect()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU16() * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)DataReadU16() * posScale;
-	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)DataReadU16() * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(T)DataRead<T>() * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(T)DataRead<T>() * posScale;
+	if (three)
+		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)(T)DataRead<T>() * posScale;
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-void LOADERDECL Pos_ReadDirect_Short()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)DataReadU16() * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s16)DataReadU16() * posScale;
-	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)(s16)DataReadU16() * posScale;
-	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
-	LOG_VTX();
-	VertexManager::s_pCurBufferPointer += 12;
-}
+void LOADERDECL Pos_ReadDirect_UByte3()  { Pos_ReadDirect<u8,  true>(); }
+void LOADERDECL Pos_ReadDirect_Byte3()   { Pos_ReadDirect<s8,  true>(); }
+void LOADERDECL Pos_ReadDirect_UShort3() { Pos_ReadDirect<u16, true>(); }
+void LOADERDECL Pos_ReadDirect_Short3()  { Pos_ReadDirect<s16, true>(); }
 
-void LOADERDECL Pos_ReadDirect_Float()
+void LOADERDECL Pos_ReadDirect_UByte2()  { Pos_ReadDirect<u8,  false>(); }
+void LOADERDECL Pos_ReadDirect_Byte2()   { Pos_ReadDirect<s8,  false>(); }
+void LOADERDECL Pos_ReadDirect_UShort2() { Pos_ReadDirect<u16, false>(); }
+void LOADERDECL Pos_ReadDirect_Short2()  { Pos_ReadDirect<s16, false>(); }
+
+void LOADERDECL Pos_ReadDirect_Float3()
 {
 	// No need to use floating point here.
 	((u32 *)VertexManager::s_pCurBufferPointer)[0] = DataReadU32(); 
 	((u32 *)VertexManager::s_pCurBufferPointer)[1] = DataReadU32();
-	if (pVtxAttr->PosElements)
-		((u32 *)VertexManager::s_pCurBufferPointer)[2] = DataReadU32();
-	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+	((u32 *)VertexManager::s_pCurBufferPointer)[2] = DataReadU32();
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-template<class T>
+void LOADERDECL Pos_ReadDirect_Float2()
+{
+	// No need to use floating point here.
+	((u32 *)VertexManager::s_pCurBufferPointer)[0] = DataReadU32(); 
+	((u32 *)VertexManager::s_pCurBufferPointer)[1] = DataReadU32();
+	((u32 *)VertexManager::s_pCurBufferPointer)[2] = 0x3f800000;  // 1.0f
+	LOG_VTX();
+	VertexManager::s_pCurBufferPointer += 12;
+}
+
+
+template<class T, bool three>
 inline void Pos_ReadIndex_Byte(int Index)
 {
 	const u8* pData = cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);
 	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(pData[0])) * posScale;
 	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(pData[1])) * posScale;
-	if (pVtxAttr->PosElements)
+	if (three)
 		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(pData[2])) * posScale;
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
@@ -151,13 +135,13 @@ inline void Pos_ReadIndex_Byte(int Index)
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-template<class T>
+template<class T, bool three>
 inline void Pos_ReadIndex_Short(int Index)
 {
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]));
 	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(pData[0])) * posScale;
 	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(pData[1])) * posScale;
-	if (pVtxAttr->PosElements)
+	if (three)
 		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(pData[2])) * posScale;
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
@@ -165,12 +149,13 @@ inline void Pos_ReadIndex_Short(int Index)
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
+template<bool three>
 inline void Pos_ReadIndex_Float(int Index)
 {
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
 	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
 	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
-	if (pVtxAttr->PosElements)
+	if (three)
 		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
@@ -181,65 +166,29 @@ inline void Pos_ReadIndex_Float(int Index)
 // ==============================================================================
 // Index 8
 // ==============================================================================
-void LOADERDECL Pos_ReadIndex8_UByte() 
-{ 
-	u8 Index = DataReadU8();
-	Pos_ReadIndex_Byte<u8>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex8_Byte()
-{
-	u8 Index = DataReadU8();
-	Pos_ReadIndex_Byte<s8>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex8_UShort()
-{
-	u8 Index = DataReadU8();
-	Pos_ReadIndex_Short<u16>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex8_Short()
-{
-	u8 Index = DataReadU8();
-	Pos_ReadIndex_Short<s16>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex8_Float()
-{
-	u8 Index = DataReadU8();
-	Pos_ReadIndex_Float(Index);
-}
+void LOADERDECL Pos_ReadIndex8_UByte3()  {Pos_ReadIndex_Byte<u8,   true> (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Byte3()   {Pos_ReadIndex_Byte<s8,   true> (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_UShort3() {Pos_ReadIndex_Short<u16, true> (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Short3()  {Pos_ReadIndex_Short<s16, true> (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Float3()  {Pos_ReadIndex_Float<true>      (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_UByte2()  {Pos_ReadIndex_Byte<u8,   false>(DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Byte2()   {Pos_ReadIndex_Byte<s8,   false>(DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_UShort2() {Pos_ReadIndex_Short<u16, false>(DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Short2()  {Pos_ReadIndex_Short<s16, false>(DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Float2()  {Pos_ReadIndex_Float<false>     (DataReadU8());}
 
 // ==============================================================================
 // Index 16
 // ==============================================================================
-
-void LOADERDECL Pos_ReadIndex16_UByte(){
-	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Byte<u8>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex16_Byte(){
-	u16 Index = DataReadU16();
-	Pos_ReadIndex_Byte<s8>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex16_UShort(){
-	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Short<u16>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex16_Short()
-{
-	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Short<s16>(Index);
-}
-
-void LOADERDECL Pos_ReadIndex16_Float()
-{
-	u16 Index = DataReadU16(); 
-	Pos_ReadIndex_Float(Index);
-}
+void LOADERDECL Pos_ReadIndex16_UByte3()  {Pos_ReadIndex_Byte<u8,   true> (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Byte3()   {Pos_ReadIndex_Byte<s8,   true> (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_UShort3() {Pos_ReadIndex_Short<u16, true> (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Short3()  {Pos_ReadIndex_Short<s16, true> (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Float3()  {Pos_ReadIndex_Float<true>      (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_UByte2()  {Pos_ReadIndex_Byte<u8,   false>(DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Byte2()   {Pos_ReadIndex_Byte<s8,   false>(DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_UShort2() {Pos_ReadIndex_Short<u16, false>(DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Short2()  {Pos_ReadIndex_Short<s16, false>(DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Float2()  {Pos_ReadIndex_Float<false>     (DataReadU16());}
 
 #endif

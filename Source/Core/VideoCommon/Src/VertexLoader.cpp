@@ -211,22 +211,22 @@ void VertexLoader::CompileVertexTranslator()
 	case NOT_PRESENT:	{_assert_msg_(0, "Vertex descriptor without position!", "WTF?");} break;
 	case DIRECT:
 		switch (m_VtxAttr.PosFormat) {
-        case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_UByte);  break;
-		case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_Byte);   break;
-		case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_UShort); break;
-		case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_Short);  break;
-		case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(Pos_ReadDirect_Float);  break;
+		case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_UByte3:Pos_ReadDirect_UByte2);  break;
+		case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Byte3:Pos_ReadDirect_Byte2);   break;
+		case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_UShort3:Pos_ReadDirect_UShort2); break;
+		case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Short3:Pos_ReadDirect_Short2);  break;
+		case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Float3:Pos_ReadDirect_Float2);  break;
 		default: _assert_(0); break;
 		}
 		nat_offset += 12;
 		break;
 	case INDEX8:		
 		switch (m_VtxAttr.PosFormat) {
-		case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex8_UByte);  break; //WTF?
-		case FORMAT_BYTE:	WriteCall(Pos_ReadIndex8_Byte);   break;
-		case FORMAT_USHORT:	WriteCall(Pos_ReadIndex8_UShort); break;
-		case FORMAT_SHORT:	WriteCall(Pos_ReadIndex8_Short);  break;
-		case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex8_Float);  break;
+		case FORMAT_UBYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_UByte3:Pos_ReadIndex8_UByte2);  break; //WTF?
+		case FORMAT_BYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Byte3:Pos_ReadIndex8_Byte2);   break;
+		case FORMAT_USHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_UShort3:Pos_ReadIndex8_UShort2); break;
+		case FORMAT_SHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Short3:Pos_ReadIndex8_Short2);  break;
+		case FORMAT_FLOAT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Float3:Pos_ReadIndex8_Float2);  break;
 		default: _assert_(0); break;
 		}
 		m_VertexSize += 1;
@@ -234,11 +234,11 @@ void VertexLoader::CompileVertexTranslator()
 		break;
 	case INDEX16:
 		switch (m_VtxAttr.PosFormat) {
-		case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex16_UByte);  break;
-		case FORMAT_BYTE:	WriteCall(Pos_ReadIndex16_Byte);   break;
-		case FORMAT_USHORT:	WriteCall(Pos_ReadIndex16_UShort); break;
-		case FORMAT_SHORT:	WriteCall(Pos_ReadIndex16_Short);  break;
-		case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex16_Float);  break;
+		case FORMAT_UBYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_UByte3:Pos_ReadIndex16_UByte2);  break;
+		case FORMAT_BYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Byte3:Pos_ReadIndex16_Byte2);   break;
+		case FORMAT_USHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_UShort3:Pos_ReadIndex16_UShort2); break;
+		case FORMAT_SHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Short3:Pos_ReadIndex16_Short2);  break;
+		case FORMAT_FLOAT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Float3:Pos_ReadIndex16_Float2);  break;
 		default: _assert_(0); break;
 		}
 		m_VertexSize += 2;
