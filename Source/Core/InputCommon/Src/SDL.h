@@ -233,9 +233,7 @@ bool IsDeadZone(float DeadZone, int x, int y);
 std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square = false);
 
 // Input configuration
-#ifdef _WIN32
-	std::string VKToString(int keycode);
-#endif
+std::string VKToString(int keycode);
 
 #ifndef _SDL_MAIN_
 	extern int g_LastPad;

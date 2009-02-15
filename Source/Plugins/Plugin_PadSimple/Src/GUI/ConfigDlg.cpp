@@ -349,8 +349,10 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 // We have clicked a button
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-	// Check if the Space key was set to solve the Space key problem
-	if (m_dinput.diks[DIK_SPACE]) { m_dinput.diks[DIK_SPACE] = 0; return; }
+	// Check if the Space key was set, to solve the problem that the Space key calls this function
+	#ifdef _WIN32
+		if (m_dinput.diks[DIK_SPACE]) { m_dinput.diks[DIK_SPACE] = 0; return; }
+	#endif
 
 	// If we come here again before any key was set
 	if(ClickedButton) ClickedButton->SetLabel(oldLabel);

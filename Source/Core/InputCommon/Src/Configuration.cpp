@@ -214,6 +214,7 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 #ifdef _WIN32
 std::string VKToString(int keycode)
 {
+#ifdef _WIN32
 	// Default value
 	char KeyStr[64] = {0};
 	GetKeyNameText(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
@@ -240,6 +241,10 @@ std::string VKToString(int keycode)
 
 		default: return KeyString;
 	}
+#else
+	// An equivalent name translation can probably be used on other systems to?
+	return "";
+#endif
 }
 #endif
 /////////////////////////////////////////////////////////////////////
