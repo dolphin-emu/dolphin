@@ -15,8 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "stdafx.h"
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "DirectInputBase.h"
+////////////////////////////////////
+
 
 DInput::DInput()
 	: g_pDI(NULL),
@@ -157,13 +162,13 @@ HRESULT DInput::Read()
 	{
 		return(S_OK);
 	}
-
+	
 	// Get the input's device state, and put the state in dims
 	ZeroMemory(diks, sizeof(diks));
 	hr = g_pKeyboard->GetDeviceState(sizeof(diks), diks);
 
 	//for (int i=0; i<256; i++)
-	//	if (diks[i])MessageBox(0,"DSFJDKSF|",0,0);
+	//	if (diks[i]) MessageBox(0,"DSFJDKSF|",0,0);
 	if (FAILED(hr))
 	{
 		// DirectInput may be telling us that the input stream has been

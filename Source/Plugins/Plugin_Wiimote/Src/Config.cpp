@@ -64,7 +64,30 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "TriggerType", &Trigger.Type, Trigger.TRIGGER_OFF);
 		iniFile.Get(SectionName.c_str(), "TriggerRollRange", &Trigger.Range.Roll, 50);
 		iniFile.Get(SectionName.c_str(), "TriggerPitchRange", &Trigger.Range.Pitch, false);
+
+		// Wiimote
+		iniFile.Get(SectionName.c_str(), "WmA", &WiiMoteEmu::PadMapping[i].Wm.A, 0);
+		iniFile.Get(SectionName.c_str(), "WmB", &WiiMoteEmu::PadMapping[i].Wm.B, 0);
+		iniFile.Get(SectionName.c_str(), "Wm1", &WiiMoteEmu::PadMapping[i].Wm.One, 0);
+		iniFile.Get(SectionName.c_str(), "Wm2", &WiiMoteEmu::PadMapping[i].Wm.Two, 0);
+		iniFile.Get(SectionName.c_str(), "WmP", &WiiMoteEmu::PadMapping[i].Wm.P, 0);
+		iniFile.Get(SectionName.c_str(), "WmM", &WiiMoteEmu::PadMapping[i].Wm.M, 0);
+		iniFile.Get(SectionName.c_str(), "WmH", &WiiMoteEmu::PadMapping[i].Wm.H, 0);
+		iniFile.Get(SectionName.c_str(), "WmL", &WiiMoteEmu::PadMapping[i].Wm.L, 0);
+		iniFile.Get(SectionName.c_str(), "WmR", &WiiMoteEmu::PadMapping[i].Wm.R, 0);
+		iniFile.Get(SectionName.c_str(), "WmU", &WiiMoteEmu::PadMapping[i].Wm.U, 0);
+		iniFile.Get(SectionName.c_str(), "WmD", &WiiMoteEmu::PadMapping[i].Wm.D, 0);
+		iniFile.Get(SectionName.c_str(), "WmShake", &WiiMoteEmu::PadMapping[i].Wm.Shake, 0);
+
+		// Nunchuck
 		iniFile.Get(SectionName.c_str(), "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
+		iniFile.Get(SectionName.c_str(), "NcZ", &WiiMoteEmu::PadMapping[i].Nc.Z, 0);
+		iniFile.Get(SectionName.c_str(), "NcC", &WiiMoteEmu::PadMapping[i].Nc.C, 0);
+		iniFile.Get(SectionName.c_str(), "NcL", &WiiMoteEmu::PadMapping[i].Nc.L, 0);
+		iniFile.Get(SectionName.c_str(), "NcR", &WiiMoteEmu::PadMapping[i].Nc.R, 0);	
+		iniFile.Get(SectionName.c_str(), "NcU", &WiiMoteEmu::PadMapping[i].Nc.U, 0);
+		iniFile.Get(SectionName.c_str(), "NcD", &WiiMoteEmu::PadMapping[i].Nc.D, 0);
+		iniFile.Get(SectionName.c_str(), "NcShake", &WiiMoteEmu::PadMapping[i].Nc.Shake, 0);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -139,7 +162,29 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "TriggerType", Trigger.Type);
 		iniFile.Set(SectionName.c_str(), "TriggerRollRange", Trigger.Range.Roll);
 		iniFile.Set(SectionName.c_str(), "TriggerPitchRange", Trigger.Range.Pitch);
+
+		// Wiimote
+		iniFile.Set(SectionName.c_str(), "WmA", WiiMoteEmu::PadMapping[i].Wm.A);
+		iniFile.Set(SectionName.c_str(), "WmB", WiiMoteEmu::PadMapping[i].Wm.B);
+		iniFile.Set(SectionName.c_str(), "Wm1", WiiMoteEmu::PadMapping[i].Wm.One);
+		iniFile.Set(SectionName.c_str(), "Wm2", WiiMoteEmu::PadMapping[i].Wm.Two);
+		iniFile.Set(SectionName.c_str(), "WmP", WiiMoteEmu::PadMapping[i].Wm.P);
+		iniFile.Set(SectionName.c_str(), "WmM", WiiMoteEmu::PadMapping[i].Wm.M);
+		iniFile.Set(SectionName.c_str(), "WmH", WiiMoteEmu::PadMapping[i].Wm.H);
+		iniFile.Set(SectionName.c_str(), "WmL", WiiMoteEmu::PadMapping[i].Wm.L);
+		iniFile.Set(SectionName.c_str(), "WmR", WiiMoteEmu::PadMapping[i].Wm.R);
+		iniFile.Set(SectionName.c_str(), "WmU", WiiMoteEmu::PadMapping[i].Wm.U);
+		iniFile.Set(SectionName.c_str(), "WmD", WiiMoteEmu::PadMapping[i].Wm.D);
+		iniFile.Set(SectionName.c_str(), "WmShake", WiiMoteEmu::PadMapping[i].Wm.Shake);
+
+		// Nunchuck
 		iniFile.Set(SectionName.c_str(), "NunchuckStick", Nunchuck.Type);
+		iniFile.Set(SectionName.c_str(), "NcZ", WiiMoteEmu::PadMapping[i].Nc.Z);
+		iniFile.Set(SectionName.c_str(), "NcC", WiiMoteEmu::PadMapping[i].Nc.C);
+		iniFile.Set(SectionName.c_str(), "NcL", WiiMoteEmu::PadMapping[i].Nc.L);
+		iniFile.Set(SectionName.c_str(), "NcR", WiiMoteEmu::PadMapping[i].Nc.R);
+		iniFile.Set(SectionName.c_str(), "NcU", WiiMoteEmu::PadMapping[i].Nc.U);
+		iniFile.Set(SectionName.c_str(), "NcShake", WiiMoteEmu::PadMapping[i].Nc.Shake);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName.c_str(), "DeviceID", WiiMoteEmu::PadMapping[i].ID);

@@ -38,10 +38,10 @@
 #include <vector>
 #include <cmath>
 
-#ifdef _WIN32 // UGLY HACK FIXME PLEAAAAAAASE
+#ifdef _WIN32
 #include <SDL.h> // Externals
 #else
-#include <SDL/SDL.h> // Externals
+#include <SDL/SDL.h>
 #endif
 
 #include "Common.h" // Common
@@ -171,15 +171,35 @@ struct PadAxis
 	int Tl; // Triggers
 	int Tr;
 };
+struct PadWiimote
+{
+	int A;
+	int B;
+	int One;
+	int Two;
+	int P;
+	int M;
+	int H;
+	int L, R, U, D;
+	int Shake;
+};
+struct PadNunchuck
+{
+	int Z;
+	int C;
+	int L, R, U, D;
+	int Shake;
+};
 struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE
 {
 	PadAxis Axis;			// 6 Axes (Main, Sub, Triggers)
 	SDL_Joystick *joy;		// SDL joystick device
 };
-
 struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 {
 	PadAxis Axis;			// (See above)
+	PadWiimote Wm;
+	PadNunchuck Nc;
 	bool enabled;			// Pad attached?
 	int DeadZoneL;			// Analog 1 Deadzone
 	int DeadZoneR;			// Analog 2 Deadzone
@@ -211,6 +231,11 @@ int Pad_Convert(int _val);
 float SquareDistance(float deg);
 bool IsDeadZone(float DeadZone, int x, int y);
 std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square = false);
+
+// Input configuration
+#ifdef _WIN32
+	std::string VKToString(int keycode);
+#endif
 
 #ifndef _SDL_MAIN_
 	extern int g_LastPad;

@@ -268,32 +268,31 @@ void FillReportInfo(wm_core& _core)
 	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
 
 	// Allow both mouse buttons and keyboard to press a and b
-	if((GetAsyncKeyState(VK_LBUTTON) && InsideScreen) || GetAsyncKeyState('A') ? 1 : 0)
+	if((GetAsyncKeyState(VK_LBUTTON) && InsideScreen) || GetAsyncKeyState(PadMapping[0].Wm.A))
 		_core.a = 1;
-
-	if((GetAsyncKeyState(VK_RBUTTON) && InsideScreen) || GetAsyncKeyState('B') ? 1 : 0)
+	if((GetAsyncKeyState(VK_RBUTTON) && InsideScreen) || GetAsyncKeyState(PadMapping[0].Wm.B))
 		_core.b = 1;
 
-	_core.one = GetAsyncKeyState('1') ? 1 : 0;
-	_core.two = GetAsyncKeyState('2') ? 1 : 0;
-	_core.plus = GetAsyncKeyState('P') ? 1 : 0;
-	_core.minus = GetAsyncKeyState('M') ? 1 : 0;
-	_core.home = GetAsyncKeyState('H') ? 1 : 0;
+	_core.one = GetAsyncKeyState(PadMapping[0].Wm.One) ? 1 : 0;
+	_core.two = GetAsyncKeyState(PadMapping[0].Wm.Two) ? 1 : 0;
+	_core.plus = GetAsyncKeyState(PadMapping[0].Wm.P) ? 1 : 0;
+	_core.minus = GetAsyncKeyState(PadMapping[0].Wm.M) ? 1 : 0;
+	_core.home = GetAsyncKeyState(PadMapping[0].Wm.H) ? 1 : 0;
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(g_Config.bSidewaysDPad)
 	{
-		_core.left = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
-		_core.up = GetAsyncKeyState(VK_LEFT) ? 1 : 0;
-		_core.right = GetAsyncKeyState(VK_UP) ? 1 : 0;
-		_core.down = GetAsyncKeyState(VK_RIGHT) ? 1 : 0;
+		_core.left = GetAsyncKeyState(PadMapping[0].Wm.D) ? 1 : 0;
+		_core.up = GetAsyncKeyState(PadMapping[0].Wm.L) ? 1 : 0;
+		_core.right = GetAsyncKeyState(PadMapping[0].Wm.U) ? 1 : 0;
+		_core.down = GetAsyncKeyState(PadMapping[0].Wm.R) ? 1 : 0;
 	}
 	else
 	{
-		_core.left = GetAsyncKeyState(VK_LEFT) ? 1 : 0;
-		_core.up = GetAsyncKeyState(VK_UP) ? 1 : 0;
-		_core.right = GetAsyncKeyState(VK_RIGHT) ? 1 : 0;
-		_core.down = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
+		_core.left = GetAsyncKeyState(PadMapping[0].Wm.L) ? 1 : 0;
+		_core.up = GetAsyncKeyState(PadMapping[0].Wm.U) ? 1 : 0;
+		_core.right = GetAsyncKeyState(PadMapping[0].Wm.R) ? 1 : 0;
+		_core.down = GetAsyncKeyState(PadMapping[0].Wm.D) ? 1 : 0;
 	}
 #else 
         // TODO: fill in
@@ -334,7 +333,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 {
 #ifdef _WIN32
 	// Shake Wiimote with S, Nunchuck with D
-	if((i == 0 && GetAsyncKeyState('S')) || (i == 1 && GetAsyncKeyState('D')))
+	if((i == 0 && GetAsyncKeyState(PadMapping[0].Wm.Shake)) || (i == 1 && GetAsyncKeyState(PadMapping[0].Nc.Shake)))
 	{
 		_z = 0;
 		_y = 0;
@@ -918,14 +917,14 @@ void FillReportExtension(wm_extension& _ext)
 	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
 	{
 		// Set the max values to the current calibration values
-		if(GetAsyncKeyState(VK_NUMPAD4)) // x
+		if(GetAsyncKeyState(PadMapping[0].Nc.L)) // x
 			_ext.jx = g_nu.jx.min;
-		if(GetAsyncKeyState(VK_NUMPAD6))
+		if(GetAsyncKeyState(PadMapping[0].Nc.R))
 			_ext.jx = g_nu.jx.max;
 
-		if(GetAsyncKeyState(VK_NUMPAD5)) // y
+		if(GetAsyncKeyState(PadMapping[0].Nc.D)) // y
 			_ext.jy = g_nu.jy.min;
-		if(GetAsyncKeyState(VK_NUMPAD8))
+		if(GetAsyncKeyState(PadMapping[0].Nc.U))
 			_ext.jy = g_nu.jy.max;
 	}
 	else
@@ -984,11 +983,11 @@ void FillReportExtension(wm_extension& _ext)
 		}
 	}
 
-	if(GetAsyncKeyState('C'))
+	if(GetAsyncKeyState(PadMapping[0].Nc.C))
 		_ext.bt = 0x01;
-	if(GetAsyncKeyState('Z'))
+	if(GetAsyncKeyState(PadMapping[0].Nc.Z))
 		_ext.bt = 0x02;	
-	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
+	if(GetAsyncKeyState(PadMapping[0].Nc.C) && GetAsyncKeyState(PadMapping[0].Nc.Z))
 		_ext.bt = 0x00;
 #else 
         // TODO linux port

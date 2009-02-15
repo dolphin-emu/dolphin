@@ -129,7 +129,7 @@ class ConfigDialog : public wxDialog
 		void DllAbout(wxCommandEvent& event);
 		
 		int keyPress;
-		wxButton *clickedButton;
+		wxButton *ClickedButton;
 		wxString oldLabel;
 };
 

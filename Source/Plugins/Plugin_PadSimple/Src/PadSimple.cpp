@@ -36,7 +36,7 @@
 
 #ifdef _WIN32
 	#include "XInput.h"
-	#include "DirectInputBase.h"
+	#include "../../../Core/InputCommon/Src/DirectInputBase.h" // Core
 
 	DInput dinput;
 	//#elif defined(USE_SDL) && USE_SDL
@@ -615,6 +615,8 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
 
 void DllConfig(HWND _hParent)
 {
+	//Console::Open(70, 5000);	
+
 	LoadConfig();
 #ifdef _WIN32
 	wxWindow win;

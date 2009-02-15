@@ -33,6 +33,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#if defined HAVE_WX && HAVE_WX
+	#include <wx/wx.h>
+#endif
+
 #include "SDL.h" // Local
 ////////////////////////////////////
 
@@ -197,11 +201,47 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 	vec.push_back(int_y);
 
 	// Debugging
-	//m_frame->m_pStatusBar2->SetLabel(wxString::Format("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
+	//Console::Print("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
 
 	return vec;
 }
 /////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Windows Virtual Key Codes Names
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#ifdef _WIN32
+std::string VKToString(int keycode)
+{
+	// Default value
+	char KeyStr[64] = {0};
+	GetKeyNameText(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
+	std::string KeyString = KeyStr;
+
+	switch(keycode)
+	{
+		// Give it some help with a few keys
+		case VK_END: return "END";
+		case VK_INSERT: return "INS";
+		case VK_DELETE: return "DEL";
+		case VK_PRIOR: return "PGUP";
+		case VK_NEXT: return "PGDN";
+
+		case VK_UP: return "UP";
+		case VK_DOWN: return "DOWN";
+		case VK_LEFT: return "LEFT";
+		case VK_RIGHT: return "RIGHT";
+
+		case VK_LSHIFT: return "LEFT SHIFT";
+		case VK_LCONTROL: return "LEFT CTRL";
+		case VK_RCONTROL: return "RIGHT CTRL";
+		case VK_LMENU: return "LEFT ALT";
+
+		default: return KeyString;
+	}
+}
+#endif
+/////////////////////////////////////////////////////////////////////
 
 }

@@ -21,7 +21,7 @@
 
 #ifdef _WIN32
 #include "XInput.h"
-#include "../DirectInputBase.h"
+#include "../../../../Core/InputCommon/Src/DirectInputBase.h" // Core
 
 DInput m_dinput;
 #endif
@@ -70,7 +70,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 #ifdef _WIN32
 	m_dinput.Init((HWND)parent);
 #endif
-	clickedButton = NULL;
+	ClickedButton = NULL;
 	CreateGUIControls();
 	Fit();
 }
@@ -79,28 +79,36 @@ ConfigDialog::~ConfigDialog()
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create input button controls
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 					   const char *name, int ctl, int controller)
 {
 	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
 	char keyStr[10] = {0};
 
+	// Add the label
 	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
 				 wxDefaultPosition, wxDefaultSize), 0,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
+
+	// Give it the mapped key name
 #ifdef _WIN32
 	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
 #elif defined(HAVE_X11) && HAVE_X11
 	XKeyToString(pad[controller].keyForControl[ctl], keyStr);
 #endif
 
+	// Add the button to its sizer
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
 		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
-
 	hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
-
 	sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
 }
+////////////////////////////////////
+
 
 void ConfigDialog::CreateGUIControls()
 {
@@ -307,8 +315,9 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 
 void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	if(clickedButton != NULL)
+	if(ClickedButton != NULL)
 	{
+		// Get the selected notebook page
 		int page = m_Notebook->GetSelection();
 
 #ifdef _WIN32
@@ -318,21 +327,43 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 			if(m_dinput.diks[i])
 			{
 				char keyStr[10] = {0};
-				pad[page].keyForControl[clickedButton->GetId()] = i;
+				// Save the mapped key, the wxButtons have the Id 0 to 21
+				pad[page].keyForControl[ClickedButton->GetId()] = i;
+				// Get the key name
 				DInput::DIKToString(i, keyStr);
-				clickedButton->SetLabel(wxString::FromAscii(keyStr));
+				ClickedButton->SetLabel(wxString::FromAscii(keyStr));
 				break;
 			}
 		}
 #elif defined(HAVE_X11) && HAVE_X11
-		pad[page].keyForControl[clickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
-		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
+		pad[page].keyForControl[ClickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
+		ClickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
 #endif
-		clickedButton->Disconnect();
+		ClickedButton->Disconnect();
 	}
-
-	clickedButton = NULL;
+	// Reset 
+	ClickedButton = NULL;
 	event.Skip();
+}
+
+// We have clicked a button
+void ConfigDialog::OnButtonClick(wxCommandEvent& event)
+{
+	// Check if the Space key was set to solve the Space key problem
+	if (m_dinput.diks[DIK_SPACE]) { m_dinput.diks[DIK_SPACE] = 0; return; }
+
+	// If we come here again before any key was set
+	if(ClickedButton) ClickedButton->SetLabel(oldLabel);
+
+	// Save the old button label so we can reapply it if necessary
+	ClickedButton = (wxButton *)event.GetEventObject();
+	oldLabel = ClickedButton->GetLabel();
+	ClickedButton->SetLabel(_("Press Key"));
+
+	// Connect EVT_KEY_DOWN to OnKeyDown()
+    ClickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                           wxKeyEventHandler(ConfigDialog::OnKeyDown),
+                           (wxObject*)NULL, this);
 }
 
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)
@@ -385,20 +416,6 @@ void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 	}
 }
 
-void ConfigDialog::OnButtonClick(wxCommandEvent& event)
-{
-	if(clickedButton)
-	{
-		clickedButton->SetLabel(oldLabel);
-	}
-	clickedButton = (wxButton *)event.GetEventObject();
-	oldLabel = clickedButton->GetLabel();
-	clickedButton->SetLabel(_("Press Key"));
-
-    clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-                           wxKeyEventHandler(ConfigDialog::OnKeyDown),
-                           (wxObject*)NULL, this);
-}
 void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
 	wxString message;

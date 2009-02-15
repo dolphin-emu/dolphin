@@ -23,6 +23,7 @@
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
+#include "StringUtil.h"
 
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
@@ -113,6 +114,20 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, ConfigDialog::GeneralSettingsChanged)
 	
+	// Wiimote
+	EVT_BUTTON(IDB_WM_A, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_1, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_P, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_SHAKE, ConfigDialog::OnButtonClick)
+	
+	// Nunchuck
+	EVT_BUTTON(IDB_NC_Z, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_D, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_SHAKE, ConfigDialog::OnButtonClick)
+
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_RIGHT_X, ConfigDialog::GetButtons)
@@ -157,6 +172,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	m_bEnableUseRealWiimote = true;
 	Page = 0;
 	m_vRecording.resize(RECORDING_ROWS + 1);
+	ClickedButton = NULL;
 
 	g_Config.Load();
 	CreateGUIControls();
@@ -165,9 +181,6 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	UpdateGUI();
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-		wxKeyEventHandler(ConfigDialog::OnKeyDown),
-		(wxObject*)0, this);
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
 		wxKeyEventHandler(ConfigDialog::OnKeyDown),
 		(wxObject*)0, this);
 }
@@ -190,7 +203,68 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		m_bRecording = false;
 		UpdateGUI();
 	}
+
+	// ----------------------------------------------------
+	// Handle the keyboard key mapping
+	// ------------------
+	std::string StrKey;
+	if(ClickedButton != NULL)
+	{
+		// Allow the escape key to set a blank key
+		if (g_Pressed == WXK_ESCAPE)
+		{
+			SaveKeyboardMapping(Page, ClickedButton->GetId(), -1);
+			SetButtonText(ClickedButton->GetId(), "");
+			ClickedButton = NULL;
+			return;
+		}
+
+		#ifdef _WIN32
+			BYTE keyState[256];
+			GetKeyboardState(keyState);
+			for (int i = 1; i < 256; ++i)
+			{
+				if ((keyState[i] & 0x80) != 0)
+				{
+					// Use the left and right specific keys instead of the common ones
+					if (i == VK_SHIFT || i == VK_CONTROL || i == VK_MENU) continue;
+					// Update the button label
+					char KeyStr[64] = {0}; strcpy(KeyStr, InputCommon::VKToString(i).c_str());
+					SetButtonText(ClickedButton->GetId(), KeyStr);
+					// Save the setting
+					SaveKeyboardMapping(Page, ClickedButton->GetId(), i);
+				}
+			}
+		#elif defined(HAVE_X11) && HAVE_X11
+			//pad[page].keyForControl[ClickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
+			//ClickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
+		#endif
+	}
+
+	// Remove the button control pointer
+	ClickedButton = NULL;
+	// ---------------------------
 }
+
+// Input button clicked
+void ConfigDialog::OnButtonClick(wxCommandEvent& event)
+{
+	//Console::Print("OnButtonClick: %i\n", g_Pressed);
+
+	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
+	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
+
+	// Reset the old label
+	if(ClickedButton) ClickedButton->SetLabel(OldLabel);
+
+	// Create the button object
+	ClickedButton = (wxButton *)event.GetEventObject();
+	OldLabel = ClickedButton->GetLabel();
+	ClickedButton->SetLabel(wxT("<Press Key>"));
+	// Allow Tab and directional keys to
+	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
+}
+
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
@@ -441,6 +515,9 @@ void ConfigDialog::CreateGUIControls()
 	StrNunchuck.Add(wxString::FromAscii("Keyboard"));
 	StrNunchuck.Add(wxString::FromAscii("Analog 1"));
 	StrNunchuck.Add(wxString::FromAscii("Analog 2"));
+
+	// A small type font
+	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	///////////////////////////////////////
 
 
@@ -453,7 +530,7 @@ void ConfigDialog::CreateGUIControls()
 		// ----------------
 
 		// Configuration controls
-		static const int TxtW = 50, TxtH = 19, ChW = 261;
+		static const int TxtW = 50, TxtH = 19, ChW = 261, BtW = 75, BtH = 20;
 
 		// Basic Settings
 		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
@@ -540,7 +617,7 @@ void ConfigDialog::CreateGUIControls()
 		// --------------------------------------------------------------------
 		// Controller
 		// -----------------------------
-		/**/
+
 		// Controller
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
 	
@@ -833,20 +910,6 @@ void ConfigDialog::CreateGUIControls()
 		// --------------------------------------------------------------------
 		// Wiimote
 		// -----------------------------
-		
-		m_gWiimote[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Wiimote"));
-		/*
-		m_WmA[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmB[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_Wm1[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_Wm2[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmP[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmM[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmH[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmL[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmR[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmU[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_WmD[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
 
 		m_tWmA[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("A"));
 		m_tWmB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("B"));
@@ -859,30 +922,64 @@ void ConfigDialog::CreateGUIControls()
 		m_tWmR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
 		m_tWmU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
 		m_tWmD[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+		m_tWmShake[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Shake"));
 
-		m_bWmA[i] = new wxButton(m_Controller[i], IDB_WM_A);
-		m_bWmB[i] = new wxButton(m_Controller[i], IDB_WM_B);
-		m_bWm1[i] = new wxButton(m_Controller[i], IDB_WM_1);
-		m_bWm2[i] = new wxButton(m_Controller[i], IDB_WM_2);
-		m_bWmP[i] = new wxButton(m_Controller[i], IDB_WM_P);
-		m_bWmM[i] = new wxButton(m_Controller[i], IDB_WM_M);
-		m_bWmL[i] = new wxButton(m_Controller[i], IDB_WM_L);
-		m_bWmR[i] = new wxButton(m_Controller[i], IDB_WM_R);
-		m_bWmU[i] = new wxButton(m_Controller[i], IDB_WM_U);
-		m_bWmD[i] = new wxButton(m_Controller[i], IDB_WM_D);	
+		m_bWmA[i] = new wxButton(m_Controller[i], IDB_WM_A, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmB[i] = new wxButton(m_Controller[i], IDB_WM_B, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWm1[i] = new wxButton(m_Controller[i], IDB_WM_1, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWm2[i] = new wxButton(m_Controller[i], IDB_WM_2, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmP[i] = new wxButton(m_Controller[i], IDB_WM_P, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmM[i] = new wxButton(m_Controller[i], IDB_WM_M, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmH[i] = new wxButton(m_Controller[i], IDB_WM_H, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmL[i] = new wxButton(m_Controller[i], IDB_WM_L, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmR[i] = new wxButton(m_Controller[i], IDB_WM_R, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmU[i] = new wxButton(m_Controller[i], IDB_WM_U, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmD[i] = new wxButton(m_Controller[i], IDB_WM_D, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmShake[i] = new wxButton(m_Controller[i], IDB_WM_SHAKE, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		
+		// Set small font
+		m_bWmA[i]->SetFont(m_SmallFont); m_bWmB[i]->SetFont(m_SmallFont);
+		m_bWm1[i]->SetFont(m_SmallFont); m_bWm2[i]->SetFont(m_SmallFont);
+		m_bWmP[i]->SetFont(m_SmallFont); m_bWmM[i]->SetFont(m_SmallFont); m_bWmH[i]->SetFont(m_SmallFont);
+		m_bWmL[i]->SetFont(m_SmallFont); m_bWmR[i]->SetFont(m_SmallFont);
+		m_bWmU[i]->SetFont(m_SmallFont); m_bWmD[i]->SetFont(m_SmallFont);
+		m_bWmShake[i]->SetFont(m_SmallFont);
 
-		// Disable
-		m_WmA[i]->Enable(false);
-		m_WmB[i]->Enable(false);
-		m_Wm1[i]->Enable(false);
-		m_Wm2[i]->Enable(false);
-		m_WmP[i]->Enable(false);
-		m_WmM[i]->Enable(false);
-		m_WmL[i]->Enable(false);
-		m_WmR[i]->Enable(false);
-		m_WmU[i]->Enable(false);
-		m_WmD[i]->Enable(false);
-		*/
+		// Sizers
+		m_SWmA[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmB[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWm1[i] = new wxBoxSizer(wxHORIZONTAL); m_SWm2[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWmP[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmM[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmH[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWmL[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmR[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWmU[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmD[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWmShake[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_SWmA[i]->Add(m_tWmA[i], 0, (wxUP), 4); m_SWmA[i]->Add(m_bWmA[i], 0, (wxLEFT), 2);
+		m_SWmB[i]->Add(m_tWmB[i], 0, (wxUP), 4); m_SWmB[i]->Add(m_bWmB[i], 0, (wxLEFT), 2);
+		m_SWm1[i]->Add(m_tWm1[i], 0, (wxUP), 4); m_SWm1[i]->Add(m_bWm1[i], 0, (wxLEFT), 2);
+		m_SWm2[i]->Add(m_tWm2[i], 0, (wxUP), 4); m_SWm2[i]->Add(m_bWm2[i], 0, (wxLEFT), 2);
+		m_SWmP[i]->Add(m_tWmP[i], 0, (wxUP), 4); m_SWmP[i]->Add(m_bWmP[i], 0, (wxLEFT), 2);
+		m_SWmM[i]->Add(m_tWmM[i], 0, (wxUP), 4); m_SWmM[i]->Add(m_bWmM[i], 0, (wxLEFT), 2);
+		m_SWmH[i]->Add(m_tWmH[i], 0, (wxUP), 4); m_SWmH[i]->Add(m_bWmH[i], 0, (wxLEFT), 2);
+		m_SWmL[i]->Add(m_tWmL[i], 0, (wxUP), 4); m_SWmL[i]->Add(m_bWmL[i], 0, (wxLEFT), 2);
+		m_SWmR[i]->Add(m_tWmR[i], 0, (wxUP), 4); m_SWmR[i]->Add(m_bWmR[i], 0, (wxLEFT), 2);
+		m_SWmU[i]->Add(m_tWmU[i], 0, (wxUP), 4); m_SWmU[i]->Add(m_bWmU[i], 0, (wxLEFT), 2);
+		m_SWmD[i]->Add(m_tWmD[i], 0, (wxUP), 4); m_SWmD[i]->Add(m_bWmD[i], 0, (wxLEFT), 2);
+		m_SWmShake[i]->Add(m_tWmShake[i], 0, (wxUP), 4); m_SWmShake[i]->Add(m_bWmShake[i], 0, (wxLEFT), 2);
+
+		m_gWiimote[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Wiimote"));
+		m_gWiimote[i]->Add(m_SWmShake[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		m_gWiimote[i]->Add(m_SWmL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmU[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmD[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmA[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmB[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWm1[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWm2[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmP[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmM[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->Add(m_SWmH[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gWiimote[i]->AddSpacer(1);
 
 		// --------------------------------------------------------------------
 		// Nunchuck
@@ -892,44 +989,59 @@ void ConfigDialog::CreateGUIControls()
 		m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick controls"));
 		m_NunchuckComboStick[i] = new wxComboBox(m_Controller[i], IDCB_NUNCHUCK_STICK, StrNunchuck[0], wxDefaultPosition, wxDefaultSize, StrNunchuck, wxCB_READONLY);
 
-		/*
-		m_NuZ[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_NuC[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_NuL[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_NuR[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_NuU[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
-		m_NuD[i] = new wxTextCtrl(m_Controller[i], ID_WM_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_CENTRE);
+		m_tNcZ[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Z"));
+		m_tNcC[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("C"));
+		m_tNcL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
+		m_tNcR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
+		m_tNcU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
+		m_tNcD[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+		m_tNcShake[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Shake"));
 
-		m_tNuZ[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Z"));
-		m_tNuC[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("C"));
-		m_tNuL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
-		m_tNuR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
-		m_tNuU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
-		m_tNuD[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+		m_bNcZ[i] = new wxButton(m_Controller[i], IDB_NC_Z, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcC[i] = new wxButton(m_Controller[i], IDB_NC_C, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcL[i] = new wxButton(m_Controller[i], IDB_NC_L, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcR[i] = new wxButton(m_Controller[i], IDB_NC_R, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcU[i] = new wxButton(m_Controller[i], IDB_NC_U, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcD[i] = new wxButton(m_Controller[i], IDB_NC_D, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bNcShake[i] = new wxButton(m_Controller[i], IDB_NC_SHAKE, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
 
-		m_bNuZ[i] = new wxButton(m_Controller[i], IDB_WM_Z);
-		m_bNuC[i] = new wxButton(m_Controller[i], IDB_WM_C);
-		m_bNuL[i] = new wxButton(m_Controller[i], IDB_WM_L);
-		m_bNuR[i] = new wxButton(m_Controller[i], IDB_WM_R);
-		m_bNuU[i] = new wxButton(m_Controller[i], IDB_WM_U);
-		m_bNuD[i] = new wxButton(m_Controller[i], IDB_WM_D);	
-
-		// Disable
-		m_NuZ[i]->Enable(false);
-		m_NuC[i]->Enable(false);
-		m_NuL[i]->Enable(false);
-		m_NuR[i]->Enable(false);
-		m_NuU[i]->Enable(false);
-		m_NuD[i]->Enable(false);
-		*/
+		// Set small font
+		m_bNcShake[i]->SetFont(m_SmallFont);
+		m_bNcZ[i]->SetFont(m_SmallFont);
+		m_bNcC[i]->SetFont(m_SmallFont);
+		m_bNcL[i]->SetFont(m_SmallFont); m_bNcR[i]->SetFont(m_SmallFont);
+		m_bNcU[i]->SetFont(m_SmallFont); m_bNcD[i]->SetFont(m_SmallFont);
+		m_bNcShake[i]->SetFont(m_SmallFont);
 
 		// Sizers
 		m_NunchuckStick[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_NunchuckStick[i]->Add(m_NunchuckTextStick[i], 0, (wxUP), 4);
 		m_NunchuckStick[i]->Add(m_NunchuckComboStick[i], 0, (wxLEFT), 2);
 
-		m_gNunchuck[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Nunchuck"));
-		m_gNunchuck[i]->Add(m_NunchuckStick[i], 0, (wxALL), 2);
+		m_SNcZ[i] = new wxBoxSizer(wxHORIZONTAL); m_SNcC[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SNcL[i] = new wxBoxSizer(wxHORIZONTAL); m_SNcR[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SNcU[i] = new wxBoxSizer(wxHORIZONTAL); m_SNcD[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SNcShake[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_SNcZ[i]->Add(m_tNcZ[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcZ[i]->Add(m_bNcZ[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcC[i]->Add(m_tNcC[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcC[i]->Add(m_bNcC[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcL[i]->Add(m_tNcL[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcL[i]->Add(m_bNcL[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcR[i]->Add(m_tNcR[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcR[i]->Add(m_bNcR[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcU[i]->Add(m_tNcU[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcU[i]->Add(m_bNcU[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcD[i]->Add(m_tNcD[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcD[i]->Add(m_bNcD[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+		m_SNcShake[i]->Add(m_tNcShake[i], 0, wxALIGN_RIGHT | (wxUP), 4); m_SNcShake[i]->Add(m_bNcShake[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		// The parent sizer
+		m_gNunchuck[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Nunchuck"));
+		m_gNunchuck[i]->Add(m_NunchuckStick[i], 0, wxALIGN_CENTER | (wxALL), 2);
+		m_gNunchuck[i]->AddSpacer(2);
+		m_gNunchuck[i]->Add(m_SNcShake[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		m_gNunchuck[i]->Add(m_SNcZ[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gNunchuck[i]->Add(m_SNcC[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gNunchuck[i]->Add(m_SNcL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gNunchuck[i]->Add(m_SNcR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gNunchuck[i]->Add(m_SNcU[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gNunchuck[i]->Add(m_SNcD[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 		//Set values
 		m_NunchuckComboStick[i]->SetSelection(g_Config.Nunchuck.Type);

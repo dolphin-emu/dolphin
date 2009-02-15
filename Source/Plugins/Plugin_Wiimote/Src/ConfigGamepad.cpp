@@ -102,6 +102,8 @@ void ConfigDialog::DoChangeDeadZone(bool Left)
 ///////////////////////////////////////////////////////////////////////////////////
 // Change settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// Set the button text for all four Wiimotes
 void ConfigDialog::SetButtonTextAll(int id, char text[128])
 {
 	for (int i = 0; i < 1; i++)
@@ -157,7 +159,30 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
 	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
-	//Console::Print("m_ComboDeadZone[%i] = %i\n", controller, WiiMoteEmu::PadMapping[controller].deadzone);
+	// Wiimote
+	m_bWmA[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A));
+	m_bWmB[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.B)); 
+	m_bWm1[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.One));
+	m_bWm2[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.Two)); 
+	m_bWmP[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.P));
+	m_bWmM[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.M)); 
+	m_bWmH[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.H));
+	m_bWmL[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.L)); 
+	m_bWmR[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.R));
+	m_bWmU[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.U)); 
+	m_bWmD[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.D));
+	m_bWmShake[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.Shake));
+
+	// Nunchuck
+	m_bNcZ[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Z));
+	m_bNcC[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.C));
+	m_bNcL[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.L));
+	m_bNcR[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.R));
+	m_bNcU[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.U));
+	m_bNcD[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.D));
+	m_bNcShake[controller]->SetLabel(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Shake));
+
+	//Console::Print("m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -206,6 +231,38 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	ToBlank();
 }
 
+// Save keyboard key mapping
+void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
+{
+	switch(Id)
+	{
+	// Wiimote
+	case IDB_WM_A: WiiMoteEmu::PadMapping[Controller].Wm.A = Key; break;
+	case IDB_WM_B: WiiMoteEmu::PadMapping[Controller].Wm.B = Key; break;
+	case IDB_WM_1: WiiMoteEmu::PadMapping[Controller].Wm.One = Key; break;
+	case IDB_WM_2: WiiMoteEmu::PadMapping[Controller].Wm.Two = Key; break;
+	case IDB_WM_P: WiiMoteEmu::PadMapping[Controller].Wm.P = Key; break;
+	case IDB_WM_M: WiiMoteEmu::PadMapping[Controller].Wm.M = Key; break;
+	case IDB_WM_H: WiiMoteEmu::PadMapping[Controller].Wm.H = Key; break;
+	case IDB_WM_L: WiiMoteEmu::PadMapping[Controller].Wm.L = Key; break;
+	case IDB_WM_R: WiiMoteEmu::PadMapping[Controller].Wm.R = Key; break;
+	case IDB_WM_U: WiiMoteEmu::PadMapping[Controller].Wm.U = Key; break;
+	case IDB_WM_D: WiiMoteEmu::PadMapping[Controller].Wm.D = Key; break;
+	case IDB_WM_SHAKE: WiiMoteEmu::PadMapping[Controller].Wm.Shake = Key; break;
+
+	// Nunchuck
+	case IDB_NC_Z: WiiMoteEmu::PadMapping[Controller].Nc.Z = Key; break;
+	case IDB_NC_C: WiiMoteEmu::PadMapping[Controller].Nc.C = Key; break;
+	case IDB_NC_L: WiiMoteEmu::PadMapping[Controller].Nc.L = Key; break;
+	case IDB_NC_R: WiiMoteEmu::PadMapping[Controller].Nc.R = Key; break;
+	case IDB_NC_U: WiiMoteEmu::PadMapping[Controller].Nc.U = Key; break;
+	case IDB_NC_D: WiiMoteEmu::PadMapping[Controller].Nc.D = Key; break;
+	case IDB_NC_SHAKE: WiiMoteEmu::PadMapping[Controller].Nc.Shake = Key; break;
+	}
+
+	//Console::Print("WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
+}
+
 // Replace the harder to understand -1 with "" for the sake of user friendliness
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::ToBlank(bool ToBlank)
@@ -252,6 +309,30 @@ void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
 
 		case IDB_TRIGGER_L: m_AnalogTriggerL[controller]->SetValue(wxString::FromAscii(text)); break;
 		case IDB_TRIGGER_R: m_AnalogTriggerR[controller]->SetValue(wxString::FromAscii(text)); break;
+
+		// Wiimote
+		case IDB_WM_A: m_bWmA[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_B: m_bWmB[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_1: m_bWm1[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_2: m_bWm2[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_P: m_bWmP[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_M: m_bWmM[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_H: m_bWmH[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_L: m_bWmL[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_R: m_bWmR[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_U: m_bWmU[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_D: m_bWmD[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_SHAKE: m_bWmShake[controller]->SetLabel(wxString::FromAscii(text)); break;
+
+		// Nunchuck
+		case IDB_NC_Z: m_bNcZ[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_C: m_bNcC[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_L: m_bNcL[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_R: m_bNcR[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_U: m_bNcU[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_D: m_bNcD[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_NC_SHAKE: m_bNcShake[controller]->SetLabel(wxString::FromAscii(text)); break;
+
 		default: break;
 	}
 	//Console::Print("SetButtonText: %s\n", text);
@@ -469,6 +550,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		);*/
 }
 /////////////////////////////////////////////////////////// Configure button mapping
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

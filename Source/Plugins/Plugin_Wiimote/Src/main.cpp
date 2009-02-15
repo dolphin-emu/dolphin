@@ -381,9 +381,13 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // ================
 
 
+
+
 //******************************************************************************
 // Supporting functions
 //******************************************************************************
+
+
 
 
 // ----------------------------------------
@@ -662,14 +666,15 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			"%02x %02x %02x %02x "
 			"%03i %03i %03i "
 			"%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x "
-			"%03i %03i %03i %03i %03i "
-			"%02x %02x ",
+			"%03i %03i "
+			"%03i %03i %03i "
+			"%02x ",
 			data[0], data[1], data[2], data[3],  // Header and core buttons
 			data[4], data[5], data[6], // Wiimote accelerometer
 			data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16],
 			data[17], data[18], // Nunchuck stick
 			data[19], data[20], data[21], // Nunchuck Accelerometer
-			data[22], data[23] //  Nunchuck buttons
+			data[22] //  Nunchuck buttons
 			);
 
 		// Calculate the Wiimote roll and pitch in degrees
@@ -935,9 +940,6 @@ void DoInitialize()
 {
 	// Open console
 	//OpenConsole(true);
-
-	// Load config settings, will be done after the SDL functions in EmuMain.cpp
-	//g_Config.Load();
 
 	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
 	WiiMoteEmu::Initialize();

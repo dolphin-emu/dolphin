@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_PadSimple"
 	ProjectGUID="{9A183B48-ECC2-4121-876A-9B3793686073}"
 	RootNamespace="Plugin_PadSimple"
@@ -632,68 +632,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\GUI\ConfigDlg.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="DirectInputBase"
-			>
-			<File
-				RelativePath=".\Src\DirectInputBase.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\Src\DirectInputBase.h"
 				>
 			</File>
 		</Filter>

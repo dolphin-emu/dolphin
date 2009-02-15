@@ -39,7 +39,7 @@ class ConfigDialog : public wxDialog
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1,
 			const wxString &title = wxT("Wii Remote Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE);
+			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
 		virtual ~ConfigDialog();
 
 		// General open, close and event functions
@@ -90,6 +90,10 @@ class ConfigDialog : public wxDialog
 			*m_HorizControllers[4], *m_gC2SDeadZone[4], *m_gCircle2Square[4], *m_gCircle2SquareVert[4], *m_gDeadZone[4], *m_gDeadZoneHoriz[4], *m_HorizControllerTiltParent[4], *m_HorizControllerTilt[4], *m_TiltHoriz[4],
 			*m_SizeAnalogLeft[4], *m_SizeAnalogLeftHorizX[4], *m_SizeAnalogLeftHorizY[4], *m_SizeAnalogRight[4], *m_SizeAnalogRightHorizX[4], *m_SizeAnalogRightHorizY[4],
 			*m_SizeAnalogTriggerVertLeft[4], *m_SizeAnalogTriggerVertRight[4], *m_SizeAnalogTriggerHorizInput[4],
+			// Nunchuck
+			*m_SNcShake[4], *m_SNcZ[4], *m_SNcC[4], *m_SNcL[4], *m_SNcR[4], *m_SNcU[4], *m_SNcD[4],
+			// Wiimote
+			*m_SWmShake[4], *m_SWmA[4], *m_SWmB[4], *m_SWm1[4], *m_SWm2[4], *m_SWmP[4], *m_SWmM[4], *m_SWmH[4], *m_SWmL[4], *m_SWmR[4], *m_SWmU[4], *m_SWmD[4],
 			*m_HorizControllerMapping[4], *m_NunchuckStick[4];
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
@@ -97,12 +101,22 @@ class ConfigDialog : public wxDialog
 		wxTextCtrl *m_AnalogLeftX[4], *m_AnalogLeftY[4], *m_AnalogRightX[4], *m_AnalogRightY[4],
 			*m_AnalogTriggerL[4], *m_AnalogTriggerR[4];
 		wxButton *m_bAnalogLeftX[4], *m_bAnalogLeftY[4], *m_bAnalogRightX[4], *m_bAnalogRightY[4],
-			*m_bAnalogTriggerL[4], *m_bAnalogTriggerR[4];
+			*m_bAnalogTriggerL[4], *m_bAnalogTriggerR[4],
+			// Nunchuck
+			*m_bNcShake[4], *m_bNcZ[4], *m_bNcC[4], *m_bNcL[4], *m_bNcR[4], *m_bNcU[4], *m_bNcD[4],
+			// Wiimote
+			*m_bWmShake[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4];
 		wxStaticText *m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
 			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
 			*m_tAnalogTriggerInput[4], *m_tAnalogTriggerL[4], *m_tAnalogTriggerR[4],
+			// Nunchuck
+			*m_tNcShake[4], *m_tNcZ[4], *m_tNcC[4], *m_tNcL[4], *m_tNcR[4], *m_tNcU[4], *m_tNcD[4],
+			// Wiimote
+			*m_tWmShake[4], *m_tWmA[4], *m_tWmB[4], *m_tWm1[4], *m_tWm2[4], *m_tWmP[4], *m_tWmM[4], *m_tWmH[4], *m_tWmL[4], *m_tWmR[4], *m_tWmU[4],*m_tWmD[4],
 			*m_NunchuckTextStick[5];
+		wxButton *ClickedButton;
+		wxString OldLabel;
 
 		// Emulated Wiimote settings
 		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4], *m_WideScreen[4];
@@ -168,6 +182,21 @@ class ConfigDialog : public wxDialog
 			ID_ANALOG_RIGHT_X, ID_ANALOG_RIGHT_Y,
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
+			// Wiimote
+			IDB_WM_A, IDB_WM_B,
+			IDB_WM_1, IDB_WM_2,
+			IDB_WM_P, IDB_WM_M, IDB_WM_H,
+			IDB_WM_L, IDB_WM_R, IDB_WM_U, IDB_WM_D,
+			IDB_WM_SHAKE,
+
+			// Nunchuck
+			IDB_NC_Z, IDB_NC_C, IDB_NC_L, IDB_NC_R, IDB_NC_U, IDB_NC_D,
+			IDB_NC_SHAKE,
+
+			// Classic Controller
+			IDB_CC_A, IDB_CC_B,
+			IDB_CC_X, IDB_CC_Y,
+
 			// Gamepad settings
 			IDC_JOYNAME, IDC_LEFT_C2S, IDCB_LEFT_DIAGONAL, IDCB_DEAD_ZONE_LEFT, IDCB_DEAD_ZONE_RIGHT,
 			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH, ID_TILT_INVERT_ROLL, ID_TILT_INVERT_PITCH,
@@ -196,10 +225,12 @@ class ConfigDialog : public wxDialog
 		wxString GetButtonText(int id, int Page = -1);
 		void GetButtons(wxCommandEvent& event); void DoGetButtons(int);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1); void SaveButtonMappingAll(int Slot);
+		void SaveKeyboardMapping(int Controller, int Id, int Key);
 		void ToBlank(bool ToBlank = true);
 		void PadGetStatus();
 		void DoSave(bool ChangePad = false, int Slot = -1);
 		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close); void DoChangeDeadZone(bool Left);
+		void OnButtonClick(wxCommandEvent& event);
 
 		// Configure buttons
 		int GetButtonWaitingID, GetButtonWaitingTimer;
