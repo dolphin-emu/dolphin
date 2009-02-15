@@ -915,9 +915,9 @@ void ConfigDialog::CreateGUIControls()
 		m_tWmB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("B"));
 		m_tWm1[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("1"));
 		m_tWm2[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("2"));
-		m_tWmP[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("P"));
-		m_tWmM[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("M"));
-		m_tWmH[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("H"));
+		m_tWmP[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("+"));
+		m_tWmM[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("- ")); // Intentional space
+		m_tWmH[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Home"));
 		m_tWmL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left"));
 		m_tWmR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
 		m_tWmU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
@@ -946,6 +946,7 @@ void ConfigDialog::CreateGUIControls()
 		m_bWmShake[i]->SetFont(m_SmallFont);
 
 		// Sizers
+		m_SWmVertLeft[i] = new wxBoxSizer(wxVERTICAL); m_SWmVertRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_SWmA[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmB[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SWm1[i] = new wxBoxSizer(wxHORIZONTAL); m_SWm2[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SWmP[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmM[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmH[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -966,19 +967,23 @@ void ConfigDialog::CreateGUIControls()
 		m_SWmD[i]->Add(m_tWmD[i], 0, (wxUP), 4); m_SWmD[i]->Add(m_bWmD[i], 0, (wxLEFT), 2);
 		m_SWmShake[i]->Add(m_tWmShake[i], 0, (wxUP), 4); m_SWmShake[i]->Add(m_bWmShake[i], 0, (wxLEFT), 2);
 
-		m_gWiimote[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Wiimote"));
-		m_gWiimote[i]->Add(m_SWmShake[i], 0, wxALIGN_RIGHT | (wxALL), 1);
-		m_gWiimote[i]->Add(m_SWmL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmU[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmD[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmA[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmB[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWm1[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWm2[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmP[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmM[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-		m_gWiimote[i]->Add(m_SWmH[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWmA[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		m_SWmVertLeft[i]->Add(m_SWmB[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWm1[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWm2[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWmP[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWmM[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertLeft[i]->Add(m_SWmH[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+
+		m_SWmVertRight[i]->Add(m_SWmShake[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		m_SWmVertRight[i]->Add(m_SWmL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertRight[i]->Add(m_SWmR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertRight[i]->Add(m_SWmU[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertRight[i]->Add(m_SWmD[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+
+		m_gWiimote[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Wiimote"));
+		m_gWiimote[i]->Add(m_SWmVertLeft[i], 0, wxALIGN_RIGHT | (wxALL), 0);
+		m_gWiimote[i]->Add(m_SWmVertRight[i], 0, wxALIGN_RIGHT | (wxLEFT), 5);
 		m_gWiimote[i]->AddSpacer(1);
 
 		// --------------------------------------------------------------------
