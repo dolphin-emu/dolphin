@@ -160,7 +160,7 @@ void LOADERDECL Color_ReadIndex8_24b_6666()
 {
 	u8 Index = DataReadU8();
 	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u32 val = *(pData+2) | ((*(pData+1))<<8) | ((*pData)<<16);
+	u32 val = pData[2] | (pData[1] << 8) | (pData[0] << 16);
 	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex8_32b_8888()
@@ -200,7 +200,7 @@ void LOADERDECL Color_ReadIndex16_24b_6666()
 {
 	u16 Index = DataReadU16();
 	const u8 *pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	u32 val = *(pData+2) | ((*(pData+1))<<8) | ((*pData)<<16);
+	u32 val = pData[2] | (pData[1] << 8) | (pData[0] << 16);
 	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex16_32b_8888()

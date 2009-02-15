@@ -77,7 +77,7 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 // Direct
 // ==============================================================================
 void LOADERDECL Pos_ReadDirect_UByte()
-{
+{ 
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU8() * posScale;
 	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)DataReadU8() * posScale;
 	if (pVtxAttr->PosElements)
@@ -138,12 +138,13 @@ void LOADERDECL Pos_ReadDirect_Float()
 }
 
 template<class T>
-inline void Pos_ReadIndex_Byte(int Index) {
+inline void Pos_ReadIndex_Byte(int Index)
+{
 	const u8* pData = cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(*(pData))) * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(*(pData+1))) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)(pData[0])) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)(pData[1])) * posScale;
 	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(*(pData+2))) * posScale;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(pData[2])) * posScale;
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
 	LOG_VTX();
@@ -151,24 +152,26 @@ inline void Pos_ReadIndex_Byte(int Index) {
 }
 
 template<class T>
-inline void Pos_ReadIndex_Short(int Index) {
+inline void Pos_ReadIndex_Short(int Index)
+{
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_POSITION] + ((u32)Index * arraystrides[ARRAY_POSITION]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(*(pData))) * posScale;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(*(pData+1))) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(T)Common::swap16(pData[0])) * posScale;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(T)Common::swap16(pData[1])) * posScale;
 	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(*(pData+2))) * posScale;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(pData[2])) * posScale;
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-inline void Pos_ReadIndex_Float(int Index) {
+inline void Pos_ReadIndex_Float(int Index)
+{
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));
+	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
 	if (pVtxAttr->PosElements)
-		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));
+		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
 	LOG_VTX();

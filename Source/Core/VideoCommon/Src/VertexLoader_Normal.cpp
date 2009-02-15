@@ -29,6 +29,7 @@ VertexLoader_Normal::Set VertexLoader_Normal::m_Table[NUM_NRM_TYPE][NUM_NRM_INDI
 
 void VertexLoader_Normal::Init(void)
 {
+	// HACK is for signed instead of unsigned to prevent crashes.
     m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Set(3,  Normal_DirectByte); //HACK
     m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]   = Set(3,  Normal_DirectByte);
     m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Set(6,  Normal_DirectShort); //HACK
@@ -184,9 +185,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte()
 {
     u8 Index = DataReadU8();
 	const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
-    *VertexManager::s_pCurBufferPointer++ = *(pData);	//Memory_Read_U8(iAddress);
-    *VertexManager::s_pCurBufferPointer++ = *(pData+1);	//Memory_Read_U8(iAddress+1);
-    *VertexManager::s_pCurBufferPointer++ = *(pData+2);	//Memory_Read_U8(iAddress+2);
+    *VertexManager::s_pCurBufferPointer++ = pData[0];
+    *VertexManager::s_pCurBufferPointer++ = pData[1];
+    *VertexManager::s_pCurBufferPointer++ = pData[2];
 	VertexManager::s_pCurBufferPointer++;
 //    ((float*)VertexManager::s_pCurBufferPointer)[0] = ((float)(signed char)Memory_Read_U8(iAddress)+0.5f) / 127.5f;
 //    ((float*)VertexManager::s_pCurBufferPointer)[1] = ((float)(signed char)Memory_Read_U8(iAddress+1)+0.5f) / 127.5f;
@@ -199,9 +200,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Short()
 {
     u8 Index = DataReadU8();
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-	((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*pData);		//Memory_Read_U16(iAddress);
-    ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData+1));	//Memory_Read_U16(iAddress+2);
-    ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData+2));	//Memory_Read_U16(iAddress+4);
+	((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);	
+    ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
+    ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
 }
@@ -210,9 +211,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Float()
 {
     u8 Index = DataReadU8();
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*pData);		//Memory_Read_U32(iAddress);
-    ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));	//Memory_Read_U32(iAddress+4);
-    ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));	//Memory_Read_U32(iAddress+8);
+	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);	
+    ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+    ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
     VertexManager::s_pCurBufferPointer += 12;
     LOG_NORMF();
 }
@@ -223,9 +224,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices1()
 	const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
     for (int i = 0; i < 3; i++)
 	{
-        *VertexManager::s_pCurBufferPointer++ = *(pData + 3*i);		//Memory_Read_U8(iAddress);
-        *VertexManager::s_pCurBufferPointer++ = *(pData + 3*i + 1);	//Memory_Read_U8(iAddress+1);
-        *VertexManager::s_pCurBufferPointer++ = *(pData + 3*i + 2);	//Memory_Read_U8(iAddress+2);
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i];	
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i + 1];
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i + 2];
 		VertexManager::s_pCurBufferPointer++;
         LOG_NORM8();
     }
@@ -237,9 +238,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Short3_Indices1()
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
     for (int i = 0; i < 3; i++)
 	{
-        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*(pData + 3*i));		//Memory_Read_U16(iAddress);
-        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData + 3*i + 1));	//Memory_Read_U16(iAddress+2);
-        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData + 3*i + 2));	//Memory_Read_U16(iAddress+4);
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[3 * i]);	
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[3 * i + 1]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[3 * i + 2]);
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
     }    
@@ -251,9 +252,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Float3_Indices1()
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
     for (int i = 0; i < 3; i++)
 	{
-        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData + 3*i));		//Memory_Read_U32(iAddress);
-        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData + 3*i + 1));	//Memory_Read_U32(iAddress+4);
-        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData + 3*i + 2));	//Memory_Read_U32(iAddress+8);
+        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[3 * i]);	
+        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[3 * i + 1]);
+        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[3 * i + 2]);
         VertexManager::s_pCurBufferPointer += 12;
         LOG_NORMF();
     }    
@@ -265,9 +266,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices3()
 	{
         u8 Index = DataReadU8();
 		const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-        *VertexManager::s_pCurBufferPointer++ = *(pData);	//Memory_Read_U8(iAddress);
-        *VertexManager::s_pCurBufferPointer++ = *(pData+1);	//Memory_Read_U8(iAddress+1);
-        *VertexManager::s_pCurBufferPointer++ = *(pData+2);	//Memory_Read_U8(iAddress+2);
+        *VertexManager::s_pCurBufferPointer++ = pData[0];
+        *VertexManager::s_pCurBufferPointer++ = pData[1];
+        *VertexManager::s_pCurBufferPointer++ = pData[2];
         *VertexManager::s_pCurBufferPointer++;
         LOG_NORM8();
     }
@@ -279,9 +280,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Short3_Indices3()
 	{
         u8 Index = DataReadU8();
 		const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i);
-        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*(pData));	//Memory_Read_U16(iAddress);
-        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData+1));	//Memory_Read_U16(iAddress+2);
-        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData+2));	//Memory_Read_U16(iAddress+4);
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
     }
@@ -293,9 +294,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Float3_Indices3()
 	{
         u8 Index = DataReadU8();
 		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i);
-        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));	//Memory_Read_U32(iAddress);
-        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));	//Memory_Read_U32(iAddress+4);
-        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));	//Memory_Read_U32(iAddress+8);
+        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
         VertexManager::s_pCurBufferPointer += 12;
         LOG_NORMF();
     }    
@@ -309,9 +310,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte()
 {
     u16 Index = DataReadU16();
 	const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
-    *VertexManager::s_pCurBufferPointer++ = *(pData);	//Memory_Read_U8(iAddress);
-    *VertexManager::s_pCurBufferPointer++ = *(pData+1);	//Memory_Read_U8(iAddress+1);
-    *VertexManager::s_pCurBufferPointer++ = *(pData+2);	//Memory_Read_U8(iAddress+2);
+    *VertexManager::s_pCurBufferPointer++ = pData[0];
+    *VertexManager::s_pCurBufferPointer++ = pData[1];
+    *VertexManager::s_pCurBufferPointer++ = pData[2];
 	VertexManager::s_pCurBufferPointer++;
     LOG_NORM8();
 }
@@ -320,10 +321,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Short()
 {
     u16 Index = DataReadU16();
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-
-    ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*(pData));//Memory_Read_U16(iAddress);
-    ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData+1));//Memory_Read_U16(iAddress+2);
-    ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData+2));//Memory_Read_U16(iAddress+4);
+    ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);
+    ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
+    ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
 }
@@ -332,9 +332,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Float()
 {
     u16 Index = DataReadU16();
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-    ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));//Memory_Read_U32(iAddress);
-    ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));//Memory_Read_U32(iAddress+4);
-    ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));//Memory_Read_U32(iAddress+8);
+    ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+    ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+    ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
     VertexManager::s_pCurBufferPointer += 12;
     LOG_NORMF();
 }
@@ -345,9 +345,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices1()
 	const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
     for (int i = 0; i < 3; i++)
 	{
-        *VertexManager::s_pCurBufferPointer++ =  *(pData + 3*i);		//Memory_Read_U8(iAddress);
-        *VertexManager::s_pCurBufferPointer++ =  *(pData + 3*i + 1);	//Memory_Read_U8(iAddress+1);
-        *VertexManager::s_pCurBufferPointer++ =  *(pData + 3*i + 2);	//Memory_Read_U8(iAddress+2);
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i];
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i + 1];
+        *VertexManager::s_pCurBufferPointer++ = pData[3 * i + 2];
 		VertexManager::s_pCurBufferPointer++;
         LOG_NORM8();
     }
@@ -360,9 +360,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Short3_Indices1()
 
     for (int i = 0; i < 3; i++)
     {
-        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*(pData + 3*i));		//Memory_Read_U16(iAddress);
-        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData + 3*i + 1));	//Memory_Read_U16(iAddress+2);
-        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData + 3*i + 2));	//Memory_Read_U16(iAddress+4);
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[3 * i]);	
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[3 * i + 1]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[3 * i + 2]);
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
     }
@@ -375,9 +375,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3_Indices1()
 
     for (int i = 0; i < 3; i++)
     {
-        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData + 3*i));		//Memory_Read_U32(iAddress);
-        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData + 3*i + 1));	//Memory_Read_U32(iAddress+4);
-		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData + 3*i + 2));	//Memory_Read_U32(iAddress+8);
+        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[3 * i]);	
+        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[3 * i + 1]);
+		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[3 * i + 2]);
         VertexManager::s_pCurBufferPointer += 12;
         LOG_NORMF();
     }
@@ -389,9 +389,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices3()
 	{
         u16 Index = DataReadU16();
 		const u8* pData = cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-        *VertexManager::s_pCurBufferPointer++ = *(pData);	//Memory_Read_U8(iAddress);
-        *VertexManager::s_pCurBufferPointer++ = *(pData+1);	//Memory_Read_U8(iAddress+1);
-        *VertexManager::s_pCurBufferPointer++ = *(pData+2);	//Memory_Read_U8(iAddress+2);
+        *VertexManager::s_pCurBufferPointer++ = pData[0];
+        *VertexManager::s_pCurBufferPointer++ = pData[1];
+        *VertexManager::s_pCurBufferPointer++ = pData[2];
 		VertexManager::s_pCurBufferPointer++;
         LOG_NORM8();
     }    
@@ -403,13 +403,12 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Short3_Indices3()
     {
         u16 Index = DataReadU16();
 		const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i);
-        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(*(pData));	//Memory_Read_U16(iAddress);
-        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(*(pData+1));	//Memory_Read_U16(iAddress+2);
-        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(*(pData+2));	//Memory_Read_U16(iAddress+4);
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
     }
-   
 }
 
 void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3_Indices3()
@@ -418,9 +417,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3_Indices3()
     {
         u16 Index = DataReadU16();
 		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i);
-        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(*(pData));	//Memory_Read_U32(iAddress);
-        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(*(pData+1));	//Memory_Read_U32(iAddress+4);
-        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(*(pData+2));	//Memory_Read_U32(iAddress+8);
+        ((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+        ((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+        ((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
         VertexManager::s_pCurBufferPointer += 12;
         LOG_NORMF();
     }    
