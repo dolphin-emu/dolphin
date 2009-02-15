@@ -36,13 +36,13 @@ void Config::Load(bool ChangePad)
     IniFile iniFile;
     iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
-	// get resolution
-
-    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false); // Hardware
+	// General
+    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
 	iniFile.Get("Settings", "WideScreen", &bWideScreen, false);
 	iniFile.Get("Settings", "NunchuckConnected", &bNunchuckConnected, false);
 	iniFile.Get("Settings", "ClassicControllerConnected", &bClassicControllerConnected, false);
 
+	// Real Wiimote
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
 	iniFile.Get("Real", "Use", &bUseRealWiimote, true);
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
@@ -53,6 +53,27 @@ void Config::Load(bool ChangePad)
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 
+	// Default controls
+	#ifdef _WIN32
+		int WmA = 65, WmB = 65,
+			Wm1 = 49, Wm2 = 50,
+			WmP = 80, WmM = 77, WmH = 72,
+			WmL = 37, WmR = 39, WmU = 38, WmD = 40, // Regular directional keys
+			WmShake = 83, // S
+			
+			NcZ = 90, NcC = 67,
+			NcL = 100, NcR = 102, NcU = 104, NcD = 101, // Numpad
+			NcShake = 68; // D
+	#else
+		int WmA = 0, WmB = 0,
+			Wm1 = 0, Wm2 = 0,
+			WmP = 0, WmM = 0, WmH = 0,
+			WmL = 0, WmR = 0, WmU = 0, WmD = 0,
+			WmShake = 0,
+			
+			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0
+			NcShake = 0;
+	#endif
 
 	for (int i = 0; i < 1; i++)
 	{
@@ -66,28 +87,28 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "TriggerPitchRange", &Trigger.Range.Pitch, false);
 
 		// Wiimote
-		iniFile.Get(SectionName.c_str(), "WmA", &WiiMoteEmu::PadMapping[i].Wm.A, 0);
-		iniFile.Get(SectionName.c_str(), "WmB", &WiiMoteEmu::PadMapping[i].Wm.B, 0);
-		iniFile.Get(SectionName.c_str(), "Wm1", &WiiMoteEmu::PadMapping[i].Wm.One, 0);
-		iniFile.Get(SectionName.c_str(), "Wm2", &WiiMoteEmu::PadMapping[i].Wm.Two, 0);
-		iniFile.Get(SectionName.c_str(), "WmP", &WiiMoteEmu::PadMapping[i].Wm.P, 0);
-		iniFile.Get(SectionName.c_str(), "WmM", &WiiMoteEmu::PadMapping[i].Wm.M, 0);
-		iniFile.Get(SectionName.c_str(), "WmH", &WiiMoteEmu::PadMapping[i].Wm.H, 0);
-		iniFile.Get(SectionName.c_str(), "WmL", &WiiMoteEmu::PadMapping[i].Wm.L, 0);
-		iniFile.Get(SectionName.c_str(), "WmR", &WiiMoteEmu::PadMapping[i].Wm.R, 0);
-		iniFile.Get(SectionName.c_str(), "WmU", &WiiMoteEmu::PadMapping[i].Wm.U, 0);
-		iniFile.Get(SectionName.c_str(), "WmD", &WiiMoteEmu::PadMapping[i].Wm.D, 0);
-		iniFile.Get(SectionName.c_str(), "WmShake", &WiiMoteEmu::PadMapping[i].Wm.Shake, 0);
+		iniFile.Get(SectionName.c_str(), "WmA", &WiiMoteEmu::PadMapping[i].Wm.A, WmA);
+		iniFile.Get(SectionName.c_str(), "WmB", &WiiMoteEmu::PadMapping[i].Wm.B, WmB);
+		iniFile.Get(SectionName.c_str(), "Wm1", &WiiMoteEmu::PadMapping[i].Wm.One, Wm1);
+		iniFile.Get(SectionName.c_str(), "Wm2", &WiiMoteEmu::PadMapping[i].Wm.Two, Wm2);
+		iniFile.Get(SectionName.c_str(), "WmP", &WiiMoteEmu::PadMapping[i].Wm.P, WmP);
+		iniFile.Get(SectionName.c_str(), "WmM", &WiiMoteEmu::PadMapping[i].Wm.M, WmM);
+		iniFile.Get(SectionName.c_str(), "WmH", &WiiMoteEmu::PadMapping[i].Wm.H, WmH);
+		iniFile.Get(SectionName.c_str(), "WmL", &WiiMoteEmu::PadMapping[i].Wm.L, WmL);
+		iniFile.Get(SectionName.c_str(), "WmR", &WiiMoteEmu::PadMapping[i].Wm.R, WmR);
+		iniFile.Get(SectionName.c_str(), "WmU", &WiiMoteEmu::PadMapping[i].Wm.U, WmU);
+		iniFile.Get(SectionName.c_str(), "WmD", &WiiMoteEmu::PadMapping[i].Wm.D, WmD);
+		iniFile.Get(SectionName.c_str(), "WmShake", &WiiMoteEmu::PadMapping[i].Wm.Shake, WmShake);
 
 		// Nunchuck
 		iniFile.Get(SectionName.c_str(), "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
-		iniFile.Get(SectionName.c_str(), "NcZ", &WiiMoteEmu::PadMapping[i].Nc.Z, 0);
-		iniFile.Get(SectionName.c_str(), "NcC", &WiiMoteEmu::PadMapping[i].Nc.C, 0);
-		iniFile.Get(SectionName.c_str(), "NcL", &WiiMoteEmu::PadMapping[i].Nc.L, 0);
-		iniFile.Get(SectionName.c_str(), "NcR", &WiiMoteEmu::PadMapping[i].Nc.R, 0);	
-		iniFile.Get(SectionName.c_str(), "NcU", &WiiMoteEmu::PadMapping[i].Nc.U, 0);
-		iniFile.Get(SectionName.c_str(), "NcD", &WiiMoteEmu::PadMapping[i].Nc.D, 0);
-		iniFile.Get(SectionName.c_str(), "NcShake", &WiiMoteEmu::PadMapping[i].Nc.Shake, 0);
+		iniFile.Get(SectionName.c_str(), "NcZ", &WiiMoteEmu::PadMapping[i].Nc.Z, NcZ);
+		iniFile.Get(SectionName.c_str(), "NcC", &WiiMoteEmu::PadMapping[i].Nc.C, NcC);
+		iniFile.Get(SectionName.c_str(), "NcL", &WiiMoteEmu::PadMapping[i].Nc.L, NcL);
+		iniFile.Get(SectionName.c_str(), "NcR", &WiiMoteEmu::PadMapping[i].Nc.R, NcR);	
+		iniFile.Get(SectionName.c_str(), "NcU", &WiiMoteEmu::PadMapping[i].Nc.U, NcU);
+		iniFile.Get(SectionName.c_str(), "NcD", &WiiMoteEmu::PadMapping[i].Nc.D, NcD);
+		iniFile.Get(SectionName.c_str(), "NcShake", &WiiMoteEmu::PadMapping[i].Nc.Shake, NcShake);
 
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
@@ -184,6 +205,7 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "NcL", WiiMoteEmu::PadMapping[i].Nc.L);
 		iniFile.Set(SectionName.c_str(), "NcR", WiiMoteEmu::PadMapping[i].Nc.R);
 		iniFile.Set(SectionName.c_str(), "NcU", WiiMoteEmu::PadMapping[i].Nc.U);
+		iniFile.Set(SectionName.c_str(), "NcD", WiiMoteEmu::PadMapping[i].Nc.D);
 		iniFile.Set(SectionName.c_str(), "NcShake", WiiMoteEmu::PadMapping[i].Nc.Shake);
 
 		// Save the physical device ID number
