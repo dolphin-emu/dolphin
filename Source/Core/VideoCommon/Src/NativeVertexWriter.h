@@ -24,8 +24,6 @@ namespace VertexManager
 
 void AddVertices(int primitive, int numvertices);
 void Flush(); // flushes the current buffer
-
-// This doesn't really belong here and are not relevant for D3D - TODO, find better place to put them.
 int GetRemainingSize();  // remaining space in the current buffer.
 
 // TODO: move, rename.

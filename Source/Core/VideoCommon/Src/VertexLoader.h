@@ -63,7 +63,8 @@ public:
 	void RunVertices(int vtx_attr_group, int primitive, int count);
 
 	// For debugging / profiling
-	void AppendToString(std::string *dest);
+	void AppendToString(std::string *dest) const;
+	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
 private:
 	enum

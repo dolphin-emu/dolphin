@@ -912,7 +912,7 @@ void Renderer::SwapBuffers()
     }
 
     if (g_Config.bOverlayStats) {
-        char st[2048];
+        char st[8192];
         char *p = st;
         if (g_Config.bShowFPS)
             p+=sprintf(p, "FPS: %d\n", s_fps); // So it shows up before the stats and doesn't make anyting ugly

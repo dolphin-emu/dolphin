@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <map>
+#include <vector>
+#include <algorithm>
 
 #include "VideoCommon.h"
 #include "Statistics.h"
@@ -51,11 +53,33 @@ void Shutdown()
 	g_VertexLoaderMap.clear();
 }
 
+namespace {
+struct entry {
+	std::string text;
+	u64 num_verts;
+	bool operator < (const entry &other) const {
+		return num_verts > other.num_verts;
+	}
+};
+}
+
 void AppendListToString(std::string *dest)
 {
-	for (VertexLoaderMap::iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	std::vector<entry> entries;
+
+	size_t total_size = 0;
+	for (VertexLoaderMap::const_iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
 	{
-		iter->second->AppendToString(dest);
+		entry e;
+		iter->second->AppendToString(&e.text);
+		e.num_verts = iter->second->GetNumLoadedVerts();
+		entries.push_back(e);
+		total_size += e.text.size() + 1;
+	}
+	sort(entries.begin(), entries.end());
+	dest->reserve(dest->size() + total_size);
+	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter) {
+		dest->append(iter->text);
 	}
 }
 

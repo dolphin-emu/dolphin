@@ -84,7 +84,7 @@ void LOADERDECL PosMtx_Write()
 
 void LOADERDECL TexMtx_ReadDirect_UByte()
 {
-	s_curtexmtx[s_texmtxread] = DataReadU8()&0x3f;
+	s_curtexmtx[s_texmtxread] = DataReadU8() & 0x3f;
 	PRIM_LOG("texmtx%d: %d, ", s_texmtxread, s_curtexmtx[s_texmtxread]);
 	s_texmtxread++;
 }
@@ -700,7 +700,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
 };
 
-void VertexLoader::AppendToString(std::string *dest)
+void VertexLoader::AppendToString(std::string *dest) const
 {
 	dest->reserve(250);
 	static const char *posMode[4] = {
