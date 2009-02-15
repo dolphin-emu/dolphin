@@ -71,7 +71,7 @@ void Config::Load(bool ChangePad)
 			WmL = 0, WmR = 0, WmU = 0, WmD = 0,
 			WmShake = 0,
 			
-			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0
+			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0, NcD = 0,
 			NcShake = 0;
 	#endif
 
