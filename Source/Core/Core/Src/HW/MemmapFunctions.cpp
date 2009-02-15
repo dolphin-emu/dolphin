@@ -48,7 +48,6 @@ extern writeFn64 hwWrite64[NUMHWMEMFUN];
 extern readFn8   hwRead8 [NUMHWMEMFUN];
 extern readFn16  hwRead16[NUMHWMEMFUN];
 extern readFn32  hwRead32[NUMHWMEMFUN];
-extern readFn64  hwRead64[NUMHWMEMFUN];
 
 extern writeFn8  hwWriteWii8 [NUMHWMEMFUN];
 extern writeFn16 hwWriteWii16[NUMHWMEMFUN];
@@ -58,7 +57,6 @@ extern writeFn64 hwWriteWii64[NUMHWMEMFUN];
 extern readFn8   hwReadWii8 [NUMHWMEMFUN];
 extern readFn16  hwReadWii16[NUMHWMEMFUN];
 extern readFn32  hwReadWii32[NUMHWMEMFUN];
-extern readFn64  hwReadWii64[NUMHWMEMFUN];
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Read and write
@@ -68,139 +66,173 @@ extern readFn64  hwReadWii64[NUMHWMEMFUN];
 /* Instructions: To test the TLB functions in F-Zero disable the "&& ((_Address & 0xFE000000)
    == 0x7e000000)" condition next to bFakeVMEM below. */
 // ----------------
-#define ReadFromHardware2(_var, _type, _Address, EffectiveAddress, flag)				\
-{																						\
-	if ((_Address & 0xC8000000) == 0xC8000000)											\
-		if (_Address < 0xcc000000)														\
-		{                                                                               \
-			_var = bswap((*(u##_type*)&m_pEFB[_Address & EFB_MASK]));					\
-		}                                                                               \
-		else if (_Address <= 0xcc009000)												\
-			hwRead##_type[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_var, _Address);		\
-		/* WIIMODE */																	\
-		else if (((_Address & 0xFF000000) == 0xCD000000) &&								\
-				(_Address <= 0xcd009000))  												\
-			hwReadWii##_type[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_var, _Address);	\
-		else if (((_Address & 0xFFF00000) == 0xCD800000) &&								\
-					(_Address <= 0xCD809000))											\
-			WII_IOBridge::Read##_type(_var, _Address);									\
-		else																			\
-		{																				\
-			/* Disabled because the debugger makes trouble with */						\
-			/*_dbg_assert_(MEMMAP,0); */												\
-		}																				\
-	else if (((_Address & 0xF0000000) == 0x80000000) ||									\
-			((_Address & 0xF0000000) == 0xC0000000) ||									\
-			((_Address & 0xF0000000) == 0x00000000))									\
-		_var = bswap((*(u##_type*)&m_pRAM[_Address & RAM_MASK]));						\
-	else if (((_Address & 0xF0000000) == 0x90000000) ||									\
-			((_Address & 0xF0000000) == 0xD0000000) ||                                  \
-            ((_Address & 0xF0000000) == 0x10000000)) 									\
-		_var = bswap((*(u##_type*)&m_pEXRAM[_Address & EXRAM_MASK]));					\
-	else if ((_Address >= 0xE0000000) && (_Address < (0xE0000000+L1_CACHE_SIZE)))		\
-	{																					\
-		_var = bswap((*(u##_type*)&m_pL1Cache[_Address & L1_CACHE_MASK]));				\
-	}																					\
-	else if (_Address >= 0xE0000000)													\
-		PanicAlert("READ: Invalid address: %08x", _Address);							\
-																						\
-	/* If we get this far we may be in the TLB area */									\
-	else																				\
-	{																					\
-		/*if (bFakeVMEM && ((_Address & 0xFE000000) == 0x7e000000) )*/	                \
-		/*F-Zero:*/ if (bFakeVMEM)														\
-		{                                                                               \
-			_var = bswap((*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK]));			\
-		}                                                                               \
-		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",_Address,PC);*/			\
-			/*CCPU::EnableStepping(TRUE);*/												\
-		/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/							\
-		u32 TmpAddress = CheckDTLB(EffectiveAddress, flag);								\
-		TmpAddress = (TmpAddress & 0xFFFFFFF0) | (_Address & 0xF);						\
-		if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))							\
-			_var = bswap((*(u##_type*)&m_pRAM[TmpAddress & RAM_MASK]));					\
-		}                                                                               \
-	}																					\
-	/* Debugging: CheckForBadAddresses##_type(_Address, _var, true);*/					\
+
+// All these little inline functions are needed because we can't paste symbols together in templates
+// like we can in macros.
+inline void hwRead(u8 &var, u32 addr)  {hwRead8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwRead(u16 &var, u32 addr) {hwRead16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwRead(u32 &var, u32 addr) {hwRead32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwRead(u64 &var, u32 addr) {PanicAlert("hwRead: There's no 64-bit HW read. %08x", addr);}
+
+inline void hwWrite(u8 var, u32 addr)  {hwWrite8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWrite(u16 var, u32 addr) {hwWrite16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWrite(u32 var, u32 addr) {hwWrite32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWrite(u64 var, u32 addr) {PanicAlert("hwWrite: There's no 64-bit HW write. %08x", addr);}
+
+inline void hwReadWii(u8 &var, u32 addr)  {hwReadWii8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwReadWii(u16 &var, u32 addr) {hwReadWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwReadWii(u32 &var, u32 addr) {hwReadWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwReadWii(u64 &var, u32 addr) {PanicAlert("hwReadWii: There's no 64-bit HW read. %08x", addr);}
+
+inline void hwWriteWii(u8 var, u32 addr)  {hwWriteWii8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWriteWii(u16 var, u32 addr) {hwWriteWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWriteWii(u32 var, u32 addr) {hwWriteWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
+inline void hwWriteWii(u64 var, u32 addr) {PanicAlert("hwWriteWii: There's no 64-bit HW write. %08x", addr);}
+
+inline void hwReadIOBridge(u8 &var, u32 addr)  {WII_IOBridge::Read8(var, addr);}
+inline void hwReadIOBridge(u16 &var, u32 addr) {WII_IOBridge::Read16(var, addr);}
+inline void hwReadIOBridge(u32 &var, u32 addr) {WII_IOBridge::Read32(var, addr);}
+inline void hwReadIOBridge(u64 &var, u32 addr) {PanicAlert("hwReadIOBridge: There's no 64-bit HW read. %08x", addr);}
+
+inline void hwWriteIOBridge(u8 var, u32 addr)  {WII_IOBridge::Write8(var, addr);}
+inline void hwWriteIOBridge(u16 var, u32 addr) {WII_IOBridge::Write16(var, addr);}
+inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr);}
+inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
+
+template <class T>
+void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XCheckTLBFlag flag)
+{
+	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
+	if ((em_address & 0xC8000000) == 0xC8000000)
+		if (em_address < 0xcc000000)
+			_var = bswap((*(const T*)&m_pEFB[em_address & EFB_MASK]));
+		else if (em_address <= 0xcc009000)
+			hwRead(_var, em_address);
+		/* WIIMODE */
+		else if (((em_address & 0xFF000000) == 0xCD000000) &&
+			(em_address <= 0xcd009000))
+			hwReadWii(_var, em_address);
+		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
+			(em_address <= 0xCD809000))
+			hwReadIOBridge(_var, em_address);
+		else
+		{
+			/* Disabled because the debugger makes trouble with */
+			/*_dbg_assert_(MEMMAP,0); */
+		}
+	else if (((em_address & 0xF0000000) == 0x80000000) ||
+		((em_address & 0xF0000000) == 0xC0000000) ||
+		((em_address & 0xF0000000) == 0x00000000))
+		_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
+	else if (((em_address & 0xF0000000) == 0x90000000) ||
+		((em_address & 0xF0000000) == 0xD0000000) ||
+		((em_address & 0xF0000000) == 0x10000000))
+		_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
+	else if ((em_address >= 0xE0000000) && (em_address < (0xE0000000+L1_CACHE_SIZE)))
+	{
+		_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
+	}
+	else if (em_address >= 0xE0000000)
+		PanicAlert("READ: Invalid address: %08x", em_address);
+
+	/* If we get this far we may be in the TLB area */
+	else
+	{
+		/*if (bFakeVMEM && ((em_address & 0xFE000000) == 0x7e000000) )*/
+		/*F-Zero:*/if (bFakeVMEM)
+		{
+			_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
+		}
+		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",em_address,PC);*/
+			/*CCPU::EnableStepping(TRUE);*/
+			/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/
+			u32 TmpAddress = CheckDTLB(effective_address, flag);
+			TmpAddress = (TmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
+			if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+				_var = bswap((*(const T*)&m_pRAM[TmpAddress & RAM_MASK]));
+		}
+	}
+	/* Debugging: CheckForBadAddresses##_type(em_address, _var, true);*/
 }
 
 
-#define WriteToHardware2(_type, _Address, _Data, EffectiveAddress, flag)				\
-{																						\
-	/* Debugging: CheckForBadAddresses##_type(_Address, _Data, false);*/				\
-	if ((_Address & 0xC8000000) == 0xC8000000)											\
-	{																					\
-		if (_Address < 0xcc000000)														\
-		{                                                                               \
-			*(u##_type*)&m_pEFB[_Address & EFB_MASK] = bswap(_Data);	                \
-			return;                                                                     \
-		}                                                                               \
-		else if (_Address <= 0xcc009000) {												\
-			hwWrite##_type[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_Data,_Address);		\
-			return;																		\
-		}																				\
-		/* WIIMODE */																	\
-		else if (((_Address & 0xFF000000) == 0xCD000000) &&								\
-				(_Address <= 0xcd009000)) {												\
-			hwWriteWii##_type[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_Data,_Address);	\
-			return;																		\
-		}																				\
-		else if (((_Address & 0xFFF00000) == 0xCD800000) &&								\
-				(_Address <= 0xCD809000)) {												\
-			WII_IOBridge::Write##_type(_Data,_Address);									\
-			return;																		\
-		}																				\
-		else {																			\
-			LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", _Address, _Data, PC);		\
-			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", _Address);	\
-		} 																				\
-	}																					\
-	else if (((_Address & 0xF0000000) == 0x80000000) ||									\
-			((_Address & 0xF0000000) == 0xC0000000) ||									\
-			((_Address & 0xF0000000) == 0x00000000))									\
-	{																					\
-		*(u##_type*)&m_pRAM[_Address & RAM_MASK] = bswap(_Data);						\
-		return;																			\
-	}																					\
-	else if (((_Address & 0xF0000000) == 0x90000000) ||									\
-			((_Address & 0xF0000000) == 0xD0000000) ||									\
-            ((_Address & 0xF0000000) == 0x10000000))                                    \
-	{																					\
-		*(u##_type*)&m_pEXRAM[_Address & EXRAM_MASK] = bswap(_Data);					\
-		return;																			\
-	}																					\
-	else if ((_Address >= 0xE0000000) && (_Address < (0xE0000000+L1_CACHE_SIZE)))		\
-	{																					\
-		*(u##_type*)&m_pL1Cache[_Address & L1_CACHE_MASK] = bswap(_Data);				\
-		return;																			\
-	}																					\
-	else if (_Address >= 0xE0000000)													\
-	{																					\
-		LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)",_Address,_Data);	\
-/*	    PanicAlert("WRITE: Cache address %08x out of bounds", _Address);		*/		\
-	}																					\
-	else																				\
-	{																					\
-		/*if (bFakeVMEM && ((_Address & 0xFE000000) == 0x7e000000))*/	                  \
-		/*F-Zero:	*/ if (bFakeVMEM)														\
-		{                                                                               \
-			*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK] = bswap(_Data);			\
-			return;                                                                     \
-		}                                                                               \
-		/* LOG(MEMMAP,"WRITE: %08x (PC: %08x)",_Address,PC);*/							\
-		/*MessageBox(NULL, "WRITE: unknown Address", "1", MB_OK);*/						\
-		/*CCPU::EnableStepping(TRUE);*/													\
-		u32 tmpAddress = CheckDTLB(EffectiveAddress, flag);								\
-		tmpAddress = (tmpAddress & 0xFFFFFFF0) | (_Address & 0xF);						\
-		*(u##_type*)&m_pRAM[tmpAddress & RAM_MASK] = bswap(_Data);						\
-	}																					\
+template <class T>
+void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
+{
+	/* Debugging: CheckForBadAddresses##_type(em_address, data, false);*/
+	if ((em_address & 0xC8000000) == 0xC8000000)
+	{
+		if (em_address < 0xcc000000)
+		{
+			*(T*)&m_pEFB[em_address & EFB_MASK] = bswap(data);
+			return;
+		}
+		else if (em_address <= 0xcc009000) {
+			hwWrite(data, em_address);
+			return;
+		}
+		/* WIIMODE */
+		else if (((em_address & 0xFF000000) == 0xCD000000) &&
+			(em_address <= 0xcd009000)) {
+				hwWriteWii(data,em_address);
+				return;
+		}
+		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
+			(em_address <= 0xCD809000)) {
+				hwWriteIOBridge(data,em_address);
+				return;
+		}
+		else {
+			LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, data, PC);
+			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", em_address);
+		}
+	}
+	else if (((em_address & 0xF0000000) == 0x80000000) ||
+		((em_address & 0xF0000000) == 0xC0000000) ||
+		((em_address & 0xF0000000) == 0x00000000))
+	{
+		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
+		return;
+	}
+	else if (((em_address & 0xF0000000) == 0x90000000) ||
+		((em_address & 0xF0000000) == 0xD0000000) ||
+		((em_address & 0xF0000000) == 0x10000000))
+	{
+		*(T*)&m_pEXRAM[em_address & EXRAM_MASK] = bswap(data);
+		return;
+	}
+	else if ((em_address >= 0xE0000000) && (em_address < (0xE0000000+L1_CACHE_SIZE)))
+	{
+		*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
+		return;
+	}
+	else if (em_address >= 0xE0000000)
+	{
+		LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)", em_address, data);
+		/* PanicAlert("WRITE: Cache address %08x out of bounds", em_address); */
+	}
+	else
+	{
+		/*if (bFakeVMEM && ((em_address & 0xFE000000) == 0x7e000000))*/
+		/*F-Zero: */ if (bFakeVMEM)
+		{
+			*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
+			return;
+		}
+		/* LOG(MEMMAP,"WRITE: %08x (PC: %08x)",em_address,PC);*/
+		/*MessageBox(NULL, "WRITE: unknown Address", "1", MB_OK);*/
+		/*CCPU::EnableStepping(TRUE);*/
+		u32 tmpAddress = CheckDTLB(effective_address, flag);
+		tmpAddress = (tmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
+		*(T*)&m_pRAM[tmpAddress & RAM_MASK] = bswap(data);
+	}
 }
 // =====================
 
 
 // =================================
 /* These functions are primarily called by the Interpreter functions and are routed to the correct
-   location through ReadFromHardware2 and WriteToHardware2 */
+   location through ReadFromHardware and WriteToHardware */
 // ----------------
 u32 Read_Opcode(const u32 _Address)
 {
@@ -213,21 +245,20 @@ u32 Read_Opcode(const u32 _Address)
 #endif
 
 	u32 _var = 0;	
-	ReadFromHardware2(_var, 32, _Address, _Address, FLAG_OPCODE);
-
+	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_OPCODE);
 	return _var;
 }
 
 u8 Read_U8(const u32 _Address)
 {    
-	u8 _var = (u8)0xAFFEAFFE;
-	ReadFromHardware2(_var, 8, _Address, _Address, FLAG_READ);
+	u8 _var = 0;
+	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
     TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address,false,1,PC);
+		mc->Action(_var, _Address,false, 1, PC);
 	}
 #endif
 	return (u8)_var;
@@ -236,13 +267,13 @@ u8 Read_U8(const u32 _Address)
 u16 Read_U16(const u32 _Address)
 {
 	u16 _var = 0;
-	ReadFromHardware2(_var, 16, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u16>(_var, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
 	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address,false,2,PC);
+		mc->Action(_var, _Address,false, 2, PC);
 	}
 #endif
 	return (u16)_var;
@@ -257,9 +288,8 @@ u32 Read_U32(const u32 _Address)
 		//return 0x00000000;
 	}
 #endif
-
 	u32 _var = 0;	
-	ReadFromHardware2(_var, 32, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
 	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
@@ -275,7 +305,7 @@ u32 Read_U32(const u32 _Address)
 u64 Read_U64(const u32 _Address)
 {
 	u64 _var = 0;
-	ReadFromHardware2(_var, 64, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u64>(_var, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
 	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
@@ -298,7 +328,7 @@ void Write_U8(const u8 _Data, const u32 _Address)
 		mc->Action(_Data,_Address,true,1,PC);
 	}
 #endif
-	WriteToHardware2(8, _Address, _Data, _Address, FLAG_WRITE);
+	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
 }
 
 
@@ -313,7 +343,7 @@ void Write_U16(const u16 _Data, const u32 _Address)
 	}
 #endif
 
-	WriteToHardware2(16, _Address, _Data, _Address, FLAG_WRITE);
+	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
 }
 
 
@@ -327,13 +357,7 @@ void Write_U32(const u32 _Data, const u32 _Address)
 		mc->Action(_Data,_Address,true,4,PC);
 	}
 #endif
-	WriteToHardware2(32, _Address, _Data, _Address, FLAG_WRITE);
-}
-
-
-void WriteHW_U32(const u32 _Data, const u32 _Address)
-{
-	hwWrite32[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_Data,_Address);
+	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
 }
 
 
@@ -348,34 +372,33 @@ void Write_U64(const u64 _Data, const u32 _Address)
 	}
 #endif
 
-	WriteToHardware2(64, _Address, _Data, _Address + 4, FLAG_WRITE);
+	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
 }
-
 
 u8 ReadUnchecked_U8(const u32 _Address)
 {    
-	u8 _var = (u8)0xAFFEAFFE;
-	ReadFromHardware2(_var, 8, _Address, _Address, FLAG_NO_EXCEPTION);
-	return (u8)_var;
+	u8 _var = 0;
+	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
+	return _var;
 }
 
 
 u32 ReadUnchecked_U32(const u32 _Address)
 {
 	u32 _var = 0;
-	ReadFromHardware2(_var, 32, _Address, _Address, FLAG_NO_EXCEPTION);
+	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
 	return _var;
 }
 
 void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 {
-	WriteToHardware2(8, _Address, _iValue, _Address, FLAG_NO_EXCEPTION);
+	WriteToHardware<u8>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
  
 
 void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
-	WriteToHardware2(32, _Address, _iValue, _Address, FLAG_NO_EXCEPTION);
+	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
 // =====================
 
