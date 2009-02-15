@@ -92,6 +92,8 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Statistics;
+		wxCheckBox *m_BlendStats;
+		wxCheckBox *m_ProjStats;
 		wxCheckBox *m_TexFmtOverlay;
 		wxCheckBox *m_TexFmtCenter;
 		wxCheckBox *m_UseXFB;
@@ -137,6 +139,8 @@ class ConfigDialog : public wxDialog
 			ID_SHOWFPS,
 			ID_SHADERERRORS,
 			ID_STATISTICS,
+			ID_BLENDSTATS,
+			ID_PROJSTATS,
 			ID_TEXFMTOVERLAY,
 			ID_TEXFMTCENTER,
 

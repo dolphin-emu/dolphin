@@ -198,6 +198,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
         bProjectionChanged = false;
 		static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
+
         if (xfregs.rawProjection[6] == 0) {
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
@@ -233,6 +234,23 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 			// -(1 + epsilon) so objects are clipped as they are on the real HW
             g_fProjectionMatrix[14] = -1.00000011921f;
             g_fProjectionMatrix[15] = 0.0f;
+
+			SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
+			SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
+			SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
+			SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
+			SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
+			SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
+			SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
+			SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
+			SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
+			SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
+			SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
+			SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
+			SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
+			SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
+			SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
+			SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
         }
         else {
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
@@ -268,7 +286,32 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
             g_fProjectionMatrix[13] = 0;
             g_fProjectionMatrix[14] = 0.0f;
             g_fProjectionMatrix[15] = 1.0f;
+
+			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
+			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
+			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
+			SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
+			SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
+			SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
+			SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
+			SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
+			SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
+			SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
+			SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
+			SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
+			SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
+			SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
+			SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
+			SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
         }
+
+		SETSTAT_FT(stats.proj_0, xfregs.rawProjection[0]);
+		SETSTAT_FT(stats.proj_1, xfregs.rawProjection[1]);
+		SETSTAT_FT(stats.proj_2, xfregs.rawProjection[2]);
+		SETSTAT_FT(stats.proj_3, xfregs.rawProjection[3]);
+		SETSTAT_FT(stats.proj_4, xfregs.rawProjection[4]);
+		SETSTAT_FT(stats.proj_5, xfregs.rawProjection[5]);
+		SETSTAT_FT(stats.proj_6, xfregs.rawProjection[6]);
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
         SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);

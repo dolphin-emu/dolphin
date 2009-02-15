@@ -903,6 +903,9 @@ void Renderer::SwapBuffers()
 	static int fpscount;
     static int s_fps;
     static unsigned long lasttime;
+	char st[8192];
+	char* p = st;
+
     ++fpscount;
     if (timeGetTime() - lasttime > 1000) 
     {
@@ -911,11 +914,13 @@ void Renderer::SwapBuffers()
         fpscount = 0;
     }
 
+	if (g_Config.bShowFPS)
+    {
+        p+=sprintf(p, "%d\n", s_fps);
+        Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
+    }
+
     if (g_Config.bOverlayStats) {
-        char st[8192];
-        char *p = st;
-        if (g_Config.bShowFPS)
-            p+=sprintf(p, "FPS: %d\n", s_fps); // So it shows up before the stats and doesn't make anyting ugly
         p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
         p+=sprintf(p,"textures alive:   %i\n",stats.numTexturesAlive);
         p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
@@ -941,20 +946,47 @@ void Renderer::SwapBuffers()
         p+=sprintf(p,"BP loads (DL):    %i\n",stats.thisFrame.numBPLoadsInDL);
         p+=sprintf(p,"vertex loaders:   %i\n",stats.numVertexLoaders);
 
-		std::string text = st;
-		VertexLoaderManager::AppendListToString(&text);
-	
-		Renderer::RenderText(text.c_str(), 20, 20, 0xFF00FFFF);
+		std::string text1;
+		VertexLoaderManager::AppendListToString(&text1);
+		p+=sprintf(p,"%s",text1.c_str());
     }
-    else
-    {
-        if (g_Config.bShowFPS)
-        {
-            char strfps[25];
-            sprintf(strfps, "%d\n", s_fps);
-            Renderer::RenderText(strfps, 20, 20, 0xFF00FFFF);
-        }
-    }
+	if (g_Config.bOverlayBlendStats)
+	{
+		p+=sprintf(p,"LogicOp Mode: %i\n", stats.logicOpMode);
+		p+=sprintf(p,"Source Factor: %i\n", stats.srcFactor);
+		p+=sprintf(p,"Destination Factor: %i\n", stats.dstFactor);
+		p+=sprintf(p,"Dithering: %s\n", stats.dither==1 ? "Enabled" : "Disabled");
+		p+=sprintf(p,"Color Update: %s\n", stats.colorUpdate==1 ? "Enabled" : "Disabled");
+		p+=sprintf(p,"Alpha Update: %s\n", stats.alphaUpdate==1 ? "Enabled" : "Disabled");
+		p+=sprintf(p,"Dst Alpha Enabled: %s\n", stats.dstAlphaEnable==1 ? "Enabled" : "Disabled");
+		p+=sprintf(p,"Dst Alpha: %08x\n", stats.dstAlpha);
+		
+	}
+	if (g_Config.bOverlayProjStats)
+	{
+		p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
+		p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);
+		p+=sprintf(p,"Projection 1: %f (%f)\n", stats.gproj_1, stats.g2proj_1);
+		p+=sprintf(p,"Projection 2: %f (%f) Raw 1: %f\n", stats.gproj_2, stats.g2proj_2, stats.proj_1);
+		p+=sprintf(p,"Projection 3: %f (%f)\n\n", stats.gproj_3, stats.g2proj_3);
+		p+=sprintf(p,"Projection 4: %f (%f)\n", stats.gproj_4, stats.g2proj_4);
+		p+=sprintf(p,"Projection 5: %f (%f) Raw 2: %f\n", stats.gproj_5, stats.g2proj_5, stats.proj_2);
+		p+=sprintf(p,"Projection 6: %f (%f) Raw 3: %f\n", stats.gproj_6, stats.g2proj_6, stats.proj_3);
+		p+=sprintf(p,"Projection 7: %f (%f)\n\n", stats.gproj_7, stats.g2proj_7);
+		p+=sprintf(p,"Projection 8: %f (%f)\n", stats.gproj_8, stats.g2proj_8);
+		p+=sprintf(p,"Projection 9: %f (%f)\n", stats.gproj_9, stats.g2proj_9);
+		p+=sprintf(p,"Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10, stats.g2proj_10, stats.proj_4);
+		p+=sprintf(p,"Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11, stats.g2proj_11, stats.proj_5);
+		p+=sprintf(p,"Projection 12: %f (%f)\n", stats.gproj_12, stats.g2proj_12);
+		p+=sprintf(p,"Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
+		p+=sprintf(p,"Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);
+		p+=sprintf(p,"Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
+	}
+
+	std::string text = st;
+	Renderer::RenderText(text.c_str(), 21, 21, 0xDD000000);
+	Renderer::RenderText(text.c_str(), 20, 20, 0xFF00FFFF);
+
 
 	Renderer::ProcessMessages();
 

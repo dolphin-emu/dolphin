@@ -50,6 +50,8 @@ struct Config
 	// Information
     bool bShowFPS;
     bool bOverlayStats;
+	bool bOverlayBlendStats;
+	bool bOverlayProjStats;
     bool bTexFmtOverlayEnable;
     bool bTexFmtOverlayCenter;
     

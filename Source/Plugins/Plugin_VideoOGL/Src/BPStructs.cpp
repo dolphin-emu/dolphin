@@ -21,6 +21,7 @@
 #include "Globals.h"
 #include "Profiler.h"
 #include "Config.h"
+#include "Statistics.h"
 
 #include "VertexLoader.h"
 #include "VertexManager.h"
@@ -147,6 +148,8 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+			SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
+			SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
 			Renderer::SetBlendMode(false);
         }
         break;
@@ -199,8 +202,9 @@ void BPWritten(int addr, int changes, int newval)
             15: GL_SET
 			*/
 
-			// Do LogicOp Blending
+			// LogicOp Blending
             if (changes & 2) {  
+				SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
 				if (bpmem.blendmode.logicopenable) 
 				{
 					glEnable(GL_COLOR_LOGIC_OP);
@@ -211,16 +215,28 @@ void BPWritten(int addr, int changes, int newval)
 					glDisable(GL_COLOR_LOGIC_OP);
             }
 
+			// Dithering
             if (changes & 4) {
+				SETSTAT(stats.dither, bpmem.blendmode.dither);
                 if (bpmem.blendmode.dither) glEnable(GL_DITHER);
                 else glDisable(GL_DITHER);
             }
 
+			// Blending
 			if (changes & 0xFE1)
+			{
+				SETSTAT(stats.srcFactor, bpmem.blendmode.srcfactor);
+			    SETSTAT(stats.dstFactor, bpmem.blendmode.dstfactor);
 				Renderer::SetBlendMode(false);
+			}
 
-            if (changes & 0x18) 
+			// Color Mask
+            if (changes & 0x18)
+			{
+				SETSTAT(stats.alphaUpdate, bpmem.blendmode.alphaupdate);
+				SETSTAT(stats.colorUpdate, bpmem.blendmode.colorupdate);
                 Renderer::SetColorMask();
+			}
         }
         break;
 

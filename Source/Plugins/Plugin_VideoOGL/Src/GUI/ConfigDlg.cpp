@@ -42,6 +42,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_WIREFRAME, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWFPS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_BLENDSTATS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJSTATS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHADERERRORS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
@@ -195,6 +197,10 @@ void ConfigDialog::CreateGUIControls()
 	m_ShowFPS->SetValue(g_Config.bShowFPS);
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
+	m_BlendStats = new wxCheckBox(m_PageAdvanced, ID_BLENDSTATS, wxT("Overlay Blend Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_BlendStats->SetValue(g_Config.bOverlayBlendStats);
+	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
@@ -271,8 +277,10 @@ void ConfigDialog::CreateGUIControls()
 	sInfo->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_TexFmtOverlay, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sInfo->Add(m_TexFmtCenter, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_BlendStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_ProjStats, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_TexFmtOverlay, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_TexFmtCenter, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbInfo->Add(sInfo);
 	sAdvanced->Add(sbInfo, 0, wxEXPAND|wxALL, 5);
 
@@ -461,6 +469,13 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_RADIO_COPYEFBTOGL:
 		g_Config.bCopyEFBToRAM = false;
 		break;
+	case ID_BLENDSTATS:
+		g_Config.bOverlayBlendStats = m_BlendStats->IsChecked();
+		break;
+	case ID_PROJSTATS:
+		g_Config.bOverlayProjStats = m_ProjStats->IsChecked();
+		break;
+
 	default:
 		break;
 	}

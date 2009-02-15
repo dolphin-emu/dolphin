@@ -53,6 +53,8 @@ void Config::Load()
     iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
     iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
+	iniFile.Get("Settings", "OverlayBlendStats", &bOverlayBlendStats, false);
+	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
@@ -102,6 +104,8 @@ void Config::Save()
     iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
     iniFile.Set("Settings", "OverlayStats", bOverlayStats);
+	iniFile.Set("Settings", "OverlayBlendStats", bOverlayBlendStats);
+	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
