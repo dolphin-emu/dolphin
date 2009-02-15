@@ -558,7 +558,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	default:
-		PanicAlert("HidControlChanel: Unknown type %x and param %x", hidp->type, hidp->param);
+		PanicAlert("HidControlChannel: Unknown type %x and param %x", hidp->type, hidp->param);
 		break;
 	}
 
@@ -576,8 +576,9 @@ void Update()
 	//Console::Print("Emu Update: %i\n", g_ReportingMode);
 
 	// Check if the pad state should be updated
-	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
+	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
 		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2)
+		&& NumGoodPads > 0 && joyinfo.size() > PadMapping[0].ID)
 	{
 		const int Page = 0;
 		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
