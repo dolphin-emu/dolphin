@@ -170,6 +170,7 @@ bool RecordingPlayIR(IRReportType &_IR)
 // Return true if this particual numerical key is pressed
 bool IsNumericalKeyPressed(int _Key)
 {
+#ifdef _WIN32
 	// Check which key it is
 	std::string TmpKey = StringFromFormat("%i", _Key);
 	if(GetAsyncKeyState(TmpKey[0]))
@@ -177,11 +178,16 @@ bool IsNumericalKeyPressed(int _Key)
 	else
 		// That numerical key is pressed
 		return false;
+#else
+	// TODO linux port
+	return false;
+#endif
 }
 
 // Check if a switch is pressed
 bool IsSwitchPressed(int _Key)
 {
+#ifdef _WIN32
 	// Check if that switch is pressed
 	switch (_Key)
 	{
@@ -192,6 +198,10 @@ bool IsSwitchPressed(int _Key)
 
 	// That switch was not pressed
 	return false;
+#else
+	// TODO linux port
+	return false;
+#endif
 }
 
 // Check if we should start the playback of a recording. Once it has been started it can currently
