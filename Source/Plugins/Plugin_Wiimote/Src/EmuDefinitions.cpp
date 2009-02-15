@@ -66,6 +66,11 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE_NEW PadState[4];
 InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
+// Keyboard input
+KeyboardWiimote g_Wm;
+KeyboardNunchuck g_Nc;
+KeyboardClassicController g_Cc;
+
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

@@ -250,7 +250,81 @@ int RecordingCheckKeys(int WmNuIr)
 //******************************************************************************
 
 
-////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// Multi System Input Status Check
+// ---------------
+int IsKey(int Key)
+{
+#ifdef _WIN32
+	switch(Key)
+	{
+	// Wiimote
+	case g_Wm.MA: return GetAsyncKeyState(VK_LBUTTON);
+	case g_Wm.MB: return GetAsyncKeyState(VK_RBUTTON);
+	case g_Wm.A: return GetAsyncKeyState(PadMapping[0].Wm.A);
+	case g_Wm.B: return GetAsyncKeyState(PadMapping[0].Wm.B);
+	case g_Wm.ONE: return GetAsyncKeyState(PadMapping[0].Wm.One);
+	case g_Wm.TWO: return GetAsyncKeyState(PadMapping[0].Wm.Two);
+	case g_Wm.P: return GetAsyncKeyState(PadMapping[0].Wm.P);
+	case g_Wm.M: return GetAsyncKeyState(PadMapping[0].Wm.M);
+	case g_Wm.H: return GetAsyncKeyState(PadMapping[0].Wm.H);
+	case g_Wm.L: return GetAsyncKeyState(PadMapping[0].Wm.L);
+	case g_Wm.R: return GetAsyncKeyState(PadMapping[0].Wm.R);
+	case g_Wm.U: return GetAsyncKeyState(PadMapping[0].Wm.U);
+	case g_Wm.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
+	case g_Wm.PITCH_L: return GetAsyncKeyState('3');
+	case g_Wm.PITCH_R: return GetAsyncKeyState('4');
+	case g_Wm.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake);
+
+	// Nunchuck
+	case g_Nc.Z: return GetAsyncKeyState(PadMapping[0].Nc.Z);
+	case g_Nc.C: return GetAsyncKeyState(PadMapping[0].Nc.C);
+	case g_Nc.L: return GetAsyncKeyState(PadMapping[0].Nc.L);
+	case g_Nc.R: return GetAsyncKeyState(PadMapping[0].Nc.R);
+	case g_Nc.U: return GetAsyncKeyState(PadMapping[0].Nc.U);
+	case g_Nc.D: return GetAsyncKeyState(PadMapping[0].Nc.D);
+	case g_Nc.SHAKE: return GetAsyncKeyState(PadMapping[0].Nc.Shake);
+
+	// Classic Controller
+	case g_Cc.A: return GetAsyncKeyState('Z');
+	case g_Cc.B: return GetAsyncKeyState('C');
+	case g_Cc.X: return GetAsyncKeyState('X');
+	case g_Cc.Y: return GetAsyncKeyState('Y');
+	case g_Cc.P: return GetAsyncKeyState('O'); // O instead of P
+	case g_Cc.M: return GetAsyncKeyState('N'); // N instead of M
+	case g_Cc.H: return GetAsyncKeyState('U'); // Home button
+
+	case g_Cc.Tl: return GetAsyncKeyState('7'); // Digital left trigger
+	case g_Cc.Zl: return GetAsyncKeyState('8');
+	case g_Cc.Zr: return GetAsyncKeyState('9');
+	case g_Cc.Tr: return GetAsyncKeyState('0'); // Digital right trigger
+
+	case g_Cc.Dl: return GetAsyncKeyState(VK_NUMPAD4); // Digital left
+	case g_Cc.Du: return GetAsyncKeyState(VK_NUMPAD8); // Up
+	case g_Cc.Dr: return GetAsyncKeyState(VK_NUMPAD6); // Right
+	case g_Cc.Dd: return GetAsyncKeyState(VK_NUMPAD5); // Down
+
+	case g_Cc.Ll: return GetAsyncKeyState('J'); // Left analog left
+	case g_Cc.Lu: return GetAsyncKeyState('I');
+	case g_Cc.Lr: return GetAsyncKeyState('L');
+	case g_Cc.Ld: return GetAsyncKeyState('K');
+
+	case g_Cc.Rl: return GetAsyncKeyState('D'); // Right analog left
+	case g_Cc.Ru: return GetAsyncKeyState('R');
+	case g_Cc.Rr: return GetAsyncKeyState('G');
+	case g_Cc.Rd: return GetAsyncKeyState('F');
+
+	// This should not happen
+	default: PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key); return false;
+	}
+#else
+	return true;
+#endif
+}
+//////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////
 // Wiimote core buttons
 // ---------------
 void FillReportInfo(wm_core& _core)
@@ -259,7 +333,6 @@ void FillReportInfo(wm_core& _core)
 	   value is 00 00 */
 	memset(&_core, 0x00, sizeof(wm_core));
 
-#ifdef _WIN32
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
 
@@ -268,35 +341,32 @@ void FillReportInfo(wm_core& _core)
 	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
 
 	// Allow both mouse buttons and keyboard to press a and b
-	if((GetAsyncKeyState(VK_LBUTTON) && InsideScreen) || GetAsyncKeyState(PadMapping[0].Wm.A))
+	if((IsKey(g_Wm.MA) && InsideScreen) || IsKey(g_Wm.A))
 		_core.a = 1;
-	if((GetAsyncKeyState(VK_RBUTTON) && InsideScreen) || GetAsyncKeyState(PadMapping[0].Wm.B))
+	if((IsKey(g_Wm.MB) && InsideScreen) || IsKey(g_Wm.B))
 		_core.b = 1;
 
-	_core.one = GetAsyncKeyState(PadMapping[0].Wm.One) ? 1 : 0;
-	_core.two = GetAsyncKeyState(PadMapping[0].Wm.Two) ? 1 : 0;
-	_core.plus = GetAsyncKeyState(PadMapping[0].Wm.P) ? 1 : 0;
-	_core.minus = GetAsyncKeyState(PadMapping[0].Wm.M) ? 1 : 0;
-	_core.home = GetAsyncKeyState(PadMapping[0].Wm.H) ? 1 : 0;
+	_core.one = IsKey(g_Wm.ONE) ? 1 : 0;
+	_core.two = IsKey(g_Wm.TWO) ? 1 : 0;
+	_core.plus = IsKey(g_Wm.P) ? 1 : 0;
+	_core.minus = IsKey(g_Wm.M) ? 1 : 0;
+	_core.home = IsKey(g_Wm.H) ? 1 : 0;
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(g_Config.bSidewaysDPad)
 	{
-		_core.left = GetAsyncKeyState(PadMapping[0].Wm.D) ? 1 : 0;
-		_core.up = GetAsyncKeyState(PadMapping[0].Wm.L) ? 1 : 0;
-		_core.right = GetAsyncKeyState(PadMapping[0].Wm.U) ? 1 : 0;
-		_core.down = GetAsyncKeyState(PadMapping[0].Wm.R) ? 1 : 0;
+		_core.left = IsKey(g_Wm.D) ? 1 : 0;
+		_core.up = IsKey(g_Wm.L) ? 1 : 0;
+		_core.right = IsKey(g_Wm.U) ? 1 : 0;
+		_core.down = IsKey(g_Wm.R) ? 1 : 0;
 	}
 	else
 	{
-		_core.left = GetAsyncKeyState(PadMapping[0].Wm.L) ? 1 : 0;
-		_core.up = GetAsyncKeyState(PadMapping[0].Wm.U) ? 1 : 0;
-		_core.right = GetAsyncKeyState(PadMapping[0].Wm.R) ? 1 : 0;
-		_core.down = GetAsyncKeyState(PadMapping[0].Wm.D) ? 1 : 0;
+		_core.left = IsKey(g_Wm.L) ? 1 : 0;
+		_core.up = IsKey(g_Wm.U) ? 1 : 0;
+		_core.right = IsKey(g_Wm.R) ? 1 : 0;
+		_core.down = IsKey(g_Wm.D) ? 1 : 0;
 	}
-#else 
-        // TODO: fill in
-#endif
 }
 //////////////////////////
 
@@ -307,7 +377,8 @@ void FillReportInfo(wm_core& _core)
 /* The accelerometer x, y and z values range from 0x00 to 0xff with the default netural values
    being [y = 0x84, x = 0x84, z = 0x9f] according to a source. The extremes are 0x00 for (-)
    and 0xff for (+). It's important that all values are not 0x80, the mouse pointer can disappear
-   from the screen permanently then, until z is adjusted back. */
+   from the screen permanently then, until z is adjusted back. This is because the game detects
+   a steep pitch of the Wiimote then. */
 
 
 // ----------
@@ -333,7 +404,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 {
 #ifdef _WIN32
 	// Shake Wiimote with S, Nunchuck with D
-	if((i == 0 && GetAsyncKeyState(PadMapping[0].Wm.Shake)) || (i == 1 && GetAsyncKeyState(PadMapping[0].Nc.Shake)))
+	if((i == 0 && IsKey(g_Wm.SHAKE)) || (i == 1 && IsKey(g_Nc.SHAKE)))
 	{
 		_z = 0;
 		_y = 0;
@@ -438,13 +509,13 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 {
 #ifdef _WIN32
-	if(GetAsyncKeyState('3'))
+	if(IsKey(g_Wm.PITCH_L))
 	{
 		// Stop at the upper end of the range
 		if(KbDegree < g_Config.Trigger.Range.Roll)
 			KbDegree += 3; // aim left
 	}
-	else if(GetAsyncKeyState('4'))
+	else if(IsKey(g_Wm.PITCH_R))
 	{
 		// Stop at the lower end of the range
 		if(KbDegree > -g_Config.Trigger.Range.Roll)
@@ -456,8 +527,8 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	// ----------
 	// Check for activity
 	yhist[yhist.size() - 1] = (
-		GetAsyncKeyState('3')
-		|| GetAsyncKeyState('4')
+		IsKey(g_Wm.PITCH_L)
+		||IsKey(g_Wm.PITCH_R)
 		);	
 
 	// Move all items back, and check if any of them are true
@@ -912,19 +983,18 @@ void FillReportExtension(wm_extension& _ext)
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
 	// ---------------------
 
-#ifdef _WIN32
 	// Update the analog stick
 	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
 	{
 		// Set the max values to the current calibration values
-		if(GetAsyncKeyState(PadMapping[0].Nc.L)) // x
+		if(IsKey(g_Nc.L)) // x
 			_ext.jx = g_nu.jx.min;
-		if(GetAsyncKeyState(PadMapping[0].Nc.R))
+		if(IsKey(g_Nc.R))
 			_ext.jx = g_nu.jx.max;
 
-		if(GetAsyncKeyState(PadMapping[0].Nc.D)) // y
+		if(IsKey(g_Nc.D)) // y
 			_ext.jy = g_nu.jy.min;
-		if(GetAsyncKeyState(PadMapping[0].Nc.U))
+		if(IsKey(g_Nc.U))
 			_ext.jy = g_nu.jy.max;
 	}
 	else
@@ -983,15 +1053,12 @@ void FillReportExtension(wm_extension& _ext)
 		}
 	}
 
-	if(GetAsyncKeyState(PadMapping[0].Nc.C))
+	if(IsKey(g_Nc.C))
 		_ext.bt = 0x01;
-	if(GetAsyncKeyState(PadMapping[0].Nc.Z))
+	if(IsKey(g_Nc.Z))
 		_ext.bt = 0x02;	
-	if(GetAsyncKeyState(PadMapping[0].Nc.C) && GetAsyncKeyState(PadMapping[0].Nc.Z))
+	if(IsKey(g_Nc.C) && IsKey(g_Nc.Z))
 		_ext.bt = 0x00;
-#else 
-        // TODO linux port
-#endif
 
 	/* Here we encrypt the report */
 
@@ -1057,29 +1124,29 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		u8 rT : 5; // byte 3
 		u8 lT2 : 3;
 	*/
-#ifdef _WIN32
+
 	/* We use a 200 range (28 to 228) for the left analog stick and a 176 range
 	   (40 to 216) for the right analog stick to match our calibration values
 	   in classic_calibration */
-	if(GetAsyncKeyState('J')) // left analog left
+	if(IsKey(g_Cc.Ll)) // Left analog left
 		Lx = 0x1c;
-	if(GetAsyncKeyState('I')) // up
+	if(IsKey(g_Cc.Lu)) // up
 		Ly = 0xe4;
-	if(GetAsyncKeyState('L')) // right
+	if(IsKey(g_Cc.Lr)) // right
 		Lx = 0xe4;
-	if(GetAsyncKeyState('K')) // down
+	if(IsKey(g_Cc.Ld)) // down
 		Ly = 0x1c;
 
-	if(GetAsyncKeyState('D')) // right analog left
+	if(IsKey(g_Cc.Rl)) // Right analog left
 		Rx = 0x28;
-	if(GetAsyncKeyState('R')) // up
+	if(IsKey(g_Cc.Ru)) // up
 		Ry = 0xd8;
-	if(GetAsyncKeyState('G')) // right
+	if(IsKey(g_Cc.Rr)) // right
 		Rx = 0xd8;
-	if(GetAsyncKeyState('F')) // down
+	if(IsKey(g_Cc.Rd)) // down
 		Ry = 0x28;
 
-#endif
+
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
 	_ext.Rx = (Rx >> 3); // this may be wrong
@@ -1091,7 +1158,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.lT2 = (Ry >> 3);
 	_ext.rT = (Ry >> 4);
 	// --------------
-#ifdef _WIN32
 
 
 
@@ -1107,17 +1173,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		0: bdU
 		1: bdL	
 	*/
-	if(GetAsyncKeyState(VK_NUMPAD4)) // left
-		_ext.b2.bdL = 0x00;
-
-	if(GetAsyncKeyState(VK_NUMPAD8)) // up
-		_ext.b2.bdU = 0x00;
-
-	if(GetAsyncKeyState(VK_NUMPAD6)) // right
-		_ext.b1.bdR = 0x00;
-
-	if(GetAsyncKeyState(VK_NUMPAD5)) // down
-		_ext.b1.bdD = 0x00;
+	if(IsKey(g_Cc.Dl)) _ext.b2.bdL = 0x00; // Digital left
+	if(IsKey(g_Cc.Du)) _ext.b2.bdU = 0x00; // Up
+	if(IsKey(g_Cc.Dr)) _ext.b1.bdR = 0x00; // Right
+	if(IsKey(g_Cc.Dd)) _ext.b1.bdD = 0x00; // Down		
 	// --------------
 
 
@@ -1138,46 +1197,44 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			6: bB
 			7: bZl
 	*/
-	if(GetAsyncKeyState('Z'))
+	if(IsKey(g_Cc.A))
 		_ext.b2.bA = 0x00;
 
-	if(GetAsyncKeyState('C'))
+	if(IsKey(g_Cc.B))
 		_ext.b2.bB = 0x00;
 
-	if(GetAsyncKeyState('Y'))
+	if(IsKey(g_Cc.Y))
 		_ext.b2.bY = 0x00;
 
-	if(GetAsyncKeyState('X'))
+	if(IsKey(g_Cc.X))
 		_ext.b2.bX = 0x00;
 
-	if(GetAsyncKeyState('O')) // O instead of P
+	if(IsKey(g_Cc.P)) // O instead of P
 		_ext.b1.bP = 0x00;
 
-	if(GetAsyncKeyState('N')) // N instead of M
+	if(IsKey(g_Cc.M)) // N instead of M
 		_ext.b1.bM = 0x00;
 
-	if(GetAsyncKeyState('U')) // Home button
+	if(IsKey(g_Cc.H)) // Home button
 		_ext.b1.bH = 0x00;
 
-	if(GetAsyncKeyState('7')) // digital left trigger
+	if(IsKey(g_Cc.Tl)) // digital left trigger
 		_ext.b1.bLT = 0x00;
 
-	if(GetAsyncKeyState('8'))
+	if(IsKey(g_Cc.Zl))
 		_ext.b2.bZL = 0x00;
 
-	if(GetAsyncKeyState('9'))
+	if(IsKey(g_Cc.Zr))
 		_ext.b2.bZR = 0x00;
 
-	if(GetAsyncKeyState('0')) // digital right trigger
+	if(IsKey(g_Cc.Tr)) // digital right trigger
 		_ext.b1.bRT = 0x00;
 	
 	// All buttons pressed
 	//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
 	//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
 	// --------------
-#else 
-        // TODO linux port
-#endif
+
 
 	/* Here we encrypt the report */
 

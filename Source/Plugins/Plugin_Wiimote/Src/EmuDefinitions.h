@@ -176,6 +176,60 @@ extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 extern InputCommon::CONTROLLER_STATE_NEW PadState[4];
 extern InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
+// Keyboard input
+struct KeyboardWiimote
+{
+	enum EKeyboardWiimote
+	{
+		A = 0, MA, // Keyboard A and Mouse A
+		B, MB,
+		ONE, TWO,
+		P, M, H,
+		L, R, U, D,
+		PITCH_L, PITCH_R,
+		SHAKE,
+		LAST_CONSTANT
+	};
+};
+extern KeyboardWiimote g_Wm;
+struct KeyboardNunchuck
+{
+	enum EKeyboardNunchuck
+	{
+		// This is not allowed in Linux so we have to set the starting value manually
+		#ifdef _WIN32
+			Z = g_Wm.LAST_CONSTANT,
+		#else
+			Z = 16,
+		#endif
+		C,
+		L, R, U, D,
+		SHAKE,
+		LAST_CONSTANT
+	};
+};
+extern KeyboardNunchuck g_Nc;
+struct KeyboardClassicController
+{
+	enum EKeyboardClassicController
+	{
+		// This is not allowed in Linux so we have to set the starting value manually
+		#ifdef _WIN32
+			A = g_Nc.LAST_CONSTANT,
+		#else
+			A = 23,
+		#endif
+		B, X, Y,
+		P, M, H,
+		Dl, Dr, Du, Dd,
+		Tl, Tr, Zl, Zr,
+		Ll, Lr, Lu, Ld,
+		Rl, Rr, Ru, Rd,
+		SHAKE
+	};
+};
+extern KeyboardClassicController g_Cc;
+
 } // namespace
 
 #endif	//_EMU_DEFINITIONS_
