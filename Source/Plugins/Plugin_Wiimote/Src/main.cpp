@@ -392,11 +392,17 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 void OpenConsole(bool Open)
 {
 	// Close the console window
-	if (Console::GetHwnd() != NULL && !Open)
+	#ifdef _WIN32
+		if (Console::GetHwnd() != NULL && !Open)
+	#else
+		if (false)
+	#endif
 	{
 		Console::Close();
 		// Wait here until we have let go of the button again
-		while(GetAsyncKeyState(VK_INSERT)) {Sleep(10);}
+		#ifdef _WIN32
+			while(GetAsyncKeyState(VK_INSERT)) {Sleep(10);}
+		#endif
 		return;
 	}
 
@@ -405,10 +411,11 @@ void OpenConsole(bool Open)
 	Console::Print("\n\nWiimote console opened\n");
 
 	// Move window
-	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window
-
+	#ifdef _WIN32
+		//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
+		//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
+		MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window
+	#endif
 }
 // ---------------
 
