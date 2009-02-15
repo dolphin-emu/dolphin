@@ -917,7 +917,6 @@ void Renderer::SwapBuffers()
 	if (g_Config.bShowFPS)
     {
         p+=sprintf(p, "%d\n", s_fps);
-        Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
     }
 
     if (g_Config.bOverlayStats) {
