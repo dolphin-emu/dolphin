@@ -124,9 +124,11 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 		wm[i]->unid = i+1;
 
 		#ifndef WIN32
+		#if !defined(__APPLE__)
 			wm[i]->bdaddr = *BDADDR_ANY;
 			wm[i]->out_sock = -1;
 			wm[i]->in_sock = -1;
+		#endif
 		#else
 			wm[i]->dev_handle = 0;
 			wm[i]->stack = WIIUSE_STACK_UNKNOWN;

@@ -160,6 +160,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
 	// Wiimote
+	#ifdef _WIN32
 	m_bWmA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str()));
 	m_bWmB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.B).c_str())); 
 	m_bWm1[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.One).c_str()));
@@ -183,6 +184,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bNcU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.U).c_str()));
 	m_bNcD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.D).c_str()));
 	m_bNcShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Shake).c_str()));
+	#endif
 
 	//Console::Print("m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
 }

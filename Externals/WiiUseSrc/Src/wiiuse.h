@@ -42,6 +42,8 @@
 #ifdef _WIN32
 	/* windows */
 	#include <windows.h>
+#elif defined(__APPLE__)
+	#include <string.h>
 #else
 	/* nix */
 	#include <bluetooth/bluetooth.h>
@@ -533,7 +535,11 @@ typedef struct wiimote_t {
 	WCONST int unid;						/**< user specified id						*/
 
 	#ifndef WIN32
+	#if defined(__APPLE__)
+		WCONST char bdaddr[10];				/**< bt address	on osx addr are string						*/
+	#else
 		WCONST bdaddr_t bdaddr;				/**< bt address								*/
+	#endif
 		WCONST char bdaddr_str[18];			/**< readable bt address					*/
 		WCONST int out_sock;				/**< output socket							*/
 		WCONST int in_sock;					/**< input socket 							*/

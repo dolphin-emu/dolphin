@@ -1,8 +1,9 @@
 # -*- python -*- 
 
+import sys
 Import('env')
 
-if not env['HAVE_BLUEZ']:
+if not (env['HAVE_BLUEZ'] or sys.platform == 'darwin'):
     env['HAVE_WIIUSE'] = 0
     Return()
 
@@ -11,12 +12,17 @@ files = [
         "dynamics.c",
         "events.c",
         "io.c",
-        "io_nix.c",
         "ir.c",
         "nunchuk.c",
         "guitar_hero_3.c",
         "wiiuse.c",
 	]
+
+if env['HAVE_BLUEZ']:
+	files += [ "io_nix.c", ]
+
+if sys.platform == 'darwin':
+	files += [ "io_osx.c", ]
 
 env_wiiuse = env.Clone(
 	CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default',
