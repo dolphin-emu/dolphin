@@ -183,10 +183,15 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 		d3d_fmt = D3DFMT_A4L4;
 		break;
 	case PC_TEX_FMT_I8:
-		d3d_fmt = D3DFMT_A8P8;
+		d3d_fmt = D3DFMT_A8P8; // A hack which means the format is a packed
+							   // 8-bit intensity texture. It is unpacked
+							   // to A8L8 in D3DTexture.cpp
 		break;
 	case PC_TEX_FMT_IA8:
 		d3d_fmt = D3DFMT_A8L8;
+		break;
+	case PC_TEX_FMT_DXT1:
+		d3d_fmt = D3DFMT_DXT1;
 		break;
 	}
 
