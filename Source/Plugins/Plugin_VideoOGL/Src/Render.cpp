@@ -279,8 +279,9 @@ bool Renderer::Init()
         }
     }
 
-    if (s_ZBufferTarget == 0)
+	if (s_ZBufferTarget == 0) {
         ERROR_LOG("disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
+	}
 
     //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
 
@@ -317,8 +318,9 @@ bool Renderer::Init()
     DEBUG_LOG("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
     DEBUG_LOG("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
-    if (nenvvertparams < 238)
+	if (nenvvertparams < 238) {
         ERROR_LOG("not enough vertex shader environment constants!!\n");
+	}
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
@@ -905,6 +907,7 @@ void Renderer::SwapBuffers()
     static unsigned long lasttime;
 	char st[8192];
 	char* p = st;
+	p[0] = 0;
 
     ++fpscount;
     if (timeGetTime() - lasttime > 1000) 
