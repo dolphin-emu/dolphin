@@ -60,6 +60,7 @@ void Config::Load(bool ChangePad)
 			WmP = 80, WmM = 77, WmH = 72,
 			WmL = 37, WmR = 39, WmU = 38, WmD = 40, // Regular directional keys
 			WmShake = 83, // S
+			WmPitchL = 51, WmPitchR = 52, // 3 and 4
 			
 			NcZ = 90, NcC = 67,
 			NcL = 100, NcR = 102, NcU = 104, NcD = 101, // Numpad
@@ -70,6 +71,7 @@ void Config::Load(bool ChangePad)
 			WmP = 0, WmM = 0, WmH = 0,
 			WmL = 0, WmR = 0, WmU = 0, WmD = 0,
 			WmShake = 0,
+			WmPitchL = 0, WmPitchR = 0,
 			
 			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0, NcD = 0,
 			NcShake = 0;
@@ -99,6 +101,8 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "WmU", &WiiMoteEmu::PadMapping[i].Wm.U, WmU);
 		iniFile.Get(SectionName.c_str(), "WmD", &WiiMoteEmu::PadMapping[i].Wm.D, WmD);
 		iniFile.Get(SectionName.c_str(), "WmShake", &WiiMoteEmu::PadMapping[i].Wm.Shake, WmShake);
+		iniFile.Get(SectionName.c_str(), "WmPitchL", &WiiMoteEmu::PadMapping[i].Wm.PitchL, WmPitchL);
+		iniFile.Get(SectionName.c_str(), "WmPitchR", &WiiMoteEmu::PadMapping[i].Wm.PitchR, WmPitchR);
 
 		// Nunchuck
 		iniFile.Get(SectionName.c_str(), "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
@@ -197,6 +201,8 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName.c_str(), "WmU", WiiMoteEmu::PadMapping[i].Wm.U);
 		iniFile.Set(SectionName.c_str(), "WmD", WiiMoteEmu::PadMapping[i].Wm.D);
 		iniFile.Set(SectionName.c_str(), "WmShake", WiiMoteEmu::PadMapping[i].Wm.Shake);
+		iniFile.Set(SectionName.c_str(), "WmPitchL", WiiMoteEmu::PadMapping[i].Wm.PitchL);
+		iniFile.Set(SectionName.c_str(), "WmPitchR", WiiMoteEmu::PadMapping[i].Wm.PitchR);
 
 		// Nunchuck
 		iniFile.Set(SectionName.c_str(), "NunchuckStick", Nunchuck.Type);

@@ -172,6 +172,8 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bWmU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.U).c_str())); 
 	m_bWmD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.D).c_str()));
 	m_bWmShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.Shake).c_str()));
+	m_bWmPitchL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.PitchL).c_str()));
+	m_bWmPitchR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.PitchR).c_str()));
 
 	// Nunchuck
 	m_bNcZ[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Z).c_str()));
@@ -249,6 +251,8 @@ void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 	case IDB_WM_U: WiiMoteEmu::PadMapping[Controller].Wm.U = Key; break;
 	case IDB_WM_D: WiiMoteEmu::PadMapping[Controller].Wm.D = Key; break;
 	case IDB_WM_SHAKE: WiiMoteEmu::PadMapping[Controller].Wm.Shake = Key; break;
+	case IDB_WM_PITCH_L: WiiMoteEmu::PadMapping[Controller].Wm.PitchL = Key; break;
+	case IDB_WM_PITCH_R: WiiMoteEmu::PadMapping[Controller].Wm.PitchR = Key; break;
 
 	// Nunchuck
 	case IDB_NC_Z: WiiMoteEmu::PadMapping[Controller].Nc.Z = Key; break;
@@ -323,6 +327,8 @@ void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
 		case IDB_WM_U: m_bWmU[controller]->SetLabel(wxString::FromAscii(text)); break;
 		case IDB_WM_D: m_bWmD[controller]->SetLabel(wxString::FromAscii(text)); break;
 		case IDB_WM_SHAKE: m_bWmShake[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_PITCH_L: m_bWmPitchL[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_WM_PITCH_R: m_bWmPitchR[controller]->SetLabel(wxString::FromAscii(text)); break;
 
 		// Nunchuck
 		case IDB_NC_Z: m_bNcZ[controller]->SetLabel(wxString::FromAscii(text)); break;

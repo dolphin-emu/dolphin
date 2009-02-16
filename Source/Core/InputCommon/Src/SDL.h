@@ -182,6 +182,7 @@ struct PadWiimote
 	int H;
 	int L, R, U, D;
 	int Shake;
+	int PitchL, PitchR;
 };
 struct PadNunchuck
 {

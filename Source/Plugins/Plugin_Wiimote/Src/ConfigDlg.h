@@ -93,7 +93,7 @@ class ConfigDialog : public wxDialog
 			// Nunchuck
 			*m_SNcShake[4], *m_SNcZ[4], *m_SNcC[4], *m_SNcL[4], *m_SNcR[4], *m_SNcU[4], *m_SNcD[4],
 			// Wiimote
-			*m_SWmVertLeft[4], *m_SWmVertRight[4], *m_SWmShake[4], *m_SWmA[4], *m_SWmB[4], *m_SWm1[4], *m_SWm2[4], *m_SWmP[4], *m_SWmM[4], *m_SWmH[4], *m_SWmL[4], *m_SWmR[4], *m_SWmU[4], *m_SWmD[4],
+			*m_SWmVertLeft[4], *m_SWmVertRight[4], *m_SWmShake[4], *m_SWmPitchL[4], *m_SWmPitchR[4], *m_SWmA[4], *m_SWmB[4], *m_SWm1[4], *m_SWm2[4], *m_SWmP[4], *m_SWmM[4], *m_SWmH[4], *m_SWmL[4], *m_SWmR[4], *m_SWmU[4], *m_SWmD[4],
 			*m_HorizControllerMapping[4], *m_NunchuckStick[4];
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
@@ -105,7 +105,7 @@ class ConfigDialog : public wxDialog
 			// Nunchuck
 			*m_bNcShake[4], *m_bNcZ[4], *m_bNcC[4], *m_bNcL[4], *m_bNcR[4], *m_bNcU[4], *m_bNcD[4],
 			// Wiimote
-			*m_bWmShake[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4];
+			*m_bWmShake[4], *m_bWmPitchL[4], *m_bWmPitchR[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4];
 		wxStaticText *m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
 			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
@@ -113,7 +113,7 @@ class ConfigDialog : public wxDialog
 			// Nunchuck
 			*m_tNcShake[4], *m_tNcZ[4], *m_tNcC[4], *m_tNcL[4], *m_tNcR[4], *m_tNcU[4], *m_tNcD[4],
 			// Wiimote
-			*m_tWmShake[4], *m_tWmA[4], *m_tWmB[4], *m_tWm1[4], *m_tWm2[4], *m_tWmP[4], *m_tWmM[4], *m_tWmH[4], *m_tWmL[4], *m_tWmR[4], *m_tWmU[4],*m_tWmD[4],
+			*m_tWmShake[4], *m_tWmPitchL[4], *m_tWmPitchR[4], *m_tWmA[4], *m_tWmB[4], *m_tWm1[4], *m_tWm2[4], *m_tWmP[4], *m_tWmM[4], *m_tWmH[4], *m_tWmL[4], *m_tWmR[4], *m_tWmU[4],*m_tWmD[4],
 			*m_NunchuckTextStick[5];
 		wxButton *ClickedButton;
 		wxString OldLabel;
@@ -187,7 +187,7 @@ class ConfigDialog : public wxDialog
 			IDB_WM_1, IDB_WM_2,
 			IDB_WM_P, IDB_WM_M, IDB_WM_H,
 			IDB_WM_L, IDB_WM_R, IDB_WM_U, IDB_WM_D,
-			IDB_WM_SHAKE,
+			IDB_WM_SHAKE, IDB_WM_PITCH_L, IDB_WM_PITCH_R,
 
 			// Nunchuck
 			IDB_NC_Z, IDB_NC_C, IDB_NC_L, IDB_NC_R, IDB_NC_U, IDB_NC_D,

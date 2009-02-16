@@ -121,7 +121,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_WM_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_SHAKE, ConfigDialog::OnButtonClick)
-	
+	EVT_BUTTON(IDB_WM_PITCH_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, ConfigDialog::OnButtonClick)
+
 	// Nunchuck
 	EVT_BUTTON(IDB_NC_Z, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_NC_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, ConfigDialog::OnButtonClick)
@@ -923,6 +924,8 @@ void ConfigDialog::CreateGUIControls()
 		m_tWmU[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
 		m_tWmD[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
 		m_tWmShake[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Shake"));
+		m_tWmPitchL[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Left"));
+		m_tWmPitchR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Right"));
 
 		m_bWmA[i] = new wxButton(m_Controller[i], IDB_WM_A, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
 		m_bWmB[i] = new wxButton(m_Controller[i], IDB_WM_B, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
@@ -936,7 +939,9 @@ void ConfigDialog::CreateGUIControls()
 		m_bWmU[i] = new wxButton(m_Controller[i], IDB_WM_U, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
 		m_bWmD[i] = new wxButton(m_Controller[i], IDB_WM_D, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
 		m_bWmShake[i] = new wxButton(m_Controller[i], IDB_WM_SHAKE, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
-		
+		m_bWmPitchL[i] = new wxButton(m_Controller[i], IDB_WM_PITCH_L, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bWmPitchR[i] = new wxButton(m_Controller[i], IDB_WM_PITCH_R, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+
 		// Set small font
 		m_bWmA[i]->SetFont(m_SmallFont); m_bWmB[i]->SetFont(m_SmallFont);
 		m_bWm1[i]->SetFont(m_SmallFont); m_bWm2[i]->SetFont(m_SmallFont);
@@ -944,7 +949,8 @@ void ConfigDialog::CreateGUIControls()
 		m_bWmL[i]->SetFont(m_SmallFont); m_bWmR[i]->SetFont(m_SmallFont);
 		m_bWmU[i]->SetFont(m_SmallFont); m_bWmD[i]->SetFont(m_SmallFont);
 		m_bWmShake[i]->SetFont(m_SmallFont);
-
+		m_bWmPitchL[i]->SetFont(m_SmallFont); m_bWmPitchR[i]->SetFont(m_SmallFont);
+	
 		// Sizers
 		m_SWmVertLeft[i] = new wxBoxSizer(wxVERTICAL); m_SWmVertRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_SWmA[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmB[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -953,6 +959,7 @@ void ConfigDialog::CreateGUIControls()
 		m_SWmL[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmR[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SWmU[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmD[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SWmShake[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SWmPitchL[i] = new wxBoxSizer(wxHORIZONTAL); m_SWmPitchR[i] = new wxBoxSizer(wxHORIZONTAL);
 
 		m_SWmA[i]->Add(m_tWmA[i], 0, (wxUP), 4); m_SWmA[i]->Add(m_bWmA[i], 0, (wxLEFT), 2);
 		m_SWmB[i]->Add(m_tWmB[i], 0, (wxUP), 4); m_SWmB[i]->Add(m_bWmB[i], 0, (wxLEFT), 2);
@@ -966,6 +973,8 @@ void ConfigDialog::CreateGUIControls()
 		m_SWmU[i]->Add(m_tWmU[i], 0, (wxUP), 4); m_SWmU[i]->Add(m_bWmU[i], 0, (wxLEFT), 2);
 		m_SWmD[i]->Add(m_tWmD[i], 0, (wxUP), 4); m_SWmD[i]->Add(m_bWmD[i], 0, (wxLEFT), 2);
 		m_SWmShake[i]->Add(m_tWmShake[i], 0, (wxUP), 4); m_SWmShake[i]->Add(m_bWmShake[i], 0, (wxLEFT), 2);
+		m_SWmPitchL[i]->Add(m_tWmPitchL[i], 0, (wxUP), 4); m_SWmPitchL[i]->Add(m_bWmPitchL[i], 0, (wxLEFT), 2);
+		m_SWmPitchR[i]->Add(m_tWmPitchR[i], 0, (wxUP), 4); m_SWmPitchR[i]->Add(m_bWmPitchR[i], 0, (wxLEFT), 2);
 
 		m_SWmVertLeft[i]->Add(m_SWmA[i], 0, wxALIGN_RIGHT | (wxALL), 1);
 		m_SWmVertLeft[i]->Add(m_SWmB[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
@@ -976,6 +985,10 @@ void ConfigDialog::CreateGUIControls()
 		m_SWmVertLeft[i]->Add(m_SWmH[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 		m_SWmVertRight[i]->Add(m_SWmShake[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		//m_SWmVertRight[i]->AddSpacer(3);
+		m_SWmVertRight[i]->Add(m_SWmPitchL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SWmVertRight[i]->Add(m_SWmPitchR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		//m_SWmVertRight[i]->AddSpacer(3);
 		m_SWmVertRight[i]->Add(m_SWmL[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 		m_SWmVertRight[i]->Add(m_SWmR[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 		m_SWmVertRight[i]->Add(m_SWmU[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);

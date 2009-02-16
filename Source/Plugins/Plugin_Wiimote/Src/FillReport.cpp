@@ -272,8 +272,8 @@ int IsKey(int Key)
 	case g_Wm.R: return GetAsyncKeyState(PadMapping[0].Wm.R);
 	case g_Wm.U: return GetAsyncKeyState(PadMapping[0].Wm.U);
 	case g_Wm.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
-	case g_Wm.PITCH_L: return GetAsyncKeyState('3');
-	case g_Wm.PITCH_R: return GetAsyncKeyState('4');
+	case g_Wm.PITCH_L: return GetAsyncKeyState(PadMapping[0].Wm.PitchL);
+	case g_Wm.PITCH_R: return GetAsyncKeyState(PadMapping[0].Wm.PitchR);
 	case g_Wm.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake);
 
 	// Nunchuck
@@ -512,13 +512,13 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	if(IsKey(g_Wm.PITCH_L))
 	{
 		// Stop at the upper end of the range
-		if(KbDegree < g_Config.Trigger.Range.Roll)
+		if(KbDegree < g_Config.Trigger.Range.Pitch)
 			KbDegree += 3; // aim left
 	}
 	else if(IsKey(g_Wm.PITCH_R))
 	{
 		// Stop at the lower end of the range
-		if(KbDegree > -g_Config.Trigger.Range.Roll)
+		if(KbDegree > -g_Config.Trigger.Range.Pitch)
 			KbDegree -= 3; // aim right
 	}
 
