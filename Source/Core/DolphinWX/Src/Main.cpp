@@ -38,6 +38,7 @@
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
+#include "ConsoleWindow.h"
 
 #include "Main.h" // Local
 #include "Frame.h"
@@ -92,10 +93,12 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 
 
 /////////////////////////////////////////////////////////////
-/* The `main program' equivalent that creates the mai nwindow and return the main frame */
+/* The `main program' equivalent that creates the main window and return the main frame */
 // ¯¯¯¯¯¯¯¯¯
 bool DolphinApp::OnInit()
 {
+	//Console::Open();
+
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
@@ -442,15 +445,16 @@ void Host_SetWaitCursor(bool enable)
 		SetCursor(LoadCursor(NULL, IDC_ARROW));
 	}
 #endif
-
 }
 
-void Host_UpdateStatusBar(const char* _pText)
+void Host_UpdateStatusBar(const char* _pText, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
+	// Set the event string
 	event.SetString(wxString::FromAscii(_pText));
-	event.SetInt(0);
-
+	// Update statusbar field
+	event.SetInt(Field);
+	// Post message
 	wxPostEvent(main_frame, event);
 }
 
@@ -482,8 +486,12 @@ void Host_SetWiiMoteConnectionState(int _State)
 	case 1: event.SetString(wxString::FromAscii("Connecting...")); break;
 	case 2: event.SetString(wxString::FromAscii("Wiimote Connected")); break;
 	}
-
-	event.SetInt(1);
+	// Update field 1 or 2
+	#ifdef RERECORDING
+		event.SetInt(2);
+	#else
+		event.SetInt(1);
+	#endif
 
 	wxPostEvent(main_frame, event);
 }

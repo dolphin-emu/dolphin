@@ -25,6 +25,7 @@
 
 #include "Common.h"
 #include "Timer.h"
+#include "StringUtil.h"
 
 #ifdef __GNUC__
 u32 timeGetTime()
@@ -38,8 +39,15 @@ u32 timeGetTime()
 
 namespace Common
 {
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Initiate, Start, Stop, and Update the time
+// ---------------
+
+// Set initial values for the class
 Timer::Timer(void)
-	: m_LastTime(0)
+	: m_LastTime(0), m_StartTime(0), m_Running(false)
 {
 	Update();
 
@@ -48,20 +56,90 @@ Timer::Timer(void)
 #endif
 }
 
+// Write the starting time
+void Timer::Start()
+{
+	m_StartTime = timeGetTime();
+	m_Running = true;
+}
 
+// Stop the timer
+void Timer::Stop()
+{
+	// Write the final time
+	m_LastTime = timeGetTime();
+	m_Running = false;
+}
+
+// Update the last time variable
 void Timer::Update(void)
 {
 	m_LastTime = timeGetTime();
 	//TODO(ector) - QPF
 }
+/////////////////////////////////////
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Get time difference and elapsed time
+// ---------------
+
+// Get the number of milliseconds since the last Update()
 s64 Timer::GetTimeDifference(void)
 {
 	return(timeGetTime() - m_LastTime);
 }
 
+// Add the time difference since the last Update() to the starting time 
+void Timer::AddTimeDifference()
+{
+	m_StartTime += GetTimeDifference();
+}
 
+// Get the time elapsed since the Start()
+u64 Timer::GetTimeElapsed(void)
+{
+	/* If we have not started yet return 1 (because then I don't have to change the FPS
+	   calculation in CoreRerecording.cpp */
+	if (m_StartTime == 0) return 1;
+
+	// Rrturn the final timer time if the timer is stopped
+	if (!m_Running) return (m_LastTime - m_StartTime);
+
+	return (timeGetTime() - m_StartTime);
+}
+
+// Get the formattet time elapsed since the Start()
+std::string Timer::GetTimeElapsedFormatted(void)
+{
+	// If we have not started yet, return zero
+	if(m_StartTime == 0) return "00:00:00:000";
+
+	// The number of milliseconds since the start, use a different value if the timer is stopped
+	u32 Milliseconds;
+	if(m_Running)
+		Milliseconds = timeGetTime() - m_StartTime;
+	else
+		Milliseconds = m_LastTime - m_StartTime;
+	// Seconds
+	u32 Seconds = Milliseconds / 1000;
+	// Minutes
+	u32 Minutes = Seconds / 60;
+	// Hours
+	u32 Hours = Minutes / 60;
+
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03i", Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
+	return TmpStr;
+}
+
+/////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Get current time
+// ---------------
 void Timer::IncreaseResolution()
 {
 #ifdef _WIN32
@@ -86,6 +164,7 @@ void _time64(u64* t)
 #endif
 
 
+// Get the number of seconds since January 1 1970
 u64 Timer::GetTimeSinceJan1970(void)
 {
 	time_t ltime;
@@ -106,6 +185,7 @@ u64 Timer::GetLocalTimeSinceJan1970(void)
 	return (u64)(sysTime + tzDiff);
 }
 
+// Return the current time formatted as Minutes:Seconds:Milliseconds in the form 00:00:000
 std::string Timer::GetTimeFormatted(void)
 {
 	struct timeb tp;
@@ -115,4 +195,7 @@ std::string Timer::GetTimeFormatted(void)
 
 	return std::string(temp);
 }
+/////////////////////////////////////
+
+
 } // end of namespace Common

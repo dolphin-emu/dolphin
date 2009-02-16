@@ -46,6 +46,9 @@
 // This may remove sound artifacts in Wario Land Shake It and perhaps other games
 //#define SETUP_AVOID_SOUND_ARTIFACTS
 
+// Build with playback rerecording options
+//#define RERECORDING
+
 // Build with music modification
 //#define MUSICMOD
 

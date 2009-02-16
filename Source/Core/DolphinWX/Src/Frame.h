@@ -219,7 +219,6 @@ class CFrame : public wxFrame
 		wxToolBarToolBase* m_pToolPlay;
 
 		void UpdateGUI();
-
 		void BootGame();
 
 		// Double click and mouse move options

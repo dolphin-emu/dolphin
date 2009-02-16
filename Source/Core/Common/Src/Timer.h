@@ -29,11 +29,13 @@ class Timer
 
 		Timer();
 
+		void Start();
+		void Stop();
 		void Update();
 
-
-		// Always in milliseconds, regardless of alternative internal representation
+		// The time difference is always returned in milliseconds, regardless of alternative internal representation
 		s64 GetTimeDifference(void);
+		void AddTimeDifference();
 
 		static void IncreaseResolution();
 		static void RestoreResolution();
@@ -41,12 +43,15 @@ class Timer
 		static u64 GetLocalTimeSinceJan1970();
 
 		static std::string GetTimeFormatted();
-
+		std::string GetTimeElapsedFormatted();
+		u64 Timer::GetTimeElapsed();
 
 	public:
 
 		u64 m_LastTime;
+		u64 m_StartTime;
 		u64 m_frequency;
+		bool m_Running;
 };
 } // end of namespace Common
 

@@ -49,6 +49,7 @@ be accessed from Core::GetWindowHandle().
 #include "FileUtil.h"
 #include "Timer.h"
 #include "ConsoleWindow.h"
+#include "Setup.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -316,7 +317,7 @@ void CFrame::InitBitmaps()
 	}
 
 	//////////////////////////////////////////////////
-	//  Music modification
+	// Music modification
 	// -------------
 	#ifdef MUSICMOD
 		MM_InitBitmaps(Theme);
@@ -327,12 +328,21 @@ void CFrame::InitBitmaps()
 	if (GetToolBar() != NULL) RecreateToolbar();
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Start the game or change the disc
+// -------------
 void CFrame::BootGame()
 {
-	#ifdef MUSICMOD // Music modification
+	// Music modification
+	#ifdef MUSICMOD
 		MM_OnPlay();
 	#endif
 
+	// Rerecording
+	#ifdef RERECORDING
+		Core::RerecordingStart();
+	#endif
 
 	// shuffle2: wxBusyInfo is meant to be created on the stack
 	// and only stay around for the life of the scope it's in.
@@ -447,8 +457,16 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 	DVDInterface::SetLidOpen(false);
 }
 
+void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
+{
+	BootGame();
+}
+////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////
+// Refresh the file list and browse for a favorites directory
+// -------------
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
@@ -462,16 +480,22 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
 	m_GameListCtrl->BrowseForDirectory();
 }
+////////////////////////////////////////////////////
 
-void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
-{
-	BootGame();
-}
 
+//////////////////////////////////////////////////////////////////////////////////////
+// Stop the emulation
+// -------------
 void CFrame::DoStop()
 {
-	#ifdef MUSICMOD // Music modification
+	// Music modification
+	#ifdef MUSICMOD
 		MM_OnStop();
+	#endif
+	
+	// Rerecording
+	#ifdef RERECORDING
+		Core::RerecordingStop();
 	#endif
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -506,6 +530,7 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 
 	if (answer) DoStop();
 }
+////////////////////////////////////////////////////
 
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))

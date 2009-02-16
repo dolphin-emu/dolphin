@@ -78,7 +78,7 @@ namespace Core
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// 
+// ------------
  
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
@@ -587,6 +587,10 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 // We do not touch anything outside this function here
 void Callback_VideoCopiedToXFB()
 { 
+	#ifdef RERECORDING
+		FrameUpdate();
+	#endif
+
     SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	//count FPS
 	static Common::Timer Timer;

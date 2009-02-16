@@ -16,15 +16,20 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Globals.h"
 #include "Frame.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
+#include "ConsoleWindow.h"
 
 #include "GameListCtrl.h"
 #include "BootManager.h"
 
 #include "Common.h"
+#include "Setup.h"
 #include "ConfigManager.h"
 #include "Core.h"
 #include "State.h"
@@ -35,6 +40,7 @@
 #include "AboutDolphin.h"
 
 #include <wx/statusbr.h>
+/////////////////////////////////////////
 
 
 namespace WiimoteLeds
@@ -50,10 +56,18 @@ namespace WiimoteLeds
 	int SpIconMargin = 11;
 	int LedIconMargin = 11;
 
+	// The necessary recording status width, allow Frame to be at last of the form 100,000
+	#ifdef RERECORDING
+		static const int RerecordingStatusWidth = 340;
+	#endif
+
 	// Leds only
 	static const int LdWidthsOn[] =
 	{
 		-1,
+		#ifdef RERECORDING
+			RerecordingStatusWidth,
+		#endif
 		ConnectionStatusWidth,
 		(LedIconMargin + LED_SIZE_X) * 4 + RightmostMargin
 	};	
@@ -63,32 +77,61 @@ namespace WiimoteLeds
 	static const int SpWidthsOn[] =
 	{
 		-1,
+		#ifdef RERECORDING
+			RerecordingStatusWidth,
+		#endif
 		ConnectionStatusWidth,
 		( SpIconMargin + SPEAKER_SIZE_X ) * 3 + RightmostMargin
 	};	
-	static const int SpStylesFieldOn[] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };	
+	static const int SpStylesFieldOn[] = { wxSB_NORMAL,
+		#ifdef RERECORDING
+			wxSB_NORMAL,
+		#endif
+			wxSB_NORMAL, wxSB_NORMAL };	
 
 	// Both
 	static const int LdSpWidthsOn[] =
 	{
 		-1,
+		#ifdef RERECORDING
+			RerecordingStatusWidth,
+		#endif
 		ConnectionStatusWidth,
 		(SpIconMargin + SPEAKER_SIZE_X) * 3,
 		(LedIconMargin + LED_SIZE_X) * 4 + RightmostMargin
 	};	
-	static const int LdSpStylesFieldOn[] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };	
+	static const int LdSpStylesFieldOn[] = { wxSB_NORMAL,
+		#ifdef RERECORDING
+			wxSB_NORMAL,
+		#endif
+			wxSB_NORMAL, wxSB_NORMAL };	
 
 	// Only the Wiimote connection Status
 	static const int WidthsOff[] =
 	{
 		-1,
+		#ifdef RERECORDING
+			RerecordingStatusWidth,
+		#endif
 		ConnectionStatusWidth + ConnectionStatusOnlyAdj + RightmostMargin
 	};
-	static const int StylesFieldOff[] = { wxSB_NORMAL, wxSB_NORMAL };
+	static const int StylesFieldOff[] = { wxSB_NORMAL,
+		#ifdef RERECORDING
+			wxSB_NORMAL,
+		#endif
+			wxSB_NORMAL };
 
 	// GC mode
-	static const int WidthsOffGC[] = { -1 };
-	static const int StylesFieldOffGC[] = { wxSB_NORMAL };
+	static const int WidthsOffGC[] = { -1
+		#ifdef RERECORDING
+			, RerecordingStatusWidth
+		#endif
+	};
+	static const int StylesFieldOffGC[] = { wxSB_NORMAL
+		#ifdef RERECORDING
+			, wxSB_NORMAL
+		#endif
+		};
 };
 
 // =======================================================
@@ -153,6 +196,11 @@ void CFrame::ModifyStatusBar()
 			StylesFields = (int*)WiimoteLeds::StylesFieldOffGC;
 		}
 	}
+
+	// Add a filed for the rerecording status
+	#ifdef RERECORDING
+		Fields++;
+	#endif
 
 	// Update the settings
 	m_pStatusBar->SetFieldsCount(Fields);
@@ -352,13 +400,49 @@ void CFrame::DoMoveIcons()
 {
 	if(HaveLeds) MoveLeds();
 	if(HaveSpeakers) MoveSpeakers();
+	
+	// If there is not room for the led icons hide them
+	if(m_pStatusBar->GetFieldsCount() >= 2 && HaveLeds)
+	{
+		wxRect Rect;
+		#ifdef RERECORDING
+			m_pStatusBar->GetFieldRect((HaveLeds && HaveSpeakers) ? 4 : 3, Rect);
+		#else
+			m_pStatusBar->GetFieldRect((HaveLeds && HaveSpeakers) ? 3 : 2, Rect);
+		#endif
+		if(Rect.GetWidth() < 20)
+			for (int i = 0; i < 4; i++) m_StatBmp[i]->Hide();
+		else // if(!m_StatBmp[0]->IsShown())
+			for (int i = 0; i < 4; i++) m_StatBmp[i]->Show();
+		//Console::Print("LED: %i   ", Rect.GetWidth());
+	}
+
+	// If there is not room for the speaker icons hide them
+	if(m_pStatusBar->GetFieldsCount() >= 2 && HaveSpeakers)
+	{
+		wxRect Rect;
+		#ifdef RERECORDING
+			m_pStatusBar->GetFieldRect(3, Rect);
+		#else
+			m_pStatusBar->GetFieldRect(2, Rect);
+		#endif
+		if(Rect.GetWidth() < 20)
+			for(int i = 0; i < 3; i++) m_StatBmp[i + 4]->Hide();
+		else // if(!m_StatBmp[4]->IsShown())
+			for (int i = 0; i < 3; i++) m_StatBmp[i + 4]->Show();
+		//Console::Print("Speaker: %i\n", Rect.GetWidth());
+	}
 }
 
 void CFrame::MoveLeds()
 {
     wxRect Rect;
 	// Get the bitmap field coordinates
-    m_pStatusBar->GetFieldRect((HaveLeds && HaveSpeakers) ? 3 : 2, Rect);
+	#ifdef RERECORDING
+		m_pStatusBar->GetFieldRect((HaveLeds && HaveSpeakers) ? 4 : 3, Rect);
+	#else
+		m_pStatusBar->GetFieldRect((HaveLeds && HaveSpeakers) ? 3 : 2, Rect);
+	#endif
     wxSize Size = m_StatBmp[0]->GetSize(); // Get the bitmap size
 
 	//wxMessageBox(wxString::Format("%i", Rect.x));
@@ -376,7 +460,12 @@ void CFrame::MoveLeds()
 void CFrame::MoveSpeakers()
 {
     wxRect Rect;
-	m_pStatusBar->GetFieldRect(2, Rect); // Get the bitmap field coordinates
+	// Get the bitmap field coordinates
+	#ifdef RERECORDING
+		m_pStatusBar->GetFieldRect(3, Rect);
+	#else
+		m_pStatusBar->GetFieldRect(2, Rect);
+	#endif
 
 	// Get the actual bitmap size, currently it's the same as SPEAKER_SIZE_Y
     wxSize Size = m_StatBmp[4]->GetSize();
@@ -389,7 +478,7 @@ void CFrame::MoveSpeakers()
 	for(int i = 0; i < 3; i++)
 	{
 		if(i > 0) x = m_StatBmp[i-1+4]->GetPosition().x + Dist;
-		m_StatBmp[i+4]->Move(x, y);
+		m_StatBmp[i + 4]->Move(x, y);
 	}	
 }
 // ==============

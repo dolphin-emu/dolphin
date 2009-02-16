@@ -405,13 +405,12 @@ int ChooseStringFrom(const char* str, const char* * items)
 
 
 // Thousand separator. Turns 12345678 into 12,345,678.
-std::string ThS(int a, bool b)
+std::string ThS(int Integer, bool Unsigned)
 {
-	char cbuf[20]; 
-
-	// determine treatment of signed or unsigned
-	if(b) sprintf(cbuf, "%u", a); else sprintf(cbuf, "%i", a);
-
+	// Create storage space
+	char cbuf[20];
+	// Determine treatment of signed or unsigned
+	if(Unsigned) sprintf(cbuf, "%u", Integer); else sprintf(cbuf, "%i", Integer);
 
 	std::string sbuf = cbuf;
 	for (u32 i = 0; i < sbuf.length(); ++i)

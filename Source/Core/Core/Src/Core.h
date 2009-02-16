@@ -55,7 +55,6 @@ namespace Core
     const SCoreStartupParameter& GetStartupParameter();
     extern SCoreStartupParameter g_CoreStartupParameter; 
 
-
     // Make a screen shot
     bool MakeScreenshot(const std::string& _rFilename);
     void* GetWindowHandle();
@@ -73,6 +72,18 @@ namespace Core
     int SyncTrace();
     void SetBlockStart(u32 addr);
     void StopTrace();
+
+	#ifdef RERECORDING
+		void FrameUpdate();
+		void FrameAdvance();
+		void FrameStepOnOff();
+		void WriteStatus();
+		void RerecordingStart();
+		void RerecordingStop();
+		extern int g_FrameCounter;
+		extern bool g_FrameStep;
+	#endif
+
 }  // namespace
 
 #endif

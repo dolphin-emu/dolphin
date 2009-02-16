@@ -46,7 +46,7 @@ void Host_SetDebugMode(bool enable);
 
 void Host_SetWaitCursor(bool enable);
 
-void Host_UpdateStatusBar(const char* _pText);
+void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
 
 void Host_SysMessage(const char *fmt, ...);
 void Host_SetWiiMoteConnectionState(int _State);

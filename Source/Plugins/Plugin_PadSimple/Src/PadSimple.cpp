@@ -28,6 +28,7 @@
 #include "IniFile.h"
 #include "ConsoleWindow.h"
 #include "StringUtil.h"
+#include "FileUtil.h"
 #include "ChunkFile.h"
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -617,7 +618,10 @@ void DllConfig(HWND _hParent)
 {
 	//Console::Open(70, 5000);	
 
+	// Load configuration
 	LoadConfig();
+
+	// Show wxDialog
 #ifdef _WIN32
 	wxWindow win;
 	win.SetHWND(_hParent);
@@ -628,6 +632,8 @@ void DllConfig(HWND _hParent)
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
 #endif
+
+	// Save configuration
 	SaveConfig();
 }
 
@@ -643,8 +649,29 @@ void Initialize(void *init)
 	// Load configuration
 	LoadConfig();
 
+	// -------------------------------------------
+	// Rerecording
+	// ----------------------
+	#ifdef RERECORDING
+	/* Check if we are starting the pad to record the input, and an old file exists. In that case ask
+	   if we really want to start the recording and eventually overwrite the file */
+	if (pad[0].bRecording && File::Exists("pad-record.bin"))
+	{
+		if (!AskYesNo("An old version of '%s' aleady exists in your Dolphin directory. You can"
+			" now make a copy of it before you start a new recording and overwrite the file."
+			" Select Yes to continue and overwrite the file. Select No to turn off the input"
+			" recording and continue without recording anything.",
+			"pad-record.bin"))
+		{
+			// Turn off recording and continue
+			pad[0].bRecording = false;
+		}
+	}
+
 	// Load recorded input if we are to play it back, otherwise begin with a blank recording
 	if (pad[0].bPlayback) LoadRecord();
+	#endif
+	// ----------------------
 
 	g_PADInitialize = *(SPADInitialize*)init;
 
@@ -668,10 +695,17 @@ void Shutdown()
 {
 	//Console::Print("ShutDown()\n");
 
+	// -------------------------------------------
+	// Play back input instead of accepting any user input
+	// ----------------------
+	#ifdef RERECORDING
 	// Save recording
 	if (pad[0].bRecording) SaveRecord();
 	// Reset the counter
 	count = 0;
+	#endif
+	// ----------------------
+
 	// We have stopped the game
 	g_EmulatorRunning = false;
 
@@ -699,12 +733,17 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Check if all is okay
 	if (_pPADStatus == NULL) return;
 
+	// -------------------------------------------
 	// Play back input instead of accepting any user input
+	// ----------------------
+	#ifdef RERECORDING
 	if (pad[0].bPlayback)
 	{
 		*_pPADStatus = PlayRecord();
 		return;
 	}
+	#endif
+	// ----------------------
 
 	const int base = 0x80;
 	// Clear pad
@@ -736,8 +775,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	cocoa_Read(_numPAD, _pPADStatus);
 #endif
 
+	// -------------------------------------------
+	// Rerecording
+	// ----------------------
+	#ifdef RERECORDING
 	// Record input
 	if (pad[0].bRecording) RecordInput(*_pPADStatus);
+	#endif
+	// ----------------------
 }
 
 
@@ -890,9 +935,12 @@ void LoadConfig()
 		file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
 		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
-		
-		file.Get(SectionName, "Recording", &pad[i].bRecording, false);
-		file.Get(SectionName, "Playback", &pad[i].bPlayback, false);
+
+		// Recording
+		#ifdef RERECORDING
+			file.Get(SectionName, "Recording", &pad[0].bRecording, false);
+			file.Get(SectionName, "Playback", &pad[0].bPlayback, false);
+		#endif
 
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{
@@ -924,8 +972,10 @@ void SaveConfig()
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
 		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
 		// Recording
-		file.Set(SectionName, "Recording", pad[i].bRecording);
-		file.Set(SectionName, "Playback", pad[i].bPlayback);
+		#ifdef RERECORDING
+			file.Set(SectionName, "Recording", pad[0].bRecording);
+			file.Set(SectionName, "Playback", pad[0].bPlayback);
+		#endif
 		
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{

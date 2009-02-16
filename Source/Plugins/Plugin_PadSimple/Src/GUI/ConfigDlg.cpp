@@ -36,10 +36,13 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHOICE(ID_X360PAD_CHOICE,ConfigDialog::ControllerSettingsChanged)
 	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::ControllerSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::ControllerSettingsChanged)
-	//Recording
-	EVT_CHECKBOX(ID_RECORDING,ConfigDialog::ControllerSettingsChanged)
-	EVT_CHECKBOX(ID_PLAYBACK,ConfigDialog::ControllerSettingsChanged)
-	EVT_BUTTON(ID_SAVE_RECORDING,ConfigDialog::ControllerSettingsChanged)	
+
+	// Input recording
+	#ifdef RERECORDING
+		EVT_CHECKBOX(ID_RECORDING,ConfigDialog::ControllerSettingsChanged)
+		EVT_CHECKBOX(ID_PLAYBACK,ConfigDialog::ControllerSettingsChanged)
+		EVT_BUTTON(ID_SAVE_RECORDING,ConfigDialog::ControllerSettingsChanged)	
+	#endif
 
 	EVT_BUTTON(CTL_A,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_B,ConfigDialog::OnButtonClick)
@@ -182,36 +185,9 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeXInput[i]->Add(m_X360PadC[i], 0, wxEXPAND | wxALL, 1);
 		m_SizeXInput[i]->Add(m_Rumble[i], 0, wxEXPAND | wxALL, 1);
 #endif
-
-		m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));
-		m_CheckRecording[i] = new wxCheckBox(m_Controller[i], ID_RECORDING, wxT("Record input"));
-		m_CheckPlayback[i] = new wxCheckBox(m_Controller[i], ID_PLAYBACK, wxT("Play back input"));
-		m_BtnSaveRecording[i] = new wxButton(m_Controller[i], ID_SAVE_RECORDING, wxT("Save recording"), wxDefaultPosition, wxDefaultSize);
-
-		// Tool tips
-		m_CheckRecording[i]->SetToolTip(wxT("Your recording will be saved to pad-record.bin in the Dolphin dir when you stop the game"));
-		m_CheckPlayback[i]->SetToolTip(wxT("Play back the pad-record.bin file from the Dolphin dir"));
-		m_BtnSaveRecording[i]->SetToolTip(wxT(
-			"This will save the current recording to pad-record.bin. Your recording will\n"
-			"also be automatically saved every 60 * 10 frames. And when you shut down the\n"
-			"game."));
-
-		m_SizeRecording[i]->Add(m_CheckRecording[i], 0, wxEXPAND | wxALL, 1);
-		m_SizeRecording[i]->Add(m_CheckPlayback[i], 0, wxEXPAND | wxALL, 1);
-		m_SizeRecording[i]->Add(m_BtnSaveRecording[i], 0, wxEXPAND | wxALL, 1);
-
 		// Set values
 		m_Attached[i]->SetValue(pad[i].bAttached);
 		m_Disable[i]->SetValue(pad[i].bDisable);
-		m_CheckRecording[i]->SetValue(pad[i].bRecording);
-		m_CheckPlayback[i]->SetValue(pad[i].bPlayback);
-
-		// Only enable these options for pad 0
-		m_CheckRecording[i]->Enable(false); m_CheckRecording[0]->Enable(true);
-		m_CheckPlayback[i]->Enable(false); m_CheckPlayback[0]->Enable(true);
-		m_BtnSaveRecording[i]->Enable(false); m_BtnSaveRecording[0]->Enable(true);
-		// Don't allow saving when we are not recording
-		m_BtnSaveRecording[i]->Enable(g_EmulatorRunning && pad[0].bRecording);
 
 #ifdef _WIN32
 		// Check if any XInput pad was found
@@ -239,11 +215,49 @@ void ConfigDialog::CreateGUIControls()
 		//sDevice[i]->AddStretchSpacer();
 #ifdef _WIN32
 		sDevice[i]->Add(m_SizeXInput[i], 0, wxEXPAND | wxALL, 1);
-		sDevice[i]->Add(m_SizeRecording[i], 0, wxEXPAND | wxALL, 1);
-		
 #endif
 		// -----------------------------------
 
+
+		/////////////////////////////////////////////////////////////////////////////////////
+		// Rerecording
+		// ¯¯¯¯¯¯¯¯¯
+		#ifdef RERECORDING
+		// Create controls
+		m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));
+		m_CheckRecording[i] = new wxCheckBox(m_Controller[i], ID_RECORDING, wxT("Record input"));
+		m_CheckPlayback[i] = new wxCheckBox(m_Controller[i], ID_PLAYBACK, wxT("Play back input"));
+		m_BtnSaveRecording[i] = new wxButton(m_Controller[i], ID_SAVE_RECORDING, wxT("Save recording"), wxDefaultPosition, wxDefaultSize);
+
+		// Tool tips
+		m_CheckRecording[i]->SetToolTip(wxT("Your recording will be saved to pad-record.bin in the Dolphin dir when you stop the game"));
+		m_CheckPlayback[i]->SetToolTip(wxT("Play back the pad-record.bin file from the Dolphin dir"));
+		m_BtnSaveRecording[i]->SetToolTip(wxT(
+			"This will save the current recording to pad-record.bin. Your recording will\n"
+			"also be automatically saved every 60 * 10 frames. And when you shut down the\n"
+			"game."));
+
+		// Sizers
+		m_SizeRecording[i]->Add(m_CheckRecording[i], 0, wxEXPAND | wxALL, 1);
+		m_SizeRecording[i]->Add(m_CheckPlayback[i], 0, wxEXPAND | wxALL, 1);
+		m_SizeRecording[i]->Add(m_BtnSaveRecording[i], 0, wxEXPAND | wxALL, 1);
+
+		// Only enable these options for pad 0
+		m_CheckRecording[i]->Enable(false); m_CheckRecording[0]->Enable(true);
+		m_CheckPlayback[i]->Enable(false); m_CheckPlayback[0]->Enable(true);
+		m_BtnSaveRecording[i]->Enable(false); m_BtnSaveRecording[0]->Enable(true);
+		// Don't allow saving when we are not recording
+		m_BtnSaveRecording[i]->Enable(g_EmulatorRunning && pad[0].bRecording);
+		sDevice[i]->Add(m_SizeRecording[i], 0, wxEXPAND | wxALL, 1);
+
+		// Set values
+		m_CheckRecording[0]->SetValue(pad[0].bRecording);
+		m_CheckPlayback[0]->SetValue(pad[0].bPlayback);
+
+		Console::Print("m_CheckRecording: %i\n", pad[0].bRecording, pad[0].bPlayback);
+		#endif
+		//////////////////////////////////////
+	
 
 		// --------------------------------------------------------------------
 		// Buttons
@@ -400,21 +414,23 @@ void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 		pad[page].bRumble = m_Rumble[page]->GetValue();
 		break;
 
-	case ID_RECORDING:
-		pad[page].bRecording = m_CheckRecording[page]->GetValue();
-		// Turn off the other option
-		pad[page].bPlayback = false; m_CheckPlayback[page]->SetValue(false);
-		break;
-	case ID_PLAYBACK:
-		pad[page].bPlayback = m_CheckPlayback[page]->GetValue();
-		// Turn off the other option
-		pad[page].bRecording = false; m_CheckRecording[page]->SetValue(false);
-		break;
-	case ID_SAVE_RECORDING:
-		// Double check again that we are still running a game
-		if (g_EmulatorRunning) SaveRecord();
-		break;
-		
+	// Input recording
+	#ifdef RERECORDING
+		case ID_RECORDING:
+			pad[page].bRecording = m_CheckRecording[page]->GetValue();
+			// Turn off the other option
+			pad[page].bPlayback = false; m_CheckPlayback[page]->SetValue(false);
+			break;
+		case ID_PLAYBACK:
+			pad[page].bPlayback = m_CheckPlayback[page]->GetValue();
+			// Turn off the other option
+			pad[page].bRecording = false; m_CheckRecording[page]->SetValue(false);
+			break;
+		case ID_SAVE_RECORDING:
+			// Double check again that we are still running a game
+			if (g_EmulatorRunning) SaveRecord();
+			break;
+	#endif		
 	}
 }
 

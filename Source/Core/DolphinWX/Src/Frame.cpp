@@ -47,6 +47,8 @@ be accessed from Core::GetWindowHandle().
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
+#include "Setup.h"
+#include "ConsoleWindow.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -352,6 +354,13 @@ CFrame::CFrame(wxFrame* parent,
 	// ----------
 
 	UpdateGUI();
+
+	// If we are rerecording create the status bar now instead of later when a game starts
+	#ifdef RERECORDING
+		ModifyStatusBar();
+		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
+		//Core::WriteStatus();
+	#endif
 }
 
 // Destructor
@@ -439,18 +448,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		UpdateGUI();
 	}
 #ifdef _WIN32
-	else if(event.GetKeyCode() == 'E') // Send this to the video plugin WndProc
+	if(event.GetKeyCode() == 'E') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
 		event.Skip(); // Don't block the E key
 	}
 #endif
-	else
-	{
-		if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
-		event.Skip();
-	}
+
+#ifdef RERECORDING
+	// Turn on or off frame advance
+	if (event.GetKeyCode() == WXK_CONTROL) Core::FrameStepOnOff();
+
+	// Step forward
+	if (event.GetKeyCode() == WXK_SPACE) Core::FrameAdvance();
+#endif
+
+	// Send the keyboard status to the Input plugin
+	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+	    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+
+	// Don't block other events
+	event.Skip();
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
