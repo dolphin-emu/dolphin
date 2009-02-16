@@ -160,7 +160,7 @@
 		{
 		case 32:
 			accessSize = 32;
-			if(Core::g_CoreStartupParameter.bJITLoadStorelwzOff) {Default(inst); return;}
+			if (Core::g_CoreStartupParameter.bJITLoadStorelwzOff) {Default(inst); return;}
 			break; //lwz	
 		case 40: accessSize = 16; break; //lhz
 		case 34: accessSize = 8;  break; //lbz

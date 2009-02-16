@@ -33,7 +33,7 @@ static MsgAlertHandler msg_handler = DefaultMsgHandler;
    we will use wxMsgAlert() that is defined in main.cpp */
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
-    msg_handler = handler;
+	msg_handler = handler;
 }
 
 /////////////////////////////////////////////////////////////
@@ -45,22 +45,21 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	// ---------------------------------
 	// Read message and write it to the log
 	// -----------
-    char buffer[2048];
-    va_list args;
-    bool ret = false;
+	char buffer[2048];
+	bool ret = false;
 
-    va_start(args, format);
-    CharArrayFromFormatV(buffer, 2048, format, args);
+	va_list args;
+	va_start(args, format);
+	CharArrayFromFormatV(buffer, 2047, format, args);
+	va_end(args);
 
-    LOG(MASTER_LOG, "%s: %s", caption, buffer);
+	LOG(MASTER_LOG, "%s: %s", caption, buffer);
 	// -----------
 
-     if (msg_handler) {
-         ret = msg_handler(caption, buffer, yes_no, Style);
-     }
-     
-     va_end(args);
-     return ret;
+	if (msg_handler) {
+		ret = msg_handler(caption, buffer, yes_no, Style);
+	}
+	return ret;
 }
 
 /////////////////////////////////////////////////////////////
@@ -70,8 +69,8 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
 {
 #ifdef _WIN32
     int STYLE = MB_ICONINFORMATION;
-    if(Style == QUESTION) STYLE = MB_ICONQUESTION;
-    if(Style == WARNING) STYLE = MB_ICONWARNING;
+    if (Style == QUESTION) STYLE = MB_ICONQUESTION;
+    if (Style == WARNING) STYLE = MB_ICONWARNING;
     
     return IDYES == MessageBox(0, text, caption, STYLE | (yes_no ? MB_YESNO : MB_OK));
     

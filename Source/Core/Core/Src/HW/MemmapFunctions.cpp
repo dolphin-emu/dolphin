@@ -31,9 +31,9 @@ namespace Memory
 // ----------------
 
 // Pointers to low memory
-extern u8*	m_pFakeVMEM;
-extern u8*	m_pEXRAM;  // Wii
-extern u8*	m_pEFB;
+extern u8 *m_pFakeVMEM;
+extern u8 *m_pEXRAM;  // Wii
+extern u8 *m_pEFB;
 
 // Init
 extern bool m_IsInitialized;
@@ -43,7 +43,6 @@ extern bool bFakeVMEM;
 extern writeFn8  hwWrite8 [NUMHWMEMFUN];
 extern writeFn16 hwWrite16[NUMHWMEMFUN];
 extern writeFn32 hwWrite32[NUMHWMEMFUN];
-extern writeFn64 hwWrite64[NUMHWMEMFUN];
 
 extern readFn8   hwRead8 [NUMHWMEMFUN];
 extern readFn16  hwRead16[NUMHWMEMFUN];
@@ -52,7 +51,6 @@ extern readFn32  hwRead32[NUMHWMEMFUN];
 extern writeFn8  hwWriteWii8 [NUMHWMEMFUN];
 extern writeFn16 hwWriteWii16[NUMHWMEMFUN];
 extern writeFn32 hwWriteWii32[NUMHWMEMFUN];
-extern writeFn64 hwWriteWii64[NUMHWMEMFUN];
 
 extern readFn8   hwReadWii8 [NUMHWMEMFUN];
 extern readFn16  hwReadWii16[NUMHWMEMFUN];

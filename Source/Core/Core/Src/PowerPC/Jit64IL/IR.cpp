@@ -716,7 +716,7 @@ struct RegInfo {
 	}
 
 	private:
-	RegInfo(RegInfo&); // DO NOT IMPLEMENT
+		RegInfo(RegInfo&); // DO NOT IMPLEMENT
 };
 
 static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
@@ -791,9 +791,9 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 
 // 64-bit - calling conventions differ between linux & windows, so...
 #ifdef _WIN32
-static const X64Reg RegAllocOrder[] = {RSI, RDI, R12, R13, R14, R8, R9, R10, R11};
+static const X64Reg RegAllocOrder[] = {RSI, RDI, R13, R14, R8, R9, R10, R11};
 #else
-static const X64Reg RegAllocOrder[] = {RBP, R12, R13, R14, R8, R9, R10, R11};
+static const X64Reg RegAllocOrder[] = {RBP, R13, R14, R8, R9, R10, R11};
 #endif
 static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
 static const X64Reg FRegAllocOrder[] = {XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
@@ -883,9 +883,22 @@ static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
 }
 
 static void regSpillCallerSaved(RegInfo& RI) {
+#ifdef _M_IX86
+	// 32-bit
 	regSpill(RI, EDX);
 	regSpill(RI, ECX);
 	regSpill(RI, EAX);
+#else
+	// 64-bit
+	regSpill(RI, RCX);
+	regSpill(RI, RDX);
+	regSpill(RI, RSI); 
+	regSpill(RI, RDI);
+	regSpill(RI, R8);
+	regSpill(RI, R9);
+	regSpill(RI, R10);
+	regSpill(RI, R11);
+#endif
 }
 
 static X64Reg regUReg(RegInfo& RI, InstLoc I) {
@@ -998,6 +1011,7 @@ static void regClearDeadMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned 
 	regClearInst(RI, AddrBase);
 }
 
+// in 64-bit build, this returns a completely bizarre address sometimes!
 static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 				unsigned OpNum,	unsigned Size, X64Reg* dest,
 				bool Profiled,
@@ -1015,7 +1029,7 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #else
 			// 64-bit
 			if (Profiled) 
-				return M((void*)((u8*)Memory::base + addr));
+				return MDisp(RBX, addr);
 			return M((void*)addr);
 #endif
 		}
@@ -1030,6 +1044,7 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 		AddrBase = AI;
 	}
 	X64Reg baseReg;
+	// Ok, this stuff needs a comment or three :P -ector
 	if (RI.IInfo[I - RI.FirstI] & (2 << OpNum)) {
 		baseReg = regEnsureInReg(RI, AddrBase);
 		regClearInst(RI, AddrBase);
@@ -1053,7 +1068,7 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #ifdef _M_IX86
 		return MDisp(baseReg, (u32)Memory::base + offset + ProfileOffset);
 #else
-		return MDisp(RBX, offset + ProfileOffset);
+		return MComplex(RBX, baseReg, 1, offset + ProfileOffset);
 #endif
 	}
 	return MDisp(baseReg, offset);

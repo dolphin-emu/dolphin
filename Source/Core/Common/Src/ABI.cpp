@@ -186,10 +186,17 @@ void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 
 // Pass a register as a paremeter.
 void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
-	if (reg1 != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R(reg1));
-	if (reg2 != ABI_PARAM2)
-		MOV(32, R(ABI_PARAM2), R(reg2));
+	if (reg2 != ABI_PARAM1) {
+		if (reg1 != ABI_PARAM1)
+			MOV(32, R(ABI_PARAM1), R(reg1));
+		if (reg2 != ABI_PARAM2)
+			MOV(32, R(ABI_PARAM2), R(reg2));
+	} else {
+		if (reg2 != ABI_PARAM2)
+			MOV(32, R(ABI_PARAM2), R(reg2));
+		if (reg1 != ABI_PARAM1)
+			MOV(32, R(ABI_PARAM1), R(reg1));
+	}
 	CALL(func);
 }
 

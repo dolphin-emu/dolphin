@@ -204,9 +204,9 @@ const int *GPRRegCache::GetAllocationOrder(int &count)
 	{
 #ifdef _M_X64
 #ifdef _WIN32
-		RSI, RDI, R12, R13, R14, R8, R9, R10, R11 //, RCX
+		RSI, RDI, R13, R14, R8, R9, R10, R11 //, RCX
 #else
-		RBP, R12, R13, R14, R8, R9, R10, R11, //, RCX
+		RBP, R13, R14, R8, R9, R10, R11, //, RCX
 #endif
 #elif _M_IX86
 		ESI, EDI, EBX, EBP, EDX, ECX,

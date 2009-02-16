@@ -114,6 +114,8 @@ struct OpArg
 		operandReg = 0;
 		scale = (u8)_scale;
 		offsetOrBaseReg = (u8)rmReg;
+		if (rmReg == R12)
+			PanicAlert("Codegen for R12 known buggy");
 		indexReg = (u8)scaledReg;
 		//if scale == 0 never mind offseting
 		offset = _offset;
@@ -170,10 +172,13 @@ inline OpArg M(void *ptr)	    {return OpArg((u64)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)	{return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 inline OpArg MDisp(X64Reg value, int offset) {
-	return OpArg((u32)offset, SCALE_ATREG, value); }
-inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
-{
+	return OpArg((u32)offset, SCALE_ATREG, value);
+}
+inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset) {
 	return OpArg(offset, scale, base, scaled);
+}
+inline OpArg MRegSum(X64Reg base, X64Reg offset) {
+	return MComplex(base, offset, 1, 0);
 }
 inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
 inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used

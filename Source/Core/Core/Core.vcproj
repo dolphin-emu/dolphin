@@ -579,7 +579,7 @@
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				WarnAsError="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
