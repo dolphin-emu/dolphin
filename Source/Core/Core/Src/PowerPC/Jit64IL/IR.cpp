@@ -1072,7 +1072,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 			if (regReadUse(RI, I))
 				RI.regs[reg] = I;
 			return;
-		}
+		} 
 	}
 	X64Reg reg;
 	OpArg addr = regBuildMemAddress(RI, I, getOp1(I), 1, Size, &reg, false);
@@ -1082,18 +1082,23 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	}
 	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch argh = RI.Jit->J_CC(CC_Z);
-	if (reg != EAX)
+#ifdef _M_IX86  // we don't allocate EAX on x64 so no reason to save it.
+	if (reg != EAX) {
 		RI.Jit->PUSH(32, R(EAX));
+	}
+#endif
 	switch (Size)
 	{
 	case 32: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), ECX); break;
 	case 16: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16, 1), ECX); break;
 	case 8:  RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8, 1), ECX);  break;
 	}
+#ifdef _M_IX86
 	if (reg != EAX) {
 		RI.Jit->MOV(32, R(reg), R(EAX));
 		RI.Jit->POP(32, R(EAX));
 	}
+#endif
 	FixupBranch arg2 = RI.Jit->J();
 	RI.Jit->SetJumpTarget(argh);
 	RI.Jit->UnsafeLoadRegToReg(ECX, reg, Size, 0, false);
