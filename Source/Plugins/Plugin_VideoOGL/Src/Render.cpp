@@ -905,8 +905,8 @@ void Renderer::SwapBuffers()
 	static int fpscount;
     static int s_fps;
     static unsigned long lasttime;
-	char st[8192];
-	char* p = st;
+	char debugtext_buffer[8192];
+	char *p = debugtext_buffer;
 	p[0] = 0;
 
     ++fpscount;
@@ -985,10 +985,9 @@ void Renderer::SwapBuffers()
 		p+=sprintf(p,"Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
 	}
 
-	std::string text = st;
-	Renderer::RenderText(text.c_str(), 21, 21, 0xDD000000);
-	Renderer::RenderText(text.c_str(), 20, 20, 0xFF00FFFF);
-
+	// Render a shadow, and then the text.
+	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
+	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 
 	Renderer::ProcessMessages();
 
