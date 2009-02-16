@@ -150,6 +150,10 @@ CVolumeWiiCrypted::GetCountry() const
 		    country = COUNTRY_JAP;
 		    break; // JAP
 
+		case 'K':
+		    country = COUNTRY_KOR;
+		    break; // KOR
+
 	    case 'O':
 		    country = COUNTRY_UNKNOWN;
 		    break; // SDK
