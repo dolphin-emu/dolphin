@@ -80,6 +80,7 @@ namespace Core
 		void WriteStatus();
 		void RerecordingStart();
 		void RerecordingStop();
+		void WindBack(int Counter);
 		extern int g_FrameCounter;
 		extern bool g_FrameStep;
 	#endif

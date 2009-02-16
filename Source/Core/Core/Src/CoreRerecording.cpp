@@ -125,6 +125,40 @@ void RerecordingStop()
 	// Update status bar
 	WriteStatus();
 }
+
+/* Wind back the frame counter when a save state is loaded. Currently we don't know what that means in
+   time so we just guess that the time is proportional the the number of frames
+   
+   Todo: There are many assumptions here: We probably want to replace the time here by the actual time
+   that we save together with the save state or the input recording for example. And have it adjusted
+   for full speed playback (whether it's 30 fps or 60 fps or some other speed that the game is natively
+   capped at). Also the input interrupts do not occur as often as the frame renderings, they occur more
+   often. So we may want to move the input recording to fram updates, or perhaps sync the input interrupts
+   to frame updates.
+   */
+void WindBack(int Counter)
+{
+	/* Counter should be smaller than g_FrameCounter, however it currently updates faster than the
+	   frames so currently it may not be the same. Therefore I use the abs() function. */
+	int AbsoluteFrameDifference = abs(g_FrameCounter - Counter);
+	float FractionalFrameDifference = (float) AbsoluteFrameDifference / (float) g_FrameCounter;
+
+	// Update the frame counter
+	g_FrameCounter = Counter;
+
+	// Approximate a time to wind back the clock to
+	// Get the current time
+	u64 CurrentTimeMs = ReRecTimer.GetTimeElapsed();
+	// Save the current time in seconds in a new double
+	double CurrentTimeSeconds = (double) (CurrentTimeMs / 1000);
+	// Reduce it by the same proportion as the counter was wound back
+	CurrentTimeSeconds = CurrentTimeSeconds * FractionalFrameDifference;
+	// Update the clock
+	ReRecTimer.WindBackStartingTime((u64)CurrentTimeSeconds * 1000);
+
+	// Logging
+	Console::Print("WindBack: %i %u\n", Counter, (u64)CurrentTimeSeconds);
+}
 ////////////////////////////////////////
 
 
@@ -134,7 +168,7 @@ void RerecordingStop()
 void FrameAdvance()
 {
 	// Update status bar
-	WriteStatus();
+	WriteStatus();	
 
 	// If a game is not started, return
 	if(Core::GetState() == Core::CORE_UNINITIALIZED) return;
@@ -191,6 +225,9 @@ void FrameUpdate()
 {
 	// Write to the status bar
 	WriteStatus();
+	/* I don't think the frequent update has any material speed inpact at all, but should it
+	   have you can controls the update speed by changing the "% 10" in this line */
+	//if (g_FrameCounter % 10 == 0) WriteStatus();
 
 	// Pause if frame stepping is on
 	if(g_FrameStep)

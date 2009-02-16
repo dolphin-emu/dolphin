@@ -91,10 +91,16 @@ s64 Timer::GetTimeDifference(void)
 	return(timeGetTime() - m_LastTime);
 }
 
-// Add the time difference since the last Update() to the starting time 
+/* Add the time difference since the last Update() to the starting time. This is used to compensate
+   for a paused game. */
 void Timer::AddTimeDifference()
 {
 	m_StartTime += GetTimeDifference();
+}
+// Wind back the starting time to a custom time
+void Timer::WindBackStartingTime(u64 WindBack)
+{
+	m_StartTime += WindBack;
 }
 
 // Get the time elapsed since the Start()

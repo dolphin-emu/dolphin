@@ -193,6 +193,14 @@ int abc = 0;
 				//Console::Print("WIIMOTE_RECONNECT\n");
 				Core::ReconnectWiimote();
 				return 0;
+
+			#ifdef RERECORDING
+			case INPUT_FRAME_COUNTER:
+				// Wind back the frame counter after a save state has been loaded
+				Core::WindBack((int)lParam);
+				return 0;
+			#endif
+
 			}
 			break;
 		//default:

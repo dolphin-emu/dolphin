@@ -27,7 +27,8 @@ enum PLUGIN_COMM
 	OPENGL_WM_USER_STOP = 10,
 	OPENGL_WM_USER_CREATE,
 	NJOY_RELOAD, // Reload nJoy if DirectInput has failed
-	WIIMOTE_RECONNECT // Reconnect the Wiimote if it has disconnected
+	WIIMOTE_RECONNECT, // Reconnect the Wiimote if it has disconnected
+	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };
 ///////////////////////////////
 

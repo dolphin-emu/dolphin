@@ -36,6 +36,7 @@ class Timer
 		// The time difference is always returned in milliseconds, regardless of alternative internal representation
 		s64 GetTimeDifference(void);
 		void AddTimeDifference();
+		void WindBackStartingTime(u64 WindBack);
 
 		static void IncreaseResolution();
 		static void RestoreResolution();
@@ -44,7 +45,7 @@ class Timer
 
 		static std::string GetTimeFormatted();
 		std::string GetTimeElapsedFormatted();
-		u64 Timer::GetTimeElapsed();
+		u64 GetTimeElapsed();
 
 	public:
 

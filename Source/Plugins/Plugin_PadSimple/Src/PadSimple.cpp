@@ -686,9 +686,22 @@ void Initialize(void *init)
 
 void DoState(unsigned char **ptr, int mode)
 {
+#ifdef RERECORDING
 	// Load or save the counter
 	PointerWrap p(ptr, mode);
 	p.Do(count);
+
+	//Console::Print("count: %i\n", count);
+
+	// Update the frame counter for the sake of the status bar
+	if (mode == PointerWrap::MODE_READ)
+	{
+		#ifdef _WIN32
+			// This only works when rendering to the main window, I think
+			PostMessage(GetParent(g_PADInitialize.hWnd), WM_USER, INPUT_FRAME_COUNTER, count);
+		#endif
+	}
+#endif
 }
 
 void Shutdown()
