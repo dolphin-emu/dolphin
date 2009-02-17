@@ -142,7 +142,6 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 			_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 		}
 		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",em_address,PC);*/
-			/*CCPU::EnableStepping(TRUE);*/
 			/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/
 			u32 TmpAddress = CheckDTLB(effective_address, flag);
 			TmpAddress = (TmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
@@ -219,7 +218,6 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 		}
 		/* LOG(MEMMAP,"WRITE: %08x (PC: %08x)",em_address,PC);*/
 		/*MessageBox(NULL, "WRITE: unknown Address", "1", MB_OK);*/
-		/*CCPU::EnableStepping(TRUE);*/
 		u32 tmpAddress = CheckDTLB(effective_address, flag);
 		tmpAddress = (tmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
 		*(T*)&m_pRAM[tmpAddress & RAM_MASK] = bswap(data);

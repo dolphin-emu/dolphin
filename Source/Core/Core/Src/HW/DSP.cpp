@@ -347,7 +347,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	case DSP_CONTROL:
 		{
 			UDSPControl tmpControl;
-			tmpControl.Hex = (_Value& ~DSP_CONTROL_MASK) |
+			tmpControl.Hex = (_Value & ~DSP_CONTROL_MASK) |
 							(dsp->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
 			// Update DSP related flags
@@ -374,8 +374,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.pad   = tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
 			{
-				LOG(DSPINTERFACE, "DSPInterface(w) g_dspState.DSPControl gets an unknown value");
-				CCPU::Break();
+				PanicAlert("DSPInterface(w) g_dspState.DSPControl gets a value with junk in the padding %08x", _Value);
 			}
 
 			UpdateInterrupts();

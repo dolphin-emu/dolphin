@@ -130,7 +130,6 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
         _rReturnValue = g_IPC_Control.Hex;
 
 		LOGV(WII_IPC, 2, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
-		// CCPU::Break();
 
         // if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHanlder
         // if ((REASON_REG & 0x22) != 0x22) Jumps to the end

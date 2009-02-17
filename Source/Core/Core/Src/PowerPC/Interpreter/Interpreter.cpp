@@ -74,7 +74,6 @@ void patches()
 		if (command == 0x0b13)
 		{
 			PanicAlert("command: %x", command);
-			CCPU::Break();
 		}
 	}*/
 }
@@ -105,9 +104,9 @@ void SingleStepInner(void)
 	last_pc = PC;
 	PC = NPC;
 	
-	if (PowerPC::ppcState.gpr[1] == 0) {
+	if (PowerPC::ppcState.gpr[1] == 0)
+	{
 		printf("%i Corrupt stack", PowerPC::ppcState.DebugCount);
-//		CCPU::Break();	
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	PowerPC::ppcState.DebugCount++;
@@ -150,7 +149,7 @@ void Run()
 					if (BreakPoints::IsAddressBreakPoint(PC))
 					{
 						LOG(GEKKO, "Hit Breakpoint - %08x", PC);
-						CCPU::EnableStepping(true);
+						CCPU::Break();
 						if (BreakPoints::IsTempBreakPoint(PC))
 							BreakPoints::Remove(PC);
 
@@ -190,7 +189,6 @@ void Run()
 
 void unknown_instruction(UGeckoInstruction _inst)
 {
-	CCPU::Break();
 	char disasm[256];
 	DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
 	printf("Last PC = %08x : %s\n", last_pc, disasm);

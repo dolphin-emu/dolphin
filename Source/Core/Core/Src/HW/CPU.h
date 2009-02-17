@@ -49,11 +49,11 @@ public:
 	// Enable or Disable Stepping
 	static void EnableStepping(const bool _bStepping);	
 
+	// break, same as EnableStepping(true).
+	static void Break();
+
 	// is stepping ?
 	static bool IsStepping();
-
-	// break
-	static void Break();
 };
 
 #endif

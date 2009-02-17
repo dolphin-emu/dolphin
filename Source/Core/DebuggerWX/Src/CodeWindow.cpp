@@ -695,7 +695,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 		    }
 		    else
 		    {
-			    CCPU::EnableStepping(true);
+			    CCPU::EnableStepping(true);  // Break
 			    Host_UpdateLogDisplay();
 		    }
 
@@ -708,7 +708,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 		    break;
 
 	    case IDM_STEPOVER:
-		    CCPU::EnableStepping(true);
+		    CCPU::EnableStepping(true);   // TODO: Huh?
 		    break;
 
 	    case IDM_SKIP:

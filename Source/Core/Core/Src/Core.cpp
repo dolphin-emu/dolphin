@@ -133,7 +133,7 @@ void DisplayMessage(const char *message, int time_in_ms)
  
 void Callback_DebuggerBreak()
 {
-	CCPU::EnableStepping(true);
+	CCPU::Break();
 }
  
 void* GetWindowHandle()
@@ -514,7 +514,7 @@ bool SetState(EState _State)
 		break;
  
 	case CORE_PAUSE:
-		CCPU::EnableStepping(true);
+		CCPU::EnableStepping(true);  // Break
 		break;
  
 	case CORE_RUN:
