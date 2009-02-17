@@ -279,8 +279,8 @@ namespace CPUCompare
 		}
 	}
 
-	static const bool ImHereDebug = true;
-	static const bool ImHereLog = true;
+	static const bool ImHereDebug = false;
+	static const bool ImHereLog = false;
 	static std::map<u32, int> been_here;
 
 	void ImHere()
