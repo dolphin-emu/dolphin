@@ -278,7 +278,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 
 			// R844 Hack
 			if (!proj_hax_1 && proj_hax_2)
-				g_fProjectionMatrix[11] = xfregs.rawProjection[5];
+				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
 
 			//--------------------------------
 
