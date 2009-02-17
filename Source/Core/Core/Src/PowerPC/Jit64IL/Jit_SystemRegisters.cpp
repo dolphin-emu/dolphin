@@ -55,6 +55,10 @@
 		case SPR_GQR0 + 7:
 			ibuild.EmitStoreGQR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_GQR0);
 			return;
+		case SPR_SRR0:
+		case SPR_SRR1:
+			ibuild.EmitStoreSRR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_SRR0);
+			return;
 		default:
 			Default(inst);
 			return;

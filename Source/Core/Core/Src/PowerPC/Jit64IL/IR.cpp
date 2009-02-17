@@ -326,6 +326,19 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	if (Opcode == DoubleToSingle) {
 		if (getOpcode(*Op1) == DupSingleToMReg)
 			return getOp1(Op1);
+		if (getOpcode(*Op1) >= FDMul || getOpcode(*Op1) <= FDSub) {
+			InstLoc OOp1 = getOp1(Op1), OOp2 = getOp2(Op1);
+			if (getOpcode(*OOp1) == DupSingleToMReg &&
+			    getOpcode(*OOp2) == DupSingleToMReg) {
+				if (getOpcode(*Op1) == FDMul) {
+					return FoldBiOp(FSMul, getOp1(OOp1), getOp2(OOp2));
+				} else if (getOpcode(*Op1) == FDAdd) {
+					return FoldBiOp(FSAdd, getOp1(OOp1), getOp2(OOp2));
+				} else if (getOpcode(*Op1) == FDSub) {
+					return FoldBiOp(FSSub, getOp1(OOp1), getOp2(OOp2));
+				}
+			}
+		}
 	}
 
 	return EmitUOp(Opcode, Op1, extra);
@@ -1341,6 +1354,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case StoreCTR:
 		case StoreMSR:
 		case StoreGQR:
+		case StoreSRR:
 		case StoreFReg:
 			if (!isImm(*getOp1(I)))
 				regMarkUse(RI, I, getOp1(I), 1);
@@ -1524,6 +1538,13 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case StoreGQR: {
 			unsigned gqr = *I >> 16;
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &GQR(gqr));
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case StoreSRR: {
+			unsigned srr = *I >> 16;
+			regStoreInstToConstLoc(RI, 32, getOp1(I),
+					&PowerPC::ppcState.spr[SPR_SRR0+srr]);
 			regNormalRegClear(RI, I);
 			break;
 		}

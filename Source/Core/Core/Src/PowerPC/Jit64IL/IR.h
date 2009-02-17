@@ -56,6 +56,7 @@ namespace IREmitter {
 		StoreMSR,
 		StoreFPRF,
 		StoreGQR,
+		StoreSRR,
 		// Arbitrary interpreter instruction
 		InterpreterFallback,
 
@@ -490,6 +491,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitStoreGQR(InstLoc op1, unsigned gqr) {
 			return FoldUOp(StoreGQR, op1, gqr);
+		}
+		InstLoc EmitStoreSRR(InstLoc op1, unsigned srr) {
+			return FoldUOp(StoreSRR, op1, srr);
 		}
 
 		void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }
