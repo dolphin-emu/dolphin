@@ -112,9 +112,10 @@ void handle_event(struct wiimote_t* wm)
 		wiiuse_set_ir(wm, 1);
 
 	// Print battery status
+#if defined(HAVE_WX) && HAVE_WX
 	if(frame && g_Config.bUpdateRealWiimote)
 		frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
-
+#endif
 	// Create shortcut to the nunchuck
 	struct nunchuk_t* nc = NULL;
 	if (wm->exp.type == EXP_NUNCHUK)
@@ -167,6 +168,7 @@ void handle_event(struct wiimote_t* wm)
 		//Console::ClearScreen();
 		//Console::Print("%s\n\n", Tmp.c_str());
 
+#if defined(HAVE_WX) && HAVE_WX
 		if(frame)
 		{
 			// Produce adjusted accelerometer values
@@ -236,10 +238,12 @@ void handle_event(struct wiimote_t* wm)
 			frame->m_bmpDotRightOut[0]->SetPosition(wxPoint(Roll, Pitch));*/
 			// ---------------------
 		}
+#endif
 	}
 	// Otherwise remove the values
 	else
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		if (frame)
 		{
 			
@@ -258,6 +262,7 @@ void handle_event(struct wiimote_t* wm)
 
 			frame->m_TextIR->SetLabel(wxT("Cursor:\nDistance:"));
 		}
+#endif
 	}
 }
 

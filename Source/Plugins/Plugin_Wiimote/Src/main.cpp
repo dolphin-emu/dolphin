@@ -302,7 +302,9 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		Console::Print("\n\nWiimote Disconnected\n\n");
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
+#if defined(HAVE_WX) && HAVE_WX
 		if (frame) frame->UpdateGUI();
+#endif
 		return;
 	}
 
@@ -333,6 +335,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 extern "C" void Wiimote_Update()
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
+#if defined(HAVE_WX) && HAVE_WX
 	if (frame)
 	{
 		GetUpdateRate();
@@ -344,6 +347,7 @@ extern "C" void Wiimote_Update()
 		g_UpdateWriteScreen++;
 	}
 
+#endif
 	// This functions will send:
 	//		Emulated Wiimote: Only data reports 0x30-0x37
 	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
@@ -498,7 +502,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			if(!Emu && !pStatus->extension)
 			{
 				DisableExtensions();
+#if defined(HAVE_WX) && HAVE_WX
 				if (frame) frame->UpdateGUI();
+#endif
 			}
 		}
 		break;
@@ -533,7 +539,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				if (!Emu && data[7] == 0x01 && data[8] == 0x01) g_Config.bClassicControllerConnected = true;
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
+#if defined(HAVE_WX) && HAVE_WX
 				if (frame) frame->UpdateGUI();
+#endif
 				Console::Print("%s", TmpData.c_str());
 				Console::Print("Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
 			}
@@ -544,7 +552,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				if (!Emu && data[11] == 0x01 && data[12] == 0x01) g_Config.bClassicControllerConnected = true;
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
+#if defined(HAVE_WX) && HAVE_WX
 				if (frame) frame->UpdateGUI();
+#endif
 				Console::Print("%s", TmpData.c_str());
 				Console::Print("Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}

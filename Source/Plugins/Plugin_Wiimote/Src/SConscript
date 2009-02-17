@@ -28,6 +28,7 @@ if wmenv['HAVE_WX']:
 
 libs = [ 'common', 'inputcommon' ]
 
+
 cxxflags = [ '-fPIC' ]
 
 if wmenv['HAVE_WIIUSE']:
