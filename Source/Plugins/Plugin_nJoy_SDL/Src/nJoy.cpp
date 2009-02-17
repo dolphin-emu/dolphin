@@ -257,12 +257,14 @@ void Initialize(void *init)
 	#endif
 
 	// Populate joyinfo for all attached devices if the configuration window is not already open
+#if defined(HAVE_WX) && HAVE_WX
 	if(!m_frame)
 	{
 		Search_Devices(joyinfo, NumPads, NumGoodPads);
 		// Check if a DirectInput error occured
 		if(ReloadDLL()) g_PADInitialize->padNumber = -1;
 	}
+#endif
 }
 
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
@@ -309,8 +311,9 @@ void Shutdown()
 
 	// Don't shutdown the gamepad if the configuration window is still showing
 	// Todo: Coordinate with the Wiimote plugin, SDL_Quit() will remove the pad for it to
+#if defined(HAVE_WX) && HAVE_WX
 	if (m_frame) return;
-
+#endif
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
 	for (int i = 0; i < 4; i++)

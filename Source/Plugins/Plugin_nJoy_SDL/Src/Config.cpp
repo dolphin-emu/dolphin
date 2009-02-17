@@ -37,8 +37,9 @@
 #include "Common.h"
 
 Config g_Config;
+#if defined(HAVE_WX) && HAVE_WX
 extern ConfigBox* m_frame;
-
+#endif
 //////////////////////////////////
 
 
