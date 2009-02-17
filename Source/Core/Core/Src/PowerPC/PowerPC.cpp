@@ -176,23 +176,32 @@ void RunLoop()
     Host_UpdateDisasmDialog();
 }
 
+CPUState GetState()
+{
+	return state;
+}
+
+volatile CPUState *GetStatePtr()
+{
+	return &state;
+}
+
 void Start()
 {
-	// Select running mode for CPU.cpp
 	state = CPU_RUNNING;
-    Host_UpdateDisasmDialog();
+	Host_UpdateDisasmDialog();
 }
 
 void Pause()
 {
 	state = CPU_STEPPING;
-    Host_UpdateDisasmDialog();
+	Host_UpdateDisasmDialog();
 }
 
 void Stop()
 {
 	state = CPU_POWERDOWN;
-    Host_UpdateDisasmDialog();
+	Host_UpdateDisasmDialog();
 }
 
 void CheckExceptions()

@@ -52,7 +52,6 @@ namespace EmuWindow
 			break;
 
 		case WM_CLOSE:
-			//Core::SetState(Core::CORE_UNINITIALIZED);
 			return 0;
 
 		case WM_DESTROY:

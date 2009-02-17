@@ -228,7 +228,6 @@ namespace EmuWindow
 			if(m_hParent == NULL)
 			{
 				ExitProcess(0);
-				//Core::SetState(Core::CORE_UNINITIALIZED);
 
 				/* Attempt to only Stop when we close the separate window. But it didn't work, it hanged.
 				  It may need some more coordination with the Stop code in the Core */

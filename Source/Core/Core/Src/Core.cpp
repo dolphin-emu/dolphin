@@ -201,19 +201,18 @@ bool Init()
  
 	return true;
 }
- 
- 
+
 // Called from GUI thread or VI thread
-void Stop() // - Hammertime!
+void Stop()  // - Hammertime!
 {
 	Host_SetWaitCursor(true);
-	if (PowerPC::state == PowerPC::CPU_POWERDOWN)
+	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
  
-        // stop the CPU
-        PowerPC::state = PowerPC::CPU_POWERDOWN;
- 
-        CCPU::StepOpcode(); //kick it if it's waiting
+	// stop the CPU
+	PowerPC::Stop();
+
+	CCPU::StepOpcode(); //kick it if it's waiting
  
 	// The quit is to get it out of its message loop
 	// Should be moved inside the plugin.
@@ -222,7 +221,7 @@ void Stop() // - Hammertime!
 	#else
 		CPluginManager::GetInstance().GetVideo()->Video_Stop();
 	#endif
- 
+
 	#ifdef _WIN32
 		/* I have to use this to avoid the hangings, it seems harmless and it works so I'm
 		   okay with it */
@@ -256,7 +255,7 @@ THREAD_RETURN CpuThread(void *pArg)
     if (_CoreParameter.bRunCompareServer)
 	{
 	    CPUCompare::StartServer();
-	    PowerPC::state = PowerPC::CPU_RUNNING;
+	    PowerPC::Start();
 	}
     else if (_CoreParameter.bRunCompareClient)
 	{
@@ -265,7 +264,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
  
     if (_CoreParameter.bLockThreads)
-	Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
+		Common::Thread::SetCurrentThreadAffinity(1);  // Force to first core
  
     if (_CoreParameter.bUseFastMem)
 	{
@@ -353,7 +352,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
-	dspInit.pEmulatorState = (int *)&PowerPC::state;
+	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
 	dspInit.bWii = _CoreParameter.bWii;
 	// Needed for Stop and Start
 	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
@@ -436,9 +435,10 @@ THREAD_RETURN EmuThread(void *pArg)
 			//Common::SetCurrentThreadName("Idle thread");
 			//TODO(ector) : investigate using GetMessage instead .. although
 			//then we lose the powerdown check. ... unless powerdown sends a message :P
-			while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+			while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			{
-				if (Callback_PeekMessages) Callback_PeekMessages();
+				if (Callback_PeekMessages)
+					Callback_PeekMessages();
 				Common::SleepCurrentThread(20);
 			}
 		#else

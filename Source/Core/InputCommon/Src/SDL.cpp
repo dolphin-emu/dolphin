@@ -123,7 +123,7 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
 	}
 
-	_NumPads = _joyinfo.size();
+	_NumPads = (int)_joyinfo.size();
 
 	return true;
 }

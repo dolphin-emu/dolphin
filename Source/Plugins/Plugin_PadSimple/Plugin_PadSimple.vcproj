@@ -172,6 +172,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool

@@ -72,7 +72,6 @@ enum CPUState
 };
 
 extern PowerPCState ppcState;
-extern volatile CPUState state;  // Execution engines should poll this to know when to exit.
 
 void Init();
 void Shutdown();
@@ -86,6 +85,8 @@ void RunLoop();
 void Start();
 void Pause();
 void Stop();
+CPUState GetState();
+volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
 
 void CompactCR();
 void ExpandCR();

@@ -65,7 +65,6 @@ AsmRoutineManager asm_routines;
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
-
 void AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
@@ -156,9 +155,8 @@ void AsmRoutineManager::Generate()
 			MOV(32, M(&PC), R(EAX));
 		SetJumpTarget(skipExceptions);
 		
-		TEST(32, M((void*)&PowerPC::state), Imm32(0xFFFFFFFF));
+		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);
-
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();

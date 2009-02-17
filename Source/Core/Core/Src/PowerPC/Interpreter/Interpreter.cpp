@@ -130,10 +130,10 @@ void SingleStep()
 	}
 }
 
-// sFastRun - inspired by GCemu
+// FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Run()
 {
-	while (!PowerPC::state)
+	while (!PowerPC::GetState())
 	{
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
 		if (Core::GetStartupParameter().bEnableDebugging)

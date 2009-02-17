@@ -184,7 +184,11 @@ namespace CPUCompare
 		jo.optimizeStack = true;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
+#ifdef JITTEST
+		jo.enableFastMem = false;
+#else
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
+#endif
 #else
 		jo.enableFastMem = false;
 #endif
@@ -275,8 +279,8 @@ namespace CPUCompare
 		}
 	}
 
-	static const bool ImHereDebug = false;
-	static const bool ImHereLog = false;
+	static const bool ImHereDebug = true;
+	static const bool ImHereLog = true;
 	static std::map<u32, int> been_here;
 
 	void ImHere()

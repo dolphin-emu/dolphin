@@ -50,11 +50,11 @@ namespace InputCommon
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 float Deg2Rad(float Deg)
 {
-	return Deg * (M_PI / 180.0);
+	return Deg * ((float)M_PI / 180.0f);
 }
 float Rad2Deg(float Rad)
 {
-	return (Rad * 180.0) / M_PI;
+	return (Rad * 180.0f) / (float)M_PI;
 }
 /////////////////////////////////////////
 
@@ -70,7 +70,7 @@ float CoordinatesToRadius(int x, int y)
 bool IsDeadZone(float DeadZone, int x, int y)
 {
 	// Get the distance from the center
-	float Distance = CoordinatesToRadius(x, y) / 32767.0;
+	float Distance = CoordinatesToRadius(x, y) / 32767.0f;
 
 	//Console::Print("%f\n", Distance);
 
@@ -159,7 +159,7 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 	// -----------
 	// Get the manually configured diagonal distance
 	int Tmp = atoi (SDiagonal.substr(0, SDiagonal.length() - 1).c_str());
-	float Diagonal = Tmp / 100.0;
+	float Diagonal = Tmp / 100.0f;
 
 	// First make a perfect square in case we don't have one already
 	float OrigDist = sqrt(  pow((float)_y, 2) + pow((float)_x, 2)  ); // Get current distance

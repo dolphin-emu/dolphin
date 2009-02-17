@@ -68,7 +68,7 @@ CCodeWindow* g_pCodeWindow = NULL;
 LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//EnterCriticalSection(&g_uefcs);
 
-	FILE* file=NULL;
+	FILE* file = NULL;
 	fopen_s(&file, "exceptioninfo.txt", "a");
 	fseek(file, 0, SEEK_END);
 	etfprint(file, "\n");

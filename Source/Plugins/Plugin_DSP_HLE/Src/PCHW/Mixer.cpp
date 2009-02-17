@@ -121,12 +121,16 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
 	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
 	static int acc=0;     
-       
+ 
+#ifdef _WIN32
+	if (GetAsyncKeyState(VK_TAB))
+		return;
+#endif
+
 	// Write Other Audio
     //bThrottling = g_Config.m_EnableThrottle;        
-    if(g_Config.m_EnableThrottle)
+    if (g_Config.m_EnableThrottle)
 	{
-        
         /* This is only needed for non-AX sound, currently directly
            streamed and DTK sound. For AX we call SoundStream::Update in
            AXTask() for example. */

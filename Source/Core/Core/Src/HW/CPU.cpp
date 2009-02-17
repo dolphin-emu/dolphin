@@ -26,8 +26,6 @@
 
 #include "../Debugger/Debugger_BreakPoints.h"
 
-using namespace PowerPC;
-
 namespace
 {
 	static bool g_Branch;
@@ -56,19 +54,19 @@ void CCPU::Run()
 	while (true)
 	{
 reswitch:
-		switch (PowerPC::state)
+		switch (PowerPC::GetState())
 		{
-		case CPU_RUNNING:
+		case PowerPC::CPU_RUNNING:
 			//1: enter a fast runloop
 			PowerPC::RunLoop();
 			break;
 
-		case CPU_STEPPING:
+		case PowerPC::CPU_STEPPING:
 			m_StepEvent.Wait();
 			//1: wait for step command..
-			if (state == CPU_POWERDOWN)
+			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 				return;
-			if (state != CPU_STEPPING)
+			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
 				goto reswitch;
 
 			//2: check for cpu compare
@@ -89,7 +87,7 @@ reswitch:
 			Host_UpdateDisasmDialog();
 			break;
 
-		case CPU_POWERDOWN:
+		case PowerPC::CPU_POWERDOWN:
 			//1: Exit loop!!
 			return; 
 		}
@@ -104,7 +102,7 @@ void CCPU::Stop()
 
 bool CCPU::IsStepping()
 {
-	return PowerPC::state == CPU_STEPPING;
+	return PowerPC::GetState() == PowerPC::CPU_STEPPING;
 }
 
 void CCPU::Reset()
@@ -115,7 +113,7 @@ void CCPU::Reset()
 void CCPU::StepOpcode(Common::Event *event) 
 {
 	m_StepEvent.Set();
-	if (PowerPC::state == CPU_STEPPING)
+	if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
 	{
 		m_SyncEvent = event;
 	}

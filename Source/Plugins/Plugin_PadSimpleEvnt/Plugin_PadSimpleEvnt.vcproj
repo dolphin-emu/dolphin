@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_PadSimpleEvnt"
 	ProjectGUID="{58E81545-241B-416E-8088-E62452EB25FA}"
 	RootNamespace="Plugin_PadSimpleEvnt"
@@ -172,6 +172,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
