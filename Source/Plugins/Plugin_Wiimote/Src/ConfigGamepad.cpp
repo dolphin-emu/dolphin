@@ -583,8 +583,9 @@ void ConfigDialog::PadGetStatus()
 {
 	//Console::Print("SDL_WasInit: %i\n", SDL_WasInit(0));
 
-	// Return if it's not detected
-	if(WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
+	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
+	   because of a manual ini file change, but we make that check anway. */
+	if(WiiMoteEmu::PadMapping[Page].ID < 0 || WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
 	{
 		m_TStatusLeftIn[Page]->SetLabel(wxT("Not connected"));
 		m_TStatusLeftOut[Page]->SetLabel(wxT("Not connected"));
