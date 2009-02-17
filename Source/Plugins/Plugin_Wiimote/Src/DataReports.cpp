@@ -133,8 +133,9 @@ void SendReportCore(u16 _channelID)
 	wm_report_core* pReport = (wm_report_core*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core);
 	memset(pReport, 0, sizeof(wm_report_core));
-
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
+#endif
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCore()");
 
@@ -157,8 +158,10 @@ void SendReportCoreAccel(u16 _channelID)
 	Offset += sizeof(wm_report_core_accel);
 	memset(pReport, 0, sizeof(wm_report_core_accel));
 	
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
+#endif
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel (0x31)");
 	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
@@ -182,11 +185,13 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	Offset += sizeof(wm_report_core_accel_ir12);
 	memset(pReport, 0, sizeof(wm_report_core_accel_ir12));
 	
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 
 	// We settle with emulating two objects, not all four. We leave object 2 and 3 with 0xff.
 	FillReportIR(pReport->ir[0], pReport->ir[1]);
+#endif
 	memset(&pReport->ir[2], 0xff, sizeof(wm_ir_extended));
 	memset(&pReport->ir[3], 0xff, sizeof(wm_ir_extended));
 
@@ -216,16 +221,22 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	wm_classic_extension _ext;
 	memset(&_ext, 0, sizeof(wm_classic_extension));
 
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
+#endif
 
 	if(g_Config.bNunchuckConnected)
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
+#endif
 	}
 	else if(g_Config.bClassicControllerConnected)
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
+#endif
 		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
@@ -257,17 +268,23 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	wm_classic_extension _ext;
 	memset(&_ext, 0, sizeof(wm_classic_extension));
 
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
+#endif
 
 	if(g_Config.bNunchuckConnected)
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
+#endif
 	}
 	else if(g_Config.bClassicControllerConnected)
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
+#endif
 		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}

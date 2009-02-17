@@ -290,6 +290,7 @@ void ResetVariables()
 	g_Encryption = false;
 
 	// Set default recording values
+#if defined(HAVE_WX) && HAVE_WX
 	for (int i = 0; i < 3; i++)
 	{
 		g_RecordingPlaying[i] = -1;
@@ -298,7 +299,7 @@ void ResetVariables()
 		g_RecordingStart[i] = 0;
 		g_RecordingCurrentTime[i] = 0;
 	}
-
+#endif
 	g_EmulatedWiiMoteInitialized = false;
 }
 
@@ -520,7 +521,9 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
+#if defined(HAVE_WX) && HAVE_WX
 		Console::Print("\n%s: ControlChannel: %s\n", Tm().c_str(), Temp.c_str());
+#endif
 		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
