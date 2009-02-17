@@ -20,6 +20,7 @@
 #include "cmdline.h"
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
+#include "PluginManager.h"
 
 
 #include "BootManager.h"
@@ -197,6 +198,7 @@ int main(int argc, char* argv[])
 
 	updateMainFrameEvent.Init();
 	cpu_info.Detect();
+	CPluginManager::GetInstance().ScanForPlugins();
 	BootManager::BootCore(bootFile);
 	while (PowerPC::state != PowerPC::CPU_POWERDOWN)
 	{
