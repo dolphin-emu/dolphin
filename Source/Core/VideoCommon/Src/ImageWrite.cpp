@@ -21,9 +21,7 @@
 
 #include "ImageWrite.h"
 
-#if defined(_MSC_VER)
 #pragma pack(push, 1)
-#endif
 
 struct TGA_HEADER
 {
@@ -45,9 +43,7 @@ struct TGA_HEADER
     // pixel data follows header
 };
 
-#if defined(_MSC_VER)
 #pragma pack(pop)
-#endif
 
 bool SaveTGA(const char* filename, int width, int height, void* pdata)
 {
