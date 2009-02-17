@@ -114,8 +114,6 @@ struct OpArg
 		operandReg = 0;
 		scale = (u8)_scale;
 		offsetOrBaseReg = (u8)rmReg;
-		if (rmReg == R12)
-			PanicAlert("Codegen for R12 known buggy");
 		indexReg = (u8)scaledReg;
 		//if scale == 0 never mind offseting
 		offset = _offset;

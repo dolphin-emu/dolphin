@@ -186,7 +186,7 @@ enum NormalSSEOps
 		else if (scale >= 1)
 		{
 			//Ah good, no scaling.
-			if (scale == SCALE_ATREG && !((_offsetOrBaseReg&7) == 4 || (_offsetOrBaseReg&7) == 5))
+			if (scale == SCALE_ATREG && !((_offsetOrBaseReg & 7) == 4 || (_offsetOrBaseReg & 7) == 5))
 			{
 				//Okay, we're good. No SIB necessary.
 				int ioff = (int)offset;
@@ -216,10 +216,10 @@ enum NormalSSEOps
 					SIB = true;
 				}
 
-				if (scale == SCALE_ATREG && _offsetOrBaseReg == 4) 
+				if (scale == SCALE_ATREG && ((_offsetOrBaseReg & 7) == 4)) 
 				{
 					SIB = true;
-					ireg = 4;
+					ireg = _offsetOrBaseReg;
 				}
 
 				//Okay, we're fine. Just disp encoding.

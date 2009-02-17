@@ -205,9 +205,9 @@ const int *GPRRegCache::GetAllocationOrder(int &count)
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
 #ifdef _M_X64
 #ifdef _WIN32
-		RSI, RDI, R13, R14, R8, R9, R10, R11 //, RCX
+		RSI, RDI, R13, R14, R8, R9, R10, R11, R12, //, RCX
 #else
-		RBP, R13, R14, R8, R9, R10, R11, //, RCX
+		RBP, R13, R14, R8, R9, R10, R11, R12, //, RCX
 #endif
 #elif _M_IX86
 		ESI, EDI, EBX, EBP, EDX, ECX,
@@ -222,7 +222,7 @@ const int *FPURegCache::GetAllocationOrder(int &count)
 	static const int allocationOrder[] = 
 	{
 #ifdef _M_X64
-		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
+		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
 #elif _M_IX86
 		XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
 #endif
