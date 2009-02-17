@@ -48,8 +48,9 @@ bool StrangeHack = true;
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::PadGetStatus()
 {
-	// Return if it's not detected
-	if(PadMapping[notebookpage].ID >= SDL_NumJoysticks())
+	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
+	   because of a manual ini file change, but we make that check anway. */
+	if(PadMapping[notebookpage].ID >= 0 && PadMapping[notebookpage].ID >= SDL_NumJoysticks())
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected"));
 		m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));

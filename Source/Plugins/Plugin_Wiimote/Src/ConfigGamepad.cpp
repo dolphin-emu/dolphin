@@ -204,7 +204,9 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	// Replace "" with "-1" in the GUI controls
 	ToBlank(false);
 
-	// Set physical device Id
+	/* Set physical device Id. GetSelection() should never be -1 here so we don't check that it's zero or higher. If it's possible that it can be
+	   -1 that's a bug that should be fixed. Because the m_Joyname[] combo box should always show <No Gamepad Detected>, or a gamepad name, not a
+	   a blank selection. */
 	if(!DontChangeId) WiiMoteEmu::PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
 	// Set enabled or disable status 
 	if(FromSlot == controller) WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
@@ -228,8 +230,8 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	m_AnalogTriggerL[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tl = value;
 	m_AnalogTriggerR[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tr = value;			
 
-	//Console::Print("WiiMoteEmu::PadMapping[%i].deadzone = %i, m_ComboDeadZone[%i]->GetSelection() = %i\n",
-	//	controller, WiiMoteEmu::PadMapping[controller].deadzone, FromSlot, m_ComboDeadZone[FromSlot]->GetSelection());
+	//Console::Print("WiiMoteEmu::PadMapping[%i].ID = %i, m_Joyname[%i]->GetSelection() = %i\n",
+	//	controller, WiiMoteEmu::PadMapping[controller].ID, FromSlot, m_Joyname[FromSlot]->GetSelection());
 
 	// Replace "-1" with "" 
 	ToBlank();
@@ -608,10 +610,10 @@ void ConfigDialog::PadGetStatus()
 	// Get physical device status
 	int PhysicalDevice = WiiMoteEmu::PadMapping[Page].ID;
 	int TriggerType = WiiMoteEmu::PadMapping[Page].triggertype;
-	
+
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	//if (IsFocus())
-		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page, WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Page].ID].NumButtons);
+		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page, WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Page].ID).NumButtons);
 
 
 	//////////////////////////////////////

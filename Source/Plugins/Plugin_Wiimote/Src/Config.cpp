@@ -55,7 +55,7 @@ void Config::Load(bool ChangePad)
 
 	// Default controls
 	#ifdef _WIN32
-		int WmA = 65, WmB = 65,
+		int WmA = 65, WmB = 66,
 			Wm1 = 49, Wm2 = 50,
 			WmP = 80, WmM = 77, WmH = 72,
 			WmL = 37, WmR = 39, WmU = 38, WmD = 40, // Regular directional keys
@@ -117,12 +117,11 @@ void Config::Load(bool ChangePad)
 		// Don't update this when we are loading settings from the ConfigBox
 		if(!ChangePad)
 		{
+			/* This pad Id could possibly be higher than the number of pads that are connected,
+			   but we check later, when needed, that that is not the case */
 			iniFile.Get(SectionName.c_str(), "DeviceID", &WiiMoteEmu::PadMapping[i].ID, 0);
 			iniFile.Get(SectionName.c_str(), "Enabled", &WiiMoteEmu::PadMapping[i].enabled, true);
 		}
-
-		// Check if the pad ID is within the range of avaliable pads
-		if (WiiMoteEmu::PadMapping[i].ID > (WiiMoteEmu::NumPads - 1)) WiiMoteEmu::PadMapping[i].ID = (WiiMoteEmu::NumPads - 1);
 		// ===================
 
 		// ==================================================================
