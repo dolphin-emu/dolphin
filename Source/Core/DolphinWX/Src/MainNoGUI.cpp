@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 	cpu_info.Detect();
 	CPluginManager::GetInstance().ScanForPlugins();
 	BootManager::BootCore(bootFile);
-	while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{
 		updateMainFrameEvent.Wait();
 	}
