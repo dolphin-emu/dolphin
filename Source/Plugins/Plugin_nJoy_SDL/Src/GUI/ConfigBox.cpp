@@ -84,6 +84,11 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, ConfigBox::ChangeSettings)
+#ifdef RERECORDING
+	EVT_CHECKBOX(ID_RECORDING, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(ID_PLAYBACK, ConfigBox::ChangeSettings)
+	EVT_BUTTON(ID_SAVE_RECORDING, ConfigBox::GetButtons)
+#endif
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -448,6 +453,24 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 				m_AdvancedMapFilter[i]->SetValue(g_Config.bNoTriggerFilter);
 			}
 			break;
+#ifdef RERECORDING
+		case ID_RECORDING:
+			g_Config.bRecording = m_CheckRecording[notebookpage]->IsChecked();
+			if(g_Config.bRecording) g_Config.bPlayback = !g_Config.bRecording;
+			for(int i = 0; i < 4; i++) m_CheckRecording[i]->SetValue(g_Config.bRecording);
+			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bPlayback);
+			break;
+		case ID_PLAYBACK:
+			g_Config.bPlayback = m_CheckPlayback[notebookpage]->IsChecked();
+			if(g_Config.bPlayback) g_Config.bRecording = !g_Config.bPlayback;
+			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bPlayback);
+			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bRecording);
+			break;
+		case ID_SAVE_RECORDING:
+			// Double check again that we are still running a game
+			if (g_EmulatorRunning) Recording::Save();
+			break;
+#endif
 
 		case IDC_CONTROLTYPE:
 			if(!g_Config.bSaveByID)
@@ -532,8 +555,12 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 	m_CBCheckFocus[_notebookpage]->SetValue(g_Config.bCheckFocus);
 	m_AdvancedMapFilter[_notebookpage]->SetValue(g_Config.bNoTriggerFilter);
+#ifdef RERECORDING
+	m_CheckRecording[_notebookpage]->SetValue(g_Config.bRecording);
+	m_CheckPlayback[_notebookpage]->SetValue(g_Config.bPlayback);
+#endif
 
-	LogMsg("Update: %i\n", g_Config.bSaveByID);
+	//LogMsg("Update: %i\n", g_Config.bSaveByID);
 
 	// Disabled pages
 	bool Enabled = PadMapping[_notebookpage].enabled  == 1 ? true : false;
@@ -967,7 +994,10 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
 		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 		m_sMainRight[i]->Add(m_gStatusTriggers[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
-		m_sMainRight[i]->Add(m_gStatusAdvancedSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);		
+		m_sMainRight[i]->Add(m_gStatusAdvancedSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+#ifdef RERECORDING
+		m_sMainRight[i]->Add(m_SizeRecording[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+#endif
 
 		// --------------------------------------------------------------------
 		// Populate main sizer

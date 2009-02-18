@@ -111,6 +111,10 @@ void Config::Save(int Slot)
 	file.Set("General", "SaveByID", g_Config.bSaveByID);
 	file.Set("General", "CheckForFocus", g_Config.bCheckFocus);
 	file.Set("General", "NoTriggerFilter", g_Config.bNoTriggerFilter);
+#ifdef RERECORDING
+	file.Set("General", "Recording", g_Config.bRecording);
+	file.Set("General", "Playback", g_Config.bPlayback);
+#endif
 	// ========================
 
 	for (int i = 0; i < 4; i++)
@@ -199,6 +203,10 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
 	file.Get("General", "CheckForFocus", &g_Config.bCheckFocus, false);
 	file.Get("General", "NoTriggerFilter", &g_Config.bNoTriggerFilter, false);
+#ifdef RERECORDING
+	file.Get("General", "Recording", &g_Config.bRecording, false);
+	file.Get("General", "Playback", &g_Config.bPlayback, false);
+#endif
 
 	if(!ChangeSaveByID)
 	{

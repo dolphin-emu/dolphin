@@ -265,31 +265,9 @@ void Initialize(void *init)
 		if(ReloadDLL()) g_PADInitialize->padNumber = -1;
 	}
 #endif
-}
-
-bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
-{
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
-
-	// Warn the user if no gamepads are detected
-	if (_NumGoodPads == 0 && g_EmulatorRunning)
-	{
-		PanicAlert("nJoy: No Gamepad Detected");
-		return false;
-	}
-
-	// Load PadMapping[] etc
-	g_Config.Load();
-
-	// Update the PadState[].joy handle
-	for (int i = 0; i < 4; i++)
-	{
-		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
-			if(joyinfo.at(PadMapping[i].ID).Good)
-				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
-	}
-
-	return Success;
+	#ifdef RERECORDING
+		Recording::Initialize();
+	#endif
 }
 
 // Shutdown PAD (stop emulation)
@@ -300,6 +278,14 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 void Shutdown()
 {
 	Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+
+	// -------------------------------------------
+	// Play back input instead of accepting any user input
+	// ----------------------
+	#ifdef RERECORDING
+		Recording::ShutDown();
+	#endif
+	// ----------------------
 
 	// Always change this variable
 	g_EmulatorRunning = false;
@@ -378,7 +364,12 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 
 // Save state
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void DoState(unsigned char **ptr, int mode) {}
+void DoState(unsigned char **ptr, int mode)
+{
+#ifdef RERECORDING
+	Recording::DoState(ptr, mode);
+#endif
+}
 
  
 // Set PAD attached pads
@@ -411,6 +402,18 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	/* Check if the pad is enabled and avaliable, currently we don't disable pads just because they are
 	   disconnected */
 	if (!PadMapping[_numPAD].enabled || !PadState[_numPAD].joy) return;
+
+	// -------------------------------------------
+	// Play back input instead of accepting any user input
+	// ----------------------
+	#ifdef RERECORDING
+	if (g_Config.bPlayback)
+	{
+		*_pPADStatus = Recording::Play();
+		return;
+	}
+	#endif
+	// ----------------------
 
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
@@ -544,6 +547,15 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Use rumble
 	Pad_Use_Rumble(_numPAD, _pPADStatus);
 
+	// -------------------------------------------
+	// Rerecording
+	// ----------------------
+	#ifdef RERECORDING
+	// Record input
+	if (g_Config.bRecording) Recording::RecordInput(*_pPADStatus);
+	#endif
+	// ----------------------
+
 	// Debugging 
 	/*
 	// Show the status of all connected pads
@@ -574,6 +586,36 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 //******************************************************************************
 // Supporting functions
 //******************************************************************************
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Search for SDL devices
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
+{
+	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
+
+	// Warn the user if no gamepads are detected
+	if (_NumGoodPads == 0 && g_EmulatorRunning)
+	{
+		PanicAlert("nJoy: No Gamepad Detected");
+		return false;
+	}
+
+	// Load PadMapping[] etc
+	g_Config.Load();
+
+	// Update the PadState[].joy handle
+	for (int i = 0; i < 4; i++)
+	{
+		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+			if(joyinfo.at(PadMapping[i].ID).Good)
+				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
+	}
+
+	return Success;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::

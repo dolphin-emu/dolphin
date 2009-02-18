@@ -299,6 +299,46 @@ void ConfigBox::CreateAdvancedControls(int i)
 
 	m_bmpDotOut[i] = new wxStaticBitmap(m_pOutStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
 		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Rerecording
+	// ¯¯¯¯¯¯¯¯¯
+	#ifdef RERECORDING
+	// Create controls
+	m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));
+	m_CheckRecording[i] = new wxCheckBox(m_Controller[i], ID_RECORDING, wxT("Record input"));
+	m_CheckPlayback[i] = new wxCheckBox(m_Controller[i], ID_PLAYBACK, wxT("Play back input"));
+	m_BtnSaveRecording[i] = new wxButton(m_Controller[i], ID_SAVE_RECORDING, wxT("Save recording"), wxDefaultPosition, wxDefaultSize);
+
+	// Tool tips
+	m_CheckRecording[i]->SetToolTip(wxT("Your recording will be saved to pad-record.bin in the Dolphin dir when you stop the game"));
+	m_CheckPlayback[i]->SetToolTip(wxT("Play back the pad-record.bin file from the Dolphin dir"));
+	m_BtnSaveRecording[i]->SetToolTip(wxT(
+		"This will save the current recording to pad-record.bin. Your recording will\n"
+		"also be automatically saved every 60 * 10 frames. And when you shut down the\n"
+		"game."));
+
+	// Sizers
+	m_SizeRecording[i]->Add(m_CheckRecording[i], 0, wxEXPAND | wxALL, 1);
+	m_SizeRecording[i]->Add(m_CheckPlayback[i], 0, wxEXPAND | wxALL, 1);
+	m_SizeRecording[i]->Add(m_BtnSaveRecording[i], 0, wxEXPAND | wxALL, 1);
+
+	// Only enable these options for pad 0
+	m_CheckRecording[i]->Enable(false); m_CheckRecording[0]->Enable(true);
+	m_CheckPlayback[i]->Enable(false); m_CheckPlayback[0]->Enable(true);
+	m_BtnSaveRecording[i]->Enable(false); m_BtnSaveRecording[0]->Enable(true);
+	// Don't allow saving when we are not recording
+	m_BtnSaveRecording[i]->Enable(g_EmulatorRunning && g_Config.bRecording);
+	//sDevice[i]->Add(m_SizeRecording[i], 0, wxEXPAND | wxALL, 1);
+
+	// Set values
+	//m_CheckRecording[0]->SetValue(g_Config.bRecording);
+	//m_CheckPlayback[0]->SetValue(g_Config.bPlayback);
+
+	//Console::Print("m_CheckRecording: %i\n", g_Config.bRecording, g_Config.bPlayback);
+	#endif
+	//////////////////////////////////////
 }
 
 

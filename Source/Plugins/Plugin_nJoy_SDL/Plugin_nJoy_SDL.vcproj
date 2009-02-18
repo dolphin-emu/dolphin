@@ -519,6 +519,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\ReRecording.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Rumble.cpp"
 				>
 			</File>

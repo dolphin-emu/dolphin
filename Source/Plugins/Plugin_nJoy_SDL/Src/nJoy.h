@@ -54,6 +54,7 @@
 #include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
+#include "Setup.h"
 #include "pluginspecs_pad.h"
 #include "IniFile.h"
 #include "ConsoleWindow.h"
@@ -122,6 +123,7 @@ extern std::vector<u8> Keys;
 // Variables
 // ¯¯¯¯¯¯¯¯¯
 #ifndef _EXCLUDE_MAIN_
+	extern SPADInitialize *g_PADInitialize;
 	extern FILE *pFile;
 	extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 	extern InputCommon::CONTROLLER_STATE PadState[4];
@@ -131,6 +133,7 @@ extern std::vector<u8> Keys;
 	#endif
 	extern int NumPads, NumGoodPads, LastPad; // Number of goods pads
 #endif
+////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -146,6 +149,25 @@ void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
 
 //void SaveConfig();
 //void LoadConfig();
+////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// ReRecording
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#ifdef RERECORDING
+namespace Recording
+{
+	void Initialize();
+	void DoState(unsigned char **ptr, int mode);
+	void ShutDown();
+	void Save();
+	void Load();
+	const SPADStatus& Play();
+	void RecordInput(const SPADStatus& _rPADStatus);
+}
+#endif
+////////////////////////////////
 
 
 #endif __NJOY_h__

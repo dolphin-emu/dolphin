@@ -190,6 +190,11 @@ class ConfigBox : public wxDialog
 			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4];
 		
 		int notebookpage; bool ControlsCreated;
+#ifdef RERECORDING
+	wxStaticBoxSizer *m_SizeRecording[4];
+	wxCheckBox *m_CheckRecording[4], *m_CheckPlayback[4];
+	wxButton *m_BtnSaveRecording[4];
+#endif
 
 	private:
 		enum
@@ -221,6 +226,9 @@ class ConfigBox : public wxDialog
 
 			// Advaced settings
 			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
+#ifdef RERECORDING
+			ID_RECORDING, ID_PLAYBACK, ID_SAVE_RECORDING,
+#endif
 
 			// Timers
 			IDTM_CONSTANT, IDTM_BUTTON,

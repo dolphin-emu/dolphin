@@ -112,8 +112,11 @@ void Pause()
 // Start the timer when a game is booted
 void RerecordingStart()
 {
-	g_FrameCounter == 0;
+	g_FrameCounter = 0;
 	ReRecTimer.Start();
+
+	// Logging
+	Console::Print("RerecordingStart: %i\n", g_FrameCounter);
 }
 
 // Reset the frame counter

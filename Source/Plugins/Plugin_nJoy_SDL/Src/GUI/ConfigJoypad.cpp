@@ -80,7 +80,10 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
 	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
-
+#ifdef RERECORDING
+	m_CheckRecording[controller]->SetValue(g_Config.bRecording);
+	m_CheckPlayback[controller]->SetValue(g_Config.bPlayback);
+#endif
 	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
 	// Update D-Pad

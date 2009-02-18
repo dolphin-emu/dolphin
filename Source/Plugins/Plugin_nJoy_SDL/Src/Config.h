@@ -30,6 +30,10 @@ struct Config
 	bool bSaveByID;
 	bool bCheckFocus;
 	bool bNoTriggerFilter;
+#ifdef RERECORDING
+	bool bRecording;
+	bool bPlayback;
+#endif
 };
 
 extern Config g_Config;

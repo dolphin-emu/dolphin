@@ -709,7 +709,7 @@ void Shutdown()
 	//Console::Print("ShutDown()\n");
 
 	// -------------------------------------------
-	// Play back input instead of accepting any user input
+	// Save the recording and reset the counter
 	// ----------------------
 	#ifdef RERECORDING
 	// Save recording
