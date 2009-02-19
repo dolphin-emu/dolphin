@@ -333,8 +333,7 @@ void ConfigDialog::CreateGUIControls()
 	m_SizerScreenSize->Add(m_SizerScreenSizeHeight, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 	// Tool tips
-	m_ScreenSize->SetToolTip(wxT(
-		"Use the adjusted screen size."));
+	m_ScreenSize->SetToolTip(wxT("Use the adjusted screen size."));
 	// -------------------------------
 
 	// -----------------------------------------------

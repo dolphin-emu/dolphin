@@ -86,8 +86,8 @@ void Config::Load()
     iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 	iniFile.Get("Hacks", "ScreenSize", &bScreenSize, false);
-	iniFile.Get("Hacks", "ScreenWidth", &iScreenWidth, 1000);
-	iniFile.Get("Hacks", "ScreenHeight", &iScreenHeight, 1000);
+	iniFile.Get("Hacks", "ScreenWidth", &iScreenWidth, 100);
+	iniFile.Get("Hacks", "ScreenHeight", &iScreenHeight, 100);
 	iniFile.Get("Hacks", "ScreenLeft", &iScreenLeft, 0);
 	iniFile.Get("Hacks", "ScreenTop", &iScreenTop, 0);
 }
