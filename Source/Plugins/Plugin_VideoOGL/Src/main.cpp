@@ -142,7 +142,7 @@ void DllConfig(HWND _hParent)
 		char szBuffer[100];
 		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
 		std::string strBuffer(szBuffer);
-		// Create a check loop to check every pointer of resos to see if the res is added or not
+		// Create a check loop to check every pointer of resolutions to see if the res is added or not
 		int b = 0;
 		bool resFound = false;
 		while (b < i && !resFound)
@@ -151,8 +151,8 @@ void DllConfig(HWND _hParent)
 			resFound = (resos[b] == strBuffer);
 			b++;
 		}
+		// Add the resolution
 		if (!resFound)
-		// Add the res
 		{
 			resos[i] = strBuffer;
 			i++;
@@ -160,6 +160,14 @@ void DllConfig(HWND _hParent)
 			frame->AddWindowReso(szBuffer);
 		}
         ZeroMemory(&dmi, sizeof(dmi));
+	}
+
+	// Check if at least one resolution was found. If we don't and the resolution array is empty
+	// CreateGUIControls() will crash because the array is empty.
+	if (frame->arrayStringFor_FullscreenCB.size() == 0)
+	{
+		frame->AddFSReso("<No resolutions found>");
+		frame->AddWindowReso("<No resolutions found>");
 	}
 	// ----------------------------
 

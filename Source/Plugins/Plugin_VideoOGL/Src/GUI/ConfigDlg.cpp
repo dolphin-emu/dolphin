@@ -159,11 +159,6 @@ void ConfigDialog::CreateGUIControls()
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_StretchToFit->SetToolTip
-		(wxT("This will use the game's native resolution and stretch it to fill the"
-		"\nwindow instead of changing the internal display resolution. It"
-		"\nmay result in a slightly blurrier image, but it may also give a higher"
-		"\nFPS if you have a slow graphics card."));
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
 	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR->SetValue(g_Config.bKeepAR);
@@ -184,6 +179,23 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticText *BEText = new wxStaticText(m_PageGeneral, ID_BETEXT, wxT("Rendering backend:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_RenderBackend = new wxComboBox(m_PageGeneral, ID_RENDERBACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_RenderBackend, 0, wxDefaultValidator);
 	m_RenderBackend->SetValue(wxString::FromAscii(g_Config.iBackend));
+
+	// Tool tips
+	m_Fullscreen->SetToolTip(wxT(
+		"This option use a separate rendering window and can only be used when"
+		" 'Render to main window' is unchecked. The only way to exit this mode\n"
+		" is with Alt + F4 (that also close Dolphin)."
+		));
+	m_StretchToFit->SetToolTip(wxT(
+		"This will use the game's native resolution and stretch it to fill the"
+		"\nwindow instead of changing the internal display resolution. It"
+		"\nmay result in a slightly blurrier image, but it may also give a higher"
+		"\nFPS if you have a slow graphics card."));
+	m_FullscreenCB->SetToolTip(wxT(
+		"Select resolution for the (separate window) fullscreen mode."));
+	// This almost sounds like an unnecessary option
+	m_WindowResolutionCB->SetToolTip(wxT(
+		"Select initial resolution for the separate rendering window."));
 
 	
 	// Enhancements
@@ -603,6 +615,11 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 
 void ConfigDialog::UpdateGUI()
 {
+	// These options are for the separate rendering window
+	m_Fullscreen->Enable(!g_Config.renderToMainframe);
+	m_FullscreenCB->Enable(!g_Config.renderToMainframe);
+	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
+
 	// Update screen size labels
 	m_TextScreenWidth->SetLabel(wxString::Format("Width: %i", g_Config.iScreenWidth));
 	m_TextScreenHeight->SetLabel(wxString::Format("Height: %i", g_Config.iScreenHeight));

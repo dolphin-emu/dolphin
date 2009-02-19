@@ -49,6 +49,9 @@ class ConfigDialog : public wxDialog
 		void AddAAMode(int mode);
 		void CreateGUIControls();
 
+		// Combo box lists, this one needs to be public
+		wxArrayString arrayStringFor_FullscreenCB;
+
 	private:
 		DECLARE_EVENT_TABLE();
 
@@ -79,7 +82,6 @@ class ConfigDialog : public wxDialog
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
-		wxArrayString arrayStringFor_FullscreenCB;
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
