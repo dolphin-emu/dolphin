@@ -21,10 +21,7 @@
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
 #include "LookUpTables.h"
-#include <emmintrin.h>
-#ifdef __SSSE3__
-#include <tmmintrin.h>
-#endif
+
 //Uncomment this to enable Texture Format ID overlays
 #define OVERLAY_TEXFMT
 
@@ -506,9 +503,6 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	if((!TexFmt_Overlay_Enable)||(retval==PC_TEX_FMT_NONE))
 		return retval;
 
-	// assume ABGR/ARGB (32bit)
-	int  *dtp = (int*)dst;
-
 	int w = min(width,40);
 	int h = min(height,10);
 
@@ -539,7 +533,35 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 		{
 			for(int x=0;x<xcnt;x++)
 			{
-				dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFFFFFFFF:0xFF000000;
+				switch(retval) {
+				case PC_TEX_FMT_I8:
+					{
+						// TODO: Is this an acceptable way to draw in I8?
+						u8  *dtp = (u8*)dst;
+						dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFF:0x88;
+						break;
+					}
+				case PC_TEX_FMT_IA8:
+				case PC_TEX_FMT_IA4:
+					{
+						u16  *dtp = (u16*)dst;
+						dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFFFF:0xFF00;
+						break;
+					}
+				case PC_TEX_FMT_RGB565:
+					{
+						u16  *dtp = (u16*)dst;
+						dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFFFF:0x0000;
+						break;
+					}
+				default:				
+				case PC_TEX_FMT_BGRA32:
+					{
+						int  *dtp = (int*)dst;
+						dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFFFFFFFF:0xFF000000;
+						break;
+					}
+				}
 			}
 			ptr+=9;
 		}
