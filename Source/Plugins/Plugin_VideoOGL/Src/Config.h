@@ -71,6 +71,10 @@ struct Config
     bool bProjectionHax1;
     bool bProjectionHax2;
 	bool bCopyEFBToRAM;
+
+	// Screen size
+    int iScreenWidth, iScreenHeight, iScreenLeft, iScreenTop;
+	bool bScreenSize;
     
     int iLog; // CONF_ bits
     int iSaveTargetId;

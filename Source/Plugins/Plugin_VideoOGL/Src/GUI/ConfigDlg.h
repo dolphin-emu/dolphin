@@ -109,6 +109,10 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
 		wxCheckBox *m_SafeTextureCache;
+		// Screen size
+		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
+		wxSlider *m_SliderWidth, *m_SliderHeight, *m_SliderLeft, *m_SliderTop;
+		wxCheckBox *m_ScreenSize;
 
 		enum
 		{
@@ -159,15 +163,21 @@ class ConfigDialog : public wxDialog
 			ID_PROJECTIONHACK1,
 			ID_PROJECTIONHACK2,
 			ID_RADIO_COPYEFBTORAM,
-			ID_RADIO_COPYEFBTOGL
+			ID_RADIO_COPYEFBTOGL,
+
+			// Screen size
+			IDS_WIDTH, IDS_LEFT,
+			IDS_HEIGHT, IDS_TOP,
+			IDC_SCREEN_SIZE
 		};
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
+		void UpdateGUI();
 
 		void AboutClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
-		void AdvancedSettingsChanged(wxCommandEvent& event);
+		void AdvancedSettingsChanged(wxCommandEvent& event); void AdvancedSettingsChanged(wxScrollEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 };
 

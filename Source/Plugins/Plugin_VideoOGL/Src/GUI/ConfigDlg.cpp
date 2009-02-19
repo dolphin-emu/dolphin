@@ -54,6 +54,14 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
+
+	// Screen size
+	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::AdvancedSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::AdvancedSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::AdvancedSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(IDC_SCREEN_SIZE, ConfigDialog::AdvancedSettingsChanged)
+
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
@@ -252,26 +260,92 @@ void ConfigDialog::CreateGUIControls()
 	m_TexturePath->SetPath(wxString::FromAscii(g_Config.texDumpPath));
 	m_TexturePath->Enable(m_DumpTextures->IsChecked());
 
-	// Hacks
-	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-
+	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax2 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Disabled or enabled
+	m_SafeTextureCache->Enable(true);
+	m_ProjectionHax1->Enable(true);
+	m_ProjectionHax2->Enable(true);
+
+	// Default values
+	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
+
+	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
 		" [This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
-	m_SafeTextureCache->Enable(true);
-	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
-
-	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
 		" in\ngames like Mario Galaxy or Ikaruga."));
-	m_ProjectionHax1->Enable(true);
-	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
 
-	m_ProjectionHax2 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjectionHax2->Enable(true);
-	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
+	// Sizers
+	sHacks = new wxGridBagSizer(0, 0);
+	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax2, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 
+	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
+	sbHacks->Add(sHacks);
+
+
+	// -----------------------------------------------
+	// Screen size
+	// ---------------------
+	// Controls
+	m_TextScreenWidth = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Width: 000"));
+	m_TextScreenHeight = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Height: 000"));
+	m_TextScreenLeft = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Left: -000"));
+	m_TextScreenTop = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Top: -000"));
+
+	m_SliderWidth = new wxSlider(m_PageAdvanced, IDS_WIDTH, 100, 50, 150, wxDefaultPosition, wxSize(75, -1));
+	m_SliderHeight = new wxSlider(m_PageAdvanced, IDS_HEIGHT, 100, 50, 150, wxDefaultPosition, wxSize(75, -1));
+	m_SliderLeft = new wxSlider(m_PageAdvanced, IDS_LEFT, 0, -100, 100, wxDefaultPosition, wxSize(75, -1));
+	m_SliderTop = new wxSlider(m_PageAdvanced, IDS_TOP, 0, -100, 100, wxDefaultPosition, wxSize(75, -1));
+	m_ScreenSize = new wxCheckBox(m_PageAdvanced, IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Default values
+	m_SliderWidth->SetValue(g_Config.iScreenWidth);
+	m_SliderHeight->SetValue(g_Config.iScreenHeight);
+	m_SliderLeft->SetValue(g_Config.iScreenLeft);
+	m_SliderTop->SetValue(g_Config.iScreenTop);
+	m_ScreenSize->SetValue(g_Config.bScreenSize);
+
+	// Sizers
+	wxBoxSizer *m_SizerScreenSizeWidth = new wxBoxSizer(wxHORIZONTAL);
+	m_SizerScreenSizeWidth->Add(m_TextScreenWidth, 0, wxEXPAND | (wxTOP), 3);
+	m_SizerScreenSizeWidth->Add(m_SliderWidth, 0, wxEXPAND | (wxLEFT), 0);
+	m_SizerScreenSizeWidth->Add(m_TextScreenLeft, 0, wxEXPAND | (wxLEFT), 5);
+	m_SizerScreenSizeWidth->Add(m_SliderLeft, 0, wxEXPAND | (wxLEFT), 0);
+
+	wxBoxSizer *m_SizerScreenSizeHeight = new wxBoxSizer(wxHORIZONTAL);
+	m_SizerScreenSizeHeight->Add(m_TextScreenHeight, 0, wxEXPAND | (wxTOP), 3);
+	m_SizerScreenSizeHeight->Add(m_SliderHeight, 0, wxEXPAND | (wxLEFT), 0);
+	m_SizerScreenSizeHeight->Add(m_TextScreenTop, 0, wxEXPAND | (wxLEFT), 5);
+	m_SizerScreenSizeHeight->Add(m_SliderTop, 0, wxEXPAND | (wxLEFT), 0);
+
+	wxStaticBoxSizer * m_SizerScreenSize = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Screen size and position"));
+	m_SizerScreenSize->Add(m_ScreenSize, 0, wxEXPAND | (wxALL), 5);
+	m_SizerScreenSize->Add(m_SizerScreenSizeWidth, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+	m_SizerScreenSize->Add(m_SizerScreenSizeHeight, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+
+	// Tool tips
+	m_ScreenSize->SetToolTip(wxT(
+		"Use the adjusted screen size."));
+	// -------------------------------
+
+	// -----------------------------------------------
+	// Row 4: Hacks and Screen size
+	// ---------------------
+	wxBoxSizer *m_SizerHacksScreenSize = new wxBoxSizer(wxHORIZONTAL);
+	m_SizerHacksScreenSize->Add(sbHacks, 0, wxEXPAND | (wxTOP), 0);
+	m_SizerHacksScreenSize->Add(m_SizerScreenSize, 0, wxEXPAND | (wxLEFT), 7);
+	// -------------------------------
+
+	// Sizers
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
 	sInfo = new wxGridBagSizer(0, 0);
 	sInfo->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -282,8 +356,7 @@ void ConfigDialog::CreateGUIControls()
 	sInfo->Add(m_TexFmtOverlay, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
 	sInfo->Add(m_TexFmtCenter, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbInfo->Add(sInfo);
-	sAdvanced->Add(sbInfo, 0, wxEXPAND|wxALL, 5);
-
+	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
 	sRendering = new wxGridBagSizer(0, 0);
 	sRendering->Add(m_UseXFB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
@@ -300,25 +373,24 @@ void ConfigDialog::CreateGUIControls()
 				sSBox->Add(m_Radio_CopyEFBToGL, 0, wxALL|wxEXPAND, 5);
 	sRenderBoxRow1->Add(sSBox, 0, wxALL|wxEXPAND, 5);
 	sbRendering->Add(sRenderBoxRow1);
-	sAdvanced->Add(sbRendering, 0, wxEXPAND|wxALL, 5);
-
+	
 	sUtilities = new wxBoxSizer(wxHORIZONTAL);
 	sUtilities->Add(m_DumpTextures, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_TexturePath, 1, wxALL|wxEXPAND, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
-	sAdvanced->Add(sbUtilities, 1, wxEXPAND|wxALL, 5);
 
-	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_ProjectionHax2, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-	sbHacks->Add(sHacks);
-	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
+	// Sizers
+	sAdvanced->Add(sbInfo, 0, wxEXPAND | wxALL, 5);
+	sAdvanced->Add(sbRendering, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+	sAdvanced->Add(sbUtilities, 1, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+	sAdvanced->Add(m_SizerHacksScreenSize, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+
 	m_PageAdvanced->SetSizer(sAdvanced);
 	sAdvanced->Layout();
 
 	Fit();
 	Center();
+	UpdateGUI();
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -405,6 +477,31 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.iMultisampleMode = atoi(m_AliasModeCB->GetValue().mb_str());
 		break;
 	}
+
+	UpdateGUI();
+}
+
+// Apparently we need a scroll event version of this for the sliders
+void ConfigDialog::AdvancedSettingsChanged(wxScrollEvent& event)
+{
+	switch (event.GetId())
+	{
+	// Screen size
+	case IDS_WIDTH:
+		g_Config.iScreenWidth = m_SliderWidth->GetValue();
+		break;
+	case IDS_HEIGHT:
+		g_Config.iScreenHeight = m_SliderHeight->GetValue();
+		break;
+	case IDS_LEFT:
+		g_Config.iScreenLeft = m_SliderLeft->GetValue();
+		break;
+	case IDS_TOP:
+		g_Config.iScreenTop = m_SliderTop->GetValue();
+		break;
+	}
+
+	UpdateGUI();
 }
 
 void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
@@ -453,6 +550,7 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_EFBCOPYDISABLEHOTKEY:
 		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
 		break;
+	// Hacks
 	case ID_PROJECTIONHACK1:
 		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
 		break;
@@ -462,6 +560,11 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
+	// Screen size
+	case IDC_SCREEN_SIZE:
+		g_Config.bScreenSize = m_ScreenSize->GetValue();
+		break;
+	// Extented frame buffer
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = true;
@@ -479,6 +582,8 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	default:
 		break;
 	}
+
+	UpdateGUI();
 }
 
 void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
@@ -486,4 +591,13 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 	// Note: if a user inputs an incorrect path(by typing, not by choosing from
 	// the combobox) this event wil not be fired.
 	strcpy(g_Config.texDumpPath, event.GetPath().mb_str());
+}
+
+void ConfigDialog::UpdateGUI()
+{
+	// Update screen size labels
+	m_TextScreenWidth->SetLabel(wxString::Format("Width: %i", g_Config.iScreenWidth));
+	m_TextScreenHeight->SetLabel(wxString::Format("Height: %i", g_Config.iScreenHeight));
+	m_TextScreenLeft->SetLabel(wxString::Format("Left: %i", g_Config.iScreenLeft));
+	m_TextScreenTop->SetLabel(wxString::Format("Top: %i", g_Config.iScreenTop));
 }

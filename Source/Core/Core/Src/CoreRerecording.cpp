@@ -116,7 +116,7 @@ void RerecordingStart()
 	ReRecTimer.Start();
 
 	// Logging
-	Console::Print("RerecordingStart: %i\n", g_FrameCounter);
+	//Console::Print("RerecordingStart: %i\n", g_FrameCounter);
 }
 
 // Reset the frame counter

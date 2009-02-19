@@ -1153,7 +1153,9 @@ void UpdateViewport()
 		2 * rawViewport[0], 2 * rawViewport[1],
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 
+	// -----------------------------------------------------------------------
 	// Keep aspect ratio at 4:3
+	// ------------------
 	// rawViewport[0] = 320, rawViewport[1] = -240
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
@@ -1164,13 +1166,15 @@ void UpdateViewport()
 	int xoffs = 0, yoffs = 0;
 	int wid, hei, actualWid, actualHei;
 
+	// The rendering window width and height
 	int winw = OpenGL_GetWidth();
 	int winh = OpenGL_GetHeight();
+	// The rendering window aspect ratio
 	float ratio = (float)winw / (float)winh / fourThree;
 	if (g_Config.bKeepAR)
 	{
-		// Check if height or width is the limiting factor
-		if (ratio > 1) // then we are to wide and have to limit the width
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (ratio > 1)
 		{
 			wAdj = ratio;
 			hAdj = 1;
@@ -1183,7 +1187,8 @@ void UpdateViewport()
 			overfl = (winw - actualWid) / actualRatiow;
 			xoffs = overfl / 2;
 		}
-		else // the window is to high, we have to limit the height
+		// The window is to high, we have to limit the height
+		else
 		{
 			ratio = 1 / ratio;
 
@@ -1204,24 +1209,62 @@ void UpdateViewport()
 		wid = ceil(fabs(2 * xfregs.rawViewport[0]));
 		hei = ceil(fabs(2 * xfregs.rawViewport[1]));
 	}
+	// -------------------------------------
 
+
+	// -----------------------------------------------------------------------
+	// GLViewPort variables
+	// ------------------
+	int GLWidth, GLHeight, GLx, GLy;
+	// -------------------------------------
+
+
+	// -----------------------------------------------------------------------
+	// Stretch picture while keeping the native resolution
+	// ------------------
 	if (g_Config.bStretchToFit)
 	{
-		glViewport(
-			(int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) + xoffs,
-			Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) + yoffs,
-			wid, // width
-			hei // height
-			);
+		GLx = (int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) + xoffs;
+		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) + yoffs;
+		GLWidth = wid; // width
+		GLHeight = hei; // height
 	}
 	else
 	{
 	    float MValueX = OpenGL_GetXmax();
 	    float MValueY = OpenGL_GetYmax();
-	    glViewport((int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX,
-		       Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
-			abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+
+		GLx = (int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX;
+		GLy = Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) * MValueY;
+		GLWidth = abs((int)(2 * xfregs.rawViewport[0])) * MValueX;
+		GLHeight = abs((int)(2 * xfregs.rawViewport[1])) * MValueY;
 	}
+	// -------------------------------------
+
+	// -----------------------------------------------------------------------
+	// Adjust the screen size. If someone figures out how to correctly adjust the screen size as the GC or Wii does, this may not be needed.
+	// ------------------
+	if (g_Config.bScreenSize)
+	{
+		// Calculate width and height as a fraction of the current
+		float Width = (float)GLWidth * ((float)g_Config.iScreenWidth / 100.0);
+		float Height = (float)GLHeight * ((float)g_Config.iScreenHeight / 100.0);
+
+		// Adjust X and Y
+		GLx = GLx + g_Config.iScreenLeft;
+		GLy = GLy - g_Config.iScreenTop;
+
+		GLWidth = (int)Width;
+		GLHeight = (int)Height;
+
+		//Console::Print("W:%i H:%i  W:%f H:%f  Wid:%i Hei:%i  x:%i y:%i\n", g_Config.iScreenWidth, g_Config.iScreenHeight, Width, Height, GLWidth, GLHeight, GLx, GLy);
+	}
+	// -------------------------------------
+
+	glViewport(
+		GLx, GLy,
+		GLWidth, GLHeight
+		);
 
 	glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);
 }

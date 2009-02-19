@@ -85,6 +85,11 @@ void Config::Load()
     iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
     iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
+	iniFile.Get("Hacks", "ScreenSize", &bScreenSize, false);
+	iniFile.Get("Hacks", "ScreenWidth", &iScreenWidth, 1000);
+	iniFile.Get("Hacks", "ScreenHeight", &iScreenHeight, 1000);
+	iniFile.Get("Hacks", "ScreenLeft", &iScreenLeft, 0);
+	iniFile.Get("Hacks", "ScreenTop", &iScreenTop, 0);
 }
 
 void Config::Save()
@@ -126,6 +131,11 @@ void Config::Save()
     iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
     iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
-    
+	iniFile.Set("Hacks", "ScreenSize", bScreenSize);
+	iniFile.Set("Hacks", "ScreenWidth", iScreenWidth);
+	iniFile.Set("Hacks", "ScreenHeight", iScreenHeight);
+    iniFile.Set("Hacks", "ScreenLeft", iScreenLeft);
+	iniFile.Set("Hacks", "ScreenTop", iScreenTop);
+
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }
