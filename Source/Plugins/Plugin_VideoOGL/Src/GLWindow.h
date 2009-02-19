@@ -72,10 +72,12 @@ public:
 	virtual void Update() {};
 	virtual bool MakeCurrent() {return false;};
 
-	virtual void updateDim() {
+	virtual void updateDim()
+	{
 		if (GetProperty(OGL_FULLSCREEN))
 			SetWinSize(currFullRes.x, currFullRes.y);
 		else
+			// Set the windowed resolution
 			SetWinSize(currWinRes.x, currWinRes.y);
 
 		float FactorX = 640.0f / (float)GetXwin();
@@ -118,8 +120,8 @@ public:
 
 	static bool valid() { return false;}
 
-	GLWindow() {
-
+	GLWindow()
+	{
 		// Load defaults
 		sscanf(g_Config.iFSResolution, "%dx%d",
 			&currFullRes.x, &currFullRes.y);  

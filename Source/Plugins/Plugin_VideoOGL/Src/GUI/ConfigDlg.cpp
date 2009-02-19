@@ -73,12 +73,56 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 : wxDialog(parent, id, title, position, size, style)
 {
 	g_Config.Load();
-	CreateGUIControls();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Close and unload the window
+// ---------------
 ConfigDialog::~ConfigDialog()
 {
 }
+void ConfigDialog::OnClose(wxCloseEvent& event)
+{
+	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
+	g_Config.Save();
+	//EndModal(0);
+
+	// Allow wxWidgets to close and unload the window
+	event.Skip();
+}
+
+void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
+{
+	Close();
+}
+///////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Add avaliable redolutions and other settings
+// ---------------
+void ConfigDialog::AddFSReso(char *reso)
+{
+	arrayStringFor_FullscreenCB.Add(wxString::FromAscii(reso));
+}
+
+void ConfigDialog::AddWindowReso(char *reso)
+{
+	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
+}
+
+void ConfigDialog::AddRenderBackend(const char *backend)
+{
+	m_RenderBackend->Append(wxString::FromAscii(backend));
+}
+
+void ConfigDialog::AddAAMode(int mode)
+{
+	wxString tmp;
+	tmp<<mode;
+	m_AliasModeCB->Append(tmp);
+}
+///////////////////////////////////////
+
 
 void ConfigDialog::CreateGUIControls()
 {
@@ -130,11 +174,11 @@ void ConfigDialog::CreateGUIControls()
 	#endif
 
 	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
+	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
 	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
 
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
+	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
 	wxStaticText *BEText = new wxStaticText(m_PageGeneral, ID_BETEXT, wxT("Rendering backend:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -392,41 +436,6 @@ void ConfigDialog::CreateGUIControls()
 	UpdateGUI();
 }
 
-void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	/* notice that we don't run wxEntryCleanup(); here so the dll will 
-	still be loaded */
-	g_Config.Save();
-	EndModal(0);
-}
-
-void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
-{
-	Close();
-}
-
-void ConfigDialog::AddFSReso(char *reso)
-{
-	m_FullscreenCB->Append(wxString::FromAscii(reso));
-}
-
-void ConfigDialog::AddWindowReso(char *reso)
-{
-	m_WindowResolutionCB->Append(wxString::FromAscii(reso));
-}
-
-void ConfigDialog::AddRenderBackend(const char *backend)
-{
-	m_RenderBackend->Append(wxString::FromAscii(backend));
-}
-
-
-void ConfigDialog::AddAAMode(int mode)
-{
-	wxString tmp;
-	tmp<<mode;
-	m_AliasModeCB->Append(tmp);
-}
 
 void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {

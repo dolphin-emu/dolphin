@@ -47,6 +47,7 @@ class ConfigDialog : public wxDialog
 		void AddWindowReso(char *reso);
 		void AddRenderBackend(const char *backend);
 		void AddAAMode(int mode);
+		void CreateGUIControls();
 
 	private:
 		DECLARE_EVENT_TABLE();
@@ -172,7 +173,6 @@ class ConfigDialog : public wxDialog
 		};
 
 		void OnClose(wxCloseEvent& event);
-		void CreateGUIControls();
 		void UpdateGUI();
 
 		void AboutClick(wxCommandEvent& event);

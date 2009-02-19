@@ -666,7 +666,7 @@ void BPWritten(int addr, int changes, int newval)
             case 0xA0:
             case 0xB0:
 
-			// Just update the bpmem struct, don't do anything else.
+			// Just update the bpmem struct, don't do anything else
             default:
                 if (changes)
                 {

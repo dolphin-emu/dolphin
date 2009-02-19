@@ -134,6 +134,9 @@ void DllConfig(HWND _hParent)
 	std::string resos[100];
 	int i = 0;
 
+	// ---------------------------------------------------------------
+	// Search for avaliable resolutions
+	// ---------------------
 	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{
 		char szBuffer[100];
@@ -158,7 +161,12 @@ void DllConfig(HWND _hParent)
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
-	frame->ShowModal();
+	// ----------------------------
+
+	// Create the controls and show the window
+	frame->CreateGUIControls();
+	frame->Show();
+
 #elif defined(USE_WX) && USE_WX
 
 	ConfigDialog frame(NULL);
