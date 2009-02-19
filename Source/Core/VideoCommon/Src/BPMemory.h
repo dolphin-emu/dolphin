@@ -777,8 +777,8 @@ union UPE_Copy
 struct BPMemory
 {
     GenMode genMode;
-    u32 display_copy_filter[4]; //01-04
-    u32 unknown; //05
+    u32 display_copy_filter[4]; // 01-04
+    u32 unknown; // 05
     // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::mid)
     // abc form a 2x3 offset matrix, there's 3 such matrices
     // the 3 offset matrices can either be indirect type, S-type, or T-type
@@ -804,9 +804,9 @@ struct BPMemory
     u32 drawdone;  //45, bit1=1 if end of list
     u32 unknown5;  //46 clock?
     u32 petoken; //47
-    u32 petokenint; //48
-    X10Y10 copyTexSrcXY; //49
-    X10Y10 copyTexSrcWH; //4a
+    u32 petokenint; // 48
+    X10Y10 copyTexSrcXY; // 49
+    X10Y10 copyTexSrcWH; // 4a
     u32 copyTexDest; //4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
     u32 unknown6; //4c
     u32 copyMipMapStrideChannels; // 4d usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA

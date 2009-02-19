@@ -47,6 +47,11 @@
 #include "XFB.h"
 #include "Timer.h"
 
+#include "main.h" // Local
+#ifdef _WIN32
+#include "OS/Win32.h"
+#endif
+
 #if defined(HAVE_WX) && HAVE_WX
 	#include "Debugger/Debugger.h" // for the CDebugger class
 #endif
@@ -391,7 +396,8 @@ bool Renderer::InitializeGL()
     
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
-    glScissor(0, 0, (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
+	// Do we really need to set this initial glScissor() value? Wont it be called all the time while the game is running?
+    //glScissor(0, 0, (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
     glBlendColorEXT(0, 0, 0, 0.5f);
     glClearDepth(1.0f);
 
@@ -504,6 +510,10 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 		   nNewHeight > 16 ? nNewHeight : 16);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Return the rendering window width and height
+// ------------------------
 int Renderer::GetTargetWidth()
 {
     return (g_Config.bStretchToFit ? 640 : (int)OpenGL_GetWidth());
@@ -513,6 +523,9 @@ int Renderer::GetTargetHeight()
 {
     return (g_Config.bStretchToFit ? 480 : (int)OpenGL_GetHeight());
 }
+/////////////////////////////
+
+
 void Renderer::SetRenderTarget(GLuint targ)
 {
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB,
@@ -639,6 +652,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
 // ---------------
@@ -649,6 +663,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
+// ---------------
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -677,13 +692,30 @@ bool Renderer::SetScissorRect()
 		xoff, yoff
 		);*/
 
+	// Check that the coordinates are good
     if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
+		/* I don't know how this works with other options so I'm limiting it to this to test it, if you want to add support for other modes
+		   or make this solution more general please do */
+		if(g_Config.bStretchToFit && !g_Config.bKeepAR)
+		{
+			int WidthDifference = 640 - (int)(rc_right - rc_left);
+			int HeightDifference = 480 - (int)(rc_bottom - rc_top);
+
+			GLScissorX = (int)rc_left; GLScissorY = -(Renderer::GetTargetHeight() - (int)(rc_bottom));
+			GLScissorW = Renderer::GetTargetWidth() + WidthDifference; GLScissorH = Renderer::GetTargetHeight() + HeightDifference;
+		}
+		else
+		{
+			GLScissorX = (int)rc_left; GLScissorY = Renderer::GetTargetHeight() - (int)(rc_bottom);
+			GLScissorW = (int)(rc_right - rc_left); GLScissorH = (int)(rc_bottom - rc_top);
+		}
+
         glScissor(
-			(int)rc_left, // x = 0
-			Renderer::GetTargetHeight() - (int)(rc_bottom), // y = 0
-			(int)(rc_right-rc_left), // y = 0
-			(int)(rc_bottom-rc_top) // y = 0
+			GLScissorX, // x = 0
+			GLScissorY, // y = 0
+			GLScissorW, // width = 640 for example
+			GLScissorH // height = 480 for example
 			); 
         return true;
     }
@@ -1004,7 +1036,7 @@ void Renderer::SwapBuffers()
     }
 #endif
 
-    // copy the rendered from to the real window
+    // Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
 
 	glClearColor(0,0,0,0);
@@ -1012,7 +1044,7 @@ void Renderer::SwapBuffers()
 
     GL_REPORT_ERRORD();
 
-    //clean out old stuff from caches
+    // Clean out old stuff from caches
     PixelShaderCache::Cleanup();
     TextureMngr::Cleanup();
 
@@ -1136,8 +1168,9 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
     }
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////
 // Called from VertexShaderManager
+// ----------------------
 void UpdateViewport()
 {
     // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
@@ -1261,10 +1294,51 @@ void UpdateViewport()
 	}
 	// -------------------------------------
 
+
+	// I'm limiting it to this modes to test it
+	if(g_Config.bStretchToFit && !g_Config.bKeepAR)
+	{
+		GLWidth = GLWidth + (GLScissorW - 640);
+		GLHeight = GLHeight + (GLScissorH - 480);
+		GLy = 0;
+		GLx = 0;
+	}
+
 	glViewport(
 		GLx, GLy,
 		GLWidth, GLHeight
 		);
 
-	glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);
+	// -----------------------------------------------------------------------
+	// GLDepthRange
+	// ------------------
+	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
+	double GLFar = xfregs.rawViewport[5] / 16777215.0f;
+	glDepthRange(GLNear, GLFar);
+	// -------------------------------------
+	
+
+	// Logging
+	/*
+	RECT RcTop, RcParent, RcChild;
+	HWND Child = EmuWindow::GetWnd();
+	HWND Parent = GetParent(Child);
+	HWND Top = GetParent(Parent);
+	GetWindowRect(Top, &RcTop);
+	GetWindowRect(Parent, &RcParent);
+	GetWindowRect(Child, &RcChild);
+
+	
+	Console::ClearScreen();	
+	Console::Print("----------------------------------------------------------------\n");
+	Console::Print("Top window:     X:%03i Y:%03i Width:%03i Height:%03i\n", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
+	Console::Print("Parent window:  X:%03i Y:%03i Width:%03i Height:%03i\n", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
+	Console::Print("Child window:   X:%03i Y:%03i Width:%03i Height:%03i\n", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
+	Console::Print("----------------------------------------------------------------\n");
+	Console::Print("Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f\n", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
+	Console::Print("GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i\n", GLx, GLy, GLWidth, GLHeight);
+	Console::Print("GLDepthRange:   Near:%f Far:%f\n", GLNear, GLFar);
+	Console::Print("GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
+	Console::Print("----------------------------------------------------------------\n");
+	*/
 }

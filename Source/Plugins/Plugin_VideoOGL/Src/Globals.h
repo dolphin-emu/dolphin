@@ -18,12 +18,13 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-
 #include "Common.h"
 #include "Config.h"
 
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"
+
+#include "ConsoleWindow.h"
 
 // Turns file logging on and off
 extern bool LocalLogFile;

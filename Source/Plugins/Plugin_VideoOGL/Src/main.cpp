@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// --------------------------
 #include "Globals.h"
 
 #include <cstdarg>
@@ -49,9 +52,19 @@
 #include "TextureConverter.h"
 
 #include "VideoState.h"
+///////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Definitions
+// --------------------------
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals;
+
+// Logging
+int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
+///////////////////////////////////////////////
+
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
    if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
@@ -193,6 +206,8 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
+	//Console::Open(130, 5000);
+
 	// --------------------------------------------------
 	/* Dolphin currently crashes if the dll is loaded when a game is started so we close the
 	   debugger and open it again after loading

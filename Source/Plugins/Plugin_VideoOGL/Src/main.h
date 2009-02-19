@@ -22,4 +22,7 @@
 
 extern SVideoInitialize g_VideoInitialize;
 
+// Logging
+extern int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
+
 #endif

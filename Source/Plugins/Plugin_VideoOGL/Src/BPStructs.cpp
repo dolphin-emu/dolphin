@@ -35,6 +35,7 @@
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
 #include "XFB.h"
+#include "main.h"
 
 
 // ---------------------------------------------------------------------------------------
@@ -56,13 +57,22 @@ void BPInit()
     bpmem.bpMask = 0xFFFFFF;
 }
 
-// Called at the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
-// TODO - turn into function table. The (future) DL jit can then call the functions directly,
-// getting rid of dynamic dispatch.
+//////////////////////////////////////////////////////////////////////////////////////
+// Write to bpmem
+/* ------------------
+   Called:
+		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
+   TODO:
+		Turn into function table. The (future) DL jit can then call the functions directly,
+		getting rid of dynamic dispatch.
+// ------------------ */
 void BPWritten(int addr, int changes, int newval)
 {
     //static int count = 0;
     //ERROR_LOG("(%d) %x: %x\n", count++, addr, newval);
+
+	//Console::Print("BPWritten: 0x%02x %i %i %i\n", addr, changes, newval, (int)bpmem.copyTexSrcWH.y);
+	//if(addr == 0x49) PanicAlert("0x49");
 
     switch (addr)
     {
@@ -283,10 +293,12 @@ void BPWritten(int addr, int changes, int newval)
     case BPMEM_SCISSORTL:
     case BPMEM_SCISSORBR:
 
-        if (changes) {
+        if (changes)
+		{
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            if (!Renderer::SetScissorRect()) {
+            if (!Renderer::SetScissorRect())
+			{
 				if (addr == BPMEM_SCISSORBR) {
                     ERROR_LOG("bad scissor!\n");
 				}
@@ -346,26 +358,29 @@ void BPWritten(int addr, int changes, int newval)
         }
         break;
 
-    case BPMEM_PE_TOKEN_ID:
+    case BPMEM_PE_TOKEN_ID: // 0x47
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
         DebugLog("SetPEToken 0x%04x", (newval & 0xFFFF));
         break;
 
-    case BPMEM_PE_TOKEN_INT_ID:
+    case BPMEM_PE_TOKEN_INT_ID: // 0x48
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
         DebugLog("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
         break;
 
-    case 0x67: // set gp metric?
+	// Set gp metric?
+    case 0x67:
         break;
 
+	// This case writes to bpmem.triggerEFBCopy and may apparently prompt us to update glScissor()
     case 0x52:
         {
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
             VertexManager::Flush();
 
             ((u32*)&bpmem)[addr] = newval;
-			//The bottom right is within the rectangle.
+			// The bottom right is within the rectangle
+			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
 			TRectangle rc = {
                 (int)(bpmem.copyTexSrcXY.x),
                 (int)(bpmem.copyTexSrcXY.y),
@@ -374,8 +389,8 @@ void BPWritten(int addr, int changes, int newval)
             };
 			float MValueX = OpenGL_GetXmax();
 			float MValueY = OpenGL_GetYmax();
-			//Need another rc here to get it to scale.
-			//Here the bottom right is the out of the rectangle.
+			// Need another rc here to get it to scale.
+			// Here the bottom right is the out of the rectangle.
             TRectangle multirc = {
                 (int)(bpmem.copyTexSrcXY.x * MValueX),
                 (int)(bpmem.copyTexSrcXY.y * MValueY),
@@ -386,23 +401,31 @@ void BPWritten(int addr, int changes, int newval)
 			UPE_Copy PE_copy;
 			PE_copy.Hex = bpmem.triggerEFBCopy;
 
-            if (PE_copy.copy_to_xfb == 0) {
+            if (PE_copy.copy_to_xfb == 0)
+			{
 				// EFB to texture 
                 // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-				if (g_Config.bEFBCopyDisable) {
-					glViewport(rc.left,rc.bottom,rc.right,rc.top);
-					glScissor(rc.left,rc.bottom,rc.right,rc.top);
+				if (g_Config.bEFBCopyDisable)
+				{
+					// We already have this in Render.cpp that we call when (PE_copy.clear) is true, why do we need this here to?
+					//glViewport(rc.left,rc.bottom, rc.right,rc.top);
+					//glScissor(rc.left,rc.bottom, rc.right,rc.top);
+					// Logging
+					//GLScissorX = rc.left; GLScissorY = rc.bottom; GLScissorW = rc.right; GLScissorH = rc.top;
 				}
-				else if (g_Config.bCopyEFBToRAM) {
+				else if (g_Config.bCopyEFBToRAM)
+				{
 					TextureConverter::EncodeToRam(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
                     (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, rc);
 				}
-				else {
+				else
+				{
 					TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
                     (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
 				}
 			}
-            else {
+            else
+			{
                 // EFB to XFB
 				if (g_Config.bUseXFB)
 				{
@@ -429,17 +452,23 @@ void BPWritten(int addr, int changes, int newval)
             }
 
             // clearing
-            if (PE_copy.clear) {
+            if (PE_copy.clear)
+			{
                 // clear color
                 Renderer::SetRenderMode(Renderer::RM_Normal);
 
                 u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
                 
-                glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+				// Why do we have this here and in Render.cpp?
+				//glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 
-                // Always set the scissor in case it was set by the game and has not been reset                
-                glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-                    (multirc.right - multirc.left), (multirc.bottom - multirc.top)); 
+                // Always set the scissor in case it was set by the game and has not been reset
+				// But we will do that at the end of this section, in SetScissorRect(), why would we do it twice in the same function?
+                //glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
+                //    (multirc.right - multirc.left), (multirc.bottom - multirc.top));
+				// Logging
+				//	GLScissorX = multirc.left; GLScissorY = (Renderer::GetTargetHeight() - multirc.bottom);
+				//	GLScissorW = (multirc.right - multirc.left); GLScissorH = (multirc.bottom - multirc.top);
 
                 VertexShaderManager::SetViewportChanged();
 
@@ -457,7 +486,8 @@ void BPWritten(int addr, int changes, int newval)
 									 ((clearColor>>24) & 0xff)*(1/255.0f));
                         bits |= GL_COLOR_BUFFER_BIT;
                     }
-                    if (bpmem.zmode.updateenable) {
+                    if (bpmem.zmode.updateenable)
+					{
                         glClearDepth((float)(bpmem.clearZValue&0xFFFFFF) / float(0xFFFFFF));
                         bits |= GL_DEPTH_BUFFER_BIT;
                     }
@@ -635,6 +665,8 @@ void BPWritten(int addr, int changes, int newval)
             case 0x90:
             case 0xA0:
             case 0xB0:
+
+			// Just update the bpmem struct, don't do anything else.
             default:
                 if (changes)
                 {
@@ -691,15 +723,16 @@ void BPWritten(int addr, int changes, int newval)
 void LoadBPReg(u32 value0)
 {
     DVSTARTPROFILE();
-    //handle the mask register
+    // Handle the mask register
     int opcode = value0 >> 24;
     int oldval = ((u32*)&bpmem)[opcode];
     int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+	// Check if it's a new value
     int changes = (oldval ^ newval) & 0xFFFFFF;
     //reset the mask register
     if (opcode != 0xFE)
         bpmem.bpMask = 0xFFFFFF;
-    //notify the video handling so it can update render states
+    // Notify the video handling so it can update render states
     BPWritten(opcode, changes, newval);
 }
 

@@ -117,6 +117,10 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
+
+// =======================================================================================
+// Draw messages on top of the screen
+// ------------------
 unsigned int Callback_PeekMessages()
 {
 #ifdef _WIN32
@@ -134,13 +138,14 @@ unsigned int Callback_PeekMessages()
     return FALSE;
 #endif
 }
-
+// Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {
     char temp[512];
     sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
     OpenGL_SetWindowText(temp);
 }
+// =========================
 
 
 // =======================================================================================
@@ -171,7 +176,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         {
             sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
         }
-        else // No Window reso set, fall back to default
+        else // No Window resolution set, fall back to default
         {
             _twidth = _iwidth;
             _theight = _iheight;
@@ -262,15 +267,12 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	// Create rendering window in Windows
 	// ----------------------
 
-    // Create the window
+    // Create a separate window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
-	{
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
-    }
+	// Create a child window
     else
-    {
         g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
-    }
 
 	// Show the window
 	EmuWindow::Show();
@@ -311,12 +313,13 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else
 	{
-        // change to default resolution
+        // Change to default resolution
         ChangeDisplaySettings(NULL, 0);
     }
 
     if (g_Config.bFullscreen && !g_Config.renderToMainframe)
 	{
+		// Hide the cursor
         ShowCursor(FALSE);
     }
     else
@@ -332,9 +335,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
     int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
-    SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION|SWP_NOZORDER);
+	// EmuWindow::GetWnd() is either the new child window or the new separate window
+    SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
 
-    PIXELFORMATDESCRIPTOR pfd=              // pfd Tells Windows How We Want Things To Be
+    PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be
     {
         sizeof(PIXELFORMATDESCRIPTOR),              // Size Of This Pixel Format Descriptor
         1,                                          // Version Number
@@ -361,7 +365,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
     
-    if (!(PixelFormat=ChoosePixelFormat(hDC,&pfd))) {
+    if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
         MessageBox(NULL,"(2) Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
@@ -371,7 +375,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
 
-    if (!(hRC=wglCreateContext(hDC))) {
+    if (!(hRC = wglCreateContext(hDC))) {
         MessageBox(NULL,"(4) Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
@@ -605,9 +609,11 @@ void OpenGL_Update()
     // TODO fill in
 #elif defined(_WIN32)
 	RECT rcWindow;
-	if (!EmuWindow::GetParentWnd()) {
-		if (!g_Config.bStretchToFit)
-			return;
+	// If we are not rendering to a child window
+	if (!EmuWindow::GetParentWnd())
+	{
+		// return if we don't stretch the picture
+		if (!g_Config.bStretchToFit) return;
 		GetWindowRect(EmuWindow::GetWnd(), &rcWindow);
 		rcWindow.top += 25;
 	}
@@ -624,6 +630,7 @@ void OpenGL_Update()
     int width = rcWindow.right - rcWindow.left;
     int height = rcWindow.bottom - rcWindow.top;
 
+	// If we are rendering to a child window
 	if (EmuWindow::GetParentWnd() != 0)
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 
@@ -702,17 +709,16 @@ void OpenGL_Update()
 
 	// ---------------------------------------------------------------------------------------
 	// Get the new window width and height
+	/* ------------------
+	   nBackbufferWidth and nBackbufferHeight: Now the actual rendering window size
+	   Max: The highest of w and h
+	   nXoff and nYoff: Controls the picture's position inside the rendering window
+	   MValueX and MValueY: Used for the picture resolution-change rescaling
 	// ------------------
-	// nBackbufferWidth and nBackbufferHeight = now the actual screen size
-	// Max = the highest of w and h
-	// MValueX and MValueY = used for the picture resolution-change rescaling
-	// nXoff and nYoff = controls the picture's position inside the Dolphin window
-	// ------------------
-	/* MValueX and MValueY will be used in
-		TextureMngr and VertexShaderManager: Rescale textures on resolution changes
-		BPStructs.cpp: Control glScissor()
-		*/
-	// ------------------
+	   MValueX and MValueY: Used for the picture resolution-change rescaling. It will be used in
+			TextureMngr and VertexShaderManager: Rescale textures on resolution changes
+			BPStructs.cpp: Control glScissor()
+	// ------------------ */
     float FactorW  = 640.0f / (float)nBackbufferWidth;
     float FactorH  = 480.0f / (float)nBackbufferHeight;
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
@@ -733,7 +739,7 @@ void OpenGL_Update()
         nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
     }
 
-	// tell the debugger
+	// Tell the debugger
 	gleft = rcWindow.left; gright = rcWindow.right;
 	gtop = rcWindow.top; gbottom = rcWindow.bottom;
 }

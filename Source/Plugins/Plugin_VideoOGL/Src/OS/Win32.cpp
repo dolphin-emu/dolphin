@@ -263,7 +263,7 @@ namespace EmuWindow
 	}
 
 
-	// This is called from 
+	// This is called from Create()
 	HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 	{
 		wndClass.cbSize = sizeof( wndClass );
@@ -273,8 +273,9 @@ namespace EmuWindow
 		wndClass.cbWndExtra = 0;
 		wndClass.hInstance = hInstance;
 		wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+		// To interfer less with SetCursor() later we set this to NULL
 		//wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
-		wndClass.hCursor = NULL; // To interfer less with SetCursor() later
+		wndClass.hCursor = NULL;
 		wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
 		wndClass.lpszMenuName = NULL;
 		wndClass.lpszClassName = m_szClassName;
@@ -295,7 +296,7 @@ namespace EmuWindow
                 CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
                 parent, NULL, hInstance, NULL );
 
-            ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);            
+            ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
         }
 
 		// Create new separate window
@@ -357,7 +358,9 @@ namespace EmuWindow
 		UnregisterClass(m_szClassName, m_hInstance);
 	}
 
-
+	// ------------------------------------------
+	// Set the size of the child or main window
+	// ------------------
 	void SetSize(int width, int height)
 	{
 		RECT rc = {0, 0, width, height};
@@ -366,6 +369,7 @@ namespace EmuWindow
 		int w = rc.right - rc.left;
 		int h = rc.bottom - rc.top;
 
+		// Move and resize the window
 		rc.left = (1280 - w)/2;
 		rc.right = rc.left + w;
 		rc.top = (1024 - h)/2;
