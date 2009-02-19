@@ -27,6 +27,7 @@
 #define I_ZBIAS "czbias"
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX "cindmtx"
+#define I_FOG "cfog"
 
 #define C_COLORS 0
 #define C_KCOLORS (C_COLORS+4)
@@ -35,26 +36,27 @@
 #define C_ZBIAS (C_TEXDIMS+8)
 #define C_INDTEXSCALE (C_ZBIAS+2)
 #define C_INDTEXMTX (C_INDTEXSCALE+2)
-#define C_ENVCONST_END (C_INDTEXMTX+6)
+#define C_FOG (C_INDTEXMTX+6)
+#define C_ENVCONST_END (C_FOG+2)
 
-#define C_COLORMATRIX (C_INDTEXMTX+6)
+#define C_COLORMATRIX (C_FOG+2)
 
 class PIXELSHADERUID
 {
 public:
-	u32 values[4+32+6+11];
+	u32 values[5+32+6+11];
 	u16 tevstages, indstages;
 
 	PIXELSHADERUID() {
-		memset(values, 0, (4+32+6+11) * 4);
+		memset(values, 0, (5+32+6+11) * 4);
 		tevstages = indstages = 0;
 	}
 	PIXELSHADERUID(const PIXELSHADERUID& r)
 	{
 		tevstages = r.tevstages;
 		indstages = r.indstages;
-		int N = tevstages + indstages + 3;
-		_assert_(N <= 4+32+6+11);
+		int N = tevstages + indstages + 4;
+		_assert_(N <= 5+32+6+11);
 		for (int i = 0; i < N; ++i) 
 			values[i] = r.values[i];
 	}

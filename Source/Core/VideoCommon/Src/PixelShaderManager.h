@@ -53,6 +53,8 @@ public:
 	static void SetZTextureTypeChanged();
 	static void SetTexturesUsed(u32 nonpow2tex);
 	static void SetTexDimsChanged(int texmapid);
+    static void SetFogColorChanged();
+    static void SetFogParamChanged();
 
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
 

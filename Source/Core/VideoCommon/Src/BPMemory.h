@@ -625,7 +625,19 @@ struct FogParams
     u32 b_magnitude;
     u32 b_shift; // b's exp + 1?
     FogParam3 c_proj_fsel;
-    u32 color;  //0:b 8:g 16:r - nice!
+
+    union FogColor
+    {
+        struct
+        {
+            unsigned b  : 8;
+            unsigned g  : 8;
+            unsigned r  : 8;
+        };
+        u32 hex;
+    };
+
+    FogColor color;  //0:b 8:g 16:r - nice!
 };
 
 union ZMode

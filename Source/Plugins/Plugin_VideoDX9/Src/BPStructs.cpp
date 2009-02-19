@@ -400,9 +400,9 @@ void BPWritten(int addr, int changes, int newval)
 				break;
 
 			// dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
-			int fogcolor[3] = { ((bpmem.fog.color>>16)&0xff), ((bpmem.fog.color>>8)&0xff), (bpmem.fog.color&0xff)};
+			int fogcolor[3] = { bpmem.fog.color.r, bpmem.fog.color.g, bpmem.fog.color.b };
 			//D3DCOLOR_RGBA(fogcolor[0], fogcolor[1], fogcolor[2], 0)
-			Renderer::SetRenderState(D3DRS_FOGCOLOR, bpmem.fog.color);
+            Renderer::SetRenderState(D3DRS_FOGCOLOR, bpmem.fog.color.hex);
 		}
 		break;
 

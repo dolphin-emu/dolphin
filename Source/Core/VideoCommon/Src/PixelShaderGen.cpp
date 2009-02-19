@@ -52,7 +52,11 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 		((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
 	uid.values[2] = s_texturemask;
-	int hdr = 3;
+
+    uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
+                   ((u32)bpmem.fog.c_proj_fsel.proj << 3);
+
+	int hdr = 4;
 	u32* pcurvalue = &uid.values[hdr];
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
 		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
@@ -114,7 +118,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 	}
 
 	// yeah, well ....
-	uid.indstages = (u32)(pcurvalue - &uid.values[0] - 2 - uid.tevstages);
+	uid.indstages = (u32)(pcurvalue - &uid.values[0] - (hdr - 1) - uid.tevstages);
 }
 
 //   old tev->pixelshader notes
@@ -130,6 +134,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask);
 static void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
 static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p);
+static void WriteFog(char *&p);
 
 const float epsilon8bit = 1.0f / 255.0f;
 
@@ -380,7 +385,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 
     bool bRenderZ = has_zbuffer_target && bpmem.zmode.updateenable;
     bool bOutputZ = bpmem.ztex2.op != ZTEXTURE_DISABLE;
-    bool bInputZ = bpmem.ztex2.op==ZTEXTURE_ADD || bRenderZ;
+    bool bInputZ = bpmem.ztex2.op==ZTEXTURE_ADD || bRenderZ || bpmem.fog.c_proj_fsel.fsel != 0;
 
     // bool bRenderZToCol0 = ; // output z and alpha to color0
     assert( !bRenderZToCol0 || bRenderZ );
@@ -428,6 +433,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     WRITE(p, "uniform float4 "I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
     WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
     WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
+    WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
 
     WRITE(p, "void main(\n");
 
@@ -447,7 +453,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 		// wpos is in w of first 4 texcoords
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i<4?4:3, i, i);
-	}	
+	}
 
     WRITE(p, "  in float4 colors[2] : COLOR0){\n");
 
@@ -527,7 +533,8 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
                 WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
             else
 			   */
-            	WRITE(p, "  ocol0 = prev;\n");
+            WriteFog(p);
+            WRITE(p, "  ocol0 = prev;\n");
         }
     }
 
@@ -934,4 +941,47 @@ static bool WriteAlphaTest(char *&p)
     WriteAlphaCompare(p, 1, bpmem.alphaFunc.comp1);
     WRITE(p, ");\n");
     return true;
+}
+
+static void WriteFog(char *&p)
+{
+    bool enabled = bpmem.fog.c_proj_fsel.fsel;
+
+    if (enabled) {
+        if (bpmem.fog.c_proj_fsel.proj == 0) {
+            // perspective
+            // ze = A/(B - Zs)
+            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - zCoord);\n");
+        } else {
+            // orthographic
+            // ze = a*Zs
+            WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
+        }
+
+        WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
+    }
+
+    switch (bpmem.fog.c_proj_fsel.fsel) {       
+        case 2: // linear
+            // empty
+            break;
+        case 4: // exp
+            WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog);\n");
+            break;
+        case 5: // exp2
+            WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog * fog);\n");
+            break;
+        case 6: // backward exp
+            WRITE(p, "  fog = 1.0f - fog;\n");
+            WRITE(p, "  fog = pow(2, -8.0f * fog);\n");
+            break;
+        case 7: // backward exp2
+            WRITE(p, "  fog = 1.0f - fog;\n");
+            WRITE(p, "  fog = pow(2, -8.0f * fog * fog);\n");
+            break;
+    }
+
+    if (enabled) {
+        WRITE(p, "  prev.rgb = (1.0f - fog) * prev.rgb + (fog * "I_FOG"[0].rgb);\n");
+    }
 }

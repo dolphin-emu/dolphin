@@ -32,6 +32,8 @@ static bool s_bZBiasChanged;
 static bool s_bIndTexScaleChanged;
 static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
+static bool s_bFogColorChanged;
+static bool s_bFogParamChanged;
 static float lastDepthRange[2] = {0}; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
@@ -53,6 +55,7 @@ void PixelShaderManager::Init()
     s_nTexDimsChanged = 0;
     s_nIndTexMtxChanged = 15;
     s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
+    s_bFogColorChanged = s_bFogParamChanged = true;
     for (int i = 0; i < 8; ++i)
 		maptocoord[i] = -1;
 	maptocoord_mask = 0;
@@ -140,7 +143,7 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bZBiasChanged || s_bDepthRangeChanged) {
         //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);        
-        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777215.0f, lastDepthRange[1] / 16777215.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
+        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
@@ -197,6 +200,18 @@ void PixelShaderManager::SetConstants()
             }
         }
         s_nIndTexMtxChanged = 0;
+    }
+
+    if (s_bFogColorChanged) {
+        SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
+        s_bFogColorChanged = false;
+    }
+
+    if (s_bFogParamChanged) {
+        float a = bpmem.fog.a.GetA() * ((float)(1 << bpmem.fog.b_shift));
+        float b = ((float)bpmem.fog.b_magnitude / 8388638) * ((float)(1 << (bpmem.fog.b_shift - 1)));
+        SetPSConstant4f(C_FOG + 1, a, b, bpmem.fog.c_proj_fsel.GetC(), 0);
+        s_bFogParamChanged = false;
     }
 }
 
@@ -364,6 +379,16 @@ void PixelShaderManager::SetTexDimsChanged(int texmapid)
 		s_nTexDimsChanged |= 1 << texmapid;	
 
     SetIndTexScaleChanged();
+}
+
+void PixelShaderManager::SetFogColorChanged()
+{
+    s_bFogColorChanged = true;
+}
+
+void PixelShaderManager::SetFogParamChanged()
+{
+    s_bFogParamChanged = true;
 }
 
 void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
