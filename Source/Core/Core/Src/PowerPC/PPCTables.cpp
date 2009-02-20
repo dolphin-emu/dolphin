@@ -70,7 +70,7 @@ void Jit64::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst
 void Jit64::DynaRunTable59(UGeckoInstruction _inst) {(this->*dynaOpTable59[_inst.SUBOP5 ])(_inst);}
 void Jit64::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst.SUBOP10])(_inst);}
 
-static GekkoOPInfo *m_allInstructions[2048];
+static GekkoOPInfo *m_allInstructions[512];
 static int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
@@ -661,6 +661,7 @@ void InitTables()
 		}
 	}
 
+	m_numInstructions = 0;
 	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
 		m_allInstructions[m_numInstructions++] = &primarytable[i].opinfo;
 	for (int i = 0; i < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); i++)
@@ -681,7 +682,7 @@ void InitTables()
 		m_allInstructions[m_numInstructions++] = &table63[i].opinfo;
 	for (int i = 0; i < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); i++)
 		m_allInstructions[m_numInstructions++] = &table63_2[i].opinfo;
-	if (m_numInstructions >= 2048) {
+	if (m_numInstructions >= 512) {
 		PanicAlert("m_allInstructions underdimensioned");
 	}
 }
