@@ -479,7 +479,7 @@ void UpdateAudioDMA()
 	} else {
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert silence.
 		// or hm. Maybe we shouldn't do this :)
-		dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
+		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
 	}
 }
 
