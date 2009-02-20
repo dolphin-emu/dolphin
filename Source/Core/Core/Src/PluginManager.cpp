@@ -202,16 +202,16 @@ void CPluginManager::ShutdownPlugins()
 	{
 		m_video->Shutdown();
 		// This is needed for Stop and Start to work
-		//delete m_video;
-		//m_video = NULL;
+		delete m_video;
+		m_video = NULL;
 	}
 
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
 		// This is needed for Stop and Start to work
-		//delete m_dsp;
-		//m_dsp = NULL;
+		delete m_dsp;
+		m_dsp = NULL;
 	}
 }
 //////////////////////////////////////////////
@@ -226,7 +226,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 	: m_Filename(_rFilename)
 	, m_Valid(false)
 {
-	if (! File::Exists(_rFilename))
+	if (!File::Exists(_rFilename))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;
