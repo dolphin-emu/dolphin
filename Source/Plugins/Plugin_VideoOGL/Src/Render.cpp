@@ -697,7 +697,7 @@ bool Renderer::SetScissorRect()
 	{
 		/* I don't know how this works with other options so I'm limiting it to this to test it, if you want to add support for other modes
 		   or make this solution more general please do */
-		if(g_Config.bStretchToFit && !g_Config.bKeepAR)
+		if(g_Config.bStretchToFit && !g_Config.bKeepAR && !g_Config.bUseXFB)
 		{
 			int WidthDifference = 640 - (int)(rc_right - rc_left);
 			int HeightDifference = 480 - (int)(rc_bottom - rc_top);
@@ -1274,29 +1274,8 @@ void UpdateViewport()
 	}
 	// -------------------------------------
 
-	// -----------------------------------------------------------------------
-	// Adjust the screen size. If someone figures out how to correctly adjust the screen size as the GC or Wii does, this may not be needed.
-	// ------------------
-	if (g_Config.bScreenSize)
-	{
-		// Calculate width and height as a fraction of the current
-		float Width = (float)GLWidth * ((float)g_Config.iScreenWidth / 100.0);
-		float Height = (float)GLHeight * ((float)g_Config.iScreenHeight / 100.0);
-
-		// Adjust X and Y
-		GLx = GLx + g_Config.iScreenLeft;
-		GLy = GLy - g_Config.iScreenTop;
-
-		GLWidth = (int)Width;
-		GLHeight = (int)Height;
-
-		//Console::Print("W:%i H:%i  W:%f H:%f  Wid:%i Hei:%i  x:%i y:%i\n", g_Config.iScreenWidth, g_Config.iScreenHeight, Width, Height, GLWidth, GLHeight, GLx, GLy);
-	}
-	// -------------------------------------
-
-
-	// I'm limiting it to this modes to test it
-	if(g_Config.bStretchToFit && !g_Config.bKeepAR)
+	// I'm limiting it to these modes to test it
+	if(g_Config.bStretchToFit && !g_Config.bKeepAR && !g_Config.bUseXFB)
 	{
 		GLWidth = GLWidth + (GLScissorW - 640);
 		GLHeight = GLHeight + (GLScissorH - 480);

@@ -55,13 +55,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 
-	// Screen size
-	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::AdvancedSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::AdvancedSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::AdvancedSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::AdvancedSettingsChangedScroll)
-	EVT_CHECKBOX(IDC_SCREEN_SIZE, ConfigDialog::AdvancedSettingsChanged)
-
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
@@ -345,60 +338,7 @@ void ConfigDialog::CreateGUIControls()
 	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-	sbHacks->Add(sHacks);
-
-
-	// -----------------------------------------------
-	// Screen size
-	// ---------------------
-	// Controls
-	m_TextScreenWidth = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Width: 000"));
-	m_TextScreenHeight = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Height: 000"));
-	m_TextScreenLeft = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Left: -000"));
-	m_TextScreenTop = new wxStaticText(m_PageAdvanced, wxID_ANY, wxT("Top: -000"));
-
-	m_SliderWidth = new wxSlider(m_PageAdvanced, IDS_WIDTH, 100, 50, 150, wxDefaultPosition, wxSize(75, -1));
-	m_SliderHeight = new wxSlider(m_PageAdvanced, IDS_HEIGHT, 100, 50, 150, wxDefaultPosition, wxSize(75, -1));
-	m_SliderLeft = new wxSlider(m_PageAdvanced, IDS_LEFT, 0, -100, 100, wxDefaultPosition, wxSize(75, -1));
-	m_SliderTop = new wxSlider(m_PageAdvanced, IDS_TOP, 0, -100, 100, wxDefaultPosition, wxSize(75, -1));
-	m_ScreenSize = new wxCheckBox(m_PageAdvanced, IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
-	// Default values
-	m_SliderWidth->SetValue(g_Config.iScreenWidth);
-	m_SliderHeight->SetValue(g_Config.iScreenHeight);
-	m_SliderLeft->SetValue(g_Config.iScreenLeft);
-	m_SliderTop->SetValue(g_Config.iScreenTop);
-	m_ScreenSize->SetValue(g_Config.bScreenSize);
-
-	// Sizers
-	wxBoxSizer *m_SizerScreenSizeWidth = new wxBoxSizer(wxHORIZONTAL);
-	m_SizerScreenSizeWidth->Add(m_TextScreenWidth, 0, wxEXPAND | (wxTOP), 3);
-	m_SizerScreenSizeWidth->Add(m_SliderWidth, 0, wxEXPAND | (wxLEFT), 0);
-	m_SizerScreenSizeWidth->Add(m_TextScreenLeft, 0, wxEXPAND | (wxLEFT), 5);
-	m_SizerScreenSizeWidth->Add(m_SliderLeft, 0, wxEXPAND | (wxLEFT), 0);
-
-	wxBoxSizer *m_SizerScreenSizeHeight = new wxBoxSizer(wxHORIZONTAL);
-	m_SizerScreenSizeHeight->Add(m_TextScreenHeight, 0, wxEXPAND | (wxTOP), 3);
-	m_SizerScreenSizeHeight->Add(m_SliderHeight, 0, wxEXPAND | (wxLEFT), 0);
-	m_SizerScreenSizeHeight->Add(m_TextScreenTop, 0, wxEXPAND | (wxLEFT), 5);
-	m_SizerScreenSizeHeight->Add(m_SliderTop, 0, wxEXPAND | (wxLEFT), 0);
-
-	wxStaticBoxSizer * m_SizerScreenSize = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Screen size and position"));
-	m_SizerScreenSize->Add(m_ScreenSize, 0, wxEXPAND | (wxALL), 5);
-	m_SizerScreenSize->Add(m_SizerScreenSizeWidth, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-	m_SizerScreenSize->Add(m_SizerScreenSizeHeight, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-
-	// Tool tips
-	m_ScreenSize->SetToolTip(wxT("Use the adjusted screen size."));
-	// -------------------------------
-
-	// -----------------------------------------------
-	// Row 4: Hacks and Screen size
-	// ---------------------
-	wxBoxSizer *m_SizerHacksScreenSize = new wxBoxSizer(wxHORIZONTAL);
-	m_SizerHacksScreenSize->Add(sbHacks, 0, wxEXPAND | (wxTOP), 0);
-	m_SizerHacksScreenSize->Add(m_SizerScreenSize, 0, wxEXPAND | (wxLEFT), 7);
-	// -------------------------------
+	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
 
 	// Sizers
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
@@ -438,7 +378,7 @@ void ConfigDialog::CreateGUIControls()
 	sAdvanced->Add(sbInfo, 0, wxEXPAND | wxALL, 5);
 	sAdvanced->Add(sbRendering, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 	sAdvanced->Add(sbUtilities, 1, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-	sAdvanced->Add(m_SizerHacksScreenSize, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+	sAdvanced->Add(sbHacks, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 	m_PageAdvanced->SetSizer(sAdvanced);
 	sAdvanced->Layout();
@@ -501,28 +441,6 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	UpdateGUI();
 }
 
-// Apparently we need a scroll event version of this for the sliders
-void ConfigDialog::AdvancedSettingsChangedScroll(wxScrollEvent& event)
-{
-	switch (event.GetId())
-	{
-	// Screen size
-	case IDS_WIDTH:
-		g_Config.iScreenWidth = m_SliderWidth->GetValue();
-		break;
-	case IDS_HEIGHT:
-		g_Config.iScreenHeight = m_SliderHeight->GetValue();
-		break;
-	case IDS_LEFT:
-		g_Config.iScreenLeft = m_SliderLeft->GetValue();
-		break;
-	case IDS_TOP:
-		g_Config.iScreenTop = m_SliderTop->GetValue();
-		break;
-	}
-
-	UpdateGUI();
-}
 
 void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 {
@@ -580,10 +498,6 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-	// Screen size
-	case IDC_SCREEN_SIZE:
-		g_Config.bScreenSize = m_ScreenSize->GetValue();
-		break;
 	// Extented frame buffer
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();
@@ -619,10 +533,4 @@ void ConfigDialog::UpdateGUI()
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);
 	m_FullscreenCB->Enable(!g_Config.renderToMainframe);
 	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
-
-	// Update screen size labels
-	m_TextScreenWidth->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iScreenWidth));
-	m_TextScreenHeight->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iScreenHeight));
-	m_TextScreenLeft->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iScreenLeft));
-	m_TextScreenTop->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iScreenTop));
 }

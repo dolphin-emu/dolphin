@@ -167,11 +167,6 @@ class ConfigDialog : public wxDialog
 			ID_PROJECTIONHACK2,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,
-
-			// Screen size
-			IDS_WIDTH, IDS_LEFT,
-			IDS_HEIGHT, IDS_TOP,
-			IDC_SCREEN_SIZE
 		};
 
 		void OnClose(wxCloseEvent& event);
@@ -180,7 +175,6 @@ class ConfigDialog : public wxDialog
 		void AboutClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void AdvancedSettingsChanged(wxCommandEvent& event); 
-		void AdvancedSettingsChangedScroll(wxScrollEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 };
 
