@@ -452,6 +452,7 @@ void CGameListCtrl::ScanForISOs()
 			sprintf(tempstring,"Scanning %s", FileName.c_str());
 			msg = wxString::FromAscii(tempstring);
 
+			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
 
 			if (!Cont)

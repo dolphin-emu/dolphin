@@ -206,7 +206,7 @@ bool IniFile::DeleteKey(const char* sectionName, const char* key)
 	return false; //shouldn't happen
 }
 
-
+// Return a list of all keys in a section
 bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys) const
 {
 	const Section* section = GetSection(sectionName);
@@ -228,7 +228,7 @@ bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys) c
 	return true;
 }
 
-
+// Return a list of all lines in a section
 bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines) const
 {
 	const Section* section = GetSection(sectionName);

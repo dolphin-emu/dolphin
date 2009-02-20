@@ -29,6 +29,7 @@
 #include "Timer.h"
 #include "Common.h"
 #include "ConsoleWindow.h"
+#include "StringUtil.h"
 
 #include "Console.h"
 #include "Core.h"
@@ -389,6 +390,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	{
 		SWiimoteInitialize WiimoteInitialize;
 		WiimoteInitialize.hWnd = g_pWindowHandle;
+		// Add the ISO Id
+		WiimoteInitialize.ISOId = Ascii2Hex(_CoreParameter.m_strUniqueID);
 		WiimoteInitialize.pLog = Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
 		// Wait for Wiiuse to find the number of connected Wiimotes
@@ -684,7 +687,7 @@ const char *Callback_ISOName(void)
 	else	
           return (const char *)"";
 }
- 
+
 // __________________________________________________________________________________________________
 // Called from ANY thread!
 void Callback_KeyPress(int key, bool shift, bool control)

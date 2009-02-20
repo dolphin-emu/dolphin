@@ -68,6 +68,7 @@ struct SRecordingAll
 #ifndef EXCLUDEMAIN_H
 	// General
 	extern bool g_EmulatorRunning;
+	extern u32 g_ISOId;
 	extern bool g_FrameOpen;
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;

@@ -719,6 +719,13 @@ void FillReportAcc(wm_accel& _acc)
 /////////////////////////
 
 
+
+
+/*
+		int Top = TOP, Left = LEFT, Right = RIGHT,
+		Bottom = BOTTOM, SensorBarRadius = SENSOR_BAR_RADIUS;		
+*/
+
 ///////////////////////////////////////////////////////////////////
 // The extended 12 byte (3 byte per object) reporting
 // ---------------
@@ -739,25 +746,6 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	}
 	// ---------------------
 
-
-	// --------------------------------------
-	/* The calibration is controlled by these values, their absolute value and
-	   the relative distance between between them control the calibration. WideScreen mode
-	   has its own settings. */
-	// ----------
-	int Top, Left, Right, Bottom, SensorBarRadius;
-	if(g_Config.bWideScreen)
-	{		
-		Top = wTOP; Left = wLEFT; Right = wRIGHT;
-		Bottom = wBOTTOM; SensorBarRadius = wSENSOR_BAR_RADIUS;
-	}
-	else
-	{
-		Top = TOP; Left = LEFT; Right = RIGHT;
-		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
-	}
-	// ------------------
-
 	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it doesn't see a certain point,
 	   at least from how WiiMoteReal::SendEvent() works. */
 	memset(&_ir0, 0xff, sizeof(wm_ir_extended));
@@ -770,65 +758,63 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
 	// --------------------------------------
-	// Actual position calculation
+	// Position calculation
 	// ----------
-	int y0 = Top + (MouseY * (Bottom - Top));
-	int y1 = Top + (MouseY * (Bottom - Top));
-
-	int x0 = Left + (MouseX * (Right - Left)) - SensorBarRadius;
-	int x1 = Left + (MouseX * (Right - Left)) + SensorBarRadius;
-
-	x0 = 1023 - x0;
-	_ir0.x = x0 & 0xFF;
-	_ir0.y = y0 & 0xFF;
-	_ir0.size = 10;
-	_ir0.xHi = x0 >> 8;
-	_ir0.yHi = y0 >> 8;
-
-	x1 = 1023 - x1;
-	_ir1.x = x1 & 0xFF;
-	_ir1.y = y1 & 0xFF;
-	_ir1.size = 10;
-	_ir1.xHi = x1 >> 8;
-	_ir1.yHi = y1 >> 8;
+	int y0 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
+	int y1 = y0;
+	// The distance between the x positions are two sensor bar radii
+	int x0 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
+	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
 	// ------------------
 
 	// ----------------------------
 	// Debugging for calibration
 	// ----------
 	/*
-	if(GetAsyncKeyState(VK_NUMPAD1))
+	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_RIGHT))
 		Right +=1;
-	else if(GetAsyncKeyState(VK_NUMPAD2))
+	else if(GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_RIGHT))
 		Right -=1;
-	if(GetAsyncKeyState(VK_NUMPAD4))
+	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_LEFT))
 		Left +=1;
-	else if(GetAsyncKeyState(VK_NUMPAD5))
+	else if(GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_LEFT))
 		Left -=1;
-	if(GetAsyncKeyState(VK_NUMPAD7))
+	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_UP))
 		Top += 1;
-	else if(GetAsyncKeyState(VK_NUMPAD8))
+	else if(GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_UP))
 		Top -= 1;
-	if(GetAsyncKeyState(VK_NUMPAD6))
+	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_DOWN))
 		Bottom += 1;
-	else if(GetAsyncKeyState(VK_NUMPAD3))
+	else if(GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_DOWN))
 		Bottom -= 1;
-	if(GetAsyncKeyState(VK_INSERT))
+	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_NUMPAD0))
 		SensorBarRadius += 1;
-	else if(GetAsyncKeyState(VK_DELETE))
+	else if(GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_NUMPAD0))
 		SensorBarRadius -= 1;
 
-	//ClearScreen();
+	//Console::ClearScreen();
 	//if(consoleDisplay == 1)
-		Console::Print("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
-		x0, x1, y0, y1, _ir0.x, _ir0.y, _ir1.x, _ir1.y, Top, Left, Right, Bottom, SensorBarRadius
-		);	
-	Console::Print("\n");
-	Console::Print("ir0.x:%02x xHi:%02x  ir1.x:%02x xHi:%02x  |  ir0.y:%02x yHi:%02x  ir1.y:%02x yHi:%02x  |  1.s:%02x 2:%02x\n",
-		_ir0.x, _ir0.xHi, _ir1.x, _ir1.xHi,
-		_ir0.y, _ir0.yHi, _ir1.y, _ir1.yHi,
-		_ir0.size, _ir1.size
+	Console::Print("x0:%03i x1:%03i  y0:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
+		x0, x1, y0, y1, Top, Left, Right, Bottom, SensorBarRadius
 		);*/
+	// ------------------
+
+
+	// --------------------------------------
+	// Converted to IR data
+	// ----------
+	// The width is 0 to 1023
+	// The height is 0 to 767
+	x0 = 1023 - x0;
+	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
+	_ir0.y = y0 & 0xff; _ir0.yHi = y0 >> 8;
+	// The size can be between 0 and 15 and is probably not important
+	_ir0.size = 10;
+	
+	x1 = 1023 - x1;
+	_ir1.x = x1 & 0xff; _ir1.xHi = x1 >> 8;
+	_ir1.y = y1 & 0xff; _ir1.yHi = y1 >> 8;
+	_ir1.size = 10;
 	// ------------------
 }
 
@@ -837,6 +823,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 // ---------------
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
+
 	// ------------------------------------
 	// Recorded movements
 	// --------------
@@ -853,23 +840,6 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	}
 	// ---------------------
 
-	// --------------------------------------
-	/* See calibration description above */
-	// ----------
-	int Top, Left, Right, Bottom, SensorBarRadius;
-
-	if(g_Config.bWideScreen)
-	{		
-		Top = wTOP; Left = wLEFT; Right = wRIGHT;
-		Bottom = wBOTTOM; SensorBarRadius = wSENSOR_BAR_RADIUS;
-	}
-	else
-	{
-		Top = TOP; Left = LEFT; Right = RIGHT;
-		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
-	}
-	// ------------------
-
 	// Fill with 0xff if empty
 	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
 	memset(&_ir1, 0xff, sizeof(wm_ir_basic));
@@ -880,24 +850,21 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
-	int y1 = Top + (MouseY * (Bottom - Top));
-	int y2 = Top + (MouseY * (Bottom - Top));
+	int y1 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
+	int y2 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
 
-	int x1 = Left + (MouseX * (Right - Left)) - SensorBarRadius;
-	int x2 = Left + (MouseX * (Right - Left)) + SensorBarRadius;
+	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
+	int x2 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
 
-	/* As with the extented report we settle with emulating two out of four possible objects */
+	/* As with the extented report we settle with emulating two out of four possible objects
+	   the only difference is that we don't report any size of the tracked object here */
 	x1 = 1023 - x1;
-	_ir0.x1 = x1 & 0xff;
-	_ir0.y1 = y1 & 0xff;
-	_ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
-	_ir0.y1Hi = (y1 >> 8);
+	_ir0.x1 = x1 & 0xff; _ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
+	_ir0.y1 = y1 & 0xff; _ir0.y1Hi = (y1 >> 8);
 
 	x2 = 1023 - x2;
-	_ir0.x2 = x2 & 0xff;
-	_ir0.y2 = y2 & 0xff;
-	_ir0.x2Hi = (x2 >> 8);
-	_ir0.y2Hi = (y2 >> 8);
+	_ir0.x2 = x2 & 0xff; _ir0.x2Hi = (x2 >> 8);
+	_ir0.y2 = y2 & 0xff; _ir0.y2Hi = (y2 >> 8);
 
 	// I don't understand't the & 0x03, should we do that?
 	//_ir1.x1Hi = (x1 >> 8) & 0x3;

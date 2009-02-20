@@ -154,7 +154,7 @@ struct wm_accel {
 	u8 x, y, z;
 };
 
-// Filled with 0xFF if empty
+// Four bytes for two objects. Filled with 0xFF if empty
 struct wm_ir_basic
 {
 	u8 x1;
@@ -167,6 +167,7 @@ struct wm_ir_basic
 	u8 y2;
 };
 
+// Three bytes for one object
 struct wm_ir_extended 
 {
 	u8 x;

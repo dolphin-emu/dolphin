@@ -16,11 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+#include <iostream>
+
 #include "Common.h"
 #include "IniFile.h"
+#include "StringUtil.h"
 
 #include "Config.h"
 #include "EmuDefinitions.h" // for PadMapping
+#include "main.h"
 
 Config g_Config;
 
@@ -38,7 +42,6 @@ void Config::Load(bool ChangePad)
 
 	// General
     iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
-	iniFile.Get("Settings", "WideScreen", &bWideScreen, false);
 	iniFile.Get("Settings", "NunchuckConnected", &bNunchuckConnected, false);
 	iniFile.Get("Settings", "ClassicControllerConnected", &bClassicControllerConnected, false);
 
@@ -52,6 +55,14 @@ void Config::Load(bool ChangePad)
 	iniFile.Get("Real", "AccNunNeutralX", &iAccNunNeutralX, 0);
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
+
+	// Load the IR cursor settings if it's avaliable, if not load the default settings
+	std::string TmpSection;
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	iniFile.Get(TmpSection.c_str(), "IRLeft", &iIRLeft, LEFT);
+	iniFile.Get(TmpSection.c_str(), "IRTop", &iIRTop, TOP);
+	iniFile.Get(TmpSection.c_str(), "IRWidth", &iIRWidth, RIGHT - LEFT);
+	iniFile.Get(TmpSection.c_str(), "IRHeight", &iIRHeight, BOTTOM - TOP);
 
 	// Default controls
 	#ifdef _WIN32
@@ -160,7 +171,6 @@ void Config::Save(int Slot)
     IniFile iniFile;
     iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
     iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
-    iniFile.Set("Settings", "WideScreen", bWideScreen);
 	iniFile.Set("Settings", "NunchuckConnected", bNunchuckConnected);
 	iniFile.Set("Settings", "ClassicControllerConnected", bClassicControllerConnected);
 
@@ -174,6 +184,13 @@ void Config::Save(int Slot)
 	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
 	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
 
+	// Save the IR cursor settings if it's avaliable, if not save the default settings
+	std::string TmpSection;
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	iniFile.Set(TmpSection.c_str(), "IRLeft", iIRLeft);
+	iniFile.Set(TmpSection.c_str(), "IRTop", iIRTop);
+	iniFile.Set(TmpSection.c_str(), "IRWidth", iIRWidth);
+	iniFile.Set(TmpSection.c_str(), "IRHeight", iIRHeight);
 
 	for (int i = 0; i < 1; i++)
 	{

@@ -202,4 +202,39 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	_PitchAdj = (int)Pitch;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Calculate dot positions from the extented 12 byte IR data
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void IRData2Dots(u8 *Data)
+{
+	struct SDot* Dot = g_Wm.IR.Dot;
+	//SDot Dot[4];
+
+
+
+	for (int i = 0; i < 4; ++i)
+	{
+		//Console::Print("Rx: %i\n", Dot[i].Rx);	
+
+		Dot[i].Rx = 1023 - (Data[3*i] | ((Data[(3*i)+2] & 0x30) << 4));
+		Dot[i].Ry = Data[(3*i)+1] | ((Data[(3*i)+2] & 0xc0) << 2);
+
+		Dot[i].Size = Data[(3*i)+2] & 0x0f;
+
+		/* if in range set to visible */
+		if (Dot[i].Ry == 1023)
+			Dot[i].Visible = false;
+		else
+			Dot[i].Visible = true;
+
+		// Write to the global IR variable
+		//g_Wm.IR.Dot[i] = Dot[i];
+
+		//Console::Print("Rx: %i\n", Dot[i].Rx);
+	}
+}
+////////////////////////////////
+
+
 } // WiiMoteEmu

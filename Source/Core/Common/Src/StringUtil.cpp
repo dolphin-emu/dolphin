@@ -66,6 +66,40 @@ bool AsciiToHex(const char* _szValue, u32& result)
 	return (true);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Convert AB to it's ascii table entry numbers 0x4142
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+u32 Ascii2Hex(std::string _Text)
+{
+	// Reset the return value zero
+	u32 Result = 0;
+
+	// Max 32-bit values are supported
+	int Length = _Text.length(); if (Length > 4) Length = 4;
+
+	for (int i = 0; i < Length; i++)
+	{
+		// Add up the values, for example RSPE becomes, 0x52000000, then 0x52530000 and so on
+		Result += _Text.c_str()[i] << (Length - 1 - i)*8;
+	}
+	// Return the value
+	return Result;
+}
+// Convert it back again
+std::string Hex2Ascii(u32 _Text)
+{
+	// Create temporary storate
+	char Result[4];
+	// Go through the four characters
+	sprintf(Result, "%c%c%c%c", _Text >> 24, _Text >> 16, _Text >> 8, _Text);
+	// Return the string
+	std::string StrResult = Result;
+	return StrResult;
+}
+///////////////////////////
+
+
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
 	int writtenCount = vsnprintf(out, outsize, format, args);

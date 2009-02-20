@@ -42,20 +42,18 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
-/* Libogc bounding box, in smoothed IR coordinates: 232,284 792,704, however, it was
-   possible for me to get a better calibration with these values, if they are not
-   universal for all PCs we have to make a setting for it. */
+/* The Libogc bounding box in smoothed IR coordinates is 232,284 792,704. However, there is no
+   universal standard that works with all games. They all use their own calibration. Also,
+   there is no widescreen mode for the calibration, at least not in the games I tried, the
+   game decides for example that a horizontal value of 500 is 50% from the left of the screen,
+   and then that's the same regardless if we use the widescreen mode or not.*/
 #define LEFT 266
-#define TOP 211
+#define TOP 215
 #define RIGHT 752
-#define BOTTOM 728
-#define SENSOR_BAR_RADIUS 200
-
-#define wLEFT 332
-#define wTOP 348
-#define wRIGHT 693
-#define wBOTTOM 625
-#define wSENSOR_BAR_RADIUS 200
+#define BOTTOM 705
+/* Since the width of the entire screen is 1024 a reasonable sensor bar width is perhaps 200,
+   given how small most sensor bars are compared to the total TV width */
+#define SENSOR_BAR_RADIUS 100
 
 // Movement recording
 extern int g_RecordingPlaying[3]; 
@@ -176,6 +174,18 @@ extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 extern InputCommon::CONTROLLER_STATE_NEW PadState[4];
 extern InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
+// Wiimote status
+struct SDot
+{
+	int Rx, Ry, X, Y;
+	bool Visible;
+	u8 Size; 				/**< size of the IR dot (0-15)			*/
+};
+struct SIR
+{
+	SDot Dot[4];
+};
+
 // Keyboard input
 struct KeyboardWiimote
 {
@@ -190,6 +200,9 @@ struct KeyboardWiimote
 		SHAKE,
 		LAST_CONSTANT
 	};
+
+	// Raw X and Y coordinate and processed X and Y coordinates
+	SIR IR;
 };
 extern KeyboardWiimote g_Wm;
 struct KeyboardNunchuck

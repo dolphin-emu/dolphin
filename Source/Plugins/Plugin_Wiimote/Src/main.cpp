@@ -64,6 +64,7 @@ SWiimoteInitialize g_WiimoteInitialize;
 
 // General
 bool g_EmulatorRunning = false;
+u32 g_ISOId = 0;
 bool g_FrameOpen = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
@@ -208,11 +209,26 @@ extern "C" void Initialize(void *init)
 
 	g_EmulatorRunning = true;
 
+	// Update the GUI if the configuration window is already open
 	#if defined(HAVE_WX) && HAVE_WX
-		if(g_FrameOpen) if(frame) frame->UpdateGUI();
+	if(g_FrameOpen)
+	{
+		// Save the settings
+		g_Config.Save();
+		// Save the ISO Id
+		g_ISOId = g_WiimoteInitialize.ISOId;
+		// Load the settings
+		g_Config.Load();
+		if(frame) frame->UpdateGUI();
+	}
 	#endif
 
+	// Save the ISO Id, again if we had a window open
+	g_ISOId = g_WiimoteInitialize.ISOId;
+
 	DoInitialize();	
+
+	Console::Print("ISOId: %08x %s\n", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
 }
 
 // If a game is not running this is called by the Configuration window when it's closed
@@ -220,6 +236,9 @@ extern "C" void Shutdown(void)
 {
 	// Not running
 	g_EmulatorRunning = false;
+
+	// Reset the game ID in all cases
+	g_ISOId = 0;
 
 	// We will only shutdown when both a game and the frame is closed
 	if (g_FrameOpen)
@@ -415,14 +434,14 @@ void OpenConsole(bool Open)
 	}
 
 	// Open the console window
-	Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
+	Console::Open(140, 1000, "Wiimote"); // give room for 20 rows
 	Console::Print("\n\nWiimote console opened\n");
 
 	// Move window
 	#ifdef _WIN32
 		//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
 		//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-		MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window
+		MoveWindow(Console::GetHwnd(), 200,0, 140*8,70*14, true); // big wide window
 	#endif
 }
 // ---------------
@@ -678,7 +697,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			"%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x "
 			"%03i %03i "
 			"%03i %03i %03i "
-			"%02x ",
+			"%02x",
 			data[0], data[1], data[2], data[3],  // Header and core buttons
 			data[4], data[5], data[6], // Wiimote accelerometer
 			data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16],
@@ -716,7 +735,19 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			(Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
 			(Gz >= 0) ? StringFromFormat(" %i", (int)Gz).c_str() : StringFromFormat("%i", (int)Gz).c_str());
 		
-		Console::Print("Read[%s]: %s| %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str(), GForce.c_str()); // No timestamp
+		// Show the IR data
+		WiiMoteEmu::IRData2Dots(&data[7]);
+		std::string IRData;
+		for (int i = 0; i < 4; ++i)
+		{
+			if(WiiMoteEmu::g_Wm.IR.Dot[i].Visible)
+				IRData += StringFromFormat("[%i] X:%04i Y:%04i ", i, WiiMoteEmu::g_Wm.IR.Dot[i].Rx, WiiMoteEmu::g_Wm.IR.Dot[i].Ry);
+			else
+				IRData += StringFromFormat("[%i]", i);
+		}
+
+		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str()); // IR data
+		Console::Print("Read[%s]: %s| %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str(), GForce.c_str()); // Accelerometer
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 		
 	}

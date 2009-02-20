@@ -58,7 +58,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
 
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_WIDESCREEN, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
 	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, ConfigDialog::GeneralSettingsChanged)
 
@@ -122,6 +121,11 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_WM_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_SHAKE, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_PITCH_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, ConfigDialog::OnButtonClick)
+	// IR cursor
+	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::GeneralSettingsChanged)
 
 	// Nunchuck
 	EVT_BUTTON(IDB_NC_Z, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, ConfigDialog::OnButtonClick)
@@ -521,11 +525,29 @@ void ConfigDialog::CreateGUIControls()
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	///////////////////////////////////////
 
+	////////////////////////////////////////////////////////////////////////////////
+	// This can take a few seconds so we show a progress bar for it
+	// ----------------	
+	wxProgressDialog dialog(_T("Opening Wii Remote Configuration"),
+				wxT("Loading controls..."),
+				6, // range
+				this, // parent
+				wxPD_APP_MODAL |
+				// wxPD_AUTO_HIDE | -- try this as well
+				wxPD_ELAPSED_TIME |
+				wxPD_ESTIMATED_TIME |
+				wxPD_REMAINING_TIME |
+				wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+				);
+	// I'm not sure what parent this refers to
+	dialog.CenterOnParent();
+	///////////////////////////////////////
 
 	/* Populate all four pages. Page 2, 3 and 4 are currently disabled since we can't use more than one
 	   Wiimote at the moment */
 	for (int i = 0; i < 4; i++)
 	{
+
 		////////////////////////////////////////////////////
 		// General and basic Settings
 		// ----------------
@@ -537,7 +559,6 @@ void ConfigDialog::CreateGUIControls()
 		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
 		// Emulated Wiimote
 		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxSize(ChW, -1));
-		m_WideScreen[i] = new wxCheckBox(m_Controller[i], ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"));
 		// Extension
 		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Wii Motion Plus Connected"), wxDefaultPosition, wxSize(ChW, -1), 0, wxDefaultValidator);
 		m_NunchuckConnected[i] = new wxCheckBox(m_Controller[i], ID_NUNCHUCKCONNECTED, wxT("Nunchuck Connected"));
@@ -554,7 +575,6 @@ void ConfigDialog::CreateGUIControls()
 		m_NunchuckConnected[0]->SetValue(g_Config.bNunchuckConnected);
 		m_ClassicControllerConnected[0]->SetValue(g_Config.bClassicControllerConnected);
 		m_SidewaysDPad[0]->SetValue(g_Config.bSidewaysDPad);
-		m_WideScreen[0]->SetValue(g_Config.bWideScreen);	
 		m_ConnectRealWiimote[0]->SetValue(g_Config.bConnectRealWiimote);
 		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
 
@@ -564,7 +584,53 @@ void ConfigDialog::CreateGUIControls()
 		m_GuitarHeroGuitarConnected[0]->Enable(false);
 		m_GuitarHeroWorldTourDrumsConnected[0]->Enable(false);
 
+		// Tooltips
+		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
+		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
+		m_UseRealWiimote[i]->SetToolTip(wxT(
+			"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
+			" when a recording is to be done. No status in this window will be updated when this is checked."));
+		
+		// -----------------------------------------------
+		// Screen size
+		// ---------------------
+		// Controls
+		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
+		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
+		m_TextScreenLeft[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: 000"));
+		m_TextScreenTop[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Top: 000"));
+
+		m_SliderWidth[i] = new wxSlider(m_Controller[i], IDS_WIDTH, 0, 100, 923, wxDefaultPosition, wxSize(75, -1));
+		m_SliderHeight[i] = new wxSlider(m_Controller[i], IDS_HEIGHT, 0, 0, 727, wxDefaultPosition, wxSize(75, -1));
+		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
+		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
+		//m_ScreenSize = new wxCheckBox(m_Controller[i], IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
 		// Sizers
+		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerWidth[i]->Add(m_SliderLeft[i], 0, wxEXPAND | (wxRIGHT), 0);
+		m_SizerIRPointerWidth[i]->Add(m_TextScreenWidth[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerWidth[i]->Add(m_SliderWidth[i], 0, wxEXPAND | (wxLEFT), 0);
+
+		m_SizerIRPointerHeight[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerHeight[i]->Add(m_TextScreenTop[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerHeight[i]->Add(m_SliderTop[i], 0, wxEXPAND | (wxRIGHT), 0);
+		m_SizerIRPointerHeight[i]->Add(m_TextScreenHeight[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerHeight[i]->Add(m_SliderHeight[i], 0, wxEXPAND | (wxLEFT), 0);
+
+		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR pointer"));
+		//m_SizerIRPointer[i]->Add(m_ScreenSize[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizerIRPointer[i]->Add(m_SizerIRPointerWidth[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+		m_SizerIRPointer[i]->Add(m_SizerIRPointerHeight[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+
+		// Tool tips
+		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
+		// -------------------------------
+
+		// --------------------------------------------------------------------
+		// Row 1 Sizers: General settings
+		// -----------------------------
 		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
 		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
 		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
@@ -575,7 +641,6 @@ void ConfigDialog::CreateGUIControls()
 
 		m_SizeEmuPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeEmu[i]->Add(m_SizeEmuPadding[i], 0, wxEXPAND | (wxALL), 5);
 		m_SizeEmuPadding[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeEmuPadding[i]->Add(m_WideScreen[i], 0, wxEXPAND | (wxUP), 2);
 
 		m_SizeRealPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeReal[i]->Add(m_SizeRealPadding[i], 0, wxEXPAND | (wxALL), 5);
 		m_SizeRealPadding[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | (wxUP), 0);
@@ -594,20 +659,16 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
 
 		m_SizeBasicGeneralLeft[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 5);
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);		
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 5);
 
-		m_SizeBasicGeneralRight[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneralRight[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneralRight[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralRight[i]->Add(m_SizerIRPointer[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
 		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 10);
+		// ------------------------
 
-		// Tooltips
-		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
-		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
-		m_UseRealWiimote[i]->SetToolTip(wxT(
-			"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
-			" when a recording is to be done. No status in this window will be updated when this is checked."));
 		///////////////////////////
 
 
@@ -1128,6 +1189,9 @@ void ConfigDialog::CreateGUIControls()
 		// Set the main sizer
 		m_Controller[i]->SetSizer(m_sMain[i]);
 		/////////////////////////////////
+
+		// Update with the progress (i) and the message (msg)
+		dialog.Update(i + 1, wxT("Loading notebook pages..."));
 	}
 
 	////////////////////////////////////////////
@@ -1136,6 +1200,9 @@ void ConfigDialog::CreateGUIControls()
 	CreateGUIControlsRecording();
 	/////////////////////////////////
 
+	// Update with the progress (i) and the message (msg)
+	dialog.Update(5, wxT("Loading notebook pages..."));
+	//dialog.Close();
 
 	////////////////////////////////////////////////////////////////////////////////
 	// Buttons
@@ -1285,10 +1352,6 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_SIDEWAYSDPAD:
 		g_Config.bSidewaysDPad = m_SidewaysDPad[Page]->IsChecked();
 		break;
-	case ID_WIDESCREEN:
-		g_Config.bWideScreen = m_WideScreen[Page]->IsChecked();
-		break;
-
 
 	//////////////////////////
 	// Extensions
@@ -1418,6 +1481,49 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	UpdateGUI();
 }
 
+// =======================================================
+// Apparently we need a scroll event version of this for the sliders
+// -------------
+void ConfigDialog::GeneralSettingsChanged(wxScrollEvent& event)
+{
+	switch (event.GetId())
+	{
+	// IR cursor position
+	case IDS_WIDTH:
+		g_Config.iIRWidth = m_SliderWidth[Page]->GetValue();
+		break;
+	case IDS_HEIGHT:
+		g_Config.iIRHeight = m_SliderHeight[Page]->GetValue();
+		break;
+	case IDS_LEFT:
+		g_Config.iIRLeft = m_SliderLeft[Page]->GetValue();
+		break;
+	case IDS_TOP:
+		g_Config.iIRTop = m_SliderTop[Page]->GetValue();
+		break;
+	}
+
+	UpdateGUI();
+}
+
+// =======================================================
+// Update the IR pointer calibration sliders
+// -------------
+void ConfigDialog::UpdateControls()
+{
+	// Update the slider position if a configuration has been loaded
+	m_SliderWidth[Page]->SetValue(g_Config.iIRWidth);
+	m_SliderHeight[Page]->SetValue(g_Config.iIRHeight);
+	m_SliderLeft[Page]->SetValue(g_Config.iIRLeft);
+	m_SliderTop[Page]->SetValue(g_Config.iIRTop);
+
+	// Update the labels
+	m_TextScreenWidth[Page]->SetLabel(wxString::Format("Width: %i", g_Config.iIRWidth));
+	m_TextScreenHeight[Page]->SetLabel(wxString::Format("Height: %i", g_Config.iIRHeight));
+	m_TextScreenLeft[Page]->SetLabel(wxString::Format("Left: %i", g_Config.iIRLeft));
+	m_TextScreenTop[Page]->SetLabel(wxString::Format("Top: %i", g_Config.iIRTop));
+}
+// ==============================
 
 
 // =======================================================
@@ -1432,6 +1538,9 @@ void ConfigDialog::UpdateGUI(int Slot)
 
 	// Update dead zone
 	DoChangeDeadZone(true); DoChangeDeadZone(false);
+
+	// Update the Wiimote IR pointer calibration
+	UpdateControls();
 
 	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
 	   from the data scanning functions in main.cpp */
