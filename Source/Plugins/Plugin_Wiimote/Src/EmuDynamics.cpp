@@ -26,6 +26,7 @@
 #include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
+#include "MathUtil.h"
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
 #include "pluginspecs_wiimote.h"
@@ -133,10 +134,10 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 		/* I got these from reversing the calculation in PitchAccelerometerToDegree() in a math program
 		   I don't know if we can derive these from some kind of matrix or something */
 		float x_num = 2 * tanf(0.5f * _Roll) * z;
-		float x_den = powf(tanf(0.5f * _Roll), 2) - 1;
+		float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
 		x = - (x_num / x_den);
 		float y_num = 2 * tanf(0.5f * _Pitch) * z;
-		float y_den = powf(tanf(0.5f * _Pitch), 2) - 1;
+		float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
 		y = - (y_num / y_den);
 		// =========================
 	}

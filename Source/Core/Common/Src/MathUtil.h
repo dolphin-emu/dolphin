@@ -27,6 +27,9 @@
    uses round towards zero.
  */
 
+inline float pow2f(float x) {return x * x;}
+inline double pow2(double x) {return x * x;}
+
 void SaveSSEState();
 void LoadSSEState();
 void LoadDefaultSSEState();

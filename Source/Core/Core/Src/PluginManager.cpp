@@ -257,7 +257,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
    If the user has done that he will instead get the "Can't open %s, it's missing" message. */
 void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 {
-	for (int i = 0; i < m_PluginInfos.size(); i++)
+	for (int i = 0; i < (int)m_PluginInfos.size(); i++)
 	{
 		if (m_PluginInfos.at(i).GetFilename() == Filename)
 		{
