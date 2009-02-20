@@ -308,6 +308,7 @@ struct nu_js {
 struct nu_cal
 {
 	wm_accel cal_zero;		// zero calibratio
+	wm_accel cal_g;			// g size
 	nu_js jx;				//
 	nu_js jy;				//
 };

@@ -142,12 +142,12 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 	}
 
 	// Multiply with the neutral of z and its g
-	float xg = g_accel.cal_g.x;
-	float yg = g_accel.cal_g.y;
-	float zg = g_accel.cal_g.z;
-	float x_zero = g_accel.cal_zero.x;
-	float y_zero = g_accel.cal_zero.y;
-	float z_zero = g_accel.cal_zero.z;
+	float xg = g_wm.cal_g.x;
+	float yg = g_wm.cal_g.y;
+	float zg = g_wm.cal_g.z;
+	float x_zero = g_wm.cal_zero.x;
+	float y_zero = g_wm.cal_zero.y;
+	float z_zero = g_wm.cal_zero.z;
 	int ix = (int) (x_zero + xg * x);
 	int iy = (int) (y_zero + yg * y);
 	int iz = (int) (z_zero + zg * z);
@@ -176,9 +176,9 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	float Roll = 0, Pitch = 0;
 
 	// Calculate how many g we are from the neutral
-	float x = AccelerometerToG((float)_x, (float)g_accel.cal_zero.x, (float)g_accel.cal_g.x);
-	float y = AccelerometerToG((float)_y, (float)g_accel.cal_zero.y, (float)g_accel.cal_g.y);
-	float z = AccelerometerToG((float)_z, (float)g_accel.cal_zero.z, (float)g_accel.cal_g.z);
+	float x = AccelerometerToG((float)_x, (float)g_wm.cal_zero.x, (float)g_wm.cal_g.x);
+	float y = AccelerometerToG((float)_y, (float)g_wm.cal_zero.y, (float)g_wm.cal_g.y);
+	float z = AccelerometerToG((float)_z, (float)g_wm.cal_zero.z, (float)g_wm.cal_g.z);
 
 	// If it is over 1g then it is probably accelerating and may not reliable
 	//if (abs(accel->x - ac->cal_zero.x) <= ac->cal_g.x)
@@ -187,7 +187,7 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 		Roll = InputCommon::Rad2Deg(atan2(x, z));
 	}
 
-	//if (abs(_y - g_accel.cal_zero.y) <= g_accel.cal_g.y)
+	//if (abs(_y - g_wm.cal_zero.y) <= g_wm.cal_g.y)
 	{
 		// Calculate the degree
 		Pitch = InputCommon::Rad2Deg(atan2(y, z));

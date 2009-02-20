@@ -241,16 +241,19 @@ void LoadRecordedMovements()
 // Update the accelerometer neutral values
 void UpdateEeprom()
 {
-	g_accel.cal_zero.x = g_Eeprom[22];
-	g_accel.cal_zero.y = g_Eeprom[23];
-	g_accel.cal_zero.z = g_Eeprom[24];
-	g_accel.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
-	g_accel.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
-	g_accel.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
+	g_wm.cal_zero.x = g_Eeprom[22];
+	g_wm.cal_zero.y = g_Eeprom[23];
+	g_wm.cal_zero.z = g_Eeprom[24];
+	g_wm.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
+	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
+	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
 	g_nu.cal_zero.x = g_RegExt[0x20];
 	g_nu.cal_zero.y = g_RegExt[0x21];
-	g_nu.cal_zero.z = g_RegExt[0x26]; // Including the g-force
+	g_nu.cal_zero.z = g_RegExt[0x22];
+	g_nu.cal_g.x = g_RegExt[0x24] - g_RegExt[0x20];
+	g_nu.cal_g.y = g_RegExt[0x25] - g_RegExt[0x21];
+	g_nu.cal_g.z = g_RegExt[0x26] - g_RegExt[0x22];
 	g_nu.jx.max = g_RegExt[0x28];
 	g_nu.jx.min = g_RegExt[0x29];
 	g_nu.jx.center = g_RegExt[0x2a];

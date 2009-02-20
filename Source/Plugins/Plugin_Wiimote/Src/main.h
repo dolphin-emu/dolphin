@@ -79,7 +79,7 @@ struct SRecordingAll
 	#endif
 
 	// Settings
-	extern accel_cal g_accel;
+	extern accel_cal g_wm;
 	extern nu_cal g_nu;
 
 	// Debugging

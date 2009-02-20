@@ -57,31 +57,67 @@ double g_RecordingStart[3]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
 double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
 // --------------------------
 
-// Convert from -350 to -3.5 g
-int G2Accelerometer(int _G, int XYZ)
+/////////////////////////////////////////////////////////////////////////
+/* Convert from -350 to -3.5 g. The Nunchuck gravity size is 51 compared to the 26 to 28 for the Wiimote.
+   So the maximum g values are higher for the Wiimote. */
+// ---------------
+int G2Accelerometer(int _G, int XYZ, int Wm)
 {
 	float G = (float)_G / 100.0;
 	float Neutral, OneG, Accelerometer;
 
 	switch(XYZ)
 	{
-	case 0:
-		OneG = (float)g_accel.cal_g.x;
-		Neutral = (float)g_accel.cal_zero.x;
+	case 0: // X
+		if(Wm == WM_RECORDING_WIIMOTE)
+		{
+			OneG = (float)g_wm.cal_g.x;
+			Neutral = (float)g_wm.cal_zero.x;
+		}
+		else
+		{
+			OneG = (float)g_nu.cal_g.x;
+			Neutral = (float)g_nu.cal_zero.x;
+		}
 		break;
-	case 1:
-		OneG = (float)g_accel.cal_g.y;
-		Neutral = (float)g_accel.cal_zero.y;
+	case 1: // Y
+		if(Wm == WM_RECORDING_WIIMOTE)
+		{
+			OneG = (float)g_wm.cal_g.y;
+			Neutral = (float)g_wm.cal_zero.y;
+		}
+		else
+		{
+			OneG = (float)g_nu.cal_g.y;
+			Neutral = (float)g_nu.cal_zero.y;
+		}
 		break;
-	case 2:
-		OneG = (float)g_accel.cal_g.z;
-		Neutral = (float)g_accel.cal_zero.z;
+	case 2: // Z
+		if(Wm == WM_RECORDING_WIIMOTE)
+		{
+			OneG = (float)g_wm.cal_g.z;
+			Neutral = (float)g_wm.cal_zero.z;
+		}
+		else
+		{
+			OneG = (float)g_nu.cal_g.z;
+			Neutral = (float)g_nu.cal_zero.z;
+		}
 		break;
 	default: PanicAlert("There is a syntax error in a function that is calling G2Accelerometer(%i, %i)", _G, XYZ);
 	}
 
 	Accelerometer = Neutral + (OneG * G);
-	return (int)Accelerometer;
+	int Return = (int)Accelerometer;
+
+	// Logging
+	//Console::Print("G2Accelerometer():%f %f %f %f\n", Neutral, OneG, G, Accelerometer);
+
+	// Boundaries
+	if (Return > 255) Return = 255;
+	if (Return < 0) Return = 0;
+
+	return Return;
 }
 
 template<class IRReportType>
@@ -159,9 +195,9 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	}
 
 	// Update accelerometer values
-	_x = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x, 0);
-	_y = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y, 1);
-	_z = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z, 2);
+	_x = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x, 0, Wm);
+	_y = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y, 1, Wm);
+	_z = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z, 2, Wm);
 	// Update IR values
 	if(Wm == WM_RECORDING_IR) memcpy(&_IR, VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).IR, IRBytes);
 
@@ -440,7 +476,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 	else if(Shake[i] == 2)
 	{
 		// This works regardless of calibration, in Wario Land
-		_z = g_accel.cal_zero.z - 2;
+		_z = g_wm.cal_zero.z - 2;
 		_y = 0;
 		Shake[i] = 1;
 	}
@@ -631,9 +667,9 @@ void FillReportAcc(wm_accel& _acc)
 	// ---------------------
 
 	// The default values can change so we need to update them all the time
-	g_X = g_accel.cal_zero.x;
-	g_Y = g_accel.cal_zero.y;
-	g_Z = g_accel.cal_zero.z + g_accel.cal_g.z;
+	g_X = g_wm.cal_zero.x;
+	g_Y = g_wm.cal_zero.y;
+	g_Z = g_wm.cal_zero.z + g_wm.cal_g.z;
 
 
 	// Check that Dolphin is in focus
@@ -958,11 +994,10 @@ void FillReportExtension(wm_extension& _ext)
 	// We should not play back the accelerometer values
 	if (!(g_RecordingPlaying[1] >= 0 && RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1)))
 	{
-		/* These are the default neutral values for the nunchuck accelerometer according to the calibration
-		   data we have in nunchuck_calibration[] */
-		_ext.ax = 0x80;
-		_ext.ay = 0x80;
-		_ext.az = 0xb3;
+		// Use the neutral values
+		_ext.ax = g_nu.cal_zero.x;
+		_ext.ay = g_nu.cal_zero.y;
+		_ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
 	}
 	// ---------------------
 

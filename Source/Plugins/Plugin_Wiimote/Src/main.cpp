@@ -72,7 +72,7 @@ bool g_EmulatedWiiMoteInitialized = false;
 bool g_WiimoteUnexpectedDisconnect = false;
 
 // Settings
-accel_cal g_accel;
+accel_cal g_wm;
 nu_cal g_nu;
 
 // Debugging
@@ -755,9 +755,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// -------------------------
 
 		// Show the number of g forces on the axes
-		float Gx = WiiMoteEmu::AccelerometerToG((float)data[4], (float)g_accel.cal_zero.x, (float)g_accel.cal_g.x);
-		float Gy = WiiMoteEmu::AccelerometerToG((float)data[5], (float)g_accel.cal_zero.y, (float)g_accel.cal_g.y);
-		float Gz = WiiMoteEmu::AccelerometerToG((float)data[6], (float)g_accel.cal_zero.z, (float)g_accel.cal_g.z);
+		float Gx = WiiMoteEmu::AccelerometerToG((float)data[4], (float)g_wm.cal_zero.x, (float)g_wm.cal_g.x);
+		float Gy = WiiMoteEmu::AccelerometerToG((float)data[5], (float)g_wm.cal_zero.y, (float)g_wm.cal_g.y);
+		float Gz = WiiMoteEmu::AccelerometerToG((float)data[6], (float)g_wm.cal_zero.z, (float)g_wm.cal_g.z);
 		std::string GForce = StringFromFormat("%s %s %s",
 			((int)Gx >= 0) ? StringFromFormat(" %i", (int)Gx).c_str() : StringFromFormat("%i", (int)Gx).c_str(),
 			((int)Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
