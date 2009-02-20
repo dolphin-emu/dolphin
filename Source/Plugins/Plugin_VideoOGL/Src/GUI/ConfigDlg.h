@@ -179,7 +179,8 @@ class ConfigDialog : public wxDialog
 
 		void AboutClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
-		void AdvancedSettingsChanged(wxCommandEvent& event); void AdvancedSettingsChanged(wxScrollEvent& event);
+		void AdvancedSettingsChanged(wxCommandEvent& event); 
+		void AdvancedSettingsChangedScroll(wxScrollEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 };
 

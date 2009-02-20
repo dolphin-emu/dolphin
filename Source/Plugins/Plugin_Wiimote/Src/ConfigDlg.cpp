@@ -122,10 +122,10 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_WM_SHAKE, ConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_PITCH_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, ConfigDialog::OnButtonClick)
 	// IR cursor
-	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::GeneralSettingsChangedScroll)
 
 	// Nunchuck
 	EVT_BUTTON(IDB_NC_Z, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, ConfigDialog::OnButtonClick)
@@ -1484,7 +1484,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // =======================================================
 // Apparently we need a scroll event version of this for the sliders
 // -------------
-void ConfigDialog::GeneralSettingsChanged(wxScrollEvent& event)
+void ConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -1518,10 +1518,10 @@ void ConfigDialog::UpdateControls()
 	m_SliderTop[Page]->SetValue(g_Config.iIRTop);
 
 	// Update the labels
-	m_TextScreenWidth[Page]->SetLabel(wxString::Format("Width: %i", g_Config.iIRWidth));
-	m_TextScreenHeight[Page]->SetLabel(wxString::Format("Height: %i", g_Config.iIRHeight));
-	m_TextScreenLeft[Page]->SetLabel(wxString::Format("Left: %i", g_Config.iIRLeft));
-	m_TextScreenTop[Page]->SetLabel(wxString::Format("Top: %i", g_Config.iIRTop));
+	m_TextScreenWidth[Page]->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iIRWidth));
+	m_TextScreenHeight[Page]->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iIRHeight));
+	m_TextScreenLeft[Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
+	m_TextScreenTop[Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
 }
 // ==============================
 

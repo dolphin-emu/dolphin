@@ -217,7 +217,8 @@ class ConfigDialog : public wxDialog
 		void CreateGUIControls();
 		void CreateGUIControlsRecording();
 		void AboutClick(wxCommandEvent& event);
-		void GeneralSettingsChanged(wxCommandEvent& event); void GeneralSettingsChanged(wxScrollEvent& event);
+		void GeneralSettingsChanged(wxCommandEvent& event);
+		void GeneralSettingsChangedScroll(wxScrollEvent& event);
 
 		void DoConnectReal(); // Real
 		void DoUseReal();

@@ -56,10 +56,10 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 
 	// Screen size
-	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::AdvancedSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::AdvancedSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::AdvancedSettingsChanged)
-	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::AdvancedSettingsChanged)
+	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::AdvancedSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::AdvancedSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::AdvancedSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::AdvancedSettingsChangedScroll)
 	EVT_CHECKBOX(IDC_SCREEN_SIZE, ConfigDialog::AdvancedSettingsChanged)
 
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
@@ -502,7 +502,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 }
 
 // Apparently we need a scroll event version of this for the sliders
-void ConfigDialog::AdvancedSettingsChanged(wxScrollEvent& event)
+void ConfigDialog::AdvancedSettingsChangedScroll(wxScrollEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -621,8 +621,8 @@ void ConfigDialog::UpdateGUI()
 	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
 
 	// Update screen size labels
-	m_TextScreenWidth->SetLabel(wxString::Format("Width: %i", g_Config.iScreenWidth));
-	m_TextScreenHeight->SetLabel(wxString::Format("Height: %i", g_Config.iScreenHeight));
-	m_TextScreenLeft->SetLabel(wxString::Format("Left: %i", g_Config.iScreenLeft));
-	m_TextScreenTop->SetLabel(wxString::Format("Top: %i", g_Config.iScreenTop));
+	m_TextScreenWidth->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iScreenWidth));
+	m_TextScreenHeight->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iScreenHeight));
+	m_TextScreenLeft->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iScreenLeft));
+	m_TextScreenTop->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iScreenTop));
 }
