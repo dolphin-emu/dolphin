@@ -173,11 +173,16 @@ void handle_event(struct wiimote_t* wm)
 #if defined(HAVE_WX) && HAVE_WX
 		if(frame)
 		{
-			// Produce adjusted accelerometer values
-			u8 AccelX = 0, AccelY = 0, AccelZ = 0;			
-			if((wm->accel.x + g_Config.iAccNunNeutralX) <= 255) AccelX = wm->accel.x + g_Config.iAccNeutralX;
-			if((wm->accel.y + g_Config.iAccNunNeutralY) <= 255) AccelY = wm->accel.y + g_Config.iAccNeutralY;
-			if((wm->accel.z + g_Config.iAccNunNeutralZ) <= 255) AccelZ = wm->accel.z + g_Config.iAccNeutralZ;
+			// Produce adjusted accelerometer values		
+			float _Gx = (float)(wm->accel.x - wm->accel_calib.cal_zero.x) / (float)wm->accel_calib.cal_g.x;
+			float _Gy = (float)(wm->accel.y - wm->accel_calib.cal_zero.y) / (float)wm->accel_calib.cal_g.y;
+			float _Gz = (float)(wm->accel.z - wm->accel_calib.cal_zero.z) / (float)wm->accel_calib.cal_g.z;
+			
+			// Conver the data to integers
+			int Gx = (int)(_Gx * 100);
+			int Gy = (int)(_Gy * 100);
+			int Gz = (int)(_Gz * 100);
+
 			// And for the Nunchuck
 			u8 AccelNX = 0, AccelNY = 0, AccelNZ = 0;
 			if(wm->exp.type == EXP_NUNCHUK)
@@ -193,28 +198,29 @@ void handle_event(struct wiimote_t* wm)
 				frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
 				frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
+				// Show g. forces between -3 and 3
 				frame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
 				frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
 				frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));				
 
-				frame->m_GaugeAccel[0]->SetValue(AccelX);
-				frame->m_GaugeAccel[1]->SetValue(AccelY);
-				frame->m_GaugeAccel[2]->SetValue(AccelZ);
+				frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
+				frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
+				frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
 
 				frame->m_TextIR->SetLabel(wxString::Format(
 					wxT("Cursor: %03u %03u\nDistance:%4.0f"), wm->ir.x, wm->ir.y, wm->ir.z));
 
-				frame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
-					wxT("Current: %03u %03u %03u"), AccelX, AccelY, AccelZ));
+				//frame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
+				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
 				if(frame->m_bRecording)
-					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", AccelX, AccelY, AccelZ);
-					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", AccelX, AccelY, AccelZ);
+					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", Gx, Gy, Gz);
+					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", Gx, Gy, Gz);
 			}
-	
+
 			// Send the data to be saved
 			//const u8* data = (const u8*)wm->event_buf;
-			frame->DoRecordMovement(AccelX, AccelY, AccelZ, (g_EventBuffer + 6),
+			frame->DoRecordMovement(Gx, Gy, Gz, (g_EventBuffer + 6),
 				(WIIUSE_USING_EXP(wm) ? 10 : 12));
 
 			// Turn recording on and off
@@ -248,9 +254,6 @@ void handle_event(struct wiimote_t* wm)
 #if defined(HAVE_WX) && HAVE_WX
 		if (frame)
 		{
-			
-			frame->m_TextAccNeutralCurrent->SetLabel(wxT("Current: 000 000 000"));
-
 			frame->m_GaugeRoll[0]->SetValue(0);
 			frame->m_GaugeRoll[1]->SetValue(0);
 
@@ -285,7 +288,7 @@ void ReadWiimote()
 	   wiiuse_io_read() and wiiuse_io_write() loop again. */
 	if (g_RunTemporary)
 	{
-		// This holds if the update rate of wiiuse_poll() is kept at the default value of 10 ms
+		// The SecondsToWait holds if the update rate of wiiuse_poll() is kept at the default value of 10 ms
 		static const int SecondsToWait = 2;
 		g_RunTemporaryCountdown++;
 		if(g_RunTemporaryCountdown > (SecondsToWait * 100))
@@ -334,10 +337,8 @@ void ReadWiimote()
 					{				
 						Temp = ArrayToString(g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
 						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
-						WiiMoteEmu::UpdateEeprom();
 						Console::Print("EEPROM: %s\n", Temp.c_str());
-						Console::Print("Got neutral values: %i %i %i\n",
-							WiiMoteEmu::g_Eeprom[22],WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+						WiiMoteEmu::UpdateEeprom();
 						g_RunTemporary = false;
 					}
 					break;

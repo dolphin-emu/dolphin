@@ -96,7 +96,7 @@ void GetMousePos(float& x, float& y)
 
 
 // ===================================================
-/* Homebrew encryption for 0x00000000 encryption keys. */
+/* Homebrew encryption for 16 byte zero keys. */
 // ----------------
 void CryptBuffer(u8* _buffer, u8 _size)
 {
@@ -122,7 +122,7 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 // ----------------
 void LoadRecordedMovements()
 {
-	Console::Print("LoadRecordedMovements()");
+	Console::Print("LoadRecordedMovements()\n");
 
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
@@ -157,21 +157,23 @@ void LoadRecordedMovements()
 		VRecording.at(i).IRBytes = TmpIRBytes;
 
 		SRecording Tmp;
-		for (int j = 0, k = 0, l = 0; j < TmpMovement.length(); j+=7)
+		for (int j = 0, k = 0, l = 0; j < TmpMovement.length(); j+=13)
 		{
 			// Skip blank savings
 			if (TmpMovement.length() < 3) continue;
 
-			std::string StrX = TmpMovement.substr(j, 2);
-			std::string StrY = TmpMovement.substr(j + 2, 2);
-			std::string StrZ = TmpMovement.substr(j + 4, 2);
-			u32 TmpX, TmpY, TmpZ;
-			AsciiToHex(StrX.c_str(), TmpX);
-			AsciiToHex(StrY.c_str(), TmpY);
-			AsciiToHex(StrZ.c_str(), TmpZ);			
-			Tmp.x = (u8)TmpX;
-			Tmp.y = (u8)TmpY;
-			Tmp.z = (u8)TmpZ;
+			// Avoid going to far, this can only happen with modified ini files, but we check for it anyway
+			if (TmpMovement.length() < j + 12) continue;
+
+			// Skip old style recordings
+			if (TmpMovement.substr(j, 1) != "-" && TmpMovement.substr(j, 1) != "+") continue;
+
+			std::string StrX = TmpMovement.substr(j, 4);
+			std::string StrY = TmpMovement.substr(j + 4, 4);
+			std::string StrZ = TmpMovement.substr(j + 8, 4);		
+			Tmp.x = atoi(StrX.c_str());
+			Tmp.y = atoi(StrY.c_str());
+			Tmp.z = atoi(StrZ.c_str());
 
 			// ---------------------------------
 			// Go to next set of IR values
@@ -220,16 +222,16 @@ void LoadRecordedMovements()
 		// ---------------------------------
 		// Logging
 		// ---------
-		std::string TmpIRLog;
-		if(TmpIRBytes > 0)
+		/*std::string TmpIRLog;
+		if(TmpIRBytes > 0 && VRecording.size() > i)
 			TmpIRLog = ArrayToString(VRecording.at(i).Recording.at(0).IR, TmpIRBytes, 0, 30);
 		else
 			TmpIRLog = "";
-
-		/*
-		Console::Print("Size:%i HotKey:%i PlSpeed:%i IR: %s\n",
-			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed,
-			TmpIRLog.c_str()
+		
+		Console::Print("Size:%i HotKey:%i PlSpeed:%i IR:%s X:%i Y:%i Z:%i\n",
+			VRecording.at(i).Recording.size(), VRecording.at(i).HotKeyWiimote, VRecording.at(i).PlaybackSpeed,
+			TmpIRLog.c_str(),
+			VRecording.at(i).Recording.at(0).x, VRecording.at(i).Recording.at(0).y, VRecording.at(i).Recording.at(0).z
 			);*/
 		// ---------------------
 	}
@@ -257,7 +259,7 @@ void UpdateEeprom()
 	g_nu.jy.center = g_RegExt[0x2d];
 
 	Console::Print("\nUpdateEeprom: %i %i %i\n",
-		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
 
 	Console::Print("UpdateExtension: %i %i   %i %i %i\n\n",
 		WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],

@@ -51,8 +51,10 @@ namespace WiiMoteEmu
 #define TOP 215
 #define RIGHT 752
 #define BOTTOM 705
-/* Since the width of the entire screen is 1024 a reasonable sensor bar width is perhaps 200,
-   given how small most sensor bars are compared to the total TV width */
+/* Since the width of the entire virtual screen is 1024 a reasonable sensor bar width is perhaps 200,
+   given how small most sensor bars are compared to the total TV width. When I tried the distance with
+   my Wiimote from around three meters distance from the sensor bar (that has around 15 cm beteen the
+   IR lights) I got a dot distance of around 110 (and a dot size of between 1 and 2). */
 #define SENSOR_BAR_RADIUS 100
 
 // Movement recording
@@ -101,6 +103,7 @@ extern bool g_Encryption;
 static const u8 EepromData_0[] = {
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, 0x74, 0xD3,
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, 0x74, 0xD3,
+	// Accelerometer neutral values
 	0x82, 0x82, 0x82, 0x15, 0x9C, 0x9C, 0x9E, 0x38, 0x40, 0x3E,
 	0x82, 0x82, 0x82, 0x15, 0x9C, 0x9C, 0x9E, 0x38, 0x40, 0x3E
 };
@@ -179,11 +182,13 @@ struct SDot
 {
 	int Rx, Ry, X, Y;
 	bool Visible;
-	u8 Size; 				/**< size of the IR dot (0-15)			*/
+	int Size; 				// Size of the IR dot (0-15)
+	int Order;				// Increasing order from low to higher x-axis values
 };
 struct SIR
 {
 	SDot Dot[4];
+	int Distance;
 };
 
 // Keyboard input

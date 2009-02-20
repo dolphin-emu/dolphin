@@ -51,9 +51,9 @@ void OpenConsole(bool Open = false);
 #define WM_RECORDING_IR 2
 struct SRecording
 {
-	u8 x;
-	u8 y;
-	u8 z;
+	int x;
+	int y;
+	int z;
 	double Time;
 	u8 IR[12];
 };

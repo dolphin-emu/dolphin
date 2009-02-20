@@ -379,10 +379,11 @@ int Initialize()
 	// If we are not using the emulated wiimote we can run the thread temporary until the data has beeen copied
 	if(g_Config.bUseRealWiimote) g_RunTemporary = true;
 
-	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values to g_Eeprom. We can't
-	   change the neutral values the wiimote will report, I think, unless we update its eeprom? In any
-	   case it's probably better to let the current calibration be where it is and adjust the global
-	   values after that. I don't feel comfortable with overwriting critical data on a lot of Wiimotes. */
+	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values to g_Eeprom. Unlike with
+	   and extension we have to do this here, because this data is only read once when the Wiimote
+	   is connected. Also, we can't change the neutral values the wiimote will report, I think, unless
+	   we update its eeprom? In any case it's probably better to let the current calibration be where it
+	   is and adjust the global values after that to avoid overwriting critical data on any Wiimote. */
 	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
 

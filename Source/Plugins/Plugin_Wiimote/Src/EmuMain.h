@@ -64,6 +64,9 @@ void AdjustAngles(float &Roll, float &Pitch);
 
 // IR data
 void IRData2Dots(u8 *Data);
+void IRData2DotsBasic(u8 *Data);
+void ReorderIRDots();
+void IRData2Distance();
 
 }; // WiiMoteEmu
 

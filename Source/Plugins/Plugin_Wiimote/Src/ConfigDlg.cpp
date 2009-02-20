@@ -64,7 +64,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_UPDATE_REAL, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(ID_NEUTRAL_CHOICE, ConfigDialog::GeneralSettingsChanged)	
 
 	// Recording
 	EVT_CHOICE(IDC_RECORD + 1, ConfigDialog::GeneralSettingsChanged)
@@ -658,18 +657,20 @@ void ConfigDialog::CreateGUIControls()
 		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
 		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
 
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 0);
 		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 5);
 
-		m_SizeBasicGeneralRight[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 0);
+		m_SizeBasicGeneralRight[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
 		m_SizeBasicGeneralRight[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
 		m_SizeBasicGeneralRight[i]->Add(m_SizerIRPointer[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 10);
+		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 5);
 		// ------------------------
 
 		///////////////////////////
+
+
 
 
 		////////////////////////////////////////////////////////////////////////
@@ -1305,7 +1306,7 @@ void ConfigDialog::DoUseReal()
 		// Disable the checkbox for a moment
 		SetCursor(wxCursor(wxCURSOR_WAIT));
 		m_bEnableUseRealWiimote = false;
-		// We don't need this, there is already a message queue that allows the nessesary timeout
+		// We may not need this if there is already a message queue that allows the nessesary timeout
 		//sleep(100);
 
 		/* Start the timer to allow the approximate time it takes for the Wiimote to come online
@@ -1438,14 +1439,6 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_UPDATE_REAL:
 		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
 		break;
-	case ID_NEUTRAL_CHOICE:
-		g_Config.iAccNeutralX = m_AccNeutralChoice[0]->GetSelection();
-		g_Config.iAccNeutralY = m_AccNeutralChoice[1]->GetSelection();
-		g_Config.iAccNeutralZ = m_AccNeutralChoice[2]->GetSelection();
-		//g_Config.iAccNunNeutralX = m_AccNunNeutralChoice[0]->GetSelection();
-		//g_Config.iAccNunNeutralY = m_AccNunNeutralChoice[1]->GetSelection();
-		//g_Config.iAccNunNeutralZ = m_AccNunNeutralChoice[2]->GetSelection();
-		break;		
 
 	case IDC_RECORD + 1:
 	case IDC_RECORD + 2:

@@ -45,6 +45,11 @@ namespace WiiMoteEmu
 {
 
 
+//******************************************************************************
+// Accelerometer functions
+//******************************************************************************
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Test the calculations
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -203,15 +208,61 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 }
 
 
+
+//******************************************************************************
+// IR data functions
+//******************************************************************************
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Calculate dot positions from the basic 10 byte IR data
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void IRData2DotsBasic(u8 *Data)
+{
+	struct SDot* Dot = g_Wm.IR.Dot;
+
+	Dot[0].Rx = 1023 - (Data[0] | ((Data[2] & 0x30) << 4));
+	Dot[0].Ry = Data[1] | ((Data[2] & 0xc0) << 2);
+
+	Dot[1].Rx = 1023 - (Data[3] | ((Data[2] & 0x03) << 8));
+	Dot[1].Ry = Data[4] | ((Data[2] & 0x0c) << 6);
+
+	Dot[2].Rx = 1023 - (Data[5] | ((Data[7] & 0x30) << 4));
+	Dot[2].Ry = Data[6] | ((Data[7] & 0xc0) << 2);
+
+	Dot[3].Rx = 1023 - (Data[8] | ((Data[7] & 0x03) << 8));
+	Dot[3].Ry = Data[9] | ((Data[7] & 0x0c) << 6);
+
+	/* set each IR spot to visible if spot is in range */
+	for (int i = 0; i < 4; ++i)
+	{
+		if (Dot[i].Ry == 1023)
+		{
+			Dot[i].Visible = 0;
+		}
+		else
+		{
+			Dot[i].Visible = 1;
+			Dot[i].Size = 0;		/* since we don't know the size, set it as 0 */
+		}
+
+		// For now we let our virtual resolution be the same as the default one
+		Dot[i].X = Dot[i].Rx; Dot[i].Y = Dot[i].Ry;
+	}
+
+	// Calculate the other values
+	ReorderIRDots();
+	IRData2Distance();
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Calculate dot positions from the extented 12 byte IR data
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2Dots(u8 *Data)
 {
 	struct SDot* Dot = g_Wm.IR.Dot;
-	//SDot Dot[4];
-
-
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -228,11 +279,86 @@ void IRData2Dots(u8 *Data)
 		else
 			Dot[i].Visible = true;
 
-		// Write to the global IR variable
-		//g_Wm.IR.Dot[i] = Dot[i];
-
 		//Console::Print("Rx: %i\n", Dot[i].Rx);
+
+		// For now we let our virtual resolution be the same as the default one
+		Dot[i].X = Dot[i].Rx; Dot[i].Y = Dot[i].Ry;
+	}	
+
+	// Calculate the other values
+	ReorderIRDots();
+	IRData2Distance();
+}
+////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Reorder the IR dots according to their x-axis value
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ReorderIRDots()
+{
+	// Create a shortcut
+	struct SDot* Dot = g_Wm.IR.Dot;
+
+	// Variables
+	int i, j, order;
+
+	// Reset the dot ordering to zero
+	for (i = 0; i < 4; ++i)
+		Dot[i].Order = 0;
+
+	for (order = 1; order < 5; ++order)
+	{
+		i = 0;
+
+		//
+		for (; !Dot[i].Visible || Dot[i].Order; ++i)
+			if (i > 4) return;
+
+		//
+		for (j = 0; j < 4; ++j)
+		{
+			if (Dot[j].Visible && !Dot[j].Order && (Dot[j].X < Dot[i].X))
+				i = j;
+		}
+
+		Dot[i].Order = order;
 	}
+}
+////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Calculate dot positions from the extented 12 byte IR data
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void IRData2Distance()
+{
+	// Create a shortcut
+	struct SDot* Dot = g_Wm.IR.Dot;
+
+	// Make these ones global
+	int i1, i2;
+
+	for (i1 = 0; i1 < 4; ++i1)
+		if (Dot[i1].Visible) break;
+
+	// Only one dot was visible, we can not calculate the distance
+	if (i1 == 4) { g_Wm.IR.Distance = 0; return; }
+
+	// Look at the next dot
+	for (i2 = i1 + 1; i2 < 4; ++i2)
+		if (Dot[i2].Visible) break;
+
+	// Only one dot was visible, we can not calculate the distance
+	if (i2 == 4) { g_Wm.IR.Distance = 0; return; }
+
+	/* For the emulated Wiimote the y distance is always zero so then the distance is the
+	   simple distance between the x dots, i.e. the sensor bar width */
+	int xd = Dot[i2].X - Dot[i1].X;
+	int yd = Dot[i2].Y - Dot[i1].Y;
+
+	// Save the distance
+	g_Wm.IR.Distance = (int)sqrt((float)(xd*xd) + (float)(yd*yd));
 }
 ////////////////////////////////
 

@@ -57,6 +57,33 @@ double g_RecordingStart[3]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
 double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
 // --------------------------
 
+// Convert from -350 to -3.5 g
+int G2Accelerometer(int _G, int XYZ)
+{
+	float G = (float)_G / 100.0;
+	float Neutral, OneG, Accelerometer;
+
+	switch(XYZ)
+	{
+	case 0:
+		OneG = (float)g_accel.cal_g.x;
+		Neutral = (float)g_accel.cal_zero.x;
+		break;
+	case 1:
+		OneG = (float)g_accel.cal_g.y;
+		Neutral = (float)g_accel.cal_zero.y;
+		break;
+	case 2:
+		OneG = (float)g_accel.cal_g.z;
+		Neutral = (float)g_accel.cal_zero.z;
+		break;
+	default: PanicAlert("There is a syntax error in a function that is calling G2Accelerometer(%i, %i)", _G, XYZ);
+	}
+
+	Accelerometer = Neutral + (OneG * G);
+	return (int)Accelerometer;
+}
+
 template<class IRReportType>
 bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 {
@@ -132,9 +159,9 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	}
 
 	// Update accelerometer values
-	_x = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x;
-	_y = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y;
-	_z = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z;
+	_x = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x, 0);
+	_y = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y, 1);
+	_z = G2Accelerometer(VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z, 2);
 	// Update IR values
 	if(Wm == WM_RECORDING_IR) memcpy(&_IR, VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).IR, IRBytes);
 

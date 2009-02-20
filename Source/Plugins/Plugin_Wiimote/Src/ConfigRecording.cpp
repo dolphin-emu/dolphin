@@ -136,7 +136,6 @@ void ConfigDialog::CreateGUIControlsRecording()
 	// ---------------------------------------------
 	// Status
 	// ----------------	
-	wxStaticBoxSizer * sbRealStatus = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Status"));
 	m_TextUpdateRate = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Update rate: 000 times/s"));
 	m_UpdateMeters = new wxCheckBox(m_PageRecording, ID_UPDATE_REAL, wxT("Update gauges"));
 
@@ -146,46 +145,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 		"You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n"
 		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
 		));
-
-	sbRealStatus->Add(m_TextUpdateRate, 0, wxEXPAND | (wxALL), 5);
-	sbRealStatus->Add(m_UpdateMeters, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
 	// -----------------------
-
-	// ---------------------------------------------
-	// Wiimote accelerometer neutral values
-	// ----------------	
-	wxStaticBoxSizer * sbRealNeutral = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Wiimote neutral"));
-	wxStaticText * m_TextAccNeutralTarget = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Target: 132 132 159"));
-	m_TextAccNeutralCurrent = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Current: 000 000 000"));
-	wxArrayString StrAccNeutral;
-	for(int i = 0; i < 31; i++) StrAccNeutral.Add(wxString::Format(wxT("%i"), i));
-	for(int i = 0; i < 3; i++) m_AccNeutralChoice[i] = new wxChoice(m_PageRecording, ID_NEUTRAL_CHOICE, wxDefaultPosition, wxDefaultSize, StrAccNeutral);
-	m_AccNeutralChoice[0]->SetSelection(g_Config.iAccNeutralX);
-	m_AccNeutralChoice[1]->SetSelection(g_Config.iAccNeutralY);
-	m_AccNeutralChoice[2]->SetSelection(g_Config.iAccNeutralZ);
-
-	wxBoxSizer * sbRealWiimoteNeutralChoices = new wxBoxSizer(wxHORIZONTAL);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[0], 0, wxEXPAND | (wxALL), 0);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[1], 0, wxEXPAND | (wxLEFT), 2);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[2], 0, wxEXPAND | (wxLEFT), 2);
-
-	sbRealNeutral->Add(m_TextAccNeutralTarget, 0, wxEXPAND | (wxALL), 5);
-	sbRealNeutral->Add(m_TextAccNeutralCurrent, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
-	sbRealNeutral->Add(sbRealWiimoteNeutralChoices, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
-
-	m_TextAccNeutralTarget->SetToolTip(wxT(
-		"To produce compatible accelerometer recordings that can be shared with other users without problems"
-		" you have to adjust the Current value to the Target value before you make a recording."
-		));
-
-	// Wiimote Status
-	wxBoxSizer * sbRealWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
-
-	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Battery"));
-	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Roll and Pitch"));
-	wxStaticBoxSizer * sbRealGForce = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("G-Force"));
-	wxStaticBoxSizer * sbRealAccel = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Accelerometer"));
-	wxStaticBoxSizer * sbRealIR = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("IR"));
 
 	// Width and height of the gauges
 	static const int Gw = 35, Gh = 110;
@@ -203,7 +163,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 	// The text controls
 	m_TextIR = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Cursor: 000 000\nDistance: 0000"));
 
-	// -----------------------------
+	// ------------------------------------
 	// The sizers for all gauges together with their label
 	// -----------
 	wxBoxSizer * sBoxBattery = new wxBoxSizer(wxVERTICAL);
@@ -228,34 +188,51 @@ void ConfigDialog::CreateGUIControlsRecording()
 	m_TextZ[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	// ----------------
 
-	// -----------------------------
-	// Set up sizers
+	// ----------------------------------------------
+	// Row 1 Sizers
 	// -----------
-	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 5); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxALL), 0);
+	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 0); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxUP), 5);
 
-	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxALL), 5); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxALL), 0);
-	sBoxRoll[1]->Add(m_GaugeRoll[1], 0, wxEXPAND | (wxALL), 5); sBoxRoll[1]->Add(m_TextPitch, 0, wxEXPAND | (wxALL), 0);
+	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxUP), 5);
+	sBoxRoll[1]->Add(m_GaugeRoll[1], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxRoll[1]->Add(m_TextPitch, 0, wxEXPAND | (wxUP), 5);
 
-	sBoxGForce[0]->Add(m_GaugeGForce[0], 0, wxEXPAND | (wxALL), 5); sBoxGForce[0]->Add(m_TextX[0], 0, wxEXPAND | (wxALL), 0);
-	sBoxGForce[1]->Add(m_GaugeGForce[1], 0, wxEXPAND | (wxALL), 5); sBoxGForce[1]->Add(m_TextY[0], 0, wxEXPAND | (wxALL), 0);
-	sBoxGForce[2]->Add(m_GaugeGForce[2], 0, wxEXPAND | (wxALL), 5); sBoxGForce[2]->Add(m_TextZ[0], 0, wxEXPAND | (wxALL), 0);
+	sBoxGForce[0]->Add(m_GaugeGForce[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxGForce[0]->Add(m_TextX[0], 0, wxEXPAND | (wxUP), 5);
+	sBoxGForce[1]->Add(m_GaugeGForce[1], 0, wxEXPAND | (wxUP | wxDOWN), 0); sBoxGForce[1]->Add(m_TextY[0], 0, wxEXPAND | (wxUP), 5);
+	sBoxGForce[2]->Add(m_GaugeGForce[2], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxGForce[2]->Add(m_TextZ[0], 0, wxEXPAND | (wxUP), 5);
 
-	sBoxAccel[0]->Add(m_GaugeAccel[0], 0, wxEXPAND | (wxALL), 5); sBoxAccel[0]->Add(m_TextX[1], 0, wxEXPAND | (wxALL), 0);
-	sBoxAccel[1]->Add(m_GaugeAccel[1], 0, wxEXPAND | (wxALL), 5); sBoxAccel[1]->Add(m_TextY[1], 0, wxEXPAND | (wxALL), 0);
-	sBoxAccel[2]->Add(m_GaugeAccel[2], 0, wxEXPAND | (wxALL), 5); sBoxAccel[2]->Add(m_TextZ[1], 0, wxEXPAND | (wxALL), 0);
+	sBoxAccel[0]->Add(m_GaugeAccel[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxAccel[0]->Add(m_TextX[1], 0, wxEXPAND | (wxUP), 5);
+	sBoxAccel[1]->Add(m_GaugeAccel[1], 0, wxEXPAND | (wxUP | wxDOWN), 0); sBoxAccel[1]->Add(m_TextY[1], 0, wxEXPAND | (wxUP), 5);
+	sBoxAccel[2]->Add(m_GaugeAccel[2], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxAccel[2]->Add(m_TextZ[1], 0, wxEXPAND | (wxUP), 5);
 
+	wxStaticBoxSizer * sbRealStatus = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Status"));
+	wxStaticBoxSizer * sbRealIR = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("IR"));
+	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Battery"));
+	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Roll and Pitch"));
+	wxStaticBoxSizer * sbRealGForce = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("G-Force"));
+	wxStaticBoxSizer * sbRealAccel = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Accelerometer"));
+
+	// Status
+	sbRealStatus->Add(m_TextUpdateRate, 0, wxEXPAND | (wxALL), 5);
+	sbRealStatus->Add(m_UpdateMeters, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+
+	sbRealIR->Add(m_TextIR, 0, wxEXPAND | (wxALL), 5);
 	sbRealBattery->Add(sBoxBattery, 0, wxEXPAND | (wxALL), 5);
 	sbRealRoll->Add(sBoxRoll[0], 0, wxEXPAND | (wxALL), 5); sbRealRoll->Add(sBoxRoll[1], 0, wxEXPAND | (wxALL), 5);
 	sbRealGForce->Add(sBoxGForce[0], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[1], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[2], 0, wxEXPAND | (wxALL), 5);
 	sbRealAccel->Add(sBoxAccel[0], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[1], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[2], 0, wxEXPAND | (wxALL), 5);
-	sbRealIR->Add(m_TextIR, 0, wxEXPAND | (wxALL), 5);
 
-	sbRealWiimoteStatus->Add(sbRealBattery, 0, wxEXPAND | (wxLEFT), 0);
+	// Vertical leftmost status
+	wxBoxSizer * sbStatusLeft = new wxBoxSizer(wxVERTICAL);
+	sbStatusLeft->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 0);
+	sbStatusLeft->Add(sbRealIR, 0, wxEXPAND | (wxLEFT), 0);
+
+	wxBoxSizer * sbRealWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
+	sbRealWiimoteStatus->Add(sbStatusLeft, 0, wxEXPAND | (wxLEFT), 0);
+	sbRealWiimoteStatus->Add(sbRealBattery, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
-	sbRealWiimoteStatus->Add(sbRealIR, 0, wxEXPAND | (wxLEFT), 5);
-	// ----------------
+	// --------------------
 
 	// Tool tips
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
@@ -337,6 +314,9 @@ void ConfigDialog::CreateGUIControlsRecording()
 		m_RecordIRBytesText[i]->Enable(false);
 		m_RecordSpeed[i]->Enable(false);
 
+		// ------------------------------------
+		// Row 2 Sizers
+		// -----------
 		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeySwitch[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeyWiimote[i], 0, wxEXPAND | (wxLEFT), 2);
@@ -352,17 +332,11 @@ void ConfigDialog::CreateGUIControlsRecording()
 	}
 	// ==========================================
 
-
 	// ----------------------------------------------------------------------
-	// Set up sizers
+	// Set up sizers for the whole page
 	// ----------------
-	wxBoxSizer * sRealBasicStatus = new wxBoxSizer(wxHORIZONTAL);
-	sRealBasicStatus->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 0);
-	sRealBasicStatus->Add(sbRealNeutral, 0, wxEXPAND | (wxLEFT), 5);
-
 	m_sRecordingMain = new wxBoxSizer(wxVERTICAL);
-	m_sRecordingMain->Add(sRealBasicStatus, 0, wxEXPAND | (wxALL), 5);
-	m_sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+	m_sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
 	m_sRecordingMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 	m_PageRecording->SetSizer(m_sRecordingMain);	
@@ -384,10 +358,12 @@ void ConfigDialog::ConvertToString()
 	for (int i = 0; i < m_vRecording.size(); i++)
 	{
 		// Write the movement data
-		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).x);
-		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).y);
-		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).z);
+		TmpStr += StringFromFormat("%s", m_vRecording.at(i).x >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).x).c_str() : StringFromFormat("%04i", m_vRecording.at(i).x).c_str());
+		TmpStr += StringFromFormat("%s", m_vRecording.at(i).y >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).y).c_str() : StringFromFormat("%04i", m_vRecording.at(i).y).c_str());
+		TmpStr += StringFromFormat("%s", m_vRecording.at(i).z >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).z).c_str() : StringFromFormat("%04i", m_vRecording.at(i).z).c_str());
 		if(i < (m_vRecording.size() - 1)) TmpStr += ",";
+
+		//Console::Print("%s\n", TmpStr.c_str());
 
 		// Write the IR data
 		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);
@@ -517,7 +493,7 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	UpdateGUI();
 }
 
-void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int _IRBytes)
+void ConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
 {
 	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
 	//Console::Print("DoRecordMovement: %s\n", Tmp1.c_str());

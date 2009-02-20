@@ -59,11 +59,11 @@ class ConfigDialog : public wxDialog
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
 		wxStaticBitmap *m_bmpDotLeftIn[4], *m_bmpDotLeftOut[4], *m_bmpDotRightIn[4], *m_bmpDotRightOut[4],
 			*m_bmpDeadZoneLeftIn[4], *m_bmpDeadZoneRightIn[4];
-		wxStaticText *m_TextIR, *m_TextAccNeutralCurrent;
+		wxStaticText *m_TextIR;
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
 		int m_iRecordTo;
 		void RecordMovement(wxCommandEvent& event);
-		void DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int IRBytes);
+		void DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int IRBytes);
 		void DoRecordA(bool Pressed);
 		void Convert2Box(int &x);
 		void ConvertToString();
@@ -131,7 +131,6 @@ class ConfigDialog : public wxDialog
 
 		// Real Wiimote settings
 		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters;
-		wxChoice *m_AccNeutralChoice[3], *m_AccNunNeutralChoice[3];
 
 		wxPanel *m_pLeftInStatus[4], *m_pLeftOutStatus[4], *m_pRightInStatus[4], *m_pRightOutStatus[4];
 		wxStaticBitmap *m_bmpSquareLeftIn[4], *m_bmpSquareLeftOut[4], *m_bmpSquareRightIn[4], *m_bmpSquareRightOut[4];
@@ -207,7 +206,7 @@ class ConfigDialog : public wxDialog
 			IDCB_NUNCHUCK_STICK,
 
 			// Real
-			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,
+			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS,
 			IDB_RECORD = 2000,
 			IDC_RECORD = 3000,
 			IDC_PLAY_WIIMOTE, IDC_PLAY_NUNCHUCK, IDC_PLAY_IR, IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_IRBYTESTEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED

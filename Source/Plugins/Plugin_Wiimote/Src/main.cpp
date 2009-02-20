@@ -517,7 +517,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				//(pStatus->leds >> 3),
 				pStatus->battery_low
 				);
-			// Update the global extension settings
+			/* Update the global (for both the real and emulated) extension settings from whatever
+			   the real Wiimote use. We will enable the extension from the 0x21 report. */
 			if(!Emu && !pStatus->extension)
 			{
 				DisableExtensions();
@@ -533,7 +534,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// data[4]: Size and error
 		// data[5, 6]: The registry offset
 
+		// ---------------------------------------------------------------------
 		// Show the extension ID
+		// --------------------------
 		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
 			if(data[4] == 0x10)
@@ -550,7 +553,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 					wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x02, (data[4] >> 0x04) + 1);
 			}
 
-			// Update the global extension settings
+			/* Update the global extension settings. Enable the emulated extension from reading
+			   what the real Wiimote has connected. To keep the emulated and real Wiimote in sync. */
 			if(data[4] == 0x10)
 			{
 				if (!Emu) DisableExtensions();
@@ -578,8 +582,31 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				Console::Print("Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
+		// ---------------------------------------------
 
-		// Show the nunchuck neutral values
+		// ---------------------------------------------------------------------
+		// Show the Wiimote neutral values
+		// --------------------------
+		/* The only difference between the Nunchuck and Wiimote that we go after is calibration here is
+		   the offset in memory. If needed we can check the preceding 0x17 request to. */
+		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10)
+		{
+			if(data[6] == 0x10)
+			{
+				Console::Print("\nGame got the Wiimote calibration:\n");
+				Console::Print("Cal_zero.x: %i\n", data[7 + 6]);
+				Console::Print("Cal_zero.y: %i\n", data[7 + 7]);
+				Console::Print("Cal_zero.z: %i\n",  data[7 + 8]);
+				Console::Print("Cal_g.x: %i\n", data[7 + 10]);
+				Console::Print("Cal_g.y: %i\n",  data[7 + 11]);
+				Console::Print("Cal_g.z: %i\n",  data[7 +12]);
+			}
+		}
+		// ---------------------------------------------
+
+		// ---------------------------------------------------------------------
+		// Show the Nunchuck neutral values
+		// --------------------------
 		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// Save the encrypted data
@@ -630,6 +657,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			// Show the encrypted data
 			Console::Print("%s", TmpData.c_str());
 		}
+		// ---------------------------------------------
 		
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
@@ -731,21 +759,26 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		float Gy = WiiMoteEmu::AccelerometerToG((float)data[5], (float)g_accel.cal_zero.y, (float)g_accel.cal_g.y);
 		float Gz = WiiMoteEmu::AccelerometerToG((float)data[6], (float)g_accel.cal_zero.z, (float)g_accel.cal_g.z);
 		std::string GForce = StringFromFormat("%s %s %s",
-			(Gx >= 0) ? StringFromFormat(" %i", (int)Gx).c_str() : StringFromFormat("%i", (int)Gx).c_str(),
-			(Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
-			(Gz >= 0) ? StringFromFormat(" %i", (int)Gz).c_str() : StringFromFormat("%i", (int)Gz).c_str());
+			((int)Gx >= 0) ? StringFromFormat(" %i", (int)Gx).c_str() : StringFromFormat("%i", (int)Gx).c_str(),
+			((int)Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
+			((int)Gz >= 0) ? StringFromFormat(" %i", (int)Gz).c_str() : StringFromFormat("%i", (int)Gz).c_str());
 		
-		// Show the IR data
-		WiiMoteEmu::IRData2Dots(&data[7]);
+		// Calculate the IR data
+		if (data[1] == WM_REPORT_CORE_ACCEL_IR10_EXT6) WiiMoteEmu::IRData2DotsBasic(&data[7]); else WiiMoteEmu::IRData2Dots(&data[7]);
 		std::string IRData;
+		// Create a shortcut
+		struct WiiMoteEmu::SDot* Dot = WiiMoteEmu::g_Wm.IR.Dot;
 		for (int i = 0; i < 4; ++i)
 		{
-			if(WiiMoteEmu::g_Wm.IR.Dot[i].Visible)
-				IRData += StringFromFormat("[%i] X:%04i Y:%04i ", i, WiiMoteEmu::g_Wm.IR.Dot[i].Rx, WiiMoteEmu::g_Wm.IR.Dot[i].Ry);
+			if(Dot[i].Visible)
+				IRData += StringFromFormat("[%i] X:%04i Y:%04i Size:%i ", Dot[i].Order, Dot[i].Rx, Dot[i].Ry, Dot[i].Size);
 			else
-				IRData += StringFromFormat("[%i]", i);
+				IRData += StringFromFormat("[%i]", Dot[i].Order);
 		}
+		// Dot distance
+		IRData += StringFromFormat(" | Distance:%i", WiiMoteEmu::g_Wm.IR.Distance);
 
+		//Console::Print("Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str()); // Formatted data only
 		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str()); // IR data
 		Console::Print("Read[%s]: %s| %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str(), GForce.c_str()); // Accelerometer
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
