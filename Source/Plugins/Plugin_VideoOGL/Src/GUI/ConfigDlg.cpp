@@ -529,6 +529,9 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 
 void ConfigDialog::UpdateGUI()
 {
+	// This option is only compatible with the Strech To Fit option
+	m_KeepAR->Enable(g_Config.bStretchToFit);
+
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);
 	m_FullscreenCB->Enable(!g_Config.renderToMainframe);

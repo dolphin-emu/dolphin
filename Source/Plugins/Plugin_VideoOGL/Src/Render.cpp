@@ -695,9 +695,11 @@ bool Renderer::SetScissorRect()
 	// Check that the coordinates are good
     if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
-		/* I don't know how this works with other options so I'm limiting it to this to test it, if you want to add support for other modes
-		   or make this solution more general please do */
-		if(g_Config.bStretchToFit && !g_Config.bKeepAR && !g_Config.bUseXFB)
+		// -----------------------------------------------------------------------
+		// XFB supplement, fix the black borders problem
+		// ------------------
+		// See comment in UpdateViewport() about why I don't the XFB supplement to these options
+		if(g_Config.bStretchToFit && !g_Config.bUseXFB)
 		{
 			int WidthDifference = 640 - (int)(rc_right - rc_left);
 			int HeightDifference = 480 - (int)(rc_bottom - rc_top);
@@ -705,6 +707,7 @@ bool Renderer::SetScissorRect()
 			GLScissorX = (int)rc_left; GLScissorY = -(Renderer::GetTargetHeight() - (int)(rc_bottom));
 			GLScissorW = Renderer::GetTargetWidth() + WidthDifference; GLScissorH = Renderer::GetTargetHeight() + HeightDifference;
 		}
+		// ------------------------
 		else
 		{
 			GLScissorX = (int)rc_left; GLScissorY = Renderer::GetTargetHeight() - (int)(rc_bottom);
@@ -1173,6 +1176,9 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 // ----------------------
 void UpdateViewport()
 {
+	// -----------------------------------------------------------------------
+	// Logging
+	// ------------------
     // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
     // [0] = width/2
     // [1] = height/2
@@ -1185,70 +1191,104 @@ void UpdateViewport()
 		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
 		2 * rawViewport[0], 2 * rawViewport[1],
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
-
-	// -----------------------------------------------------------------------
-	// Keep aspect ratio at 4:3
-	// ------------------
-	// rawViewport[0] = 320, rawViewport[1] = -240
-	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
-	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
-	float fourThree = 4.0f / 3.0f;
-	float wAdj, hAdj;
-	float actualRatiow, actualRatioh;
-	int overfl;
-	int xoffs = 0, yoffs = 0;
-	int wid, hei, actualWid, actualHei;
-
-	// The rendering window width and height
-	int winw = OpenGL_GetWidth();
-	int winh = OpenGL_GetHeight();
-	// The rendering window aspect ratio
-	float ratio = (float)winw / (float)winh / fourThree;
-	if (g_Config.bKeepAR)
-	{
-		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
-		if (ratio > 1)
-		{
-			wAdj = ratio;
-			hAdj = 1;
-
-			wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
-			hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
-
-			actualWid = ceil((float)winw / ratio);
-			actualRatiow = (float)actualWid / (float)wid; // the picture versus the screen
-			overfl = (winw - actualWid) / actualRatiow;
-			xoffs = overfl / 2;
-		}
-		// The window is to high, we have to limit the height
-		else
-		{
-			ratio = 1 / ratio;
-
-			wAdj = 1;
-			hAdj = ratio;
-
-			wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
-			hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
-
-			actualHei = ceil((float)winh / ratio);
-			actualRatioh = (float)actualHei / (float)hei; // the picture versus the screen
-			overfl = (winh - actualHei) / actualRatioh;
-			yoffs = overfl / 2;
-		}
-	}
-	else
-	{
-		wid = ceil(fabs(2 * xfregs.rawViewport[0]));
-		hei = ceil(fabs(2 * xfregs.rawViewport[1]));
-	}
-	// -------------------------------------
+	// --------------------------
 
 
 	// -----------------------------------------------------------------------
 	// GLViewPort variables
 	// ------------------
 	int GLWidth, GLHeight, GLx, GLy;
+	float FloatGLWidth = fabs(2 * xfregs.rawViewport[0]);
+	float FloatGLHeight = fabs(2 * xfregs.rawViewport[1]);
+
+	// rawViewport[0] = 320, rawViewport[1] = -240
+	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
+	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
+
+	// Used in the XFB supplement and the keep aspect ratio function
+	int XOffset, YOffset;
+	// -------------------------------------
+
+
+	// -----------------------------------------------------------------------
+	/* XFB supplement, fix the black borders problem. This has to be used together with the adjustment
+	   of glScissor in Renderer::SetScissorRect() */
+	// ------------------
+
+	/* I'm limiting it to the stretch to fit option because I don't know how the other mode works. The reason
+	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
+	   should be able to produce the same result */
+	if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+	{
+		XOffset = (640 - GLScissorW);
+		YOffset = (480 - GLScissorH);
+		FloatGLWidth = FloatGLWidth - XOffset;
+		FloatGLHeight = FloatGLHeight - YOffset;
+	}
+	// ------------------------
+
+
+	// -----------------------------------------------------------------------
+	// Keep aspect ratio at 4:3
+	//		Output: GLWidth, GLHeight, XOffset, YOffset
+	// ------------------
+
+	// Internal functions
+	float FourThree = 4.0f / 3.0f;
+	float wAdj, hAdj;
+	float actualRatiow, actualRatioh;
+	int overfl;
+	int actualWid, actualHei;
+	// The rendering window width and height
+	int WinW = OpenGL_GetWidth();
+	int WinH = OpenGL_GetHeight();
+	// The rendering window aspect ratio
+	float Ratio = (float)WinW / (float)WinH / FourThree;
+
+	// The XOffset and YOffset values are currently only used in the Stretch To Fit option
+	if (g_Config.bKeepAR && g_Config.bStretchToFit)
+	{
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (Ratio > 1)
+		{
+			wAdj = Ratio;
+			hAdj = 1;
+
+			GLWidth = ceil(FloatGLWidth / wAdj);
+			GLHeight = ceil(FloatGLHeight / hAdj);
+
+			actualWid = ceil((float)WinW / Ratio);
+			// The picture compared to the screen
+			actualRatiow = (float)actualWid / (float)GLWidth;
+			overfl = (WinW - actualWid) / actualRatiow;
+			XOffset = XOffset + overfl / 2;
+		}
+		// The window is to high, we have to limit the height
+		else
+		{
+			// Invert the ratio
+			Ratio = 1 / Ratio;
+
+			wAdj = 1;
+			hAdj = Ratio;
+
+			GLWidth = ceil(FloatGLWidth / wAdj);
+			GLHeight = ceil(FloatGLHeight / hAdj);
+
+			actualHei = ceil((float)WinH / Ratio);
+			// The picture compared to the screen
+			actualRatioh = (float)actualHei / (float)GLHeight;
+			overfl = (WinH - actualHei) / actualRatioh;
+			YOffset = YOffset + overfl / 2;
+		}
+	}
+	// Don't adjust the position of screen size
+	else
+	{
+		// Round up to the nearest integer
+		GLWidth = ceil(FloatGLWidth);
+		GLHeight = ceil(FloatGLHeight);
+	}
 	// -------------------------------------
 
 
@@ -1257,36 +1297,31 @@ void UpdateViewport()
 	// ------------------
 	if (g_Config.bStretchToFit)
 	{
-		GLx = (int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) + xoffs;
-		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) + yoffs;
-		GLWidth = wid; // width
-		GLHeight = hei; // height
+		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) + XOffset;
+		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) + YOffset;
 	}
+	// -----------------------------------------------------------------------
+	// Stretch picture with increased internal resolution
+	// ------------------
 	else
 	{
 	    float MValueX = OpenGL_GetXmax();
 	    float MValueY = OpenGL_GetYmax();
 
-		GLx = (int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX;
-		GLy = Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) * MValueY;
+		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX;
+		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY;
 		GLWidth = abs((int)(2 * xfregs.rawViewport[0])) * MValueX;
 		GLHeight = abs((int)(2 * xfregs.rawViewport[1])) * MValueY;
 	}
 	// -------------------------------------
 
-	// I'm limiting it to these modes to test it
-	if(g_Config.bStretchToFit && !g_Config.bKeepAR && !g_Config.bUseXFB)
-	{
-		GLWidth = GLWidth + (GLScissorW - 640);
-		GLHeight = GLHeight + (GLScissorH - 480);
-		GLy = 0;
-		GLx = 0;
-	}
 
+	// Update the view port
 	glViewport(
 		GLx, GLy,
 		GLWidth, GLHeight
 		);
+
 
 	// -----------------------------------------------------------------------
 	// GLDepthRange
