@@ -36,7 +36,6 @@
 #include "CPUDetect.h"
 #include "CoreTiming.h"
 #include "Boot/Boot.h"
-#include "PatchEngine.h"
  
 #include "HW/Memmap.h"
 #include "HW/PeripheralInterface.h"
@@ -628,10 +627,6 @@ void Callback_VideoCopiedToXFB()
 		frames = 0;
         Timer.Update();
 	}
-	
-	// TODO: hm, are these really safe to call from the video thread?
-	PatchEngine::ApplyFramePatches();
-	PatchEngine::ApplyARPatches();
 }
  
 // __________________________________________________________________________________________________

@@ -185,13 +185,13 @@ void VICallback(u64 userdata, int cyclesLate)
 
 void SICallback(u64 userdata, int cyclesLate)
 {
-	// This is once per frame - good candidate for patching stuff
-	PatchEngine::ApplyFramePatches();
-	// Apply AR cheats
-	PatchEngine::ApplyARPatches();
-	// OK, do what we are here to do.
 	SerialInterface::UpdateDevices();
 	CoreTiming::ScheduleEvent(SI_PERIOD-cyclesLate, et_SI);
+
+	// This is once per frame - good candidate for patching stuff
+	// Patch mem and run the Action Replay
+	PatchEngine::ApplyFramePatches();
+	PatchEngine::ApplyARPatches();
 }
 
 void DecrementerCallback(u64 userdata, int cyclesLate)
