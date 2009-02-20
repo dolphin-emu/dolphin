@@ -699,7 +699,8 @@ bool Renderer::SetScissorRect()
 		// XFB supplement, fix the black borders problem
 		// ------------------
 		// See comment in UpdateViewport() about why I don't the XFB supplement to these options
-		if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+		//if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+		if(false)
 		{
 			int WidthDifference = 640 - (int)(rc_right - rc_left);
 			int HeightDifference = 480 - (int)(rc_bottom - rc_top);
@@ -1206,7 +1207,7 @@ void UpdateViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 
 	// Used in the XFB supplement and the keep aspect ratio function
-	int XOffset, YOffset;
+	int XOffset = 0, YOffset = 0;
 	// -------------------------------------
 
 
@@ -1218,7 +1219,8 @@ void UpdateViewport()
 	/* I'm limiting it to the stretch to fit option because I don't know how the other mode works. The reason
 	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
 	   should be able to produce the same result */
-	if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+	//if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+	if(false)
 	{
 		XOffset = (640 - GLScissorW);
 		YOffset = (480 - GLScissorH);
@@ -1343,7 +1345,7 @@ void UpdateViewport()
 	GetWindowRect(Child, &RcChild);
 
 	
-	Console::ClearScreen();	
+	//Console::ClearScreen();	
 	Console::Print("----------------------------------------------------------------\n");
 	Console::Print("Top window:     X:%03i Y:%03i Width:%03i Height:%03i\n", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
 	Console::Print("Parent window:  X:%03i Y:%03i Width:%03i Height:%03i\n", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);

@@ -372,7 +372,9 @@ void BPWritten(int addr, int changes, int newval)
     case 0x67:
         break;
 
+	// ===============================================================
 	// This case writes to bpmem.triggerEFBCopy and may apparently prompt us to update glScissor()
+	// ------------------------
     case 0x52:
         {
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
@@ -401,17 +403,21 @@ void BPWritten(int addr, int changes, int newval)
 			UPE_Copy PE_copy;
 			PE_copy.Hex = bpmem.triggerEFBCopy;
 
+			// --------------------------------------------------------
+            // Check if we should copy the picture to XFB or not
+			// --------------------------
             if (PE_copy.copy_to_xfb == 0)
 			{
 				// EFB to texture 
                 // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
 				if (g_Config.bEFBCopyDisable)
 				{
-					// We already have this in Render.cpp that we call when (PE_copy.clear) is true, why do we need this here to?
-					//glViewport(rc.left,rc.bottom, rc.right,rc.top);
-					//glScissor(rc.left,rc.bottom, rc.right,rc.top);
+					/* We already have this in Render.cpp that we call when (PE_copy.clear) is true. But we need a separate one
+					   here because UpdateViewport() is not run when this otion is set? */
+					glViewport(rc.left,rc.bottom, rc.right,rc.top);
+					glScissor(rc.left,rc.bottom, rc.right,rc.top);
 					// Logging
-					//GLScissorX = rc.left; GLScissorY = rc.bottom; GLScissorW = rc.right; GLScissorH = rc.top;
+					GLScissorX = rc.left; GLScissorY = rc.bottom; GLScissorW = rc.right; GLScissorH = rc.top;
 				}
 				else if (g_Config.bCopyEFBToRAM)
 				{
@@ -451,24 +457,30 @@ void BPWritten(int addr, int changes, int newval)
 				g_VideoInitialize.pCopiedToXFB();
             }
 
-            // clearing
+			// --------------------------------------------------------
+            // Clearing
+			// --------------------------
             if (PE_copy.clear)
 			{
-                // clear color
+                // Clear color
                 Renderer::SetRenderMode(Renderer::RM_Normal);
-
+				// Clear Z-Buffer target
                 u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
                 
 				// Why do we have this here and in Render.cpp?
-				//glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+				glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 
                 // Always set the scissor in case it was set by the game and has not been reset
 				// But we will do that at the end of this section, in SetScissorRect(), why would we do it twice in the same function?
-                //glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-                //    (multirc.right - multirc.left), (multirc.bottom - multirc.top));
+                // Because this is needed by the intermediate functions diirectly below here, in glDrawBuffer()
+				// and so on.
+				glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
+                    (multirc.right - multirc.left), (multirc.bottom - multirc.top));
 				// Logging
-				//	GLScissorX = multirc.left; GLScissorY = (Renderer::GetTargetHeight() - multirc.bottom);
-				//	GLScissorW = (multirc.right - multirc.left); GLScissorH = (multirc.bottom - multirc.top);
+					GLScissorX = multirc.left; GLScissorY = (Renderer::GetTargetHeight() - multirc.bottom);
+					GLScissorW = (multirc.right - multirc.left); GLScissorH = (multirc.bottom - multirc.top);
+
+					//Console::Print("%i %i %i %i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
 
                 VertexShaderManager::SetViewportChanged();
 
@@ -510,16 +522,20 @@ void BPWritten(int addr, int changes, int newval)
                     GL_REPORT_ERRORD();   
                 }
 
-                if (nRestoreZBufferTarget) {
+                if (nRestoreZBufferTarget)
+				{
                     // restore target
                     GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
                     glDrawBuffers(2, s_drawbuffers);
                 }
                 
-                Renderer::SetScissorRect(); // reset the scissor rect
+                Renderer::SetScissorRect(); // reset the scissor rectangle
             }
+			// ------------------------------
         }
         break;
+	// ==================================
+
 
     case 0x65: //GXLoadTlut
         {
