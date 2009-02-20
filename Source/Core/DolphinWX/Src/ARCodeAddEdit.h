@@ -49,10 +49,12 @@ class CARCodeAddEdit : public wxDialog
 
 		void CreateGUIControls(int selection);
 		void OnClose(wxCloseEvent& event);
+		void SaveCheatData(wxCommandEvent& event);
 		void ChangeEntry(wxSpinEvent& event);
 		void UpdateTextCtrl(ActionReplay::ARCode arCode);
 
 		int selection;
+		ActionReplay::ARCode tempEntries;
 
 };
 #endif // __PATCH_ADDEDIT_h__

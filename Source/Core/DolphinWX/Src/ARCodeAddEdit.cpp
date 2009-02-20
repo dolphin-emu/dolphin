@@ -21,6 +21,7 @@ extern std::vector<ActionReplay::ARCode> arCodes;
 
 BEGIN_EVENT_TABLE(CARCodeAddEdit, wxDialog)
 	EVT_CLOSE(CARCodeAddEdit::OnClose)
+	EVT_BUTTON(wxID_OK, CARCodeAddEdit::SaveCheatData)
 	EVT_SPIN(ID_ENTRY_SELECT, CARCodeAddEdit::ChangeEntry)
 END_EVENT_TABLE()
 
@@ -37,18 +38,28 @@ CARCodeAddEdit::~CARCodeAddEdit()
 
 void CARCodeAddEdit::CreateGUIControls(int _selection)
 {
-	ActionReplay::ARCode currentCode = arCodes.at(_selection);
+	wxString currentName = wxT("<Insert name here>");
+	
+	if (_selection == -1)
+	{
+		tempEntries.name = "";
+	}
+	else
+	{
+	    currentName = wxString::FromAscii(arCodes.at(_selection).name.c_str());
+	    tempEntries = arCodes.at(_selection);
+	}
 
 	wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
 	wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Code"));
 	wxStaticText* EditCheatNameText = new wxStaticText(this, ID_EDITCHEAT_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
+	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
 	EntrySelection->SetRange(0, (int)arCodes.size()-1);
 	EntrySelection->SetValue((int)arCodes.size()-1 - _selection);
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-	UpdateTextCtrl(currentCode);
+	UpdateTextCtrl(tempEntries);
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 	sgEntry->AddGrowableCol(1);
 	sgEntry->AddGrowableRow(1);
@@ -79,6 +90,50 @@ void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size()-1 - event.GetPosition());
 	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
 	UpdateTextCtrl(currentCode);
+}
+
+void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
+{
+
+	std::vector<ActionReplay::AREntry> tempEntries;
+	std::string cheatValues = std::string(EditCheatCode->GetValue().mb_str());
+	bool bWhile = true;	size_t line = 0;
+
+	while (bWhile)
+	{
+		bWhile = false;
+		u32 addr, value;
+
+		addr = strtol(std::string(cheatValues.substr(line, line+8)).c_str(), NULL, 16);		// cmd_addr of ArCode
+		value = strtol(std::string(cheatValues.substr(line+9, line+17)).c_str(), NULL, 16);	// value of ArCode
+
+		tempEntries.push_back(ActionReplay::AREntry(addr, value));
+		
+		line = cheatValues.find("\n", line);
+
+		if (line != std::string::npos && cheatValues.length() > (line+17))
+			bWhile = true;	// newline found, if not empty, go on
+
+		line += 2;
+	}
+
+	if (selection == -1)
+	{
+		ActionReplay::ARCode newCheat;
+		newCheat.name = std::string(EditCheatName->GetValue().mb_str());
+		newCheat.ops = tempEntries;
+
+		newCheat.active = true;
+
+		arCodes.push_back(newCheat);
+	}
+	else
+	{
+		arCodes.at(selection).name = std::string(EditCheatName->GetValue().mb_str());
+		arCodes.at(selection).ops = tempEntries;
+	}
+
+	AcceptAndClose();
 }
 
 void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)

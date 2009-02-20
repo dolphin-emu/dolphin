@@ -730,7 +730,12 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 		break;
 	case ID_ADDCHEAT:
 		{
-		// dialog
+			CARCodeAddEdit dlg(-1, this, 1, _("Add AR Code"));
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				Cheats->Append(wxString::FromAscii(arCodes.back().name.c_str()));
+				Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
+			}
 		}
 		break;
 	case ID_REMOVECHEAT:

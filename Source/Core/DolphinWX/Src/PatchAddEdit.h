@@ -42,6 +42,7 @@ class CPatchAddEdit : public wxDialog
 		wxTextCtrl *EditPatchValue;
 		wxSpinButton *EntrySelection;
 		wxButton *EntryRemove;
+		wxStaticBoxSizer* sbEntry;
 
 		enum {
 			ID_EDITPATCH_NAME_TEXT = 4500,
@@ -64,7 +65,7 @@ class CPatchAddEdit : public wxDialog
 		void UpdateEntryCtrls(PatchEngine::PatchEntry pE);
 		void SaveEntryData(std::vector<PatchEngine::PatchEntry>::iterator iterEntry);
 
-		int selection;
+		int selection, currentItem;
 		std::vector<PatchEngine::PatchEntry> tempEntries;
 		std::vector<PatchEngine::PatchEntry>::iterator itCurEntry;
 
