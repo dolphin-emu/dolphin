@@ -22,6 +22,12 @@
 namespace Common
 {
 #ifdef _WIN32
+
+void InitThreading()
+{
+	// Nothing to do in Win32 build.
+}
+
 CriticalSection::CriticalSection(int spincount)
 {
 	if (spincount)
@@ -34,24 +40,20 @@ CriticalSection::CriticalSection(int spincount)
 	}
 }
 
-
 CriticalSection::~CriticalSection()
 {
 	DeleteCriticalSection(&section);
 }
-
 
 void CriticalSection::Enter()
 {
 	EnterCriticalSection(&section);
 }
 
-
 bool CriticalSection::TryEnter()
 {
 	return TryEnterCriticalSection(&section) ? true : false;
 }
-
 
 void CriticalSection::Leave()
 {
@@ -71,12 +73,10 @@ Thread::Thread(ThreadFunc function, void* arg)
 			&m_threadId);
 }
 
-
 Thread::~Thread()
 {
 	WaitForDeath();
 }
-
 
 void Thread::WaitForDeath()
 {
@@ -88,12 +88,10 @@ void Thread::WaitForDeath()
 	}
 }
 
-
 void Thread::SetAffinity(int mask)
 {
 	SetThreadAffinityMask(m_hThread, mask);
 }
-
 
 void Thread::SetCurrentThreadAffinity(int mask)
 {
@@ -106,12 +104,10 @@ Event::Event()
 	m_hEvent = 0;
 }
 
-
 void Event::Init()
 {
 	m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 }
-
 
 void Event::Shutdown()
 {
@@ -119,18 +115,15 @@ void Event::Shutdown()
 	m_hEvent = 0;
 }
 
-
 void Event::Set()
 {
 	SetEvent(m_hEvent);
 }
 
-
 void Event::Wait()
 {
 	WaitForSingleObject(m_hEvent, INFINITE);
 }
-
 
 void SleepCurrentThread(int ms)
 {
@@ -304,12 +297,13 @@ void Thread::SetCurrentThreadAffinity(int mask)
 
 void InitThreading() {
 	static int thread_init_done = 0;
-	if (thread_init_done) return;
-	thread_init_done++;
+	if (thread_init_done)
+		return;
 	
 	if (pthread_key_create(&threadname_key, NULL/*free*/) != 0)
 		perror("Unable to create thread name key: ");
-   
+
+	thread_init_done++;
 }
 
 void SleepCurrentThread(int ms)

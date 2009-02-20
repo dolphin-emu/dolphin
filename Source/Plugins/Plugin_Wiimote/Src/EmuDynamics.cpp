@@ -132,11 +132,11 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 		if (abs(cos(_Roll)) < abs(cos(_Pitch))) z = cos(_Roll); else z = cos(_Pitch);
 		/* I got these from reversing the calculation in PitchAccelerometerToDegree() in a math program
 		   I don't know if we can derive these from some kind of matrix or something */
-		float x_num = 2 * tan(0.5 * _Roll) * z;
-		float x_den = pow(tan(0.5 * _Roll),2) - 1;
+		float x_num = 2 * tanf(0.5f * _Roll) * z;
+		float x_den = powf(tanf(0.5f * _Roll), 2) - 1;
 		x = - (x_num / x_den);
-		float y_num = 2 * tan(0.5 * _Pitch) * z;
-		float y_den = pow(tan(0.5 * _Pitch), 2) - 1;
+		float y_num = 2 * tanf(0.5f * _Pitch) * z;
+		float y_den = powf(tanf(0.5f * _Pitch), 2) - 1;
 		y = - (y_num / y_den);
 		// =========================
 	}

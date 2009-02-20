@@ -90,16 +90,17 @@ typedef struct
 EXPORT void CALL Video_Prepare(void);
 
 // __________________________________________________________________________________________________
-// Function: Video_ExecuteFifoBuffer
-// Purpose:  This function is called if data is inside the fifo-buffer
-// input:    a data-byte (i know we have to optimize this ;-))
+// Function: Video_SendFifoData
+// Purpose:  This function is called to submit fifo data directly - only single core mode calls this.
+// input:    u8 *_uData, u32 len - a block of fifo data.
 // output:   none
 //
 EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 
 // __________________________________________________________________________________________________
 // Function: Video_UpdateXFB
-// Purpose:  This fucntion is called when you have to flip the yuv2
+// TODO: This DOC IS BROKEN!
+// Purpose:  This function is called when you have to flip the yuv2
 //		     video-buffer. You should ignore this function after you
 //		     got the first EFB to XFB copy.
 // input:    pointer to the XFB, width and height of the XFB
@@ -109,7 +110,6 @@ EXPORT void CALL Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dw
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot
-// Purpose:  This fucntion is called when you want to do a screenshot
 // input:    Filename
 // output:   TRUE if all was okay
 //
@@ -117,11 +117,19 @@ EXPORT unsigned int CALL Video_Screenshot(TCHAR* _szFilename);
 
 // __________________________________________________________________________________________________
 // Function: Video_EnterLoop
-// Purpose:  FIXME!
+// Purpose:  Enters the video fifo dispatch loop. This is only used in Dual Core mode.
 // input:    none
 // output:   none
 //
 EXPORT void CALL Video_EnterLoop(void);
+
+// __________________________________________________________________________________________________
+// Function: Video_ExitLoop
+// Purpose:  Exits the video dispatch loop. This is only used in Dual Core mode.
+// input:    none
+// output:   none
+//
+EXPORT void CALL Video_ExitLoop(void);
 
 // __________________________________________________________________________________________________
 // Function: Video_AddMessage
@@ -130,14 +138,6 @@ EXPORT void CALL Video_EnterLoop(void);
 // output:   none
 //
 EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
-
-// __________________________________________________________________________________________________
-// Function: Video_Stop
-// Purpose:  Stop the video plugin before shutdown
-// input/output: 
-// input: 
-//
-EXPORT void CALL Video_Stop();
 
 #include "ExportEpilog.h"
 #endif

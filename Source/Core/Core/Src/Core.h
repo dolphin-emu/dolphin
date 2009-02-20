@@ -44,7 +44,7 @@ namespace Core
     bool Init();
     void Stop();
     
-    bool SetState(EState _State);
+    void SetState(EState _State);
     EState GetState();
 
     // Save/Load state

@@ -100,8 +100,8 @@ void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
 	}
 
 	// Dead zone adjustment
-	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0;
-	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0;
+	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0f;
+	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0f;
 	if (InputCommon::IsDeadZone(DeadZoneLeft, Lx, Ly))
 	{
 		Lx = 0;

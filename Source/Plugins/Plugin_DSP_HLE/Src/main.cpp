@@ -47,7 +47,6 @@ std::string gpName;
 
 SoundStream *soundStream = NULL;
 
-
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
 bool log_ai = false;
 WaveFileWriter g_wave_writer;
@@ -155,17 +154,16 @@ void CloseConsole()
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-
-	if(m_frame && Show) // if we have created it, let us show it again
+	if (m_frame && Show) // if we have created it, let us show it again
 	{
 		m_frame->DoShow();
 	}
-	else if(!m_frame && Show)
+	else if (!m_frame && Show)
 	{
 		m_frame = new CDebugger(NULL);
 		m_frame->Show();
 	}
-	else if(m_frame && !Show)
+	else if (m_frame && !Show)
 	{
 		m_frame->DoHide();
 	}
@@ -213,10 +211,9 @@ void Initialize(void *init)
 {
 	//Console::Open(80, 5000);
 
-	g_Config.Load();
-
 	g_dspInitialize = *(DSPInitialize*)init;
 
+	g_Config.Load();
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -237,12 +234,12 @@ void Initialize(void *init)
 		if (DSound::isValid())
 			soundStream = new DSound(48000, Mixer, g_dspInitialize.hWnd);
 	}
-	else if(g_Config.sBackend == "AOSound")
+	else if (g_Config.sBackend == "AOSound")
 	{
 		if (AOSound::isValid())
 			soundStream = new AOSound(48000, Mixer);
 	}
-	else if(g_Config.sBackend == "NullSound")
+	else if (g_Config.sBackend == "NullSound")
 	{
 		soundStream = new NullSound(48000, Mixer_MixUCode);
 	}
@@ -258,15 +255,19 @@ void Initialize(void *init)
 	_CrtSetDbgFlag(tmpflag);
 #endif
 
-	if (soundStream) {
-		if(!soundStream->Start()) {
+	if (soundStream)
+	{
+		if (!soundStream->Start())
+		{
 			PanicAlert("Could not initialize backend %s, falling back to NULL", 
 				g_Config.sBackend);
 			delete soundStream;
 			soundStream = new NullSound(48000, Mixer);
 			soundStream->Start();
 		}
-	} else {
+	}
+	else
+	{
 		PanicAlert("Sound backend %s is not valid, falling back to NULL", 
 			g_Config.sBackend);
 		delete soundStream;
@@ -282,28 +283,38 @@ void Initialize(void *init)
 	}
 }
 
-void Shutdown()
+void DSP_StopSoundStream()
 {
-	// Stop the sound recording
-	if (log_ai) g_wave_writer.Stop();
-
-	// Delete the UCodes
+	if (!soundStream)
+		PanicAlert("Can't stop non running SoundStream!");
 	soundStream->Stop();
 	delete soundStream;
 	soundStream = NULL;
+}
 
+void Shutdown()
+{
+	// Check that soundstream already is stopped.
+	if (soundStream)
+		PanicAlert("SoundStream alive in DSP::Shutdown!");
+
+	// Stop the sound recording
+	if (log_ai)
+		g_wave_writer.Stop();
+
+	// Delete the UCodes
 	CDSPHandler::Destroy();
 
-	#if defined(HAVE_WX) && HAVE_WX
-		// Reset mails
-		if(m_frame)
-		{
-			sMailLog.clear();
-			sMailTime.clear();
-			m_frame->sMail.clear();
-			m_frame->sMailEnd.clear();
-		}
-	#endif
+#if defined(HAVE_WX) && HAVE_WX
+	// Reset mails
+	if (m_frame)
+	{
+		sMailLog.clear();
+		sMailTime.clear();
+		m_frame->sMail.clear();
+		m_frame->sMailEnd.clear();
+	}
+#endif
 }
 
 void DoState(unsigned char **ptr, int mode)
@@ -406,7 +417,12 @@ void DSP_Update(int cycles)
    game has started. */
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	if(soundStream->usesMixer())
+	// TODO: This is not yet fully threadsafe.
+	if (!soundStream) {
+		return;
+	}
+
+	if (soundStream->usesMixer())
 	{
 		short samples[16] = {0};  // interleaved stereo
 		if (address)
@@ -417,21 +433,19 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			}
 
 			// Write the audio to a file
-			if (log_ai) g_wave_writer.AddStereoSamples(samples, 8);
+			if (log_ai)
+				g_wave_writer.AddStereoSamples(samples, 8);
 		}
 		Mixer_PushSamples(samples, 32 / 4, sample_rate);
 	}
 
-/* If I don't use this in Wario Land Shake It I get bad sound, it's a lot of static and noise
-   in the sound. It's the same both with an without Enable Other Audio. I can't really say why
-   this occurs because I don't know what SoundSyncEvent->Set() does. */
-	#ifdef SETUP_AVOID_SOUND_ARTIFACTS
-		static int counter = 0;
-		counter++;
-		if ((counter & 255) == 0)
-	#endif
 	// SoundStream is updated only when necessary (there is no 70 ms limit
 	// so each sample now triggers the sound stream)
-	soundStream->Update();
+	
+	// TODO: think about this.
+	static int counter = 0;
+	counter++;
+	if ((counter & 31) == 0 && soundStream)
+		soundStream->Update();
 }
 /////////////////////////////////////

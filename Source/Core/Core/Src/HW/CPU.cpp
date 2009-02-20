@@ -22,7 +22,6 @@
 #include "../Host.h"
 #include "../Core.h"
 #include "CPU.h"
-#include "CPUCompare.h"
 
 #include "../Debugger/Debugger_BreakPoints.h"
 
@@ -59,6 +58,8 @@ reswitch:
 		case PowerPC::CPU_RUNNING:
 			//1: enter a fast runloop
 			PowerPC::RunLoop();
+			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+				return;
 			break;
 
 		case PowerPC::CPU_STEPPING:
@@ -68,13 +69,6 @@ reswitch:
 				return;
 			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
 				goto reswitch;
-
-			//2: check for cpu compare
-			if (CPUCompare::IsEnabled() && g_Branch)
-			{
-				g_Branch = false;
-				CPUCompare::Sync();
-			}
 
 			//3: do a step
 			PowerPC::SingleStep();

@@ -120,11 +120,12 @@ u64 Timer::GetTimeElapsed(void)
 std::string Timer::GetTimeElapsedFormatted(void)
 {
 	// If we have not started yet, return zero
-	if(m_StartTime == 0) return "00:00:00:000";
+	if (m_StartTime == 0)
+		return "00:00:00:000";
 
 	// The number of milliseconds since the start, use a different value if the timer is stopped
 	u32 Milliseconds;
-	if(m_Running)
+	if (m_Running)
 		Milliseconds = timeGetTime() - m_StartTime;
 	else
 		Milliseconds = m_LastTime - m_StartTime;

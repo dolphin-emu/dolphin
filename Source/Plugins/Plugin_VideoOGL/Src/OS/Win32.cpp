@@ -91,20 +91,19 @@ extern bool gShowDebugger;
 //////////////////////////////////
 
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // The rendering window
 // ¯¯¯¯¯¯¯¯¯¯
 namespace EmuWindow
 {
 	HWND m_hWnd = NULL; // The new window that is created here
-    HWND m_hParent = NULL, m_hMain = NULL; // The main CPanel
+    HWND m_hParent = NULL;
+	HWND m_hMain = NULL; // The main CPanel
+
 	HINSTANCE m_hInstance = NULL;
 	WNDCLASSEX wndClass;
 	const TCHAR m_szClassName[] = "DolphinEmuWnd";
     int g_winstyle;
-	
 
 	// ------------------------------------------
 	/* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
@@ -117,7 +116,7 @@ namespace EmuWindow
 		BYTE XORmaskCursor[] = { 0x00 };
 		hCursorBlank = CreateCursor(hInstance, 0,0, 1,1, ANDmaskCursor,XORmaskCursor);
 
-		hCursor = LoadCursor( NULL, IDC_ARROW );
+		hCursor = LoadCursor(NULL, IDC_ARROW);
 	}
 	
 
@@ -156,25 +155,27 @@ namespace EmuWindow
 				/* The fullscreen option for Windows users is not very user friendly. With this the user
 				   can only get out of the fullscreen mode by pressing Esc or Alt + F4. Esc also stops
 				   the emulation. Todo: But currently it hangs, so I have disabled the shutdown. */
-				//if(m_hParent == NULL) ExitProcess(0);
-				if(m_hParent == NULL)
+				//if (m_hParent == NULL) ExitProcess(0);
+				if (m_hParent == NULL)
 				{				
 					if (g_Config.bFullscreen)
 					{
 						//PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0); // Stop
 					}
 					else
+					{
 						// Toggle maximize and restore
-						if (IsZoomed(hWnd)) ShowWindow(hWnd, SW_RESTORE); else ShowWindow(hWnd, SW_MAXIMIZE);
+						if (IsZoomed(hWnd))
+							ShowWindow(hWnd, SW_RESTORE);
+						else
+							ShowWindow(hWnd, SW_MAXIMIZE);
+					}
 					return 0;
 				}				
 				break;
-				/*
-			case MY_KEYS:
-				hypotheticalScene->sendMessage(KEYDOWN...);
-				*/
+
 			case 'E': // EFB hotkey
-				if(g_Config.bEFBCopyDisableHotKey)
+				if (g_Config.bEFBCopyDisableHotKey)
 				{
 					g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
 					Renderer::AddMessage(StringFromFormat("Copy EFB was turned %s",
@@ -206,9 +207,9 @@ namespace EmuWindow
 		case WM_USER:
 			/* I set wParam to 10 just in case there are other WM_USER events. If we want more
 			   WM_USER cases we would start making wParam or lParam cases */
-			if(wParam == 10)
+			if (wParam == 10)
 			{
-				if(lParam)
+				if (lParam)
 					SetCursor(hCursor);
 				else
 					SetCursor(hCursorBlank);
@@ -225,23 +226,12 @@ namespace EmuWindow
 
 		// This is called when we close the window when we render to a separate window
 		case WM_CLOSE:	
-			if(m_hParent == NULL)
+			if (m_hParent == NULL)
 			{
+				// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
 				ExitProcess(0);
-
-				/* Attempt to only Stop when we close the separate window. But it didn't work, it hanged.
-				  It may need some more coordination with the Stop code in the Core */
-				//PostMessage(m_hMain, WM_USER, 5, 0);
-
 				return 0;
 			}
-
-		/* This is called from the Core when we Stop, but currently we only use DefWindowProc(),
-		   whatever that does with it, if any */
-		//case WM_QUIT:
-			//Video_Shutdown();
-		//	ExitProcess(0);			
-		//	return 0;
 
 		case WM_DESTROY:
 			//Shutdown();

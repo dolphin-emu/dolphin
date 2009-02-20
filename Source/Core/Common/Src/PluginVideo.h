@@ -10,8 +10,8 @@ namespace Common {
     typedef void (__cdecl* TVideo_UpdateXFB)(u8*, u32, u32, s32, bool);
     typedef bool (__cdecl* TVideo_Screenshot)(const char* filename);
     typedef void (__cdecl* TVideo_EnterLoop)();
+    typedef void (__cdecl* TVideo_ExitLoop)();
     typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
-    typedef void (__cdecl* TVideo_Stop)();
 
     class PluginVideo : public CPlugin
 	{
@@ -22,15 +22,15 @@ namespace Common {
 
 		TVideo_Prepare      Video_Prepare;
 		TVideo_SendFifoData Video_SendFifoData;
-		TVideo_UpdateXFB    Video_UpdateXFB;
-		TVideo_Screenshot   Video_Screenshot;
 		TVideo_EnterLoop    Video_EnterLoop;
+		TVideo_ExitLoop     Video_ExitLoop;
+		TVideo_UpdateXFB    Video_UpdateXFB;
+
 		TVideo_AddMessage   Video_AddMessage;
-		TVideo_Stop         Video_Stop;
+		TVideo_Screenshot   Video_Screenshot;
 
     private:
 		bool validVideo;
-
     };
 }
 

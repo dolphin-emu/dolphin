@@ -26,61 +26,52 @@
 
 #include "Thread.h"
 
-
 class AOSound : public SoundStream
 {
-
 #if defined(HAVE_AO) && HAVE_AO
-    
-    Common::Thread *thread;
+	Common::Thread *thread;
+	Common::CriticalSection *soundCriticalSection;
+	Common::Event *soundSyncEvent;
 
-    Common::CriticalSection *soundCriticalSection;
-    
-    Common::Event *soundSyncEvent;
-    
-    int buf_size;
-    
-    ao_device *device;
-    ao_sample_format format;
-    int default_driver;
-    
-    short realtimeBuffer[1024 * 1024];
+	int buf_size;
+
+	ao_device *device;
+	ao_sample_format format;
+	int default_driver;
+
+	short realtimeBuffer[1024 * 1024];
 
 public:
-    AOSound(int _sampleRate, StreamCallback _callback) :
+	AOSound(int _sampleRate, StreamCallback _callback) :
 	SoundStream(_sampleRate, _callback) {}
-    
-    virtual ~AOSound() {}
-    
-    virtual bool Start();
-    
-    virtual void SoundLoop();
-    
-    virtual void Stop();
-    
-    static  bool isValid() {
-        return true;
-    }
-    
-    virtual bool usesMixer() { 
-	return true; 
-    }
-    
-    virtual void Update();
+	
+	virtual ~AOSound() {}
+	
+	virtual bool Start();
+	
+	virtual void SoundLoop();
+	
+	virtual void Stop();
+	
+	static bool isValid() {
+		return true;
+	}
+	
+	virtual bool usesMixer() const { 
+		return true; 
+	}
+	
+	virtual void Update();
 
-    virtual int GetSampleRate() {
-        return sampleRate;
-    }
-    
+	virtual int GetSampleRate() {
+		return sampleRate;
+	}
 
 #else
-
 public:
-    AOSound(int _sampleRate, StreamCallback _callback) :
+	AOSound(int _sampleRate, StreamCallback _callback) :
 	SoundStream(_sampleRate, _callback) {}
-
 #endif
-    
 };
 
 #endif //__AOSOUNDSTREAM_H__

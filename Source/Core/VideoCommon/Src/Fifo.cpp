@@ -23,24 +23,26 @@
 
 #include "Fifo.h"
 
-extern u8* g_pVideoData;
 
 // TODO (mb2): move/rm this global
 volatile u32 g_XFBUpdateRequested = FALSE;
+extern u8* g_pVideoData;
 
-#ifndef _WIN32
-static bool fifoStateRun = true;
-#endif
+namespace {
 
-// STATE_TO_SAVE
+static bool fifoStateRun = false;
 static u8 *videoBuffer;
+static Common::Event fifo_exit_event;
+// STATE_TO_SAVE
 static int size = 0;
+
+}  // namespace
 
 void Fifo_DoState(PointerWrap &p) 
 {
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-	int pos = (int)(g_pVideoData-videoBuffer); // get offset
+	int pos = (int)(g_pVideoData - videoBuffer); // get offset
 	p.Do(pos); // read or write offset (depends on the mode afaik)
 	g_pVideoData = &videoBuffer[pos]; // overwrite g_pVideoData -> expected no change when load ss and change when save ss
 }
@@ -48,25 +50,16 @@ void Fifo_DoState(PointerWrap &p)
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-#ifndef _WIN32
+	fifo_exit_event.Init();
     fifoStateRun = true;
-#endif
 	g_XFBUpdateRequested = FALSE;
 }
 
 void Fifo_Shutdown()
 {
+	if (fifoStateRun)
+		PanicAlert("Fifo shutting down while active");
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
-#ifndef _WIN32
-    fifoStateRun = false;
-#endif
-}
-
-void Fifo_Stop() 
-{
-#ifndef _WIN32
-    fifoStateRun = false;
-#endif
 }
 
 u8* FAKE_GetFifoStartPtr()
@@ -79,16 +72,18 @@ u8* FAKE_GetFifoEndPtr()
 	return &videoBuffer[size];
 }
 
+// The loop in EnterLoop sends data through this function.
+// TODO: Possibly inline it? This one is exported so it will likely not be inlined at all.
 void Video_SendFifoData(u8* _uData, u32 len)
 {
     if (size + len >= FIFO_SIZE)
     {
-		int pos = (int)(g_pVideoData-videoBuffer);
-        if (size-pos > pos)
+		int pos = (int)(g_pVideoData - videoBuffer);
+        if (size - pos > pos)
         {
             PanicAlert("FIFO out of bounds (sz = %i, at %08x)", size, pos);
         }
-        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos );
+        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos);
         size -= pos;
 		g_pVideoData = FAKE_GetFifoStartPtr();
     }
@@ -97,18 +92,23 @@ void Video_SendFifoData(u8* _uData, u32 len)
     OpcodeDecoder_Run();
 }
 
+void Fifo_ExitLoop()
+{
+    fifoStateRun = false;
+	fifo_exit_event.Wait();
+	fifo_exit_event.Shutdown();
+}
+
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
 	s32 distToSend;
 
-#ifdef _WIN32
-    // TODO(ector): Don't peek so often!
-    while (video_initialize.pPeekMessages())
-#else 
     while (fifoStateRun)
-#endif
     {
+#ifdef _WIN32
+		video_initialize.pPeekMessages();
+#endif
         if (_fifo.CPReadWriteDistance == 0)
 			Common::SleepCurrentThread(1);
 
@@ -156,16 +156,18 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				else
 				{
 #if 0 // ugly random GP slowdown for testing DC robustness... TODO: remove when completly sure DC is ok
-				int r=rand();if ((r&0xF)==r) Common::SleepCurrentThread(r);
-				distToSend = 32;
-				readPtr += 32;
-				if ( readPtr >= _fifo.CPEnd) 
-					readPtr = _fifo.CPBase;
+					int r = rand();
+					if ((r & 0xF) == r)
+						Common::SleepCurrentThread(r);
+					distToSend = 32;
+					readPtr += 32;
+					if (readPtr >= _fifo.CPEnd) 
+						readPtr = _fifo.CPBase;
 #else
 					distToSend = _fifo.CPReadWriteDistance;
-					// send 1024B chunk max lenght to have better control over PeekMessages' period
+					// send 1024B chunk max length to have better control over PeekMessages' period
 					distToSend = distToSend > 1024 ? 1024 : distToSend;
-					if ( (distToSend+readPtr) >= _fifo.CPEnd) // TODO: better?
+					if ((distToSend + readPtr) >= _fifo.CPEnd) // TODO: better?
 					{
 						distToSend =_fifo.CPEnd - readPtr;
 						readPtr = _fifo.CPBase;
@@ -182,5 +184,5 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
         }
     }
+	fifo_exit_event.Set();
 }
-

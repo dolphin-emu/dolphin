@@ -231,7 +231,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000C00;
 
-		LOGV(GEKKO, 1, "EXCEPTION_SYSCALL (PC=%08x)",PC);
+		LOGV(GEKKO, 1, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
 		SRR1 |= 0x02;  //recoverable
 	}

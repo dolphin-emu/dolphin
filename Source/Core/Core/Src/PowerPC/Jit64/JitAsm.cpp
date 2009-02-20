@@ -28,7 +28,6 @@
 #include "Jit.h"
 #include "JitCache.h"
 
-#include "../../HW/CPUCompare.h"
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
 #include "JitAsm.h"

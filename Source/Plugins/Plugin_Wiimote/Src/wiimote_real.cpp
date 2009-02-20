@@ -393,7 +393,7 @@ int Initialize()
 	// Initialized, even if we didn't find a Wiimote
 	g_RealWiiMoteInitialized = true;
 	
-    return g_NumberOfWiiMotes;
+	return g_NumberOfWiiMotes;
 }
 
 void DoState(void* ptr, int mode) {}
@@ -401,25 +401,25 @@ void DoState(void* ptr, int mode) {}
 void Shutdown(void)
 {
 	// Stop the loop in the thread
-    g_Shutdown = true;
+	g_Shutdown = true;
 
-    // Stop the thread
-    if (g_pReadThread != NULL)
-        {
-			g_pReadThread->WaitForDeath();
-			delete g_pReadThread;
-            g_pReadThread = NULL;
-        }
+	// Stop the thread
+	if (g_pReadThread != NULL)
+	{
+		delete g_pReadThread;
+		g_pReadThread = NULL;
+	}
 
-    // Delete the wiimotes
-    for (int i = 0; i < g_NumberOfWiiMotes; i++)
-        {
-            delete g_WiiMotes[i];
-            g_WiiMotes[i] = NULL;
-        }
+	// Delete the wiimotes
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		delete g_WiiMotes[i];
+		g_WiiMotes[i] = NULL;
+	}
 
 	// Flash flights
-	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(false);
+	if (!g_EmulatorRunning && g_RealWiiMotePresent)
+		FlashLights(false);
 
 	// Clean up wiiuse
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);

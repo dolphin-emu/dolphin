@@ -279,7 +279,7 @@
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				WarnAsError="false"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
@@ -653,14 +653,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Hw\CPU.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Hw\CPUCompare.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Hw\CPUCompare.h"
 				>
 			</File>
 			<File

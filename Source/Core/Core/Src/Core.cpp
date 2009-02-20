@@ -42,7 +42,6 @@
 #include "HW/PeripheralInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
-#include "HW/CPUCompare.h"
 #include "HW/HW.h"
 #include "HW/DSP.h"
 #include "HW/GPFifo.h"
@@ -105,9 +104,13 @@ void Stop();
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
-Common::Thread* g_pThread = NULL;
-SCoreStartupParameter g_CoreStartupParameter; 
+Common::Thread* g_EmuThread = NULL;
+
+SCoreStartupParameter g_CoreStartupParameter;
+
+// This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
+Common::Event cpuRunloopQuit;
 //////////////////////////////////////
  
  
@@ -137,7 +140,7 @@ void Callback_DebuggerBreak()
 	CCPU::Break();
 }
  
-void* GetWindowHandle()
+void *GetWindowHandle()
 {
     return g_pWindowHandle;
 }
@@ -146,6 +149,7 @@ bool GetRealWiimote()
 {
     return g_bRealWiimote;
 }
+
 // This can occur when the emulator is not running and the nJoy configuration window is opened
 void ReconnectPad()
 {
@@ -154,26 +158,30 @@ void ReconnectPad()
 	Plugins.GetPad(0)->Config(g_pWindowHandle);
 	Console::Print("ReconnectPad()\n");
 }
+
 // This doesn't work yet, I don't understand how the connection work yet
 void ReconnectWiimote()
 {
+	// This seems to be a hack that just sets some IPC registers to zero. Dubious.
 	HW::InitWiimote();
 	Console::Print("ReconnectWiimote()\n");
 }
 /////////////////////////////////////
- 
- 
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
 // -----------------
 bool Init()
 {
-	if (g_pThread != NULL)
+	if (g_EmuThread != NULL)
 	{
 		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
 		return false;
 	}
- 
+
+	Common::InitThreading();
+
 	// Get a handle to the current instance of the plugin manager
 	CPluginManager &pManager = CPluginManager::GetInstance();
 	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -181,60 +189,63 @@ bool Init()
 	g_CoreStartupParameter = _CoreParameter;
 	LogManager::Init();	
 	Host_SetWaitCursor(true);
- 
+
 	// Start the thread again
-	_dbg_assert_(HLE, g_pThread == NULL);
- 
+	_dbg_assert_(HLE, g_EmuThread == NULL);
+
 	// Check that all plugins exist, potentially call LoadLibrary() for unloaded plugins
-	if (!pManager.InitPlugins()) return false;
+	if (!pManager.InitPlugins())
+		return false;
 
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file
-	g_pThread = new Common::Thread(EmuThread, NULL);
+	g_EmuThread = new Common::Thread(EmuThread, NULL);
 	emuThreadGoing.Wait();
 	emuThreadGoing.Shutdown();
-	// all right ... here we go
+
+	// All right, the event is set and killed. We are now running.
 	Host_SetWaitCursor(false);
-	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
-	DisplayMessage(_CoreParameter.m_strFilename, 3000);
- 
-	//PluginVideo::DllDebugger(NULL);
- 
 	return true;
 }
 
-// Called from GUI thread or VI thread
+// Called from GUI thread or VI thread (why VI??? That must be bad. Window close? TODO: Investigate.)
 void Stop()  // - Hammertime!
 {
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	Host_SetWaitCursor(true);
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
- 
+
 	// stop the CPU
 	PowerPC::Stop();
-
 	CCPU::StepOpcode(); //kick it if it's waiting
+	
+	cpuRunloopQuit.Wait();
+	cpuRunloopQuit.Shutdown();
+	// At this point, we must be out of the CPU:s runloop.
+	
+	// Silence audio - stops audio thread.
+	CPluginManager::GetInstance().GetDSP()->DSP_StopSoundStream();
  
+	// If dual core mode, the CPU thread should immediately exit here.
+
 	// The quit is to get it out of its message loop
 	// Should be moved inside the plugin.
-	#ifdef _WIN32
-		PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
-	#else
-		CPluginManager::GetInstance().GetVideo()->Video_Stop();
-	#endif
+
+	if (_CoreParameter.bUseDualCore)
+		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 
 	#ifdef _WIN32
-		/* I have to use this to avoid the hangings, it seems harmless and it works so I'm
-		   okay with it */
-		if (GetParent((HWND)g_pWindowHandle) == NULL)
-			delete g_pThread; // Wait for emuthread to close
-	#else
-		delete g_pThread;
+	PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
 	#endif
-	g_pThread = 0;
+
 	Core::StopTrace();
 	LogManager::Shutdown();
 	Host_SetWaitCursor(false);
+
+	delete g_EmuThread;  // Wait for emuthread to close.
+	g_EmuThread = 0;
 }
  
  
@@ -243,31 +254,19 @@ void Stop()  // - Hammertime!
 // ---------------
 THREAD_RETURN CpuThread(void *pArg)
 {
-    Common::SetCurrentThreadName("CPU thread");
+	Common::SetCurrentThreadName("CPU thread");
  
-    const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-    if (!_CoreParameter.bUseDualCore)
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	if (!_CoreParameter.bUseDualCore)
 	{
-	    //wglMakeCurrent
-	    CPluginManager::GetInstance().GetVideo()->Video_Prepare(); 
+		//wglMakeCurrent
+		CPluginManager::GetInstance().GetVideo()->Video_Prepare(); 
 	}
  
-    if (_CoreParameter.bRunCompareServer)
-	{
-	    CPUCompare::StartServer();
-	    PowerPC::Start();
-	}
-    else if (_CoreParameter.bRunCompareClient)
-	{
-	    PanicAlert("Compare Debug : Press OK when ready.");
-	    CPUCompare::ConnectAsClient();
-	}
- 
-    if (_CoreParameter.bLockThreads)
+	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(1);  // Force to first core
  
-    if (_CoreParameter.bUseFastMem)
+	if (_CoreParameter.bUseFastMem)
 	{
 		#ifdef _M_X64
 			// Let's run under memory watch
@@ -279,13 +278,10 @@ THREAD_RETURN CpuThread(void *pArg)
 		#endif
 	}
  
-    CCPU::Run();
- 
-    if (_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
-	{
-	    CPUCompare::Stop();
-	}
-    return 0;
+	// Enter CPU run loop. When we leave it - we are done.
+	CCPU::Run();
+	cpuRunloopQuit.Set();
+ 	return 0;
 }
 //////////////////////////////////////////
  
@@ -293,10 +289,11 @@ THREAD_RETURN CpuThread(void *pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initalize plugins and create emulation thread
 // -------------
-	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a complete
-		call schedule. */
+// Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 THREAD_RETURN EmuThread(void *pArg)
 {
+	cpuRunloopQuit.Init();
+
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -331,10 +328,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
-	// Needed for Stop and Start
-	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
-		Plugins.FreeVideo();
-	#endif
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
@@ -355,10 +348,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
 	dspInit.bWii = _CoreParameter.bWii;
-	// Needed for Stop and Start
-	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
-		Plugins.FreeDSP();
-	#endif
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin
@@ -400,29 +389,31 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	// The hardware is initialized.
 	g_bHwInit = true;
+
+	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
+	DisplayMessage(_CoreParameter.m_strFilename, 3000);
  
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 	CBoot::BootUp();
  
-	if( g_pUpdateFPSDisplay != NULL )
-        g_pUpdateFPSDisplay("Loading...");
+	if (g_pUpdateFPSDisplay != NULL)
+        g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
  
-	// setup our core, but can't use dynarec if we are compare server
+	// Setup our core, but can't use dynarec if we are compare server
 	if (_CoreParameter.bUseJIT && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
  
-	// update the window again because all stuff is initialized
+	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();
 	Host_UpdateMainFrame();
  
-	//This thread, after creating the EmuWindow, spawns a CPU thread,
-	//then takes over and becomes the graphics thread
+	// This thread, after creating the EmuWindow, spawns a CPU thread,
+	// then takes over and becomes the graphics thread
  
-	//In single core mode, the CPU thread does the graphics. In fact, the
-	//CPU thread should in this case also create the emuwindow...
+	// In single core mode, this thread is the CPU thread and also does the graphics.
  
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
@@ -433,34 +424,36 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	if (!_CoreParameter.bUseDualCore)
 	{
-		#ifdef _WIN32
-			cpuThread = new Common::Thread(CpuThread, pArg);
-			//Common::SetCurrentThreadName("Idle thread");
-			//TODO(ector) : investigate using GetMessage instead .. although
-			//then we lose the powerdown check. ... unless powerdown sends a message :P
-			while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-			{
-				if (Callback_PeekMessages)
-					Callback_PeekMessages();
-				Common::SleepCurrentThread(20);
-			}
-		#else
-			// In single-core mode, the Emulation main thread is also the CPU thread
-			CpuThread(pArg);
-		#endif
+#ifdef _WIN32
+		cpuThread = new Common::Thread(CpuThread, pArg);
+		// Common::SetCurrentThreadName("Idle thread");
+
+		// TODO(ector) : investigate using GetMessage instead .. although
+		// then we lose the powerdown check. ... unless powerdown sends a message :P
+		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		{
+			if (Callback_PeekMessages)
+				Callback_PeekMessages();
+			Common::SleepCurrentThread(20);
+		}
+#else
+		// In single-core mode, the Emulation main thread is also the CPU thread
+		CpuThread(pArg);
+#endif
 	}
 	else
 	{
-	    Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
-	    cpuThread = new Common::Thread(CpuThread, pArg);
-	    Common::SetCurrentThreadName("Video thread");
-	    Plugins.GetVideo()->Video_EnterLoop();
+		Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
+		cpuThread = new Common::Thread(CpuThread, pArg);
+		Common::SetCurrentThreadName("Video thread");
+
+		// I bet that many of our stopping problems come from this loop not properly exiting.
+		Plugins.GetVideo()->Video_EnterLoop();
 	}
  
-
 	// We have now exited the Video Loop and will shut down
 
-
+	// does this comment still apply?
 	/* Check if we are using single core and are rendering to the main window. In that case we must avoid the WaitForSingleObject()
 	   loop in the cpu thread thread, because it will hang on occation, perhaps one time in three or so. I had this problem in the Wiimote plugin, what happened was that if I entered the
 	   WaitForSingleObject loop or any loop at all in the main thread, the separate thread would halt at a place where it called a function in
@@ -468,21 +461,14 @@ THREAD_RETURN EmuThread(void *pArg)
 	   Perhaps something like that can be done here to? I just don't exactly how since in single core mode there should only be one
 	   thread right? So how can WaitForSingleObject() hang in it? */
 
-	bool bRenderToMainSingleCore = false;
-	#ifdef SETUP_AVOID_SINGLE_CORE_HANG_ON_STOP
-		if (GetParent((HWND)g_pWindowHandle) == NULL || _CoreParameter.bUseDualCore) bRenderToMainSingleCore = true;
-	#endif
-
-	/* Wait for CPU thread to exit - it should have been signaled to do so by now. On the other hand this will be called by
-	   delete cpuThread to. So now we call it twice right? */
-	if(!bRenderToMainSingleCore) if (cpuThread) cpuThread->WaitForDeath();
 	// Write message
-	if (g_pUpdateFPSDisplay != NULL)  g_pUpdateFPSDisplay("Stopping...");
+	if (g_pUpdateFPSDisplay != NULL)
+		g_pUpdateFPSDisplay("Stopping...");
 
 	if (cpuThread)
 	{
-		// This joins the cpu thread.
-		if(!bRenderToMainSingleCore) delete cpuThread;
+		// There is a CPU thread - join it.
+		delete cpuThread;
 		// Returns after game exited
 		cpuThread = NULL;
 	}
@@ -500,7 +486,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)
 		Host_UpdateMainFrame();
 
-	//Console::Close();
 	return 0;
 }
  
@@ -508,27 +493,23 @@ THREAD_RETURN EmuThread(void *pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Set or get the running state
 // --------------
-bool SetState(EState _State)
+void SetState(EState _State)
 {
-	switch(_State)
+	switch (_State)
 	{
 	case CORE_UNINITIALIZED:
         Stop();
 		break;
- 
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
 		break;
- 
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
 		break;
- 
 	default:
-		return false;
+		PanicAlert("Invalid state");
+		break;
 	}
- 
-	return true;
 }
  
 EState GetState()
@@ -589,7 +570,7 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 // __________________________________________________________________________________________________
 // Callback_VideoCopiedToXFB
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-// We do not touch anything outside this function here
+// We do not write to anything outside this function here
 void Callback_VideoCopiedToXFB()
 { 
 	#ifdef RERECORDING
@@ -647,6 +628,8 @@ void Callback_VideoCopiedToXFB()
 		frames = 0;
         Timer.Update();
 	}
+	
+	// TODO: hm, are these really safe to call from the video thread?
 	PatchEngine::ApplyFramePatches();
 	PatchEngine::ApplyARPatches();
 }

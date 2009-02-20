@@ -22,37 +22,29 @@
 
 typedef void (*StreamCallback)(short* buffer, int numSamples, int bits, int rate, int channels);
 
-class SoundStream {
-
- protected:
+class SoundStream
+{
+protected:
     int sampleRate;
-
     StreamCallback callback;
 
     // We set this to shut down the sound thread.
     // 0=keep playing, 1=stop playing NOW.
     volatile int threadData;
     
- public:   
+public:   
     SoundStream(int _sampleRate, StreamCallback _callback) :
-	sampleRate(_sampleRate), callback(_callback), threadData(0) {}
-    
+		sampleRate(_sampleRate), callback(_callback), threadData(0) {}
     virtual ~SoundStream() {}
     
     static  bool isValid() { return false; }  
-    
-    virtual bool usesMixer() { return false; }
-    
+    virtual bool usesMixer() const { return false; }
     virtual bool Start() { return false; }
-    
-    virtual void SoundLoop() { }
-    
+    virtual void SoundLoop() {}
     virtual void Stop() {}
-    
     virtual void Update() {}
 
-    virtual int GetSampleRate() { return sampleRate; }
-    
+    virtual int GetSampleRate() const { return sampleRate; }
 };
 
 #endif

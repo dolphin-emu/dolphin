@@ -34,11 +34,8 @@
 
 class DSound : public SoundStream
 {
-    
 #ifdef _WIN32
-
     Common::Thread *thread;
-    
     Common::CriticalSection *soundCriticalSection;
     Common::Event *soundSyncEvent;
     void  *hWnd;
@@ -55,20 +52,18 @@ class DSound : public SoundStream
     short realtimeBuffer[1024 * 1024];
     
     inline int FIX128(int x) {
-	return x & (~127);
+		return x & (~127);
     }
 
     inline int ModBufferSize(int x) {
-	return (x + bufferSize) % bufferSize;
+		return (x + bufferSize) % bufferSize;
     }
 
     bool CreateBuffer();
-    
     bool WriteDataToBuffer(DWORD dwOffset, char* soundData,
 			   DWORD dwSoundBytes);
-    
-public:
 
+public:
     DSound(int _sampleRate, StreamCallback _callback) :
         SoundStream(_sampleRate, _callback) {}
     
@@ -76,29 +71,19 @@ public:
 	SoundStream(_sampleRate, _callback), hWnd(_hWnd) {}
     
     virtual ~DSound() {}
-    
-    virtual bool Start();
-    
+ 
+	virtual bool Start();
     virtual void SoundLoop();
-    
     virtual void Stop();
-    
     static bool isValid() { return true; }
-    
-    virtual bool usesMixer() { return true; }
-    
+    virtual bool usesMixer() const { return true; }
     virtual void Update();
 
 #else
 public:
-    
     DSound(int _sampleRate, StreamCallback _callback, void *hWnd = NULL) :
         SoundStream(_sampleRate, _callback) {}
-
-
-        
 #endif
-    
 };
 
 #endif //__DSOUNDSTREAM_H__

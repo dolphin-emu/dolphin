@@ -459,10 +459,10 @@ void Write16(const u16 _Value, const u32 _Address)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
+    Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
 		// to be mixed with the disc streaming output. If that audio queue fills up, we delay the emulator.
-	    Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
 		dsp->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
 
@@ -479,7 +479,7 @@ void UpdateAudioDMA()
 	} else {
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert silence.
 		// or hm. Maybe we shouldn't do this :)
-		// PluginDSP::DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
+		dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
 	}
 }
 

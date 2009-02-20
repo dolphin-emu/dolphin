@@ -206,7 +206,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"

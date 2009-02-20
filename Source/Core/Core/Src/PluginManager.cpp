@@ -27,7 +27,7 @@
    When plugins are freed and loaded:
 
    In an attempt to avoid the crash that occurs when the use LoadLibrary() and FreeLibrary() often
-   (every tiem a game is stopped and started) these functions will only be used when
+   (every time a game is stopped and started) these functions will only be used when
 		1. Dolphin is started
 		2. A plugin is changed
 		3. Dolphin is closed
@@ -90,8 +90,10 @@ CPluginManager::CPluginManager() :
 	// Set initial values to NULL, this is only done when Dolphin is started
 	m_video = NULL;
 	m_dsp = NULL;
-	for (int i = 0; i < MAXPADS; i++) m_pad[i] = NULL;
-	for (int i = 0; i < MAXWIIMOTES; i++) m_wiimote[i] = NULL;
+	for (int i = 0; i < MAXPADS; i++)
+		m_pad[i] = NULL;
+	for (int i = 0; i < MAXWIIMOTES; i++)
+		m_wiimote[i] = NULL;
 }
 
 // This will call FreeLibrary() for all plugins
@@ -100,7 +102,6 @@ CPluginManager::~CPluginManager()
 	Console::Print("Delete CPluginManager\n");
 
 	delete m_PluginGlobals;
-
 	delete m_dsp;
 
 	for (int i = 0; i < MAXPADS; i++) {
@@ -112,10 +113,10 @@ CPluginManager::~CPluginManager()
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
-		if (m_wiimote[i]) delete m_wiimote[i];
+		if (m_wiimote[i])
+			delete m_wiimote[i];
 
-	delete m_video;    
-
+	delete m_video;
 }
 //////////////////////////////////////////////
 
@@ -126,13 +127,13 @@ CPluginManager::~CPluginManager()
 // Function: Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
-	if (! GetDSP()) {
+	if (!GetDSP()) {
 		PanicAlert("Can't init DSP Plugin");
 		return false;
 	}
 	Console::Print("Before GetVideo\n");
 
-	if (! GetVideo()) {
+	if (!GetVideo()) {
 		PanicAlert("Can't init Video Plugin");
 		return false;
 	}
@@ -146,11 +147,13 @@ bool CPluginManager::InitPlugins()
 	for (int i = 0; i < MAXPADS; i++)
 	{
 		// Check that the plugin has a name
-		if (! m_params.m_strPadPlugin[i].empty()) GetPad(i);
+		if (!m_params.m_strPadPlugin[i].empty())
+			GetPad(i);
 		// Check that GetPad succeeded
-		if (m_pad[i] != NULL) pad = true;
+		if (m_pad[i] != NULL)
+			pad = true;
 	}
-	if (! pad)
+	if (!pad)
 	{
 		PanicAlert("Can't init any PAD Plugins");
 		return false;
@@ -159,13 +162,13 @@ bool CPluginManager::InitPlugins()
 	// Init wiimote
 	if (m_params.bWii) {
 		for (int i = 0; i < MAXWIIMOTES; i++) {
-			if (! m_params.m_strWiimotePlugin[i].empty())
+			if (!m_params.m_strWiimotePlugin[i].empty())
 				GetWiimote(i);
 
 			if (m_wiimote[i] != NULL)
 				wiimote = true;
 		}
-		if (! wiimote) {
+		if (!wiimote) {
 			PanicAlert("Can't init any Wiimote Plugins");
 			return false;
 		}
@@ -189,7 +192,8 @@ void CPluginManager::ShutdownPlugins()
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
 	{
-		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
+		if (m_wiimote[i])
+			m_wiimote[i]->Shutdown();
 		//delete m_wiimote[i];
 		//m_wiimote[i] = NULL;
 	}
@@ -284,7 +288,8 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 	Common::CPlugin *plugin = NULL;
 
 	// Check again that the file exists, the first check is when CPluginInfo info is created
-	if (! File::Exists(_rFilename)) return NULL;
+	if (!File::Exists(_rFilename))
+		return NULL;
 	
 	switch (type)
 	{
@@ -452,11 +457,13 @@ void CPluginManager::FreeVideo()
 	delete m_video;
 	m_video = NULL;
 }
+
 void CPluginManager::FreeDSP()
 {
 	delete m_dsp;
 	m_dsp = NULL;
 }
+
 void CPluginManager::FreePad(u32 Pad)
 {
 	if (Pad < MAXPADS) {
@@ -464,6 +471,7 @@ void CPluginManager::FreePad(u32 Pad)
 		m_pad[Pad] = NULL;	
 	}
 }
+
 void CPluginManager::FreeWiimote(u32 Wiimote)
 {
 	if (Wiimote < MAXWIIMOTES)
@@ -509,7 +517,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	if (! File::Exists(_rFilename))
+	if (!File::Exists(_rFilename))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;

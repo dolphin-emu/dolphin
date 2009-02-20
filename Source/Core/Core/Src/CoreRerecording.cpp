@@ -174,16 +174,16 @@ void FrameAdvance()
 	WriteStatus();	
 
 	// If a game is not started, return
-	if(Core::GetState() == Core::CORE_UNINITIALIZED) return;
+	if (Core::GetState() == Core::CORE_UNINITIALIZED) return;
 
 	// Play to the next frame
-	if(g_FrameStep)
+	if (g_FrameStep)
 	{
 		Run();
 		Core::SetState(Core::CORE_RUN);	
 	}
-
 }
+
 // Turn on frame stepping
 void FrameStepOnOff()
 {

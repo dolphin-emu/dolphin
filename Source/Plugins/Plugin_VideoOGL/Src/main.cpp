@@ -318,13 +318,13 @@ void Video_Prepare(void)
 
 void Shutdown(void)
 {
+    Fifo_Shutdown();
     TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
     VertexShaderCache::Shutdown();
     VertexShaderManager::Shutdown();
     PixelShaderManager::Shutdown();
     PixelShaderCache::Shutdown();
-    Fifo_Shutdown();
     VertexManager::Shutdown();
     TextureMngr::Shutdown();
     OpcodeDecoder_Shutdown();
@@ -332,15 +332,14 @@ void Shutdown(void)
     OpenGL_Shutdown();
 }
 
-
-void Video_Stop(void)
-{
-    Fifo_Stop();
-}
-
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
+}
+
+void Video_ExitLoop()
+{
+	Fifo_ExitLoop();
 }
 
 void DebugLog(const char* _fmt, ...)

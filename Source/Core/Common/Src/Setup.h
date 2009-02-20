@@ -15,10 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #ifndef __SETUP_h__
 #define __SETUP_h__
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // File description
@@ -31,17 +29,9 @@
 
 ////////////////////////*/
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 // Settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯
-
-// This may fix a problem with Stop and Start that I described in the comments to revision 2,139
-//#define SETUP_FREE_PLUGIN_ON_BOOT
-
-// This may fix a semi-frequent hanging that occured when I used single core and render to main frame
-//#define SETUP_AVOID_SINGLE_CORE_HANG_ON_STOP
 
 // This may remove sound artifacts in Wario Land Shake It and perhaps other games
 //#define SETUP_AVOID_SOUND_ARTIFACTS
@@ -53,6 +43,5 @@
 //#define MUSICMOD
 
 ///////////////////////////
-
 
 #endif // __SETUP_h__

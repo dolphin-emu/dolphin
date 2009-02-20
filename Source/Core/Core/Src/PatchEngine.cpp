@@ -196,4 +196,5 @@ void ApplyARPatches()
 {
 	ActionReplay::RunAllActive();
 }
+
 }  // namespace

@@ -200,11 +200,16 @@ void DoState(unsigned char **ptr, int mode) {
 	//PanicAlert("Saving/Loading state from DirectX9");
 }
 
-
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
 }
+
+void Video_ExitLoop()
+{
+	Fifo_ExitLoop();
+}
+
 
 void Video_Prepare(void)
 {
@@ -230,10 +235,6 @@ void Shutdown(void)
 	DeInit();
 }
 
-void Video_Stop(void)
-{
-}
-
 void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, bool /*scheduling*/)
 {
 	/*
@@ -251,6 +252,10 @@ void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_
 	D3D::BeginFrame();*/
 }
 
+void Video_AddMessage(const char* pstr, u32 milliseconds)
+{
+	Renderer::AddMessage(pstr,milliseconds);
+}
 
 void DebugLog(const char* _fmt, ...)
 {
@@ -306,19 +311,10 @@ HRESULT ScreenShot(TCHAR *File)
 	}
 
 	surf->Release();
-
 	return S_OK;
 }
 
 unsigned int Video_Screenshot(TCHAR* _szFilename)
 {
-	if (ScreenShot(_szFilename) == S_OK)
-		return TRUE;
-
-	return FALSE;
-}
-
-void Video_AddMessage(const char* pstr, u32 milliseconds)
-{
-	Renderer::AddMessage(pstr,milliseconds);
+	return ScreenShot(_szFilename) == S_OK ? TRUE : FALSE;
 }

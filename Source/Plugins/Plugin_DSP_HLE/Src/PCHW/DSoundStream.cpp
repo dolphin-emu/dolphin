@@ -16,13 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <dxerr.h>
-
 #include "DSoundStream.h"
-#include "../main.h"
-#include "WaveFile.h"
 
 extern bool log_ai;
-extern WaveFileWriter g_wave_writer;
 
 bool DSound::CreateBuffer()
 {
@@ -39,9 +35,9 @@ bool DSound::CreateBuffer()
 	pcmwf.wf.nAvgBytesPerSec = pcmwf.wf.nSamplesPerSec * pcmwf.wf.nBlockAlign;
 	pcmwf.wBitsPerSample = 16;
 
-	//buffer description
+	// Fill out DSound buffer description.
 	dsbdesc.dwSize  = sizeof(DSBUFFERDESC);
-	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS; //VIKTIGT //DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY;
+	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS;
 	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 
@@ -51,7 +47,8 @@ bool DSound::CreateBuffer()
 		dsBuffer->SetCurrentPosition(0);
 		return true;
 	}
-	else {
+	else
+	{
 		// Failed.
 		PanicAlert("Sound buffer creation failed: %s", DXGetErrorString(res)); 
 		dsBuffer = NULL;
@@ -64,11 +61,12 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 		DWORD dwSoundBytes) // Size of block to copy.
 {
 	// I want to record the regular audio to, how do I do that?
+	// Well, it's gonna be a bit tricky. For future work :)
 	//std::string Data = ArrayToString((const u8*)soundData, dwSoundBytes);
 	//Console::Print("Data: %s\n\n", Data.c_str());
 	//if (log_ai) g_wave_writer.AddStereoSamples((const short*)soundData, dwSoundBytes);
 
-	void* ptr1, * ptr2;
+	void *ptr1, *ptr2;
 	DWORD numBytes1, numBytes2;
 	// Obtain memory address of write block. This will be in two parts if the block wraps around.
 	HRESULT hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
@@ -79,15 +77,11 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 		dsBuffer->Restore();
 		hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
 	}
-
 	if (SUCCEEDED(hr))
 	{
 		memcpy(ptr1, soundData, numBytes1);
-
 		if (ptr2 != 0)
-		{
 			memcpy(ptr2, soundData + numBytes1, numBytes2);
-		}
 
 		// Release the data back to DirectSound.
 		dsBuffer->Unlock(ptr1, numBytes1, ptr2, numBytes2);
@@ -100,43 +94,33 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 // The audio thread.
 DWORD WINAPI soundThread(void* args)
 {
-	((DSound *)args)->SoundLoop();
-	
-	return 0; //huzzah! :D
+	(reinterpret_cast<DSound *>(args))->SoundLoop();
+	return 0;
 }
 
-void DSound::SoundLoop() {
-
+void DSound::SoundLoop()
+{
 	currentPos = 0;
 	lastPos = 0;
-
-	// Prefill buffer?
-	//writeDataToBuffer(0,realtimeBuffer,bufferSize);
-	//  dsBuffer->Lock(0, bufferSize, (void **)&p1, &num1, (void **)&p2, &num2, 0);
 	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
-
-	while (!threadData)	{
+	while (!threadData)
+	{
 		// No blocking inside the csection
 		soundCriticalSection->Enter();
 		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
 		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
-
 		if (numBytesToRender >= 256)
 		{
 			if (numBytesToRender > sizeof(realtimeBuffer))
 				PanicAlert("soundThread: too big render call");
-			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, 
-								   sampleRate, 2);
-
+			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
 			currentPos = ModBufferSize(lastPos + numBytesToRender);
 			totalRenderedBytes += numBytesToRender;
-
 			lastPos = currentPos;
 		}
 
 		soundCriticalSection->Leave();
-
 		soundSyncEvent->Wait();
 	}
 
@@ -145,20 +129,14 @@ void DSound::SoundLoop() {
 
 bool DSound::Start()
 {
-	//no security attributes, automatic resetting, init state nonset, untitled
 	soundSyncEvent = new Common::Event();
 	soundSyncEvent->Init();
 
-	//vi initierar den...........
 	soundCriticalSection = new Common::CriticalSection();
-
-	//vi vill ha access till DSOUND så...
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-            return false;
-
+        return false;
 	if(hWnd)
 		ds->SetCooperativeLevel((HWND)hWnd, DSSCL_NORMAL);
-
 	if (!CreateBuffer())
 		return false;
 
@@ -168,7 +146,6 @@ bool DSound::Start()
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
 	totalRenderedBytes = -bufferSize;
-
 	thread = new Common::Thread(soundThread, (void *)this);
 	return true;
 }
@@ -196,15 +173,3 @@ void DSound::Stop()
 	soundSyncEvent = NULL;
 	thread = NULL;
 }
-
-/* Unused, is it needed?
-int DSound::GetCurSample()
-{
-	soundCriticalSection->Enter();
-	int playCursor;
-	dsBuffer->GetCurrentPosition((DWORD*)&playCursor, 0);
-	playCursor = ModBufferSize(playCursor - lastPos) + totalRenderedBytes;
-	soundCriticalSection->Leave();
-	return playCursor;
-}
-*/

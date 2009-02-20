@@ -63,12 +63,11 @@ public:
 	Thread(ThreadFunc entry, void* arg);
 	~Thread();
 
-	void WaitForDeath();
 	void SetAffinity(int mask);
 	static void SetCurrentThreadAffinity(int mask);
 
-
 private:
+	void WaitForDeath();
 
 #ifdef _WIN32
 	HANDLE m_hThread;
@@ -81,29 +80,26 @@ private:
 
 class Event
 {
-	public:
+public:
+	Event();
 
-		Event();
+	void Init();
+	void Shutdown();
 
-		void Init();
-		void Shutdown();
+	void Set();
+	void Wait();
 
-		void Set();
-		void Wait();
-
-
-	private:
-
+private:
 #ifdef _WIN32
-		HANDLE m_hEvent;
+	HANDLE m_hEvent;
 #else
-		bool is_set_;
-		pthread_cond_t event_;
-		pthread_mutex_t mutex_;
+	bool is_set_;
+	pthread_cond_t event_;
+	pthread_mutex_t mutex_;
 #endif
 };
 
-void InitThreading(void);
+void InitThreading();
 void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char *name);
@@ -113,6 +109,5 @@ LONG SyncInterlockedExchange(LONG *Dest, LONG Val);
 LONG SyncInterlockedIncrement(LONG *Dest);
 
 } // end of namespace Common
-
 
 #endif

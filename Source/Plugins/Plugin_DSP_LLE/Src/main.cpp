@@ -291,20 +291,23 @@ void Initialize(void *init)
 #endif
 }
 
+void DSP_StopSoundStream()
+{
+#ifdef _WIN32
+	if (g_hDSPThread != NULL)
+	{
+        TerminateThread(g_hDSPThread, 0);
+    }
+#else
+	// Isn't pthread_cancel kind of evil?
+    pthread_cancel(g_hDSPThread);
+#endif
+}
 
 void Shutdown(void)
 {
 	if (log_ai)
 		g_wave_writer.Stop();
-#ifdef _WIN32
-	if (g_hDSPThread != NULL)
-	{
-            TerminateThread(g_hDSPThread, 0);
-        }
-#else
-        pthread_cancel(g_hDSPThread);
-#endif
-
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)

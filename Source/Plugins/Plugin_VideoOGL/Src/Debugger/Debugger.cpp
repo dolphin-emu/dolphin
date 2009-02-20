@@ -121,11 +121,11 @@ void CDebugger::LoadSettings()
 	m_Check[1]->SetValue(Console);
 
 	file.Get("VideoWindow", "ConfBits", &g_Config.iLog, 0);
-	bInfoLog = g_Config.iLog & CONF_LOG;
-	bPrimLog = g_Config.iLog & CONF_PRIMLOG;
-	bSaveTextures = g_Config.iLog & CONF_SAVETEXTURES;
-	bSaveTargets = g_Config.iLog & CONF_SAVETARGETS;
-	bSaveShaders = g_Config.iLog & CONF_SAVESHADERS;
+	bInfoLog = (g_Config.iLog & CONF_LOG) ? true : false;
+	bPrimLog = (g_Config.iLog & CONF_PRIMLOG) ? true : false;
+	bSaveTextures = (g_Config.iLog & CONF_SAVETEXTURES) ? true : false;
+	bSaveTargets = (g_Config.iLog & CONF_SAVETARGETS) ? true : false;
+	bSaveShaders = (g_Config.iLog & CONF_SAVESHADERS) ? true : false;
 	m_Check[2]->SetValue(bInfoLog);
 	m_Check[3]->SetValue(bPrimLog);
 	m_Check[4]->SetValue(bSaveTextures);

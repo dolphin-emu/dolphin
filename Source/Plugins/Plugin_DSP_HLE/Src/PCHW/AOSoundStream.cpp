@@ -31,7 +31,8 @@ void AOSound::SoundLoop()
     format.byte_format = AO_FMT_LITTLE;
 		
     device = ao_open_live(default_driver, &format, NULL /* no options */);
-    if (device == NULL) {
+    if (!device)
+	{
 		PanicAlert("DSP_HLE: Error opening AO device.\n");
 		ao_shutdown();
 		Stop();
@@ -40,23 +41,26 @@ void AOSound::SoundLoop()
 
     buf_size = format.bits/8 * format.channels * format.rate;
 
-    while (!threadData) {
-            soundCriticalSection->Enter();
-                    
-            uint_32 numBytesToRender = 256;
-            (*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
-            ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-            soundCriticalSection->Leave();
-            soundSyncEvent->Wait();
-    }
+    while (!threadData)
+	{
+        soundCriticalSection->Enter();
+                
+        uint_32 numBytesToRender = 256;
+        (*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+        ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+        soundCriticalSection->Leave();
+        soundSyncEvent->Wait();
+	}
 }
 
-void *soundThread(void *args) {
+void *soundThread(void *args)
+{
 	((AOSound *)args)->SoundLoop();
 	return NULL;
 }
 
-bool AOSound::Start() {
+bool AOSound::Start()
+{
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
     soundSyncEvent = new Common::Event();
@@ -68,7 +72,8 @@ bool AOSound::Start() {
     return true;
 }
 
-void AOSound::Update() {
+void AOSound::Update()
+{
     soundSyncEvent->Set();
 }
     

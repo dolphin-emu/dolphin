@@ -42,10 +42,9 @@ void ConfigDialog::LoadFile()
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
 
-	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
+	for (int i = 1; i < (RECORDING_ROWS + 1); i++)
 	{
 		// Temporary storage
-		bool bTmp;
 		int iTmp;
 		std::string STmp;
 

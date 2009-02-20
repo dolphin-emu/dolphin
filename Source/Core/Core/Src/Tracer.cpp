@@ -26,6 +26,7 @@
 #include "PowerPC/PowerPC.h"
 
 namespace Core {
+
 FILE *tracefile;
 
 bool bReadTrace = false;
@@ -56,8 +57,8 @@ void StopTrace()
 	}
 }
 
-int stateSize = 32*4;// + 32*16 + 6*4;
-u64 tb;
+static int stateSize = 32*4;// + 32*16 + 6*4;
+static u64 tb;
 
 int SyncTrace()
 {
