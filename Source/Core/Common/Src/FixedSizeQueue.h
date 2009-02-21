@@ -39,14 +39,19 @@ class FixedSizeQueue
 public:
 	FixedSizeQueue()
 	{
-		head = 0;
-		tail = 0;
 		storage = new T[N];
+		clear();
 	}
 
 	~FixedSizeQueue()
 	{
 		delete [] storage;
+	}
+
+	void clear() {
+		head = 0;
+		tail = 0;
+		count = 0;
 	}
 
 	void push(T t) {
