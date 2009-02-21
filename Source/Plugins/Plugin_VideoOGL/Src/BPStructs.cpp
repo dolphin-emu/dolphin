@@ -449,13 +449,13 @@ void BPWritten(int addr, int changes, int newval)
 				}
 				else
 				{
-					Renderer::Swap();
+					Renderer::Swap(multirc);
 				}
 				g_VideoInitialize.pCopiedToXFB();
             }
 
 			// --------------------------------------------------------
-            // Clearing
+            // Clear the picture after it's done and submitted, to prepare for the next picture
 			// --------------------------
             if (PE_copy.clear)
 			{
@@ -464,20 +464,17 @@ void BPWritten(int addr, int changes, int newval)
 				// Clear Z-Buffer target
                 u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
                 
-				// Why do we have this here and in Render.cpp?
+				// -----------------------------------------------------------------
+				// Update the view port for clearing the picture
+				// -----------------------
 				glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 
                 // Always set the scissor in case it was set by the game and has not been reset
-				// But we will do that at the end of this section, in SetScissorRect(), why would we do it twice in the same function?
-                // Because this is needed by the intermediate functions diirectly below here, in glDrawBuffer()
-				// and so on.
+				/* We will also do this at the end of this section, in SetScissorRect(), but that is for creating the new picture
+				   this is for clearing the picture */
 				glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-                    (multirc.right - multirc.left), (multirc.bottom - multirc.top));
-				// Logging
-					GLScissorX = multirc.left; GLScissorY = (Renderer::GetTargetHeight() - multirc.bottom);
-					GLScissorW = (multirc.right - multirc.left); GLScissorH = (multirc.bottom - multirc.top);
-
-					//Console::Print("%i %i %i %i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
+					(multirc.right - multirc.left), (multirc.bottom - multirc.top));
+				// ---------------------------
 
                 VertexShaderManager::SetViewportChanged();
 

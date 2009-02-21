@@ -37,6 +37,8 @@
 		2. Sond plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
 		"get pointer for unknown address ffffffff" message for all games I tried.
 
+	Currently this holds if the 'SETUP_FREE_PLUGIN_ON_BOOT' option is used
+
 	For some reason the time when the FreeLibrary() is placed produce different results. If it's placed
 	after ShutDown() I don't get a black screen when I start SSBM (PAL) again, if I have stopped the game
 	before the first 3D appears (on the start screen), if I show the start screen and then Stop and Start
@@ -205,15 +207,21 @@ void CPluginManager::ShutdownPlugins()
 	if (m_video)
 	{
 		m_video->Shutdown();
-		delete m_video;
-		m_video = NULL;
+		// With this option, this is done on boot instead
+		#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+			delete m_video;
+			m_video = NULL;
+		#endif
 	}
 
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
-		delete m_dsp;
-		m_dsp = NULL;
+		// With this option, this is done on boot instead
+		#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+			delete m_dsp;
+			m_dsp = NULL;
+		#endif
 	}
 }
 //////////////////////////////////////////////

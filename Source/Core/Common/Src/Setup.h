@@ -36,6 +36,12 @@
 // This may remove sound artifacts in Wario Land Shake It and perhaps other games
 //#define SETUP_AVOID_SOUND_ARTIFACTS
 
+// This may fix a problem with Stop and Start that I described in the comments to revision 2,139
+//#define SETUP_FREE_PLUGIN_ON_BOOT
+
+// Use Stop when rendering to a child window
+//#define SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
+
 // Build with playback rerecording options
 //#define RERECORDING
 

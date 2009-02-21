@@ -592,31 +592,11 @@ bool Renderer::SetScissorRect()
 	// Check that the coordinates are good
     if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
-		// -----------------------------------------------------------------------
-		// XFB supplement, fix the black borders problem
-		// ------------------
-		// See comment in UpdateViewport() about why I don't the XFB supplement to these options
-		//if(g_Config.bStretchToFit && !g_Config.bUseXFB)
-		if(false)
-		{
-			int WidthDifference = 640 - (int)(rc_right - rc_left);
-			int HeightDifference = 480 - (int)(rc_bottom - rc_top);
-
-			GLScissorX = (int)rc_left; GLScissorY = -(Renderer::GetTargetHeight() - (int)(rc_bottom));
-			GLScissorW = Renderer::GetTargetWidth() + WidthDifference; GLScissorH = Renderer::GetTargetHeight() + HeightDifference;
-		}
-		// ------------------------
-		else
-		{
-			GLScissorX = (int)rc_left; GLScissorY = Renderer::GetTargetHeight() - (int)(rc_bottom);
-			GLScissorW = (int)(rc_right - rc_left); GLScissorH = (int)(rc_bottom - rc_top);
-		}
-
         glScissor(
-			GLScissorX, // x = 0
-			GLScissorY, // y = 0
-			GLScissorW, // width = 640 for example
-			GLScissorH // height = 480 for example
+			(int)rc_left, // x = 0 for example
+			Renderer::GetTargetHeight() - (int)(rc_bottom), // y = 0 for example
+			(int)(rc_right-rc_left), // width = 640 for example
+			(int)(rc_bottom-rc_top) // height = 480 for example
 			); 
         return true;
     }
@@ -775,7 +755,12 @@ Renderer::RenderMode Renderer::GetRenderMode()
     return s_RenderMode;
 }
 
-void Renderer::Swap()
+
+//////////////////////////////////////////////////////////////////////////////////////
+// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio
+// here.
+// ----------------------
+void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
 
@@ -794,8 +779,183 @@ void Renderer::Swap()
 #else
 	// render to the real buffer now 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
-    glViewport(OpenGL_GetXoff(), OpenGL_GetYoff(), (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
 
+	// -----------------------------------------------------------------------
+	// GLViewPort variables
+	// ------------------
+	/* Work with float values for the XFB supplement and aspect ratio functions. These are default
+	   values that are used if the XFB supplement and the keep aspect ratio function are unused */
+	float FloatGLWidth = (float)OpenGL_GetWidth();
+	float FloatGLHeight = (float)OpenGL_GetHeight();
+	float FloatXOffset = 0, FloatYOffset = 0;
+	// -------------------------------------
+
+
+	// -----------------------------------------------------------------------
+	// XFB supplement, fix the black borders problem
+	// ------------------
+	/* I'm limiting it to the stretch to fit option because I don't know how the other mode works. The reason
+	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
+	   should be able to produce the same result */
+	if(g_Config.bStretchToFit && !g_Config.bUseXFB)
+	{
+		// The rendering window size
+		float WinWidth = (float)OpenGL_GetWidth();
+		float WinHeight = (float)OpenGL_GetHeight();
+
+		// The fraction of the screen that the image occupies
+		// Rc.right and rc.bottom is the original picture pixel size
+		/* There is a +1 in Rc (earlier called multirc, the input to this function), but these
+		   adjustments seems to work better without it. */
+		float WidthRatio = (float)(rc.right - 1) / 640.0;
+		float HeightRatio = (float)(rc.bottom - 1) / 480.0;
+
+		// The pixel size of the image on the screen, adjusted for the actual window size
+		float OldWidth = WidthRatio * (float)WinWidth;
+		float OldHeight = HeightRatio * (float)WinHeight;
+
+		// The adjusted width and height
+		FloatGLWidth = ceil((float)WinWidth / WidthRatio);
+		FloatGLHeight = ceil((float)WinHeight / HeightRatio);
+
+		// The width and height deficit in actual pixels
+		float WidthDeficit = (float)WinWidth - OldWidth;
+		float HeightDeficit = (float)WinHeight - OldHeight;
+
+		// The picture will be drawn from the bottom so we need this YOffset
+		// The X-axis needs no adjustment because the picture begins from the left
+		FloatYOffset = -HeightDeficit / HeightRatio;
+
+		// -----------------------------------------------------------------------
+		// Logging
+		// ------------------
+		/*
+		Console::ClearScreen();
+		Console::Print("Bpmem        L:%i T:%i X:%i Y:%i\n", bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bpmem.copyTexSrcWH.x, bpmem.copyTexSrcWH.y);
+		Console::Print("Config       Left:%i Top:%i Width:%i Height:%i\n", g_Config.iScreenLeft, g_Config.iScreenTop, g_Config.iScreenWidth, g_Config.iScreenHeight);
+		Console::Print("Input        Left:%i Top:%i Right:%i Bottom:%i\n", rc.left, rc.top, rc.right, rc.bottom);
+		Console::Print("Old picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f\n", WidthRatio, OldWidth, HeightRatio, OldHeight);
+		Console::Print("New picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f YOffset:%4.0f YDeficit:%4.0f\n", WidthRatio, WinWidth, HeightRatio, WinHeight, FloatYOffset, HeightDeficit);
+		Console::Print("----------------------------------------------------------------\n");
+		*/
+		// ------------------------------
+	}
+	// ------------------------------
+
+
+
+	// -----------------------------------------------------------------------
+	/* Keep aspect ratio at 4:3. This may be interesting if you for example have a 5:4 screen but don't like
+	   the stretching, and would rather have a letterbox. */
+	//		Output: GLWidth, GLHeight, XOffset, YOffset
+	// ------------------
+
+	// The rendering window size
+	float WinWidth = (float)OpenGL_GetWidth();
+	float WinHeight = (float)OpenGL_GetHeight();
+	// The rendering window aspect ratio as a fraction of the 4:3 ratio
+	float Ratio = WinWidth / WinHeight / (4.0 / 3.0);
+	float wAdj, hAdj;
+	float ActualRatioW, ActualRatioH;
+	float Overflow;
+	// Actual pixel size of the picture after adjustment
+	float PictureWidth = WinWidth, PictureHeight = WinHeight;
+
+	// This function currently only works together with the Stretch To Fit option
+	if (g_Config.bKeepAR && g_Config.bStretchToFit)
+	{
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (Ratio > 1)
+		{
+			// ------------------------------------------------
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			// ----------------
+			wAdj = Ratio;
+			hAdj = 1.0;
+			FloatGLWidth = FloatGLWidth / wAdj;
+			FloatGLHeight = FloatGLHeight / hAdj;
+			// --------------------
+
+			// ------------------------------------------------
+			// Calculate the new X offset
+			// ----------------
+			// The picture width
+			PictureWidth = WinWidth / Ratio;
+			// Move the left of the picture to the middle of the screen
+			FloatXOffset = FloatXOffset + WinWidth / 2.0;
+			// Then remove half the picture height to move it to the horizontal center
+			FloatXOffset = FloatXOffset - PictureWidth / 2.0;
+			// --------------------
+		}
+		// The window is to high, we have to limit the height
+		else
+		{
+			// ------------------------------------------------
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			// ----------------
+			// Invert the ratio to make it > 1
+			Ratio = 1.0 / Ratio;
+			wAdj = 1.0;
+			hAdj = Ratio;
+			FloatGLWidth = FloatGLWidth / wAdj;
+			FloatGLHeight = FloatGLHeight / hAdj;
+			// --------------------
+			
+			// ------------------------------------------------
+			// Calculate the new Y offset
+			// ----------------
+			// The picture height
+			PictureHeight = WinHeight / Ratio;
+			// Keep the picture on the bottom of the screen, this is needed because YOffset may not be 0 here
+			FloatYOffset = FloatYOffset / hAdj;
+			// Move the bottom of the picture to the middle of the screen
+			FloatYOffset = FloatYOffset + WinHeight / 2.0;
+			// Then remove half the picture height to move it to the vertical center
+			FloatYOffset = FloatYOffset - PictureHeight / 2.0;
+			// --------------------
+		}
+
+		// -----------------------------------------------------------------------
+		// Logging
+		// ------------------
+		/*
+		Console::Print("Screen      Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
+		Console::Print("GL          Width:%4.1f Height:%4.1f\n", FloatGLWidth, FloatGLHeight);
+		Console::Print("Picture     Width:%4.1f Height:%4.1f YOffset:%4.0f\n", PictureWidth, PictureHeight, FloatYOffset);
+		Console::Print("----------------------------------------------------------------\n");
+		*/
+		// ------------------------------
+	}
+	// -------------------------------------
+
+	// -----------------------------------------------------------------------
+	/* Adjustments to
+			FloatGLWidth
+			FloatGLHeight
+			XOffset
+			YOffset
+	   are done. Calculate the new new windows width and height. */
+	// --------------------
+		int GLx = OpenGL_GetXoff(); // These two are zero
+		int GLy = OpenGL_GetYoff();
+		int GLWidth = ceil(FloatGLWidth);
+		int GLHeight = ceil(FloatGLHeight);
+
+		// Because there is no round() function we use round(float) = floor(float + 0.5) instead
+		int YOffset = floor(FloatYOffset + 0.5);
+		int XOffset = floor(FloatXOffset+ 0.5);
+	// -------------------------------------
+
+
+	// Update GLViewPort
+	glViewport(
+		GLx + XOffset,
+		GLy + YOffset,
+		GLWidth,
+		GLHeight
+		);
+
+	// Reset GL state
     ResetGLState();
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
@@ -836,6 +996,8 @@ void Renderer::Swap()
     //Renderer::SetZBufferRender();
     //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
 }
+////////////////////////////////////////////////
+
 
 void Renderer::SwapBuffers()
 {
@@ -1011,7 +1173,8 @@ bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-// Called from VertexShaderManager
+// Function: This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
+// Call schedule: Called from VertexShaderManager
 // ----------------------
 void UpdateViewport()
 {
@@ -1043,92 +1206,6 @@ void UpdateViewport()
 	// rawViewport[0] = 320, rawViewport[1] = -240
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
-
-	// Used in the XFB supplement and the keep aspect ratio function
-	int XOffset = 0, YOffset = 0;
-	// -------------------------------------
-
-
-	// -----------------------------------------------------------------------
-	/* XFB supplement, fix the black borders problem. This has to be used together with the adjustment
-	   of glScissor in Renderer::SetScissorRect() */
-	// ------------------
-
-	/* I'm limiting it to the stretch to fit option because I don't know how the other mode works. The reason
-	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
-	   should be able to produce the same result */
-	//if(g_Config.bStretchToFit && !g_Config.bUseXFB)
-	if (false)
-	{
-		XOffset = (640 - GLScissorW);
-		YOffset = (480 - GLScissorH);
-		FloatGLWidth = FloatGLWidth - XOffset;
-		FloatGLHeight = FloatGLHeight - YOffset;
-	}
-	// ------------------------
-
-
-	// -----------------------------------------------------------------------
-	// Keep aspect ratio at 4:3
-	//		Output: GLWidth, GLHeight, XOffset, YOffset
-	// ------------------
-
-	// Internal functions
-	float FourThree = 4.0f / 3.0f;
-	float wAdj, hAdj;
-	float actualRatiow, actualRatioh;
-	int overfl;
-	int actualWid, actualHei;
-	// The rendering window width and height
-	int WinW = OpenGL_GetWidth();
-	int WinH = OpenGL_GetHeight();
-	// The rendering window aspect ratio
-	float Ratio = (float)WinW / (float)WinH / FourThree;
-
-	// The XOffset and YOffset values are currently only used in the Stretch To Fit option
-	if (g_Config.bKeepAR && g_Config.bStretchToFit)
-	{
-		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
-		if (Ratio > 1)
-		{
-			wAdj = Ratio;
-			hAdj = 1;
-
-			GLWidth = (int)ceil(FloatGLWidth / wAdj);
-			GLHeight = (int)ceil(FloatGLHeight / hAdj);
-
-			actualWid = (int)ceil((float)WinW / Ratio);
-			// The picture compared to the screen
-			actualRatiow = (float)actualWid / (float)GLWidth;
-			overfl = (int)ceil((WinW - actualWid) / actualRatiow);
-			XOffset = XOffset + overfl / 2;
-		}
-		// The window is to high, we have to limit the height
-		else
-		{
-			// Invert the ratio
-			Ratio = 1 / Ratio;
-
-			wAdj = 1;
-			hAdj = Ratio;
-
-			GLWidth = (int)ceil(FloatGLWidth / wAdj);
-			GLHeight = (int)ceil(FloatGLHeight / hAdj);
-
-			actualHei = (int)ceil((float)WinH / Ratio);
-			// The picture compared to the screen
-			actualRatioh = (float)actualHei / (float)GLHeight;
-			overfl = (int)ceil((WinH - actualHei) / actualRatioh);
-			YOffset = YOffset + overfl / 2;
-		}
-	}
-	// Don't adjust the position of screen size
-	else
-	{
-		// Round up to the nearest integer
-		GLWidth = (int)ceil(FloatGLWidth);
-		GLHeight = (int)ceil(FloatGLHeight);
-	}
 	// -------------------------------------
 
 
@@ -1137,8 +1214,11 @@ void UpdateViewport()
 	// ------------------
 	if (g_Config.bStretchToFit)
 	{
-		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) + XOffset;
-		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) + YOffset;
+		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff);
+		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff));
+		// Round up to the nearest integer
+		GLWidth = (int)ceil(FloatGLWidth);
+		GLHeight = (int)ceil(FloatGLHeight);
 	}
 	// -----------------------------------------------------------------------
 	// Stretch picture with increased internal resolution
@@ -1180,7 +1260,6 @@ void UpdateViewport()
 	GetWindowRect(Top, &RcTop);
 	GetWindowRect(Parent, &RcParent);
 	GetWindowRect(Child, &RcChild);
-
 	
 	//Console::ClearScreen();	
 	Console::Print("----------------------------------------------------------------\n");

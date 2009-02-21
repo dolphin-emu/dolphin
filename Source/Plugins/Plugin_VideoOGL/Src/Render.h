@@ -128,7 +128,7 @@ public:
 	static bool SaveRenderTarget(const char* filename, int jpeg);
 
     // Finish up the current frame, print some stats
-    static void Swap();
+    static void Swap(const TRectangle& rc);
 };
 
 #endif

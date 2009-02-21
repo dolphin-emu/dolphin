@@ -242,7 +242,11 @@ void Stop()  // - Hammertime!
 	Core::StopTrace();
 	LogManager::Shutdown();
 	Host_SetWaitCursor(false);
-
+	#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
+		/* I have to use this to avoid the hangings, it seems harmless and it works so I'm
+			  okay with it */
+		if (GetParent((HWND)g_pWindowHandle) == NULL)
+	#endif
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
 }
@@ -327,6 +331,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
+	// Needed for Stop and Start
+	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
+		Plugins.FreeVideo();
+	#endif
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
@@ -347,6 +355,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
 	dspInit.bWii = _CoreParameter.bWii;
+	// Needed for Stop and Start
+	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
+		Plugins.FreeDSP();
+	#endif
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin

@@ -44,7 +44,7 @@ void Config::Load()
     strncpy(iBackend, temp.c_str(), 16);
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
-    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
+    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bStretchToFit, true);
     iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
