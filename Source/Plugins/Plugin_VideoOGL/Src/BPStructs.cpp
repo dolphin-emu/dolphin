@@ -169,7 +169,7 @@ void BPWritten(int addr, int changes, int newval)
 			break;
         }
 
-    case 0x43:  // ????
+    case BPMEM_PE_CONTROL:  // GXSetZCompLoc, GXPixModeSync
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;

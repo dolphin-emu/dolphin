@@ -29,6 +29,7 @@
 #define BPMEM_ZMODE            0x40
 #define BPMEM_BLENDMODE        0x41
 #define BPMEM_CONSTANTALPHA    0x42
+#define BPMEM_PE_CONTROL       0x43
 #define BPMEM_SETDRAWDONE      0x45
 #define BPMEM_TRIGGER_EFB_COPY 0x52
 #define BPMEM_ALPHACOMPARE     0xF3

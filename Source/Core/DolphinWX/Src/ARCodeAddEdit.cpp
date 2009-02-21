@@ -114,7 +114,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		if (line != std::string::npos && cheatValues.length() > (line+17))
 			bWhile = true;	// newline found, if not empty, go on
 
-		line += 2;
+		line++;
 	}
 
 	if (selection == -1)
