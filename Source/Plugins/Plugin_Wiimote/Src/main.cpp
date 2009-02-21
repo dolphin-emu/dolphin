@@ -132,7 +132,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
 		}
 		break;
@@ -188,7 +188,7 @@ void DllConfig(HWND _hParent)
 	g_FrameOpen = true;
 	/* We don't need to use ShowModal() anymore becaue FreeLibrary() is not called after this function
 	   anymore */
-	frame->Show();	
+	frame->Show();
 
 	#ifdef _WIN32
 		win.SetHWND(0);
@@ -211,7 +211,7 @@ extern "C" void Initialize(void *init)
 
 	// Update the GUI if the configuration window is already open
 	#if defined(HAVE_WX) && HAVE_WX
-	if(g_FrameOpen)
+	if (g_FrameOpen)
 	{
 		// Save the settings
 		g_Config.Save();
@@ -256,7 +256,7 @@ extern "C" void Shutdown(void)
 	}
 
 #if HAVE_WIIUSE
-	if(g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
+	if (g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
 #endif
 	WiiMoteEmu::Shutdown();
 
@@ -1058,6 +1058,3 @@ void __Logv(int log, int v, const char *_fmt, ...)
 
 	g_WiimoteInitialize.pLog(Msg, v);
 }
-
-
-

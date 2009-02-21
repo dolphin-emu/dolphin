@@ -49,6 +49,7 @@
 #include "XFB.h"
 #include "XFBConvert.h"
 #include "TextureConverter.h"
+#include "OnScreenDisplay.h"
 
 #include "VideoState.h"
 ///////////////////////////////////////////////
@@ -223,7 +224,7 @@ void Initialize(void *init)
 	// Now the window handle is written
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	Renderer::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
+	OSD::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
 }
 
 void DoState(unsigned char **ptr, int mode) {
@@ -329,7 +330,7 @@ unsigned int Video_Screenshot(TCHAR* _szFilename)
 	{
 		char msg[255];
 		sprintf(msg, "saved %s\n", _szFilename);
-		Renderer::AddMessage(msg, 500);
+		OSD::AddMessage(msg, 500);
 		return true;
 	}
 	return false;
@@ -359,5 +360,5 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
-	Renderer::AddMessage(pstr, milliseconds);
+	OSD::AddMessage(pstr, milliseconds);
 }

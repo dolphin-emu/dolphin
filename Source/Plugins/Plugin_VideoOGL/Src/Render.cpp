@@ -17,7 +17,6 @@
 
 
 #include "Globals.h"
-#include <list>
 #include <vector>
 #include <cmath>
 
@@ -45,6 +44,7 @@
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
+#include "OnScreenDisplay.h"
 #include "Timer.h"
 
 #include "main.h" // Local
@@ -57,20 +57,12 @@
 #else
 #endif
 
-struct MESSAGE
-{
-    MESSAGE() {}
-    MESSAGE(const char* p, u32 dw) { strcpy(str, p); dwTimeStamp = dw; }
-    char str[255];
-    u32 dwTimeStamp;
-};	
 
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 
-static RasterFont* s_pfont = NULL;
-static std::list<MESSAGE> s_listMsgs;
+RasterFont* s_pfont = NULL;
 
 static bool s_bFullscreen = false;
 static bool s_bOutputCgErrors = true;
@@ -416,58 +408,6 @@ bool Renderer::InitializeGL()
     return err == GL_NO_ERROR;
 }
 
-void Renderer::AddMessage(const char* pstr, u32 ms)
-{
-    s_listMsgs.push_back(MESSAGE(pstr, timeGetTime() + ms));
-}
-
-void Renderer::ProcessMessages()
-{
-	GLboolean wasEnabled = glIsEnabled(GL_BLEND);
-
-	if (!wasEnabled) glEnable(GL_BLEND);
-    
-	if (s_listMsgs.size() > 0) {
-        int left = 25, top = 15;
-		std::list<MESSAGE>::iterator it = s_listMsgs.begin();
-        while (it != s_listMsgs.end()) 
-		{
-			int time_left = (int)(it->dwTimeStamp - timeGetTime());
-			int alpha = 255;
-
-			if (time_left < 1024)
-			{
-				alpha = time_left >> 2;
-				if (time_left < 0) alpha = 0;
-			}
-
-			alpha <<= 24;
-
-            RenderText(it->str, left+1, top+1, 0x000000|alpha);
-            RenderText(it->str, left, top, 0xffff30|alpha);
-            top += 15;
-
-            if (time_left <= 0)
-                it = s_listMsgs.erase(it);
-            else ++it;
-        }
-    }
-
-	if (!wasEnabled) glDisable(GL_BLEND);
-}
-
-void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
-{
-    int nBackbufferWidth = (int)OpenGL_GetWidth();
-    int nBackbufferHeight = (int)OpenGL_GetHeight();
-    glColor4f(
-		((color>>16) & 0xff)/255.0f,
-		((color>> 8) & 0xff)/255.0f,
-		((color>> 0) & 0xff)/255.0f,
-		((color>>24) & 0xFF)/255.0f
-		);
-    s_pfont->printMultilineText(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
-}
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Return the rendering window width and height
@@ -989,7 +929,7 @@ void Renderer::SwapBuffers()
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 
-	Renderer::ProcessMessages();
+	OSD::DrawMessages();
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) {
@@ -1033,6 +973,18 @@ void Renderer::SwapBuffers()
             Renderer::SetRenderMode(RM_Normal);  // turn off any zwrites
         }
     }
+}
+
+void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
+{
+	int nBackbufferWidth = (int)OpenGL_GetWidth();
+	int nBackbufferHeight = (int)OpenGL_GetHeight();
+	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
+	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+	s_pfont->printMultilineText(pstr,
+		left * 2.0f / (float)nBackbufferWidth - 1,
+		1 - top * 2.0f / (float)nBackbufferHeight,
+		0, nBackbufferWidth, nBackbufferHeight);
 }
 
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
@@ -1083,13 +1035,6 @@ void HandleGLError()
     if (!error)
 		return;
 
-// What is this for?
-//	int w, h;
-//	GLint fmt;
-//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_INTERNAL_FORMAT_EXT, &fmt);
-//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_WIDTH_EXT, (GLint *)&w);
-//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_HEIGHT_EXT, (GLint *)&h);
-
     switch(error)
 	{
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
@@ -1133,8 +1078,6 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
         if (listing != NULL) {
             ERROR_LOG("    last listing: %s\n", listing);
         }
-    //    glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
-    //    printf("pos: %d\n", loc);
     }
 }
 
@@ -1186,7 +1129,7 @@ void UpdateViewport()
 	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
 	   should be able to produce the same result */
 	//if(g_Config.bStretchToFit && !g_Config.bUseXFB)
-	if(false)
+	if (false)
 	{
 		XOffset = (640 - GLScissorW);
 		YOffset = (480 - GLScissorH);
@@ -1299,7 +1242,6 @@ void UpdateViewport()
 	glDepthRange(GLNear, GLFar);
 	// -------------------------------------
 	
-
 	// Logging
 	/*
 	RECT RcTop, RcParent, RcChild;

@@ -25,6 +25,7 @@ files = [
 	'XFB.cpp',
 	'XFStructs.cpp',
 	'TextureConversionShader.cpp',
+	'OnScreenDisplay.cpp',
 	]
 compileFlags = [
 	'-fPIC',

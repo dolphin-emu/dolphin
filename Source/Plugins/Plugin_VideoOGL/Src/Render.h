@@ -96,21 +96,12 @@ public:
     // initialize opengl standard values (like viewport)
     static bool InitializeGL();
 
-    static void AddMessage(const char* str, u32 ms);
-    static void ProcessMessages(); // draw the current messages on the screen
-    static void RenderText(const char* pstr, int left, int top, u32 color);
-
-    static int GetTargetWidth();
-    static int GetTargetHeight();
     static void SetCgErrorOutput(bool bOutput);
 
     static void ResetGLState();
     static void RestoreGLState();
     static bool IsUsingATIDrawBuffers();
     static bool HaveStencilBuffer();
-
-    static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
-    static GLuint GetZBufferTarget();
 
     static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
@@ -119,19 +110,27 @@ public:
     static void SetRenderMode(RenderMode mode);
     static RenderMode GetRenderMode();
 
+	// Render target management
+    static int GetTargetWidth();
+    static int GetTargetHeight();
+
+    static void SetFramebuffer(GLuint fb);
+	static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
     static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
     static void SetDepthTarget(GLuint targ);
 
-    static void SetFramebuffer(GLuint fb);
-    
 	static GLuint GetRenderTarget();
+    static GLuint GetZBufferTarget();
+
+	// Random utilities
+    static void RenderText(const char* pstr, int left, int top, u32 color);
+	static bool SaveRenderTarget(const char* filename, int jpeg);
 
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);
 
 	static void SwapBuffers();
 
-    static bool SaveRenderTarget(const char* filename, int jpeg);
 };
 
 #endif

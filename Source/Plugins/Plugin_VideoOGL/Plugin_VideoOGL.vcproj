@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -758,6 +758,14 @@
 		<Filter
 			Name="Render"
 			>
+			<File
+				RelativePath=".\Src\OnScreenDisplay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OnScreenDisplay.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\PixelShaderCache.cpp"
 				>
