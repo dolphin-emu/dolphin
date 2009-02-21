@@ -121,7 +121,7 @@ int DynamicLibrary::Unload()
 #ifdef _WIN32
 	retval = FreeLibrary(library);
 #else
-	retval = dlclose(library)?0:1;
+	retval = dlclose(library) ? 0 : 1;
 #endif
 
 	if (!retval)

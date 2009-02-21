@@ -462,14 +462,6 @@
 			Name="Plugins"
 			>
 			<File
-				RelativePath=".\Src\DynamicLibrary.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DynamicLibrary.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\Plugin.cpp"
 				>
 			</File>
@@ -588,6 +580,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\DriveUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DynamicLibrary.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DynamicLibrary.h"
 			>
 		</File>
 		<File

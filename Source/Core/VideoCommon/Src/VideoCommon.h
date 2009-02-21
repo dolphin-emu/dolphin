@@ -111,16 +111,16 @@ void HandleGLError();
 
 
 #ifdef _WIN32
-#define ERROR_LOG(...) LOG(VIDEO, __VA_ARGS__)
-#define INFO_LOG(...) LOG(VIDEO, __VA_ARGS__)
-#define PRIM_LOG(...) LOG(VIDEO, __VA_ARGS__)
-#define DEBUG_LOG(...) LOG(VIDEO, __VA_ARGS__)
+#define ERROR_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
+#define INFO_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
+#define PRIM_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
+#define DEBUG_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
 
 #else
-#define ERROR_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
-#define INFO_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
-#define PRIM_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
-#define DEBUG_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
+#define ERROR_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
+#define INFO_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
+#define PRIM_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
+#define DEBUG_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
 #endif
 
 #ifdef LOGGING

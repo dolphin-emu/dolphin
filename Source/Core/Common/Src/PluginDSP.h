@@ -18,7 +18,7 @@ class PluginDSP : public CPlugin
 {
 public:
 	PluginDSP(const char *_Filename);
-	~PluginDSP();
+	virtual ~PluginDSP();
 	virtual bool IsValid() {return validDSP;};
 
 	TDSP_ReadMailBox	         DSP_ReadMailboxHigh;

@@ -79,6 +79,8 @@ CPluginManager CPluginManager::m_Instance;
 //////////////////////////////////////////////////////////////////////////////////////////
 // The Plugin Manager Class
 // ¯¯¯¯¯¯¯¯¯¯¯¯
+
+// The plugin manager is some sort of singleton that runs during Dolphin's entire lifespan.
 CPluginManager::CPluginManager() : 
 	m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
@@ -87,7 +89,7 @@ CPluginManager::CPluginManager() :
 	m_PluginGlobals->config = (void *)&SConfig::GetInstance();
 	m_PluginGlobals->messageLogger = NULL;
 
-	// Set initial values to NULL, this is only done when Dolphin is started
+	// Set initial values to NULL.
 	m_video = NULL;
 	m_dsp = NULL;
 	for (int i = 0; i < MAXPADS; i++)
@@ -104,8 +106,10 @@ CPluginManager::~CPluginManager()
 	delete m_PluginGlobals;
 	delete m_dsp;
 
-	for (int i = 0; i < MAXPADS; i++) {
-		if (m_pad[i] && OkayToInitPlugin(i)) {
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		if (m_pad[i] && OkayToInitPlugin(i))
+		{
 			Console::Print("Delete: %i\n", i);
 			delete m_pad[i];
 		}
@@ -183,7 +187,7 @@ bool CPluginManager::InitPlugins()
 void CPluginManager::ShutdownPlugins()
 {
 	for (int i = 0; i < MAXPADS; i++) {
-		if (m_pad[i] && OkayToInitPlugin(i)) {
+		if (m_pad[i]) {
 			m_pad[i]->Shutdown();
 			//delete m_pad[i];
 		}
@@ -201,7 +205,6 @@ void CPluginManager::ShutdownPlugins()
 	if (m_video)
 	{
 		m_video->Shutdown();
-		// This is needed for Stop and Start to work
 		delete m_video;
 		m_video = NULL;
 	}
@@ -209,7 +212,6 @@ void CPluginManager::ShutdownPlugins()
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
-		// This is needed for Stop and Start to work
 		delete m_dsp;
 		m_dsp = NULL;
 	}

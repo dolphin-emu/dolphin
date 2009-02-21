@@ -67,7 +67,7 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 		m_Initialize != 0 &&
 		m_Shutdown != 0 &&
 		m_DoState != 0)
-	valid = true;
+		valid = true;
 
 	// Save the filename for this plugin
 	Filename = _szName;
@@ -83,9 +83,9 @@ bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
 {
 	if (m_GetDllInfo != NULL) {
 		m_GetDllInfo(&_pluginInfo);
-		return(true);
+		return true;
 	}    
-	return(false);
+	return false;
 }
 
 // Config: Open the Config window
@@ -112,12 +112,8 @@ void CPlugin::DoState(unsigned char **ptr, int mode) {
 		m_DoState(ptr, mode);
 }
 
-// Run Initialize() in the plugin
 void CPlugin::Initialize(void *init)
 {
-	/* We first check that we have found the Initialize() function, but there
-	   is no restriction on running this several times */
-	// Uh, the above comment sounds extremely dubious.
 	if (m_Initialize != NULL)
 		m_Initialize(init);
 }

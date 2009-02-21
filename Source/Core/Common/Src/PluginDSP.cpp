@@ -2,8 +2,9 @@
 
 namespace Common {
 
-PluginDSP::PluginDSP(const char *_Filename) : CPlugin(_Filename), validDSP(false) {
-
+PluginDSP::PluginDSP(const char *_Filename)
+: CPlugin(_Filename), validDSP(false)
+{
 	DSP_ReadMailboxHigh      = reinterpret_cast<TDSP_ReadMailBox>
 		(LoadSymbol("DSP_ReadMailboxHigh"));
 	DSP_ReadMailboxLow       = reinterpret_cast<TDSP_ReadMailBox>
