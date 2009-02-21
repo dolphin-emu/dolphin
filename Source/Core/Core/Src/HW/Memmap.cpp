@@ -809,11 +809,12 @@ u8 *GetPointer(const u32 _Address)
 	case 0xCD:
 		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
 		return NULL;
+	//case 0x47: TODO
 	case 0x7B:
 	case 0xFF: 
 		break;
 	default:
-		if (!PanicYesNo("unknown pointer address report this to the devs %08x\n Continue?", (_Address >> 24)))
+		if (!PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
 			Crash();
 		break;
 	}
