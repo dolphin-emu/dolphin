@@ -134,7 +134,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask);
 static void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
 static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p);
-static void WriteFog(char *&p);
+static void WriteFog(char *&p, bool bOutputZ);
 
 const float epsilon8bit = 1.0f / 255.0f;
 
@@ -533,7 +533,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
                 WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
             else
 			   */
-            WriteFog(p);
+            WriteFog(p, bOutputZ);
             WRITE(p, "  ocol0 = prev;\n");
         }
     }
@@ -943,7 +943,7 @@ static bool WriteAlphaTest(char *&p)
     return true;
 }
 
-static void WriteFog(char *&p)
+static void WriteFog(char *&p, bool bOutputZ)
 {
 	bool enabled = bpmem.fog.c_proj_fsel.fsel == 0 ? false : true;
 
@@ -951,11 +951,11 @@ static void WriteFog(char *&p)
         if (bpmem.fog.c_proj_fsel.proj == 0) {
             // perspective
             // ze = A/(B - Zs)
-            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - zCoord);\n");
+            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - %s);\n", bOutputZ ? "depth" : "zCoord");
         } else {
             // orthographic
             // ze = a*Zs
-            WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
+            WRITE (p, "  float ze = "I_FOG"[1].x * %s;\n", bOutputZ ? "depth" : "zCoord");
         }
 
         WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
