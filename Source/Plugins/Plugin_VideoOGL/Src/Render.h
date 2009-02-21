@@ -96,11 +96,12 @@ public:
     // initialize opengl standard values (like viewport)
     static bool InitializeGL();
 
-    static void SetCgErrorOutput(bool bOutput);
-
     static void ResetGLState();
     static void RestoreGLState();
-    static bool IsUsingATIDrawBuffers();
+
+	static void SwapBuffers();
+
+	static bool IsUsingATIDrawBuffers();
     static bool HaveStencilBuffer();
 
     static void SetColorMask();
@@ -127,10 +128,7 @@ public:
 	static bool SaveRenderTarget(const char* filename, int jpeg);
 
     // Finish up the current frame, print some stats
-    static void Swap(const TRectangle& rc);
-
-	static void SwapBuffers();
-
+    static void Swap();
 };
 
 #endif

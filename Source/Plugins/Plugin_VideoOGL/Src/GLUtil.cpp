@@ -804,3 +804,65 @@ void OpenGL_Shutdown()
 #endif
 #endif
 }
+
+void HandleGLError()
+{
+	const GLubyte* pstr = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+	if (pstr != NULL && pstr[0] != 0)
+	{
+		GLint loc = 0;
+		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
+		ERROR_LOG("program error at %d: ", loc);
+		ERROR_LOG((char*)pstr);
+		ERROR_LOG("\n");
+	}
+
+	// check the error status of this framebuffer */
+	GLenum error = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+	// if error != GL_FRAMEBUFFER_COMPLETE_EXT, there's an error of some sort 
+	if (!error)
+		return;
+
+	switch(error)
+	{
+		case GL_FRAMEBUFFER_COMPLETE_EXT:
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+			ERROR_LOG("Error! missing a required image/buffer attachment!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+			ERROR_LOG("Error! has no images/buffers attached!\n");
+			break;
+//      case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
+//          ERROR_LOG("Error! has an image/buffer attached in multiple locations!\n");
+//           break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+			ERROR_LOG("Error! has mismatched image/buffer dimensions!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+			ERROR_LOG("Error! colorbuffer attachments have different types!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+			ERROR_LOG("Error! trying to draw to non-attached color buffer!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+			ERROR_LOG("Error! trying to read from a non-attached color buffer!\n");
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+			ERROR_LOG("Error! format is not supported by current graphics card/driver!\n");
+			break;
+		default:
+			ERROR_LOG("*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!\n");
+			break;
+	}
+}
+
+void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
+{
+	ERROR_LOG("Cg error: %s\n", cgGetErrorString(err));
+	const char* listing = cgGetLastListing(g_cgcontext);
+	if (listing != NULL) {
+		ERROR_LOG("    last listing: %s\n", listing);
+	}
+}

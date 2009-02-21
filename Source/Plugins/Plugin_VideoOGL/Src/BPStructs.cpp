@@ -64,16 +64,11 @@ void BPInit()
 		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
    TODO:
 		Turn into function table. The (future) DL jit can then call the functions directly,
-		getting rid of dynamic dispatch.
+		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
+		just stuff geometry in them and don't put state changes there.
 // ------------------ */
 void BPWritten(int addr, int changes, int newval)
 {
-    //static int count = 0;
-    //ERROR_LOG("(%d) %x: %x\n", count++, addr, newval);
-
-	//Console::Print("BPWritten: 0x%02x %i %i %i\n", addr, changes, newval, (int)bpmem.copyTexSrcWH.y);
-	//if(addr == 0x49) PanicAlert("0x49");
-
     switch (addr)
     {
     case BPMEM_GENMODE:
@@ -173,8 +168,8 @@ void BPWritten(int addr, int changes, int newval)
 				glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 			break;
         }
-    
-    case 0x43:
+
+    case 0x43:  // ????
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
@@ -368,13 +363,13 @@ void BPWritten(int addr, int changes, int newval)
         DebugLog("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
         break;
 
-    case 0x67: // Set gp metric?
+    case BPMEM_SETGPMETRIC: // Set gp metric?
         break;
 
 	// ===============================================================
 	// This case writes to bpmem.triggerEFBCopy and may apparently prompt us to update glScissor()
 	// ------------------------
-    case 0x52:
+    case BPMEM_TRIGGER_EFB_COPY:
         {
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
             VertexManager::Flush();
@@ -416,7 +411,10 @@ void BPWritten(int addr, int changes, int newval)
 					glViewport(rc.left,rc.bottom, rc.right,rc.top);
 					glScissor(rc.left,rc.bottom, rc.right,rc.top);
 					// Logging
-					GLScissorX = rc.left; GLScissorY = rc.bottom; GLScissorW = rc.right; GLScissorH = rc.top;
+					GLScissorX = rc.left;
+					GLScissorY = rc.bottom;
+					GLScissorW = rc.right;
+					GLScissorH = rc.top;
 				}
 				else if (g_Config.bCopyEFBToRAM)
 				{
@@ -451,7 +449,7 @@ void BPWritten(int addr, int changes, int newval)
 				}
 				else
 				{
-					Renderer::Swap(multirc);
+					Renderer::Swap();
 				}
 				g_VideoInitialize.pCopiedToXFB();
             }
@@ -535,8 +533,7 @@ void BPWritten(int addr, int changes, int newval)
         break;
 	// ==================================
 
-
-    case 0x65: //GXLoadTlut
+    case BPMEM_LOADTLUT:
         {
             DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
             VertexManager::Flush();
@@ -562,7 +559,6 @@ void BPWritten(int addr, int changes, int newval)
             // Not sure if it's a good idea, though. For now, we hash texture palettes
         }
         break;
-
 
     default:
         switch(addr & 0xFC)  //texture sampler filter
