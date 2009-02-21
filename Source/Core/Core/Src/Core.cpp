@@ -475,11 +475,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	// The hardware is uninitialized
 	g_bHwInit = false;
 
-	Plugins.ShutdownPlugins();
- 
 	HW::Shutdown();
- 
-	LOG(MASTER_LOG, "EmuThread exited");
+	Plugins.ShutdownPlugins();
+
+ 	LOG(MASTER_LOG, "EmuThread exited");
 	// The CPU should return when a game is stopped and cleanup should be done here, 
 	// so we can restart the plugins (or load new ones) for the next game.
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)

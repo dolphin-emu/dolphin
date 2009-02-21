@@ -51,7 +51,7 @@ void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
 	fifo_exit_event.Init();
-    fifoStateRun = true;
+	fifoStateRun = false;
 	g_XFBUpdateRequested = FALSE;
 }
 
@@ -101,6 +101,7 @@ void Fifo_ExitLoop()
 
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
+    fifoStateRun = true;
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
 	s32 distToSend;
 
