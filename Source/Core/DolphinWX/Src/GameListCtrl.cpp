@@ -70,7 +70,6 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
-	case CGameListCtrl::COLUMN_ISSUES:  return strcasecmp(one.GetIssues().c_str(), other.GetIssues().c_str()) < 0;
 	default:                            return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
 	}
 }
@@ -170,7 +169,6 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
-		InsertColumn(COLUMN_ISSUES, _("Issues"));
 		
 
 		// set initial sizes for columns
@@ -179,8 +177,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_COMPANY, 100);
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 75);
-		SetColumnWidth(COLUMN_ISSUES, 200);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 150);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -299,6 +296,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		wxListItem item;
 		item.SetId(_Index);
 		std::string EmuState;
+		std::string issues;
 		item.SetColumn(COLUMN_EMULATION_STATE);
 		ini.Get("EmuState","EmulationStateId",&EmuState);
 		if (!EmuState.empty())
@@ -316,8 +314,14 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				break;
 			case 2:
 				//NOTE (Daco): IMO under 2 goes problems like music and games that only work with specific settings
-				item.SetText(_("Problems: Other"));
-				//TODO (Daco): maybe 2 should get a function to present more info instead of the notes column... o.o
+				ini.Get("EmuState","EmulationIssues",&issues);
+				if (!issues.empty())
+				{
+					issues = "Problems: " + issues;
+					item.SetText(_(issues.c_str() ) );
+				}
+				else
+					item.SetText(_("Problems: Other"));
 				break;
 			case 1:
 				item.SetText(_("Broken"));
@@ -332,21 +336,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			}
 		}
 		SetItem(item);
-
-		// Issues Column
-		{
-			wxListItem item;
-			item.SetId(_Index);
-			item.SetColumn(COLUMN_ISSUES);
-			std::string issues;
-			ini.Get("EmuState","Issues",&issues);
-			if (!issues.empty())
-			{
-				item.SetText(wxString::FromAscii(issues.c_str()));
-			}
-			SetItem(item);
-		}
-
 	}
 
 #ifndef __WXMSW__
@@ -523,8 +512,6 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		return strcasecmp(iso1->GetCompany().c_str(),iso2->GetCompany().c_str()) *t;
 	case CGameListCtrl::COLUMN_NOTES:
 		return strcasecmp(iso1->GetDescription(indexOne).c_str(),iso2->GetDescription(indexOther).c_str()) *t;
-	case CGameListCtrl::COLUMN_ISSUES:
-		return strcasecmp(iso1->GetIssues().c_str(),iso2->GetIssues().c_str()) *t;
 	case CGameListCtrl::COLUMN_COUNTRY:
 		if(iso1->GetCountry() > iso2->GetCountry()) return  1 *t;
 		if(iso1->GetCountry() < iso2->GetCountry()) return -1 *t;
@@ -896,7 +883,6 @@ void CGameListCtrl::AutomaticColumnWidth()
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
 		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
-		SetColumnWidth(COLUMN_ISSUES, wxMax(0.2*resizable, 100));
 	}
 }
 

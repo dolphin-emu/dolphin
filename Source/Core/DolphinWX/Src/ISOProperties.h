@@ -57,6 +57,7 @@ class CISOProperties : public wxDialog
 		wxStaticBoxSizer *sbCoreOverrides;
 		wxBoxSizer *sCoreOverrides;
 		wxBoxSizer *sEmuState;
+		wxBoxSizer *sEmuIssues;
 		wxStaticBoxSizer *sbPatches;
 		wxBoxSizer *sPatches;
 		wxBoxSizer *sPatchButtons;
@@ -89,6 +90,8 @@ class CISOProperties : public wxDialog
 		wxStaticText *EmuStateText;
 		wxArrayString arrayStringFor_EmuState;
 		wxChoice *EmuState;
+		wxTextCtrl *EmuIssues;
+		wxStaticText *EmuIssuesText;
 		wxArrayString arrayStringFor_Patches;
 		wxCheckListBox *Patches;
 		wxButton *EditPatch;
@@ -155,6 +158,8 @@ class CISOProperties : public wxDialog
 			ID_EDITCONFIG,
 			ID_EMUSTATE_TEXT,
 			ID_EMUSTATE,
+			ID_EMUISSUES_TEXT,
+			ID_EMU_ISSUES,
 			ID_PATCHES_LIST,
 			ID_EDITPATCH,
 			ID_ADDPATCH,

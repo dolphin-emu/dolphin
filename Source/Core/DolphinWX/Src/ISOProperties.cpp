@@ -37,6 +37,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
+	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -221,7 +222,7 @@ void CISOProperties::CreateGUIControls()
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
-	arrayStringFor_EmuState.Add(_("Problems: Other"));
+	arrayStringFor_EmuState.Add(_("Problems: "));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
@@ -238,6 +239,11 @@ void CISOProperties::CreateGUIControls()
 	RemovePatch = new wxButton(m_PatchPage, ID_REMOVEPATCH, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	EditPatch->Enable(false);
 	RemovePatch->Enable(false);
+
+	//issues
+	sEmuIssues = new wxBoxSizer(wxHORIZONTAL);
+	EmuIssues = new wxTextCtrl(m_GameConfig,ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0,wxDefaultValidator);
+	EmuIssuesText = new wxStaticText(m_GameConfig,ID_EMUISSUES_TEXT,_("Emulation Issues(for when emustate is 'Problems'):"), wxDefaultPosition, wxDefaultSize);
 
 	// Action Replay Cheats
 	sbCheats = new wxStaticBoxSizer(wxVERTICAL, m_CheatPage, _("Action Replay Codes"));
@@ -261,8 +267,11 @@ void CISOProperties::CreateGUIControls()
 	sEmuState->Add(EditConfig, 0, wxALL, 0);
 	sEmuState->AddStretchSpacer();
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0);
-	sEmuState->Add(EmuState, 0, wxEXPAND|wxALL, 0);
+	sEmuState->Add(EmuState, 0, wxALL, 0);
+	sEmuIssues->Add(EmuIssuesText,0,wxALIGN_CENTER_VERTICAL|wxALL,0);
+	sEmuIssues->Add(EmuIssues,0,wxEXPAND|wxRIGHT,0);
 	sCoreOverrides->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
+	sCoreOverrides->Add(sEmuIssues,0,wxEXPAND|wxALL,5);
 	sbCoreOverrides->Add(sCoreOverrides, 0, wxEXPAND|wxALL, 0);
 	sConfigPage->Add(sbCoreOverrides, 0, wxEXPAND|wxALL, 5);
 
@@ -484,6 +493,7 @@ void CISOProperties::LoadGameConfig()
 {
 	bool bTemp;
 	int iTemp;
+	std::string sTemp;
 
 	if (GameIni.Get("Core", "UseDualCore", &bTemp))
 		UseDualCore->Set3StateValue((wxCheckBoxState)bTemp);
@@ -518,6 +528,13 @@ void CISOProperties::LoadGameConfig()
 	}
 	EmuState->SetSelection(iTemp);
 
+	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
+	if (!sTemp.empty())
+	{
+		EmuIssues->SetValue(sTemp);
+		bRefreshList = true;
+	}
+
 	PatchList_Load();
 	ActionReplayList_Load();
 }
@@ -550,6 +567,7 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Core", "EnableWideScreen", EnableWideScreen->Get3StateValue());
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
 
 	PatchList_Save();
 	ActionReplayList_Save();
