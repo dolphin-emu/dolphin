@@ -27,7 +27,7 @@ struct VS_INPUT {\n\
 float4 pos : POSITION;\n\
 float3 normal : NORMAL;\n\
 float4 colors[2] : COLOR0;\n\
-float3 uv[8] : TEXCOORD0;\n\
+float4 uv[5] : TEXCOORD0;\n\
 };\n\
 \n\
 struct VS_OUTPUT {\n\
@@ -43,10 +43,9 @@ VS_OUTPUT main(const VS_INPUT input)\n\
 {\n\
 VS_OUTPUT output;\n\
 \n\
-output.pos = mul(matWorldViewProj, input.pos);\n\
+output.pos = mul(input.pos, matWorldViewProj);\n\
 // texgen\n\
-for (int i=0; i<5; i++)\n\
-     output.uv[i] = float4(input.uv[i].xyz,1);\n\
+for (int i=0; i<5; i++)\n	output.uv[i] = input.uv[i];\n\
 \n\
 for (int i=0; i<2; i++)\n    output.colors[i] = input.colors[i];\n\
 return output;\n\

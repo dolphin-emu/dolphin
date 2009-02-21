@@ -337,48 +337,50 @@ void Renderer::SetScissorBox(RECT &rc)
 void Renderer::SetProjection(float* pMatrix, int constantIndex)
 {
 	D3DXMATRIX mtx;
-	if (pMatrix[6] == 0)
+	if (pMatrix[6] == 0) // Model View
 	{
 		mtx.m[0][0] = pMatrix[0];
-		mtx.m[1][0] = 0.0f;
-		mtx.m[2][0] = pMatrix[1];
-		mtx.m[3][0] = -0.5f/m_width;	
-			 		
 		mtx.m[0][1] = 0.0f;
+		mtx.m[0][2] = pMatrix[1];
+		mtx.m[0][3] = 0; // -0.5f/m_height;  <-- fix d3d pixel center?
+			 		
+		mtx.m[1][0] = 0.0f;
 		mtx.m[1][1] = pMatrix[2];
-		mtx.m[2][1] = pMatrix[3];
-		mtx.m[3][1] = +0.5f/m_height;
+		mtx.m[1][2] = pMatrix[3];
+		mtx.m[1][3] = 0; // +0.5f/m_height;  <-- fix d3d pixel center?
 			 		
-		mtx.m[0][2] = 0.0f;
-		mtx.m[1][2] = 0.0f;
-		mtx.m[2][2] = -(1-pMatrix[4]);
-		mtx.m[3][2] = pMatrix[5]; 
+		mtx.m[2][0] = 0.0f;
+		mtx.m[2][1] = 0.0f;
+		mtx.m[2][2] = -(1.0f - pMatrix[4]);
+		mtx.m[2][3] = pMatrix[5];  // Problematic in OGL
 			 		
-		mtx.m[0][3] = 0.0f;
-		mtx.m[1][3] = 0.0f;
-		mtx.m[2][3] = -1.0f;
+		mtx.m[3][0] = 0.0f;
+		mtx.m[3][1] = 0.0f;
+		// donkopunchstania: GC GPU rounds differently?
+		// -(1 + epsilon) so objects are clipped as they are on the real HW
+		mtx.m[3][2] = -1.00000011921f;
 		mtx.m[3][3] = 0.0f;
 	}
-	else
+	else // Orthogonal
 	{
 		mtx.m[0][0] = pMatrix[0];
-		mtx.m[1][0] = 0.0f;
-		mtx.m[2][0] = 0.0f;
-		mtx.m[3][0] = pMatrix[1]-0.5f/m_width;  // fix d3d pixel center
-
 		mtx.m[0][1] = 0.0f;
-		mtx.m[1][1] = pMatrix[2];
-		mtx.m[2][1] = 0.0f;
-		mtx.m[3][1] = pMatrix[3]+0.5f/m_height; // fix d3d pixel center
-
 		mtx.m[0][2] = 0.0f;
+		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_width;  <-- fix d3d pixel center?
+
+		mtx.m[1][0] = 0.0f;
+		mtx.m[1][1] = pMatrix[2];
 		mtx.m[1][2] = 0.0f;
+		mtx.m[1][3] = pMatrix[3]; // +0.5f/m_height; <-- fix d3d pixel center?
+
+		mtx.m[2][0] = 0.0f;
+		mtx.m[2][1] = 0.0f;
 		mtx.m[2][2] = pMatrix[4];
-		mtx.m[3][2] = -(-1 - pMatrix[5]);
+		mtx.m[2][3] = -(-1.0f - pMatrix[5]);
 			 		
-		mtx.m[0][3] = 0;
-		mtx.m[1][3] = 0;
-		mtx.m[2][3] = 0.0f;
+		mtx.m[3][0] = 0;
+		mtx.m[3][1] = 0;
+		mtx.m[3][2] = 0.0f;
 		mtx.m[3][3] = 1.0f;
 	}
 	D3D::dev->SetVertexShaderConstantF(constantIndex, mtx, 4);

@@ -199,7 +199,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 		static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 
-        if (xfregs.rawProjection[6] == 0) {
+        if (xfregs.rawProjection[6] == 0) { // Model View
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
@@ -252,7 +252,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 			SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
         }
-        else {
+        else { // Orthogonal
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = 0.0f;
