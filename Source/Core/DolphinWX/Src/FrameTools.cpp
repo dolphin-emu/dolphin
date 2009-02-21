@@ -101,6 +101,16 @@ void CFrame::CreateMenu()
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
+// change to test drive loading, currently very slow on win32, not tested on linux/os x
+// works ok on a virtual drive with GC Games, Wii games do not load
+#if 0
+	wxMenu *externalDrive = new wxMenu;
+	fileMenu->AppendSubMenu(externalDrive, _T("&Load From Drive"));
+	GetAllRemovableDrives(&drives);
+	for (int i = 0; i < drives.size() && i < 24; i++) {
+		externalDrive->Append(IDM_DRIVE1 + i, wxString::Format(_T("%s"), drives.at(i).c_str()));
+	}
+#endif
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
@@ -452,7 +462,7 @@ void CFrame::DoOpen(bool Boot)
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 {
-	DVDInterface::SetLidOpen(true);
+	DVDInterface::SetLidOpen();
 	DoOpen(false);
 	DVDInterface::SetLidOpen(false);
 }
@@ -461,6 +471,12 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	BootGame();
 }
+
+void CFrame::OnBootDrive(wxCommandEvent& event)
+{
+	BootManager::BootCore(drives.at(event.GetId()-IDM_DRIVE1).c_str());
+}
+
 ////////////////////////////////////////////////////
 
 

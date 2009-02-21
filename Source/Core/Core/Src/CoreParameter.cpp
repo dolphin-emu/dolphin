@@ -58,102 +58,106 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 {
 	std::string Region(EUR_DIR);
 
-    switch (_BootBios)
-    {
-    case BOOT_DEFAULT:
-        {
-			/* Check if the file exist, we may have gotten it from a --elf command line
-			   that gave an incorrect file name */
-			if (!File::Exists(m_strFilename.c_str()))
-            {
+	switch (_BootBios)
+	{
+	case BOOT_DEFAULT:
+		{
+			bool bootDrive = File::IsDisk(m_strFilename.c_str());
+			// Check if the file exist, we may have gotten it from a --elf command line
+			// that gave an incorrect file name 
+			if (!bootDrive && !File::Exists(m_strFilename.c_str()))
+			{
 				PanicAlert("The file you specified (%s) does not exists", m_strFilename.c_str());
 				return false;
 			}
 
-            std::string Extension;
-            SplitPath(m_strFilename, NULL, NULL, &Extension);
-            if (!strcasecmp(Extension.c_str(), ".gcm") || 
+			std::string Extension;
+			SplitPath(m_strFilename, NULL, NULL, &Extension);
+			if (!strcasecmp(Extension.c_str(), ".gcm") || 
 				!strcasecmp(Extension.c_str(), ".iso") ||
-				!strcasecmp(Extension.c_str(), ".gcz") )
-            {
-                m_BootType = BOOT_ISO;
-                DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
-                if (pVolume == NULL)
-                {
-                    PanicAlert("Your GCM/ISO file seems to be invalid, or not a GC/Wii ISO.");
-                    return false;                    
-                }
+				!strcasecmp(Extension.c_str(), ".gcz") ||
+				bootDrive)
+			{
+				m_BootType = BOOT_ISO;
+				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				if (pVolume == NULL)
+				{
+
+					PanicAlert(bootDrive ? "Drive could not be mounted" :
+						"Your GCM/ISO file seems to be invalid, or not a GC/Wii ISO." );
+					return false;
+				}
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
 
 				// Check if we have a Wii disc
 				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
 
-                switch (pVolume->GetCountry())
-                {
+				switch (pVolume->GetCountry())
+				{
 				case DiscIO::IVolume::COUNTRY_USA:
-                    bNTSC = true;
-                    Region = USA_DIR; 
-                    break;
+					bNTSC = true;
+					Region = USA_DIR; 
+					break;
 
-                case DiscIO::IVolume::COUNTRY_JAP:
-                    bNTSC = true;
-                    Region = JAP_DIR; 
-                    break;
+				case DiscIO::IVolume::COUNTRY_JAP:
+					bNTSC = true;
+					Region = JAP_DIR; 
+					break;
 
-                case DiscIO::IVolume::COUNTRY_EUROPE:
-                case DiscIO::IVolume::COUNTRY_FRANCE:
-                    bNTSC = false;
-                    Region = EUR_DIR; 
-                    break;
+				case DiscIO::IVolume::COUNTRY_EUROPE:
+				case DiscIO::IVolume::COUNTRY_FRANCE:
+					bNTSC = false;
+					Region = EUR_DIR; 
+					break;
 
-                default:
-                    PanicAlert("Your GCM/ISO file seems to be invalid (invalid country).");
-                    return false;
-                }
+				default:
+					PanicAlert("Your GCM/ISO file seems to be invalid (invalid country).");
+					return false;
+				}
 
-                delete pVolume;
-            }
-            else if (!strcasecmp(Extension.c_str(), ".elf"))
-            {
-                bWii = CBoot::IsElfWii(m_strFilename.c_str());
-                Region = USA_DIR; 
-                m_BootType = BOOT_ELF;
-                bNTSC = true;
-            }
-            else if (!strcasecmp(Extension.c_str(), ".dol"))
-            {
-                bWii = CDolLoader::IsDolWii(m_strFilename.c_str());
-                Region = USA_DIR; 
-                m_BootType = BOOT_DOL;
-                bNTSC = true;
-            }
+				delete pVolume;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".elf"))
+			{
+				bWii = CBoot::IsElfWii(m_strFilename.c_str());
+				Region = USA_DIR; 
+				m_BootType = BOOT_ELF;
+				bNTSC = true;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".dol"))
+			{
+				bWii = CDolLoader::IsDolWii(m_strFilename.c_str());
+				Region = USA_DIR; 
+				m_BootType = BOOT_DOL;
+				bNTSC = true;
+			}
 			else
 			{
 				PanicAlert("Could not recognize ISO file %s", m_strFilename.c_str());
 				return false;
 			}
-        }
-        break;
+		}
+		break;
 
-    case BOOT_BIOS_USA:
-        Region = USA_DIR;
-        m_strFilename.clear();
-        bNTSC = true;         
-        break;
-
-    case BOOT_BIOS_JAP:     
-        Region = JAP_DIR;
+	case BOOT_BIOS_USA:
+		Region = USA_DIR;
 		m_strFilename.clear();
-        bNTSC = true;         
-        break;
+		bNTSC = true;
+		break;
 
-    case BOOT_BIOS_EUR:  
-        Region = EUR_DIR;
-        m_strFilename.clear();
-        bNTSC = false;         
-        break;
-    }
+	case BOOT_BIOS_JAP:
+		Region = JAP_DIR;
+		m_strFilename.clear();
+		bNTSC = true;
+		break;
+
+	case BOOT_BIOS_EUR:  
+		Region = EUR_DIR;
+		m_strFilename.clear();
+		bNTSC = false;
+		break;
+	}
 
 	// Setup paths
 	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, Region, true);

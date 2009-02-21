@@ -40,6 +40,7 @@ bool Exists(const char *filename);
 void Launch(const char *filename);
 void Explore(const char *path);
 bool IsDirectory(const char *filename);
+bool IsDisk(const char *filename);
 bool CreateDir(const char *filename);
 bool CreateDirectoryStructure(const std::string& _rFullPath);
 bool Delete(const char *filename);

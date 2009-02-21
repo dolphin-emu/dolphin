@@ -32,7 +32,7 @@ void SetDiscInside(bool _DiscInside);
 void SwapDisc(const char * fileName);
 
 // Lid Functions
-void SetLidOpen(bool open);
+void SetLidOpen(bool open = true);
 bool IsLidOpen();
 
 // DVD Access Functions

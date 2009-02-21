@@ -22,36 +22,41 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <winioctl.h>
 #endif
 
 namespace DiscIO
 {
 
-#ifdef _WIN32
 class DriveReader : public SectorReader
 {
-	HANDLE hDisc;
-
 private:
-	DriveReader(const char *drive) {
-		/*
-		char path[MAX_PATH];
-		strncpy(path, drive, 3);
-		path[2] = 0;
-		sprintf(path, "\\\\.\\%s", drive);
-		hDisc = CreateFile(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		SetSectorSize(2048);
-		*/
-	}
-
+	DriveReader(const char *drive);
+	void DriveReader::SetSectorSize(int blocksize);
+	enum { CACHE_SIZE = 32 };
+	int m_blocksize;
+	u8* cache[CACHE_SIZE];
+	u64 cache_tags[CACHE_SIZE];
+	int cache_age[CACHE_SIZE];
+	void GetBlock(u64 block_num, u8 *out_ptr);
+#ifdef _WIN32
+	HANDLE hDisc;
+	PREVENT_MEDIA_REMOVAL	pmrLockCDROM;
+#else
+	FILE* file_;
+#endif
+	s64 size;
+	u64 *block_pointers;
 public:
-	static DriveReader *Create(const char *drive) {
-		return NULL;// new DriveReader(drive);		
-	}
+	static DriveReader *Create(const char *drive);
+	~DriveReader();
+	u64 GetDataSize() const { return size; }
+	u64 GetRawSize() const { return size; }
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
+	const u8 *GetBlockData(u64 block_num);
 
 };
 
-#endif
 
 
 

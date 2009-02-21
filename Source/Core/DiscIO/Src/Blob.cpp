@@ -94,8 +94,8 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 
 IBlobReader* CreateBlobReader(const char* filename)
 {
-	//if (strlen(filename) < 4 && filename[1] == ':')  // Drive, for sure.
-	//	return DriveReader::Create(filename);
+	if(File::IsDisk(filename))
+		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))
 		return 0;

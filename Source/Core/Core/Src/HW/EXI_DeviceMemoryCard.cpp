@@ -97,7 +97,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
  
 		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %i contents to %s.", card_index + 1, m_strFilename.c_str()), 4000);
 	}
 
 }
@@ -132,7 +131,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 
 	if (!exiting)
 	{
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %i contents to %s.", card_index, m_strFilename.c_str()).c_str(), 4000);
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", card_index ? 'B' : 'A', m_strFilename.c_str()).c_str(), 4000);
 	}
 }
 //////////////////////////////////////

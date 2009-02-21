@@ -162,7 +162,7 @@ std::string* IniFile::GetLine(Section* section, const char* key, std::string* va
 		std::string lineKey;
 		ParseLine(line, &lineKey, valueOut, commentOut);
 
-		if (!stricmp(lineKey.c_str(), key))
+		if (!strcasecmp(lineKey.c_str(), key))
 		{
 			return &line;
 		}

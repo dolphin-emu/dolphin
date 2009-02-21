@@ -69,6 +69,18 @@ bool Exists(const char *filename)
 	return (result == 0);
 }
 
+bool IsDisk(const char *filename)
+{
+#ifdef _WIN32
+	std::string copy = filename;
+	if (copy.size() < 4 && copy.c_str()[1] == ':')
+		return true;
+#else
+	// TODO: add linux \ osx 
+#endif
+	return false;
+}
+
 bool IsDirectory(const char *filename)
 {
 	struct stat file_info;

@@ -29,7 +29,7 @@ void GetAllRemovableDrives(std::vector<std::string> *drives) {
 	HANDLE hDisk;
 	DISK_GEOMETRY diskGeometry;
 
-	for (int i = 'A'; i < 'Z'; i++)
+	for (int i = 'D'; i < 'Z'; i++)
 	{
 		char path[MAX_PATH];
 		sprintf(path, "\\\\.\\%c:", i);
@@ -55,4 +55,3 @@ void GetAllRemovableDrives(std::vector<std::string> *drives) {
 	// stat("/media/cdrom") or whatever etc etc
 #endif
 }
-

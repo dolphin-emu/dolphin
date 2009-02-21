@@ -26,7 +26,7 @@
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
 ////////////////////////////////
-
+#include "DriveUtil.h"
 
 //////////////////////////////////////////////////////////////////////////
 // A shortcut to access the bitmaps
@@ -97,6 +97,7 @@ class CFrame : public wxFrame
 		wxToolBar* TheToolBar;
 		wxToolBarToolBase* m_ToolPlay;
 
+		std::vector<std::string> drives;
 
 		//////////////////////////////////////////////////////////////////////////////////////
 		// Music mod
@@ -173,6 +174,7 @@ class CFrame : public wxFrame
 		void OnOpen(wxCommandEvent& event); void DoOpen(bool Boot); // File menu
 		void OnRefresh(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
+		void OnBootDrive(wxCommandEvent& event);
 
 		void OnPlay(wxCommandEvent& event); // Emulation
 		void OnChangeDisc(wxCommandEvent& event);
