@@ -66,9 +66,11 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 break;
             case 0x1006: //SetGPMetric
                 break;
+
             case 0x1008: //__GXXfVtxSpecs, wrote 0004
                 xfregs.hostinfo = *(INVTXSPEC*)&data;
                 break;
+
             case 0x1009: //GXSetNumChans (no)
 				if ((u32)xfregs.nNumChans != (data&3)) {
                     VertexManager::Flush();
@@ -226,9 +228,9 @@ void LoadIndexedXF(u32 val, int array)
     //load stuff from array to address in xf mem
 
     VertexManager::Flush();
-    VertexShaderManager::InvalidateXFRange(address, address+size);
-    //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
+    VertexShaderManager::InvalidateXFRange(address, address + size);
+    //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address + size);
 
     for (int i = 0; i < size; i++)
-        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array]*index + i*4);
+        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array] * index + i * 4);
 }

@@ -100,8 +100,6 @@ public:
     static void ProcessMessages(); // draw the current messages on the screen
     static void RenderText(const char* pstr, int left, int top, u32 color);
 
-    static void ReinitView(int nNewWidth, int nNewHeight);
-
     static int GetTargetWidth();
     static int GetTargetHeight();
     static void SetCgErrorOutput(bool bOutput);

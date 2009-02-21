@@ -279,7 +279,6 @@ void BPWritten(int addr, int changes, int newval)
         break;
 
     case BPMEM_TEXINVALIDATE:
-        //TexCache_Invalidate();
         break;
 
     case BPMEM_SCISSOROFFSET:
@@ -343,7 +342,8 @@ void BPWritten(int addr, int changes, int newval)
             PixelShaderManager::SetTevKSelChanged(addr-0xf6);
         }
         break;
-    case 0x45: //GXSetDrawDone
+
+    case BPMEM_SETDRAWDONE:
         VertexManager::Flush();
         switch (newval & 0xFF)
         {
@@ -358,18 +358,17 @@ void BPWritten(int addr, int changes, int newval)
         }
         break;
 
-    case BPMEM_PE_TOKEN_ID: // 0x47
+    case BPMEM_PE_TOKEN_ID:
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
         DebugLog("SetPEToken 0x%04x", (newval & 0xFFFF));
         break;
 
-    case BPMEM_PE_TOKEN_INT_ID: // 0x48
+    case BPMEM_PE_TOKEN_INT_ID:
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
         DebugLog("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
         break;
 
-	// Set gp metric?
-    case 0x67:
+    case 0x67: // Set gp metric?
         break;
 
 	// ===============================================================
@@ -547,15 +546,18 @@ void BPWritten(int addr, int changes, int newval)
             u32 tlutXferCount = (newval & 0x1FFC00) >> 5; 
 
 			u8 *ptr = 0;
+
             // TODO - figure out a cleaner way.
 			if (g_VideoInitialize.bWii)
 				ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.tlutXferSrc << 5);
 			else
 				ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
 			else
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+
             // TODO(ector) : kill all textures that use this palette
             // Not sure if it's a good idea, though. For now, we hash texture palettes
         }

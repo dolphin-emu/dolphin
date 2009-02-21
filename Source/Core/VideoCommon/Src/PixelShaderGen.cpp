@@ -945,7 +945,7 @@ static bool WriteAlphaTest(char *&p)
 
 static void WriteFog(char *&p)
 {
-    bool enabled = bpmem.fog.c_proj_fsel.fsel;
+	bool enabled = bpmem.fog.c_proj_fsel.fsel == 0 ? false : true;
 
     if (enabled) {
         if (bpmem.fog.c_proj_fsel.proj == 0) {

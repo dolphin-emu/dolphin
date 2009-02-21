@@ -29,6 +29,7 @@
 #define BPMEM_ZMODE            0x40
 #define BPMEM_BLENDMODE        0x41
 #define BPMEM_CONSTANTALPHA    0x42
+#define BPMEM_SETDRAWDONE      0x45
 #define BPMEM_ALPHACOMPARE     0xF3
 #define BPMEM_LINEPTWIDTH      0x22
 #define BPMEM_TEXINVALIDATE    0x66

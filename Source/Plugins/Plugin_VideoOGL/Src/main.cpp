@@ -28,7 +28,6 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
-#include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 
 #include "Config.h"
@@ -75,19 +74,9 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
    Update: This crash seems to be gone for now. */
 
 #if defined(HAVE_WX) && HAVE_WX
-CDebugger* m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {
-	if(!m_frame && Show)
-	{
-		m_frame = new CDebugger(NULL);
-		m_frame->Show();
-	}
-	else if (m_frame && !Show)
-	{
-		if(m_frame->Close())
-			m_frame = NULL;
-	}
+	// TODO: Debugger needs recoding, right now its useless
 }
 
 void DoDllDebugger(){}

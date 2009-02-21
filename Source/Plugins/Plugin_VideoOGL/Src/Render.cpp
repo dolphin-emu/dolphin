@@ -52,10 +52,6 @@
 #include "OS/Win32.h"
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-	#include "Debugger/Debugger.h" // for the CDebugger class
-#endif
-
 #ifdef _WIN32
 	#include "Win32Window.h" // warning: crapcode
 #else
@@ -72,10 +68,6 @@ struct MESSAGE
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
-
-#if defined(HAVE_WX) && HAVE_WX
-	extern CDebugger* m_frame; // the debugging class
-#endif
 
 static RasterFont* s_pfont = NULL;
 static std::list<MESSAGE> s_listMsgs;
@@ -101,7 +93,6 @@ bool g_bBlendSeparate = false;
 int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
-/////////////////////////////
 
 static const GLenum glSrcFactors[8] =
 {
@@ -125,8 +116,10 @@ static u32 s_blendMode;
 bool Renderer::Init()
 {
     bool bSuccess = true;
+	int numvertexattribs = 0;
     GLenum err = GL_NO_ERROR;
     g_cgcontext = cgCreateContext();
+
     cgGetError();
     cgSetErrorHandler(HandleCgError, NULL);
 
@@ -135,37 +128,37 @@ bool Renderer::Init()
     if (ptoken == NULL) return false;
 
     INFO_LOG("Supported OpenGL Extensions:\n");
-    INFO_LOG(ptoken);     // write to the log file
+    INFO_LOG(ptoken);  // write to the log file
     INFO_LOG("\n");
 
-	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL && strstr(ptoken, "GL_EXT_blend_equation_separate") != NULL)
+	if (GLEW_EXT_blend_func_separate && GLEW_EXT_blend_equation_separate)
         g_bBlendSeparate = true;
-    if (strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
-        //Checks if it ONLY has the ATI_draw_buffers extension, some have both
+
+	//Checks if it ONLY has the ATI_draw_buffers extension, some have both
+    if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
         s_bATIDrawBuffers = true;
 
     s_bFullscreen = g_Config.bFullscreen;
 
     if (glewInit() != GLEW_OK) {
-        ERROR_LOG("glewInit() failed!\n");
+        ERROR_LOG("glewInit() failed!\nDoes your video card support OpenGL 2.x?");
         return false;
     }
 
     if (!GLEW_EXT_framebuffer_object) {
-        ERROR_LOG("*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\n");
+        ERROR_LOG("*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
         bSuccess = false;
     }
     
     if (!GLEW_EXT_secondary_color) {
-        ERROR_LOG("*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\n");
+        ERROR_LOG("*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
         bSuccess = false;
     }
 
-    int numvertexattribs=0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint *)&numvertexattribs);
 
     if (numvertexattribs < 11) {
-        ERROR_LOG("*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\n", numvertexattribs);
+        ERROR_LOG("*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\nDoes your video card support OpenGL 2.x?", numvertexattribs);
         bSuccess = false;
     }
 
@@ -176,7 +169,7 @@ bool Renderer::Init()
     if (WGLEW_EXT_swap_control)
         wglSwapIntervalEXT(0);
     else
-        ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
+        ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
     if (glXSwapIntervalSGI)
        glXSwapIntervalSGI(0);
@@ -203,7 +196,7 @@ bool Renderer::Init()
 
     glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
     if (s_uFramebuffer == 0) {
-        ERROR_LOG("failed to create the renderbuffer\n");
+        ERROR_LOG("failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
     }
 
     _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
@@ -217,8 +210,9 @@ bool Renderer::Init()
     
     // Create the framebuffer target
     glGenTextures(1, (GLuint *)&s_RenderTarget);
-
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+
+	// Setup the texture params
     // initialize to default
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -235,7 +229,9 @@ bool Renderer::Init()
 
     int nMaxMRT = 0;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint *)&nMaxMRT);
-    if (nMaxMRT > 1) {
+
+    if (nMaxMRT > 1) 
+	{
         // create zbuffer target
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
@@ -257,10 +253,13 @@ bool Renderer::Init()
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
     
-    if (glGetError() != GL_NO_ERROR) {
+    if (glGetError() != GL_NO_ERROR) 
+	{
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
         s_bHaveStencilBuffer = false;
-    } else {
+    } 
+	else 
+	{
 		s_bHaveStencilBuffer = true;
 	}
 
@@ -284,10 +283,10 @@ bool Renderer::Init()
         }
     }
 
-	if (s_ZBufferTarget == 0) {
+	if (s_ZBufferTarget == 0)
         ERROR_LOG("disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
-	}
 
+	// Why is this left here?
     //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -304,6 +303,7 @@ bool Renderer::Init()
         ERROR_LOG("arbvp1 not supported\n");
         return false;
     }
+
     if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
         ERROR_LOG("arbfp1 not supported\n");
         return false;
@@ -323,9 +323,8 @@ bool Renderer::Init()
     DEBUG_LOG("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
     DEBUG_LOG("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
-	if (nenvvertparams < 238) {
+	if (nenvvertparams < 238)
         ERROR_LOG("not enough vertex shader environment constants!!\n");
-	}
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
@@ -374,7 +373,7 @@ bool Renderer::InitializeGL()
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0, 0, GetTargetWidth(), GetTargetHeight());                     // Reset The Current Viewport
+    glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -388,7 +387,7 @@ bool Renderer::InitializeGL()
     glDisable(GL_LIGHTING);
     glDepthFunc(GL_LEQUAL);
     
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
     
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // perspective correct interpolation of colors and tex coords
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -469,47 +468,6 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		);
     s_pfont->printMultilineText(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
 }
-
-void Renderer::ReinitView(int nNewWidth, int nNewHeight)
-{
-    int oldscreen = s_bFullscreen;
-
-	OpenGL_Shutdown();
-	int oldwidth = (int)OpenGL_GetWidth(), 
-	    oldheight = (int)OpenGL_GetHeight();
-    if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7)) {
-        ERROR_LOG("Failed to recreate, reverting to old settings\n");
-        if (!OpenGL_Create(g_VideoInitialize, oldwidth, oldheight)) {
-            g_VideoInitialize.pSysMessage("Failed to revert, exiting...\n");
-			// TODO - don't takedown the entire emu
-            exit(0);
-        }
-    }
-	OpenGL_MakeCurrent();
-
-    if (oldscreen && !g_Config.bFullscreen) { // if transitioning from full screen
-#ifdef _WIN32
-        //RECT rc;
-        //rc.left = 0; rc.top = 0;
-        //rc.right = nNewWidth; rc.bottom = nNewHeight;
-        //AdjustWindowRect(&rc, EmuWindow::g_winstyle, FALSE);
-
-        //RECT rcdesktop;
-        //GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-        //SetWindowLong(EmuWindow::GetWnd(), GWL_STYLE, EmuWindow::g_winstyle);
-        //SetWindowPos(EmuWindow:GetWnd(), HWND_TOP, ((rcdesktop.right-rcdesktop.left)-(rc.right-rc.left))/2,
-        //    ((rcdesktop.bottom-rcdesktop.top)-(rc.bottom-rc.top))/2,
-        //    rc.right-rc.left, rc.bottom-rc.top, SWP_SHOWWINDOW);
-        //UpdateWindow(EmuWindow::GetWnd());
-#else // linux
-#endif
-    }
-
-    OpenGL_SetSize(nNewWidth > 16 ? nNewWidth : 16,
-		   nNewHeight > 16 ? nNewHeight : 16);
-}
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Return the rendering window width and height
@@ -670,19 +628,19 @@ bool Renderer::SetScissorRect()
     int yoff = bpmem.scissorOffset.y * 2 - 342;
     float MValueX = OpenGL_GetXmax();
     float MValueY = OpenGL_GetYmax();
-	float rc_left = bpmem.scissorTL.x - xoff - 342; // left = 0
+	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
 	rc_left *= MValueX;
 	if (rc_left < 0) rc_left = 0;
 
-	float rc_top = bpmem.scissorTL.y - yoff - 342; // right = 0
+	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
 	rc_top *= MValueY;
 	if (rc_top < 0) rc_top = 0;
     
-	float rc_right = bpmem.scissorBR.x - xoff - 341; // right = 640
+	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
 	rc_right *= MValueX;
 	if (rc_right > 640 * MValueX) rc_right = 640 * MValueX;
 
-	float rc_bottom = bpmem.scissorBR.y - yoff - 341; // bottom = 480
+	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
 	rc_bottom *= MValueY;
 	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
 
@@ -887,6 +845,7 @@ void Renderer::Swap(const TRectangle& rc)
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
 #if 0
+	// Blit the FBO to do Anti-Aliasing
 	// Not working?
 	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
 	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
@@ -904,9 +863,11 @@ void Renderer::Swap(const TRectangle& rc)
     glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
     TextureMngr::EnableTexRECT(0);
-    // disable all other stages
+    
+	// disable all other stages
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
+
     GL_REPORT_ERRORD();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -917,6 +878,7 @@ void Renderer::Swap(const TRectangle& rc)
     glTexCoord2f((float)GetTargetWidth(), 0);                        glVertex2f(1,-1);
     glEnd();
 
+	// Wireframe
 	if (g_Config.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -955,7 +917,7 @@ void Renderer::SwapBuffers()
 
 	if (g_Config.bShowFPS)
     {
-        p+=sprintf(p, "%d\n", s_fps);
+		p+=sprintf(p, "FPS: %d\n", s_fps);
     }
 
     if (g_Config.bOverlayStats) {
@@ -988,6 +950,7 @@ void Renderer::SwapBuffers()
 		VertexLoaderManager::AppendListToString(&text1);
 		p+=sprintf(p,"%s",text1.c_str());
     }
+
 	if (g_Config.bOverlayBlendStats)
 	{
 		p+=sprintf(p,"LogicOp Mode: %i\n", stats.logicOpMode);
@@ -1000,6 +963,7 @@ void Renderer::SwapBuffers()
 		p+=sprintf(p,"Dst Alpha: %08x\n", stats.dstAlpha);
 		
 	}
+
 	if (g_Config.bOverlayProjStats)
 	{
 		p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
@@ -1053,6 +1017,7 @@ void Renderer::SwapBuffers()
     TextureMngr::Cleanup();
 
     frameCount++;
+
     // New frame
     stats.ResetFrame();
 
@@ -1118,6 +1083,7 @@ void HandleGLError()
     if (!error)
 		return;
 
+// What is this for?
 //	int w, h;
 //	GLint fmt;
 //	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_INTERNAL_FORMAT_EXT, &fmt);
@@ -1256,13 +1222,13 @@ void UpdateViewport()
 			wAdj = Ratio;
 			hAdj = 1;
 
-			GLWidth = ceil(FloatGLWidth / wAdj);
-			GLHeight = ceil(FloatGLHeight / hAdj);
+			GLWidth = (int)ceil(FloatGLWidth / wAdj);
+			GLHeight = (int)ceil(FloatGLHeight / hAdj);
 
-			actualWid = ceil((float)WinW / Ratio);
+			actualWid = (int)ceil((float)WinW / Ratio);
 			// The picture compared to the screen
 			actualRatiow = (float)actualWid / (float)GLWidth;
-			overfl = (WinW - actualWid) / actualRatiow;
+			overfl = (int)ceil((WinW - actualWid) / actualRatiow);
 			XOffset = XOffset + overfl / 2;
 		}
 		// The window is to high, we have to limit the height
@@ -1274,13 +1240,13 @@ void UpdateViewport()
 			wAdj = 1;
 			hAdj = Ratio;
 
-			GLWidth = ceil(FloatGLWidth / wAdj);
-			GLHeight = ceil(FloatGLHeight / hAdj);
+			GLWidth = (int)ceil(FloatGLWidth / wAdj);
+			GLHeight = (int)ceil(FloatGLHeight / hAdj);
 
-			actualHei = ceil((float)WinH / Ratio);
+			actualHei = (int)ceil((float)WinH / Ratio);
 			// The picture compared to the screen
 			actualRatioh = (float)actualHei / (float)GLHeight;
-			overfl = (WinH - actualHei) / actualRatioh;
+			overfl = (int)ceil((WinH - actualHei) / actualRatioh);
 			YOffset = YOffset + overfl / 2;
 		}
 	}
@@ -1288,8 +1254,8 @@ void UpdateViewport()
 	else
 	{
 		// Round up to the nearest integer
-		GLWidth = ceil(FloatGLWidth);
-		GLHeight = ceil(FloatGLHeight);
+		GLWidth = (int)ceil(FloatGLWidth);
+		GLHeight = (int)ceil(FloatGLHeight);
 	}
 	// -------------------------------------
 
@@ -1310,10 +1276,10 @@ void UpdateViewport()
 	    float MValueX = OpenGL_GetXmax();
 	    float MValueY = OpenGL_GetYmax();
 
-		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX;
-		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY;
-		GLWidth = abs((int)(2 * xfregs.rawViewport[0])) * MValueX;
-		GLHeight = abs((int)(2 * xfregs.rawViewport[1])) * MValueY;
+		GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX);
+		GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
+		GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
+		GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 	}
 	// -------------------------------------
 
