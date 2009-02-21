@@ -60,11 +60,6 @@ namespace InputCommon
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	// Load config
-	#ifdef _DEBUG
-		DEBUG_INIT();
-	#endif
-
 	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimedia API, and with this we need 
 	   the SDL_INIT_VIDEO flag to */
 	if (!SDL_WasInit(0))
@@ -73,11 +68,6 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 			PanicAlert("Could not initialize SDL: %s", SDL_GetError());
 			return false;
 		}
-
-	#ifdef _DEBUG
-		fprintf(pFile, "Scanning for devices\n");
-		fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
-	#endif
 
 	// Get device status
 	int numjoy = SDL_NumJoysticks();
@@ -109,15 +99,6 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 		}
 
 		_joyinfo.push_back(Tmp);
-
-		#ifdef _DEBUG
-			fprintf(pFile, "ID: %d\n", i);
-			fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
-			fprintf(pFile, "Buttons: %d\n", joyinfo[i].NumButtons);
-			fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
-			fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
-			fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
-		#endif
 
 		// We have now read the values we need so we close the device
 		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
