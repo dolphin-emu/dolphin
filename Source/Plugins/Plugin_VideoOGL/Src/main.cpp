@@ -53,7 +53,6 @@
 #include "VideoState.h"
 ///////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Definitions
 // --------------------------
@@ -63,15 +62,6 @@ PLUGIN_GLOBALS* globals;
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 ///////////////////////////////////////////////
-
-
-/* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
-   if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
-   clsoe the window if it has auto started, and then restart it after the dll has loaded
-   for the purpose of the game. At that point there is no need to use the same dll instance
-   as the one that is rendering the game. However, that could be done.
-   
-   Update: This crash seems to be gone for now. */
 
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
@@ -101,26 +91,25 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
 }
-
 
 void DllConfig(HWND _hParent)
 {
 #if defined(_WIN32)
-	wxWindow * win = new wxWindow();
+	wxWindow *win = new wxWindow();
 	win->SetHWND((WXHWND)_hParent);
 	win->AdoptAttributesFromHWND();
-//	win->Reparent(wxGetApp().GetTopWindow());
 
-	ConfigDialog *frame = new ConfigDialog(win);
+	ConfigDialog *config_dialog = new ConfigDialog(win);
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
-	std::string resos[100];
+	std::vector<std::string> resos;
+	resos.reserve(20);
 	int i = 0;
 
 	// ---------------------------------------------------------------
@@ -129,7 +118,7 @@ void DllConfig(HWND _hParent)
 	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{
 		char szBuffer[100];
-		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+		sprintf(szBuffer, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
 		std::string strBuffer(szBuffer);
 		// Create a check loop to check every pointer of resolutions to see if the res is added or not
 		int b = 0;
@@ -141,39 +130,41 @@ void DllConfig(HWND _hParent)
 			b++;
 		}
 		// Add the resolution
-		if (!resFound)
+		if (!resFound && i < 100)  // don't want to overflow resos array. not likely to happen, but you never know.
 		{
-			resos[i] = strBuffer;
+			resos.push_back(strBuffer);
 			i++;
-			frame->AddFSReso(szBuffer);
-			frame->AddWindowReso(szBuffer);
+			config_dialog->AddFSReso(szBuffer);
+			config_dialog->AddWindowReso(szBuffer);
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 
 	// Check if at least one resolution was found. If we don't and the resolution array is empty
 	// CreateGUIControls() will crash because the array is empty.
-	if (frame->arrayStringFor_FullscreenCB.size() == 0)
+	if (config_dialog->arrayStringFor_FullscreenCB.size() == 0)
 	{
-		frame->AddFSReso("<No resolutions found>");
-		frame->AddWindowReso("<No resolutions found>");
+		config_dialog->AddFSReso("<No resolutions found>");
+		config_dialog->AddWindowReso("<No resolutions found>");
 	}
-	// ----------------------------
 
 	// Create the controls and show the window
-	frame->CreateGUIControls();
-	frame->Show();
+	config_dialog->CreateGUIControls();
+	config_dialog->Show();
 
 #elif defined(USE_WX) && USE_WX
 
-	ConfigDialog frame(NULL);
-        g_Config.Load();
-        frame.ShowModal();
+	// Hm, why does this code show it modally?
+	config_dialog = new ConfigDialog(NULL);
+	g_Config.Load();
+	config_dialog->ShowModal();
+	delete config_dialog;
+	config_dialog = NULL;
 
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\
         HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
 
-	ConfigDialog frame(NULL);
+	ConfigDialog config_dialog(NULL);
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
@@ -197,35 +188,22 @@ void DllConfig(HWND _hParent)
 			{
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
-				frame.AddFSReso(temp);
-				frame.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+				config_dialog.AddFSReso(temp);
+				config_dialog.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
 				px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
 				py = modes[i]->vdisplay;
 			}
 		}
-        }    
+	}    
 	XFree(modes);
-	frame.ShowModal();
+
+	// Hm, why does this code show it modally?
+	config_dialog.ShowModal();
 #endif
 }
 
 void Initialize(void *init)
 {
-	//Console::Open(130, 5000);
-
-	// --------------------------------------------------
-	/* Dolphin currently crashes if the dll is loaded when a game is started so we close the
-	   debugger and open it again after loading
-	   
-	   Status: Currently it's working so no need for this */
-	/*
-	if(m_frame)
-	{
-		m_frame->EndModal(0); wxEntryCleanup();
-	}//use wxUninitialize() if you don't want GUI
-	*/
-	// --------------------------------------------------
-
     frameCount = 0;
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
@@ -238,7 +216,8 @@ void Initialize(void *init)
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         return;
     }
-    _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
+
+	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
 
 	// Now the window handle is written
@@ -248,17 +227,6 @@ void Initialize(void *init)
 }
 
 void DoState(unsigned char **ptr, int mode) {
-  //#ifdef _WIN32
-//  What is this code doing here?
-//  if (!wglMakeCurrent(hDC,hRC)) {
-//      PanicAlert("Can't Activate The GL Rendering Context for saving");
-//      return;
-//  }
-//#elif defined(HAVE_COCOA) && HAVE_COCOA
-//    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
-//#elif defined(HAVE_X11) && HAVE_X11
-//    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-//#endif
 #ifndef _WIN32
 	// WHY is this here??
 	OpenGL_MakeCurrent();
@@ -346,37 +314,30 @@ void DebugLog(const char* _fmt, ...)
 #endif
 }
 
-bool ScreenShot(TCHAR *File)
-{
-    char str[64];
-    int left = 200, top = 15;
-    sprintf(str, "Dolphin OpenGL");
-
-    Renderer::ResetGLState();
-    Renderer::RenderText(str, left+1, top+1, 0xff000000);
-    Renderer::RenderText(str, left, top, 0xffc0ffff);
-    Renderer::RestoreGLState();
-
-    if (Renderer::SaveRenderTarget(File, 0)) {
-        char msg[255];
-        sprintf(msg, "saved %s\n", File);
-        Renderer::AddMessage(msg, 500);
-    	return true;
-    }
-	return false;
-}
-
 unsigned int Video_Screenshot(TCHAR* _szFilename)
 {
-    if (ScreenShot(_szFilename))
-        return TRUE;
+	char str[64];
+	int left = 200, top = 15;
+	sprintf(str, "Dolphin OpenGL");
 
-    return FALSE;
+	Renderer::ResetGLState();
+	Renderer::RenderText(str, left+1, top+1, 0xff000000);
+	Renderer::RenderText(str, left, top, 0xffc0ffff);
+	Renderer::RestoreGLState();
+
+	if (Renderer::SaveRenderTarget(_szFilename, 0))
+	{
+		char msg[255];
+		sprintf(msg, "saved %s\n", _szFilename);
+		Renderer::AddMessage(msg, 500);
+		return true;
+	}
+	return false;
 }
 
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
-	if(g_Config.bUseXFB && XFB_isInit())
+	if (g_Config.bUseXFB && XFB_isInit())
 	{
 		if (scheduling) // from CPU in DC without fifo&CP (some 2D homebrews)
 		{
@@ -398,5 +359,5 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
-	Renderer::AddMessage(pstr,milliseconds);
+	Renderer::AddMessage(pstr, milliseconds);
 }
