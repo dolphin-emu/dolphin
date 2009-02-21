@@ -29,7 +29,11 @@ namespace OSD
 struct MESSAGE
 {
 	MESSAGE() {}
-	MESSAGE(const char* p, u32 dw) { strcpy(str, p); dwTimeStamp = dw; }
+	MESSAGE(const char* p, u32 dw) {
+		strncpy(str, p, 255);
+		str[255] = '\0';
+		dwTimeStamp = dw;
+	}
 	char str[255];
 	u32 dwTimeStamp;
 };
@@ -47,7 +51,8 @@ void DrawMessages()
 	if (!wasEnabled)
 		glEnable(GL_BLEND);
 	
-	if (s_listMsgs.size() > 0) {
+	if (s_listMsgs.size() > 0)
+	{
 		int left = 25, top = 15;
 		std::list<MESSAGE>::iterator it = s_listMsgs.begin();
 		while (it != s_listMsgs.end()) 
@@ -74,7 +79,8 @@ void DrawMessages()
 		}
 	}
 
-	if (!wasEnabled) glDisable(GL_BLEND);
+	if (!wasEnabled)
+		glDisable(GL_BLEND);
 }
 
 }  // namespace
