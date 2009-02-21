@@ -551,7 +551,7 @@ void WriteCC8Encoder(char* p, const char* comp)
 	WRITE(p, "}\n");
 }
 
-char *GenerateEncodingShader(u32 format)
+const char *GenerateEncodingShader(u32 format)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
@@ -653,8 +653,6 @@ void SetShaderParameters(u32 width, u32 height, u32 offsetX, u32 offsetY, float 
 
 	SetPSConstant4f(C_COLORMATRIX, (float)blkW, (float)blkH, (float)samples, pixelStride);
 	SetPSConstant4f(C_COLORMATRIX + 1, (float)width, (float)(height - 1), (float)offsetX, (float)offsetY);
-
 }
 
-
-}
+}  // namespace

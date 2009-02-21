@@ -37,11 +37,9 @@ struct RECT
 // Handles OpenGL and the window
 
 // externals
-int gleft, gright, gtop, gbottom;
 int nBackbufferWidth, nBackbufferHeight; // screen width
 int nXoff, nYoff; // screen offset
 float MValueX, MValueY;
-float AR; // aspect ratio
 
 #ifndef _WIN32
 GLWindow GLWin;
@@ -722,7 +720,6 @@ void OpenGL_Update()
     float FactorW  = 640.0f / (float)nBackbufferWidth;
     float FactorH  = 480.0f / (float)nBackbufferHeight;
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
     if (g_Config.bStretchToFit)
     {
@@ -738,12 +735,7 @@ void OpenGL_Update()
         nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
         nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
     }
-
-	// Tell the debugger
-	gleft = rcWindow.left; gright = rcWindow.right;
-	gtop = rcWindow.top; gbottom = rcWindow.bottom;
 }
-
 
 
 // =======================================================================================

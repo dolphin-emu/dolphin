@@ -775,6 +775,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Render.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Render.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\TextureMngr.cpp"
 				>
 			</File>
@@ -788,6 +796,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexShaderCache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFB.h"
 				>
 			</File>
 		</Filter>
@@ -899,6 +915,38 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="GLUtil"
+			>
+			<File
+				RelativePath=".\Src\GLUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GLUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GLWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureConversionShader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureConversionShader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureConverter.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\Config.cpp"
 			>
@@ -916,31 +964,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\GLUtil.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\GLUtil.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\GLWindow.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\main.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\main.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Render.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Render.h"
 			>
 		</File>
 		<File
@@ -1001,30 +1029,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\stdafx.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureConversionShader.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureConversionShader.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureConverter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureConverter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFB.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFB.h"
 			>
 		</File>
 	</Files>

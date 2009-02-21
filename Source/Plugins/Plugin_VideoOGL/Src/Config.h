@@ -37,6 +37,9 @@ struct Config
     char iFSResolution[16];
     char iWindowedRes[16];
     char iBackend[16];
+
+	// stretch to fit should be split into two options, I think - one for low resolution backbuffer,
+	// one for ignore aspect ratio. I guess KeepAR sort of does that. Anyway, these should be rethought.
     bool bStretchToFit;
     bool bKeepAR;
     bool bHideCursor;

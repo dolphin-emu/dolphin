@@ -26,15 +26,12 @@ namespace TextureConversionShader
 {
 
 u16 GetBlockWidthInTexels(u32 format);
-
 u16 GetBlockHeightInTexels(u32 format);
-
 u16 GetEncodedSampleCount(u32 format);
 
-char *GenerateEncodingShader(u32 format);
+const char *GenerateEncodingShader(u32 format);
 
 void SetShaderParameters(u32 width, u32 height, u32 offsetX, u32 offsetY, float pixelStride, u32 format);
-
 
 }
 

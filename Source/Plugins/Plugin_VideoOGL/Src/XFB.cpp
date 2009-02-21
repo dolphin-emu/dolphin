@@ -87,7 +87,7 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 	renderSrcRc.right = sourceRc.right;
 	renderSrcRc.top = nBackbufferHeight - sourceRc.top;
 	renderSrcRc.bottom = nBackbufferHeight - sourceRc.bottom; 
-	TextureConverter::EncodeToRam(Renderer::GetRenderTarget(), renderSrcRc, xfb_in_ram, dstWd, dstHt);
+	TextureConverter::EncodeToRamYUYV(Renderer::GetRenderTarget(), renderSrcRc, xfb_in_ram, dstWd, dstHt);
 }
 
 void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
@@ -223,7 +223,6 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();
 
-	// TODO - use shader for conversion
 	ConvertToXFB((u32 *)xfb_in_ram, efb_buffer, dstWd, dstHt);
 }
 
@@ -239,7 +238,6 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 
 	Renderer::ResetGLState();
 
-	// TODO - use shader for conversion
 	ConvertFromXFB((u32 *)xfb_buffer, xfb_in_ram, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
