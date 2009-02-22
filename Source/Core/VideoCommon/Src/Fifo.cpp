@@ -35,7 +35,7 @@ extern u8* g_pVideoData;
 
 namespace {
 
-static bool fifoStateRun = false;
+static volatile bool fifoStateRun = false;
 static u8 *videoBuffer;
 static Common::Event fifo_exit_event;
 // STATE_TO_SAVE
@@ -97,11 +97,16 @@ void Video_SendFifoData(u8* _uData, u32 len)
     OpcodeDecoder_Run();
 }
 
+// Executed from another thread, no the graphics thread!
+// Basically, all it does is set a flag so that the loop will eventually exit, then
+// waits for the event to be set, which happens when the loop does exit.
+// If we look stuck in here, then the video thread is stuck in something and won't exit
+// the loop. Switch to the video thread and investigate.
 void Fifo_ExitLoop()
 {
     fifoStateRun = false;
 	#ifndef SETUP_TIMER_WAITING
-		fifo_exit_event.Wait();
+		fifo_exit_event.MsgWait();
 		fifo_exit_event.Shutdown();
 	#else
 	//Console::Print("Video: Fifo_ExitLoop: Done:%i\n", fifo_exit_event.DoneWait());
@@ -114,6 +119,7 @@ void Fifo_ExitLoop()
 	#endif
 }
 
+// 
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     fifoStateRun = true;

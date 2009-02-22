@@ -72,7 +72,6 @@ EDiscType GetDiscType(IBlobReader& _rReader);
 IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 {
 	IBlobReader* pReader = CreateBlobReader(_rFilename.c_str());
-
 	if (pReader == NULL)
 		return NULL;
 

@@ -134,7 +134,7 @@ FRAGMENTSHADER& GetOrCreateEncodingShader(u32 format)
 
 void Init()
 {
-	glGenFramebuffersEXT( 1, &s_texConvFrameBuffer);
+	glGenFramebuffersEXT(1, &s_texConvFrameBuffer);
 
 	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
@@ -153,7 +153,10 @@ void Shutdown()
 {
 	glDeleteTextures(1, &s_srcTexture);	
 	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
-	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);	
+	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
+	s_srcTexture = 0;
+	s_dstRenderBuffer = 0;
+	s_texConvFrameBuffer = 0;
 }
 
 void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,

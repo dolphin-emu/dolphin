@@ -133,18 +133,60 @@ void Event::Shutdown()
 	m_hEvent = 0;
 }
 
-
-
 void Event::Set()
 {
 	SetEvent(m_hEvent);
 }
 
-
 void Event::Wait()
 {
 	WaitForSingleObject(m_hEvent, INFINITE);
 }
+
+inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)
+{
+	return MsgWaitForMultipleObjects(1, &handle, FALSE, timeout, 0);
+}
+
+void Event::MsgWait()
+{
+	// Adapted from MSDN example http://msdn.microsoft.com/en-us/library/ms687060.aspx
+	while (true)
+	{
+		DWORD result; 
+		MSG msg; 
+		// Read all of the messages in this next loop, 
+		// removing each message as we read it.
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+		{ 
+			// If it is a quit message, exit.
+			if (msg.message == WM_QUIT)  
+				return; 
+			// Otherwise, dispatch the message.
+			DispatchMessage(&msg); 
+		}
+
+		// Wait for any message sent or posted to this queue 
+		// or for one of the passed handles be set to signaled.
+		result = MsgWaitForSingleObject(m_hEvent, INFINITE); 
+
+		// The result tells us the type of event we have.
+		if (result == (WAIT_OBJECT_0 + 1))
+		{
+			// New messages have arrived. 
+			// Continue to the top of the always while loop to 
+			// dispatch them and resume waiting.
+			continue;
+		} 
+		else
+		{
+			// result == WAIT_OBJECT_0
+			// Our event got signaled
+			return;
+		}
+	}
+}
+
 /////////////////////////////////////
 
 

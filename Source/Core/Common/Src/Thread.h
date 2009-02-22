@@ -98,6 +98,11 @@ public:
 
 	void Set();
 	void Wait();
+#ifdef _WIN32
+	void MsgWait();
+#else
+	void MsgWait() {Wait();}
+#endif
 
 	// -----------------------------------------
 	#ifdef SETUP_TIMER_WAITING

@@ -306,8 +306,8 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
         m_hWnd = CreateWindow(m_szClassName, title,
             WS_CHILD,
-            CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
-            parent, NULL, hInstance, NULL );
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            parent, NULL, hInstance, NULL);
 
         ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
     }

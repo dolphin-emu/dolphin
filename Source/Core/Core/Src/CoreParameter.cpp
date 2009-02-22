@@ -82,9 +82,10 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
 				if (pVolume == NULL)
 				{
-
-					PanicAlert(bootDrive ? "Drive could not be mounted" :
-						"Your GCM/ISO file seems to be invalid, or not a GC/Wii ISO." );
+					PanicAlert(bootDrive ?
+						"Disc in %s could not be read - no disc, or not a GC/Wii backup.\n"
+						"Please note that original Gamecube and Wii discs cannot be read by most PC DVD drives.":
+						"Your GCM/ISO file seems to be invalid, or not a GC/Wii ISO.", m_strFilename.c_str());
 					return false;
 				}
 				m_strName = pVolume->GetName();

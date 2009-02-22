@@ -208,17 +208,6 @@ void CPluginManager::ShutdownPlugins()
 		//m_wiimote[i] = NULL;
 	}
 
-	if (m_video)
-	{
-		m_video->Shutdown();
-		// With this option, this is done on boot instead
-		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
-			delete m_video;
-			m_video = NULL;
-		#endif
-	}
-
-
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
@@ -226,6 +215,16 @@ void CPluginManager::ShutdownPlugins()
 		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
 			delete m_dsp;
 			m_dsp = NULL;
+		#endif
+	}
+
+	if (m_video)
+	{
+		m_video->Shutdown();
+		// With this option, this is done on boot instead
+		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
+			delete m_video;
+			m_video = NULL;
 		#endif
 	}
 }

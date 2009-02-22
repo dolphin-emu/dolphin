@@ -227,7 +227,7 @@ bool Init()
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file
 	g_EmuThread = new Common::Thread(EmuThread, NULL);
-	emuThreadGoing.Wait();
+	emuThreadGoing.MsgWait();
 	emuThreadGoing.Shutdown();
 	#ifdef SETUP_TIMER_WAITING
 		VideoThreadRunning = true;
@@ -254,29 +254,27 @@ void Stop()
 	StopReachedEnd = false;
 	EmuThreadReachedEnd = false;
 #endif
-
-	Host_SetWaitCursor(true);
+	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
 
 	// Stop the CPU
 	PowerPC::Stop();
-	CCPU::StepOpcode(); // Kick it if it's waiting
+	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
 	
+	// Wait until the CPU finishes exiting the main run loop
 	cpuRunloopQuit.Wait();
 	cpuRunloopQuit.Shutdown();
 	// At this point, we must be out of the CPU:s runloop.
 	
-	// Silence audio - stops audio thread.
+	// Stop audio thread.
 	CPluginManager::GetInstance().GetDSP()->DSP_StopSoundStream();
  
 	// If dual core mode, the CPU thread should immediately exit here.
-
-	Console::Print("Stop [Main Thread]:    Wait for Video Loop...\n");
-
-	// Should be moved inside the plugin.
-	if (_CoreParameter.bUseDualCore)
+	if (_CoreParameter.bUseDualCore) {
+		Console::Print("Stop [Main Thread]:    Wait for Video Loop to exit...\n");
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
+	}
 
 #ifdef SETUP_TIMER_WAITING
 	StopUpToVideoDone = true;
@@ -288,15 +286,8 @@ void Stop()
 	//Console::Print("Stop() will continue\n");
 #endif
 
-	/* Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
-	   of the commands in this function */
-
-	/* The quit is to get it out of its message loop. There is no guarantee of when this will occur though.
-	   And since we have no while(GetMessage()) loop we can't wait for this to happen, or say exactly when
-	   the loop has ended */
-	#ifdef _WIN32
-		//PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
-	#endif
+	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
+	// of the commands in this function. We no longer rely on Postmessage. */
 
 	// Close the trace file
 	Core::StopTrace();
@@ -530,7 +521,6 @@ THREAD_RETURN EmuThread(void *pArg)
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Video thread");
 
-		// I bet that many of our stopping problems come from this loop not properly exiting.
 		Plugins.GetVideo()->Video_EnterLoop();
 	}
 #ifdef SETUP_TIMER_WAITING
