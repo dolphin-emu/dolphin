@@ -442,36 +442,12 @@ void VertexShaderManager::SetProjection(float* _pProjection, int constantIndex)
 
 void VertexShaderManager::SetMaterialColor(int index, u32 data)
 {
-	// TODO: collapse
-	switch (index)
-	{
-	case 0:
-        nMaterialsChanged |= 1;
-        s_fMaterials[0] = ((data>>24)&0xFF)/255.0f;
-        s_fMaterials[1] = ((data>>16)&0xFF)/255.0f;
-        s_fMaterials[2] = ((data>>8)&0xFF)/255.0f;
-        s_fMaterials[3] = ((data)&0xFF)/255.0f;
-		break;
-	case 1:
-        nMaterialsChanged |= 2;
-        s_fMaterials[4] = ((data>>24)&0xFF)/255.0f;
-        s_fMaterials[5] = ((data>>16)&0xFF)/255.0f;
-        s_fMaterials[6] = ((data>>8)&0xFF)/255.0f;
-        s_fMaterials[7] = ((data)&0xFF)/255.0f;
-		break;
-	case 2:
-        nMaterialsChanged |= 4;
-        s_fMaterials[8] = ((data>>24)&0xFF)/255.0f;
-        s_fMaterials[9] = ((data>>16)&0xFF)/255.0f;
-        s_fMaterials[10] = ((data>>8)&0xFF)/255.0f;
-        s_fMaterials[11] = ((data)&0xFF)/255.0f;
-		break;
-	case 3:
-        nMaterialsChanged |= 8;
-        s_fMaterials[12] = ((data>>24)&0xFF)/255.0f;
-        s_fMaterials[13] = ((data>>16)&0xFF)/255.0f;
-        s_fMaterials[14] = ((data>>8)&0xFF)/255.0f;
-        s_fMaterials[15] = ((data)&0xFF)/255.0f;
-		break;
-	}
+	int ind = index * 4;
+
+	nMaterialsChanged  |= (1 << index);
+
+    s_fMaterials[ind++] = ((data>>24)&0xFF)/255.0f;
+    s_fMaterials[ind++] = ((data>>16)&0xFF)/255.0f;
+    s_fMaterials[ind++] = ((data>>8)&0xFF)/255.0f;
+    s_fMaterials[ind]   = ((data)&0xFF)/255.0f;
 }
