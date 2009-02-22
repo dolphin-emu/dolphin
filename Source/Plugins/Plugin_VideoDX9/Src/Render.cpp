@@ -337,7 +337,7 @@ void Renderer::SetScissorBox(RECT &rc)
 void Renderer::SetProjection(float* pMatrix, int constantIndex)
 {
 	D3DXMATRIX mtx;
-	if (pMatrix[6] == 0) // Model View
+	if (pMatrix[6] == 0) // Perspective
 	{
 		mtx.m[0][0] = pMatrix[0];
 		mtx.m[0][1] = 0.0f;
@@ -361,7 +361,7 @@ void Renderer::SetProjection(float* pMatrix, int constantIndex)
 		mtx.m[3][2] = -1.00000011921f;
 		mtx.m[3][3] = 0.0f;
 	}
-	else // Orthogonal
+	else // Orthographic Projection
 	{
 		mtx.m[0][0] = pMatrix[0];
 		mtx.m[0][1] = 0.0f;
