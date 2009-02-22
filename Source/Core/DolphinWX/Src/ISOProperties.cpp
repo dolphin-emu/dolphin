@@ -531,7 +531,7 @@ void CISOProperties::LoadGameConfig()
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 	{
-		EmuIssues->SetValue(sTemp);
+		EmuIssues->SetValue(wxString::FromAscii(sTemp.c_str()));
 		bRefreshList = true;
 	}
 
