@@ -7,6 +7,7 @@ files = [
 	"MsgHandler.cpp",
 	"ChunkFile.cpp",
 	"ConsoleWindow.cpp",
+	"ColorUtil.cpp",
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",
 	"Hash.cpp",
