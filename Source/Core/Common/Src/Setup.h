@@ -47,6 +47,9 @@
 //#define SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
 
 // Build with playback rerecording options
+//#define SETUP_AVOID_OPENGL_SCREEN_MESSAGE_HANG
+
+// Build with playback rerecording options
 //#define RERECORDING
 
 // Build with music modification

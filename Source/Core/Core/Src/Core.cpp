@@ -469,6 +469,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	// We have now exited the Video Loop and will shut down
 
 	// does this comment still apply?
+	/* JP: Perhaps not, but it's not the first time one of these waiting loops have failed. They seem inherently
+	   dysfunctional because they can hang the very thread they are waiting for, so they should be replaced by timers like I did
+	   in the Wiimote plugin. Or any alterantive that does not hang the thread it's waiting for. Sleep() hangs the other thread to,
+	   just like a loop, so that is not an option. */
 	/* Check if we are using single core and are rendering to the main window. In that case we must avoid the WaitForSingleObject()
 	   loop in the cpu thread thread, because it will hang on occation, perhaps one time in three or so. I had this problem in the Wiimote plugin, what happened was that if I entered the
 	   WaitForSingleObject loop or any loop at all in the main thread, the separate thread would halt at a place where it called a function in

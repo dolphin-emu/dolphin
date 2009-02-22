@@ -20,6 +20,7 @@
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "OpcodeDecoding.h"
+#include "Setup.h"
 
 #include "Fifo.h"
 
@@ -107,7 +108,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
     while (fifoStateRun)
     {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(SETUP_AVOID_OPENGL_SCREEN_MESSAGE_HANG)
 		video_initialize.pPeekMessages();
 #endif
         if (_fifo.CPReadWriteDistance == 0)
