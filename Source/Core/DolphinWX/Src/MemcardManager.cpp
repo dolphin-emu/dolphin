@@ -550,8 +550,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_SAVEIMPORT_B:
 	{
 		wxString temp = wxFileSelector(_T("Select a save file to import"),
-			(strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ? wxEmptyString :
-			wxString::FromAscii(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
+									   (strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ?  wxString::FromAscii(""): wxString::FromAscii(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
 			(
 				_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
 				"Native GCI files (*.gci)|*.gci|"
@@ -591,7 +590,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			memoryCard[slot]->DEntry_GameCode(index,tempC);
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
-			wxString temp = wxFileSelector(_T("Save GCI as.."),	_T(DefaultIOPath.c_str()),
+			wxString temp = wxFileSelector(_T("Save GCI as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
 				wxString::FromAscii(tempC), _T(".gci"), wxString::Format
 				(
 					_T("GCI File(*.gci)|*.gci"),
@@ -614,8 +613,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot=SLOT_A;
 	case ID_EXPORTALL_B:
 	{
-		std::string path1, path2;
-		SplitPath(m_MemcardPath[slot]->GetPath().mb_str(), &path1, &path2, NULL);
+		std::string path1, path2, mpath;
+		mpath = m_MemcardPath[slot]->GetPath().mb_str();
+		SplitPath(mpath, &path1, &path2, NULL);
 		path1 += path2;
 		File::CreateDir(path1.c_str());
 		if(PanicYesNo("Warning: This will overwrite any existing saves "
@@ -623,7 +623,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					" as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, _("."), &path1), -1);
+			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, ".", &path1), -1);
 		}
 		break;
 	}
@@ -853,7 +853,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
 		int slot = event.GetId() - ID_MEMCARDLIST_A;
-		popupMenu.Append(ID_COPYFROM_A + slot, wxString::Format("Copy to Memcard %c", 'B' - slot));
+		popupMenu.Append(ID_COPYFROM_A + slot, wxString::Format(wxT("Copy to Memcard %c"), 'B' - slot));
 		popupMenu.Append(ID_DELETE_A + slot, wxT("Delete Save"));
 		popupMenu.Append(ID_SAVEIMPORT_A + slot, wxT("Import Save"));
 		popupMenu.Append(ID_SAVEEXPORT_A + slot, wxT("Export Save"));
@@ -867,7 +867,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(ID_FIXCHECKSUM_A + slot, wxT("Fix Checksums"));
 		popupMenu.Append(ID_PREVPAGE_A + slot, wxT("Previous Page"));
 		popupMenu.Append(ID_NEXTPAGE_A + slot, wxT("Next Page"));
-		popupMenu.Append(ID_MEMCARDPATH_A + slot, wxString::Format("Set as default Memcard %c", 'A' + slot));
+		popupMenu.Append(ID_MEMCARDPATH_A + slot, wxString::Format(wxT("Set as default Memcard %c"), 'A' + slot));
 		popupMenu.AppendCheckItem(ID_USEPAGES, wxT("Enable pages"));
 	
 		if (!prevPage || !usePages)

@@ -148,8 +148,6 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
-
-
 # build falvuor
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
@@ -266,7 +264,6 @@ conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
-
 
 # profile
 env['USE_OPROFILE'] = 0

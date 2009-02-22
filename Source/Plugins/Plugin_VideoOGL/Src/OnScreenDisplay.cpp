@@ -22,6 +22,7 @@
 
 #include "OnScreenDisplay.h"
 #include "Render.h"
+#include "Timer.h"
 
 namespace OSD
 {

@@ -170,4 +170,4 @@ namespace Recording
 ////////////////////////////////
 
 
-#endif __NJOY_h__
+#endif // __NJOY_h__
