@@ -105,17 +105,19 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 void DllConfig(HWND _hParent)
 {
-	#if defined(HAVE_WX) && HAVE_WX
+
+#if defined(HAVE_WX) && HAVE_WX
 	// This is needed because now we use wxEntryCleanup() when closing the configuration window
 	if (!wxTheApp || !wxTheApp->CallOnInit())
 	{
+#if defined(_WIN32)
 		wxSetInstance((HINSTANCE)g_hInstance);
+#endif
 		int argc = 0;
 		char **argv = NULL;
 		wxEntryStart(argc, argv);
 	}
-	#endif
-
+#endif
 	//Console::Open();
 
 #if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
