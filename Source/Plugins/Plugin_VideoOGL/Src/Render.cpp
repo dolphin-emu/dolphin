@@ -807,8 +807,8 @@ void Renderer::Swap(const TRectangle& rc)
 		// Rc.right and rc.bottom is the original picture pixel size
 		/* There is a +1 in Rc (earlier called multirc, the input to this function), but these
 		   adjustments seems to work better without it. */
-		float WidthRatio = (float)(rc.right - 1) / 640.0;
-		float HeightRatio = (float)(rc.bottom - 1) / 480.0;
+		float WidthRatio = (float)(rc.right - 1) / 640.0f;
+		float HeightRatio = (float)(rc.bottom - 1) / 480.0f;
 
 		// The pixel size of the image on the screen, adjusted for the actual window size
 		float OldWidth = WidthRatio * (float)WinWidth;
@@ -854,10 +854,8 @@ void Renderer::Swap(const TRectangle& rc)
 	float WinWidth = (float)OpenGL_GetWidth();
 	float WinHeight = (float)OpenGL_GetHeight();
 	// The rendering window aspect ratio as a fraction of the 4:3 ratio
-	float Ratio = WinWidth / WinHeight / (4.0 / 3.0);
+	float Ratio = WinWidth / WinHeight / (4.0f / 3.0f);
 	float wAdj, hAdj;
-	float ActualRatioW, ActualRatioH;
-	float Overflow;
 	// Actual pixel size of the picture after adjustment
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 
@@ -894,8 +892,8 @@ void Renderer::Swap(const TRectangle& rc)
 			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
 			// ----------------
 			// Invert the ratio to make it > 1
-			Ratio = 1.0 / Ratio;
-			wAdj = 1.0;
+			Ratio = 1.0f / Ratio;
+			wAdj = 1.0f;
 			hAdj = Ratio;
 			FloatGLWidth = FloatGLWidth / wAdj;
 			FloatGLHeight = FloatGLHeight / hAdj;
@@ -909,9 +907,9 @@ void Renderer::Swap(const TRectangle& rc)
 			// Keep the picture on the bottom of the screen, this is needed because YOffset may not be 0 here
 			FloatYOffset = FloatYOffset / hAdj;
 			// Move the bottom of the picture to the middle of the screen
-			FloatYOffset = FloatYOffset + WinHeight / 2.0;
+			FloatYOffset = FloatYOffset + WinHeight / 2.0f;
 			// Then remove half the picture height to move it to the vertical center
-			FloatYOffset = FloatYOffset - PictureHeight / 2.0;
+			FloatYOffset = FloatYOffset - PictureHeight / 2.0f;
 			// --------------------
 		}
 

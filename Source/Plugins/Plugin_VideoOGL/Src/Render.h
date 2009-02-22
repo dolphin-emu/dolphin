@@ -79,6 +79,7 @@ extern int frameCount;
 
 class Renderer
 {
+private:
     static void FlushZBufferAlphaToTarget();
 
 public:

@@ -37,7 +37,7 @@ CDolLoader::CDolLoader(const char* _szFilename)
 	fread(tmpBuffer, size, 1, pStream);
 	fclose(pStream);
 
-	m_bInit = Initialize(tmpBuffer, size);
+	m_bInit = Initialize(tmpBuffer, (u32)size);
 	delete [] tmpBuffer;
 }
 

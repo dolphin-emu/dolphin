@@ -555,6 +555,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\ColorUtil.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ColorUtil.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Common.h"
 			>
 		</File>

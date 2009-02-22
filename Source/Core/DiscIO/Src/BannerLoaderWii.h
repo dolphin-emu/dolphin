@@ -61,17 +61,10 @@ class CBannerLoaderWii
 			u8  m_IconTexture[8][WII_BANNER_ICON_SIZE]; 
 		} ;
 
-		// for banner decoding
-		int lut3to8[8];
-		int lut4to8[16];
-		int lut5to8[32];
-
 		u8* m_pBannerFile;
 
 		bool m_IsValid;
 
-		void InitLUTTable();
-		u32 decode5A3(u16 val);
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 };
 } // namespace

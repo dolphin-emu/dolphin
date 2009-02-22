@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "GCMemcard.h"
+#include "ColorUtil.h"
 
 // i think there is support for this stuff in the common lib... if not there should be support
 
@@ -24,34 +25,6 @@ void ByteSwap(u8 *valueA, u8 *valueB)
 	u8 tmp = *valueA;
 	*valueA = *valueB;
 	*valueB = tmp;
-}
-
-u32 decode5A3(u16 val)
-{
-	const int lut5to8[] = { 0x00,0x08,0x10,0x18,0x20,0x29,0x31,0x39,
-							0x41,0x4A,0x52,0x5A,0x62,0x6A,0x73,0x7B,
-							0x83,0x8B,0x94,0x9C,0xA4,0xAC,0xB4,0xBD,
-							0xC5,0xCD,0xD5,0xDE,0xE6,0xEE,0xF6,0xFF};
-	const int lut4to8[] = { 0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,
-							0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
-	const int lut3to8[] = { 0x00,0x24,0x48,0x6D,0x91,0xB6,0xDA,0xFF};
-
-	int r,g,b,a;
-	if ((val&0x8000))
-	{
-		r=lut5to8[(val>>10) & 0x1f];
-		g=lut5to8[(val>>5 ) & 0x1f];
-		b=lut5to8[(val    ) & 0x1f];
-		a=0xFF;
-	}
-	else
-	{
-		a=lut3to8[(val>>12) & 0x7];
-		r=lut4to8[(val>>8 ) & 0xf];
-		g=lut4to8[(val>>4 ) & 0xf];
-		b=lut4to8[(val    ) & 0xf];
-	}
-	return (a<<24) | (r<<16) | (g<<8) | b;
 }
 
 void decode5A3image(u32* dst, u16* src, int width, int height)
@@ -64,7 +37,7 @@ void decode5A3image(u32* dst, u16* src, int width, int height)
 			{
 				for (int ix = 0; ix < 4; ix++)
 				{
-					u32 RGBA = decode5A3(Common::swap16(src[ix]));
+					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
 					dst[(y + iy) * width + (x + ix)] = RGBA;
 				}
 			}
@@ -83,7 +56,8 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 				u32 *tdst = dst+(y+iy)*width+x;
 				for (int ix = 0; ix < 8; ix++)
 				{
-					tdst[ix] = decode5A3(Common::swap16(pal[src[ix]]));
+					// huh, this seems wrong. CI8, not 5A3, no?
+					tdst[ix] = ColorUtil::Decode5A3(Common::swap16(pal[src[ix]]));
 				}
 			}
 		}
@@ -910,13 +884,13 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	{
 		if (BE32(dir.Dir[index].Gamecode) == 0xFFFFFFFF) return SUCCESS;
 
-		int length = fileName2->length() + 42;
+		size_t length = fileName2->length() + 42;
 		char *filename = new char[length];
 		char GameCode[5];
 
 		DEntry_GameCode(index, GameCode);
 		
-		sprintf(filename,"%s/%s_%s.gci",fileName2->c_str(), GameCode, dir.Dir[index].Filename);
+		sprintf(filename, "%s/%s_%s.gci", fileName2->c_str(), GameCode, dir.Dir[index].Filename);
 		gci = fopen((const char *)filename, "wb");
 	}
 	else
@@ -953,9 +927,9 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	}
 	fseek(gci, 0x40, SEEK_SET);
 	if (fwrite(tempSaveData, 1, size, gci) != size)
-	completeWrite = false;
+		completeWrite = false;
 	fclose(gci);
-	delete []tempSaveData;
+	delete [] tempSaveData;
 	if (completeWrite) return SUCCESS;
 	else return WRITEFAIL;
 	

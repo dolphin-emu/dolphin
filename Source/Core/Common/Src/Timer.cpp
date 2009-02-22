@@ -36,17 +36,15 @@ u32 timeGetTime()
 }
 #endif
 
-
 namespace Common
 {
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initiate, Start, Stop, and Update the time
 // ---------------
 
 // Set initial values for the class
-Timer::Timer(void)
+Timer::Timer()
 	: m_LastTime(0), m_StartTime(0), m_Running(false)
 {
 	Update();
@@ -72,7 +70,7 @@ void Timer::Stop()
 }
 
 // Update the last time variable
-void Timer::Update(void)
+void Timer::Update()
 {
 	m_LastTime = timeGetTime();
 	//TODO(ector) - QPF
@@ -86,7 +84,7 @@ void Timer::Update(void)
 // ---------------
 
 // Get the number of milliseconds since the last Update()
-s64 Timer::GetTimeDifference(void)
+s64 Timer::GetTimeDifference()
 {
 	return(timeGetTime() - m_LastTime);
 }
@@ -104,7 +102,7 @@ void Timer::WindBackStartingTime(u64 WindBack)
 }
 
 // Get the time elapsed since the Start()
-u64 Timer::GetTimeElapsed(void)
+u64 Timer::GetTimeElapsed()
 {
 	/* If we have not started yet return 1 (because then I don't have to change the FPS
 	   calculation in CoreRerecording.cpp */
@@ -117,20 +115,20 @@ u64 Timer::GetTimeElapsed(void)
 }
 
 // Get the formattet time elapsed since the Start()
-std::string Timer::GetTimeElapsedFormatted(void)
+std::string Timer::GetTimeElapsedFormatted() const
 {
 	// If we have not started yet, return zero
 	if (m_StartTime == 0)
 		return "00:00:00:000";
 
 	// The number of milliseconds since the start, use a different value if the timer is stopped
-	u32 Milliseconds;
+	u64 Milliseconds;
 	if (m_Running)
 		Milliseconds = timeGetTime() - m_StartTime;
 	else
 		Milliseconds = m_LastTime - m_StartTime;
 	// Seconds
-	u32 Seconds = Milliseconds / 1000;
+	u32 Seconds = (u32)(Milliseconds / 1000);
 	// Minutes
 	u32 Minutes = Seconds / 60;
 	// Hours
@@ -172,14 +170,14 @@ void _time64(u64* t)
 
 
 // Get the number of seconds since January 1 1970
-u64 Timer::GetTimeSinceJan1970(void)
+u64 Timer::GetTimeSinceJan1970()
 {
 	time_t ltime;
 	time(&ltime);
 	return((u64)ltime);
 }
 
-u64 Timer::GetLocalTimeSinceJan1970(void)
+u64 Timer::GetLocalTimeSinceJan1970()
 {
 	time_t sysTime, tzDiff;
 	struct tm * gmTime;
@@ -193,7 +191,7 @@ u64 Timer::GetLocalTimeSinceJan1970(void)
 }
 
 // Return the current time formatted as Minutes:Seconds:Milliseconds in the form 00:00:000
-std::string Timer::GetTimeFormatted(void)
+std::string Timer::GetTimeFormatted()
 {
 	struct timeb tp;
 	(void)::ftime(&tp);

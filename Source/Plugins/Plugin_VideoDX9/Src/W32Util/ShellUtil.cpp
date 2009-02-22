@@ -1,6 +1,7 @@
 #include <shlobj.h>
 #include <xstring>
 #include <string>
+
 #include "ShellUtil.h"
 
 namespace W32Util
@@ -30,19 +31,14 @@ namespace W32Util
 	// function WinBrowseForFileName
 	//---------------------------------------------------------------------------------------------------
 	bool BrowseForFileName (bool _bLoad, HWND _hParent, const char *_pTitle,
-		const char *_pInitialFolder,const char *_pFilter,const char *_pExtension, 
+		const char *_pInitialFolder, const char *_pFilter, const char *_pExtension, 
 		std::string& _strFileName)
 	{
-		char szFile [MAX_PATH+1];
-		char szFileTitle [MAX_PATH+1];
-
-		strcpy (szFile,"");
-		strcpy (szFileTitle,"");
+		char szFile [MAX_PATH+1] = {0};
+		char szFileTitle [MAX_PATH+1] = {0};
 
 		OPENFILENAME ofn;
-
 		ZeroMemory (&ofn,sizeof (ofn));
-
 		ofn.lStructSize		= sizeof (OPENFILENAME);
 		ofn.lpstrInitialDir = _pInitialFolder;
 		ofn.lpstrFilter		= _pFilter;
@@ -57,13 +53,12 @@ namespace W32Util
 		if (_strFileName.size () != 0)
 			ofn.lpstrFile = (char *)_strFileName.c_str();
 
-		if (((_bLoad)?GetOpenFileName (&ofn):GetSaveFileName (&ofn)))
+		if (((_bLoad) ? GetOpenFileName(&ofn) : GetSaveFileName(&ofn)))
 		{
 			_strFileName = ofn.lpstrFile;
 			return true;
 		}
-		else
-			return false;
+		return false;
 	}
 	
 	std::vector<std::string> BrowseForFileNameMultiSelect(bool _bLoad, HWND _hParent, const char *_pTitle,
@@ -113,12 +108,6 @@ namespace W32Util
 			}
 			return files;
 		}
-		else
-			return std::vector<std::string>(); // empty vector;
-
+		return std::vector<std::string>(); // empty vector;
 	}
-	
-
-
-
-}
+}  // namespace

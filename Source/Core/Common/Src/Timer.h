@@ -25,38 +25,38 @@ namespace Common
 {
 class Timer
 {
-	public:
+public:
+	Timer();
 
-		Timer();
+	void Start();
+	void Stop();
+	void Update();
 
-		void Start();
-		void Stop();
-		void Update();
+	// The time difference is always returned in milliseconds, regardless of alternative internal representation
+	s64 GetTimeDifference();
+	void AddTimeDifference();
+	void WindBackStartingTime(u64 WindBack);
 
-		// The time difference is always returned in milliseconds, regardless of alternative internal representation
-		s64 GetTimeDifference(void);
-		void AddTimeDifference();
-		void WindBackStartingTime(u64 WindBack);
+	static void IncreaseResolution();
+	static void RestoreResolution();
+	static u64 GetTimeSinceJan1970();
+	static u64 GetLocalTimeSinceJan1970();
 
-		static void IncreaseResolution();
-		static void RestoreResolution();
-		static u64 GetTimeSinceJan1970();
-		static u64 GetLocalTimeSinceJan1970();
+	static std::string GetTimeFormatted();
+	std::string GetTimeElapsedFormatted() const;
+	u64 GetTimeElapsed();
 
-		static std::string GetTimeFormatted();
-		std::string GetTimeElapsedFormatted();
-		u64 GetTimeElapsed();
-
-	public:
-
-		u64 m_LastTime;
-		u64 m_StartTime;
-		u64 m_frequency;
-		bool m_Running;
+public:
+	u64 m_LastTime;
+	u64 m_StartTime;
+	u64 m_frequency;
+	bool m_Running;
 };
+
 } // end of namespace Common
 
 #ifdef __GNUC__
 u32 timeGetTime();
 #endif
+
 #endif

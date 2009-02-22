@@ -26,24 +26,17 @@ class CBannerLoaderGC
 	: public IBannerLoader
 {
 	public:
-
 		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem);
-
 		virtual ~CBannerLoaderGC();
 
 		virtual bool IsValid();
 
 		virtual bool GetBanner(u32* _pBannerImage);
-
 		virtual bool GetName(std::string* _rName);
-
 		virtual bool GetCompany(std::string& _rCompany);
-
 		virtual bool GetDescription(std::string* _rDescription);
 
-
 	private:
-
 		enum
 		{
 			DVD_BANNER_WIDTH  = 96,
@@ -85,20 +78,13 @@ class CBannerLoaderGC
 			DVDBannerComment comment[6]; // Comments in six languages
 		};
 
-
-		// for banner decoding
-		int lut3to8[8];
-		int lut4to8[16];
-		int lut5to8[32];
-
 		u8* m_pBannerFile;
-
 		bool m_IsValid;
 
-		u32 decode5A3(u16 val);
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();
 };
+
 } // namespace
 
 #endif

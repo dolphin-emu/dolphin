@@ -76,7 +76,7 @@ u32 Ascii2Hex(std::string _Text)
 	u32 Result = 0;
 
 	// Max 32-bit values are supported
-	int Length = _Text.length();
+	size_t Length = _Text.length();
 	if (Length > 4)
 		Length = 4;
 

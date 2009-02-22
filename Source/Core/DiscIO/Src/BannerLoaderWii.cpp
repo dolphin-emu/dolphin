@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "Common.h"
+#include "ColorUtil.h"
 #include "BannerLoaderWii.h"
 #include "FileUtil.h"
 
@@ -29,8 +30,6 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	: m_pBannerFile(NULL)
 	, m_IsValid(false)
 {
-	InitLUTTable();
-	
 	char Filename[260];
 	char TitleID[4];
 	
@@ -143,54 +142,6 @@ CBannerLoaderWii::GetDescription(std::string* _rDescription)
 	return false;
 }
 
-
-void 
-CBannerLoaderWii::InitLUTTable()
-{
-	// build LUT Table
-	for (int i = 0; i < 8; i++)
-	{
-		lut3to8[i] = (i * 255) / 7;
-	}
-
-	for (int i = 0; i < 16; i++)
-	{
-		lut4to8[i] = (i * 255) / 15;
-	}
-
-	for (int i = 0; i < 32; i++)
-	{
-		lut5to8[i] = (i * 255) / 31;
-	}
-}
-
-u32
-CBannerLoaderWii::decode5A3(u16 val)
-{
-	u32 bannerBGColor = 0x00000000;
-
-	int r, g, b, a;
-
-	if ((val & 0x8000))
-	{
-		r = lut5to8[(val >> 10) & 0x1f];
-		g = lut5to8[(val >> 5) & 0x1f];
-		b = lut5to8[(val) & 0x1f];
-		a = 0xFF;
-	}
-	else
-	{
-		a = lut3to8[(val >> 12) & 0x7];
-		r = (lut4to8[(val >> 8) & 0xf] * a + (bannerBGColor & 0xFF) * (255 - a)) / 255;
-		g = (lut4to8[(val >> 4) & 0xf] * a + ((bannerBGColor >> 8) & 0xFF) * (255 - a)) / 255;
-		b = (lut4to8[(val) & 0xf] * a + ((bannerBGColor >> 16) & 0xFF) * (255 - a)) / 255;
-		a = 0xFF;
-	}
-
-	return ((a << 24) | (r << 16) | (g << 8) | b);
-}
-
-
 void
 CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
 {
@@ -202,7 +153,7 @@ CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
 			{
 				for (int ix = 0; ix < 4; ix++)
 				{
-					u32 RGBA = decode5A3(Common::swap16(src[ix]));
+					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
 					dst[(y + iy) * width + (x + ix)] = RGBA;
 				}
 			}

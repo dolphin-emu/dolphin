@@ -133,7 +133,6 @@ void LoadRecordedMovements()
 		//Console::Print("Recording%i ", i + 1);
 
 		// Temporary storage
-		bool bTmp;
 		int iTmp;
 		std::string STmp;
 
