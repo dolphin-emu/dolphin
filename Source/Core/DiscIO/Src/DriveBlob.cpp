@@ -49,7 +49,7 @@ namespace DiscIO
 #else
 		file_ = fopen(drive, "rb");
 		if (!file_)
-				PanicAlert("Load from DVD backup failed");
+			PanicAlert("Load from DVD backup failed");
 		else
 			SetSectorSize(2048);
 #endif
@@ -69,45 +69,12 @@ namespace DiscIO
 #else
 		fclose(file_);
 #endif	
-	} // DriveReader::~DriveReader
-
+	}
 
 	DriveReader * DriveReader::Create(const char *drive)
 	{
 		return new DriveReader(drive);
 	}
-
-	bool DriveReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
-	{
-		u64 startingBlock = offset / m_blocksize;
-		u64 remain = nbytes;
-		int positionInBlock = (int)(offset % m_blocksize);
-		u64 block = startingBlock;
-
-		while (remain > 0)
-		{
-			const u8* data = GetBlockData(block);
-			if (!data)
-				return false;
-			
-			u32 toCopy = m_blocksize - positionInBlock;
-			if (toCopy >= remain)
-			{
-				// yay, we are done!
-				memcpy(out_ptr, data + positionInBlock, (size_t)remain);
-				return true;
-			}
-			else
-			{
-				memcpy(out_ptr, data + positionInBlock, toCopy);
-				out_ptr += toCopy;
-				remain -= toCopy;
-				positionInBlock = 0;
-				block++;
-			}
-		}
-		return true;
-	} // DriveReader::Read
 
 	void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
 	{
@@ -124,23 +91,24 @@ namespace DiscIO
 		fseek(file_, m_blocksize*block_num, SEEK_SET);
 		fread(lpSector, 1, m_blocksize, file_);
 #endif
-		
 		memcpy(out_ptr, lpSector, m_blocksize);
 		delete lpSector;
 	}
 
-	const u8 *DriveReader::GetBlockData(u64 block_num)
+	bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
 	{
-		if (SectorReader::cache_tags[0] == block_num)
-		{
-			return SectorReader::cache[0];
-		}
-		else 
-		{
-			GetBlock(block_num, cache[0]);
-			SectorReader::cache_tags[0] = block_num;
-			return SectorReader::cache[0];
-		}
+		u32 NotUsed;
+#ifdef _WIN32
+		u64 offset = m_blocksize * block_num;
+		LONG off_low = (LONG)offset & 0xFFFFFFFF;
+		LONG off_high = (LONG)(offset >> 32);
+		SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
+		if (!ReadFile(hDisc, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, NULL))
+			PanicAlert("DRE");
+#else
+		fseek(file_, m_blocksize*block_num, SEEK_SET);
+		fread(out_ptr, 1, m_blocksize * num_blocks, file_);
+#endif
+		return true;
 	}
-
 }  // namespace

@@ -48,13 +48,9 @@ public:
 	~DriveReader();
 	u64 GetDataSize() const { return size; }
 	u64 GetRawSize() const { return size; }
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
-	const u8 *GetBlockData(u64 block_num);
 
+	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr);
 };
-
-
-
 
 }  // namespace
 

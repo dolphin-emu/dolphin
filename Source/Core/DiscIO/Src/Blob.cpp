@@ -41,11 +41,12 @@ void SectorReader::SetSectorSize(int blocksize)
 
 SectorReader::~SectorReader() {
 	for (int i = 0; i < CACHE_SIZE; i++)
-		delete[] cache[i];
+		delete [] cache[i];
 }
 
 const u8 *SectorReader::GetBlockData(u64 block_num)
 {
+	// TODO : Expand usage of the cache to more than one block :P
 	if (cache_tags[0] == block_num)
 	{
 		return cache[0];
@@ -68,19 +69,33 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 
 	while (remain > 0)
 	{
-		const u8* data = GetBlockData(block);
-		if (!data)
-			return false;
+		// Check if we are ready to do a large block read. > instead of >= so we don't bother if remain is only one block.
+		if (positionInBlock == 0 && remain > m_blocksize)
+		{
+			u64 num_blocks = remain / m_blocksize;
+			ReadMultipleAlignedBlocks(block, num_blocks, out_ptr);
+			block += num_blocks;
+			out_ptr += num_blocks * m_blocksize;
+			remain -= num_blocks * m_blocksize;
+		}
 
 		u32 toCopy = m_blocksize - positionInBlock;
 		if (toCopy >= remain)
 		{
-			// yay, we are done!
+			const u8* data = GetBlockData(block);
+			if (!data)
+				return false;
+
+			// Yay, we are done!
 			memcpy(out_ptr, data + positionInBlock, (size_t)remain);
 			return true;
 		}
 		else
 		{
+			const u8* data = GetBlockData(block);
+			if (!data)
+				return false;
+
 			memcpy(out_ptr, data + positionInBlock, toCopy);
 			out_ptr += toCopy;
 			remain -= toCopy;
@@ -91,10 +106,21 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 	return true;
 }
 
+bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
+{
+	for (int i = 0; i < num_blocks; i++)
+	{
+		const u8 *data = GetBlockData(block_num + i);
+		if (!data)
+			return false;
+		memcpy(out_ptr, data, m_blocksize);
+	}
+	return true;
+}
 
 IBlobReader* CreateBlobReader(const char* filename)
 {
-	if(File::IsDisk(filename))
+	if (File::IsDisk(filename))
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))

@@ -719,7 +719,7 @@
 				>
 			</File>
 			<Filter
-				Name="Filemapping"
+				Name="Blob"
 				>
 				<File
 					RelativePath=".\Src\Blob.cpp"
