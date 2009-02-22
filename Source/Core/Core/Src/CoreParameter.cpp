@@ -93,12 +93,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 
 				// Check if we have a Wii disc
 				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
-				if(bootDrive && bWii){
-			// TODO: (lpfaint99) determine why wii backup is not loading, maybe I am not waiting long enough :p
-					
-					PanicAlert("WII backup from drive not yet supported");
-					return false;
-				}
 				switch (pVolume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
