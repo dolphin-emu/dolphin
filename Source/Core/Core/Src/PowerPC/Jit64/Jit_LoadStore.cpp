@@ -255,6 +255,8 @@
 	// Zero cache line.
 	void Jit64::dcbz(UGeckoInstruction inst)
 	{
+		Default(inst); return;
+
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
 		INSTRUCTION_START;

@@ -27,17 +27,9 @@ class CBoot
 {
 public:
 
-	enum TBootFileType
-	{
-		BOOT_ERROR,
-		BOOT_DOL,
-		BOOT_ELF,
-		BOOT_ISO,
-		BOOT_BIOS
-	};
-
 	static bool BootUp();
 	static bool IsElfWii(const char *filename);
+	static bool IsWiiWAD(const char *filename);	
 
 	static std::string GenerateMapFilename();
 
@@ -50,6 +42,7 @@ private:
 
 	static bool LoadMapFromFilename(const std::string& _rFilename, const char* _gameID = NULL);
 	static bool Boot_ELF(const char *filename);
+	static bool Boot_WiiWAD(const char *filename);
 
 	static void EmulatedBIOS(bool _bDebug);
 	static bool EmulatedBIOS_Wii(bool _bDebug);

@@ -34,4 +34,6 @@ void SaveSSEState();
 void LoadSSEState();
 void LoadDefaultSSEState();
 
+#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+
 #endif

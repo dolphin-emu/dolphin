@@ -409,7 +409,7 @@ void CFrame::DoOpen(bool Boot)
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
-					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso;*.gcz|All files (%s)|%s"),
+					_T("All GC/Wii files (elf, dol, gcm, iso, wad)|*.elf;*.dol;*.gcm;*.iso;*.gcz;*.wad|All files (%s)|%s"),
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),

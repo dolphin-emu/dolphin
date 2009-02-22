@@ -54,6 +54,23 @@
 #include "WII_IPC_HLE_Device.h"
 #include "../VolumeHandler.h"
 
+#include "../boot/Boot_WiiWAD.h"
+
+
+struct SContentAccess 
+{
+	u32 m_Position;
+	STileMetaContent* m_pContent;
+};
+
+typedef std::map<u32, SContentAccess> CContenAccessMap;
+CContenAccessMap m_ContenAccessMap;
+u32 AccessIdentID = 0x60000000;
+
+
+
+
+
 // http://wiibrew.org/index.php?title=/dev/es
 
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
@@ -130,6 +147,90 @@ public:
 
             switch(Buffer.Parameter)
             {
+			case IOCTL_ES_OPENCONTENT: // 0x09
+				{
+					u32 CFD = AccessIdentID++;
+					u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+					
+					m_ContenAccessMap[CFD].m_Position = 0;
+					m_ContenAccessMap[CFD].m_pContent = &m_TileMetaContent[Index];
+										
+					Memory::Write_U32(CFD, _CommandAddress + 0x4);		
+
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+					return true;
+				}
+				break;
+
+			case IOCTL_ES_READCONTENT:
+				{
+					_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
+
+					u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+					u32 Size = Buffer.PayloadBuffer[0].m_Size;
+					u32 Addr = Buffer.PayloadBuffer[0].m_Address;
+
+					_dbg_assert_(WII_IPC_ES, m_ContenAccessMap.find(CFD) != m_ContenAccessMap.end());
+					SContentAccess& rContent = m_ContenAccessMap[CFD];
+
+					u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
+					u8* pDest = Memory::GetPointer(Addr);
+
+					memcpy(pDest,pSrc, Size);
+					rContent.m_Position += Size;
+
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i", CFD, Addr, Size, rContent.m_Position);
+
+					Memory::Write_U32(Size, _CommandAddress + 0x4);		
+					return true;
+				}
+				break;
+
+			case IOCTL_ES_CLOSECONTENT:
+				{
+					_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
+					u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+
+					CContenAccessMap::iterator itr = m_ContenAccessMap.find(CFD);
+					m_ContenAccessMap.erase(itr);
+
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
+
+					Memory::Write_U32(0, _CommandAddress + 0x4);		
+					return true;
+				}
+				break;
+
+			case IOCTL_ES_SEEKCONTENT:
+				{	
+					u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+					u32 Addr = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+					u32 Mode = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
+
+					_dbg_assert_(WII_IPC_ES, m_ContenAccessMap.find(CFD) != m_ContenAccessMap.end());
+					SContentAccess& rContent = m_ContenAccessMap[CFD];
+
+					switch(Mode)
+					{
+					case 0:  // SET
+						rContent.m_Position = Addr;
+						break;
+
+					case 1:  // CUR
+						break;
+
+					case 2:  // END
+						rContent.m_Position = rContent.m_pContent->m_Size;
+						break;
+					}
+
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_SEEKCONTENT: CFD %x, Addr 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
+
+					Memory::Write_U32(rContent.m_Position, _CommandAddress + 0x4);		
+					return true;
+				}
+				break;
+
             case IOCTL_ES_GETTITLEDIR: // 0x1d
                 {
 					/* I changed reading the TitleID from disc to reading from the
@@ -166,7 +267,9 @@ public:
             case IOCTL_ES_GETVIEWCNT: // 0x12 (Input: 8 bytes, Output: 4 bytes)
                 {
 					if(Buffer.NumberInBuffer)
+                    {
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+                    }
 
 					// Should we write something here?
 					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	

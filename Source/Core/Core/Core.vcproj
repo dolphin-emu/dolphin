@@ -2248,6 +2248,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Boot\Boot_WiiWAD.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_WiiWAD.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Boot\ElfReader.cpp"
 				>
 			</File>

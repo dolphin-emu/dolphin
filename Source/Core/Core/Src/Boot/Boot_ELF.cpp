@@ -19,6 +19,7 @@
 #include "Boot.h"
 #include "../HLE/HLE.h"
 #include "Boot_ELF.h"
+#include "Boot_WiiWAD.h"
 #include "ElfReader.h"
 #include "MappedFile.h"
 

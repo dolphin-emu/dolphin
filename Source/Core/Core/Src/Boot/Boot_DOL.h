@@ -24,9 +24,12 @@ class CDolLoader
 {
 public:
 	CDolLoader(const char* _szFilename);
+	CDolLoader(u8* _pBuffer, u32 _Size);
+
 	u32 GetEntryPoint();
 	
 	static bool IsDolWii(const char* filename);
+
 private:
 	enum
 	{
@@ -51,6 +54,8 @@ private:
 	};
 	SDolHeader m_dolheader;
 	bool m_bInit;
+
+	bool Initialize(u8* _pBuffer, u32 _Size);
 };
 
 #endif

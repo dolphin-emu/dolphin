@@ -290,6 +290,13 @@ bool CBoot::BootUp()
         }
         break;
 
+	// Wii WAD
+	// ===================================================================================
+	case SCoreStartupParameter::BOOT_WIIWAD:
+		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
+		break;
+
+
     // BIOS
     // ===================================================================================
     case SCoreStartupParameter::BOOT_BIOS:

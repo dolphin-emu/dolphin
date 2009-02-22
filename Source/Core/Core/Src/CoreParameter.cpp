@@ -125,6 +125,14 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 				m_BootType = BOOT_ELF;
 				bNTSC = true;
 			}
+            else if ((!strcasecmp(Extension.c_str(), ".wad")) && 
+                    CBoot::IsWiiWAD(m_strFilename.c_str()))
+            {
+                bWii = true;
+                Region = EUR_DIR; 
+                m_BootType = BOOT_WIIWAD;
+                bNTSC = false;
+            }
 			else if (!strcasecmp(Extension.c_str(), ".dol"))
 			{
 				bWii = CDolLoader::IsDolWii(m_strFilename.c_str());

@@ -218,6 +218,11 @@ inline u32 swap32(u32 data) {return((swap16(data) << 16) | swap16(data >> 16));}
 inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 32));}
 #endif
 
+inline u16 swap16(u8* _pData) {return(swap16(*(u16*)_pData));}
+inline u32 swap32(u8* _pData) {return(swap32(*(u32*)_pData));}
+inline u64 swap64(u8* _pData) {return(swap64(*(u64*)_pData));}
+
+
 } // end of namespace Common
 ///////////////////////////////////
 

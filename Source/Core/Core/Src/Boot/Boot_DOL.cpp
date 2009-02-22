@@ -16,62 +16,63 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Boot_DOL.h"
+#include "FileUtil.h"
 
 #include "../HW/Memmap.h"
 
-CDolLoader::CDolLoader(const char* _szFilename) : m_bInit(false)
+
+CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
+	: m_bInit(false)
 {
-	// try to open file
-	FILE* pStream = fopen(_szFilename, "rb");
-	if (pStream)
+	m_bInit = Initialize(_pBuffer, _Size);
+}
+
+CDolLoader::CDolLoader(const char* _szFilename) 
+	: m_bInit(false)
+{
+	u64 size = File::GetSize(_szFilename);
+	u8* tmpBuffer = new u8[(size_t)size];
+
+	FILE* pStream = fopen(_szFilename, "rb");	
+	fread(tmpBuffer, size, 1, pStream);
+	fclose(pStream);
+
+	m_bInit = Initialize(tmpBuffer, size);
+	delete [] tmpBuffer;
+}
+
+bool CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
+{	
+	memcpy(&m_dolheader, _pBuffer, sizeof(SDolHeader));
+
+	// swap memory
+	u32* p = (u32*)&m_dolheader;
+	for (size_t i=0; i<(sizeof(SDolHeader)>>2); i++)	
+		p[i] = Common::swap32(p[i]);
+
+	// load all text (code) sections
+	for(int i = 0; i < DOL_NUM_TEXT; i++)
 	{
-		fread(&m_dolheader, 1, sizeof(SDolHeader), pStream);
-
-		// swap memory
-		u32* p = (u32*)&m_dolheader;
-		for (size_t i=0; i<(sizeof(SDolHeader)>>2); i++)	
-			p[i] = Common::swap32(p[i]);
-
-		// load all text (code) sections
-		for(int i = 0; i < DOL_NUM_TEXT; i++)
+		if(m_dolheader.textOffset[i] != 0)
 		{
-			if(m_dolheader.textOffset[i] != 0)
-			{
-				u8* pTemp = new u8[m_dolheader.textSize[i]];
-
-				fseek(pStream, m_dolheader.textOffset[i], SEEK_SET);
-				fread(pTemp, 1, m_dolheader.textSize[i], pStream);
-
-				for (u32 num = 0; num < m_dolheader.textSize[i]; num++)
-					Memory::Write_U8(pTemp[num], m_dolheader.textAddress[i] + num);
-
-				delete [] pTemp;
-			}
+			u8* pTemp = &_pBuffer[m_dolheader.textOffset[i]];
+			for (u32 num = 0; num < m_dolheader.textSize[i]; num++)
+				Memory::Write_U8(pTemp[num], m_dolheader.textAddress[i] + num);
 		}
-
-		// load all data sections
-		for(int i = 0; i < DOL_NUM_DATA; i++)
-		{
-			if(m_dolheader.dataOffset[i] != 0)
-			{
-				u8* pTemp = new u8[m_dolheader.dataSize[i]];
-
-				fseek(pStream, m_dolheader.dataOffset[i], SEEK_SET);
-				fread(pTemp, 1, m_dolheader.dataSize[i], pStream);
-
-				for (u32 num = 0; num < m_dolheader.dataSize[i]; num++)
-					Memory::Write_U8(pTemp[num], m_dolheader.dataAddress[i] + num);
-
-				delete [] pTemp;
-			}
-		}
-
-		//TODO - we know where there is code, and where there is data
-		//Make use of this!
-
-		fclose(pStream);
-		m_bInit = true;
 	}
+
+	// load all data sections
+	for(int i = 0; i < DOL_NUM_DATA; i++)
+	{
+		if(m_dolheader.dataOffset[i] != 0)
+		{
+			u8* pTemp = &_pBuffer[m_dolheader.dataOffset[i]];
+			for (u32 num = 0; num < m_dolheader.dataSize[i]; num++)
+				Memory::Write_U8(pTemp[num], m_dolheader.dataAddress[i] + num);
+		}
+	}
+
+	return true;
 }
 
 u32 CDolLoader::GetEntryPoint()
