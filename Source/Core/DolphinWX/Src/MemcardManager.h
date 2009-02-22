@@ -64,12 +64,13 @@ class CMemcardManager
 		int page[2],
 			itemsPerPage,
 			maxPages;
-		std::string DefaultMemcard[2];
+		std::string DefaultMemcard[2],
+					DefaultIOPath;
 		IniFile MemcardManagerIni;
 
 		wxBoxSizer *sMain,
-				   *sPages_A,
-				   *sPages_B;
+				   *sButtons,
+				   *sPages[2];
 		wxButton *m_CopyFrom[2],
 				 *m_FixChecksum[2],
 				 *m_SaveImport[2],
@@ -79,14 +80,13 @@ class CMemcardManager
 				 *m_PrevPage[2],
 				 *m_ConvertToGci;
 		wxFilePickerCtrl *m_MemcardPath[2];
-		wxStaticBoxSizer *sMemcard_A,
-						 *sMemcard_B;
+		wxStaticBoxSizer *sMemcard[2];
 		wxStaticText *t_Status[2];
 
 		enum
 		{
-			ID_COPYFROM_A = 1000,
-			ID_COPYFROM_B,
+			ID_COPYFROM_A = 1000,	// Do not rearrange these items,
+			ID_COPYFROM_B,			// ID_..._B must be 1 more than ID_..._A
 			ID_FIXCHECKSUM_A,
 			ID_FIXCHECKSUM_B,
 			ID_DELETE_A,
@@ -95,6 +95,8 @@ class CMemcardManager
 			ID_SAVEEXPORT_B,
 			ID_SAVEIMPORT_A,
 			ID_SAVEIMPORT_B,
+			ID_EXPORTALL_A,
+			ID_EXPORTALL_B,
 			ID_CONVERTTOGCI,
 			ID_NEXTPAGE_A,
 			ID_NEXTPAGE_B,

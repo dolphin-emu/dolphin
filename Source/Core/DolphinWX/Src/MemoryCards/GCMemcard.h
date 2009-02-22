@@ -34,12 +34,20 @@ enum
 	LENGTHFAIL,
 	INVALIDFILESIZE,
 	TITLEPRESENT,
+	DIRLEN = 0x7F,
 	SAV = 0x80,
 	SAVFAIL,
 	GCS = 0x110,
 	GCSFAIL,	
 	FAIL,
 	WRITEFAIL,
+};
+
+enum
+{
+	CI8SHARED = 1,
+	RGB5A3,
+	CI8
 };
 
 class GCMemcard 
@@ -118,7 +126,7 @@ private:
 	};
 
 	struct Directory {
-		DEntry Dir[127];	//0x0000	 	Directory Entries (max 127)
+		DEntry Dir[DIRLEN];	//0x0000	 	Directory Entries (max 127)
 		u8 Padding[0x3a];
 		u8 UpdateCounter[2];//0x1ffa	2	update Counter
 		u8 CheckSum1[2];	//0x1ffc	2	Checksum 1
@@ -153,47 +161,50 @@ public:
 	bool FixChecksums();
 	
 	// get number of file entries in the directory
-	u32 GetNumFiles();
+	u8 GetNumFiles();
 
 	// get the free blocks from bat
 	u16 GetFreeBlocks();
 
-	// Returns true if title already on memcard
-	bool TitlePresent(DEntry d);
+	// If title already on memcard returns index, otherwise returns -1
+	u8 TitlePresent(DEntry d);
+	
+	// DEntry functions, all take u8 index < 127
+	// Functions that have ascii output take a char *buffer
 
-	bool DEntry_GameCode(u8 index, char* fn);
-	bool DEntry_Markercode(u8 index, char* fn);
-	bool DEntry_BIFlags(u8 index, char* fn);
-	// fn needs to be a char[32] or bigger
-	bool DEntry_FileName(u8 index, char* fn);
-
+	// buffer needs to be a char[5] or bigger
+	bool DEntry_GameCode(u8 index, char *buffer);
+	// buffer needs to be a char[2] or bigger
+	bool DEntry_Markercode(u8 index, char *buffer);
+	// buffer needs to be a char[9] or bigger
+	bool DEntry_BIFlags(u8 index, char *buffer);
+	// buffer needs to be a char[32] or bigger
+	bool DEntry_FileName(u8 index, char *buffer);
 	u32 DEntry_ModTime(u8 index);
 	u32 DEntry_ImageOffset(u8 index);
-	u16 DEntry_IconFmt(u8 index);
+	// buffer needs to be a char[17] or bigger
+	bool DEntry_IconFmt(u8 index, char *buffer);
 	u16 DEntry_AnimSpeed(u8 index);
-	bool DEntry_Permissions(u8 index, char* fn);
+	// buffer needs to be a char[4] or bigger
+	bool DEntry_Permissions(u8 index, char *buffer);
 	u8 DEntry_CopyCounter(u8 index);
 	// get first block for file
 	u16 DEntry_FirstBlock(u8 index);
 	// get file length in blocks
 	u16 DEntry_BlockCount(u8 index);
 	u32 DEntry_CommentsAddress(u8 index);
-
-
 	// buffer needs to be a char[32] or bigger
-	bool DEntry_Comment1(u8 index, char* buffer);
-
+	bool DEntry_Comment1(u8 index, char *buffer);
 	// buffer needs to be a char[32] or bigger
-	bool DEntry_Comment2(u8 index, char* buffer);
-
-	// read directory entry
-	bool GetFileInfo(u8 index, DEntry& data);
+	bool DEntry_Comment2(u8 index, char *buffer);
+	// Copies a DEntry from u8 index to DEntry& data
+	bool DEntry_Copy(u8 index, DEntry& data);
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
-	u32 GetFileData(u8 index, u8* buffer, bool old);
+	u32 DEntry_GetSaveData(u8 index, u8* buffer, bool old);
 
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sifeof remove
@@ -209,7 +220,7 @@ public:
 	u32 ImportGci(const char* fileName, std::string fileName2);
 
 	// writes a .gci file to disk containing index
-	u32 ExportGci(u8 index, const char* fileName);
+	u32 ExportGci(u8 index, const char* fileName, std::string* fileName2);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u8 index, u32* buffer);
