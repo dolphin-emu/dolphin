@@ -114,9 +114,11 @@ namespace DiscIO
 		u32 NotUsed;
 		u8 * lpSector = new u8[m_blocksize];
 #ifdef _WIN32
-		// TODO: Fix for 64bit block_num, SetFilePointer uses LONG
-		SetFilePointer (hDisc, m_blocksize*block_num, NULL, FILE_BEGIN);
-		if(!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, NULL))
+		u64 offset = m_blocksize * block_num;
+		LONG off_low = (LONG)offset & 0xFFFFFFFF;
+		LONG off_high = (LONG)(offset >> 32);
+		SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
+		if (!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, NULL))
 			PanicAlert("DRE");
 #else
 		fseek(file_, m_blocksize*block_num, SEEK_SET);
