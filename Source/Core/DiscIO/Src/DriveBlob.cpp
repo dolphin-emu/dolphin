@@ -36,7 +36,7 @@ namespace DiscIO
 		}
 		else
 		{
-			SetSectorSize(2048);
+			SectorReader::SetSectorSize(2048);
 		#ifdef _LOCKDRIVE
 			// Lock the compact disc in the CD-ROM drive to prevent accidental
 			// removal while reading from it.
@@ -127,27 +127,17 @@ namespace DiscIO
 		delete lpSector;
 	}
 
-	void DriveReader::SetSectorSize(int blocksize)
-	{
-		for (int i = 0; i < CACHE_SIZE; i++)
-		{
-			cache[i] = new u8[blocksize];
-			cache_tags[i] = (u64)(s64) - 1;
-		}
-		m_blocksize = blocksize;
-	}
-
 	const u8 *DriveReader::GetBlockData(u64 block_num)
 	{
-		if (cache_tags[0] == block_num)
+		if (SectorReader::cache_tags[0] == block_num)
 		{
-			return cache[0];
+			return SectorReader::cache[0];
 		}
 		else 
 		{
 			GetBlock(block_num, cache[0]);
-			cache_tags[0] = block_num;
-			return cache[0];
+			SectorReader::cache_tags[0] = block_num;
+			return SectorReader::cache[0];
 		}
 	}
 

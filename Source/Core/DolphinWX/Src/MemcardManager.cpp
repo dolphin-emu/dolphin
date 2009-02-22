@@ -206,22 +206,22 @@ void CMemcardManager::CreateGUIControls()
 {
 	// Create the controls for both memcards
 
-char ARROW[2][3] = {'<','-',0,'-','>',0};
+	char ARROW[2][3] = {{'<','-',0,}, {'-','>',0}};
 
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"), DEFAULTS);
 	
 	for (int slot = SLOT_A; slot < SLOT_B + 1; slot++)
 	{
 		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
-			wxString::Format("%1$sCopy%1$s", ARROW[slot ? 0 : 1]), DEFAULTS);
+			wxString::Format(wxT("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]), DEFAULTS);
 		m_FixChecksum[slot]	= new wxButton(this, ID_FIXCHECKSUM_A + slot,
-			wxString::Format("%sFix Checksum%s", ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sFix Checksum%s"), ARROWS), DEFAULTS);
 		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
-			wxString::Format("%sImport GCI%s", ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sImport GCI%s"), ARROWS), DEFAULTS);
 		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
-			wxString::Format("%sExport GCI%s", ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sExport GCI%s"), ARROWS), DEFAULTS);
 		m_Delete[slot]		= new wxButton(this, ID_DELETE_A + slot,
-			wxString::Format("%sDelete%s", ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sDelete%s"), ARROWS), DEFAULTS);
 
 
 		m_PrevPage[slot] = new wxButton(this, ID_PREVPAGE_A + slot, wxT("Prev Page"), DEFAULTS);
@@ -243,7 +243,7 @@ char ARROW[2][3] = {'<','-',0,'-','>',0};
 	
 		m_MemcardList[slot]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
-		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format("Memory Card %c", 'A' + slot));
+		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(wxT("Memory Card %c"), 'A' + slot));
 		sMemcard[slot]->Add(m_MemcardPath[slot], 0, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(m_MemcardList[slot], 1, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(sPages[slot], 0, wxEXPAND|wxALL, 1);
@@ -551,7 +551,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	{
 		wxString temp = wxFileSelector(_T("Select a save file to import"),
 			(strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ? wxEmptyString :
-			DefaultIOPath.c_str(), wxEmptyString, wxEmptyString, wxString::Format
+			wxString::FromAscii(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
 			(
 				_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
 				"Native GCI files (*.gci)|*.gci|"
@@ -592,7 +592,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
 			wxString temp = wxFileSelector(_T("Save GCI as.."),	_T(DefaultIOPath.c_str()),
-				_T(tempC), _T(".gci"), wxString::Format
+				wxString::FromAscii(tempC), _T(".gci"), wxString::Format
 				(
 					_T("GCI File(*.gci)|*.gci"),
 					wxFileSelectorDefaultWildcardStr,

@@ -32,13 +32,8 @@ class DriveReader : public SectorReader
 {
 private:
 	DriveReader(const char *drive);
-	void SetSectorSize(int blocksize);
-	enum { CACHE_SIZE = 32 };
-	int m_blocksize;
-	u8* cache[CACHE_SIZE];
-	u64 cache_tags[CACHE_SIZE];
-	int cache_age[CACHE_SIZE];
 	void GetBlock(u64 block_num, u8 *out_ptr);
+
 #ifdef _WIN32
 	HANDLE hDisc;
 	PREVENT_MEDIA_REMOVAL	pmrLockCDROM;
@@ -47,6 +42,7 @@ private:
 #endif
 	s64 size;
 	u64 *block_pointers;
+
 public:
 	static DriveReader *Create(const char *drive);
 	~DriveReader();

@@ -64,6 +64,7 @@ public:
 	~SectorReader();
 	const u8 *GetBlockData(u64 block_num);
 	bool Read(u64 offset, u64 size, u8* out_ptr);
+	friend class DriveReader;
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
