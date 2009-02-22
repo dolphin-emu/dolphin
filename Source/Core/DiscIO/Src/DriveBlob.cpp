@@ -28,7 +28,8 @@ namespace DiscIO
 		path[2] = 0;
 		sprintf(path, "\\\\.\\%s", drive);
 
-		hDisc = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+		hDisc = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+							NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
 		if (hDisc == INVALID_HANDLE_VALUE)
 		{		
 			PanicAlert("Load from DVD backup failed");

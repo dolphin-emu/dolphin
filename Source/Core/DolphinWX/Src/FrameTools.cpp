@@ -101,9 +101,10 @@ void CFrame::CreateMenu()
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-// change to test drive loading, currently very slow on win32, not tested on linux/os x
+// not tested on linux/os x
 // works ok on a virtual drive with GC Games, Wii games do not load
-#if 0
+// backups take about 60-90 seconds to load from real cd drive
+#ifdef _WIN32
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->AppendSubMenu(externalDrive, _T("&Load From Drive"));
 	GetAllRemovableDrives(&drives);
