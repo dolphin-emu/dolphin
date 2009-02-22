@@ -98,19 +98,18 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 }
 
 // This is used for the fuctions right below here, in DllConfig()
-#if defined(HAVE_WX) && HAVE_WX
+#if defined(HAVE_WX) && HAVE_WX && defined _WIN32
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 	extern HINSTANCE g_hInstance;
 #endif
 
 void DllConfig(HWND _hParent)
 {
-
 #if defined(HAVE_WX) && HAVE_WX
 	// This is needed because now we use wxEntryCleanup() when closing the configuration window
 	if (!wxTheApp || !wxTheApp->CallOnInit())
 	{
-#if defined(_WIN32)
+#ifdef _WIN32
 		wxSetInstance((HINSTANCE)g_hInstance);
 #endif
 		int argc = 0;
@@ -118,6 +117,7 @@ void DllConfig(HWND _hParent)
 		wxEntryStart(argc, argv);
 	}
 #endif
+
 	//Console::Open();
 
 #if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
@@ -180,14 +180,18 @@ void DllConfig(HWND _hParent)
 	// Hm, why does this code show it modally?
 	config_dialog = new ConfigDialog(NULL);
 	g_Config.Load();
-	config_dialog->ShowModal();
+	config_dialog->CreateGUIControls();
+	config_dialog->Show();
 	delete config_dialog;
 	config_dialog = NULL;
 
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\
         HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
 
-	ConfigDialog config_dialog(NULL);
+	wxWindow *win = new wxWindow();
+
+	ConfigDialog *config_dialog = new ConfigDialog(win);
+
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
@@ -211,17 +215,17 @@ void DllConfig(HWND _hParent)
 			{
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
-				config_dialog.AddFSReso(temp);
-				config_dialog.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+				config_dialog->AddFSReso(temp);
+				config_dialog->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
 				px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
 				py = modes[i]->vdisplay;
 			}
 		}
 	}    
 	XFree(modes);
-
+	config_dialog->CreateGUIControls();
 	// Hm, why does this code show it modally?
-	config_dialog.ShowModal();
+	config_dialog->Show();
 #endif
 }
 
@@ -301,9 +305,7 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	Fifo_Shutdown();
-	#ifndef SETUP_TIMER_WAITING // This is not compatible, it crashes after the second Stop
-		TextureConverter::Shutdown();
-	#endif
+	TextureConverter::Shutdown();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
@@ -312,14 +314,8 @@ void Shutdown(void)
 	VertexManager::Shutdown();
 	TextureMngr::Shutdown();
 	OpcodeDecoder_Shutdown();
-	#ifndef SETUP_TIMER_WAITING // This is not compatible, it may crashes after a Stop
-		Renderer::Shutdown();
-	#endif
+	Renderer::Shutdown();
 	OpenGL_Shutdown();
-	#ifdef SETUP_TIMER_WAITING
-		// Do we ever destroy the window?
-		EmuWindow::Close();
-	#endif
 }
 
 
