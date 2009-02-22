@@ -73,11 +73,19 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 // ---------------
 ConfigDialog::~ConfigDialog()
 {
+	Console::Print("ConfigDialog Closed\n");
 }
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
-	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
 	g_Config.Save();
+
+	Console::Print("OnClose\n");
+
+	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
+	/* JP: Yes, it seems like Close() does not do that. It only runs EndModal() or something
+	    similar to hide the window. And I don't understand the "Window deletion overview" on
+		the wxWidgets website. Destroy() doesn't run the destructor either. */
+	//wxEntryCleanup();
 	//EndModal(0);
 
 	// Allow wxWidgets to close and unload the window
@@ -86,7 +94,13 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 
 void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
-	Close();
+	Console::Print("CloseClick\n");
+
+	g_Config.Save();
+
+	wxEntryCleanup();
+
+	//Close();
 }
 ///////////////////////////////
 

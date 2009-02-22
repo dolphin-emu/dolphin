@@ -229,22 +229,26 @@ void Stop()  // - Hammertime!
  
 	// If dual core mode, the CPU thread should immediately exit here.
 
-	// The quit is to get it out of its message loop
 	// Should be moved inside the plugin.
-
 	if (_CoreParameter.bUseDualCore)
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 
+	/* Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
+	   of the commands in this function */
+
+	/* The quit is to get it out of its message loop. There is no guarantee of when this will occur though.
+	   And since we have no while(GetMessage()) loop we can't wait for this to happen, or say exactly when
+	   the loop has ended */
 	#ifdef _WIN32
-	PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
+		PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
 	#endif
 
 	Core::StopTrace();
 	LogManager::Shutdown();
 	Host_SetWaitCursor(false);
 	#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
-		/* I have to use this to avoid the hangings, it seems harmless and it works so I'm
-			  okay with it */
+		/* This may hang when we are rendering to a child window, but currently it doesn't, at least
+		   not on my system, but I'll leave this option for a while anyway */
 		if (GetParent((HWND)g_pWindowHandle) == NULL)
 	#endif
 	delete g_EmuThread;  // Wait for emuthread to close.

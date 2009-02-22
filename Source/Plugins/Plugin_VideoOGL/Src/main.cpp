@@ -50,6 +50,7 @@
 #include "XFBConvert.h"
 #include "TextureConverter.h"
 #include "OnScreenDisplay.h"
+#include "Setup.h"
 
 #include "VideoState.h"
 ///////////////////////////////////////////////
@@ -96,8 +97,27 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 {
 }
 
+// This is used for the fuctions right below here, in DllConfig()
+#if defined(HAVE_WX) && HAVE_WX
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+	extern HINSTANCE g_hInstance;
+#endif
+
 void DllConfig(HWND _hParent)
 {
+	#if defined(HAVE_WX) && HAVE_WX
+	// This is needed because now we use wxEntryCleanup() when closing the configuration window
+	if (!wxTheApp || !wxTheApp->CallOnInit())
+	{
+		wxSetInstance((HINSTANCE)g_hInstance);
+		int argc = 0;
+		char **argv = NULL;
+		wxEntryStart(argc, argv);
+	}
+	#endif
+
+	//Console::Open();
+
 #if defined(_WIN32)
 	wxWindow *win = new wxWindow();
 	win->SetHWND((WXHWND)_hParent);
@@ -205,6 +225,8 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
+	//Console::Open();
+
     frameCount = 0;
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
@@ -276,20 +298,29 @@ void Video_Prepare(void)
 
 void Shutdown(void)
 {
-    Fifo_Shutdown();
-    TextureConverter::Shutdown();
-    VertexLoaderManager::Shutdown();
-    VertexShaderCache::Shutdown();
-    VertexShaderManager::Shutdown();
-    PixelShaderManager::Shutdown();
-    PixelShaderCache::Shutdown();
-    VertexManager::Shutdown();
-    TextureMngr::Shutdown();
-    OpcodeDecoder_Shutdown();
-    Renderer::Shutdown();
-    OpenGL_Shutdown();
+	Fifo_Shutdown();
+	TextureConverter::Shutdown();
+	VertexLoaderManager::Shutdown();
+	VertexShaderCache::Shutdown();
+	VertexShaderManager::Shutdown();
+	PixelShaderManager::Shutdown();
+	PixelShaderCache::Shutdown();
+	VertexManager::Shutdown();
+	// This cause some kind of crash, at least in the Release build and with this setup option
+	// If there wasn't so little explanations and comments in this code I would be more interested
+	// in trying to fix this function, now I'll just leave it like this, because it works
+	#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+		TextureMngr::Shutdown();
+	#endif
+	OpcodeDecoder_Shutdown();
+	Renderer::Shutdown();
+	OpenGL_Shutdown();
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Enter and exit the video loop
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -299,6 +330,8 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
+/////////////////////////
+
 
 void DebugLog(const char* _fmt, ...)
 {

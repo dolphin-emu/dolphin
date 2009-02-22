@@ -519,10 +519,9 @@ void CFrame::DoStop()
 	{
 		Core::Stop();
 
-		/* This is needed to let GetState() == CORE_UNINITIALIZED together with the
-		   "delete g_pThread" in Core.cpp. Todo: Please feel free to fix it some other way. */
-		//PanicAlert("%i", (int)bRenderToMain);
-		#ifdef _WIN32
+		/* This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
+		   we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works */
+		#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
 			if (bRenderToMain)
 				while(Core::GetState() != Core::CORE_UNINITIALIZED) Sleep(10);
 		#endif

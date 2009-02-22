@@ -241,7 +241,7 @@ void Initialize(void *init)
 {
 	// Debugging
 	#ifdef SHOW_PAD_STATUS
-		Console::Open(100);
+		Console::Open(110);
 		m_hConsole = Console::GetHwnd();
 	#endif
 	Console::Print("Initialize: %i\n", SDL_WasInit(0));
@@ -483,6 +483,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->button |= PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft = TriggerValue;
 	}
+	// no the digital L button is not pressed, but the analog left trigger is
 	else if(TriggerLeft > 0)
 		_pPADStatus->triggerLeft = TriggerLeft;
 
@@ -492,6 +493,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->button |= PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = TriggerValue;
 	}
+	// no the digital R button is not pressed, but the analog right trigger is
 	else if(TriggerRight > 0)
 		_pPADStatus->triggerRight = TriggerRight;
 
@@ -561,20 +563,20 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Show the status of all connected pads
 	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console::ClearScreen();	
 	LastPad = _numPAD;
+	Console::ClearScreen();
 	Console::Print(
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
-		"Trigger    | StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
-		"Buttons    | Overall:%i  X:%i\n"
+		"Trigger    | StatusL:%04x StatusR:%04x  TriggerL:%04x TriggerR:%04x  TriggerValue:%i\n"
+		"Buttons    | Overall:%i  A:%i X:%i\n"
 		"======================================================\n",
 
 		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
 
-		PadState[_numPAD].buttons[InputCommon::CTL_L_SHOULDER], PadState[_numPAD].buttons[InputCommon::CTL_R_SHOULDER], PadState[_numPAD].halfpress,
+		_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
 
-		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-			_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
-
-		_pPADStatus->button, PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
+		_pPADStatus->button,
+		PadState[_numPAD].buttons[InputCommon::CTL_A_BUTTON],
+		PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
 		);
 	*/
 }

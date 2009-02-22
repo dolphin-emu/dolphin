@@ -72,6 +72,7 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "ConsoleWindow.h"
+#include "Setup.h"
 
 // Create the plugin manager class
 CPluginManager CPluginManager::m_Instance;
@@ -213,6 +214,7 @@ void CPluginManager::ShutdownPlugins()
 			m_video = NULL;
 		#endif
 	}
+
 
 	if (m_dsp)
 	{

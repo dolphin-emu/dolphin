@@ -206,6 +206,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 	Console::Print(
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
 		"Main Stick | X:%03i  Y:%03i\n"
+		"C Stick    | X:%03i  Y:%03i\n"
 		"Trigger    | Type:%s DigitalL:%i DigitalR:%i AnalogL:%03i AnalogR:%03i HalfPress:%i\n"
 		"Buttons    | A:%i X:%i\n"
 		"D-Pad      | Type:%s Hat:%i U:%i D:%i\n"
@@ -214,6 +215,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 		Controller, _PadMapping.enabled, _PadState.joy,
 
 		_PadState.axis[InputCommon::CTL_MAIN_X], _PadState.axis[InputCommon::CTL_MAIN_Y],
+		_PadState.axis[InputCommon::CTL_SUB_X], _PadState.axis[InputCommon::CTL_SUB_Y],
 
 		(_PadMapping.triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
 		_PadState.buttons[InputCommon::CTL_L_SHOULDER], _PadState.buttons[InputCommon::CTL_R_SHOULDER],

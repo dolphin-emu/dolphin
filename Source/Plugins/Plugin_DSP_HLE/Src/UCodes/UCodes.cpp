@@ -44,7 +44,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xd73338cf: // IPL
 	case 0x42f64ac4: // Luigi       (after fix)
 	case 0x4be6a5cb: // AC, Pikmin  (after fix)
-		printf("JAC ucode chosen");
+		Console::Print("JAC ucode chosen\n");
 	return new CUCode_Jac(_rMailHandler);
 
 	case 0x3ad3b7ac: // Naruto3
@@ -56,20 +56,20 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
        // Zelda:OOT, Tony hawk, viewtiful joe
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
-		printf("AX ucode chosen, yay!");
+		Console::Print("AX ucode chosen, yay!\n");
 		return new CUCode_AX(_rMailHandler);
 
 	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // zelda
 	case 0x56d36052: // mario
 	case 0x2fcdf1ec: // mariokart, zelda 4 swords
-		printf("Zelda ucode chosen");
+		Console::Print("Zelda ucode chosen\n");
 		return new CUCode_Zelda(_rMailHandler);
 
       // WII CRCs
 	case 0x6c3f6f94: // zelda - PAL
 	case 0xd643001f: // mario galaxy - PAL
-		printf("Zelda Wii ucode chosen");
+		Console::Print("Zelda Wii ucode chosen\n");
 		return new CUCode_Zelda(_rMailHandler);
 
 	case 0x5ef56da3: // AX demo
@@ -78,7 +78,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xadbc06bd: // Elebits
 	case 0xb7eb9a9c: // Wii Pikmin - JAP
 	case 0x4cc52064: // Bleach: Versus Crusade
-		printf("Wii - AXWii chosen");
+		Console::Print("Wii - AXWii chosen\n");
 		return new CUCode_AXWii(_rMailHandler, _CRC);
 
 	default:

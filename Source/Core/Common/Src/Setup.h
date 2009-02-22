@@ -39,7 +39,8 @@
 // This may fix a problem with Stop and Start that I described in the comments to revision 2,139
 //#define SETUP_FREE_PLUGIN_ON_BOOT
 
-// Use Stop when rendering to a child window
+/* This will avoid deleting the g_EmuThread after Stop, that may hang when we are rendering to a child
+   window, however, I didn't seem to need this any more */
 //#define SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
 
 // Build with playback rerecording options
