@@ -34,7 +34,7 @@ struct MESSAGE
 		str[255] = '\0';
 		dwTimeStamp = dw;
 	}
-	char str[255];
+	char str[256];
 	u32 dwTimeStamp;
 };
 
