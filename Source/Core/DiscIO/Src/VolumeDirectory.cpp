@@ -69,6 +69,11 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 	return File::IsDirectory(directoryName.c_str());
 }
 
+bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+{
+	return false;
+}
+
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
 	if(_Offset < FST_ADDRESS)

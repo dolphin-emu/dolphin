@@ -32,6 +32,7 @@ public:
 	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	std::string GetUniqueID() const;
 	std::string GetMakerID() const;
 	std::string GetName() const;

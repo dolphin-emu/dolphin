@@ -41,6 +41,17 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 	m_pBuffer = NULL;
 }
 
+bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+{
+	// HyperIris: hack for DVDLowUnencryptedRead
+	// Medal Of Honor Heroes 2 read this DVD offset for PartitionsInfo
+	// and, PartitionsInfo is not encrypted, let's read it directly.
+	if (!m_pReader->Read(_Offset, _Length, _pBuffer))
+	{
+		return(false);
+	}
+	return true;
+}
 
 bool
 CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
@@ -255,4 +266,6 @@ CVolumeWiiCrypted::GetSize() const
 		return(0);
 	}
 }
+
+
 } // namespace

@@ -55,6 +55,11 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
+bool CVolumeGC::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+{
+	return false;
+}
+
 std::string CVolumeGC::GetUniqueID() const
 {
 	static const std::string NO_UID("NO_UID");

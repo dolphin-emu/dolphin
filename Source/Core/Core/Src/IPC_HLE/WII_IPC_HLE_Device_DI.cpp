@@ -98,10 +98,28 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
 {  
-    PanicAlert("CWII_IPC_HLE_Device_di::IOCtlV() unknown");
+//	PanicAlert("CWII_IPC_HLE_Device_di::IOCtlV() unknown");
+//	DumpCommands(_CommandAddress);
+	u32 ReturnValue = 0;
 
-    DumpCommands(_CommandAddress);
+	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
+	switch (CommandBuffer.Parameter)
+	{
+	// DVDLowOpenPartition???
+	case 0x8b:
+		{
+			LOG(WII_IPC_DVD, "DVD IOCtlV: DVDLowOpenPartition");
+			_dbg_assert_msg_(WII_IPC_DVD, 0, "DVD IOCtlV: DVDLowOpenPartition");
+		}
+		break;
+	default:
+		LOG(WII_IPC_DVD, "DVD IOCtlV: %i", CommandBuffer.Parameter);
+		_dbg_assert_msg_(WII_IPC_DVD, 0, "DVD: %i", CommandBuffer.Parameter);
+		break;
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress+4);
     return true;
 }
 
@@ -278,15 +296,35 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x8c:
 		//PanicAlert("DVDLowClosePartition");
 		break;
-	
+
 	// DVDLowUnencryptedRead 
 	case 0x8d:
-		PanicAlert("DVDLowUnencryptedRead");
+		//PanicAlert("DVDLowUnencryptedRead");
+		{
+			if (_BufferOut == 0)
+			{
+				PanicAlert("DVDLowRead : _BufferOut == 0");
+				return 0;
+			}
+			u32 Size = Memory::Read_U32(_BufferIn + 0x04);
+			u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
+
+			if (Size > _BufferOutSize)
+			{
+				PanicAlert("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
+				Size = _BufferOutSize;
+			}
+
+			if (VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size) != true)
+			{
+				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+			}		
+		}
 		break;
 
     // DVDLowSeek
     case 0xab:
-		// PanicAlert("DVDLowSeek");
+		//PanicAlert("DVDLowSeek");
         break;
 
 	case 0xe0:

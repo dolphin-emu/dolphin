@@ -42,6 +42,7 @@ class CVolumeDirectory
 		static bool IsValidDirectory(const std::string& _rDirectory);
 
 		bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+		bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 
 		std::string GetUniqueID() const;
 		void SetUniqueID(std::string _ID);

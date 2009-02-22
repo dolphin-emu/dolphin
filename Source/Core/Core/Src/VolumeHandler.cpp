@@ -77,6 +77,17 @@ bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
     return false;
 }
 
+bool RAWReadToPtr( u8* ptr, u64 _dwOffset, u64 _dwLength )
+{
+	if (g_pVolume != NULL && ptr)
+	{
+		g_pVolume->RAWRead(_dwOffset, _dwLength, ptr);
+		return true;
+	}
+
+	return false;
+}
+
 bool IsValid()
 {
     return g_pVolume != NULL;

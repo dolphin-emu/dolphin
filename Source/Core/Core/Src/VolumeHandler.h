@@ -33,6 +33,7 @@ void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii);
 
 u32 Read32(u64 _Offset);
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
+bool RAWReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 
 bool IsValid();
 bool IsWii();
