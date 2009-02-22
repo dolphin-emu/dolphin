@@ -70,7 +70,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 	while (remain > 0)
 	{
 		// Check if we are ready to do a large block read. > instead of >= so we don't bother if remain is only one block.
-		if (positionInBlock == 0 && remain > m_blocksize)
+		if (positionInBlock == 0 && remain > m_blocksize && false)
 		{
 			u64 num_blocks = remain / m_blocksize;
 			ReadMultipleAlignedBlocks(block, num_blocks, out_ptr);
