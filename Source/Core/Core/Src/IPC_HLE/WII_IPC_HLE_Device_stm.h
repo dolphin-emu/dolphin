@@ -74,6 +74,11 @@ public:
 
         switch(Parameter)
         {
+		case IOCTL_STM_HOTRESET:
+			LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+			LOG(WII_IPC_SD, "    IOCTL_STM_HOTRESET");
+			break;
+
         case IOCTL_STM_VIDIMMING: // (Input: 20 bytes, Output: 20 bytes)
             LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
             LOG(WII_IPC_SD, "    IOCTL_STM_VIDIMMING");

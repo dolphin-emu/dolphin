@@ -275,7 +275,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		PanicAlert("DVDLowOpenPartition", Command);
 		break;
 
-
+	case 0x8c:
+		//PanicAlert("DVDLowClosePartition");
+		break;
+	
 	// DVDLowUnencryptedRead 
 	case 0x8d:
 		PanicAlert("DVDLowUnencryptedRead");

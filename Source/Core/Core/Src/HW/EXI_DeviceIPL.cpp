@@ -216,7 +216,8 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			}
 			else
 			{
-				_dbg_assert_(EXPANSIONINTERFACE, 0);
+				//_dbg_assert_(EXPANSIONINTERFACE, 0);
+				_dbg_assert_msg_(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: illegal access address %08x", m_uAddress);
 				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: illegal address %08x", m_uAddress);
 			}
 #endif
