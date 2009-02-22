@@ -84,15 +84,15 @@ void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 
 std::string CBoot::GenerateMapFilename()
 {
-	/*
-	std::string strDriveDirectory, strFilename;
-	SplitPath(booted_file, &strDriveDirectory, &strFilename, NULL);
-	
-	std::string strFullfilename(strFilename + _T(".map"));
-	std::string strMapFilename;
-	BuildCompleteFilename(strMapFilename, strDriveDirectory, strFullfilename);
-	*/
-	return FULL_MAPS_DIR + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".map";
+	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	switch (_StartupPara.m_BootType)
+	{
+	case SCoreStartupParameter::BOOT_ELF:
+	case SCoreStartupParameter::BOOT_DOL:
+		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
+	default:
+		return FULL_MAPS_DIR + _StartupPara.GetUniqueID() + ".map";
+	}
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
