@@ -129,18 +129,15 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
     }
 }
 
-void TextureMngr::TCacheEntry::Destroy()
+void TextureMngr::TCacheEntry::Destroy(bool shutdown)
 {
     if (!texture)
         return;
-
     glDeleteTextures(1, &texture);
-    if (!isRenderTarget) {
-        if (!g_Config.bSafeTextureCache) {
-            u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
-            if (*ptr == hash)
-                *ptr = oldpixel;
-        }
+    if (!isRenderTarget && !shutdown && !g_Config.bSafeTextureCache) {
+        u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
+        if (ptr && *ptr == hash)
+            *ptr = oldpixel;
     }
     texture = 0;
 } 
@@ -152,20 +149,20 @@ void TextureMngr::Init()
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
-void TextureMngr::Invalidate()
+void TextureMngr::Invalidate(bool shutdown)
 {
-    TexCache::iterator iter = textures.begin();
-    for (; iter!=textures.end(); iter++)
-        iter->second.Destroy();
+    for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
+        iter->second.Destroy(shutdown);
     textures.clear();
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Shutdown()
 {
-    Invalidate();
+    Invalidate(true);
+
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
-	for (itdepth = mapDepthTargets.begin(); itdepth != mapDepthTargets.end(); ++itdepth) {
+	for (itdepth = mapDepthTargets.begin(); itdepth != mapDepthTargets.end(); ++itdepth)
+	{
 		glDeleteRenderbuffersEXT(1, &itdepth->second.targ);
 	}
     mapDepthTargets.clear();
@@ -179,13 +176,15 @@ void TextureMngr::Shutdown()
     temp = NULL;
 }
 
-void TextureMngr::Cleanup()
+void TextureMngr::ProgressiveCleanup()
 {
     TexCache::iterator iter = textures.begin();
-    while (iter != textures.end()) {
-        if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount) {
+    while (iter != textures.end())
+	{
+        if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
+		{
             if (!iter->second.isRenderTarget) {
-                iter->second.Destroy();
+                iter->second.Destroy(false);
 #ifdef _WIN32
                 iter = textures.erase(iter);
 #else
@@ -193,7 +192,7 @@ void TextureMngr::Cleanup()
 #endif
             }
             else {
-                iter->second.Destroy();
+                iter->second.Destroy(false);
 #ifdef _WIN32
                 iter = textures.erase(iter);
 #else
@@ -206,7 +205,8 @@ void TextureMngr::Cleanup()
     }
 
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
-    while (itdepth != mapDepthTargets.end()) {
+    while (itdepth != mapDepthTargets.end())
+	{
         if (frameCount > 20 + itdepth->second.framecount) {
 #ifdef _WIN32
             itdepth = mapDepthTargets.erase(itdepth);
@@ -217,8 +217,6 @@ void TextureMngr::Cleanup()
         else ++itdepth;
     }
 }
-
-//int dbgTexIdx=0;
 
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
@@ -306,7 +304,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             }
             else
             {
-                entry.Destroy();
+                entry.Destroy(false);
                 textures.erase(iter);
             }
         }
@@ -422,7 +420,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		dbgTexIdx++;
 	}
 	*/
-    //SaveTexture("tex.tga", target, entry.texture, entry.w, entry.h);
     return &entry;
 }
 
@@ -541,7 +538,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     }
     else if (bIsIntensityFmt) {
         fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-        switch(copyfmt) {
+        switch (copyfmt) {
             case 0: // I4
             case 1: // I8
             case 2: // IA4
@@ -730,7 +727,6 @@ void TextureMngr::DisableStage(int stage)
 
 void TextureMngr::ClearRenderTargets()
 {
-	TexCache::iterator iter = textures.begin();
-    for (; iter!=textures.end(); iter++)
+    for (TexCache::iterator iter = textures.begin(); iter!=textures.end(); iter++)
         iter->second.isRenderTarget = false;
 }

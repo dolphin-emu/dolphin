@@ -472,11 +472,11 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_TEXFMTOVERLAY:
 		g_Config.bTexFmtOverlayEnable = m_TexFmtOverlay->IsChecked();
 		m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
-		TextureMngr::Invalidate();
+		TextureMngr::Invalidate(false);
 		break;
 	case ID_TEXFMTCENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
-		TextureMngr::Invalidate();
+		TextureMngr::Invalidate(false);
 		break;
 	case ID_USEXFB:
 		g_Config.bUseXFB = m_UseXFB->IsChecked();

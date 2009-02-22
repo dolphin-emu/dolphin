@@ -255,7 +255,7 @@ void DoState(unsigned char **ptr, int mode) {
 	OpenGL_MakeCurrent();
 #endif
     // Clear all caches that touch RAM
-    TextureMngr::Invalidate();
+    TextureMngr::Invalidate(false);
     // DisplayListManager::Invalidate();
     
     VertexLoaderManager::MarkAllDirty();
@@ -306,12 +306,7 @@ void Shutdown(void)
 	PixelShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
 	VertexManager::Shutdown();
-	// This cause some kind of crash, at least in the Release build and with this setup option
-	// If there wasn't so little explanations and comments in this code I would be more interested
-	// in trying to fix this function, now I'll just leave it like this, because it works
-	#ifndef SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
-		TextureMngr::Shutdown();
-	#endif
+	TextureMngr::Shutdown();
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	OpenGL_Shutdown();

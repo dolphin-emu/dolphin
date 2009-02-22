@@ -49,7 +49,7 @@ public:
         bool bHaveMipMaps;
 
         void SetTextureParameters(TexMode0& newmode);
-        void Destroy();
+        void Destroy(bool shutdown);
         void ConvertFromRenderTarget(u32 taddr, int twidth, int theight, int tformat, int tlutaddr, int tlutfmt);
     };
 
@@ -61,7 +61,7 @@ public:
     };
 
 private:
-    typedef std::map<u32,TCacheEntry> TexCache;
+    typedef std::map<u32, TCacheEntry> TexCache;
 
     static u8 *temp;
     static TexCache textures;
@@ -70,9 +70,9 @@ private:
 
 public:
     static void Init();
-    static void Cleanup();
+    static void ProgressiveCleanup();
     static void Shutdown();
-    static void Invalidate();
+    static void Invalidate(bool shutdown);
     static TCacheEntry* Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
     static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, TRectangle *source);
 

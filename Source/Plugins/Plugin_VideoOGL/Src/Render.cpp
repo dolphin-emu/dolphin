@@ -880,9 +880,9 @@ void Renderer::Swap(const TRectangle& rc)
 			// The picture width
 			PictureWidth = WinWidth / Ratio;
 			// Move the left of the picture to the middle of the screen
-			FloatXOffset = FloatXOffset + WinWidth / 2.0;
+			FloatXOffset = FloatXOffset + WinWidth / 2.0f;
 			// Then remove half the picture height to move it to the horizontal center
-			FloatXOffset = FloatXOffset - PictureWidth / 2.0;
+			FloatXOffset = FloatXOffset - PictureWidth / 2.0f;
 			// --------------------
 		}
 		// The window is to high, we have to limit the height
@@ -1113,7 +1113,7 @@ void Renderer::SwapBuffers()
 
     // Clean out old stuff from caches
     PixelShaderCache::Cleanup();
-    TextureMngr::Cleanup();
+    TextureMngr::ProgressiveCleanup();
 
     frameCount++;
 
