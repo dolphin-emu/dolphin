@@ -446,8 +446,8 @@ void VertexShaderManager::SetMaterialColor(int index, u32 data)
 
 	nMaterialsChanged  |= (1 << index);
 
-    s_fMaterials[ind++] = ((data>>24)&0xFF)/255.0f;
-    s_fMaterials[ind++] = ((data>>16)&0xFF)/255.0f;
-    s_fMaterials[ind++] = ((data>>8)&0xFF)/255.0f;
-    s_fMaterials[ind]   = ((data)&0xFF)/255.0f;
+	s_fMaterials[ind++] = ((data>>24)&0xFF)/255.0f;
+	s_fMaterials[ind++] = ((data>>16)&0xFF)/255.0f;
+	s_fMaterials[ind++] = ((data>>8)&0xFF)/255.0f;
+	s_fMaterials[ind]   = ((data)&0xFF)/255.0f;
 }
