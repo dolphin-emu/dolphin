@@ -54,7 +54,7 @@
 #include "WII_IPC_HLE_Device.h"
 #include "../VolumeHandler.h"
 
-#include "../boot/Boot_WiiWAD.h"
+#include "../Boot/Boot_WiiWAD.h"
 
 
 struct SContentAccess 

@@ -32,7 +32,7 @@ class DriveReader : public SectorReader
 {
 private:
 	DriveReader(const char *drive);
-	void DriveReader::SetSectorSize(int blocksize);
+	void SetSectorSize(int blocksize);
 	enum { CACHE_SIZE = 32 };
 	int m_blocksize;
 	u8* cache[CACHE_SIZE];

@@ -318,7 +318,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				if (!issues.empty())
 				{
 					issues = "Problems: " + issues;
-					item.SetText(_(issues.c_str() ) );
+					item.SetText(wxString::FromAscii(issues.c_str()));
 				}
 				else
 					item.SetText(_("Problems: Other"));
