@@ -22,7 +22,6 @@
 #define _GLOBALS_H
 
 #include "Common.h"
-#include "Setup.h" // Build with music modification. Define MUSICMOD here.
 
 // Constant Colors
 const unsigned long COLOR_GRAY = 0xDCDCDC;

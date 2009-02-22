@@ -36,8 +36,11 @@
 // This may remove sound artifacts in Wario Land Shake It and perhaps other games
 //#define SETUP_AVOID_SOUND_ARTIFACTS
 
-// This may fix a problem with Stop and Start that I described in the comments to revision 2,139
-//#define SETUP_FREE_PLUGIN_ON_BOOT
+/* This may fix a problem with Stop and Start that I described in the comments to revision 2,139,
+   and in the comments in the File Description for PluginManager.cpp */
+//#define SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
+//#define SETUP_FREE_DSP_PLUGIN_ON_BOOT
+//#define SETUP_DONT_FREE_PLUGIN_ON_STOP
 
 /* This will avoid deleting the g_EmuThread after Stop, that may hang when we are rendering to a child
    window, however, I didn't seem to need this any more */

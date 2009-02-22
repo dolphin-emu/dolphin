@@ -190,7 +190,8 @@ bool CPluginManager::InitPlugins()
 void CPluginManager::ShutdownPlugins()
 {
 	for (int i = 0; i < MAXPADS; i++) {
-		if (m_pad[i]) {
+		if (m_pad[i])
+		{
 			m_pad[i]->Shutdown();
 			//delete m_pad[i];
 		}
@@ -200,8 +201,10 @@ void CPluginManager::ShutdownPlugins()
 	for (int i = 0; i < MAXWIIMOTES; i++)
 	{
 		if (m_wiimote[i])
+		{
 			m_wiimote[i]->Shutdown();
-		//delete m_wiimote[i];
+			//delete m_wiimote[i];
+		}
 		//m_wiimote[i] = NULL;
 	}
 
@@ -209,7 +212,7 @@ void CPluginManager::ShutdownPlugins()
 	{
 		m_video->Shutdown();
 		// With this option, this is done on boot instead
-		#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
 			delete m_video;
 			m_video = NULL;
 		#endif
@@ -220,7 +223,7 @@ void CPluginManager::ShutdownPlugins()
 	{
 		m_dsp->Shutdown();
 		// With this option, this is done on boot instead
-		#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
 			delete m_dsp;
 			m_dsp = NULL;
 		#endif

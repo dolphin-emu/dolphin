@@ -26,6 +26,9 @@
 
 #include "ConsoleWindow.h"
 
+// Compile without WxWidgets in Windows to, for debugging purposes
+//#define HAVE_WX 0
+
 // Turns file logging on and off
 extern bool LocalLogFile;
 

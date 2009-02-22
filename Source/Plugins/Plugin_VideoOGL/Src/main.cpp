@@ -118,13 +118,16 @@ void DllConfig(HWND _hParent)
 
 	//Console::Open();
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
 	wxWindow *win = new wxWindow();
 	win->SetHWND((WXHWND)_hParent);
 	win->AdoptAttributesFromHWND();
 
 	ConfigDialog *config_dialog = new ConfigDialog(win);
 
+	// ---------------------------------------------------------------
+	// Search for avaliable resolutions
+	// ---------------------
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
@@ -133,9 +136,6 @@ void DllConfig(HWND _hParent)
 	resos.reserve(20);
 	int i = 0;
 
-	// ---------------------------------------------------------------
-	// Search for avaliable resolutions
-	// ---------------------
 	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{
 		char szBuffer[100];
@@ -309,7 +309,7 @@ void Shutdown(void)
 	// This cause some kind of crash, at least in the Release build and with this setup option
 	// If there wasn't so little explanations and comments in this code I would be more interested
 	// in trying to fix this function, now I'll just leave it like this, because it works
-	#ifndef SETUP_FREE_PLUGIN_ON_BOOT
+	#ifndef SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
 		TextureMngr::Shutdown();
 	#endif
 	OpcodeDecoder_Shutdown();

@@ -335,8 +335,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
-	// Needed for Stop and Start
-	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
+	// May be needed for Stop and Start
+	#ifdef SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
 		Plugins.FreeVideo();
 	#endif
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
@@ -359,8 +359,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
 	dspInit.bWii = _CoreParameter.bWii;
-	// Needed for Stop and Start
-	#ifdef SETUP_FREE_PLUGIN_ON_BOOT
+	// May be needed for Stop and Start
+	#ifdef SETUP_FREE_DSP_PLUGIN_ON_BOOT
 		Plugins.FreeDSP();
 	#endif
 	Plugins.GetDSP()->Initialize((void *)&dspInit);

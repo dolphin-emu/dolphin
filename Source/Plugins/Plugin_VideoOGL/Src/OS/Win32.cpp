@@ -46,17 +46,21 @@ void CloseConsole();
 
 HINSTANCE g_hInstance;
 
-class wxDLLApp : public wxApp
-{
-	bool OnInit()
+// ------------------------------------------------------
+// WxWidgets
+// ---------------
+#if defined(HAVE_WX) && HAVE_WX
+	class wxDLLApp : public wxApp
 	{
-		return true;
-	}
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
-
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
+		bool OnInit()
+		{
+			return true;
+		}
+	};
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+// ------------------
 
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
@@ -65,19 +69,32 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		{       // Use wxInitialize() if you don't want GUI instead of the following 12 lines
+		{
+			#if defined(HAVE_WX) && HAVE_WX
+			// Use wxInitialize() if you don't want GUI instead of the following 12 lines
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
 			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
+			#endif
 		}
 		break; 
 
 	case DLL_PROCESS_DETACH:
-		// This causes a "stop hang", if the gfx config dialog has been opened.
-		wxEntryCleanup(); // Use wxUninitialize() if you don't want GUI 
+		#if defined(HAVE_WX) && HAVE_WX
+			// This causes a "stop hang", if the gfx config dialog has been opened.
+			/* JP: Are you sure? Because I tried to debug that for hours with countless Stop and Start
+		       and I frequently gor the stop hang even if I did not open the wxDialog
+			   Update: Howwver, compiling with 'HAVE_WX 0' seems to have reduced the number of hangins,
+			   it only hanged once with that option. And that was when I stopped Starfox Assault that
+			   by the way doesn't work now (it has a black screen).
+			   Update again: No it was probably related to something else, now I had the same luck
+			   with WxWidgets in it to. */
+			// Old comment: "Use wxUninitialize() if you don't want GUI"
+			wxEntryCleanup();
+		#endif
 		break;
 	default:
 		break;
