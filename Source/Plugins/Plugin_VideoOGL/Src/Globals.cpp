@@ -83,7 +83,7 @@ void __Log(const char *fmt, ...)
     if (pfLog != NULL && LocalLogFile)
         fwrite(Msg, strlen(Msg), 1, pfLog);
 
-    Console::Print(Msg);
+	Console::Print(Msg);
 
 }
 
@@ -100,7 +100,7 @@ void __Log(int type, const char *fmt, ...)
     va_end(ap);
 
     g_VideoInitialize.pLog(Msg, FALSE);
-    Console::Print(Msg);
+	Console::Print(Msg);
 }
 
 #endif

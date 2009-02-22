@@ -25,6 +25,7 @@ namespace EmuWindow
 
     HWND GetWnd();
     HWND GetParentWnd();
+	HWND GetChildParentWnd();
     HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
     void Show();
     void Close();

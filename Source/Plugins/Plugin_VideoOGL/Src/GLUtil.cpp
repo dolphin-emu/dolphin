@@ -19,6 +19,7 @@
 #include "Config.h"
 #include "IniFile.h"
 #include "svnrev.h"
+#include "Setup.h"
 
 #include "Render.h"
 
@@ -768,9 +769,11 @@ void OpenGL_Shutdown()
         hRC = NULL;                                       // Set RC To NULL
     }
 
-    if (hDC && !ReleaseDC(EmuWindow::GetWnd(),hDC))                  // Are We Able To Release The DC
+    if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
     {
+		#ifndef SETUP_TIMER_WAITING // This fails
         MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+		#endif
         hDC = NULL;                                       // Set DC To NULL
     }
 #elif defined(HAVE_X11) && HAVE_X11

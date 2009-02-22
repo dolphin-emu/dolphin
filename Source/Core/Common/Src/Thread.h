@@ -33,6 +33,15 @@
 
 #include "Common.h"
 
+
+// -----------------------------------------
+#ifdef SETUP_TIMER_WAITING
+// -----------------
+	typedef void (*EventCallBack)(void);
+#endif
+// ----------------------
+
+
 namespace Common
 {
 class CriticalSection
@@ -78,6 +87,7 @@ private:
 };
 
 
+
 class Event
 {
 public:
@@ -88,6 +98,20 @@ public:
 
 	void Set();
 	void Wait();
+
+	// -----------------------------------------
+	#ifdef SETUP_TIMER_WAITING
+	// -----------------
+		bool TimerWait(EventCallBack WaitCB, int Id = 0, bool OptCondition = true);
+		bool DoneWait();
+		void SetTimer();
+		bool DoneWaiting;
+		bool StartWait;
+		int Id;
+		HANDLE hTimer;
+		HANDLE hTimerQueue;		
+	#endif
+	// ---------------------------
 
 private:
 #ifdef _WIN32

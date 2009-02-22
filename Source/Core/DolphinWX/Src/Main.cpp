@@ -31,16 +31,17 @@
 #include <sys/param.h>
 #endif
 
-#include "Globals.h" // Core
-#include "Host.h"
-
 #include "Common.h" // Common
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "ConsoleWindow.h"
+#include "Setup.h"
 
-#include "Main.h" // Local
+#include "Host.h" // Core
+
+#include "Globals.h" // Local
+#include "Main.h"
 #include "Frame.h"
 #include "ConfigManager.h"
 #include "CodeWindow.h"
@@ -457,6 +458,13 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Post message
 	wxPostEvent(main_frame, event);
 }
+
+#ifdef SETUP_TIMER_WAITING
+void Host_UpdateGUI()
+{
+	main_frame->UpdateGUI();
+}
+#endif
 
 void Host_SysMessage(const char *fmt, ...) 
 {

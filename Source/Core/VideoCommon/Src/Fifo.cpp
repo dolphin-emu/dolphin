@@ -17,10 +17,14 @@
 
 #include <string.h>
 
+#include "Setup.h"
+#ifdef SETUP_TIMER_WAITING
+	#include "../../../Plugins/Plugin_VideoOGL/Src/OS/Win32.h"
+#endif
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "OpcodeDecoding.h"
-#include "Setup.h"
+#include "ConsoleWindow.h"
 
 #include "Fifo.h"
 
@@ -96,8 +100,18 @@ void Video_SendFifoData(u8* _uData, u32 len)
 void Fifo_ExitLoop()
 {
     fifoStateRun = false;
-	fifo_exit_event.Wait();
-	fifo_exit_event.Shutdown();
+	#ifndef SETUP_TIMER_WAITING
+		fifo_exit_event.Wait();
+		fifo_exit_event.Shutdown();
+	#else
+	//Console::Print("Video: Fifo_ExitLoop: Done:%i\n", fifo_exit_event.DoneWait());
+		if (fifo_exit_event.TimerWait(Fifo_ExitLoop))
+		{
+			//Console::Print("Video: Fifo_Shutdown: Done:%i\n\n", fifo_exit_event.DoneWait());
+			fifo_exit_event.Shutdown();
+			PostMessage(EmuWindow::GetParentWnd(), WM_USER, OPENGL_VIDEO_STOP, 0);
+		}
+	#endif
 }
 
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
@@ -111,6 +125,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(_WIN32) && !defined(SETUP_AVOID_OPENGL_SCREEN_MESSAGE_HANG)
 		video_initialize.pPeekMessages();
 #endif
+
         if (_fifo.CPReadWriteDistance == 0)
 			Common::SleepCurrentThread(1);
 
@@ -187,4 +202,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         }
     }
 	fifo_exit_event.Set();
+	#ifdef SETUP_TIMER_WAITING
+		fifo_exit_event.SetTimer();
+	#endif
 }

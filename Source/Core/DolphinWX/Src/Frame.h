@@ -71,6 +71,7 @@ class CFrame : public wxFrame
 		void InitBitmaps();
 		void DoStop();
 		bool bRenderToMain;
+		void UpdateGUI();
 
 		// ---------------------------------------
 		// Wiimote leds
@@ -220,7 +221,6 @@ class CFrame : public wxFrame
 		wxMenuItem* m_pMenuItemSave;
 		wxToolBarToolBase* m_pToolPlay;
 
-		void UpdateGUI();
 		void BootGame();
 
 		// Double click and mouse move options

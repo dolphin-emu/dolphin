@@ -299,7 +299,9 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	Fifo_Shutdown();
-	TextureConverter::Shutdown();
+	#ifndef SETUP_TIMER_WAITING // This is not compatible, it crashes after the second Stop
+		TextureConverter::Shutdown();
+	#endif
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
@@ -308,8 +310,14 @@ void Shutdown(void)
 	VertexManager::Shutdown();
 	TextureMngr::Shutdown();
 	OpcodeDecoder_Shutdown();
-	Renderer::Shutdown();
+	#ifndef SETUP_TIMER_WAITING // This is not compatible, it may crashes after a Stop
+		Renderer::Shutdown();
+	#endif
 	OpenGL_Shutdown();
+	#ifdef SETUP_TIMER_WAITING
+		// Do we ever destroy the window?
+		EmuWindow::Close();
+	#endif
 }
 
 

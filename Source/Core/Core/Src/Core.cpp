@@ -24,8 +24,8 @@
 #else
 #endif
 
-#include "Thread.h" // Common
-#include "Setup.h"
+#include "Setup.h" // Common
+#include "Thread.h"
 #include "Timer.h"
 #include "Common.h"
 #include "ConsoleWindow.h"
@@ -110,6 +110,19 @@ SCoreStartupParameter g_CoreStartupParameter;
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
+
+// -----------------------------------------
+#ifdef SETUP_TIMER_WAITING
+// -----------------
+	bool VideoThreadRunning = false;
+	bool StopUpToVideoDone = false;
+	bool EmuThreadReachedEnd = false;
+	bool StopReachedEnd = false;
+	static Common::Event VideoThreadEvent;
+	static Common::Event VideoThreadEvent2;
+	void EmuThreadEnd();
+#endif
+// ---------------------------
 //////////////////////////////////////
  
  
@@ -162,9 +175,24 @@ void ReconnectPad()
 void ReconnectWiimote()
 {
 	// This seems to be a hack that just sets some IPC registers to zero. Dubious.
+	/* JP: Yes, it's basically nothing right now, I could not figure out how to reset the Wiimote
+	   for reconnection */
 	HW::InitWiimote();
 	Console::Print("ReconnectWiimote()\n");
 }
+
+// -----------------------------------------
+#ifdef SETUP_TIMER_WAITING
+// -----------------
+	void VideoThreadEnd()
+	{
+		VideoThreadRunning = false;
+		VideoThreadEvent.SetTimer();
+		VideoThreadEvent2.SetTimer();
+		//Console::Print("VideoThreadEnd\n");
+	}
+#endif
+// ---------------------------
 /////////////////////////////////////
 
 
@@ -201,6 +229,9 @@ bool Init()
 	g_EmuThread = new Common::Thread(EmuThread, NULL);
 	emuThreadGoing.Wait();
 	emuThreadGoing.Shutdown();
+	#ifdef SETUP_TIMER_WAITING
+		VideoThreadRunning = true;
+	#endif
 
 	// All right, the event is set and killed. We are now running.
 	Host_SetWaitCursor(false);
@@ -208,17 +239,29 @@ bool Init()
 }
 
 // Called from GUI thread or VI thread (why VI??? That must be bad. Window close? TODO: Investigate.)
-void Stop()  // - Hammertime!
+// JP: No, when you press Stop this is run from the Main Thread it seems
+// - Hammertime!
+void Stop()  
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+#ifdef SETUP_TIMER_WAITING
+	if (!StopUpToVideoDone)
+	{
+	Console::Print("--------------------------------------------------------------\n");
+	Console::Print("Stop [Main Thread]:    Shutting down...\n");
+	// Reset variables
+	StopReachedEnd = false;
+	EmuThreadReachedEnd = false;
+#endif
 
 	Host_SetWaitCursor(true);
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
 
-	// stop the CPU
+	// Stop the CPU
 	PowerPC::Stop();
-	CCPU::StepOpcode(); //kick it if it's waiting
+	CCPU::StepOpcode(); // Kick it if it's waiting
 	
 	cpuRunloopQuit.Wait();
 	cpuRunloopQuit.Shutdown();
@@ -229,9 +272,21 @@ void Stop()  // - Hammertime!
  
 	// If dual core mode, the CPU thread should immediately exit here.
 
+	Console::Print("Stop [Main Thread]:    Wait for Video Loop...\n");
+
 	// Should be moved inside the plugin.
 	if (_CoreParameter.bUseDualCore)
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
+
+#ifdef SETUP_TIMER_WAITING
+	StopUpToVideoDone = true;
+	}
+	// Call this back
+	//if (!VideoThreadEvent.TimerWait(Stop, 1, EmuThreadReachedEnd) || !EmuThreadReachedEnd) return;
+	if (!VideoThreadEvent.TimerWait(Stop, 1)) return;
+
+	//Console::Print("Stop() will continue\n");
+#endif
 
 	/* Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
 	   of the commands in this function */
@@ -240,24 +295,37 @@ void Stop()  // - Hammertime!
 	   And since we have no while(GetMessage()) loop we can't wait for this to happen, or say exactly when
 	   the loop has ended */
 	#ifdef _WIN32
-		PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
+		//PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
 	#endif
 
+	// Close the trace file
 	Core::StopTrace();
+#ifndef SETUP_TIMER_WAITING // This hangs
 	LogManager::Shutdown();
+#endif
+	// Update mouse pointer
 	Host_SetWaitCursor(false);
 	#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
 		/* This may hang when we are rendering to a child window, but currently it doesn't, at least
 		   not on my system, but I'll leave this option for a while anyway */
 		if (GetParent((HWND)g_pWindowHandle) == NULL)
 	#endif
+#ifndef SETUP_TIMER_WAITING // This is moved
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
+#endif
+#ifdef SETUP_TIMER_WAITING
+	Host_UpdateGUI();
+	StopUpToVideoDone = false;
+	StopReachedEnd = true;
+	//Console::Print("Stop() reached the end\n");
+	if (EmuThreadReachedEnd) Console::Print("--------------------------------------------------------------\n");
+#endif
 }
- 
+
  
 //////////////////////////////////////////////////////////////////////////////////////////
-// Create the CPU thread
+// Create the CPU thread. For use with Single Core mode only.
 // ---------------
 THREAD_RETURN CpuThread(void *pArg)
 {
@@ -465,7 +533,35 @@ THREAD_RETURN EmuThread(void *pArg)
 		// I bet that many of our stopping problems come from this loop not properly exiting.
 		Plugins.GetVideo()->Video_EnterLoop();
 	}
- 
+#ifdef SETUP_TIMER_WAITING
+
+	VideoThreadEvent2.TimerWait(EmuThreadEnd, 2);
+	//Console::Print("Video loop [Video Thread]:   Stopped\n");
+	return 0;
+}
+void EmuThreadEnd()
+{
+	CPluginManager &Plugins = CPluginManager::GetInstance();
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	//Console::Print("Video loop [Video Thread]:   EmuThreadEnd [StopEnd:%i]\n", StopReachedEnd);
+
+	//if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2)) return;
+	if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2, StopReachedEnd) || !StopReachedEnd)
+	{
+		Console::Print("Stop [Video Thread]:   Waiting for Stop() and Video Loop to end...\n");
+		return;
+	}
+
+	//Console::Print("EmuThreadEnd() will continue\n");
+
+	/* There will be a few problems with the OpenGL ShutDown() after this, for example the "Release
+	   Device Context Failed" error message */
+#endif
+
+	Console::Print("Stop [Video Thread]:   Stop() and Video Loop Ended\n");
+	Console::Print("Stop [Video Thread]:   Shutting down HW and Plugins\n");
+
 	// We have now exited the Video Loop and will shut down
 
 	// does this comment still apply?
@@ -484,6 +580,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (g_pUpdateFPSDisplay != NULL)
 		g_pUpdateFPSDisplay("Stopping...");
 
+#ifndef SETUP_TIMER_WAITING
 	if (cpuThread)
 	{
 		// There is a CPU thread - join it.
@@ -491,10 +588,11 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Returns after game exited
 		cpuThread = NULL;
 	}
+#endif
 
 	// The hardware is uninitialized
 	g_bHwInit = false;
-
+	
 	HW::Shutdown();
 	Plugins.ShutdownPlugins();
 
@@ -503,8 +601,18 @@ THREAD_RETURN EmuThread(void *pArg)
 	// so we can restart the plugins (or load new ones) for the next game.
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)
 		Host_UpdateMainFrame();
-
+#ifdef SETUP_TIMER_WAITING
+	EmuThreadReachedEnd = true;
+	//Console::Print("EmuThread() reached the end\n");
+	Host_UpdateGUI();
+	Console::Print("Stop [Video Thread]:   Done\n");
+	if (StopReachedEnd) Console::Print("--------------------------------------------------------------\n");
+	delete g_EmuThread;  // Wait for emuthread to close.
+	g_EmuThread = 0;
+#endif
+#ifndef SETUP_TIMER_WAITING
 	return 0;
+#endif
 }
  
  

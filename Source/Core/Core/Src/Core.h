@@ -61,7 +61,7 @@ namespace Core
     bool GetRealWiimote();
 	void ReconnectWiimote();
 	void ReconnectPad();
-    
+
     extern bool bReadTrace;
     extern bool bWriteTrace;
     
@@ -73,7 +73,17 @@ namespace Core
     void SetBlockStart(u32 addr);
     void StopTrace();
 
+    // -----------------------------------------
+	#ifdef SETUP_TIMER_WAITING
+	// -----------------
+		// Thread shutdown
+		void VideoThreadEnd();
+	#endif
+	// ---------------------------
+
+	// -----------------------------------------
 	#ifdef RERECORDING
+	// -----------------
 		void FrameUpdate();
 		void FrameAdvance();
 		void FrameStepOnOff();
@@ -84,6 +94,7 @@ namespace Core
 		extern int g_FrameCounter;
 		extern bool g_FrameStep;
 	#endif
+	// ---------------------------
 
 }  // namespace
 

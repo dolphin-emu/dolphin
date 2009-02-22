@@ -148,6 +148,11 @@ HWND GetParentWnd()
     return m_hParent;
 }
 
+HWND GetChildParentWnd()
+{
+    return m_hMain;
+}
+
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {		
 	HDC         hdc;

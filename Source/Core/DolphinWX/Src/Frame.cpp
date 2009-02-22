@@ -194,15 +194,29 @@ int abc = 0;
 				Core::ReconnectWiimote();
 				return 0;
 
+			// -----------------------------------------
 			#ifdef RERECORDING
-			case INPUT_FRAME_COUNTER:
-				// Wind back the frame counter after a save state has been loaded
-				Core::WindBack((int)lParam);
-				return 0;
+			// -----------------
+				case INPUT_FRAME_COUNTER:
+					// Wind back the frame counter after a save state has been loaded
+					Core::WindBack((int)lParam);
+					return 0;
 			#endif
+			// -----------------------------
 
+			// -----------------------------------------
+			#ifdef SETUP_TIMER_WAITING
+			// -----------------
+				case OPENGL_VIDEO_STOP:
+					// The Video thread has been shut down
+					Core::VideoThreadEnd();
+					//Console::Print("OPENGL_VIDEO_STOP\n");
+					return 0;	
+			#endif
+			// -----------------------------
 			}
 			break;
+
 		//default:
 		//	return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 		}
