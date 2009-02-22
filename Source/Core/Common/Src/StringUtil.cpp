@@ -76,7 +76,9 @@ u32 Ascii2Hex(std::string _Text)
 	u32 Result = 0;
 
 	// Max 32-bit values are supported
-	int Length = _Text.length(); if (Length > 4) Length = 4;
+	int Length = _Text.length();
+	if (Length > 4)
+		Length = 4;
 
 	for (int i = 0; i < Length; i++)
 	{
@@ -86,11 +88,12 @@ u32 Ascii2Hex(std::string _Text)
 	// Return the value
 	return Result;
 }
+
 // Convert it back again
 std::string Hex2Ascii(u32 _Text)
 {
 	// Create temporary storate
-	char Result[4];
+	char Result[5];  // need space for the final \0
 	// Go through the four characters
 	sprintf(Result, "%c%c%c%c", _Text >> 24, _Text >> 16, _Text >> 8, _Text);
 	// Return the string
