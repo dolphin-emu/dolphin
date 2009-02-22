@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <string>
+
 #include "Common.h"
 #include "DriveUtil.h"
 
@@ -26,29 +28,18 @@
 void GetAllRemovableDrives(std::vector<std::string> *drives) {
 	drives->clear();
 #ifdef _WIN32
-	HANDLE hDisk;
-	DISK_GEOMETRY diskGeometry;
-
-	for (int i = 'D'; i < 'Z'; i++)
+	char drives_string[1024];
+	int max_drive_pos = GetLogicalDriveStrings(1024, drives_string);
+	char *p = drives_string;
+	// GetLogicalDriveStrings returns the drives as a a series of null-terminated strings
+	// laid out right after each other in RAM, with a double null at the end.
+	while (*p)
 	{
-		char path[MAX_PATH];
-		sprintf(path, "\\\\.\\%c:", i);
-		hDisk = CreateFile(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		if (hDisk != INVALID_HANDLE_VALUE)
+		if (GetDriveType(p) == DRIVE_CDROM)  // CD_ROM also applies to DVD. Noone has a plain CDROM without DVD anymore so we should be fine.
 		{
-			DWORD dwBytes;
-			DeviceIoControl(hDisk, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &diskGeometry, sizeof(DISK_GEOMETRY), &dwBytes, NULL);
-			// Only proceed if disk is a removable media
-			if (diskGeometry.MediaType == RemovableMedia)
-			{
-				if (diskGeometry.BytesPerSector == 2048) {
-					// Probably CD/DVD drive.
-					// "Remove" the "\\.\" part of the path and return it.
-					drives->push_back(path + 4);	
-				}
-			}
+			drives->push_back(std::string(p).substr(0, 2));
 		}
-		CloseHandle(hDisk);
+		p += strlen(p) + 1;
 	}
 #else
 	// TODO
