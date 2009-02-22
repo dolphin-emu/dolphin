@@ -99,19 +99,21 @@ void CFrame::CreateMenu()
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
-	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
-	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 // not tested on linux/os x
 // works ok on a virtual drive with GC Games, Wii games do not load
 // backups take about 60-90 seconds to load from real cd drive
 #ifdef _WIN32
 	wxMenu *externalDrive = new wxMenu;
-	fileMenu->AppendSubMenu(externalDrive, _T("&Load From Drive"));
+	fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	GetAllRemovableDrives(&drives);
 	for (int i = 0; i < drives.size() && i < 24; i++) {
 		externalDrive->Append(IDM_DRIVE1 + i, wxString::Format(_T("%s"), drives.at(i).c_str()));
 	}
 #endif
+	fileMenu->AppendSeparator();
+	fileMenu->Append(wxID_REFRESH, _T("&Refresh List"));
+	fileMenu->AppendSeparator();
+	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
@@ -120,7 +122,7 @@ void CFrame::CreateMenu()
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	m_pMenuItemPlay = emulationMenu->Append(IDM_PLAY, _T("&Play"));
-	m_pMenuChangeDisc = emulationMenu->Append(IDM_CHANGEDISC, _T("Change disc"));
+	m_pMenuChangeDisc = emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
 	m_pMenuItemStop = emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
@@ -137,10 +139,10 @@ void CFrame::CreateMenu()
 	wxMenu* pOptionsMenu = new wxMenu;
 	m_pPluginOptions = pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics settings"));
-	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad settings"));
-	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote settings"));
+	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	#ifdef _WIN32
 		pOptionsMenu->AppendSeparator();
 		pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
@@ -149,12 +151,12 @@ void CFrame::CreateMenu()
 
 	// Misc menu
 	wxMenu* miscMenu = new wxMenu;
-	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &toolbar"));
+	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &Toolbar"));
 	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
-	miscMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &statusbar"));
+	miscMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &Statusbar"));
 	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
 	miscMenu->AppendSeparator();
-	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
+	miscMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	// miscMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
@@ -163,7 +165,7 @@ void CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	/*helpMenu->Append(wxID_HELP, _T("&Help"));
 	re-enable when there's something useful to display*/
-	helpMenu->Append(IDM_HELPWEBSITE, _T("Dolphin &web site"));
+	helpMenu->Append(IDM_HELPWEBSITE, _T("Dolphin &Web Site"));
 	helpMenu->Append(IDM_HELPGOOGLECODE, _T("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
