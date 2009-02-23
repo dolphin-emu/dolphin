@@ -91,7 +91,7 @@ void Thread::WaitForDeath()
 {
 	if (m_hThread)
 	{
-		WaitForSingleObject(m_hThread, INFINITE);
+		WaitForSingleObject(m_hThread, THREAD_WAIT_TIMEOUT);
 		CloseHandle(m_hThread);
 		m_hThread = NULL;
 	}
@@ -140,7 +140,7 @@ void Event::Set()
 
 void Event::Wait()
 {
-	WaitForSingleObject(m_hEvent, INFINITE);
+	WaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT);
 }
 
 inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)
@@ -168,7 +168,7 @@ void Event::MsgWait()
 
 		// Wait for any message sent or posted to this queue 
 		// or for one of the passed handles be set to signaled.
-		result = MsgWaitForSingleObject(m_hEvent, INFINITE); 
+		result = MsgWaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT); 
 
 		// The result tells us the type of event we have.
 		if (result == (WAIT_OBJECT_0 + 1))

@@ -81,6 +81,7 @@ private:
 #ifdef _WIN32
 	HANDLE m_hThread;
 	DWORD m_threadId;
+	static const int THREAD_WAIT_TIMEOUT = 5000;
 #else
 	pthread_t thread_id;
 #endif
@@ -121,6 +122,12 @@ public:
 private:
 #ifdef _WIN32
 	HANDLE m_hEvent;
+	/* If we have waited more than five seconds we can be pretty sure that the thread is deadlocked.
+	   So then we can just as well continue and hope for the best. I could try several times that
+	   this works after a five second timeout (with works meaning that the game stopped and I could
+	   start another game without any noticable problems). But several times it failed to, and ended
+	   with a crash. But it's better than an infinite deadlock. */
+	static const int THREAD_WAIT_TIMEOUT = 5000; // INFINITE or 5000 for example
 #else
 	bool is_set_;
 	pthread_cond_t event_;

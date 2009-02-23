@@ -522,8 +522,14 @@ void CFrame::DoStop()
 		Core::Stop();
 
 		/* This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
-		   we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works */
-		#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
+		   we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works.
+		   It's also needed when a WaitForSingleObject() has timed out so that the ShutDown() process
+		   has continued without all threads having come to a rest. It's not compatible with the
+		   SETUP_TIMER_WAITING option (because the Stop returns before it's finished).
+		   
+		   Without this we just see the gray CPanel background because the ISO list will not be displayed.
+		   */
+		#ifndef SETUP_TIMER_WAITING
 			if (bRenderToMain)
 				while(Core::GetState() != Core::CORE_UNINITIALIZED) Sleep(10);
 		#endif
