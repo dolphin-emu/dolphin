@@ -101,6 +101,10 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 
+		// Wii
+		ini.Set("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen);
+		ini.Set("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan);
+
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
 		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
@@ -211,6 +215,10 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
 		ini.Get("Core", "TLBHack", &m_LocalCoreStartupParameter.iTLBHack, 0);
+
+		// Wii
+		ini.Get("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen, false);
+		ini.Get("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan, true);
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());

@@ -510,12 +510,12 @@ void CISOProperties::LoadGameConfig()
 	else
 		OptimizeQuantizers->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "EnableProgressiveScan", &bTemp))
+	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "EnableWideScreen", &bTemp))
+	if (GameIni.Get("Wii", "Widescreen", &bTemp))
 		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
@@ -557,14 +557,14 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Core", "OptimizeQuantizers", OptimizeQuantizers->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "EnableProgressiveScan");
+		GameIni.DeleteKey("Wii", "ProgressiveScan");
 	else
-		GameIni.Set("Core", "EnableProgressiveScan", EnableProgressiveScan->Get3StateValue());
+		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
 
 	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "EnableWideScreen");
+		GameIni.DeleteKey("Wii", "Widescreen");
 	else
-		GameIni.Set("Core", "EnableWideScreen", EnableWideScreen->Get3StateValue());
+		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());

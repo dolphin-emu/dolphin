@@ -397,13 +397,13 @@ void CConfigMain::CreateGUIControls()
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiiScreenSaver->SetValue(m_SYSCONF[IPL_SSV]!=0);
 	WiiProgressiveScan = new wxCheckBox(WiiPage, ID_WII_IPL_PGS, wxT("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiProgressiveScan->SetValue(m_SYSCONF[IPL_PGS]!=0);
+	WiiProgressiveScan->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressiveScan);
 	WiiEuRGB60 = new wxCheckBox(WiiPage, ID_WII_IPL_E60, wxT("Use EuRGB60 Mode (PAL6)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiiEuRGB60->SetValue(m_SYSCONF[IPL_E60]!=0);
 	arrayStringFor_WiiAspectRatio.Add(wxT("4:3")); arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
 	WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
-	WiiAspectRatio->SetSelection(m_SYSCONF[IPL_AR]);
+	WiiAspectRatio->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.bWidescreen);
 	WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
@@ -623,8 +623,9 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 // GC settings
+// -----------------------
 void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 {
 	int sidevice = 0;
@@ -709,9 +710,12 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 }
+///////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Wii settings
+// -------------------
 void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -721,7 +725,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_WII_IPL_AR: // IPL settings
-		m_SYSCONF[IPL_AR] = WiiAspectRatio->GetSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWidescreen = WiiAspectRatio->GetSelection();
 		break;
 	case ID_WII_IPL_SSV:
 		m_SYSCONF[IPL_SSV] = WiiScreenSaver->IsChecked();
@@ -730,16 +734,20 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		m_SYSCONF[IPL_LNG] = WiiSystemLang->GetSelection();
 		break;
 	case ID_WII_IPL_PGS:
-		m_SYSCONF[IPL_PGS] = WiiProgressiveScan->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressiveScan = WiiProgressiveScan->IsChecked();
 		break;
 	case ID_WII_IPL_E60:
 		m_SYSCONF[IPL_E60] = WiiEuRGB60->IsChecked();
 		break;
 	}
 }
+///////////////////////////////////////////
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // Paths settings
+// -------------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	if (!ISOPaths->GetStringSelection().empty())

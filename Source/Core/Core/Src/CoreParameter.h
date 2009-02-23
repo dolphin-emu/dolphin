@@ -71,6 +71,7 @@ struct SCoreStartupParameter
 
 	// Wii settings
 	bool bWii; bool bWiiLeds; bool bWiiSpeakers;
+	bool bWidescreen, bProgressiveScan;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor;
