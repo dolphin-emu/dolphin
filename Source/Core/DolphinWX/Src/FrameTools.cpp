@@ -531,7 +531,7 @@ void CFrame::DoStop()
 		   */
 		#ifndef SETUP_TIMER_WAITING
 			if (bRenderToMain)
-				while(Core::GetState() != Core::CORE_UNINITIALIZED) Sleep(10);
+				while(Core::GetState() != Core::CORE_UNINITIALIZED) SLEEP(10);
 		#endif
 
 		UpdateGUI();

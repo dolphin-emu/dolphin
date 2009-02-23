@@ -161,6 +161,7 @@ inline u32 _rotr(u32 x, int shift) {
 
 #define LONG int
 
+
 #ifndef __forceinline
 #define __forceinline inline
 #endif
@@ -383,6 +384,12 @@ namespace
 }
 ///////////////////////////////////////
 
+
+#ifdef _WIN32
+#define SLEEP(x) Sleep(x)
+#else
+#define SLEEP(x) usleep(x*1000)
+#endif
 
 #endif	// _COMMON_H
 
