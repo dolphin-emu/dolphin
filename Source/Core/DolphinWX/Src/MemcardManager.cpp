@@ -21,7 +21,7 @@
 #include "wx/mstream.h"
 //#define DEBUG_MCM  true
 #define DEFAULTS wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator
-#define ARROWS slot ? "" : ARROW[slot], slot ? ARROW[slot] : ""
+#define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
 
 const u8 hdr[] = {
 0x42,0x4D,
@@ -206,7 +206,7 @@ void CMemcardManager::CreateGUIControls()
 {
 	// Create the controls for both memcards
 
-	char ARROW[2][3] = {{'<','-',0,}, {'-','>',0}};
+	const wxChar* ARROW[2] = {_T("<-"), _T("->")};
 
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"), DEFAULTS);
 	

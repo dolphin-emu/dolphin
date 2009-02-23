@@ -273,7 +273,7 @@ bool IniFile::Load(const char* filename)
 
 	sections.clear();
 	sections.push_back(Section(""));
-	//first section consists of the comments before the first real section
+	// first section consists of the comments before the first real section
 
 	// Open file
 	std::ifstream in;
@@ -289,6 +289,14 @@ bool IniFile::Load(const char* filename)
 		char templine[MAX_BYTES];
 		in.getline(templine, MAX_BYTES);
 		std::string line = templine;
+		 
+#ifndef _WIN32
+		// Check for CRLF eol and convert it to LF
+		if (!line.empty() && line.at(line.size()-1) == '\r')
+		{
+			line.erase(line.size()-1);
+		}
+#endif
 
 		if (in.eof())
 		{

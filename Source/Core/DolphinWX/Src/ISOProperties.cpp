@@ -243,7 +243,7 @@ void CISOProperties::CreateGUIControls()
 	//issues
 	sEmuIssues = new wxBoxSizer(wxHORIZONTAL);
 	EmuIssues = new wxTextCtrl(m_GameConfig,ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0,wxDefaultValidator);
-	EmuIssuesText = new wxStaticText(m_GameConfig,ID_EMUISSUES_TEXT,_("Emulation Issues(for when emustate is 'Problems'):"), wxDefaultPosition, wxDefaultSize);
+	EmuIssuesText = new wxStaticText(m_GameConfig,ID_EMUISSUES_TEXT,_("Emulation Issues (for when emustate is 'Problems'):"), wxDefaultPosition, wxDefaultSize);
 
 	// Action Replay Cheats
 	sbCheats = new wxStaticBoxSizer(wxVERTICAL, m_CheatPage, _("Action Replay Codes"));
