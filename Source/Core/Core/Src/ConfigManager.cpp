@@ -102,8 +102,8 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 
 		// Wii
-		ini.Set("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen);
-		ini.Set("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan);
+		ini.Set("Wii", "Widescreen", m_LocalCoreStartupParameter.bWidescreen);
+		ini.Set("Wii", "ProgressiveScan", m_LocalCoreStartupParameter.bProgressiveScan);
 
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
