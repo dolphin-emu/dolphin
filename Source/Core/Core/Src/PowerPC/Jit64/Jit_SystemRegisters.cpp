@@ -27,7 +27,6 @@
 #include "Thunk.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitRegCache.h"
 
 	void Jit64::mtspr(UGeckoInstruction inst)

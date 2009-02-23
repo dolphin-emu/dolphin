@@ -32,7 +32,6 @@
 #include "ABI.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
@@ -160,6 +159,10 @@ void Jit64::stfd(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
+
+	Default(inst);
+	return;
+
 	INSTRUCTION_START;
 
 	int s = inst.RS;

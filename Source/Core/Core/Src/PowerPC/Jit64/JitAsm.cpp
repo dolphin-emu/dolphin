@@ -26,7 +26,7 @@
 
 #include "ABI.h"
 #include "Jit.h"
-#include "JitCache.h"
+#include "../JitCommon/JitCache.h"
 
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
@@ -78,10 +78,8 @@ void AsmRoutineManager::Generate()
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
 		dispatcher = GetCodePtr();
-			//This is the place for CPUCompare!
-
-			//The result of slice decrementation should be in flags if somebody jumped here
-			//Jump on negative, not carry!!!
+			// The result of slice decrementation should be in flags if somebody jumped here
+			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_BE);
 			SetJumpTarget(skipToRealDispatch);
 

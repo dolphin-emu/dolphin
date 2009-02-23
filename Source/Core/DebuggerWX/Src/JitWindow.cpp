@@ -23,11 +23,16 @@
 #include <wx/listctrl.h>
 #include <wx/thread.h>
 #include <wx/listctrl.h>
+
 #include "JitWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
+#if JITTEST
 #include "PowerPC/Jit64/Jit.h"
-#include "PowerPC/Jit64/JitCache.h"
+#else
+#include "PowerPC/Jit64IL/Jit.h"
+#endif
+#include "PowerPC/JitCommon/JitCache.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPCDisasm.h"
 #include "Host.h"

@@ -23,7 +23,6 @@
 #include "x64Emitter.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitRegCache.h"
 
 //#define INSTRUCTION_START Default(inst); return;

@@ -32,7 +32,6 @@
 #include "ABI.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
 

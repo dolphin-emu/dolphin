@@ -25,7 +25,6 @@
 
 #if defined(_M_IX86) || defined(_M_X64)
 #include "Jit64/Jit.h"
-#include "Jit64/JitCache.h"
 #else
 #error Unknown architecture!
 #endif

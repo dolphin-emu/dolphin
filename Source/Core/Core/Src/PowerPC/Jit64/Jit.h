@@ -46,7 +46,7 @@
 #define _JIT_H
 
 #include "../PPCAnalyst.h"
-#include "JitCache.h"
+#include "../JitCommon/JitCache.h"
 #include "JitRegCache.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"

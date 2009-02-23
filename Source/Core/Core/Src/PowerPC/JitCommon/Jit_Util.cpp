@@ -28,10 +28,17 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#include "Jit.h"
+#ifdef JITTEST
+#include "../Jit64IL/Jit.h"
 #include "JitCache.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
+#include "../Jit64IL/JitAsm.h"
+#include "../Jit64IL/JitRegCache.h"
+#else
+#include "../Jit64/Jit.h"
+#include "JitCache.h"
+#include "../Jit64/JitAsm.h"
+#include "../Jit64/JitRegCache.h"
+#endif
 
 void Jit64::JitClearCA()
 {

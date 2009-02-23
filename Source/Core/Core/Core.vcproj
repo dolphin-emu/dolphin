@@ -492,7 +492,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;JITTEST"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;JITTEST=1"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -1259,26 +1259,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\Src\PowerPC\Jit64\Jit_Util.cpp"
-					>
-					<FileConfiguration
-						Name="Release_JITIL|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_JITIL|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\Src\PowerPC\Jit64\JitAsm.cpp"
 					>
 					<FileConfiguration
@@ -1300,50 +1280,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Jit64\JitAsm.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitBackpatch.cpp"
-					>
-					<FileConfiguration
-						Name="Release_JITIL|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_JITIL|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitCache.cpp"
-					>
-					<FileConfiguration
-						Name="Release_JITIL|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release_JITIL|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitCache.h"
 					>
 				</File>
 				<File
@@ -1903,58 +1839,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\Jit_Util.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\JitAsm.cpp"
 					>
 					<FileConfiguration
@@ -2011,114 +1895,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\JitBackpatch.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\JitCache.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\JitCache.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\JitRegCache.cpp"
 					>
 					<FileConfiguration
@@ -2172,6 +1948,26 @@
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\JitRegCache.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="JitCommon"
+				>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\Jit_Util.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\JitBackpatch.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\JitCache.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\JitCache.h"
 					>
 				</File>
 			</Filter>

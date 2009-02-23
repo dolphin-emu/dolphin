@@ -25,7 +25,6 @@
 
 #include "Jit.h"
 #include "JitRegCache.h"
-#include "JitCache.h"
 #include "JitAsm.h"
 
 // The branches are known good, or at least reasonably good.

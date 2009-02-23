@@ -23,7 +23,7 @@
 #include "../../Core.h"
 
 #include "../Jit64/Jit.h"
-#include "../Jit64/JitCache.h"
+#include "../JitCommon/JitCache.h"
 
 namespace Interpreter
 {

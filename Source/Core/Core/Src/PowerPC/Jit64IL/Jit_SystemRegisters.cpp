@@ -27,7 +27,6 @@
 #include "Thunk.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitRegCache.h"
 
 //#define INSTRUCTION_START Default(inst); return;

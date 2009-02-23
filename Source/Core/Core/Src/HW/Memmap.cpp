@@ -30,7 +30,6 @@ may be redirected here (for example to Read_U32()).
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/Jit64/Jit.h"
-#include "../PowerPC/Jit64/JitCache.h"
 #include "../HLE/HLE.h"
 #include "CPU.h"
 #include "PeripheralInterface.h"

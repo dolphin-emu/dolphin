@@ -60,7 +60,7 @@
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
-#include "PowerPC/Jit64/JitCache.h" // for ClearCache()
+#include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
 #include "PluginManager.h"
 #include "ConfigManager.h"

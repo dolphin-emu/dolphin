@@ -34,7 +34,7 @@
 #include "../../HW/GPFifo.h"
 #include "Jit.h"
 #include "JitAsm.h"
-#include "JitCache.h"
+#include "../JitCommon/JitCache.h"
 #include "JitRegCache.h"
 
 #if  !defined JITTEST || ! JITTEST

@@ -19,7 +19,6 @@
 #include "../PPCTables.h"
 #include "../PPCAnalyst.h"
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
 

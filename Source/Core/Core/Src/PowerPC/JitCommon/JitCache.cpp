@@ -36,9 +36,15 @@
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
 
-#include "Jit.h"
+#ifdef JITTEST
+#include "../Jit64IL/Jit.h"
+#include "../Jit64IL/JitAsm.h"
+#else
+#include "../Jit64/Jit.h"
+#include "../Jit64/JitAsm.h"
+#endif
+
 #include "JitCache.h"
-#include "JitAsm.h"
 
 #include "disasm.h"
 

@@ -19,7 +19,13 @@
 
 #include "Common.h"
 #include "disasm.h"
-#include "JitAsm.h"
+#ifdef JITTEST
+#include "../Jit64IL/Jit.h"
+#include "../Jit64IL/JitAsm.h"
+#else
+#include "../Jit64/Jit.h"
+#include "../Jit64/JitAsm.h"
+#endif
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
@@ -28,7 +34,6 @@
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"
-#include "Jit.h"
 
 using namespace Gen;
 

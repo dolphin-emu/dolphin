@@ -27,7 +27,6 @@
 
 #include "ABI.h"
 #include "Jit.h"
-#include "JitCache.h"
 #include "Thunk.h"
 
 #include "../../HW/GPFifo.h"

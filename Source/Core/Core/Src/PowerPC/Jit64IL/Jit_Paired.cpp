@@ -24,7 +24,6 @@
 #include "../../HW/GPFifo.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitRegCache.h"
 
 	void Jit64::ps_mr(UGeckoInstruction inst)

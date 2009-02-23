@@ -211,7 +211,7 @@
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>

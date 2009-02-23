@@ -27,7 +27,6 @@
 
 #include "Interpreter/Interpreter.h"
 #include "Jit64/Jit.h"
-#include "Jit64/JitCache.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
 

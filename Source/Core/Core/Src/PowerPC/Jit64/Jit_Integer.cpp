@@ -21,7 +21,6 @@
 #include "x64Emitter.h"
 
 #include "Jit.h"
-#include "JitCache.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"
 

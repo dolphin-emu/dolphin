@@ -103,7 +103,7 @@
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -215,7 +215,7 @@
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -325,7 +325,7 @@
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -435,7 +435,7 @@
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -548,7 +548,7 @@
 				LargeAddressAware="1"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -659,7 +659,7 @@
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -774,7 +774,7 @@
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -886,7 +886,7 @@
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
+				DataExecutionPrevention="2"
 				TargetMachine="17"
 			/>
 			<Tool
