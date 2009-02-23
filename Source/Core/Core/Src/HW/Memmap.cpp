@@ -242,6 +242,7 @@ void InitHWMemFuncs()
 	hwWrite8 [GP_START] = GPFifo::Write8;
 	hwWrite16[GP_START] = GPFifo::Write16;
 	hwWrite32[GP_START] = GPFifo::Write32;
+	hwWrite64[GP_START] = GPFifo::Write64;
 }
 
 
@@ -300,6 +301,7 @@ void InitHWMemFuncsWii()
 	hwWrite8 [GP_START] = GPFifo::Write8;
 	hwWrite16[GP_START] = GPFifo::Write16;
 	hwWrite32[GP_START] = GPFifo::Write32;
+	hwWrite64[GP_START] = GPFifo::Write64;
 
 	for (int i = 0; i < BLOCKSIZE; i++)
 	{
@@ -813,6 +815,7 @@ u8 *GetPointer(const u32 _Address)
 	case 0x7B:
 	case 0xFF: 
 		break;
+
 	default:
 		if (!PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
 			Crash();

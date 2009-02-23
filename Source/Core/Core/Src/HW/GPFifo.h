@@ -48,6 +48,7 @@ bool IsEmpty();
 void HWCALL Write8(const u8 _iValue, const u32 _iAddress);
 void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
+void HWCALL Write64(const u64 _iValue, const u32 _iAddress);
 
 // These expect pre-byteswapped values
 // Also there's an upper limit of about 512 per batch
@@ -55,6 +56,7 @@ void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
 void HWCALL FastWrite8(const u8 _iValue);
 void HWCALL FastWrite16(const u16 _iValue);
 void HWCALL FastWrite32(const u32 _iValue);
+void HWCALL FastWrite64(const u64 _iValue);
 
 };
 

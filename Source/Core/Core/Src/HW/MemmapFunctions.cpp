@@ -40,9 +40,13 @@ extern bool m_IsInitialized;
 extern bool bFakeVMEM;
 
 // Read and write shortcuts
+
+// It appears that some clever games use stfd to write 64 bits to the fifo. Hence the hwWrite64.
+
 extern writeFn8  hwWrite8 [NUMHWMEMFUN];
 extern writeFn16 hwWrite16[NUMHWMEMFUN];
 extern writeFn32 hwWrite32[NUMHWMEMFUN];
+extern writeFn64 hwWrite64[NUMHWMEMFUN];
 
 extern readFn8   hwRead8 [NUMHWMEMFUN];
 extern readFn16  hwRead16[NUMHWMEMFUN];
@@ -51,6 +55,7 @@ extern readFn32  hwRead32[NUMHWMEMFUN];
 extern writeFn8  hwWriteWii8 [NUMHWMEMFUN];
 extern writeFn16 hwWriteWii16[NUMHWMEMFUN];
 extern writeFn32 hwWriteWii32[NUMHWMEMFUN];
+extern writeFn64 hwWriteWii64[NUMHWMEMFUN];
 
 extern readFn8   hwReadWii8 [NUMHWMEMFUN];
 extern readFn16  hwReadWii16[NUMHWMEMFUN];
@@ -75,7 +80,7 @@ inline void hwRead(u64 &var, u32 addr) {PanicAlert("hwRead: There's no 64-bit HW
 inline void hwWrite(u8 var, u32 addr)  {hwWrite8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 inline void hwWrite(u16 var, u32 addr) {hwWrite16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 inline void hwWrite(u32 var, u32 addr) {hwWrite32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u64 var, u32 addr) {PanicAlert("hwWrite: There's no 64-bit HW write. %08x", addr);}
+inline void hwWrite(u64 var, u32 addr) {hwWrite64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 
 inline void hwReadWii(u8 &var, u32 addr)  {hwReadWii8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 inline void hwReadWii(u16 &var, u32 addr) {hwReadWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
@@ -85,7 +90,7 @@ inline void hwReadWii(u64 &var, u32 addr) {PanicAlert("hwReadWii: There's no 64-
 inline void hwWriteWii(u8 var, u32 addr)  {hwWriteWii8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 inline void hwWriteWii(u16 var, u32 addr) {hwWriteWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 inline void hwWriteWii(u32 var, u32 addr) {hwWriteWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u64 var, u32 addr) {PanicAlert("hwWriteWii: There's no 64-bit HW write. %08x", addr);}
+inline void hwWriteWii(u64 var, u32 addr) {hwWriteWii64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
 
 inline void hwReadIOBridge(u8 &var, u32 addr)  {WII_IOBridge::Read8(var, addr);}
 inline void hwReadIOBridge(u16 &var, u32 addr) {WII_IOBridge::Read16(var, addr);}

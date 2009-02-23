@@ -119,6 +119,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	CheckGatherPipe();
 }
 
+void Write64(const u64 _iValue, const u32 _iAddress)
+{
+	*(u64*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap64(_iValue);
+	m_gatherPipeCount += 8;
+	CheckGatherPipe();
+}
+
 void FastWrite8(const u8 _iValue)
 {
 	m_gatherPipe[m_gatherPipeCount] = _iValue;
@@ -135,6 +142,12 @@ void FastWrite32(const u32 _iValue)
 {
 	*(u32*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap32(_iValue);
 	m_gatherPipeCount += 4;
+}
+
+void FastWrite64(const u64 _iValue)
+{
+	*(u64*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap64(_iValue);
+	m_gatherPipeCount += 8;
 }
 
 void FastWriteEnd()
