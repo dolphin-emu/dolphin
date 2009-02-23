@@ -483,13 +483,13 @@ void BPWritten(int addr, int changes, int newval)
                 if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
 				{                    
                     GLbitfield bits = 0;
-                    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate) {
+                    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
+					{
                         u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-                        glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
-
-							         ((clearColor>>8 ) & 0xff)*(1/255.0f),
-                                     ((clearColor>>0 ) & 0xff)*(1/255.0f),
-									 ((clearColor>>24) & 0xff)*(1/255.0f));
+						glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
+									((clearColor>>8 ) & 0xff)*(1/255.0f),
+									((clearColor>>0 ) & 0xff)*(1/255.0f),
+									((clearColor>>24) & 0xff)*(1/255.0f));
                         bits |= GL_COLOR_BUFFER_BIT;
                     }
                     if (bpmem.zmode.updateenable)
@@ -502,10 +502,12 @@ void BPWritten(int addr, int changes, int newval)
                     glClear(bits);
                 }
 
-                if (bpmem.zmode.updateenable && nRestoreZBufferTarget) { // have to clear the target zbuffer
+				// Have to clear the target zbuffer
+                if (bpmem.zmode.updateenable && nRestoreZBufferTarget)
+				{
                     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
                     GL_REPORT_ERRORD();
-                    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+                    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
                     
                     // red should probably be the LSB
                     glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),

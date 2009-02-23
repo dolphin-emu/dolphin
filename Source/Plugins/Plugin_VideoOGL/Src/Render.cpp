@@ -757,8 +757,7 @@ Renderer::RenderMode Renderer::GetRenderMode()
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio
-// here.
+// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
 // ----------------------
 void Renderer::Swap(const TRectangle& rc)
 {
@@ -832,7 +831,6 @@ void Renderer::Swap(const TRectangle& rc)
 		/*
 		Console::ClearScreen();
 		Console::Print("Bpmem        L:%i T:%i X:%i Y:%i\n", bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bpmem.copyTexSrcWH.x, bpmem.copyTexSrcWH.y);
-		Console::Print("Config       Left:%i Top:%i Width:%i Height:%i\n", g_Config.iScreenLeft, g_Config.iScreenTop, g_Config.iScreenWidth, g_Config.iScreenHeight);
 		Console::Print("Input        Left:%i Top:%i Right:%i Bottom:%i\n", rc.left, rc.top, rc.right, rc.bottom);
 		Console::Print("Old picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f\n", WidthRatio, OldWidth, HeightRatio, OldHeight);
 		Console::Print("New picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f YOffset:%4.0f YDeficit:%4.0f\n", WidthRatio, WinWidth, HeightRatio, WinHeight, FloatYOffset, HeightDeficit);
@@ -953,26 +951,30 @@ void Renderer::Swap(const TRectangle& rc)
 		GLHeight
 		);
 
+	// -----------------------------------------------------------------------
+	// Show the finished picture
+	// --------------------
 	// Reset GL state
     ResetGLState();
 
-    // texture map s_RenderTargets[s_curtarget] onto the main buffer
+    // Texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
     TextureMngr::EnableTexRECT(0);
     
-	// disable all other stages
+	// Disable all other stages
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
 
     GL_REPORT_ERRORD();
 
+	// Place the texture
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);                                              glVertex2f(-1,-1);
-    glTexCoord2f(0, (float)GetTargetHeight());                       glVertex2f(-1,1);
-    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(1,1);
-    glTexCoord2f((float)GetTargetWidth(), 0);                        glVertex2f(1,-1);
+		glTexCoord2f(0, 0);                                              glVertex2f(-1,-1);
+		glTexCoord2f(0, (float)GetTargetHeight());                       glVertex2f(-1,1);
+		glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(1,1);
+		glTexCoord2f((float)GetTargetWidth(), 0);                        glVertex2f(1,-1);
     glEnd();
 
 	// Wireframe
@@ -981,7 +983,57 @@ void Renderer::Swap(const TRectangle& rc)
 
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
+	// -------------------------------------
 
+
+	// -----------------------------------------------------------------------
+	/* Blacken out the borders in the 4:3 or the coming 16:9 aspect ratio modes. Somewhere in BPStructs
+	   0x52 or elsewhere the area outside the actual picture, that we now show with the aspect ratio option
+	   has been filled with either for example white, or have copies of old renderings on it. So we replace
+	   that with blacknes. */
+	// --------------------
+	if(g_Config.bKeepAR)
+	{
+		// Set current drawing color to red
+		glColor3f(0.0, 0.0, 0.0); // Black
+
+		/* This doesn't work
+		glRecti, glRectf(
+			(float)Left,
+			(float)Right,
+			(float)Top,
+			(float)Bottom); */
+
+		/* The glVertex3f() coordinates are:
+				Top: 1 to -1 from top to bottom
+				Left: 1 to -1 from right to left
+				Height and width is therefore 2.0, zero is the center of the screen
+		*/		
+		// The fraction of the screen that the image occupies
+		/* It's hard to make a border that always exactly begin where the screen ends. The ( -1) here will
+		   sometimes hide one pixel to many, but if we use (- 0) we will on the other hand sometimes show
+		   one line of pixels that we should not show. But a -0.5 adjustment seemed just right, it never hid
+		   one pixel to much, and never one to little. So I settle with a -0.5 adjustment here. */
+		float HeightRatio = (((float)(rc.bottom)) - 0.5) / 480.0f;
+
+		// Bottom border
+		float	FLeft = 1.0,
+				FWidth = -2.0,
+				FHeight = 2.0 * (1.0 - HeightRatio),
+				FTop = -1.0 + FHeight;		
+
+		glBegin(GL_POLYGON);
+			glVertex3f (FLeft,          FTop - FHeight, 0.0);
+			glVertex3f (FLeft + FWidth, FTop - FHeight, 0.0);
+			glVertex3f (FLeft + FWidth, FTop,           0.0);
+			glVertex3f (FLeft,          FTop,           0.0);
+		glEnd();
+		//Console::Print("Border     Left:%1.3f Top:%1.3f Width:%1.3f Height:%1.3f\n", FLeft, FTop, FWidth, FHeight);
+	}
+	// -------------------------------------
+
+
+	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
 
     RestoreGLState();
@@ -990,6 +1042,7 @@ void Renderer::Swap(const TRectangle& rc)
 
     g_Config.iSaveTargetId = 0;
 
+
     // for testing zbuffer targets
     //Renderer::SetZBufferRender();
     //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
@@ -997,8 +1050,14 @@ void Renderer::Swap(const TRectangle& rc)
 ////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////
+// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
+// ----------------------
 void Renderer::SwapBuffers()
 {
+	// -----------------------------------------------------------------------
+	/* Draw messages on the screen */
+	// --------------------
 	static int fpscount;
     static int s_fps;
     static unsigned long lasttime;
@@ -1089,6 +1148,8 @@ void Renderer::SwapBuffers()
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 
 	OSD::DrawMessages();
+	// -----------------------------
+
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) {
