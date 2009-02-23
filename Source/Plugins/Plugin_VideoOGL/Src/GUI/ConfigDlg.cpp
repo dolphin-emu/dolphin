@@ -97,8 +97,8 @@ void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 	Console::Print("CloseClick\n");
 
 	g_Config.Save();
-
-	wxEntryCleanup();
+	EndModal(0);
+	//wxEntryCleanup();
 
 	//Close();
 }

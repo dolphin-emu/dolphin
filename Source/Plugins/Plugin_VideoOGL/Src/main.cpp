@@ -107,26 +107,30 @@ void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	// This is needed because now we use wxEntryCleanup() when closing the configuration window
-	if (!wxTheApp || !wxTheApp->CallOnInit())
-	{
+	//		if (!wxTheApp || !wxTheApp->CallOnInit())
+	//	{
 #ifdef _WIN32
 		wxSetInstance((HINSTANCE)g_hInstance);
 #endif
-		int argc = 0;
-		char **argv = NULL;
-		wxEntryStart(argc, argv);
-	}
-#endif
+		//		int argc = 0;
+		// 		char **argv = NULL;
+		//		wxEntryStart(argc, argv);
 
+		//	}
+	
+		wxWindow *win = new wxWindow();
+#ifdef _WIN32
+		win->SetHWND((WXHWND)_hParent);
+		win->AdoptAttributesFromHWND();
+#endif
+		ConfigDialog *config_dialog = new ConfigDialog(win);
+
+
+#endif
+	
 	//Console::Open();
 
 #if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
-	wxWindow *win = new wxWindow();
-	win->SetHWND((WXHWND)_hParent);
-	win->AdoptAttributesFromHWND();
-
-	ConfigDialog *config_dialog = new ConfigDialog(win);
-
 	// ---------------------------------------------------------------
 	// Search for avaliable resolutions
 	// ---------------------
@@ -163,36 +167,10 @@ void DllConfig(HWND _hParent)
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 
-	// Check if at least one resolution was found. If we don't and the resolution array is empty
-	// CreateGUIControls() will crash because the array is empty.
-	if (config_dialog->arrayStringFor_FullscreenCB.size() == 0)
-	{
-		config_dialog->AddFSReso("<No resolutions found>");
-		config_dialog->AddWindowReso("<No resolutions found>");
-	}
-
-	// Create the controls and show the window
-	config_dialog->CreateGUIControls();
-	config_dialog->Show();
-
-#elif defined(USE_WX) && USE_WX
-
-	// Hm, why does this code show it modally?
-	config_dialog = new ConfigDialog(NULL);
-	g_Config.Load();
-	config_dialog->CreateGUIControls();
-	config_dialog->Show();
-	delete config_dialog;
-	config_dialog = NULL;
 
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\
         HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
 
-	wxWindow *win = new wxWindow();
-
-	ConfigDialog *config_dialog = new ConfigDialog(win);
-
-	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
     GLWin.dpy = XOpenDisplay(0);
@@ -223,10 +201,20 @@ void DllConfig(HWND _hParent)
 		}
 	}    
 	XFree(modes);
+#endif
+	
+	// Check if at least one resolution was found. If we don't and the resolution array is empty
+	// CreateGUIControls() will crash because the array is empty.
+	if (config_dialog->arrayStringFor_FullscreenCB.size() == 0)
+	{
+		config_dialog->AddFSReso("<No resolutions found>");
+		config_dialog->AddWindowReso("<No resolutions found>");
+	}
+
 	config_dialog->CreateGUIControls();
 	// Hm, why does this code show it modally?
-	config_dialog->Show();
-#endif
+	config_dialog->ShowModal();
+	
 }
 
 void Initialize(void *init)
