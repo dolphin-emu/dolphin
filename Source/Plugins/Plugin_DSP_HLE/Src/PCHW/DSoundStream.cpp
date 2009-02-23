@@ -106,7 +106,7 @@ void DSound::SoundLoop()
 	while (!threadData)
 	{
 		// No blocking inside the csection
-		soundCriticalSection->Enter();
+		soundCriticalSection.Enter();
 		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
 		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
 		if (numBytesToRender >= 256)
@@ -120,8 +120,10 @@ void DSound::SoundLoop()
 			lastPos = currentPos;
 		}
 
-		soundCriticalSection->Leave();
-		soundSyncEvent->Wait();
+		soundCriticalSection.Leave();
+		if (threadData)
+			break;
+		soundSyncEvent.Wait();
 	}
 
 	dsBuffer->Stop();
@@ -129,13 +131,10 @@ void DSound::SoundLoop()
 
 bool DSound::Start()
 {
-	soundSyncEvent = new Common::Event();
-	soundSyncEvent->Init();
-
-	soundCriticalSection = new Common::CriticalSection();
+	soundSyncEvent.Init();
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
         return false;
-	if(hWnd)
+	if (hWnd)
 		ds->SetCooperativeLevel((HWND)hWnd, DSSCL_NORMAL);
 	if (!CreateBuffer())
 		return false;
@@ -152,24 +151,21 @@ bool DSound::Start()
 
 void DSound::Update()
 {
-	soundSyncEvent->Set();
+	soundSyncEvent.Set();
 }
 
 void DSound::Stop()
 {
-	soundCriticalSection->Enter();
+	soundCriticalSection.Enter();
 	threadData = 1;
 	// kick the thread if it's waiting
-	soundSyncEvent->Set();
-	soundCriticalSection->Leave();
-	delete soundCriticalSection;
+	soundSyncEvent.Set();
+	soundCriticalSection.Leave();
 	delete thread;
 
 	dsBuffer->Release();
 	ds->Release();
 
-	soundSyncEvent->Shutdown();
-	delete soundSyncEvent;
-	soundSyncEvent = NULL;
+	soundSyncEvent.Shutdown();
 	thread = NULL;
 }

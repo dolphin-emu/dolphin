@@ -22,13 +22,12 @@
 #include "TextureDecoder.h"
 #include "LookUpTables.h"
 
-//Uncomment this to enable Texture Format ID overlays
-#define OVERLAY_TEXFMT
-
-#ifdef OVERLAY_TEXFMT
 bool TexFmt_Overlay_Enable=false;
 bool TexFmt_Overlay_Center=false;
-#endif
+
+extern const char* texfmt[];
+extern const unsigned char sfont_map[];
+extern const unsigned char sfont_raw[][9*10];
 
 // TRAM
 // STATE_TO_SAVE
@@ -344,11 +343,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 //TODO: to save memory, don't blindly convert everything to argb8888
 //also ARGB order needs to be swapped later, to accommodate modern hardware better
 //need to add DXT support too
-#ifdef OVERLAY_TEXFMT
 PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
-#else
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
-#endif
 {
     switch (texformat)
     {
@@ -491,16 +486,10 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 #endif
 }
 
-#ifdef OVERLAY_TEXFMT
-extern const char* texfmt[];
-extern const unsigned char sfont_map[];
-extern const unsigned char sfont_raw[][9*10];
-
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 	PC_TexFormat  retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
-
-	if((!TexFmt_Overlay_Enable)||(retval==PC_TEX_FMT_NONE))
+	if ((!TexFmt_Overlay_Enable)||(retval==PC_TEX_FMT_NONE))
 		return retval;
 
 	int w = min(width,40);
@@ -509,23 +498,23 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	int xoff = (width-w)>>1;
 	int yoff = (height-h)>>1;
 
-	if(!TexFmt_Overlay_Center)
+	if (!TexFmt_Overlay_Center)
 	{
 		xoff=0;
 		yoff=0;
 	}
 
 	const char* fmt = texfmt[texformat&15];
-	while(*fmt)
+	while (*fmt)
 	{
 		int xcnt = 0;
 		int nchar = sfont_map[(int)*fmt];
 		
 		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
 
-		for(int x=0;x<9;x++)
+		for(int x = 0; x < 9;x++)
 		{
-			if(ptr[x]==0x78)
+			if (ptr[x] == 0x78)
 				break;
 			xcnt++;
 		}
@@ -1309,5 +1298,3 @@ const unsigned char sfont_raw[][9*10] = {
 	0xff, 0xff, 0xff, 0xff, 0xff, 0x78, 0x78, 0x78, 0x78, 
 	},
 };
-#endif
-
