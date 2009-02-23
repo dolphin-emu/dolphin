@@ -176,8 +176,16 @@ public:
 					u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
 					u8* pDest = Memory::GetPointer(Addr);
 
-					memcpy(pDest,pSrc, Size);
-					rContent.m_Position += Size;
+                    if (rContent.m_Position + Size > rContent.m_pContent->m_Size) 
+                    {
+                        Size = rContent.m_pContent->m_Size-rContent.m_Position;
+                    }
+
+                    if (Size > 0)
+                    {
+					    memcpy(pDest,pSrc, Size);
+					    rContent.m_Position += Size;
+                    }
 
 					LOG(WII_IPC_ES, "ES: IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i", CFD, Addr, Size, rContent.m_Position);
 
@@ -217,6 +225,7 @@ public:
 						break;
 
 					case 1:  // CUR
+                        rContent.m_Position += Addr;
 						break;
 
 					case 2:  // END
