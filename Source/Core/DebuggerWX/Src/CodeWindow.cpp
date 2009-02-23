@@ -687,7 +687,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	    case IDM_DEBUG_GO:
 	    {
 		    // [F|RES] prolly we should disable the other buttons in go mode too ...
-		    JumpToAddress(PC);
 
 		    if (CCPU::IsStepping())
 		    {
@@ -698,7 +697,8 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 			    CCPU::EnableStepping(true);  // Break
 			    Host_UpdateLogDisplay();
 		    }
-
+			wxThread::Sleep(20);
+		    JumpToAddress(PC);
 		    Update();
 	    }
 		break;
@@ -734,36 +734,6 @@ void CCodeWindow::JumpToAddress(u32 _Address)
 {
     codeview->Center(_Address);
 	UpdateLists();
-}
-
-
-void CCodeWindow::UpdateLists()
-{
-	callers->Clear();
-	u32 addr = codeview->GetSelection();
-	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
-	if (!symbol)
-		return;
-	for (int i = 0; i < (int)symbol->callers.size(); i++)
-	{
-		u32 caller_addr = symbol->callers[i].callAddress;
-		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
-		if (caller_symbol) {
-			int idx = callers->Append(wxString::Format( wxT("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
-			callers->SetClientData(idx, (void*)caller_addr);
-		}
-	}
-
-	calls->Clear();
-	for (int i = 0; i < (int)symbol->calls.size(); i++)
-	{
-		u32 call_addr = symbol->calls[i].function;
-		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
-		if (call_symbol) {
-			int idx = calls->Append(wxString::Format(_T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
-			calls->SetClientData(idx, (void*)call_addr);
-		}
-	}
 }
 
 
@@ -832,9 +802,37 @@ void CCodeWindow::SingleCPUStep()
 	Host_UpdateLogDisplay();
 }
 
-void CCodeWindow::Update()
+void CCodeWindow::UpdateLists()
 {
-	codeview->Refresh();
+	callers->Clear();
+	u32 addr = codeview->GetSelection();
+	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
+	if (!symbol)
+		return;
+	for (int i = 0; i < (int)symbol->callers.size(); i++)
+	{
+		u32 caller_addr = symbol->callers[i].callAddress;
+		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
+		if (caller_symbol) {
+			int idx = callers->Append(wxString::Format( wxT("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
+			callers->SetClientData(idx, (void*)caller_addr);
+		}
+	}
+
+	calls->Clear();
+	for (int i = 0; i < (int)symbol->calls.size(); i++)
+	{
+		u32 call_addr = symbol->calls[i].function;
+		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
+		if (call_symbol) {
+			int idx = calls->Append(wxString::Format(_T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
+			calls->SetClientData(idx, (void*)call_addr);
+		}
+	}
+}
+
+void CCodeWindow::UpdateCallstack()
+{
 	callstack->Clear();
 
 	std::vector<Debugger::CallstackEntry> stack;
@@ -851,7 +849,13 @@ void CCodeWindow::Update()
 	{
 		callstack->Append(wxString::FromAscii("invalid callstack"));
 	}
+}
 
+void CCodeWindow::Update()
+{
+	codeview->Refresh();
+
+	UpdateCallstack();
 	UpdateButtonStates();
 
 	/* DO NOT Automatically show the current PC position when a breakpoint is hit or

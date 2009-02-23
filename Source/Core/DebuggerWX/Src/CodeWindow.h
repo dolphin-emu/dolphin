@@ -214,6 +214,7 @@ class CCodeWindow
 
 		void UpdateButtonStates();
 		void UpdateLists();
+		void UpdateCallstack();
 		void RecreateToolbar();
 		void PopulateToolbar(wxToolBar* toolBar);
 		void OnStatusBar(wxMenuEvent& event); void OnStatusBar_(wxUpdateUIEvent& event);
