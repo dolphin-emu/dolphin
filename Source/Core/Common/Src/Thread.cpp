@@ -91,7 +91,7 @@ void Thread::WaitForDeath()
 {
 	if (m_hThread)
 	{
-		WaitForSingleObject(m_hThread, THREAD_WAIT_TIMEOUT);
+		WaitForSingleObject(m_hThread, INFINITE);
 		CloseHandle(m_hThread);
 		m_hThread = NULL;
 	}
@@ -140,7 +140,7 @@ void Event::Set()
 
 void Event::Wait()
 {
-	WaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT);
+	WaitForSingleObject(m_hEvent, INFINITE);
 }
 
 inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)

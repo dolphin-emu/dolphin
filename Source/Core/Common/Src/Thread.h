@@ -81,7 +81,6 @@ private:
 #ifdef _WIN32
 	HANDLE m_hThread;
 	DWORD m_threadId;
-	static const int THREAD_WAIT_TIMEOUT = 5000;
 #else
 	pthread_t thread_id;
 #endif
