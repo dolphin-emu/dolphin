@@ -38,3 +38,4 @@ void ClearScreen();
 ///////////////////////////////
 
 #endif // WIIMOTE_CONSOLE_H
+

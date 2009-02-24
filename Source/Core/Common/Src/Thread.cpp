@@ -414,7 +414,7 @@ Thread::~Thread()
 }
 
 
-void Thread::WaitForDeath(const int _Wait)
+void Thread::WaitForDeath()
 {
 	if (thread_id)
 	{

@@ -33,3 +33,4 @@ struct STileMetaContent
 // [TODO]: this global internal stuff sux... the whole data should be inside the ES
 // but this is the easiest way atm
 extern std::vector<STileMetaContent> m_TileMetaContent;
+

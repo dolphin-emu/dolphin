@@ -43,3 +43,4 @@ bool IsConnected(int Controller);
 } // XInput
 
 #endif
+

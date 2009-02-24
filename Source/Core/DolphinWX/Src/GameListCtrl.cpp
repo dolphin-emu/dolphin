@@ -281,7 +281,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			wxString::From8BitData(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		break;
 	}
-
 	SetItem(_Index, COLUMN_COMPANY, wxString::From8BitData(rISOFile.GetCompany().c_str()), -1);
 	
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
@@ -943,3 +942,4 @@ bool CGameListCtrl::CopySJISToString( wxString& _rDestination, const char* _src 
 #endif
 	return returnCode;
 }
+

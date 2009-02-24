@@ -26,6 +26,18 @@
 #include "EmuDefinitions.h" // for PadMapping
 #include "main.h"
 
+// TODO: Figure out what to do for non-Win32
+#ifndef _WIN32
+#define VK_LEFT 0
+#define VK_RIGHT 0
+#define VK_UP 0
+#define VK_DOWN 0
+#define VK_NUMPAD4 0
+#define VK_NUMPAD6 0
+#define VK_NUMPAD8 0
+#define VK_NUMPAD5 0
+#endif
+
 Config g_Config;
 
 Config::Config()
@@ -65,7 +77,6 @@ void Config::Load(bool ChangePad)
 	iniFile.Get(TmpSection.c_str(), "IRHeight", &iIRHeight, BOTTOM - TOP);
 
 	// Default controls
-	#ifdef _WIN32
 		int WmA = 65, WmB = 66,
 			Wm1 = 49, Wm2 = 50,
 			WmP = 80, WmM = 77, WmH = 72,
@@ -83,24 +94,6 @@ void Config::Load(bool ChangePad)
 			CcDl = VK_NUMPAD4, CcDu = VK_NUMPAD8, CcDr = VK_NUMPAD6, CcDd = VK_NUMPAD5, // Numpad
 			CcLl = 0x4a, CcLu = 0x49, CcLr = 0x4c, CcLd = 0x4b, // J, I, L, K
 			CcRl = 0x44, CcRu = 0x52, CcRr = 0x47, CcRd = 0x46; // D, R, G, F
-	#else
-		int WmA = 0, WmB = 0,
-			Wm1 = 0, Wm2 = 0,
-			WmP = 0, WmM = 0, WmH = 0,
-			WmL = 0, WmR = 0, WmU = 0, WmD = 0,
-			WmShake = 0,
-			WmPitchL = 0, WmPitchR = 0,
-			
-			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0, NcD = 0,
-			NcShake = 0,
-
-			CcA = 0, CcB = 0, CcX = 0, CcY = 0, // C, Z, X, Y
-			CcP = 0, CcM = 0, CcH = 0, // O instead of P, N instead of M, U instead of H
-			CcTl = 0, CcZl = 0, CcZr = 0, CcTr = 0, // 7, 8, 9, 0
-			CcDl = 0, CcDu = 0, CcDr = 0, CcDd = 0, // Numpad
-			CcLl = 0, CcLu = 0x49, CcLr = 0, CcLd = 0, // J, I, L, K
-			CcRl = 0, CcRu = 0x52, CcRr = 0, CcRd = 0; // D, R, G, F
-	#endif
 
 	for (int i = 0; i < 1; i++)
 	{

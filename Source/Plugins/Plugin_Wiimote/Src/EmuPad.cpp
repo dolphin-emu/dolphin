@@ -192,3 +192,4 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 
 
 } // end of namespace WiiMoteEmu
+

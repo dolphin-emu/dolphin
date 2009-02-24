@@ -37,7 +37,6 @@
 #include "Common.h"
 ///////////////////////////////////
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Definitions
 // ------------
@@ -89,7 +88,11 @@ public:
 
 	void SetAffinity(int mask);
 	static void SetCurrentThreadAffinity(int mask);
+#ifdef _WIN32
 	void WaitForDeath(const int _Wait = INFINITE);
+#else
+	void WaitForDeath();
+#endif
 
 private:
 

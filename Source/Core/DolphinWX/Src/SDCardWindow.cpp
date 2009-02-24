@@ -61,3 +61,4 @@ void wxSDCardWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED(event))
 {
 	EndModal(0);
 }
+

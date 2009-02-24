@@ -41,3 +41,4 @@ void SetSourcePath(const std::string path)
 	sourcePath = path;
 }
 }
+

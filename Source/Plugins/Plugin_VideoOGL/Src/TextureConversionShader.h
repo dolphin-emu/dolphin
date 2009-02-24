@@ -36,3 +36,4 @@ void SetShaderParameters(u32 width, u32 height, u32 offsetX, u32 offsetY, float 
 }
 
 #endif
+

@@ -37,3 +37,4 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata);
 
 
 #endif
+

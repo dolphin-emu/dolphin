@@ -128,3 +128,4 @@ class wxCheatsWindow : public wxFrame
 };
 
 #endif
+

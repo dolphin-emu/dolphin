@@ -38,3 +38,4 @@ void CloseConsole();
 	HWND GetConsoleHwnd(void);
 #endif
 /////////////////////////////
+

@@ -25,3 +25,4 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 bool SaveData(const char* filename, const char* pdata);
 
 #endif  // _IMAGEWRITE_H
+

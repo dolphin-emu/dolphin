@@ -302,7 +302,11 @@ void Stop()
 		if (GetParent((HWND)g_pWindowHandle) == NULL)
 	#endif
 #ifndef SETUP_TIMER_WAITING // This is moved
+#ifdef _WIN32
 	g_EmuThread->WaitForDeath(5000);
+#else
+	g_EmuThread->WaitForDeath();
+#endif
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
 #endif
@@ -575,7 +579,11 @@ void EmuThreadEnd()
 	if (cpuThread)
 	{
 		// There is a CPU thread - join it.
+#ifdef _WIN32
 		cpuThread->WaitForDeath(5000);
+#else
+		cpuThread->WaitForDeath();
+#endif
 		delete cpuThread;
 		// Returns after game exited
 		cpuThread = NULL;
