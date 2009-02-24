@@ -987,15 +987,15 @@ void Renderer::Swap(const TRectangle& rc)
 
 
 	// -----------------------------------------------------------------------
-	/* Blacken out the borders in the 4:3 or the coming 16:9 aspect ratio modes. Somewhere in BPStructs
+	/* Blacken out the borders in the 4:3 or 16:9 aspect ratio modes. Somewhere in BPStructs
 	   0x52 or elsewhere the area outside the actual picture, that we now show with the aspect ratio option
 	   has been filled with either for example white, or have copies of old renderings on it. So we replace
 	   that with blacknes. */
 	// --------------------
-	if(g_Config.bKeepAR43)
+	if(g_Config.bKeepAR43 || g_Config.bKeepAR169)
 	{
-		// Set current drawing color to red
-		glColor3f(0.0, 0.0, 0.0); // Black
+		// Set current drawing color to black
+		glColor3f(0.0, 0.0, 0.0);
 
 		/* This doesn't work
 		glRecti, glRectf(
