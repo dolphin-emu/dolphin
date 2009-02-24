@@ -92,7 +92,7 @@ void Config::Load(bool ChangePad)
 			WmPitchL = 0, WmPitchR = 0,
 			
 			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0, NcD = 0,
-			NcShake = 0;
+			NcShake = 0,
 
 			CcA = 0, CcB = 0, CcX = 0, CcY = 0, // C, Z, X, Y
 			CcP = 0, CcM = 0, CcH = 0, // O instead of P, N instead of M, U instead of H
