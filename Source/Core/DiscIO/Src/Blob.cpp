@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+#include "CDUtils.h"
 #include "Blob.h"
 #include "CompressedBlob.h"
 #include "FileBlob.h"
@@ -121,7 +122,7 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *
 
 IBlobReader* CreateBlobReader(const char* filename)
 {
-	if (File::IsDisk(filename))
+	if (cdio_is_cdrom(filename))
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))

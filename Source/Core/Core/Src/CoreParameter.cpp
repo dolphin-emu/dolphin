@@ -18,6 +18,7 @@
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "StringUtil.h"
+#include "CDUtils.h"
 
 #include "VolumeCreator.h" // DiscIO
 
@@ -62,7 +63,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	{
 	case BOOT_DEFAULT:
 		{
-			bool bootDrive = File::IsDisk(m_strFilename.c_str());
+			bool bootDrive = cdio_is_cdrom(m_strFilename.c_str());
 			// Check if the file exist, we may have gotten it from a --elf command line
 			// that gave an incorrect file name 
 			if (!bootDrive && !File::Exists(m_strFilename.c_str()))

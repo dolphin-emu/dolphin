@@ -26,7 +26,7 @@
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
 ////////////////////////////////
-#include "DriveUtil.h"
+#include "CDUtils.h"
 
 //////////////////////////////////////////////////////////////////////////
 // A shortcut to access the bitmaps
@@ -98,7 +98,7 @@ class CFrame : public wxFrame
 		wxToolBar* TheToolBar;
 		wxToolBarToolBase* m_ToolPlay;
 
-		std::vector<std::string> drives;
+		char **drives;
 
 		//////////////////////////////////////////////////////////////////////////////////////
 		// Music mod

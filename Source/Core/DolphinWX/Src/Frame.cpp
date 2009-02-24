@@ -389,6 +389,7 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
+	cdio_free_device_list(drives);
 /* The statbar sample has this so I add this to, but I guess timer will be deleted after
    this anyway */
 #if wxUSE_TIMER

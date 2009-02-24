@@ -100,15 +100,14 @@ void CFrame::CreateMenu()
 	wxMenu* fileMenu = new wxMenu;
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 
-#if defined(_WIN32) || defined(__GNUC__) // not tested on os x
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
-	GetAllRemovableDrives(&drives);
-	for (int i = 0; i < drives.size() && i < 24; i++) 
-	{
-		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives.at(i).c_str()));
+	
+	drives = cdio_get_devices();
+	for (int i = 0; drives[i] != NULL && i < 24; i++) {
+		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives[i]));
 	}
-#endif
+
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh List"));
 	fileMenu->AppendSeparator();
@@ -489,7 +488,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-	BootManager::BootCore(drives.at(event.GetId()-IDM_DRIVE1).c_str());
+	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1]);
 }
 
 ////////////////////////////////////////////////////
