@@ -27,6 +27,9 @@ void Init();
 // Shutdown
 void Shutdown();	
 
+// Reset
+void Reset();
+
 // Update
 void Update();
 
