@@ -184,6 +184,7 @@ private:
 	void CommandDisconnect(u8* _Input);
 	void CommandLinkKeyNegRep(u8* _Input);
 	void CommandLinkKeyRep(u8* _Input);
+    void CommandDeleteStoredLinkKey(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);

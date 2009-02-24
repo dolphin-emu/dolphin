@@ -1132,6 +1132,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		CommandLinkKeyRep(pInput);
 		break;
 
+    case HCI_CMD_DELETE_STORED_LINK_KEY:
+        CommandDeleteStoredLinkKey(pInput);
+        break;
 
 		//
 		// --- default ---
@@ -1811,6 +1814,35 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8*
 	SendEventCommandComplete(HCI_OCF_WRITE_LINK_SUPERVISION_TIMEOUT, &Reply, sizeof(hci_write_link_supervision_timeout_rp));
 }
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDeleteStoredLinkKey(u8* _Input)
+{
+    // command parameters
+    hci_delete_stored_link_key_cp* pDeleteStoredLinkKey = (hci_delete_stored_link_key_cp*)_Input;
+
+    LOG(WII_IPC_WIIMOTE, "Command: HCI_OCF_DELETE_STORED_LINK_KEY");
+    LOG(WII_IPC_WIIMOTE, "Input:");
+    LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
+        pDeleteStoredLinkKey->bdaddr.b[0], pDeleteStoredLinkKey->bdaddr.b[1], pDeleteStoredLinkKey->bdaddr.b[2],
+        pDeleteStoredLinkKey->bdaddr.b[3], pDeleteStoredLinkKey->bdaddr.b[4], pDeleteStoredLinkKey->bdaddr.b[5]);
+    LOG(WII_IPC_WIIMOTE, "  delete_all: 0x%01x", pDeleteStoredLinkKey->delete_all);
+
+
+    CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pDeleteStoredLinkKey->bdaddr);
+    if (pWiiMote == NULL)
+    {
+        PanicAlert("CommandDeleteStoredLinkKey: Cant find WiiMote by bd");
+        return;
+    }
+
+    hci_delete_stored_link_key_rp Reply;
+    Reply.status = 0x00;
+    Reply.num_keys_deleted = 0;
+
+    SendEventCommandComplete(HCI_CMD_DELETE_STORED_LINK_KEY, &Reply, sizeof(hci_delete_stored_link_key_rp));
+
+    PanicAlert("HCI: CommandDeleteStoredLinkKey... Prolly the security for linking has failed. COuld be a problem with the loading of the SCONF");
+}
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyNegRep(u8* _Input)
 {
 	// command parameters
@@ -1826,7 +1858,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyNegRep(u8* _Input)
 	Reply.status = 0x00;
 	Reply.bdaddr = pKeyNeg->bdaddr;
 
-	SendEventCommandComplete(HCI_OCF_WRITE_LINK_SUPERVISION_TIMEOUT, &Reply, sizeof(hci_link_key_neg_rep_rp));
+	SendEventCommandComplete(HCI_CMD_LINK_KEY_NEG_REP, &Reply, sizeof(hci_link_key_neg_rep_rp));
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
