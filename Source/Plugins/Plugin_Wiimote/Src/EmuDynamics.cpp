@@ -364,4 +364,20 @@ void IRData2Distance()
 ////////////////////////////////
 
 
+//******************************************************************************
+// Classic Controller functions
+//******************************************************************************
+
+std::string CCData2Values(u8 *Data)
+{
+	return StringFromFormat(
+		"Tl:%03i Tr:%03i Lx:%03i Ly:%03i Rx:%03i Ry:%03i",
+		(((Data[2] & 0x60) >> 2) | ((Data[3] & 0xe0) >> 5)),
+		(Data[3] & 0x1f),
+		(Data[0] & 0x3f),
+		(Data[1] & 0x3f),
+		((Data[0] & 0xc0) >> 3) | ((Data[1] & 0xc0) >> 5) | ((Data[2] & 0x80) >> 7),
+		(Data[2] & 0x1f));
+}
+
 } // WiiMoteEmu

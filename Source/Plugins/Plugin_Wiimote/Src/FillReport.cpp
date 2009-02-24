@@ -929,9 +929,6 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	_ir0.x2 = x2 & 0xff; _ir0.x2Hi = (x2 >> 8);
 	_ir0.y2 = y2 & 0xff; _ir0.y2Hi = (y2 >> 8);
 
-	// I don't understand't the & 0x03, should we do that?
-	//_ir1.x1Hi = (x1 >> 8) & 0x3;
-	//_ir1.y1Hi = (y1 >> 8) & 0x3;
 
 	// ------------------------------------
 	// Debugging for calibration
@@ -1259,14 +1256,9 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			if (_Tl == 0xff)  _ext.b1.bLT = 0x00;
 			if (_Tr == 0xff)  _ext.b1.bRT = 0x00;
 
-			// The reported data is supposed to be divided by 8 so that we return 0x1f at most, I think. But
-			// I'm not sure about the bit shifts further down.
-			lT = _Tl / 8;
-			rT = _Tr / 8;
-
-			// Boundaries
-			if (lT > 0x1f) lT = 0x1f;
-			if (rT > 0x1f) rT = 0x1f;
+			// These can be copied directly, the bitshift further down fix this value to
+			lT = _Tl;
+			rT = _Tr;
 		}
 
 
@@ -1344,15 +1336,21 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 
 	// --------------------------------------
 	// Convert data for reporting
+	// --------------
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
-	_ext.Rx = (Rx >> 3); // This may be wrong
-	_ext.Rx2 = (Rx >> 5);
-	_ext.Rx3 = (Rx >> 7);
-	_ext.Ry = (Ry >> 2);
+	// 5 bit to 1 bit
+	_ext.Rx = (Rx >> 3) & 0x01;
+	// 5 bit to the next 2 bit
+	_ext.Rx2 = ((Rx >> 3) >> 1) & 0x03;
+	// 5 bit to the next 2 bit
+	_ext.Rx3 = ((Rx >> 3) >> 3) & 0x03;
+	_ext.Ry = (Ry >> 3);
 
-	_ext.lT = (lT >> 6); // This may be wrong
-	_ext.lT2 = (lT >> 5);
+	// 5 bit to 3 bit
+	_ext.lT = (lT >> 3) & 0x07;
+	// 5 bit to the highest two bits
+	_ext.lT2 = (lT >> 3) >> 3;
 	_ext.rT = (rT >> 3);
 	// --------------
 

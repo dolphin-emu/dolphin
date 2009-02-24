@@ -214,14 +214,14 @@ struct wm_cc_5
 struct wm_classic_extension
 {
 	u8 Lx : 6; // byte 0
-	u8 Rx : 2;
+	u8 Rx3 : 2;
 	u8 Ly : 6; // byte 1
 	u8 Rx2 : 2;
 	u8 Ry : 5; // byte 2
-	u8 lT : 2;
-	u8 Rx3 : 1;
+	u8 lT2 : 2;
+	u8 Rx : 1;
 	u8 rT : 5; // byte 3
-	u8 lT2 : 3;
+	u8 lT : 3;
 	wm_cc_4 b1; // byte 4
 	wm_cc_5 b2; // byte 5
 };

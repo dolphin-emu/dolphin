@@ -617,21 +617,42 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			if(WiiMoteEmu::g_Encryption)
 				wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
-			Console::Print("\nGame got the Nunchuck calibration:\n");
-			Console::Print("Cal_zero.x: %i\n", data[7 + 0]);
-			Console::Print("Cal_zero.y: %i\n", data[7 + 1]);
-			Console::Print("Cal_zero.z: %i\n",  data[7 + 2]);
-			Console::Print("Cal_g.x: %i\n", data[7 + 4]);
-			Console::Print("Cal_g.y: %i\n",  data[7 + 5]);
-			Console::Print("Cal_g.z: %i\n",  data[7 + 6]);
-			Console::Print("Js.Max.x: %i\n",  data[7 + 8]);
-			Console::Print("Js.Min.x: %i\n",  data[7 + 9]);
-			Console::Print("Js.Center.x: %i\n", data[7 + 10]);
-			Console::Print("Js.Max.y: %i\n",  data[7 + 11]);
-			Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
-			Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
+			if (g_Config.bNunchuckConnected)
+			{
+				Console::Print("\nGame got the Nunchuck calibration:\n");
+				Console::Print("Cal_zero.x: %i\n", data[7 + 0]);
+				Console::Print("Cal_zero.y: %i\n", data[7 + 1]);
+				Console::Print("Cal_zero.z: %i\n",  data[7 + 2]);
+				Console::Print("Cal_g.x: %i\n", data[7 + 4]);
+				Console::Print("Cal_g.y: %i\n",  data[7 + 5]);
+				Console::Print("Cal_g.z: %i\n",  data[7 + 6]);
+				Console::Print("Js.Max.x: %i\n",  data[7 + 8]);
+				Console::Print("Js.Min.x: %i\n",  data[7 + 9]);
+				Console::Print("Js.Center.x: %i\n", data[7 + 10]);
+				Console::Print("Js.Max.y: %i\n",  data[7 + 11]);
+				Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
+				Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
+			}
+			else // g_Config.bClassicControllerConnected
+			{
+				Console::Print("\nGame got the Classic Controller calibration:\n");
+				Console::Print("Lx.Max: %i\n", data[7 + 0]);
+				Console::Print("Lx.Min: %i\n", data[7 + 1]);
+				Console::Print("Lx.Center: %i\n",  data[7 + 2]);
+				Console::Print("Ly.Max: %i\n", data[7 + 3]);
+				Console::Print("Ly.Min: %i\n",  data[7 + 4]);
+				Console::Print("Ly.Center: %i\n",  data[7 + 5]);
+				Console::Print("Rx.Max.x: %i\n",  data[7 + 6]);
+				Console::Print("Rx.Min.x: %i\n",  data[7 + 7]);
+				Console::Print("Rx.Center.x: %i\n", data[7 + 8]);
+				Console::Print("Ry.Max.y: %i\n",  data[7 + 9]);
+				Console::Print("Ry.Min: %i\n",  data[7 + 10]);
+				Console::Print("Ry.Center: %i\n\n", data[7 + 11]);
+				Console::Print("Lt.Neutral: %i\n",  data[7 + 12]);
+				Console::Print("Rt.Neutral %i\n\n", data[7 + 13]);
+			}
 
-			// Save the values
+			// Save the values if they come from the real Wiimote
 			if (!Emu)
 			{
 				// Save the values from the Nunchuck
@@ -716,11 +737,13 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// Decrypt extension data
 		if(WiiMoteEmu::g_ReportingMode == 0x37)
 			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[17], 0x00, 0x06);
+		if(WiiMoteEmu::g_ReportingMode == 0x35)
+			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[7], 0x00, 0x06);
 
 		// Produce string
 		//std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		std::string TmpCore = "", TmpAccel = "", TmpIR = "", TmpExt = "";
+		std::string TmpCore = "", TmpAccel = "", TmpIR = "", TmpExt = "", CCData = "";
 		TmpCore = StringFromFormat(
 				"%02x %02x %02x %02x",
 				data[0], data[1], data[2], data[3]);  // Header and core buttons
@@ -744,6 +767,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			data[7], data[8], // Nunchuck stick
 			data[9], data[10], data[11], // Nunchuck Accelerometer
 			data[12]); //  Nunchuck buttons
+
+			CCData = WiiMoteEmu::CCData2Values(&data[7]);
 		}
 		if (data[1] == 0x37) // WM_REPORT_CORE_ACCEL_IR10_EXT6
 		{
@@ -757,6 +782,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				data[17], data[18], // Nunchuck stick
 				data[19], data[20], data[21], // Nunchuck Accelerometer
 				data[22]); //  Nunchuck buttons
+			CCData = WiiMoteEmu::CCData2Values(&data[17]);
 		}
 
 
@@ -813,11 +839,18 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		IRData += StringFromFormat(" | Distance:%i", WiiMoteEmu::g_Wm.IR.Distance);
 		// -------------------------
 
-		//Console::Print("Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str()); // Formatted data only
-		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str()); // IR data
-		Console::Print("Read[%s]: %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
-			TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), RollPitch.c_str(), GForce.c_str()); // Accelerometer
-		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		// Classic Controller data
+		Console::Print("Read[%s]: %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+			TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), CCData.c_str());
+		// Formatted data only
+		//Console::Print("Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str());
+		// IR data
+		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str());
+		// Accelerometer data
+		//Console::Print("Read[%s]: %s | %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+		//	TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), RollPitch.c_str(), GForce.c_str(), CCData.c_str());
+		// Timestamp
+		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str());
 		
 	}
 	if(g_DebugAccelerometer)
@@ -1058,8 +1091,8 @@ void DoInitialize()
 	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
 	   we will return before creating a new thread for it if we find no real Wiimotes.
 	   Then g_RealWiiMotePresent will also be false. This function call will be done
-	   instantly if there is no real Wiimote connected.  I'm not sure how long time
-	   it takes if a Wiimote is connected. */
+	   instantly whether there is a real Wiimote connected or not. It takes no time for
+	   Wiiuse to check for connected Wiimotes. */
 	#if HAVE_WIIUSE
 		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
 	#endif

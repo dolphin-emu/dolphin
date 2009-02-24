@@ -68,6 +68,9 @@ void IRData2DotsBasic(u8 *Data);
 void ReorderIRDots();
 void IRData2Distance();
 
+// Classic Controller data
+std::string CCData2Values(u8 *Data);
+
 }; // WiiMoteEmu
 
 
