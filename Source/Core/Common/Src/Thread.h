@@ -18,6 +18,9 @@
 #ifndef _THREAD_H
 #define _THREAD_H
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ------------
 #ifdef _WIN32
 #include <windows.h>
 #define THREAD_RETURN DWORD WINAPI
@@ -32,7 +35,18 @@
 #endif
 
 #include "Common.h"
+///////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Definitions
+// ------------
+// This may not be defined outside _WIN32
+#ifndef _WIN32
+	#ifndef INFINITE
+	#define INFINITE 0xffffffff
+	#endif
+#endif
 
 // -----------------------------------------
 #ifdef SETUP_TIMER_WAITING
@@ -40,6 +54,7 @@
 	typedef void (*EventCallBack)(void);
 #endif
 // ----------------------
+///////////////////////////////////
 
 
 namespace Common
