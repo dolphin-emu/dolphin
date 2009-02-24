@@ -851,14 +851,14 @@ void Renderer::Swap(const TRectangle& rc)
 	// The rendering window size
 	float WinWidth = (float)OpenGL_GetWidth();
 	float WinHeight = (float)OpenGL_GetHeight();
-	// The rendering window aspect ratio as a fraction of the 4:3 ratio
-	float Ratio = WinWidth / WinHeight / (4.0f / 3.0f);
+	// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+	float Ratio = WinWidth / WinHeight / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 	float wAdj, hAdj;
 	// Actual pixel size of the picture after adjustment
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 
 	// This function currently only works together with the Stretch To Fit option
-	if (g_Config.bKeepAR && g_Config.bStretchToFit)
+	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bStretchToFit)
 	{
 		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
 		if (Ratio > 1)
@@ -992,7 +992,7 @@ void Renderer::Swap(const TRectangle& rc)
 	   has been filled with either for example white, or have copies of old renderings on it. So we replace
 	   that with blacknes. */
 	// --------------------
-	if(g_Config.bKeepAR)
+	if(g_Config.bKeepAR43)
 	{
 		// Set current drawing color to red
 		glColor3f(0.0, 0.0, 0.0); // Black

@@ -46,7 +46,8 @@ void Config::Load()
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bStretchToFit, true);
-    iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
+	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
+	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
     
     
@@ -96,7 +97,8 @@ void Config::Save()
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
     iniFile.Set("Settings", "StretchToFit", bStretchToFit);
-    iniFile.Set("Settings", "KeepAR", bKeepAR);
+    iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
+	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
     iniFile.Set("Settings", "Backend", iBackend);
     

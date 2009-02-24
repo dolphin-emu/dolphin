@@ -35,7 +35,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_KEEPAR_4_3, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_KEEPAR_16_9, ConfigDialog::GeneralSettingsChanged)
 	#ifndef _WIN32
 		EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
 	#endif
@@ -166,9 +167,13 @@ void ConfigDialog::CreateGUIControls()
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("Keep 16:9 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Default values
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
-	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_KeepAR->SetValue(g_Config.bKeepAR);
+	m_KeepAR43->SetValue(g_Config.bKeepAR43);
+	m_KeepAR169->SetValue(g_Config.bKeepAR169);
 
 	#ifndef _WIN32
 		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -231,7 +236,8 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_KeepAR, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasic->Add(m_KeepAR43, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_KeepAR169, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
 	#ifndef _WIN32
 		sBasic->Add(m_HideCursor, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 		sBasic->Add(FSText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -424,8 +430,15 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_STRETCHTOFIT:
 		g_Config.bStretchToFit = m_StretchToFit->IsChecked();
 		break;
-	case ID_KEEPAR:		
-		g_Config.bKeepAR = m_KeepAR->IsChecked();
+	case ID_KEEPAR_4_3:		
+		g_Config.bKeepAR43 = m_KeepAR43->IsChecked();
+		// Don't allow both at the same time
+		if (g_Config.bKeepAR43) { g_Config.bKeepAR169 = false; m_KeepAR169->SetValue(false); }		
+		break;
+	case ID_KEEPAR_16_9:		
+		g_Config.bKeepAR169 = m_KeepAR169->IsChecked();
+		// Don't allow both at the same time
+		if (g_Config.bKeepAR169) { g_Config.bKeepAR43 = false; m_KeepAR43->SetValue(false); }	
 		break;
 	#ifndef _WIN32
 		case ID_HIDECURSOR:
@@ -544,7 +557,8 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 void ConfigDialog::UpdateGUI()
 {
 	// This option is only compatible with the Strech To Fit option
-	m_KeepAR->Enable(g_Config.bStretchToFit);
+	m_KeepAR43->Enable(g_Config.bStretchToFit);
+	m_KeepAR169->Enable(g_Config.bStretchToFit);
 
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);

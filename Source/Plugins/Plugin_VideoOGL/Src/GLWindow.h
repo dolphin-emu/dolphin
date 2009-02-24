@@ -130,7 +130,7 @@ public:
 			&currWinRes.x, &currWinRes.y);
 
 		SetProperty(OGL_FULLSCREEN, g_Config.bFullscreen);
-		SetProperty(OGL_KEEPRATIO, g_Config.bKeepAR);
+		SetProperty(OGL_KEEPRATIO, g_Config.bKeepAR43);
 		SetProperty(OGL_HIDECURSOR, g_Config.bHideCursor);
 
 		updateDim();
