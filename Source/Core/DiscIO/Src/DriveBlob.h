@@ -36,9 +36,11 @@ private:
 
 #ifdef _WIN32
 	HANDLE hDisc;
-	PREVENT_MEDIA_REMOVAL	pmrLockCDROM;
+	PREVENT_MEDIA_REMOVAL pmrLockCDROM;
+	bool IsOK() {return hDisc != INVALID_HANDLE_VALUE;}
 #else
 	FILE* file_;
+	bool IsOK() {return file_ != 0;}
 #endif
 	s64 size;
 	u64 *block_pointers;

@@ -131,7 +131,7 @@ IBlobReader* CreateBlobReader(const char* filename)
 	if (IsCompressedBlob(filename))
 		return CompressedBlobReader::Create(filename);
 
-	// Still here? Assume plain file.
+	// Still here? Assume plain file - since we know it exists due to the File::Exists check above.
 	return PlainFileReader::Create(filename);
 }
 

@@ -21,23 +21,34 @@
 namespace DiscIO
 {
 	DriveReader::DriveReader(const char *drive)
+		: hDisc(INVALID_HANDLE_VALUE)
 	{
 #ifdef _WIN32
 		char path[MAX_PATH];
 		strncpy(path, drive, 3);
 		path[2] = 0;
 		sprintf(path, "\\\\.\\%s", drive);
-
+		SectorReader::SetSectorSize(2048);
 		hDisc = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 							NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
 		if (hDisc != INVALID_HANDLE_VALUE)
 		{
+			// Do a test read to make sure everything is OK, since it seems you can get
+			// handles to empty drives.
+			DWORD not_used;
+			if (!ReadFile(hDisc, 0, m_blocksize, (LPDWORD)&not_used, NULL))
+			{
+				// OK, something is wrong.
+				CloseHandle(hDisc);
+				hDisc = INVALID_HANDLE_VALUE;
+				return;
+			}
 			
 		#ifdef _LOCKDRIVE // Do we want to lock the drive?
 			// Lock the compact disc in the CD-ROM drive to prevent accidental
 			// removal while reading from it.
 			pmrLockCDROM.PreventMediaRemoval = TRUE;
-			DeviceIoControl (hDisc, IOCTL_CDROM_MEDIA_REMOVAL,
+			DeviceIoControl(hDisc, IOCTL_CDROM_MEDIA_REMOVAL,
                        &pmrLockCDROM, sizeof(pmrLockCDROM), NULL,
                        0, &dwNotUsed, NULL);
 		#endif
@@ -46,11 +57,10 @@ namespace DiscIO
 		if (file_)
 		{
 #endif
-			SectorReader::SetSectorSize(2048);
 		}
 		else
-		{		
-			PanicAlert("Load from DVD backup failed or no disc in drive %s",drive);
+		{
+			PanicAlert("Load from DVD backup failed or no disc in drive %s", drive);
 		}
 	} // DriveReader::DriveReader
 
@@ -67,15 +77,23 @@ namespace DiscIO
 		if (hDisc != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(hDisc);
+			hDisc = INVALID_HANDLE_VALUE;
 		}
 #else
 		fclose(file_);
+		file_ = 0;
 #endif	
 	}
 
-	DriveReader * DriveReader::Create(const char *drive)
+	DriveReader *DriveReader::Create(const char *drive)
 	{
-		return new DriveReader(drive);
+		DriveReader *reader = new DriveReader(drive);
+		if (!reader->IsOK())
+		{
+			delete reader;
+			return 0;
+		}
+		return reader;
 	}
 
 	void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
@@ -88,7 +106,7 @@ namespace DiscIO
 		LONG off_high = (LONG)(offset >> 32);
 		SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
 		if (!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, NULL))
-			PanicAlert("DRE");
+			PanicAlert("Disc Read Error");
 #else
 		fseek(file_, m_blocksize*block_num, SEEK_SET);
 		fread(lpSector, 1, m_blocksize, file_);
@@ -107,7 +125,7 @@ namespace DiscIO
 		SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
 		if (!ReadFile(hDisc, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, NULL))
 		{
-			PanicAlert("DRE");
+			PanicAlert("Disc Read Error");
 			return false;
 		}
 #else

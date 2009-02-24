@@ -93,7 +93,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 				delete pReader;
 			}
 
-			return(pVolume);
+			return pVolume;
 		}
 			break;
 
@@ -133,17 +133,17 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType,
 		FILE* pT = fopen(MasterKeyFile, "rb");
 		if (pT == NULL)
 		{
-			if(PanicYesNo("Can't open '%s'.\n If you know the key, now it's the time to paste it into "
+			if (PanicYesNo("Can't open '%s'.\n If you know the key, now it's the time to paste it into "
 				"'%s' before pressing [YES].", MasterKeyFile, MasterKeyFileHex))
 			{
 				pT = fopen(MasterKeyFileHex, "r");
-				if(pT==NULL){
+				if (!pT) {
 					PanicAlert("could not open %s", MasterKeyFileHex);
 					return NULL;
 				}
 
 				static char hexkey[32];
-				if(fread(hexkey,1,32,pT)<32)
+				if (fread(hexkey, 1, 32, pT)<32)
 				{
 					PanicAlert("%s is not the right size", MasterKeyFileHex);
 					fclose(pT);
@@ -152,24 +152,24 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType,
 				fclose(pT);
 
 				static char binkey[16];
-				char *t=hexkey;
-				for(int i=0;i<16;i++)
+				char *t = hexkey;
+				for (int i = 0; i < 16; i++)
 				{
-					char h[3]={*(t++),*(t++),0};
-					binkey[i] = (char) strtol(h,NULL,16);
+					char h[3] = {*(t++), *(t++), 0};
+					binkey[i] = (char)strtol(h, NULL, 16);
 				}
 
 				pT = fopen(MasterKeyFile, "wb");
-				if(pT==NULL){
+				if (!pT) {
 					PanicAlert("could not open/make '%s' for writing!", MasterKeyFile);
 					return NULL;
 				}
 
-				fwrite(binkey,16,1,pT);
+				fwrite(binkey, 16, 1, pT);
 				fclose(pT);
 
 				pT = fopen(MasterKeyFileHex, "rb");
-				if(pT==NULL){
+				if (!pT) {
 					PanicAlert("could not open '%s' for reading!\n did the file get deleted or locked after converting?", MasterKeyFileHex);
 					return NULL;
 				}
