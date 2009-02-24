@@ -178,7 +178,6 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
             g_IPC_Control.unk5 = TempControl.unk5;
             g_IPC_Control.unk6 = TempControl.unk6;
             g_IPC_Control.pad = TempControl.pad;
-
 			if (TempControl.ExecuteCmd)     
 			{ 
 				WII_IPC_HLE_Interface::AckCommand(g_Address);
@@ -199,6 +198,13 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
         {							
 		    LOG(WII_IPC, "IOP: Write32 to IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
 		    g_IPC_Config.Hex = _Value;
+
+
+            if (_Value&0x40000000) 
+            { 
+                WII_IPC_HLE_Interface::Reset();
+            }
+
         }
 		break;
 

@@ -63,6 +63,7 @@
 #include "../HW/Memmap.h"
 #include "../HW/WII_IPC.h"
 #include "../Debugger/Debugger_SymbolMap.h"
+#include "../PowerPC/PowerPC.h"
 
 namespace WII_IPC_HLE_Interface
 {
@@ -74,6 +75,7 @@ TDeviceMap g_DeviceMap;
 // STATE_TO_SAVE
 u32 g_LastDeviceID = 0x13370000;
 std::list<u32> g_Ack;
+u32 g_AckNumber = 0;
 std::queue<std::pair<u32,std::string> > g_ReplyQueue;
 void ExecuteCommand(u32 _Address);
 
@@ -83,7 +85,7 @@ void Init()
     _dbg_assert_msg_(WII_IPC, g_DeviceMap.empty(), "DeviceMap isnt empty on init");   
 }
 
-void Shutdown()
+void Reset()
 {
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
     while(itr != g_DeviceMap.end())
@@ -91,7 +93,21 @@ void Shutdown()
         delete itr->second;
         ++itr;
     }
-    g_DeviceMap.clear();
+    g_DeviceMap.clear();    
+
+    while(!g_ReplyQueue.empty())
+    {
+        g_ReplyQueue.pop();
+    }
+
+    g_Ack.clear();
+}
+
+void Shutdown()
+{
+    Reset();
+    g_LastDeviceID = 0x13370000;
+    g_AckNumber = 0;
 }
 
 u32 GetDeviceIDByName(const std::string& _rDeviceName)
@@ -208,8 +224,8 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 // ----------------
 bool AckCommand(u32 _Address)
 {   
-        Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
-	LOGV(WII_IPC_HLE, 1, "AckCommand: 0%08x", _Address);
+    Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
+    LOGV(WII_IPC_HLE, 1, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
 
 	std::list<u32>::iterator itr = g_Ack.begin();
 	while (itr != g_Ack.end())
@@ -224,6 +240,7 @@ bool AckCommand(u32 _Address)
 	}
 
     g_Ack.push_back(_Address);
+    g_AckNumber++;
 
     return true;
 }
@@ -476,8 +493,9 @@ void Update()
         {
             u32 _Address = g_Ack.front();
             g_Ack.pop_front();
+            LOGV(WII_IPC_HLE, 1, "-- Exeute Ack (0x%08x)", _Address);
             ExecuteCommand(_Address);
-            LOGV(WII_IPC_HLE, 1, "-- Generate Ack (0x%08x)", _Address);
+            LOGV(WII_IPC_HLE, 1, "-- End of ExecuteAck (0x%08x)", _Address);
 
 			// Go back to WII_IPC.cpp and generate an acknowledgement
             WII_IPCInterface::GenerateAck(_Address);
