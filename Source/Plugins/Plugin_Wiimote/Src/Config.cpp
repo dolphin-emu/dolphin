@@ -93,6 +93,13 @@ void Config::Load(bool ChangePad)
 			
 			NcZ = 0, NcC = 0, NcL = 0, NcR = 0, NcU = 0, NcD = 0,
 			NcShake = 0;
+
+			CcA = 0, CcB = 0, CcX = 0, CcY = 0, // C, Z, X, Y
+			CcP = 0, CcM = 0, CcH = 0, // O instead of P, N instead of M, U instead of H
+			CcTl = 0, CcZl = 0, CcZr = 0, CcTr = 0, // 7, 8, 9, 0
+			CcDl = 0, CcDu = 0, CcDr = 0, CcDd = 0, // Numpad
+			CcLl = 0, CcLu = 0x49, CcLr = 0, CcLd = 0, // J, I, L, K
+			CcRl = 0, CcRu = 0x52, CcRr = 0, CcRd = 0; // D, R, G, F
 	#endif
 
 	for (int i = 0; i < 1; i++)
