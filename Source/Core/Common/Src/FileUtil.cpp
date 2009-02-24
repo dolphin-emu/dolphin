@@ -547,4 +547,10 @@ void GetCurrentDirectory(std::string& _rDirectory)
 	_rDirectory = getcwd(tmpBuffer, MAX_PATH);
 }
 
+bool SetCurrentDirectory(const std::string& _rDirectory)
+{
+    return chdir(_rDirectory.c_str()) == 0;
+}
+
+
 } // namespace

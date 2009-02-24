@@ -55,6 +55,7 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
 
 bool DeleteDirRecursively(const std::string& _Directory);
 void GetCurrentDirectory(std::string& _rDirectory);
+bool SetCurrentDirectory(const std::string& _rDirectory);
 
 }  // namespace
 
