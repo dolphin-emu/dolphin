@@ -1316,6 +1316,14 @@
 			RelativePath=".\src\stdafx.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\WxUtils.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\WxUtils.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

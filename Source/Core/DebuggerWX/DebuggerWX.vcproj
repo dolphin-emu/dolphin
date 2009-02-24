@@ -457,14 +457,6 @@
 				RelativePath=".\src\RegisterView.h"
 				>
 			</File>
-			<File
-				RelativePath=".\src\WxUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\WxUtils.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resources"
