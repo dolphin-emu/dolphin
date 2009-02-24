@@ -20,6 +20,8 @@
 
 #include <string>
 #include <vector>
+#include "Common.h"
+#include "FileUtil.h"
 
 // Tools to enumerate drives (HDD, DVD, CD) in a platform-independent manner.
 

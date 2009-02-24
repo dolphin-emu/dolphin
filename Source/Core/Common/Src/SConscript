@@ -9,6 +9,7 @@ files = [
 	"ConsoleWindow.cpp",
 	"ColorUtil.cpp",
 	"CPUDetect.cpp",
+	"DriveUtil.cpp",
 	"DynamicLibrary.cpp",
 	"Hash.cpp",
 	"IniFile.cpp",

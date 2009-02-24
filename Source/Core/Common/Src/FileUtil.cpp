@@ -30,6 +30,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <linux/cdrom.h>
 #endif
 
 #include <fstream>
@@ -72,11 +75,33 @@ bool Exists(const char *filename)
 bool IsDisk(const char *filename)
 {
 #ifdef _WIN32
-	std::string copy = filename;
-	if (copy.size() < 4 && copy.c_str()[1] == ':')
+	if (GetDriveType(filename) == DRIVE_CDROM)  // CD_ROM also applies to DVD. Noone has a plain CDROM without DVD anymore so we should be fine.
 		return true;
 #else
-	// TODO: add linux \ osx 
+	struct stat statInfo;
+	if((stat(filename, &statInfo) > -1) && (S_ISCHR(statInfo.st_mode) || S_ISBLK(statInfo.st_mode)))
+	{
+		int fileHandle;
+		// try to open the device
+		fileHandle = open(filename, O_RDONLY | O_NONBLOCK, 0);
+		if (fileHandle >= 0)
+		{
+			cdrom_subchnl cdChannelInfo;
+			cdChannelInfo.cdsc_format = CDROM_MSF;
+			
+			if ((ioctl(fileHandle, CDROMSUBCHNL, &cdChannelInfo) == 0) ||
+				(errno == EIO) || (errno == ENOENT) ||
+				(errno == EINVAL)
+				#ifdef __GNUC__
+				 || (errno == ENOMEDIUM)
+				 #endif
+				 )
+			{
+				return true;
+			}
+			close(fileHandle);
+		}
+	}
 #endif
 	return false;
 }

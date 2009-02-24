@@ -99,15 +99,14 @@ void CFrame::CreateMenu()
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
-// not tested on linux/os x
-// works ok on a virtual drive with GC Games, Wii games do not load
-// backups take about 60-90 seconds to load from real cd drive
-#ifdef _WIN32
+
+#if defined(_WIN32) || defined(__GNUC__) // not tested on linux/os x
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	GetAllRemovableDrives(&drives);
-	for (int i = 0; i < drives.size() && i < 24; i++) {
-		externalDrive->Append(IDM_DRIVE1 + i, wxString::Format(_T("%s"), drives.at(i).c_str()));
+	for (int i = 0; i < drives.size() && i < 24; i++) 
+	{
+		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives.at(i).c_str()));
 	}
 #endif
 	fileMenu->AppendSeparator();
@@ -490,6 +489,10 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
+#ifdef __GNUC__
+	if (!PanicYesNo("This function has not been tested on Linux, continue?\nPlease report whether it works or not"))
+		return;
+#endif
 	BootManager::BootCore(drives.at(event.GetId()-IDM_DRIVE1).c_str());
 }
 

@@ -30,14 +30,10 @@ namespace DiscIO
 
 		hDisc = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 							NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
-		if (hDisc == INVALID_HANDLE_VALUE)
-		{		
-			PanicAlert("Load from DVD backup failed");
-		}
-		else
+		if (hDisc != INVALID_HANDLE_VALUE)
 		{
-			SectorReader::SetSectorSize(2048);
-		#ifdef _LOCKDRIVE
+			
+		#ifdef _LOCKDRIVE // Do we want to lock the drive?
 			// Lock the compact disc in the CD-ROM drive to prevent accidental
 			// removal while reading from it.
 			pmrLockCDROM.PreventMediaRemoval = TRUE;
@@ -45,14 +41,17 @@ namespace DiscIO
                        &pmrLockCDROM, sizeof(pmrLockCDROM), NULL,
                        0, &dwNotUsed, NULL);
 		#endif
-		}
 #else
 		file_ = fopen(drive, "rb");
-		if (!file_)
-			PanicAlert("Load from DVD backup failed");
-		else
-			SetSectorSize(2048);
+		if (file_)
+		{
 #endif
+			SectorReader::SetSectorSize(2048);
+		}
+		else
+		{		
+			PanicAlert("Load from DVD backup failed or no disc in drive %s",drive);
+		}
 	} // DriveReader::DriveReader
 
 	DriveReader::~DriveReader()
@@ -65,7 +64,10 @@ namespace DiscIO
 			&pmrLockCDROM, sizeof(pmrLockCDROM), NULL,
 			0, &dwNotUsed, NULL);
 	#endif
-		CloseHandle(hDisc);
+		if (hDisc != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(hDisc);
+		}
 #else
 		fclose(file_);
 #endif	
@@ -104,10 +106,14 @@ namespace DiscIO
 		LONG off_high = (LONG)(offset >> 32);
 		SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
 		if (!ReadFile(hDisc, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, NULL))
+		{
 			PanicAlert("DRE");
+			return false;
+		}
 #else
 		fseek(file_, m_blocksize*block_num, SEEK_SET);
-		fread(out_ptr, 1, m_blocksize * num_blocks, file_);
+		if(fread(out_ptr, 1, m_blocksize * num_blocks, file_) != m_blocksize * num_blocks)
+			return false;
 #endif
 		return true;
 	}
