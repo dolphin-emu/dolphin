@@ -583,11 +583,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DriveUtil.cpp"
+			RelativePath=".\Src\CDUtils.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DriveUtil.h"
+			RelativePath=".\Src\CDUtils.h"
 			>
 		</File>
 		<File
