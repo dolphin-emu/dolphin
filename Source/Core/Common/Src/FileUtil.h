@@ -37,8 +37,6 @@ struct FSTEntry
 
 std::string SanitizePath(const char *filename);
 bool Exists(const char *filename);
-void Launch(const char *filename);
-void Explore(const char *path);
 bool IsDirectory(const char *filename);
 bool IsDisk(const char *filename);
 bool CreateDir(const char *filename);

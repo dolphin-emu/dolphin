@@ -2,7 +2,6 @@
    With minor adjustments */
  
 #include "CDUtils.h"
-#include "common.h"
   
 /*!
   Follow symlinks until we have the real device file
@@ -413,7 +412,7 @@ bool cdio_is_cdrom(const char *device) {
 	char **devices = cdio_get_devices();
 	bool res = false;
 	for (int i = 0; devices[i] != NULL; i++) {
-		if (strncmp(devices[i], device, PATH_MAX)) {
+		if (strncmp(devices[i], device, PATH_MAX) == 0) {
 			res = true;
 			break;
 		}

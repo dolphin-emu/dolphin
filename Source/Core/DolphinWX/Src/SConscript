@@ -35,6 +35,7 @@ if wxenv['HAVE_WX']:
 		'stdafx.cpp',
 		'FrameWiimote.cpp',
 		'SDCardWindow.cpp',
+		'WxUtils.cpp',
 		]
 
         CPPDEFINES = [

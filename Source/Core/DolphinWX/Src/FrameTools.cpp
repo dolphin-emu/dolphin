@@ -59,6 +59,8 @@ be accessed from Core::GetWindowHandle().
 
 #include <wx/datetime.h> // wxWidgets
 
+// ugly that this lib included code from the main
+#include "../../DolphinWX/Src/WxUtils.h"
 
 // ----------------------------------------------------------------------------
 // Resources
@@ -624,10 +626,10 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		break;
 		}
 	case IDM_HELPWEBSITE:
-		File::Launch("http://www.dolphin-emu.com/");
+		WxUtils::Launch("http://www.dolphin-emu.com/");
 		break;
 	case IDM_HELPGOOGLECODE:
-		File::Launch("http://code.google.com/p/dolphin-emu/");
+		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
 		break;
 	}
 }

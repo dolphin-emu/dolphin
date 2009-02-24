@@ -113,36 +113,6 @@ std::string SanitizePath(const char *filename)
     return copy;
 }
 
-void Launch(const char *filename)
-{
-#ifdef _WIN32
-	std::string win_filename = SanitizePath(filename);
-	SHELLEXECUTEINFO shex = { sizeof(shex) };
-	shex.fMask = SEE_MASK_NO_CONSOLE; // | SEE_MASK_ASYNC_OK;
-	shex.lpVerb = "open";
-	shex.lpFile = win_filename.c_str();
-	shex.nShow = SW_SHOWNORMAL;
-	ShellExecuteEx(&shex);
-#else
-	// TODO: Insert GNOME/KDE code here.
-#endif
-}
-
-void Explore(const char *path)
-{
-#ifdef _WIN32
-	std::string win_path = SanitizePath(path);
-	SHELLEXECUTEINFO shex = { sizeof(shex) };
-	shex.fMask = SEE_MASK_NO_CONSOLE; // | SEE_MASK_ASYNC_OK;
-	shex.lpVerb = "explore";
-	shex.lpFile = win_path.c_str();
-	shex.nShow = SW_SHOWNORMAL;
-	ShellExecuteEx(&shex);
-#else
-	// TODO: Insert GNOME/KDE code here.
-#endif
-}
-
 // Returns true if successful, or path already exists.
 bool CreateDir(const char *path)
 {
@@ -545,3 +515,4 @@ bool SetCurrentDirectory(const std::string& _rDirectory)
 
 
 } // namespace
+

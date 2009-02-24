@@ -32,6 +32,7 @@
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
+#include "../../DolphinWX/Src/WxUtils.h"
 
 #include "Host.h"
 
@@ -42,11 +43,11 @@
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
 #include "JitWindow.h"
+#include "FileUtil.h"
 
 #include "CodeWindow.h"
 #include "CodeView.h"
 
-#include "FileUtil.h"
 #include "Core.h"
 #include "HLE/HLE.h"
 #include "Boot/Boot.h"
@@ -133,7 +134,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 		break;
 	case IDM_WRITEPROFILE:
 		Profiler::WriteProfileResults("profiler.txt");
-		File::Launch("profiler.txt");
+		WxUtils::Launch("profiler.txt");
 		break;
 	}
 }

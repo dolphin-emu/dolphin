@@ -23,13 +23,13 @@
 #include <algorithm>
 
 #include "FileSearch.h"
-#include "FileUtil.h"
 #include "StringUtil.h"
 #include "ConfigManager.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
 #include "ISOProperties.h"
 #include "IniFile.h"
+#include "FileUtil.h"
 
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
@@ -37,6 +37,9 @@
     #include "../resources/Flag_Japan.xpm"
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
+
+// ugly that this lib included code from the main
+#include "../../DolphinWX/Src/WxUtils.h"
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
@@ -636,7 +639,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 		return;
 	std::string path;
 	SplitPath(iso->GetFileName(), &path, 0, 0);
-	File::Explore(path.c_str());
+	WxUtils::Explore(path.c_str());
 }
 
 
