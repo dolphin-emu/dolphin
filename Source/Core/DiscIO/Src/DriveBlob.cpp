@@ -35,13 +35,16 @@ namespace DiscIO
 			// Do a test read to make sure everything is OK, since it seems you can get
 			// handles to empty drives.
 			DWORD not_used;
-			if (!ReadFile(hDisc, 0, m_blocksize, (LPDWORD)&not_used, NULL))
+			u8 *buffer = new u8[m_blocksize];
+			if (!ReadFile(hDisc, buffer, m_blocksize, (LPDWORD)&not_used, NULL))
 			{
+				delete [] buffer;
 				// OK, something is wrong.
 				CloseHandle(hDisc);
 				hDisc = INVALID_HANDLE_VALUE;
 				return;
 			}
+			delete [] buffer;
 			
 		#ifdef _LOCKDRIVE // Do we want to lock the drive?
 			// Lock the compact disc in the CD-ROM drive to prevent accidental
