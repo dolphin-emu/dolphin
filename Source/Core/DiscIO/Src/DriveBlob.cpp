@@ -21,7 +21,6 @@
 namespace DiscIO
 {
 	DriveReader::DriveReader(const char *drive)
-		: hDisc(INVALID_HANDLE_VALUE)
 	{
 #ifdef _WIN32
 		char path[MAX_PATH];
