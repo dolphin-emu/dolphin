@@ -74,9 +74,9 @@ public:
 
 	void SetAffinity(int mask);
 	static void SetCurrentThreadAffinity(int mask);
+	void WaitForDeath(const int _Wait = INFINITE);
 
 private:
-	void WaitForDeath();
 
 #ifdef _WIN32
 	HANDLE m_hThread;

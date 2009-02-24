@@ -87,11 +87,11 @@ Thread::~Thread()
 	WaitForDeath();
 }
 
-void Thread::WaitForDeath()
+void Thread::WaitForDeath(const int _Wait)
 {
 	if (m_hThread)
 	{
-		WaitForSingleObject(m_hThread, INFINITE);
+		WaitForSingleObject(m_hThread, _Wait);
 		CloseHandle(m_hThread);
 		m_hThread = NULL;
 	}
