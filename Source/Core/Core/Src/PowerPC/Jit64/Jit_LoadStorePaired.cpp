@@ -283,14 +283,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		PACKSSDW(XMM0, R(XMM0));
 		MOVD_xmm(M(&temp64), XMM0);
 		MOV(32, R(ABI_PARAM1), M(&temp64));
-		BSWAP(32, ABI_PARAM1);
-#ifdef _M_X64
-		MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
-#else
-		MOV(32, R(EAX), R(ABI_PARAM2));
-		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
-#endif
+		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		fpr.UnlockAll();

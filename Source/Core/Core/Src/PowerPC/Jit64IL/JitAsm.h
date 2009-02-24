@@ -41,7 +41,7 @@ private:
 	void GenerateCommon();
 	void GenFifoWrite(int size);
 	void GenFifoFloatWrite();
-	void GenFifoXmm64Write();
+	void GenFifoXmm64Write();  // yes, 32 & 64-bit compatible
 	void GenQuantizedLoads();
 	void GenQuantizedStores();
 

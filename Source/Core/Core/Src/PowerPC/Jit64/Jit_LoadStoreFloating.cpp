@@ -160,9 +160,6 @@ void Jit64::stfd(UGeckoInstruction inst)
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
 
-	Default(inst);
-	return;
-
 	INSTRUCTION_START;
 
 	int s = inst.RS;
@@ -176,7 +173,29 @@ void Jit64::stfd(UGeckoInstruction inst)
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	fpr.Lock(s);
-	MOV(32, R(ABI_PARAM1), gpr.R(a));
+	gpr.LoadToX64(a, true, false);
+	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
+	TEST(32, R(ABI_PARAM1), Imm32(0x0c000000));
+	FixupBranch not_ram = J_CC(CC_Z);
+	if (cpu_info.bSSSE3) {
+		MOVAPD(XMM0, fpr.R(s));
+		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
+		CALL(asm_routines.fifoDirectWriteXmm64);
+	} else {
+		// This ain't working yet
+/*		fpr.LoadToX64(s, true, false);
+		MOVSD(M(&temp64), fpr.RX(s));
+		MOV(32, R(EAX), M(&temp64));
+		MOV(32, R(ABI_PARAM1), M((void*)((u32)&temp64 + 4)));
+		BSWAP(32, EAX);
+		BSWAP(32, ABI_PARAM1);
+		MOV(32, M(((u8 *)&temp64) + 4), R(EAX));
+		MOV(32, M((u8 *)&temp64), R(ABI_PARAM1));
+		MOVSD(XMM0, M(&temp64));
+		CALL(asm_routines.fifoDirectWriteXmm64); */
+	}
+	FixupBranch quit = J(false);
+	SetJumpTarget(not_ram);
 #ifdef _M_IX86
 	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 #endif
@@ -184,9 +203,9 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOVAPD(XMM0, fpr.R(s));
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
 #ifdef _M_X64
-		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, offset), XMM0);
+		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, 0), XMM0);
 #else
-		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base + offset), XMM0);
+		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base), XMM0);
 #endif
 	} else {
 #ifdef _M_X64
@@ -194,18 +213,19 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOVSD(M(&temp64), fpr.RX(s));
 		MOV(64, R(EAX), M(&temp64));
 		BSWAP(64, EAX);
-		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
+		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, 0), R(EAX));
 #else
 		fpr.LoadToX64(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
 		MOV(32, R(EAX), M(&temp64));
 		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4), R(EAX));
+		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + 4), R(EAX));
 		MOV(32, R(EAX), M((void*)((u32)&temp64 + 4)));
 		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset), R(EAX));
+		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
 #endif
 	}
+	SetJumpTarget(quit);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();

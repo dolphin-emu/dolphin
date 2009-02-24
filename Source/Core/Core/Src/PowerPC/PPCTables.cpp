@@ -45,7 +45,7 @@ struct op_inf
     int count;
     bool operator < (const op_inf &o) const
     {
-	return count > o.count;
+		return count > o.count;
     }
 };
 
