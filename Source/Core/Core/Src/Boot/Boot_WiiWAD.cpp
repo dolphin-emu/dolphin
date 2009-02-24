@@ -26,6 +26,7 @@
 #include "Boot_WiiWAD.h"
 #include "AES/aes.h"
 #include "MathUtil.h"
+#include "FileUtil.h"
 
 class CBlobBigEndianReader
 {
@@ -45,6 +46,7 @@ private:
 
 std::vector<STileMetaContent> m_TileMetaContent;
 u16 m_BootIndex = -1;
+u64 m_TitleID = -1;
 
 void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
@@ -97,6 +99,8 @@ bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD)
 	
 	u32 numEntries = Common::swap16(pTMD + 0x01de);
 	m_BootIndex = Common::swap16(pTMD + 0x01e0);
+    m_TitleID = Common::swap64(pTMD + 0x018C);
+
 	u8* p = pDataApp;
 
 	m_TileMetaContent.resize(numEntries);
@@ -243,11 +247,28 @@ void SetupWiiMem()
         Memory::Write_U32(0x00000000, 0x80000000 + i);
     }	
 
+
+
+    // create Home directory
+    {
+        char Path[260+1];
+        char* pTitleID = (char*)&m_TitleID;
+        sprintf(Path, FULL_WII_USER_DIR "title//%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
+            (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
+            (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+        File::CreateDirectoryStructure(Path);
+    }
+
+
+
+
     /* This is some kind of consistency check that is compared to the 0x00
     values as the game boots. This location keep the 4 byte ID for as long
     as the game is running. The 6 byte ID at 0x00 is overwritten sometime
     after this check during booting. */
 
+
+    Memory::Write_U64(m_TitleID, 0x0000318c);			// NAND Load Title ID
 
     //	VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
     //	Memory::Write_U8(0x80, 0x00003184);

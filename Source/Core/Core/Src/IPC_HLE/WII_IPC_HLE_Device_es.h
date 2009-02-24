@@ -56,6 +56,8 @@
 
 #include "../Boot/Boot_WiiWAD.h"
 
+#include "../PowerPC/PowerPC.h"
+
 
 struct SContentAccess 
 {
@@ -147,6 +149,25 @@ public:
 
             switch(Buffer.Parameter)
             {
+            case IOCTL_ES_LAUNCH: // 0x08
+                {
+                    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
+
+                    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+
+                    u32 view =      Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+                    u64 ticketid =  Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
+                    u32 devicetype =Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
+                    u64 titleid =   Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
+                    u16 access =    Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
+
+                    PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x", TitleID>>32, TitleID, titleid>>32, titleid );
+
+                    Memory::Write_U32(0, _CommandAddress + 0x4);		
+                    return false;
+                }
+                break;
+
 			case IOCTL_ES_OPENCONTENT: // 0x09
 				{
 					u32 CFD = AccessIdentID++;
@@ -245,12 +266,13 @@ public:
 					/* I changed reading the TitleID from disc to reading from the
 					   InBuffer, if it fails it's because of some kind of memory error
 					   that we would want to fix anyway */
-					u32 TitleID = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-                    if (TitleID == 0) TitleID = 0xF00DBEEF;
+                    
+					u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+                    _dbg_assert_msg_(WII_IPC_HLE, TitleID == GetCurrentTitleID(), "Get Dir from unkw title dir?? this can be okay...");
 
                     char* pTitleID = (char*)&TitleID;
                     char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-                    sprintf(Path, "/00010000/%08x/data", TitleID);
+                    sprintf(Path, "/%08x/%08x/data", (TitleID >> 32) & 0xFFFFFFFF, TitleID & 0xFFFFFFFF);
 
 					LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
                 }
@@ -258,8 +280,8 @@ public:
 
             case IOCTL_ES_GETTITLEID: // 0x20
                 {
-                    u32 TitleID = VolumeHandler::Read32(0);
-                    if (TitleID == 0) TitleID = 0xF00DBEEF;
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no in buffer");
+                    
 
 					/* This seems to be the right address to write the Title ID to
 					   because then it shows up in the InBuffer of IOCTL_ES_GETTITLEDIR
@@ -268,28 +290,73 @@ public:
 					   IOCTL_ES_GETTITLEDIR. This values is not stored in 0x3180 or anywhere
 					   else as I have seen, it's just used as an input buffer in the following
 					   IOCTL_ES_GETTITLEDIR call and then forgotten. */
-                    Memory::Write_U32(TitleID, Buffer.PayloadBuffer[0].m_Address);
-                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
+
+                    u64 TitleID = GetCurrentTitleID();
+
+                    Memory::Write_U64(TitleID, Buffer.PayloadBuffer[0].m_Address);
+                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x 0x%x", TitleID>>32, TitleID);
                 }
                 break;
 
             case IOCTL_ES_GETVIEWCNT: // 0x12 (Input: 8 bytes, Output: 4 bytes)
                 {
-					if(Buffer.NumberInBuffer)
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberInBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETVIEWCNT no in buffer");
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETVIEWCNT no out buffer");
+
+                    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+
+                    // [TODO] here we should have a map from title id to tickets or something like that...
+                    if (m_TileMetaContent.size() > 0)
                     {
-						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+                        Memory::Write_U32(1, Buffer.PayloadBuffer[0].m_Address);
                     }
 
-					// Should we write something here?
-					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	
+                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT titleID: %08x/%08x", TitleID>>32, TitleID );
 
-					//DumpCommands(Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size / 4,
-					//	LogTypes::WII_IPC_NET);
+                    Memory::Write_U32(0, _CommandAddress + 0x4);		
+                    return true;
                 }
                 break;
 
+            case IOCTL_ES_GETVIEWS:
+                {
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETVIEWS no in buffer");
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWS no out buffer");
+
+                    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+                    u32 Count = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+
+                    _dbg_assert_msg_(WII_IPC_HLE, TitleID==0x0000000100000002, "IOCTL_ES_GETVIEWS: TitleID != 00000001/00000002");                    
+                    
+                    /* write ticket data... hmmm
+                        typedef struct _tikview {
+                        u32 view;
+                        u64 ticketid;
+                        u32 devicetype;
+                        u64 titleid;
+                        u16 access_mask;
+                        u8 reserved[0x3c];
+                        u8 cidx_mask[0x40];
+                        u16 padding;
+                        tiklimit limits[8];
+                    } __attribute__((packed)) tikview;
+                    */
+
+                    Memory::Write_U32(0,            Buffer.PayloadBuffer[0].m_Address);
+                    Memory::Write_U64(m_TitleID,    Buffer.PayloadBuffer[0].m_Address+4);
+                    Memory::Write_U32(0x00010001,   Buffer.PayloadBuffer[0].m_Address+12);
+                    Memory::Write_U64(m_TitleID,    Buffer.PayloadBuffer[0].m_Address+16);
+                    Memory::Write_U16(0x777,        Buffer.PayloadBuffer[0].m_Address+24);
+
+                    Memory::Write_U32(0, _CommandAddress + 0x4);		
+                    return true;
+                }
+                break;
+
+
 			case IOCTL_ES_GETTMDVIEWCNT: // 0x14
                 {
+                    PanicAlert("IOCTL_ES_GETTMDVIEWCNT: this looks really wrong...");
 					if(Buffer.NumberInBuffer)
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
@@ -299,14 +366,19 @@ public:
                 break;
 
            case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
+               PanicAlert("IOCTL_ES_GETCONSUMPTION: this looks really wrong...");
 				//DumpCommands(Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size / 4,
 				//	LogTypes::WII_IPC_NET);
 				break;
+
            case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
+               PanicAlert("IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
                 break;
 
 			case IOCTL_ES_GETTITLECOUNT:
 				{
+                    PanicAlert("IOCTL_ES_GETTITLECOUNT: this looks really wrong...");
+
 					u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 
 					Memory::Write_U32(0, OutBuffer);
@@ -318,6 +390,9 @@ public:
 
 			case IOCTL_ES_GETSTOREDTMDSIZE:
 				{
+                    PanicAlert("IOCTL_ES_GETSTOREDTMDSIZE: this looks really wrong...");
+
+
 					u64	TitleId = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 					u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 
@@ -344,8 +419,27 @@ public:
 
             return true;
       }
+
+      u64 GetCurrentTitleID()
+      {
+          u64 TitleID = 0;
+
+          // check for cd ...
+          if (VolumeHandler::IsValid())
+          {
+              TitleID = ((u64)0x00010000 << 32) | VolumeHandler::Read32(0);                        
+          }
+          else
+          {
+              if (m_TileMetaContent.size() > 0)
+              {
+                  TitleID = m_TitleID;
+              }
+          }
+          if (TitleID == -1) 
+              TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
+
+          return TitleID;
+      }
 };
-
-
 #endif
-

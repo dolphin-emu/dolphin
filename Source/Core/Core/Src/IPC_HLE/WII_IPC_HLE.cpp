@@ -274,7 +274,7 @@ void CopySettingsFile(std::string DeviceName)
 void ExecuteCommand(u32 _Address)
 {
     bool GenerateReply = false;
-	u32 erased = 0;
+	u32 ClosedDeviceID = 0;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
     switch (Command)
@@ -368,7 +368,7 @@ void ExecuteCommand(u32 _Address)
 				// Delete the device when CLOSE is called, this does not effect
 				// GenerateReply() for any other purpose than the logging because
 				// it's a true / false only function //
-                erased = DeviceID;
+                ClosedDeviceID = DeviceID;
                 GenerateReply = true;
               }            
         }
@@ -449,7 +449,7 @@ void ExecuteCommand(u32 _Address)
 				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
 			}
 
-			if (erased > 0 && erased == DeviceID)
+			if (ClosedDeviceID > 0 && ClosedDeviceID == DeviceID)
 				DeleteDeviceByID(DeviceID);
 
         } else {
