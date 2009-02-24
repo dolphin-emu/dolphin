@@ -2,6 +2,7 @@
    With minor adjustments */
  
 #include "CDUtils.h"
+#include "common.h"
   
 /*!
   Follow symlinks until we have the real device file
@@ -103,7 +104,7 @@ const char *is_cdrom_win32(const char c_drive_letter) {
 	  case DRIVE_CDROM: {
 		  char sz_win32_drive_full[] = "\\\\.\\X:";
 		  sz_win32_drive_full[4] = c_drive_letter;
-		  return strdup(sz_win32_drive_full);
+		  return strdup(&sz_win32_drive_full[4]);
 	  }
 	  default:
 		  //cdio_debug("Drive %c is not a CD-ROM", c_drive_letter);
