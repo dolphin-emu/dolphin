@@ -349,33 +349,33 @@ int IsKey(int Key)
 	case g_Nc.SHAKE: return GetAsyncKeyState(PadMapping[0].Nc.Shake);
 
 	// Classic Controller
-	case g_Cc.A: return GetAsyncKeyState('Z');
-	case g_Cc.B: return GetAsyncKeyState('C');
-	case g_Cc.X: return GetAsyncKeyState('X');
-	case g_Cc.Y: return GetAsyncKeyState('Y');
-	case g_Cc.P: return GetAsyncKeyState('O'); // O instead of P
-	case g_Cc.M: return GetAsyncKeyState('N'); // N instead of M
-	case g_Cc.H: return GetAsyncKeyState('U'); // Home button
+	case g_Cc.A: return GetAsyncKeyState(PadMapping[0].Cc.A);
+	case g_Cc.B: return GetAsyncKeyState(PadMapping[0].Cc.B);
+	case g_Cc.X: return GetAsyncKeyState(PadMapping[0].Cc.X);
+	case g_Cc.Y: return GetAsyncKeyState(PadMapping[0].Cc.Y);
+	case g_Cc.P: return GetAsyncKeyState(PadMapping[0].Cc.P); // Default is O instead of P
+	case g_Cc.M: return GetAsyncKeyState(PadMapping[0].Cc.M); // Default is N instead of M
+	case g_Cc.H: return GetAsyncKeyState(PadMapping[0].Cc.H); // Default is U instead of H
 
-	case g_Cc.Tl: return GetAsyncKeyState('7'); // Digital left trigger
-	case g_Cc.Zl: return GetAsyncKeyState('8');
-	case g_Cc.Zr: return GetAsyncKeyState('9');
-	case g_Cc.Tr: return GetAsyncKeyState('0'); // Digital right trigger
+	case g_Cc.Tl: return GetAsyncKeyState(PadMapping[0].Cc.Tl); // Digital left trigger
+	case g_Cc.Zl: return GetAsyncKeyState(PadMapping[0].Cc.Zl);
+	case g_Cc.Zr: return GetAsyncKeyState(PadMapping[0].Cc.Zr);
+	case g_Cc.Tr: return GetAsyncKeyState(PadMapping[0].Cc.Tr); // Digital right trigger
 
-	case g_Cc.Dl: return GetAsyncKeyState(VK_NUMPAD4); // Digital left
-	case g_Cc.Du: return GetAsyncKeyState(VK_NUMPAD8); // Up
-	case g_Cc.Dr: return GetAsyncKeyState(VK_NUMPAD6); // Right
-	case g_Cc.Dd: return GetAsyncKeyState(VK_NUMPAD5); // Down
+	case g_Cc.Dl: return GetAsyncKeyState(PadMapping[0].Cc.Dl); // Digital left
+	case g_Cc.Du: return GetAsyncKeyState(PadMapping[0].Cc.Du); // Up
+	case g_Cc.Dr: return GetAsyncKeyState(PadMapping[0].Cc.Dr); // Right
+	case g_Cc.Dd: return GetAsyncKeyState(PadMapping[0].Cc.Dd); // Down
 
-	case g_Cc.Ll: return GetAsyncKeyState('J'); // Left analog left
-	case g_Cc.Lu: return GetAsyncKeyState('I');
-	case g_Cc.Lr: return GetAsyncKeyState('L');
-	case g_Cc.Ld: return GetAsyncKeyState('K');
+	case g_Cc.Ll: return GetAsyncKeyState(PadMapping[0].Cc.Ll); // Left analog
+	case g_Cc.Lu: return GetAsyncKeyState(PadMapping[0].Cc.Lu);
+	case g_Cc.Lr: return GetAsyncKeyState(PadMapping[0].Cc.Lr);
+	case g_Cc.Ld: return GetAsyncKeyState(PadMapping[0].Cc.Ld);
 
-	case g_Cc.Rl: return GetAsyncKeyState('D'); // Right analog left
-	case g_Cc.Ru: return GetAsyncKeyState('R');
-	case g_Cc.Rr: return GetAsyncKeyState('G');
-	case g_Cc.Rd: return GetAsyncKeyState('F');
+	case g_Cc.Rl: return GetAsyncKeyState(PadMapping[0].Cc.Rl); // Right analog
+	case g_Cc.Ru: return GetAsyncKeyState(PadMapping[0].Cc.Ru);
+	case g_Cc.Rr: return GetAsyncKeyState(PadMapping[0].Cc.Rr);
+	case g_Cc.Rd: return GetAsyncKeyState(PadMapping[0].Cc.Rd);
 
 	// This should not happen
 	default: PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key); return false;
@@ -1111,9 +1111,10 @@ void FillReportExtension(wm_extension& _ext)
 // ----------------
 void FillReportClassicExtension(wm_classic_extension& _ext)
 {
-
 	/* These are the default neutral values for the analog triggers and sticks */
-	u8 Rx = 0x80, Ry = 0x80, Lx = 0x80, Ly = 0x80, lT = 0x80, rT = 0x80;
+	u8	Rx = g_cc.Rx.center, Ry = g_cc.Ry.center,
+		Lx = g_cc.Lx.center, Ly = g_cc.Ly.center,
+		lT = g_cc.Tl.neutral, rT = g_cc.Tl.neutral;
 
 	_ext.b1.padding = 0x01; // 0x01 means not pressed
 	_ext.b1.bRT = 0x01;
@@ -1133,135 +1134,226 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.b2.bB = 0x01;
 	_ext.b2.bZL = 0x01;
 
-
 	// --------------------------------------
 	// Check that Dolphin is in focus
-	if (!IsFocus()) return;
+	if (IsFocus())
+	{
+		// --------------------------------------
+		/* Left and right analog sticks and analog triggers
+
+			u8 Lx : 6; // byte 0
+			u8 Rx : 2;
+			u8 Ly : 6; // byte 1
+			u8 Rx2 : 2;
+			u8 Ry : 5; // byte 2
+			u8 lT : 2;
+			u8 Rx3 : 1;
+			u8 rT : 5; // byte 3
+			u8 lT2 : 3;
+
+		   We use a 200 range (28 to 228) for the left analog stick and a 176 range
+		   (40 to 216) for the right analog stick to match our calibration values
+		   in classic_calibration
+		*/
+
+		// Update the left analog stick
+		if (g_Config.ClassicController.LType == g_Config.ClassicController.KEYBOARD)
+		{
+			if(IsKey(g_Cc.Ll)) // Left analog left
+				Lx = g_cc.Lx.min;
+			if(IsKey(g_Cc.Lu)) // up
+				Ly = g_cc.Ly.max;
+			if(IsKey(g_Cc.Lr)) // right
+				Lx = g_cc.Lx.max;
+			if(IsKey(g_Cc.Ld)) // down
+				Ly = g_cc.Ly.min;
+
+		}
+		else
+		{
+			// Get adjusted pad state values
+			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
+			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
+
+			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
+			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			   
+			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   */
+
+			if (g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1)
+			{
+				Lx = _Lx;
+				Ly = _Ly;
+			}
+			else // ANALOG2
+			{
+				Lx = _Rx;
+				Ly = _Ry;
+			}
+		}
+
+		// Update the right analog stick
+		if (g_Config.ClassicController.RType == g_Config.ClassicController.KEYBOARD)
+		{
+			if(IsKey(g_Cc.Rl)) // Right analog left
+				Rx = g_cc.Rx.min;
+			if(IsKey(g_Cc.Ru)) // up
+				Ry = g_cc.Ry.max;
+			if(IsKey(g_Cc.Rr)) // right
+				Rx = g_cc.Rx.max;
+			if(IsKey(g_Cc.Rd)) // down
+				Ry = g_cc.Ry.min;
+		}
+		else
+		{
+			// Get adjusted pad state values
+			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
+			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
+
+			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
+			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			   
+			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   */
+
+			if (g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1)
+			{
+				Rx = _Lx;
+				Ry = _Ly;
+			}
+			else // ANALOG2
+			{
+				Rx = _Rx;
+				Ry = _Ry;
+			}
+		}
+
+		// Update the left and right analog triggers
+		if (g_Config.ClassicController.TType == g_Config.ClassicController.KEYBOARD)
+		{
+			if(IsKey(g_Cc.Tl)) // analog left trigger
+				{ _ext.b1.bLT = 0x00; lT = 0x1f; }
+			if(IsKey(g_Cc.Tr)) // analog right trigger
+				{ _ext.b1.bRT = 0x00; rT = 0x1f; }
+		}
+		else // g_Config.ClassicController.TRIGGER
+		{
+			// Get adjusted pad state values
+			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
+			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+
+			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
+			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			   
+			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   */
+
+			// Check if the trigger is fully pressed, then update the digital trigger values to
+			if (_Tl == 0xff)  _ext.b1.bLT = 0x00;
+			if (_Tr == 0xff)  _ext.b1.bRT = 0x00;
+
+			// The reported data is supposed to be divided by 8 so that we return 0x1f at most, I think. But
+			// I'm not sure about the bit shifts further down.
+			lT = _Tl / 8;
+			rT = _Tr / 8;
+
+			// Boundaries
+			if (lT > 0x1f) lT = 0x1f;
+			if (rT > 0x1f) rT = 0x1f;
+		}
+
+
+		// --------------
+
+		// --------------------------------------
+		/* D-Pad
+		
+		u8 b1;
+			0:
+			6: bdD
+			7: bdR
+
+		u8 b2;
+			0: bdU
+			1: bdL	
+		*/
+		if(IsKey(g_Cc.Dl)) _ext.b2.bdL = 0x00; // Digital left
+		if(IsKey(g_Cc.Du)) _ext.b2.bdU = 0x00; // Up
+		if(IsKey(g_Cc.Dr)) _ext.b1.bdR = 0x00; // Right
+		if(IsKey(g_Cc.Dd)) _ext.b1.bdD = 0x00; // Down		
+		// --------------
+
+		// --------------------------------------
+		/* Buttons
+			u8 b1;
+				0:
+				6: -
+				7: -
+
+			u8 b2;
+				0: -
+				1: -
+				2: bZr
+				3: bX
+				4: bA
+				5: bY
+				6: bB
+				7: bZl
+		*/
+		if(IsKey(g_Cc.A))
+			_ext.b2.bA = 0x00;
+
+		if(IsKey(g_Cc.B))
+			_ext.b2.bB = 0x00;
+
+		if(IsKey(g_Cc.Y))
+			_ext.b2.bY = 0x00;
+
+		if(IsKey(g_Cc.X))
+			_ext.b2.bX = 0x00;
+
+		if(IsKey(g_Cc.P)) // O instead of P
+			_ext.b1.bP = 0x00;
+
+		if(IsKey(g_Cc.M)) // N instead of M
+			_ext.b1.bM = 0x00;
+
+		if(IsKey(g_Cc.H)) // Home button
+			_ext.b1.bH = 0x00;
+
+		if(IsKey(g_Cc.Zl)) // Digital left trigger
+			_ext.b2.bZL = 0x00;
+
+		if(IsKey(g_Cc.Zr)) // Digital right trigger
+			_ext.b2.bZR = 0x00;
+		
+		// All buttons pressed
+		//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
+		//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
+		// --------------
+	}
 	// --------------------------------------
 
 
 	// --------------------------------------
-	/* Left and right analog sticks
-
-		u8 Lx : 6; // byte 0
-		u8 Rx : 2;
-		u8 Ly : 6; // byte 1
-		u8 Rx2 : 2;
-		u8 Ry : 5; // byte 2
-		u8 lT : 2;
-		u8 Rx3 : 1;
-		u8 rT : 5; // byte 3
-		u8 lT2 : 3;
-	*/
-
-	/* We use a 200 range (28 to 228) for the left analog stick and a 176 range
-	   (40 to 216) for the right analog stick to match our calibration values
-	   in classic_calibration */
-	if(IsKey(g_Cc.Ll)) // Left analog left
-		Lx = 0x1c;
-	if(IsKey(g_Cc.Lu)) // up
-		Ly = 0xe4;
-	if(IsKey(g_Cc.Lr)) // right
-		Lx = 0xe4;
-	if(IsKey(g_Cc.Ld)) // down
-		Ly = 0x1c;
-
-	if(IsKey(g_Cc.Rl)) // Right analog left
-		Rx = 0x28;
-	if(IsKey(g_Cc.Ru)) // up
-		Ry = 0xd8;
-	if(IsKey(g_Cc.Rr)) // right
-		Rx = 0xd8;
-	if(IsKey(g_Cc.Rd)) // down
-		Ry = 0x28;
-
-
+	// Convert data for reporting
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
-	_ext.Rx = (Rx >> 3); // this may be wrong
+	_ext.Rx = (Rx >> 3); // This may be wrong
 	_ext.Rx2 = (Rx >> 5);
 	_ext.Rx3 = (Rx >> 7);
 	_ext.Ry = (Ry >> 2);
 
-	_ext.lT = (Ry >> 2);
-	_ext.lT2 = (Ry >> 3);
-	_ext.rT = (Ry >> 4);
-	// --------------
-
-
-
-	// --------------------------------------
-	/* D-Pad
-	
-	u8 b1;
-		0:
-		6: bdD
-		7: bdR
-
-	u8 b2;
-		0: bdU
-		1: bdL	
-	*/
-	if(IsKey(g_Cc.Dl)) _ext.b2.bdL = 0x00; // Digital left
-	if(IsKey(g_Cc.Du)) _ext.b2.bdU = 0x00; // Up
-	if(IsKey(g_Cc.Dr)) _ext.b1.bdR = 0x00; // Right
-	if(IsKey(g_Cc.Dd)) _ext.b1.bdD = 0x00; // Down		
-	// --------------
-
-
-	// --------------------------------------
-	/* Buttons
-		u8 b1;
-			0:
-			6: -
-			7: -
-
-		u8 b2;
-			0: -
-			1: -
-			2: bZr
-			3: bX
-			4: bA
-			5: bY
-			6: bB
-			7: bZl
-	*/
-	if(IsKey(g_Cc.A))
-		_ext.b2.bA = 0x00;
-
-	if(IsKey(g_Cc.B))
-		_ext.b2.bB = 0x00;
-
-	if(IsKey(g_Cc.Y))
-		_ext.b2.bY = 0x00;
-
-	if(IsKey(g_Cc.X))
-		_ext.b2.bX = 0x00;
-
-	if(IsKey(g_Cc.P)) // O instead of P
-		_ext.b1.bP = 0x00;
-
-	if(IsKey(g_Cc.M)) // N instead of M
-		_ext.b1.bM = 0x00;
-
-	if(IsKey(g_Cc.H)) // Home button
-		_ext.b1.bH = 0x00;
-
-	if(IsKey(g_Cc.Tl)) // digital left trigger
-		_ext.b1.bLT = 0x00;
-
-	if(IsKey(g_Cc.Zl))
-		_ext.b2.bZL = 0x00;
-
-	if(IsKey(g_Cc.Zr))
-		_ext.b2.bZR = 0x00;
-
-	if(IsKey(g_Cc.Tr)) // digital right trigger
-		_ext.b1.bRT = 0x00;
-	
-	// All buttons pressed
-	//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
-	//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
+	_ext.lT = (lT >> 6); // This may be wrong
+	_ext.lT2 = (lT >> 5);
+	_ext.rT = (rT >> 3);
 	// --------------
 
 

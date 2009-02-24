@@ -247,25 +247,53 @@ void UpdateEeprom()
 	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
 	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
-	g_nu.cal_zero.x = g_RegExt[0x20];
-	g_nu.cal_zero.y = g_RegExt[0x21];
-	g_nu.cal_zero.z = g_RegExt[0x22];
-	g_nu.cal_g.x = g_RegExt[0x24] - g_RegExt[0x20];
-	g_nu.cal_g.y = g_RegExt[0x25] - g_RegExt[0x21];
-	g_nu.cal_g.z = g_RegExt[0x26] - g_RegExt[0x22];
-	g_nu.jx.max = g_RegExt[0x28];
-	g_nu.jx.min = g_RegExt[0x29];
-	g_nu.jx.center = g_RegExt[0x2a];
-	g_nu.jy.max = g_RegExt[0x2b];
-	g_nu.jy.min = g_RegExt[0x2c];
-	g_nu.jy.center = g_RegExt[0x2d];
-
 	Console::Print("\nUpdateEeprom: %i %i %i\n",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
 
-	Console::Print("UpdateExtension: %i %i   %i %i %i\n\n",
-		WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
-		WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
+	if(g_Config.bNunchuckConnected)
+	{
+		g_nu.cal_zero.x = g_RegExt[0x20];
+		g_nu.cal_zero.y = g_RegExt[0x21];
+		g_nu.cal_zero.z = g_RegExt[0x22];
+		g_nu.cal_g.x = g_RegExt[0x24] - g_RegExt[0x20];
+		g_nu.cal_g.y = g_RegExt[0x25] - g_RegExt[0x21];
+		g_nu.cal_g.z = g_RegExt[0x26] - g_RegExt[0x22];
+		g_nu.jx.max = g_RegExt[0x28];
+		g_nu.jx.min = g_RegExt[0x29];
+		g_nu.jx.center = g_RegExt[0x2a];
+		g_nu.jy.max = g_RegExt[0x2b];
+		g_nu.jy.min = g_RegExt[0x2c];
+		g_nu.jy.center = g_RegExt[0x2d];
+
+		Console::Print("UpdateNunchuck: %i %i   %i %i %i\n\n",
+			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
+			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
+	}
+	else if(g_Config.bClassicControllerConnected)
+	{
+		g_cc.Lx.max = g_RegExt[0x20];
+		g_cc.Lx.min = g_RegExt[0x21];
+		g_cc.Lx.center = g_RegExt[0x22];
+		g_cc.Ly.max = g_RegExt[0x23];
+		g_cc.Ly.min = g_RegExt[0x24];
+		g_cc.Ly.center = g_RegExt[0x25];
+
+		g_cc.Rx.max = g_RegExt[0x26];
+		g_cc.Rx.min = g_RegExt[0x27];
+		g_cc.Rx.center = g_RegExt[0x28];
+		g_cc.Ry.max = g_RegExt[0x29];
+		g_cc.Ry.min = g_RegExt[0x2a];
+		g_cc.Ry.center = g_RegExt[0x2b];
+
+		g_cc.Tl.neutral = g_RegExt[0x2c];
+		g_cc.Tr.neutral = g_RegExt[0x2d];
+
+		Console::Print("UpdateCC: %i %i   %i %i %i\n\n",
+			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
+			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
+	}
+
+
 }
 
 // Calculate checksum for the nunchuck calibration. The last two bytes.
@@ -340,7 +368,8 @@ void Initialize()
 	// Reset variables
 	ResetVariables();
 
-	// Write default Eeprom data to g_Eeprom[]
+	// Write default Eeprom data to g_Eeprom[], this may be overwritten by WiiMoteReal::Initialize()
+	// after this function.
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
@@ -584,7 +613,9 @@ void Update()
 
 	// Check if the pad state should be updated
 	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
-		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2)
+		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
+		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
+		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
 		&& NumGoodPads > 0 && joyinfo.size() > PadMapping[0].ID)
 	{
 		const int Page = 0;

@@ -191,6 +191,15 @@ struct PadNunchuck
 	int L, R, U, D;
 	int Shake;
 };
+struct PadClassicController
+{
+	int A, B, X, Y;
+	int P, M, H;
+	int Tl, Zl, Zr, Tr;
+	int Dl, Du, Dr, Dd;
+	int Ll, Lu, Lr, Ld;
+	int Rl, Ru, Rr, Rd;
+};
 struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE
 {
 	PadAxis Axis;			// 6 Axes (Main, Sub, Triggers)
@@ -201,6 +210,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	PadAxis Axis;			// (See above)
 	PadWiimote Wm;
 	PadNunchuck Nc;
+	PadClassicController Cc;
 	bool enabled;			// Pad attached?
 	int DeadZoneL;			// Analog 1 Deadzone
 	int DeadZoneR;			// Analog 2 Deadzone

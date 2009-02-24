@@ -81,6 +81,7 @@ struct SRecordingAll
 	// Settings
 	extern accel_cal g_wm;
 	extern nu_cal g_nu;
+	extern cc_cal g_cc;
 
 	// Debugging
 	extern bool g_DebugAccelerometer;

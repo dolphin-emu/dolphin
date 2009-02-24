@@ -305,12 +305,24 @@ struct accel_cal
 struct nu_js {
 	u8 max, min, center;
 };
+struct cc_trigger {
+	u8 neutral;
+};
 struct nu_cal
 {
 	wm_accel cal_zero;		// zero calibratio
 	wm_accel cal_g;			// g size
 	nu_js jx;				//
 	nu_js jy;				//
+};
+struct cc_cal
+{
+	nu_js Lx;				//
+	nu_js Ly;				//
+	nu_js Rx;				//
+	nu_js Ry;				//
+	cc_trigger Tl;				//
+	cc_trigger Tr;				//
 };
 
 #pragma pack(pop)

@@ -184,6 +184,31 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bNcU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.U).c_str()));
 	m_bNcD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.D).c_str()));
 	m_bNcShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Shake).c_str()));
+
+	// Classic Controller
+	m_bCcA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.A).c_str()));
+	m_bCcB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.B).c_str()));
+	m_bCcX[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.X).c_str()));
+	m_bCcY[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Y).c_str()));
+	m_bCcP[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.P).c_str()));
+	m_bCcM[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.M).c_str()));
+	m_bCcH[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.H).c_str()));
+	m_bCcTl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Tl).c_str()));
+	m_bCcZl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Zl).c_str()));
+	m_bCcZr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Zr).c_str()));
+	m_bCcTr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Tr).c_str()));
+	m_bCcDl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dl).c_str()));
+	m_bCcDu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Du).c_str()));
+	m_bCcDr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dr).c_str()));
+	m_bCcDd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dd).c_str()));
+	m_bCcLl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ll).c_str()));
+	m_bCcLu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Lu).c_str()));
+	m_bCcLr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Lr).c_str()));
+	m_bCcLd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ld).c_str()));
+	m_bCcRl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rl).c_str()));
+	m_bCcRu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ru).c_str()));
+	m_bCcRr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rr).c_str()));
+	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rd).c_str()));
 	#endif
 
 	//Console::Print("m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
@@ -266,6 +291,31 @@ void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 	case IDB_NC_U: WiiMoteEmu::PadMapping[Controller].Nc.U = Key; break;
 	case IDB_NC_D: WiiMoteEmu::PadMapping[Controller].Nc.D = Key; break;
 	case IDB_NC_SHAKE: WiiMoteEmu::PadMapping[Controller].Nc.Shake = Key; break;
+
+	// Classic Controller
+	case IDB_CC_A: WiiMoteEmu::PadMapping[Controller].Cc.A = Key; break;
+	case IDB_CC_B: WiiMoteEmu::PadMapping[Controller].Cc.B = Key; break;
+	case IDB_CC_X: WiiMoteEmu::PadMapping[Controller].Cc.X = Key; break;
+	case IDB_CC_Y: WiiMoteEmu::PadMapping[Controller].Cc.Y = Key; break;
+	case IDB_CC_P: WiiMoteEmu::PadMapping[Controller].Cc.P = Key; break;
+	case IDB_CC_M: WiiMoteEmu::PadMapping[Controller].Cc.M = Key; break;
+	case IDB_CC_H: WiiMoteEmu::PadMapping[Controller].Cc.H = Key; break;
+	case IDB_CC_TL: WiiMoteEmu::PadMapping[Controller].Cc.Tl = Key; break;
+	case IDB_CC_ZL: WiiMoteEmu::PadMapping[Controller].Cc.Zl = Key; break;
+	case IDB_CC_ZR: WiiMoteEmu::PadMapping[Controller].Cc.Zr = Key; break;
+	case IDB_CC_TR: WiiMoteEmu::PadMapping[Controller].Cc.Tr = Key; break;
+	case IDB_CC_DL: WiiMoteEmu::PadMapping[Controller].Cc.Dl = Key; break;
+	case IDB_CC_DU: WiiMoteEmu::PadMapping[Controller].Cc.Du = Key; break;
+	case IDB_CC_DR: WiiMoteEmu::PadMapping[Controller].Cc.Dr = Key; break;
+	case IDB_CC_DD: WiiMoteEmu::PadMapping[Controller].Cc.Dd = Key; break;
+	case IDB_CC_LL: WiiMoteEmu::PadMapping[Controller].Cc.Ll = Key; break;
+	case IDB_CC_LU: WiiMoteEmu::PadMapping[Controller].Cc.Lu = Key; break;
+	case IDB_CC_LR: WiiMoteEmu::PadMapping[Controller].Cc.Lr = Key; break;
+	case IDB_CC_LD: WiiMoteEmu::PadMapping[Controller].Cc.Ld = Key; break;
+	case IDB_CC_RL: WiiMoteEmu::PadMapping[Controller].Cc.Rl = Key; break;
+	case IDB_CC_RU: WiiMoteEmu::PadMapping[Controller].Cc.Ru = Key; break;
+	case IDB_CC_RR: WiiMoteEmu::PadMapping[Controller].Cc.Rr = Key; break;
+	case IDB_CC_RD: WiiMoteEmu::PadMapping[Controller].Cc.Rd = Key; break;
 	}
 
 	//Console::Print("WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
@@ -343,6 +393,30 @@ void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
 		case IDB_NC_D: m_bNcD[controller]->SetLabel(wxString::FromAscii(text)); break;
 		case IDB_NC_SHAKE: m_bNcShake[controller]->SetLabel(wxString::FromAscii(text)); break;
 
+		// Classic Controller
+		case IDB_CC_A: m_bCcA[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_B: m_bCcB[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_X: m_bCcX[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_Y: m_bCcY[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_P: m_bCcP[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_M: m_bCcM[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_H: m_bCcH[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_TL: m_bCcTl[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_ZL: m_bCcZl[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_ZR: m_bCcZr[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_TR: m_bCcTr[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_DL: m_bCcDl[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_DU: m_bCcDu[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_DR: m_bCcDr[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_DD: m_bCcDd[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_LL: m_bCcLl[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_LU: m_bCcLu[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_LR: m_bCcLr[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_LD: m_bCcLd[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_RL: m_bCcRl[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_RU: m_bCcRu[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_RR: m_bCcRr[controller]->SetLabel(wxString::FromAscii(text)); break;
+		case IDB_CC_RD: m_bCcRd[controller]->SetLabel(wxString::FromAscii(text)); break;
 		default: break;
 	}
 	//Console::Print("SetButtonText: %s\n", text);

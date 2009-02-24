@@ -54,6 +54,19 @@ struct Config
 		};
 		int Type;
 	};
+	struct PadClassicController
+	{
+		enum ECcStick
+		{
+			KEYBOARD,
+			ANALOG1,
+			ANALOG2,
+			TRIGGER
+		};
+		int LType;
+		int RType;
+		int TType;
+	};
 
     // Emulated Wiimote
 	bool bSidewaysDPad;
@@ -70,6 +83,7 @@ struct Config
 	bool bNoTriggerFilter;
 	PadTrigger Trigger;
 	PadNunchuck Nunchuck;
+	PadClassicController ClassicController;
 };
 
 extern Config g_Config;

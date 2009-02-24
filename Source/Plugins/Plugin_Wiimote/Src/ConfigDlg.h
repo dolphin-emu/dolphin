@@ -96,7 +96,16 @@ class ConfigDialog : public wxDialog
 			*m_SNcShake[4], *m_SNcZ[4], *m_SNcC[4], *m_SNcL[4], *m_SNcR[4], *m_SNcU[4], *m_SNcD[4],
 			// Wiimote
 			*m_SWmVertLeft[4], *m_SWmVertRight[4], *m_SWmShake[4], *m_SWmPitchL[4], *m_SWmPitchR[4], *m_SWmA[4], *m_SWmB[4], *m_SWm1[4], *m_SWm2[4], *m_SWmP[4], *m_SWmM[4], *m_SWmH[4], *m_SWmL[4], *m_SWmR[4], *m_SWmU[4], *m_SWmD[4],
-			*m_HorizControllerMapping[4], *m_NunchuckStick[4];
+			*m_HorizControllerMapping[4], *m_NunchuckStick[4],
+			// Classic Controller
+			*m_SCcVertLeft[4], *m_SCcVertMiddle[4], *m_SCcVertRight[4],
+			*m_SCcLeftStick[4], *m_SCcRightStick[4], *m_SCcTriggers[4],
+				*m_SCcA[4], *m_SCcB[4], *m_SCcX[4], *m_SCcY[4],
+				*m_SCcP[4], *m_SCcM[4], *m_SCcH[4],
+				*m_SCcTl[4], *m_SCcZl[4], *m_SCcZr[4], *m_SCcTr[4],
+				*m_SCcDl[4], *m_SCcDu[4], *m_SCcDr[4], *m_SCcDd[4],
+				*m_SCcLl[4], *m_SCcLu[4], *m_SCcLr[4], *m_SCcLd[4],
+				*m_SCcRl[4], *m_SCcRu[4], *m_SCcRr[4], *m_SCcRd[4];
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
 		wxStaticBoxSizer *m_SizeBasic[4], *m_SizeEmu[4], *m_SizeReal[4], *m_SizeExtensions[4], *m_SizerIRPointer[4], *m_gTilt[4], *m_gJoyname[4];
@@ -107,7 +116,14 @@ class ConfigDialog : public wxDialog
 			// Nunchuck
 			*m_bNcShake[4], *m_bNcZ[4], *m_bNcC[4], *m_bNcL[4], *m_bNcR[4], *m_bNcU[4], *m_bNcD[4],
 			// Wiimote
-			*m_bWmShake[4], *m_bWmPitchL[4], *m_bWmPitchR[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4];
+			*m_bWmShake[4], *m_bWmPitchL[4], *m_bWmPitchR[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4],
+			// Classic Controller
+			*m_bCcA[4], *m_bCcB[4], *m_bCcX[4], *m_bCcY[4],
+			*m_bCcP[4], *m_bCcM[4], *m_bCcH[4],
+			*m_bCcTl[4], *m_bCcZl[4], *m_bCcZr[4], *m_bCcTr[4],
+			*m_bCcDl[4], *m_bCcDu[4], *m_bCcDr[4], *m_bCcDd[4],
+			*m_bCcLl[4], *m_bCcLu[4], *m_bCcLr[4], *m_bCcLd[4],
+			*m_bCcRl[4], *m_bCcRu[4], *m_bCcRr[4], *m_bCcRd[4];
 		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
@@ -117,7 +133,15 @@ class ConfigDialog : public wxDialog
 			*m_tNcShake[4], *m_tNcZ[4], *m_tNcC[4], *m_tNcL[4], *m_tNcR[4], *m_tNcU[4], *m_tNcD[4],
 			// Wiimote
 			*m_tWmShake[4], *m_tWmPitchL[4], *m_tWmPitchR[4], *m_tWmA[4], *m_tWmB[4], *m_tWm1[4], *m_tWm2[4], *m_tWmP[4], *m_tWmM[4], *m_tWmH[4], *m_tWmL[4], *m_tWmR[4], *m_tWmU[4],*m_tWmD[4],
-			*m_NunchuckTextStick[5];
+			*m_NunchuckTextStick[5],
+			// Classic Controller
+			*m_tCcA[4], *m_tCcB[4], *m_tCcX[4], *m_tCcY[4],
+			*m_tCcP[4], *m_tCcM[4], *m_tCcH[4],
+			*m_tCcTl[4], *m_tCcZl[4], *m_tCcZr[4], *m_tCcTr[4],
+			*m_tCcDl[4], *m_tCcDu[4], *m_tCcDr[4], *m_tCcDd[4],
+			*m_tCcLl[4], *m_tCcLu[4], *m_tCcLr[4], *m_tCcLd[4],
+			*m_tCcRl[4], *m_tCcRu[4], *m_tCcRr[4], *m_tCcRd[4],
+			*m_CcTextLeftStick[4], *m_CcTextRightStick[4], *m_CcTextTriggers[4];
 		wxButton *ClickedButton;
 		wxString OldLabel;
 		wxSlider *m_SliderWidth[4], *m_SliderHeight[4], *m_SliderLeft[4], *m_SliderTop[4];
@@ -127,7 +151,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_CheckC2S[4], *m_TiltInvertRoll[4], *m_TiltInvertPitch[4];
 		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
 		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_ComboDeadZoneLeft[4], *m_ComboDeadZoneRight[4], *m_TriggerType[4],
-			*m_NunchuckComboStick[4];
+			*m_NunchuckComboStick[4], *m_CcComboLeftStick[4], *m_CcComboRightStick[4], *m_CcComboTriggers[4];
 
 		// Real Wiimote settings
 		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters;
@@ -199,11 +223,16 @@ class ConfigDialog : public wxDialog
 			// Classic Controller
 			IDB_CC_A, IDB_CC_B,
 			IDB_CC_X, IDB_CC_Y,
+			IDB_CC_P, IDB_CC_M, IDB_CC_H,
+			IDB_CC_TL, IDB_CC_ZL, IDB_CC_ZR, IDB_CC_TR,
+			IDB_CC_DL, IDB_CC_DU, IDB_CC_DR, IDB_CC_DD, // Digital pad
+			IDB_CC_LL, IDB_CC_LU, IDB_CC_LR, IDB_CC_LD, // Left analog stick
+			IDB_CC_RL, IDB_CC_RU, IDB_CC_RR, IDB_CC_RD, // Right analog stick
 
 			// Gamepad settings
 			IDC_JOYNAME, IDC_LEFT_C2S, IDCB_LEFT_DIAGONAL, IDCB_DEAD_ZONE_LEFT, IDCB_DEAD_ZONE_RIGHT,
 			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH, ID_TILT_INVERT_ROLL, ID_TILT_INVERT_PITCH,
-			IDCB_NUNCHUCK_STICK,
+			IDCB_NUNCHUCK_STICK, IDCB_CC_LEFT_STICK, IDCB_CC_RIGHT_STICK, IDCB_CC_TRIGGERS,
 
 			// Real
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS,

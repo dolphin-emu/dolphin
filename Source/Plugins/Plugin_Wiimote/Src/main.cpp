@@ -74,6 +74,7 @@ bool g_WiimoteUnexpectedDisconnect = false;
 // Settings
 accel_cal g_wm;
 nu_cal g_nu;
+cc_cal g_cc;
 
 // Debugging
 bool g_DebugAccelerometer = false;
@@ -719,22 +720,49 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// Produce string
 		//std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		std::string TmpData = StringFromFormat(
-			"%02x %02x %02x %02x "
-			"%03i %03i %03i "
-			"%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x "
-			"%03i %03i "
-			"%03i %03i %03i "
-			"%02x",
-			data[0], data[1], data[2], data[3],  // Header and core buttons
-			data[4], data[5], data[6], // Wiimote accelerometer
-			data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16],
-			data[17], data[18], // Nunchuck stick
-			data[19], data[20], data[21], // Nunchuck Accelerometer
-			data[22] //  Nunchuck buttons
-			);
+		std::string TmpCore = "", TmpAccel = "", TmpIR = "", TmpExt = "";
+		TmpCore = StringFromFormat(
+				"%02x %02x %02x %02x",
+				data[0], data[1], data[2], data[3]);  // Header and core buttons
 
+		TmpAccel = StringFromFormat(
+				"%03i %03i %03i",
+				data[4], data[5], data[6]); // Wiimote accelerometer
+
+		if (data[1] == 0x33) // WM_REPORT_CORE_ACCEL_IR12
+		{
+			TmpIR = StringFromFormat(
+				"%02x %02x %02x %02x %02x %02x"
+				" %02x %02x %02x %02x %02x %02x",
+				data[7], data[8], data[9], data[10], data[11], data[12],
+				data[13], data[14], data[15], data[16], data[17], data[18]);
+		}
+		if (data[1] == 0x35) // WM_REPORT_CORE_ACCEL_EXT16
+		{
+			TmpExt = StringFromFormat(
+				"%02x %02x %02x %02x %02x %02x",
+			data[7], data[8], // Nunchuck stick
+			data[9], data[10], data[11], // Nunchuck Accelerometer
+			data[12]); //  Nunchuck buttons
+		}
+		if (data[1] == 0x37) // WM_REPORT_CORE_ACCEL_IR10_EXT6
+		{
+			TmpIR = StringFromFormat(
+				"%02x %02x %02x %02x %02x"
+				" %02x %02x %02x %02x %02x",
+				data[7], data[8], data[9], data[10], data[11],
+				data[12], data[13], data[14], data[15], data[16]);
+			TmpExt = StringFromFormat(
+				"%02x %02x %02x %02x %02x %02x",	
+				data[17], data[18], // Nunchuck stick
+				data[19], data[20], data[21], // Nunchuck Accelerometer
+				data[22]); //  Nunchuck buttons
+		}
+
+
+		// ---------------------------------------------
 		// Calculate the Wiimote roll and pitch in degrees
+		// -----------
 		int Roll, Pitch, RollAdj, PitchAdj;
 		WiiMoteEmu::PitchAccelerometerToDegree(data[4], data[5], data[6], Roll, Pitch, RollAdj, PitchAdj);
 		std::string RollPitch = StringFromFormat("%s %s  %s %s",
@@ -742,6 +770,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			(Pitch >= 0) ? StringFromFormat(" %03i", Pitch).c_str() : StringFromFormat("%04i", Pitch).c_str(),
 			(RollAdj == Roll) ? "     " : StringFromFormat("%04i*", RollAdj).c_str(),
 			(PitchAdj == Pitch) ? "     " : StringFromFormat("%04i*", PitchAdj).c_str());
+		// -------------------------
 
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
@@ -754,7 +783,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		WiiMoteEmu::TiltTest(x, y, z);*/
 		// -------------------------
 
+		// ---------------------------------------------
 		// Show the number of g forces on the axes
+		// -----------
 		float Gx = WiiMoteEmu::AccelerometerToG((float)data[4], (float)g_wm.cal_zero.x, (float)g_wm.cal_g.x);
 		float Gy = WiiMoteEmu::AccelerometerToG((float)data[5], (float)g_wm.cal_zero.y, (float)g_wm.cal_g.y);
 		float Gz = WiiMoteEmu::AccelerometerToG((float)data[6], (float)g_wm.cal_zero.z, (float)g_wm.cal_g.z);
@@ -762,8 +793,11 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			((int)Gx >= 0) ? StringFromFormat(" %i", (int)Gx).c_str() : StringFromFormat("%i", (int)Gx).c_str(),
 			((int)Gy >= 0) ? StringFromFormat(" %i", (int)Gy).c_str() : StringFromFormat("%i", (int)Gy).c_str(),
 			((int)Gz >= 0) ? StringFromFormat(" %i", (int)Gz).c_str() : StringFromFormat("%i", (int)Gz).c_str());
-		
+		// -------------------------
+
+		// ---------------------------------------------
 		// Calculate the IR data
+		// -----------
 		if (data[1] == WM_REPORT_CORE_ACCEL_IR10_EXT6) WiiMoteEmu::IRData2DotsBasic(&data[7]); else WiiMoteEmu::IRData2Dots(&data[7]);
 		std::string IRData;
 		// Create a shortcut
@@ -777,10 +811,12 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		}
 		// Dot distance
 		IRData += StringFromFormat(" | Distance:%i", WiiMoteEmu::g_Wm.IR.Distance);
+		// -------------------------
 
 		//Console::Print("Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str()); // Formatted data only
 		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str()); // IR data
-		Console::Print("Read[%s]: %s| %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), RollPitch.c_str(), GForce.c_str()); // Accelerometer
+		Console::Print("Read[%s]: %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+			TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), RollPitch.c_str(), GForce.c_str()); // Accelerometer
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 		
 	}
