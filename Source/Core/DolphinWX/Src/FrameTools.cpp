@@ -100,7 +100,7 @@ void CFrame::CreateMenu()
 	wxMenu* fileMenu = new wxMenu;
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 
-#if defined(_WIN32) || defined(__GNUC__) // not tested on linux/os x
+#if defined(_WIN32) || defined(__GNUC__) // not tested on os x
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	GetAllRemovableDrives(&drives);
@@ -489,10 +489,6 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-#ifdef __GNUC__
-	if (!PanicYesNo("This function has not been tested on Linux, continue?\nPlease report whether it works or not"))
-		return;
-#endif
 	BootManager::BootCore(drives.at(event.GetId()-IDM_DRIVE1).c_str());
 }
 
