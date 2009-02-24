@@ -177,22 +177,24 @@ void Jit64::stfd(UGeckoInstruction inst)
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
 	TEST(32, R(ABI_PARAM1), Imm32(0x0c000000));
 	FixupBranch not_ram = J_CC(CC_Z);
+	// Assume that any hardware writes using this instruction will go to the FIFO.
+	// Star Wars - The Force Unleashed uses this trick.
 	if (cpu_info.bSSSE3) {
 		MOVAPD(XMM0, fpr.R(s));
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
 		CALL(asm_routines.fifoDirectWriteXmm64);
 	} else {
 		// This ain't working yet
-/*		fpr.LoadToX64(s, true, false);
-		MOVSD(M(&temp64), fpr.RX(s));
+		MOVAPD(XMM0, fpr.R(s));
+		MOVQ_xmm(M(&temp64), XMM0);
 		MOV(32, R(EAX), M(&temp64));
 		MOV(32, R(ABI_PARAM1), M((void*)((u32)&temp64 + 4)));
 		BSWAP(32, EAX);
 		BSWAP(32, ABI_PARAM1);
 		MOV(32, M(((u8 *)&temp64) + 4), R(EAX));
 		MOV(32, M((u8 *)&temp64), R(ABI_PARAM1));
-		MOVSD(XMM0, M(&temp64));
-		CALL(asm_routines.fifoDirectWriteXmm64); */
+		MOVQ_xmm(XMM0, M(&temp64));
+		CALL(asm_routines.fifoDirectWriteXmm64);
 	}
 	FixupBranch quit = J(false);
 	SetJumpTarget(not_ram);
