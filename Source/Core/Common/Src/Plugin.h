@@ -41,7 +41,7 @@ public:
 	// This functions is only used when CPlugin is called directly, when a parent class like PluginVideo
 	// is called its own IsValid() will be called. 
 	virtual bool IsValid() { return valid; };
-	std::string GetFilename() const { return Filename; }
+	const std::string& GetFilename() const { return Filename; }
 	bool GetInfo(PLUGIN_INFO& _pluginInfo);
 	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
 	void *LoadSymbol(const char *sym);

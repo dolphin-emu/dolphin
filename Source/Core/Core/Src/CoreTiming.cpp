@@ -22,8 +22,6 @@
 #include "CoreTiming.h"
 #include "StringUtil.h"
 
-// TODO(ector): Replace new/delete in this file with a simple memory pool
-// Don't expect a massive speedup though.
 
 namespace CoreTiming
 {
@@ -50,6 +48,11 @@ typedef LinkedListItem<BaseEvent> Event;
 Event *first;
 Event *tsFirst;
 
+// event pools
+Event *eventPool = 0;
+Event *eventTsPool = 0;
+int allocatedTsEvents = 0;
+
 int downcount, slicelength;
 int maxSliceLength = 20000;
 
@@ -59,6 +62,34 @@ s64 idledCycles;
 Common::CriticalSection externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted);
+
+Event* GetNewEvent()
+{
+    if(!eventPool)
+        return new Event;
+
+    Event* ev = eventPool;
+    eventPool = ev->next;
+    return ev;
+}
+
+Event* GetNewTsEvent()
+{
+    allocatedTsEvents++;
+
+    if(!eventTsPool)
+        return new Event;
+
+    Event* ev = eventTsPool;
+    eventTsPool = ev->next;
+    return ev;
+}
+
+void FreeEvent(Event* ev)
+{
+    ev->next = eventPool;
+    eventPool = ev;
+}
 
 int RegisterEvent(const char *name, TimedCallback callback)
 {
@@ -88,6 +119,22 @@ void Shutdown()
 {
 	ClearPendingEvents();
 	UnregisterAllEvents();
+
+    while(eventPool)
+    {
+        Event *ev = eventPool;
+        eventPool = ev->next;
+        delete ev;
+    }
+
+    externalEventSection.Enter();
+    while(eventTsPool)
+    {
+        Event *ev = eventTsPool;
+        eventTsPool = ev->next;
+        delete ev;
+    }
+    externalEventSection.Leave();
 }
 
 void DoState(PointerWrap &p)
@@ -111,7 +158,7 @@ void DoState(PointerWrap &p)
 			p.Do(more_events);
 			if (!more_events)
 				break;
-			Event *ev = new Event;
+			Event *ev = GetNewEvent();
 			if (!prev)
 				first = ev;
 			else
@@ -160,7 +207,7 @@ u64 GetIdleTicks()
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	externalEventSection.Enter();
-	Event *ne = new Event;
+	Event *ne = GetNewTsEvent();
 	ne->time = globalTimer + cyclesIntoFuture;
 	ne->type = event_type;
 	ne->next = tsFirst;
@@ -174,7 +221,7 @@ void ClearPendingEvents()
 	while (first)
 	{
 		Event *e = first->next;
-		delete first;
+		FreeEvent(first);
 		first = e;
 	}
 }
@@ -225,7 +272,7 @@ void AddEventToQueue(Event *ne)
 // than Advance 
 void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
-	Event *ne = new Event;
+	Event *ne = GetNewEvent();
 	ne->userdata = userdata;
 	ne->type = event_type;
 	ne->time = globalTimer + cyclesIntoFuture;
@@ -258,7 +305,7 @@ void RemoveEvent(int event_type)
 	if (first->type == event_type)
 	{
 		Event *next = first->next;
-		delete first;
+		FreeEvent(first);
 		first = next;
 	}
 	if (!first)
@@ -270,7 +317,7 @@ void RemoveEvent(int event_type)
 		if (ptr->type == event_type)
 		{
 			prev->next = ptr->next;
-			delete ptr;
+			FreeEvent(ptr);
 			ptr = prev->next;
 		}
 		else
@@ -288,15 +335,25 @@ void SetMaximumSlice(int maximumSliceLength)
 
 
 void Advance()
-{
-	// Move events from async queue into main queue
+{	
 	externalEventSection.Enter();
+    // Move events from async queue into main queue
 	while (tsFirst)
 	{
 		Event *next = tsFirst->next;
 		AddEventToQueue(tsFirst);
 		tsFirst = next;
 	}
+
+    // Move free events to threadsafe pool
+    while(allocatedTsEvents > 0 && eventPool)
+    {        
+        Event *ev = eventPool;
+        eventPool = ev->next;
+        ev->next = eventTsPool;
+        eventTsPool = ev;
+        allocatedTsEvents--;
+    }
 	externalEventSection.Leave();
 
 	int cyclesExecuted = slicelength - downcount;
@@ -311,7 +368,7 @@ void Advance()
 //				first->name ? first->name : "?", (u64)globalTimer, (u64)first->time);
 			event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
 			Event *next = first->next;
-			delete first;
+			FreeEvent(first);
 			first = next;
 		}
 		else
