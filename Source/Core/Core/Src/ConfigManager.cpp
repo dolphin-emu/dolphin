@@ -218,7 +218,7 @@ void SConfig::LoadSettings()
 
 		// Wii
 		ini.Get("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen, false);
-		ini.Get("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan, true);
+		ini.Get("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan, false);
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
