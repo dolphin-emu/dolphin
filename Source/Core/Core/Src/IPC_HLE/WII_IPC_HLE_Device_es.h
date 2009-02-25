@@ -342,7 +342,7 @@ public:
                     u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
                     u32 Count = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 
-                    _dbg_assert_msg_(WII_IPC_HLE, TitleID==0x0000000100000002, "IOCTL_ES_GETVIEWS: TitleID != 00000001/00000002");                    
+					_dbg_assert_msg_(WII_IPC_HLE, TitleID==0x0000000100000002ull, "IOCTL_ES_GETVIEWS: TitleID != 00000001/00000002");                    
 
                     /* write ticket data... hmmm
                     typedef struct _tikview {
