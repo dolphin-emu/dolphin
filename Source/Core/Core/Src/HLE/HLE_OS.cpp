@@ -45,7 +45,6 @@ void HLE_OSReport()
 	std::string ReportMessage;
 	GetStringVA(ReportMessage);
 
-
 	//	PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
 
 	LOG(OSREPORT,"(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());

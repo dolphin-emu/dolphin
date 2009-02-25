@@ -46,8 +46,6 @@
 */
 // =============
 
-
-
 #ifndef _WII_IPC_HLE_DEVICE_ES_H_
 #define _WII_IPC_HLE_DEVICE_ES_H_
 
@@ -149,25 +147,6 @@ public:
 
             switch(Buffer.Parameter)
             {
-            case IOCTL_ES_LAUNCH: // 0x08
-                {
-                    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
-
-                    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-
-                    u32 view =      Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-                    u64 ticketid =  Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
-                    u32 devicetype =Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
-                    u64 titleid =   Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
-                    u16 access =    Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
-
-                    PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x", TitleID>>32, TitleID, titleid>>32, titleid );
-
-                    Memory::Write_U32(0, _CommandAddress + 0x4);		
-                    return false;
-                }
-                break;
-
 			case IOCTL_ES_OPENCONTENT: // 0x09
 				{
 					u32 CFD = AccessIdentID++;
@@ -262,11 +241,7 @@ public:
 				break;
 
             case IOCTL_ES_GETTITLEDIR: // 0x1d
-                {
-					/* I changed reading the TitleID from disc to reading from the
-					   InBuffer, if it fails it's because of some kind of memory error
-					   that we would want to fix anyway */
-                    
+                {                   
 					u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
                     _dbg_assert_msg_(WII_IPC_HLE, TitleID == GetCurrentTitleID(), "Get Dir from unkw title dir?? this can be okay...");
 
@@ -318,6 +293,47 @@ public:
                 }
                 break;
 
+
+
+			case IOCTL_ES_GETTITLECOUNT:
+				{
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberInBuffer == 0, "IOCTL_ES_GETTITLECOUNT has an in buffer");
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETTITLECOUNT has no out buffer");
+                    _dbg_assert_msg_(WII_IPC_HLE, Buffer.PayloadBuffer[0].m_Size == 4, "IOCTL_ES_GETTITLECOUNT payload[0].size != 4");
+
+                    Memory::Write_U64(0, Buffer.PayloadBuffer[0].m_Address);
+
+					LOGV(WII_IPC_ES, 0, "IOCTL_ES_GETTITLECOUNT: TODO - hardcoded to 0 !!!!");
+				}
+				break;
+
+
+// ===============================================================================================
+// unsupported functions 
+// ===============================================================================================
+
+            case IOCTL_ES_LAUNCH: // 0x08
+                {
+                    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
+
+                    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+
+                    u32 view =      Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+                    u64 ticketid =  Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
+                    u32 devicetype =Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
+                    u64 titleid =   Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
+                    u16 access =    Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
+
+                    PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x \n"
+                        "This means that dolphin tries to relaunch the WiiMenu or"
+                        "launches code from the an URL. Both wont work and dolphin will prolly hang...",
+                        TitleID>>32, TitleID, titleid>>32, titleid );
+
+                    Memory::Write_U32(0, _CommandAddress + 0x4);		
+                    return true;
+                }
+                break;
+
             case IOCTL_ES_GETVIEWS:
                 {
                     _dbg_assert_msg_(WII_IPC_HLE, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETVIEWS no in buffer");
@@ -327,18 +343,18 @@ public:
                     u32 Count = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 
                     _dbg_assert_msg_(WII_IPC_HLE, TitleID==0x0000000100000002, "IOCTL_ES_GETVIEWS: TitleID != 00000001/00000002");                    
-                    
+
                     /* write ticket data... hmmm
-                        typedef struct _tikview {
-                        u32 view;
-                        u64 ticketid;
-                        u32 devicetype;
-                        u64 titleid;
-                        u16 access_mask;
-                        u8 reserved[0x3c];
-                        u8 cidx_mask[0x40];
-                        u16 padding;
-                        tiklimit limits[8];
+                    typedef struct _tikview {
+                    u32 view;
+                    u64 ticketid;
+                    u32 devicetype;
+                    u64 titleid;
+                    u16 access_mask;
+                    u8 reserved[0x3c];
+                    u8 cidx_mask[0x40];
+                    u16 padding;
+                    tiklimit limits[8];
                     } __attribute__((packed)) tikview;
                     */
 
@@ -348,60 +364,40 @@ public:
                     Memory::Write_U64(m_TitleID,    Buffer.PayloadBuffer[0].m_Address+16);
                     Memory::Write_U16(0x777,        Buffer.PayloadBuffer[0].m_Address+24);
 
-                    Memory::Write_U32(0, _CommandAddress + 0x4);		
+                    Memory::Write_U32(0, _CommandAddress + 0x4);
+
+                    _dbg_assert_msg_(WII_IPC_HLE, 0, "IOCTL_ES_GETVIEWS: this looks really wrong...");
+
                     return true;
                 }
                 break;
 
-
-			case IOCTL_ES_GETTMDVIEWCNT: // 0x14
-                {
-                    PanicAlert("IOCTL_ES_GETTMDVIEWCNT: this looks really wrong...");
-					if(Buffer.NumberInBuffer)
-						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-
-					// Should we write something here?
-					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
-                }
-                break;
-
-           case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
-               PanicAlert("IOCTL_ES_GETCONSUMPTION: this looks really wrong...");
-				//DumpCommands(Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size / 4,
-				//	LogTypes::WII_IPC_NET);
-				break;
-
-           case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
-               PanicAlert("IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
-                break;
-
-			case IOCTL_ES_GETTITLECOUNT:
-				{
-                    PanicAlert("IOCTL_ES_GETTITLECOUNT: this looks really wrong...");
-
-					u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
-
-					Memory::Write_U32(0, OutBuffer);
-
-					LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
-						"      IOCTL_ES_GETTITLECOUNT: 0x%x", OutBuffer);
-				}
-				break;
-
 			case IOCTL_ES_GETSTOREDTMDSIZE:
 				{
-                    PanicAlert("IOCTL_ES_GETSTOREDTMDSIZE: this looks really wrong...");
+                    _dbg_assert_msg_(WII_IPC_HLE, 0, "IOCTL_ES_GETSTOREDTMDSIZE: this looks really wrong...");
 
-
-					u64	TitleId = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+/*					u64	TitleId = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 					u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 
 					Memory::Write_U32(0, OutBuffer);
 					printf("ES_GetStoredTmdSize(%llx)\n", TitleId);
 					LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
-							"      IOCTL_ES_GETSTOREDTMDSIZE: 0x%x", OutBuffer);
+							"      IOCTL_ES_GETSTOREDTMDSIZE: 0x%x", OutBuffer);*/
 					}
 					break;
+
+            case IOCTL_ES_GETTMDVIEWCNT: // 0x14
+                _dbg_assert_msg_(WII_IPC_HLE, 0, "IOCTL_ES_GETTMDVIEWCNT: this looks really wrong...");
+                break;
+
+            case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
+                _dbg_assert_msg_(WII_IPC_HLE, 0, "IOCTL_ES_GETCONSUMPTION: this looks really wrong...");
+                break;
+
+            case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
+                _dbg_assert_msg_(WII_IPC_HLE, 0, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+                break;
+
 
             default:
 

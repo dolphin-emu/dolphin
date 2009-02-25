@@ -68,7 +68,6 @@
 namespace WII_IPC_HLE_Interface
 {
 
-
 typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
 TDeviceMap g_DeviceMap;
 

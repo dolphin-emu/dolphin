@@ -112,14 +112,15 @@ bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD)
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
 		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-        rContent.m_Size= (u32)ROUND_UP(Common::swap64(pTMD + 0x01ec + 0x24*i), 0x40);
-		rContent.m_pData = new u8[rContent.m_Size];
+        rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
+        rContent.m_RoundedSize= ROUND_UP(rContent.m_Size, 0x40);
+		rContent.m_pData = new u8[rContent.m_RoundedSize];
 
 		memset(IV, 0, sizeof IV);
 		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, p, rContent.m_Size, rContent.m_pData);
+		AESDecode(DecryptTitleKey, IV, p, rContent.m_RoundedSize, rContent.m_pData);
 
-		p += rContent.m_Size;
+		p += rContent.m_RoundedSize;
 	}
 
     return true;
@@ -291,7 +292,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// DOL
 	STileMetaContent& rContent = m_TileMetaContent[m_BootIndex];
-	CDolLoader DolLoader(rContent.m_pData, rContent.m_Size);
+	CDolLoader DolLoader(rContent.m_pData, rContent.m_RoundedSize);
 
 	PC = DolLoader.GetEntryPoint() | 0x80000000;
 

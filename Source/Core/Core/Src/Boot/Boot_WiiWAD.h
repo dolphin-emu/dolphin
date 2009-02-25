@@ -24,7 +24,8 @@ struct STileMetaContent
 	u32 m_ContentID;	
 	u16 m_Index;
 	u16 m_Type;
-	u32 m_Size;
+    u32 m_Size;
+	u32 m_RoundedSize;
 
 	u8* m_pData;
 };
