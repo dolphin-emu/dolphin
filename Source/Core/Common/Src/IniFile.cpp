@@ -385,6 +385,22 @@ void IniFile::Set(const char* sectionName, const char* key, const char* newValue
 	}
 }
 
+void IniFile::Set(const char* sectionName, const char* key, const std::vector<std::string>& newValues) 
+{
+	std::string temp;
+
+	// Join the strings with , 
+	std::vector<std::string>::const_iterator it;
+	for (it = newValues.begin(); it != newValues.end(); ++it) {
+	
+		temp = (*it) + ",";
+	}
+
+	// remove last ,
+	temp.resize(temp.length() - 1);
+
+	Set(sectionName, key, temp.c_str());
+}
 
 void IniFile::Set(const char* sectionName, const char* key, u32 newValue)
 {
@@ -432,6 +448,37 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 	return true;
 }
 
+
+bool IniFile::Get(const char* sectionName, const char* key, std::vector<std::string>& values) 
+{
+
+	std::string temp;
+	bool retval = Get(sectionName, key, &temp, 0);
+
+	if (! retval || temp.empty()) {
+		return false;
+	}
+	
+	u32 subEnd;
+
+	// ignore starting , if any
+	u32 subStart = temp.find_first_not_of(",");
+
+	// split by , 
+	while (subStart != std::string::npos) {
+		
+		// Find next , 
+		subEnd = temp.find_first_of(",", subStart);
+		if (subStart != subEnd) 
+			// take from first char until next , 
+			values.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
+	
+		// Find the next non , char
+		subStart = temp.find_first_not_of(",", subEnd);
+	} 
+	
+	return true;
+}
 
 bool IniFile::Get(const char* sectionName, const char* key, int* value, int defaultValue)
 {

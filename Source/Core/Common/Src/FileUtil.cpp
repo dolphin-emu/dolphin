@@ -30,9 +30,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <linux/cdrom.h>
 #endif
 
 #include <fstream>

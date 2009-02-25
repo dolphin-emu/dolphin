@@ -200,32 +200,24 @@ std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len, bo
 // ================
 
 
-// Turns "  hej " into "hej". Also handles tabs.
+// Turns "  hej " into "hej". Also handles tabs and newlines.
 std::string StripSpaces(const std::string &str)
 {
-	std::string s = str;
-	int i;
-	for (i = 0; i < (int)s.size(); i++)
-	{
-		if ((s[i] != ' ') && (s[i] != 9))
-		{
-			break;
-		}
-	}
+	std::string temp = str;
 
-	s = s.substr(i);
+	// Find first non space char
+    u32 firstChar = str.find_first_not_of(" \t\n");
 
-	for (i = (int)s.size() - 1; i > 0; i--)
-	{
-		if ((s[i] != ' ') && (s[i] != 9))
-		{
-			break;
-		}
-	}
+	// Last char which is not whitespace
+	u32 lastChar = str.find_last_not_of(" \t\n");
 
-	return s.substr(0, i + 1);
+	if (firstChar != std::string::npos) 
+		temp.resize(firstChar, lastChar);
+    else 
+		temp = "";
+
+	return temp;
 }
-
 
 // "\"hello\"" is turned to "hello"
 // This one assumes that the string has already been space stripped in both
@@ -234,19 +226,6 @@ std::string StripQuotes(const std::string& s)
 {
 	if ((s[0] == '\"') && (s[s.size() - 1] == '\"'))
 		return s.substr(1, s.size() - 2);
-	else
-		return s;
-}
-
-// "\"hello\"" is turned to "hello"
-// This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
-std::string StripNewline(const std::string& s)
-{
-	if (!s.size())
-		return s;
-	else if (s[s.size() - 1] == '\n')
-		return s.substr(0, s.size() - 1);
 	else
 		return s;
 }
@@ -461,3 +440,21 @@ std::string ThS(int Integer, bool Unsigned)
 }
 
 
+// Remove trailing whitespaces from begining and end of string
+std::string Trim(const std::string& str)
+{
+	std::string temp = str;
+
+	// Find first non space char
+    u32 firstChar = str.find_first_not_of(" \t\n");
+
+	// Last char which is not whitespace
+	u32 lastChar = str.find_last_not_of(" \t\n");
+
+	if (firstChar != std::string::npos) 
+		temp.resize(firstChar, lastChar);
+    else 
+		temp = "";
+
+	return temp;
+}
