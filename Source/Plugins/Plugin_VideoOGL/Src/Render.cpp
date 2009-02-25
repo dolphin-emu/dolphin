@@ -924,6 +924,34 @@ void Renderer::Swap(const TRectangle& rc)
 	}
 	// -------------------------------------
 
+
+	// -----------------------------------------------------------------------
+	/* Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10. */
+	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// ------------------
+	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bStretchToFit && g_Config.bCrop)
+	{
+		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
+		// The width and height we will add
+		float IncreasedWidth = (Ratio - 1.0) * FloatGLWidth;
+		float IncreasedHeight = (Ratio - 1.0) * FloatGLHeight;
+		FloatGLWidth = FloatGLWidth * Ratio;
+		FloatGLHeight = FloatGLHeight * Ratio;
+		// Wee need this adjustment to, the -6 adjustment was needed to never show any pixels outside the actual picture
+		// The result in offset in actual pixels is only around 1 or 2 pixels in a 1280 x 1024 resolution. In 1280 x 1024 the
+		// picture is only about 2 to 4 pixels (1 up and 1 down for example) to big to produce a minimal margin
+		// of error, while rather having a full screen and hiding one pixel, than having a one pixel black border. But it seems
+		// to be just enough in all games I tried.
+		float WidthRatio = ((float)rc.right - 6.0) / 640.0;
+		float HeightRatio = ((float)rc.bottom - 6.0) / 480.0;
+		// Adjust the X and Y offset
+		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0 / WidthRatio / Ratio);
+		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0 / HeightRatio / Ratio);
+		//Console::Print("Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
+	}
+	// -------------------------------------
+
+
 	// -----------------------------------------------------------------------
 	/* Adjustments to
 			FloatGLWidth
@@ -987,10 +1015,14 @@ void Renderer::Swap(const TRectangle& rc)
 
 
 	// -----------------------------------------------------------------------
-	/* Blacken out the borders in the 4:3 or 16:9 aspect ratio modes. Somewhere in BPStructs
-	   0x52 or elsewhere the area outside the actual picture, that we now show with the aspect ratio option
-	   has been filled with either for example white, or have copies of old renderings on it. So we replace
-	   that with blacknes. */
+	/* Blacken out the borders in the 4:3 or 16:9 aspect ratio modes. Somewhere in BPStructs 0x52 or
+	   elsewhere the area outside the actual picture, that we now show with the aspect ratio option
+	   has been filled with either for example white, or have copies of old renderings on it. So we
+	   replace that with blacknes.
+	   
+	   We are not supposed to need this with the Crop option and in full screen, but we can keep it for the
+	   window mode, since the border can still be seen then
+	   */
 	// --------------------
 	if(g_Config.bKeepAR43 || g_Config.bKeepAR169)
 	{

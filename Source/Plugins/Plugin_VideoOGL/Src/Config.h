@@ -41,7 +41,7 @@ struct Config
 	// stretch to fit should be split into two options, I think - one for low resolution backbuffer,
 	// one for ignore aspect ratio. I guess KeepAR sort of does that. Anyway, these should be rethought.
     bool bStretchToFit;
-    bool bKeepAR43, bKeepAR169;
+    bool bKeepAR43, bKeepAR169, bCrop;
     bool bHideCursor;
     bool bSafeTextureCache;
     

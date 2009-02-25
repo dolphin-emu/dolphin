@@ -78,7 +78,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_Fullscreen;
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_StretchToFit;
-		wxCheckBox *m_KeepAR43, *m_KeepAR169;
+		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
@@ -129,7 +129,7 @@ class ConfigDialog : public wxDialog
 			ID_FULLSCREEN,
 			ID_RENDERTOMAINWINDOW,
 			ID_STRETCHTOFIT,
-			ID_KEEPAR_4_3, ID_KEEPAR_16_9,
+			ID_KEEPAR_4_3, ID_KEEPAR_16_9, ID_CROP,
 			ID_HIDECURSOR,
 			ID_FSTEXT,
 			ID_FULLSCREENCB,

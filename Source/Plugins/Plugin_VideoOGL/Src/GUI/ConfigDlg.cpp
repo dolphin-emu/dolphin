@@ -37,6 +37,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_4_3, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_16_9, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_CROP, ConfigDialog::GeneralSettingsChanged)
 	#ifndef _WIN32
 		EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
 	#endif
@@ -85,7 +86,8 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
 	/* JP: Yes, it seems like Close() does not do that. It only runs EndModal() or something
 	    similar to hide the window. And I don't understand the "Window deletion overview" on
-		the wxWidgets website. Destroy() doesn't run the destructor either. */
+		the wxWidgets website. Destroy() doesn't run the destructor either. However running
+		wxEntryCleanup() from here crashes the process. But we can run it from CloseClick() */
 	//wxEntryCleanup();
 	//EndModal(0);
 
@@ -97,11 +99,11 @@ void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
 	Console::Print("CloseClick\n");
 
-	g_Config.Save();
-	EndModal(0);
+	// If we run wxEntryCleanup() the class will be entirely deleted, and the destructor will be run
+	//g_Config.Save();
 	//wxEntryCleanup();
 
-	//Close();
+	Close();
 }
 ///////////////////////////////
 
@@ -169,11 +171,13 @@ void ConfigDialog::CreateGUIControls()
 	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("Keep 16:9 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Default values
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
 	m_KeepAR43->SetValue(g_Config.bKeepAR43);
 	m_KeepAR169->SetValue(g_Config.bKeepAR169);
+	m_Crop->SetValue(g_Config.bCrop);
 
 	#ifndef _WIN32
 		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -203,12 +207,15 @@ void ConfigDialog::CreateGUIControls()
 		"\nwindow instead of changing the internal display resolution. It"
 		"\nmay result in a slightly blurrier image, but it may also give a higher"
 		"\nFPS if you have a slow graphics card."));
+	m_Crop->SetToolTip(wxT(
+		"Crop the picture instead of creating a letterbox. It will assume that your screen"
+		"\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume"
+		"\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio."));
 	m_FullscreenCB->SetToolTip(wxT(
 		"Select resolution for the (separate window) fullscreen mode."));
 	// This almost sounds like an unnecessary option
 	m_WindowResolutionCB->SetToolTip(wxT(
 		"Select initial resolution for the separate rendering window."));
-
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
@@ -233,27 +240,24 @@ void ConfigDialog::CreateGUIControls()
 	// Usage: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
 	sBasic = new wxGridBagSizer(0, 0);
-	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
 	sBasic->Add(m_KeepAR43, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_KeepAR169, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
+	// Because of the ifdef here we need this variable for the row number
+	int Row = 4;
 	#ifndef _WIN32
-		sBasic->Add(m_HideCursor, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-		sBasic->Add(FSText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_FullscreenCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
-		sBasic->Add(WMText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_WindowResolutionCB, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
-		sBasic->Add(BEText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_RenderBackend, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
-	#else
-		sBasic->Add(FSText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_FullscreenCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-		sBasic->Add(WMText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_WindowResolutionCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
-		sBasic->Add(BEText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sBasic->Add(m_RenderBackend, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_HideCursor, wxGBPosition(Row++, 0), wxGBSpan(1, 3), wxALL, 5);
 	#endif
+	sBasic->Add(FSText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_FullscreenCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(WMText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_WindowResolutionCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(BEText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_RenderBackend, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
+
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
@@ -440,6 +444,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		// Don't allow both at the same time
 		if (g_Config.bKeepAR169) { g_Config.bKeepAR43 = false; m_KeepAR43->SetValue(false); }	
 		break;
+	case ID_CROP:		
+		g_Config.bCrop = m_Crop->IsChecked();	
+		break;
 	#ifndef _WIN32
 		case ID_HIDECURSOR:
 			g_Config.bHideCursor = m_HideCursor->IsChecked();
@@ -559,6 +566,8 @@ void ConfigDialog::UpdateGUI()
 	// This option is only compatible with the Strech To Fit option
 	m_KeepAR43->Enable(g_Config.bStretchToFit);
 	m_KeepAR169->Enable(g_Config.bStretchToFit);
+	// This is only used together with the aspect ratio options
+	m_Crop->Enable(g_Config.bStretchToFit && (g_Config.bKeepAR43 || g_Config.bKeepAR169));
 
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);

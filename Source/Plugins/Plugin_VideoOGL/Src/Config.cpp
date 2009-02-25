@@ -48,6 +48,7 @@ void Config::Load()
     iniFile.Get("Settings", "StretchToFit", &bStretchToFit, true);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
+	iniFile.Get("Settings", "Crop", &bCrop, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
     
     
@@ -99,6 +100,7 @@ void Config::Save()
     iniFile.Set("Settings", "StretchToFit", bStretchToFit);
     iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
 	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
+	iniFile.Set("Settings", "Crop", bCrop);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
     iniFile.Set("Settings", "Backend", iBackend);
     
