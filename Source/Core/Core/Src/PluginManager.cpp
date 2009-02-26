@@ -365,7 +365,12 @@ void CPluginManager::ScanForPlugins()
 	m_PluginInfos.clear();
 	// Get plugins dir
 	CFileSearch::XStringVector Directories;
-	Directories.push_back(std::string(PLUGINS_DIR));
+
+	#if defined(__APPLE__)
+        	Directories.push_back(File::GetPluginsDirectory());
+        #else
+        	Directories.push_back(std::string(PLUGINS_DIR));
+        #endif
 	
 	CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*" PLUGIN_SUFFIX);

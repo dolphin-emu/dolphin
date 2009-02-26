@@ -32,6 +32,15 @@
 #include <stdlib.h>
 #endif
 
+#if defined(__APPLE__)
+
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFUrl.h>
+#include <CoreFoundation/CFBundle.h>
+#include <sys/param.h>
+
+#endif
+
 #include <fstream>
 #include <sys/stat.h>
 
@@ -287,6 +296,54 @@ std::string GetUserDirectory()
 	return std::string(path);
 }
 
+
+//osx specific functions
+#if defined(__APPLE__)
+
+std::string GetBundleDirectory()
+{
+
+        // Plugin path will be Dolphin.app/Contents/PlugIns
+        CFURLRef BundleRef;
+        char AppBundlePath[MAXPATHLEN];
+
+        // Get the main bundle for the app
+        BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+
+        CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
+        CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
+
+        CFRelease(BundleRef);
+        CFRelease(BundlePath);
+
+        return AppBundlePath;
+
+
+}
+std::string GetPluginsDirectory()
+{
+
+        CFURLRef PluginDirRef;
+        char PluginPath[MAXPATHLEN];
+
+        PluginDirRef = CFBundleCopyBuiltInPlugInsURL(CFBundleGetMainBundle());
+
+        CFStringRef PluginDirPath = CFURLCopyFileSystemPath(PluginDirRef, kCFURLPOSIXPathStyle);
+        CFStringGetFileSystemRepresentation(PluginDirPath, PluginPath, sizeof(PluginPath));
+
+        CFRelease(PluginDirRef);
+        CFRelease(PluginDirPath);
+
+        std::string PluginsDir = GetBundleDirectory();
+        PluginsDir += DIR_SEP;
+        PluginsDir += PluginPath;
+
+	return PluginsDir;
+
+}
+
+
+#endif
 u64 GetSize(const char *filename)
 {
 	if (!Exists(filename))

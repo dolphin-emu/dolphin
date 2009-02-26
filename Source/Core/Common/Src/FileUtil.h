@@ -55,6 +55,10 @@ bool DeleteDirRecursively(const std::string& _Directory);
 void GetCurrentDirectory(std::string& _rDirectory);
 bool SetCurrentDirectory(const std::string& _rDirectory);
 
+#if defined(__APPLE__)
+std::string GetPluginsDirectory();
+#endif
+
 }  // namespace
 
 #endif

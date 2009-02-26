@@ -20,14 +20,10 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "ConfigManager.h"
-#ifdef __APPLE__
-#include <CoreFoundation/CFString.h>
-#include <CoreFoundation/CFUrl.h>
-#include <CoreFoundation/CFBundle.h>
-#include <sys/param.h>
 
+#if defined(__APPLE__)
+#include "FileUtil.h"
 #endif
-
 SConfig SConfig::m_Instance;
 
 
@@ -123,26 +119,8 @@ void SConfig::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(CONFIG_FILE);
-#ifdef __APPLE__
-	// Plugin path will be Dolphin.app/Contents/PlugIns
-	CFURLRef BundleRef, PluginDirRef;
-	// Get the main bundle for the app
-	BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-	PluginDirRef = CFBundleCopyBuiltInPlugInsURL(CFBundleGetMainBundle());
-	CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-	CFStringRef PluginDirPath = CFURLCopyFileSystemPath(PluginDirRef, kCFURLPOSIXPathStyle);
-	char AppBundlePath[MAXPATHLEN], PluginPath[MAXPATHLEN];
-	CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-	CFStringGetFileSystemRepresentation(PluginDirPath, PluginPath, sizeof(PluginPath));
-//	printf("bundle path = %s %s\n", AppBundlePath, PluginPath);
-	CFRelease(BundleRef);
-	CFRelease(BundlePath);
-	CFRelease(PluginDirRef);
-	CFRelease(PluginDirPath);
-	std::string PluginsDir = AppBundlePath;
-	PluginsDir += DIR_SEP;
-	PluginsDir += PluginPath;
-	PluginsDir += DIR_SEP;
+#if defined(__APPLE__)
+	std::string PluginsDir = File::GetPluginsDirectory();
 	
 	m_DefaultGFXPlugin = PluginsDir + DEFAULT_GFX_PLUGIN;
 	m_DefaultDSPPlugin = PluginsDir + DEFAULT_DSP_PLUGIN;
