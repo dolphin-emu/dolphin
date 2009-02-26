@@ -141,24 +141,15 @@ bool BootCore(const std::string& _rFilename)
 		{
 			//bRefreshList = false;
 			FILE* pStream; // file handle
-			u8 m_SYSCONF[0x4000]; // SYSCONF file
 			u16 IPL_PGS = 0x17CC; // progressive scan
 			u16 IPL_AR = 0x04D9; // widescreen
-			std::string FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
-
-			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
 
 			ini.Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
 			ini.Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
 
-			m_SYSCONF[IPL_PGS] = StartUp.bProgressiveScan;
-			m_SYSCONF[IPL_AR] = StartUp.bWidescreen;
-
-			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
-
 			// Save the update Wii SYSCONF settings
 			pStream = NULL;
-			pStream = fopen(FullSYSCONFPath.c_str(), "r+b");
+			pStream = fopen(WII_SYSCONF_FILE, "r+b");
 			if (pStream != NULL)
 			{
 				fseek(pStream, IPL_PGS, 0);
@@ -169,7 +160,7 @@ bool BootCore(const std::string& _rFilename)
 			}	
 			else
 			{
-				PanicAlert("Could not write to %s", FullSYSCONFPath.c_str());
+				PanicAlert("Could not write to %s", WII_SYSCONF_FILE);
 			}
 		}
 		// ---------------

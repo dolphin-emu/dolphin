@@ -30,6 +30,7 @@
 // Dirs in User
 #define GC_USER_DIR "GC"
 #define WII_USER_DIR "Wii"
+	#define WII_SYSCONF_DIR "shared2/sys"
 #define CONFIG_DIR "Config"
 #define GAMECONFIG_DIR "GameConfig"
 #define MAPS_DIR "Maps"
@@ -72,6 +73,7 @@
 #define WII_EUR_SETTING "setting-eur.txt"
 #define WII_USA_SETTING "setting-usa.txt"
 #define WII_JAP_SETTING "setting-jpn.txt"
+#define WII_SYSCONF "SYSCONF"
 
 #define MEMORY_DUMP_FILE "mainram.dump"
 
@@ -130,5 +132,6 @@
 #define WII_EUR_SETTING_FILE	FULL_WII_SYS_DIR WII_EUR_SETTING
 #define WII_USA_SETTING_FILE	FULL_WII_SYS_DIR WII_USA_SETTING
 #define WII_JAP_SETTING_FILE	FULL_WII_SYS_DIR WII_JAP_SETTING
+#define WII_SYSCONF_FILE		FULL_WII_USER_DIR WII_SYSCONF_DIR DIR_SEP WII_SYSCONF
 
 #endif // PATHS_H
