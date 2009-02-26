@@ -69,23 +69,115 @@ void GetMousePos(float& x, float& y)
 	// Get the cursor position relative to the upper left corner of the rendering window
 	ScreenToClient(g_WiimoteInitialize.hWnd, &point);
 
-	// Get the size of the rendering window. In my case top and left was zero.
+	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
 	RECT Rect;
 	GetClientRect(g_WiimoteInitialize.hWnd, &Rect);
 	// Width and height is the size of the rendering window
-	int width = Rect.right - Rect.left;
-	int height = Rect.bottom - Rect.top;
+	float WinWidth = (float)(Rect.right - Rect.left);
+	float WinHeight = (float)(Rect.bottom - Rect.top);
+	float XOffset = 0, YOffset = 0;
+	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 
-	// Return the mouse position as a fraction of one
-	x = point.x / (float)width;
-	y = point.y / (float)height;
+	// -----------------------------------------------------------------------
+	/* Calculate the actual picture size and location */
+	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
+	// ------------------
+	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
+	{
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = WinWidth / WinHeight / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (Ratio > 1)
+		{
+			// ------------------------------------------------
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			// ----------------
+			PictureWidth = WinWidth / Ratio;
+			// --------------------
+
+			// ------------------------------------------------
+			// Calculate the new X offset
+			// ----------------
+			// Move the left of the picture to the middle of the screen
+			XOffset = XOffset + WinWidth / 2.0;
+			// Then remove half the picture height to move it to the horizontal center
+			XOffset = XOffset - PictureWidth / 2.0;
+			// --------------------
+		}
+		// The window is to high, we have to limit the height
+		else
+		{
+			// ------------------------------------------------
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			// ----------------
+			// Invert the ratio to make it > 1
+			Ratio = 1.0 / Ratio;
+			PictureHeight = WinHeight / Ratio;
+			// --------------------
+			
+			// ------------------------------------------------
+			// Calculate the new Y offset
+			// ----------------
+			// Move the top of the picture to the middle of the screen
+			YOffset = YOffset + WinHeight / 2.0;
+			// Then remove half the picture height to move it to the vertical center
+			YOffset = YOffset - PictureHeight / 2.0;
+			// --------------------
+		}
+		// Logging
+		/*
+		Console::ClearScreen();
+		Console::Print("Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
+		Console::Print("Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		Console::Print("----------------------------------------------------------------\n");
+		*/
+	}
+	// -------------------------------------
+
+	// -----------------------------------------------------------------------
+	/* Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10. */
+	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
+	// ------------------
+	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
+	{
+		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
+		
+		// The width and height we will add  (calculate this before PictureWidth and PictureHeight is adjusted)
+		float IncreasedWidth = (Ratio - 1.0) * PictureWidth;
+		float IncreasedHeight = (Ratio - 1.0) * PictureHeight;
+
+		// The new width and height
+		PictureWidth = PictureWidth * Ratio;
+		PictureHeight = PictureHeight * Ratio;
+
+		// Adjust the X and Y offset
+		XOffset = XOffset - (IncreasedWidth / 2.0);
+		YOffset = YOffset - (IncreasedHeight / 2.0);
+
+		// Logging
+		/*
+		Console::Print("Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f\n", Ratio, IncreasedWidth, IncreasedHeight);
+		Console::Print("Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		Console::Print("----------------------------------------------------------------\n");
+		*/
+	}
+	// -------------------------------------
+
+	// Return the mouse position as a fraction of one, inside the picture, with (0.0, 0.0) being the upper left corner of the picture
+	x = ((float)point.x - XOffset) / PictureWidth;
+	y = ((float)point.y - YOffset) / PictureHeight;
+	
+	// ----------------------------------------------------------
+	// Logging
+	// -------------
 	/*
-	Console::ClearScreen();
-	Console::Print("GetCursorPos: %i %i\n", point.x, point.y);
+	Console::Print("GetCursorPos:  %i %i\n", point.x, point.y);
 	Console::Print("GetClientRect: %i %i  %i %i\n", Rect.left, Rect.right, Rect.top, Rect.bottom);
-	Console::Print("x and y: %f %f\n", x, y);
+	Console::Print("Position       X:%1.2f Y:%1.2f\n", x, y);
 	*/
+	// ---------------------------
+
 #else
     // TODO fix on linux
 	x = 0.5f;
@@ -113,6 +205,22 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 
 	*(u16*)(_baseBlock + _address) = cryptedValue;
 	//PanicAlert("Converted %04x to %04x", _value, cryptedValue);
+}
+// ================
+
+
+// ===================================================
+/* Calculate Extenstion Regisister Calibration Checksum */
+// This function is not currently used, it's just here to show how the values in EmuDefinitions.h are calculated.
+// ----------------
+void GetCalibrationChecksum()
+{
+	u8 sum = 0;
+	for (int i = 0; i < sizeof(nunchuck_calibration) - 2; i++)
+		sum += nunchuck_calibration[i];
+	u8 Check1 = sum + 0x55;
+	u8 Check2 = sum + 0xaa;
+	Console::Print("0x%02x 0x%02x", Check1, Check2);
 }
 // ================
 

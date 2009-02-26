@@ -932,9 +932,10 @@ void Renderer::Swap(const TRectangle& rc)
 	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bStretchToFit && g_Config.bCrop)
 	{
 		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
-		// The width and height we will add
+		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
 		float IncreasedWidth = (Ratio - 1.0) * FloatGLWidth;
 		float IncreasedHeight = (Ratio - 1.0) * FloatGLHeight;
+		// The new width and height
 		FloatGLWidth = FloatGLWidth * Ratio;
 		FloatGLHeight = FloatGLHeight * Ratio;
 		// Wee need this adjustment to, the -6 adjustment was needed to never show any pixels outside the actual picture

@@ -198,6 +198,18 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName.c_str(), "PitchInvert", &WiiMoteEmu::PadMapping[i].bPitchInvert, false);
 	}
 	// =============================
+
+	// ==================================================================
+	/* Load a few screen settings to. If these are added to the DirectX plugin it's probably
+	   better to place them in the main Dolphin.ini file */
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
+	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
+	iniFile.Get("Settings", "Crop", &bCrop, false);
+	// =============================
+
+	// Logging
 	Console::Print("Load()\n");
 }
 

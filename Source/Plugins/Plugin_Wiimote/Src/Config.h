@@ -84,6 +84,9 @@ struct Config
 	PadTrigger Trigger;
 	PadNunchuck Nunchuck;
 	PadClassicController ClassicController;
+
+	// Screen size settings
+	bool bKeepAR43, bKeepAR169, bCrop;
 };
 
 extern Config g_Config;

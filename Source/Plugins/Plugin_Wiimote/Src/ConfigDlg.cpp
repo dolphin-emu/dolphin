@@ -568,8 +568,8 @@ void ConfigDialog::CreateGUIControls()
 		// General and basic Settings
 		// ----------------
 
-		// Configuration controls
-		static const int TxtW = 50, TxtH = 19, ChW = 261, BtW = 75, BtH = 20;
+		// Configuration controls sizes
+		static const int TxtW = 50, TxtH = 19, ChW = 257, BtW = 75, BtH = 20;
 
 		// Basic Settings
 		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
@@ -615,12 +615,17 @@ void ConfigDialog::CreateGUIControls()
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
 		m_TextScreenLeft[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: 000"));
 		m_TextScreenTop[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Top: 000"));
-
+		m_TextAR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Aspect Ratio"));
+				
 		m_SliderWidth[i] = new wxSlider(m_Controller[i], IDS_WIDTH, 0, 100, 923, wxDefaultPosition, wxSize(75, -1));
 		m_SliderHeight[i] = new wxSlider(m_Controller[i], IDS_HEIGHT, 0, 0, 727, wxDefaultPosition, wxSize(75, -1));
 		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
 		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
 		//m_ScreenSize = new wxCheckBox(m_Controller[i], IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+		m_CheckAR43[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("4:3"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
+		m_CheckAR169[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("16:9"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
+		m_Crop[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Crop"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
 
 		// Sizers
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -635,10 +640,28 @@ void ConfigDialog::CreateGUIControls()
 		m_SizerIRPointerHeight[i]->Add(m_TextScreenHeight[i], 0, wxEXPAND | (wxTOP), 3);
 		m_SizerIRPointerHeight[i]->Add(m_SliderHeight[i], 0, wxEXPAND | (wxLEFT), 0);
 
+		m_SizerIRPointerScreen[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerScreen[i]->Add(m_TextAR[i], 0, wxEXPAND | (wxTOP), 0);
+		m_SizerIRPointerScreen[i]->Add(m_CheckAR43[i], 0, wxEXPAND | (wxLEFT), 5);
+		m_SizerIRPointerScreen[i]->Add(m_CheckAR169[i], 0, wxEXPAND | (wxLEFT), 5);
+		m_SizerIRPointerScreen[i]->Add(m_Crop[i], 0, wxEXPAND | (wxLEFT), 5);
+
 		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR pointer"));
 		//m_SizerIRPointer[i]->Add(m_ScreenSize[i], 0, wxEXPAND | (wxALL), 5);
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerWidth[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerHeight[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+		m_SizerIRPointer[i]->Add(m_SizerIRPointerScreen[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+
+		// Default values
+		m_CheckAR43[i]->SetValue(g_Config.bKeepAR43);
+		m_CheckAR169[i]->SetValue(g_Config.bKeepAR169);
+		m_Crop[i]->SetValue(g_Config.bCrop);
+
+		// These are changed from the graphics plugin settings, so they are just here to show the loaded status
+		m_TextAR[i]->Enable(false);
+		m_CheckAR43[i]->Enable(false);
+		m_CheckAR169[i]->Enable(false);
+		m_Crop[i]->Enable(false);		
 
 		// Tool tips
 		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
@@ -976,10 +999,11 @@ void ConfigDialog::CreateGUIControls()
 		// Row 3 Sizers
 		// -----------------------------
 		m_HorizControllers[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_HorizControllers[i]->AddStretchSpacer();
+		//m_HorizControllers[i]->AddStretchSpacer();
+		m_HorizControllers[i]->AddSpacer(17);
 		m_HorizControllers[i]->Add(m_gAnalogLeft[i]);
 		m_HorizControllers[i]->Add(m_gAnalogRight[i], 0, (wxLEFT), 5);
-		m_HorizControllers[i]->AddStretchSpacer();
+		//m_HorizControllers[i]->AddStretchSpacer();
 		///////////////////////////
 
 

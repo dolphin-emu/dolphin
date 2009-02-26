@@ -259,7 +259,9 @@ void ConfigDialog::CreateGUIControlsRecording()
 	wxBoxSizer * sRealRecord[RECORDING_ROWS + 1];
 
 	wxStaticText * m_TextRec = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(80, -1), wxALIGN_CENTRE);
-	wxStaticText * m_TextHotKey = new wxStaticText(m_PageRecording, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(170, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKeyWm = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Wiim."), wxDefaultPosition, wxSize(32, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKeyNc = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Nunc."), wxDefaultPosition, wxSize(32, -1), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKeyIR = new wxStaticText(m_PageRecording, wxID_ANY, wxT("IR"), wxDefaultPosition, wxSize(32, -1), wxALIGN_CENTRE);
 	wxStaticText * m_TextMovement = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(200, -1), wxALIGN_CENTRE);
 	wxStaticText * m_TextGame = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(200, -1), wxALIGN_CENTRE);
 	wxStaticText * m_TextIRBytes = new wxStaticText(m_PageRecording, wxID_ANY, wxT("IR"), wxDefaultPosition, wxSize(20, -1), wxALIGN_CENTRE);
@@ -270,11 +272,16 @@ void ConfigDialog::CreateGUIControlsRecording()
 	m_TextRec->SetToolTip(wxT(
 		"To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n"
 		"by letting go of 'A'"));
-	m_TextHotKey->SetToolTip(
-		wxT("Select a hotkey for playback of 1. Wiimote movements, 2. Nunchuck movements, 3. IR data. You can combine it with an"
-		" option Shift, Ctrl, or Alt switch."
+	m_TextHotKeyWm->SetToolTip(wxT(
+		"Select a hotkey for playback of Wiimote movements. You can combine it with an"
+		" optional Shift, Ctrl, or Alt switch."
 		));
-	m_TextRecSpeed->SetToolTip(wxT("Recording speed in average measurements per second"));
+	m_TextHotKeyNc->SetToolTip(wxT(
+		"Select a hotkey for playback of Nunchuck movements"));
+	m_TextHotKeyIR->SetToolTip(wxT(
+		"Select a hotkey for playback of Nunchuck movements"));
+	m_TextRecSpeed->SetToolTip(wxT(
+		"Recording speed in average measurements per second"));
 	m_TextPlaySpeed->SetToolTip(wxT(
 		"Playback speed: A playback speed of 100 means that the playback occurs at the same rate as it was recorded. (You can see the\n"
 		"current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n"
@@ -286,7 +293,9 @@ void ConfigDialog::CreateGUIControlsRecording()
 
 	sRealRecord[0] = new wxBoxSizer(wxHORIZONTAL);
 	sRealRecord[0]->Add(m_TextRec, 0, wxEXPAND | (wxLEFT), 5);
-	sRealRecord[0]->Add(m_TextHotKey, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextHotKeyWm, 0, wxEXPAND | (wxLEFT), 62);
+	sRealRecord[0]->Add(m_TextHotKeyNc, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextHotKeyIR, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextMovement, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextGame, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextIRBytes, 0, wxEXPAND | (wxLEFT), 5);

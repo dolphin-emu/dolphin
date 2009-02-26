@@ -86,7 +86,7 @@ class ConfigDialog : public wxDialog
 		wxBoxSizer *m_MainSizer, *m_sMain[4], *m_SizeParent[4], *m_sRecordingMain;
 
 		// Emulated Wiimote key settings		
-		wxBoxSizer *m_SizerIRPointerWidth[4], *m_SizerIRPointerHeight[4],
+		wxBoxSizer *m_SizerIRPointerWidth[4], *m_SizerIRPointerHeight[4], *m_SizerIRPointerScreen[4],
 			*m_SizeBasicPadding[4], *m_SizeEmuPadding[4], *m_SizeRealPadding[4], *m_SizeExtensionsPadding[4],
 			*m_SizeBasicGeneral[4], *m_SizeBasicGeneralLeft[4], *m_SizeBasicGeneralRight[4],
 			*m_HorizControllers[4], *m_gC2SDeadZone[4], *m_gCircle2Square[4], *m_gCircle2SquareVert[4], *m_gDeadZone[4], *m_gDeadZoneHoriz[4], *m_HorizControllerTiltParent[4], *m_HorizControllerTilt[4], *m_TiltHoriz[4],
@@ -124,7 +124,7 @@ class ConfigDialog : public wxDialog
 			*m_bCcDl[4], *m_bCcDu[4], *m_bCcDr[4], *m_bCcDd[4],
 			*m_bCcLl[4], *m_bCcLu[4], *m_bCcLr[4], *m_bCcLd[4],
 			*m_bCcRl[4], *m_bCcRu[4], *m_bCcRr[4], *m_bCcRd[4];
-		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4],
+		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
 			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
@@ -147,9 +147,10 @@ class ConfigDialog : public wxDialog
 		wxSlider *m_SliderWidth[4], *m_SliderHeight[4], *m_SliderLeft[4], *m_SliderTop[4];
 
 		// Emulated Wiimote settings
-		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4];
-		wxCheckBox *m_CheckC2S[4], *m_TiltInvertRoll[4], *m_TiltInvertPitch[4];
-		wxCheckBox *m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4];
+		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4],
+			*m_CheckC2S[4], *m_TiltInvertRoll[4], *m_TiltInvertPitch[4],
+			*m_WiiMotionPlusConnected[4], *m_NunchuckConnected[4], *m_ClassicControllerConnected[4], *m_BalanceBoardConnected[4], *m_GuitarHeroGuitarConnected[4], *m_GuitarHeroWorldTourDrumsConnected[4],
+			*m_CheckAR43[4], *m_CheckAR169[4], *m_Crop[4];
 		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_ComboDeadZoneLeft[4], *m_ComboDeadZoneRight[4], *m_TriggerType[4],
 			*m_NunchuckComboStick[4], *m_CcComboLeftStick[4], *m_CcComboRightStick[4], *m_CcComboTriggers[4];
 
