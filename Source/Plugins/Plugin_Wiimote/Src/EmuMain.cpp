@@ -233,7 +233,7 @@ void LoadRecordedMovements()
 	Console::Print("LoadRecordedMovements()\n");
 
 	IniFile file;
-	file.Load("WiimoteMovement.ini");
+	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
 
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{

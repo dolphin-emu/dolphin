@@ -68,14 +68,6 @@ void Config::Load(bool ChangePad)
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 
-	// Load the IR cursor settings if it's avaliable, if not load the default settings
-	std::string TmpSection;
-	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
-	iniFile.Get(TmpSection.c_str(), "IRLeft", &iIRLeft, LEFT);
-	iniFile.Get(TmpSection.c_str(), "IRTop", &iIRTop, TOP);
-	iniFile.Get(TmpSection.c_str(), "IRWidth", &iIRWidth, RIGHT - LEFT);
-	iniFile.Get(TmpSection.c_str(), "IRHeight", &iIRHeight, BOTTOM - TOP);
-
 	// Default controls
 		int WmA = 65, WmB = 66,
 			Wm1 = 49, Wm2 = 50,
@@ -200,6 +192,18 @@ void Config::Load(bool ChangePad)
 	// =============================
 
 	// ==================================================================
+	// Load the IR cursor settings if it's avaliable, if not load the default settings
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
+	std::string TmpSection;
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	iniFile.Get(TmpSection.c_str(), "IRLeft", &iIRLeft, LEFT);
+	iniFile.Get(TmpSection.c_str(), "IRTop", &iIRTop, TOP);
+	iniFile.Get(TmpSection.c_str(), "IRWidth", &iIRWidth, RIGHT - LEFT);
+	iniFile.Get(TmpSection.c_str(), "IRHeight", &iIRHeight, BOTTOM - TOP);
+	// =============================
+
+	// ==================================================================
 	/* Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	   better to place them in the main Dolphin.ini file */
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -230,14 +234,6 @@ void Config::Save(int Slot)
 	iniFile.Set("Real", "AccNunNeutralX", iAccNunNeutralX);
 	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
 	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
-
-	// Save the IR cursor settings if it's avaliable, if not save the default settings
-	std::string TmpSection;
-	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
-	iniFile.Set(TmpSection.c_str(), "IRLeft", iIRLeft);
-	iniFile.Set(TmpSection.c_str(), "IRTop", iIRTop);
-	iniFile.Set(TmpSection.c_str(), "IRWidth", iIRWidth);
-	iniFile.Set(TmpSection.c_str(), "IRHeight", iIRHeight);
 
 	for (int i = 0; i < 1; i++)
 	{
@@ -341,5 +337,20 @@ void Config::Save(int Slot)
 	}
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
+
+	// ==================================================================
+	// Save the IR cursor settings if it's avaliable, if not save the default settings
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
+	std::string TmpSection;
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	iniFile.Set(TmpSection.c_str(), "IRLeft", iIRLeft);
+	iniFile.Set(TmpSection.c_str(), "IRTop", iIRTop);
+	iniFile.Set(TmpSection.c_str(), "IRWidth", iIRWidth);
+	iniFile.Set(TmpSection.c_str(), "IRHeight", iIRHeight);
+	iniFile.Save(FULL_CONFIG_DIR "IR Pointer.ini");
+	// =============================
+
+	// Logging
 	Console::Print("Save()\n");
 }
