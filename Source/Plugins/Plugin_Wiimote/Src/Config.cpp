@@ -196,7 +196,7 @@ void Config::Load(bool ChangePad)
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
 	std::string TmpSection;
-	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Default";
 	iniFile.Get(TmpSection.c_str(), "IRLeft", &iIRLeft, LEFT);
 	iniFile.Get(TmpSection.c_str(), "IRTop", &iIRTop, TOP);
 	iniFile.Get(TmpSection.c_str(), "IRWidth", &iIRWidth, RIGHT - LEFT);
@@ -343,7 +343,7 @@ void Config::Save(int Slot)
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
 	std::string TmpSection;
-	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Emulated";
+	if (g_ISOId) TmpSection = Hex2Ascii(g_ISOId); else TmpSection = "Default";
 	iniFile.Set(TmpSection.c_str(), "IRLeft", iIRLeft);
 	iniFile.Set(TmpSection.c_str(), "IRTop", iIRTop);
 	iniFile.Set(TmpSection.c_str(), "IRWidth", iIRWidth);
