@@ -129,7 +129,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset));
 		BSWAP(32, EAX);
-		MOV(32, M((void*)((u32)&temp64+4)), R(EAX));
+		MOV(32, M((void*)((u8 *)&temp64+4)), R(EAX));
 		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4));
 		BSWAP(32, EAX);
 		MOV(32, M(&temp64), R(EAX));
@@ -188,7 +188,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOVAPD(XMM0, fpr.R(s));
 		MOVQ_xmm(M(&temp64), XMM0);
 		MOV(32, R(EAX), M(&temp64));
-		MOV(32, R(ABI_PARAM1), M((void*)((u32)&temp64 + 4)));
+		MOV(32, R(ABI_PARAM1), M((void*)((u8 *)&temp64 + 4)));
 		BSWAP(32, EAX);
 		BSWAP(32, ABI_PARAM1);
 		MOV(32, M(((u8 *)&temp64) + 4), R(EAX));
@@ -222,7 +222,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOV(32, R(EAX), M(&temp64));
 		BSWAP(32, EAX);
 		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + 4), R(EAX));
-		MOV(32, R(EAX), M((void*)((u32)&temp64 + 4)));
+		MOV(32, R(EAX), M((void*)((u8 *)&temp64 + 4)));
 		BSWAP(32, EAX);
 		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
 #endif
