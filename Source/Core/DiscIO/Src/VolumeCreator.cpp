@@ -62,9 +62,8 @@ private:
 	IBlobReader& m_rReader;
 };
 
-unsigned char g_MasterKey[16];
-unsigned char g_MasterKeyK[16];
-bool g_MasterKeyInit[] = {false, false};
+const unsigned char g_MasterKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
+const unsigned char g_MasterKeyK[16] = {0x63,0xb8,0x2b,0xb4,0xf4,0x61,0x4e,0x2e,0x13,0xf2,0xfe,0xfb,0xba,0x4c,0x9b,0x7e};
 
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, bool Korean);
 EDiscType GetDiscType(IBlobReader& _rReader);
@@ -125,70 +124,6 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, bool Korean)
 {
-	if (!g_MasterKeyInit[Korean ? 1 : 0])
-	{
-		const char * MasterKeyFile = Korean ? WII_MASTERKEY1_FILE : WII_MASTERKEY_FILE;
-		const char * MasterKeyFileHex = Korean ? WII_MASTERKEY1_FILE_HEX : WII_MASTERKEY_FILE_HEX;
-
-		FILE* pT = fopen(MasterKeyFile, "rb");
-		if (pT == NULL)
-		{
-			if (PanicYesNo("Can't open '%s'.\n If you know the key, now it's the time to paste it into "
-				"'%s' before pressing [YES].", MasterKeyFile, MasterKeyFileHex))
-			{
-				pT = fopen(MasterKeyFileHex, "r");
-				if (!pT) {
-					PanicAlert("could not open %s", MasterKeyFileHex);
-					return NULL;
-				}
-
-				static char hexkey[32];
-				if (fread(hexkey, 1, 32, pT)<32)
-				{
-					PanicAlert("%s is not the right size", MasterKeyFileHex);
-					fclose(pT);
-					return NULL;
-				}
-				fclose(pT);
-
-				static char binkey[16];
-				char *t = hexkey;
-				for (int i = 0; i < 16; i++)
-				{
-					char h[3] = {*(t++), *(t++), 0};
-					binkey[i] = (char)strtol(h, NULL, 16);
-				}
-
-				pT = fopen(MasterKeyFile, "wb");
-				if (!pT) {
-					PanicAlert("could not open/make '%s' for writing!", MasterKeyFile);
-					return NULL;
-				}
-
-				fwrite(binkey, 16, 1, pT);
-				fclose(pT);
-
-				pT = fopen(MasterKeyFileHex, "rb");
-				if (!pT) {
-					PanicAlert("could not open '%s' for reading!\n did the file get deleted or locked after converting?", MasterKeyFileHex);
-					return NULL;
-				}
-			}
-			else
-				return NULL;
-		}
-
-		fread(Korean ? g_MasterKeyK : g_MasterKey, 16, 1, pT);
-		fclose(pT);
-		const u32 keyhash = 0x4bc30936;
-		const u32 keyhashK = 0x485c08e9;
-		u32 hash = HashAdler32(Korean ? g_MasterKeyK : g_MasterKey, 16);
-		if (hash != (Korean ? keyhashK : keyhash))
-			PanicAlert("Your Wii %sdisc decryption key is bad.", Korean ? "Korean " : "",keyhash, hash);
-		else
-			g_MasterKeyInit[Korean ? 1 : 0] = true;
-	}
-
 	CBlobBigEndianReader Reader(_rReader);
 
 	u32 numPartitions = Reader.Read32(0x40000);

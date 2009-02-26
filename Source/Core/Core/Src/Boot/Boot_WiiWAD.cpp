@@ -74,20 +74,11 @@ u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset)
 
 void GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
 {
-	u8 CommonKey[16];	
-	FILE* pMasterKeyFile = fopen(WII_MASTERKEY_FILE, "rb");
-    _dbg_assert_msg_(BOOT, pMasterKeyFile!=0x0, "WiiWAD: Cant open MasterKeyFile for WII");
-
-	if (pMasterKeyFile)
-	{
-		fread(CommonKey, 16, 1, pMasterKeyFile);
-		fclose(pMasterKeyFile);
-
-        u8 IV[16];
-        memset(IV, 0, sizeof IV);
-        memcpy(IV, pTicket + 0x01dc, 8);
-        AESDecode(CommonKey, IV, pTicket + 0x01bf, 16, pTicketKey);
-	}
+	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};	
+    u8 IV[16];
+    memset(IV, 0, sizeof IV);
+    memcpy(IV, pTicket + 0x01dc, 8);
+    AESDecode(CommonKey, IV, pTicket + 0x01bf, 16, pTicketKey);
 }
 
 bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD)
