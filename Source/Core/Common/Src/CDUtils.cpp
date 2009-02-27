@@ -191,7 +191,7 @@ char **cdio_get_devices_osx(void) {
 			snprintf( psz_buf, sizeof(psz_buf), "%s%c", _PATH_DEV, 'r' );
 			dev_path_length = strlen( psz_buf );
 			
-			if( CFStringGetCString( str_bsd_path,
+			if( CFStringGetCString( (CFStringRef)str_bsd_path,
 									(char*)&psz_buf + dev_path_length,
 									sizeof(psz_buf) - dev_path_length,
 									kCFStringEncodingASCII)) {
