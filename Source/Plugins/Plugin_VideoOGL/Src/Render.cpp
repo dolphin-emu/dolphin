@@ -1080,7 +1080,7 @@ void Renderer::Swap(const TRectangle& rc)
 		if(SaveRenderTarget(s_sScreenshotName.c_str())) {
 			char msg[255];
 			sprintf(msg, "Saved %s\n", s_sScreenshotName.c_str());
-			OSD::AddMessage(msg, 500);
+			OSD::AddMessage(msg, 2000);
 		} else
 			PanicAlert("Error while capturing screen");
 
