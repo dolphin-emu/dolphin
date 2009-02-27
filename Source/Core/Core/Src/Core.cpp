@@ -649,12 +649,8 @@ EState GetState()
 	}
 	return CORE_UNINITIALIZED;
 }
-///////////////////////////////////////
  
- 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Save or recreate the emulation state
-// ----------
 void SaveState() {
     State_Save(0);
 }
@@ -662,28 +658,9 @@ void SaveState() {
 void LoadState() {
     State_Load(0);
 }
-///////////////////////////////////////
+
  
- 
-bool MakeScreenshot(const std::string &filename)
-{
- 
-	bool bResult = false;
-	CPluginManager &pManager  = CPluginManager::GetInstance();
- 
-	if (pManager.GetVideo()->IsValid())
-	{
-		TCHAR szTmpFilename[MAX_PATH];
-		strcpy(szTmpFilename, filename.c_str());
-		bResult = pManager.GetVideo()->Video_Screenshot(szTmpFilename) ? true : false;
-	}
-	return bResult;
-}
- 
- 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 // --- Callbacks for plugins / engine ---
-/////////////////////////////////////////////////////////////////////////////////////////////////////
  
 // __________________________________________________________________________________________________
 // Callback_VideoLog

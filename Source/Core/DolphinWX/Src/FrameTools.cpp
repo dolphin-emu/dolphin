@@ -195,6 +195,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 #ifdef _WIN32
 	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 #endif
+	toolBar->AddTool(IDM_SCREENSHOT, _T("Screenshot"),   m_Bitmaps[Toolbar_FullScreen], _T("Screenshot"));
 	toolBar->AddSeparator();
 	toolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
 	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Gfx"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
@@ -512,12 +513,32 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
 	m_GameListCtrl->BrowseForDirectory();
 }
-////////////////////////////////////////////////////
+
+static inline void GenerateScreenshotName(std::string& name)
+{
+	int index = 1;
+	std::string tempname;
+	tempname = FULL_SCREENSHOTS_DIR;
+	tempname += Core::GetStartupParameter().GetUniqueID();
+
+	name = StringFromFormat("%s-%d.bmp", tempname.c_str(), index);
+
+	while(File::Exists(name.c_str()))
+		name = StringFromFormat("%s-%d.bmp", tempname.c_str(), ++index);
+}
+
+void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
+{
+	std::string name;
+	GenerateScreenshotName(name);
+
+    Core::SetState(Core::CORE_PAUSE);
+    CPluginManager::GetInstance().GetVideo()->Video_Screenshot(name.c_str());
+    Core::SetState(Core::CORE_RUN);
+}
 
 
-//////////////////////////////////////////////////////////////////////////////////////
 // Stop the emulation
-// -------------
 void CFrame::DoStop()
 {
 	// Music modification
@@ -741,6 +762,7 @@ void CFrame::UpdateGUI()
 		GetToolBar()->EnableTool(wxID_OPEN, !initialized);
 		GetToolBar()->EnableTool(wxID_REFRESH, !initialized); // Don't allow refresh when we don't show the list
 		GetToolBar()->EnableTool(IDM_STOP, running || paused);
+		GetToolBar()->EnableTool(IDM_SCREENSHOT, running || paused);
 	}
 
 	// File

@@ -125,6 +125,7 @@ class CFrame : public wxFrame
 			Toolbar_Play,
 			Toolbar_Stop,
 			Toolbar_Pause,
+			Toolbar_Screenshot,
 			Toolbar_FullScreen,
 			Toolbar_PluginOptions,
 			Toolbar_PluginGFX,
@@ -180,6 +181,7 @@ class CFrame : public wxFrame
 		void OnPlay(wxCommandEvent& event); // Emulation
 		void OnChangeDisc(wxCommandEvent& event);
 		void OnStop(wxCommandEvent& event);
+		void OnScreenshot(wxCommandEvent& event);
 		void OnClose(wxCloseEvent &event);	
 		void OnLoadState(wxCommandEvent& event);
 		void OnSaveState(wxCommandEvent& event);

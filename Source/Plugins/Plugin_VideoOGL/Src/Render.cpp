@@ -52,6 +52,10 @@
 #include "OS/Win32.h"
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
+#include <wx/image.h>
+#endif
+
 #ifdef _WIN32
 	#include "Win32Window.h" // warning: crapcode
 #else
@@ -78,6 +82,10 @@ static GLuint s_ZBufferTarget = 0;
 
 static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
+
+static bool s_bScreenshot = false;
+static Common::CriticalSection s_criticalScreenshot;
+static std::string s_sScreenshotName;
 
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 bool g_bBlendSeparate = false;
@@ -1065,6 +1073,21 @@ void Renderer::Swap(const TRectangle& rc)
 	}
 	// -------------------------------------
 
+	// Take screenshot, if necessary
+	if(s_bScreenshot) {
+		s_criticalScreenshot.Enter();
+
+		if(SaveRenderTarget(s_sScreenshotName.c_str())) {
+			char msg[255];
+			sprintf(msg, "Saved %s\n", s_sScreenshotName.c_str());
+			OSD::AddMessage(msg, 500);
+		} else
+			PanicAlert("Error while capturing screen");
+
+		s_sScreenshotName = "";
+		s_bScreenshot = false;
+		s_criticalScreenshot.Leave();
+	}
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
@@ -1240,28 +1263,57 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		0, nBackbufferWidth, nBackbufferHeight);
 }
 
-bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
+void Renderer::SetScreenshot(const char *filename)
 {
-    bool bflip = true;
-    int nBackbufferHeight = (int)OpenGL_GetHeight();
-    int nBackbufferWidth = (int)OpenGL_GetWidth();
+	s_criticalScreenshot.Enter();
+	s_sScreenshotName = filename;
+	s_bScreenshot = true;
 
-    std::vector<u32> data(nBackbufferWidth * nBackbufferHeight);
-    glReadPixels(0, 0, nBackbufferWidth, nBackbufferHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
-    if (glGetError() != GL_NO_ERROR)
-        return false;
+	s_criticalScreenshot.Leave();
+}
 
-    if (bflip) {
-        // swap scanlines
-        std::vector<u32> scanline(nBackbufferWidth);
-        for (int i = 0; i < nBackbufferHeight/2; ++i) {
-            memcpy(&scanline[0], &data[i*nBackbufferWidth], nBackbufferWidth*4);
-            memcpy(&data[i*nBackbufferWidth], &data[(nBackbufferHeight-i-1)*nBackbufferWidth], nBackbufferWidth*4);
-            memcpy(&data[(nBackbufferHeight-i-1)*nBackbufferWidth], &scanline[0], nBackbufferWidth*4);
-        }
-    }
-    
-    return SaveTGA(filename, nBackbufferWidth, nBackbufferHeight, &data[0]);
+bool Renderer::SaveRenderTarget(const char *filename)
+{
+	int w = (int)OpenGL_GetWidth(), h = (int)OpenGL_GetHeight();
+	bool result = false;
+
+	if(!filename)
+		return false;
+
+	u8 *data = (u8 *)malloc(3 * w * h);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+	if (glGetError() != GL_NO_ERROR)
+		return false;
+
+	// Flip image
+	for(int y = 0; y < h / 2; y++) {
+		for(int x = 0; x < w; x++) {
+			std::swap(data[(y * w + x) * 3],
+				data[((h - 1 - y) * w + x) * 3]);
+
+			std::swap(data[(y * w + x) * 3 + 1],
+				data[((h - 1 - y) * w + x) * 3 + 1]);
+
+			std::swap(data[(y * w + x) * 3 + 2],
+				data[((h - 1 - y) * w + x) * 3 + 2]);
+		}
+	}
+
+#if defined(HAVE_WX) && HAVE_WX
+	wxImage a(w, h, data);
+
+	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
+	result = true;
+#else
+	result = SaveTGA(filename, w, h, data);
+
+	free(data);
+#endif
+
+	return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////

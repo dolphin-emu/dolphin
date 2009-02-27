@@ -283,7 +283,7 @@ void __Log(int log, const char *format, ...)
 }
 
 
-HRESULT ScreenShot(TCHAR *File)
+HRESULT ScreenShot(const char *File)
 {
 	if (D3D::dev == NULL)
 		return S_FALSE;
@@ -314,7 +314,8 @@ HRESULT ScreenShot(TCHAR *File)
 	return S_OK;
 }
 
-unsigned int Video_Screenshot(TCHAR* _szFilename)
+void Video_Screenshot(const char *_szFilename)
 {
-	return ScreenShot(_szFilename) == S_OK ? TRUE : FALSE;
+	if(ScreenShot(_szFilename) != S_OK)
+		PanicAlert("Error while capturing screen");
 }

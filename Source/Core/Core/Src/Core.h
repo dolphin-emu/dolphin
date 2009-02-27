@@ -55,8 +55,6 @@ namespace Core
     const SCoreStartupParameter& GetStartupParameter();
     extern SCoreStartupParameter g_CoreStartupParameter; 
 
-    // Make a screen shot
-    bool MakeScreenshot(const std::string& _rFilename);
     void* GetWindowHandle();
     bool GetRealWiimote();
 	void ReconnectWiimote();

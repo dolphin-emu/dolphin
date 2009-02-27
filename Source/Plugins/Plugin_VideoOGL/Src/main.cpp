@@ -337,25 +337,9 @@ void DebugLog(const char* _fmt, ...)
 #endif
 }
 
-unsigned int Video_Screenshot(TCHAR* _szFilename)
+void Video_Screenshot(const char *_szFilename)
 {
-	char str[64];
-	int left = 200, top = 15;
-	sprintf(str, "Dolphin OpenGL");
-
-	Renderer::ResetGLState();
-	Renderer::RenderText(str, left+1, top+1, 0xff000000);
-	Renderer::RenderText(str, left, top, 0xffc0ffff);
-	Renderer::RestoreGLState();
-
-	if (Renderer::SaveRenderTarget(_szFilename, 0))
-	{
-		char msg[255];
-		sprintf(msg, "saved %s\n", _szFilename);
-		OSD::AddMessage(msg, 500);
-		return true;
-	}
-	return false;
+	Renderer::SetScreenshot(_szFilename);
 }
 
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)

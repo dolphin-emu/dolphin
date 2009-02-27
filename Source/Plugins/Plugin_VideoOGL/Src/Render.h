@@ -126,7 +126,8 @@ public:
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);
-	static bool SaveRenderTarget(const char* filename, int jpeg);
+	static void SetScreenshot(const char *filename);
+	static bool SaveRenderTarget(const char *filename);
 
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);

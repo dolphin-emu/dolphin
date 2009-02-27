@@ -113,7 +113,7 @@ EXPORT void CALL Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dw
 // input:    Filename
 // output:   TRUE if all was okay
 //
-EXPORT unsigned int CALL Video_Screenshot(TCHAR* _szFilename);
+EXPORT void CALL Video_Screenshot(const char *_szFilename);
 
 // __________________________________________________________________________________________________
 // Function: Video_EnterLoop
