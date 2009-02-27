@@ -20,167 +20,11 @@
 #include "../HLE/HLE.h"
 #include "../HW/Memmap.h"
 #include "../ConfigManager.h"
-#include "Blob.h"
-#include "MappedFile.h"
-#include "Boot_DOL.h"
-#include "Boot_WiiWAD.h"
-#include "AES/aes.h"
-#include "MathUtil.h"
+#include "../IPC_HLE/WII_IPC_HLE.h"
+
+#include "NANDContentLoader.h"
 #include "FileUtil.h"
-
-class CBlobBigEndianReader
-{
-public:
-	CBlobBigEndianReader(DiscIO::IBlobReader& _rReader) : m_rReader(_rReader) {}
-
-	u32 Read32(u64 _Offset)
-	{
-		u32 Temp;
-		m_rReader.Read(_Offset, 4, (u8*)&Temp);
-		return(Common::swap32(Temp));
-	}
-
-private:
-	DiscIO::IBlobReader& m_rReader;
-};
-
-std::vector<STileMetaContent> m_TileMetaContent;
-u16 m_BootIndex = -1;
-u64 m_TitleID = -1;
-
-void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
-{
-    AES_KEY AESKey;
-
-    AES_set_decrypt_key(_pKey, 128, &AESKey);
-    AES_cbc_encrypt(_pSrc, _pDest, _Size, &AESKey, _IV, AES_DECRYPT);
-}
-
-u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset)
-{
-    if (_Size > 0)
-    {
-        u8* pTmpBuffer = new u8[_Size];
-        _dbg_assert_msg_(BOOT, pTmpBuffer!=0, "WiiWAD: Cant allocate memory for WAD entry");
-
-        if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
-        {
-            PanicAlert("WiiWAD: Could not read from file");
-        }
-        return pTmpBuffer;
-    }
-	return NULL;
-}
-
-void GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
-{
-	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};	
-    u8 IV[16];
-    memset(IV, 0, sizeof IV);
-    memcpy(IV, pTicket + 0x01dc, 8);
-    AESDecode(CommonKey, IV, pTicket + 0x01bf, 16, pTicketKey);
-}
-
-bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD)
-{
-	u8 DecryptTitleKey[16];
-	u8 IV[16];
-
-	GetKeyFromTicket(pTicket, DecryptTitleKey);
-	
-	u32 numEntries = Common::swap16(pTMD + 0x01de);
-	m_BootIndex = Common::swap16(pTMD + 0x01e0);
-    m_TitleID = Common::swap64(pTMD + 0x018C);
-
-	u8* p = pDataApp;
-
-	m_TileMetaContent.resize(numEntries);
-
-	for (u32 i=0; i<numEntries; i++) 
-	{
-		STileMetaContent& rContent = m_TileMetaContent[i];
-				
-		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
-		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
-		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-        rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
-        rContent.m_RoundedSize= ROUND_UP(rContent.m_Size, 0x40);
-		rContent.m_pData = new u8[rContent.m_RoundedSize];
-
-		memset(IV, 0, sizeof IV);
-		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, p, rContent.m_RoundedSize, rContent.m_pData);
-
-		p += rContent.m_RoundedSize;
-	}
-
-    return true;
-}
-
-bool ParseWAD(DiscIO::IBlobReader& _rReader)
-{
-    CBlobBigEndianReader ReaderBig(_rReader);
-
-    // get header size	
-	u32 HeaderSize = ReaderBig.Read32(0);
-    if (HeaderSize != 0x20) 
-    {
-        _dbg_assert_msg_(BOOT, (HeaderSize==0x20), "WiiWAD: Header size != 0x20");
-        return false;
-    }    
-
-    // get header 
-    u8 Header[0x20];
-    _rReader.Read(0, HeaderSize, Header);
-	u32 HeaderType = ReaderBig.Read32(0x4);
-    if ((0x49730000 != HeaderType) && (0x69620000 != HeaderType))
-        return false;
-
-    u32 CertificateChainSize    = ReaderBig.Read32(0x8);
-    u32 Reserved                = ReaderBig.Read32(0xC);
-    u32 TicketSize              = ReaderBig.Read32(0x10);
-    u32 TMDSize                 = ReaderBig.Read32(0x14);
-    u32 DataAppSize             = ReaderBig.Read32(0x18);
-    u32 FooterSize              = ReaderBig.Read32(0x1C);
-    _dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
-
-    u32 Offset = 0x40;
-    u8* pCertificateChain   = CreateWADEntry(_rReader, CertificateChainSize, Offset);  Offset += ROUND_UP(CertificateChainSize, 0x40);
-    u8* pTicket             = CreateWADEntry(_rReader, TicketSize, Offset);            Offset += ROUND_UP(TicketSize, 0x40);
-    u8* pTMD                = CreateWADEntry(_rReader, TMDSize, Offset);               Offset += ROUND_UP(TMDSize, 0x40);
-    u8* pDataApp            = CreateWADEntry(_rReader, DataAppSize, Offset);           Offset += ROUND_UP(DataAppSize, 0x40);
-    u8* pFooter             = CreateWADEntry(_rReader, FooterSize, Offset);            Offset += ROUND_UP(FooterSize, 0x40);
-
-    bool Result = ParseTMD(pDataApp, DataAppSize, pTicket, pTMD);
-
-    return Result;
-}
-
-bool CBoot::IsWiiWAD(const char* _pFileName)
-{
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_pFileName);
-	if (pReader == NULL)
-		return false;
-
-	CBlobBigEndianReader Reader(*pReader);
-	bool Result = false;
-
-	// check for wii wad
-	if (Reader.Read32(0x00) == 0x20)
-	{
-		u32 WADTYpe = Reader.Read32(0x04);
-		switch(WADTYpe)
-		{
-		case 0x49730000:
-		case 0x69620000:
-			Result = true;
-		}
-	}
-
-	delete pReader;
-
-	return Result;
-}
+#include "Boot_DOL.h"
 
 
 void SetupWiiMem()
@@ -238,53 +82,40 @@ void SetupWiiMem()
     {
         Memory::Write_U32(0x00000000, 0x80000000 + i);
     }	
+}
 
-
-
-    // create Home directory
-    {
-        char Path[260+1];
-        char* pTitleID = (char*)&m_TitleID;
-        sprintf(Path, FULL_WII_USER_DIR "title//%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
-            (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
-            (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-        File::CreateDirectoryStructure(Path);
-    }
-
-
-
-
-    /* This is some kind of consistency check that is compared to the 0x00
-    values as the game boots. This location keep the 4 byte ID for as long
-    as the game is running. The 6 byte ID at 0x00 is overwritten sometime
-    after this check during booting. */
-
-
-    Memory::Write_U64(m_TitleID, 0x0000318c);			// NAND Load Title ID
-
-    //	VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
-    //	Memory::Write_U8(0x80, 0x00003184);
-    // ================
+bool CBoot::IsWiiWAD(const char *filename)
+{
+    return DiscIO::CNANDContentLoader::IsWiiWAD(filename);
 }
 
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
-{
-    DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_pFilename);
-    if (pReader == NULL)
-        return false;
-
-	bool Result = ParseWAD(*pReader);
-    delete pReader;
-
-    if (!Result)
+{        
+    DiscIO::CNANDContentLoader ContentLoader(_pFilename);
+    if (ContentLoader.IsValid() == false)
         return false;
 
     SetupWiiMem();
 
-	// DOL
-	STileMetaContent& rContent = m_TileMetaContent[m_BootIndex];
-	CDolLoader DolLoader(rContent.m_pData, rContent.m_RoundedSize);
+    // create Home directory
+    char Path[260+1];
+    u64 TitleID = ContentLoader.GetTitleID();
+    char* pTitleID = (char*)&TitleID;
+    sprintf(Path, FULL_WII_USER_DIR "title//%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
+        (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
+        (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+    File::CreateDirectoryStructure(Path);
 
+    Memory::Write_U64( ContentLoader.GetTitleID(), 0x0000318c);			// NAND Load Title ID
+
+	// DOL
+    DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
+    if (pContent == NULL)
+        return false;
+
+    WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
+
+    CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
 	PC = DolLoader.GetEntryPoint() | 0x80000000;
 
     return true;

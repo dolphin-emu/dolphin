@@ -56,6 +56,7 @@ be accessed from Core::GetWindowHandle().
 #include "HW/DVDInterface.h"
 #include "State.h"
 #include "VolumeHandler.h"
+#include "NANDContentLoader.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -159,6 +160,12 @@ void CFrame::CreateMenu()
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	// miscMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
+
+    if (DiscIO::CNANDContentLoader(FULL_WII_MENU_DIR).IsValid())
+    {
+        miscMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+    }    
+
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// Help menu
@@ -675,6 +682,11 @@ void CFrame::OnShow_SDCardWindow(wxCommandEvent& WXUNUSED (event))
 	wxSDCardWindow SDWindow(this);
 	SDWindow.ShowModal();
 }
+void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
+{
+    BootManager::BootCore(FULL_WII_MENU_DIR);
+}
+
 /* Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
    the entire screen (when we render to the main window). */
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))

@@ -69,6 +69,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
       // WII CRCs
 	case 0x6c3f6f94: // zelda - PAL
 	case 0xd643001f: // mario galaxy - PAL
+    case 0xd9c4bf34: // WiiMenu ... pray 
 		Console::Print("Zelda Wii ucode chosen\n");
 		return new CUCode_Zelda(_rMailHandler);
 
@@ -77,7 +78,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xfa450138: // wii sports - PAL
 	case 0xadbc06bd: // Elebits
 	case 0xb7eb9a9c: // Wii Pikmin - JAP
-	case 0x4cc52064: // Bleach: Versus Crusade
+	case 0x4cc52064: // Bleach: Versus Crusade    
 		Console::Print("Wii - AXWii chosen\n");
 		return new CUCode_AXWii(_rMailHandler, _CRC);
 

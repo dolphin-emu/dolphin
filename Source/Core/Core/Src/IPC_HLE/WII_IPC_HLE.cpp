@@ -78,6 +78,8 @@ u32 g_AckNumber = 0;
 std::queue<std::pair<u32,std::string> > g_ReplyQueue;
 void ExecuteCommand(u32 _Address);
 
+std::string g_DefaultContentFile;
+
 // General IPC functions 
 void Init()
 {
@@ -99,7 +101,7 @@ void Reset()
         g_ReplyQueue.pop();
     }
 
-    g_Ack.clear();
+    g_Ack.clear();    
 }
 
 void Shutdown()
@@ -107,6 +109,13 @@ void Shutdown()
     Reset();
     g_LastDeviceID = 0x13370000;
     g_AckNumber = 0;
+    g_DefaultContentFile.clear();
+}
+
+// Set default content file
+void SetDefaultContentFile(const std::string& _rFilename)
+{
+    g_DefaultContentFile = _rFilename;
 }
 
 u32 GetDeviceIDByName(const std::string& _rDeviceName)
@@ -185,7 +194,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 		}
         else if (_rDeviceName.c_str() == std::string("/dev/es"))
         {
-            pDevice = new CWII_IPC_HLE_Device_es(_DeviceID, _rDeviceName);			
+            pDevice = new CWII_IPC_HLE_Device_es(_DeviceID, _rDeviceName, g_DefaultContentFile);			
         }
         else if (_rDeviceName.find("/dev/usb/oh1/57e/305") != std::string::npos)
         {
@@ -463,22 +472,28 @@ void ExecuteCommand(u32 _Address)
 /* This is called continuously from SystemTimers.cpp and WII_IPCInterface::IsReady()
    is controlled from WII_IPC.cpp. */
 // ----------------
+void UpdateDevices()
+{
+    if (WII_IPCInterface::IsReady())    
+    {
+        // check if an executed must be updated
+        TDeviceMap::const_iterator itr = g_DeviceMap.begin();
+        while(itr != g_DeviceMap.end())
+        {
+            u32 CommandAddr = itr->second->Update();
+            if (CommandAddr != 0)
+            {
+                g_ReplyQueue.push(std::pair<u32, std::string>(CommandAddr, itr->second->GetDeviceName()));        
+            }
+            ++itr;
+        }
+    }
+}
+
 void Update()
 {
 	if (WII_IPCInterface::IsReady())    
 	{
-        // check if an executed must be updated
-	    TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-	    while(itr != g_DeviceMap.end())
-	    {
-		    u32 CommandAddr = itr->second->Update();
-		    if (CommandAddr != 0)
-		    {
-                g_ReplyQueue.push(std::pair<u32, std::string>(CommandAddr, itr->second->GetDeviceName()));        
-		    }
-		    ++itr;
-	    }
-
         // Check if we have to execute an acknowledge command...
         if (!g_ReplyQueue.empty())
         {

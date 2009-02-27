@@ -173,12 +173,13 @@ void AudioFifoCallback(u64 userdata, int cyclesLate)
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
-    WII_IPC_HLE_Interface::Update();
+    WII_IPC_HLE_Interface::UpdateDevices();
     CoreTiming::ScheduleEvent(IPC_HLE_PERIOD-cyclesLate, et_IPC_HLE);
 }
 
 void VICallback(u64 userdata, int cyclesLate)
 {
+    WII_IPC_HLE_Interface::Update();
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VI_PERIOD-cyclesLate, et_VI);
 }
@@ -212,6 +213,9 @@ void DecrementerSet()
 
 void AdvanceCallback(int cyclesExecuted)
 {
+    if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
+        return;
+
 	fakeDec -= cyclesExecuted;
 	u64 timebase_ticks = CoreTiming::GetTicks() / TIMER_RATIO; //works since we are little endian and TL comes first :)
 	*(u64*)&TL = timebase_ticks + startTimeBaseTicks;

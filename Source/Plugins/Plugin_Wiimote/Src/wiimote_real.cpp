@@ -286,7 +286,7 @@ void SendEvent(SEvent& _rEvent)
 	g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
 
 	// Debugging
-	ReadDebugging(false, Buffer, Offset);  
+	// ReadDebugging(false, Buffer, Offset);  
 }
 /////////////////////
 };

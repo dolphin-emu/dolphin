@@ -38,8 +38,13 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 	{
     // NAND Loader ... no idea
     case 0x018:
-        LOGV(WII_IOB, 0, "IOP: Read32 from 0x18 = 0x%08x",  _Address);
+        LOGV(WII_IOB, 0, "IOP: Read32 from 0x18 = 0x%08x (NANDLoader)",  _Address);
         break;
+    // WiiMenu... no idea
+    case 0x24:
+        LOGV(WII_IOB, 0, "IOP: Read32 from 0x18 = 0x%08x (WiiMenu)",  _Address);
+        break;
+
 
 	case 0xc0:					// __VISendI2CData		
 		_rReturnValue = 0;
@@ -96,9 +101,13 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
-        // NAND Loader ... no idea
+    // NANDLoader ... no idea
     case 0x18:
-        LOGV(WII_IOB, 0, "IOP: Write32 0x%08x to 0x%08x", _Value, _Address);
+        LOGV(WII_IOB, 0, "IOP: Write32 0x%08x to 0x%08x (NANDLoader)", _Value, _Address);
+        break;
+    // WiiMenu... no idea
+    case 0x24:
+        LOGV(WII_IOB, 0, "IOP: Write32 0x%08x to 0x%08x (WiiMenu)", _Value, _Address);
         break;
 
 	case 0xc0:					// __VISendI2CData		

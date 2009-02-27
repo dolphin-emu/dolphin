@@ -30,8 +30,14 @@ void Shutdown();
 // Reset
 void Reset();
 
+// Set default content file
+void SetDefaultContentFile(const std::string& _rFilename);
+
 // Update
 void Update();
+
+// Update Devices
+void UpdateDevices();
 
 // Acknowledge command
 bool AckCommand(u32 _Address);

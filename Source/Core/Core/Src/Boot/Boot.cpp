@@ -292,7 +292,7 @@ bool CBoot::BootUp()
 
 	// Wii WAD
 	// ===================================================================================
-	case SCoreStartupParameter::BOOT_WIIWAD:
+	case SCoreStartupParameter::BOOT_WII_NAND:
 		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
 		break;
 

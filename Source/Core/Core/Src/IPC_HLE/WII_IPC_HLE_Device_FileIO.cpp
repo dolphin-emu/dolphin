@@ -200,10 +200,9 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 
 	if (m_pFileHandle)
 	{
-		fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
-
-		// Write always return the written bytes for success
-		ReturnValue = Size;
+		size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
+        _dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
+        ReturnValue = Size;
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);

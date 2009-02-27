@@ -90,7 +90,7 @@ struct SCoreStartupParameter
 		BOOT_ISO,
 		BOOT_ELF,
 		BOOT_DOL,
-		BOOT_WIIWAD,
+		BOOT_WII_NAND,
 		BOOT_BIOS
 	};
 	EBootType m_BootType;

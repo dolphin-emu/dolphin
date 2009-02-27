@@ -164,6 +164,10 @@ s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _Buff
 	case IOCTL_NWC24_STARTUP:
 		return 0;
 	
+    case IOCTL_SO_GETSOCKOPT: // WiiMenu
+    case IOCTL_SO_SETSOCKOPT:
+        return 0;
+
 	case 0xf: // NWC24iRequestGenerateUserId (Input: none, Output: 32 bytes)
 		//Memory::Write_U32(0, _BufferOut);
 		return -1;
@@ -209,6 +213,15 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 	switch (CommandBuffer.Parameter)
 	{
+      // WiiMenu
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07:
+    case 0x08:
+        break;
+
 	default:
 		LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
 		_dbg_assert_msg_(WII_IPC_NET, 0, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);

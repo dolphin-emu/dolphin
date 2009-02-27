@@ -1147,6 +1147,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="NAND"
+			>
+			<File
+				RelativePath=".\Src\NANDContentLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NANDContentLoader.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\SConscript"
 			>

@@ -17,22 +17,3 @@
 
 #pragma once
 
-#include <vector>
-
-struct STileMetaContent
-{
-	u32 m_ContentID;	
-	u16 m_Index;
-	u16 m_Type;
-    u32 m_Size;
-	u32 m_RoundedSize;
-
-	u8* m_pData;
-};
-
-
-// [TODO]: this global internal stuff sux... the whole data should be inside the ES
-// but this is the easiest way atm
-extern std::vector<STileMetaContent> m_TileMetaContent;
-extern u64 m_TitleID;
-
