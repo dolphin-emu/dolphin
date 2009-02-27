@@ -299,7 +299,7 @@ void Flush()
 	if (g_Config.iLog & CONF_SAVETARGETS) {
 		char str[128];
 		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId);
-		Renderer::SaveRenderTarget(str, 0);
+		Renderer::SaveRenderTarget(str);
 	}
 #endif
 	g_Config.iSaveTargetId++;
