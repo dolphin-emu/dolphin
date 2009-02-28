@@ -18,6 +18,8 @@
 #define _EXIINTERFACE_H
 
 #include "Common.h"
+#include "EXI_Channel.h"
+#include "Thread.h"
 class PointerWrap;
 
 namespace ExpansionInterface
@@ -29,6 +31,9 @@ void DoState(PointerWrap &p);
 
 void Update();
 void UpdateInterrupts();
+
+void ChangeDeviceCallback(u64 userdata, int cyclesLate);
+void ChangeDevice(u8 channel, TEXIDevices device, u8 slot);
 
 void Read32(u32& _uReturnValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);

@@ -281,6 +281,7 @@ class CConfigMain
 		void GCSettingsChanged(wxCommandEvent& event);
 		void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
 		void ChooseSIDevice(std::string deviceName, int deviceNum);
+		void ChooseEXIDevice(std::string deviceName, int deviceNum);
 		void WiiSettingsChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);

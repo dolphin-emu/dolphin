@@ -18,14 +18,17 @@
 #include "Common.h"
 #include "ChunkFile.h"
 #include "../ConfigManager.h"
+#include "../CoreTiming.h"
 
 #include "PeripheralInterface.h"
 #include "../PowerPC/PowerPC.h"
 
-#include "EXI_Channel.h"
+#include "EXI.h"
 
 namespace ExpansionInterface
 {
+
+static int changeDevice;
 
 enum
 {
@@ -49,6 +52,8 @@ void Init()
 	g_Channels[0].AddDevice(SConfig::GetInstance().m_EXIDevice[2],	2);
 	g_Channels[1].AddDevice(SConfig::GetInstance().m_EXIDevice[1],	0);
 	g_Channels[2].AddDevice(EXIDEVICE_AD16,							0);
+
+	changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
 }
 
 void Shutdown()
@@ -60,6 +65,23 @@ void Shutdown()
 void DoState(PointerWrap &p)
 {
 	// TODO: descend all the devices recursively.
+}
+
+void ChangeDeviceCallback(u64 userdata, int cyclesLate)
+{
+	u8 channel = (u8)(userdata >> 32);
+	u8 device = (u8)(userdata >> 16);
+	u8 slot = (u8)userdata;
+
+	g_Channels[channel].AddDevice((TEXIDevices)device, slot);
+}
+
+void ChangeDevice(u8 channel, TEXIDevices device, u8 slot)
+{
+	// Called from GUI, so we need to make it thread safe.
+	// Let the hardware see no device for .5b cycles
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_DUMMY << 16) | slot);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device << 16) | slot);
 }
 
 void Update()

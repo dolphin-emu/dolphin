@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "Core.h" // Core
+#include "HW/EXI.h"
 #include "ConsoleWindow.h"
 
 #include "Globals.h" // Local
@@ -135,10 +136,9 @@ void CConfigMain::UpdateGUI()
 		OptimizeQuantizers->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
-		// Disable GC Stuff, but devices should be dynamic soon
 		GCSystemLang->Disable();
-		GCEXIDevice[0]->Disable(); GCEXIDevice[1]->Disable(); GCEXIDevice[2]->Disable();
 		GCMemcardPath[0]->Disable(); GCMemcardPath[1]->Disable();
+		// Disable GC SI Stuff, but devices should be dynamic soon
 		GCSIDevice[0]->Disable(); GCSIDevice[1]->Disable(); GCSIDevice[2]->Disable(); GCSIDevice[3]->Disable();
 		WiiPage->Disable();
 		PathsPage->Disable();
@@ -628,50 +628,25 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 {
 	int sidevice = 0;
+	int exidevice = 0;
 	switch (event.GetId())
 	{
 	case ID_GC_SRAM_LNG:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
 		break;
 
+	case ID_GC_EXIDEVICE_SP1: // The only thing we emulate on SP1 is the BBA
+		exidevice++;
+	case ID_GC_EXIDEVICE_SLOTB:
+		exidevice++;
  	case ID_GC_EXIDEVICE_SLOTA:
-		switch (event.GetSelection())
-		{
-		case 1: // memcard
-			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_MEMORYCARD_A;
-			break;
-		case 2: // mic
-			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_MIC;
-			break;
-		default:
-			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_DUMMY;
-			break;
-		}
-		GCMemcardPath[0]->Enable(event.GetSelection() == 1);
+		ChooseEXIDevice(std::string(event.GetString().mb_str()), exidevice);
  		break;
 	case ID_GC_EXIDEVICE_SLOTA_PATH:
 		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardA, true);
 		break;
-	case ID_GC_EXIDEVICE_SLOTB:
-		switch (event.GetSelection())
-		{
-		case 1: // memcard
-			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_MEMORYCARD_B;
-			break;
-		case 2: // mic
-			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_MIC;
-			break;
-		default:
-			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_DUMMY;
-			break;
-		}
-		GCMemcardPath[1]->Enable(event.GetSelection() == 1);
-		break;
 	case ID_GC_EXIDEVICE_SLOTB_PATH:
 		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardB, false);
-		break;
-	case ID_GC_EXIDEVICE_SP1: // The only thing we emulate on SP1 is the BBA
-		SConfig::GetInstance().m_EXIDevice[2] = event.GetSelection() ? EXIDEVICE_ETH : EXIDEVICE_DUMMY;
 		break;
 
  	case ID_GC_SIDEVICE3:
@@ -688,11 +663,13 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 
 void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
-	std::string filename = std::string(wxFileSelector
-									   (wxT("Choose a file to open"),
-										wxT(FULL_GC_USER_DIR), isSlotA ? wxT(GC_MEMCARDA):wxT(GC_MEMCARDB), 
-										wxEmptyString,
+	std::string filename = std::string(wxFileSelector(
+		wxT("Choose a file to open"),
+		wxT(FULL_GC_USER_DIR),
+		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB), 
+		wxEmptyString,
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
+
 	if (!filename.empty())
 		strMemcard = filename;
 }
@@ -708,6 +685,37 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 		tempType = SI_DUMMY;
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
+}
+
+void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
+{
+	TEXIDevices tempType;
+
+	if (deviceName.compare("Memory Card") == 0)
+		tempType = deviceNum ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A;
+	else if (deviceName.compare("Mic") == 0)
+		tempType = EXIDEVICE_MIC;
+	else if (deviceName.compare("BBA") == 0)
+		tempType = EXIDEVICE_ETH;
+	else
+		tempType = EXIDEVICE_DUMMY;
+
+	// Gray out the memcard path button if we're not on a memcard
+	if (tempType == EXIDEVICE_MEMORYCARD_A || tempType == EXIDEVICE_MEMORYCARD_B)
+		GCMemcardPath[deviceNum]->Enable();
+	else if (deviceNum == 0 || deviceNum == 1)
+		GCMemcardPath[deviceNum]->Disable();
+
+	SConfig::GetInstance().m_EXIDevice[deviceNum] = tempType;
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		// Change plugged device! :D
+		ExpansionInterface::ChangeDevice(
+			(deviceNum == 1) ? 1 : 0,	// SlotB is on channel 1, slotA and SP1 are on 0
+			tempType,					// The device enum to change to
+			(deviceNum == 2) ? 2 : 0);	// SP1 is device 2, slots are device 0
+	}
 }
 ///////////////////////////////////////////
 
