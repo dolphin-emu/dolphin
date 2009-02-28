@@ -49,7 +49,7 @@ void HLE_OSReport()
     u32 hackPC = PC;
     PC = LR;
 
-    PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
+//    PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
 	LOGV(OSREPORT,0,"(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());	
 
     PC = hackPC;
@@ -64,7 +64,7 @@ void HLE_vprintf()
     u32 hackPC = PC;
     PC = LR;
 
-    PanicAlert("(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
+ //   PanicAlert("(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
 	LOG(OSREPORT,"(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());	
 
     PC = hackPC;
@@ -79,7 +79,7 @@ void HLE_printf()
     u32 hackPC = PC;
     PC = LR;
 
-    PanicAlert("(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
+ //   PanicAlert("(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
 	LOG(OSREPORT,"(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());	
 
     PC = hackPC;
