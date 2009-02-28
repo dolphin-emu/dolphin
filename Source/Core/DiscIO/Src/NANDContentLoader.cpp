@@ -75,10 +75,10 @@ CNANDContentLoader::~CNANDContentLoader()
 
 SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index)
 {
-    for (size_t i=0; i<m_TitleMetaContent.size(); i++)
+    for (size_t i=0; i<m_Content.size(); i++)
     {
-        if (m_TitleMetaContent[i].m_Index == _Index)
-            return &m_TitleMetaContent[i];
+        if (m_Content[i].m_Index == _Index)
+            return &m_Content[i];
     }
     return NULL;
 }
@@ -89,13 +89,9 @@ bool CNANDContentLoader::CreateFromWAD(const std::string& _rName)
     if (pReader == NULL)
 		return false;
 
-    if (!ParseWAD(*pReader))
-    {
-        delete pReader;
-        return false;
-    }
+    bool Result = ParseWAD(*pReader);
     delete pReader;
-    return true;
+    return Result;
 }
 
 bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
@@ -117,11 +113,11 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
     m_BootIndex = Common::swap16(pTMD + 0x01e0);
     m_TitleID = Common::swap64(pTMD + 0x018C);
 
-    m_TitleMetaContent.resize(numEntries);
+    m_Content.resize(numEntries);
 
     for (u32 i = 0; i < numEntries; i++) 
     {
-        SNANDContent& rContent = m_TitleMetaContent[i];
+        SNANDContent& rContent = m_Content[i];
 
         rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
         rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
@@ -224,11 +220,11 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 
 	u8* p = pDataApp;
 
-	m_TitleMetaContent.resize(numEntries);
+	m_Content.resize(numEntries);
 
 	for (u32 i=0; i<numEntries; i++) 
 	{
-		SNANDContent& rContent = m_TitleMetaContent[i];
+		SNANDContent& rContent = m_Content[i];
 				
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
