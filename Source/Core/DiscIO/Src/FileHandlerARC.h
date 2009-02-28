@@ -30,6 +30,8 @@ class CARCFile
 {
 	public:
 
+        CARCFile(const std::string& _rFilename);
+
 		CARCFile(const u8* _pBuffer, size_t _BufferSize);
 
 		virtual ~CARCFile();

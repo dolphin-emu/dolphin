@@ -20,15 +20,32 @@
 
 #include "FileHandlerARC.h"
 #include "StringUtil.h"
+#include "Blob.h"
 
 
 #define ARC_ID 0x55aa382d
 
 namespace DiscIO
 {
+CARCFile::CARCFile(const std::string& _rFilename)
+    : m_pBuffer(NULL)
+    , m_Initialized(false)
+{
+    DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
+    if (pReader != NULL)
+    {
+        u64 FileSize = pReader->GetDataSize();
+        m_pBuffer = new u8[FileSize];
+        pReader->Read(0, FileSize, m_pBuffer);
+        delete pReader;
+
+        m_Initialized = ParseBuffer();
+    }
+}
+
 CARCFile::CARCFile(const u8* _pBuffer, size_t _BufferSize)
-	: m_pBuffer(NULL),
-	m_Initialized(false)
+	: m_pBuffer(NULL)
+	, m_Initialized(false)
 {
 	m_pBuffer = new u8[_BufferSize];
 
