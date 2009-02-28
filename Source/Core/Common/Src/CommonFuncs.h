@@ -25,8 +25,13 @@
 #endif
 
 #ifndef _WIN32
+
+#if defined __APPLE__
+char* strndup (char const *s, size_t n);	
+#else
+#include <byteswap.h>
+#endif // APPLE
 	#include <errno.h>
-	#include <byteswap.h>
 // go to debugger mode
 	#define Crash() {asm ("int $3");}
 	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))

@@ -299,7 +299,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 Count = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
             std::vector<u64> TitleIDs;
-            TitleIDs.push_back(0x0000000100000002);
+            TitleIDs.push_back(0x0000000100000002ULL);
             // TitleIDs.push_back(0x0001000248414341);
             // TitleIDs.push_back(0x0001000146414b45);
 
