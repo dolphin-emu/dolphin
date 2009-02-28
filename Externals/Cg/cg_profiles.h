@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2002-2007, NVIDIA Corporation.
+ * Copyright (c) 2002-2009, NVIDIA Corporation.
  * 
  *  
  * 
@@ -88,6 +88,9 @@ CG_PROFILE_MACRO(DX9Pixel2x,ps_2_x,PS_2_X,"ps_2_x",6163,0)
 CG_PROFILE_MACRO(DX9Pixel2sw,ps_2_sw,PS_2_SW,"ps_2_sw",6164,0)
 CG_PROFILE_MACRO(DX9Pixel30,ps_3_0,PS_3_0,"ps_3_0",6165,0)
 CG_PROFILE_MACRO(DX9PixelHLSL,hlslf,HLSLF,"hlslf",6166,0)
+
+CG_PROFILE_MACRO(DX10Vertex40,vs_4_0,VS_4_0,"vs_4_0",6167,1)
+CG_PROFILE_MACRO(DX10Pixel40,ps_4_0,PS_4_0,"ps_4_0",6168,0)
 
 CG_PROFILE_MACRO(Generic,           generic, GENERIC, "generic", 7002,0)
 

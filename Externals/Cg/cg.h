@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2002-2007, NVIDIA Corporation.
+ * Copyright (c) 2002-2009, NVIDIA Corporation.
  * 
  *  
  * 
@@ -57,7 +57,7 @@
 /*** CG Run-Time Library API                                          ***/
 /*************************************************************************/
 
-#define CG_VERSION_NUM                2000
+#define CG_VERSION_NUM                2100
 
 #ifdef _WIN32
 # ifndef APIENTRY /* From Win32's <windef.h> */
@@ -74,15 +74,18 @@
 # endif
 #endif /* _WIN32 */
 
-/* Set up for either Win32 import/export/lib. */
+/* Set up CG_API for Win32 dllexport or gcc visibility */
+
 #ifndef CG_API
-# ifdef _WIN32
-#  ifdef CG_EXPORTS
+# ifdef CG_EXPORTS
+#  ifdef _WIN32
 #   define CG_API __declspec(dllexport)
-#  elif defined (CG_LIB)
-#   define CG_API
+#  elif defined(__GNUC__) && __GNUC__>=4
+#   define CG_API __attribute__ ((visibility("default")))
+#  elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
+#   define CG_API __global
 #  else
-#   define CG_API __declspec(dllimport)
+#   define CG_API
 #  endif
 # else
 #  define CG_API
@@ -233,6 +236,7 @@ extern "C" {
 typedef CGbool (CGENTRY * CGstatecallback)(CGstateassignment);
 typedef void (CGENTRY * CGerrorCallbackFunc)(void);
 typedef void (CGENTRY * CGerrorHandlerFunc)(CGcontext ctx, CGerror err, void *data);
+typedef void (CGENTRY * CGIncludeCallbackFunc)(CGcontext ctx, const char *filename);
 
 /*************************************************************************/
 /*** Functions                                                         ***/
@@ -258,6 +262,13 @@ CG_API void CGENTRY cgSetAutoCompile(CGcontext ctx, CGenum flag);
 CG_API CGenum CGENTRY cgGetAutoCompile(CGcontext ctx);
 CG_API void CGENTRY cgSetParameterSettingMode(CGcontext ctx, CGenum parameterSettingMode);
 CG_API CGenum CGENTRY cgGetParameterSettingMode(CGcontext ctx);
+
+/*** Inclusion ***/
+
+CG_API void CGENTRY cgSetCompilerIncludeString(CGcontext ctx, const char *name, const char *source);
+CG_API void CGENTRY cgSetCompilerIncludeFile(CGcontext ctx, const char *name, const char *filename);
+CG_API void CGENTRY cgSetCompilerIncludeCallback(CGcontext ctx, CGIncludeCallbackFunc func);
+CG_API CGIncludeCallbackFunc CGENTRY cgGetCompilerIncludeCallback(CGcontext ctx);
 
 /*** Program functions ***/
 
@@ -291,6 +302,7 @@ CG_API CGenum CGENTRY cgGetProgramInput(CGprogram program);
 CG_API CGenum CGENTRY cgGetProgramOutput(CGprogram program);
 CG_API void CGENTRY cgSetPassProgramParameters(CGprogram);
 CG_API void CGENTRY cgUpdateProgramParameters(CGprogram program);
+CG_API void CGENTRY cgUpdatePassParameters(CGpass pass);
 
 /*** Parameter functions ***/
 
@@ -367,6 +379,12 @@ CG_API int CGENTRY cgGetParameterValuefr(CGparameter param, int n, float *vals);
 CG_API int CGENTRY cgGetParameterValuefc(CGparameter param, int n, float *vals);
 CG_API int CGENTRY cgGetParameterValueir(CGparameter param, int n, int *vals);
 CG_API int CGENTRY cgGetParameterValueic(CGparameter param, int n, int *vals);
+CG_API int CGENTRY cgGetParameterDefaultValuedr(CGparameter param, int n, double *vals);
+CG_API int CGENTRY cgGetParameterDefaultValuedc(CGparameter param, int n, double *vals);
+CG_API int CGENTRY cgGetParameterDefaultValuefr(CGparameter param, int n, float *vals);
+CG_API int CGENTRY cgGetParameterDefaultValuefc(CGparameter param, int n, float *vals);
+CG_API int CGENTRY cgGetParameterDefaultValueir(CGparameter param, int n, int *vals);
+CG_API int CGENTRY cgGetParameterDefaultValueic(CGparameter param, int n, int *vals);
 CG_API const char * CGENTRY cgGetStringParameterValue(CGparameter param);
 CG_API void CGENTRY cgSetStringParameterValue(CGparameter param, const char *str);
 
@@ -514,6 +532,7 @@ CG_API CGpass CGENTRY cgGetNextPass(CGpass);
 CG_API CGbool CGENTRY cgIsPass(CGpass);
 CG_API const char * CGENTRY cgGetPassName(CGpass); 
 CG_API CGtechnique CGENTRY cgGetPassTechnique(CGpass);
+CG_API CGprogram CGENTRY cgGetPassProgram(CGpass pass, CGdomain domain); 
 
 CG_API void CGENTRY cgSetPassState(CGpass);
 CG_API void CGENTRY cgResetPassState(CGpass);
@@ -662,6 +681,7 @@ CG_API CGprogram CGENTRY cgCombinePrograms( int n, const CGprogram *exeList );
 CG_API CGprogram CGENTRY cgCombinePrograms2( const CGprogram exe1, const CGprogram exe2 );
 CG_API CGprogram CGENTRY cgCombinePrograms3( const CGprogram exe1, const CGprogram exe2, const CGprogram exe3 );
 CG_API CGprofile CGENTRY cgGetProgramDomainProfile(CGprogram program, int index);
+CG_API CGprogram CGENTRY cgGetProgramDomainProgram(CGprogram program, int index);
 
 /*** CGobj Functions ***/
 CG_API CGobj CGENTRY cgCreateObj( CGcontext context, CGenum program_type, const char *source, CGprofile profile, const char **args );
@@ -670,6 +690,7 @@ CG_API void CGENTRY cgDestroyObj( CGobj obj );
 
 CG_API long CGENTRY cgGetParameterResourceSize(CGparameter);
 CG_API CGtype CGENTRY cgGetParameterResourceType(CGparameter);
+CG_API const char* CGENTRY cgGetParameterResourceName(CGparameter param);
 CG_API int CGENTRY cgGetParameterBufferIndex(CGparameter);
 CG_API int CGENTRY cgGetParameterBufferOffset(CGparameter);
 
