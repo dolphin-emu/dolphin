@@ -17,6 +17,7 @@ files = [
 	'VolumeDirectory.cpp',
 	'VolumeGC.cpp',
 	'VolumeWiiCrypted.cpp',
+	'NANDContentLoader.cpp',
 	'AES/aes_cbc.c',
 	'AES/aes_core.c',
 	]
