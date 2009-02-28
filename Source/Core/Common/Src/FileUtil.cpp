@@ -289,7 +289,7 @@ bool Copy(const char *srcFilename, const char *destFilename)
 		}
             
 		// write output
-		int wnum = fwrite(buffer, sizeof(char), rnum, output)
+		int wnum = fwrite(buffer, sizeof(char), rnum, output);
 		if (wnum != rnum)
 		{
 			ERROR_LOG(COMMON, 
