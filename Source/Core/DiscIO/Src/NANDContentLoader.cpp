@@ -62,7 +62,15 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
     {
 //        _dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
     }
- 
+}
+
+CNANDContentLoader::~CNANDContentLoader()
+{
+    for (size_t i=0; i<m_TileMetaContent.size(); i++)
+    {
+        delete [] m_TileMetaContent[i].m_pData;
+    }
+    m_TileMetaContent.clear();
 }
 
 SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index)
@@ -125,7 +133,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         sprintf(szFilename, "%s\\%08x.app", _rPath.c_str(), rContent.m_ContentID);
 
         FILE* pFile = fopen(szFilename, "rb");
-        // i have seen TMD which index to app which doesn't exist...
+        // i have seen TMDs which index to app which doesn't exist...
         if (pFile != NULL)
         {
             u64 Size = File::GetSize(szFilename);
