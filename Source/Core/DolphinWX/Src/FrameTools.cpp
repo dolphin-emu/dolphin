@@ -540,7 +540,7 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 {
 	std::string name;
 	GenerateScreenshotName(name);
-	bool bPaused = Core::GetState() == Core::CORE_PAUSE;
+	bool bPaused = (Core::GetState() == Core::CORE_PAUSE);
 
     Core::SetState(Core::CORE_PAUSE);
     CPluginManager::GetInstance().GetVideo()->Video_Screenshot(name.c_str());
