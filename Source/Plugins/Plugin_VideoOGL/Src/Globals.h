@@ -26,6 +26,7 @@
 
 #include "ConsoleWindow.h"
 
+
 // Compile without WxWidgets in Windows to, for debugging purposes
 //#define HAVE_WX 0
 

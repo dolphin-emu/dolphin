@@ -417,8 +417,15 @@ void BPWritten(int addr, int changes, int newval)
 				}
 				else if (g_Config.bCopyEFBToRAM)
 				{
+					TRectangle scaled_rc;
+					float xScale = Renderer::GetTargetScaleX();
+					float yScale = Renderer::GetTargetScaleY();
+					scaled_rc.left = rc.left * xScale;
+					scaled_rc.right = rc.right * xScale;
+					scaled_rc.top = rc.top * xScale;
+					scaled_rc.bottom = rc.bottom * xScale;
 					TextureConverter::EncodeToRam(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
-                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, rc);
+                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, scaled_rc);
 				}
 				else
 				{

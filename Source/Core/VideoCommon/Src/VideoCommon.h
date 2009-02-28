@@ -31,14 +31,17 @@ unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
 #define memcmp_gc memcmp
 #endif
 
-enum {
+// These are accurate (disregarding AA modes).
+enum
+{
 	EFB_WIDTH = 640,
 	EFB_HEIGHT = 528,
 };
 
-enum {
+enum
+{
 	XFB_WIDTH = 640,
-	XFB_HEIGHT = 480, // 528 is max height ... ? or 538?
+	XFB_HEIGHT = 480, // 574 can be used with tricks (multi pass render and dual xfb copies, etc).
 	// TODO: figure out what to do with PAL
 };
 
@@ -51,12 +54,12 @@ void DebugLog(const char* _fmt, ...);
 //////////////////////////////////////////////////////////////////////////
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
-	return g_VideoInitialize.pGetMemoryPointer(_uAddress);//&g_pMemory[_uAddress & RAM_MASK];
+	return g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
 
 inline u8 Memory_Read_U8(u32 _uAddress)
 {
-	return *(u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);//g_pMemory[_uAddress & RAM_MASK];
+	return *(u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
 
 inline u16 Memory_Read_U16(u32 _uAddress)
@@ -71,7 +74,7 @@ inline u32 Memory_Read_U32(u32 _uAddress)
 //////////////////////////////////////////////////////////////////////////
 inline u8* Memory_Read_U8_Ptr(u32 _uAddress)
 {
-	return (u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);//g_pMemory[_uAddress & RAM_MASK];
+	return (u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
 
 inline u16* Memory_Read_U16_Unswapped_Ptr(u32 _uAddress)
@@ -84,10 +87,6 @@ inline u32* Memory_Read_U32_Unswapped_Ptr(u32 _uAddress)
 	return (u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
 //////////////////////////////////////////////////////////////////////////
-inline u32 Memory_Read_U32_Unswapped(u32 _uAddress)
-{
-	return *(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
 
 inline float Memory_Read_Float(u32 _uAddress)
 {
@@ -101,26 +100,17 @@ struct TRectangle
 	int left, top, right, bottom;
 };
 
-
-
 // Logging
 // ¯¯¯¯¯¯¯¯¯¯
-void DebugLog(const char* _fmt, ...); // This one goes to the main program
+void DebugLog(const char *_fmt, ...); // This one goes to the main program
 void HandleGLError();
 
 
 
 #ifdef _WIN32
-//#define ERROR_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
-//#define INFO_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
 #define PRIM_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
-//#define DEBUG_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
-
 #else
-//#define ERROR_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
-//#define INFO_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
 #define PRIM_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
-//#define DEBUG_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
 #endif
 
 #ifdef LOGGING

@@ -40,7 +40,7 @@ them.
 #define XFB_USE_SHADERS 1
 
 enum {
-	XFB_BUF_HEIGHT = 538, //480,
+	XFB_BUF_HEIGHT = 574, //480,
 	// TODO: figure out what to do with PAL
 };
 

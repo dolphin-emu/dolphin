@@ -217,6 +217,16 @@ bool Renderer::Init()
 	// This should really be grabbed from config rather than from OpenGL.
 	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
     s_targetheight = (int)OpenGL_GetBackbufferHeight();
+	
+	// Compensate height of render target for scaling, so that we get something close to the correct number of
+	// vertical pixels.
+	s_targetheight *= 528.0 / 480.0;
+
+	// Ensure a minimum target size so that the native res target always fits.
+	if (s_targetwidth < EFB_WIDTH)
+		s_targetwidth = EFB_WIDTH;
+	if (s_targetheight < EFB_HEIGHT)
+		s_targetheight = EFB_HEIGHT;
 
     // Create the framebuffer target texture
     glGenTextures(1, (GLuint *)&s_RenderTarget);
@@ -427,22 +437,22 @@ bool Renderer::InitializeGL()
 // ------------------------
 int Renderer::GetTargetWidth()
 {
-	return (g_Config.bNativeResolution ? 640 : s_targetwidth);
+	return (g_Config.bNativeResolution ? EFB_WIDTH : s_targetwidth);
 }
 
 int Renderer::GetTargetHeight()
 {
-    return (g_Config.bNativeResolution ? 480 : s_targetheight);
+    return (g_Config.bNativeResolution ? EFB_HEIGHT : s_targetheight);
 }
 
 float Renderer::GetTargetScaleX()
 {
-    return (float)GetTargetWidth() / 640.0f;
+    return (float)GetTargetWidth() / (float)EFB_WIDTH;
 }
 
 float Renderer::GetTargetScaleY()
 {
-    return (float)GetTargetHeight() / 480.0f;
+    return (float)GetTargetHeight() / (float)EFB_HEIGHT;
 }
 
 /////////////////////////////
@@ -476,6 +486,8 @@ GLuint Renderer::GetZBufferTarget()
 
 void Renderer::ResetGLState()
 {
+	// Gets us to a reasonably sane state where it's possible to do things like
+	// image copies with textured quads, etc.
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -489,6 +501,7 @@ void Renderer::ResetGLState()
 
 void Renderer::RestoreGLState()
 {
+	// Gets us back into a more game-like state.
     glEnable(GL_SCISSOR_TEST);
 
     if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
@@ -504,11 +517,13 @@ void Renderer::RestoreGLState()
 void Renderer::SetColorMask()
 {
     if (bpmem.blendmode.alphaupdate && bpmem.blendmode.colorupdate)
-        glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+        glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_TRUE);
     else if (bpmem.blendmode.alphaupdate)
-        glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_TRUE);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
     else if (bpmem.blendmode.colorupdate) 
-        glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_FALSE);
+        glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_FALSE);
+	else
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -601,11 +616,11 @@ bool Renderer::SetScissorRect()
     
 	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
 	rc_right *= MValueX;
-	if (rc_right > 640 * MValueX) rc_right = 640 * MValueX;
+	if (rc_right > EFB_WIDTH * MValueX) rc_right = EFB_WIDTH * MValueX;
 
 	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
 	rc_bottom *= MValueY;
-	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
+	if (rc_bottom > EFB_HEIGHT * MValueY) rc_bottom = EFB_HEIGHT * MValueY;
 
    /*LOG(VIDEO, "Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
 		rc_left, rc_top,
@@ -751,7 +766,7 @@ void Renderer::SetRenderMode(RenderMode mode)
 
         if (mode == RM_ZBufferOnly) {
             // flush and remove stencil
-            _assert_(s_RenderMode==RM_ZBufferAlpha);
+            _assert_(s_RenderMode == RM_ZBufferAlpha);
             FlushZBufferAlphaToTarget();
             glDisable(GL_STENCIL_TEST);
 
@@ -880,6 +895,9 @@ void Renderer::Swap(const TRectangle& rc)
     // Texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+	// Use linear filtering.
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     TextureMngr::EnableTexRECT(0);
     
 	// Disable all other stages
@@ -890,12 +908,8 @@ void Renderer::Swap(const TRectangle& rc)
 	ComputeBackbufferRectangle(&back_rc);
 
 	// Update GLViewPort
-	glViewport(
-		back_rc.left,
-		back_rc.top,
-		back_rc.right - back_rc.left,
-		back_rc.bottom - back_rc.top
-		);
+	glViewport(back_rc.left, back_rc.top,
+		       back_rc.right - back_rc.left, back_rc.bottom - back_rc.top);
 
     GL_REPORT_ERRORD();
 
@@ -920,6 +934,10 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
 		glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
 	glEnd();
+
+	// Restore filtering.
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	// Wireframe
 	if (g_Config.bWireFrame)

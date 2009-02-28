@@ -403,23 +403,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     INCSTAT(stats.numTexturesCreated);
     SETSTAT(stats.numTexturesAlive, textures.size());
-
-    //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
-	/*
-	if ( 1
-		//&& (entry.w != 640  && entry.h != 480)
-		//&& (entry.w != 320  && entry.h != 240)
-		&& (entry.w ==512 && entry.h == 512) 
-		//&& (entry.w > 200  && entry.h > 200)
-		//&& (format!=1)
-		)
-	{
-		char fn[256];
-		sprintf(fn, "z_%i_%i_%ix%i_%08x.tga", dbgTexIdx, format, entry.w, entry.h, entry.addr);
-		SaveTexture(fn, target, entry.texture, entry.w, entry.h);
-		dbgTexIdx++;
-	}
-	*/
     return &entry;
 }
 

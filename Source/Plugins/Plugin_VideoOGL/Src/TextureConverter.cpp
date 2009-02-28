@@ -250,9 +250,11 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	u32 target = bFromZBuffer ? Renderer::GetZBufferTarget() : Renderer::GetRenderTarget();
 
 	s32 width = source.right - source.left;
-	s32 height = source.bottom - source.top;	
+	s32 height = source.bottom - source.top;
+
 	if (bScaleByHalf)
 	{
+		// Hm. Shouldn't this only scale destination, not source?
 		width /= 2;
 		height /= 2;
 	}
@@ -289,6 +291,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
 }
 
 
+// Should be scale free.
 void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
 	Renderer::SetRenderMode(Renderer::RM_Normal);
@@ -318,7 +321,7 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glViewport(0, 0, srcWidth, srcHeight);
 
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, s_yuyvToRgbProgram.glprogid);	
+    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_yuyvToRgbProgram.glprogid);	
 
 	GL_REPORT_ERRORD();
 
