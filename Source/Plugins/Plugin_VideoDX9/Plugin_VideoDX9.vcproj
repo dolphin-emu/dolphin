@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -619,6 +619,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -1219,10 +1220,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\TextureCache.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoaderManager.cpp"
 				>
 			</File>
 			<File

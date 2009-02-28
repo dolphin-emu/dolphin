@@ -928,7 +928,7 @@ static bool WriteAlphaTest(char *&p)
         break;
     }
 
-	// Seems we need clip for Cg and discard for d3d. sigh.
+	// Seems we need discard for Cg and clip for d3d. sigh.
     WRITE(p, "discard( ");
     WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     
