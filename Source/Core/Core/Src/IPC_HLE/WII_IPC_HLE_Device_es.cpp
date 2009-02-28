@@ -59,10 +59,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     , AccessIdentID(0x6000000)
 {
     m_pContentLoader = new DiscIO::CNANDContentLoader(_rDefaultContentFile);
-    if (m_pContentLoader->IsValid())
-    {
-        m_TitleID = m_pContentLoader->GetTitleID();
-    }
+    m_TitleID = GetCurrentTitleID();
 }
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -99,7 +96,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     switch (Buffer.Parameter)
     {
-    case IOCTL_ES_OPENTITLECONTENT: // 0x09
+    case IOCTL_ES_OPENTITLECONTENT:
         {
             u32 CFD = AccessIdentID++;
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
@@ -116,7 +113,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_OPENCONTENT: // 0x09
+    case IOCTL_ES_OPENCONTENT:
         {
             u32 CFD = AccessIdentID++;
             u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
@@ -210,7 +207,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_GETTITLEDIR: // 0x1d
+    case IOCTL_ES_GETTITLEDIR:
         {                   
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             _dbg_assert_msg_(WII_IPC_ES, TitleID == GetCurrentTitleID(), "Get Dir from unkw title dir?? this can be okay...");
@@ -223,7 +220,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_GETTITLEID: // 0x20
+    case IOCTL_ES_GETTITLEID:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no out buffer");
 
@@ -243,7 +240,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_SETUID: // 0x21
+    case IOCTL_ES_SETUID:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no in buffer");
 
@@ -252,7 +249,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_GETVIEWCNT: // 0x12 (Input: 8 bytes, Output: 4 bytes)
+    case IOCTL_ES_GETVIEWCNT:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETVIEWCNT no in buffer");
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETVIEWCNT no out buffer");
@@ -260,11 +257,14 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
             // [TODO] here we should have a map from title id to tickets or something like that...
-            /*    if (GetContentSize() > 0)
+            if (AccessContentDevice().GetContentSize() > 0)
             {
-            Memory::Write_U32(1, Buffer.PayloadBuffer[0].m_Address);
-            }*/
-            Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+                Memory::Write_U32(1, Buffer.PayloadBuffer[0].m_Address);
+            }
+            else
+            {
+                Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+            }            
 
             LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x", TitleID>>32, TitleID );
 
@@ -314,7 +314,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         // unsupported functions 
         // ===============================================================================================
 
-    case IOCTL_ES_LAUNCH: // 0x08
+    case IOCTL_ES_LAUNCH:
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
 
@@ -392,7 +392,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_GETTMDVIEWCNT: // 0x14
+    case IOCTL_ES_GETTMDVIEWCNT:
         _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETTMDVIEWCNT: this looks really wrong...");
         break;
 
