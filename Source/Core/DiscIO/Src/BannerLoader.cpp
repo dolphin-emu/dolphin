@@ -96,8 +96,6 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 
 bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16* _src, int length )
 {
-	
-
 	bool returnCode = false;
 #ifdef WIN32
 	if (_src)
@@ -111,8 +109,8 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 				buffer[i] = swap16(buffer[i]);
 			}
 			
-			u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
-				(LPCWSTR)buffer, (int)wcslen((const wchar_t*)buffer),
+			u32 ansiNameSize = WideCharToMultiByte(932, 0, 
+				(LPCWSTR)buffer, (int)wcslen((LPCWSTR)buffer),
 				NULL, NULL, NULL, NULL);
 			if (ansiNameSize > 0)
 			{
@@ -120,8 +118,8 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 				if (pAnsiStrBuffer)
 				{
 					memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
-					if (WideCharToMultiByte(CP_ACP, 0, 
-						(LPCWSTR)buffer, (int)wcslen((const wchar_t*)buffer),
+					if (WideCharToMultiByte(932, 0, 
+						(LPCWSTR)buffer, (int)wcslen((LPCWSTR)buffer),
 						pAnsiStrBuffer, ansiNameSize, NULL, NULL))
 					{
 						_rDestination = pAnsiStrBuffer;
