@@ -2120,6 +2120,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.h"
 				>
 			</File>
