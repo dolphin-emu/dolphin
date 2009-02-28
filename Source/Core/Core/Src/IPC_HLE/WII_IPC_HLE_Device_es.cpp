@@ -59,7 +59,22 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     , AccessIdentID(0x6000000)
 {
     m_pContentLoader = new DiscIO::CNANDContentLoader(_rDefaultContentFile);
-    m_TitleID = GetCurrentTitleID();
+
+    // check for cd ...
+    if (m_pContentLoader->IsValid())
+    {
+        m_TitleID = m_pContentLoader->GetTitleID();
+    }
+    else if (VolumeHandler::IsValid())
+    {
+        m_TitleID = ((u64)0x00010000 << 32) | VolumeHandler::Read32(0);                        
+    }
+    else
+    {
+        m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
+    }   
+
+    LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
 }
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -103,7 +118,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address+8);
 
             m_ContentAccessMap[CFD].m_Position = 0;
-            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
+            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(TitleID).GetContentByIndex(Index);
             _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
@@ -119,7 +134,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
             m_ContentAccessMap[CFD].m_Position = 0;
-            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
+            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
             _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
@@ -210,7 +225,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     case IOCTL_ES_GETTITLEDIR:
         {                   
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            _dbg_assert_msg_(WII_IPC_ES, TitleID == GetCurrentTitleID(), "Get Dir from unkw title dir?? this can be okay...");
 
             char* pTitleID = (char*)&TitleID;
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
@@ -224,19 +238,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no out buffer");
 
-            /* This seems to be the right address to write the Title ID to
-            because then it shows up in the InBuffer of IOCTL_ES_GETTITLEDIR
-            that is called right after this. I have not seen that this
-            have any effect by itself, it probably only matters as an input to
-            IOCTL_ES_GETTITLEDIR. This values is not stored in 0x3180 or anywhere
-            else as I have seen, it's just used as an input buffer in the following
-            IOCTL_ES_GETTITLEDIR call and then forgotten. */
-
-            u64 TitleID = GetCurrentTitleID();
-            _dbg_assert_msg_(WII_IPC_ES, TitleID == m_TitleID, "TitleID != m_TitleID -  GetCurrentTitleID();");
-
-            Memory::Write_U64(TitleID, Buffer.PayloadBuffer[0].m_Address);
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", TitleID>>32, TitleID);
+            Memory::Write_U64(m_TitleID, Buffer.PayloadBuffer[0].m_Address);
+            LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", m_TitleID>>32, m_TitleID);
         }
         break;
 
@@ -257,7 +260,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
             // [TODO] here we should have a map from title id to tickets or something like that...
-            if (AccessContentDevice().GetContentSize() > 0)
+            if (IsValid(TitleID))
             {
                 Memory::Write_U32(1, Buffer.PayloadBuffer[0].m_Address);
             }
@@ -422,28 +425,20 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     return true;
 }
 
-u64 CWII_IPC_HLE_Device_es::GetCurrentTitleID() const
+DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID) const
 {
-    u64 TitleID = -1;
-
-    // check for cd ...
-    if (AccessContentDevice().IsValid())
-    {
-        TitleID = m_TitleID;
-    }
-    else if (VolumeHandler::IsValid())
-    {
-        TitleID = ((u64)0x00010000 << 32) | VolumeHandler::Read32(0);                        
-    }
-    else
-    {
-        TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
-    }            
-
-    return TitleID;
-}
-
-DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice() const
-{
+    if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
+        return* m_pContentLoader;
+    
+    PanicAlert("Try to access unknown title content (%08x/%08x). Dolphin will prolly crash now.", _TitleID>>32, _TitleID);
     return* m_pContentLoader;
 }
+
+bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
+{
+    if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
+        return true;
+
+    return false;
+}
+

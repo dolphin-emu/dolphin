@@ -113,7 +113,9 @@ private:
 
     u64 GetCurrentTitleID() const;
 
-    DiscIO::CNANDContentLoader& AccessContentDevice() const;
+    DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID) const;
+
+    bool IsValid(u64 _TitleID) const;
 };
 
 #endif
