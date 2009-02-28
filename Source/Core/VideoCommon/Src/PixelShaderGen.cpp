@@ -928,7 +928,8 @@ static bool WriteAlphaTest(char *&p)
         break;
     }
 
-    WRITE(p, "clip( ");
+	// Seems we need clip for Cg and discard for d3d. sigh.
+    WRITE(p, "discard( ");
     WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     
     // negated because testing the inverse condition
