@@ -27,7 +27,8 @@
 #ifndef _WIN32
 
 #if defined __APPLE__
-char* strndup (char const *s, size_t n);	
+char* strndup (char const *s, size_t n);
+size_t strnlen(const char *s, size_t n);
 #else
 #include <byteswap.h>
 #endif // APPLE

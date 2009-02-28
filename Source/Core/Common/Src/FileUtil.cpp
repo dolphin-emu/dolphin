@@ -32,6 +32,13 @@
 #include <stdlib.h>
 #endif
 
+#if defined(__APPLE__)
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFUrl.h>
+#include <CoreFoundation/CFBundle.h>
+#include <sys/param.h>
+#endif
+
 #include <fstream>
 #include <sys/stat.h>
 
@@ -305,30 +312,6 @@ bool Copy(const char *srcFilename, const char *destFilename)
 #endif
 }
 
-// Returns a pointer to a string with a Dolphin data dir in the user's home directory.
-// To be used in "multi-user" mode (that is, installed).
-const char *GetUserDirectory()
-{
-	// Make sure we only need to do it once
-	static char path[MAX_PATH] = {0};
-	if (strlen(path) > 0)
-		return path;
-
-#ifdef WIN32
-	char homedir[MAX_PATH];
-	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
-		return NULL;
-#else
-	char *homedir = getenv("HOME");
-	if (!homedir)
-		return NULL;
-#endif
-
-	snprintf(path, sizeof(path), "%s" DIR_SEP DOLPHIN_DATA_DIR, homedir);
-	INFO_LOG(COMMON, "GetUserDirectory: Setting to %s:", path);
-	return path;
-}
-
 // Returns the size of filename (64bit)
 u64 GetSize(const char *filename)
 {
@@ -518,6 +501,88 @@ const char *GetCurrentDirectory()
 bool SetCurrentDirectory(const char *_rDirectory)
 {
 	return chdir(_rDirectory) == 0;
+}
+
+#if defined(__APPLE__)
+std::string GetBundleDirectory() 
+{
+	// Plugin path will be Dolphin.app/Contents/PlugIns
+	CFURLRef BundleRef;
+	char AppBundlePath[MAXPATHLEN];
+	// Get the main bundle for the app
+	BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+	CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
+	CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
+	CFRelease(BundleRef);
+	CFRelease(BundlePath);
+	
+	return AppBundlePath;
+}
+#endif
+
+// Returns the path to where the plugins are
+std::string GetPluginsDirectory()
+{
+	std::string pluginsDir;
+
+#if defined (__APPLE__)
+	PluginsDir = GetBundleDirectory();
+	PluginsDir += DIR_SEP;
+	PluginsDir += PLUGINS_DIR;
+#elsif __linux__
+	pluginsDir = PLUGINS_DIR;
+	// FIXME global install
+#else
+	pluginsDir = PLUGINS_DIR;	
+#endif
+
+	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
+	return pluginsDir;
+	
+}
+
+// Returns the path to where the sys file are
+std::string GetSysDirectory()
+{
+	std::string sysDir;
+
+#if defined (__APPLE__)
+	sysDir = GetBundleDirectory();
+	sysDir += DIR_SEP;
+	sysDir += SYSDATA_DIR;
+#elsif __linux__
+	sysDir = SYSDATA_DIR;
+	// FIXME global install
+#else
+	sysDir = SYSDATA_DIR;	
+#endif
+
+	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
+	return sysDir;
+	
+}
+// Returns a pointer to a string with a Dolphin data dir in the user's home
+// directory. To be used in "multi-user" mode (that is, installed).
+const char *GetUserDirectory()
+{
+	// Make sure we only need to do it once
+	static char path[MAX_PATH] = {0};
+	if (strlen(path) > 0)
+		return path;
+
+#ifdef WIN32
+	char homedir[MAX_PATH];
+	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
+		return NULL;
+#else
+	char *homedir = getenv("HOME");
+	if (!homedir)
+		return NULL;
+#endif
+
+	snprintf(path, sizeof(path), "%s" DIR_SEP DOLPHIN_DATA_DIR, homedir);
+	INFO_LOG(COMMON, "GetUserDirectory: Setting to %s:", path);
+	return path;
 }
 
 } // namespace

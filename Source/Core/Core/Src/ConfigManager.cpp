@@ -20,10 +20,8 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "ConfigManager.h"
-
-#if defined(__APPLE__)
 #include "FileUtil.h"
-#endif
+
 SConfig SConfig::m_Instance;
 
 
@@ -119,23 +117,14 @@ void SConfig::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(CONFIG_FILE);
-#if defined(__APPLE__)
 	std::string PluginsDir = File::GetPluginsDirectory();
 	
+	// Hard coded default
 	m_DefaultGFXPlugin = PluginsDir + DEFAULT_GFX_PLUGIN;
 	m_DefaultDSPPlugin = PluginsDir + DEFAULT_DSP_PLUGIN;
 	m_DefaultPADPlugin = PluginsDir + DEFAULT_PAD_PLUGIN;
 	m_DefaultWiiMotePlugin = PluginsDir + DEFAULT_WIIMOTE_PLUGIN;
-	
-#else
-	// Hard coded default plugin
-	{
-		m_DefaultGFXPlugin = PLUGINS_DIR DIR_SEP DEFAULT_GFX_PLUGIN;
-		m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN;
-		m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN;
-		m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;
-	}
-#endif
+
 	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);

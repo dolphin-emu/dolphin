@@ -84,9 +84,21 @@ const char *GetCurrentDirectory();
 // Set the current directory to given directory
 bool SetCurrentDirectory(const char *directory);
  
-// Returns a pointer to a string with the dolphin data dir
+
+// Returns a pointer to a string with a Dolphin data dir in the user's home
+// directory. To be used in "multi-user" mode (that is, installed).
 const char *GetUserDirectory();
  
+// Returns the path to where the plugins are
+std::string GetPluginsDirectory();
+ 
+// Returns the path to where the sys file are
+std::string GetSysDirectory();
+
+#ifdef __APPLE__
+std::string GetBundleDirectory();
+#endif
+
 }  // namespace
 
 #endif
