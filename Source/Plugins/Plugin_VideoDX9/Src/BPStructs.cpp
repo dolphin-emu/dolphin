@@ -429,23 +429,23 @@ void BPWritten(int addr, int changes, int newval)
 		{
 		case 0x02:
 			g_VideoInitialize.pSetPEFinish(); // may generate interrupt
-			DEBUG_LOG("GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
+			DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
 			break;
 
 		default:
-			DEBUG_LOG("GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
+			DEBUG_LOG(VIDEO, "GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
 			break;
 		}
 		break;
 
 	case BPMEM_PE_TOKEN_ID:
 		g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
-		DEBUG_LOG("SetPEToken 0x%04x", (newval & 0xFFFF));
+		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (newval & 0xFFFF));
 		break;
 
 	case BPMEM_PE_TOKEN_INT_ID:
 		g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
-		DEBUG_LOG("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
+		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (newval & 0xFFFF));
 		break;
 
     case 0x67: // set gp metric?
