@@ -137,7 +137,6 @@ void CConfigMain::UpdateGUI()
 		SkipIdle->Disable();
 		EnableCheats->Disable();
 		GCSystemLang->Disable();
-		GCMemcardPath[0]->Disable(); GCMemcardPath[1]->Disable();
 		// Disable GC SI Stuff, but devices should be dynamic soon
 		GCSIDevice[0]->Disable(); GCSIDevice[1]->Disable(); GCSIDevice[2]->Disable(); GCSIDevice[3]->Disable();
 		WiiPage->Disable();
@@ -671,7 +670,18 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
 
 	if (!filename.empty())
+	{
 		strMemcard = filename;
+
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		{
+			// Change memcard to the new file
+			ExpansionInterface::ChangeDevice(
+				(isSlotA) ? 0 : 1,	// SlotA: channel 0, SlotB channel 1
+				(isSlotA) ? EXIDEVICE_MEMORYCARD_A : EXIDEVICE_MEMORYCARD_B,
+				0);	// SP1 is device 2, slots are device 0
+		}
+	}
 }
 
 void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
