@@ -30,11 +30,12 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_RENDERBACKEND, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_ALIASMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_NATIVERESOLUTION, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_AUTOSCALE, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_4_3, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_16_9, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, ConfigDialog::GeneralSettingsChanged)
@@ -49,7 +50,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_SHADERERRORS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
@@ -120,11 +120,6 @@ void ConfigDialog::AddWindowReso(char *reso)
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }
 
-void ConfigDialog::AddRenderBackend(const char *backend)
-{
-	m_RenderBackend->Append(wxString::FromAscii(backend));
-}
-
 void ConfigDialog::AddAAMode(int mode)
 {
 	wxString tmp;
@@ -168,16 +163,21 @@ void ConfigDialog::CreateGUIControls()
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
-	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native resolution"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Aspect ratio / positioning controls
 	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("Keep 16:9 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	// Default values
-	m_StretchToFit->SetValue(g_Config.bStretchToFit);
+	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_KeepAR43->SetValue(g_Config.bKeepAR43);
 	m_KeepAR169->SetValue(g_Config.bKeepAR169);
 	m_Crop->SetValue(g_Config.bCrop);
+	m_UseXFB->SetValue(g_Config.bUseXFB);
+	m_AutoScale->SetValue(g_Config.bAutoScale);
 
 	#ifndef _WIN32
 		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -192,17 +192,13 @@ void ConfigDialog::CreateGUIControls()
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
-	wxStaticText *BEText = new wxStaticText(m_PageGeneral, ID_BETEXT, wxT("Rendering backend:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_RenderBackend = new wxComboBox(m_PageGeneral, ID_RENDERBACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_RenderBackend, 0, wxDefaultValidator);
-	m_RenderBackend->SetValue(wxString::FromAscii(g_Config.iBackend));
-
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This option use a separate rendering window and can only be used when"
 		" 'Render to main window' is unchecked. The only way to exit this mode\n"
 		" is with Alt + F4 (that also close Dolphin)."
 		));
-	m_StretchToFit->SetToolTip(wxT(
+	m_NativeResolution->SetToolTip(wxT(
 		"This will use the game's native resolution and stretch it to fill the"
 		"\nwindow instead of changing the internal display resolution. It"
 		"\nmay result in a slightly blurrier image, but it may also give a higher"
@@ -242,12 +238,15 @@ void ConfigDialog::CreateGUIControls()
 	sBasic = new wxGridBagSizer(0, 0);
 	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
 	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_KeepAR43, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_KeepAR169, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_AutoScale, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_NativeResolution, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_UseXFB,    wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_KeepAR43,  wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_KeepAR169, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop,      wxGBPosition(5, 2), wxGBSpan(1, 1), wxALL, 5);
+
 	// Because of the ifdef here we need this variable for the row number
-	int Row = 4;
+	int Row = 6;
 	#ifndef _WIN32
 	sBasic->Add(m_HideCursor, wxGBPosition(Row++, 0), wxGBSpan(1, 3), wxALL, 5);
 	#endif
@@ -255,8 +254,6 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_FullscreenCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(WMText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(BEText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_RenderBackend, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
@@ -293,8 +290,6 @@ void ConfigDialog::CreateGUIControls()
 
 	// Render
 	sbRendering = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Rendering"));
-	m_UseXFB = new wxCheckBox(m_PageAdvanced, ID_USEXFB, wxT("Use External Framebuffer (XFB)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_UseXFB->SetValue(g_Config.bUseXFB);
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Wireframe->SetValue(g_Config.bWireFrame);
 	m_Wireframe->Enable(true);
@@ -378,10 +373,9 @@ void ConfigDialog::CreateGUIControls()
 	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
 	sRendering = new wxGridBagSizer(0, 0);
-	sRendering->Add(m_UseXFB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRendering->Add(m_Wireframe, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRendering->Add(m_DisableLighting, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRendering->Add(m_DisableTexturing, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sRendering->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sRendering->Add(m_DisableLighting, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 5);
 				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
 					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
@@ -431,8 +425,15 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_RENDERTOMAINWINDOW:
 		g_Config.renderToMainframe = m_RenderToMainWindow->IsChecked();
 		break;
-	case ID_STRETCHTOFIT:
-		g_Config.bStretchToFit = m_StretchToFit->IsChecked();
+	case ID_NATIVERESOLUTION:
+		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
+		break;
+
+	case ID_USEXFB:
+		g_Config.bUseXFB = m_UseXFB->IsChecked();
+		break;
+	case ID_AUTOSCALE:
+		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
 	case ID_KEEPAR_4_3:		
 		g_Config.bKeepAR43 = m_KeepAR43->IsChecked();
@@ -447,19 +448,17 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_CROP:		
 		g_Config.bCrop = m_Crop->IsChecked();	
 		break;
+
 	#ifndef _WIN32
-		case ID_HIDECURSOR:
-			g_Config.bHideCursor = m_HideCursor->IsChecked();
-			break; 
+	case ID_HIDECURSOR:
+		g_Config.bHideCursor = m_HideCursor->IsChecked();
+		break; 
 	#endif
 	case ID_FULLSCREENCB:
 		strcpy(g_Config.iFSResolution, m_FullscreenCB->GetValue().mb_str() );
 		break;
 	case ID_WINDOWRESOLUTIONCB:
 		strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
-		break;
-	case ID_RENDERBACKEND:
-	  	strcpy(g_Config.iBackend, m_RenderBackend->GetValue().mb_str());
 		break;
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
@@ -498,9 +497,6 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
 		TextureMngr::Invalidate(false);
 		break;
-	case ID_USEXFB:
-		g_Config.bUseXFB = m_UseXFB->IsChecked();
-		break;
 	case ID_WIREFRAME:
 		g_Config.bWireFrame = m_Wireframe->IsChecked();
 		break;
@@ -532,12 +528,14 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-	// Extented frame buffer
+
+	// External frame buffer
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = true;
 		break;
 	case ID_RADIO_COPYEFBTOGL:
+		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = false;
 		break;
 	case ID_BLENDSTATS:
@@ -563,11 +561,14 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 
 void ConfigDialog::UpdateGUI()
 {
-	// This option is only compatible with the Strech To Fit option
-	m_KeepAR43->Enable(g_Config.bStretchToFit);
-	m_KeepAR169->Enable(g_Config.bStretchToFit);
 	// This is only used together with the aspect ratio options
-	m_Crop->Enable(g_Config.bStretchToFit && (g_Config.bKeepAR43 || g_Config.bKeepAR169));
+	m_Crop->Enable(g_Config.bKeepAR43 || g_Config.bKeepAR169);
+	if (g_Config.bUseXFB) {
+		// XFB looks much better if the copy comes from native resolution.
+		g_Config.bNativeResolution = true;
+		m_NativeResolution->SetValue(true);
+	}
+	m_AutoScale->Enable(!g_Config.bUseXFB);
 
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);

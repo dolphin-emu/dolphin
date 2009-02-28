@@ -41,6 +41,8 @@
 #include "VertexShaderGen.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "VertexShaderCache.h"
+#include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
@@ -82,14 +84,23 @@ static GLuint s_ZBufferTarget = 0;
 
 static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
+static bool s_bHaveFramebufferBlit = false;
 
-static bool s_bScreenshot = false;
+static volatile bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 bool g_bBlendSeparate = false;
+
 int frameCount;
+static int s_fps = 0;
+
+// These STAY CONSTANT during execution, no matter how much you resize the game window.
+static int s_targetwidth;   // Size of render buffer FBO.
+static int s_targetheight;
+
+static u32 s_blendMode;
 
 void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
 
@@ -110,70 +121,70 @@ static const GLenum glDestFactors[8] = {
     GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
 };
 
-static u32 s_blendMode;
-
 bool Renderer::Init()
 {
     bool bSuccess = true;
-	int numvertexattribs = 0;
+	s_blendMode = 0;
+	GLint numvertexattribs = 0;
     GLenum err = GL_NO_ERROR;
     g_cgcontext = cgCreateContext();
 
     cgGetError();
     cgSetErrorHandler(HandleCgError, NULL);
 
-    // fill the opengl extension map
-    const char* ptoken = (const char*)glGetString(GL_EXTENSIONS);
-    if (ptoken == NULL) return false;
-
+    // Look for required extensions.
+    const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
+	if (!ptoken)
+	{
+		PanicAlert("Failed to get OpenGL extension string. Do you have OpenGL drivers installed?");
+		return false;
+	}
     INFO_LOG(VIDEO, "Supported OpenGL Extensions:\n");
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "\n");
 
 	if (GLEW_EXT_blend_func_separate && GLEW_EXT_blend_equation_separate)
         g_bBlendSeparate = true;
-
-	//Checks if it ONLY has the ATI_draw_buffers extension, some have both
+	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
         s_bATIDrawBuffers = true;
 
     s_bFullscreen = g_Config.bFullscreen;
 
-    if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!\nDoes your video card support OpenGL 2.x?");
-        return false;
-    }
-
-    if (!GLEW_EXT_framebuffer_object) {
-        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
-        bSuccess = false;
-    }
-    
-    if (!GLEW_EXT_secondary_color) {
-        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
-        bSuccess = false;
-    }
-
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint *)&numvertexattribs);
-
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
     if (numvertexattribs < 11) {
         ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\nDoes your video card support OpenGL 2.x?", numvertexattribs);
         bSuccess = false;
     }
 
+	// Init extension support.
+	if (glewInit() != GLEW_OK) {
+        ERROR_LOG(VIDEO, "glewInit() failed!\nDoes your video card support OpenGL 2.x?");
+        return false;
+    }
+    if (!GLEW_EXT_framebuffer_object) {
+        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        bSuccess = false;
+    }
+    if (!GLEW_EXT_secondary_color) {
+        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        bSuccess = false;
+    }
+	s_bHaveFramebufferBlit = GLEW_EXT_framebuffer_blit ? true : false;
+
     if (!bSuccess)
         return false;
 
 #ifdef _WIN32
-    if (WGLEW_EXT_swap_control)
-        wglSwapIntervalEXT(0);
-    else
-        ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
+	if (WGLEW_EXT_swap_control)
+		wglSwapIntervalEXT(0);
+	else
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
-    if (glXSwapIntervalSGI)
-       glXSwapIntervalSGI(0);
-    else
-        ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
+	if (glXSwapIntervalSGI)
+		glXSwapIntervalSGI(0);
+	else
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
 #else
 
 	//TODO
@@ -186,7 +197,6 @@ bool Renderer::Init()
 	if (max_texture_size < 1024) {
 		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
 	}
-
     GL_REPORT_ERROR();
     if (err != GL_NO_ERROR) bSuccess = false;
 
@@ -204,16 +214,17 @@ bool Renderer::Init()
 	// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
 	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
 	// So the below is wrong.
-    int nBackbufferWidth = (int)OpenGL_GetWidth();
-    int nBackbufferHeight = (int)OpenGL_GetHeight();
-    
-    // Create the framebuffer target
+	// This should really be grabbed from config rather than from OpenGL.
+	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
+    s_targetheight = (int)OpenGL_GetBackbufferHeight();
+
+    // Create the framebuffer target texture
     glGenTextures(1, (GLuint *)&s_RenderTarget);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
 
 	// Setup the texture params
     // initialize to default
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     if (glGetError() != GL_NO_ERROR) {
@@ -226,16 +237,14 @@ bool Renderer::Init()
 
     GL_REPORT_ERROR();
 
-    int nMaxMRT = 0;
-    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint *)&nMaxMRT);
-
+    GLint nMaxMRT = 0;
+    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &nMaxMRT);
     if (nMaxMRT > 1) 
 	{
-        // create zbuffer target
+        // Create zbuffer target.
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
+        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if (glGetError() != GL_NO_ERROR) {
@@ -248,13 +257,12 @@ bool Renderer::Init()
     }
 
     // create the depth buffer
-    glGenRenderbuffersEXT(1, (GLuint *)&s_DepthTarget);
+    glGenRenderbuffersEXT(1, &s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
-    
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
     if (glGetError() != GL_NO_ERROR) 
 	{
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, s_targetwidth, s_targetheight);
         s_bHaveStencilBuffer = false;
     } 
 	else 
@@ -264,7 +272,7 @@ bool Renderer::Init()
 
     GL_REPORT_ERROR();
 
-    // set as render targets
+    // Select our render and depth targets as render targets.
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
     
@@ -283,10 +291,7 @@ bool Renderer::Init()
     }
 
 	if (s_ZBufferTarget == 0)
-        ERROR_LOG(VIDEO, "disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
-
-	// Why is this left here?
-    //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
+        ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)\n", nMaxMRT);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     nZBufferRender = 0;
@@ -313,17 +318,17 @@ bool Renderer::Init()
     cgGLSetOptimalOptions(g_cgvProf);
     cgGLSetOptimalOptions(g_cgfProf);
 
-    //ERROR_LOG(VIDEO, "max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
+    INFO_LOG(VIDEO, "Max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvvertparams);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvfragparams);
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-    DEBUG_LOG(VIDEO, "max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
-    DEBUG_LOG(VIDEO, "max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
+    DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
+    DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
 	if (nenvvertparams < 238)
-        ERROR_LOG(VIDEO, "not enough vertex shader environment constants!!\n");
+        ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!\n");
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
@@ -342,6 +347,7 @@ bool Renderer::Init()
 	XFB_Init();
     return glGetError() == GL_NO_ERROR && bSuccess;
 }
+
 void Renderer::Shutdown(void)
 {    
     delete s_pfont;
@@ -421,15 +427,25 @@ bool Renderer::InitializeGL()
 // ------------------------
 int Renderer::GetTargetWidth()
 {
-    return (g_Config.bStretchToFit ? 640 : (int)OpenGL_GetWidth());
+	return (g_Config.bNativeResolution ? 640 : s_targetwidth);
 }
 
 int Renderer::GetTargetHeight()
 {
-    return (g_Config.bStretchToFit ? 480 : (int)OpenGL_GetHeight());
+    return (g_Config.bNativeResolution ? 480 : s_targetheight);
 }
-/////////////////////////////
 
+float Renderer::GetTargetScaleX()
+{
+    return (float)GetTargetWidth() / 640.0f;
+}
+
+float Renderer::GetTargetScaleY()
+{
+    return (float)GetTargetHeight() / 480.0f;
+}
+
+/////////////////////////////
 
 void Renderer::SetRenderTarget(GLuint targ)
 {
@@ -573,8 +589,8 @@ bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
     int yoff = bpmem.scissorOffset.y * 2 - 342;
-    float MValueX = OpenGL_GetXmax();
-    float MValueY = OpenGL_GetYmax();
+    float MValueX = GetTargetScaleX();
+    float MValueY = GetTargetScaleY();
 	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
 	rc_left *= MValueX;
 	if (rc_left < 0) rc_left = 0;
@@ -660,11 +676,11 @@ void Renderer::FlushZBufferAlphaToTarget()
 	// TODO: This code should not have to bother with stretchtofit checking - 
 	// all necessary scale initialization should be done elsewhere.
 	// TODO: Investigate BlitFramebufferEXT.
-	if (g_Config.bStretchToFit)
+	if (g_Config.bNativeResolution)
 	{
 		//TODO: Do Correctly in a bit
-        float FactorW = 640.f / (float)OpenGL_GetWidth();
-		float FactorH = 480.f / (float)OpenGL_GetHeight();
+        float FactorW = 640.f / (float)OpenGL_GetBackbufferWidth();
+		float FactorH = 480.f / (float)OpenGL_GetBackbufferHeight();
 
 		float Max = (FactorW < FactorH) ? FactorH : FactorW;
 		float Temp = 1.0f / Max;
@@ -763,181 +779,48 @@ Renderer::RenderMode Renderer::GetRenderMode()
     return s_RenderMode;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
-// ----------------------
-void Renderer::Swap(const TRectangle& rc)
+void ComputeBackbufferRectangle(TRectangle *rc)
 {
-    OpenGL_Update(); // just updates the render window position and the backbuffer size
-
-    DVSTARTPROFILE();
-
-    Renderer::SetRenderMode(Renderer::RM_Normal);
-
-#if 0
-	// Blit the FBO to do Anti-Aliasing
-	// Not working?
-	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
-	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-	glBlitFramebufferEXT(0, 0, 640, 480, 0, 0, OpenGL_GetWidth(), OpenGL_GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
-
-#else
-	// render to the real buffer now 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
-
 	// -----------------------------------------------------------------------
 	// GLViewPort variables
 	// ------------------
-	/* Work with float values for the XFB supplement and aspect ratio functions. These are default
-	   values that are used if the XFB supplement and the keep aspect ratio function are unused */
-	float FloatGLWidth = (float)OpenGL_GetWidth();
-	float FloatGLHeight = (float)OpenGL_GetHeight();
-	float FloatXOffset = 0, FloatYOffset = 0;
-	// -------------------------------------
-
-
-	// -----------------------------------------------------------------------
-	// XFB supplement, fix the black borders problem
-	// ------------------
-	/* I'm limiting it to the stretch to fit option because I don't know how the other mode works. The reason
-	   I don't allow this option together with UseXFB is that they are supplements and the XFB function
-	   should be able to produce the same result */
-	if(g_Config.bStretchToFit && !g_Config.bUseXFB)
-	{
-		// The rendering window size
-		float WinWidth = (float)OpenGL_GetWidth();
-		float WinHeight = (float)OpenGL_GetHeight();
-
-		// The fraction of the screen that the image occupies
-		// Rc.right and rc.bottom is the original picture pixel size
-		/* There is a +1 in Rc (earlier called multirc, the input to this function), but these
-		   adjustments seems to work better without it. */
-		float WidthRatio = (float)(rc.right - 1) / 640.0f;
-		float HeightRatio = (float)(rc.bottom - 1) / 480.0f;
-
-		// The pixel size of the image on the screen, adjusted for the actual window size
-		float OldWidth = WidthRatio * (float)WinWidth;
-		float OldHeight = HeightRatio * (float)WinHeight;
-
-		// The adjusted width and height
-		FloatGLWidth = ceil((float)WinWidth / WidthRatio);
-		FloatGLHeight = ceil((float)WinHeight / HeightRatio);
-
-		// The width and height deficit in actual pixels
-		float WidthDeficit = (float)WinWidth - OldWidth;
-		float HeightDeficit = (float)WinHeight - OldHeight;
-
-		// The picture will be drawn from the bottom so we need this YOffset
-		// The X-axis needs no adjustment because the picture begins from the left
-		FloatYOffset = -HeightDeficit / HeightRatio;
-
-		// -----------------------------------------------------------------------
-		// Logging
-		// ------------------
-		/*
-		Console::ClearScreen();
-		Console::Print("Bpmem        L:%i T:%i X:%i Y:%i\n", bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bpmem.copyTexSrcWH.x, bpmem.copyTexSrcWH.y);
-		Console::Print("Input        Left:%i Top:%i Right:%i Bottom:%i\n", rc.left, rc.top, rc.right, rc.bottom);
-		Console::Print("Old picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f\n", WidthRatio, OldWidth, HeightRatio, OldHeight);
-		Console::Print("New picture: Width[%1.2f]:%4.0f Height[%1.2f]:%4.0f YOffset:%4.0f YDeficit:%4.0f\n", WidthRatio, WinWidth, HeightRatio, WinHeight, FloatYOffset, HeightDeficit);
-		Console::Print("----------------------------------------------------------------\n");
-		*/
-		// ------------------------------
-	}
-	// ------------------------------
-
-
-
-	// -----------------------------------------------------------------------
-	/* Keep aspect ratio at 4:3. This may be interesting if you for example have a 5:4 screen but don't like
-	   the stretching, and would rather have a letterbox. */
-	//		Output: GLWidth, GLHeight, XOffset, YOffset
-	// ------------------
+	// Work with float values for the XFB supplement and aspect ratio functions. These are default
+	// values that are used if the XFB supplement and the keep aspect ratio function are unused.
+	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
+	float FloatGLHeight = (float)OpenGL_GetBackbufferHeight();
+	float FloatXOffset = 0;
+	float FloatYOffset = 0;
 
 	// The rendering window size
-	float WinWidth = (float)OpenGL_GetWidth();
-	float WinHeight = (float)OpenGL_GetHeight();
-	// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-	float Ratio = WinWidth / WinHeight / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-	float wAdj, hAdj;
-	// Actual pixel size of the picture after adjustment
-	float PictureWidth = WinWidth, PictureHeight = WinHeight;
+	const float WinWidth = FloatGLWidth;
+	const float WinHeight = FloatGLHeight;
 
-	// This function currently only works together with the Stretch To Fit option
-	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bStretchToFit)
+	// Handle aspect ratio.
+	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
 	{
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = (WinWidth / WinHeight) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
 		if (Ratio > 1)
 		{
-			// ------------------------------------------------
-			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
-			// ----------------
-			wAdj = Ratio;
-			hAdj = 1.0;
-			FloatGLWidth = FloatGLWidth / wAdj;
-			FloatGLHeight = FloatGLHeight / hAdj;
-			// --------------------
-
-			// ------------------------------------------------
-			// Calculate the new X offset
-			// ----------------
-			// The picture width
-			PictureWidth = WinWidth / Ratio;
-			// Move the left of the picture to the middle of the screen
-			FloatXOffset = FloatXOffset + WinWidth / 2.0f;
-			// Then remove half the picture height to move it to the horizontal center
-			FloatXOffset = FloatXOffset - PictureWidth / 2.0f;
-			// --------------------
+			// Scale down and center in the X direction.
+			FloatGLWidth /= Ratio;
+			FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
 		}
-		// The window is to high, we have to limit the height
+		// The window is too high, we have to limit the height
 		else
 		{
-			// ------------------------------------------------
-			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
-			// ----------------
-			// Invert the ratio to make it > 1
-			Ratio = 1.0f / Ratio;
-			wAdj = 1.0f;
-			hAdj = Ratio;
-			FloatGLWidth = FloatGLWidth / wAdj;
-			FloatGLHeight = FloatGLHeight / hAdj;
-			// --------------------
-			
-			// ------------------------------------------------
-			// Calculate the new Y offset
-			// ----------------
-			// The picture height
-			PictureHeight = WinHeight / Ratio;
-			// Keep the picture on the bottom of the screen, this is needed because YOffset may not be 0 here
-			FloatYOffset = FloatYOffset / hAdj;
-			// Move the bottom of the picture to the middle of the screen
-			FloatYOffset = FloatYOffset + WinHeight / 2.0f;
-			// Then remove half the picture height to move it to the vertical center
-			FloatYOffset = FloatYOffset - PictureHeight / 2.0f;
-			// --------------------
+			// Scale down and center in the Y direction.
+			FloatGLHeight *= Ratio;
+			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
 		}
-
-		// -----------------------------------------------------------------------
-		// Logging
-		// ------------------
-		/*
-		Console::Print("Screen      Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
-		Console::Print("GL          Width:%4.1f Height:%4.1f\n", FloatGLWidth, FloatGLHeight);
-		Console::Print("Picture     Width:%4.1f Height:%4.1f YOffset:%4.0f\n", PictureWidth, PictureHeight, FloatYOffset);
-		Console::Print("----------------------------------------------------------------\n");
-		*/
-		// ------------------------------
 	}
-	// -------------------------------------
-
 
 	// -----------------------------------------------------------------------
 	/* Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10. */
 	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
 	// ------------------
-	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bStretchToFit && g_Config.bCrop)
+	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
 	{
 		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
 		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
@@ -946,47 +829,47 @@ void Renderer::Swap(const TRectangle& rc)
 		// The new width and height
 		FloatGLWidth = FloatGLWidth * Ratio;
 		FloatGLHeight = FloatGLHeight * Ratio;
-		// Wee need this adjustment to, the -6 adjustment was needed to never show any pixels outside the actual picture
+		// We need this adjustment too, the -6 adjustment was needed to never show any pixels outside the actual picture
 		// The result in offset in actual pixels is only around 1 or 2 pixels in a 1280 x 1024 resolution. In 1280 x 1024 the
 		// picture is only about 2 to 4 pixels (1 up and 1 down for example) to big to produce a minimal margin
 		// of error, while rather having a full screen and hiding one pixel, than having a one pixel black border. But it seems
 		// to be just enough in all games I tried.
-		float WidthRatio = ((float)rc.right - 6.0) / 640.0;
-		float HeightRatio = ((float)rc.bottom - 6.0) / 480.0;
+		float WidthRatio = ((float)FloatGLWidth - 6.0) / 640.0;
+		float HeightRatio = ((float)FloatGLHeight - 6.0) / 480.0;
 		// Adjust the X and Y offset
 		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0 / WidthRatio / Ratio);
 		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0 / HeightRatio / Ratio);
 		//Console::Print("Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
 	}
-	// -------------------------------------
 
+	// Because there is no round() function we use round(float) = floor(float + 0.5) instead
+	int XOffset = floor(FloatXOffset + 0.5);
+	int YOffset = floor(FloatYOffset + 0.5);
+	rc->left = XOffset;
+	rc->top = YOffset;
+	rc->right = XOffset + ceil(FloatGLWidth);
+	rc->bottom = YOffset + ceil(FloatGLHeight);
+}
 
-	// -----------------------------------------------------------------------
-	/* Adjustments to
-			FloatGLWidth
-			FloatGLHeight
-			XOffset
-			YOffset
-	   are done. Calculate the new new windows width and height. */
-	// --------------------
-		int GLx = OpenGL_GetXoff(); // These two are zero
-		int GLy = OpenGL_GetYoff();
-		int GLWidth = ceil(FloatGLWidth);
-		int GLHeight = ceil(FloatGLHeight);
+//////////////////////////////////////////////////////////////////////////////////////
+// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
+// ----------------------
+void Renderer::Swap(const TRectangle& rc)
+{
+    OpenGL_Update(); // just updates the render window position and the backbuffer size
+    DVSTARTPROFILE();
 
-		// Because there is no round() function we use round(float) = floor(float + 0.5) instead
-		int YOffset = floor(FloatYOffset + 0.5);
-		int XOffset = floor(FloatXOffset+ 0.5);
-	// -------------------------------------
+    Renderer::SetRenderMode(Renderer::RM_Normal);
 
+	// Blit the FBO to do Anti-Aliasing
+	// Not working?
+//	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
+//	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+//	glBlitFramebufferEXT(0, 0, 640, 480, 0, 0, OpenGL_GetWidth(), OpenGL_GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
 
-	// Update GLViewPort
-	glViewport(
-		GLx + XOffset,
-		GLy + YOffset,
-		GLWidth,
-		GLHeight
-		);
+	// render to the real buffer now 
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
 
 	// -----------------------------------------------------------------------
 	// Show the finished picture
@@ -1003,16 +886,40 @@ void Renderer::Swap(const TRectangle& rc)
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
 
+	TRectangle back_rc;
+	ComputeBackbufferRectangle(&back_rc);
+
+	// Update GLViewPort
+	glViewport(
+		back_rc.left,
+		back_rc.top,
+		back_rc.right - back_rc.left,
+		back_rc.bottom - back_rc.top
+		);
+
     GL_REPORT_ERRORD();
 
-	// Place the texture
+	// Copy the framebuffer to screen.
+	// TODO: Use glBlitFramebufferEXT.
+	
+	float u_max;
+	float v_min = 0.f;
+	float v_max;
+	if (g_Config.bAutoScale) {
+		u_max = (rc.right - rc.left);
+		v_min = (float)GetTargetHeight() - (rc.bottom - rc.top);
+		v_max = (float)GetTargetHeight();
+	} else {
+		u_max = (float)GetTargetWidth();
+		v_max = (float)GetTargetHeight();  // TODO - when we change the target height to 528, this will have to change.
+	}
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);                                              glVertex2f(-1,-1);
-		glTexCoord2f(0, (float)GetTargetHeight());                       glVertex2f(-1,1);
-		glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(1,1);
-		glTexCoord2f((float)GetTargetWidth(), 0);                        glVertex2f(1,-1);
-    glEnd();
+	glBegin(GL_QUADS);
+		glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
+		glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
+		glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
+		glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+	glEnd();
 
 	// Wireframe
 	if (g_Config.bWireFrame)
@@ -1022,68 +929,16 @@ void Renderer::Swap(const TRectangle& rc)
     TextureMngr::DisableStage(0);
 	// -------------------------------------
 
-
-	// -----------------------------------------------------------------------
-	/* Blacken out the borders in the 4:3 or 16:9 aspect ratio modes. Somewhere in BPStructs 0x52 or
-	   elsewhere the area outside the actual picture, that we now show with the aspect ratio option
-	   has been filled with either for example white, or have copies of old renderings on it. So we
-	   replace that with blacknes.
-	   
-	   We are not supposed to need this with the Crop option and in full screen, but we can keep it for the
-	   window mode, since the border can still be seen then
-	   */
-	// --------------------
-	if(g_Config.bKeepAR43 || g_Config.bKeepAR169)
-	{
-		// Set current drawing color to black
-		glColor3f(0.0, 0.0, 0.0);
-
-		/* This doesn't work
-		glRecti, glRectf(
-			(float)Left,
-			(float)Right,
-			(float)Top,
-			(float)Bottom); */
-
-		/* The glVertex3f() coordinates are:
-				Top: 1 to -1 from top to bottom
-				Left: 1 to -1 from right to left
-				Height and width is therefore 2.0, zero is the center of the screen
-		*/		
-		// The fraction of the screen that the image occupies
-		/* It's hard to make a border that always exactly begin where the screen ends. The ( -1) here will
-		   sometimes hide one pixel to many, but if we use (- 0) we will on the other hand sometimes show
-		   one line of pixels that we should not show. But a -0.5 adjustment seemed just right, it never hid
-		   one pixel to much, and never one to little. So I settle with a -0.5 adjustment here. */
-		float HeightRatio = (((float)(rc.bottom)) - 0.5) / 480.0f;
-
-		// Bottom border
-		float	FLeft = 1.0,
-				FWidth = -2.0,
-				FHeight = 2.0 * (1.0 - HeightRatio),
-				FTop = -1.0 + FHeight;		
-
-		glBegin(GL_POLYGON);
-			glVertex3f (FLeft,          FTop - FHeight, 0.0);
-			glVertex3f (FLeft + FWidth, FTop - FHeight, 0.0);
-			glVertex3f (FLeft + FWidth, FTop,           0.0);
-			glVertex3f (FLeft,          FTop,           0.0);
-		glEnd();
-		//Console::Print("Border     Left:%1.3f Top:%1.3f Width:%1.3f Height:%1.3f\n", FLeft, FTop, FWidth, FHeight);
-	}
-	// -------------------------------------
-
-	// Take screenshot, if necessary
-	if(s_bScreenshot) {
+	// Take screenshot, if requested
+	if (s_bScreenshot) {
 		s_criticalScreenshot.Enter();
-
-		if(SaveRenderTarget(s_sScreenshotName.c_str())) {
+		if (SaveRenderTarget(s_sScreenshotName.c_str(), OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight())) {
 			char msg[255];
 			sprintf(msg, "Saved %s\n", s_sScreenshotName.c_str());
 			OSD::AddMessage(msg, 2000);
-		} else
-			PanicAlert("Error while capturing screen");
-
+		} else {
+			PanicAlert("Error capturing or saving screenshot.");
+		}
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
@@ -1093,42 +948,23 @@ void Renderer::Swap(const TRectangle& rc)
     SwapBuffers();
 
     RestoreGLState();
-#endif
-	GL_REPORT_ERRORD();
 
+	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
 
-
-    // for testing zbuffer targets
-    //Renderer::SetZBufferRender();
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
+	// For testing zbuffer targets.
+    // Renderer::SetZBufferRender();
+    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
 }
 ////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
-// ----------------------
-void Renderer::SwapBuffers()
+void Renderer::DrawDebugText()
 {
-	// -----------------------------------------------------------------------
-	/* Draw messages on the screen */
-	// --------------------
-	static int fpscount;
-    static int s_fps;
-    static unsigned long lasttime;
+	// Draw various messages on the screen, like FPS, statistics, etc.
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
 	p[0] = 0;
-
-    ++fpscount;
-    if (timeGetTime() - lasttime > 1000) 
-    {
-        lasttime = timeGetTime();
-        s_fps = fpscount;
-        fpscount = 0;
-    }
-
 	if (g_Config.bShowFPS)
     {
 		p+=sprintf(p, "FPS: %d\n", s_fps);
@@ -1162,6 +998,7 @@ void Renderer::SwapBuffers()
 
 		std::string text1;
 		VertexLoaderManager::AppendListToString(&text1);
+		// TODO: Check for buffer overflow
 		p+=sprintf(p,"%s",text1.c_str());
     }
 
@@ -1175,7 +1012,6 @@ void Renderer::SwapBuffers()
 		p+=sprintf(p,"Alpha Update: %s\n", stats.alphaUpdate==1 ? "Enabled" : "Disabled");
 		p+=sprintf(p,"Dst Alpha Enabled: %s\n", stats.dstAlphaEnable==1 ? "Enabled" : "Disabled");
 		p+=sprintf(p,"Dst Alpha: %08x\n", stats.dstAlpha);
-		
 	}
 
 	if (g_Config.bOverlayProjStats)
@@ -1202,10 +1038,28 @@ void Renderer::SwapBuffers()
 	// Render a shadow, and then the text.
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
+// ----------------------
+void Renderer::SwapBuffers()
+{
+	// Count FPS.
+	static int fpscount = 0;
+    static unsigned long lasttime;
+    ++fpscount;
+    if (timeGetTime() - lasttime > 1000) 
+    {
+        lasttime = timeGetTime();
+        s_fps = fpscount;
+        fpscount = 0;
+    }
+
+	DrawDebugText();
 
 	OSD::DrawMessages();
 	// -----------------------------
-
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) {
@@ -1219,17 +1073,17 @@ void Renderer::SwapBuffers()
         }
     }
 #endif
-
     // Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
 
-	glClearColor(0,0,0,0);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
     GL_REPORT_ERRORD();
 
     // Clean out old stuff from caches
-    PixelShaderCache::Cleanup();
+    VertexShaderCache::ProgressiveCleanup();
+    PixelShaderCache::ProgressiveCleanup();
     TextureMngr::ProgressiveCleanup();
 
     frameCount++;
@@ -1239,7 +1093,6 @@ void Renderer::SwapBuffers()
 
 	// Render to the framebuffer.
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-   
     if (nZBufferRender > 0) {
         if (--nZBufferRender == 0) {
             // turn off
@@ -1253,8 +1106,8 @@ void Renderer::SwapBuffers()
 
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
-	int nBackbufferWidth = (int)OpenGL_GetWidth();
-	int nBackbufferHeight = (int)OpenGL_GetHeight();
+	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
+	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 	s_pfont->printMultilineText(pstr,
@@ -1268,51 +1121,35 @@ void Renderer::SetScreenshot(const char *filename)
 	s_criticalScreenshot.Enter();
 	s_sScreenshotName = filename;
 	s_bScreenshot = true;
-
 	s_criticalScreenshot.Leave();
 }
 
-bool Renderer::SaveRenderTarget(const char *filename)
+bool Renderer::SaveRenderTarget(const char *filename, int w, int h)
 {
-	int w = (int)OpenGL_GetWidth(), h = (int)OpenGL_GetHeight();
-	bool result = false;
-
-	if(!filename)
-		return false;
-
 	u8 *data = (u8 *)malloc(3 * w * h);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
-
 	if (glGetError() != GL_NO_ERROR)
 		return false;
-
-	// Flip image
-	for(int y = 0; y < h / 2; y++) {
-		for(int x = 0; x < w; x++) {
-			std::swap(data[(y * w + x) * 3],
-				data[((h - 1 - y) * w + x) * 3]);
-
-			std::swap(data[(y * w + x) * 3 + 1],
-				data[((h - 1 - y) * w + x) * 3 + 1]);
-
-			std::swap(data[(y * w + x) * 3 + 2],
-				data[((h - 1 - y) * w + x) * 3 + 2]);
+	// Flip image upside down. Damn OpenGL.
+	for (int y = 0; y < h / 2; y++)
+	{
+		for(int x = 0; x < w; x++)
+		{
+			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
+			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
+			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
 		}
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxImage a(w, h, data);
-
 	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
-	result = true;
+	bool result = true;
 #else
-	result = SaveTGA(filename, w, h, data);
-
+	bool result = SaveTGA(filename, w, h, data);
 	free(data);
 #endif
-
 	return result;
 }
 
@@ -1339,60 +1176,29 @@ void UpdateViewport()
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 	// --------------------------
 
-
-	// -----------------------------------------------------------------------
-	// GLViewPort variables
-	// ------------------
-	int GLWidth, GLHeight, GLx, GLy;
-	float FloatGLWidth = fabs(2 * xfregs.rawViewport[0]);
-	float FloatGLHeight = fabs(2 * xfregs.rawViewport[1]);
-
-	// rawViewport[0] = 320, rawViewport[1] = -240
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 	// -------------------------------------
 
-
-	// -----------------------------------------------------------------------
-	// Stretch picture while keeping the native resolution
-	// ------------------
-	if (g_Config.bStretchToFit)
-	{
-		GLx = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff);
-		GLy = Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff));
-		// Round up to the nearest integer
-		GLWidth = (int)ceil(FloatGLWidth);
-		GLHeight = (int)ceil(FloatGLHeight);
-	}
+	float MValueX = Renderer::GetTargetScaleX();
+	float MValueY = Renderer::GetTargetScaleY();
 	// -----------------------------------------------------------------------
 	// Stretch picture with increased internal resolution
 	// ------------------
-	else
-	{
-	    float MValueX = OpenGL_GetXmax();
-	    float MValueY = OpenGL_GetYmax();
-
-		GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX);
-		GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
-		GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
-		GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	}
+	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX);
+	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
+	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
+	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 	// -------------------------------------
 
-
 	// Update the view port
-	glViewport(
-		GLx, GLy,
-		GLWidth, GLHeight
-		);
+	glViewport(GLx, GLy, GLWidth, GLHeight);
 
-
-	// -----------------------------------------------------------------------
-	// GLDepthRange
-	// ------------------
+	// GLDepthRange - this could be a source of trouble - see the viewport hacks.
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777215.0f;
 	glDepthRange(GLNear, GLFar);
+
 	// -------------------------------------
 	
 	// Logging

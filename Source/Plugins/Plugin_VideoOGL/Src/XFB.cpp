@@ -59,7 +59,6 @@ static struct
 
 void XFB_SetUpdateArgs(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset);
 
-
 void XFB_Init()
 {
 	glGenTextures(1, &xfb_decoded_texture);
@@ -81,23 +80,22 @@ int XFB_isInit()
 
 void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
-    u32 nBackbufferHeight = OpenGL_GetHeight();
 	TRectangle renderSrcRc;
 	renderSrcRc.left = sourceRc.left;
 	renderSrcRc.right = sourceRc.right;
-	renderSrcRc.top = nBackbufferHeight - sourceRc.top;
-	renderSrcRc.bottom = nBackbufferHeight - sourceRc.bottom; 
+	// OpenGL upside down as usual...
+	renderSrcRc.top = Renderer::GetTargetHeight() - sourceRc.top;
+	renderSrcRc.bottom = Renderer::GetTargetHeight() - sourceRc.bottom; 
 	TextureConverter::EncodeToRamYUYV(Renderer::GetRenderTarget(), renderSrcRc, xfb_in_ram, dstWd, dstHt);
 }
 
+// Draw the XFB straight to the OpenGL backbuffer.
 void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 {
 	TextureConverter::DecodeToTexture(xfb_in_ram, width, height, xfb_decoded_texture);
 
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
-
 	Renderer::ResetGLState();
-
 	TextureMngr::EnableTexRECT(0);
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
@@ -105,8 +103,10 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
 
-	glViewport(OpenGL_GetXoff(), OpenGL_GetYoff(),
-		   (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
+	TRectangle back_rc;
+	ComputeBackbufferRectangle(&back_rc);
+
+	glViewport(back_rc.left, back_rc.top, back_rc.right - back_rc.left, back_rc.bottom - back_rc.top);
 	GL_REPORT_ERRORD();
 
 	float w = (float)width;

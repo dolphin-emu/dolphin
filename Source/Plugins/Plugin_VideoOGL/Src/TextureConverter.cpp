@@ -177,7 +177,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, srcTexture);
 
-	if(linearFilter)
+	if (linearFilter)
 	{
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -198,6 +198,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, shader.glprogid);	
 
+	// Draw...
 	glBegin(GL_QUADS);
     glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
 	glTexCoord2f((float)sourceRc.left, (float)sourceRc.bottom);  glVertex2f(-1,1);
@@ -206,6 +207,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
     glEnd();
 	GL_REPORT_ERRORD();
 
+	// .. and then readback the results.
 	// TODO: make this less slow.
 	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	GL_REPORT_ERRORD();
@@ -245,7 +247,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8* ptr = Memory_GetPtr(address);
 
-	u32 target = bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget();
+	u32 target = bFromZBuffer ? Renderer::GetZBufferTarget() : Renderer::GetRenderTarget();
 
 	s32 width = source.right - source.left;
 	s32 height = source.bottom - source.top;	

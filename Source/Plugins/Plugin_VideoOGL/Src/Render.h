@@ -116,6 +116,10 @@ public:
     static int GetTargetWidth();
     static int GetTargetHeight();
 
+	// Multiply any 0-640 / 0-480 coordinates by these when rendering.
+	static float GetTargetScaleX();
+    static float GetTargetScaleY();
+
     static void SetFramebuffer(GLuint fb);
 	static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
     static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
@@ -126,11 +130,14 @@ public:
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);
+	static void DrawDebugText();
 	static void SetScreenshot(const char *filename);
-	static bool SaveRenderTarget(const char *filename);
+	static bool SaveRenderTarget(const char *filename, int w, int h);
 
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);
 };
+
+void ComputeBackbufferRectangle(TRectangle *rc);
 
 #endif

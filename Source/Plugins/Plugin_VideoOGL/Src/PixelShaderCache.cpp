@@ -152,7 +152,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader()
 	return pShaderLast;
 }
 
-void PixelShaderCache::Cleanup()
+void PixelShaderCache::ProgressiveCleanup()
 {
 	PSCache::iterator iter = pshaders.begin();
 	while (iter != pshaders.end()) {
@@ -168,14 +168,14 @@ void PixelShaderCache::Cleanup()
 		else
 			iter++;
 	}
-	SETSTAT(stats.numPixelShadersAlive,(int)pshaders.size());
+	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
 }
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
-	char stropt[64];
+	char stropt[128];
 	sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
-	const char* opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
+	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
 		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
@@ -183,18 +183,20 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		return false;
 	}
 
+	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
+	// It SHOULD not have any nasty side effects though - but you never know...
 	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
 	char *plocal = strstr(pcompiledprog, "program.local");
 	while (plocal != NULL) {
-		const char* penv = "  program.env";
+		const char *penv = "  program.env";
 		memcpy(plocal, penv, 13);
 		plocal = strstr(plocal+13, "program.local");
 	}
 
 	if (Renderer::IsUsingATIDrawBuffers()) {
-		// sometimes compilation can use ARB_draw_buffers, which would fail for ATI cards
-		// replace the three characters ARB with ATI. TODO - check whether this is fixed in modern ATI drivers.
-		char* poptions = strstr(pcompiledprog, "ARB_draw_buffers");
+		// Sometimes compilation can use ARB_draw_buffers, which would fail for ATI cards.
+		// Replace the three characters ARB with ATI. TODO - check whether this is fixed in modern ATI drivers.
+		char *poptions = strstr(pcompiledprog, "ARB_draw_buffers");
 		if (poptions != NULL) {
 			poptions[0] = 'A';
 			poptions[1] = 'T';
@@ -202,9 +204,9 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		}
 	}
 
-	glGenProgramsARB( 1, &ps.glprogid );
-	glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, ps.glprogid );
-	glProgramStringARB( GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
+	glGenProgramsARB(1, &ps.glprogid);
+	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
+	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
 	GLenum err = GL_NO_ERROR;
 	GL_REPORT_ERROR();
@@ -214,7 +216,6 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	}
 
 	cgDestroyProgram(tempprog);
-	// printf("Compiled pixel shader %i\n", ps.glprogid);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	ps.strprog = pstrprogram;

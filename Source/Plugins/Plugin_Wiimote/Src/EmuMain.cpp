@@ -100,9 +100,9 @@ void GetMousePos(float& x, float& y)
 			// Calculate the new X offset
 			// ----------------
 			// Move the left of the picture to the middle of the screen
-			XOffset = XOffset + WinWidth / 2.0;
+			XOffset = XOffset + WinWidth / 2.0f;
 			// Then remove half the picture height to move it to the horizontal center
-			XOffset = XOffset - PictureWidth / 2.0;
+			XOffset = XOffset - PictureWidth / 2.0f;
 			// --------------------
 		}
 		// The window is to high, we have to limit the height
@@ -112,7 +112,7 @@ void GetMousePos(float& x, float& y)
 			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
 			// ----------------
 			// Invert the ratio to make it > 1
-			Ratio = 1.0 / Ratio;
+			Ratio = 1.0f / Ratio;
 			PictureHeight = WinHeight / Ratio;
 			// --------------------
 			
@@ -120,9 +120,9 @@ void GetMousePos(float& x, float& y)
 			// Calculate the new Y offset
 			// ----------------
 			// Move the top of the picture to the middle of the screen
-			YOffset = YOffset + WinHeight / 2.0;
+			YOffset = YOffset + WinHeight / 2.0f;
 			// Then remove half the picture height to move it to the vertical center
-			YOffset = YOffset - PictureHeight / 2.0;
+			YOffset = YOffset - PictureHeight / 2.0f;
 			// --------------------
 		}
 		// Logging
@@ -141,11 +141,11 @@ void GetMousePos(float& x, float& y)
 	// ------------------
 	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
 	{
-		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
+		float Ratio = g_Config.bKeepAR43 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
 		
 		// The width and height we will add  (calculate this before PictureWidth and PictureHeight is adjusted)
-		float IncreasedWidth = (Ratio - 1.0) * PictureWidth;
-		float IncreasedHeight = (Ratio - 1.0) * PictureHeight;
+		float IncreasedWidth = (Ratio - 1.0f) * PictureWidth;
+		float IncreasedHeight = (Ratio - 1.0f) * PictureHeight;
 
 		// The new width and height
 		PictureWidth = PictureWidth * Ratio;

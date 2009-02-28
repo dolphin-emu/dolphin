@@ -136,91 +136,82 @@ GLubyte rasters[][13] = {
 
 RasterFont::RasterFont()
 {
-    // set GL modes
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    
-    // create the raster font
-    fontOffset = glGenLists (128);
-    for (int i = 32; i < 127; i++) {
-        glNewList(i+fontOffset, GL_COMPILE);
-        glBitmap(8, 13, 0.0f, 2.0f, 10.0f, 0.0f, rasters[i-32]);
-        glEndList();
-    }
+	// set GL modes
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	// create the raster font
+	fontOffset = glGenLists(128);
+	for (int i = 32; i < 127; i++) {
+		glNewList(i + fontOffset, GL_COMPILE);
+		glBitmap(8, 13, 0.0f, 2.0f, 10.0f, 0.0f, rasters[i - 32]);
+		glEndList();
+	}
 }
 
 RasterFont::~RasterFont()
 {
-    glDeleteLists(fontOffset, 128);
+	glDeleteLists(fontOffset, 128);
 }
 
 void RasterFont::printString(const char *s, double x, double y, double z)
 {
-    // go to the right spot
-    glRasterPos3d(x, y, z);
-    
-    glPushAttrib (GL_LIST_BIT);
-    glListBase(fontOffset);
-    glCallLists((GLsizei)strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-    glPopAttrib ();
+	// go to the right spot
+	glRasterPos3d(x, y, z);
+
+	glPushAttrib (GL_LIST_BIT);
+	glListBase(fontOffset);
+	glCallLists((GLsizei)strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
+	glPopAttrib ();
 }
 
 void RasterFont::printCenteredString(const char *s, double y, int screen_width, double z)
 {
-    int length = (int)strlen(s);
-    int x = int(screen_width/2.0 - (length/2.0)*char_width);
-    
-    printString(s, x, y, z);
+	int length = (int)strlen(s);
+	int x = (int)(screen_width/2.0 - (length/2.0)*char_width);
+	printString(s, x, y, z);
 }
 
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
 {
-	double x=start_x;
-	double y=start_y;
-
+	double x = start_x;
+	double y = start_y;
 	static char temp[1024];
-	char* t = temp;
-
-	while(*text)
+	char *t = temp;
+	while (*text)
 	{
-		if(*text=='\n')
+		if (*text == '\n')
 		{
-			*t=0;
-			printString(temp,x,y,z);
-			y-=char_height * 2.0f / bbHeight;
-			x=start_x;
-			t=temp;
+			*t = 0;
+			printString(temp, x, y, z);
+			y -= char_height * 2.0f / bbHeight;
+			x = start_x;
+			t = temp;
 		}
-		else if(*text=='\r')
+		else if (*text == '\r')
 		{
-			t=temp;
+			t = temp;
 		}
-		else if(*text=='\t')
+		else if (*text == '\t')
 		{
 			//todo: add tabs every something like 4*char_width
-			*t=0;
-
+			*t = 0;
 			int cpos = (int)strlen(temp);
-
-                        int newpos = (cpos+4)&(~3);
-
-
-			printString(temp,x,y,z);
-
-			x =start_x + (char_width*newpos) * 2.0f / bbWidth;
-
-			t=temp;
-
-			*(t++)=' ';
+			int newpos = (cpos + 4) & (~3);
+			printString(temp, x, y, z);
+			x = start_x + (char_width*newpos) * 2.0f / bbWidth;
+			t = temp;
+			*t++ = ' ';
 		}
 		else
 		{
-			*(t++)=*text;
+			*t++ = *text;
 		}
 		text++;
 	}
-	if(t!=text)
+
+	// ????
+	if (t != text)
 	{
-		*t=0;
-		printString(temp,x,y,z);
+		*t = 0;
+		printString(temp, x, y, z);
 	}
 }

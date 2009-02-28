@@ -18,6 +18,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#include "Common.h"
+
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG			1
 #define CONF_PRIMLOG		2
@@ -25,6 +27,7 @@
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
+// NEVER inherit from this class.
 struct Config
 {
     Config();
@@ -33,17 +36,17 @@ struct Config
 
     // General
     bool bFullscreen;
-    bool renderToMainframe;
-    char iFSResolution[16];
-    char iWindowedRes[16];
-    char iBackend[16];
-
-	// stretch to fit should be split into two options, I think - one for low resolution backbuffer,
-	// one for ignore aspect ratio. I guess KeepAR sort of does that. Anyway, these should be rethought.
-    bool bStretchToFit;
-    bool bKeepAR43, bKeepAR169, bCrop;
     bool bHideCursor;
-    bool bSafeTextureCache;
+    bool renderToMainframe;
+
+	// Resolution control
+	char iFSResolution[16];
+    char iWindowedRes[16];
+
+    bool bNativeResolution;  // Should possibly be augmented with 2x, 4x native.
+    bool bKeepAR43, bKeepAR169, bCrop;   // Aspect ratio controls.
+    bool bUseXFB;
+    bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
     
 	// Enhancements
     int iMultisampleMode;
@@ -59,7 +62,6 @@ struct Config
     bool bTexFmtOverlayCenter;
     
     // Render
-    bool bUseXFB;
     bool bWireFrame;
     bool bDisableLighting;
     bool bDisableTexturing;
@@ -74,6 +76,7 @@ struct Config
     bool bProjectionHax1;
     bool bProjectionHax2;
 	bool bCopyEFBToRAM;
+    bool bSafeTextureCache;
 
     int iLog; // CONF_ bits
     int iSaveTargetId;
@@ -81,6 +84,9 @@ struct Config
     //currently unused:
     int iCompileDLsLevel;
     bool bShowShaderErrors;
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(Config);
 };
 
 extern Config g_Config;

@@ -40,17 +40,15 @@ void Config::Load()
     iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
     strncpy(iFSResolution, temp.c_str(), 16);
     
-    iniFile.Get("Settings", "Backend", &temp, "");
-    strncpy(iBackend, temp.c_str(), 16);
-    
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
-    iniFile.Get("Settings", "StretchToFit", &bStretchToFit, true);
+    iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
-    
+    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
+    iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
     
     iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
@@ -69,12 +67,11 @@ void Config::Load()
         strcpy(texDumpPath, s.c_str());
     else {
         strncpy(texDumpPath, s.c_str(), sizeof(texDumpPath)-1);
-        texDumpPath[sizeof(texDumpPath)-1] = 0;
+        texDumpPath[sizeof(texDumpPath) - 1] = 0;
     }
     
     iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
     iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
-    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
     iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
     iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
     iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
@@ -97,13 +94,13 @@ void Config::Save()
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
-    iniFile.Set("Settings", "StretchToFit", bStretchToFit);
+    iniFile.Set("Settings", "StretchToFit", bNativeResolution);
     iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
 	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
 	iniFile.Set("Settings", "Crop", bCrop);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
-    iniFile.Set("Settings", "Backend", iBackend);
-    
+    iniFile.Set("Settings", "UseXFB", bUseXFB);
+    iniFile.Set("Settings", "AutoScale", bAutoScale);
 
     iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
@@ -117,7 +114,6 @@ void Config::Save()
     iniFile.Set("Settings", "TexDumpPath", texDumpPath);
     iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
     iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
-    iniFile.Set("Settings", "UseXFB", bUseXFB);
     iniFile.Set("Settings", "Wireframe", bWireFrame);
     iniFile.Set("Settings", "DisableLighting", bDisableLighting);
     iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);

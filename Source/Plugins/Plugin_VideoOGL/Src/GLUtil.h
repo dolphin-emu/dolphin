@@ -119,16 +119,8 @@ extern GLWindow GLWin;
 
 #endif
 
-float OpenGL_GetXmax();
-float OpenGL_GetYmax();
-int OpenGL_GetXoff();
-int OpenGL_GetYoff();
-u32 OpenGL_GetWidth();
-u32 OpenGL_GetHeight();
-void OpenGL_SetSize(u32 width, u32 height); 
-// yeah yeah, these should be hidden
-//extern int nBackbufferWidth, nBackbufferHeight;
-//extern int nXoff, nYoff;
+u32 OpenGL_GetBackbufferWidth();
+u32 OpenGL_GetBackbufferHeight();
 
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 bool OpenGL_MakeCurrent();

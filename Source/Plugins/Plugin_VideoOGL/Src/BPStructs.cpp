@@ -37,7 +37,6 @@
 #include "XFB.h"
 #include "main.h"
 
-
 // ---------------------------------------------------------------------------------------
 // State translation lookup tables
 // -------------
@@ -383,8 +382,8 @@ void BPWritten(int addr, int changes, int newval)
                 (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
                 (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
             };
-			float MValueX = OpenGL_GetXmax();
-			float MValueY = OpenGL_GetYmax();
+			float MValueX = Renderer::GetTargetScaleX();
+			float MValueY = Renderer::GetTargetScaleY();
 			// Need another rc here to get it to scale.
 			// Here the bottom right is the out of the rectangle.
             TRectangle multirc = {
@@ -407,9 +406,9 @@ void BPWritten(int addr, int changes, int newval)
 				if (g_Config.bEFBCopyDisable)
 				{
 					/* We already have this in Render.cpp that we call when (PE_copy.clear) is true. But we need a separate one
-					   here because UpdateViewport() is not run when this otion is set? */
-					glViewport(rc.left,rc.bottom, rc.right,rc.top);
-					glScissor(rc.left,rc.bottom, rc.right,rc.top);
+					   here because UpdateViewport() is not run when this option is set? */
+					glViewport(rc.left, rc.bottom, rc.right,rc.top);
+					glScissor(rc.left, rc.bottom, rc.right,rc.top);
 					// Logging
 					GLScissorX = rc.left;
 					GLScissorY = rc.bottom;
@@ -560,7 +559,7 @@ void BPWritten(int addr, int changes, int newval)
         break;
 
     default:
-        switch(addr & 0xFC)  //texture sampler filter
+        switch (addr & 0xFC)  //texture sampler filter
         {
         case 0x28: // tevorder 0-3
         case 0x2C: // tevorder 4-7
@@ -571,7 +570,6 @@ void BPWritten(int addr, int changes, int newval)
                 PixelShaderManager::SetTevOrderChanged(addr - 0x28);
             }
             break;
-
         case 0x80: // TEX MODE 0
         case 0xA0: 
             if (changes)

@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include "Common.h"
+
 #include "CPMemory.h"
 #include "DataReader.h"
 #include "NativeVertexFormat.h"
@@ -103,6 +105,8 @@ private:
 
 	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
+
+	DISALLOW_COPY_AND_ASSIGN(VertexLoader);
 };									  
 
 #endif

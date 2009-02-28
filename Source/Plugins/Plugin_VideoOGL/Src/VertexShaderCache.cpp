@@ -109,7 +109,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	return pShaderLast;
 }
 
-void VertexShaderCache::Cleanup()
+void VertexShaderCache::ProgressiveCleanup()
 {
 	VSCache::iterator iter = vshaders.begin();
 	while (iter != vshaders.end()) {
@@ -142,18 +142,15 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		return false;
 	}
 
-	//ERROR_LOG(VIDEO, pstrprogram);
-	//ERROR_LOG(VIDEO, "id: %d\n", g_Config.iSaveTargetId);
-
-	char* pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-	char* plocal = strstr(pcompiledprog, "program.local");
-
+	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
+	// It SHOULD not have any nasty side effects though - but you never know...
+	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
+	char *plocal = strstr(pcompiledprog, "program.local");
 	while (plocal != NULL) {
 		const char* penv = "  program.env";
 		memcpy(plocal, penv, 13);
-		plocal = strstr(plocal+13, "program.local");
+		plocal = strstr(plocal + 13, "program.local");
 	}
-
 	glGenProgramsARB(1, &vs.glprogid);
 	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
 	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
@@ -166,7 +163,6 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	}
 
 	cgDestroyProgram(tempprog);
-	// printf("Compiled vertex shader %i\n", vs.glprogid);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	vs.strprog = pstrprogram;

@@ -89,9 +89,6 @@ struct PortableVertexDeclaration
 // all the data loading code must always be made compatible.
 class NativeVertexFormat
 {
-protected:
-	NativeVertexFormat() {}
-
 public:
 	virtual ~NativeVertexFormat() {}
 
@@ -103,6 +100,13 @@ public:
 
 	// TODO: move these in under private:
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
+
+protected:
+	// Let subclasses construct.
+	NativeVertexFormat() {}
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(NativeVertexFormat);
 };
 
 #endif  // _NATIVEVERTEXFORMAT_H

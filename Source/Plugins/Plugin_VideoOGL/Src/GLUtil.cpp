@@ -37,18 +37,17 @@ struct RECT
 
 // Handles OpenGL and the window
 
-// externals
-int nBackbufferWidth, nBackbufferHeight; // screen width
-int nXoff, nYoff; // screen offset
-float MValueX, MValueY;
+// Window dimensions.
+static int s_backbuffer_width;
+static int s_backbuffer_height;
 
 #ifndef _WIN32
 GLWindow GLWin;
 #endif
 
 #if defined(_WIN32)
-static HDC         hDC = NULL;       // Private GDI Device Context
-static HGLRC       hRC = NULL;       // Permanent Rendering Context
+static HDC hDC = NULL;       // Private GDI Device Context
+static HGLRC hRC = NULL;       // Permanent Rendering Context
 extern HINSTANCE g_hInstance;
 #endif
 
@@ -67,35 +66,13 @@ void OpenGL_SwapBuffers()
 #endif
 }
 
-float OpenGL_GetXmax() {
-    return MValueX;
+u32 OpenGL_GetBackbufferWidth() {
+    return s_backbuffer_width;
 }
 
-float OpenGL_GetYmax() {
-    return MValueY;
+u32 OpenGL_GetBackbufferHeight() {
+    return s_backbuffer_height;
 }
-
-int OpenGL_GetXoff() {
-    return nXoff;
-}
-
-int OpenGL_GetYoff() {
-    return nYoff;
-}
-
-u32 OpenGL_GetWidth() {
-    return nBackbufferWidth;
-}
-
-u32 OpenGL_GetHeight() {
-    return nBackbufferHeight;
-}
-
-void OpenGL_SetSize(u32 width, u32 height) {
-    nBackbufferWidth = width;
-    nBackbufferHeight = height;
-}
-
 
 void OpenGL_SetWindowText(const char *text)
 {
@@ -123,7 +100,7 @@ void OpenGL_SetWindowText(const char *text)
 unsigned int Callback_PeekMessages()
 {
 #ifdef _WIN32
-    //TODO: peekmessage
+    // TODO: peekmessage
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
@@ -137,6 +114,7 @@ unsigned int Callback_PeekMessages()
     return FALSE;
 #endif
 }
+
 // Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {
@@ -187,40 +165,17 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	#endif
 	// ----------------------------
 
-
 	// ---------------------------------------------------------------------------------------
 	// Control window size and picture scaling
 	// ------------------
-	// nBackbufferWidth and nBackbufferHeight = Screen resolution from ini, or 640x480
-	// See OpenGL_Update() for documentation of the other variables
-	// ------------------
-    nBackbufferWidth = _twidth;
-    nBackbufferHeight = _theight;
-
-	float FactorW  = 640.0f / (float)nBackbufferWidth;
-	float FactorH  = 480.0f / (float)nBackbufferHeight;
-	float Max = (FactorW < FactorH) ? FactorH : FactorW;
-
-	if (g_Config.bStretchToFit)
-	{
-		MValueX = 1.0f / FactorW;
-		MValueY = 1.0f / FactorH;
-		nXoff = 0;
-		nYoff = 0;
-	}
-	else
-	{
-		MValueX = 1.0f / Max;
-		MValueY = 1.0f / Max;
-		nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
-		nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
-	}
+    s_backbuffer_width = _twidth;
+    s_backbuffer_height = _theight;
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
 	//char buff[100];
-	//sprintf(buff, "%i %i %d %d %d", nBackbufferWidth, nBackbufferHeight, Max, MValueX, MValueY);
+	//sprintf(buff, "%i %i %d %d %d", s_backbuffer_width, s_backbuffer_height, Max, MValueX, MValueY);
 	//MessageBox(0, buff, "", 0);
 
 #if USE_SDL
@@ -234,8 +189,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-    GLWin.width = nBackbufferWidth;
-    GLWin.height = nBackbufferHeight;
+    GLWin.width = s_backbuffer_width;
+    GLWin.height = s_backbuffer_height;
     GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
     GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 #elif defined(USE_WX) && USE_WX
@@ -290,14 +245,14 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GetWindowRect(GetDesktopWindow(), &rcdesktop);
         
     if (g_Config.bFullscreen) {
-        //nBackbufferWidth = rcdesktop.right - rcdesktop.left;
-        //nBackbufferHeight = rcdesktop.bottom - rcdesktop.top;
+        //s_backbuffer_width = rcdesktop.right - rcdesktop.left;
+        //s_backbuffer_height = rcdesktop.bottom - rcdesktop.top;
 
         DEVMODE dmScreenSettings;
         memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
         dmScreenSettings.dmSize=sizeof(dmScreenSettings);
-        dmScreenSettings.dmPelsWidth    = nBackbufferWidth;
-        dmScreenSettings.dmPelsHeight   = nBackbufferHeight;
+        dmScreenSettings.dmPelsWidth    = s_backbuffer_width;
+        dmScreenSettings.dmPelsHeight   = s_backbuffer_height;
         dmScreenSettings.dmBitsPerPel   = 32;
         dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
 
@@ -329,7 +284,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
     RECT rc;
     rc.left = 0; rc.top = 0;
-    rc.right = nBackbufferWidth; rc.bottom = nBackbufferHeight;
+    rc.right = s_backbuffer_width; rc.bottom = s_backbuffer_height;
     AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
     int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
     int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
@@ -540,8 +495,8 @@ bool OpenGL_MakeCurrent()
 		| ( g_Config.bFullscreen ? SDL_FULLSCREEN : 0);
 	// Set vide mode.
 	// TODO: Can we use this field or is a separate field needed?
-	int _twidth = nBackbufferWidth;
-	int _theight = nBackbufferHeight;
+	int _twidth = s_backbuffer_width;
+	int _theight = s_backbuffer_height;
 	SDL_Surface *screen = SDL_SetVideoMode(_twidth, _theight, 0, videoFlags);
 	if (!screen) {
 		//TODO : Display an error message
@@ -587,37 +542,36 @@ void OpenGL_Update()
 {
 #if USE_SDL
     SDL_Surface *surface = SDL_GetVideoSurface();
-    RECT rcWindow;
-    if (!surface) return;
-    nBackbufferWidth = surface->w;
-    nBackbufferHeight = surface->h;
+    RECT rcWindow = {0};
+    if (!surface)
+		return;
+    s_backbuffer_width = surface->w;
+    s_backbuffer_height = surface->h;
 
     rcWindow.right = surface->w;
     rcWindow.bottom = surface->h;
 
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-    RECT rcWindow;
+	RECT rcWindow = {0};
     rcWindow.right = GLWin.width;
     rcWindow.bottom = GLWin.height;
 
 #elif defined(USE_WX) && USE_WX
-    RECT rcWindow;
+    RECT rcWindow = {0};
     rcWindow.right = GLWin.width;
     rcWindow.bottom = GLWin.height;
     
     // TODO fill in
 #elif defined(_WIN32)
 	RECT rcWindow;
-	// If we are not rendering to a child window
 	if (!EmuWindow::GetParentWnd())
 	{
-		// return if we don't stretch the picture
-		if (!g_Config.bStretchToFit) return;
-		GetWindowRect(EmuWindow::GetWnd(), &rcWindow);
-		rcWindow.top += 25;
+		// We are not rendering to a child window - use client size.
+		GetClientRect(EmuWindow::GetWnd(), &rcWindow);
 	}
 	else
 	{
+		// We are rendering to a child window - use parent size.
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 	}
 
@@ -633,8 +587,8 @@ void OpenGL_Update()
 	if (EmuWindow::GetParentWnd() != 0)
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 
-    nBackbufferWidth = width;
-    nBackbufferHeight = height;
+    s_backbuffer_width = width;
+    s_backbuffer_height = height;
 
 #elif defined(HAVE_X11) && HAVE_X11
     // We just check all of our events here
@@ -684,8 +638,8 @@ void OpenGL_Update()
                 unsigned int borderDummy;
                 XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
                              &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-                nBackbufferWidth = GLWin.width;
-                nBackbufferHeight = GLWin.height;
+                s_backbuffer_width = GLWin.width;
+                s_backbuffer_height = GLWin.height;
                 rcWindow.left = 0;
                 rcWindow.top = 0;
                 rcWindow.right = GLWin.width;
@@ -705,37 +659,6 @@ void OpenGL_Update()
 	}
 	return;
 #endif
-
-	// ---------------------------------------------------------------------------------------
-	// Get the new window width and height
-	/* ------------------
-	   nBackbufferWidth and nBackbufferHeight: Now the actual rendering window size
-	   Max: The highest of w and h
-	   nXoff and nYoff: Controls the picture's position inside the rendering window
-	   MValueX and MValueY: Used for the picture resolution-change rescaling
-	// ------------------
-	   MValueX and MValueY: Used for the picture resolution-change rescaling. It will be used in
-			TextureMngr and VertexShaderManager: Rescale textures on resolution changes
-			BPStructs.cpp: Control glScissor()
-	// ------------------ */
-    float FactorW  = 640.0f / (float)nBackbufferWidth;
-    float FactorH  = 480.0f / (float)nBackbufferHeight;
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-
-    if (g_Config.bStretchToFit)
-    {
-		MValueX = 1;
-		MValueY = 1;
-        nXoff = 0;
-        nYoff = 0;
-    }
-    else
-    {
-        MValueX = 1.0f / Max;
-        MValueY = 1.0f / Max;
-        nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
-        nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
-    }
 }
 
 

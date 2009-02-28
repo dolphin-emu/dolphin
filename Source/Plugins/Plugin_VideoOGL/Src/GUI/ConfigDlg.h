@@ -45,7 +45,6 @@ class ConfigDialog : public wxDialog
 
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
-		void AddRenderBackend(const char *backend);
 		void AddAAMode(int mode);
 		void CreateGUIControls();
 
@@ -77,16 +76,16 @@ class ConfigDialog : public wxDialog
 		wxPanel *m_PageAdvanced;
 		wxCheckBox *m_Fullscreen;
 		wxCheckBox *m_RenderToMainWindow;
-		wxCheckBox *m_StretchToFit;
+		wxCheckBox *m_NativeResolution;
 		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
+		wxCheckBox *m_UseXFB;
+		wxCheckBox *m_AutoScale;
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
-		wxArrayString arrayStringFor_RenderBackend;
-		wxComboBox *m_RenderBackend;
 
 		wxCheckBox *m_ForceFiltering; // advanced
 		wxChoice *m_MaxAnisotropyCB;
@@ -99,7 +98,6 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_ProjStats;
 		wxCheckBox *m_TexFmtOverlay;
 		wxCheckBox *m_TexFmtCenter;
-		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
@@ -128,15 +126,16 @@ class ConfigDialog : public wxDialog
 
 			ID_FULLSCREEN,
 			ID_RENDERTOMAINWINDOW,
-			ID_STRETCHTOFIT,
+			ID_NATIVERESOLUTION,
 			ID_KEEPAR_4_3, ID_KEEPAR_16_9, ID_CROP,
+			ID_USEXFB,
+			ID_AUTOSCALE,
+
 			ID_HIDECURSOR,
 			ID_FSTEXT,
 			ID_FULLSCREENCB,
 			ID_WMTEXT,
 			ID_WINDOWRESOLUTIONCB,
-			ID_BETEXT,
-			ID_RENDERBACKEND,
 
 			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
@@ -151,7 +150,6 @@ class ConfigDialog : public wxDialog
 			ID_TEXFMTOVERLAY,
 			ID_TEXFMTCENTER,
 
-			ID_USEXFB,
 			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
 			ID_DISABLETEXTURING,
