@@ -66,11 +66,11 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 
 CNANDContentLoader::~CNANDContentLoader()
 {
-    for (size_t i=0; i<m_TileMetaContent.size(); i++)
+    for (size_t i=0; i<m_Content.size(); i++)
     {
-        delete [] m_TileMetaContent[i].m_pData;
+        delete [] m_Content[i].m_pData;
     }
-    m_TileMetaContent.clear();
+    m_Content.clear();
 }
 
 SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index)
