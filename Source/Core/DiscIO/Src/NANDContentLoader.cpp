@@ -118,7 +118,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
         rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
         rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-        rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
+        rContent.m_Size = (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
         rContent.m_pData = NULL; 
 
         char szFilename[1024];

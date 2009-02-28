@@ -199,7 +199,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 break;
 
             case 2:  // END
-                rContent.m_Position = rContent.m_pContent->m_Size;
+                rContent.m_Position = rContent.m_pContent->m_Size + Addr;
                 break;
             }
 

@@ -51,7 +51,7 @@ void AboutDolphin::CreateGUIControls()
 		"Additional code by zerofrog, yaz0r, Schibo, Costis, JPeterson, etc etc...\n\n"
 		"Greets to Azimer, Caustik, Costis, Desktopman, EFX, Epsilon, Falcon4Ever, Hotquik, Jazzmin, mamedevs, Masken, Martin64, or9, "
 			" tmbinc, vEX, Zezu, Zilmar, and everyone we forget.\n\n"
-		"Special thanks to Costis, CrowTRobo, Titanik, or9 and Hotquik for their reverse engineering and docs/demos.\n\n"
+		"Special thanks to Bushing, Costis, CrowTRobo, Marcan, Segher, Titanik, or9 and Hotquik for their reverse engineering and docs/demos.\n\n"
 		"Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart.\n\n"
 		"Thanks to Frank Wille for his PowerPC disassembler, which or9 and we modified to include Gekko specifics.\n\n"
 		"Thanks to Shinji Chiba for his GC ADPCM decoder.\n\n"
