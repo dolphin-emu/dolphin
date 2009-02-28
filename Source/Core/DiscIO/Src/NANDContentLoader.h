@@ -18,6 +18,7 @@
 #ifndef _NAND_CONTENT_LOADER_H
 #define _NAND_CONTENT_LOADER_H
 
+#include <string>
 #include <vector>
 #include "Common.h"
 #include "Blob.h"
