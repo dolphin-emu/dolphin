@@ -245,7 +245,7 @@ void Initialize(void *init)
 	}
 	else
 	{
-		PanicAlert("Cannot recognize backend %s", g_Config.sBackend);
+		PanicAlert("Cannot recognize backend %s", g_Config.sBackend.c_str());
 		return;
 	}
 
@@ -260,7 +260,7 @@ void Initialize(void *init)
 		if (!soundStream->Start())
 		{
 			PanicAlert("Could not initialize backend %s, falling back to NULL", 
-				g_Config.sBackend);
+					   g_Config.sBackend.c_str());
 			delete soundStream;
 			soundStream = new NullSound(48000, Mixer);
 			soundStream->Start();
@@ -269,7 +269,7 @@ void Initialize(void *init)
 	else
 	{
 		PanicAlert("Sound backend %s is not valid, falling back to NULL", 
-			g_Config.sBackend);
+				   g_Config.sBackend.c_str());
 		delete soundStream;
 		soundStream = new NullSound(48000, Mixer);
 		soundStream->Start();

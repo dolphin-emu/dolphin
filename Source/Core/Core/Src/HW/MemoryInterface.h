@@ -24,11 +24,12 @@ namespace MemoryInterface
 {
 void DoState(PointerWrap &p);
 
-void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);	
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
+void Read16(u16& _uReturnValue, const u32 _iAddress);
+void Read32(u32& _uReturnValue, const u32 _iAddress);	
+void Write32(const u32 _iValue, const u32 _iAddress);
+void Write16(const u16 _iValue, const u32 _iAddress);
 } // end of namespace MemoryInterface
 
 #endif
+
 

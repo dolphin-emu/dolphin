@@ -547,6 +547,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\CDUtils.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\CDUtils.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\ChunkFile.cpp"
 			>
 		</File>
@@ -567,6 +575,18 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\CommonFuncs.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\CommonPaths.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\CommonTypes.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\ConsoleWindow.cpp"
 			>
 		</File>
@@ -580,14 +600,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\CPUDetect.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\CDUtils.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\CDUtils.h"
 			>
 		</File>
 		<File
@@ -651,6 +663,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Log.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\MappedFile.cpp"
 			>
 		</File>
@@ -683,11 +699,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Misc.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\MsgHandler.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Paths.h"
+			RelativePath=".\Src\MsgHandler.h"
 			>
 		</File>
 		<File

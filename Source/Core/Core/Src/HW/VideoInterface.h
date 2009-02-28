@@ -33,11 +33,11 @@ namespace VideoInterface
 	void Init();	
 	void DoState(PointerWrap &p);
 
-	void HWCALL Read16(u16& _uReturnValue, const u32 _uAddress);
-	void HWCALL Read32(u32& _uReturnValue, const u32 _uAddress);
+	void Read16(u16& _uReturnValue, const u32 _uAddress);
+	void Read32(u32& _uReturnValue, const u32 _uAddress);
 				
-	void HWCALL Write16(const u16 _uValue, const u32 _uAddress);
-	void HWCALL Write32(const u32 _uValue, const u32 _uAddress);	
+	void Write16(const u16 _uValue, const u32 _uAddress);
+	void Write32(const u32 _uValue, const u32 _uAddress);	
 				
 	void GenerateVIInterrupt(VIInterruptType _VIInterrupt);	
 
@@ -62,4 +62,5 @@ namespace VideoInterface
 };
 
 #endif
+
 

@@ -103,14 +103,15 @@ public:
     static void SetInterrupt(InterruptCause _causemask, bool _bSet=true);
     
     // Read32
-    static void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
+    static void Read32(u32& _uReturnValue, const u32 _iAddress);
 
     // Write32
-    static void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
+    static void Write32(const u32 _iValue, const u32 _iAddress);
 
     // SetResetButton (you have to release the button again to make a reset)
     static void SetResetButton(bool _bSet);
 };
 
 #endif
+
 

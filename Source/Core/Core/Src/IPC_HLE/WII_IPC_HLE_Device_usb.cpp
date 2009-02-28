@@ -352,7 +352,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		// return reply buffer size
 		Memory::Write_U32(sizeof(UACLHeader) + frame.size, m_pACLBuffer->m_Address + 0x4);
 
-		delete frame.data;
+		delete [] frame.data;
 		m_AclFrameQue.pop();
 
 		u32 Addr = m_pACLBuffer->m_Address;
@@ -383,7 +383,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (m_AclFrameQue.empty())
 	{
-		for (size_t i=0; i<m_WiiMotes.size(); i++)
+		for (size_t i = 0; i < m_WiiMotes.size(); i++)
 		{
 			if (m_WiiMotes[i].Update())
 				break;

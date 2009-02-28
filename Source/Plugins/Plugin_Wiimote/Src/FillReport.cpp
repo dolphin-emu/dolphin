@@ -171,7 +171,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	g_RecordingCurrentTime[Wm] *= ((25.0 + (double)VRecording.at(g_RecordingPlaying[Wm]).PlaybackSpeed * 25.0) / 100.0);
 
 	// Select reading
-	for (int i = 0; i < VRecording.at(g_RecordingPlaying[Wm]).Recording.size(); i++)
+	for (int i = 0; i < (int)VRecording.at(g_RecordingPlaying[Wm]).Recording.size(); i++)
 		if (VRecording.at(g_RecordingPlaying[Wm]).Recording.at(i).Time > g_RecordingCurrentTime[Wm])
 		{
 			g_RecordingPoint[Wm] = i;

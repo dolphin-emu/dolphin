@@ -101,10 +101,10 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 			            (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 
 		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) 
-            DEBUG_LOG("cannot support mirrorred repeat mode\n");
+            DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode\n");
 
 		if (newmode.wrap_s == 1 || newmode.wrap_t == 1)
-            DEBUG_LOG("cannot support repeat mode\n");
+            DEBUG_LOG(VIDEO, "cannot support repeat mode\n");
     }
     else {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -531,7 +531,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
                 break;
             default:
-                ERROR_LOG("Unknown copy zbuf format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x\n", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
@@ -556,7 +556,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 }
                 break;
             default:
-                ERROR_LOG("Unknown copy intensity format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x\n", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
@@ -598,7 +598,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
 
             default:
-                ERROR_LOG("Unknown copy color format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x\n", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }

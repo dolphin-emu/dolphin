@@ -36,8 +36,8 @@ void Update();
 // Calls by DSP plugin
 u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples);
 
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
+void Read32(u32& _uReturnValue, const u32 _iAddress);
+void Write32(const u32 _iValue, const u32 _iAddress);
 
 // Get the audio rates (48000 or 32000 only)
 u32 GetAISampleRate();

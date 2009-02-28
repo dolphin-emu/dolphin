@@ -18,51 +18,28 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Settings
-// -----------------
-#define _CRTDBG_MAP_ALLOC
-#define _CRTDBG_MAP_ALLOC_NEW
-#define CHECK_HEAP_INTEGRITY()
-//////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// -----------------
-#ifdef _WIN32
-	#ifdef _DEBUG
-	#include <crtdbg.h>
-	#undef CHECK_HEAP_INTEGRITY
-	#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
-	#endif
-
-	/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
-	   preprocessor definitions only */
-	#if defined(_DEBUG) || defined(DEBUGFAST)
-		#define LOGGING
-	#endif
-
-	#include "../../../PluginSpecs/CommonTypes.h"
-	#define HAVE_WIIUSE 1
-	#define HAVE_WX 1
-#else
-	#include "CommonTypes.h"
-	#include "Config.h"
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "Paths.h"
-///////////////////////////////////
+// Force enable logging in the right modes. For some reason, something had changed
+// so that debugfast no longer logged.
+#ifdef _DEBUG
+#undef LOGGING
+#define LOGGING 1
+#endif
 
+#ifdef DEBUGFAST
+#undef LOGGING
+#define LOGGING 1
+#endif
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Settings
-// -----------------
+#include "Log.h"
+#include "CommonTypes.h"
+#include "MsgHandler.h"
+#include "CommonPaths.h"
+#include "CommonFuncs.h"
+
 
 // Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
 // This probably wouldn't break anyone either, but hey
@@ -72,325 +49,73 @@
 	#define STACKALIGN
 #endif
 
-
-// Function Cross-Compatibility
 #ifdef _WIN32
-	#define strcasecmp _stricmp
-	#define strncasecmp _strnicmp
-	#define unlink _unlink
-	#define snprintf _snprintf
-#else
-	#define _stricmp strcasecmp
-	#define _strnicmp strncasecmp
-	#define _unlink unlink
-	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
-#endif
 
+// Check MSC ver
+	#if !defined _MSC_VER || _MSC_VER <= 1000
+		#error needs at least version 1000 of MSC
+	#endif
 
-#ifdef _WIN32
-// By default, MS' stdio implementation does not support 64-bit offsets.
-// This little hack fixes that, keeping the code portable to linux where fseek and fread
-// do support 64-bit offsets in modern distributions.
-#define fseek _fseeki64
-#define ftell _ftelli64
+// Memory leak check defines
+	#define _CRTDBG_MAP_ALLOC
+	#define _CRTDBG_MAP_ALLOC_NEW
+	#define CHECK_HEAP_INTEGRITY()
 
-#define atoll _atoi64
-
-#define POSIX 0
-#define NOMINMAX
-
-#if _M_IX86
-#define Crash() {__asm int 3}
-#else
-#if _MSC_VER > 1000
-extern "C" {
-	__declspec(dllimport) void __stdcall DebugBreak(void);
-}
-#define Crash() {DebugBreak();}
-#else
-#error fixme
-#endif
-#endif
-
-#elif __GNUC__
-#define POSIX 1
-#define MAX_PATH 260
-#define stricmp strcasecmp
-#define Crash() {asm ("int $3");}
-#ifdef _LP64
-#define _M_X64 1
-#else
-#define _M_IX86 1
-#endif
-#endif
+	#define POSIX 0
+	#define NOMINMAX
 
 // Alignment
+	#define GC_ALIGNED16(x) __declspec(align(16)) x
+	#define GC_ALIGNED32(x) __declspec(align(32)) x
+	#define GC_ALIGNED64(x) __declspec(align(64)) x
+	#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
+	#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
-#if defined(_MSC_VER)
+// Since they are always around on windows
+	#define HAVE_WIIUSE 1
+	#define HAVE_WX 1
 
-#define GC_ALIGNED16(x) __declspec(align(16)) x
-#define GC_ALIGNED32(x) __declspec(align(32)) x
-#define GC_ALIGNED64(x) __declspec(align(64)) x
-#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
-#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
-
-#else
-
-#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
-#define GC_ALIGNED32(x)  __attribute((aligned(16))) x
-#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
-#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
-#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
-
-#endif
-
-// Various Windows compatibility
-
-#if !defined(_WIN32)
-inline u32 _rotl(u32 x, int shift) {
-    shift &= 31;
-    if (!shift) return x;
-    return (x << shift) | (x >> (32 - shift));
-}
-
-inline u32 _rotr(u32 x, int shift) {
-    shift &= 31;
-    if (!shift) return x;
-    return (x >> shift) | (x << (32 - shift));
-}
-
-#define LONG int
-
-
-#ifndef __forceinline
-#define __forceinline inline
-#endif
-#endif
-
-#if defined (_M_IX86) && defined (_WIN32)
-#define HWCALL __cdecl
-#else
-#define HWCALL
-#endif
-
-#undef min
-#undef max
-
-template<class T>
-inline T min(const T& a, const T& b) {return a > b ? b : a;}
-template<class T>
-inline T max(const T& a, const T& b) {return a > b ? a : b;}
-///////////////////////////////////
-
-
-
-// **************************************************************************************
-// Utility functions
-// **************************************************************************************
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Byte ordering
-// -----------------
-namespace Common
+namespace
 {
-inline u8 swap8(u8 _data) {return(_data);}
-
-
-#ifdef _WIN32
-inline u16 swap16(u16 _data) {return(_byteswap_ushort(_data));}
-inline u32 swap32(u32 _data) {return(_byteswap_ulong(_data));}
-inline u64 swap64(u64 _data) {return(_byteswap_uint64(_data));}
-
-#elif __linux__
-}
-#include <byteswap.h>
-namespace Common
-{
-inline u16 swap16(u16 _data) {return(bswap_16(_data));}
-inline u32 swap32(u32 _data) {return(bswap_32(_data));}
-inline u64 swap64(u64 _data) {return(bswap_64(_data));}
-
-
-#else
-inline u16 swap16(u16 data) {return((data >> 8) | (data << 8));}
-inline u32 swap32(u32 data) {return((swap16(data) << 16) | swap16(data >> 16));}
-inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 32));}
-#endif
-
-inline u16 swap16(u8* _pData) {return(swap16(*(u16*)_pData));}
-inline u32 swap32(u8* _pData) {return(swap32(*(u32*)_pData));}
-inline u64 swap64(u8* _pData) {return(swap64(*(u64*)_pData));}
-
-
-} // end of namespace Common
-///////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Message alerts
-// -----------------
-enum MSG_TYPE
-{
-	INFORMATION,
-	QUESTION,
-	WARNING,
-};
-
-typedef bool (*MsgAlertHandler)(const char* caption, const char* text, 
-                                bool yes_no, int Style);
-void RegisterMsgAlertHandler(MsgAlertHandler handler);
-extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...);
-
-#ifdef _WIN32
-	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
-	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, __VA_ARGS__) 
-	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, __VA_ARGS__) 
-	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, __VA_ARGS__) 
-#else
-	#define SuccessAlert(format, ...) MsgAlert("SUCCESS", false, INFORMATION, format, ##__VA_ARGS__) 
-	#define PanicAlert(format, ...) MsgAlert("PANIC", false, WARNING, format, ##__VA_ARGS__) 
-	#define PanicYesNo(format, ...) MsgAlert("PANIC", true, WARNING, format, ##__VA_ARGS__) 
-	#define AskYesNo(format, ...) MsgAlert("ASK", true, QUESTION, format, ##__VA_ARGS__) 
-#endif
-///////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Logging
-// -----------------
-
-// dummy class
-class LogTypes
-{
-	public:
-	enum LOG_TYPE
-	{
-		MASTER_LOG,
-		BOOT,
-		PIXELENGINE,
-		COMMANDPROCESSOR,
-		VIDEOINTERFACE,
-		SERIALINTERFACE,
-		PERIPHERALINTERFACE,
-		MEMMAP,
-		DSPINTERFACE,
-		STREAMINGINTERFACE,
-		DVDINTERFACE,
-		GPFIFO,
-		EXPANSIONINTERFACE,
-		AUDIO_INTERFACE,
-		GEKKO,
-		HLE,
-		DSPHLE,
-		VIDEO,
-		AUDIO,
-		DYNA_REC,
-		CONSOLE,
-		OSREPORT,
-		WII_IOB,
-		WII_IPC,
-		WII_IPC_HLE,
-		WII_IPC_DVD,
-		WII_IPC_ES,
-		WII_IPC_FILEIO,
-		WII_IPC_SD,
-		WII_IPC_NET,
-		WII_IPC_WIIMOTE,
-		ACTIONREPLAY,
-		NUMBER_OF_LOGS
-	};
-};
-
-#ifdef LOGGING
-extern void __Log(int logNumber, const char* text, ...);
-extern void __Logv(int log, int v, const char *format, ...);
-
-void Host_UpdateLogDisplay();
-
-// Logging macros. LOGGING is turned on from earlier in this file
-
-#ifdef _WIN32
-#define LOG(t, ...) __Log(LogTypes::t, __VA_ARGS__);
-#define LOGV(t,v, ...) __Log(LogTypes::t + (v)*100, __VA_ARGS__);
-#define LOGP(t, ...) __Log(t, __VA_ARGS__);
-#define LOGVP(t,v, ...) __Log(t + (v)*100, __VA_ARGS__);
-#else
-#define LOG(t, ...) __Log(LogTypes::t, ##__VA_ARGS__);
-#define LOGV(t,v, ...) __Log(LogTypes::t + (v)*100, ##__VA_ARGS__);
-#define LOGP(t, ...) __Log(t, ##__VA_ARGS__);
-#define LOGVP(t,v, ...) __Log(t + (v)*100, ##__VA_ARGS__);
-#endif
-
-#define _dbg_assert_(_t_, _a_) \
-	if (!(_a_)){\
-		LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
-				__LINE__, __FILE__, __TIME__); \
-		if (!PanicYesNo("*** Assertion (see log)***\n")){Crash();} \
-	}
-#define _dbg_assert_msg_(_t_, _a_, ...)\
-	if (!(_a_)){\
-		LOG(_t_, __VA_ARGS__); \
-		if (!PanicYesNo(__VA_ARGS__)){Crash();}	\
-	}
-#define _dbg_update_() Host_UpdateLogDisplay();
-
-#else
-
-#define LOG(_t_, ...)
-#define LOGV(_t_,_v_, ...)
-#define LOGP(_t_, ...)
-#define LOGVP(_t_,_v_, ...)
-#define _dbg_clear_()
-#ifndef _dbg_assert_
-#define _dbg_assert_(_t_, _a_) ;
-#define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
-#endif
-#define _dbg_update_() ;
-
-#endif
-
-#ifdef _WIN32
-#define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
-#define _assert_msg_(_t_, _a_, _fmt_, ...)\
-	if (!(_a_)){\
-		if (!PanicYesNo(_fmt_, __VA_ARGS__)){Crash();} \
-	}
-#else
-#define _assert_(a)
-#define _assert_msg_(...)
-#endif
-///////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Compile time asserts
-// -----------------
-namespace 
-{
-
-// it is very risky to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries
-// it is possible that you overwrite memory if you do it
-#ifdef _WIN32
+// it is VERY DANGEROUS to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries.
+// You will get bizarre crash bugs whenever you use STL.
 	#ifndef _SECURE_SCL
-			#error Please define _SECURE_SCL=0 in the project settings
+		#error Please define _SECURE_SCL=0 in the project settings
 	#else
 		template <bool> struct CompileTimeAssert;
 		template<> struct CompileTimeAssert<true> {};
 		CompileTimeAssert<_SECURE_SCL==0> x;
 	#endif
-#endif
 }
-///////////////////////////////////////
 
+// Debug definions
+	#if defined(_DEBUG)
+		#include <crtdbg.h>
+		#undef CHECK_HEAP_INTEGRITY
+		#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
+	#endif // end DEBUG/FAST
 
-#ifdef _WIN32
-#define SLEEP(x) Sleep(x)
-#else
-#define SLEEP(x) usleep(x*1000)
-#endif
+#else // Not windows
 
-#endif	// _COMMON_H
+#include "Config.h" // Scons defines
+// General defines
+	#define POSIX 1
+	#define MAX_PATH 260
 
+// Windows compatibility
+	#define __forceinline inline
 
+	#ifdef _LP64
+		#define _M_X64 1
+	#else
+		#define _M_IX86 1
+	#endif
+// Alignment
+	#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
+	#define GC_ALIGNED32(x)  __attribute((aligned(16))) x
+	#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
+	#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
+	#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
+#endif // WIN32
+
+#endif // COMMON_H

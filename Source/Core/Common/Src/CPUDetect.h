@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// Detect the cpu, so we'll know which optimizations to use
 #ifndef _CPUDETECT_H
 #define _CPUDETECT_H
 
@@ -30,13 +31,13 @@ enum CPUVendor
 struct CPUInfo
 {
 	CPUVendor vendor;
-
+	
 	char cpu_string[0x21];
 	char brand_string[0x41];
 	bool OS64bit;
 	bool CPU64bit;
 	bool Mode64bit;
-
+	
 	bool hyper_threaded;
 	int num_cores;
 
@@ -51,8 +52,11 @@ struct CPUInfo
 	bool bSSE4A;
 	bool bLAHFSAHF64;
 	bool bLongMode;
-
+	
+	// Detects the various cpu features
 	void Detect();
+
+	// Turn the cpu info into a string we can show
 	std::string Summarize();
 };
 

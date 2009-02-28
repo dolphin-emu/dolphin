@@ -294,7 +294,7 @@ void BPWritten(int addr, int changes, int newval)
             if (!Renderer::SetScissorRect())
 			{
 				if (addr == BPMEM_SCISSORBR) {
-                    ERROR_LOG("bad scissor!\n");
+                    ERROR_LOG(VIDEO, "bad scissor!\n");
 				}
             }
         }

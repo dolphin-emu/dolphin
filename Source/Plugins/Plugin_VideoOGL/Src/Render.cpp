@@ -126,9 +126,9 @@ bool Renderer::Init()
     const char* ptoken = (const char*)glGetString(GL_EXTENSIONS);
     if (ptoken == NULL) return false;
 
-    INFO_LOG("Supported OpenGL Extensions:\n");
-    INFO_LOG(ptoken);  // write to the log file
-    INFO_LOG("\n");
+    INFO_LOG(VIDEO, "Supported OpenGL Extensions:\n");
+    INFO_LOG(VIDEO, ptoken);  // write to the log file
+    INFO_LOG(VIDEO, "\n");
 
 	if (GLEW_EXT_blend_func_separate && GLEW_EXT_blend_equation_separate)
         g_bBlendSeparate = true;
@@ -140,24 +140,24 @@ bool Renderer::Init()
     s_bFullscreen = g_Config.bFullscreen;
 
     if (glewInit() != GLEW_OK) {
-        ERROR_LOG("glewInit() failed!\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "glewInit() failed!\nDoes your video card support OpenGL 2.x?");
         return false;
     }
 
     if (!GLEW_EXT_framebuffer_object) {
-        ERROR_LOG("*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
         bSuccess = false;
     }
     
     if (!GLEW_EXT_secondary_color) {
-        ERROR_LOG("*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
         bSuccess = false;
     }
 
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint *)&numvertexattribs);
 
     if (numvertexattribs < 11) {
-        ERROR_LOG("*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\nDoes your video card support OpenGL 2.x?", numvertexattribs);
+        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\nDoes your video card support OpenGL 2.x?", numvertexattribs);
         bSuccess = false;
     }
 
@@ -168,12 +168,12 @@ bool Renderer::Init()
     if (WGLEW_EXT_swap_control)
         wglSwapIntervalEXT(0);
     else
-        ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
     if (glXSwapIntervalSGI)
        glXSwapIntervalSGI(0);
     else
-        ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
+        ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
 #else
 
 	//TODO
@@ -184,7 +184,7 @@ bool Renderer::Init()
 	GLint max_texture_size;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
 	if (max_texture_size < 1024) {
-		ERROR_LOG("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
+		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
 	}
 
     GL_REPORT_ERROR();
@@ -195,7 +195,7 @@ bool Renderer::Init()
 
     glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
     if (s_uFramebuffer == 0) {
-        ERROR_LOG("failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
     }
 
     _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
@@ -283,7 +283,7 @@ bool Renderer::Init()
     }
 
 	if (s_ZBufferTarget == 0)
-        ERROR_LOG("disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
+        ERROR_LOG(VIDEO, "disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
 
 	// Why is this left here?
     //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
@@ -299,12 +299,12 @@ bool Renderer::Init()
 
     // load the effect, find the best profiles (if any)
     if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
-        ERROR_LOG("arbvp1 not supported\n");
+        ERROR_LOG(VIDEO, "arbvp1 not supported\n");
         return false;
     }
 
     if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
-        ERROR_LOG("arbfp1 not supported\n");
+        ERROR_LOG(VIDEO, "arbfp1 not supported\n");
         return false;
     }
 
@@ -313,24 +313,24 @@ bool Renderer::Init()
     cgGLSetOptimalOptions(g_cgvProf);
     cgGLSetOptimalOptions(g_cgfProf);
 
-    //ERROR_LOG("max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
+    //ERROR_LOG(VIDEO, "max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvvertparams);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvfragparams);
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-    DEBUG_LOG("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
-    DEBUG_LOG("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
+    DEBUG_LOG(VIDEO, "max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
+    DEBUG_LOG(VIDEO, "max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
 	if (nenvvertparams < 238)
-        ERROR_LOG("not enough vertex shader environment constants!!\n");
+        ERROR_LOG(VIDEO, "not enough vertex shader environment constants!!\n");
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
 #endif
 
     if (cgGetError() != CG_NO_ERROR) {
-        ERROR_LOG("cg error\n");
+        ERROR_LOG(VIDEO, "cg error\n");
         return false;
     }
     
@@ -591,7 +591,7 @@ bool Renderer::SetScissorRect()
 	rc_bottom *= MValueY;
 	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
 
-   /*LOG("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
+   /*LOG(VIDEO, "Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
 		rc_left, rc_top,
 		rc_right, rc_bottom, Renderer::GetTargetHeight(),
 		xoff, yoff
@@ -1333,7 +1333,7 @@ void UpdateViewport()
     // [4] = yorig + height/2 + 342
     // [5] = 16777215 * farz
 
-	/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
+	/*INFO_LOG(VIDEO, "view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
 		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
 		2 * rawViewport[0], 2 * rawViewport[1],
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/

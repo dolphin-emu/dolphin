@@ -22,7 +22,6 @@
 using namespace Gen;
 
 // Shared code between Win64 and Unix64
-// ====================================
 
 // Sets up a __cdecl function.
 void XEmitter::ABI_EmitPrologue(int maxCallParams)
@@ -53,14 +52,14 @@ void XEmitter::ABI_EmitEpilogue(int maxCallParams)
 	RET();
 #else
 #error Arch not supported
+
+
 #endif
 }
 
 #ifdef _M_IX86 // All32
 
 // Shared code between Win32 and Unix32
-// ====================================
-
 void XEmitter::ABI_CallFunction(void *func) {
 	ABI_AlignStack(0);
 	CALL(func);
@@ -160,8 +159,9 @@ void XEmitter::ABI_RestoreStack(unsigned int frameSize) {
 	}
 }
 
-#else
+#else //64bit
 
+// Common functions
 void XEmitter::ABI_CallFunction(void *func) {
 	CALL(func);
 }
@@ -221,7 +221,6 @@ void XEmitter::ABI_RestoreStack(unsigned int /*frameSize*/) {
 #ifdef _WIN32
 
 // Win64 Specific Code
-// ====================================
 void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	//we only want to do this once
 	PUSH(RBX); 
@@ -249,7 +248,6 @@ void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 }
 
 // Win64 Specific Code
-// ====================================
 void XEmitter::ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	PUSH(RCX);
 	PUSH(RDX);
@@ -277,7 +275,6 @@ void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 
 #else
 // Unix64 Specific Code
-// ====================================
 void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(RBX); 
 	PUSH(RBP);
@@ -322,7 +319,8 @@ void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 	POP(RCX);
 }
 
-#endif
+#endif // WIN32
 
-#endif
+#endif // 32bit
+
 

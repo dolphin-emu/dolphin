@@ -724,7 +724,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_WII_IPL_AR: // IPL settings
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bWidescreen = WiiAspectRatio->GetSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWidescreen = WiiAspectRatio->GetSelection() ? true : false;
 		break;
 	case ID_WII_IPL_SSV:
 		m_SYSCONF[IPL_SSV] = WiiScreenSaver->IsChecked();

@@ -469,7 +469,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 			break;
 
 		case L2CAP_CONF_RSP:
-			CommandCofigurationResponse(pCommand->ident, _pData, pCommand->len);
+			CommandConfigurationResponse(pCommand->ident, _pData, pCommand->len);
 			break;
 
 		case L2CAP_COMMAND_REJ:
@@ -633,13 +633,13 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 
 		m_HIDInterruptChannel_Connected = true;
 }
 
-void CWII_IPC_HLE_WiiMote::CommandCofigurationResponse(u8 _Ident, u8* _pData, u32 _Size)
+void CWII_IPC_HLE_WiiMote::CommandConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size)
 {
 	l2cap_conf_rsp* rsp = (l2cap_conf_rsp*)_pData;
 
 	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conf_rsp));
 
-	LOG(WII_IPC_WIIMOTE, "  CommandCofigurationResponse");
+	LOG(WII_IPC_WIIMOTE, "  CommandConfigurationResponse");
 	LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
 	LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
  	LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);

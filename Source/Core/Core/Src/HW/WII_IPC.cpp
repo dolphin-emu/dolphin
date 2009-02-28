@@ -121,7 +121,7 @@ void Shutdown()
 {
 }
 
-void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
+void Read32(u32& _rReturnValue, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
@@ -151,7 +151,7 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 	}	
 }
 
-void HWCALL Write32(const u32 _Value, const u32 _Address)
+void Write32(const u32 _Value, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
@@ -264,4 +264,5 @@ void GenerateReply(u32 _AnswerAddress)
 }
 
 } // end of namespace IPC
+
 

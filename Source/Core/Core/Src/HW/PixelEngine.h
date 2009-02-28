@@ -26,11 +26,11 @@ void Init();
 void DoState(PointerWrap &p);
 
 // Read
-void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);
+void Read16(u16& _uReturnValue, const u32 _iAddress);
 
 // Write
-void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
+void Write16(const u16 _iValue, const u32 _iAddress);
+void Write32(const u32 _iValue, const u32 _iAddress);
 
 // gfx plugin support
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
@@ -40,4 +40,5 @@ bool AllowIdleSkipping();
 } // end of namespace PixelEngine
 
 #endif
+
 

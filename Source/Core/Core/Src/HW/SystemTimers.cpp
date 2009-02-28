@@ -179,7 +179,9 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 
 void VICallback(u64 userdata, int cyclesLate)
 {
-    WII_IPC_HLE_Interface::Update();
+	if (Core::GetStartupParameter().bWii)
+		WII_IPC_HLE_Interface::Update();
+
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VI_PERIOD-cyclesLate, et_VI);
 }

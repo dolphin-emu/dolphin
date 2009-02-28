@@ -140,18 +140,18 @@ readFn64  hwReadWii64[NUMHWMEMFUN];
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
 
 template <class T>
-void HWCALL HW_Default_Write(const T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
+void HW_Default_Write(const T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
 
 template <class T>
-void HWCALL HW_Default_Read(T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
+void HW_Default_Read(T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
 
 #define PAGE_SHIFT 10
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SHIFT - 1)
 
-template <class T, u8* P> void HWCALL HW_Read_Memory(T &_Data, const u32 _Address)	{	_Data = *(T*)&P[_Address & PAGE_MASK];	}
-template <class T, u8* P> void HWCALL HW_Write_Memory(T _Data, const u32 _Address)	{	*(T*)&P[_Address & PAGE_MASK] = _Data;	}
+template <class T, u8* P> void HW_Read_Memory(T &_Data, const u32 _Address)	{	_Data = *(T*)&P[_Address & PAGE_MASK];	}
+template <class T, u8* P> void HW_Write_Memory(T _Data, const u32 _Address)	{	*(T*)&P[_Address & PAGE_MASK] = _Data;	}
 /////////////////////////////
 
 

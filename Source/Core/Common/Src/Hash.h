@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _HASH_H
 #define _HASH_H
 
@@ -23,6 +24,5 @@ u32 HashFletcher(const u8* data_u8, size_t length);  // FAST. Length & 1 == 0.
 u32 HashAdler32(const u8* data, size_t len);         // Fairly accurate, slightly slower
 u32 HashFNV(const u8* ptr, int length);              // Another fast and decent hash
 u32 HashEctor(const u8* ptr, int length);            // JUNK. DO NOT USE FOR NEW THINGS
-
 
 #endif

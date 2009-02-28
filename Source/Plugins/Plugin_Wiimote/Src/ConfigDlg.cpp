@@ -499,9 +499,9 @@ void ConfigDialog::CreateGUIControls()
 
 	// Search for devices and add them to the device list
 	wxArrayString StrJoyname; // The string array
-	if(WiiMoteEmu::NumGoodPads > 0)
+	if (WiiMoteEmu::NumGoodPads > 0)
 	{
-		for(int x = 0; x < WiiMoteEmu::joyinfo.size(); x++)
+		for (int x = 0; x < (int)WiiMoteEmu::joyinfo.size(); x++)
 			StrJoyname.Add(wxString::FromAscii(WiiMoteEmu::joyinfo[x].Name.c_str()));
 	}
 	else
@@ -518,8 +518,10 @@ void ConfigDialog::CreateGUIControls()
 	StrTilt.Add(wxString::FromAscii("Triggers"));
 	// The range is in degrees and are set at even 5 degrees values
 	wxArrayString StrTiltRangeRoll, StrTiltRangePitch;
-	for (int i = 0; i < 37; i++) StrTiltRangeRoll.Add(wxString::Format(wxT("%i"), i*5));
-	for (int i = 0; i < 37; i++) StrTiltRangePitch.Add(wxString::Format(wxT("%i"), i*5));
+	for (int i = 0; i < 37; i++)
+		StrTiltRangeRoll.Add(wxString::Format(wxT("%i"), i*5));
+	for (int i = 0; i < 37; i++)
+		StrTiltRangePitch.Add(wxString::Format(wxT("%i"), i*5));
 
 	// The Trigger type list
 	wxArrayString StrTriggerType;

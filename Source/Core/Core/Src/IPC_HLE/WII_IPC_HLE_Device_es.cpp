@@ -21,7 +21,7 @@
 // File description
 // -------------
 /*  Here we handle /dev/es requests. We have cases for these functions, the exact
-	DevKitPro name is en parenthesis:
+	DevKitPro/libogc name is in parenthesis:
 
 	0x20 GetTitleID (ES_GetTitleID) (Input: none, Output: 8 bytes)
 	0x1d GetDataDir (ES_GetDataDir) (Input: 8 bytes, Output: 30 bytes)
@@ -91,13 +91,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     // Prepare the out buffer(s) with zeroes as a safety precaution
     // to avoid returning bad values
-    for(u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
+    for (u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
     {
         Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
             Buffer.PayloadBuffer[i].m_Size);
     }
 
-    switch(Buffer.Parameter)
+    switch (Buffer.Parameter)
     {
     case IOCTL_ES_OPENTITLECONTENT: // 0x09
         {
@@ -105,9 +105,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address+8);
 
-            m_ContenAccessMap[CFD].m_Position = 0;
-            m_ContenAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
-            _dbg_assert_(WII_IPC_ES, m_ContenAccessMap[CFD].m_pContent != NULL);
+            m_ContentAccessMap[CFD].m_Position = 0;
+            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
+            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
@@ -121,9 +121,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 CFD = AccessIdentID++;
             u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-            m_ContenAccessMap[CFD].m_Position = 0;
-            m_ContenAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
-            _dbg_assert_(WII_IPC_ES, m_ContenAccessMap[CFD].m_pContent != NULL);
+            m_ContentAccessMap[CFD].m_Position = 0;
+            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice().GetContentByIndex(Index);
+            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
@@ -140,8 +140,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 Size = Buffer.PayloadBuffer[0].m_Size;
             u32 Addr = Buffer.PayloadBuffer[0].m_Address;
 
-            _dbg_assert_(WII_IPC_ES, m_ContenAccessMap.find(CFD) != m_ContenAccessMap.end());
-            SContentAccess& rContent = m_ContenAccessMap[CFD];
+            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap.find(CFD) != m_ContentAccessMap.end());
+            SContentAccess& rContent = m_ContentAccessMap[CFD];
 
             u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
             u8* pDest = Memory::GetPointer(Addr);
@@ -169,8 +169,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
             u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-            CContenAccessMap::iterator itr = m_ContenAccessMap.find(CFD);
-            m_ContenAccessMap.erase(itr);
+            CContentAccessMap::iterator itr = m_ContentAccessMap.find(CFD);
+            m_ContentAccessMap.erase(itr);
 
             LOG(WII_IPC_ES, "ES: IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
 
@@ -185,10 +185,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 Addr = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
             u32 Mode = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
 
-            _dbg_assert_(WII_IPC_ES, m_ContenAccessMap.find(CFD) != m_ContenAccessMap.end());
-            SContentAccess& rContent = m_ContenAccessMap[CFD];
+            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap.find(CFD) != m_ContentAccessMap.end());
+            SContentAccess& rContent = m_ContentAccessMap[CFD];
 
-            switch(Mode)
+            switch (Mode)
             {
             case 0:  // SET
                 rContent.m_Position = Addr;
@@ -300,10 +300,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             // TitleIDs.push_back(0x0001000248414341);
             // TitleIDs.push_back(0x0001000146414b45);
 
-            for (size_t i=0; i<TitleIDs.size();i++)
+            for (int i = 0; i < (int)TitleIDs.size(); i++)
             {
                 Memory::Write_U64(TitleIDs[i], Buffer.PayloadBuffer[0].m_Address + i*8);
-                LOGV(WII_IPC_ES, 0, "IOCTL_ES_GETTITLES: %08x/%08x", TitleIDs[i]>>32, TitleIDs[i]);
+                LOGV(WII_IPC_ES, 0, "IOCTL_ES_GETTITLES: %08x/%08x", TitleIDs[i] >> 32, TitleIDs[i]);
             }
         }
         break;

@@ -363,24 +363,24 @@ void ConfigDialog::ConvertToString()
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
 	std::string TmpStr = "", TmpIR = "", TmpTime = "";
 
-	for (int i = 0; i < m_vRecording.size(); i++)
+	for (int i = 0; i < (int)m_vRecording.size(); i++)
 	{
 		// Write the movement data
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).x >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).x).c_str() : StringFromFormat("%04i", m_vRecording.at(i).x).c_str());
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).y >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).y).c_str() : StringFromFormat("%04i", m_vRecording.at(i).y).c_str());
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).z >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).z).c_str() : StringFromFormat("%04i", m_vRecording.at(i).z).c_str());
-		if(i < (m_vRecording.size() - 1)) TmpStr += ",";
+		if (i < ((int)m_vRecording.size() - 1)) TmpStr += ",";
 
 		//Console::Print("%s\n", TmpStr.c_str());
 
 		// Write the IR data
 		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);
-		if(i < (m_vRecording.size() - 1)) TmpIR += ",";
+		if (i < ((int)m_vRecording.size() - 1)) TmpIR += ",";
 
 		// Write the timestamps. The upper limit is 99 seconds.
 		int Time = (int)((m_vRecording.at(i).Time - m_vRecording.at(0).Time) * 1000);
 		TmpTime += StringFromFormat("%05i", Time);
-		if(i < (m_vRecording.size() - 1)) TmpTime += ",";
+		if (i < ((int)m_vRecording.size() - 1)) TmpTime += ",";
 
 		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
 		   This limit should never be hit because of the recording limit below. I keep it here just in case. */

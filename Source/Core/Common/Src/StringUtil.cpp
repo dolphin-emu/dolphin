@@ -80,10 +80,10 @@ u32 Ascii2Hex(std::string _Text)
 	if (Length > 4)
 		Length = 4;
 
-	for (int i = 0; i < Length; i++)
+	for (int i = 0; i < (int)Length; i++)
 	{
 		// Add up the values, for example RSPE becomes, 0x52000000, then 0x52530000 and so on
-		Result += _Text.c_str()[i] << (Length - 1 - i)*8;
+		Result += _Text.c_str()[i] << ((Length - 1 - i) * 8);
 	}
 	// Return the value
 	return Result;

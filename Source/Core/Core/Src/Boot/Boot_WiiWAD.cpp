@@ -104,7 +104,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
     sprintf(Path, FULL_WII_USER_DIR "title//%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
         (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
         (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-    File::CreateDirectoryStructure(Path);
+	File::CreateFullPath(Path);
 
     Memory::Write_U64( ContentLoader.GetTitleID(), 0x0000318c);			// NAND Load Title ID
 
@@ -120,4 +120,5 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
     return true;
 }
+
 

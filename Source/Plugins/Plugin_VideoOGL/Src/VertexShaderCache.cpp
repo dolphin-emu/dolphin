@@ -97,7 +97,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 #endif
 
 	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-		ERROR_LOG("failed to create vertex shader\n");
+		ERROR_LOG(VIDEO, "failed to create vertex shader\n");
 		return NULL;
 	}
 
@@ -137,13 +137,13 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
-		ERROR_LOG("Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
-		ERROR_LOG(pstrprogram);
+		ERROR_LOG(VIDEO, "Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
+		ERROR_LOG(VIDEO, pstrprogram);
 		return false;
 	}
 
-	//ERROR_LOG(pstrprogram);
-	//ERROR_LOG("id: %d\n", g_Config.iSaveTargetId);
+	//ERROR_LOG(VIDEO, pstrprogram);
+	//ERROR_LOG(VIDEO, "id: %d\n", g_Config.iSaveTargetId);
 
 	char* pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
 	char* plocal = strstr(pcompiledprog, "program.local");
@@ -161,8 +161,8 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	GLenum err = GL_NO_ERROR;
 	GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
-		ERROR_LOG(pstrprogram);
-		ERROR_LOG(pcompiledprog);
+		ERROR_LOG(VIDEO, pstrprogram);
+		ERROR_LOG(VIDEO, pcompiledprog);
 	}
 
 	cgDestroyProgram(tempprog);

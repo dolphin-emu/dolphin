@@ -35,29 +35,29 @@
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
-	#ifdef _LP64
+#ifdef _LP64
 	__asm__("cpuid"
-		: "=a" (*eax),
-		  "=b" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "a"  (*eax)
-		);
-	#else
+			: "=a" (*eax),
+			  "=b" (*ebx),
+			"=c" (*ecx),
+			"=d" (*edx)
+			: "a"  (*eax)
+			);
+#else
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to be
 	//       restored at the end of the asm block.
 	__asm__(
-		"pushl  %%ebx;"
-		"cpuid;"
-		"movl   %%ebx,%1;"
-		"popl   %%ebx;"
-		: "=a" (*eax),
-		  "=r" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "a"  (*eax)
-		);
-	#endif
+			"pushl  %%ebx;"
+			"cpuid;"
+			"movl   %%ebx,%1;"
+			"popl   %%ebx;"
+			: "=a" (*eax),
+			  "=r" (*ebx),
+			  "=c" (*ecx),
+			  "=d" (*edx)
+			: "a"  (*eax)
+			);
+#endif
 }
 
 void __cpuid(int info[4], int x)
@@ -78,6 +78,7 @@ void __cpuid(int info[4], int x)
 
 CPUInfo cpu_info;
 
+// Detects the various cpu features
 void CPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
@@ -88,26 +89,26 @@ void CPUInfo::Detect()
 	OS64bit = true;
 #endif
 	num_cores = 1;
-
+	
 #ifdef _WIN32
 #ifdef _M_IX86
-	BOOL f64 = FALSE;
-	OS64bit = IsWow64Process(GetCurrentProcess(), &f64) && f64;
+	bool f64 = false;
+	OS64bit = IsWow64Process(GetCurrentProcess(), (PBOOL)(&f64)) && f64;
 #endif
 #endif
-
+	
 	// Set obvious defaults, for extra safety
-	if (Mode64bit)
-	{
+	if (Mode64bit) {
 		bSSE = true;
 		bSSE2 = true;
 		bLongMode = true;
 	}
-
-	// Assume CPU supports the CPUID instruction. Those that don't can barely boot modern OS:es anyway.
+	
+	// Assume CPU supports the CPUID instruction. Those that don't can barely
+	// boot modern OS:es anyway.
 	int cpu_id[4];
 	memset(cpu_string, 0, sizeof(cpu_string));
-
+	
 	// Detect CPU's CPUID capabilities, and grab cpu string
 	__cpuid(cpu_id, 0x00000000);
 	u32 max_std_fn = cpu_id[0];  // EAX
@@ -122,10 +123,10 @@ void CPUInfo::Detect()
 		vendor = VENDOR_AMD;
 	else
 		vendor = VENDOR_OTHER;
-
+	
 	// Set reasonable default brand string even if brand string not available.
 	strcpy(brand_string, cpu_string);
-
+	
 	// Detect family and other misc stuff.
 	bool HTT = false;
 	int logical_cpu_count = 1;
@@ -182,6 +183,7 @@ void CPUInfo::Detect()
 	}
 }
 
+// Turn the cpu info into a string we can show
 std::string CPUInfo::Summarize()
 {
 	std::string sum;

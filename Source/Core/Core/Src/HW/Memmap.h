@@ -18,38 +18,30 @@
 #ifndef _MEMMAP_H
 #define _MEMMAP_H
 
-
-///////////////////////////////////////////////////////////////////////////////////
 // Includes
-// ----------------
 #include <string>
 #include "Common.h"
-////////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////////
 // Global declarations
-// ----------------
 class PointerWrap;
 
-typedef void (HWCALL *writeFn8 )(const u8, const u32);
-typedef void (HWCALL *writeFn16)(const u16,const u32);
-typedef void (HWCALL *writeFn32)(const u32,const u32);
-typedef void (HWCALL *writeFn64)(const u64,const u32);
+typedef void (*writeFn8 )(const u8, const u32);
+typedef void (*writeFn16)(const u16,const u32);
+typedef void (*writeFn32)(const u32,const u32);
+typedef void (*writeFn64)(const u64,const u32);
 
-typedef void (HWCALL *readFn8 )(u8&,  const u32);
-typedef void (HWCALL *readFn16)(u16&, const u32);
-typedef void (HWCALL *readFn32)(u32&, const u32);
-typedef void (HWCALL *readFn64)(u64&, const u32);
-////////////////////////////
-
+typedef void (*readFn8 )(u8&,  const u32);
+typedef void (*readFn16)(u16&, const u32);
+typedef void (*readFn32)(u32&, const u32);
+typedef void (*readFn64)(u64&, const u32);
 
 namespace Memory
 {
-	// Base is a pointer to the base of the memory map. Yes, some MMU tricks are used to set up 
-	// a full GC or Wii memory map in process memory.
-	// on 32-bit, you have to mask your offsets with 0x3FFFFFFF. This means that some things are mirrored,
-	// but eh... it works.
+	/* Base is a pointer to the base of the memory map. Yes, some MMU tricks
+	 are used to set up a full GC or Wii memory map in process memory.  on
+	 32-bit, you have to mask your offsets with 0x3FFFFFFF. This means that
+	 some things are mirrored, but eh... it works. */
+
 	extern u8 *base; 
 	extern u8* m_pRAM;
 	extern u8* m_pL1Cache;
@@ -83,9 +75,7 @@ namespace Memory
 	void Clear();
 	bool AreMemoryBreakpointsActivated();
 
-	///////////////////////////////////////////////////////////////////////////////////
 	// ONLY for use by GUI
-	// ----------------
 	u8 ReadUnchecked_U8(const u32 _Address);
 	u32 ReadUnchecked_U32(const u32 _Address);
 	
@@ -111,26 +101,19 @@ namespace Memory
 	}
 
 	u32 Read_Opcode(const u32 _Address);
-	////////////////////////////////
 
 
-	///////////////////////////////////////////////////////////////////////////////////
 	// For use by emulator
-	// ----------------
 
-	// =================================
 	/* Local byteswap shortcuts. They are placed inline so that they may hopefully be executed faster
 	   than otherwise */
-	// ----------------
 	inline u8 bswap(u8 val) {return val;}
 	inline u16 bswap(u16 val) {return Common::swap16(val);}
 	inline u32 bswap(u32 val) {return Common::swap32(val);}
 	inline u64 bswap(u64 val) {return Common::swap64(val);}
 	// =================
 
-	// =================================
 	// Read and write functions
-	// ----------------
 	#define NUMHWMEMFUN 64
 	#define HWSHIFT 10
 	#define HW_MASK 0x3FF
@@ -153,11 +136,8 @@ namespace Memory
 	void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
 	void DMA_MemoryToLC(const u32 _iCacheAddr, const u32 _iMemAddr, const u32 _iNumBlocks);
 	void Memset(const u32 _Address, const u8 _Data, const u32 _iLength);
-	// =================
 
-	// =================================
 	// TLB functions
-	// ----------------
 	void SDRUpdated();
 	enum XCheckTLBFlag
 	{
@@ -169,9 +149,6 @@ namespace Memory
 	u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
 	extern u32 pagetable_base;
 	extern u32 pagetable_hashmask;
-	// ================
-
-	/////////////////////////////
 };
 
 #endif

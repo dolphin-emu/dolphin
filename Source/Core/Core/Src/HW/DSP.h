@@ -39,12 +39,12 @@ void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true)
 void GenerateDSPInterruptFromPlugin(DSPInterruptType _DSPInterruptType, bool _bSet = true);
 
 // Read32
-void HWCALL Read16(u16& _uReturnValue, const u32 _uAddress);
-void HWCALL Read32(u32& _uReturnValue, const u32 _uAddress);	
+void Read16(u16& _uReturnValue, const u32 _uAddress);
+void Read32(u32& _uReturnValue, const u32 _uAddress);	
 
 // Write
-void HWCALL Write16(const u16 _uValue, const u32 _uAddress);
-void HWCALL Write32(const u32 _uValue, const u32 _uAddress);
+void Write16(const u16 _uValue, const u32 _uAddress);
+void Write32(const u32 _uValue, const u32 _uAddress);
 
 // Audio/DSP Plugin Helper
 u8 ReadARAM(const u32 _uAddress);
@@ -57,4 +57,5 @@ void UpdateAudioDMA();
 }// end of namespace DSP
 
 #endif
+
 

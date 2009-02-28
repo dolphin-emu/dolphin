@@ -64,14 +64,7 @@
 #ifndef _WIN32
 #define WINAPI
 #endif
-////////////////////////////////////////
- 
- 
-// The idea behind the recent restructure is to fix various stupid problems.
-// glXMakeCurrent/ wglMakeCurrent takes a context and makes it current on the current thread.
-// So it's fine to init ogl on one thread, and then make it current and start blasting on another.
- 
- 
+
 namespace Core
 {
  
@@ -355,7 +348,7 @@ THREAD_RETURN CpuThread(void *pArg)
  	return 0;
 }
 //////////////////////////////////////////
- 
+
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initalize plugins and create emulation thread
@@ -497,10 +490,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
  
-	//////////////////////////////////////////////////////////////////////////
 	// ENTER THE VIDEO THREAD LOOP
-	//////////////////////////////////////////////////////////////////////////
- 
 	if (!_CoreParameter.bUseDualCore)
 	{
 #ifdef _WIN32
@@ -534,6 +524,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	//Console::Print("Video loop [Video Thread]:   Stopped\n");
 	return 0;
 }
+
 void EmuThreadEnd()
 {
 	CPluginManager &Plugins = CPluginManager::GetInstance();
@@ -558,18 +549,6 @@ void EmuThreadEnd()
 	Console::Print("Stop [Video Thread]:   Shutting down HW and Plugins\n");
 
 	// We have now exited the Video Loop and will shut down
-
-	// does this comment still apply?
-	/* JP: Perhaps not, but it's not the first time one of these waiting loops have failed. They seem inherently
-	   dysfunctional because they can hang the very thread they are waiting for, so they should be replaced by timers like I did
-	   in the Wiimote plugin. Or any alterantive that does not hang the thread it's waiting for. Sleep() hangs the other thread to,
-	   just like a loop, so that is not an option. */
-	/* Check if we are using single core and are rendering to the main window. In that case we must avoid the WaitForSingleObject()
-	   loop in the cpu thread thread, because it will hang on occation, perhaps one time in three or so. I had this problem in the Wiimote plugin, what happened was that if I entered the
-	   WaitForSingleObject loop or any loop at all in the main thread, the separate thread would halt at a place where it called a function in
-	   the wxDialog class. The solution was to wait for the thread to stop with a timer from the wxDialog, and the proceed to shutdown.
-	   Perhaps something like that can be done here to? I just don't exactly how since in single core mode there should only be one
-	   thread right? So how can WaitForSingleObject() hang in it? */
 
 	// Write message
 	if (g_pUpdateFPSDisplay != NULL)
@@ -760,14 +739,13 @@ void Callback_PADLog(const TCHAR* _szMessage)
 // __________________________________________________________________________________________________
 // Callback_ISOName: Let the DSP plugin get the game name
 //
-//std::string Callback_ISOName(void)
-const char *Callback_ISOName(void)
+const char *Callback_ISOName()
 {
     SCoreStartupParameter& params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (params.m_strName.length() > 0)
-		return (const char *)params.m_strName.c_str();
+		return params.m_strName.c_str();
 	else	
-          return (const char *)"";
+          return "";
 }
 
 // __________________________________________________________________________________________________
@@ -800,4 +778,3 @@ const SCoreStartupParameter& GetStartupParameter() {
 }
 
 } // end of namespace Core
-

@@ -20,45 +20,73 @@
 
 #include <string>
 #include <vector>
+#include <string.h>
 
 #include "Common.h"
 
+/*
+  This namespace has various generic functions related to files and paths.
+*/
 namespace File
 {
-
+	
+// FileSystem tree node/ 
 struct FSTEntry
 {
 	bool isDirectory;
-	u32 size;						// file length or number of entries from children
+	u64 size;						// file length or number of entries from children
 	std::string physicalName;		// name on disk
 	std::string virtualName;		// name in FST names table
 	std::vector<FSTEntry> children;
 };
-
-std::string SanitizePath(const char *filename);
+	
+// Returns true if file filename exists
 bool Exists(const char *filename);
+ 
+// Returns true if filename is a directory
 bool IsDirectory(const char *filename);
-bool IsDisk(const char *filename);
-bool CreateDir(const char *filename);
-bool CreateDirectoryStructure(const std::string& _rFullPath);
-bool Delete(const char *filename);
-bool DeleteDir(const char *filename);
-bool Rename(const char *srcFilename, const char *destFilename);
-bool Copy(const char *srcFilename, const char *destFilename);
+
+// Returns the size of filename (64bit)
 u64 GetSize(const char *filename);
-std::string GetUserDirectory();
+
+// Returns true if successful, or path already exists.
+bool CreateDir(const char *filename);
+
+// Creates the full path of fullPath returns true on success
+bool CreateFullPath(const char *fullPath);
+
+// Deletes a given filename, return true on success
+// Doesn't supports deleting a directory
+bool Delete(const char *filename);
+
+// Deletes a directory filename, returns true on success
+bool DeleteDir(const char *filename);
+
+// renames file srcFilename to destFilename, returns true on success 
+bool Rename(const char *srcFilename, const char *destFilename);
+
+// copies file srcFilename to destFilename, returns true on success 
+bool Copy(const char *srcFilename, const char *destFilename);
+ 
+// creates an empty file filename, returns true on success 
 bool CreateEmptyFile(const char *filename);
-
-u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
-
-bool DeleteDirRecursively(const std::string& _Directory);
-void GetCurrentDirectory(std::string& _rDirectory);
-bool SetCurrentDirectory(const std::string& _rDirectory);
-
-#if defined(__APPLE__)
-std::string GetPluginsDirectory();
-#endif
-
+ 
+// Scans the directory tree gets, starting from _Directory and adds the
+// results into parentEntry. Returns the number of files+directories found
+u32 ScanDirectoryTree(const char *directory, FSTEntry& parentEntry);
+ 
+// deletes the given directory and anything under it. Returns true on success.
+bool DeleteDirRecursively(const char *directory);
+ 
+// Returns the current directory, caller should free
+const char *GetCurrentDirectory();
+ 
+// Set the current directory to given directory
+bool SetCurrentDirectory(const char *directory);
+ 
+// Returns a pointer to a string with the dolphin data dir
+const char *GetUserDirectory();
+ 
 }  // namespace
 
 #endif

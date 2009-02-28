@@ -424,7 +424,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 	{
 		u32 myOffset = fstOffset;
 		u32 myEntryNum = myOffset / ENTRY_SIZE;		
-		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, myEntryNum + entry.size + 1);
+		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, (u32)(myEntryNum + entry.size + 1));
 		WriteEntryName(nameOffset, entry.virtualName);
 
 		for(std::vector<File::FSTEntry>::const_iterator iter = entry.children.begin(); iter != entry.children.end(); ++iter)
@@ -435,7 +435,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 	else
 	{
 		// put entry in FST
-		WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
+		WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, (u32)entry.size);
 		WriteEntryName(nameOffset, entry.virtualName);
 
 		// write entry to virtual disk
@@ -466,7 +466,7 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 
 u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
 {
-	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
+	u32 foundEntries = ScanDirectoryTree(_Directory.c_str(), parentEntry);
 	m_totalNameSize += ComputeNameSize(parentEntry);
 	return foundEntries;
 }

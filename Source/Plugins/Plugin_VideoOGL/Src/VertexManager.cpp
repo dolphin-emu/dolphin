@@ -226,7 +226,7 @@ void Flush()
 					}
 				}
 				else {
-					ERROR_LOG("error loading tex\n");
+					ERROR_LOG(VIDEO, "error loading tex\n");
 					TextureMngr::DisableStage(i); // disable since won't be used
 				}
 			}

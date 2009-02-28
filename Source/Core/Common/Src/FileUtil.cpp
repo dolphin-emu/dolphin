@@ -32,106 +32,118 @@
 #include <stdlib.h>
 #endif
 
-#if defined(__APPLE__)
-
-#include <CoreFoundation/CFString.h>
-#include <CoreFoundation/CFUrl.h>
-#include <CoreFoundation/CFBundle.h>
-#include <sys/param.h>
-
-#endif
-
 #include <fstream>
 #include <sys/stat.h>
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
 #endif
-
+/*
+  This namespace has various generic functions related to files and paths.
+  The code still needs a ton of cleanup.
+  REMEMBER: strdup considered harmful!
+*/
 namespace File
 {
 
-
-// =======================================================
 // Remove any ending forward slashes from directory paths
-// -------------
-inline void StripTailDirSlashes(std::string& fname)
+// Modifies argument.
+inline char *StripTailDirSlashes(char *fname)
 {
-	// Make sure it's not a blank string
-	if(fname.length() > 0)
-	{
-		while(fname.at(fname.length() - 1) == DIR_SEP_CHR)
-			fname.resize(fname.length() - 1);
-	}
+	int len = (int)strlen(fname);
+	int i = len - 1;
+	if (len > 1)
+		while (fname[i] == DIR_SEP_CHR)
+			fname[i--] = '\0';
+	return fname;
 }
-// =============
 
-
+// Returns true if file filename exists
 bool Exists(const char *filename)
 {
 	struct stat file_info;
+		
+	char *copy = StripTailDirSlashes(strdup(filename));
+	int result = stat(copy, &file_info);
 
-	std::string copy = filename;
-	StripTailDirSlashes(copy);
+	if (result < 0)
+	{
+		WARN_LOG(COMMON, "Exist: stat failed on %s: %s", filename,
+				 GetLastErrorMsg());
+	}
+	free(copy);
 
-	int result = stat(copy.c_str(), &file_info);
 	return (result == 0);
 }
 
+// Returns true if filename is a directory
 bool IsDirectory(const char *filename)
 {
 	struct stat file_info;
-	std::string copy = filename;
-	StripTailDirSlashes(copy);
 
-	int result = stat(copy.c_str(), &file_info);
-	if (result == 0)
-		return S_ISDIR(file_info.st_mode);
-	else
+	char *copy = StripTailDirSlashes(strdup(filename));
+
+	int result = stat(copy, &file_info);
+	free(copy);
+
+	if (result < 0) {
+		WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", 
+				 filename, GetLastErrorMsg());
 		return false;
+	}
+
+	return S_ISDIR(file_info.st_mode);
 }
 
+// Deletes a given filename, return true on success
+// Doesn't supports deleting a directory
 bool Delete(const char *filename)
 {
-	if (!Exists(filename))
+	INFO_LOG(COMMON, "Delete: file %s\n", filename);
+
+	// Return true because we care about the file no 
+	// being there, not the actual delete.
+	if (!Exists(filename)) {
+		WARN_LOG(COMMON, "Delete: %s does not exists", filename);
+		return true;
+	}
+
+	// We can't delete a directory
+	if (IsDirectory(filename)) {
+		WARN_LOG(COMMON, "Delete: %s is a directory", filename);
 		return false;
-	if (IsDirectory(filename))
-		return false;
+	}
+
 #ifdef _WIN32
-	DeleteFile(filename);
+	if (!DeleteFile(filename)) {
+		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
+				 filename, GetLastErrorMsg());
+		return false;
+	}
 #else
-	unlink(filename);
+	if (unlink(filename) == -1) {
+		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
+				 filename, GetLastErrorMsg());
+		return false;
+	}
 #endif
+
 	return true;
-}
-
-std::string SanitizePath(const char *filename)
-{
-
-    std::string copy = filename;
-#ifdef _WIN32
-    for (size_t i = 0; i < copy.size(); i++)
-        if (copy[i] == '/')
-            copy[i] = '\\';
-#else
-    // Should we do the otherway around?
-#endif
-    return copy;
 }
 
 // Returns true if successful, or path already exists.
 bool CreateDir(const char *path)
 {
+	INFO_LOG(COMMON, "CreateDir: directory %s\n", path);
 #ifdef _WIN32
 	if (::CreateDirectory(path, NULL))
 		return true;
 	DWORD error = GetLastError();
-	if (error == ERROR_ALREADY_EXISTS)
-	{
-	//	PanicAlert("%s already exists", path);
+	if (error == ERROR_ALREADY_EXISTS) 	{
+		WARN_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: already exists",  path);
 		return true;
 	}
-	PanicAlert("Error creating directory %s: %i", path, error);
+	ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %i", path, error);
 	return false;
 #else
 	if (mkdir(path, 0755) == 0)
@@ -139,434 +151,374 @@ bool CreateDir(const char *path)
 
 	int err = errno;
 
-	if (err == EEXIST)
-	{
-	//	PanicAlert("%s already exists", path);
+	if (err == EEXIST) {
+		WARN_LOG(COMMON, "CreateDir: mkdir failed on %s: already exists",  path);
 		return true;
 	}
 
-	PanicAlert("Error creating directory %s: %s", path, strerror(err));
+	ERROR_LOG(COMMON, "CreateDir: mkdir failed on %s: %s", path, strerror(err));
 	return false;
-
 #endif
 }
 
-// Create several dirs
-bool CreateDirectoryStructure(const std::string& _rFullPath)
+// Creates the full path of fullPath returns true on success
+bool CreateFullPath(const char *fullPath)
 {
-	int PanicCounter = 10;
-
-	size_t Position = 0;
-	while(true)
-	{
+	int panicCounter = 100;
+	INFO_LOG(COMMON, "CreateFullPath: path %s\n", fullPath);
+		
+	const char *position = fullPath;
+	while (true) {
 		// Find next sub path, support both \ and / directory separators
-		{
-			size_t nextPosition = _rFullPath.find(DIR_SEP_CHR, Position);
-			Position = nextPosition;
+		position = strchr(position, DIR_SEP_CHR);
 
-			if (Position == std::string::npos)
-				return true;
-
-			Position++;
-		}
+		// we're done, yay!
+		if (! position)
+			return true;
+			
+		position++;
 
 		// Create next sub path
-		std::string SubPath = _rFullPath.substr(0, Position);
-		if (!SubPath.empty())
-		{
-			if (!File::IsDirectory(SubPath.c_str()))
-			{
-				File::CreateDir(SubPath.c_str());
-				LOG(WII_IPC_FILEIO, "    CreateSubDir %s", SubPath.c_str());
+		int sLen = (int)(position - fullPath);
+		if (sLen > 0) {
+			char *subPath = strndup(fullPath, sLen);
+			if (!File::IsDirectory(subPath)) {
+				File::CreateDir(subPath);
 			}
+			free(subPath);
 		}
 
 		// A safety check
-		PanicCounter--;
-		if (PanicCounter <= 0)
-		{
-			PanicAlert("CreateDirectoryStruct creates way to much dirs...");
+		panicCounter--;
+		if (panicCounter <= 0) {
+			ERROR_LOG(COMMON, "CreateFullPath: directory stracture too deep");
 			return false;
 		}
 	}
 }
 
 
+// Deletes a directory filename, returns true on success
 bool DeleteDir(const char *filename)
 {
+	INFO_LOG(COMMON, "DeleteDir: directory %s", filename);
 
-	if (!File::IsDirectory(filename))
+	// check if a directory
+	if (!File::IsDirectory(filename)) {
+		ERROR_LOG(COMMON, "DeleteDir: Not a directory %s",
+				  filename);
 		return false;
+	}
+
 #ifdef _WIN32
-	return ::RemoveDirectory (filename) ? true : false;
+	if (::RemoveDirectory(filename))
+		return true;
 #else
-        if (rmdir(filename) == 0)
-            return true;
-        
-        int err = errno;
-        
-        PanicAlert("Error removing directory %s",strerror(err));
-        return false;
+	if (rmdir(filename) == 0)
+		return true;
 #endif
+	ERROR_LOG(COMMON, "DeleteDir: %s: %s",
+			  filename, GetLastErrorMsg());
+
+	return false;
 }
 
+// renames file srcFilename to destFilename, returns true on success 
 bool Rename(const char *srcFilename, const char *destFilename)
 {
-	return (rename(srcFilename, destFilename) == 0);
+	INFO_LOG(COMMON, "Rename: %s --> %s", 
+			 srcFilename, destFilename);
+	if (rename(srcFilename, destFilename) == 0)
+		return true;
+	ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s", 
+			  srcFilename, destFilename, GetLastErrorMsg());
+	return false;
 }
 
+// copies file srcFilename to destFilename, returns true on success 
 bool Copy(const char *srcFilename, const char *destFilename)
 {
+	INFO_LOG(COMMON, "Copy: %s --> %s", 
+			 srcFilename, destFilename);
 #ifdef _WIN32
-	return (CopyFile(srcFilename, destFilename, FALSE) == TRUE) ? true : false;
+	if (CopyFile(srcFilename, destFilename, FALSE))
+		return true;
+		
+	ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", 
+			  srcFilename, destFilename, GetLastErrorMsg());
+	return false;
 #else
 
+	// buffer size
 #define BSIZE 1024
 
-        int rnum, wnum, err;
-        char buffer[BSIZE];
-        FILE *output, *input;
-                
-        if (! (input = fopen(srcFilename, "r"))) {
-            err = errno;
-            PanicAlert("Error copying from %s: %s", srcFilename, strerror(err));
-            return false;
-        }
+	char buffer[BSIZE];
 
-        if (! (output = fopen(destFilename, "w"))) {
-            err = errno;
-            PanicAlert("Error copying to %s: %s", destFilename, strerror(err));
-            return false;
-        }
-
-	while(! feof(input)) {
-            if((rnum = fread(buffer, sizeof(char), BSIZE, input)) != BSIZE) {
-		if(ferror(input) != 0){
-                    PanicAlert("can't read source file\n");
-                    return false;
-                }
-            }
-            
-            if((wnum = fwrite(buffer, sizeof(char), rnum, output))!= rnum){
-		PanicAlert("can't write output file\n");
+	// Open input file
+	FILE *input = fopen(srcFilename, "rb");
+	if (!input)
+	{
+		ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s", 
+				  srcFilename, destFilename, GetLastErrorMsg());
 		return false;
-            }
 	}
-        
-        fclose(input);
-        fclose(output);
 
-        return true;
-      /*
-        std::ifstream ifs(srcFilename, std::ios::binary);
-        std::ofstream ofs(destFilename, std::ios::binary);
-        
-        ofs << ifs.rdbuf();
+	// open output file
+	FILE *output = fopen(destFilename, "wb");
+	if (!output)
+	{
+		fclose(input);
+		ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s", 
+				  srcFilename, destFilename, GetLastErrorMsg());
+		return false;
+	}
 
-        ifs.close();
-        ofs.close();
-          
-        return true;*/
+	// copy loop
+	while (!feof(input))
+	{
+		// read input
+		int rnum = fread(buffer, sizeof(char), BSIZE, input);
+		if (rnum != BSIZE)
+		{
+			if (ferror(input) != 0) {
+				ERROR_LOG(COMMON, 
+						  "Copy: failed reading from source, %s --> %s: %s", 
+						  srcFilename, destFilename, GetLastErrorMsg());
+				return false;
+			}
+		}
+            
+		// write output
+		int wnum = fwrite(buffer, sizeof(char), rnum, output)
+		if (wnum != rnum)
+		{
+			ERROR_LOG(COMMON, 
+					  "Copy: failed writing to output, %s --> %s: %s", 
+					  srcFilename, destFilename, GetLastErrorMsg());
+			return false;
+		}
+	}
+	// close flushs
+	fclose(input);
+	fclose(output);
+	return true;
 #endif
 }
 
-std::string GetUserDirectory()
+// Returns a pointer to a string with a Dolphin data dir in the user's home directory.
+// To be used in "multi-user" mode (that is, installed).
+const char *GetUserDirectory()
 {
-	char path[MAX_PATH];
-#ifdef _WIN32
-	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
-	{
-		//return std::string(path);
+	// Make sure we only need to do it once
+	static char path[MAX_PATH] = {0};
+	if (strlen(path) > 0)
+		return path;
 
-		/* I dont understand this, I got "E:\Documents and Settings\All Users\Application Data"
-		   from this */
-		return std::string("");
-	}
-	return std::string("");
+#ifdef WIN32
+	char homedir[MAX_PATH];
+	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
+		return NULL;
 #else
 	char *homedir = getenv("HOME");
 	if (!homedir)
-		return std::string("");
-#ifdef __APPLE__
-	snprintf(path, sizeof(path), "%s/Library/Application Support/Dolphin", homedir);
-#else
-	snprintf(path, sizeof(path), "%s/.dolphin", homedir); // XXX changeme as appropriate
+		return NULL;
 #endif
-#endif
-	return std::string(path);
+
+	snprintf(path, sizeof(path), "%s" DIR_SEP DOLPHIN_DATA_DIR, homedir);
+	INFO_LOG(COMMON, "GetUserDirectory: Setting to %s:", path);
+	return path;
 }
 
-
-//osx specific functions
-#if defined(__APPLE__)
-
-std::string GetBundleDirectory()
-{
-
-        // Plugin path will be Dolphin.app/Contents/PlugIns
-        CFURLRef BundleRef;
-        char AppBundlePath[MAXPATHLEN];
-
-        // Get the main bundle for the app
-        BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-
-        CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-        CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-
-        CFRelease(BundleRef);
-        CFRelease(BundlePath);
-
-        return AppBundlePath;
-
-
-}
-std::string GetPluginsDirectory()
-{
-
-        CFURLRef PluginDirRef;
-        char PluginPath[MAXPATHLEN];
-
-        PluginDirRef = CFBundleCopyBuiltInPlugInsURL(CFBundleGetMainBundle());
-
-        CFStringRef PluginDirPath = CFURLCopyFileSystemPath(PluginDirRef, kCFURLPOSIXPathStyle);
-        CFStringGetFileSystemRepresentation(PluginDirPath, PluginPath, sizeof(PluginPath));
-
-        CFRelease(PluginDirRef);
-        CFRelease(PluginDirPath);
-
-        std::string PluginsDir = GetBundleDirectory();
-        PluginsDir += DIR_SEP;
-        PluginsDir += PluginPath;
-
-	return PluginsDir;
-
-}
-
-
-#endif
+// Returns the size of filename (64bit)
 u64 GetSize(const char *filename)
 {
-	if (!Exists(filename))
+	if (!Exists(filename)) {
+		WARN_LOG(COMMON, "GetSize: failed %s: No such file"
+				 ,filename);
 		return 0;
-#ifdef _WIN32
-	// stat doesn't support 64-bit file sizes on Win32.
-	FILE *pFile = fopen(filename, "rb");
-	if (pFile)
-	{
-		fseek(pFile, 0, SEEK_END);
-		u64 pos = ftell(pFile);
-		fclose(pFile);
-		return pos;
 	}
-#else
-    struct stat buf;
-    if (stat(filename, &buf) == 0) {
-        return buf.st_size;
-    }
-    int err = errno;
-   	PanicAlert("Error accessing %s: %s", filename, strerror(err));
-#endif
-    return 0;
+
+	if (IsDirectory(filename)) {
+		WARN_LOG(COMMON, "GetSize: failed %s: is a directory"
+				 ,filename);
+		return 0;
+	}
+	// on windows it's actually _stat64 defined in commonFuncs
+	struct stat64 buf;
+	if (stat64(filename, &buf) == 0) {
+		return buf.st_size;
+	}
+
+	ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s",
+			  filename, GetLastErrorMsg());
+	return 0;
 }
 
-#ifdef _WIN32
-static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, FSTEntry& entry)
-{
-	// ignore files starting with a .
-	if(strncmp(ffd.cFileName, ".", 1) == 0)
-		return false;
-
-	entry.virtualName = ffd.cFileName;
-
-	if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-	{
-		entry.isDirectory = true;
-	}
-	else
-	{
-		entry.isDirectory = false;
-		entry.size = ffd.nFileSizeLow;
-	}
-
-	return true;
-}
-
-u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
-{
-	// Find the first file in the directory.
-	WIN32_FIND_DATA ffd;
-	std::string searchName = _Directory + "\\*";
-	HANDLE hFind = FindFirstFile(searchName.c_str(), &ffd);
-
-	u32 foundEntries = 0;
-
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			FSTEntry entry;
-
-			if(ReadFoundFile(ffd, entry))
-			{
-				entry.physicalName = _Directory + "\\" + entry.virtualName;
-				if(entry.isDirectory)
-				{
-					u32 childEntries = ScanDirectoryTree(entry.physicalName, entry);
-					entry.size = childEntries;
-					foundEntries += childEntries;
-				}
-
-				++foundEntries;
-
-				parentEntry.children.push_back(entry);
-			}
-		} while (FindNextFile(hFind, &ffd) != 0);
-	}
-
-	FindClose(hFind);
-
-	return foundEntries;
-}
-#else
-u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
-{
-	u32 foundEntries = 0;
-
-	struct dirent dirent, *result = NULL;
-
-	// Find the first file in the directory.
-	DIR *dirp = opendir(_Directory.c_str());
-
-	while (!readdir_r(dirp, &dirent, &result) && result) {
-		FSTEntry entry;
-		if (result->d_name[0]=='.') continue;
-		entry.virtualName = result->d_name;
-		entry.physicalName = _Directory + "/" + entry.virtualName;
-		if (IsDirectory(entry.physicalName.c_str())) {
-			entry.isDirectory = true;
-			entry.size = ScanDirectoryTree(entry.physicalName, entry);
-			foundEntries += entry.size;
-		} else {
-			entry.isDirectory = false;
-			entry.size = GetSize(entry.physicalName.c_str());
-		}
-
-		++foundEntries;
-
-		parentEntry.children.push_back(entry);
-	}
-	closedir(dirp);
-
-	return foundEntries;
-}
-#endif
-
+// creates an empty file filename, returns true on success 
 bool CreateEmptyFile(const char *filename)
 {
-	FILE* pFile = fopen(filename, "wb");
-	if (pFile == NULL)
-		return false;
+	INFO_LOG(COMMON, "CreateEmptyFile: %s", filename); 
 
+	FILE *pFile = fopen(filename, "wb");
+	if (!pFile) {
+		ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s",
+				  filename, GetLastErrorMsg());
+		return false;
+	}
 	fclose(pFile);
 	return true;
 }
 
 
-bool DeleteDirRecursively(const std::string& _Directory)
+// Scans the directory tree gets, starting from _Directory and adds the
+// results into parentEntry. Returns the number of files+directories found
+u32 ScanDirectoryTree(const char *directory, FSTEntry& parentEntry)
 {
+	INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory);
+	// How many files + directories we found
+	u32 foundEntries = 0;
+	char *virtualName;
 #ifdef _WIN32
-
-	bool Result = false;
-
+	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
-	std::string searchName = _Directory + "\\*";
-	HANDLE hFind = FindFirstFile(searchName.c_str(), &ffd);
+	char searchName[MAX_PATH + 3];
+	strncpy(searchName, directory, MAX_PATH);
+	strcat(searchName, "\\*");
 
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			// check for "." and ".."
-			if (((ffd.cFileName[0] == '.') && (ffd.cFileName[1] == 0x00)) ||
-				((ffd.cFileName[0] == '.') && (ffd.cFileName[1] == '.') && (ffd.cFileName[2] == 0x00)))
-				continue;
-
-			// build path
-			std::string newPath(_Directory);
-			newPath += '\\';
-			newPath += ffd.cFileName;
-
-			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{			
-				if (!File::DeleteDirRecursively(newPath))
-					goto error_jmp;
-			}
-			else
-			{
-				if (!File::Delete(newPath.c_str()))
-					goto error_jmp;
-			}
-
-		} while (FindNextFile(hFind, &ffd) != 0);
+	HANDLE hFind = FindFirstFile(searchName, &ffd);
+	if (hFind == INVALID_HANDLE_VALUE) {
+		FindClose(hFind);
+		return foundEntries;
 	}
-
-	if (!File::DeleteDir(_Directory.c_str()))
-		goto error_jmp;
-
-	Result = true;
-
-error_jmp:
-
-	FindClose(hFind);
-
-	return Result;
+	// windows loop
+	do {
+		FSTEntry entry;
+		virtualName = ffd.cFileName;
 #else
-        // taken from http://www.dreamincode.net/code/snippet2700.htm
-        DIR *pdir = NULL;
-        pdir = opendir (_Directory.c_str());
-        struct dirent *pent = NULL;
-        
-        if (pdir == NULL) {
-            return false;
-        }
+	struct dirent dirent, *result = NULL;
+	
+	DIR *dirp = opendir(directory);
+	if (!dirp)
+		return 0;
 
-        char file[256];
-
-        int counter = 1;
-        
-        while ((pent = readdir(pdir))) {
-            if (counter > 2) {
-                for (int i = 0; i < 256; i++) file[i] = '\0';
-                strcat(file, _Directory.c_str());
-                if (pent == NULL) {
-                    return false;
-                }
-                strcat(file, pent->d_name);
-                if (IsDirectory(file) == true) {
-                    DeleteDir(file);
-                } else {
-                    remove(file);
-                }
-            }
-            counter++;
-        }
-
-        
-        return DeleteDir(_Directory.c_str());
+	// non windows loop
+	while (!readdir_r(dirp, &dirent, &result) && result) {
+		FSTEntry entry;
+		virtualName = result->d_name;
 #endif
+		// check for "." and ".."
+		if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
+			((virtualName[0] == '.') && (virtualName[1] == '.') && 
+			 (virtualName[2] == '\0')))
+			continue;
+		entry.virtualName = virtualName;
+		entry.physicalName = directory;
+		entry.physicalName += DIR_SEP + entry.virtualName;
+		
+		if (IsDirectory(entry.physicalName.c_str())) {
+			entry.isDirectory = true;
+			// is a directory, lets go inside
+			entry.size = ScanDirectoryTree(entry.physicalName.c_str(), entry);
+			foundEntries += (u32)entry.size;
+		} else { // is a file 
+			entry.isDirectory = false;
+			entry.size = GetSize(entry.physicalName.c_str());
+		}
+		++foundEntries;
+		// Push into the tree
+		parentEntry.children.push_back(entry);		
+#ifdef _WIN32 
+	} while (FindNextFile(hFind, &ffd) != 0);
+	FindClose(hFind);
+#else
+	}
+	closedir(dirp);
+#endif
+	// Return number of entries found.
+	return foundEntries;
 }
 
-void GetCurrentDirectory(std::string& _rDirectory)
+	
+// deletes the given directory and anything under it. Returns true on
+// success.
+bool DeleteDirRecursively(const char *directory)
 {
-	char tmpBuffer[MAX_PATH+1];
-	_rDirectory = getcwd(tmpBuffer, MAX_PATH);
+	INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory);
+#ifdef _WIN32
+	// Find the first file in the directory.
+	WIN32_FIND_DATA ffd;
+	char searchName[MAX_PATH + 3] = {0};
+
+	strncpy(searchName, directory, MAX_PATH);
+	strcat(searchName, "\\*");
+
+	HANDLE hFind = FindFirstFile(searchName, &ffd);
+
+	if (hFind == INVALID_HANDLE_VALUE) {
+		FindClose(hFind);
+		return false;
+	}
+		
+	// windows loop
+	do {
+		char *virtualName = ffd.cFileName;
+#else
+	struct dirent dirent, *result = NULL;
+	DIR *dirp = opendir(directory);
+	if (!dirp)
+		return false;
+
+	// non windows loop
+	while (!readdir_r(dirp, &dirent, &result) && result) {
+		char *virtualName = result->d_name;
+#endif
+
+		// check for "." and ".."
+		if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
+			((virtualName[0] == '.') && (virtualName[1] == '.') && 
+			 (virtualName[2] == '\0')))
+			continue;
+
+		char newPath[MAX_PATH];
+		sprintf(newPath, "%s%c%s", directory, DIR_SEP_CHR, virtualName);
+		if (IsDirectory(newPath)) {
+			if (!DeleteDirRecursively(newPath))
+				return false;
+		} else {
+			if (!File::Delete(newPath))
+				return false;
+		}
+
+#ifdef _WIN32
+	} while (FindNextFile(hFind, &ffd) != 0);
+	FindClose(hFind);
+#else
+	}
+#endif
+	File::DeleteDir(directory);
+		
+	return true;
 }
 
-bool SetCurrentDirectory(const std::string& _rDirectory)
+// Returns the current directory, caller should free
+const char *GetCurrentDirectory()
 {
-    return chdir(_rDirectory.c_str()) == 0;
+	const char *dir;
+	// Get the current working directory (getcwd uses malloc) 
+	if (!(dir = getcwd(NULL, 0))) {
+
+		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
+				  GetLastErrorMsg());
+		return NULL;	
+	}
+	return dir;
 }
 
+// Sets the current directory to the given directory
+bool SetCurrentDirectory(const char *_rDirectory)
+{
+	return chdir(_rDirectory) == 0;
+}
 
 } // namespace
 

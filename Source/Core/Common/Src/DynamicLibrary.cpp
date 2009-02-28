@@ -15,8 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// All plugins from Core > Plugins are loaded and unloaded with this class when
-// Dolphin is started and stopped.
+/*
+  All plugins from Core > Plugins are loaded and unloaded with this class when
+  Dolpin is started and stopped.
+*/
 
 #include <string.h> // System
 #ifdef _WIN32
@@ -32,113 +34,116 @@
 #include "DynamicLibrary.h"
 #include "ConsoleWindow.h"
 
+
 DynamicLibrary::DynamicLibrary()
 {
 	library = 0;
 }
 
-std::string GetLastErrorAsString()
+// Gets the last dll error as string
+const char *DllGetLastError()
 {
 #ifdef _WIN32
-	LPVOID lpMsgBuf = 0;
-	DWORD error = GetLastError();
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		error,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR) &lpMsgBuf,
-		0, NULL);
-	std::string s;
-	if (lpMsgBuf)
-	{
-		s = ((char *)lpMsgBuf);
-		LocalFree(lpMsgBuf);
-	} else {
-		s = StringFromFormat("(unknown error %08x)", error);
-	}
-	return s;
-#else
-	static std::string errstr;
-	char *tmp = dlerror();
-	if (tmp)
-		errstr = tmp;
-	
-	return errstr;
-#endif
+	return GetLastErrorMsg();
+#else // not win32 
+	return dlerror();
+#endif // WIN32
 }
 
-/* Function: Loading means loading the dll with LoadLibrary() to get an
-   instance to the dll.  This is done when Dolphin is started to determine
-   which dlls are good, and before opening the Config and Debugging windows
-   from Plugin.cpp and before opening the dll for running the emulation in
-   Video_...cpp in Core. Since this is fairly slow, TODO: think about
-   implementing some sort of cache.
-   
-   Called from: The Dolphin Core */
+/* Loads the dll with LoadLibrary() or dlopen.  This function is called on
+   start to scan for plugin, and before opening the Config and Debugging
+   windows. It is also called from core to load the plugins when the 
+   emulation starts.
+
+   Returns 0 on failure and 1 on success
+
+   TODO: think about implementing some sort of cache for the plugin info.  
+*/
 int DynamicLibrary::Load(const char* filename)
 {
-	if (!filename || strlen(filename) == 0)
-	{
-		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
-		PanicAlert("Missing filename of dynamic library to load");
+
+	INFO_LOG(COMMON, "DL: Loading dynamic library %s", filename);
+
+	if (!filename || strlen(filename) == 0)	{
+		ERROR_LOG(COMMON, "DL: Missing filename to load");
 		return 0;
 	}
-	if (IsLoaded())
-	{
-		LOG(MASTER_LOG, "Trying to load already loaded library %s", filename);
-		return 2;
+
+	if (IsLoaded()) {
+		INFO_LOG(COMMON, "DL: library %s already loaded", filename);
+		return 1;
 	}
 
-	Console::Print("LoadLibrary: %s", filename);
 #ifdef _WIN32
 	library = LoadLibrary(filename);
 #else
+	// RTLD_NOW: resolve all symbols on load
+	// RTLD_LOCAL: don't resolve symbols for other libraries
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 #endif
-	Console::Print(" %p\n", library); 
-	if (!library)
-	{
-		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
-		PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
+
+	DEBUG_LOG(COMMON, "DL: LoadLibrary: %s(%p)", filename, library);
+
+	if (!library) {
+		ERROR_LOG(COMMON, "DL: Error loading DLL %s: %s", filename, 
+				  DllGetLastError());
 		return 0;
 	}
 
 	library_file = filename;
+
+	INFO_LOG(COMMON, "DL: Done loading dynamic library %s", filename);
 	return 1;
 }
 
+/* Frees one instances of the dynamic library. Note that on most systems use
+   reference count to decide when to actually remove the library from memory.
+
+   Return 0 on failure and 1 on success 
+*/
 int DynamicLibrary::Unload()
 {
-	int retval;
-	if (!IsLoaded())
-	{
-		PanicAlert("Error unloading DLL %s: not loaded", library_file.c_str());
-		return 0;
-	}
+	INFO_LOG(COMMON, "DL: Unloading dynamic library %s", library_file.c_str());
+    int retval;
+    if (!IsLoaded()) { // library != null
+		ERROR_LOG(COMMON, "DL: Unload failed for %s: not loaded", 
+				  library_file.c_str());
+        PanicAlert("DL: Unload failed %s: not loaded", 
+				   library_file.c_str());
+        return 0;
+    }
 
-	Console::Print("FreeLibrary: %s %p\n", library_file.c_str(), library);        
+    DEBUG_LOG(COMMON, "DL: FreeLibrary: %s %p\n", 
+			  library_file.c_str(), library);        
 #ifdef _WIN32
-	retval = FreeLibrary(library);
+    retval = FreeLibrary(library);
 #else
-	retval = dlclose(library) ? 0 : 1;
+    retval = dlclose(library)?0:1;
 #endif
 
-	if (!retval)
-	{
-		PanicAlert("Error unloading DLL %s: %s", library_file.c_str(),
-				   GetLastErrorAsString().c_str());
-	}
-	library = 0;
-	return retval;
+    if (! retval) {
+        ERROR_LOG(COMMON, "DL: Unload failed %s: %s", 
+				  library_file.c_str(),
+				 DllGetLastError());
+    }
+    library = 0;
+
+	INFO_LOG(COMMON, "DL: Done unloading dynamic library %s", 
+			 library_file.c_str());
+    return retval;
 }
 
+// Returns the address where symbol funcname is loaded or NULL on failure 
 void* DynamicLibrary::Get(const char* funcname) const
 {
 	void* retval;
+
+	INFO_LOG(COMMON, "DL: Getting symbol %s: %s", library_file.c_str(),
+			 funcname);
+	
 	if (!library)
 	{
-		PanicAlert("Can't find function %s - Library not loaded.");
+		ERROR_LOG(COMMON, "DL: Get failed %s - Library not loaded");
 		return NULL;
 	}
 
@@ -150,9 +155,14 @@ void* DynamicLibrary::Get(const char* funcname) const
 
 	if (!retval)
 	{
-		LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
-		PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+		ERROR_LOG(COMMON, "DL: Symbol %s missing in %s (error: %s)\n", 
+				  funcname, library_file.c_str(), 
+				  DllGetLastError());
 	}
 
+	INFO_LOG(COMMON, "DL: Done getting symbol %s: %s", library_file.c_str(),
+			 funcname);
 	return retval;
 }
+
+

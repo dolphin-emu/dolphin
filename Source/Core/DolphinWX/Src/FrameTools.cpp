@@ -419,8 +419,7 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::DoOpen(bool Boot)
 {
-    std::string currentDir;
-    File::GetCurrentDirectory(currentDir);
+    std::string currentDir = File::GetCurrentDirectory();
 
 	wxString path = wxFileSelector(
 			_T("Select the file to load"),
@@ -438,13 +437,12 @@ void CFrame::DoOpen(bool Boot)
 		return;
 	}
 
-    std::string currentDir2;
-    File::GetCurrentDirectory(currentDir2);
+    std::string currentDir2 = File::GetCurrentDirectory();
 
     if (currentDir != currentDir2)
     {
         PanicAlert("Current dir changed has been changeg from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
-        File::SetCurrentDirectory(currentDir);
+        File::SetCurrentDirectory(currentDir.c_str());
     }
 
 
@@ -838,4 +836,5 @@ void CFrame::UpdateGUI()
 
 	TheToolBar->Realize();
 }
+
 

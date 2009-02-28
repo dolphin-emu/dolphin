@@ -62,10 +62,10 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 // Read
-void HWCALL Read16(u16& _rReturnValue, const u32 _Address);
-void HWCALL Write16(const u16 _Data, const u32 _Address);
-void HWCALL Read32(u32& _rReturnValue, const u32 _Address);
-void HWCALL Write32(const u32 _Data, const u32 _Address);
+void Read16(u16& _rReturnValue, const u32 _Address);
+void Write16(const u16 _Data, const u32 _Address);
+void Read32(u32& _rReturnValue, const u32 _Address);
+void Write32(const u32 _Data, const u32 _Address);
 
 // for CGPFIFO
 void CatchUpGPU();
@@ -85,4 +85,5 @@ bool IsCommandProcessorNotUsed();
 } // end of namespace CommandProcessor
 
 #endif
+
 

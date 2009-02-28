@@ -45,19 +45,18 @@ void CheckGatherPipe();
 bool IsEmpty();
 
 // Write
-void HWCALL Write8(const u8 _iValue, const u32 _iAddress);
-void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-void HWCALL Write64(const u64 _iValue, const u32 _iAddress);
+void Write8(const u8 _iValue, const u32 _iAddress);
+void Write16(const u16 _iValue, const u32 _iAddress);
+void Write32(const u32 _iValue, const u32 _iAddress);
+void Write64(const u64 _iValue, const u32 _iAddress);
 
 // These expect pre-byteswapped values
 // Also there's an upper limit of about 512 per batch
 // Most likely these should be inlined into JIT instead
-void HWCALL FastWrite8(const u8 _iValue);
-void HWCALL FastWrite16(const u16 _iValue);
-void HWCALL FastWrite32(const u32 _iValue);
-void HWCALL FastWrite64(const u64 _iValue);
-
+void FastWrite8(const u8 _iValue);
+void FastWrite16(const u16 _iValue);
+void FastWrite32(const u32 _iValue);
+void FastWrite64(const u64 _iValue);
 };
 
 #endif

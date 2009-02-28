@@ -103,8 +103,8 @@ private:
         DiscIO::SNANDContent* m_pContent;
     };
 
-    typedef std::map<u32, SContentAccess> CContenAccessMap;
-    CContenAccessMap m_ContenAccessMap;
+    typedef std::map<u32, SContentAccess> CContentAccessMap;
+    CContentAccessMap m_ContentAccessMap;
 
     DiscIO::CNANDContentLoader* m_pContentLoader;
 

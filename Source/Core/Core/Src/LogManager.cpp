@@ -120,6 +120,7 @@ void LogManager::Init()
 	for(int i = 0; i <= LogManager::VERBOSITY_LEVELS; i++)
 	{
 		m_Log[LogTypes::MASTER_LOG + i*100]			= new CDebugger_Log("*",   "Master Log", i);
+		m_Log[LogTypes::COMMON + i*100]				= new CDebugger_Log("COMMON", "Common Lib", i);
 		m_Log[LogTypes::BOOT + i*100]				= new CDebugger_Log("BOOT", "Boot", i);
 		m_Log[LogTypes::PIXELENGINE + i*100]		= new CDebugger_Log("PE",  "PixelEngine", i);
 		m_Log[LogTypes::COMMANDPROCESSOR + i*100]	= new CDebugger_Log("CP",  "CommandProc", i);
@@ -189,7 +190,7 @@ void LogManager::Shutdown()
 	m_bInitialized = false;
 
 	// Delete all loggers
-	for (int i=0; i<LogTypes::NUMBER_OF_LOGS; i++)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
 		for (int j = 0; j < VERBOSITY_LEVELS; j++)
 		{
@@ -239,17 +240,11 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	static u32 count = 0;
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
-
-	// Here's the old symbol request
-	//Debugger::FindSymbol(PC);
-	// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
-	//symbol.GetName().c_str(),
-
 	// Warning: Getting the function name this often is very demanding on the CPU.
 	// I have limited it to the two lowest verbosity levels because of that. I've also
 	// added a simple caching function so that we don't search again if we get the same
 	// question again.
-	std::string symbol;
+	const char *symbol;
 
 	if ((v == 0 || v == 1) && lastPC != PC && LogManager::m_LogSettings->bResolve)
 	{
@@ -257,9 +252,9 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 		lastSymbol = symbol;
 		lastPC = PC;
 	}
-	else if(lastPC == PC && LogManager::m_LogSettings->bResolve)
+	else if (lastPC == PC && LogManager::m_LogSettings->bResolve)
 	{
-		symbol = lastSymbol;
+		symbol = lastSymbol.c_str();
 	}
 	else
 	{
@@ -275,7 +270,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 			Common::Timer::GetTimeFormatted().c_str(),
 			PowerPC::ppcState.DebugCount,
 			m_Log[_type]->m_szShortName_, // (CONSOLE etc)
-			symbol.c_str(),	PC, // current PC location (name, address)
+			symbol,	PC, // current PC location (name, address)
 			Msg, eol);
 	}
 
@@ -289,7 +284,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// ---------------
 
 	// Check if we should do a unified write to a single file
-	if(m_LogSettings->bUnify)
+	if (m_LogSettings->bUnify)
 	{
 		// prepare the right id
 		int id = VERBOSITY_LEVELS*100 + type;

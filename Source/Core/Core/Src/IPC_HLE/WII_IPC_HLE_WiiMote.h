@@ -186,7 +186,7 @@ private:
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-	void CommandCofigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
+	void CommandConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 
 
 	//////////////////

@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+/////////////////////////////
+// What does SJP stand for???
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
@@ -104,7 +106,6 @@ void CCodeWindow::CreateSymbolsMenu()
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
 	pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
-
 
 	wxMenu *pJitMenu = new wxMenu;
 	pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));

@@ -459,10 +459,10 @@ bool IniFile::Get(const char* sectionName, const char* key, std::vector<std::str
 		return false;
 	}
 	
-	u32 subEnd;
 
 	// ignore starting , if any
-	u32 subStart = temp.find_first_not_of(",");
+	size_t subStart = temp.find_first_not_of(",");
+	size_t subEnd;
 
 	// split by , 
 	while (subStart != std::string::npos) {

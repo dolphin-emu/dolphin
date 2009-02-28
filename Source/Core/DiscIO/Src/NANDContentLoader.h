@@ -42,16 +42,12 @@ public:
     CNANDContentLoader(const std::string& _rName);
 
     bool IsValid() const    { return m_Valid; }
-
     u64 GetTitleID() const  { return m_TitleID; }
-
     u32 GetBootIndex() const  { return m_BootIndex; }
-
-    size_t GetContentSize() const { return m_TileMetaContent.size(); }
-
+    size_t GetContentSize() const { return m_TitleMetaContent.size(); }
     SNANDContent* GetContentByIndex(int _Index);
 
-    static bool IsWiiWAD(const std::string& _rName);    
+    static bool IsWiiWAD(const std::string& _rName);
 
 private:
 
@@ -59,7 +55,7 @@ private:
     u64 m_TitleID;
     u32 m_BootIndex;
 
-    std::vector<SNANDContent> m_TileMetaContent;
+    std::vector<SNANDContent> m_TitleMetaContent;
 
     bool CreateFromDirectory(const std::string& _rPath);
     bool CreateFromWAD(const std::string& _rName);

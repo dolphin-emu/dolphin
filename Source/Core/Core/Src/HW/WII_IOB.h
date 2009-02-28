@@ -29,17 +29,18 @@ void DoState(PointerWrap &p);
 
 void Update();
 
-void HWCALL Read8(u8& _rReturnValue, const u32 _Address);
-void HWCALL Read16(u16& _rReturnValue, const u32 _Address);
-void HWCALL Read32(u32& _rReturnValue, const u32 _Address);
-void HWCALL Read64(u64& _rReturnValue, const u32 _Address);
+void Read8(u8& _rReturnValue, const u32 _Address);
+void Read16(u16& _rReturnValue, const u32 _Address);
+void Read32(u32& _rReturnValue, const u32 _Address);
+void Read64(u64& _rReturnValue, const u32 _Address);
 
-void HWCALL Write8(const u8 _Value, const u32 _Address);
-void HWCALL Write16(const u16 _Value, const u32 _Address);
-void HWCALL Write32(const u32 _Value, const u32 _Address);
-void HWCALL Write64(const u64 _Value, const u32 _Address);
+void Write8(const u8 _Value, const u32 _Address);
+void Write16(const u16 _Value, const u32 _Address);
+void Write32(const u32 _Value, const u32 _Address);
+void Write64(const u64 _Value, const u32 _Address);
 
 } // end of namespace AudioInterface
 
 #endif
+
 

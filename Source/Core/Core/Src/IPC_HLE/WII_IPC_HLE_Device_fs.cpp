@@ -65,7 +65,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/",
 			(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 	
-		File::CreateDirectoryStructure(Path);
+		File::CreateFullPath(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -313,7 +313,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
 
 			DirName += DIR_SEP;
-			File::CreateDirectoryStructure(DirName );
+			File::CreateFullPath(DirName.c_str());
 			_dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName.c_str()), "FS: CREATE_DIR %s failed", DirName.c_str());
 
 			return FS_RESULT_OK;
@@ -428,7 +428,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Offset += 64;
 
 			// try to make the basis directory
-			File::CreateDirectoryStructure(FilenameRename);
+			File::CreateFullPath(FilenameRename.c_str());
 
 			// if there is already a filedelete it
 			if (File::Exists(FilenameRename.c_str()))
@@ -480,7 +480,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			}
 
 			// create the file
-			File::CreateDirectoryStructure(Filename);  // just to be sure
+			File::CreateFullPath(Filename.c_str());  // just to be sure
 			bool Result = File::CreateEmptyFile(Filename.c_str());
 			if (!Result)
 			{

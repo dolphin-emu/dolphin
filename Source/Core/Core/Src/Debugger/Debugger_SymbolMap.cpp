@@ -110,7 +110,7 @@ void PrintCallstack(LogTypes::LOG_TYPE type)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
-        LOGVP(type, 1, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
+	LOGVP(type, 1, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
 
 	if (LR == 0) {
 		LOGVP(type, 1, " LR = 0 - this is bad\n");	
@@ -137,10 +137,10 @@ void PrintCallstack(LogTypes::LOG_TYPE type)
 void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
 {
 	LOGP(type, _title);		
-	for (u32 j=0; j<_Size;)
+	for (u32 j = 0; j < _Size;)
 	{
 		std::string Temp;
-		for (int i=0; i<16; i++)
+		for (int i = 0; i < 16; i++)
 		{
 			char Buffer[128];
 			sprintf(Buffer, "%02x ", _pData[j++]);
@@ -149,7 +149,6 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const ch
 			if (j >= _Size)
 				break;
 		}
-
 		LOGP(type, "   Data: %s", Temp.c_str());
 	}
 }

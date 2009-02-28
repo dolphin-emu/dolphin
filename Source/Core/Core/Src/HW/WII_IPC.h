@@ -32,11 +32,12 @@ bool IsReady();
 void GenerateReply(u32 _AnswerAddress);
 void GenerateAck(u32 _AnswerAddress);
 
-void HWCALL Read32(u32& _rReturnValue, const u32 _Address);
+void Read32(u32& _rReturnValue, const u32 _Address);
 
-void HWCALL Write32(const u32 _Value, const u32 _Address);
+void Write32(const u32 _Value, const u32 _Address);
 
 } // end of namespace AudioInterface
 
 #endif
+
 

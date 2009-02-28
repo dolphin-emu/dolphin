@@ -109,7 +109,7 @@ void ConfigDialog::SetButtonTextAll(int id, char text[128])
 	for (int i = 0; i < 1; i++)
 	{
 		// Safety check to avoid crash
-		if(WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
+		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
 			if (WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name == WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Page].ID].Name)
 				SetButtonText(id, text, i);
 	};
@@ -123,7 +123,7 @@ void ConfigDialog::SaveButtonMappingAll(int Slot)
 	for (int i = 0; i < 4; i++)
 	{
 		// This can occur when no gamepad is detected
-		if(WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
+		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
 			if (WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name == WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Slot].ID].Name)
 				SaveButtonMapping(i, false, Slot);
 	}
@@ -160,7 +160,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
 	// Wiimote
-	#ifdef _WIN32
+#ifdef _WIN32
 	m_bWmA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str()));
 	m_bWmB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.B).c_str())); 
 	m_bWm1[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.One).c_str()));
@@ -209,7 +209,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bCcRu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ru).c_str()));
 	m_bCcRr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rr).c_str()));
 	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rd).c_str()));
-	#endif
+#endif
 
 	//Console::Print("m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
 }
@@ -232,9 +232,11 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	/* Set physical device Id. GetSelection() should never be -1 here so we don't check that it's zero or higher. If it's possible that it can be
 	   -1 that's a bug that should be fixed. Because the m_Joyname[] combo box should always show <No Gamepad Detected>, or a gamepad name, not a
 	   a blank selection. */
-	if(!DontChangeId) WiiMoteEmu::PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
+	if (!DontChangeId)
+		WiiMoteEmu::PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
 	// Set enabled or disable status 
-	if(FromSlot == controller) WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
+	if (FromSlot == controller)
+		WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
 	// Set other settings
 	//WiiMoteEmu::PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();

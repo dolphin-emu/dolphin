@@ -1061,7 +1061,7 @@ int GetUpdateRate()
 		//Console::Print("Time: %i %f\n", Time, GetDoubleTime());
 
 		int TotalTime = 0;
-		for (int i = 0; i < g_UpdateTimeList.size(); i++)
+		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)
 			TotalTime += g_UpdateTimeList.at(i);
 		g_UpdateRate = TotalTime / 5;
 

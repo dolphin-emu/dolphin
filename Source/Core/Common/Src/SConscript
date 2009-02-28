@@ -17,6 +17,7 @@ files = [
 	"FileUtil.cpp",
 	"MappedFile.cpp",
 	"MathUtil.cpp",
+	"Misc.cpp",
 	"MemArena.cpp",
 	"MemoryUtil.cpp",
 	"Plugin.cpp",
