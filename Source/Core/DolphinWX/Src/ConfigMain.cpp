@@ -671,15 +671,25 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 
 	if (!filename.empty())
 	{
-		strMemcard = filename;
-
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		// also check that the path isn't used for the other memcard...
+		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
+		: SConfig::GetInstance().m_strMemoryCardA) != 0)
 		{
-			// Change memcard to the new file
-			ExpansionInterface::ChangeDevice(
-				(isSlotA) ? 0 : 1,	// SlotA: channel 0, SlotB channel 1
-				(isSlotA) ? EXIDEVICE_MEMORYCARD_A : EXIDEVICE_MEMORYCARD_B,
-				0);	// SP1 is device 2, slots are device 0
+			strMemcard = filename;
+
+			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			{
+				// Change memcard to the new file
+				ExpansionInterface::ChangeDevice(
+					isSlotA ? 0 : 1, // SlotA: channel 0, SlotB channel 1
+					isSlotA ? EXIDEVICE_MEMORYCARD_A : EXIDEVICE_MEMORYCARD_B,
+					0);	// SP1 is device 2, slots are device 0
+			}
+		}
+		else
+		{
+			PanicAlert("Cannot use that file as a memory card.\n"
+				"Are you trying to use the same file in both slots?");
 		}
 	}
 }
