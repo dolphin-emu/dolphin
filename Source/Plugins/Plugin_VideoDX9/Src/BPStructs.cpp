@@ -418,7 +418,7 @@ void BPWritten(int addr, int changes, int newval)
 #ifdef _DEBUG
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
-            DEBUG_LOG("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
+            DEBUG_LOG(VIDEO, "ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
 #endif
         }
 		break;

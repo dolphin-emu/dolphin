@@ -261,7 +261,7 @@ static void Decode()
         break;
 
     case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
-        DEBUG_LOG("Invalidate	(vertex cache?)");
+        DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
         break;
 
     case GX_LOAD_BP_REG: //0x61

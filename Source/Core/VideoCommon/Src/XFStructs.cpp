@@ -140,7 +140,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x1015:
             case 0x1016:
             case 0x1017:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
+                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
                 break;
             case 0x1018:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex0");
@@ -192,7 +192,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x104d:
             case 0x104e:
             case 0x104f:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
+                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
                 break;
             case 0x1050: xfregs.texcoords[0].postmtxinfo.hex = data; break;
             case 0x1051: xfregs.texcoords[1].postmtxinfo.hex = data; break;
@@ -204,7 +204,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x1057: xfregs.texcoords[7].postmtxinfo.hex = data; break;
 
             default:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
+                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
                 break;
             }
         }
