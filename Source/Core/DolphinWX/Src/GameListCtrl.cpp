@@ -414,6 +414,7 @@ void CGameListCtrl::ScanForISOs()
 	Extensions.push_back("*.iso");
 	Extensions.push_back("*.gcm");
 	Extensions.push_back("*.gcz");
+	Extensions.push_back("*.wad");
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
