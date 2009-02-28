@@ -23,6 +23,4 @@
 
 extern SVideoInitialize g_VideoInitialize;
 
-void DebugLog(const char* _fmt, ...);
-
 #endif

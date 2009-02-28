@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <list>
 #include <d3dx9.h>
 
 #include "Common.h"
@@ -30,16 +31,20 @@
 #include "D3DPostprocess.h"
 #include "D3DUtil.h"
 #include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
 #include "PixelShaderManager.h"
+#include "VertexShaderCache.h"
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "Utils.h"
 #include "EmuWindow.h"
 
-#include <list>
+float Renderer::m_x;
+float Renderer::m_y;
+float Renderer::m_width;
+float Renderer::m_height;
+float Renderer::xScale;
+float Renderer::yScale;
 
-float Renderer::m_x,Renderer::m_y,Renderer::m_width, Renderer::m_height, Renderer::xScale,Renderer::yScale;
 std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
 
 DWORD Renderer::m_RenderStates[MaxRenderStates+46];
@@ -50,18 +55,14 @@ DWORD Renderer::m_FVF;
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
 
-
 struct Message
 {
-	Message(const std::string &msg, u32 dw) : message( msg ), dwTimeStamp( dw )
-	{
-	}
-
+	Message(const std::string &msg, u32 dw) : message(msg), dwTimeStamp(dw) { }
 	std::string message;
     u32 dwTimeStamp;
 };
-static std::list<Message> s_listMsgs;
 
+static std::list<Message> s_listMsgs;
 
 void Renderer::Init(SVideoInitialize &_VideoInitialize) 
 {
@@ -79,32 +80,44 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	xScale = 640.0f / (float)vp.Width;
 	yScale = 480.0f / (float)vp.Height;
 
+	D3DXMATRIX mtx;
+	D3DXMatrixIdentity(&mtx);
+	D3D::dev->SetTransform(D3DTS_VIEW, &mtx);
+	D3D::dev->SetTransform(D3DTS_WORLD, &mtx);
+	float width =  (float)D3D::GetDisplayWidth();
+	float height = (float)D3D::GetDisplayHeight();
+
+	xScale = width/640.0f;
+	yScale = height/480.0f;
+/*
+	RECT rc =
+	{
+		(LONG)(m_x*xScale),
+		(LONG)(m_y*yScale),
+		(LONG)(m_width*xScale),
+		(LONG)(m_height*yScale)
+	};
+*/
 	D3D::font.Init();
 	Initialize();
 }
 
-void Renderer::Shutdown(void)
+void Renderer::Shutdown()
 {
 	D3D::font.Shutdown();
 	D3D::EndFrame();
 	D3D::Close();
 }
 
-void Renderer::Initialize(void)
+void Renderer::Initialize()
 {
 	m_FVF = 0;
+	m_Textures.reserve(MaxTextureStages);
+	for (int i = 0; i < MaxTextureStages; i++)
+		m_Textures.push_back(NULL);
 
-	m_Textures.reserve( MaxTextureStages );
-	for ( int i = 0; i < MaxTextureStages; i++ )
-	{
-		m_Textures.push_back( NULL );
-	}
-
-	for (int i=0; i<8; i++)
-	{
+	for (int i = 0; i < 8; i++)
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
-	}
-	ReinitView();
 
 	Postprocess::Initialize();
 	Postprocess::BeginFrame();
@@ -123,15 +136,15 @@ void Renderer::ProcessMessages()
         int left = 25, top = 15;
 		std::list<Message>::iterator it = s_listMsgs.begin();
         
-        while( it != s_listMsgs.end() ) 
+        while(it != s_listMsgs.end()) 
 		{
 			int time_left = (int)(it->dwTimeStamp - timeGetTime());
 			int alpha = 255;
 
-			if(time_left<1024)
+			if (time_left<1024)
 			{
 				alpha=time_left>>2;
-				if(time_left<0) alpha=0;
+				if (time_left<0) alpha=0;
 			}
 
 			alpha <<= 24;
@@ -162,28 +175,9 @@ void dumpMatrix(D3DXMATRIX &mtx)
 	}
 }
 
-void Renderer::ReinitView()
+void Renderer::SwapBuffers()
 {
-	D3DXMATRIX mtx;
-	D3DXMatrixIdentity(&mtx);
-	D3D::dev->SetTransform(D3DTS_VIEW,&mtx);
-	D3D::dev->SetTransform(D3DTS_WORLD,&mtx);
-
-	float width =  (float)D3D::GetDisplayWidth();
-	float height = (float)D3D::GetDisplayHeight();
-
-	xScale = width/640.0f;
-	yScale = height/480.0f;
-
-	RECT rc =
-	{
-		(LONG)(m_x*xScale), (LONG)(m_y*yScale), (LONG)(m_width*xScale), (LONG)(m_height*yScale)
-	};
-}
-
-void Renderer::SwapBuffers(void)
-{
-	// center window again
+	// Center window again.
 	if (EmuWindow::GetParentWnd())
 	{
 		RECT rcWindow;
@@ -192,7 +186,7 @@ void Renderer::SwapBuffers(void)
 		int width = rcWindow.right - rcWindow.left;
 		int height = rcWindow.bottom - rcWindow.top;
 
-		::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 	//	nBackbufferWidth = width;
 	//	nBackbufferHeight = height;
 	}
@@ -230,11 +224,11 @@ void Renderer::SwapBuffers(void)
 	ProcessMessages();
 
 #if defined(DVPROFILE)
-    if( g_bWriteProfile ) {
+    if (g_bWriteProfile) {
         //g_bWriteProfile = 0;
         static int framenum = 0;
         const int UPDATE_FRAMES = 8;
-        if( ++framenum >= UPDATE_FRAMES ) {
+        if (++framenum >= UPDATE_FRAMES) {
             DVProfWrite("prof.txt", UPDATE_FRAMES);
             DVProfClear();
             framenum = 0;
@@ -248,10 +242,9 @@ void Renderer::SwapBuffers(void)
 	
 	//clean out old stuff from caches
 	frameCount++;
-	PShaderCache::Cleanup();
-	VShaderCache::Cleanup();
+	PixelShaderCache::Cleanup();
+	VertexShaderCache::Cleanup();
 	TextureCache::Cleanup();
-	//DListCache::Cleanup();
 
 	//////////////////////////////////////////////////////////////////////////
 	//Begin new frame
@@ -272,7 +265,8 @@ void Renderer::SwapBuffers(void)
 	rc.bottom = (LONG)m_height;
 	D3D::dev->SetScissorRect(&rc);
 
-	u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
+	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x101010, 0, 0);
+	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 //	clearColor |= 0x003F003F;
 //	D3D::BeginFrame(true,clearColor,1.0f);
 	D3D::BeginFrame(false, clearColor, 1.0f);
@@ -285,6 +279,7 @@ void Renderer::SwapBuffers(void)
 		D3D::font.SetRenderStates(); //compatibility with low end cards
 }
 
+/*
 void Renderer::SetViewport(float* _Viewport)
 {
 	Viewport* pViewport = (Viewport*)_Viewport;
@@ -300,13 +295,13 @@ void Renderer::SetViewport(float* _Viewport)
 	if (y < 0.0f) y = 0.0f;
 	if (x > 640.0f) x = 639.0f;
 	if (y > 480.0f) y = 479.0f;
-	if (w < 0) w=1;
-	if (h < 0) h=1;
+	if (w < 0) w = 0;
+	if (h < 0) h = 0;
 	if (x+w > 640.0f) w=640-x;
 	if (y+h > 480.0f) h=480-y;
 	//x=y=0;
-	//if(w>0.0f) w=0.0f;
-	//if(h<0.0f) h=0.0f;
+	//if (w>0.0f) w=0.0f;
+	//if (h<0.0f) h=0.0f;
 
 	vp.X = (DWORD)(x*xScale);
 	vp.Y = (DWORD)(y*yScale);
@@ -321,9 +316,12 @@ void Renderer::SetViewport(float* _Viewport)
 
 	D3D::dev->SetViewport(&vp);
 }
+*/
 
-void Renderer::SetScissorBox(RECT &rc)
+
+void Renderer::SetScissorRect()
 {
+	RECT rc = {0,0,0,0}; // FIXX
 	rc.left   = (int)(rc.left   * xScale);
 	rc.top    = (int)(rc.top    * yScale);
 	rc.right  = (int)(rc.right  * xScale);
@@ -334,6 +332,7 @@ void Renderer::SetScissorBox(RECT &rc)
 		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);
 }
 
+/*
 void Renderer::SetProjection(float* pMatrix, int constantIndex)
 {
 	D3DXMATRIX mtx;
@@ -349,10 +348,17 @@ void Renderer::SetProjection(float* pMatrix, int constantIndex)
 		mtx.m[1][2] = pMatrix[3];
 		mtx.m[1][3] = 0; // +0.5f/m_height;  <-- fix d3d pixel center?
 			 		
+<<<<<<< .mine
+		mtx.m[0][2] = 0.0f;
+		mtx.m[1][2] = 0.0f;
+		mtx.m[2][2] = -(1 - pMatrix[4]);
+		mtx.m[3][2] = pMatrix[5]; 
+=======
 		mtx.m[2][0] = 0.0f;
 		mtx.m[2][1] = 0.0f;
 		mtx.m[2][2] = -(1.0f - pMatrix[4]);
 		mtx.m[2][3] = pMatrix[5];  // Problematic in OGL
+>>>>>>> .r2480
 			 		
 		mtx.m[3][0] = 0.0f;
 		mtx.m[3][1] = 0.0f;
@@ -384,54 +390,97 @@ void Renderer::SetProjection(float* pMatrix, int constantIndex)
 		mtx.m[3][3] = 1.0f;
 	}
 	D3D::dev->SetVertexShaderConstantF(constantIndex, mtx, 4);
-}
+}*/
 
-
-void Renderer::SetTexture( DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture )
+void Renderer::SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 {
-	if ( m_Textures[Stage] != pTexture )
+	if (m_Textures[Stage] != pTexture)
 	{
 		m_Textures[Stage] = pTexture;
-		D3D::dev->SetTexture( Stage, pTexture );
+		D3D::dev->SetTexture(Stage, pTexture);
 	}
 }
 
-
-void Renderer::SetFVF( DWORD FVF )
+void Renderer::SetFVF(DWORD FVF)
 {
-	if ( m_FVF != FVF )
+	if (m_FVF != FVF)
 	{
 		m_FVF = FVF;
-		D3D::dev->SetFVF( FVF );
+		D3D::dev->SetFVF(FVF);
 	}
 }
 
-
-void Renderer::SetRenderState( D3DRENDERSTATETYPE State, DWORD Value )
+void Renderer::SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 {
-	if ( m_RenderStates[State] != Value )
+	if (m_RenderStates[State] != Value)
 	{
 		m_RenderStates[State] = Value;
-		D3D::dev->SetRenderState( State, Value );
+		D3D::dev->SetRenderState(State, Value);
 	}
 }
 
-
-void Renderer::SetTextureStageState( DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value )
+void Renderer::SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
 {
-	if ( m_TextureStageStates[Stage][Type] != Value )
+	if (m_TextureStageStates[Stage][Type] != Value)
 	{
 		m_TextureStageStates[Stage][Type] = Value;
-		D3D::dev->SetTextureStageState( Stage, Type, Value );
+		D3D::dev->SetTextureStageState(Stage, Type, Value);
 	}
 }
 
-
-void Renderer::SetSamplerState( DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value )
+void Renderer::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
-	if ( m_SamplerStates[Sampler][Type] != Value )
+	if (m_SamplerStates[Sampler][Type] != Value)
 	{
 		m_SamplerStates[Sampler][Type] = Value;
-		D3D::dev->SetSamplerState( Sampler, Type, Value );
+		D3D::dev->SetSamplerState(Sampler, Type, Value);
 	}
+}
+
+// Called from VertexShaderManager
+void UpdateViewport()
+{
+    // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+    // [0] = width/2
+    // [1] = height/2
+    // [2] = 16777215 *(farz - nearz)
+    // [3] = xorig + width/2 + 342
+    // [4] = yorig + height/2 + 342
+    // [5] = 16777215 * farz
+
+	/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
+		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
+		2 * rawViewport[0], 2 * rawViewport[1],
+		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
+	
+	D3DVIEWPORT9 vp;
+
+	// Keep aspect ratio at 4:3
+	// rawViewport[0] = 320, rawViewport[1] = -240
+	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
+	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
+	float fourThree = 4.0f / 3.0f;
+	float wAdj, hAdj;
+	float actualRatiow, actualRatioh;
+	int overfl;
+	int xoffs = 0;
+	int yoffs = 0;
+	int wid, hei, actualWid, actualHei;
+
+	int winw = 640;
+	int winh = 480;
+	float ratio = (float)winw / (float)winh / fourThree;
+	
+	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2])/16777215.0f;
+	vp.MaxZ = xfregs.rawViewport[5]/16777215.0f;
+	
+	wid = ceil(fabs(2 * xfregs.rawViewport[0]));
+	hei = ceil(fabs(2 * xfregs.rawViewport[1]));
+
+	vp.X = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) + xoffs;
+	vp.Y = (int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff) + yoffs;
+	vp.Width = wid;
+	vp.Height = hei;
+
+	D3D::dev->SetViewport(&vp);
 }

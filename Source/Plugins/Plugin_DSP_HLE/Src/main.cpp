@@ -250,9 +250,9 @@ void Initialize(void *init)
 	}
 
 #if defined(WIN32) && defined(_DEBUG)
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-	_CrtSetDbgFlag(tmpflag);
+	//int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	//tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
+	//_CrtSetDbgFlag(tmpflag);
 #endif
 
 	if (soundStream)

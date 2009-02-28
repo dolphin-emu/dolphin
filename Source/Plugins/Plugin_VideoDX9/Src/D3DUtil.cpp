@@ -83,7 +83,7 @@ namespace D3D
 		HFONT hFont = CreateFont(nHeight, 0, 0, 0, dwBold, 0,
 			FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
 			CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-			VARIABLE_PITCH, "Courier New");
+			VARIABLE_PITCH, "Tahoma");
 
 		if (NULL == hFont)
 			return E_FAIL;

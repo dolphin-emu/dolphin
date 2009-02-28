@@ -31,7 +31,6 @@
 #include "BPStructs.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
-#include "TransformEngine.h"
 #include "DlgSettings.h"
 #include "D3DPostprocess.h"
 #include "D3DTexture.h"

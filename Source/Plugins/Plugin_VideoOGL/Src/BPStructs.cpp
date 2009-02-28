@@ -86,7 +86,6 @@ void BPWritten(int addr, int changes, int newval)
             }
             else if (glIsEnabled(GL_CULL_FACE) == GL_TRUE)
                 glDisable(GL_CULL_FACE);
-
             PixelShaderManager::SetGenModeChanged();
         }
         break;
@@ -177,7 +176,6 @@ void BPWritten(int addr, int changes, int newval)
 
     case BPMEM_BLENDMODE:	
         if (changes & 0xFFFF) {
-
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 
@@ -320,7 +318,7 @@ void BPWritten(int addr, int changes, int newval)
 #endif
         }
         break;
-    
+
     case 0xf6: // ksel0
     case 0xf7: // ksel1
     case 0xf8: // ksel2
@@ -343,23 +341,23 @@ void BPWritten(int addr, int changes, int newval)
         {
         case 0x02:
             g_VideoInitialize.pSetPEFinish(); // may generate interrupt
-            DebugLog("GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
+            DEBUG_LOG("GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
             break;
 
         default:
-            DebugLog("GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
+            DEBUG_LOG("GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
             break;
         }
         break;
 
     case BPMEM_PE_TOKEN_ID:
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
-        DebugLog("SetPEToken 0x%04x", (newval & 0xFFFF));
+        DEBUG_LOG("SetPEToken 0x%04x", (newval & 0xFFFF));
         break;
 
     case BPMEM_PE_TOKEN_INT_ID:
         g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
-        DebugLog("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
+        DEBUG_LOG("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
         break;
 
     case BPMEM_SETGPMETRIC: // Set gp metric?
@@ -557,6 +555,7 @@ void BPWritten(int addr, int changes, int newval)
             // Not sure if it's a good idea, though. For now, we hash texture palettes
         }
         break;
+    
 
     default:
         switch (addr & 0xFC)  //texture sampler filter
@@ -649,7 +648,7 @@ void BPWritten(int addr, int changes, int newval)
                 if (changes) {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderManager::SetTevIndirectChanged(addr-0x10);
+                    PixelShaderManager::SetTevIndirectChanged(addr - 0x10);
                 }
                 break;
 
@@ -657,7 +656,7 @@ void BPWritten(int addr, int changes, int newval)
                 if (changes) {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderManager::SetTexDimsChanged((addr>>1)&0x7);
+                    PixelShaderManager::SetTexDimsChanged((addr >> 1) & 0x7);
                 }
                 break;
 
@@ -667,7 +666,7 @@ void BPWritten(int addr, int changes, int newval)
                 {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderManager::SetTevCombinerChanged((addr&0x1f)/2);
+                    PixelShaderManager::SetTevCombinerChanged((addr & 0x1f) / 2);
                 }
                 break;
 
@@ -730,42 +729,3 @@ void BPWritten(int addr, int changes, int newval)
     }
 }
 
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-void LoadBPReg(u32 value0)
-{
-    DVSTARTPROFILE();
-    // Handle the mask register
-    int opcode = value0 >> 24;
-    int oldval = ((u32*)&bpmem)[opcode];
-    int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
-	// Check if it's a new value
-    int changes = (oldval ^ newval) & 0xFFFFFF;
-    //reset the mask register
-    if (opcode != 0xFE)
-        bpmem.bpMask = 0xFFFFFF;
-    // Notify the video handling so it can update render states
-    BPWritten(opcode, changes, newval);
-}
-
-// Called when loading a saved state.
-// Needs more testing though.
-void BPReload()
-{
-	for (int i = 0; i < 254; i++)
-	{
-		switch (i) {
-		
-		case 0x41:
-		case 0x45: //GXSetDrawDone
-		case 0x52:
-		case 0x65:
-		case 0x67: // set gp metric?
-		case BPMEM_PE_TOKEN_ID:
-		case BPMEM_PE_TOKEN_INT_ID:
-			// Cases in which we DON'T want to reload the BP
-			continue;
-		default:
-			BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
-		}
-	}
-}

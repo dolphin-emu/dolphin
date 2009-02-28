@@ -25,7 +25,8 @@
 #include "TextureCache.h"
 #include "TextureDecoder.h"
 #include "VertexManager.h"
-#include "PixelShader.h"
+#include "PixelShaderGen.h"
+#include "PixelShaderManager.h"
 #include "Utils.h"
 
 #include "main.h" //for the plugin interface
@@ -34,8 +35,10 @@ bool textureChanged[8];
 
 const bool renderFog = false;
 
+using namespace D3D;
+
 // State translation lookup tables
-const D3DBLEND d3dSrcFactors[8] =
+static const D3DBLEND d3dSrcFactors[8] =
 {
 	D3DBLEND_ZERO,
 	D3DBLEND_ONE,
@@ -47,7 +50,7 @@ const D3DBLEND d3dSrcFactors[8] =
 	D3DBLEND_INVDESTALPHA
 };
 
-const D3DBLEND d3dDestFactors[8] =
+static const D3DBLEND d3dDestFactors[8] =
 {
 	D3DBLEND_ZERO,
 	D3DBLEND_ONE,
@@ -59,7 +62,7 @@ const D3DBLEND d3dDestFactors[8] =
 	D3DBLEND_INVDESTALPHA
 };
 
-const D3DCULL d3dCullModes[4] = 
+static const D3DCULL d3dCullModes[4] = 
 {
 	D3DCULL_NONE,
 	D3DCULL_CCW,
@@ -67,7 +70,7 @@ const D3DCULL d3dCullModes[4] =
 	D3DCULL_CCW
 };
 
-const D3DCMPFUNC d3dCmpFuncs[8] = 
+static const D3DCMPFUNC d3dCmpFuncs[8] = 
 {
 	D3DCMP_NEVER,
 	D3DCMP_LESS,
@@ -79,7 +82,7 @@ const D3DCMPFUNC d3dCmpFuncs[8] =
 	D3DCMP_ALWAYS
 };
 
-const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
+static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
 {
 	D3DTEXF_NONE,
 	D3DTEXF_POINT,
@@ -87,7 +90,7 @@ const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
 	D3DTEXF_LINEAR, //reserved
 };
 
-const D3DTEXTUREADDRESS d3dClamps[4] =
+static const D3DTEXTUREADDRESS d3dClamps[4] =
 {
 	D3DTADDRESS_CLAMP,
 	D3DTADDRESS_WRAP,
@@ -101,7 +104,6 @@ void BPInit()
 	bpmem.bpMask = 0xFFFFFF;
 }
 
-using namespace D3D;
 // __________________________________________________________________________________________________
 // BPWritten
 //
@@ -116,12 +118,12 @@ void BPWritten(int addr, int changes, int newval)
 			((u32*)&bpmem)[addr] = newval;
 			
 			// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
-			Renderer::SetRenderState( D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode] );
+			Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 
 			if (bpmem.genMode.cullmode == 3)
 			{
 				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, 0 );
+				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
 			}
 			else
 			{
@@ -132,7 +134,7 @@ void BPWritten(int addr, int changes, int newval)
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 				
 				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
-				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, write );
+				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
 		}
 		break;
@@ -148,7 +150,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            // PixelShaderMngr::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
+            PixelShaderManager::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
         }
         break;
     case BPMEM_RAS1_SS0:
@@ -156,7 +158,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            // PixelShaderMngr::SetIndTexScaleChanged();
+            PixelShaderManager::SetIndTexScaleChanged();
         }
         break;
 
@@ -171,9 +173,9 @@ void BPWritten(int addr, int changes, int newval)
 				// dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
 				// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
 
-				Renderer::SetRenderState( D3DRS_ZENABLE, TRUE );
-				Renderer::SetRenderState( D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable );
-				Renderer::SetRenderState( D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func] );
+				Renderer::SetRenderState(D3DRS_ZENABLE, TRUE);
+				Renderer::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+				Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
 			}
 			else
 			{
@@ -181,50 +183,33 @@ void BPWritten(int addr, int changes, int newval)
 				// dev->SetRenderState(D3DRS_ZENABLE,		FALSE);
 				// dev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
-				Renderer::SetRenderState( D3DRS_ZENABLE, FALSE );
-				Renderer::SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
+				Renderer::SetRenderState(D3DRS_ZENABLE, FALSE);
+				Renderer::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 			}			
+
+            //if (!bpmem.zmode.updateenable)
+            //    Renderer::SetRenderMode(Renderer::RM_Normal);
 		}
 		break;
 
-	case BPMEM_ALPHACOMPARE:
-		if (changes)
-		{
-			VertexManager::Flush();
-			((u32*)&bpmem)[addr] = newval;
-			float f[4] =
-			{
-				bpmem.alphaFunc.ref0/255.0f,
-				bpmem.alphaFunc.ref1/255.0f,
-				0,0
-			};
-			dev->SetPixelShaderConstantF(PS_CONST_ALPHAREF,f,1);
-
-			if (D3D::GetShaderVersion() == PSNONE)
-			{
-				// dev->SetRenderState(D3DRS_ALPHATESTENABLE, (Compare)bpmem.alphaFunc.comp0 != COMPARE_ALWAYS);
-				// dev->SetRenderState(D3DRS_ALPHAREF, bpmem.alphaFunc.ref0*4);
-				// dev->SetRenderState(D3DRS_ALPHAFUNC, d3dCmpFuncs[bpmem.alphaFunc.comp0]);
-
-				Renderer::SetRenderState( D3DRS_ALPHATESTENABLE, (Compare)bpmem.alphaFunc.comp0 != COMPARE_ALWAYS );
-				Renderer::SetRenderState( D3DRS_ALPHAREF, bpmem.alphaFunc.ref0 * 4 );
-				Renderer::SetRenderState( D3DRS_ALPHAFUNC, d3dCmpFuncs[bpmem.alphaFunc.comp0] );
-			}
-			// Normally, use texkill in pixel shader to emulate alpha test
-		}
-		break;
-		
-	case BPMEM_CONSTANTALPHA:
-		if (changes)
-		{
-			VertexManager::Flush();
-			((u32*)&bpmem)[addr] = newval;
-			float f[4] = {
-				bpmem.dstalpha.alpha/255.0f,0,0,0
-			};
-			dev->SetPixelShaderConstantF(PS_CONST_CONSTALPHA,f,1);
-		}
-		break;
+    case BPMEM_ALPHACOMPARE:
+        if (changes) {
+            VertexManager::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d\n", bpmem.alphaFunc.ref0,
+				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
+            PixelShaderManager::SetAlpha(bpmem.alphaFunc);
+        }
+        break;
+        
+    case BPMEM_CONSTANTALPHA:
+        if (changes) {
+            VertexManager::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+            PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+        }
+        break;
 
 	case BPMEM_LINEPTWIDTH:
 		{
@@ -251,7 +236,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes & 1)
 			{
 				// dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
-				Renderer::SetRenderState( D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable );
+				Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
 			}
 			if (changes & 2) {} // Logic op blending. D3D can't do this but can fake some modes.
 			if (changes & 4) {
@@ -264,18 +249,18 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes & 0x700)
 			{
 				// dev->SetRenderState(D3DRS_SRCBLEND, src);
-				Renderer::SetRenderState( D3DRS_SRCBLEND, src );
+				Renderer::SetRenderState(D3DRS_SRCBLEND, src);
 			}
 			if (changes & 0xE0) {
 				if (!bpmem.blendmode.subtract)
 				{
 					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
-					Renderer::SetRenderState( D3DRS_DESTBLEND, dst );
+					Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 				}
 				else
 				{
 					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+					Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 				}
 			}
 			if (changes & 0x800) {
@@ -283,20 +268,20 @@ void BPWritten(int addr, int changes, int newval)
 				{
 					// dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
 					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					Renderer::SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
-					Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+					Renderer::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+					Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 				}
 				else
 				{
 					// dev->SetRenderState(D3DRS_SRCBLEND, src);
 					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
 					
-					Renderer::SetRenderState( D3DRS_SRCBLEND, src );
-					Renderer::SetRenderState( D3DRS_DESTBLEND, dst );
+					Renderer::SetRenderState(D3DRS_SRCBLEND, src);
+					Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 				}
 				
 				// dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
-				Renderer::SetRenderState( D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD );
+				Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 			}
 			//if (bpmem.blendmode.logicopenable) // && bpmem.blendmode.logicmode == 4)
 			//	MessageBox(0,"LOGIC",0,0);
@@ -311,13 +296,13 @@ void BPWritten(int addr, int changes, int newval)
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 				
 				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
-				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, write );
+				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
 		}
 		break;
 
 	case BPMEM_FOGRANGE:
-		if(changes) {
+		if (changes) {
 			// TODO(XK): Fog range format
 			//Renderer::SetRenderState(D3DRS_FOGSTART, ...
 			//Renderer::SetRenderState(D3DRS_FOGEND, ...
@@ -343,12 +328,12 @@ void BPWritten(int addr, int changes, int newval)
 
 	case BPMEM_FOGPARAM3:
 		//fog settings
-		if(changes) {
+		if (changes) {
 			static bool bFog = false;
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			
-			if(!renderFog)
+			if (!renderFog)
 				break;
 
 			/// u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
@@ -359,7 +344,7 @@ void BPWritten(int addr, int changes, int newval)
 			switch(bpmem.fog.c_proj_fsel.fsel)
 			{
 			case 0: // Off
-				if(bFog) {
+				if (bFog) {
 					Renderer::SetRenderState(D3DRS_FOGENABLE, false);
 					bFog = false;
 				}	
@@ -383,7 +368,7 @@ void BPWritten(int addr, int changes, int newval)
 				break;
 			}
 
-			if(bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
+			if (bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
 				Renderer::SetRenderState(D3DRS_FOGENABLE, true);
 				bFog = true;
 			}
@@ -392,11 +377,11 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 
 	case BPMEM_FOGCOLOR:
-		 if(changes) {
+		 if (changes) {
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 
-			if(!renderFog)
+			if (!renderFog)
 				break;
 
 			// dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
@@ -414,35 +399,10 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
+			Renderer::SetScissorRect();
 		}
 		break;
 
-	case BPMEM_SCISSORTL:
-	case BPMEM_SCISSORBR:
-		{
-			VertexManager::Flush();
-			((u32*)&bpmem)[addr] = newval;
-			int xoff = bpmem.scissorOffset.x*2-342;
-			int yoff = bpmem.scissorOffset.y*2-342;
-			RECT rc;
-			rc.left=bpmem.scissorTL.x + xoff - 342 -1;
-			if (rc.left<0) rc.left=0;
-			rc.top=bpmem.scissorTL.y + yoff - 342 -1;
-			if (rc.top<0) rc.top=0;
-			rc.right=bpmem.scissorBR.x + xoff - 342 +2;
-			if (rc.right>640) rc.right=640;
-            rc.bottom=bpmem.scissorBR.y + yoff - 342 +2;
-			if (rc.bottom>480) rc.bottom=480;
-			char temp[256];
-			sprintf(temp,"ScissorRect: %i %i %i %i",rc.left,rc.top,rc.right,rc.bottom);
-			g_VideoInitialize.pLog(temp, FALSE);
-			
-			// dev->SetRenderState(D3DRS_SCISSORTESTENABLE,TRUE);
-			Renderer::SetRenderState( D3DRS_SCISSORTESTENABLE, TRUE );
-
-			Renderer::SetScissorBox(rc);
-		}
-		break;
 	case BPMEM_ZTEX1:
         if (changes) {
             VertexManager::Flush();
@@ -458,9 +418,144 @@ void BPWritten(int addr, int changes, int newval)
 #ifdef _DEBUG
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
-            DebugLog("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
+            DEBUG_LOG("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
 #endif
         }
+		break;
+
+	case 0x45: //GXSetDrawDone
+		VertexManager::Flush();
+		switch (newval & 0xFF)
+		{
+		case 0x02:
+			g_VideoInitialize.pSetPEFinish(); // may generate interrupt
+			DEBUG_LOG("GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
+			break;
+
+		default:
+			DEBUG_LOG("GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
+			break;
+		}
+		break;
+
+	case BPMEM_PE_TOKEN_ID:
+		g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
+		DEBUG_LOG("SetPEToken 0x%04x", (newval & 0xFFFF));
+		break;
+
+	case BPMEM_PE_TOKEN_INT_ID:
+		g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
+		DEBUG_LOG("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
+		break;
+
+    case 0x67: // set gp metric?
+        break;
+
+	case BPMEM_TRIGGER_EFB_COPY:
+		{
+			VertexManager::Flush();
+
+			((u32*)&bpmem)[addr] = newval;
+			RECT rc = {
+				(LONG)(bpmem.copyTexSrcXY.x*Renderer::GetXScale()),
+				(LONG)(bpmem.copyTexSrcXY.y*Renderer::GetYScale()),
+				(LONG)((bpmem.copyTexSrcXY.x+bpmem.copyTexSrcWH.x)*Renderer::GetXScale()),
+				(LONG)((bpmem.copyTexSrcXY.y+bpmem.copyTexSrcWH.y)*Renderer::GetYScale())
+			};
+
+			UPE_Copy PE_copy;
+			PE_copy.Hex = bpmem.triggerEFBCopy;
+
+			// clamp0
+			// clamp1
+			// target_pixel_format
+			// gamma
+			// scale_something
+			// clear
+			// frame_to_field
+			// copy_to_xfb
+
+			// ???: start Mem to/from EFB transfer
+/*			bool bMip = false; // ignored
+			if (bpmem.triggerEFBCopy & EFBCOPY_GENERATEMIPS)
+				bMip = true;*/
+
+			if (PE_copy.copy_to_xfb == 0) // bpmem.triggerEFBCopy & EFBCOPY_EFBTOTEXTURE)
+			{
+				// EFB to texture 
+                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
+				TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rc);
+			}
+			else
+			{
+				// EFB to XFB
+				// MessageBox(0, "WASDF", 0, 0);
+				Renderer::SwapBuffers();
+				PRIM_LOG("Renderer::SwapBuffers()");
+				g_VideoInitialize.pCopiedToXFB();
+			}
+
+			// clearing
+			if (PE_copy.clear) // bpmem.triggerEFBCopy & EFBCOPY_CLEAR)
+			{
+				// it seems that the GC is able to alpha blend on color-fill
+				// we cant do that so if alpha is != 255 we skip it
+
+				// clear color
+				u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+				if (bpmem.blendmode.colorupdate)
+				{
+					D3DRECT drc;
+					drc.x1 = rc.left;
+					drc.x2 = rc.right;
+					drc.y1 = rc.top;
+					drc.y2 = rc.bottom;
+					//D3D::dev->Clear(1, &drc, D3DCLEAR_STENCIL|D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,clearColor,1.0f,0);
+					//if ((clearColor>>24) == 255)
+						D3D::dev->ColorFill(D3D::GetBackBufferSurface(), &rc, clearColor);
+				}
+				else
+				{
+					// TODO:
+					// bpmem.blendmode.alphaupdate
+					// bpmem.blendmode.colorupdate
+					// i dunno how to implement a clear on alpha only or color only
+				}
+
+				// clear z-buffer
+				if (bpmem.zmode.updateenable)
+				{
+					float clearZ = (float)bpmem.clearZValue / float(0xFFFFFF);
+					if (clearZ > 1.0f) clearZ = 1.0f;
+					if (clearZ < 0.0f) clearZ = 0.0f;
+
+					D3D::dev->Clear(0, 0, D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0, clearZ, 0);
+				}				
+			}
+		}
+		break;
+
+	case BPMEM_LOADTLUT: //GXLoadTlut
+		{
+			VertexManager::Flush();
+			((u32*)&bpmem)[addr] = newval;
+
+            u32 tlutTMemAddr = (newval & 0x3FF) << 9;
+            u32 tlutXferCount = (newval & 0x1FFC00) >> 5; 
+
+			u8 *ptr = 0;
+            // TODO - figure out a cleaner way.
+			if (g_VideoInitialize.bWii)
+				ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.tlutXferSrc << 5);
+			else
+				ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+			if (ptr)
+				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
+			else
+				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+			// TODO(ector) : kill all textures that use this palette
+			// Not sure if it's a good idea, though. For now, we hash texture palettes
+		}
 		break;
 
     case 0xf6: // ksel0
@@ -475,12 +570,12 @@ void BPWritten(int addr, int changes, int newval)
         {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            // PixelShaderMngr::SetTevKSelChanged(addr-0xf6);
+            PixelShaderManager::SetTevKSelChanged(addr-0xf6);
         }
         break;
 
 	default:
-		switch(addr & 0xF8)  //texture sampler filter
+		switch (addr & 0xF8)  //texture sampler filter
 		{
 		case 0x80: // TEX MODE 0
 		case 0xA0: 
@@ -526,280 +621,110 @@ void BPWritten(int addr, int changes, int newval)
 				//g_VideoInitialize.pLog(temp);
 			}
 			break;
-		case 0x84://TEX MODE 1
-		case 0xA4:
-			break;
-		case 0x88://TEX IMAGE 0
-		case 0xA8:
-			if (changes)
-			{
-				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				VertexManager::Flush();
-			}
-			break;
-		case 0x8C://TEX IMAGE 1
-		case 0xAC:
-			if (changes)
-			{
-				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				VertexManager::Flush();
-			}
-			break;
-		case 0x90://TEX IMAGE 2
-		case 0xB0:
-			if (changes)
-			{
-				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				VertexManager::Flush();
-			}
-			break;
-		case 0x94://TEX IMAGE 3
-		case 0xB4:
-			if (changes)
-			{
-				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				VertexManager::Flush();
-			}
-			break;
-		case 0x98://TEX TLUT
-		case 0xB8:
-			if (changes)
-			{
-				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				VertexManager::Flush();
-			}
-			break;
-		case 0x9C://TEX UNKNOWN
-		case 0xBC:
-			break;
+        case 0x84://TEX MODE 1
+        case 0xA4:
+            break;
+        case 0x88://TEX IMAGE 0
+        case 0xA8:
+            if (changes)
+            {
+                //textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
+                VertexManager::Flush();
+                ((u32*)&bpmem)[addr] = newval;
+            }
+            break;
+        case 0x8C://TEX IMAGE 1
+        case 0xAC:
+            if (changes)
+            {
+                //textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
+                VertexManager::Flush();
+                ((u32*)&bpmem)[addr] = newval;
+            }
+            break;
+        case 0x90://TEX IMAGE 2
+        case 0xB0:
+            if (changes)
+            {
+                //textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
+                VertexManager::Flush();
+                ((u32*)&bpmem)[addr] = newval;
+            }
+            break;
+        case 0x94://TEX IMAGE 3
+        case 0xB4:
+            if (changes)
+            {
+                //textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
+                VertexManager::Flush();
+                ((u32*)&bpmem)[addr] = newval;
+            }
+            break;
+        case 0x98://TEX TLUT
+        case 0xB8:
+            if (changes)
+            {
+                //textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
+                VertexManager::Flush();
+                ((u32*)&bpmem)[addr] = newval;
+            }
+            break;
+        case 0x9C://TEX UNKNOWN
+        case 0xBC:
+            //ERROR_LOG("texunknown%x = %x\n", addr, newval);
+            ((u32*)&bpmem)[addr] = newval;
+            break;
+
+		case 0xE0:
+        case 0xE4:
+            ((u32*)&bpmem)[addr] = newval;
+            if (addr&1) { // don't compare with changes!
+                VertexManager::Flush();
+                int num = (addr >> 1) & 0x3;
+                PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
+            }
+            break;
+
 		default:
-			switch(addr&0xF0) {
-			case 0x30:
-				{
-					int tc = addr&0x1;
-					int stage = (addr>>1)&0x7;
-					TCoordInfo &tci = bpmem.texcoords[stage];
-					//TCInfo &t = (tc?tci.s:tc.t);
-					// cylindric wrapping here
-					//dev->SetRenderState(D3DRS_WRAP0+stage, D3DWRAPCOORD_0);
-				}
-				break;
+            switch (addr&0xF0)
+			{
+            case 0x10: // tevindirect 0-15
+                if (changes) {
+                    VertexManager::Flush();
+                    ((u32*)&bpmem)[addr] = newval;
+                    PixelShaderManager::SetTevIndirectChanged(addr - 0x10);
+                }
+                break;
+
+            case 0x30:
+                if (changes) {
+                    VertexManager::Flush();
+                    ((u32*)&bpmem)[addr] = newval;
+                    PixelShaderManager::SetTexDimsChanged((addr >> 1) & 0x7);
+                }
+                break;
+
             case 0xC0:
             case 0xD0:
                 if (changes)
                 {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    // PixelShaderMngr::SetTevCombinerChanged((addr&0x1f)/2);
+                    PixelShaderManager::SetTevCombinerChanged((addr & 0x1f)/2);
                 }
                 break;
 
-			case 0xE0:
-				if (addr<0xe8)
-				{
-					if (addr&1)
-					{
-						VertexManager::Flush();
-						((u32*)&bpmem)[addr] = newval;
-						static int lastRGBA[2][4] = {
-							{0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE},
-							{0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE}
-						};
-						//Terrible hack
-						//The reason is that there are two sets of registers 
-						//overloaded here...
-						int num = (addr >> 1) & 0x3;
-						int type = bpmem.tevregs[num].high.type;
-						int colorbase = type ? PS_CONST_KCOLORS : PS_CONST_COLORS;
-						int r=bpmem.tevregs[num].low.a, a=bpmem.tevregs[num].low.b;
-						int b=bpmem.tevregs[num].high.a, g=bpmem.tevregs[num].high.b;
-						int rgba = ((a<<24) | (r << 16) | (g << 8) | b) & 0xFCFCFCFC; //let's not detect minimal changes
-						if (rgba != lastRGBA[type][num])
-						{
-							VertexManager::Flush();
-							lastRGBA[type][num] = rgba;
-							float temp[4] = {
-								r/255.0f, g/255.0f, b/255.0f, a/255.0f
-							};
-							D3D::dev->SetPixelShaderConstantF(colorbase + num, temp, 1);
-						}
-					}
-				}
-				break;
-			case 0x20:
-			case 0x80:
-			case 0x90:
-			case 0xA0:
-			case 0xB0:
-			default:
-				if (changes)
-				{
-					VertexManager::Flush();
-					((u32*)&bpmem)[addr] = newval;
-				}
+            case 0x20:
+            case 0x80:
+            case 0x90:
+            case 0xA0:
+            case 0xB0:
+            default:
 				break;
 			}
-			break;
-			
 		}
 		break;
 	}
-}
-
-// __________________________________________________________________________________________________
-// LoadBPReg
-//
-void LoadBPReg(u32 value0)
-{
-    DVSTARTPROFILE();
-
-	//handle the mask register
-	int opcode = value0 >> 24;
-	int oldval = ((u32*)&bpmem)[opcode];
-	int newval = (((u32*)&bpmem)[opcode] & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
-	int changes = (oldval ^ newval) & 0xFFFFFF;
-	//reset the mask register
-	if(opcode != 0xFE)
-		bpmem.bpMask = 0xFFFFFF;
-
-	switch (opcode)
-	{
-	case 0x45: //GXSetDrawDone
-		VertexManager::Flush();
-		switch (value0 & 0xFF)
-		{
-		case 0x02:
-			g_VideoInitialize.pSetPEFinish(); // may generate interrupt
-			DebugLog("GXSetDrawDone SetPEFinish (value: 0x%02X)", (value0 & 0xFFFF));
-			break;
-
-		default:
-			DebugLog("GXSetDrawDone ??? (value 0x%02X)", (value0 & 0xFFFF));
-			break;
-		}
-		break;
-
-	case BPMEM_PE_TOKEN_ID:
-		g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), FALSE);
-		DebugLog("SetPEToken 0x%04x", (value0 & 0xFFFF));
-		break;
-
-	case BPMEM_PE_TOKEN_INT_ID:
-		g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), TRUE);
-		DebugLog("SetPEToken + INT 0x%04x", (value0 & 0xFFFF));
-		break;
-
-    case 0x67: // set gp metric?
-        break;
-
-	case 0x52:
-		{
-			VertexManager::Flush();
-
-			((u32*)&bpmem)[opcode] = newval;
-			RECT rc = {
-				(LONG)(bpmem.copyTexSrcXY.x*Renderer::GetXScale()),
-				(LONG)(bpmem.copyTexSrcXY.y*Renderer::GetYScale()),
-				(LONG)((bpmem.copyTexSrcXY.x+bpmem.copyTexSrcWH.x)*Renderer::GetXScale()),
-				(LONG)((bpmem.copyTexSrcXY.y+bpmem.copyTexSrcWH.y)*Renderer::GetYScale())
-			};
-
-			UPE_Copy PE_copy;
-			PE_copy.Hex = bpmem.triggerEFBCopy;
-
-			// clamp0
-			// clamp1
-			// target_pixel_format
-			// gamma
-			// scale_something
-			// clear
-			// frame_to_field
-			// copy_to_xfb
-
-			// ???: start Mem to/from EFB transfer
-/*			bool bMip = false; // ignored
-			if (bpmem.triggerEFBCopy & EFBCOPY_GENERATEMIPS)
-				bMip = true;*/
-
-			if (PE_copy.copy_to_xfb == 0) // bpmem.triggerEFBCopy & EFBCOPY_EFBTOTEXTURE)
-			{
-				// EFB to texture 
-                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-				TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rc);
-			}
-			else
-			{
-				// EFB to XFB
-				// MessageBox(0, "WASDF", 0, 0);
-				Renderer::SwapBuffers();
-				DebugLog("Renderer::SwapBuffers()");
-				g_VideoInitialize.pCopiedToXFB();
-			}
-
-			// clearing
-			if (PE_copy.clear) // bpmem.triggerEFBCopy & EFBCOPY_CLEAR)
-			{
-				// it seems that the GC is able to alpha blend on color-fill
-				// we cant do that so if alpha is != 255 we skip it
-
-				// clear color
-				u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
-				if (bpmem.blendmode.colorupdate)
-				{
-					D3DRECT drc;
-					drc.x1 = rc.left;
-					drc.x2 = rc.right;
-					drc.y1 = rc.top;
-					drc.y2 = rc.bottom;
-					//D3D::dev->Clear(1, &drc, D3DCLEAR_STENCIL|D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,clearColor,1.0f,0);
-					//if ((clearColor>>24) == 255)
-						D3D::dev->ColorFill(D3D::GetBackBufferSurface(), &rc, clearColor);
-				}
-				else
-				{
-					// TODO:
-					// bpmem.blendmode.alphaupdate
-					// bpmem.blendmode.colorupdate
-					// i dunno how to implement a clear on alpha only or color only
-				}
-
-				// clear z-buffer
-				if (bpmem.zmode.updateenable)
-				{
-					float clearZ = (float)bpmem.clearZValue / float(0xFFFFFF);
-					if (clearZ > 1.0f) clearZ = 1.0f;
-					if (clearZ < 0.0f) clearZ = 0.0f;
-
-					D3D::dev->Clear(0, 0, D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0, clearZ, 0);
-				}				
-			}
-		}
-		break;
-
-	case 0x65: //GXLoadTlut
-		{
-			VertexManager::Flush();
-			((u32*)&bpmem)[opcode] = newval;
-
-			u32 tlutTMemAddr = (value0&0x3FF)<<9;
-			u32 tlutXferCount = (value0&0x1FFC00)>>5; 
-			//do the transfer!!			
-			memcpy(texMem + tlutTMemAddr, g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc&0xFFFFF)<<5), tlutXferCount);
-			// TODO(ector) : kill all textures that use this palette
-			// Not sure if it's a good idea, though. For now, we hash texture palettes
-		}
-		break;
-	}
-
-	//notify the video handling so it can update render states
-	BPWritten(opcode, changes, newval);
-	((u32*)&bpmem)[opcode] = newval;
-}
-
-void BPReload()
-{
-	for (int i=0; i<254; i++)
-		BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
 }
 
 void ActivateTextures()
@@ -821,5 +746,3 @@ void ActivateTextures()
 		textureChanged[i] = false;
 	}
 }
-
-

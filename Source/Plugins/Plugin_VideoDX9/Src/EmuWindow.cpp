@@ -52,6 +52,7 @@ namespace EmuWindow
 			break;
 
 		case WM_CLOSE:
+			exit(0);
 			return 0;
 
 		case WM_DESTROY:

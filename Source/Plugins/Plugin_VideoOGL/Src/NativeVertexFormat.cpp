@@ -99,6 +99,7 @@ inline GLuint VarToGL(VarType t)
 
 void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
+	vertex_stride = _vtx_decl.stride;
 	using namespace Gen;
 
 	if (_vtx_decl.stride & 3) {

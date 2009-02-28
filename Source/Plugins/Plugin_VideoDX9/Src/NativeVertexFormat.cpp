@@ -1,3 +1,4 @@
+
 // Copyright (C) 2003-2008 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
@@ -21,7 +22,7 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 #include "MemoryUtil.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
@@ -29,7 +30,6 @@
 
 class D3DVertexFormat : public NativeVertexFormat
 {
-	PortableVertexDeclaration vtx_decl;
 	LPDIRECT3DVERTEXDECLARATION9 d3d_decl;
 
 public:
@@ -38,7 +38,6 @@ public:
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	virtual void SetupVertexPointers() const;
 };
-
 
 NativeVertexFormat *NativeVertexFormat::Create()
 {
@@ -58,7 +57,6 @@ D3DVertexFormat::~D3DVertexFormat()
 	}
 }
 
-
 D3DDECLTYPE VarToD3D(VarType t)
 {
 	static const D3DDECLTYPE lookup[5] =
@@ -74,6 +72,8 @@ D3DDECLTYPE VarToD3D(VarType t)
 
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
+	vertex_stride = _vtx_decl.stride;
+
 	D3DVERTEXELEMENT9 *elems = new D3DVERTEXELEMENT9[32];
 	memset(elems, 0, sizeof(D3DVERTEXELEMENT9) * 32);
 
@@ -123,14 +123,20 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		}
 	}
 
-	if (vtx_decl.posmtx_offset != -1)
+	if (_vtx_decl.posmtx_offset != -1)
 	{
+		PanicAlert("boo %i", _vtx_decl.posmtx_offset);
 		// glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
 		elems[elem_idx].Offset = _vtx_decl.posmtx_offset;
 		elems[elem_idx].Usage = D3DDECLUSAGE_BLENDINDICES;
 		elems[elem_idx].UsageIndex = 0;
 		++elem_idx;
 	}
+
+	// End marker
+	elems[elem_idx].Stream = 0xff;
+	elems[elem_idx].Type = D3DDECLTYPE_UNUSED;
+	++elem_idx;
 
 	if (FAILED(D3D::dev->CreateVertexDeclaration(elems, &d3d_decl)))
 	{

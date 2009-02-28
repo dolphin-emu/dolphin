@@ -458,6 +458,14 @@
 				RelativePath=".\Src\XFMemory.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\XFStructs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFStructs.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="ShaderManagers"
@@ -468,6 +476,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\PixelShaderManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.h"
 				>
 			</File>
 		</Filter>
@@ -644,15 +660,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VertexShaderManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VertexShaderManager.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\VideoCommon.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoLog.cpp"
 			>
 		</File>
 	</Files>

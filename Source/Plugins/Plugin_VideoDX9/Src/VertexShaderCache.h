@@ -22,10 +22,10 @@
 
 #include <map>
 
-#include "PixelShader.h"
-#include "VertexShader.h"
+#include "D3DBase.h"
+#include "VertexShaderGen.h"
 
-class VShaderCache
+class VertexShaderCache
 {
 	struct VSCacheEntry
 	{ 
@@ -43,7 +43,7 @@ class VShaderCache
 		}
 	};
 
-	typedef std::map<u32, VSCacheEntry> VSCache;
+	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
 
@@ -51,7 +51,7 @@ public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
-	static void SetShader();
+	static void SetShader(u32 components);
 };
 
 #endif  // _VERTEXSHADERCACHE_H

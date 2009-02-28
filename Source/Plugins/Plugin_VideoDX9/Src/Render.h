@@ -48,19 +48,19 @@ public:
 	static void Init(SVideoInitialize &_VideoInitialize);
 	static void Shutdown();
 
-	static void Initialize(void);
+	static void Initialize();
 
 	// must be called if the window size has changed
-	static void ReinitView(void);
+	static void ReinitView();
 
-	static void SwapBuffers(void);
+	static void SwapBuffers();
 
-	static float GetXScale() {return xScale;}
-	static float GetYScale() {return yScale;}
+	static float GetXScale() { return xScale; }
+	static float GetYScale() { return yScale; }
 
-	static void SetScissorBox(RECT &rc);
-	static void SetViewport(float* _Viewport);
-	static void SetProjection(float* _pProjection, int constantIndex = -1);
+	static void SetScissorRect();
+//	static void SetViewport(float* _Viewport);
+//	static void SetProjection(float* _pProjection, int constantIndex = -1);
 
 	// The little status display.
 	static void AddMessage(const std::string &message, unsigned int ms);
@@ -68,11 +68,11 @@ public:
 	static void RenderText(const std::string &text, int left, int top, unsigned int color);
 
 	// The following are "filtered" versions of the corresponding D3Ddev-> functions.
-	static void SetTexture( DWORD Stage, IDirect3DBaseTexture9 *pTexture );
-	static void SetFVF( DWORD FVF );
-	static void SetRenderState( D3DRENDERSTATETYPE State, DWORD Value );
-	static void SetTextureStageState( DWORD Stage, D3DTEXTURESTAGESTATETYPE Type,DWORD Value );
-	static void SetSamplerState( DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value );
+	static void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
+	static void SetFVF(DWORD FVF);
+	static void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
+	static void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+	static void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 };
 
 #endif	// __H_RENDER__

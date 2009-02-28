@@ -20,19 +20,6 @@
 
 #include "CPMemory.h"
 #include "VertexLoader.h"
-#include "DecodedVArray.h"
-
-struct UV
-{
-	float u, v, w;
-};
-
-struct D3DVertex {
-	Vec3 pos;
-	Vec3 normal;
-	u32 colors[2];
-	UV uv[8];
-};
 
 namespace VertexManager
 {
@@ -42,7 +29,7 @@ void Shutdown();
 
 void BeginFrame();
 
-void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray);
+void AddVertices(int _primitive, int _numVertices);
 void Flush();
 
 }  // namespace

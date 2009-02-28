@@ -18,6 +18,7 @@
 #include <map>
 
 #include "D3DBase.h"
+#include "D3DShader.h"
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
@@ -26,15 +27,27 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-VShaderCache::VSCache VShaderCache::vshaders;
+VertexShaderCache::VSCache VertexShaderCache::vshaders;
 
-void VShaderCache::Init()
+void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
+{
+	const float f[4] = {f1, f2, f3, f4};
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+}
+
+void SetVSConstant4fv(int const_number, const float *f)
+{
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+}
+
+
+void VertexShaderCache::Init()
 {
 
 }
 
 
-void VShaderCache::Shutdown()
+void VertexShaderCache::Shutdown()
 {
 	VSCache::iterator iter = vshaders.begin();
 	for (; iter != vshaders.end(); iter++)
@@ -43,28 +56,24 @@ void VShaderCache::Shutdown()
 }
 
 
-void VShaderCache::SetShader()
+void VertexShaderCache::SetShader(u32 components)
 {
 	static LPDIRECT3DVERTEXSHADER9 shader = NULL;
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
-	if (shader) {
-		//D3D::dev->SetVertexShader(shader);
-		return;
-	}
-	
 	static LPDIRECT3DVERTEXSHADER9 lastShader = 0;
 	DVSTARTPROFILE();
 
-	u32 currentHash = 0x1337; // GetCurrentTEV();
+	VERTEXSHADERUID uid;
+	GetVertexShaderId(uid, components, false);
 
 	VSCache::iterator iter;
-	iter = vshaders.find(currentHash);
+	iter = vshaders.find(uid);
 
 	if (iter != vshaders.end())
 	{
-		iter->second.frameCount=frameCount;
+		iter->second.frameCount = frameCount;
 		VSCacheEntry &entry = iter->second;
 		if (!lastShader || entry.shader != lastShader)
 		{
@@ -74,15 +83,15 @@ void VShaderCache::SetShader()
 		return;
 	}
 
-	const char *code = GenerateVertexShader();
-	shader = D3D::CompileVShader(code, int(strlen(code)));
+	const char *code = GenerateVertexShader(components, false);
+	shader = D3D::CompileVertexShader(code, (int)strlen(code));
 	if (shader)
 	{
 		//Make an entry in the table
 		VSCacheEntry entry;
 		entry.shader = shader;
-		entry.frameCount=frameCount;
-		vshaders[currentHash] = entry;
+		entry.frameCount = frameCount;
+		vshaders[uid] = entry;
 	}
 
 	D3D::dev->SetVertexShader(shader);
@@ -91,7 +100,7 @@ void VShaderCache::SetShader()
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 }
 
-void VShaderCache::Cleanup()
+void VertexShaderCache::Cleanup()
 {
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end();)
 	{

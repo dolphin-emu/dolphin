@@ -23,28 +23,32 @@
 #include "Profiler.h"
 #include "VertexManager.h"
 #include "OpcodeDecoding.h"
-#include "TransformEngine.h"
 #include "IndexGenerator.h"
-#include "BPStructs.h"
-#include "XFStructs.h"
 #include "VertexShaderManager.h"
 #include "VertexShaderCache.h"
 #include "PixelShaderManager.h"
 #include "PixelShaderCache.h"
 #include "Utils.h"
+#include "NativeVertexFormat.h"
+#include "NativeVertexWriter.h"
+
+#include "BPStructs.h"
+#include "XFStructs.h"
 
 using namespace D3D;
 
+// internal state for loading vertices
+extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace VertexManager
 {
 
 enum Collection
 {
-	C_NOTHING=0,
-	C_TRIANGLES=1,
-	C_LINES=2,
-	C_POINTS=3
+	C_NOTHING,
+	C_TRIANGLES,
+	C_LINES,
+	C_POINTS,
 };
 
 static IndexGenerator indexGen;
@@ -52,28 +56,11 @@ static Collection collection;
 
 static LPDIRECT3DVERTEXDECLARATION9 vDecl;
 
-static D3DVertex *fakeVBuffer;
-static u16 *fakeIBuffer;
+static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
+static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
 
 #define MAXVBUFFERSIZE 65536*3
 #define MAXIBUFFERSIZE 65536*3
-
-const D3DVERTEXELEMENT9 decl[] =
-{
-    { 0,  0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0 },
-    { 0, 24, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-    { 0, 28, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 1 },
-	{ 0, 32+12*0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-	{ 0, 32+12*1, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-	{ 0, 32+12*2, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 },
-	{ 0, 32+12*3, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 3 },
-	{ 0, 32+12*4, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 4 },
-	{ 0, 32+12*5, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 5 },
-	{ 0, 32+12*6, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 6 },
-	{ 0, 32+12*7, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 7 },
-    D3DDECL_END()
-};
 
 const Collection collectionTypeLUT[8] =
 {
@@ -87,18 +74,16 @@ const Collection collectionTypeLUT[8] =
 	C_POINTS    //guess :P
 };
 
-
-D3DVertex *vbufferwrite;
-
 void CreateDeviceObjects();
 void DestroyDeviceObjects();
 
 bool Init()
 {
 	collection = C_NOTHING;
-	fakeVBuffer = new D3DVertex[65536];
-	fakeIBuffer = new u16[65536];
+	fakeVBuffer = new u8[MAXVBUFFERSIZE];
+	fakeIBuffer = new u16[MAXIBUFFERSIZE];
 	CreateDeviceObjects();
+	VertexManager::s_pCurBufferPointer = fakeVBuffer;
 	return true;
 }
 
@@ -111,30 +96,20 @@ void Shutdown()
 
 void CreateDeviceObjects()
 {
-	HRESULT hr;
-	if (FAILED(hr = D3D::dev->CreateVertexDeclaration(decl, &vDecl)))
-    {
-		MessageBox(0,"Failed to create vertex declaration","sdfsd",0);
-        return;
-    }
 }
 
 void BeginFrame()
 {
-	D3D::dev->SetVertexDeclaration(vDecl);
-	//D3D::dev->SetStreamSource(0,vBuffer,0,sizeof(D3DVertex));
 }
 
 void DestroyDeviceObjects()
 {
-	if (vDecl)
-		vDecl->Release();
-	vDecl = 0;
 }
 
 void AddIndices(int _primitive, int _numVertices)
 {
-	switch (_primitive) {
+	switch (_primitive)
+	{
 	case GX_DRAW_QUADS:          indexGen.AddQuads(_numVertices);     return;    
 	case GX_DRAW_TRIANGLES:      indexGen.AddList(_numVertices);      return;    
 	case GX_DRAW_TRIANGLE_STRIP: indexGen.AddStrip(_numVertices);     return;
@@ -145,7 +120,12 @@ void AddIndices(int _primitive, int _numVertices)
 	}
 }
 
-void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
+int GetRemainingSize()
+{
+	return 60000;
+}
+
+void AddVertices(int _primitive, int _numVertices)
 {
 	if (_numVertices <= 0) //This check is pretty stupid... 
 		return;
@@ -168,32 +148,24 @@ void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
 		Flush();
 		collection = type;
 		u16 *ptr = 0;
-	
 		if (type != C_POINTS)
 		{
 			ptr = fakeIBuffer;
 			indexGen.Start((unsigned short*)ptr);
-			AddIndices(_primitive,_numVertices);
+			AddIndices(_primitive, _numVertices);
 		}
-
-		vbufferwrite = fakeVBuffer;
-
 		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBox(NULL, "To much vertices for the buffer", "Video.DLL", MB_OK);
-
-		CTransformEngine::TransformVertices(_numVertices, varray, vbufferwrite);
+			MessageBox(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
 	}
 	else //We are collecting the right type, keep going
 	{
-		_assert_msg_(vbufferwrite!=0, "collecting: vbufferwrite == 0!","WTF");
+		_assert_msg_(vbufferwrite != 0, "collecting: vbufferwrite == 0!","WTF");
 		INCSTAT(stats.thisFrame.numPrimitiveJoins);
 		//Success, keep adding to unlocked buffer
 		int last = indexGen.GetNumVerts();
 		AddIndices(_primitive, _numVertices);
-
 		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBox(NULL, "Too many vertices for the buffer", "Video.DLL", MB_OK);
-		CTransformEngine::TransformVertices(_numVertices, varray, vbufferwrite + last);
+			MessageBox(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
 	}
 }
 
@@ -206,36 +178,44 @@ const D3DPRIMITIVETYPE pts[3] =
 
 void Flush()
 {
-    DVSTARTPROFILE();
-
-    if (collection != C_NOTHING)
+	DVSTARTPROFILE();
+	if (collection != C_NOTHING)
 	{
 		ActivateTextures();
-
 		int numVertices = indexGen.GetNumVerts();
-		if (numVertices != 0)
+		if (numVertices)
 		{
-			PShaderCache::SetShader(); // TODO(ector): only do this if shader has changed
-			VShaderCache::SetShader(); // TODO(ector): only do this if shader has changed
+			PixelShaderCache::SetShader();  // TODO(ector): only do this if shader has changed
+			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);  // TODO(ector): only do this if shader has changed
+	
+			// set global constants
+			VertexShaderManager::SetConstants(false, false);
+			PixelShaderManager::SetConstants();
+
+			int stride = g_nativeVertexFmt->GetVertexStride();
+			g_nativeVertexFmt->SetupVertexPointers();
 			if (collection != C_POINTS)
 			{
 				int numPrimitives = indexGen.GetNumPrims();
 				D3D::dev->DrawIndexedPrimitiveUP(pts[(int)collection], 
-					                             0, 
+												 0, 
 												 numVertices, 
 												 numPrimitives,
 												 fakeIBuffer,
 												 D3DFMT_INDEX16,
 												 fakeVBuffer,
-												 sizeof(D3DVertex));
+												 stride);
 			}
 			else
 			{
 				D3D::dev->SetIndices(0);
-				D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, sizeof(D3DVertex));
+				D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
 			}
+			INCSTAT(stats.thisFrame.numDrawCalls);
 		}
+
 		collection = C_NOTHING;
+		VertexManager::s_pCurBufferPointer = fakeVBuffer;
 	}
 }
 

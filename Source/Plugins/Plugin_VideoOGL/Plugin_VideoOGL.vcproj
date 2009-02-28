@@ -746,14 +746,6 @@
 				RelativePath=".\Src\VertexManager.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\XFStructs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\XFStructs.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Render"

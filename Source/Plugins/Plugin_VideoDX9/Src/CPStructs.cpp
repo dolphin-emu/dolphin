@@ -19,7 +19,6 @@
 
 #include "CPStructs.h"
 #include "XFStructs.h"
-#include "TransformEngine.h"
 #include "VertexManager.h"
 #include "VertexLoader.h"
 
@@ -27,7 +26,7 @@
 
 void CPUpdateMatricesA()
 {
-	float *flipmem = (float *)xfmem;
+	const float *flipmem = (const float *)xfmem;
 	CTransformEngine::SetPosNormalMatrix(
 		flipmem + MatrixIndexA.PosNormalMtxIdx * 4, //CHECK
 		flipmem + 0x400 + 3 * (MatrixIndexA.PosNormalMtxIdx & 31)); //CHECK

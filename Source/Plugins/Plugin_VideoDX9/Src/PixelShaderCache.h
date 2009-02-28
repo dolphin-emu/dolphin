@@ -22,14 +22,14 @@
 
 #include <map>
 
-#include "PixelShader.h"
-#include "VertexShader.h"
+#include "PixelShaderGen.h"
+#include "VertexShaderGen.h"
 
 typedef u32 tevhash;
 
 tevhash GetCurrentTEV();
 
-class PShaderCache
+class PixelShaderCache
 {
 	struct PSCacheEntry
 	{
@@ -48,9 +48,9 @@ class PShaderCache
 		}
 	};
 
-	typedef std::map<tevhash, PSCacheEntry> PSCache;
+	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
 
-	static PSCache pshaders;
+	static PSCache PixelShaders;
 
 public:
 	static void Init();

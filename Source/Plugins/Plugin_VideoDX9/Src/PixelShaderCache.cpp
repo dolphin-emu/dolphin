@@ -16,60 +16,44 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "D3DBase.h"
+#include "D3DShader.h"
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
+#include "PixelShaderGen.h"
+#include "PixelShaderManager.h"
 #include "PixelShaderCache.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-PShaderCache::PSCache PShaderCache::pshaders;
+PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 
-//I hope we don't get too many hash collisions :p
-//all these magic numbers are primes, it should help a bit
-tevhash GetCurrentTEV()
+void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	u32 hash = bpmem.genMode.numindstages + bpmem.genMode.numtevstages*11 + bpmem.genMode.numtexgens*8*17;
-	for (int i = 0; i < (int)bpmem.genMode.numtevstages+1; i++)
-	{
-		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
-		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
-		hash = _rotl(hash,9) ^ xfregs.texcoords[i].texmtxinfo.projection*451;
-	}
-	for (int i = 0; i < (int)bpmem.genMode.numtevstages/2+1; i++)
-	{
-		hash = _rotl(hash,13) ^ (bpmem.tevorders[i].hex*7);
-	}
-	for (int i = 0; i < 8; i++)
-	{
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap1;
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap2;
-	}
-	hash ^= bpmem.dstalpha.enable ^ 0xc0debabe;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp0*7;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp1*13;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.logic*11;
-	return hash;
+	const float f[4] = {f1, f2, f3, f4};
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
+void SetPSConstant4fv(int const_number, const float *f)
+{
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+}
 
-void PShaderCache::Init()
+void PixelShaderCache::Init()
 {
 
 }
 
-
-void PShaderCache::Shutdown()
+void PixelShaderCache::Shutdown()
 {
-	PSCache::iterator iter = pshaders.begin();
-	for (;iter!=pshaders.end();iter++)
+	PSCache::iterator iter = PixelShaders.begin();
+	for (; iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
-	pshaders.clear(); 
+	PixelShaders.clear(); 
 }
 
-
-void PShaderCache::SetShader()
+void PixelShaderCache::SetShader()
 {
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
@@ -77,12 +61,13 @@ void PShaderCache::SetShader()
 	static LPDIRECT3DPIXELSHADER9 lastShader = 0;
     DVSTARTPROFILE();
 
-	tevhash currentHash = GetCurrentTEV();
+	PIXELSHADERUID uid;
+	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), false, false);
 
 	PSCache::iterator iter;
-	iter = pshaders.find(currentHash);
+	iter = PixelShaders.find(uid);
 	
-	if (iter != pshaders.end())
+	if (iter != PixelShaders.end())
 	{
 		iter->second.frameCount = frameCount;
 		PSCacheEntry &entry = iter->second;
@@ -94,40 +79,39 @@ void PShaderCache::SetShader()
 		return;
 	}
 
-	const char *code = GeneratePixelShader();
-	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePShader(code, int(strlen(code)));
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, false);
+	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
 	if (shader)
 	{
 		//Make an entry in the table
 		PSCacheEntry newentry;
 		newentry.shader = shader;
 		newentry.frameCount = frameCount;
-		pshaders[currentHash] = newentry;
+		PixelShaders[uid] = newentry;
+
+		INCSTAT(stats.numPixelShadersCreated);
+		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 	}
 
 	D3D::dev->SetPixelShader(shader);
-
-	INCSTAT(stats.numPixelShadersCreated);
-	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
 }
 
-void PShaderCache::Cleanup()
+void PixelShaderCache::Cleanup()
 {
 	PSCache::iterator iter;
-	iter = pshaders.begin();
-
-	while (iter != pshaders.end())
+	iter = PixelShaders.begin();
+	while (iter != PixelShaders.end())
 	{
 		PSCacheEntry &entry = iter->second;
 		if (entry.frameCount < frameCount-30)
 		{
 			entry.Destroy();
-			iter = pshaders.erase(iter);
+			iter = PixelShaders.erase(iter);
 		}
 		else
 		{
 			iter++;
 		}
 	}
-	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
+	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 }

@@ -1186,97 +1186,17 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\CPStructs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\CPStructs.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DecodedVArray.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DecodedVArray.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\NativeVertexFormat.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TransformEngine.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\TransformEngine.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Color.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_MtxIndex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Normal.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Normal.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Position.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_TextCoord.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoaderManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\XFStructs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\XFStructs.h"
+				RelativePath=".\Src\VertexShaderCache.cpp"
 				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Render"
 			>
-			<File
-				RelativePath=".\Src\PixelShader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PixelShader.h"
-				>
-			</File>
 			<File
 				RelativePath=".\Src\PixelShaderCache.cpp"
 				>
@@ -1302,15 +1222,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShader.cpp"
+				RelativePath=".\Src\VertexLoaderManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShader.h"
+				RelativePath=".\Src\VertexManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShaderCache.cpp"
+				RelativePath=".\Src\VertexManager.h"
 				>
 			</File>
 			<File

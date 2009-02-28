@@ -928,11 +928,11 @@ static bool WriteAlphaTest(char *&p)
         break;
     }
 
-    WRITE(p, "discard( ");
+    WRITE(p, "clip( ");
     WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     
     // negated because testing the inverse condition
-    switch(bpmem.alphaFunc.logic) {
+    switch (bpmem.alphaFunc.logic) {
     case 0: WRITE(p, " || "); break; // and
     case 1: WRITE(p, " && "); break; // or
     case 2: WRITE(p, " == "); break; // xor

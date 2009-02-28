@@ -22,3 +22,42 @@
 //BP state
 // STATE_TO_SAVE
 BPMemory bpmem;
+
+// The plugin must implement this.
+void BPWritten(int addr, int changes, int newval);
+
+// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
+void LoadBPReg(u32 value0)
+{
+	//handle the mask register
+	int opcode = value0 >> 24;
+	int oldval = ((u32*)&bpmem)[opcode];
+	int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+	int changes = (oldval ^ newval) & 0xFFFFFF;
+	//reset the mask register
+	if (opcode != 0xFE)
+		bpmem.bpMask = 0xFFFFFF;
+	BPWritten(opcode, changes, newval);
+}
+
+// Called when loading a saved state.
+// Needs more testing though.
+void BPReload()
+{
+	for (int i = 0; i < 254; i++)
+	{
+		switch (i) {
+		case 0x41:
+		case 0x45: //GXSetDrawDone
+		case 0x52:
+		case 0x65:
+		case 0x67: // set gp metric?
+		case BPMEM_PE_TOKEN_ID:
+		case BPMEM_PE_TOKEN_INT_ID:
+			// Cases in which we DON'T want to reload the BP
+			continue;
+		default:
+			BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
+		}
+	}
+}
