@@ -34,23 +34,13 @@ VertexShaderCache::VSCache VertexShaderCache::vshaders;
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	//const float f[4] = {f1, f2, f3, f4};
-	//D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
-	
-
-	// TODO: The Cg Way
-	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
-	cgSetParameter4f(param, f1, f2, f3, f4); **/
+	const float f[4] = {f1, f2, f3, f4};
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
 }
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	//D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
-
-
-	// TODO: The Cg Way
-	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
-	cgSetParameter4fv(param, f); **/
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
 }
 
 
@@ -71,11 +61,11 @@ void VertexShaderCache::Shutdown()
 
 void VertexShaderCache::SetShader(u32 components)
 {
-	static CGprogram shader = NULL;
+	static LPDIRECT3DVERTEXSHADER9 shader = NULL;
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
-	static CGprogram lastShader = NULL;
+	static LPDIRECT3DVERTEXSHADER9 lastShader = NULL;
 	DVSTARTPROFILE();
 
 	VERTEXSHADERUID uid;
@@ -90,10 +80,7 @@ void VertexShaderCache::SetShader(u32 components)
 		VSCacheEntry &entry = iter->second;
 		if (!lastShader || entry.shader != lastShader)
 		{
-			//D3D::dev->SetVertexShader(entry.shader);
-			if(!cgD3D9IsProgramLoaded(entry.shader))
-				cgD3D9LoadProgram(entry.shader, false, 0);
-			cgD3D9BindProgram(entry.shader);
+			D3D::dev->SetVertexShader(entry.shader);
 			lastShader = entry.shader;
 		}
 		return;
@@ -110,28 +97,20 @@ void VertexShaderCache::SetShader(u32 components)
 		entry.frameCount = frameCount;
 		vshaders[uid] = entry;
 
-		// There seems to be an unknown Cg error here for some reason
-		///PanicAlert("Load vShader");
-		if(!cgD3D9IsProgramLoaded(shader))
-			cgD3D9LoadProgram(shader, false, 0);
-		cgD3D9BindProgram(shader);
-		D3D::dev->SetFVF(NULL);
-		///PanicAlert("Loaded vShader");
+		D3D::dev->SetVertexShader(shader);
 
 		INCSTAT(stats.numVertexShadersCreated);
 		SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 	} else
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
-
-	//D3D::dev->SetVertexShader(shader);
 }
 
-CGprogram VertexShaderCache::CompileCgShader(const char *pstrprogram) 
+LPDIRECT3DVERTEXSHADER9 VertexShaderCache::CompileCgShader(const char *pstrprogram) 
 {
-	char stropt[64];
+	//char stropt[64];
 	//sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-	//const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
-	const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
+	const char *opts[] = {"-profileopts", "MaxLocalParams=256", "-O2", "-q", NULL};
+	//const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
 		ERROR_LOG(VIDEO, "Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
@@ -149,7 +128,11 @@ CGprogram VertexShaderCache::CompileCgShader(const char *pstrprogram)
 		plocal = strstr(plocal + 13, "program.local");
 	}
 
-	return tempprog;
+	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVertexShader(pcompiledprog, strlen(pcompiledprog));
+
+	cgDestroyProgram(tempprog);
+
+	return shader;
 }
 
 void VertexShaderCache::Cleanup()

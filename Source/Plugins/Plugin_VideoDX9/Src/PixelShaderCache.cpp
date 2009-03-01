@@ -34,24 +34,13 @@ PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	//const float f[4] = {f1, f2, f3, f4};
-	//D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
-
-
-	// TODO: The Cg Way
-	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
-	    cgSetParameter4f(param, f1, f2, f3, f4); **/
-	                                               
+	const float f[4] = {f1, f2, f3, f4};
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);                                               
 }
 
 void SetPSConstant4fv(int const_number, const float *f)
 {
-	//D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
-	
-	// TODO: The Cg Way
-	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
-	cgSetParameter4fv(param, f); **/
-	
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
 void PixelShaderCache::Init()
@@ -72,8 +61,7 @@ void PixelShaderCache::SetShader()
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
-	//static LPDIRECT3DPIXELSHADER9 lastShader = 0;
-	static CGprogram lastShader = NULL;
+	static LPDIRECT3DPIXELSHADER9 lastShader = NULL;
     DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
@@ -88,10 +76,7 @@ void PixelShaderCache::SetShader()
 		PSCacheEntry &entry = iter->second;
 		if (!lastShader || entry.shader != lastShader)
 		{
-			//D3D::dev->SetPixelShader(entry.shader);
-			if(!cgD3D9IsProgramLoaded(entry.shader))
-				cgD3D9LoadProgram(entry.shader, false, 0);
-			cgD3D9BindProgram(entry.shader);
+			D3D::dev->SetPixelShader(entry.shader);
 			lastShader = entry.shader;
 		}
 		return;
@@ -99,7 +84,7 @@ void PixelShaderCache::SetShader()
 
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, false);
 	//LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
-	CGprogram shader = CompileCgShader(code);
+	LPDIRECT3DPIXELSHADER9 shader = CompileCgShader(code);
 	
 	if (shader)
 	{
@@ -109,29 +94,21 @@ void PixelShaderCache::SetShader()
 		newentry.frameCount = frameCount;
 		PixelShaders[uid] = newentry;
 
-		// There seems to be an unknown Cg error here for some reason
-		///PanicAlert("Load pShader");
-		if(!cgD3D9IsProgramLoaded(shader))
-			cgD3D9LoadProgram(shader, false, 0);
-		cgD3D9BindProgram(shader);
-		D3D::dev->SetFVF(NULL);
-		///PanicAlert("Loaded pShader");
+		D3D::dev->SetPixelShader(shader);
 
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 	} else
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
-
-	//D3D::dev->SetPixelShader(shader);
 }
 
-CGprogram PixelShaderCache::CompileCgShader(const char *pstrprogram) 
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::CompileCgShader(const char *pstrprogram) 
 {
-	char stropt[64];
+	//char stropt[64];
 	//sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-	//const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
+	const char *opts[] = {"-profileopts", "MaxLocalParams=256", "-O2", "-q", NULL};
 
-	const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
+	//const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
 		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
@@ -149,7 +126,11 @@ CGprogram PixelShaderCache::CompileCgShader(const char *pstrprogram)
 		plocal = strstr(plocal+13, "program.local");
 	}
 
-	return tempprog;
+	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(pcompiledprog, strlen(pcompiledprog));
+
+	cgDestroyProgram(tempprog);
+
+	return shader;
 }
 
 
