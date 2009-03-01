@@ -205,6 +205,9 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 # needed for sound
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
+# needed for mic
+env['HAVE_PORTAUDIO'] = conf.CheckPKG('portaudio')
+
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
@@ -264,6 +267,7 @@ conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
+conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 
 # profile
 env['USE_OPROFILE'] = 0

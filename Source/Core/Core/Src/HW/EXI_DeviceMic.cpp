@@ -27,8 +27,8 @@
 bool MicButton = false;
 bool IsOpen;
 
-//#define USE_PORTAUDIO
-#ifndef USE_PORTAUDIO
+//#define HAVE_PORTAUDIO
+#ifndef HAVE_PORTAUDIO || ! HAVE_PORTAUDIO
 
 void SetMic(bool Value){}
 
