@@ -526,10 +526,10 @@ std::string GetPluginsDirectory()
 	std::string pluginsDir;
 
 #if defined (__APPLE__)
-	PluginsDir = GetBundleDirectory();
-	PluginsDir += DIR_SEP;
-	PluginsDir += PLUGINS_DIR;
-#elsif __linux__
+	pluginsDir = GetBundleDirectory();
+	pluginsDir += DIR_SEP;
+	pluginsDir += PLUGINS_DIR;
+#elif defined __linux__
 	pluginsDir = PLUGINS_DIR;
 	// FIXME global install
 #else
@@ -551,7 +551,7 @@ std::string GetSysDirectory()
 	sysDir = GetBundleDirectory();
 	sysDir += DIR_SEP;
 	sysDir += SYSDATA_DIR;
-#elsif __linux__
+#elif defined __linux__
 	sysDir = SYSDATA_DIR;
 	// FIXME global install
 #else
