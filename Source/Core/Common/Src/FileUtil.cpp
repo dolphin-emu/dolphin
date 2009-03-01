@@ -536,6 +536,7 @@ std::string GetPluginsDirectory()
 	pluginsDir = PLUGINS_DIR;	
 #endif
 
+	pluginsDir += DIR_SEP;
 	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
 	return pluginsDir;
 	
@@ -557,6 +558,7 @@ std::string GetSysDirectory()
 	sysDir = SYSDATA_DIR;	
 #endif
 
+	sysDir += DIR_SEP;
 	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
 	return sysDir;
 	
