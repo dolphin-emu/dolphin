@@ -1176,7 +1176,7 @@ bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
 	}
 	fread(&m_SRAM, 1, 64, pStream);
 	fclose(pStream);
-	rand = time = 0XFAB12B2D9FD80700;//0x500;//gettime();
+	rand = time = 0XFAB12B2D9FD80700ULL;//0x500;//gettime();
 
 	//////////////////////////////////////
 

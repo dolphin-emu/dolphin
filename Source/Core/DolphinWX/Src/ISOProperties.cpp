@@ -128,7 +128,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	wxString name;
 	CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
 
-	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str(), name));
+	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str(), name.c_str()));
 }
 
 CISOProperties::~CISOProperties()
@@ -785,7 +785,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	CopySJISToString(description, OpenGameListItem->GetDescription(lang).c_str());
 
 	m_ShortName->SetValue(name);
-	m_Maker->SetValue(OpenGameListItem->GetCompany().c_str());//dev too
+	m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
 	m_Comment->SetValue(description);
 }
 

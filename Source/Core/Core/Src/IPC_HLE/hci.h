@@ -1,17 +1,8 @@
 #ifndef _NETBT_HCI_H_
 #define _NETBT_HCI_H_
 
+#include "CommonTypes.h"
 #pragma pack(push, 1)
-
-typedef u8 uint8_t;
-#ifdef _WIN32
-    typedef s8 int8_t;
-#endif
-typedef u16 uint16_t;
-typedef s16 int16_t;
-typedef u32 uint32_t;
-typedef s32 int32_t;
-
 
 #ifdef __cplusplus
 extern "C" {
