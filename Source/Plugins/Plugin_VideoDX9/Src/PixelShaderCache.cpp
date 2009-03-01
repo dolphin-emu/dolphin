@@ -34,13 +34,24 @@ PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	const float f[4] = {f1, f2, f3, f4};
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+	//const float f[4] = {f1, f2, f3, f4};
+	//D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+
+
+	// TODO: The Cg Way
+	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
+	    cgSetParameter4f(param, f1, f2, f3, f4); **/
+	                                               
 }
 
 void SetPSConstant4fv(int const_number, const float *f)
 {
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+	//D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+	
+	// TODO: The Cg Way
+	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
+	cgSetParameter4fv(param, f); **/
+	
 }
 
 void PixelShaderCache::Init()
@@ -78,7 +89,8 @@ void PixelShaderCache::SetShader()
 		if (!lastShader || entry.shader != lastShader)
 		{
 			//D3D::dev->SetPixelShader(entry.shader);
-			cgD3D9LoadProgram(entry.shader, false, 0);
+			if(!cgD3D9IsProgramLoaded(entry.shader))
+				cgD3D9LoadProgram(entry.shader, false, 0);
 			cgD3D9BindProgram(entry.shader);
 			lastShader = entry.shader;
 		}
@@ -88,6 +100,7 @@ void PixelShaderCache::SetShader()
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, false);
 	//LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
 	CGprogram shader = CompileCgShader(code);
+	
 	if (shader)
 	{
 		//Make an entry in the table
@@ -98,8 +111,10 @@ void PixelShaderCache::SetShader()
 
 		// There seems to be an unknown Cg error here for some reason
 		///PanicAlert("Load pShader");
-		cgD3D9LoadProgram(shader, false, 0);
+		if(!cgD3D9IsProgramLoaded(shader))
+			cgD3D9LoadProgram(shader, false, 0);
 		cgD3D9BindProgram(shader);
+		D3D::dev->SetFVF(NULL);
 		///PanicAlert("Loaded pShader");
 
 		INCSTAT(stats.numPixelShadersCreated);

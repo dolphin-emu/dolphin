@@ -34,13 +34,23 @@ VertexShaderCache::VSCache VertexShaderCache::vshaders;
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	const float f[4] = {f1, f2, f3, f4};
-	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	//const float f[4] = {f1, f2, f3, f4};
+	//D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	
+
+	// TODO: The Cg Way
+	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
+	cgSetParameter4f(param, f1, f2, f3, f4); **/
 }
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	//D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+
+
+	// TODO: The Cg Way
+	/** CGparameter param = cgGetNamedParameter(program, "someParameter"); 
+	cgSetParameter4fv(param, f); **/
 }
 
 
@@ -81,7 +91,8 @@ void VertexShaderCache::SetShader(u32 components)
 		if (!lastShader || entry.shader != lastShader)
 		{
 			//D3D::dev->SetVertexShader(entry.shader);
-			cgD3D9LoadProgram(entry.shader, false, 0);
+			if(!cgD3D9IsProgramLoaded(entry.shader))
+				cgD3D9LoadProgram(entry.shader, false, 0);
 			cgD3D9BindProgram(entry.shader);
 			lastShader = entry.shader;
 		}
@@ -101,8 +112,10 @@ void VertexShaderCache::SetShader(u32 components)
 
 		// There seems to be an unknown Cg error here for some reason
 		///PanicAlert("Load vShader");
-		cgD3D9LoadProgram(shader, false, 0);
+		if(!cgD3D9IsProgramLoaded(shader))
+			cgD3D9LoadProgram(shader, false, 0);
 		cgD3D9BindProgram(shader);
+		D3D::dev->SetFVF(NULL);
 		///PanicAlert("Loaded vShader");
 
 		INCSTAT(stats.numVertexShadersCreated);
