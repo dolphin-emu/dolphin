@@ -18,6 +18,7 @@
 #ifndef __MEMCARD_MANAGER_h__
 #define __MEMCARD_MANAGER_h__
 
+#include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/filepicker.h>
 #include <wx/statbmp.h>
@@ -46,8 +47,14 @@
 #define E_SAVEFAILED "File write failed"
 #define E_UNK "Unknown error"
 #define FIRSTPAGE 0
-#define SLOT_A 0
-#define SLOT_B 1
+
+#ifdef MEMCMAN
+#undef	CONFIG_FILE
+#define CONFIG_FILE "./MemcardManager.ini"
+#define DEBUG_MCM
+#include "MCMdebug.h"
+#endif
+
 
 class CMemcardManager
 	: public wxDialog
@@ -67,6 +74,9 @@ class CMemcardManager
 		std::string DefaultMemcard[2],
 					DefaultIOPath;
 		IniFile MemcardManagerIni;
+#ifdef DEBUG_MCM
+		CMemcardManagerDebug * MemcardManagerDebug;
+#endif
 
 		wxBoxSizer *sMain,
 				   *sButtons,

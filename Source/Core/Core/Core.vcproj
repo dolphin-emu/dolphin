@@ -750,6 +750,10 @@
 					RelativePath=".\Src\HW\EXI_DeviceMic.h"
 					>
 				</File>
+				<File
+					RelativePath=".\Src\HW\Sram.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="SI - Serial Interface"

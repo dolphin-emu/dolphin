@@ -15,11 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
 #include "MemcardManager.h"
 #include "Common.h"
 #include "wx/mstream.h"
-//#define DEBUG_MCM  true
+
 #define DEFAULTS wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator
 #define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
 
@@ -119,6 +118,9 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	}
 	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
+#ifdef DEBUG_MCM
+	MemcardManagerDebug = NULL;
+#endif
 	CreateGUIControls();
 }
 
@@ -134,6 +136,14 @@ CMemcardManager::~CMemcardManager()
 		delete memoryCard[SLOT_B];
 		memoryCard[SLOT_B] = NULL;
 	}
+#ifdef DEBUG_MCM
+	if (MemcardManagerDebug)
+	{
+		MemcardManagerDebug->Destroy();
+		delete MemcardManagerDebug;
+		MemcardManagerDebug = NULL;
+	}
+#endif
 	MemcardManagerIni.Load(CONFIG_FILE);
 	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
 
@@ -834,6 +844,19 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		memoryCard[card]->GetFreeBlocks(), DIRLEN - nFiles);
 	t_Status[card]->SetLabel(wxLabel);
 
+
+#ifdef DEBUG_MCM
+	if(MemcardManagerDebug == NULL)
+	{
+		MemcardManagerDebug = new CMemcardManagerDebug((wxFrame *)NULL, wxDefaultPosition, wxSize(950, 400));
+ 
+	}
+	if (MemcardManagerDebug != NULL)
+	{
+		MemcardManagerDebug->Show();
+		MemcardManagerDebug->updatePanels(memoryCard, card);
+	}
+#endif
 	return true;
 }
 

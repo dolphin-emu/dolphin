@@ -15,13 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef __GCMEMCARD_h__
+#define __GCMEMCARD_h__
 
 #include "Common.h"
+#include "../../../Core/Src/HW/Sram.h"
 #include "StringUtil.h"
 #define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
 #define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
+#define SLOT_A 0
+#define SLOT_B 1
 
 enum
 {
@@ -53,6 +57,7 @@ enum
 class GCMemcard 
 {
 private:
+	friend class CMemcardManagerDebug;
 	void* mcdFile;
 
 	u32 maxBlock;
@@ -66,11 +71,14 @@ private:
 	};
 
 	struct Header {			//Offset	Size	Description
-		u8 Unk1[12];		//0x0000	12		?
+		 // Serial in libogc
+		u8 serial[12];		//0x0000	12		?
 		OSTime fmtTime;		//0x000c	8		time of format (OSTime value)
-		u8 SramBias[4];		//0x0014	4		sram bias at time of format	
-		u8 Unk2[8];			//0x0018	8	 	? almost always 0 or 1
-		u8 Pad1[2];			//0x0020	2		padding zeroes
+		u8 SramBias[4];		//0x0014	4		sram bias at time of format
+		u8 SramLang[4];		//0x0018	4		sram language
+		u8 Unk2[4];			//0x001c	4	 	? almost always 0
+		// end Serial in libogc
+		u8 deviceID[2];		//0x0020	2		0 if formated in slot A 1 if formated in slot B
 		u8 Size[2];			//0x0022	2		size of memcard in Mbits
 		u8 Encoding[2];		//0x0024	2		encoding (ASCII or japanese)
 		u8 Unused1[468];	//0x0026	468		unused (0xff)
@@ -155,6 +163,7 @@ public:
 	bool IsOpen();
 	bool Save();
 	bool format(bool New);
+	bool formatWIP(int slot, bool New, bool sjis);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();
@@ -228,3 +237,5 @@ public:
 	// reads the animation frames
 	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays);
 };
+#endif
+

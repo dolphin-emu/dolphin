@@ -84,6 +84,7 @@ GCMemcard::GCMemcard(const char *filename)
 		}
 		mcdFile = mcd;
 		format(true);
+		//formatWIP(0,true,false);
 		fclose(mcd);
 		mcd = fopen(filename, "r+b");
 	}
@@ -1073,7 +1074,6 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
-
 bool GCMemcard::format(bool New)
 {
 	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
@@ -1092,31 +1092,31 @@ bool GCMemcard::format(bool New)
 	memset(&bat, 0, 0x2000);
 	memset(&bat_backup, 0, 0x2000);
 	memset(mc_data, 0xFF, mc_data_size);
-	hdr.Unk1[0] = 0xE3;
-	hdr.Unk1[1] = 0x63;
-	hdr.Unk1[2] = 0x27;
-	hdr.Unk1[3] = 0xC1;
-	hdr.Unk1[4] = 0x6B;
-	hdr.Unk1[5] = 0x11;
-	hdr.Unk1[6] = 0xEC;
-	hdr.Unk1[7] = 0x47;
-	hdr.Unk1[8] = 0xF0;
-	hdr.Unk1[9] = 0x12;
-	hdr.Unk1[10] = 0x99;
-	hdr.Unk1[11] = 0x13;
+	hdr.serial[0] = 0xE3;
+	hdr.serial[1] = 0x63;
+	hdr.serial[2] = 0x27;
+	hdr.serial[3] = 0xC1;
+	hdr.serial[4] = 0x6B;
+	hdr.serial[5] = 0x11;
+	hdr.serial[6] = 0xEC;
+	hdr.serial[7] = 0x47;
+	hdr.serial[8] = 0xF0;
+	hdr.serial[9] = 0x12;
+	hdr.serial[10] = 0x99;
+	hdr.serial[11] = 0x13;
 	hdr.fmtTime.low = 0x5CB62800;
 	hdr.fmtTime.high = 0xA665E7A3;
 	hdr.SramBias[3] = 0x40;
+	hdr.SramLang[0] = 0;
+	hdr.SramLang[1] = 0;
+	hdr.SramLang[2] = 0;
+	hdr.SramLang[3] = 0;
 	hdr.Unk2[0] = 0;
 	hdr.Unk2[1] = 0;
 	hdr.Unk2[2] = 0;
-	hdr.Unk2[3] = 0;
-	hdr.Unk2[4] = 0;
-	hdr.Unk2[5] = 0;
-	hdr.Unk2[6] = 0;
-	hdr.Unk2[7] = 0x01;
-	hdr.Pad1[0] = 0;
-	hdr.Pad1[1] = 0;
+	hdr.Unk2[3] = 0x01;
+	hdr.deviceID[0] = 0;
+	hdr.deviceID[1] = 0;
 	hdr.Size[0] = 0;
 	hdr.Size[1] = 0x80;
 	hdr.Encoding[0] = 0;
@@ -1154,3 +1154,94 @@ bool GCMemcard::format(bool New)
 	Save();
 	return true;
 }
+
+bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
+{//slot = 1;
+	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
+	u16 size = (((data_size / 0x2000) + 5) / 0x10);
+	SRAM m_SRAM;
+	FILE * pStream;
+	u64 time, rand;
+
+	if (New)
+	{
+		mc_data_size = data_size;
+		mc_data = new u8[mc_data_size];
+	}
+
+	pStream = fopen(GC_SRAM_FILE, "rb");
+	if (pStream == NULL)
+	{
+		return false;
+	}
+	fread(&m_SRAM, 1, 64, pStream);
+	fclose(pStream);
+	rand = time = 0XFAB12B2D9FD80700;//0x500;//gettime();
+
+	//////////////////////////////////////
+
+PanicAlert("%2x,%2x,%4x,%4x,%4x,%x,%x,lang%x,flahs%x",BE16(m_SRAM.syssram.checksum),
+		   BE16(m_SRAM.syssram.checksum_inv),
+		   BE32(m_SRAM.syssram.ead0),
+		   BE32(m_SRAM.syssram.ead1),
+		   BE32(m_SRAM.syssram.counter_bias),
+		   m_SRAM.syssram.display_offsetH,
+		   m_SRAM.syssram.ntd,
+		   m_SRAM.syssram.lang,
+		   m_SRAM.syssram.flags);
+
+PanicAlert("%4x%4x%4x,%4x%4x%4x,%4x,%4x,%4x,%x,%x,%4x,%4x",
+		   BE32(m_SRAM.syssramex.flash_id_1),
+		   BE32(&(m_SRAM.syssramex.flash_id_1[4])),
+		   BE32(&(m_SRAM.syssramex.flash_id_1[8])),
+		   BE32(m_SRAM.syssramex.flash_id_2),
+		   BE32(&(m_SRAM.syssramex.flash_id_2[4])),
+		   BE32(&(m_SRAM.syssramex.flash_id_2[8])),
+		   BE32(m_SRAM.syssramex.wirelessKbd_id),
+		   BE32(m_SRAM.syssramex.wirelessPad_id),
+		   BE32(&(m_SRAM.syssramex.wirelessPad_id[4])),
+		   m_SRAM.syssramex.dvderr_code,
+		   m_SRAM.syssramex.__padding0,
+		   BE32(m_SRAM.syssramex.flashID_chksum),
+		   BE32(m_SRAM.syssramex.__padding1));
+
+	memset(&hdr, 0xFF, 0x2000);
+	u8 * flash_id = slot ? m_SRAM.syssramex.flash_id_2 : m_SRAM.syssramex.flash_id_1;
+
+	for(int i = 0; i < 12; i++)
+	{
+		
+		rand = (((rand*(u64)0x0000000041c64e6d)+(u64)0x0000000000003039)>>16);
+//	PanicAlert("%16x",rand);
+//	PanicAlert("m_SRAM.syssramex.flash_id %16x",(flash_id[i]));
+//	PanicAlert("%16x",(flash_id[i]+(u32)rand));
+//	PanicAlert("%16x",(flash_id+Common::swap32((u32)rand)));
+		hdr.serial[i] = (flash_id[i]+(u32)rand);
+		rand = (((rand*(u64)0x0000000041c64e6d)+(u64)0x0000000000003039)>>16);
+		rand &= (u64)0x0000000000007fff;
+	}
+	hdr.fmtTime.high = (time >> 32) & 0xFFFFFFFF;
+	hdr.fmtTime.low = time & 0xFFFFFFFF;
+	*(u32*)&(hdr.SramBias) = *(u32*)&(m_SRAM.syssram.counter_bias);
+	*(u32*)&(hdr.SramLang) = m_SRAM.syssram.lang;
+	*(u32*)&(hdr.Unk2) = 0;//tmp; tmp = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	*(u16*)&(hdr.deviceID) = 0;
+	*(u16*)&(hdr.Size) = Common::swap16(size);
+	*(u16*)&(hdr.Encoding) = Common::swap16(sjis ? 1 : 0);
+	
+	memset(&dir, 0xFF, 0x2000);
+	memset(&dir_backup, 0xFF, 0x2000);
+	*(u16*)&dir.UpdateCounter = 0;
+	*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
+	memset(&bat, 0, 0x2000);
+	memset(&bat_backup, 0, 0x2000);
+	*(u16*)&bat.UpdateCounter = 0;
+	*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
+	*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(size * 0x10 - 5);
+	*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
+	memset(mc_data, 0xFF, mc_data_size);
+	FixChecksums();
+	Save();
+	return true;
+}
+
