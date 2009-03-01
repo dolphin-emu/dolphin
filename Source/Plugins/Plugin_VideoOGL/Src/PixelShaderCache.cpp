@@ -38,6 +38,7 @@ static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
 PixelShaderCache::PSCache PixelShaderCache::pshaders;
 PIXELSHADERUID PixelShaderCache::s_curuid;
+bool PixelShaderCache::s_displayCompileAlert;
 
 static FRAGMENTSHADER* pShaderLast = NULL;
 
@@ -54,6 +55,8 @@ void SetPSConstant4fv(int const_number, const float *f)
 void PixelShaderCache::Init()
 {
 	GL_REPORT_ERRORD();
+
+    s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
 	
@@ -178,6 +181,11 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
+        if (s_displayCompileAlert) {
+            PanicAlert("Failed to create pixel shader");
+            s_displayCompileAlert = false;
+        }
+        cgDestroyProgram(tempprog);
 		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;

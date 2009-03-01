@@ -51,6 +51,8 @@ class PixelShaderCache
 
 	static PIXELSHADERUID s_curuid; // the current pixel shader uid (progressively changed as memory is written)
 
+    static bool s_displayCompileAlert;
+
 public:
 	static void Init();
 	static void ProgressiveCleanup();

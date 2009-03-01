@@ -37,6 +37,7 @@
 #include "ImageWrite.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
+bool VertexShaderCache::s_displayCompileAlert;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
@@ -54,7 +55,9 @@ void SetVSConstant4fv(int const_number, const float *f)
 
 void VertexShaderCache::Init()
 {
-	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
+	s_displayCompileAlert = true;
+
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
 }
 
 void VertexShaderCache::Shutdown()
@@ -137,6 +140,11 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
+        if (s_displayCompileAlert) {
+            PanicAlert("Failed to create vertex shader");
+            s_displayCompileAlert = false;
+        }
+        cgDestroyProgram(tempprog);
 		ERROR_LOG(VIDEO, "Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;

@@ -712,25 +712,24 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         if(!bHasIndStage) {
             // calc tevcord
             //tevcoord.xy = texdim[1].xy * uv1.xy / uv1.z;
-            int OurTexCoord = 0;
-            if(bpmem.genMode.numtexgens)
-                OurTexCoord = texcoord;
-            else
-                OurTexCoord = 0;
-            if (texture_mask & (1<<texmap)) {
-                // nonpow2
-                if (texfun == XF_TEXPROJ_STQ )
-                    WRITE(p, "tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, OurTexCoord);
-                else
-                    WRITE(p, "tevcoord.xy = uv%d.xy;\n", OurTexCoord);
-                WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
-            }
-            else {
-                if (texfun == XF_TEXPROJ_STQ ) 
-                    WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, OurTexCoord , OurTexCoord );
-                else 
-                    WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, OurTexCoord);
-
+            if(bpmem.genMode.numtexgens) {
+                if (texture_mask & (1<<texmap)) {
+                    // nonpow2
+                    if (texfun == XF_TEXPROJ_STQ )
+                        WRITE(p, "tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, texcoord);
+                    else
+                        WRITE(p, "tevcoord.xy = uv%d.xy;\n", texcoord);
+                    WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
+                }
+                else {
+                    if (texfun == XF_TEXPROJ_STQ ) 
+                        WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, texcoord , texcoord );
+                    else 
+                        WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, texcoord);
+                }
+            } else {
+                // donkopunchstania - check that this is correct when there are no tex gens
+                WRITE(p, "tevcoord.xy = float2(0.0f,0.0f);\n");
             }
         }
         else if (texture_mask & (1<<texmap)) {

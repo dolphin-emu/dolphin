@@ -49,6 +49,8 @@ class VertexShaderCache
 
 	static VSCache vshaders;
 
+    static bool s_displayCompileAlert;
+
 public:
 	static void Init();
 	static void ProgressiveCleanup();
