@@ -1238,6 +1238,10 @@ void dsp_opc_srbith(uint16 opc)
 		    g_dsp.r[R_SR] &= ~(1 << 14);
 		    break;
 
+		// FIXME: Both of these appear in the beginning of the Wind Waker
+		//case 0xb:
+		//case 0xc:
+
 /*	case 0xf:	// SET16   // that doesnt happen on a real console
    	g_dsp.r[R_SR] |= (1 << 14);
    	break;*/

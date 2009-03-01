@@ -162,9 +162,8 @@ void* dsp_thread(void* lpParameter)
 	{
 		if (!gdsp_run())
 		{
-			ErrorLog("*** DSP: CRITICAL ERROR ***\n");
-			//return 0;
-			exit(0);
+			PanicAlert("ERROR: DSP Halt");
+			return 0;
 		}
 	}
 }
