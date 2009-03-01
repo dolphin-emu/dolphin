@@ -25,11 +25,15 @@
 #include "D3DBase.h"
 #include "VertexShaderGen.h"
 
+#include <Cg/cg.h>
+#include <Cg/cgD3D9.h>
+
 class VertexShaderCache
 {
 	struct VSCacheEntry
 	{ 
-		LPDIRECT3DVERTEXSHADER9 shader;
+		//LPDIRECT3DVERTEXSHADER9 shader;
+		CGprogram shader;
 		int frameCount;
 		VSCacheEntry()
 		{
@@ -38,8 +42,11 @@ class VertexShaderCache
 		}
 		void Destroy()
 		{
-			if (shader)
-				shader->Release();
+			if (shader) {
+				cgD3D9UnloadProgram(shader);
+				cgDestroyProgram(shader);
+				//	shader->Release();
+			}
 		}
 	};
 
@@ -52,6 +59,7 @@ public:
 	static void Cleanup();
 	static void Shutdown();
 	static void SetShader(u32 components);
+	static CGprogram CompileCgShader(const char *pstrprogram);
 };
 
 #endif  // _VERTEXSHADERCACHE_H

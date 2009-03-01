@@ -27,6 +27,9 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
+#include <Cg/cg.h>
+#include <Cg/cgD3D9.h>
+
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
@@ -58,7 +61,8 @@ void PixelShaderCache::SetShader()
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
-	static LPDIRECT3DPIXELSHADER9 lastShader = 0;
+	//static LPDIRECT3DPIXELSHADER9 lastShader = 0;
+	static CGprogram lastShader = NULL;
     DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
@@ -73,14 +77,17 @@ void PixelShaderCache::SetShader()
 		PSCacheEntry &entry = iter->second;
 		if (!lastShader || entry.shader != lastShader)
 		{
-			D3D::dev->SetPixelShader(entry.shader);
+			//D3D::dev->SetPixelShader(entry.shader);
+			cgD3D9LoadProgram(entry.shader, false, 0);
+			cgD3D9BindProgram(entry.shader);
 			lastShader = entry.shader;
 		}
 		return;
 	}
 
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, false);
-	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
+	//LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
+	CGprogram shader = CompileCgShader(code);
 	if (shader)
 	{
 		//Make an entry in the table
@@ -89,12 +96,47 @@ void PixelShaderCache::SetShader()
 		newentry.frameCount = frameCount;
 		PixelShaders[uid] = newentry;
 
+		// There seems to be an unknown Cg error here for some reason
+		///PanicAlert("Load pShader");
+		cgD3D9LoadProgram(shader, false, 0);
+		cgD3D9BindProgram(shader);
+		///PanicAlert("Loaded pShader");
+
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
+	} else
+		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
+
+	//D3D::dev->SetPixelShader(shader);
+}
+
+CGprogram PixelShaderCache::CompileCgShader(const char *pstrprogram) 
+{
+	char stropt[64];
+	//sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
+	//const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
+
+	const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
+	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
+	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
+		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
+		ERROR_LOG(VIDEO, pstrprogram);
+		return false;
 	}
 
-	D3D::dev->SetPixelShader(shader);
+	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
+	// It SHOULD not have any nasty side effects though - but you never know...
+	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
+	char *plocal = strstr(pcompiledprog, "program.local");
+	while (plocal != NULL) {
+		const char *penv = "  program.env";
+		memcpy(plocal, penv, 13);
+		plocal = strstr(plocal+13, "program.local");
+	}
+
+	return tempprog;
 }
+
 
 void PixelShaderCache::Cleanup()
 {

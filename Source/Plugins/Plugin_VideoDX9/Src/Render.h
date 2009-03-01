@@ -24,6 +24,11 @@
 #include "pluginspecs_video.h"
 #include "D3DBase.h"
 
+#include <Cg/cg.h>
+
+extern CGcontext g_cgcontext;
+extern CGprofile g_cgvProf, g_cgfProf;
+
 class Renderer
 {
 	// screen offset

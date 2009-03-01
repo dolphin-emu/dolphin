@@ -38,6 +38,13 @@
 #include "Utils.h"
 #include "EmuWindow.h"
 
+#include <Cg/cg.h>
+#include <Cg/cgD3D9.h>
+
+CGcontext g_cgcontext;
+CGprofile g_cgvProf;
+CGprofile g_cgfProf;
+
 float Renderer::m_x;
 float Renderer::m_y;
 float Renderer::m_width;
@@ -64,6 +71,15 @@ struct Message
 
 static std::list<Message> s_listMsgs;
 
+void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
+{
+	PanicAlert("Cg error: %s\n", cgGetErrorString(err));
+	const char* listing = cgGetLastListing(g_cgcontext);
+	if (listing != NULL) {
+		PanicAlert("last listing: %s\n", listing);
+	}
+}
+
 void Renderer::Init(SVideoInitialize &_VideoInitialize) 
 {
     EmuWindow::SetSize(g_Res[g_Config.iWindowedRes][0], g_Res[g_Config.iWindowedRes][1]);
@@ -72,6 +88,15 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 
 	D3DVIEWPORT9 vp;
 	D3D::dev->GetViewport(&vp);
+
+	g_cgcontext = cgCreateContext();
+
+	cgGetError();
+	cgSetErrorHandler(HandleCgError, NULL);
+
+	cgD3D9SetDevice(D3D::dev);
+	g_cgvProf = cgD3D9GetLatestVertexProfile();
+	g_cgfProf = cgD3D9GetLatestPixelProfile();
 
 	m_x = 0;
 	m_y = 0;
@@ -104,6 +129,10 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 
 void Renderer::Shutdown()
 {
+	cgD3D9SetDevice(NULL);
+	cgDestroyContext(g_cgcontext);
+	g_cgcontext = NULL;
+
 	D3D::font.Shutdown();
 	D3D::EndFrame();
 	D3D::Close();

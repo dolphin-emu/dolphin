@@ -25,6 +25,9 @@
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
 
+#include <Cg/cg.h>
+#include <Cg/cgD3D9.h>
+
 typedef u32 tevhash;
 
 tevhash GetCurrentTEV();
@@ -33,7 +36,8 @@ class PixelShaderCache
 {
 	struct PSCacheEntry
 	{
-		LPDIRECT3DPIXELSHADER9 shader;
+		//LPDIRECT3DPIXELSHADER9 shader;
+		CGprogram shader;
 
 		int frameCount;
 		PSCacheEntry()
@@ -43,8 +47,12 @@ class PixelShaderCache
 		}
 		void Destroy()
 		{
-			if (shader)
-				shader->Release();
+			if (shader) {
+				cgD3D9UnloadProgram(shader);
+				cgDestroyProgram(shader);
+			//	shader->Release();
+			}
+			
 		}
 	};
 
@@ -57,6 +65,7 @@ public:
 	static void Cleanup();
 	static void Shutdown();
 	static void SetShader();
+	static CGprogram CompileCgShader(const char *pstrprogram);
 };
 
 
