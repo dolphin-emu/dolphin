@@ -31,11 +31,7 @@ class VertexShaderCache
 	{ 
 		LPDIRECT3DVERTEXSHADER9 shader;
 		int frameCount;
-		VSCacheEntry()
-		{
-			shader = 0;
-			frameCount = 0;
-		}
+		VSCacheEntry() : shader(NULL), frameCount(0) {}
 		void Destroy()
 		{
 			if (shader)

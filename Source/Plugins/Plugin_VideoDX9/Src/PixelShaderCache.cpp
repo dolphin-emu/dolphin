@@ -35,7 +35,7 @@ PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
 	const float f[4] = {f1, f2, f3, f4};
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);                                               
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
 void SetPSConstant4fv(int const_number, const float *f)
@@ -62,7 +62,8 @@ void PixelShaderCache::SetShader()
 		return; // we are screwed
 
 	static LPDIRECT3DPIXELSHADER9 lastShader = NULL;
-    DVSTARTPROFILE();
+
+	DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), false, false);
@@ -83,9 +84,7 @@ void PixelShaderCache::SetShader()
 	}
 
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, false);
-	//LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)(strlen(code)));
 	LPDIRECT3DPIXELSHADER9 shader = CompileCgShader(code);
-	
 	if (shader)
 	{
 		//Make an entry in the table
@@ -94,6 +93,7 @@ void PixelShaderCache::SetShader()
 		newentry.frameCount = frameCount;
 		PixelShaders[uid] = newentry;
 
+		D3D::dev->SetFVF(NULL);
 		D3D::dev->SetPixelShader(shader);
 
 		INCSTAT(stats.numPixelShadersCreated);
@@ -119,18 +119,34 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::CompileCgShader(const char *pstrprogram
 	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
 	// It SHOULD not have any nasty side effects though - but you never know...
 	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-	char *plocal = strstr(pcompiledprog, "program.local");
-	while (plocal != NULL) {
-		const char *penv = "  program.env";
-		memcpy(plocal, penv, 13);
-		plocal = strstr(plocal+13, "program.local");
-	}
+	LPD3DXBUFFER shader_binary;
+	LPD3DXBUFFER error_msg;
 
-	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(pcompiledprog, strlen(pcompiledprog));
-
+	// Step one - Assemble into binary code. This binary code could be cached.
+	if (FAILED(D3DXAssembleShader(pcompiledprog, (UINT)strlen(pcompiledprog), NULL, NULL, 0, &shader_binary, &error_msg)))
+		PanicAlert("Asm fail");
+	// Destroy Cg program as early as possible - we want as little as possible to do with Cg due to
+	// our rather extreme performance requirements.
 	cgDestroyProgram(tempprog);
+	tempprog = NULL;
 
-	return shader;
+	// Create pixel shader from the binary code.
+	LPDIRECT3DPIXELSHADER9 pixel_shader = NULL;
+	if (SUCCEEDED(D3D::dev->CreatePixelShader((const DWORD *)shader_binary->GetBufferPointer(), &pixel_shader))) {
+		// PanicAlert("Success Pixel!");
+	} else {
+		if (error_msg) {
+			PanicAlert("failure pixel %s", error_msg->GetBufferPointer());
+			MessageBox(0, pcompiledprog, 0, 0);
+		}
+		else
+			PanicAlert("failure pixel with no error message.");
+	}
+	if (shader_binary)
+		shader_binary->Release();
+	if (error_msg)
+		error_msg->Release();
+	return pixel_shader;
 }
 
 

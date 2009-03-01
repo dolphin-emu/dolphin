@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -208,6 +208,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
 				GenerateManifest="false"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -1196,10 +1197,6 @@
 				RelativePath=".\Src\NativeVertexFormat.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\VertexShaderCache.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Render"
@@ -1234,6 +1231,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderCache.cpp"
 				>
 			</File>
 			<File

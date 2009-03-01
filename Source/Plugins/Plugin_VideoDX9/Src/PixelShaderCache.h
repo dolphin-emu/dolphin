@@ -34,13 +34,9 @@ class PixelShaderCache
 	struct PSCacheEntry
 	{
 		LPDIRECT3DPIXELSHADER9 shader;
-		
 		int frameCount;
-		PSCacheEntry()
-		{
-			shader = 0;
-			frameCount = 0;
-		}
+
+		PSCacheEntry() : shader(NULL), frameCount(0) {}
 		void Destroy()
 		{
 			if (shader)

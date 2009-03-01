@@ -93,7 +93,6 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 
 	cgGetError();
 	cgSetErrorHandler(HandleCgError, NULL);
-
 	cgD3D9SetDevice(D3D::dev);
 	g_cgvProf = cgD3D9GetLatestVertexProfile();
 	g_cgfProf = cgD3D9GetLatestPixelProfile();
@@ -144,10 +143,8 @@ void Renderer::Initialize()
 	m_Textures.reserve(MaxTextureStages);
 	for (int i = 0; i < MaxTextureStages; i++)
 		m_Textures.push_back(NULL);
-
 	for (int i = 0; i < 8; i++)
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
-
 	Postprocess::Initialize();
 	Postprocess::BeginFrame();
 	D3D::BeginFrame(true, 0);

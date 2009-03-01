@@ -61,11 +61,11 @@ void VertexShaderCache::Shutdown()
 
 void VertexShaderCache::SetShader(u32 components)
 {
-	static LPDIRECT3DVERTEXSHADER9 shader = NULL;
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
 	static LPDIRECT3DVERTEXSHADER9 lastShader = NULL;
+
 	DVSTARTPROFILE();
 
 	VERTEXSHADERUID uid;
@@ -73,7 +73,6 @@ void VertexShaderCache::SetShader(u32 components)
 
 	VSCache::iterator iter;
 	iter = vshaders.find(uid);
-
 	if (iter != vshaders.end())
 	{
 		iter->second.frameCount = frameCount;
@@ -87,11 +86,10 @@ void VertexShaderCache::SetShader(u32 components)
 	}
 
 	const char *code = GenerateVertexShader(components, false);
-	//shader = D3D::CompileVertexShader(code, (int)strlen(code));
-	shader = CompileCgShader(code);
+	LPDIRECT3DVERTEXSHADER9 shader = CompileCgShader(code);
 	if (shader)
 	{
-		//Make an entry in the table
+		// Make an entry in the table
 		VSCacheEntry entry;
 		entry.shader = shader;
 		entry.frameCount = frameCount;
@@ -101,8 +99,12 @@ void VertexShaderCache::SetShader(u32 components)
 
 		INCSTAT(stats.numVertexShadersCreated);
 		SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
-	} else
+	} else {
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
+	}
+
+	D3D::dev->SetFVF(NULL);
+	D3D::dev->SetVertexShader(shader);
 }
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::CompileCgShader(const char *pstrprogram) 
@@ -117,22 +119,36 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::CompileCgShader(const char *pstrprogr
 		ERROR_LOG(VIDEO, pstrprogram);
 		return NULL;
 	}
+	const char *pcompiledprog = cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
 
-	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
-	// It SHOULD not have any nasty side effects though - but you never know...
-	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-	char *plocal = strstr(pcompiledprog, "program.local");
-	while (plocal != NULL) {
-		const char* penv = "  program.env";
-		memcpy(plocal, penv, 13);
-		plocal = strstr(plocal + 13, "program.local");
-	}
+	LPD3DXBUFFER shader_binary;
+	LPD3DXBUFFER error_msg;
 
-	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVertexShader(pcompiledprog, strlen(pcompiledprog));
-
+	// Step one - Assemble into binary code. This binary code could be cached.
+	if (FAILED(D3DXAssembleShader(pcompiledprog, (UINT)strlen(pcompiledprog), NULL, NULL, 0, &shader_binary, &error_msg)))
+		PanicAlert("Asm fail");
+	// Destroy Cg program as early as possible - we want as little as possible to do with Cg due to
+	// our rather extreme performance requirements.
 	cgDestroyProgram(tempprog);
+	tempprog = NULL;
 
-	return shader;
+	// Create vertex shader from the binary code.
+	LPDIRECT3DVERTEXSHADER9 vertex_shader = NULL;
+	if (SUCCEEDED(D3D::dev->CreateVertexShader((const DWORD *)shader_binary->GetBufferPointer(), &vertex_shader))) {
+		// PanicAlert("Successvertex!");
+	} else {
+		if (error_msg) {
+			PanicAlert("failure vertex %s", error_msg->GetBufferPointer());
+			MessageBox(0, pcompiledprog, 0, 0);
+		}
+		else
+			PanicAlert("failure vertex with no error message.");
+	}
+	if (shader_binary)
+		shader_binary->Release();
+	if (error_msg)
+		error_msg->Release();
+	return vertex_shader;
 }
 
 void VertexShaderCache::Cleanup()

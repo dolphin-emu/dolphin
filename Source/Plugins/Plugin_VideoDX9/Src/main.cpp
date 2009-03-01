@@ -315,7 +315,7 @@ HRESULT ScreenShot(const char *File)
 
 void Video_Screenshot(const char *_szFilename)
 {
-	if(ScreenShot(_szFilename) != S_OK)
+	if (ScreenShot(_szFilename) != S_OK)
 		PanicAlert("Error while capturing screen");
 	else {
 		std::string message =  "Saved ";
