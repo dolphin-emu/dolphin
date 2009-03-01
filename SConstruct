@@ -206,7 +206,9 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # needed for mic
-env['HAVE_PORTAUDIO'] = conf.CheckPKG('portaudio')
+env['HAVE_PORTAUDIO'] = False
+if conf.CheckPKG('portaudio') and conf.CheckCHeader("portaudio.h"):
+    env['HAVE_PORTAUDIO'] = True;
 
 #osx 64 specifics
 if sys.platform == 'darwin':
