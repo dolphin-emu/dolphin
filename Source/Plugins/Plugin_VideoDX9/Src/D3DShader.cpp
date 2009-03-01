@@ -24,18 +24,18 @@
 namespace D3D
 {
 
-LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
+LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len, bool assembly)
 {
 	//try to compile
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DVERTEXSHADER9 vShader = 0;
- 	HRESULT hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
-	/*if (FAILED(hr))
-	{
-		//let's try 2.0
+ 	HRESULT hr;
+	
+	if (assembly)
+		hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
+	else
 		hr = D3DXCompileShader(code, len, 0, 0, "main", "vs_2_0", 0, &shaderBuffer, &errorBuffer, 0);
-	}*/
 
 	if (FAILED(hr))
 	{
@@ -67,14 +67,19 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 	return vShader;
 }
 
-LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
+LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len, bool assembly)
 {
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DPIXELSHADER9 pShader = 0;
 	static char *versions[6] = {"ERROR", "ps_1_1", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
 
-	HRESULT hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
+	HRESULT hr;
+	if (assembly)
+		hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
+	else
+		hr = D3DXCompileShader(code, len, 0, 0, "main", "ps_2_0", // Pixel Shader 2.0 is enough for all we do
+							   0, &shaderBuffer, &errorBuffer, 0);
 
 	if (FAILED(hr))
 	{

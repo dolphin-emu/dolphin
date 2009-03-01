@@ -133,7 +133,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 static void WriteStage(char *&p, int n, u32 texture_mask);
 static void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
 static void WriteAlphaCompare(char *&p, int num, int comp);
-static bool WriteAlphaTest(char *&p);
+static bool WriteAlphaTest(char *&p, bool HLSL);
 static void WriteFog(char *&p, bool bOutputZ);
 
 const float epsilon8bit = 1.0f / 255.0f;
@@ -369,7 +369,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
+const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool HLSL)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
@@ -516,7 +516,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
-    if (!WriteAlphaTest(p)) {
+    if (!WriteAlphaTest(p, HLSL)) {
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
 		WRITE(p, "discard;\n");
@@ -535,7 +535,9 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 			   */
             WriteFog(p, bOutputZ);
             WRITE(p, "  ocol0 = prev;\n");
-        }
+		} else {
+			WRITE(p, "  ocol0 = prev;\n");
+		}
     }
 
     if (bRenderZ) {
@@ -889,7 +891,7 @@ static void WriteAlphaCompare(char *&p, int num, int comp)
     }
 }
 
-static bool WriteAlphaTest(char *&p)
+static bool WriteAlphaTest(char *&p, bool HLSL)
 {
     u32 op = bpmem.alphaFunc.logic;
     u32 comp[2] = {bpmem.alphaFunc.comp0,bpmem.alphaFunc.comp1};
@@ -928,7 +930,11 @@ static bool WriteAlphaTest(char *&p)
     }
 
 	// Seems we need discard for Cg and clip for d3d. sigh.
-    WRITE(p, "discard( ");
+	if (HLSL) 
+		WRITE(p, "clip( ");
+	else {
+		WRITE(p, "discard( ");
+	}
     WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     
     // negated because testing the inverse condition

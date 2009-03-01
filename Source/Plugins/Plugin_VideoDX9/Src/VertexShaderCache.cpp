@@ -85,8 +85,9 @@ void VertexShaderCache::SetShader(u32 components)
 		return;
 	}
 
+	bool HLSL = false;
 	const char *code = GenerateVertexShader(components, false);
-	LPDIRECT3DVERTEXSHADER9 shader = CompileCgShader(code);
+	LPDIRECT3DVERTEXSHADER9 shader = HLSL ? D3D::CompileVertexShader(code, strlen(code), false) : CompileCgShader(code);
 	if (shader)
 	{
 		// Make an entry in the table
@@ -121,33 +122,9 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::CompileCgShader(const char *pstrprogr
 	}
 	const char *pcompiledprog = cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
 
-	LPD3DXBUFFER shader_binary;
-	LPD3DXBUFFER error_msg;
-
-	// Step one - Assemble into binary code. This binary code could be cached.
-	if (FAILED(D3DXAssembleShader(pcompiledprog, (UINT)strlen(pcompiledprog), NULL, NULL, 0, &shader_binary, &error_msg)))
-		PanicAlert("Asm fail");
-	// Destroy Cg program as early as possible - we want as little as possible to do with Cg due to
-	// our rather extreme performance requirements.
+	LPDIRECT3DVERTEXSHADER9 vertex_shader = D3D::CompileVertexShader(pcompiledprog, (int)strlen(pcompiledprog), true);
 	cgDestroyProgram(tempprog);
 	tempprog = NULL;
-
-	// Create vertex shader from the binary code.
-	LPDIRECT3DVERTEXSHADER9 vertex_shader = NULL;
-	if (SUCCEEDED(D3D::dev->CreateVertexShader((const DWORD *)shader_binary->GetBufferPointer(), &vertex_shader))) {
-		// PanicAlert("Successvertex!");
-	} else {
-		if (error_msg) {
-			PanicAlert("failure vertex %s", error_msg->GetBufferPointer());
-			MessageBox(0, pcompiledprog, 0, 0);
-		}
-		else
-			PanicAlert("failure vertex with no error message.");
-	}
-	if (shader_binary)
-		shader_binary->Release();
-	if (error_msg)
-		error_msg->Release();
 	return vertex_shader;
 }
 

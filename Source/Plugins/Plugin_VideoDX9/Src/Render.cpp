@@ -85,10 +85,6 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
     EmuWindow::SetSize(g_Res[g_Config.iWindowedRes][0], g_Res[g_Config.iWindowedRes][1]);
 
     D3D::Create(g_Config.iAdapter, EmuWindow::GetWnd(), g_Config.bFullscreen, g_Config.iFSResolution, g_Config.iMultisampleMode);
-
-	D3DVIEWPORT9 vp;
-	D3D::dev->GetViewport(&vp);
-
 	g_cgcontext = cgCreateContext();
 
 	cgGetError();
@@ -97,31 +93,23 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	g_cgvProf = cgD3D9GetLatestVertexProfile();
 	g_cgfProf = cgD3D9GetLatestPixelProfile();
 
+	float width =  (float)D3D::GetDisplayWidth();
+	float height = (float)D3D::GetDisplayHeight();
+
 	m_x = 0;
 	m_y = 0;
-	m_width  = (float)vp.Width;
-	m_height = (float)vp.Height;
-	xScale = 640.0f / (float)vp.Width;
-	yScale = 480.0f / (float)vp.Height;
+	m_width  = width;
+	m_height = height;
+	xScale = width / (float)EFB_WIDTH;
+	yScale = height / (float)EFB_HEIGHT;
 
+	// We're not using much fixed function. Let's just set the matrices to identity.
 	D3DXMATRIX mtx;
 	D3DXMatrixIdentity(&mtx);
 	D3D::dev->SetTransform(D3DTS_VIEW, &mtx);
 	D3D::dev->SetTransform(D3DTS_WORLD, &mtx);
-	float width =  (float)D3D::GetDisplayWidth();
-	float height = (float)D3D::GetDisplayHeight();
 
-	xScale = width/640.0f;
-	yScale = height/480.0f;
-/*
-	RECT rc =
-	{
-		(LONG)(m_x*xScale),
-		(LONG)(m_y*yScale),
-		(LONG)(m_width*xScale),
-		(LONG)(m_height*yScale)
-	};
-*/
+
 	D3D::font.Init();
 	Initialize();
 }
@@ -145,6 +133,7 @@ void Renderer::Initialize()
 		m_Textures.push_back(NULL);
 	for (int i = 0; i < 8; i++)
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
+
 	Postprocess::Initialize();
 	Postprocess::BeginFrame();
 	D3D::BeginFrame(true, 0);
@@ -158,11 +147,12 @@ void Renderer::AddMessage(const std::string &message, u32 ms)
 
 void Renderer::ProcessMessages()
 {
-	if (s_listMsgs.size() > 0) {
+	if (s_listMsgs.size() > 0)
+	{
         int left = 25, top = 15;
 		std::list<Message>::iterator it = s_listMsgs.begin();
         
-        while(it != s_listMsgs.end()) 
+        while (it != s_listMsgs.end()) 
 		{
 			int time_left = (int)(it->dwTimeStamp - timeGetTime());
 			int alpha = 255;
@@ -193,7 +183,7 @@ void Renderer::RenderText(const std::string &text, int left, int top, u32 color)
 
 void dumpMatrix(D3DXMATRIX &mtx)
 {
-	for (int y=0; y<4; y++)
+	for (int y = 0; y < 4; y++)
 	{
 		char temp[256];
 		sprintf(temp,"%4.4f %4.4f %4.4f %4.4f",mtx.m[y][0],mtx.m[y][1],mtx.m[y][2],mtx.m[y][3]);
@@ -213,8 +203,6 @@ void Renderer::SwapBuffers()
 		int height = rcWindow.bottom - rcWindow.top;
 
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
-	//	nBackbufferWidth = width;
-	//	nBackbufferHeight = height;
 	}
 
 	//Finish up the current frame, print some stats
@@ -290,6 +278,7 @@ void Renderer::SwapBuffers()
 	rc.right  = (LONG)m_width;
 	rc.bottom = (LONG)m_height;
 	D3D::dev->SetScissorRect(&rc);
+	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
 	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x101010, 0, 0);
 	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
@@ -347,6 +336,7 @@ void Renderer::SetViewport(float* _Viewport)
 
 void Renderer::SetScissorRect()
 {
+	/*
 	RECT rc = {0,0,0,0}; // FIXX
 	rc.left   = (int)(rc.left   * xScale);
 	rc.top    = (int)(rc.top    * yScale);
@@ -355,7 +345,7 @@ void Renderer::SetScissorRect()
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 		D3D::dev->SetScissorRect(&rc);
 	else
-		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);
+		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);*/
 }
 
 /*
@@ -493,10 +483,6 @@ void UpdateViewport()
 	int yoffs = 0;
 	int wid, hei, actualWid, actualHei;
 
-	int winw = 640;
-	int winh = 480;
-	float ratio = (float)winw / (float)winh / fourThree;
-	
 	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2])/16777215.0f;
 	vp.MaxZ = xfregs.rawViewport[5]/16777215.0f;
 	
