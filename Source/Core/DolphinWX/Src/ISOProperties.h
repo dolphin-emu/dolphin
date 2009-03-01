@@ -235,5 +235,8 @@ class CISOProperties : public wxDialog
 		void ActionReplayList_Load();
 		void ActionReplayList_Save();
 		void ChangeBannerDetails(int lang);
+
+		// HyperIris: duplicate from GameListCtrl, who can merge them and put them in a suitable place?
+		bool CopySJISToString(wxString& _rDestination, const char* _src);
 };
 #endif
