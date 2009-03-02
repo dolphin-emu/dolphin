@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2002-2009, NVIDIA Corporation.
+ * Copyright (c) 2002-2007, NVIDIA Corporation.
  * 
  *  
  * 
@@ -71,15 +71,13 @@
 
 /* Set up for either Win32 import/export/lib. */
 #ifndef CGGL_API
-# ifdef CGGL_EXPORTS
-#  ifdef _WIN32
+# ifdef _WIN32
+#  ifdef CGGL_EXPORTS
 #   define CGGL_API __declspec(dllexport)
-#  elif defined(__GNUC__) && __GNUC__>=4
-#   define CGGL_API __attribute__ ((visibility("default")))
-#  elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
-#   define CGGL_API __global
-#  else
+#  elif defined (CG_LIB)
 #   define CGGL_API
+#  else
+#   define CGGL_API __declspec(dllimport)
 #  endif
 # else
 #  define CGGL_API
@@ -146,7 +144,6 @@ CGGL_API void CGGLENTRY cgGLSetOptimalOptions(CGprofile profile);
  *****************************************************************************/
 
 CGGL_API void CGGLENTRY cgGLLoadProgram(CGprogram program);
-CGGL_API void CGGLENTRY cgGLUnloadProgram(CGprogram program);
 CGGL_API CGbool CGGLENTRY cgGLIsProgramLoaded(CGprogram program);
 CGGL_API void CGGLENTRY cgGLBindProgram(CGprogram program);
 CGGL_API void CGGLENTRY cgGLUnbindProgram(CGprofile profile);
