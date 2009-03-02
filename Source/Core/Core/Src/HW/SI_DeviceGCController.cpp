@@ -34,12 +34,16 @@ CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
 {
 	memset(&m_origin, 0, sizeof(SOrigin));
 
-	m_origin.uCommand			= 0x41;
-	m_origin.uOriginStickX		= 0x80;
+	// Resetting to origin is a function of the controller itself
+	// press X+Y+Start for three seconds to trigger a reset
+	// probably this is meant to read current pad status and use it as
+	// the origin, but we just use these:
+	m_origin.uCommand			= CMD_ORIGIN;
+	m_origin.uOriginStickX		= 0x80; // center
 	m_origin.uOriginStickY		= 0x80;
 	m_origin.uSubStickStickX	= 0x80;
 	m_origin.uSubStickStickY	= 0x80;
-	m_origin.uTrigger_L			= 0x1F;
+	m_origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
 	m_origin.uTrigger_R			= 0x1F;
 }
 
@@ -60,7 +64,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 		case CMD_RESET:
 			{
-				*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER; // | SI_GC_NOMOTOR;
+				*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
 				iPosition = _iLength; // Break the while loop
 			}
 			break;
@@ -94,7 +98,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		case 0xCE:
 			WARN_LOG(SERIALINTERFACE, "Unknown Wii SI Command");
 			break;
-		
+
 		// DEFAULT
 		default:
 			{
@@ -126,7 +130,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
-	_Hi |= (u32)((u16)PadStatus.button << 16); // Dunno were/if we should set any of the top 3bits...
+	_Hi |= (u32)((u16)PadStatus.button << 16);
 	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to math the "final" OSPad-Struct
 	//_Hi |= 0x20000000; // ?
 

@@ -52,6 +52,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 //////////////////////////////////////////////////////////////////////////
 // Just a dummy that logs reads and writes
 // to be used for SI devices we haven't emulated
+// and hopefully as an "emtpy" device
 class CSIDevice_Dummy : public ISIDevice
 {
 public:

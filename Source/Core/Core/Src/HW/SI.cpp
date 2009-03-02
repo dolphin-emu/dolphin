@@ -90,8 +90,8 @@ union USIChannelIn_Hi
 		unsigned INPUT2		:	8;
 		unsigned INPUT1		:	8;
 		unsigned INPUT0		:	6;
-		unsigned ERRLATCH	:	1;		// 0: no error  1: Error latched. Check SISR.
-		unsigned ERRSTAT	:	1;		// 0: no error  1: error on last transfer
+		unsigned ERRLATCH	:	1; // 0: no error  1: Error latched. Check SISR.
+		unsigned ERRSTAT	:	1; // 0: no error  1: error on last transfer
 	};
 };
 
@@ -123,16 +123,16 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		unsigned VBCPY3		:	1;
+		unsigned VBCPY3		:	1; // 1: write to output buffer only on vblank
 		unsigned VBCPY2		:	1;
 		unsigned VBCPY1		:	1;
 		unsigned VBCPY0		:	1;
-		unsigned EN3		:	1;
-		unsigned EN2		:	1;
+		unsigned EN3		:	1; // Enable polling of channel
+		unsigned EN2		:	1; //  does not affect communication RAM transfers
 		unsigned EN1		:	1;
 		unsigned EN0		:	1;
-		unsigned Y			:  10;
-		unsigned X			:  10;
+		unsigned Y			:  10; // Polls per frame
+		unsigned X			:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
 		unsigned			:	6;
 	};
 };
@@ -143,13 +143,17 @@ union USIComCSR
 	u32 Hex;
 	struct
 	{
-		unsigned TSTART		:	1;
-		unsigned CHANNEL    :	2; // determines which SI channel will be used the communication interface.
-		unsigned			:	5;
+		unsigned TSTART		:	1; // write: start transfer  read: transfer status
+		unsigned CHANNEL    :	2; // determines which SI channel will be used on the communication interface.
+		unsigned			:	3;
+		unsigned CALLBEN	:	1; // Callback enable
+		unsigned CMDEN		:	1; // Command enable?
 		unsigned INLNGTH	:	7;
 		unsigned			:	1;
 		unsigned OUTLNGTH	:	7; // Communication Channel Output Length in bytes
-		unsigned			:	4;
+		unsigned			:	1;
+		unsigned CHANEN		:	1; // Channel enable?
+		unsigned CHANNUM	:	2; // Channel number?
 		unsigned RDSTINTMSK	:	1; // Read Status Interrupt Status Mask
 		unsigned RDSTINT	:	1; // Read Status Interrupt Status
 		unsigned COMERR		:	1; // Communication Error (set 0)
@@ -206,7 +210,7 @@ union USIEXIClockCount
 	u32 Hex;
 	struct
 	{
-		unsigned LOCK	:	1;
+		unsigned LOCK	:	1; // 1: prevents CPU from setting EXI clock to 32MHz
 		unsigned		:  30;
 	};
 };

@@ -37,14 +37,14 @@ private:
 
 	struct SOrigin
 	{
-		u8 uCommand;
-		u8 unk_1;
+		u8 uCommand;// Maybe should be button bits?
+		u8 unk_1;	// ..and this would be the other half
 		u8 uOriginStickX;
 		u8 uOriginStickY;
-		u8 uSubStickStickX;	// ???
-		u8 uSubStickStickY;	// ???
-		u8 uTrigger_L;		// ???
-		u8 uTrigger_R;		// ???
+		u8 uSubStickStickX;
+		u8 uSubStickStickY;
+		u8 uTrigger_L;
+		u8 uTrigger_R;
 		u8 unk_4;
 		u8 unk_5;
 		u8 unk_6;
