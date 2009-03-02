@@ -206,9 +206,14 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # needed for mic
-env['HAVE_PORTAUDIO'] = False
+env['HAVE_PORTAUDIO'] = 0
 if conf.CheckPKG('portaudio') and conf.CheckCHeader("portaudio.h"):
-    env['HAVE_PORTAUDIO'] = True;
+    env['HAVE_PORTAUDIO'] = 1;
+
+# sfml
+env['HAVE_SFML'] = 0
+if conf.CheckPKG('sfml') and conf.CheckCHeader("SFML/Audio.hpp"):
+    env['HAVE_SFML'] = 1;
 
 #osx 64 specifics
 if sys.platform == 'darwin':
@@ -270,6 +275,7 @@ conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
+conf.Define('HAVE_SFML', env['HAVE_SFML'])
 
 # profile
 env['USE_OPROFILE'] = 0
