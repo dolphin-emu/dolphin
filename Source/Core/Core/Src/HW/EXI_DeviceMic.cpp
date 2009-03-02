@@ -111,17 +111,17 @@ CEXIMic::CEXIMic(int _Index)
 	IsOpen = false;
 	err = Pa_Initialize();
 	if (err != paNoError)
-		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Initialize error %s", Pa_GetErrorText(err));
+		ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: PortAudio Initialize error %s", Pa_GetErrorText(err));
 }
 
 CEXIMic::~CEXIMic()
 {
 	err = Pa_CloseStream( stream );
 	if (err != paNoError)
-		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Close error %s", Pa_GetErrorText(err));
+		ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: PortAudio Close error %s", Pa_GetErrorText(err));
 	err = Pa_Terminate();
 	if (err != paNoError)
-		LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio Terminate error %s", Pa_GetErrorText(err));
+		ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: PortAudio Terminate error %s", Pa_GetErrorText(err));
 }
 
 bool CEXIMic::IsPresent() 
@@ -146,10 +146,10 @@ void CEXIMic::SetCS(int cs)
 			// This is probably not a command, but anyway...
 			// The command 0xff seems to be used to get in sync with the microphone or to wake it up.
 			// Normally, it is issued before any other command, or to recover from errors.
-			LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: WakeUp cmd");
+			WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: WakeUp cmd");
 			break;
 		default:
-			LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: unknown CS command %02x\n", command);
+			WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: unknown CS command %02x\n", command);
 			break;
 		}
 	}
@@ -192,13 +192,13 @@ void CEXIMic::TransferByte(u8 &byte)
 		case cmdGetStatus:
 			{
 				if (m_uPosition != 1 && m_uPosition != 2)
-					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: WARNING GetStatus @ pos: %d should never happen", m_uPosition);
+					WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: WARNING GetStatus @ pos: %d should never happen", m_uPosition);
 				if((!Status.button && MicButton)||(Status.button && !MicButton))
-					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Mic button %s", MicButton ? "pressed" : "released");
+					WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: Mic button %s", MicButton ? "pressed" : "released");
 
 				Status.button = MicButton ? 1 : 0;
 				byte = Status.U8[ (m_uPosition - 1) ? 0 : 1];
-				LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: Status is    0x%04x", Status.U16);
+				INFO_LOG(EXPANSIONINTERFACE, "EXI MIC: Status is    0x%04x", Status.U16);
 			}
 			break;
 		case cmdSetStatus:
@@ -225,7 +225,7 @@ void CEXIMic::TransferByte(u8 &byte)
 						SFreq = 44100;
 						break;
 					default:
-						LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Trying to set unknown sampling rate");
+						ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: Trying to set unknown sampling rate");
 						SFreq = 44100;
 						break;
 					}
@@ -242,14 +242,14 @@ void CEXIMic::TransferByte(u8 &byte)
 						SNum = 128;
 						break;
 					default:
-						LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Trying to set unknown period length");
+						ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: Trying to set unknown period length");
 						SNum = 128;
 						break;
 					}
 
-					LOGV(EXPANSIONINTERFACE, 0, "//////////////////////////////////////////////////////////////////////////");
-					LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: Status is now 0x%04x", Status.U16);
-					LOGV(EXPANSIONINTERFACE, 0, "\tbutton %i\tsRate %i\tpLength %i\tsampling %i\n",
+					DEBUG_LOG(EXPANSIONINTERFACE, "//////////////////////////////////////////////////////////////////////////");
+					DEBUG_LOG(EXPANSIONINTERFACE, "EXI MIC: Status is now 0x%04x", Status.U16);
+					DEBUG_LOG(EXPANSIONINTERFACE, "\tbutton %i\tsRate %i\tpLength %i\tsampling %i\n",
 						Status.button, SFreq, SNum, Status.sampling);
 
 					if(!IsOpen)
@@ -267,7 +267,7 @@ void CEXIMic::TransferByte(u8 &byte)
 							NULL);		// Pointer passed to our callback
 						if (err != paNoError)
 						{
-							LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: PortAudio error %s", Pa_GetErrorText(err));
+							ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: PortAudio error %s", Pa_GetErrorText(err));
 						}
 						else
 							IsOpen = true;
@@ -283,12 +283,12 @@ void CEXIMic::TransferByte(u8 &byte)
 				// (shuffle2)Seems like games just continuously get the buffer as long as
 				// they're sampling and the mic is generating interrupts
 				byte = inputData[pos].byte[ (pos & 1) ? 0 : 1 ];
-				LOGV(EXPANSIONINTERFACE, 1, "EXI MIC: GetBuffer%s%d/%d byte: 0x%02x",
+				INFO_LOG(EXPANSIONINTERFACE, "EXI MIC: GetBuffer%s%d/%d byte: 0x%02x",
 					(pos > 9) ? " " : "  ", pos, SNum, byte);
 			}
 			break;
 		default:
-			LOGV(EXPANSIONINTERFACE, 0, "EXI MIC: unknown command byte %02x\n", command);
+			ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: unknown command byte %02x\n", command);
 			break;
 		}
 	}

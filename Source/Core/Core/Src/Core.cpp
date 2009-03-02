@@ -717,7 +717,7 @@ void Callback_VideoCopiedToXFB()
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD
 void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	LOGV(AUDIO, _v, _szMessage);
+	GENERIC_LOG(LogTypes::AUDIO, _v, _szMessage);
 }
  
 // __________________________________________________________________________________________________
@@ -769,7 +769,7 @@ void Callback_KeyPress(int key, bool shift, bool control)
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
-	LOGV(WII_IPC_WIIMOTE, _v, _szMessage);
+	GENERIC_LOG(LogTypes::WII_IPC_WIIMOTE, _v, _szMessage);
 }
  
 // TODO: Get rid of at some point

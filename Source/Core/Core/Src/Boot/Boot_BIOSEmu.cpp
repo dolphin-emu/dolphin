@@ -128,7 +128,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 		u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
 		u32 iDVDOffset	= Memory::ReadUnchecked_U32(0x8130000c);
 		
-		LOGV(MASTER_LOG, 2, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
+		INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 
 	} while(PowerPC::ppcState.gpr[3] != 0x00);
@@ -373,7 +373,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 			u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
 			u32 iDVDOffset	= Memory::ReadUnchecked_U32(0x8130000c) << 2;
 
-			LOGV(BOOT, 1, "DVDRead: offset: %08x   memOffse: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
+			INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffse: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 		} while(PowerPC::ppcState.gpr[3] != 0x00);
 

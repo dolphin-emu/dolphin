@@ -404,7 +404,7 @@ void LogPendingEvents()
 
 void Idle()
 {
-	LOGV(GEKKO, 3, "Idle");
+	DEBUG_LOG(GEKKO, "Idle");
 	
 	idledCycles += downcount;
 	downcount = 0;

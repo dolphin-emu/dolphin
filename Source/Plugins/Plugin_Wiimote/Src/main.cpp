@@ -284,15 +284,15 @@ extern "C" void DoState(unsigned char **ptr, int mode)
 // ----------------
 extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// Debugging
 	{
-		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
-		LOGV(WII_IPC_WIIMOTE, 3, "   Channel ID: %04x", _channelID);
+		DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "   Channel ID: %04x", _channelID);
 		std::string Temp = ArrayToString(data, _Size);
-		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
 	// Decice where to send the message
@@ -303,7 +303,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 #endif
 		
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
 // ==============================
 
@@ -313,7 +313,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 // ----------------
 extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// Check for custom communication
@@ -330,9 +330,9 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 
 	// Debugging
 	{
-		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_ControlChannel");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, _Size);
-		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "    Data: %s", Temp.c_str());
 		//PanicAlert("Wiimote_ControlChannel");
 	}
 
@@ -343,7 +343,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
 		
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
 // ==============================
 

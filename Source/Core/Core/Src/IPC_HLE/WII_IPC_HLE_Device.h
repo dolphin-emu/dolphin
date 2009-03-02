@@ -94,8 +94,8 @@ protected:
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
-						LOGV(WII_IPC_HLE, 3, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
-							i, Buffer.m_Address, Buffer.m_Size);
+				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
+						  i, Buffer.m_Address, Buffer.m_Size);
                 InBuffer.push_back(Buffer);
             }
 
@@ -110,8 +110,8 @@ protected:
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
-						LOGV(WII_IPC_HLE, 3, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
-							i, Buffer.m_Address, Buffer.m_Size);
+				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
+						  i, Buffer.m_Address, Buffer.m_Size);
                 PayloadBuffer.push_back(Buffer);
             }
         }
@@ -138,21 +138,19 @@ protected:
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
 		int LogType = LogTypes::WII_IPC_HLE, int Verbosity = 0)
     {
-		// Because I have to use LOGV here I add this #if
-		#if defined(_DEBUG) || defined(DEBUGFAST)
-			LOGVP(LogType, Verbosity, "CommandDump of %s", GetDeviceName().c_str());
-			for (u32 i = 0; i < _NumberOfCommands; i++)
+		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s", 
+					GetDeviceName().c_str());
+		for (u32 i = 0; i < _NumberOfCommands; i++)
 			{            
-				LOGVP(LogType, Verbosity, "    Command%02i: 0x%08x", i,
-					Memory::Read_U32(_CommandAddress + i*4));	
+				GENERIC_LOG(LogType, Verbosity, "    Command%02i: 0x%08x", i,
+							Memory::Read_U32(_CommandAddress + i*4));	
 			}
-		#endif
     }
 
 	
     void DumpAsync( u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer )
     {
-		LOGV(WII_IPC_HLE, 1, "======= DumpAsync ======");
+		DEBUG_LOG(WII_IPC_HLE, "======= DumpAsync ======");
         // write return value
         u32 BufferOffset = BufferVector;
         Memory::Write_U32(1, _CommandAddress + 0x4);
@@ -162,7 +160,7 @@ protected:
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
             u32 InBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            LOGV(WII_IPC_HLE, 1, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
+            INFO_LOG(WII_IPC_HLE, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
 
             std::string Temp;
             for (u32 j=0; j<InBufferSize; j++)
@@ -172,23 +170,21 @@ protected:
                 Temp.append(Buffer);
             }
 
-            LOGV(WII_IPC_HLE, 1, "    Buffer: %s", Temp.c_str());
+            DEBUG_LOG(WII_IPC_HLE, "    Buffer: %s", Temp.c_str());
         }
 
 
         for (u32 i = 0; i < NumberOutBuffer; i++)
         {
-			#ifdef LOGGING
-				u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
-				u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
-			#endif
+			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
+			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
             Memory::Write_U32(1, _CommandAddress + 0x4);
 
-            LOGV(WII_IPC_HLE, 1, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
-            LOGV(WII_IPC_HLE, 1, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
+            INFO_LOG(WII_IPC_HLE,"%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
+            INFO_LOG(WII_IPC_HLE, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
 
-			#ifdef LOGGING
+			#if defined LOGLEVEL && LOGLEVEL > 2
 				DumpCommands(OutBuffer, OutBufferSize, LogTypes::WII_IPC_HLE, 1);
 			#endif
        }

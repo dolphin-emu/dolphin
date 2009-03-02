@@ -598,7 +598,7 @@ void Update_ARAM_DMA()
 		u32 iARAMAddress = g_arDMA.ARAddr;
 
 		//write to g_ARAM
-		LOGV(DSPINTERFACE, 1, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",
+		INFO_LOG(DSPINTERFACE, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",
 			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{

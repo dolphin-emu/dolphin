@@ -110,15 +110,17 @@ void PrintCallstack(LogTypes::LOG_TYPE type)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
-	LOGVP(type, 1, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
+	GENERIC_LOG(type, LogTypes::LWARNING, "\n == STACK TRACE - SP = %08x ==\n", 
+				PowerPC::ppcState.gpr[1]);
 
 	if (LR == 0) {
-		LOGVP(type, 1, " LR = 0 - this is bad\n");	
+		GENERIC_LOG(type, LogTypes::LWARNING, " LR = 0 - this is bad\n");	
 	}
 	int count = 1;
 	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
 	{
-		LOGP(type, " * %s  [ LR = %08x ]\n", g_symbolDB.GetDescription(LR), LR);
+		GENERIC_LOG(type, LogTypes::LINFO, " * %s  [ LR = %08x ]\n", 
+					g_symbolDB.GetDescription(LR), LR);
 		count++;
 	}
 
@@ -129,14 +131,14 @@ void PrintCallstack(LogTypes::LOG_TYPE type)
 		const char *str = g_symbolDB.GetDescription(func);
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
-		LOGVP(type, 3, " * %s [ addr = %08x ]\n", str, func);
+		GENERIC_LOG(type, LogTypes::LINFO, " * %s [ addr = %08x ]\n", str, func);
 		addr = Memory::ReadUnchecked_U32(addr);
 	}
 }
 
 void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
 {
-	LOGP(type, _title);		
+	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title);		
 	for (u32 j = 0; j < _Size;)
 	{
 		std::string Temp;
@@ -149,7 +151,7 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const ch
 			if (j >= _Size)
 				break;
 		}
-		LOGP(type, "   Data: %s", Temp.c_str());
+		GENERIC_LOG(type, LogTypes::LDEBUG, "   Data: %s", Temp.c_str());
 	}
 }
 
