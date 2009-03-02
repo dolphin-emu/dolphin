@@ -1156,7 +1156,7 @@ bool GCMemcard::format(bool New)
 }
 
 bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
-{//slot = 1;
+{
 	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
 	u16 size = (((data_size / 0x2000) + 5) / 0x10);
 	SRAM m_SRAM;
@@ -1176,37 +1176,10 @@ bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
 	}
 	fread(&m_SRAM, 1, 64, pStream);
 	fclose(pStream);
-	rand = time = 0XFAB12B2D9FD80700ULL;//0x500;//gettime();
-
-	//////////////////////////////////////
-
-PanicAlert("%2x,%2x,%4x,%4x,%4x,%x,%x,lang%x,flahs%x",BE16(m_SRAM.syssram.checksum),
-		   BE16(m_SRAM.syssram.checksum_inv),
-		   BE32(m_SRAM.syssram.ead0),
-		   BE32(m_SRAM.syssram.ead1),
-		   BE32(m_SRAM.syssram.counter_bias),
-		   m_SRAM.syssram.display_offsetH,
-		   m_SRAM.syssram.ntd,
-		   m_SRAM.syssram.lang,
-		   m_SRAM.syssram.flags);
-
-PanicAlert("%4x%4x%4x,%4x%4x%4x,%4x,%4x,%4x,%x,%x,%4x,%4x",
-		   BE32(m_SRAM.syssramex.flash_id_1),
-		   BE32(&(m_SRAM.syssramex.flash_id_1[4])),
-		   BE32(&(m_SRAM.syssramex.flash_id_1[8])),
-		   BE32(m_SRAM.syssramex.flash_id_2),
-		   BE32(&(m_SRAM.syssramex.flash_id_2[4])),
-		   BE32(&(m_SRAM.syssramex.flash_id_2[8])),
-		   BE32(m_SRAM.syssramex.wirelessKbd_id),
-		   BE32(m_SRAM.syssramex.wirelessPad_id),
-		   BE32(&(m_SRAM.syssramex.wirelessPad_id[4])),
-		   m_SRAM.syssramex.dvderr_code,
-		   m_SRAM.syssramex.__padding0,
-		   BE32(m_SRAM.syssramex.flashID_chksum),
-		   BE32(m_SRAM.syssramex.__padding1));
-
+// TODO: change this to whatever your target format is until this function works with any time
+	rand = time = 0XFAB12B2D9FD80700ULL;//gettime();
 	memset(&hdr, 0xFF, 0x2000);
-	u8 * flash_id = slot ? m_SRAM.syssramex.flash_id_2 : m_SRAM.syssramex.flash_id_1;
+	u8 * flash_id = slot ? m_SRAM.syssram.flash_id_2 : m_SRAM.syssram.flash_id_1;
 
 	for(int i = 0; i < 12; i++)
 	{
@@ -1224,7 +1197,9 @@ PanicAlert("%4x%4x%4x,%4x%4x%4x,%4x,%4x,%4x,%x,%x,%4x,%4x",
 	hdr.fmtTime.low = time & 0xFFFFFFFF;
 	*(u32*)&(hdr.SramBias) = *(u32*)&(m_SRAM.syssram.counter_bias);
 	*(u32*)&(hdr.SramLang) = m_SRAM.syssram.lang;
-	*(u32*)&(hdr.Unk2) = 0;//tmp; tmp = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	*(u32*)&(hdr.Unk2) = 1;//= _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	// TODO: find out why memcard cares if component cable used
+	// for now set to one like main app
 	*(u16*)&(hdr.deviceID) = 0;
 	*(u16*)&(hdr.Size) = Common::swap16(size);
 	*(u16*)&(hdr.Encoding) = Common::swap16(sjis ? 1 : 0);

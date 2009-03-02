@@ -19,6 +19,7 @@
 #define _EXIDEVICE_IPL_H
 
 #include "EXI_Device.h"
+#include "Sram.h"
 
 class CEXIIPL : public IEXIDevice
 {
@@ -45,7 +46,7 @@ private:
 	u8 m_RTC[4];
 
 	//! SRam
-	u8 m_SRAM[64];
+	SRAM m_SRAM;
 
 	//! Helper
 	u32 m_uPosition;

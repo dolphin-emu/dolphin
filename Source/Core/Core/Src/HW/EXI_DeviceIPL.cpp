@@ -20,11 +20,10 @@
 #include "EXI_DeviceIPL.h"
 #include "../Core.h"
 #include "../ConfigManager.h"
-
 #include "MemoryUtil.h"
 
 // english
-const unsigned char sram_dump[64] = {
+SRAM sram_dump = {
 	0x04, 0x6B, 0xFB, 0x91, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x40,
 	0x05, 0x00, 0x00, 0x2C, 0x00, 0x00, 0x00, 0x00,
@@ -36,7 +35,7 @@ const unsigned char sram_dump[64] = {
 };
 
 // german
-const unsigned char sram_dump_german[64] ={ 
+SRAM sram_dump_german = { 
 	0x1F, 0x66, 0xE0, 0x96, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x04, 0xEA, 0x19, 0x40,
 	0x00, 0x00, 0x01, 0x3C, 0x12, 0xD5, 0xEA, 0xD3,
@@ -114,15 +113,15 @@ CEXIIPL::CEXIIPL() :
     pStream = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
     if (pStream != NULL)
     {
-        fread(m_SRAM, 1, 64, pStream);
+        fread(&m_SRAM, 1, 64, pStream);
         fclose(pStream);
     }
     else
     {
-        memcpy(m_SRAM, sram_dump, sizeof(m_SRAM));
+		m_SRAM = sram_dump;
     }
     // We Overwrite it here since it's possible on the GC to change the language as you please
-    m_SRAM[0x12] = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	m_SRAM.syssram.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;		
@@ -145,7 +144,7 @@ CEXIIPL::~CEXIIPL()
     FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "wb");
     if (file)
     {
-        fwrite(m_SRAM, 1, 64, file);
+        fwrite(&m_SRAM, 1, 64, file);
         fclose(file);
     }
 }
@@ -249,9 +248,9 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
 		{
 			if (m_uAddress & 0x80000000)
-				m_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+				m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
 			else
-				_uByte = m_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+				_uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
 		}
 		//
 		// --- UART ---

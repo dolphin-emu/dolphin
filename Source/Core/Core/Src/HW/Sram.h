@@ -50,7 +50,8 @@ distribution.
 
 #include "Common.h"
 
-struct SRAM
+#pragma pack(push,1)
+union SRAM
 {
 	struct _syssram {			// Stored configuration value from the system SRAM area
 		u8 checksum[2];			// holds the block checksum.
@@ -62,9 +63,8 @@ struct SRAM
 		u8 ntd;					// unknown attribute
 		u8 lang;				// language of system
 		u8 flags;				// device and operations flag
-	}syssram;
 
-	struct _syssramex {			// Stored configuration value from the extended SRAM area
+								// Stored configuration value from the extended SRAM area
 		u8 flash_id_1[12];		// flash_id[2][12] 96bit memorycard unlock flash ID
 		u8 flash_id_2[12];
 		u8 wirelessKbd_id[4];	// Device ID of last connected wireless keyboard
@@ -72,7 +72,9 @@ struct SRAM
 		u8 dvderr_code;			// last non-recoverable error from DVD interface
 		u8 __padding0;			// padding
 		u8 flashID_chksum[4];	// 16bit checksum of unlock flash ID
-		u8 __padding1[4];		// padding
-	}syssramex; 
+		u8 __padding1[2];		// padding - libogc has this as [4]? I have it as 2 to make it 64
+	}syssram;
+	u8 p_SRAM[64];
 };
+#pragma pack(pop)
 #endif
