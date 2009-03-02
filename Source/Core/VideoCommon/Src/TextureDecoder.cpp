@@ -77,29 +77,17 @@ u32 TexDecoder_GetTlutHash(const u8* src, int len)
 
 u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
 {
-	// Notes (mb2): A relative important mess in data is needed for a good hash. The safest way to satisfy this would be 
-	// to perform the hash on the whole texture. But since it kills perf we use some assuptions for speed:
-	// -First assumption: texture borders don't carry more different data than the rest of the texture. We skip few 
-	// texels on the edges.
-	// -Second assumption: consecutives lines may not differ that much. We skip some lines regularly.
-	// -Third assumption: User info (messy datas), in textures, should be either always centered or at the beginning.
-	// So we can stop hashing near the center.
-
-	// very tweakable (Pokemon Colesseum texts are pretty good test cases, especially short ones)
-	const int edgeSkip	= 3;
-	const int colSkip	= 3;
-	const int rowSkip	= 5;
-
-	const int rowEnd = (width - edgeSkip)/4;
-	const int byteWidth = TexDecoder_GetTextureSizeInBytes(width, 1, texformat);
-	const int colEnd = height - edgeSkip;
+	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
 	u32 hash = seed ? seed : 0x1337c0de;
-
-	for (int y = edgeSkip; y < colEnd; y += colSkip)
-	{
-		for (int x = edgeSkip; x < rowEnd; x += rowSkip)
-		{
-			hash = _rotl(hash, 17) ^ ((u32 *)src)[x+byteWidth*y];
+	if (sz < 2048) {
+		for (int i = 0; i < sz / 4; i += 13) {
+			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
+		}
+		return hash;
+	} else {
+		int step = sz / 23 / 4;
+		for (int i = 0; i < sz / 4; i += step) {
+			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
 		}
 	}
 	return hash;
