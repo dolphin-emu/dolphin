@@ -259,7 +259,7 @@ void Flush()
 	}
 
 	// set global constants
-	VertexShaderManager::SetConstants(g_Config.bProjectionHax1, g_Config.bProjectionHax2);
+	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
 	// finally bind

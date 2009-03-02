@@ -183,34 +183,12 @@ void BPWritten(int addr, int changes, int newval)
                 bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
                 bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
-			/*
-			Logic Operation Blend Modes
-			--------------------
-            0: GL_CLEAR
-            1: GL_AND
-            2: GL_AND_REVERSE
-            3: GL_COPY [Super Smash. Bro. Melee, NES Zelda I, NES Zelda II]
-            4: GL_AND_INVERTED
-            5: GL_NOOP
-            6: GL_XOR
-            7: GL_OR [Zelda: TP]
-            8: GL_NOR
-            9: GL_EQUIV
-            10: GL_INVERT
-            11: GL_OR_REVERSE
-            12: GL_COPY_INVERTED
-			13: GL_OR_INVERTED
-            14: GL_NAND
-            15: GL_SET
-			*/
-
 			// LogicOp Blending
             if (changes & 2) {  
 				SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
 				if (bpmem.blendmode.logicopenable) 
 				{
 					glEnable(GL_COLOR_LOGIC_OP);
-					// PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
 					glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
 				}
 				else 

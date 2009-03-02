@@ -69,7 +69,7 @@ void VertexShaderManager::Shutdown()
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
+void VertexShaderManager::SetConstants()
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
@@ -203,30 +203,17 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
-            g_fProjectionMatrix[3] = 0;
+            g_fProjectionMatrix[3] = 0.0f;
 
             g_fProjectionMatrix[4] = 0.0f;
             g_fProjectionMatrix[5] = xfregs.rawProjection[2];
             g_fProjectionMatrix[6] = xfregs.rawProjection[3];
-            g_fProjectionMatrix[7] = 0;
+            g_fProjectionMatrix[7] = 0.0f;
 
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-
-			//---------Projection[11]---------
-			// No hacks
-			if ((!proj_hax_1 && !proj_hax_2) || (proj_hax_1 && proj_hax_2))
-				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
-
-			// Before R945 Hack
-			if (proj_hax_1 && !proj_hax_2)
-				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
-
-			// R844 Hack
-			if (!proj_hax_1 && proj_hax_2)
-				g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
-			//--------------------------------
+			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
  			
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -266,24 +253,10 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			
-			//---------Projection[11]---------
-			// No hacks
-			if ((!proj_hax_1 && !proj_hax_2) || (proj_hax_1 && proj_hax_2))
-				g_fProjectionMatrix[11] = -(-0.5f - xfregs.rawProjection[5]);
+			g_fProjectionMatrix[11] = xfregs.rawProjection[5] + 0.1f;
 
-			// Before R945 Hack
-			if (proj_hax_1 && !proj_hax_2)
-				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
-
-			// R844 Hack
-			if (!proj_hax_1 && proj_hax_2)
-				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
-
-			//--------------------------------
-
-            g_fProjectionMatrix[12] = 0;
-            g_fProjectionMatrix[13] = 0;
+            g_fProjectionMatrix[12] = 0.0f;
+            g_fProjectionMatrix[13] = 0.0f;
             g_fProjectionMatrix[14] = 0.0f;
             g_fProjectionMatrix[15] = 1.0f;
 
@@ -303,15 +276,17 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
 			SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
 			SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
+
+			SETSTAT_FT(stats.proj_0, xfregs.rawProjection[0]);
+			SETSTAT_FT(stats.proj_1, xfregs.rawProjection[1]);
+			SETSTAT_FT(stats.proj_2, xfregs.rawProjection[2]);
+			SETSTAT_FT(stats.proj_3, xfregs.rawProjection[3]);
+			SETSTAT_FT(stats.proj_4, xfregs.rawProjection[4]);
+			SETSTAT_FT(stats.proj_5, xfregs.rawProjection[5]);
+			SETSTAT_FT(stats.proj_6, xfregs.rawProjection[6]);
         }
 
-		SETSTAT_FT(stats.proj_0, xfregs.rawProjection[0]);
-		SETSTAT_FT(stats.proj_1, xfregs.rawProjection[1]);
-		SETSTAT_FT(stats.proj_2, xfregs.rawProjection[2]);
-		SETSTAT_FT(stats.proj_3, xfregs.rawProjection[3]);
-		SETSTAT_FT(stats.proj_4, xfregs.rawProjection[4]);
-		SETSTAT_FT(stats.proj_5, xfregs.rawProjection[5]);
-		SETSTAT_FT(stats.proj_6, xfregs.rawProjection[6]);
+
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
         SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
