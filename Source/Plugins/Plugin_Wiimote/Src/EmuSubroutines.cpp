@@ -225,7 +225,7 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 // ----------------
 void WmReadData(u16 _channelID, wm_read_data* rd) 
 {
-	INFO_LOG(WII_IPC_WIIMOTE, 0, "===========================================================");
+	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
 	u32 address = convert24bit(rd->address);
 	u16 size = convert16bit(rd->size);
 	std::string Temp;
