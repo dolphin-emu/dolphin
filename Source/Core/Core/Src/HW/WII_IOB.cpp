@@ -103,7 +103,7 @@ void Write32(const u32 _Value, const u32 _Address)
 	{
     // NANDLoader ... no idea
     case 0x18:
-        ERROR_LOG(WII_IOB, 0, "IOP: Write32 0x%08x to 0x%08x (NANDLoader)", _Value, _Address);
+        ERROR_LOG(WII_IOB, "IOP: Write32 0x%08x to 0x%08x (NANDLoader)", _Value, _Address);
         break;
     // WiiMenu... no idea
     case 0x24:

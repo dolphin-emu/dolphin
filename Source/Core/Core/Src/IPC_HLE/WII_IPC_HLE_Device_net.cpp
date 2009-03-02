@@ -164,8 +164,8 @@ s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _Buff
 	case IOCTL_NWC24_STARTUP:
 		return 0;
 	
-    case IOCTL_SO_GETSOCKOPT: // WiiMenu
-    case IOCTL_SO_SETSOCKOPT:
+    case 8: // WiiMenu
+    case 9:
         return 0;
 
 	case 0xf: // NWC24iRequestGenerateUserId (Input: none, Output: 32 bytes)

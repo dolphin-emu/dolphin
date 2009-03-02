@@ -294,6 +294,9 @@ bool CBoot::BootUp()
 	// ===================================================================================
 	case SCoreStartupParameter::BOOT_WII_NAND:
 		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
+
+        if (LoadMapFromFilename(_StartupPara.m_strFilename))
+            HLE::PatchFunctions();
 		break;
 
 

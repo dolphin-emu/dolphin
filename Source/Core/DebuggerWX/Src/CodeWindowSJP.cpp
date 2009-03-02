@@ -105,6 +105,7 @@ void CCodeWindow::CreateSymbolsMenu()
 	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
+    pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _T("&Rename symbols from file..."));
 	pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 
 	wxMenu *pJitMenu = new wxMenu;
@@ -160,7 +161,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 	case IDM_SCANFUNCTIONS:
 		{
-		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
+		PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
 		if (db.Load(TOTALDB_FILE))
 			db.Apply(&g_symbolDB);
@@ -173,13 +174,14 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		if (!File::Exists(mapfile.c_str()))
 		{
 			g_symbolDB.Clear();
-			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
+			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
 			if (db.Load(TOTALDB_FILE))
 				db.Apply(&g_symbolDB);
 		} else {
 			g_symbolDB.LoadMap(mapfile.c_str());
 		}
+        HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
@@ -188,6 +190,42 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_SAVEMAPFILEWITHCODES:
 		g_symbolDB.SaveMap(mapfile.c_str(), true);
 		break;
+
+    case IDM_RENAME_SYMBOLS:
+        {
+            wxString path = wxFileSelector(
+                _T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+                _T("Dolphin Symbole Rename File (*.sym)|*.sym;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+                this);
+            if (path) 
+            {
+                FILE *f = fopen(path, "r");
+                if (!f)
+                    return;
+
+                bool started = false;
+                while (!feof(f))
+                {
+                    char line[512], temp[256];
+                    fgets(line, 511, f);
+                    if (strlen(line) < 4)
+                        continue;
+
+                    u32 address, type;
+                    char name[512];
+                    sscanf(line, "%08x %02i %s", &address, &type, name);
+
+                    Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+                    if (symbol) {
+                        symbol->name = line+12;
+                    }
+                }
+                fclose(f);
+                Host_NotifyMapLoaded();
+            }
+        }
+        break;
+
 	case IDM_CREATESIGNATUREFILE:
 		{
 		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, _T("."));
