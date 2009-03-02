@@ -20,6 +20,7 @@
 
 #include "Core.h" // Core
 #include "HW/EXI.h"
+#include "HW/SI.h"
 #include "ConsoleWindow.h"
 
 #include "Globals.h" // Local
@@ -137,8 +138,6 @@ void CConfigMain::UpdateGUI()
 		SkipIdle->Disable();
 		EnableCheats->Disable();
 		GCSystemLang->Disable();
-		// Disable GC SI Stuff, but devices should be dynamic soon
-		GCSIDevice[0]->Disable(); GCSIDevice[1]->Disable(); GCSIDevice[2]->Disable(); GCSIDevice[3]->Disable();
 		WiiPage->Disable();
 		PathsPage->Disable();
 		PluginPage->Disable();
@@ -705,6 +704,12 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 		tempType = SI_DUMMY;
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		// Change plugged device! :D
+		SerialInterface::ChangeDevice(tempType, deviceNum);
+	}
 }
 
 void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)

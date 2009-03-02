@@ -71,7 +71,6 @@ private:
 	};
 
 	SOrigin m_origin;
-	int DeviceNum;
 
 public:
 

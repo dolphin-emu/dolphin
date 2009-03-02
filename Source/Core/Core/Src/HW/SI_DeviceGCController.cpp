@@ -90,7 +90,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 			iPosition = _iLength;
 			break;
 
-		// WII Something
+		// WII Something - this could be bogus
 		case 0xCE:
 			WARN_LOG(SERIALINTERFACE, "Unknown Wii SI Command");
 			break;
@@ -113,6 +113,9 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 // GetData
 //////////////////////////////////////////////////////////////////////////
 // Return true on new data (max 7 Bytes and 6 bits ;)
+// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
+//  |\_ ERR_LATCH (error latched - check SISR)
+//  |_ ERR_STATUS (error on last GetData or SendCmd?)
 bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
@@ -123,18 +126,16 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
-	_Hi |= (u32)((u16)PadStatus.button << 16);
+	_Hi |= (u32)((u16)PadStatus.button << 16); // The highest 3bits should always be 0
+	_Hi |= 0x00800000; // This bit is always on
+	//_Hi |= 0x20000000; // ?
 
 	_Low  = (u8)PadStatus.triggerRight;
 	_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
 	_Low |= (u32)((u8)PadStatus.substickY << 16);
 	_Low |= (u32)((u8)PadStatus.substickX << 24);
-	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
-	// F|RES:
-	// i dunno if i should force it here
-	// means that the pad must be "combined" with the origin to math the "final" OSPad-Struct
-	_Hi |= 0x00800000;
+	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
 	return true;
 }

@@ -63,8 +63,9 @@ public:
 
 	int RunBuffer(u8* _pBuffer, int _iLength)
 	{
-		// (shuffle2) Logging of this function will be done above, in ISIDevice::RunBuffer
-		// No device. (shuffle2) Maybe this should be SI_ERROR_NO_RESPONSE?
+		// Debug logging
+		ISIDevice::RunBuffer(_pBuffer, _iLength);
+
 		reinterpret_cast<u32*>(_pBuffer)[0] = 0x00000000;
 		return 4;
 	}

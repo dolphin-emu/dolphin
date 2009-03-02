@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "ChunkFile.h"
 #include "../ConfigManager.h"
+#include "../CoreTiming.h"
 
 #include "PeripheralInterface.h"
 
@@ -25,6 +26,8 @@
 
 namespace SerialInterface
 {
+
+static int changeDevice;
 
 void RunSIBuffer();
 void UpdateInterrupts();
@@ -229,7 +232,6 @@ void DoState(PointerWrap &p)
 
 void Init()
 {
-	// TODO: allow dynamic attaching/detaching of devices
 	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
 	{	
 		g_Channel[i].m_Out.Hex = 0;
@@ -243,16 +245,15 @@ void Init()
 	g_ComCSR.Hex = 0;
 	g_StatusReg.Hex = 0;
 	g_EXIClockCount.Hex = 0;
-	memset(g_SIBuffer, 0xce, 128);
+	memset(g_SIBuffer, 0xce, 128); // This could be the cause of "WII something" in GCController
+
+	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
 }
 
 void Shutdown()
 {
 	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
-	{
-		delete g_Channel[i].m_pDevice;
-		g_Channel[i].m_pDevice = NULL;
-	}
+		RemoveDevice(i);
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
@@ -409,7 +410,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			if (tmpComCSR.RDSTINT)	g_ComCSR.RDSTINT = 0;
 			if (tmpComCSR.TCINT)	g_ComCSR.TCINT = 0;
 
-			// be careful: runsi-buffer after updating the INT flags
+			// be careful: run si-buffer after updating the INT flags
 			if (tmpComCSR.TSTART)	RunSIBuffer();
 			UpdateInterrupts();
 		}
@@ -419,36 +420,36 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		{
 			USIStatusReg tmpStatus(_iValue);
 
-			// just update the writable bits
-			g_StatusReg.NOREP0	= tmpStatus.NOREP0 ? 1 : 0;
-			g_StatusReg.COLL0	= tmpStatus.COLL0 ? 1 : 0;
-			g_StatusReg.OVRUN0	= tmpStatus.OVRUN0 ? 1 : 0;
-			g_StatusReg.UNRUN0	= tmpStatus.UNRUN0 ? 1 : 0;
+			// clear bits ( if(tmp.bit) SISR.bit=0 )
+			if (tmpStatus.NOREP0)	g_StatusReg.NOREP0 = 0;
+			if (tmpStatus.COLL0)	g_StatusReg.COLL0 = 0;
+			if (tmpStatus.OVRUN0)	g_StatusReg.OVRUN0 = 0;
+			if (tmpStatus.UNRUN0)	g_StatusReg.UNRUN0 = 0;
 
-			g_StatusReg.NOREP1	= tmpStatus.NOREP1 ? 1 : 0;
-			g_StatusReg.COLL1	= tmpStatus.COLL1 ? 1 : 0;
-			g_StatusReg.OVRUN1	= tmpStatus.OVRUN1 ? 1 : 0;
-			g_StatusReg.UNRUN1	= tmpStatus.UNRUN1 ? 1 : 0;
+			if (tmpStatus.NOREP1)	g_StatusReg.NOREP1 = 0;
+			if (tmpStatus.COLL1)	g_StatusReg.COLL1 = 0;
+			if (tmpStatus.OVRUN1)	g_StatusReg.OVRUN1 = 0;
+			if (tmpStatus.UNRUN1)	g_StatusReg.UNRUN1 = 0;
 
-			g_StatusReg.NOREP2	= tmpStatus.NOREP2 ? 1 : 0;
-			g_StatusReg.COLL2	= tmpStatus.COLL2 ? 1 : 0;
-			g_StatusReg.OVRUN2	= tmpStatus.OVRUN2 ? 1 : 0;
-			g_StatusReg.UNRUN2	= tmpStatus.UNRUN2 ? 1 : 0;
+			if (tmpStatus.NOREP2)	g_StatusReg.NOREP2 = 0;
+			if (tmpStatus.COLL2)	g_StatusReg.COLL2 = 0;
+			if (tmpStatus.OVRUN2)	g_StatusReg.OVRUN2 = 0;
+			if (tmpStatus.UNRUN2)	g_StatusReg.UNRUN2 = 0;
 
-			g_StatusReg.NOREP3	= tmpStatus.NOREP3 ? 1 : 0;
-			g_StatusReg.COLL3	= tmpStatus.COLL3 ? 1 : 0;
-			g_StatusReg.OVRUN3	= tmpStatus.OVRUN3 ? 1 : 0;
-			g_StatusReg.UNRUN3	= tmpStatus.UNRUN3 ? 1 : 0;
+			if (tmpStatus.NOREP3)	g_StatusReg.NOREP3 = 0;
+			if (tmpStatus.COLL3)	g_StatusReg.COLL3 = 0;
+			if (tmpStatus.OVRUN3)	g_StatusReg.OVRUN3 = 0;
+			if (tmpStatus.UNRUN3)	g_StatusReg.UNRUN3 = 0;
 
 			// send command to devices
 			if (tmpStatus.WR)
 			{
-				g_StatusReg.WR = 0;
 				g_Channel[0].m_pDevice->SendCommand(g_Channel[0].m_Out.Hex);
 				g_Channel[1].m_pDevice->SendCommand(g_Channel[1].m_Out.Hex);
 				g_Channel[2].m_pDevice->SendCommand(g_Channel[2].m_Out.Hex);
 				g_Channel[3].m_pDevice->SendCommand(g_Channel[3].m_Out.Hex);
 
+				g_StatusReg.WR = 0;
 				g_StatusReg.WRST0 = 0;
 				g_StatusReg.WRST1 = 0;
 				g_StatusReg.WRST2 = 0;
@@ -522,6 +523,42 @@ void AddDevice(const TSIDevices _device, int _iDeviceNumber)
 	// create the new one
 	g_Channel[_iDeviceNumber].m_pDevice = SIDevice_Create(_device, _iDeviceNumber);
 	_dbg_assert_(SERIALINTERFACE, g_Channel[_iDeviceNumber].m_pDevice != NULL);
+}
+
+void ChangeDeviceCallback(u64 userdata, int cyclesLate)
+{
+	u8 channel = (u8)(userdata >> 32);
+	// doubt this matters...
+// 	g_Channel[channel].m_Out.Hex = 0;
+// 	g_Channel[channel].m_InHi.Hex = 0;
+// 	g_Channel[channel].m_InLo.Hex = 0;
+
+	// raise the NO RESPONSE error
+	switch (channel)
+	{
+	case 0:
+		g_StatusReg.NOREP0 = 1;
+		break;
+	case 1:
+		g_StatusReg.NOREP1 = 1;
+		break;
+	case 2:
+		g_StatusReg.NOREP2 = 1;
+		break;
+	case 3:
+		g_StatusReg.NOREP3 = 1;
+		break;
+	}
+
+	AddDevice((TSIDevices)(u32)userdata, channel);
+}
+
+void ChangeDevice(TSIDevices device, int deviceNumber)
+{
+	// Called from GUI, so we need to make it thread safe.
+	// Let the hardware see no device for .5b cycles
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, (SI_DUMMY | (u64)deviceNumber << 32));
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, (device | (u64)deviceNumber << 32));
 }
 
 void UpdateDevices()
