@@ -126,8 +126,8 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
-	_Hi |= (u32)((u16)PadStatus.button << 16); // The highest 3bits should always be 0
-	_Hi |= 0x00800000; // This bit is always on
+	_Hi |= (u32)((u16)PadStatus.button << 16); // Dunno were/if we should set any of the top 3bits...
+	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to math the "final" OSPad-Struct
 	//_Hi |= 0x20000000; // ?
 
 	_Low  = (u8)PadStatus.triggerRight;
