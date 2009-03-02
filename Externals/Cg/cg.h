@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2002-2007, NVIDIA Corporation.
+ * Copyright (c) 2002-2008, NVIDIA Corporation.
  * 
  *  
  * 
@@ -74,15 +74,18 @@
 # endif
 #endif /* _WIN32 */
 
-/* Set up for either Win32 import/export/lib. */
+/* Set up CG_API for Win32 dllexport or gcc visibility */
+
 #ifndef CG_API
-# ifdef _WIN32
-#  ifdef CG_EXPORTS
+# ifdef CG_EXPORTS
+#  ifdef _WIN32
 #   define CG_API __declspec(dllexport)
-#  elif defined (CG_LIB)
-#   define CG_API
+#  elif defined(__GNUC__) && __GNUC__>=4
+#   define CG_API __attribute__ ((visibility("default")))
+#  elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
+#   define CG_API __global
 #  else
-#   define CG_API __declspec(dllimport)
+#   define CG_API
 #  endif
 # else
 #  define CG_API
