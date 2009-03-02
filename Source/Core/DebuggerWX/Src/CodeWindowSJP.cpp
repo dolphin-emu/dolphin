@@ -199,7 +199,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                 this);
             if (path) 
             {
-                FILE *f = fopen(path, "r");
+                FILE *f = fopen(path.mb_str(), "r");
                 if (!f)
                     return;
 
