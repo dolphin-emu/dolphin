@@ -150,23 +150,23 @@ void CFrame::CreateMenu()
 	#endif			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
-	// Misc menu
-	wxMenu* miscMenu = new wxMenu;
-	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &Toolbar"));
-	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
-	miscMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &Statusbar"));
-	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
-	miscMenu->AppendSeparator();
-	miscMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
-	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
-	// miscMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
+	// Tools menu
+	wxMenu* toolsMenu = new wxMenu;
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &Toolbar"));
+	toolsMenu->Check(IDM_TOGGLE_TOOLBAR, true);
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &Statusbar"));
+	toolsMenu->Check(IDM_TOGGLE_STATUSBAR, true);
+	toolsMenu->AppendSeparator();
+	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
+	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
 
     if (DiscIO::CNANDContentLoader(FULL_WII_MENU_DIR).IsValid())
     {
-        miscMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+        toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
     }    
 
-	m_pMenuBar->Append(miscMenu, _T("&Misc"));
+	m_pMenuBar->Append(toolsMenu, _T("&Tools"));
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
