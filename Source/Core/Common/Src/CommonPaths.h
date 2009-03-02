@@ -34,7 +34,11 @@
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
+#if defined __APPLE__
+#define PLUGINS_DIR "Contents/PlugIns"
+#else
 #define PLUGINS_DIR "Plugins"
+#endif
 #define ROOT_DIR "."
 #define USERDATA_DIR "User"
 #define SYSDATA_DIR "Sys"
