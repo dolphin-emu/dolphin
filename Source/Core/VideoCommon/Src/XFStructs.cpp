@@ -21,7 +21,6 @@
 #include "CPMemory.h"
 #include "NativeVertexWriter.h"
 #include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
 
 // LoadXFReg 0x10
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
@@ -155,7 +154,6 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x101a:
                 VertexManager::Flush();
                 VertexShaderManager::SetViewport((float*)&pData[i]);
-				PixelShaderManager::SetViewport((float*)&pData[i]);
                 i += 6;
                 break;
 

@@ -54,6 +54,9 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
+
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
@@ -229,8 +232,6 @@ void ConfigDialog::CreateGUIControls()
 	wxString tmp;
 	tmp << g_Config.iMultisampleMode;
 	m_AliasModeCB->SetValue(tmp);
-	AAText->Hide();
-	m_AliasModeCB->Hide();
 
 	// Usage: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
@@ -261,8 +262,8 @@ void ConfigDialog::CreateGUIControls()
 	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sEnhancements->Add(AnisoText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
-    //sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	//sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
+    sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
@@ -278,9 +279,9 @@ void ConfigDialog::CreateGUIControls()
 	m_BlendStats->SetValue(g_Config.bOverlayBlendStats);
 	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
-	//m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
-	//m_ShaderErrors->Enable(false);
+	m_ShaderErrors->Enable(false);
 	m_TexFmtOverlay = new wxCheckBox(m_PageAdvanced, ID_TEXFMTOVERLAY, wxT("Overlay texture format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
 	m_TexFmtCenter = new wxCheckBox(m_PageAdvanced, ID_TEXFMTCENTER, wxT("centered"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -329,21 +330,31 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax2 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Disabled or enabled
 	m_SafeTextureCache->Enable(true);
+	m_ProjectionHax1->Enable(true);
+	m_ProjectionHax2->Enable(true);
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
 
 	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
 		" [This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
+	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
+		" in\ngames like Mario Galaxy or Ikaruga."));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax2, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
@@ -352,12 +363,12 @@ void ConfigDialog::CreateGUIControls()
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
 	sInfo = new wxGridBagSizer(0, 0);
 	sInfo->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	//sInfo->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_Statistics, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_BlendStats, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_ProjStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_TexFmtOverlay, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-	sInfo->Add(m_TexFmtCenter, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_BlendStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_ProjStats, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_TexFmtOverlay, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_TexFmtCenter, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbInfo->Add(sInfo);
 	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
@@ -508,9 +519,16 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
 		break;
 	// Hacks
+	case ID_PROJECTIONHACK1:
+		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
+		break;
+	case ID_PROJECTIONHACK2:
+		g_Config.bProjectionHax2 = m_ProjectionHax2->IsChecked();
+		break;
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
+
 	// External frame buffer
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();

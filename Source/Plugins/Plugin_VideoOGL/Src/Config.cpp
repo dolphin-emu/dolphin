@@ -81,6 +81,8 @@ void Config::Load()
     
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);	
+    iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
+    iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 }
 
@@ -121,6 +123,8 @@ void Config::Save()
     
     iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
+    iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
+    iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
