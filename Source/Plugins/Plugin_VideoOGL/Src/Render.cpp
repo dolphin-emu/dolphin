@@ -143,7 +143,8 @@ bool Renderer::Init()
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "\n");
 
-	if (GLEW_EXT_blend_func_separate && GLEW_EXT_blend_equation_separate)
+	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL && strstr(ptoken,
+		"GL_EXT_blend_equation_separate") != NULL)
         g_bBlendSeparate = true;
 	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
