@@ -123,12 +123,12 @@ extern void __Log(int logNumber, const char* text, ...);
 	}
 #define _dbg_update_() Host_UpdateLogDisplay();
 
-#else
+#else // no logging
 
-#define LOG(_t_, ...)
-#define LOGV(_t_, _v_, ...)
-#define LOGP(_t_, ...)
-#define LOGVP(_t_, _v_, ...)
+//#define LOG(_t_, ...)
+//#define LOGV(_t_, _v_, ...)
+//#define LOGP(_t_, ...)
+//#define LOGVP(_t_, _v_, ...)
 
 #define _dbg_clear_()
 #define _dbg_update_() ;
@@ -138,10 +138,11 @@ extern void __Log(int logNumber, const char* text, ...);
 #define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
 #endif
 
-#define ERROR_LOG(t, ...) ;
-#define WARN_LOG(t, ...)  ;
-#define INFO_LOG(t ,...)  ; 
-#define DEBUG_LOG(t, ...) ;
+#define GENERIC_LOG(t,v, ...) {}
+#define ERROR_LOG(t, ...) {}
+#define WARN_LOG(t, ...)  {}
+#define INFO_LOG(t ,...)  {}
+#define DEBUG_LOG(t, ...) {}
 
 #endif
 
