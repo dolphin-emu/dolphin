@@ -34,7 +34,7 @@
    it will not be used when we Start and Stop games. With these exceptions:
 		1. Video plugin: If FreeLibrary() is not called between Stop and Start it will fail for
 		several games on the next Start, but not for all games.
-		2. Sond plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
+		2. Sound plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
 		"get pointer for unknown address ffffffff" message for all games I tried.
 
 	Currently this holds if the 'SETUP_FREE_PLUGIN_ON_BOOT' option is used
@@ -276,6 +276,10 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 		if (m_PluginInfos.at(i).GetFilename() == Filename)
 		{
 			info = &m_PluginInfos.at(i);
+			if (info == NULL)
+			{
+				PanicAlert("error reading info from dll");
+			}
 			return;
 		}
 	}
@@ -291,10 +295,16 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
 	   Dolphin was started */
 	CPluginInfo *info = NULL;
-	GetPluginInfo(info, Filename);
-	if (info == NULL)
-	{
-		PanicAlert("Can't open %s, it's missing", _rFilename);
+	if (!Filename.empty()){
+		GetPluginInfo(info, Filename);
+		if (info == NULL)
+		{
+			PanicAlert("Can't open %s, it's missing", _rFilename);
+			return NULL;
+		}
+	}
+	else{
+		PanicAlert("error with dll Filename (its NULL)");
 		return NULL;
 	}
 

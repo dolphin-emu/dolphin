@@ -232,6 +232,8 @@ void ConfigDialog::CreateGUIControls()
 	wxString tmp;
 	tmp << g_Config.iMultisampleMode;
 	m_AliasModeCB->SetValue(tmp);
+	AAText->Hide();
+ 	m_AliasModeCB->Hide();
 
 	// Usage: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
@@ -262,8 +264,8 @@ void ConfigDialog::CreateGUIControls()
 	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sEnhancements->Add(AnisoText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
-    sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
+    //sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	//sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
