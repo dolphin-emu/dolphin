@@ -52,14 +52,14 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
-		LOG(WII_IPC_NET, "%s - IOCtl: Open",  GetDeviceName().c_str());
+		INFO_LOG(WII_IPC_NET, "%s - IOCtl: Open",  GetDeviceName().c_str());
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
 
 	virtual bool Close(u32 _CommandAddress, u32 _Mode)
 	{
-		LOG(WII_IPC_NET, "%s - IOCtl: Close",  GetDeviceName().c_str());
+		INFO_LOG(WII_IPC_NET, "%s - IOCtl: Close",  GetDeviceName().c_str());
 		Memory::Write_U32(0, _CommandAddress + 4);
 		return true;
 	}
@@ -77,7 +77,7 @@ public:
 		// write return value
 		Memory::Write_U32(0, _CommandAddress + 0x4);
 
-		LOG(WII_IPC_NET, "%s - IOCtl:\n"
+		INFO_LOG(WII_IPC_NET, "%s - IOCtl:\n"
 			"    Parameter: 0x%x   (0x17 could be some kind of Sync RTC) \n"
 			"    Buffer1: 0x%08x\n"
 			"    BufferSize1: 0x%08x\n"

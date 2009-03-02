@@ -87,7 +87,7 @@ extern void __Logv(int log, int v, const char *format, ...);
 
 #else
 
-#define LOG(t, ...)      __Log(LogTypes::t, ##__VA_ARGS__);
+//#define LOG(t, ...)      __Log(LogTypes::t, ##__VA_ARGS__);
 #define LOGV(t,v, ...)   __Log(LogTypes::t + (v)*100, ##__VA_ARGS__);
 #define LOGP(t, ...)     __Log(t, ##__VA_ARGS__);
 #define LOGVP(t,v, ...)  __Log(t + (v)*100, ##__VA_ARGS__);
@@ -100,13 +100,13 @@ extern void __Logv(int log, int v, const char *format, ...);
 
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)) {\
-		LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
+		ERROR_LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
 					   __LINE__, __FILE__, __TIME__); \
 		if (!PanicYesNo("*** Assertion (see log)***\n")) {Crash();} \
 	}
 #define _dbg_assert_msg_(_t_, _a_, ...)\
 	if (!(_a_)) {\
-		LOG(_t_, __VA_ARGS__); \
+		ERROR_LOG(_t_, __VA_ARGS__); \
 		if (!PanicYesNo(__VA_ARGS__)) {Crash();} \
 	}
 #define _dbg_update_() Host_UpdateLogDisplay();

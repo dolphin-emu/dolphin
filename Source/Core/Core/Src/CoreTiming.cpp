@@ -378,7 +378,7 @@ void Advance()
 	}
 	if (!first) 
 	{
-		LOG(GEKKO, "WARNING - no events in queue. Setting downcount to 10000");
+		WARN_LOG(GEKKO, "WARNING - no events in queue. Setting downcount to 10000");
 		downcount += 10000;
 	}
 	else
@@ -397,7 +397,7 @@ void LogPendingEvents()
 	Event *ptr = first;
 	while (ptr)
 	{
-		LOG(GEKKO, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
+		INFO_LOG(GEKKO, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
 		ptr = ptr->next;
 	}
 }

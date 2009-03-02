@@ -365,8 +365,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(2); // Force to second core
  
-	LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
-	LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
+	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
+	INFO_LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
 
 	HW::Init();	
 
@@ -575,7 +575,7 @@ void EmuThreadEnd()
 	HW::Shutdown();
 	Plugins.ShutdownPlugins();
 
- 	LOG(MASTER_LOG, "EmuThread exited");
+ 	INFO_LOG(MASTER_LOG, "EmuThread exited");
 	// The CPU should return when a game is stopped and cleanup should be done here, 
 	// so we can restart the plugins (or load new ones) for the next game.
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)
@@ -646,7 +646,7 @@ void LoadState() {
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
 void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 {
-	LOG(VIDEO, _szMessage);
+	INFO_LOG(VIDEO, _szMessage);
 }
  
 // __________________________________________________________________________________________________
@@ -733,7 +733,7 @@ void Callback_DSPInterrupt()
 //
 void Callback_PADLog(const TCHAR* _szMessage)
 {
-	LOG(SERIALINTERFACE, _szMessage);
+	INFO_LOG(SERIALINTERFACE, _szMessage);
 }
  
 // __________________________________________________________________________________________________

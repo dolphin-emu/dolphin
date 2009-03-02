@@ -49,7 +49,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // execute the apploader, function by function, using the above utility.
 void CBoot::EmulatedBIOS(bool _bDebug)
 {
-	LOG(BOOT, "Faking GC BIOS...");
+	INFO_LOG(BOOT, "Faking GC BIOS...");
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
 
@@ -94,7 +94,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// =======================================================================================
 
 	// Call iAppLoaderEntry.
-	LOG(MASTER_LOG, "Call iAppLoaderEntry");
+	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
 
 	u32 iAppLoaderFuncAddr = 0x80003100;
 	PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
@@ -106,7 +106,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 8);
 	
 	// iAppLoaderInit
-	LOG(MASTER_LOG, "Call iAppLoaderInit");
+	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
 	PowerPC::ppcState.gpr[3] = 0x81300000; 
 	RunFunction(iAppLoaderInit);
 	
@@ -115,7 +115,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	To give you an idea about where the stuff is located on the disc take a look at yagcd
 	ch 13. */
 	// ---------------------------------------------------------------------------------------	
-	LOG(MASTER_LOG, "Call iAppLoaderMain");
+	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderMain");
 	do
 	{
 		PowerPC::ppcState.gpr[3] = 0x81300004;
@@ -135,7 +135,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// =======================================================================================
 
 	// iAppLoaderClose
-	LOG(MASTER_LOG, "call iAppLoaderClose");
+	DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
 	RunFunction(iAppLoaderClose);
 
 	// Load patches
@@ -169,13 +169,13 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 //
 bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 {	
-	LOG(BOOT, "Faking Wii BIOS...");
+	INFO_LOG(BOOT, "Faking Wii BIOS...");
 
 	// See if we have a memory dump to boot
     FILE* pDump = fopen(FULL_WII_SYS_DIR "dump_0x0000_0x4000.bin", "rb");
     if (pDump != NULL)
     {
-        LOG(MASTER_LOG, "Init from memory dump.");	
+        INFO_LOG(MASTER_LOG, "Init from memory dump.");	
 
         fread(Memory::GetMainRAMPtr(), 1, 16384, pDump);
         fclose(pDump);
@@ -218,7 +218,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		    FILE* pTmp = fopen(filename.c_str(), "rb");
 		    if (!pTmp)
 		    {
-			    LOG(MASTER_LOG, "Cant find setting file");	
+			    ERROR_LOG(MASTER_LOG, "Cant find setting file");	
 			    return false;
 		    }
 
@@ -333,13 +333,13 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
 		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1)) 
 		{
-			LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
+			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;
 		}
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
 
 		//call iAppLoaderEntry
-		LOG(BOOT, "Call iAppLoaderEntry");
+		DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
 
 		u32 iAppLoaderFuncAddr = 0x80004000;
 		PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
@@ -351,7 +351,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+8);
 
 		// iAppLoaderInit
-		LOG(BOOT, "Run iAppLoaderInit");
+		DEBUG_LOG(BOOT, "Run iAppLoaderInit");
 		PowerPC::ppcState.gpr[3] = 0x81300000; 
 		RunFunction(iAppLoaderInit);
 
@@ -360,7 +360,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		   any side effects however. It's a little disconcerning however that Start after Stop
 		   behaves differently than the first Start after starting Dolphin. It means something
 		   was not reset correctly. */
-		LOG(BOOT, "Run iAppLoaderMain");
+		DEBUG_LOG(BOOT, "Run iAppLoaderMain");
 		do
 		{
 			PowerPC::ppcState.gpr[3] = 0x81300004;
@@ -378,7 +378,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		} while(PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose
-		LOG(BOOT, "Run iAppLoaderClose");
+		DEBUG_LOG(BOOT, "Run iAppLoaderClose");
 		RunFunction(iAppLoaderClose);
 
 		// Load patches and run startup patches

@@ -74,7 +74,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
         m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
     }   
 
-    LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
+    INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
 }
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -90,7 +90,7 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress)
 {
-    LOG(WII_IPC_ES, "ES: Close");
+    INFO_LOG(WII_IPC_ES, "ES: Close");
     Memory::Write_U32(0, _CommandAddress + 4);
     return true;
 }
@@ -99,7 +99,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 {
     SIOCtlVBuffer Buffer(_CommandAddress);
 
-    LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
+    INFO_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
 
     // Prepare the out buffer(s) with zeroes as a safety precaution
     // to avoid returning bad values
@@ -123,7 +123,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", TitleID>>32, TitleID, Index, CFD);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", TitleID>>32, TitleID, Index, CFD);
             return true;
         }
         break;
@@ -139,7 +139,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
             return true;
         }
         break;
@@ -169,7 +169,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 rContent.m_Position += Size;
             }
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i", CFD, Addr, Size, rContent.m_Position);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i", CFD, Addr, Size, rContent.m_Position);
 
             Memory::Write_U32(Size, _CommandAddress + 0x4);		
             return true;
@@ -184,7 +184,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             CContentAccessMap::iterator itr = m_ContentAccessMap.find(CFD);
             m_ContentAccessMap.erase(itr);
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
             return true;
@@ -215,7 +215,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 break;
             }
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_SEEKCONTENT: CFD %x, Addr 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_SEEKCONTENT: CFD %x, Addr 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
 
             Memory::Write_U32(rContent.m_Position, _CommandAddress + 0x4);		
             return true;
@@ -230,7 +230,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
             sprintf(Path, "/%08x/%08x/data", (TitleID >> 32) & 0xFFFFFFFF, TitleID & 0xFFFFFFFF);
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
         }
         break;
 
@@ -239,7 +239,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no out buffer");
 
             Memory::Write_U64(m_TitleID, Buffer.PayloadBuffer[0].m_Address);
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", m_TitleID>>32, m_TitleID);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", m_TitleID>>32, m_TitleID);
         }
         break;
 
@@ -248,7 +248,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no in buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_SETUID titleID: %08x/%08x", TitleID>>32, TitleID );
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_SETUID titleID: %08x/%08x", TitleID>>32, TitleID );
         }
         break;
 
@@ -269,7 +269,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
             }            
 
-            LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x", TitleID>>32, TitleID );
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x", TitleID>>32, TitleID );
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
             return true;
@@ -286,7 +286,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             // TODO
             Memory::Write_U32(1, Buffer.PayloadBuffer[0].m_Address);
 
-            LOGV(WII_IPC_ES, 0, "IOCTL_ES_GETTITLECNT: TODO... 1");
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: TODO... 1");
         }
         break;
 
@@ -306,7 +306,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             for (int i = 0; i < (int)TitleIDs.size(); i++)
             {
                 Memory::Write_U64(TitleIDs[i], Buffer.PayloadBuffer[0].m_Address + i*8);
-                LOGV(WII_IPC_ES, 0, "IOCTL_ES_GETTITLES: %08x/%08x", TitleIDs[i] >> 32, TitleIDs[i]);
+                ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: %08x/%08x", TitleIDs[i] >> 32, TitleIDs[i]);
             }
         }
         break;
@@ -336,7 +336,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
 
-            LOGV(WII_IPC_ES, 0, "IOCTL_ES_LAUNCH");
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH");
 
             return true;
         }
@@ -376,7 +376,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETVIEWS: this looks really wrong...");
 
-            LOGV(WII_IPC_ES, 0, "IOCTL_ES_LAUNCH");
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH");
             return true;
         }
         break;
@@ -413,7 +413,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         _dbg_assert_msg_(WII_IPC_ES, 0, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
         DumpCommands(_CommandAddress, 8);
-        LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
+        INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
             "Parameter: 0x%08x", Buffer.Parameter);
 
         break;

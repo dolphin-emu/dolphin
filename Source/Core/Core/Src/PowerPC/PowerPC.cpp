@@ -220,7 +220,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000800;
 
-		LOGV(GEKKO, 1, "EXCEPTION_FPU_UNAVAILABLE");
+		WARN_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
 		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
 		SRR1 |= 0x02;  //recoverable
 	}
@@ -230,7 +230,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000C00;
 
-		LOGV(GEKKO, 1, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+		WARN_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
 		SRR1 |= 0x02;  //recoverable
 	}
@@ -240,7 +240,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77; 
 		NPC = 0x80000300;
 
-		LOGV(GEKKO, 1, "EXCEPTION_DSI");
+		WARN_LOG(GEKKO, "EXCEPTION_DSI");
 		ppcState.Exceptions &= ~EXCEPTION_DSI;			
 		//SRR1 |= 0x02;  //make recoverable ?
 	}
@@ -250,7 +250,7 @@ void CheckExceptions()
 		SRR1 = (MSR & 0x0780FF77) | 0x40000000;
 		NPC = 0x80000400;
 
-		LOG(GEKKO, "EXCEPTION_ISI");
+		INFO_LOG(GEKKO, "EXCEPTION_ISI");
 		ppcState.Exceptions &= ~EXCEPTION_ISI;			
 		//SRR1 |= 0x02;  //make recoverable ?
 	}
@@ -261,7 +261,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000600;
 
-		LOG(GEKKO, "EXCEPTION_ALIGNMENT");
+		INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
 		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;			
 		//SRR1 |= 0x02;  //make recoverable ?
 	}
@@ -278,7 +278,7 @@ void CheckExceptions()
 			NPC = 0x80000500;
 			SRR1 = (MSR & 0x0780FF77);
 			
-			LOGV(GEKKO, 1, "EXCEPTION_EXTERNAL_INT");
+			WARN_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
 
 			SRR1 |= 0x02; //set it to recoverable
 			_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
@@ -291,13 +291,13 @@ void CheckExceptions()
 
 			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
 
-			LOGV(GEKKO, 1, "EXCEPTION_DECREMENTER");
+			WARN_LOG(GEKKO, "EXCEPTION_DECREMENTER");
 			SRR1 |= 0x02;  //make recoverable
 		}
 		else
 		{
 			_dbg_assert_msg_(GEKKO, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
-			LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
+			ERROR_LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
 		}
 	}
 	MSR &= ~0x0008000;		// clear EE-bit so interrupts aren't possible anymore

@@ -148,7 +148,7 @@ void Run()
 					//2: check for breakpoint
 					if (BreakPoints::IsAddressBreakPoint(PC))
 					{
-						LOG(GEKKO, "Hit Breakpoint - %08x", PC);
+						INFO_LOG(GEKKO, "Hit Breakpoint - %08x", PC);
 						CCPU::Break();
 						if (BreakPoints::IsTempBreakPoint(PC))
 							BreakPoints::Remove(PC);

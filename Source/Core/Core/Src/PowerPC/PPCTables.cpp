@@ -739,7 +739,7 @@ void PrintInstructionRunCounts()
 	{
 		if (temp[i].count == 0) 
 			break;
-        LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
+        DEBUG_LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
 		//PanicAlert("%s : %i", temp[i].name,temp[i].count);
 	}
 }

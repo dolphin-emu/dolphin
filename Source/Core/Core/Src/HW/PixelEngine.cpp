@@ -86,22 +86,22 @@ void Init()
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
-	LOGV(PIXELENGINE, 3, "(r16): 0x%08x", _iAddress);
+	DEBUG_LOG(PIXELENGINE,  "(r16): 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
 	case CTRL_REGISTER:
 		_uReturnValue = g_ctrlReg.Hex;
-		LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
+		INFO_LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
 		return;
 
 	case TOKEN_REG:
 		_uReturnValue = CommandProcessor::fifo.PEToken;
-		LOG(PIXELENGINE,"\t TOKEN_REG : %04x", _uReturnValue);
+		INFO_LOG(PIXELENGINE,"\t TOKEN_REG : %04x", _uReturnValue);
 		return;
 
 	default:
-		LOG(PIXELENGINE,"(unknown)");
+		WARN_LOG(PIXELENGINE,"(unknown)");
 		break;
 	}
 
@@ -110,12 +110,12 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOGV(PIXELENGINE, 2, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
+	INFO_LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
-	LOGV(PIXELENGINE, 3, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
+	DEBUG_LOG(PIXELENGINE, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
 
 	switch(_iAddress & 0xFFF)
 	{
@@ -175,7 +175,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	//{
 		g_bSignalTokenInterrupt = true;	
 		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
-		LOGV(PIXELENGINE, 1, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+		WARN_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 		UpdateInterrupts();
 	//}
 	//else
@@ -214,7 +214,7 @@ void SetFinish()
 	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_SetFinishOnMainThread);
-	LOGV(PIXELENGINE, 2, "VIDEO Set Finish");
+	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
 } // end of namespace PixelEngine

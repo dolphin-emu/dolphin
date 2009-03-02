@@ -54,7 +54,7 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
-		LOGV(WII_IPC_SD, 0, "STM: Open");
+		ERROR_LOG(WII_IPC_SD, "STM: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
@@ -75,33 +75,33 @@ public:
         switch(Parameter)
         {
 		case IOCTL_STM_HOTRESET:
-			LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
-			LOG(WII_IPC_SD, "    IOCTL_STM_HOTRESET");
+			INFO_LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+			INFO_LOG(WII_IPC_SD, "    IOCTL_STM_HOTRESET");
 			break;
 
         case IOCTL_STM_VIDIMMING: // (Input: 20 bytes, Output: 20 bytes)
-            LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
-            LOG(WII_IPC_SD, "    IOCTL_STM_VIDIMMING");
+            INFO_LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+            INFO_LOG(WII_IPC_SD, "    IOCTL_STM_VIDIMMING");
 			//DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
 			//Memory::Write_U32(1, BufferOut);
 			//ReturnValue = 1;
             break;
 
         case IOCTL_STM_LEDMODE:  // (Input: 20 bytes, Output: 20 bytes)
-            LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
-            LOG(WII_IPC_SD, "    IOCTL_STM_LEDMODE");
+            INFO_LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+            INFO_LOG(WII_IPC_SD, "    IOCTL_STM_LEDMODE");
             break;
 
         default:
             {
                 _dbg_assert_msg_(WII_IPC_SD, 0, "CWII_IPC_HLE_Device_stm_immediate: 0x%x", Parameter);
 
-                LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
-                LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
-                LOG(WII_IPC_SD, "    InBuffer: 0x%08x\n", BufferIn);
-                LOG(WII_IPC_SD, "    InBufferSize: 0x%08x\n", BufferInSize);
-                LOG(WII_IPC_SD, "    OutBuffer: 0x%08x\n", BufferOut);
-                LOG(WII_IPC_SD, "    OutBufferSize: 0x%08x\n", BufferOutSize);
+                INFO_LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+                DEBUG_LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
+                DEBUG_LOG(WII_IPC_SD, "    InBuffer: 0x%08x\n", BufferIn);
+                DEBUG_LOG(WII_IPC_SD, "    InBufferSize: 0x%08x\n", BufferInSize);
+                DEBUG_LOG(WII_IPC_SD, "    OutBuffer: 0x%08x\n", BufferOut);
+                DEBUG_LOG(WII_IPC_SD, "    OutBufferSize: 0x%08x\n", BufferOutSize);
             }
             break;
         }
@@ -156,12 +156,12 @@ public:
 			{
 				m_EventHookAddress = _CommandAddress;
 
-                LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
-                LOG(WII_IPC_SD, "    0x1000 - IOCTL_STM_EVENTHOOK\n", Parameter);
-                LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
-                LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
-                LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
-                LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
+                INFO_LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
+                DEBUG_LOG(WII_IPC_SD, "    0x1000 - IOCTL_STM_EVENTHOOK\n", Parameter);
+                DEBUG_LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
+                DEBUG_LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
+                DEBUG_LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
+                DEBUG_LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
 
 				DumpCommands(BufferIn, BufferInSize/4, LogTypes::WII_IPC_SD);
 
@@ -172,12 +172,12 @@ public:
         default:
             {
                 _dbg_assert_msg_(WII_IPC_SD, 0, "CWII_IPC_HLE_Device_stm_eventhook: 0x%x", Parameter);
-                LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
-                LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
-                LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
-                LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
-                LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
-                LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
+                INFO_LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
+                DEBUG_LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
+                DEBUG_LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
+                DEBUG_LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
+                DEBUG_LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
+                DEBUG_LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
             }
             break;
         }

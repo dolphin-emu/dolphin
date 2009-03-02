@@ -39,14 +39,14 @@ CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
-	LOG(WII_IPC_SD, "SD: Open");
+	INFO_LOG(WII_IPC_SD, "SD: Open");
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
     return true;
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 {
-	LOG(WII_IPC_SD, "SD: Close");
+	INFO_LOG(WII_IPC_SD, "SD: Close");
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;
 }
@@ -78,22 +78,22 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	switch (Cmd) {
 	case 1: // set_hc_reg
-		LOGV(WII_IPC_SD, 0, "SD: set_hc_reg");
+		ERROR_LOG(WII_IPC_SD, "SD: set_hc_reg");
 		break;
 	case 2: // get_hc_reg
-		LOGV(WII_IPC_SD, 0, "SD: get_hc_reg");
+		ERROR_LOG(WII_IPC_SD, "SD: get_hc_reg");
 		break;
 
 	case 4: // reset, do nothing ?
-		LOGV(WII_IPC_SD, 0, "SD: reset");
+		ERROR_LOG(WII_IPC_SD, "SD: reset");
 		break;
 
 	case 6: // sd_clock
-		LOGV(WII_IPC_SD, 0, "SD: sd_clock");
+		ERROR_LOG(WII_IPC_SD, "SD: sd_clock");
 		break;
 
 	case 7: // Send cmd (Input: 24 bytes, Output: 10 bytes)
-		LOGV(WII_IPC_SD, 0, "SD: sendcmd");
+		ERROR_LOG(WII_IPC_SD, "SD: sendcmd");
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
 
@@ -104,7 +104,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		}
 		else
 		{
-			LOGV(WII_IPC_SD, 0, "SD: sd_get_status. Answer: SD card is not inserted", BufferOut);
+			ERROR_LOG(WII_IPC_SD, "SD: sd_get_status. Answer: SD card is not inserted", BufferOut);
 			Memory::Write_U32(2, BufferOut); // SD card is not inserted
 		}
 		break;

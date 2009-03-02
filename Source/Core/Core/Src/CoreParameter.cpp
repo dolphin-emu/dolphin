@@ -174,7 +174,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	m_strSRAM = GC_SRAM_FILE;
 	m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
 	if (!File::Exists(m_strBios.c_str())) {
-		LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
+		WARN_LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
 		bHLEBios = true;
 	}
 

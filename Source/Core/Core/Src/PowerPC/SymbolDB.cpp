@@ -42,9 +42,9 @@ void SymbolDB::List()
 {
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
 	{
-		LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls", iter->second.name.c_str(), iter->second.address, iter->second.size, iter->second.hash,iter->second.numCalls);
+		DEBUG_LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls", iter->second.name.c_str(), iter->second.address, iter->second.size, iter->second.hash,iter->second.numCalls);
 	}
-	LOG(HLE,"%i functions known in this program above.", functions.size());
+	INFO_LOG(HLE,"%i functions known in this program above.", functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)
@@ -189,19 +189,19 @@ void SymbolDB::PrintCalls(u32 funcAddr) const
 	if (iter != functions.end())
 	{
 		const Symbol &f = iter->second;
-		LOG(HLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
+		INFO_LOG(HLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
 		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); fiter++)
 		{
 			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
 			{
-				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
+				INFO_LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
 			}
 		}
 	}
 	else
 	{
-		LOG(CONSOLE, "Symbol does not exist");
+		WARN_LOG(CONSOLE, "Symbol does not exist");
 	}
 }
 
@@ -211,13 +211,13 @@ void SymbolDB::PrintCallers(u32 funcAddr) const
 	if (iter != functions.end())
 	{
 		const Symbol &f = iter->second;
-		LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
+		INFO_LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
 		for (std::vector<SCall>::const_iterator fiter = f.callers.begin(); fiter != f.callers.end(); fiter++)
 		{
 			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
 			{
-				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
+				INFO_LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
 			}
 		}
 	}

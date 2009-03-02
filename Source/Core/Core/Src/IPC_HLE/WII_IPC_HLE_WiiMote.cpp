@@ -150,7 +150,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 {
 	s_Usb = _pHost;
-	LOG(WII_IPC_WIIMOTE, "Wiimote %i constructed", _Number);
+	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %i constructed", _Number);
 
 	m_BD.b[0] = 0x11;
 	m_BD.b[1] = 0x02;
@@ -327,12 +327,12 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 	u8* pData = _pData + sizeof(SL2CAP_Header);
 	u32 DataSize = _Size - sizeof(SL2CAP_Header);
 
-	LOGV(WII_IPC_WIIMOTE, 2, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
+	INFO_LOG(WII_IPC_WIIMOTE, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
 		pHeader->CID, pHeader->Length, DataSize);
 
 	if(pHeader->Length != DataSize)
 	{
-		LOGV(WII_IPC_WIIMOTE, 2, "Faulty packet. It is dropped.");
+		INFO_LOG(WII_IPC_WIIMOTE, "Faulty packet. It is dropped.");
 		return;
 	}
 
@@ -366,7 +366,8 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 					break;
 
 				default:
-					PanicAlert("channel 0x04%x has unknown PSM %x", pHeader->CID, rChannel.PSM);
+					ERROR_LOG(WII_IPC_WIIMOTE, "channel 0x04%x has unknown PSM %x", pHeader->CID, rChannel.PSM);
+					PanicAlert("WIIMOTE: channel 0x04%x has unknown PSM %x", pHeader->CID, rChannel.PSM);
 					break;
 				}
 			}
@@ -473,6 +474,9 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 			break;
 
 		case L2CAP_COMMAND_REJ:
+			ERROR_LOG(WII_IPC_WIIMOTE, "SignalChannel - L2CAP_COMMAND_REJ (something went wrong). Try to replace your"
+				"SYSCONF file with a new copy."
+				,pCommand->code); 
 			PanicAlert(
 				"SignalChannel - L2CAP_COMMAND_REJ (something went wrong). Try to replace your"
 				"SYSCONF file with a new copy."
@@ -480,7 +484,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 			break;
 
 		default:
-			LOG(WII_IPC_WIIMOTE, "  Unknown Command-Code (0x%02x)", pCommand->code);
+			ERROR_LOG(WII_IPC_WIIMOTE, "  Unknown Command-Code (0x%02x)", pCommand->code);
 			PanicAlert("SignalChannel %x",pCommand->code);
 			return;
 		}
@@ -513,11 +517,11 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 	rChannel.SCID = pCommandConnectionReq->scid;
 	rChannel.DCID = pCommandConnectionReq->scid;
 
-	LOG(WII_IPC_WIIMOTE, "  CommandConnectionReq");
-	LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
-	LOG(WII_IPC_WIIMOTE, "    PSM: 0x%04x", rChannel.PSM);
-	LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rChannel.SCID);
-	LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rChannel.DCID);
+	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConnectionReq");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    PSM: 0x%04x", rChannel.PSM);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rChannel.SCID);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rChannel.DCID);
 
 	// response
 	SL2CAP_ConnectionResponse Rsp;
@@ -538,7 +542,7 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 
 void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 {
-	LOGV(WII_IPC_WIIMOTE, 1, "*******************************************************");
+	INFO_LOG(WII_IPC_WIIMOTE, "*******************************************************");
 	u32 Offset = 0;
 	SL2CAP_CommandConfigurationReq* pCommandConfigReq = (SL2CAP_CommandConfigurationReq*)_pData;
 
@@ -547,10 +551,10 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
 	SChannel& rChannel = m_Channel[pCommandConfigReq->dcid];
 
-	LOGV(WII_IPC_WIIMOTE, 1, "  CommandCofigurationReq");
-	LOGV(WII_IPC_WIIMOTE, 1, "    Ident: 0x%02x", _Ident);
-	LOGV(WII_IPC_WIIMOTE, 1, "    DCID: 0x%04x", pCommandConfigReq->dcid);
-	LOGV(WII_IPC_WIIMOTE, 1, "    Flags: 0x%04x", pCommandConfigReq->flags);
+	INFO_LOG(WII_IPC_WIIMOTE, "  CommandCofigurationReq");
+	INFO_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
+	INFO_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandConfigReq->dcid);
+	INFO_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", pCommandConfigReq->flags);
 
 	Offset += sizeof(SL2CAP_CommandConfigurationReq);
 
@@ -577,7 +581,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsMTU* pMTU = (SL2CAP_OptionsMTU*)&_pData[Offset];
 				rChannel.MTU = pMTU->MTU;
-				LOGV(WII_IPC_WIIMOTE, 1, "    Config MTU: 0x%04x", pMTU->MTU);
+				INFO_LOG(WII_IPC_WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
 			}
 			break;
 
@@ -586,7 +590,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsFlushTimeOut* pFlushTimeOut = (SL2CAP_OptionsFlushTimeOut*)&_pData[Offset];
 				rChannel.FlushTimeOut = pFlushTimeOut->TimeOut;
-				LOGV(WII_IPC_WIIMOTE, 1, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
+				INFO_LOG(WII_IPC_WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
 			}
 			break;
 
@@ -603,7 +607,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	}
 
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
-	LOGV(WII_IPC_WIIMOTE, 1, "*******************************************************");
+	INFO_LOG(WII_IPC_WIIMOTE, "*******************************************************");
 }
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
@@ -612,11 +616,11 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 
 
 	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conn_rsp));
 
-	LOG(WII_IPC_WIIMOTE, "  CommandConnectionResponse");
-	LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
-	LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
- 	LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
-	LOG(WII_IPC_WIIMOTE, "    Status: 0x%04x", rsp->status);
+	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConnectionResponse");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
+ 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Status: 0x%04x", rsp->status);
 
 	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == 0);
 	_dbg_assert_(WII_IPC_WIIMOTE, rsp->status == 0);
@@ -639,10 +643,10 @@ void CWII_IPC_HLE_WiiMote::CommandConfigurationResponse(u8 _Ident, u8* _pData, u
 
 	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conf_rsp));
 
-	LOG(WII_IPC_WIIMOTE, "  CommandConfigurationResponse");
-	LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
-	LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
- 	LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
+	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConfigurationResponse");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
+ 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
 
 	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == 0);
 
@@ -662,10 +666,10 @@ void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _S
 	// create the channel
 	_dbg_assert_(WII_IPC_WIIMOTE, m_Channel.find(pCommandDisconnectionReq->scid) != m_Channel.end());
 
-	LOG(WII_IPC_WIIMOTE, "  CommandDisconnectionReq");
-	LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
-	LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", pCommandDisconnectionReq->dcid);
-	LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandDisconnectionReq->scid);
+	INFO_LOG(WII_IPC_WIIMOTE, "  CommandDisconnectionReq");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", pCommandDisconnectionReq->dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandDisconnectionReq->scid);
 
 	// response
 	SL2CAP_CommandDisconnectionResponse Rsp;
@@ -700,9 +704,9 @@ void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 	cr.psm = psm;
 	cr.scid = scid;
 
-	LOG(WII_IPC_WIIMOTE, "  SendConnectionRequest()");
-	LOG(WII_IPC_WIIMOTE, "    Psm: 0x%04x", cr.psm);
-	LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
+	INFO_LOG(WII_IPC_WIIMOTE, "  SendConnectionRequest()");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Psm: 0x%04x", cr.psm);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
 
 	SendCommandToACL(L2CAP_CONN_REQ, L2CAP_CONN_REQ, sizeof(l2cap_conn_req), (u8*)&cr);
 }
@@ -716,9 +720,9 @@ void CWII_IPC_HLE_WiiMote::SendDisconnectRequest(u16 scid)
 	cr.dcid = rChannel.DCID;
 	cr.scid = rChannel.SCID;
 
-	LOG(WII_IPC_WIIMOTE, "  SendDisconnectionRequest()");
-	LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
-	LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
+	INFO_LOG(WII_IPC_WIIMOTE, "  SendDisconnectionRequest()");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
 
 	SendCommandToACL(L2CAP_DISCONN_REQ, L2CAP_DISCONN_REQ, sizeof(l2cap_disconn_req), (u8*)&cr);
 }
@@ -758,9 +762,9 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 		*(u16*)&Buffer[Offset] = *FlushTimeOut;  Offset += 2;
 	}
 
-	LOG(WII_IPC_WIIMOTE, "  SendConfigurationRequest()");
-	LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
-	LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", cr->flags);
+	INFO_LOG(WII_IPC_WIIMOTE, "  SendConfigurationRequest()");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", cr->flags);
 
 	// hack:
 	static u8 ident = 99;
@@ -834,8 +838,8 @@ u32 ParseCont(u8* pCont)
 	{
 		return 0x00;
 	}
-
-	PanicAlert("wrong cont: %i", typeID);
+	ERROR_LOG(WII_IPC_WIIMOTE,"ParseCont: wrong cont: %i", typeID);
+	PanicAlert("ParseCont: wrong cont: %i", typeID);
 	return 0;
 }
 
@@ -858,6 +862,7 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 	{
 		_startID = attribList.Read16(attribOffset);		attribOffset += 2;
 		_endID = _startID;
+		WARN_LOG(WII_IPC_WIIMOTE, "Read just a single attrib - not tested");
 		PanicAlert("Read just a single attrib - not tested");
 	}
 
@@ -871,6 +876,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 {
 	if (ServiceHandle != 0x10000)
 	{
+		ERROR_LOG(WII_IPC_WIIMOTE, "unknown service handle %x" , ServiceHandle);
 		PanicAlert("unknown service handle %x" , ServiceHandle);
 	}
 
@@ -912,7 +918,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 		// SDP_ServiceSearchRequest
 	case 0x02:
 		{
-			LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
+			WARN_LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
 
 			_dbg_assert_(WII_IPC_WIIMOTE, _Size == 13);
 
@@ -929,7 +935,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 		// SDP_ServiceAttributeRequest
 	case 0x04:
 		{
-			LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
+			WARN_LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
 
 			u16 startAttrID, endAttrID;
 			u32 offset = 1;
@@ -946,7 +952,8 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 		break;
 
 	default:
-		PanicAlert("Unknown SDP command %x", _pData[0]);
+		ERROR_LOG(WII_IPC_WIIMOTE, "WIIMOTE: Unknown SDP command %x", _pData[0]);
+		PanicAlert("WIIMOTE: Unknown SDP command %x", _pData[0]);
 		break;
 	}
 }
@@ -981,9 +988,9 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 	memcpy(&DataFrame[Offset], _pCommandData, _CommandLength);
 
-	LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (answer)");
-	LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
-	LOG(WII_IPC_WIIMOTE, "    Code: 0x%02x", _Code);
+	WARN_LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (answer)");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Code: 0x%02x", _Code);
 
 	// send ....
 	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
@@ -1032,14 +1039,14 @@ namespace Core
 	   a reporting mode. _Size is the byte size of the report. */
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size)
 	{
-		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "=========================================================");
 		const u8* pData = (const u8*)_pData;
-		LOGV(WII_IPC_WIIMOTE, 3, "Callback_WiimoteInput:");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "Callback_WiimoteInput:");
 		//std::string Temp = ArrayToString(pData, _Size, 0, 50);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Channel: %u", _channelID);
 
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
-		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "=========================================================");
 	}
 }

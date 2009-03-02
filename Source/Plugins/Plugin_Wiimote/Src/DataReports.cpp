@@ -89,12 +89,12 @@ namespace WiiMoteEmu
 // ----------------
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr) 
 {
-	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
-	LOG(WII_IPC_WIIMOTE, " Set Data reporting mode");
-	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
-	LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
-	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
-	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
+	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, " Set Data reporting mode");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
 	Console::Print("Data reporting:\n");
 	Console::Print("   Continuous: %x\n", dr->continuous);
 	Console::Print("   All The Time: %x (not only on data change)\n", dr->all_the_time);
@@ -117,7 +117,7 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 
 	// WmSendAck(_channelID, WM_DATA_REPORTING);
 
-	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
+	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
 }
 
 
@@ -137,7 +137,7 @@ void SendReportCore(u16 _channelID)
 	FillReportInfo(pReport->c);
 #endif
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCore()");
+	INFO_LOG(WII_IPC_WIIMOTE, "  SendReportCore()");
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
@@ -163,9 +163,9 @@ void SendReportCoreAccel(u16 _channelID)
 	FillReportAcc(pReport->a);
 #endif
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel (0x31)");
-	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
-	LOGV(WII_IPC_WIIMOTE, 2, "      Offset: %08x", Offset);
+	INFO_LOG(WII_IPC_WIIMOTE,  "  SendReportCoreAccel (0x31)");
+	INFO_LOG(WII_IPC_WIIMOTE,  "      Channel: %04x", _channelID);
+	INFO_LOG(WII_IPC_WIIMOTE,  "      Offset: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
@@ -195,8 +195,8 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	memset(&pReport->ir[2], 0xff, sizeof(wm_ir_extended));
 	memset(&pReport->ir[3], 0xff, sizeof(wm_ir_extended));
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr12()");
-	LOGV(WII_IPC_WIIMOTE, 2, "    Offset: %08x", Offset);
+	INFO_LOG(WII_IPC_WIIMOTE,  "  SendReportCoreAccelIr12()");
+	INFO_LOG(WII_IPC_WIIMOTE,  "    Offset: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
@@ -241,9 +241,9 @@ void SendReportCoreAccelExt16(u16 _channelID)
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16 (0x35)");
-	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
-	LOGV(WII_IPC_WIIMOTE, 2, "      Offset: %08x", Offset);
+	INFO_LOG(WII_IPC_WIIMOTE,  "  SendReportCoreAccelExt16 (0x35)");
+	INFO_LOG(WII_IPC_WIIMOTE,  "      Channel: %04x", _channelID);
+	INFO_LOG(WII_IPC_WIIMOTE,  "      Offset: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
@@ -289,7 +289,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr10Ext()");
+	INFO_LOG(WII_IPC_WIIMOTE,  "  SendReportCoreAccelIr10Ext()");
 	
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 

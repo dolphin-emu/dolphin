@@ -67,7 +67,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 		case CMD_ORIGIN:
 			{
-				LOG(SERIALINTERFACE, "PAD - Get Origin");
+				INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 				u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
 				for (int i = 0; i < (int)sizeof(SOrigin); i++)
 				{
@@ -80,7 +80,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		// Recalibrate (FiRES: i am not 100 percent sure about this)
 		case CMD_RECALIBRATE:
 			{
-				LOG(SERIALINTERFACE, "PAD - Recalibrate");
+				INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
 				u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
 				for (int i = 0; i < (int)sizeof(SOrigin); i++)
 				{
@@ -92,13 +92,13 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 		// WII Something
 		case 0xCE:
-			LOG(SERIALINTERFACE, "Unknown Wii SI Command");
+			WARN_LOG(SERIALINTERFACE, "Unknown Wii SI Command");
 			break;
 		
 		// DEFAULT
 		default:
 			{
-				LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+				ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
 				PanicAlert("SI: Unknown command");
 				iPosition = _iLength;
 			}			
@@ -165,7 +165,7 @@ CSIDevice_GCController::SendCommand(u32 _Cmd)
 
 	default:
 		{
-			LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
+			ERROR_LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
 			PanicAlert("SI: Unknown direct command");
 		}			
 		break;

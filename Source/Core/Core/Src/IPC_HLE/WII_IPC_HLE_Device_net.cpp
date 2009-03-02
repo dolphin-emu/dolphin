@@ -112,14 +112,14 @@ CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
-	LOG(WII_IPC_NET, "NET_KD_REQ: Open");
+	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	return true;
 }
 
 bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress)
 {
-	LOG(WII_IPC_NET, "NET_KD_REQ: Close");
+	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Close");
 	Memory::Write_U32(0, _CommandAddress + 4);
 	return true;
 }
@@ -134,7 +134,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 
-	LOG(WII_IPC_NET, "NET_KD_REQ: IOCtl (Device=%s) (Parameter: 0x%02x)", GetDeviceName().c_str(), Parameter);
+	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCtl (Device=%s) (Parameter: 0x%02x)", GetDeviceName().c_str(), Parameter);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
@@ -223,7 +223,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
         break;
 
 	default:
-		LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
 		_dbg_assert_msg_(WII_IPC_NET, 0, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
 		break;
 	}
@@ -299,7 +299,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 _CommandAddress)
 	switch(CommandBuffer.Parameter)
 	{
 	default:
-		LOG(WII_IPC_NET, "NET_IP_TOP IOCtlV: %i", CommandBuffer.Parameter);
+		INFO_LOG(WII_IPC_NET, "NET_IP_TOP IOCtlV: %i", CommandBuffer.Parameter);
 		break;
 	}
 

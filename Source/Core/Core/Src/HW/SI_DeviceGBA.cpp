@@ -57,7 +57,7 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 
 				*(u32*)&_pBuffer[0] = SI_GBA;//|2;
 				iPosition = _iLength; // break the while loop
-				LOG(SERIALINTERFACE, "GBA %i CMD_RESET", this->m_iDeviceNumber);
+				INFO_LOG(SERIALINTERFACE, "GBA %i CMD_RESET", this->m_iDeviceNumber);
 			}
 			break;
 		case CMD_STATUS:
@@ -70,7 +70,7 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 
 				*(u32*)&_pBuffer[0] = SI_GBA;//|8;
 				iPosition = _iLength; // break the while loop
-				LOG(SERIALINTERFACE, "GBA %i CMD_STATUS", this->m_iDeviceNumber);
+				INFO_LOG(SERIALINTERFACE, "GBA %i CMD_STATUS", this->m_iDeviceNumber);
 			}
 			break;
 		case CMD_WRITE:
@@ -83,7 +83,7 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 				//Send to Upper 8bits of JOY_RECV_H
 				//Receive from lower 8bits of SIOSTAT register
 
-				LOG(SERIALINTERFACE, "GBA %i CMD_WRITE", this->m_iDeviceNumber);
+				INFO_LOG(SERIALINTERFACE, "GBA %i CMD_WRITE", this->m_iDeviceNumber);
 			}
 			break;
 		case CMD_READ:
@@ -96,12 +96,12 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 				//Receive from Upper 8bits of JOY_TRANS_H
 				//Receive from lower 8bits of SIOSTAT register	
 
-				LOG(SERIALINTERFACE, "GBA CMD_READ");
+				INFO_LOG(SERIALINTERFACE, "GBA CMD_READ");
 			}
 			break;
 		default:
 			{
-				LOG(SERIALINTERFACE, "GBA %i unknown command     (0x%x)", this->m_iDeviceNumber, command);
+				WARN_LOG(SERIALINTERFACE, "GBA %i unknown command     (0x%x)", this->m_iDeviceNumber, command);
 				iPosition = _iLength;
 			}			
 			break;
@@ -117,7 +117,7 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 bool 
 CSIDevice_GBA::GetData(u32& _Hi, u32& _Low)
 {
-	LOG(SERIALINTERFACE, "GBA %i GetData Hi: 0x%x Low: 0x%x", this->m_iDeviceNumber, _Hi, _Low);
+	INFO_LOG(SERIALINTERFACE, "GBA %i GetData Hi: 0x%x Low: 0x%x", this->m_iDeviceNumber, _Hi, _Low);
 
 	return true;
 }
@@ -128,5 +128,5 @@ CSIDevice_GBA::GetData(u32& _Hi, u32& _Low)
 void
 CSIDevice_GBA::SendCommand(u32 _Cmd)
 {
-	LOG(SERIALINTERFACE, "GBA %i SendCommand: (0x%x)", this->m_iDeviceNumber, _Cmd);
+	INFO_LOG(SERIALINTERFACE, "GBA %i SendCommand: (0x%x)", this->m_iDeviceNumber, _Cmd);
 }

@@ -597,8 +597,8 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	//Console::Print("Emu InterruptChannel\n");
 
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
-	LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
 
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's not determined
@@ -639,6 +639,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 				break;
 
 			default:
+				ERROR_LOG(WII_IPC_WIIMOTE, "HidInput: HID_TYPE_DATA - param 0x%02x", hidp->type, hidp->param);
 				PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp->type, hidp->param);
 				break;
 			}
@@ -646,10 +647,11 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	default:
+		ERROR_LOG(WII_IPC_WIIMOTE,"HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);     
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
 	}
-	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
 
 
@@ -660,12 +662,12 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	const u8* data = (const u8*)_pData;
 	// Dump raw data
 	{
-		LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
+		INFO_LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
 #if defined(HAVE_WX) && HAVE_WX
 		Console::Print("\n%s: ControlChannel: %s\n", Tm().c_str(), Temp.c_str());
 #endif
-		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
 	hid_packet* hidp = (hid_packet*) data;
@@ -674,18 +676,21 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	case HID_TYPE_HANDSHAKE:
 		if (hidp->param == HID_PARAM_INPUT)
 		{
+			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
 			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
 		}
 		else
 		{
-			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT");
+			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT");
+			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT"); 
 		}
 		break;
 
 	case HID_TYPE_SET_REPORT:
 		if (hidp->param == HID_PARAM_INPUT)
 		{
-			PanicAlert("HID_TYPE_SET_REPORT input");
+			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_SET_REPORT input");
+			PanicAlert("HID_TYPE_SET_REPORT input"); 
 		}
 		else
 		{
@@ -698,10 +703,12 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	case HID_TYPE_DATA:
+		ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
 		PanicAlert("HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
 		break;
 
 	default:
+		ERROR_LOG(WII_IPC_WIIMOTE, "HidControlChannel: Unknown type %x and param %x", hidp->type, hidp->param); 
 		PanicAlert("HidControlChannel: Unknown type %x and param %x", hidp->type, hidp->param);
 		break;
 	}

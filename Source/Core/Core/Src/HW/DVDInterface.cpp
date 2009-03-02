@@ -287,7 +287,7 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOGV(DVDINTERFACE, 3, "DVD(r): 0x%08x", _iAddress);
+	DEBUG_LOG(DVDINTERFACE, "DVD(r): 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
@@ -316,7 +316,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOGV(DVDINTERFACE, 3, "DVD(w): 0x%08x @ 0x%08x", _iValue, _iAddress);
+	DEBUG_LOG(DVDINTERFACE,  "DVD(w): 0x%08x @ 0x%08x", _iValue, _iAddress);
 
 	switch (_iAddress & 0x3FF)
 	{
@@ -455,7 +455,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			u32 destlength	= dvdMem.DMALength.Length;
 			dvdMem.DMALength.Length = 0;
 
-			LOG(DVDINTERFACE, "[WARNING] DVD: Get drive info offset=%08x, destbuffer=%08x, destlength=%08x", offset * 4, destbuffer, destlength);
+			INFO_LOG(DVDINTERFACE, "[WARNING] DVD: Get drive info offset=%08x, destbuffer=%08x, destlength=%08x", offset * 4, destbuffer, destlength);
 
 			// metroid uses this...
 			for (unsigned int i = 0; i < destlength / 4; i++)
@@ -479,7 +479,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
 				u32 iSrcLength = dvdMem.Command[2];
 				if (false) { iSrcLength++; } // avoid warning  << wtf is this?
-				LOGV(DVDINTERFACE, 2, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
+				INFO_LOG(DVDINTERFACE, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
 				_dbg_assert_(DVDINTERFACE, iSrcLength == dvdMem.DMALength.Length);
 
 				if (DVDRead(iDVDOffset, dvdMem.DMAAddress.Address, dvdMem.DMALength.Length) != true)
@@ -507,7 +507,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 #ifdef LOGGING
 			u32 offset = dvdMem.Command[1] << 2;
 #endif
-			LOG(DVDINTERFACE, "DVD: Trying to seek: offset=%08x", offset);
+			DEBUG_LOG(DVDINTERFACE, "DVD: Trying to seek: offset=%08x", offset);
 		}		
 		break;
 
@@ -516,7 +516,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E0000000
 	//=========================================================================================================
 	case 0xE0:
-		LOG(DVDINTERFACE, "DVD: Requesting error");
+		ERROR_LOG(DVDINTERFACE, "DVD: Requesting error");
 		dvdMem.Immediate = g_ErrorCode;
 		break;
 
@@ -548,7 +548,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 
 				m_bStream = true;
 
-				LOG(DVDINTERFACE, "DVD(Audio) Stream subcmd = %02x offset = %08x length=%08x", subCommand, dvdMem.AudioPos, dvdMem.AudioLength);
+				DEBUG_LOG(DVDINTERFACE, "DVD(Audio) Stream subcmd = %02x offset = %08x length=%08x", subCommand, dvdMem.AudioPos, dvdMem.AudioLength);
 			}			
 		}		
 		break;
@@ -564,7 +564,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			else
 				dvdMem.Immediate = 0;*/
 		}
-		LOG(DVDINTERFACE, "DVD(Audio): Request Audio status");
+		DEBUG_LOG(DVDINTERFACE, "DVD(Audio): Request Audio status");
 		break;
 
 	//=========================================================================================================
@@ -572,7 +572,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E3000000
 	//=========================================================================================================
 	case 0xE3:
-		LOG(DVDINTERFACE, "DVD: Stop motor");
+		DEBUG_LOG(DVDINTERFACE, "DVD: Stop motor");
 		break;
 
 	//=========================================================================================================

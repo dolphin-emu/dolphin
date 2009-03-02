@@ -210,13 +210,14 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 		}
         else
         {
+			ERROR_LOG(WII_IPC_FILEIO, "Unknown device: %s", _rDeviceName.c_str());
             PanicAlert("Unknown device: %s", _rDeviceName.c_str());
             pDevice = new CWII_IPC_HLE_Device_Error(u32(-1), _rDeviceName);
         }
     }
     else
     {		
-		LOGV(WII_IPC_FILEIO, 0, "IOP: Create Device %s", _rDeviceName.c_str());
+		INFO_LOG(WII_IPC_FILEIO, "IOP: Create Device %s", _rDeviceName.c_str());
         pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
     }
 
@@ -233,13 +234,14 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 bool AckCommand(u32 _Address)
 {   
     Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
-    LOGV(WII_IPC_HLE, 1, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
+    WARN_LOG(WII_IPC_HLE, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
 
 	std::list<u32>::iterator itr = g_Ack.begin();
 	while (itr != g_Ack.end())
 	{
 		if (*itr == _Address)
 		{
+			ERROR_LOG(WII_IPC_HLE, "execute a command two times");
 			PanicAlert("execute a command two times");
 			return false;
 		}
@@ -270,11 +272,11 @@ void CopySettingsFile(std::string DeviceName)
 
 	if (File::Copy(Source.c_str(), Target.c_str()))
 	{
-		LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());
+		INFO_LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());
 	}
 	else
 	{
-		LOG(WII_IPC_FILEIO, "Could not copy %s to %s", Source.c_str(), Target.c_str());
+		ERROR_LOG(WII_IPC_FILEIO, "Could not copy %s to %s", Source.c_str(), Target.c_str());
 		PanicAlert("Could not copy %s to %s", Source.c_str(), Target.c_str());
 	}
 }
@@ -315,12 +317,12 @@ void ExecuteCommand(u32 _Address)
 				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos
 					|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
 				{					
-					LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, GenerateReply=%i)",
+					INFO_LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, GenerateReply=%i)",
 						pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode, (int)GenerateReply);
 				}
 				else
 				{
-					LOG(WII_IPC_HLE, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i)",
+					INFO_LOG(WII_IPC_HLE, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i)",
                         pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
 				}
             }
@@ -337,7 +339,7 @@ void ExecuteCommand(u32 _Address)
 
 				// F|RES: prolly the re-open is just a mode change
 
-                LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+                INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 
 				if(DeviceName.find("/dev/") == std::string::npos)
@@ -453,7 +455,7 @@ void ExecuteCommand(u32 _Address)
 				// Write reply, this will later be executed in Update()
 				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));
 			} else {
-				LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
+				WARN_LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
 				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
 			}
 
@@ -507,9 +509,9 @@ void Update()
         {
             u32 _Address = g_Ack.front();
             g_Ack.pop_front();
-            LOGV(WII_IPC_HLE, 1, "-- Exeute Ack (0x%08x)", _Address);
+            WARN_LOG(WII_IPC_HLE, "-- Exeute Ack (0x%08x)", _Address);
             ExecuteCommand(_Address);
-            LOGV(WII_IPC_HLE, 1, "-- End of ExecuteAck (0x%08x)", _Address);
+            WARN_LOG(WII_IPC_HLE, "-- End of ExecuteAck (0x%08x)", _Address);
 
 			// Go back to WII_IPC.cpp and generate an acknowledgement
             WII_IPCInterface::GenerateAck(_Address);

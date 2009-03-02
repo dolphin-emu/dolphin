@@ -25,7 +25,7 @@
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 {
 #ifdef _DEBUG
-	LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,_iLength);
+	DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,_iLength);
 
 	char szTemp[256] = "";
 	int num = 0;
@@ -38,11 +38,11 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 
 		if ((num % 8) == 0)
 		{
-			LOG(SERIALINTERFACE, szTemp);
+			DEBUG_LOG(SERIALINTERFACE, szTemp);
 			szTemp[0] = '\0';
 		}
 	}
-	LOG(SERIALINTERFACE, szTemp);
+	DEBUG_LOG(SERIALINTERFACE, szTemp);
 #endif
 	return 0;
 };
@@ -69,8 +69,8 @@ public:
 		return 4;
 	}
 
-	bool GetData(u32& _Hi, u32& _Low)	{LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
-	void SendCommand(u32 _Cmd)			{LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
+	bool GetData(u32& _Hi, u32& _Low)	{INFO_LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
+	void SendCommand(u32 _Cmd)			{INFO_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,6 +92,11 @@ ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 	case SI_GBA:
 		return new CSIDevice_GBA(_iDeviceNumber);
 		break;
+	
+	default:
+		return NULL;
+		break;
 	}
+	
 	return NULL;
 }

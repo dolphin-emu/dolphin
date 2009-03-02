@@ -140,10 +140,10 @@ readFn64  hwReadWii64[NUMHWMEMFUN];
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
 
 template <class T>
-void HW_Default_Write(const T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
+void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
 
 template <class T>
-void HW_Default_Read(T _Data, const u32 _Address){	LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
+void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
 
 #define PAGE_SHIFT 10
@@ -441,7 +441,7 @@ bool Init()
 	else
 		InitHWMemFuncs();
 
-	LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
+	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
 		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);
 	m_IsInitialized = true;
 	return true;
@@ -497,7 +497,7 @@ bool Shutdown()
 		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
 #endif
 	g_arena.ReleaseSpace();
-	LOG(MEMMAP, "Memory system shut down.");
+	INFO_LOG(MEMMAP, "Memory system shut down.");
 	return true;
 }
 
@@ -607,12 +607,12 @@ void CheckForBadAddresses(u32 Address, u32 Data, bool Read, int Bits)
 	{		
 		if(Read)
 		{
-			LOG(CONSOLE, "Read%i: Program tried to read [%08x] from [%08x]", Bits, Address);		
+			WARN_LOG(CONSOLE, "Read%i: Program tried to read [%08x] from [%08x]", Bits, Address);		
 			//PanicAlert("Write_U32: Program tried to write [%08x] to [%08x]", _Address);	
 		}
 		else
 		{
-			LOGV(CONSOLE, 0, "Write%i: Program tried to write [%08x] to [%08x]", Bits, Data, Address);	
+			ERROR_LOG(CONSOLE, "Write%i: Program tried to write [%08x] to [%08x]", Bits, Data, Address);	
 			//PanicAlert("Read: Program tried to write [%08x] to [%08x]", Data, Address);
 		}
 	}
@@ -621,12 +621,12 @@ void CheckForBadAddresses(u32 Address, u32 Data, bool Read, int Bits)
 	{		
 		if(Read)
 		{
-			LOGV(CONSOLE, 1, "Read%i: Program read [0x%08x] from [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
+			WARN_LOG(CONSOLE, "Read%i: Program read [0x%08x] from [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
 			//PanicAlert("Read: Program read [%08x] from [%08x]", Data, Address);
 		}
 		else
 		{
-			LOGV(CONSOLE, 1, "Write%i: Program wrote [0x%08x] to [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
+			WARN_LOG(CONSOLE, "Write%i: Program wrote [0x%08x] to [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
 			//PanicAlert("Read: Program wrote [%08x] to [%08x]", Data, Address);
 		}
 	}
@@ -647,12 +647,12 @@ void CheckForBadAddresses(u32 Address, u32 Data, bool Read, int Bits)
 	{		
 		if(Read)
 		{
-			LOGV(CONSOLE, 0, "Read%i: Program read [0x%08x] from [0x%08x]      * * * * * * * * * * * *", Bits, Data, Address);	
+			ERROR_LOG(CONSOLE, "Read%i: Program read [0x%08x] from [0x%08x]      * * * * * * * * * * * *", Bits, Data, Address);	
 			//PanicAlert("Read%i: Program read [%08x] from [%08x]", Bits, Data, Address);
 		}
 		else
 		{
-			LOGV(CONSOLE, 0, "Write%i: Program wrote [0x%08x] to [0x%08x]      * * * * * * * * * * * *", Bits,Data, Address);	
+			ERROR_LOG(CONSOLE, "Write%i: Program wrote [0x%08x] to [0x%08x]      * * * * * * * * * * * *", Bits,Data, Address);	
 			//PanicAlert("Write%i: Program wrote [0x%08x] to [0x%08x]", Bits, Data, Address);
 		}
 	}

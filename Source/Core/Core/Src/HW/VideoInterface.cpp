@@ -207,7 +207,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case VI_CONTROL_REGISTER:
-        LOGV(VIDEOINTERFACE, 3, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
+        DEBUG_LOG(VIDEOINTERFACE, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
 		_uReturnValue = m_VIDisplayControlRegister.Hex;
 		return;
 
@@ -274,7 +274,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
-	LOGV(VIDEOINTERFACE, 3, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
+	DEBUG_LOG(VIDEOINTERFACE, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
 
 	//Somewhere it sets screen width.. we need to communicate this to the gfx plugin...
 
@@ -368,7 +368,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOG(VIDEOINTERFACE, "(r32): 0x%08x", _iAddress);
+	INFO_LOG(VIDEOINTERFACE, "(r32): 0x%08x", _iAddress);
 
 	if ((_iAddress & 0xFFF) < 0x20)
 	{
@@ -393,7 +393,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x",_iValue,_iAddress);
+	INFO_LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x",_iValue,_iAddress);
 
 	// Allow 32-bit writes to the VI: although this is officially not
 	// allowed, the hardware seems to accept it (for example, DesktopMan GC

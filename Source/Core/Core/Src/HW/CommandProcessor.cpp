@@ -240,7 +240,7 @@ void Shutdown()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	LOGV(COMMANDPROCESSOR, 1, "(r): 0x%08x", _Address);
+	WARN_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
@@ -255,7 +255,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//m_CPStatusReg.CommandIdle = 1;
 		
 		_rReturnValue = m_CPStatusReg.Hex;
-		LOG(COMMANDPROCESSOR, "\t iBP %s | fREADIDLE %s | fCMDIDLE %s | iOvF %s | iUndF %s"
+		INFO_LOG(COMMANDPROCESSOR, "\t iBP %s | fREADIDLE %s | fCMDIDLE %s | iOvF %s | iUndF %s"
 			, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
 			, m_CPStatusReg.ReadIdle ?				"ON" : "OFF"
 			, m_CPStatusReg.CommandIdle ?			"ON" : "OFF"
@@ -286,33 +286,33 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = 0;
-		LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_RW_DISTANCE_HI:
 		//_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = 0;
-		LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_LO:
 		_rReturnValue = ReadLow (fifo.CPWritePointer);
-		LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_HI:
 		_rReturnValue = ReadHigh(fifo.CPWritePointer);
-		LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_LO:
 		//_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = ReadLow (fifo.CPWritePointer);
-		LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_HI:
 		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = ReadHigh(fifo.CPWritePointer);
-		LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_BP_LO:			_rReturnValue = ReadLow (fifo.CPBreakpoint); return;
 	case FIFO_BP_HI:			_rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
@@ -344,7 +344,7 @@ bool AllowIdleSkipping()
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	LOGV(COMMANDPROCESSOR, 1, "(w): 0x%04x @ 0x%08x",_Value,_Address);
+	WARN_LOG(COMMANDPROCESSOR, "(w): 0x%04x @ 0x%08x",_Value,_Address);
 
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data
@@ -377,13 +377,13 @@ void Write16(const u16 _Value, const u32 _Address)
 				" - Anyway, fifo flush will be forced if you press OK and dolphin might continue to work...\n"
 				" - We aren't betting on that :)", fifo.CPReadWriteDistance);
                         */
-			LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
+			WARN_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			u32 ct=0;
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 )
 				ct++;
-			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
+			if (ct) {WARN_LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
 		}
 	}
 
@@ -412,7 +412,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// update interrupts
 			UpdateInterrupts();
 
-			LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
+			INFO_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
 		}
 		break;
 
@@ -449,8 +449,8 @@ void Write16(const u16 _Value, const u32 _Address)
 			}*/
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 			UpdateInterrupts();
-			LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
-			LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s | OvF %s | UndF %s"
+			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
+			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s | OvF %s | UndF %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 				, fifo.bFF_GPLinkEnable ?				"ON" : "OFF"
 				, fifo.bFF_BPEnable ?					"ON" : "OFF"
@@ -467,35 +467,35 @@ void Write16(const u16 _Value, const u32 _Address)
 			UCPClearReg tmpClearReg(_Value);			
 			m_CPClearReg.Hex = 0;
 
-			LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
+			INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
 		}		
 		break;
 
 	// Fifo Registers
 	case FIFO_TOKEN_REGISTER:
 		m_tokenReg = _Value;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_TOKEN_REGISTER : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_TOKEN_REGISTER : %04x", _Value);
 		break;
 
 	case FIFO_BASE_LO:			
 		WriteLow ((u32 &)fifo.CPBase, _Value);
 		fifo.CPBase &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO : %04x", _Value);
 		break;
 	case FIFO_BASE_HI:			
 		WriteHigh((u32 &)fifo.CPBase, _Value);
 		fifo.CPBase &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI : %04x", _Value);
 		break;
 	case FIFO_END_LO:			
 		WriteLow ((u32 &)fifo.CPEnd,  _Value);
 		fifo.CPEnd &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO : %04x", _Value);
 		break;
 	case FIFO_END_HI:			
 		WriteHigh((u32 &)fifo.CPEnd,  _Value);
 		fifo.CPEnd &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_END_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_HI : %04x", _Value);
 		break;
 
 	// Hm. Should we really & these with FFFFFFE0?
@@ -503,45 +503,45 @@ void Write16(const u16 _Value, const u32 _Address)
 	// fifo.CPEnd is the only value that could be not 32B aligned so far.
 	case FIFO_WRITE_POINTER_LO:
 		WriteLow ((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO : %04x", _Value);
 		break;
 	case FIFO_WRITE_POINTER_HI:
 		WriteHigh((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI : %04x", _Value);
 		break;
 	case FIFO_READ_POINTER_LO:
 		WriteLow ((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO : %04x", _Value);
 		break;
 	case FIFO_READ_POINTER_HI:
 		WriteHigh((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0;
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI : %04x", _Value);
 		break;
 
 	case FIFO_HI_WATERMARK_LO:
 		WriteLow ((u32 &)fifo.CPHiWatermark, _Value);
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_HI_WATERMARK_HI:
 		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 	case FIFO_LO_WATERMARK_LO:
 		WriteLow ((u32 &)fifo.CPLoWatermark, _Value);
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_LO_WATERMARK_HI:
 		WriteHigh((u32 &)fifo.CPLoWatermark, _Value);
-		LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI : %04x", _Value);
 		break;
 
 	case FIFO_BP_LO:			
 		WriteLow ((u32 &)fifo.CPBreakpoint,	_Value);
-		LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
 	case FIFO_BP_HI:			
 		WriteHigh((u32 &)fifo.CPBreakpoint,	_Value);
-		LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
 	// Super monkey try to overwrite CPReadWriteDistance by an old saved RWD value. Which is lame for us.
@@ -550,11 +550,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	// So, we can skip it.
 	case FIFO_RW_DISTANCE_HI:
 		//WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value);
-		LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
 		break;
 	case FIFO_RW_DISTANCE_LO:
 		//WriteLow((u32 &)fifo.CPReadWriteDistance, _Value);
-		LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
+		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
 	}
 
@@ -608,14 +608,14 @@ void STACKALIGN GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
-			LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
+			WARN_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
 			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
 				ct++;
 				Common::SleepCurrentThread(1);
 			}
-			if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu ms for nothing :[", ct);}
+			if (ct) {WARN_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu ms for nothing :[", ct);}
 			/**/
 		}
 		// check if we are in sync
@@ -684,7 +684,7 @@ void CatchUpGPU()
 				fifo.CPReadPointer = fifo.CPBase;
 				// adjust, take care
 				ptr = Memory::GetPointer(fifo.CPReadPointer);
-				LOG(COMMANDPROCESSOR, "BUFFER LOOP");
+				INFO_LOG(COMMANDPROCESSOR, "BUFFER LOOP");
 				// PanicAlert("loop now");
 			}
 		}

@@ -53,7 +53,7 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	CharArrayFromFormatV(buffer, 2047, format, args);
 	va_end(args);
 
-	LOG(MASTER_LOG, "%s: %s", caption, buffer);
+	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
 	// -----------
 
 	if (msg_handler) {

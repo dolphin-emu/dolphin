@@ -97,7 +97,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(
 				CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
 
-			LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
 
 			/* Check if this is really a directory. Or a file, because it seems like Mario Kart
 			   did a IOCTL_READ_DIR on the save file to check if it existed before deleting it,
@@ -114,7 +114,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			if (!File::Exists(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "    directory does not exist - return FS_DIRFILE_NOT_FOUND", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "    directory does not exist - return FS_DIRFILE_NOT_FOUND", Filename.c_str());
 				ReturnValue = FS_DIRFILE_NOT_FOUND;
 				break;
 			}
@@ -122,7 +122,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			   I have not seen any example of this. */
 			else if (!File::IsDirectory(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "    Not a directory - return FS_INVALID_ARGUMENT", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "    Not a directory - return FS_INVALID_ARGUMENT", Filename.c_str());
 				ReturnValue = FS_INVALID_ARGUMENT;
 				break;
 			}
@@ -140,7 +140,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				LOG(WII_IPC_FILEIO, "    Files in directory: %i", numFile);
+				INFO_LOG(WII_IPC_FILEIO, "    Files in directory: %i", numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -167,7 +167,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					*pFilename++ = 0x00;  // termination
 					numFiles++;
 
-					LOG(WII_IPC_FILEIO, "    %s", CompleteFilename.c_str());					
+					INFO_LOG(WII_IPC_FILEIO, "    %s", CompleteFilename.c_str());					
 				}
 
 				Memory::Write_U32((u32)numFiles, CommandBuffer.PayloadBuffer[1].m_Address);
@@ -192,7 +192,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			u32 fsBlock = 0;
 			u32 iNodes = 0;
 
-			LOGV(WII_IPC_FILEIO, 1, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
+			WARN_LOG(WII_IPC_FILEIO, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
 			if (File::IsDirectory(Filename.c_str()))
 			{
 				// make a file search
@@ -215,7 +215,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 				ReturnValue = FS_RESULT_OK;
 
-				LOGV(WII_IPC_FILEIO, 1, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
+				WARN_LOG(WII_IPC_FILEIO, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
 			}
 			else
 			{
@@ -224,7 +224,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				ReturnValue = FS_RESULT_OK;
 
 				// PanicAlert("IOCTL_GETUSAGE - unk dir %s", Filename.c_str());
-				LOGV(WII_IPC_FILEIO, 1, "    error: not executed on a valid directoy: %s", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "    error: not executed on a valid directoy: %s", Filename.c_str());
 			}
 			
 			Memory::Write_U32(fsBlock, CommandBuffer.PayloadBuffer[0].m_Address);
@@ -281,8 +281,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 28);
 
-			LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
-			LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
+			WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
+			WARN_LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
 
 			// This happens in Tatsonuko vs Capcom.
 			//PanicAlert("GET_STATS");
@@ -310,7 +310,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Addr += 9; // owner attribs, permission
 			u8 Attribs = Memory::Read_U8(Addr);
 
-			LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
 
 			DirName += DIR_SEP;
 			File::CreateFullPath(DirName.c_str());
@@ -332,13 +332,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 OtherPerm = Memory::Read_U8(Addr); Addr += 1;
 			u8 Attributes = Memory::Read_U8(Addr); Addr += 1;
 
-			LOGV(WII_IPC_FILEIO, 0, "FS: SetAttrib %s", Filename.c_str());
-			LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
-			LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
-			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
-			LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
-			LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
-			LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
+			INFO_LOG(WII_IPC_FILEIO, "FS: SetAttrib %s", Filename.c_str());
+			DEBUG_LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
+			DEBUG_LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
+			DEBUG_LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
 
 			return FS_RESULT_OK;
 		}
@@ -359,17 +359,17 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 Attributes = 0x00;	// no attributes
 			if (File::IsDirectory(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set", Filename.c_str());
+				INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set", Filename.c_str());
 			}
 			else
 			{
 				if (File::Exists(Filename.c_str()))
 				{
-					LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - all permission flags are set", Filename.c_str());
+					INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - all permission flags are set", Filename.c_str());
 				}
 				else
 				{
-					LOG(WII_IPC_FILEIO, "FS: GET_ATTR unknown %s", Filename.c_str());
+					INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR unknown %s", Filename.c_str());
 					return FS_FILE_NOT_EXIST;
 				}
 			}
@@ -401,15 +401,15 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Offset += 64;
 			if (File::Delete(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
+				INFO_LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
 			}
 			else if (File::DeleteDir(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "FS: DeleteDir %s", Filename.c_str());
+				INFO_LOG(WII_IPC_FILEIO, "FS: DeleteDir %s", Filename.c_str());
 			}
 			else
 			{
-				LOG(WII_IPC_FILEIO, "FS: DeleteFile %s - failed!!!", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: DeleteFile %s - failed!!!", Filename.c_str());
 			}
 
 			return FS_RESULT_OK;
@@ -439,11 +439,11 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			// finally try to rename the file
 			if (File::Rename(Filename.c_str(), FilenameRename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
+				INFO_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
 			}
 			else
 			{
-				LOG(WII_IPC_FILEIO, "FS: Rename %s to %s - failed", Filename.c_str(), FilenameRename.c_str());
+				ERROR_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s - failed", Filename.c_str(), FilenameRename.c_str());
 				PanicAlert("CWII_IPC_HLE_Device_fs: rename %s to %s failed", Filename.c_str(), FilenameRename.c_str());
 			}
 
@@ -464,18 +464,18 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 OtherPerm = Memory::Read_U8(Addr); Addr++;
 			u8 Attributes = Memory::Read_U8(Addr); Addr++;
 
-			LOGV(WII_IPC_FILEIO, 0, "FS: CreateFile %s", Filename.c_str());
-			LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
-			LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
-			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
-			LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
-			LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
-			LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
+			INFO_LOG(WII_IPC_FILEIO, "FS: CreateFile %s", Filename.c_str());
+			DEBUG_LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
+			DEBUG_LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
+			DEBUG_LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
+			DEBUG_LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
 
 			// check if the file already exist
 			if (File::Exists(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "    result = FS_RESULT_EXISTS", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "    result = FS_RESULT_EXISTS", Filename.c_str());
 				return FS_FILE_EXIST;
 			}
 
@@ -484,16 +484,18 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			bool Result = File::CreateEmptyFile(Filename.c_str());
 			if (!Result)
 			{
+				ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs: couldn't create new file");
 				PanicAlert("CWII_IPC_HLE_Device_fs: couldn't create new file");
 				return FS_RESULT_FATAL;
 			}
 
-			LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str());
 			return FS_RESULT_OK;
 		}
 		break;
 
 	default:
+		ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		break;
 	}

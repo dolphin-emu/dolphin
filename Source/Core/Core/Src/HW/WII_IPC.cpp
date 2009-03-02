@@ -129,7 +129,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 
         _rReturnValue = g_IPC_Control.Hex;
 
-		LOGV(WII_IPC, 2, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
+		INFO_LOG(WII_IPC, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
 
         // if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHanlder
         // if ((REASON_REG & 0x22) != 0x22) Jumps to the end
@@ -138,7 +138,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 
     case IPC_REPLY_REGISTER: // looks a little bit like a callback function
         _rReturnValue = g_Reply;
-        LOGV(WII_IPC, 2, "IOP: Write32 to IPC_REPLAY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
+        INFO_LOG(WII_IPC, "IOP: Write32 to IPC_REPLAY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
         break;
 
 	case IPC_SENSOR_BAR_POWER_REGISTER:
@@ -159,13 +159,13 @@ void Write32(const u32 _Value, const u32 _Address)
 	case IPC_COMMAND_REGISTER:					// __ios_Ipc2 ... a value from __responses is loaded
         {
             g_Address = _Value;
-            LOGV(WII_IPC, 1, "IOP: Write32 to IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
+            WARN_LOG(WII_IPC, "IOP: Write32 to IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
         }
 		break;
 
 	case IPC_CONTROL_REGISTER:
         {
-            LOGV(WII_IPC, 1, "IOP: Write32 to IPC_CONTROL_REGISTER(0x04) = 0x%08x (old: 0x%08x)", _Value, g_IPC_Control.Hex);
+            WARN_LOG(WII_IPC, "IOP: Write32 to IPC_CONTROL_REGISTER(0x04) = 0x%08x (old: 0x%08x)", _Value, g_IPC_Control.Hex);
 
             UIPC_Control TempControl(_Value);
             _dbg_assert_msg_(WII_IPC, TempControl.pad == 0, "IOP: Write to UIPC_Control.pad", _Address);
@@ -190,13 +190,13 @@ void Write32(const u32 _Value, const u32 _Address)
             UIPC_Status NewStatus(_Value);
             if (NewStatus.INTERRUPT) g_IPC_Status.INTERRUPT = 0;    // clear interrupt
 
-            LOGV(WII_IPC, 1, "IOP: Write32 to IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
+            WARN_LOG(WII_IPC,  "IOP: Write32 to IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
         }
         break;
 
 	case IPC_CONFIG_REGISTER:	// __OSInterruptInit (0x40000000)
         {							
-		    LOG(WII_IPC, "IOP: Write32 to IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
+		    INFO_LOG(WII_IPC, "IOP: Write32 to IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
 		    g_IPC_Config.Hex = _Value;
 
 

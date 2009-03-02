@@ -108,9 +108,9 @@ void HandleGLError();
 
 
 #ifdef _WIN32
-#define PRIM_LOG(...) {LOG(VIDEO, __VA_ARGS__)}
+#define PRIM_LOG(...) {DEBUG_LOG(VIDEO, __VA_ARGS__)}
 #else
-#define PRIM_LOG(...) {LOG(VIDEO, ##__VA_ARGS__)}
+#define PRIM_LOG(...) {DEBUG_LOG(VIDEO, ##__VA_ARGS__)}
 #endif
 
 #ifdef LOGGING

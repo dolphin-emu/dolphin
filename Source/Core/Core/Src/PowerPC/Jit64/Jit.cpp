@@ -300,8 +300,8 @@ namespace CPUCompare
 			if ((been_here.find(PC)->second) & 1023)
 				return;
 		}
-		LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
-		printf("I'm here - PC = %08x , LR = %08x", PC, LR);
+		DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+		//printf("I'm here - PC = %08x , LR = %08x", PC, LR);
 		been_here[PC] = 1;
 	}
 
@@ -383,9 +383,10 @@ namespace CPUCompare
 	{
 		if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
 		{
-			LOG(DYNA_REC, "JIT cache full - clearing.")
+			WARN_LOG(DYNA_REC, "JIT cache full - clearing.")
 			if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 			{
+				ERROR_LOG(DYNA_REC, "What? JIT cache still full - clearing.");
 				PanicAlert("What? JIT cache still full - clearing.");
 			}
 			ClearCache();

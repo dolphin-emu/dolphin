@@ -59,7 +59,7 @@ bool
 CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 {
 	u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
-	LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);	
 
 	// Close always return 0 for success
 	Memory::Write_U32(0, _CommandAddress + 4);
@@ -85,7 +85,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		{ "Read and Write" }
 	};
 
-	LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
 
 	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
@@ -109,7 +109,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     }
     else
     {
-        LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
+        ERROR_LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
         ReturnValue = -106;
     }
 
@@ -124,7 +124,7 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
 
-	LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: %s, Mode: %i (Device=%s, FileSize=%s)", ThS(SeekPosition).c_str(), Mode, GetDeviceName().c_str(), ThS(m_FileLength).c_str());	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: %s, Mode: %i (Device=%s, FileSize=%s)", ThS(SeekPosition).c_str(), Mode, GetDeviceName().c_str(), ThS(m_FileLength).c_str());	
 
 	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
 	   it's probably better than trying to read outside the file (it seeks to 0x6000 instead
@@ -138,10 +138,10 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	if (m_FileLength > 0 && SeekPosition > m_FileLength && Mode == 0)
 	{
 		NewSeekPosition = SeekPosition % m_FileLength;
-		LOG(WII_IPC_FILEIO, "***********************************:");
+		INFO_LOG(WII_IPC_FILEIO, "***********************************:");
 	}
 
-	LOG(WII_IPC_FILEIO, "FileIO: New Seek Pos: %s, Mode: %i (Device=%s)", ThS(NewSeekPosition).c_str(), Mode, GetDeviceName().c_str());	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: New Seek Pos: %s, Mode: %i (Device=%s)", ThS(NewSeekPosition).c_str(), Mode, GetDeviceName().c_str());	
 
 	// Set seek mode
 	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
@@ -155,9 +155,10 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			// What should we return for Zelda, the new correct or old incorrect seek position?
 		    ReturnValue = SeekPosition;
         } else {
-            LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
+            ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
         }
 	} else {
+		ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_FileIO unsupported seek mode %i", Mode);
 		PanicAlert("CWII_IPC_HLE_Device_FileIO unsupported seek mode %i", Mode);
 	}
 
@@ -175,13 +176,13 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 
     if (m_pFileHandle != NULL)
     {
-		LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, GetDeviceName().c_str());	
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, GetDeviceName().c_str());	
         size_t readItems = fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);
         ReturnValue = (u32)readItems;		
     }
     else
     {
-        LOG(WII_IPC_FILEIO, "FileIO failed to read from %s (Addr=0x%08x Size=0x%x) - file not open", GetDeviceName().c_str(), Address, Size);	
+        ERROR_LOG(WII_IPC_FILEIO, "FileIO failed to read from %s (Addr=0x%08x Size=0x%x) - file not open", GetDeviceName().c_str(), Address, Size);	
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -196,7 +197,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	u32 Address = Memory::Read_U32(_CommandAddress +0xC); // Write data from this memory address
 	u32 Size = Memory::Read_U32(_CommandAddress +0x10);
 
-	LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes to 0x%08x from %s", Size, Address, GetDeviceName().c_str());	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes to 0x%08x from %s", Size, Address, GetDeviceName().c_str());	
 
 	if (m_pFileHandle)
 	{
@@ -213,7 +214,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", GetDeviceName().c_str());	
+    INFO_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
     u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
@@ -230,8 +231,8 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
             u32 Position = (u32)ftell(m_pFileHandle);
             
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-            LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
-            LOG(WII_IPC_FILEIO, "    Length: %i   Seek: %i", m_FileLength, Position);
+            INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
+            INFO_LOG(WII_IPC_FILEIO, "    Length: %i   Seek: %i", m_FileLength, Position);
 
             Memory::Write_U32((u32)m_FileLength, BufferOut);
             Memory::Write_U32(Position, BufferOut+4);
@@ -240,6 +241,7 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
     default:
         {
+			ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_FileIO: Parameter %i", Parameter);
             PanicAlert("CWII_IPC_HLE_Device_FileIO: Parameter %i", Parameter);
         }
         break;

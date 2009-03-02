@@ -58,25 +58,25 @@ void DoState(PointerWrap &p)
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	//0x30 -> 0x5a : gp memory metrics
-	LOG(MEMMAP, "(r16) 0x%04x @ 0x%08x", 0, _iAddress);
+	INFO_LOG(MEMMAP, "(r16) 0x%04x @ 0x%08x", 0, _iAddress);
 	_uReturnValue = 0;
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOG(MEMMAP, "(r32) 0x%08x @ 0x%08x", 0, _iAddress);
+	INFO_LOG(MEMMAP, "(r32) 0x%08x @ 0x%08x", 0, _iAddress);
 	_uReturnValue = 0;
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(MEMMAP, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
+	INFO_LOG(MEMMAP, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
 }
 
 //TODO : check
 void Write16(const u16 _iValue, const u32 _iAddress) 
 {
-	LOG(MEMMAP, "(w16) 0x%04x @ 0x%08x", _iValue, _iAddress);
+	INFO_LOG(MEMMAP, "(w16) 0x%04x @ 0x%08x", _iValue, _iAddress);
 	switch(_iAddress & 0xFFF)
 	{
 	case MEM_CHANNEL0_HI: miMem.Channel0_Addr = (miMem.Channel0_Addr & 0xFFFF) | (_iValue<<16); return;

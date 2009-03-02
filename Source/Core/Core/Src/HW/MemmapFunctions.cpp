@@ -185,7 +185,7 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 				return;
 		}
 		else {
-			LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, data, PC);
+			ERROR_LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, data, PC);
 			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", em_address);
 		}
 	}
@@ -210,7 +210,7 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 	}
 	else if (em_address >= 0xE0000000)
 	{
-		LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)", em_address, data);
+		ERROR_LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)", em_address, data);
 		/* PanicAlert("WRITE: Cache address %08x out of bounds", em_address); */
 	}
 	else
@@ -512,7 +512,7 @@ void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite)
 
 	PowerPC::ppcState.spr[SPR_DAR] = _EffectiveAdress;
 
-	LOG(MEMMAP, "Generate DSI Exception 0x%08x", _EffectiveAdress);
+	INFO_LOG(MEMMAP, "Generate DSI Exception 0x%08x", _EffectiveAdress);
 	PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
 }
 
@@ -523,7 +523,7 @@ void GenerateISIException()
 	// (HTEG), or in the rehashed secondary HTEG, or in the range of a DBAT register (page fault
 	// condition); otherwise cleared.
 	PowerPC::ppcState.spr[SPR_DSISR] = 0x4000000; 
-	LOG(MEMMAP, "Generate ISI Exception");
+	INFO_LOG(MEMMAP, "Generate ISI Exception");
 	PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 }
 

@@ -184,7 +184,7 @@ void CLogWindow::OnClear(wxCommandEvent& event)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) // avoid crash
 	{
 		LogManager::Clear();
-		LOG(MASTER_LOG, "(log cleared).");
+		INFO_LOG(MASTER_LOG, "(log cleared).");
 		NotifyUpdate();
 	}
 }

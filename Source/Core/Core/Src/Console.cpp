@@ -38,12 +38,12 @@ void Console_Submit(const char *cmd)
 	CASE1("r")
 	{
 		Core::StartTrace(false);
-		LOG(CONSOLE, "read tracing started.");			
+		INFO_LOG(CONSOLE, "read tracing started.");			
 	}
 	CASE1("w")
 	{
 		Core::StartTrace(true);
-		LOG(CONSOLE, "write tracing started.");			
+		INFO_LOG(CONSOLE, "write tracing started.");			
 	}
 	CASE("trans")
 	{
@@ -57,11 +57,11 @@ void Console_Submit(const char *cmd)
 			u32 EA =
 #endif
 				Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);
-			LOG(CONSOLE, "EA 0x%08x to 0x%08x", addr, EA);
+			INFO_LOG(CONSOLE, "EA 0x%08x to 0x%08x", addr, EA);
 		}
 		else
 		{
-			LOG(CONSOLE, "Syntax: trans ADDR");
+			DEBUG_LOG(CONSOLE, "Syntax: trans ADDR");
 		}
 	}
 	CASE("call")
@@ -75,7 +75,7 @@ void Console_Submit(const char *cmd)
 		}
 		else
 		{
-			LOG(CONSOLE, "Syntax: call ADDR");
+			DEBUG_LOG(CONSOLE, "Syntax: call ADDR");
 		}
 	}
 	CASE("llac")
@@ -89,7 +89,7 @@ void Console_Submit(const char *cmd)
 		}
 		else
 		{
-			LOG(CONSOLE, "Syntax: llac ADDR");
+			DEBUG_LOG(CONSOLE, "Syntax: llac ADDR");
 		}
 	}
 	CASE("pend")
@@ -111,7 +111,7 @@ void Console_Submit(const char *cmd)
 			fputc(b,f);
 		}
 		fclose(f);
-		LOG(CONSOLE, "Dumped from %08x to %08x to %s",start,end,filename);
+		INFO_LOG(CONSOLE, "Dumped from %08x to %08x to %s",start,end,filename);
 	}
 	CASE("disa")
 	{
@@ -128,14 +128,14 @@ void Console_Submit(const char *cmd)
 	}
 	CASE("help")
 	{
-		LOG(CONSOLE, "Dolphin Console Command List");
-		LOG(CONSOLE, "scan ADDR - will find functions that are called by this function");
-		LOG(CONSOLE, "call ADDR - will find functions that call this function");
-		LOG(CONSOLE, "dump START_A END_A FILENAME - will dump memory between START_A and END_A");
-		LOG(CONSOLE, "help - guess what this does :P");
-		LOG(CONSOLE, "lisd - list signature database");
-		LOG(CONSOLE, "lisf - list functions");
-		LOG(CONSOLE, "trans ADDR - translate address");
+		ERROR_LOG(CONSOLE, "Dolphin Console Command List");
+		ERROR_LOG(CONSOLE, "scan ADDR - will find functions that are called by this function");
+		ERROR_LOG(CONSOLE, "call ADDR - will find functions that call this function");
+		ERROR_LOG(CONSOLE, "dump START_A END_A FILENAME - will dump memory between START_A and END_A");
+		ERROR_LOG(CONSOLE, "help - guess what this does :P");
+		ERROR_LOG(CONSOLE, "lisd - list signature database");
+		ERROR_LOG(CONSOLE, "lisf - list functions");
+		ERROR_LOG(CONSOLE, "trans ADDR - translate address");
 	}
 	CASE("lisd")
 	{
@@ -151,6 +151,6 @@ void Console_Submit(const char *cmd)
 	}
 	else {
 		printf("blach\n");
-		LOG(CONSOLE, "Invalid command");	
+		ERROR_LOG(CONSOLE, "Invalid command");	
 	}
 }

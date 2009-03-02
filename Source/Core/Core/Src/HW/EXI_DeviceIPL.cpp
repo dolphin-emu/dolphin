@@ -190,35 +190,35 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			
 			if ((m_uAddress & 0xF0000000) == 0xb0000000) 
 			{
-				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something");
+				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something");
 			}
 			else if ((m_uAddress & 0xF0000000) == 0x30000000) 
 			{
 				// wii stuff perhaps wii SRAM?
-				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something (perhaps SRAM?)");
+				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something (perhaps SRAM?)");
 			}
 			// debug only
 			else if ((m_uAddress & 0x60000000) == 0)
 			{
-				LOGV(EXPANSIONINTERFACE, 2, "EXI IPL-DEV: IPL access");
+				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: IPL access");
 			}
 			else if ((m_uAddress & 0x7FFFFF00) == 0x20000000)
 			{
-				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: RTC access");
+				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: RTC access");
 			}
 			else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
 			{
-				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: SRAM access");
+				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: SRAM access");
 			}
 			else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
 			{
-				LOGV(EXPANSIONINTERFACE, 3, "EXI IPL-DEV: UART");
+				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART");
 			}
 			else
 			{
 				//_dbg_assert_(EXPANSIONINTERFACE, 0);
 				_dbg_assert_msg_(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: illegal access address %08x", m_uAddress);
-				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: illegal address %08x", m_uAddress);
+				ERROR_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: illegal address %08x", m_uAddress);
 			}
 #endif
 		}
@@ -264,7 +264,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				if ((m_count >= 256) || (_uByte == 0xD))
 				{					
 					m_szBuffer[m_count] = 0x00;
-					LOG(OSREPORT, "%s", m_szBuffer);
+					INFO_LOG(OSREPORT, "%s", m_szBuffer);
 					memset(m_szBuffer, 0, sizeof(m_szBuffer));
 					m_count = 0;
 				}

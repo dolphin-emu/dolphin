@@ -124,7 +124,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	switch (_Address & 0xFFFF)
 	{
 	case AI_CONTROL_REGISTER:		//0x6C00		
-        LOGV(AUDIO_INTERFACE, 1, "AudioInterface(R) 0x%08x", _Address);
+        WARN_LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_rReturnValue = g_AudioRegister.m_Control.hex;
 
 		return;
@@ -132,7 +132,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		// Sample Rate (AIGetDSPSampleRate)
 		// 32bit state (highest bit PlayState)  // AIGetStreamPlayState
 	case AI_VOLUME_REGISTER:		//0x6C04
-        LOGV(AUDIO_INTERFACE, 1, "AudioInterface(R) 0x%08x", _Address);
+        WARN_LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_rReturnValue = g_AudioRegister.m_Volume.hex;
 		return;
 
@@ -145,12 +145,12 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	case AI_INTERRUPT_TIMING:
 		// When sample counter reaches the value of this register, the interrupt AIINT should
 		// fire.
-        LOGV(AUDIO_INTERFACE, 1, "AudioInterface(R) 0x%08x", _Address);
+        WARN_LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_rReturnValue = g_AudioRegister.m_InterruptTiming;
 		return;
 
 	default:
-        LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
+        INFO_LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - Read from ???");
 		_rReturnValue = 0;
 		return;
@@ -171,7 +171,7 @@ void Write32(const u32 _Value, const u32 _Address)
             // Set frequency
             if (tmpAICtrl.AFR != g_AudioRegister.m_Control.AFR)
             {	
-                LOG(AUDIO_INTERFACE, "Change Freq to %s", tmpAICtrl.AFR ? "48khz":"32khz");
+                INFO_LOG(AUDIO_INTERFACE, "Change Freq to %s", tmpAICtrl.AFR ? "48khz":"32khz");
                 g_AudioRegister.m_Control.AFR = tmpAICtrl.AFR;
             }
 
@@ -184,7 +184,7 @@ void Write32(const u32 _Value, const u32 _Address)
             // Streaming counter
             if (tmpAICtrl.PSTAT != g_AudioRegister.m_Control.PSTAT)
             {
-                LOG(AUDIO_INTERFACE, "Change StreamingCounter to %s", tmpAICtrl.PSTAT ? "startet":"stopped");
+                INFO_LOG(AUDIO_INTERFACE, "Change StreamingCounter to %s", tmpAICtrl.PSTAT ? "startet":"stopped");
                 g_AudioRegister.m_Control.PSTAT	= tmpAICtrl.PSTAT;
 
                 g_LastCPUTime = CoreTiming::GetTicks();
@@ -193,14 +193,14 @@ void Write32(const u32 _Value, const u32 _Address)
             // AI Interrupt
 			if (tmpAICtrl.AIINT)
             {
-                LOG(AUDIO_INTERFACE, "Clear AI Interrupt");
+                INFO_LOG(AUDIO_INTERFACE, "Clear AI Interrupt");
                 g_AudioRegister.m_Control.AIINT = 0;
             }
 
             // Sample Count Reset
             if (tmpAICtrl.SCRESET)	
             {	
-                LOGV(AUDIO_INTERFACE, 1, "Reset SampleCounter");
+                WARN_LOG(AUDIO_INTERFACE, "Reset SampleCounter");
                 g_AudioRegister.m_SampleCounter = 0;                
                 g_AudioRegister.m_Control.SCRESET = 0;
 
@@ -217,7 +217,7 @@ void Write32(const u32 _Value, const u32 _Address)
 
 	case AI_VOLUME_REGISTER:
 		g_AudioRegister.m_Volume.hex = _Value;
-		LOGV(AUDIO_INTERFACE, 1, "Set m_Volume: left(%i) right(%i)", g_AudioRegister.m_Volume.leftVolume, g_AudioRegister.m_Volume.rightVolume);
+		WARN_LOG(AUDIO_INTERFACE,  "Set m_Volume: left(%i) right(%i)", g_AudioRegister.m_Volume.leftVolume, g_AudioRegister.m_Volume.rightVolume);
 		break;
 
 	case AI_SAMPLE_COUNTER:
@@ -227,7 +227,7 @@ void Write32(const u32 _Value, const u32 _Address)
 
 	case AI_INTERRUPT_TIMING:		
 		g_AudioRegister.m_InterruptTiming = _Value;
-		LOG(AUDIO_INTERFACE, "Set AudioInterrupt: 0x%08x Samples", g_AudioRegister.m_InterruptTiming);
+		INFO_LOG(AUDIO_INTERFACE, "Set AudioInterrupt: 0x%08x Samples", g_AudioRegister.m_InterruptTiming);
 		break;
 
 	default:

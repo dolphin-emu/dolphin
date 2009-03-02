@@ -69,17 +69,17 @@ void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case PI_FIFO_BASE:
-		LOG(PERIPHERALINTERFACE,"read cpu fifo base, value = %08x",Fifo_CPUBase);
+		INFO_LOG(PERIPHERALINTERFACE,"read cpu fifo base, value = %08x",Fifo_CPUBase);
 		_uReturnValue = Fifo_CPUBase;
 		return;
 
 	case PI_FIFO_END:
-		LOG(PERIPHERALINTERFACE,"read cpu fifo end, value = %08x",Fifo_CPUEnd);
+		INFO_LOG(PERIPHERALINTERFACE,"read cpu fifo end, value = %08x",Fifo_CPUEnd);
 		_uReturnValue = Fifo_CPUEnd;
 		return;
 
 	case PI_FIFO_WPTR:
-		LOGV(PERIPHERALINTERFACE, 3, "read writepointer, value = %08x",Fifo_CPUWritePointer);
+		DEBUG_LOG(PERIPHERALINTERFACE, "read writepointer, value = %08x",Fifo_CPUWritePointer);
 		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
 
 		// Monk's gcube does some crazy align trickery here.
@@ -94,7 +94,7 @@ void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 		
 	default:
-		LOG(PERIPHERALINTERFACE,"!!!!Unknown write!!!! 0x%08x", _iAddress);
+		ERROR_LOG(PERIPHERALINTERFACE,"!!!!Unknown write!!!! 0x%08x", _iAddress);
 		break;
 	}
 	
@@ -103,7 +103,7 @@ void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 {
-	LOG(PERIPHERALINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
+	INFO_LOG(PERIPHERALINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
 	switch(_iAddress & 0xFFF) 
 	{
 	case PI_INTERRUPT_CAUSE:
@@ -113,23 +113,23 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 
 	case PI_INTERRUPT_MASK: 
 		m_InterruptMask = _uValue;
-		LOG(PERIPHERALINTERFACE,"New Interrupt mask: %08x",m_InterruptMask);
+		DEBUG_LOG(PERIPHERALINTERFACE,"New Interrupt mask: %08x",m_InterruptMask);
 		UpdateException();
 		return;
 	
 	case PI_FIFO_BASE:
 		Fifo_CPUBase = _uValue & 0xFFFFFFE0;
-		LOG(PERIPHERALINTERFACE,"Fifo base = %08x", _uValue);
+		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo base = %08x", _uValue);
 		break;
 
 	case PI_FIFO_END:
 		Fifo_CPUEnd = _uValue & 0xFFFFFFE0;
-		LOG(PERIPHERALINTERFACE,"Fifo end = %08x", _uValue);
+		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo end = %08x", _uValue);
 		break;
 
 	case PI_FIFO_WPTR:
 		Fifo_CPUWritePointer = _uValue & 0xFFFFFFE0;		
-		LOG(PERIPHERALINTERFACE,"Fifo writeptr = %08x", _uValue);
+		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo writeptr = %08x", _uValue);
 		break;
 
     case PI_FIFO_RESET:
@@ -139,7 +139,7 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 
 	case PI_RESET_CODE:
         {
-            LOG(PERIPHERALINTERFACE,"PI Reset = %08x ???", _uValue);
+            INFO_LOG(PERIPHERALINTERFACE,"PI Reset = %08x ???", _uValue);
 
             if ((_uValue != 0x80000001) && (_uValue != 0x80000005)) // DVDLowReset 
             {
@@ -156,7 +156,7 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	default:
-		LOG(PERIPHERALINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
+		ERROR_LOG(PERIPHERALINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
 		PanicAlert("Unknown write to PI: %08x", _iAddress);
 		break;
 	}
@@ -201,12 +201,12 @@ void CPeripheralInterface::SetInterrupt(InterruptCause _causemask, bool _bSet)
 
     if (_bSet && !(m_InterruptCause & (u32)_causemask))
     {
-        LOGV(PERIPHERALINTERFACE, 2, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
+        INFO_LOG(PERIPHERALINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
     }
 
     if (!_bSet && (m_InterruptCause & (u32)_causemask))
     {
-        LOGV(PERIPHERALINTERFACE, 2, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
+        INFO_LOG(PERIPHERALINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
     }
 	
 	if (_bSet)

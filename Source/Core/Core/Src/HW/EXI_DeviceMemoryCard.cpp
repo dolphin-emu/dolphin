@@ -82,7 +82,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  
-		LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
+		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		fread(memory_card_content, 1, memory_card_size, pFile);
 		fclose(pFile);
 	}
@@ -95,7 +95,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  
-		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
+		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
 	}
 
@@ -236,12 +236,12 @@ bool CEXIMemoryCard::IsInterruptSet()
 
 void CEXIMemoryCard::TransferByte(u8 &byte)
 {
-	LOGV(EXPANSIONINTERFACE, 3, "EXI MEMCARD: > %02x", byte);
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: > %02x", byte);
 	if (m_uPosition == 0)
 	{
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
-		LOGV(EXPANSIONINTERFACE, 1, "EXI MEMCARD: command %02x", byte)
+		WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x", byte)
 
 		if(command == cmdClearStatus)
 		{
@@ -361,10 +361,10 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			break;
 
 		default:
-			LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
+			WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
 			byte = 0xFF;	
 		}
 	}
 	m_uPosition++;
-	LOGV(EXPANSIONINTERFACE, 3, "EXI MEMCARD: < %02x", byte);
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }

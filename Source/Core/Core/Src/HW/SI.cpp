@@ -257,7 +257,7 @@ void Shutdown()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOGV(SERIALINTERFACE, 3, "(r32): 0x%08x", _iAddress);
+	DEBUG_LOG(SERIALINTERFACE, "(r32): 0x%08x", _iAddress);
 
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
@@ -353,7 +353,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	case SI_EXI_CLOCK_COUNT:	_uReturnValue = g_EXIClockCount.Hex; return;
 
 	default:
-		LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
+		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
 		_dbg_assert_(SERIALINTERFACE,0);			
 		break;
 	}
@@ -364,7 +364,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOGV(SERIALINTERFACE, 3, "(w32): 0x%08x 0x%08x", _iValue,_iAddress);
+	DEBUG_LOG(SERIALINTERFACE, "(w32): 0x%08x 0x%08x", _iValue,_iAddress);
 
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
@@ -462,7 +462,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		break;
 
 	case 0x80:
-		LOG(SERIALINTERFACE, "WII something at 0xCD006480");
+		INFO_LOG(SERIALINTERFACE, "WII something at 0xCD006480");
 		break;
 
 	default:
@@ -557,7 +557,7 @@ void RunSIBuffer()
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
 
-	LOGV(SERIALINTERFACE, 2, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
+		INFO_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed
 	GenerateSIInterrupt(INT_TCINT);

@@ -121,7 +121,7 @@ void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
 
 bool ElfReader::LoadInto(u32 vaddr)
 {
-	LOG(MASTER_LOG,"String section: %i", header->e_shstrndx);
+	DEBUG_LOG(MASTER_LOG,"String section: %i", header->e_shstrndx);
 
 //	sectionOffsets = new u32[GetNumSections()];
 //	sectionAddrs = new u32[GetNumSections()];
@@ -131,15 +131,15 @@ bool ElfReader::LoadInto(u32 vaddr)
 
 	if (bRelocate)
 	{
-		LOG(MASTER_LOG,"Relocatable module");
+		DEBUG_LOG(MASTER_LOG,"Relocatable module");
 		entryPoint += vaddr;
 	}
 	else
 	{
-		LOG(MASTER_LOG,"Prerelocated executable");
+		DEBUG_LOG(MASTER_LOG,"Prerelocated executable");
 	}
 
-	LOG(MASTER_LOG,"%i segments:", header->e_phnum);
+	INFO_LOG(MASTER_LOG,"%i segments:", header->e_phnum);
 
 	// First pass : Get the bits into RAM
 	u32 segmentVAddr[32];
@@ -149,7 +149,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 	{
 		Elf32_Phdr *p = segments + i;
 
-		LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr, p->p_filesz, p->p_memsz);
+		INFO_LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr, p->p_filesz, p->p_memsz);
 		
 		if (p->p_type == PT_LOAD)
 		{
@@ -170,7 +170,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 			{
 				//memset(dst + srcSize, 0, dstSize-srcSize); //zero out bss
 			}
-			LOG(MASTER_LOG,"Loadable Segment Copied to %08x, size %08x", writeAddr, p->p_memsz);
+			INFO_LOG(MASTER_LOG,"Loadable Segment Copied to %08x, size %08x", writeAddr, p->p_memsz);
 		}
 	}
 
@@ -197,7 +197,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 		}
 	}
 */
-	LOG(MASTER_LOG,"Done.");
+	INFO_LOG(MASTER_LOG,"Done loading.");
 	return true;
 }
 

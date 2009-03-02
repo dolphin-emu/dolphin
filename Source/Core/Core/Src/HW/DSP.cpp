@@ -232,7 +232,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	if ((_iAddress & 0x6C00) !=  0x6c00)
 	{
 		if (_iAddress != 0xCC005004) {
-			LOGV(DSPINTERFACE, 3, "DSPInterface(r16) 0x%08x", _iAddress);
+			DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x", _iAddress);
 		}
 		Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 		switch (_iAddress & 0xFFFF)
@@ -317,7 +317,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	LOGV(DSPINTERFACE, 3, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
+	DEBUG_LOG(DSPINTERFACE, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
 	Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 	switch(_Address & 0xFFFF)
 	{
@@ -442,7 +442,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			GenerateDSPInterrupt(DSP::INT_AID);
-			LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
+			INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
 		}
 		break;
 		}
@@ -485,7 +485,7 @@ void UpdateAudioDMA()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOG(DSPINTERFACE, "DSPInterface(r) 0x%08x", _iAddress);
+	INFO_LOG(DSPINTERFACE, "DSPInterface(r) 0x%08x", _iAddress);
 	switch (_iAddress & 0xFFFF)
 	{
 		case DSP_INTERRUPT_CONTROL:
@@ -501,7 +501,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(DSPINTERFACE, "DSPInterface(w) 0x%08x 0x%08x", _iValue, _iAddress);
+	INFO_LOG(DSPINTERFACE, "DSPInterface(w) 0x%08x 0x%08x", _iValue, _iAddress);
 
 	switch (_iAddress & 0xFFFF)
 	{
@@ -572,13 +572,13 @@ void Update_ARAM_DMA()
 		return;
 	g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = false;
 
-	LOGV(DSPINTERFACE, 1, "ARAM DMA triggered");
+	WARN_LOG(DSPINTERFACE, "ARAM DMA triggered");
 
 	//TODO: speedup
 	if (g_arDMA.Cnt.dir)
 	{
 		//read from ARAM
-		LOGV(DSPINTERFACE, 1, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+		WARN_LOG(DSPINTERFACE, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
 		u32 iMemAddress = g_arDMA.MMAddr;
 		u32 iARAMAddress = g_arDMA.ARAddr;
 		
