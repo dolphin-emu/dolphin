@@ -95,7 +95,10 @@ def CheckPortaudio(context, version):
               }
               """, '.c')[1]
 
-    ret = (found and (version <= found))
+    if found:
+        ret = (version <= found)
+    else:
+        ret = 0
 
     context.Result(ret)
     return int(ret)
