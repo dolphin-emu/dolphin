@@ -187,6 +187,8 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKGConfig' : utils.CheckPKGConfig,
          'CheckPKG' : utils.CheckPKG,
          'CheckSDL' : utils.CheckSDL,
+         'CheckFink' : utils.CheckFink,
+         'CheckMacports' : utils.CheckMacports,
          'CheckPortaudio' : utils.CheckPortaudio,
          }
 
@@ -198,6 +200,12 @@ conf = env.Configure(custom_tests = tests,
 
 if not conf.CheckPKGConfig('0.15.0'):
     print "Can't find pkg-config, some tests will fail"
+
+# find ports/fink for library and include path
+if sys.platform == 'darwin':
+    #ports usually has newer versions
+    conf.CheckMacports()
+    conf.CheckFink()
 
 env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 

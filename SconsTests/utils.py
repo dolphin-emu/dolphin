@@ -20,17 +20,49 @@ def CheckFramework(context, name):
     ret = 0
     if (platform.system().lower() == 'darwin'):
         context.Message( '\nLooking for framework %s... ' % name )
-        lastLINKFLAGS = context.env['LINKFLAGS']
-        context.env.Append(LINKFLAGS = [ '-framework', name ])
+        lastFRAMEWORKS = context.env['FRAMEWORKS']
+        context.env.Append(FRAMEWORKS = [name])
         ret = context.TryLink("""
               int main(int argc, char **argv) {
                 return 0;
               }
               """, '.c')
         if not ret:
-            context.env.Replace(LINKFLAGS = lastLINKFLAGS)
+            context.env.Replace(FRAMEWORKS = lastFRAMEWORKS
+)
 
     return ret
+
+
+def CheckFink(context):
+    context.Message( 'Looking for fink... ')
+    prog = context.env.WhereIs('fink')
+    if prog:
+        ret = 1
+        prefix = prog.rsplit(os.sep, 2)[0]
+        context.env.Append(LIBPATH = [prefix + os.sep +'lib'],
+                           CPPPATH = [prefix + os.sep +'include'])
+        context.Message( 'Adding fink lib and include path')
+    else:
+        ret = 0
+        
+    context.Result(ret)    
+    return int(ret)
+
+def CheckMacports(context):
+    context.Message( 'Looking for macports... ')
+    prog = context.env.WhereIs('port')
+    if prog:
+        ret = 1
+        prefix = prog.rsplit(os.sep, 2)[0]
+        context.env.Append(LIBPATH = [prefix + os.sep + 'lib'],
+                           CPPPATH = [prefix + os.sep + 'include'])
+        context.Message( 'Adding port lib and include path')
+    else:
+        ret = 0
+        
+    context.Result(ret)    
+    return int(ret)
 
 # TODO: We should use the scons one instead
 def CheckLib(context, name):
