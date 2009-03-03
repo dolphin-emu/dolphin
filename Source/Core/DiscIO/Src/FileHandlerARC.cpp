@@ -209,11 +209,11 @@ CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, cons
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
 			{
-				sprintf(rFileInfo.m_FullPath, "%s%s\\", _szDirectory, &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s%s/", _szDirectory, &_szNameTable[uOffset]);
 			}
 			else
 			{
-				sprintf(rFileInfo.m_FullPath, "%s\\", &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s/", &_szNameTable[uOffset]);
 			}
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);

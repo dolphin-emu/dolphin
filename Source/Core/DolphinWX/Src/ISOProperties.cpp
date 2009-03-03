@@ -118,7 +118,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Filesystem browser/dumper
 	fileIter beginning = Our_Files.begin(), end = Our_Files.end(), pos = Our_Files.begin();
-	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"\\");	
+	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
 	m_Treectrl->Expand(RootId);
 
 	std::string filename, extension;
@@ -160,7 +160,7 @@ void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		if((*iterPos)->IsDirectory()) {
 			char *dirName;
 			name[strlen(name) - 1] = '\0';
-			dirName = strrchr(name, '\\');
+			dirName = strrchr(name, DIR_SEP_CHR);
 			if(!dirName)
 				dirName = name;
 			else
@@ -169,7 +169,7 @@ void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::FromAscii(dirName));
 			CreateDirectoryTree(item, begin, end, ++iterPos, name);
 		} else {
-			char *fileName = strrchr(name, '\\');
+			char *fileName = strrchr(name, DIR_SEP_CHR);
 			if(!fileName)
 				fileName = name;
 			else
@@ -475,7 +475,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	{
 		wxString temp;
 		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
-		File = temp + _T("\\") + File;
+		File = temp + _T(DIR_SEP_CHR) + File;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}

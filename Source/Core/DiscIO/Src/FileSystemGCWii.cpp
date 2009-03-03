@@ -225,9 +225,9 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		{
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s\\", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename);
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s\\", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename);
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
