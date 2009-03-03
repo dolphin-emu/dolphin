@@ -14,7 +14,7 @@
 #define _WX_RCDEFS_H
 
 
-#define WX_MSC_FULL_VER 150030729
+#define WX_MSC_FULL_VER 150021022
 
 
 
