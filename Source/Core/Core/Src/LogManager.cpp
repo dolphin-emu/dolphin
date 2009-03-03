@@ -121,6 +121,7 @@ void LogManager::Init()
 	{
 		m_Log[LogTypes::MASTER_LOG + i*100]			= new CDebugger_Log("*",   "Master Log", i);
 		m_Log[LogTypes::COMMON + i*100]				= new CDebugger_Log("COMMON", "Common Lib", i);
+		m_Log[LogTypes::DISCIO + i*100]				= new CDebugger_Log("DISCIO", "Disc IO", i);
 		m_Log[LogTypes::BOOT + i*100]				= new CDebugger_Log("BOOT", "Boot", i);
 		m_Log[LogTypes::PIXELENGINE + i*100]		= new CDebugger_Log("PE",  "PixelEngine", i);
 		m_Log[LogTypes::COMMANDPROCESSOR + i*100]	= new CDebugger_Log("CP",  "CommandProc", i);

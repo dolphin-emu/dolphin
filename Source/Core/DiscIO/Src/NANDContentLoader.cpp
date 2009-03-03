@@ -18,10 +18,10 @@
 #include "stdafx.h"
 #include "NANDContentLoader.h"
 
-
 #include "AES/aes.h"
 #include "MathUtil.h"
 #include "FileUtil.h"
+#include "Log.h"
 
 namespace DiscIO
 {
@@ -97,12 +97,14 @@ bool CNANDContentLoader::CreateFromWAD(const std::string& _rName)
 bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 {
     std::string TMDFileName(_rPath);
-    TMDFileName += "/title.tmd";
+	TMDFileName += "/title.tmd";
 
     FILE* pTMDFile = fopen(TMDFileName.c_str(), "rb");
-    if (pTMDFile == NULL)
+    if (pTMDFile == NULL) {
+		ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+				  TMDFileName.c_str());
         return false;
-
+	}
     u64 Size = File::GetSize(TMDFileName.c_str());
     u8* pTMD = new u8[Size];
     fread(pTMD, Size, 1, pTMDFile);
@@ -126,7 +128,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         rContent.m_pData = NULL; 
 
         char szFilename[1024];
-        sprintf(szFilename, "%s\\%08x.app", _rPath.c_str(), rContent.m_ContentID);
+        sprintf(szFilename, "%s/%08x.app", _rPath.c_str(), rContent.m_ContentID);
 
         FILE* pFile = fopen(szFilename, "rb");
         // i have seen TMDs which index to app which doesn't exist...
@@ -139,7 +141,11 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 
             fread(rContent.m_pData, Size, 1, pFile);
             fclose(pFile);
-        }
+        } else {
+			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+					  szFilename);
+
+		}
     }
 
     return true;
@@ -191,6 +197,7 @@ u8* CNANDContentLoader::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size,
 
         if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
         {
+			ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
             PanicAlert("WiiWAD: Could not read from file");
         }
         return pTmpBuffer;
@@ -233,7 +240,7 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 
         u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
 		rContent.m_pData = new u8[RoundedSize];
-
+		
 		memset(IV, 0, sizeof IV);
 		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
 		AESDecode(DecryptTitleKey, IV, p, RoundedSize, rContent.m_pData);
@@ -283,4 +290,7 @@ bool CNANDContentLoader::ParseWAD(DiscIO::IBlobReader& _rReader)
     return Result;
 }
 
-}
+} // namespace end
+
+
+

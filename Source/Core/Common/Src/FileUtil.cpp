@@ -174,6 +174,11 @@ bool CreateFullPath(const char *fullPath)
 	int panicCounter = 100;
 	INFO_LOG(COMMON, "CreateFullPath: path %s\n", fullPath);
 		
+	if (File::Exists(fullPath)) {
+		INFO_LOG(COMMON, "CreateFullPath: path exists %s\n", fullPath);
+		return true;
+	}
+
 	const char *position = fullPath;
 	while (true) {
 		// Find next sub path, support both \ and / directory separators
@@ -329,6 +334,7 @@ u64 GetSize(const char *filename)
 	// on windows it's actually _stat64 defined in commonFuncs
 	struct stat64 buf;
 	if (stat64(filename, &buf) == 0) {
+		DEBUG_LOG(COMMON, "GetSize: %s: %d", filename, buf.st_size);
 		return buf.st_size;
 	}
 

@@ -29,6 +29,7 @@ enum LOG_TYPE {
 	COMMANDPROCESSOR,
 	COMMON,
 	CONSOLE,
+	DISCIO,
 	DSPHLE,
 	DSPINTERFACE,
 	DVDINTERFACE,
@@ -60,10 +61,10 @@ enum LOG_TYPE {
 };
 
 enum LOG_LEVELS {
-	LERROR,   // Bad errors - that still don't deserve a PanicAlert.
-	LWARNING, // Something is suspicious.
-	LINFO,    // General information.
-	LDEBUG,   // Strictly for detailed debugging - might make things slow.
+	LERROR = 0,   // Bad errors - that still don't deserve a PanicAlert.
+	LWARNING,     // Something is suspicious.
+	LINFO,        // General information.
+	LDEBUG,      // Strictly for detailed debugging - might make things slow.
 };
 
 }  // namespace
@@ -71,44 +72,22 @@ enum LOG_LEVELS {
 
 /* 
    FIXME: 
-   - How can generic_log support log levels in compile time?
-   Maybe it should call ERROR/.. according to level instead of the other way around.
-   - Check if we can make the win32 and gcc togther (get rid of those ##)
+   - Debug_run() - run only in debug time
    - Compile the log functions according to LOGLEVEL 
 */
 #ifdef LOGGING
-#define LOGLEVEL 4
+#define LOGLEVEL 5
 
 extern void __Log(int logNumber, const char* text, ...);
-//extern void __Logv(int log, int v, const char *format, ...);
 
-#ifdef _WIN32
-
-/* #define LOG(t, ...)       __Log(LogTypes::t, __VA_ARGS__); */
-/* #define LOGV(t, v, ...)   __Log(LogTypes::t + (v)*100, __VA_ARGS__); */
-/* #define LOGP(t, ...)      __Log(t, __VA_ARGS__); */
-/* #define LOGVP(t, v, ...)  __Log(t + (v)*100, __VA_ARGS__); */
-
-
+// Let the compiler optimize this out
+//#define GENERIC_LOG(t,v, ...) {if (v <= LOGLEVEL) __Log(t + (v)*100, __VA_ARGS__);}
 #define GENERIC_LOG(t,v, ...) {__Log(t + (v)*100, __VA_ARGS__);}
 #define ERROR_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__)}
 #define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__)}
 #define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__)}
 #define DEBUG_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__)}
 
-#else
-
-//#define LOG(t, ...)      __Log(LogTypes::t, ##__VA_ARGS__);
-//#define LOGV(t,v, ...)   __Log(LogTypes::t + (v)*100, ##__VA_ARGS__);
-//#define LOGP(t, ...)     __Log(t, ##__VA_ARGS__);
-//#define LOGVP(t,v, ...)  __Log(t + (v)*100, ##__VA_ARGS__);
-#define GENERIC_LOG(t,v, ...) {__Log(t + (v)*100, ##__VA_ARGS__);}
-#define ERROR_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LERROR, ##__VA_ARGS__)}
-#define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, ##__VA_ARGS__)}
-#define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, ##__VA_ARGS__)}
-#define DEBUG_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, ##__VA_ARGS__)}
-
-#endif // WIN32
 
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)) {\
@@ -124,11 +103,7 @@ extern void __Log(int logNumber, const char* text, ...);
 #define _dbg_update_() Host_UpdateLogDisplay();
 
 #else // no logging
-
-//#define LOG(_t_, ...)
-//#define LOGV(_t_, _v_, ...)
-//#define LOGP(_t_, ...)
-//#define LOGVP(_t_, _v_, ...)
+#define LOGLEVEL 1
 
 #define _dbg_clear_()
 #define _dbg_update_() ;
