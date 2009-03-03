@@ -83,6 +83,25 @@ def CheckSDL(context, version):
             context.env.ParseConfig('sdl-config --cflags --libs')
         return int(ret)
     
+def CheckPortaudio(context, version):
+    context.Message( 'Checking for lib portaudio version > %s... ' % version)
+    context.env.Append(LIBS = 'portaudio')
+    found  = context.TryRun("""
+              #include <portaudio.h>
+              #include <stdio.h>
+              int main(int argc, char **argv) {
+                printf("%d", Pa_GetVersion());
+                return 0;
+              }
+              """, '.c')[1]
+
+    ret = (found and (version <= found))
+
+    context.Result(ret)
+    return int(ret)
+
+
+    
 def GenerateRevFile(flavour, template, output):
 
     try:

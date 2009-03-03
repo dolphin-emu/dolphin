@@ -186,7 +186,9 @@ env['CPPDEFINES'] = cppDefines
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKGConfig' : utils.CheckPKGConfig,
          'CheckPKG' : utils.CheckPKG,
-         'CheckSDL' : utils.CheckSDL}
+         'CheckSDL' : utils.CheckSDL,
+         'CheckPortaudio' : utils.CheckPortaudio,
+         }
 
 build_dir = os.path.join('Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 VariantDir(build_dir, '.', duplicate=0)
@@ -206,9 +208,7 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # needed for mic
-env['HAVE_PORTAUDIO'] = 0
-if conf.CheckPKG('portaudio') and conf.CheckCHeader("portaudio.h"):
-    env['HAVE_PORTAUDIO'] = 1;
+env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
 # sfml
 env['HAVE_SFML'] = 0
