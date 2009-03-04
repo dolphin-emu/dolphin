@@ -47,6 +47,7 @@
 
 #include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
+#include "NANDContentLoader.h"
 
 void CBoot::Load_FST(bool _bIsWii)
 {
@@ -87,6 +88,17 @@ std::string CBoot::GenerateMapFilename()
 	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	switch (_StartupPara.m_BootType)
 	{
+    case SCoreStartupParameter::BOOT_WII_NAND:
+        {
+            DiscIO::CNANDContentLoader Loader( _StartupPara.m_strFilename);
+            if (Loader.IsValid())
+            {
+                u64 TitleID = Loader.GetTitleID();
+                char tmpBuffer[32];
+                sprintf(tmpBuffer, "%08x_%08x", TitleID>32, TitleID);
+                return FULL_MAPS_DIR + std::string(tmpBuffer) + ".map";
+            }            
+        }        
 	case SCoreStartupParameter::BOOT_ELF:
 	case SCoreStartupParameter::BOOT_DOL:
 		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
