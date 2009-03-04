@@ -44,7 +44,6 @@
 #include "HW/PeripheralInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
-#include "HW/CPUCompare.h"
 #include "HW/HW.h"
 #include "HW/DSP.h"
 #include "HW/GPFifo.h"
