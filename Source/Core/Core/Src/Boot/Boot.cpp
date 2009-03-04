@@ -98,13 +98,17 @@ std::string CBoot::GenerateMapFilename()
                 sprintf(tmpBuffer, "%08x_%08x", TitleID>32, TitleID);
                 return FULL_MAPS_DIR + std::string(tmpBuffer) + ".map";
             }            
-        }        
+        }  
+        break;
+
 	case SCoreStartupParameter::BOOT_ELF:
 	case SCoreStartupParameter::BOOT_DOL:
 		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
 	default:
 		return FULL_MAPS_DIR + _StartupPara.GetUniqueID() + ".map";
 	}
+
+    return std::string("unknown map");
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
