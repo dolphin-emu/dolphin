@@ -1,8 +1,0 @@
-these ini's come from the ini DataBase
-it is located at http://code.google.com/p/dolphin-cheats-database/
-we are currently planning on merging them but for now ill only update the main svn with the ini's.
-
-the version now is
-
-
-rev 139
