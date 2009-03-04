@@ -61,7 +61,7 @@ enum LOG_TYPE {
 };
 
 enum LOG_LEVELS {
-	LERROR = 0,   // Bad errors - that still don't deserve a PanicAlert.
+	LERROR = 1,   // Bad errors - that still don't deserve a PanicAlert.
 	LWARNING,     // Something is suspicious.
 	LINFO,        // General information.
 	LDEBUG,      // Strictly for detailed debugging - might make things slow.
@@ -76,19 +76,44 @@ enum LOG_LEVELS {
    - Compile the log functions according to LOGLEVEL 
 */
 #ifdef LOGGING
-#define LOGLEVEL 5
+#define LOGLEVEL 4 //LogTypes::LDEBUG
+#else
+#ifndef LOGLEVEL
+#define LOGLEVEL 2 //LogTypes::LWARNING
+#endif // loglevel
+#endif // logging
+
+#define ERROR_LOG(...) 
+#define WARN_LOG(...)
+#define INFO_LOG(...)
+#define DEBUG_LOG(...)
 
 extern void __Log(int logNumber, const char* text, ...);
 
 // Let the compiler optimize this out
-//#define GENERIC_LOG(t,v, ...) {if (v <= LOGLEVEL) __Log(t + (v)*100, __VA_ARGS__);}
-#define GENERIC_LOG(t,v, ...) {__Log(t + (v)*100, __VA_ARGS__);}
+#define GENERIC_LOG(t,v, ...) {if (v <= LOGLEVEL) __Log(t + (v)*100, __VA_ARGS__);}
+
+#if LOGLEVEL >= 1 //LogTypes::LERROR
+#undef ERROR_LOG
 #define ERROR_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__)}
-#define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__)}
-#define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__)}
+#endif // loglevel LERROR+
+
+#if LOGLEVEL >= 2 //LogTypes::LWARNING
+#undef WARN_LOG
+#define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__)}
+#endif // loglevel LWARNING+
+
+#if LOGLEVEL >= 3 //LogTypes::LINFO
+#undef INFO_LOG
+#define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__)}
+#endif // loglevel LINFO+
+
+#if LOGLEVEL >= 4 //LogTypes::LDEBUG
+#undef DEBUG_LOG
 #define DEBUG_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__)}
+#endif // loglevel LDEBUG+
 
-
+#if LOGLEVEL >= 4 //LogTypes::LDEBUG
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)) {\
 		ERROR_LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
@@ -102,34 +127,27 @@ extern void __Log(int logNumber, const char* text, ...);
 	}
 #define _dbg_update_() Host_UpdateLogDisplay();
 
-#else // no logging
-#define LOGLEVEL 1
-
+#else // not debug
 #define _dbg_clear_()
 #define _dbg_update_() ;
 
 #ifndef _dbg_assert_
 #define _dbg_assert_(_t_, _a_) ;
 #define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
-#endif
+#endif // dbg_assert
+#endif // LOGLEVEL LDEBUG
 
-#define GENERIC_LOG(t,v, ...) {}
-#define ERROR_LOG(t, ...) {}
-#define WARN_LOG(t, ...)  {}
-#define INFO_LOG(t ,...)  {}
-#define DEBUG_LOG(t, ...) {}
-
-#endif
-
-#ifdef _WIN32
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
-#define _assert_msg_(_t_, _a_, _fmt_, ...)\
+#ifdef _WIN32
+#define _assert_msg_(_t_, _a_, _fmt_, ...)		\
 	if (!(_a_)) {\
 		if (!PanicYesNo(_fmt_, __VA_ARGS__)) {Crash();} \
 	}
-#else
-#define _assert_(a)
-#define _assert_msg_(...)
-#endif
+#else // not win32
+#define _assert_msg_(_t_, _a_, _fmt_, ...)		\
+	if (!(_a_)) {\
+		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) {Crash();} \
+	}
+#endif // WIN32
 
 #endif // LOG_H

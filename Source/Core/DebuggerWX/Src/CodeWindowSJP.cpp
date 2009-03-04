@@ -316,7 +316,7 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 {
-	if (LogManager::Enabled())
+	if (LogManager::GetLevel() > 0)
 	{
 		bool show = GetMenuBar()->IsChecked(event.GetId());
 

@@ -447,7 +447,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0x12:
 		{			
-#ifdef LOGGING
+#if LOGLEVEL >= 3
 			u32 offset = dvdMem.Command[1];
 			// u32 sourcelength = dvdMem.Command[2];
 #endif
@@ -504,7 +504,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0xAB:
 		{
-#ifdef LOGGING
+#if LOGLEVEL >= 4
 			u32 offset = dvdMem.Command[1] << 2;
 #endif
 			DEBUG_LOG(DVDINTERFACE, "DVD: Trying to seek: offset=%08x", offset);
@@ -537,7 +537,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			// ugly hack to catch the disable command
 			if (dvdMem.Command[1]!=0)
 			{
-#ifdef LOGGING
+#if LOGLEVEL >= 4
 				u8 subCommand = (dvdMem.Command[0] & 0x00FF0000) >> 16;
 #endif
 

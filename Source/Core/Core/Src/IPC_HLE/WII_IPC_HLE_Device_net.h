@@ -66,7 +66,7 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress) 
 	{
-		#ifdef LOGGING
+		#if LOGLEVEL >= 4
 		u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
 		u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
 		u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
@@ -77,7 +77,7 @@ public:
 		// write return value
 		Memory::Write_U32(0, _CommandAddress + 0x4);
 
-		INFO_LOG(WII_IPC_NET, "%s - IOCtl:\n"
+		DEBUG_LOG(WII_IPC_NET, "%s - IOCtl:\n"
 			"    Parameter: 0x%x   (0x17 could be some kind of Sync RTC) \n"
 			"    Buffer1: 0x%08x\n"
 			"    BufferSize1: 0x%08x\n"

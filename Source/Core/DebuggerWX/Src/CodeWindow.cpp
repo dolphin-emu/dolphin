@@ -376,7 +376,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 
 	// Additional dialogs
-#ifdef LOGGING
+#if LOGLEVEL > 0
 	if (bLogWindow)
 	{
 		m_LogWindow = new CLogWindow(this);
@@ -504,7 +504,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// ---------------
 	wxMenu* pDebugDialogs = new wxMenu;
 
-	if (LogManager::Enabled())
+	if (LogManager::GetLevel() > 0)
 	{
 		wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
 		pLogWindow->Check(bLogWindow);

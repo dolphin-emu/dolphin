@@ -53,7 +53,7 @@ void Console_Submit(const char *cmd)
 		
 		if (addr)
 		{
-#ifdef LOGGING
+#if LOGLEVEL >= 3
 			u32 EA =
 #endif
 				Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);

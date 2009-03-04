@@ -60,7 +60,7 @@ static FILE* pfLog = NULL;
 // This is on by default, but can be controlled from the debugging window
 bool LocalLogFile = true;
 
-#ifdef LOGGING
+#if LOGLEVEL > 0
 void __Log(const char *fmt, ...)
 {
 	int len = strlen(fmt);

@@ -50,7 +50,11 @@ CLogWindow::CLogWindow(wxWindow* parent)
 
 	// left checkboxes and radio boxes -----------------------------------
 	int m_radioBoxNChoices[1];
-	wxString m_radioBoxChoices0[] = { wxT("0"), wxT("1"), wxT("2"), wxT("3") };
+	wxString m_radioBoxChoices0[LOGLEVEL+1];
+	for (int i=0;i<=LOGLEVEL;i++) {
+		m_radioBoxChoices0[i] = wxString::Format(wxT("%d"), i);
+	}
+
 	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
 	m_RadioBox[0] = new wxRadioBox( this, IDM_RADIO0, wxT("Verbosity"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_ROWS);

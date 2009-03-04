@@ -593,7 +593,7 @@ void RunSIBuffer()
 	else
 		outLength++;
 
-#ifdef LOGGING
+#if LOGLEVEL >= 3
 	int numOutput =
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);

@@ -267,7 +267,7 @@ bool DolphinApp::OnInit()
 	}
 	if(!UseDebugger && UseLogger)
 	{
-		#ifdef LOGGING
+		#if LOGLEVEL > 0
 			// We aren't using debugger, just logger
 			// Should be fine for a local copy
 			CLogWindow* m_LogWindow = new CLogWindow(main_frame);

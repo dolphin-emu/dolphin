@@ -178,15 +178,15 @@ void LogInfo(const char *format, ...)
 {
 	if (!b_RanOnce) 
 	{
-		if (LogManager::Enabled() || logSelf)
+		if (LogManager::GetLevel() >= LogTypes::LINFO || logSelf)
 		{
 			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;
 			va_start(args, format);
 			CharArrayFromFormatV(temp, 512, format, args);
 			va_end(args);
-			if (LogManager::Enabled())
-				LogManager::Log(LogTypes::ACTIONREPLAY, temp);
+			INFO_LOG(ACTIONREPLAY, temp);
+
 			if (logSelf)
 			{
 				std::string text = temp;

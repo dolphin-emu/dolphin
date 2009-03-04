@@ -113,10 +113,7 @@ void HandleGLError();
 #define PRIM_LOG(...) {DEBUG_LOG(VIDEO, ##__VA_ARGS__)}
 #endif
 
-#ifdef LOGGING
-#define LOG_VTX() PRIM_LOG("vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
-#else
-#define LOG_VTX()
-#endif
+#define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
+
 
 #endif  // _VIDEOCOMMON_H

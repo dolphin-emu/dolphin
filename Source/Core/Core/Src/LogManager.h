@@ -101,7 +101,7 @@ public:
 private:
 	enum LOG_SETTINGS
 	{
-		VERBOSITY_LEVELS = 3
+		VERBOSITY_LEVELS = LOGLEVEL
 	};
 
 	friend class CDebugger_LogWindow;
@@ -118,11 +118,7 @@ public:
 	static void Init();
 	static void Clear(void);
 	static void Shutdown();
-#ifdef LOGGING
-	static bool Enabled() { return true; }
-#else
-	static bool Enabled() { return false; }
-#endif
+	static int GetLevel() {return LOGLEVEL;}
 	static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
 };
 
