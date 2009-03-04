@@ -81,9 +81,7 @@ class CISOProperties : public wxDialog
 		wxPanel *m_Filesystem;
 
 		wxStaticText *OverrideText;
-		wxCheckBox *UseDualCore;
-		wxCheckBox *SkipIdle;
-		wxCheckBox *OptimizeQuantizers;
+		wxCheckBox *UseDualCore, *SkipIdle, *OptimizeQuantizers, *TLBHack;
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen; // Wii
 
 		wxButton *EditConfig;
@@ -152,6 +150,7 @@ class CISOProperties : public wxDialog
 			ID_OVERRIDE_TEXT,
 			ID_USEDUALCORE,
 			ID_IDLESKIP,
+			ID_TLBHACK,
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,
 			ID_OPTIMIZEQUANTIZERS,

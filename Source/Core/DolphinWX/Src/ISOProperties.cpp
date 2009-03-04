@@ -219,6 +219,7 @@ void CISOProperties::CreateGUIControls()
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("[Wii] Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("[Wii] Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	
@@ -264,6 +265,7 @@ void CISOProperties::CreateGUIControls()
 	sCoreOverrides->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sCoreOverrides->Add(UseDualCore, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
@@ -512,6 +514,11 @@ void CISOProperties::LoadGameConfig()
 		OptimizeQuantizers->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		OptimizeQuantizers->Set3StateValue(wxCHK_UNDETERMINED);
+	
+	if (GameIni.Get("Core", "TLBHack", &bTemp))
+		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
@@ -558,7 +565,10 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "OptimizeQuantizers");
 	else
 		GameIni.Set("Core", "OptimizeQuantizers", OptimizeQuantizers->Get3StateValue());
-
+	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "TLBHack");
+	else
+		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");
 	else
