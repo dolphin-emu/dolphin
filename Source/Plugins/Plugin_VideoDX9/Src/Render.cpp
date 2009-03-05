@@ -486,8 +486,8 @@ void UpdateViewport()
 	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2])/16777215.0f;
 	vp.MaxZ = xfregs.rawViewport[5]/16777215.0f;
 	
-	wid = ceil(fabs(2 * xfregs.rawViewport[0]));
-	hei = ceil(fabs(2 * xfregs.rawViewport[1]));
+	wid = int(ceil(fabs(2 * xfregs.rawViewport[0])));
+	hei = int(ceil(fabs(2 * xfregs.rawViewport[1])));
 
 	vp.X = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) + xoffs;
 	vp.Y = (int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff) + yoffs;

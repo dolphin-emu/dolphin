@@ -1158,7 +1158,7 @@ bool GCMemcard::format(bool New)
 bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
 {
 	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
-	u16 size = (((data_size / 0x2000) + 5) / 0x10);
+	u16 size = u16((((data_size / 0x2000) + 5) / 0x10));
 	SRAM m_SRAM;
 	FILE * pStream;
 	u64 time, rand;
@@ -1189,7 +1189,7 @@ bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
 //	PanicAlert("m_SRAM.syssramex.flash_id %16x",(flash_id[i]));
 //	PanicAlert("%16x",(flash_id[i]+(u32)rand));
 //	PanicAlert("%16x",(flash_id+Common::swap32((u32)rand)));
-		hdr.serial[i] = (flash_id[i]+(u32)rand);
+		hdr.serial[i] = u8((flash_id[i]+(u32)rand));
 		rand = (((rand*(u64)0x0000000041c64e6d)+(u64)0x0000000000003039)>>16);
 		rand &= (u64)0x0000000000007fff;
 	}

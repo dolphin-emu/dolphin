@@ -152,8 +152,8 @@ void GetMousePos(float& x, float& y)
 		PictureHeight = PictureHeight * Ratio;
 
 		// Adjust the X and Y offset
-		XOffset = XOffset - (IncreasedWidth / 2.0);
-		YOffset = YOffset - (IncreasedHeight / 2.0);
+		XOffset = float(XOffset - (IncreasedWidth / 2.0));
+		YOffset = float(YOffset - (IncreasedHeight / 2.0));
 
 		// Logging
 		/*
