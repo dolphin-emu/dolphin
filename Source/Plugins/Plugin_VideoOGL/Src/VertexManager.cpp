@@ -242,7 +242,7 @@ void Flush()
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	bool bRestoreBuffers = false;
-	if (Renderer::GetZBufferTarget()) {
+	if (Renderer::GetFakeZTarget()) {
 		if (bpmem.zmode.updateenable) {
 			if (!bpmem.blendmode.colorupdate) {
 				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ? Renderer::RM_ZBufferAlpha : Renderer::RM_ZBufferOnly);    

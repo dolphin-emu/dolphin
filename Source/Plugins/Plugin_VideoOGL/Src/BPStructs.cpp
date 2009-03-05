@@ -84,7 +84,7 @@ void BPWritten(int addr, int changes, int newval)
                 glEnable(GL_CULL_FACE);
                 glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
             }
-            else if (glIsEnabled(GL_CULL_FACE) == GL_TRUE)
+            else
                 glDisable(GL_CULL_FACE);
             PixelShaderManager::SetGenModeChanged();
         }
@@ -159,7 +159,7 @@ void BPWritten(int addr, int changes, int newval)
 
     case BPMEM_LINEPTWIDTH:
         {
-			float fratio = xfregs.rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
+			float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 			if (bpmem.lineptwidth.linesize > 0)
 				glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
 			if (bpmem.lineptwidth.pointsize > 0)
@@ -243,13 +243,6 @@ void BPWritten(int addr, int changes, int newval)
         break;
 
 	case BPMEM_FOGRANGE:
-		if (changes) {
-			// TODO(XK): Fog range format
-			//glFogi(GL_FOG_START, ...
-			//glFogi(GL_FOG_END, ...
-		}
-		break;
-
     case BPMEM_FOGPARAM0:
     case BPMEM_FOGBEXPONENT: 
     case BPMEM_FOGBMAGNITUDE:
@@ -363,9 +356,9 @@ void BPWritten(int addr, int changes, int newval)
     case BPMEM_SETGPMETRIC: // Set gp metric?
         break;
 
-	// ===============================================================
-	// This case writes to bpmem.triggerEFBCopy and may apparently prompt us to update glScissor()
 	// ------------------------
+	// EFB copy command. This copies a rectangle from the EFB to either RAM in a texture format or to XFB as YUYV.
+	// It can also optionally clear the EFB while copying from it. To emulate this, we of course copy first and clear afterwards.
     case BPMEM_TRIGGER_EFB_COPY:
         {
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
@@ -395,33 +388,30 @@ void BPWritten(int addr, int changes, int newval)
 			PE_copy.Hex = bpmem.triggerEFBCopy;
 
 			// --------------------------------------------------------
-            // Check if we should copy the picture to XFB or not
+            // Check to where we should copy the image data from the EFB.
 			// --------------------------
             if (PE_copy.copy_to_xfb == 0)
 			{
 				// EFB to texture 
                 // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-				if (g_Config.bEFBCopyDisable)
+				if (!g_Config.bEFBCopyDisable)
 				{
-					/* We already have this in Render.cpp that we call when (PE_copy.clear) is true. But we need a separate one
-					   here because UpdateViewport() is not run when this option is set? */
-					glViewport(rc.left, rc.bottom, rc.right,rc.top);
-					glScissor(rc.left, rc.bottom, rc.right,rc.top);
-					// Logging
-					GLScissorX = rc.left;
-					GLScissorY = rc.bottom;
-					GLScissorW = rc.right;
-					GLScissorH = rc.top;
-				}
-				else if (g_Config.bCopyEFBToRAM)
-				{
-					TextureConverter::EncodeToRam(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
-                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, rc);
-				}
-				else
-				{
-					TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
-                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
+					if (g_Config.bCopyEFBToRAM)
+					{
+						TextureConverter::EncodeToRam(bpmem.copyTexDest<<5,
+							bpmem.zcontrol.pixel_format==PIXELFMT_Z24,
+							PE_copy.intensity_fmt > 0,
+							(PE_copy.target_pixel_format/2) + ((PE_copy.target_pixel_format&1) * 8),  // ??
+							PE_copy.half_scale>0, rc);
+					}
+					else
+					{
+						TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5,
+							bpmem.zcontrol.pixel_format==PIXELFMT_Z24,
+							PE_copy.intensity_fmt > 0,
+							(PE_copy.target_pixel_format/2) + ((PE_copy.target_pixel_format & 1)*8),  // ??
+							PE_copy.half_scale > 0, rc);
+					}
 				}
 			}
             else
@@ -446,6 +436,8 @@ void BPWritten(int addr, int changes, int newval)
 				}
 				else
 				{
+					// Hm, we need to compensate for the fact that the copy may be bigger than what is displayed.
+					// Seen in Spartan Warrior. Not sure how to deal with it yet.
 					Renderer::Swap(multirc);
 				}
 				g_VideoInitialize.pCopiedToXFB();
@@ -459,16 +451,12 @@ void BPWritten(int addr, int changes, int newval)
                 // Clear color
                 Renderer::SetRenderMode(Renderer::RM_Normal);
 				// Clear Z-Buffer target
-                u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
+                bool bRestoreZBufferTarget = Renderer::GetFakeZTarget() != 0;
                 
-				// -----------------------------------------------------------------
 				// Update the view port for clearing the picture
-				// -----------------------
 				glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 
                 // Always set the scissor in case it was set by the game and has not been reset
-				/* We will also do this at the end of this section, in SetScissorRect(), but that is for creating the new picture
-				   this is for clearing the picture */
 				glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
 					(multirc.right - multirc.left), (multirc.bottom - multirc.top));
 				// ---------------------------
@@ -484,23 +472,23 @@ void BPWritten(int addr, int changes, int newval)
 					{
                         u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 						glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
-									((clearColor>>8 ) & 0xff)*(1/255.0f),
-									((clearColor>>0 ) & 0xff)*(1/255.0f),
-									((clearColor>>24) & 0xff)*(1/255.0f));
+									 ((clearColor>>8 ) & 0xff)*(1/255.0f),
+									 ((clearColor>>0 ) & 0xff)*(1/255.0f),
+									 ((clearColor>>24) & 0xff)*(1/255.0f));
                         bits |= GL_COLOR_BUFFER_BIT;
                     }
                     if (bpmem.zmode.updateenable)
 					{
-                        glClearDepth((float)(bpmem.clearZValue&0xFFFFFF) / float(0xFFFFFF));
+                        glClearDepth((float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
                         bits |= GL_DEPTH_BUFFER_BIT;
                     }
-                    if (nRestoreZBufferTarget )
-                        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // don't clear ztarget here
+                    if (bRestoreZBufferTarget)
+                        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);  // don't clear ztarget here
                     glClear(bits);
                 }
 
 				// Have to clear the target zbuffer
-                if (bpmem.zmode.updateenable && nRestoreZBufferTarget)
+                if (bpmem.zmode.updateenable && bRestoreZBufferTarget)
 				{
                     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
                     GL_REPORT_ERRORD();
@@ -515,16 +503,14 @@ void BPWritten(int addr, int changes, int newval)
                     GL_REPORT_ERRORD();   
                 }
 
-                if (nRestoreZBufferTarget)
+                if (bRestoreZBufferTarget)
 				{
                     // restore target
                     GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
                     glDrawBuffers(2, s_drawbuffers);
                 }
-                
-                Renderer::SetScissorRect(); // reset the scissor rectangle
             }
-			// ------------------------------
+			Renderer::RestoreGLState();
         }
         break;
 	// ==================================
@@ -643,7 +629,7 @@ void BPWritten(int addr, int changes, int newval)
             break;
             
         default:
-            switch(addr&0xF0) {
+            switch (addr&0xF0) {
             case 0x10: // tevindirect 0-15
                 if (changes) {
                     VertexManager::Flush();

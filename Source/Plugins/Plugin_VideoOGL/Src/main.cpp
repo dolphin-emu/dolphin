@@ -189,7 +189,7 @@ void DllConfig(HWND _hParent)
 	{
 		for (int i = 0; i < modeNum; i++)
 		{
-			if(px != modes[i]->hdisplay && py != modes[i]->vdisplay)
+			if (px != modes[i]->hdisplay && py != modes[i]->vdisplay)
 			{
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
@@ -219,8 +219,6 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
-	//Console::Open();
-
     frameCount = 0;
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
@@ -250,8 +248,6 @@ void DoState(unsigned char **ptr, int mode) {
 #endif
     // Clear all caches that touch RAM
     TextureMngr::Invalidate(false);
-    // DisplayListManager::Invalidate();
-    
     VertexLoaderManager::MarkAllDirty();
     
     PointerWrap p(ptr, mode);

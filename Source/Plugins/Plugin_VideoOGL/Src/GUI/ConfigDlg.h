@@ -75,6 +75,7 @@ class ConfigDialog : public wxDialog
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageAdvanced;
 		wxCheckBox *m_Fullscreen;
+		wxCheckBox *m_VSync;
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_NativeResolution;
 		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
@@ -125,6 +126,7 @@ class ConfigDialog : public wxDialog
 			ID_PAGEADVANCED,
 
 			ID_FULLSCREEN,
+			ID_VSYNC,
 			ID_RENDERTOMAINWINDOW,
 			ID_NATIVERESOLUTION,
 			ID_KEEPAR_4_3, ID_KEEPAR_16_9, ID_CROP,

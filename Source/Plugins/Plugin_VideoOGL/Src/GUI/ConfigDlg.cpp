@@ -27,6 +27,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
 	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
 	EVT_CHECKBOX(ID_FULLSCREEN, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_VSYNC, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
@@ -161,6 +162,8 @@ void ConfigDialog::CreateGUIControls()
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Settings"));
 	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
+	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_VSync->SetValue(g_Config.bVSync);
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native resolution"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -239,16 +242,17 @@ void ConfigDialog::CreateGUIControls()
 	sGeneral = new wxBoxSizer(wxVERTICAL);
 	sBasic = new wxGridBagSizer(0, 0);
 	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_AutoScale, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_NativeResolution, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_UseXFB,    wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_KeepAR43,  wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_KeepAR169, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop,      wxGBPosition(5, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_VSync, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_RenderToMainWindow, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_AutoScale, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_NativeResolution, wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_UseXFB,    wxGBPosition(5, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_KeepAR43,  wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_KeepAR169, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop,      wxGBPosition(6, 2), wxGBSpan(1, 1), wxALL, 5);
 
 	// Because of the ifdef here we need this variable for the row number
-	int Row = 6;
+	int Row = 7;
 	#ifndef _WIN32
 	sBasic->Add(m_HideCursor, wxGBPosition(Row++, 0), wxGBSpan(1, 3), wxALL, 5);
 	#endif
@@ -430,7 +434,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
 		break;
-
+	case ID_VSYNC:
+		g_Config.bVSync = m_VSync->IsChecked();
+		break;
 	case ID_USEXFB:
 		g_Config.bUseXFB = m_UseXFB->IsChecked();
 		break;

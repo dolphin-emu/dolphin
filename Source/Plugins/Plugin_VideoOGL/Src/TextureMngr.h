@@ -74,7 +74,7 @@ public:
     static void Shutdown();
     static void Invalidate(bool shutdown);
     static TCacheEntry* Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
-    static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, TRectangle *source);
+    static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle &source);
 
     static void EnableTex2D(int stage);
     static void EnableTexRECT(int stage);

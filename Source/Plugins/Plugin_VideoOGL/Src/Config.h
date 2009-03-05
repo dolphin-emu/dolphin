@@ -38,6 +38,7 @@ struct Config
     bool bFullscreen;
     bool bHideCursor;
     bool renderToMainframe;
+	bool bVSync;
 
 	// Resolution control
 	char iFSResolution[16];

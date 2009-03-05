@@ -239,13 +239,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	*	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
 	*	so lot's of remaning old text. 	Thin white chars on black bg too.
 	*/
-
 	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
 	//			- fix the key index situation with CopyRenderTargetToTexture. 
 	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
 	//			Wonder if we can't use tex width&height to know if EFB might be copied to it...
 	//			raw idea:  TOCHECK if addresses are aligned we have few bits left...
-
 
     if (address == 0)
         return NULL;
@@ -259,19 +257,24 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     u32 texID = address;
 	if (g_Config.bSafeTextureCache)
 	{
-		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0); // remove last arg 
-		if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
+		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);  // remove last arg 
+		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
 			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
 			//texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format));
+
+			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
+			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
+			// each other stored in a single texture, and uses the palette to make different characters
+			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+			// we must make sure that texture with different tluts get different IDs. 
 			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
 	}
 
 	bool skip_texture_create = false;
-
     TexCache::iterator iter = textures.find(texID);
 
 	if (iter != textures.end()) {
@@ -280,10 +283,12 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		if (!g_Config.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[entry.hashoffset];
 
-        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash))) {
+        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
+		{
             entry.frameCount = frameCount;
-            //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
-            glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
+			//glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
+//			entry.isNonPow2 ? TextureMngr::EnableTex2D(texstage) : TextureMngr::EnableTexRECT(texstage);
+            glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
 			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
@@ -406,7 +411,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     return &entry;
 }
 
-void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, TRectangle *source)
+
+void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle &source_rect)
 {
     DVSTARTPROFILE();
     GL_REPORT_ERRORD();
@@ -431,8 +437,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     entry.frameCount = frameCount;
     
     int mult = bScaleByHalf?2:1;
-	int w = (abs(source->right-source->left)/mult);
-    int h = (abs(source->bottom-source->top)/mult);
+	int w = (abs(source_rect.GetWidth())/mult);
+    int h = (abs(source_rect.GetHeight())/mult);
 
     GL_REPORT_ERRORD();
 
@@ -600,7 +606,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     Renderer::SetRenderMode(Renderer::RM_Normal); // set back to normal
     GL_REPORT_ERRORD();
 
-    // have to run a pixel shader
+    // We have to run a pixel shader, for color conversion.
 
     Renderer::ResetGLState(); // reset any game specific settings
 
@@ -632,7 +638,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget());    
+	if (bFromZBuffer) {
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Renderer::ResolveAndGetFakeZTarget(source_rect));
+	} else {
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Renderer::ResolveAndGetRenderTarget(source_rect));
+	}
     TextureMngr::EnableTexRECT(0);
     
     glViewport(0, 0, w, h);
@@ -645,10 +655,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glBegin(GL_QUADS);
 	float MValueX = Renderer::GetTargetScaleX();
     float MValueY = Renderer::GetTargetScaleY();
-    glTexCoord2f((float)source->left * MValueX,  Renderer::GetTargetHeight()-(float)source->bottom * MValueY); glVertex2f(-1,  1);
-    glTexCoord2f((float)source->left * MValueX,  Renderer::GetTargetHeight()-(float)source->top    * MValueY); glVertex2f(-1, -1);
-    glTexCoord2f((float)source->right * MValueX, Renderer::GetTargetHeight()-(float)source->top    * MValueY); glVertex2f( 1, -1);
-    glTexCoord2f((float)source->right * MValueX, Renderer::GetTargetHeight()-(float)source->bottom * MValueY); glVertex2f( 1,  1);
+    glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.bottom * MValueY); glVertex2f(-1,  1);
+    glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f(-1, -1);
+    glTexCoord2f((float)source_rect.right * MValueX, Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f( 1, -1);
+    glTexCoord2f((float)source_rect.right * MValueX, Renderer::GetTargetHeight()-(float)source_rect.bottom * MValueY); glVertex2f( 1,  1);
     glEnd();
 
     GL_REPORT_ERRORD();
@@ -669,13 +679,13 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 void TextureMngr::EnableTex2D(int stage)
 {
-    if (!(nTex2DEnabled & (1<<stage))) {
-        nTex2DEnabled |= (1<<stage);
-        glEnable(GL_TEXTURE_2D);
-    }
     if (nTexRECTEnabled & (1<<stage)) {
         nTexRECTEnabled &= ~(1<<stage);
         glDisable(GL_TEXTURE_RECTANGLE_ARB);
+    }
+    if (!(nTex2DEnabled & (1<<stage))) {
+        nTex2DEnabled |= (1<<stage);
+        glEnable(GL_TEXTURE_2D);
     }
 }
 
@@ -710,6 +720,6 @@ void TextureMngr::DisableStage(int stage)
 
 void TextureMngr::ClearRenderTargets()
 {
-    for (TexCache::iterator iter = textures.begin(); iter!=textures.end(); iter++)
+    for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
         iter->second.isRenderTarget = false;
 }

@@ -15,54 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// How the non-true-XFB mode COULD work:
-//
-// The game renders to the EFB:
-//  
-// ----------------------+
-// |                     |
-// |                     |
-// |                     |
-// |                     |
-// |                     |
-// |                     |   efb_height
-// |                     |
-// |                     |
-// | - - - - - - - - - - |
-// |                     |
-// +---------------------+
-//        efb_width
-//
-// At XFB blit time, the top 640-xxx X XXX part of the above buffer (size dotted below),
-// should be stretch blitted into the inner rectangle of the window:
-// +-----------------------------------------+
-// |       |                        |        |
-// |       |                     .  |        |
-// |       |                        |        |
-// |       |                     .  |        |
-// |       |                        |        |
-// |       |                     .  |        |  OpenGL_Height()
-// |       |                        |        |
-// |       |                     .  |        |
-// |       | - - - - - - - - - -    |        |
-// |       |                      \ |        |
-// +-------+---------------------------------+
-//                OpenGL_Width()
-//
-//
-// efb_width and efb_height can even be adjusted so that the last blit will result
-// in a 1:1 rather than a stretch. That would require creating a bigger efb from the
-// start though.
-//
-// The above is not how it works today.
 
-/*
-int win_w = OpenGL_Width();
-int win_h = OpenGL_Height();
+// GC graphics pipeline
 
-int blit_w_640 = last_xfb_specified_width;
-int blit_h_640 = last_xfb_specified_height;
-*/
+// 3d commands are issued through the fifo. The gpu draws to the 2MB EFB.
+// The efb can be copied back into ram in two forms: as textures or as XFB.
+// The XFB is the region in RAM that the VI chip scans out to the television.
+// So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
+// Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 
 #ifndef GCOGL_RENDER
 #define GCOGL_RENDER
@@ -116,7 +76,7 @@ public:
     static int GetTargetWidth();
     static int GetTargetHeight();
 
-	// Multiply any 0-640 / 0-480 coordinates by these when rendering.
+	// Multiply any 2D EFB coordinates by these when rendering.
 	static float GetTargetScaleX();
     static float GetTargetScaleY();
 
@@ -125,8 +85,14 @@ public:
     static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
     static void SetDepthTarget(GLuint targ);
 
-	static GLuint GetRenderTarget();
-    static GLuint GetZBufferTarget();
+	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
+	// Thus, this call may be expensive. Don't repeat it unnecessarily.
+	// If not in MSAA mode, will just return the render target texture ID.
+	static GLuint ResolveAndGetRenderTarget(const TRectangle &rect);
+
+	// Same as above but for the FakeZ Target.
+    static GLuint ResolveAndGetFakeZTarget(const TRectangle &rect);
+    static GLuint GetFakeZTarget();  // This is used by some functions to check for Z target existence. Should be changed to a bool.
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);

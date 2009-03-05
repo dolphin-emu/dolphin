@@ -159,8 +159,8 @@ void Shutdown()
 	s_texConvFrameBuffer = 0;
 }
 
-void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
-				 u8* destAddr, int dstWidth, int dstHeight, bool linearFilter, FRAGMENTSHADER& shader)
+void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRectangle& sourceRc,
+				            u8* destAddr, int dstWidth, int dstHeight, bool linearFilter)
 {
 	Renderer::SetRenderMode(Renderer::RM_Normal);
 
@@ -241,20 +241,22 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 			format |= _GX_TF_CTF;
 	}
 
-	FRAGMENTSHADER& fs = GetOrCreateEncodingShader(format);
-	if (fs.glprogid == 0)
+	FRAGMENTSHADER& texconv_shader = GetOrCreateEncodingShader(format);
+	if (texconv_shader.glprogid == 0)
 		return;
 
 	u8* ptr = Memory_GetPtr(address);
 
-	u32 target = bFromZBuffer ? Renderer::GetZBufferTarget() : Renderer::GetRenderTarget();
-
+	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
 	s32 width = source.right - source.left;
 	s32 height = source.bottom - source.top;
 
 	if (bScaleByHalf)
 	{
 		// Hm. Shouldn't this only scale destination, not source?
+		// The bloom in Beyond Good & Evil is a good test case - due to this problem,
+		// it goes very wrong. Compare by switching back and forth between Copy textures to RAM and GL Texture.
+		// This also affects the shadows in Burnout 2 badly.
 		width /= 2;
 		height /= 2;
 	}
@@ -278,7 +280,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;	
 
-	EncodeToRam(target, scaledSource, ptr, expandedWidth / samples, expandedHeight, bScaleByHalf, fs);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
 
 	if (bFromZBuffer)
         Renderer::SetZBufferRender(); // notify for future settings
@@ -287,7 +289,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
 				     u8* destAddr, int dstWidth, int dstHeight)
 {
-	EncodeToRam(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, false, s_rgbToYuyvProgram);	
+	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, false);
 }
 
 

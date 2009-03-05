@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Globals.h"
+
 #include <vector>
 #include <cmath>
 
@@ -63,7 +63,6 @@
 #else
 #endif
 
-
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
@@ -72,15 +71,38 @@ RasterFont* s_pfont = NULL;
 
 static bool s_bFullscreen = false;
 
-static int nZBufferRender = 0; // if > 0, then use zbuffer render, and count down.
+static int nZBufferRender = 0;  // if > 0, then use zbuffer render, and count down.
+
+static bool MSAA = false;
+
+// Normal Mode
+// s_RenderTarget is a texture_rect
+// s_DepthTarget is a Z renderbuffer
+// s_FakeZTarget is a texture_rect
+
+// MSAA mode
+// s_uFramebuffer is a FBO
+// s_RenderTarget is a MSAA renderbuffer
+// s_FakeZBufferTarget is a MSAA renderbuffer
+// s_DepthTarget is a real MSAA z/stencilbuffer
+// 
+// s_ResolvedFramebuffer is a FBO
+// s_ResolvedColorTarget is a texture
+// s_ResolvedFakeZTarget is a texture
+// s_ResolvedDepthTarget is a Z renderbuffer
 
 // A framebuffer is a set of render targets: a color and a z buffer. They can be either RenderBuffers or Textures.
 static GLuint s_uFramebuffer = 0;
 
-// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn'.t
+// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn't.
+// These are all texture IDs. Bind them as rect arb textures.
 static GLuint s_RenderTarget = 0;
-static GLuint s_DepthTarget = 0;
-static GLuint s_ZBufferTarget = 0;
+static GLuint s_FakeZTarget  = 0;
+static GLuint s_DepthTarget  = 0;
+
+static GLuint s_ResolvedRenderTarget = 0;
+static GLuint s_ResolvedFakeZTarget  = 0;
+static GLuint s_ResolvedDepthTarget  = 0;
 
 static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
@@ -96,13 +118,16 @@ bool g_bBlendSeparate = false;
 int frameCount;
 static int s_fps = 0;
 
-// These STAY CONSTANT during execution, no matter how much you resize the game window.
+// These STAY CONSTANT during execution, no matter how much you resize the game window.\
+// TODO: Add functionality to reinit all the render targets when the window is resized.
 static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
 static u32 s_blendMode;
 
-void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
+extern void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
+
+namespace {
 
 static const GLenum glSrcFactors[8] =
 {
@@ -121,6 +146,24 @@ static const GLenum glDestFactors[8] = {
     GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
 };
 
+void SetDefaultRectTexParams()
+{
+	// Set some standard texture filter modes.
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (glGetError() != GL_NO_ERROR) {
+		GLenum err;
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        GL_REPORT_ERROR();
+    }
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
+
+}  // namespace
+
+
 bool Renderer::Init()
 {
     bool bSuccess = true;
@@ -131,6 +174,7 @@ bool Renderer::Init()
 
     cgGetError();
     cgSetErrorHandler(HandleCgError, NULL);
+
 
     // Look for required extensions.
     const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
@@ -143,9 +187,10 @@ bool Renderer::Init()
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "\n");
 
-	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL && strstr(ptoken,
-		"GL_EXT_blend_equation_separate") != NULL)
+	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL &&
+		strstr(ptoken, "GL_EXT_blend_equation_separate") != NULL)
         g_bBlendSeparate = true;
+
 	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
         s_bATIDrawBuffers = true;
@@ -176,20 +221,17 @@ bool Renderer::Init()
     if (!bSuccess)
         return false;
 
+	// Handle VSync on/off
 #ifdef _WIN32
 	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(0);
+		wglSwapIntervalEXT(g_Config.bVSync ? 1 : 0);
 	else
 		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
 	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(0);
+		glXSwapIntervalSGI(g_Config.bVSync ? 1 : 0);
 	else
 		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
-#else
-
-	//TODO
-
 #endif
 
     // check the max texture width and height
@@ -229,83 +271,60 @@ bool Renderer::Init()
 	if (s_targetheight < EFB_HEIGHT)
 		s_targetheight = EFB_HEIGHT;
 
-    // Create the framebuffer target texture
-    glGenTextures(1, (GLuint *)&s_RenderTarget);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+	if (!MSAA) {
+		// Create the framebuffer target texture
+		glGenTextures(1, (GLuint *)&s_RenderTarget);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+		// Create our main color render target as a texture rectangle of the desired size.
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		SetDefaultRectTexParams();
 
-	// Setup the texture params
-    // initialize to default
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    if (glGetError() != GL_NO_ERROR) {
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        GL_REPORT_ERROR();
-    }
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		GL_REPORT_ERROR();
 
-    GL_REPORT_ERROR();
+		GLint nMaxMRT = 0;
+		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &nMaxMRT);
+		if (nMaxMRT > 1) 
+		{
+			// There's MRT support. Create a color texture image to use as secondary render target.
+			// We use MRT to render Z into this one, for various purposes (mostly copy Z to texture).
+			glGenTextures(1, (GLuint *)&s_FakeZTarget);
+			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			SetDefaultRectTexParams();
+		}
 
-    GLint nMaxMRT = 0;
-    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &nMaxMRT);
-    if (nMaxMRT > 1) 
-	{
-        // Create zbuffer target.
-        glGenTextures(1, (GLuint *)&s_ZBufferTarget);
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if (glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            GL_REPORT_ERROR();
-        }
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    }
+		// Create the real depth/stencil buffer. It's a renderbuffer, not a texture.
+		glGenRenderbuffersEXT(1, &s_DepthTarget);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
+		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		GL_REPORT_ERROR();
+	
+		// Our framebuffer object is still bound here. Attach the two render targets, color and Z/stencil, to the framebuffer object.
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
+    	GL_REPORT_ERROR();
 
-    // create the depth buffer
-    glGenRenderbuffersEXT(1, &s_DepthTarget);
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
-    if (glGetError() != GL_NO_ERROR) 
-	{
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, s_targetwidth, s_targetheight);
-        s_bHaveStencilBuffer = false;
-    } 
-	else 
-	{
-		s_bHaveStencilBuffer = true;
+		if (s_FakeZTarget != 0) {
+			// We do a simple test to make sure that MRT works. I don't really know why - this is probably a workaround for
+			// some terribly buggy ancient driver.
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, 0);
+			bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+			if (bFailed) {
+				glDeleteTextures(1, (GLuint *)&s_FakeZTarget);
+				s_FakeZTarget = 0;
+			}
+		}
+
+		if (s_FakeZTarget == 0)
+			ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)\n", nMaxMRT);
+	} else {
+		// TODO MSAA rendertarget init
 	}
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
-    GL_REPORT_ERROR();
 
-    // Select our render and depth targets as render targets.
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
-    
-	GL_REPORT_ERROR();
-
-    if (s_ZBufferTarget != 0) {
-        // test to make sure it works
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
-        bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-            
-        if (bFailed) {
-            glDeleteTextures(1, (GLuint *)&s_ZBufferTarget);
-            s_ZBufferTarget = 0;
-        }
-    }
-
-	if (s_ZBufferTarget == 0)
-        ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)\n", nMaxMRT);
-
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    nZBufferRender = 0;
+    nZBufferRender = 0;  // Initialize the Z render shutoff countdown. We only render Z if it's desired, to save GPU power.
 
     GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
@@ -331,9 +350,9 @@ bool Renderer::Init()
 
     INFO_LOG(VIDEO, "Max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvvertparams);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvfragparams);
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
     DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
     DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
@@ -344,14 +363,8 @@ bool Renderer::Init()
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
 #endif
-
-    if (cgGetError() != CG_NO_ERROR) {
-        ERROR_LOG(VIDEO, "cg error\n");
-        return false;
-    }
     
     s_RenderMode = Renderer::RM_Normal;
-
     if (!InitializeGL())
         return false;
 
@@ -406,13 +419,13 @@ bool Renderer::InitializeGL()
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
     
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // perspective correct interpolation of colors and tex coords
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);    
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);   // Polygon smoothing is ancient junk that doesn't work anymore. MSAA is modern AA.
     
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
-	// Do we really need to set this initial glScissor() value? Wont it be called all the time while the game is running?
-    //glScissor(0, 0, (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
+
+    glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
     glBlendColorEXT(0, 0, 0, 0.5f);
     glClearDepth(1.0f);
 
@@ -438,12 +451,12 @@ bool Renderer::InitializeGL()
 // ------------------------
 int Renderer::GetTargetWidth()
 {
-	return (g_Config.bNativeResolution ? EFB_WIDTH : s_targetwidth);
+	return g_Config.bNativeResolution ? EFB_WIDTH : s_targetwidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-    return (g_Config.bNativeResolution ? EFB_HEIGHT : s_targetheight);
+    return g_Config.bNativeResolution ? EFB_HEIGHT : s_targetheight;
 }
 
 float Renderer::GetTargetScaleX()
@@ -476,13 +489,21 @@ void Renderer::SetFramebuffer(GLuint fb)
 		fb != 0 ? fb : s_uFramebuffer);
 }
 
-GLuint Renderer::GetRenderTarget()
+GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 {
 	return s_RenderTarget;
 }
-GLuint Renderer::GetZBufferTarget()
+
+GLuint Renderer::ResolveAndGetFakeZTarget(const TRectangle &source_rect)
 {
-	return nZBufferRender > 0 ? s_ZBufferTarget : 0;
+	// This logic should be moved elsewhere.
+	return s_FakeZTarget;
+}
+
+GLuint Renderer::GetFakeZTarget()
+{
+	// This logic should be moved elsewhere.
+	return nZBufferRender > 0 ? s_FakeZTarget : 0;
 }
 
 void Renderer::ResetGLState()
@@ -503,16 +524,17 @@ void Renderer::ResetGLState()
 void Renderer::RestoreGLState()
 {
 	// Gets us back into a more game-like state.
-    glEnable(GL_SCISSOR_TEST);
-
     if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
-    if (bpmem.zmode.testenable) glEnable(GL_DEPTH_TEST);
-    if (bpmem.zmode.updateenable) glDepthMask(GL_TRUE);
+    if (bpmem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
+    if (bpmem.zmode.updateenable)   glDepthMask(GL_TRUE);
 
-    glEnable(GL_VERTEX_PROGRAM_ARB);
-    glEnable(GL_FRAGMENT_PROGRAM_ARB);
+    glEnable(GL_SCISSOR_TEST);
+	SetScissorRect();
     SetColorMask();
 	SetBlendMode(true);
+
+	glEnable(GL_VERTEX_PROGRAM_ARB);
+    glEnable(GL_FRAGMENT_PROGRAM_ARB);
 }
 
 void Renderer::SetColorMask()
@@ -546,7 +568,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (bpmem.blendmode.blendenable) {		
 		newval |= 1;
-
 		if (bpmem.blendmode.subtract) {
 			newval |= 0x0048; // src 1 dst 1
 		} else {
@@ -560,7 +581,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	if (changes & 1) {
-		newval & 1 ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 	}
 
 	bool dstAlphaEnable = g_bBlendSeparate && newval & 2;
@@ -635,8 +656,8 @@ bool Renderer::SetScissorRect()
         glScissor(
 			(int)rc_left, // x = 0 for example
 			Renderer::GetTargetHeight() - (int)(rc_bottom), // y = 0 for example
-			(int)(rc_right-rc_left), // width = 640 for example
-			(int)(rc_bottom-rc_top) // height = 480 for example
+			(int)(rc_right - rc_left), // width = 640 for example
+			(int)(rc_bottom - rc_top) // height = 480 for example
 			); 
         return true;
     }
@@ -656,16 +677,18 @@ bool Renderer::HaveStencilBuffer()
 
 void Renderer::SetZBufferRender()
 {
-    nZBufferRender = 10; // give it 10 frames
+    nZBufferRender = 10;  // The game asked for Z. Give it 10 frames, then turn it off for speed.
     GLenum s_drawbuffers[2] = {
 		GL_COLOR_ATTACHMENT0_EXT,
 		GL_COLOR_ATTACHMENT1_EXT
 	};
     glDrawBuffers(2, s_drawbuffers);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, 0);
     _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
 }
 
+
+// Does this function even work correctly???
 void Renderer::FlushZBufferAlphaToTarget()
 {
     ResetGLState();
@@ -673,12 +696,11 @@ void Renderer::FlushZBufferAlphaToTarget()
     SetRenderTarget(0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-
     glViewport(0, 0, GetTargetWidth(), GetTargetHeight());
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
     for (int i = 1; i < 8; ++i)
@@ -691,7 +713,6 @@ void Renderer::FlushZBufferAlphaToTarget()
 
 	// TODO: This code should not have to bother with stretchtofit checking - 
 	// all necessary scale initialization should be done elsewhere.
-	// TODO: Investigate BlitFramebufferEXT.
 	if (g_Config.bNativeResolution)
 	{
 		//TODO: Do Correctly in a bit
@@ -748,7 +769,6 @@ void Renderer::SetRenderMode(RenderMode mode)
     else if (s_RenderMode == RM_Normal) {
         // setup buffers
         _assert_(GetZBufferTarget() && bpmem.zmode.updateenable);
-
         if (mode == RM_ZBufferAlpha) {
             glEnable(GL_STENCIL_TEST);
             glClearStencil(0);
@@ -771,7 +791,7 @@ void Renderer::SetRenderMode(RenderMode mode)
             FlushZBufferAlphaToTarget();
             glDisable(GL_STENCIL_TEST);
 
-            SetRenderTarget(s_ZBufferTarget);
+            SetRenderTarget(s_FakeZTarget);
             glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
             GL_REPORT_ERRORD();
         }
@@ -797,11 +817,6 @@ Renderer::RenderMode Renderer::GetRenderMode()
 
 void ComputeBackbufferRectangle(TRectangle *rc)
 {
-	// -----------------------------------------------------------------------
-	// GLViewPort variables
-	// ------------------
-	// Work with float values for the XFB supplement and aspect ratio functions. These are default
-	// values that are used if the XFB supplement and the keep aspect ratio function are unused.
 	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
 	float FloatGLHeight = (float)OpenGL_GetBackbufferHeight();
 	float FloatXOffset = 0;
@@ -833,7 +848,7 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	}
 
 	// -----------------------------------------------------------------------
-	/* Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10. */
+	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
 	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
 	// ------------------
 	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
@@ -858,7 +873,7 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 		//Console::Print("Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
 	}
 
-	// Because there is no round() function we use round(float) = floor(float + 0.5) instead
+	// round(float) = floor(float + 0.5)
 	int XOffset = floor(FloatXOffset + 0.5);
 	int YOffset = floor(FloatYOffset + 0.5);
 	rc->left = XOffset;
@@ -885,12 +900,8 @@ void Renderer::Swap(const TRectangle& rc)
 //	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
 
 	// render to the real buffer now 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 
-	// -----------------------------------------------------------------------
-	// Show the finished picture
-	// --------------------
-	// Reset GL state
     ResetGLState();
 
     // Texture map s_RenderTargets[s_curtarget] onto the main buffer
@@ -901,7 +912,7 @@ void Renderer::Swap(const TRectangle& rc)
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     TextureMngr::EnableTexRECT(0);
     
-	// Disable all other stages
+	// Disable all other stages.
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
 
@@ -973,7 +984,7 @@ void Renderer::Swap(const TRectangle& rc)
 
 	// For testing zbuffer targets.
     // Renderer::SetZBufferRender();
-    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
+    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 }
 ////////////////////////////////////////////////
 

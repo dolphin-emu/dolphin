@@ -86,7 +86,7 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 	// OpenGL upside down as usual...
 	renderSrcRc.top = Renderer::GetTargetHeight() - sourceRc.top;
 	renderSrcRc.bottom = Renderer::GetTargetHeight() - sourceRc.bottom; 
-	TextureConverter::EncodeToRamYUYV(Renderer::GetRenderTarget(), renderSrcRc, xfb_in_ram, dstWd, dstHt);
+	TextureConverter::EncodeToRamYUYV(Renderer::ResolveAndGetRenderTarget(sourceRc), renderSrcRc, xfb_in_ram, dstWd, dstHt);
 }
 
 // Draw the XFB straight to the OpenGL backbuffer.
@@ -208,7 +208,7 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
     glEnd();
 	GL_REPORT_ERRORD();
 
-	int width = sourceRc.right - sourceRc.left;
+	int width  = sourceRc.right  - sourceRc.left;
 	int height = sourceRc.bottom - sourceRc.top;
 	glReadPixels(sourceRc.left, sourceRc.top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, efb_buffer);
 	GL_REPORT_ERRORD();

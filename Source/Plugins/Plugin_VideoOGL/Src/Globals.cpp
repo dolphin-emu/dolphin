@@ -63,7 +63,7 @@ bool LocalLogFile = true;
 #if LOGLEVEL > 0
 void __Log(const char *fmt, ...)
 {
-	int len = strlen(fmt);
+	size_t len = strlen(fmt);
 	if (!len)
 		return;
     char* Msg = (char*)alloca(len + 512);
