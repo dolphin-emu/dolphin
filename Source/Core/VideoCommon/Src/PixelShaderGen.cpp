@@ -476,19 +476,30 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
             // note that we have to scale by the regular texture map's coordinates since this is a texRECT call
             // (and we have to match with the game's texscale calls)
             int texcoord = bpmem.tevindref.getTexCoord(i);
-            if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
-                // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
-                WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy"); //, bpmem.tevindref.getTexMap(i)
 
-                char str[16];
-                sprintf(str, "induv%d", i);
-                WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i), texture_mask);
-                WRITE(p, "float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
+            if (texcoord < numTexgen) {
+                if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
+                    // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
+                    WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy"); //, bpmem.tevindref.getTexMap(i)
+
+                    char str[16];
+                    sprintf(str, "induv%d", i);
+                    WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i), texture_mask);
+                    WRITE(p, "float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
+                }
+                else {
+                    WRITE(p, "float3 indtex%d=tex2D(samp%d,uv%d.xy*"I_INDTEXSCALE"[%d].%s).abg;\n", i, bpmem.tevindref.getTexMap(i), texcoord, i/2, (i&1)?"zw":"xy");
+                }
             }
             else {
-                WRITE(p, "float3 indtex%d=tex2D(samp%d,uv%d.xy*"I_INDTEXSCALE"[%d].%s).abg;\n", i, bpmem.tevindref.getTexMap(i), texcoord, i/2, (i&1)?"zw":"xy");
+                WRITE(p, "float3 indtex%d=tex2D(samp%d,float2(0.0f,0.0f));\n", i, bpmem.tevindref.getTexMap(i));
             }
         }
+    }
+
+    // HACK to handle cases where the tex gen is not enabled
+    if (numTexgen == 0) {
+        WRITE(p, "float3 uv0 = float3(0.0f,0.0f,0.0f);\n");
     }
 
     for (int i = 0; i < numStages; i++)
@@ -570,7 +581,13 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
     int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
     int texfun = xfregs.texcoords[texcoord].texmtxinfo.projection;
+    bool bHasTexCoord = texcoord < bpmem.genMode.numtexgens;
     bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
+
+    // HACK to handle cases where the tex gen is not enabled
+    if (!bHasTexCoord) {
+        texcoord = 0;
+    }
 
     if (bHasIndStage) {
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
@@ -610,11 +627,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
                 WRITE(p, "float2 indtevtrans%d = float2(dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
                     n, mtxidx, n, mtxidx+1, n);
             }
-            else if (bpmem.tevind[n].mid <= 5) { // s matrix
+            else if (bpmem.tevind[n].mid <= 5 && bHasTexCoord) { // s matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-5);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
             }
-            else if (bpmem.tevind[n].mid <= 9) { // t matrix
+            else if (bpmem.tevind[n].mid <= 9 && bHasTexCoord) { // t matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-9);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
@@ -714,7 +731,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         if(!bHasIndStage) {
             // calc tevcord
             //tevcoord.xy = texdim[1].xy * uv1.xy / uv1.z;
-            if(bpmem.genMode.numtexgens) {
+            if(bHasTexCoord) {
                 if (texture_mask & (1<<texmap)) {
                     // nonpow2
                     if (texfun == XF_TEXPROJ_STQ )
