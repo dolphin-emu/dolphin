@@ -148,16 +148,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_PadSimpleEvnt", "Plu
 		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common Libraries", "Common Libraries", "{41F374C8-164C-454C-AB8F-0FA601A8614C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core Libraries", "Core Libraries", "{981C3994-193D-4989-AF70-EBD4063A3E25}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External Libraries", "External Libraries", "{6B44F38A-3F29-408D-B12D-B9BB87E7ACD5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{2EB92F57-3588-464D-BE8F-4A5F008DB2CC}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User Interface", "User Interface", "{3502F494-B3D0-4695-814E-F79BFF467CFC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
