@@ -152,16 +152,14 @@ if not env['verbose']:
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
     compileFlags.append('-g')
-    cppDefines.append('LOGGING')
-    cppDefines.append('_DEBUG')
+    cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
     cppDefines.append('NDEBUG') 
 elif (flavour == 'devel'):
     compileFlags.append('-g')
-    cppDefines.append('DEBUGFAST')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
-    cppDefines.append('LOGGING')
+    cppDefines.append('DEBUGFAST')
 elif (flavour == 'prof'):
     compileFlags.append('-O3')
     compileFlags.append('-g')
