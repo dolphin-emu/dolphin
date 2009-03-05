@@ -76,7 +76,6 @@
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "Thread.h"
 #include "Timer.h"
-#include "../SmartFrameLimiter.h"
 
 /////////////////////////////
 
