@@ -170,7 +170,7 @@ void Config::Load(bool ChangePad)
 
 		/* Prevent a crash from illegal access to joyinfo that will only have values for
 		   the current amount of connected PadMapping */
-		if(unsigned int(WiiMoteEmu::PadMapping[i].ID) >= WiiMoteEmu::joyinfo.size()) continue;
+		if((u32)WiiMoteEmu::PadMapping[i].ID >= WiiMoteEmu::joyinfo.size()) continue;
 
 		// Create a section name			
 		SectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
@@ -313,7 +313,7 @@ void Config::Save(int Slot)
 
 		/* Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
 		   avoid reading a joyinfo that does't exist */
-		if(unsigned int(WiiMoteEmu::PadMapping[i].ID) >= WiiMoteEmu::joyinfo.size()) continue;
+		if((u32)WiiMoteEmu::PadMapping[i].ID >= WiiMoteEmu::joyinfo.size()) continue;
 
 		// Create a new section name after the joypad name
 		SectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;

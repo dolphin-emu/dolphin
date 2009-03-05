@@ -264,13 +264,13 @@ void LoadRecordedMovements()
 		VRecording.at(i).IRBytes = TmpIRBytes;
 
 		SRecording Tmp;
-		for (int j = 0, k = 0, l = 0; unsigned int(j) < TmpMovement.length(); j+=13)
+		for (int j = 0, k = 0, l = 0; (u32)j < TmpMovement.length(); j+=13)
 		{
 			// Skip blank savings
 			if (TmpMovement.length() < 3) continue;
 
 			// Avoid going to far, this can only happen with modified ini files, but we check for it anyway
-			if (TmpMovement.length() < unsigned int(j + 12)) continue;
+			if (TmpMovement.length() < (u32)j + 12) continue;
 
 			// Skip old style recordings
 			if (TmpMovement.substr(j, 1) != "-" && TmpMovement.substr(j, 1) != "+") continue;
@@ -290,7 +290,7 @@ void LoadRecordedMovements()
 			if (TmpIRBytes == 0) for(int i = 0; i < 12; i++) Tmp.IR[i] = 0;
 			for(int ii = 0; ii < TmpIRBytes; ii++)
 			{
-				if(TmpIR.length() < unsigned int((k + i + TmpIRBytes))) continue; // Safety check
+				if(TmpIR.length() < (u32)(k + i + TmpIRBytes)) continue; // Safety check
 				std::string TmpStr = TmpIR.substr(k + ii*2, 2);
 				u32 TmpU32;
 				AsciiToHex(TmpStr.c_str(), TmpU32);
@@ -526,7 +526,7 @@ void Shutdown(void)
 	   vector elements or any bad devices */
 	for (int i = 0; i < 1; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > unsigned int(PadMapping[i].ID))
+		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 			{
 				Console::Print("ShutDown: %i\n", PadState[i].joy);
@@ -731,7 +731,7 @@ void Update()
 		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
 		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
 		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
-		&& NumGoodPads > 0 && joyinfo.size() > unsigned int(PadMapping[0].ID))
+		&& NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
 	{
 		const int Page = 0;
 		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);

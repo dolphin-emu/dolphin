@@ -34,7 +34,7 @@ CDolLoader::CDolLoader(const char* _szFilename)
 	u8* tmpBuffer = new u8[(size_t)size];
 
 	FILE* pStream = fopen(_szFilename, "rb");	
-	fread(tmpBuffer, size_t(size), 1, pStream);
+	fread(tmpBuffer, (size_t)size, 1, pStream);
 	fclose(pStream);
 
 	m_bInit = Initialize(tmpBuffer, (u32)size);

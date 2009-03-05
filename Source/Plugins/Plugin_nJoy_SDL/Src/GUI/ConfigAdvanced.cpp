@@ -256,7 +256,7 @@ void ConfigBox::Update()
 	   is not update when the emulator is paused. */
 	if (g_Config.bCheckFocus || IsFocus()) // && !g_EmulatorRunning)
 	{
-		for (int i = 0; unsigned int(i) < joyinfo.size(); i++)
+		for (int i = 0; (u32)i < joyinfo.size(); i++)
 			InputCommon::GetJoyState(PadState[i], PadMapping[i], i, joyinfo[PadMapping[i].ID].NumButtons);
 	}
 
