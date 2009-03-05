@@ -581,7 +581,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
     int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
     int texfun = xfregs.texcoords[texcoord].texmtxinfo.projection;
-    bool bHasTexCoord = texcoord < bpmem.genMode.numtexgens;
+    bool bHasTexCoord = unsigned int(texcoord) < bpmem.genMode.numtexgens;
     bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
 
     // HACK to handle cases where the tex gen is not enabled

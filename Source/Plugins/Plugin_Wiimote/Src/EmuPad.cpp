@@ -65,7 +65,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 1; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+		if (PadMapping[i].enabled && joyinfo.size() > unsigned int (PadMapping[i].ID))
 			if(joyinfo.at(PadMapping[i].ID).Good)
 				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}

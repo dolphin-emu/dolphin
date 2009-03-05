@@ -386,7 +386,7 @@ void ConfigBox::SetButtonTextAll(int id, char text[128])
 	for (int i = 0; i < 4; i++)
 	{
 		// Safety check to avoid crash
-		if(joyinfo.size() > PadMapping[i].ID)
+		if(joyinfo.size() > unsigned int(PadMapping[i].ID))
 			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
 				SetButtonText(id, text, i);
 	};
@@ -397,7 +397,7 @@ void ConfigBox::SaveButtonMappingAll(int Slot)
 	for (int i = 0; i < 4; i++)
 	{
 		// This can occur when no gamepad is detected
-		if(joyinfo.size() > PadMapping[i].ID)
+		if(joyinfo.size() > unsigned int(PadMapping[i].ID))
 			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
 				SaveButtonMapping(i, false, Slot);
 	}
@@ -414,7 +414,7 @@ void ConfigBox::UpdateGUIAll(int Slot)
 		for (int i = 0; i < 4; i++)
 		{
 			// Safety check to avoid crash
-			if(joyinfo.size() > PadMapping[i].ID)
+			if(joyinfo.size() > unsigned int(PadMapping[i].ID))
 				if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
 					UpdateGUI(i);
 		}
@@ -660,7 +660,7 @@ void ConfigBox::CreateGUIControls()
 	wxArrayString arrayStringFor_Joyname; // The string array
 	if(NumGoodPads > 0)
 	{
-		for(int x = 0; x < joyinfo.size(); x++)
+		for(int x = 0; unsigned int(x) < joyinfo.size(); x++)
 		{
 			arrayStringFor_Joyname.Add(wxString::FromAscii(joyinfo[x].Name.c_str()));
 		}

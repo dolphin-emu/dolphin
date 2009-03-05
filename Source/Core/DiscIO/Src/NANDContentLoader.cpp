@@ -106,8 +106,8 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         return false;
 	}
     u64 Size = File::GetSize(TMDFileName.c_str());
-    u8* pTMD = new u8[Size];
-    fread(pTMD, Size, 1, pTMDFile);
+    u8* pTMD = new u8[unsigned int(Size)];
+    fread(pTMD, size_t(Size), 1, pTMDFile);
     fclose(pTMDFile);
 
     ////// 
@@ -135,11 +135,11 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         if (pFile != NULL)
         {
             u64 Size = File::GetSize(szFilename);
-            rContent.m_pData = new u8[Size];
+            rContent.m_pData = new u8[unsigned int(Size)];
 
             _dbg_assert_msg_(BOOT, rContent.m_Size==Size, "TMDLoader: Filesize doesnt fit (%s %i)", szFilename, i);
 
-            fread(rContent.m_pData, Size, 1, pFile);
+            fread(rContent.m_pData, size_t(Size), 1, pFile);
             fclose(pFile);
         } else {
 			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 

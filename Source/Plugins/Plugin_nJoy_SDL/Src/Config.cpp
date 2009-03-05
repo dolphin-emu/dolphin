@@ -141,7 +141,7 @@ void Config::Save(int Slot)
 		{
 			/* Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
 			   avoid reading a joyinfo that does't exist */
-			if(PadMapping[i].ID >= joyinfo.size()) continue;
+			if(unsigned int(PadMapping[i].ID) >= joyinfo.size()) continue;
 
 			// Create a new section name after the joypad name
 			SectionName = joyinfo[PadMapping[i].ID].Name;
@@ -234,7 +234,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		{
 			/* Prevent a crash from illegal access to joyinfo that will only have values for
 			   the current amount of connected pads */
-			if(PadMapping[i].ID >= joyinfo.size()) continue;
+			if(unsigned int(PadMapping[i].ID) >= joyinfo.size()) continue;
 
 			// Create a section name			
 			SectionName = joyinfo[PadMapping[i].ID].Name;

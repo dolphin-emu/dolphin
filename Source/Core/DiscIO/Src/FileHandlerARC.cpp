@@ -35,7 +35,7 @@ CARCFile::CARCFile(const std::string& _rFilename)
     if (pReader != NULL)
     {
         u64 FileSize = pReader->GetDataSize();
-        m_pBuffer = new u8[FileSize];
+        m_pBuffer = new u8[unsigned int(FileSize)];
         pReader->Read(0, FileSize, m_pBuffer);
         delete pReader;
 
