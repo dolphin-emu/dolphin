@@ -8,8 +8,8 @@ EventHandler *EventHandler::m_Instance = 0;
 
 EventHandler::EventHandler() {
     for (int i=0; i<NUMKEYS; i++)
-	for (int j=0; j<NUMMODS; j++)
-	    keys[i][j] = NULL;
+		for (int j=0; j<NUMMODS; j++)
+			keys[i][j] = NULL;
     //    memset(keys, sizeof(listenFuncPtr) * NUMKEYS*NUMMODS, 0);
     memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
     memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);

@@ -83,10 +83,10 @@ enum LOG_LEVELS {
 #endif // loglevel
 #endif // logging
 
-#define ERROR_LOG(...) 
-#define WARN_LOG(...)
-#define INFO_LOG(...)
-#define DEBUG_LOG(...)
+#define ERROR_LOG(...) {}
+#define WARN_LOG(...) {}
+#define INFO_LOG(...) {}
+#define DEBUG_LOG(...) {}
 
 extern void __Log(int logNumber, const char* text, ...);
 

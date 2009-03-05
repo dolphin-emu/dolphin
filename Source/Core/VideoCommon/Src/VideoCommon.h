@@ -97,7 +97,13 @@ inline float Memory_Read_Float(u32 _uAddress)
 
 struct TRectangle
 { 
-	int left, top, right, bottom;
+	int left;
+	int top;
+	int right;
+	int bottom;
+
+	int GetWidth()  const { return right - left; }
+	int GetHeight() const { return bottom - top; }
 };
 
 // Logging

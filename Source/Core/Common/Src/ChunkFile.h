@@ -157,8 +157,8 @@ public:
 			return false;
 		}
 
-		FILE* pFile;
-		if (! (pFile  = fopen(_rFilename.c_str(), "rb"))) { 
+		FILE* pFile = fopen(_rFilename.c_str(), "rb");
+		if (!pFile) { 
 			ERROR_LOG(COMMON,"ChunkReader: Can't open file for reading");
 			return false;
 		}
@@ -219,8 +219,8 @@ public:
 		FILE* pFile;
 
 		INFO_LOG(COMMON, "ChunkReader: Writing %s" , _rFilename.c_str());
-		
-		if (! (pFile = fopen(_rFilename.c_str(), "wb"))) {
+		pFile = fopen(_rFilename.c_str(), "wb");
+		if (!pFile) {
 			ERROR_LOG(COMMON,"ChunkReader: Error opening file for write");
 			return false;
 		}

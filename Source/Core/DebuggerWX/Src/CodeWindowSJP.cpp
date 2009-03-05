@@ -206,7 +206,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                 bool started = false;
                 while (!feof(f))
                 {
-                    char line[512], temp[256];
+                    char line[512];
                     fgets(line, 511, f);
                     if (strlen(line) < 4)
                         continue;

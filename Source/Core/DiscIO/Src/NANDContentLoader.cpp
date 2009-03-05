@@ -144,7 +144,6 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         } else {
 			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
 					  szFilename);
-
 		}
     }
 
