@@ -51,6 +51,7 @@ files = ["Console.cpp",
          "HW/SI.cpp",
          "HW/SI_Device.cpp",
          "HW/SI_DeviceGBA.cpp",
+         "HW/GBAPipe.cpp", # TEMPORARY
          "HW/SI_DeviceGCController.cpp",
          "HW/StreamADPCM.cpp",
          "HW/SystemTimers.cpp",

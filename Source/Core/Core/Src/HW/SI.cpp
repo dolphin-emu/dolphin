@@ -533,9 +533,9 @@ void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
 	// doubt this matters...
-// 	g_Channel[channel].m_Out.Hex = 0;
-// 	g_Channel[channel].m_InHi.Hex = 0;
-// 	g_Channel[channel].m_InLo.Hex = 0;
+	g_Channel[channel].m_Out.Hex = 0;
+	g_Channel[channel].m_InHi.Hex = 0;
+	g_Channel[channel].m_InLo.Hex = 0;
 
 	// raise the NO RESPONSE error
 	switch (channel)

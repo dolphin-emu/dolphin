@@ -35,19 +35,27 @@ private:
 		CMD_READ		= 0x14
 	};
 
-	struct FAKE_JOYSTAT
+	union FAKE_JOYSTAT
 	{
-		unsigned unused		: 1;
-		unsigned stat_rec	: 1;
-		unsigned unused2	: 1;
-		unsigned stat_send	: 1;
-		unsigned genpurpose	: 2;
-		unsigned unused3	:10;
+		u16 U16;
+		struct{
+			unsigned			:1;
+			unsigned stat_rec	:1; // GBA-side reception status flag
+			unsigned			:1;
+			unsigned stat_send	:1; // GBA-side transmission status flag
+			unsigned gp0		:1; // General-purpose flag 0
+			unsigned gp1		:1; // General-purpose flag 1
+			unsigned			:2;
+
+			unsigned			:8;
+		};
 	};
+	FAKE_JOYSTAT js;
 	//////////////////////////////////////////////////////////////////////////
 	//0x4000158 - JOYSTAT - Receive Status Register (R/W) (ON THE GBA)
 	//////////////////////////////////////////////////////////////////////////
-	// NOTE: I am guessing that JOYSTAT == SIOSTAT, may be wrong
+	// NOTE: there is a typo in GBATEK!
+	// in the JOY BUS command descriptions, SIOSTAT==JOYSTAT
 	//Bit   Expl.
 	//0     Not used
 	//1     Receive Status Flag   (0=Remote GBA is/was receiving) (Read Only?)
@@ -65,6 +73,9 @@ public:
 
 	// Constructor
 	CSIDevice_GBA(int _iDeviceNumber);
+
+	// Destructor
+	~CSIDevice_GBA();
 
 	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
