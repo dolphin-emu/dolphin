@@ -69,7 +69,7 @@ void VertexShaderManager::Shutdown()
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
+void VertexShaderManager::SetConstants(bool proj_hax_1)
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
@@ -213,20 +213,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-
-			//---------Projection[11]---------
-			// No hacks
-			if ((!proj_hax_1 && !proj_hax_2) || (proj_hax_1 && proj_hax_2))
-				g_fProjectionMatrix[11] = xfregs.rawProjection[5];
-
-			// Before R945 Hack
-			if (proj_hax_1 && !proj_hax_2)
-				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
-
-			// R844 Hack
-			//if (!proj_hax_1 && proj_hax_2)
-			//	g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
-			//--------------------------------
+			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
  			
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -266,21 +253,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1, bool proj_hax_2)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			
-			//---------Projection[11]---------
-			// No hacks
-			if ((!proj_hax_1 && !proj_hax_2) || (proj_hax_1 && proj_hax_2))
-				g_fProjectionMatrix[11] = xfregs.rawProjection[5] + 0.1f;
-
-			// Before R945 Hack
-			if (proj_hax_1 && !proj_hax_2)
-				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
-
-			// R844 Hack
-			if (!proj_hax_1 && proj_hax_2)
-				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
-
-			//--------------------------------
+			g_fProjectionMatrix[11] = xfregs.rawProjection[5] + (proj_hax_1 ? 0.1f : 0.0f);
 
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;

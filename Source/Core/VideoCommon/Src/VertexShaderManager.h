@@ -28,7 +28,7 @@ public:
     static void Shutdown();
 
     // constant management
-	static void SetConstants(bool proj_hax_1, bool proj_hax_2);
+	static void SetConstants(bool proj_hax_1);
 
     static void SetViewport(float* _Viewport);
     static void SetViewportChanged();

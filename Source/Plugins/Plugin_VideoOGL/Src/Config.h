@@ -75,7 +75,6 @@ struct Config
     bool bEFBCopyDisable;
     bool bEFBCopyDisableHotKey;
     bool bProjectionHax1;
-    bool bProjectionHax2;
 	bool bCopyEFBToRAM;
     bool bSafeTextureCache;
 

@@ -189,7 +189,7 @@ void Flush()
 			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);  // TODO(ector): only do this if shader has changed
 	
 			// set global constants
-			VertexShaderManager::SetConstants(false,false);
+			VertexShaderManager::SetConstants(false);
 			PixelShaderManager::SetConstants();
 
 			int stride = g_nativeVertexFmt->GetVertexStride();

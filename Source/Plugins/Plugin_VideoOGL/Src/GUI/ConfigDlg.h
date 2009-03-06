@@ -109,7 +109,6 @@ class ConfigDialog : public wxDialog
 		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_EFBCopyDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
-		wxCheckBox *m_ProjectionHax2;
 		wxCheckBox *m_SafeTextureCache;
 		// Screen size
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
@@ -164,7 +163,6 @@ class ConfigDialog : public wxDialog
 			ID_CHECKBOX_DISABLECOPYEFB, 
 			ID_EFBCOPYDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
-			ID_PROJECTIONHACK2,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,
 		};
