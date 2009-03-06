@@ -43,7 +43,7 @@ class TextureCache
 			isRenderTarget=0;
 			hash=0;
 		}
-		void Destroy();
+		void Destroy(bool shutdown);
 	};
 
 
@@ -56,7 +56,7 @@ public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
-	static void Invalidate();
+	static void Invalidate(bool shutdown);
 	static void Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
 	static void CopyEFBToRenderTarget(u32 address, RECT *source);
 };

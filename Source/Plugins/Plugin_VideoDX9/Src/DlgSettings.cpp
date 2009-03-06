@@ -219,6 +219,6 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||
 		((g_Config.bTexFmtOverlayEnable) && ( tfoc != g_Config.bTexFmtOverlayCenter)))
 	{
-		TextureCache::Invalidate();
+		TextureCache::Invalidate(false);
 	}
 }

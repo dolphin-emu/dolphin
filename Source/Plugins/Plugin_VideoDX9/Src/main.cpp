@@ -192,7 +192,7 @@ void Initialize(void *init)
 
 void DoState(unsigned char **ptr, int mode) {
 	// Clear all caches
-	TextureCache::Invalidate();
+	TextureCache::Invalidate(false);
 
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
