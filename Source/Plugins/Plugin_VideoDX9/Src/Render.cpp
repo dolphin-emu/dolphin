@@ -456,6 +456,9 @@ void Renderer::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Va
 // Called from VertexShaderManager
 void UpdateViewport()
 {
+	// HACK: Update viewport causes overlay to disappear and the games to move to the 
+	// bottom of the screen for some reason.
+	return;
     // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
     // [0] = width/2
     // [1] = height/2
