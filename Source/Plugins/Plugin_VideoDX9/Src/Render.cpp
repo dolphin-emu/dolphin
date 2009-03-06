@@ -476,12 +476,14 @@ void UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 	float fourThree = 4.0f / 3.0f;
-	float wAdj, hAdj;
-	float actualRatiow, actualRatioh;
-	int overfl;
+	// These were commented out to fix "unreferenced local variable" compiler warnings.
+	// float wAdj, hAdj;
+	// float actualRatiow, actualRatioh;
+	// int overfl;
+	// int actualWid, actualHei;
 	int xoffs = 0;
 	int yoffs = 0;
-	int wid, hei, actualWid, actualHei;
+	int wid, hei;
 
 	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2])/16777215.0f;
 	vp.MaxZ = xfregs.rawViewport[5]/16777215.0f;
