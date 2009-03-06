@@ -52,7 +52,9 @@ namespace EmuWindow
 			break;
 
 		case WM_CLOSE:
-			exit(0);
+			Shutdown();
+			// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
+			ExitProcess(0);
 			return 0;
 
 		case WM_DESTROY:
