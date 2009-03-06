@@ -768,7 +768,7 @@ void Renderer::SetRenderMode(RenderMode mode)
     }
     else if (s_RenderMode == RM_Normal) {
         // setup buffers
-        _assert_(GetZBufferTarget() && bpmem.zmode.updateenable);
+        _assert_(GetFakeZTarget() && bpmem.zmode.updateenable);
         if (mode == RM_ZBufferAlpha) {
             glEnable(GL_STENCIL_TEST);
             glClearStencil(0);
@@ -782,7 +782,7 @@ void Renderer::SetRenderMode(RenderMode mode)
         GL_REPORT_ERRORD();
     }
     else {
-        _assert_(GetZBufferTarget());
+        _assert_(GetFakeZTarget());
         _assert_(s_bHaveStencilBuffer);
 
         if (mode == RM_ZBufferOnly) {
@@ -892,32 +892,15 @@ void Renderer::Swap(const TRectangle& rc)
 
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
-	// Blit the FBO to do Anti-Aliasing
-	// Not working?
-//	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
-//	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-//	glBlitFramebufferEXT(0, 0, 640, 480, 0, 0, OpenGL_GetWidth(), OpenGL_GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-//	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
-
-	// render to the real buffer now 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
-
     ResetGLState();
-
-    // Texture map s_RenderTargets[s_curtarget] onto the main buffer
-    glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
-	// Use linear filtering.
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    TextureMngr::EnableTexRECT(0);
-    
-	// Disable all other stages.
-    for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
 
 	TRectangle back_rc;
 	ComputeBackbufferRectangle(&back_rc);
+
+
+	// Disable all other stages.
+    for (int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
 
 	// Update GLViewPort
 	glViewport(back_rc.left, back_rc.top,
@@ -928,6 +911,27 @@ void Renderer::Swap(const TRectangle& rc)
 	// Copy the framebuffer to screen.
 	// TODO: Use glBlitFramebufferEXT.
 	
+#if 0
+	// Use framebuffer blit to stretch screen. No messing around with annoying glBegin and viewports.
+	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
+	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+	glBlitFramebufferEXT(0, GetTargetHeight() - (rc.bottom - rc.top), rc.GetWidth(), rc.GetHeight(),
+		                 back_rc.left, back_rc.top, back_rc.GetWidth(), back_rc.GetHeight(),
+						 GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+	//glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
+#else
+	// Render to the real buffer now.
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+
+    // Texture map s_RenderTargets[s_curtarget] onto the main buffer
+    glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+	// Use linear filtering.
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    TextureMngr::EnableTexRECT(0);
+    
 	float u_max;
 	float v_min = 0.f;
 	float v_max;
@@ -946,6 +950,7 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
 		glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
 	glEnd();
+#endif
 
 	// Restore filtering.
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -958,7 +963,6 @@ void Renderer::Swap(const TRectangle& rc)
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
 	// -------------------------------------
-
 	// Take screenshot, if requested
 	if (s_bScreenshot) {
 		s_criticalScreenshot.Enter();
