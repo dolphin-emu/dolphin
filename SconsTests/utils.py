@@ -116,9 +116,10 @@ def CheckSDL(context, version):
         return int(ret)
     
 def CheckPortaudio(context, version):
-    context.Message( 'Checking for lib portaudio version > %s... ' % version)
-    context.env.Append(LIBS = 'portaudio')
-    found  = context.TryRun("""
+    found = 0
+    if CheckPKG(context, 'portaudio'):
+        context.Message( 'Checking for lib portaudio version > %s... ' % version)
+        found  = context.TryRun("""
               #include <portaudio.h>
               #include <stdio.h>
               int main(int argc, char **argv) {
