@@ -1086,7 +1086,7 @@ void Renderer::SwapBuffers()
     if (timeGetTime() - lasttime > 1000) 
     {
         lasttime = timeGetTime();
-        s_fps = fpscount;
+        s_fps = (fpscount-1);
         fpscount = 0;
     }
 
