@@ -693,7 +693,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	if(g_Config.bDumpEFBTarget)
 	{
-		SaveTexture(StringFromFormat("%s/efb_frame.tga", FULL_DUMP_TEXTURES_DIR).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
+		static int count = 0;
+		SaveTexture(StringFromFormat("%s/efb_frame_%i.tga", FULL_DUMP_TEXTURES_DIR, count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
 		//TODO: Fix this
 		//SaveTexture(StringFromFormat("%s/efb_tex.tga", FULL_DUMP_TEXTURES_DIR).c_str(), GL_TEXTURE_RECTANGLE_ARB, 
 		//	bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect), 
