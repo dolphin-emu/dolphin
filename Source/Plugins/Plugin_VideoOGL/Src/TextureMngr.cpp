@@ -81,7 +81,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 {
 	std::vector<u32> data(width * height);
     glBindTexture(textarget, tex);
-    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_INT, &data[0]);
+    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
     GLenum err;
     GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
