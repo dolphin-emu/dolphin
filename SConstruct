@@ -87,6 +87,11 @@ if sys.platform == 'darwin':
     builders['Plist'] = Builder(action = createPlist)
     compileFlags += [ '-I/opt/local/include' ]
 
+if sys.platform == 'win32':
+    env_home = os.environ['USERPROFILE']
+else:
+    env_home = os.environ['HOME']
+
 lib_paths = include_paths
 
 # handle command line options
@@ -122,7 +127,7 @@ env = Environment(
     variables = vars,
     ENV = {
         'PATH' : os.environ['PATH'],
-        'HOME' : os.environ['HOME']
+        'HOME' : env_home
         },
     BUILDERS = builders,
     DESCRIPTION = description,
