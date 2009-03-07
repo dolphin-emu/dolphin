@@ -240,7 +240,7 @@ void Shutdown()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	WARN_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
+	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
