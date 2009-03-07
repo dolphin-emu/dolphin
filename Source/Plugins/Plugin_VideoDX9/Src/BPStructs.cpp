@@ -726,23 +726,3 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 	}
 }
-
-void ActivateTextures()
-{
-	for (int i = 0; i < 8; i++)
-	{
-		//TODO(ector): this should be a speedup
-		//if (textureChanged[i] || ASK TEXCACHE ABOUT SENTINEL VALUE)
-		{
-			FourTexUnits &tex = bpmem.tex[i>>2];
-			TextureCache::Load(i,
-				(tex.texImage3[i&3].image_base) << 5,
-				tex.texImage0[i&3].width+1,
-				tex.texImage0[i&3].height+1,
-				tex.texImage0[i&3].format,
-				tex.texTlut[i&3].tmem_offset<<9,
-				tex.texTlut[i&3].tlut_format);	
-		}
-		textureChanged[i] = false;
-	}
-}

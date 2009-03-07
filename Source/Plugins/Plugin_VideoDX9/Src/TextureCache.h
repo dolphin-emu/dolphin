@@ -22,9 +22,11 @@
 #include <map>
 
 #include "D3DBase.h"
+#include "BPMemory.h"
 
 class TextureCache
 {
+public:
 	struct TCacheEntry
 	{
 		LPDIRECT3DTEXTURE9 texture;
@@ -37,6 +39,7 @@ class TextureCache
 		bool isNonPow2;
 		int frameCount;
 		int w,h,fmt;
+		TexMode0 mode; // current filter and clamp modes that texture is set to
 		TCacheEntry()
 		{
 			texture=0;
@@ -46,6 +49,7 @@ class TextureCache
 		void Destroy(bool shutdown);
 	};
 
+private:
 
 	typedef std::map<u32,TCacheEntry> TexCache;
 
@@ -57,7 +61,7 @@ public:
 	static void Cleanup();
 	static void Shutdown();
 	static void Invalidate(bool shutdown);
-	static void Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
+	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
 	static void CopyEFBToRenderTarget(u32 address, RECT *source);
 };
 

@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "Statistics.h"
+#include "MemoryUtil.h"
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
@@ -37,6 +38,7 @@ TextureCache::TexCache TextureCache::textures;
 extern int frameCount;
 
 #define TEMP_SIZE (1024*1024*4)
+#define TEXTURE_KILL_THRESHOLD 200
 
 void TextureCache::TCacheEntry::Destroy(bool shutdown)
 {
@@ -45,35 +47,30 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 	texture = 0;
 	if (!isRenderTarget && !shutdown) {
 		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
-		if (*ptr == hash)
+		if (ptr && *ptr == hash)
 			*ptr = oldpixel;
 	}
 }
 
 void TextureCache::Init()
 {
-	temp = (u8*)VirtualAlloc(0,TEMP_SIZE,MEM_COMMIT,PAGE_READWRITE);  	
+	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Invalidate(bool shutdown)
 {
-	TexCache::iterator iter = textures.begin();
-	for (; iter != textures.end(); iter++)
+	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
 		iter->second.Destroy(shutdown);
 	textures.clear();
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Shutdown()
 {
 	Invalidate(true);
 
-	if (temp != NULL)
-	{
-		VirtualFree(temp, 0, MEM_RELEASE);	
-		temp = NULL;
-	}
+	FreeMemoryPages(temp, TEMP_SIZE);	
+	temp = NULL;
 }
 
 void TextureCache::Cleanup()
@@ -82,7 +79,7 @@ void TextureCache::Cleanup()
 
 	while(iter != textures.end())
 	{
-		if (frameCount>20+iter->second.frameCount)
+		if (frameCount> TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
 			if (!iter->second.isRenderTarget)
 			{
@@ -91,7 +88,9 @@ void TextureCache::Cleanup()
 			}
 			else
 			{
-				iter++;
+				// Used to be just iter++
+				iter->second.Destroy(false);
+				iter = textures.erase(iter);
 			}
 		}
 		else
@@ -101,10 +100,10 @@ void TextureCache::Cleanup()
 	}
 }
 
-void TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
+TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
 	if (address == 0)
-		return;
+		return NULL;
 	TexCache::iterator iter = textures.find(address);
 	
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
@@ -129,27 +128,30 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 
 	static LPDIRECT3DTEXTURE9 lastTexture[8] = {0,0,0,0,0,0,0,0};
 
+	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
+	int expandedWidth = (width+bs) & (~bs);
+	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+
 	if (iter != textures.end())
 	{
 		TCacheEntry &entry = iter->second;
 
-		if (entry.isRenderTarget || (((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash)) //stupid, improve
+		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
-			iter->second.frameCount = frameCount;
-			if (lastTexture[stage] == iter->second.texture)
+			entry.frameCount = frameCount;
+			if (lastTexture[stage] == entry.texture)
 			{
-				return;
+				return &entry;
 			}
-			lastTexture[stage] = iter->second.texture;
+			lastTexture[stage] = entry.texture;
 			
 			// D3D::dev->SetTexture(stage,iter->second.texture);
-			Renderer::SetTexture( stage, iter->second.texture );
+			Renderer::SetTexture( stage, entry.texture );
 
-			return;
+			return &entry;
 		}
 		else
 		{
-			TCacheEntry &entry = iter->second;
 /*			if (width == iter->second.w && height==entry.h && format==entry.fmt)
 			{
 				LPDIRECT3DTEXTURE9 tex = entry.texture;
@@ -162,14 +164,12 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 			}
 			else
 			{*/
-				iter->second.Destroy(false);
+				entry.Destroy(false);
 				textures.erase(iter);
 			//}
 		}
 	}
 	
-	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
-	int expandedWidth = (width+bs) & (~bs);
 	PC_TexFormat pcfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
@@ -196,22 +196,24 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 	}
 
 	//Make an entry in the table
-	TCacheEntry entry;
+	TCacheEntry& entry = textures[address];
+
 	entry.hashoffset = 0; 
-	entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
+	entry.hash = hash_value;
+	//entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	entry.paletteHash = palhash;
 	entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
-	((u32 *)ptr)[entry.hashoffset] = entry.hash;
+	//((u32 *)ptr)[entry.hashoffset] = entry.hash;
 
 	entry.addr = address;
-	entry.isRenderTarget=false;
-	entry.isNonPow2 = ((width&(width-1)) || (height&(height-1)));
+	entry.isRenderTarget = false;
+	entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
 	entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt);
 	entry.frameCount = frameCount;
-	entry.w=width;
-	entry.h=height;
-	entry.fmt=format;
-	textures[address] = entry;
+	entry.w = width;
+	entry.h = height;
+	entry.fmt = format;
+	entry.mode = bpmem.tex[stage > 3].texMode0[stage & 3];
 	
 	if (g_Config.bDumpTextures)
 	{ // dump texture to file
@@ -230,6 +232,8 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 	Renderer::SetTexture( stage, entry.texture );
 
 	lastTexture[stage] = entry.texture;
+
+	return &entry;
 }
  
 
