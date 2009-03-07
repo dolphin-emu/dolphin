@@ -339,11 +339,17 @@ CFrame::CFrame(wxFrame* parent,
 			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
 
 	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
-	sizerPanel->Add(m_GameListCtrl, 2, wxEXPAND);
+	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
+
+	sizerFrame = new wxBoxSizer(wxHORIZONTAL);
+	sizerFrame->Add(m_Panel, 1, wxEXPAND | wxALL);
+	this->SetSizer(sizerFrame);
 
 	// Create the toolbar
 	RecreateToolbar();
+
+	FitInside();
 
 	Show(); // Show the window
 
@@ -508,7 +514,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 
 
 // Returns a timestamp with decimals for precise time comparisons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
 double GetDoubleTime()
 {
 	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
@@ -529,7 +535,7 @@ double GetDoubleTime()
 
 
 // Detect double click. Kind of, for some reason we have to manually create the double click for now.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
 void CFrame::OnDoubleClick(wxMouseEvent& event)
 {
 	 // Don't block the mouse click
@@ -574,7 +580,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 
 
 // Check for mouse motion. Here we process the bHideCursor setting.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
 void CFrame::OnMotion(wxMouseEvent& event)
 {
 	event.Skip();
@@ -629,7 +635,7 @@ void CFrame::OnMotion(wxMouseEvent& event)
 }
 
 // Check for mouse status a couple of times per second for the auto hide option
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
 #if wxUSE_TIMER
 void CFrame::Update()
 {

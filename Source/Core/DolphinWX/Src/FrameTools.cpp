@@ -837,6 +837,7 @@ void CFrame::UpdateGUI()
 	}
 
 	TheToolBar->Realize();
+	FitInside();
 }
 
 

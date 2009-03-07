@@ -93,6 +93,7 @@ class CFrame : public wxFrame
 	private:
 
 		wxBoxSizer* sizerPanel;
+		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 		wxToolBar* TheToolBar;
