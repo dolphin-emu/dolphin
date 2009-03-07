@@ -21,6 +21,8 @@
 #include "Common.h"
 #include "../../../Core/Src/HW/Sram.h"
 #include "StringUtil.h"
+#include "../../../Core/Src/HW/EXI_DeviceIPL.h"
+
 #define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
 #define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
@@ -162,8 +164,7 @@ public:
 
 	bool IsOpen();
 	bool Save();
-	bool format(bool New);
-	bool formatWIP(int slot, bool New, bool sjis);
+	bool Format(bool New = true, int slot = 0, bool sjis = false, bool hdrOnly = false);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();

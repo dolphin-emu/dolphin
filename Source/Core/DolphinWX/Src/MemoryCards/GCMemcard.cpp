@@ -83,8 +83,7 @@ GCMemcard::GCMemcard(const char *filename)
 			return;
 		}
 		mcdFile = mcd;
-		format(true);
-		//formatWIP(0,true,false);
+		Format();
 		fclose(mcd);
 		mcd = fopen(filename, "r+b");
 	}
@@ -577,7 +576,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	int totalspace = (((u32)BE16(hdr.Size) * 16) - 5);
 	int firstFree1 = BE16(bat.LastAllocated) + 1;
 	int firstFree2 = 0;
-	for (int i = 0; i < 126; i++)
+	for (int i = 0; i < DIRLEN; i++)
 	{
 		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
@@ -1074,89 +1073,9 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
-bool GCMemcard::format(bool New)
+bool GCMemcard::Format( bool New, int slot, bool sjis, bool hdrOnly)
 {
-	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
-	if (New)
-	{
-		mc_data_size = data_size;
-		mc_data = new u8[mc_data_size];
-	}
-	// Only Format 16MB memcards for now
-	if (data_size != mc_data_size) return false;
-	// TODO:Once more is known about the header we can
-	// correct this function
-	memset(&hdr, 0xFF, 0x2000);
-	memset(&dir, 0xFF, 0x2000);
-	memset(&dir_backup, 0xFF, 0x2000);
-	memset(&bat, 0, 0x2000);
-	memset(&bat_backup, 0, 0x2000);
-	memset(mc_data, 0xFF, mc_data_size);
-	hdr.serial[0] = 0xE3;
-	hdr.serial[1] = 0x63;
-	hdr.serial[2] = 0x27;
-	hdr.serial[3] = 0xC1;
-	hdr.serial[4] = 0x6B;
-	hdr.serial[5] = 0x11;
-	hdr.serial[6] = 0xEC;
-	hdr.serial[7] = 0x47;
-	hdr.serial[8] = 0xF0;
-	hdr.serial[9] = 0x12;
-	hdr.serial[10] = 0x99;
-	hdr.serial[11] = 0x13;
-	hdr.fmtTime.low = 0x5CB62800;
-	hdr.fmtTime.high = 0xA665E7A3;
-	hdr.SramBias[3] = 0x40;
-	hdr.SramLang[0] = 0;
-	hdr.SramLang[1] = 0;
-	hdr.SramLang[2] = 0;
-	hdr.SramLang[3] = 0;
-	hdr.Unk2[0] = 0;
-	hdr.Unk2[1] = 0;
-	hdr.Unk2[2] = 0;
-	hdr.Unk2[3] = 0x01;
-	hdr.deviceID[0] = 0;
-	hdr.deviceID[1] = 0;
-	hdr.Size[0] = 0;
-	hdr.Size[1] = 0x80;
-	hdr.Encoding[0] = 0;
-	hdr.Encoding[1] = 0;
-	//hdr.CheckSum1[0] = 0xAA;
-	//hdr.CheckSum1[1] = 0x87;
-	//hdr.CheckSum2[0] = 0x54;
-	//hdr.CheckSum2[1] = 0x7B;
-	dir.UpdateCounter[0] = 0; 
-	dir.UpdateCounter[1] = 0;
-	//dir.CheckSum1[0] = 0xF0;
-	//dir.CheckSum1[1] = 0x03;
-	//dir.CheckSum2[0] = 0;
-	//dir.CheckSum2[1] = 0;
-	dir_backup.UpdateCounter[0] = 0; 
-	dir_backup.UpdateCounter[1] = 0x01;
-	//dir_backup.CheckSum1[0] = 0xF0;
-	//dir_backup.CheckSum1[1] = 0x04;
-	//dir_backup.CheckSum2[1] = 0xFE;
-	//bat.CheckSum1[0] = 0x07;
-	//bat.CheckSum1[1] = 0xFF;
-	//bat.CheckSum2[0] = 0xE8;
-	//bat.CheckSum2[1] = 0x03;
-	bat.FreeBlocks[0] = 0x07;
-	bat.FreeBlocks[1] = 0xFB;
-	bat.LastAllocated[1] = 0x04;
-	//bat_backup.CheckSum1[0] = 0x08;
-	//bat_backup.CheckSum2[0] = 0xE8;
-	//bat_backup.CheckSum2[1] = 0x02;
-	bat_backup.UpdateCounter[1] = 0x01;
-	bat_backup.FreeBlocks[0] = 0x07;
-	bat_backup.FreeBlocks[1] = 0xFB;
-	bat_backup.LastAllocated[1] = 0x04;
-	FixChecksums();
-	Save();
-	return true;
-}
-
-bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
-{
+	//Currently only formats cards for slot A
 	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
 	u16 size = (u16)(((data_size / 0x2000) + 5) / 0x10);
 	SRAM m_SRAM;
@@ -1168,52 +1087,55 @@ bool GCMemcard::formatWIP(int slot, bool New, bool sjis)
 		mc_data_size = data_size;
 		mc_data = new u8[mc_data_size];
 	}
+	// Only Format 16MB memcards for now
+	if (data_size != mc_data_size) return false;
 
 	pStream = fopen(GC_SRAM_FILE, "rb");
 	if (pStream == NULL)
 	{
+		PanicAlert("Could not open SRAM file");
 		return false;
 	}
 	fread(&m_SRAM, 1, 64, pStream);
 	fclose(pStream);
-// TODO: change this to whatever your target format is until this function works with any time
-	rand = time = 0XFAB12B2D9FD80700ULL;//gettime();
-	memset(&hdr, 0xFF, 0x2000);
-	u8 * flash_id = slot ? m_SRAM.syssram.flash_id_2 : m_SRAM.syssram.flash_id_1;
 
+	time = CEXIIPL::GetGCTime();
+	rand = Common::swap64(time);
+
+	memset(&hdr, 0xFF, 0x2000);
 	for(int i = 0; i < 12; i++)
 	{
-		rand = (((rand*(u64)0x0000000041c64e6dULL)+(u64)0x0000000000003039ULL)>>16);
-//	PanicAlert("%16x",rand);
-//	PanicAlert("m_SRAM.syssramex.flash_id %16x",(flash_id[i]));
-//	PanicAlert("%16x",(flash_id[i]+(u32)rand));
-//	PanicAlert("%16x",(flash_id+Common::swap32((u32)rand)));
-		hdr.serial[i] = u8((flash_id[i]+(u32)rand));
-		rand = (((rand*(u64)0x0000000041c64e6dULL)+(u64)0x0000000000003039ULL)>>16);
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+		hdr.serial[i] = u8((m_SRAM.syssram.flash_id[slot][i] + (u32)rand));
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
 		rand &= (u64)0x0000000000007fffULL;
 	}
+
 	hdr.fmtTime.high = (time >> 32) & 0xFFFFFFFF;
 	hdr.fmtTime.low = time & 0xFFFFFFFF;
 	*(u32*)&(hdr.SramBias) = *(u32*)&(m_SRAM.syssram.counter_bias);
 	*(u32*)&(hdr.SramLang) = m_SRAM.syssram.lang;
-	*(u32*)&(hdr.Unk2) = 1;//= _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-	// TODO: find out why memcard cares if component cable used
-	// for now set to one like main app
+	*(u32*)&(hdr.Unk2) = Common::swap32(1);		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	// TODO: find out why memcard cares if component cable used for now set to one like main app
 	*(u16*)&(hdr.deviceID) = 0;
 	*(u16*)&(hdr.Size) = Common::swap16(size);
 	*(u16*)&(hdr.Encoding) = Common::swap16(sjis ? 1 : 0);
+
+	if (!hdrOnly)
+	{
+		memset(&dir, 0xFF, 0x2000);
+		memset(&dir_backup, 0xFF, 0x2000);
+		*(u16*)&dir.UpdateCounter = 0;
+		*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
+		memset(&bat, 0, 0x2000);
+		memset(&bat_backup, 0, 0x2000);
+		*(u16*)&bat.UpdateCounter = 0;
+		*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
+		*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(size * 0x10 - 5);
+		*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
+		memset(mc_data, 0xFF, mc_data_size);
+	}
 	
-	memset(&dir, 0xFF, 0x2000);
-	memset(&dir_backup, 0xFF, 0x2000);
-	*(u16*)&dir.UpdateCounter = 0;
-	*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
-	memset(&bat, 0, 0x2000);
-	memset(&bat_backup, 0, 0x2000);
-	*(u16*)&bat.UpdateCounter = 0;
-	*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
-	*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(size * 0x10 - 5);
-	*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
-	memset(mc_data, 0xFF, mc_data_size);
 	FixChecksums();
 	Save();
 	return true;
