@@ -43,7 +43,7 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len, bool asse
 		std::string hello = (char*)errorBuffer->GetBufferPointer();
 		hello += "\n\n";
 		hello += code;
-		//MessageBox(0, hello.c_str(), "Error assembling vertex shader", MB_ICONERROR);
+		MessageBox(0, hello.c_str(), "Error assembling vertex shader", MB_ICONERROR);
 		vShader = 0;
 	}
 	else if (SUCCEEDED(hr))
@@ -86,7 +86,7 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len, bool assemb
 		std::string hello = (char*)errorBuffer->GetBufferPointer();
 		hello += "\n\n";
 		hello += code;
-		//MessageBox(0, hello.c_str(), "Error assembling pixel shader", MB_ICONERROR);
+		MessageBox(0, hello.c_str(), "Error assembling pixel shader", MB_ICONERROR);
 		pShader = 0;
 	}
 	else 
