@@ -240,7 +240,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             char* pTitleID = (char*)&TitleID;
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-            sprintf(Path, "/%08x/%08x/data", (TitleID >> 32) & 0xFFFFFFFF, TitleID & 0xFFFFFFFF);
+            sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32) & 0xFFFFFFFF, (u32)TitleID & 0xFFFFFFFF);
 
             INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
         }
