@@ -1106,7 +1106,7 @@ bool GCMemcard::Format( bool New, int slot, bool sjis, bool hdrOnly)
 	for(int i = 0; i < 12; i++)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-		hdr.serial[i] = u8((m_SRAM.syssram.flash_id[slot][i] + (u32)rand));
+		hdr.serial[i] = (u8)(m_SRAM.syssram.flash_id[slot][i] + (u32)rand);
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
 		rand &= (u64)0x0000000000007fffULL;
 	}
