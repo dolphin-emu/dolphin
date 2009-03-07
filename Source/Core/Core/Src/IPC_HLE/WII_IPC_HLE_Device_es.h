@@ -116,6 +116,8 @@ private:
     DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID) const;
 
     bool IsValid(u64 _TitleID) const;
+
+    std::string CreateTicketFileName(u64 _TitleID) const;
 };
 
 #endif
