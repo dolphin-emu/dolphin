@@ -38,7 +38,7 @@ private:
 	union UEXI_STATUS
 	{
 		u32 hex;
-		struct
+		struct _EXISTATUS
 		{
 			unsigned EXIINTMASK		: 1; //31
 			unsigned EXIINT			: 1; //30
@@ -60,7 +60,7 @@ private:
 	union UEXI_CONTROL
 	{
 		u32 hex;
-		struct
+		struct _EXICONTROL
 		{
 			unsigned TSTART			: 1;
 			unsigned DMA			: 1;
