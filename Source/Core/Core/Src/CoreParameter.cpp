@@ -109,6 +109,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
+				case DiscIO::IVolume::COUNTRY_ITALY:
 					bNTSC = false;
 					Region = EUR_DIR; 
 					break;
@@ -134,13 +135,13 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 				m_BootType = BOOT_DOL;
 				bNTSC = true;
 			}
-            else if (DiscIO::CNANDContentLoader(m_strFilename).IsValid())
-            {
-                bWii = true;
-                Region = EUR_DIR; 
-                m_BootType = BOOT_WII_NAND;
-                bNTSC = false;
-            }
+			else if (DiscIO::CNANDContentLoader(m_strFilename).IsValid())
+			{
+				bWii = true;
+				Region = EUR_DIR; 
+				m_BootType = BOOT_WII_NAND;
+				bNTSC = false;
+			}
 			else
 			{
 				PanicAlert("Could not recognize ISO file %s", m_strFilename.c_str());

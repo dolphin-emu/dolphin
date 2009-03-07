@@ -110,6 +110,7 @@ void CGameListCtrl::InitBitmaps()
 	wxIcon iconTemp;
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] = m_imageListSmall->Add(iconTemp);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_France_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_USA_xpm));

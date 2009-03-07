@@ -88,42 +88,46 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 
 	switch (CountryCode)
 	{
-	    case 'S':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL // <- that is shitty :) zelda demo disc
+		case 'S':
+			country = COUNTRY_EUROPE;
+			break; // PAL // <- that is shitty :) zelda demo disc
 
-	    case 'P':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'P':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'D':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'D':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'F':
-		    country = COUNTRY_FRANCE;
-		    break; // PAL
+		case 'F':
+			country = COUNTRY_FRANCE;
+			break; // PAL
 
-	    case 'X':
-		    country = COUNTRY_EUROPE;
-		    break; // XIII <- uses X but is PAL
+		case 'I':
+			country = COUNTRY_ITALY;
+			break; // PAL
 
-	    case 'E':
-		    country = COUNTRY_USA;
-		    break; // USA
+		case 'X':
+			country = COUNTRY_EUROPE;
+			break; // XIII <- uses X but is PAL
 
-	    case 'J':
-		    country = COUNTRY_JAP;
-		    break; // JAP
+		case 'E':
+			country = COUNTRY_USA;
+			break; // USA
 
-	    case 'O':
-		    country = COUNTRY_UNKNOWN;
-		    break; // SDK
+		case 'J':
+			country = COUNTRY_JAP;
+			break; // JAP
 
-	    default:
-		    // PanicAlert(StringFromFormat("Unknown Country Code!").c_str());
-		    country = COUNTRY_UNKNOWN;
-		    break;
+		case 'O':
+			country = COUNTRY_UNKNOWN;
+			break; // SDK
+
+		default:
+			// PanicAlert(StringFromFormat("Unknown Country Code!").c_str());
+			country = COUNTRY_UNKNOWN;
+			break;
 	}
 
 	return(country);

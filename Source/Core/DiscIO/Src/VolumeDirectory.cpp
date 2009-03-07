@@ -167,41 +167,45 @@ IVolume::ECountry CVolumeDirectory::GetCountry() const
 
 	switch (CountryCode)
 	{
-	    case 'S':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL <- that is shitty :) zelda demo disc
+		case 'S':
+			country = COUNTRY_EUROPE;
+			break; // PAL <- that is shitty :) zelda demo disc
 
-	    case 'P':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'P':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'D':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'D':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'F':
-		    country = COUNTRY_FRANCE;
-		    break; // PAL
+		case 'F':
+			country = COUNTRY_FRANCE;
+			break; // PAL
+		
+		case 'I':
+			country = COUNTRY_ITALY;
+			break; // PAL
 
-	    case 'X':
-		    country = COUNTRY_EUROPE;
-		    break; // XIII <- uses X but is PAL rip
+		case 'X':
+			country = COUNTRY_EUROPE;
+			break; // XIII <- uses X but is PAL rip
 
-	    case 'E':
-		    country = COUNTRY_USA;
-		    break; // USA
+		case 'E':
+			country = COUNTRY_USA;
+			break; // USA
 
-	    case 'J':
-		    country = COUNTRY_JAP;
-		    break; // JAP
+		case 'J':
+			country = COUNTRY_JAP;
+			break; // JAP
 
-	    case 'O':
-		    country = COUNTRY_UNKNOWN;
-		    break; // SDK
+		case 'O':
+			country = COUNTRY_UNKNOWN;
+			break; // SDK
 
-	    default:
-		    country = COUNTRY_UNKNOWN;
-		    break;
+		default:
+			country = COUNTRY_UNKNOWN;
+			break;
 	}
 
 	return(country);
@@ -262,8 +266,8 @@ std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirector
 	if(lastSep != directoryName.size() - 1)
 	{
 		// TODO: This assumes that file names will always have a dot in them
-		//       and directory names never will; both assumptions are often
-		//       right but in general wrong.
+		//	   and directory names never will; both assumptions are often
+		//	   right but in general wrong.
 		size_t extensionStart = directoryName.find_last_of('.');
 		if(extensionStart != std::string::npos && extensionStart > lastSep)
 		{

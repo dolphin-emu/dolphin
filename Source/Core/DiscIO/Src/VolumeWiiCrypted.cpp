@@ -90,7 +90,7 @@ CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 		// increase buffers
 		_Length -= CopySize;
-		_pBuffer    += CopySize;
+		_pBuffer	+= CopySize;
 		_ReadOffset += CopySize;
 	}
 
@@ -133,45 +133,49 @@ CVolumeWiiCrypted::GetCountry() const
 
 	switch (CountryCode)
 	{
-	    case 'S':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL // <- that is shitty :) zelda demo disc
+		case 'S':
+			country = COUNTRY_EUROPE;
+			break; // PAL // <- that is shitty :) zelda demo disc
 
-	    case 'P':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'P':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'D':
-		    country = COUNTRY_EUROPE;
-		    break; // PAL
+		case 'D':
+			country = COUNTRY_EUROPE;
+			break; // PAL
 
-	    case 'F':
-		    country = COUNTRY_FRANCE;
-		    break; // PAL
+		case 'F':
+			country = COUNTRY_FRANCE;
+			break; // PAL
 
-	    case 'X':
-		    country = COUNTRY_EUROPE;
-		    break; // XIII <- uses X but is PAL rip
+		case 'I':
+			country = COUNTRY_ITALY;
+			break; // PAL
 
-	    case 'E':
-		    country = COUNTRY_USA;
-		    break; // USA
+		case 'X':
+			country = COUNTRY_EUROPE;
+			break; // XIII <- uses X but is PAL rip
 
-	    case 'J':
-		    country = COUNTRY_JAP;
-		    break; // JAP
+		case 'E':
+			country = COUNTRY_USA;
+			break; // USA
+
+		case 'J':
+			country = COUNTRY_JAP;
+			break; // JAP
 
 		case 'K':
-		    country = COUNTRY_KOR;
-		    break; // KOR
+			country = COUNTRY_KOR;
+			break; // KOR
 
-	    case 'O':
-		    country = COUNTRY_UNKNOWN;
-		    break; // SDK
+		case 'O':
+			country = COUNTRY_UNKNOWN;
+			break; // SDK
 
-	    default:
-		    PanicAlert(StringFromFormat("Unknown Country Code!").c_str());
-		    break;
+		default:
+			PanicAlert(StringFromFormat("Unknown Country Code!").c_str());
+			break;
 	}
 
 	return(country);
