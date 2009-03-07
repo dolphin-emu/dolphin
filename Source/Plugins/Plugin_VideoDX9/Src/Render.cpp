@@ -73,6 +73,9 @@ static std::list<Message> s_listMsgs;
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
+	if(!g_Config.bShowShaderErrors)
+		return;
+
 	PanicAlert("Cg error: %s\n", cgGetErrorString(err));
 	const char* listing = cgGetLastListing(g_cgcontext);
 	if (listing != NULL) {

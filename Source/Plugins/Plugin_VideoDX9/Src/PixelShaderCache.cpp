@@ -20,6 +20,7 @@
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
+#include "Config.h"
 #include "PixelShaderGen.h"
 #include "PixelShaderManager.h"
 #include "PixelShaderCache.h"
@@ -99,7 +100,7 @@ void PixelShaderCache::SetShader()
 
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
-	} else
+	} else if(g_Config.bShowShaderErrors)
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 }
 
