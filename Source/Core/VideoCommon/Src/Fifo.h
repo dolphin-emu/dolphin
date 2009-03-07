@@ -33,6 +33,7 @@ void Fifo_Shutdown();
 // These two are for dual core mode only.
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
 void Fifo_ExitLoop();
+void Fifo_ExitLoopNonBlocking();
 
 void Fifo_DoState(PointerWrap &f);
 

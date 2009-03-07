@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "main.h"
 #include "EmuWindow.h"
+#include "Fifo.h"
 
 namespace EmuWindow
 {
@@ -52,6 +53,7 @@ namespace EmuWindow
 			break;
 
 		case WM_CLOSE:
+			Fifo_ExitLoopNonBlocking();
 			Shutdown();
 			// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
 			ExitProcess(0);

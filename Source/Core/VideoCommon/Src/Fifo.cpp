@@ -119,6 +119,12 @@ void Fifo_ExitLoop()
 	#endif
 }
 
+// May be executed from any thread, even the graphics thread.
+// Created to allow for self shutdown.
+void Fifo_ExitLoopNonBlocking() {
+	fifoStateRun = false;
+}
+
 // 
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
