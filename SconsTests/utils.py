@@ -89,6 +89,8 @@ def ConfigPKG(context, name):
     
 def CheckPKG(context, name):
     context.Message( 'Checking for %s... ' % name )
+    if platform.system().lower() == 'windows':
+        return 0 
     ret = 1
     if not CheckFramework(context, name):
         if not ConfigPKG(context, name.lower()):
@@ -101,6 +103,8 @@ def CheckPKG(context, name):
 
 def CheckSDL(context, version):
     context.Message( 'Checking for sdl lib version > %s... ' % version)
+    if platform.system().lower() == 'windows':
+        return 1
     sdl_config = context.env.WhereIs('sdl-config')
     if sdl_config == None:
         ret = 0

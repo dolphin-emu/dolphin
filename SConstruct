@@ -85,7 +85,6 @@ if sys.platform == 'darwin':
             for dstNode in target:
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
-    compileFlags += [ '-I/opt/local/include' ]
 
 if sys.platform == 'win32':
     env_home = os.environ['USERPROFILE']
@@ -213,28 +212,18 @@ if sys.platform == 'darwin':
 env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 
 # Bluetooth for wii support
-if sys.platform == 'win32':
-    env['HAVE_BLUEZ'] = 0
-else:
-    env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
+env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 # needed for sound
-if sys.platform == 'win32':
-    env['HAVE_AO'] = 0
-else:
-    env['HAVE_AO'] = conf.CheckPKG('ao')
+env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # needed for mic
-if sys.platform == 'win32':
-    env['HAVE_PORTAUDIO'] = 0
-else:
-    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
 # sfml
 env['HAVE_SFML'] = 0
-if sys.platform != 'win32':
-    if conf.CheckPKG('sfml') and conf.CheckCHeader("SFML/Audio.hpp"):
-        env['HAVE_SFML'] = 1;
+if conf.CheckPKG('sfml') and conf.CheckCHeader("SFML/Audio.hpp"):
+    env['HAVE_SFML'] = 1;
 
 #osx 64 specifics
 if sys.platform == 'darwin':
@@ -246,9 +235,7 @@ if sys.platform == 'darwin':
     if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
         env['HAVE_COCOA'] = 1
-elif sys.platform == 'win32':
-    env['HAVE_X11'] = 0
-    env['HAVE_COCOA'] = 0
+
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_COCOA'] = 0

@@ -51,7 +51,7 @@ else:
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',
-				'Debugger/Debugger.cpp',
+		'Debugger/Debugger.cpp',
                 ]
 
 if gfxenv['HAVE_COCOA']:
@@ -60,36 +60,45 @@ if gfxenv['HAVE_COCOA']:
                 '-x',
                 'objective-c++',
                 ]
-        
+
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests,
                         config_h=env['base_dir']+"Source/Core/Common/Src/Config.h")
 
 if sys.platform == 'darwin':
+	
+	conf.CheckPKG('OpenGL')
+	if not conf.CheckPKG('Cg'):
+		print name + " must have Cg framework from nvidia to be build"
+		Return()
 
-    # Use libraries from MacPorts.
-    compileFlags.append('-I/opt/local/include')
-    linkFlags.append('-L/opt/local/lib')
-    conf.CheckPKG('OpenGL')
-    if not conf.CheckPKG('Cg'):
-        print name + " must have Cg framework from nvidia to be build"
-        Return()
 elif sys.platform == 'win32':
         print name + " is assuming that you have opengl, glu, cg, and cggl"
 else:
         if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')):
                 print name + " must have opengl and glu to be build"
                 Return()
-
-        if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
+	
+	if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
                 print name + " must have cg and cggl to be build"
                 Return()
 if sys.platform == 'win32':
-    print name + " is assuming that you have glew"
+	print name + " is assuming that you have glew"
 else:
-    if not conf.CheckPKG('GLEW'):
-        print name + " must have glew to be build"
-        Return()
+	if not conf.CheckPKG('GLEW'):
+		print name + " must have glew to be build"
+		Return()
+
+
+if sys.platform == 'win32':
+	files += [
+		'OS/Win32.cpp'
+		]
+	libs += [
+		env['base_dir'] + '/Externals/Cg/'
+		]	
+	gfxenv['CPPPATH'] += libs
+	
 
 # check for xxf86vm
 
@@ -128,8 +137,7 @@ gfxenv.Append(
 	LINKFLAGS = linkFlags,
 	)
 
-if sys.platform != 'win32':
-    gfxenv.SharedLibrary(
+gfxenv.SharedLibrary(
 	env['plugin_dir']+name,
 	files,
 	LIBS =  libs + gfxenv['LIBS']
