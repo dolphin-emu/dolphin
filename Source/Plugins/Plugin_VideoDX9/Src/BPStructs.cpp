@@ -27,6 +27,7 @@
 #include "VertexManager.h"
 #include "PixelShaderGen.h"
 #include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
 #include "Utils.h"
 
 #include "main.h" //for the plugin interface
@@ -136,6 +137,7 @@ void BPWritten(int addr, int changes, int newval)
 				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
 				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
+			PixelShaderManager::SetGenModeChanged();
 		}
 		break;
     case BPMEM_IND_MTX+0:
@@ -207,7 +209,7 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-            PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+            //PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
         }
         break;
 
@@ -221,7 +223,7 @@ void BPWritten(int addr, int changes, int newval)
 		}
 		break;
 	
-	case 0x43:
+	case BPMEM_PE_CONTROL:  // GXSetZCompLoc, GXPixModeSync
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
@@ -302,92 +304,23 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 
 	case BPMEM_FOGRANGE:
-		if (changes) {
-			// TODO(XK): Fog range format
-			//Renderer::SetRenderState(D3DRS_FOGSTART, ...
-			//Renderer::SetRenderState(D3DRS_FOGEND, ...
-		}
-		break;
-
 	case BPMEM_FOGPARAM0:
-		{
-			// u32 fogATemp = bpmem.fog.a<<12;
-			// float fogA = *(float*)(&fogATemp);
-            VertexManager::Flush();
-            ((u32*)&bpmem)[addr] = newval;
-		}
-		break;
-
 	case BPMEM_FOGBEXPONENT: 
 	case BPMEM_FOGBMAGNITUDE:
-		{
-            VertexManager::Flush();
-            ((u32*)&bpmem)[addr] = newval;
-		}
-		break;
-
 	case BPMEM_FOGPARAM3:
-		//fog settings
 		if (changes) {
-			static bool bFog = false;
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			
-			if (!renderFog)
-				break;
-
-			/// u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
-			// float fogC = *(float*)(&fogCTemp);
-
-			
-			//printf("%f %f magnitude: %x\n", bpmem.fog.a.GetA(),bpmem.fog.c_proj_fsel.GetC(), bpmem.fog.b_magnitude);
-			switch(bpmem.fog.c_proj_fsel.fsel)
-			{
-			case 0: // Off
-				if (bFog) {
-					Renderer::SetRenderState(D3DRS_FOGENABLE, false);
-					bFog = false;
-				}	
-				break;
-			case 2: // Linear
-				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
-				break;
-			case 4: // exp
-				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_EXP);
-				break;
-			case 5: // exp2
-				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_EXP2);
-				break;
-			case 6: // Backward exp
-			case 7: // Backward exp2
-				PanicAlert("Backward Exponential Fog Detected");
-				// TODO: Figure out how to do these in any rendering API
-				//TEV_FSEL_BX, TEV_FSEL_BX2?
-			default:
-				PanicAlert("Non-Emulated Fog selection %d\n", bpmem.fog.c_proj_fsel.fsel);
-				break;
-			}
-
-			if (bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
-				Renderer::SetRenderState(D3DRS_FOGENABLE, true);
-				bFog = true;
-			}
-
+			PixelShaderManager::SetFogParamChanged();
 		}
 		break;
 
 	case BPMEM_FOGCOLOR:
-		 if (changes) {
+		if (changes)
+		{
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
-
-			if (!renderFog)
-				break;
-
-			// dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
-			int fogcolor[3] = { bpmem.fog.color.r, bpmem.fog.color.g, bpmem.fog.color.b };
-			//D3DCOLOR_RGBA(fogcolor[0], fogcolor[1], fogcolor[2], 0)
-            Renderer::SetRenderState(D3DRS_FOGCOLOR, bpmem.fog.color.hex);
+			PixelShaderManager::SetFogColorChanged();
 		}
 		break;
 
@@ -403,18 +336,37 @@ void BPWritten(int addr, int changes, int newval)
 		}
 		break;
 
+	case BPMEM_SCISSORTL:
+	case BPMEM_SCISSORBR:
+
+		if (changes)
+		{
+			VertexManager::Flush();
+			((u32*)&bpmem)[addr] = newval;
+			/*if (!Renderer::SetScissorRect())
+			{
+				if (addr == BPMEM_SCISSORBR) {
+					ERROR_LOG(VIDEO, "bad scissor!\n");
+				}
+			}*/
+		}
+		break;
+
 	case BPMEM_ZTEX1:
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             //PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
-            //PixelShaderMngr::SetZTextureBias(bpmem.ztex1.bias);
+            PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
         }
 		break;
 	case BPMEM_ZTEX2:
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
+			if (changes & 3) {
+				PixelShaderManager::SetZTextureTypeChanged();
+			}
 #ifdef _DEBUG
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
@@ -423,7 +375,7 @@ void BPWritten(int addr, int changes, int newval)
         }
 		break;
 
-	case 0x45: //GXSetDrawDone
+	case BPMEM_SETDRAWDONE: //GXSetDrawDone
 		VertexManager::Flush();
 		switch (newval & 0xFF)
 		{
@@ -448,7 +400,7 @@ void BPWritten(int addr, int changes, int newval)
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (newval & 0xFFFF));
 		break;
 
-    case 0x67: // set gp metric?
+    case BPMEM_SETGPMETRIC: // set gp metric?
         break;
 
 	case BPMEM_TRIGGER_EFB_COPY:
@@ -500,6 +452,8 @@ void BPWritten(int addr, int changes, int newval)
 			{
 				// it seems that the GC is able to alpha blend on color-fill
 				// we cant do that so if alpha is != 255 we skip it
+
+				VertexShaderManager::SetViewportChanged();
 
 				// clear color
 				u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
@@ -575,8 +529,17 @@ void BPWritten(int addr, int changes, int newval)
         break;
 
 	default:
-		switch (addr & 0xF8)  //texture sampler filter
+		switch (addr & 0xFC)  //texture sampler filter
 		{
+		case 0x28: // tevorder 0-3
+		case 0x2C: // tevorder 4-7
+			if (changes)
+			{
+				VertexManager::Flush();
+				((u32*)&bpmem)[addr] = newval;
+				PixelShaderManager::SetTevOrderChanged(addr - 0x28);
+			}
+			break;
 		case 0x80: // TEX MODE 0
 		case 0xA0: 
 			if (changes)
@@ -677,12 +640,13 @@ void BPWritten(int addr, int changes, int newval)
 
 		case 0xE0:
         case 0xE4:
-            ((u32*)&bpmem)[addr] = newval;
             if (addr&1) { // don't compare with changes!
                 VertexManager::Flush();
+				((u32*)&bpmem)[addr] = newval;
                 int num = (addr >> 1) & 0x3;
                 PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
-            }
+            } else
+				((u32*)&bpmem)[addr] = newval;
             break;
 
 		default:
@@ -720,6 +684,11 @@ void BPWritten(int addr, int changes, int newval)
             case 0xA0:
             case 0xB0:
             default:
+				if (changes)
+				{
+					VertexManager::Flush();
+					((u32*)&bpmem)[addr] = newval;
+				}
 				break;
 			}
 		}
