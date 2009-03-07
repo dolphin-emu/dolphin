@@ -52,13 +52,13 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPEFBTARGET, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
-	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
 END_EVENT_TABLE()
@@ -326,11 +326,10 @@ void ConfigDialog::CreateGUIControls()
 
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
-	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
-	m_TexturePath = new wxDirPickerCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxEmptyString, wxT("Choose a directory to store texture dumps:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
-	m_TexturePath->SetPath(wxString::FromAscii(g_Config.texDumpPath));
-	m_TexturePath->Enable(m_DumpTextures->IsChecked());
+	m_DumpEFBTarget = new wxCheckBox(m_PageAdvanced, ID_DUMPEFBTARGET, wxT("Dump EFB Target"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -387,7 +386,7 @@ void ConfigDialog::CreateGUIControls()
 	
 	sUtilities = new wxBoxSizer(wxHORIZONTAL);
 	sUtilities->Add(m_DumpTextures, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sUtilities->Add(m_TexturePath, 1, wxALL|wxEXPAND, 5);
+	sUtilities->Add(m_DumpEFBTarget, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
 
 	// Sizers
@@ -507,8 +506,10 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bDisableTexturing = m_DisableTexturing->IsChecked();
 		break;
 	case ID_DUMPTEXTURES:
-		m_TexturePath->Enable(m_DumpTextures->IsChecked());
 		g_Config.bDumpTextures = m_DumpTextures->IsChecked();
+		break;
+	case ID_DUMPEFBTARGET:
+		g_Config.bDumpEFBTarget = m_DumpEFBTarget->IsChecked();
 		break;
 	case ID_TEXTUREPATH:
 		break;
@@ -526,7 +527,6 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
 
-	// External frame buffer
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = true;
@@ -549,12 +549,6 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	UpdateGUI();
 }
 
-void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
-{
-	// Note: if a user inputs an incorrect path(by typing, not by choosing from
-	// the combobox) this event wil not be fired.
-	strcpy(g_Config.texDumpPath, event.GetPath().mb_str());
-}
 
 void ConfigDialog::UpdateGUI()
 {

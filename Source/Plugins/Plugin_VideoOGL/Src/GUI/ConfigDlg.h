@@ -103,10 +103,10 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_DumpTextures;
+		wxCheckBox *m_DumpEFBTarget;
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
-		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_EFBCopyDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_SafeTextureCache;
@@ -158,6 +158,7 @@ class ConfigDialog : public wxDialog
 			ID_SAFETEXTURECACHE,
 
 			ID_DUMPTEXTURES,
+			ID_DUMPEFBTARGET,
 			ID_TEXTUREPATH,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
@@ -173,7 +174,6 @@ class ConfigDialog : public wxDialog
 		void AboutClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void AdvancedSettingsChanged(wxCommandEvent& event); 
-		void TexturePathChange(wxFileDirPickerEvent& event);
 };
 
 #endif

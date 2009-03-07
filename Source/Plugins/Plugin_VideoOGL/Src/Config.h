@@ -68,8 +68,8 @@ struct Config
     bool bDisableTexturing;
     
     // Utility
-    char texDumpPath[280];
     bool bDumpTextures;
+	bool bDumpEFBTarget;
     
     // Hacks
     bool bEFBCopyDisable;

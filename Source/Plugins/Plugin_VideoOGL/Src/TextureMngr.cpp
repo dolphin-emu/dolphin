@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "Globals.h"
+#include "CommonPaths.h"
+#include "StringUtil.h"
 
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
@@ -77,16 +79,17 @@ const GLint c_WrapSettings[4] = {
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
 {
-    GL_REPORT_ERRORD();
 	std::vector<u32> data(width * height);
     glBindTexture(textarget, tex);
-    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_INT, &data[0]);
     GLenum err;
     GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
 	{
+		PanicAlert("Can't save texture, GL Error: %s", gluErrorString(err));
         return false;
     }
+
     return SaveTGA(filename, width, height, &data[0]);
 }
 
@@ -401,8 +404,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	{ 
         static int counter = 0;
         char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/txt_%04i_%i.tga", g_Config.texDumpPath, counter++, format);
-        
+		sprintf(szTemp, "%s/txt_%04i_%i.tga", FULL_DUMP_TEXTURES_DIR, counter++, format);
         SaveTexture(szTemp,target, entry.texture, width, height);
     }
 
@@ -436,23 +438,26 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     entry.hashoffset = 0;
     entry.frameCount = frameCount;
     
-    int mult = bScaleByHalf?2:1;
-	int w = (abs(source_rect.GetWidth())/mult);
-    int h = (abs(source_rect.GetHeight())/mult);
+    int mult = bScaleByHalf ? 2 : 1;
+	int w = (abs(source_rect.GetWidth()) / mult);
+    int h = (abs(source_rect.GetHeight()) / mult);
 
     GL_REPORT_ERRORD();
 
-    if (!bIsInit) {
+    if (!bIsInit) 
+	{
         glGenTextures(1, (GLuint *)&entry.texture);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
         glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         GL_REPORT_ERRORD();
     }
-    else {
+    else 
+	{
         _assert_(entry.texture);
         bool bReInit = true;
 
-        if (entry.w == w && entry.h == h) {
+        if (entry.w == w && entry.h == h) 
+		{
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
             // for some reason mario sunshine errors here...
             GLenum err = GL_NO_ERROR;
@@ -461,7 +466,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 bReInit = false;
         }
 
-        if (bReInit) {
+        if (bReInit) 
+		{
             // necessary, for some reason opengl gives errors when texture isn't deleted
             glDeleteTextures(1,(GLuint *)&entry.texture);
             glGenTextures(1, (GLuint *)&entry.texture);
@@ -494,8 +500,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     float fConstAdd[4] = {0};
     memset(colmat, 0, sizeof(colmat));
 
-    if (bFromZBuffer) {
-        switch(copyfmt) {
+    if (bFromZBuffer) 
+	{
+        switch(copyfmt) 
+		{
             case 0: // Z4
             case 1: // Z8
                 colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
@@ -525,9 +533,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
         }
     }
-    else if (bIsIntensityFmt) {
+    else if (bIsIntensityFmt) 
+	{
         fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-        switch (copyfmt) {
+        switch (copyfmt) 
+		{
             case 0: // I4
             case 1: // I8
             case 2: // IA4
@@ -536,13 +546,15 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
                 colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
                 colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
-                if (copyfmt < 2) {
+
+                if (copyfmt < 2) 
+				{
                     fConstAdd[3] = 16.0f / 255.0f;
                     colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
                 }
-                else { // alpha
+                else// alpha
                     colmat[15] = 1;
-                }
+
                 break;
             default:
                 ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x\n", copyfmt);
@@ -550,8 +562,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
         }
     }
-    else {
-        switch (copyfmt) {
+    else 
+	{
+        switch (copyfmt) 
+		{
             case 0: // R4
             case 8: // R8
                 colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
@@ -620,17 +634,21 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     // create and attach the render target
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.find((h << 16) | w);
     
-    if (itdepth == mapDepthTargets.end()) {
+    if (itdepth == mapDepthTargets.end()) 
+	{
         DEPTHTARGET& depth = mapDepthTargets[(h << 16) | w];
         depth.framecount = frameCount;
+
         glGenRenderbuffersEXT(1, &depth.targ);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth.targ);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT/*GL_DEPTH24_STENCIL8_EXT*/, w, h);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w, h);
         GL_REPORT_ERRORD();
+
         Renderer::SetDepthTarget(depth.targ);
         GL_REPORT_ERRORD();
     }
-    else {
+    else 
+	{
         itdepth->second.framecount = frameCount;
         Renderer::SetDepthTarget(itdepth->second.targ);
         GL_REPORT_ERRORD();
@@ -638,11 +656,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
-	if (bFromZBuffer) {
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Renderer::ResolveAndGetFakeZTarget(source_rect));
-	} else {
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Renderer::ResolveAndGetRenderTarget(source_rect));
-	}
+
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, (bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect)));
+
     TextureMngr::EnableTexRECT(0);
     
     glViewport(0, 0, w, h);
@@ -651,10 +667,12 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, PixelShaderCache::GetColorMatrixProgram());
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
-    
-    glBegin(GL_QUADS);
+
+	// Get Target X, Y
 	float MValueX = Renderer::GetTargetScaleX();
     float MValueY = Renderer::GetTargetScaleY();
+    
+    glBegin(GL_QUADS);
     glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.bottom * MValueY); glVertex2f(-1,  1);
     glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f(-1, -1);
     glTexCoord2f((float)source_rect.right * MValueX, Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f( 1, -1);
@@ -666,15 +684,21 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     Renderer::SetFramebuffer(0);
     Renderer::RestoreGLState();
     VertexShaderManager::SetViewportChanged();
-
     TextureMngr::DisableStage(0);
 
     if (bFromZBuffer)
         Renderer::SetZBufferRender(); // notify for future settings
 
     GL_REPORT_ERRORD();
-    //SaveTexture("frame.tga", GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, bFromZBuffer?Renderer::GetFakeZTarget():Renderer::GetRenderTarget(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+
+	if(g_Config.bDumpEFBTarget)
+	{
+		SaveTexture(StringFromFormat("%s/efb_frame.tga", FULL_DUMP_TEXTURES_DIR).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
+		//TODO: Fix this
+		//SaveTexture(StringFromFormat("%s/efb_tex.tga", FULL_DUMP_TEXTURES_DIR).c_str(), GL_TEXTURE_RECTANGLE_ARB, 
+		//	bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect), 
+		//	Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+	}
 }
 
 void TextureMngr::EnableTex2D(int stage)
