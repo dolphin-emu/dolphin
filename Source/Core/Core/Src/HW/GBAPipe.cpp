@@ -167,8 +167,8 @@ namespace GBAPipe
 	void StartServer() { }
 	void ConnectAsClient() { }
 	void Stop() { }
-	void Read(u32& data){}
-	void Write(u32 data){}
+	void Read(u8& data) { }
+	void Write(u8 data) { }
 	bool IsEnabled() { return false; }
 	bool IsServer() { return false; }
 }

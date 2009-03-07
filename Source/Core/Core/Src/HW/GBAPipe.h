@@ -19,8 +19,8 @@
 //  comparing them to each other.
 //
 
-#ifndef _CPUCOMPARE_H
-#define _CPUCOMPARE_H
+#ifndef _GBAPIPE_H
+#define _GBAPIPE_H
 
 #include "Common.h"
 
