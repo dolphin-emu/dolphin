@@ -65,8 +65,7 @@ union SRAM
 		u8 flags;				// device and operations flag
 
 								// Stored configuration value from the extended SRAM area
-		u8 flash_id_1[12];		// flash_id[2][12] 96bit memorycard unlock flash ID
-		u8 flash_id_2[12];
+		u8 flash_id[2][12];		// flash_id[2][12] 96bit memorycard unlock flash ID
 		u8 wirelessKbd_id[4];	// Device ID of last connected wireless keyboard
 		u8 wirelessPad_id[8];	// 16bit device ID of last connected pad.
 		u8 dvderr_code;			// last non-recoverable error from DVD interface
