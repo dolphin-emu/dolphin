@@ -58,13 +58,17 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != NULL)
 		{
-			m_Name[0] = _rFileName;
 			m_Company = "N/A";
-			m_Description[0] = "No Description";
+			for (int i = 0; i < 6; i++)
+			{
+				m_Name[i] = _rFileName;                 // Give an init value
+				m_Name[i] = pVolume->GetName();
+				m_Description[i] = "No Description";
+			}
 			m_Country  = pVolume->GetCountry();
 			m_FileSize = File::GetSize(_rFileName.c_str());
 			m_VolumeSize = pVolume->GetSize();
-			m_Name[0] = pVolume->GetName();
+			
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
