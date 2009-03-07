@@ -67,14 +67,15 @@ conf = gfxenv.Configure(custom_tests = tests,
 
 if sys.platform == 'darwin':
 
-	# Use libraries from MacPorts.
-	compileFlags.append('-I/opt/local/include')
-	linkFlags.append('-L/opt/local/lib')
-        conf.CheckPKG('OpenGL')
-        if not conf.CheckPKG('Cg'):
-                print name + " must have Cg framework from nvidia to be build"
-                Return()
-
+    # Use libraries from MacPorts.
+    compileFlags.append('-I/opt/local/include')
+    linkFlags.append('-L/opt/local/lib')
+    conf.CheckPKG('OpenGL')
+    if not conf.CheckPKG('Cg'):
+        print name + " must have Cg framework from nvidia to be build"
+        Return()
+elif sys.platform == 'win32':
+        print name + " is assuming that you have opengl, glu, cg, and cggl"
 else:
         if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')):
                 print name + " must have opengl and glu to be build"
@@ -83,8 +84,10 @@ else:
         if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
                 print name + " must have cg and cggl to be build"
                 Return()
-
-if not conf.CheckPKG('GLEW'):
+if sys.platform == 'win32':
+    print name + " is assuming that you have glew"
+else:
+    if not conf.CheckPKG('GLEW'):
         print name + " must have glew to be build"
         Return()
 
@@ -125,7 +128,8 @@ gfxenv.Append(
 	LINKFLAGS = linkFlags,
 	)
 
-gfxenv.SharedLibrary(
+if sys.platform != 'win32':
+    gfxenv.SharedLibrary(
 	env['plugin_dir']+name,
 	files,
 	LIBS =  libs + gfxenv['LIBS']
