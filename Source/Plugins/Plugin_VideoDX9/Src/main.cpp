@@ -31,6 +31,10 @@
 #include "BPStructs.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
+#include "VertexShaderManager.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderCache.h"
+#include "PixelShaderCache.h"
 #include "DlgSettings.h"
 #include "D3DPostprocess.h"
 #include "D3DTexture.h"
@@ -221,6 +225,10 @@ void Video_Prepare(void)
 	Fifo_Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
+	VertexShaderCache::Init();
+	VertexShaderManager::Init();
+	PixelShaderCache::Init();
+	PixelShaderManager::Init();
 }
 
 void Shutdown(void)
@@ -228,9 +236,13 @@ void Shutdown(void)
 	Fifo_Shutdown();
 	OpcodeDecoder_Shutdown();
 	VertexManager::Shutdown();
+	VertexShaderManager::Shutdown();
+	VertexLoaderManager::Shutdown();
+	VertexShaderCache::Shutdown();
+	PixelShaderCache::Shutdown();
+	PixelShaderManager::Shutdown();
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
-	VertexLoaderManager::Shutdown();
 	DeInit();
 }
 
