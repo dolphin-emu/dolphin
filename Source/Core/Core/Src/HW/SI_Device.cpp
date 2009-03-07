@@ -94,6 +94,10 @@ ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 	case SI_GBA:
 		return new CSIDevice_GBA(_iDeviceNumber);
 		break;
+
+	default:
+		return new CSIDevice_Dummy(_iDeviceNumber);
+		break;
 	}
 
 	return NULL;

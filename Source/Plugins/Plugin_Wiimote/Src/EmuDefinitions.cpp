@@ -74,3 +74,4 @@ KeyboardClassicController g_Cc;
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_
+

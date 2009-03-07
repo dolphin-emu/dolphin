@@ -64,3 +64,4 @@ bool IRDataOK(struct wiimote_t* wm);
 }; // WiiMoteReal
 
 #endif
+

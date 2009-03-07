@@ -95,7 +95,7 @@ std::string CBoot::GenerateMapFilename()
             {
                 u64 TitleID = Loader.GetTitleID();
                 char tmpBuffer[32];
-                sprintf(tmpBuffer, "%08x_%08x", TitleID>32, TitleID);
+                sprintf(tmpBuffer, "%08x_%08x", (u32)(TitleID >> 32) & 0xFFFFFFFF , (u32)TitleID & 0xFFFFFFFF );
                 return FULL_MAPS_DIR + std::string(tmpBuffer) + ".map";
             }            
         }  

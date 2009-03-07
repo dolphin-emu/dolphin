@@ -38,3 +38,4 @@ const CAttribTable& GetAttribTable();
 const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size);
 
 #endif
+

@@ -100,9 +100,9 @@ namespace DiscIO
 
 	void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
 	{
-		u32 NotUsed;
 		u8 * lpSector = new u8[m_blocksize];
 #ifdef _WIN32
+		u32 NotUsed;
 		u64 offset = m_blocksize * block_num;
 		LONG off_low = (LONG)offset & 0xFFFFFFFF;
 		LONG off_high = (LONG)(offset >> 32);

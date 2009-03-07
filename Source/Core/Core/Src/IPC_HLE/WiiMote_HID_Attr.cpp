@@ -270,3 +270,4 @@ const CAttribTable& GetAttribTable()
 
 	return m_AttribTable;
 }
+

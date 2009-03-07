@@ -532,3 +532,4 @@ void ConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _
 	}
 }
 /////////////////////////////////
+

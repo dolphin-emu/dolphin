@@ -131,6 +131,8 @@ CBannerLoaderGC::GetName(std::string _rName[])
 
 		}
 		break;
+	default:
+		break;
 	}
 	
 	return returnCode;
@@ -195,6 +197,8 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 			}
 			returnCode = true;
 		}
+		break;
+	default:
 		break;
 	}
 	return returnCode;

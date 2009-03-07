@@ -53,6 +53,7 @@ distribution.
 #pragma pack(push,1)
 union SRAM
 {
+	u8 p_SRAM[64];
 	struct _syssram {			// Stored configuration value from the system SRAM area
 		u8 checksum[2];			// holds the block checksum.
 		u8 checksum_inv[2];		// holds the inverse block checksum
@@ -73,7 +74,6 @@ union SRAM
 		u8 flashID_chksum[4];	// 16bit checksum of unlock flash ID
 		u8 __padding1[2];		// padding - libogc has this as [4]? I have it as 2 to make it 64
 	}syssram;
-	u8 p_SRAM[64];
 };
 #pragma pack(pop)
 #endif

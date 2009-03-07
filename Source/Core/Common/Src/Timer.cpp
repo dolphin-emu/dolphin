@@ -196,7 +196,7 @@ std::string Timer::GetTimeFormatted()
 	struct timeb tp;
 	(void)::ftime(&tp);
 	char temp[32];
-	sprintf(temp, "%02hi:%02i:%03i", tp.time/60, tp.time%60, tp.millitm);
+	sprintf(temp, "%02ld:%02ld:%03i", tp.time/60, tp.time%60, tp.millitm);
 
 	return std::string(temp);
 }
