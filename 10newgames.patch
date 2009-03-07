@@ -1,0 +1,121 @@
+Index: GE9E5D.ini
+===================================================================
+--- GE9E5D.ini	(revision 0)
++++ GE9E5D.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# GE9E5D - Ed, Edd n Eddy
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 1
++EmulationIssues = 
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GFKE69.ini
+===================================================================
+--- GFKE69.ini	(revision 0)
++++ GFKE69.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# GFKE69 - Freekstyle
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 2
++EmulationIssues = 
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GIPEAF.ini
+===================================================================
+--- GIPEAF.ini	(revision 0)
++++ GIPEAF.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# GIPEAF - One Piece Pirates Carnival (us)
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 4
++EmulationIssues = 
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GNDE69.ini
+===================================================================
+--- GNDE69.ini	(revision 0)
++++ GNDE69.ini	(revision 0)
+@@ -0,0 +1,6 @@
++# GNDE69 - NFS Underground
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 1
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GOQEAF.ini
+===================================================================
+--- GOQEAF.ini	(revision 0)
++++ GOQEAF.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# GOQEAF - ONE PIECE: GRAND ADVENTURE
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 4
++EmulationIssues = bad texture
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GPZJ01.ini
+===================================================================
+--- GPZJ01.ini	(revision 0)
++++ GPZJ01.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# GPZJ01 - NINTENDO PUZZLE COLLECTION
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 5
++EmulationIssues = 
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GUGE69.ini
+===================================================================
+--- GUGE69.ini	(revision 0)
++++ GUGE69.ini	(revision 0)
+@@ -0,0 +1,6 @@
++# GUGE69 - Need for Speed(TM) Underground 2
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 3
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: GYRE41.ini
+===================================================================
+--- GYRE41.ini	(revision 0)
++++ GYRE41.ini	(revision 0)
+@@ -0,0 +1,9 @@
++# GYRE41 - TMNT
++[Core] Values set here will override the main dolphin settings.
++TLBHack = 1
++Patch Region=0x7e001800
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 4
++EmulationIssues = Need Projection Before R945
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: RCPE18.ini
+===================================================================
+--- RCPE18.ini	(revision 0)
++++ RCPE18.ini	(revision 0)
+@@ -0,0 +1,8 @@
++# RCPE18 - KORORINPA
++[Core] Values set here will override the main dolphin settings.
++TLBHack = 1
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 4
++EmulationIssues = Needs TLBHack On
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
+Index: RWEPA4.ini
+===================================================================
+--- RWEPA4.ini	(revision 0)
++++ RWEPA4.ini	(revision 0)
+@@ -0,0 +1,7 @@
++# RWEPA4 - Pro Evolution Soccer 2008
++[Core] Values set here will override the main dolphin settings.
++[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.
++EmulationStateId = 1
++EmulationIssues = 
++[OnFrame] Add memory patches to be applied every frame here.
++[ActionReplay] Add action replay cheats here.
