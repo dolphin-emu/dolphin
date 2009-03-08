@@ -60,7 +60,7 @@ void Config::Load()
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
-    iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
+    iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
     if (iMultisampleMode == 0)
         iMultisampleMode = 1;
     
@@ -105,7 +105,7 @@ void Config::Save()
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
-    iniFile.Set("Settings", "Multisample", iMultisampleMode);
+    iniFile.Set("Settings", "MSAA", iMultisampleMode);
     iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
     iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
     iniFile.Set("Settings", "Wireframe", bWireFrame);

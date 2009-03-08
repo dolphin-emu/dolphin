@@ -31,9 +31,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_ALIASMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(ID_MSAAMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, ConfigDialog::GeneralSettingsChanged)
@@ -107,7 +106,7 @@ void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 ///////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// Add avaliable redolutions and other settings
+// Add avaliable resolutions and other settings
 // ---------------
 void ConfigDialog::AddFSReso(char *reso)
 {
@@ -119,12 +118,6 @@ void ConfigDialog::AddWindowReso(char *reso)
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }
 
-void ConfigDialog::AddAAMode(int mode)
-{
-	wxString tmp;
-	tmp<<mode;
-	m_AliasModeCB->Append(tmp);
-}
 ///////////////////////////////////////
 
 
@@ -193,6 +186,18 @@ void ConfigDialog::CreateGUIControls()
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
+	wxStaticText *MSAAText = new wxStaticText(m_PageGeneral, ID_MSAAMODETEXT, wxT("Antialias (MSAA):"), wxDefaultPosition, wxDefaultSize, 0);
+	m_MSAAModeCB = new wxChoice(m_PageGeneral, ID_MSAAMODECB, wxDefaultPosition, wxDefaultSize, arrayStringFor_MSAAModeCB, 0, wxDefaultValidator);
+	m_MSAAModeCB->Append(wxT("(off)"));
+	m_MSAAModeCB->Append(wxT("2x"));
+	m_MSAAModeCB->Append(wxT("4x"));
+	m_MSAAModeCB->Append(wxT("8x"));
+	m_MSAAModeCB->Append(wxT("8x CSAA"));
+	m_MSAAModeCB->Append(wxT("8xQ CSAA"));
+	m_MSAAModeCB->Append(wxT("16x CSAA"));
+	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
+	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
+
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This option use a separate rendering window and can only be used when"
@@ -216,8 +221,6 @@ void ConfigDialog::CreateGUIControls()
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
-	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
 	m_MaxAnisotropyCB->Append(wxT("1x"));
@@ -226,15 +229,6 @@ void ConfigDialog::CreateGUIControls()
 	m_MaxAnisotropyCB->Append(wxT("8x"));
 	m_MaxAnisotropyCB->Append(wxT("16x"));
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
-
-	wxStaticText *AAText = new wxStaticText(m_PageGeneral, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
-	wxArrayString arrayStringFor_AliasModeCB;
-	m_AliasModeCB = new wxComboBox(m_PageGeneral, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
-	wxString tmp;
-	tmp << g_Config.iMultisampleMode;
-	m_AliasModeCB->SetValue(tmp);
-	AAText->Hide();
- 	m_AliasModeCB->Hide();
 
 	// Usage: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
@@ -263,11 +257,10 @@ void ConfigDialog::CreateGUIControls()
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sEnhancements = new wxGridBagSizer(0, 0);
-	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sEnhancements->Add(AnisoText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
-    //sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	//sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(AnisoText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(MSAAText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
@@ -459,14 +452,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_WINDOWRESOLUTIONCB:
 		strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
 		break;
-	case ID_FORCEFILTERING:
-		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
-		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
 		break;
-	case ID_ALIASMODECB:
-		g_Config.iMultisampleMode = atoi(m_AliasModeCB->GetValue().mb_str());
+	case ID_MSAAMODECB:
+		g_Config.iMultisampleMode = m_MSAAModeCB->GetSelection();
 		break;
 	}
 

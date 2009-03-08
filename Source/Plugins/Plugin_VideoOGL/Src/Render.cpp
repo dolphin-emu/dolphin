@@ -75,6 +75,7 @@ static int nZBufferRender = 0;  // if > 0, then use zbuffer render, and count do
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
+static int s_MSAACoverageSamples = 0;
 
 // Normal Mode
 // s_RenderTarget is a texture_rect
@@ -109,6 +110,7 @@ static GLuint s_ResolvedDepthTarget  = 0;
 static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
 static bool s_bHaveFramebufferBlit = false;
+static bool s_bHaveCoverageMSAA = false;
 static bool g_bBlendSeparate = false;
 static u32 s_blendMode;
 
@@ -170,6 +172,20 @@ bool Renderer::Init()
 {
     bool bSuccess = true;
 	s_blendMode = 0;
+	s_MSAACoverageSamples = 0;
+	switch (g_Config.iMultisampleMode)
+	{
+	case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
+	case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
+	case MULTISAMPLE_4X:  s_MSAASamples = 4; break;
+	case MULTISAMPLE_8X:  s_MSAASamples = 8; break;
+	case MULTISAMPLE_CSAA_8X:   s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
+	case MULTISAMPLE_CSAA_8XQ:  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
+	case MULTISAMPLE_CSAA_16X:  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
+	case MULTISAMPLE_CSAA_16XQ: s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
+	default:
+		s_MSAASamples = 1;
+	}
 	GLint numvertexattribs = 0;
     GLenum err = GL_NO_ERROR;
     g_cgcontext = cgCreateContext();
@@ -223,6 +239,12 @@ bool Renderer::Init()
 		// MSAA ain't gonna work. turn it off if enabled.
 		s_MSAASamples = 1;
 	}
+	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
+	if (!s_bHaveCoverageMSAA)
+	{
+		s_MSAACoverageSamples = 0;
+	}
+
     if (!bSuccess)
         return false;
 
@@ -327,13 +349,25 @@ bool Renderer::Init()
 		// First set up the boring multisampled rendertarget.
 		glGenRenderbuffersEXT(1, &s_RenderTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTarget);
-		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		if (s_MSAACoverageSamples) {
+			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		} else {
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		}
 		glGenRenderbuffersEXT(1, &s_FakeZTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_FakeZTarget);
-		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		if (s_MSAACoverageSamples) {
+			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		} else {
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		}
 		glGenRenderbuffersEXT(1, &s_DepthTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		if (s_MSAACoverageSamples) {
+			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		} else {
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		}
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 
 		// Attach them to our multisampled FBO. The multisampled FBO is still bound here.

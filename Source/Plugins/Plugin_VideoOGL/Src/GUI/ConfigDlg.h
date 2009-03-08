@@ -45,7 +45,6 @@ class ConfigDialog : public wxDialog
 
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
-		void AddAAMode(int mode);
 		void CreateGUIControls();
 
 		// Combo box lists, this one needs to be public
@@ -87,11 +86,11 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
-
-		wxCheckBox *m_ForceFiltering; // advanced
-		wxChoice *m_MaxAnisotropyCB;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
-		wxComboBox *m_AliasModeCB;
+		wxChoice *m_MaxAnisotropyCB;
+		wxArrayString arrayStringFor_MSAAModeCB;
+		wxChoice *m_MSAAModeCB;
+
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Statistics;
@@ -138,10 +137,9 @@ class ConfigDialog : public wxDialog
 			ID_WMTEXT,
 			ID_WINDOWRESOLUTIONCB,
 
-			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
-			ID_AATEXT,
-			ID_ALIASMODECB,
+			ID_MSAAMODECB,
+			ID_MSAAMODETEXT,
 
 			ID_SHOWFPS,
 			ID_SHADERERRORS,
