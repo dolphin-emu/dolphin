@@ -52,7 +52,6 @@ void SetVSConstant4fv(int const_number, const float *f)
 	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
 }
 
-
 void VertexShaderCache::Init()
 {
 	s_displayCompileAlert = true;

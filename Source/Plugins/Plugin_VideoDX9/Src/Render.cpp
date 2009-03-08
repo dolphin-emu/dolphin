@@ -232,6 +232,7 @@ void Renderer::SwapBuffers()
 		p+=sprintf(p,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
 		p+=sprintf(p,"BP loads: %i\n",stats.thisFrame.numBPLoads);
 		p+=sprintf(p,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+		p+=sprintf(p,"Vertex Loaders: %i\n",stats.numVertexLoaders);
 
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 

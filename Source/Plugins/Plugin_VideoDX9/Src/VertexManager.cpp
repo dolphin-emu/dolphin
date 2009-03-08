@@ -182,6 +182,10 @@ void Flush()
 	DVSTARTPROFILE();
 	if (collection != C_NOTHING)
 	{
+		// setup the pointers
+		if(g_nativeVertexFmt)
+			g_nativeVertexFmt->SetupVertexPointers();
+
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
 			if (bpmem.tevorders[i/2].getEnable(i & 1))
@@ -232,8 +236,8 @@ void Flush()
 		int numVertices = indexGen.GetNumVerts();
 		if (numVertices)
 		{
-			PixelShaderCache::SetShader();  // TODO(ector): only do this if shader has changed
-			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);  // TODO(ector): only do this if shader has changed
+			PixelShaderCache::SetShader();
+			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 
 			// set global constants
 			VertexShaderManager::SetConstants(false);

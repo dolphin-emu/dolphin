@@ -286,7 +286,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1)
         }
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
-        SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
+		SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
         SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
         SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
         SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
