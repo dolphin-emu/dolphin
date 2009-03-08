@@ -106,18 +106,23 @@ private:
     typedef std::map<u32, SContentAccess> CContentAccessMap;
     CContentAccessMap m_ContentAccessMap;
 
+    typedef std::map<u64, DiscIO::CNANDContentLoader*> CTitleToContentMap;
+    CTitleToContentMap m_NANDContent;
+
     DiscIO::CNANDContentLoader* m_pContentLoader;
 
+    std::vector<u64> m_TitleIDs;
     u64 m_TitleID;
     u32 AccessIdentID;
 
     u64 GetCurrentTitleID() const;
 
-    DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID) const;
+    DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID);
 
     bool IsValid(u64 _TitleID) const;
 
     std::string CreateTicketFileName(u64 _TitleID) const;
+    std::string CreateTitleFileName(u64 _TitleID) const;
 };
 
 #endif
