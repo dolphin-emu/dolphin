@@ -34,6 +34,7 @@
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
     #include "../resources/Flag_France.xpm"
+	#include "../resources/Flag_Italy.xpm"
     #include "../resources/Flag_Japan.xpm"
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
@@ -110,9 +111,10 @@ void CGameListCtrl::InitBitmaps()
 	wxIcon iconTemp;
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] = m_imageListSmall->Add(iconTemp);
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_France_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Italy_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_USA_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Japan_xpm));
