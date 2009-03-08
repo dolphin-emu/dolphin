@@ -544,7 +544,8 @@ void ConfigDialog::UpdateGUI()
 {
 	// This is only used together with the aspect ratio options
 	m_Crop->Enable(g_Config.bKeepAR43 || g_Config.bKeepAR169);
-	if (g_Config.bUseXFB) {
+	if (g_Config.bUseXFB)
+	{
 		// XFB looks much better if the copy comes from native resolution.
 		g_Config.bNativeResolution = true;
 		m_NativeResolution->SetValue(true);

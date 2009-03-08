@@ -113,6 +113,7 @@ static bool s_bHaveFramebufferBlit = false;
 static bool s_bHaveCoverageMSAA = false;
 static bool g_bBlendSeparate = false;
 static u32 s_blendMode;
+static bool s_bNativeResolution = false;
 
 static volatile bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
@@ -173,6 +174,7 @@ bool Renderer::Init()
     bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
+	s_bNativeResolution = g_Config.bNativeResolution;
 	switch (g_Config.iMultisampleMode)
 	{
 	case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
@@ -540,12 +542,12 @@ bool Renderer::InitializeGL()
 // ------------------------
 int Renderer::GetTargetWidth()
 {
-	return g_Config.bNativeResolution ? EFB_WIDTH : s_targetwidth;
+	return s_bNativeResolution ? EFB_WIDTH : s_targetwidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-    return g_Config.bNativeResolution ? EFB_HEIGHT : s_targetheight;
+    return s_bNativeResolution ? EFB_HEIGHT : s_targetheight;
 }
 
 float Renderer::GetTargetScaleX()
@@ -591,7 +593,6 @@ GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
 			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
 							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
 
 		// Return the resolved target.
 		return s_ResolvedRenderTarget;
@@ -617,7 +618,6 @@ GLuint Renderer::ResolveAndGetFakeZTarget(const TRectangle &source_rect)
 		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
 			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
 							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
 
 		// Return the resolved target.
 		return s_ResolvedFakeZTarget;
@@ -841,7 +841,7 @@ void Renderer::FlushZBufferAlphaToTarget()
 
 	// TODO: This code should not have to bother with stretchtofit checking - 
 	// all necessary scale initialization should be done elsewhere.
-	if (g_Config.bNativeResolution)
+	if (s_bNativeResolution)
 	{
 		//TODO: Do Correctly in a bit
         float FactorW = 640.f / (float)OpenGL_GetBackbufferWidth();
@@ -1123,6 +1123,7 @@ void Renderer::Swap(const TRectangle& rc)
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
+	s_bNativeResolution = g_Config.bNativeResolution;
 
     RestoreGLState();
 
