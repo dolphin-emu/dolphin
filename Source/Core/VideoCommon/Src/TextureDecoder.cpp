@@ -468,10 +468,8 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 {
-#ifdef OVERLAY_TEXFMT
 	TexFmt_Overlay_Enable = enable;
 	TexFmt_Overlay_Center = center;
-#endif
 }
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)

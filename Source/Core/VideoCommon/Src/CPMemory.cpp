@@ -19,9 +19,10 @@
 #include "CPMemory.h"
 
 // CP state
+u8 *cached_arraybases[16];
+
 // STATE_TO_SAVE
 u32 arraybases[16];
-u8 *cached_arraybases[16];
 u32 arraystrides[16];
 TMatrixIndexA MatrixIndexA;
 TMatrixIndexB MatrixIndexB;
