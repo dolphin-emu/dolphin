@@ -69,7 +69,6 @@ D3DDECLTYPE VarToD3D(VarType t)
 // TODO: Ban signed bytes as normals - not likely that ATI supports them natively.
 // We probably won't see much of a speed loss, and any speed loss will be regained anyway
 // when we finally compile display lists.
-
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;
@@ -125,7 +124,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	if (_vtx_decl.posmtx_offset != -1)
 	{
-		PanicAlert("boo %i", _vtx_decl.posmtx_offset);
+		PanicAlert("Posmtx stream not supported correctly. %i", _vtx_decl.posmtx_offset);
 		// glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
 		elems[elem_idx].Offset = _vtx_decl.posmtx_offset;
 		elems[elem_idx].Usage = D3DDECLUSAGE_BLENDINDICES;

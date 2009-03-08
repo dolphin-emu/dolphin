@@ -100,8 +100,11 @@ void PixelShaderCache::SetShader()
 
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
-	} else if(g_Config.bShowShaderErrors)
+	}
+	else if (g_Config.bShowShaderErrors)
+	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
+	}
 }
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::CompileCgShader(const char *pstrprogram) 

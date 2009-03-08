@@ -100,9 +100,11 @@ void VertexShaderCache::SetShader(u32 components)
 
 		INCSTAT(stats.numVertexShadersCreated);
 		SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
-	} else if(g_Config.bShowShaderErrors)
+	}
+	else if (g_Config.bShowShaderErrors)
+	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
-
+	}
 	D3D::dev->SetFVF(NULL);
 	D3D::dev->SetVertexShader(shader);
 }
