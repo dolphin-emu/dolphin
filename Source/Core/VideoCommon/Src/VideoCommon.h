@@ -104,6 +104,30 @@ struct TRectangle
 
 	int GetWidth()  const { return right - left; }
 	int GetHeight() const { return bottom - top; }
+
+	void FlipYPosition(int y_height, TRectangle *dest) const
+	{
+		int offset = y_height - (bottom - top);
+		dest->left = left;
+		dest->top = top + offset;
+		dest->right = right;
+		dest->bottom = bottom + offset;
+	}
+
+	void FlipY(int y_height, TRectangle *dest) const {
+		dest->left = left;
+		dest->right = right;
+		dest->bottom = y_height - bottom;
+		dest->top = y_height - top;
+	}
+
+	void Scale(float factor_x, float factor_y, TRectangle *dest) const
+	{
+		dest->left   = (int)(factor_x * left);
+		dest->right  = (int)(factor_x * right);
+		dest->top    = (int)(factor_y * top);
+		dest->bottom = (int)(factor_y * bottom);
+	}
 };
 
 // Logging

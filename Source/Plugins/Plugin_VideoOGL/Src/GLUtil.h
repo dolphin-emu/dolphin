@@ -119,14 +119,20 @@ extern GLWindow GLWin;
 
 #endif
 
+// Initialization / upkeep
+bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
+void OpenGL_Shutdown();
+void OpenGL_Update();
+bool OpenGL_MakeCurrent();
+void OpenGL_SwapBuffers();
+
+// Get status
+bool OpenGL_CheckFBOStatus();
 u32 OpenGL_GetBackbufferWidth();
 u32 OpenGL_GetBackbufferHeight();
 
-bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
-bool OpenGL_MakeCurrent();
-void OpenGL_SwapBuffers();
+// Set things
 void OpenGL_SetWindowText(const char *text);
-void OpenGL_Shutdown();
-void OpenGL_Update();
+
 #endif
 #endif

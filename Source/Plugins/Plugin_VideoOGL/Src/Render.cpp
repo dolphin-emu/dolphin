@@ -73,7 +73,8 @@ static bool s_bFullscreen = false;
 
 static int nZBufferRender = 0;  // if > 0, then use zbuffer render, and count down.
 
-static bool MSAA = false;
+// 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
+static int s_MSAASamples = 1;
 
 // Normal Mode
 // s_RenderTarget is a texture_rect
@@ -93,6 +94,7 @@ static bool MSAA = false;
 
 // A framebuffer is a set of render targets: a color and a z buffer. They can be either RenderBuffers or Textures.
 static GLuint s_uFramebuffer = 0;
+static GLuint s_uResolvedFramebuffer = 0;
 
 // The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn't.
 // These are all texture IDs. Bind them as rect arb textures.
@@ -107,23 +109,23 @@ static GLuint s_ResolvedDepthTarget  = 0;
 static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
 static bool s_bHaveFramebufferBlit = false;
+static bool g_bBlendSeparate = false;
+static u32 s_blendMode;
 
 static volatile bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
-bool g_bBlendSeparate = false;
 
 int frameCount;
 static int s_fps = 0;
 
-// These STAY CONSTANT during execution, no matter how much you resize the game window.\
+// These STAY CONSTANT during execution, no matter how much you resize the game window.
 // TODO: Add functionality to reinit all the render targets when the window is resized.
 static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
-static u32 s_blendMode;
 
 extern void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
 
@@ -173,8 +175,7 @@ bool Renderer::Init()
     g_cgcontext = cgCreateContext();
 
     cgGetError();
-    cgSetErrorHandler(HandleCgError, NULL);
-
+	cgSetErrorHandler(HandleCgError, NULL);
 
     // Look for required extensions.
     const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
@@ -216,8 +217,12 @@ bool Renderer::Init()
         ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
         bSuccess = false;
     }
-	s_bHaveFramebufferBlit = GLEW_EXT_framebuffer_blit ? true : false;
-
+	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
+	if (!s_bHaveFramebufferBlit)
+	{
+		// MSAA ain't gonna work. turn it off if enabled.
+		s_MSAASamples = 1;
+	}
     if (!bSuccess)
         return false;
 
@@ -246,14 +251,6 @@ bool Renderer::Init()
     if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
         glDrawBuffers = glDrawBuffersARB;
 
-    glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
-    if (s_uFramebuffer == 0) {
-        ERROR_LOG(VIDEO, "failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
-    }
-
-    _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-
 	// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
 	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
 	// So the below is wrong.
@@ -271,14 +268,19 @@ bool Renderer::Init()
 	if (s_targetheight < EFB_HEIGHT)
 		s_targetheight = EFB_HEIGHT;
 
-	if (!MSAA) {
+	glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
+	if (s_uFramebuffer == 0) {
+		ERROR_LOG(VIDEO, "failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
+	}
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+
+	if (s_MSAASamples <= 1) {
 		// Create the framebuffer target texture
 		glGenTextures(1, (GLuint *)&s_RenderTarget);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
 		// Create our main color render target as a texture rectangle of the desired size.
 		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		SetDefaultRectTexParams();
-
 		GL_REPORT_ERROR();
 
 		GLint nMaxMRT = 0;
@@ -318,11 +320,64 @@ bool Renderer::Init()
 
 		if (s_FakeZTarget == 0)
 			ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)\n", nMaxMRT);
-	} else {
-		// TODO MSAA rendertarget init
 	}
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	else
+	{
+		// MSAA rendertarget init.
+		// First set up the boring multisampled rendertarget.
+		glGenRenderbuffersEXT(1, &s_RenderTarget);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTarget);
+		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		glGenRenderbuffersEXT(1, &s_FakeZTarget);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_FakeZTarget);
+		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
+		glGenRenderbuffersEXT(1, &s_DepthTarget);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
+		glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 
+		// Attach them to our multisampled FBO. The multisampled FBO is still bound here.
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTarget);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, s_FakeZTarget);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, s_DepthTarget);
+		OpenGL_CheckFBOStatus();
+
+		bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
+		if (bFailed) PanicAlert("Incomplete rt");
+
+		// Create our resolve FBO, and bind it.
+		glGenFramebuffersEXT(1, (GLuint *)&s_uResolvedFramebuffer);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+
+		// Generate the resolve targets.
+		glGenTextures(1, (GLuint *)&s_ResolvedRenderTarget);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ResolvedRenderTarget);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		SetDefaultRectTexParams();
+		// Generate the resolve targets.
+		glGenTextures(1, (GLuint *)&s_ResolvedFakeZTarget);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ResolvedFakeZTarget);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		SetDefaultRectTexParams();
+		// Create the real depth/stencil buffer. It's a renderbuffer, not a texture.
+		glGenRenderbuffersEXT(1, &s_ResolvedDepthTarget);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_ResolvedDepthTarget);
+		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+		
+		// Attach our resolve targets to our resolved FBO.
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ResolvedRenderTarget, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ResolvedFakeZTarget, 0);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_ResolvedDepthTarget);
+
+		OpenGL_CheckFBOStatus();
+
+		bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
+		if (bFailed) PanicAlert("Incomplete rt2");
+	}
+
+	// glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
     nZBufferRender = 0;  // Initialize the Z render shutoff countdown. We only render Z if it's desired, to save GPU power.
 
@@ -473,7 +528,7 @@ float Renderer::GetTargetScaleY()
 
 void Renderer::SetRenderTarget(GLuint targ)
 {
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB,
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 
 		targ != 0 ? targ : s_RenderTarget, 0);
 }
 
@@ -485,25 +540,64 @@ void Renderer::SetDepthTarget(GLuint targ)
 
 void Renderer::SetFramebuffer(GLuint fb)
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,
-		fb != 0 ? fb : s_uFramebuffer);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer);
 }
 
 GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 {
-	return s_RenderTarget;
+	if (s_MSAASamples > 1)
+	{
+		// Flip the rectangle
+		TRectangle flipped_rect;
+		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
+
+		// Do the resolve.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+
+		// Return the resolved target.
+		return s_ResolvedRenderTarget;
+	}
+	else 
+	{
+		return s_RenderTarget;
+	}
 }
 
 GLuint Renderer::ResolveAndGetFakeZTarget(const TRectangle &source_rect)
 {
 	// This logic should be moved elsewhere.
-	return s_FakeZTarget;
+	if (s_MSAASamples > 1)
+	{
+		// Flip the rectangle	
+		TRectangle flipped_rect;
+		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
+
+		// Do the resolve. We resolve both color channels, not very necessary.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+
+		// Return the resolved target.
+		return s_ResolvedFakeZTarget;
+	}
+	else 
+	{
+		return s_FakeZTarget;
+	}
 }
 
-GLuint Renderer::GetFakeZTarget()
+bool Renderer::UseFakeZTarget()
 {
 	// This logic should be moved elsewhere.
-	return nZBufferRender > 0 ? s_FakeZTarget : 0;
+	return nZBufferRender > 0;
 }
 
 void Renderer::ResetGLState()
@@ -768,7 +862,7 @@ void Renderer::SetRenderMode(RenderMode mode)
     }
     else if (s_RenderMode == RM_Normal) {
         // setup buffers
-        _assert_(GetFakeZTarget() && bpmem.zmode.updateenable);
+        _assert_(UseFakeZTarget() && bpmem.zmode.updateenable);
         if (mode == RM_ZBufferAlpha) {
             glEnable(GL_STENCIL_TEST);
             glClearStencil(0);
@@ -782,7 +876,7 @@ void Renderer::SetRenderMode(RenderMode mode)
         GL_REPORT_ERRORD();
     }
     else {
-        _assert_(GetFakeZTarget());
+        _assert_(UseFakeZTarget());
         _assert_(s_bHaveStencilBuffer);
 
         if (mode == RM_ZBufferOnly) {
@@ -897,72 +991,87 @@ void Renderer::Swap(const TRectangle& rc)
 	TRectangle back_rc;
 	ComputeBackbufferRectangle(&back_rc);
 
-
-	// Disable all other stages.
-    for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
-
-	// Update GLViewPort
-	glViewport(back_rc.left, back_rc.top,
-		       back_rc.right - back_rc.left, back_rc.bottom - back_rc.top);
-
-    GL_REPORT_ERRORD();
-
-	// Copy the framebuffer to screen.
-	// TODO: Use glBlitFramebufferEXT.
-	
-#if 0
-	// Use framebuffer blit to stretch screen. No messing around with annoying glBegin and viewports.
-	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
-	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-	glBlitFramebufferEXT(0, GetTargetHeight() - (rc.bottom - rc.top), rc.GetWidth(), rc.GetHeight(),
-		                 back_rc.left, back_rc.top, back_rc.GetWidth(), back_rc.GetHeight(),
-						 GL_COLOR_BUFFER_BIT, GL_LINEAR);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
-	//glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
-#else
-	// Render to the real buffer now.
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
-
-    // Texture map s_RenderTargets[s_curtarget] onto the main buffer
-    glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
-	// Use linear filtering.
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    TextureMngr::EnableTexRECT(0);
-    
 	float u_max;
 	float v_min = 0.f;
 	float v_max;
-	if (g_Config.bAutoScale) {
+	if (g_Config.bAutoScale)
+	{
 		u_max = (rc.right - rc.left);
 		v_min = (float)GetTargetHeight() - (rc.bottom - rc.top);
 		v_max = (float)GetTargetHeight();
-	} else {
-		u_max = (float)GetTargetWidth();
-		v_max = (float)GetTargetHeight();  // TODO - when we change the target height to 528, this will have to change.
 	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glBegin(GL_QUADS);
-		glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
-		glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
-		glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
-		glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
-	glEnd();
-#endif
+	else
+	{
+		u_max = (float)GetTargetWidth();
+		v_max = (float)GetTargetHeight();
+	}
 
-	// Restore filtering.
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	if (s_bHaveFramebufferBlit)
+	{
+		// Use framebuffer blit to stretch screen.
+		// No messing around with annoying glBegin and viewports, plus can support multisampling.
+		if (s_MSAASamples > 1)
+		{
+			ResolveAndGetRenderTarget(rc);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		}
+		else
+		{
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
+		}
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+		glBlitFramebufferEXT(0, v_min, u_max, v_max,
+							 back_rc.left, back_rc.top, back_rc.right, back_rc.bottom,
+							 GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);  // switch to the window backbuffer, we'll draw debug text on top
+	}
+	else
+	{
+		// No framebuffer_blit extension - crappy gfx card! Fall back to plain texturing solution.
+		// Disable all other stages.
+		for (int i = 1; i < 8; ++i)
+			TextureMngr::DisableStage(i);
 
-	// Wireframe
-	if (g_Config.bWireFrame)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		// Update GLViewPort
+		glViewport(back_rc.left, back_rc.top,
+				   back_rc.right - back_rc.left, back_rc.bottom - back_rc.top);
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureMngr::DisableStage(0);
-	// -------------------------------------
+		GL_REPORT_ERRORD();
+
+		// Copy the framebuffer to screen.
+		// TODO: Use glBlitFramebufferEXT.
+			// Render to the real buffer now.
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+
+		// Texture map s_RenderTargets[s_curtarget] onto the main buffer
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+		// Use linear filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		TextureMngr::EnableTexRECT(0);
+	    
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBegin(GL_QUADS);
+			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
+			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
+			glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
+			glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+		glEnd();
+
+		// Restore filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		// Wireframe
+		if (g_Config.bWireFrame)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+		TextureMngr::DisableStage(0);
+		// End of non-framebuffer_blit workaround.
+	}
+
 	// Take screenshot, if requested
 	if (s_bScreenshot) {
 		s_criticalScreenshot.Enter();
@@ -995,6 +1104,8 @@ void Renderer::Swap(const TRectangle& rc)
 
 void Renderer::DrawDebugText()
 {
+	// Reset viewport for drawing text
+	glViewport(0, 0, OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight());
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;

@@ -99,7 +99,7 @@ void CreateYuyvToRgbProgram()
     }
 }
 
-FRAGMENTSHADER& GetOrCreateEncodingShader(u32 format)
+FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 {
 	if (format > NUM_ENCODING_PROGRAMS)
 	{
@@ -245,11 +245,17 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	if (texconv_shader.glprogid == 0)
 		return;
 
-	u8* ptr = Memory_GetPtr(address);
+	u8 *dest_ptr = Memory_GetPtr(address);
 
 	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
-	s32 width = source.right - source.left;
-	s32 height = source.bottom - source.top;
+	int width = source.right - source.left;
+	int height = source.bottom - source.top;
+
+	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+
+	// Invalidate any existing texture covering this memory range.
+	// TODO - don't delete the texture if it already exists, just replace the contents.
+	TextureMngr::InvalidateRange(address, size_in_bytes);
 
 	if (bScaleByHalf)
 	{
@@ -280,7 +286,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;	
 
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
 
 	if (bFromZBuffer)
         Renderer::SetZBufferRender(); // notify for future settings

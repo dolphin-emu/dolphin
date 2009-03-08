@@ -451,7 +451,7 @@ void BPWritten(int addr, int changes, int newval)
                 // Clear color
                 Renderer::SetRenderMode(Renderer::RM_Normal);
 				// Clear Z-Buffer target
-                bool bRestoreZBufferTarget = Renderer::GetFakeZTarget() != 0;
+                bool bRestoreZBufferTarget = Renderer::UseFakeZTarget();
                 
 				// Update the view port for clearing the picture
 				glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());

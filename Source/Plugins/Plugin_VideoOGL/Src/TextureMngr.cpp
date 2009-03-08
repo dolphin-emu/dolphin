@@ -93,6 +93,15 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
     return SaveTGA(filename, width, height, &data[0]);
 }
 
+bool TextureMngr::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
+{
+	if (addr + size_in_bytes < range_address)
+		return false;
+	if (addr >= range_address + range_size)
+		return false;
+	return true;
+}
+
 void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 {
     mode = newmode;
@@ -179,6 +188,12 @@ void TextureMngr::Shutdown()
     temp = NULL;
 }
 
+#ifdef _WIN32
+#define ERASE_THROUGH_ITERATOR(container, iterator) iterator = container.erase(iterator)
+#else
+#define ERASE_THROUGH_ITERATOR(container, iterator) container.erase(iterator++)
+#endif
+
 void TextureMngr::ProgressiveCleanup()
 {
     TexCache::iterator iter = textures.begin();
@@ -188,19 +203,11 @@ void TextureMngr::ProgressiveCleanup()
 		{
             if (!iter->second.isRenderTarget) {
                 iter->second.Destroy(false);
-#ifdef _WIN32
-                iter = textures.erase(iter);
-#else
-				textures.erase(iter++);
-#endif
+				ERASE_THROUGH_ITERATOR(textures, iter);
             }
             else {
                 iter->second.Destroy(false);
-#ifdef _WIN32
-                iter = textures.erase(iter);
-#else
-				textures.erase(iter++);
-#endif
+				ERASE_THROUGH_ITERATOR(textures, iter);
             }
         }
         else
@@ -211,17 +218,28 @@ void TextureMngr::ProgressiveCleanup()
     while (itdepth != mapDepthTargets.end())
 	{
         if (frameCount > 20 + itdepth->second.framecount) {
-#ifdef _WIN32
-            itdepth = mapDepthTargets.erase(itdepth);
-#else
-            mapDepthTargets.erase(itdepth++);
-#endif
+			ERASE_THROUGH_ITERATOR(mapDepthTargets, itdepth);
         }
         else ++itdepth;
     }
 }
 
-TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
+void TextureMngr::InvalidateRange(u32 start_address, u32 size) {
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
+	{
+		if (iter->second.IntersectsMemoryRange(start_address, size))
+		{
+			iter->second.Destroy(false);
+			ERASE_THROUGH_ITERATOR(textures, iter);
+		}
+		else {
+			++iter;
+		}
+	}
+}
+
+TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt)
 {
 	/* notes (about "UNsafe texture cache"):
 	*	Have to be removed soon.
@@ -232,7 +250,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	/* notes (about "safe texture cache"):
 	*	Metroids text issue (character table):
 	*	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
-	*	That's why we have to hash the TLUT too for TLUT format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
+	*	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
 	*	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
 	*	have to be a real unique ID. 
 	*	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
@@ -253,26 +271,26 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	int bs = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
     int expandedWidth = (width + bs) & (~bs);
 
 	u32 hash_value;
     u32 texID = address;
 	if (g_Config.bSafeTextureCache)
 	{
-		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);  // remove last arg 
-		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
+		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, tex_format, 0);  // remove last arg 
+		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
 			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
-			//texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format));
+			//texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
 
 			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
 			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs. 
-			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
+			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
 	}
@@ -295,7 +313,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
 			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
- 			//		, address, format, entry.hash, width, height);
+ 			//		, address, tex_format, entry.hash, width, height);
 			return &entry;
         }
         else
@@ -303,7 +321,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			if (width == entry.w && height == entry.h && format == entry.fmt)
+			if (width == entry.w && height == entry.h && tex_format == entry.fmt)
             {
 				glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				if (entry.mode.hex != tm0.hex)
@@ -318,7 +336,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
     
-    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
+    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, tex_format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
@@ -335,10 +353,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
 	}
 	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
- 	//		, address, format, entry.hash, width, height);
+ 	//		, address, tex_format, entry.hash, width, height);
 	
 
     entry.addr = address;
+	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
     entry.isRenderTarget = false;
     entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
 
@@ -354,7 +373,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	int gl_format;
 	int gl_iformat;
 	int gl_type;
-	switch (dfmt) {
+	switch (dfmt)
+	{
 	default:
 	case PC_TEX_FMT_NONE:
 		PanicAlert("Invalid PC texture format %i", dfmt); 
@@ -397,14 +417,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.frameCount = frameCount;
     entry.w = width;
     entry.h = height;
-    entry.fmt = format;
+    entry.fmt = tex_format;
     entry.SetTextureParameters(tm0);
 
     if (g_Config.bDumpTextures) // dump texture to file
 	{ 
         static int counter = 0;
         char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/txt_%04i_%i.tga", FULL_DUMP_TEXTURES_DIR, counter++, format);
+		sprintf(szTemp, "%s/txt_%04i_%i.tga", FULL_DUMP_TEXTURES_DIR, counter++, tex_format);
         SaveTexture(szTemp,target, entry.texture, width, height);
     }
 
@@ -616,7 +636,16 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 //        GL_REPORT_ERRORD(); 
 //        return;
 //    }
-    
+
+	TRectangle scaled_rect;
+	source_rect.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaled_rect);
+	TRectangle flipped_rect;
+	scaled_rect.FlipY(Renderer::GetTargetHeight(), &flipped_rect);
+
+	// Make sure to resolve anything we need to read from.
+	// TODO - it seems that it sometimes doesn't resolve the entire area we are interested in. See shadows in Burnout 2.
+	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(scaled_rect) : Renderer::ResolveAndGetRenderTarget(scaled_rect);
+
     Renderer::SetRenderMode(Renderer::RM_Normal); // set back to normal
     GL_REPORT_ERRORD();
 
@@ -633,7 +662,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     // create and attach the render target
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.find((h << 16) | w);
-    
     if (itdepth == mapDepthTargets.end()) 
 	{
         DEPTHTARGET& depth = mapDepthTargets[(h << 16) | w];
@@ -657,10 +685,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, (bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect)));
-
     TextureMngr::EnableTexRECT(0);
-    
+
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+   
     glViewport(0, 0, w, h);
 
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -668,15 +696,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
 
-	// Get Target X, Y
-	float MValueX = Renderer::GetTargetScaleX();
-    float MValueY = Renderer::GetTargetScaleY();
-    
     glBegin(GL_QUADS);
-    glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.bottom * MValueY); glVertex2f(-1,  1);
-    glTexCoord2f((float)source_rect.left * MValueX,  Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f(-1, -1);
-    glTexCoord2f((float)source_rect.right * MValueX, Renderer::GetTargetHeight()-(float)source_rect.top    * MValueY); glVertex2f( 1, -1);
-    glTexCoord2f((float)source_rect.right * MValueX, Renderer::GetTargetHeight()-(float)source_rect.bottom * MValueY); glVertex2f( 1,  1);
+	glTexCoord2f(flipped_rect.left,  flipped_rect.bottom); glVertex2f(-1,  1);
+    glTexCoord2f(flipped_rect.left,  flipped_rect.top   ); glVertex2f(-1, -1);
+    glTexCoord2f(flipped_rect.right, flipped_rect.top   ); glVertex2f( 1, -1);
+    glTexCoord2f(flipped_rect.right, flipped_rect.bottom); glVertex2f( 1,  1);
     glEnd();
 
     GL_REPORT_ERRORD();
@@ -691,7 +715,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     GL_REPORT_ERRORD();
 
-	if(g_Config.bDumpEFBTarget)
+	if (g_Config.bDumpEFBTarget)
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%s/efb_frame_%i.tga", FULL_DUMP_TEXTURES_DIR, count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);

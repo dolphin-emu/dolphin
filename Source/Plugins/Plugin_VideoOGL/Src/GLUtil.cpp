@@ -93,6 +93,27 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
+bool OpenGL_CheckFBOStatus()
+{
+	unsigned int fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	if (fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	{
+		std::string error = "error creating fbo, framebufferstatus is not complete:\n";
+		switch (fbo_status)
+		{
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:          error += "INCOMPLETE_ATTACHMENT_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:  error += "INCOMPLETE_MISSING_ATTACHMENT_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:          error += "INCOMPLETE_DIMENSIONS_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:             error += "INCOMPLETE_FORMATS_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:         error += "INCOMPLETE_DRAW_BUFFER_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:         error += "INCOMPLETE_READ_BUFFER_EXT"; break;
+			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:                    error += "UNSUPPORTED_EXT"; break;
+		}
+		PanicAlert(error.c_str());
+		return false;
+	}
+	return true;
+}
 
 // =======================================================================================
 // Draw messages on top of the screen

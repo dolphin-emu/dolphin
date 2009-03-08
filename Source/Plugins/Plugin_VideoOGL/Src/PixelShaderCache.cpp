@@ -109,7 +109,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader()
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-	u32 zbufrender = (Renderer::GetFakeZTarget() && bpmem.zmode.updateenable) ? 1 : 0;
+	u32 zbufrender = (Renderer::UseFakeZTarget() && bpmem.zmode.updateenable) ? 1 : 0;
 	u32 zBufRenderToCol0 = Renderer::GetRenderMode() != Renderer::RM_Normal;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), zbufrender, zBufRenderToCol0);
 
@@ -127,7 +127,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader()
 
 	PSCacheEntry& newentry = pshaders[uid];
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
-										   Renderer::GetFakeZTarget() != 0,
+										   Renderer::UseFakeZTarget(),
 										   Renderer::GetRenderMode() != Renderer::RM_Normal);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

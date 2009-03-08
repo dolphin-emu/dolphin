@@ -88,11 +88,13 @@ public:
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
 	// If not in MSAA mode, will just return the render target texture ID.
+	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
 	static GLuint ResolveAndGetRenderTarget(const TRectangle &rect);
 
 	// Same as above but for the FakeZ Target.
+	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
     static GLuint ResolveAndGetFakeZTarget(const TRectangle &rect);
-    static GLuint GetFakeZTarget();  // This is used by some functions to check for Z target existence. Should be changed to a bool.
+    static bool UseFakeZTarget();  // This is used by some functions to check for Z target existence.
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);

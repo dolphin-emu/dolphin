@@ -29,10 +29,11 @@ class TextureMngr
 public:
     struct TCacheEntry
     {
-        TCacheEntry() : texture(0), addr(0), hash(0), w(0), h(0), isRenderTarget(false), isUpsideDown(false), isNonPow2(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
+        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0), isRenderTarget(false), isUpsideDown(false), isNonPow2(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
         GLuint texture;
         u32 addr;
+        u32 size_in_bytes;
         u32 hash;
         u32 paletteHash;
         u32 hashoffset;
@@ -40,7 +41,7 @@ public:
         TexMode0 mode; // current filter and clamp modes that texture is set to
 
         int frameCount;
-        int w,h,fmt;
+        int w, h, fmt;
 
         bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target
                              // later conversions would have to convert properly from rendertexfmt to texfmt
@@ -51,6 +52,7 @@ public:
         void SetTextureParameters(TexMode0& newmode);
         void Destroy(bool shutdown);
         void ConvertFromRenderTarget(u32 taddr, int twidth, int theight, int tformat, int tlutaddr, int tlutfmt);
+		bool IntersectsMemoryRange(u32 range_address, u32 range_size);
     };
 
     struct DEPTHTARGET
@@ -73,6 +75,8 @@ public:
     static void ProgressiveCleanup();
     static void Shutdown();
     static void Invalidate(bool shutdown);
+	static void InvalidateRange(u32 start_address, u32 size);
+
     static TCacheEntry* Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
     static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle &source);
 
