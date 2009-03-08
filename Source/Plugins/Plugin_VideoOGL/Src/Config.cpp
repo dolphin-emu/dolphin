@@ -61,8 +61,6 @@ void Config::Load()
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
     iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-    if (iMultisampleMode == 0)
-        iMultisampleMode = 1;
     
     iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
     iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
