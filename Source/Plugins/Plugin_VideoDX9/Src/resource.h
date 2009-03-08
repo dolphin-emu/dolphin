@@ -56,6 +56,7 @@
 #define IDC_CHECK3                      1034
 #define IDC_TEXFMT_CENTER               1034
 #define IDC_TEXFMT_OVERLAY              1035
+#define IDC_OVERLAYPROJSTATS            1036
 
 // Next default values for new objects
 // 

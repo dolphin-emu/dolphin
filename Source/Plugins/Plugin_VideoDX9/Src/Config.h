@@ -37,6 +37,7 @@ struct Config
 	bool bVsync;
 	bool bWireFrame;
 	bool bOverlayStats;
+	bool bOverlayProjStats;
 	bool bDumpTextures;
 	bool bOldCard;
 	bool bShowShaderErrors;
