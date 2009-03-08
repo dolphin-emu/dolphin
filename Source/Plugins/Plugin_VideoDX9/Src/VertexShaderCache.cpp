@@ -44,7 +44,6 @@ void SetVSConstant4fv(int const_number, const float *f)
 	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
 }
 
-
 void VertexShaderCache::Init()
 {
 
@@ -88,7 +87,7 @@ void VertexShaderCache::SetShader(u32 components)
 
 	bool HLSL = false;
 	const char *code = GenerateVertexShader(components, false);
-	LPDIRECT3DVERTEXSHADER9 shader = HLSL ? D3D::CompileVertexShader(code, strlen(code), false) : CompileCgShader(code);
+	LPDIRECT3DVERTEXSHADER9 shader = HLSL ? D3D::CompileVertexShader(code, (int)strlen(code), false) : CompileCgShader(code);
 	if (shader)
 	{
 		// Make an entry in the table

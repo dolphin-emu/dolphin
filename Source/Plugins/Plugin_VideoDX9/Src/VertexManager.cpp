@@ -199,8 +199,7 @@ void Flush()
 		u32 nonpow2tex = 0;
 		for (int i = 0; i < 8; i++)
 		{
-			// if (usedtextures & (1 << i)) {
-			{
+			if (usedtextures & (1 << i)) {
 				FourTexUnits &tex = bpmem.tex[i >> 2];
 				TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
 					(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
@@ -235,11 +234,11 @@ void Flush()
 		{
 			PixelShaderCache::SetShader();  // TODO(ector): only do this if shader has changed
 			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);  // TODO(ector): only do this if shader has changed
-	
+
 			// set global constants
 			VertexShaderManager::SetConstants(false);
 			PixelShaderManager::SetConstants();
-
+	
 			int stride = g_nativeVertexFmt->GetVertexStride();
 			g_nativeVertexFmt->SetupVertexPointers();
 			if (collection != C_POINTS)

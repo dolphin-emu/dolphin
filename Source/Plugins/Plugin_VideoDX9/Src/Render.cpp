@@ -339,8 +339,14 @@ void Renderer::SetViewport(float* _Viewport)
 
 void Renderer::SetScissorRect()
 {
-	/*
-	RECT rc = {0,0,0,0}; // FIXX
+	int xoff = bpmem.scissorOffset.x * 2 - 342;
+	int yoff = bpmem.scissorOffset.y * 2 - 342;
+	RECT rc;
+	rc.left   = (int)((float)bpmem.scissorTL.x - xoff - 342);
+	rc.top    = (int)((float)bpmem.scissorTL.y - yoff - 342);
+	rc.right  = (int)((float)bpmem.scissorBR.x - xoff - 341);
+	rc.bottom = (int)((float)bpmem.scissorBR.y - yoff - 341);
+
 	rc.left   = (int)(rc.left   * xScale);
 	rc.top    = (int)(rc.top    * yScale);
 	rc.right  = (int)(rc.right  * xScale);
@@ -348,7 +354,7 @@ void Renderer::SetScissorRect()
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 		D3D::dev->SetScissorRect(&rc);
 	else
-		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);*/
+		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);
 }
 
 /*
@@ -455,6 +461,7 @@ void Renderer::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Va
 		D3D::dev->SetSamplerState(Sampler, Type, Value);
 	}
 }
+
 
 // Called from VertexShaderManager
 void UpdateViewport()
