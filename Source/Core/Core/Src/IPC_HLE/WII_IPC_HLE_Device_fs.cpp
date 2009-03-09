@@ -55,8 +55,10 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	}
 
 	// create home directory
+    if (VolumeHandler::IsValid())
 	{
 		u32 TitleID = VolumeHandler::Read32(0);
+        _dbg_assert_(WII_IPC_FILEIO, TitleID != 0);
 		if (TitleID == 0) TitleID = 0xF00DBEEF;
 
 		char* pTitleID = (char*)&TitleID;
