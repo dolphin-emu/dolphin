@@ -60,7 +60,7 @@ static LPDIRECT3DVERTEXDECLARATION9 vDecl;
 static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
 static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
 
-#define MAXVBUFFERSIZE 65536*3
+#define MAXVBUFFERSIZE 65536
 #define MAXIBUFFERSIZE 65536*3
 
 const Collection collectionTypeLUT[8] =
@@ -81,7 +81,7 @@ void DestroyDeviceObjects();
 bool Init()
 {
 	collection = C_NOTHING;
-	fakeVBuffer = new u8[MAXVBUFFERSIZE];
+	fakeVBuffer = new u8[MAXVBUFFERSIZE * 64];
 	fakeIBuffer = new u16[MAXIBUFFERSIZE];
 	CreateDeviceObjects();
 	VertexManager::s_pCurBufferPointer = fakeVBuffer;
