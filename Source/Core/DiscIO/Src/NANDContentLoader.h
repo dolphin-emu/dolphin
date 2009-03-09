@@ -32,7 +32,7 @@ struct SNANDContent
     u16 m_Index;
     u16 m_Type;
     u32 m_Size;
-
+    u8 m_SHA1Hash[20];
     u8* m_pData;
 };
 
@@ -70,6 +70,7 @@ private:
     u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
 
     void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
+    
 
     bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD);
 };

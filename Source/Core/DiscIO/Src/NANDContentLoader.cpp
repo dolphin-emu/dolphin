@@ -26,6 +26,73 @@
 namespace DiscIO
 {
 
+
+class CSharedContent
+{   
+public:
+    
+    static CSharedContent& AccessInstance() { return m_Instance; }
+
+    std::string GetFilenameFromSHA1(u8* _pHash);
+
+private:
+
+
+    CSharedContent();
+
+    virtual ~CSharedContent();
+
+    struct SElement
+    {
+        u8 FileName[8];
+        u8 SHA1Hash[20];
+    };
+
+    std::vector<SElement> m_Elements;
+    static CSharedContent m_Instance;
+};
+
+CSharedContent CSharedContent::m_Instance;
+
+CSharedContent::CSharedContent()
+{
+    char szFilename[1024];
+    sprintf(szFilename, "%sshared1/content.map", FULL_WII_USER_DIR);
+    if (File::Exists(szFilename))
+    {
+        FILE* pFile = fopen(szFilename, "rb");
+        while(!feof(pFile))
+        {
+            SElement Element;
+            if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
+            {
+                m_Elements.push_back(Element);
+            }
+        }
+    }
+}
+
+CSharedContent::~CSharedContent()
+{}
+
+std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
+{
+    for (size_t i=0; i<m_Elements.size(); i++)    
+    {
+        if (memcmp(_pHash, m_Elements[i].SHA1Hash, 20) == 0)
+        {
+            char szFilename[1024];
+            sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", FULL_WII_USER_DIR, 
+                m_Elements[i].FileName[0], m_Elements[i].FileName[1], m_Elements[i].FileName[2], m_Elements[i].FileName[3],
+                m_Elements[i].FileName[4], m_Elements[i].FileName[5], m_Elements[i].FileName[6], m_Elements[i].FileName[7]);
+            return szFilename;
+        }
+    }
+    return "unk";
+}
+
+
+
 class CBlobBigEndianReader
 {
 public:
@@ -106,8 +173,8 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         return false;
 	}
     u64 Size = File::GetSize(TMDFileName.c_str());
-    u8* pTMD = new u8[(u32)Size];
-    fread(pTMD, (size_t)Size, 1, pTMDFile);
+    u8* pTMD = new u8[Size];
+    fread(pTMD, Size, 1, pTMDFile);
     fclose(pTMDFile);
 
     ////// 
@@ -125,25 +192,37 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
         rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
         rContent.m_Size = (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
-        rContent.m_pData = NULL; 
+        memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 
+        rContent.m_pData = NULL;         
         char szFilename[1024];
-        sprintf(szFilename, "%s/%08x.app", _rPath.c_str(), rContent.m_ContentID);
+
+        if (rContent.m_Type & 0x8000)  // shared app
+        {
+            std::string Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
+            strcpy(szFilename, Filename.c_str());
+        }
+        else
+        {
+            sprintf(szFilename, "%s/%08x.app", _rPath.c_str(), rContent.m_ContentID);
+        }
+
+        INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 
         FILE* pFile = fopen(szFilename, "rb");
-        // i have seen TMDs which index to app which doesn't exist...
         if (pFile != NULL)
         {
             u64 Size = File::GetSize(szFilename);
-            rContent.m_pData = new u8[(u32)Size];
+            rContent.m_pData = new u8[Size];
 
-            _dbg_assert_msg_(BOOT, rContent.m_Size==Size, "TMDLoader: Filesize doesnt fit (%s %i)", szFilename, i);
+            _dbg_assert_msg_(BOOT, rContent.m_Size==Size, "TMDLoader: Filesize doesnt fit (%s %i)... prolly you have a bad dump", szFilename, i);
 
-            fread(rContent.m_pData, (size_t)Size, 1, pFile);
+            fread(rContent.m_pData, Size, 1, pFile);
             fclose(pFile);
-        } else {
-			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
-					  szFilename);
+        } 
+        else 
+        {
+			PanicAlert("NANDContentLoader: error opening %s", szFilename);
 		}
     }
 
