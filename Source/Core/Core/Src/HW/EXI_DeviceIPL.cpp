@@ -212,6 +212,12 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			{
 				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART");
 			}
+            else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
+                    ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
+                    ((m_uAddress & 0x7FFFFF00) == 0x21000800))
+            {
+                ERROR_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: RTC flags (WII only) - not implemented");
+            }
 			else
 			{
 				//_dbg_assert_(EXPANSIONINTERFACE, 0);
@@ -270,6 +276,16 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			else
 				_uByte = 0x01; // dunno
 		}
+        else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
+                ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
+                ((m_uAddress & 0x7FFFFF00) == 0x21000800))
+        {
+            // WII only RTC flags... afaik just the wii menu initialize it
+//            if (m_uAddress & 0x80000000)
+  //              m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+    //        else
+      //          _uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+        }
 		m_uRWOffset++;
 	}
 	m_uPosition++;		
