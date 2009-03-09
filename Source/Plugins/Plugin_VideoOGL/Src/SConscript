@@ -60,6 +60,8 @@ if gfxenv['HAVE_COCOA']:
                 '-x',
                 'objective-c++',
                 ]
+if sys.platform == 'win32':
+        files += [ 'OS/Win32.cpp' ]
 
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests,

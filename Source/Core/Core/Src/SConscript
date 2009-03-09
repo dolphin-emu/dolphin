@@ -1,21 +1,23 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
-files = ["Console.cpp",
+files = ["ActionReplay.cpp",
+         "ARDecrypt.cpp",
          "ConfigManager.cpp",
+         "Console.cpp",
          "Core.cpp",
-         "CoreTiming.cpp",
          "CoreParameter.cpp",
+         "CoreRerecording.cpp",
+         "CoreTiming.cpp",
          "Host.cpp",
          "LogManager.cpp",
          "MemTools.cpp",
-         "ActionReplay.cpp",
-         "ARDecrypt.cpp",
          "PatchEngine.cpp",
+         "PluginManager.cpp",
          "State.cpp",
          "Tracer.cpp",
-         'PluginManager.cpp',
          "VolumeHandler.cpp",
          "Boot/Boot.cpp",
          "Boot/Boot_BIOSEmu.cpp",
@@ -118,6 +120,9 @@ else:
               "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
               "PowerPC/Jit64/Jit_SystemRegisters.cpp",
              ]
+
+if sys.platform == 'win32':
+    files += [ "stdafx.cpp" ]
 
 libs = [
 	'bdisasm',

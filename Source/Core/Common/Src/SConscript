@@ -1,31 +1,34 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 files = [
 	"ABI.cpp",
-	"MsgHandler.cpp",
 	"CDUtils.cpp",
 	"ChunkFile.cpp",
-	"ConsoleWindow.cpp",
 	"ColorUtil.cpp",
+	"ConsoleWindow.cpp",
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",
-	"Hash.cpp",
-	"IniFile.cpp",
+	"ExtendedTrace.cpp",
 	"FileSearch.cpp",
 	"FileUtil.cpp",
+	"Hash.cpp",
+	"IniFile.cpp",
 	"MappedFile.cpp",
 	"MathUtil.cpp",
-	"Misc.cpp",
 	"MemArena.cpp",
 	"MemoryUtil.cpp",
+	"Misc.cpp",
+	"MsgHandler.cpp",
 	"Plugin.cpp",
 	"PluginDSP.cpp",
 	"PluginWiimote.cpp",
 	"PluginVideo.cpp",
 	"PluginPAD.cpp",
 	"StringUtil.cpp",
+	"Thread.cpp",
 	"Thunk.cpp",
 	"Timer.cpp",
 	"Thread.cpp",
@@ -33,6 +36,9 @@ files = [
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
 	]
+
+if sys.platform == 'win32':
+	files += [ "stdafx.cpp" ]
 
 env_common = env.Clone()
 env_common.Append(CXXFLAGS = [ '-fPIC' ])

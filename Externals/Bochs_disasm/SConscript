@@ -1,6 +1,7 @@
 # -*- python -*- 
 
 Import('env')
+import sys
 
 files = [
 	"dis_decode.cpp",
@@ -9,6 +10,9 @@ files = [
 	"syntax.cpp",
 	"PowerPCDisasm.cpp",
 	]
+
+if sys.platform == 'win32':
+	files += [ "stdafx.cpp" ]
 
 env_bochs = env.Clone(
 	CCFLAGS = env.filterWarnings(env['CCFLAGS']),

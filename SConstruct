@@ -30,9 +30,10 @@ compileFlags = [
     '-fno-exceptions',
     '-fno-strict-aliasing',
     '-msse2',
-    '-fvisibility=hidden',
     #'-fomit-frame-pointer'
     ]
+if sys.platform != 'win32':
+    compileFlags += [ '-fvisibility=hidden' ]
 
 cppDefines = [
     ( '_FILE_OFFSET_BITS', 64),
@@ -86,11 +87,6 @@ if sys.platform == 'darwin':
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
 
-if sys.platform == 'win32':
-    env_home = os.environ['USERPROFILE']
-else:
-    env_home = os.environ['HOME']
-
 lib_paths = include_paths
 
 # handle command line options
@@ -118,23 +114,40 @@ vars.AddVariables(
     ('CXX', 'The c++ compiler', 'g++'),
     )
 
-
-env = Environment(
-    CPPPATH = include_paths,
-    LIBPATH = lib_paths,
-    RPATH = [],
-    variables = vars,
-    ENV = {
-        'PATH' : os.environ['PATH'],
-        'HOME' : env_home
+if sys.platform == 'win32':
+    env = Environment(
+        CPPPATH = include_paths,
+        LIBPATH = lib_paths,
+        RPATH = [],
+        LIBS = [],
+        tools = [ 'mingw' ],
+        variables = vars,
+        ENV = os.environ,
+        BUILDERS = builders,
+        DESCRIPTION = description,
+        SUMMARY = description,
+        LICENSE = license,
+        NAME = name,
+        VERSION = version,
+        )
+else:
+    env = Environment(
+        CPPPATH = include_paths,
+        LIBPATH = lib_paths,
+        RPATH = [],
+        LIBS = [],
+	    variables = vars,
+        ENV = {
+            'PATH' : os.environ['PATH'],
+            'HOME' : os.environ['HOME']
         },
-    BUILDERS = builders,
-    DESCRIPTION = description,
-    SUMMARY = description,
-    LICENSE = license,
-    NAME = name,
-    VERSION = version,
-    )
+        BUILDERS = builders,
+        DESCRIPTION = description,
+        SUMMARY = description,
+        LICENSE = license,
+        NAME = name,
+        VERSION = version,
+        )
 
 # save the given command line options
 vars.Save('args.cache', env)
@@ -180,7 +193,10 @@ if env['lint']:
 compileFlags += [ '-W' + warning for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
-env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
+if sys.platform == 'win32':
+    env['CXXFLAGS'] = compileFlags
+else:
+    env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines
 
 
@@ -248,6 +264,10 @@ if env['wxgl']:
     env['USE_WX'] = 1
     env['HAVE_X11'] = 0
     env['HAVE_COCOA'] = 0
+
+if sys.platform == 'win32':
+    env['HAVE_WX'] = 1
+    env['USE_WX'] = 1
 
 # Gui less build
 if env['nowx']:
