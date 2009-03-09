@@ -115,8 +115,13 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 					break;
 
 				default:
-					PanicAlert("Your GCM/ISO file seems to be invalid (invalid country).");
-					return false;
+					if (PanicYesNo("Your GCM/ISO file seems to be invalid (invalid country)."
+								   "\nContinue with PAL region?"))
+					{
+						bNTSC = false;
+						Region = EUR_DIR; 
+						break;
+					}else return false;
 				}
 
 				delete pVolume;
