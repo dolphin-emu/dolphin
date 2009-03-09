@@ -455,31 +455,21 @@ void BPWritten(int addr, int changes, int newval)
 
 				VertexShaderManager::SetViewportChanged();
 
-				// clear color
-				u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-				if (bpmem.blendmode.colorupdate)
-				{
-					D3DRECT drc;
-					drc.x1 = rc.left;
-					drc.x2 = rc.right;
-					drc.y1 = rc.top;
-					drc.y2 = rc.bottom;
-					//D3D::dev->Clear(1, &drc, D3DCLEAR_STENCIL|D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,clearColor,1.0f,0);
-					//if ((clearColor>>24) == 255)
-						D3D::dev->ColorFill(D3D::GetBackBufferSurface(), &rc, clearColor);
-				}
-				else
-				{
-					// TODO:
-					// bpmem.blendmode.alphaupdate
-					// bpmem.blendmode.colorupdate
-					// i dunno how to implement a clear on alpha only or color only
+				// Since clear operations use the source rectangle, we have to do
+				// regular renders
+				if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
+				{                    
+					D3DCOLOR col = 0;
+					if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
+						col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+
+					D3D::dev->Clear(0, NULL, NULL, col, 0, 0);
 				}
 
 				// clear z-buffer
 				if (bpmem.zmode.updateenable)
 				{
-					float clearZ = (float)bpmem.clearZValue / float(0xFFFFFF);
+					float clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
 					if (clearZ > 1.0f) clearZ = 1.0f;
 					if (clearZ < 0.0f) clearZ = 0.0f;
 

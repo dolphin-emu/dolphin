@@ -88,7 +88,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (_vtx_decl.normal_offset[i] >= 0) 
+		if (_vtx_decl.normal_offset[i] > 0) 
 		{
 			elems[elem_idx].Offset = _vtx_decl.normal_offset[i];
 			elems[elem_idx].Type = VarToD3D(_vtx_decl.normal_gl_type);
@@ -100,7 +100,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (_vtx_decl.color_offset[i] >= 0) 
+		if (_vtx_decl.color_offset[i] > 0) 
 		{
 			elems[elem_idx].Offset = _vtx_decl.color_offset[i];
 			elems[elem_idx].Type = VarToD3D(_vtx_decl.color_gl_type);
@@ -112,7 +112,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 8; i++)
 	{
-		if (_vtx_decl.texcoord_offset[i] >= 0)
+		if (_vtx_decl.texcoord_offset[i] > 0)
 		{
 			elems[elem_idx].Offset = _vtx_decl.texcoord_offset[i];
 			elems[elem_idx].Type = VarToD3D(_vtx_decl.texcoord_gl_type[i]);
