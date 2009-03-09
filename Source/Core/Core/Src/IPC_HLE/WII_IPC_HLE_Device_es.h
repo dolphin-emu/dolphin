@@ -122,7 +122,7 @@ private:
     bool IsValid(u64 _TitleID) const;
 
     std::string CreateTicketFileName(u64 _TitleID) const;
-    std::string CreateTitleFileName(u64 _TitleID) const;
+    std::string CreateTitleContentPath(u64 _TitleID) const;
 };
 
 #endif

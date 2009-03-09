@@ -49,14 +49,29 @@ public:
     u32 GetBootIndex() const  { return m_BootIndex; }
     size_t GetContentSize() const { return m_Content.size(); }
     SNANDContent* GetContentByIndex(int _Index);
+    const u8* GetTicket() const { return m_TicketView; }
+
+    const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
     static bool IsWiiWAD(const std::string& _rName);
+
+    const u16 GetTitleVersion() const {return m_TileVersion;}
+    const u16 GetNumEntries() const {return m_numEntries;}
+    
+
+    enum
+    {
+        TICKET_VIEW_SIZE = 0x58
+    };
 
 private:
 
     bool m_Valid;
     u64 m_TitleID;
     u32 m_BootIndex;
+    u16 m_numEntries;
+    u16 m_TileVersion;
+    u8 m_TicketView[TICKET_VIEW_SIZE];
 
     std::vector<SNANDContent> m_Content;
 

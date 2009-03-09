@@ -177,14 +177,17 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
     fread(pTMD, Size, 1, pTMDFile);
     fclose(pTMDFile);
 
+    memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
+
     ////// 
-    u32 numEntries = Common::swap16(pTMD + 0x01de);
+    m_TileVersion = Common::swap16(pTMD + 0x01dc);
+    m_numEntries = Common::swap16(pTMD + 0x01de);
     m_BootIndex = Common::swap16(pTMD + 0x01e0);
     m_TitleID = Common::swap64(pTMD + 0x018C);
 
-    m_Content.resize(numEntries);
+    m_Content.resize(m_numEntries);
 
-    for (u32 i = 0; i < numEntries; i++) 
+    for (u32 i = 0; i < m_numEntries; i++) 
     {
         SNANDContent& rContent = m_Content[i];
 
