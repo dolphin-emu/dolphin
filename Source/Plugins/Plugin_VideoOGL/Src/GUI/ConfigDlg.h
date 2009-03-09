@@ -77,6 +77,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_VSync;
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_NativeResolution;
+		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
 		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_AutoScale;
@@ -136,7 +137,7 @@ class ConfigDialog : public wxDialog
 			ID_FULLSCREENCB,
 			ID_WMTEXT,
 			ID_WINDOWRESOLUTIONCB,
-
+			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
 			ID_MSAAMODECB,
 			ID_MSAAMODETEXT,

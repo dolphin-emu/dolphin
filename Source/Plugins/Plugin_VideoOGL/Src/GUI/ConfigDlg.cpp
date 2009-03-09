@@ -35,6 +35,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHOICE(ID_MSAAMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_4_3, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR_16_9, ConfigDialog::GeneralSettingsChanged)
@@ -229,6 +230,7 @@ void ConfigDialog::CreateGUIControls()
 	m_MaxAnisotropyCB->Append(wxT("8x"));
 	m_MaxAnisotropyCB->Append(wxT("16x"));
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
+	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Usage: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
@@ -261,6 +263,7 @@ void ConfigDialog::CreateGUIControls()
 	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL, 5);
 	sEnhancements->Add(MSAAText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(m_ForceFiltering, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
@@ -427,18 +430,22 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_AUTOSCALE:
 		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
-	case ID_KEEPAR_4_3:		
+	case ID_KEEPAR_4_3:
 		g_Config.bKeepAR43 = m_KeepAR43->IsChecked();
 		// Don't allow both at the same time
 		if (g_Config.bKeepAR43) { g_Config.bKeepAR169 = false; m_KeepAR169->SetValue(false); }		
 		break;
-	case ID_KEEPAR_16_9:		
+	case ID_KEEPAR_16_9:
 		g_Config.bKeepAR169 = m_KeepAR169->IsChecked();
 		// Don't allow both at the same time
 		if (g_Config.bKeepAR169) { g_Config.bKeepAR43 = false; m_KeepAR43->SetValue(false); }	
 		break;
-	case ID_CROP:		
+	case ID_CROP:
 		g_Config.bCrop = m_Crop->IsChecked();	
+		break;
+
+	case ID_FORCEFILTERING:
+		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();	
 		break;
 
 	#ifndef _WIN32
