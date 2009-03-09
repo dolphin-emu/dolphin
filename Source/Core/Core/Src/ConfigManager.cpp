@@ -40,7 +40,11 @@ SConfig::~SConfig()
 void SConfig::SaveSettings()
 {
 	IniFile ini;
+#if defined(__APPLE__)
+	ini.Load(File::GetConfigDirectory()); // yes we must load first to not kill unknown stuff
+#else
 	ini.Load(CONFIG_FILE); // yes we must load first to not kill unknown stuff
+#endif
 
 	// General
 	{
@@ -109,14 +113,22 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "WiiMote1Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
 	}
 
+#if defined(__APPLE__)
+	ini.Save(File::GetConfigDirectory());
+#else
 	ini.Save(CONFIG_FILE);
+#endif
 }
 
 
 void SConfig::LoadSettings()
 {
 	IniFile ini;
+#if defined(__APPLE__)
+	ini.Load(File::GetConfigDirectory());
+#else
 	ini.Load(CONFIG_FILE);
+#endif
 	std::string PluginsDir = File::GetPluginsDirectory();
 	
 	// Hard coded default

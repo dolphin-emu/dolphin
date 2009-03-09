@@ -191,7 +191,7 @@ bool DolphinApp::OnInit()
 
 			if (!File::Exists("User")) File::CreateDir("User");
 			if (!File::Exists("User/GC")) File::CreateDir("User/GC");
-			
+			if (!File::Exists("User/Config")) File::CreateDir("User/Config");
 			// HACK: Get rid of bogus osx param
 			if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
 				delete argv[argc-1];

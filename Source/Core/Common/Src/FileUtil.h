@@ -96,6 +96,9 @@ std::string GetPluginsDirectory();
 std::string GetSysDirectory();
 
 #ifdef __APPLE__
+
+char *GetConfigDirectory();
+
 std::string GetBundleDirectory();
 #endif
 

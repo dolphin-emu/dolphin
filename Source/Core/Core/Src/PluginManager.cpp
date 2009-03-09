@@ -381,7 +381,7 @@ void CPluginManager::ScanForPlugins()
         #else
         	Directories.push_back(std::string(PLUGINS_DIR));
         #endif
-	
+
 	CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*" PLUGIN_SUFFIX);
 	// Get all DLL files in the plugins dir

@@ -510,6 +510,19 @@ bool SetCurrentDirectory(const char *_rDirectory)
 }
 
 #if defined(__APPLE__)
+
+//get the full config dir
+char *GetConfigDirectory()
+{
+
+	static char path[MAX_PATH] = {0};
+	if (strlen(path) > 0)
+		return path;
+	snprintf(path, sizeof(path), "%s" DIR_SEP CONFIG_FILE, GetUserDirectory());
+	return path;
+
+}
+
 std::string GetBundleDirectory() 
 {
 	// Plugin path will be Dolphin.app/Contents/PlugIns
@@ -542,7 +555,9 @@ std::string GetPluginsDirectory()
 	pluginsDir = PLUGINS_DIR;	
 #endif
 
+#if !defined (__APPLE__)
 	pluginsDir += DIR_SEP;
+#endif
 	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
 	return pluginsDir;
 	
