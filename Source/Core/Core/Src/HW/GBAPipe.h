@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,26 +26,26 @@
 
 namespace GBAPipe
 {
-	// start the server
-	void StartServer();
 
-	// connect as client
-	void ConnectAsClient();
+// start the server
+void StartServer();
 
-	// stop
-	void Stop();
+// connect as client
+void ConnectAsClient();
 
-	// Transfer funcs
-	void Read(u8& data);
-	void Write(u8 data);
+// stop
+void Stop();
 
-	// IsEnabled
-	bool IsEnabled();
+// Transfer funcs
+void Read(u8& data);
+void Write(u8 data);
 
-	// IsServer
-	bool IsServer();
+// IsEnabled
+bool IsEnabled();
 
-	void SetBlockStart(u32 addr);
-}
+// IsServer
+bool IsServer();
+
+} // namespace GBAPipe
 
 #endif
