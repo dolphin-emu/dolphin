@@ -216,8 +216,8 @@ class CISOProperties : public wxDialog
 		void OnChangeBannerLang(wxCommandEvent& event);
 
 		GameListItem *OpenGameListItem;
-		
-		std::vector<const DiscIO::SFileInfo *> Our_Files;
+
+		std::vector<const DiscIO::SFileInfo *> GCFiles;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
 		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,

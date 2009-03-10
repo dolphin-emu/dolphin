@@ -24,6 +24,13 @@
 #include "ARCodeAddEdit.h"
 #include "ConfigManager.h"
 
+struct WiiPartition
+{
+	DiscIO::IVolume *Partition;
+	DiscIO::IFileSystem *FileSystem;
+	std::vector<const DiscIO::SFileInfo *> Files;
+};
+std::vector<WiiPartition> WiiDisc;
 
 DiscIO::IVolume *OpenISO = NULL;
 DiscIO::IFileSystem *pFileSystem = NULL;
@@ -56,10 +63,27 @@ END_EVENT_TABLE()
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-        OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
-	pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-
-	pFileSystem->GetFileList(Our_Files);
+	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		for (u32 i = 0; i < 0xF; i++)
+		{
+			WiiPartition temp;
+			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, i)) != NULL)
+			{
+				temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition);
+				temp.FileSystem->GetFileList(temp.Files);
+				WiiDisc.push_back(temp);
+			}
+			else
+				break;
+		}
+	}
+	else
+	{
+		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
+		pFileSystem->GetFileList(GCFiles);
+	}
 
 	OpenGameListItem = new GameListItem(fileName);
 
@@ -118,8 +142,22 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		wxMouseEventHandler(CISOProperties::RightClickOnBanner), (wxObject*)NULL, this);
 
 	// Filesystem browser/dumper
-	fileIter beginning = Our_Files.begin(), end = Our_Files.end(), pos = Our_Files.begin();
-	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		for (u32 i = 0; i < WiiDisc.size(); i++)
+		{
+			fileIter beginning = WiiDisc.at(i).Files.begin(), end = WiiDisc.at(i).Files.end(), pos = WiiDisc.at(i).Files.begin();
+			wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(RootId, wxString::Format("Partition %i", i), -1, -1, 0);
+			CreateDirectoryTree(PartitionRoot, beginning, end, pos, (char *)"/");	
+			if (i == 0)
+				m_Treectrl->Expand(PartitionRoot);
+		}
+	}
+	else
+	{
+		fileIter beginning = GCFiles.begin(), end = GCFiles.end(), pos = GCFiles.begin();
+		CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
+	}
 	m_Treectrl->Expand(RootId);
 
 	std::string filename, extension;
@@ -136,6 +174,7 @@ CISOProperties::~CISOProperties()
 {
     delete pFileSystem;
     delete OpenISO;
+	WiiDisc.clear();
 }
 
 void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, 
@@ -386,9 +425,8 @@ void CISOProperties::CreateGUIControls()
 	// Filesystem tree
 	sbTreectrl = new wxStaticBoxSizer(wxVERTICAL, m_Filesystem, _("Filesystem"));
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
+	RootId = m_Treectrl->AddRoot(wxT("Disc"), -1, -1, 0);
 
-	RootId = m_Treectrl->AddRoot(_("Root"), -1, -1, 0);
-	
 	wxBoxSizer* sTreePage;
 	sTreePage = new wxBoxSizer(wxVERTICAL);
 	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
@@ -460,11 +498,11 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
 	
 	Path = wxFileSelector(
-		_T("Export File"),
+		wxT("Export File"),
 		wxEmptyString, File, wxEmptyString,
 		wxString::Format
 		(
-			_T("All files (%s)|%s"),
+			wxT("All files (%s)|%s"),
 			wxFileSelectorDefaultWildcardStr,
 			wxFileSelectorDefaultWildcardStr
 		),
@@ -478,12 +516,19 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	{
 		wxString temp;
 		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
-		File = temp + _T(DIR_SEP_CHR) + File;
+		File = temp + wxT(DIR_SEP_CHR) + File;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
 
-	pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		int partitionNum = wxAtoi(File.SubString(10, 11));
+		File.Remove(0, 12); // Remove "Partition x/"
+		WiiDisc.at(partitionNum).FileSystem->ExportFile(File.mb_str(), Path.mb_str());
+	}
+	else
+		pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
 }
 
 void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))

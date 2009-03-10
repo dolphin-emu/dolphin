@@ -65,10 +65,10 @@ private:
 const unsigned char g_MasterKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
 const unsigned char g_MasterKeyK[16] = {0x63,0xb8,0x2b,0xb4,0xf4,0x61,0x4e,0x2e,0x13,0xf2,0xfe,0xfb,0xba,0x4c,0x9b,0x7e};
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, bool Korean);
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, u32 _VolumeNum, bool Korean);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
-IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
+IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _VolumeNum)
 {
 	IBlobReader* pReader = CreateBlobReader(_rFilename.c_str());
 	if (pReader == NULL)
@@ -85,7 +85,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 			u8 region;
 			pReader->Read(0x3,1,&region);
 
-			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, 0, region == 'K');
+			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, 0, _VolumeNum, region == 'K');
 
 			if (pVolume == NULL)
 			{
@@ -122,11 +122,14 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
 }
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, bool Korean)
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, u32 _VolumeNum, bool Korean)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
 	u32 numPartitions = Reader.Read32(0x40000);
+	// Check if we're looking for a valid partition
+	if (_VolumeNum != -1 && _VolumeNum > numPartitions)
+		return NULL;
 	u64 PartitionsOffset = (u64)Reader.Read32(0x40004) << 2;
 	#ifdef _WIN32
 	struct SPartition
@@ -146,12 +149,14 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType,
 		PartitionsVec.push_back(Partition);
 	}
 
-	// find the partition with the game... type == 1 is prolly the firmware update partition
+	// return the partition type specified or number
+	// types: 0 = game, 1 = firmware update, 2 = channel installer
+	//  some partitions on ssbb use the ascii title id of the demo VC game they hold...
 	for (size_t i = 0; i < PartitionsVec.size(); i++)
 	{
 		const SPartition& rPartition = PartitionsVec[i];
 
-		if (rPartition.Type == _VolumeType)
+		if (rPartition.Type == _VolumeType || i == _VolumeNum)
 		{
 			u8 SubKey[16];
 			_rReader.Read(rPartition.Offset + 0x1bf, 16, SubKey);
@@ -166,7 +171,9 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType,
 			u8 VolumeKey[16];
 			AES_cbc_encrypt(SubKey, VolumeKey, 16, &AES_KEY, IV, AES_DECRYPT);
 
-			return new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey);
+			// -1 means the caller just wanted the partition with matching type
+			if (_VolumeNum == -1 || i == _VolumeNum)
+				return new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey);
 		}
 	}
 
