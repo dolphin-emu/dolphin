@@ -55,8 +55,6 @@ enum Collection
 static IndexGenerator indexGen;
 static Collection collection;
 
-static LPDIRECT3DVERTEXDECLARATION9 vDecl;
-
 static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
 static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
 
@@ -236,13 +234,13 @@ void Flush()
 		int numVertices = indexGen.GetNumVerts();
 		if (numVertices)
 		{
-			PixelShaderCache::SetShader();
-			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
-
 			// set global constants
 			VertexShaderManager::SetConstants(false);
 			PixelShaderManager::SetConstants();
-	
+
+			PixelShaderCache::SetShader();
+			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
+
 			int stride = g_nativeVertexFmt->GetVertexStride();
 			g_nativeVertexFmt->SetupVertexPointers();
 			if (collection != C_POINTS)

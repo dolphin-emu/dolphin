@@ -93,8 +93,8 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	cgGetError();
 	cgSetErrorHandler(HandleCgError, NULL);
 	cgD3D9SetDevice(D3D::dev);
-	g_cgvProf = cgD3D9GetLatestVertexProfile();
-	g_cgfProf = cgD3D9GetLatestPixelProfile();
+	g_cgvProf = cgGetProfile("vs_2_0"); //cgD3D9GetLatestVertexProfile();
+	g_cgfProf = cgGetProfile("ps_2_0"); //cgD3D9GetLatestPixelProfile();
 
 	float width =  (float)D3D::GetDisplayWidth();
 	float height = (float)D3D::GetDisplayHeight();
