@@ -457,24 +457,25 @@ void BPWritten(int addr, int changes, int newval)
 
 				// Since clear operations use the source rectangle, we have to do
 				// regular renders
+				DWORD clearflags = 0;
+				D3DCOLOR col = 0;
+				float clearZ = 0;
 				if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 				{                    
-					D3DCOLOR col = 0;
 					if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 						col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-
-					D3D::dev->Clear(0, NULL, NULL, col, 0, 0);
+					// clearflags |= D3DCLEAR_TARGET;   set to break animal crossing :p
 				}
 
 				// clear z-buffer
 				if (bpmem.zmode.updateenable)
 				{
-					float clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
+					clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
 					if (clearZ > 1.0f) clearZ = 1.0f;
 					if (clearZ < 0.0f) clearZ = 0.0f;
-
-					D3D::dev->Clear(0, 0, D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0, clearZ, 0);
+					clearflags |= D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL;
 				}				
+				D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
 			}
 		}
 		break;
