@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -1193,14 +1193,14 @@
 				RelativePath=".\Src\BPStructs.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\NativeVertexFormat.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Render"
 			>
+			<File
+				RelativePath=".\Src\NativeVertexFormat.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\PixelShaderCache.cpp"
 				>

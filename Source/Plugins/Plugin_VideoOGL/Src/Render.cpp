@@ -587,6 +587,7 @@ GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 		TRectangle flipped_rect;
 		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
 
+		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
 		// Do the resolve.
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
@@ -612,6 +613,7 @@ GLuint Renderer::ResolveAndGetFakeZTarget(const TRectangle &source_rect)
 		TRectangle flipped_rect;
 		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
 
+		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
 		// Do the resolve. We resolve both color channels, not very necessary.
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);

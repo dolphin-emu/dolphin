@@ -284,6 +284,7 @@ void Video_Prepare(void)
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
     TextureConverter::Init();
+	INFO_LOG(VIDEO, "Video plugin initialized.");
 }
 
 void Shutdown(void)

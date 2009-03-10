@@ -128,6 +128,14 @@ struct TRectangle
 		dest->top    = (int)(factor_y * top);
 		dest->bottom = (int)(factor_y * bottom);
 	}
+
+	void Clamp(int x1, int y1, int x2, int y2) 
+	{
+		if (left < x1) left = x1;
+		if (right > x2) right = x2;
+		if (top < y1) top = y1;
+		if (bottom > y2) bottom = y2;
+	}
 };
 
 // Logging

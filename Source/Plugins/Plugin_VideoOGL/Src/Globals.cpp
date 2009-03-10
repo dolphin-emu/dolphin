@@ -84,7 +84,6 @@ void __Log(const char *fmt, ...)
         fwrite(Msg, strlen(Msg), 1, pfLog);
 
 	Console::Print(Msg);
-
 }
 
 void __Log(int type, const char *fmt, ...)

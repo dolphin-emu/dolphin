@@ -102,11 +102,12 @@ void LOADERDECL TexMtx_Write_Float2()
 	VertexManager::s_pCurBufferPointer += 8;
 }
 
-void LOADERDECL TexMtx_Write_Short3()
+void LOADERDECL TexMtx_Write_Short4()
 {
 	((s16*)VertexManager::s_pCurBufferPointer)[0] = 0;
 	((s16*)VertexManager::s_pCurBufferPointer)[1] = 0;
 	((s16*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
+	((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
 	VertexManager::s_pCurBufferPointer += 8;
 }
 
@@ -260,6 +261,9 @@ void VertexLoader::CompileVertexTranslator()
 		WriteCall(pFunc);
 
 		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
+		vtx_decl.normal_offset[0] = -1;
+		vtx_decl.normal_offset[1] = -1;
+		vtx_decl.normal_offset[2] = -1;
 		switch (vtx_attr.NormalFormat) {
 		case FORMAT_UBYTE:	
 		case FORMAT_BYTE:
@@ -310,6 +314,8 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
+	vtx_decl.color_offset[0] = -1;
+	vtx_decl.color_offset[1] = -1;
 	for (int i = 0; i < 2; i++) {
 		m_NativeFmt->m_components |= VB_HAS_COL0 << i;
 		switch (col[i])
@@ -366,6 +372,7 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++) {
+		vtx_decl.texcoord_offset[i] = -1;
 		m_NativeFmt->m_components |= VB_HAS_UV0 << i;
 		int elements = m_VtxAttr.texCoord[i].Elements;
 		switch (tc[i])
@@ -425,7 +432,7 @@ void VertexLoader::CompileVertexTranslator()
 				vtx_decl.texcoord_gl_type[i] = VAR_SHORT;
 				vtx_decl.texcoord_size[i] = 4;
 				nat_offset += 8; // still include the texture coordinate, but this time as 6 + 2 bytes
-				WriteCall(TexMtx_Write_Short3);
+				WriteCall(TexMtx_Write_Short4);
 			}
 		}
 		else {
@@ -434,8 +441,6 @@ void VertexLoader::CompileVertexTranslator()
 				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
 				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
 				nat_offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
-			} else {
-				vtx_decl.texcoord_offset[i] = -1;
 			}
 		}
 

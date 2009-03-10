@@ -72,7 +72,7 @@ void Config::Load()
     iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
     
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
-    iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);	
+    iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
     iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 }

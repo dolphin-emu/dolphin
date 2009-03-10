@@ -76,7 +76,7 @@ struct PortableVertexDeclaration
 	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
 	int color_offset[2];
 	VarType texcoord_gl_type[8];
-	int texcoord_gl_size[8];
+	//int texcoord_gl_size[8];
 	int texcoord_offset[8];
 	int texcoord_size[8];
 	int posmtx_offset;

@@ -57,13 +57,31 @@ D3DVertexFormat::~D3DVertexFormat()
 	}
 }
 
-D3DDECLTYPE VarToD3D(VarType t)
+D3DDECLTYPE VarToD3D(VarType t, int size)
 {
-	static const D3DDECLTYPE lookup[5] =
-	{
-		D3DDECLTYPE_UBYTE4, D3DDECLTYPE_UBYTE4, D3DDECLTYPE_SHORT4N, D3DDECLTYPE_USHORT4N, D3DDECLTYPE_FLOAT3,
+	static const D3DDECLTYPE lookup1[5] = {
+		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_FLOAT1,
 	};
-	return lookup[t];
+	static const D3DDECLTYPE lookup2[5] = {
+		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_SHORT2N, D3DDECLTYPE_USHORT2N, D3DDECLTYPE_FLOAT2,
+	};
+	static const D3DDECLTYPE lookup3[5] = {
+		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_FLOAT3,
+	};
+	static const D3DDECLTYPE lookup4[5] = {
+		D3DDECLTYPE_UBYTE4, D3DDECLTYPE_UBYTE4, D3DDECLTYPE_SHORT4N, D3DDECLTYPE_USHORT4N, D3DDECLTYPE_FLOAT4,
+	};
+	D3DDECLTYPE retval = D3DDECLTYPE_UNUSED;
+	switch (size) {
+	case 1: retval = lookup1[t]; break;
+	case 2: retval = lookup2[t]; break;
+	case 3: retval = lookup3[t]; break;
+	case 4: retval = lookup4[t]; break;
+	}
+	if (retval == D3DDECLTYPE_UNUSED) {
+		PanicAlert("VarToD3D: Invalid type/size combo %i , %i", (int)t, size);
+	}
+	return retval;
 }
 
 // TODO: Ban signed bytes as normals - not likely that ATI supports them natively.
@@ -91,7 +109,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		if (_vtx_decl.normal_offset[i] > 0) 
 		{
 			elems[elem_idx].Offset = _vtx_decl.normal_offset[i];
-			elems[elem_idx].Type = VarToD3D(_vtx_decl.normal_gl_type);
+			elems[elem_idx].Type = VarToD3D(_vtx_decl.normal_gl_type, _vtx_decl.normal_gl_size);
 			elems[elem_idx].Usage = D3DDECLUSAGE_NORMAL;
 			elems[elem_idx].UsageIndex = i;
 			++elem_idx;
@@ -103,7 +121,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		if (_vtx_decl.color_offset[i] > 0) 
 		{
 			elems[elem_idx].Offset = _vtx_decl.color_offset[i];
-			elems[elem_idx].Type = VarToD3D(_vtx_decl.color_gl_type);
+			elems[elem_idx].Type = VarToD3D(_vtx_decl.color_gl_type, 4);
 			elems[elem_idx].Usage = D3DDECLUSAGE_COLOR;
 			elems[elem_idx].UsageIndex = i;
 			++elem_idx;
@@ -115,7 +133,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		if (_vtx_decl.texcoord_offset[i] > 0)
 		{
 			elems[elem_idx].Offset = _vtx_decl.texcoord_offset[i];
-			elems[elem_idx].Type = VarToD3D(_vtx_decl.texcoord_gl_type[i]);
+			elems[elem_idx].Type = VarToD3D(_vtx_decl.texcoord_gl_type[i], _vtx_decl.texcoord_size[i]);
 			elems[elem_idx].Usage = D3DDECLUSAGE_TEXCOORD;
 			elems[elem_idx].UsageIndex = i;
 			++elem_idx;
