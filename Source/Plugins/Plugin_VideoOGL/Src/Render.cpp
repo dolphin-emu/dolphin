@@ -199,7 +199,7 @@ bool Renderer::Init()
     const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
 	if (!ptoken)
 	{
-		PanicAlert("Failed to get OpenGL extension string. Do you have OpenGL drivers installed?");
+		PanicAlert("Failed to get OpenGL extension string.\nDo you have the latest video drivers installed?\nIs your video card OpenGL 2.x compatible?");
 		return false;
 	}
     INFO_LOG(VIDEO, "Supported OpenGL Extensions:\n");

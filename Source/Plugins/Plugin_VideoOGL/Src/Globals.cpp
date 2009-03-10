@@ -89,7 +89,7 @@ void __Log(const char *fmt, ...)
 
 void __Log(int type, const char *fmt, ...)
 {
-	int len = strlen(fmt);
+	int len = (int)strlen(fmt);
 	if (!len)
 		return;
     char* Msg = (char*)alloca(len + 512);

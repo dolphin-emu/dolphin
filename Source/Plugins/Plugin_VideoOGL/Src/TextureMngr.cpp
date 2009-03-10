@@ -697,10 +697,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-	glTexCoord2f(flipped_rect.left,  flipped_rect.bottom); glVertex2f(-1,  1);
-    glTexCoord2f(flipped_rect.left,  flipped_rect.top   ); glVertex2f(-1, -1);
-    glTexCoord2f(flipped_rect.right, flipped_rect.top   ); glVertex2f( 1, -1);
-    glTexCoord2f(flipped_rect.right, flipped_rect.bottom); glVertex2f( 1,  1);
+	glTexCoord2f((GLfloat)flipped_rect.left,  (GLfloat)flipped_rect.bottom); glVertex2f(-1,  1);
+    glTexCoord2f((GLfloat)flipped_rect.left,  (GLfloat)flipped_rect.top   ); glVertex2f(-1, -1);
+    glTexCoord2f((GLfloat)flipped_rect.right, (GLfloat)flipped_rect.top   ); glVertex2f( 1, -1);
+    glTexCoord2f((GLfloat)flipped_rect.right, (GLfloat)flipped_rect.bottom); glVertex2f( 1,  1);
     glEnd();
 
     GL_REPORT_ERRORD();
