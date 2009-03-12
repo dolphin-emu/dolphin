@@ -77,14 +77,37 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     }   
 
 
-    // here should be code to scan for the title ids in the NAND
-    m_TitleIDs.clear();
-    /*m_TitleIDs.push_back(0x0000000100000002ULL);
-    m_TitleIDs.push_back(0x0001000248414741ULL);  // TMD Size: 0x8c
-    m_TitleIDs.push_back(0x0001000248414341ULL);  // TMD Size: 0xac
-/*    m_TitleIDs.push_back(0x0001000248414241ULL);
-    m_TitleIDs.push_back(0x0001000248414141ULL); */
+    // scan for the title ids listed in TMDs within /title/
+	m_TitleIDs.clear();
 
+// 	std::string titleDir(FULL_WII_USER_DIR + std::string("title"));
+// 	File::FSTEntry parentEntry;
+// 	u32 numEntries = ScanDirectoryTree(titleDir.c_str(), parentEntry);
+// 
+// 	for(std::vector<File::FSTEntry>::iterator level1 = parentEntry.children.begin(); level1 != parentEntry.children.end(); ++level1)
+// 	{
+// 		if (level1->isDirectory)
+// 		{
+// 			for(std::vector<File::FSTEntry>::iterator level2 = level1->children.begin(); level2 != level1->children.end(); ++level2)
+// 			{
+// 				if (level2->isDirectory)
+// 				{
+// 					// finally at /title/0011223344/55667788/
+// 					// ...get titleID from content/title.tmd
+// 					std::string currentTMD(level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
+// 					if (File::Exists(currentTMD.c_str()))
+// 					{
+// 						FILE *tmd = fopen(currentTMD.c_str(), "rb");
+// 						u64 titleID = 0xDEADBEEFDEADBEEFULL;
+// 						fseek(tmd, 0x18C, SEEK_SET);
+// 						fread(&titleID, 8, 1, tmd);
+// 						m_TitleIDs.push_back(Common::swap64(titleID));
+// 						fclose(tmd);
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
 }

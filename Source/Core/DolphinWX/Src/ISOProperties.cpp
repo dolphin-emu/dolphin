@@ -66,7 +66,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		for (u32 i = 0; i < 0xF; i++)
+		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be that many partitions...
 		{
 			WiiPartition temp;
 			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, i)) != NULL)
