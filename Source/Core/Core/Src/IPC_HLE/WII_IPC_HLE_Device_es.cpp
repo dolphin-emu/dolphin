@@ -80,34 +80,34 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     // scan for the title ids listed in TMDs within /title/
 	m_TitleIDs.clear();
 
-// 	std::string titleDir(FULL_WII_USER_DIR + std::string("title"));
-// 	File::FSTEntry parentEntry;
-// 	u32 numEntries = ScanDirectoryTree(titleDir.c_str(), parentEntry);
-// 
-// 	for(std::vector<File::FSTEntry>::iterator level1 = parentEntry.children.begin(); level1 != parentEntry.children.end(); ++level1)
-// 	{
-// 		if (level1->isDirectory)
-// 		{
-// 			for(std::vector<File::FSTEntry>::iterator level2 = level1->children.begin(); level2 != level1->children.end(); ++level2)
-// 			{
-// 				if (level2->isDirectory)
-// 				{
-// 					// finally at /title/0011223344/55667788/
-// 					// ...get titleID from content/title.tmd
-// 					std::string currentTMD(level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
-// 					if (File::Exists(currentTMD.c_str()))
-// 					{
-// 						FILE *tmd = fopen(currentTMD.c_str(), "rb");
-// 						u64 titleID = 0xDEADBEEFDEADBEEFULL;
-// 						fseek(tmd, 0x18C, SEEK_SET);
-// 						fread(&titleID, 8, 1, tmd);
-// 						m_TitleIDs.push_back(Common::swap64(titleID));
-// 						fclose(tmd);
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
+//  	std::string titleDir(FULL_WII_USER_DIR + std::string("title"));
+//  	File::FSTEntry parentEntry;
+//  	u32 numEntries = ScanDirectoryTree(titleDir.c_str(), parentEntry);
+//  
+//  	for(std::vector<File::FSTEntry>::iterator level1 = parentEntry.children.begin(); level1 != parentEntry.children.end(); ++level1)
+//  	{
+//  		if (level1->isDirectory)
+//  		{
+//  			for(std::vector<File::FSTEntry>::iterator level2 = level1->children.begin(); level2 != level1->children.end(); ++level2)
+//  			{
+//  				if (level2->isDirectory)
+//  				{
+//  					// finally at /title/*/*/
+//  					// ...get titleID from content/title.tmd
+//  					std::string currentTMD(level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
+//  					if (File::Exists(currentTMD.c_str()))
+//  					{
+//  						FILE *tmd = fopen(currentTMD.c_str(), "rb");
+//  						u64 titleID = 0xDEADBEEFDEADBEEFULL;
+//  						fseek(tmd, 0x18C, SEEK_SET);
+//  						fread(&titleID, 8, 1, tmd);
+//  						m_TitleIDs.push_back(Common::swap64(titleID));
+//  						fclose(tmd);
+//  					}
+//  				}
+//  			}
+//  		}
+//  	}
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
 }
@@ -168,7 +168,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), Buffer.PayloadBuffer[0].m_Address);	
             
             INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i", 
-                                TitleID>>32, TitleID, rNANDCOntent.GetContentSize());
+                                (u32)(TitleID>>32), (u32)TitleID, rNANDCOntent.GetContentSize());
 
             Memory::Write_U32(0, _CommandAddress + 0x4);	
             return true;
@@ -185,7 +185,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             std::string TitleFilename = CreateTitleContentPath(TitleID);
             DiscIO::CNANDContentLoader Loader(TitleFilename);
 
-            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: title: %08x/%08x   buffersize: %i", TitleID >> 32, TitleID, MaxCount);
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
             u32 Count = 0;
             if (Loader.IsValid())
@@ -219,11 +219,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 CFD = AccessIdentID++;
             m_ContentAccessMap[CFD].m_Position = 0;
             m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(TitleID).GetContentByIndex(Index);
-            _dbg_assert_msg_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL, "No Content for TitleID: %08x/%08x at Index %x", TitleID>>32, TitleID, Index);
+            _dbg_assert_msg_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL, "No Content for TitleID: %08x/%08x at Index %x", (u32)(TitleID>>32), (u32)TitleID, Index);
 
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", TitleID>>32, TitleID, Index, CFD);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", (u32)(TitleID>>32), (u32)TitleID, Index, CFD);
             return true;
         }
         break;
@@ -342,7 +342,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             char* pTitleID = (char*)&TitleID;
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-            sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32) & 0xFFFFFFFF, (u32)TitleID & 0xFFFFFFFF);
+            sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
             INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
         }
@@ -354,7 +354,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETTITLEID no out buffer");
 
             Memory::Write_U64(m_TitleID, Buffer.PayloadBuffer[0].m_Address);
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", m_TitleID>>32, m_TitleID);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
         }
         break;
 
@@ -364,7 +364,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_SETUID titleID: %08x/%08x", TitleID>>32, TitleID );
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID );
         }
         break;
 
@@ -395,7 +395,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             for (int i = 0; i < (int)m_TitleIDs.size(); i++)
             {
                 Memory::Write_U64(m_TitleIDs[i], Buffer.PayloadBuffer[0].m_Address + i*8);
-                ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: %08x/%08x", m_TitleIDs[i] >> 32, m_TitleIDs[i]);
+                ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32), (u32)m_TitleIDs[i]);
                 Count++;
                 if (Count >= MaxCount)
                     break;
@@ -441,7 +441,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 ViewCount = 0;                
             }            
             
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)", TitleID>>32, TitleID, ViewCount);
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)", (u32)(TitleID>>32), (u32)TitleID, ViewCount);
 
             Memory::Write_U32(ViewCount, Buffer.PayloadBuffer[0].m_Address);
             Memory::Write_U32(0, _CommandAddress + 0x4);		
@@ -477,10 +477,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             }
             else
             {
-                PanicAlert("IOCTL_ES_GETVIEWS: Try to get data from an unknown ticket: %08x/%08x", TitleID >> 32, TitleID);
+                PanicAlert("IOCTL_ES_GETVIEWS: Try to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
             }
 
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWS for titleID: %08x/%08x", TitleID>>32, TitleID );
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWS for titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID );
 
             Memory::Write_U32(0, _CommandAddress + 0x4);
             return true;
@@ -509,7 +509,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x -> count %i", TitleID >> 32, TitleID, TMDViewCnt);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x -> count %i", (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
 
             return true;            
         }
@@ -525,7 +525,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             std::string TitleFilename = CreateTitleContentPath(TitleID);
             DiscIO::CNANDContentLoader Loader(TitleFilename);
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", TitleID >> 32, TitleID, MaxCount);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
             u32 Count = 0;
             u8* p = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
@@ -576,11 +576,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x \n"
                 "This means that dolphin tries to relaunch the WiiMenu or"
                 "launches code from the an URL. Both wont work and dolphin will prolly hang...",
-                TitleID>>32, TitleID, titleid>>32, titleid );
+                (u32)(TitleID>>32), (u32)TitleID, (u32)(titleid>>32), (u32)titleid );
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);		
+            Memory::Write_U32(0, _CommandAddress + 0x4);
 
-            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH");
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
+			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
             return true;
         }

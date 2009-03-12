@@ -16,9 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "ConsoleWindow.h" // Common
 
 #include "../Core.h" // Local core functions
@@ -26,7 +25,6 @@
 #include "../Host.h"
 #include "../PluginManager.h"
 #include "WII_IPC_HLE_Device_usb.h"
-///////////////////////
 
 
 // Ugly hacks for "SendEventNumberOfCompletedPackets"
@@ -34,9 +32,8 @@ int g_HCICount = 0;
 int g_GlobalHandle = 0;
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // The device class
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
         , m_PINType(0)
@@ -70,22 +67,26 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {}
-///////////////////////////
-
 
 // ===================================================
-/* Open */
-// ----------------
+// Open
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	return true;
 }
 
+// ===================================================
+// Close
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress)
+{
+	Memory::Write_U32(0, _CommandAddress + 4);
+	return true;
+}
+
 
 // ===================================================
-/* IOCtl */
-// ----------------
+// IOCtl
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
 	return IOCtlV(_CommandAddress);	//hack
@@ -93,8 +94,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 
 
 // ===================================================
-/* IOCtlV */
-// ----------------
+// IOCtlV
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 {
 /*

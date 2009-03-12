@@ -45,7 +45,7 @@ bool AckCommand(u32 _Address);
 enum ECommandType
 {
 	COMMAND_OPEN_DEVICE		= 1,
-	COMMAND_CLOSE_DEVICE	        = 2,
+	COMMAND_CLOSE_DEVICE	= 2,
 	COMMAND_READ			= 3,
 	COMMAND_WRITE			= 4,
 	COMMAND_SEEK			= 5,
@@ -53,7 +53,7 @@ enum ECommandType
 	COMMAND_IOCTLV			= 7,
 };
 
-} // end of namespace AudioInterface
+} // end of namespace WII_IPC_HLE_Interface
 
 #endif
 
