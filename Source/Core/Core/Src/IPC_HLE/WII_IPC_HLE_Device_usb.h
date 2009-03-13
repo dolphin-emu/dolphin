@@ -232,6 +232,27 @@ public:
 	virtual bool IOCtl(u32 _CommandAddress);
 
 //	virtual u32 Update();
-#endif
 };
+
+class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
+{
+public:
+
+    CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
+
+    virtual ~CWII_IPC_HLE_Device_usb_kbd();
+
+    virtual bool Open(u32 _CommandAddress, u32 _Mode);
+
+    virtual bool IOCtl(u32 _CommandAddress);
+};
+
+#endif
+
+
+
+
+
+
+
 
