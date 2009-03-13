@@ -60,7 +60,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
 {
-    m_pContentLoader = new DiscIO::CNANDContentLoader(_rDefaultContentFile);
+    m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_rDefaultContentFile);
 
     // check for cd ...
     if (m_pContentLoader->IsValid())
@@ -79,43 +79,20 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 
     // scan for the title ids listed in TMDs within /title/
 	m_TitleIDs.clear();
+    m_TitleIDs.push_back(0x0000000100000002ULL);
+    // m_TitleIDs.push_back(0x0001000248414741ULL); 
+    // m_TitleIDs.push_back(0x0001000248414341ULL);
+    // m_TitleIDs.push_back(0x0001000248414241ULL);
+    // m_TitleIDs.push_back(0x0001000248414141ULL);
+    
+   // FindValidTitleIDs();
 
-//  	std::string titleDir(FULL_WII_USER_DIR + std::string("title"));
-//  	File::FSTEntry parentEntry;
-//  	u32 numEntries = ScanDirectoryTree(titleDir.c_str(), parentEntry);
-//  
-//  	for(std::vector<File::FSTEntry>::iterator level1 = parentEntry.children.begin(); level1 != parentEntry.children.end(); ++level1)
-//  	{
-//  		if (level1->isDirectory)
-//  		{
-//  			for(std::vector<File::FSTEntry>::iterator level2 = level1->children.begin(); level2 != level1->children.end(); ++level2)
-//  			{
-//  				if (level2->isDirectory)
-//  				{
-//  					// finally at /title/*/*/
-//  					// ...get titleID from content/title.tmd
-//  					std::string currentTMD(level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
-//  					if (File::Exists(currentTMD.c_str()))
-//  					{
-//  						FILE *tmd = fopen(currentTMD.c_str(), "rb");
-//  						u64 titleID = 0xDEADBEEFDEADBEEFULL;
-//  						fseek(tmd, 0x18C, SEEK_SET);
-//  						fread(&titleID, 8, 1, tmd);
-//  						m_TitleIDs.push_back(Common::swap64(titleID));
-//  						fclose(tmd);
-//  					}
-//  				}
-//  			}
-//  		}
-//  	}
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
 }
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 {
-    delete m_pContentLoader;
-
     CTitleToContentMap::const_iterator itr = m_NANDContent.begin();
     while(itr != m_NANDContent.end())
     {
@@ -162,12 +139,22 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-            DiscIO::CNANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
+            const DiscIO::INANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
             _dbg_assert_(WII_IPC_ES, rNANDCOntent.IsValid());
+        
+            u32 NumberOfPrivateContent = 0;
+            const std::vector<DiscIO::SNANDContent>& rContent = rNANDCOntent.GetContent();
+            for (size_t i=0; i<rContent.size();i++)
+            {
+                if ((rContent[i].m_Type & 0x8000) == 0)
+                {
+                    NumberOfPrivateContent++;
+                }
+            }
 
-            Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), Buffer.PayloadBuffer[0].m_Address);	
+            Memory::Write_U32(NumberOfPrivateContent, Buffer.PayloadBuffer[0].m_Address);	
             
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i", 
+            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i  (just content in private directory)", 
                                 (u32)(TitleID>>32), (u32)TitleID, rNANDCOntent.GetContentSize());
 
             Memory::Write_U32(0, _CommandAddress + 0x4);	
@@ -183,25 +170,25 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
             std::string TitleFilename = CreateTitleContentPath(TitleID);
-            DiscIO::CNANDContentLoader Loader(TitleFilename);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);
 
-            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: title: %08x/%08x   MaxCount: %i (just content in private directory)", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-            u32 Count = 0;
+            _dbg_assert_(WII_IPC_ES, Loader.GetContentSize() == MaxCount);
             if (Loader.IsValid())
             {
                 const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
                 for (size_t i=0; i<Loader.GetContentSize(); i++)
                 {
-                    Memory::Write_U32(rContent[i].m_Index, Buffer.PayloadBuffer[0].m_Address+i*4);
-                    ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index 0x%x", rContent[i].m_ContentID);
-                    Count++;
-                    if (Count>=MaxCount)
-                        break;
+                    if ((rContent[i].m_Type & 0x8000) == 0)
+                    {
+                        Memory::Write_U32(rContent[i].m_ContentID, Buffer.PayloadBuffer[0].m_Address+i*4);
+                        ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index 0x%x", rContent[i].m_ContentID);
+                    }
                 }
             }
             Memory::Write_U32(0, _CommandAddress + 0x4);		
-            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Count %i", Count);
+            ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Count %i", Loader.GetContentSize());
             return true;  
         }
         break;
@@ -494,23 +481,22 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             std::string TitleFilename = CreateTitleContentPath(TitleID);
-            DiscIO::CNANDContentLoader Loader(TitleFilename);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);
 
             _dbg_assert_(WII_IPC_ES, Loader.IsValid());
             u32 TMDViewCnt = 0;
             if (Loader.IsValid())
             {
-                TMDViewCnt += DiscIO::CNANDContentLoader::TICKET_VIEW_SIZE; 
+                TMDViewCnt += DiscIO::INANDContentLoader::TICKET_VIEW_SIZE; 
                 TMDViewCnt += 2; // title version
                 TMDViewCnt += 2; // num entries
-                TMDViewCnt += Loader.GetContentSize() * (4+2+2+8); // content id, index, type, size
+                TMDViewCnt += (u32)Loader.GetContentSize() * (4+2+2+8); // content id, index, type, size
             }
             Memory::Write_U32(TMDViewCnt, Buffer.PayloadBuffer[0].m_Address);
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x -> count %i", (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
-
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
             return true;            
         }
         break;
@@ -523,7 +509,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
             std::string TitleFilename = CreateTitleContentPath(TitleID);
-            DiscIO::CNANDContentLoader Loader(TitleFilename);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);            
+
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
@@ -533,8 +520,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             {
                 u32 Address = Buffer.PayloadBuffer[0].m_Address;
 
-                Memory::WriteBigEData(Loader.GetTicket(), Address, DiscIO::CNANDContentLoader::TICKET_VIEW_SIZE);
-                Address += DiscIO::CNANDContentLoader::TICKET_VIEW_SIZE;
+                Memory::WriteBigEData(Loader.GetTicket(), Address, DiscIO::INANDContentLoader::TICKET_VIEW_SIZE);
+                Address += DiscIO::INANDContentLoader::TICKET_VIEW_SIZE;
                 
                 Memory::Write_U16(Loader.GetTitleVersion(), Address); Address += 2;
                 Memory::Write_U16(Loader.GetNumEntries(), Address); Address += 2;
@@ -550,8 +537,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
                 _dbg_assert_(WII_IPC_ES, (Address-Buffer.PayloadBuffer[0].m_Address) == Buffer.PayloadBuffer[0].m_Size);
             }
-            Memory::Write_U32(0, _CommandAddress + 0x4);		
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: Count %i", Count);
+            Memory::Write_U32(0, _CommandAddress + 0x4);	
+
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", TitleID >> 32, TitleID, MaxCount);
             return true;            
         }
         break;
@@ -616,7 +604,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     return true;
 }
 
-DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
+const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
 {
     if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
         return* m_pContentLoader;
@@ -626,7 +614,7 @@ DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _Tit
         return *itr->second;
 
     std::string TitleFilename = CreateTitleContentPath(_TitleID);
-    m_NANDContent[_TitleID] = new DiscIO::CNANDContentLoader(TitleFilename);
+    m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);
 
     _dbg_assert_(WII_IPC_ES, m_NANDContent[_TitleID]->IsValid());
     return *m_NANDContent[_TitleID];
@@ -656,3 +644,35 @@ std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
     return TicketFilename;
 }
 
+void CWII_IPC_HLE_Device_es::FindValidTitleIDs()
+{
+    m_TitleIDs.clear();
+
+    std::string TitlePath(FULL_WII_USER_DIR + std::string("title"));
+    File::FSTEntry ParentEntry;
+    u32 NumEntries = ScanDirectoryTree(TitlePath.c_str(), ParentEntry);  
+    for(std::vector<File::FSTEntry>::iterator Level1 = ParentEntry.children.begin(); Level1 != ParentEntry.children.end(); ++Level1)
+    {
+        if (Level1->isDirectory)
+        {
+            for(std::vector<File::FSTEntry>::iterator Level2 = Level1->children.begin(); Level2 != Level1->children.end(); ++Level2)
+            {
+                if (Level2->isDirectory)
+                {
+                    // finally at /title/*/*/
+                    // ...get titleID from content/title.tmd
+                    std::string CurrentTMD(Level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
+                    if (File::Exists(CurrentTMD.c_str()))
+                    {
+                        FILE* pTMDFile = fopen(CurrentTMD.c_str(), "rb");
+                        u64 TitleID = 0xDEADBEEFDEADBEEFULL;
+                        fseek(pTMDFile, 0x18C, SEEK_SET);
+                        fread(&TitleID, 8, 1, pTMDFile);
+                        m_TitleIDs.push_back(Common::swap64(TitleID));
+                        fclose(pTMDFile);
+                    }
+                }
+            }
+        }
+    }
+}

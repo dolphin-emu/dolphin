@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "NANDContentLoader.h"
 
+#include <algorithm>
+#include <cctype> 
 #include "AES/aes.h"
 #include "MathUtil.h"
 #include "FileUtil.h"
@@ -110,6 +112,53 @@ private:
 };
 
 
+// this classes must be created by the CNANDContentManager
+class CNANDContentLoader : public INANDContentLoader
+{
+public:
+
+    CNANDContentLoader(const std::string& _rName);
+
+    virtual ~CNANDContentLoader();
+
+    bool IsValid() const    { return m_Valid; }
+    u64 GetTitleID() const  { return m_TitleID; }
+    u32 GetBootIndex() const  { return m_BootIndex; }
+    size_t GetContentSize() const { return m_Content.size(); }
+    const SNANDContent* GetContentByIndex(int _Index) const;
+    const u8* GetTicket() const { return m_TicketView; }
+
+    const std::vector<SNANDContent>& GetContent() const { return m_Content; }
+
+    const u16 GetTitleVersion() const {return m_TileVersion;}
+    const u16 GetNumEntries() const {return m_numEntries;}
+
+private:
+
+    bool m_Valid;
+    u64 m_TitleID;
+    u32 m_BootIndex;
+    u16 m_numEntries;
+    u16 m_TileVersion;
+    u8 m_TicketView[TICKET_VIEW_SIZE];
+
+    std::vector<SNANDContent> m_Content;
+
+    bool CreateFromDirectory(const std::string& _rPath);
+    bool CreateFromWAD(const std::string& _rName);
+
+    bool ParseWAD(DiscIO::IBlobReader& _rReader);    
+
+    void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
+
+    u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
+
+    void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
+
+    bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD);
+};
+
+
 
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
@@ -140,7 +189,7 @@ CNANDContentLoader::~CNANDContentLoader()
     m_Content.clear();
 }
 
-SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index)
+const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 {
     for (size_t i=0; i<m_Content.size(); i++)
     {
@@ -231,35 +280,6 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 
     return true;
 }
-
-
-bool CNANDContentLoader::IsWiiWAD(const std::string& _rName)
-{
-    DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-    if (pReader == NULL)
-        return false;
-
-    CBlobBigEndianReader Reader(*pReader);
-    bool Result = false;
-
-    // check for wii wad
-    if (Reader.Read32(0x00) == 0x20)
-    {
-        u32 WADTYpe = Reader.Read32(0x04);
-        switch(WADTYpe)
-        {
-        case 0x49730000:
-        case 0x69620000:
-            Result = true;
-        }
-    }
-
-    delete pReader;
-
-    return Result;
-}
-
-
 
 void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
@@ -370,6 +390,70 @@ bool CNANDContentLoader::ParseWAD(DiscIO::IBlobReader& _rReader)
 
     return Result;
 }
+
+///////////////////
+
+
+CNANDContentManager CNANDContentManager::m_Instance;
+
+
+CNANDContentManager::~CNANDContentManager()
+{
+    CNANDContentMap::iterator itr = m_Map.begin();
+    while (itr != m_Map.end())
+    {
+        delete itr->second;
+        itr++;
+    }
+    m_Map.clear();
+}
+
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName)
+{
+    std::string KeyString(_rName);
+
+    std::transform(KeyString.begin(), KeyString.end(), KeyString.begin(),
+        (int(*)(int)) std::toupper);
+
+
+    CNANDContentMap::iterator itr = m_Map.find(KeyString);
+    if (itr != m_Map.end())
+        return *itr->second;
+
+    m_Map[KeyString] = new CNANDContentLoader(KeyString);
+    return *m_Map[KeyString];
+}
+
+
+bool CNANDContentManager::IsWiiWAD(const std::string& _rName)
+{
+    DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
+    if (pReader == NULL)
+        return false;
+
+    CBlobBigEndianReader Reader(*pReader);
+    bool Result = false;
+
+    // check for wii wad
+    if (Reader.Read32(0x00) == 0x20)
+    {
+        u32 WADTYpe = Reader.Read32(0x04);
+        switch(WADTYpe)
+        {
+        case 0x49730000:
+        case 0x69620000:
+            Result = true;
+        }
+    }
+
+    delete pReader;
+
+    return Result;
+}
+
+
+
+
 
 } // namespace end
 

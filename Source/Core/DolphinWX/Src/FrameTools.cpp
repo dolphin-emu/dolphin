@@ -160,8 +160,8 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
-
-    if (DiscIO::CNANDContentLoader(FULL_WII_MENU_DIR).IsValid())
+     
+    if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
     {
         toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
     }    

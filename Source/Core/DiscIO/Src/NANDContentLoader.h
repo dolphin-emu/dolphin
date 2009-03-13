@@ -20,6 +20,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+
 #include "Common.h"
 #include "Blob.h"
 
@@ -36,58 +38,54 @@ struct SNANDContent
     u8* m_pData;
 };
 
-class CNANDContentLoader
+// pure virtual interface so just the NANDContentManager can create these files only
+class INANDContentLoader
 {
 public:
 
-    CNANDContentLoader(const std::string& _rName);
+    INANDContentLoader() {}
 
-    virtual ~CNANDContentLoader();
+    virtual ~INANDContentLoader()  {}
 
-    bool IsValid() const    { return m_Valid; }
-    u64 GetTitleID() const  { return m_TitleID; }
-    u32 GetBootIndex() const  { return m_BootIndex; }
-    size_t GetContentSize() const { return m_Content.size(); }
-    SNANDContent* GetContentByIndex(int _Index);
-    const u8* GetTicket() const { return m_TicketView; }
-
-    const std::vector<SNANDContent>& GetContent() const { return m_Content; }
-
-    static bool IsWiiWAD(const std::string& _rName);
-
-    const u16 GetTitleVersion() const {return m_TileVersion;}
-    const u16 GetNumEntries() const {return m_numEntries;}
-    
+    virtual bool IsValid() const = NULL;
+    virtual u64 GetTitleID() const  = NULL;
+    virtual u32 GetBootIndex() const  = NULL;
+    virtual size_t GetContentSize() const = NULL;
+    virtual const SNANDContent* GetContentByIndex(int _Index) const = NULL;;
+    virtual const u8* GetTicket() const = NULL;
+    virtual const std::vector<SNANDContent>& GetContent() const  = NULL;    
+    virtual const u16 GetTitleVersion() const  = NULL;
+    virtual const u16 GetNumEntries() const  = NULL;
 
     enum
     {
         TICKET_VIEW_SIZE = 0x58
     };
+};
+
+
+// we open the NAND Content files to often... lets cache them
+class CNANDContentManager
+{
+public:
+
+    static CNANDContentManager& Access() { return m_Instance; }
+
+    const INANDContentLoader& GetNANDLoader(const std::string& _rName);
+
+    static bool IsWiiWAD(const std::string& _rName);
 
 private:
 
-    bool m_Valid;
-    u64 m_TitleID;
-    u32 m_BootIndex;
-    u16 m_numEntries;
-    u16 m_TileVersion;
-    u8 m_TicketView[TICKET_VIEW_SIZE];
+    CNANDContentManager() {};
 
-    std::vector<SNANDContent> m_Content;
+    ~CNANDContentManager();
 
-    bool CreateFromDirectory(const std::string& _rPath);
-    bool CreateFromWAD(const std::string& _rName);
+    static CNANDContentManager m_Instance;
 
-    bool ParseWAD(DiscIO::IBlobReader& _rReader);    
+    typedef std::map<std::string, INANDContentLoader*> CNANDContentMap;
+    CNANDContentMap m_Map;
 
-    void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
-
-    u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
-
-    void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
-    
-
-    bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD);
 };
 
 }

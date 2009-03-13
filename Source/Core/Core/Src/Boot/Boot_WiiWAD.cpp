@@ -86,12 +86,12 @@ void SetupWiiMem()
 
 bool CBoot::IsWiiWAD(const char *filename)
 {
-    return DiscIO::CNANDContentLoader::IsWiiWAD(filename);
+    return DiscIO::CNANDContentManager::IsWiiWAD(filename);
 }
 
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
 {        
-    DiscIO::CNANDContentLoader ContentLoader(_pFilename);
+    const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
     if (ContentLoader.IsValid() == false)
         return false;
 
@@ -109,7 +109,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
     Memory::Write_U64( ContentLoader.GetTitleID(), 0x0000318c);			// NAND Load Title ID
 
 	// DOL
-    DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
+    const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
     if (pContent == NULL)
         return false;
 

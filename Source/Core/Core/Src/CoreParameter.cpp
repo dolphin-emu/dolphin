@@ -140,7 +140,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 				m_BootType = BOOT_DOL;
 				bNTSC = true;
 			}
-			else if (DiscIO::CNANDContentLoader(m_strFilename).IsValid())
+            else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
 				bWii = true;
 				Region = EUR_DIR; 

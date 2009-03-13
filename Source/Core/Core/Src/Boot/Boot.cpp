@@ -90,7 +90,7 @@ std::string CBoot::GenerateMapFilename()
 	{
     case SCoreStartupParameter::BOOT_WII_NAND:
         {
-            DiscIO::CNANDContentLoader Loader( _StartupPara.m_strFilename);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
             if (Loader.IsValid())
             {
                 u64 TitleID = Loader.GetTitleID();

@@ -204,6 +204,10 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
         {
             pDevice = new CWII_IPC_HLE_Device_usb_oh0(_DeviceID, _rDeviceName);
         }
+        else if (_rDeviceName.find("/dev/usb/kbd") != std::string::npos)
+        {
+            pDevice = new CWII_IPC_HLE_Device_usb_kbd(_DeviceID, _rDeviceName);
+        }
 		else if (_rDeviceName.find("/dev/sdio/slot0") != std::string::npos)
 		{
 			pDevice = new CWII_IPC_HLE_Device_sdio_slot0(_DeviceID, _rDeviceName);

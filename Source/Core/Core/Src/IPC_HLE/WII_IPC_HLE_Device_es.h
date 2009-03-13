@@ -26,7 +26,7 @@ class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName, const std::string& _rDefaultContentFile);
+    CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName, const std::string& _rDefaultContentFile);    
 
     virtual ~CWII_IPC_HLE_Device_es();
 
@@ -97,19 +97,35 @@ private:
         IOCTL_ES_GETSHAREDCONTENTS		= 0x37,
     };
 
+    enum EErrorCodes
+    {
+       ES_INVALID_TMD                       = -106,   // or access denied
+       ES_READ_LESS_DATA_THAN_EXPECTED      = -1009, 
+       ES_UNK_1                             = -1010,
+       ES_PARAMTER_SIZE_OR_ALIGNMENT        = -1017,
+       ES_HASH_DOESNT_MATCH                 = -1022,
+       ES_MEM_ALLOC_FAILED                  = -1024,
+       ES_INCORRECT_ACCESS_RIGHT            = -1026,
+       ES_NO_TICKET_INSTALLED               = -1028,
+       ES_INSTALLED_TICKET_INVALID          = -1029,
+       ES_INVALID_PARAMETR                  = -2008,
+       ES_SIGNATURE_CHECK_FAILED            = -2011,
+       ES_HASH_SIZE_WRONG                   = -2014, // HASH !=20
+    };
+
     struct SContentAccess 
     {
         u32 m_Position;
-        DiscIO::SNANDContent* m_pContent;
+        const DiscIO::SNANDContent* m_pContent;
     };
 
     typedef std::map<u32, SContentAccess> CContentAccessMap;
     CContentAccessMap m_ContentAccessMap;
 
-    typedef std::map<u64, DiscIO::CNANDContentLoader*> CTitleToContentMap;
+    typedef std::map<u64, const DiscIO::INANDContentLoader*> CTitleToContentMap;
     CTitleToContentMap m_NANDContent;
 
-    DiscIO::CNANDContentLoader* m_pContentLoader;
+    const DiscIO::INANDContentLoader* m_pContentLoader;
 
     std::vector<u64> m_TitleIDs;
     u64 m_TitleID;
@@ -117,12 +133,13 @@ private:
 
     u64 GetCurrentTitleID() const;
 
-    DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID);
+    const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
 
     bool IsValid(u64 _TitleID) const;
 
     std::string CreateTicketFileName(u64 _TitleID) const;
     std::string CreateTitleContentPath(u64 _TitleID) const;
+    void FindValidTitleIDs();
 };
 
 #endif
