@@ -47,15 +47,15 @@ public:
 
     virtual ~INANDContentLoader()  {}
 
-    virtual bool IsValid() const = NULL;
-    virtual u64 GetTitleID() const  = NULL;
-    virtual u32 GetBootIndex() const  = NULL;
-    virtual size_t GetContentSize() const = NULL;
-    virtual const SNANDContent* GetContentByIndex(int _Index) const = NULL;;
-    virtual const u8* GetTicket() const = NULL;
-    virtual const std::vector<SNANDContent>& GetContent() const  = NULL;    
-    virtual const u16 GetTitleVersion() const  = NULL;
-    virtual const u16 GetNumEntries() const  = NULL;
+    virtual bool IsValid() const = 0;
+    virtual u64 GetTitleID() const = 0;
+    virtual u32 GetBootIndex() const = 0;
+    virtual size_t GetContentSize() const = 0;
+    virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
+    virtual const u8* GetTicket() const = 0;
+    virtual const std::vector<SNANDContent>& GetContent() const = 0;    
+    virtual const u16 GetTitleVersion() const = 0;
+    virtual const u16 GetNumEntries() const = 0;
 
     enum
     {
