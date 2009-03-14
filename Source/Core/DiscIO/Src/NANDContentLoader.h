@@ -24,6 +24,7 @@
 
 #include "Common.h"
 #include "Blob.h"
+#include "Volume.h"
 
 namespace DiscIO
 {
@@ -56,6 +57,7 @@ public:
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
     virtual const u16 GetTitleVersion() const = 0;
     virtual const u16 GetNumEntries() const = 0;
+    virtual const DiscIO::IVolume::ECountry GetCountry() const = 0;
 
     enum
     {

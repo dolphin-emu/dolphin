@@ -132,6 +132,7 @@ public:
 
     const u16 GetTitleVersion() const {return m_TileVersion;}
     const u16 GetNumEntries() const {return m_numEntries;}
+    const DiscIO::IVolume::ECountry GetCountry() const;
 
 private:
 
@@ -350,6 +351,66 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 	}
 
     return true;
+}
+
+const DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
+{
+    DiscIO::IVolume::ECountry country = DiscIO::IVolume::COUNTRY_UNKNOWN;
+
+    if (IsValid())
+    {
+        u64 TitleID = GetTitleID();
+        char* pTitleID = (char*)&TitleID;
+
+        switch (pTitleID[0])
+        {
+        case 'S':
+            country = DiscIO::IVolume::COUNTRY_EUROPE;
+            break; // PAL // <- that is shitty :) zelda demo disc
+
+        case 'P':
+            country = DiscIO::IVolume::COUNTRY_EUROPE;
+            break; // PAL
+
+        case 'D':
+            country = DiscIO::IVolume::COUNTRY_EUROPE;
+            break; // PAL
+
+        case 'F':
+            country = DiscIO::IVolume::COUNTRY_FRANCE;
+            break; // PAL
+
+        case 'I':
+            country = DiscIO::IVolume::COUNTRY_ITALY;
+            break; // PAL
+
+        case 'X':
+            country = DiscIO::IVolume::COUNTRY_EUROPE;
+            break; // XIII <- uses X but is PAL rip
+
+        case 'E':
+            country = DiscIO::IVolume::COUNTRY_USA;
+            break; // USA
+
+        case 'J':
+            country = DiscIO::IVolume::COUNTRY_JAP;
+            break; // JAP
+
+        case 'K':
+            country = DiscIO::IVolume::COUNTRY_KOR;
+            break; // KOR
+
+        case 'O':
+            country = DiscIO::IVolume::COUNTRY_UNKNOWN;
+            break; // SDK
+
+        default:
+            PanicAlert("Unknown Country Code!");
+            break;
+        }
+    }
+
+    return(country);
 }
 
 bool CNANDContentLoader::ParseWAD(DiscIO::IBlobReader& _rReader)
