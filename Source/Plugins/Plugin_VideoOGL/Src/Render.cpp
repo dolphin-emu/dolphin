@@ -1042,7 +1042,7 @@ void Renderer::Swap(const TRectangle& rc)
 		v_max = (float)GetTargetHeight();
 	}
 
-	if (s_bHaveFramebufferBlit)
+	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
 	{
 		// Use framebuffer blit to stretch screen.
 		// No messing around with annoying glBegin and viewports, plus can support multisampling.
