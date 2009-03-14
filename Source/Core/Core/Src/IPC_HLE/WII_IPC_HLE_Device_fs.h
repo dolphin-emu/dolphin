@@ -28,13 +28,6 @@ public:
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
-#if 0
-    virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); return true; }
-    virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
-	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
-	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
-#endif
-
 	virtual bool IOCtl(u32 _CommandAddress);
 
 	virtual bool IOCtlV(u32 _CommandAddress);
@@ -43,15 +36,15 @@ private:
 
 	enum 
 	{
-		GET_STATS			= 0x02,
-		CREATE_DIR			= 0x03,
-		IOCTL_READ_DIR		= 0x04,
-		SET_ATTR			= 0x05,
-		GET_ATTR			= 0x06,
-		DELETE_FILE			= 0x07,
-		RENAME_FILE			= 0x08,
-		CREATE_FILE			= 0x09,
-		IOCTL_GETUSAGE		= 0x0C
+		IOCTL_GET_STATS		= 0x02,
+		IOCTL_CREATE_DIR	= 0x03,
+		IOCTLV_READ_DIR		= 0x04,
+		IOCTL_SET_ATTR		= 0x05,
+		IOCTL_GET_ATTR		= 0x06,
+		IOCTL_DELETE_FILE	= 0x07,
+		IOCTL_RENAME_FILE	= 0x08,
+		IOCTL_CREATE_FILE	= 0x09,
+		IOCTLV_GETUSAGE		= 0x0C
 	};
 
 	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);

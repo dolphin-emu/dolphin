@@ -74,10 +74,6 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-
-// =======================================================
-// IOCtlV calls begin here
-// -------------
 bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress) 
 { 
 	u32 ReturnValue = FS_RESULT_OK;
@@ -93,7 +89,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	switch(CommandBuffer.Parameter)
 	{
-	case IOCTL_READ_DIR:
+	case IOCTLV_READ_DIR:
 		{
 			// the wii uses this function to define the type (dir or file)
 			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(
@@ -179,7 +175,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 		}
 		break;
 
-	case IOCTL_GETUSAGE:
+	case IOCTLV_GETUSAGE:
 		{
 			// check buffer sizes
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer.size() == 2);
@@ -245,10 +241,6 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	return true; 
 }
 
-
-// =======================================================
-// IOCtl calls begin here
-// -------------
 bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
 { 
 	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
@@ -271,37 +263,34 @@ bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 	return true; 
 }
 
-
-// =======================================================
-// Execute IOCtl commands
-// -------------
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
 	switch(_Parameter)
 	{
-	case GET_STATS:
+	case IOCTL_GET_STATS:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 28);
 
 			WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
 			WARN_LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
 
-			// This happens in Tatsonuko vs Capcom.
-			//PanicAlert("GET_STATS");
+			// This happens in Tatsonuko vs Capcom., Transformers
+            // The buffer out values are ripped form a real WII and i dont know the meaning
+            // of them. Prolly it is some kind of small statistic like number of iblocks, free iblocks etc
+            u32 Addr = _BufferOut;
+            Memory::Write_U32(0x00004000, Addr); Addr += 4;
+            Memory::Write_U32(0x00005717, Addr); Addr += 4;
+            Memory::Write_U32(0x000024a9, Addr); Addr += 4;
+            Memory::Write_U32(0x00000000, Addr); Addr += 4;
+            Memory::Write_U32(0x00000300, Addr); Addr += 4;
+            Memory::Write_U32(0x0000163e, Addr); Addr += 4;
+            Memory::Write_U32(0x000001c1, Addr);
 
-/*			Memory::Write_U32(Addr, a); Addr += 4;
-			Memory::Write_U32(Addr, b); Addr += 4;
-			Memory::Write_U32(Addr, c); Addr += 4;
-			Memory::Write_U32(Addr, d); Addr += 4;
-			Memory::Write_U32(Addr, e); Addr += 4;
-			Memory::Write_U32(Addr, f); Addr += 4;
-			Memory::Write_U32(Addr, g); Addr += 4;
-*/			
 			return FS_RESULT_OK;
 		}
 		break;
 
-	case CREATE_DIR:
+	case IOCTL_CREATE_DIR:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 			u32 Addr = _BufferIn;
@@ -322,7 +311,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		}
 		break;
 
-	case SET_ATTR:
+	case IOCTL_SET_ATTR:
 		{
 			u32 Addr = _BufferIn;
 		
@@ -346,7 +335,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		}
 		break;
 
-	case GET_ATTR:
+	case IOCTL_GET_ATTR:
 		{		
 			_dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76,
 				"    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
@@ -394,7 +383,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		break;
 
 
-	case DELETE_FILE:
+	case IOCTL_DELETE_FILE:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 			int Offset = 0;
@@ -418,7 +407,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		}
 		break;
 
-	case RENAME_FILE:
+	case IOCTL_RENAME_FILE:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 			int Offset = 0;
@@ -453,7 +442,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		}
 		break;
 
-	case CREATE_FILE:
+	case IOCTL_CREATE_FILE:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 
