@@ -311,7 +311,8 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
         colors[0] = makecol(red1, green1, blue1, 255);
         colors[1] = makecol(red2, green2, blue2, 255);
         colors[2] = makecol((red1+red2)/2, (green1+green2)/2, (blue1+blue2)/2, 255);
-        colors[3] = makecol(0,0,0,0); //transparent
+		// Not sure whether to use color 1 or 2 here. Let's try the average :P
+        colors[3] = makecol((red1+red2)/2, (green1+green2)/2, (blue1+blue2)/2, 0);  // 0 alpha, transparent
     }
 
     for (int y = 0; y < 4; y++)
