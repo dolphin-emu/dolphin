@@ -193,12 +193,20 @@ u64 Timer::GetLocalTimeSinceJan1970()
 // Return the current time formatted as Minutes:Seconds:Milliseconds in the form 00:00:000
 std::string Timer::GetTimeFormatted()
 {
+	time_t sysTime;
+	struct tm * gmTime;
+	char formattedTime[13];
+
+	time(&sysTime);
+	gmTime = localtime(&sysTime);
+	strftime(formattedTime, 6, "%M:%S", gmTime);
+
+	// Now tack on the milliseconds
 	struct timeb tp;
 	(void)::ftime(&tp);
-	char temp[32];
-	sprintf(temp, "%02ld:%02ld:%03i", tp.time/60, tp.time%60, tp.millitm);
+	sprintf(formattedTime, "%s:%03i", formattedTime, tp.millitm);
 
-	return std::string(temp);
+	return std::string(formattedTime);
 }
 /////////////////////////////////////
 
