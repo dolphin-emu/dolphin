@@ -285,7 +285,7 @@ void Flush()
 	}
 
     // run through vertex groups again to set alpha
-    if (g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) {
+    if (!g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) {
         ps = PixelShaderCache::GetShader(true);
 
         if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);

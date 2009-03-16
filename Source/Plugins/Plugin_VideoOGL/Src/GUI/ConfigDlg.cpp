@@ -48,6 +48,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_BLENDSTATS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJSTATS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHOWEFBCOPYREGIONS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHADERERRORS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
@@ -281,6 +282,8 @@ void ConfigDialog::CreateGUIControls()
 	m_BlendStats->SetValue(g_Config.bOverlayBlendStats);
 	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
+	m_ShowEFBCopyRegions = new wxCheckBox(m_PageAdvanced, ID_SHOWEFBCOPYREGIONS, wxT("Show EFB Copy Regions"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ShowEFBCopyRegions->SetValue(g_Config.bShowEFBCopyRegions);
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
@@ -301,7 +304,7 @@ void ConfigDialog::CreateGUIControls()
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
 	m_DisableTexturing->Enable(true);
-    m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
     m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
     m_DstAlphaPass->Enable(true);
 
@@ -366,8 +369,9 @@ void ConfigDialog::CreateGUIControls()
 	sInfo->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_BlendStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_ProjStats, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_TexFmtOverlay, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
-	sInfo->Add(m_TexFmtCenter, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_ShowEFBCopyRegions, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_TexFmtOverlay, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_TexFmtCenter, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbInfo->Add(sInfo);
 	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
@@ -499,6 +503,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_TEXFMTCENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
 		TextureMngr::Invalidate(false);
+		break;
+	case ID_SHOWEFBCOPYREGIONS:
+		g_Config.bShowEFBCopyRegions = m_ShowEFBCopyRegions->IsChecked();
 		break;
 	case ID_WIREFRAME:
 		g_Config.bWireFrame = m_Wireframe->IsChecked();

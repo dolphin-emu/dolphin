@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "CommonTypes.h"
+#include "VideoCommon.h"
+#include <vector>
 
 #ifndef _STATISTICS_H
 #define _STATISTICS_H
@@ -54,6 +56,8 @@ struct Statistics
 
 	float g2proj_0, g2proj_1, g2proj_2, g2proj_3, g2proj_4, g2proj_5;
 	float g2proj_6, g2proj_7, g2proj_8, g2proj_9, g2proj_10, g2proj_11, g2proj_12, g2proj_13, g2proj_14, g2proj_15;
+
+	std::vector<TRectangle> efb_regions;
 
     struct ThisFrame
     {

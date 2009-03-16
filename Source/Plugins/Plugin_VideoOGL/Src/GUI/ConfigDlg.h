@@ -97,6 +97,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_Statistics;
 		wxCheckBox *m_BlendStats;
 		wxCheckBox *m_ProjStats;
+		wxCheckBox *m_ShowEFBCopyRegions;
 		wxCheckBox *m_TexFmtOverlay;
 		wxCheckBox *m_TexFmtCenter;
 		wxCheckBox *m_Wireframe;
@@ -148,6 +149,7 @@ class ConfigDialog : public wxDialog
 			ID_STATISTICS,
 			ID_BLENDSTATS,
 			ID_PROJSTATS,
+			ID_SHOWEFBCOPYREGIONS,
 			ID_TEXFMTOVERLAY,
 			ID_TEXFMTCENTER,
 

@@ -72,6 +72,7 @@ struct Config
 	bool bOverlayProjStats;
     bool bTexFmtOverlayEnable;
     bool bTexFmtOverlayCenter;
+	bool bShowEFBCopyRegions;
     
     // Render
     bool bWireFrame;

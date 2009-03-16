@@ -1124,7 +1124,39 @@ void Renderer::DrawDebugText()
 		p+=sprintf(p, "FPS: %d\n", s_fps);
     }
 
-    if (g_Config.bOverlayStats) {
+	if (g_Config.bShowEFBCopyRegions)
+	{
+		glLineWidth(8.0f);
+
+		glBegin(GL_LINES);
+
+		for (std::vector<TRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
+		{
+			GLfloat x =  (GLfloat) -1.0f + (it->left / Renderer::GetTargetWidth());
+			GLfloat y =  (GLfloat) 1.0f + (it->top / Renderer::GetTargetHeight());
+			GLfloat x2 = (GLfloat) (x + it->GetWidth()) / Renderer::GetTargetWidth();
+			GLfloat y2 = (GLfloat) (y - it->GetHeight()) / Renderer::GetTargetHeight();
+
+			glColor3f(0.0f, 0.0f, 0.0f);
+			glVertex2f(x, y - 0.01f); glVertex2f(x2 + 0.008f, y - 0.01f);
+			glVertex2f(x, y2 - 0.01f); glVertex2f(x2 + 0.008f, y2 - 0.01f);
+			glVertex2f(x - 0.01f, y); glVertex2f(x - 0.01f, y2 + 0.008f);
+			glVertex2f(x2 - 0.01f, y); glVertex2f(x2 - 0.01f, y2 + 0.008f);
+
+			glColor3f(0.0f, 1.0f, 1.0f);
+			glVertex2f(x, y); glVertex2f(x2 + 0.008f, y);
+			glVertex2f(x, y2); glVertex2f(x2 + 0.008f, y2);
+			glVertex2f(x, y); glVertex2f(x, y2 + 0.008f);
+			glVertex2f(x2, y); glVertex2f(x2, y2 + 0.008f);
+		}
+
+		glEnd();
+
+		stats.efb_regions.clear();
+	}
+
+    if (g_Config.bOverlayStats) 
+	{
         p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
         p+=sprintf(p,"textures alive:   %i\n",stats.numTexturesAlive);
         p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);

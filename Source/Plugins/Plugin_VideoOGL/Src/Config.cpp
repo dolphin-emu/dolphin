@@ -56,6 +56,7 @@ void Config::Load()
     iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayBlendStats", &bOverlayBlendStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
+	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
@@ -101,9 +102,10 @@ void Config::Save()
 	iniFile.Set("Settings", "OverlayBlendStats", bOverlayBlendStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
+	iniFile.Set("Settings", "Show", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
-    iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
+    iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
     iniFile.Set("Settings", "MSAA", iMultisampleMode);
     iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
     iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);

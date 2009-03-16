@@ -392,6 +392,9 @@ void BPWritten(int addr, int changes, int newval)
 			// --------------------------
             if (PE_copy.copy_to_xfb == 0)
 			{
+				if (g_Config.bShowEFBCopyRegions) 
+					stats.efb_regions.push_back(rc);
+
 				// EFB to texture 
                 // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
 				if (!g_Config.bEFBCopyDisable)
