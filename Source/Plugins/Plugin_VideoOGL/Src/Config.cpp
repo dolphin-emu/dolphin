@@ -106,6 +106,7 @@ void Config::Save()
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
     iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
+	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
     iniFile.Set("Settings", "MSAA", iMultisampleMode);
     iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
     iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
