@@ -238,7 +238,7 @@ void Flush()
 		PixelShaderManager::SetTexturesUsed(nonpow2tex);
 	}
 
-	FRAGMENTSHADER* ps = PixelShaderCache::GetShader();
+	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	bool bRestoreBuffers = false;
@@ -283,6 +283,31 @@ void Flush()
 		                  s_vertexGroups[i].second);
 		groupStart += s_vertexGroups[i].second;
 	}
+
+    // run through vertex groups again to set alpha
+    if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) {
+        ps = PixelShaderCache::GetShader(true);
+
+        if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);
+
+        // only update alpha
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+
+        groupStart = 0;
+	    for (unsigned i = 0; i < s_vertexGroups.size(); i++)
+	    {
+		    INCSTAT(stats.thisFrame.numDrawCalls);
+		    glMultiDrawArrays(s_vertexGroups[i].first,
+		                      &s_vertexFirstOffset[groupStart],
+		                      &s_vertexGroupSize[groupStart], 
+		                      s_vertexGroups[i].second);
+		    groupStart += s_vertexGroups[i].second;
+	    }
+
+        // restore color mask
+        if (!bRestoreBuffers)
+            Renderer::SetColorMask();
+    }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	if (g_Config.iLog & CONF_SAVESHADERS) {

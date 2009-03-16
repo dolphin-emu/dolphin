@@ -105,13 +105,14 @@ GLuint PixelShaderCache::GetColorMatrixProgram()
 }
 
 
-FRAGMENTSHADER* PixelShaderCache::GetShader()
+FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
 	u32 zbufrender = (Renderer::UseFakeZTarget() && bpmem.zmode.updateenable) ? 1 : 0;
 	u32 zBufRenderToCol0 = Renderer::GetRenderMode() != Renderer::RM_Normal;
-	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), zbufrender, zBufRenderToCol0);
+    u32 dstAlpha = dstAlphaEnable ? 1 : 0;
+	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), zbufrender, zBufRenderToCol0, dstAlpha);
 
 	PSCache::iterator iter = pshaders.find(uid);
 
@@ -128,7 +129,8 @@ FRAGMENTSHADER* PixelShaderCache::GetShader()
 	PSCacheEntry& newentry = pshaders[uid];
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
 										   Renderer::UseFakeZTarget(),
-										   Renderer::GetRenderMode() != Renderer::RM_Normal);
+										   Renderer::GetRenderMode() != Renderer::RM_Normal,
+                                           dstAlphaEnable);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {	

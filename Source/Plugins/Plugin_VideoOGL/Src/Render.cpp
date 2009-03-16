@@ -111,7 +111,6 @@ static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
 static bool s_bHaveFramebufferBlit = false;
 static bool s_bHaveCoverageMSAA = false;
-static bool g_bBlendSeparate = false;
 static u32 s_blendMode;
 static bool s_bNativeResolution = false;
 
@@ -205,10 +204,6 @@ bool Renderer::Init()
     INFO_LOG(VIDEO, "Supported OpenGL Extensions:\n");
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "\n");
-
-	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL &&
-		strstr(ptoken, "GL_EXT_blend_equation_separate") != NULL)
-        g_bBlendSeparate = true;
 
 	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
@@ -683,58 +678,35 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {	
 	// blend mode bit mask
 	// 0 - blend enable
-	// 1 - dst alpha enable
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
-	// 9-16 - dstAlpha
 
 	u32 newval = bpmem.blendmode.subtract << 2;
 
-	if (g_bBlendSeparate) {
-		newval |= bpmem.dstalpha.enable ? 3 : 0;
-		newval |= bpmem.dstalpha.alpha << 9;
+    if (bpmem.blendmode.subtract) {
+        newval |= 0x0049;   // enable blending src 1 dst 1
+    } else if (bpmem.blendmode.blendenable) {		
+		newval |= 1;    // enable blending
+		newval |= bpmem.blendmode.srcfactor << 3;
+		newval |= bpmem.blendmode.dstfactor << 6;
 	}
-
-	if (bpmem.blendmode.blendenable) {		
-		newval |= 1;
-		if (bpmem.blendmode.subtract) {
-			newval |= 0x0048; // src 1 dst 1
-		} else {
-			newval |= bpmem.blendmode.srcfactor << 3;
-			newval |= bpmem.blendmode.dstfactor << 6;
-		}
-	} else {
-		newval |= 0x0008;	// src 1 dst 0
-	}
-
+	
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	if (changes & 1) {
+        // blend enable change
 		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 	}
 
-	bool dstAlphaEnable = g_bBlendSeparate && newval & 2;
-
-	if (changes & 6) {		
-		// dst alpha enable or subtract enable change
-		if (dstAlphaEnable)
-			glBlendEquationSeparate(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD, GL_FUNC_ADD);
-		else
-			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+	if (changes & 4) {		
+		// subtract enable change
+		glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
 	}
 
-	if (changes & 0x1FA) {
-		// dst alpha enable or blend RGB change
-		if (dstAlphaEnable)
-			glBlendFuncSeparate(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7], GL_CONSTANT_ALPHA, GL_ZERO);
-		else
-			glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
-	}
-
-	if (dstAlphaEnable && changes & 0x1FE00) {
-		// dst alpha color change
-		glBlendColor(0, 0, 0, (float)bpmem.dstalpha.alpha / 255.0f);
+	if (changes & 0x1F8) {
+		// blend RGB change
+		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
 	}
 
 	s_blendMode = newval;

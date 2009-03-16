@@ -153,7 +153,7 @@ void BPWritten(int addr, int changes, int newval)
             PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
 			SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
-			Renderer::SetBlendMode(false);
+            PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
         }
         break;
 

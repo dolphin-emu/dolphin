@@ -91,7 +91,7 @@ public:
 	}
 };
 
-const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool HLSL = false);
-void GetPixelShaderId(PIXELSHADERUID &, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0);
+const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool dstAlphaEnable, bool HLSL = false);
+void GetPixelShaderId(PIXELSHADERUID &, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0, u32 dstAlphaEnable);
 
 #endif

@@ -58,7 +58,7 @@ public:
 	static void ProgressiveCleanup();
 	static void Shutdown();
 
-	static FRAGMENTSHADER* GetShader();
+	static FRAGMENTSHADER* GetShader(bool dstAlphaEnable);
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
 	static GLuint GetColorMatrixProgram();

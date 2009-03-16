@@ -26,7 +26,7 @@
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0)
+void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
@@ -39,7 +39,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 	uid.values[0] = (u32)bpmem.genMode.numtevstages |
 				   ((u32)bpmem.genMode.numindstages << 4) |
 				   ((u32)bpmem.genMode.numtexgens << 7) |
-				   ((u32)bpmem.dstalpha.enable << 11) |
+				   ((u32)dstAlphaEnable << 11) |
 				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
 				   (projtexcoords << 20) |
 				   ((u32)bpmem.ztex2.op << 28) |
@@ -369,7 +369,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool HLSL)
+const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool dstAlphaEnable, bool HLSL)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
@@ -535,17 +535,12 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     }
     else {
         if (!bRenderZToCol0) {
-            /* donkopunchstania: NEEDS FIX - dstalpha does not change how fragments are blended with the EFB
-			   once the blending is done, the dstalpha is written to the EFB in place of the
-			   fragment alpha if dstalpha is enabled. this only matters if the EFB supports alpha.
-               Commenting this out fixed Metroids but causes glitches in Super Mario Sunshine.
-
-			if (bpmem.dstalpha.enable)
+            if (dstAlphaEnable) {
                 WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
-            else
-			   */
-            WriteFog(p, bOutputZ);
-            WRITE(p, "  ocol0 = prev;\n");
+            } else {			  
+                WriteFog(p, bOutputZ);
+                WRITE(p, "  ocol0 = prev;\n");
+            }
 		} else {
 			WRITE(p, "  ocol0 = prev;\n");
 		}
