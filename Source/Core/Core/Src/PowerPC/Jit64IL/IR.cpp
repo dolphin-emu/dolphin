@@ -326,7 +326,7 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	if (Opcode == DoubleToSingle) {
 		if (getOpcode(*Op1) == DupSingleToMReg)
 			return getOp1(Op1);
-		if (getOpcode(*Op1) >= FDMul || getOpcode(*Op1) <= FDSub) {
+		if (getOpcode(*Op1) >= FDMul && getOpcode(*Op1) <= FDSub) {
 			InstLoc OOp1 = getOp1(Op1), OOp2 = getOp2(Op1);
 			if (getOpcode(*OOp1) == DupSingleToMReg &&
 			    getOpcode(*OOp2) == DupSingleToMReg) {
