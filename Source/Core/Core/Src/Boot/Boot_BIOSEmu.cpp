@@ -71,6 +71,9 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	Memory::Write_U32(0x0D15EA5E,   0x80000020);    // funny magic word for normal boot
 	Memory::Write_U32(0x01800000,	0x80000028);	// Physical Memory Size
 
+	// On any of the production boards, ikaruga fails to read the memcard the first time. It succeeds on the second time though.
+	// And (only sometimes?) with 0x00000003, the loading picture in the bottom right will become corrupt and
+	// the emu will slow to 7mhz...I don't think it ever actually progresses
 	Memory::Write_U32(0x10000006,	0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
 
 	Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
