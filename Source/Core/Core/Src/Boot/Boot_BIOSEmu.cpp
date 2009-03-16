@@ -71,7 +71,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	Memory::Write_U32(0x0D15EA5E,   0x80000020);    // funny magic word for normal boot
 	Memory::Write_U32(0x01800000,	0x80000028);	// Physical Memory Size
 
-	Memory::Write_U32(0x00000003,	0x8000002C);	// Console type - retail  (DevKit ID == 0x10000006)
+	Memory::Write_U32(0x10000006,	0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
 
 	Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
 
