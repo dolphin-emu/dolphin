@@ -58,6 +58,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
+    EVT_CHECKBOX(ID_DSTALPHAPASS,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
@@ -300,6 +301,9 @@ void ConfigDialog::CreateGUIControls()
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
 	m_DisableTexturing->Enable(true);
+    m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
+    m_DstAlphaPass->Enable(true);
 
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
@@ -344,6 +348,7 @@ void ConfigDialog::CreateGUIControls()
 		" [This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
 	m_ProjectionHax1->SetToolTip(wxT("This should get ZTP's Bloom to show"));
+    m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value"));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
@@ -370,6 +375,7 @@ void ConfigDialog::CreateGUIControls()
 	sRendering->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRendering->Add(m_DisableLighting, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+    sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 5);
 				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
 					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
@@ -502,6 +508,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DISABLETEXTURING:
 		g_Config.bDisableTexturing = m_DisableTexturing->IsChecked();
+		break;
+    case ID_DSTALPHAPASS:
+		g_Config.bDstAlphaPass = m_DstAlphaPass->IsChecked();
 		break;
 	case ID_DUMPTEXTURES:
 		g_Config.bDumpTextures = m_DumpTextures->IsChecked();

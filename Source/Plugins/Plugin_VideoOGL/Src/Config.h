@@ -77,6 +77,7 @@ struct Config
     bool bWireFrame;
     bool bDisableLighting;
     bool bDisableTexturing;
+    bool bDstAlphaPass;
     
     // Utility
     bool bDumpTextures;

@@ -102,6 +102,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
+        wxCheckBox *m_DstAlphaPass;
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_DumpEFBTarget;
 		wxStaticBox * m_StaticBox_EFB;
@@ -163,6 +164,7 @@ class ConfigDialog : public wxDialog
 			ID_CHECKBOX_DISABLECOPYEFB, 
 			ID_EFBCOPYDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
+            ID_DSTALPHAPASS,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,
 		};

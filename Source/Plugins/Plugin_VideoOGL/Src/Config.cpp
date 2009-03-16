@@ -61,6 +61,7 @@ void Config::Load()
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
     iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
+    iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
     
     iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
     iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
@@ -109,6 +110,7 @@ void Config::Save()
     iniFile.Set("Settings", "Wireframe", bWireFrame);
     iniFile.Set("Settings", "DisableLighting", bDisableLighting);
     iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
+    iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
     
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
