@@ -293,6 +293,8 @@ void Flush()
         // only update alpha
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
+        glDisable(GL_BLEND);
+
         groupStart = 0;
 	    for (unsigned i = 0; i < s_vertexGroups.size(); i++)
 	    {
@@ -307,6 +309,9 @@ void Flush()
         // restore color mask
         if (!bRestoreBuffers)
             Renderer::SetColorMask();
+
+        if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+            glEnable(GL_BLEND);
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
