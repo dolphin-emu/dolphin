@@ -1126,10 +1126,16 @@ void Renderer::DrawDebugText()
 
 	if (g_Config.bShowEFBCopyRegions)
 	{
-		glLineWidth(8.0f);
+		// Store Line Size
+		GLint lSize;
+		glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE, &lSize);
+
+		// Set Line Size
+		glLineWidth(8.0f); 
 
 		glBegin(GL_LINES);
 
+		// Draw EFB copy regions rectangles
 		for (std::vector<TRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
 		{
 			GLfloat x =  (GLfloat) -1.0f + (it->left / Renderer::GetTargetWidth());
@@ -1137,12 +1143,14 @@ void Renderer::DrawDebugText()
 			GLfloat x2 = (GLfloat) (x + it->GetWidth()) / Renderer::GetTargetWidth();
 			GLfloat y2 = (GLfloat) (y - it->GetHeight()) / Renderer::GetTargetHeight();
 
+			// Draw shadow of rect
 			glColor3f(0.0f, 0.0f, 0.0f);
 			glVertex2f(x, y - 0.01f); glVertex2f(x2 + 0.008f, y - 0.01f);
 			glVertex2f(x, y2 - 0.01f); glVertex2f(x2 + 0.008f, y2 - 0.01f);
 			glVertex2f(x - 0.01f, y); glVertex2f(x - 0.01f, y2 + 0.008f);
 			glVertex2f(x2 - 0.01f, y); glVertex2f(x2 - 0.01f, y2 + 0.008f);
 
+			// Draw rect
 			glColor3f(0.0f, 1.0f, 1.0f);
 			glVertex2f(x, y); glVertex2f(x2 + 0.008f, y);
 			glVertex2f(x, y2); glVertex2f(x2 + 0.008f, y2);
@@ -1152,6 +1160,10 @@ void Renderer::DrawDebugText()
 
 		glEnd();
 
+		// Restore Line Size
+		glLineWidth((GLfloat)lSize);
+
+		// Clear stored regions
 		stats.efb_regions.clear();
 	}
 
