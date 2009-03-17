@@ -80,7 +80,20 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 			m_step = 0;
 		} else {
 			// Release halt
+			#if 0
+			// The _uMail seems to be 1,2,3 when bitshifted right 16
+			// after 3, we get some unknown values, probably supposed to be in the list
+			if((_uMail >> 16) == 1)
+				m_rMailHandler.PushMail(DSP_RESUME);
+			else if((_uMail >> 16) == 2)
+				m_rMailHandler.PushMail(DSP_YIELD);
+			else if((_uMail >> 16) == 3)
+				m_rMailHandler.PushMail(DSP_DONE);
+			else
+				{ /*Unknown values here*/}
+			#else
 			m_rMailHandler.PushMail(DSP_RESUME);
+			#endif
 			g_dspInitialize.pGenerateDSPInterrupt();
 		}
 	}
