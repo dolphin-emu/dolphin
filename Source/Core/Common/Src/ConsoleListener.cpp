@@ -66,11 +66,40 @@ ConsoleListener::~ConsoleListener()
 }
 
 // Logs the message to screen
-void ConsoleListener::Log(LogTypes::LOG_LEVELS, const char *text) 
+void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
 	
 #if defined(_WIN32)
 		DWORD cCharsWritten; // We will get a value back here
+		WORD color;
+		
+		switch (level)
+		{
+		case ERROR_LEVEL: // red
+			color = FOREGROUND_RED | FOREGROUND_INTENSITY;
+			break;
+
+		case WARNING_LEVEL: // yellow
+			color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+			break;
+
+		case NOTICE_LEVEL: // green
+			color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+			break;
+
+		case INFO_LEVEL: // cyan
+			color = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+			break;
+
+		case DEBUG_LEVEL: // supposedly gray
+			color = FOREGROUND_INTENSITY | FOREGROUND_INTENSITY;
+			break;
+
+		default: // white
+			color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+			break;
+		}
+		SetConsoleTextAttribute(m_hStdOut, color);
 
 		WriteConsole(m_hStdOut, text, (DWORD)strlen(text), 
 					 &cCharsWritten, NULL);
