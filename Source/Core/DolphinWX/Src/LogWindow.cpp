@@ -51,9 +51,6 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	m_fileLog = m_logManager->getFileListener();
 	m_console = m_logManager->getConsoleListener();
 
-	m_writeFile = true;
-	m_writeConsole = true;
-
 	CreateGUIControls();
 
 	LoadSettings();

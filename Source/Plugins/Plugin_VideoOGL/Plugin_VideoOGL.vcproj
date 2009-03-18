@@ -944,10 +944,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Globals.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Globals.h"
 			>
 		</File>
