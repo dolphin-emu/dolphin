@@ -75,24 +75,24 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
 		
 		switch (level)
 		{
-		case ERROR_LEVEL: // red
+		case ERROR_LEVEL: // light red
 			color = FOREGROUND_RED | FOREGROUND_INTENSITY;
 			break;
 
-		case WARNING_LEVEL: // yellow
+		case WARNING_LEVEL: // light yellow
 			color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 			break;
 
-		case NOTICE_LEVEL: // green
+		case NOTICE_LEVEL: // light green
 			color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 			break;
 
 		case INFO_LEVEL: // cyan
-			color = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+			color = FOREGROUND_GREEN | FOREGROUND_BLUE;
 			break;
 
-		case DEBUG_LEVEL: // supposedly gray
-			color = FOREGROUND_INTENSITY | FOREGROUND_INTENSITY;
+		case DEBUG_LEVEL: // light gray
+			color = FOREGROUND_INTENSITY;
 			break;
 
 		default: // white
