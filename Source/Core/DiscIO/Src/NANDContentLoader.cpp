@@ -474,7 +474,7 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
     std::string KeyString(_rName);
 
     std::transform(KeyString.begin(), KeyString.end(), KeyString.begin(),
-        (int(*)(int)) std::toupper);
+        (int(*)(int)) toupper);
 
 
     CNANDContentMap::iterator itr = m_Map.find(KeyString);
