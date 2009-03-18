@@ -147,7 +147,7 @@ if(m_frame->ScanMails)
 #endif
 		TmpMailLog += Msg;
 		TmpMailLog += "\n";
-		LOG_(1, Msg); // also write it to the log
+		DEBUG_LOG(DSPHLE, "%s", Msg); // also write it to the log
 #if defined(HAVE_WX) && HAVE_WX
 	}
 }
@@ -415,11 +415,11 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
 	{
 		// a new List
-		DebugLog(" >>>> u32 MAIL : General Mail (%08x)", _uMail);
+		DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
 	}
 	else
 	{
-		DebugLog(" >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
+		DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
 		AXTask(_uMail);
 		
 	}

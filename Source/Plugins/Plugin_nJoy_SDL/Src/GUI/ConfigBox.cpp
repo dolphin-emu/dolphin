@@ -605,7 +605,7 @@ void ConfigBox::OnPaint( wxPaintEvent &event )
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::CreateGUIControls()
 {
-	Console::Print("CreateGUIControls()\n");
+	INFO_LOG(CONSOLE, "CreateGUIControls()\n");
 
 	#ifndef _DEBUG		
 		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" Input Plugin"));

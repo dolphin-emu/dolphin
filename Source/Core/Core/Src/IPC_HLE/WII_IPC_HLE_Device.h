@@ -136,7 +136,7 @@ protected:
 	   of 4 byte commands. */
 	// ----------------
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
-		int LogType = LogTypes::WII_IPC_HLE, int Verbosity = 0)
+					  LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE, LogTypes::LOG_LEVELS Verbosity =LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s", 
 					GetDeviceName().c_str());
@@ -184,8 +184,8 @@ protected:
             INFO_LOG(WII_IPC_HLE,"%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
             INFO_LOG(WII_IPC_HLE, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
 
-			#if defined LOGLEVEL && LOGLEVEL > 2
-				DumpCommands(OutBuffer, OutBufferSize, LogTypes::WII_IPC_HLE, 1);
+			#if defined LOGLEVEL && LOGLEVEL > NOTICE_LEVEL
+			DumpCommands(OutBuffer, OutBufferSize, LogTypes::WII_IPC_HLE, LogTypes::LINFO);
 			#endif
        }
     }

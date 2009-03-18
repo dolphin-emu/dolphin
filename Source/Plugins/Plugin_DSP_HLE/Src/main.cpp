@@ -26,7 +26,6 @@
 CDebugger* m_frame = NULL;
 #endif
 
-#include "ConsoleWindow.h" // Common: For the Windows console
 #include "ChunkFile.h"
 #include "WaveFile.h"
 #include "PCHW/Mixer.h"
@@ -40,6 +39,7 @@ CDebugger* m_frame = NULL;
 #include "PCHW/NullSoundStream.h"
 
 // Declarations and definitions
+PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
@@ -127,12 +127,13 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 #endif
 
 
+/*
 // Open and close console
 void OpenConsole()
 {
 #if defined (_WIN32)
 	Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
-	Console::Print("OpenConsole > Console opened\n");
+	DEBUG_LOG(CONSOLE, "OpenConsole > Console opened\n");
 	MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // move window, TODO: make this
 	// adjustable from the debugging window
 #endif
@@ -144,7 +145,7 @@ void CloseConsole()
 	FreeConsole();
 #endif
 }
-
+*/
 
 // Exported fuctions
 
@@ -186,7 +187,11 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+       globals = _pPluginGlobals;
+       LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
 void DllConfig(HWND _hParent)

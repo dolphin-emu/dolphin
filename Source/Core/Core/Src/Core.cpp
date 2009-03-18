@@ -28,7 +28,6 @@
 #include "Thread.h"
 #include "Timer.h"
 #include "Common.h"
-#include "ConsoleWindow.h"
 #include "StringUtil.h"
 
 #include "Console.h"
@@ -161,7 +160,7 @@ void ReconnectPad()
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	Plugins.FreePad(0);
 	Plugins.GetPad(0)->Config(g_pWindowHandle);
-	Console::Print("ReconnectPad()\n");
+	INFO_LOG(CONSOLE, "ReconnectPad()\n");
 }
 
 // This doesn't work yet, I don't understand how the connection work yet
@@ -171,7 +170,7 @@ void ReconnectWiimote()
 	/* JP: Yes, it's basically nothing right now, I could not figure out how to reset the Wiimote
 	   for reconnection */
 	HW::InitWiimote();
-	Console::Print("ReconnectWiimote()\n");
+	INFO_LOG(CONSOLE, "ReconnectWiimote()\n");
 }
 
 // -----------------------------------------
@@ -182,7 +181,7 @@ void ReconnectWiimote()
 		VideoThreadRunning = false;
 		VideoThreadEvent.SetTimer();
 		VideoThreadEvent2.SetTimer();
-		//Console::Print("VideoThreadEnd\n");
+		//INFO_LOG(CONSOLE, "VideoThreadEnd\n");
 	}
 #endif
 // ---------------------------
@@ -207,7 +206,8 @@ bool Init()
 	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_CoreStartupParameter = _CoreParameter;
-	LogManager::Init();	
+	NOTICE_LOG(BOOT, "Starting core");
+	// FIXME DEBUG_LOG(BOOT, dump_params());
 	Host_SetWaitCursor(true);
 
 	// Start the thread again
@@ -241,8 +241,8 @@ void Stop()
 #ifdef SETUP_TIMER_WAITING
 	if (!StopUpToVideoDone)
 	{
-	Console::Print("--------------------------------------------------------------\n");
-	Console::Print("Stop [Main Thread]:    Shutting down...\n");
+	INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
+	INFO_LOG(CONSOLE, "Stop [Main Thread]:    Shutting down...\n");
 	// Reset variables
 	StopReachedEnd = false;
 	EmuThreadReachedEnd = false;
@@ -265,7 +265,7 @@ void Stop()
  
 	// If dual core mode, the CPU thread should immediately exit here.
 	if (_CoreParameter.bUseDualCore) {
-		Console::Print("Stop [Main Thread]:    Wait for Video Loop to exit...\n");
+		INFO_LOG(CONSOLE, "Stop [Main Thread]:    Wait for Video Loop to exit...\n");
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
 
@@ -276,7 +276,7 @@ void Stop()
 	//if (!VideoThreadEvent.TimerWait(Stop, 1, EmuThreadReachedEnd) || !EmuThreadReachedEnd) return;
 	if (!VideoThreadEvent.TimerWait(Stop, 1)) return;
 
-	//Console::Print("Stop() will continue\n");
+	//INFO_LOG(CONSOLE, "Stop() will continue\n");
 #endif
 
 	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
@@ -284,9 +284,8 @@ void Stop()
 
 	// Close the trace file
 	Core::StopTrace();
-#ifndef SETUP_TIMER_WAITING // This hangs
-	LogManager::Shutdown();
-#endif
+	NOTICE_LOG(BOOT, "Shutting core");
+
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
 	#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
@@ -307,8 +306,8 @@ void Stop()
 	Host_UpdateGUI();
 	StopUpToVideoDone = false;
 	StopReachedEnd = true;
-	//Console::Print("Stop() reached the end\n");
-	if (EmuThreadReachedEnd) Console::Print("--------------------------------------------------------------\n");
+	//INFO_LOG(CONSOLE, "Stop() reached the end\n");
+	if (EmuThreadReachedEnd) INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
 #endif
 }
 
@@ -521,7 +520,7 @@ THREAD_RETURN EmuThread(void *pArg)
 #ifdef SETUP_TIMER_WAITING
 
 	VideoThreadEvent2.TimerWait(EmuThreadEnd, 2);
-	//Console::Print("Video loop [Video Thread]:   Stopped\n");
+	//INFO_LOG(CONSOLE, "Video loop [Video Thread]:   Stopped\n");
 	return 0;
 }
 
@@ -530,23 +529,23 @@ void EmuThreadEnd()
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	//Console::Print("Video loop [Video Thread]:   EmuThreadEnd [StopEnd:%i]\n", StopReachedEnd);
+	//INFO_LOG(CONSOLE, "Video loop [Video Thread]:   EmuThreadEnd [StopEnd:%i]\n", StopReachedEnd);
 
 	//if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2)) return;
 	if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2, StopReachedEnd) || !StopReachedEnd)
 	{
-		Console::Print("Stop [Video Thread]:   Waiting for Stop() and Video Loop to end...\n");
+		INFO_LOG(CONSOLE, "Stop [Video Thread]:   Waiting for Stop() and Video Loop to end...\n");
 		return;
 	}
 
-	//Console::Print("EmuThreadEnd() will continue\n");
+	//INFO_LOG(CONSOLE, "EmuThreadEnd() will continue\n");
 
 	/* There will be a few problems with the OpenGL ShutDown() after this, for example the "Release
 	   Device Context Failed" error message */
 #endif
 
-	Console::Print("Stop [Video Thread]:   Stop() and Video Loop Ended\n");
-	Console::Print("Stop [Video Thread]:   Shutting down HW and Plugins\n");
+	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Stop() and Video Loop Ended\n");
+	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Shutting down HW and Plugins\n");
 
 	// We have now exited the Video Loop and will shut down
 
@@ -582,10 +581,10 @@ void EmuThreadEnd()
 		Host_UpdateMainFrame();
 #ifdef SETUP_TIMER_WAITING
 	EmuThreadReachedEnd = true;
-	//Console::Print("EmuThread() reached the end\n");
+	//INFO_LOG(CONSOLE, "EmuThread() reached the end\n");
 	Host_UpdateGUI();
-	Console::Print("Stop [Video Thread]:   Done\n");
-	if (StopReachedEnd) Console::Print("--------------------------------------------------------------\n");
+	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Done\n");
+	if (StopReachedEnd) INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
 #endif
@@ -715,9 +714,9 @@ void Callback_VideoCopiedToXFB()
 // __________________________________________________________________________________________________
 // Callback_DSPLog
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD
-void Callback_DSPLog(const TCHAR* _szMessage, int _v)
+	void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(LogTypes::AUDIO, _v, _szMessage);
+	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
  
 // __________________________________________________________________________________________________
@@ -729,10 +728,11 @@ void Callback_DSPInterrupt()
 }
  
 // __________________________________________________________________________________________________
-// Callback_PADLog
+// Callback_PADLog 
 //
 void Callback_PADLog(const TCHAR* _szMessage)
 {
+	// FIXME add levels
 	INFO_LOG(SERIALINTERFACE, _szMessage);
 }
  
@@ -769,7 +769,7 @@ void Callback_KeyPress(int key, bool shift, bool control)
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(LogTypes::WII_IPC_WIIMOTE, _v, _szMessage);
+	GENERIC_LOG(LogTypes::WII_IPC_WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
  
 // TODO: Get rid of at some point

@@ -171,8 +171,8 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 #endif
 
 	/* Debugging 
-	Console::ClearScreen();
-	Console::Print(
+//	Console::ClearScreen();
+	DEBUG_LOG(CONSOLE,
 		"Controller and handle: %i %i\n"
 
 		"Triggers:%i  %i %i  %i %i\n"

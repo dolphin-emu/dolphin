@@ -667,10 +667,6 @@
 			RelativePath=".\Src\VideoCommon.h"
 			>
 		</File>
-		<File
-			RelativePath=".\Src\VideoLog.cpp"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

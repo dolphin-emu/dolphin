@@ -7,7 +7,6 @@ wxenv = env.Clone()
 
 files = [
 	'BootManager.cpp',
-#	'Config.cpp',
 	'cmdline.c',
 	]
 
@@ -22,6 +21,7 @@ if wxenv['HAVE_WX']:
 		'ARCodeAddEdit.cpp',
 		'ConfigMain.cpp',
 		'Frame.cpp',
+		'LogWindow.cpp',
 		'FrameTools.cpp',
 		'GameListCtrl.cpp',
 		'Globals.cpp',
@@ -29,7 +29,6 @@ if wxenv['HAVE_WX']:
 		'ISOProperties.cpp',
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
-#		'PluginManager.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
 		'stdafx.cpp',

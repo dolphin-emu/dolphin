@@ -49,8 +49,6 @@ extern SVideoInitialize g_VideoInitialize;
 // (mb2) for XFB update hack. TODO: find a static better place
 extern volatile u32 g_XFBUpdateRequested;
 
-void DebugLog(const char* _fmt, ...);
-
 //////////////////////////////////////////////////////////////////////////
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
@@ -140,7 +138,6 @@ struct TRectangle
 
 // Logging
 // ¯¯¯¯¯¯¯¯¯¯
-void DebugLog(const char *_fmt, ...); // This one goes to the main program
 void HandleGLError();
 
 

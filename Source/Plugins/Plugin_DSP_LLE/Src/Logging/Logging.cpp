@@ -30,7 +30,6 @@
 #include "Common.h"
 
 #include "UCode_AXStructs.h" // they are only in a virtual dir called UCodes AX
-#include "ConsoleWindow.h" // For Console::Print, Console::ClearScreen
 // =====================
 
 
@@ -362,8 +361,8 @@ void Logging()
 		// =======================================================================================
 		// Print
 		// ---------------
-		Console::ClearScreen();
-		Console::Print("%s", sbuff.c_str());
+		//		Console::ClearScreen();
+		INFO_LOG(DSPHLE, "%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");		
 		// ---------------
 		k=0;

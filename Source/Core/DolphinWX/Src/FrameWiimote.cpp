@@ -23,7 +23,6 @@
 #include "Frame.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "ConsoleWindow.h"
 
 #include "GameListCtrl.h"
 #include "BootManager.h"
@@ -414,7 +413,7 @@ void CFrame::DoMoveIcons()
 			for (int i = 0; i < 4; i++) m_StatBmp[i]->Hide();
 		else // if(!m_StatBmp[0]->IsShown())
 			for (int i = 0; i < 4; i++) m_StatBmp[i]->Show();
-		//Console::Print("LED: %i   ", Rect.GetWidth());
+		//INFO_LOG(CONSOLE, "LED: %i   ", Rect.GetWidth());
 	}
 
 	// If there is not room for the speaker icons hide them
@@ -430,7 +429,7 @@ void CFrame::DoMoveIcons()
 			for(int i = 0; i < 3; i++) m_StatBmp[i + 4]->Hide();
 		else // if(!m_StatBmp[4]->IsShown())
 			for (int i = 0; i < 3; i++) m_StatBmp[i + 4]->Show();
-		//Console::Print("Speaker: %i\n", Rect.GetWidth());
+		//INFO_LOG(CONSOLE, "Speaker: %i\n", Rect.GetWidth());
 	}
 }
 

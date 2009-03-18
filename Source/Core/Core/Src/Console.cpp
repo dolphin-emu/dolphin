@@ -30,8 +30,8 @@
 #include "PowerPCDisasm.h"
 #include "Console.h"
 
-#define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
 #define CASE1(x) if (memcmp(cmd, x, 2*sizeof(TCHAR))==0)
+#define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
 
 void Console_Submit(const char *cmd)
 {
@@ -53,7 +53,7 @@ void Console_Submit(const char *cmd)
 		
 		if (addr)
 		{
-#if LOGLEVEL >= 3
+#if LOGLEVEL >= INFO_LEVEL
 			u32 EA =
 #endif
 				Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);
@@ -120,7 +120,8 @@ void Console_Submit(const char *cmd)
 		TCHAR temp[256];
 		sscanf(cmd, "%s %08x %08x", temp, &start, &end);
 		char disasm[256];
-		for (u32 addr = start; addr <= end; addr += 4) {
+		for (u32 addr = start; addr <= end; addr += 4)
+		{
 			u32 data = Memory::ReadUnchecked_U32(addr);
 			DisassembleGekko(data, addr, disasm, 256);
 			printf("%08x: %08x: %s\n", addr, data, disasm);	
@@ -149,7 +150,8 @@ void Console_Submit(const char *cmd)
 	{
 		g_symbolDB.List();
 	}
-	else {
+	else
+	{
 		printf("blach\n");
 		ERROR_LOG(CONSOLE, "Invalid command");	
 	}

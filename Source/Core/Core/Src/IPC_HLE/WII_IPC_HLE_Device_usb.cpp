@@ -18,8 +18,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Include
-#include "ConsoleWindow.h" // Common
-
 #include "../Core.h" // Local core functions
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Host.h"
@@ -1811,7 +1809,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 				   "anyway. It is strongly recommed to save and/or restart the\n"
 				   "emulation.");
 	}
-	Console::Print("IPC CommandDisconnect\n");
+	INFO_LOG(CONSOLE, "IPC CommandDisconnect\n");
 
 	// Send message to plugin
 	/*

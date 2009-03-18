@@ -115,7 +115,7 @@ void RerecordingStart()
 	ReRecTimer.Start();
 
 	// Logging
-	//Console::Print("RerecordingStart: %i\n", g_FrameCounter);
+	//DEBUG_LOG(CONSOLE, "RerecordingStart: %i\n", g_FrameCounter);
 }
 
 // Reset the frame counter
@@ -159,7 +159,7 @@ void WindBack(int Counter)
 	ReRecTimer.WindBackStartingTime((u64)CurrentTimeSeconds * 1000);
 
 	// Logging
-	Console::Print("WindBack: %i %u\n", Counter, (u64)CurrentTimeSeconds);
+	DEBUG_LOG(CONSOLE, "WindBack: %i %u\n", Counter, (u64)CurrentTimeSeconds);
 }
 ////////////////////////////////////////
 

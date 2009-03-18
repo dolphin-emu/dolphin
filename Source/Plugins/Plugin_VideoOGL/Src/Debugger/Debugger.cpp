@@ -17,7 +17,6 @@
 
 #include "../Globals.h"		// The precompiled header
 #include "IniFile.h"		// Common
-#include "ConsoleWindow.h"	// Move console window
 #include "../Config.h"		// Config settings
 #include "Debugger.h"
 
@@ -57,20 +56,21 @@ void CDebugger::OnClose(wxCloseEvent& event)
 	SaveSettings();
 
 	event.Skip(); // This means wxDialog's Destroy is used
-	CloseConsole(); // The console goes with the wx window
+	//	CloseConsole(); // The console goes with the wx window
 }
 
 void CDebugger::DoShowHideConsole()
 {
-	if(m_Check[1]->IsChecked() 
+	/*	if(m_Check[1]->IsChecked() 
 #ifdef _WIN32
 		// Check to see if we already have a console
-		&& Console::GetHwnd() == NULL
+//		&& Console::GetHwnd() == NULL
 #endif
 		)
 		OpenConsole();
 	else
 		CloseConsole();
+	*/
 }
 
 void CDebugger::SaveSettings() const
@@ -112,9 +112,6 @@ void CDebugger::LoadSettings()
 	file.Get("VideoWindow", "w", &w, GetSize().GetWidth());
 	file.Get("VideoWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
-
-	file.Get("VideoWindow", "WriteToFile", &LocalLogFile, m_Check[0]->IsChecked());
-	m_Check[0]->SetValue(LocalLogFile);
 
 	bool Console;
 	file.Get("VideoWindow", "Console", &Console, m_Check[1]->IsChecked());
@@ -168,9 +165,6 @@ void CDebugger::GeneralSettings(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_SAVETOFILE:
-		LocalLogFile = event.IsChecked();
-		break;
 	case ID_SHOWCONSOLE:
 		DoShowHideConsole();
 		break;

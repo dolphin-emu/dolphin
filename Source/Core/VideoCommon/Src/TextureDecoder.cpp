@@ -65,12 +65,10 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 u32 TexDecoder_GetTlutHash(const u8* src, int len)
 {
 	//char str[40000], st[20]; str[0]='\0';for (int i=0;i<len;i++){sprintf(st,"%02x ",src[i]);strcat(str,st);}
-	//DebugLog("tlut: %s", str);
 	u32 hash = 0xbeefbabe;
 	for (int i = 0; i < len / 4; i ++) {
 		hash = _rotl(hash, 7) ^ ((u32 *)src)[i];
 		hash += 7;	// to add a bit more entropy/mess in here
-		//DebugLog("%02i | hash: %08x | src: %08x", i, hash, ((u32 *)src)[i]);
 	}
 	return hash;
 }

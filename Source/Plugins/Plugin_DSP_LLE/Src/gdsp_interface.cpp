@@ -133,7 +133,7 @@ void gdsp_mbox_write_l(uint8 mbx, uint16 val)
 
 	if (mbx == GDSP_MBOX_DSP)
 	{
-		DebugLog("- Write DSP Mail: 0x%08x (pc=0x%04x)\n", gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.err_pc);
+		DEBUG_LOG(DSPHLE, "- Write DSP Mail: 0x%08x (pc=0x%04x)\n", gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.err_pc);
 	}
 }
 
@@ -199,9 +199,9 @@ void gdsp_ifx_write(uint16 addr, uint16 val)
 
 	    default:
 /*		if ((addr & 0xff) >= 0xa0 && reg_names[addr - 0xa0])
-   	    DebugLog("%04x MW %s (%04x)\n", g_dsp.pc, reg_names[addr - 0xa0], val);
+   	    DEBUG_LOG(DSPHLE, "%04x MW %s (%04x)\n", g_dsp.pc, reg_names[addr - 0xa0], val);
    	else
-   	    DebugLog("%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);*/
+   	    DEBUG_LOG(DSPHLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);*/
 		    gdsp_ifx_regs[addr] = val;
 		    break;
 	}
@@ -259,7 +259,7 @@ void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 	}
 
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
-	DebugLog("*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
+	DEBUG_LOG(DSPHLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
 
 #if DUMP_DSP_IMEM
 	DumpDSPCode(addr, size, g_dsp.iram_crc );
@@ -269,7 +269,7 @@ void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 
 void gdsp_idma_out(uint16 dsp_addr, uint32 addr, uint32 size)
 {
-	ErrorLog("*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
+	ERROR_LOG(DSPHLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
 
 
@@ -277,7 +277,7 @@ void gdsp_ddma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
-		ErrorLog("*** ddma_in read from invalid addr (0x%08x)\n", addr);
+		ERROR_LOG(DSPHLE, "*** ddma_in read from invalid addr (0x%08x)\n", addr);
 		return;
 	}
 
@@ -288,7 +288,7 @@ void gdsp_ddma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 		*(uint16*)&dst[dsp_addr + i] = *(uint16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF];
 	}
 
-	DebugLog("*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
+	DEBUG_LOG(DSPHLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
 }
 
 
@@ -296,7 +296,7 @@ void gdsp_ddma_out(uint16 dsp_addr, uint32 addr, uint32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
-		ErrorLog("*** gdsp_ddma_out to invalid addr (0x%08x)\n", addr);
+		ERROR_LOG(DSPHLE, "*** gdsp_ddma_out to invalid addr (0x%08x)\n", addr);
 		return;
 	}
 
@@ -307,7 +307,7 @@ void gdsp_ddma_out(uint16 dsp_addr, uint32 addr, uint32 size)
 		*(uint16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = *(uint16*)&src[dsp_addr + i];
 	}
 
-	DebugLog("*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
+	DEBUG_LOG(DSPHLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
 
 
@@ -330,7 +330,7 @@ void gdsp_dma()
 
 	if ((ctl > 3) || (len > 0x4000))
 	{
-		ErrorLog("DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x\n", g_dsp.pc, ctl, addr, dsp_addr, len);
+		ERROR_LOG(DSPHLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x\n", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
 

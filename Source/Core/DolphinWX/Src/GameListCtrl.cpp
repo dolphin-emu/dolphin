@@ -183,7 +183,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_COMPANY, 100);
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 150);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 130);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -883,10 +883,15 @@ void CGameListCtrl::AutomaticColumnWidth()
 	}
 	else if (GetColumnCount() > 4)
 	{
-		int resizable = rc.GetWidth() - (213 + GetColumnWidth(COLUMN_SIZE));
+		int resizable = rc.GetWidth() - (
+			GetColumnWidth(COLUMN_BANNER)
+			+ GetColumnWidth(COLUMN_COUNTRY)
+			+ GetColumnWidth(COLUMN_SIZE)
+			+ GetColumnWidth(COLUMN_EMULATION_STATE)
+			+ 5); // some pad to keep the horizontal scrollbar away :)
 
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
-		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
+		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 90));
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
 	}
 }

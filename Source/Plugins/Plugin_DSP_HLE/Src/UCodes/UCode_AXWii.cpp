@@ -178,7 +178,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 				&& gSequenced) // on and off option
 			{
 				//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
-				//DebugLog("Update: %i = %04x", updpar, upddata);
+				//DEBUG_LOG(DSPHLE, "Update: %i = %04x", updpar, upddata);
 				pDest[updpar] = upddata;
 			}
 			if (updpar == 7 && upddata == 1) on++;
@@ -364,7 +364,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 /*	    case 0x0009:
 		    Addr__9   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 6 address: %08x", Addr__9);
+		    DEBUG_LOG(DSPHLE, "AXLIST 6 address: %08x", Addr__9);
 		    break;*/
 
 		case 0x000a:  // AXLIST_COMPRESSORTABLE

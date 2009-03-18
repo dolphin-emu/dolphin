@@ -23,55 +23,6 @@
 #include "Globals.h"
 #include "gdsp_interpreter.h"
 
-
-// =======================================================================================
-// This is to verbose, it has to be turned on manually for now
-// --------------
-void DebugLog(const char* _fmt, ...)
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-char Msg[512];
-    va_list ap;
-
-    va_start( ap, _fmt );
-    vsprintf( Msg, _fmt, ap );
-    va_end( ap );
-
-	// Only show certain messages
-	std::string sMsg = Msg;
-	if(sMsg.find("Mail") != -1 || sMsg.find("AX") != -1)
-		// no match = -1
-	{
-
-#ifdef _WIN32
-		OutputDebugString(Msg);
-#endif
-		g_dspInitialize.pLog(Msg,0);
-	}
-
-#endif
-}
-// =============
-
-
-void ErrorLog(const char* _fmt, ...)
-{
-	char Msg[512];
-	va_list ap;
-
-	va_start(ap, _fmt);
-	vsprintf(Msg, _fmt, ap);
-	va_end(ap);
-
-	g_dspInitialize.pLog(Msg,0);
-#ifdef _WIN32
-	::MessageBox(NULL, Msg, "Error", MB_OK);
-#endif
-
-	DSP_DebugBreak(); // NOTICE: we also break the emulation if this happens
-}
-
-
 // =======================================================================================
 // For PB address detection
 // --------------

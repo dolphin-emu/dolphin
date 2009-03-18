@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "ConfigManager.h"
+#include "PluginManager.h"
 #include "FileUtil.h"
 
 SConfig SConfig::m_Instance;
@@ -27,6 +28,7 @@ SConfig SConfig::m_Instance;
 
 SConfig::SConfig()
 {
+	// Make sure we have log manager
 	LoadSettings();
 }
 
@@ -39,6 +41,7 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
+	NOTICE_LOG(BOOT, "Saving Settings to %s", CONFIG_FILE);
 	IniFile ini;
 #if defined(__APPLE__)
 	ini.Load(File::GetConfigDirectory()); // yes we must load first to not kill unknown stuff
@@ -71,7 +74,10 @@ void SConfig::SaveSettings()
 		ini.Set("Interface", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
 		ini.Set("Interface", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
 		// interface(UI) language
-		ini.Set("Interface", "Language",	m_InterfaceLanguage);
+		ini.Set("Interface", "Language",		m_InterfaceLanguage);
+		ini.Set("Interface", "ShowToolbar",		m_InterfaceToolbar);
+		ini.Set("Interface", "ShowStatusbar",	m_InterfaceStatusbar);
+		ini.Set("Interface", "ShowLogWindow",	m_InterfaceLogWindow);
 
 		// Core
 		ini.Set("Core", "HLEBios",			m_LocalCoreStartupParameter.bHLEBios);
@@ -122,7 +128,9 @@ void SConfig::SaveSettings()
 
 
 void SConfig::LoadSettings()
-{
+{	
+
+	NOTICE_LOG(BOOT, "Loading Settings from %s", CONFIG_FILE);
 	IniFile ini;
 #if defined(__APPLE__)
 	ini.Load(File::GetConfigDirectory());
@@ -166,7 +174,10 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
 		ini.Get("Interface", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
 		// interface(UI) language
-		ini.Get("Interface", "Language", (int*)&m_InterfaceLanguage, 0);
+		ini.Get("Interface", "Language",		(int*)&m_InterfaceLanguage, 0);
+		ini.Get("Interface", "ShowToolbar",		&m_InterfaceToolbar, true);
+		ini.Get("Interface", "ShowStatusbar",	&m_InterfaceStatusbar, true);
+		ini.Get("Interface", "ShowLogWindow",	&m_InterfaceLogWindow, true);
 
 		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);

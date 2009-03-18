@@ -27,7 +27,6 @@
 #include "CoreParameter.h"
 
 class CRegisterWindow;
-class CLogWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
@@ -146,7 +145,6 @@ class CCodeWindow
 
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;
-		bool bLogWindow;
 		bool bRegisterWindow;
 		bool bBreakpointWindow;
 		bool bMemoryWindow;
@@ -156,7 +154,6 @@ class CCodeWindow
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
-		CLogWindow* m_LogWindow;
 		CRegisterWindow* m_RegisterWindow;
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
@@ -195,7 +192,6 @@ class CCodeWindow
 
 		void OnToggleRegisterWindow(wxCommandEvent& event);
 		void OnToggleBreakPointWindow(wxCommandEvent& event);
-		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleMemoryWindow(wxCommandEvent& event);
 		void OnToggleJitWindow(wxCommandEvent& event);
 		void OnToggleSoundWindow(wxCommandEvent& event);

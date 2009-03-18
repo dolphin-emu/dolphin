@@ -24,7 +24,6 @@
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "OpcodeDecoding.h"
-#include "ConsoleWindow.h"
 
 #include "Fifo.h"
 

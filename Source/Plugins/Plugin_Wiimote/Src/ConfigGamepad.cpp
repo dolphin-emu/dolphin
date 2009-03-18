@@ -61,12 +61,12 @@ void ConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 	// Check that we got a good pad
 	if (!WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Open].ID).Good)
 	{
-		Console::Print("A bad pad was selected\n");
+		INFO_LOG(CONSOLE, "A bad pad was selected\n");
 		WiiMoteEmu::PadState[Open].joy = NULL;
 		return;
 	}
 
-	Console::Print("Update the Slot %i handle to Id %i\n", Page, WiiMoteEmu::PadMapping[Open].ID);
+	INFO_LOG(CONSOLE, "Update the Slot %i handle to Id %i\n", Page, WiiMoteEmu::PadMapping[Open].ID);
 	WiiMoteEmu::PadState[Open].joy = SDL_JoystickOpen(WiiMoteEmu::PadMapping[Open].ID);
 }
 void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
@@ -118,7 +118,7 @@ void ConfigDialog::SetButtonTextAll(int id, char text[128])
 
 void ConfigDialog::SaveButtonMappingAll(int Slot)
 {
-	//Console::Print("SaveButtonMappingAll()\n");
+	//INFO_LOG(CONSOLE, "SaveButtonMappingAll()\n");
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -211,7 +211,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rd).c_str()));
 #endif
 
-	//Console::Print("m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
+	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -257,7 +257,7 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 	m_AnalogTriggerL[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tl = value;
 	m_AnalogTriggerR[FromSlot]->GetValue().ToLong(&value); WiiMoteEmu::PadMapping[controller].Axis.Tr = value;			
 
-	//Console::Print("WiiMoteEmu::PadMapping[%i].ID = %i, m_Joyname[%i]->GetSelection() = %i\n",
+	//INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].ID = %i, m_Joyname[%i]->GetSelection() = %i\n",
 	//	controller, WiiMoteEmu::PadMapping[controller].ID, FromSlot, m_Joyname[FromSlot]->GetSelection());
 
 	// Replace "-1" with "" 
@@ -320,7 +320,7 @@ void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 	case IDB_CC_RD: WiiMoteEmu::PadMapping[Controller].Cc.Rd = Key; break;
 	}
 
-	//Console::Print("WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
+	//INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -421,14 +421,14 @@ void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
 		case IDB_CC_RD: m_bCcRd[controller]->SetLabel(wxString::FromAscii(text)); break;
 		default: break;
 	}
-	//Console::Print("SetButtonText: %s\n", text);
+	//INFO_LOG(CONSOLE, "SetButtonText: %s\n", text);
 }
 
 // Get the text in the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxString ConfigDialog::GetButtonText(int id, int _Page)
 {
-	//Console::Print("GetButtonText: %i\n", id);
+	//INFO_LOG(CONSOLE, "GetButtonText: %i\n", id);
 
 	// Set controller value
 	int controller;	
@@ -510,7 +510,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 	bool Stop = false; // Stop the timer
 	// =======================
 
-	//Console::Print("Before (%i) Id:%i %i  IsRunning:%i\n",
+	//INFO_LOG(CONSOLE, "Before (%i) Id:%i %i  IsRunning:%i\n",
 	//	GetButtonWaitingTimer, GetButtonWaitingID, GetId, m_ButtonMappingTimer->IsRunning());
 
 	// If the Id has changed or the timer is not running we should start one
@@ -539,7 +539,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		#if wxUSE_TIMER
 			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 		#endif
-		Console::Print("Timer Started for Pad:%i GetId:%i\n"
+		INFO_LOG(CONSOLE, "Timer Started for Pad:%i GetId:%i\n"
 			"Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i\n",
 			WiiMoteEmu::PadMapping[Controller].ID, GetId,
 			Axis, LeftRight, XInput, Button, Hat);
@@ -578,7 +578,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		SetButtonText(GetId, format);
 
 		/* Debug 
-		Console::Print("Keyboard: %i\n", g_Pressed);*/
+		INFO_LOG(CONSOLE, "Keyboard: %i\n", g_Pressed);*/
 	}
 
 	// Time's up
@@ -610,7 +610,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		   several disabled slots. */
 		SaveButtonMappingAll(Controller);
 
-		Console::Print("Timer Stopped for Pad:%i GetId:%i\n",
+		INFO_LOG(CONSOLE, "Timer Stopped for Pad:%i GetId:%i\n",
 			WiiMoteEmu::PadMapping[Controller].ID, GetId);
 	}
 
@@ -630,7 +630,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 
 	// Debugging
 	/*
-	Console::Print("Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
+	INFO_LOG(CONSOLE, "Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
 		WiiMoteEmu::PadMapping[0].halfpress, WiiMoteEmu::PadMapping[1].halfpress, WiiMoteEmu::PadMapping[2].halfpress, WiiMoteEmu::PadMapping[3].halfpress,
 		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
 		);*/
@@ -657,7 +657,7 @@ void ConfigDialog::Convert2Box(int &x)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::PadGetStatus()
 {
-	//Console::Print("SDL_WasInit: %i\n", SDL_WasInit(0));
+	//INFO_LOG(CONSOLE, "SDL_WasInit: %i\n", SDL_WasInit(0));
 
 	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
 	   because of a manual ini file change, but we make that check anway. */

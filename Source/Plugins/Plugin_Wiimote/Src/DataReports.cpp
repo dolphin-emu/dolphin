@@ -95,11 +95,11 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
-	Console::Print("Data reporting:\n");
-	Console::Print("   Continuous: %x\n", dr->continuous);
-	Console::Print("   All The Time: %x (not only on data change)\n", dr->all_the_time);
-	Console::Print("   Mode: 0x%02x\n", dr->mode);
-	Console::Print("   Channel: 0x%04x\n", _channelID);
+	INFO_LOG(CONSOLE, "Data reporting:\n");
+	INFO_LOG(CONSOLE, "   Continuous: %x\n", dr->continuous);
+	INFO_LOG(CONSOLE, "   All The Time: %x (not only on data change)\n", dr->all_the_time);
+	INFO_LOG(CONSOLE, "   Mode: 0x%02x\n", dr->mode);
+	INFO_LOG(CONSOLE, "   Channel: 0x%04x\n", _channelID);
 	
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;

@@ -29,7 +29,6 @@
 #include "CoreParameter.h"
 
 class CRegisterWindow;
-class CLogWindow;
 class CBreakPointWindow;
 
 class CMemoryWindow

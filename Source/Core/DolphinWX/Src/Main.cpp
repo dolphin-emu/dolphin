@@ -35,10 +35,10 @@
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "ConsoleWindow.h"
 #include "Setup.h"
 
 #include "Host.h" // Core
+#include "PluginManager.h"
 
 #include "Globals.h" // Local
 #include "Main.h"
@@ -62,6 +62,7 @@ IMPLEMENT_APP(DolphinApp)
 
 CFrame* main_frame = NULL;
 CCodeWindow* g_pCodeWindow = NULL;
+LogManager *logManager = NULL;
 
 #ifdef WIN32
 //Has no error handling.
@@ -100,6 +101,7 @@ bool DolphinApp::OnInit()
 {
 	//Console::Open();
 
+	NOTICE_LOG(BOOT, "Starting application");
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
@@ -220,7 +222,7 @@ bool DolphinApp::OnInit()
 	#endif
 
 	// Load CONFIG_FILE settings
-	SConfig::GetInstance().LoadSettings();
+		SConfig::GetInstance().LoadSettings();
 
 	// Enable the PNG image handler
 	wxInitAllImageHandlers(); 
@@ -232,10 +234,7 @@ bool DolphinApp::OnInit()
 			const char *title = "Dolphin SVN R " SVN_REV_STR;
 	#endif
 
-	// ---------------------------------------------------------------------------------------
 	// If we are debugging let use save the main window position and size
-	// TODO: Save position and size on exit
-	// ------------
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
 
@@ -245,19 +244,17 @@ bool DolphinApp::OnInit()
 	ini.Get("MainWindow", "y", &y, 100);
 	ini.Get("MainWindow", "w", &w, 800);
 	ini.Get("MainWindow", "h", &h, 600);
-	// -------------------
+
 	if (UseDebugger)
 	{
-		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
 				wxPoint(x, y), wxSize(w, h));
 	}
 	else
 	{
-		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(100, 100), wxSize(w, h));
+		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+				wxPoint(100, 100), wxSize(800, 600));
 	}
-	// ------------------
-
 
 	// Create debugging window
 	if (UseDebugger)
@@ -265,16 +262,6 @@ bool DolphinApp::OnInit()
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
 		g_pCodeWindow->Show(true);
 	}
-	if(!UseDebugger && UseLogger)
-	{
-		#if LOGLEVEL > 0
-			// We aren't using debugger, just logger
-			// Should be fine for a local copy
-			CLogWindow* m_LogWindow = new CLogWindow(main_frame);
-			m_LogWindow->Show(true);
-		#endif
-	}
-
 
 	// ---------------------------------------------------
 	// Check the autoboot options. 

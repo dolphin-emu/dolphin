@@ -30,8 +30,8 @@ extern u32 m_addressPBs;
 bool AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	DebugLog("AXTask - ================================================================");
-	DebugLog("AXTask - AXCommandList-Addr: 0x%08x", uAddress);
+	DEBUG_LOG(DSPHLE, "AXTask - ================================================================");
+	DEBUG_LOG(DSPHLE, "AXTask - AXCommandList-Addr: 0x%08x", uAddress);
 
 	bool bExecuteList = true;
 
@@ -50,7 +50,7 @@ bool AXTask(u32& _uMail)
 		case 0: // AXLIST_STUDIOADDR: //00
 			{
 				uAddress += 4;
-				DebugLog("AXLIST AXLIST_SBUFFER: %08x", uAddress);
+				DEBUG_LOG(DSPHLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
 			}
 			break;
 			// ---------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ bool AXTask(u32& _uMail)
 				{
 					m_addressPBs = Memory_Read_U32(uAddress);
 					uAddress += 4;
-					DebugLog("AXLIST PB address: %08x", m_addressPBs);
+					DEBUG_LOG(DSPHLE, "AXLIST PB address: %08x", m_addressPBs);
 					bExecuteList = false;
 				}
 				break;
@@ -71,7 +71,7 @@ bool AXTask(u32& _uMail)
 			{
 				// Hopefully this is where in main ram to write.
 				uAddress += 4;
-				DebugLog("AXLIST AXLIST_SBUFFER: %08x", uAddress);
+				DEBUG_LOG(DSPHLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
 			}
 			break;
 
@@ -81,7 +81,7 @@ bool AXTask(u32& _uMail)
 				{
 					// ---------------------------------------------------------------------------------------
 					// Stop the execution of this TaskList
-					DebugLog("AXLIST default: %08x", uAddress);
+					DEBUG_LOG(DSPHLE, "AXLIST default: %08x", uAddress);
 					bExecuteList = false;
 					// ---------------------------------------------------------------------------------------
 				}
@@ -89,8 +89,8 @@ bool AXTask(u32& _uMail)
 			} // end of switch
 		}
 
-	DebugLog("AXTask - done, send resume");
-	DebugLog("AXTask - ================================================================");
+	DEBUG_LOG(DSPHLE, "AXTask - done, send resume");
+	DEBUG_LOG(DSPHLE, "AXTask - ================================================================");
 
 	// now resume
 	return true;

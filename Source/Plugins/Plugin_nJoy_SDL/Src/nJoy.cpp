@@ -93,10 +93,7 @@ int NumPads = 0, NumGoodPads = 0, LastPad = 0;
 	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
 #endif
 SPADInitialize *g_PADInitialize = NULL;
-
-// TODO: fix this dirty hack to stop missing symbols
-void __Log(int log, const char *format, ...) {}
-void __Logv(int log, int v, const char *format, ...) {}
+PLUGIN_GLOBALS* globals = NULL;
 
 // Rumble
 #ifdef _WIN32
@@ -182,17 +179,22 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
+}
+
 
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
 	// Debugging
-	#ifdef SHOW_PAD_STATUS
-		Console::Open(100);
-		m_hConsole = Console::GetHwnd();
-	#endif
+	//	#ifdef SHOW_PAD_STATUS
+	//		Console::Open(100);
+	//		m_hConsole = Console::GetHwnd();
+	//	#endif
 
 	#ifdef _WIN32
 		// Start the pads so we can use them in the configuration and advanced controls
@@ -240,11 +242,11 @@ void DllDebugger(HWND _hParent, bool Show) {}
 void Initialize(void *init)
 {
 	// Debugging
-	#ifdef SHOW_PAD_STATUS
-		Console::Open(110);
-		m_hConsole = Console::GetHwnd();
-	#endif
-	Console::Print("Initialize: %i\n", SDL_WasInit(0));
+	//	#ifdef SHOW_PAD_STATUS
+	//		Console::Open(110);
+	//		m_hConsole = Console::GetHwnd();
+	//	#endif
+	INFO_LOG(CONSOLE, "Initialize: %i\n", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
 
@@ -277,7 +279,7 @@ void Initialize(void *init)
    Called from: The Dolphin Core, ConfigBox::OnClose() */
 void Shutdown()
 {
-	Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+	INFO_LOG(CONSOLE, "Shutdown: %i\n", SDL_WasInit(0));
 
 	// -------------------------------------------
 	// Play back input instead of accepting any user input
@@ -358,7 +360,7 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 	}
 
 	// Debugging
-	//Console::Print("%i", _Key);
+	//INFO_LOG(CONSOLE, "%i", _Key);
 }
 
 
@@ -385,7 +387,7 @@ unsigned int PAD_GetAttachedPads()
 	if (PadMapping[2].enabled) connected |= 4;
 	if (PadMapping[3].enabled) connected |= 8;
 
-	//Console::Print("PAD_GetAttachedPads: %i %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
+	//INFO_LOG(CONSOLE, "PAD_GetAttachedPads: %i %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
 
 	return connected;
 }
@@ -397,7 +399,7 @@ unsigned int PAD_GetAttachedPads()
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	//Console::Print("PAD_GetStatus(): %i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
+	//INFO_LOG(CONSOLE, "PAD_GetStatus(): %i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
 
 	/* Check if the pad is enabled and avaliable, currently we don't disable pads just because they are
 	   disconnected */
@@ -561,10 +563,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Debugging 
 	/*
 	// Show the status of all connected pads
-	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console::ClearScreen();	
+//	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console::ClearScreen();	
 	LastPad = _numPAD;
-	Console::ClearScreen();
-	Console::Print(
+//	Console::ClearScreen();
+	INFO_LOG(CONSOLE, 
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
 		"Trigger    | StatusL:%04x StatusR:%04x  TriggerL:%04x TriggerR:%04x  TriggerValue:%i\n"
 		"Buttons    | Overall:%i  A:%i X:%i\n"
@@ -641,7 +643,7 @@ bool ReloadDLL()
 			// Close SDL
 			if (SDL_WasInit(0)) SDL_Quit();
 			// Log message
-			Console::Print("Error: %s\n", StrError.c_str());	
+			INFO_LOG(CONSOLE, "Error: %s\n", StrError.c_str());	
 			return true;
 		}
 	}

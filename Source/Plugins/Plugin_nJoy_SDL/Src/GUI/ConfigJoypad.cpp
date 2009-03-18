@@ -279,7 +279,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	int Axes = SDL_JoystickNumAxes(joy);
 	int Hats = SDL_JoystickNumHats(joy);
 
-	Console::Print("PadID: %i Axes: %i\n", PadID, joyinfo[PadID].NumAxes, joyinfo[PadID].joy);
+	INFO_LOG(CONSOLE, "PadID: %i Axes: %i\n", PadID, joyinfo[PadID].NumAxes, joyinfo[PadID].joy);
 
 	// Get the controller and trigger type
 	int ControllerType = PadMapping[Controller].controllertype;
@@ -316,7 +316,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	bool Stop = false; // Stop the timer
 	// =======================
 
-	//Console::Print("Before (%i) Id:%i %i  IsRunning:%i\n",
+	//INFO_LOG(CONSOLE, "Before (%i) Id:%i %i  IsRunning:%i\n",
 	//	GetButtonWaitingTimer, GetButtonWaitingID, GetId, m_ButtonMappingTimer->IsRunning());
 
 	// If the Id has changed or the timer is not running we should start one
@@ -426,7 +426,7 @@ void ConfigBox::DoGetButtons(int GetId)
 
 	// Debugging
 	/*
-	Console::Print("Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
+	INFO_LOG(CONSOLE, "Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
 		PadMapping[0].halfpress, PadMapping[1].halfpress, PadMapping[2].halfpress, PadMapping[3].halfpress,
 		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
 		);*/

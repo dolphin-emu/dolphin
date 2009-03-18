@@ -30,16 +30,17 @@
 #include "main.h"
 
 #include "IniFile.h"
-#include "ConsoleWindow.h"
 #include <assert.h>
 
+
+/* FIXME should be done from logmanager
 // Open and close the Windows console window
 
 void OpenConsole()
 {
-	Console::Open(100, 300, "OpenGL Plugin Output"); // give room for 300 rows
-	Console::Print("OpenGL console opened\n");
-        #ifdef _WIN32
+//	Console::Open(100, 300, "OpenGL Plugin Output"); // give room for 300 rows
+	INFO_LOG(CONSOLE, "OpenGL console opened\n");
+	//        #ifdef _WIN32
 	MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // Move window. Todo: make this
 			// adjustable from the debugging window
         #endif
@@ -47,59 +48,7 @@ void OpenConsole()
 
 void CloseConsole()
 {
-	Console::Close();
+	//	Console::Close();
 }
+*/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Write logs
-
-// The log file handle
-static FILE* pfLog = NULL;
-
-// This is on by default, but can be controlled from the debugging window
-bool LocalLogFile = true;
-
-#if LOGLEVEL > 0
-void __Log(const char *fmt, ...)
-{
-	size_t len = strlen(fmt);
-	if (!len)
-		return;
-    char* Msg = (char*)alloca(len + 512);
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsnprintf(Msg, len + 512, fmt, ap);
-    va_end(ap);
-
-    g_VideoInitialize.pLog(Msg, FALSE);
-
-	// If we have no file to write to, create one
-    if (pfLog == NULL && LocalLogFile)
-		pfLog = fopen(FULL_LOGS_DIR "oglgfx.txt", "w");
-
-	// Write to file
-    if (pfLog != NULL && LocalLogFile)
-        fwrite(Msg, strlen(Msg), 1, pfLog);
-
-	Console::Print(Msg);
-}
-
-void __Log(int type, const char *fmt, ...)
-{
-	int len = (int)strlen(fmt);
-	if (!len)
-		return;
-    char* Msg = (char*)alloca(len + 512);
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsnprintf(Msg, len + 512, fmt, ap);
-    va_end(ap);
-
-    g_VideoInitialize.pLog(Msg, FALSE);
-	Console::Print(Msg);
-}
-
-#endif

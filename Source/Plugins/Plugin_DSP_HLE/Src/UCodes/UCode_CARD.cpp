@@ -24,7 +24,7 @@
 CUCode_CARD::CUCode_CARD(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 {
-	DebugLog("CUCode_CARD - initialized");
+	DEBUG_LOG(DSPHLE, "CUCode_CARD - initialized");
 	m_rMailHandler.PushMail(DSP_INIT);
 }
 
@@ -52,7 +52,7 @@ void CUCode_CARD::HandleMail(u32 _uMail)
 	}
 	else
 	{
-		DebugLog("CUCode_CARD - unknown cmd: %x (size %i)", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown cmd: %x (size %i)", _uMail);
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);

@@ -33,7 +33,6 @@
 #endif
 
 #include "StringUtil.h" // Common
-#include "ConsoleWindow.h" // Open, close, clear console window
 
 #include "../Debugger/Debugger.h" // Local
 #include "../Debugger/PBView.h"
@@ -887,8 +886,8 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		// =======================================================================================
 		// Print
 		// ----------------
-		Console::ClearScreen();
-		Console::Print("%s", sbuff.c_str());
+		// FIXME: Console::ClearScreen();
+		INFO_LOG(CONSOLE, "%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");
 		// ================
 

@@ -76,13 +76,13 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 // ---------------
 ConfigDialog::~ConfigDialog()
 {
-	Console::Print("ConfigDialog Closed\n");
+	INFO_LOG(CONSOLE, "ConfigDialog Closed\n");
 }
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_Config.Save();
 
-	Console::Print("OnClose\n");
+	INFO_LOG(CONSOLE, "OnClose\n");
 
 	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
 	/* JP: Yes, it seems like Close() does not do that. It only runs EndModal() or something
@@ -98,7 +98,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 
 void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
-	Console::Print("CloseClick\n");
+	INFO_LOG(CONSOLE, "CloseClick\n");
 
 	// If we run wxEntryCleanup() the class will be entirely deleted, and the destructor will be run
 	//g_Config.Save();

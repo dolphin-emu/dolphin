@@ -27,8 +27,6 @@
 #define PROFILE					1
 
 extern DSPInitialize g_dspInitialize;
-void DebugLog(const char* _fmt, ...);
-void ErrorLog(const char* _fmt, ...);
 void DSP_DebugBreak();
 
 

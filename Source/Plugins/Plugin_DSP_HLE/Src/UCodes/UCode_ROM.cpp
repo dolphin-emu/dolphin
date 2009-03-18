@@ -25,7 +25,7 @@ CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
 	, m_BootTask_numSteps(0)
 	, m_NextParameter(0)
 {
-	DebugLog("UCode_Rom - initialized");
+	DEBUG_LOG(DSPHLE, "UCode_Rom - initialized");
 	m_rMailHandler.Clear();
 	m_rMailHandler.PushMail(0x8071FEED);
 }
@@ -98,13 +98,13 @@ void CUCode_Rom::BootUCode()
 		crc = (crc << 3) | (crc >> 29);
 	}
 
-	DebugLog("CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
-	DebugLog("CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
-	DebugLog("CurrentUCode DEST Addr:   0x%08x", m_CurrentUCode.m_IMEMAddress);
-	DebugLog("CurrentUCode ???:         0x%08x", m_CurrentUCode.m_Unk);
-	DebugLog("CurrentUCode init_vector: 0x%08x", m_CurrentUCode.m_StartPC);
-	DebugLog("CurrentUCode CRC:         0x%08x", crc);
-	DebugLog("BootTask - done");
+	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
+	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
+	DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_CurrentUCode.m_IMEMAddress);
+	DEBUG_LOG(DSPHLE, "CurrentUCode ???:         0x%08x", m_CurrentUCode.m_Unk);
+	DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_CurrentUCode.m_StartPC);
+	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", crc);
+	DEBUG_LOG(DSPHLE, "BootTask - done");
 
 	CDSPHandler::GetInstance().SetUCode(crc);
 }

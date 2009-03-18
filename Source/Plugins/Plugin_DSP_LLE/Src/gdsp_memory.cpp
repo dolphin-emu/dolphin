@@ -88,7 +88,7 @@ uint16  dsp_dmem_read(uint16 addr)
 		    break;
 
 	    case 0x8: // 8xxx DROM
-		    DebugLog("someone reads from ROM\n");
+		    DEBUG_LOG(DSPHLE, "someone reads from ROM\n");
 		    val = g_dsp.drom[addr & DSP_DROM_MASK];
 		    val = dsp_swap16(val);
 		    break;
@@ -103,7 +103,7 @@ uint16  dsp_dmem_read(uint16 addr)
 		    break;
 
 	    default: // error
-//		ErrorLog("%04x DSP ERROR: Read from UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
+//		ERROR_LOG(DSPHLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
 		    val = 0;
 		    break;
 	}
@@ -117,7 +117,7 @@ bool dsp_dmem_write(uint16 addr, uint16 val)
 	switch (addr >> 12)
 	{
 	    case 0x8: // 8xxx DROM
-		    DebugLog("someone writes to ROM\n");
+		    DEBUG_LOG(DSPHLE, "someone writes to ROM\n");
 		    /* val = dsp_swap16(val);
 		       g_dsp.drom[addr & DSP_DROM_MASK] = val;*/
 		    break;
@@ -132,7 +132,7 @@ bool dsp_dmem_write(uint16 addr, uint16 val)
 		    break;
 
 	    default: // error
-		    DebugLog("%04x DSP ERROR: Write to UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
+		    DEBUG_LOG(DSPHLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
 		    break;
 	}
 

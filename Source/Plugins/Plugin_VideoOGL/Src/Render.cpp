@@ -972,7 +972,7 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 		// Adjust the X and Y offset
 		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0 / WidthRatio / Ratio);
 		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0 / HeightRatio / Ratio);
-		//Console::Print("Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
+		//DEBUG_LOG(CONSOLE, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
 	}
 
 	// round(float) = floor(float + 0.5)
@@ -1410,15 +1410,15 @@ void UpdateViewport()
 	GetWindowRect(Child, &RcChild);
 	
 	//Console::ClearScreen();	
-	Console::Print("----------------------------------------------------------------\n");
-	Console::Print("Top window:     X:%03i Y:%03i Width:%03i Height:%03i\n", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
-	Console::Print("Parent window:  X:%03i Y:%03i Width:%03i Height:%03i\n", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
-	Console::Print("Child window:   X:%03i Y:%03i Width:%03i Height:%03i\n", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
-	Console::Print("----------------------------------------------------------------\n");
-	Console::Print("Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f\n", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
-	Console::Print("GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i\n", GLx, GLy, GLWidth, GLHeight);
-	Console::Print("GLDepthRange:   Near:%f Far:%f\n", GLNear, GLFar);
-	Console::Print("GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
-	Console::Print("----------------------------------------------------------------\n");
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
+	DEBUG_LOG(CONSOLE, "Top window:     X:%03i Y:%03i Width:%03i Height:%03i\n", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
+	DEBUG_LOG(CONSOLE, "Parent window:  X:%03i Y:%03i Width:%03i Height:%03i\n", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
+	DEBUG_LOG(CONSOLE, "Child window:   X:%03i Y:%03i Width:%03i Height:%03i\n", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
+	DEBUG_LOG(CONSOLE, "Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f\n", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
+	DEBUG_LOG(CONSOLE, "GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i\n", GLx, GLy, GLWidth, GLHeight);
+	DEBUG_LOG(CONSOLE, "GLDepthRange:   Near:%f Far:%f\n", GLNear, GLFar);
+	DEBUG_LOG(CONSOLE, "GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
 	*/
 }

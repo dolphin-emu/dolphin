@@ -91,7 +91,7 @@ uint16 dsp_read_aram()
 	    default:
 		    val = (g_dspInitialize.pARAM_Read_U8(Address) << 8) | g_dspInitialize.pARAM_Read_U8(Address + 1);
 		    Address += 2;
-		    ErrorLog("Unknown DSP Format %i", gdsp_ifx_regs[DSP_FORMAT]);
+		    ERROR_LOG(DSPHLE, "Unknown DSP Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 		    break;
 	}
 

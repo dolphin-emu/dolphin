@@ -67,7 +67,7 @@ void TiltTest(u8 x, u8 y, u8 z)
 	std::string To = StringFromFormat("%s\nTo:   X:%i Y:%i Z:%i Roll:%s Pitch:%s", From.c_str(), x, y, z,
 		(_Roll >= 0) ? StringFromFormat(" %03i", (int)_Roll).c_str() : StringFromFormat("%04i", (int)_Roll).c_str(),
 		(_Pitch >= 0) ? StringFromFormat(" %03i", (int)_Pitch).c_str() : StringFromFormat("%04i", (int)_Pitch).c_str());
-	Console::Print("%s\n", To.c_str());
+	INFO_LOG(CONSOLE, "%s\n", To.c_str());
 }
 ////////////////////////////////////
 

@@ -241,7 +241,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	{
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
-		WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x", byte)
+		WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x", command)
 
 		if(command == cmdClearStatus)
 		{

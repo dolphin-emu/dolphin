@@ -98,7 +98,7 @@ typedef struct
 {
     void *eventHandler;
     void *config;
-    void *messageLogger;
+    void *logManager;
 } PLUGIN_GLOBALS;
 ///////////////////////////////
 

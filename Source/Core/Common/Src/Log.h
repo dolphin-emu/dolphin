@@ -18,6 +18,12 @@
 #ifndef _LOG_H
 #define _LOG_H
 
+#define	ERROR_LEVEL   1  // Critical errors 
+#define	WARNING_LEVEL 2  // Something is suspicious.
+#define	NOTICE_LEVEL  3  // Important information
+#define	INFO_LEVEL    4  // General information.
+#define	DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
+
 namespace LogTypes
 {
 
@@ -41,6 +47,7 @@ enum LOG_TYPE {
 	MASTER_LOG,
 	MEMMAP,
 	OSREPORT,
+	PAD, 
 	PERIPHERALINTERFACE,
 	PIXELENGINE,
 	SERIALINTERFACE,
@@ -56,15 +63,18 @@ enum LOG_TYPE {
 	WII_IPC_NET,
 	WII_IPC_SD,
 	WII_IPC_WIIMOTE,
-	
+	WIIMOTE,
+
 	NUMBER_OF_LOGS // Must be last
 };
 
+// FIXME: should this be removed?
 enum LOG_LEVELS {
-	LERROR = 1,   // Bad errors - that still don't deserve a PanicAlert.
-	LWARNING,     // Something is suspicious.
-	LINFO,        // General information.
-	LDEBUG,      // Strictly for detailed debugging - might make things slow.
+	LERROR = ERROR_LEVEL,
+	LWARNING = WARNING_LEVEL,
+	LNOTICE = NOTICE_LEVEL,
+	LINFO = INFO_LEVEL,
+	LDEBUG = DEBUG_LEVEL,
 };
 
 }  // namespace
@@ -73,47 +83,52 @@ enum LOG_LEVELS {
 /* 
    FIXME: 
    - Debug_run() - run only in debug time
-   - Compile the log functions according to LOGLEVEL 
 */
-#ifdef LOGGING
-#define LOGLEVEL 4 //LogTypes::LDEBUG
+#if defined LOGGING || defined _DEBUG || defined DEBUGFAST
+#define LOGLEVEL DEBUG_LEVEL
 #else
 #ifndef LOGLEVEL
-#define LOGLEVEL 2 //LogTypes::LWARNING
+#define LOGLEVEL NOTICE_LEVEL
 #endif // loglevel
 #endif // logging
 
 #define ERROR_LOG(...) {}
 #define WARN_LOG(...) {}
+#define NOTICE_LOG(...) {}
 #define INFO_LOG(...) {}
 #define DEBUG_LOG(...) {}
 
-extern void __Log(int logNumber, const char* text, ...);
+// FIXME can we get rid of this?
+#include "LogManager.h"
 
 // Let the compiler optimize this out
-#define GENERIC_LOG(t,v, ...) {if (v <= LOGLEVEL) __Log(t + (v)*100, __VA_ARGS__);}
+#define GENERIC_LOG(t, v, ...) {if (v <= LOGLEVEL) LogManager::GetInstance()->Log(v, t,  __VA_ARGS__);}
 
-#if LOGLEVEL >= 1 //LogTypes::LERROR
+#if LOGLEVEL >= ERROR_LEVEL
 #undef ERROR_LOG
 #define ERROR_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__)}
-#endif // loglevel LERROR+
+#endif // loglevel ERROR+
 
-#if LOGLEVEL >= 2 //LogTypes::LWARNING
+#if LOGLEVEL >= WARNING_LEVEL
 #undef WARN_LOG
 #define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__)}
-#endif // loglevel LWARNING+
+#endif // loglevel WARNING+
 
-#if LOGLEVEL >= 3 //LogTypes::LINFO
+#if LOGLEVEL >= NOTICE_LEVEL
+#undef NOTICE_LOG
+#define NOTICE_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__)}
+#endif // loglevel NOTICE+
+#if LOGLEVEL >= INFO_LEVEL
 #undef INFO_LOG
 #define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__)}
-#endif // loglevel LINFO+
+#endif // loglevel INFO+
 
-#if LOGLEVEL >= 4 //LogTypes::LDEBUG
+#if LOGLEVEL >= DEBUG_LEVEL
 #undef DEBUG_LOG
 #define DEBUG_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__)}
-#endif // loglevel LDEBUG+
+#endif // loglevel DEBUG+
 
-#if LOGLEVEL >= 4 //LogTypes::LDEBUG
+#if LOGLEVEL >= DEBUG_LEVEL
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)) {\
 		ERROR_LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
@@ -135,7 +150,7 @@ extern void __Log(int logNumber, const char* text, ...);
 #define _dbg_assert_(_t_, _a_) ;
 #define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
 #endif // dbg_assert
-#endif // LOGLEVEL LDEBUG
+#endif // LOGLEVEL DEBUG
 
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
 #ifdef _WIN32

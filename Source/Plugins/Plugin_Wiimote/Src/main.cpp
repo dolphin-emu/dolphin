@@ -37,7 +37,6 @@ worked.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
 #include "StringUtil.h"
-#include "ConsoleWindow.h" // For Start, Print, GetHwnd
 #include "Timer.h"
 
 #define EXCLUDEMAIN_H // Avoid certain declarations in main.h
@@ -61,6 +60,7 @@ worked.
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
+PLUGIN_GLOBALS* globals = NULL;
 
 // General
 bool g_EmulatorRunning = false;
@@ -170,7 +170,11 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	#endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+	 globals = _pPluginGlobals;
+	 LogManager::SetInstance((LogManager *)globals->logManager);
+}
 
 void DllDebugger(HWND _hParent, bool Show) {}
 
@@ -229,7 +233,7 @@ extern "C" void Initialize(void *init)
 
 	DoInitialize();	
 
-	Console::Print("ISOId: %08x %s\n", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
+	INFO_LOG(CONSOLE, "ISOId: %08x %s\n", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
 }
 
 // If a game is not running this is called by the Configuration window when it's closed
@@ -261,7 +265,7 @@ extern "C" void Shutdown(void)
 #endif
 	WiiMoteEmu::Shutdown();
 
-	Console::Close();
+	//	Console::Close();
 }
 
 
@@ -319,7 +323,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 	// Check for custom communication
 	if(_channelID == 99 && data[0] == WIIMOTE_RECONNECT)
 	{
-		Console::Print("\n\nWiimote Disconnected\n\n");
+		INFO_LOG(CONSOLE, "\n\nWiimote Disconnected\n\n");
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
 #if defined(HAVE_WX) && HAVE_WX
@@ -380,10 +384,6 @@ extern "C" void Wiimote_Update()
 
 	// Debugging
 #ifdef _WIN32
-	 // Open console
-	if( GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU) && GetAsyncKeyState(VK_INSERT) )
-		OpenConsole();
-
 	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false; // Page Down
 		else if (GetAsyncKeyState(VK_HOME) && !g_DebugComm ) g_DebugComm = true;
 
@@ -393,8 +393,8 @@ extern "C" void Wiimote_Update()
 	if( GetAsyncKeyState(VK_NEXT) && g_DebugAccelerometer ) g_DebugAccelerometer = false; // Home
 		else if (GetAsyncKeyState(VK_NEXT) && !g_DebugAccelerometer ) g_DebugAccelerometer = true;
 
-	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; Console::Print("Custom Debug: Off\n");} // End
-		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; Console::Print("Custom Debug: Off\n");}
+	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; INFO_LOG(CONSOLE, "Custom Debug: Off\n");} // End
+		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; INFO_LOG(CONSOLE, "Custom Debug: Off\n");}
 #endif
 }
 
@@ -417,16 +417,17 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // ----------------------------------------
 // Debugging window
 // ----------
+/*
 void OpenConsole(bool Open)
 {
 	// Close the console window
 	#ifdef _WIN32
-		if (Console::GetHwnd() != NULL && !Open)
+//		if (Console::GetHwnd() != NULL && !Open)
 	#else
 		if (false)
 	#endif
 	{
-		Console::Close();
+//		Console::Close();
 		// Wait here until we have let go of the button again
 		#ifdef _WIN32
 			while(GetAsyncKeyState(VK_INSERT)) {Sleep(10);}
@@ -435,16 +436,16 @@ void OpenConsole(bool Open)
 	}
 
 	// Open the console window
-	Console::Open(140, 1000, "Wiimote"); // give room for 20 rows
-	Console::Print("\n\nWiimote console opened\n");
+//	Console::Open(140, 1000, "Wiimote"); // give room for 20 rows
+	INFO_LOG(CONSOLE, "\n\nWiimote console opened\n");
 
 	// Move window
 	#ifdef _WIN32
 		//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
 		//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-		MoveWindow(Console::GetHwnd(), 200,0, 140*8,70*14, true); // big wide window
+//	MoveWindow(Console::GetHwnd(), 200,0, 140*8,70*14, true); // big wide window
 	#endif
-}
+	}*/
 // ---------------
 
 // ----------------------------------------
@@ -500,7 +501,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		Name = "WM_STATUS_REPORT";
 		{
 			wm_status_report* pStatus = (wm_status_report*)(data + 2);
-			Console::Print("\n"
+			INFO_LOG(CONSOLE, "\n"
 				"Extension Controller: %i\n"
 				//"Speaker enabled: %i\n"
 				//"IR camera enabled: %i\n"
@@ -566,8 +567,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 #if defined(HAVE_WX) && HAVE_WX
 				if (frame) frame->UpdateGUI();
 #endif
-				Console::Print("%s", TmpData.c_str());
-				Console::Print("Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
+				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
+				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
 			}
 			else if(data[4] == 0x50)
 			{
@@ -579,8 +580,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 #if defined(HAVE_WX) && HAVE_WX
 				if (frame) frame->UpdateGUI();
 #endif
-				Console::Print("%s", TmpData.c_str());
-				Console::Print("Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
+				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
+				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
 		// ---------------------------------------------
@@ -594,13 +595,13 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		{
 			if(data[6] == 0x10)
 			{
-				Console::Print("\nGame got the Wiimote calibration:\n");
-				Console::Print("Cal_zero.x: %i\n", data[7 + 6]);
-				Console::Print("Cal_zero.y: %i\n", data[7 + 7]);
-				Console::Print("Cal_zero.z: %i\n",  data[7 + 8]);
-				Console::Print("Cal_g.x: %i\n", data[7 + 10]);
-				Console::Print("Cal_g.y: %i\n",  data[7 + 11]);
-				Console::Print("Cal_g.z: %i\n",  data[7 +12]);
+				INFO_LOG(CONSOLE, "\nGame got the Wiimote calibration:\n");
+				INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 6]);
+				INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 7]);
+				INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 8]);
+				INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 10]);
+				INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 11]);
+				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 +12]);
 			}
 		}
 		// ---------------------------------------------
@@ -619,37 +620,37 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 			if (g_Config.bNunchuckConnected)
 			{
-				Console::Print("\nGame got the Nunchuck calibration:\n");
-				Console::Print("Cal_zero.x: %i\n", data[7 + 0]);
-				Console::Print("Cal_zero.y: %i\n", data[7 + 1]);
-				Console::Print("Cal_zero.z: %i\n",  data[7 + 2]);
-				Console::Print("Cal_g.x: %i\n", data[7 + 4]);
-				Console::Print("Cal_g.y: %i\n",  data[7 + 5]);
-				Console::Print("Cal_g.z: %i\n",  data[7 + 6]);
-				Console::Print("Js.Max.x: %i\n",  data[7 + 8]);
-				Console::Print("Js.Min.x: %i\n",  data[7 + 9]);
-				Console::Print("Js.Center.x: %i\n", data[7 + 10]);
-				Console::Print("Js.Max.y: %i\n",  data[7 + 11]);
-				Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
-				Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
+				INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
+				INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
+				INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
+				INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
+				INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
+				INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
+				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
+				INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
+				INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
+				INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
+				INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
+				INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
+				INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
 			}
 			else // g_Config.bClassicControllerConnected
 			{
-				Console::Print("\nGame got the Classic Controller calibration:\n");
-				Console::Print("Lx.Max: %i\n", data[7 + 0]);
-				Console::Print("Lx.Min: %i\n", data[7 + 1]);
-				Console::Print("Lx.Center: %i\n",  data[7 + 2]);
-				Console::Print("Ly.Max: %i\n", data[7 + 3]);
-				Console::Print("Ly.Min: %i\n",  data[7 + 4]);
-				Console::Print("Ly.Center: %i\n",  data[7 + 5]);
-				Console::Print("Rx.Max.x: %i\n",  data[7 + 6]);
-				Console::Print("Rx.Min.x: %i\n",  data[7 + 7]);
-				Console::Print("Rx.Center.x: %i\n", data[7 + 8]);
-				Console::Print("Ry.Max.y: %i\n",  data[7 + 9]);
-				Console::Print("Ry.Min: %i\n",  data[7 + 10]);
-				Console::Print("Ry.Center: %i\n\n", data[7 + 11]);
-				Console::Print("Lt.Neutral: %i\n",  data[7 + 12]);
-				Console::Print("Rt.Neutral %i\n\n", data[7 + 13]);
+				INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
+				INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
+				INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
+				INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
+				INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
+				INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
+				INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
+				INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
+				INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
+				INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
+				INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
+				INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
+				INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
+				INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
+				INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
 			}
 
 			// Save the values if they come from the real Wiimote
@@ -677,7 +678,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			}
 
 			// Show the encrypted data
-			Console::Print("%s", TmpData.c_str());
+			INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 		}
 		// ---------------------------------------------
 		
@@ -720,7 +721,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		break;
 	default:
 		//PanicAlert("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
-		Console::Print("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		INFO_LOG(CONSOLE, "%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		return;
 	}
 
@@ -728,8 +729,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 	{
 		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		Console::Print("Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), TmpData.c_str()); // No timestamp
-		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), TmpData.c_str()); // No timestamp
+		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 
 	if (DataReport && g_DebugData)
@@ -801,7 +802,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
 		// -----------
-		/*Console::ClearScreen();
+		/*		//Console::ClearScreen();
 		// Show a test of our calculations
 		WiiMoteEmu::TiltTest(data[4], data[5], data[6]);
 		u8 x, y, z;
@@ -840,24 +841,24 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// -------------------------
 
 		// Classic Controller data
-		Console::Print("Read[%s]: %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+		INFO_LOG(CONSOLE, "Read[%s]: %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
 			TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), CCData.c_str());
 		// Formatted data only
-		//Console::Print("Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str());
+		//INFO_LOG(CONSOLE, "Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str());
 		// IR data
-		//Console::Print("Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str());
+		//INFO_LOG(CONSOLE, "Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str());
 		// Accelerometer data
-		//Console::Print("Read[%s]: %s | %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+		//INFO_LOG(CONSOLE, "Read[%s]: %s | %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
 		//	TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), RollPitch.c_str(), GForce.c_str(), CCData.c_str());
 		// Timestamp
-		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str());
+		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str());
 		
 	}
 	if(g_DebugAccelerometer)
 	{		
 		// Accelerometer only
-		Console::ClearScreen();	
-		Console::Print("Accel x, y, z: %03u %03u %03u\n", data[4], data[5], data[6]);
+		//		Console::ClearScreen();	
+		INFO_LOG(CONSOLE, "Accel x, y, z: %03u %03u %03u\n", data[4], data[5], data[6]);
 	}
 }
 
@@ -916,18 +917,18 @@ void InterruptDebugging(bool Emu, const void* _pData)
 					Name.append(" REG_SPEAKER");
 					if(data[6] == 7)
 					{
-						Console::Print("\nSound configuration:\n");
+						INFO_LOG(CONSOLE, "\nSound configuration:\n");
 						if(data[8] == 0x00)
 						{
 							memcpy(&SampleValue, &data[9], 2);
-							Console::Print("    Data format: 4-bit ADPCM (%i Hz)\n", 6000000 / SampleValue);
-							Console::Print("    Volume: %02i%%\n\n", (data[11] / 0x40) * 100);
+							INFO_LOG(CONSOLE, "    Data format: 4-bit ADPCM (%i Hz)\n", 6000000 / SampleValue);
+							INFO_LOG(CONSOLE, "    Volume: %02i%%\n\n", (data[11] / 0x40) * 100);
 						}
 						else if (data[8] == 0x40)
 						{
 							memcpy(&SampleValue, &data[9], 2);
-							Console::Print("    Data format: 8-bit PCM (%i Hz)\n", 12000000 / SampleValue);
-							Console::Print("    Volume: %02i%%\n\n", (data[11] / 0xff) * 100);
+							INFO_LOG(CONSOLE, "    Data format: 8-bit PCM (%i Hz)\n", 12000000 / SampleValue);
+							INFO_LOG(CONSOLE, "    Volume: %02i%%\n\n", (data[11] / 0xff) * 100);
 						}
 					}
 				}
@@ -941,7 +942,7 @@ void InterruptDebugging(bool Emu, const void* _pData)
 						WiiMoteEmu::g_Encryption = true;
 					else if (data[7] == 0x55)
 						WiiMoteEmu::g_Encryption = false;
-					Console::Print("\nExtension enryption turned %s\n\n", WiiMoteEmu::g_Encryption ? "On" : "Off");
+					INFO_LOG(CONSOLE, "\nExtension enryption turned %s\n\n", WiiMoteEmu::g_Encryption ? "On" : "Off");
 				}		
 				break;
 			case 0xb0:
@@ -985,10 +986,11 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	case WM_SPEAKER_MUTE: // 0x19
 		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
-		if(data[1] == 0x14)
-			Console::Print("\nSpeaker %s\n\n", (data[2] == 0x06) ? "On" : "Off");
-		else if(data[1] == 0x19)
-			Console::Print("\nSpeaker %s\n\n", (data[2] == 0x06) ? "Muted" : "Unmuted");
+		if(data[1] == 0x14) {
+			INFO_LOG(CONSOLE, "\nSpeaker %s\n\n", (data[2] == 0x06) ? "On" : "Off");
+		} else if(data[1] == 0x19) {
+			INFO_LOG(CONSOLE, "\nSpeaker %s\n\n", (data[2] == 0x06) ? "Muted" : "Unmuted");
+		}
 		break;
 	case WM_WRITE_SPEAKER_DATA: // 0x18
 		if (g_DebugComm) Name.append("WM_SPEAKER_DATA");
@@ -997,22 +999,22 @@ void InterruptDebugging(bool Emu, const void* _pData)
 
 	default:
 		size = 15;
-		Console::Print("%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		INFO_LOG(CONSOLE, "%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		break;
 	}
 	if (g_DebugComm && !SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		Console::Print("%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
-		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		INFO_LOG(CONSOLE, "%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
+		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	if (g_DebugSoundData && SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		Console::Print("%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
-		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		INFO_LOG(CONSOLE, "%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
+		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	
 }
@@ -1058,7 +1060,7 @@ int GetUpdateRate()
 		// Calculate the time and save it
 		int Time = (int)(10 / (GetDoubleTime() - g_UpdateTime));
 		g_UpdateTimeList.push_back(Time);
-		//Console::Print("Time: %i %f\n", Time, GetDoubleTime());
+		//INFO_LOG(CONSOLE, "Time: %i %f\n", Time, GetDoubleTime());
 
 		int TotalTime = 0;
 		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)
@@ -1099,31 +1101,3 @@ void DoInitialize()
 }
 
 
-//******************************************************************************
-// Logging functions
-//******************************************************************************
-
-void __Log(int log, const char *_fmt, ...)
-{
-	char Msg[512];
-	va_list ap;
-
-	va_start( ap, _fmt );
-	vsprintf( Msg, _fmt, ap );
-	va_end( ap );
-
-	g_WiimoteInitialize.pLog(Msg, 0);
-}
-
-
-void __Logv(int log, int v, const char *_fmt, ...)
-{
-	char Msg[512];
-	va_list ap;
-
-	va_start( ap, _fmt );
-	vsprintf( Msg, _fmt, ap );
-	va_end( ap );
-
-	g_WiimoteInitialize.pLog(Msg, v);
-}

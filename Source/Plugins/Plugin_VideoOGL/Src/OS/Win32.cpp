@@ -41,8 +41,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯
-void OpenConsole();
-void CloseConsole();
+//void OpenConsole();
+//void CloseConsole();
 
 HINSTANCE g_hInstance;
 

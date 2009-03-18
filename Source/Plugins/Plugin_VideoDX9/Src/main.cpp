@@ -48,6 +48,7 @@
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
+PLUGIN_GLOBALS* globals = NULL;
 int initCount = 0;
 
 
@@ -163,6 +164,8 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 }
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
 void DllAbout(HWND _hParent)
@@ -267,32 +270,6 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	Renderer::AddMessage(pstr,milliseconds);
 }
-
-void DebugLog(const char* _fmt, ...)
-{
-#ifdef _DEBUG
-	char Msg[512];
-	va_list ap;
-
-	va_start(ap, _fmt);
-	vsprintf(Msg, _fmt, ap);
-	va_end(ap);
-
-	g_VideoInitialize.pLog(Msg, FALSE);
-#endif
-}
-
-void __Log(int log, const char *format, ...)
-{
-//	char temp[512];
-	//va_list args;
-	//va_start(args, format);
-	//CharArrayFromFormatV(temp, 512, format, args);
-	//va_end(args);
-
-	DebugLog(format); //"%s", temp);
-}
-
 
 HRESULT ScreenShot(const char *File)
 {

@@ -59,7 +59,7 @@
 // Definitions
 // --------------------------
 SVideoInitialize g_VideoInitialize;
-PLUGIN_GLOBALS* globals;
+PLUGIN_GLOBALS* globals = NULL;
 
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
@@ -95,6 +95,8 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 {
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
 // This is used for the fuctions right below here, in DllConfig()
@@ -317,22 +319,6 @@ void Video_ExitLoop()
 	Fifo_ExitLoop();
 }
 /////////////////////////
-
-
-void DebugLog(const char* _fmt, ...)
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-    
-    char* Msg = (char*)alloca(strlen(_fmt)+512);
-    va_list ap;
-
-    va_start( ap, _fmt );
-    vsnprintf( Msg, strlen(_fmt)+512, _fmt, ap );
-    va_end( ap );
-
-    g_VideoInitialize.pLog(Msg, FALSE);
-#endif
-}
 
 void Video_Screenshot(const char *_szFilename)
 {

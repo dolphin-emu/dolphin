@@ -48,7 +48,6 @@ be accessed from Core::GetWindowHandle().
 #include "FileUtil.h"
 #include "Timer.h"
 #include "Setup.h"
-#include "ConsoleWindow.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -190,7 +189,7 @@ int abc = 0;
 
 			case WIIMOTE_RECONNECT:
 				// The Wiimote plugin has been shut down, now reconnect the Wiimote
-				//Console::Print("WIIMOTE_RECONNECT\n");
+				//INFO_LOG(CONSOLE, "WIIMOTE_RECONNECT\n");
 				Core::ReconnectWiimote();
 				return 0;
 
@@ -210,7 +209,7 @@ int abc = 0;
 				case OPENGL_VIDEO_STOP:
 					// The Video thread has been shut down
 					Core::VideoThreadEnd();
-					//Console::Print("OPENGL_VIDEO_STOP\n");
+					//INFO_LOG(CONSOLE, "OPENGL_VIDEO_STOP\n");
 					return 0;	
 			#endif
 			// -----------------------------
@@ -273,6 +272,7 @@ EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
+EVT_MENU(IDM_TOGGLE_LOGWINDOW, CFrame::OnToggleLogWindow)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
@@ -293,13 +293,15 @@ END_EVENT_TABLE()
 // Creation and close, quit functions
 // ----------------------------------------------------------------------------
 
-CFrame::CFrame(wxFrame* parent,
+CFrame::CFrame(bool showLogWindow,
+		wxFrame* parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos,
 		const wxSize& size,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
+	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_pStatusBar(NULL), bRenderToMain(true)
 	, HaveLeds(false), HaveSpeakers(false)
     , m_Panel(NULL)
@@ -326,6 +328,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Give it a status bar
 	m_pStatusBar = CreateStatusBar(1, wxST_SIZEGRIP, ID_STATUSBAR);
+	if (!SConfig::GetInstance().m_InterfaceStatusbar)
+		m_pStatusBar->Hide();
 
 	// Give it a menu bar
 	CreateMenu();
@@ -333,6 +337,10 @@ CFrame::CFrame(wxFrame* parent,
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	//m_Panel = new wxPanel(this, IDM_MPANEL);
 	m_Panel = new CPanel(this, IDM_MPANEL);
+
+	m_LogWindow = new CLogWindow(this);
+	if (m_bLogWindow)
+		m_LogWindow->Show();
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
@@ -348,6 +356,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Create the toolbar
 	RecreateToolbar();
+	if (!SConfig::GetInstance().m_InterfaceToolbar)
+		TheToolBar->Hide();
 
 	FitInside();
 

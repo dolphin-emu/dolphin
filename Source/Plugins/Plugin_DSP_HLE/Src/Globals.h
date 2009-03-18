@@ -20,18 +20,9 @@
 
 #include "Common.h"
 #include "pluginspecs_dsp.h"
-#include "ConsoleWindow.h"
 #include "StringUtil.h"
 
 extern DSPInitialize g_dspInitialize;
-void DebugLog(const char* _fmt, ...);
-void __Log_(int v, const char *fmt, ...);
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	#define LOG_(v, ...) __Log_(v, __VA_ARGS__);
-#else
-	#define LOG_(_v_, ...)
-#endif
 
 extern bool gSSBM;
 extern bool gSSBMremedy1;

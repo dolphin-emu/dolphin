@@ -37,7 +37,7 @@
 
 void ConfigDialog::LoadFile()
 {
-	Console::Print("LoadFile()\n");
+	INFO_LOG(CONSOLE, "LoadFile()\n");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
@@ -79,7 +79,7 @@ void ConfigDialog::LoadFile()
 }
 void ConfigDialog::SaveFile()
 {
-	Console::Print("SaveFile\n");
+	INFO_LOG(CONSOLE, "SaveFile\n");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
@@ -115,7 +115,7 @@ void ConfigDialog::SaveFile()
 	}
 
 	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
-	Console::Print("SaveFile()\n");
+	INFO_LOG(CONSOLE, "SaveFile()\n");
 }
 /////////////////////////////
 
@@ -371,7 +371,7 @@ void ConfigDialog::ConvertToString()
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).z >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).z).c_str() : StringFromFormat("%04i", m_vRecording.at(i).z).c_str());
 		if (i < ((int)m_vRecording.size() - 1)) TmpStr += ",";
 
-		//Console::Print("%s\n", TmpStr.c_str());
+		//INFO_LOG(CONSOLE, "%s\n", TmpStr.c_str());
 
 		// Write the IR data
 		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);
@@ -391,7 +391,7 @@ void ConfigDialog::ConvertToString()
 		}
 
 		// Debug
-		Console::Print("Saved: [%i / %i] %03i %03i %03i\n", i, m_vRecording.size(), m_vRecording.at(i).x, m_vRecording.at(i).y, m_vRecording.at(i).z);
+		INFO_LOG(CONSOLE, "Saved: [%i / %i] %03i %03i %03i\n", i, m_vRecording.size(), m_vRecording.at(i).x, m_vRecording.at(i).y, m_vRecording.at(i).z);
 	}
 	
 	// Recordings per second
@@ -424,7 +424,7 @@ void ConfigDialog::ConvertToString()
 
 	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
 
-	Console::Print("Save recording to WiimoteMovement.ini\n");
+	INFO_LOG(CONSOLE, "Save recording to WiimoteMovement.ini\n");
 }
 
 // Timeout the recording
@@ -493,7 +493,7 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	else
 	{
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Done"));
-		Console::Print("Done: %i %i\n", m_bWaitForRecording, m_bRecording);
+		INFO_LOG(CONSOLE, "Done: %i %i\n", m_bWaitForRecording, m_bRecording);
 		//m_bAllowA = true;
 		ConvertToString();
 	}
@@ -504,11 +504,11 @@ void ConfigDialog::DoRecordA(bool Pressed)
 void ConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
 {
 	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
-	//Console::Print("DoRecordMovement: %s\n", Tmp1.c_str());
+	//INFO_LOG(CONSOLE, "DoRecordMovement: %s\n", Tmp1.c_str());
 
 	if (!m_bRecording) return;
 
-	//Console::Print("DoRecordMovement: %03i %03i %03i\n", _x, _y, _z);
+	//INFO_LOG(CONSOLE, "DoRecordMovement: %03i %03i %03i\n", _x, _y, _z);
 
 	SRecording Tmp;
 	Tmp.x = _x;

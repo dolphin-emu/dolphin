@@ -180,7 +180,7 @@ void Config::Save(int Slot)
 		//if(m_frame) m_frame->LogMsg("Saved: %s %i\n", SectionName.c_str(), PadMapping[i].triggertype);
 	}
 
-	Console::Print("%i: Save: %i\n", 0, PadMapping[0].halfpress);
+	INFO_LOG(CONSOLE, "%i: Save: %i\n", 0, PadMapping[0].halfpress);
 
 	file.Save(FULL_CONFIG_DIR "nJoy.ini");
 }
@@ -272,6 +272,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		//if(m_frame) m_frame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);		
 	}
 
-	Console::Print("%i: Load: %i\n", 0, PadMapping[0].halfpress);
+	INFO_LOG(CONSOLE, "%i: Load: %i\n", 0, PadMapping[0].halfpress);
 }
 

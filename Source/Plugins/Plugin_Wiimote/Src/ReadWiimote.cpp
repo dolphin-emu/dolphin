@@ -23,7 +23,6 @@
 
 #include "wiiuse.h" // Externals
 
-#include "ConsoleWindow.h" // Common
 #include "StringUtil.h"
 #include "Timer.h"
 #include "pluginspecs_wiimote.h"
@@ -49,26 +48,26 @@ int GetReportSize(struct wiimote_t* wm)
 
 void handle_ctrl_status(struct wiimote_t* wm)
 {
-	Console::Print("\n\n--- CONTROLLER STATUS [wiimote id %i] ---\n", wm->unid);
+	INFO_LOG(CONSOLE, "\n\n--- CONTROLLER STATUS [wiimote id %i] ---\n", wm->unid);
 
-	Console::Print("attachment:      %i\n", wm->exp.type);
-	Console::Print("speaker:         %i\n", WIIUSE_USING_SPEAKER(wm));
-	Console::Print("ir:              %i\n", WIIUSE_USING_IR(wm));
-	Console::Print("leds:            %i %i %i %i\n", WIIUSE_IS_LED_SET(wm, 1), WIIUSE_IS_LED_SET(wm, 2), WIIUSE_IS_LED_SET(wm, 3), WIIUSE_IS_LED_SET(wm, 4));
-	Console::Print("battery:         %f %%\n", wm->battery_level);
+	INFO_LOG(CONSOLE, "attachment:      %i\n", wm->exp.type);
+	INFO_LOG(CONSOLE, "speaker:         %i\n", WIIUSE_USING_SPEAKER(wm));
+	INFO_LOG(CONSOLE, "ir:              %i\n", WIIUSE_USING_IR(wm));
+	INFO_LOG(CONSOLE, "leds:            %i %i %i %i\n", WIIUSE_IS_LED_SET(wm, 1), WIIUSE_IS_LED_SET(wm, 2), WIIUSE_IS_LED_SET(wm, 3), WIIUSE_IS_LED_SET(wm, 4));
+	INFO_LOG(CONSOLE, "battery:         %f %%\n", wm->battery_level);
 }
 
 bool IRDataOK(struct wiimote_t* wm)
 {
-	//Console::Print("IRDataOK: ");
+	//INFO_LOG(CONSOLE, "IRDataOK: ");
 	// The report size is 0x33 = 18, 0x37 = 22 withouth the leading (a1) byte
 	int ReportSize = GetReportSize(wm);
 	for(int i = 0; i < ReportSize; i++)
 	{
-		//Console::Print("%02x ", wm->event_buf[i]);
+		//INFO_LOG(CONSOLE, "%02x ", wm->event_buf[i]);
 		if (wm->event_buf[i] > 0)
 		{
-			//Console::Print("\n");
+			//INFO_LOG(CONSOLE, "\n");
 			return true;
 		}
 	}
@@ -77,21 +76,21 @@ bool IRDataOK(struct wiimote_t* wm)
 
 void handle_event(struct wiimote_t* wm)
 {
-	//Console::Print("\n\n--- EVENT [id %i] ---\n", wm->unid);
+	//INFO_LOG(CONSOLE, "\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 	// if a button is pressed, report it
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		Console::Print("B pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		Console::Print("UP pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	Console::Print("DOWN pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	Console::Print("LEFT pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	Console::Print("RIGHT pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	Console::Print("MINUS pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	Console::Print("PLUS pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		Console::Print("ONE pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		INFO_LOG(CONSOLE, "A pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		INFO_LOG(CONSOLE, "B pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		INFO_LOG(CONSOLE, "UP pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	INFO_LOG(CONSOLE, "DOWN pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	INFO_LOG(CONSOLE, "LEFT pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	INFO_LOG(CONSOLE, "RIGHT pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	INFO_LOG(CONSOLE, "MINUS pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	INFO_LOG(CONSOLE, "PLUS pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		INFO_LOG(CONSOLE, "ONE pressed\n");
 	//if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		g_Run = false;
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		Console::Print("TWO pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	Console::Print("HOME pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		INFO_LOG(CONSOLE, "TWO pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	INFO_LOG(CONSOLE, "HOME pressed\n");
 
 
 	// Pressing minus will tell the wiimote we are no longer interested in movement.
@@ -168,7 +167,7 @@ void handle_event(struct wiimote_t* wm)
 		//Tmp += "Data: " + TmpData;
 
 		//Console::ClearScreen();
-		//Console::Print("%s\n\n", Tmp.c_str());
+		//INFO_LOG(CONSOLE, "%s\n\n", Tmp.c_str());
 
 #if defined(HAVE_WX) && HAVE_WX
 		if(frame)
@@ -214,8 +213,8 @@ void handle_event(struct wiimote_t* wm)
 				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
 				if(frame->m_bRecording)
-					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", Gx, Gy, Gz);
-					//Console::Print("Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", Gx, Gy, Gz);
+					INFO_LOG(CONSOLE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", Gx, Gy, Gz);
+					//INFO_LOG(CONSOLE, "Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", Gx, Gy, Gz);
 			}
 
 			// Send the data to be saved
@@ -233,8 +232,8 @@ void handle_event(struct wiimote_t* wm)
 			/*
 			if(!g_DebugData)
 			{
-				Console::ClearScreen();
-				Console::Print("Roll:%03i Pitch:%03i\n", (int)wm->orient.roll, (int)wm->orient.pitch);
+//				Console::ClearScreen();
+				INFO_LOG(CONSOLE, "Roll:%03i Pitch:%03i\n", (int)wm->orient.roll, (int)wm->orient.pitch);
 			}
 			// Convert Roll and Pitch from 180 to 0x8000
 			int Roll = (int)wm->orient.roll * (0x8000 / 180);
@@ -337,7 +336,7 @@ void ReadWiimote()
 					{				
 						Temp = ArrayToString(g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
 						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
-						Console::Print("EEPROM: %s\n", Temp.c_str());
+						INFO_LOG(CONSOLE, "EEPROM: %s\n", Temp.c_str());
 						WiiMoteEmu::UpdateEeprom();
 						g_RunTemporary = false;
 					}
@@ -352,17 +351,17 @@ void ReadWiimote()
 					 */
 					 //wiiuse_set_nunchuk_orient_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 90.0f);
 					 //wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 100);
-					Console::Print("Nunchuk inserted.\n");
+					INFO_LOG(CONSOLE, "Nunchuk inserted.\n");
 					break;
 
 				case WIIUSE_CLASSIC_CTRL_INSERTED:
-					Console::Print("Classic controller inserted.\n");
+					INFO_LOG(CONSOLE, "Classic controller inserted.\n");
 					break;
 
 				case WIIUSE_GUITAR_HERO_3_CTRL_INSERTED:
 					// some expansion was inserted
 					//handle_ctrl_status(wiimotes[i]);
-					Console::Print("Guitar Hero 3 controller inserted.\n");
+					INFO_LOG(CONSOLE, "Guitar Hero 3 controller inserted.\n");
 					break;
 
 				case WIIUSE_NUNCHUK_REMOVED:
@@ -370,7 +369,7 @@ void ReadWiimote()
 				case WIIUSE_GUITAR_HERO_3_CTRL_REMOVED:
 					// some expansion was removed
 					//handle_ctrl_status(wiimotes[i]);
-					Console::Print("An expansion was removed.\n");
+					INFO_LOG(CONSOLE, "An expansion was removed.\n");
 					break;
 
 				default:

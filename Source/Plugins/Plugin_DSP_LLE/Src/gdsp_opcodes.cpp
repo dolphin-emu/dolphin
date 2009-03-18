@@ -187,7 +187,7 @@ bool CheckCondition(uint8 _Condition)
 		    break;
 
 	    default:
-		    // DebugLog("Unknown condition check: 0x%04x\n", _Condition & 0xf);
+		    // DEBUG_LOG(DSPHLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
 		    break;
 	}
 
@@ -200,7 +200,7 @@ bool CheckCondition(uint8 _Condition)
 void dsp_op_unknown(uint16 opc)
 {
     _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-    ErrorLog("dsp_op_unknown somewhere");
+    ERROR_LOG(DSPHLE, "dsp_op_unknown somewhere");
     g_dsp.pc = g_dsp.err_pc;
 }
 
@@ -244,7 +244,7 @@ void dsp_opc_jmpa(uint16 opc)
 
 	if ((opc & 0xf) != 0xf)
 	{
-		ErrorLog("dsp_opc_jmpa");
+		ERROR_LOG(DSPHLE, "dsp_opc_jmpa");
 	}
 
 	reg  = (opc >> 5) & 0x7;
@@ -274,7 +274,7 @@ void dsp_opc_rti(uint16 opc)
 {
 	if ((opc & 0xf) != 0xf)
 	{
-		ErrorLog("dsp_opc_rti");
+		ERROR_LOG(DSPHLE, "dsp_opc_rti");
 	}
 
 	g_dsp.r[R_SR] = dsp_reg_load_stack(DSP_STACK_D);
@@ -452,7 +452,7 @@ void dsp_opc_ilrr(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_opc_ilrr");
+		    ERROR_LOG(DSPHLE, "dsp_opc_ilrr");
 	}
 }
 
@@ -544,14 +544,14 @@ void dsp_opc_mulc(uint16 opc)
 // NEW
 void dsp_opc_mulcmvz(uint16 opc)
 {
-	ErrorLog("dsp_opc_mulcmvz ni");
+	ERROR_LOG(DSPHLE, "dsp_opc_mulcmvz ni");
 }
 
 
 // NEW
 void dsp_opc_mulcmv(uint16 opc)
 {
-	ErrorLog("dsp_opc_mulcmv ni");
+	ERROR_LOG(DSPHLE, "dsp_opc_mulcmv ni");
 }
 
 
@@ -735,7 +735,7 @@ void dsp_opc_andfc(uint16 opc)
 {
 	if (opc & 0xf)
 	{
-		ErrorLog("dsp_opc_andfc");
+		ERROR_LOG(DSPHLE, "dsp_opc_andfc");
 	}
 
 	uint8 reg  = (opc >> 8) & 0x1;
@@ -761,7 +761,7 @@ void dsp_opc_andf(uint16 opc)
 
 	if (opc & 0xf)
 	{
-		ErrorLog("dsp_opc_andf");
+		ERROR_LOG(DSPHLE, "dsp_opc_andf");
 	}
 
 	reg = 0x1e + ((opc >> 8) & 0x1);
@@ -783,7 +783,7 @@ void dsp_opc_subf(uint16 opc)
 {
 	if (opc & 0xf)
 	{
-		ErrorLog("dsp_opc_subf");
+		ERROR_LOG(DSPHLE, "dsp_opc_subf");
 	}
 
 	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
@@ -800,7 +800,7 @@ void dsp_opc_xori(uint16 opc)
 {
 	if (opc & 0xf)
 	{
-		ErrorLog("dsp_opc_xori");
+		ERROR_LOG(DSPHLE, "dsp_opc_xori");
 	}
 
 	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
@@ -815,7 +815,7 @@ void dsp_opc_andi(uint16 opc)
 {
 	if (opc & 0xf)
 	{
-		ErrorLog("dsp_opc_andi");
+		ERROR_LOG(DSPHLE, "dsp_opc_andi");
 	}
 
 	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
@@ -832,7 +832,8 @@ void dsp_opc_ori(uint16 opc)
 {
 	if (opc & 0xf)
 	{
-		return(ErrorLog("dsp_opc_ori"));
+		ERROR_LOG(DSPHLE, "dsp_opc_ori");
+		return;
 	}
 
 	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
@@ -980,7 +981,7 @@ void dsp_opc_neg(uint16 opc)
 
 void dsp_opc_movnp(uint16 opc)
 {
-	ErrorLog("dsp_opc_movnp\n");
+	ERROR_LOG(DSPHLE, "dsp_opc_movnp\n");
 }
 
 
@@ -1525,7 +1526,7 @@ void dsp_op0(uint16 opc)
 					    break;
 
 				    default:
-					    ErrorLog("dsp_op0");
+					    ERROR_LOG(DSPHLE, "dsp_op0");
 					    break;
 				}
 
@@ -1565,7 +1566,7 @@ void dsp_op0(uint16 opc)
 				break;
 
 			default:
-				ErrorLog("dsp_op0");
+				ERROR_LOG(DSPHLE, "dsp_op0");
 				break;
 		    }
 
@@ -1628,7 +1629,7 @@ void dsp_op0(uint16 opc)
 				break;
 
 			default:
-				ErrorLog("dsp_op0");
+				ERROR_LOG(DSPHLE, "dsp_op0");
 				break;
 		    }
 
@@ -1671,7 +1672,7 @@ void dsp_op0(uint16 opc)
 				break;
 
 			default:
-				ErrorLog("dsp_op0");
+				ERROR_LOG(DSPHLE, "dsp_op0");
 				break;
 		    }
 
@@ -1699,7 +1700,7 @@ void dsp_op0(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op0");
+		    ERROR_LOG(DSPHLE, "dsp_op0");
 		    break;
 	}
 }
@@ -1756,7 +1757,7 @@ void dsp_op1(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op1");
+		    ERROR_LOG(DSPHLE, "dsp_op1");
 		    break;
 	}
 }
@@ -1814,7 +1815,7 @@ void dsp_op3(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op3");
+		    ERROR_LOG(DSPHLE, "dsp_op3");
 		    break;
 	}
 
@@ -1857,7 +1858,7 @@ void dsp_op4(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op4");
+		    ERROR_LOG(DSPHLE, "dsp_op4");
 		    break;
 	}
 
@@ -1895,7 +1896,7 @@ void dsp_op5(uint16 opc)
 		    break;
 
 	    default:
-			ErrorLog("dsp_op5: %x", (opc >> 8) & 0xf);
+			ERROR_LOG(DSPHLE, "dsp_op5: %x", (opc >> 8) & 0xf);
 		    break;
 	}
 
@@ -1933,7 +1934,7 @@ void dsp_op6(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op6");
+		    ERROR_LOG(DSPHLE, "dsp_op6");
 		    break;
 	}
 
@@ -1985,7 +1986,7 @@ void dsp_op7(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op7");
+		    ERROR_LOG(DSPHLE, "dsp_op7");
 		    break;
 	}
 
@@ -2032,7 +2033,7 @@ void dsp_op8(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op8");
+		    ERROR_LOG(DSPHLE, "dsp_op8");
 		    break;
 	}
 
@@ -2078,7 +2079,7 @@ void dsp_op9(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op9");
+		    ERROR_LOG(DSPHLE, "dsp_op9");
 		    break;
 	}
 
@@ -2116,7 +2117,7 @@ void dsp_opab(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_opab");
+		    ERROR_LOG(DSPHLE, "dsp_opab");
 	}
 
 	dsp_op_ext_ops_epi(opc);
@@ -2153,7 +2154,7 @@ void dsp_opcd(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_opcd");
+		    ERROR_LOG(DSPHLE, "dsp_opcd");
 	}
 
 	dsp_op_ext_ops_epi(opc);
@@ -2183,7 +2184,7 @@ void dsp_ope(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_ope");
+		    ERROR_LOG(DSPHLE, "dsp_ope");
 	}
 
 	dsp_op_ext_ops_epi(opc);
@@ -2224,7 +2225,7 @@ void dsp_opf(uint16 opc)
 		    break;
 
 	    default:
-		    ErrorLog("dsp_opf");
+		    ERROR_LOG(DSPHLE, "dsp_opf");
 		    break;
 	}
 

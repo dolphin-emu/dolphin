@@ -2265,14 +2265,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\LogManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\LogManager.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\MemTools.cpp"
 			>
 		</File>

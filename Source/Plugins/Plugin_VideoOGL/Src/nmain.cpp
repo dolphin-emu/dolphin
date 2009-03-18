@@ -244,21 +244,6 @@ void Video_EnterLoop()
     Fifo_EnterLoop(g_VideoInitialize);
 }
 
-void DebugLog(const char* _fmt, ...)
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-    
-    char* Msg = (char*)alloca(strlen(_fmt)+512);
-    va_list ap;
-
-    va_start( ap, _fmt );
-    vsnprintf( Msg, strlen(_fmt)+512, _fmt, ap );
-    va_end( ap );
-
-    g_VideoInitialize.pLog(Msg, FALSE);
-#endif
-}
-
 bool ScreenShot(TCHAR *File) 
 {
     char str[64];

@@ -26,7 +26,6 @@
 #include "pluginspecs_pad.h"
 #include "PadSimple.h"
 #include "IniFile.h"
-#include "ConsoleWindow.h"
 #include "StringUtil.h"
 #include "FileUtil.h"
 #include "ChunkFile.h"
@@ -80,16 +79,11 @@ SPADInitialize g_PADInitialize;
 
 // Pre defined maxium storage limit
 #define RECORD_SIZE (1024 * 128)
+PLUGIN_GLOBALS* globals = NULL;
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
 bool g_EmulatorRunning = false;
 ////////////////////////////////
-
-
-// TODO: fix this dirty hack to stop missing symbols
-void __Log(int log, const char *format, ...) {}
-void __Logv(int log, int v, const char *format, ...) {}
-
 
 //******************************************************************************
 // Supporting functions
@@ -612,7 +606,11 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
+}
 
 void DllConfig(HWND _hParent)
 {

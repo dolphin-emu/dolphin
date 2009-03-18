@@ -41,7 +41,6 @@
 #include "Debugger.h"
 
 #include "RegisterWindow.h"
-#include "LogWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
 #include "JitWindow.h"
@@ -307,44 +306,6 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 {
 }
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Show and hide windows
-/////////////////////////////////////////////////////////////////////////////////////////////////
-void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
-{
-	if (LogManager::GetLevel() > 0)
-	{
-		bool show = GetMenuBar()->IsChecked(event.GetId());
-
-		if (show)
-		{
-			if (!m_LogWindow)
-			{
-				m_LogWindow = new CLogWindow(this);
-			}
-
-			m_LogWindow->Show(true);
-		}
-		else // hide
-		{
-			// If m_dialog is NULL, then possibly the system
-			// didn't report the checked menu item status correctly.
-			// It should be true just after the menu item was selected,
-			// if there was no modeless dialog yet.
-			wxASSERT(m_LogWindow != NULL);
-
-			if (m_LogWindow)
-			{
-				m_LogWindow->Hide();
-			}
-		}
-	}
-}
-
 
 void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 {

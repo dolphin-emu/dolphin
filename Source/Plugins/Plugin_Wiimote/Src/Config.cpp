@@ -214,7 +214,7 @@ void Config::Load(bool ChangePad)
 	// =============================
 
 	// Logging
-	Console::Print("Load()\n");
+	INFO_LOG(CONSOLE, "Load()\n");
 }
 
 void Config::Save(int Slot)
@@ -352,5 +352,5 @@ void Config::Save(int Slot)
 	// =============================
 
 	// Logging
-	Console::Print("Save()\n");
+	INFO_LOG(CONSOLE, "Save()\n");
 }

@@ -254,7 +254,7 @@ void ConfigDialog::CreateGUIControls()
 		m_CheckRecording[0]->SetValue(pad[0].bRecording);
 		m_CheckPlayback[0]->SetValue(pad[0].bPlayback);
 
-		Console::Print("m_CheckRecording: %i\n", pad[0].bRecording, pad[0].bPlayback);
+		//DEBUG_LOG(CONSOLE, "m_CheckRecording: %i\n", pad[0].bRecording, pad[0].bPlayback);
 		#endif
 		//////////////////////////////////////
 	

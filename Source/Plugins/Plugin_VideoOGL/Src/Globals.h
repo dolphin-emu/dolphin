@@ -24,19 +24,10 @@
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"
 
-#include "ConsoleWindow.h"
-
-
-// Compile without WxWidgets in Windows to, for debugging purposes
-//#define HAVE_WX 0
-
-// Turns file logging on and off
-extern bool LocalLogFile;
-
 // A global plugin specification
 extern PLUGIN_GLOBALS* globals;
 
-void OpenConsole();
-void CloseConsole();
+//void OpenConsole();
+//void CloseConsole();
 
 #endif // _GLOBALS_H

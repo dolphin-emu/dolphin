@@ -23,7 +23,6 @@
 #include "WaveFile.h"
 #include "CommonTypes.h"
 #include "Mixer.h"
-#include "ConsoleWindow.h" // For Console::Open, Console::Print
 
 #include "Globals.h" // Local
 #include "gdsp_interpreter.h"
@@ -57,6 +56,7 @@
 // =======================================================================================
 // Global declarations and definitions
 // --------------
+PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 
 #define GDSP_MBOX_CPU   0
@@ -114,7 +114,10 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
 void DllAbout(HWND _hParent)
@@ -135,13 +138,13 @@ void DllDebugger(HWND _hParent, bool Show)
 	#if defined (_DEBUG) || defined (DEBUGFAST)
 		g_Dialog.Create(NULL); //_hParent);
 		g_Dialog.ShowWindow(SW_SHOW);
-		MoveWindow(g_Dialog.m_hWnd, 450,0, 780,530, true);
+		//		MoveWindow(g_Dialog.m_hWnd, 450,0, 780,530, true);
 		
 		// Open the console window
-		Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
-		Console::Print("DllDebugger > Console opened\n");
+		//		Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
+		//		Console::Print("DllDebugger > Console opened\n");
 		// Todo: Make this adjustable from the Debugging window
-		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true);
+		//		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true);
 	#else
 		MessageBox(0, "Can't open debugging window in the Release build of this plugin.", "DSP LLE", 0);
 	#endif
@@ -235,14 +238,14 @@ void Initialize(void *init)
 	{
                 bCanWork = false;
                 PanicAlert("No DSP ROM");
-		ErrorLog("Cannot load DSP ROM\n");
+		ERROR_LOG(DSPHLE, "Cannot load DSP ROM\n");
 	}
 
 	if (!gdsp_load_coef((char *)DSP_COEF_FILE))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP COEF");
-		ErrorLog("Cannot load DSP COEF\n");
+		ERROR_LOG(DSPHLE, "Cannot load DSP COEF\n");
 	}
 
         if(!bCanWork)
@@ -350,7 +353,7 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 	{
 		if (gdsp_mbox_peek(GDSP_MBOX_CPU) & 0x80000000)
 		{
-			ErrorLog("Mailbox isnt empty ... strange");
+			ERROR_LOG(DSPHLE, "Mailbox isnt empty ... strange");
 		}
 
 #if PROFILE
@@ -364,7 +367,7 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 	else
 	{
-		ErrorLog("CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPHLE, "CPU cant write to DSP mailbox");
 	}
 }
 
@@ -377,7 +380,7 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 		u32 uAddress = gdsp_mbox_peek(GDSP_MBOX_CPU);
 		u16 errpc = g_dsp.err_pc;
 
-		DebugLog("Write CPU Mail: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
+		DEBUG_LOG(DSPHLE, "Write CPU Mail: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
 
 		// ---------------------------------------------------------------------------------------
 		// I couldn't find any better way to detect the AX mails so this had to do. Please feel free
@@ -385,13 +388,13 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 		// --------------
 		if ((errpc == 0x0054 || errpc == 0x0055) && m_addressPBs == 0)
 		{
-			DebugLog("AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
+			DEBUG_LOG(DSPHLE, "AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
 			AXTask(uAddress);
 		}
 	}
 	else
 	{
-		ErrorLog("CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPHLE, "CPU cant write to DSP mailbox");
 	}
 }
 
@@ -433,7 +436,3 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 
 
 
-void __Log(int, const char *fmt, ...)
-{
-	//DebugLog(fmt);
-}

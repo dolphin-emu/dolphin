@@ -202,13 +202,13 @@ VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 {
     if (lpParam == NULL)
     {
-        Console::Print("TimerRoutine lpParam is NULL\n");
+        DEBUG_LOG(CONSOLE, "TimerRoutine lpParam is NULL\n");
     }
     else
     {
         // lpParam points to the argument; in this case it is an int
 
-        //Console::Print("Timer[%i] will call back\n", *(int*)lpParam);
+        //DEBUG_LOG(CONSOLE, "Timer[%i] will call back\n", *(int*)lpParam);
     }
 
 	// Call back
@@ -221,7 +221,7 @@ bool Event::TimerWait(EventCallBack WaitCB, int _Id, bool OptCondition)
 {
 	Id = _Id;
 
-	//Console::Print("TimerWait[%i]: %i %i %i\n", Id, StartWait, DoneWaiting, OptCondition);
+	//DEBUG_LOG(CONSOLE, "TimerWait[%i]: %i %i %i\n", Id, StartWait, DoneWaiting, OptCondition);
 
 	FunctionPointer[Id] = WaitCB;
 	
@@ -234,7 +234,7 @@ bool Event::TimerWait(EventCallBack WaitCB, int _Id, bool OptCondition)
 
 		// Delete all timers in the timer queue.
 		if (!DeleteTimerQueue(hTimerQueue))
-			Console::Print("DeleteTimerQueue failed (%d)\n", GetLastError());
+			DEBUG_LOG(CONSOLE, "DeleteTimerQueue failed (%d)\n", GetLastError());
 
 		hTimer = NULL;
 		hTimerQueue = NULL;
@@ -251,7 +251,7 @@ bool Event::TimerWait(EventCallBack WaitCB, int _Id, bool OptCondition)
 		hTimerQueue = CreateTimerQueue();
 		if (NULL == hTimerQueue)
 		{
-			Console::Print("CreateTimerQueue failed (%d)\n", GetLastError());
+			DEBUG_LOG(CONSOLE, "CreateTimerQueue failed (%d)\n", GetLastError());
 			return false;
 		}
 	}
@@ -260,7 +260,7 @@ bool Event::TimerWait(EventCallBack WaitCB, int _Id, bool OptCondition)
     if (!CreateTimerQueueTimer( &hTimer, hTimerQueue, 
             (WAITORTIMERCALLBACK)TimerRoutine, &Id , 10, 0, 0))
     {
-        Console::Print("CreateTimerQueueTimer failed (%d)\n", GetLastError());
+        DEBUG_LOG(CONSOLE, "CreateTimerQueueTimer failed (%d)\n", GetLastError());
         return false;
     }
 

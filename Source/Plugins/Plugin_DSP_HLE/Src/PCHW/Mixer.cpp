@@ -20,7 +20,6 @@
 #include <queue> // System
 
 #include "Thread.h" // Common
-#include "ConsoleWindow.h"
 
 #include "../Config.h" // Local
 #include "../Globals.h"

@@ -37,7 +37,6 @@
 #include "Debugger.h"
 
 #include "RegisterWindow.h"
-#include "LogWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
 #include "JitWindow.h"
@@ -121,8 +120,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
 
-	EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow) // Views
-    EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
+	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow) //views
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
@@ -167,7 +165,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
 	    things may crash */
-	, m_LogWindow(NULL)
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
@@ -208,7 +205,6 @@ CCodeWindow::~CCodeWindow()
 
 	this->Save(file);
 	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
-	if (m_LogWindow) m_LogWindow->Save(file);
 	if (m_RegisterWindow) m_RegisterWindow->Save(file);
 	if (m_MemoryWindow) m_MemoryWindow->Save(file);
 	if (m_JitWindow) m_JitWindow->Save(file);
@@ -236,7 +232,7 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		    NotifyMapLoaded();
 		    break;
 
-	    case IDM_UPDATELOGDISPLAY:
+			/*	    case IDM_UPDATELOGDISPLAY:
 
 		    if (m_LogWindow)
 		    {
@@ -244,7 +240,7 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		    }
 
 		    break;
-
+			*/
 	    case IDM_UPDATEDISASMDIALOG:
 		    Update();
 
@@ -295,7 +291,6 @@ void CCodeWindow::Load_( IniFile &ini )
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString(fontDesc.c_str(), wxConvUTF8));
 
 	// Decide what windows to use
-	ini.Get("ShowOnStart", "LogWindow", &bLogWindow, true);
 	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
 	ini.Get("ShowOnStart", "BreakpointWindow", &bBreakpointWindow, true);
 	ini.Get("ShowOnStart", "MemoryWindow", &bMemoryWindow, true);
@@ -318,6 +313,11 @@ void CCodeWindow::Load( IniFile &ini )
 	ini.Get("CodeWindow", "w", &w, GetSize().GetWidth());
 	ini.Get("CodeWindow", "h", &h, GetSize().GetHeight());
 	this->SetSize(x, y, w, h);
+	ini.Get("MainWindow", "x", &x, 100);
+	ini.Get("MainWindow", "y", &y, 100);
+	ini.Get("MainWindow", "w", &w, 800);
+	ini.Get("MainWindow", "h", &h, 600);
+	GetParent()->SetSize(x, y, w, h);
 }
 
 
@@ -327,6 +327,10 @@ void CCodeWindow::Save(IniFile &ini) const
 	ini.Set("CodeWindow", "y", GetPosition().y);
 	ini.Set("CodeWindow", "w", GetSize().GetWidth());
 	ini.Set("CodeWindow", "h", GetSize().GetHeight());
+	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
+	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
+	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
+	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
 
 	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
 
@@ -335,7 +339,6 @@ void CCodeWindow::Save(IniFile &ini) const
 	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	// Save windows settings
-	ini.Set("ShowOnStart", "LogWindow", GetMenuBar()->IsChecked(IDM_LOGWINDOW));
 	ini.Set("ShowOnStart", "RegisterWindow", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
 	ini.Set("ShowOnStart", "BreakpointWindow", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
 	ini.Set("ShowOnStart", "MemoryWindow", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
@@ -374,15 +377,6 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	sync_event.Init();
 	// =================
 
-
-	// Additional dialogs
-#if LOGLEVEL > 0
-	if (bLogWindow)
-	{
-		m_LogWindow = new CLogWindow(this);
-		m_LogWindow->Show(true);
-	}
-#endif
 
 	if (bRegisterWindow)
 	{
@@ -503,12 +497,6 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// Views
 	// ---------------
 	wxMenu* pDebugDialogs = new wxMenu;
-
-	if (LogManager::GetLevel() > 0)
-	{
-		wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
-		pLogWindow->Check(bLogWindow);
-	}
 
 	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
 	pRegister->Check(bRegisterWindow);

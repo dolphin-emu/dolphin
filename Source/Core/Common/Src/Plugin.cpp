@@ -57,17 +57,17 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 			(m_hInstLib.Get("Shutdown"));
 		m_DoState = reinterpret_cast<TDoState>
 			(m_hInstLib.Get("DoState"));
-	}
-
-	// Check if the plugin has all the functions it shold have
-	if (m_GetDllInfo != 0 &&
-		m_DllConfig != 0 &&
-		m_DllDebugger != 0 &&
-		m_SetDllGlobals != 0 &&
-		m_Initialize != 0 &&
-		m_Shutdown != 0 &&
-		m_DoState != 0)
-		valid = true;
+		
+		// Check if the plugin has all the functions it shold have
+		if (m_GetDllInfo != 0 &&
+			m_DllConfig != 0 &&
+			m_DllDebugger != 0 &&
+			m_SetDllGlobals != 0 &&
+			m_Initialize != 0 &&
+			m_Shutdown != 0 &&
+			m_DoState != 0)
+			valid = true;
+	} 
 
 	// Save the filename for this plugin
 	Filename = _szName;

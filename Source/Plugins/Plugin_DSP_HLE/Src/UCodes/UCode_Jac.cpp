@@ -24,7 +24,7 @@ CUCode_Jac::CUCode_Jac(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 	, m_bListInProgress(false)
 {
-	DebugLog("CUCode_Jac: init");
+	DEBUG_LOG(DSPHLE, "CUCode_Jac: init");
 	m_rMailHandler.PushMail(0xDCD10000);
 	m_rMailHandler.PushMail(0x80000000);
 }
@@ -69,7 +69,7 @@ void CUCode_Jac::HandleMail(u32 _uMail)
 
 		    default:
 			    PanicAlert("UCode Jac");
-			    DebugLog("UCode Jac - unknown cmd: %x", _uMail & 0xFFFF);
+			    DEBUG_LOG(DSPHLE, "UCode Jac - unknown cmd: %x", _uMail & 0xFFFF);
 			    break;
 		}
 	}
@@ -105,8 +105,8 @@ void CUCode_Jac::ExecuteList()
 	u16 cmd  = Read16();
 	u16 sync = Read16();
 
-	DebugLog("==============================================================================");
-	DebugLog("UCode Jac - execute dlist (cmd: 0x%04x : sync: 0x%04x)", cmd, sync);
+	DEBUG_LOG(DSPHLE, "==============================================================================");
+	DEBUG_LOG(DSPHLE, "UCode Jac - execute dlist (cmd: 0x%04x : sync: 0x%04x)", cmd, sync);
 
 	switch (cmd)
 	{
@@ -121,11 +121,11 @@ void CUCode_Jac::ExecuteList()
 		    tmp[2] = Read32();
 		    tmp[3] = Read32();
 
-		    DebugLog("DsetupTable");
-		    DebugLog("???:                           0x%08x", tmp[0]);
-		    DebugLog("DSPRES_FILTER   (size: 0x40):  0x%08x",    tmp[1]);
-		    DebugLog("DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
-		    DebugLog("???:                           0x%08x", tmp[3]);
+		    DEBUG_LOG(DSPHLE, "DsetupTable");
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x",    tmp[1]);
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[3]);
 	    }
 		    break;
 
@@ -140,16 +140,16 @@ void CUCode_Jac::ExecuteList()
 		    tmp[1] = Read32();
 		    tmp[2] = Read32();
 
-		    DebugLog("UpdateDSPChannel");
-		    DebugLog("audiomemory:                   0x%08x", tmp[0]);
-		    DebugLog("audiomemory:                   0x%08x", tmp[1]);
-		    DebugLog("DSPADPCM_FILTER (size: 0x40):  0x%08x", tmp[2]);
+		    DEBUG_LOG(DSPHLE, "UpdateDSPChannel");
+		    DEBUG_LOG(DSPHLE, "audiomemory:                   0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "audiomemory:                   0x%08x", tmp[1]);
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x40):  0x%08x", tmp[2]);
 	    }
 		    break;
 
 	    default:
 		    PanicAlert("UCode Jac unknown cmd: %s (size %i)", cmd, m_numSteps);
-		    DebugLog("Jac UCode - unknown cmd: %x (size %i)", cmd, m_numSteps);
+		    DEBUG_LOG(DSPHLE, "Jac UCode - unknown cmd: %x (size %i)", cmd, m_numSteps);
 		    break;
 	}
 

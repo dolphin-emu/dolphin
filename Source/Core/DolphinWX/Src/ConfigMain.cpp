@@ -21,7 +21,6 @@
 #include "Core.h" // Core
 #include "HW/EXI.h"
 #include "HW/SI.h"
-#include "ConsoleWindow.h"
 
 #include "Globals.h" // Local
 #include "ConfigMain.h"
@@ -875,7 +874,7 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 void CConfigMain::CallConfig(wxChoice* _pChoice)
 {
 	int Index = _pChoice->GetSelection();
-	Console::Print("CallConfig: %i\n", Index);
+	INFO_LOG(CONSOLE, "CallConfig: %i\n", Index);
 
 	if (Index >= 0)
 	{
@@ -888,7 +887,7 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 
 void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
 {
-	Console::Print("FillChoiceBox\n");
+	INFO_LOG(CONSOLE, "FillChoiceBox\n");
 
 	_pChoice->Clear();
 
@@ -924,7 +923,7 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 		_rFilename = pInfo->GetFilename();
-		Console::Print("GetFilename: %i %s\n", Index, _rFilename.c_str());
+		INFO_LOG(CONSOLE, "GetFilename: %i %s\n", Index, _rFilename.c_str());
 		return(true);
 	}
 

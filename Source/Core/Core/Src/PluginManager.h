@@ -76,7 +76,7 @@ private:
 	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;
 
-	SCoreStartupParameter& m_params;
+	SCoreStartupParameter * m_params;
 	CPluginManager();
 	~CPluginManager();
 	void GetPluginInfo(CPluginInfo *&info, std::string Filename);

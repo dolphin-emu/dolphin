@@ -45,7 +45,6 @@
 #endif
 
 #include "Common.h" // Common
-#include "ConsoleWindow.h" 
 ////////////////////////////
 
 

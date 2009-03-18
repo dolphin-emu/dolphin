@@ -27,6 +27,7 @@
 #include <wx/mstream.h>
 ////////////////////////////////
 #include "CDUtils.h"
+#include "LogWindow.h"
 
 //////////////////////////////////////////////////////////////////////////
 // A shortcut to access the bitmaps
@@ -48,7 +49,8 @@ class CFrame : public wxFrame
 {
 	public:
 
-		CFrame(wxFrame* parent,
+		CFrame(bool showLogWindow,
+			wxFrame* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
@@ -98,6 +100,8 @@ class CFrame : public wxFrame
 		wxPanel* m_Panel;
 		wxToolBar* TheToolBar;
 		wxToolBarToolBase* m_ToolPlay;
+		bool m_bLogWindow;
+		CLogWindow* m_LogWindow;
 
 		char **drives;
 
@@ -199,6 +203,7 @@ class CFrame : public wxFrame
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
+		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event); void OnKeyUp(wxKeyEvent& event);
 		void OnDoubleClick(wxMouseEvent& event); void OnMotion(wxMouseEvent& event);

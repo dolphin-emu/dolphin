@@ -32,8 +32,6 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-#include "ConsoleWindow.h"
-
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -61,7 +59,6 @@ const char *DllGetLastError()
 */
 int DynamicLibrary::Load(const char* filename)
 {
-
 	INFO_LOG(COMMON, "DL: Loading dynamic library %s", filename);
 
 	if (!filename || strlen(filename) == 0)	{
@@ -85,6 +82,8 @@ int DynamicLibrary::Load(const char* filename)
 	DEBUG_LOG(COMMON, "DL: LoadLibrary: %s(%p)", filename, library);
 
 	if (!library) {
+		fprintf(stderr, "DL: Error loading DLL %s: %s", filename, 
+				  DllGetLastError());
 		ERROR_LOG(COMMON, "DL: Error loading DLL %s: %s", filename, 
 				  DllGetLastError());
 		return 0;

@@ -54,8 +54,6 @@
 	if it works I'd rather be without FreeLibrary() between Start and Stop.
 
 //////////////////////////////////////*/
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯
@@ -71,7 +69,6 @@
 #include "FileSearch.h" // Common
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "ConsoleWindow.h"
 #include "Setup.h"
 
 // Create the plugin manager class
@@ -84,13 +81,16 @@ CPluginManager CPluginManager::m_Instance;
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 
 // The plugin manager is some sort of singleton that runs during Dolphin's entire lifespan.
-CPluginManager::CPluginManager() : 
-	m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
+CPluginManager::CPluginManager()
 {
 	m_PluginGlobals = new PLUGIN_GLOBALS;
+
+	// Start LogManager
+	m_PluginGlobals->logManager = LogManager::GetInstance();
 	m_PluginGlobals->eventHandler = EventHandler::GetInstance();
 	m_PluginGlobals->config = (void *)&SConfig::GetInstance();
-	m_PluginGlobals->messageLogger = NULL;
+
+	m_params = &(SConfig::GetInstance().m_LocalCoreStartupParameter);
 
 	// Set initial values to NULL.
 	m_video = NULL;
@@ -104,7 +104,7 @@ CPluginManager::CPluginManager() :
 // This will call FreeLibrary() for all plugins
 CPluginManager::~CPluginManager()
 {
-	Console::Print("Delete CPluginManager\n");
+	INFO_LOG(CONSOLE, "Delete CPluginManager\n");
 
 	delete m_PluginGlobals;
 	delete m_dsp;
@@ -113,7 +113,7 @@ CPluginManager::~CPluginManager()
 	{
 		if (m_pad[i] && OkayToInitPlugin(i))
 		{
-			Console::Print("Delete: %i\n", i);
+			INFO_LOG(CONSOLE, "Delete: %i\n", i);
 			delete m_pad[i];
 		}
 		m_pad[i] = NULL;
@@ -138,13 +138,13 @@ bool CPluginManager::InitPlugins()
 		PanicAlert("Can't init DSP Plugin");
 		return false;
 	}
-	Console::Print("Before GetVideo\n");
+	INFO_LOG(CONSOLE, "Before GetVideo\n");
 
 	if (!GetVideo()) {
 		PanicAlert("Can't init Video Plugin");
 		return false;
 	}
-	Console::Print("After GetVideo\n");
+	INFO_LOG(CONSOLE, "After GetVideo\n");
 
 	// Check if we get at least one pad or wiimote
 	bool pad = false;
@@ -154,7 +154,7 @@ bool CPluginManager::InitPlugins()
 	for (int i = 0; i < MAXPADS; i++)
 	{
 		// Check that the plugin has a name
-		if (!m_params.m_strPadPlugin[i].empty())
+		if (!m_params->m_strPadPlugin[i].empty())
 			GetPad(i);
 		// Check that GetPad succeeded
 		if (m_pad[i] != NULL)
@@ -167,9 +167,9 @@ bool CPluginManager::InitPlugins()
 	}
 
 	// Init wiimote
-	if (m_params.bWii) {
+	if (m_params->bWii) {
 		for (int i = 0; i < MAXWIIMOTES; i++) {
-			if (!m_params.m_strWiimotePlugin[i].empty())
+			if (!m_params->m_strWiimotePlugin[i].empty())
 				GetWiimote(i);
 
 			if (m_wiimote[i] != NULL)
@@ -257,7 +257,8 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 
 		// We are now done with this plugin and will call FreeLibrary()
 		delete plugin;
-	}
+	} else
+		PanicAlert("PluginInfo: %s is not valid", _rFilename);
 }
 ///////////////////////////////////////////
 
@@ -276,10 +277,6 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 		if (m_PluginInfos.at(i).GetFilename() == Filename)
 		{
 			info = &m_PluginInfos.at(i);
-			if (info == NULL)
-			{
-				PanicAlert("error reading info from dll");
-			}
 			return;
 		}
 	}
@@ -292,29 +289,23 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 {
 	// Create a string of the filename
 	std::string Filename = _rFilename;
+
+	if (!File::Exists(_rFilename)) {
+		PanicAlert("Error loading %s: can't find file", _rFilename);
+		return NULL;
+	}
 	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
 	   Dolphin was started */
 	CPluginInfo *info = NULL;
-	if (!Filename.empty()){
-		GetPluginInfo(info, Filename);
-		if (info == NULL)
-		{
-			PanicAlert("Can't open %s, it's missing", _rFilename);
-			return NULL;
-		}
-	}
-	else{
-		PanicAlert("error with dll Filename (its NULL)");
+	GetPluginInfo(info, Filename);
+	if (! info) {
+		PanicAlert("Error loading %s: can't read info", _rFilename);
 		return NULL;
 	}
-
+	
 	PLUGIN_TYPE type = info->GetPluginInfo().Type;	
 	Common::CPlugin *plugin = NULL;
 
-	// Check again that the file exists, the first check is when CPluginInfo info is created
-	if (!File::Exists(_rFilename))
-		return NULL;
-	
 	switch (type)
 	{
 	case PLUGIN_TYPE_VIDEO:
@@ -355,7 +346,7 @@ int CPluginManager::OkayToInitPlugin(int Plugin)
 {
 	// Compare it to the earlier plugins
 	for (int i = 0; i < Plugin; i++)
-		if (m_params.m_strPadPlugin[Plugin] == m_params.m_strPadPlugin[i])
+		if (m_params->m_strPadPlugin[Plugin] == m_params->m_strPadPlugin[i])
 			return i;
 	
 	// No there is no duplicate plugin
@@ -376,18 +367,18 @@ void CPluginManager::ScanForPlugins()
 	// Get plugins dir
 	CFileSearch::XStringVector Directories;
 
-	#if defined(__APPLE__)
-        	Directories.push_back(File::GetPluginsDirectory());
-        #else
-        	Directories.push_back(std::string(PLUGINS_DIR));
-        #endif
+#if defined(__APPLE__)
+	Directories.push_back(File::GetPluginsDirectory());
+#else
+	Directories.push_back(std::string(PLUGINS_DIR));
+#endif
 
 	CFileSearch::XStringVector Extensions;
-		Extensions.push_back("*" PLUGIN_SUFFIX);
+	Extensions.push_back("*" PLUGIN_SUFFIX);
 	// Get all DLL files in the plugins dir
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
-	
+
 	if (rFilenames.size() > 0)
 	{
 		for (size_t i = 0; i < rFilenames.size(); i++)
@@ -399,7 +390,7 @@ void CPluginManager::ScanForPlugins()
 				printf("Bad Path %s\n", rFilenames[i].c_str());
 				return;
 			}
-			
+
 			CPluginInfo PluginInfo(orig_name.c_str());
 			if (PluginInfo.IsValid())
 			{
@@ -424,16 +415,16 @@ void CPluginManager::ScanForPlugins()
 Common::PluginPAD *CPluginManager::GetPad(int controller)
 {
 	if (m_pad[controller] != NULL)
-		if (m_pad[controller]->GetFilename() == m_params.m_strPadPlugin[controller])
+		if (m_pad[controller]->GetFilename() == m_params->m_strPadPlugin[controller])
 			return m_pad[controller];
 	
 	// Else do this
 	if (OkayToInitPlugin(controller) == -1) {
-		m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str(), controller);
-		Console::Print("LoadPlugin: %i\n", controller);
+		m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str(), controller);
+		INFO_LOG(CONSOLE, "LoadPlugin: %i\n", controller);
 	}
 	else {
-		Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
+		INFO_LOG(CONSOLE, "Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
 		m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
 	}	
 	return m_pad[controller];
@@ -442,21 +433,21 @@ Common::PluginPAD *CPluginManager::GetPad(int controller)
 Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
 {
 	if (m_wiimote[controller] != NULL)
-		if (m_wiimote[controller]->GetFilename() == m_params.m_strWiimotePlugin[controller])
+		if (m_wiimote[controller]->GetFilename() == m_params->m_strWiimotePlugin[controller])
 			return m_wiimote[controller];
 	
 	// Else load a new plugin
-	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin(m_params.m_strWiimotePlugin[controller].c_str());
+	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin(m_params->m_strWiimotePlugin[controller].c_str());
 	return m_wiimote[controller];
 }
 
 Common::PluginDSP *CPluginManager::GetDSP()
 {
 	if (m_dsp != NULL)
-		if (m_dsp->GetFilename() == m_params.m_strDSPPlugin)
+		if (m_dsp->GetFilename() == m_params->m_strDSPPlugin)
 			return m_dsp;
 	// Else load a new plugin
-	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params.m_strDSPPlugin.c_str());
+	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params->m_strDSPPlugin.c_str());
 	return m_dsp;
 }
 
@@ -467,7 +458,7 @@ Common::PluginVideo *CPluginManager::GetVideo()
 	if (m_video != NULL)
 	{
 		// Check if the video plugin has been changed
-		if (m_video->GetFilename() == m_params.m_strVideoPlugin)
+		if (m_video->GetFilename() == m_params->m_strVideoPlugin)
 			return m_video;
 		// Then free the current video plugin, 
 		else
@@ -475,7 +466,7 @@ Common::PluginVideo *CPluginManager::GetVideo()
 	}
 
 	// and load a new plugin
-	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str());
+	m_video = (Common::PluginVideo*)LoadPlugin(m_params->m_strVideoPlugin.c_str());
 	return m_video;
 }
 

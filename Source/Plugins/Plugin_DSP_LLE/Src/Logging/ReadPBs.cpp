@@ -28,7 +28,6 @@
 #include "CommonTypes.h" // Pluginspecs
 
 #include "UCode_AXStructs.h" // For the AXParamBlock structure
-#include "ConsoleWindow.h" // For Console::Print, Console::ClearScreen
 
 
 u32 m_addressPBs = 0;
@@ -54,7 +53,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 
 	// reading and 'halfword' swap
 	n++;
-	if (n > 20 && logall) {Console::ClearScreen();}
+	//FIXME	if (n > 20 && logall) {Console::ClearScreen();}
 	for (int i = 0; i < _num; i++)
 	{
 		// ---------------------------------------------------------------------------------------
@@ -68,7 +67,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 			// Create a shortcut that let us update struct members
 			short * pDest = (short *) & _pPBs[i];
 			
-			if (n > 20 && logall) {Console::Print("%c%i:", 223, i);} // logging
+			if (n > 20 && logall) {DEBUG_LOG(DSPHLE, "%c%i:", 223, i);} // logging
 
 			// --------------
 			// Here we update the PB. We do it by going through all 192 / 2 = 96 u16 values
@@ -80,7 +79,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 				{
 					if (pSrc[p] != 0 && n > 20 && logall)
 					{
-						Console::Print("%i %04x | ", p, Common::swap16(pSrc[p]));
+						DEBUG_LOG(DSPHLE, "%i %04x | ", p, Common::swap16(pSrc[p]));
 					}	
 				}
 
@@ -88,7 +87,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 
 			}
 
-			if(n > 20 && logall) {Console::Print("\n");} // logging
+			if(n > 20 && logall) {DEBUG_LOG(DSPHLE, "\n");} // logging
 			// --------------
 			// Here we update the block address to the starting point of the next PB
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;

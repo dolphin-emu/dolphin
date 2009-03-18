@@ -31,8 +31,6 @@
 	#include <stdlib.h>
 #endif
 
-#include "ConsoleWindow.h" // Open and close console
-
 #include "Debugger.h"
 #include "PBView.h"
 #include "IniFile.h"
@@ -165,17 +163,11 @@ void CDebugger::OnClose(wxCloseEvent& /*event*/)
 	file.Save(DEBUGGER_CONFIG_FILE);
 
 	EndModal(0);
-#ifdef _WIN32
-	Console::Close(); // Take the console window with it
-#endif
 }
 
 void CDebugger::DoHide()
 {
 	Hide();
-#ifdef _WIN32
-	Console::Close(); // The console goes with the wx window
-#endif
 }
 
 void CDebugger::DoShow()
@@ -683,12 +675,13 @@ void CDebugger::ShowHideConsole(wxCommandEvent& event)
 
 void CDebugger::DoShowHideConsole()
 {
-#ifdef _WIN32
-	if(m_options->IsChecked(3))
-		OpenConsole();
-	else
-		CloseConsole();
-#endif
+// #ifdef _WIN32
+// 	if(m_options->IsChecked(3))
+// 		OpenConsole();
+// 	else
+// 		CloseConsole();
+// #endif
+	PanicAlert("oh crap");
 }
 // ==============
 

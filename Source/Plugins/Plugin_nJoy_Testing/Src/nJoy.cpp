@@ -41,9 +41,7 @@ CONTROLLER_STATE joystate[4];
 CONTROLLER_MAPPING joysticks[4];
 bool emulator_running = FALSE;
 
-// TODO: fix this dirty hack to stop missing symbols
-void __Log(int log, const char *format, ...) {}
-void __Logv(int log, int v, const char *format, ...) {}
+PLUGIN_GLOBALS* globals = NULL;
 
 // Handle to window
 HWND m_hWnd;
@@ -158,8 +156,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
 }
+
 
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

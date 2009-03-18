@@ -19,7 +19,6 @@
 #define __PADSIMPLE_H__  
 
 #include "Setup.h" // Common
-#include "ConsoleWindow.h"
 
 // Controls
 enum

@@ -41,7 +41,7 @@ void dsp_op_ext_r_epi(uint16 _Opcode)
 	switch (op)
 	{
 	    case 0x00:
-		    ErrorLog("dsp_op_ext_r_epi");
+		    ERROR_LOG(DSPHLE, "dsp_op_ext_r_epi");
 		    break;
 
 	    case 0x01:

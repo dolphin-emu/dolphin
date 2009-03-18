@@ -5,21 +5,21 @@ Import('env')
 if not env['HAVE_WX']:
     Return()
 
-files = ["LogWindow.cpp",
-         "BreakPointDlg.cpp",
-         "BreakpointView.cpp",
-         "CodeView.cpp",
-         "BreakpointWindow.cpp",
-         "CodeWindow.cpp",
-         "CodeWindowSJP.cpp",
-         "CodeView.cpp",
-         "MemoryCheckDlg.cpp",
-         "MemoryView.cpp",
-         "MemoryWindow.cpp",
-         "RegisterWindow.cpp",
-         "RegisterView.cpp",
-         "JitWindow.cpp",
-        ]
+files = [
+    "BreakPointDlg.cpp",
+    "BreakpointView.cpp",
+    "CodeView.cpp",
+    "BreakpointWindow.cpp",
+    "CodeWindow.cpp",
+    "CodeWindowSJP.cpp",
+    "CodeView.cpp",
+    "MemoryCheckDlg.cpp",
+    "MemoryView.cpp",
+    "MemoryWindow.cpp",
+    "RegisterWindow.cpp",
+    "RegisterView.cpp",
+    "JitWindow.cpp",
+    ]
 wxenv = env.Clone()
 wxenv.Append(
 	CPPDEFINES = [

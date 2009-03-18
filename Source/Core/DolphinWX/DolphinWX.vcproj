@@ -1052,6 +1052,14 @@
 				>
 			</File>
 			<File
+			   RelativePath=".\src\LogWindow.cpp"
+			   >
+			</File>
+			<File
+			   RelativePath=".\src\LogWindow.h"
+			   >
+			</File>
+			<File
 				RelativePath=".\src\GameListCtrl.cpp"
 				>
 			</File>

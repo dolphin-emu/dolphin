@@ -66,7 +66,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="rpcrt4.lib"
+				AdditionalDependencies="winmm.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -147,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Rpcrt4.lib"
+				AdditionalDependencies="winmm.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
@@ -225,6 +225,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="winmm.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -305,7 +306,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="rpcrt4.lib"
+				AdditionalDependencies="winmm.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
@@ -385,7 +386,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="rpcrt4.lib"
+				AdditionalDependencies="winmm.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -466,7 +467,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Rpcrt4.lib"
+				AdditionalDependencies="winmm.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"

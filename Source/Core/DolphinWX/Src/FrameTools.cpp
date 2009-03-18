@@ -44,11 +44,11 @@ be accessed from Core::GetWindowHandle().
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "SDCardWindow.h"
+#include "LogWindow.h"
 
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "ConsoleWindow.h"
 #include "Setup.h"
 
 #include "ConfigManager.h" // Core
@@ -153,9 +153,11 @@ void CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &Toolbar"));
-	toolsMenu->Check(IDM_TOGGLE_TOOLBAR, true);
+	toolsMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
 	toolsMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &Statusbar"));
-	toolsMenu->Check(IDM_TOGGLE_STATUSBAR, true);
+	toolsMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("View &Logwindow"));
+	toolsMenu->Check(IDM_TOGGLE_LOGWINDOW, m_bLogWindow);
 	toolsMenu->AppendSeparator();
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
@@ -350,7 +352,8 @@ void CFrame::InitBitmaps()
 	//////////////////////////
 
 	// Update in case the bitmap has been updated
-	if (GetToolBar() != NULL) RecreateToolbar();
+	if (GetToolBar() != NULL)
+		RecreateToolbar();
 }
 
 
@@ -733,7 +736,7 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
 
-	if (event.IsChecked())
+	if (SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked() == true)
 	{
 		CFrame::RecreateToolbar();
 	}
@@ -749,10 +752,21 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 // Let us enable and disable the status bar
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
-	if (event.IsChecked())
+	if (SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked() == true)
 		m_pStatusBar->Show();
 	else
 		m_pStatusBar->Hide();
+
+	this->SendSizeEvent();
+}
+
+// Let us enable and disable the log window
+void CFrame::OnToggleLogWindow(wxCommandEvent& event)
+{
+	if (SConfig::GetInstance().m_InterfaceLogWindow = event.IsChecked() == true)
+		m_LogWindow->Show();
+	else
+		m_LogWindow->Hide();
 
 	this->SendSizeEvent();
 }
@@ -815,7 +829,8 @@ void CFrame::UpdateGUI()
 		m_pMenuItemPlay->SetText(_("&Play"));
 		
 	}
-	if (GetToolBar() != NULL) GetToolBar()->Realize();
+	if (GetToolBar() != NULL)
+		GetToolBar()->Realize();
 
 
 	if (!initialized)

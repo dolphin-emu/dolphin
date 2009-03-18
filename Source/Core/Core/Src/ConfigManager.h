@@ -61,6 +61,11 @@ struct SConfig
 
 	// interface language
 	INTERFACE_LANGUAGE m_InterfaceLanguage;
+	// other interface settings
+	bool m_InterfaceToolbar;
+	bool m_InterfaceStatusbar;
+	bool m_InterfaceLogWindow;
+
 	// save settings
 	void SaveSettings();
 

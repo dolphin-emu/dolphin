@@ -265,7 +265,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 // Input button clicked
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-	//Console::Print("OnButtonClick: %i\n", g_Pressed);
+	//INFO_LOG(CONSOLE, "OnButtonClick: %i\n", g_Pressed);
 
 	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
@@ -391,7 +391,7 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 	// Then change it back to ""
 	ToBlank();
 
-	Console::Print("WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
+	INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
 }
 //////////////////////////////////////
 
@@ -1439,7 +1439,7 @@ void ConfigDialog::DoConnectReal()
 	}
 	else
 	{
-		Console::Print("Post Message: %i\n", g_RealWiiMoteInitialized);
+		INFO_LOG(CONSOLE, "Post Message: %i\n", g_RealWiiMoteInitialized);
 		if (g_RealWiiMoteInitialized)
 		{
 			WiiMoteReal::Shutdown();
@@ -1471,11 +1471,11 @@ void ConfigDialog::DoUseReal()
 	if (g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
 		UsingExtension = true;
 
-	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
 
 	UsingExtension = !UsingExtension;
-	Console::Print("\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
 
 	if(g_EmulatorRunning)
@@ -1650,7 +1650,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			if (m_RecordHotKeyNunchuck[i]->GetSelection() == m_RecordHotKeyNunchuck[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyNunchuck[i]->SetSelection(10);
 			if (m_RecordHotKeyIR[i]->GetSelection() == m_RecordHotKeyIR[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyIR[i]->SetSelection(10);
 			
-			//Console::Print("HotKey: %i %i\n",
+			//INFO_LOG(CONSOLE, "HotKey: %i %i\n",
 			//	m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
 		}
 		break;
@@ -1710,7 +1710,7 @@ void ConfigDialog::UpdateControls()
 // -------------
 void ConfigDialog::UpdateGUI(int Slot)
 {
-	//Console::Print("UpdateGUI: \n");
+	//INFO_LOG(CONSOLE, "UpdateGUI: \n");
 
 	// Update the gamepad settings
 	UpdateGUIButtonMapping(Page);

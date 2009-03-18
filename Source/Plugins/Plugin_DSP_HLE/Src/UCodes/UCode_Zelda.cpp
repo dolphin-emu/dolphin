@@ -34,7 +34,7 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 	, m_step(0)
 	, m_readOffset(0)
 {
-	DebugLog("UCode_Zelda - add boot mails for handshake");
+	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 	m_rMailHandler.PushMail(DSP_INIT);
 	m_rMailHandler.PushMail(0x80000000); // handshake
 	memset(m_Buffer, 0, sizeof(m_Buffer));
@@ -126,8 +126,8 @@ void CUCode_Zelda::ExecuteList()
 	u32 Command = (Temp >> 24) & 0x7f;
 	u32 Sync = Temp >> 16;
 
-	DebugLog("==============================================================================");
-	DebugLog("Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
+	DEBUG_LOG(DSPHLE, "==============================================================================");
+	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
 
 	switch (Command)
 	{
@@ -140,11 +140,11 @@ void CUCode_Zelda::ExecuteList()
 		    tmp[2] = Read32();
 		    tmp[3] = Read32();
 
-		    DebugLog("DsetupTable");
-		    DebugLog("???:                           0x%08x", tmp[0]);
-		    DebugLog("DSPRES_FILTER   (size: 0x40):  0x%08x", tmp[1]);
-		    DebugLog("DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
-		    DebugLog("???:                           0x%08x", tmp[3]);
+		    DEBUG_LOG(DSPHLE, "DsetupTable");
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", tmp[1]);
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[3]);
 	    }
 		    break;
 
@@ -159,14 +159,14 @@ void CUCode_Zelda::ExecuteList()
 			// We're ready to mix
 			mixer_HLEready = true;
 
-			DebugLog("Update the SoundThread to be in sync");
+			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			soundStream->Update(); //do it in this thread to avoid sync problems
 
 
-		    DebugLog("DsyncFrame");
-		    DebugLog("???:                           0x%08x", tmp[0]);
-		    DebugLog("???:                           0x%08x", tmp[1]);
-		    DebugLog("DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
+		    DEBUG_LOG(DSPHLE, "DsyncFrame");
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[1]);
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
 	    }
 		    break;
 
@@ -188,9 +188,9 @@ void CUCode_Zelda::ExecuteList()
 		    tmp[0] = Read32();
 		    tmp[1] = Read32();
 
-		    DebugLog("DSetDolbyDelay");
-		    DebugLog("DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp[0]);
-		    DebugLog("DSPRES_FILTER    (size 0x500): 0x%08x", tmp[1]);
+		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
+		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER    (size 0x500): 0x%08x", tmp[1]);
 	    }
 		    break;
 
