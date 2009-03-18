@@ -220,7 +220,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000800;
 
-		WARN_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
+		INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
 		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
 		SRR1 |= 0x02;  //recoverable
 	}
@@ -230,7 +230,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77;
 		NPC = 0x80000C00;
 
-		WARN_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+		INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
 		SRR1 |= 0x02;  //recoverable
 	}
@@ -240,7 +240,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x0780FF77; 
 		NPC = 0x80000300;
 
-		WARN_LOG(GEKKO, "EXCEPTION_DSI");
+		INFO_LOG(GEKKO, "EXCEPTION_DSI");
 		ppcState.Exceptions &= ~EXCEPTION_DSI;			
 		//SRR1 |= 0x02;  //make recoverable ?
 	}
@@ -278,7 +278,7 @@ void CheckExceptions()
 			NPC = 0x80000500;
 			SRR1 = (MSR & 0x0780FF77);
 			
-			WARN_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
+			INFO_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
 
 			SRR1 |= 0x02; //set it to recoverable
 			_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
@@ -291,7 +291,7 @@ void CheckExceptions()
 
 			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
 
-			WARN_LOG(GEKKO, "EXCEPTION_DECREMENTER");
+			INFO_LOG(GEKKO, "EXCEPTION_DECREMENTER");
 			SRR1 |= 0x02;  //make recoverable
 		}
 		else

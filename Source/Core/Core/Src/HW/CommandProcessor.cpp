@@ -344,7 +344,7 @@ bool AllowIdleSkipping()
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	WARN_LOG(COMMANDPROCESSOR, "(w): 0x%04x @ 0x%08x",_Value,_Address);
+	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
 
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data

@@ -572,13 +572,13 @@ void Update_ARAM_DMA()
 		return;
 	g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = false;
 
-	WARN_LOG(DSPINTERFACE, "ARAM DMA triggered");
+	INFO_LOG(DSPINTERFACE, "ARAM DMA triggered");
 
 	//TODO: speedup
 	if (g_arDMA.Cnt.dir)
 	{
 		//read from ARAM
-		WARN_LOG(DSPINTERFACE, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+		INFO_LOG(DSPINTERFACE, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
 		u32 iMemAddress = g_arDMA.MMAddr;
 		u32 iARAMAddress = g_arDMA.ARAddr;
 		
