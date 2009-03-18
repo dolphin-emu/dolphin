@@ -49,7 +49,8 @@ class CConfigMain
 		DECLARE_EVENT_TABLE();
 
 		wxBoxSizer* sGeneralPage; // General Settings
-		wxCheckBox* ConfirmStop, * AutoHideCursor, *HideCursor;
+		wxCheckBox* ConfirmStop, *AutoHideCursor;
+		wxCheckBox* HideCursor, *UsePanicHandlers;
 		wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
 		
 		wxArrayString arrayStringFor_InterfaceLang;
@@ -217,6 +218,7 @@ class CConfigMain
 			ID_ENABLECHEATS,
 
 			ID_INTERFACE_CONFIRMSTOP, // Interface settings
+			ID_INTERFACE_USEPANICHANDLERS,
 			ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
 			ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
 			ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,

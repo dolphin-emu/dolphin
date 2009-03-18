@@ -74,7 +74,7 @@ struct SCoreStartupParameter
 	bool bWidescreen, bProgressiveScan;
 
 	// Interface settings
-	bool bConfirmStop, bHideCursor, bAutoHideCursor;
+	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
 	int iTheme; 
 	
 	enum EBootBios

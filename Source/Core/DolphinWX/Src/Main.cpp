@@ -128,30 +128,18 @@ bool DolphinApp::OnInit()
 	#ifdef _WIN32
 		EXTENDEDTRACEINITIALIZE(".");
 		SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-
+	#endif
+		
 		// TODO: if First Boot
 		if (!cpu_info.bSSE2) 
 		{
-			MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+			PanicAlert("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 							 "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-							 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
+							 "Sayonara!\n");
 			return false;
 		}
-	#else
-		if (!cpu_info.bSSE2)
-		{
-			printf("%s", "Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-				   "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-				   "Sayonara!\n");
-			exit(0);
-		}
-	#endif
-	// ---------------
 
-
-	// ------------------------------------------
 	// Parse command lines
-	// ---------------
 	#if wxUSE_CMDLINE_PARSER
 		wxCmdLineEntryDesc cmdLineDesc[] =
 		{
@@ -221,17 +209,19 @@ bool DolphinApp::OnInit()
 		// ============
 	#endif
 
-	// Load CONFIG_FILE settings
+		// Load CONFIG_FILE settings
 		SConfig::GetInstance().LoadSettings();
+		
+		// Enable the PNG image handler
+		wxInitAllImageHandlers(); 
 
-	// Enable the PNG image handler
-	wxInitAllImageHandlers(); 
-
+		SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+		
 	// Create the window title
 	#ifdef _DEBUG
-			const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
+		const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
 	#else
-			const char *title = "Dolphin SVN R " SVN_REV_STR;
+		const char *title = "Dolphin SVN R " SVN_REV_STR;
 	#endif
 
 	// If we are debugging let use save the main window position and size

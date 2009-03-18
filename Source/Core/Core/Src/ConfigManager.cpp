@@ -68,6 +68,7 @@ void SConfig::SaveSettings()
 	{
 		// Interface		
 		ini.Set("Interface", "ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
+		ini.Set("Interface", "UsePanicHandlers", m_LocalCoreStartupParameter.bUsePanicHandlers);
 		ini.Set("Interface", "HideCursor", m_LocalCoreStartupParameter.bHideCursor);
 		ini.Set("Interface", "AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
 		ini.Set("Interface", "Theme", m_LocalCoreStartupParameter.iTheme);
@@ -168,6 +169,7 @@ void SConfig::LoadSettings()
 	{
 		// Interface
 		ini.Get("Interface", "ConfirmStop", &m_LocalCoreStartupParameter.bConfirmStop, false);
+		ini.Get("Interface", "UsePanicHandlers", &m_LocalCoreStartupParameter.bUsePanicHandlers, true);
 		ini.Get("Interface", "HideCursor", &m_LocalCoreStartupParameter.bHideCursor, false);
 		ini.Get("Interface", "AutoHideCursor", &m_LocalCoreStartupParameter.bAutoHideCursor, false);
 		ini.Get("Interface", "Theme", &m_LocalCoreStartupParameter.iTheme, 0);

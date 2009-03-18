@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Include and declarations
-// ¯¯¯¯¯¯¯¯¯
 #include <stdio.h> // System
 
 #include "Common.h" // Local
@@ -26,20 +23,22 @@
 
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
-/////////////////////////////
+static bool AlertEnabled = true;
 
-
-/* Select which of these functions that are used for message boxes. If wxWidgets is enabled
-   we will use wxMsgAlert() that is defined in main.cpp */
+/* Select which of these functions that are used for message boxes. If
+   wxWidgets is enabled we will use wxMsgAlert() that is defined in main.cpp */
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
 	msg_handler = handler;
 }
 
-/////////////////////////////////////////////////////////////
-/* This is the first stop for messages where the log is updated and the correct windows
-   is shown */
-// ¯¯¯¯¯¯¯¯¯
+// enable/disable the alert handler
+void SetEnableAlert(bool enable) {
+	AlertEnabled = enable;
+}
+
+/* This is the first stop for gui alerts where the log is updated and the
+   correct windows is shown */
 bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
 {
 	// ---------------------------------
@@ -54,17 +53,14 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	va_end(args);
 
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
-	// -----------
 
-	if (msg_handler) {
+	if (msg_handler && AlertEnabled) {
 		ret = msg_handler(caption, buffer, yes_no, Style);
 	}
 	return ret;
 }
 
-/////////////////////////////////////////////////////////////
-/* This is used in the No-GUI build */
-// ¯¯¯¯¯¯¯¯¯
+// Default non library depended panic alert
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style)
 {
 #ifdef _WIN32

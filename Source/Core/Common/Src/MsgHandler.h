@@ -29,6 +29,7 @@ typedef bool (*MsgAlertHandler)(const char* caption, const char* text,
                                 bool yes_no, int Style);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...);
+void SetEnableAlert(bool enable);
 
 #ifdef _WIN32
 	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
@@ -36,10 +37,10 @@ extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* fo
 	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, __VA_ARGS__) 
 	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, __VA_ARGS__) 
 #else
-	#define SuccessAlert(format, ...) MsgAlert("SUCCESS", false, INFORMATION, format, ##__VA_ARGS__) 
-	#define PanicAlert(format, ...) MsgAlert("PANIC", false, WARNING, format, ##__VA_ARGS__) 
-	#define PanicYesNo(format, ...) MsgAlert("PANIC", true, WARNING, format, ##__VA_ARGS__) 
-	#define AskYesNo(format, ...) MsgAlert("ASK", true, QUESTION, format, ##__VA_ARGS__) 
+	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, ##__VA_ARGS__) 
+	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, ##__VA_ARGS__) 
+	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, ##__VA_ARGS__) 
+	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, ##__VA_ARGS__) 
 #endif
 
 #endif //MSGHANDLER

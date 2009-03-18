@@ -26,7 +26,7 @@
 #include "LogWindow.h"
 #include "Console.h"
 
-#define UPDATETIME 1000
+#define UPDATETIME 100
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)

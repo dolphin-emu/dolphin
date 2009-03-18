@@ -1,6 +1,5 @@
 #include "LogManager.h"
 #include "Timer.h"
-#include "../../Core/Src/PowerPC/PowerPC.h" // Core
 
 LogManager *LogManager::m_logManager = NULL;
 

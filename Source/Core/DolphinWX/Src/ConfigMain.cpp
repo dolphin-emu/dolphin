@@ -38,6 +38,7 @@ EVT_CLOSE(CConfigMain::OnClose)
 EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
@@ -199,6 +200,11 @@ void CConfigMain::CreateGUIControls()
 	// Confirm on stop
 	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
+
+	// Use Panic Handlers
+	UsePanicHandlers = new wxCheckBox(GeneralPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UsePanicHandlers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+
 	// Hide Cursor
 	wxStaticText *HideCursorText = new wxStaticText(GeneralPage, ID_INTERFACE_HIDECURSOR_TEXT, wxT("Hide Cursor:"), wxDefaultPosition, wxDefaultSize);
 	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto"));
@@ -234,6 +240,7 @@ void CConfigMain::CreateGUIControls()
 	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,"
 		"\nwhich can be more accurate, but is MUCH slower"));
 	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
+	UsePanicHandlers->SetToolTip(wxT("Show Panic Alerts Popups"));
 	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
 	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window."
 		"\nIt can be convenient in a Wii game that already has a cursor."));
@@ -265,6 +272,7 @@ void CConfigMain::CreateGUIControls()
 
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
+	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	wxBoxSizer *sHideCursor = new wxBoxSizer(wxHORIZONTAL);
 	sHideCursor->Add(HideCursorText);
 	sHideCursor->Add(AutoHideCursor, 0, wxLEFT, 5);
@@ -569,6 +577,10 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_INTERFACE_CONFIRMSTOP: // Interface
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
+		break;
+	case ID_INTERFACE_USEPANICHANDLERS: // Interface
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
+		SetEnableAlert(UsePanicHandlers->IsChecked());
 		break;
 	case ID_INTERFACE_AUTOHIDECURSOR:
 		if (AutoHideCursor->IsChecked()) HideCursor->SetValue(!AutoHideCursor->IsChecked()); // Update the other one
