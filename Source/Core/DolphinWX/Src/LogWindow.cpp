@@ -26,10 +26,11 @@
 #include "LogWindow.h"
 #include "Console.h"
 
+// milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 100
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
-	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
+	EVT_TEXT_ENTER(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
 	EVT_BUTTON(IDM_TOGGLEALL, CLogWindow::OnToggleAll)
 	EVT_RADIOBOX(IDM_VERBOSITY, CLogWindow::OnOptionsCheck)
@@ -90,14 +91,14 @@ void CLogWindow::CreateGUIControls()
 
 	// Right side: Log viewer and submit row
 	m_log = new wxTextCtrl(this, IDM_LOG, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-		wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+		wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 	//m_log->SetFont(DebuggerFont);
 
-	m_cmdline = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition);
+	m_cmdline = new wxTextCtrl(this, IDM_SUBMITCMD, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+		wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB);
 	//m_cmdline->SetFont(DebuggerFont);
 
 	sRightBottom->Add(m_cmdline, 1, wxEXPAND);
-	sRightBottom->Add(new wxButton(this, IDM_SUBMITCMD, wxT("Submit"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
 	sRight->Add(m_log, 1, wxEXPAND | wxSHRINK);
 	sRight->Add(sRightBottom, 0, wxEXPAND);
 
@@ -340,7 +341,29 @@ void CLogWindow::UpdateLog()
 	m_logTimer->Stop();
 	for (unsigned int i = 0; i < msgQueue.size(); i++)
 	{
-		m_log->AppendText(msgQueue.front());
+		switch (msgQueue.front().first)
+		{
+			// AGGH why is this not working
+		case ERROR_LEVEL: // red
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 0, 0), wxColour(0, 0, 0)));
+			break;
+		case WARNING_LEVEL: // yellow
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0), wxColour(0, 0, 0)));
+			break;
+		case NOTICE_LEVEL: // green
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(0, 255, 0), wxColour(0, 0, 0)));
+			break;
+		case INFO_LEVEL: // cyan
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(0, 255, 255), wxColour(0, 0, 0)));
+			break;
+		case DEBUG_LEVEL: // light gray
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(211, 211, 211), wxColour(0, 0, 0)));
+			break;
+		default: // white
+			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 255), wxColour(0, 0, 0)));
+			break;
+		}
+		m_log->AppendText(msgQueue.front().second);
 		msgQueue.pop();
 	}
 	m_logTimer->Start(UPDATETIME);
@@ -353,5 +376,5 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(wxString::FromAscii(text));
+	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString::FromAscii(text)));
 }

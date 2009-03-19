@@ -32,7 +32,7 @@ enum
     IDM_WRITECONSOLE,
 	IDTM_UPDATELOG,
 	IDM_VERBOSITY,
-    IDM_SUBMITCMD = 300,
+    IDM_SUBMITCMD
 };
 
 class wxTextCtrl;
@@ -60,7 +60,7 @@ private:
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;
 	LogManager *m_logManager;
-	std::queue<wxString> msgQueue;
+	std::queue<std::pair<u8, wxString>> msgQueue;
 
 	DECLARE_EVENT_TABLE()
 
