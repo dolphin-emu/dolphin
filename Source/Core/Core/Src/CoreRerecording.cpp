@@ -31,7 +31,6 @@
 
 #include "Timer.h"
 #include "Common.h"
-#include "ConsoleWindow.h"
 
 #include "Console.h"
 #include "Core.h"
