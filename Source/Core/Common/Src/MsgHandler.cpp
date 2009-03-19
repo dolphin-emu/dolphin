@@ -45,7 +45,7 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	// Read message and write it to the log
 	// -----------
 	char buffer[2048];
-	bool ret = false;
+	bool ret = true;
 
 	va_list args;
 	va_start(args, format);
