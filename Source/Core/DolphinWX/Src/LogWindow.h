@@ -60,7 +60,7 @@ private:
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;
 	LogManager *m_logManager;
-	std::queue<std::pair<u8, wxString>> msgQueue;
+	std::queue<std::pair<u8, wxString> > msgQueue;
 
 	DECLARE_EVENT_TABLE()
 
