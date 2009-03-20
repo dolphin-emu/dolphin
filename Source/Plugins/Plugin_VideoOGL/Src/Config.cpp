@@ -19,7 +19,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
-#include "ConfigManager.h"
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 Config g_Config;
 
@@ -94,7 +94,7 @@ void Config::GameIniLoad() {
 	if (iniFile->Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile->Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 
-	if (iniFile->Exists("Video", "ProjectionHax1"))
+	if (iniFile->Exists("Video", "ProjectionHax1")) 
 		iniFile->Get("Video", "ProjectionHax1", &bProjectionHax1, 0);
 
 	if (iniFile->Exists("Video", "EFBToTextureEnable"))

@@ -66,7 +66,7 @@ Section::Section(const Section& other)
 const Section* IniFile::GetSection(const char* sectionName) const
 {
 	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
-		if (!strcmp(iter->name.c_str(), sectionName))
+		if (!strcasecmp(iter->name.c_str(), sectionName))
 			return (&(*iter));
 	return 0;
 }
