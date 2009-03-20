@@ -99,6 +99,19 @@ void Config::GameIniLoad() {
 
 	if (iniFile->Exists("Video", "EFBToTextureEnable"))
 		iniFile->Get("Video", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
+
+	if (iniFile->Exists("Video", "SafeTextureCache"))
+		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
+
+	if (iniFile->Exists("Video", "MSAA"))
+		iniFile->Get("Video", "MSAA", &iMultisampleMode, 0);
+
+	if (iniFile->Exists("Video", "DstAlphaPass"))
+		iniFile->Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
+	
+	if (iniFile->Exists("Video", "UseXFB"))
+		iniFile->Get("Settings", "UseXFB", &bUseXFB, 0);
+
 }
 
 void Config::Save()
