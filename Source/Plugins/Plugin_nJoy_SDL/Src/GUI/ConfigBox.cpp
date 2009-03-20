@@ -363,7 +363,7 @@ void ConfigBox::ToBlank(bool ToBlank)
 		{
 			for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
 				#ifndef _WIN32
-					if(!strcmp(GetButtonText(i, j), "-1")) SetButtonText(i, "", j);
+					if(!strcmp(GetButtonText(i, j).ToAscii(), "-1")) SetButtonText(i, "", j);
 				#else
 					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
 				#endif
