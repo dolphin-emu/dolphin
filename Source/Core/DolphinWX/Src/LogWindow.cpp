@@ -46,6 +46,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	: wxDialog(parent, wxID_ANY, wxT("Log/Console"), 
 			   wxPoint(100, 700), wxSize(800, 270),
 			   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    , m_logSection(1)
 {
 	m_logManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -210,9 +211,11 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 {
 	m_log->Clear();
 
+	m_logSection.Enter();
 	//msgQueue.Clear()
 	for (unsigned int i = 0; i < msgQueue.size(); i++) 
 		msgQueue.pop();
+	m_logSection.Leave();
 
 	m_console->ClearScreen();
 	NOTICE_LOG(CONSOLE, "Console cleared");
@@ -376,6 +379,8 @@ void CLogWindow::UpdateLog()
 	m_logTimer->Stop();
 	wxString collected_text;
 	// rough estimate.
+	m_logSection.Enter();
+
 	collected_text.reserve(100 * msgQueue.size());
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
@@ -414,6 +419,8 @@ void CLogWindow::UpdateLog()
 		collected_text.Append(msgQueue.front().second);
 		msgQueue.pop();
 	}
+	m_logSection.Leave();
+
 	if (collected_text.size()) {
 		m_log->AppendText(collected_text);
 	}
@@ -422,7 +429,9 @@ void CLogWindow::UpdateLog()
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
+	m_logSection.Enter();
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
 	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString::FromAscii(text)));
+	m_logSection.Leave();
 }

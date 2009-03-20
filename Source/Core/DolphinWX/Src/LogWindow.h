@@ -20,6 +20,7 @@
 #include "Main.h" // for wxGetApp
 #include "LogManager.h"
 #include "IniFile.h"
+#include "Thread.h"
 #include <queue>
 
 enum
@@ -64,6 +65,8 @@ private:
 	ConsoleListener *m_console;
 	LogManager *m_logManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
+
+	Common::CriticalSection m_logSection;
 
 	DECLARE_EVENT_TABLE()
 
