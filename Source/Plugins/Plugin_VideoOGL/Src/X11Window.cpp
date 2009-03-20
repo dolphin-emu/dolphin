@@ -41,11 +41,11 @@ X11Window::X11Window() : GLWindow() {
         ERROR_LOG("Only Singlebuffered Visual!\n");
     } else {
         doubleBuffered = True;
-        ERROR_LOG("Got Doublebuffered Visual!\n");
+        NOTICE_LOG("Got Doublebuffered Visual!\n");
     }
     
     glXQueryVersion(dpy, &glxMajorVersion, &glxMinorVersion);
-    ERROR_LOG("glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
+    NOTICE_LOG("glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
     /* create a GLX context */
     ctx = glXCreateContext(dpy, vi, 0, GL_TRUE);
     if(!ctx) {
@@ -72,7 +72,7 @@ X11Window::X11Window() : GLWindow() {
 	
         // set best mode to current
         bestMode = 0;
-        ERROR_LOG("XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion, vidModeMinorVersion);
+        NOTICE_LOG("XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion, vidModeMinorVersion);
         XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
         
         if (modeNum > 0 && modes != NULL) {
@@ -90,7 +90,7 @@ X11Window::X11Window() : GLWindow() {
             XF86VidModeSetViewPort(dpy, screen, 0, 0);
             dpyWidth = modes[bestMode]->hdisplay;
             dpyHeight = modes[bestMode]->vdisplay;
-            ERROR_LOG("Resolution %dx%d\n", dpyWidth, dpyHeight);
+            NOTICE_LOG("Resolution %dx%d\n", dpyWidth, dpyHeight);
             XFree(modes);
             
             /* create a fullscreen window */
@@ -264,11 +264,11 @@ bool X11Window::MakeCurrent() {
     XGetGeometry(dpy, win, &winDummy, &x, &y,
                  &w, &h, &borderDummy, &depth);
 
-    ERROR_LOG("GLWin Depth %d", depth);
+    NOTICE_LOG("GLWin Depth %d", depth);
     if (glXIsDirect(dpy, ctx)) {
         ERROR_LOG("you have Direct Rendering!");
     } else {
-        ERROR_LOG("no Direct Rendering possible!");
+        NOTICE_LOG("no Direct Rendering possible!");
 	}
 
     // better for pad plugin key input (thc)

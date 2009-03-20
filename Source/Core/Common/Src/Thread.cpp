@@ -17,6 +17,7 @@
 
 #include "Setup.h"
 #include "Thread.h"
+#include "Log.h"
 // -----------------------------------------
 #ifdef SETUP_TIMER_WAITING
 // -----------------
@@ -25,8 +26,6 @@
 	EventCallBack FunctionPointer[10];
 #endif
 // ------------------------
-
-#define THREAD_DEBUG 1
 
 namespace Common
 {
@@ -373,7 +372,7 @@ CriticalSection::~CriticalSection()
 void CriticalSection::Enter()
 {
 	int ret = pthread_mutex_lock(&mutex);
-	if (ret) fprintf(stderr, "%s: pthread_mutex_lock(%p) failed: %s\n", 
+	if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_lock(%p) failed: %s\n", 
 					__FUNCTION__, &mutex, strerror(ret));
 }
 
@@ -387,7 +386,7 @@ bool CriticalSection::TryEnter()
 void CriticalSection::Leave()
 {
 	int ret = pthread_mutex_unlock(&mutex);
-	if (ret) fprintf(stderr, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
+	if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
 					__FUNCTION__, &mutex, strerror(ret));
 }
 
@@ -399,12 +398,10 @@ Thread::Thread(ThreadFunc function, void* arg)
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 1024 * 1024);
 	int ret = pthread_create(&thread_id, &attr, function, arg);
-	if (ret) fprintf(stderr, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
+	if (ret) ERROR_LOG(COMMON, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
 		__FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
 	
-#ifdef THREAD_DEBUG
-	fprintf(stderr, "created new thread %lu (func=%p, arg=%p)\n", thread_id, function, arg);
-#endif	
+	INFO_LOG(COMMON, "created new thread %lu (func=%p, arg=%p)\n", thread_id, function, arg);
 }
 
 
@@ -420,9 +417,9 @@ void Thread::WaitForDeath()
 	{
 		void* exit_status;
 		int ret = pthread_join(thread_id, &exit_status);
-		if (ret) fprintf(stderr, "error joining thread %lu: %s\n", thread_id, strerror(ret));
+		if (ret) ERROR_LOG(COMMON, "error joining thread %lu: %s\n", thread_id, strerror(ret));
         if (exit_status)
-                  fprintf(stderr, "thread %lu exited with status %d\n", thread_id, *(int *)exit_status);
+			ERROR_LOG(COMMON, "thread %lu exited with status %d\n", thread_id, *(int *)exit_status);
 		thread_id = 0;
 	}
 }
@@ -480,9 +477,7 @@ void SleepCurrentThread(int ms)
 void SetCurrentThreadName(const TCHAR* szThreadName)
 {
 	pthread_setspecific(threadname_key, strdup(szThreadName));
-#ifdef THREAD_DEBUG
-	fprintf(stderr, "%s(%s)\n", __FUNCTION__, szThreadName);
-#endif
+	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
 }
 
 

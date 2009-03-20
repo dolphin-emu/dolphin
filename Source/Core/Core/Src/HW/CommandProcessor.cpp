@@ -377,13 +377,13 @@ void Write16(const u16 _Value, const u32 _Address)
 				" - Anyway, fifo flush will be forced if you press OK and dolphin might continue to work...\n"
 				" - We aren't betting on that :)", fifo.CPReadWriteDistance);
                         */
-			WARN_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
+			DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			u32 ct=0;
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 )
 				ct++;
-			if (ct) {WARN_LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
+			if (ct) {INFO_LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
 		}
 	}
 

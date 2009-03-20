@@ -336,22 +336,22 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     };
     
     if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
-        MessageBox(NULL,"(1) Can't Create A GL Device Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		PanicAlert("(1) Can't Create A GL Device Context.");
         return false;
     }
     
     if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
-        MessageBox(NULL,"(2) Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+        PanicAlert("(2) Can't Find A Suitable PixelFormat.");
         return false;
     }
 
     if (!SetPixelFormat(hDC,PixelFormat,&pfd)) {
-        MessageBox(NULL,"(3) Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		PanicAlert("(3) Can't Set The PixelFormat.");
         return false;
     }
 
     if (!(hRC = wglCreateContext(hDC))) {
-        MessageBox(NULL,"(4) Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		PanicAlert("(4) Can't Create A GL Rendering Context.");
         return false;
     }
 	// --------------------------------------
@@ -395,16 +395,16 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else {
         GLWin.doubleBuffered = True;
-        ERROR_LOG(VIDEO, "Got Doublebuffered Visual!\n");
+        NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!\n");
     }
 
     glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
-    ERROR_LOG(VIDEO, "glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
+    NOTICE_LOG(VIDEO, "glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
     /* create a GLX context */
     GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
     if(!GLWin.ctx)
     {
-        ERROR_LOG(VIDEO, "Couldn't Create GLX context.Quit");
+        PanicAlert("Couldn't Create GLX context.Quit");
         exit(0); // TODO: Don't bring down entire Emu
     }
     /* create a color map */
@@ -426,7 +426,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
         // set best mode to current
         bestMode = 0;
-        ERROR_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion, vidModeMinorVersion);
+        NOTICE_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion, vidModeMinorVersion);
         XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
         
         if (modeNum > 0 && modes != NULL) {
@@ -443,7 +443,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
             dpyWidth = modes[bestMode]->hdisplay;
             dpyHeight = modes[bestMode]->vdisplay;
-            ERROR_LOG(VIDEO, "Resolution %dx%d\n", dpyWidth, dpyHeight);
+            NOTICE_LOG(VIDEO, "Resolution %dx%d\n", dpyWidth, dpyHeight);
             XFree(modes);
             
             /* create a fullscreen window */
@@ -528,7 +528,7 @@ bool OpenGL_MakeCurrent()
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
-        MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+        PanicAlert("(5) Can't Activate The GL Rendering Context.");
         return false;
     }
 #elif defined(USE_WX) && USE_WX
@@ -541,9 +541,9 @@ bool OpenGL_MakeCurrent()
     glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
     XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
                  &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-    ERROR_LOG(VIDEO, "GLWin Depth %d", GLWin.depth)
+    NOTICE_LOG(VIDEO, "GLWin Depth %d", GLWin.depth)
         if (glXIsDirect(GLWin.dpy, GLWin.ctx)) {
-            ERROR_LOG(VIDEO, "you have Direct Rendering!");
+            NOTICE_LOG(VIDEO, "detected direct rendering");
         } else {
          ERROR_LOG(VIDEO, "no Direct Rendering possible!");
         }
@@ -708,7 +708,7 @@ void OpenGL_Shutdown()
 
         if (!wglDeleteContext(hRC))                     // Are We Able To Delete The RC?
         {
-            MessageBox(NULL,"Release Rendering Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+            ERROR_LOG(VIDEO, "Release Rendering Context Failed.");
         }
         hRC = NULL;                                       // Set RC To NULL
     }
@@ -716,7 +716,7 @@ void OpenGL_Shutdown()
     if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
     {
 		#ifndef SETUP_TIMER_WAITING // This fails
-        MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+        ERROR_LOG(VIDEO, "Release Device Context Failed.");
 		#endif
         hDC = NULL;                                       // Set DC To NULL
     }

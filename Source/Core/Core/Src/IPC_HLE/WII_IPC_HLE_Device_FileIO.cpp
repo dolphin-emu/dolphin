@@ -109,7 +109,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     }
     else
     {
-        ERROR_LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
+        ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s - File doesn't exist", m_Filename.c_str());
         ReturnValue = -106;
     }
 
@@ -155,10 +155,9 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			// What should we return for Zelda, the new correct or old incorrect seek position?
 		    ReturnValue = SeekPosition;
         } else {
-            ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
+            ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed - %s", GetDeviceName().c_str());
         }
 	} else {
-		ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_FileIO unsupported seek mode %i", Mode);
 		PanicAlert("CWII_IPC_HLE_Device_FileIO unsupported seek mode %i", Mode);
 	}
 
@@ -241,7 +240,6 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
     default:
         {
-			ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_FileIO: Parameter %i", Parameter);
             PanicAlert("CWII_IPC_HLE_Device_FileIO: Parameter %i", Parameter);
         }
         break;

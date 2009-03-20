@@ -63,7 +63,7 @@ void PixelShaderCache::Init()
 	int maxinst, maxattribs;
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);
-	ERROR_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d\n", s_nMaxPixelInstructions, maxinst, maxattribs);
+	INFO_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d\n", s_nMaxPixelInstructions, maxinst, maxattribs);
 	
 	char pmatrixprog[1024];
 	sprintf(pmatrixprog, "!!ARBfp1.0"

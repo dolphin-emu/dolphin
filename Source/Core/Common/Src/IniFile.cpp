@@ -74,7 +74,7 @@ const Section* IniFile::GetSection(const char* sectionName) const
 Section* IniFile::GetSection(const char* sectionName)
 {
 	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
-		if (!strcmp(iter->name.c_str(), sectionName))
+		if (!strcasecmp(iter->name.c_str(), sectionName))
 			return (&(*iter));
 	return 0;
 }
@@ -171,10 +171,10 @@ std::string* IniFile::GetLine(Section* section, const char* key, std::string* va
 	return 0;
 }
 
-bool IniFile::Exists(const char* sectionName, const char* key)
+bool IniFile::Exists(const char* const sectionName, const char* key) const
 {
 
-	const Section* section = GetSection(sectionName);
+	const Section* const section = GetSection(sectionName);
 	if (!section)
 		return false;
 

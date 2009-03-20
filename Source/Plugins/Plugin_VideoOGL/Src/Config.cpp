@@ -82,6 +82,9 @@ void Config::Load()
 
 void Config::GameIniLoad() {
 	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	if (! iniFile) 
+		return;
+	
 	if (iniFile->Exists("Video", "ForceFiltering"))
 		iniFile->Get("Video", "ForceFiltering", &bForceFiltering, 0);
 
