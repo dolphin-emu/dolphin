@@ -171,6 +171,27 @@ std::string* IniFile::GetLine(Section* section, const char* key, std::string* va
 	return 0;
 }
 
+bool IniFile::Exists(const char* sectionName, const char* key)
+{
+
+	const Section* section = GetSection(sectionName);
+	if (!section)
+		return false;
+
+	for (std::vector<std::string>::const_iterator iter = section->lines.begin(); iter != section->lines.end(); ++iter)
+	{
+		std::string lineKey;
+		ParseLine(*iter, &lineKey, NULL, NULL);
+
+		if (!strcasecmp(lineKey.c_str(), key))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void IniFile::SetLines(const char* sectionName, const std::vector<std::string> &lines)
 {
 	Section* section = GetOrCreateSection(sectionName);

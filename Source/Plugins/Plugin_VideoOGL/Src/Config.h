@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _PLUGIN_VIDEOOGL_CONFIG_H
+#define _PLUGIN_VIDEOOGL_CONFIG_H
 
 #include "Common.h"
 
@@ -43,6 +43,7 @@ struct Config
 {
     Config();
     void Load();
+	void GameIniLoad();
     void Save();
 
     // General
@@ -104,4 +105,4 @@ private:
 
 extern Config g_Config;
 
-#endif  // _CONFIG_H
+#endif  // _PLUGIN_VIDEOOGL_CONFIG_H

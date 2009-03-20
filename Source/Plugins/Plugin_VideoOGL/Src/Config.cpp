@@ -19,6 +19,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
+#include "ConfigManager.h"
 
 Config g_Config;
 
@@ -79,6 +80,27 @@ void Config::Load()
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 }
 
+void Config::GameIniLoad() {
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	if (iniFile->Exists("Video", "ForceFiltering"))
+		iniFile->Get("Video", "ForceFiltering", &bForceFiltering, 0);
+
+	if (iniFile->Exists("Video", "MaxAnisotropy"))
+		iniFile->Get("Video", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
+    
+	if (iniFile->Exists("Video", "EFBCopyDisable"))
+		iniFile->Get("Video", "EFBCopyDisable", &bEFBCopyDisable, 0);
+
+	if (iniFile->Exists("Video", "EFBCopyDisableHotKey"))
+		iniFile->Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
+
+	if (iniFile->Exists("Video", "ProjectionHax1"))
+		iniFile->Get("Video", "ProjectionHax1", &bProjectionHax1, 0);
+
+	if (iniFile->Exists("Video", "EFBToTextureEnable"))
+		iniFile->Get("Video", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
+}
+
 void Config::Save()
 {
     IniFile iniFile;
@@ -125,3 +147,4 @@ void Config::Save()
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }
+

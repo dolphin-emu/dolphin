@@ -57,6 +57,9 @@ public:
 
 	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
 
+	// Returns true if exists key in section
+	bool Exists(const char* sectionName, const char* key);
+
 	// getter should be const
 	bool Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue = "");
 	bool Get(const char* sectionName, const char* key, int* value, int defaultValue = 0);

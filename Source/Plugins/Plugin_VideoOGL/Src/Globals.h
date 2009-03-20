@@ -23,11 +23,9 @@
 
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"
+#include "ConfigManager.h"
 
 // A global plugin specification
 extern PLUGIN_GLOBALS* globals;
-
-//void OpenConsole();
-//void CloseConsole();
 
 #endif // _GLOBALS_H

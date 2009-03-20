@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _PLUGIN_WIIMOTE_CONFIG_H
+#define _PLUGIN_WIIMOTE_CONFIG_H
 
 
 struct Config
@@ -91,4 +91,4 @@ struct Config
 
 extern Config g_Config;
 
-#endif  // _CONFIG_H
+#endif  // _PLUGIN_WIIMOTE_CONFIG_H

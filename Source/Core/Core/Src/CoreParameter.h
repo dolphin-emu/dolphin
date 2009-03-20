@@ -22,6 +22,7 @@
 #include <windows.h>
 #endif
 
+#include "IniFile.h"
 #include <string>
 
 #define MAXPADS 4
@@ -35,6 +36,9 @@ struct SCoreStartupParameter
 
 	// Windows/GUI related
 	void* hMainWindow;
+
+	// game ini
+	IniFile *gameIni;
 
 	// Settings
 	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;

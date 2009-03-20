@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _PLUGIN_DSP_HLE_CONFIG_H
+#define _PLUGIN_DSP_HLE_CONFIG_H
 
 #include <string>
 
@@ -36,5 +36,5 @@ struct CConfig
 
 extern CConfig g_Config;
 
-#endif
+#endif // _PLUGIN_DSP_HLE_CONFIG_H
 

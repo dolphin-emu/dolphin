@@ -122,17 +122,19 @@ bool BootCore(const std::string& _rFilename)
 	// ====================================================
 	// Load game specific settings
 	// ----------------
-	IniFile ini;
+	// Released when you LoadDefaults
+	IniFile *ini = new IniFile();
 	std::string unique_id = StartUp.GetUniqueID();
-	if (unique_id.size() == 6 && ini.Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
+	if (unique_id.size() == 6 && ini->Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
 	{
+		StartUp.gameIni = ini;
 		// ------------------------------------------------
 		// General settings
 		// ----------------
-		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
-		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
-		ini.Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
+		ini->Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
+		ini->Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		ini->Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+		ini->Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
 
 		// ------------------------------------------------
 		// Wii settings
@@ -144,8 +146,8 @@ bool BootCore(const std::string& _rFilename)
 			u16 IPL_PGS = 0x17CC; // progressive scan
 			u16 IPL_AR = 0x04D9; // widescreen
 
-			ini.Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
-			ini.Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
+			ini->Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
+			ini->Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
 
 			// Save the update Wii SYSCONF settings
 			pStream = NULL;
@@ -164,6 +166,9 @@ bool BootCore(const std::string& _rFilename)
 			}
 		}
 		// ---------------
+	} else {
+		delete ini;
+		ini = NULL;
 	}
 	// =====================
 

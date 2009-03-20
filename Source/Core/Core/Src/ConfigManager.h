@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _CONFIGMANAGER_H
+#define _CONFIGMANAGER_H
 
 #include <string>
 #include <vector>
@@ -88,4 +88,4 @@ struct SConfig
 		static SConfig m_Instance;
 };
 
-#endif
+#endif // endif config manager
