@@ -173,7 +173,7 @@ void CDebugger::DoHide()
 void CDebugger::DoShow()
 {
 	Show();
-	DoShowHideConsole(); // The console goes with the wx window
+	DoShowConsole(); // The console goes with the wx window
 }
 
 void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
@@ -219,7 +219,7 @@ void CDebugger::Load(IniFile& _IniFile)
 	bool Console;
 	_IniFile.Get("SoundWindow", "Console", &Console, m_options->IsChecked(3));
 	m_options->Check(3, Console);
-	DoShowHideConsole();
+	DoShowConsole();
 
 	// Show number base
 	_IniFile.Get("SoundWindow", "ShowBase", &bShowBase, !m_RadioBox[0]->GetSelection());
@@ -560,12 +560,9 @@ SetTitle(wxT("Sound Debugging"));
 	NotifyUpdate();
 	// --------------------------------------------------------------------
 }
-/////////////////////////////
-
 
 // =======================================================================================
 // Settings
-// --------------
 void CDebugger::OnSettingsCheck(wxCommandEvent& event)
 {
 	gSSBM = m_settings->IsChecked(0);
@@ -576,12 +573,9 @@ void CDebugger::OnSettingsCheck(wxCommandEvent& event)
 	gReset = m_settings->IsChecked(5);
 
 }
-// =======================================================================================
-
 
 // =======================================================================================
 // Change preset
-// --------------
 void CDebugger::ChangePreset(wxCommandEvent& event)
 {
 	DoChangePreset();
@@ -598,12 +592,9 @@ void CDebugger::DoChangePreset()
 	else if(m_RadioBox[2]->GetSelection() == 3)
 		gPreset = 3;
 }
-// ==============
-
 
 // =======================================================================================
 // Show base
-// --------------
 void CDebugger::ShowBase(wxCommandEvent& event)
 {
 	if(m_RadioBox[0]->GetSelection() == 0)
@@ -611,12 +602,9 @@ void CDebugger::ShowBase(wxCommandEvent& event)
 	else if(m_RadioBox[0]->GetSelection() == 1)
 		bShowBase = false;
 }
-// ==============
-
 
 // =======================================================================================
 // Change update frequency
-// --------------
 void CDebugger::ChangeFrequency(wxCommandEvent& event)
 {
 	DoChangeFrequency();
@@ -633,12 +621,9 @@ void CDebugger::DoChangeFrequency()
 	else if(m_RadioBox[1]->GetSelection() == 3)
 		gUpdFreq = 30;
 }
-// ==============
-
 
 // =======================================================================================
 // Options
-// --------------
 void CDebugger::OnOptions(wxCommandEvent& event)
 {
 	gSaveFile = m_options->IsChecked(0);
@@ -646,7 +631,7 @@ void CDebugger::OnOptions(wxCommandEvent& event)
 	gShowAll = m_options->IsChecked(2);
 	gSaveFile = m_options->IsChecked(3);
 
-	if(event.GetInt() == 3) DoShowHideConsole();
+	if(event.GetInt() == 3) DoShowConsole();
 }
 
 void CDebugger::OnShowAll(wxCommandEvent& event)
@@ -667,24 +652,17 @@ void CDebugger::OnShowAll(wxCommandEvent& event)
 
 // =======================================================================================
 // Show or hide console window
-// --------------
 void CDebugger::ShowHideConsole(wxCommandEvent& event)
 {
-	DoShowHideConsole();
+	DoShowConsole();
 }
 
-void CDebugger::DoShowHideConsole()
+void CDebugger::DoShowConsole()
 {
-// #ifdef _WIN32
-// 	if(m_options->IsChecked(3))
-// 		OpenConsole();
-// 	else
-// 		CloseConsole();
-// #endif
-	PanicAlert("oh crap");
+	ConsoleListener* console = LogManager::GetInstance()->getConsoleListener();
+	if(m_options->IsChecked(3) && !console->IsOpen())
+		console->Open();
 }
-// ==============
-
 
 void CDebugger::NotifyUpdate()
 {
@@ -693,4 +671,3 @@ void CDebugger::NotifyUpdate()
 		m_GPRListView->Update();
 	}
 }
-

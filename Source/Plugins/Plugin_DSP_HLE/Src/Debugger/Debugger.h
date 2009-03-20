@@ -76,7 +76,7 @@ class CDebugger : public wxDialog
 
 		void ShowHideConsole(wxCommandEvent& event); // options
 		void ShowBase(wxCommandEvent& event);
-		void DoShowHideConsole();
+		void DoShowConsole();
 		//void OnlyLooping(wxCommandEvent& event);
 		void OnOptions(wxCommandEvent& event);
 		void OnShowAll(wxCommandEvent& event);

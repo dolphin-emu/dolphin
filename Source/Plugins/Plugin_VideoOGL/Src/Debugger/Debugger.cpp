@@ -42,7 +42,7 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	CreateGUIControls();
 
 	LoadSettings();
-	DoShowHideConsole();
+	DoShowConsole();
 }
 
 CDebugger::~CDebugger()
@@ -56,21 +56,15 @@ void CDebugger::OnClose(wxCloseEvent& event)
 	SaveSettings();
 
 	event.Skip(); // This means wxDialog's Destroy is used
-	//	CloseConsole(); // The console goes with the wx window
 }
 
-void CDebugger::DoShowHideConsole()
+void CDebugger::DoShowConsole()
 {
-	/*	if(m_Check[1]->IsChecked() 
-#ifdef _WIN32
-		// Check to see if we already have a console
-//		&& Console::GetHwnd() == NULL
-#endif
-		)
-		OpenConsole();
+	ConsoleListener* console = LogManager::GetInstance()->getConsoleListener();
+	if(m_Check[1]->IsChecked() && console->IsOpen())
+		console->Open();
 	else
-		CloseConsole();
-	*/
+		console->Close();
 }
 
 void CDebugger::SaveSettings() const
@@ -166,7 +160,7 @@ void CDebugger::GeneralSettings(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_SHOWCONSOLE:
-		DoShowHideConsole();
+		DoShowConsole();
 		break;
 	case ID_INFOLOG:
 		bInfoLog = event.IsChecked();

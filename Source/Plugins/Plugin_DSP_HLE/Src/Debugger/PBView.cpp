@@ -102,9 +102,8 @@ CPBView::Update()
 	
 }
 
-
-bool
-CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
+// TODO wtf does this do? why is it windows only???
+bool CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 {
 	bool Result = false;
 
@@ -164,5 +163,3 @@ CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 		return(Result);
 	}
 }
-
-

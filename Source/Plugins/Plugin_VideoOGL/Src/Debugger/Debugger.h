@@ -39,7 +39,7 @@ public:
 
 	void SaveSettings() const;
 	void LoadSettings();
-	void DoShowHideConsole();
+	void DoShowConsole();
 	void DoShow();
 
 	void GeneralSettings(wxCommandEvent& event);
