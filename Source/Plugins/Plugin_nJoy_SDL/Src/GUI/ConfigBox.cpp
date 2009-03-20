@@ -363,7 +363,7 @@ void ConfigBox::ToBlank(bool ToBlank)
 		{
 			for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
 				#ifndef _WIN32
-					if(GetButtonText(i, j).ToAscii() == "-1") SetButtonText(i, "", j);
+					if(!strcmp(GetButtonText(i, j), "-1")) SetButtonText(i, "", j);
 				#else
 					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
 				#endif
@@ -381,7 +381,7 @@ void ConfigBox::ToBlank(bool ToBlank)
 ///////////////////////////////////////////////////////////////////////////////////
 // Change settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetButtonTextAll(int id, char text[128])
+void ConfigBox::SetButtonTextAll(int id, const char *text)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -589,7 +589,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 
 // Paint the background
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OnPaint( wxPaintEvent &event )
+void ConfigBox::OnPaint(wxPaintEvent &event)
 {
 	event.Skip();
 

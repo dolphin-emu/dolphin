@@ -170,7 +170,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 
 // Update the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetButtonText(int id, char text[128], int Page)
+void ConfigBox::SetButtonText(int id, const char *text, int Page)
 {
 	// Set controller value
 	int controller;	

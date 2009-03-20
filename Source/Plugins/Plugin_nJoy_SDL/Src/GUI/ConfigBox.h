@@ -191,9 +191,9 @@ class ConfigBox : public wxDialog
 		
 		int notebookpage; bool ControlsCreated;
 #ifdef RERECORDING
-	wxStaticBoxSizer *m_SizeRecording[4];
-	wxCheckBox *m_CheckRecording[4], *m_CheckPlayback[4];
-	wxButton *m_BtnSaveRecording[4];
+		wxStaticBoxSizer *m_SizeRecording[4];
+		wxCheckBox *m_CheckRecording[4], *m_CheckPlayback[4];
+		wxButton *m_BtnSaveRecording[4];
 #endif
 
 	private:
@@ -315,17 +315,24 @@ class ConfigBox : public wxDialog
 		void CancelClick(wxCommandEvent& event);
 		void DoSave(bool ChangePad = false, int Slot = -1);
 
-		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close);
+		void DoChangeJoystick(); 
+
+		void PadOpen(int Open); 
+		void PadClose(int Close);
+
 		void UpdateGUI(int _notebookpage);
 
 		void ChangeSettings(wxCommandEvent& event);
 		void ComboChange(wxCommandEvent& event);
 
 		void OnClose(wxCloseEvent& event);
-		void CreateGUIControls(); void CreateAdvancedControls(int i);
+		void CreateGUIControls();
+		void CreateAdvancedControls(int i);
 		void SizeWindow();
-		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
-		void PadGetStatus(); void Update();
+		wxBitmap CreateBitmap(); 
+		wxBitmap CreateBitmapDot();
+		void PadGetStatus(); 
+		void Update();
  
 		void UpdateGUIButtonMapping(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
@@ -342,7 +349,8 @@ class ConfigBox : public wxDialog
 
 		void OnPaint(wxPaintEvent &event);
 
-		void SetButtonText(int id, char text[128], int Page = -1); void SetButtonTextAll(int id, char text[128]);
+		void SetButtonText(int id, const char *text, int Page = -1);
+		void SetButtonTextAll(int id, const char *text);
 		wxString GetButtonText(int id, int Page = -1);
 		void OnKeyDown(wxKeyEvent& event);
 };
