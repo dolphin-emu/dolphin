@@ -30,6 +30,7 @@
 #define UPDATETIME 100
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
+	EVT_CLOSE(CLogWindow::OnClose)
 	EVT_TEXT_ENTER(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
 	EVT_BUTTON(IDM_TOGGLEALL, CLogWindow::OnToggleAll)
@@ -127,6 +128,12 @@ CLogWindow::~CLogWindow()
 	delete m_logTimer;
 
 	SaveSettings();
+}
+
+void CLogWindow::OnClose(wxCloseEvent& event)
+{
+	wxGetApp().GetCFrame()->ToggleLogWindow(false);
+	event.Skip();
 }
 
 void CLogWindow::SaveSettings()

@@ -66,6 +66,7 @@ private:
 	DECLARE_EVENT_TABLE()
 
 	void CreateGUIControls();
+	void OnClose(wxCloseEvent& event);
 	void OnSubmit(wxCommandEvent& event);
 	void OnOptionsCheck(wxCommandEvent& event);
 	void OnLogCheck(wxCommandEvent& event);
