@@ -611,7 +611,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	AddEventToQueue(Event);
 
 	// Log
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char LinkType[][128] =
 	{
 		{ "HCI_LINK_SCO		0x00 - Voice"},
@@ -627,7 +627,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[0]: 0x%02x", pEventRequestConnection->uclass[0]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[1]: 0x%02x", pEventRequestConnection->uclass[1]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[2]: 0x%02x", pEventRequestConnection->uclass[2]);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
+	// DEBUG_LOG(WII_IPC_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
 
 	return true;
 };
@@ -716,7 +716,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _
 
 	g_GlobalHandle = pConnectionComplete->Connection_Handle;
 		
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char s_szLinkType[][128] =
 	{
 		{ "HCI_LINK_SCO		0x00 - Voice"},
@@ -1410,7 +1410,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandHostBufferSize(u8* _Input)
 // ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 {
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_page_timeout_cp* pWritePageTimeOut = (hci_write_page_timeout_cp*)_Input;
 #endif
@@ -1440,7 +1440,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	hci_write_scan_enable_rp Reply;
 	Reply.status = 0x00;
 
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char Scanning[][128] =
 	{
 		{ "HCI_NO_SCAN_ENABLE"},
@@ -1461,7 +1461,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 {
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= 4
 	// command parameters
 	hci_write_inquiry_mode_cp* pInquiryMode = (hci_write_inquiry_mode_cp*)_Input;
 #endif
@@ -1470,7 +1470,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 	hci_write_inquiry_mode_rp Reply;
 	Reply.status = 0x00;
 
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char InquiryMode[][128] =
 	{
 		{ "Standard Inquiry Result event format (default)" },
@@ -1487,7 +1487,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageScanType(u8* _Input)
 {
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_page_scan_type_cp* pWritePageScanType = (hci_write_page_scan_type_cp*)_Input;
 #endif
@@ -1496,7 +1496,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageScanType(u8* _Input)
 	hci_write_page_scan_type_rp Reply;
 	Reply.status = 0x00;
 
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char PageScanType[][128] =
 	{
 		{ "Mandatory: Standard Scan (default)" },
@@ -1553,7 +1553,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input)
 {
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_inquiry_scan_type_cp* pSetEventFilter = (hci_write_inquiry_scan_type_cp*)_Input;
 #endif
@@ -1657,7 +1657,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 	// command parameters
 	hci_accept_con_cp* pAcceptCon = (hci_accept_con_cp*)_Input;
 
-#if LOGLEVEL >= 4
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char s_szRole[][128] =
 	{
 		{ "Master (0x00)"},

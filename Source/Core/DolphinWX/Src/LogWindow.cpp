@@ -68,7 +68,7 @@ void CLogWindow::CreateGUIControls()
 	wxStaticBoxSizer* sbLeftOptions = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Options"));
 
 	wxArrayString wxLevels;
-	for (int i = 0; i < LOGLEVEL; ++i)
+	for (int i = 1; i <= MAX_LOGLEVEL; ++i)
 		wxLevels.Add(wxString::Format(wxT("%i"), i));
 	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"), wxDefaultPosition, wxDefaultSize, wxLevels, 0, wxRA_SPECIFY_COLS, wxDefaultValidator);
 	sbLeftOptions->Add(m_verbosity);
@@ -142,7 +142,7 @@ void CLogWindow::SaveSettings()
 	ini.Set("LogWindow", "y", GetPosition().y);
 	ini.Set("LogWindow", "w", GetSize().GetWidth());
 	ini.Set("LogWindow", "h", GetSize().GetHeight());
-	ini.Set("Options", "Verbosity", m_verbosity->GetSelection());
+	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "WriteToFile", m_writeFile);
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -161,7 +161,7 @@ void CLogWindow::LoadSettings()
 	ini.Get("LogWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	m_verbosity->SetSelection(verbosity);
+	m_verbosity->SetSelection(verbosity - 1);
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
@@ -185,6 +185,7 @@ void CLogWindow::LoadSettings()
 			m_logManager->addListener((LogTypes::LOG_TYPE)i, m_console);
 		else
 			m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
+		m_logManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 	UpdateChecks();
 }
@@ -270,13 +271,12 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 	{
 	case IDM_VERBOSITY:
 		{
-		// get selection
-		int v = m_verbosity->GetSelection();
-
-		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		{
-			m_logManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
-		}
+			// get selection
+			int v = m_verbosity->GetSelection() + 1;
+			for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+			{
+				m_logManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
+			}
 		}
 		break;
 

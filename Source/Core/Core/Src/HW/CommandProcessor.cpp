@@ -589,7 +589,7 @@ void STACKALIGN GatherPipeBursted()
         Common::SyncInterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 
 		// High watermark overflow handling (hacked way)
-		u32 ct=0;
+		u32 ct = 0;
 		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
 		{
 			// we should raise an Ov interrupt for an accurate fifo emulation and let PPC deal with it.
@@ -608,14 +608,17 @@ void STACKALIGN GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
-			WARN_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
+			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
 			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
 				ct++;
 				Common::SleepCurrentThread(1);
 			}
-			if (ct) {WARN_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu ms for nothing :[", ct);}
+			if (ct) {
+				// This is actually kind of fine. See big comment above.
+				DEBUG_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): waited %lu ms. ", ct);
+			}
 			/**/
 		}
 		// check if we are in sync

@@ -593,12 +593,12 @@ void RunSIBuffer()
 	else
 		outLength++;
 
-#if LOGLEVEL >= 3
+#if MAX_LOGLEVEL >= INFO_LEVEL
 	int numOutput =
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
 
-		INFO_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
+	INFO_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed
 	GenerateSIInterrupt(INT_TCINT);

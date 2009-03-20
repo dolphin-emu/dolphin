@@ -90,12 +90,7 @@ private:
 
 class LogContainer {
 public:
-	LogContainer(const char* shortName, const char* fullName,
-				 bool enable = false) : m_enable(enable) {
-		strncpy(m_fullName, fullName, 128);
-		strncpy(m_shortName, shortName, 32);
-		m_level = LogTypes::LWARNING;
-	}
+	LogContainer(const char* shortName, const char* fullName, bool enable = false);
 	
 	const char *getShortName() const { return m_shortName; }
 	const char *getFullName() const { return m_fullName; }
@@ -111,7 +106,7 @@ public:
 		m_enable = enable;
 	}
 
-	LogTypes::LOG_LEVELS getLevel() {
+	LogTypes::LOG_LEVELS getLevel() const {
 		return m_level;
 	}
 
@@ -138,7 +133,7 @@ private:
 	static LogManager *m_logManager;  // Singleton. Ugh.
 
 public:
-	static u32 GetMaxLevel() { return LOGLEVEL;	}
+	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 			 const char *fmt, ...);

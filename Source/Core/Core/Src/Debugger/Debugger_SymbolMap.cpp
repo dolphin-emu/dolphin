@@ -106,20 +106,20 @@ void PrintCallstack()
 	}
 }
 
-void PrintCallstack(LogTypes::LOG_TYPE type)
+void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
-	GENERIC_LOG(type, LogTypes::LWARNING, "== STACK TRACE - SP = %08x ==", 
+	GENERIC_LOG(type, level, "== STACK TRACE - SP = %08x ==", 
 				PowerPC::ppcState.gpr[1]);
 
 	if (LR == 0) {
-		GENERIC_LOG(type, LogTypes::LWARNING, " LR = 0 - this is bad");	
+		GENERIC_LOG(type, level, " LR = 0 - this is bad");	
 	}
 	int count = 1;
 	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
 	{
-		GENERIC_LOG(type, LogTypes::LINFO, " * %s  [ LR = %08x ]", 
+		GENERIC_LOG(type, level, " * %s  [ LR = %08x ]", 
 					g_symbolDB.GetDescription(LR), LR);
 		count++;
 	}
@@ -131,7 +131,7 @@ void PrintCallstack(LogTypes::LOG_TYPE type)
 		const char *str = g_symbolDB.GetDescription(func);
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
-		GENERIC_LOG(type, LogTypes::LINFO, " * %s [ addr = %08x ]", str, func);
+		GENERIC_LOG(type, level, " * %s [ addr = %08x ]", str, func);
 		addr = Memory::ReadUnchecked_U32(addr);
 	}
 }

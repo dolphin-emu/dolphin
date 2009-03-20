@@ -48,7 +48,7 @@ void ConsoleListener::Open(int width, int height, char *title)
 	SetConsoleTitle(title);
 
 	// Set the total letter space
-	COORD co = {width, height};
+	COORD co = {width, 3000};  // Big scrollback.
 	SetConsoleScreenBufferSize(m_hStdOut, co);
 
 	/* Set the window size in number of letters. The height is hard coded here
@@ -102,7 +102,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
 		break;
 
 	case INFO_LEVEL: // cyan
-		color = FOREGROUND_GREEN | FOREGROUND_BLUE;
+		color = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 		break;
 
 	case DEBUG_LEVEL: // light gray

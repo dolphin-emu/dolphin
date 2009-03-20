@@ -65,7 +65,7 @@ namespace Memory
 // #define NOCHECK
 
 // Always disable memory checks if the Release build
-#if LOGLEVEL < 4
+#if MAX_LOGLEVEL < 4
 	#define NOCHECK
 #endif
 

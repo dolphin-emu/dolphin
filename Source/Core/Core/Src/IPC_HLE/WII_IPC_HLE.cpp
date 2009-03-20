@@ -236,9 +236,11 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
    0x933e.... with the same .... as in the _CommandAddress. */
 // ----------------
 bool AckCommand(u32 _Address)
-{   
-    Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
-    WARN_LOG(WII_IPC_HLE, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
+{
+#if MAX_LOG_LEVEL >= DEBUG_LEVEL
+	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
+#endif
+    INFO_LOG(WII_IPC_HLE, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
 
 	std::list<u32>::iterator itr = g_Ack.begin();
 	while (itr != g_Ack.end())

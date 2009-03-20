@@ -184,7 +184,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				m_RTC[i] = pGCTime[i^3];
 			}	
 
-#if LOGLEVEL >= 3
+#if MAX_LOGLEVEL >= INFO_LEVEL
 			
 			if ((m_uAddress & 0xF0000000) == 0xb0000000) 
 			{

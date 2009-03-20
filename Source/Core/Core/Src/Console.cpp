@@ -53,11 +53,11 @@ void Console_Submit(const char *cmd)
 		
 		if (addr)
 		{
-#if LOGLEVEL >= INFO_LEVEL
+#if MAX_LOGLEVEL >= INFO_LEVEL
 			u32 EA =
-#endif
 				Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);
 			INFO_LOG(CONSOLE, "EA 0x%08x to 0x%08x", addr, EA);
+#endif
 		}
 		else
 		{

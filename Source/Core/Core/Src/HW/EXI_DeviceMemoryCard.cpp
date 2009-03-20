@@ -241,9 +241,17 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	{
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
-		WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x", command)
 
-		if(command == cmdClearStatus)
+		switch (command)
+		{
+		case 0x52:
+			INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.", command);
+			break;
+		default:
+			WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
+			break;
+		}
+		if (command == cmdClearStatus)
 		{
 			status &= ~MC_STATUS_PROGRAMEERROR;
 			status &= ~MC_STATUS_ERASEERROR;

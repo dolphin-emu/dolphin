@@ -237,14 +237,12 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 // ----------------
 u32 Read_Opcode(const u32 _Address)
 {
-#if LOGLEVEL >= 4
 	if (_Address == 0x00000000)
 	{
 		// FIXME use assert?
-		PanicAlert("Program tried to read from [00000000]");
+		PanicAlert("Program tried to read an opcode from [00000000]. It has crashed.");
 		return 0x00000000;
 	}
-#endif
 
 	u32 _var = 0;	
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_OPCODE);
@@ -283,7 +281,7 @@ u16 Read_U16(const u32 _Address)
 
 u32 Read_U32(const u32 _Address)
 {
-	/*#if LOGLEVEL >= 4
+	/*#if MAX_LOGLEVEL >= 4
 	if (_Address == 0x00000000)
 	{
 		//PanicAlert("Program tried to read from [00000000]");

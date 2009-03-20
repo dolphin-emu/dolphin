@@ -155,7 +155,7 @@ protected:
         u32 BufferOffset = BufferVector;
         Memory::Write_U32(1, _CommandAddress + 0x4);
 
-        for (u32 i=0; i<NumberInBuffer; i++)
+        for (u32 i = 0; i < NumberInBuffer; i++)
         {            
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
             u32 InBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
@@ -163,7 +163,7 @@ protected:
             INFO_LOG(WII_IPC_HLE, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
 
             std::string Temp;
-            for (u32 j=0; j<InBufferSize; j++)
+            for (u32 j = 0; j < InBufferSize; j++)
             {
                 char Buffer[128];
                 sprintf(Buffer, "%02x ", Memory::Read_U8(InBuffer+j));
@@ -184,7 +184,7 @@ protected:
             INFO_LOG(WII_IPC_HLE,"%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
             INFO_LOG(WII_IPC_HLE, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
 
-			#if defined LOGLEVEL && LOGLEVEL > NOTICE_LEVEL
+			#if defined(MAX_LOGLEVEL) && MAX_LOGLEVEL >= INFO_LEVEL
 			DumpCommands(OutBuffer, OutBufferSize, LogTypes::WII_IPC_HLE, LogTypes::LINFO);
 			#endif
        }

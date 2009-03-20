@@ -480,6 +480,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		{
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
             // for some reason mario sunshine errors here...
+			// Beyond Good and Evil does too, occasionally.
             GLenum err = GL_NO_ERROR;
             GL_REPORT_ERROR();
             if (err == GL_NO_ERROR)

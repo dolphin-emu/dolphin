@@ -97,6 +97,13 @@ void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) 
 	logMutex->Leave();
 }
 
+LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)
+	: m_enable(enable) {
+	strncpy(m_fullName, fullName, 128);
+	strncpy(m_shortName, shortName, 32);
+	m_level = LogTypes::LWARNING;
+}
+
 // LogContainer
 void LogContainer::addListener(LogListener *listener) {
 	bool exists = false;
