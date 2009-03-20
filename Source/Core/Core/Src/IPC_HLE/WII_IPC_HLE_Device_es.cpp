@@ -178,11 +178,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             if (Loader.IsValid())
             {
                 const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
-                for (size_t i=0; i<Loader.GetContentSize(); i++)
+                for (int i = 0; i < (int)Loader.GetContentSize(); i++)
                 {
                     if ((rContent[i].m_Type & 0x8000) == 0)
                     {
-                        Memory::Write_U32(rContent[i].m_ContentID, Buffer.PayloadBuffer[0].m_Address+i*4);
+                        Memory::Write_U32(rContent[i].m_ContentID, Buffer.PayloadBuffer[0].m_Address + i*4);
                         ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index 0x%x", rContent[i].m_ContentID);
                     }
                 }

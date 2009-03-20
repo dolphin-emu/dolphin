@@ -32,17 +32,15 @@
 #define MAX_MSGLEN  512
 
 
-class Listener {
+// pure virtual interface (well, except the destructor which we just leave empty).
+class LogListener {
 public:
-	Listener(const char *name) : m_name(name) {}
+	virtual ~LogListener() {}
 	virtual void Log(LogTypes::LOG_LEVELS, const char *msg) = 0;
-	virtual const char *getName() { return m_name; }
-
-private:
-	const char *m_name;
+	virtual const char *getName() const = 0;
 };
 
-class FileLogListener : public Listener {
+class FileLogListener : public LogListener {
 public:
 	FileLogListener(const char *filename);
 	~FileLogListener();
@@ -60,17 +58,18 @@ public:
 	void setEnable(bool enable) {
 		m_enable = enable;
 	}
+
+	const char *getName() const { return "file"; }
+
 private:
 	char *m_filename;
 	FILE *m_logfile;
 	bool m_enable;
-	
 };
 
-class ConsoleListener : public Listener
+class ConsoleListener : public LogListener
 {
 public:
-	ConsoleListener();
 	~ConsoleListener();
 
 	void Open(int Width = 100, int Height = 100,
@@ -79,6 +78,8 @@ public:
 	bool IsOpen();
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 	void ClearScreen();
+
+	const char *getName() const { return "console"; }
 
 private:
 #ifdef _WIN32
@@ -89,7 +90,6 @@ private:
 
 class LogContainer {
 public:
-
 	LogContainer(const char* shortName, const char* fullName,
 				 bool enable = false) : m_enable(enable) {
 		strncpy(m_fullName, fullName, 128);
@@ -97,26 +97,16 @@ public:
 		m_level = LogTypes::LWARNING;
 	}
 	
-	const char *getShortName() {
-		return m_shortName;
-	}
+	const char *getShortName() const { return m_shortName; }
+	const char *getFullName() const { return m_fullName; }
 
-	const char *getFullName() {
-		return m_fullName;
-	}
-
-	bool isListener(Listener *listener);
-
-	void addListener(Listener *listener);
-
-	void removeListener(Listener *listener);
+	bool isListener(LogListener *listener) const;
+	void addListener(LogListener *listener);
+	void removeListener(LogListener *listener);
 
 	void trigger(LogTypes::LOG_LEVELS, const char *msg);
 
-	bool isEnable() {
-		return m_enable;
-	}
-
+	bool isEnable() const { return m_enable; }
 	void setEnable(bool enable) {
 		m_enable = enable;
 	}
@@ -135,29 +125,25 @@ private:
 	bool m_enable;
 	LogTypes::LOG_LEVELS m_level;
 
-	std::vector<Listener *> listeners;
+	std::vector<LogListener *> listeners;
 };
 
 class LogManager 
 {
 private:
-
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
 	Common::CriticalSection* logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
-	static LogManager *m_logManager; // FIXME: find a way without singletone
-
+	static LogManager *m_logManager;  // Singleton. Ugh.
 
 public:
-	static u32 GetMaxLevel() { 
-		return LOGLEVEL;
-	}
+	static u32 GetMaxLevel() { return LOGLEVEL;	}
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 			 const char *fmt, ...);
 
-	void setLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level){
+	void setLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) {
 		m_Log[type]->setLevel(level);
 	}
 
@@ -165,23 +151,23 @@ public:
 		m_Log[type]->setEnable(enable);
 	}
 
-	const char *getShortName(LogTypes::LOG_TYPE type) {
+	const char *getShortName(LogTypes::LOG_TYPE type) const {
 		return m_Log[type]->getShortName();
 	}
 
-	const char *getFullName(LogTypes::LOG_TYPE type) {
+	const char *getFullName(LogTypes::LOG_TYPE type) const {
 		return m_Log[type]->getFullName();
 	}
 
-	bool isListener(LogTypes::LOG_TYPE type, Listener *listener) {
+	bool isListener(LogTypes::LOG_TYPE type, LogListener *listener) const {
 		return m_Log[type]->isListener(listener);
 	}
 
-	void addListener(LogTypes::LOG_TYPE type, Listener *listener) {
+	void addListener(LogTypes::LOG_TYPE type, LogListener *listener) {
 		m_Log[type]->addListener(listener);
 	}
 
-	void removeListener(LogTypes::LOG_TYPE type, Listener *listener);
+	void removeListener(LogTypes::LOG_TYPE type, LogListener *listener);
 
 	FileLogListener *getFileListener() {
 		return m_fileLog;
@@ -194,7 +180,6 @@ public:
 	static LogManager* GetInstance() {
 		if (! m_logManager) 
 			m_logManager = new LogManager();
-
 		return m_logManager;
 	}
 

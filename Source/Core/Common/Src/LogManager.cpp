@@ -91,18 +91,18 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 }
 
-void LogManager::removeListener(LogTypes::LOG_TYPE type, Listener *listener) {
+void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) {
 	logMutex->Enter();
 	m_Log[type]->removeListener(listener);
 	logMutex->Leave();
 }
 
 // LogContainer
-void LogContainer::addListener(Listener *listener) {
-	std::vector<Listener *>::iterator i;
+void LogContainer::addListener(LogListener *listener) {
 	bool exists = false;
 
-	for(i=listeners.begin();i!=listeners.end();i++) {
+	std::vector<LogListener *>::iterator i;
+	for(i = listeners.begin(); i != listeners.end(); i++) {
 		if ((*i) == listener) {
 			exists = true;
 			break;
@@ -113,9 +113,9 @@ void LogContainer::addListener(Listener *listener) {
 		listeners.push_back(listener);
 }
 
-void LogContainer::removeListener(Listener *listener) {
-	std::vector<Listener *>::iterator i;
-	for(i=listeners.begin();i!=listeners.end();i++) {
+void LogContainer::removeListener(LogListener *listener) {
+	std::vector<LogListener *>::iterator i;
+	for(i = listeners.begin(); i != listeners.end(); i++) {
 		if ((*i) == listener) {
 			listeners.erase(i);
 			break;
@@ -123,9 +123,9 @@ void LogContainer::removeListener(Listener *listener) {
 	}
 }
 
-bool LogContainer::isListener(Listener *listener) {
-	std::vector<Listener *>::iterator i;
-	for(i=listeners.begin();i!=listeners.end();i++) {
+bool LogContainer::isListener(LogListener *listener) const {
+	std::vector<LogListener *>::const_iterator i;
+	for(i = listeners.begin(); i != listeners.end(); i++) {
 		if ((*i) == listener) {
 			return true;
 		}
@@ -134,13 +134,13 @@ bool LogContainer::isListener(Listener *listener) {
 }
 
 void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
-	std::vector<Listener *>::const_iterator i;
-	for(i=listeners.begin();i!=listeners.end();i++) {
+	std::vector<LogListener *>::const_iterator i;
+	for (i = listeners.begin(); i != listeners.end(); i++) {
 		(*i)->Log(level, msg);
 	}
 }
 
-FileLogListener::FileLogListener(const char *filename) : Listener("File") {
+FileLogListener::FileLogListener(const char *filename) {
 	m_filename = strndup(filename, 255);
 	m_logfile = fopen(filename, "a+");
 	setEnable(true);

@@ -27,19 +27,15 @@
 #include "LogManager.h" // Common
 
 
-// Inits as a Listener
-ConsoleListener::ConsoleListener() : Listener("console")
-{
-}
-
 ConsoleListener::~ConsoleListener()
 {
 	Close();
 }
 
+//150, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void ConsoleListener::Open(int Width, int Height, char * Name)
+void ConsoleListener::Open(int width, int height, char *title)
 {
 #ifdef _WIN32
 	// Open the console window and create the window handle for GetStdHandle()
@@ -49,15 +45,15 @@ void ConsoleListener::Open(int Width, int Height, char * Name)
 	m_hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	// Set the console window title
-	SetConsoleTitle(Name);
+	SetConsoleTitle(title);
 
 	// Set the total letter space
-	COORD co = {Width, Height};
+	COORD co = {width, height};
 	SetConsoleScreenBufferSize(m_hStdOut, co);
 
 	/* Set the window size in number of letters. The height is hard coded here
 	because it can be changed with MoveWindow() later */
-	SMALL_RECT coo = {0,0, (Width - 1),50}; // Top, left, right, bottom
+	SMALL_RECT coo = {0,0, (width - 1), 50}; // Top, left, right, bottom
 	SetConsoleWindowInfo(m_hStdOut, TRUE, &coo);
 #endif
 }
@@ -88,46 +84,45 @@ bool ConsoleListener::IsOpen()
 void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
 #if defined(_WIN32)
-		DWORD cCharsWritten; // We will get a value back here
-		WORD color;
-		
-		switch (level)
-		{
-		case ERROR_LEVEL: // light red
-			color = FOREGROUND_RED | FOREGROUND_INTENSITY;
-			break;
+	DWORD cCharsWritten; // We will get a value back here
+	WORD color;
+	
+	switch (level)
+	{
+	case ERROR_LEVEL: // light red
+		color = FOREGROUND_RED | FOREGROUND_INTENSITY;
+		break;
 
-		case WARNING_LEVEL: // light yellow
-			color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-			break;
+	case WARNING_LEVEL: // light yellow
+		color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+		break;
 
-		case NOTICE_LEVEL: // light green
-			color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-			break;
+	case NOTICE_LEVEL: // light green
+		color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+		break;
 
-		case INFO_LEVEL: // cyan
-			color = FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
+	case INFO_LEVEL: // cyan
+		color = FOREGROUND_GREEN | FOREGROUND_BLUE;
+		break;
 
-		case DEBUG_LEVEL: // light gray
-			color = FOREGROUND_INTENSITY;
-			break;
+	case DEBUG_LEVEL: // light gray
+		color = FOREGROUND_INTENSITY;
+		break;
 
-		default: // white
-			color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-			break;
-		}
-		SetConsoleTextAttribute(m_hStdOut, color);
+	default: // white
+		color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+		break;
+	}
+	SetConsoleTextAttribute(m_hStdOut, color);
 
-		WriteConsole(m_hStdOut, text, (DWORD)strlen(text), &cCharsWritten, NULL);
+	WriteConsole(m_hStdOut, text, (DWORD)strlen(text), &cCharsWritten, NULL);
 #else
-		fprintf(stderr, "%s", text);
+	fprintf(stderr, "%s", text);
 #endif
 }
 
-
 // Clear console screen
-void ConsoleListener::ClearScreen() 
+void ConsoleListener::ClearScreen()
 { 
 #if defined(_WIN32)
 	COORD coordScreen = { 0, 0 }; 
@@ -147,36 +142,3 @@ void ConsoleListener::ClearScreen()
 	SetConsoleCursorPosition(hConsole, coordScreen); 
 #endif
 }
-
-
-// Get window handle of console window to be able to resize it. We use
-// GetConsoleTitle() and FindWindow() to locate the console window handle.
-#if defined(_WIN32)
-HWND GetHwnd(void)
-{
-#define MY_BUFSIZE 1024 // Buffer size for console window titles
-	HWND hwndFound;         // This is what is returned to the caller
-	char pszNewWindowTitle[MY_BUFSIZE]; // Contains fabricated WindowTitle
-	char pszOldWindowTitle[MY_BUFSIZE]; // Contains original WindowTitle
-	
-	// Fetch current window title.
-	GetConsoleTitle(pszOldWindowTitle, MY_BUFSIZE);
-	
-	// Format a "unique" NewWindowTitle
-	wsprintf(pszNewWindowTitle, "%d/%d", GetTickCount(), GetCurrentProcessId());
-	
-	// Change current window title
-	SetConsoleTitle(pszNewWindowTitle);
-	
-	// Ensure window title has been updated
-	Sleep(40);
-	
-	// Look for NewWindowTitle
-	hwndFound = FindWindow(NULL, pszNewWindowTitle);
-	
-	// Restore original window title
-	SetConsoleTitle(pszOldWindowTitle);
-	
-	return(hwndFound);
-}
-#endif // _WIN32

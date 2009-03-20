@@ -40,7 +40,8 @@ class wxTextCtrl;
 class wxCheckListBox;
 class wxString;
 
-class CLogWindow : public wxDialog,Listener
+// Uses multiple inheritance - only sane because LogListener is a pure virtual interface.
+class CLogWindow : public wxDialog, LogListener
 {
 public:
 	CLogWindow(wxWindow* parent);
@@ -77,6 +78,8 @@ private:
 	void UpdateChecks();
 	void UpdateLog();
 
+	// LogListener
+	const char *getName() const { return "LogWindow"; }
 };
 
 #endif /*LOGWINDOW_H_*/

@@ -21,6 +21,10 @@
 
 #include "EXI_Device.h"
 
+#ifdef _WIN32
+#pragma warning(disable:4201)
+#endif
+
 class CEXIChannel
 {
 private:
@@ -51,7 +55,7 @@ private:
 			unsigned EXT			: 1; //19 // External Insertion Status (1: External EXI device present)
 			unsigned ROMDIS			: 1; //18 // ROM Disable
 			unsigned				:18;
-		};
+		};  // DO NOT obey the warning and give this struct a name. Things will fail.
 		UEXI_STATUS() {hex = 0;}
 		UEXI_STATUS(u32 _hex) {hex = _hex;}
 	};
@@ -110,4 +114,3 @@ public:
 };
 
 #endif
-

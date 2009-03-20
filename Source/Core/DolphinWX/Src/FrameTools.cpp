@@ -682,11 +682,13 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
+
 void CFrame::OnShow_SDCardWindow(wxCommandEvent& WXUNUSED (event))
 {
 	wxSDCardWindow SDWindow(this);
 	SDWindow.ShowModal();
 }
+
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
     BootManager::BootCore(FULL_WII_MENU_DIR);
@@ -700,12 +702,12 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 	UpdateGUI();
 }
 
-
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
 	SConfig::GetInstance().SaveSettings();
 }
+
 void CFrame::OnToggleSkipIdle(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
@@ -721,7 +723,7 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 
 void CFrame::OnResize(wxSizeEvent& event)
 {
-	DoMoveIcons(); // In FrameWiimote.cpp
+	DoMoveIcons();  // In FrameWiimote.cpp
 	event.Skip();
 }
 
@@ -737,8 +739,8 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
-
-	if (SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked() == true)
+	SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked();
+	if (SConfig::GetInstance().m_InterfaceToolbar == true)
 	{
 		CFrame::RecreateToolbar();
 	}
@@ -754,7 +756,8 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 // Enable and disable the status bar
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
-	if (SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked() == true)
+	SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked();
+	if (SConfig::GetInstance().m_InterfaceStatusbar == true)
 		m_pStatusBar->Show();
 	else
 		m_pStatusBar->Hide();
@@ -770,7 +773,8 @@ void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 
 void CFrame::ToggleLogWindow(bool check)
 {
-	if (SConfig::GetInstance().m_InterfaceLogWindow = check == true)
+	SConfig::GetInstance().m_InterfaceLogWindow = check;
+	if (SConfig::GetInstance().m_InterfaceLogWindow)
 		m_LogWindow->Show();
 	else
 		m_LogWindow->Hide();
@@ -788,7 +792,8 @@ void CFrame::OnToggleConsole(wxCommandEvent& event)
 void CFrame::ToggleConsole(bool check)
 {
 	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole = check == true)
+	SConfig::GetInstance().m_InterfaceConsole = check;
+	if (SConfig::GetInstance().m_InterfaceConsole)
 		console->Open();
 	else
 		console->Close();

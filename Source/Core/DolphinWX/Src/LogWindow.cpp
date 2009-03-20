@@ -27,7 +27,7 @@
 #include "Console.h"
 
 // milliseconds between msgQueue flushes to wxTextCtrl
-#define UPDATETIME 100
+#define UPDATETIME 200
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_CLOSE(CLogWindow::OnClose)
@@ -44,8 +44,7 @@ END_EVENT_TABLE()
 CLogWindow::CLogWindow(wxWindow* parent)
 	: wxDialog(parent, wxID_ANY, wxT("Log/Console"), 
 			   wxPoint(100, 700), wxSize(800, 270),
-			   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), 
-	Listener("LogWindow")
+			   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_logManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -351,43 +350,51 @@ void CLogWindow::NotifyUpdate()
 
 void CLogWindow::UpdateLog()
 {
+	if (!msgQueue.size())
+		return;
 	m_logTimer->Stop();
+	wxString collected_text;
+	// rough estimate.
+	collected_text.reserve(100 * msgQueue.size());
 	u32 msgQueueSize = msgQueue.size();
-	for (u32 i = 0; i < msgQueueSize; i++)
+	for (unsigned int i = 0; i < msgQueueSize; i++)
 	{
+#ifndef _WIN32
 		// FIXME This looks horrible on windows: SetForegroundColour changes
 		// ALL text in the control, and SetDefaultStyle doesn't work at all
-// 		switch (msgQueue.front().first)
-// 		{
-// 			// red
-// 		case ERROR_LEVEL:
-// 			m_log->SetForegroundColour(*wxRED);
-// 			break;
-// 			// yellow
-// 		case WARNING_LEVEL:
-// 			m_log->SetForegroundColour(wxColour(255, 255, 0));
-// 			break;
-// 			// green
-// 		case NOTICE_LEVEL:
-// 			m_log->SetForegroundColour(*wxGREEN);
-// 			break;
-// 			// cyan
-// 		case INFO_LEVEL:
-// 			m_log->SetForegroundColour(*wxCYAN);
-// 			break;
-// 			// light gray
-// 		case DEBUG_LEVEL:
-// 			m_log->SetForegroundColour(wxColour(211, 211, 211));
-// 			break;
-// 			// white
-// 		default:
-// 			m_log->SetForegroundColour(*wxWHITE);
-// 			break;
-// 		}
-
-		m_log->AppendText(msgQueue.front().second);
+ 		switch (msgQueue.front().first)
+ 		{
+ 			// red
+ 		case ERROR_LEVEL:
+ 			m_log->SetForegroundColour(*wxRED);
+ 			break;
+ 			// yellow
+ 		case WARNING_LEVEL:
+ 			m_log->SetForegroundColour(wxColour(255, 255, 0));
+ 			break;
+ 			// green
+ 		case NOTICE_LEVEL:
+ 			m_log->SetForegroundColour(*wxGREEN);
+ 			break;
+ 			// cyan
+ 		case INFO_LEVEL:
+ 			m_log->SetForegroundColour(*wxCYAN);
+ 			break;
+ 			// light gray
+ 		case DEBUG_LEVEL:
+ 			m_log->SetForegroundColour(wxColour(211, 211, 211));
+ 			break;
+ 			// white
+ 		default:
+ 			m_log->SetForegroundColour(*wxWHITE);
+ 			break;
+ 		}
+#endif
+		collected_text.Append(msgQueue.front().second);
 		msgQueue.pop();
 	}
+	if (collected_text.size())
+		m_log->AppendText(collected_text);
 	m_logTimer->Start(UPDATETIME);
 }
 
