@@ -72,12 +72,6 @@ bool Exists(const char *filename)
 		
 	char *copy = StripTailDirSlashes(strdup(filename));
 	int result = stat(copy, &file_info);
-
-	if (result < 0)
-	{
-		WARN_LOG(COMMON, "Exist: stat failed on %s: %s", filename,
-				 GetLastErrorMsg());
-	}
 	free(copy);
 
 	return (result == 0);

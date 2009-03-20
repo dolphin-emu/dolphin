@@ -306,7 +306,7 @@ void WriteRGB5X5Encoder(char* p, bool g6Bit)
 {
 	s32 gBits;
 	float rShift;
-	char* msbString;
+	const char* msbString;
 	if(g6Bit)
 	{
 		gBits = 6;
