@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>  // min
 #include <string> // System: To be able to add strings with "+"
 #include <stdio.h>
 #ifdef _WIN32
@@ -89,6 +90,10 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
 	
 	switch (level)
 	{
+	case NOTICE_LEVEL: // light green
+		color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+		break;
+
 	case ERROR_LEVEL: // light red
 		color = FOREGROUND_RED | FOREGROUND_INTENSITY;
 		break;
@@ -97,24 +102,25 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
 		color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 		break;
 
-	case NOTICE_LEVEL: // light green
-		color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-		break;
-
 	case INFO_LEVEL: // cyan
 		color = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 		break;
 
-	case DEBUG_LEVEL: // light gray
+	case DEBUG_LEVEL: // gray
 		color = FOREGROUND_INTENSITY;
 		break;
 
-	default: // white
-		color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+	default: // off-white
+		color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		break;
 	}
+	if (strlen(text) > 10) {
+		// first 10 chars white
+		SetConsoleTextAttribute(m_hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+		WriteConsole(m_hStdOut, text, 10, &cCharsWritten, NULL);
+		text += 10;
+	}
 	SetConsoleTextAttribute(m_hStdOut, color);
-
 	WriteConsole(m_hStdOut, text, (DWORD)strlen(text), &cCharsWritten, NULL);
 #else
 	fprintf(stderr, "%s", text);
