@@ -166,6 +166,8 @@ void CLogWindow::LoadSettings()
 	ini.Get("LogWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 	ini.Get("Options", "Verbosity", &verbosity, 0);
+	if (verbosity < 1) verbosity = 1;
+	if (verbosity > DEBUG_LEVEL) verbosity = DEBUG_LEVEL;
 	m_verbosity->SetSelection(verbosity - 1);
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
