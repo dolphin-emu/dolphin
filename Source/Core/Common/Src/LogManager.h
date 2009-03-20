@@ -70,6 +70,7 @@ private:
 class ConsoleListener : public LogListener
 {
 public:
+	ConsoleListener();
 	~ConsoleListener();
 
 	void Open(int Width = 100, int Height = 100,

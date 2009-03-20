@@ -28,12 +28,19 @@
 #include "LogManager.h" // Common
 
 
+ConsoleListener::ConsoleListener()
+{
+#ifdef _WIN32
+	m_hStdOut = NULL;
+#endif
+}
+
 ConsoleListener::~ConsoleListener()
 {
 	Close();
 }
 
-//150, 100, "Dolphin Log Console"
+//100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
 void ConsoleListener::Open(int width, int height, char *title)
