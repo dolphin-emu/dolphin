@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="wxBase28"
-	ProjectGUID="{48AD7E0A-25B1-4974-A1E3-03F8C438D34F}"
+	ProjectGUID="{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
 	RootNamespace="wxBase28"
 	TargetFrameworkVersion="131072"
 	>
@@ -5735,10 +5735,6 @@
 			Name="Setup Headers"
 			>
 			<File
-				RelativePath="..\..\include\wx\univ\setup.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\wx\msw\setup.h"
 				>
 				<FileConfiguration
@@ -5801,6 +5797,10 @@
 						Outputs="..\..\lib\vc_lib\msw\wx\setup.h"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\include\wx\univ\setup.h"
+				>
 			</File>
 		</Filter>
 		<Filter

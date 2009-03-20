@@ -4,7 +4,7 @@
 // Author:
 // Modified by:
 // Created:
-// RCS-ID:      $Id: net.cpp 41054 2006-09-07 19:01:45Z ABX $
+// RCS-ID:      $Id: net.cpp 58995 2009-02-18 15:58:25Z JS $
 // Copyright:   Copyright 1998, Ben Goetter.  All rights reserved.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,64 @@
   getprotobynumber
   getservbyport
   getservbyname
+
+Subject: Re: Could you provide a license for your wxWidgets v2.6.2 files
+From: Ben Goetter <goetter@mazama.net>
+Date: Wed, 22 Mar 2006 09:58:32 -0800
+To: Julian Smart <julian@anthemion.co.uk>
+Return-Path: <goetter@mazama.net>
+Delivered-To: jsmart@gotadsl.co.uk
+Envelope-To: jsmart@gotadsl.co.uk
+Received: (qmail 6858 invoked from network); 22 Mar 2006 17:58:46 -0000
+Received: from unknown (HELO as004.apm-internet.net) (85.119.248.22) by mail001.apm-internet.net with SMTP; 22 Mar 2006 17:58:46 -0000
+Received: (qmail 47565 invoked from network); 22 Mar 2006 17:58:46 -0000
+X-Spam-Score: 0.1
+X-Spam-Checker-Version: SpamAssassin 3.1.0 (2005-09-13) on as004.apm-internet.net
+X-Spam-Report: * 0.1 AWL AWL: From: address is in the auto white-list
+Received: from unknown (HELO av004.apm-internet.net) (85.119.248.18) by as004.apm-internet.net with SMTP; 22 Mar 2006 17:58:46 -0000
+Received: (qmail 33684 invoked by uid 1013); 22 Mar 2006 17:58:44 -0000
+Received: from unknown (HELO relay002.apm-internet.net) (85.119.248.12) by av004.apm-internet.net with SMTP; 22 Mar 2006 17:58:44 -0000
+Received: (qmail 4919 invoked from network); 22 Mar 2006 17:58:43 -0000
+Received: from unknown (HELO mini-131.dolphin-server.co.uk) (80.87.138.131) by relay002.apm-internet.net with SMTP; 22 Mar 2006 17:58:44 -0000
+Received: (qmail 28982 invoked by uid 64020); 22 Mar 2006 09:59:50 -0000
+Delivered-To: anthemion.co.uk-julian@anthemion.co.uk
+Received: (qmail 28980 invoked from network); 22 Mar 2006 09:59:50 -0000
+Received: from unknown (HELO bgkh-household.seattle.mazama.net) (216.231.59.183) by mini-131.dolphin-server.co.uk with SMTP; 22 Mar 2006 09:59:50 -0000
+Received: from [192.168.0.128] (dhcp128.seattle.mazama.net [192.168.0.128]) (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits)) (Client did not present a certificate) by bgkh-household.seattle.mazama.net (Postfix) with ESMTP id 5AE2417020 for <julian@anthemion.co.uk>; Wed, 22 Mar 2006 09:58:42 -0800 (PST)
+Message-ID: <44219048.9020000@mazama.net>
+User-Agent: Thunderbird 1.5 (Windows/20051201)
+MIME-Version: 1.0
+References: <8C8EF65853BB6842809053B779B8CAB70E416E95@emss07m14.us.lmco.com> <4420DD8C.6090405@mazama.net> <6.2.1.2.2.20060322091301.0315cc90@pop3.gotadsl.co.uk>
+In-Reply-To: <6.2.1.2.2.20060322091301.0315cc90@pop3.gotadsl.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Anti-Virus: Kaspersky Anti-Virus for MailServers 5.5.3/RELEASE, bases: 22032006 #172373, status: clean
+
+Certainly.
+
+I hereby release the text of those three functions -- getprotobynumber, getservbyport, and getservbyname, as found in wxWidgets-2.6.2\include\wx\msw\wince\net.h  and wxWidgets-2.6.2\src\msw\wince\net.cpp -- under the wxWindows license.  Please feel free to replace "All rights reserved." with "Licensed under the wxWindows License" or equivalent boilerplate.
+
+Absolutely no problem,
+Ben
+
+
+Julian Smart wrote:
+> Hi Ben,
+>
+> Thanks a lot for the clarification, and indeed for the code! Apologies if
+> we didn't ask for permission to use those functions.
+>
+> Would it be possible to have these 3 functions licensed under
+> the wxWindows License as well? This would simplify the legal
+> position for us rather than having multiple licenses. The wxWindows
+> License is here:
+>
+> http://www.wxwidgets.org/newlicen.htm
+>
+> Best regards,
+>
+> Julian
+
 
 */
 
