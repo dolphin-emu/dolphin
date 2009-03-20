@@ -34,7 +34,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 void Read32(u32& _rReturnValue, const u32 _Address)
 {
-	switch(_Address & 0xFFFF)
+	switch (_Address & 0xFFFF)
 	{
     // NAND Loader ... no idea
     case 0x018:

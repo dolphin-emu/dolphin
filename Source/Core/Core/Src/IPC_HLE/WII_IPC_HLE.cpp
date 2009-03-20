@@ -83,20 +83,20 @@ std::string g_DefaultContentFile;
 // General IPC functions 
 void Init()
 {
-    _dbg_assert_msg_(WII_IPC, g_DeviceMap.empty(), "DeviceMap isnt empty on init");   
+    _dbg_assert_msg_(WII_IPC, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
 }
 
 void Reset()
 {
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-    while(itr != g_DeviceMap.end())
+    while (itr != g_DeviceMap.end())
     {
         delete itr->second;
         ++itr;
     }
     g_DeviceMap.clear();    
 
-    while(!g_ReplyQueue.empty())
+    while (!g_ReplyQueue.empty())
     {
         g_ReplyQueue.pop();
     }
@@ -459,7 +459,7 @@ void ExecuteCommand(u32 _Address)
 				// Write reply, this will later be executed in Update()
 				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));
 			} else {
-				WARN_LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
+				ERROR_LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
 				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
 			}
 
@@ -513,9 +513,9 @@ void Update()
         {
             u32 _Address = g_Ack.front();
             g_Ack.pop_front();
-            WARN_LOG(WII_IPC_HLE, "-- Exeute Ack (0x%08x)", _Address);
+            DEBUG_LOG(WII_IPC_HLE, "-- Execute Ack (0x%08x)", _Address);
             ExecuteCommand(_Address);
-            WARN_LOG(WII_IPC_HLE, "-- End of ExecuteAck (0x%08x)", _Address);
+            DEBUG_LOG(WII_IPC_HLE, "-- End of ExecuteAck (0x%08x)", _Address);
 
 			// Go back to WII_IPC.cpp and generate an acknowledgement
             WII_IPCInterface::GenerateAck(_Address);
