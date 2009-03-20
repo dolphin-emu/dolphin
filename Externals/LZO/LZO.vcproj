@@ -52,7 +52,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -117,7 +116,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -181,7 +179,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -246,7 +243,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -311,7 +307,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -376,7 +371,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

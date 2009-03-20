@@ -47,13 +47,12 @@
 				Optimization="0"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -114,14 +113,13 @@
 				Optimization="0"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				ExceptionHandling="2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -186,7 +184,6 @@
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -251,7 +248,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -319,7 +315,6 @@
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -386,7 +381,6 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool

@@ -206,7 +206,6 @@ bool Init()
 	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_CoreStartupParameter = _CoreParameter;
-	NOTICE_LOG(BOOT, "Starting core");
 	// FIXME DEBUG_LOG(BOOT, dump_params());
 	Host_SetWaitCursor(true);
 

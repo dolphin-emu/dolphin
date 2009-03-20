@@ -177,6 +177,8 @@ bool CBoot::BootUp()
     SCoreStartupParameter& _StartupPara = 
 	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
+
 	g_symbolDB.Clear();
     VideoInterface::PreInit(_StartupPara.bNTSC);
     switch (_StartupPara.m_BootType)

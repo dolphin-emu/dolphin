@@ -52,7 +52,6 @@
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="4"
 				ForcedIncludeFiles=""
 			/>
@@ -112,13 +111,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\Common\Src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles=""
 			/>
@@ -181,7 +179,6 @@
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles=""
 			/>
@@ -245,7 +242,6 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles=""
 			/>
@@ -308,7 +304,6 @@
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles=""
 			/>
@@ -371,7 +366,6 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles=""
 			/>

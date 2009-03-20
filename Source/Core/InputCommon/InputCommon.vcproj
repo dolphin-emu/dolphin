@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="InputCommon"
 	ProjectGUID="{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
 	RootNamespace="VideoCommon"
@@ -52,7 +52,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -117,7 +116,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -184,7 +182,6 @@
 				FloatingPointModel="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -251,7 +248,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -313,7 +309,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -350,7 +345,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="0"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -376,7 +371,6 @@
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
