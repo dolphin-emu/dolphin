@@ -133,8 +133,8 @@ inline u32 decode565(u16 val)
 
 inline u32 decodeIA8(u16 val)
 {
-    int a=val>>8;
-    int i=val&0xFF;
+    int a = val >> 8;
+    int i = val & 0xFF;
     return (a<<24) | (i<<16) | (i<<8) | i;
 }
 
@@ -157,8 +157,6 @@ inline u32 decode5A3(u16 val)
     }
     return (a<<24) | (r<<16) | (g<<8) | b;
 }
-
-
 
 struct DXTBlock
 {

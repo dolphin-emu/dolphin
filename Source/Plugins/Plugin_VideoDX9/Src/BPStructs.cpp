@@ -237,7 +237,6 @@ void BPWritten(int addr, int changes, int newval)
 			((u32*)&bpmem)[addr] = newval;
 			if (changes & 1)
 			{
-				// dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
 				Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
 			}
 			if (changes & 2) {} // Logic op blending. D3D can't do this but can fake some modes.
@@ -250,39 +249,30 @@ void BPWritten(int addr, int changes, int newval)
 
 			if (changes & 0x700)
 			{
-				// dev->SetRenderState(D3DRS_SRCBLEND, src);
 				Renderer::SetRenderState(D3DRS_SRCBLEND, src);
 			}
 			if (changes & 0xE0) {
 				if (!bpmem.blendmode.subtract)
 				{
-					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
 					Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 				}
 				else
 				{
-					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 					Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 				}
 			}
 			if (changes & 0x800) {
 				if (bpmem.blendmode.subtract)
 				{
-					// dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 					Renderer::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
 					Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 				}
 				else
 				{
-					// dev->SetRenderState(D3DRS_SRCBLEND, src);
-					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
-					
 					Renderer::SetRenderState(D3DRS_SRCBLEND, src);
 					Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 				}
 				
-				// dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
 				Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 			}
 			//if (bpmem.blendmode.logicopenable) // && bpmem.blendmode.logicmode == 4)
@@ -297,7 +287,6 @@ void BPWritten(int addr, int changes, int newval)
 				if (bpmem.blendmode.colorupdate) 
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 				
-				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
 				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
 		}

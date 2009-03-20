@@ -258,8 +258,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             if (Size > 0)
             {
-                memcpy(pDest, pSrc, Size);
-                rContent.m_Position += Size;
+				if (pDest) {
+					memcpy(pDest, pSrc, Size);
+					rContent.m_Position += Size;
+				} else {
+					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
+				}
             }
 
             INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);

@@ -26,6 +26,7 @@
 
 namespace DiscIO
 {
+
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)	
 	: m_pBannerFile(NULL)
 	, m_IsValid(false)
@@ -34,7 +35,14 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	char TitleID[4];
 	
 	_rFileSystem.GetVolume()->Read(0, 4, (u8*)TitleID);
-	sprintf(Filename, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/banner.bin", (u8)TitleID[0], (u8)TitleID[1], (u8)TitleID[2], (u8)TitleID[3]);
+	sprintf(Filename, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/banner.bin",
+		    (u8)TitleID[0], (u8)TitleID[1], (u8)TitleID[2], (u8)TitleID[3]);
+
+	if (!File::Exists(Filename))
+	{
+		m_IsValid = false;
+		return;
+	}
 
 	// load the opening.bnr
 	size_t FileSize = (size_t) File::GetSize(Filename);
@@ -43,7 +51,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	{
 		m_pBannerFile = new u8[FileSize];
 		FILE* pFile = fopen(Filename, "rb");
-		if ((pFile != NULL) && (m_pBannerFile != NULL))
+		if (pFile)
 		{
 			fread(m_pBannerFile, FileSize, 1, pFile);
 			fclose(pFile);
@@ -61,38 +69,33 @@ CBannerLoaderWii::~CBannerLoaderWii()
 	}
 }
 
-
-bool
-CBannerLoaderWii::IsValid()
+bool CBannerLoaderWii::IsValid()
 {
-	return (m_IsValid);
+	return m_IsValid;
 }
 
-
-bool
-CBannerLoaderWii::GetBanner(u32* _pBannerImage)
+bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 {
 	if (IsValid())
 	{
 		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-		static u32 Buffer[192 * 64];
+		u32 Buffer[192 * 64];
 		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
 
-		// ugly scaling :)
-		for (int y=0; y<32; y++)
+		// ugly scaling :) TODO: at least a 2x2 box filter, preferably a 3x3 gaussian :)
+		for (int y = 0; y < 32; y++)
 		{
-			for (int x=0; x<96; x++)
+			for (int x = 0; x < 96; x++)
 			{
-				_pBannerImage[y*96+x] = Buffer[(y*192*2)+(x*2)];
+				_pBannerImage[y*96+x] = Buffer[(y*192*2) + (x*2)];
 			}
 		}	
 	}
 	return true;
 }
 
-bool
-CBannerLoaderWii::GetName(std::string* _rName)
+bool CBannerLoaderWii::GetName(std::string* _rName)
 {
 	if (IsValid())
 	{
@@ -112,17 +115,13 @@ CBannerLoaderWii::GetName(std::string* _rName)
 	return false;
 }
 
-
-bool
-CBannerLoaderWii::GetCompany(std::string& _rCompany)
+bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
 {
     _rCompany = "N/A";
     return true;
 }
 
-
-bool
-CBannerLoaderWii::GetDescription(std::string* _rDescription)
+bool CBannerLoaderWii::GetDescription(std::string* _rDescription)
 {
 	if (IsValid())
 	{
@@ -142,8 +141,7 @@ CBannerLoaderWii::GetDescription(std::string* _rDescription)
 	return false;
 }
 
-void
-CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
+void CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
 {
 	for (int y = 0; y < height; y += 4)
 	{
@@ -162,4 +160,3 @@ CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
 }
 
 } // namespace
-

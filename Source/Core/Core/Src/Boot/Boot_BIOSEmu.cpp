@@ -154,7 +154,6 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 }
 
 
-
 bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 {
     INFO_LOG(BOOT, "Setup Wii Memory...");

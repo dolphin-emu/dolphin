@@ -57,11 +57,11 @@ union UPECtrlReg
 // STATE_TO_SAVE
 static UPECtrlReg g_ctrlReg;
 
-static bool       g_bSignalTokenInterrupt;
-static bool       g_bSignalFinishInterrupt;
+static bool g_bSignalTokenInterrupt;
+static bool g_bSignalFinishInterrupt;
 
-int et_SetTokenOnMainThread;
-int et_SetFinishOnMainThread;
+static int et_SetTokenOnMainThread;
+static int et_SetFinishOnMainThread;
 
 void DoState(PointerWrap &p)
 {
@@ -86,7 +86,7 @@ void Init()
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
-	DEBUG_LOG(PIXELENGINE,  "(r16): 0x%08x", _iAddress);
+	DEBUG_LOG(PIXELENGINE, "(r16): 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
@@ -101,7 +101,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		return;
 
 	default:
-		WARN_LOG(PIXELENGINE,"(unknown)");
+		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
 		break;
 	}
 
@@ -110,14 +110,14 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	INFO_LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
+	WARN_LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	DEBUG_LOG(PIXELENGINE, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
 
-	switch(_iAddress & 0xFFF)
+	switch (_iAddress & 0xFFF)
 	{
 	case CTRL_REGISTER:	
 		{
@@ -126,8 +126,8 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
 			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
 
-			g_ctrlReg.PETokenEnable		= tmpCtrl.PETokenEnable;
-			g_ctrlReg.PEFinishEnable	= tmpCtrl.PEFinishEnable;
+			g_ctrlReg.PETokenEnable  = tmpCtrl.PETokenEnable;
+			g_ctrlReg.PEFinishEnable = tmpCtrl.PEFinishEnable;
 			g_ctrlReg.PEToken = 0;		// this flag is write only
 			g_ctrlReg.PEFinish = 0;		// this flag is write only
 
@@ -137,9 +137,13 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case TOKEN_REG:
 		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
-		PanicAlert("PIXELENGINE : (w16) WTF? program wrote token: %i",_iValue);
+		PanicAlert("PIXELENGINE : (w16) WTF? PowerPC program wrote token: %i", _iValue);
 		//only the gx pipeline is supposed to be able to write here
 		//g_token = _iValue;
+		break;
+
+	default:
+		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);
 		break;
 	}
 }
@@ -195,6 +199,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
 	if (_bSetTokenAcknowledge) // set token INT
 	{
+		// This seems smelly...
 		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
 		CoreTiming::ScheduleEvent_Threadsafe(
 			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
@@ -202,7 +207,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	else // set token value
 	{
 		// we do it directly from videoThread because of
-		// Super Monkey Ball Advance
+		// Super Monkey Ball
         Common::SyncInterlockedExchange((LONG*)&CommandProcessor::fifo.PEToken, _token);
 	}
 }

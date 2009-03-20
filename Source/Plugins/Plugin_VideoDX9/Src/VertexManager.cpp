@@ -181,7 +181,7 @@ void Flush()
 	if (collection != C_NOTHING)
 	{
 		// setup the pointers
-		if(g_nativeVertexFmt)
+		if (g_nativeVertexFmt)
 			g_nativeVertexFmt->SetupVertexPointers();
 
 		u32 usedtextures = 0;
