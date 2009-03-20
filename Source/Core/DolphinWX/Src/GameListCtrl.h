@@ -76,10 +76,6 @@ private:
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
 
-	#ifdef _WIN32
-	virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
-	#endif
-
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
 	void UnselectAll();

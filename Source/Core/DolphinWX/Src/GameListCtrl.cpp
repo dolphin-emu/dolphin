@@ -343,14 +343,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SetItem(item);
 	}
 
-#ifndef __WXMSW__
 	// Country
 	{
-		// Can't do this in Windows - we use DrawSubItem instead, see below
 		wxListItem item;
 		item.m_itemId = ItemIndex;
 		item.SetColumn(COLUMN_COUNTRY);
-		//item.SetBackgroundColour(color);
 		DiscIO::IVolume::ECountry Country = rISOFile.GetCountry();
 
 		if (size_t(Country) < m_FlagImageIndex.size())
@@ -360,34 +357,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 		SetItem(item);
 	}
-#endif // __WXMSW__
 
 	// Item data
 	SetItemData(_Index, ItemIndex);
 }
-#ifdef _WIN32
-bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
-{
-	bool Result = false;
-#ifdef __WXMSW__
-	switch (subitem)
-	{
-	case COLUMN_COUNTRY:
-		size_t Index = GetItemData(item);
-
-		if (Index < m_ISOFiles.size())
-		{
-			const GameListItem& rISO = m_ISOFiles[Index];
-			wxRect SubItemRect;
-			this->GetSubItemRect(item, subitem, SubItemRect);
-			m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
-		}
-	}
-#endif
-
-	return(Result);
-}
-#endif
 
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
