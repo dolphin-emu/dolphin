@@ -356,8 +356,8 @@ void CLogWindow::UpdateLog()
 	wxString collected_text;
 	// rough estimate.
 	collected_text.reserve(100 * msgQueue.size());
-	u32 msgQueueSize = msgQueue.size();
-	for (unsigned int i = 0; i < msgQueueSize; i++)
+	int msgQueueSize = (int)msgQueue.size();
+	for (int i = 0; i < msgQueueSize; i++)
 	{
 #ifndef _WIN32
 		// FIXME This looks horrible on windows: SetForegroundColour changes
