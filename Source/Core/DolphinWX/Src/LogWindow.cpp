@@ -213,7 +213,8 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 
 	m_logSection.Enter();
 	//msgQueue.Clear()
-	for (unsigned int i = 0; i < msgQueue.size(); i++) 
+	int msgQueueSize = msgQueue.size();
+	for (unsigned int i = 0; i < msgQueueSize; i++) 
 		msgQueue.pop();
 	m_logSection.Leave();
 
@@ -234,8 +235,8 @@ void CLogWindow::OnToggleAll(wxCommandEvent& WXUNUSED (event))
 
 		if (enable)
 		{
-			m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
-
+			if (m_writeWindow)
+				m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
 			if (m_writeFile)
 				m_logManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
 			if (m_writeConsole)
@@ -309,10 +310,10 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 	case IDM_WRITEWINDOW:
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		{
-			m_writeFile = event.IsChecked();
+			m_writeWindow = event.IsChecked();
 			if (m_checks->IsChecked(i))
 			{
-				if (m_writeFile)
+				if (m_writeWindow)
 					m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
 				else
 					m_logManager->removeListener((LogTypes::LOG_TYPE)i, this);
@@ -347,8 +348,8 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 	int i = event.GetInt();
 	if (m_checks->IsChecked(i))
 	{
-		m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
-
+		if (m_writeWindow)
+			m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
 		if (m_writeFile)
 			m_logManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
 		if (m_writeConsole)
