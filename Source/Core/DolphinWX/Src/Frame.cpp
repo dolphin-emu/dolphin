@@ -272,8 +272,9 @@ EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
-EVT_MENU(IDM_TOGGLE_LOGWINDOW, CFrame::OnToggleLogWindow)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
+EVT_MENU(IDM_TOGGLE_LOGWINDOW, CFrame::OnToggleLogWindow)
+EVT_MENU(IDM_TOGGLE_CONSOLE, CFrame::OnToggleConsole)
 
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
@@ -333,6 +334,11 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Give it a menu bar
 	CreateMenu();
+
+	// Give it a console
+	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
+	if (SConfig::GetInstance().m_InterfaceConsole)
+		console->Open();
 
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	//m_Panel = new wxPanel(this, IDM_MPANEL);

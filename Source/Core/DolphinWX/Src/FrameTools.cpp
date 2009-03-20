@@ -152,12 +152,14 @@ void CFrame::CreateMenu()
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &Toolbar"));
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("Show &Toolbar"));
 	toolsMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &Statusbar"));
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
 	toolsMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("View &Logwindow"));
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("Show &Logwindow"));
 	toolsMenu->Check(IDM_TOGGLE_LOGWINDOW, m_bLogWindow);
+	toolsMenu->AppendCheckItem(IDM_TOGGLE_CONSOLE, _T("Show &Console"));
+	toolsMenu->Check(IDM_TOGGLE_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
 	toolsMenu->AppendSeparator();
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
@@ -731,7 +733,7 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 }
 
 
-// Let us enable and disable the toolbar
+// Enable and disable the toolbar
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
@@ -749,7 +751,7 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 	this->SendSizeEvent();
 }
 
-// Let us enable and disable the status bar
+// Enable and disable the status bar
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	if (SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked() == true)
@@ -760,17 +762,40 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 	this->SendSizeEvent();
 }
 
-// Let us enable and disable the log window
+// Enable and disable the log window
 void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 {
-	if (SConfig::GetInstance().m_InterfaceLogWindow = event.IsChecked() == true)
+	ToggleLogWindow(event.IsChecked());
+}
+
+void CFrame::ToggleLogWindow(bool check)
+{
+	if (SConfig::GetInstance().m_InterfaceLogWindow = check == true)
 		m_LogWindow->Show();
 	else
 		m_LogWindow->Hide();
 
-	this->SendSizeEvent();
+	// Make sure the check is updated (if wxw isn't calling this func)
+	GetMenuBar()->FindItem(IDM_TOGGLE_LOGWINDOW)->Check(check);
 }
 
+// Enable and disable the console
+void CFrame::OnToggleConsole(wxCommandEvent& event)
+{
+	ToggleConsole(event.IsChecked());
+}
+
+void CFrame::ToggleConsole(bool check)
+{
+	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
+	if (SConfig::GetInstance().m_InterfaceConsole = check == true)
+		console->Open();
+	else
+		console->Close();
+
+	// Make sure the check is updated (if wxw isn't calling this func)
+	GetMenuBar()->FindItem(IDM_TOGGLE_CONSOLE)->Check(check);
+}
 
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()

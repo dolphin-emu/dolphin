@@ -546,10 +546,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\ConsoleListener.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\LogManager.cpp"
 				>
 			</File>

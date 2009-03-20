@@ -17,6 +17,7 @@
 
 #ifndef LOGWINDOW_H_
 #define LOGWINDOW_H_
+#include "Main.h" // for wxGetApp
 #include "LogManager.h"
 #include "IniFile.h"
 #include <queue>

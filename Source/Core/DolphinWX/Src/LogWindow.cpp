@@ -91,7 +91,9 @@ void CLogWindow::CreateGUIControls()
 
 	// Right side: Log viewer and submit row
 	m_log = new wxTextCtrl(this, IDM_LOG, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-		wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+		wxTE_RICH2 | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+	// FIXME See note in UpdateLog()
+	//m_log->SetBackgroundColour(*wxBLACK);
 	//m_log->SetFont(DebuggerFont);
 
 	m_cmdline = new wxTextCtrl(this, IDM_SUBMITCMD, wxEmptyString, wxDefaultPosition, wxDefaultSize,
@@ -152,7 +154,7 @@ void CLogWindow::LoadSettings()
 	ini.Get("LogWindow", "w", &w, GetSize().GetWidth());
 	ini.Get("LogWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
-	ini.Get("Options", "Verbosity", &verbosity, 2);
+	ini.Get("Options", "Verbosity", &verbosity, 0);
 	m_verbosity->SetSelection(verbosity);
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
@@ -298,6 +300,10 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 					m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
 			}
 		}
+		if (m_writeConsole && !m_console->IsOpen())
+			wxGetApp().GetCFrame()->ToggleConsole(true);
+		else if (!m_writeConsole && m_console->IsOpen())
+			wxGetApp().GetCFrame()->ToggleConsole(false);
 		break;
 	}
 	SaveSettings();
@@ -333,36 +339,45 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 void CLogWindow::NotifyUpdate()
 {
 	UpdateChecks();
-	UpdateLog();
+	//UpdateLog();
 }
 
 void CLogWindow::UpdateLog()
 {
 	m_logTimer->Stop();
-	for (unsigned int i = 0; i < msgQueue.size(); i++)
+	u32 msgQueueSize = msgQueue.size();
+	for (u32 i = 0; i < msgQueueSize; i++)
 	{
-		switch (msgQueue.front().first)
-		{
-			// AGGH why is this not working
-		case ERROR_LEVEL: // red
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 0, 0), wxColour(0, 0, 0)));
-			break;
-		case WARNING_LEVEL: // yellow
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0), wxColour(0, 0, 0)));
-			break;
-		case NOTICE_LEVEL: // green
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(0, 255, 0), wxColour(0, 0, 0)));
-			break;
-		case INFO_LEVEL: // cyan
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(0, 255, 255), wxColour(0, 0, 0)));
-			break;
-		case DEBUG_LEVEL: // light gray
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(211, 211, 211), wxColour(0, 0, 0)));
-			break;
-		default: // white
-			m_log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 255), wxColour(0, 0, 0)));
-			break;
-		}
+		// FIXME This looks horrible on windows: SetForegroundColour changes
+		// ALL text in the control, and SetDefaultStyle doesn't work at all
+// 		switch (msgQueue.front().first)
+// 		{
+// 			// red
+// 		case ERROR_LEVEL:
+// 			m_log->SetForegroundColour(*wxRED);
+// 			break;
+// 			// yellow
+// 		case WARNING_LEVEL:
+// 			m_log->SetForegroundColour(wxColour(255, 255, 0));
+// 			break;
+// 			// green
+// 		case NOTICE_LEVEL:
+// 			m_log->SetForegroundColour(*wxGREEN);
+// 			break;
+// 			// cyan
+// 		case INFO_LEVEL:
+// 			m_log->SetForegroundColour(*wxCYAN);
+// 			break;
+// 			// light gray
+// 		case DEBUG_LEVEL:
+// 			m_log->SetForegroundColour(wxColour(211, 211, 211));
+// 			break;
+// 			// white
+// 		default:
+// 			m_log->SetForegroundColour(*wxWHITE);
+// 			break;
+// 		}
+
 		m_log->AppendText(msgQueue.front().second);
 		msgQueue.pop();
 	}

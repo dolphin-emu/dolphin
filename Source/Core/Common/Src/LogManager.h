@@ -70,10 +70,13 @@ private:
 class ConsoleListener : public Listener
 {
 public:
-	ConsoleListener(int Width = 150, int Height = 100, 
-					char * Name = "Console");
+	ConsoleListener();
 	~ConsoleListener();
 
+	void Open(int Width = 100, int Height = 100,
+		char * Name = "Console");
+	void Close();
+	bool IsOpen();
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 	void ClearScreen();
 

@@ -65,6 +65,7 @@ struct SConfig
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;
 	bool m_InterfaceLogWindow;
+	bool m_InterfaceConsole;
 
 	// save settings
 	void SaveSettings();

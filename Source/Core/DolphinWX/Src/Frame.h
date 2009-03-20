@@ -25,6 +25,7 @@
 #include <wx/wx.h> // wxWidgets
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
+#include <wx/listctrl.h>
 ////////////////////////////////
 #include "CDUtils.h"
 #include "LogWindow.h"
@@ -45,6 +46,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 // Class declarations
 // ¯¯¯¯¯¯¯¯¯¯
 class CGameListCtrl;
+class CLogWindow;
 class CFrame : public wxFrame
 {
 	public:
@@ -74,6 +76,8 @@ class CFrame : public wxFrame
 		void DoStop();
 		bool bRenderToMain;
 		void UpdateGUI();
+		void ToggleLogWindow(bool check);
+		void ToggleConsole(bool check);
 
 		// ---------------------------------------
 		// Wiimote leds
@@ -203,8 +207,9 @@ class CFrame : public wxFrame
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
-		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);
+		void OnToggleLogWindow(wxCommandEvent& event);
+		void OnToggleConsole(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event); void OnKeyUp(wxKeyEvent& event);
 		void OnDoubleClick(wxMouseEvent& event); void OnMotion(wxMouseEvent& event);
 		

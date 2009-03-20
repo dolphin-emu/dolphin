@@ -18,15 +18,18 @@
 #ifndef __MAIN_H_
 #define __MAIN_H_
 
-// Define a new application
-class DolphinApp
-	: public wxApp
-{
-	public:
+#include "Frame.h"
 
-		bool OnInit();
-		void OnEndSession();
+// Define a new application
+class CFrame;
+class DolphinApp : public wxApp
+{
+public:
+	bool OnInit();
+	void OnEndSession();
+	CFrame* GetCFrame();
 };
 
+DECLARE_APP(DolphinApp);
 
 #endif

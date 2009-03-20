@@ -42,7 +42,6 @@
 
 #include "Globals.h" // Local
 #include "Main.h"
-#include "Frame.h"
 #include "ConfigManager.h"
 #include "CodeWindow.h"
 #include "LogWindow.h"
@@ -300,8 +299,12 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 				 (yes_no)?wxYES_NO:wxOK);
 }
 #endif
-//////////////////////////////////
 
+// Accessor for the main window class
+CFrame* DolphinApp::GetCFrame()
+{
+	return main_frame;
+}
 
 // OK, this thread boundary is DANGEROUS on linux
 // wxPostEvent / wxAddPendingEvent is the solution.

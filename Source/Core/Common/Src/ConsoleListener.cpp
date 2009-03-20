@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include <string> // System: To be able to add strings with "+"
 #include <stdio.h>
 #ifdef _WIN32
@@ -28,9 +27,19 @@
 #include "LogManager.h" // Common
 
 
-/* Start console window - width and height is the size of console window */
-ConsoleListener::ConsoleListener(int Width, int Height, char * Name) :
-	Listener("console")
+// Inits as a Listener
+ConsoleListener::ConsoleListener() : Listener("console")
+{
+}
+
+ConsoleListener::~ConsoleListener()
+{
+	Close();
+}
+
+// Open console window - width and height is the size of console window
+// Name is the window title
+void ConsoleListener::Open(int Width, int Height, char * Name)
 {
 #ifdef _WIN32
 	// Open the console window and create the window handle for GetStdHandle()
@@ -46,29 +55,38 @@ ConsoleListener::ConsoleListener(int Width, int Height, char * Name) :
 	COORD co = {Width, Height};
 	SetConsoleScreenBufferSize(m_hStdOut, co);
 
-	/* Set the window size in number of letters. The height is hardcoded here
-	   because it can be changed with MoveWindow() later */
+	/* Set the window size in number of letters. The height is hard coded here
+	because it can be changed with MoveWindow() later */
 	SMALL_RECT coo = {0,0, (Width - 1),50}; // Top, left, right, bottom
 	SetConsoleWindowInfo(m_hStdOut, TRUE, &coo);
 #endif
-
 }
 
-
-/* Close the console window and close the eventual file handle */
-ConsoleListener::~ConsoleListener()
+// Close the console window and close the eventual file handle
+void ConsoleListener::Close()
 {
 #ifdef _WIN32
-	FreeConsole(); // Close the console window
+	if (m_hStdOut == NULL)
+		return;
+	FreeConsole();
+	m_hStdOut = NULL;
 #else
 	fflush(NULL);
+#endif
+}
+
+bool ConsoleListener::IsOpen()
+{
+#ifdef _WIN32
+	return (m_hStdOut != NULL);
+#else
+	return true;
 #endif
 }
 
 // Logs the message to screen
 void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
-	
 #if defined(_WIN32)
 		DWORD cCharsWritten; // We will get a value back here
 		WORD color;
@@ -101,8 +119,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
 		}
 		SetConsoleTextAttribute(m_hStdOut, color);
 
-		WriteConsole(m_hStdOut, text, (DWORD)strlen(text), 
-					 &cCharsWritten, NULL);
+		WriteConsole(m_hStdOut, text, (DWORD)strlen(text), &cCharsWritten, NULL);
 #else
 		fprintf(stderr, "%s", text);
 #endif
@@ -132,8 +149,8 @@ void ConsoleListener::ClearScreen()
 }
 
 
-/* Get window handle of console window to be able to resize it. We use
-   GetConsoleTitle() and FindWindow() to locate the console window handle. */
+// Get window handle of console window to be able to resize it. We use
+// GetConsoleTitle() and FindWindow() to locate the console window handle.
 #if defined(_WIN32)
 HWND GetHwnd(void)
 {
@@ -163,4 +180,3 @@ HWND GetHwnd(void)
 	return(hwndFound);
 }
 #endif // _WIN32
-
