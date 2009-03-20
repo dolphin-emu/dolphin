@@ -127,7 +127,7 @@ class LogManager
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	Common::CriticalSection* logMutex;
+	Common::CriticalSection logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.

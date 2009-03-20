@@ -208,7 +208,5 @@ std::string Timer::GetTimeFormatted()
 
 	return std::string(formattedTime);
 }
-/////////////////////////////////////
-
 
 } // end of namespace Common

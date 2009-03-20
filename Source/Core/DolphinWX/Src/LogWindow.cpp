@@ -37,6 +37,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_RADIOBOX(IDM_VERBOSITY, CLogWindow::OnOptionsCheck)
 	EVT_CHECKBOX(IDM_WRITEFILE, CLogWindow::OnOptionsCheck)
 	EVT_CHECKBOX(IDM_WRITECONSOLE, CLogWindow::OnOptionsCheck)
+	EVT_CHECKBOX(IDM_WRITEWINDOW, CLogWindow::OnOptionsCheck)
 	EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
 	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
 END_EVENT_TABLE()
@@ -78,6 +79,9 @@ void CLogWindow::CreateGUIControls()
 
 	m_writeConsoleCB = new wxCheckBox(this, IDM_WRITECONSOLE, wxT("Write to Console"), wxDefaultPosition, wxDefaultSize, 0);
 	sbLeftOptions->Add(m_writeConsoleCB);
+
+	m_writeWindowCB = new wxCheckBox(this, IDM_WRITEWINDOW, wxT("Write to window ->"), wxDefaultPosition, wxDefaultSize, 0);
+	sbLeftOptions->Add(m_writeWindowCB);
 
 	sLeft->Add(sbLeftOptions, 0, wxEXPAND);
 
@@ -145,6 +149,7 @@ void CLogWindow::SaveSettings()
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "WriteToFile", m_writeFile);
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
+	ini.Set("Options", "WriteToWindow", m_writeWindow);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		ini.Set("Logs", m_logManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	ini.Save(LOGGER_CONFIG_FILE);
@@ -166,12 +171,14 @@ void CLogWindow::LoadSettings()
 	m_writeFileCB->SetValue(m_writeFile);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	m_writeConsoleCB->SetValue(m_writeConsole);
+	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+	m_writeWindowCB->SetValue(m_writeWindow);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
 		ini.Get("Logs", m_logManager->getShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
-		if (enable)
+		if (m_writeWindow && enable)
 			m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
 		else
 			m_logManager->removeListener((LogTypes::LOG_TYPE)i, this);
@@ -294,6 +301,20 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		}
  		break;
 
+	case IDM_WRITEWINDOW:
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+		{
+			m_writeFile = event.IsChecked();
+			if (m_checks->IsChecked(i))
+			{
+				if (m_writeFile)
+					m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
+				else
+					m_logManager->removeListener((LogTypes::LOG_TYPE)i, this);
+			}
+		}
+ 		break;
+
 	case IDM_WRITECONSOLE:
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		{
@@ -350,8 +371,6 @@ void CLogWindow::NotifyUpdate()
 
 void CLogWindow::UpdateLog()
 {
-	if (!msgQueue.size())
-		return;
 	m_logTimer->Stop();
 	wxString collected_text;
 	// rough estimate.
@@ -393,16 +412,14 @@ void CLogWindow::UpdateLog()
 		collected_text.Append(msgQueue.front().second);
 		msgQueue.pop();
 	}
-	if (collected_text.size())
+	if (collected_text.size()) {
 		m_log->AppendText(collected_text);
+	}
 	m_logTimer->Start(UPDATETIME);
 }
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
-	if (level > NOTICE_LEVEL)
-		return;
-
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
 	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString::FromAscii(text)));

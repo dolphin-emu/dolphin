@@ -988,7 +988,7 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 	memcpy(&DataFrame[Offset], _pCommandData, _CommandLength);
 
-	WARN_LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (answer)");
+	INFO_LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (answer)");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Code: 0x%02x", _Code);
 

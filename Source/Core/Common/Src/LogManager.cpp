@@ -3,7 +3,8 @@
 
 LogManager *LogManager::m_logManager = NULL;
 
-LogManager::LogManager() {
+LogManager::LogManager()\
+	: logMutex(1) {
 	// create log files
 	m_Log[LogTypes::MASTER_LOG]			= new LogContainer("*",				"Master Log");
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");
@@ -42,7 +43,6 @@ LogManager::LogManager() {
 	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]       = new LogContainer("ActionReplay",	"ActionReplay");
 
-	logMutex = new Common::CriticalSection(1);
 	m_fileLog = new FileLogListener(MAIN_LOG_FILE);
 	m_consoleLog = new ConsoleListener();
 
@@ -54,8 +54,7 @@ LogManager::LogManager() {
 }
 
 LogManager::~LogManager() {
-	delete [] &m_Log;
-	delete logMutex;
+	delete [] &m_Log;  // iffy :P
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
 		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
 		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_consoleLog);
@@ -78,23 +77,23 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_start(args, format);
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 	va_end(args);
-	sprintf(msg, "%s: %i %s %s\n",
+
+	static const char level_to_char[7] = "-NEWID";
+	sprintf(msg, "%s %c: %s %s\n",
 			Common::Timer::GetTimeFormatted().c_str(),
-			//			PowerPC::ppcState.DebugCount,
-			(int)level,
+			level_to_char[(int)level],
 			log->getShortName(),
 			temp);
 
-	logMutex->Enter();
+	logMutex.Enter();
 	log->trigger(level, msg);
-	logMutex->Leave();
-
+	logMutex.Leave();
 }
 
 void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) {
-	logMutex->Enter();
+	logMutex.Enter();
 	m_Log[type]->removeListener(listener);
-	logMutex->Leave();
+	logMutex.Leave();
 }
 
 LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)
@@ -106,17 +105,7 @@ LogContainer::LogContainer(const char* shortName, const char* fullName, bool ena
 
 // LogContainer
 void LogContainer::addListener(LogListener *listener) {
-	bool exists = false;
-
-	std::vector<LogListener *>::iterator i;
-	for(i = listeners.begin(); i != listeners.end(); i++) {
-		if ((*i) == listener) {
-			exists = true;
-			break;
-		}
-	}
-
-	if (! exists)
+	if (!isListener(listener))
 		listeners.push_back(listener);
 }
 

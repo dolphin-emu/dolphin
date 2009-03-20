@@ -31,6 +31,7 @@ enum
     IDM_TOGGLEALL,
     IDM_WRITEFILE,
     IDM_WRITECONSOLE,
+    IDM_WRITEWINDOW,
 	IDTM_UPDATELOG,
 	IDM_VERBOSITY,
     IDM_SUBMITCMD
@@ -53,9 +54,9 @@ public:
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 
 private:
-	wxTextCtrl* m_log, * m_cmdline;
-	bool m_writeFile, m_writeConsole;
-	wxCheckBox* m_writeFileCB, * m_writeConsoleCB;
+	wxTextCtrl *m_log, *m_cmdline;
+	bool m_writeFile, m_writeConsole, m_writeWindow;
+	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
 	wxTimer *m_logTimer;
 	wxCheckListBox* m_checks;
 	wxRadioBox *m_verbosity;
