@@ -315,7 +315,7 @@ void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> 
 			//overwritten. We should have thrown it out before, on instruction cache invalidate or something.
 			//Not ne cessarily bad though , if a game has simply thrown away a lot of code and is now using the space
 			//for something else, then it's fine.
-			WARN_LOG(MASTER_LOG, "WARNING - ClearCache detected code overwrite @ %08x", blocks[blocknum].originalAddress);
+			DEBUG_LOG(MASTER_LOG, "WARNING - ClearCache detected code overwrite @ %08x", blocks[blocknum].originalAddress);
 		}
 
 		// We don't unlink blocks, we just send anyone who tries to run them back to the dispatcher.

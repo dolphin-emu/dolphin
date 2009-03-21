@@ -15,6 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+// http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
+
+
+
 #include "Common.h"
 #include "ChunkFile.h"
 
@@ -34,8 +39,13 @@ namespace PixelEngine
 // internal hardware addresses
 enum
 {
-	CTRL_REGISTER	= 0x00a,
-	TOKEN_REG		= 0x00e,
+	PE_CTRL_REGISTER = 0x00a,
+	PE_TOKEN_REG     = 0x00e,
+	PE_ZCONF         = 0x000,
+	PE_ALPHACONF     = 0x002,
+	PE_DSTALPHACONF  = 0x004,
+	PE_ALPHAMODE     = 0x006,
+	PE_ALPHAREAD     = 0x008,
 };
 
 // fifo Control Register
@@ -90,15 +100,20 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFF)
 	{
-	case CTRL_REGISTER:
+	case PE_CTRL_REGISTER:
 		_uReturnValue = g_ctrlReg.Hex;
 		INFO_LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
 		return;
 
-	case TOKEN_REG:
+	case PE_TOKEN_REG:
 		_uReturnValue = CommandProcessor::fifo.PEToken;
 		INFO_LOG(PIXELENGINE,"\t TOKEN_REG : %04x", _uReturnValue);
 		return;
+
+	case PE_ALPHACONF:
+		// Most games read this early. no idea why.
+		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHACONF");
+		break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
@@ -115,11 +130,9 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
-	DEBUG_LOG(PIXELENGINE, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
-
 	switch (_iAddress & 0xFFF)
 	{
-	case CTRL_REGISTER:	
+	case PE_CTRL_REGISTER:	
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
@@ -131,16 +144,24 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			g_ctrlReg.PEToken = 0;		// this flag is write only
 			g_ctrlReg.PEFinish = 0;		// this flag is write only
 
+			DEBUG_LOG(PIXELENGINE, "(w16): PE_CTRL_REGISTER: 0x%04x", _iValue);
 			UpdateInterrupts();
 		}
 		break;
 
-	case TOKEN_REG:
+	case PE_TOKEN_REG:
 		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
-		PanicAlert("PIXELENGINE : (w16) WTF? PowerPC program wrote token: %i", _iValue);
+		PanicAlert("(w16) WTF? PowerPC program wrote token: %i", _iValue);
 		//only the gx pipeline is supposed to be able to write here
 		//g_token = _iValue;
 		break;
+
+	// These are probably the settings for direct CPU EFB access. Ugh.
+	case PE_ZCONF:        INFO_LOG("(w16) ZCONF: %02x", _iValue);        break;
+	case PE_ALPHACONF:    INFO_LOG("(w16) ALPHACONF: %02x", _iValue);    break;
+	case PE_DSTALPHACONF: INFO_LOG("(w16) DSTALPHACONF: %02x", _iValue); break;
+	case PE_ALPHAMODE:    INFO_LOG("(w16) ALPHAMODE: %02x", _iValue);    break;
+	case PE_ALPHAREAD:    INFO_LOG("(w16) ALPHAREAD: %02x", _iValue);    break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);

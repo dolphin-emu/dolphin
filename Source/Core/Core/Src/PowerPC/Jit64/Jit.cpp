@@ -463,6 +463,10 @@ namespace CPUCompare
 			// get start tic
 			PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStart);
 		}
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		// should help logged stacktraces become more accurate
+		MOV(32, M(&PC), Imm32(js.blockStart));
+#endif
 
 		//Start up the register allocators
 		//They use the information in gpa/fpa to preload commonly used registers.

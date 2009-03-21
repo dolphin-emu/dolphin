@@ -267,7 +267,7 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 		if (pSrc != NULL)
 		{
 			short *pDest = (short *)&_pPBs[i];
-			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
+			for (int p = 0; p < (int)sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
 
