@@ -79,6 +79,7 @@ private:
 	void OnToggleAll(wxCommandEvent& event);
 	void OnLogTimer(wxTimerEvent& WXUNUSED(event));
 
+	void ToggleLog(int _logType, bool enable);
 	void UpdateChecks();
 	void UpdateLog();
 

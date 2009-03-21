@@ -226,32 +226,14 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 // Enable or disable all boxes for the current verbosity level and save the changes.
 void CLogWindow::OnToggleAll(wxCommandEvent& WXUNUSED (event))
 {
-	static bool enable = false;
+	static bool enableAll = false;
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		m_checks->Check(i, enable);
-		m_logManager->setEnable((LogTypes::LOG_TYPE)i, enable);
-
-		if (enable)
-		{
-			if (m_writeWindow)
-				m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
-			if (m_writeFile)
-				m_logManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
-			if (m_writeConsole)
-				m_logManager->addListener((LogTypes::LOG_TYPE)i, m_console);
-		}
-		else
-		{
-			m_logManager->removeListener((LogTypes::LOG_TYPE)i, this);
-			m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
-			m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
-		}
+		ToggleLog(i, enableAll);
 	}
 
-	enable = !enable;
-	SaveSettings();
+	enableAll = !enableAll;
 }
 
 // Append checkboxes and update checked groups. 
@@ -346,21 +328,33 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 void CLogWindow::OnLogCheck(wxCommandEvent& event)
 {
 	int i = event.GetInt();
-	if (m_checks->IsChecked(i))
+	ToggleLog(i, m_checks->IsChecked(i));
+}
+
+void CLogWindow::ToggleLog(int _logType, bool enable)
+{
+	LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
+	
+	m_checks->Check(_logType, enable);
+
+	m_logManager->setEnable(logType, enable);
+
+	if (enable)
 	{
 		if (m_writeWindow)
-			m_logManager->addListener((LogTypes::LOG_TYPE)i, this);
+			m_logManager->addListener(logType, this);
 		if (m_writeFile)
-			m_logManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
+			m_logManager->addListener(logType, m_fileLog);
 		if (m_writeConsole)
-			m_logManager->addListener((LogTypes::LOG_TYPE)i, m_console);
+			m_logManager->addListener(logType, m_console);
 	}
 	else
 	{
-		m_logManager->removeListener((LogTypes::LOG_TYPE)i, this);
-		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
-		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
+		m_logManager->removeListener(logType, this);
+		m_logManager->removeListener(logType, m_fileLog);
+		m_logManager->removeListener(logType, m_console);
 	}
+
 	SaveSettings();
 }
 
@@ -379,9 +373,9 @@ void CLogWindow::UpdateLog()
 {
 	m_logTimer->Stop();
 	wxString collected_text;
-	// rough estimate.
-	m_logSection.Enter();
 
+	m_logSection.Enter();
+	// rough estimate
 	collected_text.reserve(100 * msgQueue.size());
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
