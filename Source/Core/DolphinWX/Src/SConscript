@@ -101,4 +101,5 @@ else:
 
 if wxenv['HAVE_WX']:
 	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])
-wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])
+else:
+	wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])
