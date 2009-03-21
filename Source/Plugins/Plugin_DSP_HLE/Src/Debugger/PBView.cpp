@@ -30,6 +30,12 @@ extern const char* GetGRPName(unsigned int index);
 CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
+}
+
+void CPBView::Update()
+{
+	ClearAll();
+
 	InsertColumn(1, wxT("upd4"), wxLIST_FORMAT_LEFT, 90);
 	InsertColumn(1, wxT("upd3"), wxLIST_FORMAT_LEFT, 90);
 	InsertColumn(1, wxT("upd2"), wxLIST_FORMAT_LEFT, 90);
@@ -60,18 +66,10 @@ CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, cons
 	InsertColumn(0, wxT("run"), wxLIST_FORMAT_RIGHT, 50);
 	InsertColumn(0, wxT("Block"), wxLIST_FORMAT_CENTER, 40);
 
-	SetFont(wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace")));
-
 	for (int i = 0; i < 64; i++)
 	{
 		InsertItemInReportView(i);
 	}
-	Refresh();
-}
-
-void CPBView::Update()
-{
-	Refresh();
 }
 
 void CPBView::InsertItemInReportView(int _Row)
