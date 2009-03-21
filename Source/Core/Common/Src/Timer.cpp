@@ -196,15 +196,18 @@ std::string Timer::GetTimeFormatted()
 	time_t sysTime;
 	struct tm * gmTime;
 	char formattedTime[13];
+	char tmp[13];
 
 	time(&sysTime);
 	gmTime = localtime(&sysTime);
-	strftime(formattedTime, 6, "%M:%S", gmTime);
+
+	strftime(tmp, 6, "%M:%S", gmTime);
+
 
 	// Now tack on the milliseconds
 	struct timeb tp;
 	(void)::ftime(&tp);
-	sprintf(formattedTime, "%s:%03i", formattedTime, tp.millitm);
+	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
 
 	return std::string(formattedTime);
 }
