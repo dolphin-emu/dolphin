@@ -23,25 +23,23 @@
 
 #include "Common.h"
 
-class CPBView
-	: public wxListCtrl
+class CPBView : public wxListCtrl
 {
-	public:
+public:
+	CPBView(wxWindow* parent,
+		const wxWindowID id,
+		const wxPoint& pos,
+		const wxSize& size,
+		long style);
 
-		CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
+	void Update();
 
-		void Update();
+	u32 m_CachedRegs[64][92];		
 
-		u32 m_CachedRegs[64][92];		
-	
+private:		
+	bool m_CachedRegHasChanged[64];
 
-	private:
-
-		DECLARE_EVENT_TABLE()
-		
-		bool m_CachedRegHasChanged[64];
-
-		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
+	void InsertItemInReportView(int _Index);
 };
 
 #endif

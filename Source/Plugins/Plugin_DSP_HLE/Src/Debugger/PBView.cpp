@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "PBView.h"
 
 #include <iostream>
@@ -24,18 +23,8 @@
 #include <stdlib.h>
 
 
-
-
-// ---------------------------------------------------------------------------------------
 // external declarations
 extern const char* GetGRPName(unsigned int index);
-
-// No buttons or events so far
-BEGIN_EVENT_TABLE(CPBView, wxListCtrl)
-
-END_EVENT_TABLE()
-// ---------------------------------------------------------------------------------------
-
 
 
 CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -71,95 +60,46 @@ CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, cons
 	InsertColumn(0, wxT("run"), wxLIST_FORMAT_RIGHT, 50);
 	InsertColumn(0, wxT("Block"), wxLIST_FORMAT_CENTER, 40);
 
-	SetFont(wxFont(8, wxSWISS, wxNORMAL, wxNORMAL, false, wxT("Segoe UI")));
+	SetFont(wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace")));
 
 	for (int i = 0; i < 64; i++)
 	{
-
-		// Print values from 0 to 63
-		char buffer [33];
-		sprintf(buffer, "%02i", i);
-		int Item = InsertItem(0, wxString::FromAscii(buffer));
-
-
-		wxListItem item;
-		item.SetId(Item);
-		item.SetBackgroundColour(0xFFFFFF);
-		item.SetData(i);
-		SetItem(item);
+		InsertItemInReportView(i);
 	}
-
-	// This is a wx call that leads to MSWDrawSubItem
 	Refresh();
 }
 
-
-void
-CPBView::Update()
+void CPBView::Update()
 {
-
 	Refresh();
-	
 }
 
-// TODO wtf does this do? why is it windows only???
-bool CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
+void CPBView::InsertItemInReportView(int _Row)
 {
-	bool Result = false;
+	long tmp = InsertItem(_Row, wxString::Format(wxT("%02i"), _Row), 0);
+	SetItemData(tmp, _Row);
 
-	// don't change 0, it has the block values
-	if(subitem > 0)
+	wxString text;
+
+	// A somewhat primitive attempt to show the playing history for a certain block.
+	char cbuff [33];
+
+	sprintf(cbuff, "%08i", m_CachedRegs[_Row][0]); //TODO?
+	std::string c = cbuff;
+	int n[8];
+
+	for (int j = 0; j < 8; j++)
 	{
-	#ifdef __WXMSW__ // what's this? should I use that?
-	    const wxChar* bgColor = _T("#ffffff");
-	    wxBrush bgBrush(bgColor);
-	    wxPen bgPen(bgColor);
-
-	    wxRect SubItemRect;
-	    this->GetSubItemRect(item, subitem, SubItemRect);
-	    rPainDC.SetBrush(bgBrush);
-	    rPainDC.SetPen(bgPen);
-	    rPainDC.DrawRectangle(SubItemRect);
-	#endif
-		// A somewhat primitive attempt to show the playing history for a certain block.
-
-	    wxString text;
-		if(subitem == 1)
-		{
-			char cbuff [33];
-
-			sprintf(cbuff, "%08i", m_CachedRegs[subitem][item]);				
-			std::string c = cbuff;
-			int n[8];
-
-			for (int j = 0; j < 8; j++)
-			{	
-				
-				n[j] = atoi( c.substr(j, 1).c_str());
-				// 149 = dot, 160 = space
-				if (n[j] == 1){
-					n[j] = 149;} else {n[j] = 160;}				
-			}
-			// pretty neat huh?
-			text.Printf(wxT("%c%c%c%c%c%c%c%c"), n[0],n[1],n[2],n[3],n[4],n[5],n[6],n[7]);
-			
-		}
+		n[j] = atoi( c.substr(j, 1).c_str() );
+		// 149 = dot, 160 = space
+		if (n[j] == 1)
+			n[j] = 149;
 		else
-		{
-			text.Printf(wxT("0x%08x"), m_CachedRegs[subitem][item]);
-		}
-		#ifdef __WXMSW__
-	    rPainDC.DrawText(text, SubItemRect.GetLeft() + 10, SubItemRect.GetTop() + 4);
-	    #else
-	    // May not show up pretty in !Win32
-	    rPainDC.DrawText(text, 10, 4);
-	    #endif
+			n[j] = 160;
+	}
+	// pretty neat huh?
+	SetItem(tmp, 1, wxString::Format(wxT("%c%c%c%c%c%c%c%c"), n[0],n[1],n[2],n[3],n[4],n[5],n[6],n[7]));
 
-	    return(true);
-	}
-	else
-	{
-		// what does this mean?
-		return(Result);
-	}
+	for (int column = 2; column < GetColumnCount(); column++)
+		SetItem(tmp, column, wxString::Format(wxT("0x%08x"), m_CachedRegs[_Row][column]));
 }
