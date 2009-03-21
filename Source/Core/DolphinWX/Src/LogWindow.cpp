@@ -212,9 +212,8 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 	m_log->Clear();
 
 	m_logSection.Enter();
-	//msgQueue.Clear()
-	int msgQueueSize = msgQueue.size();
-	for (unsigned int i = 0; i < msgQueueSize; i++) 
+	int msgQueueSize = (int)msgQueue.size();
+	for (int i = 0; i < msgQueueSize; i++) 
 		msgQueue.pop();
 	m_logSection.Leave();
 
@@ -227,12 +226,12 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 void CLogWindow::OnToggleAll(wxCommandEvent& WXUNUSED (event))
 {
 	static bool enableAll = false;
-
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		ToggleLog(i, enableAll);
 	}
 
+	SaveSettings();
 	enableAll = !enableAll;
 }
 
@@ -244,19 +243,24 @@ void CLogWindow::UpdateChecks()
 	{
 		// [F|RES] hide the window while we fill it... wxwidgets gets trouble
 		// if you don't do it (at least the win version)
-		m_checks->Show(false);
+		m_checks->Freeze();
 
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		{
 			m_checks->Append(wxString::FromAscii(m_logManager->getFullName( (LogTypes::LOG_TYPE)i )));
 		}
-		m_checks->Show(true);
+		m_checks->Thaw();
 	}
 
+	m_checks->Freeze();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
-		m_checks->Check(i, m_logManager->isListener((LogTypes::LOG_TYPE)i, this));
+		m_checks->Check(i,
+			m_logManager->isListener((LogTypes::LOG_TYPE)i, this) ||
+			m_logManager->isListener((LogTypes::LOG_TYPE)i, m_console) ||
+			m_logManager->isListener((LogTypes::LOG_TYPE)i, m_fileLog));
 	}
+	m_checks->Thaw();
 }
 
 // When an option is changed, save the change
@@ -329,6 +333,8 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 {
 	int i = event.GetInt();
 	ToggleLog(i, m_checks->IsChecked(i));
+
+	SaveSettings();
 }
 
 void CLogWindow::ToggleLog(int _logType, bool enable)
@@ -354,8 +360,6 @@ void CLogWindow::ToggleLog(int _logType, bool enable)
 		m_logManager->removeListener(logType, m_fileLog);
 		m_logManager->removeListener(logType, m_console);
 	}
-
-	SaveSettings();
 }
 
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
