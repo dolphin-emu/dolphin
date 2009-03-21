@@ -33,19 +33,25 @@
 #include "../Core.h"
 #include "../ConfigManager.h"
 
+u16 AlphaConfigReg = 0x0; // Fake Alpha Control Register
+u16 ZConfigReg = 0x0; // Fake Z Control Register
+u16 DstAlphaReg = 0x0; // Fake Alpha Dest Register
+u16 AlphaModeReg = 0x0; // Fake Alpha Mode Register
+u16 AlphaReg = 0x0; // Fake Alpha Register
+
 namespace PixelEngine
 {
 
 // internal hardware addresses
 enum
 {
-	PE_CTRL_REGISTER = 0x00a,
-	PE_TOKEN_REG     = 0x00e,
-	PE_ZCONF         = 0x000,
-	PE_ALPHACONF     = 0x002,
-	PE_DSTALPHACONF  = 0x004,
-	PE_ALPHAMODE     = 0x006,
-	PE_ALPHAREAD     = 0x008,
+	PE_ZCONF         = 0x000, // Z Config
+	PE_ALPHACONF     = 0x002, // Alpha Config
+	PE_DSTALPHACONF  = 0x004, // Destination Alpha Config
+	PE_ALPHAMODE     = 0x006, // Alpha Mode Config
+	PE_ALPHAREAD     = 0x008, // Alpha Read ?
+	PE_CTRL_REGISTER = 0x00a, // Control
+	PE_TOKEN_REG     = 0x00e, // Token
 };
 
 // fifo Control Register
@@ -113,7 +119,28 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_ALPHACONF:
 		// Most games read this early. no idea why.
 		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHACONF");
-		break;
+		_uReturnValue = AlphaConfigReg;
+		return;
+
+	case PE_ZCONF:
+		INFO_LOG(PIXELENGINE, "(r16): PE_ZCONF");
+		_uReturnValue = ZConfigReg;
+		return;	
+	
+	case PE_DSTALPHACONF:
+		INFO_LOG(PIXELENGINE, "(r16): PE_DSTALPHACONF");
+		_uReturnValue = DstAlphaReg;
+		return;
+
+	case PE_ALPHAMODE:
+		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHAMODE");
+		_uReturnValue = AlphaModeReg;
+		return;	
+
+	case PE_ALPHAREAD:
+		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHAREAD");
+		_uReturnValue = AlphaReg;
+		return;	
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
@@ -157,11 +184,12 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	// These are probably the settings for direct CPU EFB access. Ugh.
-	case PE_ZCONF:        INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        break;
-	case PE_ALPHACONF:    INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    break;
-	case PE_DSTALPHACONF: INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); break;
-	case PE_ALPHAMODE:    INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    break;
-	case PE_ALPHAREAD:    INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    break;
+	// Lets save the written config in a fake reg anyways
+	case PE_ZCONF:        INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        ZConfigReg = _iValue;     break;
+	case PE_ALPHACONF:    INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    AlphaConfigReg = _iValue; break;
+	case PE_DSTALPHACONF: INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); DstAlphaReg = _iValue;    break;
+	case PE_ALPHAMODE:    INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    AlphaModeReg = _iValue;   break;
+	case PE_ALPHAREAD:    INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    AlphaReg = _iValue;       break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);
