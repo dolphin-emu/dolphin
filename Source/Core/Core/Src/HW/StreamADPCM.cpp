@@ -1,61 +1,66 @@
-/*********************************************************************
-
-        Nintendo GameCube ADPCM Decoder Core Class
-        Author: Shinji Chiba <ch3@mail.goo.ne.jp>
-
-*********************************************************************/
+// Adapted from in_cube by hcs & destop
 
 #include "StreamADPCM.H"
 
-// STATE_TO_SAVE
-float NGCADPCM::iir1[STEREO],
-	  NGCADPCM::iir2[STEREO];
+#define ONE_BLOCK_SIZE		32
+#define SAMPLES_PER_BLOCK	28
+
+// STATE_TO_SAVE (not saved yet!)
+static int histl1;
+static int histl2;
+static int histr1;
+static int histr2;
+
+short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p) {
+	int hist, cur;
+	const int hist1 = *hist1p;
+	const int hist2 = *hist2p;
+	
+	switch (q >> 4)
+	{
+	case 0:
+		hist = 0;
+		break;
+	case 1:
+		hist = (hist1 * 0x3c);
+		break;
+	case 2:
+		hist = (hist1 * 0x73) - (hist2 * 0x34);
+		break;
+	case 3:
+		hist = (hist1 * 0x62) - (hist2 * 0x37);
+		break;
+	}
+	hist = (hist + 0x20) >> 6;
+	if (hist >  0x1fffff) hist =  0x1fffff;
+	if (hist < -0x200000) hist = -0x200000;
+
+	cur = (((short)(bits << 12) >> (q & 0xf)) << 6) + hist;
+	
+	*hist2p = *hist1p;
+	*hist1p = cur;
+
+	cur >>= 6;
+
+	if (cur < -0x8000) return -0x8000;
+	if (cur >  0x7fff) return  0x7fff;
+
+	return (short)cur;
+}
 
 void NGCADPCM::InitFilter()
 {
-	iir1[0] = iir1[1] =
-	iir2[0] = iir2[1] = 0.0f;
+	histl1 = 0;
+	histl2 = 0;
+	histr1 = 0;
+	histr2 = 0;
 }
 
-short NGCADPCM::DecodeSample( int bits, int q, int ch )
+void NGCADPCM::DecodeBlock(short *pcm, const u8 *adpcm)
 {
-	static const float coef[4] = { 0.86f, 1.8f, 0.82f, 1.53f };
-	float iir_filter;
-
-	iir_filter = (float) ((short) (bits << 12) >> (q & 0xf));
-	switch (q >> 4)
+	for (int i = 0; i < SAMPLES_PER_BLOCK; i++)
 	{
-	case 1:
-		iir_filter += (iir1[ch] * coef[0]);
-		break;
-	case 2:
-		iir_filter += (iir1[ch] * coef[1] - iir2[ch] * coef[2]);
-		break;
-	case 3:
-		iir_filter += (iir1[ch] * coef[3] - iir2[ch] * coef[0]);
-	}
-
-	iir2[ch] = iir1[ch];
-	if ( iir_filter <= -32768.5f )
-	{
-		iir1[ch] = -32767.5f;
-		return -32767;
-	}
-	else if ( iir_filter >= 32767.5f )
-	{
-		iir1[ch] = 32767.5f;
-		return 32767;
-	}
-	return (short) ((iir1[ch] = iir_filter) * 0.5f);
-}
-
-void NGCADPCM::DecodeBlock( short *pcm, u8* adpcm)
-{
-	int ch = 1;
-	int i;
-	for( i = 0; i < SAMPLES_PER_BLOCK; i++ )
-	{
-		pcm[i * STEREO]        = DecodeSample( adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0],  0 );
-		pcm[i * STEREO + MONO] = DecodeSample( adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] >> 4,  adpcm[ch], ch );
+		pcm[i * 2]     = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0], &histl1, &histl2);
+		pcm[i * 2 + 1] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] >> 4,  adpcm[1], &histr1, &histr2);
 	}
 }
