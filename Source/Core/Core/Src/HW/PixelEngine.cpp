@@ -157,11 +157,11 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	// These are probably the settings for direct CPU EFB access. Ugh.
-	case PE_ZCONF:        INFO_LOG("(w16) ZCONF: %02x", _iValue);        break;
-	case PE_ALPHACONF:    INFO_LOG("(w16) ALPHACONF: %02x", _iValue);    break;
-	case PE_DSTALPHACONF: INFO_LOG("(w16) DSTALPHACONF: %02x", _iValue); break;
-	case PE_ALPHAMODE:    INFO_LOG("(w16) ALPHAMODE: %02x", _iValue);    break;
-	case PE_ALPHAREAD:    INFO_LOG("(w16) ALPHAREAD: %02x", _iValue);    break;
+	case PE_ZCONF:        INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        break;
+	case PE_ALPHACONF:    INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    break;
+	case PE_DSTALPHACONF: INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); break;
+	case PE_ALPHAMODE:    INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    break;
+	case PE_ALPHAREAD:    INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);
