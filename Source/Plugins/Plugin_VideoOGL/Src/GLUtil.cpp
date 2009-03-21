@@ -391,15 +391,15 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     if (vi == NULL) {
         vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
         GLWin.doubleBuffered = False;
-        ERROR_LOG(VIDEO, "Only Singlebuffered Visual!\n");
+        ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
     }
     else {
         GLWin.doubleBuffered = True;
-        NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!\n");
+        NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
     }
 
     glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
-    NOTICE_LOG(VIDEO, "glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
+    NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
     /* create a GLX context */
     GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
     if(!GLWin.ctx)
@@ -426,7 +426,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
         // set best mode to current
         bestMode = 0;
-        NOTICE_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion, vidModeMinorVersion);
+        NOTICE_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
         XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
         
         if (modeNum > 0 && modes != NULL) {
@@ -443,7 +443,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
             dpyWidth = modes[bestMode]->hdisplay;
             dpyHeight = modes[bestMode]->vdisplay;
-            NOTICE_LOG(VIDEO, "Resolution %dx%d\n", dpyWidth, dpyHeight);
+            NOTICE_LOG(VIDEO, "Resolution %dx%d", dpyWidth, dpyHeight);
             XFree(modes);
             
             /* create a fullscreen window */
@@ -460,7 +460,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                          GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
         }
         else {
-            ERROR_LOG(VIDEO, "Failed to start fullscreen. If you received the \n"
+            ERROR_LOG(VIDEO, "Failed to start fullscreen. If you received the "
                       "\"XFree86-VidModeExtension\" extension is missing, add\n"
                       "Load \"extmod\"\n"
                       "to your X configuration file (under the Module Section)\n");
@@ -725,7 +725,7 @@ void OpenGL_Shutdown()
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))
         {
-            ERROR_LOG(VIDEO, "Could not release drawing context.\n");
+            ERROR_LOG(VIDEO, "Could not release drawing context.");
         }
         XUnmapWindow(GLWin.dpy, GLWin.win);
         glXDestroyContext(GLWin.dpy, GLWin.ctx);
@@ -753,7 +753,7 @@ void HandleGLError()
 		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
 		ERROR_LOG(VIDEO, "program error at %d: ", loc);
 		ERROR_LOG(VIDEO, (char*)pstr);
-		ERROR_LOG(VIDEO, "\n");
+		ERROR_LOG(VIDEO, "");
 	}
 
 	// check the error status of this framebuffer */
@@ -768,40 +768,40 @@ void HandleGLError()
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-			ERROR_LOG(VIDEO, "Error! missing a required image/buffer attachment!\n");
+			ERROR_LOG(VIDEO, "Error! missing a required image/buffer attachment!");
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-			ERROR_LOG(VIDEO, "Error! has no images/buffers attached!\n");
+			ERROR_LOG(VIDEO, "Error! has no images/buffers attached!");
 			break;
 //      case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
-//          ERROR_LOG(VIDEO, "Error! has an image/buffer attached in multiple locations!\n");
+//          ERROR_LOG(VIDEO, "Error! has an image/buffer attached in multiple locations!");
 //           break;
 		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-			ERROR_LOG(VIDEO, "Error! has mismatched image/buffer dimensions!\n");
+			ERROR_LOG(VIDEO, "Error! has mismatched image/buffer dimensions!");
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-			ERROR_LOG(VIDEO, "Error! colorbuffer attachments have different types!\n");
+			ERROR_LOG(VIDEO, "Error! colorbuffer attachments have different types!");
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-			ERROR_LOG(VIDEO, "Error! trying to draw to non-attached color buffer!\n");
+			ERROR_LOG(VIDEO, "Error! trying to draw to non-attached color buffer!");
 			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-			ERROR_LOG(VIDEO, "Error! trying to read from a non-attached color buffer!\n");
+			ERROR_LOG(VIDEO, "Error! trying to read from a non-attached color buffer!");
 			break;
 		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-			ERROR_LOG(VIDEO, "Error! format is not supported by current graphics card/driver!\n");
+			ERROR_LOG(VIDEO, "Error! format is not supported by current graphics card/driver!");
 			break;
 		default:
-			ERROR_LOG(VIDEO, "*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!\n");
+			ERROR_LOG(VIDEO, "*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!");
 			break;
 	}
 }
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
-	ERROR_LOG(VIDEO, "Cg error: %s\n", cgGetErrorString(err));
+	ERROR_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
 	const char* listing = cgGetLastListing(g_cgcontext);
 	if (listing != NULL) {
-		ERROR_LOG(VIDEO, "    last listing: %s\n", listing);
+		ERROR_LOG(VIDEO, "    last listing: %s", listing);
 	}
 }

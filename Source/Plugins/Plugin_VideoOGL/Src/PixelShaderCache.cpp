@@ -63,7 +63,7 @@ void PixelShaderCache::Init()
 	int maxinst, maxattribs;
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);
-	INFO_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d\n", s_nMaxPixelInstructions, maxinst, maxattribs);
+	INFO_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d", s_nMaxPixelInstructions, maxinst, maxattribs);
 	
 	char pmatrixprog[1024];
 	sprintf(pmatrixprog, "!!ARBfp1.0"
@@ -83,7 +83,7 @@ void PixelShaderCache::Init()
 	GLenum err = GL_NO_ERROR;
 	GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
-		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program\n");
+		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
 		glDeleteProgramsARB(1, &s_ColorMatrixProgram);
 		s_ColorMatrixProgram = 0;
 	}
@@ -144,7 +144,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 
 	//	printf("Compiling pixel shader. size = %i\n", strlen(code));
 	if (!code || !CompilePixelShader(newentry.shader, code)) {
-		ERROR_LOG(VIDEO, "failed to create pixel shader\n");
+		ERROR_LOG(VIDEO, "failed to create pixel shader");
 		return NULL;
 	}
 
@@ -188,7 +188,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
             s_displayCompileAlert = false;
         }
         cgDestroyProgram(tempprog);
-		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
+		ERROR_LOG(VIDEO, "Failed to create ps %s:", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;
 	}

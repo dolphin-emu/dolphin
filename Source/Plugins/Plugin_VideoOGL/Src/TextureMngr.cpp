@@ -113,10 +113,10 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 			            (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 
 		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) 
-            DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode\n");
+            DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode");
 
 		if (newmode.wrap_s == 1 || newmode.wrap_t == 1)
-            DEBUG_LOG(VIDEO, "cannot support repeat mode\n");
+            DEBUG_LOG(VIDEO, "cannot support repeat mode");
     }
     else {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -450,7 +450,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     // Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
     bool bIsInit = textures.find(address) != textures.end();
 
-    PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d\n", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
+    PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
 
     TCacheEntry& entry = textures[address];
     entry.isNonPow2 = true;
@@ -549,7 +549,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
                 break;
             default:
-                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
@@ -578,7 +578,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
                 break;
             default:
-                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
@@ -622,7 +622,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
 
             default:
-                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x\n", copyfmt);
+                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
                 colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }

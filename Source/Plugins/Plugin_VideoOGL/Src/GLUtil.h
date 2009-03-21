@@ -67,10 +67,10 @@
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
 
-#define GL_REPORT_ERROR() { err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
+#define GL_REPORT_ERROR() { err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x", __FILE__, (int)__LINE__, err); HandleGLError(); } }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-#define GL_REPORT_ERRORD() { GLenum err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
+#define GL_REPORT_ERRORD() { GLenum err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x", __FILE__, (int)__LINE__, err); HandleGLError(); } }
 #else
 #define GL_REPORT_ERRORD()
 #endif

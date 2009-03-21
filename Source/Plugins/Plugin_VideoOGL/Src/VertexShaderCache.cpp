@@ -99,7 +99,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 #endif
 
 	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-		ERROR_LOG(VIDEO, "failed to create vertex shader\n");
+		ERROR_LOG(VIDEO, "failed to create vertex shader");
 		return NULL;
 	}
 
@@ -144,7 +144,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
             s_displayCompileAlert = false;
         }
         cgDestroyProgram(tempprog);
-		ERROR_LOG(VIDEO, "Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
+		ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;
 	}

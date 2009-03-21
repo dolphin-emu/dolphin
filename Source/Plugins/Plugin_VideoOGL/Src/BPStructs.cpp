@@ -74,7 +74,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d\n",
+            PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d",
 				bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
                 bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
 				bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
@@ -117,7 +117,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("zmode: test=%d, func=%d, upd=%d\n", bpmem.zmode.testenable, bpmem.zmode.func,
+            PRIM_LOG("zmode: test=%d, func=%d, upd=%d", bpmem.zmode.testenable, bpmem.zmode.func,
 				bpmem.zmode.updateenable);
             
             if (bpmem.zmode.testenable) {
@@ -140,7 +140,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d\n", bpmem.alphaFunc.ref0,
+            PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alphaFunc.ref0,
 				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
             PixelShaderManager::SetAlpha(bpmem.alphaFunc);
         }
@@ -150,7 +150,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+            PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
 			SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
             PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
@@ -179,7 +179,7 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 
-            PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d\n", 
+            PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
                 bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
                 bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
@@ -284,7 +284,7 @@ void BPWritten(int addr, int changes, int newval)
             if (!Renderer::SetScissorRect())
 			{
 				if (addr == BPMEM_SCISSORBR) {
-                    ERROR_LOG(VIDEO, "bad scissor!\n");
+                    ERROR_LOG(VIDEO, "bad scissor!");
 				}
             }
         }
@@ -293,7 +293,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
+            PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
             PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
         }
         break;
@@ -307,7 +307,7 @@ void BPWritten(int addr, int changes, int newval)
 #if defined(_DEBUG) || defined(DEBUGFAST) 
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
-            PRIM_LOG("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
+            PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
 #endif
         }
         break;
@@ -616,7 +616,7 @@ void BPWritten(int addr, int changes, int newval)
             break;
         case 0x9C://TEX UNKNOWN
         case 0xBC:
-            //ERROR_LOG("texunknown%x = %x\n", addr, newval);
+            //ERROR_LOG("texunknown%x = %x", addr, newval);
             ((u32*)&bpmem)[addr] = newval;
             break;
         case 0xE0:
@@ -706,7 +706,7 @@ void BPWritten(int addr, int changes, int newval)
                         default:
                             // 0x58 = 0xf
                             // 0x69 = 0x49e
-                            ERROR_LOG("bp%.2x = %x\n", addr, newval);
+                            ERROR_LOG("bp%.2x = %x", addr, newval);
                     }*/
                 }
                 break;

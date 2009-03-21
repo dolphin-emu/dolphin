@@ -201,9 +201,9 @@ bool Renderer::Init()
 		PanicAlert("Failed to get OpenGL extension string.\nDo you have the latest video drivers installed?\nIs your video card OpenGL 2.x compatible?");
 		return false;
 	}
-    INFO_LOG(VIDEO, "Supported OpenGL Extensions:\n");
+    INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
     INFO_LOG(VIDEO, ptoken);  // write to the log file
-    INFO_LOG(VIDEO, "\n");
+    INFO_LOG(VIDEO, "");
 
 	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
@@ -213,21 +213,21 @@ bool Renderer::Init()
 
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
     if (numvertexattribs < 11) {
-        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\nDoes your video card support OpenGL 2.x?", numvertexattribs);
+        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********Does your video card support OpenGL 2.x?", numvertexattribs);
         bSuccess = false;
     }
 
 	// Init extension support.
 	if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
         return false;
     }
     if (!GLEW_EXT_framebuffer_object) {
-        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********Does your video card support OpenGL 2.x?");
         bSuccess = false;
     }
     if (!GLEW_EXT_secondary_color) {
-        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********\nDoes your video card support OpenGL 2.x?");
+        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********Does your video card support OpenGL 2.x?");
         bSuccess = false;
     }
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
@@ -250,12 +250,12 @@ bool Renderer::Init()
 	if (WGLEW_EXT_swap_control)
 		wglSwapIntervalEXT(g_Config.bVSync ? 1 : 0);
 	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\nDoes your video card support OpenGL 2.x?");
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
 	if (glXSwapIntervalSGI)
 		glXSwapIntervalSGI(g_Config.bVSync ? 1 : 0);
 	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
 #endif
 
     // check the max texture width and height
@@ -289,7 +289,7 @@ bool Renderer::Init()
 
 	glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
 	if (s_uFramebuffer == 0) {
-		ERROR_LOG(VIDEO, "failed to create the renderbuffer\nDoes your video card support OpenGL 2.x?");
+		ERROR_LOG(VIDEO, "failed to create the renderbufferDoes your video card support OpenGL 2.x?");
 	}
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
 
@@ -338,7 +338,7 @@ bool Renderer::Init()
 		}
 
 		if (s_FakeZTarget == 0)
-			ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)\n", nMaxMRT);
+			ERROR_LOG(VIDEO, "Disabling ztarget MRT feature (max MRT = %d)", nMaxMRT);
 	}
 	else
 	{
@@ -420,12 +420,12 @@ bool Renderer::Init()
 
     // load the effect, find the best profiles (if any)
     if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
-        ERROR_LOG(VIDEO, "arbvp1 not supported\n");
+        ERROR_LOG(VIDEO, "arbvp1 not supported");
         return false;
     }
 
     if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
-        ERROR_LOG(VIDEO, "arbfp1 not supported\n");
+        ERROR_LOG(VIDEO, "arbfp1 not supported");
         return false;
     }
 
@@ -434,17 +434,17 @@ bool Renderer::Init()
     cgGLSetOptimalOptions(g_cgvProf);
     cgGLSetOptimalOptions(g_cgfProf);
 
-    INFO_LOG(VIDEO, "Max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
+    INFO_LOG(VIDEO, "Max buffer sizes: %d %d", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-    DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
-    DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
+    DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d", nenvvertparams, nenvfragparams);
+    DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d", naddrregisters[0], naddrregisters[1]);
 
 	if (nenvvertparams < 238)
-        ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!\n");
+        ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
@@ -972,7 +972,7 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 		// Adjust the X and Y offset
 		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0 / WidthRatio / Ratio);
 		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0 / HeightRatio / Ratio);
-		//DEBUG_LOG(CONSOLE, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f\n", Ratio, IncreasedHeight, FloatYOffset);
+		//DEBUG_LOG(CONSOLE, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
 	}
 
 	// round(float) = floor(float + 0.5)
@@ -1370,7 +1370,7 @@ void UpdateViewport()
     // [4] = yorig + height/2 + 342
     // [5] = 16777215 * farz
 
-	/*INFO_LOG(VIDEO, "view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
+	/*INFO_LOG(VIDEO, "view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)",
 		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
 		2 * rawViewport[0], 2 * rawViewport[1],
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
@@ -1412,15 +1412,15 @@ void UpdateViewport()
 	GetWindowRect(Child, &RcChild);
 	
 	//Console::ClearScreen();	
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
-	DEBUG_LOG(CONSOLE, "Top window:     X:%03i Y:%03i Width:%03i Height:%03i\n", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
-	DEBUG_LOG(CONSOLE, "Parent window:  X:%03i Y:%03i Width:%03i Height:%03i\n", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
-	DEBUG_LOG(CONSOLE, "Child window:   X:%03i Y:%03i Width:%03i Height:%03i\n", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
-	DEBUG_LOG(CONSOLE, "Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f\n", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
-	DEBUG_LOG(CONSOLE, "GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i\n", GLx, GLy, GLWidth, GLHeight);
-	DEBUG_LOG(CONSOLE, "GLDepthRange:   Near:%f Far:%f\n", GLNear, GLFar);
-	DEBUG_LOG(CONSOLE, "GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i\n", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------\n");
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
+	DEBUG_LOG(CONSOLE, "Top window:     X:%03i Y:%03i Width:%03i Height:%03i", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
+	DEBUG_LOG(CONSOLE, "Parent window:  X:%03i Y:%03i Width:%03i Height:%03i", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
+	DEBUG_LOG(CONSOLE, "Child window:   X:%03i Y:%03i Width:%03i Height:%03i", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
+	DEBUG_LOG(CONSOLE, "Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
+	DEBUG_LOG(CONSOLE, "GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i", GLx, GLy, GLWidth, GLHeight);
+	DEBUG_LOG(CONSOLE, "GLDepthRange:   Near:%f Far:%f", GLNear, GLFar);
+	DEBUG_LOG(CONSOLE, "GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
+	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
 	*/
 }

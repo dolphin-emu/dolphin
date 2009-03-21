@@ -125,7 +125,7 @@ void AddVertices(int primitive, int numvertices)
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
-	PRIM_LOG("prim: %s, c=%d\n", sprims[primitive], numvertices);
+	PRIM_LOG("prim: %s, c=%d", sprims[primitive], numvertices);
 #endif
 }
 
@@ -137,14 +137,14 @@ void Flush()
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, xfregs.numTexGens,
+	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_Config.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 	for (int i = 0; i < xfregs.nNumChans; ++i) {
 		LitChannel* ch = &xfregs.colChans[i].color;
-		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d\n", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 		ch = &xfregs.colChans[i].alpha;
-		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d\n", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
+		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
 
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
@@ -152,12 +152,12 @@ void Flush()
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
 		if (tinfo.texgentype != XF_TEXGEN_REGULAR) tinfo.projection = 0;
 
-		PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, postmtx=%d, postnorm=%d\n",
+		PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, postmtx=%d, postnorm=%d",
 			i, tinfo.projection, tinfo.inputform, tinfo.texgentype, tinfo.sourcerow, tinfo.embosssourceshift, tinfo.embosslightshift,
 			xfregs.texcoords[i].postmtxinfo.index, xfregs.texcoords[i].postmtxinfo.normalize);
 	}
 
-	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x\n", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
+	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
 		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
 #endif
 
@@ -226,7 +226,7 @@ void Flush()
 					}
 				}
 				else {
-					ERROR_LOG(VIDEO, "error loading tex\n");
+					ERROR_LOG(VIDEO, "error loading tex");
 					TextureMngr::DisableStage(i); // disable since won't be used
 				}
 			}
@@ -270,7 +270,7 @@ void Flush()
 	if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid); // Lego Star Wars crashes here.
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	PRIM_LOG("\n");
+	PRIM_LOG("");
 #endif
 
 	int groupStart = 0;
