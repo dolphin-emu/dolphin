@@ -699,7 +699,6 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
-<<<<<<< .mine
 	if (GLWin.ctx)
 	{
 		if (!glXMakeCurrent(GLWin.dpy, None, NULL))
@@ -711,19 +710,6 @@ void OpenGL_Shutdown()
 		XCloseDisplay(GLWin.dpy);
 		GLWin.ctx = NULL;
 	}
-=======
-    if (GLWin.ctx)
-    {
-        if (!glXMakeCurrent(GLWin.dpy, None, NULL))
-        {
-            ERROR_LOG(VIDEO, "Could not release drawing context.");
-        }
-        XUnmapWindow(GLWin.dpy, GLWin.win);
-        glXDestroyContext(GLWin.dpy, GLWin.ctx);
-        XCloseDisplay(GLWin.dpy);
-        GLWin.ctx = NULL;
-    }
->>>>>>> .r2724
 #if defined(HAVE_XXF86VM) && HAVE_XXF86VM
 	/* switch back to original desktop resolution if we were in fs */
 	if (GLWin.dpy != NULL) {
