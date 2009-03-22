@@ -1010,6 +1010,8 @@ void Renderer::Swap(const TRectangle& rc)
 		v_max = (float)GetTargetHeight();
 	}
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
 	{
 		// Use framebuffer blit to stretch screen.
@@ -1055,7 +1057,6 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	    
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBegin(GL_QUADS);
 			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
 			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
@@ -1067,14 +1068,14 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-		// Wireframe
-		if (g_Config.bWireFrame)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);
 		// End of non-framebuffer_blit workaround.
 	}
+
+	// Wireframe
+	if (g_Config.bWireFrame)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Take screenshot, if requested
 	if (s_bScreenshot) {
