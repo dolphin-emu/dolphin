@@ -261,6 +261,13 @@ void CISOProperties::CreateGUIControls()
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	ProjHack1 = new wxCheckBox(m_GameConfig, ID_PROJHACK1, _("Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To Texture"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("[Wii] Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("[Wii] Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	
@@ -308,6 +315,13 @@ void CISOProperties::CreateGUIControls()
 	sCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(ProjHack1, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
@@ -573,6 +587,41 @@ void CISOProperties::LoadGameConfig()
 	else
 		ProjHack1->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Video", "ForceFiltering", &bTemp))
+		ForceFiltering->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		ForceFiltering->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "EFBCopyDisable", &bTemp))
+		EFBCopyDisable->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EFBCopyDisable->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "EFBCopyDisableHotKey", &bTemp))
+		EFBCopyDisableHotKey->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EFBCopyDisableHotKey->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "EFBToTextureEnable", &bTemp))
+		EFBToTextureEnable->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EFBToTextureEnable->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "SafeTextureCache", &bTemp))
+		SafeTextureCache->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		SafeTextureCache->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "DstAlphaPass", &bTemp))
+		DstAlphaPass->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		DstAlphaPass->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "UseXFB", &bTemp))
+		UseXFB->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -628,6 +677,46 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "ProjectionHax1");
 	else
 		GameIni.Set("Video", "ProjectionHax1", ProjHack1->Get3StateValue());
+
+	if (ForceFiltering->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "ForceFiltering");
+	else
+		GameIni.Set("Video", "ForceFiltering", ProjHack1->Get3StateValue());
+
+	if (EFBCopyDisable->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "EFBCopyDisable");
+	else
+		GameIni.Set("Video", "EFBCopyDisable", ProjHack1->Get3StateValue());
+
+	if (EFBCopyDisableHotKey->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "EFBCopyDisableHotKey");
+	else
+		GameIni.Set("Video", "EFBCopyDisableHotKey", ProjHack1->Get3StateValue());
+
+	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "ProjectionHax1");
+	else
+		GameIni.Set("Video", "ProjectionHax1", ProjHack1->Get3StateValue());
+
+	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "EFBToTextureEnable");
+	else
+		GameIni.Set("Video", "EFBToTextureEnable", ProjHack1->Get3StateValue());
+
+	if (SafeTextureCache->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "SafeTextureCache");
+	else
+		GameIni.Set("Video", "SafeTextureCache", ProjHack1->Get3StateValue());
+
+	if (DstAlphaPass->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "DstAlphaPass");
+	else
+		GameIni.Set("Video", "DstAlphaPass", ProjHack1->Get3StateValue());
+
+	if (UseXFB->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "UseXFB");
+	else
+		GameIni.Set("Video", "UseXFB", ProjHack1->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");
