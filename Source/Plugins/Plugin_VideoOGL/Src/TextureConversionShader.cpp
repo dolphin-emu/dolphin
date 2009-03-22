@@ -123,44 +123,46 @@ u16 GetEncodedSampleCount(u32 format)
     }
 }
 
-// block dimensions : block width, block height, samples, pixelStride 
+// block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
-void WriteSwizzler(char*& p)
+void WriteSwizzler(char*& p, u32 format)
 {
 	WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
-	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1); 
+	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
+
+    float blkW = (float)GetBlockWidthInTexels(format);
+	float blkH = (float)GetBlockHeightInTexels(format);
+	float samples = (float)GetEncodedSampleCount(format);
 
 	WRITE(p, 
-	"uniform samplerRECT samp0 : register(s0);\n"	
+	"uniform samplerRECT samp0 : register(s0);\n"
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"
+	"{\n"    
+    "  float2 sampleUv;\n"
+	"  float2 uv1 = floor(uv0);\n");
 
-	"  float2 uv1 = floor(uv0);\n"
-	"  uv1.x = uv1.x * blkDims.z;\n"
+	WRITE(p, "  uv1.x = uv1.x * %f;\n", samples);
 
-	"  float bw = blkDims.x;\n"
-	"  float bh = blkDims.y;\n"	
+	WRITE(p, "  float xl = floor(uv1.x / %f);\n", blkW);
+	WRITE(p, "  float xib = uv1.x - (xl * %f);\n", blkW);
+	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
+	WRITE(p, "  float yb = yl * %f;\n", blkH);
+	WRITE(p, "  float yoff = uv1.y - yb;\n");
+	WRITE(p, "  float xp = uv1.x + (yoff * textureDims.x);\n");
+	WRITE(p, "  float xel = floor(xp / %f);\n", blkW);
+	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
+	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
 
-	"  float xl = floor(uv1.x / bw);\n"
-	"  float xib = uv1.x - (xl * bw);\n"
-	"  float yl = floor(uv1.y / bh);\n"
-	"  float yb = yl * bh;\n"
-	"  float yoff = uv1.y - yb;\n"
-	"  float xp = uv1.x + (yoff * textureDims.x);\n"
-	"  float xel = floor(xp / bw);\n"
-	"  float xb = floor(xel / bh);\n"
-	"  float xoff = xel - (xb * bh);\n"
+	WRITE(p, "  sampleUv.x = xib + (xb * %f);\n", blkW);
+	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 
-	"  float2 sampleUv;\n"
-	"  sampleUv.x = xib + (xb * bw);\n"	
-	"  sampleUv.y = yb + xoff;\n"
-	"  sampleUv = sampleUv * blkDims.w;\n"
-	"  sampleUv.y = textureDims.y - sampleUv.y;\n"
+	WRITE(p, "  sampleUv = sampleUv * blkDims.xy;\n"
+	         "  sampleUv.y = textureDims.y - sampleUv.y;\n"
 	
-	"  sampleUv.x = sampleUv.x + textureDims.z;\n"
-	"  sampleUv.y = sampleUv.y + textureDims.w;\n");
+	         "  sampleUv.x = sampleUv.x + textureDims.z;\n"
+	         "  sampleUv.y = sampleUv.y + textureDims.w;\n");
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest)
@@ -175,7 +177,7 @@ void WriteColorToIntensity(char*& p, const char* src, const char* dest)
 
 void WriteIncrementSampleX(char*& p)
 {
-	WRITE(p, "  sampleUv.x = sampleUv.x + blkDims.w;\n");
+	WRITE(p, "  sampleUv.x = sampleUv.x + blkDims.x;\n");
 }
 
 void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
@@ -186,7 +188,7 @@ void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 
 void WriteI8Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_I8);
 	WRITE(p, "  float3 texSample;\n");	
 
 	WriteSampleColor(p, "rgb", "texSample");
@@ -209,7 +211,7 @@ void WriteI8Encoder(char* p)
 
 void WriteI4Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_I4);
 	WRITE(p, "  float3 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -254,7 +256,7 @@ void WriteI4Encoder(char* p)
 
 void WriteIA8Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_IA8);
 	WRITE(p, "  float4 texSample;\n");	
 
 	WriteSampleColor(p, "rgba", "texSample");
@@ -271,7 +273,7 @@ void WriteIA8Encoder(char* p)
 
 void WriteIA4Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_IA4);
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -279,21 +281,21 @@ void WriteIA4Encoder(char* p)
 	WriteSampleColor(p, "rgba", "texSample");
 	WRITE(p, "  color0.b = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "color1.b");
-	WriteIncrementSampleX(p);	
+	WriteIncrementSampleX(p);
 
 	WriteSampleColor(p, "rgba", "texSample");
 	WRITE(p, "  color0.g = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "color1.g");
-	WriteIncrementSampleX(p);	
+	WriteIncrementSampleX(p);
 
 	WriteSampleColor(p, "rgba", "texSample");
 	WRITE(p, "  color0.r = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "color1.r");
-	WriteIncrementSampleX(p);	
+	WriteIncrementSampleX(p);
 
 	WriteSampleColor(p, "rgba", "texSample");
 	WRITE(p, "  color0.a = texSample.a;\n");
-	WriteColorToIntensity(p, "texSample", "color1.a");	
+	WriteColorToIntensity(p, "texSample", "color1.a");
 
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
@@ -304,28 +306,28 @@ void WriteIA4Encoder(char* p)
 
 void WriteRGB565Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_RGB565);
 
 	WRITE(p, "  float3 texSample;\n");
 	WRITE(p, "  float gInt;\n");
 	WRITE(p, "  float gUpper;\n");
 	WRITE(p, "  float gLower;\n");
 
-	WriteSampleColor(p, "rgb", "texSample");	
+	WriteSampleColor(p, "rgb", "texSample");
 	WriteToBitDepth(p, 6, "texSample.g", "gInt");
-	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");	
+	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");
 	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
 	WRITE(p, "  ocol0.b = ocol0.b * 8.0f + gUpper;\n");
 	WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
-	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");	
+	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");
 
 	WriteIncrementSampleX(p);
 
-	WriteSampleColor(p, "rgb", "texSample");	
+	WriteSampleColor(p, "rgb", "texSample");
 	WriteToBitDepth(p, 6, "texSample.g", "gInt");
-	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");	
+	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");
 	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
@@ -339,7 +341,7 @@ void WriteRGB565Encoder(char* p)
 
 void WriteRGB5A3Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_RGB5A3);
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float color0;\n");
@@ -406,7 +408,7 @@ void WriteRGB5A3Encoder(char* p)
 
 void WriteRGBA4443Encoder(char* p)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_TF_RGB5A3);
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
@@ -430,46 +432,48 @@ void WriteRGBA4443Encoder(char* p)
 	WRITE(p, "}\n");
 }
 
-// block dimensions : block width, block height, samples, pixelStride 
+// block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
 void WriteRGBA8Encoder(char* p, bool fromDepth)
 {
 	WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
-	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1); 
+	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
+
+    float blkW = (float)GetBlockWidthInTexels(GX_TF_RGBA8);
+	float blkH = (float)GetBlockHeightInTexels(GX_TF_RGBA8);
+	float samples = (float)GetEncodedSampleCount(GX_TF_RGBA8);
 
 	// Swizzling for RGBA8 format
 	WRITE(p, 
-	"uniform samplerRECT samp0 : register(s0);\n"	
+	"uniform samplerRECT samp0 : register(s0);\n"
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
 	"{\n"
-	"  float2 uv1 = floor(uv0);\n"
+    "  float2 sampleUv;\n"
+	"  float2 uv1 = floor(uv0);\n");
+	
+	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
+	WRITE(p, "  float yb = yl * %f;\n", blkH);
+	WRITE(p, "  float yoff = uv1.y - yb;\n");
+	WRITE(p, "  float xp = uv1.x + (yoff * textureDims.x);\n");
+	WRITE(p, "  float xel = floor(xp / 2);\n");
+	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
+	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
+	
+	WRITE(p, "  float x2 = uv1.x * 2;\n");
+	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);	
+	WRITE(p, "  float xib = x2 - (xl * %f);\n", blkW);
+	WRITE(p, "  float halfxb = floor(xb / 2);\n");
 
-	"  float bw = blkDims.x;\n"
-	"  float bh = blkDims.y;\n"	
 	
-	"  float yl = floor(uv1.y / bh);\n"
-	"  float yb = yl * bh;\n"
-	"  float yoff = uv1.y - yb;\n"
-	"  float xp = uv1.x + (yoff * textureDims.x);\n"	
-	"  float xel = floor(xp / 2);\n"
-	"  float xb = floor(xel / bh);\n"
-	"  float xoff = xel - (xb * bh);\n"
+	WRITE(p, "  sampleUv.x = xib + (halfxb * %f);\n", blkW);
+	WRITE(p, "  sampleUv.y = yb + xoff;\n");
+	WRITE(p, "  sampleUv = sampleUv * blkDims.xy;\n");
+	WRITE(p, "  sampleUv.y = textureDims.y - sampleUv.y;\n");
 	
-	"  float x2 = uv1.x * 2;\n"
-	"  float xl = floor(x2 / bw);\n"		
-	"  float xib = x2 - (xl * bw);\n"
-	"  float halfxb = floor(xb / 2);\n"
-
-	"  float2 sampleUv;\n"
-	"  sampleUv.x = xib + (halfxb * bw);\n"	
-	"  sampleUv.y = yb + xoff;\n"
-	"  sampleUv = sampleUv * blkDims.w;\n"
-	"  sampleUv.y = textureDims.y - sampleUv.y;\n"
-	
-	"  sampleUv.x = sampleUv.x + textureDims.z;\n"
-	"  sampleUv.y = sampleUv.y + textureDims.w;\n");	
+	WRITE(p, "  sampleUv.x = sampleUv.x + textureDims.z;\n");
+	WRITE(p, "  sampleUv.y = sampleUv.y + textureDims.w;\n");
 
 	WRITE(p, "  float cl1 = xb - (halfxb * 2);\n");
 	WRITE(p, "  float cl0 = 1.0f - cl1;\n");
@@ -498,14 +502,14 @@ void WriteRGBA8Encoder(char* p, bool fromDepth)
 	WRITE(p, "  color1.r = texSample.g;\n");
 	WRITE(p, "  color1.a = texSample.b;\n");
 
-	WRITE(p, "  ocol0 = (cl0 * color0) + (cl1 * color1);\n");	
+	WRITE(p, "  ocol0 = (cl0 * color0) + (cl1 * color1);\n");
 
 	WRITE(p, "}\n");
 }
 
 void WriteC4Encoder(char* p, const char* comp)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_CTF_R4);
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
 
@@ -541,7 +545,7 @@ void WriteC4Encoder(char* p, const char* comp)
 
 void WriteC8Encoder(char* p, const char* comp)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_CTF_R8);
 
 	WriteSampleColor(p, comp, "ocol0.b");
 	WriteIncrementSampleX(p);
@@ -559,7 +563,7 @@ void WriteC8Encoder(char* p, const char* comp)
 
 void WriteCC4Encoder(char* p, const char* comp)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_CTF_RA4);
 	WRITE(p, "  float2 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -592,7 +596,7 @@ void WriteCC4Encoder(char* p, const char* comp)
 
 void WriteCC8Encoder(char* p, const char* comp)
 {
-	WriteSwizzler(p);
+	WriteSwizzler(p, GX_CTF_RA8);
 
 	WriteSampleColor(p, comp, "ocol0.bg");
 	WriteIncrementSampleX(p);
@@ -630,7 +634,7 @@ const char *GenerateEncodingShader(u32 format)
 		break;
 	case GX_TF_RGBA8:
 		WriteRGBA8Encoder(p, false);
-		break;			
+		break;
 	case GX_CTF_R4:
 		WriteC4Encoder(p, "r");
 		break;
@@ -681,10 +685,9 @@ const char *GenerateEncodingShader(u32 format)
 		// byte order is reversed
 		WriteCC8Encoder(p, "rg");
 		break;
-	default:				
+	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;
-		
+		break;		
 	}
 
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -693,14 +696,10 @@ const char *GenerateEncodingShader(u32 format)
     return text;
 }
 
-void SetShaderParameters(u32 width, u32 height, u32 offsetX, u32 offsetY, float pixelStride, u32 format)
+void SetShaderParameters(float width, float height, float offsetX, float offsetY, float widthStride, float heightStride)
 {
-	u16 blkW = GetBlockWidthInTexels(format);
-	u16 blkH = GetBlockHeightInTexels(format);
-	u16 samples = GetEncodedSampleCount(format);
-
-	SetPSConstant4f(C_COLORMATRIX, (float)blkW, (float)blkH, (float)samples, pixelStride);
-	SetPSConstant4f(C_COLORMATRIX + 1, (float)width, (float)(height - 1), (float)offsetX, (float)offsetY);
+	SetPSConstant4f(C_COLORMATRIX, widthStride, heightStride, 0.0f, 0.0f);
+	SetPSConstant4f(C_COLORMATRIX + 1, width, (height - 1), offsetX, offsetY);
 }
 
 }  // namespace

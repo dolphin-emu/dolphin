@@ -272,17 +272,22 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	// only copy on cache line boundaries
 	// extra pixels are copied but not displayed in the resulting texture
 	s32 expandedWidth = (width + blkW) & (~blkW);
-	s32 expandedHeight = (height + blkH) & (~blkH);		
+	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	u32 top = Renderer::GetTargetHeight() - (source.top + expandedHeight);
+    float MValueX = Renderer::GetTargetScaleX();
+	float MValueY = Renderer::GetTargetScaleY();
 
-	TextureConversionShader::SetShaderParameters(expandedWidth, expandedHeight, source.left, top, bScaleByHalf?2.0f:1.0f, format);
+	float top = Renderer::GetTargetHeight() - (source.top + expandedHeight) * MValueY;
+
+    float sampleStride = bScaleByHalf?2.0f:1.0f;
+
+	TextureConversionShader::SetShaderParameters((float)expandedWidth, expandedHeight * MValueY, source.left * MValueX, top, sampleStride * MValueX, sampleStride * MValueY);
 
 	TRectangle scaledSource;
 	scaledSource.top = 0;
 	scaledSource.bottom = expandedHeight;
 	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;	
+	scaledSource.right = expandedWidth / samples;
 
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
 
