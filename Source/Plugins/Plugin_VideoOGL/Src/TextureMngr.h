@@ -68,7 +68,6 @@ private:
     static u8 *temp;
     static TexCache textures;
 	static std::map<u32, DEPTHTARGET> mapDepthTargets;
-    static int nTex2DEnabled, nTexRECTEnabled;
 
 public:
     static void Init();
@@ -80,8 +79,6 @@ public:
     static TCacheEntry* Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
     static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle &source);
 
-    static void EnableTex2D(int stage);
-    static void EnableTexRECT(int stage);
     static void DisableStage(int stage); // sets active texture
 
 	static void ClearRenderTargets(); // sets render target value of all textures to false

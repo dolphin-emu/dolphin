@@ -156,7 +156,6 @@ void SetDefaultRectTexParams()
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     if (glGetError() != GL_NO_ERROR) {
-		GLenum err;
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
         GL_REPORT_ERROR();
@@ -188,7 +187,6 @@ bool Renderer::Init()
 		s_MSAASamples = 1;
 	}
 	GLint numvertexattribs = 0;
-    GLenum err = GL_NO_ERROR;
     g_cgcontext = cgCreateContext();
 
     cgGetError();
@@ -264,11 +262,16 @@ bool Renderer::Init()
 	if (max_texture_size < 1024) {
 		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
 	}
-    GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) bSuccess = false;
+
+	if (GL_REPORT_ERROR() != GL_NO_ERROR)
+		bSuccess = false;
 
     if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
         glDrawBuffers = glDrawBuffersARB;
+	
+	if (!GLEW_ARB_texture_non_power_of_two) {
+		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported. This extension is not yet used, though.");
+	}
 
 	// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
 	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
@@ -300,7 +303,6 @@ bool Renderer::Init()
 		// Create our main color render target as a texture rectangle of the desired size.
 		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		SetDefaultRectTexParams();
-		GL_REPORT_ERROR();
 
 		GLint nMaxMRT = 0;
 		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &nMaxMRT);
@@ -318,12 +320,11 @@ bool Renderer::Init()
 		glGenRenderbuffersEXT(1, &s_DepthTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
 		glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
-		GL_REPORT_ERROR();
 	
 		// Our framebuffer object is still bound here. Attach the two render targets, color and Z/stencil, to the framebuffer object.
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
-    	GL_REPORT_ERROR();
+		GL_REPORT_FBO_ERROR();
 
 		if (s_FakeZTarget != 0) {
 			// We do a simple test to make sure that MRT works. I don't really know why - this is probably a workaround for
@@ -371,7 +372,7 @@ bool Renderer::Init()
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTarget);
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_RENDERBUFFER_EXT, s_FakeZTarget);
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, s_DepthTarget);
-		OpenGL_CheckFBOStatus();
+		GL_REPORT_FBO_ERROR();
 
 		bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
 		if (bFailed) PanicAlert("Incomplete rt");
@@ -401,19 +402,21 @@ bool Renderer::Init()
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ResolvedFakeZTarget, 0);
 		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_ResolvedDepthTarget);
 
-		OpenGL_CheckFBOStatus();
+		GL_REPORT_FBO_ERROR();
 
 		bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
 		if (bFailed) PanicAlert("Incomplete rt2");
 	}
+
+    if (GL_REPORT_ERROR() != GL_NO_ERROR)
+		bSuccess = false;
 
 	// glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
     nZBufferRender = 0;  // Initialize the Z render shutoff countdown. We only render Z if it's desired, to save GPU power.
 
-    GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR)
+    if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
     s_pfont = new RasterFont();
@@ -504,10 +507,6 @@ bool Renderer::InitializeGL()
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
     
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // perspective correct interpolation of colors and tex coords
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);    
-    glHint(GL_POLYGON_SMOOTH_HINT, GL_DONT_CARE);   // Polygon smoothing is ancient junk that doesn't work anymore. MSAA is modern AA.
-    
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
 
@@ -525,10 +524,7 @@ bool Renderer::InitializeGL()
     glClientActiveTexture(GL_TEXTURE0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-    GLenum err = GL_NO_ERROR;
-    GL_REPORT_ERROR();
-
-    return err == GL_NO_ERROR;
+    return GL_REPORT_ERROR() == GL_NO_ERROR;
 }
 
 
@@ -800,13 +796,13 @@ void Renderer::FlushZBufferAlphaToTarget()
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
     glViewport(0, 0, GetTargetWidth(), GetTargetHeight());
 
-    // texture map s_RenderTargets[s_curtarget] onto the main buffer
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget);
-    TextureMngr::EnableTexRECT(0);
     // disable all other stages
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
+    // texture map s_RenderTargets[s_curtarget] onto the main buffer
+    glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_RECTANGLE_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget);
     GL_REPORT_ERRORD();
 
 	// setup the stencil to only accept pixels that have been written
@@ -1053,11 +1049,11 @@ void Renderer::Swap(const TRectangle& rc)
 
 		// Texture map s_RenderTargets[s_curtarget] onto the main buffer
 		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
 		// Use linear filtering.
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		TextureMngr::EnableTexRECT(0);
 	    
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBegin(GL_QUADS);
@@ -1256,13 +1252,20 @@ void Renderer::SwapBuffers()
         fpscount = 0;
     }
 
+	for (int i = 0; i < 8; i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
 	DrawDebugText();
 
 	OSD::DrawMessages();
 	// -----------------------------
 
 #if defined(DVPROFILE)
-    if (g_bWriteProfile) {
+    if (g_bWriteProfile) { 
         //g_bWriteProfile = 0;
         static int framenum = 0;
         const int UPDATE_FRAMES = 8;
@@ -1302,6 +1305,7 @@ void Renderer::SwapBuffers()
             Renderer::SetRenderMode(RM_Normal);  // turn off any zwrites
         }
     }
+	GL_REPORT_ERRORD();
 }
 
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)

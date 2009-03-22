@@ -175,68 +175,61 @@ void Flush()
 	GL_REPORT_ERRORD();
 
 	// set the textures
-	{
-		DVSTARTSUBPROFILE("VertexManager::Flush:textures");
+	DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
-		u32 usedtextures = 0;
+	u32 usedtextures = 0;
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
+		if (bpmem.tevorders[i / 2].getEnable(i & 1))
+			usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
+	}
+
+	if (bpmem.genMode.numindstages > 0) {
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
-			if (bpmem.tevorders[i/2].getEnable(i & 1))
-				usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
-		}
-
-		if (bpmem.genMode.numindstages > 0) {
-			for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
-				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
-					usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
-				}
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
+				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 			}
 		}
+	}
 
-		u32 nonpow2tex = 0;
-		for (int i = 0; i < 8; i++) {
-			if (usedtextures & (1 << i)) {
-				glActiveTexture(GL_TEXTURE0 + i);
-			
-				FourTexUnits &tex = bpmem.tex[i >> 2];
-				TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-					tex.texImage0[i&3].width+1, tex.texImage0[i&3].height+1,
-					tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
+	u32 nonpow2tex = 0;
+	for (int i = 0; i < 8; i++) {
+		if (usedtextures & (1 << i)) {
+			glActiveTexture(GL_TEXTURE0 + i);
 
-				if (tentry != NULL) {
-					// texture loaded fine, set dims for pixel shader
-					if (tentry->isNonPow2) {
-						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
-						nonpow2tex |= 1 << i;
-						if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
-						if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
-						TextureMngr::EnableTexRECT(i);
-					}
-					// if texture is power of two, set to ones (since don't need scaling)
-					// (the above seems to have changed - we set the width and height here too.
-					else 
-					{
-						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
-						TextureMngr::EnableTex2D(i);
-					}
-					if (g_Config.iLog & CONF_SAVETEXTURES) {
-						// save the textures
-						char strfile[255];
-						sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
-						SaveTexture(strfile, tentry->isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
-					}
+			FourTexUnits &tex = bpmem.tex[i >> 2];
+			TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
+				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
+				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
+
+			if (tentry != NULL) {
+				// texture loaded fine, set dims for pixel shader
+				if (tentry->isNonPow2) {
+					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
+					nonpow2tex |= 1 << i;
+					if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
+					if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
 				}
-				else {
-					ERROR_LOG(VIDEO, "error loading tex");
-					TextureMngr::DisableStage(i); // disable since won't be used
+				// if texture is power of two, set to ones (since don't need scaling)
+				// (the above seems to have changed - we set the width and height here too.
+				else 
+				{
+					// 0s are probably for no manual wrapping needed.
+					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
+				}
+				if (g_Config.iLog & CONF_SAVETEXTURES) {
+					// save the textures
+					char strfile[255];
+					sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
+					SaveTexture(strfile, tentry->isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 				}
 			}
 			else {
-				TextureMngr::DisableStage(i); // disable since won't be used
+				ERROR_LOG(VIDEO, "error loading tex\n");
 			}
 		}
-
-		PixelShaderManager::SetTexturesUsed(nonpow2tex);
 	}
+
+	PixelShaderManager::SetTexturesUsed(nonpow2tex);
 
 	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
@@ -245,7 +238,9 @@ void Flush()
 	if (Renderer::UseFakeZTarget()) {
 		if (bpmem.zmode.updateenable) {
 			if (!bpmem.blendmode.colorupdate) {
-				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ? Renderer::RM_ZBufferAlpha : Renderer::RM_ZBufferOnly);    
+				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ?
+										Renderer::RM_ZBufferAlpha :
+										Renderer::RM_ZBufferOnly);    
 			}
 		}
 		else {

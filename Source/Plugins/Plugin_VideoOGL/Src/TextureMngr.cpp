@@ -51,7 +51,6 @@
 u8 *TextureMngr::temp = NULL;
 TextureMngr::TexCache TextureMngr::textures;
 std::map<u32, TextureMngr::DEPTHTARGET> TextureMngr::mapDepthTargets;
-int TextureMngr::nTex2DEnabled, TextureMngr::nTexRECTEnabled;
 
 extern int frameCount;
 static u32 s_TempFramebuffer = 0;
@@ -59,7 +58,7 @@ static u32 s_TempFramebuffer = 0;
 #define TEMP_SIZE (1024*1024*4)
 #define TEXTURE_KILL_THRESHOLD 200
 
-const GLint c_MinLinearFilter[8] = {
+static const GLint c_MinLinearFilter[8] = {
 	GL_NEAREST,
 	GL_NEAREST_MIPMAP_NEAREST,
 	GL_NEAREST_MIPMAP_LINEAR,
@@ -67,14 +66,14 @@ const GLint c_MinLinearFilter[8] = {
 	GL_LINEAR,
 	GL_LINEAR_MIPMAP_NEAREST,
 	GL_LINEAR_MIPMAP_LINEAR,
-	GL_LINEAR
+	GL_LINEAR,
 };
 
-const GLint c_WrapSettings[4] = {
+static const GLint c_WrapSettings[4] = {
 	GL_CLAMP_TO_EDGE,
 	GL_REPEAT,
 	GL_MIRRORED_REPEAT,
-	GL_REPEAT
+	GL_REPEAT,
 };
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
@@ -82,8 +81,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 	std::vector<u32> data(width * height);
     glBindTexture(textarget, tex);
     glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
-    GLenum err;
-    GL_REPORT_ERROR();
+    GLenum err = GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
 	{
 		PanicAlert("Can't save texture, GL Error: %s", gluErrorString(err));
@@ -157,7 +155,6 @@ void TextureMngr::TCacheEntry::Destroy(bool shutdown)
 void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
-    nTex2DEnabled = nTexRECTEnabled = 0;
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
@@ -307,7 +304,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
             entry.frameCount = frameCount;
-			//glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
+			glEnable(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
 //			entry.isNonPow2 ? TextureMngr::EnableTex2D(texstage) : TextureMngr::EnableTexRECT(texstage);
             glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
@@ -475,14 +472,13 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
         _assert_(entry.texture);
         bool bReInit = true;
-
+		GL_REPORT_ERROR();
         if (entry.w == w && entry.h == h) 
 		{
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
             // for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
-            GLenum err = GL_NO_ERROR;
-            GL_REPORT_ERROR();
+            GLenum err = GL_REPORT_ERROR();
             if (err == GL_NO_ERROR)
                 bReInit = false;
         }
@@ -651,7 +647,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
 
     // We have to run a pixel shader, for color conversion.
-
     Renderer::ResetGLState(); // reset any game specific settings
 
     if (s_TempFramebuffer == 0)
@@ -685,9 +680,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
-
-    TextureMngr::EnableTexRECT(0);
-
+	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
    
     glViewport(0, 0, w, h);
@@ -727,45 +720,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	}
 }
 
-void TextureMngr::EnableTex2D(int stage)
-{
-    if (nTexRECTEnabled & (1<<stage)) {
-        nTexRECTEnabled &= ~(1<<stage);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    }
-    if (!(nTex2DEnabled & (1<<stage))) {
-        nTex2DEnabled |= (1<<stage);
-        glEnable(GL_TEXTURE_2D);
-    }
-}
-
-void TextureMngr::EnableTexRECT(int stage)
-{
-    if ((nTex2DEnabled & (1 << stage))) {
-        nTex2DEnabled &= ~(1 << stage);
-        glDisable(GL_TEXTURE_2D);
-    }
-    if (!(nTexRECTEnabled & (1 << stage))) {
-        nTexRECTEnabled |= (1 << stage);
-        glEnable(GL_TEXTURE_RECTANGLE_ARB);
-    }
-}
-
 void TextureMngr::DisableStage(int stage)
 {
-    bool bset = false;
-    if (nTex2DEnabled & (1 << stage)) {
-        nTex2DEnabled &= ~(1 << stage);
-        glActiveTexture(GL_TEXTURE0 + stage);
-        glDisable(GL_TEXTURE_2D);
-        bset = true;
-    }
-    if (nTexRECTEnabled & (1<<stage)) {
-        nTexRECTEnabled &= ~(1 << stage);
-        if (!bset)
-			glActiveTexture(GL_TEXTURE0 + stage);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    }
+	glActiveTexture(GL_TEXTURE0 + stage);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 void TextureMngr::ClearRenderTargets()

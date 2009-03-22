@@ -80,8 +80,7 @@ void PixelShaderCache::Init()
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_ColorMatrixProgram);
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
 
-	GLenum err = GL_NO_ERROR;
-	GL_REPORT_ERROR();
+	GLenum err = GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
 		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
 		glDeleteProgramsARB(1, &s_ColorMatrixProgram);
@@ -178,6 +177,12 @@ void PixelShaderCache::ProgressiveCleanup()
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
+	GLenum err = GL_REPORT_ERROR();
+	if (err != GL_NO_ERROR)
+	{
+		ERROR_LOG(VIDEO, "glError %08x before PS!", err);
+	}
+
 	char stropt[128];
 	sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
@@ -218,9 +223,24 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
-	GLenum err = GL_NO_ERROR;
-	GL_REPORT_ERROR();
-	if (err != GL_NO_ERROR) {
+	err = GL_REPORT_ERROR();
+	if (err != GL_NO_ERROR)
+	{
+		GLint error_pos, native_limit;
+		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
+		glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
+		// Error occur
+		if (error_pos != -1) {
+			const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+			char line[256];
+			strncpy(line, (const char *)pcompiledprog + error_pos, 255);
+			line[255] = 0;
+			ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
+			ERROR_LOG(VIDEO, "Line dump: \n%s", line);
+		} else if (native_limit != -1) {
+			ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
+			// TODO
+		}
 		ERROR_LOG(VIDEO, pstrprogram);
 		ERROR_LOG(VIDEO, pcompiledprog);
 	}

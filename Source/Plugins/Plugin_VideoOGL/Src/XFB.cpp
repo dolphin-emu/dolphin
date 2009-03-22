@@ -96,11 +96,11 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
 	Renderer::ResetGLState();
-	TextureMngr::EnableTexRECT(0);
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
 
 	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
 
 	TRectangle back_rc;

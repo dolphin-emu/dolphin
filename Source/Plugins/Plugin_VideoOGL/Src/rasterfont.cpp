@@ -174,7 +174,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 {
 	double x = start_x;
 	double y = start_y;
-	static char temp[1024];
+	char temp[1024];
 	char *t = temp;
 	while (*text)
 	{

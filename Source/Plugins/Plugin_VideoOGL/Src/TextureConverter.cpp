@@ -171,8 +171,12 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRe
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);	
 	GL_REPORT_ERRORD();
 	
+	for (int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
+
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, srcTexture);
 
 	if (linearFilter)
@@ -185,10 +189,6 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRe
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
-
-    TextureMngr::EnableTexRECT(0);
-	for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);	
 	GL_REPORT_ERRORD();
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
@@ -317,17 +317,17 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
 
+    for (int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
+
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
-
-    TextureMngr::EnableTexRECT(0);
-    for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
 
 	glViewport(0, 0, srcWidth, srcHeight);
 

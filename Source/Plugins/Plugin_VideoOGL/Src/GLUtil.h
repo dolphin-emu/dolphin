@@ -67,15 +67,6 @@
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
 
-#define GL_REPORT_ERROR() { err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x", __FILE__, (int)__LINE__, err); HandleGLError(); } }
-
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-#define GL_REPORT_ERRORD() { GLenum err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG(VIDEO, "%s:%d: gl error 0x%x", __FILE__, (int)__LINE__, err); HandleGLError(); } }
-#else
-#define GL_REPORT_ERRORD()
-#endif
-
-
 #ifndef _WIN32
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
@@ -119,6 +110,8 @@ extern GLWindow GLWin;
 
 #endif
 
+// Public OpenGL util
+
 // Initialization / upkeep
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 void OpenGL_Shutdown();
@@ -127,12 +120,33 @@ bool OpenGL_MakeCurrent();
 void OpenGL_SwapBuffers();
 
 // Get status
-bool OpenGL_CheckFBOStatus();
 u32 OpenGL_GetBackbufferWidth();
 u32 OpenGL_GetBackbufferHeight();
 
 // Set things
 void OpenGL_SetWindowText(const char *text);
 
+// Error reporting - use the convenient macros.
+void OpenGL_ReportARBProgramError();
+GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
+bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
+
+#if 1
+#define GL_REPORT_ERROR()         OpenGL_ReportGLError        (__FUNCTION__, __FILE__, __LINE__)
+#define GL_REPORT_PROGRAM_ERROR() OpenGL_ReportARBProgramError()
+#define GL_REPORT_FBO_ERROR()     OpenGL_ReportFBOError       (__FUNCTION__, __FILE__, __LINE__)
+#else
+#define GL_REPORT_ERROR() GL_NO_ERROR
+#define GL_REPORT_PROGRAM_ERROR()
+#define GL_REPORT_FBO_ERROR()
 #endif
+
+#if defined(_DEBUG) || defined(DEBUGFAST) 
+#define GL_REPORT_ERRORD() OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
+#else
+#define GL_REPORT_ERRORD() GL_NO_ERROR
 #endif
+
+#endif  // GLTEST ??
+
+#endif  // include braces

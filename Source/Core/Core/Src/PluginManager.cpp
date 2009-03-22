@@ -254,11 +254,11 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 			m_Valid = true;
 		else
 			PanicAlert("Could not get info about plugin %s", _rFilename);
-
 		// We are now done with this plugin and will call FreeLibrary()
 		delete plugin;
-	} else
-		PanicAlert("PluginInfo: %s is not valid", _rFilename);
+	} else {
+		WARN_LOG(CONSOLE, "PluginInfo: %s is not a valid Dolphin plugin. Ignoring.", _rFilename);
+	}
 }
 ///////////////////////////////////////////
 

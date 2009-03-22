@@ -93,28 +93,6 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
-bool OpenGL_CheckFBOStatus()
-{
-	unsigned int fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	if (fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT)
-	{
-		std::string error = "error creating fbo, framebufferstatus is not complete:\n";
-		switch (fbo_status)
-		{
-			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:          error += "INCOMPLETE_ATTACHMENT_EXT"; break;
-			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:  error += "INCOMPLETE_MISSING_ATTACHMENT_EXT"; break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:          error += "INCOMPLETE_DIMENSIONS_EXT"; break;
-			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:             error += "INCOMPLETE_FORMATS_EXT"; break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:         error += "INCOMPLETE_DRAW_BUFFER_EXT"; break;
-			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:         error += "INCOMPLETE_READ_BUFFER_EXT"; break;
-			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:                    error += "UNSUPPORTED_EXT"; break;
-		}
-		PanicAlert(error.c_str());
-		return false;
-	}
-	return true;
-}
-
 // =======================================================================================
 // Draw messages on top of the screen
 // ------------------
@@ -336,22 +314,22 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     };
     
     if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
-		PanicAlert("(1) Can't Create A GL Device Context.");
+		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
         return false;
     }
     
     if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
-        PanicAlert("(2) Can't Find A Suitable PixelFormat.");
+        PanicAlert("(2) Can't find a suitable PixelFormat.");
         return false;
     }
 
-    if (!SetPixelFormat(hDC,PixelFormat,&pfd)) {
-		PanicAlert("(3) Can't Set The PixelFormat.");
+    if (!SetPixelFormat(hDC, PixelFormat, &pfd)) {
+		PanicAlert("(3) Can't set the PixelFormat.");
         return false;
     }
 
     if (!(hRC = wglCreateContext(hDC))) {
-		PanicAlert("(4) Can't Create A GL Rendering Context.");
+		PanicAlert("(4) Can't create an OpenGL rendering context.");
         return false;
     }
 	// --------------------------------------
@@ -380,10 +358,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                           GLX_BLUE_SIZE, 8,
                           GLX_DEPTH_SIZE, 24,
                           GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
-    GLWin.dpy = XOpenDisplay(0);
-    g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
-    GLWin.screen = DefaultScreen(GLWin.dpy);
+	GLWin.dpy = XOpenDisplay(0);
+	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
+	GLWin.screen = DefaultScreen(GLWin.dpy);
 
+	// Fullscreen option.
     GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
     
     /* get an appropriate visual */
@@ -398,21 +377,20 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
     }
 
-    glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
-    NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
-    /* create a GLX context */
-    GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
-    if(!GLWin.ctx)
-    {
-        PanicAlert("Couldn't Create GLX context.Quit");
-        exit(0); // TODO: Don't bring down entire Emu
-    }
-    /* create a color map */
-    cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
-                           vi->visual, AllocNone);
-    GLWin.attr.colormap = cmap;
-    GLWin.attr.border_pixel = 0;
-    XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
+	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
+	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
+	// Create a GLX context.
+	GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
+	if(!GLWin.ctx)
+	{
+		PanicAlert("Couldn't Create GLX context.Quit");
+		exit(0); // TODO: Don't bring down entire Emu
+	}
+	// Create a color map.
+	cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen), vi->visual, AllocNone);
+	GLWin.attr.colormap = cmap;
+	GLWin.attr.border_pixel = 0;
+	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
 #if defined(HAVE_XXF86VM) && HAVE_XXF86VM
     // get a connection
@@ -691,36 +669,49 @@ void OpenGL_Shutdown()
 #if USE_SDL
 	SDL_Quit();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-        cocoaGLDelete(GLWin.cocoaCtx);
+	cocoaGLDelete(GLWin.cocoaCtx);
 #elif defined(USE_WX) && USE_WX
-        delete GLWin.glCanvas;
-        delete GLWin.frame;
+	delete GLWin.glCanvas;
+	delete GLWin.frame;
 #elif defined(_WIN32)
-    if (hRC)                                            // Do We Have A Rendering Context?
-    {
-        if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
-        {
+	if (hRC)                                            // Do We Have A Rendering Context?
+	{
+		if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
+		{
 			// [F|RES]: if this fails i dont see the message box and
 			// cant get out of the modal state so i disable it.
 			// This function fails only if i render to main window
-            // MessageBox(NULL,"Release Of DC And RC Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
-        }
+			// MessageBox(NULL,"Release Of DC And RC Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+		}
 
-        if (!wglDeleteContext(hRC))                     // Are We Able To Delete The RC?
-        {
-            ERROR_LOG(VIDEO, "Release Rendering Context Failed.");
-        }
-        hRC = NULL;                                       // Set RC To NULL
-    }
+		if (!wglDeleteContext(hRC))                     // Are We Able To Delete The RC?
+		{
+			ERROR_LOG(VIDEO, "Release Rendering Context Failed.");
+		}
+		hRC = NULL;                                       // Set RC To NULL
+	}
 
-    if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
-    {
-		#ifndef SETUP_TIMER_WAITING // This fails
-        ERROR_LOG(VIDEO, "Release Device Context Failed.");
-		#endif
-        hDC = NULL;                                       // Set DC To NULL
-    }
+	if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
+	{
+#ifndef SETUP_TIMER_WAITING // This fails
+		ERROR_LOG(VIDEO, "Release Device Context Failed.");
+#endif
+		hDC = NULL;                                       // Set DC To NULL
+	}
 #elif defined(HAVE_X11) && HAVE_X11
+<<<<<<< .mine
+	if (GLWin.ctx)
+	{
+		if (!glXMakeCurrent(GLWin.dpy, None, NULL))
+		{
+			ERROR_LOG(VIDEO, "Could not release drawing context.\n");
+		}
+		XUnmapWindow(GLWin.dpy, GLWin.win);
+		glXDestroyContext(GLWin.dpy, GLWin.ctx);
+		XCloseDisplay(GLWin.dpy);
+		GLWin.ctx = NULL;
+	}
+=======
     if (GLWin.ctx)
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))
@@ -732,19 +723,30 @@ void OpenGL_Shutdown()
         XCloseDisplay(GLWin.dpy);
         GLWin.ctx = NULL;
     }
+>>>>>>> .r2724
 #if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-    /* switch back to original desktop resolution if we were in fs */
-    if (GLWin.dpy != NULL) {
-        if (GLWin.fs) {
-                XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
-                XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-        }
-    }
+	/* switch back to original desktop resolution if we were in fs */
+	if (GLWin.dpy != NULL) {
+		if (GLWin.fs) {
+			XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
+			XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
+		}
+	}
 #endif
 #endif
 }
 
-void HandleGLError()
+GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
+{
+	GLint err = glGetError();
+	if (err != GL_NO_ERROR)
+	{
+		ERROR_LOG(VIDEO, "%s:%d: (%s) OpenGL error 0x%x - %s\n", file, line, function, err, gluErrorString(err));
+	}
+	return err;
+}
+
+void OpenGL_ReportARBProgramError()
 {
 	const GLubyte* pstr = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
 	if (pstr != NULL && pstr[0] != 0)
@@ -755,46 +757,28 @@ void HandleGLError()
 		ERROR_LOG(VIDEO, (char*)pstr);
 		ERROR_LOG(VIDEO, "");
 	}
+}
 
-	// check the error status of this framebuffer */
-	GLenum error = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-
-	// if error != GL_FRAMEBUFFER_COMPLETE_EXT, there's an error of some sort 
-	if (!error)
-		return;
-
-	switch(error)
+bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
+{
+	unsigned int fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	if (fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT)
 	{
-		case GL_FRAMEBUFFER_COMPLETE_EXT:
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-			ERROR_LOG(VIDEO, "Error! missing a required image/buffer attachment!");
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-			ERROR_LOG(VIDEO, "Error! has no images/buffers attached!");
-			break;
-//      case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
-//          ERROR_LOG(VIDEO, "Error! has an image/buffer attached in multiple locations!");
-//           break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-			ERROR_LOG(VIDEO, "Error! has mismatched image/buffer dimensions!");
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-			ERROR_LOG(VIDEO, "Error! colorbuffer attachments have different types!");
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-			ERROR_LOG(VIDEO, "Error! trying to draw to non-attached color buffer!");
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-			ERROR_LOG(VIDEO, "Error! trying to read from a non-attached color buffer!");
-			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-			ERROR_LOG(VIDEO, "Error! format is not supported by current graphics card/driver!");
-			break;
-		default:
-			ERROR_LOG(VIDEO, "*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!");
-			break;
+		const char *error = "-";
+		switch (fbo_status)
+		{
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:          error = "INCOMPLETE_ATTACHMENT_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:  error = "INCOMPLETE_MISSING_ATTACHMENT_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:          error = "INCOMPLETE_DIMENSIONS_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:             error = "INCOMPLETE_FORMATS_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:         error = "INCOMPLETE_DRAW_BUFFER_EXT"; break;
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:         error = "INCOMPLETE_READ_BUFFER_EXT"; break;
+			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:                    error = "UNSUPPORTED_EXT"; break;
+		}
+		ERROR_LOG(VIDEO, "%s:%d: (%s) OpenGL FBO error - %s\n", file, line, function, error);
+		return false;
 	}
+	return true;
 }
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)

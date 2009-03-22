@@ -134,6 +134,13 @@ void VertexShaderCache::ProgressiveCleanup()
 
 bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 {
+	// Reset GL error before compiling shaders. Yeah, we need to investigate the causes of these.
+	GLenum err = GL_REPORT_ERROR();
+	if (err != GL_NO_ERROR)
+	{
+		ERROR_LOG(VIDEO, "glError %08x before VS!", err);
+	}
+
 	char stropt[64];
 	sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
@@ -162,8 +169,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
 	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
-	GLenum err = GL_NO_ERROR;
-	GL_REPORT_ERROR();
+	err = GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
 		ERROR_LOG(VIDEO, pstrprogram);
 		ERROR_LOG(VIDEO, pcompiledprog);
