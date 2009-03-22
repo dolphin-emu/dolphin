@@ -38,7 +38,7 @@ CARCodeAddEdit::~CARCodeAddEdit()
 
 void CARCodeAddEdit::CreateGUIControls(int _selection)
 {
-	wxString currentName = wxT("<Insert name here>");
+	wxString currentName = wxT("Insert name here");
 	
 	if (_selection == -1)
 	{
@@ -56,8 +56,8 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-	EntrySelection->SetRange(0, (int)arCodes.size()-1);
-	EntrySelection->SetValue((int)arCodes.size()-1 - _selection);
+	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1); 
+	EntrySelection->SetValue((int)(arCodes.size() - _selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
@@ -87,7 +87,7 @@ void CARCodeAddEdit::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
-	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size()-1 - event.GetPosition());
+	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size() - event.GetPosition());
 	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
 	UpdateTextCtrl(currentCode);
 }
@@ -97,24 +97,19 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 
 	std::vector<ActionReplay::AREntry> tempEntries;
 	std::string cheatValues = std::string(EditCheatCode->GetValue().mb_str());
-	bool bWhile = true;	size_t line = 0;
+	size_t line = 0;
+	u32 addr, value;
 
-	while (bWhile)
+	while (cheatValues.length() > (line + 17) && (line != std::string::npos))
 	{
-		bWhile = false;
-		u32 addr, value;
+		// there's no newline, or newline is imcomplete, stop here.
 
-		addr = strtol(std::string(cheatValues.substr(line, line+8)).c_str(), NULL, 16);		// cmd_addr of ArCode
-		value = strtol(std::string(cheatValues.substr(line+9, line+17)).c_str(), NULL, 16);	// value of ArCode
+		addr = strtol(std::string(cheatValues.substr(line, line+8)).c_str(), NULL, 16);
+		value = strtol(std::string(cheatValues.substr(line+9, line+17)).c_str(), NULL, 16);
 
 		tempEntries.push_back(ActionReplay::AREntry(addr, value));
 		
-		line = cheatValues.find("\n", line);
-
-		if (line != std::string::npos && cheatValues.length() > (line+17))
-			bWhile = true;	// newline found, if not empty, go on
-
-		line++;
+		line = cheatValues.find('\n', line+1);
 	}
 
 	if (selection == -1)
