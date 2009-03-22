@@ -107,8 +107,6 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 		return s_encodingPrograms[0];
 	}
 
-	// todo - this does not handle the case that an application is using RGB555/4443
-	// and switches EFB formats between a format that does and does not support alpha
 	if (s_encodingPrograms[format].glprogid == 0)
 	{
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format);

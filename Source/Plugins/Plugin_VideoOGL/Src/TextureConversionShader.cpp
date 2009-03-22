@@ -302,24 +302,8 @@ void WriteIA4Encoder(char* p)
 	WRITE(p, "}\n");
 }
 
-void WriteRGB5X5Encoder(char* p, bool g6Bit)
+void WriteRGB565Encoder(char* p)
 {
-	s32 gBits;
-	float rShift;
-	const char* msbString;
-	if(g6Bit)
-	{
-		gBits = 6;
-		rShift = 8.0f;
-		msbString = "";
-	}
-	else 
-	{
-		gBits = 5;
-		rShift = 4.0f;
-		msbString = " + 128.0f";
-	}
-
 	WriteSwizzler(p);
 
 	WRITE(p, "  float3 texSample;\n");
@@ -328,26 +312,93 @@ void WriteRGB5X5Encoder(char* p, bool g6Bit)
 	WRITE(p, "  float gLower;\n");
 
 	WriteSampleColor(p, "rgb", "texSample");	
-	WriteToBitDepth(p, gBits, "texSample.g", "gInt");
+	WriteToBitDepth(p, 6, "texSample.g", "gInt");
 	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");	
 	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
-	WRITE(p, "  ocol0.b = ocol0.b * %f + gUpper%s;\n", rShift, msbString);
+	WRITE(p, "  ocol0.b = ocol0.b * 8.0f + gUpper;\n");
 	WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
 	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");	
 
 	WriteIncrementSampleX(p);
 
 	WriteSampleColor(p, "rgb", "texSample");	
-	WriteToBitDepth(p, gBits, "texSample.g", "gInt");
+	WriteToBitDepth(p, 6, "texSample.g", "gInt");
 	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");	
 	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
-	WRITE(p, "  ocol0.r = ocol0.r * %f + gUpper%s;\n", rShift, msbString);
+	WRITE(p, "  ocol0.r = ocol0.r * 8.0f + gUpper;\n");
 	WriteToBitDepth(p, 5, "texSample.b", "ocol0.a");
 	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0f;\n");
+
+	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
+	WRITE(p, "}\n");
+}
+
+void WriteRGB5A3Encoder(char* p)
+{
+	WriteSwizzler(p);
+
+	WRITE(p, "  float4 texSample;\n");
+	WRITE(p, "  float color0;\n");
+	WRITE(p, "  float gUpper;\n");
+	WRITE(p, "  float gLower;\n");
+
+	WriteSampleColor(p, "rgba", "texSample");
+
+    // 0.8784 = 224 / 255 which is the maximum alpha value that can be represented in 3 bits
+    WRITE(p, "if(texSample.a > 0.878f) {\n");
+
+	WriteToBitDepth(p, 5, "texSample.g", "color0");
+	WRITE(p, "  gUpper = floor(color0 / 8.0f);\n");	
+	WRITE(p, "  gLower = color0 - gUpper * 8.0f;\n");
+
+	WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
+	WRITE(p, "  ocol0.b = ocol0.b * 4.0f + gUpper + 128.0f;\n");
+	WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
+	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");
+
+    WRITE(p, "} else {\n");
+
+    WriteToBitDepth(p, 4, "texSample.r", "ocol0.b");
+    WriteToBitDepth(p, 4, "texSample.b", "ocol0.g");
+
+    WriteToBitDepth(p, 3, "texSample.a", "color0");
+    WRITE(p, "ocol0.b = ocol0.b + color0 * 16.0f;\n");
+	WriteToBitDepth(p, 4, "texSample.g", "color0");
+    WRITE(p, "ocol0.g = ocol0.g + color0 * 16.0f;\n");
+
+    WRITE(p, "}\n");
+
+
+	WriteIncrementSampleX(p);
+
+	WriteSampleColor(p, "rgba", "texSample");
+
+    WRITE(p, "if(texSample.a > 0.878f) {\n");
+
+	WriteToBitDepth(p, 5, "texSample.g", "color0");
+	WRITE(p, "  gUpper = floor(color0 / 8.0f);\n");	
+	WRITE(p, "  gLower = color0 - gUpper * 8.0f;\n");
+
+	WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
+	WRITE(p, "  ocol0.r = ocol0.r * 4.0f + gUpper + 128.0f;\n");
+	WriteToBitDepth(p, 5, "texSample.b", "ocol0.a");
+	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0f;\n");
+
+    WRITE(p, "} else {\n");
+
+    WriteToBitDepth(p, 4, "texSample.r", "ocol0.r");
+    WriteToBitDepth(p, 4, "texSample.b", "ocol0.a");
+
+    WriteToBitDepth(p, 3, "texSample.a", "color0");
+    WRITE(p, "ocol0.r = ocol0.r + color0 * 16.0f;\n");
+	WriteToBitDepth(p, 4, "texSample.g", "color0");
+    WRITE(p, "ocol0.a = ocol0.a + color0 * 16.0f;\n");
+
+    WRITE(p, "}\n");
 
 	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
 	WRITE(p, "}\n");
@@ -572,13 +623,10 @@ const char *GenerateEncodingShader(u32 format)
 		WriteIA8Encoder(p);
 		break;
 	case GX_TF_RGB565:
-		WriteRGB5X5Encoder(p, true);
+		WriteRGB565Encoder(p);
 		break;
 	case GX_TF_RGB5A3:
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
-			WriteRGBA4443Encoder(p);
-		else
-			WriteRGB5X5Encoder(p, false);
+		WriteRGB5A3Encoder(p);
 		break;
 	case GX_TF_RGBA8:
 		WriteRGBA8Encoder(p, false);
