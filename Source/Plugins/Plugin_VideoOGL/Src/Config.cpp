@@ -113,7 +113,7 @@ void Config::GameIniLoad() {
 		iniFile->Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
 	
 	if (iniFile->Exists("Video", "UseXFB"))
-		iniFile->Get("Settings", "UseXFB", &bUseXFB, 0);
+		iniFile->Get("Video", "UseXFB", &bUseXFB, 0);
 
 }
 
