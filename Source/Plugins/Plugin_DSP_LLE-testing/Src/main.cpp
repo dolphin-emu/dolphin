@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// =======================================================================================
-// Includes
-// --------------
 #include "Common.h" // Common
 #include "WaveFile.h"
 #include "CommonTypes.h"
@@ -28,15 +25,22 @@
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 #include "disassemble.h"
+#include "Config.h"
+
+#if defined(HAVE_WX) && HAVE_WX
+#include "ConfigDlg.h"
+#endif
+
+#include "AOSoundStream.h"
+#include "DSoundStream.h"
+#include "NullSoundStream.h"
+
 
 #ifdef _WIN32
 	#include "DisAsmDlg.h"
-	#include "DSoundStream.h"
 	#include "Logging/Logging.h" // For Logging
 
 	HINSTANCE g_hInstance = NULL;
-	HANDLE g_hDSPThread = NULL;
-	CRITICAL_SECTION g_CriticalSection;
 	CDisAsmDlg g_Dialog;
 #else
 	#define WINAPI
@@ -46,18 +50,15 @@
 	#include <string.h>
 	#include <pthread.h>
 	#include "AOSoundStream.h"
-	pthread_t g_hDSPThread = NULL;
 #endif
 
 #include "ChunkFile.h"
-// ==============
 
-
-// =======================================================================================
-// Global declarations and definitions
-// --------------
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
+
+
+SoundStream *soundStream = NULL;
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
@@ -73,7 +74,6 @@ bool bCanWork = false;
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
 static bool log_ai = false;
 WaveFileWriter g_wave_writer;
-// ==============
 
 
 #ifdef _WIN32
@@ -124,8 +124,24 @@ void DllAbout(HWND _hParent)
 {}
 
 
+
 void DllConfig(HWND _hParent)
-{}
+{
+#if defined(HAVE_WX) && HAVE_WX
+	// (shuffle2) TODO: reparent dlg with DolphinApp
+	ConfigDialog dlg(NULL);
+
+	// Add avaliable output options
+	if (DSound::isValid())
+		dlg.AddBackend("DSound");
+	if (AOSound::isValid())
+		dlg.AddBackend("AOSound");
+	dlg.AddBackend("NullSound");
+
+	// Show the window
+	dlg.ShowModal();
+#endif
+}
 
 
 void DoState(unsigned char **ptr, int mode) {
@@ -138,23 +154,12 @@ void DllDebugger(HWND _hParent, bool Show)
 	#if defined (_DEBUG) || defined (DEBUGFAST)
 		g_Dialog.Create(NULL); //_hParent);
 		g_Dialog.ShowWindow(SW_SHOW);
-		//		MoveWindow(g_Dialog.m_hWnd, 450,0, 780,530, true);
-		
-		// Open the console window
-		//		Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
-		//		Console::Print("DllDebugger > Console opened\n");
-		// Todo: Make this adjustable from the Debugging window
-		//		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true);
-	#else
-		MessageBox(0, "Can't open debugging window in the Release build of this plugin.", "DSP LLE", 0);
 	#endif
 #endif
 }
 
 
-// =======================================================================================
 // Regular thread
-// --------------
 #ifdef _WIN32
 DWORD WINAPI dsp_thread(LPVOID lpParameter)
 #else
@@ -170,12 +175,8 @@ void* dsp_thread(void* lpParameter)
 		}
 	}
 }
-// ==============
 
-
-// =======================================================================================
 // Debug thread
-// --------------
 #ifdef _WIN32
 DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 #else
@@ -183,10 +184,6 @@ void* dsp_thread_debug(void* lpParameter)
 #endif
 {
     
-	//if (g_hDSPThread)
-	//{
-	//	return NULL; // enable this to disable the plugin
-	//}
 #ifdef _WIN32
 
 	while (1)
@@ -205,7 +202,6 @@ void* dsp_thread_debug(void* lpParameter)
 #endif
         return NULL;
 }
-// ==============
 
 
 void DSP_DebugBreak()
@@ -236,26 +232,21 @@ void Initialize(void *init)
 
 	if (!gdsp_load_rom((char *)DSP_ROM_FILE))
 	{
-                bCanWork = false;
-                PanicAlert("No DSP ROM");
-		ERROR_LOG(DSPHLE, "Cannot load DSP ROM\n");
+		bCanWork = false;
+		PanicAlert("Cannot load DSP ROM");
 	}
-
+	
 	if (!gdsp_load_coef((char *)DSP_COEF_FILE))
 	{
-                bCanWork = false;
-                PanicAlert("No DSP COEF");
-		ERROR_LOG(DSPHLE, "Cannot load DSP COEF\n");
+		bCanWork = false;
+		PanicAlert("Cannot load DSP COEF");
 	}
 
         if(!bCanWork)
             return; // TODO: Don't let it work
 
-// ---------------------------------------------------------------------------------------
-// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM   1" in Globals.h. Then
-// make the disassembled file here.
-// --------------
-//		Dump UCode to file...
+// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM 1" in
+// Globals.h. Then make the disassembled file here.  Dump UCode to file...
 
    	FILE* t = fopen("C:\\_\\DSP_UC_09CD143F.txt", "wb");
 	if (t != NULL)
@@ -264,50 +255,69 @@ void Initialize(void *init)
    		gd_dis_file(&gdg, (char *)"C:\\_\\DSP_UC_09CD143F.bin", t);
    		fclose(t);   
 	}
-// --------------
 
-#ifdef _WIN32
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	g_hDSPThread = CreateThread(NULL, 0, dsp_thread_debug, 0, 0, NULL);
-#else
-	g_hDSPThread = CreateThread(NULL, 0, dsp_thread, 0, 0, NULL);
-#endif // DEBUG
-#else
-#if _DEBUG
-        pthread_create(&g_hDSPThread, NULL, dsp_thread_debug, (void *)NULL);
-#else
-	pthread_create(&g_hDSPThread, NULL, dsp_thread, (void *)NULL);
-#endif // DEBUG
-#endif // WIN32
-        
+	if (g_Config.sBackend == "DSound")
+	{
+		if (DSound::isValid())
+			soundStream = new DSound(48000, Mixer, g_dspInitialize.hWnd);
+	}
+	else if (g_Config.sBackend == "AOSound")
+	{
+		if (AOSound::isValid())
+			soundStream = new AOSound(48000, Mixer);
+	}
+	else if (g_Config.sBackend == "NullSound")
+	{
+		soundStream = new NullSound(48000, Mixer);
+	}
+	else
+	{
+		PanicAlert("Cannot recognize backend %s", g_Config.sBackend.c_str());
+		return;
+	}
+
+	if (soundStream)
+	{
+		if (!soundStream->Start())
+		{
+			PanicAlert("Could not initialize backend %s, falling back to NULL", 
+					   g_Config.sBackend.c_str());
+			delete soundStream;
+			soundStream = new NullSound(48000, Mixer);
+			soundStream->Start();
+		}
+	}
+	else
+	{
+		PanicAlert("Sound backend %s is not valid, falling back to NULL", 
+				   g_Config.sBackend.c_str());
+		delete soundStream;
+		soundStream = new NullSound(48000, Mixer);
+		soundStream->Start();
+	}
+     
 	if (log_ai) {
 		g_wave_writer.Start("C:\\_\\ai_log.wav");
 		g_wave_writer.SetSkipSilence(false);
 	}
-
-#ifdef _WIN32
-	InitializeCriticalSection(&g_CriticalSection);
-	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
-#else
-	AOSound::AOSound_StartSound(48000, Mixer);
-#endif
 }
 
 void DSP_StopSoundStream()
 {
-#ifdef _WIN32
-	if (g_hDSPThread != NULL)
-	{
-        TerminateThread(g_hDSPThread, 0);
-    }
-#else
-	// Isn't pthread_cancel kind of evil?
-    pthread_cancel(g_hDSPThread);
-#endif
+	if (!soundStream)
+		PanicAlert("Can't stop non running SoundStream!");
+	soundStream->Stop();
+	delete soundStream;
+	soundStream = NULL;
 }
 
 void Shutdown(void)
 {
+	// Check that soundstream already is stopped.
+	if (soundStream)
+		PanicAlert("SoundStream alive in DSP::Shutdown!");
+	
+	// Stop the sound recording
 	if (log_ai)
 		g_wave_writer.Stop();
 }
@@ -382,10 +392,8 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 		DEBUG_LOG(DSPHLE, "Write CPU Mail: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
 
-		// ---------------------------------------------------------------------------------------
-		// I couldn't find any better way to detect the AX mails so this had to do. Please feel free
-		// to change it.
-		// --------------
+		// I couldn't find any better way to detect the AX mails so this had to
+		// do. Please feel free to change it.
 		if ((errpc == 0x0054 || errpc == 0x0055) && m_addressPBs == 0)
 		{
 			DEBUG_LOG(DSPHLE, "AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
@@ -401,10 +409,6 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-	if (g_hDSPThread)
-	{
-		return;
-	}
 	#ifdef _WIN32
 	if (g_Dialog.CanDoStep())
 	{

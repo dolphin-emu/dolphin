@@ -43,7 +43,6 @@ PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
-std::string gpName;
 
 SoundStream *soundStream = NULL;
 
@@ -127,31 +126,12 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 #endif
 
 
-/*
-// Open and close console
-void OpenConsole()
-{
-#if defined (_WIN32)
-	Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
-	DEBUG_LOG(CONSOLE, "OpenConsole > Console opened\n");
-	MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // move window, TODO: make this
-	// adjustable from the debugging window
-#endif
-}
-
-void CloseConsole()
-{
-#if defined (_WIN32)
-	FreeConsole();
-#endif
-}
-*/
-
 // Exported fuctions
 
-// Create debugging window - We could use use wxWindow win; new CDebugger(win) like nJoy but I don't
-// know why it would be better. - There's a lockup problem with ShowModal(), but Show() doesn't work
-// because then DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
+// Create debugging window - We could use use wxWindow win; new CDebugger(win)
+// like nJoy but I don't know why it would be better. - There's a lockup
+// problem with ShowModal(), but Show() doesn't work because then
+// DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
@@ -214,23 +194,10 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
-	//Console::Open(80, 5000);
-
 	g_dspInitialize = *(DSPInitialize*)init;
 
 	g_Config.Load();
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	gpName = g_dspInitialize.pName(); // save the game name globally
-	for (u32 i = 0; i < gpName.length(); ++i) // and fix it
-	{
-		fprintf(stderr,"%c", gpName[i]);
-		std::cout << gpName[i];
-		if (gpName[i] == ':') gpName[i] = ' ';
-	}
-	fprintf(stderr, "\n");
-#endif
 
 	CDSPHandler::CreateInstance();
 
@@ -253,12 +220,6 @@ void Initialize(void *init)
 		PanicAlert("Cannot recognize backend %s", g_Config.sBackend.c_str());
 		return;
 	}
-
-#if defined(WIN32) && defined(_DEBUG)
-	//int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	//tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-	//_CrtSetDbgFlag(tmpflag);
-#endif
 
 	if (soundStream)
 	{
@@ -328,9 +289,7 @@ void DoState(unsigned char **ptr, int mode)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////
 // Mailbox fuctions
-// ¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
@@ -395,12 +354,9 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value)
 		PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
 	}
 }
-/////////////////////////////////////
 
 
-////////////////////////////////////////////////////////////////////////////////////////
 // Other DSP fuctions
-// ¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_WriteControlRegister(unsigned short _Value)
 {
 	return CDSPHandler::GetInstance().WriteControlRegister(_Value);
@@ -416,10 +372,11 @@ void DSP_Update(int cycles)
 	CDSPHandler::GetInstance().Update();
 }
 
-/* Other Audio will pass through here. The kind of audio that sometimes are used together with pre-drawn
-   movies. This audio can be disabled further inside Mixer_PushSamples(), the reason that we don't disable
-   this entire function when Other Audio is disabled is that then we can't turn it back on again once the
-   game has started. */
+/* Other Audio will pass through here. The kind of audio that sometimes are
+   used together with pre-drawn movies. This audio can be disabled further
+   inside Mixer_PushSamples(), the reason that we don't disable this entire
+   function when Other Audio is disabled is that then we can't turn it back on
+   again once the game has started. */
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
 	// TODO: This is not yet fully threadsafe.
@@ -453,4 +410,4 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	if ((counter & 31) == 0 && soundStream)
 		soundStream->Update();
 }
-/////////////////////////////////////
+

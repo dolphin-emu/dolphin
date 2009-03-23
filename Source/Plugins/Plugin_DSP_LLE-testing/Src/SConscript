@@ -10,10 +10,10 @@ if not env['HAVE_AO']:
     Return()
 
 files = [
-	"AOSoundStream.cpp",
 #        "DisAsmDlg.cpp",
+        "Config.cpp",
+        "ConfigDlg.cpp",
 	"disassemble.cpp",
-#        "DSoundStream.cpp",
 	"gdsp_aram.cpp",
 	"gdsp_ext_op.cpp",
 	"gdsp_interface.cpp",

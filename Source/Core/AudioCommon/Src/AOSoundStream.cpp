@@ -33,7 +33,7 @@ void AOSound::SoundLoop()
     device = ao_open_live(default_driver, &format, NULL /* no options */);
     if (!device)
 	{
-		PanicAlert("DSP_HLE: Error opening AO device.\n");
+		PanicAlert("AudioCommon: Error opening AO device.\n");
 		ao_shutdown();
 		Stop();
 		return;

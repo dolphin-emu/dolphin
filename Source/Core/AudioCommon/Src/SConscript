@@ -1,0 +1,11 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+    'AOSoundStream.cpp',
+    ]
+
+env_audiocommon = env.Clone()
+env_audiocommon.Append(CXXFLAGS = [ '-fPIC' ])
+env_audiocommon.StaticLibrary('audiocommon', files)

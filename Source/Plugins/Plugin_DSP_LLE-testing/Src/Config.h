@@ -15,21 +15,26 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __SOUNDSTREAM_H__
-#define __SOUNDSTREAM_H__
+#ifndef _PLUGIN_DSP_HLE_CONFIG_H
+#define _PLUGIN_DSP_HLE_CONFIG_H
 
-namespace DSound
+#include <string>
+
+struct CConfig
 {
-typedef void (*StreamCallback)(short* buffer, int numSamples, int bits, int rate, int channels);
+    bool m_EnableHLEAudio;
+    bool m_EnableDTKMusic;
+    bool m_EnableThrottle;
+	std::string sBackend;
+    
+    CConfig();
+    
+    void Load();
+    
+    void Save();
+};
 
-bool DSound_StartSound(HWND window, int sampleRate, StreamCallback _callback);
-void DSound_UpdateSound();
-void DSound_StopSound();
+extern CConfig g_Config;
 
-float DSound_GetTimer();
-int DSound_GetCurSample();
-int DSound_GetSampleRate();
-}
+#endif // _PLUGIN_DSP_HLE_CONFIG_H
 
-
-#endif //__SOUNDSTREAM_H__
