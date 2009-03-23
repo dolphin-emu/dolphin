@@ -35,298 +35,280 @@
 namespace PowerPC
 {
 
-// STATE_TO_SAVE
-PowerPCState GC_ALIGNED16(ppcState);
-volatile CPUState state = CPU_STEPPING;
+	// STATE_TO_SAVE
+	PowerPCState GC_ALIGNED16(ppcState);
+	volatile CPUState state = CPU_STEPPING;
 
-static CoreMode mode;
+	static CoreMode mode;
 
-void CompactCR()
-{
-	ppcState.cr = 0;
-	for (int i = 0; i < 8; i++) {
-		ppcState.cr |= ppcState.cr_fast[i] << (28 - i * 4);
-	}
-}
-
-void ExpandCR()
-{
-	for (int i = 0; i < 8; i++) {
-		ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
-	}
-}
-
-
-void DoState(PointerWrap &p)
-{
-	p.Do(ppcState);
-}
-
-void ResetRegisters()
-{
-	for (int i = 0; i < 32; i++)
+	void CompactCR()
 	{
-		ppcState.gpr[i] = 0;
-		riPS0(i) = 0;
-		riPS1(i) = 0;
+		ppcState.cr = 0;
+		for (int i = 0; i < 8; i++) {
+			ppcState.cr |= ppcState.cr_fast[i] << (28 - i * 4);
+		}
 	}
 
-	memset(ppcState.spr, 0, sizeof(ppcState.spr));
+	void ExpandCR()
+	{
+		for (int i = 0; i < 8; i++) {
+			ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
+		}
+	}
 
-	ppcState.cr = 0;
-	ppcState.fpscr = 0;
-	ppcState.pc = 0;
-	ppcState.npc = 0;
-	ppcState.Exceptions = 0;
 
-	TL = 0;
-	TU = 0;
+	void DoState(PointerWrap &p)
+	{
+		p.Do(ppcState);
+	}
 
-	ppcState.msr = 0;
-	rDEC = 0xFFFFFFFF;
-}
+	void ResetRegisters()
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			ppcState.gpr[i] = 0;
+			riPS0(i) = 0;
+			riPS1(i) = 0;
+		}
 
-void Init()
-{
-	enum {
-		FPU_PREC_24 = 0 << 8,
-		FPU_PREC_53 = 2 << 8,
-		FPU_PREC_64 = 3 << 8,
-		FPU_PREC_MASK = 3 << 8,
-	};
-	#ifdef _M_IX86
-	// sets the floating-point lib to 53-bit
-	// PowerPC has a 53bit floating pipeline only
-	// eg: sscanf is very sensitive
+		memset(ppcState.spr, 0, sizeof(ppcState.spr));
+
+		ppcState.cr = 0;
+		ppcState.fpscr = 0;
+		ppcState.pc = 0;
+		ppcState.npc = 0;
+		ppcState.Exceptions = 0;
+
+		TL = 0;
+		TU = 0;
+
+		ppcState.msr = 0;
+		rDEC = 0xFFFFFFFF;
+	}
+
+	void Init()
+	{
+		enum {
+			FPU_PREC_24 = 0 << 8,
+			FPU_PREC_53 = 2 << 8,
+			FPU_PREC_64 = 3 << 8,
+			FPU_PREC_MASK = 3 << 8,
+		};
+#ifdef _M_IX86
+		// sets the floating-point lib to 53-bit
+		// PowerPC has a 53bit floating pipeline only
+		// eg: sscanf is very sensitive
 #ifdef _WIN32
-	_control87(_PC_53, MCW_PC);
+		_control87(_PC_53, MCW_PC);
 #else
-	unsigned short _mode;
-	asm ("fstcw %0" : : "m" (_mode));
-	_mode = (_mode & ~FPU_PREC_MASK) | FPU_PREC_53;
-	asm ("fldcw %0" : : "m" (_mode));
+		unsigned short _mode;
+		asm ("fstcw %0" : : "m" (_mode));
+		_mode = (_mode & ~FPU_PREC_MASK) | FPU_PREC_53;
+		asm ("fldcw %0" : : "m" (_mode));
 #endif
 #else
-	//x64 doesn't need this - fpu is done with SSE
-	//but still - set any useful sse options here
+		//x64 doesn't need this - fpu is done with SSE
+		//but still - set any useful sse options here
 #endif
 
-	ResetRegisters();
-	PPCTables::InitTables();
+		ResetRegisters();
+		PPCTables::InitTables();
 
-	// Initialize both execution engines ... 
-	Interpreter::Init();
-	jit.Init();
-	// ... but start as interpreter by default.
-	mode = MODE_INTERPRETER;
-	state = CPU_STEPPING;
-}
-
-void Shutdown()
-{
-	// Shutdown both execution engines. Doesn't matter which one is active.
-	jit.Shutdown();
-	Interpreter::Shutdown();
-}
-
-void SetMode(CoreMode new_mode)
-{
-	if (new_mode == mode)
-		return;  // We don't need to do anything.
-
-	mode = new_mode;
-	switch (mode)
-	{
-	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit.ClearCache();  // Remove all those nasty JIT patches.
-		break;
-
-	case MODE_JIT:  // Switching from interpreter to JIT.
-		// Don't really need to do much. It'll work, the cache will refill itself.
-		break;
+		// Initialize both execution engines ... 
+		Interpreter::Init();
+		jit.Init();
+		// ... but start as interpreter by default.
+		mode = MODE_INTERPRETER;
+		state = CPU_STEPPING;
 	}
-}
 
-void SingleStep() 
-{
-	switch (mode)
+	void Shutdown()
 	{
-	case MODE_INTERPRETER:
-		Interpreter::SingleStep();
-		break;
-	case MODE_JIT:
-		jit.SingleStep();
-		break;
+		// Shutdown both execution engines. Doesn't matter which one is active.
+		jit.Shutdown();
+		Interpreter::Shutdown();
 	}
-}
 
-void RunLoop()
-{
-	state = CPU_RUNNING;
-	switch (mode) 
+	void SetMode(CoreMode new_mode)
 	{
-	case MODE_INTERPRETER:
-		Interpreter::Run();
-		break;
-	case MODE_JIT:
-		jit.Run();
-		break;
-	}
-    Host_UpdateDisasmDialog();
-}
+		if (new_mode == mode)
+			return;  // We don't need to do anything.
 
-CPUState GetState()
-{
-	return state;
-}
-
-volatile CPUState *GetStatePtr()
-{
-	return &state;
-}
-
-void Start()
-{
-	state = CPU_RUNNING;
-	Host_UpdateDisasmDialog();
-}
-
-void Pause()
-{
-	state = CPU_STEPPING;
-	Host_UpdateDisasmDialog();
-}
-
-void Stop()
-{
-	state = CPU_POWERDOWN;
-	Host_UpdateDisasmDialog();
-}
-
-void CheckExceptions()
-{
-	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
-	if (!ppcState.Exceptions)
-		return;
-
-	// TODO(ector): 
-	// gcemu uses the mask 0x87C0FFFF instead of 0x0780FF77
-    // Investigate!
-
-	// EXTERNAL INTTERUPT
-	if (MSR & 0x0008000)
-	{
-		// EXCEPTION_SYSRESET (hard)
-		// EXCEPTION_MACHINE_CHECK
-		// EXCEPTION_SYSRESET (soft)
-		if (ppcState.Exceptions & EXCEPTION_EXTERNAL_INT)
+		mode = new_mode;
+		switch (mode)
 		{
-			// Pokemon gets this "too early", it hasn't a handler yet
-			ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;	// clear exception
+		case MODE_INTERPRETER:  // Switching from JIT to interpreter
+			jit.ClearCache();  // Remove all those nasty JIT patches.
+			break;
 
+		case MODE_JIT:  // Switching from interpreter to JIT.
+			// Don't really need to do much. It'll work, the cache will refill itself.
+			break;
+		}
+	}
+
+	void SingleStep() 
+	{
+		switch (mode)
+		{
+		case MODE_INTERPRETER:
+			Interpreter::SingleStep();
+			break;
+		case MODE_JIT:
+			jit.SingleStep();
+			break;
+		}
+	}
+
+	void RunLoop()
+	{
+		state = CPU_RUNNING;
+		switch (mode) 
+		{
+		case MODE_INTERPRETER:
+			Interpreter::Run();
+			break;
+		case MODE_JIT:
+			jit.Run();
+			break;
+		}
+		Host_UpdateDisasmDialog();
+	}
+
+	CPUState GetState()
+	{
+		return state;
+	}
+
+	volatile CPUState *GetStatePtr()
+	{
+		return &state;
+	}
+
+	void Start()
+	{
+		state = CPU_RUNNING;
+		Host_UpdateDisasmDialog();
+	}
+
+	void Pause()
+	{
+		state = CPU_STEPPING;
+		Host_UpdateDisasmDialog();
+	}
+
+	void Stop()
+	{
+		state = CPU_POWERDOWN;
+		Host_UpdateDisasmDialog();
+	}
+
+	void CheckExceptions()
+	{
+		// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
+		if (!ppcState.Exceptions)
+			return;
+
+		// TODO(ector): 
+		// gcemu uses the mask 0x87C0FFFF instead of 0x0780FF77
+		// Investigate!
+
+		if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
+		{			
+			//This happens a lot - Gamecube OS uses deferred FPU context switching
+			SRR0 = PC;	// re-execute the instruction
+			SRR1 = MSR & 0x0780FF77;
+			NPC = 0x80000800;
+
+			INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
+			ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
+			SRR1 |= 0x02;  //recoverable
+		}
+		else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
+		{	
+			SRR0 = NPC; // execute next instruction when we come back from handler
+			SRR1 = MSR & 0x0780FF77;
+			NPC = 0x80000C00;
+
+			INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+			ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
+			SRR1 |= 0x02;  //recoverable
+		}
+		else if (ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			SRR0 = PC;  // re-execute the instruction
+			SRR1 = MSR & 0x0780FF77; 
+			NPC = 0x80000300;
+
+			INFO_LOG(GEKKO, "EXCEPTION_DSI");
+			ppcState.Exceptions &= ~EXCEPTION_DSI;			
+			//SRR1 |= 0x02;  //make recoverable ?
+		}
+		else if (ppcState.Exceptions & EXCEPTION_ISI)
+		{
+			SRR0 = PC;
+			SRR1 = (MSR & 0x0780FF77) | 0x40000000;
+			NPC = 0x80000400;
+
+			INFO_LOG(GEKKO, "EXCEPTION_ISI");
+			ppcState.Exceptions &= ~EXCEPTION_ISI;			
+			//SRR1 |= 0x02;  //make recoverable ?
+		}
+		else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
+		{
+			//This never happens ATM
 			SRR0 = NPC;
-			NPC = 0x80000500;
-			SRR1 = (MSR & 0x0780FF77);
+			SRR1 = MSR & 0x0780FF77;
+			NPC = 0x80000600;
 
-			INFO_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
-
-			SRR1 |= 0x02; //set it to recoverable
-			_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
+			INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
+			ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;			
+			//SRR1 |= 0x02;  //make recoverable ?
 		}
-		// EXCEPTION_PERF_MONITOR
-		else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
+
+		// EXTERNAL INTTERUPT
+		else if (MSR & 0x0008000)
 		{
-			SRR0 = NPC;
-			SRR1 = MSR & 0x0000FF77;
-			NPC = 0x80000900;
+			if (ppcState.Exceptions & EXCEPTION_EXTERNAL_INT)
+			{
+				// Pokemon gets this "too early", it hasn't a handler yet
+				ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;	// clear exception
 
-			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
+				SRR0 = NPC;
+				NPC = 0x80000500;
+				SRR1 = (MSR & 0x0780FF77);
 
-			INFO_LOG(GEKKO, "EXCEPTION_DECREMENTER");
-			SRR1 |= 0x02;  //make recoverable
+				INFO_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
+
+				SRR1 |= 0x02; //set it to recoverable
+				_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
+			}
+			else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
+			{
+				SRR0 = NPC;
+				SRR1 = MSR & 0x0000FF77;
+				NPC = 0x80000900;
+
+				ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
+
+				INFO_LOG(GEKKO, "EXCEPTION_DECREMENTER");
+				SRR1 |= 0x02;  //make recoverable
+			}
+			else
+			{
+				_dbg_assert_msg_(GEKKO, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
+				ERROR_LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
+			}
 		}
-		else
-		{
-			_dbg_assert_msg_(GEKKO, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
-			ERROR_LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
-		}
+		MSR &= ~0x0008000;		// clear EE-bit so interrupts aren't possible anymore
 	}
-	else if (ppcState.Exceptions & EXCEPTION_ISI)
+
+	void OnIdle(u32 _uThreadAddr)
 	{
-		SRR0 = PC;
-		SRR1 = (MSR & 0x0780FF77) | 0x40000000;
-		NPC = 0x80000400;
-
-		INFO_LOG(GEKKO, "EXCEPTION_ISI");
-		ppcState.Exceptions &= ~EXCEPTION_ISI;			
-		//SRR1 |= 0x02;  //make recoverable ?
+		u32 nextThread = Memory::Read_U32(_uThreadAddr);
+		//do idle skipping
+		if (nextThread == 0)
+			CoreTiming::Idle();
 	}
-	// EXCEPTION_ADDR_BREAKPOINT
-	else if (ppcState.Exceptions & EXCEPTION_PROGRAM)
-	{
-		SRR0 = NPC; // execute next instruction when we come back from handler
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000700;
-
-		INFO_LOG(GEKKO, "EXCEPTION_PROGRAM (PC=%08x)", PC);
-		ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
-		SRR1 |= 0x02;  //recoverable
-	}
-	else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
-	{	
-		SRR0 = NPC; // execute next instruction when we come back from handler
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000C00;
-
-		INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
-		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
-		SRR1 |= 0x02;  //recoverable
-	}
-	else if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
-	{			
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
-		SRR0 = PC;	// re-execute the instruction
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000800;
-
-		INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
-		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
-		SRR1 |= 0x02;  //recoverable
-	}
-	// EXCEPTION_PROGRAM (floating point)
-	else if (ppcState.Exceptions & EXCEPTION_DSI)
-	{
-		SRR0 = PC;  // re-execute the instruction
-		SRR1 = MSR & 0x0780FF77; 
-		NPC = 0x80000300;
-
-		INFO_LOG(GEKKO, "EXCEPTION_DSI");
-		ppcState.Exceptions &= ~EXCEPTION_DSI;			
-		//SRR1 |= 0x02;  //make recoverable ?
-	}
-	else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
-	{
-		// Alignment exceptions have priorities
-		//This never happens ATM
-		SRR0 = NPC;
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000600;
-
-		INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
-		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;			
-		//SRR1 |= 0x02;  //make recoverable ?
-	}
-	// Other DSI exceptions
-	// EXCEPTION_TRACE
-	MSR &= ~0x0008000;		// clear EE-bit so interrupts aren't possible anymore
-}
-
-void OnIdle(u32 _uThreadAddr)
-{
-	u32 nextThread = Memory::Read_U32(_uThreadAddr);
-	//do idle skipping
-	if (nextThread == 0)
-		CoreTiming::Idle();
-}
 
 }  // namespace
