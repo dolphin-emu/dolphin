@@ -46,7 +46,7 @@ union UGeckoInstruction
 	{
 		signed SIMM_16	:	16;
 		unsigned 		:	5;
-		unsigned 		:	5;
+		unsigned TO		:	5;
 		unsigned OPCD_2	:	6;
 	};
 	struct
@@ -152,7 +152,7 @@ union UGeckoInstruction
 
 	struct
 	{	unsigned		:	10;
-		unsigned OE	:	1;
+		unsigned OE		:	1;
 		unsigned SPR	:	10;
 		unsigned		:	11;
 	};
@@ -604,6 +604,7 @@ enum
 #define EXCEPTION_ISI					0x00000010
 #define EXCEPTION_ALIGNMENT				0x00000020
 #define EXCEPTION_FPU_UNAVAILABLE       0x00000040
+#define EXCEPTION_PROGRAM				0x00000080
 
 inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
 inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)x | 0xFC000000 : (s32)(x);}

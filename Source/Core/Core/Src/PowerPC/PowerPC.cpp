@@ -213,62 +213,12 @@ void CheckExceptions()
 	// gcemu uses the mask 0x87C0FFFF instead of 0x0780FF77
     // Investigate!
 
-	if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
-	{			
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
-		SRR0 = PC;	// re-execute the instruction
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000800;
-
-		INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
-		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
-		SRR1 |= 0x02;  //recoverable
-	}
-	else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
-	{	
-		SRR0 = NPC; // execute next instruction when we come back from handler
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000C00;
-
-		INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
-		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
-		SRR1 |= 0x02;  //recoverable
-	}
-	else if (ppcState.Exceptions & EXCEPTION_DSI)
-	{
-		SRR0 = PC;  // re-execute the instruction
-		SRR1 = MSR & 0x0780FF77; 
-		NPC = 0x80000300;
-
-		INFO_LOG(GEKKO, "EXCEPTION_DSI");
-		ppcState.Exceptions &= ~EXCEPTION_DSI;			
-		//SRR1 |= 0x02;  //make recoverable ?
-	}
-	else if (ppcState.Exceptions & EXCEPTION_ISI)
-	{
-		SRR0 = PC;
-		SRR1 = (MSR & 0x0780FF77) | 0x40000000;
-		NPC = 0x80000400;
-
-		INFO_LOG(GEKKO, "EXCEPTION_ISI");
-		ppcState.Exceptions &= ~EXCEPTION_ISI;			
-		//SRR1 |= 0x02;  //make recoverable ?
-	}
-	else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
-	{
-		//This never happens ATM
-		SRR0 = NPC;
-		SRR1 = MSR & 0x0780FF77;
-		NPC = 0x80000600;
-
-		INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
-		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;			
-		//SRR1 |= 0x02;  //make recoverable ?
-	}
-	
 	// EXTERNAL INTTERUPT
-	else if (MSR & 0x0008000)
+	if (MSR & 0x0008000)
 	{
+		// EXCEPTION_SYSRESET (hard)
+		// EXCEPTION_MACHINE_CHECK
+		// EXCEPTION_SYSRESET (soft)
 		if (ppcState.Exceptions & EXCEPTION_EXTERNAL_INT)
 		{
 			// Pokemon gets this "too early", it hasn't a handler yet
@@ -277,12 +227,13 @@ void CheckExceptions()
 			SRR0 = NPC;
 			NPC = 0x80000500;
 			SRR1 = (MSR & 0x0780FF77);
-			
+
 			INFO_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
 
 			SRR1 |= 0x02; //set it to recoverable
 			_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
 		}
+		// EXCEPTION_PERF_MONITOR
 		else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
 		{
 			SRR0 = NPC;
@@ -300,6 +251,73 @@ void CheckExceptions()
 			ERROR_LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
 		}
 	}
+	else if (ppcState.Exceptions & EXCEPTION_ISI)
+	{
+		SRR0 = PC;
+		SRR1 = (MSR & 0x0780FF77) | 0x40000000;
+		NPC = 0x80000400;
+
+		INFO_LOG(GEKKO, "EXCEPTION_ISI");
+		ppcState.Exceptions &= ~EXCEPTION_ISI;			
+		//SRR1 |= 0x02;  //make recoverable ?
+	}
+	// EXCEPTION_ADDR_BREAKPOINT
+	else if (ppcState.Exceptions & EXCEPTION_PROGRAM)
+	{
+		SRR0 = NPC; // execute next instruction when we come back from handler
+		SRR1 = MSR & 0x0780FF77;
+		NPC = 0x80000700;
+
+		INFO_LOG(GEKKO, "EXCEPTION_PROGRAM (PC=%08x)", PC);
+		ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
+		SRR1 |= 0x02;  //recoverable
+	}
+	else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
+	{	
+		SRR0 = NPC; // execute next instruction when we come back from handler
+		SRR1 = MSR & 0x0780FF77;
+		NPC = 0x80000C00;
+
+		INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
+		SRR1 |= 0x02;  //recoverable
+	}
+	else if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
+	{			
+		//This happens a lot - Gamecube OS uses deferred FPU context switching
+		SRR0 = PC;	// re-execute the instruction
+		SRR1 = MSR & 0x0780FF77;
+		NPC = 0x80000800;
+
+		INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
+		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
+		SRR1 |= 0x02;  //recoverable
+	}
+	// EXCEPTION_PROGRAM (floating point)
+	else if (ppcState.Exceptions & EXCEPTION_DSI)
+	{
+		SRR0 = PC;  // re-execute the instruction
+		SRR1 = MSR & 0x0780FF77; 
+		NPC = 0x80000300;
+
+		INFO_LOG(GEKKO, "EXCEPTION_DSI");
+		ppcState.Exceptions &= ~EXCEPTION_DSI;			
+		//SRR1 |= 0x02;  //make recoverable ?
+	}
+	else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
+	{
+		// Alignment exceptions have priorities
+		//This never happens ATM
+		SRR0 = NPC;
+		SRR1 = MSR & 0x0780FF77;
+		NPC = 0x80000600;
+
+		INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
+		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;			
+		//SRR1 |= 0x02;  //make recoverable ?
+	}
+	// Other DSI exceptions
+	// EXCEPTION_TRACE
 	MSR &= ~0x0008000;		// clear EE-bit so interrupts aren't possible anymore
 }
 

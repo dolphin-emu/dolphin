@@ -113,7 +113,7 @@ void CompiledBlock(UGeckoInstruction _inst)
 
 void rfi(UGeckoInstruction _inst)
 {
-	//Bits SRR1[0,5-9,16�23, 25�27, 30�31] are placed into the corresponding bits of the MSR.
+	//Bits SRR1[0,5-9,16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
 	//MSR[13] is set to 0.
 	const int mask = 0x87C0FF73;
 	MSR = (MSR & ~mask) | (SRR1 & mask);

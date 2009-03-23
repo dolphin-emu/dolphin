@@ -165,11 +165,22 @@ void subfic(UGeckoInstruction _inst)
 
 void twi(UGeckoInstruction _inst) 
 {
-	bool bFirst = true;
-	if (bFirst)
-		PanicAlert("twi - Instruction unimplemented");
+	s32 a = m_GPR[_inst.RA];
+	s32 b = _inst.SIMM_16;
+	s32 TO = _inst.TO;
 
-	bFirst = false;
+	ERROR_LOG(GEKKO, "twi rA %x SIMM %x TO %0x", a, b, TO);
+
+	if (   ((a < b) && (TO & 0x10))
+		|| ((a > b) && (TO & 0x08))
+		|| ((a ==b) && (TO & 0x04))
+		|| (((u32)a <(u32)b) && (TO & 0x02))
+		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	{
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+		PowerPC::CheckExceptions();
+		m_EndBlock = true; // Dunno about this
+	}
 }
 
 void xori(UGeckoInstruction _inst)
@@ -382,10 +393,22 @@ void srwx(UGeckoInstruction _inst)
 
 void tw(UGeckoInstruction _inst)  
 {
-	static bool bFirst = true;
-	if (bFirst)
-		PanicAlert("tw - Instruction unimplemented");
-	bFirst = false;
+	s32 a = m_GPR[_inst.RA];
+	s32 b = m_GPR[_inst.RB];
+	s32 TO = _inst.TO;
+
+	ERROR_LOG(GEKKO, "tw rA %0x rB %0x TO %0x", a, b, TO);
+
+	if (   ((a < b) && (TO & 0x10))
+		|| ((a > b) && (TO & 0x08))
+		|| ((a ==b) && (TO & 0x04))
+		|| (((u32)a <(u32)b) && (TO & 0x02))
+		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	{
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+		PowerPC::CheckExceptions();
+		m_EndBlock = true; // Dunno about this
+	}
 }
 
 void xorx(UGeckoInstruction _inst)
