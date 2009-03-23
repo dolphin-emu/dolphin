@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_DSP_LLE-testing"
-	ProjectGUID="{C60D0E7A-ED05-4C67-9EE7-3A6C0D7801C8}"
+	Name="Plugin_DSP_LLE_Test"
+	ProjectGUID="{3D8156A9-64D1-4C8E-ADBE-1B319030E4A4}"
 	RootNamespace="Plugin_DSP_LLE"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -69,8 +69,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_LLED.dll"
+				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -130,7 +131,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -154,8 +155,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LLED.dll"
+				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -218,7 +220,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -241,8 +243,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_LLE.dll"
+				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -308,7 +311,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -330,8 +333,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LLE.dll"
+				OutputFile="../../../Binary/x64/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -395,7 +399,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -418,8 +422,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_LLEDF.dll"
+				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -485,7 +490,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -507,8 +512,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LLEDF.dll"
+				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -728,18 +734,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="PCHW"
-			>
-			<File
-				RelativePath=".\Src\Mixer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Mixer.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="HLE"
 			>
 			<File
@@ -768,6 +762,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\Docs\DSP\DSP_UC_Zelda.txt"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="PCHW"
+			>
+			<File
+				RelativePath=".\Src\Mixer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Mixer.h"
 				>
 			</File>
 		</Filter>

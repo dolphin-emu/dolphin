@@ -94,13 +94,14 @@ EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style)                                                                                                                 // | wxLC_VIRTUAL)
+	: wxListCtrl(parent, id, pos, size, style)
 {
 }
 
 CGameListCtrl::~CGameListCtrl()
 {
-	if (m_imageListSmall) delete m_imageListSmall;
+	if (m_imageListSmall)
+		delete m_imageListSmall;
 }
 
 void CGameListCtrl::InitBitmaps()
@@ -234,6 +235,11 @@ wxString NiceSizeFormat(s64 _size)
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
+	// When using wxListCtrl, there is no hope of per-column text colors.
+	// But for reference, here are the old colors that were used: (BGR)
+	// title: 0xFF0000
+	// company: 0x007030
+
 	GameListItem& rISOFile = m_ISOFiles[_Index];
 
 	int ImageIndex = -1;
@@ -246,34 +252,26 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Insert a row with the banner image
 	long ItemIndex = InsertItem(_Index, wxEmptyString, ImageIndex);
 
-	// Background color
-	SetBackgroundColor();
-
-	// When using wxListCtrl, there is no hope of per-column text colors.
-	// But for reference, here are the old colors that were used: (BGR)
-	// title: 0xFF0000
-	// company: 0x007030
-
 	switch (rISOFile.GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_JAP:
 		{
-			// keep these codes, when we move to wx unicode...
-			//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-			//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
-			//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
-			//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
-			wxString name;
-			if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
-			{
-				SetItem(_Index, COLUMN_TITLE, name, -1);
-			}
+		// keep these codes, when we move to wx unicode...
+		//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
+		//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
+		//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
+		wxString name;
+		if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
+		{
+			SetItem(_Index, COLUMN_TITLE, name, -1);
+		}
 
-			wxString description;
-			if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
-			{
-				SetItem(_Index, COLUMN_NOTES, description, -1);
-			}
+		wxString description;
+		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
+		{
+			SetItem(_Index, COLUMN_NOTES, description, -1);
+		}
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
@@ -344,19 +342,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 
 	// Country
-	{
-		wxListItem item;
-		item.m_itemId = ItemIndex;
-		item.SetColumn(COLUMN_COUNTRY);
-		DiscIO::IVolume::ECountry Country = rISOFile.GetCountry();
+	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
 
-		if (size_t(Country) < m_FlagImageIndex.size())
-		{
-			item.SetImage(m_FlagImageIndex[rISOFile.GetCountry()]);
-		}
-
-		SetItem(item);
-	}
+	// Background color
+	SetBackgroundColor();
 
 	// Item data
 	SetItemData(_Index, ItemIndex);
