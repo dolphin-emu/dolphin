@@ -1,0 +1,45 @@
+# -*- python -*-
+
+Import('env')
+import sys
+
+name = "Plugin_DSP_LLE_Testing"
+
+if not env['HAVE_AO']:
+    print name + " must have AO to be build"
+    Return()
+
+files = [
+	"AOSoundStream.cpp",
+#        "DisAsmDlg.cpp",
+	"disassemble.cpp",
+#        "DSoundStream.cpp",
+	"gdsp_aram.cpp",
+	"gdsp_ext_op.cpp",
+	"gdsp_interface.cpp",
+	"gdsp_interpreter.cpp",
+	"gdsp_memory.cpp",
+	"gdsp_opcodes.cpp",
+	"gdsp_registers.cpp",
+	"Globals.cpp",
+        "HLE_Functions.cpp",
+        "HLE_Helper.cpp",
+	"main.cpp",
+        "Mixer.cpp",
+	"opcodes.cpp",
+#        "RegisterDlg.cpp",
+#        "RegSettings.cpp",
+#        "stdafx.cpp",
+	"Tools.cpp",
+        "Logging/AXTask.cpp",
+        "Logging/Logging.cpp",
+        "Logging/ReadPBs.cpp",
+	]
+
+lleenv = env.Clone()
+lleenv.Append(
+	CXXFLAGS = [ '-fPIC' ],
+	LIBS = [ 'common' ],
+	)
+
+lleenv.SharedLibrary(env['plugin_dir']+name, files)

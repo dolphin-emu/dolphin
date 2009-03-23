@@ -1,0 +1,37 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifdef _WIN32
+#include "stdafx.h"
+#endif
+
+#include "Globals.h"
+#include "gdsp_interpreter.h"
+#include "gdsp_memory.h"
+#include "gdsp_opcodes_helper.h"
+
+
+bool WriteDMEM(uint16 addr, uint16 val)
+{
+	return dsp_dmem_write(addr, val);
+}
+
+uint16 ReadDMEM(uint16 addr)
+{
+	return dsp_dmem_read(addr);
+}
+
