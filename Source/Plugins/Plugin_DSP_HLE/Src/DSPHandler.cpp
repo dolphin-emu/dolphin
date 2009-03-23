@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #ifdef _WIN32
-#include "PCHW/DSoundStream.h"
+#include "DSoundStream.h"
 #endif
 
 #include "DSPHandler.h"
