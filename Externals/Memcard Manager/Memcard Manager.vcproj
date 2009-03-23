@@ -265,6 +265,10 @@
 				RelativePath=".\src\MCMmain.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\src\MCMmain.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="From Dolphin"

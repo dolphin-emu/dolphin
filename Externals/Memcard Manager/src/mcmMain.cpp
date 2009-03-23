@@ -14,18 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-
-void __Log(int logNumber, const char* text, ...){logNumber; text;}
-void __Logv(int log, int v, const char *format, ...){log; v; format;}
-
-#include "MemcardManager.h"
-class MCMApp
-	: public wxApp
-{
-	public:
-		bool OnInit();
-		
-};
+#include "MCMmain.h"
 
 IMPLEMENT_APP(MCMApp)
 
@@ -54,3 +43,9 @@ bool MCMApp::OnInit()
 	return true;
 }
 
+u32 CEXIIPL::GetGCTime()
+{
+	const u32 cJanuary2000 = 0x386D42C0;  // Seconds between 1.1.1970 and 1.1.2000
+	u64 ltime = Common::Timer::GetLocalTimeSinceJan1970();
+	return ((u32)ltime - cJanuary2000);
+}
