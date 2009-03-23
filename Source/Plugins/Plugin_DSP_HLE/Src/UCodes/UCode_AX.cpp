@@ -24,6 +24,7 @@ extern CDebugger* m_frame;
 #endif
 #include <sstream>
 
+#include "../Globals.h"
 #include "../PCHW/Mixer.h"
 #include "../MailHandler.h"
 
@@ -41,7 +42,6 @@ extern bool gSSBMremedy2;
 extern bool gSequenced;
 extern bool gVolume;
 extern bool gReset;
-extern std::string gpName;
 
 std::vector<std::string> sMailLog, sMailTime;
 // -----------
@@ -67,27 +67,24 @@ CUCode_AX::~CUCode_AX()
 }
 
 
-// ============================================
 // Save file to harddrive
-// ----------------
 void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
-	if (gpName.length() > 0) // this is currently off in the Release build
-	{
-		std::ostringstream ci;
-		std::ostringstream cType;
-	        
-		ci << (resizeTo - 1); // write ci
-		cType << type; // write cType
-
-		std::string FileName = FULL_MAIL_LOGS_DIR + gpName;
-		FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
-		FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
-
-		FILE* fhandle = fopen(FileName.c_str(), "w");
-		fprintf(fhandle, "%s", f.c_str());
-		fflush(fhandle); fhandle = NULL;
-	}
+	//#ifdef DEBUG_LEVEL
+	std::ostringstream ci;
+	std::ostringstream cType;
+	
+	ci << (resizeTo - 1); // write ci
+	cType << type; // write cType
+	
+	std::string FileName = FULL_MAIL_LOGS_DIR + ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID();
+	FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
+	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
+	
+	FILE* fhandle = fopen(FileName.c_str(), "w");
+	fprintf(fhandle, "%s", f.c_str());
+	fflush(fhandle); fhandle = NULL;
+	//#endif
 }
 
 
@@ -103,8 +100,6 @@ void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
 if(m_frame->ScanMails)
 {	
 
-	//wxMessageBox( wxString::Format("SaveLog_ again: %s\n", Msg) );
-	
 	if(strcmp(Msg, "Begin") == 0)
 	{
 		TmpMailLog = "";
@@ -113,14 +108,13 @@ if(m_frame->ScanMails)
 	{
 		if(saveNext && saveNext < 100) // limit because saveNext is not initialized
 		{		
-			//Console::Print("End");
 
 			// Save the timestamps and comment
                         std::ostringstream ci;
                         ci << (saveNext - 1);
 			TmpMailLog += "\n\n";
 			TmpMailLog += "-----------------------------------------------------------------------\n";
-			TmpMailLog += "Current mail: " + gpName + " mail " + ci.str() + "\n";
+			TmpMailLog += "Current mail: " + ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID() + " mail " + ci.str() + "\n";
 			if(Wii)
 				TmpMailLog += "Current CRC: " + StringFromFormat("0x%08x \n\n", _CRC);			
 
