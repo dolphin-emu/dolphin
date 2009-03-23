@@ -34,9 +34,9 @@ CDebugger* m_frame = NULL;
 #include "Setup.h"
 #include "StringUtil.h"
 
-#include "PCHW/AOSoundStream.h"
-#include "PCHW/DSoundStream.h"
-#include "PCHW/NullSoundStream.h"
+#include "AOSoundStream.h"
+#include "DSoundStream.h"
+#include "NullSoundStream.h"
 
 // Declarations and definitions
 PLUGIN_GLOBALS* globals = NULL;

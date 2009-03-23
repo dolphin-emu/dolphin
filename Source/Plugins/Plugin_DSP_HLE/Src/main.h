@@ -18,7 +18,7 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
-#include "PCHW/SoundStream.h"
+#include "SoundStream.h"
 #include "Globals.h" // Local
 
 #if defined(HAVE_WX) && HAVE_WX
