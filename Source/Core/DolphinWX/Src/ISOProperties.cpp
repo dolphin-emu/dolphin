@@ -673,6 +673,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
 
+
 	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ProjectionHax1");
 	else
@@ -681,17 +682,17 @@ bool CISOProperties::SaveGameConfig()
 	if (ForceFiltering->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ForceFiltering");
 	else
-		GameIni.Set("Video", "ForceFiltering", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "ForceFiltering", ForceFiltering->Get3StateValue());
 
 	if (EFBCopyDisable->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBCopyDisable");
 	else
-		GameIni.Set("Video", "EFBCopyDisable", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "EFBCopyDisable", EFBCopyDisable->Get3StateValue());
 
 	if (EFBCopyDisableHotKey->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBCopyDisableHotKey");
 	else
-		GameIni.Set("Video", "EFBCopyDisableHotKey", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "EFBCopyDisableHotKey", EFBCopyDisableHotKey->Get3StateValue());
 
 	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ProjectionHax1");
@@ -701,33 +702,34 @@ bool CISOProperties::SaveGameConfig()
 	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBToTextureEnable");
 	else
-		GameIni.Set("Video", "EFBToTextureEnable", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "EFBToTextureEnable", EFBToTextureEnable->Get3StateValue());
 
 	if (SafeTextureCache->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "SafeTextureCache");
 	else
-		GameIni.Set("Video", "SafeTextureCache", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "SafeTextureCache", SafeTextureCache->Get3StateValue());
 
 	if (DstAlphaPass->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "DstAlphaPass");
 	else
-		GameIni.Set("Video", "DstAlphaPass", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "DstAlphaPass", DstAlphaPass->Get3StateValue());
 
 	if (UseXFB->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "UseXFB");
 	else
-		GameIni.Set("Video", "UseXFB", ProjHack1->Get3StateValue());
+		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
+
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");
 	else
 		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
 
-
 	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "Widescreen");
 	else
 		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
+
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
