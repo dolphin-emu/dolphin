@@ -811,7 +811,10 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		}
 		else if (_uType == 1)
 		{
-			a = _uStrength > 2 ? 8000 : 0;
+			// Put big number lower if the rumble is too strong.
+			// Original value was 8000, but this was too weak for
+			// parts of some games.
+			a = _uStrength > 2 ? 65535 : 0;
 		}
 
 		a = int ((float)a * 0.96f);
