@@ -172,9 +172,12 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
-    delete pFileSystem;
-    delete OpenISO;
-	WiiDisc.clear();
+	if (IsVolumeWiiDisc(OpenISO))
+		WiiDisc.clear();
+	else
+		delete pFileSystem;
+
+	delete OpenISO;
 }
 
 void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, 
