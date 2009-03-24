@@ -235,11 +235,10 @@ void CISOProperties::CreateGUIControls()
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
-		m_GameConfig_Notebook = new wxNotebook(m_GameConfig, ID_GAMECONFIG_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-		m_PatchPage = new wxPanel(m_GameConfig_Notebook, ID_PATCH_PAGE, wxDefaultPosition, wxDefaultSize);
-		m_GameConfig_Notebook->AddPage(m_PatchPage, _("Patches"));
-		m_CheatPage = new wxPanel(m_GameConfig_Notebook, ID_ARCODE_PAGE, wxDefaultPosition, wxDefaultSize);
-		m_GameConfig_Notebook->AddPage(m_CheatPage, _("AR Codes"));
+	m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PatchPage, _("Patches"));
+	m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
 	m_Information = new wxPanel(m_Notebook, ID_INFORMATION, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Information, _("Info"));
 	m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM, wxDefaultPosition, wxDefaultSize);
@@ -251,38 +250,81 @@ void CISOProperties::CreateGUIControls()
 	sButtons->Add(m_Close, 0, wxALL, 5);
 
 
-	// GameConfig editing - Core overrides and emulation state
-	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
-	sCoreOverrides = new wxBoxSizer(wxVERTICAL);
-	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
+	//////////////////////////////////////////////////////////////////////////
+	// GameConfig editing - Overrides and emulation state
+	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nThe 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
+	// Core
+	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	// Wii Console
+	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
+	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		sbWiiOverrides->ShowItems(false);
+ 		EnableProgressiveScan->Hide();
+ 		EnableWideScreen->Hide();
+	}
+	// Video
+	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	ProjHack1 = new wxCheckBox(m_GameConfig, ID_PROJHACK1, _("Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+		EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To Texture"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("[Wii] Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("[Wii] Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	
+	// Manual edit config file
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
+	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
+	// Emulation State
+	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
 	arrayStringFor_EmuState.Add(_("Problems: "));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
-	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState, 0, wxDefaultValidator);
+	EmuIssues = new wxTextCtrl(m_GameConfig,ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0,wxDefaultValidator);
 
+	wxBoxSizer* sConfigPage;
+	sConfigPage = new wxBoxSizer(wxVERTICAL);
+	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
+	sbCoreOverrides->Add(UseDualCore, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
+	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
+	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(ProjHack1, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
+		sbVideoOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
+	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(EditConfig);
+	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
+	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
+	sEmuState->Add(EmuState, 0, wxEXPAND);
+	sEmuState->Add(EmuIssues,1,wxEXPAND);
+	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
+	m_GameConfig->SetSizer(sConfigPage);
+	sConfigPage->Layout();
+
+	//////////////////////////////////////////////////////////////////////////
 	// Patches
-	sbPatches = new wxStaticBoxSizer(wxVERTICAL, m_PatchPage, _("Patches"));
 	sPatches = new wxBoxSizer(wxVERTICAL);
 	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, wxLB_HSCROLL, wxDefaultValidator);
 	sPatchButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -292,13 +334,20 @@ void CISOProperties::CreateGUIControls()
 	EditPatch->Enable(false);
 	RemovePatch->Enable(false);
 
-	//issues
-	sEmuIssues = new wxBoxSizer(wxHORIZONTAL);
-	EmuIssues = new wxTextCtrl(m_GameConfig,ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0,wxDefaultValidator);
-	EmuIssuesText = new wxStaticText(m_GameConfig,ID_EMUISSUES_TEXT,_("Emulation Issues (for when emustate is 'Problems'):"), wxDefaultPosition, wxDefaultSize);
+	wxBoxSizer* sPatchPage;
+	sPatchPage = new wxBoxSizer(wxVERTICAL);
+	sPatches->Add(Patches, 1, wxEXPAND|wxALL, 0);
+	sPatchButtons->Add(EditPatch,  0, wxEXPAND|wxALL, 0);
+	sPatchButtons->AddStretchSpacer();
+	sPatchButtons->Add(AddPatch,  0, wxEXPAND|wxALL, 0);
+	sPatchButtons->Add(RemovePatch,  0, wxEXPAND|wxALL, 0);
+	sPatches->Add(sPatchButtons, 0, wxEXPAND|wxALL, 0);
+	sPatchPage->Add(sPatches, 1, wxEXPAND|wxALL, 5);
+	m_PatchPage->SetSizer(sPatchPage);
+	sPatchPage->Layout();
 
+	//////////////////////////////////////////////////////////////////////////
 	// Action Replay Cheats
-	sbCheats = new wxStaticBoxSizer(wxVERTICAL, m_CheatPage, _("Action Replay Codes"));
 	sCheats = new wxBoxSizer(wxVERTICAL);
 	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, wxLB_HSCROLL, wxDefaultValidator);
 	sCheatButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -308,47 +357,6 @@ void CISOProperties::CreateGUIControls()
 	EditCheat->Enable(false);
 	RemoveCheat->Enable(false);
 
-	wxBoxSizer* sConfigPage;
-	sConfigPage = new wxBoxSizer(wxVERTICAL);
-	sCoreOverrides->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
-	sCoreOverrides->Add(UseDualCore, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(ProjHack1, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
-	sCoreOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
-	sEmuState->Add(EditConfig, 0, wxALL, 0);
-	sEmuState->AddStretchSpacer();
-	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0);
-	sEmuState->Add(EmuState, 0, wxALL, 0);
-	sEmuIssues->Add(EmuIssuesText,0,wxALIGN_CENTER_VERTICAL|wxALL,0);
-	sEmuIssues->Add(EmuIssues,0,wxEXPAND|wxRIGHT,0);
-	sCoreOverrides->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
-	sCoreOverrides->Add(sEmuIssues,0,wxEXPAND|wxALL,5);
-	sbCoreOverrides->Add(sCoreOverrides, 0, wxEXPAND|wxALL, 0);
-	sConfigPage->Add(sbCoreOverrides, 0, wxEXPAND|wxALL, 5);
-
-	wxBoxSizer* sPatchPage;
-	sPatchPage = new wxBoxSizer(wxVERTICAL);
-	sPatches->Add(Patches, 1, wxEXPAND|wxALL, 0);
-	sPatchButtons->Add(EditPatch,  0, wxEXPAND|wxALL, 0);
-	sPatchButtons->AddStretchSpacer();
-	sPatchButtons->Add(AddPatch,  0, wxEXPAND|wxALL, 0);
-	sPatchButtons->Add(RemovePatch,  0, wxEXPAND|wxALL, 0);
-	sPatches->Add(sPatchButtons, 0, wxEXPAND|wxALL, 0);
-	sbPatches->Add(sPatches, 1, wxEXPAND|wxALL, 0);
-	sPatchPage->Add(sbPatches, 1, wxEXPAND|wxALL, 5);
-	m_PatchPage->SetSizer(sPatchPage);
-	sPatchPage->Layout();
-
 	wxBoxSizer* sCheatPage;
 	sCheatPage = new wxBoxSizer(wxVERTICAL);
 	sCheats->Add(Cheats, 1, wxEXPAND|wxALL, 0);
@@ -357,16 +365,11 @@ void CISOProperties::CreateGUIControls()
 	sCheatButtons->Add(AddCheat,  0, wxEXPAND|wxALL, 0);
 	sCheatButtons->Add(RemoveCheat,  0, wxEXPAND|wxALL, 0);
 	sCheats->Add(sCheatButtons, 0, wxEXPAND|wxALL, 0);
-	sbCheats->Add(sCheats, 1, wxEXPAND|wxALL, 0);
-	sCheatPage->Add(sbCheats, 1, wxEXPAND|wxALL, 5);
+	sCheatPage->Add(sCheats, 1, wxEXPAND|wxALL, 5);
 	m_CheatPage->SetSizer(sCheatPage);
 	sCheatPage->Layout();
 
-	sConfigPage->Add(m_GameConfig_Notebook, 1, wxEXPAND|wxALL, 5);
-
-	m_GameConfig->SetSizer(sConfigPage);
-	sConfigPage->Layout();
-	
+	//////////////////////////////////////////////////////////////////////////
 	// ISO Details
 	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
 	sISODetails = new wxGridBagSizer(0, 0);
@@ -437,19 +440,20 @@ void CISOProperties::CreateGUIControls()
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
 	m_Information->SetSizer(sInfoPage);
 	sInfoPage->Layout();
-	
+
+	//////////////////////////////////////////////////////////////////////////
 	// Filesystem tree
-	sbTreectrl = new wxStaticBoxSizer(wxVERTICAL, m_Filesystem, _("Filesystem"));
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	RootId = m_Treectrl->AddRoot(wxT("Disc"), -1, -1, 0);
 
 	wxBoxSizer* sTreePage;
 	sTreePage = new wxBoxSizer(wxVERTICAL);
-	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
-	sTreePage->Add(sbTreectrl, 1, wxEXPAND|wxALL, 5);
+	sTreePage->Add(m_Treectrl, 1, wxEXPAND|wxALL, 5);
 	m_Filesystem->SetSizer(sTreePage);
 	sTreePage->Layout();
 
+	//////////////////////////////////////////////////////////////////////////
+	// Add notebook and buttons to the dialog
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
@@ -551,9 +555,12 @@ void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
 {
 }
 
-void CISOProperties::SetRefresh(wxCommandEvent& WXUNUSED (event))
+void CISOProperties::SetRefresh(wxCommandEvent& event)
 {
-        bRefreshList = true;
+	bRefreshList = true;
+
+	if (event.GetId() == ID_EMUSTATE)
+		EmuIssues->Enable(event.GetSelection() == 2);
 }
 
 void CISOProperties::LoadGameConfig()
@@ -581,6 +588,18 @@ void CISOProperties::LoadGameConfig()
 		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
+
+
+	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
+		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Wii", "Widescreen", &bTemp))
+		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
+
 
 	if (GameIni.Get("Video", "ProjectionHax1", &bTemp))
 		ProjHack1->Set3StateValue((wxCheckBoxState)bTemp);
@@ -622,21 +641,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
-		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Wii", "Widescreen", &bTemp))
-		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
-
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
 	if (iTemp == -1)
 	{
 		iTemp = 0;
-	        bRefreshList = true;
+		bRefreshList = true;
 	}
 	EmuState->SetSelection(iTemp);
 
@@ -646,6 +655,7 @@ void CISOProperties::LoadGameConfig()
 		EmuIssues->SetValue(wxString::FromAscii(sTemp.c_str()));
 		bRefreshList = true;
 	}
+	EmuIssues->Enable(EmuState->GetSelection() == 2);
 
 	PatchList_Load();
 	ActionReplayList_Load();
@@ -672,6 +682,16 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "TLBHack");
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
+
+	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Wii", "ProgressiveScan");
+	else
+		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
+
+	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Wii", "Widescreen");
+	else
+		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
 
 	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
@@ -718,17 +738,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "UseXFB");
 	else
 		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
-
-
-	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "ProgressiveScan");
-	else
-		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
-
-	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "Widescreen");
-	else
-		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());

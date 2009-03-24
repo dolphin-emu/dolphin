@@ -54,45 +54,44 @@ class CISOProperties : public wxDialog
 
 		DECLARE_EVENT_TABLE();
 		
+		wxStaticBoxSizer *sbGameConfig;
 		wxStaticBoxSizer *sbCoreOverrides;
-		wxBoxSizer *sCoreOverrides;
+		wxStaticBoxSizer *sbWiiOverrides;
+		wxStaticBoxSizer *sbVideoOverrides;
 		wxBoxSizer *sEmuState;
-		wxBoxSizer *sEmuIssues;
-		wxStaticBoxSizer *sbPatches;
 		wxBoxSizer *sPatches;
 		wxBoxSizer *sPatchButtons;
-		wxStaticBoxSizer *sbCheats;
 		wxBoxSizer *sCheats;
 		wxBoxSizer *sCheatButtons;
 		wxStaticBoxSizer *sbISODetails;
 		wxGridBagSizer *sISODetails;
 		wxStaticBoxSizer *sbBannerDetails;
 		wxGridBagSizer *sBannerDetails;
-		wxStaticBoxSizer *sbTreectrl;
 
 		wxButton *m_Close;
 
 		wxNotebook *m_Notebook;
 		wxPanel *m_GameConfig;
-		wxNotebook *m_GameConfig_Notebook;
 		wxPanel *m_PatchPage;
 		wxPanel *m_CheatPage;
 		wxPanel *m_Information;
 		wxPanel *m_Filesystem;
 
 		wxStaticText *OverrideText;
+		// Core
 		wxCheckBox *UseDualCore, *SkipIdle, *OptimizeQuantizers, *TLBHack;
+		// Wii
+		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
+		// Video
 		wxCheckBox *ProjHack1, *ForceFiltering,
 			*EFBCopyDisable, *EFBCopyDisableHotKey, *EFBToTextureEnable,
-			*SafeTextureCache, *DstAlphaPass, *UseXFB; // Video
-		wxCheckBox *EnableProgressiveScan, *EnableWideScreen; // Wii
+			*SafeTextureCache, *DstAlphaPass, *UseXFB;
 
 		wxButton *EditConfig;
 		wxStaticText *EmuStateText;
 		wxArrayString arrayStringFor_EmuState;
 		wxChoice *EmuState;
 		wxTextCtrl *EmuIssues;
-		wxStaticText *EmuIssuesText;
 		wxArrayString arrayStringFor_Patches;
 		wxCheckListBox *Patches;
 		wxButton *EditPatch;
@@ -143,7 +142,6 @@ class CISOProperties : public wxDialog
 
 			ID_NOTEBOOK,
 			ID_GAMECONFIG,
-			ID_GAMECONFIG_NOTEBOOK,
 			ID_PATCH_PAGE,
 			ID_ARCODE_PAGE,
 			ID_SPEEDHACK_PAGE,
