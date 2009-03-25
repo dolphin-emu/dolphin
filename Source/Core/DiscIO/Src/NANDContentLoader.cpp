@@ -223,8 +223,8 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         return false;
 	}
     u64 Size = File::GetSize(TMDFileName.c_str());
-    u8* pTMD = new u8[Size];
-    fread(pTMD, Size, 1, pTMDFile);
+    u8* pTMD = new u8[(u32)Size];
+    fread(pTMD, (size_t)Size, 1, pTMDFile);
     fclose(pTMDFile);
 
     memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
@@ -266,11 +266,11 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
         if (pFile != NULL)
         {
             u64 Size = File::GetSize(szFilename);
-            rContent.m_pData = new u8[Size];
+            rContent.m_pData = new u8[(u32)Size];
 
             _dbg_assert_msg_(BOOT, rContent.m_Size==Size, "TMDLoader: Filesize doesnt fit (%s %i)... prolly you have a bad dump", szFilename, i);
 
-            fread(rContent.m_pData, Size, 1, pFile);
+            fread(rContent.m_pData, (size_t)Size, 1, pFile);
             fclose(pFile);
         } 
         else 

@@ -23,7 +23,9 @@ System Requirements:
 [Windows Version]
 DolphinWx.exe: The main program 
 Arguments:
--d    Run Dolphin with the debugger tools
+-d			Run Dolphin with the debugger tools
+-l			Run Dolphin with the logmanager enabled
+-e=<path>	Open an elf file
 
 cg.dll/cgGL.dll: Cg Shading API (http://developer.nvidia.com/object/cg_toolkit.html)
 wiiuse.dll: Wiimote Bluetooth API (http://www.wiiuse.net/)
