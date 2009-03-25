@@ -811,10 +811,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		}
 		else if (_uType == 1)
 		{
-			// Put big number lower if the rumble is too strong.
-			// Original value was 8000, but this was too weak for
-			// parts of some games.
-			a = _uStrength > 2 ? 65535 : 0;
+			a = _uStrength > 2 ? pad[_numPAD].RumbleStrength : 0;
 		}
 
 		a = int ((float)a * 0.96f);
@@ -948,6 +945,7 @@ void LoadConfig()
 		file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
 		file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
 		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
+		file.Get(SectionName, "RumbleStrength", &pad[i].RumbleStrength, 8000);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 
 		// Recording
@@ -984,6 +982,7 @@ void SaveConfig()
 		file.Set(SectionName, "Attached", pad[i].bAttached);
 		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
+		file.Set(SectionName, "RumbleStrength", pad[i].RumbleStrength);
 		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
 		// Recording
 		#ifdef RERECORDING

@@ -77,14 +77,15 @@ static const char* controlNames[] =
 
 struct SPads
 {
-	bool bEnableXPad;	// Use an XPad in addition to the keyboard?
-	bool bAttached;		// Pad is "attached" to the gamecube/wii
-	bool bDisable;		// Disabled when dolphin isn't in focus
-	bool bRumble;		// Rumble for xpad
-	bool bRecording;
-	bool bPlayback;
-	int XPadPlayer;		// Player# of the xpad
-	unsigned int keyForControl[NUMCONTROLS];// Keyboard mapping
+	bool bEnableXPad;							// Use an XPad in addition to the keyboard?
+	bool bAttached;								// Pad is "attached" to the gamecube/wii
+	bool bDisable;								// Disabled when dolphin isn't in focus
+	bool bRumble;								// Rumble for xpad
+	unsigned int RumbleStrength;				// Rumble strength
+	bool bRecording;							// Record input?
+	bool bPlayback;								// Playback input?
+	int XPadPlayer;								// Player# of the xpad
+	unsigned int keyForControl[NUMCONTROLS];	// Keyboard mapping
 };
 
 extern SPads pad[];
