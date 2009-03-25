@@ -16,7 +16,7 @@ files = [
 	"FileUtil.cpp",
 	"Hash.cpp",
 	"IniFile.cpp",
-        "LogManager.cpp",
+	"LogManager.cpp",
 	"MappedFile.cpp",
 	"MathUtil.cpp",
 	"MemArena.cpp",
@@ -33,7 +33,6 @@ files = [
 	"Thunk.cpp",
 	"Timer.cpp",
 	"Thread.cpp",
-	"WaveFile.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
 	]

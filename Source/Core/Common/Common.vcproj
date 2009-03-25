@@ -817,14 +817,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\WaveFile.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\WaveFile.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\x64Analyzer.cpp"
 			>
 		</File>
