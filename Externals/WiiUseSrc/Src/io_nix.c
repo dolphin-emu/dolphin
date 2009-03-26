@@ -33,6 +33,12 @@
 
 #ifndef WIN32
 
+#include <sys/time.h>
+#include <errno.h>
+
+#include <sys/types.h>
+#include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -253,11 +259,44 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 }
-
-
 int wiiuse_io_read(struct wiimote_t* wm) {
-	/* not used */
-	return 0;
+	if (!wm)
+	{
+		printf("Wiimote is Null0x%x\n", wm);
+		return 0;
+	}
+		/*
+		 *	*nix
+		 */
+		int r;
+		int i;
+
+		/* read the pending message into the buffer */
+		r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
+		if (r == -1) 
+		{
+			/* error reading data */
+			printf("Receiving wiimote data (id %i).", wm->unid);
+			perror("Error Details");
+
+			if (errno == ENOTCONN) {
+				/* this can happen if the bluetooth dongle is disconnected */
+				printf("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
+				wiiuse_disconnect(wm);
+				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+			}
+
+			return 0;
+		}
+		//printf("Size %d, first 4 0x%02X%02X%02X%02X\n",r,  wm->event_buf[0],wm->event_buf[1], wm->event_buf[2],wm->event_buf[3]);
+		if (!r) {
+			/* remote disconnect */
+			printf("Wiimote Disconnect\n");
+			wiiuse_disconnected(wm);
+			return 0;
+		}
+		
+	return 1;
 }
 
 
