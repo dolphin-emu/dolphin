@@ -2,7 +2,7 @@
 #define _AUDIO_COMMON_H
 
 #include "Common.h"
-#include "pluginspecs_dsp.h"
+#include "../../../PluginSpecs/pluginspecs_dsp.h"
 #include "SoundStream.h"
 
 class CMixer;

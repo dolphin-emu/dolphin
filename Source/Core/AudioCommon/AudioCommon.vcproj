@@ -410,13 +410,22 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\Src\AOSoundStream.cpp"
+			RelativePath=".\Src\AudioCommon.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\AOSoundStream.h"
+			RelativePath=".\Src\AudioCommon.h"
 			>
 		</File>
+ 		<File
+			RelativePath=".\Src\AOSoundStream.cpp"
+ 			>
+ 		</File>
+ 		<File
+			RelativePath=".\Src\AOSoundStream.h"
+ 			>
+ 		</File>
+
 		<File
 			RelativePath=".\Src\DSoundStream.cpp"
 			>
