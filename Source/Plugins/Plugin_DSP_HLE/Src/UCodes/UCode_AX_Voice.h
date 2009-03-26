@@ -21,7 +21,7 @@
 #include "UCode_AX_ADPCM.h"
 #include "UCode_AX.h"
 #include "../main.h"
-
+#include "Mixer.h"
 
 // ----------------------------------------------------
 // Externals
@@ -107,7 +107,7 @@ inline void WriteBackPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii)
 {
-    ratioFactor = 32000.0f / (float)soundStream->GetSampleRate();
+    ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 
 	DoVoiceHacks(pb, Wii);
 
@@ -115,7 +115,6 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 	if (pb.running)
 	{
 
-		// =======================================================================================
 		// Read initial parameters
 		// ------------
 		//constants

@@ -19,7 +19,7 @@
 #include <dxerr.h>
 #include "DSoundStream.h"
 
-extern bool log_ai;
+//extern bool log_ai;
 
 bool DSound::CreateBuffer()
 {
@@ -114,7 +114,7 @@ void DSound::SoundLoop()
 		{
 			if (numBytesToRender > sizeof(realtimeBuffer))
 				PanicAlert("soundThread: too big render call");
-			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+			m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
 			currentPos = ModBufferSize(lastPos + numBytesToRender);
 			totalRenderedBytes += numBytesToRender;

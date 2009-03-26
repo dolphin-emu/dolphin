@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-#ifdef _WIN32
+#ifndef LOGGING_H
+#define LOGGING_H
 
 void Logging();
 

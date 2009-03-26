@@ -18,16 +18,18 @@
 #include <string.h>
 
 #include "AOSoundStream.h"
+#include "Mixer.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 
 void AOSound::SoundLoop()
 {
+	uint_32 numBytesToRender = 256;
     ao_initialize();
     default_driver = ao_default_driver_id();
     format.bits = 16;
     format.channels = 2;
-    format.rate = sampleRate;
+    format.rate = m_mixer->GetSampleRate();
     format.byte_format = AO_FMT_LITTLE;
 		
     device = ao_open_live(default_driver, &format, NULL /* no options */);
@@ -43,14 +45,21 @@ void AOSound::SoundLoop()
 
     while (!threadData)
 	{
-        soundCriticalSection->Enter();
+        soundCriticalSection.Enter();
                 
-        uint_32 numBytesToRender = 256;
-        (*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
         ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-        soundCriticalSection->Leave();
-        soundSyncEvent->Wait();
+
+        soundCriticalSection.Leave();
+
+		if (! threadData)
+			soundSyncEvent.Wait();
 	}
+
+	ao_close(device);
+    device = NULL;
+    ao_shutdown();
+
 }
 
 void *soundThread(void *args)
@@ -63,34 +72,28 @@ bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
-    soundSyncEvent = new Common::Event();
-    soundSyncEvent->Init();
-
-    soundCriticalSection = new Common::CriticalSection(1);
-
+    soundSyncEvent.Init();
+	
     thread = new Common::Thread(soundThread, (void *)this);
     return true;
 }
 
 void AOSound::Update()
 {
-    soundSyncEvent->Set();
+    soundSyncEvent.Set();
 }
     
 void AOSound::Stop()
 {
-    soundCriticalSection->Enter();
+    soundCriticalSection.Enter();
     threadData = 1;
-    soundSyncEvent->Set();
-    soundCriticalSection->Leave();
-    soundSyncEvent->Shutdown();
-    delete soundCriticalSection;
-    delete thread;
-    delete soundSyncEvent;
+    soundSyncEvent.Set();
+    soundCriticalSection.Leave();
 
-    ao_close(device);
-    device = NULL;
-    ao_shutdown();
+    delete thread;
+	thread = NULL;
+    soundSyncEvent.Shutdown();
+
 }
 
 #endif

@@ -14,8 +14,6 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifdef _WIN32
-
 
 #ifndef UCODE_AX_STRUCTS
 #define UCODE_AX_STRUCTS
@@ -142,5 +140,4 @@ enum {
 
 #endif
 
-#endif // win32
 

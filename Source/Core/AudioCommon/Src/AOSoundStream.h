@@ -30,8 +30,8 @@ class AOSound : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
 	Common::Thread *thread;
-	Common::CriticalSection *soundCriticalSection;
-	Common::Event *soundSyncEvent;
+	Common::CriticalSection soundCriticalSection;
+	Common::Event soundSyncEvent;
 
 	int buf_size;
 
@@ -42,9 +42,8 @@ class AOSound : public SoundStream
 	short realtimeBuffer[1024 * 1024];
 
 public:
-	AOSound(int _sampleRate, StreamCallback _callback) :
-	SoundStream(_sampleRate, _callback) {}
-	
+	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+
 	virtual ~AOSound() {}
 	
 	virtual bool Start();
@@ -63,14 +62,10 @@ public:
 	
 	virtual void Update();
 
-	virtual int GetSampleRate() {
-		return sampleRate;
-	}
-
 #else
 public:
-	AOSound(int _sampleRate, StreamCallback _callback) :
-	SoundStream(_sampleRate, _callback) {}
+	AOSound(CMixer *mixer) :
+	SoundStream(mixer) {}
 #endif
 };
 

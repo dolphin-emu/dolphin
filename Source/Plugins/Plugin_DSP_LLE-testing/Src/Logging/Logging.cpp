@@ -16,82 +16,65 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#ifdef _WIN32
 
-
-// =======================================================================================
-// Includes
-// --------------
 #include <iostream>
 #include <vector>
 #include <string> // So that we can test if std::string == abc
-#include <windows.h>
 
 #include "Common.h"
 
 #include "UCode_AXStructs.h" // they are only in a virtual dir called UCodes AX
-// =====================
 
 
-// =======================================================================================
-// Declarations and definitions
-// --------------
-
-// ----------------------------------
 // Settings
-// --------------
 #define NUMBER_OF_PBS 64 // Todo: move this to a logging class
 
-// -----------------------------------
 // Externals
-// --------------
 extern u32 m_addressPBs;
 float ratioFactor;
 int globaliSize;
 short globalpBuffer;
 u32 gLastBlock;
-// --------------
 
-// -----------------------------------
+
 // Vectors and other things
-// --------------
 std::vector<u32> gloopPos(64);
 std::vector<u32> gsampleEnd(64);
 std::vector<u32> gsamplePos(64);
-	std::vector<u32> gratio(64);
-	std::vector<u32> gratiohi(64);
-	std::vector<u32> gratiolo(64);
-	std::vector<u32> gfrac(64);
-	std::vector<u32> gcoef(64);
+std::vector<u32> gratio(64);
+std::vector<u32> gratiohi(64);
+std::vector<u32> gratiolo(64);
+std::vector<u32> gfrac(64);
+std::vector<u32> gcoef(64);
 
 // PBSampleRateConverter mixer
-	std::vector<u16> gvolume_left(64);
-	std::vector<u16> gvolume_right(64);
-	std::vector<u16> gmixer_control(64);
-	std::vector<u16> gcur_volume(64);
-	std::vector<u16> gcur_volume_delta(64);
+std::vector<u16> gvolume_left(64);
+std::vector<u16> gvolume_right(64);
+std::vector<u16> gmixer_control(64);
+std::vector<u16> gcur_volume(64);
+std::vector<u16> gcur_volume_delta(64);
 
 
-	std::vector<u16> gaudioFormat(64);
-	std::vector<u16> glooping(64);
-	std::vector<u16> gsrc_type(64);
-	std::vector<u16> gis_stream(64);
+std::vector<u16> gaudioFormat(64);
+std::vector<u16> glooping(64);
+std::vector<u16> gsrc_type(64);
+std::vector<u16> gis_stream(64);
 
 // loop
 	std::vector<u16> gloop1(64);
-	std::vector<u16> gloop2(64);
-	std::vector<u16> gloop3(64);
-	std::vector<u16> gadloop1(64);
-	std::vector<u16> gadloop2(64);
-	std::vector<u16> gadloop3(64);
+std::vector<u16> gloop2(64);
+std::vector<u16> gloop3(64);
+std::vector<u16> gadloop1(64);
+std::vector<u16> gadloop2(64);
+std::vector<u16> gadloop3(64);
 
 // updates
-	std::vector<u16> gupdates1(64);
-	std::vector<u16> gupdates2(64);
-	std::vector<u16> gupdates3(64);
-	std::vector<u16> gupdates4(64);
-	std::vector<u16> gupdates5(64);
-	std::vector<u32> gupdates_addr(64);
+std::vector<u16> gupdates1(64);
+std::vector<u16> gupdates2(64);
+std::vector<u16> gupdates3(64);
+std::vector<u16> gupdates4(64);
+std::vector<u16> gupdates5(64);
+std::vector<u32> gupdates_addr(64);
 
 // Other things
 std::vector<u16> Jump(64); // this is 1 or 0
@@ -101,7 +84,7 @@ std::vector<int> numberRunning(64);
 
 int j = 0;
 int k = 0;
-__int64 l = 0;
+s64 l = 0;
 int iupd = 0;
 bool iupdonce = false;
 std::vector<u16> viupd(15); // the length of the update frequency bar
@@ -112,18 +95,11 @@ std::vector<u16> vector62(vectorLength);
 std::vector<u16> vector63(vectorLength);
 
 int ReadOutPBs(AXParamBlock * _pPBs, int _num);
-// =====================
 
 
-// =======================================================================================
 // Main logging function
-// --------------
 void Logging()
 {
-	// ---------------------------------------------------------------------------------------
-
-
-	// ---------------------------------------------------------------------------------------
 	// Control how often the screen is updated
 	j++;
 	l++;
@@ -151,16 +127,13 @@ void Logging()
 		}
 		// =================
 
-		// ---------------------------------------------------------------------------------------
 		// Enter the latest value	
 		for (int i = 0; i < numberOfPBs; i++)
 		{
 			vector1.at(i).at(vectorLength-1) = PBs[i].running;
 		}
-		// -----------------
 
 
-		// ---------------------------------------------------------------------------------------
 		// Count how many blocks we have running now
 		int jj = 0;
 		for (int i = 0; i < 64; i++)
@@ -174,27 +147,22 @@ void Logging()
 				numberRunning.at(i) = jj;
 			}
 		}
-		// --------------
 
 
-		// ---------------------------------------------------------------------------------------
 		// Write the first row
 		char buffer [1000] = "";
 		std::string sbuff;
 		//sbuff = sbuff + "          Nr |                       | frac  ratio    |     old              new  \n"; // 5
 		sbuff = sbuff + "                Nr    pos / end       lpos     | voll  volr  curv  vold mix   | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
-		// --------------
 
 
-		// ---------------------------------------------------------------------------------------
+
 		// Read out values for all blocks
 		for (int i = 0; i < numberOfPBs; i++)
 		{
 		if (numberRunning.at(i) > 0)
 		{
-			// =======================================================================================
 			// Write the playback bar
-			// -------------
 			for (int j = 0; j < vectorLength; j++)
 			{
 				if(vector1.at(i).at(j) == 0)
@@ -207,16 +175,13 @@ void Logging()
 					sbuff = sbuff + buffer; strcpy(buffer, "");
 				}
 			}
-			// ==============
 			
 
-			// ================================================================================================
 			int sampleJump;
 			int loopJump;
 			//if (PBs[i].running && PBs[i].adpcm_loop_info.yn1 && PBs[i].mixer.volume_left)
 			if (true)			
 			{
-				// ---------------------------------------------------------------------------------------
 				// AXPB base
 				//int running = pb.running;
 					gcoef[i] = PBs[i].unknown1;
@@ -271,13 +236,11 @@ void Logging()
 				musicLength[i] = gsampleEnd[i] - gloopPos[i];
 			}
 
-			// ================================================================================================
 
 
 				
-			// =======================================================================================
+
 			// PRESETS
-			// ---------------------------------------------------------------------------------------
 			/*
 			/"                Nr    pos / end       lpos     | voll  volr  curv  vold mix   | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
 			 "---------------|00 12341234/12341234  12341234 | 00000 00000 00000 0000 00000 | 0[000 00000 00000] 0   | 00000 00000[0 00000]   | 
@@ -289,7 +252,6 @@ void Logging()
 				gfrac[i], gratio[i], gratiohi[i], gratiolo[i],
 				gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i]
 				);
-			// =======================================================================================
 
 			// write a new line
 			sbuff = sbuff + buffer; strcpy(buffer, "");
@@ -301,16 +263,12 @@ void Logging()
 		} // end of big loop - for (int i = 0; i < numberOfPBs; i++)
 
 			
-		// =======================================================================================
 		// Write global values
 		sprintf(buffer, "\nParameter blocks span from %08x | to %08x | distance %i %i\n", m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
-		// ==============
 
 			
-		// =======================================================================================
 		// Show update frequency
-		// ---------------
 		sbuff = sbuff + "\n";
 		if(!iupdonce)
 		{
@@ -358,10 +316,8 @@ void Logging()
 		// ================
 
 
-		// =======================================================================================
 		// Print
-		// ---------------
-		//		Console::ClearScreen();
+
 		INFO_LOG(DSPHLE, "%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");		
 		// ---------------
@@ -370,13 +326,9 @@ void Logging()
 		// ---------------
 	}
 	
-	// ---------------------------------------------------------------------------------------
-
 }
-// =======================================================================================
 
 
 
 
 
-#endif

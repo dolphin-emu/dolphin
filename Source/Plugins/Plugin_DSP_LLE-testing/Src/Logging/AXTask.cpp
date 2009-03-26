@@ -23,10 +23,9 @@
 extern u32 m_addressPBs;
 
 
-// =======================================================================================
-// Get the parameter block location - Example SSBM: We get the addr 8049cf00, first we
-// always get 0 and go to AXLIST_STUDIOADDR, then we end up at AXLIST_PBADDR.
-// --------------
+// Get the parameter block location - Example SSBM: We get the addr 8049cf00,
+// first we always get 0 and go to AXLIST_STUDIOADDR, then we end up at
+// AXLIST_PBADDR.
 bool AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
@@ -37,15 +36,12 @@ bool AXTask(u32& _uMail)
 
 	while (bExecuteList)
 	{
-		// ---------------------------------------------------------------------------------------
 		// SSBM: We get the addr 8049cf00, first we always get 0
 		u16 iCommand = Memory_Read_U16(uAddress);
 		uAddress += 2;
-		// ---------------------------------------------------------------------------------------
 
 		switch (iCommand)
 		{
-			// ---------------------------------------------------------------------------------------
 			// ?
 		case 0: // AXLIST_STUDIOADDR: //00
 			{
@@ -53,10 +49,8 @@ bool AXTask(u32& _uMail)
 				DEBUG_LOG(DSPHLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
 			}
 			break;
-			// ---------------------------------------------------------------------------------------
 
 
-			// ---------------------------------------------------------------------------------------
 		case 2: // AXLIST_PBADDR: // 02
 				{
 					m_addressPBs = Memory_Read_U32(uAddress);
@@ -66,7 +60,6 @@ bool AXTask(u32& _uMail)
 				}
 				break;
 
-			// ---------------------------------------------------------------------------------------
 		case 7: // AXLIST_SBUFFER: // 7
 			{
 				// Hopefully this is where in main ram to write.
@@ -79,11 +72,9 @@ bool AXTask(u32& _uMail)
 		
 			default:
 				{
-					// ---------------------------------------------------------------------------------------
 					// Stop the execution of this TaskList
 					DEBUG_LOG(DSPHLE, "AXLIST default: %08x", uAddress);
 					bExecuteList = false;
-					// ---------------------------------------------------------------------------------------
 				}
 				break;
 			} // end of switch
@@ -95,6 +86,6 @@ bool AXTask(u32& _uMail)
 	// now resume
 	return true;
 }
-// =======================================================================================
+
 
 

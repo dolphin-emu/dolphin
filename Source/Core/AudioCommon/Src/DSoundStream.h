@@ -64,12 +64,10 @@ class DSound : public SoundStream
 			   DWORD dwSoundBytes);
 
 public:
-    DSound(int _sampleRate, StreamCallback _callback) :
-        SoundStream(_sampleRate, _callback) {}
-    
-    DSound(int _sampleRate, StreamCallback _callback, void *_hWnd) :
-	SoundStream(_sampleRate, _callback), hWnd(_hWnd) {}
-    
+	DSound(CMixer *mixer, void *hWnd = NULL) : SoundStream(mixer) {}
+
+	DSound(CMixer *mixer) : SoundStream(mixer) {}
+
     virtual ~DSound() {}
  
 	virtual bool Start();
@@ -81,8 +79,8 @@ public:
 
 #else
 public:
-    DSound(int _sampleRate, StreamCallback _callback, void *hWnd = NULL) :
-        SoundStream(_sampleRate, _callback) {}
+    DSound(CMixer *mixer, void *hWnd = NULL) :
+        SoundStream(mixer) {}
 #endif
 };
 

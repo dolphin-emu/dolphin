@@ -5,6 +5,8 @@ Import('env')
 files = [
 	'AOSoundStream.cpp',
 	'WaveFile.cpp',
+    'Mixer.cpp',
+    'AudioCommon.cpp',
     ]
 
 env_audiocommon = env.Clone()

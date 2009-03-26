@@ -21,87 +21,51 @@
 
 #include "Thread.h" // Common
 
-#include "../Config.h" // Local
-#include "../Globals.h"
-#include "../DSPHandler.h"
-#include "../Debugger/File.h"
-#include "../main.h"
-
 #include "Mixer.h"
 #include "FixedSizeQueue.h"
+#include "AudioCommon.h"
 
-namespace {
-
-Common::CriticalSection push_sync;
-
-// On real hardware, this fifo is much, much smaller. But timing is also tighter than under Windows, so...
-const int queue_minlength = 1024 * 4;
-const int queue_maxlength = 1024 * 28;
-
-FixedSizeQueue<s16, queue_maxlength> sample_queue;
-
-}  // namespace
-
-volatile bool mixer_HLEready = false;
-volatile int queue_size = 0;
-
-void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
+void CMixer::Mix(short *samples, int numSamples)
 {
 	// silence
-	memset(buffer, 0, numSamples * 2 * sizeof(short));
+	memset(samples, 0, numSamples * 2 * sizeof(short));
 
 	if (g_dspInitialize.pEmulatorState) {
 		if (*g_dspInitialize.pEmulatorState != 0)
 			return;
 	}
 
-	// first get the DTK Music
-	if (g_Config.m_EnableDTKMusic)
-	{
-		g_dspInitialize.pGetAudioStreaming(buffer, numSamples);
-	}
-
-	Mixer_MixUCode(buffer, numSamples, bits, rate, channels);
-
+	Premix(samples, numSamples);
+	
 	push_sync.Enter();
 	int count = 0;
-	while (queue_size > queue_minlength && count < numSamples * 2) {
-		int x = buffer[count];
+	while (m_queueSize > queue_minlength && count < numSamples * 2) {
+		int x = samples[count];
 		x += sample_queue.front();
 		if (x > 32767) x = 32767;
 		if (x < -32767) x = -32767;
-		buffer[count++] = x;
+		samples[count++] = x;
 		sample_queue.pop();
-		x = buffer[count];
+		x = samples[count];
 		x += sample_queue.front();
 		if (x > 32767) x = 32767;
 		if (x < -32767) x = -32767;
-		buffer[count++] = x;
+		samples[count++] = x;
 		sample_queue.pop();
-		queue_size-=2;
+		m_queueSize-=2;
 	}
 	push_sync.Leave();
 }
 
-void Mixer_MixUCode(short *buffer, int numSamples, int bits, int rate, 
-					int channels) {
-	//if this was called directly from the HLE, and not by timeout
-	if (g_Config.m_EnableHLEAudio && mixer_HLEready)
-	{
-		IUCode* pUCode = CDSPHandler::GetInstance().GetUCode();
-		if (pUCode != NULL)
-			pUCode->MixAdd(buffer, numSamples);
-	}
-}
 
-void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
+void CMixer::PushSamples(short *samples, int num_stereo_samples)
 {
 	if (!soundStream)
 		return;
 
-	if (queue_size == 0)
+	if (m_queueSize == 0)
 	{
-		queue_size = queue_minlength;
+		m_queueSize = queue_minlength;
 		for (int i = 0; i < queue_minlength; i++)
 			sample_queue.push((s16)0);
 	}
@@ -116,12 +80,11 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
 #endif
 
 	// Write Other Audio
-    if (g_Config.m_EnableThrottle)
-	{
+	if (m_throttle) {
         /* This is only needed for non-AX sound, currently directly
            streamed and DTK sound. For AX we call SoundStream::Update in
            AXTask() for example. */
-        while (queue_size > queue_maxlength / 2) {
+        while (m_queueSize > queue_maxlength / 2) {
 			// Urgh.
 			if (g_dspInitialize.pEmulatorState) {
 				if (*g_dspInitialize.pEmulatorState != 0)
@@ -129,25 +92,22 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
 			}
 			soundStream->Update();
             Common::SleepCurrentThread(0);
-        }
-
-        //convert into config option?
-        const int mode = 2;
+		}
 
         push_sync.Enter();
         while (num_stereo_samples) 
         {
-            acc += sample_rate;
+            acc += m_sampleRate;
             while (num_stereo_samples && (acc >= 48000))
             {
                 PV4l=PV3l;
                 PV3l=PV2l;
                 PV2l=PV1l;
-                PV1l=*(buffer++); //32bit processing
+                PV1l=*(samples++); //32bit processing
                 PV4r=PV3r;
                 PV3r=PV2r;
                 PV2r=PV1r;
-                PV1r=*(buffer++); //32bit processing
+                PV1r=*(samples++); //32bit processing
                 num_stereo_samples--;
                 acc-=48000;
             }
@@ -156,12 +116,12 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
             s32 DataL = PV1l;
             s32 DataR = PV1r;
 
-            if (mode == 1) //linear
+            if (m_mode == 1) //linear
             {
                 DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
                 DataR = PV1r + ((PV2r - PV1r)*acc)/48000;
             }
-            else if (mode == 2) //cubic
+            else if (m_mode == 2) //cubic
             {
                 s32 a0l = PV1l - PV2l - PV4l + PV3l;
                 s32 a0r = PV1r - PV2r - PV4r + PV3r;
@@ -192,7 +152,7 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate)
             if (r > 32767) r = 32767;
             sample_queue.push(l);
             sample_queue.push(r);
-            queue_size += 2;
+            m_queueSize += 2;
         }
         push_sync.Leave();
     }

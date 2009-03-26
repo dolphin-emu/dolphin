@@ -31,27 +31,20 @@
 #include "ConfigDlg.h"
 #endif
 
+#include "AudioCommon.h"
 #include "AOSoundStream.h"
 #include "DSoundStream.h"
 #include "NullSoundStream.h"
 
+#include "Logging/Logging.h" // For Logging
 
 #ifdef _WIN32
 	#include "DisAsmDlg.h"
-	#include "Logging/Logging.h" // For Logging
 
 	HINSTANCE g_hInstance = NULL;
 	CDisAsmDlg g_Dialog;
-#else
-	#define WINAPI
-	#define LPVOID void*
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <pthread.h>
-	#include "AOSoundStream.h"
 #endif
-
+#include "Thread.h"
 #include "ChunkFile.h"
 
 PLUGIN_GLOBALS* globals = NULL;
@@ -159,7 +152,7 @@ void DllDebugger(HWND _hParent, bool Show)
 }
 
 
-// Regular thread
+/*// Regular thread
 #ifdef _WIN32
 DWORD WINAPI dsp_thread(LPVOID lpParameter)
 #else
@@ -203,7 +196,7 @@ void* dsp_thread_debug(void* lpParameter)
         return NULL;
 }
 
-
+*/
 void DSP_DebugBreak()
 {
 #ifdef _WIN32
@@ -230,24 +223,22 @@ void Initialize(void *init)
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom((char *)DSP_ROM_FILE))
-	{
+	if (!gdsp_load_rom((char *)DSP_ROM_FILE)) {
 		bCanWork = false;
 		PanicAlert("Cannot load DSP ROM");
 	}
 	
-	if (!gdsp_load_coef((char *)DSP_COEF_FILE))
-	{
+	if (!gdsp_load_coef((char *)DSP_COEF_FILE)) {
 		bCanWork = false;
 		PanicAlert("Cannot load DSP COEF");
 	}
-
-        if(!bCanWork)
-            return; // TODO: Don't let it work
-
-// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM 1" in
-// Globals.h. Then make the disassembled file here.  Dump UCode to file...
-
+	
+	if(!bCanWork)
+		return; // TODO: Don't let it work
+	
+	/*/ First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM 1" in
+	// Globals.h. Then make the disassembled file here.  Dump UCode to file...
+	
    	FILE* t = fopen("C:\\_\\DSP_UC_09CD143F.txt", "wb");
 	if (t != NULL)
 	{
@@ -255,49 +246,15 @@ void Initialize(void *init)
    		gd_dis_file(&gdg, (char *)"C:\\_\\DSP_UC_09CD143F.bin", t);
    		fclose(t);   
 	}
-
-	if (g_Config.sBackend == "DSound")
+		*/
+	
+	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend);
+	
+	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
+	// Start the sound recording
+	if (log_ai)
 	{
-		if (DSound::isValid())
-			soundStream = new DSound(48000, Mixer, g_dspInitialize.hWnd);
-	}
-	else if (g_Config.sBackend == "AOSound")
-	{
-		if (AOSound::isValid())
-			soundStream = new AOSound(48000, Mixer);
-	}
-	else if (g_Config.sBackend == "NullSound")
-	{
-		soundStream = new NullSound(48000, Mixer);
-	}
-	else
-	{
-		PanicAlert("Cannot recognize backend %s", g_Config.sBackend.c_str());
-		return;
-	}
-
-	if (soundStream)
-	{
-		if (!soundStream->Start())
-		{
-			PanicAlert("Could not initialize backend %s, falling back to NULL", 
-					   g_Config.sBackend.c_str());
-			delete soundStream;
-			soundStream = new NullSound(48000, Mixer);
-			soundStream->Start();
-		}
-	}
-	else
-	{
-		PanicAlert("Sound backend %s is not valid, falling back to NULL", 
-				   g_Config.sBackend.c_str());
-		delete soundStream;
-		soundStream = new NullSound(48000, Mixer);
-		soundStream->Start();
-	}
-     
-	if (log_ai) {
-		g_wave_writer.Start("C:\\_\\ai_log.wav");
+		g_wave_writer.Start("ai_log.wav");
 		g_wave_writer.SetSkipSilence(false);
 	}
 }
@@ -418,25 +375,39 @@ void DSP_Update(int cycles)
 }
 
 
+
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	short samples[16] = {0};  // interleaved stereo
-	if (address) {
-		for (int i = 0; i < 16; i++) {
-			samples[i] = Memory_Read_U16(address + i * 2);
-		}
-		if (log_ai)
-			g_wave_writer.AddStereoSamples(samples, 8);
+	// TODO: This is not yet fully threadsafe.
+	if (!soundStream) {
+		return;
 	}
-	Mixer_PushSamples(samples, 32 / 4, sample_rate);
 
+	if (soundStream->GetMixer())
+	{
+		short samples[16] = {0};  // interleaved stereo
+		if (address)
+		{
+			for (int i = 0; i < 16; i++)
+			{
+				samples[i] = Memory_Read_U16(address + i * 2);
+			}
+
+			// Write the audio to a file
+			if (log_ai)
+				g_wave_writer.AddStereoSamples(samples, 8);
+		}
+		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
+	}
+
+	// SoundStream is updated only when necessary (there is no 70 ms limit
+	// so each sample now triggers the sound stream)
+	
+	// TODO: think about this.
 	static int counter = 0;
 	counter++;
-#ifdef _WIN32
-	if ((counter & 255) == 0)
-		DSound::DSound_UpdateSound();
-#endif
+	if ((counter & 31) == 0 && soundStream)
+		soundStream->Update();
 }
-
 
 

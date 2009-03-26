@@ -23,8 +23,8 @@
 extern CDebugger * m_frame;
 #endif 
 
-#include "../PCHW/Mixer.h"
 #include "../MailHandler.h"
+#include "Mixer.h"
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
@@ -324,7 +324,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	    case 0x0004:  // PBs are here now
 		    m_addressPBs = Memory_Read_U32(uAddress);
 			lCUCode_AX->m_addressPBs = m_addressPBs; // for the sake of logging
-		    mixer_HLEready = true;
+		    soundStream->GetMixer()->SetHLEReady(true);
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
             soundStream->Update();
 		    uAddress += 4;

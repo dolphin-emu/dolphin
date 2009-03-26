@@ -549,18 +549,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="PCHW"
-			>
-			<File
-				RelativePath=".\Src\Pchw\Mixer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Pchw\Mixer.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="UCodes"
 			>
 			<File
@@ -746,6 +734,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\DSPHandler.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HLEMixer.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HLEMixer.h"
 			>
 		</File>
 		<File

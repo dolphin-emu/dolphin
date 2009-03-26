@@ -25,7 +25,6 @@ files = [
         "HLE_Functions.cpp",
         "HLE_Helper.cpp",
 	"main.cpp",
-        "Mixer.cpp",
 	"opcodes.cpp",
 #        "RegisterDlg.cpp",
 #        "RegSettings.cpp",

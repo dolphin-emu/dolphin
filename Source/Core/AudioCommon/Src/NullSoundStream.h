@@ -23,8 +23,7 @@
 class NullSound : public SoundStream
 {   
 public:
-    NullSound(int _sampleRate, StreamCallback _callback) :
-        SoundStream(_sampleRate, _callback) {}
+	NullSound(CMixer *mixer) : SoundStream(mixer) {}
     
     virtual ~NullSound() {}
 
@@ -35,7 +34,8 @@ public:
 	virtual bool Start() { return true; }
 
 	virtual void Update() { 
-		(*callback)(NULL, 256 >> 2, 16, sampleRate, 2); 
+		m_mixer->Mix(NULL, 256 >> 2);
+		//(*callback)(NULL, 256 >> 2, 16, sampleRate, 2); 
 	}
 };
 

@@ -19,32 +19,27 @@
 #define __SOUNDSTREAM_H__
 
 #include "Common.h"
-
-typedef void (*StreamCallback)(short* buffer, int numSamples, int bits, int rate, int channels);
+#include "Mixer.h"
 
 class SoundStream
 {
 protected:
-    int sampleRate;
-    StreamCallback callback;
 
+	CMixer *m_mixer;
     // We set this to shut down the sound thread.
     // 0=keep playing, 1=stop playing NOW.
     volatile int threadData;
     
 public:   
-    SoundStream(int _sampleRate, StreamCallback _callback) :
-		sampleRate(_sampleRate), callback(_callback), threadData(0) {}
-    virtual ~SoundStream() {}
+	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0) {}
+	virtual ~SoundStream() { delete m_mixer;}
     
-    static  bool isValid() { return false; }  
-    virtual bool usesMixer() const { return false; }
-    virtual bool Start() { return false; }
-    virtual void SoundLoop() {}
-    virtual void Stop() {}
-    virtual void Update() {}
-
-    virtual int GetSampleRate() const { return sampleRate; }
+	static  bool isValid() { return false; }  
+	virtual CMixer *GetMixer() const { return m_mixer; }
+	virtual bool Start() { return false; }
+	virtual void SoundLoop() {}
+	virtual void Stop() {}
+	virtual void Update() {}
 };
 
 #endif

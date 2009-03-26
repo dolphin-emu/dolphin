@@ -417,7 +417,7 @@ void Hacks()
 	}
 	} */
 
-	if (g_dsp.pc == 0x468)
+	/*	if (g_dsp.pc == 0x468)
 	{
 		int numSamples = g_dsp.r[25] / 2;
 		uint16 bufferAddr = g_dsp.r[27]; 
@@ -429,7 +429,7 @@ void Hacks()
 		{
 			samples[i] = dsp_dmem_read(bufferAddr+i);
 		}
-		Mixer_PushSamples(samples, numSamples / 2, 32000); //sample_rate);
+		PushSamples(samples, numSamples / 2, 32000); //sample_rate);
 
 		g_wave_writer.AddStereoSamples(samples, numSamples/2); // 2 channels
 
@@ -439,5 +439,5 @@ void Hacks()
 			g_wave_writer.Stop();
 			exit(1);
 		}
-	}
+		}*/
 }

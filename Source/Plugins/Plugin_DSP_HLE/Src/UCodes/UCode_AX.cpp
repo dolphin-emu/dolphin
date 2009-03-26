@@ -25,7 +25,7 @@ extern CDebugger* m_frame;
 #include <sstream>
 
 #include "../Globals.h"
-#include "../PCHW/Mixer.h"
+#include "Mixer.h"
 #include "../MailHandler.h"
 
 #include "UCodes.h"
@@ -513,7 +513,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    m_addressPBs = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 
-		    mixer_HLEready = true;
+		    soundStream->GetMixer()->SetHLEReady(true);
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 
 		    SaveLog("Update the SoundThread to be in sync");

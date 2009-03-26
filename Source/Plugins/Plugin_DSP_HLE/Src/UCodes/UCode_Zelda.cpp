@@ -24,7 +24,7 @@
 #include "../MailHandler.h"
 
 #include "../main.h"
-#include "../PCHW/Mixer.h"
+#include "Mixer.h"
 
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
@@ -157,8 +157,7 @@ void CUCode_Zelda::ExecuteList()
 		    tmp[2] = Read32();
 
 			// We're ready to mix
-			mixer_HLEready = true;
-
+			soundStream->GetMixer()->SetHLEReady(true);
 			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			soundStream->Update(); //do it in this thread to avoid sync problems
 

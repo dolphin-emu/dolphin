@@ -33,10 +33,6 @@
 u32 m_addressPBs = 0;
 extern u32 gLastBlock;
 
-
-
-#ifdef _WIN32
-
 int m = 0;
 int n = 0;
 #ifdef LOG2
@@ -56,20 +52,18 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 	//FIXME	if (n > 20 && logall) {Console::ClearScreen();}
 	for (int i = 0; i < _num; i++)
 	{
-		// ---------------------------------------------------------------------------------------
 		// Check if there is something here.
 		const short * pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
 		// -------------
 
 		if (pSrc != NULL) // only read non-blank blocks
 		{
-			// ---------------------------------------------------------------------------------------
+
 			// Create a shortcut that let us update struct members
 			short * pDest = (short *) & _pPBs[i];
 			
 			if (n > 20 && logall) {DEBUG_LOG(DSPHLE, "%c%i:", 223, i);} // logging
 
-			// --------------
 			// Here we update the PB. We do it by going through all 192 / 2 = 96 u16 values
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
@@ -88,10 +82,8 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 			}
 
 			if(n > 20 && logall) {DEBUG_LOG(DSPHLE, "\n");} // logging
-			// --------------
 			// Here we update the block address to the starting point of the next PB
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			// --------------
 			// save some values
 			count++;
 			gLastBlock = paraAddr;  // blockAddr
@@ -109,6 +101,3 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 	// return the number of readed PBs
 	return count;
 }
-// =======================================================================================
-
-#endif

@@ -28,15 +28,16 @@ CDebugger* m_frame = NULL;
 
 #include "ChunkFile.h"
 #include "WaveFile.h"
-#include "PCHW/Mixer.h"
+#include "HLEMixer.h"
 #include "DSPHandler.h"
 #include "Config.h"
 #include "Setup.h"
 #include "StringUtil.h"
-
+#include "AudioCommon.h"
 #include "AOSoundStream.h"
 #include "DSoundStream.h"
 #include "NullSoundStream.h"
+
 
 // Declarations and definitions
 PLUGIN_GLOBALS* globals = NULL;
@@ -192,6 +193,7 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
+
 void Initialize(void *init)
 {
 	g_dspInitialize = *(DSPInitialize*)init;
@@ -201,45 +203,9 @@ void Initialize(void *init)
 
 	CDSPHandler::CreateInstance();
 
-	if (g_Config.sBackend == "DSound")
-	{
-		if (DSound::isValid())
-			soundStream = new DSound(48000, Mixer, g_dspInitialize.hWnd);
-	}
-	else if (g_Config.sBackend == "AOSound")
-	{
-		if (AOSound::isValid())
-			soundStream = new AOSound(48000, Mixer);
-	}
-	else if (g_Config.sBackend == "NullSound")
-	{
-		soundStream = new NullSound(48000, Mixer_MixUCode);
-	}
-	else
-	{
-		PanicAlert("Cannot recognize backend %s", g_Config.sBackend.c_str());
-		return;
-	}
-
-	if (soundStream)
-	{
-		if (!soundStream->Start())
-		{
-			PanicAlert("Could not initialize backend %s, falling back to NULL", 
-					   g_Config.sBackend.c_str());
-			delete soundStream;
-			soundStream = new NullSound(48000, Mixer);
-			soundStream->Start();
-		}
-	}
-	else
-	{
-		PanicAlert("Sound backend %s is not valid, falling back to NULL", 
-				   g_Config.sBackend.c_str());
-		delete soundStream;
-		soundStream = new NullSound(48000, Mixer);
-		soundStream->Start();
-	}
+	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend, 
+											   new HLEMixer()); 
+	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
 
 	// Start the sound recording
 	if (log_ai)
@@ -251,15 +217,20 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
+	//	fprintf(stderr, "in dsp stop\n");
 	if (!soundStream)
 		PanicAlert("Can't stop non running SoundStream!");
 	soundStream->Stop();
 	delete soundStream;
 	soundStream = NULL;
+	//	fprintf(stderr, "in dsp stop end\n");
+
 }
 
 void Shutdown()
 {
+	// FIXME: called before stop is finished????
+	//	fprintf(stderr, "in dsp shutdown\n");
 	// Check that soundstream already is stopped.
 	if (soundStream)
 		PanicAlert("SoundStream alive in DSP::Shutdown!");
@@ -384,7 +355,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		return;
 	}
 
-	if (soundStream->usesMixer())
+	if (soundStream->GetMixer())
 	{
 		short samples[16] = {0};  // interleaved stereo
 		if (address)
@@ -398,7 +369,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			if (log_ai)
 				g_wave_writer.AddStereoSamples(samples, 8);
 		}
-		Mixer_PushSamples(samples, 32 / 4, sample_rate);
+		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
 	}
 
 	// SoundStream is updated only when necessary (there is no 70 ms limit
