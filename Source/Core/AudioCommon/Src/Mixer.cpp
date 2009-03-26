@@ -27,6 +27,11 @@
 
 void CMixer::Mix(short *samples, int numSamples)
 {
+	if (! samples) {
+		Premix(NULL, 0);
+		return;
+	}
+
 	// silence
 	memset(samples, 0, numSamples * 2 * sizeof(short));
 
