@@ -261,22 +261,29 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
-	if (!soundStream)
-		PanicAlert("Can't stop non running SoundStream!");
-	soundStream->Stop();
-	delete soundStream;
-	soundStream = NULL;
 }
 
 void Shutdown(void)
 {
-	// Check that soundstream already is stopped.
-	if (soundStream)
-		PanicAlert("SoundStream alive in DSP::Shutdown!");
+	NOTICE_LOG(DSPHLE, "Shutting down DSP plugin");
+
+	if (soundStream) {
+		soundStream->Stop();
+		delete soundStream;
+		soundStream = NULL;
+	}
 	
+	// Check that soundstream already is stopped.
+	while (soundStream) {
+		ERROR_LOG(DSPHLE, "Waiting for sound stream");
+		Common::SleepCurrentThread(2000);
+	}
+
 	// Stop the sound recording
 	if (log_ai)
 		g_wave_writer.Stop();
+	
+	INFO_LOG(DSPHLE, "Done shutting down DSP plugin");	
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)

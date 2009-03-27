@@ -217,23 +217,30 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
-	//	fprintf(stderr, "in dsp stop\n");
+	/*	
 	if (!soundStream)
 		PanicAlert("Can't stop non running SoundStream!");
 	soundStream->Stop();
 	delete soundStream;
 	soundStream = NULL;
-	//	fprintf(stderr, "in dsp stop end\n");
-
+*/
 }
 
 void Shutdown()
 {
-	// FIXME: called before stop is finished????
-	//	fprintf(stderr, "in dsp shutdown\n");
+	NOTICE_LOG(DSPHLE, "Shutting down DSP plugin");
+
+	if (soundStream) {
+		soundStream->Stop();
+		delete soundStream;
+		soundStream = NULL;
+	}
+	
 	// Check that soundstream already is stopped.
-	if (soundStream)
-		PanicAlert("SoundStream alive in DSP::Shutdown!");
+	while (soundStream) {
+		ERROR_LOG(DSPHLE, "Waiting for sound stream");
+		Common::SleepCurrentThread(2000);
+	}
 
 	// Stop the sound recording
 	if (log_ai)
@@ -252,6 +259,7 @@ void Shutdown()
 		m_frame->sMailEnd.clear();
 	}
 #endif
+	INFO_LOG(DSPHLE, "Done shutting down DSP plugin");	
 }
 
 void DoState(unsigned char **ptr, int mode)

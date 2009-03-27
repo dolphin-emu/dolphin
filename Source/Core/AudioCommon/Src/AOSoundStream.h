@@ -44,7 +44,7 @@ class AOSound : public SoundStream
 public:
 	AOSound(CMixer *mixer) : SoundStream(mixer) {}
 
-	virtual ~AOSound() {}
+	virtual ~AOSound();
 	
 	virtual bool Start();
 	

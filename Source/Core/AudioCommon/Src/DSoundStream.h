@@ -64,9 +64,10 @@ class DSound : public SoundStream
 			   DWORD dwSoundBytes);
 
 public:
-	DSound(CMixer *mixer, void *hWnd = NULL) : SoundStream(mixer) {}
-
-	DSound(CMixer *mixer) : SoundStream(mixer) {}
+	DSound(CMixer *mixer, void *hWnd = NULL) : SoundStream(mixer),
+											   bufferSize(0),
+											   totalRenderedBytes(0),
+											   currentPos(0),lastPos(0) {}
 
     virtual ~DSound() {}
  
