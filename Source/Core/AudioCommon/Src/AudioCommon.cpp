@@ -48,4 +48,34 @@ SoundStream *InitSoundStream(std::string backend, CMixer *mixer) {
 	return soundStream;
 }
 
+void ShutdownSoundStream() {
+	NOTICE_LOG(DSPHLE, "Shutting down sound stream");
+
+	if (soundStream) {
+		soundStream->Stop();
+		soundStream->StopLogAudio();
+		delete soundStream;
+		soundStream = NULL;
+	}
+	
+	// Check that soundstream already is stopped.
+	while (soundStream) {
+		ERROR_LOG(DSPHLE, "Waiting for sound stream");
+		Common::SleepCurrentThread(2000);
+	}
+	INFO_LOG(DSPHLE, "Done shutting down sound stream");	
+}
+
+std::vector<std::string> GetSoundBackends() {
+	std::vector<std::string> backends;
+	// Add avaliable output options
+	if (DSound::isValid())
+		backends.push_back("DSound");
+	if (AOSound::isValid())
+		backends.push_back("AOSound");
+	backends.push_back("NullSound");
+   
+	return backends;
+}
+
 } // Namespace

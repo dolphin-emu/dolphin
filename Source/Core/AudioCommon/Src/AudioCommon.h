@@ -13,6 +13,8 @@ extern SoundStream *soundStream;
 namespace AudioCommon {
 	
 	SoundStream *InitSoundStream(std::string backend, CMixer *mixer = NULL);
+	void ShutdownSoundStream();
+	 std::vector<std::string> GetSoundBackends();
 } // Namespace	
 
 #endif // AUDIO_COMMON

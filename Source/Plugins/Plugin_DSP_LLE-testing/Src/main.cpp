@@ -17,7 +17,6 @@
 
 
 #include "Common.h" // Common
-#include "WaveFile.h"
 #include "CommonTypes.h"
 #include "Mixer.h"
 
@@ -32,10 +31,6 @@
 #endif
 
 #include "AudioCommon.h"
-#include "AOSoundStream.h"
-#include "DSoundStream.h"
-#include "NullSoundStream.h"
-
 #include "Logging/Logging.h" // For Logging
 
 #ifdef _WIN32
@@ -63,11 +58,6 @@ extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);
 
 bool bCanWork = false;
-
-// Set this if you want to log audio. search for log_ai in this file to see the filename.
-static bool log_ai = false;
-WaveFileWriter g_wave_writer;
-
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
@@ -124,12 +114,13 @@ void DllConfig(HWND _hParent)
 	// (shuffle2) TODO: reparent dlg with DolphinApp
 	ConfigDialog dlg(NULL);
 
-	// Add avaliable output options
-	if (DSound::isValid())
-		dlg.AddBackend("DSound");
-	if (AOSound::isValid())
-		dlg.AddBackend("AOSound");
-	dlg.AddBackend("NullSound");
+	// add backends
+	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+
+	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+		 iter != backends.end(); ++iter) {
+		dlg.AddBackend((*iter).c_str());
+	}
 
 	// Show the window
 	dlg.ShowModal();
@@ -251,12 +242,6 @@ void Initialize(void *init)
 	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend);
 	
 	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
-	// Start the sound recording
-	if (log_ai)
-	{
-		g_wave_writer.Start("ai_log.wav");
-		g_wave_writer.SetSkipSilence(false);
-	}
 }
 
 void DSP_StopSoundStream()
@@ -265,25 +250,7 @@ void DSP_StopSoundStream()
 
 void Shutdown(void)
 {
-	NOTICE_LOG(DSPHLE, "Shutting down DSP plugin");
-
-	if (soundStream) {
-		soundStream->Stop();
-		delete soundStream;
-		soundStream = NULL;
-	}
-	
-	// Check that soundstream already is stopped.
-	while (soundStream) {
-		ERROR_LOG(DSPHLE, "Waiting for sound stream");
-		Common::SleepCurrentThread(2000);
-	}
-
-	// Stop the sound recording
-	if (log_ai)
-		g_wave_writer.Stop();
-	
-	INFO_LOG(DSPHLE, "Done shutting down DSP plugin");	
+	AudioCommon::ShutdownSoundStream();
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)
@@ -401,8 +368,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			}
 
 			// Write the audio to a file
-			if (log_ai)
-				g_wave_writer.AddStereoSamples(samples, 8);
+			//if (log_ai)
+			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
 		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
 	}

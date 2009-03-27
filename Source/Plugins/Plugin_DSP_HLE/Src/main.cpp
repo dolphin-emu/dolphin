@@ -27,16 +27,12 @@ CDebugger* m_frame = NULL;
 #endif
 
 #include "ChunkFile.h"
-#include "WaveFile.h"
 #include "HLEMixer.h"
 #include "DSPHandler.h"
 #include "Config.h"
 #include "Setup.h"
 #include "StringUtil.h"
 #include "AudioCommon.h"
-#include "AOSoundStream.h"
-#include "DSoundStream.h"
-#include "NullSoundStream.h"
 
 
 // Declarations and definitions
@@ -46,11 +42,6 @@ u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
 
 SoundStream *soundStream = NULL;
-
-// Set this if you want to log audio. search for log_ai in this file to see the filename.
-bool log_ai = false;
-WaveFileWriter g_wave_writer;
-
 
 // Mailbox utility
 struct DSPState
@@ -181,13 +172,13 @@ void DllConfig(HWND _hParent)
 	// (shuffle2) TODO: reparent dlg with DolphinApp
 	ConfigDialog dlg(NULL);
 
-	// Add avaliable output options
-	if (DSound::isValid())
-		dlg.AddBackend("DSound");
-	if (AOSound::isValid())
-		dlg.AddBackend("AOSound");
-	dlg.AddBackend("NullSound");
+	// add backends
+	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
 
+	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+		 iter != backends.end(); ++iter) {
+		dlg.AddBackend((*iter).c_str());
+	}
 	// Show the window
 	dlg.ShowModal();
 #endif
@@ -208,43 +199,20 @@ void Initialize(void *init)
 	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
 
 	// Start the sound recording
-	if (log_ai)
-	{
-		g_wave_writer.Start("ai_log.wav");
-		g_wave_writer.SetSkipSilence(false);
-	}
+	/*
+	  if (g_Config.record) {
+	  soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
+	  }
+	*/
 }
 
 void DSP_StopSoundStream()
 {
-	/*	
-	if (!soundStream)
-		PanicAlert("Can't stop non running SoundStream!");
-	soundStream->Stop();
-	delete soundStream;
-	soundStream = NULL;
-*/
 }
 
 void Shutdown()
 {
-	NOTICE_LOG(DSPHLE, "Shutting down DSP plugin");
-
-	if (soundStream) {
-		soundStream->Stop();
-		delete soundStream;
-		soundStream = NULL;
-	}
-	
-	// Check that soundstream already is stopped.
-	while (soundStream) {
-		ERROR_LOG(DSPHLE, "Waiting for sound stream");
-		Common::SleepCurrentThread(2000);
-	}
-
-	// Stop the sound recording
-	if (log_ai)
-		g_wave_writer.Stop();
+	AudioCommon::ShutdownSoundStream();
 
 	// Delete the UCodes
 	CDSPHandler::Destroy();
@@ -259,7 +227,7 @@ void Shutdown()
 		m_frame->sMailEnd.clear();
 	}
 #endif
-	INFO_LOG(DSPHLE, "Done shutting down DSP plugin");	
+	
 }
 
 void DoState(unsigned char **ptr, int mode)
@@ -373,9 +341,9 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 				samples[i] = Memory_Read_U16(address + i * 2);
 			}
 
-			// Write the audio to a file
-			if (log_ai)
-				g_wave_writer.AddStereoSamples(samples, 8);
+			// FIXME: Write the audio to a file
+			//if (log_ai)
+			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
 		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
 	}

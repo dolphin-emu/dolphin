@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "Mixer.h"
+#include "WaveFile.h"
 
 class SoundStream
 {
@@ -29,7 +30,9 @@ protected:
     // We set this to shut down the sound thread.
     // 0=keep playing, 1=stop playing NOW.
     volatile int threadData;
-    
+    bool m_logAudio;
+	WaveFileWriter g_wave_writer;
+
 public:   
 	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0) {}
 	virtual ~SoundStream() { delete m_mixer;}
@@ -40,6 +43,26 @@ public:
 	virtual void SoundLoop() {}
 	virtual void Stop() {}
 	virtual void Update() {}
+	virtual void StartLogAudio(const char *filename) {
+		if (! m_logAudio) {
+			m_logAudio = true;
+			g_wave_writer.Start(filename);
+			g_wave_writer.SetSkipSilence(false);
+			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+		} else {
+			WARN_LOG(DSPHLE, "Audio logging already started");
+		}
+	}
+
+	virtual void StopLogAudio() {
+		if (m_logAudio) {
+			m_logAudio = false;
+			g_wave_writer.Stop();
+			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+		} else {
+			WARN_LOG(DSPHLE, "Audio logging already stopped");
+		}
+	}
 };
 
 #endif
