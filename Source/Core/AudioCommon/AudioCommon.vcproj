@@ -409,6 +409,42 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="StreamOut"
+			>
+			<File
+				RelativePath=".\Src\AOSoundStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\AOSoundStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSoundStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSoundStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NullSoundStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OpenALStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OpenALStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SoundStream.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\AudioCommon.cpp"
 			>
@@ -417,38 +453,13 @@
 			RelativePath=".\Src\AudioCommon.h"
 			>
 		</File>
- 		<File
-			RelativePath=".\Src\AOSoundStream.cpp"
- 			>
- 		</File>
- 		<File
-			RelativePath=".\Src\AOSoundStream.h"
- 			>
- 		</File>
-
 		<File
-			RelativePath=".\Src\DSoundStream.cpp"
+			RelativePath=".\Src\Mixer.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DSoundStream.h"
+			RelativePath=".\Src\Mixer.h"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\NullSoundStream.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SoundStream.h"
-			>
-		</File>
-		<File
-		   RelativePath=".\Src\Mixer.h"
-		   >
-		</File>
-		<File
-		   RelativePath=".\Src\Mixer.cpp"
-		   >
 		</File>
 		<File
 			RelativePath=".\Src\WaveFile.cpp"

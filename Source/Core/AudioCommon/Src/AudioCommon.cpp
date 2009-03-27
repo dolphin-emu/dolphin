@@ -3,7 +3,7 @@
 #include "AOSoundStream.h"
 #include "DSoundStream.h"
 #include "NullSoundStream.h"
-
+#include "OpenALStream.h"
 
 namespace AudioCommon {
 	
@@ -20,6 +20,10 @@ SoundStream *InitSoundStream(std::string backend, CMixer *mixer) {
 	else if (backend == "AOSound") {
 		if (AOSound::isValid())
 			soundStream = new AOSound(mixer);
+	}
+	else if (backend == "OpenAL") {
+		if (OpenALStream::isValid())
+			soundStream = new OpenALStream(mixer);
 	}
 	else if (backend == "NullSound") {
 		soundStream = new NullSound(mixer);
