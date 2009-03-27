@@ -331,7 +331,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		return;
 	}
 
-	if (soundStream->GetMixer())
+	CMixer* pMixer = soundStream->GetMixer();
+	if (pMixer)
 	{
 		short samples[16] = {0};  // interleaved stereo
 		if (address)
@@ -345,7 +346,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			//if (log_ai)
 			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
-		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
+		pMixer->PushSamples(samples, 32 / 4);
 	}
 
 	// SoundStream is updated only when necessary (there is no 70 ms limit

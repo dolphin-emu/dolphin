@@ -77,6 +77,8 @@ std::vector<std::string> GetSoundBackends() {
 		backends.push_back("DSound");
 	if (AOSound::isValid())
 		backends.push_back("AOSound");
+	if (OpenALStream::isValid())
+		backends.push_back("OpenAL");
 	backends.push_back("NullSound");
    
 	return backends;
