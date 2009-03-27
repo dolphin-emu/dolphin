@@ -19,7 +19,10 @@
 #include <dxerr.h>
 #include "DSoundStream.h"
 
+#include "../../../PluginSpecs/pluginspecs_dsp.h"
+
 //extern bool log_ai;
+extern DSPInitialize g_dspInitialize;
 
 bool DSound::CreateBuffer()
 {
@@ -41,6 +44,7 @@ bool DSound::CreateBuffer()
 	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS;
 	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
+	dsbdesc.guid3DAlgorithm = DS3DALG_DEFAULT;
 
 	HRESULT res = ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, NULL);
 	if (SUCCEEDED(res))
@@ -103,7 +107,8 @@ void DSound::SoundLoop()
 {
 	currentPos = 0;
 	lastPos = 0;
-	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+
+	HRESULT hr = dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	while (!threadData)
 	{
 		// No blocking inside the csection
@@ -135,8 +140,10 @@ bool DSound::Start()
 	soundSyncEvent.Init();
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
         return false;
-	if (hWnd)
-		ds->SetCooperativeLevel((HWND)hWnd, DSSCL_NORMAL);
+	if (g_dspInitialize.hWnd)
+	{
+		HRESULT hr = ds->SetCooperativeLevel((HWND)g_dspInitialize.hWnd, DSSCL_PRIORITY);
+	}
 	if (!CreateBuffer())
 		return false;
 
