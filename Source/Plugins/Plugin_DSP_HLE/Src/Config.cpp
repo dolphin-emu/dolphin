@@ -41,7 +41,6 @@ void CConfig::Load()
 #else
 	file.Get("Config", "Backend", &sBackend, "AOSound");
 #endif
-	file.Get("Config", "Backend", &sBackend, "OpenAL");
 }
 
 void CConfig::Save()
