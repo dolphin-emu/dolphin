@@ -104,7 +104,7 @@ void CFrame::CreateMenu()
 	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 
 	wxMenu *externalDrive = new wxMenu;
-	fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
+	m_pMenuItemOpenDrive = fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	
 	drives = cdio_get_devices();
 	for (int i = 0; drives[i] != NULL && i < 24; i++) {
@@ -827,6 +827,7 @@ void CFrame::UpdateGUI()
 
 	// File
 	m_pMenuItemOpen->Enable(!initialized);
+	m_pMenuItemOpenDrive->Enable(!initialized);
 
 	// Emulation
 	m_pMenuItemStop->Enable(running || paused);

@@ -283,7 +283,7 @@ void Stop()
 
 	// Close the trace file
 	Core::StopTrace();
-	NOTICE_LOG(BOOT, "Shutting core");
+	NOTICE_LOG(BOOT, "Shutting down core");
 
 	// Update mouse pointer
 	Host_SetWaitCursor(false);

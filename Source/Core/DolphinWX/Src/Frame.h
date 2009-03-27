@@ -225,7 +225,8 @@ class CFrame : public wxFrame
 		// Menu items
 		wxMenuBar* m_pMenuBar;
 
-		wxMenuItem* m_pMenuItemOpen; // File
+		wxMenuItem* m_pMenuItemOpen;		// File
+		wxMenuItem* m_pMenuItemOpenDrive;	// Drive
 
 		wxMenuItem* m_pMenuItemPlay; // Emulation
 		wxMenuItem* m_pMenuItemStop;
