@@ -371,7 +371,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			//if (log_ai)
 			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
-		soundStream->GetMixer()->PushSamples(samples, 32 / 4);
+		soundStream->GetMixer()->PushSamples(samples, 32 / 4, sample_rate);
 	}
 
 	// SoundStream is updated only when necessary (there is no 70 ms limit

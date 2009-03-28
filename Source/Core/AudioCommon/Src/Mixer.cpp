@@ -62,7 +62,7 @@ void CMixer::Mix(short *samples, int numSamples)
 }
 
 
-void CMixer::PushSamples(short *samples, int num_stereo_samples)
+void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample_rate)
 {
 	if (!soundStream)
 		return;
@@ -85,7 +85,7 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples)
 #endif
 
 	// Write Other Audio
-	if (! m_throttle)
+	if (!m_throttle)
 		return;
 	
 	
@@ -105,7 +105,7 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples)
 	
 	push_sync.Enter();
 	while (num_stereo_samples) {
-		acc += m_sampleRate;
+		acc += core_sample_rate;
 		while (num_stereo_samples && (acc >= 48000)) {
 			PV4l=PV3l;
 			PV3l=PV2l;

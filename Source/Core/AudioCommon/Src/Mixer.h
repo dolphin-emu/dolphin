@@ -34,7 +34,7 @@ public:
 	void Mix(short *sample, int numSamples);
 	
 	// Called from main thread
-	void PushSamples(short* samples, int num_stereo_samples);
+	void PushSamples(short* samples, int num_stereo_samples, int core_sample_rate);
 	
 	virtual void Premix(short *samples, int numSamples) {}
 
