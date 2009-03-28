@@ -462,6 +462,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\WaveFile.cpp"
 			>
 		</File>
