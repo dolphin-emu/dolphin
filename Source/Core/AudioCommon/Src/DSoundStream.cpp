@@ -21,7 +21,6 @@
 
 #include "../../../PluginSpecs/pluginspecs_dsp.h"
 
-//extern bool log_ai;
 extern DSPInitialize g_dspInitialize;
 
 bool DSound::CreateBuffer()
@@ -66,10 +65,6 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 		DWORD dwSoundBytes) // Size of block to copy.
 {
 	// I want to record the regular audio to, how do I do that?
-	// Well, it's gonna be a bit tricky. For future work :)
-	//std::string Data = ArrayToString((const u8*)soundData, dwSoundBytes);
-	//Console::Print("Data: %s\n\n", Data.c_str());
-	//if (log_ai) g_wave_writer.AddStereoSamples((const short*)soundData, dwSoundBytes);
 
 	void *ptr1, *ptr2;
 	DWORD numBytes1, numBytes2;

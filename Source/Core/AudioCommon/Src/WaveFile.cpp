@@ -22,6 +22,7 @@ enum {BUF_SIZE = 32*1024};
 
 WaveFileWriter::WaveFileWriter()
 {
+	file = NULL;
 	conv_buffer = 0;
 	skip_silence = false;
 }

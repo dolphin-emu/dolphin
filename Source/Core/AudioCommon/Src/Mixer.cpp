@@ -64,9 +64,6 @@ void CMixer::Mix(short *samples, int numSamples)
 
 void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample_rate)
 {
-	if (!soundStream)
-		return;
-
 	push_sync.Enter();
 	if (m_queueSize == 0)
 	{

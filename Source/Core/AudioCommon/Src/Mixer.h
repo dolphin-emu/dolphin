@@ -31,10 +31,10 @@ public:
 	CMixer() : m_sampleRate(48000),m_bits(16),m_channels(2), m_mode(2), m_HLEready(false),m_queueSize(0) {}
 
 	// Called from audio threads
-	void Mix(short *sample, int numSamples);
+	virtual void Mix(short *sample, int numSamples);
 	
 	// Called from main thread
-	void PushSamples(short* samples, int num_stereo_samples, int core_sample_rate);
+	virtual void PushSamples(short* samples, int num_stereo_samples, int core_sample_rate);
 	
 	virtual void Premix(short *samples, int numSamples) {}
 

@@ -19,11 +19,24 @@
 #define _NULLSOUNDSTREAM_H_
 
 #include "SoundStream.h"
+#include "Mixer.h"
+
+class NullMixer : public CMixer {
+public:
+	virtual void Mix(short *sample, int numSamples) {}
+	virtual void PushSamples(short* samples, int num_stereo_samples, 
+							 int core_sample_rate) {}
+};
 
 class NullSound : public SoundStream
 {   
 public:
-	NullSound(CMixer *mixer) : SoundStream(mixer) {}
+	NullSound(CMixer *mixer) : SoundStream(mixer) 
+	{
+		delete m_mixer;
+		m_mixer = new NullMixer();
+	   
+	}
     
     virtual ~NullSound() {}
 
