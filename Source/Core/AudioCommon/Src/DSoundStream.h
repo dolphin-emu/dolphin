@@ -79,8 +79,10 @@ public:
     virtual void Update();
 
 #else
-	DSound(CMixer *mixer)
-		: SoundStream(mixer) {}
+public:
+	DSound(CMixer *mixer, void *hWnd = NULL)
+		: SoundStream(mixer)
+	{}
 #endif
 };
 
