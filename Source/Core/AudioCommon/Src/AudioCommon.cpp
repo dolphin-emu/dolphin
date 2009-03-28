@@ -18,9 +18,7 @@
 #include "AudioCommon.h"
 #include "Mixer.h"
 #include "AOSoundStream.h"
-#ifdef _WIN32
 #include "DSoundStream.h"
-#endif
 #include "NullSoundStream.h"
 #include "OpenALStream.h"
 
@@ -33,10 +31,8 @@ SoundStream *InitSoundStream(std::string backend, CMixer *mixer) {
 	}
 
 	if (backend == "DSound") {
-#ifdef _DSOUNDSTREAM_H_
 		if (DSound::isValid())
 			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
-#endif
 	}
 	else if (backend == "AOSound") {
 		if (AOSound::isValid())
@@ -94,10 +90,8 @@ void ShutdownSoundStream() {
 std::vector<std::string> GetSoundBackends() {
 	std::vector<std::string> backends;
 	// Add avaliable output options
-#ifdef _DSOUNDSTREAM_H_
 	if (DSound::isValid())
 		backends.push_back("DSound");
-#endif
 	if (AOSound::isValid())
 		backends.push_back("AOSound");
 	if (OpenALStream::isValid())

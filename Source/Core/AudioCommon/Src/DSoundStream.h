@@ -31,6 +31,7 @@
 
 class DSound : public SoundStream
 {
+#ifdef _WIN32
     Common::Thread *thread;
     Common::CriticalSection soundCriticalSection;
     Common::Event soundSyncEvent;
@@ -60,10 +61,13 @@ class DSound : public SoundStream
 			   DWORD dwSoundBytes);
 
 public:
-	DSound(CMixer *mixer, void *hWnd = NULL) : SoundStream(mixer),
-											   bufferSize(0),
-											   totalRenderedBytes(0),
-											   currentPos(0),lastPos(0) {}
+	DSound(CMixer *mixer, void *hWnd = NULL)
+		: SoundStream(mixer)
+		, bufferSize(0)
+		, totalRenderedBytes(0)
+		, currentPos(0)
+		, lastPos(0)
+	{}
 
     virtual ~DSound() {}
  
@@ -73,6 +77,11 @@ public:
     static bool isValid() { return true; }
     virtual bool usesMixer() const { return true; }
     virtual void Update();
+
+#else
+	DSound(CMixer *mixer)
+		: SoundStream(mixer) {}
+#endif
 };
 
 #endif //_DSOUNDSTREAM_H_
