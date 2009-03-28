@@ -94,8 +94,10 @@ void ShutdownSoundStream() {
 std::vector<std::string> GetSoundBackends() {
 	std::vector<std::string> backends;
 	// Add avaliable output options
+#ifdef _DSOUNDSTREAM_H_
 	if (DSound::isValid())
 		backends.push_back("DSound");
+#endif
 	if (AOSound::isValid())
 		backends.push_back("AOSound");
 	if (OpenALStream::isValid())
