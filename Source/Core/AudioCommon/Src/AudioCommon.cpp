@@ -18,7 +18,9 @@
 #include "AudioCommon.h"
 #include "Mixer.h"
 #include "AOSoundStream.h"
+#ifdef _WIN32
 #include "DSoundStream.h"
+#endif
 #include "NullSoundStream.h"
 #include "OpenALStream.h"
 
