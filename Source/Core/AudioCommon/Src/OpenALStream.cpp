@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "OpenAlStream.h"
+#include "OpenALStream.h"
 
 #define AUDIO_NUMBUFFERS			(4)
 
