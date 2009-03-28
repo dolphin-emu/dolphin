@@ -33,8 +33,10 @@ SoundStream *InitSoundStream(std::string backend, CMixer *mixer) {
 	}
 
 	if (backend == "DSound") {
+#ifdef _DSOUNDSTREAM_H_
 		if (DSound::isValid())
 			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+#endif
 	}
 	else if (backend == "AOSound") {
 		if (AOSound::isValid())
