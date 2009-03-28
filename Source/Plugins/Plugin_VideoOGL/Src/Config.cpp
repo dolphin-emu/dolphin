@@ -61,6 +61,7 @@ void Config::Load()
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
+	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
     iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
     iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
@@ -143,6 +144,7 @@ void Config::Save()
 	iniFile.Set("Settings", "Show", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
+	iniFile.Set("Settings", "DumpFrames", bDumpFrames);
     iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
     iniFile.Set("Settings", "MSAA", iMultisampleMode);

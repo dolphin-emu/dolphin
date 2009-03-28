@@ -37,6 +37,7 @@
 #include "TextureCache.h"
 #include "Utils.h"
 #include "EmuWindow.h"
+#include "AVIDump.h"
 
 #include <Cg/cg.h>
 #include <Cg/cgD3D9.h>
@@ -52,12 +53,18 @@ float Renderer::m_height;
 float Renderer::xScale;
 float Renderer::yScale;
 
+int Renderer::m_recordWidth;
+int Renderer::m_recordHeight;
+
 std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
 
 DWORD Renderer::m_RenderStates[MaxRenderStates+46];
 DWORD Renderer::m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 DWORD Renderer::m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 DWORD Renderer::m_FVF;
+
+bool Renderer::m_LastFrameDumped;
+bool Renderer::m_AVIDumping;
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
@@ -106,6 +113,9 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	xScale = width / (float)EFB_WIDTH;
 	yScale = height / (float)EFB_HEIGHT;
 
+	m_LastFrameDumped = false;
+	m_AVIDumping = false;
+
 	// We're not using much fixed function. Let's just set the matrices to identity.
 	D3DXMATRIX mtx;
 	D3DXMatrixIdentity(&mtx);
@@ -126,6 +136,10 @@ void Renderer::Shutdown()
 	D3D::font.Shutdown();
 	D3D::EndFrame();
 	D3D::Close();
+
+	if(m_AVIDumping) {
+		AVIDump::Stop();
+	}
 }
 
 void Renderer::Initialize()
@@ -194,6 +208,19 @@ void dumpMatrix(D3DXMATRIX &mtx)
 	}
 }
 
+void formatBufferDump(char *in, char *out, int w, int h, int p)
+{
+	for(int i = 0; i < h; i++) {
+		char *line = in + (h - i - 1) * p;
+
+		for (int j = 0; j < w; j++) {
+			memcpy(out, line, 3);
+			out += 3;
+			line += 4;
+		}
+	}
+}
+
 void Renderer::SwapBuffers()
 {
 	// Center window again.
@@ -206,6 +233,53 @@ void Renderer::SwapBuffers()
 		int height = rcWindow.bottom - rcWindow.top;
 
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
+	}
+
+	// Frame dumping routine
+	if (g_Config.bDumpFrames) {
+		D3DDISPLAYMODE DisplayMode;
+		if (SUCCEEDED(D3D::dev->GetDisplayMode(0, &DisplayMode))) {
+			LPDIRECT3DSURFACE9 surf;
+			if (SUCCEEDED(D3D::dev->CreateOffscreenPlainSurface(DisplayMode.Width, DisplayMode.Height, D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &surf, NULL))) {
+				if (!m_LastFrameDumped) {
+					RECT windowRect;
+					GetWindowRect(EmuWindow::GetWnd(), &windowRect);
+					m_recordWidth = windowRect.right - windowRect.left;
+					m_recordHeight = windowRect.bottom - windowRect.top;
+					m_AVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), m_recordWidth, m_recordHeight);
+					if (!m_AVIDumping) {
+						PanicAlert("Error dumping frames to AVI.");
+					} else {
+						char msg [255];
+						sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, m_recordWidth, m_recordHeight);
+						AddMessage(msg, 2000);
+					}
+				}
+				if (m_AVIDumping) {
+					if (SUCCEEDED(D3D::dev->GetFrontBufferData(0, surf))) {
+						RECT windowRect;
+						GetWindowRect(EmuWindow::GetWnd(), &windowRect);
+						D3DLOCKED_RECT rect;
+						if (SUCCEEDED(surf->LockRect(&rect, &windowRect, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY))) {
+							char *data = (char *) malloc(3 * m_recordWidth * m_recordHeight);
+							formatBufferDump((char *) rect.pBits, data, m_recordWidth, m_recordHeight, rect.Pitch);
+							AVIDump::AddFrame(data);
+							free(data);
+							surf->UnlockRect();
+						}
+					}
+				}
+				m_LastFrameDumped = true;
+				surf->Release();
+			}
+		}
+	} else {
+		if(m_LastFrameDumped && m_AVIDumping) {
+			AVIDump::Stop();
+			m_AVIDumping = false;
+		}
+
+		m_LastFrameDumped = false;
 	}
 
 	//Finish up the current frame, print some stats

@@ -21,7 +21,7 @@ System Requirements:
 
 
 [Windows Version]
-DolphinWx.exe: The main program 
+Dolphin.exe: The main program 
 Arguments:
 -d		Run Dolphin with the debugger tools
 -l		Run Dolphin with the logmanager enabled

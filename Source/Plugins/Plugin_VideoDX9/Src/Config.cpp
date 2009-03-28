@@ -41,6 +41,7 @@ void Config::Load()
 	iniFile.Get("Settings", "OverlayProjection", &bOverlayProjStats, false);
 	iniFile.Get("Settings", "Postprocess", &iPostprocessEffect, 0);
 	iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
+	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "TexDumpPath", &texDumpPath, 0);
@@ -68,6 +69,7 @@ void Config::Save()
 	iniFile.Set("Settings", "OverlayProjection", bOverlayProjStats);
 	iniFile.Set("Settings", "Postprocess", iPostprocessEffect);
 	iniFile.Set("Settings", "DumpTextures", bDumpTextures);
+	iniFile.Set("Settings", "DumpFrames", bDumpFrames);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
 	iniFile.Set("Settings", "Multisample", iMultisampleMode);
 	iniFile.Set("Settings", "TexDumpPath", texDumpPath);

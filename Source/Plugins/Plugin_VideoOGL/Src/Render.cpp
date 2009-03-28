@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <cmath>
+#include <cstdio>
 
 #include "GLUtil.h"
 
@@ -29,6 +30,7 @@
 #include <mmsystem.h>
 #endif
 
+#include "CommonPaths.h"
 #include "Config.h"
 #include "Profiler.h"
 #include "Statistics.h"
@@ -52,6 +54,7 @@
 #include "main.h" // Local
 #ifdef _WIN32
 #include "OS/Win32.h"
+#include "AVIDump.h"
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -70,6 +73,13 @@ CGprofile g_cgfProf;
 RasterFont* s_pfont = NULL;
 
 static bool s_bFullscreen = false;
+
+static bool s_bLastFrameDumped = false;
+#ifdef _WIN32
+static bool s_bAVIDumping = false;
+#else
+static FILE* f_pFrameDump;
+#endif
 
 static int nZBufferRender = 0;  // if > 0, then use zbuffer render, and count down.
 
@@ -484,6 +494,15 @@ void Renderer::Shutdown(void)
         glDeleteFramebuffersEXT(1, &s_uFramebuffer);
         s_uFramebuffer = 0;
     }
+#ifdef _WIN32
+	if(s_bAVIDumping) {
+		AVIDump::Stop();
+	}
+#else
+	if(f_pFrameDump != NULL) {
+		fclose(f_pFrameDump);
+	}
+#endif
 }
 
 bool Renderer::InitializeGL()
@@ -1092,6 +1111,81 @@ void Renderer::Swap(const TRectangle& rc)
 		s_criticalScreenshot.Leave();
 	}
 
+	// Frame dumps are handled a little differently in Windows
+#ifdef _WIN32
+	if (g_Config.bDumpFrames) {
+		s_criticalScreenshot.Enter();
+		int w = OpenGL_GetBackbufferWidth();
+		int h = OpenGL_GetBackbufferHeight();
+		u8 *data = (u8 *) malloc(3 * w * h);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		if (glGetError() == GL_NO_ERROR) {
+			if (!s_bLastFrameDumped) {
+				s_bAVIDumping = AVIDump::Start(EmuWindow::GetChildParentWnd(), w, h);
+				if (!s_bAVIDumping) {
+					PanicAlert("Error dumping frames to AVI.");
+				} else {
+					char msg [255];
+					sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, w, h);
+					OSD::AddMessage(msg, 2000);
+				}
+			}
+			if (s_bAVIDumping) {
+				AVIDump::AddFrame((char *) data);
+			}
+			s_bLastFrameDumped = true;
+		}
+		free(data);
+		s_criticalScreenshot.Leave();
+	} else {
+		if(s_bLastFrameDumped && s_bAVIDumping) {
+			AVIDump::Stop();
+			s_bAVIDumping = false;
+		}
+
+		s_bLastFrameDumped = false;
+	}
+#else
+	if (g_Config.bDumpFrames) {
+		s_criticalScreenshot.Enter();
+		char movie_file_name[255];
+		int w = OpenGL_GetBackbufferWidth();
+		int h = OpenGL_GetBackbufferHeight();
+		u8 *data = (u8 *) malloc(3 * w * h);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+		if (glGetError() == GL_NO_ERROR) {
+			if (!s_bLastFrameDumped) {
+				sprintf(movie_file_name, "%s/framedump.raw", FULL_FRAMES_DIR);
+				f_pFrameDump = fopen(movie_file_name, "wb");
+				if (f_pFrameDump == NULL) {
+					PanicAlert("Error opening framedump.raw for writing.");
+				} else {
+					char msg [255];
+					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name, w, h);
+					OSD::AddMessage(msg, 2000);
+				}
+			}
+			if (f_pFrameDump != NULL) {
+				FlipImageData(data, w, h);
+				fwrite(data, w * 3, h, f_pFrameDump);
+				fflush(f_pFrameDump);
+			}
+			s_bLastFrameDumped = true;
+		}
+		free(data);
+		s_criticalScreenshot.Leave();
+	} else {
+		if(s_bLastFrameDumped && f_pFrameDump != NULL) {
+			fclose(f_pFrameDump);
+			f_pFrameDump = NULL;
+		}
+
+		s_bLastFrameDumped = false;
+	}
+#endif
+
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
 	s_bNativeResolution = g_Config.bNativeResolution;
@@ -1336,6 +1430,20 @@ bool Renderer::SaveRenderTarget(const char *filename, int w, int h)
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 	if (glGetError() != GL_NO_ERROR)
 		return false;
+	FlipImageData(data, w, h);
+#if defined(HAVE_WX) && HAVE_WX
+	wxImage a(w, h, data);
+	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
+	bool result = true;
+#else
+	bool result = SaveTGA(filename, w, h, data);
+	free(data);
+#endif
+	return result;
+}
+
+void Renderer::FlipImageData(u8 *data, int w, int h)
+{
 	// Flip image upside down. Damn OpenGL.
 	for (int y = 0; y < h / 2; y++)
 	{
@@ -1346,16 +1454,6 @@ bool Renderer::SaveRenderTarget(const char *filename, int w, int h)
 			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
 		}
 	}
-
-#if defined(HAVE_WX) && HAVE_WX
-	wxImage a(w, h, data);
-	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
-	bool result = true;
-#else
-	bool result = SaveTGA(filename, w, h, data);
-	free(data);
-#endif
-	return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////

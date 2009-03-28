@@ -485,6 +485,14 @@
 			Name="Util"
 			>
 			<File
+				RelativePath=".\Src\AVIDump.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\AVIDump.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\ImageWrite.cpp"
 				>
 			</File>

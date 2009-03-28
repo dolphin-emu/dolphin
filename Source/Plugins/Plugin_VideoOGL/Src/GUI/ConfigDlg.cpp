@@ -54,6 +54,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPEFBTARGET, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
@@ -334,6 +335,18 @@ void ConfigDialog::CreateGUIControls()
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_DumpEFBTarget = new wxCheckBox(m_PageAdvanced, ID_DUMPEFBTARGET, wxT("Dump EFB Target"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
+	m_DumpFrames = new wxCheckBox(m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Rendered Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#ifdef _WIN32
+	m_DumpFrames->SetToolTip(wxT(
+		"When dumping begins, you will be prompted to choose a video codec to"
+		" encode the video in."));
+#else
+	m_DumpFrames->SetToolTip(wxT(
+		"!!WARNING!! This option dumps raw bitmaps of each frame, and will fill up"
+		" your hard drive very quickly. Only turn this on if you have a named pipe"
+		" set up for the dump or several gigabytes of space available."));
+#endif
+	m_DumpFrames->SetValue(g_Config.bDumpFrames);
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -394,6 +407,7 @@ void ConfigDialog::CreateGUIControls()
 	sUtilities = new wxBoxSizer(wxHORIZONTAL);
 	sUtilities->Add(m_DumpTextures, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_DumpEFBTarget, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_DumpFrames, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
 
 	// Sizers
@@ -524,6 +538,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DUMPEFBTARGET:
 		g_Config.bDumpEFBTarget = m_DumpEFBTarget->IsChecked();
+		break;
+	case ID_DUMPFRAMES:
+		g_Config.bDumpFrames = m_DumpFrames->IsChecked();
 		break;
 	case ID_TEXTUREPATH:
 		break;

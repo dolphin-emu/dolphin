@@ -38,6 +38,10 @@ class Renderer
 	static float m_height;
 	static float xScale;
 	static float yScale;
+	static bool m_LastFrameDumped;
+	static bool m_AVIDumping;
+	static int m_recordWidth;
+	static int m_recordHeight;
 	const static int MaxTextureStages = 9;
 	const static int MaxRenderStates = 210;
 	const static DWORD MaxTextureTypes = 33;

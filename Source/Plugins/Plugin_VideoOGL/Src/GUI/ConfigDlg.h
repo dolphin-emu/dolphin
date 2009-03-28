@@ -106,6 +106,7 @@ class ConfigDialog : public wxDialog
         wxCheckBox *m_DstAlphaPass;
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_DumpEFBTarget;
+		wxCheckBox *m_DumpFrames;
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
@@ -161,6 +162,7 @@ class ConfigDialog : public wxDialog
 
 			ID_DUMPTEXTURES,
 			ID_DUMPEFBTARGET,
+			ID_DUMPFRAMES,
 			ID_TEXTUREPATH,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 

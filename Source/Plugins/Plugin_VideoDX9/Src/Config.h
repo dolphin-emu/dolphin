@@ -39,6 +39,7 @@ struct Config
 	bool bOverlayStats;
 	bool bOverlayProjStats;
 	bool bDumpTextures;
+	bool bDumpFrames;
 	bool bOldCard;
 	bool bShowShaderErrors;
 	//enhancements
