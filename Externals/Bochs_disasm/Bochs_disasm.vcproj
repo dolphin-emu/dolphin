@@ -52,7 +52,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				DebugInformationFormat="4"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 				ForcedUsingFiles=""
 			/>
 			<Tool
@@ -117,7 +117,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 				ForcedUsingFiles=""
 			/>
 			<Tool
@@ -180,7 +180,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 				ForcedUsingFiles=""
 			/>
 			<Tool
@@ -309,7 +309,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 				ForcedUsingFiles=""
 			/>
 			<Tool
@@ -375,7 +375,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 				ForcedUsingFiles=""
 			/>
 			<Tool
