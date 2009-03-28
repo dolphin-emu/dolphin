@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 // core and the plugin specs. Any definitions that are only used by the core
 // should be placed in "Common.h" instead.
 
-#ifndef _COMMONTYPES_H
-#define _COMMONTYPES_H
+#ifndef _COMMONTYPES_H_
+#define _COMMONTYPES_H_
 
 #ifdef _WIN32
 
@@ -55,4 +55,4 @@ typedef long long s64;
 
 #endif // _WIN32
 
-#endif // _COMMONTYPES_H
+#endif // _COMMONTYPES_H_

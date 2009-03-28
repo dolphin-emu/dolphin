@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -41,9 +41,8 @@ void SetEnableAlert(bool enable) {
    correct windows is shown */
 bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
 {
-	// ---------------------------------
+
 	// Read message and write it to the log
-	// -----------
 	char buffer[2048];
 	bool ret = true;
 
@@ -75,4 +74,3 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
     return true;
 #endif
 }
-

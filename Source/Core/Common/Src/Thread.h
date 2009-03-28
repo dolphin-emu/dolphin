@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,12 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _THREAD_H
-#define _THREAD_H
+#ifndef _THREAD_H_
+#define _THREAD_H_
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ------------
 #ifdef _WIN32
 #include <windows.h>
 #define THREAD_RETURN DWORD WINAPI
@@ -39,9 +36,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Definitions
-// ------------
 // This may not be defined outside _WIN32
 #ifndef _WIN32
 	#ifndef INFINITE
@@ -124,9 +118,7 @@ public:
 	void MsgWait() {Wait();}
 #endif
 
-	// -----------------------------------------
 	#ifdef SETUP_TIMER_WAITING
-	// -----------------
 		bool TimerWait(EventCallBack WaitCB, int Id = 0, bool OptCondition = true);
 		bool DoneWait();
 		void SetTimer();
@@ -136,7 +128,6 @@ public:
 		HANDLE hTimer;
 		HANDLE hTimerQueue;		
 	#endif
-	// ---------------------------
 
 private:
 #ifdef _WIN32
@@ -163,6 +154,6 @@ LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val);
 LONG SyncInterlockedExchange(LONG *Dest, LONG Val);
 LONG SyncInterlockedIncrement(LONG *Dest);
 
-} // end of namespace Common
+} // namespace Common
 
-#endif
+#endif // _STRINGUTIL_H_

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _COLORUTIL_H
-#define _COLORUTIL_H
+#ifndef _COLORUTIL_H_
+#define _COLORUTIL_H_
 
 namespace ColorUtil
 {
@@ -25,4 +25,4 @@ u32 Decode5A3(u16 val);
 
 }  // namespace
 
-#endif
+#endif // _COLORUTIL_H_

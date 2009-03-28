@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,16 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// -----------------------------------------------------------------------------------------
 // Partial Action Replay code system implementation.
-
 // Will never be able to support some AR codes - specifically those that patch the running
 // Action Replay engine itself - yes they do exist!!!
-
 // Action Replay actually is a small virtual machine with a limited number of commands.
-// It probably is Turing complete - but what does that matter when AR codes can write
+// It probably is Turning complete - but what does that matter when AR codes can write
 // actual PowerPC code...
+// -----------------------------------------------------------------------------------------
 
-// THIS FILE IS GROSS!!!
+// -------------------------------------------------------------------------------------------------------------
+// Codes Types:
+// (Unconditonal) Normal Codes (0): this one has subtypes inside
+// (Conditional) Normal Codes (1 - 7): these just compare values and set the line skip info
+// Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
+// -------------------------------------------------------------------------------------------------------------
 
 #include <string>
 #include <vector>
@@ -40,6 +45,16 @@
 
 namespace ActionReplay
 {
+enum
+{
+	EQUAL = 0,
+	NOT_EQUAL,
+	LESS_THAN_SIGNED,
+	GREATER_THAN_SIGNED,
+	LESS_THAN_UNSIGNED,
+	GREATER_THAN_UNSIGNED,
+	LOGICAL_AND
+};
 
 static std::vector<AREntry>::const_iterator iter;
 static ARCode code;
@@ -49,28 +64,20 @@ static std::vector<ARCode> activeCodes;
 static bool logSelf = false;
 static std::vector<std::string> arLog;
 
-
 void LogInfo(const char *format, ...);
-// --- Codes ---
-// SubTypes (Normal 0 Codes)
 bool Subtype_RamWriteAndFill(u32 addr, u32 data);
 bool Subtype_WriteToPointer(u32 addr, u32 data);
 bool Subtype_AddCode(u32 addr, u32 data);
 bool Subtype_MasterCodeAndWriteToCCXXXXXX();
-// Zero Codes
 bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data);
 bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data);
-// Normal Codes
-bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data);
-bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
-bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode(u8 subtype, u32 addr, u32 data);
+bool ConditionalCode(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip, int compareType);
 bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount);
+bool CompareValues(u32 val1, u32 val2, int type);
 
+// ----------------------
+// AR Remote Functions
 void LoadCodes(IniFile &ini, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
@@ -174,6 +181,7 @@ void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &ini)
 	_arCodes = arCodes;
 }
 
+
 void LogInfo(const char *format, ...)
 {
 	if (!b_RanOnce) 
@@ -196,6 +204,7 @@ void LogInfo(const char *format, ...)
 		}
 	}
 }
+
 
 void RunAllActive()
 {
@@ -241,9 +250,7 @@ bool RunCode(const ARCode &arcode) {
 			if (count == -1 || count < -2 || count > (int)code.ops.size())
 			{
 				LogInfo("Bad Count: %i", count);
-				#if defined(_DEBUG) || defined(DEBUGFAST)
-					PanicAlert("Action Replay: Bad Count: %i (%s)", count, code.name.c_str());
-				#endif
+				PanicAlert("Action Replay: Bad Count: %i (%s)", count, code.name.c_str());
 				return false;
 			}
 
@@ -346,42 +353,42 @@ bool RunCode(const ARCode &arcode) {
 		switch (type)
 		{
 		case 0x0:
-			if (!NormalCode_Type_0(subtype, addr, data))
+			if (!NormalCode(subtype, addr, data))
 				return false;
 			continue;
 		case 0x1:
 			LogInfo("Type 1: If Equal");
-			if (!NormalCode_Type_1(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, EQUAL))
 				return false;
 			continue;
 		case 0x2:
 			LogInfo("Type 2: If Not Equal");
-			if (!NormalCode_Type_2(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, NOT_EQUAL))
 				return false;
 			continue;
 		case 0x3:
 			LogInfo("Type 3: If Less Than (Signed)");
-			if (!NormalCode_Type_3(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, LESS_THAN_SIGNED))
 				return false;
 			continue;
 		case 0x4:
 			LogInfo("Type 4: If Greater Than (Signed)");
-			if (!NormalCode_Type_4(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, GREATER_THAN_SIGNED))
 				return false;
 			continue;
 		case 0x5:
 			LogInfo("Type 5: If Less Than (Unsigned)");
-			if (!NormalCode_Type_5(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, LESS_THAN_UNSIGNED))
 				return false;
 			continue;
 		case 0x6:
 			LogInfo("Type 6: If Greater Than (Unsigned)");
-			if (!NormalCode_Type_6(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, GREATER_THAN_UNSIGNED))
 				return false;
 			continue;
 		case 0x7:
 			LogInfo("Type 7: If AND");
-			if (!NormalCode_Type_7(subtype, addr, data, &count, &skip))
+			if (!ConditionalCode(subtype, addr, data, &count, &skip, LOGICAL_AND))
 				return false;
 			continue;
 		default:
@@ -395,8 +402,60 @@ bool RunCode(const ARCode &arcode) {
 
 	return true;
 }
+size_t GetCodeListSize()
+{
+	return arCodes.size();
+}
 
-// Subtypes
+ARCode GetARCode(size_t index)
+{
+	if (index > arCodes.size())
+	{
+		PanicAlert("GetARCode: Index is greater than ar code list size %i", index);
+		return ARCode();
+	}
+	return arCodes[index];
+}
+
+void SetARCode_IsActive(bool active, size_t index)
+{
+	if (index > arCodes.size())
+	{
+		PanicAlert("SetARCode_IsActive: Index is greater than ar code list size %i", index);
+		return;
+	}
+	arCodes[index].active = active;
+	UpdateActiveList();
+}
+
+void UpdateActiveList()
+{
+	b_RanOnce = false;
+	activeCodes.clear();
+	for (size_t i = 0; i < arCodes.size(); i++)
+	{
+		if (arCodes[i].active)
+			activeCodes.push_back(arCodes[i]);
+	}
+}
+
+void EnableSelfLogging(bool enable)
+{
+	logSelf = enable;
+}
+
+const std::vector<std::string> &GetSelfLog()
+{
+	return arLog;
+}
+
+bool IsSelfLogging()
+{
+	return logSelf;
+}
+
+// ----------------------
+// Code Functions
 bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 {
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000); // real GC address
@@ -557,7 +616,6 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX()
 	return false;
 }
 
-// Zero Codes
 bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more testing
 {
 	u32 new_addr = (val_last & 0x81FFFFFF);
@@ -693,8 +751,7 @@ bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data) // Has not been teste
 	return true;
 }
 
-// Normal Codes
-bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data)
+bool NormalCode(u8 subtype, u32 addr, u32 data)
 {
 	switch (subtype)
 	{
@@ -725,8 +782,7 @@ bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data)
 	}
 	return true;
 }
-// Conditional Codes
-bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
+bool ConditionalCode(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip, int compareType)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -735,203 +791,20 @@ bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 	bool con = true;
 	switch (size)
 	{
-	case 0x0: con = (Memory::Read_U8(new_addr) == (u8)(data & 0xFF)); break;
-	case 0x1: con = (Memory::Read_U16(new_addr) == (u16)(data & 0xFFFF)); break;
+	case 0x0: con = CompareValues((u32)Memory::Read_U8(new_addr), (data & 0xFF), compareType); break;
+	case 0x1: con = CompareValues((u32)Memory::Read_U16(new_addr), (data & 0xFFFF), compareType); break;
 	case 0x3:
-	case 0x2: con = (Memory::Read_U32(new_addr) == data); break;
+	case 0x2: con = CompareValues(Memory::Read_U32(new_addr), data, compareType); break;
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 1: Invalid Size %08x (%s)", size, code.name.c_str());
+		PanicAlert("Action Replay: Conditional Code: Invalid Size %08x (%s)", size, code.name.c_str());
 		return false;
 	}
 
 	return SetLineSkip(1, subtype, pSkip, con, pCount);
 }
-
-bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = (Memory::Read_U8(new_addr) != (u8)(data & 0xFF)); break;
-	case 0x1: con = (Memory::Read_U16(new_addr) != (u16)(data & 0xFFFF)); break;
-	case 0x3:
-	case 0x2: con = (Memory::Read_U32(new_addr) != data); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 2: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(2, subtype, pSkip, con, pCount);
-}
-
-bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = ((char)Memory::Read_U8(new_addr) < (char)(data & 0xFF)); break;
-	case 0x1: con = ((short)Memory::Read_U16(new_addr) < (short)(data & 0xFFFF)); break;
-	case 0x3:
-	case 0x2: con = ((int)Memory::Read_U32(new_addr) < (int)data); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 3: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(3, subtype, pSkip, con, pCount);
-}
-
-bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = ((char)Memory::Read_U8(new_addr) > (char)(data & 0xFF)); break;
-	case 0x1: con = ((short)Memory::Read_U16(new_addr) > (short)(data & 0xFFFF)); break;
-	case 0x3:
-	case 0x2: con = ((int)Memory::Read_U32(new_addr) > (int)data); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 4: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(4, subtype, pSkip, con, pCount);
-}
-
-bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = (Memory::Read_U8(new_addr) < (data & 0xFF)); break;
-	case 0x1: con = (Memory::Read_U16(new_addr) < (data & 0xFFFF)); break;
-	case 0x3:
-	case 0x2: con = (Memory::Read_U32(new_addr) < data); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 5: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(5, subtype, pSkip, con, pCount);
-}
-
-bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = (Memory::Read_U8(new_addr) > (data & 0xFF)); break;
-	case 0x1: con = (Memory::Read_U16(new_addr) > (data & 0xFFFF)); break;
-	case 0x3:
-	case 0x2: con = (Memory::Read_U32(new_addr) > data); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 6: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(6, subtype, pSkip, con, pCount);
-}
-
-bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
-{
-	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	LogInfo("Size: %08x", size);
-	LogInfo("Hardware Address: %08x", new_addr);
-	bool con = true;
-	switch (size)
-	{
-	case 0x0: con = ((Memory::Read_U8(new_addr) & (data & 0xFF)) != 0); break;
-	case 0x1: con = ((Memory::Read_U16(new_addr) & (data & 0xFFFF)) != 0); break;
-	case 0x3:
-	case 0x2: con = ((Memory::Read_U32(new_addr) & data) != 0); break;
-	default:
-		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Normal Code 7: Invalid Size %08x (%s)", size, code.name.c_str());
-		return false;
-	}
-
-	return SetLineSkip(7, subtype, pSkip, con, pCount);
-}
-
-size_t GetCodeListSize()
-{
-	return arCodes.size();
-}
-
-ARCode GetARCode(size_t index)
-{
-	if (index > arCodes.size())
-	{
-		PanicAlert("GetARCode: Index is greater than ar code list size %i", index);
-		return ARCode();
-	}
-	return arCodes[index];
-}
-
-void SetARCode_IsActive(bool active, size_t index)
-{
-	if (index > arCodes.size())
-	{
-		PanicAlert("SetARCode_IsActive: Index is greater than ar code list size %i", index);
-		return;
-	}
-	arCodes[index].active = active;
-	UpdateActiveList();
-}
-
-void UpdateActiveList()
-{
-	b_RanOnce = false;
-	activeCodes.clear();
-	for (size_t i = 0; i < arCodes.size(); i++)
-	{
-		if (arCodes[i].active)
-			activeCodes.push_back(arCodes[i]);
-	}
-}
-
-void EnableSelfLogging(bool enable)
-{
-	logSelf = enable;
-}
-
-const std::vector<std::string> &GetSelfLog()
-{
-	return arLog;
-}
-
-bool IsSelfLogging()
-{
-	return logSelf;
-}
-
+// ----------------------
+// Internal Functions
 bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount)
 {
 	*pSkip = !skip; // set skip
@@ -950,5 +823,19 @@ bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount)
 	}
 
 	return true;
+}
+bool CompareValues(u32 val1, u32 val2, int type)
+{
+	switch(type)
+	{
+	case 0: return (val1 == val2);
+	case 1: return (val1 != val2);
+	case 2: return ((int)val1 < (int)val2);
+	case 3: return ((int)val1 > (int)val2);
+	case 4: return (val1 < val2);
+	case 5: return (val1 > val2);
+	case 6: return (val1 && val2);
+	default: LogInfo("Unknown Compare type"); return false;
+	}
 }
 } // namespace ActionReplay

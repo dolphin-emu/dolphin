@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -45,11 +45,10 @@
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
 #endif
-/*
-  This namespace has various generic functions related to files and paths.
-  The code still needs a ton of cleanup.
-  REMEMBER: strdup considered harmful!
-*/
+
+// This namespace has various generic functions related to files and paths.
+// The code still needs a ton of cleanup.
+// REMEMBER: strdup considered harmful!
 namespace File
 {
 
@@ -70,7 +69,7 @@ bool Exists(const char *filename)
 {
 	struct stat file_info;
 		
-	char *copy = StripTailDirSlashes(strdup(filename));
+	char *copy = StripTailDirSlashes(__strdup(filename));
 	int result = stat(copy, &file_info);
 	free(copy);
 
@@ -82,7 +81,7 @@ bool IsDirectory(const char *filename)
 {
 	struct stat file_info;
 
-	char *copy = StripTailDirSlashes(strdup(filename));
+	char *copy = StripTailDirSlashes(__strdup(filename));
 
 	int result = stat(copy, &file_info);
 	free(copy);
@@ -488,7 +487,7 @@ const char *GetCurrentDirectory()
 {
 	const char *dir;
 	// Get the current working directory (getcwd uses malloc) 
-	if (!(dir = getcwd(NULL, 0))) {
+	if (!(dir = __getcwd(NULL, 0))) {
 
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
 				  GetLastErrorMsg());
@@ -500,7 +499,7 @@ const char *GetCurrentDirectory()
 // Sets the current directory to the given directory
 bool SetCurrentDirectory(const char *_rDirectory)
 {
-	return chdir(_rDirectory) == 0;
+	return __chdir(_rDirectory) == 0;
 }
 
 #if defined(__APPLE__)
@@ -603,4 +602,3 @@ const char *GetUserDirectory()
 }
 
 } // namespace
-

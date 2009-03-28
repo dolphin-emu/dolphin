@@ -15,8 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __OPENALSTREAM_H__
-#define __OPENALSTREAM_H__
+#ifndef _OPENALSTREAM_H_
+#define _OPENALSTREAM_H_
+
 #include "SoundStream.h"
 #include "Thread.h"
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
-#ifndef _DOLPHIN_INTEL_CODEGEN
-#define _DOLPHIN_INTEL_CODEGEN
+#ifndef _DOLPHIN_INTEL_CODEGEN_
+#define _DOLPHIN_INTEL_CODEGEN_
 
 #include "Common.h"
 #include "MemoryUtil.h"
@@ -721,4 +721,4 @@ public:
 
 }  // namespace
 
-#endif
+#endif // _DOLPHIN_INTEL_CODEGEN_

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _COMMON_H
-#define _COMMON_H
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,6 +40,15 @@
 #include "CommonPaths.h"
 #include "CommonFuncs.h"
 
+#ifdef _MSC_VER
+#define __strdup _strdup
+#define __getcwd _getcwd
+#define __chdir _chdir
+#else
+#define __strdup strdup
+#define __getcwd getcwd
+#define __chdir chdir
+#endif
 
 // Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
 // This probably wouldn't break anyone either, but hey
@@ -50,7 +59,6 @@
 #endif
 
 #ifdef _WIN32
-
 // Check MSC ver
 	#if !defined _MSC_VER || _MSC_VER <= 1000
 		#error needs at least version 1000 of MSC
@@ -124,4 +132,4 @@ namespace
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
 
-#endif // COMMON_H
+#endif // _COMMON_H_

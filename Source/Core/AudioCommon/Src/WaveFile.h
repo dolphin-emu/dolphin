@@ -15,17 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// WaveFileWriter
-
-// Simple utility class to make it easy to write long 16-bit stereo
+// ---------------------------------------------------------------------------------
+// Class: WaveFileWriter
+// Description: Simple utility class to make it easy to write long 16-bit stereo
 // audio streams to disk.
 // Use Start() to start recording to a file, and AddStereoSamples to add wave data.
 // The float variant will convert from -1.0-1.0 range and clamp.
 // Alternatively, AddSamplesBE for big endian wave data.
 // If Stop is not called when it destructs, the destructor will call Stop().
+// ---------------------------------------------------------------------------------
 
-#ifndef _WAVEFILE_H
-#define _WAVEFILE_H
+#ifndef _WAVEFILE_H_
+#define _WAVEFILE_H_
 
 #include <stdio.h>
 
@@ -52,4 +53,4 @@ public:
 	u32 GetAudioSize() { return audio_size; }
 };
 
-#endif  // _WAVEFILE_H
+#endif  // _WAVEFILE_H_

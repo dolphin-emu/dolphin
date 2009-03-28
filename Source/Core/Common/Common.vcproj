@@ -51,12 +51,12 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -124,12 +124,12 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -191,18 +191,18 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -265,18 +265,18 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -337,16 +337,16 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -408,15 +408,15 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;WIN32_LEAN_AND_MEAN"
 				RuntimeLibrary="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -718,62 +718,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Setup.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.cpp"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
 		<File

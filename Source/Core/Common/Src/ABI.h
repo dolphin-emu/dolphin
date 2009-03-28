@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _JIT_ABI_H
-#define _JIT_ABI_H
+#ifndef _JIT_ABI_H_
+#define _JIT_ABI_H_
 
 #include "Common.h"
 
@@ -74,10 +74,10 @@
 #define ABI_PARAM5 R8
 #define ABI_PARAM6 R9
 
-#endif
+#endif // WIN32
 
-#endif
+#endif // X86
 
-#endif  // _JIT_ABI_H
+#endif  // _JIT_ABI_H_
 
 

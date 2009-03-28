@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////
+// --------------------------------------------------------------------------------------
 //
 // Written by Zoltan Csizmadia, zoltan_csizmadia@yahoo.com
 // For companies(Austin,TX): If you would like to get my resume, send an email.
@@ -10,14 +10,7 @@
 //    1.1      WhineCube version                Masken
 //    1.2      Dolphin version                  Masken
 //
-//////////////////////////////////////////////////////////////////////////////////////
-//
-// ExtendedTrace.cpp
-//
-
-// Include StdAfx.h, if you're using precompiled 
-// header through StdAfx.h
-//#include "stdafx.h"
+// --------------------------------------------------------------------------------------
 
 #if defined(WIN32)
 

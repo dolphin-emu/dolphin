@@ -15,26 +15,22 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __DSOUNDSTREAM_H__
-#define __DSOUNDSTREAM_H__
-#include "SoundStream.h"
+#ifndef _DSOUNDSTREAM_H_
+#define _DSOUNDSTREAM_H_
 
+#include "SoundStream.h"
 #include "Thread.h"
 
 #ifdef _WIN32
-#include "stdafx.h"
-
 #include <mmsystem.h>
 #include <dsound.h>
 
 #define BUFSIZE 32768
-#define MAXWAIT 70   //ms
-
+#define MAXWAIT 70   // miliseconds
 #endif
 
 class DSound : public SoundStream
 {
-#ifdef _WIN32
     Common::Thread *thread;
     Common::CriticalSection soundCriticalSection;
     Common::Event soundSyncEvent;
@@ -77,12 +73,6 @@ public:
     static bool isValid() { return true; }
     virtual bool usesMixer() const { return true; }
     virtual void Update();
-
-#else
-public:
-    DSound(CMixer *mixer, void *hWnd = NULL) :
-        SoundStream(mixer) {}
-#endif
 };
 
-#endif //__DSOUNDSTREAM_H__
+#endif //_DSOUNDSTREAM_H_

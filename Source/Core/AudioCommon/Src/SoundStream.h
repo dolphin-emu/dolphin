@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __SOUNDSTREAM_H__
-#define __SOUNDSTREAM_H__
+#ifndef _SOUNDSTREAM_H_
+#define _SOUNDSTREAM_H_
 
 #include "Common.h"
 #include "Mixer.h"
@@ -65,4 +65,4 @@ public:
 	}
 };
 
-#endif
+#endif // _SOUNDSTREAM_H_

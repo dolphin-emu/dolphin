@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_H
-#define _PLUGIN_H
+#ifndef _PLUGIN_H_
+#define _PLUGIN_H_
 
 #include "Common.h"
 #include "PluginSpecs.h"
@@ -67,6 +67,6 @@ private:
 	TShutdown m_Shutdown;
 	TDoState m_DoState;
 };
-} // end of namespace Common
+} // Namespace
 
-#endif
+#endif // _PLUGIN_H_

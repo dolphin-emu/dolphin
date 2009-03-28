@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 
 // Emulator state saving support.
 
-#ifndef _STATE_H
-#define _STATE_H
+#ifndef _STATE_H_
+#define _STATE_H_
 
 void State_Init();
 void State_Shutdown();

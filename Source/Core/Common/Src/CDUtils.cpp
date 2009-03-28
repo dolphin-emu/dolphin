@@ -1,12 +1,9 @@
-/* Most of the code in this file was shamelessly ripped from libcdio
-   With minor adjustments */
+// Most of the code in this file was shamelessly ripped from libcdio With minor adjustments
  
 #include "CDUtils.h"
+#include "Common.h"
   
-/*!
-  Follow symlinks until we have the real device file
-  (idea taken from libunieject). 
-*/
+// Follow symlinks until we have the real device file (idea taken from libunieject). 
 void cdio_follow_symlink(const char * src, char * dst) {
 #ifndef _WIN32
 	char tmp_src[PATH_MAX+1];
@@ -32,10 +29,9 @@ void cdio_follow_symlink(const char * src, char * dst) {
 }
  
 
-/*! 
-  Add/allocate a drive to the end of drives. 
-  Use cdio_free_device_list() to free this device_list.
-*/
+
+// Add/allocate a drive to the end of drives. 
+// Use cdio_free_device_list() to free this device_list.
 void cdio_add_device_list(char **device_list[], const char *drive, 
 						  unsigned int *num_drives) {
 	if (NULL != drive) {
@@ -53,7 +49,7 @@ void cdio_add_device_list(char **device_list[], const char *drive,
 			/* Drive not in list. Add it. */
 			(*num_drives)++;
 			*device_list = (char **)realloc(*device_list, (*num_drives) * sizeof(char *));
-			(*device_list)[*num_drives-1] = strdup(drive);
+			(*device_list)[*num_drives-1] = __strdup(drive);
 		}
 		
 	} else {
@@ -67,10 +63,8 @@ void cdio_add_device_list(char **device_list[], const char *drive,
 	}
 }
 
-/*!
-  Free device list returned by cdio_get_devices or
-  cdio_get_devices_with_cap.
-*/
+// Free device list returned by cdio_get_devices or
+// cdio_get_devices_with_cap.
 void cdio_free_device_list(char * ppsz_device_list[]) {
 	char **ppsz_device_list_save=ppsz_device_list;
 	if (!ppsz_device_list) return;
@@ -83,10 +77,8 @@ void cdio_free_device_list(char * ppsz_device_list[]) {
 
 
 #ifdef _WIN32
-/*
-  Returns a string that can be used in a CreateFile call if 
-  c_drive letter is a character. If not NULL is returned.
-*/
+// Returns a string that can be used in a CreateFile call if 
+// c_drive letter is a character. If not NULL is returned.
 const char *is_cdrom_win32(const char c_drive_letter) {
 	
 	UINT uDriveType;
@@ -103,7 +95,7 @@ const char *is_cdrom_win32(const char c_drive_letter) {
 	  case DRIVE_CDROM: {
 		  char sz_win32_drive_full[] = "\\\\.\\X:";
 		  sz_win32_drive_full[4] = c_drive_letter;
-		  return strdup(&sz_win32_drive_full[4]);
+		  return __strdup(&sz_win32_drive_full[4]);
 	  }
 	  default:
 		  //cdio_debug("Drive %c is not a CD-ROM", c_drive_letter);
@@ -111,17 +103,14 @@ const char *is_cdrom_win32(const char c_drive_letter) {
 	}
 }
 
-/*
-  Returns a pointer to an array of strings with the device names
-*/
+// Returns a pointer to an array of strings with the device names
 char ** cdio_get_devices_win32() {
 	char **drives = NULL;
 	unsigned int num_drives=0;
 	char drive_letter;
 	
-	/* Scan the system for CD-ROM drives.
-	   Not always 100% reliable, so use the USE_MNTENT code above first.
-	*/
+	// Scan the system for CD-ROM drives.
+	// Not always 100% reliable, so use the USE_MNTENT code above first.
 	for (drive_letter='A'; drive_letter <= 'Z'; drive_letter++) {
 		const char *drive_str=is_cdrom_win32(drive_letter);
 		if (drive_str != NULL) {
@@ -305,7 +294,7 @@ static char *check_mounts_linux(const char *mtab)
 			  tmp = strstr(mntent->mnt_opts, "fs=");
 			  if ( tmp ) {
 				  free(mnt_type);
-				  mnt_type = strdup(tmp + strlen("fs="));
+				  mnt_type = __strdup(tmp + strlen("fs="));
 				  if ( mnt_type ) {
 					  tmp = strchr(mnt_type, ',');
 					  if ( tmp ) {
@@ -316,7 +305,7 @@ static char *check_mounts_linux(const char *mtab)
 			  tmp = strstr(mntent->mnt_opts, "dev=");
 			  if ( tmp ) {
 				  free(mnt_dev);
-				  mnt_dev = strdup(tmp + strlen("dev="));
+				  mnt_dev = __strdup(tmp + strlen("dev="));
 				  if ( mnt_dev ) {
 					  tmp = strchr(mnt_dev, ',');
 					  if ( tmp ) {
@@ -340,9 +329,7 @@ static char *check_mounts_linux(const char *mtab)
   return NULL;
 }
 
-/*
-  Returns a pointer to an array of strings with the device names
-*/
+// Returns a pointer to an array of strings with the device names
 char **cdio_get_devices_linux () {
 	
 	unsigned int i;
@@ -351,8 +338,7 @@ char **cdio_get_devices_linux () {
 	char **drives = NULL;
 	unsigned int num_drives=0;
 	
-	/* Scan the system for CD-ROM drives.
-	 */
+	// Scan the system for CD-ROM drives.
 	for ( i=0; strlen(checklist1[i]) > 0; ++i ) {
 		sprintf(drive, "/dev/%s", checklist1[i]);
 		if ( is_cdrom_linux(drive, NULL) > 0 ) {
@@ -372,9 +358,8 @@ char **cdio_get_devices_linux () {
 		free(ret_drive);
 	}
 	
-	/* Scan the system for CD-ROM drives.
-	   Not always 100% reliable, so use the USE_MNTENT code above first.
-	*/
+	// Scan the system for CD-ROM drives.
+	// Not always 100% reliable, so use the USE_MNTENT code above first.
 	for ( i=0; checklist2[i].format; ++i ) {
 		unsigned int j;
 		for ( j=checklist2[i].num_min; j<=checklist2[i].num_max; ++j ) {
@@ -389,9 +374,7 @@ char **cdio_get_devices_linux () {
 }
 #endif
 
-/*
-  Returns a pointer to an array of strings with the device names
-*/
+// Returns a pointer to an array of strings with the device names
 char **cdio_get_devices() {
 #ifdef _WIN32
 	return cdio_get_devices_win32();
@@ -405,9 +388,9 @@ char **cdio_get_devices() {
 }
 
 // Need to be tested, does calling this function twice cause any damage?
-/*
-  Returns true if device is cdrom/dvd
-*/
+
+// Returns true if device is cdrom/dvd
+
 bool cdio_is_cdrom(const char *device) {
 	char **devices = cdio_get_devices();
 	bool res = false;
@@ -421,7 +404,9 @@ bool cdio_is_cdrom(const char *device) {
 	cdio_free_device_list(devices);
 	return res;
 }
-	
+
+
+// Can we remove this?
 /*
 int main() {
     char** res = cdio_get_devices();

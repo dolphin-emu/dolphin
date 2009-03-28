@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _MATH_UTIL_H
-#define _MATH_UTIL_H
+#ifndef _MATH_UTIL_H_
+#define _MATH_UTIL_H_
 
 #include <xmmintrin.h>
 
@@ -36,4 +36,4 @@ void LoadDefaultSSEState();
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 
-#endif
+#endif // _MATH_UTIL_H_

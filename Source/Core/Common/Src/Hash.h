@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _HASH_H
-#define _HASH_H
+#ifndef _HASH_H_
+#define _HASH_H_
 
 #include "Common.h"
 
@@ -25,4 +25,4 @@ u32 HashAdler32(const u8* data, size_t len);         // Fairly accurate, slightl
 u32 HashFNV(const u8* ptr, int length);              // Another fast and decent hash
 u32 HashEctor(const u8* ptr, int length);            // JUNK. DO NOT USE FOR NEW THINGS
 
-#endif
+#endif // _HASH_H_

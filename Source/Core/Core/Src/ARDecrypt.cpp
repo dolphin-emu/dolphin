@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // Most of the code in this file is from:
 //	GCNcrypt - Gamecube AR Crypto Program

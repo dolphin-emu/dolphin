@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _INIFILE_H
-#define _INIFILE_H
+#ifndef _INIFILE_H_
+#define _INIFILE_H_
 
 #include <string>
 #include <vector>
@@ -88,4 +88,4 @@ private:
 	void CreateSection(const char* section);
 };
 
-#endif
+#endif // _INIFILE_H_

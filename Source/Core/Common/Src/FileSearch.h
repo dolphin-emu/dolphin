@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __FILESEARCH_H_
-#define __FILESEARCH_H_
+#ifndef _FILESEARCH_H_
+#define _FILESEARCH_H_
 
 #include <string>
 #include <vector>
@@ -40,5 +40,5 @@ class CFileSearch
 		XStringVector m_FileNames;
 };
 
-#endif
+#endif // _FILESEARCH_H_
 

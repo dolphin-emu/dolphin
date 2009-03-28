@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,14 +18,11 @@
 #include "Setup.h"
 #include "Thread.h"
 #include "Log.h"
-// -----------------------------------------
 #ifdef SETUP_TIMER_WAITING
-// -----------------
 	#include <windows.h>
 	#include "ConsoleWindow.h"
 	EventCallBack FunctionPointer[10];
 #endif
-// ------------------------
 
 namespace Common
 {
@@ -68,7 +65,6 @@ void CriticalSection::Leave()
 	LeaveCriticalSection(&section);
 }
 
-
 Thread::Thread(ThreadFunc function, void* arg)
 	: m_hThread(NULL), m_threadId(0)
 {
@@ -106,10 +102,7 @@ void Thread::SetCurrentThreadAffinity(int mask)
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Regular same thread loop based waiting
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 Event::Event()
 {
 	m_hEvent = 0;
@@ -186,14 +179,9 @@ void Event::MsgWait()
 	}
 }
 
-/////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 /* Separate thread timer based waiting, instead of same thread loop waiting. The downside with this
    is that it's less convenient to use because we can't stall any threads with a loop. The positive
    is that we don't cause these incredibly annoying WaitForEternity() hangings. */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef SETUP_TIMER_WAITING
 /* I could not figure out how to place this in the class to, CreateTimerQueueTimer() would complain
    about some kind of type casting, anyone have any ideas about how to do it? */
@@ -280,14 +268,8 @@ void Event::SetTimer()
 	if (StartWait) DoneWaiting = true;
 }
 #endif
-////////////////////////////////////////
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Supporting functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
 void SleepCurrentThread(int ms)
 {
 	Sleep(ms);
@@ -350,8 +332,6 @@ LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
 {
 	return InterlockedExchange(Dest, Val);
 }
-////////////////////////////////////////
-
 
 #else // !WIN32, so must be POSIX threads
 
@@ -572,4 +552,4 @@ LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
 
 #endif
 
-} // end of namespace Common
+} // namespace Common

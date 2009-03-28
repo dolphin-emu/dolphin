@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TIMER_H
-#define _TIMER_H
+#ifndef _TIMER_H_
+#define _TIMER_H_
 
 #include "Common.h"
 #include <string>
@@ -53,10 +53,10 @@ public:
 	bool m_Running;
 };
 
-} // end of namespace Common
+} // Namespace Common
 
 #ifdef __GNUC__
 u32 timeGetTime();
-#endif
+#endif // GNUC
 
-#endif
+#endif // _TIMER_H_

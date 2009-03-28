@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 // Disc volume handler. It's here because Wii discs can consist of multiple volumes.
 // GC discs are seen as one big volume.
 
-#ifndef _VOLUMEHANDLER_H
-#define _VOLUMEHANDLER_H
+#ifndef _VOLUMEHANDLER_H_
+#define _VOLUMEHANDLER_H_
 
 #include <string>
 #include "CommonTypes.h"

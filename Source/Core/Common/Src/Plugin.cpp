@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
  
-////////////////////////////////////////////////
+// --------------------------------------------------------------------------------------------
 // This is the common Plugin class that links to the functions that are
 // common to all plugins. This class is inherited by all plugin classes. But it's only created
 // directly in PluginManager.cpp when we check if a plugin is valid or not.
-///////////////////////////////////////////////
+// --------------------------------------------------------------------------------------------
 
 #include "Plugin.h"
 
@@ -124,4 +124,4 @@ void CPlugin::Shutdown()
 		m_Shutdown();
 }
 
-} // end of namespace Common
+} // Namespace

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _FILEUTIL_H
-#define _FILEUTIL_H
+#ifndef _FILEUTIL_H_
+#define _FILEUTIL_H_
 
 #include <string>
 #include <vector>
@@ -24,9 +24,6 @@
 
 #include "Common.h"
 
-/*
-  This namespace has various generic functions related to files and paths.
-*/
 namespace File
 {
 	

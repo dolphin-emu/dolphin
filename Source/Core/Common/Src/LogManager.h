@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _LOGMANAGER_H
-#define _LOGMANAGER_H 
+#ifndef _LOGMANAGER_H_
+#define _LOGMANAGER_H_
 
 #include "Log.h"
 #include "Thread.h"
@@ -187,4 +187,4 @@ public:
 	~LogManager();
 };
 
-#endif // LOGMANAGER_H
+#endif // _LOGMANAGER_H_

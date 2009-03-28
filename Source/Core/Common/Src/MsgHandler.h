@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef MSGHANDLER_H
-#define MSGHANDLER_H
+#ifndef _MSGHANDLER_H_
+#define _MSGHANDLER_H_
 // Message alerts
 enum MSG_TYPE
 {
@@ -43,4 +43,4 @@ void SetEnableAlert(bool enable);
 	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, ##__VA_ARGS__) 
 #endif
 
-#endif //MSGHANDLER
+#endif // _MSGHANDLER_H_

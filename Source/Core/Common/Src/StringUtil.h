@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _STRINGUTIL_H
-#define _STRINGUTIL_H
+#ifndef _STRINGUTIL_H_
+#define _STRINGUTIL_H_
 
 #include <stdarg.h>
 
@@ -75,4 +75,4 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
 
 
-#endif
+#endif // _STRINGUTIL_H_

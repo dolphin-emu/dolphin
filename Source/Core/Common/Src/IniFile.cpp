@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 // see IniFile.h
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ------------
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -30,24 +27,13 @@
 
 #include "StringUtil.h"
 #include "IniFile.h"
-///////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Class
-// ------------
 IniFile::IniFile()
 {}
 
-
 IniFile::~IniFile()
 {}
-///////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Section functions used locally only
-// ------------
 Section::Section()
 	: lines(), name(""), comment("") {}
 
@@ -91,7 +77,6 @@ Section* IniFile::GetOrCreateSection(const char* sectionName)
 
 	return(section);
 }
-///////////////////////////////
 
 
 bool IniFile::DeleteSection(const char* sectionName)
@@ -114,7 +99,6 @@ bool IniFile::DeleteSection(const char* sectionName)
 
 	return false;
 }
-
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const
 {
@@ -152,7 +136,6 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
 		}
 	}
 }
-
 
 std::string* IniFile::GetLine(Section* section, const char* key, std::string* valueOut, std::string* commentOut)
 {
@@ -283,10 +266,6 @@ void IniFile::SortSections()
 	std::sort(sections.begin(), sections.end());
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Load and save file
-// ------------
 bool IniFile::Load(const char* filename)
 {
 	// Maximum number of letters in a line
@@ -382,12 +361,7 @@ bool IniFile::Save(const char* filename)
 	out.close();
 	return true;
 }
-//////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Get and set elements
-// ------------
 void IniFile::Set(const char* sectionName, const char* key, const char* newValue)
 {
 	Section* section = GetOrCreateSection(sectionName);
@@ -544,10 +518,9 @@ bool IniFile::Get(const char* sectionName, const char* key, bool* value, bool de
 	*value = defaultValue;
 	return false;
 }
-////////////////////////////////////////
 
 
-
+// TODO: Keep this code below?
 /*
    int main()
    {
@@ -567,4 +540,3 @@ bool IniFile::Get(const char* sectionName, const char* key, bool* value, bool de
     return 0;
    }
  */
-

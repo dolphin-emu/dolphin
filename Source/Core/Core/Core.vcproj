@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -52,11 +52,12 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="4"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -122,11 +123,12 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -196,11 +198,12 @@
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -272,11 +275,12 @@
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -345,11 +349,12 @@
 				BufferSecurityCheck="true"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -418,11 +423,12 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -492,11 +498,12 @@
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -568,11 +575,12 @@
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -2290,78 +2298,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\State.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.cpp"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_JITIL|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release_JITIL|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
 		<File

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,14 +14,16 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+// ------------------------------------------------------
 // Handles giant memory mapped files
 // Through some trickery, allows lock on byte boundaries
 // instead of allocation granularity boundaries
 // for ease of use
-//
+// ------------------------------------------------------
 
-#ifndef _MAPPED_FILE_H
-#define _MAPPED_FILE_H
+#ifndef _MAPPED_FILE_H_
+#define _MAPPED_FILE_H_
 
 #include <map>
 
@@ -44,4 +46,4 @@ public:
 
 }  // namespace
 
-#endif
+#endif // _MAPPED_FILE_H_

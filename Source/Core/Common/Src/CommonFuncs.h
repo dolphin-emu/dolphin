@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef COMMONFUNCS_H
-#define COMMONFUNCS_H
+#ifndef _COMMONFUNCS_H_
+#define _COMMONFUNCS_H_
 
 #ifdef _WIN32
 #define SLEEP(x) Sleep(x)
@@ -111,6 +111,6 @@ inline u16 swap16(const u8* _pData) {return swap16(*(const u16*)_pData);}
 inline u32 swap32(const u8* _pData) {return swap32(*(const u32*)_pData);}
 inline u64 swap64(const u8* _pData) {return swap64(*(const u64*)_pData);}
 
-}  // namespace Common
+}  // Namespace Common
 
-#endif // COMMONFUNCS
+#endif // _COMMONFUNCS_H_

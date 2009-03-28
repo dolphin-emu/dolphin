@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "x64Analyzer.h"
 
 bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int accessType)
@@ -227,6 +228,3 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	info.instructionSize = (int)(codePtr - startCodePtr);
 	return true;
 }
-
-
-

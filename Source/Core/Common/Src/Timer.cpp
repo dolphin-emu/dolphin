@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@ u32 timeGetTime()
 namespace Common
 {
 
-//////////////////////////////////////////////////////////////////////////////////////////
+// --------------------------------------------
 // Initiate, Start, Stop, and Update the time
-// ---------------
+// --------------------------------------------
 
 // Set initial values for the class
 Timer::Timer()
@@ -75,13 +75,12 @@ void Timer::Update()
 	m_LastTime = timeGetTime();
 	//TODO(ector) - QPF
 }
-/////////////////////////////////////
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------------
 // Get time difference and elapsed time
-// ---------------
+// -------------------------------------
 
 // Get the number of milliseconds since the last Update()
 s64 Timer::GetTimeDifference()
@@ -138,13 +137,7 @@ std::string Timer::GetTimeElapsedFormatted() const
 	return TmpStr;
 }
 
-/////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Get current time
-// ---------------
 void Timer::IncreaseResolution()
 {
 #ifdef _WIN32
@@ -212,4 +205,4 @@ std::string Timer::GetTimeFormatted()
 	return std::string(formattedTime);
 }
 
-} // end of namespace Common
+} // Namespace Common

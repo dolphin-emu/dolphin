@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -51,26 +51,29 @@ bool WaveFileWriter::Start(const char *filename)
 		return false;
 	}
 
-	// ---------------------------------------------------------
+	// -----------------
 	// Write file header
-	// ---------------
+	// -----------------
 	Write4("RIFF");
 	Write(100 * 1000 * 1000);  // write big value in case the file gets truncated
 	Write4("WAVE");
 	Write4("fmt ");
+
 	Write(16);  // size of fmt block
 	Write(0x00020001); //two channels, uncompressed
+
 	//const u32 sample_rate = 32000;
 	const u32 sample_rate = 48000;
 	Write(sample_rate);
 	Write(sample_rate * 2 * 2); //two channels, 16bit
+
 	Write(0x00100004);
 	Write4("data");
 	Write(100 * 1000 * 1000 - 32);
+
 	// We are now at offset 44
 	if (ftell(file) != 44)
 		PanicAlert("wrong offset: %i", ftell(file));
-	// ---------------------------
 
 	return true;
 }
@@ -79,11 +82,14 @@ void WaveFileWriter::Stop()
 {
 	if (!file)
 		return;
-        //	u32 file_size = (u32)ftell(file);
+        
+	// u32 file_size = (u32)ftell(file);
 	fseek(file, 4, SEEK_SET);
 	Write(audio_size + 36);
+
 	fseek(file, 40, SEEK_SET);
 	Write(audio_size);
+
 	fclose(file);
 	file = 0;
 }
@@ -116,9 +122,12 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, int count)
 {
 	if (!file)
 		PanicAlert("WaveFileWriter - file not open.");
+
 	if (count > BUF_SIZE * 2)
 		PanicAlert("WaveFileWriter - buffer too small (count = %i).", count);
-	if (skip_silence) {
+
+	if (skip_silence) 
+	{
 		bool all_zero = true;
 		for (int i = 0; i < count * 2; i++)
 			if (sample_data[i])
@@ -126,9 +135,10 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, int count)
 		if (all_zero)
 			return;
 	}
-	for (int i = 0; i < count * 2; i++) {
+
+	for (int i = 0; i < count * 2; i++)
 		conv_buffer[i] = Common::swap16((u16)sample_data[i]);
-	}
+
 	fwrite(conv_buffer, count * 4, 1, file);
 	audio_size += count * 4;
 }

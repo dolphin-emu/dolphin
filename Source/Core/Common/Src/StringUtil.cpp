@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -66,10 +66,7 @@ bool AsciiToHex(const char* _szValue, u32& result)
 	return (true);
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Convert AB to it's ascii table entry numbers 0x4142
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 u32 Ascii2Hex(std::string _Text)
 {
 	// Reset the return value zero
@@ -100,8 +97,6 @@ std::string Hex2Ascii(u32 _Text)
 	std::string StrResult = Result;
 	return StrResult;
 }
-///////////////////////////
-
 
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
@@ -118,7 +113,6 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 		return false;
 	}
 }
-
 
 // Expensive!
 void ToStringFromFormat(std::string* out, const char* format, ...)
@@ -183,9 +177,7 @@ std::string StringFromFormat(const char* format, ...)
 }
 
 
-// ===================================================
-/* For Debugging. Read out an u8 array. */
-// ----------------
+// For Debugging. Read out an u8 array.
 std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len, bool Spaces)
 {
 	std::string Tmp, Spc;
@@ -197,8 +189,6 @@ std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len, bo
 	}	
 	return Tmp;
 }
-// ================
-
 
 // Turns "  hej " into "hej". Also handles tabs.
 std::string StripSpaces(const std::string &str)
@@ -459,5 +449,3 @@ std::string ThS(int Integer, bool Unsigned)
 	}
 	return sbuf;
 }
-
-

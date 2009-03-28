@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _FIXED_SIZE_QUEUE_H
-#define _FIXED_SIZE_QUEUE_H
+#ifndef _FIXED_SIZE_QUEUE_H_
+#define _FIXED_SIZE_QUEUE_H_
 
 // STL-look-a-like interface, but name is mixed case to distinguish it clearly from the
 // real STL classes.
@@ -83,5 +83,5 @@ public:
 	}
 };
 
-#endif  // _FIXED_SIZE_QUEUE_H
+#endif // _FIXED_SIZE_QUEUE_H_
 

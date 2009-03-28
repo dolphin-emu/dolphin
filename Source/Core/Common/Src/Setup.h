@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,23 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __SETUP_h__
-#define __SETUP_h__
+#ifndef _SETUP_H_
+#define _SETUP_H_
 
-////////////////////////////////////////////////////////////////////////////////////////
-// File description
-/* ¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------------------------------------------------------------------------------------
+// File description:
+// Compilation settings. I avoid placing this in Common.h or some place where lots of files needs
+// to be rebuilt if any of these settings are changed. I'd rather have it in as few files as possible.
+// This file can be kept on the ignore list in your SVN program. It allows local optional settings
+// depending on what works on your computer.
+// -----------------------------------------------------------------------------------------------------
 
-   Compilation settings. I avoid placing this in Common.h or some place where lots of files needs
-   to be rebuilt if any of these settings are changed. I'd rather have it in as few files as possible.
-   This file can be kept on the ignore list in your SVN program. It allows local optional settings
-   depending on what works on your computer.
-
-////////////////////////*/
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Settings
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------------------------------------------------------------------------------------
+// Settings:
 
 // This may remove sound artifacts in Wario Land Shake It and perhaps other games
 //#define SETUP_AVOID_SOUND_ARTIFACTS
@@ -64,7 +60,7 @@
 // Build with music modification
 //#define MUSICMOD
 
-///////////////////////////
+// -----------------------------------------------------------------------------------------------------
 
-#endif // __SETUP_h__
+#endif // _SETUP_H_
 

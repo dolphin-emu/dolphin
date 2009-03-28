@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ u32 HashFletcher(const u8* data_u8, size_t length)
 		sum2 = (sum2 & 0xffff) + (sum2 >> 16);
 	}
 
-	/* Second reduction step to reduce sums to 16 bits */
+	// Second reduction step to reduce sums to 16 bits
 	sum1 = (sum1 & 0xffff) + (sum1 >> 16);
 	sum2 = (sum2 & 0xffff) + (sum2 >> 16);
 	return(sum2 << 16 | sum1);

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 // Detect the cpu, so we'll know which optimizations to use
-#ifndef _CPUDETECT_H
-#define _CPUDETECT_H
+#ifndef _CPUDETECT_H_
+#define _CPUDETECT_H_
 
 #include <string>
 
@@ -62,4 +62,4 @@ struct CPUInfo
 
 extern CPUInfo cpu_info;
 
-#endif
+#endif // _CPUDETECT_H_

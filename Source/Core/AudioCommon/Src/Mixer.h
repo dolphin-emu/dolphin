@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _MIXER_H
-#define _MIXER_H
+#ifndef _MIXER_H_
+#define _MIXER_H_
 
 #include "FixedSizeQueue.h"
 
@@ -42,10 +42,10 @@ public:
 	
 	void SetThrottle(bool use) { m_throttle = use;}
 
-	// FIXME do we need this
+	// TODO: do we need this
 	bool IsHLEReady() { return m_HLEready;}
 	void SetHLEReady(bool ready) { m_HLEready = ready;}
-	//////
+	// ---------------------
 
 protected:
 	int m_sampleRate;
@@ -63,5 +63,4 @@ private:
 
 };
 
-#endif
-
+#endif // _MIXER_H_

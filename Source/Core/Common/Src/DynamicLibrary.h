@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DYNAMICLIBRARY_H
-#define _DYNAMICLIBRARY_H
+#ifndef _DYNAMICLIBRARY_H_
+#define _DYNAMICLIBRARY_H_
 
 #ifdef _WIN32
 #include <windows.h>
@@ -56,4 +56,4 @@ private:
 #endif
 };
 
-#endif // DYNAMICLIBRARY
+#endif // _DYNAMICLIBRARY_H_

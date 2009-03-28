@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _LOG_H
-#define _LOG_H
+#ifndef _LOG_H_
+#define _LOG_H_
 
 #define	NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
 #define	ERROR_LEVEL   2  // Critical errors 
@@ -165,4 +165,4 @@ enum LOG_LEVELS {
 	}
 #endif // WIN32
 
-#endif // LOG_H
+#endif // _LOG_H_

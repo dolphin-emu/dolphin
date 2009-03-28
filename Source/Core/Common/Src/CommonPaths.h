@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef COMMON_PATHS_H
-#define COMMON_PATHS_H
+#ifndef _COMMON_PATHS_H_
+#define _COMMON_PATHS_H_
 
 // Library suffix/prefix
 #ifdef _WIN32
@@ -165,4 +165,4 @@
 
 #define FULL_WII_MENU_DIR       FULL_WII_USER_DIR "title" DIR_SEP "00000001" DIR_SEP "00000002" DIR_SEP "content"
 
-#endif // COMMON_PATHS_H
+#endif // _COMMON_PATHS_H_

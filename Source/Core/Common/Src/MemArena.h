@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _MEMARENA_H
-#define _MEMARENA_H
+#ifndef _MEMARENA_H_
+#define _MEMARENA_H_
 
 #ifdef _WIN32
 #include <windows.h>
@@ -49,4 +49,4 @@ private:
 #endif
 };
 
-#endif
+#endif // _MEMARENA_H_

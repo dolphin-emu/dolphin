@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _THUNK_H
-#define _THUNK_H
+#ifndef _THUNK_H_
+#define _THUNK_H_
 
 #include <map>
 
@@ -52,4 +52,4 @@ public:
 
 extern ThunkManager thunks;
 
-#endif
+#endif // _THUNK_H_

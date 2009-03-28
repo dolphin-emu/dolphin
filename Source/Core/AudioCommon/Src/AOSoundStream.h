@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __AOSOUNDSTREAM_H__
-#define __AOSOUNDSTREAM_H__
+#ifndef _AOSOUNDSTREAM_H_
+#define _AOSOUNDSTREAM_H_
 
 #include "SoundStream.h"
 
@@ -69,4 +69,4 @@ public:
 #endif
 };
 
-#endif //__AOSOUNDSTREAM_H__
+#endif //_AOSOUNDSTREAM_H_
