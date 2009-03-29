@@ -10,9 +10,8 @@ if not env['HAVE_AO']:
     Return()
 
 files = [
-#        "DisAsmDlg.cpp",
         "Config.cpp",
-        "ConfigDlg.cpp",
+        "DSPConfigDlgLLE.cpp",
 	"disassemble.cpp",
 	"gdsp_aram.cpp",
 	"gdsp_ext_op.cpp",
@@ -26,9 +25,6 @@ files = [
         "HLE_Helper.cpp",
 	"main.cpp",
 	"opcodes.cpp",
-#        "RegisterDlg.cpp",
-#        "RegSettings.cpp",
-#        "stdafx.cpp",
 	"Tools.cpp",
         "Logging/AXTask.cpp",
         "Logging/Logging.cpp",
