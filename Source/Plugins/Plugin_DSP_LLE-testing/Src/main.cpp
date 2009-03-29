@@ -44,7 +44,7 @@
 
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
-
+Common::Thread *g_hDSPThread;
 
 SoundStream *soundStream = NULL;
 
@@ -143,12 +143,8 @@ void DllDebugger(HWND _hParent, bool Show)
 }
 
 
-/*// Regular thread
-#ifdef _WIN32
-DWORD WINAPI dsp_thread(LPVOID lpParameter)
-#else
+// Regular thread
 void* dsp_thread(void* lpParameter)
-#endif
 {
 	while (1)
 	{
@@ -161,11 +157,7 @@ void* dsp_thread(void* lpParameter)
 }
 
 // Debug thread
-#ifdef _WIN32
-DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
-#else
 void* dsp_thread_debug(void* lpParameter)
-#endif
 {
     
 #ifdef _WIN32
@@ -187,7 +179,6 @@ void* dsp_thread_debug(void* lpParameter)
         return NULL;
 }
 
-*/
 void DSP_DebugBreak()
 {
 #ifdef _WIN32
@@ -238,6 +229,7 @@ void Initialize(void *init)
    		fclose(t);   
 	}
 		*/
+	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	
 	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend);
 	
@@ -246,6 +238,8 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
+	delete g_hDSPThread;
+	g_hDSPThread = NULL;
 }
 
 void Shutdown(void)
@@ -340,12 +334,10 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-	#ifdef _WIN32
+#ifdef _WIN32
 	if (g_Dialog.CanDoStep())
-	{
+#endif
 		gdsp_runx(100); // cycles
-	}
-	#endif
 }
 
 

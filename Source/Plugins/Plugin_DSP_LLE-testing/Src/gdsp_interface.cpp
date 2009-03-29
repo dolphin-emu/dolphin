@@ -37,11 +37,6 @@
 #define NULL 0
 #endif
 
-#ifndef _WIN32
-#undef WITH_DSP_ON_THREAD
-//TODO FIX
-#endif
-
 const char* reg_names[] =
 {
 	// a0
@@ -67,7 +62,7 @@ const char* reg_names[] =
 
 void gdsp_dma();
 
-#ifdef WITH_DSP_ON_THREAD
+#if WITH_DSP_ON_THREAD
 Common::CriticalSection g_CriticalSection;
 #endif
 
