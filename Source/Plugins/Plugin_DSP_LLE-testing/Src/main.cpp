@@ -336,19 +336,15 @@ void DSP_Update(int cycles)
 {
 #ifdef _WIN32
 	if (g_Dialog.CanDoStep())
-#endif
 		gdsp_runx(100); // cycles
+#endif
+		soundStream->Update();
 }
 
 
 
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	// TODO: This is not yet fully threadsafe.
-	if (!soundStream) {
-		return;
-	}
-
 	if (soundStream->GetMixer())
 	{
 		short samples[16] = {0};  // interleaved stereo
