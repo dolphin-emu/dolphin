@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,15 +22,6 @@
 
 #include <windows.h>
 #include <tchar.h>
-
-// WTL
-#include <atlbase.h>
-#include <atlapp.h>
-
-#include <atlwin.h>
-#include <atlframe.h>
-#include <atlctrls.h>
-#include <atldlgs.h>
 
 #include "PluginSpecs_DSP.h"
 

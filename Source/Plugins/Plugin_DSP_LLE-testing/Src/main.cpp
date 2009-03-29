@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,21 +26,15 @@
 #include "disassemble.h"
 #include "Config.h"
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "ConfigDlg.h"
-#endif
-
 #include "AudioCommon.h"
 #include "Logging/Logging.h" // For Logging
 
-#ifdef _WIN32
-	#include "DisAsmDlg.h"
-
-	HINSTANCE g_hInstance = NULL;
-	CDisAsmDlg g_Dialog;
-#endif
 #include "Thread.h"
 #include "ChunkFile.h"
+
+#if defined(HAVE_WX) && HAVE_WX
+#include "DSPConfigDlgLLE.h"
+#endif
 
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
@@ -59,27 +53,60 @@ bool AXTask(u32& _uMail);
 
 bool bCanWork = false;
 
+//////////////////////////////////////////////////////////////////////////
+// UGLY wxw stuff, TODO fix up
+// wxWidgets: Create the wxApp
+#if defined(HAVE_WX) && HAVE_WX
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+
+// DllMain
 #ifdef _WIN32
+HINSTANCE g_hInstance = NULL;
+
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
-		DWORD dwReason,             // reason called
-		LPVOID lpvReserved)         // reserved
+					  DWORD dwReason, // reason called
+					  LPVOID lpvReserved) // reserved
 {
 	switch (dwReason)
 	{
-	    case DLL_PROCESS_ATTACH:
-		    break;
+	case DLL_PROCESS_ATTACH:
+		{
 
-	    case DLL_PROCESS_DETACH:
-		    break;
+			// more stuff wx needs
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
 
-	    default:
-		    break;
+			// This is for ?
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+		}
+		break;
+
+	case DLL_PROCESS_DETACH:
+		wxEntryCleanup(); // use this or get a crash
+		break;
+
+	default:
+		break;
 	}
 
 	g_hInstance = hinstDLL;
 	return(TRUE);
 }
 #endif
+
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
@@ -104,15 +131,15 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 }
 
 void DllAbout(HWND _hParent)
-{}
+{
 
-
+}
 
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	// (shuffle2) TODO: reparent dlg with DolphinApp
-	ConfigDialog dlg(NULL);
+	DSPConfigDialogLLE dlg(NULL);
 
 	// add backends
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
@@ -128,23 +155,18 @@ void DllConfig(HWND _hParent)
 }
 
 
-void DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode)
+{
 	PointerWrap p(ptr, mode);
 }
 
 void DllDebugger(HWND _hParent, bool Show)
 {
-#ifdef _WIN32
-	#if defined (_DEBUG) || defined (DEBUGFAST)
-		g_Dialog.Create(NULL); //_hParent);
-		g_Dialog.ShowWindow(SW_SHOW);
-	#endif
-#endif
 }
 
 
 // Regular thread
-void* dsp_thread(void* lpParameter)
+THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (1)
 	{
@@ -157,35 +179,13 @@ void* dsp_thread(void* lpParameter)
 }
 
 // Debug thread
-void* dsp_thread_debug(void* lpParameter)
+THREAD_RETURN dsp_thread_debug(void* lpParameter)
 {
-    
-#ifdef _WIN32
-
-	while (1)
-	{
-		Logging(); // logging
-
-		if (g_Dialog.CanDoStep())
-		{
-			gdsp_runx(1);
-		}
-		else
-		{
-			Sleep(100);
-		}
-	}
-#endif
-        return NULL;
+	return NULL;
 }
 
 void DSP_DebugBreak()
 {
-#ifdef _WIN32
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	g_Dialog.DebugBreak();
-#endif
-#endif
 }
 
 
@@ -331,17 +331,10 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 	}
 }
 
-
 void DSP_Update(int cycles)
 {
-#ifdef _WIN32
-	if (g_Dialog.CanDoStep())
-		gdsp_runx(100); // cycles
-#endif
 		soundStream->Update();
 }
-
-
 
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
@@ -371,5 +364,3 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	if ((counter & 31) == 0 && soundStream)
 		soundStream->Update();
 }
-
-

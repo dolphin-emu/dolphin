@@ -45,8 +45,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -131,8 +131,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -220,8 +220,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
@@ -242,7 +242,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -311,8 +311,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
@@ -332,7 +332,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -399,8 +399,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
@@ -421,7 +421,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -490,8 +490,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../../Externals/WTL80;../../PluginSpecs;../../Core/AudioCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
@@ -511,7 +511,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
@@ -594,50 +594,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\opcodes.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Debugger"
-			>
-			<File
-				RelativePath=".\Src\DisAsmDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DisAsmDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DisAsmListView.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\RegisterDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\RegisterDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\RegSettings.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\RegSettings.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Resources"
-			>
-			<File
-				RelativePath=".\Res\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Res\resources.rc"
 				>
 			</File>
 		</Filter>
@@ -766,17 +722,25 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="PCHW"
+			Name="ConfigDialog"
 			>
 			<File
-				RelativePath=".\Src\Mixer.cpp"
+				RelativePath=".\Src\DSPConfigDlgLLE.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Mixer.h"
+				RelativePath=".\Src\DSPConfigDlgLLE.h"
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\Src\Config.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Config.h"
+			>
+		</File>
 		<File
 			RelativePath=".\Src\Globals.cpp"
 			>

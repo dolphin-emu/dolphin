@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,26 +15,26 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __DSP_HLE_CONFIGDIALOG_h__
-#define __DSP_HLE_CONFIGDIALOG_h__
+#ifndef __DSP_LLE_CONFIGDIALOG_h__
+#define __DSP_LLE_CONFIGDIALOG_h__
 
 #include <wx/wx.h>
 #include <wx/dialog.h>
 #include <wx/button.h>
 #include <wx/statbox.h>
 
-class ConfigDialog : public wxDialog
+class DSPConfigDialogLLE : public wxDialog
 {
 public:
-	ConfigDialog(wxWindow *parent,
+	DSPConfigDialogLLE(wxWindow *parent,
 		     wxWindowID id = 1,
-		     const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
+		     const wxString &title = wxT("Dolphin DSP-LLE Plugin Settings"),
 		     const wxPoint& pos = wxDefaultPosition,
 		     const wxSize& size = wxDefaultSize,
 		     long style = wxDEFAULT_DIALOG_STYLE);
-    virtual ~ConfigDialog();
+    virtual ~DSPConfigDialogLLE();
     void AddBackend(const char *backend);
-    
+
 private:
     DECLARE_EVENT_TABLE();
     
@@ -58,4 +58,4 @@ private:
     void SettingsChanged(wxCommandEvent& event);
 };
 
-#endif //__DSP_HLE_CONFIGDIALOG_h__
+#endif //__DSP_LLE_CONFIGDIALOG_h__

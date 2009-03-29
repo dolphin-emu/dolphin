@@ -17,16 +17,16 @@
 
 
 #include "Config.h"
-#include "ConfigDlg.h"
+#include "DSPConfigDlgLLE.h"
 
-BEGIN_EVENT_TABLE(ConfigDialog, wxDialog)
-EVT_BUTTON(wxID_OK, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_THROTTLE, ConfigDialog::SettingsChanged)
+BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
+EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogLLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
 END_EVENT_TABLE()
 
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 	// Load config settings
@@ -73,18 +73,18 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 }
 
 // Add audio output options
-void ConfigDialog::AddBackend(const char* backend)
+void DSPConfigDialogLLE::AddBackend(const char* backend)
 {
     m_BackendSelection->Append(wxString::FromAscii(backend));
 	// Update value
 	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend.c_str()));
 }
 
-ConfigDialog::~ConfigDialog()
+DSPConfigDialogLLE::~DSPConfigDialogLLE()
 {
 }
 
-void ConfigDialog::SettingsChanged(wxCommandEvent& event)
+void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
