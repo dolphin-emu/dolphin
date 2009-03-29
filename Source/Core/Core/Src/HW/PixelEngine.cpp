@@ -140,23 +140,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_ALPHAREAD:
 		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHAREAD");
 		_uReturnValue = AlphaReg;
-		return;	
-
-	case 0x010:
-        _uReturnValue = 0x80;
-        return;
-
-    case 0x012:
-        _uReturnValue = 0xA0;
-        return;
-
-    case 0x014:
-        _uReturnValue = 0x80;
-        return;
-
-    case 0x016:
-        _uReturnValue = 0xA0;
-        return;
+		return;
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
