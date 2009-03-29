@@ -75,10 +75,10 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (DSound::isValid()) backends.push_back(BACKEND_DIRECTSOUND);
-		if (DSound::isValid()) backends.push_back(BACKEND_AOSOUND);
-		if (DSound::isValid()) backends.push_back(BACKEND_OPENAL);
-		if (DSound::isValid()) backends.push_back(BACKEND_NULL);
+		if (DSound::isValid())       backends.push_back(BACKEND_DIRECTSOUND);
+		if (AOSound::isValid())      backends.push_back(BACKEND_AOSOUND);
+		if (OpenALStream::isValid()) backends.push_back(BACKEND_OPENAL);
+		if (NullSound::isValid())    backends.push_back(BACKEND_NULL);
 	   
 		return backends;
 	}
