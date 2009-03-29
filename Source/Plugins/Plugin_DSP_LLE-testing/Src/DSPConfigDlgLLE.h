@@ -39,8 +39,6 @@ private:
     DECLARE_EVENT_TABLE();
     
     wxButton *m_OK;
-    wxCheckBox *m_buttonEnableHLEAudio;
-    wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
     wxArrayString wxArrayBackends;
     wxComboBox  *m_BackendSelection;
@@ -48,8 +46,6 @@ private:
     enum
 	{
 	    wxID_OK,
-	    ID_ENABLE_HLE_AUDIO,
-	    ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
 	    ID_BACKEND
 	};

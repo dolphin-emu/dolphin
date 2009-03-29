@@ -218,17 +218,6 @@ void Initialize(void *init)
 	if(!bCanWork)
 		return; // TODO: Don't let it work
 	
-	/*/ First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM 1" in
-	// Globals.h. Then make the disassembled file here.  Dump UCode to file...
-	
-   	FILE* t = fopen("C:\\_\\DSP_UC_09CD143F.txt", "wb");
-	if (t != NULL)
-	{
-   		gd_globals_t gdg;
-   		gd_dis_file(&gdg, (char *)"C:\\_\\DSP_UC_09CD143F.bin", t);
-   		fclose(t);   
-	}
-		*/
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	
 	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend);

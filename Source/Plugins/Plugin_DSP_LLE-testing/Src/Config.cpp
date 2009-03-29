@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
+#define LLE_CONFIG_FILE "DSPLLE.ini"
 
 CConfig g_Config;
 
@@ -29,11 +30,10 @@ CConfig::CConfig()
 void CConfig::Load()
 {
 	// first load defaults
-        std::string temp;
-        
+	std::string temp;
+    
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
-	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, false);
+	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
 #ifdef _WIN32
 	file.Get("Config", "Backend", &sBackend, "DSound");
@@ -45,10 +45,9 @@ void CConfig::Load()
 void CConfig::Save()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
-	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
+	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
 	file.Set("Config", "Backend", sBackend.c_str());
         
-	file.Save(FULL_CONFIG_DIR "DSP.ini");
+	file.Save(FULL_CONFIG_DIR LLE_CONFIG_FILE);
 }

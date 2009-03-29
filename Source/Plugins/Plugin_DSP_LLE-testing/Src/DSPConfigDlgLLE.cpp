@@ -21,8 +21,6 @@
 
 BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogLLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
 END_EVENT_TABLE()
 
@@ -38,17 +36,14 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Create items
-	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
 	// Update values
-	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
 	m_buttonEnableThrottle->SetValue(g_Config.m_EnableThrottle ? true : false);
 
 	// Add tooltips
-	m_buttonEnableHLEAudio->SetToolTip(wxT("This is the most common sound type"));
 	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n"
 		"Disabling this also disables the speed throttle which this causes,\n"
 		"meaning that there will be no upper limit on your FPS."));
@@ -57,7 +52,6 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
-	sbSettings->Add(m_buttonEnableHLEAudio, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
 	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
 	sBackend->Add(BackendText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 5);
@@ -86,7 +80,6 @@ DSPConfigDialogLLE::~DSPConfigDialogLLE()
 
 void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
-	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 	g_Config.sBackend = m_BackendSelection->GetValue().mb_str();
 	g_Config.Save();

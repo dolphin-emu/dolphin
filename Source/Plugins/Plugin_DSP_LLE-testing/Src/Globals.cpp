@@ -68,7 +68,7 @@ void ProfilerInit()
 
 void ProfilerDump(uint64 count)
 {
-	FILE* pFile = fopen("c:\\_\\DSP_Prof.txt", "wt");
+	FILE* pFile = fopen("DSP_Prof.txt", "wt");
 	if (pFile != NULL)
 	{
 		fprintf(pFile, "Number of DSP steps: %llu\n\n", count);
