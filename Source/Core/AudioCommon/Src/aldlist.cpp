@@ -23,8 +23,8 @@
  */
 
 #include "aldlist.h"
-#include "../../../../Externals/OpenAL/al/al.h"
-#include "../../../../Externals/OpenAL/al/alc.h"
+#include "../../../../Externals/OpenAL/include/al.h"
+#include "../../../../Externals/OpenAL/include/alc.h"
 
 
 /* 
