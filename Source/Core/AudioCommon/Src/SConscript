@@ -3,15 +3,19 @@
 Import('env')
 
 files = [
-    'AOSoundStream.cpp',
-    'aldlist.cpp',
     'AudioCommonConfig.cpp',
-    'OpenALStream.cpp',
     'WaveFile.cpp',
     'Mixer.cpp',
     'AudioCommon.cpp',
     ]
 
-env_audiocommon = env.Clone()
-env_audiocommon.Append(CXXFLAGS = [ '-fPIC' ])
-env_audiocommon.StaticLibrary('audiocommon', files)
+acenv = env.Clone()
+acenv.Append(CXXFLAGS = [ '-fPIC' ])
+
+if acenv['HAVE_OPENAL']:
+    files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
+    
+if acenv['HAVE_AO']:
+    files += [ 'AOSoundStream.cpp' ]
+    
+acenv.StaticLibrary('audiocommon', files)

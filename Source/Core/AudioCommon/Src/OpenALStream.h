@@ -18,10 +18,12 @@
 #ifndef _OPENALSTREAM_H_
 #define _OPENALSTREAM_H_
 
+#include "Common.h"
 #include "SoundStream.h"
 #include "Thread.h"
 
-#ifdef HAVE_OPENAL && HAVE_OPENAL
+
+#if defined HAVE_OPENAL && HAVE_OPENAL
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
 
@@ -32,7 +34,7 @@
 
 class OpenALStream: public SoundStream
 {
-#ifdef HAVE_OPENAL && HAVE_OPENAL
+#if defined HAVE_OPENAL && HAVE_OPENAL
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {};
 	virtual ~OpenALStream() {};
