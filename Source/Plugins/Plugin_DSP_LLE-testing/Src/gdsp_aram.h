@@ -18,6 +18,6 @@
 #ifndef _GDSP_ARAM_H
 #define _GDSP_ARAM_H
 
-uint16 dsp_read_aram();
+u16 dsp_read_aram();
 
 #endif

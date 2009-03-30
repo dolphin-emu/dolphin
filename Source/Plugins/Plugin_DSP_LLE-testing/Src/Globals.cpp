@@ -66,7 +66,7 @@ void ProfilerInit()
 	memset(g_profileMap, 0, sizeof(g_profileMap));
 }
 
-void ProfilerDump(uint64 count)
+void ProfilerDump(u64 count)
 {
 	FILE* pFile = fopen("DSP_Prof.txt", "wt");
 	if (pFile != NULL)

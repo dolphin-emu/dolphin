@@ -23,7 +23,7 @@
 
 #include "gdsp_interpreter.h"
 
-bool DumpDSPCode(uint32 _Address, uint32 _Length, uint32 crc)
+bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc)
 {
 	char szFilename[MAX_PATH];
 	sprintf(szFilename, "c:\\_\\DSP_UC_%08X.bin", crc);
@@ -44,7 +44,7 @@ bool DumpDSPCode(uint32 _Address, uint32 _Length, uint32 crc)
 }
 
 
-uint32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
+u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 {
 	unsigned long CRC = 0xFFFFFFFF;
 
@@ -71,7 +71,7 @@ uint32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 }
 
 
-bool DumpCWCode(uint32 _Address, uint32 _Length)
+bool DumpCWCode(u32 _Address, u32 _Length)
 {
 	FILE* pFile = fopen("d:\\DSP_UCode.bin", "wb");
 
@@ -79,7 +79,7 @@ bool DumpCWCode(uint32 _Address, uint32 _Length)
 	{
 		for (size_t i = _Address; i < _Address + _Length; i++)
 		{
-			uint16 val = Common::swap16(g_dsp.iram[i]);
+			u16 val = Common::swap16(g_dsp.iram[i]);
 			fprintf(pFile, "    cw 0x%04x \n", val);
 		}
 

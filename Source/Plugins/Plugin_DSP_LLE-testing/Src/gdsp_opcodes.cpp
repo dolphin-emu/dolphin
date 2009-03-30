@@ -48,7 +48,7 @@
 #define DSP_REG_MASK    0x1f
 
 
-void Update_SR_Register(sint64 _Value)
+void Update_SR_Register(s64 _Value)
 {
 	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
 
@@ -70,7 +70,7 @@ void Update_SR_Register(sint64 _Value)
 }
 
 
-void Update_SR_Register(sint16 _Value)
+void Update_SR_Register(s16 _Value)
 {
 	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
 
@@ -92,7 +92,7 @@ void Update_SR_Register(sint16 _Value)
 }
 
 
-sint8 GetMultiplyModifier()
+s8 GetMultiplyModifier()
 {
 	if (g_dsp.r[R_SR] & (1 << 13))
 	{
@@ -103,7 +103,7 @@ sint8 GetMultiplyModifier()
 }
 
 
-bool CheckCondition(uint8 _Condition)
+bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
 
@@ -197,7 +197,7 @@ bool CheckCondition(uint8 _Condition)
 
 // =======================================================================
 
-void dsp_op_unknown(uint16 opc)
+void dsp_op_unknown(u16 opc)
 {
     _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
     ERROR_LOG(DSPHLE, "dsp_op_unknown somewhere");
@@ -205,9 +205,9 @@ void dsp_op_unknown(uint16 opc)
 }
 
 
-void dsp_opc_call(uint16 opc)
+void dsp_opc_call(u16 opc)
 {
-	uint16 dest = dsp_fetch_code();
+	u16 dest = dsp_fetch_code();
 
 	if (CheckCondition(opc & 0xf))
 	{
@@ -217,7 +217,7 @@ void dsp_opc_call(uint16 opc)
 }
 
 
-void dsp_opc_ifcc(uint16 opc)
+void dsp_opc_ifcc(u16 opc)
 {
 	if (!CheckCondition(opc & 0xf))
 	{
@@ -226,9 +226,9 @@ void dsp_opc_ifcc(uint16 opc)
 }
 
 
-void dsp_opc_jcc(uint16 opc)
+void dsp_opc_jcc(u16 opc)
 {
-	uint16 dest = dsp_fetch_code();
+	u16 dest = dsp_fetch_code();
 
 	if (CheckCondition(opc & 0xf))
 	{
@@ -237,10 +237,10 @@ void dsp_opc_jcc(uint16 opc)
 }
 
 
-void dsp_opc_jmpa(uint16 opc)
+void dsp_opc_jmpa(u16 opc)
 {
-	uint8 reg;
-	uint16 addr;
+	u8 reg;
+	u16 addr;
 
 	if ((opc & 0xf) != 0xf)
 	{
@@ -261,7 +261,7 @@ void dsp_opc_jmpa(uint16 opc)
 
 
 // NEW (added condition check)
-void dsp_opc_ret(uint16 opc)
+void dsp_opc_ret(u16 opc)
 {
 	if (CheckCondition(opc & 0xf))
 	{
@@ -270,7 +270,7 @@ void dsp_opc_ret(uint16 opc)
 }
 
 
-void dsp_opc_rti(uint16 opc)
+void dsp_opc_rti(u16 opc)
 {
 	if ((opc & 0xf) != 0xf)
 	{
@@ -284,18 +284,18 @@ void dsp_opc_rti(uint16 opc)
 }
 
 
-void dsp_opc_halt(uint16 opc)
+void dsp_opc_halt(u16 opc)
 {
 	g_dsp.cr |= 0x4;
 	g_dsp.pc = g_dsp.err_pc;
 }
 
 
-void dsp_opc_loop(uint16 opc)
+void dsp_opc_loop(u16 opc)
 {
-	uint16 reg = opc & 0x1f;
-	uint16 cnt = g_dsp.r[reg];
-	uint16 loop_pc = g_dsp.pc;
+	u16 reg = opc & 0x1f;
+	u16 cnt = g_dsp.r[reg];
+	u16 loop_pc = g_dsp.pc;
 
 	while (cnt--)
 	{
@@ -307,10 +307,10 @@ void dsp_opc_loop(uint16 opc)
 }
 
 
-void dsp_opc_loopi(uint16 opc)
+void dsp_opc_loopi(u16 opc)
 {
-	uint16 cnt = opc & 0xff;
-	uint16 loop_pc = g_dsp.pc;
+	u16 cnt = opc & 0xff;
+	u16 loop_pc = g_dsp.pc;
 
 	while (cnt--)
 	{
@@ -322,11 +322,11 @@ void dsp_opc_loopi(uint16 opc)
 }
 
 
-void dsp_opc_bloop(uint16 opc)
+void dsp_opc_bloop(u16 opc)
 {
-	uint16 reg = opc & 0x1f;
-	uint16 cnt = g_dsp.r[reg];
-	uint16 loop_pc = dsp_fetch_code();
+	u16 reg = opc & 0x1f;
+	u16 cnt = g_dsp.r[reg];
+	u16 loop_pc = dsp_fetch_code();
 
 	if (cnt)
 	{
@@ -341,10 +341,10 @@ void dsp_opc_bloop(uint16 opc)
 }
 
 
-void dsp_opc_bloopi(uint16 opc)
+void dsp_opc_bloopi(u16 opc)
 {
-	uint16 cnt = opc & 0xff;
-	uint16 loop_pc = dsp_fetch_code();
+	u16 cnt = opc & 0xff;
+	u16 loop_pc = dsp_fetch_code();
 
 	if (cnt)
 	{
@@ -362,22 +362,22 @@ void dsp_opc_bloopi(uint16 opc)
 //-------------------------------------------------------------
 
 
-void dsp_opc_mrr(uint16 opc)
+void dsp_opc_mrr(u16 opc)
 {
-	uint8 sreg = opc & 0x1f;
-	uint8 dreg = (opc >> 5) & 0x1f;
+	u8 sreg = opc & 0x1f;
+	u8 dreg = (opc >> 5) & 0x1f;
 
-	uint16 val = dsp_op_read_reg(sreg);
+	u16 val = dsp_op_read_reg(sreg);
 	dsp_op_write_reg(dreg, val);
 }
 
 
-void dsp_opc_lrr(uint16 opc)
+void dsp_opc_lrr(u16 opc)
 {
-	uint8 sreg = (opc >> 5) & 0x3;
-	uint8 dreg = opc & 0x1f;
+	u8 sreg = (opc >> 5) & 0x3;
+	u8 dreg = opc & 0x1f;
 
-	uint16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
 
 	// post processing of source reg
@@ -401,12 +401,12 @@ void dsp_opc_lrr(uint16 opc)
 }
 
 
-void dsp_opc_srr(uint16 opc)
+void dsp_opc_srr(u16 opc)
 {
-	uint8 dreg = (opc >> 5) & 0x3;
-	uint8 sreg = opc & 0x1f;
+	u8 dreg = (opc >> 5) & 0x3;
+	u8 sreg = opc & 0x1f;
 
-	uint16 val = dsp_op_read_reg(sreg);
+	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
 
 	// post processing of dest reg
@@ -430,10 +430,10 @@ void dsp_opc_srr(uint16 opc)
 }
 
 
-void dsp_opc_ilrr(uint16 opc)
+void dsp_opc_ilrr(u16 opc)
 {
-	uint16 reg  = opc & 0x3;
-	uint16 dreg = 0x1e + ((opc >> 8) & 1);
+	u16 reg  = opc & 0x3;
+	u16 dreg = 0x1e + ((opc >> 8) & 1);
 
 	// always to acc0 ?
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
@@ -457,68 +457,68 @@ void dsp_opc_ilrr(uint16 opc)
 }
 
 
-void dsp_opc_lri(uint16 opc)
+void dsp_opc_lri(u16 opc)
 {
-	uint8 reg  = opc & DSP_REG_MASK;
-	uint16 imm = dsp_fetch_code();
+	u8 reg  = opc & DSP_REG_MASK;
+	u16 imm = dsp_fetch_code();
 	dsp_op_write_reg(reg, imm);
 }
 
 
-void dsp_opc_lris(uint16 opc)
+void dsp_opc_lris(u16 opc)
 {
-	uint8 reg  = ((opc >> 8) & 0x7) + 0x18;
-	uint16 imm = (sint8)opc;
+	u8 reg  = ((opc >> 8) & 0x7) + 0x18;
+	u16 imm = (s8)opc;
 	dsp_op_write_reg(reg, imm);
 }
 
 
-void dsp_opc_lr(uint16 opc)
+void dsp_opc_lr(u16 opc)
 {
-	uint8 reg   = opc & DSP_REG_MASK;
-	uint16 addr = dsp_fetch_code();
-	uint16 val  = dsp_dmem_read(addr);
+	u8 reg   = opc & DSP_REG_MASK;
+	u16 addr = dsp_fetch_code();
+	u16 val  = dsp_dmem_read(addr);
 	dsp_op_write_reg(reg, val);
 }
 
 
-void dsp_opc_sr(uint16 opc)
+void dsp_opc_sr(u16 opc)
 {
-	uint8 reg   = opc & DSP_REG_MASK;
-	uint16 addr = dsp_fetch_code();
-	uint16 val  = dsp_op_read_reg(reg);
+	u8 reg   = opc & DSP_REG_MASK;
+	u16 addr = dsp_fetch_code();
+	u16 val  = dsp_op_read_reg(reg);
 	dsp_dmem_write(addr, val);
 }
 
 
-void dsp_opc_si(uint16 opc)
+void dsp_opc_si(u16 opc)
 {
-	uint16 addr = (sint8)opc;
-	uint16 imm = dsp_fetch_code();
+	u16 addr = (s8)opc;
+	u16 imm = dsp_fetch_code();
 	dsp_dmem_write(addr, imm);
 }
 
 
-void dsp_opc_tstaxh(uint16 opc)
+void dsp_opc_tstaxh(u16 opc)
 {
-	uint8 reg  = (opc >> 8) & 0x1;
-	sint16 val = dsp_get_ax_h(reg);
+	u8 reg  = (opc >> 8) & 0x1;
+	s16 val = dsp_get_ax_h(reg);
 
 	Update_SR_Register(val);
 }
 
 
-void dsp_opc_clr(uint16 opc)
+void dsp_opc_clr(u16 opc)
 {
-	uint8 reg = (opc >> 11) & 0x1;
+	u8 reg = (opc >> 11) & 0x1;
 
 	dsp_set_long_acc(reg, 0);
 
-	Update_SR_Register((sint64)0);
+	Update_SR_Register((s64)0);
 }
 
 
-void dsp_opc_clrp(uint16 opc)
+void dsp_opc_clrp(u16 opc)
 {
 	g_dsp.r[0x14] = 0x0000;
 	g_dsp.r[0x15] = 0xfff0;
@@ -528,13 +528,13 @@ void dsp_opc_clrp(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulc(uint16 opc)
+void dsp_opc_mulc(u16 opc)
 {
 	// math new prod
-	uint8 sreg = (opc >> 11) & 0x1;
-	uint8 treg = (opc >> 12) & 0x1;
+	u8 sreg = (opc >> 11) & 0x1;
+	u8 treg = (opc >> 12) & 0x1;
 
-	sint64 prod = dsp_get_acc_m(sreg) * dsp_get_ax_h(treg) * GetMultiplyModifier();
+	s64 prod = dsp_get_acc_m(sreg) * dsp_get_ax_h(treg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
@@ -542,60 +542,60 @@ void dsp_opc_mulc(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulcmvz(uint16 opc)
+void dsp_opc_mulcmvz(u16 opc)
 {
 	ERROR_LOG(DSPHLE, "dsp_opc_mulcmvz ni");
 }
 
 
 // NEW
-void dsp_opc_mulcmv(uint16 opc)
+void dsp_opc_mulcmv(u16 opc)
 {
 	ERROR_LOG(DSPHLE, "dsp_opc_mulcmv ni");
 }
 
 
-void dsp_opc_cmpar(uint16 opc)
+void dsp_opc_cmpar(u16 opc)
 {
-	uint8 rreg = ((opc >> 12) & 0x1) + 0x1a;
-	uint8 areg = (opc >> 11) & 0x1;
+	u8 rreg = ((opc >> 12) & 0x1) + 0x1a;
+	u8 areg = (opc >> 11) & 0x1;
 
 	// we compare
-	sint64 rr = (sint16)g_dsp.r[rreg];
+	s64 rr = (s16)g_dsp.r[rreg];
 	rr <<= 16;
 
-	sint64 ar = dsp_get_long_acc(areg);
+	s64 ar = dsp_get_long_acc(areg);
 
 	Update_SR_Register(ar - rr);
 }
 
 
-void dsp_opc_cmp(uint16 opc)
+void dsp_opc_cmp(u16 opc)
 {
-	sint64 acc0 = dsp_get_long_acc(0);
-	sint64 acc1 = dsp_get_long_acc(1);
+	s64 acc0 = dsp_get_long_acc(0);
+	s64 acc1 = dsp_get_long_acc(1);
 
 	Update_SR_Register(acc0 - acc1);
 }
 
 
-void dsp_opc_tsta(uint16 opc)
+void dsp_opc_tsta(u16 opc)
 {
-	uint8 reg  = (opc >> 11) & 0x1;
-	sint64 acc = dsp_get_long_acc(reg);
+	u8 reg  = (opc >> 11) & 0x1;
+	s64 acc = dsp_get_long_acc(reg);
 
 	Update_SR_Register(acc);
 }
 
 
 // NEW
-void dsp_opc_addaxl(uint16 opc)
+void dsp_opc_addaxl(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(dreg);
-	sint64 acx = dsp_get_ax_l(sreg);
+	s64 acc = dsp_get_long_acc(dreg);
+	s64 acx = dsp_get_ax_l(sreg);
 
 	acc += acx;
 
@@ -606,38 +606,38 @@ void dsp_opc_addaxl(uint16 opc)
 
 
 // NEW
-void dsp_opc_addarn(uint16 opc)
+void dsp_opc_addarn(u16 opc)
 {
-	uint8 dreg = opc & 0x3;
-	uint8 sreg = (opc >> 2) & 0x3;
+	u8 dreg = opc & 0x3;
+	u8 sreg = (opc >> 2) & 0x3;
 
-	g_dsp.r[dreg] += (sint16)g_dsp.r[0x04 + sreg];
+	g_dsp.r[dreg] += (s16)g_dsp.r[0x04 + sreg];
 }
 
 
 // NEW
-void dsp_opc_mulcac(uint16 opc)
+void dsp_opc_mulcac(u16 opc)
 {
-	sint64 TempProd = dsp_get_long_prod();
+	s64 TempProd = dsp_get_long_prod();
 
 	// update prod
-	uint8 sreg  = (opc >> 12) & 0x1;
-	sint64 Prod = (sint64)dsp_get_acc_m(sreg) * (sint64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	u8 sreg  = (opc >> 12) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(Prod);
 
 	// update acc
-	uint8 rreg = (opc >> 8) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
 	dsp_set_long_acc(rreg, TempProd);
 }
 
 
 // NEW
-void dsp_opc_movr(uint16 opc)
+void dsp_opc_movr(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
-	uint8 sreg = ((opc >> 9) & 0x3) + 0x18;
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + 0x18;
 
-	sint64 acc = (sint16)g_dsp.r[sreg];
+	s64 acc = (s16)g_dsp.r[sreg];
 	acc <<= 16;
 	acc &= ~0xffff;
 
@@ -647,15 +647,15 @@ void dsp_opc_movr(uint16 opc)
 }
 
 
-void dsp_opc_movax(uint16 opc)
+void dsp_opc_movax(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	g_dsp.r[0x1c + dreg] = g_dsp.r[0x18 + sreg];
 	g_dsp.r[0x1e + dreg] = g_dsp.r[0x1a + sreg];
 
-	if ((sint16)g_dsp.r[0x1a + sreg] < 0)
+	if ((s16)g_dsp.r[0x1a + sreg] < 0)
 	{
 		g_dsp.r[0x10 + dreg] = 0xffff;
 	}
@@ -669,10 +669,10 @@ void dsp_opc_movax(uint16 opc)
 
 
 // NEW
-void dsp_opc_xorr(uint16 opc)
+void dsp_opc_xorr(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	g_dsp.r[0x1e + dreg] ^= g_dsp.r[0x1a + sreg];
 
@@ -680,10 +680,10 @@ void dsp_opc_xorr(uint16 opc)
 }
 
 
-void dsp_opc_andr(uint16 opc)
+void dsp_opc_andr(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	g_dsp.r[0x1e + dreg] &= g_dsp.r[0x1a + sreg];
 
@@ -692,10 +692,10 @@ void dsp_opc_andr(uint16 opc)
 
 
 // NEW
-void dsp_opc_orr(uint16 opc)
+void dsp_opc_orr(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	g_dsp.r[0x1e + dreg] |= g_dsp.r[0x1a + sreg];
 
@@ -704,12 +704,12 @@ void dsp_opc_orr(uint16 opc)
 
 
 // NEW
-void dsp_opc_andc(uint16 opc)
+void dsp_opc_andc(u16 opc)
 {
-	uint8 D = (opc >> 8) & 0x1;
+	u8 D = (opc >> 8) & 0x1;
 
-	uint16 ac1 = dsp_get_acc_m(D);
-	uint16 ac2 = dsp_get_acc_m(1 - D);
+	u16 ac1 = dsp_get_acc_m(D);
+	u16 ac2 = dsp_get_acc_m(1 - D);
 
 	dsp_set_long_acc(D, ac1 & ac2);
 
@@ -726,21 +726,21 @@ void dsp_opc_andc(uint16 opc)
 
 //-------------------------------------------------------------
 
-void dsp_opc_nx(uint16 opc)
+void dsp_opc_nx(u16 opc)
 {}
 
 
 // NEW
-void dsp_opc_andfc(uint16 opc)
+void dsp_opc_andfc(u16 opc)
 {
 	if (opc & 0xf)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc_andfc");
 	}
 
-	uint8 reg  = (opc >> 8) & 0x1;
-	uint16 imm = dsp_fetch_code();
-	uint16 val = dsp_get_acc_m(reg);
+	u8 reg  = (opc >> 8) & 0x1;
+	u16 imm = dsp_fetch_code();
+	u16 val = dsp_get_acc_m(reg);
 
 	if ((val & imm) == imm)
 	{
@@ -753,11 +753,11 @@ void dsp_opc_andfc(uint16 opc)
 }
 
 
-void dsp_opc_andf(uint16 opc)
+void dsp_opc_andf(u16 opc)
 {
-	uint8 reg;
-	uint16 imm;
-	uint16 val;
+	u8 reg;
+	u16 imm;
+	u16 val;
 
 	if (opc & 0xf)
 	{
@@ -779,56 +779,56 @@ void dsp_opc_andf(uint16 opc)
 }
 
 
-void dsp_opc_subf(uint16 opc)
+void dsp_opc_subf(u16 opc)
 {
 	if (opc & 0xf)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc_subf");
 	}
 
-	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
-	sint64 imm = (sint16)dsp_fetch_code();
+	u8 reg  = 0x1e + ((opc >> 8) & 0x1);
+	s64 imm = (s16)dsp_fetch_code();
 
-	sint64 val = (sint16)g_dsp.r[reg];
-	sint64 res = val - imm;
+	s64 val = (s16)g_dsp.r[reg];
+	s64 res = val - imm;
 
 	Update_SR_Register(res);
 }
 
 
-void dsp_opc_xori(uint16 opc)
+void dsp_opc_xori(u16 opc)
 {
 	if (opc & 0xf)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc_xori");
 	}
 
-	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
-	uint16 imm = dsp_fetch_code();
+	u8 reg  = 0x1e + ((opc >> 8) & 0x1);
+	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
 
-	Update_SR_Register((sint16)g_dsp.r[reg]);
+	Update_SR_Register((s16)g_dsp.r[reg]);
 }
 
 
-void dsp_opc_andi(uint16 opc)
+void dsp_opc_andi(u16 opc)
 {
 	if (opc & 0xf)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc_andi");
 	}
 
-	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
-	uint16 imm = dsp_fetch_code();
+	u8 reg  = 0x1e + ((opc >> 8) & 0x1);
+	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
 
-	Update_SR_Register((sint16)g_dsp.r[reg]);
+	Update_SR_Register((s16)g_dsp.r[reg]);
 }
 
 
 // F|RES: i am not sure if this shouldnt be the whole ACC
 //
-void dsp_opc_ori(uint16 opc)
+void dsp_opc_ori(u16 opc)
 {
 	if (opc & 0xf)
 	{
@@ -836,23 +836,23 @@ void dsp_opc_ori(uint16 opc)
 		return;
 	}
 
-	uint8 reg  = 0x1e + ((opc >> 8) & 0x1);
-	uint16 imm = dsp_fetch_code();
+	u8 reg  = 0x1e + ((opc >> 8) & 0x1);
+	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
 
-	Update_SR_Register((sint16)g_dsp.r[reg]);
+	Update_SR_Register((s16)g_dsp.r[reg]);
 }
 
 
 //-------------------------------------------------------------
 
-void dsp_opc_add(uint16 opc)
+void dsp_opc_add(u16 opc)
 {
-	uint8 areg  = (opc >> 8) & 0x1;
-	sint64 acc0 = dsp_get_long_acc(0);
-	sint64 acc1 = dsp_get_long_acc(1);
+	u8 areg  = (opc >> 8) & 0x1;
+	s64 acc0 = dsp_get_long_acc(0);
+	s64 acc1 = dsp_get_long_acc(1);
 
-	sint64 res = acc0 + acc1;
+	s64 res = acc0 + acc1;
 
 	dsp_set_long_acc(areg, res);
 
@@ -862,10 +862,10 @@ void dsp_opc_add(uint16 opc)
 
 //-------------------------------------------------------------
 
-void dsp_opc_addp(uint16 opc)
+void dsp_opc_addp(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x1;
-	sint64 acc = dsp_get_long_acc(dreg);
+	u8 dreg = (opc >> 8) & 0x1;
+	s64 acc = dsp_get_long_acc(dreg);
 	acc = acc + dsp_get_long_prod();
 	dsp_set_long_acc(dreg, acc);
 
@@ -873,15 +873,15 @@ void dsp_opc_addp(uint16 opc)
 }
 
 
-void dsp_opc_cmpis(uint16 opc)
+void dsp_opc_cmpis(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(areg);
-	sint64 val = (sint8)opc;
+	s64 acc = dsp_get_long_acc(areg);
+	s64 val = (s8)opc;
 	val <<= 16;
 
-	sint64 res = acc - val;
+	s64 res = acc - val;
 
 	Update_SR_Register(res);
 }
@@ -889,14 +889,14 @@ void dsp_opc_cmpis(uint16 opc)
 
 // NEW
 // verified at the console
-void dsp_opc_addpaxz(uint16 opc)
+void dsp_opc_addpaxz(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x1;
-	uint8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
-	sint64 prod = dsp_get_long_prod() & ~0x0ffff;
-	sint64 ax_h = dsp_get_long_acx(sreg);
-	sint64 acc = (prod + ax_h) & ~0x0ffff;
+	s64 prod = dsp_get_long_prod() & ~0x0ffff;
+	s64 ax_h = dsp_get_long_acx(sreg);
+	s64 acc = (prod + ax_h) & ~0x0ffff;
 
 	dsp_set_long_acc(dreg, acc);
 
@@ -905,25 +905,25 @@ void dsp_opc_addpaxz(uint16 opc)
 
 
 // NEW
-void dsp_opc_movpz(uint16 opc)
+void dsp_opc_movpz(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
 	// overwrite acc and clear low part
-	sint64 prod = dsp_get_long_prod();
-	sint64 acc = prod & ~0xffff;
+	s64 prod = dsp_get_long_prod();
+	s64 acc = prod & ~0xffff;
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register(acc);
 }
 
 
-void dsp_opc_decm(uint16 opc)
+void dsp_opc_decm(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
-	sint64 sub = 0x10000;
-	sint64 acc = dsp_get_long_acc(dreg);
+	s64 sub = 0x10000;
+	s64 acc = dsp_get_long_acc(dreg);
 	acc -= sub;
 	dsp_set_long_acc(dreg, acc);
 
@@ -931,23 +931,23 @@ void dsp_opc_decm(uint16 opc)
 }
 
 
-void dsp_opc_dec(uint16 opc)
+void dsp_opc_dec(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
-	sint64 acc = dsp_get_long_acc(dreg) - 1;
+	s64 acc = dsp_get_long_acc(dreg) - 1;
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register(acc);
 }
 
 
-void dsp_opc_incm(uint16 opc)
+void dsp_opc_incm(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
-	sint64 sub = 0x10000;
-	sint64 acc = dsp_get_long_acc(dreg);
+	s64 sub = 0x10000;
+	s64 acc = dsp_get_long_acc(dreg);
 	acc += sub;
 	dsp_set_long_acc(dreg, acc);
 
@@ -955,11 +955,11 @@ void dsp_opc_incm(uint16 opc)
 }
 
 
-void dsp_opc_inc(uint16 opc)
+void dsp_opc_inc(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(dreg);
+	s64 acc = dsp_get_long_acc(dreg);
 	acc++;
 	dsp_set_long_acc(dreg, acc);
 
@@ -967,11 +967,11 @@ void dsp_opc_inc(uint16 opc)
 }
 
 
-void dsp_opc_neg(uint16 opc)
+void dsp_opc_neg(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc = 0 - acc;
 	dsp_set_long_acc(areg, acc);
 
@@ -979,20 +979,20 @@ void dsp_opc_neg(uint16 opc)
 }
 
 
-void dsp_opc_movnp(uint16 opc)
+void dsp_opc_movnp(u16 opc)
 {
 	ERROR_LOG(DSPHLE, "dsp_opc_movnp\n");
 }
 
 
 // NEW
-void dsp_opc_addax(uint16 opc)
+void dsp_opc_addax(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
-	uint8 sreg = (opc >> 9) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
-	sint64 ax  = dsp_get_long_acx(sreg);
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 ax  = dsp_get_long_acx(sreg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc += ax;
 	dsp_set_long_acc(areg, acc);
 
@@ -1000,15 +1000,15 @@ void dsp_opc_addax(uint16 opc)
 }
 
 
-void dsp_opc_addr(uint16 opc)
+void dsp_opc_addr(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
-	uint8 sreg = ((opc >> 9) & 0x3) + 0x18;
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + 0x18;
 
-	sint64 ax = (sint16)g_dsp.r[sreg];
+	s64 ax = (s16)g_dsp.r[sreg];
 	ax <<= 16;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc += ax;
 	dsp_set_long_acc(areg, acc);
 
@@ -1016,15 +1016,15 @@ void dsp_opc_addr(uint16 opc)
 }
 
 
-void dsp_opc_subr(uint16 opc)
+void dsp_opc_subr(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
-	uint8 sreg = ((opc >> 9) & 0x3) + 0x18;
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + 0x18;
 
-	sint64 ax = (sint16)g_dsp.r[sreg];
+	s64 ax = (s16)g_dsp.r[sreg];
 	ax <<= 16;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc -= ax;
 	dsp_set_long_acc(areg, acc);
 
@@ -1032,24 +1032,24 @@ void dsp_opc_subr(uint16 opc)
 }
 
 // NEW
-void dsp_opc_subax(uint16 opc)
+void dsp_opc_subax(u16 opc)
 {
 	int regD = (opc >> 8) & 0x1;
 	int regT = (opc >> 9) & 0x1;
 
-	sint64 Acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regT);
+	s64 Acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regT);
 
 	dsp_set_long_acc(regD, Acc);
 	Update_SR_Register(Acc);
 }
 
-void dsp_opc_addis(uint16 opc)
+void dsp_opc_addis(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 Imm = (sint8)opc;
+	s64 Imm = (s8)opc;
 	Imm <<= 16;
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc += Imm;
 	dsp_set_long_acc(areg, acc);
 
@@ -1057,13 +1057,13 @@ void dsp_opc_addis(uint16 opc)
 }
 
 
-void dsp_opc_addi(uint16 opc)
+void dsp_opc_addi(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 sub = (sint16)dsp_fetch_code();
+	s64 sub = (s16)dsp_fetch_code();
 	sub <<= 16;
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc += sub;
 	dsp_set_long_acc(areg, acc);
 
@@ -1071,11 +1071,11 @@ void dsp_opc_addi(uint16 opc)
 }
 
 
-void dsp_opc_lsl16(uint16 opc)
+void dsp_opc_lsl16(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc <<= 16;
 	dsp_set_long_acc(areg, acc);
 
@@ -1084,21 +1084,21 @@ void dsp_opc_lsl16(uint16 opc)
 
 
 // NEW
-void dsp_opc_madd(uint16 opc)
+void dsp_opc_madd(u16 opc)
 {
-	uint8 sreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 8) & 0x1;
 
-	sint64 prod = dsp_get_long_prod();
-	prod += (sint64)dsp_get_ax_l(sreg) * (sint64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
+	s64 prod = dsp_get_long_prod();
+	prod += (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
 
 
-void dsp_opc_lsr16(uint16 opc)
+void dsp_opc_lsr16(u16 opc)
 {
-	uint8 areg = (opc >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
@@ -1106,11 +1106,11 @@ void dsp_opc_lsr16(uint16 opc)
 }
 
 
-void dsp_opc_asr16(uint16 opc)
+void dsp_opc_asr16(u16 opc)
 {
-	uint8 areg = (opc >> 11) & 0x1;
+	u8 areg = (opc >> 11) & 0x1;
 
-	sint64 acc = dsp_get_long_acc(areg);
+	s64 acc = dsp_get_long_acc(areg);
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
@@ -1120,7 +1120,7 @@ void dsp_opc_asr16(uint16 opc)
 
 union UOpcodeShifti
 {
-	uint16 Hex;
+	u16 Hex;
 	struct
 	{
 		signed shift        : 6;
@@ -1133,17 +1133,17 @@ union UOpcodeShifti
 	{
 		unsigned ushift     : 6;
 	};
-	UOpcodeShifti(uint16 _Hex)
+	UOpcodeShifti(u16 _Hex)
 		: Hex(_Hex) {}
 };
 
-void dsp_opc_shifti(uint16 opc)
+void dsp_opc_shifti(u16 opc)
 {
 	UOpcodeShifti Opcode(opc);
 
 	// direction: left
 	bool ShiftLeft = true;
-	uint16 shift = Opcode.ushift;
+	u16 shift = Opcode.ushift;
 
 	if ((Opcode.negating) && (Opcode.shift < 0))
 	{
@@ -1151,8 +1151,8 @@ void dsp_opc_shifti(uint16 opc)
 		shift = -Opcode.shift;
 	}
 
-	sint64 acc;
-	uint64 uacc;
+	s64 acc;
+	u64 uacc;
 
 	if (Opcode.arithmetic)
 	{
@@ -1192,9 +1192,9 @@ void dsp_opc_shifti(uint16 opc)
 
 //-------------------------------------------------------------
 // hcs give me this code!!
-void dsp_opc_dar(uint16 opc)
+void dsp_opc_dar(u16 opc)
 {
-	uint8 reg = opc & 0x3;
+	u8 reg = opc & 0x3;
 
 	int temp = g_dsp.r[reg] + g_dsp.r[8];
 
@@ -1204,9 +1204,9 @@ void dsp_opc_dar(uint16 opc)
 
 
 // hcs give me this code!!
-void dsp_opc_iar(uint16 opc)
+void dsp_opc_iar(u16 opc)
 {
-	uint8 reg = opc & 0x3;
+	u8 reg = opc & 0x3;
 
 	int temp = g_dsp.r[reg] + g_dsp.r[8];
 
@@ -1217,21 +1217,21 @@ void dsp_opc_iar(uint16 opc)
 
 //-------------------------------------------------------------
 
-void dsp_opc_sbclr(uint16 opc)
+void dsp_opc_sbclr(u16 opc)
 {
-	uint8 bit = (opc & 0xff) + 6;
+	u8 bit = (opc & 0xff) + 6;
 	g_dsp.r[R_SR] &= ~(1 << bit);
 }
 
 
-void dsp_opc_sbset(uint16 opc)
+void dsp_opc_sbset(u16 opc)
 {
-	uint8 bit = (opc & 0xff) + 6;
+	u8 bit = (opc & 0xff) + 6;
 	g_dsp.r[R_SR] |= (1 << bit);
 }
 
 
-void dsp_opc_srbith(uint16 opc)
+void dsp_opc_srbith(u16 opc)
 {
 	switch ((opc >> 8) & 0xf)
 	{
@@ -1255,20 +1255,20 @@ void dsp_opc_srbith(uint16 opc)
 
 //-------------------------------------------------------------
 
-void dsp_opc_movp(uint16 opc)
+void dsp_opc_movp(u16 opc)
 {
-	uint8 dreg = (opc >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
-	sint64 prod = dsp_get_long_prod();
-	sint64 acc = prod;
+	s64 prod = dsp_get_long_prod();
+	s64 acc = prod;
 	dsp_set_long_acc(dreg, acc);
 }
 
 
-void dsp_opc_mul(uint16 opc)
+void dsp_opc_mul(u16 opc)
 {
-	uint8 sreg  = (opc >> 11) & 0x1;
-	sint64 prod = (sint64)dsp_get_ax_h(sreg) * (sint64)dsp_get_ax_l(sreg) * GetMultiplyModifier();
+	u8 sreg  = (opc >> 11) & 0x1;
+	s64 prod = (s64)dsp_get_ax_h(sreg) * (s64)dsp_get_ax_l(sreg) * GetMultiplyModifier();
 
 	dsp_set_long_prod(prod);
 
@@ -1276,33 +1276,33 @@ void dsp_opc_mul(uint16 opc)
 }
 
 // NEW
-void dsp_opc_mulac(uint16 opc)
+void dsp_opc_mulac(u16 opc)
 {
 	// add old prod to acc
-	uint8 rreg = (opc >> 8) & 0x1;
-	sint64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
+	u8 rreg = (opc >> 8) & 0x1;
+	s64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	dsp_set_long_acc(rreg, acR);
 
 	// math new prod
-	uint8 sreg = (opc >> 11) & 0x1;
-	sint64 prod = dsp_get_ax_l(sreg) * dsp_get_ax_h(sreg) * GetMultiplyModifier();
+	u8 sreg = (opc >> 11) & 0x1;
+	s64 prod = dsp_get_ax_l(sreg) * dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
 }
 
 
-void dsp_opc_mulmv(uint16 opc)
+void dsp_opc_mulmv(u16 opc)
 {
-	uint8 rreg  = (opc >> 8) & 0x1;
-	sint64 prod = dsp_get_long_prod();
-	sint64 acc = prod;
+	u8 rreg  = (opc >> 8) & 0x1;
+	s64 prod = dsp_get_long_prod();
+	s64 acc = prod;
 	dsp_set_long_acc(rreg, acc);
 
-	uint8 areg  = ((opc >> 11) & 0x1) + 0x18;
-	uint8 breg  = ((opc >> 11) & 0x1) + 0x1a;
-	sint64 val1 = (sint16)g_dsp.r[areg];
-	sint64 val2 = (sint16)g_dsp.r[breg];
+	u8 areg  = ((opc >> 11) & 0x1) + 0x18;
+	u8 breg  = ((opc >> 11) & 0x1) + 0x1a;
+	s64 val1 = (s16)g_dsp.r[areg];
+	s64 val2 = (s16)g_dsp.r[breg];
 
 	prod = val1 * val2 * GetMultiplyModifier();
 
@@ -1313,18 +1313,18 @@ void dsp_opc_mulmv(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulmvz(uint16 opc)
+void dsp_opc_mulmvz(u16 opc)
 {
-	uint8 sreg = (opc >> 11) & 0x1;
-	uint8 rreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 11) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
 
 	// overwrite acc and clear low part
-	sint64 prod = dsp_get_long_prod();
-	sint64 acc = prod & ~0xffff;
+	s64 prod = dsp_get_long_prod();
+	s64 acc = prod & ~0xffff;
 	dsp_set_long_acc(rreg, acc);
 
 	// math prod
-	prod = (sint64)g_dsp.r[0x18 + sreg] * (sint64)g_dsp.r[0x1a + sreg] * GetMultiplyModifier();
+	prod = (s64)g_dsp.r[0x18 + sreg] * (s64)g_dsp.r[0x1a + sreg] * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
@@ -1332,15 +1332,15 @@ void dsp_opc_mulmvz(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulx(uint16 opc)
+void dsp_opc_mulx(u16 opc)
 {
-	uint8 sreg = ((opc >> 12) & 0x1);
-	uint8 treg = ((opc >> 11) & 0x1);
+	u8 sreg = ((opc >> 12) & 0x1);
+	u8 treg = ((opc >> 11) & 0x1);
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
-	sint64 prod = val1 * val2 * GetMultiplyModifier();
+	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
@@ -1348,21 +1348,21 @@ void dsp_opc_mulx(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulxac(uint16 opc)
+void dsp_opc_mulxac(u16 opc)
 {
 	// add old prod to acc
-	uint8 rreg = (opc >> 8) & 0x1;
-	sint64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
+	u8 rreg = (opc >> 8) & 0x1;
+	s64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	dsp_set_long_acc(rreg, acR);
 
 	// math new prod
-	uint8 sreg = (opc >> 12) & 0x1;
-	uint8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
-	sint64 prod = val1 * val2 * GetMultiplyModifier();
+	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
@@ -1370,21 +1370,21 @@ void dsp_opc_mulxac(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulxmv(uint16 opc)
+void dsp_opc_mulxmv(u16 opc)
 {
 	// add old prod to acc
-	uint8 rreg = ((opc >> 8) & 0x1);
-	sint64 acR = dsp_get_long_prod();
+	u8 rreg = ((opc >> 8) & 0x1);
+	s64 acR = dsp_get_long_prod();
 	dsp_set_long_acc(rreg, acR);
 
 	// math new prod
-	uint8 sreg = (opc >> 12) & 0x1;
-	uint8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
-	sint64 prod = val1 * val2 * GetMultiplyModifier();
+	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register(prod);
@@ -1392,20 +1392,20 @@ void dsp_opc_mulxmv(uint16 opc)
 
 
 // NEW
-void dsp_opc_mulxmvz(uint16 opc)
+void dsp_opc_mulxmvz(u16 opc)
 {
 	// overwrite acc and clear low part
-	uint8 rreg  = (opc >> 8) & 0x1;
-	sint64 prod = dsp_get_long_prod();
-	sint64 acc = prod & ~0xffff;
+	u8 rreg  = (opc >> 8) & 0x1;
+	s64 prod = dsp_get_long_prod();
+	s64 acc = prod & ~0xffff;
 	dsp_set_long_acc(rreg, acc);
 
 	// math prod
-	uint8 sreg = (opc >> 12) & 0x1;
-	uint8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
 	prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
@@ -1415,11 +1415,11 @@ void dsp_opc_mulxmvz(uint16 opc)
 
 
 // NEW
-void dsp_opc_sub(uint16 opc)
+void dsp_opc_sub(u16 opc)
 {
-	uint8 D = (opc >> 8) & 0x1;
-	sint64 Acc1 = dsp_get_long_acc(D);
-	sint64 Acc2 = dsp_get_long_acc(1 - D);
+	u8 D = (opc >> 8) & 0x1;
+	s64 Acc1 = dsp_get_long_acc(D);
+	s64 Acc2 = dsp_get_long_acc(1 - D);
 
 	Acc1 -= Acc2;
 
@@ -1434,67 +1434,67 @@ void dsp_opc_sub(uint16 opc)
 //-------------------------------------------------------------
 
 // NEW
-void dsp_opc_maddx(uint16 opc)
+void dsp_opc_maddx(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
-	sint64 prod = dsp_get_long_prod();
+	s64 prod = dsp_get_long_prod();
 	prod += val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
 
 
 // NEW
-void dsp_opc_msubx(uint16 opc)
+void dsp_opc_msubx(u16 opc)
 {
-	uint8 sreg = (opc >> 9) & 0x1;
-	uint8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
 
-	sint64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	sint64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	s64 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
-	sint64 prod = dsp_get_long_prod();
+	s64 prod = dsp_get_long_prod();
 	prod -= val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
 
 
 // NEW
-void dsp_opc_maddc(uint16 opc)
+void dsp_opc_maddc(u16 opc)
 {
-	uint sreg = (opc >> 9) & 0x1;
-	uint treg = (opc >> 8) & 0x1;
+	u32 sreg = (opc >> 9) & 0x1;
+	u32 treg = (opc >> 8) & 0x1;
 
-	sint64 val1 = dsp_get_acc_m(sreg);
-	sint64 val2 = dsp_get_ax_h(treg);
+	s64 val1 = dsp_get_acc_m(sreg);
+	s64 val2 = dsp_get_ax_h(treg);
 
-	sint64 prod = dsp_get_long_prod();
+	s64 prod = dsp_get_long_prod();
 	prod += val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
 
 
 // NEW
-void dsp_opc_msubc(uint16 opc)
+void dsp_opc_msubc(u16 opc)
 {
-	uint sreg = (opc >> 9) & 0x1;
-	uint treg = (opc >> 8) & 0x1;
+	u32 sreg = (opc >> 9) & 0x1;
+	u32 treg = (opc >> 8) & 0x1;
 
-	sint64 val1 = dsp_get_acc_m(sreg);
-	sint64 val2 = dsp_get_ax_h(treg);
+	s64 val1 = dsp_get_acc_m(sreg);
+	s64 val2 = dsp_get_ax_h(treg);
 
-	sint64 prod = dsp_get_long_prod();
+	s64 prod = dsp_get_long_prod();
 	prod -= val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
 
 
 //-------------------------------------------------------------
-void dsp_op0(uint16 opc)
+void dsp_op0(u16 opc)
 {
 	if (opc == 0)
 	{
@@ -1706,7 +1706,7 @@ void dsp_op0(uint16 opc)
 }
 
 
-void dsp_op1(uint16 opc)
+void dsp_op1(u16 opc)
 {
 	switch ((opc >> 8) & 0xf)
 	{
@@ -1763,11 +1763,11 @@ void dsp_op1(uint16 opc)
 }
 
 
-void dsp_op2(uint16 opc)
+void dsp_op2(u16 opc)
 {
 	// lrs, srs
-	uint8 reg   = ((opc >> 8) & 0x7) + 0x18;
-	uint16 addr = (sint8) opc;
+	u8 reg   = ((opc >> 8) & 0x7) + 0x18;
+	u16 addr = (s8) opc;
 
 	if (opc & 0x0800)
 	{
@@ -1782,7 +1782,7 @@ void dsp_op2(uint16 opc)
 }
 
 
-void dsp_op3(uint16 opc)
+void dsp_op3(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -1823,7 +1823,7 @@ void dsp_op3(uint16 opc)
 }
 
 
-void dsp_op4(uint16 opc)
+void dsp_op4(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -1866,7 +1866,7 @@ void dsp_op4(uint16 opc)
 }
 
 
-void dsp_op5(uint16 opc)
+void dsp_op5(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -1904,7 +1904,7 @@ void dsp_op5(uint16 opc)
 }
 
 
-void dsp_op6(uint16 opc)
+void dsp_op6(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -1942,7 +1942,7 @@ void dsp_op6(uint16 opc)
 }
 
 
-void dsp_op7(uint16 opc)
+void dsp_op7(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -1994,7 +1994,7 @@ void dsp_op7(uint16 opc)
 }
 
 
-void dsp_op8(uint16 opc)
+void dsp_op8(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -2041,7 +2041,7 @@ void dsp_op8(uint16 opc)
 }
 
 
-void dsp_op9(uint16 opc)
+void dsp_op9(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -2087,7 +2087,7 @@ void dsp_op9(uint16 opc)
 }
 
 
-void dsp_opab(uint16 opc)
+void dsp_opab(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -2124,7 +2124,7 @@ void dsp_opab(uint16 opc)
 }
 
 
-void dsp_opcd(uint16 opc)
+void dsp_opcd(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -2161,7 +2161,7 @@ void dsp_opcd(uint16 opc)
 }
 
 
-void dsp_ope(uint16 opc)
+void dsp_ope(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 
@@ -2191,7 +2191,7 @@ void dsp_ope(uint16 opc)
 }
 
 
-void dsp_opf(uint16 opc)
+void dsp_opf(u16 opc)
 {
 	dsp_op_ext_ops_pro(opc);
 

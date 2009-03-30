@@ -66,9 +66,9 @@ void gdsp_dma();
 Common::CriticalSection g_CriticalSection;
 #endif
 
-static volatile uint16 gdsp_mbox[2][2];
+static volatile u16 gdsp_mbox[2][2];
 
-uint16 gdsp_ifx_regs[256];
+u16 gdsp_ifx_regs[256];
 
 void gdsp_ifx_init()
 {
@@ -86,12 +86,12 @@ void gdsp_ifx_init()
 }
 
 
-uint32 gdsp_mbox_peek(uint8 mbx)
+u32 gdsp_mbox_peek(u8 mbx)
 {
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Enter();
 #endif
-	uint32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
+	u32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Leave();
 #endif
@@ -99,7 +99,7 @@ uint32 gdsp_mbox_peek(uint8 mbx)
 }
 
 
-void gdsp_mbox_write_h(uint8 mbx, uint16 val)
+void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Enter();
@@ -113,7 +113,7 @@ void gdsp_mbox_write_h(uint8 mbx, uint16 val)
 }
 
 
-void gdsp_mbox_write_l(uint8 mbx, uint16 val)
+void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Enter();
@@ -133,15 +133,15 @@ void gdsp_mbox_write_l(uint8 mbx, uint16 val)
 }
 
 
-uint16 gdsp_mbox_read_h(uint8 mbx)
+u16 gdsp_mbox_read_h(u8 mbx)
 {
 	return (gdsp_mbox[mbx][0]);
 }
 
 
-uint16 gdsp_mbox_read_l(uint8 mbx)
+u16 gdsp_mbox_read_l(u8 mbx)
 {
-	uint16 val;
+	u16 val;
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Enter();
 #endif
@@ -156,7 +156,7 @@ uint16 gdsp_mbox_read_l(uint8 mbx)
 }
 
 
-void gdsp_ifx_write(uint16 addr, uint16 val)
+void gdsp_ifx_write(u16 addr, u16 val)
 {
 	addr &= 0xff;
 
@@ -203,9 +203,9 @@ void gdsp_ifx_write(uint16 addr, uint16 val)
 }
 
 
-uint16 gdsp_ifx_read(uint16 addr)
+u16 gdsp_ifx_read(u16 addr)
 {
-	uint16 val;
+	u16 val;
 
 	addr &= 0xff;
 
@@ -244,13 +244,13 @@ uint16 gdsp_ifx_read(uint16 addr)
 }
 
 
-void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
+void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-	uint8* dst = ((uint8*)g_dsp.iram);
+	u8* dst = ((u8*)g_dsp.iram);
 
-	for (uint32 i = 0; i < size; i += 2)
+	for (u32 i = 0; i < size; i += 2)
 	{
-		*(uint16*)&dst[dsp_addr + i] = *(uint16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff];
+		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff];
 	}
 
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
@@ -262,13 +262,13 @@ void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 }
 
 
-void gdsp_idma_out(uint16 dsp_addr, uint32 addr, uint32 size)
+void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 {
 	ERROR_LOG(DSPHLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
 
 
-void gdsp_ddma_in(uint16 dsp_addr, uint32 addr, uint32 size)
+void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
@@ -276,18 +276,18 @@ void gdsp_ddma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 		return;
 	}
 
-	uint8* dst = ((uint8*)g_dsp.dram);
+	u8* dst = ((u8*)g_dsp.dram);
 
-	for (uint32 i = 0; i < size; i += 2)
+	for (u32 i = 0; i < size; i += 2)
 	{
-		*(uint16*)&dst[dsp_addr + i] = *(uint16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF];
+		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF];
 	}
 
 	DEBUG_LOG(DSPHLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
 }
 
 
-void gdsp_ddma_out(uint16 dsp_addr, uint32 addr, uint32 size)
+void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
@@ -295,11 +295,11 @@ void gdsp_ddma_out(uint16 dsp_addr, uint32 addr, uint32 size)
 		return;
 	}
 
-	uint8* src = ((uint8*)g_dsp.dram);
+	u8* src = ((u8*)g_dsp.dram);
 
-	for (uint32 i = 0; i < size; i += 2)
+	for (u32 i = 0; i < size; i += 2)
 	{
-		*(uint16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = *(uint16*)&src[dsp_addr + i];
+		*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = *(u16*)&src[dsp_addr + i];
 	}
 
 	DEBUG_LOG(DSPHLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
@@ -313,10 +313,10 @@ void gdsp_ddma_out(uint16 dsp_addr, uint32 addr, uint32 size)
 
 void gdsp_dma()
 {
-	uint16 ctl;
-	uint32 addr;
-	uint16 dsp_addr;
-	uint16 len;
+	u16 ctl;
+	u32 addr;
+	u16 dsp_addr;
+	u16 len;
 
 	addr = (gdsp_ifx_regs[DSP_DSMAH] << 16) | gdsp_ifx_regs[DSP_DSMAL];
 	ctl = gdsp_ifx_regs[DSP_DSCR];

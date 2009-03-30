@@ -50,17 +50,17 @@
 #define DSP_ARAM        0xdd
 #define DSP_GAIN        0xde
 
-extern uint16 gdsp_ifx_regs[256];
+extern u16 gdsp_ifx_regs[256];
 
-uint32  gdsp_mbox_peek(uint8 mbx);
-void    gdsp_mbox_write_h(uint8 mbx, uint16 val);
-void    gdsp_mbox_write_l(uint8 mbx, uint16 val);
-uint16  gdsp_mbox_read_h(uint8 mbx);
-uint16  gdsp_mbox_read_l(uint8 mbx);
+u32  gdsp_mbox_peek(u8 mbx);
+void    gdsp_mbox_write_h(u8 mbx, u16 val);
+void    gdsp_mbox_write_l(u8 mbx, u16 val);
+u16  gdsp_mbox_read_h(u8 mbx);
+u16  gdsp_mbox_read_l(u8 mbx);
 
 void    gdsp_ifx_init();
 
-void    gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size);
+void    gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size);
 
 
 #endif

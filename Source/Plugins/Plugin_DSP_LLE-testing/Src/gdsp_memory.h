@@ -27,11 +27,11 @@
 
 #include "Globals.h"
 
-uint16  dsp_fetch_code(void);
-uint16 dsp_peek_code(void);
-uint16  dsp_imem_read(uint16 addr);
-bool    dsp_dmem_write(uint16 addr, uint16 val);
-uint16  dsp_dmem_read(uint16 addr);
+u16  dsp_fetch_code(void);
+u16 dsp_peek_code(void);
+u16  dsp_imem_read(u16 addr);
+bool    dsp_dmem_write(u16 addr, u16 val);
+u16  dsp_dmem_read(u16 addr);
 
 
 #endif

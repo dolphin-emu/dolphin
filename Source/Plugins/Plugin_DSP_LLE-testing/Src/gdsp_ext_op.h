@@ -26,8 +26,8 @@
 #ifndef _GDSP_EXT_OP_H
 #define _GDSP_EXT_OP_H
 
-void dsp_op_ext_ops_pro(uint16 _Opcode);
-void dsp_op_ext_ops_epi(uint16 _Opcode);
+void dsp_op_ext_ops_pro(u16 _Opcode);
+void dsp_op_ext_ops_epi(u16 _Opcode);
 
 
 #endif

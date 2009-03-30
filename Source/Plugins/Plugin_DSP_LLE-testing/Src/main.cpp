@@ -45,8 +45,8 @@ SoundStream *soundStream = NULL;
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
 
-uint32 g_LastDMAAddress = 0;
-uint32 g_LastDMASize = 0;
+u32 g_LastDMAAddress = 0;
+u32 g_LastDMASize = 0;
 
 extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);

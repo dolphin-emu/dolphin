@@ -20,7 +20,7 @@
 // UDSPControl
 union UDSPControl
 {
-	uint16 Hex;
+	u16 Hex;
 	struct
 	{
 		unsigned DSPReset       : 1; // Write 1 to reset and waits for 0
@@ -40,11 +40,11 @@ union UDSPControl
 		unsigned pad            : 4;
 	};
 
-	UDSPControl(uint16 _Hex = 0)
+	UDSPControl(u16 _Hex = 0)
 		: Hex(_Hex) {}
 };
 
 
-bool DumpDSPCode(uint32 _Address, uint32 _Length, uint32 crc);
-uint32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
-bool DumpCWCode(uint32 _Address, uint32 _Length);
+bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc);
+u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
+bool DumpCWCode(u32 _Address, u32 _Length);

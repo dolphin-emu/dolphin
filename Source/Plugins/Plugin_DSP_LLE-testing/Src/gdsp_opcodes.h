@@ -27,20 +27,20 @@
 
 #include "Globals.h"
 
-void dsp_op0(uint16 opc);
-void dsp_op1(uint16 opc);
-void dsp_op2(uint16 opc);
-void dsp_op3(uint16 opc);
-void dsp_op4(uint16 opc);
-void dsp_op5(uint16 opc);
-void dsp_op6(uint16 opc);
-void dsp_op7(uint16 opc);
-void dsp_op8(uint16 opc);
-void dsp_op9(uint16 opc);
-void dsp_opab(uint16 opc);
-void dsp_opcd(uint16 opc);
-void dsp_ope(uint16 opc);
-void dsp_opf(uint16 opc);
+void dsp_op0(u16 opc);
+void dsp_op1(u16 opc);
+void dsp_op2(u16 opc);
+void dsp_op3(u16 opc);
+void dsp_op4(u16 opc);
+void dsp_op5(u16 opc);
+void dsp_op6(u16 opc);
+void dsp_op7(u16 opc);
+void dsp_op8(u16 opc);
+void dsp_op9(u16 opc);
+void dsp_opab(u16 opc);
+void dsp_opcd(u16 opc);
+void dsp_ope(u16 opc);
+void dsp_opf(u16 opc);
 
 
 #define R_SR            0x13

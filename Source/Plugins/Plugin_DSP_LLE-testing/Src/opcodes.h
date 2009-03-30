@@ -55,28 +55,28 @@ enum partype_t
 typedef struct opcpar_t
 {
 	partype_t type;
-	uint8 size;
-	uint8 loc;
-	sint8 lshift;
-	uint16 mask;
+	u8 size;
+	u8 loc;
+	s8 lshift;
+	u16 mask;
 } opcpar_t;
 
 typedef struct opc_t
 {
 	const char* name;
-	uint16 opcode;
-	uint16 opcode_mask;
-	uint8 size;
-	uint8 param_count;
+	u16 opcode;
+	u16 opcode_mask;
+	u8 size;
+	u8 param_count;
 	opcpar_t params[8];
 } opc_t;
 
 extern opc_t opcodes[];
-extern const uint32 opcodes_size;
+extern const u32 opcodes_size;
 extern opc_t opcodes_ext[];
-extern const uint32 opcodes_ext_size;
+extern const u32 opcodes_ext_size;
 
-inline uint16 swap16(uint16 x)
+inline u16 swap16(u16 x)
 {
 	return((x >> 8) | (x << 8));
 }

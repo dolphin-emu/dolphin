@@ -35,8 +35,8 @@
 #define DSP_STACK_C 0
 #define DSP_STACK_D 1
 
-void dsp_reg_store_stack(uint8 stack_reg, uint16 val);
-uint16 dsp_reg_load_stack(uint8 stack_reg);
+void dsp_reg_store_stack(u8 stack_reg, u16 val);
+u16 dsp_reg_load_stack(u8 stack_reg);
 
 
 #endif

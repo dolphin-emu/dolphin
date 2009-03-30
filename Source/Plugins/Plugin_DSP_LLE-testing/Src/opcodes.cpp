@@ -232,6 +232,6 @@ opc_t opcodes_ext[] =
 	{"XXX", 0x0000, 0x0000, 1, 1, {{P_VAL, 1, 0, 0, 0x00ff}},},
 };
 
-const uint32 opcodes_size = sizeof(opcodes) / sizeof(opc_t);
-const uint32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(opc_t);
+const u32 opcodes_size = sizeof(opcodes) / sizeof(opc_t);
+const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(opc_t);
 

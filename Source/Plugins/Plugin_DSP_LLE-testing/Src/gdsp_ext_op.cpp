@@ -33,10 +33,10 @@
 
 
 //
-void dsp_op_ext_r_epi(uint16 _Opcode)
+void dsp_op_ext_r_epi(u16 _Opcode)
 {
-	uint8 op  = (_Opcode >> 2) & 0x3;
-	uint8 reg = _Opcode & 0x3;
+	u8 op  = (_Opcode >> 2) & 0x3;
+	u8 reg = _Opcode & 0x3;
 
 	switch (op)
 	{
@@ -59,19 +59,19 @@ void dsp_op_ext_r_epi(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_mv(uint16 _Opcode)
+void dsp_op_ext_mv(u16 _Opcode)
 {
-	uint8 sreg = _Opcode & 0x3;
-	uint8 dreg = ((_Opcode >> 2) & 0x3);
+	u8 sreg = _Opcode & 0x3;
+	u8 dreg = ((_Opcode >> 2) & 0x3);
 
 	g_dsp.r[dreg + 0x18] = g_dsp.r[sreg + 0x1c];
 }
 
 
-void dsp_op_ext_s(uint16 _Opcode)
+void dsp_op_ext_s(u16 _Opcode)
 {
-	uint8 dreg = _Opcode & 0x3;
-	uint8 sreg = ((_Opcode >> 3) & 0x3) + 0x1c;
+	u8 dreg = _Opcode & 0x3;
+	u8 sreg = ((_Opcode >> 3) & 0x3) + 0x1c;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
@@ -86,12 +86,12 @@ void dsp_op_ext_s(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_l(uint16 _Opcode)
+void dsp_op_ext_l(u16 _Opcode)
 {
-	uint8 sreg = _Opcode & 0x3;
-	uint8 dreg = ((_Opcode >> 3) & 0x7) + 0x18;
+	u8 sreg = _Opcode & 0x3;
+	u8 dreg = ((_Opcode >> 3) & 0x7) + 0x18;
 
-	uint16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
 
 	if (_Opcode & 0x04)
@@ -105,9 +105,9 @@ void dsp_op_ext_l(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_ls_pro(uint16 _Opcode)
+void dsp_op_ext_ls_pro(u16 _Opcode)
 {
-	uint8 areg = (_Opcode & 0x1) + 0x1e;
+	u8 areg = (_Opcode & 0x1) + 0x1e;
 	dsp_dmem_write(g_dsp.r[0x03], g_dsp.r[areg]);
 
 	if (_Opcode & 0x8)
@@ -121,10 +121,10 @@ void dsp_op_ext_ls_pro(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_ls_epi(uint16 _Opcode)
+void dsp_op_ext_ls_epi(u16 _Opcode)
 {
-	uint8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
-	uint16 val = dsp_dmem_read(g_dsp.r[0x00]);
+	u8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
+	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
 	dsp_op_write_reg(dreg, val);
 
 	if (_Opcode & 0x4)
@@ -138,9 +138,9 @@ void dsp_op_ext_ls_epi(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_sl_pro(uint16 _Opcode)
+void dsp_op_ext_sl_pro(u16 _Opcode)
 {
-	uint8 areg = (_Opcode & 0x1) + 0x1e;
+	u8 areg = (_Opcode & 0x1) + 0x1e;
 	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
 
 	if (_Opcode & 0x4)
@@ -154,10 +154,10 @@ void dsp_op_ext_sl_pro(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_sl_epi(uint16 _Opcode)
+void dsp_op_ext_sl_epi(u16 _Opcode)
 {
-	uint8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
-	uint16 val = dsp_dmem_read(g_dsp.r[0x03]);
+	u8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
+	u16 val = dsp_dmem_read(g_dsp.r[0x03]);
 	dsp_op_write_reg(dreg, val);
 
 	if (_Opcode & 0x8)
@@ -171,11 +171,11 @@ void dsp_op_ext_sl_epi(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_ld(uint16 _Opcode)
+void dsp_op_ext_ld(u16 _Opcode)
 {
-	uint8 dreg1 = (((_Opcode >> 5) & 0x1) << 1) + 0x18;
-	uint8 dreg2 = (((_Opcode >> 4) & 0x1) << 1) + 0x19;
-	uint8 sreg = _Opcode & 0x3;
+	u8 dreg1 = (((_Opcode >> 5) & 0x1) << 1) + 0x18;
+	u8 dreg2 = (((_Opcode >> 4) & 0x1) << 1) + 0x19;
+	u8 sreg = _Opcode & 0x3;
 	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);
 
@@ -205,7 +205,7 @@ void dsp_op_ext_ld(uint16 _Opcode)
 //
 // ================================================================================
 
-void dsp_op_ext_ops_pro(uint16 _Opcode)
+void dsp_op_ext_ops_pro(u16 _Opcode)
 {
 	if ((_Opcode & 0xFF) == 0){return;}
 
@@ -257,7 +257,7 @@ void dsp_op_ext_ops_pro(uint16 _Opcode)
 }
 
 
-void dsp_op_ext_ops_epi(uint16 _Opcode)
+void dsp_op_ext_ops_epi(u16 _Opcode)
 {
 	if ((_Opcode & 0xFF) == 0){return;}
 

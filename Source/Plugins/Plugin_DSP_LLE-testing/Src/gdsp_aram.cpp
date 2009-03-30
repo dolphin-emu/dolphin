@@ -18,12 +18,12 @@
 #include "Globals.h"
 #include "gdsp_interface.h"
 
-extern uint16 dsp_swap16(uint16 x);
+extern u16 dsp_swap16(u16 x);
 
 // The hardware adpcm decoder :)
-sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
+s16 ADPCM_Step(u32& _rSamplePos, u32 _BaseAddress)
 {
-	sint16* pCoefTable = (sint16*)&gdsp_ifx_regs[DSP_COEF_A1_0];
+	s16* pCoefTable = (s16*)&gdsp_ifx_regs[DSP_COEF_A1_0];
 
 	if (((_rSamplePos) & 15) == 0)
 	{
@@ -34,8 +34,8 @@ sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
 	int scale = 1 << (gdsp_ifx_regs[DSP_PRED_SCALE] & 0xF);
 	int coef_idx = gdsp_ifx_regs[DSP_PRED_SCALE] >> 4;
 
-	sint32 coef1 = pCoefTable[coef_idx * 2 + 0];
-	sint32 coef2 = pCoefTable[coef_idx * 2 + 1];
+	s32 coef1 = pCoefTable[coef_idx * 2 + 0];
+	s32 coef2 = pCoefTable[coef_idx * 2 + 1];
 
 	int temp = (_rSamplePos & 1) ?
 		   (g_dspInitialize.pARAM_Read_U8(_rSamplePos >> 1) & 0xF) :
@@ -45,7 +45,7 @@ sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
 		temp -= 16;
 
 	// 0x400 = 0.5  in 11-bit fixed point
-	int val = (scale * temp) + ((0x400 + coef1 * (sint16)gdsp_ifx_regs[DSP_YN1] + coef2 * (sint16)gdsp_ifx_regs[DSP_YN2]) >> 11);
+	int val = (scale * temp) + ((0x400 + coef1 * (s16)gdsp_ifx_regs[DSP_YN1] + coef2 * (s16)gdsp_ifx_regs[DSP_YN2]) >> 11);
 
 	// Clamp values.
 	if (val > 0x7FFF)
@@ -63,14 +63,14 @@ sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
 	return val;
 }
 
-extern void gdsp_generate_exception(uint8 level);
-uint16 dsp_read_aram()
+extern void gdsp_generate_exception(u8 level);
+u16 dsp_read_aram()
 {
-  //	uint32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
-	uint32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
-	uint32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
+  //	u32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
+	u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
+	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
 
-	uint16 val;
+	u16 val;
 
 	// lets the "hardware" decode
 	switch (gdsp_ifx_regs[DSP_FORMAT])

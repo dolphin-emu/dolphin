@@ -34,25 +34,25 @@
 
 SDSP g_dsp;
 
-uint16 SDSP::r[32];
-uint16 SDSP::pc = 0;
-uint16 SDSP::err_pc = 0;
-uint16* SDSP::iram   = 0;
-uint16* SDSP::dram   = 0;
-uint16* SDSP::irom   = 0;
-uint16* SDSP::drom   = 0;
-uint16* SDSP::coef   = 0;
-uint8* SDSP::cpu_ram = 0;
-uint16 SDSP::cr = 0;
-uint8 SDSP::reg_stack_ptr[4];
+u16 SDSP::r[32];
+u16 SDSP::pc = 0;
+u16 SDSP::err_pc = 0;
+u16* SDSP::iram   = 0;
+u16* SDSP::dram   = 0;
+u16* SDSP::irom   = 0;
+u16* SDSP::drom   = 0;
+u16* SDSP::coef   = 0;
+u8* SDSP::cpu_ram = 0;
+u16 SDSP::cr = 0;
+u8 SDSP::reg_stack_ptr[4];
 // lets make stack depth to 32 for now
-uint16 SDSP::reg_stack[4][DSP_STACK_DEPTH];
+u16 SDSP::reg_stack[4][DSP_STACK_DEPTH];
 void (*SDSP::irq_request)() = NULL;
 bool SDSP::exception_in_progress_hack = false;
 
 // for debugger only
-uint32 SDSP::iram_crc = 0;
-uint64 SDSP::step_counter = 0;
+u32 SDSP::iram_crc = 0;
+u64 SDSP::step_counter = 0;
 
 
 //-------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ void UpdateCachedCR()
 
 
 //-------------------------------------------------------------------------------
-void (*dsp_op[])(uint16 opc) =
+void (*dsp_op[])(u16 opc) =
 {
 	dsp_op0, dsp_op1, dsp_op2, dsp_op3,
 	dsp_op4, dsp_op5, dsp_op6, dsp_op7,
@@ -85,11 +85,11 @@ void dbg_error(char* err_msg)
 
 void gdsp_init()
 {
-	g_dsp.irom = (uint16*)malloc(DSP_IROM_SIZE * sizeof(uint16));
-	g_dsp.iram = (uint16*)malloc(DSP_IRAM_SIZE * sizeof(uint16));
-	g_dsp.drom = (uint16*)malloc(DSP_DROM_SIZE * sizeof(uint16));
-	g_dsp.dram = (uint16*)malloc(DSP_DRAM_SIZE * sizeof(uint16));
-	g_dsp.coef = (uint16*)malloc(DSP_COEF_SIZE * sizeof(uint16));
+	g_dsp.irom = (u16*)malloc(DSP_IROM_SIZE * sizeof(u16));
+	g_dsp.iram = (u16*)malloc(DSP_IRAM_SIZE * sizeof(u16));
+	g_dsp.drom = (u16*)malloc(DSP_DROM_SIZE * sizeof(u16));
+	g_dsp.dram = (u16*)malloc(DSP_DRAM_SIZE * sizeof(u16));
+	g_dsp.coef = (u16*)malloc(DSP_COEF_SIZE * sizeof(u16));
 
 	for (int i = 0; i < DSP_IRAM_SIZE; i++)
 	{
@@ -138,8 +138,8 @@ void gdsp_reset()
 }
 
 
-uint8 gdsp_exceptions = 0;
-void gdsp_generate_exception(uint8 level)
+u8 gdsp_exceptions = 0;
+void gdsp_generate_exception(u8 level)
 {
 	gdsp_exceptions |= 1 << level;
 }
@@ -175,7 +175,7 @@ bool gdsp_load_coef(char* fname)
 }
 
 
-void gdsp_write_cr(uint16 val)
+void gdsp_write_cr(u16 val)
 {
 	// reset
 	if (val & 0x0001)
@@ -192,7 +192,7 @@ void gdsp_write_cr(uint16 val)
 }
 
 
-uint16  gdsp_read_cr()
+u16  gdsp_read_cr()
 {
 	if (g_dsp.pc & 0x8000)
 	{
@@ -216,7 +216,7 @@ uint16  gdsp_read_cr()
 void gdsp_loop_step()
 {
 	g_dsp.err_pc = g_dsp.pc;
-	uint16 opc = dsp_fetch_code();
+	u16 opc = dsp_fetch_code();
 	dsp_op[opc >> 12](opc);
 }
 
@@ -247,15 +247,15 @@ void gdsp_step()
 
 #endif
 
-	uint16 opc = dsp_fetch_code();
+	u16 opc = dsp_fetch_code();
 	dsp_op[opc >> 12](opc);
 
-	uint16& rLoopCounter = g_dsp.r[DSP_REG_ST0 + 3];
+	u16& rLoopCounter = g_dsp.r[DSP_REG_ST0 + 3];
 
 	if (rLoopCounter > 0)
 	{
-		const uint16& rCallAddress = g_dsp.r[DSP_REG_ST0 + 0];
-		const uint16& rLoopAddress = g_dsp.r[DSP_REG_ST0 + 2];
+		const u16& rCallAddress = g_dsp.r[DSP_REG_ST0 + 0];
+		const u16& rLoopAddress = g_dsp.r[DSP_REG_ST0 + 2];
 
 		if (g_dsp.pc == (rLoopAddress + 1))
 		{
@@ -290,7 +290,7 @@ void gdsp_step()
 	// check exceptions
 	if ((gdsp_exceptions > 0) && (!g_dsp.exception_in_progress_hack))
 	{
-		for (uint8 i=0; i<8; i++)
+		for (u8 i=0; i<8; i++)
 		{
 			if (gdsp_exceptions & (1<<i))
 			{
@@ -311,7 +311,7 @@ void gdsp_step()
 
 
 bool gdsp_running;
-extern volatile uint32 dsp_running;
+extern volatile u32 dsp_running;
 
 bool gdsp_run()
 {
@@ -327,7 +327,7 @@ bool gdsp_run()
 }
 
 
-bool gdsp_runx(uint16 cnt)
+bool gdsp_runx(u16 cnt)
 {
 	gdsp_running = true;
 
@@ -363,10 +363,10 @@ void gdsp_stop()
 //#include "WaveFile.h"
 #include "Mixer.h"
 
-uint16 r30 = 0, r31 = 0;
+u16 r30 = 0, r31 = 0;
 //extern WaveFileWriter g_wave_writer;
 
-extern uint16 dsp_swap16(uint16 x);
+extern u16 dsp_swap16(u16 x);
 void Hacks()
 {
 	// if (g_wave_writer.GetAudioSize() > 1024*1024*1)
@@ -400,7 +400,7 @@ void Hacks()
 	const int numSamples = 0x280;
 	static short Buffer[numSamples];
 
-	uint16 bufferAddr = 0x280; //dsp_dmem_read(0xe44);
+	u16 bufferAddr = 0x280; //dsp_dmem_read(0xe44);
 	for (int i=0; i<numSamples; i++)
 	{
 	Buffer[i] = dsp_dmem_read(bufferAddr+i);
@@ -420,7 +420,7 @@ void Hacks()
 	if (g_dsp.pc == 0x468)
 	{
 		int numSamples = g_dsp.r[25] / 2;
-		uint16 bufferAddr = g_dsp.r[27]; 
+		u16 bufferAddr = g_dsp.r[27]; 
 
 		// PanicAlert("%x %x", bufferAddr, numSamples);
 

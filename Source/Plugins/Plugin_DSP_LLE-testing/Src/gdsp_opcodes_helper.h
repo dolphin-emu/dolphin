@@ -40,13 +40,13 @@
 //
 // ---------------------------------------------------------------------------------------
 
-inline void dsp_SR_set_flag(uint8 flag)
+inline void dsp_SR_set_flag(u8 flag)
 {
 	g_dsp.r[R_SR] |= (1 << flag);
 }
 
 
-inline bool dsp_SR_is_flag_set(uint8 flag)
+inline bool dsp_SR_is_flag_set(u8 flag)
 {
 	return((g_dsp.r[R_SR] & (1 << flag)) > 0);
 }
@@ -58,9 +58,9 @@ inline bool dsp_SR_is_flag_set(uint8 flag)
 //
 // ---------------------------------------------------------------------------------------
 
-inline uint16 dsp_op_read_reg(uint8 reg)
+inline u16 dsp_op_read_reg(u8 reg)
 {
-	uint16 val;
+	u16 val;
 
 	switch (reg & 0x1f)
 	{
@@ -80,7 +80,7 @@ inline uint16 dsp_op_read_reg(uint8 reg)
 }
 
 
-inline void dsp_op_write_reg(uint8 reg, uint16 val)
+inline void dsp_op_write_reg(u8 reg, u16 val)
 {
 	switch (reg & 0x1f)
 	{
@@ -105,15 +105,15 @@ inline void dsp_op_write_reg(uint8 reg, uint16 val)
 // ---------------------------------------------------------------------------------------
 
 
-inline sint64 dsp_get_long_prod()
+inline s64 dsp_get_long_prod()
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	sint64 val;
-	sint64 low_prod;
-	val   = (sint8)g_dsp.r[0x16];
+	s64 val;
+	s64 low_prod;
+	val   = (s8)g_dsp.r[0x16];
 	val <<= 32;
 	low_prod  = g_dsp.r[0x15];
 	low_prod += g_dsp.r[0x17];
@@ -124,17 +124,17 @@ inline sint64 dsp_get_long_prod()
 }
 
 
-inline void dsp_set_long_prod(sint64 val)
+inline void dsp_set_long_prod(s64 val)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	g_dsp.r[0x14] = (uint16)val;
+	g_dsp.r[0x14] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x15] = (uint16)val;
+	g_dsp.r[0x15] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x16] = (uint16)val;
+	g_dsp.r[0x16] = (u16)val;
 	g_dsp.r[0x17] = 0;
 }
 
@@ -145,16 +145,16 @@ inline void dsp_set_long_prod(sint64 val)
 //
 // ---------------------------------------------------------------------------------------
 
-inline sint64 dsp_get_long_acc(uint8 reg)
+inline s64 dsp_get_long_acc(u8 reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
 	_assert_(reg < 2);
-	sint64 val;
-	sint64 low_acc;
-	val       = (sint8)g_dsp.r[0x10 + reg];
+	s64 val;
+	s64 low_acc;
+	val       = (s8)g_dsp.r[0x10 + reg];
 	val     <<= 32;
 	low_acc   = g_dsp.r[0x1e + reg];
 	low_acc <<= 16;
@@ -164,16 +164,16 @@ inline sint64 dsp_get_long_acc(uint8 reg)
 }
 
 
-inline uint64 dsp_get_ulong_acc(uint8 reg)
+inline u64 dsp_get_ulong_acc(u8 reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
 	_assert_(reg < 2);
-	uint64 val;
-	uint64 low_acc;
-	val       = (uint8)g_dsp.r[0x10 + reg];
+	u64 val;
+	u64 low_acc;
+	val       = (u8)g_dsp.r[0x10 + reg];
 	val     <<= 32;
 	low_acc   = g_dsp.r[0x1e + reg];
 	low_acc <<= 16;
@@ -183,36 +183,36 @@ inline uint64 dsp_get_ulong_acc(uint8 reg)
 }
 
 
-inline void dsp_set_long_acc(uint8 _reg, sint64 val)
+inline void dsp_set_long_acc(u8 _reg, s64 val)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
 	_assert_(_reg < 2);
-	g_dsp.r[0x1c + _reg] = (uint16)val;
+	g_dsp.r[0x1c + _reg] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x1e + _reg] = (uint16)val;
+	g_dsp.r[0x1e + _reg] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x10 + _reg] = (uint16)val;
+	g_dsp.r[0x10 + _reg] = (u16)val;
 }
 
 
-inline sint16 dsp_get_acc_l(uint8 _reg)
+inline s16 dsp_get_acc_l(u8 _reg)
 {
 	_assert_(_reg < 2);
 	return(g_dsp.r[0x1c + _reg]);
 }
 
 
-inline sint16 dsp_get_acc_m(uint8 _reg)
+inline s16 dsp_get_acc_m(u8 _reg)
 {
 	_assert_(_reg < 2);
 	return(g_dsp.r[0x1e + _reg]);
 }
 
 
-inline sint16 dsp_get_acc_h(uint8 _reg)
+inline s16 dsp_get_acc_h(u8 _reg)
 {
 	_assert_(_reg < 2);
 	return(g_dsp.r[0x10 + _reg]);
@@ -226,29 +226,29 @@ inline sint16 dsp_get_acc_h(uint8 _reg)
 // ---------------------------------------------------------------------------------------
 
 
-inline sint64 dsp_get_long_acx(uint8 _reg)
+inline s64 dsp_get_long_acx(u8 _reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
 	_assert_(_reg < 2);
-	sint64 val = (sint16)g_dsp.r[0x1a + _reg];
+	s64 val = (s16)g_dsp.r[0x1a + _reg];
 	val <<= 16;
-	sint64 low_acc = g_dsp.r[0x18 + _reg];
+	s64 low_acc = g_dsp.r[0x18 + _reg];
 	val |= low_acc;
 	return(val);
 }
 
 
-inline sint16 dsp_get_ax_l(uint8 _reg)
+inline s16 dsp_get_ax_l(u8 _reg)
 {
 	_assert_(_reg < 2);
 	return(g_dsp.r[0x18 + _reg]);
 }
 
 
-inline sint16 dsp_get_ax_h(uint8 _reg)
+inline s16 dsp_get_ax_h(u8 _reg)
 {
 	_assert_(_reg < 2);
 	return(g_dsp.r[0x1a + _reg]);

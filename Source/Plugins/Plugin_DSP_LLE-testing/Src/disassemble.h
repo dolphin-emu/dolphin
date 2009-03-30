@@ -33,14 +33,14 @@ typedef struct gd_globals_t
 	bool decode_names;
 	bool decode_registers;
 
-	uint16* binbuf;
-	uint16 pc;
+	u16* binbuf;
+	u16 pc;
 	char* buffer;
-	uint16 buffer_size;
+	u16 buffer_size;
 	char ext_separator;
 } gd_globals_t;
 
 
 char* gd_dis_opcode(gd_globals_t* gdg);
 bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output);
-const char* gd_dis_get_reg_name(uint16 reg);
+const char* gd_dis_get_reg_name(u16 reg);

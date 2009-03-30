@@ -28,8 +28,8 @@
 #ifndef _GDSP_IFX_H
 #define _GDSP_IFX_H
 
-void gdsp_ifx_write(uint16 addr, uint16 val);
-uint16 gdsp_ifx_read(uint16 addr);
+void gdsp_ifx_write(u16 addr, u16 val);
+u16 gdsp_ifx_read(u16 addr);
 
 
 #endif

@@ -25,12 +25,12 @@
 #include "gdsp_opcodes_helper.h"
 
 
-bool WriteDMEM(uint16 addr, uint16 val)
+bool WriteDMEM(u16 addr, u16 val)
 {
 	return dsp_dmem_write(addr, val);
 }
 
-uint16 ReadDMEM(uint16 addr)
+u16 ReadDMEM(u16 addr)
 {
 	return dsp_dmem_read(addr);
 }

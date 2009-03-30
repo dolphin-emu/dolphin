@@ -29,39 +29,39 @@
 #include "gdsp_memory.h"
 #include "gdsp_ifx.h"
 
-uint16 dsp_swap16(uint16 x)
+u16 dsp_swap16(u16 x)
 {
 	return((x >> 8) | (x << 8));
 }
 
 
-uint16* gdsp_get_iram(void)
+u16* gdsp_get_iram(void)
 {
 	return(g_dsp.iram);
 }
 
 
-uint16* gdsp_get_irom(void)
+u16* gdsp_get_irom(void)
 {
 	return(g_dsp.irom);
 }
 
 
-uint16* gdsp_get_dram(void)
+u16* gdsp_get_dram(void)
 {
 	return(g_dsp.dram);
 }
 
 
-uint16* gdsp_get_drom(void)
+u16* gdsp_get_drom(void)
 {
 	return(g_dsp.drom);
 }
 
 
-uint16 dsp_imem_read(uint16 addr)
+u16 dsp_imem_read(u16 addr)
 {
-	uint16 opc;
+	u16 opc;
 
 	if (g_dsp.pc & 0x8000)
 	{
@@ -76,9 +76,9 @@ uint16 dsp_imem_read(uint16 addr)
 }
 
 
-uint16  dsp_dmem_read(uint16 addr)
+u16  dsp_dmem_read(u16 addr)
 {
-	uint16 val;
+	u16 val;
 
 	switch (addr >> 12)
 	{
@@ -112,7 +112,7 @@ uint16  dsp_dmem_read(uint16 addr)
 }
 
 
-bool dsp_dmem_write(uint16 addr, uint16 val)
+bool dsp_dmem_write(u16 addr, u16 val)
 {
 	switch (addr >> 12)
 	{
@@ -140,15 +140,15 @@ bool dsp_dmem_write(uint16 addr, uint16 val)
 }
 
 
-uint16 dsp_fetch_code(void)
+u16 dsp_fetch_code(void)
 {
-	uint16 opc = dsp_imem_read(g_dsp.pc);
+	u16 opc = dsp_imem_read(g_dsp.pc);
 	g_dsp.pc++;
 	return(opc);
 }
 
 
-uint16 dsp_peek_code(void)
+u16 dsp_peek_code(void)
 {
 	return(dsp_imem_read(g_dsp.pc));
 }

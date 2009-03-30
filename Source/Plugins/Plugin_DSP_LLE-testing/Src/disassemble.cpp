@@ -37,15 +37,15 @@
 #pragma warning(disable:4996)
 #endif
 
-uint32 unk_opcodes[0x10000];
+u32 unk_opcodes[0x10000];
 
-uint16 swap16(uint16 x);
+u16 swap16(u16 x);
 
 
 // predefined labels
 typedef struct pdlabel_t
 {
-	uint16 addr;
+	u16 addr;
 	const char* name;
 	const char* description;
 } pdlabels_t;
@@ -138,7 +138,7 @@ pdlabel_t regnames[] =
 	{0x23, "AX1",       "Additional Accumulators 1",},
 };
 
-const char* pdname(uint16 val)
+const char* pdname(u16 val)
 {
 	static char tmpstr[12]; // nasty
 
@@ -155,10 +155,10 @@ const char* pdname(uint16 val)
 }
 
 
-char* gd_dis_params(gd_globals_t* gdg, opc_t* opc, uint16 op1, uint16 op2, char* strbuf)
+char* gd_dis_params(gd_globals_t* gdg, opc_t* opc, u16 op1, u16 op2, char* strbuf)
 {
 	char* buf = strbuf;
-	uint32 val;
+	u32 val;
 	int j;
 
 	for (j = 0; j < opc->param_count; j++)
@@ -189,7 +189,7 @@ char* gd_dis_params(gd_globals_t* gdg, opc_t* opc, uint16 op1, uint16 op2, char*
 			val = val >> opc->params[j].lshift;
 		}
 
-		uint32 type;
+		u32 type;
 		type = opc->params[j].type;
 
 		if (type & P_REG)
@@ -243,7 +243,7 @@ char* gd_dis_params(gd_globals_t* gdg, opc_t* opc, uint16 op1, uint16 op2, char*
 
 			    if (opc->params[j].size != 2)
 			    {
-				    val = (uint16)(sint8)val;
+				    val = (u16)(s8)val;
 			    }
 
 			    if (gdg->decode_names)
@@ -278,7 +278,7 @@ gd_globals_t* gd_init()
 }
 
 
-uint16 gd_dis_get_opcode_size(gd_globals_t* gdg)
+u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 {
 	opc_t* opc = 0;
 	opc_t* opc_ext = 0;
@@ -289,11 +289,11 @@ uint16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 		return(1);
 	}
 
-	uint32 op1 = swap16(gdg->binbuf[gdg->pc & 0x0fff]);
+	u32 op1 = swap16(gdg->binbuf[gdg->pc & 0x0fff]);
 
-	for (uint32 j = 0; j < opcodes_size; j++)
+	for (u32 j = 0; j < opcodes_size; j++)
 	{
-		uint16 mask;
+		u16 mask;
 
 		if (opcodes[j].size & P_EXT)
 		{
@@ -330,7 +330,7 @@ uint16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	{
 		// opcode has an extension
 		// find opcode
-		for (uint32 j = 0; j < opcodes_ext_size; j++)
+		for (u32 j = 0; j < opcodes_ext_size; j++)
 		{
 			if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
 			{
@@ -353,11 +353,11 @@ uint16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 
 char* gd_dis_opcode(gd_globals_t* gdg)
 {
-	uint32 j;
-	uint32 op1, op2;
+	u32 j;
+	u32 op1, op2;
 	opc_t* opc = NULL;
 	opc_t* opc_ext = NULL;
-	uint16 pc;
+	u16 pc;
 	char* buf = gdg->buffer;
 	bool extended;
 
@@ -376,7 +376,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	// find opcode
 	for (j = 0; j < opcodes_size; j++)
 	{
-		uint16 mask;
+		u16 mask;
 
 		if (opcodes[j].size & P_EXT)
 		{
@@ -510,7 +510,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 {
 	FILE* in;
-	uint32 size;
+	u32 size;
 
 	in = fopen(name, "rb");
 
@@ -522,7 +522,7 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	fseek(in, 0, SEEK_END);
 	size = (int)ftell(in);
 	fseek(in, 0, SEEK_SET);
-	gdg->binbuf = (uint16*)malloc(size);
+	gdg->binbuf = (u16*)malloc(size);
 	fread(gdg->binbuf, 1, size, in);
 
 	gdg->buffer = (char*)malloc(256);
@@ -550,7 +550,7 @@ void gd_dis_close_unkop()
 {
 	FILE* uo;
 	int i, j;
-	uint32 count = 0;
+	u32 count = 0;
 
 	uo = fopen("uo.bin", "wb");
 
@@ -614,7 +614,7 @@ void gd_dis_open_unkop()
 }
 
 
-const char* gd_dis_get_reg_name(uint16 reg)
+const char* gd_dis_get_reg_name(u16 reg)
 {
 	return(regnames[reg].name);
 }

@@ -20,10 +20,10 @@
 
 #include "gdsp_interpreter.h"
 
-bool WriteDMEM(uint16 addr, uint16 val);
-uint16 ReadDMEM(uint16 addr);
-void Update_SR_Register(sint64 _Value);
-sint8 GetMultiplyModifier();
+bool WriteDMEM(u16 addr, u16 val);
+u16 ReadDMEM(u16 addr);
+void Update_SR_Register(s64 _Value);
+s8 GetMultiplyModifier();
 
 template<unsigned N> 
 class TAccumulator
@@ -35,56 +35,56 @@ public:
 		_assert_(N < 2);
 	}
 
-	void operator=(sint64 val)
+	void operator=(s64 val)
 	{
 		setValue(val);
 	}
 
-	void operator<<=(sint64 value)
+	void operator<<=(s64 value)
 	{
-		sint64 acc = getValue();
+		s64 acc = getValue();
 		acc <<= value;
 		setValue(acc);
 	}
 
-	void operator>>=(sint64 value)
+	void operator>>=(s64 value)
 	{
-		sint64 acc = getValue();
+		s64 acc = getValue();
 		acc >>= value;
 		setValue(acc);
 	}
 
-	void operator+=(sint64 value)
+	void operator+=(s64 value)
 	{
-		sint64 acc = getValue();
+		s64 acc = getValue();
 		acc += value;
 		setValue(acc);
 	}
 
-	operator sint64()
+	operator s64()
 	{
 		return getValue();
 	}
 
-	operator uint64()
+	operator u64()
 	{
 		return getValue();
 	}
 
-	inline void setValue(sint64 val)
+	inline void setValue(s64 val)
 	{
-		g_dsp.r[0x1c + N] = (uint16)val;
+		g_dsp.r[0x1c + N] = (u16)val;
 		val >>= 16;
-		g_dsp.r[0x1e + N] = (uint16)val;
+		g_dsp.r[0x1e + N] = (u16)val;
 		val >>= 16;
-		g_dsp.r[0x10 + N] = (uint16)val;
+		g_dsp.r[0x10 + N] = (u16)val;
 	}
 
-	inline sint64 getValue()
+	inline s64 getValue()
 	{
-		sint64 val;
-		sint64 low_acc;
-		val       = (sint8)g_dsp.r[0x10 + N];
+		s64 val;
+		s64 low_acc;
+		val       = (s8)g_dsp.r[0x10 + N];
 		val     <<= 32;
 		low_acc   = g_dsp.r[0x1e + N];
 		low_acc <<= 16;
@@ -101,21 +101,21 @@ public:
 	{
 	}
 
-	void operator=(sint64 val)
+	void operator=(s64 val)
 	{
-		g_dsp.r[0x14] = (uint16)val;
+		g_dsp.r[0x14] = (u16)val;
 		val >>= 16;
-		g_dsp.r[0x15] = (uint16)val;
+		g_dsp.r[0x15] = (u16)val;
 		val >>= 16;
-		g_dsp.r[0x16] = (uint16)val;
+		g_dsp.r[0x16] = (u16)val;
 		g_dsp.r[0x17] = 0;
 	}
 
-	operator sint64()
+	operator s64()
 	{
-		sint64 val;
-		sint64 low_prod;
-		val   = (sint8)g_dsp.r[0x16];
+		s64 val;
+		s64 low_prod;
+		val   = (s8)g_dsp.r[0x16];
 		val <<= 32;
 		low_prod  = g_dsp.r[0x15];
 		low_prod += g_dsp.r[0x17];

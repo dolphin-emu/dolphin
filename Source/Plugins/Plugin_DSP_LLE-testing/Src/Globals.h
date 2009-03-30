@@ -28,25 +28,11 @@
 
 void DSP_DebugBreak();
 
-
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long long uint64;
-typedef unsigned int uint;
-
-typedef signed char sint8;
-typedef signed short sint16;
-typedef signed int sint32;
-typedef signed long long sint64;
-
-typedef const uint32 cuint32;
-
 u16 Memory_Read_U16(u32 _uAddress); // For PB address detection
 u32 Memory_Read_U32(u32 _uAddress);
 
 #if PROFILE	
-	void ProfilerDump(uint64 _count);
+	void ProfilerDump(u64 _count);
 	void ProfilerInit();
 	void ProfilerAddDelta(int _addr, int _delta);
 	void ProfilerStart();
