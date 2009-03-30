@@ -34,6 +34,9 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
+#include "debugger/Debugger.h"
+#include "Debugger/Debugger.h" // For the CDebugger class
+CDebugger* m_frame = NULL;
 #endif
 
 PLUGIN_GLOBALS* globals = NULL;
@@ -163,6 +166,21 @@ void DoState(unsigned char **ptr, int mode)
 
 void DllDebugger(HWND _hParent, bool Show)
 {
+#if defined(HAVE_WX) && HAVE_WX
+	if (m_frame && Show) // if we have created it, let us show it again
+	{
+		m_frame->DoShow();
+	}
+	else if (!m_frame && Show)
+	{
+		m_frame = new CDebugger(NULL);
+		m_frame->Show();
+	}
+	else if (m_frame && !Show)
+	{
+		m_frame->DoHide();
+	}
+#endif
 }
 
 
