@@ -22,6 +22,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "Common.h"
 #include "aldlist.h"
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
@@ -51,7 +52,7 @@ ALDeviceList::ALDeviceList()
 			defaultDeviceName = (char *)alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 			index = 0;
 			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			while (*devices != NULL) {
+			while (devices != NULL) {
 				if (strcmp(defaultDeviceName, devices) == 0) {
 					defaultDeviceIndex = index;
 				}
@@ -191,7 +192,7 @@ bool ALDeviceList::IsExtensionSupported(s32 index, char *szExtName)
 
 	if (index < GetNumDevices()) {
 		for (u32 i = 0; i < vDeviceInfo[index].pvstrExtensions->size(); i++) {
-			if (!_stricmp(vDeviceInfo[index].pvstrExtensions->at(i).c_str(), szExtName)) {
+			if (!strcasecmp(vDeviceInfo[index].pvstrExtensions->at(i).c_str(), szExtName)) {
 				bReturn = true;
 				break;
 			}				
@@ -214,7 +215,7 @@ s32 ALDeviceList::GetDefaultDevice()
  */
 void ALDeviceList::FilterDevicesMinVer(s32 major, s32 minor)
 {
-	s32 dMajor, dMinor;
+	s32 dMajor = 0, dMinor = 0;
 	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
 		GetDeviceVersion(i, &dMajor, &dMinor);
 		if ((dMajor < major) || ((dMajor == major) && (dMinor < minor))) {
@@ -228,7 +229,7 @@ void ALDeviceList::FilterDevicesMinVer(s32 major, s32 minor)
  */
 void ALDeviceList::FilterDevicesMaxVer(s32 major, s32 minor)
 {
-	s32 dMajor, dMinor;
+	s32 dMajor = 0, dMinor = 0;
 	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
 		GetDeviceVersion(i, &dMajor, &dMinor);
 		if ((dMajor > major) || ((dMajor == major) && (dMinor > minor))) {
@@ -247,7 +248,7 @@ void ALDeviceList::FilterDevicesExtension(char *szExtName)
 	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
 		bFound = false;
 		for (u32 j = 0; j < vDeviceInfo[i].pvstrExtensions->size(); j++) {
-			if (!_stricmp(vDeviceInfo[i].pvstrExtensions->at(j).c_str(), szExtName)) {
+			if (!strcasecmp(vDeviceInfo[i].pvstrExtensions->at(j).c_str(), szExtName)) {
 				bFound = true;
 				break;
 			}

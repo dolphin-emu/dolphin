@@ -21,17 +21,18 @@
 #include "SoundStream.h"
 #include "Thread.h"
 
-//#include <list>
-//using namespace std;
-
+#ifdef HAVE_OPENAL && HAVE_OPENAL
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
 
 // public use
 #define SFX_MAX_SOURCE	1
+#endif
+
 
 class OpenALStream: public SoundStream
 {
+#ifdef HAVE_OPENAL && HAVE_OPENAL
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {};
 	virtual ~OpenALStream() {};
@@ -49,6 +50,12 @@ private:
 	Common::Thread *thread;
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
+#else
+	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
+#endif // HAVE_OPENAL
 };
 
-#endif
+
+
+
+#endif // OPENALSTREAM

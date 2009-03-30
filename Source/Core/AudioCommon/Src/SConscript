@@ -4,6 +4,7 @@ Import('env')
 
 files = [
     'AOSoundStream.cpp',
+    'aldlist.cpp',
     'AudioCommonConfig.cpp',
     'OpenALStream.cpp',
     'WaveFile.cpp',

@@ -236,6 +236,9 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 # needed for sound
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
+# Sound lib
+env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+
 # needed for mic
 env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
@@ -304,6 +307,7 @@ conf.Define('HAVE_SDL', env['HAVE_SDL'])
 conf.Define('USE_SDL', env['USE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
+conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
