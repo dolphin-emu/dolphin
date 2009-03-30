@@ -68,10 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
@@ -153,10 +153,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
@@ -241,10 +241,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -330,10 +330,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -419,10 +419,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -508,10 +508,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
