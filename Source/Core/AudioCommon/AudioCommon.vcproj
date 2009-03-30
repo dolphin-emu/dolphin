@@ -446,6 +446,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Src\aldlist.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\aldlist.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\AudioCommon.cpp"
 			>
 		</File>
