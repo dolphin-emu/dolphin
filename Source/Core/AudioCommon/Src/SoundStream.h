@@ -58,7 +58,7 @@ public:
 		if (m_logAudio) {
 			m_logAudio = false;
 			g_wave_writer.Stop();
-			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+			NOTICE_LOG(DSPHLE, "Stopping Audio logging");
 		} else {
 			WARN_LOG(DSPHLE, "Audio logging already stopped");
 		}
