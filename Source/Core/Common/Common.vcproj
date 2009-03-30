@@ -499,10 +499,6 @@
 				Name="Specs"
 				>
 				<File
-					RelativePath="..\..\PluginSpecs\CommonTypes.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\PluginSpecs\ExportEpilog.h"
 					>
 				</File>

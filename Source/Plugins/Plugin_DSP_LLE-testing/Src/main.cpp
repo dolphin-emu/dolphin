@@ -38,7 +38,7 @@
 
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
-Common::Thread *g_hDSPThread;
+Common::Thread *g_hDSPThread = NULL;
 
 SoundStream *soundStream = NULL;
 
@@ -52,6 +52,7 @@ extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);
 
 bool bCanWork = false;
+bool bIsRunning = false;
 
 //////////////////////////////////////////////////////////////////////////
 // UGLY wxw stuff, TODO fix up
@@ -168,14 +169,15 @@ void DllDebugger(HWND _hParent, bool Show)
 // Regular thread
 THREAD_RETURN dsp_thread(void* lpParameter)
 {
-	while (1)
+	while (bIsRunning)
 	{
 		if (!gdsp_run())
 		{
-			PanicAlert("ERROR: DSP Halt");
+			ERROR_LOG(AUDIO, "DSP Halt");
 			return 0;
 		}
 	}
+	return 0;
 }
 
 // Debug thread
@@ -217,6 +219,8 @@ void Initialize(void *init)
 	
 	if(!bCanWork)
 		return; // TODO: Don't let it work
+
+	bIsRunning = true;
 	
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	
@@ -233,6 +237,8 @@ void DSP_StopSoundStream()
 
 void Shutdown(void)
 {
+	bIsRunning = false;
+	gdsp_stop();
 	AudioCommon::ShutdownSoundStream();
 }
 
