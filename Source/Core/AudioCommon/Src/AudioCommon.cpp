@@ -28,6 +28,7 @@ namespace AudioCommon
 	{
 		if (!mixer)
 			mixer = new CMixer();
+
 		std::string backend = ac_Config.sBackend;
 		if (backend == BACKEND_DIRECTSOUND && DSound::isValid())       soundStream = new DSound(mixer, g_dspInitialize.hWnd);
 		if (backend == BACKEND_AOSOUND     && AOSound::isValid())      soundStream = new AOSound(mixer);

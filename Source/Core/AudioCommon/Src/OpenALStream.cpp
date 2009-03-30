@@ -26,7 +26,7 @@ bool OpenALStream::Start()
 	ALCcontext *pContext = NULL;
 	ALCdevice *pDevice = NULL;
 	bool bReturn = false;
-
+	
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
@@ -43,10 +43,18 @@ bool OpenALStream::Start()
 			else
 			{
 				alcCloseDevice(pDevice);
+				PanicAlert("OpenAL: can't create context for device %s", pDevice);
 			}
+		} else {
+			PanicAlert("OpenAL: can't open device %s", pDevice);
 		}
+
+		
 		delete pDeviceList;
+	} else {
+		PanicAlert("OpenAL: can't find sound devices");
 	}
+
 	return bReturn;
 }
 
@@ -55,22 +63,29 @@ void OpenALStream::Stop()
 	ALCcontext *pContext;
 	ALCdevice *pDevice;
 
+	soundCriticalSection.Enter();
+	threadData = 1;
+	// kick the thread if it's waiting
+	soundSyncEvent.Set();
+	soundCriticalSection.Leave();
 	delete thread;
-
+	
 	pContext = alcGetCurrentContext();
 	pDevice = alcGetContextsDevice(pContext);
 
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(pContext);
 	alcCloseDevice(pDevice);
+
+	soundSyncEvent.Shutdown();
+	thread = NULL;
 }
 
 void OpenALStream::Update()
 {
-
+	soundSyncEvent.Set();
 }
 
-// The audio thread.
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 {
 	(reinterpret_cast<OpenALStream *>(args))->SoundLoop();
@@ -79,5 +94,14 @@ THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 
 void OpenALStream::SoundLoop()
 {
+	while (!threadData) {
+		soundCriticalSection.Enter();
 
+		// Add sound playing here
+		// m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+		soundCriticalSection.Leave();
+
+		if (!threadData)
+			soundSyncEvent.Wait();
+	}
 }

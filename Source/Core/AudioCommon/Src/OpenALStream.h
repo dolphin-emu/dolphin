@@ -24,9 +24,13 @@
 
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
+#ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
-
+#else
+#include "AL/al.h"
+#include "AL/alc.h"
+#endif // WIN32
 // public use
 #define SFX_MAX_SOURCE	1
 #endif
@@ -53,6 +57,7 @@ private:
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
 #else
+public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
 #endif // HAVE_OPENAL
 };
