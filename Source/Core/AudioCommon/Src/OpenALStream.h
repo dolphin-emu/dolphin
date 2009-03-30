@@ -42,8 +42,13 @@ public:
 	static bool isValid() { return true; }
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
-private:
-	virtual void SoundThread();
+
+#ifdef _WIN32
+	static DWORD WINAPI ThreadFunc(void* args);
+#else
+	static void* soundThread(void* args);
+#endif
+
 private:
 	Common::Thread *thread;
 	Common::CriticalSection soundCriticalSection;

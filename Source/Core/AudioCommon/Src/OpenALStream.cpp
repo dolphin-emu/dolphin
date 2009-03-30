@@ -15,25 +15,54 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
+#include "aldlist.h"
 #include "OpenALStream.h"
 
 #define AUDIO_NUMBUFFERS			(4)
 
-
 bool OpenALStream::Start()
 {
-	return false;
-}
+	ALDeviceList *pDeviceList = NULL;
+	ALCcontext *pContext = NULL;
+	ALCdevice *pDevice = NULL;
+	bool bReturn = false;
 
-void OpenALStream::SoundLoop()
-{
-
+	pDeviceList = new ALDeviceList();
+	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
+	{
+		pDevice = alcOpenDevice(pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+		if (pDevice)
+		{
+			pContext = alcCreateContext(pDevice, NULL);
+			if (pContext)
+			{
+				alcMakeContextCurrent(pContext);
+				thread = new Common::Thread(OpenALStream::ThreadFunc, (void *)this);
+				bReturn = true;
+			}
+			else
+			{
+				alcCloseDevice(pDevice);
+			}
+		}
+		delete pDeviceList;
+	}
+	return bReturn;
 }
 
 void OpenALStream::Stop()
 {
+	ALCcontext *pContext;
+	ALCdevice *pDevice;
 
+	delete thread;
+
+	pContext = alcGetCurrentContext();
+	pDevice = alcGetContextsDevice(pContext);
+
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(pContext);
+	alcCloseDevice(pDevice);
 }
 
 void OpenALStream::Update()
@@ -41,7 +70,18 @@ void OpenALStream::Update()
 
 }
 
-void OpenALStream::SoundThread()
+// The audio thread.
+#ifdef _WIN32
+DWORD WINAPI OpenALStream::ThreadFunc(void* args)
+#else
+void* OpenALStream::soundThread(void* args)
+#endif
+{
+	(reinterpret_cast<OpenALStream *>(args))->SoundLoop();
+	return 0;
+}
+
+void OpenALStream::SoundLoop()
 {
 
 }
