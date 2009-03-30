@@ -43,11 +43,7 @@ public:
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 
-#ifdef _WIN32
-	static DWORD WINAPI ThreadFunc(void* args);
-#else
-	static void* soundThread(void* args);
-#endif
+	static THREAD_RETURN ThreadFunc(void* args);
 
 private:
 	Common::Thread *thread;

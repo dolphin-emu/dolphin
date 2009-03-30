@@ -2,8 +2,10 @@
 #define ALDEVICELIST_H
 
 #include "CommonTypes.h"
-
-#pragma warning(disable: 4786)  //disable warning "identifier was truncated to '255' characters in the browser information"
+#ifdef _WIN32
+#pragma warning(disable: 4786)  //disable warning "identifier was truncated to
+								//'255' characters in the browser information"
+#endif
 #include <vector>
 #include <string>
 

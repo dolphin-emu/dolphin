@@ -34,7 +34,6 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
-#include "debugger/Debugger.h"
 #include "Debugger/Debugger.h" // For the CDebugger class
 CDebugger* m_frame = NULL;
 #endif
