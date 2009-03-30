@@ -24,8 +24,8 @@
 //#include <list>
 //using namespace std;
 
-#include "../../../../Externals/OpenAL/al/al.h"
-#include "../../../../Externals/OpenAL/al/alc.h"
+#include "../../../../Externals/OpenAL/include/al.h"
+#include "../../../../Externals/OpenAL/include/alc.h"
 
 // public use
 #define SFX_MAX_SOURCE	1
