@@ -68,10 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -242,10 +242,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
@@ -421,10 +421,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"

@@ -68,10 +68,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
@@ -241,10 +241,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -419,10 +419,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib alut.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -737,19 +737,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\HLEMixer.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\HLEMixer.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Globals.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\Globals.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HLEMixer.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HLEMixer.h"
 			>
 		</File>
 		<File
