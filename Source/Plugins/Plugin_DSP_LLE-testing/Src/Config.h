@@ -21,12 +21,7 @@
 #include <string>
 
 struct CConfig
-{
-    bool m_EnableHLEAudio;
-    bool m_EnableDTKMusic;
-    bool m_EnableThrottle;
-	std::string sBackend;
-    
+{   
     CConfig();
     
     void Load();

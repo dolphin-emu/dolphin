@@ -15,9 +15,9 @@ void HLEMixer::MixUCode(short *samples, int numSamples) {
 void HLEMixer::Premix(short *samples, int numSamples) {
 	
 	// first get the DTK Music
-	if (g_Config.m_EnableDTKMusic) {
-		g_dspInitialize.pGetAudioStreaming(samples, numSamples);
-	}
+	//	if (g_Config.m_EnableDTKMusic) {
+	//		g_dspInitialize.pGetAudioStreaming(samples, numSamples);
+	//	}
 
 	MixUCode(samples, numSamples);
 }

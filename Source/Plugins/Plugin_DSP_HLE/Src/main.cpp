@@ -194,16 +194,8 @@ void Initialize(void *init)
 
 	CDSPHandler::CreateInstance();
 
-	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend, 
-											   new HLEMixer()); 
-	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
+	soundStream = AudioCommon::InitSoundStream(new HLEMixer()); 
 
-	// Start the sound recording
-	/*
-	  if (g_Config.record) {
-	  soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
-	  }
-	*/
 }
 
 void DSP_StopSoundStream()

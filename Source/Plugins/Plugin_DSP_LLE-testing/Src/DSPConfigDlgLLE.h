@@ -22,6 +22,7 @@
 #include <wx/dialog.h>
 #include <wx/button.h>
 #include <wx/statbox.h>
+#include "AudioCommon.h"
 
 class DSPConfigDialogLLE : public wxDialog
 {
@@ -39,6 +40,7 @@ private:
     DECLARE_EVENT_TABLE();
     
     wxButton *m_OK;
+    wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
     wxArrayString wxArrayBackends;
     wxComboBox  *m_BackendSelection;
@@ -46,6 +48,7 @@ private:
     enum
 	{
 	    wxID_OK,
+		ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
 	    ID_BACKEND
 	};

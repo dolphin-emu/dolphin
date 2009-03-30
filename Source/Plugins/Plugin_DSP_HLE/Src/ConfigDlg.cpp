@@ -46,8 +46,8 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 
 	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
-	m_buttonEnableDTKMusic->SetValue(g_Config.m_EnableDTKMusic ? true : false);
-	m_buttonEnableThrottle->SetValue(g_Config.m_EnableThrottle ? true : false);
+	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
+	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 
 	// Add tooltips
 	m_buttonEnableHLEAudio->SetToolTip(wxT("This is the most common sound type"));
@@ -81,7 +81,7 @@ void ConfigDialog::AddBackend(const char* backend)
 {
     m_BackendSelection->Append(wxString::FromAscii(backend));
 	// Update value
-	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend.c_str()));
+	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
 }
 
 ConfigDialog::~ConfigDialog()
@@ -91,9 +91,9 @@ ConfigDialog::~ConfigDialog()
 void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 {
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
-	g_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
-	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
-	g_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
+	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	ac_Config.sBackend = m_BackendSelection->GetValue().mb_str();
 	g_Config.Save();
 
 	if (event.GetId() == wxID_OK)

@@ -21,6 +21,7 @@
 
 BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
 END_EVENT_TABLE()
 
@@ -36,14 +37,17 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Create items
+	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
 	// Update values
-	m_buttonEnableThrottle->SetValue(g_Config.m_EnableThrottle ? true : false);
+	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
+	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 
 	// Add tooltips
+	m_buttonEnableDTKMusic->SetToolTip(wxT("This is sometimes used to play music tracks from the disc"));
 	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n"
 		"Disabling this also disables the speed throttle which this causes,\n"
 		"meaning that there will be no upper limit on your FPS."));
@@ -52,6 +56,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
+	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
 	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
 	sBackend->Add(BackendText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 5);
@@ -71,7 +76,7 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
 {
     m_BackendSelection->Append(wxString::FromAscii(backend));
 	// Update value
-	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend.c_str()));
+	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
 }
 
 DSPConfigDialogLLE::~DSPConfigDialogLLE()
@@ -80,9 +85,12 @@ DSPConfigDialogLLE::~DSPConfigDialogLLE()
 
 void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
-	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
-	g_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
+	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	ac_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+	ac_Config.Update();
 	g_Config.Save();
+	
 
 	if (event.GetId() == wxID_OK)
 		EndModal(wxID_OK);

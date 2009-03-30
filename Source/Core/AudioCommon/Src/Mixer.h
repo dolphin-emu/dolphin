@@ -41,6 +41,7 @@ public:
 	int GetSampleRate() {return m_sampleRate;}
 	
 	void SetThrottle(bool use) { m_throttle = use;}
+	void SetDTKMusic(bool use) { m_EnableDTKMusic = use;}
 
 	// TODO: do we need this
 	bool IsHLEReady() { return m_HLEready;}
@@ -56,6 +57,7 @@ protected:
 	bool m_HLEready;
 	int m_queueSize;
 
+	bool m_EnableDTKMusic;
 	bool m_throttle;
 private:
 	Common::CriticalSection push_sync;

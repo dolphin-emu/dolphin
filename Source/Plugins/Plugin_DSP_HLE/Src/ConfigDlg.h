@@ -22,6 +22,7 @@
 #include <wx/dialog.h>
 #include <wx/button.h>
 #include <wx/statbox.h>
+#include "AudioCommon.h"
 
 class ConfigDialog : public wxDialog
 {

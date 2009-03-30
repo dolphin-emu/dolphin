@@ -201,6 +201,7 @@ void Initialize(void *init)
     bCanWork = true;
     g_dspInitialize = *(DSPInitialize*)init;
 
+	g_Config.Load();
 	gdsp_init();
 	g_dsp.step_counter = 0;
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
@@ -224,9 +225,7 @@ void Initialize(void *init)
 	
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	
-	soundStream = AudioCommon::InitSoundStream(g_Config.sBackend);
-	
-	soundStream->GetMixer()->SetThrottle(g_Config.m_EnableThrottle);
+	soundStream = AudioCommon::InitSoundStream();
 }
 
 void DSP_StopSoundStream()

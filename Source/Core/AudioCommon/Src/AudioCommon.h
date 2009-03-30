@@ -19,25 +19,22 @@
 #define _AUDIO_COMMON_H_
 
 #include "Common.h"
+#include "AudioCommonConfig.h"
 #include "../../../PluginSpecs/pluginspecs_dsp.h"
 #include "SoundStream.h"
+
 
 class CMixer;
 
 extern DSPInitialize g_dspInitialize;
 extern SoundStream *soundStream;
+extern AudioCommonConfig ac_Config;
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(std::string backend, CMixer *mixer = NULL);
+	SoundStream *InitSoundStream(CMixer *mixer = NULL);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
-
-	// Backend Types
-	#define BACKEND_DIRECTSOUND "DSound"
-	#define BACKEND_AOSOUND     "AOSound"
-	#define BACKEND_OPENAL      "OpenAL"
-	#define BACKEND_NULL        "NullSound"
 }
 
 #endif // _AUDIO_COMMON_H_

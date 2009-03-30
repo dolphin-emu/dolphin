@@ -39,6 +39,11 @@ void CMixer::Mix(short *samples, int numSamples)
 			return;
 	}
 
+	// first get the DTK Music
+	if (m_EnableDTKMusic) {
+		g_dspInitialize.pGetAudioStreaming(samples, numSamples);
+	}
+
 	Premix(samples, numSamples);
 	
 	push_sync.Enter();

@@ -18,6 +18,8 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
+#include "AudioCommon.h"
+
 #define LLE_CONFIG_FILE "DSPLLE.ini"
 
 CConfig g_Config;
@@ -34,20 +36,14 @@ void CConfig::Load()
     
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
-	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-#ifdef _WIN32
-	file.Get("Config", "Backend", &sBackend, "DSound");
-#else
-	file.Get("Config", "Backend", &sBackend, "AOSound");
-#endif
+	ac_Config.Load(file);
 }
 
 void CConfig::Save()
 {
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
-	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-	file.Set("Config", "Backend", sBackend.c_str());
-        
+	ac_Config.Set(file);
+
 	file.Save(FULL_CONFIG_DIR LLE_CONFIG_FILE);
 }

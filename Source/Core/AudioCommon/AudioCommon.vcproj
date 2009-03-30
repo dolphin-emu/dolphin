@@ -454,6 +454,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\AudioCommonConfig.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\AudioCommonConfig.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Mixer.cpp"
 			>
 		</File>

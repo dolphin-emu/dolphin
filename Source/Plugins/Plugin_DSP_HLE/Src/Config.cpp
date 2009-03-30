@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
+#include "AudioCommon.h"
 
 CConfig g_Config;
 
@@ -34,13 +35,7 @@ void CConfig::Load()
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
-	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
-	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-#ifdef _WIN32
-	file.Get("Config", "Backend", &sBackend, "DSound");
-#else
-	file.Get("Config", "Backend", &sBackend, "AOSound");
-#endif
+	ac_Config.Load(file);
 }
 
 void CConfig::Save()
@@ -48,9 +43,7 @@ void CConfig::Save()
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
-	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
-	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-	file.Set("Config", "Backend", sBackend.c_str());
-        
+	ac_Config.Set(file);
+
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }
