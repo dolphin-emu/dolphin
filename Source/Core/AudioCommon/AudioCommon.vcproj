@@ -410,7 +410,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="StreamOut"
+			Name="SoundStreams"
 			>
 			<File
 				RelativePath=".\Src\AOSoundStream.cpp"

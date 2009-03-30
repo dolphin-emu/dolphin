@@ -71,11 +71,7 @@ void OpenALStream::Update()
 }
 
 // The audio thread.
-#ifdef _WIN32
-DWORD WINAPI OpenALStream::ThreadFunc(void* args)
-#else
-void* OpenALStream::ThreadFunc(void* args)
-#endif
+THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 {
 	(reinterpret_cast<OpenALStream *>(args))->SoundLoop();
 	return 0;
