@@ -18,6 +18,8 @@
 #include "aldlist.h"
 #include "OpenALStream.h"
 
+#if defined HAVE_OPENAL && HAVE_OPENAL
+
 #define AUDIO_NUMBUFFERS			(4)
 
 bool OpenALStream::Start()
@@ -105,3 +107,5 @@ void OpenALStream::SoundLoop()
 			soundSyncEvent.Wait();
 	}
 }
+
+#endif //HAVE_OPENAL
