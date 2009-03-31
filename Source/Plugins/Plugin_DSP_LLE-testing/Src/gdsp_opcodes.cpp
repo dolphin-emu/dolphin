@@ -1,3 +1,4 @@
+// April Fools!
 // Change Log
 
 // fixed dsp_opc_mulx		(regarding DSP 0.0.4.pdf)
