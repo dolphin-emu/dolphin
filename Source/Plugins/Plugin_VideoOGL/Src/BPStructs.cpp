@@ -247,11 +247,12 @@ void BPWritten(int addr, int changes, int newval)
     case BPMEM_FOGBEXPONENT: 
     case BPMEM_FOGBMAGNITUDE:
     case BPMEM_FOGPARAM3:
-        if (changes) {
-            VertexManager::Flush();
-            ((u32*)&bpmem)[addr] = newval;
-            PixelShaderManager::SetFogParamChanged();
-        }
+		if (!g_Config.bDisableFog)
+			if (changes) {
+				VertexManager::Flush();
+				((u32*)&bpmem)[addr] = newval;
+				PixelShaderManager::SetFogParamChanged();
+			}
         break;
 
     case BPMEM_FOGCOLOR:

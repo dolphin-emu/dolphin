@@ -57,6 +57,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLEFOG, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
@@ -308,6 +309,8 @@ void ConfigDialog::CreateGUIControls()
     m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
     m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
     m_DstAlphaPass->Enable(true);
+    m_DisableFog = new wxCheckBox(m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    m_DisableFog->SetValue(g_Config.bDisableFog);
 
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
@@ -361,10 +364,12 @@ void ConfigDialog::CreateGUIControls()
 
 	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
-		" [This option will apply immediately and does not require a restart. However it may not"
+		"\n[This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
 	m_ProjectionHax1->SetToolTip(wxT("This should get ZTP's Bloom to show"));
-    m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value"));
+    m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,"
+		"\nDisabling it may speed up some games, but could also cause glitches."));
+	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
@@ -389,11 +394,12 @@ void ConfigDialog::CreateGUIControls()
 	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
 	sRendering = new wxGridBagSizer(0, 0);
-	sRendering->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRendering->Add(m_DisableLighting, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-    sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 5);
+	sRendering->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_DisableLighting, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 4);
+    sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_DisableFog, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 1);
 				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
 					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
 					sStrip1->Add(m_CheckBox_DisableCopyEFB, 0, wxALL|wxEXPAND, 5);
@@ -530,6 +536,10 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_DISABLETEXTURING:
 		g_Config.bDisableTexturing = m_DisableTexturing->IsChecked();
 		break;
+	case ID_DISABLEFOG:
+		g_Config.bDisableFog = m_DisableFog->IsChecked();
+		break;
+		
     case ID_DSTALPHAPASS:
 		g_Config.bDstAlphaPass = m_DstAlphaPass->IsChecked();
 		break;

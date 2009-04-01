@@ -71,6 +71,7 @@ void Config::Load()
     iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
     iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
     iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
+	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
@@ -154,6 +155,7 @@ void Config::Save()
     iniFile.Set("Settings", "DisableLighting", bDisableLighting);
     iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
     iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
+	iniFile.Set("Settings", "DisableFog", bDisableFog);
     
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);

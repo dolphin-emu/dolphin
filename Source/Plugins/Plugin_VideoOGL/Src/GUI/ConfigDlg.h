@@ -103,6 +103,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
+		wxCheckBox *m_DisableFog;
         wxCheckBox *m_DstAlphaPass;
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_DumpEFBTarget;
@@ -157,6 +158,7 @@ class ConfigDialog : public wxDialog
 			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
 			ID_DISABLETEXTURING,
+			ID_DISABLEFOG,
 			ID_STATICBOX_EFB,
 			ID_SAFETEXTURECACHE,
 

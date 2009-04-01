@@ -80,6 +80,7 @@ struct Config
     bool bDisableLighting;
     bool bDisableTexturing;
     bool bDstAlphaPass;
+	bool bDisableFog;
     
     // Utility
     bool bDumpTextures;
