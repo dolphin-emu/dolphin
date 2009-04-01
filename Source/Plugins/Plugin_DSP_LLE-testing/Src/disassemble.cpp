@@ -153,7 +153,7 @@ const char* pdname(u16 val)
 }
 
 
-char* gd_dis_params(gd_globals_t* gdg, opc_t* opc, u16 op1, u16 op2, char* strbuf)
+char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf)
 {
 	char* buf = strbuf;
 	u32 val;
@@ -278,8 +278,8 @@ gd_globals_t* gd_init()
 
 u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 {
-	opc_t* opc = 0;
-	opc_t* opc_ext = 0;
+	DSPOPCTemplate* opc = 0;
+	DSPOPCTemplate* opc_ext = 0;
 	bool extended;
 
 	if ((gdg->pc & 0x7fff) >= 0x1000)
@@ -353,8 +353,8 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 {
 	u32 j;
 	u32 op1, op2;
-	opc_t* opc = NULL;
-	opc_t* opc_ext = NULL;
+	DSPOPCTemplate *opc = NULL;
+	DSPOPCTemplate *opc_ext = NULL;
 	u16 pc;
 	char* buf = gdg->buffer;
 	bool extended;

@@ -73,16 +73,16 @@ union UDSPInstruction
 
 typedef void (*dspInstFunc)(const UDSPInstruction&);
 
-typedef struct DSPOParams
+typedef struct
 {
 	parameterType type;
 	u8 size;
 	u8 loc;
 	s8 lshift;
 	u16 mask;
-} opcpar_t;
+} DSPOParams;
 
-typedef struct DSPOPCTemplate
+typedef struct
 {
 	const char *name;
 	u16 opcode;
@@ -94,11 +94,11 @@ typedef struct DSPOPCTemplate
 	u8 size;
 	u8 param_count;
 	DSPOParams params[8];
-} opc_t;
+} DSPOPCTemplate;
 
 extern DSPOPCTemplate opcodes[];
 extern const u32 opcodes_size;
-extern opc_t opcodes_ext[];
+extern DSPOPCTemplate opcodes_ext[];
 extern const u32 opcodes_ext_size;
 
 void InitInstructionTable();

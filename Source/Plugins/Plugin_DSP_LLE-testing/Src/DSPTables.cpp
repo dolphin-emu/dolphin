@@ -236,8 +236,8 @@ DSPOPCTemplate opcodes_ext[] =
 	{"XXX",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 1, 0, 0, 0x00ff}},},
 };
 
-const u32 opcodes_size = sizeof(opcodes) / sizeof(opc_t);
-const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(opc_t);
+const u32 opcodes_size = sizeof(opcodes) / sizeof(DSPOPCTemplate);
+const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(DSPOPCTemplate);
 
 void InitInstructionTable() {
 	// TODO(XK): Fill	
