@@ -25,7 +25,7 @@
 #ifndef _OPCODES_H
 #define _OPCODES_H
 
-enum partype_t
+enum parameterType
 {
 	P_NONE = 0x0000,
 	P_VAL = 0x0001,
@@ -52,26 +52,42 @@ enum partype_t
 
 #define P_EXT   0x80
 
-typedef struct opcpar_t
+union UDSPInstruction
 {
-	partype_t type;
+	u16 hex;
+
+	UDSPInstruction(u16 _hex)	{ hex = _hex; }
+        UDSPInstruction()	        { hex = 0; }
+
+    // TODO(XK): Figure out the instruction structure better (add structs here)
+};
+
+typedef void (*dspInstFunc)(UDSPInstruction&);
+
+typedef struct DSPOParams
+{
+	parameterType type;
 	u8 size;
 	u8 loc;
 	s8 lshift;
 	u16 mask;
 } opcpar_t;
 
-typedef struct opc_t
+typedef struct DSPOPCTemplate
 {
-	const char* name;
-	u16 opcode;
-	u16 opcode_mask;
-	u8 size;
-	u8 param_count;
-	opcpar_t params[8];
+    const char *name;
+    u16 opcode;
+    u16 opcode_mask;
+
+    dspInstFunc interpFunc;
+    dspInstFunc jitFunc;
+    
+    u8 size;
+    u8 param_count;
+    DSPOParams params[8];
 } opc_t;
 
-extern opc_t opcodes[];
+extern DSPOPCTemplate opcodes[];
 extern const u32 opcodes_size;
 extern opc_t opcodes_ext[];
 extern const u32 opcodes_ext_size;
