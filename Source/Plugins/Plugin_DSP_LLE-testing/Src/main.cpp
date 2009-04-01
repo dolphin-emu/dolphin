@@ -259,7 +259,6 @@ void Shutdown(void)
 {
 	bIsRunning = false;
 	gdsp_stop();
-	DestroyInstructionTable();
 	AudioCommon::ShutdownSoundStream();
 }
 

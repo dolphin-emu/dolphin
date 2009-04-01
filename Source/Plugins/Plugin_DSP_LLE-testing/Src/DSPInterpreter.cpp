@@ -177,9 +177,10 @@ bool CheckCondition(u8 _Condition)
 
 void unknown(const UDSPInstruction& opc)
 {
-	_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+	PanicAlert("Unimplemented instruction %d", opc.hex);
 	ERROR_LOG(DSPHLE, "unknown opcode %d", opc.hex);
-	g_dsp.pc = g_dsp.err_pc;
+	//g_dsp.pc = g_dsp.err_pc;
 }
 
 void call(const UDSPInstruction& opc)

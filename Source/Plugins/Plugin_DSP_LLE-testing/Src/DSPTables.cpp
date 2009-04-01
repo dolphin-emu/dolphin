@@ -23,10 +23,6 @@
 #include "DSPInterpreter.h"
 #include "DSPJit.h"
 
-void unimplementedInst(const UDSPInstruction& inst) {
-	PanicAlert("Unimplemented instruction %d", inst.hex);
-}
-
 void nop(const UDSPInstruction&) {}
 
 // TODO(XK): Fill up the tables with the corresponding instructions
@@ -239,15 +235,16 @@ DSPOPCTemplate opcodes_ext[] =
 const u32 opcodes_size = sizeof(opcodes) / sizeof(DSPOPCTemplate);
 const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(DSPOPCTemplate);
 
-void InitInstructionTable() {
-	// TODO(XK): Fill	
-}
+dspInstFunc opTable[OPTABLE_SIZE];
 
-void DestroyInstructionTable() {
-	// TODO(XK): Fill
-}
+void InitInstructionTable() {
+	for(int i = 0; i < OPTABLE_SIZE; i++)
+		opTable[i] = DSPInterpreter::unknown;
+
+	for(int i = 0; i < opcodes_size; i++)
+		opTable[opcodes[i].opcode] = opcodes[i].interpFunc;
+}	
 
 void ComputeInstruction(const UDSPInstruction& inst) {
-	// TODO(XK): Fill	
-	DSPInterpreter::unknown(inst);
+	opTable[inst.hex](inst);
 }

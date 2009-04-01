@@ -48,6 +48,8 @@ enum parameterType
 
 #define P_EXT   0x80
 
+#define OPTABLE_SIZE 65536
+
 union UDSPInstruction
 {
 	u16 hex;
@@ -101,8 +103,9 @@ extern const u32 opcodes_size;
 extern DSPOPCTemplate opcodes_ext[];
 extern const u32 opcodes_ext_size;
 
+extern dspInstFunc opTable[];
+
 void InitInstructionTable();
-void DestroyInstructionTable();
 
 void ComputeInstruction(const UDSPInstruction& inst);
 
