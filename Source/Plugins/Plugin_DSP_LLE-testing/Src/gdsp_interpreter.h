@@ -100,7 +100,7 @@ bool gdsp_run(void);
 bool gdsp_runx(u16 cnt);
 void gdsp_stop(void);
 
-void    gdsp_write_cr(u16 val);
+void gdsp_write_cr(u16 val);
 u16  gdsp_read_cr(void);
 
 u16* gdsp_get_iram(void);

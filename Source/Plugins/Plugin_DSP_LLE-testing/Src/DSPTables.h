@@ -20,6 +20,7 @@
 #ifndef _DSPTABLES_H
 #define _DSPTABLES_H
 
+#include "Common.h"
 enum parameterType
 {
 	P_NONE = 0x0000,
@@ -103,6 +104,6 @@ extern const u32 opcodes_ext_size;
 void InitInstructionTable();
 void DestroyInstructionTable();
 
-void ComputeInstruction(UDSPInstruction& inst);
+void ComputeInstruction(const UDSPInstruction& inst);
 
 #endif // _DSPTABLES_H

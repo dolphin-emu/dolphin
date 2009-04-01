@@ -175,14 +175,14 @@ namespace DSPInterpreter {
 
 	// END OF HELPER FUNCTIONS
 
-	void unknown(UDSPInstruction& opc)
+	void unknown(const UDSPInstruction& opc)
 	{
 		_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 		ERROR_LOG(DSPHLE, "unknown opcode %d", opc.hex);
 		g_dsp.pc = g_dsp.err_pc;
 	}
 
-	void call(UDSPInstruction& opc)
+	void call(const UDSPInstruction& opc)
 	{
 		u16 dest = dsp_fetch_code();
 
@@ -193,7 +193,7 @@ namespace DSPInterpreter {
 		}
 	}
 
-	void ifcc(UDSPInstruction& opc)
+	void ifcc(const UDSPInstruction& opc)
 	{
 		if (!CheckCondition(opc.hex & 0xf))
 		{
@@ -201,7 +201,7 @@ namespace DSPInterpreter {
 		}
 	}
 
-	void jcc(UDSPInstruction& opc)
+	void jcc(const UDSPInstruction& opc)
 	{
 		u16 dest = dsp_fetch_code();
 
@@ -212,7 +212,7 @@ namespace DSPInterpreter {
 	}
 
 	// FIXME inside
-	void jmpa(UDSPInstruction& opc)
+	void jmpa(const UDSPInstruction& opc)
 	{
 		u8 reg;
 		u16 addr;
@@ -235,7 +235,7 @@ namespace DSPInterpreter {
 		g_dsp.pc = addr;
 	}
 
-	void ret(UDSPInstruction& opc)
+	void ret(const UDSPInstruction& opc)
 	{
 		if (CheckCondition(opc.hex & 0xf))
 		{
@@ -244,7 +244,7 @@ namespace DSPInterpreter {
 	}
 
 	// FIXME inside
-	void rti(UDSPInstruction& opc)
+	void rti(const UDSPInstruction& opc)
 	{
 		if ((opc.hex & 0xf) != 0xf)
 		{
@@ -258,13 +258,13 @@ namespace DSPInterpreter {
 		g_dsp.exception_in_progress_hack = false;
 	}
 
-	void halt(UDSPInstruction& opc)
+	void halt(const UDSPInstruction& opc)
 	{
 		g_dsp.cr |= 0x4;
 		g_dsp.pc = g_dsp.err_pc;
 	}
 
-	void loop(UDSPInstruction& opc)
+	void loop(const UDSPInstruction& opc)
 	{
 		u16 reg = opc.hex & 0x1f;
 		u16 cnt = g_dsp.r[reg];
@@ -279,7 +279,7 @@ namespace DSPInterpreter {
 		g_dsp.pc = loop_pc + 1;
 	}
 
-	void loopi(UDSPInstruction& opc)
+	void loopi(const UDSPInstruction& opc)
 	{
 		u16 cnt = opc.hex & 0xff;
 		u16 loop_pc = g_dsp.pc;
@@ -293,7 +293,7 @@ namespace DSPInterpreter {
 		g_dsp.pc = loop_pc + 1;
 	}
 
-	void bloop(UDSPInstruction& opc)
+	void bloop(const UDSPInstruction& opc)
 	{
 		u16 reg = opc.hex & 0x1f;
 		u16 cnt = g_dsp.r[reg];
@@ -311,7 +311,7 @@ namespace DSPInterpreter {
 		}
 	}
 
-	void bloopi(UDSPInstruction& opc)
+	void bloopi(const UDSPInstruction& opc)
 	{
 		u16 cnt = opc.hex & 0xff;
 		u16 loop_pc = dsp_fetch_code();
@@ -330,7 +330,7 @@ namespace DSPInterpreter {
 
 	//-------------------------------------------------------------
 
-	void mrr(UDSPInstruction& opc)
+	void mrr(const UDSPInstruction& opc)
 	{
 		u8 sreg = opc.hex & 0x1f;
 		u8 dreg = (opc.hex >> 5) & 0x1f;
@@ -339,7 +339,7 @@ namespace DSPInterpreter {
 		dsp_op_write_reg(dreg, val);
 	}
 
-	void lrr(UDSPInstruction& opc)
+	void lrr(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 5) & 0x3;
 		u8 dreg = opc.hex & 0x1f;
@@ -367,7 +367,7 @@ namespace DSPInterpreter {
 		}
 	}
 
-	void srr(UDSPInstruction& opc)
+	void srr(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 5) & 0x3;
 		u8 sreg = opc.hex & 0x1f;
@@ -396,7 +396,7 @@ namespace DSPInterpreter {
 	}
 
 	// FIXME inside
-	void ilrr(UDSPInstruction& opc)
+	void ilrr(const UDSPInstruction& opc)
 	{
 		u16 reg  = opc.hex & 0x3;
 		u16 dreg = 0x1e + ((opc.hex >> 8) & 1);
@@ -424,21 +424,21 @@ namespace DSPInterpreter {
 	}
 
 
-	void lri(UDSPInstruction& opc)
+	void lri(const UDSPInstruction& opc)
 	{
 		u8 reg  = opc.hex & DSP_REG_MASK;
 		u16 imm = dsp_fetch_code();
 		dsp_op_write_reg(reg, imm);
 	}
 
-	void lris(UDSPInstruction& opc)
+	void lris(const UDSPInstruction& opc)
 	{
 		u8 reg  = ((opc.hex >> 8) & 0x7) + 0x18;
 		u16 imm = (s8)opc.hex;
 		dsp_op_write_reg(reg, imm);
 	}
 
-	void lr(UDSPInstruction& opc)
+	void lr(const UDSPInstruction& opc)
 	{
 		u8 reg   = opc.hex & DSP_REG_MASK;
 		u16 addr = dsp_fetch_code();
@@ -446,7 +446,7 @@ namespace DSPInterpreter {
 		dsp_op_write_reg(reg, val);
 	}
 
-	void sr(UDSPInstruction& opc)
+	void sr(const UDSPInstruction& opc)
 	{
 		u8 reg   = opc.hex & DSP_REG_MASK;
 		u16 addr = dsp_fetch_code();
@@ -454,14 +454,14 @@ namespace DSPInterpreter {
 		dsp_dmem_write(addr, val);
 	}
 
-	void si(UDSPInstruction& opc)
+	void si(const UDSPInstruction& opc)
 	{
 		u16 addr = (s8)opc.hex;
 		u16 imm = dsp_fetch_code();
 		dsp_dmem_write(addr, imm);
 	}
 
-	void tstaxh(UDSPInstruction& opc)
+	void tstaxh(const UDSPInstruction& opc)
 	{
 		u8 reg  = (opc.hex >> 8) & 0x1;
 		s16 val = dsp_get_ax_h(reg);
@@ -469,7 +469,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(val);
 	}
 
-	void clr(UDSPInstruction& opc)
+	void clr(const UDSPInstruction& opc)
 	{
 		u8 reg = (opc.hex >> 11) & 0x1;
 
@@ -478,7 +478,7 @@ namespace DSPInterpreter {
 		Update_SR_Register((s64)0);
 	}
 
-	void clrp(UDSPInstruction& opc)
+	void clrp(const UDSPInstruction& opc)
 	{
 		g_dsp.r[0x14] = 0x0000;
 		g_dsp.r[0x15] = 0xfff0;
@@ -486,7 +486,7 @@ namespace DSPInterpreter {
 		g_dsp.r[0x17] = 0x0010;
 	}
 
-	void mulc(UDSPInstruction& opc)
+	void mulc(const UDSPInstruction& opc)
 	{
 		// math new prod
 		u8 sreg = (opc.hex >> 11) & 0x1;
@@ -499,18 +499,18 @@ namespace DSPInterpreter {
 	}
 
 	// TODO: Implement
-	void mulcmvz(UDSPInstruction& opc)
+	void mulcmvz(const UDSPInstruction& opc)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmvz ni");
 	}
 
 	// TODO: Implement
-	void mulcmv(UDSPInstruction& opc)
+	void mulcmv(const UDSPInstruction& opc)
 	{
 		ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmv ni");
 	}
 
-	void cmpar(UDSPInstruction& opc)
+	void cmpar(const UDSPInstruction& opc)
 	{
 		u8 rreg = ((opc.hex >> 12) & 0x1) + 0x1a;
 		u8 areg = (opc.hex >> 11) & 0x1;
@@ -524,7 +524,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(ar - rr);
 	}
 
-	void cmp(UDSPInstruction& opc)
+	void cmp(const UDSPInstruction& opc)
 	{
 		s64 acc0 = dsp_get_long_acc(0);
 		s64 acc1 = dsp_get_long_acc(1);
@@ -532,7 +532,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc0 - acc1);
 	}
 
-	void tsta(UDSPInstruction& opc)
+	void tsta(const UDSPInstruction& opc)
 	{
 		u8 reg  = (opc.hex >> 11) & 0x1;
 		s64 acc = dsp_get_long_acc(reg);
@@ -540,7 +540,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void addaxl(UDSPInstruction& opc)
+	void addaxl(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 dreg = (opc.hex >> 8) & 0x1;
@@ -555,7 +555,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void addarn(UDSPInstruction& opc)
+	void addarn(const UDSPInstruction& opc)
 	{
 		u8 dreg = opc.hex & 0x3;
 		u8 sreg = (opc.hex >> 2) & 0x3;
@@ -563,7 +563,7 @@ namespace DSPInterpreter {
 		g_dsp.r[dreg] += (s16)g_dsp.r[0x04 + sreg];
 	}
 
-	void mulcac(UDSPInstruction& opc)
+	void mulcac(const UDSPInstruction& opc)
 	{
 		s64 TempProd = dsp_get_long_prod();
 
@@ -577,7 +577,7 @@ namespace DSPInterpreter {
 		dsp_set_long_acc(rreg, TempProd);
 	}
 
-	void movr(UDSPInstruction& opc)
+	void movr(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 		u8 sreg = ((opc.hex >> 9) & 0x3) + 0x18;
@@ -591,7 +591,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void movax(UDSPInstruction& opc)
+	void movax(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 dreg = (opc.hex >> 8) & 0x1;
@@ -611,7 +611,7 @@ namespace DSPInterpreter {
 		tsta(UDSPInstruction(dreg << 11));
 	}
 
-	void xorr(UDSPInstruction& opc)
+	void xorr(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 dreg = (opc.hex >> 8) & 0x1;
@@ -621,7 +621,7 @@ namespace DSPInterpreter {
 		tsta(UDSPInstruction(dreg << 11));
 	}
 
-	void andr(UDSPInstruction& opc)
+	void andr(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 dreg = (opc.hex >> 8) & 0x1;
@@ -631,7 +631,7 @@ namespace DSPInterpreter {
 		tsta(UDSPInstruction(dreg << 11));
 	}
 
-	void orr(UDSPInstruction& opc)
+	void orr(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 dreg = (opc.hex >> 8) & 0x1;
@@ -641,7 +641,7 @@ namespace DSPInterpreter {
 		tsta(UDSPInstruction(dreg << 11));
 	}
 
-	void andc(UDSPInstruction& opc)
+	void andc(const UDSPInstruction& opc)
 	{
 		u8 D = (opc.hex >> 8) & 0x1;
 
@@ -664,12 +664,12 @@ namespace DSPInterpreter {
 	//-------------------------------------------------------------
 
 	// TODO: Implement
-	void nx(UDSPInstruction& opc)
+	void nx(const UDSPInstruction& opc)
 	{}
 
 
 	// FIXME inside
-	void andfc(UDSPInstruction& opc)
+	void andfc(const UDSPInstruction& opc)
 	{
 		if (opc.hex & 0xf)
 		{
@@ -692,7 +692,7 @@ namespace DSPInterpreter {
 	}
 
 	// FIXME inside
-	void andf(UDSPInstruction& opc)
+	void andf(const UDSPInstruction& opc)
 	{
 		u8 reg;
 		u16 imm;
@@ -719,7 +719,7 @@ namespace DSPInterpreter {
 	}
 	
 	// FIXME inside
-	void subf(UDSPInstruction& opc)
+	void subf(const UDSPInstruction& opc)
 	{
 		if (opc.hex & 0xf)
 		{
@@ -737,7 +737,7 @@ namespace DSPInterpreter {
 	}
 
 	// FIXME inside
-	void xori(UDSPInstruction& opc)
+	void xori(const UDSPInstruction& opc)
 	{
 		if (opc.hex & 0xf)
 		{
@@ -753,7 +753,7 @@ namespace DSPInterpreter {
 	}
 
 	//FIXME inside
-	void andi(UDSPInstruction& opc)
+	void andi(const UDSPInstruction& opc)
 	{
 		if (opc.hex & 0xf)
 		{
@@ -772,7 +772,7 @@ namespace DSPInterpreter {
 	// F|RES: i am not sure if this shouldnt be the whole ACC
 	//
 	//FIXME inside
-	void ori(UDSPInstruction& opc)
+	void ori(const UDSPInstruction& opc)
 	{
 		if (opc.hex & 0xf)
 		{
@@ -790,7 +790,7 @@ namespace DSPInterpreter {
 
 	//-------------------------------------------------------------
 
-	void add(UDSPInstruction& opc)
+	void add(const UDSPInstruction& opc)
 	{
 		u8 areg  = (opc.hex >> 8) & 0x1;
 		s64 acc0 = dsp_get_long_acc(0);
@@ -805,7 +805,7 @@ namespace DSPInterpreter {
 
 	//-------------------------------------------------------------
 
-	void addp(UDSPInstruction& opc)
+	void addp(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x1;
 		s64 acc = dsp_get_long_acc(dreg);
@@ -815,7 +815,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void cmpis(UDSPInstruction& opc)
+	void cmpis(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -828,7 +828,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(res);
 	}
 
-	void addpaxz(UDSPInstruction& opc)
+	void addpaxz(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x1;
 		u8 sreg = (opc.hex >> 9) & 0x1;
@@ -842,7 +842,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void movpz(UDSPInstruction& opc)
+	void movpz(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x01;
 
@@ -854,7 +854,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void decm(UDSPInstruction& opc)
+	void decm(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x01;
 
@@ -866,7 +866,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void dec(UDSPInstruction& opc)
+	void dec(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x01;
 
@@ -876,7 +876,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void incm(UDSPInstruction& opc)
+	void incm(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x1;
 
@@ -888,7 +888,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void inc(UDSPInstruction& opc)
+	void inc(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x1;
 
@@ -899,7 +899,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void neg(UDSPInstruction& opc)
+	void neg(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -911,13 +911,13 @@ namespace DSPInterpreter {
 	}
 
 	// TODO: Implement
-	void movnp(UDSPInstruction& opc)
+	void movnp(const UDSPInstruction& opc)
 	{
 		// UNIMPLEMENTED
 		ERROR_LOG(DSPHLE, "dsp_opc.hex_movnp\n");
 	}
 
-	void addax(UDSPInstruction& opc)
+	void addax(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 		u8 sreg = (opc.hex >> 9) & 0x1;
@@ -930,7 +930,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void addr(UDSPInstruction& opc)
+	void addr(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 		u8 sreg = ((opc.hex >> 9) & 0x3) + 0x18;
@@ -945,7 +945,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void subr(UDSPInstruction& opc)
+	void subr(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 		u8 sreg = ((opc.hex >> 9) & 0x3) + 0x18;
@@ -960,7 +960,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void subax(UDSPInstruction& opc)
+	void subax(const UDSPInstruction& opc)
 	{
 		int regD = (opc.hex >> 8) & 0x1;
 		int regT = (opc.hex >> 9) & 0x1;
@@ -971,7 +971,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(Acc);
 	}
 
-	void addis(UDSPInstruction& opc)
+	void addis(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -984,7 +984,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void addi(UDSPInstruction& opc)
+	void addi(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -997,7 +997,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void lsl16(UDSPInstruction& opc)
+	void lsl16(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -1008,7 +1008,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void madd(UDSPInstruction& opc)
+	void madd(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 8) & 0x1;
 
@@ -1017,7 +1017,7 @@ namespace DSPInterpreter {
 		dsp_set_long_prod(prod);
 	}
 
-	void lsr16(UDSPInstruction& opc)
+	void lsr16(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 8) & 0x1;
 
@@ -1028,7 +1028,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void asr16(UDSPInstruction& opc)
+	void asr16(const UDSPInstruction& opc)
 	{
 		u8 areg = (opc.hex >> 11) & 0x1;
 
@@ -1039,7 +1039,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(acc);
 	}
 
-	void shifti(UDSPInstruction& opc)
+	void shifti(const UDSPInstruction& opc)
 	{
 		// direction: left
 		bool ShiftLeft = true;
@@ -1092,7 +1092,7 @@ namespace DSPInterpreter {
 	//-------------------------------------------------------------
 	
 	// hcs give me this code!!
-	void dar(UDSPInstruction& opc)
+	void dar(const UDSPInstruction& opc)
 	{
 		u8 reg = opc.hex & 0x3;
 
@@ -1104,7 +1104,7 @@ namespace DSPInterpreter {
 
 
 	// hcs give me this code!!
-	void iar(UDSPInstruction& opc)
+	void iar(const UDSPInstruction& opc)
 	{
 		u8 reg = opc.hex & 0x3;
 
@@ -1116,14 +1116,14 @@ namespace DSPInterpreter {
 
 	//-------------------------------------------------------------
 
-	void sbclr(UDSPInstruction& opc)
+	void sbclr(const UDSPInstruction& opc)
 	{
 		u8 bit = (opc.hex & 0xff) + 6;
 		g_dsp.r[R_SR] &= ~(1 << bit);
 	}
 
 
-	void sbset(UDSPInstruction& opc)
+	void sbset(const UDSPInstruction& opc)
 	{
 		u8 bit = (opc.hex & 0xff) + 6;
 		g_dsp.r[R_SR] |= (1 << bit);
@@ -1131,7 +1131,7 @@ namespace DSPInterpreter {
 
 
 	// FIXME inside
-	void srbith(UDSPInstruction& opc)
+	void srbith(const UDSPInstruction& opc)
 	{
 		switch ((opc.hex >> 8) & 0xf)
 		{
@@ -1154,7 +1154,7 @@ namespace DSPInterpreter {
 
 	//-------------------------------------------------------------
 
-	void movp(UDSPInstruction& opc)
+	void movp(const UDSPInstruction& opc)
 	{
 		u8 dreg = (opc.hex >> 8) & 0x1;
 
@@ -1163,7 +1163,7 @@ namespace DSPInterpreter {
 		dsp_set_long_acc(dreg, acc);
 	}
 
-	void mul(UDSPInstruction& opc)
+	void mul(const UDSPInstruction& opc)
 	{
 		u8 sreg  = (opc.hex >> 11) & 0x1;
 		s64 prod = (s64)dsp_get_ax_h(sreg) * (s64)dsp_get_ax_l(sreg) * GetMultiplyModifier();
@@ -1173,7 +1173,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulac(UDSPInstruction& opc)
+	void mulac(const UDSPInstruction& opc)
 	{
 		// add old prod to acc
 		u8 rreg = (opc.hex >> 8) & 0x1;
@@ -1188,7 +1188,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulmv(UDSPInstruction& opc)
+	void mulmv(const UDSPInstruction& opc)
 	{
 		u8 rreg  = (opc.hex >> 8) & 0x1;
 		s64 prod = dsp_get_long_prod();
@@ -1207,7 +1207,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulmvz(UDSPInstruction& opc)
+	void mulmvz(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 11) & 0x1;
 		u8 rreg = (opc.hex >> 8) & 0x1;
@@ -1224,7 +1224,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulx(UDSPInstruction& opc)
+	void mulx(const UDSPInstruction& opc)
 	{
 		u8 sreg = ((opc.hex >> 12) & 0x1);
 		u8 treg = ((opc.hex >> 11) & 0x1);
@@ -1238,7 +1238,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulxac(UDSPInstruction& opc)
+	void mulxac(const UDSPInstruction& opc)
 	{
 		// add old prod to acc
 		u8 rreg = (opc.hex >> 8) & 0x1;
@@ -1258,7 +1258,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulxmv(UDSPInstruction& opc)
+	void mulxmv(const UDSPInstruction& opc)
 	{
 		// add old prod to acc
 		u8 rreg = ((opc.hex >> 8) & 0x1);
@@ -1278,7 +1278,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void mulxmvz(UDSPInstruction& opc)
+	void mulxmvz(const UDSPInstruction& opc)
 	{
 		// overwrite acc and clear low part
 		u8 rreg  = (opc.hex >> 8) & 0x1;
@@ -1299,7 +1299,7 @@ namespace DSPInterpreter {
 		Update_SR_Register(prod);
 	}
 
-	void sub(UDSPInstruction& opc)
+	void sub(const UDSPInstruction& opc)
 	{
 		u8 D = (opc.hex >> 8) & 0x1;
 		s64 Acc1 = dsp_get_long_acc(D);
@@ -1317,7 +1317,7 @@ namespace DSPInterpreter {
 	//
 	//-------------------------------------------------------------
 
-	void maddx(UDSPInstruction& opc)
+	void maddx(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 treg = (opc.hex >> 8) & 0x1;
@@ -1330,7 +1330,7 @@ namespace DSPInterpreter {
 		dsp_set_long_prod(prod);
 	}
 
-	void msubx(UDSPInstruction& opc)
+	void msubx(const UDSPInstruction& opc)
 	{
 		u8 sreg = (opc.hex >> 9) & 0x1;
 		u8 treg = (opc.hex >> 8) & 0x1;
@@ -1343,7 +1343,7 @@ namespace DSPInterpreter {
 		dsp_set_long_prod(prod);
 	}
 
-	void maddc(UDSPInstruction& opc)
+	void maddc(const UDSPInstruction& opc)
 	{
 		u32 sreg = (opc.hex >> 9) & 0x1;
 		u32 treg = (opc.hex >> 8) & 0x1;
@@ -1356,7 +1356,7 @@ namespace DSPInterpreter {
 		dsp_set_long_prod(prod);
 	}
 
-	void msubc(UDSPInstruction& opc)
+	void msubc(const UDSPInstruction& opc)
 	{
 		u32 sreg = (opc.hex >> 9) & 0x1;
 		u32 treg = (opc.hex >> 8) & 0x1;
