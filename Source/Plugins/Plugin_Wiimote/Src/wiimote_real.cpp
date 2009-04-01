@@ -148,8 +148,8 @@ void ReadData()
 		//INFO_LOG(CONSOLE, "Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
-        m_EventWriteQueue.pop();
-
+		m_EventWriteQueue.pop();
+		
 #ifdef _WIN32
 		// Debugging. Move the data one step to the right first.
 		memcpy(rEvent.m_PayLoad + 1, rEvent.m_PayLoad, sizeof(rEvent.m_PayLoad) - 1);
@@ -164,12 +164,15 @@ void ReadData()
 	if (wiiuse_io_read(m_pWiiMote))
 	{
 		const byte* pBuffer = m_pWiiMote->event_buf;
-
+		#ifndef _WIN32
+			// The Linux packets are starting out one spot before the Windows one. This should really be handled in the wiiuse library
+			pBuffer++;
+		#endif
 		// Check if we have a channel (connection) if so save the data...
 		if (m_channelID > 0)
 		{
 			m_pCriticalSection->Enter();
-
+			
 			// Filter out data reports
 			if (pBuffer[0] >= 0x30) 
 			{
@@ -188,14 +191,6 @@ void ReadData()
 			}
 			m_pCriticalSection->Leave();
 		}
-#ifdef _WIN32
-		/* Debugging
-		//if(GetAsyncKeyState('V'))
-		{
-			std::string Temp = ArrayToString(pBuffer, 20, 0, 30);
-			INFO_LOG(CONSOLE, "Data: %s\n", Temp.c_str());
-		} */
-#endif
 	}
 };
 /////////////////////

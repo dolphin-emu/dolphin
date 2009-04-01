@@ -381,7 +381,7 @@ int IsKey(int Key)
 	default: PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key); return false;
 	}
 #else
-	return true;
+	return false;
 #endif
 }
 //////////////////////////////////////////
