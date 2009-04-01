@@ -23,11 +23,11 @@
 #include "DSPInterpreter.h"
 #include "DSPJit.h"
 
-void unimplementedInst(UDSPInstruction& inst) {
+void unimplementedInst(const UDSPInstruction& inst) {
 	PanicAlert("Unimplemented instruction %d", inst.hex);
 }
 
-void nop(UDSPInstruction&) {}
+void nop(const UDSPInstruction&) {}
 
 // TODO(XK): Fill up the tables with the corresponding instructions
 DSPOPCTemplate opcodes[] =
@@ -247,7 +247,7 @@ void DestroyInstructionTable() {
 	// TODO(XK): Fill
 }
 
-void ComputeInstruction(UDSPInstruction& inst) {
+void ComputeInstruction(const UDSPInstruction& inst) {
 	// TODO(XK): Fill	
 	DSPInterpreter::unknown(inst);
 }

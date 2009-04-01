@@ -68,10 +68,10 @@ union UDSPInstruction
 		unsigned ushift     : 6;
 	};
 
-	// TODO(XK): Figure out more instruction structures (add structs here)
+	// TODO: Figure out more instruction structures (add structs here)
 };
 
-typedef void (*dspInstFunc)(UDSPInstruction&);
+typedef void (*dspInstFunc)(const UDSPInstruction&);
 
 typedef struct DSPOParams
 {
