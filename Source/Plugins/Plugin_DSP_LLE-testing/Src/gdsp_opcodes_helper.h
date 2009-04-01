@@ -28,7 +28,8 @@
 
 #include "Globals.h"
 
-#include "gdsp_opcodes.h"
+#include "DSPInterpreter.h"
+
 #include "gdsp_memory.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_registers.h"

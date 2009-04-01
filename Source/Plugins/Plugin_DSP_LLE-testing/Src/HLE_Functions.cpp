@@ -20,6 +20,10 @@
 #endif
 #include "Globals.h"
 #include "HLE_Helper.h"
+#include "DSPInterpreter.h"
+
+// Avoid adding "DSPInterpreter::" to every instruction
+using namespace DSPInterpreter;
 
 
 u16& R00 = g_dsp.r[0x00];

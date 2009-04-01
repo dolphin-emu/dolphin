@@ -30,7 +30,7 @@
 #include "Globals.h"
 
 #include "disassemble.h"
-#include "opcodes.h"
+#include "DSPTables.h"
 // #include "gdsp_tool.h"
 
 #ifdef _MSC_VER
@@ -38,8 +38,6 @@
 #endif
 
 u32 unk_opcodes[0x10000];
-
-u16 swap16(u16 x);
 
 
 // predefined labels
@@ -289,7 +287,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 		return(1);
 	}
 
-	u32 op1 = swap16(gdg->binbuf[gdg->pc & 0x0fff]);
+	u32 op1 = Common::swap16(gdg->binbuf[gdg->pc & 0x0fff]);
 
 	for (u32 j = 0; j < opcodes_size; j++)
 	{
@@ -371,7 +369,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	pc &= 0x0fff;
-	op1 = swap16(gdg->binbuf[pc]);
+	op1 = Common::swap16(gdg->binbuf[pc]);
 
 	// find opcode
 	for (j = 0; j < opcodes_size; j++)
@@ -425,7 +423,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 
 	if ((opc->size & ~P_EXT) == 2)
 	{
-		op2 = swap16(gdg->binbuf[pc + 1]);
+		op2 = Common::swap16(gdg->binbuf[pc + 1]);
 
 		if (gdg->show_hex){sprintf(buf, "%04x %04x ", op1, op2);}
 	}

@@ -588,18 +588,34 @@
 				RelativePath=".\Src\disassemble.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\opcodes.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\opcodes.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="DSP"
 			>
+			<File
+				RelativePath=".\Src\DSPInterpreter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPInterpreter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPJit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPJit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPTables.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPTables.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\gdsp_aram.cpp"
 				>
@@ -642,14 +658,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\gdsp_memory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_opcodes.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_opcodes.h"
 				>
 			</File>
 			<File

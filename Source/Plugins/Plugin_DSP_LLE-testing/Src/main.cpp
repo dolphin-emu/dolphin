@@ -32,6 +32,8 @@
 #include "Thread.h"
 #include "ChunkFile.h"
 
+#include "DSPTables.h"
+
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
 #include "Debugger/Debugger.h" // For the CDebugger class
@@ -243,6 +245,8 @@ void Initialize(void *init)
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	
 	soundStream = AudioCommon::InitSoundStream();
+
+	InitInstructionTable();
 }
 
 void DSP_StopSoundStream()
@@ -255,6 +259,7 @@ void Shutdown(void)
 {
 	bIsRunning = false;
 	gdsp_stop();
+	DestroyInstructionTable();
 	AudioCommon::ShutdownSoundStream();
 }
 

@@ -1,4 +1,3 @@
-// April Fools!
 /*====================================================================
 
    filename:     gdsp_interpreter.cpp
@@ -26,6 +25,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "DSPTables.h"
 
 #include "gdsp_interface.h"
 #include "gdsp_opcodes_helper.h"
@@ -67,22 +68,12 @@ void UpdateCachedCR()
 	CR_EXTERNAL_INT = (g_dsp.cr & 0x02) != 0;
 }
 
-
-
 //-------------------------------------------------------------------------------
-void (*dsp_op[])(u16 opc) =
-{
-	dsp_op0, dsp_op1, dsp_op2, dsp_op3,
-	dsp_op4, dsp_op5, dsp_op6, dsp_op7,
-	dsp_op8, dsp_op9, dsp_opab, dsp_opab,
-	dsp_opcd, dsp_opcd, dsp_ope, dsp_opf,
-};
 
 void dbg_error(char* err_msg)
 {
 	return;
 }
-
 
 void gdsp_init()
 {
@@ -218,7 +209,7 @@ void gdsp_loop_step()
 {
 	g_dsp.err_pc = g_dsp.pc;
 	u16 opc = dsp_fetch_code();
-	dsp_op[opc >> 12](opc);
+	ComputeInstruction(UDSPInstruction(opc));
 }
 
 u16 HLE_ROM_80E7_81F8();
@@ -249,7 +240,7 @@ void gdsp_step()
 #endif
 
 	u16 opc = dsp_fetch_code();
-	dsp_op[opc >> 12](opc);
+	ComputeInstruction(UDSPInstruction(opc));
 
 	u16& rLoopCounter = g_dsp.r[DSP_REG_ST0 + 3];
 
