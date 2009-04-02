@@ -101,6 +101,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -186,6 +187,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -275,6 +277,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -364,6 +367,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -453,6 +457,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 		<Configuration
@@ -542,6 +547,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
 			/>
 		</Configuration>
 	</Configurations>
