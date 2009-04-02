@@ -67,10 +67,10 @@ DSPOPCTemplate opcodes[] =
 	{"SBCLR",   0x1200, 0xfff8, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
 	{"SBSET",   0x1300, 0xfff8, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
 
-	{"LSL",		0x1400, 0xfec0, nop, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
-	{"LSR",		0x1440, 0xfec0, nop, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
-	{"ASL",		0x1480, 0xfec0, nop, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
-	{"ASR",		0x14c0, 0xfec0, nop, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
+	{"LSL",		0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
+	{"LSR",		0x1440, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
+	{"ASL",		0x1480, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
+	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
 
 
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
@@ -201,16 +201,10 @@ DSPOPCTemplate opcodes[] =
 	{"MSUBC",   0xec00, 0xfcff, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 
 	// FIXME: nakee guessing (check masks and params!)
-	{"SHIFTI?",	0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
-
 	{"JMPA?",	0x1700, 0xff1f, DSPInterpreter::jmpa, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
 
-	{"TSTA?",	0xa100, 0xe7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"TSTA?",	0xa100, 0x0800, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_REG18, 1, 0, 11, 0x1000}}, NULL, NULL,},
 	
-	// assemble CW
-	//{"CW",      0x0000, 0xffff, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
-	// unknown opcode for disassemble
-	//  	{"CW",      0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
 };
 
 DSPOPCTemplate opcodes_ext[] =
