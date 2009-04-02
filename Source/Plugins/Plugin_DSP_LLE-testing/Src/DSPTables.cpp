@@ -208,9 +208,9 @@ DSPOPCTemplate opcodes[] =
 	{"TSTA?",	0xa100, 0xe7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
 	
 	// assemble CW
-	{"CW",      0x0000, 0xffff, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
+	//{"CW",      0x0000, 0xffff, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
 	// unknown opcode for disassemble
-	{"CW",      0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
+	//  	{"CW",      0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
 };
 
 DSPOPCTemplate opcodes_ext[] =
@@ -253,19 +253,20 @@ void InitInstructionTable()
 {
 	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
 		opTable[i] = DSPInterpreter::unknown;
-                prologueTable[i] = NULL;
-                epilogueTable[i] = NULL;
-        }
+		prologueTable[i] = NULL;
+		epilogueTable[i] = NULL;
+	}
 	
 	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
 		for(u32 j = 0; j < opcodes_size; j++) 
-			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode_mask) {
-                                if (opTable[i] == DSPInterpreter::unknown) {
+			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode) {
+				if (opTable[i] == DSPInterpreter::unknown) {
 					opTable[i] = opcodes[j].interpFunc;
-                                        prologueTable[i] = opcodes[j].prologue;
-                                        epilogueTable[i] = opcodes[j].epilogue;
-				} else
-					ERROR_LOG(DSPHLE, "opcode table place %d already in use for %d", i, j); 
+					prologueTable[i] = opcodes[j].prologue;
+					epilogueTable[i] = opcodes[j].epilogue;
+				} else {
+					ERROR_LOG(DSPHLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
+				}
 			}
 	}
 }	
