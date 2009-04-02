@@ -31,12 +31,12 @@ DSPOPCTemplate opcodes[] =
 	{"NOP",	    0x0000, 0xffff, nop, nop, 1, 0, {},},
 	{"HALT",    0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {},},
 	{"RET",	    0x02df, 0xffff, DSPInterpreter::ret, nop, 1, 0, {},},
-	{"RETEQ",   0x02d5, 0xffff, nop, nop, 1, 0, {},},
-	{"RETNZ",   0x02dd, 0xffff, nop, nop, 1, 0, {},},
+	{"RETEQ",   0x02d5, 0xffff, DSPInterpreter::ret, nop, 1, 0, {},},
+	{"RETNZ",   0x02dd, 0xffff, DSPInterpreter::ret, nop, 1, 0, {},},
 	{"RTI",	    0x02ff, 0xffff, DSPInterpreter::rti, nop, 1, 0, {},},
 	{"CALL",    0x02bf, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}},},
 
-	{"CALLNE",  0x02b4, 0xffff, nop, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}},},
+	{"CALLNE",  0x02b4, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}},},
 
 	{"IF_0",    0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {},},
 	{"IF_1",    0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {},},
@@ -186,7 +186,7 @@ DSPOPCTemplate opcodes[] =
 
 	{"ADDR",    0x4000, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
 	{"ADDAX",   0x4800, 0xfcff, DSPInterpreter::addax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}},},
-	{"ADD",		0x4c00, 0xfeff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}},},
+	{"ADD",		0x4c00, 0xfeff, DSPInterpreter::add, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}},},
 	{"ADDAXL",  0x7000, 0xfcff, DSPInterpreter::addaxl, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}},},
 
 	{"SUBR",    0x5000, 0xf8ff, DSPInterpreter::subr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
@@ -200,6 +200,64 @@ DSPOPCTemplate opcodes[] =
 	{"MADDC",   0xe800, 0xfcff, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}},},
 	{"MSUBC",   0xec00, 0xfcff, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}},},
 
+	// FIXME: nakee guessing 
+	{"LOOP?",    0x0050, 0xffe0, DSPInterpreter::loop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}},},
+	{"BLOOP?",    0x0070, 0xffe0, DSPInterpreter::loop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}},},
+	{"LRI?",		0x0090, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}},},
+	{"LR?",      0x00d0, 0xffe0, DSPInterpreter::lr, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_MEM, 2, 1, 0, 0xffff}},},
+	{"SR?",      0x00f0, 0xffe0, DSPInterpreter::sr, nop, 2, 2, {{P_MEM, 2, 1, 0, 0xffff}, {P_REG, 1, 0, 0, 0x001f}},},
+
+	
+	{"ADDIS?",   0x0500, 0xfe00, DSPInterpreter::addis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"CMPIS?",   0x0700, 0xfe00, DSPInterpreter::cmpis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}},},
+
+	{"LRIS2?",    0x0900, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS3?",    0x0a00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS4?",    0x0b00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS5?",    0x0c00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS6?",    0x0d00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS7?",    0x0e00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+	{"LRIS8?",    0x0f00, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}},},
+
+	{"SHIFTI?",   0x1400, 0xfff8, DSPInterpreter::shifti, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
+	{"SHIFTR?",   0x1500, 0xfff8, DSPInterpreter::shifti, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
+	{"JMPA?",   0x1500, 0xfff8, DSPInterpreter::jmpa, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
+	{"LRR?",		0x1900, 0xff80, DSPInterpreter::lrr, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}},},
+	{"SRR?",		0x1b00, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}},},
+	{"MRR2?",		0x1d00, 0xfc00, DSPInterpreter::mrr, nop, 1, 2, {{P_REG, 1, 0, 5, 0x03e0}, {P_REG, 1, 0, 0, 0x001f}},},
+	{"MRR3?",		0x1e00, 0xfc00, DSPInterpreter::mrr, nop, 1, 2, {{P_REG, 1, 0, 5, 0x03e0}, {P_REG, 1, 0, 0, 0x001f}},},
+	{"MRR4?",		0x1f00, 0xfc00, DSPInterpreter::mrr, nop, 1, 2, {{P_REG, 1, 0, 5, 0x03e0}, {P_REG, 1, 0, 0, 0x001f}},},
+
+	{"XORR2?",    0x3100, 0xfcff, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"XORR3?",    0x3200, 0xfcff, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"XORR4?",    0x3300, 0xfcff, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ANDR2?",    0x3500, 0xfcff, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ANDR3?",    0x3600, 0xfcff, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ANDR4?",    0x3700, 0xfcff, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ORR2?",		0x3900, 0xfcff, DSPInterpreter::orr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ORR3?",		0x3a00, 0xfcff, DSPInterpreter::orr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ORR4?",		0x3b00, 0xfcff, DSPInterpreter::orr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}},},
+	{"ANDC?",    0x3d00, 0xfeff, DSPInterpreter::andc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}},},
+
+	{"ADDR2?",    0x4100, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR3?",    0x4200, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR4?",    0x4300, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR5?",    0x4400, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR6?",    0x4500, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR7?",    0x4600, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDR8?",    0x4700, 0xf8ff, DSPInterpreter::addr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}},},
+	{"ADDAX2?",   0x4900, 0xfcff, DSPInterpreter::addax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}},},
+	{"ADDAX3?",   0x4a00, 0xfcff, DSPInterpreter::addax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}},},
+	{"ADDAX4?",   0x4b00, 0xfcff, DSPInterpreter::addax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}},},
+	{"ADD?",		0x4d00, 0xfeff, DSPInterpreter::add, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}},},
+	{"ADDP?",    0x4f00, 0xfeff, DSPInterpreter::addp, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}},},
+
+	{"TSTA?", 0xa100, 0xe6ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
+	{"MULXMVZ?", 0xa300, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
+	{"MULXAC?", 0xa500, 0xe6ff, DSPInterpreter::mulxac, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
+	{"MULXMV?", 0xa700, 0xe6ff, DSPInterpreter::mulxmv, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
+	
+	
 	// assemble CW
 	{"CW",      0x0000, 0xffff, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}},},
 	// unknown opcode for disassemble

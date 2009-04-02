@@ -215,7 +215,6 @@ void jcc(const UDSPInstruction& opc)
 }
 
 // FIXME inside
-// FIXME add to opcode table
 void jmpa(const UDSPInstruction& opc)
 {
 	u8 reg;
@@ -1049,7 +1048,6 @@ void asr16(const UDSPInstruction& opc)
 	Update_SR_Register(acc);
 }
 
-// TODO: add to opcode table
 void shifti(const UDSPInstruction& opc)
 {
 	// direction: left
