@@ -102,7 +102,7 @@ DSPOPCTemplate opcodes[] =
 	{"CMPI",    0x0280, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // missing S64
 
 	{"ILRR",    0x0210, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}},},
-	{"ILRRD",    0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}},},
+	{"ILRRD",	0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}},},
 	{"ILRRI",   0x0218, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}},},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
@@ -201,11 +201,11 @@ DSPOPCTemplate opcodes[] =
 	{"MSUBC",   0xec00, 0xfcff, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}},},
 
 	// FIXME: nakee guessing (check masks and params!)
-	{"SHIFTI?",   0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
+	{"SHIFTI?",	0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
 
-	{"JMPA?",   0x1700, 0xff1f, DSPInterpreter::jmpa, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
+	{"JMPA?",	0x1700, 0xff1f, DSPInterpreter::jmpa, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}},},
 
-	{"TSTA?", 0xa100, 0xe7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
+	{"TSTA?",	0xa100, 0xe7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}},},
 	
 	// assemble CW
 	{"CW",      0x0000, 0xffff, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}},},
@@ -246,9 +246,12 @@ const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(DSPOPCTemplate);
 
 dspInstFunc opTable[OPTABLE_SIZE];
 
-void InitInstructionTable() {
-	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
-		for(u32 j = 0; j < opcodes_size; j++) {
+void InitInstructionTable()
+{
+	for(u32 i = 0; i < OPTABLE_SIZE; i++)
+	{
+		for(u32 j = 0; j < opcodes_size; j++)
+		{
 			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode_mask)
 				opTable[i] = opcodes[j].interpFunc;
 			else
@@ -257,6 +260,7 @@ void InitInstructionTable() {
 	}
 }	
 
-void ComputeInstruction(const UDSPInstruction& inst) {
+void ComputeInstruction(const UDSPInstruction& inst)
+{
 	opTable[inst.hex](inst);
 }

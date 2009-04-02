@@ -36,8 +36,8 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
-#include "Debugger/Debugger.h" // For the CDebugger class
-CDebugger* m_frame = NULL;
+#include "Debugger/Debugger.h" // For the DSPDebuggerLLE class
+DSPDebuggerLLE* m_DebuggerFrame = NULL;
 #endif
 
 PLUGIN_GLOBALS* globals = NULL;
@@ -168,19 +168,8 @@ void DoState(unsigned char **ptr, int mode)
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_frame && Show) // if we have created it, let us show it again
-	{
-		m_frame->DoShow();
-	}
-	else if (!m_frame && Show)
-	{
-		m_frame = new CDebugger(NULL);
-		m_frame->Show();
-	}
-	else if (m_frame && !Show)
-	{
-		m_frame->DoHide();
-	}
+	DSPDebuggerLLE *debugger = new DSPDebuggerLLE(NULL);
+	debugger->Show();
 #endif
 }
 
@@ -202,11 +191,29 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 // Debug thread
 THREAD_RETURN dsp_thread_debug(void* lpParameter)
 {
+#if defined(HAVE_WX) && HAVE_WX
+	while (bIsRunning)
+	{
+//		Logging(); // logging
+
+		if (m_DebuggerFrame->CanDoStep())
+		{
+			gdsp_runx(1);
+		}
+		else
+		{
+			Sleep(100);
+		}
+	}
+#endif
 	return NULL;
 }
 
 void DSP_DebugBreak()
 {
+#if defined(HAVE_WX) && HAVE_WX
+	m_DebuggerFrame->DebugBreak();
+#endif
 }
 
 
@@ -348,7 +355,13 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-		soundStream->Update();
+	soundStream->Update();
+
+#if defined(HAVE_WX) && HAVE_WX
+	// TODO fix? dunno how we should handle debug thread or whatever
+// 	if (m_DebuggerFrame->CanDoStep())
+// 		gdsp_runx(100); // cycles
+#endif
 }
 
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
