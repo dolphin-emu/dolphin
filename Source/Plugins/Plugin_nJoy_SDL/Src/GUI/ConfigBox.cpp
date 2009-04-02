@@ -6,7 +6,7 @@
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
 // Site: www.multigesture.net
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -79,6 +79,10 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_TRIGGERTYPE, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDC_DEADZONE, ConfigBox::ChangeSettings)	
+
+	// Rumble settings
+	EVT_CHECKBOX(IDC_ENABLERUMBLE, ConfigBox::ChangeSettings)
+	EVT_COMBOBOX(IDC_RUMBLESTRENGTH, ConfigBox::ChangeSettings)
 
 	// Advanced settings
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
@@ -203,7 +207,6 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 	if (event.GetId() == ID_OK)
 	{
 		DoSave();	// Save settings
-		//g_Config.Load();	// Reload settings to PadMapping
 		if(Debugging) PanicAlert("Done");
 		Close(); // Call OnClose()
 	}
@@ -217,7 +220,6 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 	{
 		// Forget all potential changes to PadMapping by loading the last saved settings
 		g_Config.Load();
-
 		Close(); // Call OnClose()
 	}
 }
@@ -485,7 +487,13 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 				UpdateGUI(notebookpage);
 			}
 			break;
-
+		case IDC_ENABLERUMBLE:
+			PadMapping[notebookpage].rumble = m_Rumble[notebookpage]->IsChecked();
+			UpdateGUI(notebookpage);
+			break;
+		case IDC_RUMBLESTRENGTH:
+			g_Config.RumbleStrength = m_RStrength[notebookpage]->GetSelection();
+			break;
 		case IDC_JOYNAME: 
 			DoChangeJoystick();
 			break;
@@ -555,17 +563,17 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 	m_CBCheckFocus[_notebookpage]->SetValue(g_Config.bCheckFocus);
 	m_AdvancedMapFilter[_notebookpage]->SetValue(g_Config.bNoTriggerFilter);
+	m_RStrength[_notebookpage]->SetSelection(g_Config.RumbleStrength);
 #ifdef RERECORDING
 	m_CheckRecording[_notebookpage]->SetValue(g_Config.bRecording);
 	m_CheckPlayback[_notebookpage]->SetValue(g_Config.bPlayback);
 #endif
 
-	//LogMsg("Update: %i\n", g_Config.bSaveByID);
-
-	// Disabled pages
-	bool Enabled = PadMapping[_notebookpage].enabled  == 1 ? true : false;
 	// There is no FindItem in linux so this doesn't work
 	#ifdef _WIN32
+		// Disabled pages
+		bool Enabled = PadMapping[_notebookpage].enabled  == 1 ? true : false;
+
 		// Enable or disable all buttons
 		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
 			m_Controller[_notebookpage]->FindItem(i)->Enable(Enabled);
@@ -680,18 +688,26 @@ void ConfigBox::CreateGUIControls()
 	wxArrayString wxAS_TriggerType;
 	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_SDL]));
 	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_XINPUT]));
-
+	
 	// --------------------------------------------------------------------
-	// Populate the deadzone list
+	// Populate the deadzone list and the Rumble Strength
 	// -----------------------------
-	char buffer [8];
+
+	char buffer[8];
+
+	wxArrayString wxAS_RumbleStrength;
+	for (int i = 1; i < 11; i++) 
+	{
+		sprintf (buffer, "%d %%", i*10);
+		wxAS_RumbleStrength.Add(wxString::FromAscii(buffer));
+	}
+
 	wxArrayString arrayStringFor_Deadzone;
 	for(int x = 1; x <= 100; x++)
 	{		
 		sprintf (buffer, "%d %%", x);
 		arrayStringFor_Deadzone.Add(wxString::FromAscii(buffer));
 	}
-
 
 	// Populate all four pages
 	for(int i = 0; i < 4; i++)
@@ -880,6 +896,17 @@ void ConfigBox::CreateGUIControls()
 		m_gGenSettingsID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 3);
 		m_gGenSettingsID[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
 		
+		// Create objects for Rumble settings (general 4)	
+		m_RStrength[i] = new wxComboBox(m_Controller[i], IDC_RUMBLESTRENGTH, wxAS_RumbleStrength[0], wxDefaultPosition, wxSize(85, 20), wxAS_RumbleStrength, wxCB_READONLY);
+		m_Rumble[i] = new wxCheckBox(m_Controller[i], IDC_ENABLERUMBLE, wxT("Enable Rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+		// Populate general settings 4
+		m_gRumble[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Rumble Settings"));
+		m_gGBRumble[i] = new wxGridBagSizer(0, 0);
+		m_gGBRumble[i]->Add(m_Rumble[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 1);
+		m_gGBRumble[i]->Add(m_RStrength[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 6);
+		m_gRumble[i]->Add(m_gGBRumble[i], 0, wxEXPAND | wxALL, 3);
+
 		// Create tooltips	
 		m_ControlType[i]->SetToolTip(wxT(
 			"Use a 'hat' on your gamepad or configure a custom button for each direction."
@@ -899,6 +926,8 @@ void ConfigBox::CreateGUIControls()
 		m_sSettings[i]->Add(m_gExtrasettings[i], 0, wxEXPAND | wxALL, 0);
 		m_sSettings[i]->Add(m_gGenSettings[i], 0, wxEXPAND | wxLEFT, 5);
 		m_sSettings[i]->Add(m_gGenSettingsID[i], 0, wxEXPAND | wxLEFT, 5);
+		m_sSettings[i]->Add(m_gRumble[i], 0, wxEXPAND | wxLEFT, 5);
+
 		// -------------------------
 
 		//////////////////////////// General settings

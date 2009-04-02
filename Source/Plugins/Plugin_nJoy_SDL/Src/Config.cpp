@@ -111,6 +111,7 @@ void Config::Save(int Slot)
 	file.Set("General", "SaveByID", g_Config.bSaveByID);
 	file.Set("General", "CheckForFocus", g_Config.bCheckFocus);
 	file.Set("General", "NoTriggerFilter", g_Config.bNoTriggerFilter);
+	file.Set("General", "RumbleStrength", g_Config.RumbleStrength);
 #ifdef RERECORDING
 	file.Set("General", "Recording", g_Config.bRecording);
 	file.Set("General", "Playback", g_Config.bPlayback);
@@ -171,6 +172,7 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "controllertype", PadMapping[i].controllertype);
 		file.Set(SectionName.c_str(), "TriggerType", PadMapping[i].triggertype);
 		file.Set(SectionName.c_str(), "eventnum", PadMapping[i].eventnum);
+		file.Set(SectionName.c_str(), "use_rumble", PadMapping[i].rumble);
 
 		file.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
 		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);			
@@ -203,6 +205,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
 	file.Get("General", "CheckForFocus", &g_Config.bCheckFocus, false);
 	file.Get("General", "NoTriggerFilter", &g_Config.bNoTriggerFilter, false);
+	file.Get("General", "RumbleStrength", &g_Config.RumbleStrength, 8);
 #ifdef RERECORDING
 	file.Get("General", "Recording", &g_Config.bRecording, false);
 	file.Get("General", "Playback", &g_Config.bPlayback, false);
@@ -263,6 +266,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		file.Get(SectionName.c_str(), "controllertype", &PadMapping[i].controllertype, 0);
 		file.Get(SectionName.c_str(), "TriggerType", &PadMapping[i].triggertype, 0);
 		file.Get(SectionName.c_str(), "eventnum", &PadMapping[i].eventnum, 0);
+		file.Get(SectionName.c_str(), "use_rumble", &PadMapping[i].rumble, false);
 
 		file.Get(SectionName.c_str(), "Diagonal", &PadMapping[i].SDiagonal, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); PadMapping[i].bSquareToCircle = Tmp;

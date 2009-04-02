@@ -30,6 +30,7 @@ struct Config
 	bool bSaveByID;
 	bool bCheckFocus;
 	bool bNoTriggerFilter;
+	int RumbleStrength;
 #ifdef RERECORDING
 	bool bRecording;
 	bool bPlayback;

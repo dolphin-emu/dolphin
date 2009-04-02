@@ -80,11 +80,12 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
 	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
+	// Update Rumble checkbox
+	m_Rumble[controller]->SetValue(PadMapping[controller].rumble);
 #ifdef RERECORDING
 	m_CheckRecording[controller]->SetValue(g_Config.bRecording);
 	m_CheckPlayback[controller]->SetValue(g_Config.bPlayback);
 #endif
-	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
 	// Update D-Pad
 	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
@@ -99,8 +100,6 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
 	}
 
-	// Replace "-1" with "" in the GUI controls
-	//if(ControlsCreated) ToBlank();
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example

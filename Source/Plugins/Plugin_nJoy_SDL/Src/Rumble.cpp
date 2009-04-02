@@ -37,32 +37,29 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Enable or disable rumble. Set USE_RUMBLE_DINPUT_HACK in nJoy.h
+// Enable or disable rumble. 
 // ¯¯¯¯¯¯¯¯¯
-#ifdef USE_RUMBLE_DINPUT_HACK
-bool g_rumbleEnable = FALSE;
-#endif
 
 // Rumble in windows
 #ifdef _WIN32
 
-	#ifdef USE_RUMBLE_DINPUT_HACK
-	LPDIRECTINPUT8          g_pDI = NULL;
-	LPDIRECTINPUTDEVICE8    g_pDevice = NULL;
-	LPDIRECTINPUTEFFECT     g_pEffect = NULL;
-
-	DWORD                   g_dwNumForceFeedbackAxis = 0;
-	INT                     g_nXForce = 0;
-	INT                     g_nYForce = 0;
+	struct RUMBLE // GC Pad rumble DIDevice 
+	{	
+		LPDIRECTINPUTDEVICE8	g_pDevice;	// 4 pads objects
+		LPDIRECTINPUTEFFECT		g_pEffect;
+		DWORD					g_dwNumForceFeedbackAxis;
+		DIEFFECT				eff;
+	};
 
 	#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 
-	HRESULT InitDirectInput(HWND hDlg);
-	//VOID FreeDirectInput();
 	BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
 	BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
-	HRESULT SetDeviceForcesXY();
-	#endif
+	void SetDeviceForcesXY(int pad, int nXYForce);
+
+	LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
+	RUMBLE				pRumble[4];		// 4 GC Rumble Pads
+	extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
 
 #elif defined(__linux__)
 	#include <sys/types.h>
@@ -74,101 +71,36 @@ bool g_rumbleEnable = FALSE;
 	struct ff_effect effect;
 	bool CanRumble = false;
 #endif
+
 //////////////////////
-
-
-
-// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
-{
-	//if (_numPAD > 0)
-	//	return;
-
-	// SDL can't rumble the gamepad so we need to use platform specific code
-	#ifdef _WIN32
-	#ifdef USE_RUMBLE_DINPUT_HACK
-	static int a = 0;
-
-	if ((_uType == 0) || (_uType == 2))
-	{
-		a = 0;
-	}
-	else if (_uType == 1)
-	{
-		a = _uStrength > 2 ? 8000 : 0;
-	}
-
-	a = int ((float)a * 0.96f);
-
-	if (!g_rumbleEnable)
-	{
-		a = 0;		
-	}
-	else
-	{
-		g_nYForce = a;
-		SetDeviceForcesXY();
-	}
-	#endif
-	#elif defined(__linux__)
-	struct input_event event;
-	if (CanRumble)
-	{
-		if (_uType == 1)
-		{
-			event.type = EV_FF;
-			event.code = effect.id;
-			event.value = 1;
-			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
-				perror("Play effect");
-				exit(1);
-			}
-		}
-		if ((_uType == 0) || (_uType == 2))
-		{
-			event.type = EV_FF;
-			event.code =  effect.id;
-			event.value = 0;
-			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
-				perror("Stop effect");
-				exit(1);
-			}
-		}
-	}
-	#endif
-}
-
-
-
 // Use PAD rumble
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
+
+void Pad_Use_Rumble(u8 _numPAD)//, SPADStatus* _pPADStatus)
 {
 	#ifdef _WIN32
-	#ifdef USE_RUMBLE_DINPUT_HACK
 
-	// Enable or disable rumble
-	if (PadState[_numPAD].halfpress)
-	if (!g_pDI)
-	if (FAILED(InitDirectInput(m_hWnd)))
-	{
-		MessageBox(NULL, SDL_GetError(), "Could not initialize DirectInput!", MB_ICONERROR);
-		g_rumbleEnable = FALSE;
-		//return;
-	}
-	else
-	{
-		g_rumbleEnable = TRUE;
+	if (PadMapping[_numPAD].rumble) {
+		if (!g_Rumble) {
+
+			HWND rumble_hWnd = GetParent(m_hWnd);
+			HWND TopLevel = GetParent(rumble_hWnd);
+
+			// Support both rendering to main window and not.
+			if (GetForegroundWindow() == TopLevel)
+				rumble_hWnd = TopLevel;
+			if (GetForegroundWindow() == m_hWnd)
+				rumble_hWnd = m_hWnd;
+			if (FAILED(InitRumble(rumble_hWnd)))
+				PanicAlert("Could not initialize Rumble!");
+
+		} else {
+			// Acquire gamepad
+			if (pRumble[_numPAD].g_pDevice != NULL)
+				pRumble[_numPAD].g_pDevice->Acquire();
+		}
 	}
 
-	if (g_rumbleEnable)
-	{
-		g_pDevice->Acquire();
-		
-		if (g_pEffect) g_pEffect->Start(1, 0);
-	}
-	#endif
 	#elif defined(__linux__)
 	if (!fd)
 	{
@@ -204,191 +136,257 @@ void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
 	#endif
 }
 
+////////////////////////////////////////////////////
+// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+{
 
+	Pad_Use_Rumble(_numPAD);
 
+	// SDL can't rumble the gamepad so we need to use platform specific code
+	#ifdef _WIN32
+	int a = 0;
 
+	if (_uType == 1)
+	{
+		// it looks like _uStrength is equal to 3 everytime anyway...
+		a = _uStrength > 2 ? (1000*(g_Config.RumbleStrength + 1)) : 0;
+		a = a > 10000 ? 10000 : a;
+	}
+
+	// a = int ((float)a * 0.96f);
+	// What is this for ?
+	// else if ((_uType == 0) || (_uType == 2))
+
+	if (PadMapping[_numPAD].rumble)  // rumble activated
+	{
+		// Start Effect 
+		SetDeviceForcesXY(_numPAD, a);
+	}
+
+	#elif defined(__linux__)
+	struct input_event event;
+	if (CanRumble)
+	{
+		if (_uType == 1)
+		{
+			event.type = EV_FF;
+			event.code = effect.id;
+			event.value = 1;
+			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
+				perror("Play effect");
+				exit(1);
+			}
+		}
+		if ((_uType == 0) || (_uType == 2))
+		{
+			event.type = EV_FF;
+			event.code =  effect.id;
+			event.value = 0;
+			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
+				perror("Stop effect");
+				exit(1);
+			}
+		}
+	}
+	#endif
+}
 
 #ifdef _WIN32
 //////////////////////////////////////////////////////////////////////////////////////////
 // Rumble stuff :D!
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 //
-#ifdef USE_RUMBLE_DINPUT_HACK
-HRESULT InitDirectInput( HWND hDlg )
+
+HRESULT InitRumble(HWND hWnd)
 {
-    DIPROPDWORD dipdw;
-    HRESULT hr;
+	DIPROPDWORD dipdw;
+	HRESULT hr;
 
-    // Register with the DirectInput subsystem and get a pointer to a IDirectInput interface we can use.
-    if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&g_pDI, NULL)))
-    {
-        return hr;
-    }
+	// Register with the DirectInput subsystem and get a pointer to a IDirectInput interface we can use.
+	if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&g_Rumble, NULL)))
+		return hr;
 
-    // Look for a force feedback device we can use
-    if (FAILED(hr = g_pDI->EnumDevices( DI8DEVCLASS_GAMECTRL, EnumFFDevicesCallback, NULL, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)))
-    {
-        return hr;
-    }
+	// Look for a device we can use
+	if (FAILED(hr = g_Rumble->EnumDevices( DI8DEVCLASS_GAMECTRL, EnumFFDevicesCallback, NULL, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)))
+		return hr;
 
-    if (NULL == g_pDevice)
-    {
-        MessageBox(NULL, "Force feedback device not found. nJoy will now disable rumble." ,"FFConst" , MB_ICONERROR | MB_OK);
-		g_rumbleEnable = FALSE;
-        
-        return S_OK;
-    }
+	for (int i=0; i<4; i++)
+	{
+		if (NULL == pRumble[i].g_pDevice)
+			PadMapping[i].rumble = false; // Disable Rumble for this pad only.
+		else
+		{
+			pRumble[i].g_pDevice->SetDataFormat(&c_dfDIJoystick);
+			pRumble[i].g_pDevice->SetCooperativeLevel(hWnd, DISCL_EXCLUSIVE | DISCL_BACKGROUND);
+			// Request exclusive acces for both background and foreground.
 
-    // Set the data format to "simple joystick" - a predefined data format. A
-    // data format specifies which controls on a device we are interested in,
-    // and how they should be reported.
-    //
-    // This tells DirectInput that we will be passing a DIJOYSTATE structure to
-    // IDirectInputDevice8::GetDeviceState(). Even though we won't actually do
-    // it in this sample. But setting the data format is important so that the
-    // DIJOFS_* values work properly.
-    if (FAILED(hr = g_pDevice->SetDataFormat(&c_dfDIJoystick)))
-        return hr;
+				dipdw.diph.dwSize = sizeof(DIPROPDWORD);
+				dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+				dipdw.diph.dwObj = 0;
+				dipdw.diph.dwHow = DIPH_DEVICE;
+				dipdw.dwData = FALSE;
 
-    // Set the cooperative level to let DInput know how this device should
-    // interact with the system and with other DInput applications.
-    // Exclusive access is required in order to perform force feedback.
-    //if (FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))
+			// if Force Feedback doesn't seem to work...
+			if (FAILED(pRumble[i].g_pDevice->EnumObjects(EnumAxesCallback, 
+				(void*)&pRumble[i].g_dwNumForceFeedbackAxis, DIDFT_AXIS))
+			 || FAILED(pRumble[i].g_pDevice->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph)))
+			{
+				PanicAlert("Device %d doesn't seem to work ! \nRumble for device %d is now Disabled !", i+1);
 
-	if (FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))	
-    {
-        return hr;
-    }
+				PadMapping[i].rumble = false; // Disable Rumble for this pad
 
-    // Since we will be playing force feedback effects, we should disable the
-    // auto-centering spring.
-    dipdw.diph.dwSize = sizeof(DIPROPDWORD);
-    dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-    dipdw.diph.dwObj = 0;
-    dipdw.diph.dwHow = DIPH_DEVICE;
-    dipdw.dwData = FALSE;
+				continue;	// Next pad
+			}
 
-    if (FAILED(hr = g_pDevice->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph)))
-        return hr;
+			if (pRumble[i].g_dwNumForceFeedbackAxis > 2) 
+				pRumble[i].g_dwNumForceFeedbackAxis = 2;
 
-    // Enumerate and count the axes of the joystick 
-    if (FAILED(hr = g_pDevice->EnumObjects(EnumAxesCallback, (VOID*)&g_dwNumForceFeedbackAxis, DIDFT_AXIS)))
-        return hr;
+			DWORD _rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
+			long rglDirection[2] = {0, 0};
+			DICONSTANTFORCE cf = {0};
 
-    // This simple sample only supports one or two axis joysticks
-    if (g_dwNumForceFeedbackAxis > 2)
-        g_dwNumForceFeedbackAxis = 2;
+			ZeroMemory(&pRumble[i].eff, sizeof(pRumble[i].eff));
+			pRumble[i].eff.dwSize = sizeof(DIEFFECT);
+			pRumble[i].eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
+			pRumble[i].eff.dwDuration = INFINITE; // fixed time may be safer (X * DI_SECONDS)
+			pRumble[i].eff.dwSamplePeriod = 0;
+			pRumble[i].eff.dwGain = DI_FFNOMINALMAX;
+			pRumble[i].eff.dwTriggerButton = DIEB_NOTRIGGER;
+			pRumble[i].eff.dwTriggerRepeatInterval = 0;
+			pRumble[i].eff.cAxes = pRumble[i].g_dwNumForceFeedbackAxis;
+			pRumble[i].eff.rgdwAxes = _rgdwAxes;
+			pRumble[i].eff.rglDirection = rglDirection;
+			pRumble[i].eff.lpEnvelope = 0;
+			pRumble[i].eff.cbTypeSpecificParams = sizeof( DICONSTANTFORCE );
+			pRumble[i].eff.lpvTypeSpecificParams = &cf;
+			pRumble[i].eff.dwStartDelay = 0;
 
-    // This application needs only one effect: Applying raw forces.
-    DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
-    LONG rglDirection[2] = {0, 0};
-    DICONSTANTFORCE cf = {0};
+			// Create the prepared effect
+			if (FAILED(hr = pRumble[i].g_pDevice->CreateEffect(GUID_ConstantForce, &pRumble[i].eff, &pRumble[i].g_pEffect, NULL)))
+				return hr;
+					
+			if (pRumble[i].g_pEffect == NULL)
+				return E_FAIL;
+		}
+	}
 
-    DIEFFECT eff;
-    ZeroMemory(&eff, sizeof(eff));
-    eff.dwSize = sizeof(DIEFFECT);
-    eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-    eff.dwDuration = INFINITE;
-    eff.dwSamplePeriod = 0;
-    eff.dwGain = DI_FFNOMINALMAX;
-    eff.dwTriggerButton = DIEB_NOTRIGGER;
-    eff.dwTriggerRepeatInterval = 0;
-    eff.cAxes = g_dwNumForceFeedbackAxis;
-    eff.rgdwAxes = rgdwAxes;
-    eff.rglDirection = rglDirection;
-    eff.lpEnvelope = 0;
-    eff.cbTypeSpecificParams = sizeof( DICONSTANTFORCE );
-    eff.lpvTypeSpecificParams = &cf;
-    eff.dwStartDelay = 0;
+	return S_OK;
+}
 
-    // Create the prepared effect
-    if (FAILED(hr = g_pDevice->CreateEffect(GUID_ConstantForce, &eff, &g_pEffect, NULL)))
-    {
-        return hr;
-    }
+void SetDeviceForcesXY(int npad, int nXYForce)
+{
+	// Security check
+	if (pRumble[npad].g_pDevice == NULL)
+		return;
 
-    if (NULL == g_pEffect)
-        return E_FAIL;
+	// If nXYForce is null, there's no point to create the effect
+	// Just stop the force feedback
+	if (nXYForce == 0) {
+		pRumble[npad].g_pEffect->Stop();
+		return;
+	}
+	
+	long rglDirection[2] = {0};
+	DICONSTANTFORCE cf;
 
-    return S_OK;
+	// If only one force feedback axis, then apply only one direction and keep the direction at zero
+	if (pRumble[npad].g_dwNumForceFeedbackAxis == 1)
+	{
+		rglDirection[0] = 0;
+		cf.lMagnitude = nXYForce; // max should be 10000
+	}
+	// 	If two force feedback axis, then apply magnitude from both directions 
+	else
+	{
+		rglDirection[0] = nXYForce;
+		rglDirection[1] = nXYForce;
+		cf.lMagnitude = 1.4142f*nXYForce;
+	}
+
+	ZeroMemory(&pRumble[npad].eff, sizeof(pRumble[npad].eff));
+	pRumble[npad].eff.dwSize = sizeof(DIEFFECT);
+	pRumble[npad].eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
+	pRumble[npad].eff.cAxes = pRumble[npad].g_dwNumForceFeedbackAxis;
+	pRumble[npad].eff.rglDirection = rglDirection;
+	pRumble[npad].eff.lpEnvelope = 0;
+	pRumble[npad].eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
+	pRumble[npad].eff.lpvTypeSpecificParams = &cf;
+	pRumble[npad].eff.dwStartDelay = 0;
+
+	// Now set the new parameters..
+	pRumble[npad].g_pEffect->SetParameters(&pRumble[npad].eff, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+	// ..And start the effect immediately.
+	if (pRumble[npad].g_pEffect != NULL)
+			pRumble[npad].g_pEffect->Start(1, 0);
+}
+
+BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext)
+{
+	LPDIRECTINPUTDEVICE8 pDevice;
+	DIPROPDWORD dipdw;
+	HRESULT	hr;
+
+	int JoystickID;
+
+		dipdw.diph.dwSize       = sizeof(DIPROPDWORD); 
+		dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER); 
+		dipdw.diph.dwObj        = 0; 
+		dipdw.diph.dwHow        = DIPH_DEVICE; 
+
+	g_Rumble->CreateDevice(pInst->guidInstance, &pDevice, NULL); // Create a DInput pad device
+
+	if (SUCCEEDED(hr = pDevice->GetProperty(DIPROP_JOYSTICKID, &dipdw.diph))) // Get DInput Device ID 
+		JoystickID = dipdw.dwData;
+	else 
+		return DIENUM_CONTINUE;
+
+	//PanicAlert("DInput ID : %d \nSDL ID (1-4) : %d / %d / %d / %d\n", JoystickID, PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID);
+
+	for (int i=0; i<4; i++) 
+	{
+		if (PadMapping[i].ID == JoystickID) // if SDL ID = DInput ID -> we're dealing with the same device
+		{
+			// a DInput device is created even if rumble is disabled on startup
+			// this way, you can toggle the rumble setting while in game
+			if (PadMapping[i].enabled) // && PadMapping[i].rumble
+			{
+				pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
+			}
+		}
+	}
+
+	return DIENUM_CONTINUE;
+}
+
+BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext)
+{
+	DWORD* pdwNumForceFeedbackAxis = (DWORD*)pContext;	// Enum Rumble Axis
+	if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)
+		(*pdwNumForceFeedbackAxis)++;
+
+	return DIENUM_CONTINUE;
 }
 
 VOID FreeDirectInput()
 {
     // Unacquire the device one last time just in case 
     // the app tried to exit while the device is still acquired.
-    if (g_pDevice)
-        g_pDevice->Unacquire();
 
-    // Release any DirectInput objects.
-    SAFE_RELEASE(g_pEffect);
-    SAFE_RELEASE(g_pDevice);
-    SAFE_RELEASE(g_pDI);
+	for (int i=0; i<4; i++)		// Free all pads
+	{
+		if (pRumble[i].g_pDevice)	{
+			pRumble[i].g_pEffect->Stop();
+			pRumble[i].g_pDevice->Unacquire();
+		}
+
+		SAFE_RELEASE(pRumble[i].g_pEffect);
+		SAFE_RELEASE(pRumble[i].g_pDevice);
+	}
+
+	SAFE_RELEASE(g_Rumble);		// Rumble object
 }
 
-BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pContext )
-{
-    LPDIRECTINPUTDEVICE8 pDevice;
-    HRESULT hr;
-
-    // Obtain an interface to the enumerated force feedback device.
-    hr = g_pDI->CreateDevice(pInst->guidInstance, &pDevice, NULL);
-
-    // If it failed, then we can't use this device for some bizarre reason.  
-	// (Maybe the user unplugged it while we were in the middle of enumerating it.)  So continue enumerating
-    if (FAILED(hr))
-        return DIENUM_CONTINUE;
-
-    // We successfully created an IDirectInputDevice8.  So stop looking for another one.
-    g_pDevice = pDevice;
-
-    return DIENUM_STOP;
-}
-
-BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext)
-{
-    DWORD* pdwNumForceFeedbackAxis = (DWORD*)pContext;
-    if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)
-        (*pdwNumForceFeedbackAxis)++;
-
-    return DIENUM_CONTINUE;
-}
-
-HRESULT SetDeviceForcesXY()
-{
-    // Modifying an effect is basically the same as creating a new one, except you need only specify the parameters you are modifying
-    LONG rglDirection[2] = { 0, 0 };
-
-    DICONSTANTFORCE cf;
-
-    if (g_dwNumForceFeedbackAxis == 1)
-    {
-        // If only one force feedback axis, then apply only one direction and keep the direction at zero
-        cf.lMagnitude = g_nXForce;
-        rglDirection[0] = 0;
-    }
-    else
-    {
-        // If two force feedback axis, then apply magnitude from both directions 
-        rglDirection[0] = g_nXForce;
-        rglDirection[1] = g_nYForce;
-        cf.lMagnitude = (DWORD)sqrt((double)g_nXForce * (double)g_nXForce + (double)g_nYForce * (double)g_nYForce );
-    }
-
-    DIEFFECT eff;
-    ZeroMemory(&eff, sizeof(eff));
-    eff.dwSize = sizeof(DIEFFECT);
-    eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-    eff.cAxes = g_dwNumForceFeedbackAxis;
-    eff.rglDirection = rglDirection;
-    eff.lpEnvelope = 0;
-    eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
-    eff.lpvTypeSpecificParams = &cf;
-    eff.dwStartDelay = 0;
-
-    // Now set the new parameters and start the effect immediately.
-    return g_pEffect->SetParameters(&eff, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
-}
-#endif
 #endif

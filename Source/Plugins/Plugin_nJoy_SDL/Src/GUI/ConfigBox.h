@@ -112,16 +112,21 @@ class ConfigBox : public wxDialog
 		wxStaticBoxSizer *m_gGenSettings[4];		
 
 		wxStaticBoxSizer *m_gGenSettingsID[4];
-		wxGridBagSizer * m_gGBGenSettings[4];
+		wxGridBagSizer *m_gGBGenSettings[4];
 		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4], *m_gStatusAdvancedSettings[4]; // Advanced settings
 		wxBoxSizer *m_gStatusInSettingsH[4];
-		wxGridBagSizer * m_GBAdvancedMainStick[4];
+		wxGridBagSizer *m_GBAdvancedMainStick[4];
 		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_STDiagonal[4];
 		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
 		wxCheckBox *m_CBCheckFocus[4], *m_AdvancedMapFilter[4];
+		
+		wxCheckBox *m_Rumble[4];	// Rumble settings
+		wxComboBox *m_RStrength[4]; 
+		wxStaticBoxSizer *m_gRumble[4];
+		wxGridBagSizer *m_gGBRumble[4];
 
 		wxStaticBoxSizer *m_gStatusTriggers[4]; // Triggers
 		wxStaticText *m_TStatusTriggers[4];
@@ -218,6 +223,8 @@ class ConfigBox : public wxDialog
 			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, IDC_TRIGGERTYPE, // Controller type		
 
 			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
+
+			IDC_ENABLERUMBLE, IDC_RUMBLESTRENGTH, IDT_RUMBLESTRENGTH, // Rumble
 			
 			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,

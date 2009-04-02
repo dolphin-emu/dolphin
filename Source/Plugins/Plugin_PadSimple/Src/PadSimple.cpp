@@ -271,13 +271,15 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_L]] & 0xFF)
 	{
-		_pPADStatus->button |= PAD_TRIGGER_L;
+		if (triggervalue > 230)
+			_pPADStatus->button |= PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft = triggervalue;
 	}
 
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_R]] & 0xFF)
 	{
-		_pPADStatus->button |= PAD_TRIGGER_R;
+		if (triggervalue > 230)
+			_pPADStatus->button |= PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = triggervalue;
 	}
 

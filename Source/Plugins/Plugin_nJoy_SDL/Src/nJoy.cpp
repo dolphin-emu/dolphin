@@ -6,7 +6,7 @@
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
 // Site: www.multigesture.net
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -38,6 +38,7 @@
    The StrangeHack in ConfigAdvanced.cpp doesn't work in Linux, it still wont resize the
    window correctly. So currently in Linux you have to have advanced controls enabled when
    you open the window to see them.
+   // TODO : we should not need a Hack in the first place :/
 
 ////////////////////////*/
 
@@ -80,7 +81,6 @@
 // Variables
 // ¯¯¯¯¯¯¯¯¯
 
-// Rumble in windows
 #define _EXCLUDE_MAIN_ // Avoid certain declarations in nJoy.h
 FILE *pFile;
 HINSTANCE nJoy_hInst = NULL;
@@ -95,14 +95,11 @@ int NumPads = 0, NumGoodPads = 0, LastPad = 0;
 SPADInitialize *g_PADInitialize = NULL;
 PLUGIN_GLOBALS* globals = NULL;
 
-// Rumble
-#ifdef _WIN32
-
-#elif defined(__linux__)
+// Rumble 
+#if defined(__linux__)
 	extern int fd;
 #endif
 
- 
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
@@ -249,13 +246,13 @@ void Initialize(void *init)
 	INFO_LOG(CONSOLE, "Initialize: %i\n", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
+	
+	#ifdef _WIN32
+		m_hWnd = (HWND)g_PADInitialize->hWnd;
+	#endif
 
 	#ifdef _DEBUG
 		DEBUG_INIT();
-	#endif
-
-	#ifdef _WIN32
-		m_hWnd = (HWND)g_PADInitialize->hWnd;
 	#endif
 
 	// Populate joyinfo for all attached devices if the configuration window is not already open
@@ -327,9 +324,7 @@ void Shutdown()
 	g_PADInitialize = NULL;
 
 	#ifdef _WIN32
-		#ifdef USE_RUMBLE_DINPUT_HACK
-			FreeDirectInput();
-		#endif
+		FreeDirectInput();
 	#elif defined(__linux__)
 		close(fd);
 	#endif
@@ -415,6 +410,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		return;
 	}
 	#endif
+
 	// ----------------------
 
 	// Clear pad status
@@ -426,6 +422,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	// Get type
 	int TriggerType = PadMapping[_numPAD].triggertype;
+	int TriggerValue = PadState[_numPAD].halfpress ? 100 : 255;
  
 	///////////////////////////////////////////////////
 	// The analog controls
@@ -440,7 +437,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int TriggerRight = PadState[_numPAD].axis[InputCommon::CTL_R_SHOULDER];
 
 	// Check if we should make adjustments
-	if(PadMapping[_numPAD].bSquareToCircle)
+	if (PadMapping[_numPAD].bSquareToCircle)
 	{
 		std::vector<int> main_xy = InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
 		i_main_stick_x = main_xy.at(0);
@@ -454,54 +451,61 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	u8 sub_stick_y = InputCommon::Pad_Convert(i_sub_stick_y);
 
 	// Convert the triggers values, if we are using analog triggers at all
-	if(PadMapping[_numPAD].triggertype == InputCommon::CTL_TRIGGER_SDL)
+	if (PadMapping[_numPAD].triggertype == InputCommon::CTL_TRIGGER_SDL)
 	{
-		if(PadMapping[_numPAD].buttons[InputCommon::CTL_L_SHOULDER] >= 1000) TriggerLeft = InputCommon::Pad_Convert(TriggerLeft);
-		if(PadMapping[_numPAD].buttons[InputCommon::CTL_R_SHOULDER] >= 1000) TriggerRight = InputCommon::Pad_Convert(TriggerRight);
+		if (PadMapping[_numPAD].buttons[InputCommon::CTL_L_SHOULDER] >= 1000) TriggerLeft = InputCommon::Pad_Convert(TriggerLeft);
+		if (PadMapping[_numPAD].buttons[InputCommon::CTL_R_SHOULDER] >= 1000) TriggerRight = InputCommon::Pad_Convert(TriggerRight);
 	}
 
-	// Set Deadzones (perhaps out of function?)
-	int deadzone = (int)(((float)(128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone + 1));
-	int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone + 1));
+	// Set Deadzone
+	float deadzone = (128.00 * (float)(PadMapping[_numPAD].deadzone + 1.00)) / 100.00;
+	float distance_main = (float)sqrt((float)(main_stick_x * main_stick_x) + (float)(main_stick_y * main_stick_y));
+	float distance_sub = (float)sqrt((float)(sub_stick_x * sub_stick_x) + (float)(sub_stick_y * sub_stick_y));
 
 	// Send values to Dolpin if they are outside the deadzone
-	if ((main_stick_x < deadzone2)	|| (main_stick_x > deadzone))	_pPADStatus->stickX = main_stick_x;
-	if ((main_stick_y < deadzone2)	|| (main_stick_y > deadzone))	_pPADStatus->stickY = main_stick_y;
-	if ((sub_stick_x < deadzone2)	|| (sub_stick_x > deadzone))	_pPADStatus->substickX = sub_stick_x;
-	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY = sub_stick_y;
-
+	if (distance_main > deadzone)
+	{
+		_pPADStatus->stickX = main_stick_x;
+		_pPADStatus->stickY = main_stick_y;
+	}
+	if (distance_sub > deadzone)
+	{
+		_pPADStatus->substickX = sub_stick_x;
+		_pPADStatus->substickY = sub_stick_y;
+	}
  
 	///////////////////////////////////////////////////
 	// The L and R triggers
-	// -----------	
-	int TriggerValue = 255;
-	if (PadState[_numPAD].halfpress) TriggerValue = 100;
+	// -----------
 
-	_pPADStatus->button |= PAD_USE_ORIGIN; // Neutral value, no button pressed	
+	// Neutral value, no button pressed
+	_pPADStatus->button |= PAD_USE_ORIGIN;	
 
 	// Check if the digital L button is pressed
 	if (PadState[_numPAD].buttons[InputCommon::CTL_L_SHOULDER])
 	{
-		_pPADStatus->button |= PAD_TRIGGER_L;
+		if (!PadState[_numPAD].halfpress)
+			_pPADStatus->button |= PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft = TriggerValue;
 	}
 	// no the digital L button is not pressed, but the analog left trigger is
-	else if(TriggerLeft > 0)
+	else if (TriggerLeft > 0)
 		_pPADStatus->triggerLeft = TriggerLeft;
 
 	// Check if the digital R button is pressed
 	if (PadState[_numPAD].buttons[InputCommon::CTL_R_SHOULDER])
 	{
-		_pPADStatus->button |= PAD_TRIGGER_R;
+		if (!PadState[_numPAD].halfpress)
+			_pPADStatus->button |= PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = TriggerValue;
 	}
 	// no the digital R button is not pressed, but the analog right trigger is
-	else if(TriggerRight > 0)
+	else if (TriggerRight > 0)
 		_pPADStatus->triggerRight = TriggerRight;
 
-	// Update the buttons in analog mode to
-	if(TriggerLeft == 0xff) _pPADStatus->button |= PAD_TRIGGER_L;
-	if(TriggerRight == 0xff) _pPADStatus->button |= PAD_TRIGGER_R;
+	// Update the buttons in analog mode too
+	if (TriggerLeft > 0xf0) _pPADStatus->button |= PAD_TRIGGER_L;
+	if (TriggerRight > 0xf0) _pPADStatus->button |= PAD_TRIGGER_R;
 
 
 	///////////////////////////////////////////////////
@@ -547,9 +551,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	// Update error code
 	_pPADStatus->err = PAD_ERR_NONE;
-
-	// Use rumble
-	Pad_Use_Rumble(_numPAD, _pPADStatus);
 
 	// -------------------------------------------
 	// Rerecording

@@ -33,15 +33,6 @@
 #ifndef __NJOY_h__
 #define __NJOY_h__
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Settings
-// ¯¯¯¯¯¯¯¯¯¯
-// Set this if you want to use the rumble 'hack' for controller one
-//#define USE_RUMBLE_DINPUT_HACK
-//////////////////////////
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯
@@ -71,13 +62,12 @@
 	#define DIRECTINPUT_VERSION 0x0800
 	#define WIN32_LEAN_AND_MEAN
 
-	#ifdef USE_RUMBLE_DINPUT_HACK
-		#pragma comment(lib, "dxguid.lib")
-		#pragma comment(lib, "dinput8.lib")
-		#pragma comment(lib, "winmm.lib")
-		#include <dinput.h>
-		VOID FreeDirectInput(); // Needed in both nJoy.cpp and Rumble.cpp
-	#endif
+	#pragma comment(lib, "dxguid.lib")
+	#pragma comment(lib, "dinput8.lib")
+	#pragma comment(lib, "winmm.lib")
+	#include <dinput.h>
+	void FreeDirectInput(); // Needed in both nJoy.cpp and Rumble.cpp
+
 #endif // _WIN32
 
 #ifdef _WIN32
@@ -142,11 +132,10 @@ void DEBUG_INIT();
 void DEBUG_QUIT();
 bool IsFocus();
 bool ReloadDLL();
+#ifdef _WIN32
+HRESULT InitRumble(HWND hWnd);
+#endif
 
-void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
-
-//void SaveConfig();
-//void LoadConfig();
 ////////////////////////////////
 
 

@@ -92,6 +92,7 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int triggertype;		// Triggers range
 	std::string SDiagonal;
 	bool bSquareToCircle;
+	bool rumble;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
