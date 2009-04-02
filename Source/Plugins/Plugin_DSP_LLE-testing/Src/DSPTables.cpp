@@ -249,14 +249,12 @@ dspInstFunc opTable[OPTABLE_SIZE];
 void InitInstructionTable()
 {
 	for(u32 i = 0; i < OPTABLE_SIZE; i++)
-	{
+		opTable[i] = DSPInterpreter::unknown;
+	
+	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
 		for(u32 j = 0; j < opcodes_size; j++)
-		{
 			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode_mask)
 				opTable[i] = opcodes[j].interpFunc;
-			else
-				opTable[i] = DSPInterpreter::unknown;
-		}
 	}
 }	
 
