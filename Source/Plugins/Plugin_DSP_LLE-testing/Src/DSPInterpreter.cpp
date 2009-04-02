@@ -1025,7 +1025,7 @@ void madd(const UDSPInstruction& opc)
 	prod += (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
-
+    
 void lsr16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -1379,8 +1379,18 @@ void msubc(const UDSPInstruction& opc)
 	dsp_set_long_prod(prod);
 }
 
-
-	
-
+void srs(const UDSPInstruction& opc)
+{
+    	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
+	u16 addr = (s8)opc.hex;
+	dsp_dmem_write(addr, g_dsp.r[reg]);	
+}
+    
+void lrs(const UDSPInstruction& opc)
+{
+	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
+	u16 addr = (s8) opc.hex;
+	g_dsp.r[reg] = dsp_dmem_read(addr);
+}
 
 };

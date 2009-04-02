@@ -96,6 +96,8 @@ typedef struct
 	u8 size;
 	u8 param_count;
 	DSPOParams params[8];
+	dspInstFunc prologue;
+	dspInstFunc epilogue;
 } DSPOPCTemplate;
 
 extern DSPOPCTemplate opcodes[];

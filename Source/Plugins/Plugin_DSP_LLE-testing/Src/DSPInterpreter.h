@@ -106,7 +106,8 @@ void maddx(const UDSPInstruction& opc);
 void msubx(const UDSPInstruction& opc);
 void maddc(const UDSPInstruction& opc);
 void msubc(const UDSPInstruction& opc);
-
+void srs(const UDSPInstruction& opc);
+void lrs(const UDSPInstruction& opc);
 
 // FIXME inside
 void jmpa(const UDSPInstruction& opc);
