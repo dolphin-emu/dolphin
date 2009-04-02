@@ -197,7 +197,7 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 			}
 		}
 
-		m_Disasm->SetItem(Item, COLUMN_PARAM, pParameter);
+		m_Disasm->SetItem(Item, COLUMN_PARAM, wxString::FromAscii(pParameter));
 
 		m_Disasm->SetItemData(Item, CurrentPC);
 	}
