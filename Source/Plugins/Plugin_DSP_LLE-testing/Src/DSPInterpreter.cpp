@@ -82,6 +82,7 @@ s8 GetMultiplyModifier()
 	return(2);
 }
 
+// TODO add case comments
 bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
@@ -166,7 +167,7 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	default:
-		// DEBUG_LOG(DSPHLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
+		ERROR_LOG(DSPHLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
 		break;
 	}
 
@@ -178,7 +179,7 @@ bool CheckCondition(u8 _Condition)
 void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode %d", opc.hex);
+	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x", opc.hex);
 	//g_dsp.pc = g_dsp.err_pc;
 }
 
@@ -193,6 +194,7 @@ void call(const UDSPInstruction& opc)
 	}
 }
 
+// The code for all ifs?
 void ifcc(const UDSPInstruction& opc)
 {
 	if (!CheckCondition(opc.hex & 0xf))
@@ -201,6 +203,7 @@ void ifcc(const UDSPInstruction& opc)
 	}
 }
 
+// The code for all jumps?
 void jcc(const UDSPInstruction& opc)
 {
 	u16 dest = dsp_fetch_code();
@@ -212,6 +215,7 @@ void jcc(const UDSPInstruction& opc)
 }
 
 // FIXME inside
+// FIXME add to opcode table
 void jmpa(const UDSPInstruction& opc)
 {
 	u8 reg;
@@ -361,7 +365,7 @@ void lrr(const UDSPInstruction& opc)
 		g_dsp.r[sreg]++;
 		break;
 
-	case 0x3:
+	case 0x3: //  LRRN
 		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
 		break;
 	}
@@ -406,20 +410,20 @@ void ilrr(const UDSPInstruction& opc)
 
 	switch ((opc.hex >> 2) & 0x3)
 	{
-	case 0x0: // no change
+	case 0x0: // no change (ILRR)
 		break;
 
-	case 0x1: // post decrement
+	case 0x1: // post decrement (ILRRD?)
 		g_dsp.r[reg]--;
 		break;
 
-	case 0x2: // post increment
+	case 0x2: // post increment (ILRRI)
 		g_dsp.r[reg]++;
 		break;
 
 	default:
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_ilrr");
+		ERROR_LOG(DSPHLE, "Unknown ILRR: 0x%04x\n", (opc.hex >> 2) & 0x3);
 	}
 }
 
@@ -510,6 +514,7 @@ void mulcmv(const UDSPInstruction& opc)
 	ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmv ni");
 }
 
+//TODO: add to opcode table
 void cmpar(const UDSPInstruction& opc)
 {
 	u8 rreg = ((opc.hex >> 12) & 0x1) + 0x1a;
@@ -532,6 +537,7 @@ void cmp(const UDSPInstruction& opc)
 	Update_SR_Register(acc0 - acc1);
 }
 
+//TODO: add to opcode table
 void tsta(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 11) & 0x1;
@@ -555,6 +561,7 @@ void addaxl(const UDSPInstruction& opc)
 	Update_SR_Register(acc);
 }
 
+//TODO: add to opcode table
 void addarn(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
@@ -669,6 +676,7 @@ void nx(const UDSPInstruction& opc)
 
 
 // FIXME inside
+// TODO: add to opcode table
 void andfc(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -719,6 +727,7 @@ void andf(const UDSPInstruction& opc)
 }
 
 // FIXME inside
+// TODO: add to opcode table
 void subf(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -911,6 +920,7 @@ void neg(const UDSPInstruction& opc)
 }
 
 // TODO: Implement
+// FIXME: add to opcode table
 void movnp(const UDSPInstruction& opc)
 {
 	// UNIMPLEMENTED
@@ -1039,6 +1049,7 @@ void asr16(const UDSPInstruction& opc)
 	Update_SR_Register(acc);
 }
 
+// TODO: add to opcode table
 void shifti(const UDSPInstruction& opc)
 {
 	// direction: left
@@ -1131,6 +1142,7 @@ void sbset(const UDSPInstruction& opc)
 
 
 // FIXME inside
+// TODO: add to opcode table
 void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)
