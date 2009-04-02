@@ -252,9 +252,13 @@ void InitInstructionTable()
 		opTable[i] = DSPInterpreter::unknown;
 	
 	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
-		for(u32 j = 0; j < opcodes_size; j++)
-			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode_mask)
-				opTable[i] = opcodes[j].interpFunc;
+		for(u32 j = 0; j < opcodes_size; j++) 
+			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode_mask) {
+				if (opTable[i] != DSPInterpreter::unknown)
+					opTable[i] = opcodes[j].interpFunc;
+				else
+					ERROR_LOG(DSPHLE, "opcode table place %d already in use for %d", i, j); 
+			}
 	}
 }	
 
