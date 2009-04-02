@@ -922,6 +922,14 @@
 				RelativePath=".\Src\debugger\Debugger.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\Debugger\DSPRegisterView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\DSPRegisterView.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\Config.cpp"
