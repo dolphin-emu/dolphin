@@ -144,10 +144,10 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 			CurrentPC |= 0x8000;
 
 		char Temp[256];
-		sprintf_s(Temp, 256, "0x%04x", CurrentPC);
+		sprintf(Temp, "0x%04x", CurrentPC);
 
 		char Temp2[256];
-		sprintf_s(Temp2, 256, "0x%04x", dsp_imem_read(CurrentPC));
+		sprintf(Temp2, "0x%04x", dsp_imem_read(CurrentPC));
 
 		char* pOpcode = gd_dis_opcode(&gdg);
 		const char* pParameter = NULL;
@@ -180,13 +180,13 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 
 		int Item = m_Disasm->InsertItem(gdg.pc, wxEmptyString);
 		m_Disasm->SetItem(Item, COLUMN_BP, wxEmptyString);
-		m_Disasm->SetItem(Item, COLUMN_FUNCTION, pFunctionName);
-		m_Disasm->SetItem(Item, COLUMN_ADDRESS, Temp);
-		m_Disasm->SetItem(Item, COLUMN_MNEMONIC, Temp2);
-		m_Disasm->SetItem(Item, COLUMN_OPCODE, pOpcode);
-		m_Disasm->SetItem(Item, COLUMN_EXT, pExtension);
+		m_Disasm->SetItem(Item, COLUMN_FUNCTION, wxString::FromAscii(pFunctionName));
+		m_Disasm->SetItem(Item, COLUMN_ADDRESS, wxString::FromAscii(Temp));
+		m_Disasm->SetItem(Item, COLUMN_MNEMONIC, wxString::FromAscii(Temp2));
+		m_Disasm->SetItem(Item, COLUMN_OPCODE, wxString::FromAscii(pOpcode));
+		m_Disasm->SetItem(Item, COLUMN_EXT, wxString::FromAscii(pExtension));
 
-		if (!_stricmp(pOpcode, "CALL"))
+		if (!strcasecmp(pOpcode, "CALL"))
 		{
 			u32 FunctionAddress = -1;
 			sscanf(pParameter, "0x%04x", &FunctionAddress);

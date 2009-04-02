@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "Common.h"
+
 typedef struct gd_globals_t
 {
 	bool print_tabs;

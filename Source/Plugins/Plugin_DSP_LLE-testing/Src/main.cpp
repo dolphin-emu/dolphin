@@ -202,7 +202,7 @@ THREAD_RETURN dsp_thread_debug(void* lpParameter)
 		}
 		else
 		{
-			Sleep(100);
+			SLEEP(100);
 		}
 	}
 #endif
