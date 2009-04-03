@@ -15,17 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "../Globals.h"		// The precompiled header
-#include "IniFile.h"		// Common
-#include "../Config.h"		// Config settings
+
+#include "IniFile.h"
 #include "Debugger.h"
 
+#include "../Config.h"
+#include "../Globals.h"
 
-extern int gPreset;
+extern int g_Preset;
 
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_CLOSE(CDebugger::OnClose)
-
 	EVT_CHECKBOX(ID_SAVETOFILE,CDebugger::GeneralSettings)
 	EVT_CHECKBOX(ID_SHOWCONSOLE,CDebugger::GeneralSettings)
 	EVT_CHECKBOX(ID_INFOLOG,CDebugger::GeneralSettings)
@@ -61,7 +61,7 @@ void CDebugger::OnClose(wxCloseEvent& event)
 void CDebugger::DoShowConsole()
 {
 	ConsoleListener* console = LogManager::GetInstance()->getConsoleListener();
-	if(m_Check[1]->IsChecked() && console->IsOpen())
+	if (m_Check[1]->IsChecked() && console->IsOpen())
 		console->Open();
 	else
 		console->Close();
@@ -75,21 +75,25 @@ void CDebugger::SaveSettings() const
 	// TODO: make this work when we close the entire program too, currently on total close we get
 	// weird values, perhaps because of some conflict with the rendering window
 	// TODO: get the screen resolution and make limits from that
-	if(GetPosition().x < 1000 && GetPosition().y < 1000
-		&& GetSize().GetWidth() < 1000 && GetSize().GetHeight() < 1000)
+	if (GetPosition().x < 1000 && GetPosition().y < 1000
+		                       && GetSize().GetWidth() < 1000 
+							   && GetSize().GetHeight() < 1000)
 	{
 		file.Set("VideoWindow", "x", GetPosition().x);
 		file.Set("VideoWindow", "y", GetPosition().y);
 		file.Set("VideoWindow", "w", GetSize().GetWidth());
 		file.Set("VideoWindow", "h", GetSize().GetHeight());
 	}
+
 	file.Set("VideoWindow", "WriteToFile", m_Check[0]->IsChecked());
 	file.Set("VideoWindow", "Console", m_Check[1]->IsChecked());
+
 	g_Config.iLog = bInfoLog ? CONF_LOG : 0;
 	g_Config.iLog |= bPrimLog ? CONF_PRIMLOG : 0;
 	g_Config.iLog |= bSaveTextures ? CONF_SAVETEXTURES : 0;
 	g_Config.iLog |= bSaveTargets ? CONF_SAVETARGETS : 0;
 	g_Config.iLog |= bSaveShaders ? CONF_SAVESHADERS : 0;
+
 	file.Set("VideoWindow", "ConfBits", g_Config.iLog);
 
 	file.Save(DEBUGGER_CONFIG_FILE);
@@ -142,6 +146,7 @@ void CDebugger::CreateGUIControls()
 	m_Check[4] = new wxCheckBox(m_MainPanel, ID_SAVETEXTURES, wxT("Save Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Check[5] = new wxCheckBox(m_MainPanel, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Check[6] = new wxCheckBox(m_MainPanel, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
     for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
 		sOptions->Add(m_Check[i], 0, 0, 5);
 
@@ -153,7 +158,6 @@ void CDebugger::CreateGUIControls()
 	Fit();
 }
 
-//////////////////////////////////////////////////////////////////////////
 // General settings
 void CDebugger::GeneralSettings(wxCommandEvent& event)
 {

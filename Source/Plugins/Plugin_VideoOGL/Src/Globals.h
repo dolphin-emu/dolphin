@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _GLOBALS_H
-#define _GLOBALS_H
+#ifndef _GLOBALS_H_
+#define _GLOBALS_H_
 
 #include "Common.h"
 #include "Config.h"
@@ -27,4 +27,4 @@
 // A global plugin specification
 extern PLUGIN_GLOBALS* globals;
 
-#endif // _GLOBALS_H
+#endif // _GLOBALS_H_

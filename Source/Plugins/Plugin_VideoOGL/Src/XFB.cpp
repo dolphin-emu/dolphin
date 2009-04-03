@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,17 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-/////////////////////////////////////////////////////////////////////////
-// File description
-/* ---------------
-
-This file handles the External Frame Buffer (XFB). The XFB is a storage point when the picture is resized
-by the system to the correct display format for output to the TV. In most cases its function can be
-supplemented by the equivalent adjustments in glScissor and glViewport (or their DirectX equivalents). But
-for some homebrew games these functions are necessary because the homebrew game communicate directly with
-them.
-
-///////////////////////////////////*/
+// ----------------------------------------------------------------------------------------------------------
+// This file handles the External Frame Buffer (XFB). The XFB is a storage point when the picture is resized
+// by the system to the correct display format for output to the TV. In most cases its function can be
+// supplemented by the equivalent adjustments in glScissor and glViewport (or their DirectX equivalents). But
+// for some homebrew games these functions are necessary because the homebrew game communicate directly with
+// them.
+// ----------------------------------------------------------------------------------------------------------
 
 #include "Globals.h"
 #include "GLUtil.h"

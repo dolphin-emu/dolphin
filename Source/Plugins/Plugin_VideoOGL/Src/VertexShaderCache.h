@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+#ifndef _VERTEXSHADERCACHE_H_
+#define _VERTEXSHADERCACHE_H_
 
 #include <map>
 #include <string>
@@ -59,3 +62,5 @@ public:
 	static VERTEXSHADER* GetShader(u32 components);
 	static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
 };
+
+#endif // _VERTEXSHADERCACHE_H_

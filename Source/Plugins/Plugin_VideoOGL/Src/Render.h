@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,16 +16,18 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+// ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
-
+// ---------------------------------------------------------------------------------------------
 // 3d commands are issued through the fifo. The gpu draws to the 2MB EFB.
 // The efb can be copied back into ram in two forms: as textures or as XFB.
 // The XFB is the region in RAM that the VI chip scans out to the television.
 // So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
+// ---------------------------------------------------------------------------------------------
 
-#ifndef GCOGL_RENDER
-#define GCOGL_RENDER
+#ifndef _GCOGL_RENDER_H_
+#define _GCOGL_RENDER_H_
 
 #include "TextureMngr.h"
 
@@ -109,4 +111,4 @@ public:
 
 void ComputeBackbufferRectangle(TRectangle *rc);
 
-#endif
+#endif // _GCOGL_RENDER_H_

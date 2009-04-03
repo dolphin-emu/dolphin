@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,11 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <windows.h>
 
 #include <wx/wx.h>
@@ -28,27 +23,19 @@
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
 
-#include "../Globals.h" // Local
+#include "../Globals.h"
 #include "../Config.h"
 #include "main.h"
 #include "Win32.h"
-#include "OnScreenDisplay.h" // for AddMessage
+#include "OnScreenDisplay.h"
 
-#include "StringUtil.h" // Common: For StringFromFormat
-//////////////////////////////////
+#include "StringUtil.h"
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
 //void OpenConsole();
 //void CloseConsole();
 
 HINSTANCE g_hInstance;
 
-// ------------------------------------------------------
-// WxWidgets
-// ---------------
 #if defined(HAVE_WX) && HAVE_WX
 	class wxDLLApp : public wxApp
 	{
@@ -106,12 +93,10 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 
 void DoDllDebugger();
 extern bool gShowDebugger;
-//////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
+// ----------------------
 // The rendering window
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------------------
 namespace EmuWindow
 {
 
@@ -373,7 +358,7 @@ void Close()
 
 // ------------------------------------------
 // Set the size of the child or main window
-// ------------------
+// ------------------------------------------
 void SetSize(int width, int height)
 {
 	RECT rc = {0, 0, width, height};
@@ -391,4 +376,3 @@ void SetSize(int width, int height)
 }
 
 } // EmuWindow
-////////////////////////////////////

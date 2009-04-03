@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// ---------------------------------------------------------------------------------------
-// includes
-// -------------
 #include "Globals.h"
 #include "Profiler.h"
 #include "Config.h"
@@ -37,9 +34,10 @@
 #include "XFB.h"
 #include "main.h"
 
-// ---------------------------------------------------------------------------------------
+// ----------------------------------------------
 // State translation lookup tables
-// -------------
+// Reference: Yet Another Gamecube Documentation
+// ----------------------------------------------
 
 static const GLenum glCmpFuncs[8] = {
 	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
@@ -56,16 +54,16 @@ void BPInit()
     bpmem.bpMask = 0xFFFFFF;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Write to bpmem
+// ----------------------------------------------------------------------------------------------------------
+// Write to the BreakPoint Memory
 /* ------------------
    Called:
 		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
    TODO:
-		Turn into function table. The (future) DL jit can then call the functions directly,
+		Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
 		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
-		just stuff geometry in them and don't put state changes there.
-// ------------------ */
+		just stuff geometry in them and don't put state changes there. */
+// ----------------------------------------------------------------------------------------------------------
 void BPWritten(int addr, int changes, int newval)
 {
     switch (addr)
@@ -183,48 +181,28 @@ void BPWritten(int addr, int changes, int newval)
                 bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
                 bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
-			/*
-			Logic Operation Blend Modes
-			--------------------
-            0: GL_CLEAR
-            1: GL_AND
-            2: GL_AND_REVERSE
-            3: GL_COPY [Super Smash. Bro. Melee, NES Zelda I, NES Zelda II]
-            4: GL_AND_INVERTED
-            5: GL_NOOP
-            6: GL_XOR
-            7: GL_OR [Zelda: TP]
-            8: GL_NOR
-            9: GL_EQUIV
-            10: GL_INVERT
-            11: GL_OR_REVERSE
-            12: GL_COPY_INVERTED
-			13: GL_OR_INVERTED
-            14: GL_NAND
-            15: GL_SET
-			*/
-
-			// LogicOp Blending
-            if (changes & 2) {  
+			// Set LogicOp Blending Mode
+            if (changes & 2) 
+			{  
 				SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
 				if (bpmem.blendmode.logicopenable) 
 				{
 					glEnable(GL_COLOR_LOGIC_OP);
-					// PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
 					glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
 				}
 				else 
 					glDisable(GL_COLOR_LOGIC_OP);
             }
 
-			// Dithering
-            if (changes & 4) {
+			// Set Dithering Mode
+            if (changes & 4) 
+			{
 				SETSTAT(stats.dither, bpmem.blendmode.dither);
                 if (bpmem.blendmode.dither) glEnable(GL_DITHER);
                 else glDisable(GL_DITHER);
             }
 
-			// Blending
+			// Set Blending Mode
 			if (changes & 0xFE1)
 			{
 				SETSTAT(stats.srcFactor, bpmem.blendmode.srcfactor);
@@ -232,7 +210,7 @@ void BPWritten(int addr, int changes, int newval)
 				Renderer::SetBlendMode(false);
 			}
 
-			// Color Mask
+			// Set Color Mask
             if (changes & 0x18)
 			{
 				SETSTAT(stats.alphaUpdate, bpmem.blendmode.alphaupdate);

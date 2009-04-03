@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _OSD_H
-#define _OSD_H
+#ifndef _OSD_H_
+#define _OSD_H_
 
 namespace OSD 
 {
@@ -27,5 +27,5 @@ void DrawMessages(); // draw the current messages on the screen. Only call once 
 
 }  // namespace
 
-#endif
+#endif // _OSD_H_
 

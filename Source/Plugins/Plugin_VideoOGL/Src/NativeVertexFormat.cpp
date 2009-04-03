@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -77,9 +77,8 @@ GLVertexFormat::GLVertexFormat()
 {
 #ifdef USE_JIT
 	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
-	if (m_compiledCode) {
+	if (m_compiledCode)
 		memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
-	}
 #endif
 }
 
@@ -102,10 +101,9 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	vertex_stride = _vtx_decl.stride;
 	using namespace Gen;
 
-	if (_vtx_decl.stride & 3) {
-		// We will not allow vertex components causing uneven strides.
+	// We will not allow vertex components causing uneven strides.
+	if (_vtx_decl.stride & 3) 
 		PanicAlert("Uneven vertex stride: %i", _vtx_decl.stride);
-	}
 
 #ifdef USE_JIT
 	Gen::XEmitter emit(m_compiledCode);
@@ -114,7 +112,8 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	
 	emit.CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, _vtx_decl.stride, 0);
 
-	if (_vtx_decl.num_normals >= 1) {
+	if (_vtx_decl.num_normals >= 1) 
+	{
 		emit.CallCdeclFunction3_I(glNormalPointer, VarToGL(_vtx_decl.normal_gl_type), _vtx_decl.stride, _vtx_decl.normal_offset[0]);
 		if (_vtx_decl.num_normals == 3) {
 			emit.CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, _vtx_decl.normal_gl_size, VarToGL(_vtx_decl.normal_gl_type), GL_TRUE, _vtx_decl.stride, _vtx_decl.normal_offset[1]);
@@ -122,8 +121,10 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		}
 	}
 
-	for (int i = 0; i < 2; i++) {
-		if (_vtx_decl.color_offset[i] != -1) {
+	for (int i = 0; i < 2; i++) 
+	{
+		if (_vtx_decl.color_offset[i] != -1) 
+		{
 			if (i == 0)
 				emit.CallCdeclFunction4_I(glColorPointer, 4, GL_UNSIGNED_BYTE, _vtx_decl.stride, _vtx_decl.color_offset[i]);
 			else
@@ -160,15 +161,13 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		}
 	}
 
-	if (_vtx_decl.posmtx_offset != -1) {
+	if (_vtx_decl.posmtx_offset != -1)
 		emit.CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, _vtx_decl.stride, _vtx_decl.posmtx_offset);
-	}
 
 	emit.ABI_EmitEpilogue(6);
+
 	if (emit.GetCodePtr() - (u8*)m_compiledCode > COMPILED_CODE_SIZE)
-	{
 		Crash();
-	}
 
 #endif
 	this->vtx_decl = _vtx_decl;
@@ -215,11 +214,13 @@ void GLVertexFormat::SetupVertexPointers() const {
 
 void GLVertexFormat::EnableComponents(u32 components)
 {
-	if (s_prevcomponents != components) {
+	if (s_prevcomponents != components) 
+	{
 		VertexManager::Flush();
 
 		// matrices
-		if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {
+		if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) 
+		{
 			if (components & VB_HAS_POSMTXIDX)
 				glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
 			else
@@ -227,13 +228,15 @@ void GLVertexFormat::EnableComponents(u32 components)
 		}
 
 		// normals
-		if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) {
+		if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) 
+		{
 			if (components & VB_HAS_NRM0)
 				glEnableClientState(GL_NORMAL_ARRAY);
 			else
 				glDisableClientState(GL_NORMAL_ARRAY);
 		}
-		if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) {
+		if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) 
+		{
 			if (components & VB_HAS_NRM1) {
 				glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
 				glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
@@ -245,8 +248,10 @@ void GLVertexFormat::EnableComponents(u32 components)
 		}
 
 		// color
-		for (int i = 0; i < 2; ++i) {
-			if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) {
+		for (int i = 0; i < 2; ++i) 
+		{
+			if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) 
+			{
 				if (components & (VB_HAS_COL0 << 0))
 					glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
 				else
@@ -255,34 +260,34 @@ void GLVertexFormat::EnableComponents(u32 components)
 		}
 
 		// tex
-		if (!g_Config.bDisableTexturing) {
-			for (int i = 0; i < 8; ++i) {
-				if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
-					glClientActiveTexture(GL_TEXTURE0 + i);
-					if (components & (VB_HAS_UV0 << i))
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-					else
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				}
-			}
-		}
-		else // Disable Texturing
+		for (int i = 0; i < 8; ++i) 
 		{
-			for (int i = 0; i < 8; ++i) {
+			if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i)) && !g_Config.bDisableTexturing) 
+			{
+				glClientActiveTexture(GL_TEXTURE0 + i);
+				if (components & (VB_HAS_UV0 << i))
+					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				else
+					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			}
+			else
+			{
 				glClientActiveTexture(GL_TEXTURE0 + i);
 				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			}
 		}
 
 		// Disable Lighting	
-		// TODO - move to better spot
-		if (g_Config.bDisableLighting) {
+		// TODO - Is this a good spot for this code?
+		if (g_Config.bDisableLighting) 
+		{
 			for (int i = 0; i < xfregs.nNumChans; i++)
 			{
 				xfregs.colChans[i].alpha.enablelighting = false;
 				xfregs.colChans[i].color.enablelighting = false;
 			}
 		}
+
 		s_prevcomponents = components;
 	}
 }

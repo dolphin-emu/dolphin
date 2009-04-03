@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VERTEXMANAGER_H
-#define _VERTEXMANAGER_H
+#ifndef _VERTEXMANAGER_H_
+#define _VERTEXMANAGER_H_
 
 #include "CPMemory.h"
 #include "NativeVertexWriter.h"
@@ -33,4 +33,4 @@ void ResetBuffer();
 
 };
 
-#endif  // _VERTEXMANAGER_H
+#endif  // _VERTEXMANAGER_H_

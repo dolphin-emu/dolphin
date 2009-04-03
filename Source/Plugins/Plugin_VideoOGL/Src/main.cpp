@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// --------------------------
 #include "Globals.h"
 
 #include <cstdarg>
@@ -53,17 +50,12 @@
 #include "Setup.h"
 
 #include "VideoState.h"
-///////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Definitions
-// --------------------------
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
-///////////////////////////////////////////////
 
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
@@ -307,10 +299,9 @@ void Shutdown(void)
 	OpenGL_Shutdown();
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------
 // Enter and exit the video loop
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------------------
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -320,7 +311,7 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
-/////////////////////////
+
 
 void Video_Screenshot(const char *_szFilename)
 {

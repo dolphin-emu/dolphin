@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -103,7 +103,8 @@ bool TextureMngr::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 rang
 void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 {
     mode = newmode;
-    if (isNonPow2) {
+    if (isNonPow2) 
+	{
         // very limited!
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER,
 			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
@@ -116,7 +117,8 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 		if (newmode.wrap_s == 1 || newmode.wrap_t == 1)
             DEBUG_LOG(VIDEO, "cannot support repeat mode");
     }
-    else {
+    else 
+	{
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
@@ -134,9 +136,7 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
     }
     
     if (g_Config.iMaxAnisotropy >= 1)
-    {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_Config.iMaxAnisotropy));
-    }
 }
 
 void TextureMngr::TCacheEntry::Destroy(bool shutdown)
@@ -214,9 +214,8 @@ void TextureMngr::ProgressiveCleanup()
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
     while (itdepth != mapDepthTargets.end())
 	{
-        if (frameCount > 20 + itdepth->second.framecount) {
+        if (frameCount > 20 + itdepth->second.framecount)
 			ERASE_THROUGH_ITERATOR(mapDepthTargets, itdepth);
-        }
         else ++itdepth;
     }
 }

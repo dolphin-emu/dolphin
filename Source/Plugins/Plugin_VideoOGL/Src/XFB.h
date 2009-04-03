@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _XFB_H
-#define _XFB_H
+#ifndef _XFB_H_
+#define _XFB_H_
 
 #include "TextureMngr.h"
 
@@ -35,4 +35,4 @@ int XFB_isInit();
 
 void XFB_SetUpdateArgs(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset);
 
-#endif
+#endif // _XFB_H_

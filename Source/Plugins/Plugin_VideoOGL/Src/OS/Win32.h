@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+#ifndef _WIN32_H_
+#define _WIN32_H_
 
 #pragma once
 
@@ -31,3 +34,5 @@ namespace EmuWindow
     void Close();
     void SetSize(int displayWidth, int displayHeight);
 }
+
+#endif // _WIN32_H_

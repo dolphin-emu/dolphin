@@ -1,3 +1,20 @@
+// Copyright (C) 2003-2009 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include "Globals.h"
 
 #include <fstream>
@@ -38,7 +55,7 @@ u32 s_vertexCount;
 static const GLenum c_primitiveType[8] =
 {
     GL_QUADS,
-    0, //nothing
+    GL_ZERO, //nothing
     GL_TRIANGLES,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
@@ -140,14 +157,17 @@ void Flush()
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_Config.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
-	for (int i = 0; i < xfregs.nNumChans; ++i) {
+
+	for (int i = 0; i < xfregs.nNumChans; ++i) 
+	{
 		LitChannel* ch = &xfregs.colChans[i].color;
 		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 		ch = &xfregs.colChans[i].alpha;
 		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
 
-	for (int i = 0; i < xfregs.numTexGens; ++i) {
+	for (int i = 0; i < xfregs.numTexGens; ++i) 
+	{
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
 		if (tinfo.texgentype != XF_TEXGEN_REGULAR) tinfo.projection = 0;
@@ -178,22 +198,20 @@ void Flush()
 	DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
 	u32 usedtextures = 0;
-	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
 			usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
-	}
 
-	if (bpmem.genMode.numindstages > 0) {
-		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
+	if (bpmem.genMode.numindstages > 0)
+		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
-			}
-		}
-	}
 
 	u32 nonpow2tex = 0;
-	for (int i = 0; i < 8; i++) {
-		if (usedtextures & (1 << i)) {
+	for (int i = 0; i < 8; i++) 
+	{
+		if (usedtextures & (1 << i)) 
+		{
 			glActiveTexture(GL_TEXTURE0 + i);
 
 			FourTexUnits &tex = bpmem.tex[i >> 2];
@@ -201,9 +219,11 @@ void Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
 
-			if (tentry != NULL) {
+			if (tentry != NULL) 
+			{
 				// texture loaded fine, set dims for pixel shader
-				if (tentry->isNonPow2) {
+				if (tentry->isNonPow2) 
+				{
 					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
 					nonpow2tex |= 1 << i;
 					if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
@@ -216,16 +236,16 @@ void Flush()
 					// 0s are probably for no manual wrapping needed.
 					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 				}
-				if (g_Config.iLog & CONF_SAVETEXTURES) {
+				if (g_Config.iLog & CONF_SAVETEXTURES) 
+				{
 					// save the textures
 					char strfile[255];
 					sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
 					SaveTexture(strfile, tentry->isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 				}
 			}
-			else {
+			else
 				ERROR_LOG(VIDEO, "error loading tex\n");
-			}
 		}
 	}
 
@@ -235,23 +255,27 @@ void Flush()
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	bool bRestoreBuffers = false;
-	if (Renderer::UseFakeZTarget()) {
-		if (bpmem.zmode.updateenable) {
-			if (!bpmem.blendmode.colorupdate) {
+	if (Renderer::UseFakeZTarget()) 
+	{
+		if (bpmem.zmode.updateenable) 
+		{
+			if (!bpmem.blendmode.colorupdate) 
+			{
 				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ?
 										Renderer::RM_ZBufferAlpha :
 										Renderer::RM_ZBufferOnly);    
 			}
 		}
-		else {
+		else 
+		{
 			Renderer::SetRenderMode(Renderer::RM_Normal);
 			// remove temporarily
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 			bRestoreBuffers = true;
 		}
-	} else {
+	} 
+	else 
 		Renderer::SetRenderMode(Renderer::RM_Normal);
-	}
 
 	// set global constants
 	VertexShaderManager::SetConstants(g_Config.bProjectionHax1);
@@ -280,7 +304,8 @@ void Flush()
 	}
 
     // run through vertex groups again to set alpha
-    if (!g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) {
+    if (!g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+	{
         ps = PixelShaderCache::GetShader(true);
 
         if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);
@@ -310,7 +335,8 @@ void Flush()
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	if (g_Config.iLog & CONF_SAVESHADERS) {
+	if (g_Config.iLog & CONF_SAVESHADERS) 
+	{
 		// save the shaders
 		char strfile[255];
 		sprintf(strfile, "%sframes/ps%.3d.txt", FULL_DUMP_DIR, g_Config.iSaveTargetId);
@@ -321,7 +347,8 @@ void Flush()
 		fvs << vs->strprog.c_str();
 	}
 
-	if (g_Config.iLog & CONF_SAVETARGETS) {
+	if (g_Config.iLog & CONF_SAVETARGETS) 
+	{
 		char str[128];
 		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId);
 		Renderer::SaveRenderTarget(str, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
@@ -331,7 +358,8 @@ void Flush()
 
 	GL_REPORT_ERRORD();
 
-	if (bRestoreBuffers) {
+	if (bRestoreBuffers) 
+	{
 		GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
 		glDrawBuffers(2, s_drawbuffers);
 		Renderer::SetColorMask();

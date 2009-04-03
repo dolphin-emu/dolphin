@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __OGL_CONFIGDIALOG_h__
-#define __OGL_CONFIGDIALOG_h__
+#ifndef _OGL_CONFIGDIALOG_H_
+#define _OGL_CONFIGDIALOG_H_
 
 #include <wx/wx.h>
 #include <wx/dialog.h>
@@ -183,4 +183,4 @@ class ConfigDialog : public wxDialog
 		void AdvancedSettingsChanged(wxCommandEvent& event); 
 };
 
-#endif
+#endif // _OGL_CONFIGDIALOG_H_

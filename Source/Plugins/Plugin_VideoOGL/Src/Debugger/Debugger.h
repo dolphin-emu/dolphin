@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __CDebugger_h__
-#define __CDebugger_h__
+#ifndef _CDEBUGGER_H_
+#define _CDEBUGGER_H_
 
 #include <wx/wx.h>
 #include <wx/notebook.h>
@@ -30,7 +30,7 @@ class CDebugger : public wxDialog
 public:
 	CDebugger(wxWindow *parent,
 		wxWindowID id = 1,
-		const wxString &title = wxT("OGL Debug"),
+		const wxString &title = wxT("OGL Debugguer"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
@@ -61,7 +61,6 @@ private:
 	enum
 	{
 		ID_MAINPANEL = 2000,
-
 		ID_SAVETOFILE,
 		ID_SHOWCONSOLE,
 		ID_INFOLOG,
@@ -76,4 +75,5 @@ private:
 	void OnClose(wxCloseEvent& event);		
 	void CreateGUIControls();		
 };
-#endif
+
+#endif // _CDEBUGGER_H_

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TEXTURECONVERTER_H
-#define _TEXTURECONVERTER_H
+#ifndef _TEXTURECONVERTER_H_
+#define _TEXTURECONVERTER_H_
 
 #include "VideoCommon.h"
 #include "GLUtil.h"
@@ -39,4 +39,4 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 }
 
-#endif
+#endif // _TEXTURECONVERTER_H_

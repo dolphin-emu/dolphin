@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -66,11 +66,13 @@ void OpenGL_SwapBuffers()
 #endif
 }
 
-u32 OpenGL_GetBackbufferWidth() {
+u32 OpenGL_GetBackbufferWidth() 
+{
     return s_backbuffer_width;
 }
 
-u32 OpenGL_GetBackbufferHeight() {
+u32 OpenGL_GetBackbufferHeight() 
+{
     return s_backbuffer_height;
 }
 

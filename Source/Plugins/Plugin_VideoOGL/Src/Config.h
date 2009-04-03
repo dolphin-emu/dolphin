@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_VIDEOOGL_CONFIG_H
-#define _PLUGIN_VIDEOOGL_CONFIG_H
+#ifndef _PLUGIN_VIDEOOGL_CONFIG_H_
+#define _PLUGIN_VIDEOOGL_CONFIG_H_
 
 #include "Common.h"
 
@@ -107,4 +107,4 @@ private:
 
 extern Config g_Config;
 
-#endif  // _PLUGIN_VIDEOOGL_CONFIG_H
+#endif  // _PLUGIN_VIDEOOGL_CONFIG_H_

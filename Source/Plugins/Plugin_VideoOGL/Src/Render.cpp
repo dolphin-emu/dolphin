@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -1120,26 +1120,32 @@ void Renderer::Swap(const TRectangle& rc)
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (glGetError() == GL_NO_ERROR) {
-			if (!s_bLastFrameDumped) {
+		if (glGetError() == GL_NO_ERROR) 
+		{
+			if (!s_bLastFrameDumped) 
+			{
 				s_bAVIDumping = AVIDump::Start(EmuWindow::GetChildParentWnd(), w, h);
-				if (!s_bAVIDumping) {
+				if (!s_bAVIDumping) 
 					PanicAlert("Error dumping frames to AVI.");
-				} else {
+				else 
+				{
 					char msg [255];
 					sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, w, h);
 					OSD::AddMessage(msg, 2000);
 				}
 			}
-			if (s_bAVIDumping) {
+			if (s_bAVIDumping) 
 				AVIDump::AddFrame((char *) data);
-			}
+
 			s_bLastFrameDumped = true;
 		}
 		free(data);
 		s_criticalScreenshot.Leave();
-	} else {
-		if(s_bLastFrameDumped && s_bAVIDumping) {
+	} 
+	else 
+	{
+		if(s_bLastFrameDumped && s_bAVIDumping) 
+		{
 			AVIDump::Stop();
 			s_bAVIDumping = false;
 		}
@@ -1199,8 +1205,6 @@ void Renderer::Swap(const TRectangle& rc)
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 }
-////////////////////////////////////////////////
-
 
 void Renderer::DrawDebugText()
 {
@@ -1210,10 +1214,9 @@ void Renderer::DrawDebugText()
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
 	p[0] = 0;
+
 	if (g_Config.bShowFPS)
-    {
 		p+=sprintf(p, "FPS: %d\n", s_fps);
-    }
 
 	if (g_Config.bShowEFBCopyRegions)
 	{
@@ -1331,9 +1334,9 @@ void Renderer::DrawDebugText()
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------------------------------------------------------------------------------
 // We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
-// ----------------------
+// -------------------------------------------------------------------------------------------------------
 void Renderer::SwapBuffers()
 {
 	// Count FPS.
@@ -1357,7 +1360,6 @@ void Renderer::SwapBuffers()
 	DrawDebugText();
 
 	OSD::DrawMessages();
-	// -----------------------------
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) { 
@@ -1391,8 +1393,10 @@ void Renderer::SwapBuffers()
 
 	// Render to the framebuffer.
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-    if (nZBufferRender > 0) {
-        if (--nZBufferRender == 0) {
+    if (nZBufferRender > 0) 
+	{
+        if (--nZBufferRender == 0) 
+		{
             // turn off
             nZBufferRender = 0;
             glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -1400,6 +1404,7 @@ void Renderer::SwapBuffers()
             Renderer::SetRenderMode(RM_Normal);  // turn off any zwrites
         }
     }
+
 	GL_REPORT_ERRORD();
 }
 
@@ -1456,15 +1461,15 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
+// ------------------------------------------------------------------------------------------------------------
 // Function: This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
 // Call schedule: Called from VertexShaderManager
-// ----------------------
+// ------------------------------------------------------------------------------------------------------------
 void UpdateViewport()
 {
-	// -----------------------------------------------------------------------
+	// ---------
 	// Logging
-	// ------------------
+	// ---------
     // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
     // [0] = width/2
     // [1] = height/2
@@ -1477,7 +1482,7 @@ void UpdateViewport()
 		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
 		2 * rawViewport[0], 2 * rawViewport[1],
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
-	// --------------------------
+	// --------
 
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
@@ -1485,14 +1490,12 @@ void UpdateViewport()
 
 	float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
-	// -----------------------------------------------------------------------
+
 	// Stretch picture with increased internal resolution
-	// ------------------
 	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX);
 	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
 	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	// -------------------------------------
 
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);

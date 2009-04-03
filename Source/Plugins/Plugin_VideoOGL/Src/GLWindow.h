@@ -1,5 +1,22 @@
-#ifndef _GLWINDOW_H
-#define _GLWINDOW_H
+// Copyright (C) 2003-2009 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef _GLWINDOW_H_
+#define _GLWINDOW_H_
 
 #include <vector>
 #include "Common.h"
@@ -24,14 +41,16 @@
 #else
 #include <GL/gl.h>
 #endif
-enum OGL_Props {
+enum OGL_Props 
+{
 	OGL_FULLSCREEN,
 	OGL_KEEPRATIO,
 	OGL_HIDECURSOR,
 	OGL_PROP_COUNT
 };
 
-struct res {
+struct res 
+{
 	u32 x;
 	u32 y;
 };
@@ -52,16 +71,19 @@ protected:
 	EventHandler* eventHandler;
 	res origRes, currFullRes, currWinRes;
 	static std::vector<res> fullResolutions;
-	virtual void SetRender(u32 x, u32 y) {
+	virtual void SetRender(u32 x, u32 y) 
+	{
 		xRender = x;
 		yRender = y;
 	}
 
-	static const std::vector<res>& getFsResolutions() {
+	static const std::vector<res>& getFsResolutions() 
+	{
 		return fullResolutions;
 	}
 
-	static void addFSResolution(res fsr) {
+	static void addFSResolution(res fsr) 
+	{
 		fullResolutions.push_back(fsr);
 	}
 public:
@@ -98,19 +120,22 @@ public:
 
 	u32 GetXwin() {return xWin;}
 	u32 GetYwin() {return yWin;}
-	void SetWinSize(u32 x, u32 y) {
+	void SetWinSize(u32 x, u32 y) 
+	{
 		xWin = x;
 		yWin = y;
 	}
 
 	int GetYoff() {return yOffset;}
 	int GetXoff() {return xOffset;}
-	void SetOffset(int x, int y) {
+	void SetOffset(int x, int y) 
+	{
 		yOffset = y;
 		xOffset = x;
 	}
 
-	void SetMax(float x, float y) {
+	void SetMax(float x, float y) 
+	{
 		yMax = y;
 		xMax = x;
 	}
@@ -142,4 +167,4 @@ public:
 	// resolution iter
 };
 
-#endif
+#endif // _GLWINDOW_H_

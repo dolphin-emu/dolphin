@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TEXTURECONVERSIONSHADER_H
-#define _TEXTURECONVERSIONSHADER_H
+#ifndef _TEXTURECONVERSIONSHADER_H_
+#define _TEXTURECONVERSIONSHADER_H_
 
 #include "Common.h"
 #include "TextureDecoder.h"
@@ -35,5 +35,5 @@ void SetShaderParameters(float width, float height, float offsetX, float offsetY
 
 }
 
-#endif
+#endif // _TEXTURECONVERSIONSHADER_H_
 
