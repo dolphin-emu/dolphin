@@ -206,8 +206,8 @@ bool Renderer::Init()
     const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
 	if (!ptoken)
 	{
-		PanicAlert("Your OpenGL Driver seems to be not working.     \n"
-			       "Please make sure your drivers up-to-date and    \n"
+		PanicAlert("Your OpenGL Driver seems to be not working.\n"
+			       "Please make sure your drivers are up-to-date and\n"
 				   "that your video hardware is OpenGL 2.x compatible "
 					);
 		return false;
@@ -1232,7 +1232,7 @@ void Renderer::DrawDebugText()
 		glGetFloatv(GL_LINE_WIDTH, &lSize);
 
 		// Set Line Size
-		glLineWidth(8.0f); 
+		glLineWidth(3.0f); 
 
 		glBegin(GL_LINES);
 
@@ -1248,17 +1248,17 @@ void Renderer::DrawDebugText()
 
 			// Draw shadow of rect
 			glColor3f(0.0f, 0.0f, 0.0f);
-			glVertex2f(x, y - 0.01f); glVertex2f(x2 + 0.008f, y - 0.01f);
-			glVertex2f(x, y2 - 0.01f); glVertex2f(x2 + 0.008f, y2 - 0.01f);
-			glVertex2f(x - 0.01f, y); glVertex2f(x - 0.01f, y2 + 0.008f);
-			glVertex2f(x2 - 0.01f, y); glVertex2f(x2 - 0.01f, y2 + 0.008f);
+			glVertex2f(x, y - 0.01);  glVertex2f(x2, y - 0.01);
+			glVertex2f(x, y2 - 0.01); glVertex2f(x2, y2 - 0.01);
+			glVertex2f(x + 0.005, y);  glVertex2f(x + 0.005, y2);
+			glVertex2f(x2 + 0.005, y); glVertex2f(x2 + 0.005, y2);
 
 			// Draw rect
 			glColor3f(0.0f, 1.0f, 1.0f);
-			glVertex2f(x, y); glVertex2f(x2 + 0.008f, y);
-			glVertex2f(x, y2); glVertex2f(x2 + 0.008f, y2);
-			glVertex2f(x, y); glVertex2f(x, y2 + 0.008f);
-			glVertex2f(x2, y); glVertex2f(x2, y2 + 0.008f);
+			glVertex2f(x, y);  glVertex2f(x2, y);
+			glVertex2f(x, y2); glVertex2f(x2, y2);
+			glVertex2f(x, y);  glVertex2f(x, y2);
+			glVertex2f(x2, y); glVertex2f(x2, y2);
 		}
 
 		glEnd();
