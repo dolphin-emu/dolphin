@@ -55,9 +55,9 @@ jnz, ifs, retlnz
 #include "DSPJit.h"
 #include "gdsp_ext_op.h"
 
-void nop(const UDSPInstruction&) {}
+void nop(const UDSPInstruction& opc) {/*DSPInterpreter::unknown(opc);*/}
 
-// TODO(XK): Fill up the tables with the corresponding instructions
+// TODO: Fill up the tables with the corresponding instructions
 DSPOPCTemplate opcodes[] =
 {
 	{"NOP",		0x0000, 0xffff, nop, nop, 1, 0, {}, NULL, NULL},
@@ -214,7 +214,7 @@ DSPOPCTemplate opcodes[] =
 
 	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-	{"TST",		0xb100, 0xf7ff, nop, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

@@ -168,6 +168,7 @@ void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x", opc.hex);
+	/*PanicAlert("LLE: Unrecognized opcode 0x%04x", opc.hex);*/
 	//g_dsp.pc = g_dsp.err_pc;
 }
 
