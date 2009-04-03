@@ -25,9 +25,10 @@
 
 #ifndef _GDSP_EXT_OP_H
 #define _GDSP_EXT_OP_H
+#include "DSPTables.h"
 
-void dsp_op_ext_ops_pro(u16 _Opcode);
-void dsp_op_ext_ops_epi(u16 _Opcode);
+void dsp_op_ext_ops_pro(const UDSPInstruction& opc);
+void dsp_op_ext_ops_epi(const UDSPInstruction& opc);
 
 
 #endif

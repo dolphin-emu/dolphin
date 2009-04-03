@@ -1387,7 +1387,7 @@ void msubc(const UDSPInstruction& opc)
 
 void srs(const UDSPInstruction& opc)
 {
-    	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
+	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
 	u16 addr = (s8)opc.hex;
 	dsp_dmem_write(addr, g_dsp.r[reg]);	
 }

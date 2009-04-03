@@ -33,10 +33,10 @@
 
 
 //
-void dsp_op_ext_r_epi(u16 _Opcode)
+void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 {
-	u8 op  = (_Opcode >> 2) & 0x3;
-	u8 reg = _Opcode & 0x3;
+	u8 op  = (opc.hex >> 2) & 0x3;
+	u8 reg = opc.hex & 0x3;
 
 	switch (op)
 	{
@@ -59,23 +59,23 @@ void dsp_op_ext_r_epi(u16 _Opcode)
 }
 
 
-void dsp_op_ext_mv(u16 _Opcode)
+void dsp_op_ext_mv(const UDSPInstruction& opc)
 {
-	u8 sreg = _Opcode & 0x3;
-	u8 dreg = ((_Opcode >> 2) & 0x3);
+	u8 sreg = opc.hex & 0x3;
+	u8 dreg = ((opc.hex >> 2) & 0x3);
 
 	g_dsp.r[dreg + 0x18] = g_dsp.r[sreg + 0x1c];
 }
 
 
-void dsp_op_ext_s(u16 _Opcode)
+void dsp_op_ext_s(const UDSPInstruction& opc)
 {
-	u8 dreg = _Opcode & 0x3;
-	u8 sreg = ((_Opcode >> 3) & 0x3) + 0x1c;
+	u8 dreg = opc.hex & 0x3;
+	u8 sreg = ((opc.hex >> 3) & 0x3) + 0x1c;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
-	if (_Opcode & 0x04)
+	if (opc.hex & 0x04)
 	{
 		g_dsp.r[dreg] += g_dsp.r[dreg + 4];
 	}
@@ -86,15 +86,15 @@ void dsp_op_ext_s(u16 _Opcode)
 }
 
 
-void dsp_op_ext_l(u16 _Opcode)
+void dsp_op_ext_l(const UDSPInstruction& opc)
 {
-	u8 sreg = _Opcode & 0x3;
-	u8 dreg = ((_Opcode >> 3) & 0x7) + 0x18;
+	u8 sreg = opc.hex & 0x3;
+	u8 dreg = ((opc.hex >> 3) & 0x7) + 0x18;
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
 
-	if (_Opcode & 0x04)
+	if (opc.hex & 0x04)
 	{
 		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
 	}
@@ -105,12 +105,12 @@ void dsp_op_ext_l(u16 _Opcode)
 }
 
 
-void dsp_op_ext_ls_pro(u16 _Opcode)
+void dsp_op_ext_ls_pro(const UDSPInstruction& opc)
 {
-	u8 areg = (_Opcode & 0x1) + 0x1e;
+	u8 areg = (opc.hex & 0x1) + 0x1e;
 	dsp_dmem_write(g_dsp.r[0x03], g_dsp.r[areg]);
 
-	if (_Opcode & 0x8)
+	if (opc.hex & 0x8)
 	{
 		g_dsp.r[0x03] += g_dsp.r[0x07];
 	}
@@ -121,13 +121,13 @@ void dsp_op_ext_ls_pro(u16 _Opcode)
 }
 
 
-void dsp_op_ext_ls_epi(u16 _Opcode)
+void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
 {
-	u8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
 	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
 	dsp_op_write_reg(dreg, val);
 
-	if (_Opcode & 0x4)
+	if (opc.hex & 0x4)
 	{
 		g_dsp.r[0x00] += g_dsp.r[0x04];
 	}
@@ -138,12 +138,12 @@ void dsp_op_ext_ls_epi(u16 _Opcode)
 }
 
 
-void dsp_op_ext_sl_pro(u16 _Opcode)
+void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
 {
-	u8 areg = (_Opcode & 0x1) + 0x1e;
+	u8 areg = (opc.hex & 0x1) + 0x1e;
 	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
 
-	if (_Opcode & 0x4)
+	if (opc.hex & 0x4)
 	{
 		g_dsp.r[0x00] += g_dsp.r[0x04];
 	}
@@ -154,13 +154,13 @@ void dsp_op_ext_sl_pro(u16 _Opcode)
 }
 
 
-void dsp_op_ext_sl_epi(u16 _Opcode)
+void dsp_op_ext_sl_epi(const UDSPInstruction& opc)
 {
-	u8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
 	u16 val = dsp_dmem_read(g_dsp.r[0x03]);
 	dsp_op_write_reg(dreg, val);
 
-	if (_Opcode & 0x8)
+	if (opc.hex & 0x8)
 	{
 		g_dsp.r[0x03] += g_dsp.r[0x07];
 	}
@@ -171,15 +171,15 @@ void dsp_op_ext_sl_epi(u16 _Opcode)
 }
 
 
-void dsp_op_ext_ld(u16 _Opcode)
+void dsp_op_ext_ld(const UDSPInstruction& opc)
 {
-	u8 dreg1 = (((_Opcode >> 5) & 0x1) << 1) + 0x18;
-	u8 dreg2 = (((_Opcode >> 4) & 0x1) << 1) + 0x19;
-	u8 sreg = _Opcode & 0x3;
+	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + 0x18;
+	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + 0x19;
+	u8 sreg = opc.hex & 0x3;
 	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);
 
-	if (_Opcode & 0x04)
+	if (opc.hex & 0x04)
 	{
 		g_dsp.r[sreg] += g_dsp.r[sreg + 0x04];
 	}
@@ -188,12 +188,12 @@ void dsp_op_ext_ld(u16 _Opcode)
 		g_dsp.r[sreg]++;
 	}
 
-	if (_Opcode & 0x08)
+	if (opc.hex & 0x08)
 	{
 		g_dsp.r[0x03] += g_dsp.r[0x07];
 	}
 	else
-	{
+{
 		g_dsp.r[0x03]++;
 	}
 }
@@ -205,30 +205,30 @@ void dsp_op_ext_ld(u16 _Opcode)
 //
 // ================================================================================
 
-void dsp_op_ext_ops_pro(u16 _Opcode)
+void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 {
-	if ((_Opcode & 0xFF) == 0){return;}
+	if ((opc.hex & 0xFF) == 0){return;}
 
-	switch ((_Opcode >> 4) & 0xf)
+	switch ((opc.hex >> 4) & 0xf)
 	{
 	    case 0x00:
-		    dsp_op_ext_r_epi(_Opcode);
+		    dsp_op_ext_r_epi(opc.hex);
 		    break;
 
 	    case 0x01:
-		    dsp_op_ext_mv(_Opcode);
+		    dsp_op_ext_mv(opc.hex);
 		    break;
 
 	    case 0x02:
 	    case 0x03:
-		    dsp_op_ext_s(_Opcode);
+		    dsp_op_ext_s(opc.hex);
 		    break;
 
 	    case 0x04:
 	    case 0x05:
 	    case 0x06:
 	    case 0x07:
-		    dsp_op_ext_l(_Opcode);
+		    dsp_op_ext_l(opc.hex);
 		    break;
 
 	    case 0x08:
@@ -236,13 +236,13 @@ void dsp_op_ext_ops_pro(u16 _Opcode)
 	    case 0x0a:
 	    case 0x0b:
 
-		    if (_Opcode & 0x2)
+		    if (opc.hex & 0x2)
 		    {
-			    dsp_op_ext_sl_pro(_Opcode);
+			    dsp_op_ext_sl_pro(opc.hex);
 		    }
 		    else
 		    {
-			    dsp_op_ext_ls_pro(_Opcode);
+			    dsp_op_ext_ls_pro(opc.hex);
 		    }
 
 		    return;
@@ -251,30 +251,30 @@ void dsp_op_ext_ops_pro(u16 _Opcode)
 	    case 0x0d:
 	    case 0x0e:
 	    case 0x0f:
-		    dsp_op_ext_ld(_Opcode);
+		    dsp_op_ext_ld(opc.hex);
 		    break;
 	}
 }
 
 
-void dsp_op_ext_ops_epi(u16 _Opcode)
+void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
 {
-	if ((_Opcode & 0xFF) == 0){return;}
+	if ((opc.hex & 0xFF) == 0){return;}
 
-	switch ((_Opcode >> 4) & 0xf)
+	switch ((opc.hex >> 4) & 0xf)
 	{
 	    case 0x08:
 	    case 0x09:
 	    case 0x0a:
 	    case 0x0b:
 
-		    if (_Opcode & 0x2)
+		    if (opc.hex & 0x2)
 		    {
-			    dsp_op_ext_sl_epi(_Opcode);
+			    dsp_op_ext_sl_epi(opc.hex);
 		    }
 		    else
 		    {
-			    dsp_op_ext_ls_epi(_Opcode);
+			    dsp_op_ext_ls_epi(opc.hex);
 		    }
 
 		    return;
