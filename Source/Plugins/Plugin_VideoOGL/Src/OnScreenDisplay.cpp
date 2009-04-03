@@ -48,9 +48,10 @@ void AddMessage(const char* pstr, u32 ms)
 
 void DrawMessages()
 {
-	GLboolean wasEnabled = glIsEnabled(GL_BLEND);
-	if (!wasEnabled)
-		glEnable(GL_BLEND);
+	// Get the status of the Blend mode
+	GLboolean enabled = glIsEnabled(GL_BLEND);
+
+	glDisable(GL_BLEND);
 	
 	if (s_listMsgs.size() > 0)
 	{
@@ -80,8 +81,8 @@ void DrawMessages()
 		}
 	}
 
-	if (!wasEnabled)
-		glDisable(GL_BLEND);
+	if (enabled)
+		glEnable(GL_BLEND);
 }
 
 }  // namespace
