@@ -258,14 +258,14 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
+	gdsp_stop();
+	bIsRunning = false;
 	delete g_hDSPThread;
 	g_hDSPThread = NULL;
 }
 
 void Shutdown(void)
 {
-	bIsRunning = false;
-	gdsp_stop();
 	AudioCommon::ShutdownSoundStream();
 }
 

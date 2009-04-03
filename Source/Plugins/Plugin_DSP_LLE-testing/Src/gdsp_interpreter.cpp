@@ -312,6 +312,9 @@ bool gdsp_run()
 	while (!CR_HALT)
 	{
 		gdsp_step();
+
+		if(!gdsp_running)
+			break;
 	}
 
 	gdsp_running = false;
