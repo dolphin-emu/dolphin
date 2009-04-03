@@ -163,7 +163,7 @@ DSPOPCTemplate opcodes[] =
 	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
 
 	{"ANDI",	0x0240, 0xfeff, DSPInterpreter::andi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"ANDCF",	0x02c0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andfc, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
 	{"XORI",    0x0220, 0xfeff, DSPInterpreter::xori, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
 	{"ANDF",	0x02a0, 0xfeff, DSPInterpreter::andf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
@@ -224,7 +224,7 @@ DSPOPCTemplate opcodes[] =
 	{"CLRAL1",	0xFD00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acl1
 	{"CLRA0",	0x8100, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acc0
 	{"CLRA1",	0x8900, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acc1
-	{ "CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, },
+	{"CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, },
 
 
 	{"MOV",		0x6c00, 0xfeff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, NULL, NULL,},
@@ -271,7 +271,7 @@ DSPOPCTemplate opcodes[] =
 	{"SUB",		0x5c00, 0xfeff, DSPInterpreter::sub, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, NULL, NULL,},
 
 	{"MADD",    0xf200, 0xfeff, DSPInterpreter::madd, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
-	{"MSUB",    0xf600, 0xfeff, nop , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"MSUB",    0xf600, 0xfeff, DSPInterpreter::msub, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
 	{"MADDX",   0xe000, 0xfcff, DSPInterpreter::maddx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 	{"MSUBX",   0xe400, 0xfcff, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 	{"MADDC",   0xe800, 0xfcff, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},

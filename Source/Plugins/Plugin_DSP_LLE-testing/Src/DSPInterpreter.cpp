@@ -1022,7 +1022,16 @@ void madd(const UDSPInstruction& opc)
 	prod += (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 }
-    
+
+void msub(const UDSPInstruction& opc)
+{
+	u8 sreg = (opc.hex >> 8) & 0x1;
+
+	s64 prod = dsp_get_long_prod();
+	prod -= (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
+	dsp_set_long_prod(prod);
+}
+
 void lsr16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;

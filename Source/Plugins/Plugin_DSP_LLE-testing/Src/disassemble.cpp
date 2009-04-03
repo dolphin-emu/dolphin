@@ -219,7 +219,7 @@ char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, ch
 			if (opc->params[j].size != 2)
 			{
 				if (opc->params[j].mask == 0x007f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", val < 64 ? val : -(0x80-val)); // I know compiler complains, but this is in gcdsptool...
+					sprintf(buf, "#%d", val < 64 ? val : -(0x80-(s32)val));
 				else
 					sprintf(buf, "#0x%02x", val);
 			}

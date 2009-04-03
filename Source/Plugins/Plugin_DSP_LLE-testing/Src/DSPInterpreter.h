@@ -87,6 +87,7 @@ void addis(const UDSPInstruction& opc);
 void addi(const UDSPInstruction& opc);
 void lsl16(const UDSPInstruction& opc);
 void madd(const UDSPInstruction& opc);
+void msub(const UDSPInstruction& opc);
 void lsr16(const UDSPInstruction& opc);
 void asr16(const UDSPInstruction& opc);
 void shifti(const UDSPInstruction& opc);
