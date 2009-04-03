@@ -72,9 +72,11 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -153,9 +155,11 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -231,11 +235,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -312,11 +318,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -392,11 +400,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -473,11 +483,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool

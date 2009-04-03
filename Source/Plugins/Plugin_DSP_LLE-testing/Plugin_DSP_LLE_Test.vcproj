@@ -74,11 +74,11 @@
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -101,7 +101,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -162,11 +162,11 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -189,7 +189,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -250,13 +250,13 @@
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -279,7 +279,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -341,13 +341,13 @@
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -370,7 +370,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -431,13 +431,13 @@
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -460,7 +460,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -522,13 +522,13 @@
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(TargetDir)$(TargetName).lib"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -551,7 +551,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

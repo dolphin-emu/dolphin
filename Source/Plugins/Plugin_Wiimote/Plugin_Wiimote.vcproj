@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote"
@@ -73,11 +73,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -155,11 +157,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -237,11 +241,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -320,11 +326,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -400,11 +408,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -480,11 +490,13 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
