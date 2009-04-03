@@ -448,6 +448,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_RENDERTOMAINWINDOW:
 		g_Config.renderToMainframe = m_RenderToMainWindow->IsChecked();
+		g_Config.bFullscreen = false;
 		break;
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
@@ -605,6 +606,8 @@ void ConfigDialog::UpdateGUI()
 
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);
+	if (g_Config.renderToMainframe)
+		m_Fullscreen->SetValue(false);
 	m_FullscreenCB->Enable(!g_Config.renderToMainframe);
 	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
 }

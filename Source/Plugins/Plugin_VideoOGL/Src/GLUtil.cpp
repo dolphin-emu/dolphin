@@ -283,15 +283,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         dwStyle = WS_OVERLAPPEDWINDOW;
     }
 
-    RECT rc;
-    rc.left = 0; rc.top = 0;
-    rc.right = s_backbuffer_width; rc.bottom = s_backbuffer_height;
+	RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
     AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
+
     int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
     int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
-	// EmuWindow::GetWnd() is either the new child window or the new separate window
-    SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+    // EmuWindow::GetWnd() is either the new child window or the new separate window
+    if (g_Config.bFullscreen)
+        // We put the window at the upper left corner of the screen, so x = y = 0
+        SetWindowPos(EmuWindow::GetWnd(), NULL, 0, 0, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+	else
+        SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
 
     PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be
     {

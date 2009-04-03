@@ -156,27 +156,69 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))
 		{
-		case VK_ESCAPE: // Pressing Esc Stop or Maximize
-			//DestroyWindow(hWnd);
-			//PostQuitMessage(0);
-
-			/* The fullscreen option for Windows users is not very user friendly. With this the user
-			   can only get out of the fullscreen mode by pressing Esc or Alt + F4. Esc also stops
-			   the emulation. Todo: But currently it hangs, so I have disabled the shutdown. */
-			//if (m_hParent == NULL) ExitProcess(0);
+		case VK_ESCAPE:
+			// Pressing Esc switch FullScreen/Windowed
 			if (m_hParent == NULL)
-			{				
+			{		
+				int	w_fs = 640, h_fs = 480;
 				if (g_Config.bFullscreen)
 				{
-					//PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0); // Stop
+					// Get out of fullscreen
+					g_Config.bFullscreen = false;
+					
+					if (strlen(g_Config.iWindowedRes) > 1)
+						sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
+
+					// FullScreen - > Desktop
+					ChangeDisplaySettings(NULL, 0);
+
+					// Set new window style FS -> Windowed
+					SetWindowLong(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+
+					// Re-Enable the cursor
+					ShowCursor(TRUE);
+				
+					RECT rcdesktop;
+					RECT rc = {0, 0, w_fs, h_fs};
+					GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
+					int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
+					int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+					// SetWindowPos to the center of the screen
+					SetWindowPos(hWnd, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+					// Eventually show the window!
+					EmuWindow::Show();
 				}
 				else
 				{
-					// Toggle maximize and restore
-					if (IsZoomed(hWnd))
-						ShowWindow(hWnd, SW_RESTORE);
-					else
-						ShowWindow(hWnd, SW_MAXIMIZE);
+					// Get into fullscreen
+					g_Config.bFullscreen = true;
+					DEVMODE dmScreenSettings;
+					memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+
+					if (strlen(g_Config.iFSResolution) > 1)
+						sscanf(g_Config.iFSResolution, "%dx%d", &w_fs, &h_fs);
+
+					// Desktop -> FullScreen
+					dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
+					dmScreenSettings.dmPelsWidth	= w_fs;
+					dmScreenSettings.dmPelsHeight	= h_fs;
+					dmScreenSettings.dmBitsPerPel	= 32;
+					dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+					if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+						return 0;
+					// Set new window style -> PopUp
+					SetWindowLong(hWnd, GWL_STYLE, WS_POPUP);
+
+					// Disable the cursor
+					ShowCursor(FALSE);
+
+					// SetWindowPos to the upper-left corner of the screen
+					SetWindowPos(hWnd, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+					// Eventually show the window!
+					EmuWindow::Show();
 				}
 				return 0;
 			}				
@@ -210,7 +252,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	/* To support the separate window rendering we get the message back here. So we basically
-	    only let it pass through DolphinWX > Frame.cpp to determine if it should be on or off
+	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
 		and coordinate it with the other settings if nessesary */
 	case WM_USER:
 		/* I set wParam to 10 just in case there are other WM_USER events. If we want more
@@ -372,7 +414,7 @@ void SetSize(int width, int height)
 	rc.right = rc.left + w;
 	rc.top = (1024 - h)/2;
 	rc.bottom = rc.top + h;
-	::MoveWindow(m_hWnd, rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top, TRUE);
+	MoveWindow(m_hWnd, rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top, TRUE);
 }
 
 } // EmuWindow
