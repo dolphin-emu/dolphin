@@ -62,7 +62,8 @@ void DSPDebuggerLLE::CreateGUIControls()
 	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"), wxNullBitmap, wxT("Step Code "), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Reset To PC counter"), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
-	m_Toolbar->AddCheckTool(ID_DUMPCODETOOL, wxT("Dump"), wxNullBitmap, wxNullBitmap, wxT("Dump UCode to File"));
+	m_Toolbar->AddSeparator();
+	m_Toolbar->AddCheckTool(ID_DUMPCODETOOL, wxT("Dump"), wxNullBitmap, wxNullBitmap, wxT("Dump UCode to file and disasm"));
 	m_Toolbar->AddSeparator();
 	m_Toolbar->AddCheckTool(ID_CHECK_ASSERTINT, wxT("AssertInt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
 	m_Toolbar->AddCheckTool(ID_CHECK_HALT, wxT("Halt"), wxNullBitmap, wxNullBitmap, wxEmptyString);

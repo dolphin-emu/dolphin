@@ -279,6 +279,9 @@ DSPOPCTemplate opcodes[] =
 
 	// FIXME: nakee guessing (check masks and params!)
 	{"TSTA?",	0xa100, 0xf7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_REG18, 1, 0, 11, 0x1000}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	
+	// unknown opcode for disassemble
+	{"CW",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
 };
 
 DSPOPCTemplate opcodes_ext[] =

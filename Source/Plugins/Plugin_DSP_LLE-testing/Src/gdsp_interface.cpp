@@ -257,7 +257,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	DEBUG_LOG(DSPHLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
 
 	if (g_dsp.dump_imem)
-		DumpDSPCode(addr, size, g_dsp.iram_crc );
+		DumpDSPCode(addr, size, g_dsp.iram_crc);
 }
 
 

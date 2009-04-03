@@ -21,6 +21,8 @@
 #include "Common.h"
 #include "Globals.h"
 
+#include "Tools.h"
+#include "disassemble.h"
 #include "gdsp_interpreter.h"
 
 bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc)
@@ -33,16 +35,39 @@ bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc)
 	{
 		fwrite(g_dspInitialize.pGetMemoryPointer(_Address), _Length, 1, pFile);
 		fclose(pFile);
-		return(true);
 	}
 	else
 	{
 		PanicAlert("Cant open file (%s) to dump UCode!!", szFilename);
+		return false;
 	}
 
-	return(false);
+	if (!DisasmUCodeDump(crc))
+	{
+		PanicAlert("Failed to disasm UCode!!", szFilename);
+		return false;
+	}
+
+	return true;
 }
 
+bool DisasmUCodeDump(u32 crc)
+{
+	char binFile[MAX_PATH];
+	char txtFile[MAX_PATH];
+	sprintf(binFile, "%sDSP_UC_%08X.bin", FULL_DUMP_DIR, crc);
+	sprintf(txtFile, "%sDSP_UC_%08X.txt", FULL_DUMP_DIR, crc);
+	FILE* t = fopen(txtFile, "wb");
+	if (t != NULL)
+	{
+		gd_globals_t gdg;
+		gd_dis_file(&gdg, binFile, t);
+		fclose(t);
+		return true;
+	}
+	else
+		return false;
+}
 
 u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 {

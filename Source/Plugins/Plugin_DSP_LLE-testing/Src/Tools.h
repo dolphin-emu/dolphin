@@ -44,7 +44,7 @@ union UDSPControl
 		: Hex(_Hex) {}
 };
 
-
 bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc);
+bool DisasmUCodeDump(u32 crc);
 u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
 bool DumpCWCode(u32 _Address, u32 _Length);
