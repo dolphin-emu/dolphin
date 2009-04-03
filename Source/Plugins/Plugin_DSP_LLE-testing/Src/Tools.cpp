@@ -26,7 +26,7 @@
 bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc)
 {
 	char szFilename[MAX_PATH];
-	sprintf(szFilename, "c:\\_\\DSP_UC_%08X.bin", crc);
+	sprintf(szFilename, "%sDSP_UC_%08X.bin", FULL_DUMP_DIR, crc);
 	FILE* pFile = fopen(szFilename, "wb");
 
 	if (pFile != NULL)
@@ -73,7 +73,9 @@ u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 
 bool DumpCWCode(u32 _Address, u32 _Length)
 {
-	FILE* pFile = fopen("d:\\DSP_UCode.bin", "wb");
+	char filename[256];
+	sprintf(filename, "%sDSP_UCode.bin", FULL_DUMP_DIR);
+	FILE* pFile = fopen(filename, "wb");
 
 	if (pFile != NULL)
 	{

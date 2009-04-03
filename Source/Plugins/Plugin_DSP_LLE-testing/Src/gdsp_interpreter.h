@@ -79,6 +79,7 @@ struct SDSP
 	static void (* irq_request)(void);
 
 	// for debugger only
+	static bool dump_imem;
 	static u32 iram_crc;
 	static u64 step_counter;
 	static bool exception_in_progress_hack;

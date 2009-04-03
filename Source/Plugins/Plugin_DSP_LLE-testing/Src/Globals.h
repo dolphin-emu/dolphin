@@ -22,7 +22,6 @@
 #include <stdio.h>
 
 #define WITH_DSP_ON_THREAD		1
-#define DUMP_DSP_IMEM			0
 #define PROFILE					0
 
 

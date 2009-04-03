@@ -63,14 +63,13 @@ private:
 		// Toolbar
 		ID_TOOLBAR = 1000,
 		ID_RUNTOOL,
-		ID_PAUSETOOL,
 		ID_STEPTOOL,
-		ID_RESETTOPCTOOL,
+		ID_SHOWPCTOOL,
 		ID_JUMPTOTOOL,
+		ID_DUMPCODETOOL,
 		ID_CHECK_ASSERTINT,
 		ID_CHECK_HALT,
 		ID_CHECK_INIT,
-		ID_DUMPCODETOOL,
 
 		// Disasm view
 		ID_DISASM,
@@ -147,6 +146,10 @@ private:
 
 	void OnClose(wxCloseEvent& event);
 	void OnChangeSize(wxSizeEvent& event);
+	void OnChangeState(wxCommandEvent& event);
+	void OnDumpCode(wxCommandEvent& event);
+	void OnRightClick(wxListEvent& event);
+	void OnDoubleClick(wxListEvent& event);
 
 	void CreateGUIControls();
 	void Refresh();

@@ -28,12 +28,11 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_SIZE(DSPDebuggerLLE::OnChangeSize)
 
-	//EVT_RIGHT_DOWN(DSPDebuggerLLE::ScrollBlocks)
-	//EVT_LEFT_DOWN(DSPDebuggerLLE::ScrollBlocks)
-	//EVT_MOUSE_EVENTS(DSPDebuggerLLE::ScrollBlocks)
-	//EVT_MOTION(DSPDebuggerLLE::ScrollBlocks)
-	//EVT_SCROLL(DSPDebuggerLLE::ScrollBlocks)
-	//EVT_SCROLLWIN(DSPDebuggerLLE::ScrollBlocks)
+	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
+	EVT_MENU(ID_DUMPCODETOOL, DSPDebuggerLLE::OnDumpCode)
+
+	EVT_LIST_ITEM_RIGHT_CLICK(ID_DISASM, DSPDebuggerLLE::OnRightClick)
+	EVT_LIST_ITEM_ACTIVATED(ID_DISASM, DSPDebuggerLLE::OnDoubleClick)
 END_EVENT_TABLE()
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow *parent, wxWindowID id, const wxString &title,
@@ -60,11 +59,10 @@ void DSPDebuggerLLE::CreateGUIControls()
 
 	m_Toolbar = CreateToolBar(wxTB_NODIVIDER|wxTB_NOICONS|wxTB_HORZ_TEXT|wxTB_DOCKABLE, ID_TOOLBAR); 
 	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Run"), wxNullBitmap, wxEmptyString, wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_PAUSETOOL, wxT("Pause"), wxNullBitmap, wxEmptyString, wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"), wxNullBitmap, wxT("Step Code "), wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_RESETTOPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Reset To PC counter"), wxITEM_NORMAL);
+	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Reset To PC counter"), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_DUMPCODETOOL, wxT("Dump"), wxNullBitmap, wxT("Dump Code to File"), wxITEM_NORMAL);
+	m_Toolbar->AddCheckTool(ID_DUMPCODETOOL, wxT("Dump"), wxNullBitmap, wxNullBitmap, wxT("Dump UCode to File"));
 	m_Toolbar->AddSeparator();
 	m_Toolbar->AddCheckTool(ID_CHECK_ASSERTINT, wxT("AssertInt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
 	m_Toolbar->AddCheckTool(ID_CHECK_HALT, wxT("Halt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
@@ -96,7 +94,8 @@ void DSPDebuggerLLE::CreateGUIControls()
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
-{	
+{
+	wxWindow::Destroy();
 	event.Skip();
 }
 
@@ -104,6 +103,55 @@ void DSPDebuggerLLE::OnChangeSize(wxSizeEvent& event)
 {
 	Refresh();
 	event.Skip();
+}
+
+void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case ID_RUNTOOL:
+		if ((m_State == RUN) || (m_State == RUN_START))
+			m_State = PAUSE;
+		else
+			m_State = RUN_START;
+		break;
+
+	case ID_STEPTOOL:
+		m_State = STEP;
+		break;
+	}
+
+	if ((m_State == RUN) || (m_State == RUN_START))
+		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Pause"));
+	else
+		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Run"));
+	m_Toolbar->Realize();
+}
+
+void DSPDebuggerLLE::OnDumpCode(wxCommandEvent& event)
+{
+	g_dsp.dump_imem = event.IsChecked();
+}
+
+void DSPDebuggerLLE::OnRightClick(wxListEvent& event)
+{
+	long item = m_Disasm->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
+	u16 SelectedPC = static_cast<u16>(m_Disasm->GetItemData(item));
+	g_dsp.pc = SelectedPC;
+
+	Refresh();
+}
+
+void DSPDebuggerLLE::OnDoubleClick(wxListEvent& event)
+{
+	long item = m_Disasm->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
+	u16 SelectedPC = static_cast<u16>(m_Disasm->GetItemData(item));
+	ToggleBreakPoint(SelectedPC);
+
+	if (IsBreakPoint(SelectedPC))
+		m_Disasm->SetItem(item, COLUMN_BP, wxT("*"));
+	else
+		m_Disasm->SetItem(item, COLUMN_BP, wxT(""));
 }
 
 void DSPDebuggerLLE::Refresh()
@@ -244,17 +292,13 @@ void DSPDebuggerLLE::UpdateDisAsmListView()
 
 	m_CachedStepCounter = g_dsp.step_counter;
 
-//	RebuildDisAsmListView(); // TODO do we need this?
-
 	m_Regs->Update();
 }
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
 	if (g_dsp.dram == NULL)
-	{
 		return;
-	}
 
 	if (m_CachedUCodeCRC != g_dsp.iram_crc)
 	{
@@ -265,7 +309,7 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 		LoadSymbolMap(FileName);
 
 		// rebuild the disasm
-//		RebuildDisAsmListView(); // TODO do we need this?
+		RebuildDisAsmListView();
 	}
 }
 

@@ -53,6 +53,7 @@ void (*SDSP::irq_request)() = NULL;
 bool SDSP::exception_in_progress_hack = false;
 
 // for debugger only
+bool SDSP::dump_imem = false;
 u32 SDSP::iram_crc = 0;
 u64 SDSP::step_counter = 0;
 
