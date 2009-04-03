@@ -199,13 +199,13 @@ DSPOPCTemplate opcodes[] =
 	// extended opcodes, note size of opcode will be set to 0
 
 	{"NX",      0x8000, 0xffff, DSPInterpreter::nx, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-
-	{"S40",		0x8e00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"S16",		0x8f00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"M2",      0x8a00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"M0",      0x8b00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"CLR15",   0x8c00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"SET15",   0x8d00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"NX?",     0x8800, 0xffff, DSPInterpreter::nx, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"S40",		0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"S16",		0x8f00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"M2",      0x8a00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"M0",      0x8b00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"DECM",    0x7800, 0xfeff, DSPInterpreter::decm, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"INCM",    0x7400, 0xfeff, DSPInterpreter::incm, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -226,7 +226,7 @@ DSPOPCTemplate opcodes[] =
 	{"CLRA1",	0x8900, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acc1
 	{"CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, },
 
-
+      
 	{"MOV",		0x6c00, 0xfeff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVAX",   0x6800, 0xfcff, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVR",    0x6000, 0xf8ff, DSPInterpreter::movr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
