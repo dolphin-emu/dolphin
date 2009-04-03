@@ -45,4 +45,6 @@ typedef struct gd_globals_t
 
 char* gd_dis_opcode(gd_globals_t* gdg);
 bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output);
+void gd_dis_close_unkop();
+void gd_dis_open_unkop();
 const char* gd_dis_get_reg_name(u16 reg);

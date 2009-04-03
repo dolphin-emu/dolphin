@@ -455,6 +455,8 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 
 bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 {
+	gd_dis_open_unkop();
+
 	FILE* in;
 	u32 size;
 
@@ -484,6 +486,8 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	gdg->buffer = NULL;
 	gdg->buffer_size = 0;
 
+	gd_dis_close_unkop();
+
 	return true;
 }
 
@@ -493,7 +497,10 @@ void gd_dis_close_unkop()
 	int i, j;
 	u32 count = 0;
 
-	uo = fopen("uo.bin", "wb");
+	char filename[MAX_PATH];
+	sprintf(filename, "%sUnkOps.bin", FULL_DSP_DUMP_DIR);
+
+	uo = fopen(filename, "wb");
 
 	if (uo)
 	{
@@ -501,7 +508,8 @@ void gd_dis_close_unkop()
 		fclose(uo);
 	}
 
-	uo = fopen("unkopc.txt", "w");
+	sprintf(filename, "%sUnkOps.txt", FULL_DSP_DUMP_DIR);
+	uo = fopen(filename, "w");
 
 	if (uo)
 	{
@@ -532,8 +540,9 @@ void gd_dis_close_unkop()
 void gd_dis_open_unkop()
 {
 	FILE* uo;
-
-	uo = fopen("uo.bin", "rb");
+	char filename[MAX_PATH];
+	sprintf(filename, "%sUnkOps.bin", FULL_DSP_DUMP_DIR);
+	uo = fopen(filename, "rb");
 
 	if (uo)
 	{
