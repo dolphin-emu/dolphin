@@ -35,8 +35,10 @@ s8 GetMultiplyModifier();
 
 void unknown(const UDSPInstruction& opc);
 void call(const UDSPInstruction& opc);
+void callr(const UDSPInstruction& opc);
 void ifcc(const UDSPInstruction& opc);
 void jcc(const UDSPInstruction& opc);	
+void jmprcc(const UDSPInstruction& opc);
 void ret(const UDSPInstruction& opc);	
 void halt(const UDSPInstruction& opc);
 void loop(const UDSPInstruction& opc);
@@ -110,7 +112,6 @@ void srs(const UDSPInstruction& opc);
 void lrs(const UDSPInstruction& opc);
 
 // FIXME inside
-void jmpa(const UDSPInstruction& opc);
 void rti(const UDSPInstruction& opc);
 void ilrr(const UDSPInstruction& opc);
 void srbith(const UDSPInstruction& opc);

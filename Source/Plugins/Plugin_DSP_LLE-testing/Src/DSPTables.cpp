@@ -17,6 +17,37 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
+/* NOTES BY HERMES:
+
+LZ flag: original opcodes andf and andcf are swaped. Also "jzr" and "jnz" are swaped but now named 'jlz' and 'jlnz' 
+As you can see it obtain the same result but now LZ=1 correctly
+
+Added conditional instructions:
+
+conditional names:
+
+NZ -> NOT ZERO
+Z  -> ZERO 
+
+NS -> NOT SIGN
+S  ->  SIGN
+
+LZ  -> LOGIC ZERO (only used with andcf-andf instructions?)
+LNZ -> LOGIC NOT ZERO
+
+G -> GREATER
+LE-> LESS EQUAL
+
+GE-> GREATER EQUAL
+L -> LESS
+
+Examples:
+
+jnz, ifs, retlnz
+
+*/
+
+
 #include "Globals.h"
 #include "DSPTables.h"
 
@@ -28,47 +59,89 @@ void nop(const UDSPInstruction&) {}
 // TODO(XK): Fill up the tables with the corresponding instructions
 DSPOPCTemplate opcodes[] =
 {
-	{"NOP",	    0x0000, 0xffff, nop, nop, 1, 0, {}, NULL, NULL,},
-	{"HALT",    0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, NULL, NULL,},
-	{"RET",	    0x02df, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
-	{"RETEQ",   0x02d5, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
-	{"RETNZ",   0x02dd, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"NOP",		0x0000, 0xffff, nop, nop, 1, 0, {}, NULL, NULL,},
+	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, NULL, NULL,},
+	{"RETNS",	0x02d0, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETS",	0x02d1, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETG",	0x02d2, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETLE",	0x02d3, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETNZ",	0x02d4, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETZ",	0x02d5, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETL",	0x02d6, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETGE",	0x02d7, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETLNZ",	0x02dc, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RETLZ",   0x02dd, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
+	{"RET",		0x02df, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL,},
 	{"RTI",	    0x02ff, 0xffff, DSPInterpreter::rti, nop, 1, 0, {}, NULL, NULL,},
+
+	{"CALLNS",	0x02b0, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLS",	0x02b1, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLG",	0x02b2, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLLE",	0x02b3, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLNE",  0x02b4, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLZ",	0x02b5, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLL",	0x02b6, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLGE",	0x02b7, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLLNZ",	0x02bc, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"CALLLZ",	0x02bd, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
 	{"CALL",    0x02bf, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
-	{"CALLNE",  0x02b4, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"IFNS",	0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFS",		0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFG",		0x0272, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFLE",	0x0273, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFNZ",    0x0274, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFZ",		0x0275, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFL",		0x0276, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFGE",	0x0277, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFLNZ",	0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IFLZ",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
+	{"IF",    0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,}, // Hermes doesn't list this
 
-	{"IF_0",    0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_1",    0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_2",    0x0272, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_3",    0x0273, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_E",    0x0274, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_Q",    0x0275, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_R",    0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_Z",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-	{"IF_P",    0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL,},
-
-	{"JX0",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JX1",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JX2",	    0x0292, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JX3",	    0x0293, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JNE",	    0x0294, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JEQ",	    0x0295, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JZR",		0x029c, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"JNZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JS",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JG",	    0x0292, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JLE",	    0x0293, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JNZ",	    0x0294, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JZ",	    0x0295, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JL",	    0x0296, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JGE",	    0x0297, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
 	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
 	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 
-	{"CALLR",   0x171f, 0xff1f, nop, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
-	{"JMPR",    0x170f, 0xff1f, nop, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRNS",	0x1700, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRS",		0x1701, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRG",		0x1702, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRLE",	0x1703, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRNZ",	0x1704, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRZ",		0x1705, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRL",		0x1706, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRGE",	0x1707, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRLNZ",	0x170c, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JRLZ",	0x170d, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"JMPR",	0x170f, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+
+	{"CALLRNS",	0x1710, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRS",	0x1711, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRG",	0x1712, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRLE",	0x1713, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRNZ",	0x1714, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRZ",	0x1715, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRL",	0x1716, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRGE",	0x1717, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRLNZ",0x171c, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLRLZ",	0x171d, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
+	{"CALLR",	0x171f, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL,},
 
 	{"SBCLR",   0x1200, 0xfff8, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
 	{"SBSET",   0x1300, 0xfff8, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
 
-	{"LSL",		0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
-	{"LSR",		0x1440, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,},
+	{"LSL",		0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,}, // 0x007f?
+	{"LSR",		0x1440, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL,}, // 0x007f?
 	{"ASL",		0x1480, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
 	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL,},
 
@@ -84,25 +157,25 @@ DSPOPCTemplate opcodes[] =
 	{"LRS",		0x2000, 0xf800, DSPInterpreter::lrs, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_MEM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
 	{"SRS",		0x2800, 0xf800, DSPInterpreter::srs, nop, 1, 2, {{P_MEM, 1, 0, 0, 0x00ff}, {P_REG18, 1, 0, 8, 0x0700}}, NULL, NULL,},
 
-	{"LRIS",    0x0800, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
+	{"LRIS",	0x0800, 0xf800, DSPInterpreter::lris, nop, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
 
-	{"ADDIS",   0x0400, 0xfe00, DSPInterpreter::addis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
-	{"CMPIS",   0x0600, 0xfe00, DSPInterpreter::cmpis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
+	{"ADDIS",	0x0400, 0xfe00, DSPInterpreter::addis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
+	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL,},
 
-	{"ANDI",    0x0240, 0xfeff, DSPInterpreter::andi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"ANDF",    0x02c0, 0xfeff, DSPInterpreter::andf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ANDI",	0x0240, 0xfeff, DSPInterpreter::andi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ANDCF",	0x02c0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
 	{"XORI",    0x0220, 0xfeff, DSPInterpreter::xori, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"ANDCF",   0x02a0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ANDF",	0x02a0, 0xfeff, DSPInterpreter::andf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
 	{"ORI",		0x0260, 0xfeff, DSPInterpreter::ori, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"ORF",		0x02e0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ORF",		0x02e0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,}, // Hermes: ??? (has it commented out)
 
-	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // missing S64
-	{"CMPI",    0x0280, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // missing S64
+	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // F|RES: missing S64
+	{"CMPI",    0x0280, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // F|RES: missing S64
 
 	{"ILRR",    0x0210, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"ILRRD",	0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"ILRRD",	0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,}, // Hermes doesn't list this
 	{"ILRRI",   0x0218, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
@@ -143,17 +216,21 @@ DSPOPCTemplate opcodes[] =
 
 	{"TST",		0xb100, 0xf7ff, nop, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, NULL, NULL,},
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
+
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp, nop, 1 | P_EXT, 0, {}, NULL, NULL,},
-	
 	{"CMPAXH",  0xc100, 0xe7ff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, NULL, NULL,},
 
-	{"CLR",		0x8100, 0xf7ff, DSPInterpreter::clr, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, NULL, NULL,},
-	{"CLRP",    0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, NULL, NULL,},
+	{"CLRAL0",	0xFC00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acl0
+	{"CLRAL1",	0xFD00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acl1
+	{"CLRA0",	0x8100, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acc0
+	{"CLRA1",	0x8900, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, NULL, NULL,}, // clear acc1
+	{ "CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, },
+
 
 	{"MOV",		0x6c00, 0xfeff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, NULL, NULL,},
 	{"MOVAX",   0x6800, 0xfcff, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, NULL, NULL,},
 	{"MOVR",    0x6000, 0xf8ff, DSPInterpreter::movr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, NULL, NULL,},
-	{"MOVP",    0x6e00, 0xfeff,  DSPInterpreter::movp, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"MOVP",    0x6e00, 0xfeff, DSPInterpreter::movp, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
 	{"MOVPZ",   0xfe00, 0xfeff, DSPInterpreter::movpz, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
 
 	{"ADDPAXZ", 0xf800, 0xfcff, DSPInterpreter::addpaxz, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
@@ -166,13 +243,13 @@ DSPOPCTemplate opcodes[] =
 	{"XORR",    0x3000, 0xfcff, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, NULL, NULL,},
 	{"ANDR",    0x3400, 0xfcff, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, NULL, NULL,},
 	{"ORR",		0x3800, 0xfcff, DSPInterpreter::orr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, NULL, NULL,},
-	{"ANDC",    0x3C00, 0xfeff, DSPInterpreter::andc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
-	{"ORC",		0x3E00, 0xfeff, nop, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"ANDC",    0x3C00, 0xfeff, DSPInterpreter::andc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,}, // Hermes doesn't list this
+	{"ORC",		0x3E00, 0xfeff, nop, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,}, // Hermes doesn't list this
 
-	{"MULX",    0xa000, 0xe7ff, DSPInterpreter::mulx, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}}, NULL, NULL,},
-	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
-	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
-	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x1000}, {P_REG19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"MULX",    0xa000, 0xe7ff, DSPInterpreter::mulx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, NULL, NULL,},
+	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
+	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
 
 	{"MUL",		0x9000, 0xf7ff, DSPInterpreter::mul, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, NULL, NULL,},
 	{"MULAC",   0x9400, 0xf6ff, DSPInterpreter::mulac, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, NULL, NULL,},
@@ -195,16 +272,13 @@ DSPOPCTemplate opcodes[] =
 
 	{"MADD",    0xf200, 0xfeff, DSPInterpreter::madd, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
 	{"MSUB",    0xf600, 0xfeff, nop , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, NULL, NULL,},
-	{"MADDX",   0xe000, 0xfcff, DSPInterpreter::maddx, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},
-	{"MSUBX",   0xe400, 0xfcff, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},
+	{"MADDX",   0xe000, 0xfcff, DSPInterpreter::maddx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, NULL, NULL,},
+	{"MSUBX",   0xe400, 0xfcff, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 	{"MADDC",   0xe800, 0xfcff, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 	{"MSUBC",   0xec00, 0xfcff, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, NULL, NULL,},
 
 	// FIXME: nakee guessing (check masks and params!)
-	{"JMPA?",	0x1700, 0xff1f, DSPInterpreter::jmpa, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL,},
-
-	{"TSTA?",	0xa100, 0x0800, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_REG18, 1, 0, 11, 0x1000}}, NULL, NULL,},
-	
+	{"TSTA?",	0xa100, 0xf7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_REG18, 1, 0, 11, 0x1000}}, NULL, NULL,},
 };
 
 DSPOPCTemplate opcodes_ext[] =
@@ -225,10 +299,10 @@ DSPOPCTemplate opcodes_ext[] =
 	{"LDXN",    0x00c4, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXM",    0x00c8, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXNM",   0x00cc, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
-	{"LD",      0x00c0, 0x00cc, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0020}, {P_REG19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDN",		0x00c4, 0x00cc, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0020}, {P_REG19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDM",		0x00c8, 0x00cc, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0020}, {P_REG19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDNM",    0x00cc, 0x00cc, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0020}, {P_REG19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LD",      0x00c0, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDN",		0x00c4, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDM",		0x00c8, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDNM",    0x00cc, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"MV",      0x0010, 0x00f0, nop, nop, 1, 2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"DR",      0x0004, 0x00fc, nop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"IR",      0x0008, 0x00fc, nop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},

@@ -82,87 +82,75 @@ s8 GetMultiplyModifier()
 	return(2);
 }
 
-// TODO add case comments
 bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
 
 	switch (_Condition & 0xf)
 	{
-	case 0x0:
+	case 0x0: //NS - NOT SIGN
 
 		if ((!(g_dsp.r[R_SR] & 0x02)) && (!(g_dsp.r[R_SR] & 0x08)))
-		{
 			taken = true;
-		}
-
+		
 		break;
-
-	case 0x3:
-
-		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04) || (g_dsp.r[R_SR] & 0x08))
-		{
-			taken = true;
-		}
-
-		break;
-
-		// old from duddie
-	case 0x1: // seems okay
-
+		
+	case 0x1: // S - SIGN
+		
 		if ((!(g_dsp.r[R_SR] & 0x02)) && (g_dsp.r[R_SR] & 0x08))
-		{
 			taken = true;
-		}
 
 		break;
-
-	case 0x2:
+ 
+	case 0x2: // G - GREATER
 
 		if (!(g_dsp.r[R_SR] & 0x08))
-		{
 			taken = true;
-		}
 
 		break;
 
-	case 0x4:
+	case 0x3: // LE - LESS EQUAL
+
+		if (g_dsp.r[R_SR] & 0x08)
+			taken = true;
+
+		break;
+
+	case 0x4: // NZ - NOT ZERO
 
 		if (!(g_dsp.r[R_SR] & 0x04))
-		{
 			taken = true;
-		}
-
+		
 		break;
 
-	case 0x5:
+	case 0x5: // Z - ZERO 
 
 		if (g_dsp.r[R_SR] & 0x04)
-		{
-			taken = true;
-		}
+				taken = true;
 
 		break;
 
-	case 0xc:
+	case 0x6: // L - LESS
+		break;
+
+	case 0x7: // GE - GREATER EQUAL
+		break;
+
+	case 0xc: // LNZ  - LOGIC NOT ZERO
 
 		if (!(g_dsp.r[R_SR] & 0x40))
-		{
 			taken = true;
-		}
 
 		break;
 
-	case 0xd:
+	case 0xd: // LZ - LOGIC ZERO
 
 		if (g_dsp.r[R_SR] & 0x40)
-		{
 			taken = true;
-		}
 
 		break;
 
-	case 0xf:
+	case 0xf: // Empty
 		taken = true;
 		break;
 
@@ -183,6 +171,7 @@ void unknown(const UDSPInstruction& opc)
 	//g_dsp.pc = g_dsp.err_pc;
 }
 
+// Generic call implementation
 void call(const UDSPInstruction& opc)
 {
 	u16 dest = dsp_fetch_code();
@@ -194,7 +183,22 @@ void call(const UDSPInstruction& opc)
 	}
 }
 
-// The code for all ifs?
+// Generic callr implementation
+void callr(const UDSPInstruction& opc)
+{
+	u16 addr;
+	u8 reg;
+
+	if (CheckCondition(opc.hex & 0xf))
+	{
+		reg  = (opc.hex >> 5) & 0x7;
+		addr = dsp_op_read_reg(reg);
+		dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+		g_dsp.pc = addr;
+	}
+}
+
+// Generic if implementation
 void ifcc(const UDSPInstruction& opc)
 {
 	if (!CheckCondition(opc.hex & 0xf))
@@ -203,7 +207,7 @@ void ifcc(const UDSPInstruction& opc)
 	}
 }
 
-// The code for all jumps?
+// Generic jmp implementation
 void jcc(const UDSPInstruction& opc)
 {
 	u16 dest = dsp_fetch_code();
@@ -214,30 +218,21 @@ void jcc(const UDSPInstruction& opc)
 	}
 }
 
-// FIXME inside
-void jmpa(const UDSPInstruction& opc)
+// Generic jmpr implementation
+void jmprcc(const UDSPInstruction& opc)
 {
 	u8 reg;
 	u16 addr;
 
-	if ((opc.hex & 0xf) != 0xf)
+	if (CheckCondition(opc.hex & 0xf))
 	{
-		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp jmpa opcode");
+		reg  = (opc.hex >> 5) & 0x7;
+		addr = dsp_op_read_reg(reg);
+		g_dsp.pc = addr;
 	}
-
-	reg  = (opc.hex >> 5) & 0x7;
-	addr = dsp_op_read_reg(reg);
-
-	if (opc.hex & 0x0010)
-	{
-		// CALLA
-		dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-	}
-
-	g_dsp.pc = addr;
 }
 
+// Generic ret implementation
 void ret(const UDSPInstruction& opc)
 {
 	if (CheckCondition(opc.hex & 0xf))
@@ -481,6 +476,7 @@ void clr(const UDSPInstruction& opc)
 	Update_SR_Register((s64)0);
 }
 
+// TODO: is this correct???
 void clrp(const UDSPInstruction& opc)
 {
 	g_dsp.r[0x14] = 0x0000;

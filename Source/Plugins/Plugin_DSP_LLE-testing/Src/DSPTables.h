@@ -23,25 +23,30 @@
 #include "Common.h"
 enum parameterType
 {
-	P_NONE = 0x0000,
-	P_VAL = 0x0001,
-	P_IMM = 0x0002,
-	P_MEM = 0x0003,
-	P_STR = 0x0004,
-	P_REG = 0x8000,
-	P_REG08 = P_REG | 0x0800,
-	P_REG10 = P_REG | 0x1000,
-	P_REG18 = P_REG | 0x1800,
-	P_REG19 = P_REG | 0x1900,
-	P_REG1A = P_REG | 0x1a00,
-	P_REG1C = P_REG | 0x1c00,
-	P_ACCM = P_REG | 0x1e00,
-	P_ACCM_D = P_REG | 0x1e80,
-	P_ACC = P_REG | 0x2000,
-	P_ACC_D = P_REG | 0x2080,
-	P_AX = P_REG | 0x2200,
-	P_AX_D = P_REG | 0x2280,
-	P_REGS_MASK = 0x03f80,
+	P_NONE		= 0x0000,
+	P_VAL		= 0x0001,
+	P_IMM		= 0x0002,
+	P_MEM		= 0x0003,
+	P_STR		= 0x0004,
+	P_REG		= 0x8000,
+	P_REG08		= P_REG | 0x0800,
+	P_REG10		= P_REG | 0x1000,
+	P_REG18		= P_REG | 0x1800,
+	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
+	P_REG19		= P_REG | 0x1900,
+	P_REGM19	= P_REG | 0x1910, // used in multiply instructions
+	P_REG1A		= P_REG | 0x1a00,
+	P_REG1C		= P_REG | 0x1c00,
+//	P_ACC		= P_REG | 0x1c10, // used for global accum (gcdsptool's value)
+	P_ACCD		= P_REG | 0x1c80,
+	P_ACCM		= P_REG | 0x1e00, // used for mid accum
+	// The following are not in gcdsptool
+	P_ACCM_D	= P_REG | 0x1e80,
+	P_ACC		= P_REG | 0x2000,
+	P_ACC_D		= P_REG | 0x2080,
+	P_AX		= P_REG | 0x2200,
+	P_AX_D		= P_REG | 0x2280,
+	P_REGS_MASK	= 0x03f80, // gcdsptool's value = 0x01f80
 	P_REF       = P_REG | 0x4000,
 	P_PRG       = P_REF | P_REG,
 };
