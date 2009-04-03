@@ -213,6 +213,10 @@ bool Renderer::Init()
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "");
 
+	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", (const char*)glGetString(GL_VENDOR), 
+															 (const char*)glGetString(GL_RENDERER), 
+															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
+
 	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
     if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
         s_bATIDrawBuffers = true;
