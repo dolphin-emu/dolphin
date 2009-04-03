@@ -206,7 +206,10 @@ bool Renderer::Init()
     const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
 	if (!ptoken)
 	{
-		PanicAlert("Failed to get OpenGL extension string.\nDo you have the latest video drivers installed?\nIs your video card OpenGL 2.x compatible?");
+		PanicAlert("Your OpenGL Driver seems to be not working.     \n"
+			       "Please make sure your drivers up-to-date and    \n"
+				   "that your video hardware is OpenGL 2.x compatible "
+					);
 		return false;
 	}
     INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
@@ -731,7 +734,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------------------------------------------------------------------
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
 // ---------------
@@ -742,7 +745,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-// ---------------
+// -------------------------------------------------------------------------------------------
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -1003,9 +1006,9 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	rc->bottom = YOffset + ceil(FloatGLHeight);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
+// ---------------------------------------------------------------------------------------------------------
 // This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
-// ----------------------
+// ---------------------------------------------------------------------------------------------------------
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
