@@ -120,20 +120,20 @@ pdlabel_t regnames[] =
 	{0x15, "PROD.M1",   "PROD M1",},
 	{0x16, "PROD.H",    "PROD H",},
 	{0x17, "PROD.M2",   "PROD M2",},
-	{0x18, "AX0.L", "Additional Accumulators Low 0",},
-	{0x19, "AX1.L", "Additional Accumulators Low 1",},
-	{0x1a, "AX0.H", "Additional Accumulators High 0",},
-	{0x1b, "AX1.H", "Additional Accumulators High 1",},
-	{0x1c, "AC0.L", "Register 28",},
-	{0x1d, "AC1.L", "Register 29",},
-	{0x1e, "AC0.M", "Register 00",},
-	{0x1f, "AC1.M", "Register 00",},
+	{0x18, "AX0.L",		"Additional Accumulators Low 0",},
+	{0x19, "AX1.L",		"Additional Accumulators Low 1",},
+	{0x1a, "AX0.H",		"Additional Accumulators High 0",},
+	{0x1b, "AX1.H",		"Additional Accumulators High 1",},
+	{0x1c, "AC0.L",		"Register 28",},
+	{0x1d, "AC1.L",		"Register 29",},
+	{0x1e, "AC0.M",		"Register 00",},
+	{0x1f, "AC1.M",		"Register 00",},
 
 // additional to resolve special names
-	{0x20, "ACC0",      "Accumulators 0",},
-	{0x21, "ACC1",      "Accumulators 1",},
-	{0x22, "AX0",       "Additional Accumulators 0",},
-	{0x23, "AX1",       "Additional Accumulators 1",},
+	{0x20, "ACC0",		"Accumulators 0",},
+	{0x21, "ACC1",		"Accumulators 1",},
+	{0x22, "AX0",		"Additional Accumulators 0",},
+	{0x23, "AX1",		"Additional Accumulators 1",},
 };
 
 const char* pdname(u16 val)
@@ -143,15 +143,12 @@ const char* pdname(u16 val)
 	for (int i = 0; i < (int)(sizeof(pdlabels) / sizeof(pdlabel_t)); i++)
 	{
 		if (pdlabels[i].addr == val)
-		{
 			return(pdlabels[i].name);
-		}
 	}
 
 	sprintf(tmpstr, "0x%04x", val);
-	return(tmpstr);
+	return tmpstr;
 }
-
 
 char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf)
 {
@@ -168,103 +165,88 @@ char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, ch
 		}
 
 		if (opc->params[j].loc >= 1)
-		{
 			val = op2;
-		}
 		else
-		{
 			val = op1;
-		}
 
 		val &= opc->params[j].mask;
 
 		if (opc->params[j].lshift < 0)
-		{
 			val = val << (-opc->params[j].lshift);
-		}
 		else
-		{
 			val = val >> opc->params[j].lshift;
-		}
 
 		u32 type;
 		type = opc->params[j].type;
 
+		if ((type & 0xff) == 0x10)
+			type &= 0xff00;
+
 		if (type & P_REG)
 		{
-			if (type == P_ACCM_D)
-			{
+			if (type == P_ACCD) // Used to be P_ACCM_D TODO verify
 				val = (~val & 0x1) | ((type & P_REGS_MASK) >> 8);
-			}
 			else
-			{
 				val |= (type & P_REGS_MASK) >> 8;
-			}
 
 			type &= ~P_REGS_MASK;
 		}
 
 		switch (type)
 		{
-		    case P_REG:
+		case P_REG:
+			if (gdg->decode_registers)
+				sprintf(buf, "$%s", regnames[val].name);
+			else
+				sprintf(buf, "$%d", val);
+			break;
 
-			    if (gdg->decode_registers){sprintf(buf, "$%s", regnames[val].name);}
-			    else {sprintf(buf, "$%d", val);}
+		case P_PRG:
+			if (gdg->decode_registers)
+				sprintf(buf, "@$%s", regnames[val].name);
+			else
+				sprintf(buf, "@$%d", val);
+			break;
 
-			    break;
+		case P_VAL:
+			if (gdg->decode_names)
+				sprintf(buf, "%s", pdname(val));
+			else
+				sprintf(buf, "0x%04x", val);
+			break;
 
-		    case P_PRG:
+		case P_IMM:
+			if (opc->params[j].size != 2)
+			{
+				if (opc->params[j].mask == 0x007f) // LSL, LSR, ASL, ASR
+					sprintf(buf, "#%d", val < 64 ? val : -(0x80-val)); // I know compiler complains, but this is in gcdsptool...
+				else
+					sprintf(buf, "#0x%02x", val);
+			}
+			else
+				sprintf(buf, "#0x%04x", val);
+			break;
 
-			    if (gdg->decode_registers){sprintf(buf, "@$%s", regnames[val].name);}
-			    else {sprintf(buf, "@$%d", val);}
+		case P_MEM:
+			if (opc->params[j].size != 2)
+				val = (u16)(s8)val;
 
-			    break;
+			if (gdg->decode_names)
+				sprintf(buf, "@%s", pdname(val));
+			else
+				sprintf(buf, "@0x%04x", val);
+			break;
 
-		    case P_VAL:
-			    sprintf(buf, "0x%04x", val);
-			    break;
-
-		    case P_IMM:
-
-			    if (opc->params[j].size != 2)
-			    {
-				    sprintf(buf, "#0x%02x", val);
-			    }
-			    else
-			    {
-				    sprintf(buf, "#0x%04x", val);
-			    }
-
-			    break;
-
-		    case P_MEM:
-
-			    if (opc->params[j].size != 2)
-			    {
-				    val = (u16)(s8)val;
-			    }
-
-			    if (gdg->decode_names)
-			    {
-				    sprintf(buf, "@%s", pdname(val));
-			    }
-			    else
-			    {
-				    sprintf(buf, "@0x%04x", val);
-			    }
-
-			    break;
-
-		    default:
-			    ERROR_LOG(DSPHLE, "Unknown parameter type: %x\n", opc->params[j].type);
-			    exit(-1);
-			    break;
+		default:
+			ERROR_LOG(DSPHLE, "Unknown parameter type: %x", opc->params[j].type);
+			exit(-1);
+			break;
 		}
 
 		buf += strlen(buf);
 	}
 
-	return(strbuf);
+	return strbuf;
 }
 
 
@@ -283,9 +265,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	bool extended;
 
 	if ((gdg->pc & 0x7fff) >= 0x1000)
-	{
-		return(1);
-	}
+		return 1;
 
 	u32 op1 = Common::swap16(gdg->binbuf[gdg->pc & 0x0fff]);
 
@@ -294,13 +274,9 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 		u16 mask;
 
 		if (opcodes[j].size & P_EXT)
-		{
 			mask = opcodes[j].opcode_mask & 0xff00;
-		}
 		else
-		{
 			mask = opcodes[j].opcode_mask;
-		}
 
 		if ((op1 & mask) == opcodes[j].opcode)
 		{
@@ -316,13 +292,9 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	}
 
 	if (opc->size & P_EXT && op1 & 0x00ff)
-	{
 		extended = true;
-	}
 	else
-	{
 		extended = false;
-	}
 
 	if (extended)
 	{
@@ -342,7 +314,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 			ERROR_LOG(DSPHLE, "get_opcode_size ext ARGH");
 		}
 
-		return(opc_ext->size);
+		return opc_ext->size;
 	}
 
 	return(opc->size & ~P_EXT);
@@ -377,13 +349,9 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 		u16 mask;
 
 		if (opcodes[j].size & P_EXT)
-		{
 			mask = opcodes[j].opcode_mask & 0xff00;
-		}
 		else
-		{
 			mask = opcodes[j].opcode_mask;
-		}
 
 		if ((op1 & mask) == opcodes[j].opcode)
 		{
@@ -393,13 +361,9 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	if (opc->size & P_EXT && op1 & 0x00ff)
-	{
 		extended = true;
-	}
 	else
-	{
 		extended = false;
-	}
 
 	if (extended)
 	{
@@ -417,7 +381,8 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 
 	// printing
 
-	if (gdg->show_pc){sprintf(buf, "%04x ", gdg->pc);}
+	if (gdg->show_pc)
+		sprintf(buf, "%04x ", gdg->pc);
 
 	buf += strlen(buf);
 
@@ -425,13 +390,15 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	{
 		op2 = Common::swap16(gdg->binbuf[pc + 1]);
 
-		if (gdg->show_hex){sprintf(buf, "%04x %04x ", op1, op2);}
+		if (gdg->show_hex)
+			sprintf(buf, "%04x %04x ", op1, op2);
 	}
 	else
 	{
 		op2 = 0;
 
-		if (gdg->show_hex){sprintf(buf, "%04x      ", op1);}
+		if (gdg->show_hex)
+			sprintf(buf, "%04x      ", op1);
 	}
 
 	buf += strlen(buf);
@@ -439,38 +406,26 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	char tmpbuf[20];
 
 	if (extended)
-	{
 		sprintf(tmpbuf, "%s%c%s", opc->name, gdg->ext_separator, opc_ext->name);
-	}
 	else
-	{
 		sprintf(tmpbuf, "%s", opc->name);
-	}
 
 	if (gdg->print_tabs)
-	{
 		sprintf(buf, "%s\t", tmpbuf);
-	}
 	else
-	{
 		sprintf(buf, "%-12s", tmpbuf);
-	}
 
 	buf += strlen(buf);
 
 	if (opc->param_count > 0)
-	{
 		gd_dis_params(gdg, opc, op1, op2, buf);
-	}
 
 	buf += strlen(buf);
 
 	if (extended)
 	{
 		if (opc->param_count > 0)
-		{
 			sprintf(buf, " ");
-		}
 
 		buf += strlen(buf);
 
@@ -478,9 +433,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 		buf += strlen(buf);
 
 		if (opc_ext->param_count > 0)
-		{
 			gd_dis_params(gdg, opc_ext, op1, op2, buf);
-		}
 
 		buf += strlen(buf);
 	}
@@ -493,17 +446,12 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	if (extended)
-	{
 		gdg->pc += opc_ext->size;
-	}
 	else
-	{
 		gdg->pc += opc->size & ~P_EXT;
-	}
 
 	return(gdg->buffer);
 }
-
 
 bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 {
@@ -513,9 +461,7 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	in = fopen(name, "rb");
 
 	if (in == NULL)
-	{
-		return(false);
-	}
+		return false;
 
 	fseek(in, 0, SEEK_END);
 	size = (int)ftell(in);
@@ -527,9 +473,7 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	gdg->buffer_size = 256;
 
 	for (gdg->pc = 0; gdg->pc < (size / 2);)
-	{
 		fprintf(output, "%s\n", gd_dis_opcode(gdg));
-	}
 
 	fclose(in);
 
@@ -540,9 +484,8 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	gdg->buffer = NULL;
 	gdg->buffer_size = 0;
 
-	return(true);
+	return true;
 }
-
 
 void gd_dis_close_unkop()
 {
@@ -572,9 +515,7 @@ void gd_dis_close_unkop()
 				for (j = 15; j >= 0; j--)
 				{
 					if ((j & 0x3) == 3)
-					{
 						fprintf(uo, "\tb");
-					}
 
 					fprintf(uo, "%d", (i >> j) & 0x1);
 				}
@@ -587,7 +528,6 @@ void gd_dis_close_unkop()
 		fclose(uo);
 	}
 }
-
 
 void gd_dis_open_unkop()
 {
@@ -611,10 +551,7 @@ void gd_dis_open_unkop()
 	}
 }
 
-
 const char* gd_dis_get_reg_name(u16 reg)
 {
 	return(regnames[reg].name);
 }
-
-

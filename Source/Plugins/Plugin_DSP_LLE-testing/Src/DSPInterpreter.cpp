@@ -675,7 +675,7 @@ void nx(const UDSPInstruction& opc)
 
 
 // FIXME inside
-// TODO: add to opcode table
+// Hermes switched andf and andcf, so check to make sure they are still correct
 void andfc(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -699,6 +699,7 @@ void andfc(const UDSPInstruction& opc)
 }
 
 // FIXME inside
+// Hermes switched andf and andcf, so check to make sure they are still correct
 void andf(const UDSPInstruction& opc)
 {
 	u8 reg;
