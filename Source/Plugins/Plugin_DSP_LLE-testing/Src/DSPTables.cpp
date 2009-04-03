@@ -97,7 +97,7 @@ DSPOPCTemplate opcodes[] =
 	{"IFGE",	0x0277, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IFLNZ",	0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IFLZ",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IF",    0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // Hermes doesn't list this
+	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // Hermes doesn't list this
 
 	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"JS",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
@@ -271,8 +271,7 @@ DSPOPCTemplate opcodes[] =
 	{"SUB",		0x5c00, 0xfeff, DSPInterpreter::sub, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"MADD",    0xf200, 0xfeff, DSPInterpreter::madd, nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MSUB",    0xf600, 0xfeff, DSPInterpreter::msub , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 
-1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MSUB",    0xf600, 0xfeff, DSPInterpreter::msub , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MADDX",   0xe000, 0xfcff, DSPInterpreter::maddx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MSUBX",   0xe400, 0xfcff, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MADDC",   0xe800, 0xfcff, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
