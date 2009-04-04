@@ -21,6 +21,7 @@
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
 #define AUDIO_NUMBUFFERS			(4)
+//#define	AUDIO_SERVICE_UPDATE_PERIOD	(20)
 
 bool OpenALStream::Start()
 {
@@ -96,16 +97,62 @@ THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 
 void OpenALStream::SoundLoop()
 {
-	while (!threadData) {
-		soundCriticalSection.Enter();
+	ALuint		    uiBuffers[AUDIO_NUMBUFFERS] = {0};
+	ALuint		    uiSource = 0;
+	ALenum err;
+	u32 ulFrequency = m_mixer->GetSampleRate();
+	// Generate some AL Buffers for streaming
+	alGenBuffers(AUDIO_NUMBUFFERS, (ALuint *)uiBuffers);
+	// Generate a Source to playback the Buffers
+	alGenSources(1, &uiSource);
 
-		// Add sound playing here
-		// m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-		soundCriticalSection.Leave();
+	memset(realtimeBuffer, 0, OAL_BUFFER_SIZE * sizeof(short));
+//*
+	for (int iLoop = 0; iLoop < AUDIO_NUMBUFFERS; iLoop++)
+	{
+		// pay load fake data
+		alBufferData(uiBuffers[iLoop], AL_FORMAT_STEREO16, realtimeBuffer, 1024, ulFrequency);
+		alSourceQueueBuffers(uiSource, 1, &uiBuffers[iLoop]);
+	}
+//*/
+	alSourcePlay(uiSource);
+	err = alGetError();
 
+	while (!threadData) 
+	{
+		ALint iBuffersProcessed = 0;
+		alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
+
+		if (iBuffersProcessed)
+		{
+			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
+			ALuint uiTempBuffer = 0;
+			alSourceUnqueueBuffers(uiSource, 1, &uiTempBuffer);
+
+			soundCriticalSection.Enter();
+			int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
+			 m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+			soundCriticalSection.Leave();
+
+			unsigned long	ulBytesWritten = 0;
+			//if (ulBytesWritten)
+			{
+				//alBufferData(uiTempBuffer, ulFormat, pDecodeBuffer, ulBytesWritten, ulFrequency);
+				alBufferData(uiTempBuffer, AL_FORMAT_STEREO16, realtimeBuffer, numBytesToRender, ulFrequency);
+				alSourceQueueBuffers(uiSource, 1, &uiTempBuffer);
+			}
+		}
 		if (!threadData)
 			soundSyncEvent.Wait();
 	}
+	alSourceStop(uiSource);
+	alSourcei(uiSource, AL_BUFFER, 0);
+
+	// Clean up buffers and sources
+	alDeleteSources(1, &uiSource);
+	alDeleteBuffers(AUDIO_NUMBUFFERS, (const ALuint *)uiBuffers);
+
 }
 
 #endif //HAVE_OPENAL
+

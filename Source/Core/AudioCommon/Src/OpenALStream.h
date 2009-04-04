@@ -33,6 +33,7 @@
 #endif // WIN32
 // public use
 #define SFX_MAX_SOURCE	1
+#define OAL_BUFFER_SIZE 1024*1024
 #endif
 
 
@@ -56,6 +57,8 @@ private:
 	Common::Thread *thread;
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
+	
+	short realtimeBuffer[OAL_BUFFER_SIZE];
 #else
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
