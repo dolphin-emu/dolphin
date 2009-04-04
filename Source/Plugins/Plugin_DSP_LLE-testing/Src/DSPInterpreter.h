@@ -95,6 +95,7 @@ void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);
 void sbset(const UDSPInstruction& opc);
+ void mov(const UDSPInstruction& opc);
 void movp(const UDSPInstruction& opc);
 void mul(const UDSPInstruction& opc);
 void mulac(const UDSPInstruction& opc);

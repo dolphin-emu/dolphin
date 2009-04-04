@@ -110,8 +110,7 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x3: // LE - LESS EQUAL
-
-		if (g_dsp.r[R_SR] & 0x08)
+		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04) || (g_dsp.r[R_SR] & 0x08))
 			taken = true;
 
 		break;
@@ -223,13 +222,11 @@ void jcc(const UDSPInstruction& opc)
 void jmprcc(const UDSPInstruction& opc)
 {
 	u8 reg;
-	u16 addr;
 
 	if (CheckCondition(opc.hex & 0xf))
 	{
 		reg  = (opc.hex >> 5) & 0x7;
-		addr = dsp_op_read_reg(reg);
-		g_dsp.pc = addr;
+		g_dsp.pc = dsp_op_read_reg(reg);
 	}
 }
 
@@ -477,7 +474,6 @@ void clr(const UDSPInstruction& opc)
 	Update_SR_Register((s64)0);
 }
 
-// TODO: is this correct???
 void clrp(const UDSPInstruction& opc)
 {
 	g_dsp.r[0x14] = 0x0000;
@@ -510,7 +506,6 @@ void mulcmv(const UDSPInstruction& opc)
 	ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmv ni");
 }
 
-//TODO: add to opcode table
 void cmpar(const UDSPInstruction& opc)
 {
 	u8 rreg = ((opc.hex >> 12) & 0x1) + 0x1a;
@@ -533,7 +528,6 @@ void cmp(const UDSPInstruction& opc)
 	Update_SR_Register(acc0 - acc1);
 }
 
-//TODO: add to opcode table
 void tsta(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 11) & 0x1;
@@ -557,7 +551,6 @@ void addaxl(const UDSPInstruction& opc)
 	Update_SR_Register(acc);
 }
 
-//TODO: add to opcode table
 void addarn(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
@@ -724,7 +717,6 @@ void andf(const UDSPInstruction& opc)
 }
 
 // FIXME inside
-// TODO: add to opcode table
 void subf(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -916,12 +908,21 @@ void neg(const UDSPInstruction& opc)
 	Update_SR_Register(acc);
 }
 
-// TODO: Implement
-// FIXME: add to opcode table
+
 void movnp(const UDSPInstruction& opc)
 {
+	u8 dreg = (opc.hex >> 8) & 0x1;
+
+	s64 prod = dsp_get_long_prod();
+	s64 acc = -prod;
+	dsp_set_long_acc(dreg, acc);
+}
+
+// TODO: Implement
+void mov(const UDSPInstruction& opc)
+{
 	// UNIMPLEMENTED
-	ERROR_LOG(DSPHLE, "dsp_opc.hex_movnp\n");
+	ERROR_LOG(DSPHLE, "dsp_opc.hex_mov\n");
 }
 
 void addax(const UDSPInstruction& opc)
@@ -1147,22 +1148,30 @@ void sbset(const UDSPInstruction& opc)
 
 
 // FIXME inside
-// TODO: add to opcode table
 void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)
 	{
+	case 0xa: // M2
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_m2\n");
+		break;
+		// FIXME: Both of these appear in the beginning of the Wind Waker
+	case 0xb: // M0
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_m0\n");
+		break;
+	case 0xc: // CLR15
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_clr15\n");
+		break;
+	case 0xd: // SET15
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_set15\n");
+		break;
 	case 0xe: // SET40
 		g_dsp.r[R_SR] &= ~(1 << 14);
 		break;
 
-		// FIXME: Both of these appear in the beginning of the Wind Waker
-		//case 0xb:
-		//case 0xc:
-
-		/*	case 0xf:	// SET16   // that doesnt happen on a real console
+	case 0xf:	// SET16   // that doesnt happen on a real console
 		g_dsp.r[R_SR] |= (1 << 14);
-		break;*/
+		break;
 
 	default:
 		break;

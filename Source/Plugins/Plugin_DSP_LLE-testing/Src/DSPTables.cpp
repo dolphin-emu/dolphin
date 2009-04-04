@@ -172,7 +172,7 @@ DSPOPCTemplate opcodes[] =
 	{"ORF",		0x02e0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL}, // Hermes: ??? (has it commented out)
 
 	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // F|RES: missing S64
-	{"CMPI",    0x0280, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // F|RES: missing S64
+	{"SUBF",    0x0280, 0xfeff, DSPInterpreter::subf, nop, 1, 2, {{P_REG, 1, 0, 8, 0x0100}}, NULL, NULL},
 
 	{"ILRR",    0x0210, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL},
 	{"ILRRD",	0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL}, // Hermes doesn't list this
@@ -192,20 +192,19 @@ DSPOPCTemplate opcodes[] =
 	{"BLOOPI",  0x1100, 0xff00, DSPInterpreter::bloopi, nop, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"LOOP",    0x0040, 0xffe0, DSPInterpreter::loop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
 	{"BLOOP",   0x0060, 0xffe0, DSPInterpreter::bloop, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-
+	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG, 2, 1, 0, 0x0003}}, NULL, NULL},
 
 
 	// opcodes that can be extended
 	// extended opcodes, note size of opcode will be set to 0
 
-	{"NX",      0x8000, 0xffff, DSPInterpreter::nx, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"NX?",     0x8800, 0xffff, DSPInterpreter::nx, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"S40",		0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"S16",		0x8f00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"NX",      0x8000, 0xf700, DSPInterpreter::nx, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"M2",      0x8a00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"M0",      0x8b00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SET40",		0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SET16",		0x8f00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"DECM",    0x7800, 0xfeff, DSPInterpreter::decm, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"INCM",    0x7400, 0xfeff, DSPInterpreter::incm, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -213,21 +212,23 @@ DSPOPCTemplate opcodes[] =
 	{"INC",		0x7600, 0xfeff, DSPInterpreter::inc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MOVNP",   0x7e00, 0xfeff, DSPInterpreter::movnp, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"CMPAXH",  0xc100, 0xe7ff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	
+	//	{"CMPAR" ,  0xc100, 0xe7ff, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-	{"CLRAL0",	0xFC00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl0
-	{"CLRAL1",	0xFD00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl1
+	{"CLRAL0",	0xfc00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl0
+	{"CLRAL1",	0xfd00, 0xffff, nop, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl1
 	{"CLRA0",	0x8100, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acc0
 	{"CLRA1",	0x8900, 0xffff, DSPInterpreter::clr, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acc1
 	{"CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT, 0, {}, },
 
       
-	{"MOV",		0x6c00, 0xfeff, nop, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MOV",		0x6c00, 0xfeff, DSPInterpreter::mov, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_ACCM_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVAX",   0x6800, 0xfcff, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVR",    0x6000, 0xf8ff, DSPInterpreter::movr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVP",    0x6e00, 0xfeff, DSPInterpreter::movp, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -276,12 +277,6 @@ DSPOPCTemplate opcodes[] =
 	{"MSUBX",   0xe400, 0xfcff, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MADDC",   0xe800, 0xfcff, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MSUBC",   0xec00, 0xfcff, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-
-	// FIXME: nakee guessing (check masks and params!)
-	{"TSTA?",	0xa100, 0xf7ff, DSPInterpreter::tsta, nop, 1 | P_EXT, 1, {{P_REG18, 1, 0, 11, 0x1000}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	
-	// unknown opcode for disassemble
-	{"CW",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,},
 };
 
 DSPOPCTemplate opcodes_ext[] =
