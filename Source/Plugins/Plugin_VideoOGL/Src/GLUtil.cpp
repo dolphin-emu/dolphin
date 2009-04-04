@@ -293,7 +293,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     if (g_Config.bFullscreen)
         // We put the window at the upper left corner of the screen, so x = y = 0
         SetWindowPos(EmuWindow::GetWnd(), NULL, 0, 0, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
-	else
+    else
         SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
 
     PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be

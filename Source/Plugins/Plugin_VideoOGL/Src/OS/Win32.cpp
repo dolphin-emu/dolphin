@@ -168,24 +168,23 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 					
 					if (strlen(g_Config.iWindowedRes) > 1)
 						sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
-
-					// FullScreen - > Desktop
-					ChangeDisplaySettings(NULL, 0);
-
-					// Set new window style FS -> Windowed
-					SetWindowLong(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-
-					// Re-Enable the cursor
-					ShowCursor(TRUE);
-				
 					RECT rcdesktop;
 					RECT rc = {0, 0, w_fs, h_fs};
 					GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
+					// FullScreen -> Desktop
+					ChangeDisplaySettings(NULL, 0);
+
+					// Re-Enable the cursor
+					ShowCursor(TRUE);
 
 					int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 					int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 					// SetWindowPos to the center of the screen
 					SetWindowPos(hWnd, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+					// Set new window style FS -> Windowed
+					SetWindowLong(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 
 					// Eventually show the window!
 					EmuWindow::Show();
