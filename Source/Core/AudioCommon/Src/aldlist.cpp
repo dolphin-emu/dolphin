@@ -47,30 +47,38 @@ ALDeviceList::ALDeviceList()
 
 	// grab function pointers for 1.0-API functions, and if successful proceed to enumerate all devices
 	//if (LoadOAL10Library(NULL, &ALFunction) == TRUE) {
-		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT")) {
+		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+		{
 			devices = (char *)alcGetString(NULL, ALC_DEVICE_SPECIFIER);
 			defaultDeviceName = (char *)alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 			index = 0;
 			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			while (devices != NULL) {
-				if (strcmp(defaultDeviceName, devices) == 0) {
+			while (devices != NULL && strlen(devices) > 0) 
+			{
+				if (strcmp(defaultDeviceName, devices) == 0) 
+				{
 					defaultDeviceIndex = index;
 				}
 				ALCdevice *device = alcOpenDevice(devices);
-				if (device) {
+				if (device) 
+				{
 					ALCcontext *context = alcCreateContext(device, NULL);
-					if (context) {
+					if (context) 
+					{
 						alcMakeContextCurrent(context);
 						// if new actual device name isn't already in the list, then add it...
 						actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
 						bool bNewName = true;
-						for (s32 i = 0; i < GetNumDevices(); i++) {
-							if (strcmp(GetDeviceName(i), actualDeviceName) == 0) {
+						for (s32 i = 0; i < GetNumDevices(); i++) 
+						{
+							if (strcmp(GetDeviceName(i), actualDeviceName) == 0) 
+							{
 								bNewName = false;
 							}
 						}
-						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0)) {
-							//memset(&ALDeviceInfo, 0, sizeof(ALDEVICEINFO));	// the creative was brain broken.
+						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0)) 
+						{
+							memset(&ALDeviceInfo, 0, sizeof(ALDEVICEINFO));	// the creative was brain broken.
 							ALDeviceInfo.bSelected = true;
 							ALDeviceInfo.strDeviceName = actualDeviceName;
 							alcGetIntegerv(device, ALC_MAJOR_VERSION, sizeof(s32), &ALDeviceInfo.iMajorVersion);
