@@ -32,72 +32,7 @@
 
 #include "main.h" //for the plugin interface
 
-bool textureChanged[8];
 
-const bool renderFog = false;
-
-using namespace D3D;
-
-// State translation lookup tables
-static const D3DBLEND d3dSrcFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-static const D3DBLEND d3dDestFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-static const D3DCULL d3dCullModes[4] = 
-{
-	D3DCULL_NONE,
-	D3DCULL_CCW,
-	D3DCULL_CW,
-	D3DCULL_CCW
-};
-
-static const D3DCMPFUNC d3dCmpFuncs[8] = 
-{
-	D3DCMP_NEVER,
-	D3DCMP_LESS,
-	D3DCMP_EQUAL,
-	D3DCMP_LESSEQUAL,
-	D3DCMP_GREATER,
-	D3DCMP_NOTEQUAL,
-	D3DCMP_GREATEREQUAL,
-	D3DCMP_ALWAYS
-};
-
-static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
-{
-	D3DTEXF_NONE,
-	D3DTEXF_POINT,
-	D3DTEXF_ANISOTROPIC,
-	D3DTEXF_LINEAR, //reserved
-};
-
-static const D3DTEXTUREADDRESS d3dClamps[4] =
-{
-	D3DTADDRESS_CLAMP,
-	D3DTADDRESS_WRAP,
-	D3DTADDRESS_MIRROR,
-	D3DTADDRESS_WRAP //reserved
-};
 
 void BPInit()
 {
@@ -118,25 +53,7 @@ void BPWritten(int addr, int changes, int newval)
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			
-			// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
-			Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 
-			if (bpmem.genMode.cullmode == 3)
-			{
-				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-			}
-			else
-			{
-				DWORD write = 0;
-				if (bpmem.blendmode.alphaupdate) 
-					write = D3DCOLORWRITEENABLE_ALPHA;
-				if (bpmem.blendmode.colorupdate) 
-					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-				
-				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
-				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
-			}
 		}
 		break;
     case BPMEM_IND_MTX+0:
@@ -168,28 +85,7 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			if (bpmem.zmode.testenable)
-			{
-				// dev->SetRenderState(D3DRS_ZENABLE, TRUE);
-				// dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-				// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
 
-				Renderer::SetRenderState(D3DRS_ZENABLE, TRUE);
-				Renderer::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-				Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
-			}
-			else
-			{
-				// if the test is disabled write is disabled too
-				// dev->SetRenderState(D3DRS_ZENABLE,		FALSE);
-				// dev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
-				Renderer::SetRenderState(D3DRS_ZENABLE, FALSE);
-				Renderer::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-			}			
-
-            //if (!bpmem.zmode.updateenable)
-            //    Renderer::SetRenderMode(Renderer::RM_Normal);
 		}
 		break;
 
@@ -214,11 +110,8 @@ void BPWritten(int addr, int changes, int newval)
 
 	case BPMEM_LINEPTWIDTH:
 		{
-			// We can't change line width in D3D unless we use ID3DXLine
-			//bpmem.lineptwidth.linesize);
-			float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 
-			Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+			
 		}
 		break;
 	
