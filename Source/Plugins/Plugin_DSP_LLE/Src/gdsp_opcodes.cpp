@@ -92,14 +92,12 @@ void Update_SR_Register(sint16 _Value)
 }
 
 
-sint8 GetMultiplyModifier()
+int GetMultiplyModifier()
 {
 	if (g_dsp.r[R_SR] & (1 << 13))
-	{
-		return(1);
-	}
-
-	return(2);
+		return 1;
+	else
+		return 2;
 }
 
 

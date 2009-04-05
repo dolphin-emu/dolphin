@@ -21,6 +21,7 @@
 #include "Globals.h"
 #include "HLE_Helper.h"
 #include "DSPInterpreter.h"
+#include "gdsp_condition_codes.h"
 
 // Avoid adding "DSPInterpreter::" to every instruction
 using namespace DSPInterpreter;
@@ -93,27 +94,27 @@ u16 HLE_ROM_80E7_81F8()
     AX0_h = ReadDMEM(R00);
     R00++;
     ACC0 = 0;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_80E8:
     AX1_l = ReadDMEM(R01);
     R01++;
     ACC1 = 0;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_80E9:
     AC0_m = ReadDMEM(R02);
     R02++;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80EA:
     AC0_l = ReadDMEM(R02);
     R02++;
     ACC1 = 0;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_80EB:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_80EC:
     AX0_h = ReadDMEM(R00);
     R00++;
@@ -122,15 +123,15 @@ u16 HLE_ROM_80E7_81F8()
     R02++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80EE:
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_80EF:
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_80F0:
@@ -138,12 +139,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80F1:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_80F2:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -151,7 +152,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_80F4:
@@ -159,12 +160,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80F5:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_80F6:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -172,7 +173,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_80F8:
@@ -180,12 +181,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80F9:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_80FA:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -193,7 +194,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_80FC:
@@ -201,12 +202,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_80FD:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_80FE:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -214,7 +215,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8100:
@@ -222,12 +223,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8101:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8102:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -235,7 +236,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8104:
@@ -243,12 +244,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8105:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8106:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -256,7 +257,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8108:
@@ -264,12 +265,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8109:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_810A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -277,7 +278,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_810C:
@@ -285,12 +286,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_810D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_810E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -298,7 +299,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8110:
@@ -306,12 +307,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8111:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8112:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -319,7 +320,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8114:
@@ -327,12 +328,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8115:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8116:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -340,7 +341,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8118:
@@ -348,12 +349,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8119:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_811A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -361,7 +362,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_811C:
@@ -369,12 +370,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_811D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_811E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -382,7 +383,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8120:
@@ -390,12 +391,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8121:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8122:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -403,7 +404,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8124:
@@ -411,12 +412,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8125:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8126:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -424,7 +425,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8128:
@@ -432,12 +433,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8129:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_812A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -445,7 +446,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_812C:
@@ -453,12 +454,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_812D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_812E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -466,7 +467,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8130:
@@ -474,12 +475,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8131:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8132:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -487,7 +488,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8134:
@@ -495,12 +496,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8135:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8136:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -508,7 +509,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8138:
@@ -516,12 +517,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8139:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_813A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -529,7 +530,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_813C:
@@ -537,12 +538,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_813D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_813E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -550,7 +551,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8140:
@@ -558,12 +559,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8141:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8142:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -571,7 +572,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8144:
@@ -579,12 +580,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8145:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8146:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -592,7 +593,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8148:
@@ -600,12 +601,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8149:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_814A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -613,7 +614,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_814C:
@@ -621,12 +622,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_814D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_814E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -634,7 +635,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8150:
@@ -642,12 +643,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8151:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8152:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -655,7 +656,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8154:
@@ -663,12 +664,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8155:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8156:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -676,7 +677,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8158:
@@ -684,12 +685,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8159:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_815A:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -697,7 +698,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_815C:
@@ -705,12 +706,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_815D:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_815E:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -718,7 +719,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8160:
@@ -726,12 +727,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8161:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8162:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -739,7 +740,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8164:
@@ -747,12 +748,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8165:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8166:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -760,7 +761,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8168:
@@ -772,11 +773,11 @@ u16 HLE_ROM_80E7_81F8()
     AX0_l = AC0_m;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_816B:
     R01++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_816C:
     WriteDMEM(R03, AC1_m);
     R03++;
@@ -784,7 +785,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_l);
     R03++;
     ACC0 = 0;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_816E:
     R00 = R04;
 // l_816F:
@@ -795,27 +796,27 @@ u16 HLE_ROM_80E7_81F8()
     AX0_h = ReadDMEM(R00);
     R00++;
     ACC0 = 0;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8172:
     AX1_l = ReadDMEM(R01);
     R01++;
     ACC1 = 0;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8173:
     AC0_m = ReadDMEM(R02);
     R02++;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8174:
     AC0_l = ReadDMEM(R02);
     R02++;
     ACC1 = 0;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8175:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8176:
     AX0_h = ReadDMEM(R00);
     R00++;
@@ -824,15 +825,15 @@ u16 HLE_ROM_80E7_81F8()
     R02++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8178:
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8179:
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_817A:
@@ -840,12 +841,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_817B:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_817C:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -853,7 +854,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_817E:
@@ -861,12 +862,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_817F:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8180:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -874,7 +875,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8182:
@@ -882,12 +883,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8183:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8184:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -895,7 +896,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8186:
@@ -903,12 +904,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8187:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8188:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -916,7 +917,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_818A:
@@ -924,12 +925,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_818B:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_818C:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -937,7 +938,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_818E:
@@ -945,12 +946,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_818F:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8190:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -958,7 +959,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8192:
@@ -966,12 +967,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8193:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_8194:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -979,7 +980,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_8196:
@@ -987,12 +988,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_8197:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_8198:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1000,7 +1001,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_819A:
@@ -1008,12 +1009,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_819B:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_819C:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1021,7 +1022,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_819E:
@@ -1029,12 +1030,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_819F:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81A0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1042,7 +1043,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81A2:
@@ -1050,12 +1051,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81A3:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81A4:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1063,7 +1064,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81A6:
@@ -1071,12 +1072,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81A7:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81A8:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1084,7 +1085,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81AA:
@@ -1092,12 +1093,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81AB:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81AC:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1105,7 +1106,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81AE:
@@ -1113,12 +1114,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81AF:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81B0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1126,7 +1127,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81B2:
@@ -1134,12 +1135,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81B3:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81B4:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1147,7 +1148,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81B6:
@@ -1155,12 +1156,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81B7:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81B8:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1168,7 +1169,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81BA:
@@ -1176,12 +1177,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81BB:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81BC:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1189,7 +1190,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81BE:
@@ -1197,12 +1198,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81BF:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81C0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1210,7 +1211,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81C2:
@@ -1218,12 +1219,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81C3:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81C4:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1231,7 +1232,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81C6:
@@ -1239,12 +1240,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81C7:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81C8:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1252,7 +1253,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81CA:
@@ -1260,12 +1261,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81CB:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81CC:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1273,7 +1274,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81CE:
@@ -1281,12 +1282,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81CF:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81D0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1294,7 +1295,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81D2:
@@ -1302,12 +1303,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81D3:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81D4:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1315,7 +1316,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81D6:
@@ -1323,12 +1324,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81D7:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81D8:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1336,7 +1337,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81DA:
@@ -1344,12 +1345,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81DB:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81DC:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1357,7 +1358,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81DE:
@@ -1365,12 +1366,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81DF:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81E0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1378,7 +1379,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81E2:
@@ -1386,12 +1387,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81E3:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81E4:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1399,7 +1400,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81E6:
@@ -1407,12 +1408,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81E7:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81E8:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1420,7 +1421,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81EA:
@@ -1428,12 +1429,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81EB:
     AC0_m = ReadDMEM(R02);
     R02++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81EC:
     AC0_l = ReadDMEM(R02);
     R02++;
@@ -1441,7 +1442,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_m);
     R03++;
     ACC0 <<= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81EE:
@@ -1449,12 +1450,12 @@ u16 HLE_ROM_80E7_81F8()
     R03++;
     ACC0 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81EF:
     AC1_m = ReadDMEM(R02);
     R02++;
     ACC0 >>= 16;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81F0:
     AC1_l = ReadDMEM(R02);
     R02++;
@@ -1462,7 +1463,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC0_m);
     R03++;
     ACC1 <<= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
     AX0_h = ReadDMEM(R00);
     R00++;
 // l_81F2:
@@ -1474,11 +1475,11 @@ u16 HLE_ROM_80E7_81F8()
     AX1_h = AC0_m;
     ACC1 += PROD;
     PROD = AX0_h * AX1_l * MultiplyModifier;
-    Update_SR_Register(PROD);
+    Update_SR_Register64(PROD);
 // l_81F5:
     R01++;
     ACC1 >>= 16;
-    Update_SR_Register(ACC1);
+    Update_SR_Register64(ACC1);
 // l_81F6:
     WriteDMEM(R03, AC1_m);
     R03++;
@@ -1486,7 +1487,7 @@ u16 HLE_ROM_80E7_81F8()
     WriteDMEM(R03, AC1_l);
     R03++;
     ACC0 = 0;
-    Update_SR_Register(ACC0);
+    Update_SR_Register64(ACC0);
 // l_81F8:
 //missing: dsp_opc_ret;
 

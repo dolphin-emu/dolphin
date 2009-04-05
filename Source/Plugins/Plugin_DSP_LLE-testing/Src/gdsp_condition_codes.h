@@ -28,11 +28,22 @@
 
 namespace DSPInterpreter {
 
-bool CheckCondition(u8 _Condition);
-s8 GetMultiplyModifier();
+// SR flag defines.
+#define SR_CMP_MASK     0x3f   // Shouldn't this include 0x40?
 
-void Update_SR_Register(s16 _Value);
-void Update_SR_Register(s64 _Value);
+// These are probably not accurate. Do not use yet.
+#define SR_LOGIC_ZERO 0x0040   // ?? duddie's doc sometimes say & 1<<6 (0x40), sometimes 1<<14 (0x4000), while we have 0x20 .. eh
+#define SR_PROD_MUL2  0x2000
+#define SR_SIGN       0x0008
+#define SR_ARITH_ZERO 0x0002   // ????????
+#define SR_INT_ENABLE 0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
+#define SR_MUL_MODIFY 0x2000   // 1 = normal. 0 = x2
+
+bool CheckCondition(u8 _Condition);
+int GetMultiplyModifier();
+
+void Update_SR_Register16(s16 _Value);
+void Update_SR_Register64(s64 _Value);
 
 }  // namespace
 

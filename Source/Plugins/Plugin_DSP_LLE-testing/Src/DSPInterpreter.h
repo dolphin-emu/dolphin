@@ -20,18 +20,12 @@
 
 #include "DSPTables.h"
 
-#define SR_CMP_MASK     0x3f
 #define DSP_REG_MASK    0x1f
 
 #define R_SR            0x13
 #define FLAG_ENABLE_INTERUPT    11
 
 namespace DSPInterpreter {
-
-// GLOBAL HELPER FUNCTIONS
-void Update_SR_Register(s64 _Value);
-s8 GetMultiplyModifier();
-// END OF HELPER FUNCTIONS
 
 void unknown(const UDSPInstruction& opc);
 void call(const UDSPInstruction& opc);
@@ -95,7 +89,7 @@ void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);
 void sbset(const UDSPInstruction& opc);
- void mov(const UDSPInstruction& opc);
+void mov(const UDSPInstruction& opc);
 void movp(const UDSPInstruction& opc);
 void mul(const UDSPInstruction& opc);
 void mulac(const UDSPInstruction& opc);
@@ -112,6 +106,7 @@ void maddc(const UDSPInstruction& opc);
 void msubc(const UDSPInstruction& opc);
 void srs(const UDSPInstruction& opc);
 void lrs(const UDSPInstruction& opc);
+void nx(const UDSPInstruction& opc);
 
 // FIXME inside
 void rti(const UDSPInstruction& opc);
@@ -129,7 +124,6 @@ void ori(const UDSPInstruction& opc);
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
 void mulcmvz(const UDSPInstruction& opc);
 void mulcmv(const UDSPInstruction& opc);
-void nx(const UDSPInstruction& opc);
 void movnp(const UDSPInstruction& opc);
 // END OF UNIMPLEMENTED
 

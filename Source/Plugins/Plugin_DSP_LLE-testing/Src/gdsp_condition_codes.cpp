@@ -26,7 +26,7 @@
 
 namespace DSPInterpreter {
 
-void Update_SR_Register(s64 _Value)
+void Update_SR_Register64(s64 _Value)
 {
 	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
 
@@ -47,7 +47,7 @@ void Update_SR_Register(s64 _Value)
 	}
 }
 
-void Update_SR_Register(s16 _Value)
+void Update_SR_Register16(s16 _Value)
 {
 	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
 
@@ -68,13 +68,12 @@ void Update_SR_Register(s16 _Value)
 	}
 }
 
-s8 GetMultiplyModifier()
+int GetMultiplyModifier()
 {
 	if (g_dsp.r[R_SR] & (1 << 13))
-	{
-		return(1);
-	}
-	return 2;
+		return 1;
+	else	
+		return 2;
 }
 
 

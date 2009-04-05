@@ -331,7 +331,7 @@ void tstaxh(const UDSPInstruction& opc)
 	u8 reg  = (opc.hex >> 8) & 0x1;
 	s16 val = dsp_get_ax_h(reg);
 
-	Update_SR_Register(val);
+	Update_SR_Register16(val);
 }
 
 void clr(const UDSPInstruction& opc)
@@ -340,7 +340,7 @@ void clr(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(reg, 0);
 
-	Update_SR_Register((s64)0);
+	Update_SR_Register64((s64)0);   // really?
 }
 
 void clrp(const UDSPInstruction& opc)
@@ -360,7 +360,7 @@ void mulc(const UDSPInstruction& opc)
 	s64 prod = dsp_get_acc_m(sreg) * dsp_get_ax_h(treg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 // TODO: Implement
@@ -386,7 +386,7 @@ void cmpar(const UDSPInstruction& opc)
 
 	s64 ar = dsp_get_long_acc(areg);
 
-	Update_SR_Register(ar - rr);
+	Update_SR_Register64(ar - rr);
 }
 
 void cmp(const UDSPInstruction& opc)
@@ -394,7 +394,7 @@ void cmp(const UDSPInstruction& opc)
 	s64 acc0 = dsp_get_long_acc(0);
 	s64 acc1 = dsp_get_long_acc(1);
 
-	Update_SR_Register(acc0 - acc1);
+	Update_SR_Register64(acc0 - acc1);
 }
 
 void tsta(const UDSPInstruction& opc)
@@ -402,7 +402,7 @@ void tsta(const UDSPInstruction& opc)
 	u8 reg  = (opc.hex >> 11) & 0x1;
 	s64 acc = dsp_get_long_acc(reg);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void addaxl(const UDSPInstruction& opc)
@@ -417,7 +417,7 @@ void addaxl(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void addarn(const UDSPInstruction& opc)
@@ -453,7 +453,7 @@ void movr(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void movax(const UDSPInstruction& opc)
@@ -602,7 +602,7 @@ void subf(const UDSPInstruction& opc)
 	s64 val = (s16)g_dsp.r[reg];
 	s64 res = val - imm;
 
-	Update_SR_Register(res);
+	Update_SR_Register64(res);
 }
 
 // FIXME inside
@@ -618,7 +618,7 @@ void xori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
 
-	Update_SR_Register((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 //FIXME inside
@@ -634,7 +634,7 @@ void andi(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
 
-	Update_SR_Register((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 
@@ -654,7 +654,7 @@ void ori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
 
-	Update_SR_Register((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 //-------------------------------------------------------------
@@ -669,7 +669,7 @@ void add(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(areg, res);
 
-	Update_SR_Register(res);
+	Update_SR_Register64(res);
 }
 
 //-------------------------------------------------------------
@@ -681,7 +681,7 @@ void addp(const UDSPInstruction& opc)
 	acc = acc + dsp_get_long_prod();
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void cmpis(const UDSPInstruction& opc)
@@ -694,7 +694,7 @@ void cmpis(const UDSPInstruction& opc)
 
 	s64 res = acc - val;
 
-	Update_SR_Register(res);
+	Update_SR_Register64(res);
 }
 
 void addpaxz(const UDSPInstruction& opc)
@@ -708,7 +708,7 @@ void addpaxz(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void movpz(const UDSPInstruction& opc)
@@ -720,7 +720,7 @@ void movpz(const UDSPInstruction& opc)
 	s64 acc = prod & ~0xffff;
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void decm(const UDSPInstruction& opc)
@@ -732,7 +732,7 @@ void decm(const UDSPInstruction& opc)
 	acc -= sub;
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void dec(const UDSPInstruction& opc)
@@ -742,7 +742,7 @@ void dec(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(dreg) - 1;
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void incm(const UDSPInstruction& opc)
@@ -754,7 +754,7 @@ void incm(const UDSPInstruction& opc)
 	acc += sub;
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void inc(const UDSPInstruction& opc)
@@ -765,7 +765,7 @@ void inc(const UDSPInstruction& opc)
 	acc++;
 	dsp_set_long_acc(dreg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void neg(const UDSPInstruction& opc)
@@ -776,7 +776,7 @@ void neg(const UDSPInstruction& opc)
 	acc = 0 - acc;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 
@@ -806,7 +806,7 @@ void addax(const UDSPInstruction& opc)
 	acc += ax;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void addr(const UDSPInstruction& opc)
@@ -821,7 +821,7 @@ void addr(const UDSPInstruction& opc)
 	acc += ax;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void subr(const UDSPInstruction& opc)
@@ -836,7 +836,7 @@ void subr(const UDSPInstruction& opc)
 	acc -= ax;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void subax(const UDSPInstruction& opc)
@@ -847,7 +847,7 @@ void subax(const UDSPInstruction& opc)
 	s64 Acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regT);
 
 	dsp_set_long_acc(regD, Acc);
-	Update_SR_Register(Acc);
+	Update_SR_Register64(Acc);
 }
 
 void addis(const UDSPInstruction& opc)
@@ -860,7 +860,7 @@ void addis(const UDSPInstruction& opc)
 	acc += Imm;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void addi(const UDSPInstruction& opc)
@@ -873,7 +873,7 @@ void addi(const UDSPInstruction& opc)
 	acc += sub;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void lsl16(const UDSPInstruction& opc)
@@ -884,7 +884,7 @@ void lsl16(const UDSPInstruction& opc)
 	acc <<= 16;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void madd(const UDSPInstruction& opc)
@@ -913,7 +913,7 @@ void lsr16(const UDSPInstruction& opc)
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void asr16(const UDSPInstruction& opc)
@@ -924,7 +924,7 @@ void asr16(const UDSPInstruction& opc)
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 void shifti(const UDSPInstruction& opc)
@@ -974,7 +974,7 @@ void shifti(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(opc.areg, acc);
 
-	Update_SR_Register(acc);
+	Update_SR_Register64(acc);
 }
 
 //-------------------------------------------------------------
@@ -1067,7 +1067,7 @@ void mul(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulac(const UDSPInstruction& opc)
@@ -1082,7 +1082,7 @@ void mulac(const UDSPInstruction& opc)
 	s64 prod = dsp_get_ax_l(sreg) * dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulmv(const UDSPInstruction& opc)
@@ -1101,7 +1101,7 @@ void mulmv(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulmvz(const UDSPInstruction& opc)
@@ -1118,7 +1118,7 @@ void mulmvz(const UDSPInstruction& opc)
 	prod = (s64)g_dsp.r[0x18 + sreg] * (s64)g_dsp.r[0x1a + sreg] * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulx(const UDSPInstruction& opc)
@@ -1132,7 +1132,7 @@ void mulx(const UDSPInstruction& opc)
 	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulxac(const UDSPInstruction& opc)
@@ -1152,7 +1152,7 @@ void mulxac(const UDSPInstruction& opc)
 	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulxmv(const UDSPInstruction& opc)
@@ -1172,7 +1172,7 @@ void mulxmv(const UDSPInstruction& opc)
 	s64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void mulxmvz(const UDSPInstruction& opc)
@@ -1193,7 +1193,7 @@ void mulxmvz(const UDSPInstruction& opc)
 	prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	Update_SR_Register(prod);
+	Update_SR_Register64(prod);
 }
 
 void sub(const UDSPInstruction& opc)

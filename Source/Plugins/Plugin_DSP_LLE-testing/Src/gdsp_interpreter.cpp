@@ -65,14 +65,6 @@ extern volatile u32 dsp_running;
 static bool cr_halt = true;
 static bool cr_external_int = false;
 
-// SR flag defines.
-// These are probably not accurate. Do not use yet.
-#define SR_LOGIC_ZERO 0x0040   // ?? duddie's doc sometimes say & 1<<6, sometimes 1<<14 (0x4000)
-#define SR_PROD_MUL2  0x2000
-#define SR_SIGN       0x0008
-#define SR_ARITH_ZERO 0x0002
-#define SR_INT_ENABLE 0x0200
-
 void UpdateCachedCR()
 {
 	cr_halt = (g_dsp.cr & 0x4) != 0;
