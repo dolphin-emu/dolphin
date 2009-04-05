@@ -75,7 +75,7 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 		    {
 			    m_CurrentUCode.m_StartPC = _uMail;
 			    BootUCode();
-				return; // FIXES THE OVERWRITE
+				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
 		    }
 		    break;
 		}
@@ -90,7 +90,6 @@ void CUCode_Rom::BootUCode()
 	// simple non-scientific crc invented by ector :P
 	// too annoying to change now, and probably good enough anyway
 	u32 crc = 0;
-
 	for (u32 i = 0; i < m_CurrentUCode.m_Length; i++)
 	{
 		crc ^= Memory_Read_U8(m_CurrentUCode.m_RAMAddress + i);

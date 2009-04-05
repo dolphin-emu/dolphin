@@ -28,7 +28,6 @@
 // --------------
 u32 RAM_MASK = 0x1FFFFFF;
 
-
 u16 Memory_Read_U16(u32 _uAddress)
 {
 	_uAddress &= RAM_MASK;

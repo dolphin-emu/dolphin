@@ -150,13 +150,14 @@ const char* pdname(u16 val)
 	return tmpstr;
 }
 
-char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf)
+extern void nop(const UDSPInstruction& opc);
+
+char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf)
 {
 	char* buf = strbuf;
 	u32 val;
-	int j;
 
-	for (j = 0; j < opc->param_count; j++)
+	for (int j = 0; j < opc->param_count; j++)
 	{
 		if (j > 0)
 		{
@@ -219,7 +220,7 @@ char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, ch
 			if (opc->params[j].size != 2)
 			{
 				if (opc->params[j].mask == 0x007f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", val < 64 ? val : -(0x80-(s32)val));
+					sprintf(buf, "#%d", val < 64 ? val : -(0x80 - (s32)val));
 				else
 					sprintf(buf, "#0x%02x", val);
 			}
@@ -239,7 +240,7 @@ char* gd_dis_params(gd_globals_t* gdg, DSPOPCTemplate* opc, u16 op1, u16 op2, ch
 
 		default:
 			ERROR_LOG(DSPHLE, "Unknown parameter type: %x", opc->params[j].type);
-			exit(-1);
+//			exit(-1);
 			break;
 		}
 
@@ -320,13 +321,12 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	return(opc->size & ~P_EXT);
 }
 
-
 char* gd_dis_opcode(gd_globals_t* gdg)
 {
 	u32 j;
 	u32 op1, op2;
-	DSPOPCTemplate *opc = NULL;
-	DSPOPCTemplate *opc_ext = NULL;
+	const DSPOPCTemplate *opc = NULL;
+	const DSPOPCTemplate *opc_ext = NULL;
 	u16 pc;
 	char* buf = gdg->buffer;
 	bool extended;
@@ -337,7 +337,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	if ((pc & 0x7fff) >= 0x1000)
 	{
 		gdg->pc++;
-		return(gdg->buffer);
+		return gdg->buffer;
 	}
 
 	pc &= 0x0fff;
@@ -359,6 +359,11 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 			break;
 		}
 	}
+
+	
+	const DSPOPCTemplate fake_op = {"CW",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,};
+	if (!opc)
+		opc = &fake_op;
 
 	if (opc->size & P_EXT && op1 & 0x00ff)
 		extended = true;

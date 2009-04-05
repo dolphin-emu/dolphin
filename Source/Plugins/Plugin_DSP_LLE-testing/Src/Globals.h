@@ -18,6 +18,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include "Common.h"
 #include "AudioCommon.h"
 #include <stdio.h>
 

@@ -139,18 +139,14 @@ bool dsp_dmem_write(u16 addr, u16 val)
 	return(true);
 }
 
-
-u16 dsp_fetch_code(void)
+u16 dsp_fetch_code()
 {
 	u16 opc = dsp_imem_read(g_dsp.pc);
 	g_dsp.pc++;
-	return(opc);
+	return opc;
 }
-
 
 u16 dsp_peek_code(void)
 {
-	return(dsp_imem_read(g_dsp.pc));
+	return dsp_imem_read(g_dsp.pc);
 }
-
-

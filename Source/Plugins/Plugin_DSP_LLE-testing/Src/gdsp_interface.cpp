@@ -49,7 +49,7 @@ const char* reg_names[] =
 	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
 	NULL,   "DSCR",  NULL,   "DSBL",  NULL,   "DSPA",  "DSMAH", "DSMAL",
 	// d0
-	NULL,       "SampleFormat",  NULL,           NULL,   "ACSAH", "ACSAL", "ACEAH", "ACEAL",
+	NULL,   "SampleFormat",  NULL,           NULL,   "ACSAH", "ACSAL", "ACEAH", "ACEAL",
 	"ACCAH", "ACCAL",     "PRED_SCALE",    "YN1",   "YN2",       "ARAM",      "GAIN",      NULL,
 	// e0
 	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
@@ -72,9 +72,7 @@ u16 gdsp_ifx_regs[256];
 
 void gdsp_ifx_init()
 {
-	int i;
-
-	for (i = 0; i < 256; i++)
+	for (int i = 0; i < 256; i++)
 	{
 		gdsp_ifx_regs[i] = 0;
 	}
@@ -128,14 +126,14 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 	if (mbx == GDSP_MBOX_DSP)
 	{
-		DEBUG_LOG(DSPHLE, "- Write DSP Mail: 0x%08x (pc=0x%04x)\n", gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.err_pc);
+		DEBUG_LOG(DSPHLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.err_pc);
 	}
 }
 
 
 u16 gdsp_mbox_read_h(u8 mbx)
 {
-	return (gdsp_mbox[mbx][0]);
+	return (gdsp_mbox[mbx][0]);  // TODO: mask away the top bit?
 }
 
 
@@ -149,10 +147,12 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	val = gdsp_mbox[mbx][1];
 	gdsp_mbox[mbx][0] &= ~0x8000;
 
+	DEBUG_LOG(DSPHLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.err_pc);
+
 #if WITH_DSP_ON_THREAD
 	g_CriticalSection.Leave();
 #endif
-	return(val);
+	return val;
 }
 
 
@@ -250,14 +250,15 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 
 	for (u32 i = 0; i < size; i += 2)
 	{
+		// TODO : this may be different on Wii.
 		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff];
 	}
 
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
-	DEBUG_LOG(DSPHLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
+	INFO_LOG(DSPHLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
 
 	if (g_dsp.dump_imem)
-		DumpDSPCode(addr, size, g_dsp.iram_crc);
+		DumpDSPCode(&dst[dsp_addr], size, g_dsp.iram_crc);
 }
 
 
@@ -282,7 +283,7 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF];
 	}
 
-	DEBUG_LOG(DSPHLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
+	INFO_LOG(DSPHLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
 }
 
 
@@ -301,7 +302,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = *(u16*)&src[dsp_addr + i];
 	}
 
-	DEBUG_LOG(DSPHLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
+	INFO_LOG(DSPHLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
 
 

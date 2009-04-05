@@ -40,7 +40,7 @@ void Update_SR_Register64(s64 _Value)
 		g_dsp.r[R_SR] |= 0x4;
 	}
 
-	// logic
+	// weird
 	if ((_Value >> 62) == 0)
 	{
 		g_dsp.r[R_SR] |= 0x20;
@@ -61,7 +61,7 @@ void Update_SR_Register16(s16 _Value)
 		g_dsp.r[R_SR] |= 0x4;
 	}
 
-	// logic
+	// weird
 	if ((_Value >> 14) == 0)
 	{
 		g_dsp.r[R_SR] |= 0x20;

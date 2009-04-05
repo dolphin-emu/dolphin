@@ -93,7 +93,7 @@
 #define FONT_ANSI "font_ansi.bin"
 #define FONT_SJIS "font_sjis.bin"
 
-#define DSP_ROM "dsp_rom.bin"
+#define DSP_IROM "dsp_rom.bin"
 #define DSP_COEF "dsp_coef.bin"
 
 #define GC_IPL "IPL.bin"
@@ -159,7 +159,7 @@
 #define FONT_ANSI_FILE	FULL_GC_SYS_DIR FONT_ANSI
 #define FONT_SJIS_FILE	FULL_GC_SYS_DIR FONT_SJIS
 
-#define DSP_ROM_FILE	FULL_GC_SYS_DIR DSP_ROM
+#define DSP_IROM_FILE	FULL_GC_SYS_DIR DSP_IROM
 #define DSP_COEF_FILE	FULL_GC_SYS_DIR DSP_COEF
 
 #define WII_EUR_SETTING_FILE	FULL_WII_SYS_DIR WII_EUR_SETTING

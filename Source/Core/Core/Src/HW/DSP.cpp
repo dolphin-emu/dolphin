@@ -578,7 +578,7 @@ void Update_ARAM_DMA()
 	if (g_arDMA.Cnt.dir)
 	{
 		//read from ARAM
-		INFO_LOG(DSPINTERFACE, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+		INFO_LOG(DSPINTERFACE, "DMA copy %08x bytes from ARAM %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
 		u32 iMemAddress = g_arDMA.MMAddr;
 		u32 iARAMAddress = g_arDMA.ARAddr;
 		
@@ -598,7 +598,7 @@ void Update_ARAM_DMA()
 		u32 iARAMAddress = g_arDMA.ARAddr;
 
 		//write to g_ARAM
-		INFO_LOG(DSPINTERFACE, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",
+		INFO_LOG(DSPINTERFACE, "DMA copy %08x bytes from Mem %08x to ARAM %08x (sound data loaded)",
 			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{

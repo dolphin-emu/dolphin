@@ -1972,6 +1972,12 @@ bool CWII_IPC_HLE_Device_usb_oh0::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
+bool CWII_IPC_HLE_Device_usb_oh0::Close(u32 _CommandAddress)
+{
+	Memory::Write_U32(0, _CommandAddress + 0x4);
+	return true;
+}
+
 bool CWII_IPC_HLE_Device_usb_oh0::IOCtl(u32 _CommandAddress)
 {
     // write return value
@@ -1983,7 +1989,6 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 _CommandAddress)
 {
 	// write return value
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-
 	return true;
 }
 

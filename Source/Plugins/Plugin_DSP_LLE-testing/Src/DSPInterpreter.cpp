@@ -29,9 +29,6 @@
 
 namespace DSPInterpreter {
 
-
-// END OF HELPER FUNCTIONS
-
 void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
@@ -517,11 +514,11 @@ void andc(const UDSPInstruction& opc)
 
 	if ((ac1 & ac2) == 0)
 	{
-		g_dsp.r[R_SR] |= 0x20;
+		g_dsp.r[R_SR] |= 0x20;  // 0x40?
 	}
 	else
 	{
-		g_dsp.r[R_SR] &= ~0x20;
+		g_dsp.r[R_SR] &= ~0x20; // 0x40?
 	}
 }
 
@@ -980,26 +977,34 @@ void shifti(const UDSPInstruction& opc)
 //-------------------------------------------------------------
 
 // hcs give me this code!!
+// More docs needed - the operation is really odd!
+// Decrement Address Register
 void dar(const UDSPInstruction& opc)
 {
-	u8 reg = opc.hex & 0x3;
+	int reg = opc.hex & 0x3;
 
 	int temp = g_dsp.r[reg] + g_dsp.r[8];
 
-	if (temp <= 0x7ff){g_dsp.r[reg] = temp;}
-	else {g_dsp.r[reg]--;}
+	if (temp <= 0x7ff)  // ???
+		g_dsp.r[reg] = temp;
+	else
+		g_dsp.r[reg]--;
 }
 
 
 // hcs give me this code!!
+// More docs needed - the operation is really odd!
+// Increment Address Register
 void iar(const UDSPInstruction& opc)
 {
-	u8 reg = opc.hex & 0x3;
+	int reg = opc.hex & 0x3;
 
 	int temp = g_dsp.r[reg] + g_dsp.r[8];
 
-	if (temp <= 0x7ff){g_dsp.r[reg] = temp;}
-	else {g_dsp.r[reg]++;}
+	if (temp <= 0x7ff)  // ???
+		g_dsp.r[reg] = temp;
+	else
+		g_dsp.r[reg]++;
 }
 
 //-------------------------------------------------------------
@@ -1019,6 +1024,7 @@ void sbset(const UDSPInstruction& opc)
 
 
 // FIXME inside
+// No idea what most of this is supposed to do.
 void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)
@@ -1036,11 +1042,13 @@ void srbith(const UDSPInstruction& opc)
 	case 0xd: // SET15
 		ERROR_LOG(DSPHLE, "dsp_opc.hex_set15\n");
 		break;
-	case 0xe: // SET40
+
+	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
 		g_dsp.r[R_SR] &= ~(1 << 14);
 		break;
 
-	case 0xf:	// SET16   // that doesnt happen on a real console
+	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
+		// that doesnt happen on a real console  << what does this comment mean?
 		g_dsp.r[R_SR] |= (1 << 14);
 		break;
 

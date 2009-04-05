@@ -216,6 +216,7 @@ void DSP_DebugBreak()
 
 void dspi_req_dsp_irq()
 {
+	// Fire an interrupt on the PPC ASAP.
 	g_dspInitialize.pGenerateDSPInterrupt();
 }
 
@@ -225,27 +226,28 @@ void Initialize(void *init)
     g_dspInitialize = *(DSPInitialize*)init;
 
 	g_Config.Load();
+
 	gdsp_init();
 	g_dsp.step_counter = 0;
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom(DSP_ROM_FILE)) {
+	if (!gdsp_load_rom(DSP_IROM_FILE)) {
 		bCanWork = false;
-		PanicAlert("Failed loading DSP ROM from " DSP_ROM_FILE);
+		PanicAlert("Failed loading DSP ROM from " DSP_IROM_FILE);
 	}
-	
+
 	if (!gdsp_load_coef(DSP_COEF_FILE)) {
 		bCanWork = false;
 		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
 	}
-	
-	if(!bCanWork)
+
+	if (!bCanWork)
 		return; // TODO: Don't let it work
 
 	bIsRunning = true;
-	
+
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	soundStream = AudioCommon::InitSoundStream();
 
@@ -279,25 +281,17 @@ u16 DSP_ReadControlRegister()
 u16 DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
-	{
-		return(gdsp_mbox_read_h(GDSP_MBOX_CPU));
-	}
+		return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 	else
-	{
-		return(gdsp_mbox_read_h(GDSP_MBOX_DSP));
-	}
+		return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 }
 
 u16 DSP_ReadMailboxLow(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
-	{
-		return(gdsp_mbox_read_l(GDSP_MBOX_CPU));
-	}
+		return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 	else
-	{
-		return(gdsp_mbox_read_l(GDSP_MBOX_DSP));
-	}
+		return gdsp_mbox_read_l(GDSP_MBOX_DSP);
 }
 
 void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
@@ -333,7 +327,7 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 		u32 uAddress = gdsp_mbox_peek(GDSP_MBOX_CPU);
 		u16 errpc = g_dsp.err_pc;
 
-		DEBUG_LOG(DSPHLE, "Write CPU Mail: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
+		DEBUG_LOG(DSPHLE, "CPU writes mail to mbx 0: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
 
 		// I couldn't find any better way to detect the AX mails so this had to
 		// do. Please feel free to change it.

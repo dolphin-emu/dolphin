@@ -25,15 +25,15 @@
 #include "disassemble.h"
 #include "gdsp_interpreter.h"
 
-bool DumpDSPCode(u32 _Address, u32 _Length, u32 crc)
+bool DumpDSPCode(const u8 *data, u32 _Length, u32 crc)
 {
 	char szFilename[MAX_PATH];
 	sprintf(szFilename, "%sDSP_UC_%08X.bin", FULL_DSP_DUMP_DIR, crc);
 	FILE* pFile = fopen(szFilename, "wb");
 
-	if (pFile != NULL)
+	if (pFile)
 	{
-		fwrite(g_dspInitialize.pGetMemoryPointer(_Address), _Length, 1, pFile);
+		fwrite(data, _Length, 1, pFile);
 		fclose(pFile);
 	}
 	else
