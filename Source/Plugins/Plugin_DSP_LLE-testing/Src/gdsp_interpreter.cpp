@@ -73,11 +73,6 @@ void UpdateCachedCR()
 
 //-------------------------------------------------------------------------------
 
-void dbg_error(char* err_msg)
-{
-	return;
-}
-
 void gdsp_init()
 {
 	// Why do we have DROM? Does it exist? Has it been dumped?
@@ -242,6 +237,9 @@ void gdsp_loop_step()
 
 u16 HLE_ROM_80E7_81F8();
 void hacks();
+
+
+
 void gdsp_step()
 {
 	g_dsp.step_counter++;

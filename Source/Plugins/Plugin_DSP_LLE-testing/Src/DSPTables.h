@@ -110,6 +110,7 @@ extern DSPOPCTemplate opcodes[];
 extern const u32 opcodes_size;
 extern DSPOPCTemplate opcodes_ext[];
 extern const u32 opcodes_ext_size;
+extern u8 opSize[OPTABLE_SIZE];
 
 extern dspInstFunc opTable[];
 

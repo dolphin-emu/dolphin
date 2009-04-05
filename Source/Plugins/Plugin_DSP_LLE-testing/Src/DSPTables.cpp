@@ -91,16 +91,16 @@ DSPOPCTemplate opcodes[] =
 	{"CALLLZ",	0x02bd, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"CALL",    0x02bf, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 
-	{"IFNS",	0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFS",		0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFG",		0x0272, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFLE",	0x0273, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFNZ",    0x0274, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFZ",		0x0275, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFL",		0x0276, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFGE",	0x0277, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFLNZ",	0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IFLZ",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF NS",	0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF S",	0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF G",	0x0272, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF LE",	0x0273, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF NZ",   0x0274, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF Z",	0x0275, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF L",	0x0276, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF GE",	0x0277, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF LNZ",	0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
+	{"IF LZ",   0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // Hermes doesn't list this
 
 	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
@@ -315,6 +315,7 @@ DSPOPCTemplate opcodes_ext[] =
 const u32 opcodes_size = sizeof(opcodes) / sizeof(DSPOPCTemplate);
 const u32 opcodes_ext_size = sizeof(opcodes_ext) / sizeof(DSPOPCTemplate);
 
+u8 opSize[OPTABLE_SIZE];
 dspInstFunc opTable[OPTABLE_SIZE];
 dspInstFunc prologueTable[OPTABLE_SIZE];
 dspInstFunc epilogueTable[OPTABLE_SIZE];
@@ -332,6 +333,7 @@ void InitInstructionTable()
 			if ((opcodes[j].opcode_mask & i) == opcodes[j].opcode) {
 				if (opTable[i] == DSPInterpreter::unknown) {
 					opTable[i] = opcodes[j].interpFunc;
+					opSize[i] = opcodes[j].size;
 					prologueTable[i] = opcodes[j].prologue;
 					epilogueTable[i] = opcodes[j].epilogue;
 				} else {

@@ -77,12 +77,6 @@ void (*dsp_op[])(uint16 opc) =
 	dsp_opcd, dsp_opcd, dsp_ope, dsp_opf,
 };
 
-void dbg_error(char* err_msg)
-{
-	return;
-}
-
-
 void gdsp_init()
 {
 	g_dsp.irom = (uint16*)malloc(DSP_IROM_SIZE * sizeof(uint16));
