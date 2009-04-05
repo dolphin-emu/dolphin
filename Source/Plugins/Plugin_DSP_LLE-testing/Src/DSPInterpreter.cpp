@@ -423,6 +423,9 @@ void tst(const UDSPInstruction& opc)
 	tsta((opc.hex >> 11) & 0x1);
 }
 
+// ADDAXL $acD, $axS.l
+// 0111 00sd xxxx xxxx
+// Adds secondary accumulator $axS.l to accumulator register $acD.
 void addaxl(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -438,6 +441,9 @@ void addaxl(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// ADDARN $arD, $ixS
+// 0000 0000 0001 ssdd
+// Adds indexing register $ixS to an addressing register $arD.
 void addarn(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
@@ -504,6 +510,10 @@ void xorr(const UDSPInstruction& opc)
 	tsta(dreg);
 }
 
+// ANDR $acD.m, $axS.h
+// 0011 01sd xxxx xxxx
+// Logic AND middle part of accumulator $acD.m with hight part of
+// secondary accumulator $axS.h.
 void andr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -524,6 +534,10 @@ void orr(const UDSPInstruction& opc)
 	tsta(dreg);
 }
 
+// ANDC $acD.m, $ac(1-D).m
+// 0011 110d xxxx xxxx
+// Logic AND middle part of accumulator $acD.m with middle part of
+// accumulator $ax(1-D).m.s
 void andc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
@@ -555,6 +569,11 @@ void nx(const UDSPInstruction& opc)
 
 // FIXME inside
 // Hermes switched andf and andcf, so check to make sure they are still correct
+// ANDCF $acD.m, #I
+// 0000 001r 1100 0000
+// iiii iiii iiii iiii
+// Set logic zero (LZ) flag in status register $sr if result of logic AND of
+// accumulator mid part $acD.m with immediate value I is equal zero.
 void andfc(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -579,6 +598,13 @@ void andfc(const UDSPInstruction& opc)
 
 // FIXME inside
 // Hermes switched andf and andcf, so check to make sure they are still correct
+
+// ANDF $acD.m, #I
+// 0000 001r 1010 0000
+// iiii iiii iiii iiii
+// Set logic zero (LZ) flag in status register $sr if result of logical AND
+// operation of accumulator mid part $acD.m with immediate value I is equal
+// immediate value I.
 void andf(const UDSPInstruction& opc)
 {
 	u8 reg;
@@ -634,6 +660,10 @@ void xori(const UDSPInstruction& opc)
 }
 
 //FIXME inside
+// ANDI $acD.m, #I
+// 0000 001r 0100 0000
+// iiii iiii iiii iiii
+// Logic AND of accumulator mid part $acD.m with immediate value I.
 void andi(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
@@ -671,6 +701,10 @@ void ori(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
+
+//  ADD $acD, $ac(1-D)
+//  0100 110d xxxx xxxx
+//  Adds accumulator $ac(1-D) to accumulator register $acD.
 void add(const UDSPInstruction& opc)
 {
 	u8 areg  = (opc.hex >> 8) & 0x1;
@@ -686,11 +720,14 @@ void add(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
+// ADDP $acD
+// 0100 111d xxxx xxxx
+// Adds product register to accumulator register.
 void addp(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
 	s64 acc = dsp_get_long_acc(dreg);
-	acc = acc + dsp_get_long_prod();
+	acc += dsp_get_long_prod();
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register64(acc);
@@ -702,13 +739,17 @@ void cmpis(const UDSPInstruction& opc)
 
 	s64 acc = dsp_get_long_acc(areg);
 	s64 val = (s8)opc.hex;
-	val <<= 16;
+	val <<= 16; 
 
 	s64 res = acc - val;
 
 	Update_SR_Register64(res);
 }
 
+// ADDPAXZ $acD, $axS
+// 1111 10sd xxxx xxxx
+// Adds secondary accumulator $axS to product register and stores result
+// in accumulator register. Low 16-bits of $acD ($acD.l) are set to 0.
 void addpaxz(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
@@ -808,6 +849,9 @@ void mov(const UDSPInstruction& opc)
 	ERROR_LOG(DSPHLE, "dsp_opc.hex_mov\n");
 }
 
+// ADDAX $acD, $axS
+// 0100 10sd xxxx xxxx
+// Adds secondary accumulator $axS to accumulator register $acD.
 void addax(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -821,6 +865,9 @@ void addax(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// ADDR $acD, $(0x18+S)
+// 0100 0ssd xxxx xxxx
+// Adds register $(0x18+S) to accumulator $acD register.
 void addr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -862,6 +909,9 @@ void subax(const UDSPInstruction& opc)
 	Update_SR_Register64(Acc);
 }
 
+// ADDIS $acD, #I
+// 0000 010d iiii iiii
+// Adds short immediate (8-bit sign extended) to mid accumulator $acD.hm.
 void addis(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -875,6 +925,10 @@ void addis(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// ADDI $amR, #I 
+// 0000 001r 0000 0000
+// iiii iiii iiii iiii
+// Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 void addi(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
