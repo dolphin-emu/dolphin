@@ -78,10 +78,14 @@ s8 GetMultiplyModifier()
 	{
 		return(1);
 	}
-
 	return(2);
 }
 
+
+// 0x02 - overflow????
+// 0x04 - Zero bit
+// 0x08 - Sign bit
+// 0x40 - Logical Zero bit 
 bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
@@ -90,49 +94,46 @@ bool CheckCondition(u8 _Condition)
 	{
 	case 0x0: //NS - NOT SIGN
 
-		if ((!(g_dsp.r[R_SR] & 0x02)) && (!(g_dsp.r[R_SR] & 0x08)))
+		if (!(g_dsp.r[R_SR] & 0x08))
 			taken = true;
-		
 		break;
 		
 	case 0x1: // S - SIGN
 		
-		if ((!(g_dsp.r[R_SR] & 0x02)) && (g_dsp.r[R_SR] & 0x08))
+		if (g_dsp.r[R_SR] & 0x08)
 			taken = true;
-
 		break;
  
 	case 0x2: // G - GREATER
 
-		if (!(g_dsp.r[R_SR] & 0x08))
+		if ( (!(g_dsp.r[R_SR] & 0x02) || !(g_dsp.r[R_SR] & 0x04)) && !(g_dsp.r[R_SR] & 0x08))
 			taken = true;
-
 		break;
 
 	case 0x3: // LE - LESS EQUAL
 		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04) || (g_dsp.r[R_SR] & 0x08))
 			taken = true;
-
 		break;
 
 	case 0x4: // NZ - NOT ZERO
 
 		if (!(g_dsp.r[R_SR] & 0x04))
 			taken = true;
-		
 		break;
 
 	case 0x5: // Z - ZERO 
 
 		if (g_dsp.r[R_SR] & 0x04)
 				taken = true;
-
 		break;
 
 	case 0x6: // L - LESS
+		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x08))
+			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
+		if ( (!(g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04)) && !(g_dsp.r[R_SR] & 0x08))
 		break;
 
 	case 0xc: // LNZ  - LOGIC NOT ZERO
