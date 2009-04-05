@@ -234,7 +234,7 @@ void Initialize(void *init)
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom((char *)DSP_ROM_FILE))
+	if (!gdsp_load_rom((char *)DSP_IROM_FILE))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP ROM");

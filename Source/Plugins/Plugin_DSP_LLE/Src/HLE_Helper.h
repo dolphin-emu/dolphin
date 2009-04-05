@@ -23,7 +23,7 @@
 bool WriteDMEM(uint16 addr, uint16 val);
 uint16 ReadDMEM(uint16 addr);
 void Update_SR_Register(sint64 _Value);
-sint8 GetMultiplyModifier();
+int GetMultiplyModifier();
 
 template<unsigned N> 
 class TAccumulator
