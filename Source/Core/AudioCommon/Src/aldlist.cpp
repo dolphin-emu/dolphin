@@ -36,8 +36,8 @@ ALDeviceList::ALDeviceList()
 	ALDEVICEINFO	ALDeviceInfo;
 	char *devices;
 	s32 index;
-	const char *defaultDeviceName;
-	const char *actualDeviceName;
+	const char *defaultDeviceName = NULL;
+	const char *actualDeviceName = NULL;
 
 	// DeviceInfo vector stores, for each enumerated device, it's device name, selection status, spec version #, and extension support
 	vDeviceInfo.empty();
@@ -78,7 +78,6 @@ ALDeviceList::ALDeviceList()
 						}
 						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0)) 
 						{
-							memset(&ALDeviceInfo, 0, sizeof(ALDEVICEINFO));	// the creative was brain broken.
 							ALDeviceInfo.bSelected = true;
 							ALDeviceInfo.strDeviceName = actualDeviceName;
 							alcGetIntegerv(device, ALC_MAJOR_VERSION, sizeof(s32), &ALDeviceInfo.iMajorVersion);
