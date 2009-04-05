@@ -24,100 +24,55 @@
    ====================================================================*/
 
 #include <stdio.h>
+
 #include "Globals.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_memory.h"
-#include "gdsp_ifx.h"
+#include "gdsp_interface.h"
 
 u16 dsp_swap16(u16 x)
 {
-	return((x >> 8) | (x << 8));
+	return (x >> 8) | (x << 8);
 }
-
-
-u16* gdsp_get_iram(void)
-{
-	return(g_dsp.iram);
-}
-
-
-u16* gdsp_get_irom(void)
-{
-	return(g_dsp.irom);
-}
-
-
-u16* gdsp_get_dram(void)
-{
-	return(g_dsp.dram);
-}
-
-
-u16* gdsp_get_drom(void)
-{
-	return(g_dsp.drom);
-}
-
 
 u16 dsp_imem_read(u16 addr)
 {
-	u16 opc;
-
 	if (g_dsp.pc & 0x8000)
-	{
-		opc = g_dsp.irom[addr & DSP_IROM_MASK];
-	}
+		return dsp_swap16(g_dsp.irom[addr & DSP_IROM_MASK]);
 	else
-	{
-		opc = g_dsp.iram[addr & DSP_IRAM_MASK];
-	}
-
-	return(dsp_swap16(opc));
+		return dsp_swap16(g_dsp.iram[addr & DSP_IRAM_MASK]);
 }
 
-
-u16  dsp_dmem_read(u16 addr)
+u16 dsp_dmem_read(u16 addr)
 {
-	u16 val;
-
 	switch (addr >> 12)
 	{
 	    case 0x0: // 0xxx DRAM
-		    val = g_dsp.dram[addr & DSP_DRAM_MASK];
-		    val = dsp_swap16(val);
-		    break;
+		    return dsp_swap16(g_dsp.dram[addr & DSP_DRAM_MASK]);
 
 	    case 0x8: // 8xxx DROM
-		    DEBUG_LOG(DSPHLE, "someone reads from ROM\n");
-		    val = g_dsp.drom[addr & DSP_DROM_MASK];
-		    val = dsp_swap16(val);
-		    break;
+		    ERROR_LOG(DSPHLE, "someone reads from ROM\n");
+		    return dsp_swap16(g_dsp.drom[addr & DSP_DROM_MASK]);
 
 		case 0x1: // 1xxx COEF
-		    val = g_dsp.coef[addr & DSP_DROM_MASK];
-		    val = dsp_swap16(val);
-		    break;
+		    return dsp_swap16(g_dsp.coef[addr & DSP_COEF_MASK]);
 
 	    case 0xf: // Fxxx HW regs
-		    val = gdsp_ifx_read(addr);
-		    break;
+		    return gdsp_ifx_read(addr);
 
 	    default: // error
-//		ERROR_LOG(DSPHLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
-		    val = 0;
-		    break;
+			ERROR_LOG(DSPHLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
+		    return 0;
 	}
-
-	return(val);
 }
 
 
-bool dsp_dmem_write(u16 addr, u16 val)
+void dsp_dmem_write(u16 addr, u16 val)
 {
 	switch (addr >> 12)
 	{
 	    case 0x8: // 8xxx DROM
-		    DEBUG_LOG(DSPHLE, "someone writes to ROM\n");
+		    ERROR_LOG(DSPHLE, "someone writes to ROM\n");
 		    /* val = dsp_swap16(val);
 		       g_dsp.drom[addr & DSP_DROM_MASK] = val;*/
 		    break;
@@ -127,16 +82,13 @@ bool dsp_dmem_write(u16 addr, u16 val)
 		    break;
 
 	    case 0x0: // 0xxx DRAM
-		    val = dsp_swap16(val);
-		    g_dsp.dram[addr & DSP_DRAM_MASK] = val;
+		    g_dsp.dram[addr & DSP_DRAM_MASK] = dsp_swap16(val);
 		    break;
 
 	    default: // error
-		    DEBUG_LOG(DSPHLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
+		    ERROR_LOG(DSPHLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory\n", g_dsp.pc, addr);
 		    break;
 	}
-
-	return(true);
 }
 
 u16 dsp_fetch_code()
@@ -146,7 +98,7 @@ u16 dsp_fetch_code()
 	return opc;
 }
 
-u16 dsp_peek_code(void)
+u16 dsp_peek_code()
 {
 	return dsp_imem_read(g_dsp.pc);
 }

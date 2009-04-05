@@ -27,7 +27,8 @@
 
 bool WriteDMEM(u16 addr, u16 val)
 {
-	return dsp_dmem_write(addr, val);
+	dsp_dmem_write(addr, val);
+	return true;
 }
 
 u16 ReadDMEM(u16 addr)

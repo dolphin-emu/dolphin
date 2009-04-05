@@ -1060,17 +1060,17 @@ void srbith(const UDSPInstruction& opc)
 	switch ((opc.hex >> 8) & 0xf)
 	{
 	case 0xa: // M2
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_m2\n");
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_m2");
 		break;
 		// FIXME: Both of these appear in the beginning of the Wind Waker
 	case 0xb: // M0
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_m0\n");
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_m0");
 		break;
 	case 0xc: // CLR15
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_clr15\n");
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_clr15");
 		break;
 	case 0xd: // SET15
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_set15\n");
+		ERROR_LOG(DSPHLE, "dsp_opc.hex_set15");
 		break;
 
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?

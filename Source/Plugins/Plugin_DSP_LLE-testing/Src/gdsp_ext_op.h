@@ -25,10 +25,17 @@
 
 #ifndef _GDSP_EXT_OP_H
 #define _GDSP_EXT_OP_H
+
 #include "DSPTables.h"
 
-void dsp_op_ext_ops_pro(const UDSPInstruction& opc);
-void dsp_op_ext_ops_epi(const UDSPInstruction& opc);
+// Extended opcode support.
+// Many opcode have the lower 0xFF free - there, an opcode extension
+// can be stored. The ones that must be executed before the operation
+// is handled as a prologue, the ones that must be executed afterwards
+// is handled as an epilogue.
+
+void dsp_op_ext_ops_pro(const UDSPInstruction& opc);  // run any prologs
+void dsp_op_ext_ops_epi(const UDSPInstruction& opc);  // run any epilogs
 
 
 #endif

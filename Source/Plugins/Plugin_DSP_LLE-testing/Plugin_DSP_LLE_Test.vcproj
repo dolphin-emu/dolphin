@@ -647,10 +647,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\gdsp_ifx.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\gdsp_interface.cpp"
 				>
 			</File>
