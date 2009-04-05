@@ -57,8 +57,9 @@ jnz, ifs, retlnz
 
 void nop(const UDSPInstruction& opc) {/*DSPInterpreter::unknown(opc);*/}
  
-
-// "Unrecognized opcode 0x01a2, pc 0x0165"  seems wrong.
+// Unknown Ops
+// All AX games: a100
+// Zelda Four Swords: 02ca
 
 
 // TODO: Fill up the tables with the corresponding instructions
@@ -66,6 +67,7 @@ DSPOPCTemplate opcodes[] =
 {
 	{"NOP",		0x0000, 0xffff, nop, nop, 1, 0, {}, NULL, NULL},
 	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, NULL, NULL},
+
 	{"RETNS",	0x02d0, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL},
 	{"RETS",	0x02d1, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL},
 	{"RETG",	0x02d2, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL},
@@ -205,10 +207,16 @@ DSPOPCTemplate opcodes[] =
 	{"NX",      0x8000, 0xf700, DSPInterpreter::nx,     nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"M2",      0x8a00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"M0",      0x8b00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+
+	// These guys probably change the precision or range of some operations.
+	// The question is which. 16-bit mode vs 40-bit mode sounds plausible for SET40/SET16.
+	// Maybe Set15 makes the dsp drop the top bit from all calculations or something? Or clamp?
+	// SET15/CLR15 is commonly used around MULXAC in Zeldas.
+	// SET16 is done around complicated loops with many madds etc.
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"SET40",		0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"SET16",		0x8f00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SET40",	0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SET16",	0x8f00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"DECM",    0x7800, 0xfeff, DSPInterpreter::decm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"INCM",    0x7400, 0xfeff, DSPInterpreter::incm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -217,6 +225,9 @@ DSPOPCTemplate opcodes[] =
 
 	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg,    nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVNP",   0x7e00, 0xfeff, DSPInterpreter::movnp,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+
+	// ??? is seen in burnout2 : opcode 0xa100
+	// {"???",     0xa100, 0xf7ff, DSPInterpreter::unknown,nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tsta,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

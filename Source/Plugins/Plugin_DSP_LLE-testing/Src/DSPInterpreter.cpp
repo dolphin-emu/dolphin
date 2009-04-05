@@ -602,36 +602,16 @@ void andf(const UDSPInstruction& opc)
 	}
 }
 
-// FIXME inside
 void cmpi(const UDSPInstruction& opc)
 {
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp subf opcode");
-	}
-
-#if 1
-	// Old implementation
-	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
-	s64 imm = (s16)dsp_fetch_code();
-
-	s64 val = (s16)g_dsp.r[reg];
-	s64 res = val - imm;
-
-	Update_SR_Register64(res);
-#else
-	// Implementation according to docs
 	int reg  = (opc.hex >> 8) & 0x1;
 
 	// Immediate is considered to be at M level in the 40-bit accumulator.
-	s64 imm = (s64)dsp_fetch_code() << 16;
+	s64 imm = (s64)(s16)dsp_fetch_code() << 16;
 	s64 val = dsp_get_long_acc(reg);
 	s64 res = val - imm;
 
 	Update_SR_Register64(res);
-#endif
-
 }
 
 // FIXME inside
@@ -1061,27 +1041,38 @@ void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)
 	{
+	// M0 seems to be the default. M2 is used in functions in Zelda
+	// and then reset with M0 at the end. Like the other bits here, it's
+	// done around loops with lots of multiplications.
+
 	case 0xa: // M2
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_m2");
+		ERROR_LOG(DSPHLE, "M2");
 		break;
 		// FIXME: Both of these appear in the beginning of the Wind Waker
 	case 0xb: // M0
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_m0");
-		break;
-	case 0xc: // CLR15
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_clr15");
-		break;
-	case 0xd: // SET15
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_set15");
+		ERROR_LOG(DSPHLE, "M0");
 		break;
 
+	// 15-bit precision? clamping? no idea :(
+	// CLR15 seems to be the default.
+	case 0xc: // CLR15
+		ERROR_LOG(DSPHLE, "CLR15");
+		break;
+	case 0xd: // SET15
+		ERROR_LOG(DSPHLE, "SET15");
+		break;
+
+	// 40-bit precision? clamping? no idea :(
+	// 40 seems to be the default.
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
 		g_dsp.r[R_SR] &= ~(1 << 14);
+		ERROR_LOG(DSPHLE, "SET40");
 		break;
 
 	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
 		// that doesnt happen on a real console  << what does this comment mean?
 		g_dsp.r[R_SR] |= (1 << 14);
+		ERROR_LOG(DSPHLE, "SET16");
 		break;
 
 	default:

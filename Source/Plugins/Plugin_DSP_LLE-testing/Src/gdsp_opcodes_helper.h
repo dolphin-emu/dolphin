@@ -120,7 +120,7 @@ inline s64 dsp_get_long_prod()
 	low_prod <<= 16;
 	low_prod |= g_dsp.r[0x14];
 	val += low_prod;
-	return(val);
+	return val;
 }
 
 
@@ -138,11 +138,8 @@ inline void dsp_set_long_prod(s64 val)
 	g_dsp.r[0x17] = 0;
 }
 
-
 // ---------------------------------------------------------------------------------------
-//
 // --- acc
-//
 // ---------------------------------------------------------------------------------------
 
 inline s64 dsp_get_long_acc(int reg)
@@ -152,36 +149,10 @@ inline s64 dsp_get_long_acc(int reg)
 #endif
 
 	_assert_(reg < 2);
-	s64 val;
-	s64 low_acc;
-	val       = (s8)g_dsp.r[0x10 + reg];
-	val     <<= 32;
-	low_acc   = g_dsp.r[0x1e + reg];
-	low_acc <<= 16;
-	low_acc  |= g_dsp.r[0x1c + reg];
-	val |= low_acc;
-	return val;
+	s64 high = (s64)(s8)g_dsp.r[0x10 + reg] << 32;
+	u32 mid_low = ((u32)g_dsp.r[0x1e + reg] << 16) | g_dsp.r[0x1c + reg];
+	return high | mid_low;
 }
-
-
-inline u64 dsp_get_ulong_acc(int reg)
-{
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
-	_assert_(reg < 2);
-	u64 val;
-	u64 low_acc;
-	val       = (u8)g_dsp.r[0x10 + reg];
-	val     <<= 32;
-	low_acc   = g_dsp.r[0x1e + reg];
-	low_acc <<= 16;
-	low_acc  |= g_dsp.r[0x1c + reg];
-	val |= low_acc;
-	return val;
-}
-
 
 inline void dsp_set_long_acc(int _reg, s64 val)
 {
