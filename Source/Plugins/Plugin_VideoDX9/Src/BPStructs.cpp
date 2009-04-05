@@ -137,7 +137,6 @@ void BPWritten(int addr, int changes, int newval)
 				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
 				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
-			PixelShaderManager::SetGenModeChanged();
 		}
 		break;
     case BPMEM_IND_MTX+0:

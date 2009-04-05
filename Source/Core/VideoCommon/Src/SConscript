@@ -7,6 +7,7 @@ files = [
 	'CPMemory.cpp',
 	'XFMemory.cpp',
 	'XFStructs.cpp',
+	'BPStructs.cpp',
 	'memcpy_amd.cpp',
 	'LookUpTables.cpp',
 	'OpcodeDecoding.cpp',

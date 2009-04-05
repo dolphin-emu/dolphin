@@ -717,11 +717,7 @@
 			Name="Decoder"
 			>
 			<File
-				RelativePath=".\Src\BPStructs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\BPStructs.h"
+				RelativePath=".\Src\BPFunctions.cpp"
 				>
 			</File>
 			<File

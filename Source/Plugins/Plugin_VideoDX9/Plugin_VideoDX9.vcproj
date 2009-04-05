@@ -1180,6 +1180,10 @@
 			Name="Decoder"
 			>
 			<File
+				RelativePath=".\Src\BPFunctions.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\BPStructs.cpp"
 				>
 			</File>

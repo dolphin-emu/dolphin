@@ -328,31 +328,6 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
     s_nIndTexMtxChanged |= 1 << matrixidx;
 }
-
-void PixelShaderManager::SetGenModeChanged()
-{
-}
-
-void PixelShaderManager::SetTevCombinerChanged(int id)
-{
-}
-
-void PixelShaderManager::SetTevKSelChanged(int id)
-{
-}
-
-void PixelShaderManager::SetTevOrderChanged(int id)
-{
-}
-
-void PixelShaderManager::SetTevIndirectChanged(int id)
-{
-}
-
-void PixelShaderManager::SetZTextureOpChanged()
-{
-}
-
 void PixelShaderManager::SetZTextureTypeChanged()
 {
 	s_bZTextureTypeChanged = true;
