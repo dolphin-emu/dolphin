@@ -360,16 +360,33 @@ void mulc(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-// TODO: Implement
 void mulcmvz(const UDSPInstruction& opc)
 {
-	ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmvz ni");
+	s64 TempProd = dsp_get_long_prod();
+
+	// update prod
+	u8 sreg  = (opc.hex >> 12) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	dsp_set_long_prod(Prod);
+
+	// update acc
+	u8 rreg = (opc.hex >> 8) & 0x1;
+	s64 acc = TempProd & ~0xffff; // clear lower 4 bytes
+	dsp_set_long_acc(rreg, acc);
 }
 
-// TODO: Implement
 void mulcmv(const UDSPInstruction& opc)
 {
-	ERROR_LOG(DSPHLE, "dsp_opc.hex_mulcmv ni");
+	s64 TempProd = dsp_get_long_prod();
+
+	// update prod
+	u8 sreg  = (opc.hex >> 12) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	dsp_set_long_prod(Prod);
+
+	// update acc
+	u8 rreg = (opc.hex >> 8) & 0x1;
+	dsp_set_long_acc(rreg, TempProd);
 }
 
 void cmpar(const UDSPInstruction& opc)
@@ -436,7 +453,7 @@ void mulcac(const UDSPInstruction& opc)
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
-	dsp_set_long_acc(rreg, TempProd);
+	dsp_set_long_acc(rreg, TempProd + g_dsp.r[rreg]);
 }
 
 void movr(const UDSPInstruction& opc)

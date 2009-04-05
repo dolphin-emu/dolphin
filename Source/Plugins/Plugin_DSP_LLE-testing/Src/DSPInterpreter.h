@@ -89,7 +89,6 @@ void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);
 void sbset(const UDSPInstruction& opc);
-void mov(const UDSPInstruction& opc);
 void movp(const UDSPInstruction& opc);
 void mul(const UDSPInstruction& opc);
 void mulac(const UDSPInstruction& opc);
@@ -99,6 +98,9 @@ void mulx(const UDSPInstruction& opc);
 void mulxac(const UDSPInstruction& opc);
 void mulxmv(const UDSPInstruction& opc);
 void mulxmvz(const UDSPInstruction& opc);
+void mulcmvz(const UDSPInstruction& opc);
+void mulcmv(const UDSPInstruction& opc);
+void movnp(const UDSPInstruction& opc);
 void sub(const UDSPInstruction& opc);
 void maddx(const UDSPInstruction& opc);
 void msubx(const UDSPInstruction& opc);
@@ -122,9 +124,8 @@ void ori(const UDSPInstruction& opc);
 // END OF FIXMEs
 
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
-void mulcmvz(const UDSPInstruction& opc);
-void mulcmv(const UDSPInstruction& opc);
-void movnp(const UDSPInstruction& opc);
+void mov(const UDSPInstruction& opc);
+
 // END OF UNIMPLEMENTED
 
 };
