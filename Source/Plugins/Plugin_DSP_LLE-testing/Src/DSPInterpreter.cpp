@@ -410,6 +410,8 @@ void cmp(const UDSPInstruction& opc)
 	Update_SR_Register64(acc0 - acc1);
 }
 
+// WARNING - this instruction is being called by other instructions!!!!!
+// Is that sane?
 void tsta(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 11) & 0x1;

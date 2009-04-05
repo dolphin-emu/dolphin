@@ -223,7 +223,8 @@ DSPOPCTemplate opcodes[] =
 
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	
-	//	{"CMPAR" ,  0xc100, 0xe7ff, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	// This op does NOT exist, at least not under this name, in duddie's docs!
+	{"CMPAR" ,  0xc100, 0xe7ff, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CLRAL0",	0xfc00, 0xffff, nop, nop, 1 | P_EXT,  0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl0
 	{"CLRAL1",	0xfd00, 0xffff, nop, nop, 1 | P_EXT,  0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl1
@@ -322,24 +323,38 @@ dspInstFunc epilogueTable[OPTABLE_SIZE];
 
 void InitInstructionTable()
 {
-	for (u32 i = 0; i < OPTABLE_SIZE; i++) {
+	for (u32 i = 0; i < OPTABLE_SIZE; i++)
+	{
 		opTable[i] = DSPInterpreter::unknown;
 		prologueTable[i] = NULL;
 		epilogueTable[i] = NULL;
+		opSize[i] = 0;
 	}
 	
-	for (u32 i = 0; i < OPTABLE_SIZE; i++) {
-		for (u32 j = 0; j < opcodes_size; j++) 
-			if ((opcodes[j].opcode_mask & i) == opcodes[j].opcode) {
-				if (opTable[i] == DSPInterpreter::unknown) {
+	for (u32 i = 0; i < OPTABLE_SIZE; i++)
+	{
+		for (u32 j = 0; j < opcodes_size; j++)
+		{
+			u16 mask = opcodes[j].opcode_mask;
+			if (opcodes[j].size & P_EXT) {
+				// Ignore extension bits.
+				mask &= 0xFF00;
+			}
+			if ((mask & i) == opcodes[j].opcode)
+			{
+				if (opTable[i] == DSPInterpreter::unknown)
+				{
 					opTable[i] = opcodes[j].interpFunc;
-					opSize[i] = opcodes[j].size;
+					opSize[i] = opcodes[j].size & 3;
 					prologueTable[i] = opcodes[j].prologue;
 					epilogueTable[i] = opcodes[j].epilogue;
-				} else {
+				}
+				else
+				{
 					ERROR_LOG(DSPHLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
 				}
 			}
+		}
 	}
 }	
 
