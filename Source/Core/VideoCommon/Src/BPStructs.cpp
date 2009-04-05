@@ -265,6 +265,7 @@ void BPWritten(const BreakPoint& bp)
         PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
 		break;
 	case BPMEM_ZTEX2:
+	{
 		if (bp.changes & 3) 
 			PixelShaderManager::SetZTextureTypeChanged();
 		#if defined(_DEBUG) || defined(DEBUGFAST) 
@@ -273,6 +274,7 @@ void BPWritten(const BreakPoint& bp)
         PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
 		#endif
 		break;
+	}
 
 	// --------------------------------------
 	// BPs that only flush and update memory
