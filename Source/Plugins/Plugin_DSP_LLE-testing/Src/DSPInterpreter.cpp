@@ -145,7 +145,7 @@ void loop(const UDSPInstruction& opc)
 		g_dsp.pc = loop_pc;
 	}
 
-	g_dsp.pc = loop_pc + 1;
+	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
 }
 
 void loopi(const UDSPInstruction& opc)
@@ -159,7 +159,7 @@ void loopi(const UDSPInstruction& opc)
 		g_dsp.pc = loop_pc;
 	}
 
-	g_dsp.pc = loop_pc + 1;
+	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
 }
 
 void bloop(const UDSPInstruction& opc)
@@ -176,7 +176,7 @@ void bloop(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.pc = loop_pc + 1;
+	   	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
 	}
 }
 
@@ -193,7 +193,7 @@ void bloopi(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.pc = loop_pc + 1;
+		g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
 	}
 }
 
