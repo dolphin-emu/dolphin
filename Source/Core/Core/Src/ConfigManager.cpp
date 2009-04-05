@@ -62,6 +62,8 @@ void SConfig::SaveSettings()
 			sprintf(tmp, "GCMPath%i", (int)i);
 			ini.Set("General", tmp, m_ISOFolder[i]);
 		}
+
+		ini.Set("General", "RecersiveGCMPaths", m_RecersiveISOFolder);
 	}
 
 	
@@ -165,6 +167,8 @@ void SConfig::LoadSettings()
 				m_ISOFolder.push_back(tmpPath);
 			}
 		}
+
+		ini.Get("General", "RecersiveGCMPaths", &m_RecersiveISOFolder, false);
 	}
 
 	{

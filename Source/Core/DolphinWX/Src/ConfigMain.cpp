@@ -75,6 +75,7 @@ EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
+EVT_CHECKBOX(ID_RECERSIVEISOPATH, CConfigMain::RecursiveDirectoryChanged)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
 
@@ -441,7 +442,8 @@ void CConfigMain::CreateGUIControls()
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath->Enable(false);
-
+	RecersiveISOPath = new wxCheckBox(PathsPage, ID_RECERSIVEISOPATH, wxT("Search Subfolders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	RecersiveISOPath->SetValue(SConfig::GetInstance().m_RecersiveISOFolder);
 	DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, wxT("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
 		wxString::Format(wxT("All GC/Wii images (gcm, iso, gcz)|*.gcm;*.iso;*.gcz|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
@@ -457,6 +459,7 @@ void CConfigMain::CreateGUIControls()
 	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 0);
 
 	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
+	sISOButtons->Add(RecersiveISOPath, 0, wxALL, 0);
 	sISOButtons->AddStretchSpacer(1);
 	sISOButtons->Add(AddISOPath, 0, wxALL, 0);
 	sISOButtons->Add(RemoveISOPath, 0, wxALL, 0);
@@ -836,6 +839,12 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 
 	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
 		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].ToAscii()));
+}
+
+void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_RecersiveISOFolder = RecersiveISOPath->IsChecked();
+	bRefreshList = true;
 }
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))

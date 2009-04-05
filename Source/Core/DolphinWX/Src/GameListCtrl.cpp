@@ -375,6 +375,20 @@ void CGameListCtrl::ScanForISOs()
 	m_ISOFiles.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
 
+	if (SConfig::GetInstance().m_RecersiveISOFolder)
+	{
+		for (u32 i = 0; i < Directories.size(); i++)
+		{
+			File::FSTEntry FST_Temp;
+			File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
+			for (u32 j = 0; j < FST_Temp.children.size(); j++)
+			{
+				if (FST_Temp.children.at(j).isDirectory)
+					Directories.push_back(FST_Temp.children.at(j).physicalName.c_str());
+			}
+		}
+	}
+
 	CFileSearch::XStringVector Extensions;
 	Extensions.push_back("*.iso");
 	Extensions.push_back("*.gcm");

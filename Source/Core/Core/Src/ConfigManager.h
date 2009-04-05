@@ -51,6 +51,7 @@ struct SConfig
 
 	// gcm folder
 	std::vector<std::string>m_ISOFolder;
+	bool m_RecersiveISOFolder;
 
 	SCoreStartupParameter m_LocalCoreStartupParameter;
 

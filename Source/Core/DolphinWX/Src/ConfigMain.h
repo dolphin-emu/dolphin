@@ -182,6 +182,7 @@ class CConfigMain
 		wxListBox* ISOPaths;
 		wxButton* AddISOPath;
 		wxButton* RemoveISOPath;
+		wxCheckBox* RecersiveISOPath;
 		wxStaticText* DefaultISOText;
 		wxFilePickerCtrl* DefaultISO;
 		wxStaticText* DVDRootText;
@@ -253,6 +254,7 @@ class CConfigMain
 			ID_ISOPATHS,
 			ID_ADDISOPATH,
 			ID_REMOVEISOPATH,
+			ID_RECERSIVEISOPATH,
 			ID_DEFAULTISO_TEXT,
 			ID_DEFAULTISO,
 			ID_DVDROOT_TEXT,
@@ -286,6 +288,7 @@ class CConfigMain
 		void ChooseEXIDevice(std::string deviceName, int deviceNum);
 		void WiiSettingsChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
+		void RecursiveDirectoryChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);
 		void DefaultISOChanged(wxFileDirPickerEvent& event);
 		void DVDRootChanged(wxFileDirPickerEvent& event);
