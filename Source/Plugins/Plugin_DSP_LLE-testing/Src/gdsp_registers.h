@@ -28,9 +28,9 @@
 #include "Globals.h"
 
 #define DSP_REG_ST0 0x0c
-#define DSP_REG_ST1 0x0c
-#define DSP_REG_ST2 0x0c
-#define DSP_REG_ST3 0x0c
+//#define DSP_REG_ST1 0x0d
+//#define DSP_REG_ST2 0x0e
+//#define DSP_REG_ST3 0x0f
 
 #define DSP_STACK_C 0
 #define DSP_STACK_D 1

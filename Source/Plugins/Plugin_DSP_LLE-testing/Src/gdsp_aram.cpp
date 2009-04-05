@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 #include "gdsp_interface.h"
+#include "gdsp_interpreter.h"
 
 extern u16 dsp_swap16(u16 x);
 
@@ -63,7 +64,6 @@ s16 ADPCM_Step(u32& _rSamplePos, u32 _BaseAddress)
 	return val;
 }
 
-extern void gdsp_generate_exception(u8 level);
 u16 dsp_read_aram()
 {
   //	u32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];

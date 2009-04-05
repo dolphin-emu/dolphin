@@ -47,6 +47,8 @@ u16* SDSP::coef   = 0;
 u8* SDSP::cpu_ram = 0;
 u16 SDSP::cr = 0;
 u8 SDSP::reg_stack_ptr[4];
+u8 SDSP::exceptions;
+
 // lets make stack depth to 32 for now
 u16 SDSP::reg_stack[4][DSP_STACK_DEPTH];
 void (*SDSP::irq_request)() = NULL;
@@ -62,6 +64,11 @@ u64 SDSP::step_counter = 0;
 
 static bool CR_HALT = true;
 static bool CR_EXTERNAL_INT = false;
+
+
+bool gdsp_running;
+extern volatile u32 dsp_running;
+
 
 void UpdateCachedCR()
 {
@@ -131,10 +138,9 @@ void gdsp_reset()
 }
 
 
-u8 gdsp_exceptions = 0;
 void gdsp_generate_exception(u8 level)
 {
-	gdsp_exceptions |= 1 << level;
+	g_dsp.exceptions |= 1 << level;
 }
 
 
@@ -269,7 +275,7 @@ void gdsp_step()
 	}
 
 	// check if there is an external interrupt
-	if  (CR_EXTERNAL_INT)
+	if (CR_EXTERNAL_INT)
 	{
 		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
 		{
@@ -281,19 +287,19 @@ void gdsp_step()
 	}
 
 	// check exceptions
-	if ((gdsp_exceptions > 0) && (!g_dsp.exception_in_progress_hack))
+	if ((g_dsp.exceptions != 0) && (!g_dsp.exception_in_progress_hack))
 	{
-		for (u8 i=0; i<8; i++)
+		for (int i = 0; i < 8; i++)
 		{
-			if (gdsp_exceptions & (1<<i))
+			if (g_dsp.exceptions & (1 << i))
 			{
-                            _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[R_SR]);
 
 				g_dsp.pc = i * 2;
-				gdsp_exceptions &= ~(1<<i);
+				g_dsp.exceptions &= ~(1 << i);
 
 				g_dsp.exception_in_progress_hack = true;
 				break;
@@ -302,9 +308,6 @@ void gdsp_step()
 	}
 }
 
-
-bool gdsp_running;
-extern volatile u32 dsp_running;
 
 bool gdsp_run()
 {
@@ -359,7 +362,7 @@ void gdsp_stop()
 //#include "WaveFile.h"
 #include "Mixer.h"
 
-u16 r30 = 0, r31 = 0;
+// u16 r30 = 0, r31 = 0;
 //extern WaveFileWriter g_wave_writer;
 
 extern u16 dsp_swap16(u16 x);

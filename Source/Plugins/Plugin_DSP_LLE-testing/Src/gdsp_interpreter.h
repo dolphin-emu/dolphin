@@ -74,6 +74,8 @@ struct SDSP
 	static u8* cpu_ram;
 	static u16 cr;
 	static u8 reg_stack_ptr[4];
+	static u8 exceptions;   // pending exceptiosn?
+
 	// lets make stack depth to 32 for now
 	static u16 reg_stack[4][DSP_STACK_DEPTH];
 	static void (* irq_request)(void);
@@ -108,5 +110,8 @@ u16* gdsp_get_iram(void);
 u16* gdsp_get_irom(void);
 u16* gdsp_get_dram(void);
 u16* gdsp_get_drom(void);
+
+// sets a flag in the pending exception register.
+void gdsp_generate_exception(u8 level);
 
 #endif
