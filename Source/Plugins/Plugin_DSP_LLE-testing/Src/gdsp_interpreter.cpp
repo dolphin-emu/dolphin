@@ -55,7 +55,7 @@ void (*SDSP::irq_request)() = NULL;
 bool SDSP::exception_in_progress_hack = false;  // should be replaced with bit9 in SR?
 
 // for debugger only
-bool SDSP::dump_imem = false;
+bool SDSP::dump_imem = true;
 u32 SDSP::iram_crc = 0;
 u64 SDSP::step_counter = 0;
 

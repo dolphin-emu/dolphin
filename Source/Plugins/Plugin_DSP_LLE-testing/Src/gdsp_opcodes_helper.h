@@ -41,15 +41,14 @@
 //
 // ---------------------------------------------------------------------------------------
 
-inline void dsp_SR_set_flag(u8 flag)
+inline void dsp_SR_set_flag(int flag)
 {
 	g_dsp.r[R_SR] |= (1 << flag);
 }
 
-
-inline bool dsp_SR_is_flag_set(u8 flag)
+inline bool dsp_SR_is_flag_set(int flag)
 {
-	return((g_dsp.r[R_SR] & (1 << flag)) > 0);
+	return (g_dsp.r[R_SR] & (1 << flag)) != 0;
 }
 
 
@@ -77,7 +76,7 @@ inline u16 dsp_op_read_reg(u8 reg)
 		    break;
 	}
 
-	return(val);
+	return val;
 }
 
 
@@ -146,7 +145,7 @@ inline void dsp_set_long_prod(s64 val)
 //
 // ---------------------------------------------------------------------------------------
 
-inline s64 dsp_get_long_acc(u8 reg)
+inline s64 dsp_get_long_acc(int reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
@@ -161,11 +160,11 @@ inline s64 dsp_get_long_acc(u8 reg)
 	low_acc <<= 16;
 	low_acc  |= g_dsp.r[0x1c + reg];
 	val |= low_acc;
-	return(val);
+	return val;
 }
 
 
-inline u64 dsp_get_ulong_acc(u8 reg)
+inline u64 dsp_get_ulong_acc(int reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
@@ -180,11 +179,11 @@ inline u64 dsp_get_ulong_acc(u8 reg)
 	low_acc <<= 16;
 	low_acc  |= g_dsp.r[0x1c + reg];
 	val |= low_acc;
-	return(val);
+	return val;
 }
 
 
-inline void dsp_set_long_acc(u8 _reg, s64 val)
+inline void dsp_set_long_acc(int _reg, s64 val)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
@@ -199,24 +198,24 @@ inline void dsp_set_long_acc(u8 _reg, s64 val)
 }
 
 
-inline s16 dsp_get_acc_l(u8 _reg)
+inline s16 dsp_get_acc_l(int _reg)
 {
 	_assert_(_reg < 2);
-	return(g_dsp.r[0x1c + _reg]);
+	return g_dsp.r[0x1c + _reg];
 }
 
 
-inline s16 dsp_get_acc_m(u8 _reg)
+inline s16 dsp_get_acc_m(int _reg)
 {
 	_assert_(_reg < 2);
-	return(g_dsp.r[0x1e + _reg]);
+	return g_dsp.r[0x1e + _reg];
 }
 
 
-inline s16 dsp_get_acc_h(u8 _reg)
+inline s16 dsp_get_acc_h(int _reg)
 {
 	_assert_(_reg < 2);
-	return(g_dsp.r[0x10 + _reg]);
+	return g_dsp.r[0x10 + _reg];
 }
 
 
@@ -227,7 +226,7 @@ inline s16 dsp_get_acc_h(u8 _reg)
 // ---------------------------------------------------------------------------------------
 
 
-inline s64 dsp_get_long_acx(u8 _reg)
+inline s64 dsp_get_long_acx(int _reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
@@ -238,22 +237,19 @@ inline s64 dsp_get_long_acx(u8 _reg)
 	val <<= 16;
 	s64 low_acc = g_dsp.r[0x18 + _reg];
 	val |= low_acc;
-	return(val);
+	return val;
 }
 
-
-inline s16 dsp_get_ax_l(u8 _reg)
+inline s16 dsp_get_ax_l(int _reg)
 {
 	_assert_(_reg < 2);
-	return(g_dsp.r[0x18 + _reg]);
+	return g_dsp.r[0x18 + _reg];
 }
 
-
-inline s16 dsp_get_ax_h(u8 _reg)
+inline s16 dsp_get_ax_h(int _reg)
 {
 	_assert_(_reg < 2);
-	return(g_dsp.r[0x1a + _reg]);
+	return g_dsp.r[0x1a + _reg];
 }
-
 
 #endif

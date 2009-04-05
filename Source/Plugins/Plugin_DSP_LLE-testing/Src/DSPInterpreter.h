@@ -117,7 +117,7 @@ void srbith(const UDSPInstruction& opc);
 
 void andfc(const UDSPInstruction& opc);
 void andf(const UDSPInstruction& opc);
-void subf(const UDSPInstruction& opc);
+void cmpi(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);
 void ori(const UDSPInstruction& opc);

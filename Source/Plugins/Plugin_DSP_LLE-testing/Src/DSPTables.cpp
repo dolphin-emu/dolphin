@@ -56,6 +56,10 @@ jnz, ifs, retlnz
 #include "gdsp_ext_op.h"
 
 void nop(const UDSPInstruction& opc) {/*DSPInterpreter::unknown(opc);*/}
+ 
+
+// "Unrecognized opcode 0x01a2, pc 0x0165"  seems wrong.
+
 
 // TODO: Fill up the tables with the corresponding instructions
 DSPOPCTemplate opcodes[] =
@@ -171,8 +175,8 @@ DSPOPCTemplate opcodes[] =
 	{"ORI",		0x0260, 0xfeff, DSPInterpreter::ori, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"ORF",		0x02e0, 0xfeff, nop, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL}, // Hermes: ??? (has it commented out)
 
-	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}},}, // F|RES: missing S64
-	{"SUBF",    0x0280, 0xfeff, DSPInterpreter::subf, nop, 1, 2, {{P_REG, 1, 0, 8, 0x0100}}, NULL, NULL},
+	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL}, // F|RES: missing S64
+	{"CMPI",    0x0280, 0xfeff, DSPInterpreter::cmpi, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
 
 	{"ILRR",    0x0210, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL},
 	{"ILRRD",	0x0214, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL}, // Hermes doesn't list this
@@ -317,15 +321,15 @@ dspInstFunc epilogueTable[OPTABLE_SIZE];
 
 void InitInstructionTable()
 {
-	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
+	for (u32 i = 0; i < OPTABLE_SIZE; i++) {
 		opTable[i] = DSPInterpreter::unknown;
 		prologueTable[i] = NULL;
 		epilogueTable[i] = NULL;
 	}
 	
-	for(u32 i = 0; i < OPTABLE_SIZE; i++) {
-		for(u32 j = 0; j < opcodes_size; j++) 
-			if((opcodes[j].opcode_mask & i) == opcodes[j].opcode) {
+	for (u32 i = 0; i < OPTABLE_SIZE; i++) {
+		for (u32 j = 0; j < opcodes_size; j++) 
+			if ((opcodes[j].opcode_mask & i) == opcodes[j].opcode) {
 				if (opTable[i] == DSPInterpreter::unknown) {
 					opTable[i] = opcodes[j].interpFunc;
 					prologueTable[i] = opcodes[j].prologue;
@@ -339,11 +343,11 @@ void InitInstructionTable()
 
 void ComputeInstruction(const UDSPInstruction& inst)
 {
-	if(prologueTable[inst.hex])
+	if (prologueTable[inst.hex])
 		prologueTable[inst.hex](inst);
 
 	opTable[inst.hex](inst);
         
-	if(epilogueTable[inst.hex])
+	if (epilogueTable[inst.hex])
 		epilogueTable[inst.hex](inst);
 }

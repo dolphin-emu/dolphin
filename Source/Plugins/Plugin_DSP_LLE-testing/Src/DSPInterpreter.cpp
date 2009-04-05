@@ -32,8 +32,7 @@ namespace DSPInterpreter {
 void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.pc);
-	/*PanicAlert("LLE: Unrecognized opcode 0x%04x", opc.hex);*/
+	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.pc - 1);
 	//g_dsp.pc = g_dsp.err_pc;
 }
 
@@ -602,7 +601,7 @@ void andf(const UDSPInstruction& opc)
 }
 
 // FIXME inside
-void subf(const UDSPInstruction& opc)
+void cmpi(const UDSPInstruction& opc)
 {
 	if (opc.hex & 0xf)
 	{
@@ -610,6 +609,8 @@ void subf(const UDSPInstruction& opc)
 		ERROR_LOG(DSPHLE, "dsp subf opcode");
 	}
 
+#if 1
+	// Old implementation
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
 	s64 imm = (s16)dsp_fetch_code();
 
@@ -617,6 +618,18 @@ void subf(const UDSPInstruction& opc)
 	s64 res = val - imm;
 
 	Update_SR_Register64(res);
+#else
+	// Implementation according to docs
+	int reg  = (opc.hex >> 8) & 0x1;
+
+	// Immediate is considered to be at M level in the 40-bit accumulator.
+	s64 imm = (s64)dsp_fetch_code() << 16;
+	s64 val = dsp_get_long_acc(reg);
+	s64 res = val - imm;
+
+	Update_SR_Register64(res);
+#endif
+
 }
 
 // FIXME inside
