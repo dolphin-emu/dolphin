@@ -41,6 +41,7 @@ namespace DSPInterpreter {
 #define SR_MUL_MODIFY 0x2000   // 1 = normal. 0 = x2
 
 bool CheckCondition(u8 _Condition);
+
 int GetMultiplyModifier();
 
 void Update_SR_Register16(s16 _Value);

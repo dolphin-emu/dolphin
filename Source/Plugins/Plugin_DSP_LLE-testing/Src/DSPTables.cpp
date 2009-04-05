@@ -226,10 +226,10 @@ DSPOPCTemplate opcodes[] =
 	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg,    nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVNP",   0x7e00, 0xfeff, DSPInterpreter::movnp,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
+	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	// ??? is seen in burnout2 : opcode 0xa100
 	// {"???",     0xa100, 0xf7ff, DSPInterpreter::unknown,nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tsta,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

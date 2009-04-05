@@ -53,7 +53,7 @@ void clrp(const UDSPInstruction& opc);
 void mulc(const UDSPInstruction& opc);
 void cmpar(const UDSPInstruction& opc);
 void cmp(const UDSPInstruction& opc);
-void tsta(const UDSPInstruction& opc);
+void tst(const UDSPInstruction& opc);
 void addaxl(const UDSPInstruction& opc);
 void addarn(const UDSPInstruction& opc);
 void mulcac(const UDSPInstruction& opc);
@@ -128,6 +128,9 @@ void mov(const UDSPInstruction& opc);
 
 // END OF UNIMPLEMENTED
 
+
+// Helpers
+inline void tsta(int reg);
 };
 
 #endif // _DSPINTERPRETER_H

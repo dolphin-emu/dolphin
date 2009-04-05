@@ -35,6 +35,14 @@ void unknown(const UDSPInstruction& opc)
 	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.err_pc);
 }
 
+// test register and updates SR accordingly
+void tsta(int reg)
+{
+	s64 acc = dsp_get_long_acc(reg);
+
+	Update_SR_Register64(acc);
+}
+
 // Generic call implementation
 void call(const UDSPInstruction& opc)
 {
@@ -410,14 +418,9 @@ void cmp(const UDSPInstruction& opc)
 	Update_SR_Register64(acc0 - acc1);
 }
 
-// WARNING - this instruction is being called by other instructions!!!!!
-// Is that sane?
-void tsta(const UDSPInstruction& opc)
+void tst(const UDSPInstruction& opc)
 {
-	u8 reg  = (opc.hex >> 11) & 0x1;
-	s64 acc = dsp_get_long_acc(reg);
-
-	Update_SR_Register64(acc);
+	tsta((opc.hex >> 11) & 0x1);
 }
 
 void addaxl(const UDSPInstruction& opc)
@@ -488,7 +491,7 @@ void movax(const UDSPInstruction& opc)
 		g_dsp.r[0x10 + dreg] = 0;
 	}
 
-	tsta(UDSPInstruction(dreg << 11));
+	tsta(dreg);
 }
 
 void xorr(const UDSPInstruction& opc)
@@ -498,7 +501,7 @@ void xorr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] ^= g_dsp.r[0x1a + sreg];
 
-	tsta(UDSPInstruction(dreg << 11));
+	tsta(dreg);
 }
 
 void andr(const UDSPInstruction& opc)
@@ -508,7 +511,7 @@ void andr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] &= g_dsp.r[0x1a + sreg];
 
-	tsta(UDSPInstruction(dreg << 11));
+	tsta(dreg);
 }
 
 void orr(const UDSPInstruction& opc)
@@ -518,7 +521,7 @@ void orr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] |= g_dsp.r[0x1a + sreg];
 
-	tsta(UDSPInstruction(dreg << 11));
+	tsta(dreg);
 }
 
 void andc(const UDSPInstruction& opc)
