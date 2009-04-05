@@ -631,6 +631,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\gdsp_condition_codes.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\gdsp_condition_codes.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\gdsp_ext_op.cpp"
 				>
 			</File>

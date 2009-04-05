@@ -15,6 +15,7 @@ files = [
 	"DSPConfigDlgLLE.cpp",
 	"disassemble.cpp",
 	"gdsp_aram.cpp",
+	"gdsp_condition_codes.cpp",
 	"gdsp_ext_op.cpp",
 	"gdsp_interface.cpp",
 	"gdsp_interpreter.cpp",

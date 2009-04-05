@@ -107,6 +107,9 @@ void gdsp_init()
 	}
 
 	// Fill roms with zeros. 
+	memset(g_dsp.irom, 0, DSP_IROM_SIZE * sizeof(u16));
+	memset(g_dsp.drom, 0, DSP_DROM_SIZE * sizeof(u16));
+	memset(g_dsp.coef, 0, DSP_COEF_SIZE * sizeof(u16));
 
 	for (int i = 0; i < 32; i++)
 	{
