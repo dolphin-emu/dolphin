@@ -45,6 +45,7 @@
 
 #include "Globals.h"
 
+// Are these in bytes or 16-bit words? Probably 16-bit words.
 #define DSP_IRAM_SIZE   (0x1000)
 #define DSP_IRAM_MASK   (0x0fff)
 #define DSP_IROM_SIZE   (0x1000)
@@ -92,8 +93,8 @@ extern SDSP g_dsp;
 
 void gdsp_init(void);
 void gdsp_reset(void);
-bool gdsp_load_rom(char* fname);
-bool gdsp_load_coef(char* fname);
+bool gdsp_load_rom(const char *fname);
+bool gdsp_load_coef(const char *fname);
 
 
 // steps through DSP code, returns false if error occured

@@ -49,9 +49,6 @@ SoundStream *soundStream = NULL;
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
 
-u32 g_LastDMAAddress = 0;
-u32 g_LastDMASize = 0;
-
 extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);
 
@@ -234,14 +231,14 @@ void Initialize(void *init)
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom((char *)DSP_ROM_FILE)) {
+	if (!gdsp_load_rom(DSP_ROM_FILE)) {
 		bCanWork = false;
-		PanicAlert("Cannot load DSP ROM");
+		PanicAlert("Failed loading DSP ROM from " DSP_ROM_FILE);
 	}
 	
-	if (!gdsp_load_coef((char *)DSP_COEF_FILE)) {
+	if (!gdsp_load_coef(DSP_COEF_FILE)) {
 		bCanWork = false;
-		PanicAlert("Cannot load DSP COEF");
+		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
 	}
 	
 	if(!bCanWork)
@@ -250,7 +247,6 @@ void Initialize(void *init)
 	bIsRunning = true;
 	
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
-	
 	soundStream = AudioCommon::InitSoundStream();
 
 	InitInstructionTable();
@@ -272,12 +268,12 @@ void Shutdown(void)
 u16 DSP_WriteControlRegister(u16 _uFlag)
 {
 	gdsp_write_cr(_uFlag);
-	return(gdsp_read_cr());
+	return gdsp_read_cr();
 }
 
 u16 DSP_ReadControlRegister()
 {
-	return(gdsp_read_cr());
+	return gdsp_read_cr();
 }
 
 u16 DSP_ReadMailboxHigh(bool _CPUMailbox)

@@ -23,6 +23,6 @@ namespace DSPJit {
 // TODO(XK): Fill
 
 
-};
+}  // namespace
 
 #endif // _DSPJIT_H

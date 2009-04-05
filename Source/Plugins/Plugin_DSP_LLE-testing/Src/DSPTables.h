@@ -21,6 +21,7 @@
 #define _DSPTABLES_H
 
 #include "Common.h"
+
 enum parameterType
 {
 	P_NONE		= 0x0000,

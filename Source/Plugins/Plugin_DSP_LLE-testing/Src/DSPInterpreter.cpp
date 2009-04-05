@@ -78,7 +78,7 @@ s8 GetMultiplyModifier()
 	{
 		return(1);
 	}
-	return(2);
+	return 2;
 }
 
 
@@ -89,7 +89,6 @@ s8 GetMultiplyModifier()
 bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
-
 	switch (_Condition & 0xf)
 	{
 	case 0x0: //NS - NOT SIGN
@@ -124,7 +123,7 @@ bool CheckCondition(u8 _Condition)
 	case 0x5: // Z - ZERO 
 
 		if (g_dsp.r[R_SR] & 0x04)
-				taken = true;
+			taken = true;
 		break;
 
 	case 0x6: // L - LESS
@@ -660,9 +659,11 @@ void andc(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
-// TODO: Implement
 void nx(const UDSPInstruction& opc)
-{}
+{
+	// This opcode is supposed to do nothing - it's used if you want to use
+	// an opcode extension but not do anything. At least according to duddie.
+}
 
 
 // FIXME inside
@@ -1410,4 +1411,4 @@ void lrs(const UDSPInstruction& opc)
 	g_dsp.r[reg] = dsp_dmem_read(addr);
 }
 
-};
+}  // namespace
