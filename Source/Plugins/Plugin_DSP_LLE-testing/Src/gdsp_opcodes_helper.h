@@ -43,12 +43,12 @@
 
 inline void dsp_SR_set_flag(int flag)
 {
-	g_dsp.r[R_SR] |= (1 << flag);
+	g_dsp.r[DSP_REG_SR] |= (1 << flag);
 }
 
 inline bool dsp_SR_is_flag_set(int flag)
 {
-	return (g_dsp.r[R_SR] & (1 << flag)) != 0;
+	return (g_dsp.r[DSP_REG_SR] & (1 << flag)) != 0;
 }
 
 

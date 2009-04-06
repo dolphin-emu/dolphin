@@ -315,7 +315,7 @@ void gdsp_step()
 				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[R_SR]);
+				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
 
 				g_dsp.pc = i * 2;
 				g_dsp.exceptions &= ~(1 << i);

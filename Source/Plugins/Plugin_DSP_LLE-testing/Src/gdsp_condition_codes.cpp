@@ -28,49 +28,49 @@ namespace DSPInterpreter {
 
 void Update_SR_Register64(s64 _Value)
 {
-	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
+	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	if (_Value < 0)
 	{
-		g_dsp.r[R_SR] |= 0x8;
+		g_dsp.r[DSP_REG_SR] |= 0x8;
 	}
 
 	if (_Value == 0)
 	{
-		g_dsp.r[R_SR] |= 0x4;
+		g_dsp.r[DSP_REG_SR] |= 0x4;
 	}
 
 	// weird
 	if ((_Value >> 62) == 0)
 	{
-		g_dsp.r[R_SR] |= 0x20;
+		g_dsp.r[DSP_REG_SR] |= 0x20;
 	}
 }
 
 void Update_SR_Register16(s16 _Value)
 {
-	g_dsp.r[R_SR] &= ~SR_CMP_MASK;
+	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	if (_Value < 0)
 	{
-		g_dsp.r[R_SR] |= 0x8;
+		g_dsp.r[DSP_REG_SR] |= 0x8;
 	}
 
 	if (_Value == 0)
 	{
-		g_dsp.r[R_SR] |= 0x4;
+		g_dsp.r[DSP_REG_SR] |= 0x4;
 	}
 
 	// weird
 	if ((_Value >> 14) == 0)
 	{
-		g_dsp.r[R_SR] |= 0x20;
+		g_dsp.r[DSP_REG_SR] |= 0x20;
 	}
 }
 
 int GetMultiplyModifier()
 {
-	if (g_dsp.r[R_SR] & (1 << 13))
+	if (g_dsp.r[DSP_REG_SR] & (1 << 13))
 		return 1;
 	else	
 		return 2;
@@ -88,58 +88,58 @@ bool CheckCondition(u8 _Condition)
 	{
 	case 0x0: //NS - NOT SIGN
 
-		if (!(g_dsp.r[R_SR] & 0x08))
+		if (!(g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
 		
 	case 0x1: // S - SIGN
 		
-		if (g_dsp.r[R_SR] & 0x08)
+		if (g_dsp.r[DSP_REG_SR] & 0x08)
 			taken = true;
 		break;
  
 	case 0x2: // G - GREATER
 
-		if ( (!(g_dsp.r[R_SR] & 0x02) || !(g_dsp.r[R_SR] & 0x04)) && !(g_dsp.r[R_SR] & 0x08))
+		if ( (!(g_dsp.r[DSP_REG_SR] & 0x02) || !(g_dsp.r[DSP_REG_SR] & 0x04)) && !(g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
 
 	case 0x3: // LE - LESS EQUAL
-		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04) || (g_dsp.r[R_SR] & 0x08))
+		if ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x04) || (g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
 
 	case 0x4: // NZ - NOT ZERO
 
-		if (!(g_dsp.r[R_SR] & 0x04))
+		if (!(g_dsp.r[DSP_REG_SR] & 0x04))
 			taken = true;
 		break;
 
 	case 0x5: // Z - ZERO 
 
-		if (g_dsp.r[R_SR] & 0x04)
+		if (g_dsp.r[DSP_REG_SR] & 0x04)
 			taken = true;
 		break;
 
 	case 0x6: // L - LESS
-		if ((g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x08))
+		if ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
-		if ( (!(g_dsp.r[R_SR] & 0x02) || (g_dsp.r[R_SR] & 0x04)) && !(g_dsp.r[R_SR] & 0x08))
+		if ( (!(g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x04)) && !(g_dsp.r[DSP_REG_SR] & 0x08))
 		break;
 
 	case 0xc: // LNZ  - LOGIC NOT ZERO
 
-		if (!(g_dsp.r[R_SR] & 0x40))
+		if (!(g_dsp.r[DSP_REG_SR] & 0x40))
 			taken = true;
 
 		break;
 
 	case 0xd: // LZ - LOGIC ZERO
 
-		if (g_dsp.r[R_SR] & 0x40)
+		if (g_dsp.r[DSP_REG_SR] & 0x40)
 			taken = true;
 
 		break;

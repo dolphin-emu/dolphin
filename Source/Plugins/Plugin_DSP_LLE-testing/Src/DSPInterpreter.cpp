@@ -121,7 +121,7 @@ void rti(const UDSPInstruction& opc)
 		ERROR_LOG(DSPLLE, "dsp rti opcode");
 	}
 
-	g_dsp.r[R_SR] = dsp_reg_load_stack(DSP_STACK_D);
+	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 
 	g_dsp.exception_in_progress_hack = false;
@@ -519,7 +519,7 @@ void addarn(const UDSPInstruction& opc)
 	u8 dreg = opc.hex & 0x3;
 	u8 sreg = (opc.hex >> 2) & 0x3;
 
-	g_dsp.r[dreg] += (s16)g_dsp.r[0x04 + sreg];
+	g_dsp.r[dreg] += (s16)g_dsp.r[DSP_REG_IX0 + sreg];
 }
 
 void mulcac(const UDSPInstruction& opc)
@@ -619,11 +619,11 @@ void andc(const UDSPInstruction& opc)
 
 	if ((ac1 & ac2) == 0)
 	{
-		g_dsp.r[R_SR] |= 0x20;  // 0x40?
+		g_dsp.r[DSP_REG_SR] |= 0x20;  // 0x40?
 	}
 	else
 	{
-		g_dsp.r[R_SR] &= ~0x20; // 0x40?
+		g_dsp.r[DSP_REG_SR] &= ~0x20; // 0x40?
 	}
 }
 
@@ -658,11 +658,11 @@ void andfc(const UDSPInstruction& opc)
 
 	if ((val & imm) == imm)
 	{
-		g_dsp.r[R_SR] |= 0x40;
+		g_dsp.r[DSP_REG_SR] |= 0x40;
 	}
 	else
 	{
-		g_dsp.r[R_SR] &= ~0x40;
+		g_dsp.r[DSP_REG_SR] &= ~0x40;
 	}
 }
 
@@ -693,11 +693,11 @@ void andf(const UDSPInstruction& opc)
 
 	if ((val & imm) == 0)
 	{
-		g_dsp.r[R_SR] |= 0x40;
+		g_dsp.r[DSP_REG_SR] |= 0x40;
 	}
 	else
 	{
-		g_dsp.r[R_SR] &= ~0x40;
+		g_dsp.r[DSP_REG_SR] &= ~0x40;
 	}
 }
 
@@ -1158,14 +1158,14 @@ void iar(const UDSPInstruction& opc)
 void sbclr(const UDSPInstruction& opc)
 {
 	u8 bit = (opc.hex & 0xff) + 6;
-	g_dsp.r[R_SR] &= ~(1 << bit);
+	g_dsp.r[DSP_REG_SR] &= ~(1 << bit);
 }
 
 
 void sbset(const UDSPInstruction& opc)
 {
 	u8 bit = (opc.hex & 0xff) + 6;
-	g_dsp.r[R_SR] |= (1 << bit);
+	g_dsp.r[DSP_REG_SR] |= (1 << bit);
 }
 
 
@@ -1199,13 +1199,13 @@ void srbith(const UDSPInstruction& opc)
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
-		g_dsp.r[R_SR] &= ~(1 << 14);
+		g_dsp.r[DSP_REG_SR] &= ~(1 << 14);
 		ERROR_LOG(DSPLLE, "SET40");
 		break;
 
 	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
 		// that doesnt happen on a real console  << what does this comment mean?
-		g_dsp.r[R_SR] |= (1 << 14);
+		g_dsp.r[DSP_REG_SR] |= (1 << 14);
 		ERROR_LOG(DSPLLE, "SET16");
 		break;
 
