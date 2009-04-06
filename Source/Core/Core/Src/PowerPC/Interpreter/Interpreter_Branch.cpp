@@ -113,16 +113,18 @@ void CompiledBlock(UGeckoInstruction _inst)
 
 void rfi(UGeckoInstruction _inst)
 {
-	//Bits SRR1[0,5-9,16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
-	//MSR[13] is set to 0.
-	const int mask = 0x87C0FF73;
+	// Restore saved bits from SRR1 to MSR.
+	const int mask = 0x87C0FFFF;
 	MSR = (MSR & ~mask) | (SRR1 & mask);
-	MSR &= 0xFFFDFFFF; //TODO: VERIFY
-	NPC = SRR0; // TODO: VERIFY
+	//MSR[13] is set to 0.
+	MSR &= 0xFFFDFFFF;
+	// Here we should check if there are pending exceptions, and if their corresponding enable bits are set
+	// if above is true, we'd do:
+	//PowerPC::CheckExceptions();
+	//else
+	// set NPC to saved offset and resume
+	NPC = SRR0; // TODO: VERIFY...docs say ignore top two bits?
 	m_EndBlock = true;
-	// After an RFI, exceptions should be checked IMMEDIATELY without going back into
-	// other code! TODO(ector): fix this properly
-	// PowerPC::CheckExceptions();
 }
 
 void rfid(UGeckoInstruction _inst) 

@@ -518,10 +518,23 @@ void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite)
 
 void GenerateISIException()
 {
-	// 4 bit for Set if the translation of an attempted access is not found in the primary hash table entry group
-	// (HTEG), or in the rehashed secondary HTEG, or in the range of a DBAT register (page fault
-	// condition); otherwise cleared.
-	PowerPC::ppcState.spr[SPR_DSISR] = 0x4000000; 
+	// shuffle2: ISI exception doesn't modify DSISR at all, to my knowledge...
+	//PowerPC::ppcState.spr[SPR_DSISR] = 0x4000000; // maybe this was a typo for PPC_EXC_DSISR_PAGE?
+
+	// Instead, it modifies bits 1-4 in SRR1 depending on conditions:
+	// Bit 1: set if the translation of an attempted access is not found in the primary hash table entry group
+	//	(HTEG), or in the rehashed secondary HTEG, or in the range of a IBAT register (page fault
+	//	condition); otherwise cleared.
+	// Bit 2: cleared
+	// Bit 3: Set if the fetch access occurs to a direct-store segment (SR[T] = 1), to a noexecute
+	//	segment (N bit set in segment descriptor), or to guarded memory
+	//	when MSR[IR] = 1. Otherwise, cleared.
+	// Bit 4: Set if a memory access is not permitted by the page or IBAT protection
+	//	mechanism, described in Chapter 7, “Memory Management”; otherwise cleared.
+	// Only one of 1,3, or 4 may be set at a time
+
+	// For now let's just say that hash lookup failed
+	SRR1 = 0x10000000;
 	INFO_LOG(MEMMAP, "Generate ISI Exception");
 	PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 }
