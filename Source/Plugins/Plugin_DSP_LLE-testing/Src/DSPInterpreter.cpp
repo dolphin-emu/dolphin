@@ -1091,7 +1091,7 @@ void asr16(const UDSPInstruction& opc)
 void lsl(const UDSPInstruction& opc) 
 {
 	u16 shift = opc.ushift;
-	s64 acc = dsp_get_long_acc(opc.areg);
+	u64 acc = dsp_get_long_acc(opc.areg);
 
 	acc <<= shift;
 	dsp_set_long_acc(opc.areg, acc);
@@ -1106,10 +1106,11 @@ void lsl(const UDSPInstruction& opc)
 void lsr(const UDSPInstruction& opc)
 {
 	u16 shift = -opc.ushift;
-	s64 acc = dsp_get_long_acc(opc.areg);
-
+	u64 acc = dsp_get_long_acc(opc.areg);
+	// Lop off the extraneous sign extension our 64-bit fake accum causes
+	acc &= 0x000000FFFFFFFFFF;
 	acc >>= shift;
-	dsp_set_long_acc(opc.areg, acc);
+	dsp_set_long_acc(opc.areg, (s64)acc);
 
 	Update_SR_Register64(acc);
 }
@@ -1122,7 +1123,7 @@ void asl(const UDSPInstruction& opc)
 	u16 shift = opc.ushift;
 
 	// arithmetic shift
-	s64 acc = dsp_get_long_acc(opc.areg);
+	u64 acc = dsp_get_long_acc(opc.areg);
 	acc <<= shift;
 
 	dsp_set_long_acc(opc.areg, acc);
@@ -1132,7 +1133,7 @@ void asl(const UDSPInstruction& opc)
 
 // ASR $acR, #I
 // 0001 010r 11ii iiii
-// Arithmetically shifts left accumulator $acR by number specified by
+// Arithmetically shifts right accumulator $acR by number specified by
 // value calculated by negating sign extended bits 0-6.
 
 void asr(const UDSPInstruction& opc)
