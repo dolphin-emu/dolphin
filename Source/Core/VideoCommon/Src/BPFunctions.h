@@ -54,6 +54,7 @@ void RestoreRenderState(const Bypass &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
 void SetSamplerState(const Bypass &bp);
+void SetInterlacingMode(const Bypass &bp);
 };
 
 #endif // _BPFUNCTIONS_H_

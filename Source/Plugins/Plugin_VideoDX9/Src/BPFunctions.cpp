@@ -329,4 +329,8 @@ void SetSamplerState(const Bypass &bp)
 	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
 	//g_VideoInitialize.pLog(temp);
 }
+void SetInterlacingMode(const Bypass &bp)
+{
+	// TODO
+}
 };

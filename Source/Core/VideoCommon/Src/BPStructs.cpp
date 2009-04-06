@@ -37,7 +37,7 @@ void BPInit()
 }
 
 // ----------------------------------------------------------------------------------------------------------
-// Write to the Bypass Memory
+// Write to the Bypass Memory (Bypass Raster State Registers)
 /* ------------------
    Called:
 		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
@@ -63,12 +63,14 @@ void BPWritten(const Bypass& bp)
 	switch (bp.address)
 	{
 	case BPMEM_GENMODE: // Set the Generation Mode
-        PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d",
-		bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
-        bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
-		bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
-		SetGenerationMode(bp);
-		break;
+		{
+			PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d",
+			bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
+			bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
+			bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
+			SetGenerationMode(bp);
+			break;
+		}
 	case BPMEM_IND_MTXA: // Index Matrix Changed
 	case BPMEM_IND_MTXB:
 	case BPMEM_IND_MTXC:
@@ -98,45 +100,49 @@ void BPWritten(const Bypass& bp)
 		SetDepthMode(bp);
 		break;
 	case BPMEM_BLENDMODE: // Blending Control
-		if (bp.changes & 0xFFFF)
 		{
-			PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
-                bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
-                bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
-			// Set LogicOp Blending Mode
-            if (bp.changes & 2)
+			if (bp.changes & 0xFFFF)
 			{
-				SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
-				SetLogicOpMode(bp);
+				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
+					bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
+					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+				// Set LogicOp Blending Mode
+				if (bp.changes & 2)
+				{
+					SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
+					SetLogicOpMode(bp);
+				}
+				// Set Dithering Mode
+				if (bp.changes & 4)
+				{
+					SETSTAT(stats.dither, bpmem.blendmode.dither);
+					SetDitherMode(bp);
+				}
+				// Set Blending Mode
+				if (bp.changes & 0xFE1)
+				{
+					SETSTAT(stats.srcFactor, bpmem.blendmode.srcfactor);
+					SETSTAT(stats.dstFactor, bpmem.blendmode.dstfactor);
+					SetBlendMode(bp);
+				}
+				// Set Color Mask
+				if (bp.changes & 0x18)
+				{
+					SETSTAT(stats.alphaUpdate, bpmem.blendmode.alphaupdate);
+					SETSTAT(stats.colorUpdate, bpmem.blendmode.colorupdate);
+					SetColorMask(bp);
+				}
 			}
-			// Set Dithering Mode
-            if (bp.changes & 4)
-			{
-				SETSTAT(stats.dither, bpmem.blendmode.dither);
-				SetDitherMode(bp);
-			}
-			// Set Blending Mode
-			if (bp.changes & 0xFE1)
-			{
-				SETSTAT(stats.srcFactor, bpmem.blendmode.srcfactor);
-				SETSTAT(stats.dstFactor, bpmem.blendmode.dstfactor);
-				SetBlendMode(bp);
-			}
-			// Set Color Mask
-            if (bp.changes & 0x18)
-			{
-				SETSTAT(stats.alphaUpdate, bpmem.blendmode.alphaupdate);
-				SETSTAT(stats.colorUpdate, bpmem.blendmode.colorupdate);
-				SetColorMask(bp);
-			}
+			break;
 		}
-		break;
 	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
-		PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-		SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
-		SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
-		PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
-		break;
+		{
+			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+			SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
+			SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
+			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			break;
+		}
 	case BPMEM_SETDRAWDONE: // This is called when the game is done drawing (eg: like in DX: Begin(); Draw(); End();)
 		switch (bp.newvalue & 0xFF)
         {
@@ -162,66 +168,63 @@ void BPWritten(const Bypass& bp)
 	// EFB copy command. This copies a rectangle from the EFB to either RAM in a texture format or to XFB as YUYV.
 	// It can also optionally clear the EFB while copying from it. To emulate this, we of course copy first and clear afterwards.
     case BPMEM_TRIGGER_EFB_COPY: // Copy EFB Region or Render to the XFB or Clear the screen.
-	{
-		DVSTARTSUBPROFILE("LoadBPReg:swap");
-		// The bottom right is within the rectangle
-		// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
-		TRectangle rc = {
-			(int)(bpmem.copyTexSrcXY.x),
-			(int)(bpmem.copyTexSrcXY.y),
-			(int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
-			(int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
-		};
-
-		float MValueX = GetRendererTargetScaleX();
-		float MValueY = GetRendererTargetScaleY();
-
-		// Need another rc here to get it to scale.
-		// Here the bottom right is the out of the rectangle.
-		TRectangle multirc = {
-			(int)(bpmem.copyTexSrcXY.x * MValueX),
-			(int)(bpmem.copyTexSrcXY.y * MValueY),
-			(int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
-			(int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
-		};
-		UPE_Copy PE_copy;
-		PE_copy.Hex = bpmem.triggerEFBCopy;
-		// ----------------------------------------------------------
-		// Check to where we should copy the image data from the EFB.
-		// ----------------------------------------------------------
-		if (PE_copy.copy_to_xfb == 0)
 		{
-			if (GetConfig(CONFIG_SHOWEFBREGIONS)) 
-				stats.efb_regions.push_back(rc);
+			DVSTARTSUBPROFILE("LoadBPReg:swap");
+			// The bottom right is within the rectangle
+			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
+			TRectangle rc = {
+				(int)(bpmem.copyTexSrcXY.x),
+				(int)(bpmem.copyTexSrcXY.y),
+				(int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
+				(int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
+			};
 
-			CopyEFB(bp, rc, bpmem.copyTexDest << 5, 
-						bpmem.zcontrol.pixel_format == PIXELFMT_Z24, 
-						PE_copy.intensity_fmt > 0, 
-						((PE_copy.target_pixel_format / 2) + ((PE_copy.target_pixel_format & 1) * 8)), 
-						PE_copy.half_scale > 0);
+			float MValueX = GetRendererTargetScaleX();
+			float MValueY = GetRendererTargetScaleY();
+
+			// Need another rc here to get it to scale.
+			// Here the bottom right is the out of the rectangle.
+			TRectangle multirc = {
+				(int)(bpmem.copyTexSrcXY.x * MValueX),
+				(int)(bpmem.copyTexSrcXY.y * MValueY),
+				(int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
+				(int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
+			};
+			UPE_Copy PE_copy;
+			PE_copy.Hex = bpmem.triggerEFBCopy;
+
+			// Check if we are to copy from the EFB or draw to the XFB
+			if (PE_copy.copy_to_xfb == 0)
+			{
+				if (GetConfig(CONFIG_SHOWEFBREGIONS)) 
+					stats.efb_regions.push_back(rc);
+
+				CopyEFB(bp, rc, bpmem.copyTexDest << 5, 
+							bpmem.zcontrol.pixel_format == PIXELFMT_Z24, 
+							PE_copy.intensity_fmt > 0, 
+							((PE_copy.target_pixel_format / 2) + ((PE_copy.target_pixel_format & 1) * 8)), 
+							PE_copy.half_scale > 0);
+			}
+			else
+			{
+				// the number of lines copied is determined by the y scale * source efb height
+				const float yScale = bpmem.dispcopyyscale / 256.0f;
+				const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+				RenderToXFB(bp, multirc, yScale, xfbLines, 
+									 Memory_GetPtr(bpmem.copyTexDest << 5), 
+									 bpmem.copyMipMapStrideChannels << 4, 
+									 (u32)ceil(xfbLines));
+			}
+
+			// Clear the picture after it's done and submitted, to prepare for the next picture
+			if (PE_copy.clear)
+				ClearScreen(bp, multirc);
+
+			RestoreRenderState(bp);
+		        
+			break;
 		}
-		else
-		{
-			// the number of lines copied is determined by the y scale * source efb height
-			const float yScale = bpmem.dispcopyyscale / 256.0f;
-			const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
-			RenderToXFB(bp, multirc, yScale, xfbLines, 
-								 Memory_GetPtr(bpmem.copyTexDest << 5), 
-								 bpmem.copyMipMapStrideChannels << 4, 
-								 (u32)ceil(xfbLines));
-		}
-
-		// ----------------------------------------------------------------------------------
-		// Clear the picture after it's done and submitted, to prepare for the next picture
-		// ----------------------------------------------------------------------------------
-		if (PE_copy.clear)
-			ClearScreen(bp, multirc);
-
-		RestoreRenderState(bp);
-	        
-		break;
-	}
-	case BPMEM_LOADTLUT0: // Load the Texture Look Up Table
+	case BPMEM_LOADTLUT0: // Load a Texture Look Up Table
 	case BPMEM_LOADTLUT1:
         {
             DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
@@ -244,8 +247,8 @@ void BPWritten(const Bypass& bp)
 
             // TODO(ector) : kill all textures that use this palette
             // Not sure if it's a good idea, though. For now, we hash texture palettes
+			break;
         }
-        break;
 	case BPMEM_FOGRANGE: // Fog Settings Control
 	case BPMEM_FOGPARAM0:
 	case BPMEM_FOGBMAGNITUDE:
@@ -267,33 +270,32 @@ void BPWritten(const Bypass& bp)
         PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
 		break;
 	case BPMEM_ZTEX2: // Z Texture type
-	{
-		if (bp.changes & 3) 
-			PixelShaderManager::SetZTextureTypeChanged();
-		#if defined(_DEBUG) || defined(DEBUGFAST) 
-        const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
-        const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
-        PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
-		#endif
-		break;
-	}
-
-	case BPMEM_DISPLAYCOPYFILER: // Display Filtering Control
+		{
+			if (bp.changes & 3) 
+				PixelShaderManager::SetZTextureTypeChanged();
+			#if defined(_DEBUG) || defined(DEBUGFAST) 
+			const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
+			const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
+			PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
+			#endif
+			break;
+		}
+	case BPMEM_DISPLAYCOPYFILER: // Display Filtering Control, ignore this
 	case BPMEM_DISPLAYCOPYFILER+1:
 	case BPMEM_DISPLAYCOPYFILER+2:
 	case BPMEM_DISPLAYCOPYFILER+3:
 	case BPMEM_COPYFILTER0:
 	case BPMEM_COPYFILTER1:
 		break;
-	case BPMEM_SU_COUNTER: // Counters
-	case BPMEM_RAS_COUNTER:
-		break;
-	case BPMEM_FIELDMASK: // Field Control
+	case BPMEM_FIELDMASK: // Interlacing Control
 	case BPMEM_FIELDMODE:
+		SetInterlacingMode(bp);
 		break;
-	case BPMEM_CLOCK0: // Debugging info
-	case BPMEM_CLOCK1:
-	case BPMEM_SETGPMETRIC: 
+	case BPMEM_CLOCK0:      // Debugging/Profiling info, we don't care about them
+	case BPMEM_CLOCK1:     
+	case BPMEM_SU_COUNTER:
+	case BPMEM_RAS_COUNTER:
+	case BPMEM_SETGPMETRIC:
 		break;
 	case BPMEM_EFB_TL:   // EFB Source Rect. Top, Left
 	case BPMEM_EFB_BR:   // EFB Source Rect. Bottom, Right (w, h - 1)
@@ -306,11 +308,11 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_CLEARBBOX1: // let's hope not many games use bboxes..
 	case BPMEM_CLEARBBOX2: // TODO(ector): add something that watches bboxes
 		break;
-	case BPMEM_IREF:
 	case BPMEM_PE_CONTROL:    // Pixel Engine Control (GXSetZCompLoc, GXPixModeSync)
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale
+	case BPMEM_IREF:          // Something to do with Tev ordering
 		break;
 	case BPMEM_TEV_KSEL:  // Texture Environment Swap Mode Table 0
 	case BPMEM_TEV_KSEL+1:// Texture Environment Swap Mode Table 1
@@ -325,6 +327,7 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_IND_IMASK:
 		break;
 	case BPMEM_UNKNOWN: // This is always set to 0xF at boot of any game, so this sounds like a useless reg
+		break;
 
 		// ------------------------------------------------
 		// On Default, we try to look for other things
@@ -333,7 +336,10 @@ void BPWritten(const Bypass& bp)
 	default:
 		switch (bp.address & 0xFC)  // Texture sampler filter
 		{
-		case BPMEM_TREF: // Texture Environment Order
+		// -------------------------
+		// Texture Environment Order
+		// -------------------------
+		case BPMEM_TREF:
 		case BPMEM_TREF+1:
 		case BPMEM_TREF+2:
 		case BPMEM_TREF+3:
@@ -342,10 +348,11 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TREF+6:
 		case BPMEM_TREF+7:
 			break;
-		// -------------------------------------
-		// This could be Level Of Detail control for Wrap 
-		case BPMEM_SU_SSIZE: // Texture Wrap Size U?
-		case BPMEM_SU_TSIZE: // Texture Wrap Size V?
+		// ---------------------------------------------
+		// Mipmapping control of the polygon's wrapping
+	    // ---------------------------------------------
+		case BPMEM_SU_SSIZE: // U
+		case BPMEM_SU_TSIZE: // V
 		case BPMEM_SU_SSIZE+2:
 		case BPMEM_SU_TSIZE+2:
 		case BPMEM_SU_SSIZE+4:
@@ -361,6 +368,9 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_SU_SSIZE+14:
 		case BPMEM_SU_TSIZE+14:
 			break;
+		// ------------------------
+		// Mipmapping mode control
+	    // ------------------------
 		case BPMEM_TX_SETMODE0: // 0x90 for Linear, Index 0
 		case BPMEM_TX_SETMODE0+1:
 		case BPMEM_TX_SETMODE0+2:
@@ -379,6 +389,9 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TX_SETMODE1_4+3:
 			SetSamplerState(bp);
 			break;
+		// --------------------------------------------
+		// Mipmapping control of the polygon's texture
+	    // --------------------------------------------
 		case BPMEM_TX_SETIMAGE0:
 		case BPMEM_TX_SETIMAGE0+1:
 		case BPMEM_TX_SETIMAGE0+2:
@@ -403,7 +416,7 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TX_SETIMAGE2_4+1:
 		case BPMEM_TX_SETIMAGE2_4+2:
 		case BPMEM_TX_SETIMAGE2_4+3:
-		case BPMEM_TX_SETIMAGE3: // Texture Pointer
+		case BPMEM_TX_SETIMAGE3:
 		case BPMEM_TX_SETIMAGE3+1:
 		case BPMEM_TX_SETIMAGE3+2:
 		case BPMEM_TX_SETIMAGE3+3:
@@ -412,6 +425,9 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TX_SETIMAGE3_4+2:
 		case BPMEM_TX_SETIMAGE3_4+3:
 			break;
+		// -------------------------------
+		// Mipmapping control of the TLUT
+	    // -------------------------------
 		case BPMEM_TX_SETTLUT:
 		case BPMEM_TX_SETTLUT+1:
 		case BPMEM_TX_SETTLUT+2:
@@ -421,6 +437,9 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TX_SETLUT_4+2:
 		case BPMEM_TX_SETLUT_4+3:
 			break;
+		// ---------------------------------------------------
+		// Set the TEV Color
+	    // ---------------------------------------------------
 		case BPMEM_TEV_REGISTER_L:   // Reg 1
 		case BPMEM_TEV_REGISTER_H:
 		case BPMEM_TEV_REGISTER_L+2: // Reg 2
@@ -429,13 +448,15 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TEV_REGISTER_H+4:
 		case BPMEM_TEV_REGISTER_L+6: // Reg 4
 		case BPMEM_TEV_REGISTER_H+6:
-			if (bp.address & 1) 
-			{ 
-				// don't compare with changes!
-                int num = (bp.address >> 1 ) & 0x3;
-                PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
-            }
-			break;
+			{
+				if (bp.address & 1) 
+				{ 
+					// don't compare with changes!
+					int num = (bp.address >> 1 ) & 0x3;
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
+				}
+				break;
+			}
 		// ------------------------------------------------
 		// On Default, we try to look for other things
 		// before we give up and say its an unknown opcode
@@ -444,6 +465,9 @@ void BPWritten(const Bypass& bp)
 		default:
 			switch (bp.address & 0xF0)
 			{
+			// --------------
+			// Indirect Tev
+			// --------------
 			case BPMEM_IND_CMD:
 			case BPMEM_IND_CMD+1:
 			case BPMEM_IND_CMD+2:
@@ -461,6 +485,9 @@ void BPWritten(const Bypass& bp)
 			case BPMEM_IND_CMD+14:
 			case BPMEM_IND_CMD+15:
 				break;
+			// --------------------------------------------------
+			// Set Color/Alpha of a Tev
+			// --------------------------------------------------
 			case BPMEM_TEV_COLOR_ENV:    // Texture Environment 1
 			case BPMEM_TEV_ALPHA_ENV:
 			case BPMEM_TEV_COLOR_ENV+2:  // Texture Environment 2

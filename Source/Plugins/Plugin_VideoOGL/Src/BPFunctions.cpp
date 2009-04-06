@@ -252,4 +252,8 @@ void SetSamplerState(const Bypass &bp)
 {
 	// TODO
 }
+void SetInterlacingMode(const Bypass &bp)
+{
+	// TODO
+}
 };

@@ -62,7 +62,7 @@
 #define BPMEM_COPYFILTER1      0x54
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
-#define BPMEM_UNKNOWN          0xFF
+#define BPMEM_UNKNOWN          0x58
 #define BPMEM_SCISSOROFFSET    0x59
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
