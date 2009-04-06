@@ -450,7 +450,7 @@ void clr(const UDSPInstruction& opc)
 void clrl(const UDSPInstruction& opc)
 {
 	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 11) & 0x1);
-	g_dsp.r[reg] &= 0xFF00;
+	g_dsp.r[reg] &= 0x0000;
 
 	// Should this be 64bit?
 	Update_SR_Register64((s64)reg);
@@ -1154,13 +1154,15 @@ void asr(const UDSPInstruction& opc)
 //-------------------------------------------------------------
 
 // hcs give me this code!!
+// DAR $arD
+// 0000 0000 0000 01dd
+// Decrement address register $arD.
 // More docs needed - the operation is really odd!
-// Decrement Address Register
 void dar(const UDSPInstruction& opc)
 {
 	int reg = opc.hex & 0x3;
 
-	int temp = g_dsp.r[reg] + g_dsp.r[8];
+	int temp = g_dsp.r[reg] + g_dsp.r[DSP_REG_R08];
 
 	if (temp <= 0x7ff)  // ???
 		g_dsp.r[reg] = temp;
@@ -1170,13 +1172,15 @@ void dar(const UDSPInstruction& opc)
 
 
 // hcs give me this code!!
+// IAR $arD
+// 0000 0000 0000 10dd
+// Increment address register $arD.
 // More docs needed - the operation is really odd!
-// Increment Address Register
 void iar(const UDSPInstruction& opc)
 {
 	int reg = opc.hex & 0x3;
 
-	int temp = g_dsp.r[reg] + g_dsp.r[8];
+	int temp = g_dsp.r[reg] + g_dsp.r[DSP_REG_R08];
 
 	if (temp <= 0x7ff)  // ???
 		g_dsp.r[reg] = temp;
@@ -1186,13 +1190,20 @@ void iar(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
+// SBCLR #I
+// 0001 0011 0000 0iii
+// bit of status register $sr. Bit number is calculated by adding 6 to
+// immediate value I.
 void sbclr(const UDSPInstruction& opc)
 {
 	u8 bit = (opc.hex & 0xff) + 6;
 	g_dsp.r[DSP_REG_SR] &= ~(1 << bit);
 }
 
-
+// SBSET #I
+// 0001 0010 0000 0iiii
+// Set bit of status register $sr. Bit number is calculated by adding 6 to
+// immediate value I.
 void sbset(const UDSPInstruction& opc)
 {
 	u8 bit = (opc.hex & 0xff) + 6;
