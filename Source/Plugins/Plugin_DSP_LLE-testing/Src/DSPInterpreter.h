@@ -53,6 +53,7 @@ void sr(const UDSPInstruction& opc);
 void si(const UDSPInstruction& opc);
 void tstaxh(const UDSPInstruction& opc);
 void clr(const UDSPInstruction& opc);
+void clrl(const UDSPInstruction& opc);
 void clrp(const UDSPInstruction& opc);
 void mulc(const UDSPInstruction& opc);
 void cmpar(const UDSPInstruction& opc);

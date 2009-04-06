@@ -432,6 +432,9 @@ void tstaxh(const UDSPInstruction& opc)
 	Update_SR_Register16(val);
 }
 
+// CLR $acR
+// 1000 r001 xxxx xxxx
+// Clears accumulator $acR
 void clr(const UDSPInstruction& opc)
 {
 	u8 reg = (opc.hex >> 11) & 0x1;
@@ -441,8 +444,24 @@ void clr(const UDSPInstruction& opc)
 	Update_SR_Register64((s64)0);   // really?
 }
 
+// CLRL $acR.l
+// 1111 110r xxxx xxxx
+// Clears $acR.l - low 16 bits of accumulator $acR.
+void clrl(const UDSPInstruction& opc)
+{
+	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 11) & 0x1);
+	g_dsp.r[reg] &= 0xFF00;
+
+	// Should this be 64bit?
+	Update_SR_Register64((s64)reg);
+}
+
+// CLRP
+// 1000 0100 xxxx xxxx
+// Clears product register $prod.
 void clrp(const UDSPInstruction& opc)
 {
+	// Magic numbers taken from doddie's doc
 	g_dsp.r[0x14] = 0x0000;
 	g_dsp.r[0x15] = 0xfff0;
 	g_dsp.r[0x16] = 0x00ff;
