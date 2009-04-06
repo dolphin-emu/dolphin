@@ -185,21 +185,24 @@ DSPOPCTemplate opcodes[] =
 	{"ILRRI",   0x0218, 0xfedc, DSPInterpreter::ilrr, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
-	{"LRRI",    0x1900, 0xff80, DSPInterpreter::lrr, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
-	{"LRRD",    0x1880, 0xff80, DSPInterpreter::lrr, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
-	{"LRRN",    0x1980, 0xff80, DSPInterpreter::lrr, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
 	{"LRR",		0x1800, 0xff80, DSPInterpreter::lrr, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
-	{"SRRI",    0x1b00, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
-	{"SRRD",    0x1a80, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
-	{"SRRN",    0x1b80, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
-	{"SRR",		0x1a00, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
+	{"LRRD",    0x1880, 0xff80, DSPInterpreter::lrrd, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
+	{"LRRI",    0x1900, 0xff80, DSPInterpreter::lrri, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
+	{"LRRN",    0x1980, 0xff80, DSPInterpreter::lrrn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, NULL, NULL},
 
+	{"SRR",		0x1a00, 0xff80, DSPInterpreter::srr, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
+	{"SRRD",    0x1a80, 0xff80, DSPInterpreter::srrd, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
+	{"SRRI",    0x1b00, 0xff80, DSPInterpreter::srri, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
+	{"SRRN",    0x1b80, 0xff80, DSPInterpreter::srrn, nop, 1, 2, {{P_PRG, 1, 0, 5, 0x0060}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
+
+	// LOOPS
+	{"LOOP",    0x0040, 0xffe0, DSPInterpreter::loop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},	
+	{"BLOOP",   0x0060, 0xffe0, DSPInterpreter::bloop, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"LOOPI",   0x1000, 0xff00, DSPInterpreter::loopi, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL},
 	{"BLOOPI",  0x1100, 0xff00, DSPInterpreter::bloopi, nop, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"LOOP",    0x0040, 0xffe0, DSPInterpreter::loop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
-	{"BLOOP",   0x0060, 0xffe0, DSPInterpreter::bloop, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG, 2, 1, 0, 0x0003}}, NULL, NULL},
 
+	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG, 2, 1, 0, 0x0003}}, NULL, NULL},
+	
 
 	// opcodes that can be extended
 	// extended opcodes, note size of opcode will be set to 0

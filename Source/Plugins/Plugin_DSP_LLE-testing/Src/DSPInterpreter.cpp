@@ -145,7 +145,8 @@ void loop(const UDSPInstruction& opc)
 		g_dsp.pc = loop_pc;
 	}
 
-	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
+	//	g_dsp.pc = loop_pc;
+	g_dsp.pc =+ opSize[dsp_peek_code()];
 }
 
 void loopi(const UDSPInstruction& opc)
@@ -159,7 +160,8 @@ void loopi(const UDSPInstruction& opc)
 		g_dsp.pc = loop_pc;
 	}
 
-	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
+	//	g_dsp.pc = loop_pc;
+	g_dsp.pc =+ opSize[dsp_peek_code()];
 }
 
 void bloop(const UDSPInstruction& opc)
@@ -176,7 +178,8 @@ void bloop(const UDSPInstruction& opc)
 	}
 	else
 	{
-	   	g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
+		g_dsp.pc = loop_pc;
+		g_dsp.pc =+ opSize[dsp_peek_code()];
 	}
 }
 
@@ -193,7 +196,8 @@ void bloopi(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.pc = loop_pc + opSize[dsp_peek_code()];
+		g_dsp.pc = loop_pc;
+		g_dsp.pc =+ opSize[dsp_peek_code()];
 	}
 }
 
@@ -208,6 +212,10 @@ void mrr(const UDSPInstruction& opc)
 	dsp_op_write_reg(dreg, val);
 }
 
+// LRR $D, @$S
+// 0001 1000 0ssd dddd
+// Move value from data memory pointed by addressing register $S toregister $D.
+// FIXME: Perform additional operation depending on destination register.
 void lrr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 5) & 0x3;
@@ -215,27 +223,59 @@ void lrr(const UDSPInstruction& opc)
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
-
-	// post processing of source reg
-	switch ((opc.hex >> 7) & 0x3)
-	{
-	case 0x0: // LRR
-		break;
-
-	case 0x1: // LRRD
-		g_dsp.r[sreg]--;
-		break;
-
-	case 0x2: // LRRI
-		g_dsp.r[sreg]++;
-		break;
-
-	case 0x3: //  LRRN
-		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
-		break;
-	}
 }
 
+// LRRD $D, @$S
+// 0001 1000 1ssd dddd
+// Move value from data memory pointed by addressing register $S toregister $D.
+// Decrement register $S. 
+// FIXME: Perform additional operation depending on destination register.
+void lrrd(const UDSPInstruction& opc)
+{
+	u8 sreg = (opc.hex >> 5) & 0x3;
+	u8 dreg = opc.hex & 0x1f;
+
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	dsp_op_write_reg(dreg, val);
+	g_dsp.r[sreg]--;
+}
+
+// LRRI $D, @$S
+// 0001 1001 0ssd dddd
+// Move value from data memory pointed by addressing register $S to register $D.
+// Increment register $S. 
+// FIXME: Perform additional operation depending on destination register.
+void lrri(const UDSPInstruction& opc)
+{
+	u8 sreg = (opc.hex >> 5) & 0x3;
+	u8 dreg = opc.hex & 0x1f;
+
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]); 
+	dsp_op_write_reg(dreg, val);
+	g_dsp.r[sreg]++;
+
+}
+
+// LRRN $D, @$S
+// 0001 1001 1ssd dddd
+// Move value from data memory pointed by addressing register $S to register $D.
+// Add indexing register $(0x4+S) to register $S. 
+// FIXME: Perform additional operation depending on destination register.
+void lrrn(const UDSPInstruction& opc)
+{
+	u8 sreg = (opc.hex >> 5) & 0x3;
+	u8 dreg = opc.hex & 0x1f;
+
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	dsp_op_write_reg(dreg, val);
+	g_dsp.r[sreg] += g_dsp.r[sreg + 4];
+}
+
+// SRR @$D, $S
+// 0001 1010 0dds ssss
+// Store value from source register $S to a memory location pointed by 
+// addressing register $D. 
+// FIXME: Perform additional operation depending on source register.
 void srr(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 5) & 0x3;
@@ -243,25 +283,51 @@ void srr(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
+}
+// SRRD @$D, $S
+// 0001 1010 1dds ssss
+// Store value from source register $S to a memory location pointed by
+// addressing register $D. Decrement register $D. 
+// FIXME: Perform additional operation depending on source register.
+void srrd(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 5) & 0x3;
+	u8 sreg = opc.hex & 0x1f;
 
-	// post processing of dest reg
-	switch ((opc.hex >> 7) & 0x3)
-	{
-	case 0x0: // SRR
-		break;
+	u16 val = dsp_op_read_reg(sreg);
+	dsp_dmem_write(g_dsp.r[dreg], val);
+	g_dsp.r[dreg]--;
+}
 
-	case 0x1: // SRRD
-		g_dsp.r[dreg]--;
-		break;
+// SRRI @$D, $S
+// 0001 1011 0dds ssss
+// Store value from source register $S to a memory location pointed by
+// addressing register $D. Increment register $D. 
+// FIXME: Perform additional operation depending on source register.
+void srri(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 5) & 0x3;
+	u8 sreg = opc.hex & 0x1f;
 
-	case 0x2: // SRRI
-		g_dsp.r[dreg]++;
-		break;
+	u16 val = dsp_op_read_reg(sreg);
+	dsp_dmem_write(g_dsp.r[dreg], val);
+	g_dsp.r[dreg]++;
+}
 
-	case 0x3: // SRRX
-		g_dsp.r[dreg] += g_dsp.r[dreg + 4];
-		break;
-	}
+// SRRN @$D, $S
+// 0001 1011 1dds ssss
+// Store value from source register $S to a memory location pointed by
+// addressing register $D. Add indexing register $(0x4+D) to register $D.
+
+// FIXME: Perform additional operation depending on source register.
+void srrn(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 5) & 0x3;
+	u8 sreg = opc.hex & 0x1f;
+
+	u16 val = dsp_op_read_reg(sreg);
+	dsp_dmem_write(g_dsp.r[dreg], val);
+	g_dsp.r[dreg] += g_dsp.r[dreg + 4];
 }
 
 // FIXME inside
@@ -1354,13 +1420,25 @@ void msubc(const UDSPInstruction& opc)
 	dsp_set_long_prod(prod);
 }
 
+// SRS @M, $(0x18+S)
+// 0010 1sss mmmm mmmm
+// Store value from register $(0x18+S) to a memory pointed by address M. 
+// (8-bit sign extended). 
+// FIXME: Perform additional operation depending on destination register.
+// Note: pc+=2 in doddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
 	u16 addr = (s8)opc.hex;
-	dsp_dmem_write(addr, g_dsp.r[reg]);	
+	dsp_dmem_write(addr, g_dsp.r[reg]);
 }
-    
+  
+// LRS $(0x18+D), @M
+// 0010 0ddd mmmm mmmm
+// Move value from data memory pointed by address M (8-bit sign
+// extended) to register $(0x18+D). 
+// FIXME: Perform additional operation depending on destination register.
+// Note: pc+=2 in doddie's doc seems wrong
 void lrs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
