@@ -921,10 +921,9 @@ void movnp(const UDSPInstruction& opc)
 void mov(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
+	u16 acc = dsp_get_acc_m(1 - D);
 
-	u16 ac1 = dsp_get_acc_m(D);
-	u16 ac2 = dsp_get_acc_m(1 - D);
-	dsp_set_long_acc(D, ac1 + ac2);
+	dsp_set_long_acc(D, acc);
 }
 
 // ADDAX $acD, $axS

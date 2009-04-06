@@ -76,23 +76,27 @@ void dsp_dmem_write(u16 addr, u16 val)
 {
 	switch (addr >> 12)
 	{
-	    case 0x8: // 8xxx DROM
-		    ERROR_LOG(DSPHLE, "someone writes to ROM");
-		    /* val = dsp_swap16(val);
-		       g_dsp.drom[addr & DSP_DROM_MASK] = val;*/
-		    break;
+	  case 0x0: // 0xxx DRAM
+		  g_dsp.dram[addr & DSP_DRAM_MASK] = dsp_swap16(val);
+		  break;
 
-	    case 0xf: // Fxxx HW regs
-		    gdsp_ifx_write(addr, val);
-		    break;
-
-	    case 0x0: // 0xxx DRAM
-		    g_dsp.dram[addr & DSP_DRAM_MASK] = dsp_swap16(val);
-		    break;
-
-	    default: // error
-		    ERROR_LOG(DSPHLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
-		    break;
+	  case 0x1: // 1xxx COEF
+		  ERROR_LOG(DSPHLE, "someone writes to COEF");
+		  break;
+		  
+	  case 0x8: // 8xxx DROM
+		  ERROR_LOG(DSPHLE, "someone writes to DROM");
+		  /* val = dsp_swap16(val);
+			 g_dsp.drom[addr & DSP_DROM_MASK] = val;*/
+		  break;
+		  
+	  case 0xf: // Fxxx HW regs
+		  gdsp_ifx_write(addr, val);
+		  break;
+		  
+	  default: // error
+		  ERROR_LOG(DSPHLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		  break;
 	}
 }
 
