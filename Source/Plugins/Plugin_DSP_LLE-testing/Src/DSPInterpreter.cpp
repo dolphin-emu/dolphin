@@ -112,15 +112,8 @@ void ret(const UDSPInstruction& opc)
 	}
 }
 
-// FIXME inside
 void rti(const UDSPInstruction& opc)
 {
-	if ((opc.hex & 0xf) != 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp rti opcode");
-	}
-
 	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 
@@ -338,32 +331,59 @@ void srrn(const UDSPInstruction& opc)
 	g_dsp.r[dreg] += g_dsp.r[dreg + 4];
 }
 
-// FIXME inside
+// ILRR $acD.m, @$arS
+// 0000 001d 0001 00ss
+// Move value from instruction memory pointed by addressing register
+// $arS to mid accumulator register $acD.m.
 void ilrr(const UDSPInstruction& opc)
 {
 	u16 reg  = opc.hex & 0x3;
-	u16 dreg = 0x1e + ((opc.hex >> 8) & 1);
+	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
-	// always to acc0 ?
+	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
+}
+
+// ILRRD $acD.m, @$arS
+// 0000 001d 0001 01ss
+// Move value from instruction memory pointed by addressing register
+// $arS to mid accumulator register $acD.m. Decrement addressing register $arS.
+void ilrrd(const UDSPInstruction& opc)
+{
+	u16 reg  = opc.hex & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
+
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	switch ((opc.hex >> 2) & 0x3)
-	{
-	case 0x0: // no change (ILRR)
-		break;
+	g_dsp.r[reg]--;
+}
 
-	case 0x1: // post decrement (ILRRD?)
-		g_dsp.r[reg]--;
-		break;
+// ILRRI $acD.m, @$S
+// 0000 001d 0001 10ss
+// Move value from instruction memory pointed by addressing register
+// $arS to mid accumulator register $acD.m. Increment addressing register $arS.
+void ilrri(const UDSPInstruction& opc)
+{
+	u16 reg  = opc.hex & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
-	case 0x2: // post increment (ILRRI)
-		g_dsp.r[reg]++;
-		break;
+	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	default:
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "Unknown ILRR: 0x%04x\n", (opc.hex >> 2) & 0x3);
-	}
+	g_dsp.r[reg]++;
+}
+
+// ILRRN $acD.m, @$arS
+// 0000 001d 0001 11ss
+// Move value from instruction memory pointed by addressing register
+// $arS to mid accumulator register $acD.m. Add corresponding indexing
+// register $ixS to addressing register $arS.
+void ilrrn(const UDSPInstruction& opc)
+{
+	u16 reg  = opc.hex & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
+
+	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
+
+	g_dsp.r[reg] += g_dsp.r[DSP_REG_IX0 + reg];
 }
 
 
@@ -641,7 +661,6 @@ void nx(const UDSPInstruction& opc)
 }
 
 
-// FIXME inside
 // Hermes switched andf and andcf, so check to make sure they are still correct
 // ANDCF $acD.m, #I
 // 0000 001r 1100 0000
@@ -650,12 +669,6 @@ void nx(const UDSPInstruction& opc)
 // accumulator mid part $acD.m with immediate value I is equal zero.
 void andfc(const UDSPInstruction& opc)
 {
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp_opc.hex_andfc");
-	}
-
 	u8 reg  = (opc.hex >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
@@ -670,7 +683,6 @@ void andfc(const UDSPInstruction& opc)
 	}
 }
 
-// FIXME inside
 // Hermes switched andf and andcf, so check to make sure they are still correct
 
 // ANDF $acD.m, #I
@@ -684,12 +696,6 @@ void andf(const UDSPInstruction& opc)
 	u8 reg;
 	u16 imm;
 	u16 val;
-
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp andf opcode");
-	}
 
 	reg = 0x1e + ((opc.hex >> 8) & 0x1);
 	imm = dsp_fetch_code();
@@ -717,15 +723,8 @@ void cmpi(const UDSPInstruction& opc)
 	Update_SR_Register64(res);
 }
 
-// FIXME inside
 void xori(const UDSPInstruction& opc)
 {
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp xori opcode");
-	}
-
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
@@ -733,19 +732,12 @@ void xori(const UDSPInstruction& opc)
 	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
-//FIXME inside
 // ANDI $acD.m, #I
 // 0000 001r 0100 0000
 // iiii iiii iiii iiii
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 void andi(const UDSPInstruction& opc)
 {
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp andi opcode");
-	}
-
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
@@ -755,17 +747,8 @@ void andi(const UDSPInstruction& opc)
 
 
 // F|RES: i am not sure if this shouldnt be the whole ACC
-//
-//FIXME inside
 void ori(const UDSPInstruction& opc)
 {
-	if (opc.hex & 0xf)
-	{
-		// FIXME: Implement
-		ERROR_LOG(DSPLLE, "dsp ori opcode");
-		return;
-	}
-
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
@@ -1108,7 +1091,7 @@ void lsr(const UDSPInstruction& opc)
 	u16 shift = -opc.ushift;
 	u64 acc = dsp_get_long_acc(opc.areg);
 	// Lop off the extraneous sign extension our 64-bit fake accum causes
-	acc &= 0x000000FFFFFFFFFF;
+	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
 	dsp_set_long_acc(opc.areg, (s64)acc);
 

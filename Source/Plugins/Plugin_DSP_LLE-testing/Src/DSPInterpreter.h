@@ -118,17 +118,20 @@ void srs(const UDSPInstruction& opc);
 void lrs(const UDSPInstruction& opc);
 void nx(const UDSPInstruction& opc);
 void cmpi(const UDSPInstruction& opc);
-
-// FIXME inside
 void rti(const UDSPInstruction& opc);
 void ilrr(const UDSPInstruction& opc);
-void srbith(const UDSPInstruction& opc);
-
+void ilrrd(const UDSPInstruction& opc);
+void ilrri(const UDSPInstruction& opc);
+void ilrrn(const UDSPInstruction& opc);
 void andfc(const UDSPInstruction& opc);
 void andf(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);
 void ori(const UDSPInstruction& opc);
+
+// FIXME inside
+void srbith(const UDSPInstruction& opc);
+
 // END OF FIXMEs
 
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
