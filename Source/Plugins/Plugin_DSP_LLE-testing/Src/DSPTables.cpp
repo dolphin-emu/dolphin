@@ -147,10 +147,10 @@ DSPOPCTemplate opcodes[] =
 	{"SBCLR",   0x1200, 0xfff8, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL},
 	{"SBSET",   0x1300, 0xfff8, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, NULL, NULL},
 
-	{"LSL",		0x1400, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL}, // 0x007f?
-	{"LSR",		0x1440, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL}, // 0x007f?
-	{"ASL",		0x1480, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL},
-	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::shifti, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL},
+	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL}, // 0x007f?
+	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, NULL, NULL}, // 0x007f?
+	{"ASL",		0x1480, 0xfec0, DSPInterpreter::asl, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL},
+	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::asr, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x007f}}, NULL, NULL},
 
 
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},

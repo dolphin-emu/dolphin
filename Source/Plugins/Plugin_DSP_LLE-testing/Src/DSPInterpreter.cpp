@@ -130,7 +130,6 @@ void rti(const UDSPInstruction& opc)
 // HALT
 // 0000 0000 0020 0001 
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
-
 void halt(const UDSPInstruction& opc)
 {
 	g_dsp.cr |= 0x4;
@@ -207,6 +206,10 @@ void bloopi(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
+// MRR $D, $S
+// 0001 11dd ddds ssss
+// Move value from register $S to register $D.
+// FIXME: Perform additional operation depending on destination register.
 void mrr(const UDSPInstruction& opc)
 {
 	u8 sreg = opc.hex & 0x1f;
@@ -1020,6 +1023,9 @@ void addi(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// LSL16 $acR
+// 1111 000r xxxx xxxx
+// Logically shifts left accumulator $acR by 16.
 void lsl16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -1049,72 +1055,93 @@ void msub(const UDSPInstruction& opc)
 	dsp_set_long_prod(prod);
 }
 
+// LSR16 $acR
+// 1111 010r xxxx xxxx
+// Logically shifts right accumulator $acR by 16.
 void lsr16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
+
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
 	Update_SR_Register64(acc);
 }
 
+// ASR16 $acR
+// 1001 r001 xxxx xxxx
+// Arithmetically shifts right accumulator $acR by 16.
 void asr16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
+
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
 
 	Update_SR_Register64(acc);
 }
 
-void shifti(const UDSPInstruction& opc)
+// LSL $acR, #I
+// 0001 010r 00ii iiii
+// Logically shifts left accumulator $acR by number specified by value I.
+void lsl(const UDSPInstruction& opc) 
 {
-	// direction: left
-	bool ShiftLeft = true;
+	u16 shift = opc.ushift;
+	s64 acc = dsp_get_long_acc(opc.areg);
+
+	acc <<= shift;
+	dsp_set_long_acc(opc.areg, acc);
+
+	Update_SR_Register64(acc);
+}
+
+// LSR $acR, #I
+// 0001 010r 01ii iiii
+// Logically shifts left accumulator $acR by number specified by value
+// calculated by negating sign extended bits 0-6.
+void lsr(const UDSPInstruction& opc)
+{
+	u16 shift = -opc.ushift;
+	s64 acc = dsp_get_long_acc(opc.areg);
+
+	acc >>= shift;
+	dsp_set_long_acc(opc.areg, acc);
+
+	Update_SR_Register64(acc);
+}
+
+// ASL $acR, #I
+// 0001 010r 10ii iiii
+// Logically shifts left accumulator $acR by number specified by value I.
+void asl(const UDSPInstruction& opc)
+{
 	u16 shift = opc.ushift;
 
-	if ((opc.negating) && (opc.shift < 0))
-	{
-		ShiftLeft = false;
-		shift = -opc.shift;
-	}
+	// arithmetic shift
+	s64 acc = dsp_get_long_acc(opc.areg);
+	acc <<= shift;
 
-	s64 acc;
-	u64 uacc;
+	dsp_set_long_acc(opc.areg, acc);
 
-	if (opc.arithmetic)
-	{
-		// arithmetic shift
-		uacc = dsp_get_long_acc(opc.areg);
+	Update_SR_Register64(acc);
+}
 
-		if (!ShiftLeft)
-		{
-			uacc >>= shift;
-		}
-		else
-		{
-			uacc <<= shift;
-		}
+// ASR $acR, #I
+// 0001 010r 11ii iiii
+// Arithmetically shifts left accumulator $acR by number specified by
+// value calculated by negating sign extended bits 0-6.
 
-		acc = uacc;
-	}
-	else
-	{
-		acc = dsp_get_long_acc(opc.areg);
+void asr(const UDSPInstruction& opc)
+{
+	u16 shift = -opc.ushift;
 
-		if (!ShiftLeft)
-		{
-			acc >>= shift;
-		}
-		else
-		{
-			acc <<= shift;
-		}
-	}
+	// arithmetic shift
+	s64 acc = dsp_get_long_acc(opc.areg);
+	acc >>= shift;
 
 	dsp_set_long_acc(opc.areg, acc);
 
