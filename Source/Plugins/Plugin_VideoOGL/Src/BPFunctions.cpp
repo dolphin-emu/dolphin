@@ -47,7 +47,7 @@ void FlushPipeline()
 {
 	VertexManager::Flush();
 }
-void SetGenerationMode(const BreakPoint &bp)
+void SetGenerationMode(const Bypass &bp)
 {
     // none, ccw, cw, ccw
     if (bpmem.genMode.cullmode > 0) 
@@ -60,13 +60,13 @@ void SetGenerationMode(const BreakPoint &bp)
 }
 
 
-void SetScissor(const BreakPoint &bp)
+void SetScissor(const Bypass &bp)
 {
 	if (!Renderer::SetScissorRect())
 		if (bp.address == BPMEM_SCISSORBR)
 			ERROR_LOG(VIDEO, "bad scissor!");
 }
-void SetLineWidth(const BreakPoint &bp)
+void SetLineWidth(const Bypass &bp)
 {
 	float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 	if (bpmem.lineptwidth.linesize > 0)
@@ -74,7 +74,7 @@ void SetLineWidth(const BreakPoint &bp)
 	if (bpmem.lineptwidth.pointsize > 0)
 		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 }
-void SetDepthMode(const BreakPoint &bp)
+void SetDepthMode(const Bypass &bp)
 {
 	if (bpmem.zmode.testenable) 
 	{
@@ -92,18 +92,18 @@ void SetDepthMode(const BreakPoint &bp)
 	if (!bpmem.zmode.updateenable)
 		Renderer::SetRenderMode(Renderer::RM_Normal);
 }
-void SetBlendMode(const BreakPoint &bp)
+void SetBlendMode(const Bypass &bp)
 {
 	Renderer::SetBlendMode(false);
 }
-void SetDitherMode(const BreakPoint &bp)
+void SetDitherMode(const Bypass &bp)
 {
     if (bpmem.blendmode.dither) 
 		glEnable(GL_DITHER);
     else 
 		glDisable(GL_DITHER);
 }
-void SetLogicOpMode(const BreakPoint &bp)
+void SetLogicOpMode(const Bypass &bp)
 {
 	if (bpmem.blendmode.logicopenable) 
 	{
@@ -113,7 +113,7 @@ void SetLogicOpMode(const BreakPoint &bp)
 	else 
 		glDisable(GL_COLOR_LOGIC_OP);
 }
-void SetColorMask(const BreakPoint &bp)
+void SetColorMask(const Bypass &bp)
 {
     Renderer::SetColorMask();
 }
@@ -125,7 +125,7 @@ float GetRendererTargetScaleY()
 {
 	return Renderer::GetTargetScaleY();
 }
-void CopyEFB(const BreakPoint &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_Config.bEFBCopyDisable)
@@ -135,7 +135,7 @@ void CopyEFB(const BreakPoint &bp, const TRectangle &rc, const u32 &address, con
 			TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 }
 
-void RenderToXFB(const BreakPoint &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
     // EFB to XFB
 	if (g_Config.bUseXFB)
@@ -158,7 +158,7 @@ void RenderToXFB(const BreakPoint &bp, const TRectangle &multirc, const float &y
 	}
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const BreakPoint &bp, const TRectangle &multirc)
+void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
 	
         // Clear color
@@ -224,7 +224,7 @@ void ClearScreen(const BreakPoint &bp, const TRectangle &multirc)
         }
 }
 
-void RestoreRenderState(const BreakPoint &bp)
+void RestoreRenderState(const Bypass &bp)
 {
 	Renderer::RestoreGLState();
 }
@@ -248,7 +248,7 @@ u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
-void SetSamplerState(const BreakPoint &bp)
+void SetSamplerState(const Bypass &bp)
 {
 	// TODO
 }

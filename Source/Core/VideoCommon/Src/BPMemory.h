@@ -62,6 +62,7 @@
 #define BPMEM_COPYFILTER1      0x54
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
+#define BPMEM_UNKNOWN          0xFF
 #define BPMEM_SCISSOROFFSET    0x59
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
@@ -75,7 +76,7 @@
 #define BPMEM_TX_SETIMAGE1     0x8C // 0x8C + 4
 #define BPMEM_TX_SETIMAGE2     0x90 // 0x90 + 4
 #define BPMEM_TX_SETIMAGE3     0x94 // 0x94 + 4
-#define BPMEM_TX_LOADTLUT_0    0x98 // 0x98 + 4, This smells wrong, I think it should be SET
+#define BPMEM_TX_SETTLUT       0x98 // 0x98 + 4
 #define BPMEM_TX_SETMODE0_4    0xA0 // 0xA0 + 4
 #define BPMEM_TX_SETMODE1_4    0xA4 // 0xA4 + 4
 #define BPMEM_TX_SETIMAGE0_4   0xA8 // 0xA8 + 4
@@ -821,7 +822,7 @@ union UPE_Copy
 // All of BP memory
 //////////////////////////////////////////////////////////////////////////
 
-struct BreakPoint
+struct Bypass
 {
 	int address;
 	int changes;

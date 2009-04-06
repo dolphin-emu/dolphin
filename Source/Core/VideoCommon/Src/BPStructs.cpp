@@ -37,7 +37,7 @@ void BPInit()
 }
 
 // ----------------------------------------------------------------------------------------------------------
-// Write to the BreakPoint Memory
+// Write to the Bypass Memory
 /* ------------------
    Called:
 		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
@@ -46,7 +46,7 @@ void BPInit()
 		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
 		just stuff geometry in them and don't put state changes there. */
 // ----------------------------------------------------------------------------------------------------------
-void BPWritten(const BreakPoint& bp)
+void BPWritten(const Bypass& bp)
 {
 
 	// --------------------------------------------------------------------------------------------------------
@@ -324,6 +324,7 @@ void BPWritten(const BreakPoint& bp)
 	case BPMEM_BP_MASK: // Masks
 	case BPMEM_IND_IMASK:
 		break;
+	case BPMEM_UNKNOWN: // This is always set to 0xF at boot of any game, so this sounds like a useless reg
 
 		// ------------------------------------------------
 		// On Default, we try to look for other things
@@ -341,6 +342,8 @@ void BPWritten(const BreakPoint& bp)
 		case BPMEM_TREF+6:
 		case BPMEM_TREF+7:
 			break;
+		// -------------------------------------
+		// This could be Level Of Detail control for Wrap 
 		case BPMEM_SU_SSIZE: // Texture Wrap Size U?
 		case BPMEM_SU_TSIZE: // Texture Wrap Size V?
 		case BPMEM_SU_SSIZE+2:
@@ -366,57 +369,54 @@ void BPWritten(const BreakPoint& bp)
 		case BPMEM_TX_SETMODE1+1:
 		case BPMEM_TX_SETMODE1+2:
 		case BPMEM_TX_SETMODE1+3:
+		case BPMEM_TX_SETMODE0_4:
+		case BPMEM_TX_SETMODE0_4+1:
+		case BPMEM_TX_SETMODE0_4+2:
+		case BPMEM_TX_SETMODE0_4+3:
+		case BPMEM_TX_SETMODE1_4:
+		case BPMEM_TX_SETMODE1_4+1:
+		case BPMEM_TX_SETMODE1_4+2:
+		case BPMEM_TX_SETMODE1_4+3:
 			SetSamplerState(bp);
 			break;
-		case BPMEM_TX_SETIMAGE0: // Texture Size ?
+		case BPMEM_TX_SETIMAGE0:
 		case BPMEM_TX_SETIMAGE0+1:
 		case BPMEM_TX_SETIMAGE0+2:
 		case BPMEM_TX_SETIMAGE0+3:
+		case BPMEM_TX_SETIMAGE0_4:
+		case BPMEM_TX_SETIMAGE0_4+1:
+		case BPMEM_TX_SETIMAGE0_4+2:
+		case BPMEM_TX_SETIMAGE0_4+3:
 		case BPMEM_TX_SETIMAGE1:
 		case BPMEM_TX_SETIMAGE1+1:
 		case BPMEM_TX_SETIMAGE1+2:
 		case BPMEM_TX_SETIMAGE1+3:
+		case BPMEM_TX_SETIMAGE1_4:
+		case BPMEM_TX_SETIMAGE1_4+1:
+		case BPMEM_TX_SETIMAGE1_4+2:
+		case BPMEM_TX_SETIMAGE1_4+3:
 		case BPMEM_TX_SETIMAGE2:
 		case BPMEM_TX_SETIMAGE2+1:
 		case BPMEM_TX_SETIMAGE2+2:
 		case BPMEM_TX_SETIMAGE2+3:
+		case BPMEM_TX_SETIMAGE2_4:
+		case BPMEM_TX_SETIMAGE2_4+1:
+		case BPMEM_TX_SETIMAGE2_4+2:
+		case BPMEM_TX_SETIMAGE2_4+3:
 		case BPMEM_TX_SETIMAGE3: // Texture Pointer
 		case BPMEM_TX_SETIMAGE3+1:
 		case BPMEM_TX_SETIMAGE3+2:
 		case BPMEM_TX_SETIMAGE3+3:
-			break;
-		case BPMEM_TX_LOADTLUT_0: // wtf? Load TLUT 0 here ?? (THIS HAS TO BE SET TLUT NOT LOAD TLUT !! :P, mistake found in YAGD!)
-		case BPMEM_TX_LOADTLUT_0+1:
-		case BPMEM_TX_LOADTLUT_0+2:
-		case BPMEM_TX_LOADTLUT_0+3:
-			break;
-		case BPMEM_TX_SETMODE0_4:  // This is Mode 0 for Index 5 to 8
-		case BPMEM_TX_SETMODE0_4+1:
-		case BPMEM_TX_SETMODE0_4+2:
-		case BPMEM_TX_SETMODE0_4+3:
-		case BPMEM_TX_SETMODE1_4:  // This is Mode 1 for Index 5 to 8
-		case BPMEM_TX_SETMODE1_4+1:
-		case BPMEM_TX_SETMODE1_4+2:
-		case BPMEM_TX_SETMODE1_4+3:
-			break;
-		case BPMEM_TX_SETIMAGE0_4: // This is Image 0 for Index 5 to 8
-		case BPMEM_TX_SETIMAGE0_4+1:
-		case BPMEM_TX_SETIMAGE0_4+2:
-		case BPMEM_TX_SETIMAGE0_4+3:
-		case BPMEM_TX_SETIMAGE1_4: // This is Image 1 for Index 5 to 8
-		case BPMEM_TX_SETIMAGE1_4+1:
-		case BPMEM_TX_SETIMAGE1_4+2:
-		case BPMEM_TX_SETIMAGE1_4+3:
-		case BPMEM_TX_SETIMAGE2_4: // This is Image 2 for Index 5 to 8
-		case BPMEM_TX_SETIMAGE2_4+1:
-		case BPMEM_TX_SETIMAGE2_4+2:
-		case BPMEM_TX_SETIMAGE2_4+3:
-		case BPMEM_TX_SETIMAGE3_4: // This is Image 3 for Index 5 to 8
+		case BPMEM_TX_SETIMAGE3_4:
 		case BPMEM_TX_SETIMAGE3_4+1:
 		case BPMEM_TX_SETIMAGE3_4+2:
 		case BPMEM_TX_SETIMAGE3_4+3:
 			break;
-		case BPMEM_TX_SETLUT_4:    // This is Setting TLUT for Index 5 to 8
+		case BPMEM_TX_SETTLUT:
+		case BPMEM_TX_SETTLUT+1:
+		case BPMEM_TX_SETTLUT+2:
+		case BPMEM_TX_SETTLUT+3:
+		case BPMEM_TX_SETLUT_4:
 		case BPMEM_TX_SETLUT_4+1:
 		case BPMEM_TX_SETLUT_4+2:
 		case BPMEM_TX_SETLUT_4+3:
@@ -495,7 +495,7 @@ void BPWritten(const BreakPoint& bp)
 			case BPMEM_TEV_ALPHA_ENV+32:
 				break;
 			default:
-				WARN_LOG(VIDEO, "Unknown BreakPoint opcode: address = %08x value = %08x", bp.address, bp.newvalue); 
+				WARN_LOG(VIDEO, "Unknown Bypass opcode: address = %08x value = %08x", bp.address, bp.newvalue); 
 			}
 			
 		}

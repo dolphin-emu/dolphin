@@ -24,7 +24,7 @@
 BPMemory bpmem;
 
 // The plugin must implement this.
-void BPWritten(const BreakPoint& bp);
+void BPWritten(const Bypass& bp);
 
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 void LoadBPReg(u32 value0)
@@ -35,7 +35,7 @@ void LoadBPReg(u32 value0)
 	int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
 	int changes = (oldval ^ newval) & 0xFFFFFF;
 
-	BreakPoint bp = {opcode, changes, newval};
+	Bypass bp = {opcode, changes, newval};
 
 	//reset the mask register
 	if (opcode != 0xFE)
@@ -61,7 +61,7 @@ void BPReload()
 			// Cases in which we DON'T want to reload the BP
 			continue;
 		default:
-			BreakPoint bp = {i, 0xFFFFFF, ((u32*)&bpmem)[i]};
+			Bypass bp = {i, 0xFFFFFF, ((u32*)&bpmem)[i]};
 			BPWritten(bp);
 		}
 	}

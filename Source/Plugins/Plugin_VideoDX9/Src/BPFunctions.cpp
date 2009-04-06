@@ -100,7 +100,7 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode(const BreakPoint &bp)
+void SetGenerationMode(const Bypass &bp)
 {
 	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
@@ -123,17 +123,17 @@ void SetGenerationMode(const BreakPoint &bp)
 	}
 }
 
-void SetScissor(const BreakPoint &bp)
+void SetScissor(const Bypass &bp)
 {
 	Renderer::SetScissorRect();
 }
-void SetLineWidth(const BreakPoint &bp)
+void SetLineWidth(const Bypass &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
-void SetDepthMode(const BreakPoint &bp)
+void SetDepthMode(const Bypass &bp)
 {
 	if (bpmem.zmode.testenable)
 	{
@@ -159,7 +159,7 @@ void SetDepthMode(const BreakPoint &bp)
 	//    Renderer::SetRenderMode(Renderer::RM_Normal);
 	
 }
-void SetBlendMode(const BreakPoint &bp)
+void SetBlendMode(const Bypass &bp)
 {
 	if (bp.changes & 1)
 		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
@@ -196,15 +196,15 @@ void SetBlendMode(const BreakPoint &bp)
 		Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 	}
 }
-void SetDitherMode(const BreakPoint &bp)
+void SetDitherMode(const Bypass &bp)
 {
 	Renderer::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
-void SetLogicOpMode(const BreakPoint &bp)
+void SetLogicOpMode(const Bypass &bp)
 {
 	// Logic op blending. D3D can't do this but can fake some modes.
 }
-void SetColorMask(const BreakPoint &bp)
+void SetColorMask(const Bypass &bp)
 {
 	DWORD write = 0;
 	if (bpmem.blendmode.alphaupdate) 
@@ -222,19 +222,19 @@ float GetRendererTargetScaleY()
 {
 	return Renderer::GetYScale();
 }
-void CopyEFB(const BreakPoint &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
 	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const BreakPoint &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const BreakPoint &bp, const TRectangle &multirc)
+void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
@@ -266,7 +266,7 @@ void ClearScreen(const BreakPoint &bp, const TRectangle &multirc)
 	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
 }
 
-void RestoreRenderState(const BreakPoint &bp)
+void RestoreRenderState(const Bypass &bp)
 {
 	//Renderer::SetRenderMode(Renderer::RM_Normal);
 }
@@ -290,7 +290,7 @@ u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
-void SetSamplerState(const BreakPoint &bp)
+void SetSamplerState(const Bypass &bp)
 {
 	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
 	int stage = (bp.address & 3);//(addr>>4)&2;
