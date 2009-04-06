@@ -24,8 +24,10 @@
    ====================================================================*/
 
 #include <stdlib.h>
+
 #include "Globals.h"
 #include "Thread.h"
+#include "MemoryUtil.h"
 
 #include "gdsp_aram.h"
 #include "gdsp_interpreter.h"
@@ -163,11 +165,8 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	switch (addr & 0xff)
 	{
 	    case 0xfb: // DIRQ
-
 		    if (val & 0x1)
-		    {
 			    g_dsp.irq_request();
-		    }
 
 		    break;
 
@@ -246,13 +245,15 @@ u16 gdsp_ifx_read(u16 addr)
 
 void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-	u8* dst = ((u8*)g_dsp.iram);
+	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
+	u8* dst = ((u8*)g_dsp.iram);
 	for (u32 i = 0; i < size; i += 2)
 	{
 		// TODO : this may be different on Wii.
 		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff];
 	}
+	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);

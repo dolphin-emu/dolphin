@@ -231,14 +231,17 @@ void Initialize(void *init)
 	g_dsp.step_counter = 0;
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	g_dsp.irq_request = dspi_req_dsp_irq;
+//	g_dsp.exception_in_progress_hack = false;
 	gdsp_reset();
 
-	if (!gdsp_load_rom(DSP_IROM_FILE)) {
+	if (!gdsp_load_irom(DSP_IROM_FILE))
+	{
 		bCanWork = false;
 		PanicAlert("Failed loading DSP ROM from " DSP_IROM_FILE);
 	}
 
-	if (!gdsp_load_coef(DSP_COEF_FILE)) {
+	if (!gdsp_load_coef(DSP_COEF_FILE))
+	{
 		bCanWork = false;
 		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
 	}
@@ -248,10 +251,10 @@ void Initialize(void *init)
 
 	bIsRunning = true;
 
+	InitInstructionTable();
+
 	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	soundStream = AudioCommon::InitSoundStream();
-
-	InitInstructionTable();
 }
 
 void DSP_StopSoundStream()
@@ -262,9 +265,10 @@ void DSP_StopSoundStream()
 	g_hDSPThread = NULL;
 }
 
-void Shutdown(void)
+void Shutdown()
 {
 	AudioCommon::ShutdownSoundStream();
+	gdsp_shutdown();
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)

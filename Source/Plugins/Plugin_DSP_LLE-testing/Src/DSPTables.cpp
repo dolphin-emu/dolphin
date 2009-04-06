@@ -336,9 +336,27 @@ dspInstFunc opTable[OPTABLE_SIZE];
 dspInstFunc prologueTable[OPTABLE_SIZE];
 dspInstFunc epilogueTable[OPTABLE_SIZE];
 
+const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
+{
+	for (int i = 0; i < opcodes_size; i++)
+	{
+		u16 mask = opcodes[i].opcode_mask;
+		if (opcodes[i].size & P_EXT) {
+			// Ignore extension bits.
+			mask &= 0xFF00;
+		}
+		if ((mask & inst.hex) == opcodes[i].opcode)
+			return &opcodes[i];
+	}
+	return NULL;
+}
+
+
+// This function could use the above GetOpTemplate, but then we'd lose the
+// nice property that it catches colliding op masks.
 void InitInstructionTable()
 {
-	for (u32 i = 0; i < OPTABLE_SIZE; i++)
+	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
 		opTable[i] = DSPInterpreter::unknown;
 		prologueTable[i] = NULL;
@@ -346,7 +364,7 @@ void InitInstructionTable()
 		opSize[i] = 0;
 	}
 	
-	for (u32 i = 0; i < OPTABLE_SIZE; i++)
+	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
 		for (u32 j = 0; j < opcodes_size; j++)
 		{

@@ -45,55 +45,60 @@
 
 #include "Globals.h"
 
-// Are these in bytes or 16-bit words? Probably 16-bit words.
-#define DSP_IRAM_SIZE   (0x1000)
-#define DSP_IRAM_MASK   (0x0fff)
-#define DSP_IROM_SIZE   (0x1000)
-#define DSP_IROM_MASK   (0x0fff)
-#define DSP_DRAM_SIZE   (0x1000)
-#define DSP_DRAM_MASK   (0x0fff)
-#define DSP_DROM_SIZE   (0x1000)
-#define DSP_DROM_MASK   (0x0fff)
-#define DSP_COEF_SIZE   (0x1000)
-#define DSP_COEF_MASK   (0x0fff)
+#define DSP_IRAM_BYTE_SIZE   0x2000
+#define DSP_IRAM_SIZE        0x1000
+#define DSP_IRAM_MASK        0x0fff
 
-#define DSP_RESET_VECTOR    (0x8000)
+#define DSP_IROM_BYTE_SIZE   0x2000
+#define DSP_IROM_SIZE        0x1000
+#define DSP_IROM_MASK        0x0fff
+
+#define DSP_DRAM_BYTE_SIZE   0x2000
+#define DSP_DRAM_SIZE        0x1000
+#define DSP_DRAM_MASK        0x0fff
+
+#define DSP_COEF_BYTE_SIZE   0x2000
+#define DSP_COEF_SIZE        0x1000
+#define DSP_COEF_MASK        0x0fff
+
+#define DSP_RESET_VECTOR     0x8000
 
 #define DSP_STACK_DEPTH 0x20
 #define DSP_STACK_MASK  0x1f
 
 struct SDSP
 {
-	static u16 r[32];
-	static u16 pc;
-	static u16 err_pc;
-	static u16* iram;
-	static u16* dram;
-	static u16* irom;
-	static u16* drom;
-	static u16* coef;
-	static u8* cpu_ram;
-	static u16 cr;
-	static u8 reg_stack_ptr[4];
-	static u8 exceptions;   // pending exceptiosn?
+	u16 r[32];
+	u16 pc;
+	u16 err_pc;
+	u16* iram;
+	u16* dram;
+	u16* irom;
+	u16* coef;
+	u8* cpu_ram;
+	u16 cr;
+	u8 reg_stack_ptr[4];
+	u8 exceptions;   // pending exceptiosn?
 
 	// lets make stack depth to 32 for now
-	static u16 reg_stack[4][DSP_STACK_DEPTH];
-	static void (* irq_request)(void);
+	u16 reg_stack[4][DSP_STACK_DEPTH];
+	void (* irq_request)(void);
 
 	// for debugger only
-	static bool dump_imem;
-	static u32 iram_crc;
-	static u64 step_counter;
-	static bool exception_in_progress_hack;
+	bool dump_imem;
+	u32 iram_crc;
+	u64 step_counter;
+	bool exception_in_progress_hack;
 };
 
 extern SDSP g_dsp;
 
 
-void gdsp_init(void);
-void gdsp_reset(void);
-bool gdsp_load_rom(const char *fname);
+void gdsp_init();
+void gdsp_reset();
+void gdsp_shutdown();
+
+bool gdsp_load_irom(const char *fname);
 bool gdsp_load_coef(const char *fname);
 
 

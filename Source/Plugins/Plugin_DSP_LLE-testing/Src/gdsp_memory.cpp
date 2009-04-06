@@ -37,15 +37,22 @@ u16 dsp_swap16(u16 x)
 
 u16 dsp_imem_read(u16 addr)
 {
-	if (g_dsp.pc & 0x8000)
-		return dsp_swap16(g_dsp.irom[addr & DSP_IROM_MASK]);
-	else
+	switch (addr >> 12)
+	{
+	case 0:
 		return dsp_swap16(g_dsp.iram[addr & DSP_IRAM_MASK]);
+	case 8:
+		return dsp_swap16(g_dsp.irom[addr & DSP_IROM_MASK]);
+	default:
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Executing from invalid (%04x) memory", g_dsp.pc, addr);
+		return 0;
+	}
 }
 
 u16 dsp_dmem_read(u16 addr)
 {
-	switch (addr >> 12) {
+	switch (addr >> 12)
+	{
 	case 0x0: // 0xxx DRAM
 		return dsp_swap16(g_dsp.dram[addr & DSP_DRAM_MASK]);
 		
@@ -58,10 +65,6 @@ u16 dsp_dmem_read(u16 addr)
 	case 0x4:
 	break;*/
 
-	case 0x8: // 8xxx DROM
-		ERROR_LOG(DSPLLE, "someone reads from ROM");
-		return dsp_swap16(g_dsp.drom[addr & DSP_DROM_MASK]);
-				
 	case 0xf: // Fxxx HW regs
 		return gdsp_ifx_read(addr);
 		
@@ -82,12 +85,6 @@ void dsp_dmem_write(u16 addr, u16 val)
 
 	  case 0x1: // 1xxx COEF
 		  ERROR_LOG(DSPLLE, "someone writes to COEF");
-		  break;
-		  
-	  case 0x8: // 8xxx DROM
-		  ERROR_LOG(DSPLLE, "someone writes to DROM");
-		  /* val = dsp_swap16(val);
-			 g_dsp.drom[addr & DSP_DROM_MASK] = val;*/
 		  break;
 		  
 	  case 0xf: // Fxxx HW regs

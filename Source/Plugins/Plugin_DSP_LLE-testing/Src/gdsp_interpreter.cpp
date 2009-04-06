@@ -31,33 +31,11 @@
 #include "gdsp_interface.h"
 #include "gdsp_opcodes_helper.h"
 #include "Tools.h"
+#include "MemoryUtil.h"
 
 //-------------------------------------------------------------------------------
 
 SDSP g_dsp;
-
-u16 SDSP::r[32];
-u16 SDSP::pc = 0;
-u16 SDSP::err_pc = 0;
-u16* SDSP::iram   = 0;
-u16* SDSP::dram   = 0;
-u16* SDSP::irom   = 0;
-u16* SDSP::drom   = 0;
-u16* SDSP::coef   = 0;
-u8* SDSP::cpu_ram = 0;
-u16 SDSP::cr = 0;
-u8 SDSP::reg_stack_ptr[4];
-u8 SDSP::exceptions;
-
-// lets make stack depth to 32 for now
-u16 SDSP::reg_stack[4][DSP_STACK_DEPTH];
-void (*SDSP::irq_request)() = NULL;
-bool SDSP::exception_in_progress_hack = false;  // should be replaced with bit9 in SR?
-
-// for debugger only
-bool SDSP::dump_imem = true;
-u32 SDSP::iram_crc = 0;
-u64 SDSP::step_counter = 0;
 
 bool gdsp_running;
 extern volatile u32 dsp_running;
@@ -75,28 +53,17 @@ void UpdateCachedCR()
 
 void gdsp_init()
 {
-	// Why do we have DROM? Does it exist? Has it been dumped?
-	g_dsp.irom = (u16*)malloc(DSP_IROM_SIZE * sizeof(u16));
-	g_dsp.iram = (u16*)malloc(DSP_IRAM_SIZE * sizeof(u16));
-	g_dsp.drom = (u16*)malloc(DSP_DROM_SIZE * sizeof(u16));
-	g_dsp.dram = (u16*)malloc(DSP_DRAM_SIZE * sizeof(u16));
-	g_dsp.coef = (u16*)malloc(DSP_COEF_SIZE * sizeof(u16));
+	// Dump IMEM when ucodes get uploaded. Why not... still a plugin heavily in dev.
+	g_dsp.dump_imem = true;
 
-	// Fill memories with junk.
-	for (int i = 0; i < DSP_IRAM_SIZE; i++)
-	{
-		g_dsp.iram[i] = 0x0021; // HALT opcode
-	}
-
-	for (int i = 0; i < DSP_DRAM_SIZE; i++)
-	{
-		g_dsp.dram[i] = 0x0021; // HALT opcode
-	}
+	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
+	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
+	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
+	g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
 
 	// Fill roms with zeros. 
-	memset(g_dsp.irom, 0, DSP_IROM_SIZE * sizeof(u16));
-	memset(g_dsp.drom, 0, DSP_DROM_SIZE * sizeof(u16));
-	memset(g_dsp.coef, 0, DSP_COEF_SIZE * sizeof(u16));
+	memset(g_dsp.irom, 0, DSP_IROM_BYTE_SIZE);
+	memset(g_dsp.coef, 0, DSP_COEF_BYTE_SIZE);
 
 	for (int i = 0; i < 32; i++)
 	{
@@ -113,6 +80,17 @@ void gdsp_init()
 		}
 	}
 
+	// Fill memories with junk.
+	for (int i = 0; i < DSP_IRAM_SIZE; i++)
+	{
+		g_dsp.iram[i] = 0x0021; // HALT opcode
+	}
+
+	for (int i = 0; i < DSP_DRAM_SIZE; i++)
+	{
+		g_dsp.dram[i] = 0x0021; // HALT opcode
+	}
+
 	// copied from a real console after the custom UCode has been loaded
 	g_dsp.r[0x08] = 0xffff;
 	g_dsp.r[0x09] = 0xffff;
@@ -123,12 +101,23 @@ void gdsp_init()
 	gdsp_ifx_init();
 
 	UpdateCachedCR();
+
+	// Mostly keep IRAM write protected. We unprotect only when DMA-ing
+	// in new ucodes.
+	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+}
+
+void gdsp_shutdown()
+{
+	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
 }
 
 
 void gdsp_reset()
 {
-//	_assert_msg_(0, "gdsp_reset()");
     _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "reset while exception");
     g_dsp.pc = DSP_RESET_VECTOR;
     g_dsp.exception_in_progress_hack = false;
@@ -140,11 +129,9 @@ void gdsp_generate_exception(u8 level)
 	g_dsp.exceptions |= 1 << level;
 }
 
-
-bool gdsp_load_rom(const char *fname)
+bool gdsp_load_irom(const char *fname)
 {
 	FILE *pFile = fopen(fname, "rb");
-
 	if (pFile)
 	{
 		size_t size_in_bytes = DSP_IROM_SIZE * sizeof(u16);
@@ -158,15 +145,14 @@ bool gdsp_load_rom(const char *fname)
 		fclose(pFile);
 		return true;
 	}
-
+	// Always keep IROM write protected.
+	WriteProtectMemory(g_dsp.irom, DSP_IROM_BYTE_SIZE, false);
 	return false;
 }
-
 
 bool gdsp_load_coef(const char *fname)
 {
 	FILE *pFile = fopen(fname, "rb");
-
 	if (pFile)
 	{
 		size_t size_in_bytes = DSP_COEF_SIZE * sizeof(u16);
@@ -180,7 +166,8 @@ bool gdsp_load_coef(const char *fname)
 		fclose(pFile);
 		return true;
 	}
-
+	// Always keep COEF write protected. We unprotect only when DMA-ing
+	WriteProtectMemory(g_dsp.coef, DSP_COEF_BYTE_SIZE, false);
 	return false;
 }
 

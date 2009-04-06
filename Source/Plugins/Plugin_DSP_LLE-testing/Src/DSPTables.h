@@ -118,4 +118,8 @@ void InitInstructionTable();
 
 void ComputeInstruction(const UDSPInstruction& inst);
 
+// This one's pretty slow, try to use it only at init or seldomly.
+// returns NULL if no matching instruction.
+const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst);
+
 #endif // _DSPTABLES_H

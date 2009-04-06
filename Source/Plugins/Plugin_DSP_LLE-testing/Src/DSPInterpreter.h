@@ -114,6 +114,7 @@ void msubc(const UDSPInstruction& opc);
 void srs(const UDSPInstruction& opc);
 void lrs(const UDSPInstruction& opc);
 void nx(const UDSPInstruction& opc);
+void cmpi(const UDSPInstruction& opc);
 
 // FIXME inside
 void rti(const UDSPInstruction& opc);
@@ -122,7 +123,6 @@ void srbith(const UDSPInstruction& opc);
 
 void andfc(const UDSPInstruction& opc);
 void andf(const UDSPInstruction& opc);
-void cmpi(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);
 void ori(const UDSPInstruction& opc);
@@ -130,11 +130,14 @@ void ori(const UDSPInstruction& opc);
 
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
 
+// The mysterious a100
+
 // END OF UNIMPLEMENTED
 
 
 // Helpers
 inline void tsta(int reg);
-};
+
+}  // namespace
 
 #endif // _DSPINTERPRETER_H

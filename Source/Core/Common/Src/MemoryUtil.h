@@ -22,10 +22,8 @@ void* AllocateExecutableMemory(size_t size, bool low = true);
 void* AllocateMemoryPages(size_t size);
 void FreeMemoryPages(void* ptr, size_t size);
 void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
-void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute);
+void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 
-
-inline int GetPageSize() {return 4096;}
-
+inline int GetPageSize() { return 4096; }
 
 #endif

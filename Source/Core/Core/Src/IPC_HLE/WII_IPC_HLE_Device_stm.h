@@ -54,8 +54,15 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
-		ERROR_LOG(WII_IPC_SD, "STM: Open");
+		ERROR_LOG(WII_IPC_SD, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		return true;
+	}
+
+	virtual bool Close(u32 _CommandAddress)
+	{
+		ERROR_LOG(WII_IPC_SD, "STM immediate: Close");
+		Memory::Write_U32(0, _CommandAddress+4);
 		return true;
 	}
 
@@ -140,6 +147,13 @@ public:
         Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
         return true;
     }
+
+	virtual bool Close(u32 _CommandAddress)
+	{
+		INFO_LOG(WII_IPC_SD, "STM eventhook: Close");
+		Memory::Write_U32(0, _CommandAddress+4);
+		return true;
+	}
 
     virtual bool IOCtl(u32 _CommandAddress) 
     {

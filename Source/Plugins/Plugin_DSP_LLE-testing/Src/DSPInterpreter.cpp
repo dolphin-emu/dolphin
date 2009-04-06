@@ -288,6 +288,7 @@ void srr(const UDSPInstruction& opc)
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
 }
+
 // SRRD @$D, $S
 // 0001 1010 1dds ssss
 // Store value from source register $S to a memory location pointed by
