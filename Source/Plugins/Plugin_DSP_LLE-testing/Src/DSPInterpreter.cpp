@@ -127,6 +127,10 @@ void rti(const UDSPInstruction& opc)
 	g_dsp.exception_in_progress_hack = false;
 }
 
+// HALT
+// 0000 0000 0020 0001 
+// Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
+
 void halt(const UDSPInstruction& opc)
 {
 	g_dsp.cr |= 0x4;
@@ -890,15 +894,18 @@ void inc(const UDSPInstruction& opc)
 void neg(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
-
+	
 	s64 acc = dsp_get_long_acc(areg);
 	acc = 0 - acc;
 	dsp_set_long_acc(areg, acc);
-
+	
 	Update_SR_Register64(acc);
 }
-
-
+	
+// MOVNP $acD
+// 0111 111d xxxx xxxx 
+// Moves negative of multiply product from $prod register to accumulator
+// $acD register.
 void movnp(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
@@ -908,11 +915,16 @@ void movnp(const UDSPInstruction& opc)
 	dsp_set_long_acc(dreg, acc);
 }
 
-// TODO: Implement
+// MOV $acD, $ac(1-D)
+// 0110 110d xxxx xxxx
+// Moves accumulator $ax(1-D) to accumulator $axD.
 void mov(const UDSPInstruction& opc)
 {
-	// UNIMPLEMENTED
-	ERROR_LOG(DSPHLE, "dsp_opc.hex_mov\n");
+	u8 D = (opc.hex >> 8) & 0x1;
+
+	u16 ac1 = dsp_get_acc_m(D);
+	u16 ac2 = dsp_get_acc_m(1 - D);
+	dsp_set_long_acc(D, ac1 + ac2);
 }
 
 // ADDAX $acD, $axS

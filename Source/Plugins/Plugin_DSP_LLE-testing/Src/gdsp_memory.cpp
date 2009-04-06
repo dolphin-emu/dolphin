@@ -45,24 +45,29 @@ u16 dsp_imem_read(u16 addr)
 
 u16 dsp_dmem_read(u16 addr)
 {
-	switch (addr >> 12)
-	{
-	    case 0x0: // 0xxx DRAM
-		    return dsp_swap16(g_dsp.dram[addr & DSP_DRAM_MASK]);
+	switch (addr >> 12) {
+	case 0x0: // 0xxx DRAM
+		return dsp_swap16(g_dsp.dram[addr & DSP_DRAM_MASK]);
+		
+	case 0x1: // 1xxx COEF
+		return dsp_swap16(g_dsp.coef[addr & DSP_COEF_MASK]);
 
-	    case 0x8: // 8xxx DROM
-		    ERROR_LOG(DSPHLE, "someone reads from ROM");
-		    return dsp_swap16(g_dsp.drom[addr & DSP_DROM_MASK]);
+		// FIXME: unknown addresses used by zelda 
+ /*	case 0x2:
+	case 0x3:
+	case 0x4:
+	break;*/
 
-		case 0x1: // 1xxx COEF
-		    return dsp_swap16(g_dsp.coef[addr & DSP_COEF_MASK]);
-
-	    case 0xf: // Fxxx HW regs
-		    return gdsp_ifx_read(addr);
-
-	    default: // error
-			ERROR_LOG(DSPHLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
-		    return 0;
+	case 0x8: // 8xxx DROM
+		ERROR_LOG(DSPHLE, "someone reads from ROM");
+		return dsp_swap16(g_dsp.drom[addr & DSP_DROM_MASK]);
+				
+	case 0xf: // Fxxx HW regs
+		return gdsp_ifx_read(addr);
+		
+	default: // error
+		ERROR_LOG(DSPHLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		return 0;
 	}
 }
 
