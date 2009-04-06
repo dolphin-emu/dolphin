@@ -137,6 +137,7 @@ private:
 	void UpdateDisAsmListView();
 	void UpdateRegisterFlags();
 	void UpdateSymbolMap();
+	void UpdateState();
 
 	void RebuildDisAsmListView();
 
@@ -146,14 +147,16 @@ private:
 	DSPRegisterView* m_Regs;
 
 	void OnClose(wxCloseEvent& event);
-	void OnChangeSize(wxSizeEvent& event);
 	void OnChangeState(wxCommandEvent& event);
+	void OnShowPC(wxCommandEvent& event);
 	void OnDumpCode(wxCommandEvent& event);
 	void OnRightClick(wxListEvent& event);
 	void OnDoubleClick(wxListEvent& event);
 
 	void CreateGUIControls();
 	void Refresh();
+	void FocusOnPC();
+	void UnselectAll();
 };
 
 #endif //_DSP_DEBUGGER_LLE_H

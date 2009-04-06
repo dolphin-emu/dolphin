@@ -26,9 +26,9 @@
 // Event table and class
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
-	EVT_SIZE(DSPDebuggerLLE::OnChangeSize)
 
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
+	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
 	EVT_MENU(ID_DUMPCODETOOL, DSPDebuggerLLE::OnDumpCode)
 
 	EVT_LIST_ITEM_RIGHT_CLICK(ID_DISASM, DSPDebuggerLLE::OnRightClick)
@@ -100,12 +100,6 @@ void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
 	event.Skip();
 }
 
-void DSPDebuggerLLE::OnChangeSize(wxSizeEvent& event)
-{
-	Refresh();
-	event.Skip();
-}
-
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -122,11 +116,13 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 		break;
 	}
 
-	if ((m_State == RUN) || (m_State == RUN_START))
-		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Pause"));
-	else
-		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Run"));
-	m_Toolbar->Realize();
+	UpdateState();
+}
+
+void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
+{
+	Refresh();
+	FocusOnPC();
 }
 
 void DSPDebuggerLLE::OnDumpCode(wxCommandEvent& event)
@@ -160,6 +156,40 @@ void DSPDebuggerLLE::Refresh()
 	UpdateSymbolMap();
 	UpdateDisAsmListView();
 	UpdateRegisterFlags();
+	UpdateState();
+}
+
+void DSPDebuggerLLE::FocusOnPC()
+{
+	UnselectAll();
+
+	for (int i = 0; i < m_Disasm->GetItemCount(); i++)
+	{
+		if (m_Disasm->GetItemData(i) == g_dsp.pc)
+		{
+			m_Disasm->EnsureVisible(i - 5);
+			m_Disasm->EnsureVisible(i + 5);
+			m_Disasm->SetItemState(i, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED);
+			break;
+		}
+	}
+}
+
+void DSPDebuggerLLE::UnselectAll()
+{
+	for (int i = 0; i < m_Disasm->GetItemCount(); i++)
+	{
+		m_Disasm->SetItemState(i, 0, wxLIST_STATE_SELECTED);
+	}
+}
+
+void DSPDebuggerLLE::UpdateState()
+{
+	if ((m_State == RUN) || (m_State == RUN_START))
+		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Pause"));
+	else
+		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Run"));
+	m_Toolbar->Realize();
 }
 
 void DSPDebuggerLLE::RebuildDisAsmListView()
@@ -280,16 +310,7 @@ void DSPDebuggerLLE::UpdateDisAsmListView()
 		return;
 
 	// show PC
-	for (int i = 0; i < m_Disasm->GetItemCount(); i++)
-	{
-		if (m_Disasm->GetItemData(i) == g_dsp.pc)
-		{
-			m_Disasm->EnsureVisible(i - 5);
-			m_Disasm->EnsureVisible(i + 14);
-			m_Disasm->SetItemState(i, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED);
-			break;
-		}
-	}
+	FocusOnPC();
 
 	m_CachedStepCounter = g_dsp.step_counter;
 
@@ -318,6 +339,8 @@ void DSPDebuggerLLE::UpdateRegisterFlags()
 {
 	if (m_CachedCR == g_dsp.cr)
 		return;
+
+	m_Toolbar->ToggleTool(ID_DUMPCODETOOL, g_dsp.dump_imem);
 
 	m_Toolbar->ToggleTool(ID_CHECK_ASSERTINT, g_dsp.cr & 0x02 ? true : false);
 	m_Toolbar->ToggleTool(ID_CHECK_HALT, g_dsp.cr & 0x04 ? true : false);
