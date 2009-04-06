@@ -1183,14 +1183,6 @@
 				RelativePath=".\Src\BPFunctions.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\BPStructs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\BPStructs.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Render"

@@ -16,6 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "BPFunctions.h"
+#include "D3DBase.h"
+#include "Config.h"
+#include "Common.h"
+#include "TextureCache.h"
+#include "VertexManager.h"
+#include "VertexShaderManager.h"
+#include "Utils.h"
+
 
 bool textureChanged[8];
 
@@ -92,7 +100,7 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode()
+void SetGenerationMode(const BreakPoint &bp)
 {
 	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
@@ -117,15 +125,15 @@ void SetGenerationMode()
 
 void SetScissor(const BreakPoint &bp)
 {
-	
+	Renderer::SetScissorRect();
 }
-void SetLineWidth()
+void SetLineWidth(const BreakPoint &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
-void SetDepthMode()
+void SetDepthMode(const BreakPoint &bp)
 {
 	if (bpmem.zmode.testenable)
 	{
@@ -151,42 +159,82 @@ void SetDepthMode()
 	//    Renderer::SetRenderMode(Renderer::RM_Normal);
 	
 }
-void SetBlendMode()
+void SetBlendMode(const BreakPoint &bp)
 {
-	
+	if (bp.changes & 1)
+		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
+
+	D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
+	D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
+
+	if (bp.changes & 0x700)
+		Renderer::SetRenderState(D3DRS_SRCBLEND, src);
+
+	if (bp.changes & 0xE0) {
+		if (!bpmem.blendmode.subtract)
+		{
+			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
+		}
+		else
+		{
+			Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+		}
+	}
+	if (bp.changes & 0x800) 
+	{
+		if (bpmem.blendmode.subtract)
+		{
+			Renderer::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+			Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+		}
+		else
+		{
+			Renderer::SetRenderState(D3DRS_SRCBLEND, src);
+			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
+		}
+		
+		Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
+	}
 }
-void SetDitherMode()
+void SetDitherMode(const BreakPoint &bp)
 {
-    
+	Renderer::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
-void SetLogicOpMode()
+void SetLogicOpMode(const BreakPoint &bp)
 {
-	
+	// Logic op blending. D3D can't do this but can fake some modes.
 }
-void SetColorMask()
+void SetColorMask(const BreakPoint &bp)
 {
-    
+	DWORD write = 0;
+	if (bpmem.blendmode.alphaupdate) 
+		write = D3DCOLORWRITEENABLE_ALPHA;
+	if (bpmem.blendmode.colorupdate) 
+		write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+
+	Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
 float GetRendererTargetScaleX()
 {
-	Renderer::GetXScale();
+	return Renderer::GetXScale();
 }
 float GetRendererTargetScaleY()
 {
-	Renderer::GetYScale();
+	return Renderer::GetYScale();
 }
-void CopyEFB(const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const BreakPoint &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
-	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rc);
+	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
+	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const BreakPoint &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const TRectangle &multirc)
+void ClearScreen(const BreakPoint &bp, const TRectangle &multirc)
 {
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
@@ -198,6 +246,7 @@ void ClearScreen(const TRectangle &multirc)
 	DWORD clearflags = 0;
 	D3DCOLOR col = 0;
 	float clearZ = 0;
+
 	if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 	{                    
 		if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
@@ -212,18 +261,16 @@ void ClearScreen(const TRectangle &multirc)
 		if (clearZ > 1.0f) clearZ = 1.0f;
 		if (clearZ < 0.0f) clearZ = 0.0f;
 		clearflags |= D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL;
-	}				
+	}
+
 	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
 }
 
-void RestoreRenderState()
+void RestoreRenderState(const BreakPoint &bp)
 {
+	//Renderer::SetRenderMode(Renderer::RM_Normal);
 }
 
-void SetScissorRectangle()
-{
-	Renderer::SetScissorRect();
-}
 bool GetConfig(const int &type)
 {
 	switch (type)
@@ -241,6 +288,45 @@ bool GetConfig(const int &type)
 }
 u8 *GetPointer(const u32 &address)
 {
-	g_VideoInitialize.pGetMemoryPointer(address);
+	return g_VideoInitialize.pGetMemoryPointer(address);
+}
+void SetSamplerState(const BreakPoint &bp)
+{
+	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
+	int stage = (bp.address & 3);//(addr>>4)&2;
+	TexMode0 &tm0 = tex.texMode0[stage];
+	
+	D3DTEXTUREFILTERTYPE min, mag, mip;
+	if (g_Config.bForceFiltering)
+	{
+		min = mag = mip = D3DTEXF_LINEAR;
+	}
+	else
+	{
+		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
+		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
+		mip = d3dMipFilters[tm0.min_filter & 3];
+	}
+	if ((bp.address & 0xE0) == 0xA0)
+		stage += 4;	
+	
+	if (g_Config.bForceMaxAniso)
+	{
+		mag = D3DTEXF_ANISOTROPIC;
+		mip = D3DTEXF_ANISOTROPIC;
+		min = D3DTEXF_ANISOTROPIC;
+	}
+	dev->SetSamplerState(stage, D3DSAMP_MINFILTER, min);
+	dev->SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
+	dev->SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
+	
+	dev->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, 16);
+	dev->SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
+	dev->SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
+	//wip
+	//dev->SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/4.0f);
+	//char temp[256];
+	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
+	//g_VideoInitialize.pLog(temp);
 }
 };

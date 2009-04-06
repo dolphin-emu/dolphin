@@ -37,24 +37,23 @@ enum
 };
 
 void FlushPipeline();
-void SetGenerationMode();
+void SetGenerationMode(const BreakPoint &bp);
 void SetScissor(const BreakPoint &bp);
-void SetLineWidth();
-void SetDepthMode();
-void SetBlendMode();
-void SetDitherMode();
-void SetLogicOpMode();
-void SetColorMask();
+void SetLineWidth(const BreakPoint &bp);
+void SetDepthMode(const BreakPoint &bp);
+void SetBlendMode(const BreakPoint &bp);
+void SetDitherMode(const BreakPoint &bp);
+void SetLogicOpMode(const BreakPoint &bp);
+void SetColorMask(const BreakPoint &bp);
 float GetRendererTargetScaleX();
 float GetRendererTargetScaleY();
-void CopyEFB(const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
-void RenderToXFB(const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight);
-void ClearScreen(const TRectangle &multirc);
-void RestoreRenderState();
-void SetScissorRectangle();
+void CopyEFB(const BreakPoint &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
+void RenderToXFB(const BreakPoint &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight);
+void ClearScreen(const BreakPoint &bp, const TRectangle &multirc);
+void RestoreRenderState(const BreakPoint &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
-
+void SetSamplerState(const BreakPoint &bp);
 };
 
 #endif // _BPFUNCTIONS_H_
