@@ -449,3 +449,14 @@ std::string ThS(int Integer, bool Unsigned)
 	}
 	return sbuf;
 }
+
+void NormalizeDirSep(std::string* str)
+{
+#ifdef _WIN32
+	int i;
+	while ((i = (int)str->find_first_of('\\')) >= 0)
+	{
+		str->replace(i, 1, DIR_SEP);
+	}
+#endif
+}

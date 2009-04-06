@@ -73,6 +73,6 @@ int ChooseStringFrom(const char* str, const char* * items);
 // filehelper
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
-
+void NormalizeDirSep(std::string* str);
 
 #endif // _STRINGUTIL_H_

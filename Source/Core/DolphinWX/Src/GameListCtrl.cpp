@@ -384,7 +384,21 @@ void CGameListCtrl::ScanForISOs()
 			for (u32 j = 0; j < FST_Temp.children.size(); j++)
 			{
 				if (FST_Temp.children.at(j).isDirectory)
-					Directories.push_back(FST_Temp.children.at(j).physicalName.c_str());
+				{
+					bool duplicate = false;
+					NormalizeDirSep(&(FST_Temp.children.at(j).physicalName));
+					for (u32 k = 0; k < Directories.size(); k++)
+					{
+						NormalizeDirSep(&Directories.at(k));
+						if (strcmp(Directories.at(k).c_str(), FST_Temp.children.at(j).physicalName.c_str()) == 0)
+						{
+							duplicate = true;
+							break;
+						}
+					}
+					if (!duplicate)
+						Directories.push_back(FST_Temp.children.at(j).physicalName.c_str());
+				}
 			}
 		}
 	}
