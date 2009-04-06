@@ -149,7 +149,7 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	default:
-		ERROR_LOG(DSPHLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
+		ERROR_LOG(DSPLLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
 		break;
 	}
 

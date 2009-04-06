@@ -62,7 +62,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 			// Create a shortcut that let us update struct members
 			short * pDest = (short *) & _pPBs[i];
 			
-			if (n > 20 && logall) {DEBUG_LOG(DSPHLE, "%c%i:", 223, i);} // logging
+			if (n > 20 && logall) {DEBUG_LOG(DSPLLE, "%c%i:", 223, i);} // logging
 
 			// Here we update the PB. We do it by going through all 192 / 2 = 96 u16 values
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
@@ -73,7 +73,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 				{
 					if (pSrc[p] != 0 && n > 20 && logall)
 					{
-						DEBUG_LOG(DSPHLE, "%i %04x | ", p, Common::swap16(pSrc[p]));
+						DEBUG_LOG(DSPLLE, "%i %04x | ", p, Common::swap16(pSrc[p]));
 					}	
 				}
 
@@ -81,7 +81,7 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 
 			}
 
-			if(n > 20 && logall) {DEBUG_LOG(DSPHLE, "\n");} // logging
+			if(n > 20 && logall) {DEBUG_LOG(DSPLLE, "\n");} // logging
 			// Here we update the block address to the starting point of the next PB
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			// save some values

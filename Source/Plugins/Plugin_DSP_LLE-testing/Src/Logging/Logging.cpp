@@ -318,7 +318,7 @@ void Logging()
 
 		// Print
 
-		INFO_LOG(DSPHLE, "%s", sbuff.c_str());
+		INFO_LOG(DSPLLE, "%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");		
 		// ---------------
 		k=0;

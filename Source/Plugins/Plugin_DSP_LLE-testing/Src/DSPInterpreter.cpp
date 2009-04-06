@@ -32,7 +32,7 @@ namespace DSPInterpreter {
 void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-	ERROR_LOG(DSPHLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.err_pc);
+	ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.err_pc);
 }
 
 // test register and updates SR accordingly
@@ -118,7 +118,7 @@ void rti(const UDSPInstruction& opc)
 	if ((opc.hex & 0xf) != 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp rti opcode");
+		ERROR_LOG(DSPLLE, "dsp rti opcode");
 	}
 
 	g_dsp.r[R_SR] = dsp_reg_load_stack(DSP_STACK_D);
@@ -358,7 +358,7 @@ void ilrr(const UDSPInstruction& opc)
 
 	default:
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "Unknown ILRR: 0x%04x\n", (opc.hex >> 2) & 0x3);
+		ERROR_LOG(DSPLLE, "Unknown ILRR: 0x%04x\n", (opc.hex >> 2) & 0x3);
 	}
 }
 
@@ -649,7 +649,7 @@ void andfc(const UDSPInstruction& opc)
 	if (opc.hex & 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp_opc.hex_andfc");
+		ERROR_LOG(DSPLLE, "dsp_opc.hex_andfc");
 	}
 
 	u8 reg  = (opc.hex >> 8) & 0x1;
@@ -684,7 +684,7 @@ void andf(const UDSPInstruction& opc)
 	if (opc.hex & 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp andf opcode");
+		ERROR_LOG(DSPLLE, "dsp andf opcode");
 	}
 
 	reg = 0x1e + ((opc.hex >> 8) & 0x1);
@@ -719,7 +719,7 @@ void xori(const UDSPInstruction& opc)
 	if (opc.hex & 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp xori opcode");
+		ERROR_LOG(DSPLLE, "dsp xori opcode");
 	}
 
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
@@ -739,7 +739,7 @@ void andi(const UDSPInstruction& opc)
 	if (opc.hex & 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp andi opcode");
+		ERROR_LOG(DSPLLE, "dsp andi opcode");
 	}
 
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
@@ -758,7 +758,7 @@ void ori(const UDSPInstruction& opc)
 	if (opc.hex & 0xf)
 	{
 		// FIXME: Implement
-		ERROR_LOG(DSPHLE, "dsp ori opcode");
+		ERROR_LOG(DSPLLE, "dsp ori opcode");
 		return;
 	}
 
@@ -1180,33 +1180,33 @@ void srbith(const UDSPInstruction& opc)
 	// done around loops with lots of multiplications.
 
 	case 0xa: // M2
-		ERROR_LOG(DSPHLE, "M2");
+		ERROR_LOG(DSPLLE, "M2");
 		break;
 		// FIXME: Both of these appear in the beginning of the Wind Waker
 	case 0xb: // M0
-		ERROR_LOG(DSPHLE, "M0");
+		ERROR_LOG(DSPLLE, "M0");
 		break;
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
 	case 0xc: // CLR15
-		ERROR_LOG(DSPHLE, "CLR15");
+		ERROR_LOG(DSPLLE, "CLR15");
 		break;
 	case 0xd: // SET15
-		ERROR_LOG(DSPHLE, "SET15");
+		ERROR_LOG(DSPLLE, "SET15");
 		break;
 
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
 		g_dsp.r[R_SR] &= ~(1 << 14);
-		ERROR_LOG(DSPHLE, "SET40");
+		ERROR_LOG(DSPLLE, "SET40");
 		break;
 
 	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
 		// that doesnt happen on a real console  << what does this comment mean?
 		g_dsp.r[R_SR] |= (1 << 14);
-		ERROR_LOG(DSPHLE, "SET16");
+		ERROR_LOG(DSPLLE, "SET16");
 		break;
 
 	default:

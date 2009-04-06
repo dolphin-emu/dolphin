@@ -55,7 +55,7 @@ jnz, ifs, retlnz
 #include "DSPJit.h"
 #include "gdsp_ext_op.h"
 
-void nop(const UDSPInstruction& opc) {/*DSPInterpreter::unknown(opc);*/}
+void nop(const UDSPInstruction& opc) {if(opc.hex) DSPInterpreter::unknown(opc);}
  
 // Unknown Ops
 // All AX games: a100
@@ -366,7 +366,7 @@ void InitInstructionTable()
 				}
 				else
 				{
-					ERROR_LOG(DSPHLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
+					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
 				}
 			}
 		}

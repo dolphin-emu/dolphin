@@ -29,8 +29,8 @@ extern u32 m_addressPBs;
 bool AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	DEBUG_LOG(DSPHLE, "AXTask - ================================================================");
-	DEBUG_LOG(DSPHLE, "AXTask - AXCommandList-Addr: 0x%08x", uAddress);
+	DEBUG_LOG(DSPLLE, "AXTask - ================================================================");
+	DEBUG_LOG(DSPLLE, "AXTask - AXCommandList-Addr: 0x%08x", uAddress);
 
 	bool bExecuteList = true;
 
@@ -46,7 +46,7 @@ bool AXTask(u32& _uMail)
 		case 0: // AXLIST_STUDIOADDR: //00
 			{
 				uAddress += 4;
-				DEBUG_LOG(DSPHLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
+				DEBUG_LOG(DSPLLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
 			}
 			break;
 
@@ -55,7 +55,7 @@ bool AXTask(u32& _uMail)
 				{
 					m_addressPBs = Memory_Read_U32(uAddress);
 					uAddress += 4;
-					DEBUG_LOG(DSPHLE, "AXLIST PB address: %08x", m_addressPBs);
+					DEBUG_LOG(DSPLLE, "AXLIST PB address: %08x", m_addressPBs);
 					bExecuteList = false;
 				}
 				break;
@@ -64,7 +64,7 @@ bool AXTask(u32& _uMail)
 			{
 				// Hopefully this is where in main ram to write.
 				uAddress += 4;
-				DEBUG_LOG(DSPHLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
+				DEBUG_LOG(DSPLLE, "AXLIST AXLIST_SBUFFER: %08x", uAddress);
 			}
 			break;
 
@@ -73,15 +73,15 @@ bool AXTask(u32& _uMail)
 			default:
 				{
 					// Stop the execution of this TaskList
-					DEBUG_LOG(DSPHLE, "AXLIST default: %08x", uAddress);
+					DEBUG_LOG(DSPLLE, "AXLIST default: %08x", uAddress);
 					bExecuteList = false;
 				}
 				break;
 			} // end of switch
 		}
 
-	DEBUG_LOG(DSPHLE, "AXTask - done, send resume");
-	DEBUG_LOG(DSPHLE, "AXTask - ================================================================");
+	DEBUG_LOG(DSPLLE, "AXTask - done, send resume");
+	DEBUG_LOG(DSPLLE, "AXTask - ================================================================");
 
 	// now resume
 	return true;

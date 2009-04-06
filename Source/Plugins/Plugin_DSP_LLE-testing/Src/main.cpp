@@ -300,7 +300,7 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 	{
 		if (gdsp_mbox_peek(GDSP_MBOX_CPU) & 0x80000000)
 		{
-			ERROR_LOG(DSPHLE, "Mailbox isnt empty ... strange");
+			ERROR_LOG(DSPLLE, "Mailbox isnt empty ... strange");
 		}
 
 #if PROFILE
@@ -314,7 +314,7 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPHLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
 	}
 }
 
@@ -327,19 +327,19 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 		u32 uAddress = gdsp_mbox_peek(GDSP_MBOX_CPU);
 		u16 errpc = g_dsp.err_pc;
 
-		DEBUG_LOG(DSPHLE, "CPU writes mail to mbx 0: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
+		DEBUG_LOG(DSPLLE, "CPU writes mail to mbx 0: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
 
 		// I couldn't find any better way to detect the AX mails so this had to
 		// do. Please feel free to change it.
 		if ((errpc == 0x0054 || errpc == 0x0055) && m_addressPBs == 0)
 		{
-			DEBUG_LOG(DSPHLE, "AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
+			DEBUG_LOG(DSPLLE, "AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
 			AXTask(uAddress);
 		}
 	}
 	else
 	{
-		ERROR_LOG(DSPHLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
 	}
 }
 

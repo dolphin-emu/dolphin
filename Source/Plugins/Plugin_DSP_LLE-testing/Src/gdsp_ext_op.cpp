@@ -41,7 +41,7 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 	switch (op)
 	{
 	    case 0x00:
-		    ERROR_LOG(DSPHLE, "dsp_op_ext_r_epi");
+		    ERROR_LOG(DSPLLE, "dsp_op_ext_r_epi");
 		    break;
 
 	    case 0x01:

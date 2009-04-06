@@ -239,7 +239,7 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 			break;
 
 		default:
-			ERROR_LOG(DSPHLE, "Unknown parameter type: %x", opc->params[j].type);
+			ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc->params[j].type);
 //			exit(-1);
 			break;
 		}
@@ -288,7 +288,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 
 	if (!opc)
 	{
-		ERROR_LOG(DSPHLE, "get_opcode_size ARGH");
+		ERROR_LOG(DSPLLE, "get_opcode_size ARGH");
 		exit(0);
 	}
 
@@ -312,7 +312,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 
 		if (!opc_ext)
 		{
-			ERROR_LOG(DSPHLE, "get_opcode_size ext ARGH");
+			ERROR_LOG(DSPLLE, "get_opcode_size ext ARGH");
 		}
 
 		return opc_ext->size;
