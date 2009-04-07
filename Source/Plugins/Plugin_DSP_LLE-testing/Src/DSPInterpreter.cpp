@@ -44,6 +44,12 @@ void tsta(int reg)
 }
 
 // Generic call implementation
+// CALLcc addressA
+// 0000 0010 1011 cccc
+// aaaa aaaa aaaa aaaa
+// Call function if condition cc has been met. Push program counter of
+// instruction following "call" to $st0. Set program counter to address
+// represented by value that follows this "call" instruction.
 void call(const UDSPInstruction& opc)
 {
 	u16 dest = dsp_fetch_code();
@@ -56,6 +62,11 @@ void call(const UDSPInstruction& opc)
 }
 
 // Generic callr implementation
+// CALLRcc $R
+// 0001 0111 rrr1 cccc
+// Call functionif condition cc has been met.Push program counter of 
+// instruction following "call" tocall stack $st0. Set program counter to 
+// register $R.
 void callr(const UDSPInstruction& opc)
 {
 	u16 addr;
@@ -71,6 +82,9 @@ void callr(const UDSPInstruction& opc)
 }
 
 // Generic if implementation
+// IFcc
+// 0000 0010 0111 cccc
+// Execute following opcode if the condition has been met.
 void ifcc(const UDSPInstruction& opc)
 {
 	if (!CheckCondition(opc.hex & 0xf))
@@ -81,6 +95,11 @@ void ifcc(const UDSPInstruction& opc)
 }
 
 // Generic jmp implementation
+// Jcc addressA
+// 0000 0010 1001 cccc
+// aaaa aaaa aaaa aaaa
+// Jump to addressA if condition cc has been met. Set program counter to
+// address represented by value that follows this "jmp" instruction.
 void jcc(const UDSPInstruction& opc)
 {
 	u16 dest = dsp_fetch_code();
@@ -92,6 +111,9 @@ void jcc(const UDSPInstruction& opc)
 }
 
 // Generic jmpr implementation
+// JMPcc $R
+// 0001 0111 rrr0 cccc
+// Jump to address; set program counter to a value from register $R.
 void jmprcc(const UDSPInstruction& opc)
 {
 	u8 reg;
@@ -100,10 +122,14 @@ void jmprcc(const UDSPInstruction& opc)
 	{
 		reg  = (opc.hex >> 5) & 0x7;
 		g_dsp.pc = dsp_op_read_reg(reg);
-	}
+	} 
 }
 
 // Generic ret implementation
+// RETcc
+// 0000 0010 1101 cccc
+// Return from subroutine if condition cc has been met. Pops stored PC
+// from call stack $st0 and sets $pc to this location.
 void ret(const UDSPInstruction& opc)
 {
 	if (CheckCondition(opc.hex & 0xf))
@@ -629,10 +655,9 @@ void mulcac(const UDSPInstruction& opc)
 void movr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
-	u8 rreg = ((opc.hex >> 9) & 0x1);
-	u8 sreg = ((opc.hex >> 10) & 0x1) + DSP_REG_AXL0;
+	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
  		
-	s64 acc = (s16)g_dsp.r[sreg + rreg];
+	s64 acc = (s16)g_dsp.r[sreg];
 	acc <<= 16;
 	acc &= ~0xffff;
 
@@ -975,7 +1000,7 @@ void movnp(const UDSPInstruction& opc)
 void mov(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
-	u16 acc = dsp_get_long_acc(1 - D);
+	u64 acc = dsp_get_long_acc(1 - D);
 	dsp_set_long_acc(D, acc);
 
 	Update_SR_Register64(acc);
@@ -1152,7 +1177,7 @@ void asr16(const UDSPInstruction& opc)
 void lsl(const UDSPInstruction& opc) 
 {
 	u16 shift = opc.ushift;
-	u64 acc = dsp_get_long_acc(opc.areg);
+	s64 acc = dsp_get_long_acc(opc.areg);
 
 	acc <<= shift;
 	dsp_set_long_acc(opc.areg, acc);
@@ -1166,8 +1191,8 @@ void lsl(const UDSPInstruction& opc)
 // calculated by negating sign extended bits 0-6.
 void lsr(const UDSPInstruction& opc)
 {
-	u16 shift = -opc.ushift;
-	u64 acc = dsp_get_long_acc(opc.areg);
+	s16 shift = -opc.ushift;
+	s64 acc = dsp_get_long_acc(opc.areg);
 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
@@ -1184,7 +1209,7 @@ void asl(const UDSPInstruction& opc)
 	u16 shift = opc.ushift;
 
 	// arithmetic shift
-	u64 acc = dsp_get_long_acc(opc.areg);
+	s64 acc = dsp_get_long_acc(opc.areg);
 	acc <<= shift;
 
 	dsp_set_long_acc(opc.areg, acc);
@@ -1196,10 +1221,9 @@ void asl(const UDSPInstruction& opc)
 // 0001 010r 11ii iiii
 // Arithmetically shifts right accumulator $acR by number specified by
 // value calculated by negating sign extended bits 0-6.
-
 void asr(const UDSPInstruction& opc)
 {
-	u16 shift = -opc.ushift;
+	s16 shift = -opc.ushift;
 
 	// arithmetic shift
 	s64 acc = dsp_get_long_acc(opc.areg);
