@@ -1,4 +1,3 @@
-// April Fools!
 // Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
@@ -16,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_DSP_HLE_CONFIG_H
-#define _PLUGIN_DSP_HLE_CONFIG_H
+#ifndef _PLUGIN_DSP_LLE_CONFIG_H
+#define _PLUGIN_DSP_LLE_CONFIG_H
 
 #include <string>
 
@@ -31,5 +30,5 @@ struct CConfig
 
 extern CConfig g_Config;
 
-#endif // _PLUGIN_DSP_HLE_CONFIG_H
+#endif // _PLUGIN_DSP_LLE_CONFIG_H
 

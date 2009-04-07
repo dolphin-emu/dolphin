@@ -22,8 +22,6 @@ files = [
 	"gdsp_memory.cpp",
 	"gdsp_registers.cpp",
 	"Globals.cpp",
-	"HLE_Functions.cpp",
-	"HLE_Helper.cpp",
     "DSPInterpreter.cpp",
     "DSPJit.cpp",
     "DSPTables.cpp",

@@ -222,19 +222,9 @@ void gdsp_loop_step()
 	ComputeInstruction(UDSPInstruction(opc));
 }
 
-u16 HLE_ROM_80E7_81F8();
-void hacks();
-
-
-
 void gdsp_step()
 {
 	g_dsp.step_counter++;
-
-	if (g_dsp.pc == 0x80e7)
-	{
-		//g_dsp.pc = HLE_ROM_80E7_81F8();
-	}
 
 	g_dsp.err_pc = g_dsp.pc;
 
@@ -331,118 +321,8 @@ bool gdsp_run()
 	return true;
 }
 
-
-bool gdsp_runx(u16 cnt)
-{
-	gdsp_running = true;
-
-	while (!(g_dsp.cr & 0x4) && gdsp_running)
-	{
-		gdsp_step();
-		cnt--;
-
-		if (cnt == 0)
-		{
-			break;
-		}
-	}
-
-	gdsp_running = false;
-	return true;
-}
-
-
 void gdsp_stop()
 {
 	gdsp_running = false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// From fires for fires :)
-//
-//
-
-
-#include "disassemble.h"
-//#include "WaveFile.h"
-#include "Mixer.h"
-
-// u16 r30 = 0, r31 = 0;
-//extern WaveFileWriter g_wave_writer;
-
-extern u16 dsp_swap16(u16 x);
-void Hacks()
-{
-	// if (g_wave_writer.GetAudioSize() > 1024*1024*1)
-
-	/*	if (g_dsp.pc == 0x165)
-	{
-	PanicAlert("Opcode_06");
-
-	}
-	if (g_dsp.pc == 0x43b)
-	{
-	PanicAlert("Opcode_14");
-
-	}
-	if (g_dsp.pc == 0xb37)
-	{
-	PanicAlert("Opcode_08");
-
-	}*/
-	/*	if (g_dsp.pc == 0x1bc)
-	{
-	r30 = g_dsp.r[30];
-	r31 = g_dsp.r[31];
-	}
-	else if (g_dsp.pc == 0x384)
-	{
-	// if ((r30 == 0x1bc) && (r31 == 0xaff))
-	{
-	//PanicAlert("%x, %x", r30, r31);
-
-	const int numSamples = 0x280;
-	static short Buffer[numSamples];
-
-	u16 bufferAddr = 0x280; //dsp_dmem_read(0xe44);
-	for (int i=0; i<numSamples; i++)
-	{
-	Buffer[i] = dsp_dmem_read(bufferAddr+i);
-	}
-
-	g_wave_writer.AddStereoSamples(Buffer, numSamples/2); // 2 channels
-
-	if (g_wave_writer.GetAudioSize() > 1024*1024*2)
-	{
-	//PanicAlert("%x", bufferAddr);
-	g_wave_writer.Stop();
-	exit(1);
-	}
-	}
-	} */
-
-	if (g_dsp.pc == 0x468)
-	{
-		int numSamples = g_dsp.r[25] / 2;
-		u16 bufferAddr = g_dsp.r[27]; 
-
-		// PanicAlert("%x %x", bufferAddr, numSamples);
-
-		short samples[1024];
-		for (int i=0; i<numSamples; i++)
-		{
-			samples[i] = dsp_dmem_read(bufferAddr+i);
-		}
-		soundStream->GetMixer()->PushSamples(samples, numSamples / 2, 32000); //sample_rate);
-
-		//	g_wave_writer.AddStereoSamples(samples, numSamples/2); // 2 channels
-		
-		//		if (g_wave_writer.GetAudioSize() > 1024*1024*2)
-		//	{
-			//PanicAlert("%x", bufferAddr);
-		//			g_wave_writer.Stop();
-		//			exit(1);
-		//		}
-	}
-}
