@@ -87,25 +87,23 @@ bool CheckCondition(u8 _Condition)
 	switch (_Condition & 0xf)
 	{
 	case 0x0: //NS - NOT SIGN
-
-		if (!(g_dsp.r[DSP_REG_SR] & 0x08))
+		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08)))
 			taken = true;
 		break;
 		
 	case 0x1: // S - SIGN
-		
-		if (g_dsp.r[DSP_REG_SR] & 0x08)
+		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
  
 	case 0x2: // G - GREATER
 
-		if ( (!(g_dsp.r[DSP_REG_SR] & 0x02) || !(g_dsp.r[DSP_REG_SR] & 0x04)) && !(g_dsp.r[DSP_REG_SR] & 0x08))
+		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08)) && !((g_dsp.r[DSP_REG_SR] & 0x04))) // gets zelda stuck
 			taken = true;
 		break;
 
 	case 0x3: // LE - LESS EQUAL
-		if ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x04) || (g_dsp.r[DSP_REG_SR] & 0x08))
+		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && ((g_dsp.r[DSP_REG_SR] & 0x08) || (g_dsp.r[DSP_REG_SR] & 0x04)))
 			taken = true;
 		break;
 
@@ -127,21 +125,20 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
-		if ( (!(g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x04)) && !(g_dsp.r[DSP_REG_SR] & 0x08))
+		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08) || (g_dsp.r[DSP_REG_SR] & 0x04)))
+			taken = true;
 		break;
 
 	case 0xc: // LNZ  - LOGIC NOT ZERO
 
 		if (!(g_dsp.r[DSP_REG_SR] & 0x40))
 			taken = true;
-
 		break;
 
 	case 0xd: // LZ - LOGIC ZERO
 
 		if (g_dsp.r[DSP_REG_SR] & 0x40)
 			taken = true;
-
 		break;
 
 	case 0xf: // Empty
