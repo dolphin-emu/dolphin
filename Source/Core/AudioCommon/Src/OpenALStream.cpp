@@ -33,7 +33,7 @@ bool OpenALStream::Start()
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
-		pDevice = alcOpenDevice(pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+		pDevice = alcOpenDevice((ALCubyte*)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
 		if (pDevice)
 		{
 			pContext = alcCreateContext(pDevice, NULL);
@@ -150,7 +150,7 @@ void OpenALStream::SoundLoop()
 
 	// Clean up buffers and sources
 	alDeleteSources(1, &uiSource);
-	alDeleteBuffers(AUDIO_NUMBUFFERS, (const ALuint *)uiBuffers);
+	alDeleteBuffers(AUDIO_NUMBUFFERS, (ALuint *)uiBuffers);
 
 }
 
