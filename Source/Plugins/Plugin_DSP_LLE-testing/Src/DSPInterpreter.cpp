@@ -562,6 +562,8 @@ void mulcmvz(const UDSPInstruction& opc)
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	s64 acc = TempProd & ~0xffff; // clear lower 4 bytes
 	dsp_set_long_acc(rreg, acc);
+
+	Update_SR_Register64(acc);
 }
 
 void mulcmv(const UDSPInstruction& opc)
@@ -576,6 +578,8 @@ void mulcmv(const UDSPInstruction& opc)
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	dsp_set_long_acc(rreg, TempProd);
+
+	Update_SR_Register64(TempProd);
 }
 
 void cmpar(const UDSPInstruction& opc)
@@ -645,7 +649,10 @@ void mulcac(const UDSPInstruction& opc)
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
-	dsp_set_long_acc(rreg, TempProd + g_dsp.r[rreg]);
+	s64 acc = TempProd + g_dsp.r[rreg];
+	dsp_set_long_acc(rreg, acc);
+
+	Update_SR_Register64(acc);
 }
 
 // MOVR $acD, $axS.R
@@ -735,6 +742,8 @@ void andc(const UDSPInstruction& opc)
 	{
 		g_dsp.r[DSP_REG_SR] &= ~0x20; // 0x40?
 	}
+
+	Update_SR_Register64(dsp_get_long_acc(D));
 }
 
 
@@ -1125,6 +1134,8 @@ void madd(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod += (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
 }
 
 // MSUB $axS.l, $axS.h
@@ -1139,6 +1150,9 @@ void msub(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod -= (s64)dsp_get_ax_l(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
+
 }
 
 // LSR16 $acR
@@ -1148,7 +1162,7 @@ void lsr16(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
 
-	s64 acc = dsp_get_long_acc(areg);
+	u64 acc = dsp_get_long_acc(areg);
 
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
@@ -1177,7 +1191,7 @@ void asr16(const UDSPInstruction& opc)
 void lsl(const UDSPInstruction& opc) 
 {
 	u16 shift = opc.ushift;
-	s64 acc = dsp_get_long_acc(opc.areg);
+	u64 acc = dsp_get_long_acc(opc.areg);
 
 	acc <<= shift;
 	dsp_set_long_acc(opc.areg, acc);
@@ -1191,8 +1205,8 @@ void lsl(const UDSPInstruction& opc)
 // calculated by negating sign extended bits 0-6.
 void lsr(const UDSPInstruction& opc)
 {
-	s16 shift = -opc.ushift;
-	s64 acc = dsp_get_long_acc(opc.areg);
+	u16 shift = -opc.ushift;
+	u64 acc = dsp_get_long_acc(opc.areg);
 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
@@ -1209,7 +1223,7 @@ void asl(const UDSPInstruction& opc)
 	u16 shift = opc.ushift;
 
 	// arithmetic shift
-	s64 acc = dsp_get_long_acc(opc.areg);
+	u64 acc = dsp_get_long_acc(opc.areg);
 	acc <<= shift;
 
 	dsp_set_long_acc(opc.areg, acc);
@@ -1223,7 +1237,7 @@ void asl(const UDSPInstruction& opc)
 // value calculated by negating sign extended bits 0-6.
 void asr(const UDSPInstruction& opc)
 {
-	s16 shift = -opc.ushift;
+	u16 shift = -opc.ushift;
 
 	// arithmetic shift
 	s64 acc = dsp_get_long_acc(opc.areg);
@@ -1390,6 +1404,11 @@ void mulac(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+// MULMV $axS.l, $axS.h, $acR
+// 1001 s11r xxxx xxxx
+// Move product register to accumulator register $acR. Multiply low part
+// $axS.l of secondary accumulator $axS by high part $axS.h of secondary
+// accumulator $axS (treat them both as signed).
 void mulmv(const UDSPInstruction& opc)
 {
 	u8 rreg  = (opc.hex >> 8) & 0x1;
@@ -1504,12 +1523,14 @@ void mulxmvz(const UDSPInstruction& opc)
 void sub(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
-	s64 Acc1 = dsp_get_long_acc(D);
-	s64 Acc2 = dsp_get_long_acc(1 - D);
+	s64 acc1 = dsp_get_long_acc(D);
+	s64 acc2 = dsp_get_long_acc(1 - D);
 
-	Acc1 -= Acc2;
+	acc1 -= acc2;
 
-	dsp_set_long_acc(D, Acc1);
+	dsp_set_long_acc(D, acc1);
+	
+	Update_SR_Register64(acc1);
 }
 
 
@@ -1535,6 +1556,9 @@ void maddx(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod += val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
+
 }
 
 // MSUBX $(0x18+S*2), $(0x19+T*2)
@@ -1553,6 +1577,8 @@ void msubx(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod -= val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
 }
 
 // MADDC $acS.m, $axT.h
@@ -1571,6 +1597,8 @@ void maddc(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod += val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
 }
 
 // MSUBC $acS.m, $axT.h
@@ -1589,6 +1617,8 @@ void msubc(const UDSPInstruction& opc)
 	s64 prod = dsp_get_long_prod();
 	prod -= val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register64(prod);
 }
 
 // SRS @M, $(0x18+S)
