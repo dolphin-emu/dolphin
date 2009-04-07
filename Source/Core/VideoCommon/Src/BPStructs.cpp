@@ -57,6 +57,22 @@ void BPWritten(const Bypass& bp)
 	//       had to be ditched and the games seem to work fine with out it.
 	// --------------------------------------------------------------------------------------------------------
 
+	// Debugging only, this lets you skip a bp update
+	//static int times = 0;
+	//static bool enable = false;
+
+	//switch (bp.address)
+	//{
+	//case BPMEM_CONSTANTALPHA:
+	//	{
+	//	if (times == 0 && enable)
+	//		return;
+	//	else
+	//		break;
+	//	}
+	//default: break;
+	//}
+
 	FlushPipeline();
     ((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
@@ -152,7 +168,7 @@ void BPWritten(const Bypass& bp)
             break;
 
         default:
-            DEBUG_LOG(VIDEO, "GXSetDrawDone ??? (value 0x%02X)", (bp.newvalue & 0xFFFF));
+            WARN_LOG(VIDEO, "GXSetDrawDone ??? (value 0x%02X)", (bp.newvalue & 0xFFFF));
             break;
         }
         break;
@@ -260,12 +276,12 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_FOGCOLOR: // Fog Color
 		PixelShaderManager::SetFogColorChanged();
 		break;
-	case BPMEM_ALPHACOMPARE:
+	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
 		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alphaFunc.ref0,
 				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
         PixelShaderManager::SetAlpha(bpmem.alphaFunc);
 		break;
-	case BPMEM_ZTEX1: // BIAS
+	case BPMEM_BIAS: // BIAS
 		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
         PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
 		break;
@@ -291,28 +307,50 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_FIELDMODE:
 		SetInterlacingMode(bp);
 		break;
-	case BPMEM_CLOCK0:      // Debugging/Profiling info, we don't care about them
-	case BPMEM_CLOCK1:     
-	case BPMEM_SU_COUNTER:
-	case BPMEM_RAS_COUNTER:
-	case BPMEM_SETGPMETRIC:
+	// ---------------------------------------------------
+	// Debugging/Profiling info, we don't care about them
+	// ---------------------------------------------------
+	case BPMEM_CLOCK0: // Some Clock
+	case BPMEM_CLOCK1: // Some Clock
+	case BPMEM_SU_COUNTER: // Pixel or Poly Count
+	case BPMEM_RAS_COUNTER: // Sound Count of something in the Texture Units
+	case BPMEM_SETGPMETRIC: // Set the Graphic Proccessor Metric
 		break;
+	// ----------------
+	// EFB Copy config
+	// ----------------
 	case BPMEM_EFB_TL:   // EFB Source Rect. Top, Left
 	case BPMEM_EFB_BR:   // EFB Source Rect. Bottom, Right (w, h - 1)
 	case BPMEM_EFB_ADDR: // EFB Target Address
 		break;
-	case BPMEM_CLEAR_AR: // Set Clear Alpha and Red Components
-	case BPMEM_CLEAR_GB: // Green and Blue
-	case BPMEM_CLEAR_Z:  // Clear Z, 24-bit Z Value
+	// --------------
+	// Clear Config
+	// --------------
+	case BPMEM_CLEAR_AR: // Alpha and Red Components
+	case BPMEM_CLEAR_GB: // Green and Blue Components
+	case BPMEM_CLEAR_Z:  // Z Components (24-bit Zbuffer)
 		break;
-	case BPMEM_CLEARBBOX1: // let's hope not many games use bboxes..
-	case BPMEM_CLEARBBOX2: // TODO(ector): add something that watches bboxes
+	// -------------------------
+	// Culling Occulsion, we don't support this
+	// let's hope not many games use bboxes..
+	// TODO(ector): add something that watches bboxes
+	// -------------------------
+	case BPMEM_CLEARBBOX1:
+	case BPMEM_CLEARBBOX2:
 		break;
-	case BPMEM_PE_CONTROL:    // Pixel Engine Control (GXSetZCompLoc, GXPixModeSync)
+	case BPMEM_ZCOMPARE:      // Set the Z-Compare
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale
-	case BPMEM_IREF:          // Something to do with Tev ordering
+	case BPMEM_IREF:          /* 24 RID
+								 21 BC3 - Ind. Tex Stage 3 NTexCoord
+								 18 BI3 - Ind. Tex Stage 3 NTexMap
+								 15 BC2 - Ind. Tex Stage 2 NTexCoord
+								 12 BI2 - Ind. Tex Stage 2 NTexMap
+								 9 BC1 - Ind. Tex Stage 1 NTexCoord
+								 6 BI1 - Ind. Tex Stage 1 NTexMap
+								 3 BC0 - Ind. Tex Stage 0 NTexCoord
+								 0 BI0 - Ind. Tex Stage 0 NTexMap */
 		break;
 	case BPMEM_TEV_KSEL:  // Texture Environment Swap Mode Table 0
 	case BPMEM_TEV_KSEL+1:// Texture Environment Swap Mode Table 1
@@ -323,10 +361,13 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_TEV_KSEL+6:// Texture Environment Swap Mode Table 6
 	case BPMEM_TEV_KSEL+7:// Texture Environment Swap Mode Table 7
 		break;
-	case BPMEM_BP_MASK: // Masks
-	case BPMEM_IND_IMASK:
+	case BPMEM_BP_MASK:   // This Register can be used to limit to which bits of BP registers is actually written to. the mask is
+		                  // only valid for the next BP command, and will reset itself.
+	case BPMEM_IND_IMASK: // Index Mask ?
 		break;
 	case BPMEM_UNKNOWN: // This is always set to 0xF at boot of any game, so this sounds like a useless reg
+		if (bp.newvalue != 0x0F)
+			PanicAlert("Unknown is not 0xF! val = 0x%08x", bp.newvalue);
 		break;
 
 		// ------------------------------------------------
@@ -348,11 +389,11 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TREF+6:
 		case BPMEM_TREF+7:
 			break;
-		// ---------------------------------------------
-		// Mipmapping control of the polygon's wrapping
-	    // ---------------------------------------------
-		case BPMEM_SU_SSIZE: // U
-		case BPMEM_SU_TSIZE: // V
+		// ----------------------
+		// Set a triangle's Wrap
+	    // ----------------------
+		case BPMEM_SU_SSIZE:
+		case BPMEM_SU_TSIZE:
 		case BPMEM_SU_SSIZE+2:
 		case BPMEM_SU_TSIZE+2:
 		case BPMEM_SU_SSIZE+4:
@@ -369,12 +410,13 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_SU_TSIZE+14:
 			break;
 		// ------------------------
-		// Mipmapping mode control
+		// BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS, DiagLoad, Min Filter, Mag Filter, Wrap T, S
+		// BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
 	    // ------------------------
-		case BPMEM_TX_SETMODE0: // 0x90 for Linear, Index 0
+		case BPMEM_TX_SETMODE0: // (0x90 for linear)
 		case BPMEM_TX_SETMODE0+1:
 		case BPMEM_TX_SETMODE0+2:
-		case BPMEM_TX_SETMODE0+3: // Index 4
+		case BPMEM_TX_SETMODE0+3:
 		case BPMEM_TX_SETMODE1:
 		case BPMEM_TX_SETMODE1+1:
 		case BPMEM_TX_SETMODE1+2:
@@ -390,7 +432,10 @@ void BPWritten(const Bypass& bp)
 			SetSamplerState(bp);
 			break;
 		// --------------------------------------------
-		// Mipmapping control of the polygon's texture
+		// BPMEM_TX_SETIMAGE0 - Texture width, height, format
+		// BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM Offset
+		// BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
+		// BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
 	    // --------------------------------------------
 		case BPMEM_TX_SETIMAGE0:
 		case BPMEM_TX_SETIMAGE0+1:
@@ -426,7 +471,8 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TX_SETIMAGE3_4+3:
 			break;
 		// -------------------------------
-		// Mipmapping control of the TLUT
+		// Set a TLUT
+		// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
 	    // -------------------------------
 		case BPMEM_TX_SETTLUT:
 		case BPMEM_TX_SETTLUT+1:
@@ -487,6 +533,8 @@ void BPWritten(const Bypass& bp)
 				break;
 			// --------------------------------------------------
 			// Set Color/Alpha of a Tev
+			// BPMEM_TEV_COLOR_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D
+			// BPMEM_TEV_ALPHA_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D, T Swap, R Swap
 			// --------------------------------------------------
 			case BPMEM_TEV_COLOR_ENV:    // Texture Environment 1
 			case BPMEM_TEV_ALPHA_ENV:

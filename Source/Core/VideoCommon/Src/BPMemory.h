@@ -43,7 +43,7 @@
 #define BPMEM_ZMODE            0x40
 #define BPMEM_BLENDMODE        0x41
 #define BPMEM_CONSTANTALPHA    0x42
-#define BPMEM_PE_CONTROL       0x43
+#define BPMEM_ZCOMPARE         0x43
 #define BPMEM_FIELDMASK        0x44
 #define BPMEM_SETDRAWDONE      0x45
 #define BPMEM_CLOCK0           0x46
@@ -95,7 +95,7 @@
 #define BPMEM_FOGPARAM3        0xF1
 #define BPMEM_FOGCOLOR         0xF2
 #define BPMEM_ALPHACOMPARE     0xF3
-#define BPMEM_ZTEX1			   0xF4
+#define BPMEM_BIAS			   0xF4
 #define BPMEM_ZTEX2			   0xF5
 #define BPMEM_TEV_KSEL         0xF6 // 0xF6 + 8
 #define BPMEM_BP_MASK          0xFE
