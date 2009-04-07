@@ -232,6 +232,9 @@ DSPOPCTemplate opcodes[] =
 
 	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
+	// GUESSING NOT SURE AT ALL!!!!
+	{"TSTAXL",  0xa100, 0xfeff, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -266,7 +269,6 @@ DSPOPCTemplate opcodes[] =
 	{"ORC",		0x3E00, 0xfeff, nop, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // Hermes doesn't list this
 
 	{"MULX",    0xa000, 0xe7ff, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	// {"MULX???",     0xa100, 0xf7ff, DSPInterpreter::unknown,nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

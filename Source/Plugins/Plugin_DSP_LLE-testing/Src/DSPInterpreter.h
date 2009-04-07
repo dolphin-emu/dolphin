@@ -136,7 +136,7 @@ void srbith(const UDSPInstruction& opc);
 // END OF FIXMEs
 
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
-
+ void tstaxl(const UDSPInstruction& opc);
 // The mysterious a100
 
 // END OF UNIMPLEMENTED

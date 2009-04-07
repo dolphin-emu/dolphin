@@ -120,7 +120,7 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x6: // L - LESS
-		if ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x08))
+		if (!(g_dsp.r[DSP_REG_SR] & 0x02) && (g_dsp.r[DSP_REG_SR] & 0x08))
 			taken = true;
 		break;
 

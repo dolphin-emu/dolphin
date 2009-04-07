@@ -386,7 +386,11 @@ void ilrrn(const UDSPInstruction& opc)
 	g_dsp.r[reg] += g_dsp.r[DSP_REG_IX0 + reg];
 }
 
-
+// LRI $D, #I
+// 0000 0000 100d dddd
+// iiii iiii iiii iiii
+// Load immediate value I to register $D. 
+// FIXME: Perform additional operation depending on destination register.
 void lri(const UDSPInstruction& opc)
 {
 	u8 reg  = opc.hex & DSP_REG_MASK;
@@ -394,6 +398,10 @@ void lri(const UDSPInstruction& opc)
 	dsp_op_write_reg(reg, imm);
 }
 
+// LRIS $(0x18+D), #I
+// 0000 1ddd iiii iiii
+// Load immediate value I (8-bit sign extended) to accumulator register$(0x18+D). 
+// FIXME: Perform additional operation depending on destination register.
 void lris(const UDSPInstruction& opc)
 {
 	u8 reg  = ((opc.hex >> 8) & 0x7) + 0x18;
@@ -401,6 +409,11 @@ void lris(const UDSPInstruction& opc)
 	dsp_op_write_reg(reg, imm);
 }
 
+// LR $D, @M
+// 0000 0000 110d dddd
+// mmmm mmmm mmmm mmmm
+// Move value from data memory pointed by address M to register $D.
+// FIXME: Perform additional operation depending on destination register.
 void lr(const UDSPInstruction& opc)
 {
 	u8 reg   = opc.hex & DSP_REG_MASK;
@@ -409,6 +422,11 @@ void lr(const UDSPInstruction& opc)
 	dsp_op_write_reg(reg, val);
 }
 
+// SR @M, $S
+// 0000 0000 111s ssss
+// mmmm mmmm mmmm mmmm
+// Store value from register $S to a memory pointed by address M.
+// FIXME: Perform additional operation depending on destination register.
 void sr(const UDSPInstruction& opc)
 {
 	u8 reg   = opc.hex & DSP_REG_MASK;
@@ -417,6 +435,11 @@ void sr(const UDSPInstruction& opc)
 	dsp_dmem_write(addr, val);
 }
 
+// SI @M, #I
+// 0001 0110 mmmm mmmm
+// iiii iiii iiii iiii
+// Store 16-bit immediate value I to a memory location pointed by address
+// M (M is 8-bit value sign extended).
 void si(const UDSPInstruction& opc)
 {
 	u16 addr = (s8)opc.hex;
@@ -424,10 +447,24 @@ void si(const UDSPInstruction& opc)
 	dsp_dmem_write(addr, imm);
 }
 
+// TSTAXH $axR.h
+// 1000 011r xxxx xxxx
+// Test hight part of secondary accumulator $axR.h.
 void tstaxh(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 8) & 0x1;
 	s16 val = dsp_get_ax_h(reg);
+
+	Update_SR_Register16(val);
+}
+
+// TSTAXL $axR.h
+// 1000 011r xxxx xxxx
+// Test lower part of secondary accumulator $axR.h.
+void tstaxl(const UDSPInstruction& opc)
+{
+	u8 reg  = (opc.hex >> 8) & 0x1;
+	s16 val = dsp_get_ax_l(reg);
 
 	Update_SR_Register16(val);
 }
@@ -1222,33 +1259,33 @@ void srbith(const UDSPInstruction& opc)
 	// done around loops with lots of multiplications.
 
 	case 0xa: // M2
-		ERROR_LOG(DSPLLE, "M2");
+		//ERROR_LOG(DSPLLE, "M2");
 		break;
 		// FIXME: Both of these appear in the beginning of the Wind Waker
 	case 0xb: // M0
-		ERROR_LOG(DSPLLE, "M0");
+		//ERROR_LOG(DSPLLE, "M0");
 		break;
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
 	case 0xc: // CLR15
-		ERROR_LOG(DSPLLE, "CLR15");
+		//ERROR_LOG(DSPLLE, "CLR15");
 		break;
 	case 0xd: // SET15
-		ERROR_LOG(DSPLLE, "SET15");
+		//ERROR_LOG(DSPLLE, "SET15");
 		break;
 
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
 		g_dsp.r[DSP_REG_SR] &= ~(1 << 14);
-		ERROR_LOG(DSPLLE, "SET40");
+		//ERROR_LOG(DSPLLE, "SET40");
 		break;
 
 	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
 		// that doesnt happen on a real console  << what does this comment mean?
 		g_dsp.r[DSP_REG_SR] |= (1 << 14);
-		ERROR_LOG(DSPLLE, "SET16");
+		//ERROR_LOG(DSPLLE, "SET16");
 		break;
 
 	default:
