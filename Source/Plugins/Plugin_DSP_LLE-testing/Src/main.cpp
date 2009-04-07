@@ -185,27 +185,6 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 	return 0;
 }
 
-// Debug thread
-THREAD_RETURN dsp_thread_debug(void* lpParameter)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	while (bIsRunning)
-	{
-//		Logging(); // logging
-
-		if (m_DebuggerFrame->CanDoStep())
-		{
-			gdsp_runx(1);
-		}
-		else
-		{
-			SLEEP(100);
-		}
-	}
-#endif
-	return NULL;
-}
-
 void DSP_DebugBreak()
 {
 #if defined(HAVE_WX) && HAVE_WX
@@ -369,10 +348,6 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			{
 				samples[i] = Memory_Read_U16(address + i * 2);
 			}
-
-			// Write the audio to a file
-			//if (log_ai)
-			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
 		soundStream->GetMixer()->PushSamples(samples, 32 / 4, sample_rate);
 	}

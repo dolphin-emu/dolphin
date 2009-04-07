@@ -35,33 +35,6 @@
 
 #include "Tools.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
-const char* reg_names[] =
-{
-	// a0
-	"COEF_A1_0", "COEF_A2_0", "COEF_A1_1", "COEF_A2_1", "COEF_A1_2", "COEF_A2_2", "COEF_A1_3", "COEF_A2_3",
-	"COEF_A1_4", "COEF_A2_4", "COEF_A1_5", "COEF_A2_5", "COEF_A1_6", "COEF_A2_6", "COEF_A1_7", "COEF_A2_7",
-	// b0
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
-	// c0
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
-	NULL,   "DSCR",  NULL,   "DSBL",  NULL,   "DSPA",  "DSMAH", "DSMAL",
-	// d0
-	NULL,   "SampleFormat",  NULL,           NULL,   "ACSAH", "ACSAL", "ACEAH", "ACEAL",
-	"ACCAH", "ACCAL",     "PRED_SCALE",    "YN1",   "YN2",       "ARAM",      "GAIN",      NULL,
-	// e0
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   "AMDM",
-	// f0
-	NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,   NULL,
-	NULL,   NULL,   NULL,   NULL,   "DMBH", "DMBL", "CMBH", "CMBL",
-};
-
-
 void gdsp_dma();
 
 #if WITH_DSP_ON_THREAD
