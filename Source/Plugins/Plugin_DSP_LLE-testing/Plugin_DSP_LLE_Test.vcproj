@@ -708,22 +708,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="HLE"
-			>
-			<File
-				RelativePath=".\Src\HLE_Functions.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\HLE_Helper.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\HLE_Helper.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Docs"
 			>
 			<File
