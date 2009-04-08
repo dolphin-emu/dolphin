@@ -112,24 +112,24 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case PE_ALPHACONF:
 		// Most games read this early. no idea why.
-		WARN_LOG(PIXELENGINE, "(r16): PE_ALPHACONF");
+		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHACONF");
 		return;
 
 	case PE_ZCONF:
-		WARN_LOG(PIXELENGINE, "(r16): PE_ZCONF");
+		INFO_LOG(PIXELENGINE, "(r16): PE_ZCONF");
 		return;	
 	
 	case PE_DSTALPHACONF:
-		WARN_LOG(PIXELENGINE, "(r16): PE_DSTALPHACONF");
+		INFO_LOG(PIXELENGINE, "(r16): PE_DSTALPHACONF");
 		return;
 
 	case PE_ALPHAMODE:
-		WARN_LOG(PIXELENGINE, "(r16): PE_ALPHAMODE");
+		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHAMODE");
 		return;	
 
 	case PE_ALPHAREAD:
 		WARN_LOG(PIXELENGINE, "(r16): PE_ALPHAREAD");
-		return;
+		INFO_LOG;
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
@@ -173,12 +173,11 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	// CPU Direct Access EFB Raster State Config
-	// TODO: Set the BPmem to these settings
-	case PE_ZCONF:        WARN_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        break;
-	case PE_ALPHACONF:    WARN_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    break;
-	case PE_DSTALPHACONF: WARN_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); break;
-	case PE_ALPHAMODE:    WARN_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    break;
-	case PE_ALPHAREAD:    WARN_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    break;
+	case PE_ZCONF:        INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        break;
+	case PE_ALPHACONF:    INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    break;
+	case PE_DSTALPHACONF: INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); break;
+	case PE_ALPHAMODE:    INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    break;
+	case PE_ALPHAREAD:    INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);

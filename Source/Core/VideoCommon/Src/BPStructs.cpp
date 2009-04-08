@@ -65,7 +65,7 @@ void BPWritten(const Bypass& bp)
 	//{
 	//case BPMEM_CONSTANTALPHA:
 	//	{
-	//	if (times == 0 && enable)
+	//	if (times-- == 0 && enable)
 	//		return;
 	//	else
 	//		break;
@@ -314,7 +314,7 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_CLOCK1: // Some Clock
 	case BPMEM_SU_COUNTER: // Pixel or Poly Count
 	case BPMEM_RAS_COUNTER: // Sound Count of something in the Texture Units
-	case BPMEM_SETGPMETRIC: // Set the Graphic Proccessor Metric
+	case BPMEM_SETGPMETRIC: // Set the Graphic Processor Metric
 		break;
 	// ----------------
 	// EFB Copy config
