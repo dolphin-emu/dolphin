@@ -311,6 +311,10 @@ bool gdsp_run()
 
 	while (!cr_halt)
 	{
+		// Are we running?
+		if(*g_dspInitialize.pEmulatorState)
+			break;
+		
 		gdsp_step();
 
 		if (!gdsp_running)

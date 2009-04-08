@@ -225,8 +225,10 @@ void Initialize(void *init)
 		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
 	}
 
-	if (!bCanWork)
-		return; // TODO: Don't let it work
+	if (!bCanWork) {
+		gdsp_shutdown();
+		return;
+	}
 
 	bIsRunning = true;
 
@@ -356,8 +358,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	// so each sample now triggers the sound stream)
 	
 	// TODO: think about this.
-	static int counter = 0;
-	counter++;
-	if ((counter & 31) == 0 && soundStream)
+	//static int counter = 0;
+	//counter++;
+	if (/*(counter & 31) == 0 &&*/ soundStream)
 		soundStream->Update();
 }
