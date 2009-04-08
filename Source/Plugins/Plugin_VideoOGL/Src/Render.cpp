@@ -139,7 +139,6 @@ static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
 
-extern void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
 
 namespace {
 
@@ -174,8 +173,16 @@ void SetDefaultRectTexParams()
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-}  // namespace
+void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
+{
+	ERROR_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
+	const char* listing = cgGetLastListing(g_cgcontext);
+	if (listing != NULL) {
+		ERROR_LOG(VIDEO, "    last listing: %s", listing);
+	}
+}
 
+}  // namespace
 
 bool Renderer::Init()
 {
@@ -1082,21 +1089,17 @@ void Renderer::Swap(const TRectangle& rc)
 		// Use linear filtering.
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    
-		glBegin(GL_QUADS);
-			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
-			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
-			glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
-			glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
-		glEnd();
 
-		// Restore filtering.
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		static const float vtx_data[8] = {-1, -1, -1, 1, 1, 1, 1, -1};
+		const float uv_data[8] = {0, v_min, 0, v_max, u_max, v_max, u_max, v_min};
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 0, (void *)vtx_data);
+		glTexCoordPointer(2, GL_FLOAT, 0, (void *)uv_data);
+		glDrawArrays(GL_QUADS, 0, 4);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);
-		// End of non-framebuffer_blit workaround.
 	}
 
 	// Wireframe

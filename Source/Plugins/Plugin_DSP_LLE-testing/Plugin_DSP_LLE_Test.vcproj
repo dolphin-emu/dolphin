@@ -599,6 +599,14 @@
 			Name="DSP"
 			>
 			<File
+				RelativePath=".\Src\DSPAnalyzer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPAnalyzer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\DSPInterpreter.cpp"
 				>
 			</File>

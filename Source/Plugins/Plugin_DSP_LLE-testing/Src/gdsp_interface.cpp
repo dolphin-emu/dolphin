@@ -29,6 +29,7 @@
 #include "Thread.h"
 #include "MemoryUtil.h"
 
+#include "DSPAnalyzer.h"
 #include "gdsp_aram.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
@@ -231,6 +232,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
 
+	DSPAnalyzer::Analyze();
 	if (g_dsp.dump_imem)
 		DumpDSPCode(&dst[dsp_addr], size, g_dsp.iram_crc);
 }

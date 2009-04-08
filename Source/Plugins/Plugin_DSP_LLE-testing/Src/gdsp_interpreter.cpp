@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "DSPTables.h"
+#include "DSPAnalyzer.h"
 
 #include "gdsp_interface.h"
 #include "gdsp_opcodes_helper.h"
@@ -80,15 +81,16 @@ void gdsp_init()
 		}
 	}
 
-	// Fill memories with junk.
+	// Fill IRAM with HALT opcodes.
 	for (int i = 0; i < DSP_IRAM_SIZE; i++)
 	{
 		g_dsp.iram[i] = 0x0021; // HALT opcode
 	}
 
+	// Just zero out DRAM.
 	for (int i = 0; i < DSP_DRAM_SIZE; i++)
 	{
-		g_dsp.dram[i] = 0x0021; // HALT opcode
+		g_dsp.dram[i] = 0x0021;
 	}
 
 	// copied from a real console after the custom UCode has been loaded
@@ -105,6 +107,7 @@ void gdsp_init()
 	// Mostly keep IRAM write protected. We unprotect only when DMA-ing
 	// in new ucodes.
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	DSPAnalyzer::Analyze();
 }
 
 void gdsp_shutdown()

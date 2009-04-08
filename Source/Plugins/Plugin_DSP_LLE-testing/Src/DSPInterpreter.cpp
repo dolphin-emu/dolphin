@@ -554,7 +554,7 @@ void clr(const UDSPInstruction& opc)
 void clrl(const UDSPInstruction& opc)
 {
 	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 11) & 0x1);
-	g_dsp.r[reg] &= 0x0000;
+	g_dsp.r[reg] = 0;
 
 	// Should this be 64bit?
 	// nakee: it says the whole reg in duddie's doc sounds weird
@@ -1359,7 +1359,15 @@ void sbset(const UDSPInstruction& opc)
 
 
 // FIXME inside
-// No idea what most of this is supposed to do.
+// This seem to be a bunch of bit setters, possibly flippig bits in SR.
+// These bits may have effects on the operation of the multiplier or 
+// accumulators.
+// Hermes' demo sets the following defaults, hence that's the most important
+// mode to explore for the moment:
+// SET40	
+// CLR15	
+// M0
+// Gonna be fun to explore all 8 possible combinations .. ugh.
 void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)

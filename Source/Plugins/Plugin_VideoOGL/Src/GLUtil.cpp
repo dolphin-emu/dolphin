@@ -771,12 +771,3 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 	}
 	return true;
 }
-
-void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
-{
-	ERROR_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
-	const char* listing = cgGetLastListing(g_cgcontext);
-	if (listing != NULL) {
-		ERROR_LOG(VIDEO, "    last listing: %s", listing);
-	}
-}

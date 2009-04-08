@@ -110,30 +110,30 @@ pdlabel_t regnames[] =
 	{0x0b, "R11",       "Register 11",},
 	{0x0c, "ST0",       "Call stack",},
 	{0x0d, "ST1",       "Data stack",},
-	{0x0e, "ST2",       "Loop address stack",},
+	{0x0e, "ST2",       "Loop addr stack",},
 	{0x0f, "ST3",       "Loop counter",},
-	{0x00, "ACH0",      "Accumulator High 0",},
-	{0x11, "ACH1",      "Accumulator High 1",},
+	{0x00, "ACH0",      "Accu High 0",},
+	{0x11, "ACH1",      "Accu High 1",},
 	{0x12, "CR",        "Config Register",},
 	{0x13, "SR",        "Special Register",},
-	{0x14, "PROD.L",    "PROD L",},
-	{0x15, "PROD.M1",   "PROD M1",},
-	{0x16, "PROD.H",    "PROD H",},
-	{0x17, "PROD.M2",   "PROD M2",},
-	{0x18, "AX0.L",		"Additional Accumulators Low 0",},
-	{0x19, "AX1.L",		"Additional Accumulators Low 1",},
-	{0x1a, "AX0.H",		"Additional Accumulators High 0",},
-	{0x1b, "AX1.H",		"Additional Accumulators High 1",},
+	{0x14, "PROD.L",    "Prod L",},
+	{0x15, "PROD.M1",   "Prod M1",},
+	{0x16, "PROD.H",    "Prod H",},
+	{0x17, "PROD.M2",   "Prod M2",},
+	{0x18, "AX0.L",		"Extra Accu L 0",},
+	{0x19, "AX1.L",		"Extra Accu L 1",},
+	{0x1a, "AX0.H",		"Extra Accu H 0",},
+	{0x1b, "AX1.H",		"Extra Accu H 1",},
 	{0x1c, "AC0.L",		"Register 28",},
 	{0x1d, "AC1.L",		"Register 29",},
 	{0x1e, "AC0.M",		"Register 00",},
 	{0x1f, "AC1.M",		"Register 00",},
 
-// additional to resolve special names
-	{0x20, "ACC0",		"Accumulators 0",},
-	{0x21, "ACC1",		"Accumulators 1",},
-	{0x22, "AX0",		"Additional Accumulators 0",},
-	{0x23, "AX1",		"Additional Accumulators 1",},
+	// To resolve special names.
+	{0x20, "ACC0",		"Accu Full 0",},
+	{0x21, "ACC1",		"Accu Full 1",},
+	{0x22, "AX0",		"Extra Accu 0",},
+	{0x23, "AX1",		"Extra Accu 1",},
 };
 
 const char* pdname(u16 val)
@@ -143,7 +143,7 @@ const char* pdname(u16 val)
 	for (int i = 0; i < (int)(sizeof(pdlabels) / sizeof(pdlabel_t)); i++)
 	{
 		if (pdlabels[i].addr == val)
-			return(pdlabels[i].name);
+			return pdlabels[i].name;
 	}
 
 	sprintf(tmpstr, "0x%04x", val);
@@ -565,7 +565,7 @@ void gd_dis_open_unkop()
 	}
 }
 
-const char* gd_dis_get_reg_name(u16 reg)
+const char *gd_dis_get_reg_name(u16 reg)
 {
-	return(regnames[reg].name);
+	return regnames[reg].name;
 }
