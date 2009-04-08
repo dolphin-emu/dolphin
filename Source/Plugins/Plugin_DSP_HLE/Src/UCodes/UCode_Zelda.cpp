@@ -47,7 +47,7 @@ CUCode_Zelda::~CUCode_Zelda()
 }
 
 
-void CUCode_Zelda::Update()
+void CUCode_Zelda::Update(int cycles)
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())

@@ -268,7 +268,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = g_AR_MODE;
 			return;
 
-		case 0x5016:		// ready flag ?
+		case 0x5016:		// ready flag?
 			_uReturnValue = g_AR_READY_FLAG;			
 			return;
 
@@ -276,12 +276,12 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = 0x000;
 			return;
 
-		case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr>>16; return;
-		case AR_DMA_MMADDR_L: _uReturnValue = g_arDMA.MMAddr&0xFFFF; return;
-		case AR_DMA_ARADDR_H: _uReturnValue = g_arDMA.ARAddr>>16; return;
-		case AR_DMA_ARADDR_L: _uReturnValue = g_arDMA.ARAddr&0xFFFF; return;
-		case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex>>16; return;
-		case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex&0xFFFF; return;
+		case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr >> 16; return;
+		case AR_DMA_MMADDR_L: _uReturnValue = g_arDMA.MMAddr & 0xFFFF; return;
+		case AR_DMA_ARADDR_H: _uReturnValue = g_arDMA.ARAddr >> 16; return;
+		case AR_DMA_ARADDR_L: _uReturnValue = g_arDMA.ARAddr & 0xFFFF; return;
+		case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex >> 16; return;
+		case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
 
 		// ==================================================================================
 		// DMA_REGS 0x5030+
@@ -296,7 +296,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			return;
 
 		case AUDIO_DMA_START_HI:
-			_uReturnValue = g_audioDMA.SourceAddress>>16;
+			_uReturnValue = g_audioDMA.SourceAddress >> 16;
 			return;
 
 		case AUDIO_DMA_CONTROL_LEN:
@@ -626,42 +626,39 @@ u8 ReadARAM(u32 _iAddress)
 	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
 
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
 
 		// Does this make any sense?
-		if(_iAddress > WII_MASK)
+		if (_iAddress > WII_MASK)
 		{
-			if(_iAddress > WII_MEM2)
+			if (_iAddress > WII_MEM2)
 				_iAddress = (_iAddress & WII_MEM2);
 			return g_MEM2[_iAddress];
 		}
 		else
 		{
-			if(_iAddress > WII_MASK)
-				_iAddress = (_iAddress & WII_MASK);
-			return g_ARAM[_iAddress];
+			return g_ARAM[_iAddress & ARAM_MASK];
 		}		
 	}
 	else
 		return g_ARAM[_iAddress & ARAM_MASK];
 }
 
-u8* GetARAMPtr()
+u8 *GetARAMPtr()
 {
 	return g_ARAM;
 }
 
-
-
+// Should this really be a function? The hardware only supports block DMA.
 void WriteARAM(u8 _iValue, u32 _iAddress)
 {
-	//LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x = 0x%08x", _iAddress, (_iAddress & ARAM_MASK));
+	// LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x = 0x%08x", _iAddress, (_iAddress & ARAM_MASK));
 
-//	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	//rouge leader writes WAY outside
-	//not really surprising since it uses a totally different memory model :P
+	//	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
+	// rouge leader writes WAY outside
+	// not really surprising since it uses a totally different memory model :P
 	g_ARAM[_iAddress & ARAM_MASK] = _iValue;
 }
 

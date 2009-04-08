@@ -27,9 +27,9 @@ typedef void (__cdecl* TDSP_WriteMailBox)(bool _CPUMailbox, unsigned short);
 typedef unsigned short (__cdecl* TDSP_ReadMailBox)(bool _CPUMailbox);
 typedef unsigned short (__cdecl* TDSP_ReadControlRegister)();
 typedef unsigned short (__cdecl* TDSP_WriteControlRegister)(unsigned short);
-typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
-typedef void (__cdecl* TDSP_Update)(int cycles);
-typedef void (__cdecl* TDSP_StopSoundStream)();
+typedef void (__cdecl *TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
+typedef void (__cdecl *TDSP_Update)(int cycles);
+typedef void (__cdecl *TDSP_StopSoundStream)();
 
 class PluginDSP : public CPlugin
 {

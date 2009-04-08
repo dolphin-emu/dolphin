@@ -36,7 +36,9 @@ public:
 	{}
 
 	virtual void HandleMail(u32 _uMail) = 0;
-	virtual void Update(void) = 0;
+
+	// Cycles are out of the 81/121mhz the DSP runs at.
+	virtual void Update(int cycles) = 0;
 	virtual void MixAdd(short* buffer, int size) {}
 
 protected:

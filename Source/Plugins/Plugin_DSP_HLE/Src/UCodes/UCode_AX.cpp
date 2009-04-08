@@ -415,7 +415,6 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	{
 		DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
 		AXTask(_uMail);
-		
 	}
 }
 
@@ -423,7 +422,7 @@ void CUCode_AX::HandleMail(u32 _uMail)
 // ------------------------------------------------------------------------------
 // Update with DSP Interrupt
 // -----------
-void CUCode_AX::Update()
+void CUCode_AX::Update(int cycles)
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())

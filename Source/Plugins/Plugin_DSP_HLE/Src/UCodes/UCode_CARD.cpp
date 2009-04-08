@@ -35,7 +35,7 @@ CUCode_CARD::~CUCode_CARD()
 }
 
 
-void CUCode_CARD::Update()
+void CUCode_CARD::Update(int cycles)
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())

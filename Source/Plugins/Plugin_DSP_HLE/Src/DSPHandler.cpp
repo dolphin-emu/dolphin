@@ -39,10 +39,10 @@ CDSPHandler::~CDSPHandler()
 	m_pUCode = NULL;
 }
 
-void CDSPHandler::Update()
+void CDSPHandler::Update(int cycles)
 {
 	if (m_pUCode != NULL)
-		m_pUCode->Update();
+		m_pUCode->Update(cycles);
 }
 
 unsigned short CDSPHandler::WriteControlRegister(unsigned short _Value)

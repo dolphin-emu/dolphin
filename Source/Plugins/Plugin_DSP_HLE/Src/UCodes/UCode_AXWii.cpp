@@ -225,7 +225,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 }
 
 
-void CUCode_AXWii::Update()
+void CUCode_AXWii::Update(int cycles)
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())

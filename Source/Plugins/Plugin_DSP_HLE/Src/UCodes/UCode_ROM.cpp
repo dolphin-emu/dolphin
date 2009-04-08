@@ -33,7 +33,7 @@ CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
 CUCode_Rom::~CUCode_Rom()
 {}
 
-void CUCode_Rom::Update()
+void CUCode_Rom::Update(int cycles)
 {}
 
 void CUCode_Rom::HandleMail(u32 _uMail)

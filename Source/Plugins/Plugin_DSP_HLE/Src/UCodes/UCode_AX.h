@@ -35,7 +35,7 @@ public:
 
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
-	void Update();
+	void Update(int cycles);
 
 	// Logging
 	//template<class ParamBlockType>

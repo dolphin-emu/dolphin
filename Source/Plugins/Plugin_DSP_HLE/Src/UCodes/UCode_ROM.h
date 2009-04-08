@@ -27,7 +27,7 @@ public:
 	virtual ~CUCode_Rom();
 
 	void HandleMail(u32 _uMail);
-	void Update();
+	void Update(int cycles);
 
 private:
 	struct SUCode

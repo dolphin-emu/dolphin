@@ -67,7 +67,7 @@ public:
 	virtual ~CUCode_Zelda();
 
 	void HandleMail(u32 _uMail);
-	void Update();
+	void Update(int cycles);
 	void MixAdd(short* buffer, int size);
 };
 

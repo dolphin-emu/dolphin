@@ -25,7 +25,7 @@
 class CDSPHandler
 {
 public:
-	void Update();
+	void Update(int cycles);
 	unsigned short WriteControlRegister(unsigned short _Value);
 	unsigned short ReadControlRegister();
 	void SendMailToDSP(u32 _uMail);

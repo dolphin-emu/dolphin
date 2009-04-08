@@ -308,7 +308,8 @@ unsigned short DSP_ReadControlRegister()
 
 void DSP_Update(int cycles)
 {
-	CDSPHandler::GetInstance().Update();
+	// This is called OFTEN - better not do anything expensive!
+	CDSPHandler::GetInstance().Update(cycles);
 }
 
 /* Other Audio will pass through here. The kind of audio that sometimes are

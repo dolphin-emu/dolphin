@@ -38,7 +38,7 @@ void CUCode_InitAudioSystem::Init()
 {}
 
 
-void CUCode_InitAudioSystem::Update()
+void CUCode_InitAudioSystem::Update(int cycles)
 {
 	if (m_rMailHandler.IsEmpty())
 	{

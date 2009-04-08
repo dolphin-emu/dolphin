@@ -33,7 +33,7 @@ public:
 	template<class ParamBlockType>
 	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
 	void MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs);	
-	void Update();
+	void Update(int cycles);
 
 	// The logging function for the debugger
 	void Logging(short* _pBuffer, int _iSize, int a);

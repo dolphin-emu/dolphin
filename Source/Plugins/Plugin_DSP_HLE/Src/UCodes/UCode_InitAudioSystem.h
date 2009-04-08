@@ -27,7 +27,7 @@ public:
 	virtual ~CUCode_InitAudioSystem();
 
 	void HandleMail(u32 _uMail);
-	void Update();
+	void Update(int cycles);
 	void Init();
 
 private:

@@ -38,7 +38,7 @@ public:
 	virtual ~CUCode_CARD();
 
 	void HandleMail(u32 _uMail);
-	void Update();
+	void Update(int cycles);
 };
 
 #endif

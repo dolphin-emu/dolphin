@@ -87,7 +87,7 @@ void CUCode_Jac::HandleMail(u32 _uMail)
 }
 
 
-void CUCode_Jac::Update()
+void CUCode_Jac::Update(int cycles)
 {
 	// check if we have to sent something
 /*	if (!g_MailHandler.empty())

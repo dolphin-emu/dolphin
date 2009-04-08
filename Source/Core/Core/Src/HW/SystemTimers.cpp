@@ -90,12 +90,13 @@ u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugg
 s64 fakeDec;
 u64 startTimeBaseTicks;
 
-// ratio of TB and Decrementer to clock cycles
-// With TB clk at 1/4 of BUS clk
-// and it seems BUS clk is really 1/3 of CPU clk
+// Ratio of TB and Decrementer to clock cycles.
+// TB clk is 1/4 of BUS clk. And it seems BUS clk is really 1/3 of CPU clk.
+// So, ratio is 1 / (1/4 * 1/3 = 1/12) = 12.
 // note: ZWW is ok and faster with TIMER_RATIO=8 though.
 // !!! POSSIBLE STABLE PERF BOOST HACK THERE !!!
-enum {
+enum
+{
 	TIMER_RATIO = 12
 };
 
@@ -109,32 +110,32 @@ int et_IPC_HLE;
 int et_FakeGPWD; // for DC watchdog hack
 
 // These are badly educated guesses
-// Feel free to experiment
+// Feel free to experiment. Set these in Init below.
 int
 	// update VI often to let it go through its scanlines with decent accuracy
 	// Maybe should actually align this with the scanline update? Current method in
 	// VideoInterface::Update is stupid!
-	VI_PERIOD = GetTicksPerSecond() / (60*120),
+	VI_PERIOD,
 
-	// TODO: The SI interfact actually has a register that determines the polling frequency.
+	// TODO: The SI in fact actually has a register that determines the polling frequency.
 	// We should obey that instead of arbitrarly checking at 60fps.
-	SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
+	SI_PERIOD, // once a frame is good for controllers
 
 	// This one should simply be determined by the increasing counter in AI.
-	AI_PERIOD = GetTicksPerSecond() / 80,
+	AI_PERIOD,
 
 	// These shouldn't be period controlled either, most likely.
-	DSP_PERIOD = GetTicksPerSecond() / 250,
+	DSP_PERIOD,
 
 	// This is completely arbitrary. If we find that we need lower latency, we can just
 	// increase this number.
-    IPC_HLE_PERIOD = GetTicksPerSecond() / 250,
+    IPC_HLE_PERIOD,
 
 	// For DC watchdog hack
 	// Once every 4 frame-period seems to be enough (arbitrary taking 60fps as the ref).
 	// TODO: make it VI output frame rate compliant (30/60 and 25/50)
 	// Assuming game's frame-finish-watchdog wait more than 4 emulated frame-period before starting its mess.
-	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 15;
+	FAKE_GP_WATCHDOG_PERIOD;
 ///////////////////////////////////
 
 
@@ -153,14 +154,15 @@ void AICallback(u64 userdata, int cyclesLate)
 	// Update disk streaming. All that code really needs a revamp, including replacing the codec with the one
 	// from in_cube.
 	AudioInterface::Update();
-	CoreTiming::ScheduleEvent(AI_PERIOD-cyclesLate, et_AI);
+	CoreTiming::ScheduleEvent(AI_PERIOD - cyclesLate, et_AI);
 }
 
+// DSP/CPU timeslicing.
 void DSPCallback(u64 userdata, int cyclesLate)
 {
 	// ~1/6th as many cycles as the period PPC-side.
     CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_PERIOD / 6);
-	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, et_DSP);
+	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
 }
 
 void AudioFifoCallback(u64 userdata, int cyclesLate)
@@ -235,6 +237,7 @@ void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 
 void Init()
 {
+	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 15;
 	if (Core::GetStartupParameter().bWii)
 	{
 		CPU_CORE_CLOCK = 729000000u;
@@ -268,6 +271,8 @@ void Init()
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
 	et_AudioFifo = CoreTiming::RegisterEvent("AudioFifoCallback", AudioFifoCallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
+	// Always register this. Increases chances of DC/SC save state compatibility.
+	et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
 
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
 	CoreTiming::ScheduleEvent(VI_PERIOD, et_VI);
@@ -278,7 +283,6 @@ void Init()
 	// For DC watchdog hack
 	if (Core::GetStartupParameter().bUseDualCore)
 	{
-		et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
 		CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD, et_FakeGPWD);
 	}
 

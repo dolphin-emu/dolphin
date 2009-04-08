@@ -67,7 +67,7 @@ public:
 	virtual ~CUCode_Jac();
 
 	void HandleMail(u32 _uMail);
-	void Update();
+	void Update(int cycles);
 };
 
 #endif

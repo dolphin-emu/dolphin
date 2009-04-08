@@ -27,20 +27,30 @@ u8 inst_flags[ISPACE];
 
 // Good candidates for idle skipping is mail wait loops. If we're time slicing
 // between the main CPU and the DSP, if the DSP runs into one of these, it might
-// as well give up its time slice immediately.
+// as well give up its time slice immediately, after executing once.
 
 // Max signature length is 6. A 0 in a signature is ignored.
-#define NUM_IDLE_SIGS 2
+#define NUM_IDLE_SIGS 4
 #define MAX_IDLE_SIG_SIZE 6
+
+// 0xFFFF means ignore.
 const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 {
+	{ 0x26fc,          // LRS $30, @DMBH
+	  0x02c0, 0x8000,  // ANDCF $30, #0x8000
+	  0x029d, 0xFFFF,  // JLZ 0x027a
+	  0x02df, 0 },     // RET
 	{ 0x27fc,          // LRS $31, @DMBH
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
-	  0x029d, 0x027a,  // JLZ 0x027a
+	  0x029d, 0xFFFF,  // JLZ 0x027a
+	  0x02df, 0 },     // RET
+	{ 0x26fe,          // LRS $30, @CMBH
+	  0x02c0, 0x8000,  // ANDCF $30, #0x8000
+	  0x029c, 0xFFFF,  // JLNZ 0x0280
 	  0x02df, 0 },     // RET
 	{ 0x27fe,          // LRS $31, @CMBH
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
-	  0x029c, 0x0280,  // JLNZ 0x0280
+	  0x029c, 0xFFFF,  // JLNZ 0x0280
 	  0x02df, 0 },     // RET
 };
 
@@ -80,6 +90,8 @@ void AnalyzeRange(int start_addr, int end_addr)
 			{
 				if (idle_skip_sigs[s][i] == 0)
 					found = true;
+				if (idle_skip_sigs[s][i] == 0xFFFF)
+					continue;
 				if (idle_skip_sigs[s][i] != dsp_imem_read(addr + i))
 					break;
 			}
