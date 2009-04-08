@@ -207,21 +207,6 @@ u16 gdsp_read_cr()
 	return g_dsp.cr;
 }
 
-
-// special loop step.. because exception in loop or loopi fails
-// dunno how we have to fix it
-// atm we execute this instructions directly inside the loop command
-// so it cant be interrupted by an exception.
-// TODO - we really should figure this out - on the real DSP, exception inside
-// loop should work. Think through the stack management and how it works
-// with exceptions and in loops.
-void gdsp_loop_step()
-{
-	g_dsp.err_pc = g_dsp.pc;
-	u16 opc = dsp_fetch_code();
-	ComputeInstruction(UDSPInstruction(opc));
-}
-
 void gdsp_step()
 {
 	g_dsp.step_counter++;

@@ -59,7 +59,7 @@
 
 #define DSP_REG_AXL0        0x18
 #define DSP_REG_AXL1        0x19
-#define DSP_REG_AXH0        0x1A    // SMP_R accel
+#define DSP_REG_AXH0        0x1a    // SMP_R accel
 #define DSP_REG_AXH1        0x1b    // SMP_L accel
 
 #define DSP_REG_ACC0        0x1c    // accumulator (global)

@@ -66,6 +66,10 @@ void nop(const UDSPInstruction& opc) {if(opc.hex) DSPInterpreter::unknown(opc);}
 DSPOPCTemplate opcodes[] =
 {
 	{"NOP",		0x0000, 0xffff, nop, nop, 1, 0, {}, NULL, NULL},
+
+	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL},
+	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL},
+
 	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, NULL, NULL},
 
 	{"RETNS",	0x02d0, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL},
@@ -117,8 +121,6 @@ DSPOPCTemplate opcodes[] =
 	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 
-	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL},
-	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL},
 
 	{"JRNS",	0x1700, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL},
 	{"JRS",		0x1701, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL},
@@ -341,7 +343,7 @@ dspInstFunc epilogueTable[OPTABLE_SIZE];
 
 const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
 {
-	for (int i = 0; i < opcodes_size; i++)
+	for (u32 i = 0; i < opcodes_size; i++)
 	{
 		u16 mask = opcodes[i].opcode_mask;
 		if (opcodes[i].size & P_EXT) {

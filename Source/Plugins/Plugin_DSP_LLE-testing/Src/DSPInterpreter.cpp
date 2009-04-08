@@ -138,6 +138,12 @@ void ret(const UDSPInstruction& opc)
 	}
 }
 
+// RTI
+// 0000 0010 1111 1111
+// Return from exception. Pops stored status register $sr from data stack
+// $st1 and program counter PC from call stack $st0 and sets $pc to this
+// location.
+// FIXME: is it also conditional? unknown opcodes 0x02fx
 void rti(const UDSPInstruction& opc)
 {
 	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
@@ -155,37 +161,64 @@ void halt(const UDSPInstruction& opc)
 	g_dsp.pc = g_dsp.err_pc;
 }
 
+
+// LOOP handling: Loop stack is used to control execution of repeated blocks of
+// instructions. Whenever there is value on stack $st2 and current PC is equal
+// value at $st2, then value at stack $st3 is decremented. If value is not zero
+// then PC is modified with calue from call stack $st0. Otherwise values from
+// callstack $st0 and both loop stacks $st2 and $st3 are poped and execution
+// continues at next opcode.
+
+
+// LOOP $R
+// 0000 0000 010r rrrr
+// Repeatedly execute following opcode until counter specified by value
+// from register $R reaches zero. Each execution decrement counter. Register
+// $R remains unchanged. If register $R is set to zero at the beginning of loop
+// then looped instruction will not get executed.
 void loop(const UDSPInstruction& opc)
 {
 	u16 reg = opc.hex & 0x1f;
 	u16 cnt = g_dsp.r[reg];
 	u16 loop_pc = g_dsp.pc;
 
-	while (cnt--)
+	if (cnt)
 	{
-		gdsp_loop_step();
-		g_dsp.pc = loop_pc;
+		dsp_reg_store_stack(0, g_dsp.pc);
+		dsp_reg_store_stack(2, loop_pc);
+		dsp_reg_store_stack(3, cnt);
 	}
-
-	//	g_dsp.pc = loop_pc;
-	g_dsp.pc += opSize[dsp_peek_code()];
 }
 
+// LOOPI #I
+// 0001 0000 iiii iiii
+// Repeatedly execute following opcode until counter specified by
+// immediate value I reaches zero. Each execution decrement counter. If
+// immediate value I is set to zero at the beginning of loop then looped
+// instruction will not get executed.
 void loopi(const UDSPInstruction& opc)
 {
 	u16 cnt = opc.hex & 0xff;
 	u16 loop_pc = g_dsp.pc;
 
-	while (cnt--)
+	if (cnt)
 	{
-		gdsp_loop_step();
-		g_dsp.pc = loop_pc;
+		dsp_reg_store_stack(0, g_dsp.pc);
+		dsp_reg_store_stack(2, loop_pc);
+		dsp_reg_store_stack(3, cnt);
 	}
-
-	//	g_dsp.pc = loop_pc;
-	g_dsp.pc += opSize[dsp_peek_code()];
 }
 
+
+// BLOOP $R, addrA
+// 0000 0000 011r rrrr
+// aaaa aaaa aaaa aaaa
+// Repeatedly execute block of code starting at following opcode until
+// counter specified by value from register $R reaches zero. Block ends at
+// specified address addrA inclusive, ie. opcode at addrA is the last opcode
+// included in loop. Counter is pushed on loop stack $st3, end of block address
+// is pushed on loop stack $st2 and repeat address is pushed on call stack $st0.
+// Up to 4 nested loops is allowed.
 void bloop(const UDSPInstruction& opc)
 {
 	u16 reg = opc.hex & 0x1f;
@@ -205,6 +238,15 @@ void bloop(const UDSPInstruction& opc)
 	}
 }
 
+// BLOOPI #I, addrA
+// 0001 0001 iiii iiii
+// aaaa aaaa aaaa aaaa
+// Repeatedly execute block of code starting at following opcode until
+// counter specified by immediate value I reaches zero. Block ends at specified
+// address addrA inclusive, ie. opcode at addrA is the last opcode included in
+// loop. Counter is pushed on loop stack $st3, end of block address is pushed
+// on loop stack $st2 and repeat address is pushed on call stack $st0. Up to 4
+// nested loops is allowed.
 void bloopi(const UDSPInstruction& opc)
 {
 	u16 cnt = opc.hex & 0xff;
@@ -344,8 +386,7 @@ void srri(const UDSPInstruction& opc)
 // SRRN @$D, $S
 // 0001 1011 1dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Add indexing register $(0x4+D) to register $D.
-
+// addressing register $D. Add DSP_REG_IX0 register to register $D.
 // FIXME: Perform additional operation depending on source register.
 void srrn(const UDSPInstruction& opc)
 {
@@ -354,7 +395,7 @@ void srrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	g_dsp.r[dreg] += g_dsp.r[dreg + 4];
+	g_dsp.r[dreg] += g_dsp.r[DSP_REG_IX0 + dreg];
 }
 
 // ILRR $acD.m, @$arS
@@ -426,11 +467,11 @@ void lri(const UDSPInstruction& opc)
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
-// Load immediate value I (8-bit sign extended) to accumulator register$(0x18+D). 
+// Load immediate value I (8-bit sign extended) to accumulator register. 
 // FIXME: Perform additional operation depending on destination register.
 void lris(const UDSPInstruction& opc)
 {
-	u8 reg  = ((opc.hex >> 8) & 0x7) + 0x18;
+	u8 reg  = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
 	u16 imm = (s8)opc.hex;
 	dsp_op_write_reg(reg, imm);
 }
@@ -516,7 +557,7 @@ void clrl(const UDSPInstruction& opc)
 	g_dsp.r[reg] &= 0x0000;
 
 	// Should this be 64bit?
-	// nakee: it says the whole reg in doddie's doc sounds weird
+	// nakee: it says the whole reg in duddie's doc sounds weird
 	Update_SR_Register64((s64)reg);
 }
 
@@ -525,7 +566,7 @@ void clrl(const UDSPInstruction& opc)
 // Clears product register $prod.
 void clrp(const UDSPInstruction& opc)
 {
-	// Magic numbers taken from doddie's doc
+	// Magic numbers taken from duddie's doc
 	g_dsp.r[0x14] = 0x0000;
 	g_dsp.r[0x15] = 0xfff0;
 	g_dsp.r[0x16] = 0x00ff;
@@ -687,6 +728,10 @@ void movax(const UDSPInstruction& opc)
 	Update_SR_Register64(acx);
 }
 
+// XORR $acD.m, $axS.h
+// 0011 00sd xxxx xxxx
+// Logic XOR (exclusive or) middle part of accumulator $acD.m with
+// high part of secondary accumulator $axS.h.
 void xorr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -699,7 +744,7 @@ void xorr(const UDSPInstruction& opc)
 
 // ANDR $acD.m, $axS.h
 // 0011 01sd xxxx xxxx
-// Logic AND middle part of accumulator $acD.m with hight part of
+// Logic AND middle part of accumulator $acD.m with high part of
 // secondary accumulator $axS.h.
 void andr(const UDSPInstruction& opc)
 {
@@ -710,6 +755,11 @@ void andr(const UDSPInstruction& opc)
 
 	tsta(dreg);
 }
+
+// ORR $acD.m, $axS.h
+// 0011 10sd xxxx xxxx
+// Logic OR middle part of accumulator $acD.m with high part of
+// secondary accumulator $axS.h.
 
 void orr(const UDSPInstruction& opc)
 {
@@ -1379,7 +1429,7 @@ void mul(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 
-	// FIXME: no update in doddie's docs
+	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
 }
 
@@ -1400,7 +1450,7 @@ void mulac(const UDSPInstruction& opc)
 	s64 prod = dsp_get_ax_l(sreg) * dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
-	// FIXME: no update in doddie's docs
+	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
 }
 
@@ -1626,7 +1676,7 @@ void msubc(const UDSPInstruction& opc)
 // Store value from register $(0x18+S) to a memory pointed by address M. 
 // (8-bit sign extended). 
 // FIXME: Perform additional operation depending on destination register.
-// Note: pc+=2 in doddie's doc seems wrong
+// Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
@@ -1639,7 +1689,7 @@ void srs(const UDSPInstruction& opc)
 // Move value from data memory pointed by address M (8-bit sign
 // extended) to register $(0x18+D). 
 // FIXME: Perform additional operation depending on destination register.
-// Note: pc+=2 in doddie's doc seems wrong
+// Note: pc+=2 in duddie's doc seems wrong
 void lrs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
