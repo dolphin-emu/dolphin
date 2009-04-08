@@ -414,6 +414,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
 	dspInit.bWii = _CoreParameter.bWii;
+	dspInit.bOnThread = _CoreParameter.bDSPThread;
 	// May be needed for Stop and Start
 	#ifdef SETUP_FREE_DSP_PLUGIN_ON_BOOT
 		Plugins.FreeDSP();

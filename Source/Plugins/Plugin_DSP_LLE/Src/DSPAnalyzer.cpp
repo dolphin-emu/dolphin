@@ -23,7 +23,7 @@
 namespace DSPAnalyzer {
 
 // Holds data about all instructions in RAM.
-u8 inst_flags[ISPACE];
+u8 code_flags[ISPACE];
 
 // Good candidates for idle skipping is mail wait loops. If we're time slicing
 // between the main CPU and the DSP, if the DSP runs into one of these, it might
@@ -39,24 +39,24 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 	{ 0x26fc,          // LRS $30, @DMBH
 	  0x02c0, 0x8000,  // ANDCF $30, #0x8000
 	  0x029d, 0xFFFF,  // JLZ 0x027a
-	  0x02df, 0 },     // RET
+	  0, 0 },     // RET
 	{ 0x27fc,          // LRS $31, @DMBH
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
 	  0x029d, 0xFFFF,  // JLZ 0x027a
-	  0x02df, 0 },     // RET
+	  0, 0 },     // RET
 	{ 0x26fe,          // LRS $30, @CMBH
 	  0x02c0, 0x8000,  // ANDCF $30, #0x8000
 	  0x029c, 0xFFFF,  // JLNZ 0x0280
-	  0x02df, 0 },     // RET
+	  0, 0 },     // RET
 	{ 0x27fe,          // LRS $31, @CMBH
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
 	  0x029c, 0xFFFF,  // JLNZ 0x0280
-	  0x02df, 0 },     // RET
+	  0, 0 },     // RET
 };
 
 void Reset()
 {
-	memset(inst_flags, 0, sizeof(inst_flags));
+	memset(code_flags, 0, sizeof(code_flags));
 }
 
 void AnalyzeRange(int start_addr, int end_addr)
@@ -76,7 +76,7 @@ void AnalyzeRange(int start_addr, int end_addr)
 			addr++;
 			continue;
 		}
-		inst_flags[addr] |= CODE_START_OF_INST;
+		code_flags[addr] |= CODE_START_OF_INST;
 		addr += opcode->size;
 	}
 
@@ -98,7 +98,7 @@ void AnalyzeRange(int start_addr, int end_addr)
 			if (found)
 			{
 				NOTICE_LOG(DSPLLE, "Idle skip location found at %02x", addr);
-				inst_flags[addr] |= CODE_IDLE_SKIP;
+				code_flags[addr] |= CODE_IDLE_SKIP;
 				// TODO: actually use this flag somewhere.
 			}
 		}

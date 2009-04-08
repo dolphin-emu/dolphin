@@ -41,6 +41,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bUseDualCore = false;
 	bSkipIdle = false;
 	bRunCompareServer = false;
+	bDSPThread = true;
 	bLockThreads = true;
 	bWii = false;
 	SelectedLanguage = 0;

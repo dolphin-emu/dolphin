@@ -49,6 +49,7 @@ EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
@@ -131,7 +132,7 @@ void CConfigMain::UpdateGUI()
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		// Disable the Core stuff on GeneralPage
-		AllwaysHLEBIOS->Disable();
+		AlwaysUseHLEBIOS->Disable();
 		UseDynaRec->Disable();
 		UseDualCore->Disable();
 		LockThreads->Disable();
@@ -182,13 +183,15 @@ void CConfigMain::CreateGUIControls()
 	// Core Settings - Basic
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
+	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("LLE DSP on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
 	// Core Settings - Advanced
-	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
+	AlwaysUseHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AlwaysUseHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
 	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable the JIT dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -260,10 +263,11 @@ void CConfigMain::CreateGUIControls()
 	sCore = new wxBoxSizer(wxHORIZONTAL);
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
+	sbBasic->Add(DSPThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
-	sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
+	sbAdvanced->Add(AlwaysUseHLEBIOS, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
@@ -443,7 +447,7 @@ void CConfigMain::CreateGUIControls()
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath->Enable(false);
 	RecersiveISOPath = new wxCheckBox(PathsPage, ID_RECERSIVEISOPATH, wxT("Search Subfolders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	RecersiveISOPath->SetValue(SConfig::GetInstance().m_RecersiveISOFolder);
+	RecersiveISOPath->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
 	DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, wxT("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
 		wxString::Format(wxT("All GC/Wii images (gcm, iso, gcz)|*.gcm;*.iso;*.gcz|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
@@ -611,13 +615,16 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_ALLWAYS_HLEBIOS: // Core
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AllwaysHLEBIOS->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AlwaysUseHLEBIOS->IsChecked();
 		break;
 	case ID_USEDYNAREC:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = UseDynaRec->IsChecked();
 		break;
 	case ID_USEDUALCORE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = UseDualCore->IsChecked();
+		break;
+	case ID_DSPTHREAD:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = DSPThread->IsChecked();
 		break;
 	case ID_LOCKTHREADS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
@@ -843,7 +850,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 
 void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_RecersiveISOFolder = RecersiveISOPath->IsChecked();
+	SConfig::GetInstance().m_RecursiveISOFolder = RecersiveISOPath->IsChecked();
 	bRefreshList = true;
 }
 

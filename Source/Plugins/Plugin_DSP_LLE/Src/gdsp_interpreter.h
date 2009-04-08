@@ -103,11 +103,11 @@ bool gdsp_load_coef(const char *fname);
 
 
 // steps through DSP code, returns false if error occured
-void gdsp_step(void);
+void gdsp_step();
 void gdsp_loop_step();
-bool gdsp_run(void);
-bool gdsp_runx(u16 cnt);
-void gdsp_stop(void);
+void gdsp_run();
+void gdsp_run_cycles(int cycles);
+void gdsp_stop();
 
 void gdsp_write_cr(u16 val);
 u16  gdsp_read_cr(void);

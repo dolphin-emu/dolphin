@@ -63,7 +63,7 @@ void SConfig::SaveSettings()
 			ini.Set("General", tmp, m_ISOFolder[i]);
 		}
 
-		ini.Set("General", "RecersiveGCMPaths", m_RecersiveISOFolder);
+		ini.Set("General", "RecersiveGCMPaths", m_RecursiveISOFolder);
 	}
 
 	
@@ -87,6 +87,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "HLEBios",			m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",		m_LocalCoreStartupParameter.bUseJIT);
 		ini.Set("Core", "UseDualCore",		m_LocalCoreStartupParameter.bUseDualCore);
+		ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 		ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
 		ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
 		ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
@@ -168,7 +169,7 @@ void SConfig::LoadSettings()
 			}
 		}
 
-		ini.Get("General", "RecersiveGCMPaths", &m_RecersiveISOFolder, false);
+		ini.Get("General", "RecersiveGCMPaths", &m_RecursiveISOFolder, false);
 	}
 
 	{
@@ -188,11 +189,12 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowConsole",		&m_InterfaceConsole, false);
 
 		// Core
-		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
-		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,		true);
-		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,	false);
-		ini.Get("Core", "SkipIdle",    &m_LocalCoreStartupParameter.bSkipIdle,		true);
-		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,	true);
+		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,     true);
+		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,      true);
+		ini.Get("Core", "DSPThread",   &m_LocalCoreStartupParameter.bDSPThread,   true);
+		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore, false);
+		ini.Get("Core", "SkipIdle",    &m_LocalCoreStartupParameter.bSkipIdle,    true);
+		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads, true);
 		ini.Get("Core", "DefaultGCM",  &m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "DVDRoot",     &m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);

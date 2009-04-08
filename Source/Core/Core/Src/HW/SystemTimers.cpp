@@ -210,7 +210,7 @@ void DecrementerCallback(u64 userdata, int cyclesLate)
 void DecrementerSet()
 {
 	u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
-	fakeDec = decValue*TIMER_RATIO;
+	fakeDec = decValue * TIMER_RATIO;
 	CoreTiming::RemoveEvent(et_Dec);
 	CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
 }
@@ -221,8 +221,8 @@ void AdvanceCallback(int cyclesExecuted)
         return;
 
 	fakeDec -= cyclesExecuted;
-	u64 timebase_ticks = CoreTiming::GetTicks() / TIMER_RATIO; //works since we are little endian and TL comes first :)
-	*(u64*)&TL = timebase_ticks + startTimeBaseTicks;
+	u64 timebase_ticks = CoreTiming::GetTicks() / TIMER_RATIO;
+	*(u64*)&TL = timebase_ticks + startTimeBaseTicks;  //works since we are little endian and TL comes first :)
  	if (fakeDec >= 0)
 		PowerPC::ppcState.spr[SPR_DEC] = (u32)fakeDec / TIMER_RATIO;
 }
@@ -243,10 +243,15 @@ void Init()
 		CPU_CORE_CLOCK = 729000000u;
 		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
-		
-		// These are the big question marks IMHO :)
+
+		if (!Core::GetStartupParameter().bDSPThread) {
+			DSP_PERIOD = 12000;  // TO BE TWEAKED
+		} else {
+			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
+		}
+
+		// This is the biggest question mark.
 		AI_PERIOD = GetTicksPerSecond() / 80;
-		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
         IPC_HLE_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 	}
@@ -255,10 +260,15 @@ void Init()
 		CPU_CORE_CLOCK = 486000000;
 		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
-		
-		// These are the big question marks IMHO :)
+	
+		if (!Core::GetStartupParameter().bDSPThread) {
+			DSP_PERIOD = 12000;  // TO BE TWEAKED
+		} else {
+			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
+		}
+
+		// This is the biggest question mark.
 		AI_PERIOD = GetTicksPerSecond() / 80;
-		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 	Common::Timer::IncreaseResolution();
 	// store and convert localtime at boot to timebase ticks

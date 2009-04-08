@@ -113,10 +113,21 @@ extern const u32 opcodes_ext_size;
 extern u8 opSize[OPTABLE_SIZE];
 
 extern dspInstFunc opTable[];
+extern dspInstFunc prologueTable[OPTABLE_SIZE];
+extern dspInstFunc epilogueTable[OPTABLE_SIZE];
 
 void InitInstructionTable();
 
-void ComputeInstruction(const UDSPInstruction& inst);
+inline void ExecuteInstruction(const UDSPInstruction& inst)
+{
+	// TODO: Move the prologuetable calls into the relevant instructions themselves.
+	// Better not do things like this until things work correctly though.
+	if (prologueTable[inst.hex])
+		prologueTable[inst.hex](inst);
+	opTable[inst.hex](inst);
+	if (epilogueTable[inst.hex])
+		epilogueTable[inst.hex](inst);
+}
 
 // This one's pretty slow, try to use it only at init or seldomly.
 // returns NULL if no matching instruction.

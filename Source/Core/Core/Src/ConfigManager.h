@@ -50,8 +50,8 @@ struct SConfig
 	std::string m_LastFilename;
 
 	// gcm folder
-	std::vector<std::string>m_ISOFolder;
-	bool m_RecersiveISOFolder;
+	std::vector<std::string> m_ISOFolder;
+	bool m_RecursiveISOFolder;
 
 	SCoreStartupParameter m_LocalCoreStartupParameter;
 

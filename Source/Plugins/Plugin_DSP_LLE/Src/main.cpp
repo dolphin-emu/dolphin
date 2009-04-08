@@ -116,12 +116,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
 
 #ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE-Testing Plugin (DebugFast)");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE-Testing Plugin");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE-Testing Plugin (Debug)");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (Debug)");
 #endif
 #endif
 }
@@ -176,11 +176,7 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (bIsRunning)
 	{
-		if (!gdsp_run())
-		{
-			ERROR_LOG(AUDIO, "DSP Halt");
-			return 0;
-		}
+		gdsp_run();
 	}
 	return 0;
 }
@@ -225,7 +221,8 @@ void Initialize(void *init)
 		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
 	}
 
-	if (!bCanWork) {
+	if (!bCanWork)
+	{
 		gdsp_shutdown();
 		return;
 	}
@@ -234,7 +231,10 @@ void Initialize(void *init)
 
 	InitInstructionTable();
 
-	g_hDSPThread = new Common::Thread(dsp_thread, NULL);
+	if (g_dspInitialize.bOnThread)
+	{
+		g_hDSPThread = new Common::Thread(dsp_thread, NULL);
+	}
 	soundStream = AudioCommon::InitSoundStream();
 }
 
@@ -242,8 +242,11 @@ void DSP_StopSoundStream()
 {
 	gdsp_stop();
 	bIsRunning = false;
-	delete g_hDSPThread;
-	g_hDSPThread = NULL;
+	if (g_dspInitialize.bOnThread)
+	{
+		delete g_hDSPThread;
+		g_hDSPThread = NULL;
+	}
 }
 
 void Shutdown()
@@ -330,13 +333,22 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-	soundStream->Update();
+	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
+	const int cycles_between_ss_update = 80000000 / 200;
+	static int cycle_count = 0;
+	cycle_count += cycles;
+	if (cycle_count > cycles_between_ss_update)
+	{
+		while (cycle_count > cycles_between_ss_update)
+			cycle_count -= cycles_between_ss_update;
+		soundStream->Update();
+	}
 
-#if defined(HAVE_WX) && HAVE_WX
-	// TODO fix? dunno how we should handle debug thread or whatever
-// 	if (m_DebuggerFrame->CanDoStep())
-// 		gdsp_runx(100); // cycles
-#endif
+	// If we're not on a thread, run cycles here.
+	if (!g_dspInitialize.bOnThread)
+	{
+		gdsp_run_cycles(cycles);
+	}
 }
 
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)

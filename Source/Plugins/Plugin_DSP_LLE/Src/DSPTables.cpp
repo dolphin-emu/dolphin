@@ -395,14 +395,3 @@ void InitInstructionTable()
 		}
 	}
 }	
-
-void ComputeInstruction(const UDSPInstruction& inst)
-{
-	if (prologueTable[inst.hex])
-		prologueTable[inst.hex](inst);
-
-	opTable[inst.hex](inst);
-        
-	if (epilogueTable[inst.hex])
-		epilogueTable[inst.hex](inst);
-}

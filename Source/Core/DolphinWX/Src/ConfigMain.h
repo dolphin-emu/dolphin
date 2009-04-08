@@ -60,9 +60,10 @@ class CConfigMain
 		
 		wxBoxSizer* sCore;
 		wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
-		wxCheckBox* AllwaysHLEBIOS;
+		wxCheckBox* AlwaysUseHLEBIOS;
 		wxCheckBox* UseDynaRec;
 		wxCheckBox* UseDualCore;
+		wxCheckBox* DSPThread;
 		wxCheckBox* LockThreads;
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
@@ -213,6 +214,7 @@ class CConfigMain
 			ID_ALLWAYS_HLEBIOS,
 			ID_USEDYNAREC,
 			ID_USEDUALCORE,
+			ID_DSPTHREAD,
 			ID_LOCKTHREADS,
 			ID_OPTIMIZEQUANTIZERS,
 			ID_IDLESKIP,

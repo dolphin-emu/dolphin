@@ -30,6 +30,7 @@ typedef struct
 	TAudioGetStreaming		pGetAudioStreaming;
 	int                    *pEmulatorState;
 	bool					bWii;
+	bool                    bOnThread;
 } DSPInitialize;
 
 

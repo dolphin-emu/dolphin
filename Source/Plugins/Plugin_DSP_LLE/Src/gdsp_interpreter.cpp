@@ -38,8 +38,7 @@
 
 SDSP g_dsp;
 
-bool gdsp_running;
-extern volatile u32 dsp_running;
+volatile u32 gdsp_running;
 
 static bool cr_halt = true;
 static bool cr_external_int = false;
@@ -231,14 +230,14 @@ void gdsp_step()
 #endif
 
 	u16 opc = dsp_fetch_code();
-	ComputeInstruction(UDSPInstruction(opc));
+	ExecuteInstruction(UDSPInstruction(opc));
 
-	u16& rLoopCounter = g_dsp.r[DSP_REG_ST0 + 3];
-
+	// Handle looping hardware. 
+	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
 	if (rLoopCounter > 0)
 	{
-		const u16& rCallAddress = g_dsp.r[DSP_REG_ST0 + 0];
-		const u16& rLoopAddress = g_dsp.r[DSP_REG_ST0 + 2];
+		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
+		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
 
 		if (g_dsp.pc == (rLoopAddress + 1))
 		{
@@ -292,15 +291,14 @@ void gdsp_step()
 	}
 }
 
-
-bool gdsp_run()
+// Used by thread mode.
+void gdsp_run()
 {
 	gdsp_running = true;
-
 	while (!cr_halt)
 	{
 		// Are we running?
-		if(*g_dspInitialize.pEmulatorState)
+		if (*g_dspInitialize.pEmulatorState)
 			break;
 		
 		gdsp_step();
@@ -308,9 +306,41 @@ bool gdsp_run()
 		if (!gdsp_running)
 			break;
 	}
-
 	gdsp_running = false;
-	return true;
+}
+
+// Used by non-thread mode.
+void gdsp_run_cycles(int cycles)
+{
+	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
+	for (int i = 0; i < 8; i++)
+	{
+		if (cr_halt)
+			return;
+		gdsp_step();
+		cycles--;
+	}
+	// Next, let's run a few cycles with idle skipping, so that we can skip loops.
+	for (int i = 0; i < 8; i++)
+	{
+		if (cr_halt)
+			return;
+		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+			return;
+		gdsp_step();
+		cycles--;
+	}
+	// Now, run the rest of the block without idle skipping. It might trip into a 
+	// idle loop and if so we waste some time here. Might be beneficial to slice even further.
+	while (cycles > 0)
+	{
+		if (cr_halt)
+			return;
+		gdsp_step();
+		cycles--;
+		// We don't bother directly supporting pause - if the main emu pauses,
+		// it just won't call this function anymore.
+	}
 }
 
 void gdsp_stop()

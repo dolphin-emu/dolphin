@@ -375,7 +375,7 @@ void CGameListCtrl::ScanForISOs()
 	m_ISOFiles.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
 
-	if (SConfig::GetInstance().m_RecersiveISOFolder)
+	if (SConfig::GetInstance().m_RecursiveISOFolder)
 	{
 		for (u32 i = 0; i < Directories.size(); i++)
 		{
