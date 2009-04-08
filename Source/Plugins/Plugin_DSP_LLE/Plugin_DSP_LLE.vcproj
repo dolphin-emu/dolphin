@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_DSP_LLE_Test"
+	Name="Plugin_DSP_LLE"
 	ProjectGUID="{3D8156A9-64D1-4C8E-ADBE-1B319030E4A4}"
 	RootNamespace="Plugin_DSP_LLE"
 	Keyword="Win32Proj"
