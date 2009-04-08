@@ -38,9 +38,7 @@
 
 void gdsp_dma();
 
-#if WITH_DSP_ON_THREAD
 Common::CriticalSection g_CriticalSection;
-#endif
 
 static volatile u16 gdsp_mbox[2][2];
 
@@ -62,43 +60,33 @@ void gdsp_ifx_init()
 
 u32 gdsp_mbox_peek(u8 mbx)
 {
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Enter();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Enter();
 	u32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Leave();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Leave();
 	return value;
 }
 
 
 void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Enter();
-#endif
-
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Enter();
 	gdsp_mbox[mbx][0] = val & 0x7fff;
-
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Leave();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Leave();
 }
 
 
 void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Enter();
-#endif
-
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Enter();
 	gdsp_mbox[mbx][1]  = val;
 	gdsp_mbox[mbx][0] |= 0x8000;
-
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Leave();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Leave();
 
 	if (mbx == GDSP_MBOX_DSP)
 	{
@@ -109,25 +97,23 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 u16 gdsp_mbox_read_h(u8 mbx)
 {
-	return (gdsp_mbox[mbx][0]);  // TODO: mask away the top bit?
+	return gdsp_mbox[mbx][0];  // TODO: mask away the top bit?
 }
 
 
 u16 gdsp_mbox_read_l(u8 mbx)
 {
 	u16 val;
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Enter();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Enter();
 
 	val = gdsp_mbox[mbx][1];
 	gdsp_mbox[mbx][0] &= ~0x8000;
 
 	DEBUG_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.err_pc);
 
-#if WITH_DSP_ON_THREAD
-	g_CriticalSection.Leave();
-#endif
+	if (g_dspInitialize.bOnThread)
+		g_CriticalSection.Leave();
 	return val;
 }
 
@@ -280,12 +266,6 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 
 	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
-
-
-#define DSP_CR_IMEM     (2)
-#define DSP_CR_DMEM     (0)
-#define DSP_CR_TO_CPU   (1)
-#define DSP_CR_FROM_CPU (0)
 
 void gdsp_dma()
 {

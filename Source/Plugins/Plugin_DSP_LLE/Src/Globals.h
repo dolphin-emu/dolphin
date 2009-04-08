@@ -22,9 +22,7 @@
 #include "AudioCommon.h"
 #include <stdio.h>
 
-#define WITH_DSP_ON_THREAD		1
 #define PROFILE					0
-
 
 void DSP_DebugBreak();
 

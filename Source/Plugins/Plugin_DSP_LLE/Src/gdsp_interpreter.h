@@ -66,6 +66,11 @@
 #define DSP_STACK_DEPTH 0x20
 #define DSP_STACK_MASK  0x1f
 
+#define DSP_CR_IMEM     2
+#define DSP_CR_DMEM     0
+#define DSP_CR_TO_CPU   1
+#define DSP_CR_FROM_CPU 0
+
 struct SDSP
 {
 	u16 r[32];
