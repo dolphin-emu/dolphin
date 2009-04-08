@@ -165,15 +165,15 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				{
 					// Get out of fullscreen
 					g_Config.bFullscreen = false;
-					
+					RECT rc = {0, 0, w_fs, h_fs};
+
 					if (strlen(g_Config.iWindowedRes) > 1)
 						sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
-					RECT rcdesktop;
-					RECT rc = {0, 0, w_fs, h_fs};
-					GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
 					// FullScreen -> Desktop
 					ChangeDisplaySettings(NULL, 0);
+
+					RECT rcdesktop;	// Get desktop resolution
+					GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
 					// Re-Enable the cursor
 					ShowCursor(TRUE);

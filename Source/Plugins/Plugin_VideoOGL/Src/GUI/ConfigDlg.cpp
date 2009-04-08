@@ -205,9 +205,8 @@ void ConfigDialog::CreateGUIControls()
 
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
-		"This option use a separate rendering window and can only be used when"
-		" 'Render to main window' is unchecked. The only way to exit this mode\n"
-		" is with Alt + F4 (that also close Dolphin)."
+		"This will create a Fullscreen window using the chosen Fullscreen resolution."
+		"\nPress Esc key to switch between Fullscreen and Windowed mode."
 		));
 	m_NativeResolution->SetToolTip(wxT(
 		"This will use the game's native resolution and stretch it to fill the"

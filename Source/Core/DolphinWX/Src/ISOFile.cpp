@@ -172,6 +172,11 @@ std::string GameListItem::CreateCacheFilename()
 {
 	std::string Filename;
 	SplitPath(m_FileName, NULL, &Filename, NULL);
+
+	// We add gcz to the cache file if the file is compressed to avoid it reading
+	// the uncompressed file's cache if it has the same name, but not the same ext.
+	if (DiscIO::IsCompressedBlob(m_FileName.c_str()))
+		Filename.append(".gcz");
 	Filename.append(".cache");
 
 	std::string fullname(FULL_CACHE_DIR);

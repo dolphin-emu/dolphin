@@ -283,7 +283,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         dwStyle = WS_OVERLAPPEDWINDOW;
     }
 
-	RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
+    RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
     AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
 
     int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
