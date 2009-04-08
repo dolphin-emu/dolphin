@@ -90,7 +90,7 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 	if (mbx == GDSP_MBOX_DSP)
 	{
-		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.err_pc);
+		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
 	}
 }
 
@@ -110,7 +110,7 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	val = gdsp_mbox[mbx][1];
 	gdsp_mbox[mbx][0] &= ~0x8000;
 
-	DEBUG_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.err_pc);
+	DEBUG_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.pc);
 
 	if (g_dspInitialize.bOnThread)
 		g_CriticalSection.Leave();
@@ -127,7 +127,6 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    case 0xfb: // DIRQ
 		    if (val & 0x1)
 			    g_dsp.irq_request();
-
 		    break;
 
 	    case 0xfc: // DMBH
@@ -211,7 +210,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	for (u32 i = 0; i < size; i += 2)
 	{
 		// TODO : this may be different on Wii.
-		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff];
+		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
@@ -242,7 +241,7 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 
 	for (u32 i = 0; i < size; i += 2)
 	{
-		*(u16*)&dst[dsp_addr + i] = *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF];
+		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
 	}
 
 	INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
@@ -261,7 +260,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 
 	for (u32 i = 0; i < size; i += 2)
 	{
-		*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = *(u16*)&src[dsp_addr + i];
+		*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = Common::swap16(*(u16*)&src[dsp_addr + i]);
 	}
 
 	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);

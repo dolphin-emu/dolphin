@@ -27,10 +27,22 @@
 
 #include "Globals.h"
 
-u16  dsp_fetch_code();
-u16  dsp_peek_code();
+#include "gdsp_interpreter.h"
+
 u16  dsp_imem_read(u16 addr);
 void dsp_dmem_write(u16 addr, u16 val);
 u16  dsp_dmem_read(u16 addr);
+
+inline u16 dsp_fetch_code()
+{
+	u16 opc = dsp_imem_read(g_dsp.pc);
+	g_dsp.pc++;
+	return opc;
+}
+
+inline u16 dsp_peek_code()
+{
+	return dsp_imem_read(g_dsp.pc);
+}
 
 #endif

@@ -89,7 +89,7 @@ void gdsp_init()
 	// Just zero out DRAM.
 	for (int i = 0; i < DSP_DRAM_SIZE; i++)
 	{
-		g_dsp.dram[i] = 0x0021;
+		g_dsp.dram[i] = 0x2100;
 	}
 
 	// copied from a real console after the custom UCode has been loaded
@@ -145,6 +145,11 @@ bool gdsp_load_irom(const char *fname)
 			return false;
 		}
 		fclose(pFile);
+	
+		// Byteswap the rom.
+		for (int i = 0; i < DSP_IROM_SIZE; i++)
+			g_dsp.irom[i] = Common::swap16(g_dsp.irom[i]);
+
 		return true;
 	}
 	// Always keep IROM write protected.
@@ -166,6 +171,9 @@ bool gdsp_load_coef(const char *fname)
 			return false;
 		}
 		fclose(pFile);
+		// Byteswap the rom.
+		for (int i = 0; i < DSP_IROM_SIZE; i++)
+			g_dsp.coef[i] = Common::swap16(g_dsp.coef[i]);
 		return true;
 	}
 	// Always keep COEF write protected. We unprotect only when DMA-ing
@@ -213,9 +221,9 @@ void gdsp_step()
 {
 	g_dsp.step_counter++;
 
+#if PROFILE
 	g_dsp.err_pc = g_dsp.pc;
 
-#if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 	if (g_dsp.step_counter == 1)
 	{
@@ -226,7 +234,6 @@ void gdsp_step()
 	{
 		ProfilerDump(g_dsp.step_counter);
 	}
-
 #endif
 
 	u16 opc = dsp_fetch_code();
@@ -334,8 +341,6 @@ void gdsp_run_cycles(int cycles)
 	// idle loop and if so we waste some time here. Might be beneficial to slice even further.
 	while (cycles > 0)
 	{
-		if (cr_halt)
-			return;
 		gdsp_step();
 		cycles--;
 		// We don't bother directly supporting pause - if the main emu pauses,

@@ -32,7 +32,7 @@ namespace DSPInterpreter {
 void unknown(const UDSPInstruction& opc)
 {
 	//_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-	ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.err_pc);
+	ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.pc);
 }
 
 // test register and updates SR accordingly
@@ -158,7 +158,7 @@ void rti(const UDSPInstruction& opc)
 void halt(const UDSPInstruction& opc)
 {
 	g_dsp.cr |= 0x4;
-	g_dsp.pc = g_dsp.err_pc;
+	g_dsp.pc--;
 }
 
 
@@ -1688,7 +1688,7 @@ void msubc(const UDSPInstruction& opc)
 void srs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
-	u16 addr = (s8)opc.hex;
+	u16 addr = (u16)(s16)(s8)opc.hex;
 	dsp_dmem_write(addr, g_dsp.r[reg]);
 }
   
@@ -1701,7 +1701,7 @@ void srs(const UDSPInstruction& opc)
 void lrs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
-	u16 addr = (s8) opc.hex;
+	u16 addr = (u16)(s16)(s8)opc.hex;
 	g_dsp.r[reg] = dsp_dmem_read(addr);
 }
 

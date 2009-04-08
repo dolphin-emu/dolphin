@@ -30,19 +30,14 @@
 #include "gdsp_memory.h"
 #include "gdsp_interface.h"
 
-u16 dsp_swap16(u16 x)
-{
-	return (x >> 8) | (x << 8);
-}
-
 u16 dsp_imem_read(u16 addr)
 {
 	switch (addr >> 12)
 	{
 	case 0:
-		return dsp_swap16(g_dsp.iram[addr & DSP_IRAM_MASK]);
+		return g_dsp.iram[addr & DSP_IRAM_MASK];
 	case 8:
-		return dsp_swap16(g_dsp.irom[addr & DSP_IROM_MASK]);
+		return g_dsp.irom[addr & DSP_IROM_MASK];
 	default:
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Executing from invalid (%04x) memory", g_dsp.pc, addr);
 		return 0;
@@ -54,10 +49,10 @@ u16 dsp_dmem_read(u16 addr)
 	switch (addr >> 12)
 	{
 	case 0x0: // 0xxx DRAM
-		return dsp_swap16(g_dsp.dram[addr & DSP_DRAM_MASK]);
+		return g_dsp.dram[addr & DSP_DRAM_MASK];
 		
 	case 0x1: // 1xxx COEF
-		return dsp_swap16(g_dsp.coef[addr & DSP_COEF_MASK]);
+		return g_dsp.coef[addr & DSP_COEF_MASK];
 
 		// FIXME: unknown addresses used by zelda 
  /*	case 0x2:
@@ -74,37 +69,24 @@ u16 dsp_dmem_read(u16 addr)
 	}
 }
 
-
 void dsp_dmem_write(u16 addr, u16 val)
 {
 	switch (addr >> 12)
 	{
-	  case 0x0: // 0xxx DRAM
-		  g_dsp.dram[addr & DSP_DRAM_MASK] = dsp_swap16(val);
-		  break;
+	case 0x0: // 0xxx DRAM
+		g_dsp.dram[addr & DSP_DRAM_MASK] = val;
+		break;
 
-	  case 0x1: // 1xxx COEF
-		  ERROR_LOG(DSPLLE, "someone writes to COEF");
-		  break;
-		  
-	  case 0xf: // Fxxx HW regs
-		  gdsp_ifx_write(addr, val);
-		  break;
-		  
-	  default: // error
-		  ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
-		  break;
+	case 0x1: // 1xxx COEF
+		ERROR_LOG(DSPLLE, "someone writes to COEF (pc = %02x)", g_dsp.pc);
+		break;
+
+	case 0xf: // Fxxx HW regs
+		gdsp_ifx_write(addr, val);
+		break;
+
+	default: // error
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		break;
 	}
-}
-
-u16 dsp_fetch_code()
-{
-	u16 opc = dsp_imem_read(g_dsp.pc);
-	g_dsp.pc++;
-	return opc;
-}
-
-u16 dsp_peek_code()
-{
-	return dsp_imem_read(g_dsp.pc);
 }

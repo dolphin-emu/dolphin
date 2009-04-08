@@ -53,17 +53,17 @@
 extern u16 gdsp_ifx_regs[256];
 
 u32  gdsp_mbox_peek(u8 mbx);
-void    gdsp_mbox_write_h(u8 mbx, u16 val);
-void    gdsp_mbox_write_l(u8 mbx, u16 val);
+void gdsp_mbox_write_h(u8 mbx, u16 val);
+void gdsp_mbox_write_l(u8 mbx, u16 val);
 u16  gdsp_mbox_read_h(u8 mbx);
 u16  gdsp_mbox_read_l(u8 mbx);
 
-void    gdsp_ifx_init();
+void gdsp_ifx_init();
 
 void gdsp_ifx_write(u16 addr, u16 val);
-u16 gdsp_ifx_read(u16 addr);
+u16  gdsp_ifx_read(u16 addr);
 
-void    gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size);
+void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size);
 
 
 #endif

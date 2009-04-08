@@ -68,6 +68,8 @@ void Update_SR_Register16(s16 _Value)
 	}
 }
 
+// If this always returns 1, Hermes' demo sounds better.
+// However, most AX games are negatively affected.
 int GetMultiplyModifier()
 {
 	if (g_dsp.r[DSP_REG_SR] & (1 << 13))

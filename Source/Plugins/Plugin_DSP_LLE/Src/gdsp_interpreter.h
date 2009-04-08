@@ -75,7 +75,9 @@ struct SDSP
 {
 	u16 r[32];
 	u16 pc;
+#if PROFILE
 	u16 err_pc;
+#endif
 	u16* iram;
 	u16* dram;
 	u16* irom;

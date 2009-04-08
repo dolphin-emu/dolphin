@@ -36,6 +36,5 @@ u32 Memory_Read_U32(u32 _uAddress);
 	void ProfilerStart();
 #endif
 
-
 #endif
 

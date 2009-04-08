@@ -341,7 +341,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	pc &= 0x0fff;
-	op1 = Common::swap16(gdg->binbuf[pc]);
+	op1 = gdg->binbuf[pc];
 
 	// find opcode
 	for (j = 0; j < opcodes_size; j++)

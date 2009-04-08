@@ -49,9 +49,6 @@ SoundStream *soundStream = NULL;
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
 
-extern u32 m_addressPBs;
-bool AXTask(u32& _uMail);
-
 bool bCanWork = false;
 bool bIsRunning = false;
 
@@ -312,18 +309,6 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 	{
 		gdsp_mbox_write_l(GDSP_MBOX_CPU, _uLowMail);
 
-		u32 uAddress = gdsp_mbox_peek(GDSP_MBOX_CPU);
-		u16 errpc = g_dsp.err_pc;
-
-		DEBUG_LOG(DSPLLE, "CPU writes mail to mbx 0: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
-
-		// I couldn't find any better way to detect the AX mails so this had to
-		// do. Please feel free to change it.
-		if ((errpc == 0x0054 || errpc == 0x0055) && m_addressPBs == 0)
-		{
-			DEBUG_LOG(DSPLLE, "AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
-			AXTask(uAddress);
-		}
 	}
 	else
 	{

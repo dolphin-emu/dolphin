@@ -102,7 +102,7 @@ bool DumpCWCode(u32 _Address, u32 _Length)
 	{
 		for (size_t i = _Address; i < _Address + _Length; i++)
 		{
-			u16 val = Common::swap16(g_dsp.iram[i]);
+			u16 val = g_dsp.iram[i];
 			fprintf(pFile, "    cw 0x%04x \n", val);
 		}
 

@@ -25,6 +25,8 @@
 
 namespace DSPInterpreter {
 
+typedef void (*DSPInterpreterFunc)(const UDSPInstruction& opc);
+
 void unknown(const UDSPInstruction& opc);
 void call(const UDSPInstruction& opc);
 void callr(const UDSPInstruction& opc);
