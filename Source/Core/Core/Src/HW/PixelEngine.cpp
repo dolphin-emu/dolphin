@@ -129,7 +129,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case PE_ALPHAREAD:
 		WARN_LOG(PIXELENGINE, "(r16): PE_ALPHAREAD");
-		INFO_LOG;
+		break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
