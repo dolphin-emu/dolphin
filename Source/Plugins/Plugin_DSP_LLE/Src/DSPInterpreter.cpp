@@ -883,6 +883,11 @@ void andf(const UDSPInstruction& opc)
 	}
 }
 
+// CMPI $amD, #I
+// 0000 001r 1000 0000
+// iiii iiii iiii iiii
+// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I. 
+// Although flags are being set regarding whole accumulator register.
 void cmpi(const UDSPInstruction& opc)
 {
 	int reg  = (opc.hex >> 8) & 0x1;
@@ -895,9 +900,14 @@ void cmpi(const UDSPInstruction& opc)
 	Update_SR_Register64(res);
 }
 
+// XORI $acD.m, #I
+// 0000 001r 0010 0000
+// iiii iiii iiii iiii
+// Logic exclusive or (XOR) of accumulator mid part $acD.m with
+// immediate value I.
 void xori(const UDSPInstruction& opc)
 {
-	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
+	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
 
@@ -910,7 +920,7 @@ void xori(const UDSPInstruction& opc)
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 void andi(const UDSPInstruction& opc)
 {
-	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
+	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
 
@@ -919,6 +929,10 @@ void andi(const UDSPInstruction& opc)
 
 
 // F|RES: i am not sure if this shouldnt be the whole ACC
+// ORI $acD.m, #I
+// 0000 001r 0110 0000
+// iiii iiii iiii iiii
+// Logic OR of accumulator mid part $acD.m with immediate value I.
 void ori(const UDSPInstruction& opc)
 {
 	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
@@ -962,6 +976,24 @@ void addp(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// SUBP $acD
+// 0101 111d xxxx xxxx
+// Subtracts product register from accumulator register.
+void subp(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	s64 acc = dsp_get_long_acc(dreg);
+	acc -= dsp_get_long_prod();
+	dsp_set_long_acc(dreg, acc);
+
+	Update_SR_Register64(acc);
+}
+
+// CMPIS $acD, #I
+// 0000 011d iiii iiii
+// Compares accumulator with short immediate. Comaprison is executed
+// by subtracting short immediate (8bit sign extended) from mid accumulator
+// $acD.hm and computing flags based on whole accumulator $acD.
 void cmpis(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -1009,6 +1041,9 @@ void movpz(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// DECM $acsD
+// 0111 100d xxxx xxxx
+// Decrement 24-bit mid-accumulator $acsD.
 void decm(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x01;
@@ -1021,6 +1056,9 @@ void decm(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// DEC $acD
+// 0111 101d xxxx xxxx
+// Decrement accumulator $acD.
 void dec(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x01;
@@ -1031,6 +1069,9 @@ void dec(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// INCM $acsD
+// 0111 010d xxxx xxxx
+// Increment 24-bit mid-accumulator $acsD.
 void incm(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
@@ -1043,17 +1084,22 @@ void incm(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// INC $acD
+// 0111 011d xxxx xxxx
+// Increment accumulator $acD.
 void inc(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
 
-	s64 acc = dsp_get_long_acc(dreg);
-	acc++;
+	s64 acc = dsp_get_long_acc(dreg) + 1;
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register64(acc);
 }
 
+// NEG $acD
+// 0111 110d xxxx xxxx
+// Negate accumulator $acD.
 void neg(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -1108,13 +1154,13 @@ void addax(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
-// ADDR $acD, $(0x18+S)
+// ADDR $acD, $(DSP_REG_AXL0+S)
 // 0100 0ssd xxxx xxxx
-// Adds register $(0x18+S) to accumulator $acD register.
+// Adds register $(DSP_REG_AXL0+S) to accumulator $acD register.
 void addr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
-	u8 sreg = ((opc.hex >> 9) & 0x3) + 0x18;
+	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 ax = (s16)g_dsp.r[sreg];
 	ax <<= 16;
@@ -1126,10 +1172,13 @@ void addr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// SUBR $acD, $(DSP_REG_AXL0+S)
+// 0101 0ssd xxxx xxxx
+// Subtracts register $(DSP_REG_AXL0+S) from accumulator $acD register.
 void subr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
-	u8 sreg = ((opc.hex >> 9) & 0x3) + 0x18;
+	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 ax = (s16)g_dsp.r[sreg];
 	ax <<= 16;
@@ -1141,12 +1190,15 @@ void subr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// SUBAX $acD, $axS
+// 0101 10sd xxxx xxxx
+// Subtracts secondary accumulator $axS from accumulator register $acD.
 void subax(const UDSPInstruction& opc)
 {
 	int regD = (opc.hex >> 8) & 0x1;
-	int regT = (opc.hex >> 9) & 0x1;
+	int regS = (opc.hex >> 9) & 0x1;
 
-	s64 acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regT);
+	s64 acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regS);
 
 	dsp_set_long_acc(regD, acc);
 	Update_SR_Register64(acc);
@@ -1564,6 +1616,7 @@ void mulxac(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+
 void mulxmv(const UDSPInstruction& opc)
 {
 	// add old prod to acc
@@ -1605,6 +1658,9 @@ void mulxmvz(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+// SUB $acD, $ac(1-D)
+// 0101 110d xxxx xxxx
+// Subtracts accumulator $ac(1-D) from accumulator register $acD. 
 void sub(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
