@@ -19,12 +19,10 @@
 #include "gdsp_interface.h"
 #include "gdsp_interpreter.h"
 
-extern u16 dsp_swap16(u16 x);
-
 // The hardware adpcm decoder :)
-s16 ADPCM_Step(u32& _rSamplePos, u32 _BaseAddress)
+s16 ADPCM_Step(u32& _rSamplePos)
 {
-	s16* pCoefTable = (s16*)&gdsp_ifx_regs[DSP_COEF_A1_0];
+	const s16 *pCoefTable = (const s16 *)&gdsp_ifx_regs[DSP_COEF_A1_0];
 
 	if (((_rSamplePos) & 15) == 0)
 	{
@@ -66,8 +64,7 @@ s16 ADPCM_Step(u32& _rSamplePos, u32 _BaseAddress)
 
 u16 dsp_read_aram()
 {
-  //	u32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
-	u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
+	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
 
 	u16 val;
@@ -75,11 +72,11 @@ u16 dsp_read_aram()
 	// lets the "hardware" decode
 	switch (gdsp_ifx_regs[DSP_FORMAT])
 	{
-	    case 0x00:
-		    val = ADPCM_Step(Address, EndAddress);
+	    case 0x00:  // ADPCM audio
+		    val = ADPCM_Step(Address);
 		    break;
 
-	    case 0x0A:
+	    case 0x0A:  // 16-bit PCM audio
 		    val = (g_dspInitialize.pARAM_Read_U8(Address) << 8) | g_dspInitialize.pARAM_Read_U8(Address + 1);
 
 		    gdsp_ifx_regs[DSP_YN2] = gdsp_ifx_regs[DSP_YN1];
@@ -99,15 +96,18 @@ u16 dsp_read_aram()
 
 
 	// check for loop
-	if (Address > EndAddress)
+	if (Address >= EndAddress)
 	{
+		// Set address back to start address.
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
+
+		// Do we really need both?
 		gdsp_generate_exception(3);
 		gdsp_generate_exception(5);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values, so yeah,
 		// it seems likely that we should raise an exception to let the DSP program do that,
-		// at least if DSP_FORMAT == 0x0A.
+		// at least if DSP_FORMAT == 0x0A. 
 	}
 
 	gdsp_ifx_regs[DSP_ACCAH] = Address >> 16;

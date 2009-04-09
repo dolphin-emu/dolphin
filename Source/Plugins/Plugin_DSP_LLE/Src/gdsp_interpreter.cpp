@@ -217,28 +217,47 @@ u16 gdsp_read_cr()
 	return g_dsp.cr;
 }
 
-void gdsp_step()
+void gdsp_check_external_int()
 {
-	g_dsp.step_counter++;
-
-#if PROFILE
-	g_dsp.err_pc = g_dsp.pc;
-
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-	if (g_dsp.step_counter == 1)
+	// check if there is an external interrupt
+	if (cr_external_int)
 	{
-		ProfilerInit();
+		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
+		{
+			// level 7 is the interrupt exception
+			gdsp_generate_exception(7);
+			g_dsp.cr &= ~0x0002;
+			UpdateCachedCR();
+		}
 	}
+}
 
-	if ((g_dsp.step_counter & 0xFFFFF) == 0)
+void gdsp_check_exceptions()
+{
+	// check exceptions
+	if ((g_dsp.exceptions != 0) && (!g_dsp.exception_in_progress_hack))
 	{
-		ProfilerDump(g_dsp.step_counter);
+		for (int i = 0; i < 8; i++)
+		{
+			if (g_dsp.exceptions & (1 << i))
+			{
+				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+
+				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
+
+				g_dsp.pc = i * 2;
+				g_dsp.exceptions &= ~(1 << i);
+
+				g_dsp.exception_in_progress_hack = true;
+				break;
+			}
+		}
 	}
-#endif
+}
 
-	u16 opc = dsp_fetch_code();
-	ExecuteInstruction(UDSPInstruction(opc));
-
+void gdsp_handle_loop()
+{
 	// Handle looping hardware. 
 	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
 	if (rLoopCounter > 0)
@@ -263,39 +282,33 @@ void gdsp_step()
 			}
 		}
 	}
+}
 
-	// check if there is an external interrupt
-	if (cr_external_int)
+void gdsp_step()
+{
+	gdsp_check_exceptions();
+
+	g_dsp.step_counter++;
+
+#if PROFILE
+	g_dsp.err_pc = g_dsp.pc;
+
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+	if (g_dsp.step_counter == 1)
 	{
-		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
-		{
-			// level 7 is the interrupt exception
-			gdsp_generate_exception(7);
-			g_dsp.cr &= ~0x0002;
-			UpdateCachedCR();
-		}
+		ProfilerInit();
 	}
 
-	// check exceptions
-	if ((g_dsp.exceptions != 0) && (!g_dsp.exception_in_progress_hack))
+	if ((g_dsp.step_counter & 0xFFFFF) == 0)
 	{
-		for (int i = 0; i < 8; i++)
-		{
-			if (g_dsp.exceptions & (1 << i))
-			{
-				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-
-				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
-
-				g_dsp.pc = i * 2;
-				g_dsp.exceptions &= ~(1 << i);
-
-				g_dsp.exception_in_progress_hack = true;
-				break;
-			}
-		}
+		ProfilerDump(g_dsp.step_counter);
 	}
+#endif
+
+	u16 opc = dsp_fetch_code();
+	ExecuteInstruction(UDSPInstruction(opc));
+
+	gdsp_handle_loop();
 }
 
 // Used by thread mode.
@@ -307,8 +320,10 @@ void gdsp_run()
 		// Are we running?
 		if (*g_dspInitialize.pEmulatorState)
 			break;
-		
-		gdsp_step();
+
+		gdsp_check_external_int();
+		for (int i = 0; i < 500; i++)
+			gdsp_step();
 
 		if (!gdsp_running)
 			break;
@@ -319,6 +334,8 @@ void gdsp_run()
 // Used by non-thread mode.
 void gdsp_run_cycles(int cycles)
 {
+	gdsp_check_external_int();
+
 	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
 	for (int i = 0; i < 8; i++)
 	{
@@ -327,6 +344,7 @@ void gdsp_run_cycles(int cycles)
 		gdsp_step();
 		cycles--;
 	}
+
 	// Next, let's run a few cycles with idle skipping, so that we can skip loops.
 	for (int i = 0; i < 8; i++)
 	{
@@ -337,6 +355,7 @@ void gdsp_run_cycles(int cycles)
 		gdsp_step();
 		cycles--;
 	}
+
 	// Now, run the rest of the block without idle skipping. It might trip into a 
 	// idle loop and if so we waste some time here. Might be beneficial to slice even further.
 	while (cycles > 0)

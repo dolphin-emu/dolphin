@@ -64,8 +64,8 @@ void AnalyzeRange(int start_addr, int end_addr)
 	// First we run an extremely simplified version of a disassembler to find
 	// where all instructions start.
 
-	// This may not be 100% accurate in case of jump tables, but should be good
-	// enough as a start.
+	// This may not be 100% accurate in case of jump tables!
+	// It could get desynced, which would be bad. We'll see if that's an issue.
 	int addr = start_addr;
 	while (addr < end_addr)
 	{
@@ -78,6 +78,16 @@ void AnalyzeRange(int start_addr, int end_addr)
 		}
 		code_flags[addr] |= CODE_START_OF_INST;
 		addr += opcode->size;
+
+		// Look for loops.
+		if ((inst.hex & 0xffe0) == 0x0060 || (inst.hex & 0xff00) == 0x1100) {
+			// BLOOP, BLOOPI
+			u16 loop_end = dsp_imem_read(addr + 1);
+			code_flags[loop_end] |= CODE_LOOP_END;
+		} else if ((inst.hex & 0xffe0) == 0x0040 || (inst.hex & 0xff00) == 0x1000) {
+			// LOOP, LOOPI
+			code_flags[addr + 1] |= CODE_LOOP_END;
+		}
 	}
 
 	// Next, we'll scan for potential idle skips.

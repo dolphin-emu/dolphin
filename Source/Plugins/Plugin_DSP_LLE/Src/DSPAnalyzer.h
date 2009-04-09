@@ -23,10 +23,16 @@ namespace DSPAnalyzer {
 
 #define ISPACE 65536
 
+
+
+// Useful things to detect:
+// * Loop endpoints - so that we can avoid checking for loops every cycle.
+
 enum
 {
 	CODE_START_OF_INST = 1,
 	CODE_IDLE_SKIP = 2,
+	CODE_LOOP_END = 4,
 };
 
 // Easy to query array covering the whole of instruction memory.

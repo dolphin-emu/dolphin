@@ -268,7 +268,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	if ((gdg->pc & 0x7fff) >= 0x1000)
 		return 1;
 
-	u32 op1 = Common::swap16(gdg->binbuf[gdg->pc & 0x0fff]);
+	u32 op1 = gdg->binbuf[gdg->pc & 0x0fff];
 
 	for (u32 j = 0; j < opcodes_size; j++)
 	{
@@ -393,7 +393,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 
 	if ((opc->size & ~P_EXT) == 2)
 	{
-		op2 = Common::swap16(gdg->binbuf[pc + 1]);
+		op2 = gdg->binbuf[pc + 1];
 
 		if (gdg->show_hex)
 			sprintf(buf, "%04x %04x ", op1, op2);
