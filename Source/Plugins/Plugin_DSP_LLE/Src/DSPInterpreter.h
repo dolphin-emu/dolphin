@@ -83,6 +83,7 @@ void neg(const UDSPInstruction& opc);
 void addax(const UDSPInstruction& opc);
 void addr(const UDSPInstruction& opc);
 void subr(const UDSPInstruction& opc);
+void subp(const UDSPInstruction& opc);
 void subax(const UDSPInstruction& opc);
 void addis(const UDSPInstruction& opc);
 void addi(const UDSPInstruction& opc);

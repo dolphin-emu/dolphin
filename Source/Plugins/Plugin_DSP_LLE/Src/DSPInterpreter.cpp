@@ -616,24 +616,25 @@ void mulcmvz(const UDSPInstruction& opc)
 
 // MULCMV
 // 110s t11r xxxx xxxx
-// Multiply mid part of accumulator register $acS.m by high part $axS.h of
+// Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR.
+// possible mistake in duddie's doc axT.h rather than axS.h
 void mulcmv(const UDSPInstruction& opc)
 {
-	s64 TempProd = dsp_get_long_prod();
+	s64 tempProd = dsp_get_long_prod();
 
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
-	dsp_set_long_prod(Prod);
+	s64 prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_ax_h(treg) * GetMultiplyModifier();
+	dsp_set_long_prod(prod);
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
-	dsp_set_long_acc(rreg, TempProd);
+	dsp_set_long_acc(rreg, tempProd);
 
-	Update_SR_Register64(TempProd);
+	Update_SR_Register64(tempProd);
 }
 
 // CMPAR
