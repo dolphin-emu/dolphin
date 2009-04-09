@@ -589,14 +589,21 @@ void mulc(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-	
+// MULCMVZ
+// 110s	t01r xxxx xxxx
+// (fixed possible bug in duddie's description, s->t)
+// Multiply mid part of accumulator register $acS.m by high part $axT.h of
+// secondary accumulator $axT  (treat them both as signed). Move product
+// register before multiplication to accumulator $acR, set low part of 
+// accumulator $acR.l to zero.
 void mulcmvz(const UDSPInstruction& opc)
 {
 	s64 TempProd = dsp_get_long_prod();
 
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
-	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	u8 treg  = (opc.hex >> 11) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_ax_h(treg) * GetMultiplyModifier();
 	dsp_set_long_prod(Prod);
 
 	// update acc
@@ -607,13 +614,19 @@ void mulcmvz(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// MULCMV
+// 110s t11r xxxx xxxx
+// Multiply mid part of accumulator register $acS.m by high part $axS.h of
+// secondary accumulator $axT  (treat them both as signed). Move product
+// register before multiplication to accumulator $acR.
 void mulcmv(const UDSPInstruction& opc)
 {
 	s64 TempProd = dsp_get_long_prod();
 
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
-	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	u8 treg  = (opc.hex >> 11) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_ax_h(sreg) * GetMultiplyModifier();
 	dsp_set_long_prod(Prod);
 
 	// update acc
@@ -623,6 +636,8 @@ void mulcmv(const UDSPInstruction& opc)
 	Update_SR_Register64(TempProd);
 }
 
+// CMPAR
+// Not described by Duddie's doc - at least not as a separate instruction.
 void cmpar(const UDSPInstruction& opc)
 {
 	u8 rreg = ((opc.hex >> 12) & 0x1) + 0x1a;
@@ -637,6 +652,9 @@ void cmpar(const UDSPInstruction& opc)
 	Update_SR_Register64(ar - rr);
 }
 
+// CMP
+// 1000 0010 xxxx xxxx
+// Compares accumulator $ac0 with accumulator $ac1.
 void cmp(const UDSPInstruction& opc)
 {
 	s64 acc0 = dsp_get_long_acc(0);
@@ -645,6 +663,9 @@ void cmp(const UDSPInstruction& opc)
 	Update_SR_Register64(acc0 - acc1);
 }
 
+// TST
+// 1011 r001 xxxx xxxx
+// Test accumulator %acR.
 void tst(const UDSPInstruction& opc)
 {
 	tsta((opc.hex >> 11) & 0x1);
@@ -679,18 +700,24 @@ void addarn(const UDSPInstruction& opc)
 	g_dsp.r[dreg] += (s16)g_dsp.r[DSP_REG_IX0 + sreg];
 }
 
+// MULCAC $acS.m, $axT.h, $acR
+// 110s	t10r xxxx xxxx
+// Multiply mid part of accumulator register $acS.m by high part $axS.h of
+// secondary accumulator $axS  (treat them both as signed). Add product
+// register before multiplication to accumulator $acR.
 void mulcac(const UDSPInstruction& opc)
 {
 	s64 TempProd = dsp_get_long_prod();
 
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
-	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_acc_h(sreg) * GetMultiplyModifier();
+	u8 treg  = (opc.hex >> 11) & 0x1;
+	s64 Prod = (s64)dsp_get_acc_m(sreg) * (s64)dsp_get_ax_h(treg) * GetMultiplyModifier();
 	dsp_set_long_prod(Prod);
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
-	s64 acc = TempProd + g_dsp.r[rreg];
+	s64 acc = TempProd + dsp_get_long_acc(rreg);
 	dsp_set_long_acc(rreg, acc);
 
 	Update_SR_Register64(acc);

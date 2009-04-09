@@ -61,6 +61,12 @@ bool DisasmUCodeDump(u32 crc)
 	if (t != NULL)
 	{
 		gd_globals_t gdg;
+		memset(&gdg, 0, sizeof(gdg));
+		gdg.show_hex = true;
+		gdg.show_pc = true;
+		gdg.ext_separator = '\t';
+		gdg.decode_names = true;
+		gdg.decode_registers = true;
 		gd_dis_file(&gdg, binFile, t);
 		fclose(t);
 		return true;
@@ -88,7 +94,7 @@ u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 		CRC = (CRC >> 8) ^ Temp;
 	}
 
-	return(CRC ^ 0xFFFFFFFF);
+	return CRC ^ 0xFFFFFFFF;
 }
 
 // TODO make this useful :p

@@ -275,17 +275,15 @@ DSPOPCTemplate opcodes[] =
 	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-
 	{"MUL",		0x9000, 0xf7ff, DSPInterpreter::mul,    nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULMVZ",  0x9200, 0xf6ff, DSPInterpreter::mulmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULAC",   0x9400, 0xf6ff, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULMV",   0x9600, 0xf6ff, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-
-	{"MULC",    0xc000, 0xe7ff, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 12, 0x1000}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCMVZ", 0xc200, 0xe6ff, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 12, 0x1000}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCAC",  0xc400, 0xe6ff, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 12, 0x1000}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCMV",  0xc600, 0xe6ff, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 12, 0x1000}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULC",    0xc000, 0xe7ff, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCMVZ", 0xc200, 0xe6ff, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCAC",  0xc400, 0xe6ff, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCMV",  0xc600, 0xe6ff, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"ADDR",    0x4000, 0xf8ff, DSPInterpreter::addr,   nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ADDAX",   0x4800, 0xfcff, DSPInterpreter::addax,  nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

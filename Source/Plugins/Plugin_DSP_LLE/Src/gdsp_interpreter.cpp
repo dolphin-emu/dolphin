@@ -371,4 +371,3 @@ void gdsp_stop()
 {
 	gdsp_running = false;
 }
-

@@ -27,7 +27,7 @@
 
 #include "Common.h"
 
-typedef struct gd_globals_t
+struct gd_globals_t
 {
 	bool print_tabs;
 	bool show_hex;
@@ -40,7 +40,7 @@ typedef struct gd_globals_t
 	char* buffer;
 	u16 buffer_size;
 	char ext_separator;
-} gd_globals_t;
+};
 
 
 char* gd_dis_opcode(gd_globals_t* gdg);

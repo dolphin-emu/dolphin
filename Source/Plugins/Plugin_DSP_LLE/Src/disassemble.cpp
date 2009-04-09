@@ -96,14 +96,14 @@ const pdlabel_t pdlabels[] =
 
 pdlabel_t regnames[] =
 {
-	{0x00, "R00",       "Register 00",},
-	{0x01, "R01",       "Register 01",},
-	{0x02, "R02",       "Register 02",},
-	{0x03, "R03",       "Register 03",},
-	{0x04, "R04",       "Register 04",},
-	{0x05, "R05",       "Register 05",},
-	{0x06, "R06",       "Register 06",},
-	{0x07, "R07",       "Register 07",},
+	{0x00, "AR0",       "Register 00",},
+	{0x01, "AR1",       "Register 01",},
+	{0x02, "AR2",       "Register 02",},
+	{0x03, "AR3",       "Register 03",},
+	{0x04, "IX0",       "Register 04",},
+	{0x05, "IX1",       "Register 05",},
+	{0x06, "IX2",       "Register 06",},
+	{0x07, "IX3",       "Register 07",},
 	{0x08, "R08",       "Register 08",},
 	{0x09, "R09",       "Register 09",},
 	{0x0a, "R10",       "Register 10",},
@@ -112,8 +112,8 @@ pdlabel_t regnames[] =
 	{0x0d, "ST1",       "Data stack",},
 	{0x0e, "ST2",       "Loop addr stack",},
 	{0x0f, "ST3",       "Loop counter",},
-	{0x00, "ACH0",      "Accu High 0",},
-	{0x11, "ACH1",      "Accu High 1",},
+	{0x00, "AC0.H",     "Accu High 0",},
+	{0x11, "AC1.H",     "Accu High 1",},
 	{0x12, "CR",        "Config Register",},
 	{0x13, "SR",        "Special Register",},
 	{0x14, "PROD.L",    "Prod L",},
@@ -249,15 +249,6 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 
 	return strbuf;
 }
-
-
-gd_globals_t* gd_init()
-{
-	gd_globals_t* gdg = (gd_globals_t*)malloc(sizeof(gd_globals_t));
-	memset(gdg, 0, sizeof(gd_globals_t));
-	return(gdg);
-}
-
 
 u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 {
