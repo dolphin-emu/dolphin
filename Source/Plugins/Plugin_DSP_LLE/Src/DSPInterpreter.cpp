@@ -1552,7 +1552,7 @@ void mulac(const UDSPInstruction& opc)
 void mulmv(const UDSPInstruction& opc)
 {
 	u8 rreg  = (opc.hex >> 8) & 0x1;
-	u8 sreg  = ((opc.hex >> 11) & 0x1)
+	u8 sreg  = ((opc.hex >> 11) & 0x1);
 	s64 prod = dsp_get_long_prod();
 	s64 acc = prod;
 	dsp_set_long_acc(rreg, acc);
