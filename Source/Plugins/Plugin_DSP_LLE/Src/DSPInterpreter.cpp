@@ -589,7 +589,7 @@ void mulc(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-// MULCMVZ
+// MULCMVZ $acS.m, $axT.h, $acR
 // 110s	t01r xxxx xxxx
 // (fixed possible bug in duddie's description, s->t)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
@@ -614,7 +614,7 @@ void mulcmvz(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
-// MULCMV
+// MULCMV $acS.m, $axT.h, $acR
 // 110s t11r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
@@ -637,20 +637,22 @@ void mulcmv(const UDSPInstruction& opc)
 	Update_SR_Register64(tempProd);
 }
 
-// CMPAR
+// CMPAR $acS axR.h
+// 1100 0001 xxxx xxxx
+// Compares accumulator $acS with accumulator axR.h.
 // Not described by Duddie's doc - at least not as a separate instruction.
 void cmpar(const UDSPInstruction& opc)
 {
-	u8 rreg = ((opc.hex >> 12) & 0x1) + 0x1a;
-	u8 areg = (opc.hex >> 11) & 0x1;
+	u8 rreg = ((opc.hex >> 12) & 0x1) + DSP_REG_AXH0;
+	u8 sreg = (opc.hex >> 11) & 0x1;
 
 	// we compare
 	s64 rr = (s16)g_dsp.r[rreg];
 	rr <<= 16;
 
-	s64 ar = dsp_get_long_acc(areg);
+	s64 sr = dsp_get_long_acc(sreg);
 
-	Update_SR_Register64(ar - rr);
+	Update_SR_Register64(sr - rr);
 }
 
 // CMP
@@ -1550,14 +1552,13 @@ void mulac(const UDSPInstruction& opc)
 void mulmv(const UDSPInstruction& opc)
 {
 	u8 rreg  = (opc.hex >> 8) & 0x1;
+	u8 sreg  = ((opc.hex >> 11) & 0x1)
 	s64 prod = dsp_get_long_prod();
 	s64 acc = prod;
 	dsp_set_long_acc(rreg, acc);
 
-	u8 areg  = ((opc.hex >> 11) & 0x1) + 0x18;
-	u8 breg  = ((opc.hex >> 11) & 0x1) + 0x1a;
-	s64 val1 = (s16)g_dsp.r[areg];
-	s64 val2 = (s16)g_dsp.r[breg];
+	s64 val1 = (s16)g_dsp.r[sreg + DSP_REG_AXL0];
+	s64 val2 = (s16)g_dsp.r[sreg + DSP_REG_AXH0];
 
 	prod = val1 * val2 * GetMultiplyModifier();
 
@@ -1566,6 +1567,12 @@ void mulmv(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+// MULMVZ $axS.l, $axS.h, $acR
+// 1001 s01r xxxx xxxx
+// Move product register to accumulator register $acR and clear low part
+// of accumulator register $acR.l. Multiply low part $axS.l of secondary
+// accumulator $axS by high part $axS.h of secondary accumulator $axS (treat
+// them both as signed).
 void mulmvz(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 11) & 0x1;
@@ -1577,12 +1584,16 @@ void mulmvz(const UDSPInstruction& opc)
 	dsp_set_long_acc(rreg, acc);
 
 	// math prod
-	prod = (s64)g_dsp.r[0x18 + sreg] * (s64)g_dsp.r[0x1a + sreg] * GetMultiplyModifier();
+	prod = (s64)g_dsp.r[DSP_REG_AXL0 + sreg] * (s64)g_dsp.r[DSP_REG_AXH0 + sreg] * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register64(prod);
 }
 
+// MULX $ax0.S, $ax1.T
+// 101s t000 xxxx xxxx
+// Multiply one part $ax0 by one part $ax1 (treat them both as signed).
+// Part is selected by S and T bits. Zero selects low part, one selects high part.
 void mulx(const UDSPInstruction& opc)
 {
 	u8 sreg = ((opc.hex >> 12) & 0x1);
@@ -1597,6 +1608,11 @@ void mulx(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+// MULXAC $ax0.S, $ax1.T, $acR
+// 101s t01r xxxx xxxx
+// Add product register to accumulator register $acR. Multiply one part
+// $ax0 by one part $ax1 (treat them both as signed). Part is selected by S and
+// T bits. Zero selects low part, one selects high part.
 void mulxac(const UDSPInstruction& opc)
 {
 	// add old prod to acc
@@ -1617,7 +1633,11 @@ void mulxac(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-
+// MULXMV $ax0.S, $ax1.T, $acR
+// 101s t11r xxxx xxxx
+// Move product register to accumulator register $acR. Multiply one part
+// $ax0 by one part $ax1 (treat them both as signed). Part is selected by S and
+// T bits. Zero selects low part, one selects high part.
 void mulxmv(const UDSPInstruction& opc)
 {
 	// add old prod to acc
@@ -1638,6 +1658,12 @@ void mulxmv(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
+// MULXMV $ax0.S, $ax1.T, $acR
+// 101s t01r xxxx xxxx
+// Move product register to accumulator register $acR and clear low part
+// of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1 (treat
+// them both as signed). Part is selected by S and T bits. Zero selects low part,
+// one selects high part.
 void mulxmvz(const UDSPInstruction& opc)
 {
 	// overwrite acc and clear low part
