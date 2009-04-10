@@ -135,6 +135,7 @@ bool BootCore(const std::string& _rFilename)
 		ini->Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini->Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 		ini->Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
+		ini->Get("Core", "Fix002", &StartUp.bFix002, false);
 
 		// ------------------------------------------------
 		// Wii settings

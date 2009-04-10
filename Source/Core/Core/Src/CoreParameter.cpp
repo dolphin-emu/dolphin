@@ -44,6 +44,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bLockThreads = true;
 	bWii = false;
+	bFix002 = false;
 	SelectedLanguage = 0;
 	iTLBHack = 0;
 	delete gameIni;

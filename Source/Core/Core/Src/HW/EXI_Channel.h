@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _EXICHANNEL_H
 #define _EXICHANNEL_H
 
@@ -93,7 +94,6 @@ private:
 	IEXIDevice* m_pDevices[NUM_DEVICES];
 
 public:
-
 	// channelId for debugging
 	u32 m_ChannelId;
 
