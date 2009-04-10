@@ -91,6 +91,7 @@ struct Config
     bool bEFBCopyDisable;
     bool bEFBCopyDisableHotKey;
     bool bProjectionHax1;
+	bool bSMGhack;
 	bool bCopyEFBToRAM;
     bool bSafeTextureCache;
 

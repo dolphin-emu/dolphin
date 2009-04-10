@@ -60,6 +60,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DISABLEFOG, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SMGHACK, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
     EVT_CHECKBOX(ID_DSTALPHAPASS,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
@@ -353,13 +354,17 @@ void ConfigDialog::CreateGUIControls()
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("ZTP Bloom hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SMGh = new wxCheckBox(m_PageAdvanced, ID_SMGHACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
 	// Disabled or enabled
 	m_SafeTextureCache->Enable(true);
 	m_ProjectionHax1->Enable(true);
+	m_SMGh->Enable(false);	
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
 	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+	m_SMGh->SetValue(g_Config.bSMGhack);
 
 	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
@@ -373,8 +378,9 @@ void ConfigDialog::CreateGUIControls()
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_SMGh, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
 
@@ -567,7 +573,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-
+	case ID_SMGHACK:
+		g_Config.bSMGhack = m_SMGh->IsChecked();
+		break;
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = true;

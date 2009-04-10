@@ -69,7 +69,7 @@ void VertexShaderManager::Shutdown()
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderManager::SetConstants(bool proj_hax_1)
+void VertexShaderManager::SetConstants(bool proj_hax_1,bool SMG_hack)
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
@@ -213,6 +213,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
+
 			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
  			
             g_fProjectionMatrix[12] = 0.0f;
@@ -253,7 +254,13 @@ void VertexShaderManager::SetConstants(bool proj_hax_1)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			g_fProjectionMatrix[11] = xfregs.rawProjection[5] + (proj_hax_1 ? 0.1f : 0.0f);
+            
+            if (SMG_hack) {
+                g_fProjectionMatrix[11] = -(0.512505 + xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
+            }
+            else {
+                g_fProjectionMatrix[11] = xfregs.rawProjection[5] + (proj_hax_1 ? 0.1f : 0.0f);
+            }
 
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;

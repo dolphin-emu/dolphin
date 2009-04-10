@@ -113,6 +113,7 @@ class ConfigDialog : public wxDialog
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
 		wxCheckBox *m_EFBCopyDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
+		wxCheckBox *m_SMGh;
 		wxCheckBox *m_SafeTextureCache;
 		// Screen size
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
@@ -161,6 +162,7 @@ class ConfigDialog : public wxDialog
 			ID_DISABLEFOG,
 			ID_STATICBOX_EFB,
 			ID_SAFETEXTURECACHE,
+			ID_SMGHACK,
 
 			ID_DUMPTEXTURES,
 			ID_DUMPEFBTARGET,
