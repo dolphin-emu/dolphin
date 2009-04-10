@@ -1752,8 +1752,7 @@ void msubx(const UDSPInstruction& opc)
 // MADDC $acS.m, $axT.h
 // 1110 10st xxxx xxxx
 // Multiply middle part of accumulator $acS.m by high part of secondary
-// accumulator $axT.h (treat them both as signed) and add result to product
-// register.
+// accumulator $axT.h (treat them both as signed) and add result to product register.
 void maddc(const UDSPInstruction& opc)
 {
 	u32 sreg = (opc.hex >> 9) & 0x1;
@@ -1789,28 +1788,28 @@ void msubc(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-// SRS @M, $(0x18+S)
+// SRS @M, $(DSP_REG_AXL0+S)
 // 0010 1sss mmmm mmmm
-// Store value from register $(0x18+S) to a memory pointed by address M. 
+// Store value from register $(DSP_REG_AXL0+S) to a memory pointed by address M. 
 // (8-bit sign extended). 
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
-	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
+	u8 reg   = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
 	u16 addr = (u16)(s16)(s8)opc.hex;
 	dsp_dmem_write(addr, g_dsp.r[reg]);
 }
   
-// LRS $(0x18+D), @M
+// LRS $(DSP_REG_AXL0+D), @M
 // 0010 0ddd mmmm mmmm
 // Move value from data memory pointed by address M (8-bit sign
-// extended) to register $(0x18+D). 
+// extended) to register $(DSP_REG_AXL0+D). 
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void lrs(const UDSPInstruction& opc)
 {
-	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
+	u8 reg   = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
 	u16 addr = (u16)(s16)(s8)opc.hex;
 	g_dsp.r[reg] = dsp_dmem_read(addr);
 }
