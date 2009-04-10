@@ -1090,6 +1090,7 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+		/*
 		static const float vtx_data[8] = {-1, -1, -1, 1, 1, 1, 1, -1};
 		const float uv_data[8] = {0, v_min, 0, v_max, u_max, v_max, u_max, v_min};
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1097,6 +1098,14 @@ void Renderer::Swap(const TRectangle& rc)
 		glVertexPointer(2, GL_FLOAT, 0, (void *)vtx_data);
 		glTexCoordPointer(2, GL_FLOAT, 0, (void *)uv_data);
 		glDrawArrays(GL_QUADS, 0, 4);
+		*/
+		
+		glBegin(GL_QUADS);
+			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
+			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
+			glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
+			glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+		glEnd();
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);
