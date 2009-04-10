@@ -80,7 +80,7 @@ void Config::Load()
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
     iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
-	iniFile.Get("Hacks", "SMGhack", &bSMGhack, true);
+	iniFile.Get("Hacks", "SMGhack", &bSMGhack, false);
 }
 
 void Config::GameIniLoad() {

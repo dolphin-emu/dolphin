@@ -359,7 +359,7 @@ void ConfigDialog::CreateGUIControls()
 	// Disabled or enabled
 	m_SafeTextureCache->Enable(true);
 	m_ProjectionHax1->Enable(true);
-	m_SMGh->Enable(false);	
+	m_SMGh->Enable(true);	
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
