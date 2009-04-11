@@ -465,10 +465,6 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
             "float3 tevcoord;\n"
             "float2 wrappedcoord, tempcoord;\n");
 
-    //if (bOutputZ ) WRITE(p, "  float depth;\n");
-//    WRITE(p, "return 1;}\n");
-//    return PixelShaderMngr::CompilePixelShader(ps, text);
-
     // indirect texture map lookup
     for(u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
         if (nIndirectStagesUsed & (1<<i)) {
@@ -478,21 +474,18 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
             int texcoord = bpmem.tevindref.getTexCoord(i);
 
             if (texcoord < numTexgen) {
-                if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
-                    // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
-                    WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy"); //, bpmem.tevindref.getTexMap(i)
-
-                    char str[16];
-                    sprintf(str, "induv%d", i);
-                    WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i), texture_mask);
-                    WRITE(p, "float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
-                }
-                else {
-                    WRITE(p, "float3 indtex%d=tex2D(samp%d,uv%d.xy*"I_INDTEXSCALE"[%d].%s).abg;\n", i, bpmem.tevindref.getTexMap(i), texcoord, i/2, (i&1)?"zw":"xy");
-                }
+                WRITE(p, "tempcoord=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
             }
             else {
-                WRITE(p, "float3 indtex%d=tex2D(samp%d,float2(0.0f,0.0f));\n", i, bpmem.tevindref.getTexMap(i));
+                WRITE(p, "tempcoord=float2(0.0f,0.0f);\n");
+            }
+
+            if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
+                WrapNonPow2Tex(p, "tempcoord", bpmem.tevindref.getTexMap(i), texture_mask);
+                WRITE(p, "float3 indtex%d=texRECT(samp%d,tempcoord.xy).abg;\n", i, bpmem.tevindref.getTexMap(i));
+            }
+            else {
+                WRITE(p, "float3 indtex%d=tex2D(samp%d,tempcoord).abg;\n", i, bpmem.tevindref.getTexMap(i));
             }
         }
     }
@@ -586,7 +579,6 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
     if (bHasIndStage) {
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
-        bHasIndStage = true;
         int texmap = bpmem.tevorders[n/2].getEnable(n&1) ? bpmem.tevorders[n/2].getTexMap(n&1) : bpmem.tevindref.getTexMap(bpmem.tevind[n].bt);
 
 		if (bpmem.tevind[n].bs != ITBA_OFF) {
@@ -622,11 +614,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
                 WRITE(p, "float2 indtevtrans%d = float2(dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
                     n, mtxidx, n, mtxidx+1, n);
             }
-            else if (bpmem.tevind[n].mid <= 5 && bHasTexCoord) { // s matrix
+            else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord) { // s matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-5);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
             }
-            else if (bpmem.tevind[n].mid <= 9 && bHasTexCoord) { // t matrix
+            else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord) { // t matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-9);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
@@ -645,8 +637,8 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
             // non pow2
 
             if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
-                if (bpmem.tevind[n].sw == ITW_0) {
-                    if (bpmem.tevind[n].tw == ITW_0) {
+                if (bpmem.tevind[n].tw == ITW_0) {
+                    if (bpmem.tevind[n].sw == ITW_0) {
                         // zero out completely
                         WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
                     }
@@ -655,7 +647,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
                             "wrappedcoord.y = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
                     }
                 }
-                else if (bpmem.tevind[n].tw == ITW_0) {
+                else if (bpmem.tevind[n].sw == ITW_0) {
                     WRITE(p, "wrappedcoord.y = fmod( (uv%d.y+%s)*"I_TEXDIMS"[%d].y*"I_TEXDIMS"[%d].w, %s);\n"
                         "wrappedcoord.x = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
                 }
@@ -675,8 +667,8 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
             // mult by bitdepth / tex dimensions
             if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
-                if (bpmem.tevind[n].sw == ITW_0) {
-                    if (bpmem.tevind[n].tw == ITW_0) {
+                if (bpmem.tevind[n].tw == ITW_0) {
+                    if (bpmem.tevind[n].sw == ITW_0) {
                         // zero out completely
                         WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
                     }
@@ -685,7 +677,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
                             "wrappedcoord.y = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
                     }
                 }
-                else if (bpmem.tevind[n].tw == ITW_0) {
+                else if (bpmem.tevind[n].sw == ITW_0) {
                     WRITE(p, "wrappedcoord.y = "I_TEXDIMS"[%d].y * fmod( uv%d.y+%s, "I_TEXDIMS"[%d].w*%s);\n"
                         "wrappedcoord.x = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
                 }

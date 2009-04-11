@@ -40,28 +40,29 @@
 #define C_ENVCONST_END (C_FOG+2)
 
 #define C_COLORMATRIX (C_FOG+2)
+#define PIXELSHADERUID_MAX_VALUES (5+32+6+11)
 
 class PIXELSHADERUID
 {
 public:
-	u32 values[5+32+6+11];
+	u32 values[PIXELSHADERUID_MAX_VALUES];
 	u16 tevstages, indstages;
 
 	PIXELSHADERUID() {
-		memset(values, 0, (5+32+6+11) * 4);
+		memset(values, 0, PIXELSHADERUID_MAX_VALUES * 4);
 		tevstages = indstages = 0;
 	}
 	PIXELSHADERUID(const PIXELSHADERUID& r)
 	{
 		tevstages = r.tevstages;
 		indstages = r.indstages;
-		int N = tevstages + indstages + 4;
-		_assert_(N <= 5+32+6+11);
+		int N = GetNumValues();
+		_assert_(N <= PIXELSHADERUID_MAX_VALUES);
 		for (int i = 0; i < N; ++i) 
 			values[i] = r.values[i];
 	}
 	int GetNumValues() const {
-		return tevstages + indstages + 3; // numTevStages*3/2+1
+		return tevstages + indstages + 4;
 	}
 	bool operator <(const PIXELSHADERUID& _Right) const
 	{
