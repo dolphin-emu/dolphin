@@ -471,11 +471,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\main.cpp"
+			RelativePath=".\Src\main.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\SConscript"
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 	</Files>

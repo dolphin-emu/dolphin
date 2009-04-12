@@ -14,7 +14,7 @@ files = [
 	"DSPAnalyzer.cpp",
 	"DSPInterpreter.cpp",
 	"DSPJit.cpp",
-	"DSPHost.cpp",
+#	"DSPHost.cpp",
 	"DSPTables.cpp",
     ]
 

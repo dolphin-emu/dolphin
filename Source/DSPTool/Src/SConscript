@@ -1,0 +1,20 @@
+# -*- python -*-
+
+Import('env')
+
+dtenv = env.Clone()
+
+files = [
+    'main.cpp',
+    ]
+
+libs = [
+    'common',
+    'dspcore',
+]
+
+
+dtenv.Append(CXXFLAGS = [ '-fPIC' ],
+             LIBS = libs)
+
+dtenv.Program(dtenv['binary_dir'] + 'dsptool', files)

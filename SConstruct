@@ -53,7 +53,8 @@ include_paths = [
     '../../../../Externals/WiiUseSrc/Src',
     '../../../Core/VideoCommon/Src',
     '../../../Core/InputCommon/Src',
-	'../../../Core/AudioCommon/Src',
+    '../../../Core/AudioCommon/Src',
+    '../../../Core/DSPCore/Src',
     ]
 
 dirs = [
@@ -66,6 +67,8 @@ dirs = [
     'Source/Core/VideoCommon/Src',
     'Source/Core/InputCommon/Src',
     'Source/Core/AudioCommon/Src',
+    'Source/Core/DSPCore/Src',
+    'Source/DSPTool/',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',

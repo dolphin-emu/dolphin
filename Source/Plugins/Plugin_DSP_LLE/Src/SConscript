@@ -16,6 +16,7 @@ files = [
 	"Globals.cpp",
 	"main.cpp",
 	"Tools.cpp",
+        "DSPHost.cpp",
 	"Debugger/Debugger.cpp",
 	"Debugger/DSPRegisterView.cpp",
 	"Logging/AXTask.cpp",
