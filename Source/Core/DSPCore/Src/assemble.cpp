@@ -213,12 +213,12 @@ s32 strtoval(const char *str)
 	if (ptr[0] == '#')
 	{
 		ptr++;
-		negative = true;  // Wow! Double # (needed one to get in here) ]negates???
+		negative = true;  // Wow! Double # (needed one to get in here) negates???
 	}
 	if (ptr[0] == '-')
 	{
 		ptr++;
-		negative = true;  // Wow! # negates???
+		negative = true;
 	}
 	if (ptr[0] == '0')
 	{

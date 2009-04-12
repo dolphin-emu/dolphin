@@ -46,10 +46,7 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 	for (int j = 0; j < opc->param_count; j++)
 	{
 		if (j > 0)
-		{
-			sprintf(buf, ", ");
-			buf += strlen(buf);
-		}
+			buf += sprintf(buf, ", ");
 
 		if (opc->params[j].loc >= 1)
 			val = op2;
@@ -63,8 +60,7 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 		else
 			val = val >> opc->params[j].lshift;
 
-		u32 type;
-		type = opc->params[j].type;
+		u32 type = opc->params[j].type;
 
 		if ((type & 0xff) == 0x10)
 			type &= 0xff00;
@@ -106,7 +102,7 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 			if (opc->params[j].size != 2)
 			{
 				if (opc->params[j].mask == 0x007f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", val < 64 ? val : -(0x80 - (s32)val));
+					sprintf(buf, "#%d", (val & 0x40) ? (val | 0xFFFFFFC0) : val);
 				else
 					sprintf(buf, "#0x%02x", val);
 			}
