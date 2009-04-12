@@ -82,7 +82,8 @@ typedef struct fass_t
 label_t labels[10000];
 int	labels_count = 0;
 
-segment_t cur_segment;
+char cur_line[4096];
+
 u32 cur_addr;
 u8  cur_pass;
 fass_t *cur_fa;
@@ -90,6 +91,7 @@ fass_t *cur_fa;
 typedef std::map<std::string, std::string> AliasMap;
 AliasMap aliases;
 
+segment_t cur_segment;
 u32 segment_addr[SEGMENT_MAX];
 
 int current_param = 0;
@@ -150,6 +152,7 @@ char *err_string[] =
 
 void parse_error(err_t err_code, fass_t *fa, const char *extra_info = NULL)
 {
+	fprintf(stderr, "%i : %s\n", fa->code_line, cur_line);
 	fa->failed = true;
 	if (!extra_info)
 		extra_info = "-";
@@ -210,6 +213,11 @@ s32 strtoval(const char *str)
 	if (ptr[0] == '#')
 	{
 		ptr++;
+		negative = true;  // Wow! Double # (needed one to get in here) ]negates???
+	}
+	if (ptr[0] == '-')
+	{
+		ptr++;
 		negative = true;  // Wow! # negates???
 	}
 	if (ptr[0] == '0')
@@ -232,7 +240,7 @@ s32 strtoval(const char *str)
 			case 'X': // hex
 				for (int i = 2 ; ptr[i] != 0 ; i++)
 				{
-					val *=16;
+					val <<= 4;
 					if (ptr[i] >= 'a' && ptr[i] <= 'f')
 						val += (ptr[i]-'a'+10);
 					else if (ptr[i] >= 'A' && ptr[i] <= 'F')
@@ -331,7 +339,7 @@ char *find_brackets(char *src, char *dst)
 		}
 		else
 		{
-			if(first >= 0)
+			if (first >= 0)
 				dst[j++] = src[i];
 		}
 	}
@@ -529,7 +537,7 @@ const opc_t *find_opcode(const char *opcode, u32 par_count, const opc_t * const 
 }
 
 // weird...
-u16 get_mask(u16 mask)
+u16 get_mask_shifted_down(u16 mask)
 {
 	while (!(mask & 1))
 		mask >>= 1;
@@ -556,7 +564,7 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 				//case P_REG1C:
 					value = (opc->params[i].type >> 8) & 31;
 					if ((int)par[i].val < value ||
-						(int)par[i].val > value + get_mask(opc->params[i].mask))
+						(int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
 					{
 						parse_error(ERR_INVALID_REGISTER, fa);
 					}
@@ -638,10 +646,10 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 		else if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
 		{
 			// modified by Hermes: test NUMBER range
-			value = get_mask(opc->params[i].mask);
+			value = get_mask_shifted_down(opc->params[i].mask);
 
 			valueu = 0xffff & ~(value >> 1);
-			if((int)par[i].val < 0)
+			if ((int)par[i].val < 0)
 			{
 				if (value == 7) // value 7 por sbclr/sbset
 				{
@@ -657,12 +665,14 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 
 					parse_error(ERR_OUT_RANGE_NUMBER, fa);
 				}
-				else if ((int)par[i].val < -((value>>1)+1))
+				else if ((int)par[i].val < -((value >> 1) + 1))
 				{
 					if (value < 128)
-						fprintf(stderr,"Value must be from -0x%x to 0x%x\n",((value>>1)+1), ((value>>1)));
+						fprintf(stderr, "Value must be from -0x%x to 0x%x, is %i\n",
+						        (value >> 1) + 1, value >> 1, par[i].val);
 					else
-						fprintf(stderr,"Value must be from -0x%x to 0x%x or 0x0 to 0x%x\n",((value>>1)+1), ((value>>1)),value);
+						fprintf(stderr, "Value must be from -0x%x to 0x%x or 0x0 to 0x%x, is %i\n",
+						        (value >> 1) + 1, value >> 1, value, par[i].val);
 
 					parse_error(ERR_OUT_RANGE_NUMBER, fa);
 				}
@@ -673,7 +683,7 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 				{
 					if (par[i].val > (unsigned)value)
 					{
-						fprintf(stderr,"Value must be from 0x%x to 0x%x\n",valueu, value);
+						fprintf(stderr,"Value must be from 0x%x to 0x%x, is %i\n",valueu, value, par[i].val);
 						parse_error(ERR_OUT_RANGE_NUMBER, fa);
 					}
 				}
@@ -685,7 +695,7 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 						(par[i].val < valueu || par[i].val > (unsigned)0xffff))
 					{
 						if (value < 256)
-							fprintf(stderr,"Address value must be from 0x%x to 0x%x\n", valueu, value);
+							fprintf(stderr,"Address value must be from 0x%x to 0x%x, is %04x\n", valueu, value, par[i].val);
 						else
 							fprintf(stderr,"Address value must be minor of 0x%x\n", value+1);
 						parse_error(ERR_OUT_RANGE_NUMBER, fa);
@@ -698,9 +708,9 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 					if (par[i].val > (unsigned)value)
 					{
 						if (value < 64)
-							fprintf(stderr,"Value must be from -0x%x to 0x%x\n", (value + 1), value);
+							fprintf(stderr,"Value must be from -0x%x to 0x%x, is %i\n", (value + 1), value, par[i].val);
 						else
-							fprintf(stderr,"Value must be minor of 0x%x\n", value + 1);
+							fprintf(stderr,"Value must be minor of 0x%x, is %i\n", value + 1, par[i].val);
 						parse_error(ERR_OUT_RANGE_NUMBER, fa);
 					}
 				}
@@ -719,6 +729,7 @@ void build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
 	outbuf[cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
 	{
+		// Ignore the "reverse" parameters since they are implicit.
 		if (opc->params[i].type != P_ACC_D && opc->params[i].type != P_ACCM_D)
 		{
 			u16 t16 = outbuf[cur_addr + opc->params[i].loc];
@@ -790,6 +801,7 @@ bool gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 		memset(linebuffer, 0, LINEBUF_SIZE);
 		if (!fgets(linebuffer, LINEBUF_SIZE, fa.fsrc))
 			break;
+		strcpy(cur_line, linebuffer);
 		//printf("A: %s", linebuffer);
 		fa.code_line++;
 

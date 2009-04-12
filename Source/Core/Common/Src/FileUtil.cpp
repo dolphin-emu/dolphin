@@ -601,13 +601,13 @@ const char *GetUserDirectory()
 	return path;
 }
 
-bool WriteStringToFile(bool text_file, const char *str, const char *filename)
+bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)
 {
 	FILE *f = fopen(filename, text_file ? "w" : "wb");
 	if (!f)
 		return false;
-	size_t len = strlen(str);
-	if (len != fwrite(str, 1, strlen(str), f))
+	size_t len = str.size();
+	if (len != fwrite(str.data(), 1, str.size(), f))
 	{
 		fclose(f);
 		return false;
@@ -616,7 +616,7 @@ bool WriteStringToFile(bool text_file, const char *str, const char *filename)
 	return true;
 }
 
-bool ReadStringFromFile(bool text_file, const char *filename, std::string *str)
+bool ReadFileToString(bool text_file, const char *filename, std::string *str)
 {
 	FILE *f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)

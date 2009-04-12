@@ -256,7 +256,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool SMG_hack)
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
             
             if (SMG_hack) {
-                g_fProjectionMatrix[11] = -(0.512505 + xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
+                g_fProjectionMatrix[11] = -(0.512505f + xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
             }
             else {
                 g_fProjectionMatrix[11] = xfregs.rawProjection[5] + (proj_hax_1 ? 0.1f : 0.0f);
