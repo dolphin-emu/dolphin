@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_DSP_LLE"
 	ProjectGUID="{3D8156A9-64D1-4C8E-ADBE-1B319030E4A4}"
 	RootNamespace="Plugin_DSP_LLE"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -132,7 +132,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -222,7 +222,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -314,7 +314,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -403,7 +403,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -495,7 +495,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -584,112 +584,8 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Disasm"
-			>
-			<File
-				RelativePath=".\Src\disassemble.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\disassemble.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="DSP"
 			>
-			<File
-				RelativePath=".\Src\DSPAnalyzer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPAnalyzer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPInterpreter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPInterpreter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPJit.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPJit.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPTables.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPTables.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_aram.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_aram.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_condition_codes.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_condition_codes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_ext_op.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_ext_op.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_interface.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_interface.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_interpreter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_interpreter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_memory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_memory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_opcodes_helper.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_registers.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\gdsp_registers.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Logging"
@@ -933,6 +829,18 @@
 		</File>
 		<File
 			RelativePath=".\Src\Config.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\Core\DSPCore\Src\DSPConfigDlgLLE.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\Core\DSPCore\Src\DSPConfigDlgLLE.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPHost.cpp"
 			>
 		</File>
 		<File

@@ -25,16 +25,16 @@
 
 #include <stdlib.h>
 
-#include "Globals.h"
 #include "Thread.h"
 #include "MemoryUtil.h"
 
+#include "DSPHost.h"
 #include "DSPAnalyzer.h"
 #include "gdsp_aram.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 
-#include "Tools.h"
+// #include "Tools.h"
 
 void gdsp_dma();
 
@@ -60,10 +60,10 @@ void gdsp_ifx_init()
 
 u32 gdsp_mbox_peek(u8 mbx)
 {
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
 	u32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 	return value;
 }
@@ -71,21 +71,21 @@ u32 gdsp_mbox_peek(u8 mbx)
 
 void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
 	gdsp_mbox[mbx][0] = val & 0x7fff;
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 }
 
 
 void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
 	gdsp_mbox[mbx][1]  = val;
 	gdsp_mbox[mbx][0] |= 0x8000;
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 
 	if (mbx == GDSP_MBOX_DSP)
@@ -103,7 +103,7 @@ u16 gdsp_mbox_read_h(u8 mbx)
 
 u16 gdsp_mbox_read_l(u8 mbx)
 {
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
 
 	u16 val = gdsp_mbox[mbx][1];
@@ -111,7 +111,7 @@ u16 gdsp_mbox_read_l(u8 mbx)
 
 	DEBUG_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.pc);
 
-	if (g_dspInitialize.bOnThread)
+	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 	return val;
 }
@@ -212,13 +212,10 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-
-	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
+	
 	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
-
+	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	DSPAnalyzer::Analyze();
-	if (g_dsp.dump_imem)
-		DumpDSPCode(&dst[dsp_addr], size, g_dsp.iram_crc);
 }
 
 

@@ -34,9 +34,9 @@
 #include <wx/listctrl.h>
 #include <wx/statline.h>
 
-#include "../disassemble.h"
-#include "../gdsp_interpreter.h"
-#include "../gdsp_memory.h"
+#include "disassemble.h"
+#include "gdsp_interpreter.h"
+#include "gdsp_memory.h"
 
 class DSPRegisterView;
 
@@ -66,7 +66,6 @@ private:
 		ID_STEPTOOL,
 		ID_SHOWPCTOOL,
 		ID_JUMPTOTOOL,
-		ID_DUMPCODETOOL,
 		ID_DISASMDUMPTOOL,
 		ID_CHECK_ASSERTINT,
 		ID_CHECK_HALT,
@@ -128,6 +127,7 @@ private:
 		{
 		}
 	};
+
 	typedef std::map<u16, SSymbol>CSymbolMap;
 	CSymbolMap m_SymbolMap;
 
@@ -149,7 +149,6 @@ private:
 	void OnClose(wxCloseEvent& event);
 	void OnChangeState(wxCommandEvent& event);
 	void OnShowPC(wxCommandEvent& event);
-	void OnDumpCode(wxCommandEvent& event);
 	void OnRightClick(wxListEvent& event);
 	void OnDoubleClick(wxListEvent& event);
 

@@ -22,7 +22,9 @@
 
 #include "Common.h"
 
-enum parameterType
+// The ones that end with _D are the opposite one - if the bit specify
+// ACC0, then ACC_D will be ACC1.
+enum partype_t
 {
 	P_NONE		= 0x0000,
 	P_VAL		= 0x0001,
@@ -31,7 +33,6 @@ enum parameterType
 	P_STR		= 0x0004,
 	P_REG		= 0x8000,
 	P_REG08		= P_REG | 0x0800,
-	P_REG10		= P_REG | 0x1000,
 	P_REG18		= P_REG | 0x1800,
 	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
 	P_REG19		= P_REG | 0x1900,
@@ -39,17 +40,21 @@ enum parameterType
 	P_REG1A		= P_REG | 0x1a00,
 	P_REG1C		= P_REG | 0x1c00,
 //	P_ACC		= P_REG | 0x1c10, // used for global accum (gcdsptool's value)
-	P_ACCD		= P_REG | 0x1c80,
+	P_ACC_D		= P_REG | 0x1c80,
+	P_ACCL		= P_REG | 0x1c00, // used for mid accum
 	P_ACCM		= P_REG | 0x1e00, // used for mid accum
 	// The following are not in gcdsptool
 	P_ACCM_D	= P_REG | 0x1e80,
-	P_ACC		= P_REG | 0x2000,
-	P_ACC_D		= P_REG | 0x2080,
+	P_ACC		= P_REG | 0x2000, // used for global accum.
 	P_AX		= P_REG | 0x2200,
-	P_AX_D		= P_REG | 0x2280,
 	P_REGS_MASK	= 0x03f80, // gcdsptool's value = 0x01f80
 	P_REF       = P_REG | 0x4000,
 	P_PRG       = P_REF | P_REG,
+
+	// The following seem like junk:
+	//	P_REG10		= P_REG | 0x1000,
+	//	P_AX_D		= P_REG | 0x2280,
+
 };
 
 #define P_EXT   0x80
@@ -81,14 +86,14 @@ union UDSPInstruction
 
 typedef void (*dspInstFunc)(const UDSPInstruction&);
 
-typedef struct
+struct param2_t
 {
-	parameterType type;
+	partype_t type;
 	u8 size;
 	u8 loc;
 	s8 lshift;
 	u16 mask;
-} DSPOParams;
+};
 
 typedef struct
 {
@@ -101,20 +106,40 @@ typedef struct
 
 	u8 size;
 	u8 param_count;
-	DSPOParams params[8];
+	param2_t params[8];
 	dspInstFunc prologue;
 	dspInstFunc epilogue;
 } DSPOPCTemplate;
 
-extern DSPOPCTemplate opcodes[];
+typedef DSPOPCTemplate opc_t;
+
+// Opcodes
+extern const DSPOPCTemplate opcodes[];
 extern const u32 opcodes_size;
-extern DSPOPCTemplate opcodes_ext[];
+extern const DSPOPCTemplate opcodes_ext[];
 extern const u32 opcodes_ext_size;
 extern u8 opSize[OPTABLE_SIZE];
+extern const DSPOPCTemplate cw;
 
 extern dspInstFunc opTable[];
 extern dspInstFunc prologueTable[OPTABLE_SIZE];
 extern dspInstFunc epilogueTable[OPTABLE_SIZE];
+
+// Predefined labels
+struct pdlabel_t
+{
+	u16 addr;
+	const char* name;
+	const char* description;
+};
+
+extern const pdlabel_t regnames[];
+extern const pdlabel_t pdlabels[];
+extern const u32 pdlabels_size;
+
+const char *pdname(u16 val);
+const char *pdregname(int val);
+const char *pdregnamelong(int val);
 
 void InitInstructionTable();
 

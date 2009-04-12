@@ -23,132 +23,18 @@
 
    ====================================================================*/
 
-#include <stdio.h>
 #include <memory.h>
+#include <stdio.h>
 #include <stdlib.h>
-
-#include "Globals.h"
 
 #include "disassemble.h"
 #include "DSPTables.h"
-// #include "gdsp_tool.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #endif
 
 u32 unk_opcodes[0x10000];
-
-
-// predefined labels
-typedef struct pdlabel_t
-{
-	u16 addr;
-	const char* name;
-	const char* description;
-} pdlabels_t;
-
-const pdlabel_t pdlabels[] =
-{
-	{0xffa0, "COEF_A1_0", "COEF_A1_0",},
-	{0xffa1, "COEF_A2_0", "COEF_A2_0",},
-	{0xffa2, "COEF_A1_1", "COEF_A1_1",},
-	{0xffa3, "COEF_A2_1", "COEF_A2_1",},
-	{0xffa4, "COEF_A1_2", "COEF_A1_2",},
-	{0xffa5, "COEF_A2_2", "COEF_A2_2",},
-	{0xffa6, "COEF_A1_3", "COEF_A1_3",},
-	{0xffa7, "COEF_A2_3", "COEF_A2_3",},
-	{0xffa8, "COEF_A1_4", "COEF_A1_4",},
-	{0xffa9, "COEF_A2_4", "COEF_A2_4",},
-	{0xffaa, "COEF_A1_5", "COEF_A1_5",},
-	{0xffab, "COEF_A2_5", "COEF_A2_5",},
-	{0xffac, "COEF_A1_6", "COEF_A1_6",},
-	{0xffad, "COEF_A2_6", "COEF_A2_6",},
-	{0xffae, "COEF_A1_7", "COEF_A1_7",},
-	{0xffaf, "COEF_A2_7", "COEF_A2_7",},
-	{0xffc9, "DSCR", "DSP DMA Control Reg",},
-	{0xffcb, "DSBL", "DSP DMA Block Length",},
-	{0xffcd, "DSPA", "DSP DMA DMEM Address",},
-	{0xffce, "DSMAH", "DSP DMA Mem Address H",},
-	{0xffcf, "DSMAL", "DSP DMA Mem Address L",},
-	{0xffd1, "SampleFormat", "SampleFormat",},
-
-	{0xffd3, "Unk Zelda", "Unk Zelda writes to it",},
-
-	{0xffd4, "ACSAH", "Accelerator start address H",},
-	{0xffd5, "ACSAL", "Accelerator start address L",},
-	{0xffd6, "ACEAH", "Accelerator end address H",},
-	{0xffd7, "ACEAL", "Accelerator end address L",},
-	{0xffd8, "ACCAH", "Accelerator current address H",},
-	{0xffd9, "ACCAL", "Accelerator current address L",},
-	{0xffda, "pred_scale", "pred_scale",},
-	{0xffdb, "yn1", "yn1",},
-	{0xffdc, "yn2", "yn2",},
-	{0xffdd, "ARAM", "Direct Read from ARAM (uses ADPCM)",},
-	{0xffde, "GAIN", "Gain",},
-	{0xffef, "AMDM", "ARAM DMA Request Mask",},
-	{0xfffb, "DIRQ", "DSP IRQ Request",},
-	{0xfffc, "DMBH", "DSP Mailbox H",},
-	{0xfffd, "DMBL", "DSP Mailbox L",},
-	{0xfffe, "CMBH", "CPU Mailbox H",},
-	{0xffff, "CMBL", "CPU Mailbox L",},
-};
-
-pdlabel_t regnames[] =
-{
-	{0x00, "AR0",       "Register 00",},
-	{0x01, "AR1",       "Register 01",},
-	{0x02, "AR2",       "Register 02",},
-	{0x03, "AR3",       "Register 03",},
-	{0x04, "IX0",       "Register 04",},
-	{0x05, "IX1",       "Register 05",},
-	{0x06, "IX2",       "Register 06",},
-	{0x07, "IX3",       "Register 07",},
-	{0x08, "R08",       "Register 08",},
-	{0x09, "R09",       "Register 09",},
-	{0x0a, "R10",       "Register 10",},
-	{0x0b, "R11",       "Register 11",},
-	{0x0c, "ST0",       "Call stack",},
-	{0x0d, "ST1",       "Data stack",},
-	{0x0e, "ST2",       "Loop addr stack",},
-	{0x0f, "ST3",       "Loop counter",},
-	{0x00, "AC0.H",     "Accu High 0",},
-	{0x11, "AC1.H",     "Accu High 1",},
-	{0x12, "CR",        "Config Register",},
-	{0x13, "SR",        "Special Register",},
-	{0x14, "PROD.L",    "Prod L",},
-	{0x15, "PROD.M1",   "Prod M1",},
-	{0x16, "PROD.H",    "Prod H",},
-	{0x17, "PROD.M2",   "Prod M2",},
-	{0x18, "AX0.L",		"Extra Accu L 0",},
-	{0x19, "AX1.L",		"Extra Accu L 1",},
-	{0x1a, "AX0.H",		"Extra Accu H 0",},
-	{0x1b, "AX1.H",		"Extra Accu H 1",},
-	{0x1c, "AC0.L",		"Register 28",},
-	{0x1d, "AC1.L",		"Register 29",},
-	{0x1e, "AC0.M",		"Register 00",},
-	{0x1f, "AC1.M",		"Register 00",},
-
-	// To resolve special names.
-	{0x20, "ACC0",		"Accu Full 0",},
-	{0x21, "ACC1",		"Accu Full 1",},
-	{0x22, "AX0",		"Extra Accu 0",},
-	{0x23, "AX1",		"Extra Accu 1",},
-};
-
-const char* pdname(u16 val)
-{
-	static char tmpstr[12]; // nasty
-
-	for (int i = 0; i < (int)(sizeof(pdlabels) / sizeof(pdlabel_t)); i++)
-	{
-		if (pdlabels[i].addr == val)
-			return pdlabels[i].name;
-	}
-
-	sprintf(tmpstr, "0x%04x", val);
-	return tmpstr;
-}
 
 extern void nop(const UDSPInstruction& opc);
 
@@ -185,7 +71,7 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 
 		if (type & P_REG)
 		{
-			if (type == P_ACCD) // Used to be P_ACCM_D TODO verify
+			if (type == P_ACC_D)  // Used to be P_ACCM_D TODO verify
 				val = (~val & 0x1) | ((type & P_REGS_MASK) >> 8);
 			else
 				val |= (type & P_REGS_MASK) >> 8;
@@ -197,14 +83,14 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 		{
 		case P_REG:
 			if (gdg->decode_registers)
-				sprintf(buf, "$%s", regnames[val].name);
+				sprintf(buf, "$%s", pdregname(val));
 			else
 				sprintf(buf, "$%d", val);
 			break;
 
 		case P_PRG:
 			if (gdg->decode_registers)
-				sprintf(buf, "@$%s", regnames[val].name);
+				sprintf(buf, "@$%s", pdregname(val));
 			else
 				sprintf(buf, "@$%d", val);
 			break;
@@ -252,10 +138,11 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 
 u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 {
-	DSPOPCTemplate* opc = 0;
-	DSPOPCTemplate* opc_ext = 0;
+	const DSPOPCTemplate* opc = 0;
+	const DSPOPCTemplate* opc_ext = 0;
 	bool extended;
 
+	// Undefined memory.
 	if ((gdg->pc & 0x7fff) >= 0x1000)
 		return 1;
 
@@ -300,30 +187,28 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 				break;
 			}
 		}
-
 		if (!opc_ext)
 		{
 			ERROR_LOG(DSPLLE, "get_opcode_size ext ARGH");
 		}
-
 		return opc_ext->size;
 	}
 
-	return(opc->size & ~P_EXT);
+	return opc->size & ~P_EXT;
 }
+
 
 char* gd_dis_opcode(gd_globals_t* gdg)
 {
-	u32 j;
-	u32 op1, op2;
-	const DSPOPCTemplate *opc = NULL;
-	const DSPOPCTemplate *opc_ext = NULL;
-	u16 pc;
-	char* buf = gdg->buffer;
-	bool extended;
+	u32 op2;
+	char *buf = gdg->buffer;
 
-	pc   = gdg->pc;
-	*buf = '\0';
+	u16 pc   = gdg->pc;
+
+	// Start with a space.
+	buf[0] = ' ';
+	buf[1] = '\0';
+	buf++;
 
 	if ((pc & 0x7fff) >= 0x1000)
 	{
@@ -332,10 +217,12 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	pc &= 0x0fff;
-	op1 = gdg->binbuf[pc];
+	u32 op1 = gdg->binbuf[pc];
 
+	const DSPOPCTemplate *opc = NULL;
+	const DSPOPCTemplate *opc_ext = NULL;
 	// find opcode
-	for (j = 0; j < opcodes_size; j++)
+	for (int j = 0; j < opcodes_size; j++)
 	{
 		u16 mask;
 
@@ -356,6 +243,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	if (!opc)
 		opc = &fake_op;
 
+	bool extended;
 	if (opc->size & P_EXT && op1 & 0x00ff)
 		extended = true;
 	else
@@ -365,7 +253,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	{
 		// opcode has an extension
 		// find opcode
-		for (j = 0; j < opcodes_ext_size; j++)
+		for (int j = 0; j < opcodes_ext_size; j++)
 		{
 			if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
 			{
@@ -446,10 +334,10 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	else
 		gdg->pc += opc->size & ~P_EXT;
 
-	return(gdg->buffer);
+	return gdg->buffer;
 }
 
-bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
+bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output)
 {
 	gd_dis_open_unkop();
 
@@ -457,9 +345,10 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	u32 size;
 
 	in = fopen(name, "rb");
-
-	if (in == NULL)
+	if (in == NULL) {
+		printf("gd_dis_file: No input\n");
 		return false;
+	}
 
 	fseek(in, 0, SEEK_END);
 	size = (int)ftell(in);
@@ -547,9 +436,7 @@ void gd_dis_open_unkop()
 	}
 	else
 	{
-		int i;
-
-		for (i = 0; i < 0x10000; i++)
+		for (int i = 0; i < 0x10000; i++)
 		{
 			unk_opcodes[i] = 0;
 		}

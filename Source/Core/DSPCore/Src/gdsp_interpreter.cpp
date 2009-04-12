@@ -28,10 +28,11 @@
 
 #include "DSPTables.h"
 #include "DSPAnalyzer.h"
+#include "DSPHost.h"
 
 #include "gdsp_interface.h"
 #include "gdsp_opcodes_helper.h"
-#include "Tools.h"
+// #include "Tools.h"
 #include "MemoryUtil.h"
 
 //-------------------------------------------------------------------------------
@@ -53,9 +54,6 @@ void UpdateCachedCR()
 
 void gdsp_init()
 {
-	// Dump IMEM when ucodes get uploaded. Why not... still a plugin heavily in dev.
-	g_dsp.dump_imem = true;
-
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
@@ -318,11 +316,12 @@ void gdsp_run()
 	while (!cr_halt)
 	{
 		// Are we running?
-		if (*g_dspInitialize.pEmulatorState)
+		if (DSPHost_Running())
 			break;
 
 		gdsp_check_external_int();
-		for (int i = 0; i < 500; i++)
+		// This number (500) is completely arbitrary. TODO: tweak.
+		for (int i = 0; i < 500 && !cr_halt; i++)
 			gdsp_step();
 
 		if (!gdsp_running)

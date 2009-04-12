@@ -15,36 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
-
-// UDSPControl
-union UDSPControl
-{
-	u16 Hex;
-	struct
-	{
-		unsigned DSPReset       : 1; // Write 1 to reset and waits for 0
-		unsigned DSPAssertInt   : 1;
-		unsigned DSPHalt        : 1;
-
-		unsigned AI             : 1;
-		unsigned AI_mask        : 1;
-		unsigned ARAM           : 1;
-		unsigned ARAM_mask      : 1;
-		unsigned DSP            : 1;
-		unsigned DSP_mask       : 1;
-
-		unsigned ARAM_DMAState  : 1; // DSPGetDMAStatus() uses this flag
-		unsigned unk3           : 1;
-		unsigned DSPInit        : 1; // DSPInit() writes to this flag
-		unsigned pad            : 4;
-	};
-
-	UDSPControl(u16 _Hex = 0)
-		: Hex(_Hex) {}
-};
+#ifndef _DSPLLE_TOOLS_H
+#define _DSPLLE_TOOLS_H
 
 bool DumpDSPCode(const u8 *data, u32 _Length, u32 crc);
 bool DisasmUCodeDump(u32 crc);
 u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
 bool DumpCWCode(u32 _Address, u32 _Length);
+
+#endif //_DSPLLE_TOOLS_H

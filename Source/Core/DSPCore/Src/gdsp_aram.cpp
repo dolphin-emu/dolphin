@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#include "Common.h"
+#include "DSPHost.h"
 #include "gdsp_interface.h"
 #include "gdsp_interpreter.h"
 
@@ -26,7 +27,7 @@ s16 ADPCM_Step(u32& _rSamplePos)
 
 	if (((_rSamplePos) & 15) == 0)
 	{
-		gdsp_ifx_regs[DSP_PRED_SCALE] = g_dspInitialize.pARAM_Read_U8((_rSamplePos & ~15) >> 1);
+		gdsp_ifx_regs[DSP_PRED_SCALE] = DSPHost_ReadHostMemory((_rSamplePos & ~15) >> 1);
 		_rSamplePos += 2;
 	}
 
@@ -37,8 +38,8 @@ s16 ADPCM_Step(u32& _rSamplePos)
 	s32 coef2 = pCoefTable[coef_idx * 2 + 1];
 
 	int temp = (_rSamplePos & 1) ?
-		   (g_dspInitialize.pARAM_Read_U8(_rSamplePos >> 1) & 0xF) :
-		   (g_dspInitialize.pARAM_Read_U8(_rSamplePos >> 1) >> 4);
+		   (DSPHost_ReadHostMemory(_rSamplePos >> 1) & 0xF) :
+		   (DSPHost_ReadHostMemory(_rSamplePos >> 1) >> 4);
 
 	if (temp >= 8)
 		temp -= 16;
@@ -77,7 +78,7 @@ u16 dsp_read_aram()
 		    break;
 
 	    case 0x0A:  // 16-bit PCM audio
-		    val = (g_dspInitialize.pARAM_Read_U8(Address) << 8) | g_dspInitialize.pARAM_Read_U8(Address + 1);
+		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
 
 		    gdsp_ifx_regs[DSP_YN2] = gdsp_ifx_regs[DSP_YN1];
 		    gdsp_ifx_regs[DSP_YN1] = val;
@@ -86,7 +87,7 @@ u16 dsp_read_aram()
 		    break;
 
 	    default:
-		    val = (g_dspInitialize.pARAM_Read_U8(Address) << 8) | g_dspInitialize.pARAM_Read_U8(Address + 1);
+		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
 		    Address += 2;
 		    ERROR_LOG(DSPLLE, "Unknown DSP Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 		    break;

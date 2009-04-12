@@ -22,7 +22,7 @@
 
 // Anything to do with SR and conditions goes here.
 
-#include "Globals.h"
+#include "Common.h"
 
 #include "gdsp_registers.h"
 

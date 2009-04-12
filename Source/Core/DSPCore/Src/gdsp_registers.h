@@ -25,8 +25,7 @@
 #ifndef _GDSP_REGISTERS_H
 #define _GDSP_REGISTERS_H
 
-#include "Globals.h"
-
+#include "Common.h"
 
 // Register table taken from libasnd
 #define DSP_REG_AR0         0x00    // address registers
@@ -95,6 +94,5 @@
 
 void dsp_reg_store_stack(u8 stack_reg, u16 val);
 u16 dsp_reg_load_stack(u8 stack_reg);
-
 
 #endif

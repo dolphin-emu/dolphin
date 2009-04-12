@@ -24,8 +24,6 @@
 
 #define PROFILE					0
 
-void DSP_DebugBreak();
-
 u16 Memory_Read_U16(u32 _uAddress); // For PB address detection
 u32 Memory_Read_U32(u32 _uAddress);
 

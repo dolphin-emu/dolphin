@@ -25,7 +25,7 @@
 #ifndef _GDSP_INTERFACE_H
 #define _GDSP_INTERFACE_H
 
-#include "Globals.h"
+#include "Common.h"
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1

@@ -29,7 +29,6 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)
 
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
-	EVT_MENU(ID_DUMPCODETOOL, DSPDebuggerLLE::OnDumpCode)
 
 	EVT_LIST_ITEM_RIGHT_CLICK(ID_DISASM, DSPDebuggerLLE::OnRightClick)
 	EVT_LIST_ITEM_ACTIVATED(ID_DISASM, DSPDebuggerLLE::OnDoubleClick)
@@ -62,8 +61,6 @@ void DSPDebuggerLLE::CreateGUIControls()
 	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"), wxNullBitmap, wxT("Step Code "), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Reset To PC counter"), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
-	m_Toolbar->AddSeparator();
-	m_Toolbar->AddCheckTool(ID_DUMPCODETOOL, wxT("Dump"), wxNullBitmap, wxNullBitmap, wxT("Dump UCode to file and disasm"));
 	m_Toolbar->AddSeparator();
 	m_Toolbar->AddCheckTool(ID_CHECK_ASSERTINT, wxT("AssertInt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
 	m_Toolbar->AddCheckTool(ID_CHECK_HALT, wxT("Halt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
@@ -123,11 +120,6 @@ void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
 {
 	Refresh();
 	FocusOnPC();
-}
-
-void DSPDebuggerLLE::OnDumpCode(wxCommandEvent& event)
-{
-	g_dsp.dump_imem = event.IsChecked();
 }
 
 void DSPDebuggerLLE::OnRightClick(wxListEvent& event)
@@ -339,8 +331,6 @@ void DSPDebuggerLLE::UpdateRegisterFlags()
 {
 	if (m_CachedCR == g_dsp.cr)
 		return;
-
-	m_Toolbar->ToggleTool(ID_DUMPCODETOOL, g_dsp.dump_imem);
 
 	m_Toolbar->ToggleTool(ID_CHECK_ASSERTINT, g_dsp.cr & 0x02 ? true : false);
 	m_Toolbar->ToggleTool(ID_CHECK_HALT, g_dsp.cr & 0x04 ? true : false);

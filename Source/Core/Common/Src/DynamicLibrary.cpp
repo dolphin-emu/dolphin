@@ -154,7 +154,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 
 	if (!retval)
 	{
-		ERROR_LOG(COMMON, "DL: Symbol %s missing in %s (error: %s)\n", 
+		WARN_LOG(COMMON, "DL: Symbol %s missing in %s (error: %s)\n", 
 				  funcname, library_file.c_str(), 
 				  DllGetLastError());
 	}

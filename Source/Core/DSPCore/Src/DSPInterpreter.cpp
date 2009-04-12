@@ -19,7 +19,7 @@
 
 #include "DSPInterpreter.h"
 
-#include "Globals.h"
+#include "Common.h"
 #include "gdsp_memory.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_condition_codes.h"
@@ -116,11 +116,9 @@ void jcc(const UDSPInstruction& opc)
 // Jump to address; set program counter to a value from register $R.
 void jmprcc(const UDSPInstruction& opc)
 {
-	u8 reg;
-
 	if (CheckCondition(opc.hex & 0xf))
 	{
-		reg  = (opc.hex >> 5) & 0x7;
+		u8 reg  = (opc.hex >> 5) & 0x7;
 		g_dsp.pc = dsp_op_read_reg(reg);
 	} 
 }
@@ -824,6 +822,16 @@ void andc(const UDSPInstruction& opc)
 	}
 
 	Update_SR_Register64(dsp_get_long_acc(D));
+}
+
+void orc(const UDSPInstruction& opc)
+{
+	ERROR_LOG(DSPLLE, "orc not implemented");
+}
+
+void orf(const UDSPInstruction& opc)
+{
+	ERROR_LOG(DSPLLE, "orf not implemented");
 }
 
 
@@ -1752,7 +1760,8 @@ void msubx(const UDSPInstruction& opc)
 // MADDC $acS.m, $axT.h
 // 1110 10st xxxx xxxx
 // Multiply middle part of accumulator $acS.m by high part of secondary
-// accumulator $axT.h (treat them both as signed) and add result to product register.
+// accumulator $axT.h (treat them both as signed) and add result to product
+// register.
 void maddc(const UDSPInstruction& opc)
 {
 	u32 sreg = (opc.hex >> 9) & 0x1;
@@ -1788,28 +1797,28 @@ void msubc(const UDSPInstruction& opc)
 	Update_SR_Register64(prod);
 }
 
-// SRS @M, $(DSP_REG_AXL0+S)
+// SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
-// Store value from register $(DSP_REG_AXL0+S) to a memory pointed by address M. 
+// Store value from register $(0x18+S) to a memory pointed by address M. 
 // (8-bit sign extended). 
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
-	u8 reg   = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
+	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
 	u16 addr = (u16)(s16)(s8)opc.hex;
 	dsp_dmem_write(addr, g_dsp.r[reg]);
 }
   
-// LRS $(DSP_REG_AXL0+D), @M
+// LRS $(0x18+D), @M
 // 0010 0ddd mmmm mmmm
 // Move value from data memory pointed by address M (8-bit sign
-// extended) to register $(DSP_REG_AXL0+D). 
+// extended) to register $(0x18+D). 
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void lrs(const UDSPInstruction& opc)
 {
-	u8 reg   = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
+	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
 	u16 addr = (u16)(s16)(s8)opc.hex;
 	g_dsp.r[reg] = dsp_dmem_read(addr);
 }

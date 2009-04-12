@@ -601,4 +601,35 @@ const char *GetUserDirectory()
 	return path;
 }
 
+bool WriteStringToFile(bool text_file, const char *str, const char *filename)
+{
+	FILE *f = fopen(filename, text_file ? "w" : "wb");
+	if (!f)
+		return false;
+	size_t len = strlen(str);
+	if (len != fwrite(str, 1, strlen(str), f))
+	{
+		fclose(f);
+		return false;
+	}
+	fclose(f);
+	return true;
+}
+
+bool ReadStringFromFile(bool text_file, const char *filename, std::string *str)
+{
+	FILE *f = fopen(filename, text_file ? "r" : "rb");
+	if (!f)
+		return false;
+	fseek(f, 0, SEEK_END);
+	size_t len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	char *buf = new char[len + 1];
+	buf[fread(buf, 1, len, f)] = 0;
+	*str = std::string(buf);
+	fclose(f);
+	delete [] buf;
+	return true;
+}
+
 } // namespace

@@ -308,7 +308,6 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 	if (_CPUMailbox)
 	{
 		gdsp_mbox_write_l(GDSP_MBOX_CPU, _uLowMail);
-
 	}
 	else
 	{

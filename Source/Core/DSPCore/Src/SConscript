@@ -1,0 +1,24 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+	"disassemble.cpp",
+	"gdsp_aram.cpp",
+	"gdsp_condition_codes.cpp",
+	"gdsp_ext_op.cpp",
+	"gdsp_interface.cpp",
+	"gdsp_interpreter.cpp",
+	"gdsp_memory.cpp",
+	"gdsp_registers.cpp",
+	"DSPAnalyzer.cpp",
+	"DSPInterpreter.cpp",
+	"DSPJit.cpp",
+	"DSPHost.cpp",
+	"DSPTables.cpp",
+    ]
+
+acenv = env.Clone()
+acenv.Append(CXXFLAGS = [ '-fPIC' ])
+
+acenv.StaticLibrary('dspcore', files)

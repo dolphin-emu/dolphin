@@ -1,11 +1,11 @@
 /*====================================================================
 
-   filename:     opcodes.h
-   project:      GameCube DSP Tool (gcdsp)
-   created:      2005.03.04
+   filename:     gdsp_memory.h
+   project:      GCemu
+   created:      2004-6-18
    mail:		  duddie@walla.com
 
-   Copyright (c) 2005 Duddie
+   Copyright (c) 2005 Duddie & Tratax
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -22,29 +22,26 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
    ====================================================================*/
-
-#pragma once
+#ifndef _GDSP_MEMORY_H
+#define _GDSP_MEMORY_H
 
 #include "Common.h"
+#include "gdsp_interpreter.h"
 
-struct gd_globals_t
+u16  dsp_imem_read(u16 addr);
+void dsp_dmem_write(u16 addr, u16 val);
+u16  dsp_dmem_read(u16 addr);
+
+inline u16 dsp_fetch_code()
 {
-	bool print_tabs;
-	bool show_hex;
-	bool show_pc;
-	bool decode_names;
-	bool decode_registers;
+	u16 opc = dsp_imem_read(g_dsp.pc);
+	g_dsp.pc++;
+	return opc;
+}
 
-	u16* binbuf;
-	u16 pc;
-	char* buffer;
-	u16 buffer_size;
-	char ext_separator;
-};
+inline u16 dsp_peek_code()
+{
+	return dsp_imem_read(g_dsp.pc);
+}
 
-
-char* gd_dis_opcode(gd_globals_t* gdg);
-bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output);
-void gd_dis_close_unkop();
-void gd_dis_open_unkop();
-const char* gd_dis_get_reg_name(u16 reg);
+#endif

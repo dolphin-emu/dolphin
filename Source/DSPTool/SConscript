@@ -1,0 +1,12 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+    'main.cpp',
+    ]
+
+acenv = env.Clone()
+acenv.Append(CXXFLAGS = [ '-fPIC' ])
+    
+acenv.Program('dsptool', files)

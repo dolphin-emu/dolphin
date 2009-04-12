@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 
-#include "Globals.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_memory.h"
 #include "gdsp_interface.h"

@@ -99,6 +99,9 @@ char *GetConfigDirectory();
 std::string GetBundleDirectory();
 #endif
 
+bool WriteStringToFile(bool text_file, const char *str, const char *filename);
+bool ReadStringFromFile(bool text_file, const char *filename, std::string *str);
+
 }  // namespace
 
 #endif

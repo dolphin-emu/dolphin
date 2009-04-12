@@ -27,7 +27,4 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 
-#define _SCL_SECURE_NO_DEPRECATE
-
-
 // TODO: reference additional headers your program requires here

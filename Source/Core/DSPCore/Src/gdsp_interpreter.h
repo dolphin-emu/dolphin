@@ -43,7 +43,7 @@
 #ifndef _GDSP_INTERPRETER_H
 #define _GDSP_INTERPRETER_H
 
-#include "Globals.h"
+#include "Common.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
@@ -85,17 +85,16 @@ struct SDSP
 	u8* cpu_ram;
 	u16 cr;
 	u8 reg_stack_ptr[4];
-	u8 exceptions;   // pending exceptiosn?
+	u8 exceptions;   // pending exceptions?
+	bool exception_in_progress_hack;  // is this the same as "exception enabled"?
 
 	// lets make stack depth to 32 for now
 	u16 reg_stack[4][DSP_STACK_DEPTH];
 	void (* irq_request)(void);
 
 	// for debugger only
-	bool dump_imem;
 	u32 iram_crc;
 	u64 step_counter;
-	bool exception_in_progress_hack;
 };
 
 extern SDSP g_dsp;

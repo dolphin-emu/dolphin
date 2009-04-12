@@ -26,7 +26,7 @@
 #ifndef _GDSP_OPCODES_HELPER_H
 #define _GDSP_OPCODES_HELPER_H
 
-#include "Globals.h"
+#include "Common.h"
 
 #include "DSPInterpreter.h"
 

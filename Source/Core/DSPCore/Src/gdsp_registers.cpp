@@ -23,7 +23,7 @@
 
    ====================================================================*/
 
-#include "Globals.h"
+#include "Common.h"
 #include "gdsp_registers.h"
 #include "gdsp_interpreter.h"
 
