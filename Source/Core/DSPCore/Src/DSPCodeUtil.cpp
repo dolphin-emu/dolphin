@@ -23,6 +23,22 @@
 #include "assemble.h"
 #include "disassemble.h"
 
+DSPAssembler::DSPAssembler()
+:   include_dir(0),
+    current_param(0),
+	cur_addr(0),
+	labels_count(0),
+	cur_pass(0)
+{
+	include_dir = 0;
+	current_param = 0;
+}
+
+DSPAssembler::~DSPAssembler()
+{
+
+}
+
 
 bool Assemble(const char *text, std::vector<u16> *code)
 {
@@ -40,11 +56,12 @@ bool Assemble(const char *text, std::vector<u16> *code)
 		return false;
 
 	// TODO: fix the terrible api of the assembler.
-	gd_ass_init_pass(1);
-	if (!gd_ass_file(&gdg, fname, 1))
+	DSPAssembler assembler;
+	assembler.gd_ass_init_pass(1);
+	if (!assembler.gd_ass_file(&gdg, fname, 1))
 		return false;
-	gd_ass_init_pass(2);
-	if (!gd_ass_file(&gdg, fname, 2))
+	assembler.gd_ass_init_pass(2);
+	if (!assembler.gd_ass_file(&gdg, fname, 2))
 		return false;
 
 	code->resize(gdg.buffer_size);
@@ -54,7 +71,7 @@ bool Assemble(const char *text, std::vector<u16> *code)
 	return true;
 }
 
-bool Disassemble(const std::vector<u16> &code, std::string *text)
+bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string *text)
 {
 	if (code.empty())
 		return false;
@@ -74,11 +91,13 @@ bool Disassemble(const std::vector<u16> &code, std::string *text)
 
 		// These two prevent roundtripping.
 		gdg.show_hex = false;
-		gdg.show_pc = false;
+		gdg.show_pc = line_numbers;
 		gdg.ext_separator = '\'';
 		gdg.decode_names = false;
 		gdg.decode_registers = true;
-		bool success = gd_dis_file(&gdg, tmp1, t);
+
+		DSPDisassembler disasm;
+		bool success = disasm.gd_dis_file(&gdg, tmp1, t);
 		fclose(t);
 
 		File::ReadFileToString(true, tmp2, text);
@@ -87,7 +106,7 @@ bool Disassemble(const std::vector<u16> &code, std::string *text)
 	return false;
 }
 
-void Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
+bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 {		
 	if (code1.size() != code2.size())
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
@@ -98,15 +117,16 @@ void Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		if (code1[i] == code2[i])
 			count_equal++;
 		else
-			printf("!! %04x : %04x vs %04x\n", i, code1[i], code2[i]);
+			printf("!! %i : %04x vs %04x\n", i, code1[i], code2[i]);
 	}
 	printf("Equal instruction words: %i / %i\n", count_equal, min_size);
+	return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
 void GenRandomCode(int size, std::vector<u16> *code) 
 {
 	code->resize(size);
-	for (int i = 0; i < size; i++) 
+	for (int i = 0; i < size; i++)
 	{
 		(*code)[i] = rand() ^ (rand() << 8);
 	}

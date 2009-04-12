@@ -220,7 +220,8 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 		char Temp2[256];
 		sprintf(Temp2, "0x%04x", dsp_imem_read(CurrentPC));
 
-		char* pOpcode = gd_dis_opcode(&gdg);
+		DSPDisassembler disasm;
+		char* pOpcode = disasm.gd_dis_opcode(&gdg);
 		const char* pParameter = NULL;
 		const char* pExtension = NULL;
 
@@ -240,7 +241,6 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 				pParameter = &pOpcode[i + 1];
 			}
 		}
-
 
 		const char* pFunctionName = NULL;
 

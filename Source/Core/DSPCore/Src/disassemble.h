@@ -26,6 +26,7 @@
 #define _DSP_DISASSEMBLE_H
 
 #include "Common.h"
+#include "DSPTables.h"
 
 struct gd_globals_t
 {
@@ -42,12 +43,25 @@ struct gd_globals_t
 	char ext_separator;
 };
 
+class DSPDisassembler
+{
+public:
+	DSPDisassembler();
+	~DSPDisassembler() {}
 
-char* gd_dis_opcode(gd_globals_t* gdg);
-bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output);
+	char* gd_dis_opcode(gd_globals_t* gdg);
+	bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output);
 
-void gd_dis_close_unkop();
-void gd_dis_open_unkop();
-const char* gd_dis_get_reg_name(u16 reg);
+	void gd_dis_close_unkop();
+	void gd_dis_open_unkop();
+	const char* gd_dis_get_reg_name(u16 reg);
+
+private:
+	char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf);
+};
+
+const char *gd_get_reg_name(u16 reg);
+u16 gd_dis_get_opcode_size(gd_globals_t* gdg);
 
 #endif  // _DSP_DISASSEMBLE_H
+

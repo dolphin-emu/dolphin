@@ -38,7 +38,12 @@ u32 unk_opcodes[0x10000];
 
 extern void nop(const UDSPInstruction& opc);
 
-char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf)
+DSPDisassembler::DSPDisassembler()
+{
+}
+
+char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc,
+									 u16 op1, u16 op2, char* strbuf)
 {
 	char* buf = strbuf;
 	u32 val;
@@ -101,8 +106,8 @@ char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 o
 		case P_IMM:
 			if (opc->params[j].size != 2)
 			{
-				if (opc->params[j].mask == 0x007f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", (val & 0x40) ? (val | 0xFFFFFFC0) : val);
+				if (opc->params[j].mask == 0x003f) // LSL, LSR, ASL, ASR
+					sprintf(buf, "#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);
 				else
 					sprintf(buf, "#0x%02x", val);
 			}
@@ -194,7 +199,7 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 }
 
 
-char* gd_dis_opcode(gd_globals_t* gdg)
+char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 {
 	u32 op2;
 	char *buf = gdg->buffer;
@@ -333,7 +338,7 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 	return gdg->buffer;
 }
 
-bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output)
+bool DSPDisassembler::gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output)
 {
 	gd_dis_open_unkop();
 
@@ -372,7 +377,7 @@ bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output)
 	return true;
 }
 
-void gd_dis_close_unkop()
+void DSPDisassembler::gd_dis_close_unkop()
 {
 	FILE* uo;
 	int i, j;
@@ -418,7 +423,7 @@ void gd_dis_close_unkop()
 	}
 }
 
-void gd_dis_open_unkop()
+void DSPDisassembler::gd_dis_open_unkop()
 {
 	FILE* uo;
 	char filename[MAX_PATH];
@@ -439,7 +444,7 @@ void gd_dis_open_unkop()
 	}
 }
 
-const char *gd_dis_get_reg_name(u16 reg)
+const char *gd_get_reg_name(u16 reg)
 {
 	return regnames[reg].name;
 }

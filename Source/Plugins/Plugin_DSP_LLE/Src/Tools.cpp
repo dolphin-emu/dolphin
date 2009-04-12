@@ -67,7 +67,8 @@ bool DisasmUCodeDump(u32 crc)
 		gdg.ext_separator = '\t';
 		gdg.decode_names = true;
 		gdg.decode_registers = true;
-		gd_dis_file(&gdg, binFile, t);
+		DSPDisassembler disasm;
+		disasm.gd_dis_file(&gdg, binFile, t);
 		fclose(t);
 		return true;
 	}

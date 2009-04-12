@@ -47,83 +47,9 @@ Initial import
 #include "DSPInterpreter.h"
 #include "DSPTables.h"
 #include "disassemble.h"
-//#include "gdsp_tool.h"
+#include "assemble.h"
 
-char *include_dir = NULL;
-
-struct label_t
-{
-	char	*label;
-	s32	addr;
-};
-
-struct param_t
-{
-	u32		val;
-	partype_t	type;
-	char		*str;
-};
-
-enum segment_t
-{
-	SEGMENT_CODE = 0,
-	SEGMENT_DATA,
-	SEGMENT_OVERLAY,
-	SEGMENT_MAX
-};
-
-typedef struct fass_t
-{
-	FILE	*fsrc;
-	u32	code_line;
-	bool failed;
-} fass_t;
-
-label_t labels[10000];
-int	labels_count = 0;
-
-char cur_line[4096];
-
-u32 cur_addr;
-u8  cur_pass;
-fass_t *cur_fa;
-
-typedef std::map<std::string, std::string> AliasMap;
-AliasMap aliases;
-
-segment_t cur_segment;
-u32 segment_addr[SEGMENT_MAX];
-
-int current_param = 0;
-
-typedef enum err_t
-{
-	ERR_OK = 0,
-	ERR_UNKNOWN,
-	ERR_UNKNOWN_OPCODE,
-	ERR_NOT_ENOUGH_PARAMETERS,
-	ERR_TOO_MANY_PARAMETERS,
-	ERR_WRONG_PARAMETER,
-	ERR_EXPECTED_PARAM_STR,
-	ERR_EXPECTED_PARAM_VAL,
-	ERR_EXPECTED_PARAM_REG,
-	ERR_EXPECTED_PARAM_MEM,
-	ERR_EXPECTED_PARAM_IMM,
-	ERR_INCORRECT_BIN,
-	ERR_INCORRECT_HEX,
-	ERR_INCORRECT_DEC,
-	ERR_LABEL_EXISTS,
-	ERR_UNKNOWN_LABEL,
-	ERR_NO_MATCHING_BRACKETS,
-	ERR_EXT_CANT_EXTEND_OPCODE,
-	ERR_EXT_PAR_NOT_EXT,
-	ERR_WRONG_PARAMETER_ACC,
-	ERR_WRONG_PARAMETER_MID_ACC,
-	ERR_INVALID_REGISTER,
-	ERR_OUT_RANGE_NUMBER
-};
-
-char *err_string[] =
+static const char *err_string[] =
 {
 	"",
 	"Unknown Error",
@@ -150,7 +76,7 @@ char *err_string[] =
 	"Number out of range"
 };
 
-void parse_error(err_t err_code, fass_t *fa, const char *extra_info = NULL)
+void DSPAssembler::parse_error(err_t err_code, fass_t *fa, const char *extra_info)
 {
 	fprintf(stderr, "%i : %s\n", fa->code_line, cur_line);
 	fa->failed = true;
@@ -186,7 +112,7 @@ const char *skip_spaces(const char *ptr)
 	return ptr;
 }
 
-void gd_ass_register_label(const char *label, u16 lval)
+void DSPAssembler::gd_ass_register_label(const char *label, u16 lval)
 {
 	labels[labels_count].label = (char *)malloc(strlen(label) + 1);
 	strcpy(labels[labels_count].label, label);
@@ -194,7 +120,7 @@ void gd_ass_register_label(const char *label, u16 lval)
 	labels_count++;
 }
 
-void gd_ass_clear_labels()
+void DSPAssembler::gd_ass_clear_labels()
 {
 	for (int i = 0; i < labels_count; i++)
 	{
@@ -204,7 +130,7 @@ void gd_ass_clear_labels()
 }
 
 // Parse a standalone value - it can be a number in one of several formats or a label.
-s32 strtoval(const char *str)
+s32 DSPAssembler::strtoval(const char *str)
 {
 	bool negative = false;
 	s32 val = 0;
@@ -302,7 +228,7 @@ s32 strtoval(const char *str)
 
 // Modifies both src and dst!
 // What does it do, really??
-char *find_brackets(char *src, char *dst)
+char *DSPAssembler::find_brackets(char *src, char *dst)
 {
 	s32 len = (s32) strlen(src);
 	s32 first = -1;
@@ -349,7 +275,7 @@ char *find_brackets(char *src, char *dst)
 }
 
 // Bizarre in-place expression evaluator.
-u32 parse_exp(const char *ptr)
+u32 DSPAssembler::parse_exp(const char *ptr)
 {
 	char *pbuf;
 	s32 val = 0;
@@ -447,14 +373,14 @@ u32 parse_exp(const char *ptr)
 	return val;
 }
 
-u32 parse_exp_f(const char *ptr, fass_t *fa)
+u32 DSPAssembler::parse_exp_f(const char *ptr, fass_t *fa)
 {
 	cur_fa = fa;
 	return parse_exp(ptr);
 }
 
 // Destroys parstr
-u32 get_params(char *parstr, param_t *par, fass_t *fa)
+u32 DSPAssembler::get_params(char *parstr, param_t *par, fass_t *fa)
 {
 	u32 count = 0;
 	char *tmpstr = skip_spaces(parstr);
@@ -508,7 +434,7 @@ u32 get_params(char *parstr, param_t *par, fass_t *fa)
 	return count;
 }
 
-const opc_t *find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, u32 opcod_size, fass_t *fa)
+const opc_t *DSPAssembler::find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, u32 opcod_size, DSPAssembler::fass_t *fa)
 {
 	if (opcode[0] == 'C' && opcode[1] == 'W')
 		return &cw;
@@ -544,7 +470,7 @@ u16 get_mask_shifted_down(u16 mask)
 	return mask;
 }
 
-bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
+bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 {
 	int value;
 	unsigned int valueu;
@@ -724,7 +650,7 @@ bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
 
 
 // Merge opcode with params.
-void build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
+void DSPAssembler::build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
 {
 	outbuf[cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
@@ -744,7 +670,7 @@ void build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
 	}
 }
 
-void gd_ass_init_pass(int pass)
+void DSPAssembler::gd_ass_init_pass(int pass)
 {
 	if (pass == 1)
 	{
@@ -770,7 +696,7 @@ void gd_ass_init_pass(int pass)
 	segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
+bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 {
 	fass_t fa;
     int disable_text = 0; // modified by Hermes

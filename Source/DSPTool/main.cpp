@@ -31,7 +31,7 @@ bool RoundTrip(const std::vector<u16> &code1)
 {
 	std::vector<u16> code2;
 	std::string text;
-	if (!Disassemble(code1, &text))
+	if (!Disassemble(code1, false, &text))
 	{
 		printf("RoundTrip: Disassembly failed.\n");
 		return false;
@@ -57,7 +57,7 @@ bool SuperTrip(const char *asm_code)
 		return false;
 	}
 	printf("First assembly: %i words\n", (int)code1.size());
-	if (!Disassemble(code1, &text))
+	if (!Disassemble(code1, false, &text))
 	{
 		printf("SuperTrip: Disassembly failed\n");
 		return false;
@@ -72,7 +72,13 @@ bool SuperTrip(const char *asm_code)
 		printf("SuperTrip: Second assembly failed\n");
 		return false;
 	}
-	Compare(code1, code2);
+	/*
+	std::string text2;
+	Disassemble(code1, true, &text1);
+	Disassemble(code2, true, &text2);
+	File::WriteStringToFile(true, text1, "code1.txt");
+	File::WriteStringToFile(true, text2, "code2.txt");
+	*/
 	return true;
 }
 
