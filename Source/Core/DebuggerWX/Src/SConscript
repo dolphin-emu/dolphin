@@ -34,4 +34,4 @@ libs = [
     'common'
 ]
 
-wxenv.StaticLibrary("debwx", files, LIBS = libs)
+wxenv.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)

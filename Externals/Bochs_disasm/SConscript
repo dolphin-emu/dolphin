@@ -19,4 +19,4 @@ env_bochs = env.Clone(
 	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
 	)
 
-env_bochs.StaticLibrary("bdisasm", files)
+env_bochs.StaticLibrary(env['local_libs'] + "bdisasm", files)

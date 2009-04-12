@@ -24,4 +24,4 @@ files = [
 libs = [
 	'common'
 	]
-env.StaticLibrary('discio', files, LIBS = libs)
+env.StaticLibrary(env['local_libs'] + 'discio', files, LIBS = libs)

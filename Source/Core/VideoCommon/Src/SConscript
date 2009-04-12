@@ -34,4 +34,4 @@ files = [
 
 env_common = env.Clone()
 env_common.Append(CXXFLAGS = [ '-fPIC' ])
-env_common.StaticLibrary("videocommon", files)
+env_common.StaticLibrary(env['local_libs'] + "videocommon", files)

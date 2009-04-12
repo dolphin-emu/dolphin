@@ -42,4 +42,4 @@ if sys.platform == 'win32':
 
 env_common = env.Clone()
 env_common.Append(CXXFLAGS = [ '-fPIC' ])
-env_common.StaticLibrary("common", files)
+env_common.StaticLibrary(env['local_libs'] + "common", files)

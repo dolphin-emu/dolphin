@@ -18,4 +18,4 @@ if acenv['HAVE_OPENAL']:
 if acenv['HAVE_AO']:
     files += [ 'AOSoundStream.cpp' ]
     
-acenv.StaticLibrary('audiocommon', files)
+acenv.StaticLibrary(env['local_libs'] + 'audiocommon', files)

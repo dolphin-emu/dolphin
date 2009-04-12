@@ -41,20 +41,21 @@ cppDefines = [
     'GCC_HASCLASSVISIBILITY',
     ]
 
+basedir = os.getcwd()+ '/'
+
 include_paths = [
-    '../../../Core/Common/Src',
-    '../../../Core/DiscIO/Src',
-    '../../../PluginSpecs',
-    '../../../',
-    '../../../Core/Core/Src',
-    '../../../Core/DebuggerWX/Src',
-    '../../../../Externals/Bochs_disasm',
-    '../../../../Externals/LZO',
-    '../../../../Externals/WiiUseSrc/Src',
-    '../../../Core/VideoCommon/Src',
-    '../../../Core/InputCommon/Src',
-    '../../../Core/AudioCommon/Src',
-    '../../../Core/DSPCore/Src',
+    basedir + 'Source/Core/Common/Src',
+    basedir + 'Source/Core/DiscIO/Src',
+    basedir + 'Source/PluginSpecs',
+    basedir + 'Source/Core/Core/Src',
+    basedir + 'Source/Core/DebuggerWX/Src',
+    basedir + 'Externals/Bochs_disasm',
+    basedir + 'Externals/LZO',
+    basedir + 'Externals/WiiUseSrc/Src',
+    basedir + 'Source/Core/VideoCommon/Src',
+    basedir + 'Source/Core/InputCommon/Src',
+    basedir + 'Source/Core/AudioCommon/Src',
+    basedir + 'Source/Core/DSPCore/Src',
     ]
 
 dirs = [
@@ -68,7 +69,7 @@ dirs = [
     'Source/Core/InputCommon/Src',
     'Source/Core/AudioCommon/Src',
     'Source/Core/DSPCore/Src',
-    'Source/DSPTool/',
+    'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
@@ -91,8 +92,6 @@ if sys.platform == 'darwin':
             for dstNode in target:
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
-
-lib_paths = include_paths
 
 # handle command line options
 vars = Variables('args.cache')
@@ -122,9 +121,9 @@ vars.AddVariables(
 if sys.platform == 'win32':
     env = Environment(
         CPPPATH = include_paths,
-        LIBPATH = lib_paths,
         RPATH = [],
         LIBS = [],
+        LIBPATH = [],
         tools = [ 'mingw' ],
         variables = vars,
         ENV = os.environ,
@@ -138,10 +137,10 @@ if sys.platform == 'win32':
 else:
     env = Environment(
         CPPPATH = include_paths,
-        LIBPATH = lib_paths,
         RPATH = [],
         LIBS = [],
-	    variables = vars,
+        LIBPATH = [],
+        variables = vars,
         ENV = {
             'PATH' : os.environ['PATH'],
             'HOME' : os.environ['HOME']
@@ -215,8 +214,11 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPortaudio' : utils.CheckPortaudio,
          }
 
-build_dir = os.path.join('Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
-VariantDir(build_dir, '.', duplicate=0)
+#object files
+env['build_dir'] = os.path.join(basedir, 'Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
+
+
+VariantDir(env['build_dir'], '.', duplicate=0)
 
 conf = env.Configure(custom_tests = tests, 
                      config_h="Source/Core/Common/Src/Config.h")
@@ -342,7 +344,7 @@ else:
 env.AddMethod(utils.filterWarnings)
 
 # Where do we run from
-env['base_dir'] = os.getcwd()+ '/';
+env['base_dir'] = os.getcwd()+ '/'
 
 # install paths
 extra=''
@@ -367,6 +369,10 @@ env['data_dir'] = env['prefix']
 
 env['RPATH'].append(env['libs_dir'])
 
+# static libs goes here
+env['local_libs'] =  env['build_dir'] + os.sep + 'libs' + os.sep
+
+env['LIBPATH'].append(env['local_libs']) 
 env['LIBPATH'].append(env['libs_dir']) 
 
 
@@ -390,7 +396,7 @@ Export('env')
 for subdir in dirs:
     SConscript(
         subdir + os.sep + 'SConscript',
-        variant_dir = build_dir + subdir + os.sep,
+        variant_dir = env[ 'build_dir' ] + subdir + os.sep,
         duplicate=0
         )
 

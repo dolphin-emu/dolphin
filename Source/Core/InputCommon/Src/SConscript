@@ -11,4 +11,4 @@ files = [
 
 env_inputcommon = env.Clone()
 env_inputcommon.Append(CXXFLAGS = [ '-fPIC' ])
-env_inputcommon.StaticLibrary("inputcommon", files)
+env_inputcommon.StaticLibrary(env['local_libs'] + "inputcommon", files)

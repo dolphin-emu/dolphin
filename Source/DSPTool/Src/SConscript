@@ -9,8 +9,8 @@ files = [
     ]
 
 libs = [
-    'common',
     'dspcore',
+    'common',
 ]
 
 
