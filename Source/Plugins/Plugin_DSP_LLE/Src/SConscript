@@ -27,7 +27,7 @@ files = [
 lleenv = env.Clone()
 lleenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
-	LIBS = [ 'common', 'audiocommon', 'dspcore' ],
+	LIBS = [ 'dspcore', 'audiocommon', 'common',  ],
 	)
 
 lleenv.SharedLibrary(env['plugin_dir']+name, files)
