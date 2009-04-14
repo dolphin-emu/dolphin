@@ -225,6 +225,8 @@ const DSPOPCTemplate opcodes[] =
 	// calculations or something? Or clamp?
 	// SET15/CLR15 is commonly used around MULXAC in Zeldas.
 	// SET16 is done around complicated loops with many madds etc.
+	// It seems SET16 come in all cases found with either CR or IR (almost always with AR3)
+	// Set40 also comes with CR and AR3, but it's not common enough to see the connection.
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET40",	0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

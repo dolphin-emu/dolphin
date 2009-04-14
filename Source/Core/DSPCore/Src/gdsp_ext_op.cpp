@@ -211,7 +211,7 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 
 	switch (op) {
 	case 0x00: // 
-		//g_dsp.r[reg] = 0;
+		g_dsp.r[reg] = 0;
 		break;
 		
 	case 0x01: // DR
