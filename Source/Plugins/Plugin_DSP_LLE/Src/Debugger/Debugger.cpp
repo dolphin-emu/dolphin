@@ -189,7 +189,6 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 	m_Disasm->Freeze();
 	m_Disasm->DeleteAllItems();
 
-	char Buffer[256];
 	AssemblerSettings settings;
 
 	const u16 *binbuf;
@@ -198,8 +197,6 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 	else
 		binbuf = g_dsp.iram;
 
-	settings.buffer = Buffer;
-	settings.buffer_size   = 256;
 	settings.ext_separator = (char)0xff;
 
 	settings.show_pc      = false;

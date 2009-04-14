@@ -36,7 +36,8 @@ struct AssemblerSettings
 		  show_pc(false),
 		  decode_names(true),
 		  decode_registers(true),
-		  ext_separator('\'')
+		  ext_separator('\''),
+		  pc(0)
 	{
 	}
 
@@ -45,13 +46,9 @@ struct AssemblerSettings
 	bool show_pc;
 	bool decode_names;
 	bool decode_registers;
-	bool lower_case_ops;
 	char ext_separator;
 
-	u16 *binbuf;
 	u16 pc;
-	char* buffer;
-	u16 buffer_size;
 };
 
 class DSPDisassembler

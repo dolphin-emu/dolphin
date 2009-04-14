@@ -28,13 +28,11 @@ bool Assemble(const char *text, std::vector<u16> *code)
 {
 	const char *fname = "tmp.asm";
 	AssemblerSettings settings;
-	memset(&settings, 0, sizeof(settings));
 	settings.pc = 0;
 	// settings.decode_registers = false;
 	// settings.decode_names = false;
 	settings.print_tabs = false;
 	settings.ext_separator = '\'';
-	settings.buffer = 0;
 
 	if (!File::WriteStringToFile(true, text, fname))
 		return false;

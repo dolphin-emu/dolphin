@@ -61,7 +61,6 @@ bool DisasmUCodeDump(u32 crc)
 	if (t != NULL)
 	{
 		AssemblerSettings settings;
-		memset(&settings, 0, sizeof(settings));
 		settings.show_hex = true;
 		settings.show_pc = true;
 		settings.ext_separator = '\t';
