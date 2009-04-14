@@ -18,8 +18,7 @@
 #ifndef _DSPLLE_TOOLS_H
 #define _DSPLLE_TOOLS_H
 
-bool DumpDSPCode(const u8 *data, u32 _Length, u32 crc);
-bool DisasmUCodeDump(u32 crc);
+bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc);
 u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
 bool DumpCWCode(u32 _Address, u32 _Length);
 

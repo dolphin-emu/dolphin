@@ -21,58 +21,48 @@
 #include "Common.h"
 #include "Globals.h"
 
+#include "FileUtil.h"
+#include "DSPCodeUtil.h"
 #include "Tools.h"
 #include "disassemble.h"
 #include "gdsp_interpreter.h"
 
-bool DumpDSPCode(const u8 *data, u32 _Length, u32 crc)
-{
-	char szFilename[MAX_PATH];
-	sprintf(szFilename, "%sDSP_UC_%08X.bin", FULL_DSP_DUMP_DIR, crc);
-	FILE* pFile = fopen(szFilename, "wb");
-
-	if (pFile)
-	{
-		fwrite(data, _Length, 1, pFile);
-		fclose(pFile);
-	}
-	else
-	{
-		PanicAlert("Cant open file (%s) to dump UCode!!", szFilename);
-		return false;
-	}
-
-	if (!DisasmUCodeDump(crc))
-	{
-		PanicAlert("Failed to disasm UCode!!", szFilename);
-		return false;
-	}
-
-	return true;
-}
-
-bool DisasmUCodeDump(u32 crc)
+bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {
 	char binFile[MAX_PATH];
 	char txtFile[MAX_PATH];
 	sprintf(binFile, "%sDSP_UC_%08X.bin", FULL_DSP_DUMP_DIR, crc);
 	sprintf(txtFile, "%sDSP_UC_%08X.txt", FULL_DSP_DUMP_DIR, crc);
-	FILE* t = fopen(txtFile, "wb");
-	if (t != NULL)
+
+	FILE* pFile = fopen(binFile, "wb");
+	if (pFile)
 	{
-		AssemblerSettings settings;
-		settings.show_hex = true;
-		settings.show_pc = true;
-		settings.ext_separator = '\t';
-		settings.decode_names = true;
-		settings.decode_registers = true;
-		DSPDisassembler disasm(settings);
-		disasm.gd_dis_file(binFile, t);
-		fclose(t);
-		return true;
+		fwrite(code_be, size_in_bytes, 1, pFile);
+		fclose(pFile);
 	}
 	else
+	{
+		PanicAlert("Cant open file (%s) to dump UCode!!", binFile);
 		return false;
+	}
+
+	// Load the binary back in.
+	std::vector<u16> code;
+	LoadBinary(binFile, &code);
+
+	AssemblerSettings settings;
+	settings.show_hex = true;
+	settings.show_pc = true;
+	settings.ext_separator = '\t';
+	settings.decode_names = true;
+	settings.decode_registers = true;
+
+	std::string text;
+	DSPDisassembler disasm(settings);
+	if (!disasm.Disassemble(0, code, &text))
+		return false;
+
+	return File::WriteStringToFile(true, text, txtFile);
 }
 
 u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)

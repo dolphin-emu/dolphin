@@ -67,8 +67,16 @@ public:
 	DSPAssembler(const AssemblerSettings &settings);
 	~DSPAssembler();
 
-	void Assemble(const char *text, std::vector<u16> *code);
+	// line_numbers is optional (and not yet implemented). It'll receieve a list of ints,
+	// one for each word of code, indicating the source assembler code line number it came from.
 
+	// If returns false, call GetErrorString to get some text to present to the user.
+	bool Assemble(const char *text, std::vector<u16> *code, std::vector<int> *line_numbers = NULL);
+
+	std::string GetErrorString() const { return last_error_str; }
+	err_t GetError() const { return last_error; }
+
+private:
 	struct label_t
 	{
 		label_t(const char *lbl, s32 address) : label(lbl), addr(address) {}
@@ -90,13 +98,13 @@ public:
 		SEGMENT_OVERLAY,
 		SEGMENT_MAX
 	};
-	void gd_ass_init_pass(int pass);
-	bool gd_ass_file(const char *fname, int pass);
+
+	void InitPass(int pass);
+	bool AssembleFile(const char *fname, int pass);
 
 	char *gdg_buffer;
 	int gdg_buffer_size;
 
-private:
 	void parse_error(err_t err_code, const char *extra_info = NULL);
 	void gd_ass_register_label(const char *label, u16 lval);
 	void gd_ass_clear_labels();
@@ -119,6 +127,8 @@ private:
 	FILE *fsrc;
 	u32	code_line;
 	bool failed;
+	std::string last_error_str;
+	err_t last_error;
 
 	typedef std::map<std::string, std::string> AliasMap;
 	AliasMap aliases;

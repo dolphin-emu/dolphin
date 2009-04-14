@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "FileUtil.h"
 #include "disassemble.h"
 #include "DSPTables.h"
 
@@ -39,31 +40,81 @@ extern void nop(const UDSPInstruction& opc);
 DSPDisassembler::DSPDisassembler(const AssemblerSettings &settings)
 	: settings_(settings)
 {
-	memset(unk_opcodes, 0, sizeof(unk_opcodes));
 }
 
-char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2, char *strbuf)
+DSPDisassembler::~DSPDisassembler()
+{
+	// Some old code for logging unknown ops.
+	char filename[MAX_PATH];
+	sprintf(filename, "%sUnkOps.txt", FULL_DSP_DUMP_DIR);
+	FILE *uo = fopen(filename, "w");
+	if (!uo)
+		return;
+
+	int count = 0;
+	for (std::map<u16, int>::const_iterator iter = unk_opcodes.begin();
+		iter != unk_opcodes.end(); ++iter)
+	{
+		if (iter->second > 0)
+		{
+			count++;
+			fprintf(uo, "OP%04x\t%d", iter->first, iter->second);
+			for (int j = 15; j >= 0; j--)  // print op bits
+			{
+				if ((j & 0x3) == 3)
+					fprintf(uo, "\tb");
+				fprintf(uo, "%d", (iter->first >> j) & 0x1);
+			}
+			fprintf(uo, "\n");
+		}
+	}
+	fprintf(uo, "Unknown opcodes count: %d\n", count);
+	fclose(uo);
+}
+
+bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, std::string *text)
+{
+	const char *tmp1 = "tmp1.bin";
+	const char *tmp2 = "tmp.txt";
+
+	// First we have to dump the code to a bin file.
+	FILE *f = fopen(tmp1, "wb");
+	fwrite(&code[0], 1, code.size() * 2, f);
+	fclose(f);
+
+	FILE* t = fopen(tmp2, "w");
+	if (!t)
+		return false;
+
+	bool success = DisFile(tmp1, t);
+	fclose(t);
+
+	File::ReadFileToString(true, tmp2, text);
+	return success;
+}
+
+char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char *strbuf)
 {
 	char *buf = strbuf;
-	for (int j = 0; j < opc->param_count; j++)
+	for (int j = 0; j < opc.param_count; j++)
 	{
 		if (j > 0)
 			buf += sprintf(buf, ", ");
 
 		u32 val;
-		if (opc->params[j].loc >= 1)
+		if (opc.params[j].loc >= 1)
 			val = op2;
 		else
 			val = op1;
 
-		val &= opc->params[j].mask;
+		val &= opc.params[j].mask;
 
-		if (opc->params[j].lshift < 0)
-			val = val << (-opc->params[j].lshift);
+		if (opc.params[j].lshift < 0)
+			val = val << (-opc.params[j].lshift);
 		else
-			val = val >> opc->params[j].lshift;
+			val = val >> opc.params[j].lshift;
 
-		u32 type = opc->params[j].type;
+		u32 type = opc.params[j].type;
 
 		if ((type & 0xff) == 0x10)
 			type &= 0xff00;
@@ -102,9 +153,9 @@ char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2
 			break;
 
 		case P_IMM:
-			if (opc->params[j].size != 2)
+			if (opc.params[j].size != 2)
 			{
-				if (opc->params[j].mask == 0x003f) // LSL, LSR, ASL, ASR
+				if (opc.params[j].mask == 0x003f) // LSL, LSR, ASL, ASR
 					sprintf(buf, "#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);
 				else
 					sprintf(buf, "#0x%02x", val);
@@ -114,7 +165,7 @@ char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2
 			break;
 
 		case P_MEM:
-			if (opc->params[j].size != 2)
+			if (opc.params[j].size != 2)
 				val = (u16)(s8)val;
 
 			if (settings_.decode_names)
@@ -124,7 +175,7 @@ char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2
 			break;
 
 		default:
-			ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc->params[j].type);
+			ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc.params[j].type);
 			break;
 		}
 
@@ -134,70 +185,7 @@ char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2
 	return strbuf;
 }
 
-#if 0
-u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
-{
-	const DSPOPCTemplate* opc = 0;
-	const DSPOPCTemplate* opc_ext = 0;
-	bool extended;
-
-	// Undefined memory.
-	if ((gdg->pc & 0x7fff) >= 0x1000)
-		return 1;
-
-	u32 op1 = gdg->binbuf[gdg->pc & 0x0fff];
-
-	for (u32 j = 0; j < opcodes_size; j++)
-	{
-		u16 mask;
-
-		if (opcodes[j].size & P_EXT)
-			mask = opcodes[j].opcode_mask & 0xff00;
-		else
-			mask = opcodes[j].opcode_mask;
-
-		if ((op1 & mask) == opcodes[j].opcode)
-		{
-			opc = &opcodes[j];
-			break;
-		}
-	}
-
-	if (!opc)
-	{
-		ERROR_LOG(DSPLLE, "get_opcode_size ARGH");
-	}
-
-	if (opc->size & P_EXT && op1 & 0x00ff)
-		extended = true;
-	else
-		extended = false;
-
-	if (extended)
-	{
-		// opcode has an extension
-		// find opcode
-		for (u32 j = 0; j < opcodes_ext_size; j++)
-		{
-			if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
-			{
-				opc_ext = &opcodes_ext[j];
-				break;
-			}
-		}
-		if (!opc_ext)
-		{
-			ERROR_LOG(DSPLLE, "get_opcode_size ext ARGH");
-		}
-		return opc_ext->size;
-	}
-
-	return opc->size & ~P_EXT;
-}
-#endif
-
-
-void DSPDisassembler::gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *dest)
+void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
 {
 	u32 op2;
 	char buffer[256];
@@ -297,22 +285,19 @@ void DSPDisassembler::gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *des
 	buf += strlen(buf);
 
 	if (opc->param_count > 0)
-		gd_dis_params(opc, op1, op2, buf);
+		DisParams(*opc, op1, op2, buf);
 
 	buf += strlen(buf);
 
 	if (extended)
 	{
 		if (opc->param_count > 0)
-			sprintf(buf, " ");
+			buf += sprintf(buf, " ");
 
-		buf += strlen(buf);
-
-		sprintf(buf, ": ");
-		buf += strlen(buf);
+		buf += sprintf(buf, ": ");
 
 		if (opc_ext->param_count > 0)
-			gd_dis_params(opc_ext, op1, op2, buf);
+			DisParams(*opc_ext, op1, op2, buf);
 
 		buf += strlen(buf);
 	}
@@ -332,10 +317,8 @@ void DSPDisassembler::gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *des
 	dest->append(buffer);
 }
 
-bool DSPDisassembler::gd_dis_file(const char* name, FILE* output)
+bool DSPDisassembler::DisFile(const char* name, FILE* output)
 {
-	gd_dis_open_unkop();
-
 	FILE* in;
 	u32 size;
 
@@ -346,93 +329,22 @@ bool DSPDisassembler::gd_dis_file(const char* name, FILE* output)
 	}
 
 	fseek(in, 0, SEEK_END);
-	size = (int)ftell(in);
+	size = (int)ftell(in) & ~1;
 	fseek(in, 0, SEEK_SET);
 
-	u16 *binbuf = (u16*)malloc(size);
+	u16 *binbuf = new u16[size / 2];
 	fread(binbuf, 1, size, in);
 
 	for (u16 pc = 0; pc < (size / 2);)
 	{
 		std::string str;
-		gd_dis_opcode(binbuf, &pc, &str);
+		DisOpcode(binbuf, &pc, &str);
 		fprintf(output, "%s\n", str.c_str());
 	}
 
 	fclose(in);
-
-	free(binbuf);
-
-	gd_dis_close_unkop();
-
+	delete [] binbuf;
 	return true;
-}
-
-void DSPDisassembler::gd_dis_close_unkop()
-{
-	FILE* uo;
-	int i, j;
-	u32 count = 0;
-
-	char filename[MAX_PATH];
-	sprintf(filename, "%sUnkOps.bin", FULL_DSP_DUMP_DIR);
-
-	uo = fopen(filename, "wb");
-
-	if (uo)
-	{
-		fwrite(unk_opcodes, 1, sizeof(unk_opcodes), uo);
-		fclose(uo);
-	}
-
-	sprintf(filename, "%sUnkOps.txt", FULL_DSP_DUMP_DIR);
-	uo = fopen(filename, "w");
-
-	if (uo)
-	{
-		for (i = 0; i < 0x10000; i++)
-		{
-			if (unk_opcodes[i])
-			{
-				count++;
-				fprintf(uo, "OP%04x\t%d", i, unk_opcodes[i]);
-
-				for (j = 15; j >= 0; j--)
-				{
-					if ((j & 0x3) == 3)
-						fprintf(uo, "\tb");
-
-					fprintf(uo, "%d", (i >> j) & 0x1);
-				}
-
-				fprintf(uo, "\n");
-			}
-		}
-
-		fprintf(uo, "Unknown opcodes count: %d\n", count);
-		fclose(uo);
-	}
-}
-
-void DSPDisassembler::gd_dis_open_unkop()
-{
-	FILE* uo;
-	char filename[MAX_PATH];
-	sprintf(filename, "%sUnkOps.bin", FULL_DSP_DUMP_DIR);
-	uo = fopen(filename, "rb");
-
-	if (uo)
-	{
-		fread(unk_opcodes, 1, sizeof(unk_opcodes), uo);
-		fclose(uo);
-	}
-	else
-	{
-		for (int i = 0; i < 0x10000; i++)
-		{
-			unk_opcodes[i] = 0;
-		}
-	}
 }
 
 const char *gd_get_reg_name(u16 reg)

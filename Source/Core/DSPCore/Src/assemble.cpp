@@ -44,6 +44,7 @@ Initial import
 #include <map>
 
 #include "Common.h"
+#include "FileUtil.h"
 #include "DSPInterpreter.h"
 #include "DSPTables.h"
 #include "disassemble.h"
@@ -80,38 +81,60 @@ DSPAssembler::DSPAssembler(const AssemblerSettings &settings)
 :   current_param(0),
 	cur_addr(0),
 	cur_pass(0),
-	 settings_(settings) 
+	settings_(settings) 
 {
 	gdg_buffer = NULL;
 
 }
 
-
 DSPAssembler::~DSPAssembler()
 {
+}
 
+bool DSPAssembler::Assemble(const char *text, std::vector<u16> *code, std::vector<int> *line_numbers)
+{
+	if (line_numbers)
+		line_numbers->clear();
+	const char *fname = "tmp.asm";
+	if (!File::WriteStringToFile(true, text, fname))
+		return false;
+	InitPass(1);
+	if (!AssembleFile(fname, 1))
+		return false;
+	InitPass(2);
+	if (!AssembleFile(fname, 2))
+		return false;
+
+	code->resize(gdg_buffer_size);
+	for (int i = 0; i < gdg_buffer_size; i++) {
+		(*code)[i] = *(u16 *)(gdg_buffer + i * 2);
+	}
+
+	last_error_str = "(no errors)";
+	last_error = ERR_OK;
+	return true;
 }
 
 void DSPAssembler::parse_error(err_t err_code, const char *extra_info)
 {
-	fprintf(stderr, "%i : %s\n", code_line, cur_line);
 	failed = true;
+	char error_buffer[1024];
+	char *buf_ptr = error_buffer;
+	buf_ptr += sprintf(buf_ptr, "%i : %s\n", code_line, cur_line);
 	if (!extra_info)
 		extra_info = "-";
 	if (fsrc)
 		fclose(fsrc);
 	else
-	{
-		fprintf(stderr, "ERROR: %s : %s\n", err_string[err_code], extra_info);
-	}
-
-	// modified by Hermes
+		buf_ptr += sprintf(buf_ptr, "ERROR: %s : %s\n", err_string[err_code], extra_info);
 
 	if (current_param == 0)
-		fprintf(stderr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
+		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
 	else 
-		fprintf(stderr, "ERROR: %s Line: %d Param: %d : %s\n",
-		        err_string[err_code], code_line, current_param, extra_info);
+		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d Param: %d : %s\n",
+						   err_string[err_code], code_line, current_param, extra_info);
+	last_error_str = error_buffer;
+	last_error = err_code;
 }
 
 char *skip_spaces(char *ptr)
@@ -692,7 +715,7 @@ void DSPAssembler::build_code(const opc_t *opc, param_t *par, u32 par_count, u16
 	}
 }
 
-void DSPAssembler::gd_ass_init_pass(int pass)
+void DSPAssembler::InitPass(int pass)
 {
 	failed = false;
 	if (pass == 1)
@@ -719,7 +742,7 @@ void DSPAssembler::gd_ass_init_pass(int pass)
 	segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::gd_ass_file(const char *fname, int pass)
+bool DSPAssembler::AssembleFile(const char *fname, int pass)
 {
     int disable_text = 0; // modified by Hermes
 
@@ -892,7 +915,7 @@ bool DSPAssembler::gd_ass_file(const char *fname, int pass)
 					tmpstr = (char *)malloc(strlen(params[0].str) + 1);
 					strcpy(tmpstr, params[0].str);
 				}
-				gd_ass_file(tmpstr, pass);
+				AssembleFile(tmpstr, pass);
 				free(tmpstr);
 			}
 			else

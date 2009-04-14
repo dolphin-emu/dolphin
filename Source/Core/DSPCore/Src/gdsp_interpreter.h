@@ -116,12 +116,7 @@ void gdsp_run_cycles(int cycles);
 void gdsp_stop();
 
 void gdsp_write_cr(u16 val);
-u16  gdsp_read_cr(void);
-
-u16* gdsp_get_iram(void);
-u16* gdsp_get_irom(void);
-u16* gdsp_get_dram(void);
-u16* gdsp_get_drom(void);
+u16  gdsp_read_cr();
 
 // sets a flag in the pending exception register.
 void gdsp_generate_exception(u8 level);

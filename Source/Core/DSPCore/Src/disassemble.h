@@ -25,6 +25,9 @@
 #ifndef _DSP_DISASSEMBLE_H
 #define _DSP_DISASSEMBLE_H
 
+#include <map>
+#include <vector>
+
 #include "Common.h"
 #include "DSPTables.h"
 
@@ -55,25 +58,24 @@ class DSPDisassembler
 {
 public:
 	DSPDisassembler(const AssemblerSettings &settings);
-	~DSPDisassembler() {}
+	~DSPDisassembler();
 
-	// Moves PC forward and writes the result to dest.
-	void gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *dest);
-	bool gd_dis_file(const char* name, FILE *output);
+	bool Disassemble(int start_pc, const std::vector<u16> &code, std::string *text);
 
-	void gd_dis_close_unkop();
-	void gd_dis_open_unkop();
-	const char* gd_dis_get_reg_name(u16 reg);
+	// Warning - this one is trickier to use right.
+	void DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest);
 
 private:
-	char* gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf);
-	u32 unk_opcodes[0x10000];
+	// Moves PC forward and writes the result to dest.
+	bool DisFile(const char* name, FILE *output);
+
+	char* DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char* strbuf);
+	std::map<u16, int> unk_opcodes;
 
 	const AssemblerSettings settings_;
 };
 
 const char *gd_get_reg_name(u16 reg);
-//u16 gd_dis_get_opcode_size(gd_globals_t* gdg);
 
 #endif  // _DSP_DISASSEMBLE_H
 

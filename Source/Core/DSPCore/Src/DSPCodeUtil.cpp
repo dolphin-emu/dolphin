@@ -26,7 +26,6 @@
 
 bool Assemble(const char *text, std::vector<u16> *code)
 {
-	const char *fname = "tmp.asm";
 	AssemblerSettings settings;
 	settings.pc = 0;
 	// settings.decode_registers = false;
@@ -34,22 +33,11 @@ bool Assemble(const char *text, std::vector<u16> *code)
 	settings.print_tabs = false;
 	settings.ext_separator = '\'';
 
-	if (!File::WriteStringToFile(true, text, fname))
-		return false;
-
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);
-	assembler.gd_ass_init_pass(1);
-	if (!assembler.gd_ass_file(fname, 1))
-		return false;
-	assembler.gd_ass_init_pass(2);
-	if (!assembler.gd_ass_file(fname, 2))
-		return false;
+	if (!assembler.Assemble(text, code))
+		printf("%s", assembler.GetErrorString().c_str());
 
-	code->resize(assembler.gdg_buffer_size);
-	for (int i = 0; i < assembler.gdg_buffer_size; i++) {
-		(*code)[i] = *(u16 *)(assembler.gdg_buffer + i * 2);
-	}
 	return true;
 }
 
@@ -57,34 +45,19 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string *t
 {
 	if (code.empty())
 		return false;
-	const char *tmp1 = "tmp1.bin";
-	const char *tmp2 = "tmp.txt";
 
-	// First we have to dump the code to a bin file.
-	FILE *f = fopen(tmp1, "wb");
-	fwrite(&code[0], 1, code.size() * 2, f);
-	fclose(f);
+	AssemblerSettings settings;
 
-	FILE* t = fopen(tmp2, "w");
-	if (t != NULL)
-	{
-		AssemblerSettings settings;
+	// These two prevent roundtripping.
+	settings.show_hex = false;
+	settings.show_pc = line_numbers;
+	settings.ext_separator = '\'';
+	settings.decode_names = false;
+	settings.decode_registers = true;
 
-		// These two prevent roundtripping.
-		settings.show_hex = false;
-		settings.show_pc = line_numbers;
-		settings.ext_separator = '\'';
-		settings.decode_names = false;
-		settings.decode_registers = true;
-
-		DSPDisassembler disasm(settings);
-		bool success = disasm.gd_dis_file(tmp1, t);
-		fclose(t);
-
-		File::ReadFileToString(true, tmp2, text);
-		return success;
-	}
-	return false;
+	DSPDisassembler disasm(settings);
+	bool success = disasm.Disassemble(0, code, text);
+	return success;
 }
 
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
@@ -92,7 +65,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	if (code1.size() != code2.size())
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
 	int count_equal = 0;
-	const int min_size = std::min(code1.size(), code2.size());
+	const int min_size = (int)std::min(code1.size(), code2.size());
 	for (int i = 0; i < min_size; i++)
 	{
 		if (code1[i] == code2[i])
@@ -150,7 +123,7 @@ void BinaryStringBEToCode(const std::string &str, std::vector<u16> *code)
 	code->resize(str.size() / 2);
 	for (int i = 0; i < code->size(); i++)
 	{
-		(*code)[i] = (str[i * 2 + 0] << 8) | (str[i * 2 + 1]);
+		(*code)[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
 	}
 }
 
@@ -159,6 +132,7 @@ bool LoadBinary(const char *filename, std::vector<u16> *code)
 	std::string buffer;
 	if (!File::ReadFileToString(false, filename, &buffer))
 		return false;
+
 	BinaryStringBEToCode(buffer, code);
 	return true;
 }

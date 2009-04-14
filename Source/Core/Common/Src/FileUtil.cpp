@@ -626,7 +626,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string *str)
 	fseek(f, 0, SEEK_SET);
 	char *buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;
-	*str = std::string(buf);
+	*str = std::string(buf, len);
 	fclose(f);
 	delete [] buf;
 	return true;

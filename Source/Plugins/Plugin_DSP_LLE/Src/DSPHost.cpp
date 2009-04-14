@@ -45,7 +45,6 @@ bool DSPHost_Running()
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
 	u32 crc = GenerateCRC(ptr, size);
-
 	DumpDSPCode(ptr, size, crc);
 	return crc;
 }

@@ -120,9 +120,9 @@ typedef DSPOPCTemplate opc_t;
 
 // Opcodes
 extern const DSPOPCTemplate opcodes[];
-extern const u32 opcodes_size;
+extern const int opcodes_size;
 extern const DSPOPCTemplate opcodes_ext[];
-extern const u32 opcodes_ext_size;
+extern const int opcodes_ext_size;
 extern u8 opSize[OPTABLE_SIZE];
 extern const DSPOPCTemplate cw;
 

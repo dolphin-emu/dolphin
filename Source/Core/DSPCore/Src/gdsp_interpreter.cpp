@@ -44,6 +44,7 @@ volatile u32 gdsp_running;
 static bool cr_halt = true;
 static bool cr_external_int = false;
 
+
 void UpdateCachedCR()
 {
 	cr_halt = (g_dsp.cr & 0x4) != 0;

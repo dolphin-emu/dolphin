@@ -120,15 +120,15 @@ void RunAsmTests()
 	// Let's get brutal. We generate random code bytes and make sure that they can
 	// be roundtripped. We don't expect it to always succeed but it'll be sure to generate
 	// interesting test cases.
-/*
+
 	puts("Insane Random Code Test\n");
 	std::vector<u16> rand_code;
-	GenRandomCode(31, &rand_code);
+	GenRandomCode(30, &rand_code);
 	std::string rand_code_text;
 	Disassemble(rand_code, true, &rand_code_text);
 	printf("%s", rand_code_text.c_str());
 	RoundTrip(rand_code);
-*/
+
 	std::string dsp_test;
 
 	if (File::ReadFileToString(true, "C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
