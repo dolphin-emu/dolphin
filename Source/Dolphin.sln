@@ -139,8 +139,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_PadSimpleEvnt", "Plu
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxBase28", "..\Externals\wxWidgets\build\msw\wx_base.vcproj", "{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11F55366-12EC-4C44-A8CB-1D4E315D61ED} = {11F55366-12EC-4C44-A8CB-1D4E315D61ED}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAdv28", "..\Externals\wxWidgets\build\msw\wx_adv.vcproj", "{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE} = {1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxCore28", "..\Externals\wxWidgets\build\msw\wx_core.vcproj", "{11F55366-12EC-4C44-A8CB-1D4E315D61ED}"
 EndProject
