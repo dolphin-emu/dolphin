@@ -62,6 +62,7 @@ void ldn(const UDSPInstruction& opc);
 void ldm(const UDSPInstruction& opc);
 void ldnm(const UDSPInstruction& opc);
 void mv(const UDSPInstruction& opc);
+void cr(const UDSPInstruction& opc);
 void dr(const UDSPInstruction& opc);
 void ir(const UDSPInstruction& opc);
 void nr(const UDSPInstruction& opc);

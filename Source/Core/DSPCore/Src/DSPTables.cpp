@@ -314,6 +314,9 @@ const DSPOPCTemplate cw =
 
 const DSPOPCTemplate opcodes_ext[] =
 {
+	
+	// FIXME: guessing this is cr need checking
+	{"CR",      0x0000, 0x00fc, DSPInterpreter::Ext::cr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"DR",      0x0004, 0x00fc, DSPInterpreter::Ext::dr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"IR",      0x0008, 0x00fc, DSPInterpreter::Ext::ir, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"NR",      0x000c, 0x00fc, DSPInterpreter::Ext::nr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},

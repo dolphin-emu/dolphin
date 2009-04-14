@@ -35,6 +35,16 @@ namespace DSPInterpreter
 namespace Ext 
 {
 
+// CR $arR
+// xxxx xxxx 0000 00rr
+// Clearing addressing register $arR.
+// This is not in any doc and as such just a guess
+void cr(const UDSPInstruction& opc) {
+	u8 reg = opc.hex & 0x3;	
+	
+	g_dsp.r[reg] = 0;
+}
+
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
@@ -201,7 +211,7 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 
 	switch (op) {
 	case 0x00: // 
-		ERROR_LOG(DSPLLE, "dsp_op_ext_r_epi");
+		//g_dsp.r[reg] = 0;
 		break;
 		
 	case 0x01: // DR
