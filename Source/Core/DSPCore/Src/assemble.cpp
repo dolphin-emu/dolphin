@@ -76,14 +76,30 @@ static const char *err_string[] =
 	"Number out of range"
 };
 
-void DSPAssembler::parse_error(err_t err_code, fass_t *fa, const char *extra_info)
+DSPAssembler::DSPAssembler(const AssemblerSettings &settings) 
+:   current_param(0),
+	cur_addr(0),
+	cur_pass(0),
+	 settings_(settings) 
 {
-	fprintf(stderr, "%i : %s\n", fa->code_line, cur_line);
-	fa->failed = true;
+	gdg_buffer = NULL;
+
+}
+
+
+DSPAssembler::~DSPAssembler()
+{
+
+}
+
+void DSPAssembler::parse_error(err_t err_code, const char *extra_info)
+{
+	fprintf(stderr, "%i : %s\n", code_line, cur_line);
+	failed = true;
 	if (!extra_info)
 		extra_info = "-";
-	if (fa->fsrc)
-		fclose(fa->fsrc);
+	if (fsrc)
+		fclose(fsrc);
 	else
 	{
 		fprintf(stderr, "ERROR: %s : %s\n", err_string[err_code], extra_info);
@@ -92,10 +108,10 @@ void DSPAssembler::parse_error(err_t err_code, fass_t *fa, const char *extra_inf
 	// modified by Hermes
 
 	if (current_param == 0)
-		fprintf(stderr, "ERROR: %s Line: %d : %s\n", err_string[err_code], fa->code_line, extra_info);
+		fprintf(stderr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
 	else 
 		fprintf(stderr, "ERROR: %s Line: %d Param: %d : %s\n",
-		        err_string[err_code], fa->code_line, current_param, extra_info);
+		        err_string[err_code], code_line, current_param, extra_info);
 }
 
 char *skip_spaces(char *ptr)
@@ -114,19 +130,12 @@ const char *skip_spaces(const char *ptr)
 
 void DSPAssembler::gd_ass_register_label(const char *label, u16 lval)
 {
-	labels[labels_count].label = (char *)malloc(strlen(label) + 1);
-	strcpy(labels[labels_count].label, label);
-	labels[labels_count].addr = lval;
-	labels_count++;
+	labels.push_back(label_t(label, lval));
 }
 
 void DSPAssembler::gd_ass_clear_labels()
 {
-	for (int i = 0; i < labels_count; i++)
-	{
-		free(labels[i].label);
-	}
-	labels_count = 0;
+	labels.clear();
 }
 
 // Parse a standalone value - it can be a number in one of several formats or a label.
@@ -156,7 +165,7 @@ s32 DSPAssembler::strtoval(const char *str)
 				if (ptr[i] >= '0' && ptr[i] <= '9')
 					val += ptr[i] - '0';
 				else
-					parse_error(ERR_INCORRECT_DEC, cur_fa, str);
+					parse_error(ERR_INCORRECT_DEC, str);
 			}
 		}
 		else
@@ -172,9 +181,9 @@ s32 DSPAssembler::strtoval(const char *str)
 					else if (ptr[i] >= 'A' && ptr[i] <= 'F')
 						val += (ptr[i]-'A'+10);
 					else if (ptr[i] >= '0' && ptr[i] <= '9')
-						val += (ptr[i]-'0');
+						val += (ptr[i] - '0');
 					else
-						parse_error(ERR_INCORRECT_HEX, cur_fa, str);
+						parse_error(ERR_INCORRECT_HEX, str);
 				}
 				break;
 			case '\'': // binary
@@ -184,7 +193,7 @@ s32 DSPAssembler::strtoval(const char *str)
 					if(ptr[i] >= '0' && ptr[i] <= '1')
 						val += ptr[i] - '0';
 					else
-						parse_error(ERR_INCORRECT_BIN, cur_fa, str);
+						parse_error(ERR_INCORRECT_BIN, str);
 				}
 				break;
 			default:
@@ -205,19 +214,19 @@ s32 DSPAssembler::strtoval(const char *str)
 				if (ptr[i] >= '0' && ptr[i] <= '9')
 					val += ptr[i] - '0';
 				else
-					parse_error(ERR_INCORRECT_DEC, cur_fa, str);
+					parse_error(ERR_INCORRECT_DEC, str);
 			}
 		}
 		else  // Everything else is a label.
 		{
 			// Lookup label
-			for (int i = 0; i < labels_count; i++)
+			for (int i = 0; i < labels.size(); i++)
 			{
-				if (strcmp(labels[i].label, ptr) == 0)
+				if (strcmp(labels[i].label.c_str(), ptr) == 0)
 					return labels[i].addr;
 			}
 			if (cur_pass == 2)
-				parse_error(ERR_UNKNOWN_LABEL, cur_fa, str);
+				parse_error(ERR_UNKNOWN_LABEL, str);
 		}
 	}
 	if (negative)
@@ -270,7 +279,7 @@ char *DSPAssembler::find_brackets(char *src, char *dst)
 		}
 	}
 	if (count)
-		parse_error(ERR_NO_MATCHING_BRACKETS, cur_fa);
+		parse_error(ERR_NO_MATCHING_BRACKETS);
 	return NULL;
 }
 
@@ -333,8 +342,7 @@ u32 DSPAssembler::parse_exp(const char *ptr)
 		if (val < 0)
 		{
 			val = 0x10000 + (val & 0xffff); // ATTENTION: avoid a terrible bug!!! number cannot write with '-' in sprintf
-			if(cur_fa)
-				fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", cur_fa->code_line);
+			fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", code_line);
 		}
 		sprintf(d_buffer, "%d", val);
 	}
@@ -373,14 +381,13 @@ u32 DSPAssembler::parse_exp(const char *ptr)
 	return val;
 }
 
-u32 DSPAssembler::parse_exp_f(const char *ptr, fass_t *fa)
+u32 DSPAssembler::parse_exp_f(const char *ptr)
 {
-	cur_fa = fa;
 	return parse_exp(ptr);
 }
 
 // Destroys parstr
-u32 DSPAssembler::get_params(char *parstr, param_t *par, fass_t *fa)
+u32 DSPAssembler::get_params(char *parstr, param_t *par)
 {
 	u32 count = 0;
 	char *tmpstr = skip_spaces(parstr);
@@ -405,27 +412,27 @@ u32 DSPAssembler::get_params(char *parstr, param_t *par, fass_t *fa)
 			par[i].type = P_STR;
 			break;
 		case '#':
-			par[i].val = parse_exp_f(tmpstr + 1, fa);
+			par[i].val = parse_exp_f(tmpstr + 1);
 			par[i].type = P_IMM;
 			break;
 		case '@':
 			if (tmpstr[1] == '$')
 			{
-				par[i].val = parse_exp_f(tmpstr + 2, fa);
+				par[i].val = parse_exp_f(tmpstr + 2);
 				par[i].type = P_PRG;
 			}
 			else
 			{
-				par[i].val = parse_exp_f(tmpstr + 1, fa);
+				par[i].val = parse_exp_f(tmpstr + 1);
 				par[i].type = P_MEM;
 			}
 			break;
 		case '$':
-			par[i].val = parse_exp_f(tmpstr + 1, fa);
+			par[i].val = parse_exp_f(tmpstr + 1);
 			par[i].type = P_REG;
 			break;
 		default:
-			par[i].val = parse_exp_f(tmpstr, fa);
+			par[i].val = parse_exp_f(tmpstr);
 			par[i].type = P_VAL;
 			break;
 		}
@@ -434,7 +441,7 @@ u32 DSPAssembler::get_params(char *parstr, param_t *par, fass_t *fa)
 	return count;
 }
 
-const opc_t *DSPAssembler::find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, u32 opcod_size, DSPAssembler::fass_t *fa)
+const opc_t *DSPAssembler::find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size)
 {
 	if (opcode[0] == 'C' && opcode[1] == 'W')
 		return &cw;
@@ -449,16 +456,16 @@ const opc_t *DSPAssembler::find_opcode(const char *opcode, u32 par_count, const 
 		{
 			if (par_count < opc->param_count)
 			{
-				parse_error(ERR_NOT_ENOUGH_PARAMETERS, fa);
+				parse_error(ERR_NOT_ENOUGH_PARAMETERS);
 			}
 			if (par_count > opc->param_count)
 			{
-				parse_error(ERR_TOO_MANY_PARAMETERS, fa);
+				parse_error(ERR_TOO_MANY_PARAMETERS);
 			}
 			return opc;
 		}
 	}
-	parse_error(ERR_UNKNOWN_OPCODE, fa);
+	parse_error(ERR_UNKNOWN_OPCODE);
 	return NULL;
 }
 
@@ -470,81 +477,93 @@ u16 get_mask_shifted_down(u16 mask)
 	return mask;
 }
 
-bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa)
+bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, int count, bool ext)
 {
-	int value;
-	unsigned int valueu;
-	for (u32 i = 0; i < count; i++)
+	for (int i = 0; i < count; i++)
 	{
-		current_param = i+1;
+		const int current_param = i + 1;  // just for display.
 		if (opc->params[i].type != par[i].type || (par[i].type & P_REG))
 		{
 			if ((opc->params[i].type & P_REG) && (par[i].type & P_REG))
 			{
+				// Just a temp. Should be replaced with more purposeful vars.
+				int value;
+
 				// modified by Hermes: test the register range
 				switch ((unsigned)opc->params[i].type)
 				{ 
 				case P_REG18:
 				case P_REG19:
 				case P_REG1A:
-				//case P_REG1C:
 					value = (opc->params[i].type >> 8) & 31;
 					if ((int)par[i].val < value ||
 						(int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
 					{
-						parse_error(ERR_INVALID_REGISTER, fa);
+						if (ext) fprintf(stderr, "(ext) ");
+						fprintf(stderr, "%s   (param %i)", cur_line.c_str(), current_param);
+						parse_error(ERR_INVALID_REGISTER);
 					}
 					break;
 				case P_PRG:
 					if ((int)par[i].val < 0 || (int)par[i].val > 0x3)
 					{
-						parse_error(ERR_INVALID_REGISTER, fa);
+						if (ext) fprintf(stderr, "(ext) ");
+						fprintf(stderr, "%s   (param %i)", cur_line.c_str(), current_param);
+						parse_error(ERR_INVALID_REGISTER);
 					}
 					break;
 				case P_ACC:
 					if ((int)par[i].val < 0x20 || (int)par[i].val > 0x21)
 					{
+						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1e && par[i].val <= 0x1f)
-							fprintf(stderr, "WARNING: $ACM%d register used instead $ACC%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
+							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param, ext);
 						else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
-							fprintf(stderr, "WARNING: $ACL%d register used instead $ACC%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
+							fprintf(stderr, "WARNING: $ACL%d register used instead of $ACC%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
 						else
-							parse_error(ERR_WRONG_PARAMETER_ACC, fa);
+							parse_error(ERR_WRONG_PARAMETER_ACC);
 					}
 					break;
 				case P_ACCM:
 					if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
 					{
+						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1c && par[i].val <= 0x1d)
-							fprintf(stderr, "WARNING: $ACL%d register used instead $ACM%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
+							fprintf(stderr, "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
 						else if (par[i].val >= 0x20 && par[i].val <= 0x21)
-							fprintf(stderr, "WARNING: $ACC%d register used instead $ACM%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
+							fprintf(stderr, "WARNING: $ACC%d register used instead of $ACM%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
 						else
-							parse_error(ERR_WRONG_PARAMETER_ACC, fa);
+							parse_error(ERR_WRONG_PARAMETER_ACC);
 					}
 					break;
 
 				case P_ACCL:
 					if ((int)par[i].val < 0x1c || (int)par[i].val > 0x1d)
 					{
+						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1e && par[i].val <= 0x1f)
-							fprintf(stderr, "WARNING: $ACM%d register used instead $ACL%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
-						else if (par[i].val >= 0x20 && par[i].val <= 0x21)
-							fprintf(stderr, "WARNING: $ACC%d register used instead $ACL%d register Line: %d Param: %d\n",
-								(par[i].val & 1), (par[i].val & 1), fa->code_line, current_param);
+						{
+							fprintf(stderr, "%s", cur_line.c_str());
+							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
+						}
+						else if (par[i].val >= 0x20 && par[i].val <= 0x21) {
+							fprintf(stderr, "%s", cur_line.c_str());
+							fprintf(stderr, "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %d\n",
+								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
+						}
 						else
-							parse_error(ERR_WRONG_PARAMETER_ACC, fa);
+							parse_error(ERR_WRONG_PARAMETER_ACC);
 					}
 					break;
 /*				case P_ACCM_D: //P_ACC_MID:
 					if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
 					{
-						parse_error(ERR_WRONG_PARAMETER_MID_ACC, fa);
+						parse_error(ERR_WRONG_PARAMETER_MID_ACC);
 					}
 					break;*/
 				}
@@ -554,42 +573,45 @@ bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass
 			switch (par[i].type & (P_REG | P_VAL | P_MEM | P_IMM))
 			{
 			case P_REG:
-				parse_error(ERR_EXPECTED_PARAM_REG, fa);
+				if (ext) fprintf(stderr, "(ext) ");
+				parse_error(ERR_EXPECTED_PARAM_REG);
 				break;
 			case P_MEM:
-				parse_error(ERR_EXPECTED_PARAM_MEM, fa);
+				if (ext) fprintf(stderr, "(ext) ");
+				parse_error(ERR_EXPECTED_PARAM_MEM);
 				break;
 			case P_VAL:
-				parse_error(ERR_EXPECTED_PARAM_VAL, fa);
+				if (ext) fprintf(stderr, "(ext) ");
+				parse_error(ERR_EXPECTED_PARAM_VAL);
 				break;
 			case P_IMM:
-				parse_error(ERR_EXPECTED_PARAM_IMM, fa);
+				if (ext) fprintf(stderr, "(ext) ");
+				parse_error(ERR_EXPECTED_PARAM_IMM);
 				break;
 			}
-			parse_error(ERR_WRONG_PARAMETER, fa);
+			parse_error(ERR_WRONG_PARAMETER);
 			break;
 		}
 		else if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
 		{
 			// modified by Hermes: test NUMBER range
-			value = get_mask_shifted_down(opc->params[i].mask);
-
-			valueu = 0xffff & ~(value >> 1);
+			int value = get_mask_shifted_down(opc->params[i].mask);
+			unsigned int valueu = 0xffff & ~(value >> 1);
 			if ((int)par[i].val < 0)
 			{
 				if (value == 7) // value 7 por sbclr/sbset
 				{
 					fprintf(stderr,"Value must be from 0x0 to 0x%x\n", value);
-					parse_error(ERR_OUT_RANGE_NUMBER, fa);
+					parse_error(ERR_OUT_RANGE_NUMBER);
 				}
 				else if (opc->params[i].type == P_MEM)
 				{
 					if (value < 256)
-						fprintf(stderr,"Address value must be from 0x%x to 0x%x\n",valueu, (value>>1));
+						fprintf(stderr, "Address value must be from 0x%x to 0x%x\n",valueu, (value>>1));
 					else
-						fprintf(stderr,"Address value must be from 0x0 to 0x%x\n", value);
+						fprintf(stderr, "Address value must be from 0x0 to 0x%x\n", value);
 
-					parse_error(ERR_OUT_RANGE_NUMBER, fa);
+					parse_error(ERR_OUT_RANGE_NUMBER);
 				}
 				else if ((int)par[i].val < -((value >> 1) + 1))
 				{
@@ -600,7 +622,7 @@ bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass
 						fprintf(stderr, "Value must be from -0x%x to 0x%x or 0x0 to 0x%x, is %i\n",
 						        (value >> 1) + 1, value >> 1, value, par[i].val);
 
-					parse_error(ERR_OUT_RANGE_NUMBER, fa);
+					parse_error(ERR_OUT_RANGE_NUMBER);
 				}
 			}
 			else
@@ -610,7 +632,7 @@ bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass
 					if (par[i].val > (unsigned)value)
 					{
 						fprintf(stderr,"Value must be from 0x%x to 0x%x, is %i\n",valueu, value, par[i].val);
-						parse_error(ERR_OUT_RANGE_NUMBER, fa);
+						parse_error(ERR_OUT_RANGE_NUMBER);
 					}
 				}
 				else if (opc->params[i].type == P_MEM)
@@ -624,7 +646,7 @@ bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass
 							fprintf(stderr,"Address value must be from 0x%x to 0x%x, is %04x\n", valueu, value, par[i].val);
 						else
 							fprintf(stderr,"Address value must be minor of 0x%x\n", value+1);
-						parse_error(ERR_OUT_RANGE_NUMBER, fa);
+						parse_error(ERR_OUT_RANGE_NUMBER);
 					}
 				}
 				else
@@ -637,7 +659,7 @@ bool DSPAssembler::verify_params(const opc_t *opc, param_t *par, u32 count, fass
 							fprintf(stderr,"Value must be from -0x%x to 0x%x, is %i\n", (value + 1), value, par[i].val);
 						else
 							fprintf(stderr,"Value must be minor of 0x%x, is %i\n", value + 1, par[i].val);
-						parse_error(ERR_OUT_RANGE_NUMBER, fa);
+						parse_error(ERR_OUT_RANGE_NUMBER);
 					}
 				}
 			}
@@ -672,6 +694,7 @@ void DSPAssembler::build_code(const opc_t *opc, param_t *par, u32 par_count, u16
 
 void DSPAssembler::gd_ass_init_pass(int pass)
 {
+	failed = false;
 	if (pass == 1)
 	{
 		// Reset label table. Pre-populate with hw addresses and registers.
@@ -680,7 +703,7 @@ void DSPAssembler::gd_ass_init_pass(int pass)
 		{
 			gd_ass_register_label(regnames[i].name, regnames[i].addr);
 		}
-		for (int i = 0; i < pdlabels_size; i++)
+		for (int i = 0; i < (int)pdlabels_size; i++)
 		{
 			gd_ass_register_label(pdlabels[i].name, pdlabels[i].addr);
 		}
@@ -696,40 +719,37 @@ void DSPAssembler::gd_ass_init_pass(int pass)
 	segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
+bool DSPAssembler::gd_ass_file(const char *fname, int pass)
 {
-	fass_t fa;
     int disable_text = 0; // modified by Hermes
 
-	param_t params[10] = {0};
-	param_t params_ext[10] = {0};
-	u32 params_count = 0;
-	u32 params_count_ext = 0;
-
-	fa.failed = false;
-	fa.fsrc = fopen(fname, "r");
-	if (fa.fsrc == NULL)
+	fsrc = fopen(fname, "r");
+	if (fsrc == NULL)
 	{
 		fprintf(stderr, "Cannot open %s file\n", fname);
 		return false;
 	}
 
-	fseek(fa.fsrc, 0, SEEK_SET);
+	fseek(fsrc, 0, SEEK_SET);
+
 	printf("Pass %d\n", pass);
-	fa.code_line = 0;
+	code_line = 0;
 	cur_pass = pass;
 
-#define LINEBUF_SIZE 4096
+#define LINEBUF_SIZE 1024
 	char linebuffer[LINEBUF_SIZE];
-	while (!feof(fa.fsrc) && !fa.failed)
+	while (!feof(fsrc) && !failed)
 	{
 		int opcode_size = 0;
 		memset(linebuffer, 0, LINEBUF_SIZE);
-		if (!fgets(linebuffer, LINEBUF_SIZE, fa.fsrc))
+		if (!fgets(linebuffer, LINEBUF_SIZE, fsrc))
 			break;
-		strcpy(cur_line, linebuffer);
+		cur_line = linebuffer;
 		//printf("A: %s", linebuffer);
-		fa.code_line++;
+		code_line++;
+
+		param_t params[10] = {0};
+		param_t params_ext[10] = {0};
 
 		for (int i = 0; i < LINEBUF_SIZE; i++)
 		{
@@ -744,7 +764,7 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 						c = 0x00;
 					else if (linebuffer[i+1] == '*') 
 					{
-						// wtf is this?
+						// toggle comment mode.
 						disable_text = !disable_text;
 					}
 				}
@@ -759,8 +779,8 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 				}
 			}
 
-
-			if(disable_text && ((unsigned char )c)>32) c=32;
+			// turn text into spaces if disable_text is on (in a comment).
+			if (disable_text && ((unsigned char)c) > 32) c = 32;
 
 			if (c == 0x0a || c == 0x0d || c == ';')
 				c = 0x00;
@@ -802,9 +822,8 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 		opcode = strtok(ptr, " ");
 		char *opcode_ext = NULL;
 
-		char *paramstr;
-		char *paramstr_ext;
-
+		u32 params_count = 0;
+		u32 params_count_ext = 0;
 		if (opcode)
 		{
 			if ((opcode_ext = strstr(opcode, "'")) != NULL)
@@ -819,10 +838,9 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 			params_count = 0;
 			params_count_ext = 0;
 
-			paramstr = paramstr_ext = 0;
+			char *paramstr = strtok(NULL, "\0");
+			char *paramstr_ext = 0;
 			// there is valid opcode so probably we have parameters
-
-			paramstr = strtok(NULL, "\0");
 
 			if (paramstr)
 			{
@@ -834,9 +852,9 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 			}
 
 			if (paramstr)
-				params_count = get_params(paramstr, params, &fa);
+				params_count = get_params(paramstr, params);
 			if (paramstr_ext)
-				params_count_ext = get_params(paramstr_ext, params_ext, &fa);
+				params_count_ext = get_params(paramstr_ext, params_ext);
 		}
 
 		if (label)
@@ -852,9 +870,7 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 				}
 			}
 			if (pass == 1)
-			{
 				gd_ass_register_label(label, lval);
-			}
 		}
 
 		if (opcode == NULL)
@@ -866,34 +882,30 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 			if (params[0].type == P_STR)
 			{
 				char *tmpstr;
-				if (include_dir)
+				if (include_dir.size())
 				{
-					tmpstr = (char *)malloc(strlen(include_dir) + strlen(params[0].str) + 2);
-					sprintf(tmpstr, "%s/%s", include_dir, params[0].str);
+					tmpstr = (char *)malloc(include_dir.size() + strlen(params[0].str) + 2);
+					sprintf(tmpstr, "%s/%s", include_dir.c_str(), params[0].str);
 				}
 				else
 				{
 					tmpstr = (char *)malloc(strlen(params[0].str) + 1);
 					strcpy(tmpstr, params[0].str);
 				}
-				gd_ass_file(gdg, tmpstr, pass);
+				gd_ass_file(tmpstr, pass);
 				free(tmpstr);
 			}
 			else
-				parse_error(ERR_EXPECTED_PARAM_STR, &fa);
+				parse_error(ERR_EXPECTED_PARAM_STR);
 			continue;
 		}
 
 		if (strcmp("INCDIR", opcode) == 0)
 		{
 			if (params[0].type == P_STR)
-			{
-				if (include_dir) free(include_dir);
-				include_dir = (char *)malloc(strlen(params[0].str) + 1);
-				strcpy(include_dir, params[0].str);
-			}
+				include_dir = params[0].str;
 			else
-				parse_error(ERR_EXPECTED_PARAM_STR, &fa);
+				parse_error(ERR_EXPECTED_PARAM_STR);
 			continue;
 		}
 
@@ -902,13 +914,13 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 			if (params[0].type == P_VAL)
 				cur_addr = params[0].val;
 			else
-				parse_error(ERR_EXPECTED_PARAM_VAL, &fa);
+				parse_error(ERR_EXPECTED_PARAM_VAL);
 			continue;
 		}
 
 		if (strcmp("SEGMENT", opcode) == 0)
 		{
-			if(params[0].type == P_STR)
+			if (params[0].type == P_STR)
 			{
 				segment_addr[cur_segment] = cur_addr;
 				if (strcmp("DATA", params[0].str) == 0)
@@ -918,17 +930,17 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 				cur_addr = segment_addr[cur_segment];
 			}
 			else
-				parse_error(ERR_EXPECTED_PARAM_STR, &fa);
+				parse_error(ERR_EXPECTED_PARAM_STR);
 			continue;
 		}
 
-		const opc_t *opc = find_opcode(opcode, params_count, opcodes, opcodes_size, &fa);
+		const opc_t *opc = find_opcode(opcode, params_count, opcodes, opcodes_size);
 		if (!opc)
 			opc = &cw;
 
 		opcode_size = opc->size & ~P_EXT;
 
-		verify_params(opc, params, params_count, &fa);
+		verify_params(opc, params, params_count);
 
 		const opc_t *opc_ext = NULL;
 		// Check for opcode extensions.
@@ -936,37 +948,37 @@ bool DSPAssembler::gd_ass_file(gd_globals_t *gdg, const char *fname, int pass)
 		{
 			if (opcode_ext)
 			{
-				opc_ext = find_opcode(opcode_ext, params_count_ext, opcodes_ext, opcodes_ext_size, &fa);
-				verify_params(opc_ext, params_ext, params_count_ext, &fa);
+				opc_ext = find_opcode(opcode_ext, params_count_ext, opcodes_ext, opcodes_ext_size);
+				verify_params(opc_ext, params_ext, params_count_ext, true);
 			}
 			else if (params_count_ext)
-				parse_error(ERR_EXT_PAR_NOT_EXT, &fa);
+				parse_error(ERR_EXT_PAR_NOT_EXT);
 		}
 		else
 		{
 			if (opcode_ext)
-				parse_error(ERR_EXT_CANT_EXTEND_OPCODE, &fa);
+				parse_error(ERR_EXT_CANT_EXTEND_OPCODE);
 			if (params_count_ext)
-				parse_error(ERR_EXT_PAR_NOT_EXT, &fa);
+				parse_error(ERR_EXT_PAR_NOT_EXT);
 		}
 
 		if (pass == 2)
 		{
 			// generate binary
-			((u16 *)gdg->buffer)[cur_addr] = 0x0000;
-			build_code(opc, params, params_count, (u16 *)gdg->buffer);
+			((u16 *)gdg_buffer)[cur_addr] = 0x0000;
+			build_code(opc, params, params_count, (u16 *)gdg_buffer);
 			if (opc_ext)
-				build_code(opc_ext, params_ext, params_count_ext, (u16 *)gdg->buffer);
+				build_code(opc_ext, params_ext, params_count_ext, (u16 *)gdg_buffer);
 		}
 
 		cur_addr += opcode_size;
 	};
-	if (gdg->buffer == NULL)
+	if (gdg_buffer == NULL)
 	{
-		gdg->buffer_size = cur_addr;
-		gdg->buffer = (char *)malloc(gdg->buffer_size * sizeof(u16) + 4);
-		memset(gdg->buffer, 0, gdg->buffer_size * sizeof(u16));
+		gdg_buffer_size = cur_addr;
+		gdg_buffer = (char *)malloc(gdg_buffer_size * sizeof(u16) + 4);
+		memset(gdg_buffer, 0, gdg_buffer_size * sizeof(u16));
 	}
-	fclose(fa.fsrc);
-	return !fa.failed;
+	fclose(fsrc);
+	return !failed;
 }

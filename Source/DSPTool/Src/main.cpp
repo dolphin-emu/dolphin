@@ -88,7 +88,6 @@ void RunAsmTests()
 #define CHK(a) if (!SuperTrip(a)) printf("FAIL\n%s\n", a), fail = true;
 
 	// Let's start out easy - a trivial instruction..
-#if 0
 	CHK("	NOP\n");
 
 	// Now let's do several.
@@ -114,25 +113,29 @@ void RunAsmTests()
 		"	si		@0xfffd, #0xbeef\n"
 		"	si		@DIRQ, #0x0001\n");
 
+	// Let's try some messy extended instructions.
+	//CHK("   MULMV'SN    $AX0.L, $AX0.H, $ACC0 : @$AR2, $AC1.M\n");
+
+		//"   ADDAXL'MV   $ACC1, $AX1.L : $AX1.H, $AC1.M\n");
 	// Let's get brutal. We generate random code bytes and make sure that they can
 	// be roundtripped. We don't expect it to always succeed but it'll be sure to generate
 	// interesting test cases.
-
+/*
 	puts("Insane Random Code Test\n");
 	std::vector<u16> rand_code;
-	GenRandomCode(21, &rand_code);
+	GenRandomCode(31, &rand_code);
 	std::string rand_code_text;
-	Disassemble(rand_code, &rand_code_text);
+	Disassemble(rand_code, true, &rand_code_text);
 	printf("%s", rand_code_text.c_str());
 	RoundTrip(rand_code);
-#endif
-
+*/
 	std::string dsp_test;
-	//File::ReadStringFromFile(true, "C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test);
 
-	File::ReadFileToString(true, "C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
+	if (File::ReadFileToString(true, "C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
+		SuperTrip(dsp_test.c_str());
+
+	//.File::ReadFileToString(true, "C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
 	// This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
-	SuperTrip(dsp_test.c_str());
 
 	if (!fail)
 		printf("All passed!\n");

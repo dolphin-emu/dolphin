@@ -24,6 +24,11 @@
 
 // The ones that end with _D are the opposite one - if the bit specify
 // ACC0, then ACC_D will be ACC1.
+
+// The values of these are very important.
+// For the reg ones, the value >> 8 is the base register.
+// & 0x80  means it's a "D".
+
 enum partype_t
 {
 	P_NONE		= 0x0000,
@@ -37,15 +42,15 @@ enum partype_t
 	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
 	P_REG19		= P_REG | 0x1900,
 	P_REGM19	= P_REG | 0x1910, // used in multiply instructions
-	P_REG1A		= P_REG | 0x1a00,
+	P_REG1A		= P_REG | 0x1a80,
 	P_REG1C		= P_REG | 0x1c00,
 //	P_ACC		= P_REG | 0x1c10, // used for global accum (gcdsptool's value)
 	P_ACC_D		= P_REG | 0x1c80,
-	P_ACCL		= P_REG | 0x1c00, // used for mid accum
-	P_ACCM		= P_REG | 0x1e00, // used for mid accum
+	P_ACCL		= P_REG | 0x1c00, // used for low part of accum
+	P_ACCM		= P_REG | 0x1e00, // used for mid part of accum
 	// The following are not in gcdsptool
 	P_ACCM_D	= P_REG | 0x1e80,
-	P_ACC		= P_REG | 0x2000, // used for global accum.
+	P_ACC		= P_REG | 0x2000, // used for full accum.
 	P_AX		= P_REG | 0x2200,
 	P_REGS_MASK	= 0x03f80, // gcdsptool's value = 0x01f80
 	P_REF       = P_REG | 0x4000,

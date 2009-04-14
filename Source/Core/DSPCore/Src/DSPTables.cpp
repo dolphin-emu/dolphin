@@ -234,11 +234,11 @@ const DSPOPCTemplate opcodes[] =
 
 
 	{"INCM",    0x7400, 0xfeff, DSPInterpreter::incm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"INC",		0x7600, 0xfeff, DSPInterpreter::inc,    nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"INC",		0x7600, 0xfeff, DSPInterpreter::inc,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"DECM",    0x7800, 0xfeff, DSPInterpreter::decm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"DEC",		0x7a00, 0xfeff, DSPInterpreter::dec,    nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg,    nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MOVNP",   0x7e00, 0xfeff, DSPInterpreter::movnp,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"DEC",		0x7a00, 0xfeff, DSPInterpreter::dec,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"NEG",		0x7c00, 0xfeff, DSPInterpreter::neg,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MOVNP",   0x7e00, 0xfeff, DSPInterpreter::movnp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 
 	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -278,19 +278,19 @@ const DSPOPCTemplate opcodes[] =
 	{"ORC",		0x3E00, 0xfeff, DSPInterpreter::orc,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // Hermes doesn't list this
 
 	{"MULX",    0xa000, 0xe7ff, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULXAC",  0xa400, 0xe6ff, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULXMV",  0xa600, 0xe6ff, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"MUL",		0x9000, 0xf7ff, DSPInterpreter::mul,    nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULMVZ",  0x9200, 0xf6ff, DSPInterpreter::mulmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULAC",   0x9400, 0xf6ff, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULMV",   0x9600, 0xf6ff, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULMVZ",  0x9200, 0xf6ff, DSPInterpreter::mulmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULAC",   0x9400, 0xf6ff, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULMV",   0x9600, 0xf6ff, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"MULC",    0xc000, 0xe7ff, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCMVZ", 0xc200, 0xe6ff, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCAC",  0xc400, 0xe6ff, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"MULCMV",  0xc600, 0xe6ff, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCMVZ", 0xc200, 0xe6ff, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCAC",  0xc400, 0xe6ff, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"MULCMV",  0xc600, 0xe6ff, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"ADDR",    0x4000, 0xf8ff, DSPInterpreter::addr,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ADDAX",   0x4800, 0xfcff, DSPInterpreter::addax,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -315,8 +315,7 @@ const DSPOPCTemplate cw =
 
 
 const DSPOPCTemplate opcodes_ext[] =
-{
-	
+{	
 	// FIXME: guessing this is cr need checking
 	{"CR",      0x0000, 0x00fc, DSPInterpreter::Ext::cr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"DR",      0x0004, 0x00fc, DSPInterpreter::Ext::dr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
@@ -410,10 +409,10 @@ const pdlabel_t regnames[] =
 	{0x01, "AR1",       "Addr Reg 01",},
 	{0x02, "AR2",       "Addr Reg 02",},
 	{0x03, "AR3",       "Addr Reg 03",},
-	{0x04, "IX0",       "Index Reg 1(04)",},
-	{0x05, "IX1",       "Index Reg 2(05)",},
-	{0x06, "IX2",       "Index Reg 3(06)",},
-	{0x07, "IX3",       "Indec Reg 4(07)",},
+	{0x04, "IX0",       "Index Reg 0(04)",},
+	{0x05, "IX1",       "Index Reg 1(05)",},
+	{0x06, "IX2",       "Index Reg 2(06)",},
+	{0x07, "IX3",       "Indec Reg 3(07)",},
 	{0x08, "R08",       "Register 08",},
 	{0x09, "R09",       "Register 09",},
 	{0x0a, "R10",       "Register 10",},
@@ -422,7 +421,7 @@ const pdlabel_t regnames[] =
 	{0x0d, "ST1",       "Data stack",},
 	{0x0e, "ST2",       "Loop addr stack",},
 	{0x0f, "ST3",       "Loop counter",},
-	{0x00, "AC0.H",     "Accu High 0",},
+	{0x10, "AC0.H",     "Accu High 0",},
 	{0x11, "AC1.H",     "Accu High 1",},
 	{0x12, "CR",        "Config Register",},
 	{0x13, "SR",        "Special Register",},
@@ -439,7 +438,7 @@ const pdlabel_t regnames[] =
 	{0x1e, "AC0.M",		"Accu Mid 0",},
 	{0x1f, "AC1.M",		"Accu Mid 1",},
 
-	// To resolve special names.
+	// To resolve combined register names.
 	{0x20, "ACC0",		"Accu Full 0",},
 	{0x21, "ACC1",		"Accu Full 1",},
 	{0x22, "AX0",		"Extra Accu 0",},
@@ -450,7 +449,6 @@ u8 opSize[OPTABLE_SIZE];
 dspInstFunc opTable[OPTABLE_SIZE];
 dspInstFunc prologueTable[OPTABLE_SIZE];
 dspInstFunc epilogueTable[OPTABLE_SIZE];
-
 
 const char* pdname(u16 val)
 {

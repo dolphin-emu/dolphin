@@ -34,25 +34,23 @@
 #pragma warning(disable:4996)
 #endif
 
-u32 unk_opcodes[0x10000];
-
 extern void nop(const UDSPInstruction& opc);
 
-DSPDisassembler::DSPDisassembler()
+DSPDisassembler::DSPDisassembler(const AssemblerSettings &settings)
+	: settings_(settings)
 {
+	memset(unk_opcodes, 0, sizeof(unk_opcodes));
 }
 
-char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc,
-									 u16 op1, u16 op2, char* strbuf)
+char *DSPDisassembler::gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2, char *strbuf)
 {
-	char* buf = strbuf;
-	u32 val;
-
+	char *buf = strbuf;
 	for (int j = 0; j < opc->param_count; j++)
 	{
 		if (j > 0)
 			buf += sprintf(buf, ", ");
 
+		u32 val;
 		if (opc->params[j].loc >= 1)
 			val = op2;
 		else
@@ -83,21 +81,21 @@ char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* op
 		switch (type)
 		{
 		case P_REG:
-			if (gdg->decode_registers)
+			if (settings_.decode_registers)
 				sprintf(buf, "$%s", pdregname(val));
 			else
 				sprintf(buf, "$%d", val);
 			break;
 
 		case P_PRG:
-			if (gdg->decode_registers)
+			if (settings_.decode_registers)
 				sprintf(buf, "@$%s", pdregname(val));
 			else
 				sprintf(buf, "@$%d", val);
 			break;
 
 		case P_VAL:
-			if (gdg->decode_names)
+			if (settings_.decode_names)
 				sprintf(buf, "%s", pdname(val));
 			else
 				sprintf(buf, "0x%04x", val);
@@ -119,7 +117,7 @@ char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* op
 			if (opc->params[j].size != 2)
 				val = (u16)(s8)val;
 
-			if (gdg->decode_names)
+			if (settings_.decode_names)
 				sprintf(buf, "@%s", pdname(val));
 			else
 				sprintf(buf, "@0x%04x", val);
@@ -127,7 +125,6 @@ char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* op
 
 		default:
 			ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc->params[j].type);
-//			exit(-1);
 			break;
 		}
 
@@ -137,6 +134,7 @@ char* DSPDisassembler::gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* op
 	return strbuf;
 }
 
+#if 0
 u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 {
 	const DSPOPCTemplate* opc = 0;
@@ -168,7 +166,6 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 	if (!opc)
 	{
 		ERROR_LOG(DSPLLE, "get_opcode_size ARGH");
-		exit(0);
 	}
 
 	if (opc->size & P_EXT && op1 & 0x00ff)
@@ -197,28 +194,27 @@ u16 gd_dis_get_opcode_size(gd_globals_t* gdg)
 
 	return opc->size & ~P_EXT;
 }
+#endif
 
 
-char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
+void DSPDisassembler::gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *dest)
 {
 	u32 op2;
-	char *buf = gdg->buffer;
-
-	u16 pc   = gdg->pc;
-
+	char buffer[256];
+	char *buf = buffer;
 	// Start with a space.
 	buf[0] = ' ';
 	buf[1] = '\0';
 	buf++;
 
-	if ((pc & 0x7fff) >= 0x1000)
+	if ((*pc & 0x7fff) >= 0x1000)
 	{
-		gdg->pc++;
-		return gdg->buffer;
+		*pc++;
+		return;
 	}
 
-	pc &= 0x0fff;
-	u32 op1 = gdg->binbuf[pc];
+	*pc &= 0x0fff;
+	const u32 op1 = binbuf[*pc];
 
 	const DSPOPCTemplate *opc = NULL;
 	const DSPOPCTemplate *opc_ext = NULL;
@@ -239,7 +235,6 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 		}
 	}
 
-	
 	const DSPOPCTemplate fake_op = {"CW",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,};
 	if (!opc)
 		opc = &fake_op;
@@ -266,23 +261,22 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 
 	// printing
 
-	if (gdg->show_pc)
-		sprintf(buf, "%04x ", gdg->pc);
+	if (settings_.show_pc)
+		sprintf(buf, "%04x ", *pc);
 
 	buf += strlen(buf);
 
 	if ((opc->size & ~P_EXT) == 2)
 	{
-		op2 = gdg->binbuf[pc + 1];
-
-		if (gdg->show_hex)
+		op2 = binbuf[*pc + 1];
+		if (settings_.show_hex)
 			sprintf(buf, "%04x %04x ", op1, op2);
 	}
 	else
 	{
 		op2 = 0;
 
-		if (gdg->show_hex)
+		if (settings_.show_hex)
 			sprintf(buf, "%04x      ", op1);
 	}
 
@@ -291,11 +285,11 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 	char tmpbuf[20];
 
 	if (extended)
-		sprintf(tmpbuf, "%s%c%s", opc->name, gdg->ext_separator, opc_ext->name);
+		sprintf(tmpbuf, "%s%c%s", opc->name, settings_.ext_separator, opc_ext->name);
 	else
 		sprintf(tmpbuf, "%s", opc->name);
 
-	if (gdg->print_tabs)
+	if (settings_.print_tabs)
 		sprintf(buf, "%s\t", tmpbuf);
 	else
 		sprintf(buf, "%-12s", tmpbuf);
@@ -303,7 +297,7 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 	buf += strlen(buf);
 
 	if (opc->param_count > 0)
-		gd_dis_params(gdg, opc, op1, op2, buf);
+		gd_dis_params(opc, op1, op2, buf);
 
 	buf += strlen(buf);
 
@@ -318,7 +312,7 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 		buf += strlen(buf);
 
 		if (opc_ext->param_count > 0)
-			gd_dis_params(gdg, opc_ext, op1, op2, buf);
+			gd_dis_params(opc_ext, op1, op2, buf);
 
 		buf += strlen(buf);
 	}
@@ -331,14 +325,14 @@ char* DSPDisassembler::gd_dis_opcode(gd_globals_t* gdg)
 	}
 
 	if (extended)
-		gdg->pc += opc_ext->size;
+		*pc += opc_ext->size;
 	else
-		gdg->pc += opc->size & ~P_EXT;
+		*pc += opc->size & ~P_EXT;
 
-	return gdg->buffer;
+	dest->append(buffer);
 }
 
-bool DSPDisassembler::gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output)
+bool DSPDisassembler::gd_dis_file(const char* name, FILE* output)
 {
 	gd_dis_open_unkop();
 
@@ -354,23 +348,20 @@ bool DSPDisassembler::gd_dis_file(gd_globals_t* gdg, const char* name, FILE* out
 	fseek(in, 0, SEEK_END);
 	size = (int)ftell(in);
 	fseek(in, 0, SEEK_SET);
-	gdg->binbuf = (u16*)malloc(size);
-	fread(gdg->binbuf, 1, size, in);
 
-	gdg->buffer = (char*)malloc(256);
-	gdg->buffer_size = 256;
+	u16 *binbuf = (u16*)malloc(size);
+	fread(binbuf, 1, size, in);
 
-	for (gdg->pc = 0; gdg->pc < (size / 2);)
-		fprintf(output, "%s\n", gd_dis_opcode(gdg));
+	for (u16 pc = 0; pc < (size / 2);)
+	{
+		std::string str;
+		gd_dis_opcode(binbuf, &pc, &str);
+		fprintf(output, "%s\n", str.c_str());
+	}
 
 	fclose(in);
 
-	free(gdg->binbuf);
-	gdg->binbuf = NULL;
-
-	free(gdg->buffer);
-	gdg->buffer = NULL;
-	gdg->buffer_size = 0;
+	free(binbuf);
 
 	gd_dis_close_unkop();
 

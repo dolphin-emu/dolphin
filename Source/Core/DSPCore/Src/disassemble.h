@@ -28,40 +28,55 @@
 #include "Common.h"
 #include "DSPTables.h"
 
-struct gd_globals_t
+struct AssemblerSettings
 {
+	AssemblerSettings()
+		: print_tabs(false),
+		  show_hex(false),
+		  show_pc(false),
+		  decode_names(true),
+		  decode_registers(true),
+		  ext_separator('\'')
+	{
+	}
+
 	bool print_tabs;
 	bool show_hex;
 	bool show_pc;
 	bool decode_names;
 	bool decode_registers;
+	bool lower_case_ops;
+	char ext_separator;
 
-	u16* binbuf;
+	u16 *binbuf;
 	u16 pc;
 	char* buffer;
 	u16 buffer_size;
-	char ext_separator;
 };
 
 class DSPDisassembler
 {
 public:
-	DSPDisassembler();
+	DSPDisassembler(const AssemblerSettings &settings);
 	~DSPDisassembler() {}
 
-	char* gd_dis_opcode(gd_globals_t* gdg);
-	bool gd_dis_file(gd_globals_t* gdg, const char* name, FILE* output);
+	// Moves PC forward and writes the result to dest.
+	void gd_dis_opcode(const u16 *binbuf, u16 *pc, std::string *dest);
+	bool gd_dis_file(const char* name, FILE *output);
 
 	void gd_dis_close_unkop();
 	void gd_dis_open_unkop();
 	const char* gd_dis_get_reg_name(u16 reg);
 
 private:
-	char* gd_dis_params(gd_globals_t* gdg, const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf);
+	char* gd_dis_params(const DSPOPCTemplate* opc, u16 op1, u16 op2, char* strbuf);
+	u32 unk_opcodes[0x10000];
+
+	const AssemblerSettings settings_;
 };
 
 const char *gd_get_reg_name(u16 reg);
-u16 gd_dis_get_opcode_size(gd_globals_t* gdg);
+//u16 gd_dis_get_opcode_size(gd_globals_t* gdg);
 
 #endif  // _DSP_DISASSEMBLE_H
 

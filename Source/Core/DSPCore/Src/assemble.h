@@ -64,27 +64,21 @@ enum err_t
 class DSPAssembler
 {
 public:
-	DSPAssembler();
+	DSPAssembler(const AssemblerSettings &settings);
 	~DSPAssembler();
 
 	void Assemble(const char *text, std::vector<u16> *code);
 
-	typedef struct fass_t
-	{
-		FILE	*fsrc;
-		u32	code_line;
-		bool failed;
-	} fass_t;
-
 	struct label_t
 	{
-		char	*label;
+		label_t(const char *lbl, s32 address) : label(lbl), addr(address) {}
+		std::string label;
 		s32	addr;
 	};
 
 	struct param_t
 	{
-		u32		val;
+		u32			val;
 		partype_t	type;
 		char		*str;
 	};
@@ -97,39 +91,42 @@ public:
 		SEGMENT_MAX
 	};
 	void gd_ass_init_pass(int pass);
-	bool gd_ass_file(gd_globals_t *gdg, const char *fname, int pass);
+	bool gd_ass_file(const char *fname, int pass);
+
+	char *gdg_buffer;
+	int gdg_buffer_size;
 
 private:
-	void parse_error(err_t err_code, fass_t *fa, const char *extra_info = NULL);
+	void parse_error(err_t err_code, const char *extra_info = NULL);
 	void gd_ass_register_label(const char *label, u16 lval);
 	void gd_ass_clear_labels();
 	s32 strtoval(const char *str);
 	char *find_brackets(char *src, char *dst);
 	u32 parse_exp(const char *ptr);
-	u32 parse_exp_f(const char *ptr, fass_t *fa);
-	u32 get_params(char *parstr, param_t *par, fass_t *fa);
-	const opc_t *find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, u32 opcod_size, fass_t *fa);
-	bool verify_params(const opc_t *opc, param_t *par, u32 count, fass_t *fa);
+	u32 parse_exp_f(const char *ptr);
+	u32 get_params(char *parstr, param_t *par);
+	const opc_t *find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size);
+	bool verify_params(const opc_t *opc, param_t *par, int count, bool ext = false);
 	void build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf);
 
-	char *include_dir;
-
-	label_t labels[10000];
-	int	labels_count;
-
-	char cur_line[4096];
+	std::string include_dir;
+	std::vector<label_t> labels;
+	std::string cur_line;
 
 	u32 cur_addr;
 	u8  cur_pass;
-	fass_t *cur_fa;
+
+	FILE *fsrc;
+	u32	code_line;
+	bool failed;
 
 	typedef std::map<std::string, std::string> AliasMap;
 	AliasMap aliases;
 
 	segment_t cur_segment;
 	u32 segment_addr[SEGMENT_MAX];
-
 	int current_param;
+	const AssemblerSettings settings_;
 };
 
 #endif  // _DSP_ASSEMBLE_H

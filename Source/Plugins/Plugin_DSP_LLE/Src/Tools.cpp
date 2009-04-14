@@ -60,15 +60,15 @@ bool DisasmUCodeDump(u32 crc)
 	FILE* t = fopen(txtFile, "wb");
 	if (t != NULL)
 	{
-		gd_globals_t gdg;
-		memset(&gdg, 0, sizeof(gdg));
-		gdg.show_hex = true;
-		gdg.show_pc = true;
-		gdg.ext_separator = '\t';
-		gdg.decode_names = true;
-		gdg.decode_registers = true;
-		DSPDisassembler disasm;
-		disasm.gd_dis_file(&gdg, binFile, t);
+		AssemblerSettings settings;
+		memset(&settings, 0, sizeof(settings));
+		settings.show_hex = true;
+		settings.show_pc = true;
+		settings.ext_separator = '\t';
+		settings.decode_names = true;
+		settings.decode_registers = true;
+		DSPDisassembler disasm(settings);
+		disasm.gd_dis_file(binFile, t);
 		fclose(t);
 		return true;
 	}

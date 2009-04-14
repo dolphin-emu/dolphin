@@ -190,26 +190,27 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 	m_Disasm->DeleteAllItems();
 
 	char Buffer[256];
-	gd_globals_t gdg;
+	AssemblerSettings settings;
 
+	const u16 *binbuf;
 	if (g_dsp.pc & 0x8000)
-		gdg.binbuf = g_dsp.irom;
+		binbuf = g_dsp.irom;
 	else
-		gdg.binbuf = g_dsp.iram;
+		binbuf = g_dsp.iram;
 
-	gdg.buffer = Buffer;
-	gdg.buffer_size   = 256;
-	gdg.ext_separator = (char)0xff;
+	settings.buffer = Buffer;
+	settings.buffer_size   = 256;
+	settings.ext_separator = (char)0xff;
 
-	gdg.show_pc      = false;
-	gdg.show_hex     = false;
-	gdg.print_tabs   = true;
-	gdg.decode_names = true;
-	gdg.decode_registers = true;
+	settings.show_pc      = false;
+	settings.show_hex     = false;
+	settings.print_tabs   = true;
+	settings.decode_names = true;
+	settings.decode_registers = true;
 
-	for (gdg.pc = 0; gdg.pc < DSP_IROM_SIZE;)
+	for (settings.pc = 0; settings.pc < DSP_IROM_SIZE;)
 	{
-		u16 CurrentPC = gdg.pc;
+		u16 CurrentPC = settings.pc;
 
 		if (g_dsp.pc & 0x8000)
 			CurrentPC |= 0x8000;
@@ -220,13 +221,16 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 		char Temp2[256];
 		sprintf(Temp2, "0x%04x", dsp_imem_read(CurrentPC));
 
-		DSPDisassembler disasm;
-		char* pOpcode = disasm.gd_dis_opcode(&gdg);
+		AssemblerSettings settings;
+		DSPDisassembler disasm(settings);
+		std::string op_str;
+		disasm.gd_dis_opcode(binbuf,&settings.pc, &op_str);
 		const char* pParameter = NULL;
 		const char* pExtension = NULL;
 
-		size_t WholeString = strlen(pOpcode);
+		size_t WholeString = op_str.size();
 
+		/*
 		for (size_t i = 0; i < WholeString; i++)
 		{
 			if (pOpcode[i] == (char)0xff)
@@ -240,7 +244,7 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 				pOpcode[i] = 0x00;
 				pParameter = &pOpcode[i + 1];
 			}
-		}
+		}*/
 
 		const char* pFunctionName = NULL;
 
@@ -249,15 +253,15 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 			pFunctionName = m_SymbolMap[CurrentPC].Name.c_str();
 		}
 
-		int Item = m_Disasm->InsertItem(gdg.pc, wxEmptyString);
+		int Item = m_Disasm->InsertItem(settings.pc, wxEmptyString);
 		m_Disasm->SetItem(Item, COLUMN_BP, wxEmptyString);
 		m_Disasm->SetItem(Item, COLUMN_FUNCTION, wxString::FromAscii(pFunctionName));
 		m_Disasm->SetItem(Item, COLUMN_ADDRESS, wxString::FromAscii(Temp));
 		m_Disasm->SetItem(Item, COLUMN_MNEMONIC, wxString::FromAscii(Temp2));
-		m_Disasm->SetItem(Item, COLUMN_OPCODE, wxString::FromAscii(pOpcode));
+		m_Disasm->SetItem(Item, COLUMN_OPCODE, wxString::FromAscii(op_str.c_str()));
 		m_Disasm->SetItem(Item, COLUMN_EXT, wxString::FromAscii(pExtension));
 
-		if (!strcasecmp(pOpcode, "CALL"))
+		if (!strcasecmp(op_str.c_str(), "CALL"))
 		{
 			u32 FunctionAddress = -1;
 			sscanf(pParameter, "0x%04x", &FunctionAddress);

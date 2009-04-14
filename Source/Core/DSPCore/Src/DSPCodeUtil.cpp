@@ -23,50 +23,34 @@
 #include "assemble.h"
 #include "disassemble.h"
 
-DSPAssembler::DSPAssembler()
-:   include_dir(0),
-    current_param(0),
-	cur_addr(0),
-	labels_count(0),
-	cur_pass(0)
-{
-	include_dir = 0;
-	current_param = 0;
-}
-
-DSPAssembler::~DSPAssembler()
-{
-
-}
-
 
 bool Assemble(const char *text, std::vector<u16> *code)
 {
 	const char *fname = "tmp.asm";
-	gd_globals_t gdg;
-	memset(&gdg, 0, sizeof(gdg));
-	gdg.pc = 0;
-	// gdg.decode_registers = false;
-	// gdg.decode_names = false;
-	gdg.print_tabs = false;
-	gdg.ext_separator = '\'';
-	gdg.buffer = 0;
+	AssemblerSettings settings;
+	memset(&settings, 0, sizeof(settings));
+	settings.pc = 0;
+	// settings.decode_registers = false;
+	// settings.decode_names = false;
+	settings.print_tabs = false;
+	settings.ext_separator = '\'';
+	settings.buffer = 0;
 
 	if (!File::WriteStringToFile(true, text, fname))
 		return false;
 
 	// TODO: fix the terrible api of the assembler.
-	DSPAssembler assembler;
+	DSPAssembler assembler(settings);
 	assembler.gd_ass_init_pass(1);
-	if (!assembler.gd_ass_file(&gdg, fname, 1))
+	if (!assembler.gd_ass_file(fname, 1))
 		return false;
 	assembler.gd_ass_init_pass(2);
-	if (!assembler.gd_ass_file(&gdg, fname, 2))
+	if (!assembler.gd_ass_file(fname, 2))
 		return false;
 
-	code->resize(gdg.buffer_size);
-	for (int i = 0; i < gdg.buffer_size; i++) {
-		(*code)[i] = *(u16 *)(gdg.buffer + i * 2);
+	code->resize(assembler.gdg_buffer_size);
+	for (int i = 0; i < assembler.gdg_buffer_size; i++) {
+		(*code)[i] = *(u16 *)(assembler.gdg_buffer + i * 2);
 	}
 	return true;
 }
@@ -86,18 +70,17 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string *t
 	FILE* t = fopen(tmp2, "w");
 	if (t != NULL)
 	{
-		gd_globals_t gdg;
-		memset(&gdg, 0, sizeof(gdg));
+		AssemblerSettings settings;
 
 		// These two prevent roundtripping.
-		gdg.show_hex = false;
-		gdg.show_pc = line_numbers;
-		gdg.ext_separator = '\'';
-		gdg.decode_names = false;
-		gdg.decode_registers = true;
+		settings.show_hex = false;
+		settings.show_pc = line_numbers;
+		settings.ext_separator = '\'';
+		settings.decode_names = false;
+		settings.decode_registers = true;
 
-		DSPDisassembler disasm;
-		bool success = disasm.gd_dis_file(&gdg, tmp1, t);
+		DSPDisassembler disasm(settings);
+		bool success = disasm.gd_dis_file(tmp1, t);
 		fclose(t);
 
 		File::ReadFileToString(true, tmp2, text);
