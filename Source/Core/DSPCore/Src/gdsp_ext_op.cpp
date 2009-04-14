@@ -132,60 +132,60 @@ void ln(const UDSPInstruction& opc)
 }
 
 // Not in duddie's doc
-// LD 
-// xxxx xxxxx 11dd 00ss
+// LD $ax0.d $ax1.r @$arS
+// xxxx xxxx 11dr 00ss
 void ld(const UDSPInstruction& opc)
 {
-	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
+	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
+	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
 	g_dsp.r[sreg]++;
 	g_dsp.r[DSP_REG_AR3]++;
 }
 
 // Not in duddie's doc
-// LDN 
-// xxxx xxxxx
+// LDN $ax0.d $ax1.r @$arS
+// xxxx xxxx 11dr 01ss
 void ldn(const UDSPInstruction& opc)
 {
-	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
+	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
+	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
 	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
 	g_dsp.r[DSP_REG_AR3]++;
 }
 
 // Not in duddie's doc
-// LDM 
-// xxxx xxxxx 
+// LDM $ax0.d $ax1.r @$arS
+// xxxx xxxx 11dr 10ss
 void ldm(const UDSPInstruction& opc)
 {
-	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
+	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
+	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
 	g_dsp.r[sreg]++;
 	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];
 }
 
 // Not in duddie's doc
-// LDNM 
-// xxxx xxxxx
+// LDNM $ax0.d $ax1.r @$arS
+// xxxx xxxx 11dr 11ss
 void ldnm(const UDSPInstruction& opc)
 {
-	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
+	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
+	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
 	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
 	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];

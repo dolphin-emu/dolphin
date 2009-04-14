@@ -220,8 +220,9 @@ const DSPOPCTemplate opcodes[] =
 	{"M0",      0x8b00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	// These guys probably change the precision or range of some operations.
-	// The question is which. 16-bit mode vs 40-bit mode sounds plausible for SET40/SET16.
-	// Maybe Set15 makes the dsp drop the top bit from all calculations or something? Or clamp?
+	// The question is which. 16-bit mode vs 40-bit mode sounds plausible for
+	// SET40/SET16.  Maybe Set15 makes the dsp drop the top bit from all
+	// calculations or something? Or clamp?
 	// SET15/CLR15 is commonly used around MULXAC in Zeldas.
 	// SET16 is done around complicated loops with many madds etc.
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -313,30 +314,37 @@ const DSPOPCTemplate cw =
 
 const DSPOPCTemplate opcodes_ext[] =
 {
-	{"L",       0x0040, 0x00c4, nop, nop, 1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LN",      0x0044, 0x00c4, nop, nop, 1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"DR",      0x0004, 0x00fc, DSPInterpreter::Ext::dr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"IR",      0x0008, 0x00fc, DSPInterpreter::Ext::ir, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"NR",      0x000c, 0x00fc, DSPInterpreter::Ext::nr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"MV",      0x0010, 0x00f0, DSPInterpreter::Ext::mv, nop, 1, 2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, NULL, NULL,},
+
+	{"S",       0x0020, 0x00e4, DSPInterpreter::Ext::s,  nop, 1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, NULL, NULL,},
+	{"SN",      0x0024, 0x00e4, DSPInterpreter::Ext::sn, nop, 1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, NULL, NULL,},
+
+	{"L",       0x0040, 0x00c4, DSPInterpreter::Ext::l,  nop, 1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LN",      0x0044, 0x00c4, DSPInterpreter::Ext::ln, nop, 1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+
 	{"LS",      0x0080, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
-	{"LSN",		0x0084, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
-	{"LSM",		0x0088, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
-	{"LSNM",    0x008c, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
 	{"SL",      0x0082, 0x00ce, nop, nop, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, NULL, NULL,},
+	{"LSN",		0x0084, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
 	{"SLN",		0x0086, 0x00ce, nop, nop, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, NULL, NULL,},
+	{"LSM",		0x0088, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
 	{"SLM",		0x008a, 0x00ce, nop, nop, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, NULL, NULL,},
+	{"LSNM",    0x008c, 0x00ce, nop, nop, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, NULL, NULL,},
 	{"SLNM",    0x008e, 0x00ce, nop, nop, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, NULL, NULL,},
-	{"S",       0x0020, 0x00e4, nop, nop, 1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, NULL, NULL,},
-	{"SN",      0x0024, 0x00e4, nop, nop, 1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, NULL, NULL,},
-	{"LDX",		0x00c0, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
+
+	/* FIXME: what are the LDX functions for? they have the same opcode as LD ones but different mask	
+`{"LDX",		0x00c0, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXN",    0x00c4, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXM",    0x00c8, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
-	{"LDXNM",   0x00cc, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
-	{"LD",      0x00c0, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDN",		0x00c4, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDM",		0x00c8, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"LDNM",    0x00cc, 0x00cc, nop, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"MV",      0x0010, 0x00f0, nop, nop, 1, 2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"DR",      0x0004, 0x00fc, nop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"IR",      0x0008, 0x00fc, nop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
-	{"NR",      0x000c, 0x00fc, nop, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDXNM",   0x00cc, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},*/
+
+	{"LD",      0x00c0, 0x00cc, DSPInterpreter::Ext::ld, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDN",		0x00c4, 0x00cc, DSPInterpreter::Ext::ldn, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDM",		0x00c8, 0x00cc, DSPInterpreter::Ext::ldm, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+	{"LDNM",    0x00cc, 0x00cc, DSPInterpreter::Ext::ldnm, nop, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, NULL, NULL,},
+
 	{"XXX",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 1, 0, 0, 0x00ff}}, NULL, NULL,},
 };
 
@@ -393,14 +401,14 @@ const u32 pdlabels_size = sizeof(pdlabels) / sizeof(pdlabel_t);
 
 const pdlabel_t regnames[] =
 {
-	{0x00, "AR0",       "Register 00",},
-	{0x01, "AR1",       "Register 01",},
-	{0x02, "AR2",       "Register 02",},
-	{0x03, "AR3",       "Register 03",},
-	{0x04, "IX0",       "Register 04",},
-	{0x05, "IX1",       "Register 05",},
-	{0x06, "IX2",       "Register 06",},
-	{0x07, "IX3",       "Register 07",},
+	{0x00, "AR0",       "Addr Reg 00",},
+	{0x01, "AR1",       "Addr Reg 01",},
+	{0x02, "AR2",       "Addr Reg 02",},
+	{0x03, "AR3",       "Addr Reg 03",},
+	{0x04, "IX0",       "Index Reg 1(04)",},
+	{0x05, "IX1",       "Index Reg 2(05)",},
+	{0x06, "IX2",       "Index Reg 3(06)",},
+	{0x07, "IX3",       "Indec Reg 4(07)",},
 	{0x08, "R08",       "Register 08",},
 	{0x09, "R09",       "Register 09",},
 	{0x0a, "R10",       "Register 10",},
@@ -421,10 +429,10 @@ const pdlabel_t regnames[] =
 	{0x19, "AX1.L",		"Extra Accu L 1",},
 	{0x1a, "AX0.H",		"Extra Accu H 0",},
 	{0x1b, "AX1.H",		"Extra Accu H 1",},
-	{0x1c, "AC0.L",		"Register 28",},
-	{0x1d, "AC1.L",		"Register 29",},
-	{0x1e, "AC0.M",		"Register 00",},
-	{0x1f, "AC1.M",		"Register 00",},
+	{0x1c, "AC0.L",		"Accu Low 0",},
+	{0x1d, "AC1.L",		"Accu Low 1",},
+	{0x1e, "AC0.M",		"Accu Mid 0",},
+	{0x1f, "AC1.M",		"Accu Mid 1",},
 
 	// To resolve special names.
 	{0x20, "ACC0",		"Accu Full 0",},
