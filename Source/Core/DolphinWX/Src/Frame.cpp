@@ -261,7 +261,6 @@ EVT_COMMAND_SCROLL(IDS_VOLUME, CFrame::MM_OnVolume)
 EVT_MENU(IDT_LOG, CFrame::MM_OnLog)
 #endif
 
-EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
