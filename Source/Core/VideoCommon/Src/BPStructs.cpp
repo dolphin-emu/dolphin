@@ -99,8 +99,9 @@ void BPWritten(const Bypass& bp)
 		PixelShaderManager::SetIndMatrixChanged((bp.address - BPMEM_IND_MTXA) / 3);
 		break;
 	case BPMEM_RAS1_SS0: // Index Texture Coordinate Scale 0
+        PixelShaderManager::SetIndTexScaleChanged(0x03);
 	case BPMEM_RAS1_SS1: // Index Texture Coordinate Scale 1
-		PixelShaderManager::SetIndTexScaleChanged();
+        PixelShaderManager::SetIndTexScaleChanged(0x0c);
 		break;
 	case BPMEM_SCISSORTL: // Scissor Rectable Top, Left
 	case BPMEM_SCISSORBR: // Scissor Rectable Bottom, Right
@@ -408,6 +409,7 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_SU_TSIZE+12:
 		case BPMEM_SU_SSIZE+14:
 		case BPMEM_SU_TSIZE+14:
+            PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
 			break;
 		// ------------------------
 		// BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS, DiagLoad, Min Filter, Mag Filter, Wrap T, S

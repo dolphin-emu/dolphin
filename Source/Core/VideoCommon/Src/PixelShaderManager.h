@@ -44,9 +44,9 @@ public:
 	static void SetIndMatrixChanged(int matrixidx);
 	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
-	static void SetIndTexScaleChanged();
+	static void SetIndTexScaleChanged(u8 stagemask);
 	static void SetTexturesUsed(u32 nonpow2tex);
-	static void SetTexDimsChanged(int texmapid);
+	static void SetTexCoordChanged(u8 texmapid);
     static void SetFogColorChanged();
     static void SetFogParamChanged();
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);

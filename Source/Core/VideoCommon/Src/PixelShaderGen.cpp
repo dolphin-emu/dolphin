@@ -131,7 +131,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 //   tevtemp is set according to swapmodetables and 
 
 static void WriteStage(char *&p, int n, u32 texture_mask);
-static void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
+static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask);
 static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, bool HLSL);
 static void WriteFog(char *&p, bool bOutputZ);
@@ -347,7 +347,7 @@ static const char *tevIndAlphaScale[] = {"", "*32","*16","*8"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
 static const char *tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
-static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
+static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 
 #define WRITE p+=sprintf
 
@@ -463,14 +463,20 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
             "float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n"
             "float4 alphabump=0;\n"
             "float3 tevcoord;\n"
-            "float2 wrappedcoord, tempcoord;\n");
+            "float2 wrappedcoord, tempcoord;\n\n");
+
+    for (int i = 0; i < numTexgen; ++i) {
+        // optional perspective divides
+        if (xfregs.texcoords[i].texmtxinfo.projection == XF_TEXPROJ_STQ)
+            WRITE(p, "uv%d.xy = uv%d.xy/uv%d.z;\n", i, i, i);
+
+        // scale texture coordinates
+        WRITE(p, "uv%d.xy = uv%d.xy * "I_TEXDIMS"[%d].zw;\n", i, i, i);        
+    }
 
     // indirect texture map lookup
     for(u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
         if (nIndirectStagesUsed & (1<<i)) {
-            // perform indirect texture map lookup
-            // note that we have to scale by the regular texture map's coordinates since this is a texRECT call
-            // (and we have to match with the game's texscale calls)
             int texcoord = bpmem.tevindref.getTexCoord(i);
 
             if (texcoord < numTexgen) {
@@ -480,13 +486,9 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
                 WRITE(p, "tempcoord=float2(0.0f,0.0f);\n");
             }
 
-            if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
-                WrapNonPow2Tex(p, "tempcoord", bpmem.tevindref.getTexMap(i), texture_mask);
-                WRITE(p, "float3 indtex%d=texRECT(samp%d,tempcoord.xy).abg;\n", i, bpmem.tevindref.getTexMap(i));
-            }
-            else {
-                WRITE(p, "float3 indtex%d=tex2D(samp%d,tempcoord).abg;\n", i, bpmem.tevindref.getTexMap(i));
-            }
+            char buffer[32];
+            sprintf(buffer, "float3 indtex%d", i);
+            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask);
         }
     }
 
@@ -568,7 +570,6 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
 
     int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
-    int texfun = xfregs.texcoords[texcoord].texmtxinfo.projection;
     bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
     bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
 
@@ -579,8 +580,6 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
     if (bHasIndStage) {
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
-        int texmap = bpmem.tevorders[n/2].getEnable(n&1) ? bpmem.tevorders[n/2].getTexMap(n&1) : bpmem.tevindref.getTexMap(bpmem.tevind[n].bt);
-
 		if (bpmem.tevind[n].bs != ITBA_OFF) {
             // write the bump alpha
 
@@ -601,9 +600,10 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 			}
 		}
 
+        // format
+        WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
+
         // bias
-        WRITE(p, "float3 indtevcrd%d = indtex%d;\n", n, bpmem.tevind[n].bt);
-        WRITE(p, "indtevcrd%d.xyz *= %s;\n", n, tevIndFmtScale[bpmem.tevind[n].fmt]);
         if (bpmem.tevind[n].bias != ITB_NONE )
             WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
@@ -623,91 +623,43 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
             else {
-                // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
-                WRITE(p, "float2 indtevtrans%d = 0;\n", n); //, n
+                WRITE(p, "float2 indtevtrans%d = 0;\n", n);
             }
         }
         else {
-            // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
-            WRITE(p, "float2 indtevtrans%d = 0;\n", n); //, n
+            WRITE(p, "float2 indtevtrans%d = 0;\n", n);
         }
 
         // wrapping
-        if (!bpmem.tevorders[n/2].getEnable(n&1) || (texture_mask & (1<<texmap))) {
-            // non pow2
 
-            if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
-                if (bpmem.tevind[n].tw == ITW_0) {
-                    if (bpmem.tevind[n].sw == ITW_0) {
-                        // zero out completely
-                        WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
-                    }
-                    else {
-                        WRITE(p, "wrappedcoord.x = fmod( (uv%d.x+%s)*"I_TEXDIMS"[%d].x*"I_TEXDIMS"[%d].z, %s);\n"
-                            "wrappedcoord.y = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
-                    }
-                }
-                else if (bpmem.tevind[n].sw == ITW_0) {
-                    WRITE(p, "wrappedcoord.y = fmod( (uv%d.y+%s)*"I_TEXDIMS"[%d].y*"I_TEXDIMS"[%d].w, %s);\n"
-                        "wrappedcoord.x = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
-                }
-                else {
-                    WRITE(p, "wrappedcoord = fmod( (uv%d.xy+float2(%s,%s))*"I_TEXDIMS"[%d].xy*"I_TEXDIMS"[%d].zw, float2(%s,%s));\n", texcoord,
-                        tevIndWrapStart[bpmem.tevind[n].sw], tevIndWrapStart[bpmem.tevind[n].tw],texmap,texmap,
-                        tevIndWrapStart[bpmem.tevind[n].sw], tevIndWrapStart[bpmem.tevind[n].tw]);
-                }
-            }
-            else {
-                WRITE(p, "wrappedcoord = uv%d.xy*"I_TEXDIMS"[%d].xy;\n", texcoord, texmap);
-            }
+        // wrap S
+        if (bpmem.tevind[n].sw == ITW_OFF) {
+            WRITE(p, "wrappedcoord.x = uv%d.x;\n", texcoord);
+        }
+        else if (bpmem.tevind[n].sw == ITW_0) {
+            WRITE(p, "wrappedcoord.x = 0.0f;\n");
         }
         else {
-            // pow of 2
-            WRITE(p, "indtevtrans%d.xy *= "I_TEXDIMS"[%d].xy * "I_TEXDIMS"[%d].zw;\n", n, texmap, texmap);
+            WRITE(p, "wrappedcoord.x = fmod( uv%d.x, %s );\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
+        }
 
-            // mult by bitdepth / tex dimensions
-            if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
-                if (bpmem.tevind[n].tw == ITW_0) {
-                    if (bpmem.tevind[n].sw == ITW_0) {
-                        // zero out completely
-                        WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
-                    }
-                    else {
-                        WRITE(p, "wrappedcoord.x = "I_TEXDIMS"[%d].x * fmod( uv%d.x+%s, "I_TEXDIMS"[%d].z*%s);\n"
-                            "wrappedcoord.y = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
-                    }
-                }
-                else if (bpmem.tevind[n].sw == ITW_0) {
-                    WRITE(p, "wrappedcoord.y = "I_TEXDIMS"[%d].y * fmod( uv%d.y+%s, "I_TEXDIMS"[%d].w*%s);\n"
-                        "wrappedcoord.x = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
-                }
-                else {
-                    // have to add an offset or else might get negative values!
-                    WRITE(p, "wrappedcoord = "I_TEXDIMS"[%d].xy * fmod( uv%d.xy+float2(%s,%s), "I_TEXDIMS"[%d].zw*float2(%s,%s));\n", texmap, texcoord,
-                        tevIndWrapStart[bpmem.tevind[n].sw], tevIndWrapStart[bpmem.tevind[n].tw], texmap, 
-                        tevIndWrapStart[bpmem.tevind[n].sw], tevIndWrapStart[bpmem.tevind[n].tw]);
-                }
-            }
-            else {
-                WRITE(p, "wrappedcoord = uv%d.xy;\n", texcoord);
-            }
+        // wrap T
+        if (bpmem.tevind[n].tw == ITW_OFF) {
+            WRITE(p, "wrappedcoord.y = uv%d.y;\n", texcoord);
+        }
+        else if (bpmem.tevind[n].tw == ITW_0) {
+            WRITE(p, "wrappedcoord.y = 0.0f;\n");
+        }
+        else {
+            WRITE(p, "wrappedcoord.y = fmod( uv%d.y, %s );\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
         }
 
         if (bpmem.tevind[n].fb_addprev) {
             // add previous tevcoord
-
-            if (texfun == XF_TEXPROJ_STQ) {
-                WRITE(p, "tevcoord.xy += wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
-                //WRITE(p, "tevcoord.z += uv%d.z;\n", texcoord);
-            }
-            else {
-                WRITE(p, "tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
-            }
+            WRITE(p, "tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
         }
         else {
-            WRITE(p, "tevcoord.xy = wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
-            //if (texfun == XF_TEXPROJ_STQ )
-            //    WRITE(p, "tevcoord.z = uv%d.z;\n", texcoord);
+            WRITE(p, "tevcoord.xy = wrappedcoord + indtevtrans%d;\n", n);
         }
     }
 
@@ -717,43 +669,14 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
         if(!bHasIndStage) {
             // calc tevcord
-            //tevcoord.xy = texdim[1].xy * uv1.xy / uv1.z;
             if(bHasTexCoord) {
-                if (texture_mask & (1<<texmap)) {
-                    // nonpow2
-                    if (texfun == XF_TEXPROJ_STQ )
-                        WRITE(p, "tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, texcoord);
-                    else
-                        WRITE(p, "tevcoord.xy = uv%d.xy;\n", texcoord);
-                    WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
-                }
-                else {
-                    if (texfun == XF_TEXPROJ_STQ ) 
-                        WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, texcoord , texcoord );
-                    else 
-                        WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, texcoord);
-                }
+                WRITE(p, "tevcoord.xy = uv%d.xy;\n", texcoord);
             } else {
-                // donkopunchstania - check that this is correct when there are no tex gens
                 WRITE(p, "tevcoord.xy = float2(0.0f,0.0f);\n");
             }
         }
-        else if (texture_mask & (1<<texmap)) {
-            // if non pow 2, have to manually repeat
-            //WrapNonPow2Tex(p, "tevcoord", texmap);
-            bool bwraps = !!(texture_mask & (0x100<<texmap));
-            bool bwrapt = !!(texture_mask & (0x10000<<texmap));
-                
-            if (bwraps || bwrapt) {
-                const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";
-                WRITE(p, "tevcoord.%s = fmod(tevcoord.%s+32*"I_TEXDIMS"[%d].%s,"I_TEXDIMS"[%d].%s);\n", field, field, texmap, field, texmap, field);
-            }
-        }
 
-        if (texture_mask & (1<<texmap) )
-            WRITE(p, "textemp=texRECT(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
-        else
-            WRITE(p, "textemp=tex2D(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
+        SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask);
     }
     else
         WRITE(p, "textemp=float4(1,1,1,1);\n");
@@ -860,24 +783,36 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
     WRITE(p, "\n");
 }
 
-void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
+void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask)
 {
-    _assert_(texture_mask & (1<<texmap));
-    bool bwraps = !!(texture_mask & (0x100<<texmap));
-    bool bwrapt = !!(texture_mask & (0x10000<<texmap));
-        
-    if (bwraps || bwrapt) {
-        const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";
-        const char* wrapfield = bwraps ? (bwrapt ? "zw" : "z") : "w";
-        WRITE(p, "%s.%s = "I_TEXDIMS"[%d].%s*frac(%s.%s*"I_TEXDIMS"[%d].%s+32);\n", var, field, texmap, field, var, field, texmap, wrapfield);
+    if (texture_mask & (1<<texmap)) {
+        // non pow 2
+         bool bwraps = (texture_mask & (0x100<<texmap)) ? true : false;
+         bool bwrapt = (texture_mask & (0x10000<<texmap)) ? true : false;
 
-        if (!bwraps )
-            WRITE(p, "%s.x *= "I_TEXDIMS"[%d].x * "I_TEXDIMS"[%d].z;\n", var, texmap, texmap);
-        if (!bwrapt )
-            WRITE(p, "%s.y *= "I_TEXDIMS"[%d].y * "I_TEXDIMS"[%d].w;\n", var, texmap, texmap);
+         if (bwraps || bwrapt) {
+             if (bwraps) {
+                 WRITE(p, "tempcoord.x = fmod(%s.x, "I_TEXDIMS"[%d].x);\n", texcoords, texmap);
+             }
+             else {
+                 WRITE(p, "tempcoord.x = %s.x;\n", texcoords);
+             }
+
+             if (bwrapt) {
+                 WRITE(p, "tempcoord.y = fmod(%s.y, "I_TEXDIMS"[%d].y);\n", texcoords, texmap);
+             }
+             else {
+                 WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
+             }
+
+             WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
+         }
+         else {
+             WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
+         }
     }
     else {
-        WRITE(p, "%s.xy *= "I_TEXDIMS"[%d].xy * "I_TEXDIMS"[%d].zw;\n", var, texmap, texmap);
+        WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
     }
 }
 

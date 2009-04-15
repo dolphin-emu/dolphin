@@ -29,7 +29,6 @@ static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged = 0;
 static bool s_bAlphaChanged;
 static bool s_bZBiasChanged;
-static bool s_bIndTexScaleChanged;
 static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
 static bool s_bFogColorChanged;
@@ -37,8 +36,9 @@ static bool s_bFogParamChanged;
 static float lastDepthRange[2] = {0}; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
+static u8 s_nIndTexScaleChanged;
 static u32 lastAlpha = 0;
-static u32 lastTexDims[8]={0};
+static u32 lastTexDims[8]={0}; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias = 0;
 
 // lower byte describes if a texture is nonpow2 or pow2
@@ -46,19 +46,14 @@ static u32 lastZBias = 0;
 // next byte is for t channel
 static u32 s_texturemask = 0;
 
-static int maptocoord[8]; // indexed by texture map, holds the texcoord associated with the map
-static u32 maptocoord_mask = 0;
-
 void PixelShaderManager::Init()
 {
     s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
     s_nTexDimsChanged = 0;
+    s_nIndTexScaleChanged = 0;
     s_nIndTexMtxChanged = 15;
-    s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
+    s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
     s_bFogColorChanged = s_bFogParamChanged = true;
-    for (int i = 0; i < 8; ++i)
-		maptocoord[i] = -1;
-	maptocoord_mask = 0;
     memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
 }
 
@@ -79,29 +74,6 @@ void PixelShaderManager::SetConstants()
             }
             s_nColorsChanged[i] = 0;
         }
-    }
-
-    u32 newmask = 0;
-    for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
-        if (bpmem.tevorders[i/2].getEnable(i&1)) {
-            int texmap = bpmem.tevorders[i/2].getTexMap(i&1);
-            maptocoord[texmap] = bpmem.tevorders[i/2].getTexCoord(i&1);
-            newmask |= 1 << texmap;
-            SetTexDimsChanged(texmap);
-        }
-    }
-    
-    if (maptocoord_mask != newmask) {
-        //u32 changes = maptocoord_mask ^ newmask;
-        for (int i = 0; i < 8; ++i) {
-            if (newmask & (1 << i)) {
-                SetTexDimsChanged(i);
-            }
-			else {
-                maptocoord[i] = -1;
-            }
-        }
-        maptocoord_mask = newmask;
     }
 
     if (s_nTexDimsChanged) {
@@ -147,30 +119,30 @@ void PixelShaderManager::SetConstants()
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
-    // indirect incoming texture scales, update all!
-    if (s_bIndTexScaleChanged) {
+    // indirect incoming texture scales
+    if (s_nIndTexScaleChanged) {
 		// set as two sets of vec4s, each containing S and T of two ind stages.
         float f[8];
         
-        for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
-            int srctexmap = bpmem.tevindref.getTexMap(i);
-            int texcoord = bpmem.tevindref.getTexCoord(i);
-            TCoordInfo& tc = bpmem.texcoords[texcoord];
-            
-            f[2*i] = bpmem.texscale[i/2].getScaleS(i&1) *
-				(float)(tc.s.scale_minus_1+1) / (float)(lastTexDims[srctexmap] & 0xffff);
-            f[2*i+1] = bpmem.texscale[i/2].getScaleT(i&1) *
-				(float)(tc.t.scale_minus_1+1) / (float)((lastTexDims[srctexmap] >> 16) & 0xfff);
-			// Yes, the above should really be 0xfff. The top 4 bits are used for other stuff.
-            PRIM_LOG("tex indscale%d: %f %f\n", i, f[2*i], f[2*i+1]);
+        if (s_nIndTexScaleChanged & 0x03) {
+            for (u32 i = 0; i < 2; ++i) {
+                f[2*i] = bpmem.texscale[0].getScaleS(i&1);
+                f[2*i+1] = bpmem.texscale[0].getScaleT(i&1);
+                PRIM_LOG("tex indscale%d: %f %f\n", i, f[2*i], f[2*i+1]);
+            }
+            SetPSConstant4fv(C_INDTEXSCALE, f);
         }
 
-        SetPSConstant4fv(C_INDTEXSCALE, f);
-
-        if (bpmem.genMode.numindstages > 2)
+        if (s_nIndTexScaleChanged & 0x0c) {
+            for (u32 i = 2; i < 4; ++i) {
+                f[2*i] = bpmem.texscale[1].getScaleS(i&1);
+                f[2*i+1] = bpmem.texscale[1].getScaleT(i&1);
+                PRIM_LOG("tex indscale%d: %f %f\n", i, f[2*i], f[2*i+1]);
+            }            
             SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
+        }
        
-        s_bIndTexScaleChanged = false;
+        s_nIndTexScaleChanged = 0;
     }
 
     if (s_nIndTexMtxChanged) {
@@ -183,16 +155,17 @@ void PixelShaderManager::SetConstants()
 
                 // xyz - static matrix
                 //TODO w - dynamic matrix scale / 256...... somehow / 4 works better
+                // rev 2972 - now using / 256.... verify that this works
                 SetPSConstant4f(C_INDTEXMTX+2*i,
                     bpmem.indmtx[i].col0.ma * fscale,
 					bpmem.indmtx[i].col1.mc * fscale,
 					bpmem.indmtx[i].col2.me * fscale,
-					fscale * 256.0f);
+					fscale * 4.0f);
                 SetPSConstant4f(C_INDTEXMTX+2*i+1,
                     bpmem.indmtx[i].col0.mb * fscale,
 					bpmem.indmtx[i].col1.md * fscale,
 					bpmem.indmtx[i].col2.mf * fscale,
-					fscale * 256.0f);
+					fscale * 4.0f);
 
                 PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n", i,
                     1024.0f*fscale, bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
@@ -217,36 +190,23 @@ void PixelShaderManager::SetConstants()
 
 void PixelShaderManager::SetPSTextureDims(int texid)
 {
-	float fdims[4];
+	// non pow 2 textures - texdims.xy are the real texture dimensions used for wrapping
+    // pow 2 textures - texdims.xy are reciprocals of the real texture dimensions
+    // both - texdims.zw are the scaled dimensions
+    float fdims[4];
 	if (s_texturemask & (1<<texid)) {
-		if (maptocoord[texid] >= 0) {
-			TCoordInfo& tc = bpmem.texcoords[maptocoord[texid]];
-			fdims[0] = (float)(lastTexDims[texid]&0xffff);
-			fdims[1] = (float)((lastTexDims[texid]>>16)&0xfff);
-			fdims[2] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[texid]&0xffff);
-			fdims[3] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[texid]>>16)&0xfff);
-		}
-		else {
-			fdims[0] = (float)(lastTexDims[texid]&0xffff);
-			fdims[1] = (float)((lastTexDims[texid]>>16)&0xfff);
-			fdims[2] = 1.0f;
-			fdims[3] = 1.0f;
-		}
+		TCoordInfo& tc = bpmem.texcoords[texid];
+		fdims[0] = (float)(lastTexDims[texid]&0xffff);
+		fdims[1] = (float)((lastTexDims[texid]>>16)&0xfff);
+        fdims[2] = (float)(tc.s.scale_minus_1+1);
+		fdims[3] = (float)(tc.t.scale_minus_1+1);
 	}
 	else {
-		if (maptocoord[texid] >= 0) {
-			TCoordInfo& tc = bpmem.texcoords[maptocoord[texid]];
-			fdims[0] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[texid]&0xffff);
-			fdims[1] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[texid]>>16)&0xfff);
-			fdims[2] = 1.0f/(float)(tc.s.scale_minus_1+1);
-			fdims[3] = 1.0f/(float)(tc.t.scale_minus_1+1);
-		}
-		else {
-			fdims[0] = 1.0f;
-			fdims[1] = 1.0f;
-			fdims[2] = 1.0f/(float)(lastTexDims[texid]&0xffff);
-			fdims[3] = 1.0f/(float)((lastTexDims[texid]>>16)&0xfff);
-		}
+        TCoordInfo& tc = bpmem.texcoords[texid];
+		fdims[0] = 1.0f/(float)(lastTexDims[texid]&0xffff);
+		fdims[1] = 1.0f/(float)((lastTexDims[texid]>>16)&0xfff);
+		fdims[2] = (float)(tc.s.scale_minus_1+1);
+		fdims[3] = (float)(tc.t.scale_minus_1+1);
 	}
 
 	PRIM_LOG("texdims%d: %f %f %f %f\n", texid, fdims[0], fdims[1], fdims[2], fdims[3]);
@@ -319,9 +279,9 @@ void PixelShaderManager::SetViewport(float* viewport)
 	}
 }
 
-void PixelShaderManager::SetIndTexScaleChanged()
+void PixelShaderManager::SetIndTexScaleChanged(u8 stagemask)
 {
-    s_bIndTexScaleChanged = true;
+    s_nIndTexScaleChanged |= stagemask;
 }
 
 void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
@@ -347,13 +307,9 @@ void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
     }
 }
 
-void PixelShaderManager::SetTexDimsChanged(int texmapid)
+void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
-    // this check was previously implicit, but should it be here?
-	if (s_nTexDimsChanged)
-		s_nTexDimsChanged |= 1 << texmapid;	
-
-    SetIndTexScaleChanged();
+    s_nTexDimsChanged |= 1 << texmapid;
 }
 
 void PixelShaderManager::SetFogColorChanged()
