@@ -46,6 +46,7 @@ int GetMultiplyModifier();
 
 void Update_SR_Register16(s16 _Value);
 void Update_SR_Register64(s64 _Value);
+void Update_SR_LZ(s64 value);
 
 }  // namespace
 

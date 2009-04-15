@@ -35,14 +35,6 @@ void unknown(const UDSPInstruction& opc)
 	ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc.hex, g_dsp.pc);
 }
 
-// test register and updates SR accordingly
-void tsta(int reg)
-{
-	s64 acc = dsp_get_long_acc(reg);
-
-	Update_SR_Register64(acc);
-}
-
 // Generic call implementation
 // CALLcc addressA
 // 0000 0010 1011 cccc
@@ -669,7 +661,10 @@ void cmp(const UDSPInstruction& opc)
 // Test accumulator %acR.
 void tst(const UDSPInstruction& opc)
 {
-	tsta((opc.hex >> 11) & 0x1);
+	s8 reg = (opc.hex >> 11) & 0x1;
+	s64 acc = dsp_get_long_acc(reg);
+
+	Update_SR_Register64(acc);
 }
 
 // ADDAXL $acD, $axS.l
@@ -767,7 +762,10 @@ void xorr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] ^= g_dsp.r[0x1a + sreg];
 
-	tsta(dreg);
+	s64 acc = dsp_get_long_acc(dreg);
+
+	Update_SR_LZ(acc);
+		//	tsta(dreg);
 }
 
 // ANDR $acD.m, $axS.h
@@ -781,7 +779,10 @@ void andr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] &= g_dsp.r[0x1a + sreg];
 
-	tsta(dreg);
+	s64 acc = dsp_get_long_acc(dreg);
+
+	Update_SR_LZ(acc);
+	//	tsta(dreg);
 }
 
 // ORR $acD.m, $axS.h
@@ -796,7 +797,11 @@ void orr(const UDSPInstruction& opc)
 
 	g_dsp.r[0x1e + dreg] |= g_dsp.r[0x1a + sreg];
 
-	tsta(dreg);
+	s64 acc = dsp_get_long_acc(dreg);
+
+	Update_SR_LZ(acc);
+
+	//	tsta(dreg);
 }
 
 // ANDC $acD.m, $ac(1-D).m
@@ -812,21 +817,25 @@ void andc(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(D, ac1 & ac2);
 
-	if ((ac1 & ac2) == 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= 0x20;  // 0x40?
-	}
-	else
-	{
-		g_dsp.r[DSP_REG_SR] &= ~0x20; // 0x40?
-	}
-
-	Update_SR_Register64(dsp_get_long_acc(D));
+	Update_SR_LZ(dsp_get_long_acc(D));
+	//	Update_SR_Register64(dsp_get_long_acc(D));
 }
 
+// ORC $acD.m, $ac(1-D).m
+// 0011 111d xxxx xxxx
+// Logic OR middle part of accumulator $acD.m with middle part of
+// accumulator $ax(1-D).m.
 void orc(const UDSPInstruction& opc)
 {
-	ERROR_LOG(DSPLLE, "orc not implemented");
+	u8 D = (opc.hex >> 8) & 0x1;
+
+	u16 ac1 = dsp_get_acc_m(D);
+	u16 ac2 = dsp_get_acc_m(1 - D);
+
+	dsp_set_long_acc(D, ac1 | ac2);
+
+	Update_SR_LZ(dsp_get_long_acc(D));
+	//	Update_SR_Register64(dsp_get_long_acc(D));
 }
 
 void orf(const UDSPInstruction& opc)
@@ -849,21 +858,14 @@ void nx(const UDSPInstruction& opc)
 // 0000 001r 1100 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logic AND of
-// accumulator mid part $acD.m with immediate value I is equal zero.
-void andfc(const UDSPInstruction& opc)
+// accumulator mid part $acD.m with immediate value I is equal I.
+void andcf(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
 
-	if ((val & imm) == imm)
-	{
-		g_dsp.r[DSP_REG_SR] |= 0x40;
-	}
-	else
-	{
-		g_dsp.r[DSP_REG_SR] &= ~0x40;
-	}
+	Update_SR_LZ(((val & imm) == imm)?0:1);
 }
 
 // Hermes switched andf and andcf, so check to make sure they are still correct
@@ -873,7 +875,7 @@ void andfc(const UDSPInstruction& opc)
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logical AND
 // operation of accumulator mid part $acD.m with immediate value I is equal
-// immediate value I.
+// immediate value 0.
 void andf(const UDSPInstruction& opc)
 {
 	u8 reg;
@@ -884,14 +886,7 @@ void andf(const UDSPInstruction& opc)
 	imm = dsp_fetch_code();
 	val = g_dsp.r[reg];
 
-	if ((val & imm) == 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= 0x40;
-	}
-	else
-	{
-		g_dsp.r[DSP_REG_SR] &= ~0x40;
-	}
+	Update_SR_LZ(((val & imm) == 0)?0:1);
 }
 
 // CMPI $amD, #I
@@ -922,7 +917,8 @@ void xori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
 
-	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_LZ(g_dsp.r[reg]);
+	//	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 // ANDI $acD.m, #I
@@ -935,7 +931,8 @@ void andi(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
 
-	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_LZ(g_dsp.r[reg]);
+	//	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 
@@ -950,7 +947,8 @@ void ori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
 
-	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_LZ(g_dsp.r[reg]);
+	//	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 //-------------------------------------------------------------
@@ -1258,8 +1256,8 @@ void lsl16(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(areg);
 	acc <<= 16;
 	dsp_set_long_acc(areg, acc);
-
-	Update_SR_Register64(acc);
+	Update_SR_LZ(acc);
+	//	Update_SR_Register64(acc);
 }
 
 // MADD $axS.l, $axS.h
@@ -1306,8 +1304,8 @@ void lsr16(const UDSPInstruction& opc)
 
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
-
-	Update_SR_Register64(acc);
+	Update_SR_LZ(acc);
+	//	Update_SR_Register64(acc);
 }
 
 // ASR16 $acR
@@ -1335,8 +1333,8 @@ void lsl(const UDSPInstruction& opc)
 
 	acc <<= shift;
 	dsp_set_long_acc(opc.areg, acc);
-
-	Update_SR_Register64(acc);
+	Update_SR_LZ(acc);
+	//	Update_SR_Register64(acc);
 }
 
 // LSR $acR, #I
@@ -1351,8 +1349,8 @@ void lsr(const UDSPInstruction& opc)
 	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
 	dsp_set_long_acc(opc.areg, (s64)acc);
-
-	Update_SR_Register64(acc);
+	Update_SR_LZ(acc);
+	//	Update_SR_Register64(acc);
 }
 
 // ASL $acR, #I

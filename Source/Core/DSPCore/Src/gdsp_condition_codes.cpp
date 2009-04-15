@@ -42,8 +42,8 @@ void Update_SR_Register64(s64 _Value)
 
 	// weird
 	if ((_Value >> 62) == 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= 0x20;
+	{	
+		Update_SR_LZ(0);
 	}
 }
 
@@ -64,8 +64,21 @@ void Update_SR_Register16(s16 _Value)
 	// weird
 	if ((_Value >> 14) == 0)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x20;
+		Update_SR_LZ(0);
 	}
+}
+
+void Update_SR_LZ(s64 value) {
+
+	if (value == 0) 
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO; 
+	}
+	else
+	{
+		g_dsp.r[DSP_REG_SR] &= ~SR_LOGIC_ZERO;
+	}
+
 }
 
 // If this always returns 1, Hermes' demo sounds better.
@@ -133,13 +146,13 @@ bool CheckCondition(u8 _Condition)
 
 	case 0xc: // LNZ  - LOGIC NOT ZERO
 
-		if (!(g_dsp.r[DSP_REG_SR] & 0x40))
+		if (!(g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO))
 			taken = true;
 		break;
 
 	case 0xd: // LZ - LOGIC ZERO
 
-		if (g_dsp.r[DSP_REG_SR] & 0x40)
+		if (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO)
 			taken = true;
 		break;
 

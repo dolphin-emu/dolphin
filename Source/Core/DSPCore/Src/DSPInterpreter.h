@@ -129,7 +129,7 @@ void ilrr(const UDSPInstruction& opc);
 void ilrrd(const UDSPInstruction& opc);
 void ilrri(const UDSPInstruction& opc);
 void ilrrn(const UDSPInstruction& opc);
-void andfc(const UDSPInstruction& opc);
+void andcf(const UDSPInstruction& opc);
 void andf(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);

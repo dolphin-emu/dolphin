@@ -176,7 +176,7 @@ const DSPOPCTemplate opcodes[] =
 	{"ADDIS",	0x0400, 0xfe00, DSPInterpreter::addis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL},
 	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL},
 	{"ANDI",	0x0240, 0xfeff, DSPInterpreter::andi, nop, 2, 2,  {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
-	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andfc, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
+	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andcf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL,},
 
 	{"XORI",    0x0220, 0xfeff, DSPInterpreter::xori, nop, 2, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"ANDF",	0x02a0, 0xfeff, DSPInterpreter::andf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
@@ -225,8 +225,6 @@ const DSPOPCTemplate opcodes[] =
 	// calculations or something? Or clamp?
 	// SET15/CLR15 is commonly used around MULXAC in Zeldas.
 	// SET16 is done around complicated loops with many madds etc.
-	// It seems SET16 come in all cases found with either CR or IR (almost always with AR3)
-	// Set40 also comes with CR and AR3, but it's not common enough to see the connection.
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET40",	0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
