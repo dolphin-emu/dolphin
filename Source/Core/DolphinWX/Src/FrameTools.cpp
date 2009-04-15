@@ -837,7 +837,8 @@ void CFrame::UpdateGUI()
 
 	// Misc
 	m_pMenuChangeDisc->Enable(initialized);
-	m_pMenuBootWii->Enable(!initialized);
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
+		m_pMenuBootWii->Enable(!initialized);
 
 	if (running)
 	{
