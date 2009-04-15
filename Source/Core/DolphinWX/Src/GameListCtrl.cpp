@@ -27,6 +27,7 @@
 #include "ConfigManager.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
+#include "Core.h"
 #include "ISOProperties.h"
 #include "IniFile.h"
 #include "FileUtil.h"
@@ -151,11 +152,18 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
+	// Don't let the user refresh it while the a game is running
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		return;
 	if (m_imageListSmall)
 	{
 		delete m_imageListSmall;
 		m_imageListSmall = NULL;
 	}
+
+	// NetPlay : Set/Reset the GameList string
+	m_gameList.clear();
+	m_gamePath.clear();
 
 	Hide();
 
@@ -233,6 +241,15 @@ wxString NiceSizeFormat(s64 _size)
 	return(NiceString);
 }
 
+std::string CGameListCtrl::GetGamePaths() const
+{ 
+	return m_gamePath; 
+}
+std::string CGameListCtrl::GetGameNames() const
+{ 
+	return m_gameList; 
+}
+
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
@@ -240,10 +257,12 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 
+	wxString name, description;
 	GameListItem& rISOFile = m_ISOFiles[_Index];
-
+	m_gamePath.append(std::string(rISOFile.GetFileName()) + '\n');
+	
 	int ImageIndex = -1;
-
+	
 	if (rISOFile.GetImage().IsOk())
 	{
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
@@ -255,38 +274,36 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	switch (rISOFile.GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_JAP:
-		{
 		// keep these codes, when we move to wx unicode...
 		//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 		//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
 		//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
 		//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
-		wxString name;
 		if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
-		{
 			SetItem(_Index, COLUMN_TITLE, name, -1);
-		}
-
-		wxString description;
 		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
-		{
 			SetItem(_Index, COLUMN_NOTES, description, -1);
-		}
-		}
+
+		// NetPLay string
+		m_gameList.append(std::string(name) + " (J)\n");
+
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
+		m_gameList.append(std::string(wxString::From8BitData(rISOFile.GetName(0).c_str())) + " (U)\n");
 		SetItem(_Index, COLUMN_TITLE, wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, wxString::From8BitData(rISOFile.GetDescription(0).c_str()), -1);
 		break;
-	default:
+	default:	
+		m_gameList.append(std::string(wxString::From8BitData(
+			rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()))+ " (E)\n");
 		SetItem(_Index, COLUMN_TITLE, 
 			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, 
 			wxString::From8BitData(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		break;
 	}
+
 	SetItem(_Index, COLUMN_COMPANY, wxString::From8BitData(rISOFile.GetCompany().c_str()), -1);
-	
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
 	// Load the INI file for columns that read from it

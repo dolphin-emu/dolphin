@@ -82,16 +82,8 @@ void Pad_Use_Rumble(u8 _numPAD)//, SPADStatus* _pPADStatus)
 
 	if (PadMapping[_numPAD].rumble) {
 		if (!g_Rumble) {
-
-			HWND rumble_hWnd = GetParent(m_hWnd);
-			HWND TopLevel = GetParent(rumble_hWnd);
-
-			// Support both rendering to main window and not.
-			if (GetForegroundWindow() == TopLevel)
-				rumble_hWnd = TopLevel;
-			if (GetForegroundWindow() == m_hWnd)
-				rumble_hWnd = m_hWnd;
-			if (FAILED(InitRumble(rumble_hWnd)))
+			// GetForegroundWindow() always sends the good HWND
+			if (FAILED(InitRumble(GetForegroundWindow())))
 				PanicAlert("Could not initialize Rumble!");
 
 		} else {

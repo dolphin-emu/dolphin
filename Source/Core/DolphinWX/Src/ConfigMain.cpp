@@ -463,7 +463,7 @@ void CConfigMain::CreateGUIControls()
 	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 0);
 
 	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
-	sISOButtons->Add(RecersiveISOPath, 0, wxALL, 0);
+	sISOButtons->Add(RecersiveISOPath, 0, wxALL|wxALIGN_CENTER, 0);
 	sISOButtons->AddStretchSpacer(1);
 	sISOButtons->Add(AddISOPath, 0, wxALL, 0);
 	sISOButtons->Add(RemoveISOPath, 0, wxALL, 0);

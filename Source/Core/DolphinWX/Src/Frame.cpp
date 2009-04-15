@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -254,7 +254,6 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
-
 #ifdef MUSICMOD
 EVT_MENU(IDM_MUTE, CFrame::MM_OnMute)
 EVT_MENU(IDM_MUSIC_PLAY, CFrame::MM_OnPause)
@@ -262,6 +261,7 @@ EVT_COMMAND_SCROLL(IDS_VOLUME, CFrame::MM_OnVolume)
 EVT_MENU(IDT_LOG, CFrame::MM_OnLog)
 #endif
 
+EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
@@ -430,7 +430,8 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
-	// Don't forget the skip of the window won't be destroyed
+
+	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)

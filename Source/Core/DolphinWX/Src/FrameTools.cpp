@@ -167,7 +167,7 @@ void CFrame::CreateMenu()
      
     if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
     {
-        toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+        m_pMenuBootWii = toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
     }    
 
 	m_pMenuBar->Append(toolsMenu, _T("&Tools"));
@@ -561,7 +561,7 @@ void CFrame::DoStop()
 	#ifdef MUSICMOD
 		MM_OnStop();
 	#endif
-	
+
 	// Rerecording
 	#ifdef RERECORDING
 		Core::RerecordingStop();
@@ -583,7 +583,7 @@ void CFrame::DoStop()
 			if (bRenderToMain)
 				while(Core::GetState() != Core::CORE_UNINITIALIZED) SLEEP(10);
 		#endif
-
+		
 		UpdateGUI();
 	}
 }
@@ -837,6 +837,7 @@ void CFrame::UpdateGUI()
 
 	// Misc
 	m_pMenuChangeDisc->Enable(initialized);
+	m_pMenuBootWii->Enable(!initialized);
 
 	if (running)
 	{

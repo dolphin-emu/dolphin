@@ -29,7 +29,6 @@
 ////////////////////////////////
 #include "CDUtils.h"
 #include "LogWindow.h"
-
 //////////////////////////////////////////////////////////////////////////
 // A shortcut to access the bitmaps
 // ¯¯¯¯¯¯¯¯¯¯
@@ -216,6 +215,7 @@ class CFrame : public wxFrame
 		void OnHostMessage(wxCommandEvent& event);
 
 		void OnMemcard(wxCommandEvent& event); // Misc
+
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnShow_SDCardWindow(wxCommandEvent& event);
         void OnLoadWiiMenu(wxCommandEvent& event);        
@@ -234,6 +234,7 @@ class CFrame : public wxFrame
 		wxMenuItem* m_pPluginOptions;
 		wxMenuItem* m_pMenuItemLoad;
 		wxMenuItem* m_pMenuItemSave;
+		wxMenuItem* m_pMenuBootWii;
 		wxToolBarToolBase* m_pToolPlay;
 
 		void BootGame();
