@@ -32,7 +32,6 @@ wiiuse.dll: Wiimote Bluetooth API (http://www.wiiuse.net/)
 SDL: Simple DirectMedia Layer API (http://www.libsdl.org/)
 *.pdb = Program Debug Database (use these symbols with a program debugger)
 [DSP Plugins]
-Plugin_DSP_NULL.dll: No Audio
 Plugin_DSP_LLE.dll: Low Level DSP Emulation
 Plugin_DSP_HLE.dll: High Level DSP Emulation (only emulates AX UCodes)
 [Video plugins]
@@ -46,7 +45,11 @@ Plugin_nJoy_SDL.dll: Use Joypads
 Plugin_Wiimote.dll: Use native wiimote or keyboard
 
 [Linux Version]
-(someone fill this out)
+Usage: Dolphin [-h] [-d] [-l] [-e <str>]
+  -h, --help     	Prints usage message
+  -d, --debugger 	Run Dolphin with the debugger tools
+  -l, --logger   	Run Dolphin with the logmanager enabled
+  -e, --elf=<path>	Loads an elf file
 
 [Mac Version]
 (someone fill this out)
