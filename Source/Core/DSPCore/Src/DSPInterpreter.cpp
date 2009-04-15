@@ -764,8 +764,7 @@ void xorr(const UDSPInstruction& opc)
 
 	s64 acc = dsp_get_long_acc(dreg);
 
-	Update_SR_LZ(acc);
-		//	tsta(dreg);
+	Update_SR_Register64(acc);
 }
 
 // ANDR $acD.m, $axS.h
@@ -781,8 +780,7 @@ void andr(const UDSPInstruction& opc)
 
 	s64 acc = dsp_get_long_acc(dreg);
 
-	Update_SR_LZ(acc);
-	//	tsta(dreg);
+	Update_SR_Register64(acc);
 }
 
 // ORR $acD.m, $axS.h
@@ -799,9 +797,7 @@ void orr(const UDSPInstruction& opc)
 
 	s64 acc = dsp_get_long_acc(dreg);
 
-	Update_SR_LZ(acc);
-
-	//	tsta(dreg);
+	Update_SR_Register64(acc);
 }
 
 // ANDC $acD.m, $ac(1-D).m
@@ -817,8 +813,7 @@ void andc(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(D, ac1 & ac2);
 
-	Update_SR_LZ(dsp_get_long_acc(D));
-	//	Update_SR_Register64(dsp_get_long_acc(D));
+	Update_SR_Register64(dsp_get_long_acc(D));
 }
 
 // ORC $acD.m, $ac(1-D).m
@@ -834,8 +829,7 @@ void orc(const UDSPInstruction& opc)
 
 	dsp_set_long_acc(D, ac1 | ac2);
 
-	Update_SR_LZ(dsp_get_long_acc(D));
-	//	Update_SR_Register64(dsp_get_long_acc(D));
+	Update_SR_Register64(dsp_get_long_acc(D));
 }
 
 void orf(const UDSPInstruction& opc)
@@ -917,8 +911,7 @@ void xori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] ^= imm;
 
-	Update_SR_LZ(g_dsp.r[reg]);
-	//	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 // ANDI $acD.m, #I
@@ -931,8 +924,7 @@ void andi(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] &= imm;
 
-	Update_SR_LZ(g_dsp.r[reg]);
-	//	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 
@@ -947,8 +939,7 @@ void ori(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
 
-	Update_SR_LZ(g_dsp.r[reg]);
-	//	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[reg]);
 }
 
 //-------------------------------------------------------------
@@ -1256,8 +1247,7 @@ void lsl16(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(areg);
 	acc <<= 16;
 	dsp_set_long_acc(areg, acc);
-	Update_SR_LZ(acc);
-	//	Update_SR_Register64(acc);
+	Update_SR_Register64(acc);
 }
 
 // MADD $axS.l, $axS.h
@@ -1304,8 +1294,7 @@ void lsr16(const UDSPInstruction& opc)
 
 	acc >>= 16;
 	dsp_set_long_acc(areg, acc);
-	Update_SR_LZ(acc);
-	//	Update_SR_Register64(acc);
+	Update_SR_Register64(acc);
 }
 
 // ASR16 $acR
@@ -1333,8 +1322,7 @@ void lsl(const UDSPInstruction& opc)
 
 	acc <<= shift;
 	dsp_set_long_acc(opc.areg, acc);
-	Update_SR_LZ(acc);
-	//	Update_SR_Register64(acc);
+	Update_SR_Register64(acc);
 }
 
 // LSR $acR, #I
@@ -1349,8 +1337,7 @@ void lsr(const UDSPInstruction& opc)
 	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
 	dsp_set_long_acc(opc.areg, (s64)acc);
-	Update_SR_LZ(acc);
-	//	Update_SR_Register64(acc);
+	Update_SR_Register64(acc);
 }
 
 // ASL $acR, #I
