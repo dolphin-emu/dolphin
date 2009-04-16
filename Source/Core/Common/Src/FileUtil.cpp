@@ -172,9 +172,13 @@ bool CreateFullPath(const char *fullPath)
 		return true;
 	}
 
-	const char *position = fullPath;
+	// safety check to ensure we have good dir seperators
+	std::string strFullPath(fullPath);
+	NormalizeDirSep(&strFullPath);
+
+	const char *position = strFullPath.c_str();
 	while (true) {
-		// Find next sub path, support both \ and / directory separators
+		// Find next sub path
 		position = strchr(position, DIR_SEP_CHR);
 
 		// we're done, yay!
@@ -184,9 +188,9 @@ bool CreateFullPath(const char *fullPath)
 		position++;
 
 		// Create next sub path
-		int sLen = (int)(position - fullPath);
+		int sLen = (int)(position - strFullPath.c_str());
 		if (sLen > 0) {
-			char *subPath = strndup(fullPath, sLen);
+			char *subPath = strndup(strFullPath.c_str(), sLen);
 			if (!File::IsDirectory(subPath)) {
 				File::CreateDir(subPath);
 			}
@@ -196,7 +200,7 @@ bool CreateFullPath(const char *fullPath)
 		// A safety check
 		panicCounter--;
 		if (panicCounter <= 0) {
-			ERROR_LOG(COMMON, "CreateFullPath: directory stracture too deep");
+			ERROR_LOG(COMMON, "CreateFullPath: directory structure too deep");
 			return false;
 		}
 	}

@@ -68,6 +68,7 @@
 				OutputFile="../../Binary/Win32/$(ProjectName)D.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -143,6 +144,7 @@
 				OutputFile="../../Binary/x64/$(ProjectName)D.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="1"
 				TargetMachine="17"
 			/>
@@ -218,6 +220,7 @@
 				OutputFile="../../Binary/Win32/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -296,6 +299,7 @@
 				OutputFile="../../Binary/x64/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

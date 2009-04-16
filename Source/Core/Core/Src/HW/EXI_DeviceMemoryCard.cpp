@@ -101,10 +101,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Create new memory card
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Flush memory card contents to disc
 void CEXIMemoryCard::Flush(bool exiting)
 {
 	FILE* pFile = NULL;
@@ -115,7 +112,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 		std::string dir;
 		SplitPath(m_strFilename, &dir, 0, 0);
 		if(!File::IsDirectory(dir.c_str()))
-			File::CreateDir(dir.c_str());
+			File::CreateFullPath(dir.c_str());
 		pFile = fopen(m_strFilename.c_str(), "wb");
 	}
 
@@ -134,8 +131,6 @@ void CEXIMemoryCard::Flush(bool exiting)
 		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", card_index ? 'B' : 'A', m_strFilename.c_str()).c_str(), 4000);
 	}
 }
-//////////////////////////////////////
-
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
