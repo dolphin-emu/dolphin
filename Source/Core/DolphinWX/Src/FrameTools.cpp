@@ -831,12 +831,12 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!initialized);
 	m_pSubMenuDrive->Enable(!initialized);
 	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!initialized);
+	GetMenuBar()->FindItem(IDM_BROWSE)->Enable(!initialized);
 
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);
-	GetMenuBar()->FindItem(IDM_CONFIG_MAIN)->Enable(!running && !paused);
 
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(initialized);

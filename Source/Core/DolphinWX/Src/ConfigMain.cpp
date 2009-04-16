@@ -135,14 +135,22 @@ void CConfigMain::UpdateGUI()
 		AlwaysUseHLEBIOS->Disable();
 		UseDynaRec->Disable();
 		UseDualCore->Disable();
+		DSPThread->Disable();
 		LockThreads->Disable();
 		OptimizeQuantizers->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
+		
 		GCSystemLang->Disable();
+		
 		WiiPage->Disable();
+
 		PathsPage->Disable();
-		PluginPage->Disable();
+
+		GraphicSelection->Disable();
+		DSPSelection->Disable();
+		PADSelection->Disable();
+		WiimoteSelection->Disable();
 	}
 }
 
