@@ -209,7 +209,7 @@ const DSPOPCTemplate opcodes[] =
 	{"LOOPI",   0x1000, 0xff00, DSPInterpreter::loopi,  nop, 1, 1, {{P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL},
 	{"BLOOPI",  0x1100, 0xff00, DSPInterpreter::bloopi, nop, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
 
-	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG, 2, 1, 0, 0x0003}}, NULL, NULL},
+	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG04, 2, 1, 0, 0x0003}}, NULL, NULL},
 	
 
 	// opcodes that can be extended

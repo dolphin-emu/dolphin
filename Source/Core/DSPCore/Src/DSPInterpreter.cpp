@@ -272,7 +272,7 @@ void mrr(const UDSPInstruction& opc)
 
 // LRR $D, @$S
 // 0001 1000 0ssd dddd
-// Move value from data memory pointed by addressing register $S toregister $D.
+// Move value from data memory pointed by addressing register $S to register $D.
 // FIXME: Perform additional operation depending on destination register.
 void lrr(const UDSPInstruction& opc)
 {
@@ -935,7 +935,7 @@ void andi(const UDSPInstruction& opc)
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 void ori(const UDSPInstruction& opc)
 {
-	u8 reg  = 0x1e + ((opc.hex >> 8) & 0x1);
+	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[reg] |= imm;
 
@@ -1423,7 +1423,7 @@ void sbclr(const UDSPInstruction& opc)
 }
 
 // SBSET #I
-// 0001 0010 0000 0iiii
+// 0001 0010 0000 0iii
 // Set bit of status register $sr. Bit number is calculated by adding 6 to
 // immediate value I.
 void sbset(const UDSPInstruction& opc)
