@@ -83,19 +83,20 @@ void Update_SR_LZ(s64 value) {
 
 // If this always returns 1, Hermes' demo sounds better.
 // However, most AX games are negatively affected.
+// nakee: It seems to be enough to start the bit with 1 to fix Hermes' demo without breaking 
+// anything. I also can't  seem to find what sets that bit, sbset is called with 0/2/3/5/6
+// and sbclr with 0/2-6 (14 requires 8). Also trying to print when the register is set to 1
+// didn't seem to give any result.
 int GetMultiplyModifier()
 {
-	if (g_dsp.r[DSP_REG_SR] & (1 << 13))
+	if (g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY)
 		return 1;
 	else	
 		return 2;
 }
 
 
-// 0x02 - overflow????
-// 0x04 - Zero bit
-// 0x08 - Sign bit
-// 0x40 - Logical Zero bit 
+//see gdsp_registers.h for flags
 bool CheckCondition(u8 _Condition)
 {
 	bool taken = false;
