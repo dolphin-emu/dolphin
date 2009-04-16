@@ -306,7 +306,6 @@ void gdsp_step()
 
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
-
 	gdsp_handle_loop();
 }
 

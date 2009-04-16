@@ -840,6 +840,9 @@ void orf(const UDSPInstruction& opc)
 
 //-------------------------------------------------------------
 
+// NX
+// 1000 -000 xxxx xxxx
+// No operation, but can be extended with extended opcode.
 void nx(const UDSPInstruction& opc)
 {
 	// This opcode is supposed to do nothing - it's used if you want to use
@@ -1461,10 +1464,13 @@ void srbith(const UDSPInstruction& opc)
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
+    // nakee: It seems to come around mul operation, and it explains what sets the mul bit. But if so why not set/clr14?
 	case 0xc: // CLR15
+		g_dsp.r[DSP_REG_SR] |= SR_MUL_MODIFY;
 		//ERROR_LOG(DSPLLE, "CLR15");
 		break;
 	case 0xd: // SET15
+		g_dsp.r[DSP_REG_SR] &= ~SR_MUL_MODIFY;
 		//ERROR_LOG(DSPLLE, "SET15");
 		break;
 
