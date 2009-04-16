@@ -36,6 +36,7 @@ public:
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
 	const std::string& GetIssues() const {return m_Issues;}
 	bool IsCompressed() const {return m_BlobCompressed;}
+	bool IsWii() const {return m_IsWii;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 #if defined(HAVE_WX) && HAVE_WX
@@ -63,6 +64,7 @@ private:
 	bool m_BlobCompressed;
 	u8* m_pImage;
 	u32 m_ImageSize;
+	bool m_IsWii;
 
 	bool LoadFromCache();
 	void SaveToCache();

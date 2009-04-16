@@ -305,7 +305,6 @@ CFrame::CFrame(bool showLogWindow,
 	, m_pStatusBar(NULL), bRenderToMain(true)
 	, HaveLeds(false), HaveSpeakers(false)
     , m_Panel(NULL)
-	, m_pMenuBar(NULL)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)

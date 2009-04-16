@@ -775,7 +775,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
-				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), OutputFileName.c_str(), 0, 16384, &MultiCompressCB, &progressDialog);					
+				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), OutputFileName.c_str(), iso->IsWii() ? 1 : 0, 16384, &MultiCompressCB, &progressDialog);					
 			}
 			else if (iso->IsCompressed() && !_compress)
 			{
@@ -868,7 +868,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	if (iso->IsCompressed())
 		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.char_str(), &CompressCB, &dialog);	
 	else
-		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), 0, 16384, &CompressCB, &dialog);
+		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), iso->IsWii() ? 1 : 0, 16384, &CompressCB, &dialog);
 
 	Update();
 }

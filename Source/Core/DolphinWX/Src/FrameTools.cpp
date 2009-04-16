@@ -96,15 +96,17 @@ wxCheatsWindow* CheatsWindow;
 // Create menu items
 void CFrame::CreateMenu()
 {
-	delete m_pMenuBar;
-	m_pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
+	if (GetMenuBar())
+		GetMenuBar()->Destroy();
+
+	wxMenuBar* menuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
+	fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 
 	wxMenu *externalDrive = new wxMenu;
-	m_pMenuItemOpenDrive = fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
+	m_pSubMenuDrive = fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	
 	drives = cdio_get_devices();
 	for (int i = 0; drives[i] != NULL && i < 24; i++) {
@@ -118,27 +120,27 @@ void CFrame::CreateMenu()
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
-	m_pMenuBar->Append(fileMenu, _T("&File"));
+	menuBar->Append(fileMenu, _T("&File"));
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
-	m_pMenuItemPlay = emulationMenu->Append(IDM_PLAY, _T("&Play"));
-	m_pMenuChangeDisc = emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
-	m_pMenuItemStop = emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	emulationMenu->Append(IDM_PLAY, _T("&Play"));
+	emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
+	emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
-	m_pMenuItemLoad = emulationMenu->AppendSubMenu(saveMenu, _T("&Load State"));
-	m_pMenuItemSave = emulationMenu->AppendSubMenu(loadMenu, _T("Sa&ve State"));
+	m_pSubMenuLoad = emulationMenu->AppendSubMenu(saveMenu, _T("&Load State"));
+	m_pSubMenuSave = emulationMenu->AppendSubMenu(loadMenu, _T("Sa&ve State"));
 	for (int i = 1; i < 10; i++) {
 		saveMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i\tF%i"), i, i));
 		loadMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i\tShift+F%i"), i, i));
 	}
-	m_pMenuBar->Append(emulationMenu, _T("&Emulation"));
+	menuBar->Append(emulationMenu, _T("&Emulation"));
 
 	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
-	m_pPluginOptions = pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
+	pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
@@ -148,7 +150,7 @@ void CFrame::CreateMenu()
 		pOptionsMenu->AppendSeparator();
 		pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
 	#endif			
-	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
+	menuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
@@ -167,10 +169,10 @@ void CFrame::CreateMenu()
      
     if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
     {
-        m_pMenuBootWii = toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+        toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
     }    
 
-	m_pMenuBar->Append(toolsMenu, _T("&Tools"));
+	menuBar->Append(toolsMenu, _T("&Tools"));
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
@@ -180,10 +182,10 @@ void CFrame::CreateMenu()
 	helpMenu->Append(IDM_HELPGOOGLECODE, _T("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
-	m_pMenuBar->Append(helpMenu, _T("&Help"));
+	menuBar->Append(helpMenu, _T("&Help"));
 
 	// Associate the menu bar with the frame
-	SetMenuBar(m_pMenuBar);
+	SetMenuBar(menuBar);
 }
 
 
@@ -199,7 +201,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
 
-	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
+	toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
 
 
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
@@ -826,40 +828,41 @@ void CFrame::UpdateGUI()
 	}
 
 	// File
-	m_pMenuItemOpen->Enable(!initialized);
-	m_pMenuItemOpenDrive->Enable(!initialized);
+	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!initialized);
+	m_pSubMenuDrive->Enable(!initialized);
+	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!initialized);
 
 	// Emulation
-	m_pMenuItemStop->Enable(running || paused);
-	m_pMenuItemLoad->Enable(initialized);
-	m_pMenuItemSave->Enable(initialized);
-	m_pPluginOptions->Enable(!running && !paused);
+	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
+	m_pSubMenuLoad->Enable(initialized);
+	m_pSubMenuSave->Enable(initialized);
+	GetMenuBar()->FindItem(IDM_CONFIG_MAIN)->Enable(!running && !paused);
 
 	// Misc
-	m_pMenuChangeDisc->Enable(initialized);
+	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(initialized);
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
-		m_pMenuBootWii->Enable(!initialized);
+		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!initialized);
 
 	if (running)
 	{
 		if (GetToolBar() != NULL)
 		{
-			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
-			m_pToolPlay->SetShortHelp(_("Pause"));
-			m_pToolPlay->SetLabel(_("Pause"));
+			GetToolBar()->FindById(IDM_PLAY)->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
+			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Pause"));
+			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Pause"));
 		}
-		m_pMenuItemPlay->SetText(_("&Pause"));
+		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause"));
 		
 	}
 	else
 	{
 		if (GetToolBar() != NULL)
 		{
-			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
-			m_pToolPlay->SetShortHelp(_("Play"));
-			m_pToolPlay->SetLabel(_("Play"));
+			GetToolBar()->FindById(IDM_PLAY)->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
+			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Play"));
+			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Play"));
 		}
-		m_pMenuItemPlay->SetText(_("&Play"));
+		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play"));
 		
 	}
 	if (GetToolBar() != NULL)

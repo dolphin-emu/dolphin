@@ -46,6 +46,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_BlobCompressed(false)
 	, m_pImage(NULL)
 	, m_ImageSize(0)
+	, m_IsWii(false)
 {
 
 	if (LoadFromCache())
@@ -58,6 +59,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != NULL)
 		{
+			m_IsWii = DiscIO::IsVolumeWiiDisc(pVolume);
 			m_Company = "N/A";
 			for (int i = 0; i < 6; i++)
 			{

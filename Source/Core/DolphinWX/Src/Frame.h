@@ -222,25 +222,19 @@ class CFrame : public wxFrame
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 
-		// Menu items
-		wxMenuBar* m_pMenuBar;
+		// MenuBar
+		// File - Drive
+		wxMenuItem* m_pSubMenuDrive;
 
-		wxMenuItem* m_pMenuItemOpen;		// File
-		wxMenuItem* m_pMenuItemOpenDrive;	// Drive
-
-		wxMenuItem* m_pMenuItemPlay; // Emulation
-		wxMenuItem* m_pMenuItemStop;
-		wxMenuItem* m_pMenuChangeDisc;
-		wxMenuItem* m_pPluginOptions;
-		wxMenuItem* m_pMenuItemLoad;
-		wxMenuItem* m_pMenuItemSave;
-		wxMenuItem* m_pMenuBootWii;
-		wxToolBarToolBase* m_pToolPlay;
+		// Emulation
+		wxMenuItem* m_pSubMenuLoad;
+		wxMenuItem* m_pSubMenuSave;
 
 		void BootGame();
 
 		// Double click and mouse move options
-		double m_fLastClickTime, m_iLastMotionTime; int LastMouseX, LastMouseY;
+		double m_fLastClickTime, m_iLastMotionTime;
+		int LastMouseX, LastMouseY;
 
 		#if wxUSE_TIMER
 			void Update();
