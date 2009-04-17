@@ -247,6 +247,29 @@ bool CBoot::BootUp()
     // ===================================================================================
     case SCoreStartupParameter::BOOT_DOL:
         {
+			// Check if we have gotten a Wii file or not
+			bool dolWii = CDolLoader::IsDolWii(_StartupPara.m_strFilename.c_str());
+			if (dolWii != _StartupPara.bWii)
+			{
+				PanicAlert("Warning - starting DOL in wrong console mode!");
+			}
+
+			// stop apploader from running when BIOS boots
+			VolumeHandler::SetVolumeName("");			
+
+			if (dolWii)
+			{                              
+				EmulatedBIOS_Wii(false);
+			}
+			else
+			{
+				if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
+				{
+					VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
+					EmulatedBIOS(false);
+				}
+			}
+
             CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
             PC = dolLoader.GetEntryPoint();
 #ifdef _DEBUG
