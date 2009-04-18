@@ -1,4 +1,6 @@
+; This is the trojan program we send to the DSP from DSPSpy to figure it out.
 
+; A lot of constant definitions.
 DSCR:	equ 0xffc9	; DSP DMA Control Reg
 DSBL:	equ 0xffcb	; DSP DMA Block Length
 DSPA:	equ 0xffcd	; DSP DMA DMEM Address
@@ -65,6 +67,7 @@ REGS_BASE:	equ		0x0f80
 MEM_HI:			equ		0x0f7E
 MEM_LO:			equ		0x0f7F
 
+; CODE STARTS HERE.
 
 ; Interrupt vectors 8 vectors, 2 opcodes each
 
@@ -78,21 +81,22 @@ MEM_LO:			equ		0x0f7F
 	jmp		irq7
 	
 ; Main code at 0x10
-	CW		0x1302
-	CW		0x1303
-	CW		0x1204
-	CW		0x1305
-	CW		0x1306
+	sbset       #0x02
+	sbset       #0x03
+	sbclr       #0x04
+	sbset       #0x05
+	sbset       #0x06
 
 	s40
-	lri		$r12, #0x00ff
-	
+	lri		$CR, #0x00ff
+
+; Why do we have a main label here?	
 main:
 
-	cw		0x8900
-	cw		0x8100	
+	clr         $ACC1
+	clr         $ACC0
 
-; get address of memory dump and copy it
+; get address of memory dump and copy it to DRAM
 
 	call	wait_for_dsp_mbox
 	si		@DMBH, #0x8888
@@ -114,7 +118,7 @@ main:
 	call	do_dma
 
 
-; get address of registers and DMA them to memory
+; get address of registers and DMA them to ram
 
 	call	wait_for_dsp_mbox
 	si		@DMBH, #0x8888
@@ -135,7 +139,7 @@ main:
 	lr		$r1e, @MEM_LO
 	call	do_dma
 
-
+; Read in all the registers from RAM
 
 	lri		$r00, #REGS_BASE+1
 	lrri	$r01, @$r00
@@ -171,27 +175,29 @@ main:
 	lrri	$r1f, @$r00
 	lr		$r00, @REGS_BASE
 
+;  Right here we are at a specific predetermined state.
+;  Ideal environment to try instructions.
+
+;  We can call send_back at any time to send data back to the PowerPC.
+
 	nop
 	nop
 	nop
 	nop
 
+	cw 0x8600
 
+	call	send_back
 	
-	
-		cw 0x8600
+; We're done - currently we only test one opcode, in this case 0x8600.
+; It's possible to test many more in one go - just call send_back after each one.
 
-		call	send_back
+	jmp ende
 
-		JMP ende
-
+; Below here is tons of random leftover test code from whoever last experimented with this.
 
 ;	call dump_memory
-;	call	send_back
-	
-	
-; 0x041e
-;	
+;	call send_back
 
     cw 0x00de 
     cw 0x03f1 
@@ -405,7 +411,7 @@ g_0c65:
     call	send_back
     
 	
-
+; This is where we jump when we're done testing, see above. 
 ende:
 
 	nop
@@ -416,36 +422,42 @@ ende:
 	nop
 	nop
 	
-	
-	
+; We just fall into a loop, playing dead until someone resets the DSP.	
 dead_loop:
 	jmp		dead_loop
 
+; Utility function to do DMA.
+; r1c:r1e - external address.
+; r18     - address in DSP
 do_dma:
 	sr		@DSMAH, $r1c
 	sr		@DSMAL, $r1e
 	sr		@DSPA, $r18
 	sr		@DSCR, $r19
-	sr		@DSBL, $r1a
+	sr		@DSBL, $r1a  ; This kicks off the DMA.
+
+; Waits for said DMA to complete by watching a bit in DSCR.
 wait_dma:
 	LRS		$ACL1, @DSCR
 	andcf	$acl1, #0x0004
 	JLZ		wait_dma
 	RET
 
-
+; This waits for a mail to arrive in the DSP in-mailbox.
 wait_for_dsp_mbox:
 	lrs		$ACL1, @DMBH
 	andcf	$acl1, #0x8000
 	jlz		wait_for_dsp_mbox
 	ret
 
+; This waits for the CPU to grab a mail that we just sent from the DSP.
 wait_for_cpu_mbox:
 	lrs		$ACL1, @cmbh
 	andcf	$acl1, #0x8000
 	jlnz	wait_for_cpu_mbox
 	ret
-	
+
+; IRQ handlers. Not entirely sure what good they do currently.
 irq0:
 	lri		$acl0, #0x0000
 	jmp		irq
@@ -455,7 +467,6 @@ irq1:
 irq2:
 	lri		$acl0, #0x0002
 	jmp		irq
-	
 irq3:
 	lri		$acl0, #0x0003
 	jmp		irq
@@ -463,14 +474,14 @@ irq4:
 	lri		$acl0, #0x0004
 	jmp		irq
 irq5:
-;	jmp finale
+; No idea what this code is doing.
 	s40
 	mrr		$r0d, $r1c
 	mrr		$r0d, $r1e
 	clr		$acc0
 	mrr		$r1e, $r0d
 	mrr		$r1c, $r0d
-	nop
+	nop     ; Or why there's a nop sled here.
 	nop
 	nop
 	nop
@@ -486,7 +497,7 @@ irq6:
 irq7:
 	lri		$acl0, #0x0007
 	jmp		irq
-		
+
 irq:
 	lrs		$ACL1, @DMBH
 	andcf	$acl1, #0x8000
@@ -497,11 +508,9 @@ irq:
 	si		@DIRQ, #0x0001
 	halt
 	
-	
-	
-	
+; DMA:s the current state of the registers back to the PowerPC. To do this,
+; it must write the contents of all regs to DRAM.
 send_back:
-
 	; store registers to reg table
 	sr		@REGS_BASE,  $r00
 	lri		$r00, #(REGS_BASE + 1)
@@ -536,8 +545,8 @@ send_back:
 	srri	@$r00, $r1d
 	srri	@$r00, $r1e
 	srri	@$r00, $r1f
-	
 
+; Regs are stored. Prepare DMA.
 	lri		$r18, #0x0000
 	lri		$r19, #1		;(DSP_CR_IMEM | DSP_CR_TO_CPU)
 	lri		$r1a, #0x200
@@ -545,7 +554,8 @@ send_back:
 	lr		$r1e, @MEM_LO
 
 	lri		$r01, #8+8
-	
+
+; Now, why are we looping here?
 	bloop	$r01, dma_copy
 	call	do_dma
 	addi	$r1e, #0x200
@@ -553,21 +563,22 @@ send_back:
 	addi	$r1f, #0x100
 	mrr		$r18, $r1f
 	nop
+
 dma_copy:
 	nop
-	
+
+; Wait for the CPU to send us a mail.	
 	call	wait_for_dsp_mbox
 	si		@DMBH, #0x8888
 	si		@DMBL, #0xfeeb
 	si		@DIRQ, #0x0001
 	
-; wait for answer before we execute the next op	
+; wait for the CPU to recieve our response before we execute the next op	
 	call	wait_for_cpu_mbox
 	lrs		$ACL0, @CMBL
 	andi	$acl1, #0x7fff
 
-	
-	
+; Restore all regs again so we're ready to execute another op.
 	lri		$r00, #REGS_BASE+1
 	lrri	$r01, @$r00
 	lrri	$r02, @$r00
@@ -602,19 +613,18 @@ dma_copy:
 	lrri	$r1f, @$r00
 	lr		$r00, @REGS_BASE
 	
-	ret	
+	ret   ; from send_back
 	
+; I wish I knew what this 16 means.
 send_back_16:
-			
-	cw		0x8e00
+	set40
 	call	send_back	
-	cw		0x8f00
-	
+	set16
 	ret
-	
-	
-dump_memory:
 
+; This one's odd. Doesn't look like it should work since it uses acl0 but 
+; increments acm0... (acc0)	
+dump_memory:
 	lri		$r02, #0x0000
 	lri		$acl0, #0x1000
 	
@@ -622,18 +632,16 @@ dump_memory:
 	bloop	$r01, _fill_loop2			
 	
 	mrr $r03, $acl0
-	cw 0x80f0
+	nx'ld   : $AX0.H, $AX1.H, @$AR0
 	
 	mrr $r1f, $r00
 	mrr $r00, $r02
-	srri	@$r00, $r1b
+	srri @$r00, $r1b
 	mrr $r02, $r00
 	mrr $r00, $r1f
 	
-	addis	$acc0, #0x1
-	
+	addis $acc0, #0x1
+
 _fill_loop2:
 	nop
-	
-
-ret 
+	ret   ; from dump_memory
