@@ -174,6 +174,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSPTool", "DSPTool\DSPTool.
 		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSPSpy", "DSPSpy\DSPSpy.vcproj", "{3877AA3E-9CC0-4ADF-8E71-272EE4443478}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -569,6 +571,14 @@ Global
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Release|Win32.Build.0 = Release|Win32
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Release|x64.ActiveCfg = Release|x64
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Release|x64.Build.0 = Release|x64
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Debug|x64.ActiveCfg = Debug|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.DebugFast|Win32.ActiveCfg = Debug|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.DebugFast|x64.ActiveCfg = Debug|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Release_JITIL|Win32.ActiveCfg = Release|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Release_JITIL|x64.ActiveCfg = Release|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Release|Win32.ActiveCfg = Release|Win32
+		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
