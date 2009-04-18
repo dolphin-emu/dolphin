@@ -448,6 +448,10 @@ void ilrrn(const UDSPInstruction& opc)
 // iiii iiii iiii iiii
 // Load immediate value I to register $D. 
 // FIXME: Perform additional operation depending on destination register.
+
+// DSPSpy discovery: This, and possibly other instructions that load a register,
+// has a different behaviour in S16 mode if loaded to AC0.M: The value gets sign extended
+// to the whole accumulator! This does not happen in s40 mode.
 void lri(const UDSPInstruction& opc)
 {
 	u8 reg  = opc.hex & DSP_REG_MASK;
@@ -1437,15 +1441,15 @@ void sbset(const UDSPInstruction& opc)
 
 
 // FIXME inside
-// This seem to be a bunch of bit setters, possibly flippig bits in SR.
-// These bits may have effects on the operation of the multiplier or 
-// accumulators.
-// Hermes' demo sets the following defaults, hence that's the most important
-// mode to explore for the moment:
-// SET40	
-// CLR15	
+// This is a bunch of flag setters, flipping bits in SR. So far so good,
+// but it's harder to know exactly what effect they have.
+// M0/M2 change the multiplier mode (it can multiply by 2 for free).
+//
+// SET16 changes something very important: see the LRI instruction above.
+// Hermes' demo sets the following defaults:
+// SET40
+// CLR15
 // M0 
-// Gonna be fun to explore all 8 possible combinations .. ugh.
 void srbith(const UDSPInstruction& opc)
 {
 	switch ((opc.hex >> 8) & 0xf)
@@ -1454,37 +1458,32 @@ void srbith(const UDSPInstruction& opc)
 	// and then reset with M0 at the end. Like the other bits here, it's
 	// done around loops with lots of multiplications.
 	// I've confirmed with DSPSpy that they flip this bit.
-	case 0xa: // M2
+	case 0xa:  // M2
 		g_dsp.r[DSP_REG_SR] &= ~SR_MUL_MODIFY;
 		break;
-		// FIXME: Both of these appear in the beginning of the Wind Waker
-	case 0xb: // M0
+	case 0xb:  // M0
 		g_dsp.r[DSP_REG_SR] |= SR_MUL_MODIFY;
 		break;
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
     // nakee: It seems to come around mul operation, and it explains what sets the mul bit. But if so why not set/clr14?
-	case 0xc: // CLR15
+	case 0xc:  // CLR15
 		g_dsp.r[DSP_REG_SR] &= ~SR_TOP_BIT_UNK;
-		//ERROR_LOG(DSPLLE, "CLR15");
 		break;
-	case 0xd: // SET15
+	case 0xd:  // SET15
 		g_dsp.r[DSP_REG_SR] |= SR_TOP_BIT_UNK;
-		//ERROR_LOG(DSPLLE, "SET15");
 		break;
 
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
-	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
-		//g_dsp.r[DSP_REG_SR] &= ~(1 << 14);
-		//ERROR_LOG(DSPLLE, "SET40");
+	// Confirmed these by using DSPSpy and copying the value of SR to R00 after setting.
+	case 0xe:  // SET40  (really, clear SR's 0x4000) something about "set 40-bit operation"?
+		g_dsp.r[DSP_REG_SR] &= ~SR_16_BIT;
 		break;
 
-	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
-		// that doesnt happen on a real console  << what does this comment mean?
-		//g_dsp.r[DSP_REG_SR] |= (1 << 14);
-		//ERROR_LOG(DSPLLE, "SET16");
+	case 0xf:  // SET16  (really, set SR's 0x4000) something about "set 16-bit operation"?
+		g_dsp.r[DSP_REG_SR] |= SR_16_BIT;
 		break;
 
 	default:
