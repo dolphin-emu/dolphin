@@ -53,12 +53,6 @@ u16 dsp_dmem_read(u16 addr)
 	case 0x1: // 1xxx COEF
 		return g_dsp.coef[addr & DSP_COEF_MASK];
 
-		// FIXME: unknown addresses used by zelda 
- /*	case 0x2:
-	case 0x3:
-	case 0x4:
-	break;*/
-
 	case 0xf: // Fxxx HW regs
 		return gdsp_ifx_read(addr);
 		
