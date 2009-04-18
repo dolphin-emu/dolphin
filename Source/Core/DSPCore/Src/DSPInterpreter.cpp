@@ -510,7 +510,7 @@ void si(const UDSPInstruction& opc)
 
 // TSTAXH $axR.h
 // 1000 011r xxxx xxxx
-// Test hight part of secondary accumulator $axR.h.
+// Test high part of secondary accumulator $axR.h.
 void tstaxh(const UDSPInstruction& opc)
 {
 	u8 reg  = (opc.hex >> 8) & 0x1;
@@ -519,15 +519,17 @@ void tstaxh(const UDSPInstruction& opc)
 	Update_SR_Register16(val);
 }
 
-// TSTAXL $axR.h
-// 1000 011r xxxx xxxx
-// Test lower part of secondary accumulator $axR.h.
+// TSTAXL $acR
+// 1000 r001 xxxx xxxx
+// r specifies one of the main accumulators.
+// Definitely not a test instruction - it changes the accums.
+// Not affected by m0/m2. Not affected by s16/s40.
 void tstaxl(const UDSPInstruction& opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
-	s16 val = dsp_get_ax_l(reg);
-
-	Update_SR_Register16(val);
+	// This is probably all wrong.
+	//u8 reg  = (opc.hex >> 8) & 0x1;
+	//s16 val = dsp_get_ax_l(reg);
+	//Update_SR_Register16(val);
 }
 
 // CLR $acR

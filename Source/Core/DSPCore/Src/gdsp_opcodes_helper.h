@@ -167,7 +167,7 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 	val >>= 16;
 	g_dsp.r[0x1e + _reg] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x10 + _reg] = (u16)val;
+	g_dsp.r[0x10 + _reg] = (u16)(s16)(s8)(u8)val;
 }
 
 

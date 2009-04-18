@@ -240,8 +240,8 @@ const DSPOPCTemplate opcodes[] =
 
 	{"TST",		0xb100, 0xf7ff, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
-	// GUESSING NOT SURE AT ALL!!!!
-	{"TSTAXL",  0xa100, 0xffff, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	// Definitely not TSTAXL, it affects one of the accumulators. (a100 or a900, same op, one parameter).
+	{"TSTAXL",  0xa100, 0xffff, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"TSTAXH",  0x8600, 0xfeff, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 

@@ -185,16 +185,37 @@ main:
 
 	nop
 	nop
-	nop
+	lris $AC0.M, #0xcc
+	lris $AC1.M, #0xcc
 	nop
 	
-	inc $acc0
+	mrr $r00, $r13
     call send_back
 
 	s16
-	inc $acc0
+	nop
+	lris $AC0.M, #0xcc
+	lris $AC1.M, #0xcc
+	nop
+	nop
+	mrr $r00, $r13
     call send_back
 		
+	cw 0xa100
+	
+	call send_back
+
+	cw 0xa900
+	
+	call send_back
+	s16
+	cw 0xa100
+	
+	call send_back
+	s16
+	cw 0xa900
+	
+	call send_back
 ; We're done - currently we only test one opcode, in this case 0x8600.
 ; It's possible to test many more in one go - just call send_back after each one.
 
@@ -623,7 +644,8 @@ dma_copy:
 	
 	ret   ; from send_back
 	
-; I wish I knew what this 16 means.
+; If you are in s16 mode, use this instead of send_back if you want to stay
+; in s16 mode.
 send_back_16:
 	set40
 	call	send_back	
