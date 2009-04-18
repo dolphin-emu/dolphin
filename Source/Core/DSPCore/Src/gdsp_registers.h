@@ -100,6 +100,7 @@
 #define SR_LOGIC_ZERO 0x0040   // ?? duddie's doc sometimes say & 1<<6 (0x40), sometimes 1<<14 (0x4000), while we have 0x20 .. eh
 #define SR_INT_ENABLE 0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_MUL_MODIFY 0x2000   // 1 = normal. 0 = x2
+#define SR_TOP_BIT_UNK 0x8000   // 1 = normal. 0 = x2
 
 void dsp_reg_store_stack(u8 stack_reg, u16 val);
 u16 dsp_reg_load_stack(u8 stack_reg);

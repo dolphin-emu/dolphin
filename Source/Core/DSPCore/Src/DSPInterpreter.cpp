@@ -1444,7 +1444,7 @@ void sbset(const UDSPInstruction& opc)
 // mode to explore for the moment:
 // SET40	
 // CLR15	
-// M0
+// M0 
 // Gonna be fun to explore all 8 possible combinations .. ugh.
 void srbith(const UDSPInstruction& opc)
 {
@@ -1453,37 +1453,37 @@ void srbith(const UDSPInstruction& opc)
 	// M0 seems to be the default. M2 is used in functions in Zelda
 	// and then reset with M0 at the end. Like the other bits here, it's
 	// done around loops with lots of multiplications.
-
+	// I've confirmed with DSPSpy that they flip this bit.
 	case 0xa: // M2
-		//ERROR_LOG(DSPLLE, "M2");
+		g_dsp.r[DSP_REG_SR] &= ~SR_MUL_MODIFY;
 		break;
 		// FIXME: Both of these appear in the beginning of the Wind Waker
 	case 0xb: // M0
-		//ERROR_LOG(DSPLLE, "M0");
+		g_dsp.r[DSP_REG_SR] |= SR_MUL_MODIFY;
 		break;
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
     // nakee: It seems to come around mul operation, and it explains what sets the mul bit. But if so why not set/clr14?
 	case 0xc: // CLR15
-		g_dsp.r[DSP_REG_SR] |= SR_MUL_MODIFY;
+		g_dsp.r[DSP_REG_SR] &= ~SR_TOP_BIT_UNK;
 		//ERROR_LOG(DSPLLE, "CLR15");
 		break;
 	case 0xd: // SET15
-		g_dsp.r[DSP_REG_SR] &= ~SR_MUL_MODIFY;
+		g_dsp.r[DSP_REG_SR] |= SR_TOP_BIT_UNK;
 		//ERROR_LOG(DSPLLE, "SET15");
 		break;
 
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
 	case 0xe: // SET40  (really, clear SR's 0x4000?) something about "set 40-bit operation"?
-		g_dsp.r[DSP_REG_SR] &= ~(1 << 14);
+		//g_dsp.r[DSP_REG_SR] &= ~(1 << 14);
 		//ERROR_LOG(DSPLLE, "SET40");
 		break;
 
 	case 0xf: // SET16  (really, set SR's 0x4000?) something about "set 16-bit operation"?
 		// that doesnt happen on a real console  << what does this comment mean?
-		g_dsp.r[DSP_REG_SR] |= (1 << 14);
+		//g_dsp.r[DSP_REG_SR] |= (1 << 14);
 		//ERROR_LOG(DSPLLE, "SET16");
 		break;
 

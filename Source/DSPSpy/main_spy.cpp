@@ -58,11 +58,6 @@ u16 *dspbufP;
 u16 *dspbufC;
 u32 *dspbufU;
 
-u16 opcode[4] = {
-	0x0000, 0x0000, 0x0000, 0x0000,
-};
-
-
 u16 dspreg_in[32] = {
 	0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 
 	0x0411, 0x0522, 0x0633, 0x0744, 0x0855, 0x0966, 0x0a77, 0x0b88,
@@ -161,11 +156,9 @@ vu16 val_x = 0x1234;
 
 void print_regs(u16 _step)
 {
-	int i, j;
-
-	for(j = 0 ; j < 4 ; j++)
+	for (int j = 0 ; j < 4 ; j++)
 	{
-		for(i = 0 ; i < 8 ; i++)
+		for (int i = 0 ; i < 8 ; i++)
 		{
 			int reg = j * 8 + i;
 			ds_set_colour(COLOR_GREEN, COLOR_BLACK);
@@ -188,9 +181,9 @@ void print_regs(u16 _step)
 		ds_printf(10 + j, i + 11, "%d", (opcode[i] >> (15 - j)) & 0x1);*/
 	}
 
-	for(j = 0 ; j < 4 ; j++)
+	for (int j = 0 ; j < 4 ; j++)
 	{
-		for(i = 0 ; i < 8 ; i++)
+		for (int i = 0 ; i < 8 ; i++)
 		{
 			char tmpbuf1[20];
 			int reg = j * 8 + i;
@@ -224,7 +217,7 @@ void print_regs(u16 _step)
 		ds_clear();
 	count = 0;
 	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-	for (i = 0x0; i < 0xf70 ; i++)
+	for (int i = 0x0; i < 0xf70 ; i++)
 	{
 		if (dspbufC[i] != mem_dump[i])
 		{
@@ -347,7 +340,7 @@ void ui_pad_sel(void)
 				ui_mode = UIM_EDIT_REG;
 			else
 				ui_mode = UIM_EDIT_BIN;
-			reg_value = &opcode[cursor_y-8];
+			// reg_value = &opcode[cursor_y-8];
 		}
 	}
 }
@@ -355,7 +348,6 @@ void ui_pad_sel(void)
 void ui_pad_edit_bin(void)
 {
 	u8 pos;
-
 	if (gpad.button & PAD_BUTTON_RIGHT)
 	{
 		small_cursor_x++;
@@ -415,7 +407,7 @@ void init_video(void)
 {
 	VIDEO_Init();
 
-	switch(VIDEO_GetCurrentTvMode())
+	switch (VIDEO_GetCurrentTvMode())
 	{
 	case VI_NTSC:
 		rmode = &TVNtsc480IntDf;
@@ -474,11 +466,11 @@ void my_send_task(void *addr, u16 iram_addr, u16 len, u16 start)
 
 int main()
 {
-	int i, j;
 	u32	mail;
 	u32 level;
 
 	{
+		// WTF?
 		vu16 *dicr = ((vu16 *)0xcc002002);
 		*dicr = 0x100;
 		*dicr = 0x002;
@@ -492,7 +484,6 @@ int main()
 	//console_init(xfb,20,64,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*2);
 	ds_init(xfb,20,64,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*2);
 
-
 	ui_mode = UIM_SEL;
 
 	dspbufP = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer);
@@ -500,7 +491,7 @@ int main()
 	dspbufU = (u32 *)(MEM_K0_TO_K1(dspbuffer));
 
 	DCInvalidateRange(dspbuffer, 0x2000);
-	for(j = 0 ; j < 0x800 ; j++)
+	for (int j = 0 ; j < 0x800; j++)
 		dspbufU[j] = 0xffffffff;
 
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
@@ -517,7 +508,7 @@ int main()
 
 	WPAD_Init();
 
-	while(1)
+	while (1)
 	{
 		if (DSP_CheckMailFrom())
 		{
@@ -526,26 +517,11 @@ int main()
 
 			if (mail == 0x8071feed)
 			{
-				int n;
-				for (n = 0 ; n < 32 ; n++)
+				for (int n = 0 ; n < 32 ; n++)
 					dspbufC[0x00 + n] = dspreg_in[n];
 				DCFlushRange(dspbufC, 0x2000);
-				/*
-				for (n = 0 ; n < 600 ; n++)
-				{
-					if (((u16*)dsp_test)[n] == 0x1234)
-					{
-						((u16*)dsp_test)[n+0] = opcode[0];
-						((u16*)dsp_test)[n+1] = opcode[1];
-						((u16*)dsp_test)[n+2] = opcode[2];
-						((u16*)dsp_test)[n+3] = opcode[3];
-						break;
-					}
-				}
-				*/
 				DCFlushRange((void *)dsp_code, 0x1000);
 				my_send_task((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code), 0, 4000, 0x10);
-				((u16*)dsp_code)[n] = 0x1234;  // wtf?
 			}
 			else if (mail == 0x8888dead)
 			{
@@ -566,18 +542,17 @@ int main()
 			else if (mail == 0x8888feeb)
 			{
 				DCInvalidateRange(dspbufC, 0x2000);
-				for(i = 0 ; i < 32 ; i++)
+				for (int i = 0 ; i < 32 ; i++)
 					dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
 				regs_refreshed = true;
 
 				dsp_steps++;
 
-				while(DSP_CheckMailTo());
+				while (DSP_CheckMailTo());
 				DSP_SendMailTo(0x8000DEAD);
-				while(DSP_CheckMailTo());
+				while (DSP_CheckMailTo());
 
 				// dump_to_pc();
-
 			}
 		}
 
@@ -619,33 +594,36 @@ int main()
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_B) 
 		{
 			DCInvalidateRange(dspbufC, 0x2000);
-			int n;
-			for(n = 0 ; n < 0x2000 ; n++)
+			for (int n = 0 ; n < 0x2000 ; n++)
 			{
 				//	dspbufU[n/2] = 0; dspbufC[n] = 0;
 			}
 			DCFlushRange(dspbufC, 0x2000);
+
+			// Reset the DSP.
 			_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
 			_dspReg[5] = (_dspReg[5]&~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
 			_dspReg[5] |= DSPCR_RES;
-			while(_dspReg[5]&DSPCR_RES);
+			while (_dspReg[5] & DSPCR_RES)
+				;
 			_dspReg[9] = 0x63;
 		}
 
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2) 
 		{
+			// WTF?
 			vu16 *dicr = ((vu16 *)0xcc002002);
 			*dicr = 0x001;
 			val_x = *dicr;
 		}
+
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 		{
 			show_step++;
 			if (show_step >= dsp_steps) 
 				show_step = 0;
 		}
-
-	};
+	}
 
 	// Reset the DSP
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;

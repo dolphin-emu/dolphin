@@ -180,15 +180,21 @@ main:
 
 ;  We can call send_back at any time to send data back to the PowerPC.
 
-	nop
-	nop
-	nop
-	nop
+;  Calling set16 here seemed to crash the dsp tester in strange ways
+;  until I added set40 in send_back. Seems clear that it affects something important.
 
-	cw 0x8600
-
-	call	send_back
+	nop
+	nop
+	nop
+	nop
 	
+	inc $acc0
+    call send_back
+
+	s16
+	inc $acc0
+    call send_back
+		
 ; We're done - currently we only test one opcode, in this case 0x8600.
 ; It's possible to test many more in one go - just call send_back after each one.
 
@@ -511,6 +517,8 @@ irq:
 ; DMA:s the current state of the registers back to the PowerPC. To do this,
 ; it must write the contents of all regs to DRAM.
 send_back:
+	; make state safe.
+	set40
 	; store registers to reg table
 	sr		@REGS_BASE,  $r00
 	lri		$r00, #(REGS_BASE + 1)
