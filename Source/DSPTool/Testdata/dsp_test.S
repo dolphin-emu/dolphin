@@ -429,15 +429,15 @@ do_dma:
 	sr		@DSBL, $r1a
 wait_dma:
 	LRS		$ACL1, @DSCR
-	andf	$acl1, #0x0004
-	JNZ		wait_dma
+	andcf	$acl1, #0x0004
+	JLZ		wait_dma
 	RET
 
 
 wait_for_dsp_mbox:
 	lrs		$ACL1, @DMBH
-	andf	$acl1, #0x8000
-	jnz		wait_for_dsp_mbox
+	andcf	$acl1, #0x8000
+	jlz		wait_for_dsp_mbox
 	ret
 
 wait_for_cpu_mbox:
@@ -489,8 +489,8 @@ irq7:
 		
 irq:
 	lrs		$ACL1, @DMBH
-	andf	$acl1, #0x8000
-	jnz		irq
+	andcf	$acl1, #0x8000
+	jlz		irq
 	si		@DMBH, #0x8BAD
 	sr		@DMBL, $r0b
 ;sr		@DMBL, $acl0	

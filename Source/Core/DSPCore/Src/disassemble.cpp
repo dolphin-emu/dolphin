@@ -200,6 +200,7 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::strin
 	if ((*pc & 0x7fff) >= 0x1000)
 	{
 		*pc++;
+		dest->append("; outside memory");
 		return;
 	}
 

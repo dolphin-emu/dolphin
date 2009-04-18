@@ -66,12 +66,34 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
 	int count_equal = 0;
 	const int min_size = (int)std::min(code1.size(), code2.size());
+
+	AssemblerSettings settings;
+	DSPDisassembler disassembler(settings);
 	for (int i = 0; i < min_size; i++)
 	{
 		if (code1[i] == code2[i])
 			count_equal++;
 		else
-			printf("!! %04x : %04x vs %04x\n", i, code1[i], code2[i]);
+		{
+			std::string line1, line2;
+			u16 pc = i;
+			disassembler.DisOpcode(&code1[0], 2, &pc, &line1);
+			pc = i;
+			disassembler.DisOpcode(&code2[0], 2, &pc, &line2);
+			printf("!! %04x : %04x vs %04x - %s  vs  %s\n", i, code1[i], code2[i], line1.c_str(), line2.c_str());
+		}
+	}
+	if (code2.size() != code1.size())
+	{
+		printf("Extra code words:\n");
+		const std::vector<u16> &longest = code1.size() > code2.size() ? code1 : code2;
+		for (int i = min_size; i < longest.size(); i++)
+		{
+			u16 pc = i;
+			std::string line;
+			disassembler.DisOpcode(&longest[0], 2, &pc, &line);
+			printf("!! %s\n", line.c_str());
+		}
 	}
 	printf("Equal instruction words: %i / %i\n", count_equal, min_size);
 	return code1.size() == code2.size() && code1.size() == count_equal;
@@ -88,21 +110,25 @@ void GenRandomCode(int size, std::vector<u16> *code)
 
 void CodeToHeader(const std::vector<u16> &code, const char *name, std::string *header)
 {
+	std::vector<u16> code_copy = code;
+	// Add some nops at the end to align the size a bit.
+	while (code_copy.size() & 7)
+		code_copy.push_back(0);
 	char buffer[1024];
 	header->clear();
 	header->reserve(code.size() * 4);
 	header->append("#ifndef _MSCVER\n");
-	sprintf(buffer, "const __declspec(align:64) unsigned short %s = {\n");
+	sprintf(buffer, "const unsigned short %s = {\n", name);
 	header->append(buffer);
 	header->append("#else\n");
-	sprintf(buffer, "const unsigned short %s __attribute__(aligned:64) = {\n");
+	sprintf(buffer, "const unsigned short %s __attribute__ ((aligned (64))) = {\n", name);
 	header->append(buffer);
 	header->append("#endif\n\n    ");
 	for (int i = 0; i < code.size(); i++) 
 	{
-		if (((i + 1) & 15) == 0)
+		if (i && ((i & 15) == 0))
 			header->append("\n    ");
-		sprintf(buffer, "%02x, ", code[i]);
+		sprintf(buffer, "0x%04x, ", code[i]);
 		header->append(buffer);
 	}
 	header->append("\n};\n");

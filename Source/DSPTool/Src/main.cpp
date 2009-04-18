@@ -144,15 +144,18 @@ void RunAsmTests()
 	}*/
 
 	/*
-	code.clear();
-	for (int i = 0; i < sizeof(dsp_test)/4; i++)
 	{
-		code.push_back(dsp_test[i] >> 16);
-		code.push_back(dsp_test[i] & 0xFFFF);
-	}
+		std::vector<u16> code;
+		code.clear();
+		for (int i = 0; i < sizeof(dsp_test)/4; i++)
+		{
+			code.push_back(dsp_test[i] >> 16);
+			code.push_back(dsp_test[i] & 0xFFFF);
+		}
 
-	SaveBinary(code, "dsp_test.bin");
-	RoundTrip(code);*/
+		SaveBinary(code, "dsp_test2.bin");
+		RoundTrip(code);
+	}*/
 	//if (Compare(code, hermes))
 	//	printf("Successs\n");
 /*
@@ -216,6 +219,7 @@ int main(int argc, const char *argv[])
 	std::string output_name;
 
 	bool disassemble = false;
+	bool compare = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -224,6 +228,8 @@ int main(int argc, const char *argv[])
 			output_name = argv[++i];
 		else if (!strcmp(argv[i], "-h"))
 			output_header_name = argv[++i];
+		else if (!strcmp(argv[i], "-c"))
+			compare = true;
 		else 
 		{
 			if (!input_name.empty())
@@ -235,11 +241,24 @@ int main(int argc, const char *argv[])
 		}
 	}
 
+	if (compare)
+	{
+		// Two binary inputs, let's diff.
+		std::string binary_code;
+		std::vector<u16> code1, code2;
+		File::ReadFileToString(false, input_name.c_str(), &binary_code);
+		BinaryStringBEToCode(binary_code, &code1);
+		File::ReadFileToString(false, output_name.c_str(), &binary_code);
+		BinaryStringBEToCode(binary_code, &code2);
+		Compare(code1, code2);
+		return 0;
+	}
+
 	if (disassemble)
 	{
 		if (input_name.empty())
 		{
-			printf("Must specify input.\n");
+			printf("Disassemble: Must specify input.\n");
 			return 1;
 		}
 		std::string binary_code;
@@ -248,10 +267,18 @@ int main(int argc, const char *argv[])
 		BinaryStringBEToCode(binary_code, &code);
 		std::string text;
 		Disassemble(code, true, &text);
-		File::WriteStringToFile(true, text, output_name.c_str());
+		if (!output_name.empty())
+			File::WriteStringToFile(true, text, output_name.c_str());
+		else
+			printf("%s", text.c_str());
 	}
 	else 
 	{
+		if (input_name.empty())
+		{
+			printf("Assemble: Must specify input.\n");
+			return 1;
+		}
 		std::string source;
 		if (File::ReadFileToString(true, input_name.c_str(), &source))
 		{
