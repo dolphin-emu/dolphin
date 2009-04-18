@@ -93,8 +93,7 @@ void DSPDebuggerLLE::CreateGUIControls()
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
 {
-	wxWindow::Destroy();
-	event.Skip();
+	Hide();
 }
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
@@ -218,7 +217,6 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 		char Temp2[256];
 		sprintf(Temp2, "0x%04x", dsp_imem_read(CurrentPC));
 
-		AssemblerSettings settings;
 		DSPDisassembler disasm(settings);
 		std::string op_str;
 		disasm.DisOpcode(binbuf, 2, &settings.pc, &op_str);

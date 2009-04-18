@@ -162,8 +162,13 @@ void DoState(unsigned char **ptr, int mode)
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	DSPDebuggerLLE *debugger = new DSPDebuggerLLE(NULL);
-	debugger->Show();
+	if(!m_DebuggerFrame)
+		m_DebuggerFrame = new DSPDebuggerLLE(NULL);
+
+	if(Show)
+		m_DebuggerFrame->Show();
+	else
+		m_DebuggerFrame->Hide();
 #endif
 }
 
@@ -181,7 +186,8 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 void DSP_DebugBreak()
 {
 #if defined(HAVE_WX) && HAVE_WX
-	m_DebuggerFrame->DebugBreak();
+	if(m_DebuggerFrame)
+		m_DebuggerFrame->DebugBreak();
 #endif
 }
 
@@ -233,6 +239,11 @@ void Initialize(void *init)
 		g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	}
 	soundStream = AudioCommon::InitSoundStream();
+
+#if defined(HAVE_WX) && HAVE_WX
+	if(m_DebuggerFrame)
+		m_DebuggerFrame->Refresh();
+#endif
 }
 
 void DSP_StopSoundStream()

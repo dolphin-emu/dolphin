@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_LLE"
 	ProjectGUID="{3D8156A9-64D1-4C8E-ADBE-1B319030E4A4}"
 	RootNamespace="Plugin_DSP_LLE"
@@ -583,10 +583,6 @@
 		/>
 	</References>
 	<Files>
-		<Filter
-			Name="DSP"
-			>
-		</Filter>
 		<Filter
 			Name="Logging"
 			>

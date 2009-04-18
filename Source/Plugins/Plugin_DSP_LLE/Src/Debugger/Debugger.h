@@ -54,6 +54,7 @@ public:
 
 	bool CanDoStep();
 	void DebugBreak();
+	void Refresh();
 
 private:
 	DECLARE_EVENT_TABLE();
@@ -153,7 +154,6 @@ private:
 	void OnDoubleClick(wxListEvent& event);
 
 	void CreateGUIControls();
-	void Refresh();
 	void FocusOnPC();
 	void UnselectAll();
 };
