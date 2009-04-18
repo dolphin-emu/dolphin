@@ -30,6 +30,7 @@
 
 #include "Common.h"
 #include "DSPTables.h"
+#include "LabelMap.h"
 
 struct AssemblerSettings
 {
@@ -40,6 +41,7 @@ struct AssemblerSettings
 		  decode_names(true),
 		  decode_registers(true),
 		  ext_separator('\''),
+		  lower_case_ops(true),
 		  pc(0)
 	{
 	}
@@ -50,6 +52,7 @@ struct AssemblerSettings
 	bool decode_names;
 	bool decode_registers;
 	char ext_separator;
+	bool lower_case_ops;
 
 	u16 pc;
 };
@@ -63,19 +66,20 @@ public:
 	bool Disassemble(int start_pc, const std::vector<u16> &code, std::string *text);
 
 	// Warning - this one is trickier to use right.
-	void DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest);
+	// Use pass == 2 if you're just using it by itself.
+	void DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string *dest);
 
 private:
 	// Moves PC forward and writes the result to dest.
-	bool DisFile(const char* name, FILE *output);
+	bool DisFile(const char* name, int pass, std::string *output);
 
 	char* DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char* strbuf);
 	std::map<u16, int> unk_opcodes;
 
 	const AssemblerSettings settings_;
-};
 
-const char *gd_get_reg_name(u16 reg);
+	LabelMap labels;
+};
 
 #endif  // _DSP_DISASSEMBLE_H
 

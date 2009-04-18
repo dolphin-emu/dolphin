@@ -1214,7 +1214,7 @@ void addis(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
 
-	s64 Imm = (s8)opc.hex;
+	s64 Imm = (s8)(u8)opc.hex;
 	Imm <<= 16;
 	s64 acc = dsp_get_long_acc(areg);
 	acc += Imm;

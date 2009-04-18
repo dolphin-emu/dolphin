@@ -82,15 +82,8 @@ bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, st
 	fwrite(&code[0], 1, code.size() * 2, f);
 	fclose(f);
 
-	FILE* t = fopen(tmp2, "w");
-	if (!t)
-		return false;
-
-	bool success = DisFile(tmp1, t);
-	fclose(t);
-
-	File::ReadFileToString(true, tmp2, text);
-	return success;
+	// Run the two passes.
+	return DisFile(tmp1, 1, text) && DisFile(tmp1, 2, text);
 }
 
 char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char *strbuf)
@@ -101,31 +94,24 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 		if (j > 0)
 			buf += sprintf(buf, ", ");
 
-		u32 val;
-		if (opc.params[j].loc >= 1)
-			val = op2;
-		else
-			val = op1;
-
+		u32 val = (opc.params[j].loc >= 1) ? val = op2 : val = op1;
 		val &= opc.params[j].mask;
-
 		if (opc.params[j].lshift < 0)
 			val = val << (-opc.params[j].lshift);
 		else
 			val = val >> opc.params[j].lshift;
 
 		u32 type = opc.params[j].type;
-
 		if ((type & 0xff) == 0x10)
 			type &= 0xff00;
 
 		if (type & P_REG)
 		{
+			// Check for _D parameter - if so flip.
 			if (type == P_ACC_D)  // Used to be P_ACCM_D TODO verify
 				val = (~val & 0x1) | ((type & P_REGS_MASK) >> 8);
 			else
 				val |= (type & P_REGS_MASK) >> 8;
-
 			type &= ~P_REGS_MASK;
 		}
 
@@ -146,8 +132,12 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 			break;
 
 		case P_VAL:
+		case P_ADDR_I:
+		case P_ADDR_D:
 			if (settings_.decode_names)
+			{
 				sprintf(buf, "%s", pdname(val));
+			}
 			else
 				sprintf(buf, "0x%04x", val);
 			break;
@@ -156,17 +146,19 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 			if (opc.params[j].size != 2)
 			{
 				if (opc.params[j].mask == 0x003f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);
+					sprintf(buf, "#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);  // 6-bit sign extension
 				else
 					sprintf(buf, "#0x%02x", val);
 			}
 			else
+			{
 				sprintf(buf, "#0x%04x", val);
+			}
 			break;
 
 		case P_MEM:
 			if (opc.params[j].size != 2)
-				val = (u16)(s8)val;
+				val = (u16)(s16)(s8)val;
 
 			if (settings_.decode_names)
 				sprintf(buf, "@%s", pdname(val));
@@ -185,12 +177,22 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 	return strbuf;
 }
 
-void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
+static void MakeLowerCase(char *ptr)
 {
-	u32 op2;
+	int i = 0;
+	while (ptr[i])
+	{
+		ptr[i] = tolower(ptr[i]);
+		i++;
+	}
+}
+
+void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string *dest)
+{
 	char buffer[256];
 	char *buf = buffer;
-	// Start with a space.
+
+	// Start with 8 spaces, if there's no label.
 	buf[0] = ' ';
 	buf[1] = '\0';
 	buf++;
@@ -206,6 +208,7 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
 
 	const DSPOPCTemplate *opc = NULL;
 	const DSPOPCTemplate *opc_ext = NULL;
+
 	// find opcode
 	for (int j = 0; j < opcodes_size; j++)
 	{
@@ -222,13 +225,12 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
 			break;
 		}
 	}
-
 	const DSPOPCTemplate fake_op = {"CW",		0x0000, 0x0000, nop, nop, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, NULL, NULL,};
 	if (!opc)
 		opc = &fake_op;
 
 	bool extended;
-	if (opc->size & P_EXT && op1 & 0x00ff)
+	if ((opc->size & P_EXT) && (op1 & 0x00ff))
 		extended = true;
 	else
 		extended = false;
@@ -250,52 +252,52 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
 	// printing
 
 	if (settings_.show_pc)
-		sprintf(buf, "%04x ", *pc);
+		buf += sprintf(buf, "%04x ", *pc);
 
-	buf += strlen(buf);
+	u32 op2;
 
+	// Size 2 - the op has a large immediate.
 	if ((opc->size & ~P_EXT) == 2)
 	{
 		op2 = binbuf[*pc + 1];
 		if (settings_.show_hex)
-			sprintf(buf, "%04x %04x ", op1, op2);
+			buf += sprintf(buf, "%04x %04x ", op1, op2);
 	}
 	else
 	{
 		op2 = 0;
-
 		if (settings_.show_hex)
-			sprintf(buf, "%04x      ", op1);
+			buf += sprintf(buf, "%04x      ", op1);
 	}
 
-	buf += strlen(buf);
-
-	char tmpbuf[20];
-
+	char opname[20];
+	strcpy(opname, opc->name);
+	if (settings_.lower_case_ops)
+		MakeLowerCase(opname);
+	char ext_buf[20];
 	if (extended)
-		sprintf(tmpbuf, "%s%c%s", opc->name, settings_.ext_separator, opc_ext->name);
+		sprintf(ext_buf, "%s%c%s", opname, settings_.ext_separator, opc_ext->name);
 	else
-		sprintf(tmpbuf, "%s", opc->name);
+		sprintf(ext_buf, "%s", opname);
+	if (settings_.lower_case_ops)
+		MakeLowerCase(ext_buf);
 
 	if (settings_.print_tabs)
-		sprintf(buf, "%s\t", tmpbuf);
+		buf += sprintf(buf, "%s\t", ext_buf);
 	else
-		sprintf(buf, "%-12s", tmpbuf);
-
-	buf += strlen(buf);
+		buf += sprintf(buf, "%-12s", ext_buf);
 
 	if (opc->param_count > 0)
 		DisParams(*opc, op1, op2, buf);
 
 	buf += strlen(buf);
 
+	// Handle opcode extension.
 	if (extended)
 	{
 		if (opc->param_count > 0)
 			buf += sprintf(buf, " ");
-
 		buf += sprintf(buf, ": ");
-
 		if (opc_ext->param_count > 0)
 			DisParams(*opc_ext, op1, op2, buf);
 
@@ -314,40 +316,33 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, u16 *pc, std::string *dest)
 	else
 		*pc += opc->size & ~P_EXT;
 
-	dest->append(buffer);
+	if (pass == 2)
+		dest->append(buffer);
 }
 
-bool DSPDisassembler::DisFile(const char* name, FILE* output)
+bool DSPDisassembler::DisFile(const char* name, int pass, std::string *output)
 {
-	FILE* in;
-	u32 size;
-
-	in = fopen(name, "rb");
-	if (in == NULL) {
+	FILE* in = fopen(name, "rb");
+	if (in == NULL)
+	{
 		printf("gd_dis_file: No input\n");
 		return false;
 	}
 
 	fseek(in, 0, SEEK_END);
-	size = (int)ftell(in) & ~1;
+	int size = (int)ftell(in) & ~1;
 	fseek(in, 0, SEEK_SET);
-
 	u16 *binbuf = new u16[size / 2];
 	fread(binbuf, 1, size, in);
+	fclose(in);
 
+	// Actually do the disassembly.
 	for (u16 pc = 0; pc < (size / 2);)
 	{
-		std::string str;
-		DisOpcode(binbuf, &pc, &str);
-		fprintf(output, "%s\n", str.c_str());
+		DisOpcode(binbuf, pass, &pc, output);
+		if (pass == 2)
+			output->append("\n");
 	}
-
-	fclose(in);
 	delete [] binbuf;
 	return true;
-}
-
-const char *gd_get_reg_name(u16 reg)
-{
-	return regnames[reg].name;
 }

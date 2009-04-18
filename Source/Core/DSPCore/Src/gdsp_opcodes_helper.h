@@ -123,7 +123,9 @@ inline s64 dsp_get_long_prod()
 	return val;
 }
 
-
+// For accurate emulation, this is wrong - it should take the two multiplicands
+// as input and set the two mid stages accordingly. most likely it's doing something
+// pretty simple.
 inline void dsp_set_long_prod(s64 val)
 {
 #if PROFILE

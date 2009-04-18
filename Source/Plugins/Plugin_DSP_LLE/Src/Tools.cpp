@@ -53,7 +53,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 	AssemblerSettings settings;
 	settings.show_hex = true;
 	settings.show_pc = true;
-	settings.ext_separator = '\t';
+	settings.ext_separator = '\'';
 	settings.decode_names = true;
 	settings.decode_registers = true;
 

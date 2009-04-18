@@ -71,7 +71,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		if (code1[i] == code2[i])
 			count_equal++;
 		else
-			printf("!! %i : %04x vs %04x\n", i, code1[i], code2[i]);
+			printf("!! %04x : %04x vs %04x\n", i, code1[i], code2[i]);
 	}
 	printf("Equal instruction words: %i / %i\n", count_equal, min_size);
 	return code1.size() == code2.size() && code1.size() == count_equal;
@@ -86,11 +86,11 @@ void GenRandomCode(int size, std::vector<u16> *code)
 	}
 }
 
-void CodeToHeader(std::vector<u16> *code, const char *name, std::string *header)
+void CodeToHeader(const std::vector<u16> &code, const char *name, std::string *header)
 {
 	char buffer[1024];
 	header->clear();
-	header->reserve(code->size() * 4);
+	header->reserve(code.size() * 4);
 	header->append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const __declspec(align:64) unsigned short %s = {\n");
 	header->append(buffer);
@@ -98,7 +98,7 @@ void CodeToHeader(std::vector<u16> *code, const char *name, std::string *header)
 	sprintf(buffer, "const unsigned short %s __attribute__(aligned:64) = {\n");
 	header->append(buffer);
 	header->append("#endif\n\n    ");
-	for (int i = 0; i < code->size(); i++) 
+	for (int i = 0; i < code.size(); i++) 
 	{
 		if (((i + 1) & 15) == 0)
 			header->append("\n    ");

@@ -25,7 +25,7 @@ wxString CRegTable::GetValue(int row, int col)
 	{
 		switch (col)
 		{
-		case 0: return wxString::FromAscii(gd_get_reg_name(row));
+		case 0: return wxString::FromAscii(pdregname(row));
 		case 1: return wxString::Format(wxT("0x%04x"), g_dsp.r[row]);
 		default: return wxString::FromAscii("");
 		}

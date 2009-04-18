@@ -19,6 +19,8 @@
 #include "FileUtil.h"
 #include "DSPCodeUtil.h"
 
+#include "dsp_test.h"
+
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
 bool DSPHost_OnThread() { return false; }
@@ -41,7 +43,11 @@ bool RoundTrip(const std::vector<u16> &code1)
 		printf("RoundTrip: Assembly failed.\n");
 		return false;
 	}
-	Compare(code1, code2);	
+	if (!Compare(code1, code2))
+	{
+		Disassemble(code1, true, &text);
+		printf("%s", text.c_str());
+	}
 	return true;
 }
 
@@ -64,8 +70,8 @@ bool SuperTrip(const char *asm_code)
 	}
 	else
 	{
-		//printf("Disass:\n");
-		//printf("%s", text.c_str());
+		printf("Disass:\n");
+		printf("%s", text.c_str());
 	}
 	if (!Assemble(text.c_str(), &code2))
 	{
@@ -119,8 +125,47 @@ void RunAsmTests()
 		//"   ADDAXL'MV   $ACC1, $AX1.L : $AX1.H, $AC1.M\n");
 	// Let's get brutal. We generate random code bytes and make sure that they can
 	// be roundtripped. We don't expect it to always succeed but it'll be sure to generate
-	// interesting test cases.
 
+	// interesting test cases.
+	/*
+	std::vector<u16> hermes;
+	if (!LoadBinary("testdata/hermes.bin", &hermes))
+		PanicAlert("Failed to load hermes rom");
+	RoundTrip(hermes);
+	*/
+	/*
+	std::vector<u16> code;
+	std::string text_orig;
+	File::ReadFileToString(false, "testdata/dsp_test.S", &text_orig);
+	if (!Assemble(text_orig.c_str(), &code))
+	{
+		printf("SuperTrip: First assembly failed\n");
+		return;
+	}*/
+
+	/*
+	code.clear();
+	for (int i = 0; i < sizeof(dsp_test)/4; i++)
+	{
+		code.push_back(dsp_test[i] >> 16);
+		code.push_back(dsp_test[i] & 0xFFFF);
+	}
+
+	SaveBinary(code, "dsp_test.bin");
+	RoundTrip(code);*/
+	//if (Compare(code, hermes))
+	//	printf("Successs\n");
+/*
+	{
+		std::vector<u16> code;
+		std::string text;
+		LoadBinary("testdata/dsp_test.bin", &code);
+		Disassemble(code, true, &text);
+		Assemble(text.c_str(), &code);
+		Disassemble(code, true, &text);
+		printf("%s", text.c_str());
+	}*/
+	/*
 	puts("Insane Random Code Test\n");
 	std::vector<u16> rand_code;
 	GenRandomCode(30, &rand_code);
@@ -129,24 +174,102 @@ void RunAsmTests()
 	printf("%s", rand_code_text.c_str());
 	RoundTrip(rand_code);
 
-	std::string dsp_test;
 
 	if (File::ReadFileToString(true, "C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
 		SuperTrip(dsp_test.c_str());
 
 	//.File::ReadFileToString(true, "C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
 	// This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
-
+*/
+	
+	std::string dsp_test;
+	if (File::ReadFileToString(true, "Testdata/dsp_test.s", &dsp_test))
+		fail = fail || !SuperTrip(dsp_test.c_str());
 	if (!fail)
 		printf("All passed!\n");
 }
+
+
+// Usage:
+// Run internal tests:
+//   dsptool test
+// Disassemble a file:
+//   dsptool -d -o asdf.txt asdf.bin
+// Disassemble a file, output to standard output:
+//   dsptool -d asdf.bin
+// Assemble a file:
+//   dsptool -o asdf.bin asdf.txt
+// Assemble a file, output header:
+//   dsptool -h asdf.h asdf.txt
 
 // So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char *argv[])
 {
 	if (argc == 2 && !strcmp(argv[1], "test"))
 	{
-		RunAsmTests();		
+		RunAsmTests();
+		return 0;
+	}
+
+	std::string input_name;
+	std::string output_header_name;
+	std::string output_name;
+
+	bool disassemble = false;
+	for (int i = 1; i < argc; i++)
+	{
+		if (!strcmp(argv[i], "-d"))
+			disassemble = true;
+		else if (!strcmp(argv[i], "-o"))
+			output_name = argv[++i];
+		else if (!strcmp(argv[i], "-h"))
+			output_header_name = argv[++i];
+		else 
+		{
+			if (!input_name.empty())
+			{
+				printf("Can only take one input file.\n");
+				return 1;
+			}
+			input_name = argv[i];
+		}
+	}
+
+	if (disassemble)
+	{
+		if (input_name.empty())
+		{
+			printf("Must specify input.\n");
+			return 1;
+		}
+		std::string binary_code;
+		std::vector<u16> code;
+		File::ReadFileToString(false, input_name.c_str(), &binary_code);
+		BinaryStringBEToCode(binary_code, &code);
+		std::string text;
+		Disassemble(code, true, &text);
+		File::WriteStringToFile(true, text, output_name.c_str());
+	}
+	else 
+	{
+		std::string source;
+		if (File::ReadFileToString(true, input_name.c_str(), &source))
+		{
+			std::vector<u16> code;
+			Assemble(source.c_str(), &code);
+			if (!output_name.empty())
+			{
+				std::string binary_code;
+				CodeToBinaryStringBE(code, &binary_code);
+				File::WriteStringToFile(false, binary_code, output_name.c_str());
+			}
+			if (!output_header_name.empty())
+			{
+				std::string header;
+				CodeToHeader(code, output_header_name.c_str(), &header);
+				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
+			}
+		}
 	}
 	return 0;
 }

@@ -66,7 +66,6 @@ void nop(const UDSPInstruction& opc)
 // All AX games: a100
 // Zelda Four Swords: 02ca
 
-
 // TODO: Fill up the tables with the corresponding instructions
 const DSPOPCTemplate opcodes[] =
 {
@@ -90,17 +89,17 @@ const DSPOPCTemplate opcodes[] =
 	{"RET",		0x02df, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, NULL, NULL},
 	{"RTI",	    0x02ff, 0xffff, DSPInterpreter::rti, nop, 1, 0, {}, NULL, NULL},
 
-	{"CALLNS",	0x02b0, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLS",	0x02b1, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLG",	0x02b2, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLLE",	0x02b3, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLNE",  0x02b4, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLZ",	0x02b5, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLL",	0x02b6, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLGE",	0x02b7, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLLNZ",	0x02bc, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALLLZ",	0x02bd, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"CALL",    0x02bf, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLNS",	0x02b0, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLS",	0x02b1, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLG",	0x02b2, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLLE",	0x02b3, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLNE",  0x02b4, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLZ",	0x02b5, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLL",	0x02b6, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLGE",	0x02b7, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLLNZ",	0x02bc, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALLLZ",	0x02bd, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"CALL",    0x02bf, 0xffff, DSPInterpreter::call, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
 
 	{"IFNS",	0x0270, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IFS",     0x0271, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
@@ -114,17 +113,17 @@ const DSPOPCTemplate opcodes[] =
 	{"IFLZ",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // Hermes doesn't list this
 
-	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JS",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JG",	    0x0292, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JLE",	    0x0293, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JNZ",	    0x0294, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JZ",	    0x0295, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JL",	    0x0296, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JGE",	    0x0297, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
-	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JS",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JG",	    0x0292, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JLE",	    0x0293, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JNZ",	    0x0294, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JZ",	    0x0295, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JL",	    0x0296, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JGE",	    0x0297, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
 
 
 	{"JRNS",	0x1700, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, NULL, NULL},
@@ -205,11 +204,11 @@ const DSPOPCTemplate opcodes[] =
 
 	// LOOPS
 	{"LOOP",    0x0040, 0xffe0, DSPInterpreter::loop,   nop, 1, 1, {{P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},	
-	{"BLOOP",   0x0060, 0xffe0, DSPInterpreter::bloop,  nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"BLOOP",   0x0060, 0xffe0, DSPInterpreter::bloop,  nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"LOOPI",   0x1000, 0xff00, DSPInterpreter::loopi,  nop, 1, 1, {{P_IMM, 1, 0, 0, 0x00ff}}, NULL, NULL},
-	{"BLOOPI",  0x1100, 0xff00, DSPInterpreter::bloopi, nop, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff}, {P_VAL, 2, 1, 0, 0xffff}}, NULL, NULL},
+	{"BLOOPI",  0x1100, 0xff00, DSPInterpreter::bloopi, nop, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff}, {P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
 
-	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 2, 2, {{P_REG, 1, 0, 0, 0x00c0}, {P_REG04, 2, 1, 0, 0x0003}}, NULL, NULL},
+	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, NULL, NULL},
 	
 
 	// opcodes that can be extended
@@ -292,12 +291,12 @@ const DSPOPCTemplate opcodes[] =
 
 	{"ADDR",    0x4000, 0xf8ff, DSPInterpreter::addr,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ADDAX",   0x4800, 0xfcff, DSPInterpreter::addax,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"ADD",		0x4c00, 0xfeff, DSPInterpreter::add,    nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"ADD",		0x4c00, 0xfeff, DSPInterpreter::add,    nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ADDAXL",  0x7000, 0xfcff, DSPInterpreter::addaxl, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"SUBR",    0x5000, 0xf8ff, DSPInterpreter::subr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SUBAX",   0x5800, 0xfcff, DSPInterpreter::subax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"SUB",		0x5c00, 0xfeff, DSPInterpreter::sub,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"SUB",		0x5c00, 0xfeff, DSPInterpreter::sub,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SUBP",    0x5e00, 0xfeff, DSPInterpreter::subp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"MADD",    0xf200, 0xfeff, DSPInterpreter::madd,  nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

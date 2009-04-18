@@ -523,6 +523,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\LabelMap.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\LabelMap.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>

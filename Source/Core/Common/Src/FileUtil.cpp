@@ -579,8 +579,8 @@ std::string GetSysDirectory()
 	sysDir += DIR_SEP;
 	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
 	return sysDir;
-	
 }
+
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
 const char *GetUserDirectory()

@@ -31,6 +31,7 @@
 #include "Common.h"
 #include "disassemble.h"
 #include "DSPTables.h"
+#include "LabelMap.h"
 
 enum err_t
 {
@@ -59,6 +60,7 @@ enum err_t
 	ERR_OUT_RANGE_NUMBER
 };
 
+
 // Unless you want labels to carry over between files, you probably
 // want to create a new DSPAssembler for every file you assemble.
 class DSPAssembler
@@ -77,13 +79,6 @@ public:
 	err_t GetError() const { return last_error; }
 
 private:
-	struct label_t
-	{
-		label_t(const char *lbl, s32 address) : label(lbl), addr(address) {}
-		std::string label;
-		s32	addr;
-	};
-
 	struct param_t
 	{
 		u32			val;
@@ -99,30 +94,33 @@ private:
 		SEGMENT_MAX
 	};
 
+	// Utility functions
+	s32 ParseValue(const char *str);
+	u32 ParseExpression(const char *ptr);
+
+	u32 GetParams(char *parstr, param_t *par);
+
 	void InitPass(int pass);
 	bool AssembleFile(const char *fname, int pass);
+
+	void ShowError(err_t err_code, const char *extra_info = NULL);
+	// void ShowWarning(err_t err_code, const char *extra_info = NULL);
+
+	char *FindBrackets(char *src, char *dst);
+	const opc_t *FindOpcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size);
+	bool VerifyParams(const opc_t *opc, param_t *par, int count, bool ext = false);
+	void BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf);
 
 	char *gdg_buffer;
 	int gdg_buffer_size;
 
-	void parse_error(err_t err_code, const char *extra_info = NULL);
-	void gd_ass_register_label(const char *label, u16 lval);
-	void gd_ass_clear_labels();
-	s32 strtoval(const char *str);
-	char *find_brackets(char *src, char *dst);
-	u32 parse_exp(const char *ptr);
-	u32 parse_exp_f(const char *ptr);
-	u32 get_params(char *parstr, param_t *par);
-	const opc_t *find_opcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size);
-	bool verify_params(const opc_t *opc, param_t *par, int count, bool ext = false);
-	void build_code(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf);
-
 	std::string include_dir;
-	std::vector<label_t> labels;
 	std::string cur_line;
 
 	u32 cur_addr;
 	u8  cur_pass;
+	
+	LabelMap labels;
 
 	FILE *fsrc;
 	u32	code_line;

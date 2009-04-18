@@ -22,7 +22,7 @@
 
 #include "Common.h"
 
-// The ones that end with _D are the opposite one - if the bit specify
+// The non-ADDR ones that end with _D are the opposite one - if the bit specify
 // ACC0, then ACC_D will be ACC1.
 
 // The values of these are very important.
@@ -32,10 +32,12 @@
 enum partype_t
 {
 	P_NONE		= 0x0000,
-	P_VAL		= 0x0001,
+	P_VAL       = 0x0001,
 	P_IMM		= 0x0002,
 	P_MEM		= 0x0003,
 	P_STR		= 0x0004,
+	P_ADDR_I	= 0x0005,
+	P_ADDR_D	= 0x0006,
 	P_REG		= 0x8000,
 	P_REG04     = P_REG | 0x0400, // IX
 	P_REG08		= P_REG | 0x0800, 
@@ -60,7 +62,6 @@ enum partype_t
 	// The following seem like junk:
 	//	P_REG10		= P_REG | 0x1000,
 	//	P_AX_D		= P_REG | 0x2280,
-
 };
 
 #define P_EXT   0x80
