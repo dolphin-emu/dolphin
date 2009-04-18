@@ -118,10 +118,10 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string *h
 	header->clear();
 	header->reserve(code.size() * 4);
 	header->append("#ifndef _MSCVER\n");
-	sprintf(buffer, "const unsigned short %s = {\n", name);
+	sprintf(buffer, "const unsigned short %s[0x1000] = {\n", name);
 	header->append(buffer);
 	header->append("#else\n");
-	sprintf(buffer, "const unsigned short %s __attribute__ ((aligned (64))) = {\n", name);
+	sprintf(buffer, "const unsigned short %s[0x1000] __attribute__ ((aligned (64))) = {\n", name);
 	header->append(buffer);
 	header->append("#endif\n\n    ");
 	for (int i = 0; i < code.size(); i++) 

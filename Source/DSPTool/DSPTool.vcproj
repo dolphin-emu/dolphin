@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="DSPTool"
 	ProjectGUID="{1970D175-3DE8-4738-942A-4D98D1CDBF64}"
 	RootNamespace="DSPTool"

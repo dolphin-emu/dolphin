@@ -19,7 +19,7 @@
 #include "FileUtil.h"
 #include "DSPCodeUtil.h"
 
-#include "dsp_test.h"
+//#include "dsp_test.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
