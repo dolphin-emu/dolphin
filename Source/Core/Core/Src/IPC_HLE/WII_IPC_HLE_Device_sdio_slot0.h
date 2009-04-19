@@ -37,6 +37,49 @@ public:
 
 private:
 
+	enum
+	{
+		SDIO_BASE = 0x8d070000,
+	};
+
+	enum 
+	{
+		IOCTL_WRITEHCREG	= 0x01,
+		IOCTL_READHCREG		= 0x02,
+		IOCTL_READCREG		= 0x03,
+		IOCTL_RESETCARD		= 0x04,
+		IOCTL_WRITECREG		= 0x05,
+		IOCTL_SETCLK		= 0x06,
+		IOCTL_SENDCMD		= 0x07,
+		IOCTL_SETBUSWIDTH	= 0x08,
+		IOCTL_READMCREG		= 0x09,
+		IOCTL_WRITEMCREG	= 0x0A,
+		IOCTL_GETSTATUS		= 0x0B,
+		IOCTL_GETOCR		= 0x0C,
+		IOCTL_READDATA		= 0x0D,
+		IOCTL_WRITEDATA		= 0x0E,
+	};
+
+	enum
+	{
+		CARD_INSERTED		= 1,
+		CARD_INITIALIZED	= 0x10000,
+	};
+
+	enum
+	{
+		SWITCH_FUNC			= 6,
+		SELECT_CARD			= 7, // Selects or Deselects single card
+		SEND_CID			= 10,
+		
+		SWITCH34			= 34,
+		SWITCH35			= 35,
+		SWITCH36			= 36,
+		SWITCH37			= 37,
+		SWITCH50			= 50,
+		SWITCH57			= 57,
+	};
+
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 };
 

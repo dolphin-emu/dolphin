@@ -26,7 +26,7 @@
 
 using namespace SDInterface;
 
-CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName )
+CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 
@@ -39,14 +39,14 @@ CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
-	INFO_LOG(WII_IPC_SD, "SD: Open");
+	INFO_LOG(WII_IPC_SD, "Open");
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
     return true;
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 {
-	INFO_LOG(WII_IPC_SD, "SD: Close");
+	INFO_LOG(WII_IPC_SD, "Close");
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;
 }
@@ -54,91 +54,103 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 // The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
-	//LOG(WII_IPC_FILEIO, "*************************************");
-	//LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
-	//LOG(WII_IPC_FILEIO, "*************************************");
+	ERROR_LOG(WII_IPC_SD, "*************************************");
+	ERROR_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
+	ERROR_LOG(WII_IPC_SD, "*************************************");
 
-    // DumpCommands(_CommandAddress);
+	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
-	u32 Cmd =  Memory::Read_U32(_CommandAddress + 0xC);
-	// TODO: Use Cmd for something?
+	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
-	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-
-    //LOG(WII_IPC_SD, "%s Cmd 0x%x - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
-	//	GetDeviceName().c_str(), Cmd, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    ERROR_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+		BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	
-	/* As a safety precaution we fill the out buffer with zeroes to avoid
-	   returning nonsense values */
+	// As a safety precaution we fill the out buffer with zeros to avoid
+	// returning nonsense values
 	Memory::Memset(BufferOut, 0, BufferOutSize);
 	
 	u32 ReturnValue = 0;
 	switch (Cmd) {
-	case 1: // set_hc_reg
-		ERROR_LOG(WII_IPC_SD, "SD: set_hc_reg");
-		break;
-	case 2: // get_hc_reg
-		ERROR_LOG(WII_IPC_SD, "SD: get_hc_reg");
-		break;
-
-	case 4: // reset, do nothing ?
-		ERROR_LOG(WII_IPC_SD, "SD: reset");
+	case IOCTL_WRITEHCREG:
+		// Store the 4th element of input array to the reg offset specified by the 0 element
+		Memory::Write_U32(Memory::Read_U32(BufferIn + 16), SDIO_BASE + Memory::Read_U32(BufferIn));
+		ERROR_LOG(WII_IPC_SD, "IOCTL_WRITEHCREG");
 		break;
 
-	case 6: // sd_clock
-		ERROR_LOG(WII_IPC_SD, "SD: sd_clock");
+	case IOCTL_READHCREG:
+		// Load the specified reg into the out buffer
+		Memory::Write_U32(Memory::Read_U32(SDIO_BASE + Memory::Read_U32(BufferIn)), BufferOut);
+		ERROR_LOG(WII_IPC_SD, "IOCTL_READHCREG");
 		break;
 
-	case 7: // Send cmd (Input: 24 bytes, Output: 10 bytes)
-		ERROR_LOG(WII_IPC_SD, "SD: sendcmd");
+	case IOCTL_RESETCARD:
+		// Let's do nothing for now...maybe clear register block?
+		ERROR_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
+		break;
+
+	case IOCTL_SETCLK:
+		// libogc only sets it to 1 and makes sure the return isn't negative...
+		ERROR_LOG(WII_IPC_SD, "IOCTL_SETCLK");
+		break;
+
+	case IOCTL_SENDCMD:
+		// Input: 24 bytes, Output: 10 bytes
+		ERROR_LOG(WII_IPC_SD, "IOCTL_SENDCMD");
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
 
-	case 11: // sd_get_status
-		if (IsCardInserted())
-		{
-			// TODO
-		}
-		else
-		{
-			ERROR_LOG(WII_IPC_SD, "SD: sd_get_status. Answer: SD card is not inserted", BufferOut);
-			Memory::Write_U32(2, BufferOut); // SD card is not inserted
-		}
+	case IOCTL_GETSTATUS:
+		ERROR_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is inserted and initialized");
+		Memory::Write_U32(CARD_INSERTED|CARD_INITIALIZED, BufferOut);
 		break;
+
 	default:
-		PanicAlert("Unknown SD command (0x%08x)", Cmd);
+		PanicAlert("Unknown SD IOCtl command (0x%08x)", Cmd);
 		break;
 	}
 
-	//DumpCommands(_CommandAddress);
+	ERROR_LOG(WII_IPC_SD, "InBuffer");
+	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
 
-	//LOG(WII_IPC_SD, "InBuffer");
-	//DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-
-	//LOG(WII_IPC_SD, "OutBuffer");
-	//DumpCommands(BufferOut, BufferOutSize);
+	ERROR_LOG(WII_IPC_SD, "OutBuffer");
+	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
 	return true;
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress) 
-{  
-    PanicAlert("CWII_IPC_HLE_Device_sdio_slot0::IOCtlV() unknown");
+{
 	// SD_Read uses this
 
-    DumpCommands(_CommandAddress);
+	ERROR_LOG(WII_IPC_SD, "*************************************");
+	ERROR_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
+	ERROR_LOG(WII_IPC_SD, "*************************************");
+
+	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
+
+	switch (Cmd) {
+	case IOCTL_SENDCMD:
+		ERROR_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
+		break;
+
+	default:
+		PanicAlert("unknown SD IOCtlV command 0x%08x", Cmd);
+		break;
+	}
 
     return true;
 }
 
-u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
+u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
+												   u32 _BufferOut, u32 _BufferOutSize)
 {
-	/* The game will send us a SendCMD with this information. To be able to read and write
-	   to a file we need to prepare a 10 byte output buffer as response. */
+	// The game will send us a SendCMD with this information. To be able to read and write
+	// to a file we need to prepare a 10 byte output buffer as response.
+
 	struct Request {
 		u32 command;
 		u32 type;
@@ -148,6 +160,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		u32 bsize;
 		u32 addr;
 	} req;
+
     req.command = Memory::Read_U32(_BufferIn + 0);
     req.type    = Memory::Read_U32(_BufferIn + 4);
     req.resp    = Memory::Read_U32(_BufferIn + 8);
@@ -155,8 +168,25 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     req.blocks  = Memory::Read_U32(_BufferIn + 16);
     req.bsize   = Memory::Read_U32(_BufferIn + 20);
     req.addr    = Memory::Read_U32(_BufferIn + 24);
-	//switch (req.command)
+
+	switch (req.command)
 	{
+	case SWITCH_FUNC:
+		//return R1
+		break;
+
+	case SELECT_CARD:
+		//return R1b
+		break;
+
+	case SEND_CID:
+		//return R2
+		break;
+
+	default:
+		ERROR_LOG(WII_IPC_SD, "Unknown SD command 0x%08x", req.command);
+		break;
 	}
+
     return 0;
 }
