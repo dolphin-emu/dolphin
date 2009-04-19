@@ -141,7 +141,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
 	switch (Cmd) {
-	case IOCTL_SENDCMD:
+	case IOCTLV_SENDCMD:
 		ERROR_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
 		break;
 
@@ -179,9 +179,6 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	switch (req.command)
 	{
-	case APP_CMD1:
-		break;
-
 	case SELECT_CARD:
 		//return R1b
 		break;
@@ -191,7 +188,10 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 
 	case APP_CMD_NEXT:
-		//indicates that next cmd doesn't adhere to standards
+		// Next cmd is going to be ACMD_*
+		break;
+
+	case ACMD_SETBUSWIDTH:
 		break;
 
 	default:

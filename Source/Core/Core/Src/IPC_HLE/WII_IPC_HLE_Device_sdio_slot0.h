@@ -42,6 +42,7 @@ private:
 		SDIO_BASE = 0x8d070000,
 	};
 
+	// IOCtl
 	enum 
 	{
 		IOCTL_WRITEHCREG	= 0x01,
@@ -60,18 +61,37 @@ private:
 		IOCTL_WRITEDATA		= 0x0E,
 	};
 
+	// IOCtlV
+	enum
+	{
+		IOCTLV_SENDCMD		= 0x07,
+	};
+
+	// Status
 	enum
 	{
 		CARD_INSERTED		= 1,
 		CARD_INITIALIZED	= 0x10000,
 	};
 
+	// Commands
 	enum
 	{
-		APP_CMD1			= 0x06,
+		GO_IDLE_STATE		= 0x00,
+		ALL_SEND_CID		= 0x02,
+		SEND_RELATIVE_ADDR	= 0x03,
 		SELECT_CARD			= 0x07,
+		SEND_IF_COND		= 0x08,
+		SEND_CSD			= 0x09,
+		SEND_STATUS			= 0x0D,
 		SET_BLOCKLEN		= 0x10,
+		READ_MULTIPLE_BLOCK	= 0x12,
+		WRITE_MULTIPLE_BLOCK= 0x19,
 		APP_CMD_NEXT		= 0x37,
+
+		ACMD_SETBUSWIDTH	= 0x06,
+		ACMD_SENDOPCOND		= 0x29,
+		ACMD_SENDSCR		= 0x33,
 	};
 
 	u32 m_status;
