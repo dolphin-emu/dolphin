@@ -179,16 +179,19 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	switch (req.command)
 	{
-	case SWITCH_FUNC:
-		//return R1
+	case APP_CMD1:
 		break;
 
 	case SELECT_CARD:
 		//return R1b
 		break;
 
-	case SEND_CID:
-		//return R2
+	case SET_BLOCKLEN:
+		//return R1
+		break;
+
+	case APP_CMD_NEXT:
+		//indicates that next cmd doesn't adhere to standards
 		break;
 
 	default:

@@ -68,16 +68,10 @@ private:
 
 	enum
 	{
-		SWITCH_FUNC			= 6,
-		SELECT_CARD			= 7, // Selects or Deselects single card
-		SEND_CID			= 10,
-		
-		SWITCH34			= 34,
-		SWITCH35			= 35,
-		SWITCH36			= 36,
-		SWITCH37			= 37,
-		SWITCH50			= 50,
-		SWITCH57			= 57,
+		APP_CMD1			= 0x06,
+		SELECT_CARD			= 0x07,
+		SET_BLOCKLEN		= 0x10,
+		APP_CMD_NEXT		= 0x37,
 	};
 
 	u32 m_status;
