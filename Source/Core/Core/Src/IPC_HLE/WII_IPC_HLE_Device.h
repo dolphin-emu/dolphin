@@ -136,7 +136,8 @@ protected:
 	   of 4 byte commands. */
 	// ----------------
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
-					  LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE, LogTypes::LOG_LEVELS Verbosity =LogTypes::LDEBUG)
+		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
+		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s", 
 					GetDeviceName().c_str());
@@ -148,9 +149,11 @@ protected:
     }
 
 	
-    void DumpAsync( u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer )
+    void DumpAsync(u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer
+		,LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
+		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
-		DEBUG_LOG(WII_IPC_HLE, "======= DumpAsync ======");
+		GENERIC_LOG(LogType, Verbosity, "======= DumpAsync ======");
         // write return value
         u32 BufferOffset = BufferVector;
         Memory::Write_U32(1, _CommandAddress + 0x4);
@@ -160,7 +163,7 @@ protected:
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
             u32 InBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            INFO_LOG(WII_IPC_HLE, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
 
             std::string Temp;
             for (u32 j = 0; j < InBufferSize; j++)
@@ -170,7 +173,7 @@ protected:
                 Temp.append(Buffer);
             }
 
-            DEBUG_LOG(WII_IPC_HLE, "    Buffer: %s", Temp.c_str());
+            GENERIC_LOG(LogType, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
         }
 
 
@@ -181,11 +184,11 @@ protected:
 
             Memory::Write_U32(1, _CommandAddress + 0x4);
 
-            INFO_LOG(WII_IPC_HLE,"%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
-            INFO_LOG(WII_IPC_HLE, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
 
 			#if defined(MAX_LOGLEVEL) && MAX_LOGLEVEL >= INFO_LEVEL
-			DumpCommands(OutBuffer, OutBufferSize, LogTypes::WII_IPC_HLE, LogTypes::LINFO);
+			DumpCommands(OutBuffer, OutBufferSize, LogType, Verbosity);
 			#endif
        }
     }

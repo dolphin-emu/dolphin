@@ -47,18 +47,10 @@ private:
 	{
 		IOCTL_WRITEHCREG	= 0x01,
 		IOCTL_READHCREG		= 0x02,
-		IOCTL_READCREG		= 0x03,
 		IOCTL_RESETCARD		= 0x04,
-		IOCTL_WRITECREG		= 0x05,
 		IOCTL_SETCLK		= 0x06,
 		IOCTL_SENDCMD		= 0x07,
-		IOCTL_SETBUSWIDTH	= 0x08,
-		IOCTL_READMCREG		= 0x09,
-		IOCTL_WRITEMCREG	= 0x0A,
 		IOCTL_GETSTATUS		= 0x0B,
-		IOCTL_GETOCR		= 0x0C,
-		IOCTL_READDATA		= 0x0D,
-		IOCTL_WRITEDATA		= 0x0E,
 	};
 
 	// IOCtlV
@@ -94,7 +86,9 @@ private:
 		ACMD_SENDSCR		= 0x33,
 	};
 
-	u32 m_status;
+	u32 m_Status;
+	u32 m_BlockLength;
+	u32 m_BusWidth;
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 };

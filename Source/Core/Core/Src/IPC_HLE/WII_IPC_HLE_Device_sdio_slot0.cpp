@@ -29,7 +29,9 @@ using namespace SDInterface;
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	m_status = CARD_INSERTED;
+	m_Status = CARD_INSERTED;
+	m_BlockLength = 0;
+	m_BusWidth = 0;
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
@@ -54,9 +56,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 // The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
-	ERROR_LOG(WII_IPC_SD, "*************************************");
-	ERROR_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
-	ERROR_LOG(WII_IPC_SD, "*************************************");
+	INFO_LOG(WII_IPC_SD, "*************************************");
+	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
+	INFO_LOG(WII_IPC_SD, "*************************************");
 
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
@@ -65,7 +67,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
-    ERROR_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+    INFO_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	
 	// As a safety precaution we fill the out buffer with zeros to avoid
@@ -77,54 +79,54 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	case IOCTL_WRITEHCREG:
 		// Store the 4th element of input array to the reg offset specified by the 0 element
 		Memory::Write_U32(Memory::Read_U32(BufferIn + 16), SDIO_BASE + Memory::Read_U32(BufferIn));
-		ERROR_LOG(WII_IPC_SD, "IOCTL_WRITEHCREG");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCREG");
 		break;
 
 	case IOCTL_READHCREG:
 		// Load the specified reg into the out buffer
 		Memory::Write_U32(Memory::Read_U32(SDIO_BASE + Memory::Read_U32(BufferIn)), BufferOut);
-		ERROR_LOG(WII_IPC_SD, "IOCTL_READHCREG");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCREG");
 		break;
 
 	case IOCTL_RESETCARD:
-		m_status |= CARD_INITIALIZED;
-		ERROR_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
+		m_Status |= CARD_INITIALIZED;
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
 		break;
 
 	case IOCTL_SETCLK:
 		{
 		// libogc only sets it to 1 and makes sure the return isn't negative...
-		// 0 = 25MHz, 1 = 50MHz?, probably shouldn't matter in any case
+		// one half of the sdclk divisor: a power of two or zero.
 		u32 clock = Memory::Read_U32(BufferIn);
 		if (clock != 1)
-			ERROR_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
-		ERROR_LOG(WII_IPC_SD, "IOCTL_SETCLK");
+			INFO_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_SETCLK");
 		}
 		break;
 
 	case IOCTL_SENDCMD:
 		// Input: 24 bytes, Output: 10 bytes
-		ERROR_LOG(WII_IPC_SD, "IOCTL_SENDCMD");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_SENDCMD");
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
 
 	case IOCTL_GETSTATUS:
-		ERROR_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
-			(m_status & CARD_INSERTED) ? "inserted" : "",
-			(m_status & CARD_INITIALIZED) ? " and initialized" : "");
-		Memory::Write_U32(m_status, BufferOut);
+		INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
+			(m_Status & CARD_INSERTED) ? "inserted" : "",
+			(m_Status & CARD_INITIALIZED) ? " and initialized" : "");
+		Memory::Write_U32(m_Status, BufferOut);
 		break;
 
 	default:
-		PanicAlert("Unknown SD IOCtl command (0x%08x)", Cmd);
+		ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtl command (0x%08x)", Cmd);
 		break;
 	}
 
-	ERROR_LOG(WII_IPC_SD, "InBuffer");
+	INFO_LOG(WII_IPC_SD, "InBuffer");
 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-
-	ERROR_LOG(WII_IPC_SD, "OutBuffer");
+	INFO_LOG(WII_IPC_SD, "OutBuffer");
 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
 	return true;
@@ -134,21 +136,36 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 {
 	// PPC sending commands
 
-	ERROR_LOG(WII_IPC_SD, "*************************************");
-	ERROR_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
-	ERROR_LOG(WII_IPC_SD, "*************************************");
+	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
-	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
+	// Prepare the out buffer(s) with zeros as a safety precaution
+	// to avoid returning bad values
+	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	{
+		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
+			CommandBuffer.PayloadBuffer[i].m_Size);
+	}
 
-	switch (Cmd) {
+	INFO_LOG(WII_IPC_SD, "*************************************");
+	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
+	INFO_LOG(WII_IPC_SD, "*************************************");
+
+	u32 ReturnValue = 0;
+	switch(CommandBuffer.Parameter) {	
 	case IOCTLV_SENDCMD:
-		ERROR_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
+		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
+		ReturnValue = ExecuteCommand(CommandBuffer.InBuffer[0].m_Address,
+			0, 0, 0);
 		break;
 
 	default:
-		PanicAlert("unknown SD IOCtlV command 0x%08x", Cmd);
+		ERROR_LOG(WII_IPC_SD, "unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
 		break;
 	}
+
+	//DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+
+	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
 }
@@ -167,6 +184,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		u32 blocks;
 		u32 bsize;
 		u32 addr;
+		u32 isDMA;
+		u32 pad0;
 	} req;
 
     req.command = Memory::Read_U32(_BufferIn + 0);
@@ -176,15 +195,16 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     req.blocks  = Memory::Read_U32(_BufferIn + 16);
     req.bsize   = Memory::Read_U32(_BufferIn + 20);
     req.addr    = Memory::Read_U32(_BufferIn + 24);
+	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
+	req.pad0	= Memory::Read_U32(_BufferIn + 32);
 
 	switch (req.command)
 	{
 	case SELECT_CARD:
-		//return R1b
 		break;
 
 	case SET_BLOCKLEN:
-		//return R1
+		m_BlockLength = req.arg;
 		break;
 
 	case APP_CMD_NEXT:
@@ -192,6 +212,15 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 
 	case ACMD_SETBUSWIDTH:
+		// 0 = 1bit, 2 = 4bit
+		m_BusWidth = (req.arg & 1);
+		break;
+
+	case READ_MULTIPLE_BLOCK:
+		// Data address is in byte units in a Standard Capacity SD Memory Card
+		// and in block (512 Byte) units in a High Capacity SD Memory Card.
+		DEBUG_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i!",
+			req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize);
 		break;
 
 	default:
