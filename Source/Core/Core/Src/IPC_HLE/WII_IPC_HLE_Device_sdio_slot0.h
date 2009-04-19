@@ -80,6 +80,8 @@ private:
 		SWITCH57			= 57,
 	};
 
+	u32 m_status;
+
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 };
 

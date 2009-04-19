@@ -29,7 +29,7 @@ using namespace SDInterface;
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-
+	m_status = CARD_INSERTED;
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
@@ -87,13 +87,19 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_RESETCARD:
-		// Let's do nothing for now...maybe clear register block?
+		m_status |= CARD_INITIALIZED;
 		ERROR_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
 		break;
 
 	case IOCTL_SETCLK:
+		{
 		// libogc only sets it to 1 and makes sure the return isn't negative...
+		// 0 = 25MHz, 1 = 50MHz?, probably shouldn't matter in any case
+		u32 clock = Memory::Read_U32(BufferIn);
+		if (clock != 1)
+			ERROR_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
 		ERROR_LOG(WII_IPC_SD, "IOCTL_SETCLK");
+		}
 		break;
 
 	case IOCTL_SENDCMD:
@@ -103,8 +109,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_GETSTATUS:
-		ERROR_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is inserted and initialized");
-		Memory::Write_U32(CARD_INSERTED|CARD_INITIALIZED, BufferOut);
+		ERROR_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
+			(m_status & CARD_INSERTED) ? "inserted" : "",
+			(m_status & CARD_INITIALIZED) ? " and initialized" : "");
+		Memory::Write_U32(m_status, BufferOut);
 		break;
 
 	default:
@@ -124,7 +132,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress) 
 {
-	// SD_Read uses this
+	// PPC sending commands
 
 	ERROR_LOG(WII_IPC_SD, "*************************************");
 	ERROR_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
