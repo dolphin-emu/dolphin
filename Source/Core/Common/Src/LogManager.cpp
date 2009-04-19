@@ -57,6 +57,7 @@ LogManager::LogManager()\
 	m_Log[LogTypes::WII_IPC_ES]			= new LogContainer("WII_IPC_ES",	"WII IPC ES");
 	m_Log[LogTypes::WII_IPC_FILEIO]		= new LogContainer("WII_IPC_FILEIO","WII IPC FILEIO");
 	m_Log[LogTypes::WII_IPC_SD]			= new LogContainer("WII_IPC_SD",	"WII IPC SD");
+	m_Log[LogTypes::WII_IPC_STM]		= new LogContainer("WII_IPC_STM",	"WII IPC STM");
 	m_Log[LogTypes::WII_IPC_NET]		= new LogContainer("WII_IPC_NET",	"WII IPC NET");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]       = new LogContainer("ActionReplay",	"ActionReplay");
