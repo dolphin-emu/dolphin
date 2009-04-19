@@ -768,6 +768,7 @@
 		}
 	}
 
+	// FIXME: As it currently is, this breaks controls in SA:DX, maybe more
 	void Jit64::negx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
