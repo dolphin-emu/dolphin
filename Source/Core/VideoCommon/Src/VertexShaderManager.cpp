@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "Profiler.h"
 
 #include <cmath>
@@ -45,6 +46,11 @@ static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
 static int nLightsChanged[2]; // min,max
 
+static Matrix33 s_viewRotationMatrix;
+static Matrix33 s_viewInvRotationMatrix;
+static float s_fViewTranslationVector[3];
+static float s_fViewRotation[2];
+
 void UpdateViewport();
 
 void VertexShaderManager::Init()
@@ -59,6 +65,8 @@ void VertexShaderManager::Init()
 
     memset(&xfregs, 0, sizeof(xfregs));
     memset(xfmem, 0, sizeof(xfmem));
+
+    ResetView();    
 }
 
 void VertexShaderManager::Shutdown()
@@ -69,7 +77,7 @@ void VertexShaderManager::Shutdown()
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderManager::SetConstants(bool proj_hax_1,bool SMG_hack)
+void VertexShaderManager::SetConstants(bool proj_hax_1,bool SMG_hack, bool freeLook)
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
@@ -293,10 +301,29 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool SMG_hack)
         }
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
-		SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
-        SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
-        SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
-        SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
+
+        if (freeLook) {
+            Matrix44 mtxA;
+            Matrix44 mtxB;
+            Matrix44 viewMtx;
+
+            Matrix44::Translate(mtxA, s_fViewTranslationVector);
+            Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
+            Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+            Matrix44::Set(mtxB, g_fProjectionMatrix);
+            Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
+
+            SetVSConstant4fv(C_PROJECTION,   &mtxA.data[0]);
+            SetVSConstant4fv(C_PROJECTION+1, &mtxA.data[4]);
+            SetVSConstant4fv(C_PROJECTION+2, &mtxA.data[8]);
+            SetVSConstant4fv(C_PROJECTION+3, &mtxA.data[12]);
+        }
+        else {
+		    SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
+            SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
+            SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
+            SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
+        }
     }
 }
 
@@ -429,4 +456,47 @@ void VertexShaderManager::SetMaterialColor(int index, u32 data)
 	s_fMaterials[ind++] = ((data>>16)&0xFF)/255.0f;
 	s_fMaterials[ind++] = ((data>>8)&0xFF)/255.0f;
 	s_fMaterials[ind]   = ((data)&0xFF)/255.0f;
+}
+
+void VertexShaderManager::TranslateView(float x, float y)
+{
+    float result[3];
+    float vector[3] = { x,0,y };
+
+    Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
+
+    for(int i = 0; i < 3; i++) {
+        s_fViewTranslationVector[i] += result[i];
+    }
+
+    bProjectionChanged = true;
+}
+
+void VertexShaderManager::RotateView(float x, float y)
+{
+    s_fViewRotation[0] += x;
+    s_fViewRotation[1] += y;
+
+    Matrix33 mx;
+    Matrix33 my;
+    Matrix33::RotateX(mx, s_fViewRotation[1]);
+    Matrix33::RotateY(my, s_fViewRotation[0]);
+    Matrix33::Multiply(mx, my, s_viewRotationMatrix);
+
+    // reverse rotation
+    Matrix33::RotateX(mx, -s_fViewRotation[1]);
+    Matrix33::RotateY(my, -s_fViewRotation[0]);
+    Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
+
+    bProjectionChanged = true;
+}
+
+void VertexShaderManager::ResetView()
+{
+    memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
+    Matrix33::LoadIdentity(s_viewRotationMatrix);
+    Matrix33::LoadIdentity(s_viewInvRotationMatrix);
+    s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
+
+    bProjectionChanged = true;
 }

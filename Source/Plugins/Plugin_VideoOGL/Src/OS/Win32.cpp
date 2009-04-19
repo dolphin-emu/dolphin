@@ -28,6 +28,7 @@
 #include "main.h"
 #include "Win32.h"
 #include "OnScreenDisplay.h"
+#include "VertexShaderManager.h"
 
 #include "StringUtil.h"
 
@@ -136,6 +137,65 @@ HWND GetParentWnd()
 HWND GetChildParentWnd()
 {
     return m_hMain;
+}
+
+void FreeLookInput( UINT iMsg, WPARAM wParam )
+{
+    static float debugSpeed = 1.0f;
+    static bool mouseLookEnabled = false;
+    static float lastMouse[2];
+
+	switch( iMsg )
+	{
+	
+	case WM_KEYDOWN:
+		switch( LOWORD( wParam ))
+		{
+        case '9':
+            debugSpeed /= 2.0f;
+            break;
+        case '0':
+            debugSpeed *= 2.0f;
+            break;        
+        case 'W':
+            VertexShaderManager::TranslateView(0.0f, debugSpeed);
+            break;
+        case 'S':
+            VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+            break;
+        case 'A':
+            VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+            break;
+        case 'D':
+            VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+            break;
+        case 'R':
+            VertexShaderManager::ResetView();
+            break;
+		}
+		break;
+
+	case WM_MOUSEMOVE:
+        if (mouseLookEnabled) {
+            POINT point;
+	        GetCursorPos(&point);
+            VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
+            lastMouse[0] = point.x;
+            lastMouse[1] = point.y;
+        }
+		break;
+
+    case WM_RBUTTONDOWN:
+        POINT point;	
+	    GetCursorPos(&point);
+        lastMouse[0] = point.x;
+        lastMouse[1] = point.y;
+        mouseLookEnabled= true;
+        break;
+	case WM_RBUTTONUP:
+        mouseLookEnabled = false;
+        break;
+    }
 }
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
@@ -297,6 +357,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		}
 		break;
 	}
+
+    if (g_Config.bFreeLook) {
+        FreeLookInput( iMsg, wParam );
+    }
 
 	return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }

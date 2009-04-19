@@ -86,6 +86,7 @@ struct Config
     bool bDumpTextures;
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
+    bool bFreeLook;
     
     // Hacks
     bool bEFBCopyDisable;

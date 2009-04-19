@@ -28,7 +28,7 @@ public:
     static void Shutdown();
 
     // constant management
-	static void SetConstants(bool proj_hax_1, bool SMG_hack);
+	static void SetConstants(bool proj_hax_1, bool SMG_hack, bool freeLook);
 
     static void SetViewport(float* _Viewport);
     static void SetViewportChanged();
@@ -37,6 +37,10 @@ public:
     static void SetTexMatrixChangedA(u32 Value);
     static void SetTexMatrixChangedB(u32 Value);
 	static void SetMaterialColor(int index, u32 data);
+
+    static void TranslateView(float x, float y);
+    static void RotateView(float x, float y);
+    static void ResetView();
 };
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);

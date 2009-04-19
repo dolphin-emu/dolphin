@@ -21,6 +21,7 @@
 #include "../Config.h"
 
 #include "../TextureMngr.h"
+#include "VertexShaderManager.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -54,7 +55,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPEFBTARGET, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
+    EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_FREELOOK, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLEFOG, ConfigDialog::AdvancedSettingsChanged)
@@ -350,6 +352,8 @@ void ConfigDialog::CreateGUIControls()
 		" set up for the dump or several gigabytes of space available."));
 #endif
 	m_DumpFrames->SetValue(g_Config.bDumpFrames);
+    m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    m_FreeLook->SetValue(g_Config.bFreeLook);
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -415,10 +419,12 @@ void ConfigDialog::CreateGUIControls()
 	sRenderBoxRow1->Add(sSBox, 0, wxALL|wxEXPAND, 5);
 	sbRendering->Add(sRenderBoxRow1);
 	
-	sUtilities = new wxBoxSizer(wxHORIZONTAL);
-	sUtilities->Add(m_DumpTextures, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sUtilities->Add(m_DumpEFBTarget, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sUtilities->Add(m_DumpFrames, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	//sUtilities = new wxBoxSizer(wxHORIZONTAL);
+    sUtilities = new wxGridBagSizer(0, 0);
+	sUtilities->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_DumpEFBTarget, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_DumpFrames, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    sUtilities->Add(m_FreeLook, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
 
 	// Sizers
@@ -557,6 +563,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DUMPFRAMES:
 		g_Config.bDumpFrames = m_DumpFrames->IsChecked();
+		break;
+    case ID_FREELOOK:
+		g_Config.bFreeLook = m_FreeLook->IsChecked();
 		break;
 	case ID_TEXTUREPATH:
 		break;

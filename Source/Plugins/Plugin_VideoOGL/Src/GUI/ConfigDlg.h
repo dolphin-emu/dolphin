@@ -64,7 +64,7 @@ class ConfigDialog : public wxDialog
 		wxStaticBoxSizer* sbRendering;
 		wxGridBagSizer* sRendering;
 		wxStaticBoxSizer* sbUtilities;
-		wxBoxSizer* sUtilities;
+		wxGridBagSizer* sUtilities;
 		wxStaticBoxSizer* sbHacks;
 		wxGridBagSizer* sHacks;
 		
@@ -108,6 +108,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_DumpEFBTarget;
 		wxCheckBox *m_DumpFrames;
+        wxCheckBox *m_FreeLook;
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
@@ -167,6 +168,7 @@ class ConfigDialog : public wxDialog
 			ID_DUMPTEXTURES,
 			ID_DUMPEFBTARGET,
 			ID_DUMPFRAMES,
+            ID_FREELOOK,
 			ID_TEXTUREPATH,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
