@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="RTC"
-	ProjectGUID="{62989D24-DB3F-4BD1-A11D-26F0487CD9AF}"
+	Name="WSD"
+	ProjectGUID="{F250A358-225C-4B50-ABAE-5B3D4EC9DC4E}"
 	RootNamespace="TestSuite"
 	Keyword="MakeFileProj"
 	TargetFrameworkVersion="196613"
@@ -28,7 +28,7 @@
 				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				CleanCommandLine="make clean"
-				Output="dolphintest_rtc.dol"
+				Output="dolphintest_wrtc.dol"
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
 				ForcedIncludes=""
@@ -42,7 +42,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\source\dolphintest_rtc.cpp"
+			RelativePath=".\source\dolphintest_wsd.cpp"
 			>
 		</File>
 		<File

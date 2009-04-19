@@ -19,6 +19,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WPAD", "WPAD\WPAD.vcproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WRTC", "WRTC\WRTC.vcproj", "{F75021E3-73BF-425C-BA57-3FE7E2F6E02C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WSD", "WSD\WSD.vcproj", "{F250A358-225C-4B50-ABAE-5B3D4EC9DC4E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{057B2E90-B8A7-431E-9FA2-68AC8ABABCC5}"
+	ProjectSection(SolutionItems) = preProject
+		Makefile = Makefile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|Win32 = Release|Win32
@@ -42,6 +49,8 @@ Global
 		{BB88F4D5-EB0D-4429-94C3-93B0191BD3DD}.Release|Win32.Build.0 = Release|Win32
 		{F75021E3-73BF-425C-BA57-3FE7E2F6E02C}.Release|Win32.ActiveCfg = Release|Win32
 		{F75021E3-73BF-425C-BA57-3FE7E2F6E02C}.Release|Win32.Build.0 = Release|Win32
+		{F250A358-225C-4B50-ABAE-5B3D4EC9DC4E}.Release|Win32.ActiveCfg = Release|Win32
+		{F250A358-225C-4B50-ABAE-5B3D4EC9DC4E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
