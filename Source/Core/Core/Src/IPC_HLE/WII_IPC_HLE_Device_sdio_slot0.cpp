@@ -65,9 +65,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 // The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
-	INFO_LOG(WII_IPC_SD, "*************************************");
-	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
-	INFO_LOG(WII_IPC_SD, "*************************************");
+// 	INFO_LOG(WII_IPC_SD, "*************************************");
+// 	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
+// 	INFO_LOG(WII_IPC_SD, "*************************************");
 
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
@@ -76,8 +76,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
-    INFO_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
-		BufferIn, BufferInSize, BufferOut, BufferOutSize);
+//     INFO_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+// 		BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
@@ -131,10 +131,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-	INFO_LOG(WII_IPC_SD, "InBuffer");
-	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-	INFO_LOG(WII_IPC_SD, "OutBuffer");
-	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+// 	INFO_LOG(WII_IPC_SD, "InBuffer");
+// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+// 	INFO_LOG(WII_IPC_SD, "OutBuffer");
+// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -155,9 +155,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
-	INFO_LOG(WII_IPC_SD, "*************************************");
-	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
-	INFO_LOG(WII_IPC_SD, "*************************************");
+// 	INFO_LOG(WII_IPC_SD, "*************************************");
+// 	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
+// 	INFO_LOG(WII_IPC_SD, "*************************************");
 
 	u32 ReturnValue = 0;
 	switch(CommandBuffer.Parameter) {	
@@ -173,7 +173,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+	//DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -244,15 +244,20 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			size_t nRead = fread(buffer, req.bsize, req.blocks, m_Card);
 			if (nRead == req.blocks)
 			{
-				DEBUG_LOG(WII_IPC_SD, "Success");
 				u32 i;
 				for (i = 0; i < size; ++i)
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				ERROR_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
+				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
 				return 1;
 			}
+			else
+			{
+				ERROR_LOG(WII_IPC_SD, "Read Failed %x", nRead);
+			}
+
+			delete buffer;
 		}
 		}
 		break;
