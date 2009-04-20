@@ -29,6 +29,7 @@ using namespace SDInterface;
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
+	m_Card = NULL;
 	m_Status = CARD_INSERTED;
 	m_BlockLength = 0;
 	m_BusWidth = 0;
@@ -42,6 +43,11 @@ CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
+
+	m_Card = fopen("sd.raw", "r+");
+	if(!m_Card)
+		ERROR_LOG(WII_IPC_SD, "Failed to open SD Card image");
+
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
     return true;
 }
@@ -49,6 +55,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 {
 	INFO_LOG(WII_IPC_SD, "Close");
+
+	fclose(m_Card);
+
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;
 }
@@ -154,8 +163,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 	switch(CommandBuffer.Parameter) {	
 	case IOCTLV_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
-		ReturnValue = ExecuteCommand(CommandBuffer.InBuffer[0].m_Address,
-			0, 0, 0);
+		ReturnValue = ExecuteCommand(
+			CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size,
+			CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size);
 		break;
 
 	default:
@@ -163,7 +173,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	//DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+	DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -174,7 +184,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 												   u32 _BufferOut, u32 _BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
-	// to a file we need to prepare a 10 byte output buffer as response.
+	// to a file we need to prepare a 0x10 byte output buffer as response.
 
 	struct Request {
 		u32 command;
@@ -213,14 +223,38 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	case ACMD_SETBUSWIDTH:
 		// 0 = 1bit, 2 = 4bit
-		m_BusWidth = (req.arg & 1);
+		m_BusWidth = (req.arg & 3);
 		break;
 
 	case READ_MULTIPLE_BLOCK:
-		// Data address is in byte units in a Standard Capacity SD Memory Card
+		{
+		// Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
 		// and in block (512 Byte) units in a High Capacity SD Memory Card.
-		DEBUG_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i!",
-			req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize);
+		DEBUG_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i into 0x%08x!",
+			req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
+
+		if (m_Card)
+		{
+			u32 size = req.bsize * req.blocks;
+
+			fseek(m_Card, req.arg, SEEK_SET);
+
+			u8* buffer = new u8[size];
+
+			size_t nRead = fread(buffer, req.bsize, req.blocks, m_Card);
+			if (nRead == req.blocks)
+			{
+				DEBUG_LOG(WII_IPC_SD, "Success");
+				u32 i;
+				for (i = 0; i < size; ++i)
+				{
+					Memory::Write_U8((u8)buffer[i], req.addr++);
+				}
+				ERROR_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
+				return 1;
+			}
+		}
+		}
 		break;
 
 	default:

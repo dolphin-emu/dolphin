@@ -90,6 +90,8 @@ private:
 	u32 m_BlockLength;
 	u32 m_BusWidth;
 
+	FILE* m_Card;
+
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 };
 
