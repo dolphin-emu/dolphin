@@ -63,6 +63,8 @@ void dirlist(char* path)
 
 	if (pdir != NULL)
 	{
+		u32 sentinel = 0;
+
 		while(true) 
 		{
 			struct dirent* pent = readdir(pdir);
@@ -85,9 +87,12 @@ void dirlist(char* path)
 				{
 					printf("%s (%d)\n", dnbuf, (int)statbuf.st_size);
 				}
-
+				sentinel++;
 			}
 		}
+
+		if (sentinel == 0)
+			printf("absolutely nothing\n");
 
 		closedir(pdir);
 	}
@@ -102,7 +107,10 @@ int main()
 	Initialise();
 
 	if(fatInitDefault())
+	{
+		printf("fatInitDefault() OK!\n");
 		dirlist("/");
+	}
 	else
 		printf("fatInitDefault() failure.\n");
 
