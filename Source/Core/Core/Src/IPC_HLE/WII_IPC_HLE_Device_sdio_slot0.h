@@ -51,6 +51,7 @@ private:
 		IOCTL_SETCLK		= 0x06,
 		IOCTL_SENDCMD		= 0x07,
 		IOCTL_GETSTATUS		= 0x0B,
+		IOCTL_GETOCR		= 0x0C,
 	};
 
 	// IOCtlV
@@ -75,6 +76,7 @@ private:
 		SELECT_CARD			= 0x07,
 		SEND_IF_COND		= 0x08,
 		SEND_CSD			= 0x09,
+		SEND_CID			= 0x0A,
 		SEND_STATUS			= 0x0D,
 		SET_BLOCKLEN		= 0x10,
 		READ_MULTIPLE_BLOCK	= 0x12,
@@ -84,6 +86,8 @@ private:
 		ACMD_SETBUSWIDTH	= 0x06,
 		ACMD_SENDOPCOND		= 0x29,
 		ACMD_SENDSCR		= 0x33,
+
+		CRAZY_BIGN			= 0x40,
 	};
 
 	u32 m_Status;

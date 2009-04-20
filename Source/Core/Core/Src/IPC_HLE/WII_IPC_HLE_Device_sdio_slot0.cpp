@@ -65,10 +65,6 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 // The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
-// 	INFO_LOG(WII_IPC_SD, "*************************************");
-// 	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
-// 	INFO_LOG(WII_IPC_SD, "*************************************");
-
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
@@ -115,7 +111,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SENDCMD:
 		// Input: 24 bytes, Output: 10 bytes
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_SENDCMD");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
 
@@ -126,6 +122,13 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		Memory::Write_U32(m_Status, BufferOut);
 		break;
 
+	case IOCTL_GETOCR:
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_GETOCR");
+		// Try to just say 3.3v
+		// Needs to be verified on real hw
+		Memory::Write_U32(0x40, BufferOut);
+		break;
+
 	default:
 		ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtl command (0x%08x)", Cmd);
 		break;
@@ -133,8 +136,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 // 	INFO_LOG(WII_IPC_SD, "InBuffer");
 // 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-// 	INFO_LOG(WII_IPC_SD, "OutBuffer");
-// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+	INFO_LOG(WII_IPC_SD, "OutBuffer");
+	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -155,14 +158,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
-// 	INFO_LOG(WII_IPC_SD, "*************************************");
-// 	INFO_LOG(WII_IPC_SD, "CWII_IPC_HLE_Device_sdio_slot0::IOCtlV");
-// 	INFO_LOG(WII_IPC_SD, "*************************************");
-
 	u32 ReturnValue = 0;
 	switch(CommandBuffer.Parameter) {	
 	case IOCTLV_SENDCMD:
-		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
+		DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
 		ReturnValue = ExecuteCommand(
 			CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size,
 			CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size);
@@ -185,7 +184,6 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
 	// to a file we need to prepare a 0x10 byte output buffer as response.
-
 	struct Request {
 		u32 command;
 		u32 type;
@@ -208,11 +206,23 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
 	req.pad0	= Memory::Read_U32(_BufferIn + 32);
 
-	u32 success = 0;
+	u32 rwSuccess = 0;
 
 	switch (req.command)
 	{
 	case SELECT_CARD:
+		break;
+
+	case SEND_CSD:
+		// Needs to be verified on real hw
+		Memory::Write_U64(0x8000025000FC0004ULL, _BufferOut);
+		Memory::Write_U64(0x000097B55A000E01ULL, _BufferOut + 8);
+		break;
+
+	case SEND_CID:
+		// Needs to be verified on real hw
+		Memory::Write_U64(0x0000000000000000ULL, _BufferOut);
+		Memory::Write_U64(0x0000000000000001ULL, _BufferOut + 8);
 		break;
 
 	case SET_BLOCKLEN:
@@ -253,7 +263,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
 				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
-				success = 1;
+				rwSuccess = 1;
 			}
 			else
 			{
@@ -266,10 +276,54 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		}
 		break;
 
+	case WRITE_MULTIPLE_BLOCK:
+		{
+		// Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
+		// and in block (512 Byte) units in a High Capacity SD Memory Card.
+		DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i into 0x%08x!",
+			req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
+
+		if (m_Card)
+		{
+			u32 size = req.bsize * req.blocks;
+
+			if (fseek(m_Card, req.arg, SEEK_SET) != 0)
+				ERROR_LOG(WII_IPC_SD, "fseek failed WTF");
+
+			u8* buffer = new u8[size];
+
+			for (u32 i = 0; i < size; ++i)
+			{
+				(u8)buffer[i] = Memory::Read_U8(req.addr++);
+			}
+
+			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
+			if (nWritten == req.blocks)
+			{
+				ArrayToString(buffer, size);
+				rwSuccess = 1;
+			}
+			else
+			{
+				ERROR_LOG(WII_IPC_SD, "Write Failed - wrote %x, error %i, eof? %i",
+					nWritten, ferror(m_Card), feof(m_Card));
+			}
+
+			delete [] buffer;
+		}
+		}
+		break;
+
+	case CRAZY_BIGN:
+		DEBUG_LOG(WII_IPC_SD, "CMD64, wtf");
+		// <svpe> shuffle2_: afaict it just sets some internal values in the
+		// SDI module. you can probably safely ignore it
+		break;
+
 	default:
 		ERROR_LOG(WII_IPC_SD, "Unknown SD command 0x%08x", req.command);
 		break;
 	}
 
-    return success;
+    return rwSuccess;
 }
