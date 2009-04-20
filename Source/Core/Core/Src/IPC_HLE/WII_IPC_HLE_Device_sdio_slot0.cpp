@@ -208,6 +208,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
 	req.pad0	= Memory::Read_U32(_BufferIn + 32);
 
+	u32 success = 0;
+
 	switch (req.command)
 	{
 	case SELECT_CARD:
@@ -237,7 +239,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		{
 			u32 size = req.bsize * req.blocks;
 
-			fseek(m_Card, req.arg, SEEK_SET);
+			if (fseek(m_Card, req.arg, SEEK_SET) != 0)
+				ERROR_LOG(WII_IPC_SD, "fseek failed WTF");
 
 			u8* buffer = new u8[size];
 
@@ -250,14 +253,15 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
 				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
-				return 1;
+				success = 1;
 			}
 			else
 			{
-				ERROR_LOG(WII_IPC_SD, "Read Failed %x", nRead);
+				ERROR_LOG(WII_IPC_SD, "Read Failed - read %x, error %i, eof? %i",
+					nRead, ferror(m_Card), feof(m_Card));
 			}
 
-			delete buffer;
+			delete [] buffer;
 		}
 		}
 		break;
@@ -267,5 +271,5 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 	}
 
-    return 0;
+    return success;
 }
