@@ -81,16 +81,16 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	
 	u32 ReturnValue = 0;
 	switch (Cmd) {
-	case IOCTL_WRITEHCREG:
+	case IOCTL_WRITEHCR:
 		// Store the 4th element of input array to the reg offset specified by the 0 element
 		Memory::Write_U32(Memory::Read_U32(BufferIn + 16), SDIO_BASE + Memory::Read_U32(BufferIn));
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCREG");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR");
 		break;
 
-	case IOCTL_READHCREG:
+	case IOCTL_READHCR:
 		// Load the specified reg into the out buffer
 		Memory::Write_U32(Memory::Read_U32(SDIO_BASE + Memory::Read_U32(BufferIn)), BufferOut);
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCREG");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR");
 		break;
 
 	case IOCTL_RESETCARD:
@@ -123,10 +123,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_GETOCR:
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_GETOCR");
-		// Try to just say 3.3v
-		// Needs to be verified on real hw
-		Memory::Write_U32(0x40, BufferOut);
+		ERROR_LOG(WII_IPC_SD, "IOCTL_GETOCR");
+		Memory::Write_U32(0x80ff8000, BufferOut);
 		break;
 
 	default:
@@ -214,15 +212,18 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 
 	case SEND_CSD:
-		// Needs to be verified on real hw
-		Memory::Write_U64(0x8000025000FC0004ULL, _BufferOut);
-		Memory::Write_U64(0x000097B55A000E01ULL, _BufferOut + 8);
+		ERROR_LOG(WII_IPC_SD, "SEND_CSD");
+		//  <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
+		// CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
+		Memory::Write_U64(0xff928040c93efbcfULL, _BufferOut);
+		Memory::Write_U64(0x325f5a8300002600ULL, _BufferOut + 8);
 		break;
 
+	case ALL_SEND_CID:
 	case SEND_CID:
-		// Needs to be verified on real hw
-		Memory::Write_U64(0x0000000000000000ULL, _BufferOut);
-		Memory::Write_U64(0x0000000000000001ULL, _BufferOut + 8);
+		ERROR_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
+		Memory::Write_U64(0x38a00000480032d5ULL, _BufferOut);
+		Memory::Write_U64(0x3c6080308803d420ULL, _BufferOut + 8);
 		break;
 
 	case SET_BLOCKLEN:

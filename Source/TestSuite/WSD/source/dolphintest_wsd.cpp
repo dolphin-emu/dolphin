@@ -29,6 +29,7 @@ void Initialise()
 
 	// This function initialises the attached controllers
 	PAD_Init();
+	WPAD_Init();
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
@@ -92,9 +93,10 @@ void dirlist(char* path)
 		}
 
 		if (sentinel == 0)
-			printf("absolutely nothing\n");
+			printf("empty\n");
 
 		closedir(pdir);
+		printf("\n");
 	}
 	else
 	{
@@ -104,27 +106,36 @@ void dirlist(char* path)
 
 int main()
 {
+	bool canList = false;
+
 	Initialise();
+
+	printf("\x1b[10;0H");
 
 	if(fatInitDefault())
 	{
-		printf("fatInitDefault() OK!\n");
-		dirlist("/");
+		printf("\nPress A to list dirs\n");
+		canList = true;
 	}
 	else
-		printf("fatInitDefault() failure.\n");
+		printf("\nfatInitDefault() failure.\n");
 
 	while(1)
 	{
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
+		PAD_ScanPads();
 		WPAD_ScanPads();
 
-		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
+		// WPAD_ButtonsDown tells us which buttons were wpressed in this loop
 		// this is a "one shot" state which will not fire again until the button has been released
-		u32 pressed = WPAD_ButtonsDown(0);
+		u32 pressed = PAD_ButtonsDown(0);
+		u32 wpressed = WPAD_ButtonsDown(0);
+
+		if ((wpressed & WPAD_BUTTON_A || pressed & PAD_BUTTON_A) && canList)
+			dirlist("/");
 
 		// We return to the launcher application via exit
-		if (pressed & WPAD_BUTTON_HOME)
+		if (wpressed & WPAD_BUTTON_HOME || pressed & PAD_BUTTON_START)
 			exit(0);
 
 		// Wait for the next frame
