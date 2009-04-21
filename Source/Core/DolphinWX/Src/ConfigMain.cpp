@@ -258,7 +258,8 @@ void CConfigMain::CreateGUIControls()
 		"\nIt can be convenient in a Wii game that already has a cursor."));
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
-	DSPThread->SetToolTip(wxT("This may cause strange crashes, use with caution."));
+	DSPThread->SetToolTip(wxT("This should be on when using HLE and off when using LLE."
+		"\Having it on in HLE can cause occasional strange crashes, though."));
 	UseDualCore->SetToolTip(wxT("Moves video emulation to the emu thread instead of the CPU thread."
 		"\nCauses major speed improvements on PCs with more than one core,"
 		"\nbut can also cause occasional crashes."));
