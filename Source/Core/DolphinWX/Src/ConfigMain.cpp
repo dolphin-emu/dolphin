@@ -191,8 +191,6 @@ void CConfigMain::CreateGUIControls()
 	// Core Settings - Basic
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
-	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("LLE DSP on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -206,6 +204,8 @@ void CConfigMain::CreateGUIControls()
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
 	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
+	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("LLE DSP on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
 
 	// Interface settings
 
@@ -258,6 +258,7 @@ void CConfigMain::CreateGUIControls()
 		"\nIt can be convenient in a Wii game that already has a cursor."));
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
+	DSPThread->SetToolTip(wxT("This may cause strange crashes, use with caution."));
 
 	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in"
 		"\nthe game list of PAL GC games."));
@@ -271,7 +272,6 @@ void CConfigMain::CreateGUIControls()
 	sCore = new wxBoxSizer(wxHORIZONTAL);
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
-	sbBasic->Add(DSPThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
@@ -279,6 +279,7 @@ void CConfigMain::CreateGUIControls()
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
+	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
 	sCore->Add(sbBasic, 0, wxEXPAND);
 	sCore->AddStretchSpacer();
 	sCore->Add(sbAdvanced, 0, wxEXPAND);
