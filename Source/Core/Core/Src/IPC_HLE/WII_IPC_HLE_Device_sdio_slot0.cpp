@@ -295,7 +295,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 			for (u32 i = 0; i < size; ++i)
 			{
-				(u8)buffer[i] = Memory::Read_U8(req.addr++);
+				buffer[i] = Memory::Read_U8(req.addr++);
 			}
 
 			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
