@@ -61,19 +61,19 @@ inline bool dsp_SR_is_flag_set(int flag)
 inline u16 dsp_op_read_reg(u8 reg)
 {
 	u16 val;
+	
+	switch (reg & 0x1f) {
+	case 0x0c:
+	case 0x0d:
+	case 0x0e:
+	case 0x0f:
 
-	switch (reg & 0x1f)
-	{
-	    case 0x0c:
-	    case 0x0d:
-	    case 0x0e:
-	    case 0x0f:
-		    val = dsp_reg_load_stack(reg - 0x0c);
-		    break;
+		val = dsp_reg_load_stack(reg - 0x0c);
+		break;
 
-	    default:
-		    val = g_dsp.r[reg];
-		    break;
+	default:
+		val = g_dsp.r[reg];
+		break;
 	}
 
 	return val;
@@ -82,18 +82,55 @@ inline u16 dsp_op_read_reg(u8 reg)
 
 inline void dsp_op_write_reg(u8 reg, u16 val)
 {
-	switch (reg & 0x1f)
-	{
-	    case 0x0c:
-	    case 0x0d:
-	    case 0x0e:
-	    case 0x0f:
-		    dsp_reg_store_stack(reg - 0x0c, val);
-		    break;
+	switch (reg & 0x1f) {
 
-	    default:
-		    g_dsp.r[reg] = val;
-		    break;
+
+	case 0x0c:
+	case 0x0d:
+	case 0x0e:
+	case 0x0f:
+		dsp_reg_store_stack(reg - 0x0c, val);
+		break;
+#if 0 // FIXME
+	case 0x1e: // AC0.M
+	case 0x1f: // AC1.M
+		// in "s16 mode", LRI $AC0.M, xxx  will set AC0.L and AC0.H to 0, 
+		// while it won't in "s40 mode".
+		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
+				g_dsp.r[reg - 0x2] = 0; // L
+				g_dsp.r[reg - 0xe] = 0; // H
+		}
+		
+		g_dsp.r[reg] = val;
+		break;
+
+
+	case 0x1c: // AC0.L
+	case 0x1d: // AC1.L
+		
+		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
+				g_dsp.r[reg + 0x2] = 0; // M
+				g_dsp.r[reg - 0xc] = 0; // H
+		}
+		
+		g_dsp.r[reg] = val;
+		break;
+
+	case 0x10: // AC0.H
+	case 0x11: // AC1.H
+		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
+				g_dsp.r[reg + 0xc] = 0; // L
+				g_dsp.r[reg + 0xe] = 0; // M
+		}
+		
+		g_dsp.r[reg] = val;
+		break;
+#endif
+
+
+	default:
+		g_dsp.r[reg] = val;
+		break;
 	}
 }
 

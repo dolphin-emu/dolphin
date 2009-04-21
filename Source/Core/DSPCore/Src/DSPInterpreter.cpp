@@ -793,7 +793,6 @@ void andr(const UDSPInstruction& opc)
 // 0011 10sd xxxx xxxx
 // Logic OR middle part of accumulator $acD.m with high part of
 // secondary accumulator $axS.h.
-
 void orr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;

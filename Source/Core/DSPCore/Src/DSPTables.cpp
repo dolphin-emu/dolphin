@@ -111,7 +111,7 @@ const DSPOPCTemplate opcodes[] =
 	{"IFGE",	0x0277, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IFLNZ",	0x027c, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
 	{"IFLZ",    0x027d, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL},
-	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // Hermes doesn't list this
+	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc, nop, 1, 0, {}, NULL, NULL}, // This is just nop
 
 	{"JNS",	    0x0290, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"JS",	    0x0291, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, NULL, NULL},
@@ -219,11 +219,8 @@ const DSPOPCTemplate opcodes[] =
 	{"M0",      0x8b00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	// These guys probably change the precision or range of some operations.
-	// The question is which. 16-bit mode vs 40-bit mode sounds plausible for
-	// SET40/SET16.  Maybe Set15 makes the dsp drop the top bit from all
 	// calculations or something? Or clamp?
 	// SET15/CLR15 is commonly used around MULXAC in Zeldas.
-	// SET16 is done around complicated loops with many madds etc.
 	{"CLR15",   0x8c00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET15",   0x8d00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"SET40",	0x8e00, 0xffff, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

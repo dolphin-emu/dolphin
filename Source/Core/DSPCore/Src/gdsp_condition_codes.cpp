@@ -81,12 +81,6 @@ void Update_SR_LZ(s64 value) {
 
 }
 
-// If this always returns 1, Hermes' demo sounds better.
-// However, most AX games are negatively affected.
-// nakee: It seems to be enough to start the bit with 1 to fix Hermes' demo without breaking 
-// anything. I also can't  seem to find what sets that bit, sbset is called with 0/2/3/5/6
-// and sbclr with 0/2-6 (14 requires 8). Also trying to print when the register is set to 1
-// didn't seem to give any result.
 int GetMultiplyModifier()
 {
 	if (g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY)
@@ -96,6 +90,14 @@ int GetMultiplyModifier()
 }
 
 
+inline bool isSign() {
+	return ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x08));
+}
+
+inline bool isZero() {
+	return g_dsp.r[DSP_REG_SR] & 0x04;
+}
+
 //see gdsp_registers.h for flags
 bool CheckCondition(u8 _Condition)
 {
@@ -103,45 +105,44 @@ bool CheckCondition(u8 _Condition)
 	switch (_Condition & 0xf)
 	{
 	case 0x0: //NS - NOT SIGN
-		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08)))
+		if (! isSign())
 			taken = true;
 		break;
 		
 	case 0x1: // S - SIGN
-		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (g_dsp.r[DSP_REG_SR] & 0x08))
+		if (isSign())
 			taken = true;
 		break;
  
 	case 0x2: // G - GREATER
-
-		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08)) && !((g_dsp.r[DSP_REG_SR] & 0x04))) // gets zelda stuck
+		if (! isSign() && ! isZero())
 			taken = true;
 		break;
 
 	case 0x3: // LE - LESS EQUAL
-		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && ((g_dsp.r[DSP_REG_SR] & 0x08) || (g_dsp.r[DSP_REG_SR] & 0x04)))
+		if (isSign() || isZero())
 			taken = true;
 		break;
 
 	case 0x4: // NZ - NOT ZERO
 
-		if (!(g_dsp.r[DSP_REG_SR] & 0x04))
+		if (!isZero())
 			taken = true;
 		break;
 
 	case 0x5: // Z - ZERO 
 
-		if (g_dsp.r[DSP_REG_SR] & 0x04)
+		if (isZero())
 			taken = true;
 		break;
 
 	case 0x6: // L - LESS
-		if (!(g_dsp.r[DSP_REG_SR] & 0x02) && (g_dsp.r[DSP_REG_SR] & 0x08))
+		if (isSign())
 			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
-		if ((!(g_dsp.r[DSP_REG_SR] & 0x02)) && (!(g_dsp.r[DSP_REG_SR] & 0x08) || (g_dsp.r[DSP_REG_SR] & 0x04)))
+		if (! isSign() || isZero())
 			taken = true;
 		break;
 

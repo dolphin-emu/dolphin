@@ -92,12 +92,12 @@
 #define DSP_STACK_C 0
 #define DSP_STACK_D 1
 
-// These are probably not accurate. Do not use yet.
+
 #define SR_UNKNOWN    0x0002   // ????????
-#define SR_ARITH_ZERO 0x0004
-#define SR_SIGN       0x0008
+#define SR_ARITH_ZERO 0x0004  
+#define SR_SIGN       0x0008   // tested
 #define SR_TOP2BITS   0x0020   // this is an odd one.
-#define SR_LOGIC_ZERO 0x0040   // ?? duddie's doc sometimes say & 1<<6 (0x40), sometimes 1<<14 (0x4000), while we have 0x20 .. eh
+#define SR_LOGIC_ZERO 0x0040   
 #define SR_INT_ENABLE 0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_MUL_MODIFY 0x2000   // 1 = normal. 0 = x2   (M0, M2)
 #define SR_TOP_BIT_UNK 0x8000   // 1 = normal. 0 = x2  (CLR15, SET15)
