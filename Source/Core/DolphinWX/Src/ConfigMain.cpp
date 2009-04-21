@@ -259,6 +259,9 @@ void CConfigMain::CreateGUIControls()
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 	DSPThread->SetToolTip(wxT("This may cause strange crashes, use with caution."));
+	UseDualCore->SetToolTip(wxT("Moves video emulation to the emu thread instead of the CPU thread."
+		"\nCauses major speed improvements on PCs with more than one core,"
+		"\nbut can also cause occasional crashes."));
 
 	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in"
 		"\nthe game list of PAL GC games."));
