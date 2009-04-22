@@ -246,7 +246,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	// Note: req.addr is the virtual address of _rwBuffer
 
 
-	u32 rwSuccess = 0;
+	u32 rwFail = 0;
 
 	switch (req.command)
 	{
@@ -340,12 +340,12 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
 				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _rwBufferSize, i);
-				rwSuccess = 1;
 			}
 			else
 			{
 				ERROR_LOG(WII_IPC_SD, "Read Failed - read %x, error %i, eof? %i",
 					nRead, ferror(m_Card), feof(m_Card));
+				rwFail = 1;
 			}
 
 			delete [] buffer;
@@ -379,12 +379,12 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			if (nWritten == req.blocks)
 			{
 				ERROR_LOG(WII_IPC_SD, "%s", ArrayToString(buffer, size).c_str());
-				rwSuccess = 1;
 			}
 			else
 			{
 				ERROR_LOG(WII_IPC_SD, "Write Failed - wrote %x, error %i, eof? %i",
 					nWritten, ferror(m_Card), feof(m_Card));
+				rwFail = 1;
 			}
 
 			delete [] buffer;
@@ -404,5 +404,5 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 	}
 
-    return rwSuccess;
+    return rwFail;
 }
