@@ -208,9 +208,9 @@ void RunAsmTests()
 // So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char *argv[])
 {
-	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-h"))))
+	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{
-		printf("DSPTool [-d] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
+		printf("USAGE: DSPTool [-d] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
 		printf("-d: Disassemble\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
