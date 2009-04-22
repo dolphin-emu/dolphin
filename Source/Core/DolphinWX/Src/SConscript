@@ -33,7 +33,6 @@ if wxenv['HAVE_WX']:
 		'CheatsWindow.cpp',
 		'stdafx.cpp',
 		'FrameWiimote.cpp',
-		'SDCardWindow.cpp',
 		'WxUtils.cpp',
 		]
 
