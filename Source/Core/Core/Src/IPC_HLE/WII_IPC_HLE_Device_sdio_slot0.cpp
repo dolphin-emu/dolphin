@@ -34,7 +34,7 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 	// Clear the whole SD Host Control Register
-	Memory::Memset(SDIO_BASE, 0, 0x100);
+	//Memory::Memset(SDIO_BASE, 0, 0x100);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
@@ -155,10 +155,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-	INFO_LOG(WII_IPC_SD, "InBuffer");
-	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-	INFO_LOG(WII_IPC_SD, "OutBuffer");
-	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+// 	INFO_LOG(WII_IPC_SD, "InBuffer");
+// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+// 	INFO_LOG(WII_IPC_SD, "OutBuffer");
+// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -194,7 +194,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	//DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+	DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
