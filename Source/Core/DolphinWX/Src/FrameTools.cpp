@@ -43,7 +43,6 @@ be accessed from Core::GetWindowHandle().
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
-#include "SDCardWindow.h"
 #include "LogWindow.h"
 
 #include "Common.h" // Common
@@ -685,11 +684,6 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
 
-void CFrame::OnShow_SDCardWindow(wxCommandEvent& WXUNUSED (event))
-{
-	wxSDCardWindow SDWindow(this);
-	SDWindow.ShowModal();
-}
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
