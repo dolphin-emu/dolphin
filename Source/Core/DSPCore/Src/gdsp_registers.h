@@ -93,15 +93,18 @@
 #define DSP_STACK_D 1
 
 
-#define SR_UNKNOWN    0x0002   // ????????
-#define SR_ARITH_ZERO 0x0004  
-#define SR_SIGN       0x0008   // tested
-#define SR_TOP2BITS   0x0020   // this is an odd one.
-#define SR_LOGIC_ZERO 0x0040   
-#define SR_INT_ENABLE 0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
-#define SR_MUL_MODIFY 0x2000   // 1 = normal. 0 = x2   (M0, M2)
-#define SR_TOP_BIT_UNK 0x8000   // 1 = normal. 0 = x2  (CLR15, SET15)
-#define SR_16_BIT      0x4000   // 1 = "16", 0 = "40"  (SET40, SET16) .. actually, seems it's the reverse. Controls sign extension when loading mid accums.
+// SR bits
+#define SR_CARRY       0x0001
+#define SR_UNKNOWN     0x0002   // ????????
+#define SR_ARITH_ZERO  0x0004  
+#define SR_SIGN        0x0008
+#define SR_TOP2BITS    0x0020   // this is an odd one.
+#define SR_LOGIC_ZERO  0x0040   
+#define SR_INT_ENABLE  0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
+#define SR_MUL_MODIFY  0x2000   // 1 = normal. 0 = x2   (M0, M2)
+#define SR_40_MODE_BIT 0x4000   // 0 = "16", 1 = "40"  (SET16, SET40)  Controls sign extension when loading mid accums.
+#define SR_TOP_BIT_UNK 0x8000   // 1 = normal. 0 = x2  (CLR15, SET15) ????????
+
 
 void dsp_reg_store_stack(u8 stack_reg, u16 val);
 u16 dsp_reg_load_stack(u8 stack_reg);

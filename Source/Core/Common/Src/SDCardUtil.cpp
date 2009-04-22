@@ -192,7 +192,7 @@ bool SDCardCreate(u32 disk_size /*in MB*/, char* filename)
 	// Convert MB to bytes
 	disk_size *= 1024*1024;
 
-	if (disk_size < 0x800000 || disk_size > 0x800000000)
+	if (disk_size < 0x800000 || disk_size > 0x800000000ULL)
 		ERROR_LOG(COMMON, "Trying to create SD Card image of size %iMB is out of range (8MB-32GB)", disk_size/(1024*1024));
 
 	sectors_per_disk = disk_size / 512;

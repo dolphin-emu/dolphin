@@ -180,8 +180,8 @@ main:
 
 ;  We can call send_back at any time to send data back to the PowerPC.
 
-;  Calling set16 here seemed to crash the dsp tester in strange ways
-;  until I added set40 in send_back. Seems clear that it affects something important.
+;  Calling set40 here seemed to crash the dsp tester in strange ways
+;  until I added set16 in send_back. Seems clear that it affects something important.
 
 	nop
 	nop
@@ -539,7 +539,7 @@ irq:
 ; it must write the contents of all regs to DRAM.
 send_back:
 	; make state safe.
-	set40
+	set16
 	; store registers to reg table
 	sr		@REGS_BASE,  $r00
 	lri		$r00, #(REGS_BASE + 1)
@@ -646,10 +646,10 @@ dma_copy:
 	
 ; If you are in s16 mode, use this instead of send_back if you want to stay
 ; in s16 mode.
-send_back_16:
-	set40
-	call	send_back	
+send_back_40:
 	set16
+	call	send_back	
+	set40
 	ret
 
 ; This one's odd. Doesn't look like it should work since it uses acl0 but 

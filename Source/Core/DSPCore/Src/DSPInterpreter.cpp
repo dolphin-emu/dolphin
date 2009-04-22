@@ -1468,7 +1468,7 @@ void srbith(const UDSPInstruction& opc)
 
 	// 15-bit precision? clamping? no idea :(
 	// CLR15 seems to be the default.
-    // nakee: It seems to come around mul operation, and it explains what sets the mul bit. But if so why not set/clr14?
+    // It seems to come around mul operation, 
 	case 0xc:  // CLR15
 		g_dsp.r[DSP_REG_SR] &= ~SR_TOP_BIT_UNK;
 		break;
@@ -1479,12 +1479,12 @@ void srbith(const UDSPInstruction& opc)
 	// 40-bit precision? clamping? no idea :(
 	// 40 seems to be the default.
 	// Confirmed these by using DSPSpy and copying the value of SR to R00 after setting.
-	case 0xe:  // SET40  (really, clear SR's 0x4000) something about "set 40-bit operation"?
-		g_dsp.r[DSP_REG_SR] &= ~SR_16_BIT;
+	case 0xe:  // SET16  (really, clear SR's 0x4000) 
+		g_dsp.r[DSP_REG_SR] &= ~SR_40_MODE_BIT;
 		break;
 
-	case 0xf:  // SET16  (really, set SR's 0x4000) something about "set 16-bit operation"?
-		g_dsp.r[DSP_REG_SR] |= SR_16_BIT;
+	case 0xf:  // SET40  (really, set SR's 0x4000) 
+		g_dsp.r[DSP_REG_SR] |= SR_40_MODE_BIT;
 		break;
 
 	default:
