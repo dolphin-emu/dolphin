@@ -42,10 +42,17 @@ private:
 		SDIO_BASE = 0x8d070000,
 	};
 
+	// SD Host Controller Registers
+	enum
+	{
+		HCR_CLOCKCONTROL	= 0x2C,
+		HCR_SOFTWARERESET	= 0x2F,
+	};
+
 	// IOCtl
 	enum 
 	{
-		IOCTL_WRITEHCR	= 0x01,
+		IOCTL_WRITEHCR		= 0x01,
 		IOCTL_READHCR		= 0x02,
 		IOCTL_RESETCARD		= 0x04,
 		IOCTL_SETCLK		= 0x06,
@@ -96,7 +103,9 @@ private:
 
 	FILE* m_Card;
 
-	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
+	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize,
+		u32 BufferIn2, u32 BufferInSize2,
+		u32 _BufferOut, u32 BufferOutSize);
 };
 
 #endif

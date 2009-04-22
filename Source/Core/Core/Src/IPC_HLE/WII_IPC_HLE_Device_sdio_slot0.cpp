@@ -33,6 +33,8 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	m_Status = CARD_INSERTED;
 	m_BlockLength = 0;
 	m_BusWidth = 0;
+	// Clear the whole SD Host Control Register
+	Memory::Memset(SDIO_BASE, 0, 0x100);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
@@ -82,37 +84,58 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	switch (Cmd) {
 	case IOCTL_WRITEHCR:
-		// Store the 4th element of input array to the reg offset specified by the 0 element
-		Memory::Write_U32(Memory::Read_U32(BufferIn + 16), SDIO_BASE + Memory::Read_U32(BufferIn));
+		{
 		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR");
+		// Bleh, this might not be as simple as I thought at first...
+		u32 reg = Memory::Read_U32(BufferIn);
+		u32 val = Memory::Read_U32(BufferIn + 16);
+
+		if ((reg == HCR_CLOCKCONTROL) && (val & 1))
+		{
+			// Clock is set to oscilliate, enable bit 1 to say it's stable
+			Memory::Write_U32(val | 2, SDIO_BASE + reg);
+		}
+		else if ((reg == HCR_SOFTWARERESET) && val)
+		{
+			// When a reset is specified, the register gets cleared
+			Memory::Write_U32(0, SDIO_BASE + reg);
+		}
+		else
+		{
+			// Default to just storing the new value
+			Memory::Write_U32(val, SDIO_BASE + reg);
+		}
+		}
 		break;
 
 	case IOCTL_READHCR:
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR");
 		// Load the specified reg into the out buffer
 		Memory::Write_U32(Memory::Read_U32(SDIO_BASE + Memory::Read_U32(BufferIn)), BufferOut);
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR");
 		break;
 
 	case IOCTL_RESETCARD:
-		m_Status |= CARD_INITIALIZED;
 		DEBUG_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
+		if (m_Card)
+			m_Status |= CARD_INITIALIZED;
+		// Returns 16bit RCA and 16bit 0s (meaning success)
+		Memory::Write_U32(0x9f620000, BufferOut);
 		break;
 
 	case IOCTL_SETCLK:
 		{
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_SETCLK");
 		// libogc only sets it to 1 and makes sure the return isn't negative...
 		// one half of the sdclk divisor: a power of two or zero.
 		u32 clock = Memory::Read_U32(BufferIn);
 		if (clock != 1)
 			INFO_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_SETCLK");
 		}
 		break;
 
 	case IOCTL_SENDCMD:
-		// Input: 24 bytes, Output: 10 bytes
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
-		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
+		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
+		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);	
 		break;
 
 	case IOCTL_GETSTATUS:
@@ -123,7 +146,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_GETOCR:
-		ERROR_LOG(WII_IPC_SD, "IOCTL_GETOCR");
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_GETOCR");
 		Memory::Write_U32(0x80ff8000, BufferOut);
 		break;
 
@@ -132,8 +155,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-// 	INFO_LOG(WII_IPC_SD, "InBuffer");
-// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+	INFO_LOG(WII_IPC_SD, "InBuffer");
+	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
 	INFO_LOG(WII_IPC_SD, "OutBuffer");
 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
@@ -159,10 +182,11 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	switch(CommandBuffer.Parameter) {	
 	case IOCTLV_SENDCMD:
-		DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD");
+		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
 		ReturnValue = ExecuteCommand(
 			CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size,
-			CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size);
+			CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size,
+			CommandBuffer.PayloadBuffer[0].m_Address, CommandBuffer.PayloadBuffer[0].m_Size);
 		break;
 
 	default:
@@ -178,6 +202,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
+												   u32 _BufferIn2, u32 _BufferInSize2,
 												   u32 _BufferOut, u32 _BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
@@ -208,35 +233,69 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	switch (req.command)
 	{
+	case GO_IDLE_STATE:
+		// libogc can use it during init..
+		break;
+
+	case SEND_RELATIVE_ADDR:
+		// Technically RCA should be generated when asked and at power on...w/e :p
+		Memory::Write_U32(0x9f62, _BufferOut);
+		break;
+
 	case SELECT_CARD:
+		// This covers both select and deselect
+		// Differentiate by checking if rca is set in req.arg
+		// If it is, it's a select and return 0x700
+		Memory::Write_U32((req.arg>>16) ? 0x700 : 0x900, _BufferOut);
+		break;
+
+	case SEND_IF_COND:
+		// If the card can operate on the supplied voltage, the response echoes back the supply
+		// voltage and the check pattern that were set in the command argument.
+		Memory::Write_U32(req.arg, _BufferOut);
 		break;
 
 	case SEND_CSD:
-		ERROR_LOG(WII_IPC_SD, "SEND_CSD");
-		//  <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
-		// CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
-		Memory::Write_U64(0xff928040c93efbcfULL, _BufferOut);
-		Memory::Write_U64(0x325f5a8300002600ULL, _BufferOut + 8);
+		DEBUG_LOG(WII_IPC_SD, "SEND_CSD");
+		// <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
+		//	CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
+
+		// Values used currently are from lpfaint99
+		Memory::Write_U32(0x80168000, _BufferOut);
+		Memory::Write_U32(0xa9ffffff, _BufferOut + 4);
+		Memory::Write_U32(0x325b5a83, _BufferOut + 8);
+		Memory::Write_U32(0x00002e00, _BufferOut + 12);
 		break;
 
 	case ALL_SEND_CID:
 	case SEND_CID:
-		ERROR_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
-		Memory::Write_U64(0x38a00000480032d5ULL, _BufferOut);
-		Memory::Write_U64(0x3c6080308803d420ULL, _BufferOut + 8);
+		DEBUG_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
+		Memory::Write_U32(0x80114d1c, _BufferOut);
+		Memory::Write_U32(0x80080000, _BufferOut + 4);
+		Memory::Write_U32(0x8007b520, _BufferOut + 8);
+		Memory::Write_U32(0x80080000, _BufferOut + 12);
 		break;
 
 	case SET_BLOCKLEN:
 		m_BlockLength = req.arg;
+		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
 	case APP_CMD_NEXT:
 		// Next cmd is going to be ACMD_*
+		Memory::Write_U32(0x920, _BufferOut);
 		break;
 
 	case ACMD_SETBUSWIDTH:
 		// 0 = 1bit, 2 = 4bit
 		m_BusWidth = (req.arg & 3);
+		Memory::Write_U32(0x920, _BufferOut);
+		break;
+
+	case ACMD_SENDOPCOND:
+		// Sends host capacity support information (HCS) and asks the accessed card to send
+		// its operating condition register (OCR) content
+		Memory::Write_U32(0x80ff8000, _BufferOut);
 		break;
 
 	case READ_MULTIPLE_BLOCK:
@@ -263,7 +322,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i wrote %i", _BufferOutSize, i);
+				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _BufferInSize2, i);
 				rwSuccess = 1;
 			}
 			else
@@ -275,14 +334,15 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			delete [] buffer;
 		}
 		}
+		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
 	case WRITE_MULTIPLE_BLOCK:
 		{
 		// Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
 		// and in block (512 Byte) units in a High Capacity SD Memory Card.
-		DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i into 0x%08x!",
-			req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
+		DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
+			req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
 		if (m_Card)
 		{
@@ -313,6 +373,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			delete [] buffer;
 		}
 		}
+		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
 	case CRAZY_BIGN:
