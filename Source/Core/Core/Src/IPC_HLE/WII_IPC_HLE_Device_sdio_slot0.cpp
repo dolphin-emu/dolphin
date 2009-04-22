@@ -17,14 +17,13 @@
 
 #include "Common.h"
 
+#include "SDCardUtil.h"
+
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
-#include "HW/SDInterface.h"
 #include "../Core.h"
-
-using namespace SDInterface;
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -46,9 +45,21 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
 
-	m_Card = fopen("sd.raw", "r+b");
+	char filename[16] = "sd.raw";
+	m_Card = fopen(filename, "r+b");
 	if(!m_Card)
-		ERROR_LOG(WII_IPC_SD, "Failed to open SD Card image");
+	{
+		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
+		if (SDCardCreate(128, filename))
+		{
+			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename);
+			m_Card = fopen(filename, "r+b");
+		}
+		if(!m_Card)
+		{
+			ERROR_LOG(WII_IPC_SD, "Could not open SD Card image or create a new one, are you running from a read-only directory?");
+		}
+	}
 
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
     return true;
@@ -58,7 +69,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 {
 	INFO_LOG(WII_IPC_SD, "Close");
 
-	fclose(m_Card);
+	if(m_Card)
+		fclose(m_Card);
 
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;

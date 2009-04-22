@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// PRELIMINARY - doesn't work yet
+// PRELIMINARY - seems to fully work with libogc, writing has yet to be tested
 
 #ifndef _WII_IPC_HLE_DEVICE_SDIO_SLOT0_H_
 #define _WII_IPC_HLE_DEVICE_SDIO_SLOT0_H_
