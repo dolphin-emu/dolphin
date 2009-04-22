@@ -33,7 +33,7 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 	// Clear the whole SD Host Control Register
-	//Memory::Memset(SDIO_BASE, 0, 0x100);
+	Memory::Memset(SDIO_BASE, 0, 0x100);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
@@ -376,11 +376,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			}
 
 			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
-			if (nWritten == req.blocks)
-			{
-				ERROR_LOG(WII_IPC_SD, "%s", ArrayToString(buffer, size).c_str());
-			}
-			else
+			if (nWritten != req.blocks)
 			{
 				ERROR_LOG(WII_IPC_SD, "Write Failed - wrote %x, error %i, eof? %i",
 					nWritten, ferror(m_Card), feof(m_Card));
