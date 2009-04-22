@@ -85,9 +85,6 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
     u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-
-//     INFO_LOG(WII_IPC_SD, "BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
-// 		BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
@@ -97,10 +94,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	switch (Cmd) {
 	case IOCTL_WRITEHCR:
 		{
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR");
-		// Bleh, this might not be as simple as I thought at first...
 		u32 reg = Memory::Read_U32(BufferIn);
 		u32 val = Memory::Read_U32(BufferIn + 16);
+
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
 
 		if ((reg == HCR_CLOCKCONTROL) && (val & 1))
 		{
@@ -121,9 +118,14 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_READHCR:
-		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR");
-		// Load the specified reg into the out buffer
-		Memory::Write_U32(Memory::Read_U32(SDIO_BASE + Memory::Read_U32(BufferIn)), BufferOut);
+		{
+		u32 reg = Memory::Read_U32(BufferIn);
+		u32 val = Memory::Read_U32(SDIO_BASE + reg);
+
+		DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
+		// Just reading the register
+		Memory::Write_U32(val, BufferOut);
+		}
 		break;
 
 	case IOCTL_RESETCARD:
@@ -206,7 +208,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+	//DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -214,7 +216,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
-												   u32 _BufferIn2, u32 _BufferInSize2,
+												   u32 _rwBuffer, u32 _rwBufferSize,
 												   u32 _BufferOut, u32 _BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
@@ -240,6 +242,9 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     req.addr    = Memory::Read_U32(_BufferIn + 24);
 	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
 	req.pad0	= Memory::Read_U32(_BufferIn + 32);
+
+	// Note: req.addr is the virtual address of _rwBuffer
+
 
 	u32 rwSuccess = 0;
 
@@ -334,7 +339,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _BufferInSize2, i);
+				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _rwBufferSize, i);
 				rwSuccess = 1;
 			}
 			else
@@ -373,7 +378,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
 			if (nWritten == req.blocks)
 			{
-				ArrayToString(buffer, size);
+				ERROR_LOG(WII_IPC_SD, "%s", ArrayToString(buffer, size).c_str());
 				rwSuccess = 1;
 			}
 			else
@@ -390,8 +395,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	case CRAZY_BIGN:
 		DEBUG_LOG(WII_IPC_SD, "CMD64, wtf");
-		// <svpe> shuffle2_: afaict it just sets some internal values in the
-		// SDI module. you can probably safely ignore it
+		// <svpe> shuffle2_: try returning -4 for cmd x'40.
+		Memory::Write_U32(-0x4, _BufferOut);
 		break;
 
 	default:
