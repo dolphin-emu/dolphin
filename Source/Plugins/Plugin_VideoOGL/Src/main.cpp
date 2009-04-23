@@ -330,7 +330,10 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 		else
 		{
 			if (_pXFB) // from CPU in SC mode
+			{
 				XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+				g_VideoInitialize.pCopiedToXFB();
+			}
 			else // from GP in DC without fifo&CP (some 2D homebrews)
 			{
 				XFB_Draw();
