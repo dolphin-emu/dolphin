@@ -246,6 +246,40 @@ public:
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
     virtual bool IOCtl(u32 _CommandAddress);
+
+	virtual u32 Update();
+
+private:
+
+	static u8 m_KeyCodes[256];
+
+	enum
+	{
+		MSG_KBD_CONNECT = 0,
+		MSG_KBD_DISCONNECT,
+		MSG_EVENT
+	};
+
+	// This struct is designed to be directly writeable to memory
+	// without any translation
+	struct SMessageData
+	{
+		u32 dwMessage;
+		u32 dwUnk1;
+		u8 bModifiers;
+		u8 bUnk2;
+		u8 bPressedKeys[6];
+	};
+	
+	std::queue<SMessageData> m_MessageQueue;
+
+	bool m_KeyBuffer[256];
+	u8 m_Modifiers;
+	
+	virtual bool IsKeyPressed(int _Key);
+
+	virtual void PushMessage(u32 _Message, u8 _Modifiers, u8 * _PressedKeys);
+	virtual void WriteMessage(u32 _Address, SMessageData _Message);
 };
 
 #endif

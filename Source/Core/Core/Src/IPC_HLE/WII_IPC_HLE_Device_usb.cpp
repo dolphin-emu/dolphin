@@ -1999,6 +1999,97 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 _CommandAddress)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodes[256] = {
+#ifdef _WIN32
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x2A, // Backspace
+	0x2B, // Tab
+	0x00, 0x00, 
+	0x00, // Clear
+	0x28, // Return
+	0x00, 0x00,
+	0x00, // Shift
+	0x00, // Control
+	0x00, // ALT
+	0x48, // Pause
+	0x39, // Capital
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x29, // Escape
+	0x00, 0x00, 0x00, 0x00,
+	0x2C, // Space
+	0x4B, // Prior
+	0x4E, // Next
+	0x4D, // End
+	0x4A, // Home
+	0x50, // Left
+	0x52, // Up
+	0x4F, // Right
+	0x51, // Down
+	0x00, 0x00, 0x00, 
+	0x46, // Print screen
+	0x49, // Insert
+	0x4C, // Delete
+	0x00,
+	// 0 -> 9
+	0x27, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 
+	0x25, 0x26,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00,
+	// A -> Z
+	0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 
+	0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13,
+	0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B,
+	0x1C, 0x1D,
+	0x00, 0x00, 0x00, 0x00,
+	0x00,
+	// Numpad 0 -> 9
+	0x62, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F,
+	0x60, 0x61,
+	0x55, // Multiply
+	0x57, // Add
+	0x00, // Separator
+	0x56, // Substract
+	0x63, // Decimal
+	0x54, // Divide
+	// F1 -> F12
+	0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41,
+	0x42, 0x43, 0x44, 0x45, 
+	// F13 -> F24
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x53, // Numlock
+	0x47, // Scroll lock
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	// Modifier keys
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x33, // ';'
+	0x2E, // Plus
+	0x36, // Comma
+	0x2D, // Minus
+	0x37, // Period
+	0x38, // '/'
+	0x35, // '~'
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00,
+	0x2F, // '['
+	0x32, // '\'
+	0x30, // ']'
+	0x34, // '''
+	0x00, //
+	0x00, // Nothing interesting past this point.
+#else
+	// TODO: do it for non-Windows platforms
+	0
+#endif
+};
+
 CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
 : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
@@ -2010,6 +2101,13 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
     Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+
+	for(int i = 0; i < 256; i++)
+		m_KeyBuffer[i] = false;
+	m_Modifiers = 0x00;
+
+	PushMessage(MSG_KBD_CONNECT, 0x00, NULL);
+
     return true;
 }
 
@@ -2021,7 +2119,123 @@ bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
     u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
-    ERROR_LOG(WII_IPC, "USB_KBD not implemented: parameter %i", Parameter);
+	if (!m_MessageQueue.empty())
+	{
+		WriteMessage(BufferOut, m_MessageQueue.front());
+		m_MessageQueue.pop();
+	}
+
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
+{
+#ifdef _WIN32
+	if (GetAsyncKeyState(_Key) & 0x8000)
+		return true;
+	else
+		return false;
+#else
+	// TODO: do it for non-Windows platforms
+	return false;
+#endif
+}
+
+u32 CWII_IPC_HLE_Device_usb_kbd::Update()
+{
+	u8 Modifiers = 0x00;
+	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	bool GotEvent = false;
+	int i, j;
+
+	j = 0;
+	for (i = 0; i < 256; i++)
+	{
+		bool KeyPressedNow = IsKeyPressed(i);
+		bool KeyPressedBefore = m_KeyBuffer[i];
+
+		if (KeyPressedNow ^ KeyPressedBefore)
+		{
+			if (KeyPressedNow)
+			{
+				if(m_KeyCodes[i] == 0x00)
+					continue;
+
+				PressedKeys[j] = m_KeyCodes[i];
+
+				j++;
+				if(j == 6) break;
+			}
+
+			GotEvent = true;
+		}
+
+		m_KeyBuffer[i] = KeyPressedNow;
+	}
+
+#ifdef _WIN32
+	if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+		Modifiers |= 0x01;
+	if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
+		Modifiers |= 0x02;
+	if (GetAsyncKeyState(VK_MENU) & 0x8000)
+		Modifiers |= 0x04;
+	if (GetAsyncKeyState(VK_LWIN) & 0x8000)
+		Modifiers |= 0x08;
+	if (GetAsyncKeyState(VK_RCONTROL) & 0x8000)
+		Modifiers |= 0x10;
+	if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
+		Modifiers |= 0x20;
+	if (GetAsyncKeyState(VK_MENU) & 0x8000) // TODO: VK_MENU is for ALT, not for ALT GR
+		Modifiers |= 0x40;
+	if (GetAsyncKeyState(VK_RWIN) & 0x8000)
+		Modifiers |= 0x80;
+#else
+	// TODO: modifiers for non-Windows platforms
+#endif
+
+	if(Modifiers ^ m_Modifiers)
+	{
+		GotEvent = true;
+		m_Modifiers = Modifiers;
+	}
+
+	if (GotEvent)
+		PushMessage(MSG_EVENT, Modifiers, PressedKeys);
+
+	return 0;
+}
+
+void CWII_IPC_HLE_Device_usb_kbd::PushMessage(u32 _Message, u8 _Modifiers, u8 * _PressedKeys)
+{
+	SMessageData MsgData;
+
+	MsgData.dwMessage = _Message;
+	MsgData.dwUnk1 = 0;
+	MsgData.bModifiers = _Modifiers;
+	MsgData.bUnk2 = 0;
+
+	if (_PressedKeys)
+		memcpy(MsgData.bPressedKeys, _PressedKeys, sizeof(MsgData.bPressedKeys));
+	else
+		memset(MsgData.bPressedKeys, 0, sizeof(MsgData.bPressedKeys));
+
+	m_MessageQueue.push(MsgData);
+}
+
+void CWII_IPC_HLE_Device_usb_kbd::WriteMessage(u32 _Address, SMessageData _Message)
+{
+	// TODO: the MessageData struct could be written directly in memory,
+	// instead of writing each member separately
+	Memory::Write_U32(_Message.dwMessage, _Address);
+	Memory::Write_U32(_Message.dwUnk1, _Address + 0x4);
+	Memory::Write_U8(_Message.bModifiers, _Address + 0x8);
+	Memory::Write_U8(_Message.bUnk2, _Address + 0x9);
+	Memory::Write_U8(_Message.bPressedKeys[0], _Address + 0xA);
+	Memory::Write_U8(_Message.bPressedKeys[1], _Address + 0xB);
+	Memory::Write_U8(_Message.bPressedKeys[2], _Address + 0xC);
+	Memory::Write_U8(_Message.bPressedKeys[3], _Address + 0xD);
+	Memory::Write_U8(_Message.bPressedKeys[4], _Address + 0xE);
+	Memory::Write_U8(_Message.bPressedKeys[5], _Address + 0xF);
 }
