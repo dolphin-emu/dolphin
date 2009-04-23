@@ -51,6 +51,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
+#include "AES/aes.h"
 
 
 
@@ -69,7 +70,10 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     }
     else if (VolumeHandler::IsValid())
     {
-        m_TitleID = ((u64)0x00010000 << 32) | VolumeHandler::Read32(0);                        
+		// blindly grab the titleID from the disc - it's unencrypted at:
+		// offset 0x0F8001DC and 0x0F80044C
+		VolumeHandler::RAWReadToPtr((u8*)&m_TitleID, (u64)0x0F8001DC, 8);
+		m_TitleID = Common::swap64(m_TitleID);                      
     }
     else
     {
@@ -85,7 +89,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     // m_TitleIDs.push_back(0x0001000248414241ULL);
     // m_TitleIDs.push_back(0x0001000248414141ULL);
     
-   // FindValidTitleIDs();
+	//FindValidTitleIDs();
 
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
@@ -130,8 +134,35 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             Buffer.PayloadBuffer[i].m_Size);
     }
 
+	// Uhh just put this here for now
+	u8 keyTable[11][16] = {
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // ECC Private Key
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Console ID
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND AES Key
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND HMAC
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Common Key
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // PRNG seed
+		{0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d,}, // SD Key
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
+	};
+
     switch (Buffer.Parameter)
     {
+	case IOCTL_ES_GETDEVICEID:
+		{
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETDEVICEID no out buffer");
+
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID");
+			// Return arbitrary device ID - TODO allow user to set value?
+			Memory::Write_U32(0x31337f11, Buffer.PayloadBuffer[0].m_Address);
+			Memory::Write_U32(0, _CommandAddress + 0x4);
+			return true;            
+		}
+		break;
+
     case IOCTL_ES_GETTITLECONTENTSCNT:
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
@@ -548,6 +579,38 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
+	case IOCTL_ES_ENCRYPT:
+		{
+			u32 keyIndex	= Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
+			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
+			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+
+			AES_KEY AESKey;
+			AES_set_encrypt_key(keyTable[keyIndex], 128, &AESKey);
+			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_ENCRYPT);
+
+			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
+		}
+		break;
+
+	case IOCTL_ES_DECRYPT:
+		{
+			u32 keyIndex	= Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
+			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
+			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+
+			AES_KEY AESKey;
+			AES_set_decrypt_key(keyTable[keyIndex], 128, &AESKey);
+			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_DECRYPT);
+
+			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
+		}
+		break;
+
 
         // ===============================================================================================
         // unsupported functions 
@@ -592,13 +655,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         break;
 
     default:
-
         _dbg_assert_msg_(WII_IPC_ES, 0, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
-        DumpCommands(_CommandAddress, 8);
-        INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
-            "Parameter: 0x%08x", Buffer.Parameter);
-
+		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
+        INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command.Parameter: 0x%08x", Buffer.Parameter);
         break;
     }
 
