@@ -251,7 +251,16 @@ public:
 
 private:
 
-	static u8 m_KeyCodes[256];
+	static u8 m_KeyCodesQWERTY[256];
+	static u8 m_KeyCodesAZERTY[256];
+
+	enum
+	{
+		KBD_LAYOUT_QWERTY = 0,
+		KBD_LAYOUT_AZERTY
+	};
+
+	int m_KeyboardLayout;
 
 	enum
 	{
@@ -273,8 +282,8 @@ private:
 	
 	std::queue<SMessageData> m_MessageQueue;
 
-	bool m_KeyBuffer[256];
-	u8 m_Modifiers;
+	bool m_OldKeyBuffer[256];
+	u8 m_OldModifiers;
 	
 	virtual bool IsKeyPressed(int _Key);
 
