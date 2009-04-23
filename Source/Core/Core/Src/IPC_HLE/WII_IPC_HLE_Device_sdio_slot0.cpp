@@ -33,7 +33,7 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 	// Clear the whole SD Host Control Register
-	Memory::Memset(SDIO_BASE, 0, 0x100);
+	//Memory::Memset(SDIO_BASE, 0, 0x100);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
