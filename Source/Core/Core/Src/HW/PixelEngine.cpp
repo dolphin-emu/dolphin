@@ -46,6 +46,10 @@ enum
 	PE_ALPHAREAD     = 0x008, // Alpha Read
 	PE_CTRL_REGISTER = 0x00a, // Control
 	PE_TOKEN_REG     = 0x00e, // Token
+	PE_FLIP_LEFT	 = 0x010, // Flip Left
+	PE_FLIP_RIGHT	 = 0x012, // Flip Right
+	PE_FLIP_TOP		 = 0x014, // Flip Top
+	PE_FLIP_BOTTOM	 = 0x016, // Flip Bottom
 };
 
 // fifo Control Register
@@ -100,6 +104,23 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFF)
 	{
+
+	case PE_FLIP_LEFT:
+        _uReturnValue = 0x80;
+        return;
+
+    case PE_FLIP_RIGHT:
+        _uReturnValue = 0xA0;
+        return;
+
+    case PE_FLIP_TOP:
+        _uReturnValue = 0x80;
+        return;
+
+    case PE_FLIP_BOTTOM:
+        _uReturnValue = 0xA0;
+        return;
+
 	case PE_CTRL_REGISTER:
 		_uReturnValue = g_ctrlReg.Hex;
 		INFO_LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
@@ -148,6 +169,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	switch (_iAddress & 0xFFF)
 	{
+
 	case PE_CTRL_REGISTER:	
 		{
 			UPECtrlReg tmpCtrl(_iValue);
