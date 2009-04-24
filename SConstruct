@@ -243,8 +243,11 @@ env['HAVE_AO'] = conf.CheckPKG('ao')
 # Sound lib
 env['HAVE_OPENAL'] = conf.CheckPKG('openal')
 
+if sys.platform != 'darwin':
 # needed for mic
-env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+else:
+    env['HAVE_PORTAUDIO'] =  0
 
 # sfml
 env['HAVE_SFML'] = 0
