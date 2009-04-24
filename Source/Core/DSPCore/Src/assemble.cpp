@@ -77,10 +77,10 @@ static const char *err_string[] =
 	"Number out of range"
 };
 
-DSPAssembler::DSPAssembler(const AssemblerSettings &settings) 
-:   current_param(0),
-	cur_addr(0),
-	cur_pass(0),
+DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :	
+	m_cur_addr(0),
+	m_cur_pass(0),
+	m_current_param(0),
 	settings_(settings) 
 {
 	gdg_buffer = NULL;
@@ -128,11 +128,11 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	else
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s : %s\n", err_string[err_code], extra_info);
 
-	if (current_param == 0)
+	if (m_current_param == 0)
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
 	else 
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d Param: %d : %s\n",
-						   err_string[err_code], code_line, current_param, extra_info);
+						   err_string[err_code], code_line, m_current_param, extra_info);
 	last_error_str = error_buffer;
 	last_error = err_code;
 }
@@ -236,7 +236,7 @@ s32 DSPAssembler::ParseValue(const char *str)
 			u16 value;
 			if (labels.GetLabelValue(ptr, &value))
 				return value;
-			if (cur_pass == 2)
+			if (m_cur_pass == 2)
 				ShowError(ERR_UNKNOWN_LABEL, str);
 		}
 	}
@@ -532,7 +532,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1e && par[i].val <= 0x1f) {
 							fprintf(stderr, "%i : %s", code_line, cur_line.c_str());
-							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d Param: %d\n",
+							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d Param: %d Ext: %d\n",
 								(par[i].val & 1), (par[i].val & 1), code_line, current_param, ext);
 						}
 						else if (par[i].val >= 0x1c && par[i].val <= 0x1d) {
@@ -683,7 +683,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 			continue;
 		}
 	}
-	current_param = 0;
+	m_current_param = 0;
 	return true;
 }
 
@@ -691,20 +691,20 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 // Merge opcode with params.
 void DSPAssembler::BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
 {
-	outbuf[cur_addr] |= opc->opcode;
+	outbuf[m_cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
 	{
 		// Ignore the "reverse" parameters since they are implicit.
 		if (opc->params[i].type != P_ACC_D && opc->params[i].type != P_ACCM_D)
 		{
-			u16 t16 = outbuf[cur_addr + opc->params[i].loc];
+			u16 t16 = outbuf[m_cur_addr + opc->params[i].loc];
 			u16 v16 = par[i].val;
 			if (opc->params[i].lshift > 0)
 				v16 <<= opc->params[i].lshift;
 			else
 				v16 >>= -opc->params[i].lshift;
 			v16 &= opc->params[i].mask;
-			outbuf[cur_addr + opc->params[i].loc] = t16 | v16;
+			outbuf[m_cur_addr + opc->params[i].loc] = t16 | v16;
 		}
 	}
 }
@@ -722,7 +722,7 @@ void DSPAssembler::InitPass(int pass)
 		aliases["S16"] = "SET16";
 		aliases["S40"] = "SET40";
 	}
-	cur_addr = 0;
+	m_cur_addr = 0;
 	cur_segment = SEGMENT_CODE;
 	segment_addr[SEGMENT_CODE] = 0;
 	segment_addr[SEGMENT_DATA] = 0;
@@ -744,11 +744,11 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 	printf("Pass %d\n", pass);
 	code_line = 0;
-	cur_pass = pass;
+	m_cur_pass = pass;
 
 #define LINEBUF_SIZE 1024
 	char linebuffer[LINEBUF_SIZE];
-	while (!feof(fsrc) && !failed)
+	while (!failed && !feof(fsrc))
 	{
 		int opcode_size = 0;
 		memset(linebuffer, 0, LINEBUF_SIZE);
@@ -758,8 +758,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		//printf("A: %s", linebuffer);
 		code_line++;
 
-		param_t params[10] = {0};
-		param_t params_ext[10] = {0};
+		param_t params[10] = {{0}};
+		param_t params_ext[10] = {{0}};
 
 		for (int i = 0; i < LINEBUF_SIZE; i++)
 		{
@@ -870,7 +870,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		if (label)
 		{
 			// there is a valid label so lets store it in labels table
-			u32 lval = cur_addr;
+			u32 lval = m_cur_addr;
 			if (opcode)
 			{
 				if (strcmp(opcode, "EQU") == 0)
@@ -922,7 +922,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		if (strcmp("ORG", opcode) == 0)
 		{
 			if (params[0].type == P_VAL)
-				cur_addr = params[0].val;
+				m_cur_addr = params[0].val;
 			else
 				ShowError(ERR_EXPECTED_PARAM_VAL);
 			continue;
@@ -932,12 +932,12 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		{
 			if (params[0].type == P_STR)
 			{
-				segment_addr[cur_segment] = cur_addr;
+				segment_addr[cur_segment] = m_cur_addr;
 				if (strcmp("DATA", params[0].str) == 0)
 					cur_segment = SEGMENT_DATA;
 				if (strcmp("CODE", params[0].str) == 0)
 					cur_segment = SEGMENT_CODE;
-				cur_addr = segment_addr[cur_segment];
+				m_cur_addr = segment_addr[cur_segment];
 			}
 			else
 				ShowError(ERR_EXPECTED_PARAM_STR);
@@ -975,20 +975,21 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		if (pass == 2)
 		{
 			// generate binary
-			((u16 *)gdg_buffer)[cur_addr] = 0x0000;
+			((u16 *)gdg_buffer)[m_cur_addr] = 0x0000;
 			BuildCode(opc, params, params_count, (u16 *)gdg_buffer);
 			if (opc_ext)
 				BuildCode(opc_ext, params_ext, params_count_ext, (u16 *)gdg_buffer);
 		}
 
-		cur_addr += opcode_size;
+		m_cur_addr += opcode_size;
 	};
 	if (gdg_buffer == NULL)
 	{
-		gdg_buffer_size = cur_addr;
+		gdg_buffer_size = m_cur_addr;
 		gdg_buffer = (char *)malloc(gdg_buffer_size * sizeof(u16) + 4);
 		memset(gdg_buffer, 0, gdg_buffer_size * sizeof(u16));
 	}
-	fclose(fsrc);
+	if (! failed)
+		fclose(fsrc);
 	return !failed;
 }

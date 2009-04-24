@@ -117,8 +117,8 @@ private:
 	std::string include_dir;
 	std::string cur_line;
 
-	u32 cur_addr;
-	u8  cur_pass;
+	u32 m_cur_addr;
+	u8  m_cur_pass;
 	
 	LabelMap labels;
 
@@ -133,7 +133,7 @@ private:
 
 	segment_t cur_segment;
 	u32 segment_addr[SEGMENT_MAX];
-	int current_param;
+	int m_current_param;
 	const AssemblerSettings settings_;
 };
 
