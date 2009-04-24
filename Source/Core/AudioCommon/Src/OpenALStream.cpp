@@ -33,7 +33,11 @@ bool OpenALStream::Start()
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
+#ifdef __APPLE__
 		pDevice = alcOpenDevice((ALCubyte*)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+#else
+		pDevice = alcOpenDevice((const ALCchar *)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+#endif
 		if (pDevice)
 		{
 			pContext = alcCreateContext(pDevice, NULL);
