@@ -170,6 +170,6 @@ void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg) {
 	if (!m_enable || !isValid())
 		return;
 
-   	fwrite(msg, (strlen(msg) + 1) * sizeof(char), 1, m_logfile);
+   	fwrite(msg, strlen(msg) * sizeof(char), 1, m_logfile);
 	fflush(m_logfile);
 }
