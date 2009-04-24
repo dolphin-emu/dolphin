@@ -46,10 +46,10 @@ enum
 	PE_ALPHAREAD     = 0x008, // Alpha Read
 	PE_CTRL_REGISTER = 0x00a, // Control
 	PE_TOKEN_REG     = 0x00e, // Token
-	PE_FLIP_LEFT	 = 0x010, // Flip Left
-	PE_FLIP_RIGHT	 = 0x012, // Flip Right
-	PE_FLIP_TOP		 = 0x014, // Flip Top
-	PE_FLIP_BOTTOM	 = 0x016, // Flip Bottom
+	PE_BBOX_LEFT	 = 0x010, // Flip Left
+	PE_BBOX_RIGHT	 = 0x012, // Flip Right
+	PE_BBOX_TOP		 = 0x014, // Flip Top
+	PE_BBOX_BOTTOM	 = 0x016, // Flip Bottom
 };
 
 // fifo Control Register
@@ -104,20 +104,22 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFF)
 	{
-
-	case PE_FLIP_LEFT:
+	
+	// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
+	// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
+	case PE_BBOX_LEFT:
         _uReturnValue = 0x80;
         return;
 
-    case PE_FLIP_RIGHT:
+    case PE_BBOX_RIGHT:
         _uReturnValue = 0xA0;
         return;
 
-    case PE_FLIP_TOP:
+    case PE_BBOX_TOP:
         _uReturnValue = 0x80;
         return;
 
-    case PE_FLIP_BOTTOM:
+    case PE_BBOX_BOTTOM:
         _uReturnValue = 0xA0;
         return;
 
