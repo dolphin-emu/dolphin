@@ -210,7 +210,8 @@ int main(int argc, const char *argv[])
 {
 	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{
-		printf("USAGE: DSPTool [-d] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
+		printf("USAGE: DSPTool [-?] [--help] [-d] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
+		printf("-? / --help: Prints this message\n");
 		printf("-d: Disassemble\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
@@ -292,7 +293,10 @@ int main(int argc, const char *argv[])
 		if (File::ReadFileToString(true, input_name.c_str(), &source))
 		{
 			std::vector<u16> code;
-			Assemble(source.c_str(), &code);
+			if(!Assemble(source.c_str(), &code)) {
+				printf("Assemble: Assembly failed due to errors\n");
+				return 1;
+			}
 			if (!output_name.empty())
 			{
 				std::string binary_code;
@@ -307,5 +311,8 @@ int main(int argc, const char *argv[])
 			}
 		}
 	}
+
+	printf("Assembly completed successfully!\n");
+
 	return 0;
 }

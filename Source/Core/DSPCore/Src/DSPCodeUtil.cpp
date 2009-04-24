@@ -35,8 +35,10 @@ bool Assemble(const char *text, std::vector<u16> *code)
 
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);
-	if (!assembler.Assemble(text, code))
+	if (!assembler.Assemble(text, code)) {
 		printf("%s", assembler.GetErrorString().c_str());
+		return false;
+	}
 
 	return true;
 }
