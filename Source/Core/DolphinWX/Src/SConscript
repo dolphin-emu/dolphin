@@ -31,6 +31,7 @@ if wxenv['HAVE_WX']:
 		'MemoryCards/GCMemcard.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
+		'InfoWindow.cpp',
 		'stdafx.cpp',
 		'FrameWiimote.cpp',
 		'WxUtils.cpp',

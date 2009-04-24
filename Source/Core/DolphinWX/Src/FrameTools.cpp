@@ -40,6 +40,7 @@ be accessed from Core::GetWindowHandle().
 #include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
+#include "InfoWindow.h"
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
@@ -91,6 +92,7 @@ static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
 // Other Windows
 wxCheatsWindow* CheatsWindow;
+wxInfoWindow* InfoWindow;
 
 // Create menu items
 void CFrame::CreateMenu()
@@ -164,6 +166,7 @@ void CFrame::CreateMenu()
 	toolsMenu->AppendSeparator();
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	toolsMenu->Append(IDM_INFO, _T("System Information"));
 	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
      
     if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
@@ -682,6 +685,11 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
+}
+
+void CFrame::OnShow_InfoWindow(wxCommandEvent& WXUNUSED (event))
+{
+	InfoWindow = new wxInfoWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
 
 

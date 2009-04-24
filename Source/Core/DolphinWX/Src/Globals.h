@@ -22,6 +22,7 @@
 #define _GLOBALS_H
 
 #include "Common.h"
+#include "svnrev.h"
 
 // Constant Colors
 const unsigned long COLOR_GRAY = 0xDCDCDC;
@@ -59,6 +60,7 @@ enum
 
 	IDM_MEMCARD, // Misc menu
 	IDM_CHEATS,
+	IDM_INFO,
 	IDM_CHANGEDISC,
 	IDM_PROPERTIES,
     IDM_LOAD_WII_MENU,

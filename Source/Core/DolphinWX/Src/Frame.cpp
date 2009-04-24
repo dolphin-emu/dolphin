@@ -264,6 +264,7 @@ EVT_MENU(IDT_LOG, CFrame::MM_OnLog)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
+EVT_MENU(IDM_INFO, CFrame::OnShow_InfoWindow)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
@@ -496,7 +497,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		UpdateGUI();
 	}
 #ifdef _WIN32
-	if(event.GetKeyCode() == 'E') // Send this to the video plugin WndProc
+	if(event.GetKeyCode() == 'E','M') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
 		event.Skip(); // Don't block the E key

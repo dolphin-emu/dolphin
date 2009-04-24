@@ -1117,6 +1117,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\InfoWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\InfoWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\LogWindow.cpp"
 				>
 			</File>
