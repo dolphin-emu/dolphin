@@ -42,6 +42,7 @@ void Init()
 	MarkAllDirty();
 	for (int i = 0; i < 8; i++)
 		g_VertexLoaders[i] = NULL;
+	RecomputeCachedArraybases();
 }
 
 void Shutdown()

@@ -22,7 +22,6 @@
 #include "VideoCommon.h"
 #include "LookUpTables.h"
 #include "VertexLoader.h"
-#include "VertexLoaderManager.h"
 #include "VertexLoader_Color.h"
 #include "NativeVertexWriter.h"
 
@@ -167,12 +166,7 @@ void LOADERDECL Color_ReadIndex8_24b_6666()
 void LOADERDECL Color_ReadIndex8_32b_8888()
 {
 	u8 Index = DataReadU8();
-	u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	if (!iAddress)
-	{
-		RecomputeCachedArraybases();
-		iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	}
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
 //////////////////////////////////////////////////////////////////////////
