@@ -206,6 +206,7 @@ void ConfigDialog::CreateGUIControls()
 	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
+
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This will create a Fullscreen window using the chosen Fullscreen resolution."
@@ -228,7 +229,7 @@ void ConfigDialog::CreateGUIControls()
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
-	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_MAXANISOTROPYTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
 	m_MaxAnisotropyCB->Append(wxT("1x"));
 	m_MaxAnisotropyCB->Append(wxT("2x"));
@@ -359,11 +360,6 @@ void ConfigDialog::CreateGUIControls()
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("ZTP Bloom hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SMGh = new wxCheckBox(m_PageAdvanced, ID_SMGHACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
-	// Disabled or enabled
-	m_SafeTextureCache->Enable(true);
-	m_ProjectionHax1->Enable(true);
-	m_SMGh->Enable(true);	
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);

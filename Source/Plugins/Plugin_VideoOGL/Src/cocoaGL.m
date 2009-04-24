@@ -11,7 +11,7 @@ NSWindow *cocoaGLCreateWindow(int w,int h)
         				defer:FALSE];
 
 	[window setTitle:@"Dolphin on OSX"];
-	[window makeKeyAndOrderFront: nil];
+	//[window makeKeyAndOrderFront: nil];
 
 	[pool release];
 
@@ -69,11 +69,15 @@ NSOpenGLContext* cocoaGLInit(int mode)
         attr[i++] = mode;
         attr[i++] = NSOpenGLPFASamples;
         attr[i++] = 1;
+#ifdef GL_VERSION_1_3
+
+#else
 #ifdef GL_VERSION_1_2
-	#warning "your car support ogl 1.2, dolphin wil use software renderer"
+#warning "your card only supports ogl 1.2, dolphin will use software renderer"
 	//if opengl < 1.3 uncomment this twoo lines to use software renderer
-        attr[i++] = NSOpenGLPFARendererID;
-        attr[i++] = kCGLRendererGenericFloatID;
+	attr[i++] = NSOpenGLPFARendererID;
+	attr[i++] = kCGLRendererGenericFloatID;
+#endif
 #endif
     	attr[i++] = NSOpenGLPFAScreenMask;
     	attr[i++] = CGDisplayIDToOpenGLDisplayMask(CGMainDisplayID());
