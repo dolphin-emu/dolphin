@@ -73,7 +73,7 @@ public:
 	// one for each word of code, indicating the source assembler code line number it came from.
 
 	// If returns false, call GetErrorString to get some text to present to the user.
-	bool Assemble(const char *text, std::vector<u16> *code, std::vector<int> *line_numbers = NULL);
+	bool Assemble(const char *text, std::vector<u16> &code, std::vector<int> *line_numbers = NULL);
 
 	std::string GetErrorString() const { return last_error_str; }
 	err_t GetError() const { return last_error; }
@@ -112,17 +112,16 @@ private:
 	void BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf);
 
 	char *gdg_buffer;
-	int gdg_buffer_size;
 
 	std::string include_dir;
 	std::string cur_line;
 
 	u32 m_cur_addr;
+	int m_totalSize;
 	u8  m_cur_pass;
 	
 	LabelMap labels;
 
-	FILE *fsrc;
 	u32	code_line;
 	bool failed;
 	std::string last_error_str;

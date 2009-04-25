@@ -620,7 +620,7 @@ bool WriteStringToFile(bool text_file, const std::string &str, const char *filen
 	return true;
 }
 
-bool ReadFileToString(bool text_file, const char *filename, std::string *str)
+bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 {
 	FILE *f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)
@@ -630,7 +630,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string *str)
 	fseek(f, 0, SEEK_SET);
 	char *buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;
-	*str = std::string(buf, len);
+	str = std::string(buf, len);
 	fclose(f);
 	delete [] buf;
 	return true;

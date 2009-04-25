@@ -100,7 +100,7 @@ std::string GetBundleDirectory();
 #endif
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char *filename);
-bool ReadFileToString(bool text_file, const char *filename, std::string *str);
+bool ReadFileToString(bool text_file, const char *filename, std::string &str);
 
 }  // namespace
 

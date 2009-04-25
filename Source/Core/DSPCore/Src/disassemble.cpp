@@ -72,7 +72,7 @@ DSPDisassembler::~DSPDisassembler()
 	fclose(uo);
 }
 
-bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, std::string *text)
+bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, std::string &text)
 {
 	const char *tmp1 = "tmp1.bin";
 	const char *tmp2 = "tmp.txt";
@@ -187,7 +187,7 @@ static void MakeLowerCase(char *ptr)
 	}
 }
 
-void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string *dest)
+void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string &dest)
 {
 	char buffer[256];
 	char *buf = buffer;
@@ -200,7 +200,7 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::strin
 	if ((*pc & 0x7fff) >= 0x1000)
 	{
 		*pc++;
-		dest->append("; outside memory");
+		dest.append("; outside memory");
 		return;
 	}
 
@@ -318,10 +318,10 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::strin
 		*pc += opc->size & ~P_EXT;
 
 	if (pass == 2)
-		dest->append(buffer);
+		dest.append(buffer);
 }
 
-bool DSPDisassembler::DisFile(const char* name, int pass, std::string *output)
+bool DSPDisassembler::DisFile(const char* name, int pass, std::string &output)
 {
 	FILE* in = fopen(name, "rb");
 	if (in == NULL)
@@ -342,7 +342,7 @@ bool DSPDisassembler::DisFile(const char* name, int pass, std::string *output)
 	{
 		DisOpcode(binbuf, pass, &pc, output);
 		if (pass == 2)
-			output->append("\n");
+			output.append("\n");
 	}
 	delete [] binbuf;
 	return true;

@@ -35,7 +35,7 @@ class LabelMap
 {
 	struct label_t
 	{
-		label_t(const char *lbl, s32 address, LabelType ltype) : name(lbl), addr(address), type(ltype) {}
+		label_t(const std::string &lbl, s32 address, LabelType ltype) : name(lbl), addr(address), type(ltype) {}
 		std::string name;
 		s32	addr;
 		LabelType type;
@@ -44,10 +44,11 @@ class LabelMap
 
 public:
 	LabelMap();
+	~LabelMap() { }
 	void RegisterDefaults();
-	void RegisterLabel(const char *label, u16 lval, LabelType type = LABEL_VALUE);
-	void DeleteLabel(const char *label);
-	bool GetLabelValue(const char *label, u16 *value, LabelType type = LABEL_ANY) const;
+	void RegisterLabel(const std::string &label, u16 lval, LabelType type = LABEL_VALUE);
+	void DeleteLabel(const std::string &label);
+	bool GetLabelValue(const std::string &label, u16 *value, LabelType type = LABEL_ANY) const;
 	void Clear();
 };
 

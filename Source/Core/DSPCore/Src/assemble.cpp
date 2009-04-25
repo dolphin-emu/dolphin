@@ -37,11 +37,13 @@ Initial import
 
 ====================================================================*/
 
-#include <stdio.h>
+#include <cstdio>
 #include <memory.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <map>
+#include <iostream>
+#include <fstream>
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -89,9 +91,10 @@ DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :
 
 DSPAssembler::~DSPAssembler()
 {
+	free(gdg_buffer);
 }
 
-bool DSPAssembler::Assemble(const char *text, std::vector<u16> *code, std::vector<int> *line_numbers)
+bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vector<int> *line_numbers)
 {
 	if (line_numbers)
 		line_numbers->clear();
@@ -101,13 +104,25 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> *code, std::vecto
 	InitPass(1);
 	if (!AssembleFile(fname, 1))
 		return false;
+
+	// We now have the size of the output buffer
+	if (m_totalSize > 0)
+	{
+		if(gdg_buffer)
+			free(gdg_buffer);
+
+		gdg_buffer = (char *)malloc(m_totalSize * sizeof(u16) + 4);
+		memset(gdg_buffer, 0, m_totalSize * sizeof(u16));
+	} else
+		return false;
+
 	InitPass(2);
 	if (!AssembleFile(fname, 2))
 		return false;
 
-	code->resize(gdg_buffer_size);
-	for (int i = 0; i < gdg_buffer_size; i++) {
-		(*code)[i] = *(u16 *)(gdg_buffer + i * 2);
+	code.resize(m_totalSize);
+	for (int i = 0; i < m_totalSize; i++) {
+		code[i] = *(u16 *)(gdg_buffer + i * 2);
 	}
 
 	last_error_str = "(no errors)";
@@ -124,10 +139,6 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	buf_ptr += sprintf(buf_ptr, "%i : %s", code_line, cur_line.c_str());
 	if (!extra_info)
 		extra_info = "-";
-	if (fsrc)
-		fclose(fsrc);
-	else
-		buf_ptr += sprintf(buf_ptr, "ERROR: %s : %s\n", err_string[err_code], extra_info);
 
 	if (m_current_param == 0)
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
@@ -724,6 +735,7 @@ void DSPAssembler::InitPass(int pass)
 		aliases["S40"] = "SET40";
 	}
 	m_cur_addr = 0;
+	m_totalSize = 0;
 	cur_segment = SEGMENT_CODE;
 	segment_addr[SEGMENT_CODE] = 0;
 	segment_addr[SEGMENT_DATA] = 0;
@@ -734,29 +746,29 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 {
     int disable_text = 0; // modified by Hermes
 
-	fsrc = fopen(fname, "r");
-	if (fsrc == NULL)
+	std::ifstream fsrc(fname);
+
+	if (fsrc.fail())
 	{
-		fprintf(stderr, "Cannot open %s file\n", fname);
+		std::cerr << "Cannot open file " << fname << std::endl;
 		return false;
 	}
-
-	fseek(fsrc, 0, SEEK_SET);
 
 	printf("%s: Pass %d\n", fname, pass);
 	code_line = 0;
 	m_cur_pass = pass;
 
 #define LINEBUF_SIZE 1024
-	char linebuffer[LINEBUF_SIZE];
-	while (!failed && !feof(fsrc))
+	char line[LINEBUF_SIZE] = {0};
+	while (!failed && !fsrc.fail() && !fsrc.eof())
 	{
 		int opcode_size = 0;
-		memset(linebuffer, 0, LINEBUF_SIZE);
-		if (!fgets(linebuffer, LINEBUF_SIZE, fsrc))
+		fsrc.getline(line, LINEBUF_SIZE);
+		if(fsrc.fail())
 			break;
-		cur_line = linebuffer;
-		//printf("A: %s", linebuffer);
+		
+		cur_line = line;
+		//printf("A: %s\n", line);
 		code_line++;
 
 		param_t params[10] = {{0}};
@@ -764,16 +776,16 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 		for (int i = 0; i < LINEBUF_SIZE; i++)
 		{
-			char c = linebuffer[i];
+			char c = line[i];
 			// This stuff handles /**/ and // comments.
 			// modified by Hermes : added // and /* */ for long commentaries 
 			if (c == '/')
 			{
 				if (i < 1023)
 				{
-					if (linebuffer[i+1] == '/')
+					if (line[i+1] == '/')
 						c = 0x00;
-					else if (linebuffer[i+1] == '*') 
+					else if (line[i+1] == '*') 
 					{
 						// toggle comment mode.
 						disable_text = !disable_text;
@@ -782,11 +794,11 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			}
 			else if (c == '*')
 			{
-				if (i < 1023 && linebuffer[i+1] == '/' && disable_text)
+				if (i < 1023 && line[i+1] == '/' && disable_text)
 				{
 					disable_text = 0;
 					c = 32;
-					linebuffer[i + 1] = 32;
+					line[i + 1] = 32;
 				}
 			}
 
@@ -799,37 +811,35 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 				c = ' ';
 			if (c >= 'a' && c <= 'z')	// convert to uppercase
 				c = c - 'a' + 'A';
-			linebuffer[i] = c;
+			line[i] = c;
 			if (c == 0)
 				break; // modified by Hermes
 		}
-		char *ptr = linebuffer;
+		char *ptr = line;
 
-		char *opcode = NULL;
-		char *label = NULL;
-		char *col_ptr;
-		if ((col_ptr = strstr(ptr, ":")) != NULL)
+		std::string label;
+
+		size_t col_pos = std::string(line).find(":");
+		if (col_pos != std::string::npos)
 		{
-			int		j;
-			bool	valid;
-			j = 0;
-			valid = true;
-			while ((ptr+j) < col_ptr)
+			bool valid = true;
+
+			for(int j = 0; j < (int)col_pos; j++)
 			{
 				if (j == 0)
 					if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))
 						valid = false;
 				if (!((ptr[j] >= '0' && ptr[j] <= '9') || (ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))
 					valid = false;
-				j++;
 			}
 			if (valid)
 			{
-				label = strtok(ptr, ":\x20");
-				ptr	= col_ptr + 1;
+				label = std::string(line).substr(0, col_pos);
+				ptr	+= col_pos + 1;
 			}
 		}
 
+		char *opcode = NULL;
 		opcode = strtok(ptr, " ");
 		char *opcode_ext = NULL;
 
@@ -868,7 +878,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 				params_count_ext = GetParams(paramstr_ext, params_ext);
 		}
 
-		if (label)
+		if (!label.empty())
 		{
 			// there is a valid label so lets store it in labels table
 			u32 lval = m_cur_addr;
@@ -893,7 +903,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			if (params[0].type == P_STR)
 			{
 				char *tmpstr;
-				FILE *thisSrc = fsrc;
+				u32 thisCodeline = code_line;
+				
 				if (include_dir.size())
 				{
 					tmpstr = (char *)malloc(include_dir.size() + strlen(params[0].str) + 2);
@@ -904,8 +915,10 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 					tmpstr = (char *)malloc(strlen(params[0].str) + 1);
 					strcpy(tmpstr, params[0].str);
 				}
+				
 				AssembleFile(tmpstr, pass);
-				fsrc = thisSrc;
+
+				code_line = thisCodeline;
 
 				free(tmpstr);
 			}
@@ -986,15 +999,11 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		}
 
 		m_cur_addr += opcode_size;
+		m_totalSize += opcode_size;
 	};
 
-	if (gdg_buffer == NULL)
-	{
-		gdg_buffer_size = m_cur_addr;
-		gdg_buffer = (char *)malloc(gdg_buffer_size * sizeof(u16) + 4);
-		memset(gdg_buffer, 0, gdg_buffer_size * sizeof(u16));
-	}
-	if (! failed)
-		fclose(fsrc);
+	if (!failed)
+		fsrc.close();
+
 	return !failed;
 }

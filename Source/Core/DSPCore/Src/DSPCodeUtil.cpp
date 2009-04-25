@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <iostream>
 #include <vector>
 
 #include "Common.h"
@@ -24,7 +25,7 @@
 #include "disassemble.h"
 
 
-bool Assemble(const char *text, std::vector<u16> *code)
+bool Assemble(const char *text, std::vector<u16> &code)
 {
 	AssemblerSettings settings;
 	settings.pc = 0;
@@ -36,14 +37,14 @@ bool Assemble(const char *text, std::vector<u16> *code)
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);
 	if (!assembler.Assemble(text, code)) {
-		printf("%s", assembler.GetErrorString().c_str());
+		std::cerr << assembler.GetErrorString() << std::endl;
 		return false;
 	}
 
 	return true;
 }
 
-bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string *text)
+bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text)
 {
 	if (code.empty())
 		return false;
@@ -79,9 +80,9 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			std::string line1, line2;
 			u16 pc = i;
-			disassembler.DisOpcode(&code1[0], 2, &pc, &line1);
+			disassembler.DisOpcode(&code1[0], 2, &pc, line1);
 			pc = i;
-			disassembler.DisOpcode(&code2[0], 2, &pc, &line2);
+			disassembler.DisOpcode(&code2[0], 2, &pc, line2);
 			printf("!! %04x : %04x vs %04x - %s  vs  %s\n", i, code1[i], code2[i], line1.c_str(), line2.c_str());
 		}
 	}
@@ -93,7 +94,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			u16 pc = i;
 			std::string line;
-			disassembler.DisOpcode(&longest[0], 2, &pc, &line);
+			disassembler.DisOpcode(&longest[0], 2, &pc, line);
 			printf("!! %s\n", line.c_str());
 		}
 	}
@@ -101,64 +102,64 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
-void GenRandomCode(int size, std::vector<u16> *code) 
+void GenRandomCode(int size, std::vector<u16> &code) 
 {
-	code->resize(size);
+	code.resize(size);
 	for (int i = 0; i < size; i++)
 	{
-		(*code)[i] = rand() ^ (rand() << 8);
+		code[i] = rand() ^ (rand() << 8);
 	}
 }
 
-void CodeToHeader(const std::vector<u16> &code, const char *name, std::string *header)
+void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &header)
 {
 	std::vector<u16> code_copy = code;
 	// Add some nops at the end to align the size a bit.
 	while (code_copy.size() & 7)
 		code_copy.push_back(0);
 	char buffer[1024];
-	header->clear();
-	header->reserve(code.size() * 4);
-	header->append("#ifndef _MSCVER\n");
+	header.clear();
+	header.reserve(code.size() * 4);
+	header.append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const unsigned short %s[0x1000] = {\n", name);
-	header->append(buffer);
-	header->append("#else\n");
+	header.append(buffer);
+	header.append("#else\n");
 	sprintf(buffer, "const unsigned short %s[0x1000] __attribute__ ((aligned (64))) = {\n", name);
-	header->append(buffer);
-	header->append("#endif\n\n    ");
+	header.append(buffer);
+	header.append("#endif\n\n    ");
 	for (int i = 0; i < code.size(); i++) 
 	{
 		if (i && ((i & 15) == 0))
-			header->append("\n    ");
+			header.append("\n    ");
 		sprintf(buffer, "0x%04x, ", code[i]);
-		header->append(buffer);
+		header.append(buffer);
 	}
-	header->append("\n};\n");
+	header.append("\n};\n");
 }
 
-void CodeToBinaryStringBE(const std::vector<u16> &code, std::string *str)
+void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str)
 {
-	str->resize(code.size() * 2);
+	str.resize(code.size() * 2);
 	for (int i = 0; i < code.size(); i++)
 	{
-		(*str)[i * 2 + 0] = code[i] >> 8;
-		(*str)[i * 2 + 1] = code[i] & 0xff;
+		str[i * 2 + 0] = code[i] >> 8;
+		str[i * 2 + 1] = code[i] & 0xff;
 	}
 }
 
-void BinaryStringBEToCode(const std::string &str, std::vector<u16> *code)
+void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 {
-	code->resize(str.size() / 2);
-	for (int i = 0; i < code->size(); i++)
+	code.resize(str.size() / 2);
+	for (int i = 0; i < code.size(); i++)
 	{
-		(*code)[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
+		code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
 	}
 }
 
-bool LoadBinary(const char *filename, std::vector<u16> *code)
+bool LoadBinary(const char *filename, std::vector<u16> &code)
 {
 	std::string buffer;
-	if (!File::ReadFileToString(false, filename, &buffer))
+	if (!File::ReadFileToString(false, filename, buffer))
 		return false;
 
 	BinaryStringBEToCode(buffer, code);
@@ -168,7 +169,7 @@ bool LoadBinary(const char *filename, std::vector<u16> *code)
 bool SaveBinary(const std::vector<u16> &code, const char *filename)
 {
 	std::string buffer;
-	CodeToBinaryStringBE(code, &buffer);
+	CodeToBinaryStringBE(code, buffer);
 	if (!File::WriteStringToFile(false, buffer, filename))
 		return false;
 	return true;

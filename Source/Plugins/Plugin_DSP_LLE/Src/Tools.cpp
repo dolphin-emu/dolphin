@@ -48,7 +48,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 
 	// Load the binary back in.
 	std::vector<u16> code;
-	LoadBinary(binFile, &code);
+	LoadBinary(binFile, code);
 
 	AssemblerSettings settings;
 	settings.show_hex = true;
@@ -59,7 +59,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 
 	std::string text;
 	DSPDisassembler disasm(settings);
-	if (!disasm.Disassemble(0, code, &text))
+	if (!disasm.Disassemble(0, code, text))
 		return false;
 
 	return File::WriteStringToFile(true, text, txtFile);

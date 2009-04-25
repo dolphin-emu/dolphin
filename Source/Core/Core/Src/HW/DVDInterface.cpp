@@ -226,17 +226,19 @@ void SetLidOpen(bool _bOpen)
 	else
 		dvdMem.CoverReg.Hex = 0x0;
 
-	CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DI, true);
+	GenerateDVDInterrupt(INT_CVRINT);
 
-	/*
-	Todo: Make this work perhaps?
+	
+	//Todo: Make this work perhaps?
+	/* 
 	if (_bOpen)
 		dvdMem.CoverReg.CVR = 1;
 	else
 		dvdMem.CoverReg.CVR = 0;
+	*/
 
 	UpdateInterrupts();
-	*/
+	
 }
 
 bool IsLidOpen()

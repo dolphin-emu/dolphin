@@ -33,19 +33,19 @@ bool RoundTrip(const std::vector<u16> &code1)
 {
 	std::vector<u16> code2;
 	std::string text;
-	if (!Disassemble(code1, false, &text))
+	if (!Disassemble(code1, false, text))
 	{
 		printf("RoundTrip: Disassembly failed.\n");
 		return false;
 	}
-	if (!Assemble(text.c_str(), &code2))
+	if (!Assemble(text.c_str(), code2))
 	{
 		printf("RoundTrip: Assembly failed.\n");
 		return false;
 	}
 	if (!Compare(code1, code2))
 	{
-		Disassemble(code1, true, &text);
+		Disassemble(code1, true, text);
 		printf("%s", text.c_str());
 	}
 	return true;
@@ -57,13 +57,13 @@ bool SuperTrip(const char *asm_code)
 {
 	std::vector<u16> code1, code2;
 	std::string text;
-	if (!Assemble(asm_code, &code1))
+	if (!Assemble(asm_code, code1))
 	{
 		printf("SuperTrip: First assembly failed\n");
 		return false;
 	}
 	printf("First assembly: %i words\n", (int)code1.size());
-	if (!Disassemble(code1, false, &text))
+	if (!Disassemble(code1, false, text))
 	{
 		printf("SuperTrip: Disassembly failed\n");
 		return false;
@@ -73,7 +73,7 @@ bool SuperTrip(const char *asm_code)
 		printf("Disass:\n");
 		printf("%s", text.c_str());
 	}
-	if (!Assemble(text.c_str(), &code2))
+	if (!Assemble(text.c_str(), code2))
 	{
 		printf("SuperTrip: Second assembly failed\n");
 		return false;
@@ -186,7 +186,7 @@ void RunAsmTests()
 */
 	
 	std::string dsp_test;
-	if (File::ReadFileToString(true, "Testdata/dsp_test.s", &dsp_test))
+	if (File::ReadFileToString(true, "Testdata/dsp_test.s", dsp_test))
 		fail = fail || !SuperTrip(dsp_test.c_str());
 	if (!fail)
 		printf("All passed!\n");
@@ -256,10 +256,10 @@ int main(int argc, const char *argv[])
 		// Two binary inputs, let's diff.
 		std::string binary_code;
 		std::vector<u16> code1, code2;
-		File::ReadFileToString(false, input_name.c_str(), &binary_code);
-		BinaryStringBEToCode(binary_code, &code1);
-		File::ReadFileToString(false, output_name.c_str(), &binary_code);
-		BinaryStringBEToCode(binary_code, &code2);
+		File::ReadFileToString(false, input_name.c_str(), binary_code);
+		BinaryStringBEToCode(binary_code, code1);
+		File::ReadFileToString(false, output_name.c_str(), binary_code);
+		BinaryStringBEToCode(binary_code, code2);
 		Compare(code1, code2);
 		return 0;
 	}
@@ -273,10 +273,10 @@ int main(int argc, const char *argv[])
 		}
 		std::string binary_code;
 		std::vector<u16> code;
-		File::ReadFileToString(false, input_name.c_str(), &binary_code);
-		BinaryStringBEToCode(binary_code, &code);
+		File::ReadFileToString(false, input_name.c_str(), binary_code);
+		BinaryStringBEToCode(binary_code, code);
 		std::string text;
-		Disassemble(code, true, &text);
+		Disassemble(code, true, text);
 		if (!output_name.empty())
 			File::WriteStringToFile(true, text, output_name.c_str());
 		else
@@ -290,26 +290,29 @@ int main(int argc, const char *argv[])
 			return 1;
 		}
 		std::string source;
-		if (File::ReadFileToString(true, input_name.c_str(), &source))
+		if (File::ReadFileToString(true, input_name.c_str(), source))
 		{
 			std::vector<u16> code;
-			if(!Assemble(source.c_str(), &code)) {
+
+			if(!Assemble(source.c_str(), code)) {
 				printf("Assemble: Assembly failed due to errors\n");
 				return 1;
 			}
+
 			if (!output_name.empty())
 			{
 				std::string binary_code;
-				CodeToBinaryStringBE(code, &binary_code);
+				CodeToBinaryStringBE(code, binary_code);
 				File::WriteStringToFile(false, binary_code, output_name.c_str());
 			}
 			if (!output_header_name.empty())
 			{
 				std::string header;
-				CodeToHeader(code, output_header_name.c_str(), &header);
+				CodeToHeader(code, output_header_name.c_str(), header);
 				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
 			}
 		}
+		source.clear();
 	}
 
 	printf("Assembly completed successfully!\n");

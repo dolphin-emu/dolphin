@@ -35,7 +35,7 @@ void LabelMap::RegisterDefaults()
 	}
 }
 
-void LabelMap::RegisterLabel(const char *label, u16 lval, LabelType type)
+void LabelMap::RegisterLabel(const std::string &label, u16 lval, LabelType type)
 {
 	u16 old_value;
 	if (GetLabelValue(label, &old_value) && old_value != lval) 
@@ -47,12 +47,12 @@ void LabelMap::RegisterLabel(const char *label, u16 lval, LabelType type)
 	labels.push_back(label_t(label, lval, type));
 }
 
-void LabelMap::DeleteLabel(const char *label)
+void LabelMap::DeleteLabel(const std::string &label)
 {
 	for (std::vector<label_t>::iterator iter = labels.begin();
 		iter != labels.end(); ++iter)
 	{
-		if (!strcmp(label, iter->name.c_str()))
+		if (!label.compare(iter->name))
 		{
 			labels.erase(iter);
 			return;
@@ -60,11 +60,11 @@ void LabelMap::DeleteLabel(const char *label)
 	}
 }
 
-bool LabelMap::GetLabelValue(const char *label, u16 *value, LabelType type) const
+bool LabelMap::GetLabelValue(const std::string &label, u16 *value, LabelType type) const
 {
 	for (int i = 0; i < labels.size(); i++)
 	{
-		if (!strcmp(labels[i].name.c_str(), label))
+		if (!label.compare(labels[i].name))
 		{
 			if (type & labels[i].type) {
 				*value = labels[i].addr;
