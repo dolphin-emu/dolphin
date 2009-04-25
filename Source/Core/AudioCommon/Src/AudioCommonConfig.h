@@ -9,12 +9,15 @@
 #define BACKEND_AOSOUND     "AOSound"
 #define BACKEND_OPENAL      "OpenAL"
 #define BACKEND_NULL        "NullSound"
-
 struct AudioCommonConfig 
 {
 	bool m_EnableDTKMusic;
     bool m_EnableThrottle;
+#ifdef __APPLE__
+	char sBackend[128];
+#else
 	std::string sBackend;
+#endif
 	
 	// Load from given file
 	void Load(IniFile &file);

@@ -81,7 +81,11 @@ void ConfigDialog::AddBackend(const char* backend)
 {
     m_BackendSelection->Append(wxString::FromAscii(backend));
 	// Update value
+#ifdef __APPLE__
+	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend));
+#else
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
+#endif
 }
 
 ConfigDialog::~ConfigDialog()
@@ -93,7 +97,11 @@ void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+#ifdef __APPLE__
+	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);
+#else
 	ac_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+#endif
 	g_Config.Save();
 
 	if (event.GetId() == wxID_OK)

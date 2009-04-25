@@ -76,7 +76,11 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
 {
     m_BackendSelection->Append(wxString::FromAscii(backend));
 	// Update value
+#ifdef __APPLE__
+	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend));
+#else
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
+#endif
 }
 
 DSPConfigDialogLLE::~DSPConfigDialogLLE()
@@ -87,7 +91,11 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+#ifdef __APPLE__
+	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);
+#else
 	ac_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+#endif
 	ac_Config.Update();
 	g_Config.Save();
 	

@@ -65,7 +65,7 @@ void wxInfoWindow::Init_ChildControls()
 		m_Tab_Log = new wxPanel(m_Notebook_Main, ID_TAB_LOG, wxDefaultPosition, wxDefaultSize);
 		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log,
 										ID_TEXTCTRL_LOG,
-										wxT(
+										wxString::FromAscii(std::string(
 											//Dolphin revision number
 											
 											std::string("Dolphin Revision: ") + SVN_REV_STR +"\n"+
@@ -80,7 +80,7 @@ void wxInfoWindow::Init_ChildControls()
 											//CPU Info
 											std::string("Processor Information:\n")+cpu_info.Summarize()+"\n\n"
 
-											),
+											).c_str()),
 										wxDefaultPosition, wxSize(100, 600),
 										wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 

@@ -417,7 +417,7 @@ void IniFile::Set(const char* sectionName, const char* key, bool newValue)
 bool IniFile::Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue)
 {
 	Section* section = GetSection(sectionName);
-
+	
 	if (!section)
 	{
 		if (defaultValue)
