@@ -83,15 +83,15 @@ DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :
 	m_cur_addr(0),
 	m_cur_pass(0),
 	m_current_param(0),
-	settings_(settings) 
+	settings_(settings),
+	gdg_buffer(NULL)
 {
-	gdg_buffer = NULL;
-
 }
 
 DSPAssembler::~DSPAssembler()
 {
-	free(gdg_buffer);
+	if(gdg_buffer)
+		free(gdg_buffer);
 }
 
 bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vector<int> *line_numbers)
@@ -108,10 +108,10 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 	// We now have the size of the output buffer
 	if (m_totalSize > 0)
 	{
-		if(gdg_buffer)
-			free(gdg_buffer);
-
 		gdg_buffer = (char *)malloc(m_totalSize * sizeof(u16) + 4);
+		if(!gdg_buffer)
+			return false;
+
 		memset(gdg_buffer, 0, m_totalSize * sizeof(u16));
 	} else
 		return false;
@@ -123,6 +123,11 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 	code.resize(m_totalSize);
 	for (int i = 0; i < m_totalSize; i++) {
 		code[i] = *(u16 *)(gdg_buffer + i * 2);
+	}
+
+	if(gdg_buffer) {
+		free(gdg_buffer);
+		gdg_buffer = NULL;
 	}
 
 	last_error_str = "(no errors)";
