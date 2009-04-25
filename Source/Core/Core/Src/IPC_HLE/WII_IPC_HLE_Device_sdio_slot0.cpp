@@ -389,10 +389,17 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
-	case CRAZY_BIGN:
-		DEBUG_LOG(WII_IPC_SD, "CMD64, wtf");
+	case CRAZY_BIGN64:
+		WARN_LOG(WII_IPC_SD, "CMD64, wtf");
+
 		// <svpe> shuffle2_: try returning -4 for cmd x'40.
-		Memory::Write_U32(-0x4, _BufferOut);
+		Memory::Write_U32(-0x04, _BufferOut);
+
+		_dbg_assert_msg_(WII_IPC_SD, req.arg == 2, "cmd64 odd arg value 0x%08x", req.arg);
+		break;
+
+	case CRAZY_BIGN65:
+		ERROR_LOG(WII_IPC_SD, "CMD65, wtf");
 		break;
 
 	default:

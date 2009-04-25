@@ -94,7 +94,8 @@ private:
 		ACMD_SENDOPCOND		= 0x29,
 		ACMD_SENDSCR		= 0x33,
 
-		CRAZY_BIGN			= 0x40,
+		CRAZY_BIGN64		= 0x40,
+		CRAZY_BIGN65		= 0x41,
 	};
 
 	u32 m_Status;
