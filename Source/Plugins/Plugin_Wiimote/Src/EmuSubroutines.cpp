@@ -84,8 +84,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 
 	switch(sr->channel)
 	{
-	case 0x10:
-		ERROR_LOG(WII_IPC_WIIMOTE, "HidOutputReport: unknown sr->channel 0x10");
+	case WM_RUMBLE:
+		// TODO: Implement rumble for real wiimotes
 		break;
 	case WM_LEDS: // 0x11
 		WmLeds(_channelID, (wm_leds*)sr->data);

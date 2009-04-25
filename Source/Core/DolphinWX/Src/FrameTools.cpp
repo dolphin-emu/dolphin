@@ -497,9 +497,10 @@ void CFrame::DoOpen(bool Boot)
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 {
-	DVDInterface::SetLidOpen();
+	DVDInterface::SetLidOpen(true);
 	DoOpen(false);
 	DVDInterface::SetLidOpen(false);
+	DVDInterface::SetDiscInside(true);
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))

@@ -112,6 +112,7 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> *code, std::vecto
 
 	last_error_str = "(no errors)";
 	last_error = ERR_OK;
+
 	return true;
 }
 
@@ -742,7 +743,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 	fseek(fsrc, 0, SEEK_SET);
 
-	printf("Pass %d\n", pass);
+	printf("%s: Pass %d\n", fname, pass);
 	code_line = 0;
 	m_cur_pass = pass;
 
@@ -765,7 +766,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		{
 			char c = linebuffer[i];
 			// This stuff handles /**/ and // comments.
-			// modified by Hermes : added // and /* */ for long comentaries 
+			// modified by Hermes : added // and /* */ for long commentaries 
 			if (c == '/')
 			{
 				if (i < 1023)
@@ -892,6 +893,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			if (params[0].type == P_STR)
 			{
 				char *tmpstr;
+				FILE *thisSrc = fsrc;
 				if (include_dir.size())
 				{
 					tmpstr = (char *)malloc(include_dir.size() + strlen(params[0].str) + 2);
@@ -903,6 +905,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 					strcpy(tmpstr, params[0].str);
 				}
 				AssembleFile(tmpstr, pass);
+				fsrc = thisSrc;
+
 				free(tmpstr);
 			}
 			else
@@ -983,6 +987,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 		m_cur_addr += opcode_size;
 	};
+
 	if (gdg_buffer == NULL)
 	{
 		gdg_buffer_size = m_cur_addr;

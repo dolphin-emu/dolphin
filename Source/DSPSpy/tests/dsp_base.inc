@@ -24,7 +24,7 @@ MEM_LO:                 equ             0x0f7F
 	sbset       #0x05
 	sbset       #0x06
 
-	set16
+	s16
 	lri		$CR, #0x00ff
 
 ; Why do we have a main label here?	
@@ -178,7 +178,7 @@ irq4:
 	jmp		irq
 irq5:
 ; No idea what this code is doing.
-	set16
+	s16
 	mrr		$st1, $ac0.l
 	mrr		$st1, $ac0.m
 	clr		$acc0
