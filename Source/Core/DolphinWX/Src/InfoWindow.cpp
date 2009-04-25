@@ -17,14 +17,10 @@
 
 #include "Globals.h"
 #include "InfoWindow.h"
-#include "ActionReplay.h"
 #include "CPUDetect.h"
 #include "Core.h"
 #include "ConfigManager.h"
 #include "CDUtils.h"
-
-using namespace ActionReplay;
-
 
 BEGIN_EVENT_TABLE(wxInfoWindow, wxWindow)
 	EVT_SIZE(                                            wxInfoWindow::OnEvent_Window_Resize)
@@ -42,9 +38,6 @@ wxInfoWindow::wxInfoWindow(wxFrame* parent, const wxPoint& pos, const wxSize& si
 	SetBackgroundColour(wxColour(COLOR_GRAY));
 	SetSize(size);
 	SetPosition(pos);
-
-
-
 	Layout();
 	Show();
 }
@@ -53,6 +46,46 @@ wxInfoWindow::~wxInfoWindow()
 {
 	// On Disposal
 }
+
+std::string Summarize_Plug()
+{
+	std::string sum;
+		sum = StringFromFormat("","");
+	sum += "Default GFX Plugin: " +  SConfig::GetInstance().m_DefaultGFXPlugin +"\n";
+	sum += "Default DSP Plugin: " + SConfig::GetInstance().m_DefaultDSPPlugin +"\n";
+	sum += "Default PAD Plugin: " + SConfig::GetInstance().m_DefaultPADPlugin +"\n";
+	sum += "Default WiiMote Plugin: " +  SConfig::GetInstance().m_DefaultWiiMotePlugin +"\n";
+	return sum;
+}
+
+std::string Summarize_Settings()
+{
+	std::string sum;
+	sum = StringFromFormat("","");
+	sum += "\nDolphin Settings\n\n";
+	sum += wxString::Format("Always HLE Bios: %08x\n",Core::GetStartupParameter().bHLEBios); 
+	sum += wxString::Format("Use Dynarec: %08x\n",Core::GetStartupParameter().bUseJIT); 
+	sum += wxString::Format("Use Dual Core: %08x\n",Core::GetStartupParameter().bUseDualCore); 
+	sum += wxString::Format("DSP Thread: %08x\n",Core::GetStartupParameter().bDSPThread); 
+	sum += wxString::Format("Skip Idle: %08x\n",Core::GetStartupParameter().bSkipIdle); 
+	sum += wxString::Format("Lock Threads: %08x\n",Core::GetStartupParameter().bLockThreads); 
+	sum += wxString::Format("Use Dual Core: %08x\n",Core::GetStartupParameter().bUseDualCore); 
+	sum += wxString::Format("Default GCM: %08x\n",Core::GetStartupParameter().m_strDefaultGCM); 
+	sum += wxString::Format("DVD Root: %08x\n",Core::GetStartupParameter().m_strDVDRoot); 
+	sum += wxString::Format("Optimize Quantizers: %08x\n",Core::GetStartupParameter().bOptimizeQuantizers); 
+	sum += wxString::Format("Enable Cheats: %08x\n",Core::GetStartupParameter().bEnableCheats); 
+	sum += wxString::Format("Selected Language: %08x\n",Core::GetStartupParameter().SelectedLanguage); 
+	sum += wxString::Format("Memcard A: %08x\n",SConfig::GetInstance().m_strMemoryCardA); 
+	sum += wxString::Format("Memcard B: %08x\n",SConfig::GetInstance().m_strMemoryCardB); 
+	sum += wxString::Format("Slot A: %08x\n",SConfig::GetInstance().m_EXIDevice[0]); 
+	sum += wxString::Format("Slot B: %08x\n",SConfig::GetInstance().m_EXIDevice[1]); 
+	sum += wxString::Format("Serial Port 1: %08x\n",SConfig::GetInstance().m_EXIDevice[2]); 
+	sum += wxString::Format("Widescreen: %08x\n",Core::GetStartupParameter().bWidescreen);
+	sum += wxString::Format("Progressive Scan: %08x\n",Core::GetStartupParameter().bProgressiveScan);
+
+	return sum;
+}
+
 
 void wxInfoWindow::Init_ChildControls()
 {
@@ -70,13 +103,11 @@ void wxInfoWindow::Init_ChildControls()
 											
 											std::string("Dolphin Revision: ") + SVN_REV_STR +"\n"+
 											std::string("CD/DVD Drive: ") + **cdio_get_devices() +"\n"+
+											
 											//Plugin Information
 											"Plugin Information\n\n"+
-											std::string("Default GFX plugin: ") + SConfig::GetInstance().m_DefaultGFXPlugin +"\n"+
-											std::string("Default DSP plugin: ") + SConfig::GetInstance().m_DefaultDSPPlugin +"\n"+
-											std::string("Default PAD plugin: ") + SConfig::GetInstance().m_DefaultPADPlugin +"\n"+
-											std::string("Default WiiMote plugin: ") + SConfig::GetInstance().m_DefaultWiiMotePlugin +"\n\n"+
-											
+											Summarize_Plug() +"\n"+
+											Summarize_Settings() +"\n"+
 											//CPU Info
 											std::string("Processor Information:\n")+cpu_info.Summarize()+"\n\n"
 
@@ -108,6 +139,9 @@ void wxInfoWindow::Init_ChildControls()
 
 	Fit();
 }
+
+
+
 void wxInfoWindow::OnEvent_Window_Resize(wxSizeEvent& WXUNUSED (event))
 {
 	Layout();

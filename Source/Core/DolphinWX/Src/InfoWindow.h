@@ -31,8 +31,6 @@
 #include <wx/listbox.h>
 #include <string>
 
-#include "ActionReplay.h"
-
 #include "Filesystem.h"
 #include "IniFile.h"
 
@@ -46,16 +44,11 @@ class wxInfoWindow : public wxFrame
 
 	protected:
 
-		struct ARCodeIndex {
-			u32 uiIndex;
-			size_t index;
-		};
 
 		// Event Table
 		DECLARE_EVENT_TABLE();
 
 		// --- GUI Controls ---
-		wxGridBagSizer* m_Sizer_TabCheats;
 
 		wxNotebook *m_Notebook_Main;
 
@@ -65,26 +58,17 @@ class wxInfoWindow : public wxFrame
 
 		wxTextCtrl *m_TextCtrl_Log;
 
-		std::vector<ARCodeIndex> indexList;
-
 		// GUI IDs
 		enum
 		{
 			ID_NOTEBOOK_MAIN,
-			ID_TAB_CHEATS,
 			ID_TAB_LOG,
 			ID_BUTTON_CLOSE,
-			ID_LABEL_CODENAME,
-			ID_GROUPBOX_INFO,
-			ID_BUTTON_APPLYCODES,
-			ID_LABEL_NUMCODES,
-			ID_CHECKBOX_LOGAR,
 			ID_TEXTCTRL_LOG
 		};
 
 		void Init_ChildControls();
 
-		void Load_ARCodes();
 
 		// --- Wx Events Handlers ---
 		// $ Window
