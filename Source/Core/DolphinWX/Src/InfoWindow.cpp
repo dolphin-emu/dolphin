@@ -49,70 +49,67 @@ wxInfoWindow::~wxInfoWindow()
 
 std::string Summarize_Plug()
 {
-	std::string sum;
-		sum = StringFromFormat("","");
-	sum += "Default GFX Plugin: " +  SConfig::GetInstance().m_DefaultGFXPlugin +"\n";
-	sum += "Default DSP Plugin: " + SConfig::GetInstance().m_DefaultDSPPlugin +"\n";
-	sum += "Default PAD Plugin: " + SConfig::GetInstance().m_DefaultPADPlugin +"\n";
-	sum += "Default WiiMote Plugin: " +  SConfig::GetInstance().m_DefaultWiiMotePlugin +"\n";
-	return sum;
+	return StringFromFormat("Default GFX Plugin: %s\nDefault DSP Plugin: %s\nDefault PAD Plugin: %s\nDefault WiiMote Plugin: ",
+		SConfig::GetInstance().m_DefaultGFXPlugin.c_str(), SConfig::GetInstance().m_DefaultDSPPlugin.c_str(),
+		SConfig::GetInstance().m_DefaultPADPlugin.c_str(), SConfig::GetInstance().m_DefaultWiiMotePlugin.c_str());
 }
 
 std::string Summarize_Settings()
 {
-	std::string sum;
-	sum = StringFromFormat("","");
-	sum += "\nDolphin Settings\n\n";
-	sum += wxString::Format("Always HLE Bios: %08x\n",Core::GetStartupParameter().bHLEBios); 
-	sum += wxString::Format("Use Dynarec: %08x\n",Core::GetStartupParameter().bUseJIT); 
-	sum += wxString::Format("Use Dual Core: %08x\n",Core::GetStartupParameter().bUseDualCore); 
-	sum += wxString::Format("DSP Thread: %08x\n",Core::GetStartupParameter().bDSPThread); 
-	sum += wxString::Format("Skip Idle: %08x\n",Core::GetStartupParameter().bSkipIdle); 
-	sum += wxString::Format("Lock Threads: %08x\n",Core::GetStartupParameter().bLockThreads); 
-	sum += wxString::Format("Use Dual Core: %08x\n",Core::GetStartupParameter().bUseDualCore); 
-	sum += wxString::Format("Default GCM: %08x\n",Core::GetStartupParameter().m_strDefaultGCM); 
-	sum += wxString::Format("DVD Root: %08x\n",Core::GetStartupParameter().m_strDVDRoot); 
-	sum += wxString::Format("Optimize Quantizers: %08x\n",Core::GetStartupParameter().bOptimizeQuantizers); 
-	sum += wxString::Format("Enable Cheats: %08x\n",Core::GetStartupParameter().bEnableCheats); 
-	sum += wxString::Format("Selected Language: %08x\n",Core::GetStartupParameter().SelectedLanguage); 
-	sum += wxString::Format("Memcard A: %08x\n",SConfig::GetInstance().m_strMemoryCardA); 
-	sum += wxString::Format("Memcard B: %08x\n",SConfig::GetInstance().m_strMemoryCardB); 
-	sum += wxString::Format("Slot A: %08x\n",SConfig::GetInstance().m_EXIDevice[0]); 
-	sum += wxString::Format("Slot B: %08x\n",SConfig::GetInstance().m_EXIDevice[1]); 
-	sum += wxString::Format("Serial Port 1: %08x\n",SConfig::GetInstance().m_EXIDevice[2]); 
-	sum += wxString::Format("Widescreen: %08x\n",Core::GetStartupParameter().bWidescreen);
-	sum += wxString::Format("Progressive Scan: %08x\n",Core::GetStartupParameter().bProgressiveScan);
-
-	return sum;
+	return StringFromFormat(
+		"Dolphin Settings\n\nAlways HLE Bios: %s\nUse Dynarec: %s\n"
+		"Use Dual Core: %s\nDSP Thread: %s\nSkip Idle: %s\nLock Threads: %s\n"
+		"Use Dual Core: %s\nDefault GCM: %s\nDVD Root: %s\n"
+		"Optimize Quantizers: %s\nEnable Cheats: %s\n"
+		"Selected Language: %d\nMemcard A: %s\n"
+		"Memcard B: %s\nSlot A: %d\nSlot B: %d\n"
+		"Serial Port 1: %d\nWidescreen: %s\n"
+		"Progressive Scan: %s\n",
+		Core::GetStartupParameter().bHLEBios?"true":"false",
+		Core::GetStartupParameter().bUseJIT?"true":"false",
+		Core::GetStartupParameter().bUseDualCore?"true":"false",
+		Core::GetStartupParameter().bDSPThread?"true":"false",
+		Core::GetStartupParameter().bSkipIdle?"true":"false",
+		Core::GetStartupParameter().bLockThreads?"true":"false",
+		Core::GetStartupParameter().bUseDualCore?"true":"false",
+		Core::GetStartupParameter().m_strDefaultGCM.c_str(),
+		Core::GetStartupParameter().m_strDVDRoot.c_str(),
+		Core::GetStartupParameter().bOptimizeQuantizers?"true":"false",
+		Core::GetStartupParameter().bEnableCheats?"true":"false",
+		Core::GetStartupParameter().SelectedLanguage, //FIXME show language based on index 
+		SConfig::GetInstance().m_strMemoryCardA.c_str(),
+		SConfig::GetInstance().m_strMemoryCardB.c_str(),
+		SConfig::GetInstance().m_EXIDevice[0], //FIXME
+		SConfig::GetInstance().m_EXIDevice[1], //FIXME
+		SConfig::GetInstance().m_EXIDevice[2], //FIXME
+		Core::GetStartupParameter().bWidescreen?"true":"false",
+		Core::GetStartupParameter().bProgressiveScan?"true":"false");
 }
 
 
 void wxInfoWindow::Init_ChildControls()
 {
+	wxString Info;
+	Info.Printf(wxT("Dolphin Revision: " SVN_REV_STR));
+	
+	char ** drives = cdio_get_devices();
+	for (int i = 0; drives[i] != NULL && i < 24; i++)
+	{
+		Info.Append(wxString::Format(wxT("\nCD/DVD Drive%d: %s"), i+1, drives[i]));
+	}
+	Info.Append(wxString::Format(wxT("Plugin Information\n\n%s\n%s\nProcessor Information:%s\n"),
+		Summarize_Plug().c_str(), Summarize_Settings().c_str(), cpu_info.Summarize().c_str()));
 
+
+											
+										
 	// Main Notebook
 	m_Notebook_Main = new wxNotebook(this, ID_NOTEBOOK_MAIN, wxDefaultPosition, wxDefaultSize);
 		// --- Tabs ---
 
 		// $ Log Tab
 		m_Tab_Log = new wxPanel(m_Notebook_Main, ID_TAB_LOG, wxDefaultPosition, wxDefaultSize);
-		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log,
-										ID_TEXTCTRL_LOG,
-										wxString::FromAscii(std::string(
-											//Dolphin revision number
-											
-											std::string("Dolphin Revision: ") + SVN_REV_STR +"\n"+
-											std::string("CD/DVD Drive: ") + **cdio_get_devices() +"\n"+
-											
-											//Plugin Information
-											"Plugin Information\n\n"+
-											Summarize_Plug() +"\n"+
-											Summarize_Settings() +"\n"+
-											//CPU Info
-											std::string("Processor Information:\n")+cpu_info.Summarize()+"\n\n"
-
-											).c_str()),
-										wxDefaultPosition, wxSize(100, 600),
+		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, ID_TEXTCTRL_LOG, Info, wxDefaultPosition, wxSize(100, 600),
 										wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 
 		wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
