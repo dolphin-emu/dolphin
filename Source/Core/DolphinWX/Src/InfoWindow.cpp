@@ -91,7 +91,7 @@ void wxInfoWindow::Init_ChildControls()
 {
 	std::string Info;
 	Info = StringFromFormat("Dolphin Revision: %s", SVN_REV_STR);
-	
+
 	char ** drives = cdio_get_devices();
 	for (int i = 0; drives[i] != NULL && i < 24; i++)
 	{
@@ -100,10 +100,7 @@ void wxInfoWindow::Init_ChildControls()
 	}
 	Info.append(StringFromFormat("\nPlugin Information\n\n%s\n%s\nProcessor Information:%s\n",
 		Summarize_Plug().c_str(), Summarize_Settings().c_str(), cpu_info.Summarize().c_str()));
-
-
-	PanicAlert("%s", Info.c_str());										
-										
+	
 	// Main Notebook
 	m_Notebook_Main = new wxNotebook(this, ID_NOTEBOOK_MAIN, wxDefaultPosition, wxDefaultSize);
 		// --- Tabs ---
@@ -112,7 +109,6 @@ void wxInfoWindow::Init_ChildControls()
 		m_Tab_Log = new wxPanel(m_Notebook_Main, ID_TAB_LOG, wxDefaultPosition, wxDefaultSize);
 		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, ID_TEXTCTRL_LOG, wxString::FromAscii(Info.c_str()), wxDefaultPosition, wxSize(100, 600),
 										wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
-
 		wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 		wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 		sTabLog->Add(HStrip1, 0, wxALL, 5);
