@@ -1,4 +1,4 @@
-; This test checks the effect of various SR flags over iflz and ifnlz
+; This test checks the effect of various SR flags over iflz and iflnlz
 incdir  "tests"
 include "dsp_base.inc"
 
@@ -9,7 +9,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back ; 1
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back ; 2
 
@@ -20,7 +20,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back ; 3
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back ; 4
 
@@ -31,7 +31,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back ; 5
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back ; 6
 
@@ -42,7 +42,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back ; 7
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back ; 8
 
@@ -53,7 +53,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back ; 9
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back ; 10
 
@@ -64,7 +64,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back 	; 11
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back	; 12
 
@@ -75,7 +75,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back 	; 13
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back	; 14
 
@@ -86,7 +86,7 @@ iflz
 lri $IX0, #0x1337	
 call send_back 	; 15
 
-ifnlz
+iflnz
 lri $IX0, #0x1338	
 call send_back	; 16
 
