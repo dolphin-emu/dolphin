@@ -605,14 +605,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\D3Dconfig.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\D3Dconfig.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\DynamicLibrary.cpp"
 			>
 		</File>
@@ -714,14 +706,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\MsgHandler.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OGLconfig.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OGLconfig.h"
 			>
 		</File>
 		<File
