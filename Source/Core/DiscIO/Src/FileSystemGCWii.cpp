@@ -166,6 +166,8 @@ bool CFileSystemGCWii::InitFileSystem()
 	}
 	else
 	{
+		// Mario Kart Wii gets here on its third partition...
+		// Does it use a fake partition ? another type we don't know ?
 		return false;
 	}
 

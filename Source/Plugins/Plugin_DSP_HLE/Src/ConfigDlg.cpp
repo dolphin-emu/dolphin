@@ -97,6 +97,9 @@ void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	if (soundStream != NULL)
+		soundStream->GetMixer()->SetThrottle(ac_Config.m_EnableThrottle);
+
 #ifdef __APPLE__
 	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);
 #else

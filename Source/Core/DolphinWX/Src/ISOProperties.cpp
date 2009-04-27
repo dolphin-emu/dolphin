@@ -71,9 +71,11 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			WiiPartition temp;
 			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, i)) != NULL)
 			{
-				temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition);
-				temp.FileSystem->GetFileList(temp.Files);
-				WiiDisc.push_back(temp);
+				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != NULL)
+				{
+					temp.FileSystem->GetFileList(temp.Files);
+					WiiDisc.push_back(temp);
+				}
 			}
 			else
 				break;

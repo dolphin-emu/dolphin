@@ -91,6 +91,9 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	if (soundStream != NULL)
+		soundStream->GetMixer()->SetThrottle(ac_Config.m_EnableThrottle);
+
 #ifdef __APPLE__
 	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);
 #else
@@ -99,7 +102,6 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 	ac_Config.Update();
 	g_Config.Save();
 	
-
 	if (event.GetId() == wxID_OK)
 		EndModal(wxID_OK);
 }
