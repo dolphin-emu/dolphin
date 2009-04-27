@@ -320,11 +320,12 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
-		_dbg_assert_(VIDEOINTERFACE,0);
+		// writing the beam position goes against yagcd, let's cross our fingers
+		VerticalBeamPos = _iValue;
 		break;
 
 	case VI_HORIZONTAL_BEAM_POSITION:
-		_dbg_assert_(VIDEOINTERFACE,0);
+		HorizontalBeamPos = _iValue;
 		break;
 
 		// RETRACE STUFF ...

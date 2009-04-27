@@ -74,6 +74,15 @@ enum DVDInterruptType
 	INT_CVRINT      = 3,
 };
 
+// debug commands which may be ORd
+enum
+{
+	STOP_DRIVE	= 0,
+	START_DRIVE	= 0x100,
+	ACCEPT_COPY	= 0x4000,
+	DISC_CHECK	= 0x8000,
+};
+
 // DI Status Register
 union UDISR	
 {
@@ -101,7 +110,7 @@ union UDICVR
 	{		
 		unsigned CVR            :  1;		// 0: Cover closed	1: Cover open
 		unsigned CVRINTMASK	    :  1;		// 1: Interrupt enabled;
-		unsigned CVRINT         :  1;		// 1: Interrupt clear
+		unsigned CVRINT         :  1;		// r 1: Interrupt requested w 1: Interrupt clear
 		unsigned                : 29;
 	};
 	UDICVR() {Hex = 0;}
@@ -156,6 +165,14 @@ union UDIConfigRegister
 	UDIConfigRegister(u32 _hex) {Hex = _hex;}
 };
 
+// HACK to allow multi-command debug-mode transfers
+struct SDIDebugTransfer 
+{
+	u32 Address;
+	u16 Length;
+	bool InProgress;
+};
+
 // hardware registers
 struct DVDMemStruct
 {
@@ -170,12 +187,13 @@ struct DVDMemStruct
 	u32					AudioStart;
 	u32					AudioPos;
 	u32					AudioLength;
+	SDIDebugTransfer	DebugTransfer;
 };
 
 // STATE_TO_SAVE
 DVDMemStruct dvdMem;
 u32	 g_ErrorCode = 0x00;
-bool g_bDiscInside = true;
+bool g_bDiscInside = false;
 
 Common::CriticalSection dvdread_section;
 
@@ -222,23 +240,11 @@ void SetDiscInside(bool _DiscInside)
 void SetLidOpen(bool _bOpen)
 {
 	if (_bOpen)
-		dvdMem.CoverReg.Hex = 0x7;
-	else
-		dvdMem.CoverReg.Hex = 0x0;
-
-	GenerateDVDInterrupt(INT_CVRINT);
-
-	
-	//Todo: Make this work perhaps?
-	/* 
-	if (_bOpen)
 		dvdMem.CoverReg.CVR = 1;
 	else
 		dvdMem.CoverReg.CVR = 0;
-	*/
 
-	UpdateInterrupts();
-	
+	GenerateDVDInterrupt(INT_CVRINT);
 }
 
 bool IsLidOpen()
@@ -345,20 +351,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	case DI_COVER_REGISTER:	
 		{
-			/*
-			// Todo: fix this, it doesn't work properly
-
 			UDICVR tmpCoverReg(_iValue);
 
-			dvdMem.CoverReg.CVR = 0;
 			dvdMem.CoverReg.CVRINTMASK = tmpCoverReg.CVRINTMASK;
-			if (tmpCoverReg.CVRINT) dvdMem.CoverReg.CVRINT = 0;
+
+			if (tmpCoverReg.CVRINT)	dvdMem.CoverReg.CVRINT = 0;
 			
 			UpdateInterrupts();
-
-			_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
-			*/
-
 		}
 		break;
 
@@ -430,8 +429,19 @@ bool m_bStream = false;
 
 void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 {
-	_dbg_assert_(DVDINTERFACE, _DMAControlReg.RW == 0);  // only DVD to Memory	
+	_dbg_assert_(DVDINTERFACE, _DMAControlReg.RW == 0); // only DVD to Memory
 
+	// Catch multi-command transfers here
+	if (dvdMem.DebugTransfer.InProgress)
+	{
+		dvdMem.DebugTransfer.InProgress = false;
+		// If we ever need to actually read/write the drive ram/cache, here would be the place
+		// Up to 12bytes can be written at once (dvdMem.Command[0] through dvdMem.Command[2])
+		INFO_LOG(DVDINTERFACE, "\t queued cmd: 0x%08x @ 0x%08x NOT IMPLEMENTED",
+			dvdMem.Command[0], dvdMem.DebugTransfer.Address);
+	}
+	else
+	{ // The huge switch is in this else!
 	switch ((dvdMem.Command[0] & 0xFF000000) >> 24)
 	{
 	//=========================================================================================================
@@ -448,23 +458,32 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	 0008-001F  padding(0)
 	//=========================================================================================================
 	case 0x12:
-		{			
-#if MAX_LOGLEVEL >= INFO_LEVEL
-			u32 offset = dvdMem.Command[1];
-			// u32 sourcelength = dvdMem.Command[2];
-#endif
-			u32 destbuffer	= dvdMem.DMAAddress.Address;
-			u32 destlength	= dvdMem.DMALength.Length;
-			dvdMem.DMALength.Length = 0;
-
-			INFO_LOG(DVDINTERFACE, "[WARNING] DVD: Get drive info offset=%08x, destbuffer=%08x, destlength=%08x", offset * 4, destbuffer, destlength);
-
-			// metroid uses this...
-			for (unsigned int i = 0; i < destlength / 4; i++)
+		{
+			// small safety check, dunno if it's needed
+			if ((dvdMem.Command[1] == 0) && (dvdMem.DMALength.Length == 0x20))
 			{
-				Memory::Write_U32(0, destbuffer + i * 4);
+				u8* driveInfo = Memory::GetPointer(dvdMem.DMAAddress.Address);
+				// gives the correct output in GCOS - 06 2001/08 (61)
+				// there may be other stuff missing ?
+				driveInfo[4] = 0x20;
+				driveInfo[5] = 0x01;
+				driveInfo[6] = 0x06;
+				driveInfo[7] = 0x08;
+				driveInfo[8] = 0x61;
+
+				// Just for fun
+				INFO_LOG(DVDINTERFACE, "Drive Info: %02x %02x%02x/%02x (%02x)",
+					driveInfo[6], driveInfo[4], driveInfo[5], driveInfo[7], driveInfo[8]);
 			}
 		}
+		break;
+
+	//=========================================================================================================
+	// SET EXTENSION
+	// Apparently the drive needs certain flags set explicitly?
+	//=========================================================================================================
+	case 0x55:
+		INFO_LOG(DVDINTERFACE, "SetExtension %x", _DMAControlReg);
 		break;
 
 	//=========================================================================================================
@@ -480,18 +499,21 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			{
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
 				u32 iSrcLength = dvdMem.Command[2];
-				if (false) { iSrcLength++; } // avoid warning  << wtf is this?
-				INFO_LOG(DVDINTERFACE, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
+
+				INFO_LOG(DVDINTERFACE, "Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",
+					iDVDOffset, dvdMem.DMAAddress.Address, iSrcLength, dvdMem.DMALength.Length);
 				_dbg_assert_(DVDINTERFACE, iSrcLength == dvdMem.DMALength.Length);
 
-				if (DVDRead(iDVDOffset, dvdMem.DMAAddress.Address, dvdMem.DMALength.Length) != true)
+				if (!DVDRead(iDVDOffset, dvdMem.DMAAddress.Address, dvdMem.DMALength.Length))
 				{
 					PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
-				}	
-			}			
+				}
+			}
 			else
 			{
 				// there is no disc to read
+				_DMAControlReg.TSTART = 0;
+				dvdMem.DMALength.Length = 0;
 				GenerateDVDInterrupt(INT_DEINT);
 				g_ErrorCode = 0x03023A00;
 				return;
@@ -509,7 +531,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 			u32 offset = dvdMem.Command[1] << 2;
 #endif
-			DEBUG_LOG(DVDINTERFACE, "DVD: Seek: offset=%08x  (ignoring)", offset);
+			DEBUG_LOG(DVDINTERFACE, "Seek: offset=%08x  (ignoring)", offset);
 		}		
 		break;
 
@@ -518,7 +540,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E0000000
 	//=========================================================================================================
 	case 0xE0:
-		ERROR_LOG(DVDINTERFACE, "DVD: Requesting error");
+		ERROR_LOG(DVDINTERFACE, "Requesting error");
 		dvdMem.Immediate = g_ErrorCode;
 		break;
 
@@ -550,7 +572,8 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 
 				m_bStream = true;
 
-				DEBUG_LOG(DVDINTERFACE, "DVD(Audio) Stream subcmd = %02x offset = %08x length=%08x", subCommand, dvdMem.AudioPos, dvdMem.AudioLength);
+				DEBUG_LOG(DVDINTERFACE, "DVD(Audio) Stream subcmd = %02x offset = %08x length=%08x",
+					subCommand, dvdMem.AudioPos, dvdMem.AudioLength);
 			}			
 		}		
 		break;
@@ -574,7 +597,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E3000000
 	//=========================================================================================================
 	case 0xE3:
-		DEBUG_LOG(DVDINTERFACE, "DVD: Stop motor");
+		DEBUG_LOG(DVDINTERFACE, "Stop motor");
 		break;
 
 	//=========================================================================================================
@@ -596,13 +619,92 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 		break;
 
 	//=========================================================================================================
+	// SET STATUS
+	//=========================================================================================================
+	case 0xEE:
+		INFO_LOG(DVDINTERFACE, "SetStatus %x", _DMAControlReg);
+		break;
+
+	//=========================================================================================================
+	// DEBUG COMMANDS
+	// Subcommands:
+	//  0x00: ?
+	//  0x01: read/write memory/cache
+	//  0x10: ?
+	//  0x11: stop/start/accept copy/disk check CAN BE OR'd!
+	//  0x12: jump (jsr) to address
+	//=========================================================================================================
+	case 0xFE:
+		{
+			u8 subCommand = (dvdMem.Command[0] & 0x00FF0000) >> 16;
+			u16 argument = (u16)(dvdMem.Command[0] & 0x0000FFFF);
+
+			switch (subCommand)
+			{
+			case 0x01:
+				{
+					dvdMem.DebugTransfer.Address = dvdMem.Command[1];
+					dvdMem.DebugTransfer.Length = dvdMem.Command[2] >> 16; // can be up to 12 bytes
+
+					INFO_LOG(DVDINTERFACE, "Next cmd will %s %i bytes to drive %s @ 0x%08x",
+						(argument & 0x100) ? "write" : "read", dvdMem.DebugTransfer.Length,
+						(argument & 0x8000) ? "cache" : "mem", dvdMem.DebugTransfer.Address);
+
+					dvdMem.DebugTransfer.InProgress = true;
+				}
+				break;
+
+			case 0x11:
+				char flags[256];
+				sprintf(flags, "%s%s%s%s",
+					(argument & STOP_DRIVE) ? "StopDrive " : "",
+					(argument & START_DRIVE) ? "StartDrive " : "",
+					(argument & ACCEPT_COPY) ? "AcceptCopy " : "",
+					(argument & DISC_CHECK) ? "DiscCheck" : "");
+				INFO_LOG(DVDINTERFACE, "Debug cmd(s): %s", flags);
+				break;
+
+			default:
+				WARN_LOG(DVDINTERFACE, "Unsupported DVD Drive debug command 0x%08x", dvdMem.Command[0]);
+				break;
+			}
+		}
+		break;
+
+	//=========================================================================================================
+	// UNLOCK COMMANDS 1: "MATSHITA" 2: "DVD-GAME"
+	// LOL
+	//=========================================================================================================
+	case 0xFF:
+		{
+			if (dvdMem.Command[0] == 0xFF014D41
+				&& dvdMem.Command[1] == 0x54534849
+				&& dvdMem.Command[2] == 0x54410200)
+			{
+				INFO_LOG(DVDINTERFACE, "Unlock test 1 passed");
+			}
+			else if (dvdMem.Command[0] == 0xFF004456
+				&& dvdMem.Command[1] == 0x442D4741
+				&& dvdMem.Command[2] == 0x4D450300)
+			{
+				INFO_LOG(DVDINTERFACE, "Unlock test 2 passed");
+			}
+			else
+			{
+				INFO_LOG(DVDINTERFACE, "Unlock test failed");
+			}
+		}
+		break;
+
+	//=========================================================================================================
 	// UNKNOWN DVD COMMAND
 	//=========================================================================================================
 	default:
-		PanicAlert("DVD - Unknown DVD command %08x - fatal error", dvdMem.Command[0]);
+		PanicAlert("Unknown DVD command %08x - fatal error", dvdMem.Command[0]);
 		_dbg_assert_(DVDINTERFACE, 0);
 		break;
 	}
+	} // end of if(dvdMem.DebugTransfer.InProgress)
 
 	// transfer is done
 	_DMAControlReg.TSTART = 0;
