@@ -40,6 +40,7 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pVolume(NULL)
     , m_pFileSystem(NULL)
+	, m_ErrorStatus(0)
 {
 	m_pVolume = VolumeHandler::GetVolume();
     if (m_pVolume)
@@ -61,13 +62,13 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 
 bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
-    Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+    Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
     return true;
 }
 
 bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress)
 {
-    Memory::Write_U32(0, _CommandAddress+4);
+    Memory::Write_U32(0, _CommandAddress + 4);
     return true;
 }
 
@@ -78,14 +79,17 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
     INFO_LOG(WII_IPC_DVD, "*******************************");
 
 
-	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-	u32 Command = Memory::Read_U32(BufferIn) >> 24;
+	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
 
     DEBUG_LOG(WII_IPC_DVD, "%s - Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+	if (Command == 0x7a)
+		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_DVD, LogTypes::LWARNING);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -123,19 +127,12 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 			bool readOK = false;
 
-			// Get the info table
-			u8 pInfoTableOffset[4];
-			readOK |= VolumeHandler::RAWReadToPtr(pInfoTableOffset, 0x40004, 4);
-			u64 InfoTableOffset = (u32)(pInfoTableOffset[3] | pInfoTableOffset[2] << 8 | pInfoTableOffset[1] << 16 | pInfoTableOffset[0] << 24) << 2;
-
-			// Get the offset of the partition
-			u8 pInfoTableEntryOffset[4];
-			readOK |= VolumeHandler::RAWReadToPtr(pInfoTableEntryOffset, InfoTableOffset + (partition << 2) + 4, 4);
-			u64 PartitionOffset = (u32)(pInfoTableEntryOffset[3] | pInfoTableEntryOffset[2] << 8 | pInfoTableEntryOffset[1] << 16 | pInfoTableEntryOffset[0] << 24) << 2;
+			u64 TMDOffset = 0;
+			readOK |= VolumeHandler::GetTMDOffset(partition, TMDOffset);
 
 			// Read TMD to the buffer
 			readOK |= VolumeHandler::RAWReadToPtr(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address),
-				PartitionOffset + 0x2c0, CommandBuffer.PayloadBuffer[0].m_Size);
+				TMDOffset, CommandBuffer.PayloadBuffer[0].m_Size);
 
 			// Second outbuffer is error, we can ignore it
 
@@ -207,8 +204,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		{
 			VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
 
-			DEBUG_LOG(WII_IPC_DVD, "%s executes DVDLowReadDiskID 0x%08x",
-				GetDeviceName().c_str(), Memory::Read_U64(_BufferOut));
+			DEBUG_LOG(WII_IPC_DVD, "DVDLowReadDiskID %s",
+				ArrayToString(Memory::GetPointer(_BufferOut), _BufferOutSize, 0, _BufferOutSize).c_str());
 
 			return 1;
 		}
@@ -234,7 +231,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			else
 			{
 				INFO_LOG(WII_IPC_DVD, "    DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)",
-					GetDeviceName().c_str(), DVDAddress, Size);
+					DVDAddress, Size);
 			}
 
 			if (Size > _BufferOutSize)
@@ -357,15 +354,37 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowUnencryptedRead 
 	case 0x8d:
-		DEBUG_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead");
 		{
 			if (_BufferOut == 0)
 			{
 				PanicAlert("DVDLowRead : _BufferOut == 0");
 				return 0;
 			}
+
 			u32 Size = Memory::Read_U32(_BufferIn + 0x04);
-			u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
+
+			// We must make sure it is in a valid area! (#001 check)
+			// * 0x00000000 - 0x00014000 (limit of older IOS versions)
+			// * 0x460a0000 - 0x460a0008
+			// * 0x7ed40000 - 0x7ed40008
+			u32 DVDAddress32 = Memory::Read_U32(_BufferIn + 0x08);
+			if (!( (DVDAddress32 > 0x00000000 && DVDAddress32 < 0x00014000)
+				|| (((DVDAddress32 + Size) > 0x00000000) && (DVDAddress32 + Size) < 0x00014000)
+				|| (DVDAddress32 > 0x460a0000 && DVDAddress32 < 0x460a0008)
+				|| (((DVDAddress32 + Size) > 0x460a0000) && (DVDAddress32 + Size) < 0x460a0008)
+				|| (DVDAddress32 > 0x7ed40000 && DVDAddress32 < 0x7ed40008)
+				|| (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)
+				))
+			{
+				INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
+				m_ErrorStatus = 0x52100; // Logical block address out of range
+				// Should cause software to call DVDLowRequestError
+				return 2;
+			}
+
+			u64 DVDAddress = (u64)(DVDAddress32 << 2);
+
+			INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: DVDAddr: 0x%08x, Size: 0x%x", DVDAddress, Size);
 
 			if (Size > _BufferOutSize)
 			{
@@ -389,7 +408,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowReportKey
 	case 0xa4:
-		PanicAlert("DVDLowReportKey");
+		INFO_LOG(WII_IPC_DVD, "DVDLowReportKey");
+		// Does not work on commercial discs
+		m_ErrorStatus = 0x052000; // Invalid command operation code
+		return 2;
 		break;
     
 	// DVDLowSeek
@@ -446,7 +468,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	// DVDLowRequestError
 	case 0xe0:
 		// Identical to the error codes found in yagcd section 5.7.3.5.1 (so far)
-		PanicAlert("DVDLowRequestError");
+		WARN_LOG(WII_IPC_DVD, "DVDLowRequestError status = 0x%08x", m_ErrorStatus);
+		Memory::Write_U32(m_ErrorStatus, _BufferOut);
 		break;
 
 // Ex commands are immediate and respond with 4 bytes

@@ -44,7 +44,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bLockThreads = true;
 	bWii = false;
-	bFix002 = false;
 	SelectedLanguage = 0;
 	iTLBHack = 0;
 	delete gameIni;
@@ -196,11 +195,11 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, Region, false);
 	m_strSRAM = GC_SRAM_FILE;
 	m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
-	//if (!File::Exists(m_strBios.c_str())) {
-	//	WARN_LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
-	// We always HLE the boot.
+	if (!File::Exists(m_strBios.c_str()) || SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios)
+	{
+		//WARN_LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
 		bHLEBios = true;
-	//}
+	}
 
 	return true;
 }

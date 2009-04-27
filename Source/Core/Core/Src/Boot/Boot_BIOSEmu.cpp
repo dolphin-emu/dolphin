@@ -42,30 +42,6 @@ void CBoot::RunFunction(u32 _iAddr)
 		PowerPC::SingleStep();
 }
 
-// THIS IS UGLY. this should be figured out properly instead of patching the games.
-bool Remove_002_Protection(u32 addr, int Size)
-{
-	u32 SearchPattern[3]    = { 0x2C000000, 0x40820214, 0x3C608000 };
-	u32 PatchData[3]        = { 0x2C000000, 0x48000214, 0x3C608000 };
-
-	while (Size >= 12)
-	{
-		if (Memory::ReadUnchecked_U32(addr + 0) == SearchPattern[0] && 
-			Memory::ReadUnchecked_U32(addr + 4) == SearchPattern[1] &&
-			Memory::ReadUnchecked_U32(addr + 8) == SearchPattern[2])
-		{
-			Memory::WriteUnchecked_U32(PatchData[0], addr);
-			Memory::WriteUnchecked_U32(PatchData[1], addr + 4);
-			Memory::WriteUnchecked_U32(PatchData[2], addr + 8);
-			return true;
-		}
-		addr += 4;
-		Size -= 4;
-	}
-
-	return false;
-}
-
 // __________________________________________________________________________________________________
 //
 // GameCube BIOS HLE: 
@@ -271,8 +247,23 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low       
     Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
     Memory::Write_U32(0x00000011, 0x00003138);		// Console type
-    Memory::Write_U64(0x0009020400062507ULL, 0x00003140);	// IOS Version
-    Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
+
+	// Pass the "#002 check"
+	u64 TMDOffset = 0;
+	if (VolumeHandler::GetTMDOffset(1, TMDOffset))
+	{
+		// IOS Version from TMD
+		VolumeHandler::RAWReadToPtr(Memory::GetPointer(0x00003141), TMDOffset + 0x18B, 1);
+		Memory::Write_U16(0xffff, 0x00003142);		// IOS revision
+		Memory::Write_U32(0x00062507, 0x00003144);	// ???
+	}
+	else
+	{
+		// Use fake IOS Version
+		Memory::Write_U64(0x0009020400062507ULL, 0x00003140);
+	}
+
+	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
     Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
 
     Memory::Write_U8(0x80, 0x0000315c);				// OSInit
@@ -396,14 +387,5 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 	PowerPC::ppcState.DebugCount = 0;
 
-	if (Core::GetStartupParameter().bFix002)
-	{
-		// UGLY UGLY UGLY
-		// TODO: Understand what this does and fix it properly..
-		// This "fixes" games that display "Error 002" instead of running.
-		Remove_002_Protection(0x80004000, 0x5000000);
-	}
-
 	return true;
 }
-

@@ -35,6 +35,8 @@ u32 Read32(u64 _Offset);
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 bool RAWReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 
+bool GetTMDOffset(u32 _Partition, u64& _Offset);
+
 bool IsValid();
 bool IsWii();
 

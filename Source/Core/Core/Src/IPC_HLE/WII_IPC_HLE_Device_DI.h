@@ -45,6 +45,7 @@ private:
 
     DiscIO::IVolume* m_pVolume;
     DiscIO::IFileSystem* m_pFileSystem;
+	u32 m_ErrorStatus;
 };
 
 #endif
