@@ -160,18 +160,18 @@ template <class T, u8* P> void HW_Write_Memory(T _Data, const u32 _Address)	{	*(
    as an alternative to a switch() or if() table. */
 // ----------------
 #define BLOCKSIZE 4
-#define CP_START		0x00  //0x0000 >> 10
-#define WII_IPC_START	0x00  //0x0000 >> 10
-#define PE_START		0x04  //0x1000 >> 10
-#define VI_START		0x08  //0x2000 >> 10
-#define PI_START		0x0C  //0x3000 >> 10
-#define MI_START		0x10  //0x4000 >> 10
-#define DSP_START		0x14  //0x5000 >> 10
-#define DVD_START		0x18  //0x6000 >> 10
-#define SI_START		0x19
-#define EI_START		0x1A
-#define AUDIO_START		0x1B 
-#define GP_START		0x20 
+#define CP_START		0x00 //0x0000 >> 10
+#define WII_IPC_START	0x00 //0x0000 >> 10
+#define PE_START		0x04 //0x1000 >> 10
+#define VI_START		0x08 //0x2000 >> 10
+#define PI_START		0x0C //0x3000 >> 10
+#define MI_START		0x10 //0x4000 >> 10
+#define DSP_START		0x14 //0x5000 >> 10
+#define DVD_START		0x18 //0x6000 >> 10
+#define SI_START		0x19 //0x6400 >> 10
+#define EI_START		0x1A //0x6800 >> 10
+#define AUDIO_START		0x1B //0x6C00 >> 10
+#define GP_START		0x20 //0x8000 >> 10
 
 
 void InitHWMemFuncs()
@@ -308,17 +308,25 @@ void InitHWMemFuncsWii()
 		hwWriteWii32[WII_IPC_START+i] = WII_IPCInterface::Write32;
 	}
 
-	hwReadWii32 [DVD_START] = DVDInterface::Read32;
+	hwRead32	[DVD_START] = DVDInterface::Read32;
+	hwReadWii32	[DVD_START] = DVDInterface::Read32;
+	hwWrite32	[DVD_START] = DVDInterface::Write32;
 	hwWriteWii32[DVD_START] = DVDInterface::Write32;
 
-	hwReadWii32 [SI_START] = SerialInterface::Read32;
+	hwRead32	[SI_START] = SerialInterface::Read32;
+	hwReadWii32	[SI_START] = SerialInterface::Read32;
+	hwWrite32	[SI_START] = SerialInterface::Write32;
 	hwWriteWii32[SI_START] = SerialInterface::Write32;
 
-	hwReadWii32 [EI_START] = ExpansionInterface::Read32;
+	hwRead32	[EI_START] = ExpansionInterface::Read32;
+	hwReadWii32	[EI_START] = ExpansionInterface::Read32;
+	hwWrite32	[EI_START] = ExpansionInterface::Write32;
 	hwWriteWii32[EI_START] = ExpansionInterface::Write32;
 
 	// [F|RES] i thought this doesn't exist anymore
-	hwReadWii32 [AUDIO_START] = AudioInterface::Read32;			
+	hwRead32	[AUDIO_START] = AudioInterface::Read32;
+	hwReadWii32	[AUDIO_START] = AudioInterface::Read32;
+	hwWrite32	[AUDIO_START] = AudioInterface::Write32;
 	hwWriteWii32[AUDIO_START] = AudioInterface::Write32;
 }
 
