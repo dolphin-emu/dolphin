@@ -320,12 +320,11 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
-		// writing the beam position goes against yagcd, let's cross our fingers
-		VerticalBeamPos = _iValue;
+		WARN_LOG(VIDEOINTERFACE, "Change Vertical Beam Position to 0x%04x - Not documented or implemented", _iValue);
 		break;
 
 	case VI_HORIZONTAL_BEAM_POSITION:
-		HorizontalBeamPos = _iValue;
+		WARN_LOG(VIDEOINTERFACE, "Change Horizontal Beam Position to 0x%04x - Not documented or implemented", _iValue);
 		break;
 
 		// RETRACE STUFF ...
