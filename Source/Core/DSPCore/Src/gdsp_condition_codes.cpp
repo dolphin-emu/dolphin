@@ -89,9 +89,8 @@ int GetMultiplyModifier()
 		return 2;
 }
 
-
 inline bool isSign() {
-	return ((g_dsp.r[DSP_REG_SR] & 0x02) || (g_dsp.r[DSP_REG_SR] & 0x08));
+	return ((g_dsp.r[DSP_REG_SR] & 0x02) != (g_dsp.r[DSP_REG_SR] & 0x08));
 }
 
 inline bool isZero() {
@@ -115,7 +114,7 @@ bool CheckCondition(u8 _Condition)
 		break;
  
 	case 0x2: // G - GREATER
-		if (! isSign() && ! isZero())
+		if (! isSign() || g_dsp.r[DSP_REG_SR] & SR_CARRY)
 			taken = true;
 		break;
 
@@ -137,12 +136,12 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x6: // L - LESS
-		if (isSign())
+		if (g_dsp.r[DSP_REG_SR] & 0x02)
 			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
-		if (! isSign() || isZero())
+		if (g_dsp.r[DSP_REG_SR] & SR_CARRY)
 			taken = true;
 		break;
 
