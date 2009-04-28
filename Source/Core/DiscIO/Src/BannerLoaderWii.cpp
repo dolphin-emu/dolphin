@@ -23,6 +23,7 @@
 #include "ColorUtil.h"
 #include "BannerLoaderWii.h"
 #include "FileUtil.h"
+#include "../../Core/Src/VolumeHandler.h"
 
 namespace DiscIO
 {
@@ -32,11 +33,13 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	, m_IsValid(false)
 {
 	char Filename[260];
-	char TitleID[4];
-	
-	_rFileSystem.GetVolume()->Read(0, 4, (u8*)TitleID);
-	sprintf(Filename, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/banner.bin",
-		    (u8)TitleID[0], (u8)TitleID[1], (u8)TitleID[2], (u8)TitleID[3]);
+	u64 TitleID;
+
+	_rFileSystem.GetVolume()->RAWRead((u64)0x0F8001DC, 8, (u8*)&TitleID);
+	TitleID = Common::swap64(TitleID);
+
+	sprintf(Filename, FULL_WII_USER_DIR "title/%08x/%08x/data/banner.bin",
+		    (u32)(TitleID>>32), (u32)TitleID);
 
 	if (!File::Exists(Filename))
 	{

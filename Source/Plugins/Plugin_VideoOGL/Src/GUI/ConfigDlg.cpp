@@ -210,7 +210,7 @@ void ConfigDialog::CreateGUIControls()
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This will create a Fullscreen window using the chosen Fullscreen resolution."
-		"\nPress Esc key to switch between Fullscreen and Windowed mode."
+		"\nPress Alt+Enter to switch between Fullscreen and Windowed mode."
 		));
 	m_NativeResolution->SetToolTip(wxT(
 		"This will use the game's native resolution and stretch it to fill the"

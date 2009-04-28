@@ -579,6 +579,11 @@ void CFrame::DoStop()
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
+		// Ask for confirmation in case the user accidently clicked Stop / Escape
+		if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+			if(!AskYesNo("Are you sure you want to stop the current emulation?", "Confirm", wxYES_NO))
+				return;
+	
 		Core::Stop();
 
 		/* This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
@@ -600,19 +605,7 @@ void CFrame::DoStop()
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	// Ask for confirmation in case the user accidently clicked Stop
-	bool answer;
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
-	{
-		answer = AskYesNo("Are you sure you want to stop the current emulation?",
-		"Confirm", wxYES_NO);
-	}
-	else
-	{
-		answer = true;
-	}
-
-	if (answer) DoStop();
+	DoStop();
 }
 ////////////////////////////////////////////////////
 

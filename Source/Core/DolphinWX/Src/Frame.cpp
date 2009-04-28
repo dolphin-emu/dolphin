@@ -178,8 +178,10 @@ int abc = 0;
 			case OPENGL_WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
 				//PanicAlert("main call %i  %i  %i  %i", lParam, (HWND)Core::GetWindowHandle(), MSWGetParent_((HWND)Core::GetWindowHandle()), (HWND)this->GetHWND());
-				if (lParam == NULL) main_frame->bRenderToMain = false;
-					else main_frame->bRenderToMain = true;
+				if (lParam == NULL)
+					main_frame->bRenderToMain = false;
+				else
+					main_frame->bRenderToMain = true;
 				return 0;
 
 			case NJOY_RELOAD:
@@ -470,7 +472,6 @@ void CFrame::OnClose(wxCloseEvent& event)
 	}
 #endif
 
-
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -496,12 +497,24 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	// Toggle fullscreen from Alt + Enter or Esc
-	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
-	    (event.GetKeyCode() == WXK_ESCAPE))
+	// Escape key turn off fullscreen then Stop emulation in windowed mode
+	if (event.GetKeyCode() == WXK_ESCAPE)
 	{
-		ShowFullScreen(!IsFullScreen());
+		if (IsFullScreen())
+		{
+			ShowFullScreen(false);
+			MSWSetCursor(true);
+		}
+		else
+			DoStop();
+
 		UpdateGUI();
+	}
+	if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
+	{
+		// For some reasons, wxWidget doesn't proccess the Alt+Enter event there on windows.
+		// But still, pressing Alt+Enter make it Fullscreen, So this is for other OS... :P
+		ShowFullScreen(!IsFullScreen());
 	}
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'E','M') // Send this to the video plugin WndProc
@@ -596,8 +609,9 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 			MSWSetCursor(true); // Show the cursor again, in case it was hidden
 		#endif
 		m_fLastClickTime -= 10; // Don't treat repeated clicks as double clicks
-	}			
-	// --------------------------
+	}
+
+	UpdateGUI();
 }
 
 

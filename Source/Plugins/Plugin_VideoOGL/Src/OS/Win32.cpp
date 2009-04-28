@@ -213,76 +213,36 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		EndPaint( hWnd, &ps );
 		return 0;
 
+	case WM_SYSKEYDOWN:
+		switch( LOWORD( wParam ))
+		{
+		case VK_RETURN:
+			// Pressing Alt+Enter switch FullScreen/Windowed
+			if (m_hParent == NULL && !g_Config.renderToMainframe)
+			{
+				ToggleFullscreen(hWnd);
+				return 0;
+			}				
+			break;
+		}
+		break;
+
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))
 		{
 		case VK_ESCAPE:
-			// Pressing Esc switch FullScreen/Windowed
-			if (m_hParent == NULL)
-			{		
-				int	w_fs = 640, h_fs = 480;
-				if (g_Config.bFullscreen)
-				{
-					// Get out of fullscreen
-					g_Config.bFullscreen = false;
-					RECT rc = {0, 0, w_fs, h_fs};
-
-					if (strlen(g_Config.iWindowedRes) > 1)
-						sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
-					// FullScreen -> Desktop
-					ChangeDisplaySettings(NULL, 0);
-
-					RECT rcdesktop;	// Get desktop resolution
-					GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-					// Re-Enable the cursor
-					ShowCursor(TRUE);
-
-					int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-					int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-					// SetWindowPos to the center of the screen
-					SetWindowPos(hWnd, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
-
-					// Set new window style FS -> Windowed
-					SetWindowLong(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-
-					// Eventually show the window!
-					EmuWindow::Show();
-				}
-				else
-				{
-					// Get into fullscreen
-					g_Config.bFullscreen = true;
-					DEVMODE dmScreenSettings;
-					memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-
-					if (strlen(g_Config.iFSResolution) > 1)
-						sscanf(g_Config.iFSResolution, "%dx%d", &w_fs, &h_fs);
-
-					// Desktop -> FullScreen
-					dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
-					dmScreenSettings.dmPelsWidth	= w_fs;
-					dmScreenSettings.dmPelsHeight	= h_fs;
-					dmScreenSettings.dmBitsPerPel	= 32;
-					dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-					if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-						return 0;
-					// Set new window style -> PopUp
-					SetWindowLong(hWnd, GWL_STYLE, WS_POPUP);
-
-					// Disable the cursor
-					ShowCursor(FALSE);
-
-					// SetWindowPos to the upper-left corner of the screen
-					SetWindowPos(hWnd, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
-
-					// Eventually show the window!
-					EmuWindow::Show();
-				}
+			if (g_Config.bFullscreen)
+			{
+				// Pressing Esc switch to Windowed in Fullscreen mode
+				ToggleFullscreen(hWnd);
 				return 0;
-			}				
+			}
+			else if (!g_Config.renderToMainframe)
+			{
+				// And stops the emulation when already in Windowed mode
+				PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
+			}
 			break;
-
 		case 'E': // EFB hotkey
 			if (g_Config.bEFBCopyDisableHotKey)
 			{
@@ -431,6 +391,70 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
     }
 
 	return m_hWnd;
+}
+
+void ToggleFullscreen(HWND hParent)
+{
+	if (m_hParent == NULL)
+	{ 
+		int	w_fs = 640, h_fs = 480;
+		if (g_Config.bFullscreen)
+		{
+			// Get out of fullscreen
+			g_Config.bFullscreen = false;
+			RECT rc = {0, 0, w_fs, h_fs};
+
+			if (strlen(g_Config.iWindowedRes) > 1)
+				sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
+			// FullScreen -> Desktop
+			ChangeDisplaySettings(NULL, 0);
+
+			RECT rcdesktop;	// Get desktop resolution
+			GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
+			ShowCursor(TRUE);
+
+			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
+			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+			// SetWindowPos to the center of the screen
+			SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Set new window style FS -> Windowed
+			SetWindowLong(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+
+			// Eventually show the window!
+			EmuWindow::Show();
+		}
+		else
+		{
+			// Get into fullscreen
+			DEVMODE dmScreenSettings;
+			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+
+			if (strlen(g_Config.iFSResolution) > 1)
+				sscanf(g_Config.iFSResolution, "%dx%d", &w_fs, &h_fs);
+
+			// Desktop -> FullScreen
+			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
+			dmScreenSettings.dmPelsWidth	= w_fs;
+			dmScreenSettings.dmPelsHeight	= h_fs;
+			dmScreenSettings.dmBitsPerPel	= 32;
+			dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+				return;
+			
+			// Set new window style -> PopUp
+			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);
+			g_Config.bFullscreen = true;
+			ShowCursor(FALSE);
+
+			// SetWindowPos to the upper-left corner of the screen
+			SetWindowPos(hParent, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Eventually show the window!
+			EmuWindow::Show();
+		}
+	}
 }
 
 void Show()
