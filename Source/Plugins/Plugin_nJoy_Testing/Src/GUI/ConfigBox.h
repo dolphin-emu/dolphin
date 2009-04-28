@@ -62,7 +62,7 @@ class ConfigBox : public wxDialog
 		wxButton *m_OK;
 		wxButton *m_Cancel;
 				
-		wxPanel *m_Controller[4];		
+		wxPanel *m_Controller[5];		
 		wxNotebook *m_Notebook;
 
 		wxComboBox *m_Joyname[4];
@@ -132,6 +132,11 @@ class ConfigBox : public wxDialog
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
 		wxStaticBitmap *m_controllerimage[4];
+	
+		// DEBUG
+		wxStaticText *m_textAxises[16]; // Support 16 axises
+		wxTextCtrl *m_JoyAxises[16]; // Support 16 axises
+		wxButton *m_bJoyDebug;
 		
 		int notebookpage;		
 	private:
@@ -145,6 +150,7 @@ class ConfigBox : public wxDialog
 			ID_CONTROLLERPAGE2,
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
+			ID_CONTROLLERPAGE5,
 
 			IDC_JOYNAME,
 			IDC_CONTROLTYPE,
@@ -210,7 +216,43 @@ class ConfigBox : public wxDialog
 			IDT_ANALOG_SUB_Y,
 			IDT_WEBSITE,
 			ID_BUTTONCALIBRATE,
-
+			
+			ID_DEBUGAXISCTRLTEXT0,
+			ID_DEBUGAXISCTRLTEXT1,
+			ID_DEBUGAXISCTRLTEXT2,
+			ID_DEBUGAXISCTRLTEXT3,
+			ID_DEBUGAXISCTRLTEXT4,
+			ID_DEBUGAXISCTRLTEXT5,
+			ID_DEBUGAXISCTRLTEXT6,
+			ID_DEBUGAXISCTRLTEXT7,
+			ID_DEBUGAXISCTRLTEXT8,
+			ID_DEBUGAXISCTRLTEXT9,
+			ID_DEBUGAXISCTRLTEXT10,
+			ID_DEBUGAXISCTRLTEXT11,
+			ID_DEBUGAXISCTRLTEXT12,
+			ID_DEBUGAXISCTRLTEXT13,
+			ID_DEBUGAXISCTRLTEXT14,
+			ID_DEBUGAXISCTRLTEXT15,
+			
+			ID_DEBUGAXISSTATICTEXT0,
+			ID_DEBUGAXISSTATICTEXT1,
+			ID_DEBUGAXISSTATICTEXT2,
+			ID_DEBUGAXISSTATICTEXT3,
+			ID_DEBUGAXISSTATICTEXT4,
+			ID_DEBUGAXISSTATICTEXT5,
+			ID_DEBUGAXISSTATICTEXT6,
+			ID_DEBUGAXISSTATICTEXT7,
+			ID_DEBUGAXISSTATICTEXT8,
+			ID_DEBUGAXISSTATICTEXT9,
+			ID_DEBUGAXISSTATICTEXT10,
+			ID_DEBUGAXISSTATICTEXT11,
+			ID_DEBUGAXISSTATICTEXT12,
+			ID_DEBUGAXISSTATICTEXT13,
+			ID_DEBUGAXISSTATICTEXT14,
+			ID_DEBUGAXISSTATICTEXT15,
+			
+			IDB_BUTTONDEBUGSTART,
+			
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
 	
@@ -234,6 +276,8 @@ class ConfigBox : public wxDialog
 		void Calibrate(wxCommandEvent& event);
 		void GetInputs(wxCommandEvent& event);
 		void GetHats(int ID);
+	
+		void StartDebug(wxCommandEvent& event);
 
 		void SetButtonText(int id, char text[128]);		
 };

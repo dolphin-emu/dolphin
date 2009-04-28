@@ -73,6 +73,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_BUTTON(IDB_ANALOG_MAIN_Y, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_ANALOG_SUB_X, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_ANALOG_SUB_Y, ConfigBox::GetInputs)
+	EVT_BUTTON(IDB_BUTTONDEBUGSTART,ConfigBox::StartDebug)
 END_EVENT_TABLE()
 
 ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -123,6 +124,8 @@ void ConfigBox::CreateGUIControls()
 	m_Notebook->AddPage(m_Controller[2], wxT("Controller 3"));
 	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxPoint(0, 0), wxSize(600, 400));
 	m_Notebook->AddPage(m_Controller[3], wxT("Controller 4"));
+	m_Controller[4] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE5, wxPoint(0, 0), wxSize(600, 400));
+	m_Notebook->AddPage(m_Controller[4], wxT("Debug"));
 	
 	// Add controls
 	wxArrayString arrayStringFor_Joyname;
@@ -275,6 +278,14 @@ void ConfigBox::CreateGUIControls()
 		
 		SetControllerAll(i);
 	}
+	for(int a = 0; a < 16; ++a)
+	{
+		char temp[128];
+		sprintf(temp, "Axis %d:", a);
+		m_textAxises[a] = new wxStaticText(m_Controller[4], ID_DEBUGAXISSTATICTEXT0 + a, wxString::FromAscii(temp),  wxPoint(15, 15 + (a * 25)), wxDefaultSize, 0, wxString::FromAscii(temp));
+		m_JoyAxises[a] = new wxTextCtrl(m_Controller[4], ID_DEBUGAXISCTRLTEXT0 + a, wxT("0"), wxPoint(60, 15 + (a * 25)), wxSize(59, 25), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+	}
+	m_bJoyDebug = new wxButton(m_Controller[4], IDB_BUTTONDEBUGSTART, wxT("Start"), wxPoint(297, 385), wxDefaultSize, 0, wxDefaultValidator, wxT("Start"));
 }
 
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
@@ -322,7 +333,29 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 		Close(); 
 	}
 }
-
+void ConfigBox::StartDebug(wxCommandEvent& event)
+{
+	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[0].ID);
+	int axes = SDL_JoystickNumAxes(joy);
+	for(int a = 16; a >= axes; --a)
+	{
+		m_textAxises[a]->Hide();
+		m_JoyAxises[a]->Hide();
+	}
+	Sint16 value;
+	while(1)
+	{	
+		for(int b = 0; b < axes; b++)
+		{
+			SDL_JoystickUpdate();
+			value = SDL_JoystickGetAxis(joy, b);
+			char temp[128];
+			sprintf(temp, "%d", value);
+			m_JoyAxises[b]->SetValue(wxString::FromAscii(temp));
+			wxWindow::Update();
+		}
+	}
+}
 void ConfigBox::Calibrate(wxCommandEvent& event)
 {
 	int controller = notebookpage;
@@ -332,6 +365,11 @@ void ConfigBox::Calibrate(wxCommandEvent& event)
 	int axes = SDL_JoystickNumAxes(joy);
 	Sint16 value;
 	unsigned long Started = SDL_GetTicks();
+	for(int b = 0; b < axes; b++)
+	{
+		joysticks[controller].sData[b].Min = 0;
+		joysticks[controller].sData[b].Max = 0;
+	}
 	while(1)
 	{			
 		for(int b = 0; b < axes; b++)
@@ -669,7 +707,7 @@ void ConfigBox::GetInputs(wxCommandEvent& event)
 				(value <= (joysticks[controller].sData[b].Min - joysticks[controller].sData[b].Min * joysticks[controller].deadzone/100.0f) ) || 
 				(value >= (joysticks[controller].sData[b].Max - joysticks[controller].sData[b].Max * joysticks[controller].deadzone/100.0f) ))	// Add and subtract a small value
 			{															// It allows for some small jitter
-				printf("value %d, Min %d Max %d Removal %f %f\n", value, joysticks[controller].sData[b].Min,joysticks[controller].sData[b].Max, joysticks[controller].sData[b].Min * joysticks[controller].deadzone/100.0f, joysticks[controller].sData[b].Max * joysticks[controller].deadzone/100.0f);
+				printf("value %d, Min %d Max %d Removal %f %f Cur: %d\n", value, joysticks[controller].sData[b].Min,joysticks[controller].sData[b].Max, joysticks[controller].sData[b].Min * joysticks[controller].deadzone/100.0f, joysticks[controller].sData[b].Max * joysticks[controller].deadzone/100.0f, value);
 				value = value < 0 ? -1 : 1; // Makes it know if the value is negative or positive
 				pressed = b;	
 				waiting = false;
