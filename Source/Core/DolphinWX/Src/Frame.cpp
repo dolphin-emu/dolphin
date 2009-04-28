@@ -275,6 +275,13 @@ EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU(IDM_TOGGLE_LOGWINDOW, CFrame::OnToggleLogWindow)
 EVT_MENU(IDM_TOGGLE_CONSOLE, CFrame::OnToggleConsole)
 
+EVT_MENU(IDM_LISTDRIVES, CFrame::GameListChanged)
+EVT_MENU(IDM_LISTWII, CFrame::GameListChanged)
+EVT_MENU(IDM_LISTGC,  CFrame::GameListChanged)
+EVT_MENU(IDM_LISTJAP, CFrame::GameListChanged)
+EVT_MENU(IDM_LISTPAL, CFrame::GameListChanged)
+EVT_MENU(IDM_LISTUSA, CFrame::GameListChanged)
+
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
@@ -673,4 +680,4 @@ void CFrame::Update()
 	}
 }
 #endif
-//////////////////////////////////////////
+

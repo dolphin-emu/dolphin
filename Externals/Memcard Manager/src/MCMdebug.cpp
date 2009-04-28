@@ -171,7 +171,7 @@ void CMemcardManagerDebug::updateHDRtab(int card)
 		memoryCard[card]->hdr.serial[10],memoryCard[card]->hdr.serial[11]);
 
 	wx_fmtTime.Printf(wxT("%08X, %08X"), 
-		memoryCard[card]->hdr.fmtTime.high,memoryCard[card]->hdr.fmtTime.low);
+		Common::swap32(memoryCard[card]->hdr.fmtTime.high),Common::swap32(memoryCard[card]->hdr.fmtTime.low));
 	
 	wx_SRAMBIAS.Printf(wxT("%02X, %02X, %02X, %02X"),
 		memoryCard[card]->hdr.SramBias[0],memoryCard[card]->hdr.SramBias[1],

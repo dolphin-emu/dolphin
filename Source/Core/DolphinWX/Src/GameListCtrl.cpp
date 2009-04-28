@@ -31,6 +31,7 @@
 #include "ISOProperties.h"
 #include "IniFile.h"
 #include "FileUtil.h"
+#include "CDUtils.h"
 
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
@@ -293,7 +294,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SetItem(_Index, COLUMN_TITLE, wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, wxString::From8BitData(rISOFile.GetDescription(0).c_str()), -1);
 		break;
-	default:	
+	default:
 		m_gameList.append(std::string(wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()).mb_str()) + " (E)\n");
 		SetItem(_Index, COLUMN_TITLE, 
 			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
@@ -462,10 +463,45 @@ void CGameListCtrl::ScanForISOs()
 			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{
-				m_ISOFiles.push_back(ISOFile);
+				bool list = true;
+
+				if (!SConfig::GetInstance().m_ListWii && ISOFile.IsWii())
+					list = false;
+				if (!SConfig::GetInstance().m_ListGC && !ISOFile.IsWii())
+					list = false;
+
+				switch(ISOFile.GetCountry())
+				{
+				case DiscIO::IVolume::COUNTRY_JAP:
+					if (!SConfig::GetInstance().m_ListJap)
+						list = false;
+					break;
+				case DiscIO::IVolume::COUNTRY_USA:
+					if (!SConfig::GetInstance().m_ListUsa)
+						list = false;
+					break;
+				default:
+					if (!SConfig::GetInstance().m_ListPal)
+						list = false;
+					break;
+				}
+
+				if (list) m_ISOFiles.push_back(ISOFile);
 			}
 		}
 	}
+
+	if (SConfig::GetInstance().m_ListDrives)
+	{
+		char **drives = cdio_get_devices();
+		GameListItem * Drive[24];
+		for (int i = 0; drives[i] != NULL && i < 24; i++)
+		{
+			Drive[i] = new GameListItem(drives[i]);
+			if (Drive[i]->IsValid())	m_ISOFiles.push_back(*Drive[i]);
+		}
+	}
+
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }
 

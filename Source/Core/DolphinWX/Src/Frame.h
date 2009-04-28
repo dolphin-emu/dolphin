@@ -218,7 +218,8 @@ class CFrame : public wxFrame
 
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnShow_InfoWindow(wxCommandEvent& event);
-		void OnLoadWiiMenu(wxCommandEvent& event);        
+		void OnLoadWiiMenu(wxCommandEvent& event);
+		void GameListChanged(wxCommandEvent& event);
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 
@@ -248,3 +249,4 @@ class CFrame : public wxFrame
 ////////////////////////////////
 
 #endif  // __FRAME_H_
+

@@ -32,7 +32,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x107
+#define CACHE_REVISION 0x108
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -168,6 +168,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
 	p.DoBuffer(&m_pImage, m_ImageSize);
+	p.Do(m_IsWii);
 }
 
 std::string GameListItem::CreateCacheFilename()
@@ -175,6 +176,7 @@ std::string GameListItem::CreateCacheFilename()
 	std::string Filename;
 	SplitPath(m_FileName, NULL, &Filename, NULL);
 
+	if (Filename.empty()) return Filename; // Disc Drive
 	// We add gcz to the cache file if the file is compressed to avoid it reading
 	// the uncompressed file's cache if it has the same name, but not the same ext.
 	if (DiscIO::IsCompressedBlob(m_FileName.c_str()))
@@ -203,3 +205,4 @@ const std::string& GameListItem::GetName(int index) const
 	} 
 	return m_Name[0];
 }
+

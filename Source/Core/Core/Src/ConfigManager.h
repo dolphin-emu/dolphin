@@ -67,6 +67,12 @@ struct SConfig
 	bool m_InterfaceStatusbar;
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceConsole;
+	bool m_ListDrives;
+	bool m_ListWii;
+	bool m_ListGC;
+	bool m_ListPal;
+	bool m_ListUsa;
+	bool m_ListJap;
 
 	// save settings
 	void SaveSettings();
@@ -91,3 +97,4 @@ struct SConfig
 };
 
 #endif // endif config manager
+

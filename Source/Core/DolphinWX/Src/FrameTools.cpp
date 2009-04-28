@@ -155,26 +155,44 @@ void CFrame::CreateMenu()
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("Show &Toolbar"));
-	toolsMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
-	toolsMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("Show &Logwindow"));
-	toolsMenu->Check(IDM_TOGGLE_LOGWINDOW, m_bLogWindow);
-	toolsMenu->AppendCheckItem(IDM_TOGGLE_CONSOLE, _T("Show &Console"));
-	toolsMenu->Check(IDM_TOGGLE_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
-	toolsMenu->AppendSeparator();
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	toolsMenu->Append(IDM_INFO, _T("System Information"));
 	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
-     
-    if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
-    {
-        toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
-    }    
+
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
+	{
+		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+	}
 
 	menuBar->Append(toolsMenu, _T("&Tools"));
+
+	wxMenu* viewMenu = new wxMenu;
+	viewMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("Show &Toolbar"));
+	viewMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
+	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
+	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
+	viewMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("Show &Logwindow"));
+	viewMenu->Check(IDM_TOGGLE_LOGWINDOW, m_bLogWindow);
+	viewMenu->AppendCheckItem(IDM_TOGGLE_CONSOLE, _T("Show &Console"));
+	viewMenu->Check(IDM_TOGGLE_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
+	viewMenu->AppendSeparator();
+
+	viewMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
+	viewMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
+	viewMenu->AppendCheckItem(IDM_LISTGC, _T("Show GameCube"));
+	viewMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
+	viewMenu->AppendCheckItem(IDM_LISTJAP, _T("Show JAP"));
+	viewMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
+	viewMenu->AppendCheckItem(IDM_LISTPAL, _T("Show PAL"));
+	viewMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
+	viewMenu->AppendCheckItem(IDM_LISTUSA, _T("Show USA"));
+	viewMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
+#ifdef _WIN32 //TODO test drive loading on linux, I cannot load from drive on my linux system Dolphin just crashes
+	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _T("Show Drives"));
+	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
+#endif
+	menuBar->Append(viewMenu, _T("&View"));	
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
@@ -881,4 +899,33 @@ void CFrame::UpdateGUI()
 	FitInside();
 }
 
+void CFrame::GameListChanged(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case IDM_LISTWII:
+		SConfig::GetInstance().m_ListWii = event.IsChecked();
+		break;
+	case IDM_LISTGC:
+		SConfig::GetInstance().m_ListGC = event.IsChecked();
+		break;
+	case IDM_LISTJAP:
+		SConfig::GetInstance().m_ListJap = event.IsChecked();
+		break;
+	case IDM_LISTPAL:
+		SConfig::GetInstance().m_ListPal = event.IsChecked();
+		break;
+	case IDM_LISTUSA:
+		SConfig::GetInstance().m_ListUsa = event.IsChecked();
+		break;
+	case IDM_LISTDRIVES:
+		SConfig::GetInstance().m_ListDrives = event.IsChecked();
+		break;
+	}
+	
+	if (m_GameListCtrl)
+	{
+		m_GameListCtrl->Update();
+	}
+}
 

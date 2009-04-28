@@ -83,6 +83,14 @@ void SConfig::SaveSettings()
 		ini.Set("Interface", "ShowLogWindow",	m_InterfaceLogWindow);
 		ini.Set("Interface", "ShowConsole",		m_InterfaceConsole);
 
+		// Game List Control
+		ini.Set("GameList", "ListDrives",	m_ListDrives);
+		ini.Set("GameList", "ListWii",		m_ListWii);
+		ini.Set("GameList", "ListGC",		m_ListGC);
+		ini.Set("GameList", "ListJap",		m_ListJap);
+		ini.Set("GameList", "ListPal",		m_ListPal);
+		ini.Set("GameList", "ListUsa",		m_ListUsa);
+
 		// Core
 		ini.Set("Core", "HLEBios",			m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",		m_LocalCoreStartupParameter.bUseJIT);
@@ -188,6 +196,14 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowLogWindow",	&m_InterfaceLogWindow, false);
 		ini.Get("Interface", "ShowConsole",		&m_InterfaceConsole, false);
 
+		// Game List Control
+		ini.Get("GameList", "ListDrives",	&m_ListDrives, false);
+		ini.Get("GameList", "ListWii",		&m_ListWii, true);
+		ini.Get("GameList", "ListGC",		&m_ListGC, true);
+		ini.Get("GameList", "ListJap",		&m_ListJap, true);
+		ini.Get("GameList", "ListPal",		&m_ListPal, true);
+		ini.Get("GameList", "ListUsa",		&m_ListUsa, true);
+
 		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,     true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,      true);
@@ -231,3 +247,4 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 	}
 }
+

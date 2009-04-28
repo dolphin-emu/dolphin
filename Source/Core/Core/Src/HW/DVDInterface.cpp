@@ -539,6 +539,9 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	// REQUEST ERROR (Immediate)
 	//	Command/Subcommand/Padding <- E0000000
 	//=========================================================================================================
+	case 0xD9:
+		INFO_LOG(DVDINTERFACE, "DVD: command 0xD9, called by gcos multigame discs\n Report if you are running anything else");
+		break;
 	case 0xE0:
 		ERROR_LOG(DVDINTERFACE, "Requesting error");
 		dvdMem.Immediate = g_ErrorCode;
