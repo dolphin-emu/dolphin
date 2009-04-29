@@ -23,7 +23,6 @@
 #include "ColorUtil.h"
 #include "BannerLoaderWii.h"
 #include "FileUtil.h"
-#include "../../Core/Src/VolumeHandler.h"
 
 namespace DiscIO
 {
