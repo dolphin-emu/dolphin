@@ -38,6 +38,9 @@ private:
 		ROM_MASK = (ROM_SIZE - 1)
 	};
 
+	// Region
+	bool m_bNTSC;
+
 	//! IPL
 	u8* m_pIPL;
 
@@ -57,6 +60,8 @@ private:
 	int m_count;
 
 	virtual void TransferByte(u8 &_uByte);
+
+	void LoadFileToIPL(const char* filename, u32 offset);
 };
 
 #endif

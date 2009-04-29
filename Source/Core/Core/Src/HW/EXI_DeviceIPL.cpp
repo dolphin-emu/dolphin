@@ -23,7 +23,8 @@
 #include "MemoryUtil.h"
 
 // english
-SRAM sram_dump= {{0x04, 0x6B, 0xFB, 0x91, 0x00, 0x00, 0x00, 0x00,
+SRAM sram_dump = {{
+	0x04, 0x6B, 0xFB, 0x91, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x40,
 	0x05, 0x00, 0x00, 0x2C, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -49,9 +50,13 @@ SRAM sram_dump_german = {{
 // We should provide an option to choose from the above, or figure out the checksum (the algo in yagcd seems wrong)
 // so that people can change default language.
 
-static const char iplver[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
-								  "(C) 1999 ArtX Inc.  All rights reserved."
-								  "PAL  Revision 1.0 ";
+static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+									 "(C) 1999 ArtX Inc.  All rights reserved."
+									 "PAL  Revision 1.0  ";
+
+static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
+									 "(C) 1999 ArtX Inc.  All rights reserved.";
+
 
 CEXIIPL::CEXIIPL() :
 	m_uPosition(0),
@@ -59,61 +64,28 @@ CEXIIPL::CEXIIPL() :
 	m_uRWOffset(0),
 	m_count(0)
 {
-	// Load the IPL
-	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE); 
-	FILE* pStream = NULL;
-	pStream = fopen(FONT_ANSI_FILE, "rb");
-	if (pStream != NULL)
-	{
-		fseek(pStream, 0, SEEK_END);
-		size_t filesize = (size_t)ftell(pStream);
-		rewind(pStream);
+	// Determine region
+	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
 
-		fread(m_pIPL + 0x001fcf00, 1, filesize, pStream);
-		fclose(pStream);
-	}
-	else
-	{
-/*		This is a poor way to handle failure.  We should either not display this message unless fonts
-		are actually accessed, or better yet, emulate them using a system font.  -bushing */
-		// JP: But I want to see this error
-		#ifndef __APPLE__
-			PanicAlert("Error: failed to load '" FONT_ANSI_FILE "'. Fonts in a few games may not work, or"
-				" crash the game.");
-		#endif
-	}
+	// Create the IPL
+	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
 
-	pStream = fopen(FONT_SJIS_FILE, "rb");
-	if (pStream != NULL)
-	{
-		fseek(pStream, 0, SEEK_END);
-		size_t filesize = (size_t)ftell(pStream);
-		rewind(pStream);
+	// Copy header
+	memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
 
-		fread(m_pIPL + 0x001aff00, 1, filesize, pStream);
-		fclose(pStream);
-	}
-	else
-	{
-		// Heh, BIOS fonts don't really work in JAP games anyway ... we get bogus characters.
-		// JP: But I want to see this error
-		#ifndef __APPLE__
-			PanicAlert("Error: failed to load '" FONT_SJIS_FILE "'. Fonts in a few Japanese games may"
-				" not work or crash the game.");
-		#endif
-	}
-
-	memcpy(m_pIPL, iplver, sizeof(iplver));
+	// Load fonts
+	LoadFileToIPL(FONT_SJIS_FILE, 0x001aff00);
+	LoadFileToIPL(FONT_ANSI_FILE, 0x001fcf00);
 
 	// Clear RTC 
 	memset(m_RTC, 0, sizeof(m_RTC));
 
 	// SRAM
-    pStream = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
-    if (pStream != NULL)
+	FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
+    if (file != NULL)
     {
-        fread(&m_SRAM, 1, 64, pStream);
-        fclose(pStream);
+        fread(&m_SRAM, 1, 64, file);
+        fclose(file);
     }
     else
     {
@@ -146,6 +118,28 @@ CEXIIPL::~CEXIIPL()
         fwrite(&m_SRAM, 1, 64, file);
         fclose(file);
     }
+}
+
+void CEXIIPL::LoadFileToIPL(const char* filename, u32 offset)
+{
+	FILE* pStream = NULL;
+	pStream = fopen(filename, "rb");
+	if (pStream != NULL)
+	{
+		fseek(pStream, 0, SEEK_END);
+		size_t filesize = (size_t)ftell(pStream);
+		rewind(pStream);
+
+		fread(m_pIPL + offset, 1, filesize, pStream);
+		fclose(pStream);
+	}
+	else
+	{
+		// This is a poor way to handle failure.  We should either not display this message unless fonts
+		// are actually accessed, or better yet, emulate them using a system font.  -bushing
+		PanicAlert("Error: failed to load %s. Fonts in a few games may not work, or crash the game.",
+			filename);
+	}
 }
 
 void CEXIIPL::SetCS(int _iCS)
@@ -195,7 +189,6 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				// wii stuff perhaps wii SRAM?
 				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something (perhaps SRAM?)");
 			}
-			// debug only
 			else if ((m_uAddress & 0x60000000) == 0)
 			{
 				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: IPL access");
@@ -236,6 +229,20 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		{
 			if ((m_uAddress & 0x80000000) == 0)
 				_uByte = m_pIPL[((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset];
+#if 0
+			u32 position = ((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset;
+				char msg[5] = "";
+				if (position >= 0 &&  position < 0x100)
+					sprintf(msg, "COPY");
+				else if (position >= 0x00000100 &&  position <= 0x001aeee8)
+					sprintf(msg, "BIOS");
+				else if (position >= 0x001AFF00 &&  position <= 0x001FA0E0)
+					sprintf(msg, "SJIS");
+				else if (position >= 0x001FCF00 &&  position <= 0x001FF474)
+					sprintf(msg, "ANSI");
+				WARN_LOG(EXPANSIONINTERFACE, "m_pIPL[0x%08x] = 0x%02x %s\t0x%08x 0x%08x 0x%08x",
+					position, _uByte, msg, m_uPosition,m_uAddress,m_uRWOffset);
+#endif
 		} 
 		//
 		// --- Real Time Clock (RTC) ---
@@ -281,10 +288,10 @@ void CEXIIPL::TransferByte(u8& _uByte)
                 ((m_uAddress & 0x7FFFFF00) == 0x21000800))
         {
             // WII only RTC flags... afaik just the wii menu initialize it
-//            if (m_uAddress & 0x80000000)
-  //              m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
-    //        else
-      //          _uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+// 			if (m_uAddress & 0x80000000)
+// 				m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+// 			else
+// 				_uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
         }
 		m_uRWOffset++;
 	}
