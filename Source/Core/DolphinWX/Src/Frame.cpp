@@ -503,7 +503,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		if (IsFullScreen())
 		{
 			ShowFullScreen(false);
+#ifdef _WIN32
 			MSWSetCursor(true);
+#endif
 		}
 		else
 			DoStop();
