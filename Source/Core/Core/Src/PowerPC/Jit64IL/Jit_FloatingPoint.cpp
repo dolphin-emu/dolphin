@@ -102,6 +102,9 @@
 
 	void Jit64::fcmpx(UGeckoInstruction inst)
 	{
+		// @TODO: conform this to the new fcmpo
+		Default(inst); return;
+
 		INSTRUCTION_START
 		JITDISABLE(FloatingPoint)
 		IREmitter::InstLoc lhs, rhs, res;

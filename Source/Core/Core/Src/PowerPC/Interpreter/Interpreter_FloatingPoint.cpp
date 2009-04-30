@@ -135,15 +135,34 @@ void Helper_UpdateCR1(double _fValue)
 	PanicAlert("CR1");
 }
 
-bool IsNAN(double _dValue) 
+inline bool IsNAN(double _dValue) 
 { 
 	return _dValue != _dValue; 
 }
 
+inline bool _IsNAN(float x) {
+	//return ((*(u32*)&x) & 0x7f800000UL) == 0x7f800000UL && ((*(u32*)&x) & 0x007fffffUL);
+	return x != x;
+}
+
 void fcmpo(UGeckoInstruction _inst)
 {
+	/*
+	float fa = static_cast<float>(rPS0(_inst.FA));
+	float fb = static_cast<float>(rPS0(_inst.FB));
+	// normalize
+	if (((*(u32*)&fa) & 0x7f800000UL) == 0) (*(u32*)&fa) &= 0x80000000UL;
+	if (((*(u32*)&fb) & 0x7f800000UL) == 0) (*(u32*)&fb) &= 0x80000000UL;
+	*/
+
+	// normalize if conversion to float gives denormalized number
+	if ((riPS0(_inst.FA) & 0x7ff0000000000000ULL) < 0x3800000000000000ULL)
+		riPS0(_inst.FA) &= 0x8000000000000000ULL;
+	if ((riPS0(_inst.FB) & 0x7ff0000000000000ULL) < 0x3800000000000000ULL)
+		riPS0(_inst.FB) &= 0x8000000000000000ULL;
 	double fa =	rPS0(_inst.FA);
 	double fb =	rPS0(_inst.FB);
+
 	u32 compareResult;
 	if (IsNAN(fa) || IsNAN(fb))  compareResult = 1;
 	else if (fa < fb)            compareResult = 8; 
@@ -164,6 +183,21 @@ void fcmpo(UGeckoInstruction _inst)
 
 void fcmpu(UGeckoInstruction _inst)
 {
+	
+
+	/*
+	float fa = static_cast<float>(rPS0(_inst.FA));
+	float fb = static_cast<float>(rPS0(_inst.FB));
+	// normalize
+	if (((*(u32*)&fa) & 0x7f800000UL) == 0) (*(u32*)&fa) &= 0x80000000UL;
+	if (((*(u32*)&fb) & 0x7f800000UL) == 0) (*(u32*)&fb) &= 0x80000000UL;
+	*/
+
+	// normalize if conversion to float gives denormalized number
+	if ((riPS0(_inst.FA) & 0x7ff0000000000000ULL) < 0x3800000000000000ULL)
+		riPS0(_inst.FA) &= 0x8000000000000000ULL;
+	if ((riPS0(_inst.FB) & 0x7ff0000000000000ULL) < 0x3800000000000000ULL)
+		riPS0(_inst.FB) &= 0x8000000000000000ULL;
 	double fa =	rPS0(_inst.FA);
 	double fb =	rPS0(_inst.FB);
 
