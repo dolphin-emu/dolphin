@@ -888,6 +888,11 @@ typedef unsigned int ppc_word;
 			ill(dp,in);
 	}
 
+	static void fmr(struct DisasmPara_PPC *dp,ppc_word in)
+	{
+		sprintf(dp->opcode, "fmr%s", rcsel[in&1]);
+		sprintf(dp->operands, "f%d, f%d", (int)PPCGETD(in), (int)PPCGETB(in));
+	}
 
 	static void fdab(struct DisasmPara_PPC *dp,ppc_word in,const char *name,int mask)
 		/* indexed float instruction: xxxx fD,rA,rB */
@@ -2153,7 +2158,7 @@ typedef unsigned int ppc_word;
 					break;
 
 				case 72:
-					fdabc(dp,in,"mr",10,0);
+					fmr(dp,in);
 					break;
 
 				case 134:
