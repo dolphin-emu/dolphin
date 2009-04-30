@@ -768,7 +768,6 @@
 		}
 	}
 
-	// FIXME: As it currently is, this breaks controls in SA:DX, maybe more
 	void Jit64::negx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -785,7 +784,7 @@
 		gpr.UnlockAll();
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(a));
+			MOV(32, R(EAX), gpr.R(d));
 			CALL((u8*)asm_routines.computeRc);
 		}
 	}
