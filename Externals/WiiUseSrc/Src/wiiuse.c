@@ -115,10 +115,10 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 	if (!wiimotes)
 		return NULL;
 
-	wm = (wiimote_t **)malloc(sizeof(struct wiimote_t*) * wiimotes);
+	wm = (struct wiimote_t **)malloc(sizeof(struct wiimote_t*) * wiimotes);
 
 	for (i = 0; i < wiimotes; ++i) {
-		wm[i] = (wiimote_t *)malloc(sizeof(struct wiimote_t));
+		wm[i] = (struct wiimote_t *)malloc(sizeof(struct wiimote_t));
 		memset(wm[i], 0, sizeof(struct wiimote_t));
 
 		wm[i]->unid = i+1;
