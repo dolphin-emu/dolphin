@@ -201,20 +201,29 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     if (!g_Config.renderToMainframe ||
         g_VideoInitialize.pWindowHandle == NULL) {
         GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
-                                  -1, _("Dolphin"), wxPoint(0,0), size);
+                                  -1, _("Dolphin"), wxPoint(50,50), size);
     } else {
         GLWin.frame = new wxFrame((wxWindow *)NULL,
-                                  -1, _("Dolphin"), wxPoint(0,0), size);
+                                  -1, _("Dolphin"), wxPoint(50,50), size);
     }
+
+#if defined(__APPLE__)
+    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY,  wxPoint(0,0), size, 0, wxT("Dolphin"), args, wxNullPalette);
+#else
     GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, args,
                                     wxPoint(0,0), size, wxSUNKEN_BORDER);
     GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+#endif
 
     GLWin.frame->Show(TRUE);
     GLWin.glCanvas->Show(TRUE);
 
+#if defined(__APPLE__)
+    GLWin.glCanvas->SetCurrent();
+#else
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
     //    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
+#endif
 
 
 #elif defined(_WIN32)
@@ -515,7 +524,11 @@ bool OpenGL_MakeCurrent()
         return false;
     }
 #elif defined(USE_WX) && USE_WX
+#if defined(__APPLE__)
+    GLWin.glCanvas->SetCurrent();
+#else
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+#endif
     return true;
 #elif defined(HAVE_X11) && HAVE_X11
     Window winDummy;
