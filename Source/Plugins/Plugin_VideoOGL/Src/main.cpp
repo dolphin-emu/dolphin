@@ -199,6 +199,7 @@ void DllConfig(HWND _hParent)
 	
 	// Check if at least one resolution was found. If we don't and the resolution array is empty
 	// CreateGUIControls() will crash because the array is empty.
+#if defined(HAVE_WX) && HAVE_WX
 	if (config_dialog->arrayStringFor_FullscreenCB.size() == 0)
 	{
 		config_dialog->AddFSReso("<No resolutions found>");
@@ -208,7 +209,7 @@ void DllConfig(HWND _hParent)
 	config_dialog->CreateGUIControls();
 	// Hm, why does this code show it modally?
 	config_dialog->ShowModal();
-	
+#endif	
 }
 
 void Initialize(void *init)
