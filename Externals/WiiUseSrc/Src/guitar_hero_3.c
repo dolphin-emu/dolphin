@@ -88,7 +88,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, b
 		 */
 		if (data[offset + 16] == 0xFF) {
 			/* get the calibration data */
-			byte* handshake_buf = malloc(EXP_HANDSHAKE_LEN * sizeof(byte));
+			byte* handshake_buf = (byte *)malloc(EXP_HANDSHAKE_LEN * sizeof(byte));
 
 			WIIUSE_DEBUG("Guitar Hero 3 handshake appears invalid, trying again.");
 			wiiuse_read_data_cb(wm, handshake_expansion, handshake_buf, WM_EXP_MEM_CALIBR, EXP_HANDSHAKE_LEN);

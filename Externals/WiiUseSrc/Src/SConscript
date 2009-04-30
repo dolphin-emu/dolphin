@@ -24,10 +24,16 @@ if env['HAVE_BLUEZ']:
 if sys.platform == 'darwin':
 	files += [ "io_osx.c", ]
 
-env_wiiuse = env.Clone(
-	CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default',
-	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
-	)
+if sys.platform == 'darwin':
+	env_wiiuse = env.Clone(
+		CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default -x objective-c++',
+		CXXFLAGS = env.filterWarnings(env['CXXFLAGS']) + ' -x objective-c++',
+		)
+else:
+	env_wiiuse = env.Clone(
+		CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default',
+		CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+		)
 
 libs = [
     'm',
