@@ -309,7 +309,6 @@ const DSPOPCTemplate cw =
 const DSPOPCTemplate opcodes_ext[] =
 {	
 	// FIXME: guessing this is cr need checking
-	{"CR",      0x0000, 0x00fc, DSPInterpreter::Ext::cr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"DR",      0x0004, 0x00fc, DSPInterpreter::Ext::dr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"IR",      0x0008, 0x00fc, DSPInterpreter::Ext::ir, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
 	{"NR",      0x000c, 0x00fc, DSPInterpreter::Ext::nr, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, NULL, NULL,},
@@ -401,14 +400,14 @@ const pdlabel_t regnames[] =
 	{0x01, "AR1",       "Addr Reg 01",},
 	{0x02, "AR2",       "Addr Reg 02",},
 	{0x03, "AR3",       "Addr Reg 03",},
-	{0x04, "IX0",       "Index Reg 0(04)",},
-	{0x05, "IX1",       "Index Reg 1(05)",},
-	{0x06, "IX2",       "Index Reg 2(06)",},
-	{0x07, "IX3",       "Indec Reg 3(07)",},
-	{0x08, "R08",       "Register 08",},
-	{0x09, "R09",       "Register 09",},
-	{0x0a, "R10",       "Register 10",},
-	{0x0b, "R11",       "Register 11",},
+	{0x04, "IX0",       "Index Reg 0",},
+	{0x05, "IX1",       "Index Reg 1",},
+	{0x06, "IX2",       "Index Reg 2",},
+	{0x07, "IX3",       "Index Reg 3",},
+	{0x08, "WR0",       "Wrapping Register 0",},
+	{0x09, "WR1",       "Wrapping Register 1",},
+	{0x0a, "WR2",       "Wrapping Register 2",},
+	{0x0b, "WR3",       "Wrapping Register 3",},
 	{0x0c, "ST0",       "Call stack",},
 	{0x0d, "ST1",       "Data stack",},
 	{0x0e, "ST2",       "Loop addr stack",},
@@ -435,6 +434,12 @@ const pdlabel_t regnames[] =
 	{0x21, "ACC1",		"Accu Full 1",},
 	{0x22, "AX0",		"Extra Accu 0",},
 	{0x23, "AX1",		"Extra Accu 1",},
+
+	// Old names for the wrapping registers, for compatibility.
+	{0x08, "R08",       "Wrapping Register 0(08)",},
+	{0x09, "R09",       "Wrapping Register 1(09)",},
+	{0x0a, "R10",       "Wrapping Register 2(10)",},
+	{0x0b, "R11",       "Wrapping Register 3(11)",},
 };
 
 u8 opSize[OPTABLE_SIZE];

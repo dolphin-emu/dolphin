@@ -29,21 +29,20 @@
 // attached to opcodes that allow extending (8 lower bits of opcode not used by
 // opcode). Extended opcodes do not modify program counter $pc register.
 
+// Most of the suffixes increment or decrement one or more addressing registers
+// (the first four, ARx). The increment/decrement is either 1, or the corresponding 
+// "index" register (the second four, IXx). The addressing registers will wrap
+// in odd ways, dictated by the corresponding wrapping register, WP0-3.
+
+// The following should be applied as a decrement:
+// ar[i] = (ar[i] & wp[i]) == 0 ? ar[i] | wp[i] : ar[i] - 1;
+// I have not found the corresponding algorithms for increments yet.
+// It's gotta be fairly simple though. See R3123, R3125 in Google Code.
 
 namespace DSPInterpreter
 {
 namespace Ext 
 {
-
-// CR $arR
-// xxxx xxxx 0000 00rr
-// Clearing addressing register $arR.
-// This is not in any doc and as such just a guess
-void cr(const UDSPInstruction& opc) {
-	u8 reg = opc.hex & 0x3;	
-	
-	g_dsp.r[reg] = 0;
-}
 
 // DR $arR
 // xxxx xxxx 0000 01rr
@@ -208,7 +207,6 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 {
 	u8 op  = (opc.hex >> 2) & 0x3;
 	u8 reg = opc.hex & 0x3;
-
 	switch (op) {
 	case 0x00: // 
 		g_dsp.r[reg] = 0;
@@ -375,7 +373,6 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 //
 //
 // ================================================================================
-
 void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 {
 	if ((opc.hex & 0xFF) == 0){return;}
@@ -428,7 +425,10 @@ void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 
 void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
 {
-	if ((opc.hex & 0xFF) == 0){return;}
+	if ((opc.hex & 0xFF) == 0)
+	{
+		return;
+	}
 
 	switch ((opc.hex >> 4) & 0xf)
 	{
@@ -436,7 +436,6 @@ void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
 	  case 0x09:
 	  case 0x0a:
 	  case 0x0b:
-
 		  if (opc.hex & 0x2)
 		  {
 			  dsp_op_ext_sl_epi(opc.hex);
@@ -450,5 +449,3 @@ void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
 		  return;
 	}
 }
-
-

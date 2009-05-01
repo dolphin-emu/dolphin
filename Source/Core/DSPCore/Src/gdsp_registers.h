@@ -31,19 +31,19 @@
 #define DSP_REG_AR0         0x00    // address registers
 #define DSP_REG_AR1         0x01
 #define DSP_REG_AR2         0x02
-#define DSP_REG_AR3         0x03    // used as jump function selector
+#define DSP_REG_AR3         0x03
 
-#define DSP_REG_IX0         0x04    // LEFT_VOLUME accel
-#define DSP_REG_IX1         0x05    // RIGHT_VOLUME accel
-#define DSP_REG_IX2         0x06    // ADDRH_SMP accel
-#define DSP_REG_IX3         0x07    // ADDRL_SMP accel
+#define DSP_REG_IX0         0x04    // indexing registers (actually, mostly used as increments)
+#define DSP_REG_IX1         0x05
+#define DSP_REG_IX2         0x06
+#define DSP_REG_IX3         0x07
 
-#define DSP_REG_R08         0x08    // fixed to 48000 value
-#define DSP_REG_R09         0x09    // problems using this
-#define DSP_REG_R0A         0x0a    // ADDREH_SMP accel
-#define DSP_REG_R0B         0x0b    // ADDREL_SMP accel
+#define DSP_REG_WR0         0x08    // address wrapping registers. should be initialized to 0xFFFF if not used.
+#define DSP_REG_WR1         0x09
+#define DSP_REG_WR2         0x0a
+#define DSP_REG_WR3         0x0b
 
-#define DSP_REG_ST0         0x0c
+#define DSP_REG_ST0         0x0c    // stacks.
 #define DSP_REG_ST1         0x0d
 #define DSP_REG_ST2         0x0e
 #define DSP_REG_ST3         0x0f
@@ -51,15 +51,15 @@
 #define DSP_REG_CONFIG      0x12
 #define DSP_REG_SR          0x13
 
-#define DSP_REG_PRODL       0x14
+#define DSP_REG_PRODL       0x14    // product.
 #define DSP_REG_PRODM       0x15
 #define DSP_REG_PRODH       0x16
 #define DSP_REG_PRODM2      0x17 
 
 #define DSP_REG_AXL0        0x18
 #define DSP_REG_AXL1        0x19
-#define DSP_REG_AXH0        0x1a    // SMP_R accel
-#define DSP_REG_AXH1        0x1b    // SMP_L accel
+#define DSP_REG_AXH0        0x1a
+#define DSP_REG_AXH1        0x1b
 
 #define DSP_REG_ACC0        0x1c    // accumulator (global)
 #define DSP_REG_ACC1        0x1d
@@ -85,13 +85,13 @@
 #define DSP_REG_CMBH        0xfffe  // CPU Mailbox H
 #define DSP_REG_CMBL        0xffff  // CPU Mailbox L
 
+
 #define DMA_TO_DSP          0
 #define DMA_TO_CPU          1
 
 // Stacks
 #define DSP_STACK_C 0
 #define DSP_STACK_D 1
-
 
 // SR bits
 #define SR_CARRY       0x0001
@@ -106,7 +106,6 @@
 #define SR_MUL_MODIFY  0x2000   // 1 = normal. 0 = x2   (M0, M2)
 #define SR_40_MODE_BIT 0x4000   // 0 = "16", 1 = "40"  (SET16, SET40)  Controls sign extension when loading mid accums.
 #define SR_TOP_BIT_UNK 0x8000   // 1 = normal. 0 = x2  (CLR15, SET15) ????????
-
 
 void dsp_reg_store_stack(u8 stack_reg, u16 val);
 u16 dsp_reg_load_stack(u8 stack_reg);

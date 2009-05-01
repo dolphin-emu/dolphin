@@ -83,56 +83,44 @@ inline u16 dsp_op_read_reg(u8 reg)
 inline void dsp_op_write_reg(u8 reg, u16 val)
 {
 	switch (reg & 0x1f) {
-
-
+		/*
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		// sign extend from the bottom 8 bits.
+		g_dsp.r[reg] = (u16)(s16)(s8)(u8)val;
+		break;
+*/
 	case 0x0c:
 	case 0x0d:
 	case 0x0e:
 	case 0x0f:
 		dsp_reg_store_stack(reg - 0x0c, val);
 		break;
-#if 0 // FIXME
-	case 0x1e: // AC0.M
-	case 0x1f: // AC1.M
-		// in "s16 mode", LRI $AC0.M, xxx  will set AC0.L and AC0.H to 0, 
-		// while it won't in "s40 mode".
-		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
-				g_dsp.r[reg - 0x2] = 0; // L
-				g_dsp.r[reg - 0xe] = 0; // H
-		}
-		
-		g_dsp.r[reg] = val;
-		break;
-
-
-	case 0x1c: // AC0.L
-	case 0x1d: // AC1.L
-		
-		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
-				g_dsp.r[reg + 0x2] = 0; // M
-				g_dsp.r[reg - 0xc] = 0; // H
-		}
-		
-		g_dsp.r[reg] = val;
-		break;
-
-	case 0x10: // AC0.H
-	case 0x11: // AC1.H
-		if (g_dsp.r[DSP_REG_SR] & SR_16_BIT) {
-				g_dsp.r[reg + 0xc] = 0; // L
-				g_dsp.r[reg + 0xe] = 0; // M
-		}
-		
-		g_dsp.r[reg] = val;
-		break;
-#endif
-
 
 	default:
 		g_dsp.r[reg] = val;
 		break;
 	}
 }
+
+inline void dsp_conditional_extend_accum(u8 reg) 
+{
+#if 0
+	switch (reg) 
+	{
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
+		{
+			// Sign extend into whole accum.
+			u16 val = g_dsp.r[reg];
+			g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
+			g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
+		}
+	}
+#endif
+}
+
 
 
 // ---------------------------------------------------------------------------------------
@@ -253,13 +241,13 @@ inline s64 dsp_get_long_acx(int _reg)
 inline s16 dsp_get_ax_l(int _reg)
 {
 	_assert_(_reg < 2);
-	return g_dsp.r[0x18 + _reg];
+	return (s16)g_dsp.r[0x18 + _reg];
 }
 
 inline s16 dsp_get_ax_h(int _reg)
 {
 	_assert_(_reg < 2);
-	return g_dsp.r[0x1a + _reg];
+	return (s16)g_dsp.r[0x1a + _reg];
 }
 
 #endif

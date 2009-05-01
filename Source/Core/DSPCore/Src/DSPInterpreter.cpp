@@ -457,6 +457,7 @@ void lri(const UDSPInstruction& opc)
 	u8 reg  = opc.hex & DSP_REG_MASK;
 	u16 imm = dsp_fetch_code();
 	dsp_op_write_reg(reg, imm);
+	dsp_conditional_extend_accum(reg);
 }
 
 // LRIS $(0x18+D), #I
@@ -468,6 +469,7 @@ void lris(const UDSPInstruction& opc)
 	u8 reg  = ((opc.hex >> 8) & 0x7) + DSP_REG_AXL0;
 	u16 imm = (s8)opc.hex;
 	dsp_op_write_reg(reg, imm);
+	dsp_conditional_extend_accum(reg);
 }
 
 // LR $D, @M
@@ -481,6 +483,7 @@ void lr(const UDSPInstruction& opc)
 	u16 addr = dsp_fetch_code();
 	u16 val  = dsp_dmem_read(addr);
 	dsp_op_write_reg(reg, val);
+	dsp_conditional_extend_accum(reg);
 }
 
 // SR @M, $S
@@ -1392,12 +1395,7 @@ void dar(const UDSPInstruction& opc)
 {
 	int reg = opc.hex & 0x3;
 
-	int temp = g_dsp.r[reg] + g_dsp.r[DSP_REG_R08];
-
-	if (temp <= 0x7ff)  // ???
-		g_dsp.r[reg] = temp;
-	else
-		g_dsp.r[reg]--;
+	g_dsp.r[reg]--;   // TODO: Wrap properly.
 }
 
 
@@ -1410,12 +1408,7 @@ void iar(const UDSPInstruction& opc)
 {
 	int reg = opc.hex & 0x3;
 
-	int temp = g_dsp.r[reg] + g_dsp.r[DSP_REG_R08];
-
-	if (temp <= 0x7ff)  // ???
-		g_dsp.r[reg] = temp;
-	else
-		g_dsp.r[reg]++;
+	g_dsp.r[reg]++;   // TODO: Wrap properly according to the corresponding WR register.
 }
 
 //-------------------------------------------------------------
@@ -1476,7 +1469,7 @@ void srbith(const UDSPInstruction& opc)
 		g_dsp.r[DSP_REG_SR] |= SR_TOP_BIT_UNK;
 		break;
 
-	// 40-bit precision? clamping? no idea :(
+	// Automatic 40-bit sign extension when loading ACx.M.
 	// 40 seems to be the default.
 	// Confirmed these by using DSPSpy and copying the value of SR to R00 after setting.
 	case 0xe:  // SET16  (really, clear SR's 0x4000) 
@@ -1583,7 +1576,7 @@ void mulmvz(const UDSPInstruction& opc)
 	dsp_set_long_acc(rreg, acc);
 
 	// math prod
-	prod = (s64)g_dsp.r[DSP_REG_AXL0 + sreg] * (s64)g_dsp.r[DSP_REG_AXH0 + sreg] * GetMultiplyModifier();
+	prod = (s64)(s16)g_dsp.r[DSP_REG_AXL0 + sreg] * (s64)(s16)g_dsp.r[DSP_REG_AXH0 + sreg] * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
 
 	Update_SR_Register64(prod);
