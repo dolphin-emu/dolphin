@@ -86,9 +86,6 @@ static const SPatch OSPatches[] =
 	// special
 	//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
 	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  
-
-    // debug  helper...
-    { "CheckFirmare",				HLE_Misc::UnimplementedFunction     },
 };
 
 static const SPatch OSBreakPoints[] =
