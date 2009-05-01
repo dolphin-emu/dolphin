@@ -27,7 +27,6 @@
 // This is where the DSP binary is.
 #include "dsp_code.h"
 
-
 // DSPCR bits
 #define DSPCR_DSPRESET      0x0800        // Reset DSP
 #define DSPCR_ARDMA         0x0200        // ARAM dma in progress, if set
@@ -41,12 +40,10 @@
 #define DSPCR_PIINT         0x0002        // assert DSP PI interrupt
 #define DSPCR_RES           0x0001        // reset DSP
 
-
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000))); 
 
 // #define ENABLE_OUT
 #undef ENABLE_OUT
-
 
 static void *xfb = NULL;
 void (*reload)() = (void(*)())0x80001800;
@@ -60,12 +57,12 @@ u32 *dspbufU;
 
 u16 dspreg_in[32] = {
 	0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 
-	0x0411, 0x0522, 0x0633, 0x0744, 0x0855, 0x0966, 0x0a77, 0x0b88,
+	0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88,
 	0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000, 0x0000, 0x0000,
 	0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
 }; ///            ax_h_1   ax_h_1
 
-/* ttt
+/* ttt ?
 
 u16 dspreg_in[32] = {
 0x0e4c, 0x03c0, 0x0bd9, 0x06a3, 0x0c06, 0x0240, 0x0010, 0x0ecc, 
@@ -80,89 +77,58 @@ u16 dspreg_in[32] = {
 // zelda 0x00da
 u16 dspreg_in[32] = {
 0x0a50, 0x0ca2, 0x04f8, 0x0ab0, 0x8039, 0x0000, 0x0000, 0x0000, 
-0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x03d1, 0x0000, 0x0418, 0x0002,     // r08 must have a value ... no idea why
+0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x03d1, 0x0000, 0x0418, 0x0002,     // r08 must have a value ... no idea why (ector: it's the looped addressing regs)
 0x0000, 0x0000, 0x00ff, 0x1804, 0xdb70, 0x4ddb, 0x0000, 0x0000,
 0x0000, 0x0000, 0x0000, 0xde6d, 0x0000, 0x0000, 0x0000, 0x004e,
 };*/ 
 
-
-u16 dspreg_out[1000][32];
-u16 dsp_steps = 0;
-u16 show_step = 0;
-
 #include "mem_dump.h"
-
-// #include "dsp_test.cpp"
-u32 padding[1024];
-
-s32 cursor_x = 1;
-s32 cursor_y = 1;
-
-s32 old_cur_x;
-s32 old_cur_y;
-
-s32 small_cursor_x;
-
-u32 ui_mode;
-
-#define UIM_SEL			1
-#define UIM_EDIT_REG	2
-#define	UIM_EDIT_BIN	4
-
-PADStatus gpad;
-PADStatus opad;
-u16 *reg_value;
 
 void ds_text_out(int xpos, int ypos, const char *str);
 void ds_set_colour(int f, int b);
-void ds_init(void *framebuffer,int xstart,int ystart,int xres,int yres,int stride);
+void ds_init(void *framebuffer, int xstart, int ystart, int xres, int yres, int stride);
 void ds_underline(int xpos, int ypos, int len, int col);
 void ds_printf(int x, int y, const char *fmt, ...);
 void ds_clear(void);
 
+u16 dspreg_out[1000][32];
+
+u32 padding[1024];
+
+// UI (interactive register editing)
+u32 ui_mode;
+#define UIM_SEL			1
+#define UIM_EDIT_REG	2
+#define	UIM_EDIT_BIN	4
+
+// Currently selected register.
+s32 cursor_reg = 0;
+// Currently selected digit.
+s32 small_cursor_x;
+// Value currently being edited.
+u16 *reg_value;  
+
+// Got regs to draw. Dunno why we need this.
 volatile int regs_refreshed = false;
 
 
+// Handler for DSP interrupt.
 static void my__dsp_handler(u32 nIrq,void *pCtx)
 {
-	// volatile u32 mail;
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT))|DSPCR_DSPINT;
-	/*
-	while(!DSP_CheckMailFrom());
-	mail = DSP_ReadMailFrom();
-
-	if (mail == 0x8888beef)
-	{
-	DSP_SendMailTo((u32)dspbuf | 0x80000000);
-	while(DSP_CheckMailTo());
-	regs_refreshed = false;
-	return;
-	}
-	else if (mail == 0x8888beeb)
-	{
-	regs_refreshed = true;
-	return;
-	}
-	*/
-	//	printf("Mail: %08x\n", mail);
+	// Acknowledge interrupt?
+	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT)) | DSPCR_DSPINT;
 }
 
 
-
-const int r_off_x = 2;
-const int r_off_y = 2;
-
-vu16 val_x = 0x1234;
-
-void print_regs(u16 _step)
+void print_regs(int _step, int _dsp_steps)
 {
-	for (int j = 0 ; j < 4 ; j++)
+	for (int j = 0; j < 4 ; j++)
 	{
-		for (int i = 0 ; i < 8 ; i++)
+		for (int i = 0; i < 8 ; i++)
 		{
-			int reg = j * 8 + i;
-			ds_set_colour(COLOR_GREEN, COLOR_BLACK);
-			ds_printf(0 + j * 8, i + 2, "%02x_", reg);
+			const int reg = j * 8 + i;
+			ds_set_colour(cursor_reg == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
+			ds_printf(0 + j * 8, i + 2, "%02x ", reg);
 			ds_set_colour(COLOR_WHITE, COLOR_BLACK);
 			if (_step == 0)
 				ds_printf(3 + j * 8, i + 2, "%04x", dspreg_in[reg]);
@@ -171,23 +137,17 @@ void print_regs(u16 _step)
 		}
 	}
 
-	//	for(i = 0 ; i < 4 ; i++)
-	{
-		ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-		ds_printf(4, 11, "%03i / %03i", _step+1, dsp_steps);
-		/*		ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-		int j;
-		for(j = 0 ; j < 16 ; j++)
-		ds_printf(10 + j, i + 11, "%d", (opcode[i] >> (15 - j)) & 0x1);*/
-	}
+	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
+	ds_printf(33, 11, "%i / %i      ", _step + 1, _dsp_steps);
 
 	for (int j = 0 ; j < 4 ; j++)
 	{
 		for (int i = 0 ; i < 8 ; i++)
 		{
+			const int reg = j * 8 + i;
+
 			char tmpbuf1[20];
-			int reg = j * 8 + i;
-			sprintf(tmpbuf1, "%02x_", reg);
+			sprintf(tmpbuf1, "%02x ", reg);
 			ds_set_colour(COLOR_GREEN, COLOR_BLACK);
 			ds_text_out(33 + j * 8, i + 2, tmpbuf1);
 			sprintf(tmpbuf1, "%04x", dspreg_out[_step][reg]);
@@ -206,13 +166,10 @@ void print_regs(u16 _step)
 		}
 	}
 
-	//ds_printf(4, 15, "DMA: %04x %04x %04x", _dspReg[16], _dspReg[17], _dspReg[18]);
-	ds_printf(4, 15, "DICR: %04x ",val_x);
-	ds_printf(4, 25, "         ");
+	return;
+
 	static int count = 0;
-	int x, y;
-	y = 16;
-	x = 0;
+	int x = 0, y = 16;
 	if (count > 2)
 		ds_clear();
 	count = 0;
@@ -223,190 +180,104 @@ void print_regs(u16 _step)
 		{
 			ds_printf(x, y, "%04x=%04x", i, dspbufC[i]);
 			count++;
-			x+=10; if (x >= 60) { x=0 ; y++;};
+			x += 10;
+			if (x >= 60) {
+				x = 0;
+				y++;
+			}
 		}
 	}
 	ds_printf(4, 25, "%08x", count);
 }
 
-
-
-void hide_cursor(void)
-{
-	if (old_cur_y < 8)
-	{
-		ds_underline(old_cur_x * 8 + 3, old_cur_y + 2, 4, COLOR_BLACK);
-	}
-	else
-	{
-		if (old_cur_x == 0) ds_underline(4, cursor_y + 3, 4, COLOR_BLACK);
-		else ds_underline(10, cursor_y + 3, 16, COLOR_BLACK);
-	}
-}
-
-void show_cursor(void)
-{
-	if (ui_mode == UIM_SEL)
-	{
-		if (cursor_y < 8)
-		{
-			ds_underline(cursor_x * 8 + 3, cursor_y + 2, 4, COLOR_WHITE);
-		}
-		else
-		{
-			if (cursor_x == 0) 
-				ds_underline(4, cursor_y + 3, 4, COLOR_WHITE);
-			else
-				ds_underline(10, cursor_y + 3, 16, COLOR_WHITE);
-		}
-	}
-	else 
-	{
-		if (cursor_y < 8)
-		{
-			ds_underline(cursor_x * 8 + 3 + small_cursor_x, cursor_y + 2, 1, COLOR_WHITE);
-		}
-		else
-		{
-			if (cursor_x == 0) 
-				ds_underline(4 + small_cursor_x, cursor_y + 3, 1, COLOR_WHITE);
-			else
-				ds_underline(10 + small_cursor_x, cursor_y + 3, 1, COLOR_WHITE);
-		}
-	}
-	old_cur_x = cursor_x;
-	old_cur_y = cursor_y;
-}
-
-
-void check_pad(void)
-{
-	PADStatus pads[4];
-	PAD_Read(pads);
-
-	if (opad.button == pads[0].button)
-	{
-		gpad.button = 0;
-		return;
-	}
-	opad.button = gpad.button = pads[0].button;
-	return;
-}
-
-
 void ui_pad_sel(void)
 {
-	if (gpad.button & PAD_BUTTON_RIGHT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
 	{
-		cursor_x++;
+		cursor_reg+=8;
 	}
-	if (gpad.button & PAD_BUTTON_LEFT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
 	{
-		cursor_x--;
+		cursor_reg-=8;
 	}
-	if (gpad.button & PAD_BUTTON_UP)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
 	{
-		cursor_y--;
+		cursor_reg--;
 	}
-	if (gpad.button & PAD_BUTTON_DOWN)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
 	{
-		cursor_y++;
-		if (cursor_y == 8)
-			cursor_x = 0;
+		cursor_reg++;
 	}
-	if (cursor_y < 0)
+	cursor_reg &= 0x1f;
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 	{
-		cursor_y = 11;
-		cursor_x = 0;
-	}
-	else if (cursor_y > 11)
-		cursor_y = 0;
-
-	if (cursor_y < 8)
-		cursor_x &= 0x3;
-	else
-		cursor_x &= 0x1;
-
-	if (gpad.button & PAD_BUTTON_A)
-	{
-		if (cursor_y < 8)
-		{
-			ui_mode = UIM_EDIT_REG;
-			reg_value = &dspreg_in[cursor_y + cursor_x * 8];
-		}
-		else
-		{
-			if (cursor_x == 0)
-				ui_mode = UIM_EDIT_REG;
-			else
-				ui_mode = UIM_EDIT_BIN;
-			// reg_value = &opcode[cursor_y-8];
-		}
+		ui_mode = UIM_EDIT_REG;
+		reg_value = &dspreg_in[cursor_reg * 8];
 	}
 }
 
+/*
 void ui_pad_edit_bin(void)
 {
 	u8 pos;
-	if (gpad.button & PAD_BUTTON_RIGHT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
 	{
 		small_cursor_x++;
 	}
-	if (gpad.button & PAD_BUTTON_LEFT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
 	{
 		small_cursor_x--;
 	}
 	small_cursor_x &= 0xf;
-	if (gpad.button & PAD_BUTTON_UP)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
 	{
 		pos = 0xf - small_cursor_x;
 		*reg_value |= 1 << pos;
 	}
-	if (gpad.button & PAD_BUTTON_DOWN)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
 	{
 		pos = 0xf - small_cursor_x;
 		*reg_value &= ~(1 << pos);
 	}
-	if (gpad.button & PAD_BUTTON_A)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 	{
 		ui_mode = UIM_SEL;
 	}
-}
+}*/
 
 void ui_pad_edit_reg(void)
 {
-	if (gpad.button & PAD_BUTTON_RIGHT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
 	{
 		small_cursor_x++;
 	}
-	if (gpad.button & PAD_BUTTON_LEFT)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
 	{
 		small_cursor_x--;
 	}
+	small_cursor_x &= 0x3;
 
-	if (gpad.button & PAD_BUTTON_UP)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
 	{
 		*reg_value += 0x1 << (4 * (3 - small_cursor_x));
 	}
-	if (gpad.button & PAD_BUTTON_DOWN)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
 	{
 		*reg_value -= 0x1 << (4 * (3 - small_cursor_x));
 	}
-	small_cursor_x &= 0x3;
-	if (gpad.button & PAD_BUTTON_A)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 	{
 		ui_mode = UIM_SEL;
 	}
-	if (gpad.button & PAD_BUTTON_X)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_1)
 		*reg_value = 0;
-	if (gpad.button & PAD_BUTTON_Y)
+	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
 		*reg_value = 0xffff;
 }
 
 void init_video(void)
 {
 	VIDEO_Init();
-
 	switch (VIDEO_GetCurrentTvMode())
 	{
 	case VI_NTSC:
@@ -424,19 +295,13 @@ void init_video(void)
 	}
 
 	PAD_Init();
-
-	//xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
 	xfb = SYS_AllocateFramebuffer(rmode);
 
 	VIDEO_Configure(rmode);
-
 	VIDEO_SetNextFramebuffer(xfb);
-
 	VIDEO_SetBlack(FALSE);
 	VIDEO_Flush();
 	VIDEO_WaitVSync();
-	//if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
-	//VIDEO_SetPreRetraceCallback(ScanPads);
 }
 
 void my_send_task(void *addr, u16 iram_addr, u16 len, u16 start)
@@ -466,23 +331,8 @@ void my_send_task(void *addr, u16 iram_addr, u16 len, u16 start)
 
 int main()
 {
-	u32	mail;
-	u32 level;
-
-	{
-		// WTF?
-		vu16 *dicr = ((vu16 *)0xcc002002);
-		*dicr = 0x100;
-		*dicr = 0x002;
-		//		*dicr = 0x000;
-		//		*dicr = 0x001;
-		val_x = *dicr;
-	}
-
-
 	init_video();
-	//console_init(xfb,20,64,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*2);
-	ds_init(xfb,20,64,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*2);
+	ds_init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * 2);
 
 	ui_mode = UIM_SEL;
 
@@ -497,6 +347,7 @@ int main()
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
 
+	u32 level;
 	_CPU_ISR_Disable(level);
 	IRQ_Request(IRQ_DSP_DSP, my__dsp_handler,NULL);
 	_CPU_ISR_Restore(level);	
@@ -508,18 +359,25 @@ int main()
 
 	WPAD_Init();
 
-	while (1)
+	int dsp_steps = 0;
+	int show_step = 0;
+
+	while (true)
 	{
+		// Should put a loop around this too.
 		if (DSP_CheckMailFrom())
 		{
-			mail = DSP_ReadMailFrom();
-			ds_printf(2, 1, "Mail: %08x", mail);
+			u32 mail = DSP_ReadMailFrom();
+			ds_printf(2, 1, "Last mail: %08x", mail);
 
 			if (mail == 0x8071feed)
 			{
+				// DSP ready for task. Let's send one.
+				// First, prepare data.
 				for (int n = 0 ; n < 32 ; n++)
 					dspbufC[0x00 + n] = dspreg_in[n];
 				DCFlushRange(dspbufC, 0x2000);
+				// Then send the code.
 				DCFlushRange((void *)dsp_code, 0x1000);
 				my_send_task((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code), 0, 4000, 0x10);
 			}
@@ -541,6 +399,7 @@ int main()
 			}
 			else if (mail == 0x8888feeb)
 			{
+				// We got a stepful of registers.
 				DCInvalidateRange(dspbufC, 0x2000);
 				for (int i = 0 ; i < 32 ; i++)
 					dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
@@ -551,8 +410,6 @@ int main()
 				while (DSP_CheckMailTo());
 				DSP_SendMailTo(0x8000DEAD);
 				while (DSP_CheckMailTo());
-
-				// dump_to_pc();
 			}
 		}
 
@@ -562,37 +419,34 @@ int main()
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)
 			exit(0);
 
-		//ds_clear();
-		//if (regs_refreshed)
-		{
-			print_regs(show_step);
-			//regs_refreshed = false;
+		print_regs(show_step, dsp_steps);
 
-		}
-		hide_cursor();
+		ds_printf(2, 14, "Controls:");
+		ds_printf(4, 15, "+/- to move");
+		ds_printf(4, 16, "B to start over");
+		ds_printf(4, 17, "Home to exit");
 
-		switch(ui_mode)
+		switch (ui_mode)
 		{
 		case UIM_SEL:
 			ui_pad_sel();
-			show_cursor();
 			break;
 		case UIM_EDIT_REG:
 			ui_pad_edit_reg();
-			show_cursor();
 			break;
 		case UIM_EDIT_BIN:
-			ui_pad_edit_bin();
-			show_cursor();
+			// ui_pad_edit_bin();
 			break;
 		default:
 			break;
 		}
 		DCFlushRange(xfb, 0x200000);
 
-
+		// Use B to start over.
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_B) 
 		{
+			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
+
 			DCInvalidateRange(dspbufC, 0x2000);
 			for (int n = 0 ; n < 0x2000 ; n++)
 			{
@@ -601,27 +455,28 @@ int main()
 			DCFlushRange(dspbufC, 0x2000);
 
 			// Reset the DSP.
-			_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
-			_dspReg[5] = (_dspReg[5]&~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
+			_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT)) | DSPCR_DSPRESET;
+			_dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
 			_dspReg[5] |= DSPCR_RES;
 			while (_dspReg[5] & DSPCR_RES)
 				;
 			_dspReg[9] = 0x63;
 		}
 
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2) 
-		{
-			// WTF?
-			vu16 *dicr = ((vu16 *)0xcc002002);
-			*dicr = 0x001;
-			val_x = *dicr;
-		}
+		// Navigate between results using + and - buttons.
 
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS)
 		{
 			show_step++;
 			if (show_step >= dsp_steps) 
 				show_step = 0;
+		}
+
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS)
+		{
+			show_step--;
+			if (show_step < 0) 
+				show_step = dsp_steps - 1;
 		}
 	}
 
