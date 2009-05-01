@@ -22,6 +22,7 @@
 #include "Globals.h"
 
 #include "FileUtil.h"
+#include "DSPCore.h"
 #include "DSPCodeUtil.h"
 #include "Tools.h"
 #include "disassemble.h"

@@ -20,8 +20,8 @@
 #include <stdarg.h>
 
 #include "Common.h" // for Common::swap
+#include "DSPCore.h"
 #include "Globals.h"
-#include "gdsp_interpreter.h"
 
 // =======================================================================================
 // For PB address detection

@@ -29,18 +29,17 @@
 #include "Common.h"
 
 #include "DSPInterpreter.h"
+#include "DSPCore.h"
 
 #include "gdsp_memory.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_registers.h"
 #include "gdsp_ext_op.h"
 
-// ---------------------------------------------------------------------------------------
-//
-// --- SR
-//
-// ---------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------
+// --- SR
+// ---------------------------------------------------------------------------------------
 inline void dsp_SR_set_flag(int flag)
 {
 	g_dsp.r[DSP_REG_SR] |= (1 << flag);
@@ -51,45 +50,34 @@ inline bool dsp_SR_is_flag_set(int flag)
 	return (g_dsp.r[DSP_REG_SR] & (1 << flag)) != 0;
 }
 
-
 // ---------------------------------------------------------------------------------------
-//
 // --- reg
-//
 // ---------------------------------------------------------------------------------------
 
 inline u16 dsp_op_read_reg(u8 reg)
 {
-	u16 val;
-	
 	switch (reg & 0x1f) {
 	case 0x0c:
 	case 0x0d:
 	case 0x0e:
 	case 0x0f:
-
-		val = dsp_reg_load_stack(reg - 0x0c);
-		break;
-
+		return dsp_reg_load_stack(reg - 0x0c);
 	default:
-		val = g_dsp.r[reg];
-		break;
+		return g_dsp.r[reg];
 	}
-
-	return val;
 }
-
 
 inline void dsp_op_write_reg(u8 reg, u16 val)
 {
 	switch (reg & 0x1f) {
-		/*
+	// 8-bit sign extended registers. Should look at prod.h too...
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
 		// sign extend from the bottom 8 bits.
 		g_dsp.r[reg] = (u16)(s16)(s8)(u8)val;
 		break;
-*/
+
+	// Stack registers.
 	case 0x0c:
 	case 0x0d:
 	case 0x0e:
@@ -105,7 +93,6 @@ inline void dsp_op_write_reg(u8 reg, u16 val)
 
 inline void dsp_conditional_extend_accum(u8 reg) 
 {
-#if 0
 	switch (reg) 
 	{
 	case DSP_REG_ACM0:
@@ -118,7 +105,6 @@ inline void dsp_conditional_extend_accum(u8 reg)
 			g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
 		}
 	}
-#endif
 }
 
 
@@ -166,7 +152,7 @@ inline void dsp_set_long_prod(s64 val)
 }
 
 // ---------------------------------------------------------------------------------------
-// --- acc
+// --- ACC - main accumulators (40-bit)
 // ---------------------------------------------------------------------------------------
 
 inline s64 dsp_get_long_acc(int reg)
@@ -218,11 +204,8 @@ inline s16 dsp_get_acc_h(int _reg)
 
 
 // ---------------------------------------------------------------------------------------
-//
-// --- acx
-//
+// --- AX - extra accumulators (32-bit)
 // ---------------------------------------------------------------------------------------
-
 
 inline s64 dsp_get_long_acx(int _reg)
 {

@@ -24,6 +24,9 @@
    ====================================================================*/
 
 #include "Common.h"
+
+#include "DSPCore.h"
+
 #include "gdsp_registers.h"
 #include "gdsp_interpreter.h"
 

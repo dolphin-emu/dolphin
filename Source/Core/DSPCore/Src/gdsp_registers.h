@@ -85,13 +85,17 @@
 #define DSP_REG_CMBH        0xfffe  // CPU Mailbox H
 #define DSP_REG_CMBL        0xffff  // CPU Mailbox L
 
-
 #define DMA_TO_DSP          0
 #define DMA_TO_CPU          1
 
 // Stacks
 #define DSP_STACK_C 0
 #define DSP_STACK_D 1
+
+
+// CR bits
+#define CR_HALT         0x0004
+#define CR_EXTERNAL_INT 0x0002
 
 // SR bits
 #define SR_CARRY       0x0001

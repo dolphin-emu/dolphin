@@ -435,6 +435,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPCore.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPCore.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DSPHost.h"
 			>
 		</File>

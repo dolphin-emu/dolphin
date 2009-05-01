@@ -22,6 +22,7 @@
 
 #include "gdsp_condition_codes.h"
 #include "gdsp_interpreter.h"
+#include "DSPCore.h"
 #include "DSPInterpreter.h"
 
 namespace DSPInterpreter {

@@ -45,68 +45,7 @@
 
 #include "Common.h"
 
-#define DSP_IRAM_BYTE_SIZE   0x2000
-#define DSP_IRAM_SIZE        0x1000
-#define DSP_IRAM_MASK        0x0fff
-
-#define DSP_IROM_BYTE_SIZE   0x2000
-#define DSP_IROM_SIZE        0x1000
-#define DSP_IROM_MASK        0x0fff
-
-#define DSP_DRAM_BYTE_SIZE   0x2000
-#define DSP_DRAM_SIZE        0x1000
-#define DSP_DRAM_MASK        0x0fff
-
-#define DSP_COEF_BYTE_SIZE   0x2000
-#define DSP_COEF_SIZE        0x1000
-#define DSP_COEF_MASK        0x0fff
-
-#define DSP_RESET_VECTOR     0x8000
-
-#define DSP_STACK_DEPTH 0x20
-#define DSP_STACK_MASK  0x1f
-
-#define DSP_CR_IMEM     2
-#define DSP_CR_DMEM     0
-#define DSP_CR_TO_CPU   1
-#define DSP_CR_FROM_CPU 0
-
-struct SDSP
-{
-	u16 r[32];
-	u16 pc;
-#if PROFILE
-	u16 err_pc;
-#endif
-	u16* iram;
-	u16* dram;
-	u16* irom;
-	u16* coef;
-	u8* cpu_ram;
-	u16 cr;
-	u8 reg_stack_ptr[4];
-	u8 exceptions;   // pending exceptions?
-	bool exception_in_progress_hack;  // is this the same as "exception enabled"?
-
-	// lets make stack depth to 32 for now
-	u16 reg_stack[4][DSP_STACK_DEPTH];
-	void (* irq_request)(void);
-
-	// for debugger only
-	u32 iram_crc;
-	u64 step_counter;
-};
-
-extern SDSP g_dsp;
-
-
-void gdsp_init();
-void gdsp_reset();
-void gdsp_shutdown();
-
-bool gdsp_load_irom(const char *fname);
-bool gdsp_load_coef(const char *fname);
-
+namespace DSPInterpreter {
 
 // steps through DSP code, returns false if error occured
 void gdsp_step();
@@ -118,7 +57,6 @@ void gdsp_stop();
 void gdsp_write_cr(u16 val);
 u16  gdsp_read_cr();
 
-// sets a flag in the pending exception register.
-void gdsp_generate_exception(u8 level);
+}  // namespace
 
 #endif

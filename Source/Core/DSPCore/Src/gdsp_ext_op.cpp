@@ -24,6 +24,7 @@
    ====================================================================*/
 
 #include "gdsp_opcodes_helper.h"
+#include "gdsp_memory.h"
 
 // Extended opcodes do not exist on their own. These opcodes can only be
 // attached to opcodes that allow extending (8 lower bits of opcode not used by
@@ -41,6 +42,7 @@
 
 namespace DSPInterpreter
 {
+
 namespace Ext 
 {
 

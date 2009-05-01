@@ -29,6 +29,8 @@
 #include "gdsp_memory.h"
 #include "gdsp_interface.h"
 
+#include "DSPCore.h"
+
 u16 dsp_imem_read(u16 addr)
 {
 	switch (addr >> 12)

@@ -27,6 +27,7 @@
 
 #include "Common.h"
 #include "gdsp_interpreter.h"
+#include "DSPCore.h"
 
 u16  dsp_imem_read(u16 addr);
 void dsp_dmem_write(u16 addr, u16 val);

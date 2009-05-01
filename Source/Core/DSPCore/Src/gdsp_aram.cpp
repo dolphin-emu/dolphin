@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "DSPCore.h"
 #include "DSPHost.h"
 #include "gdsp_interface.h"
 #include "gdsp_interpreter.h"

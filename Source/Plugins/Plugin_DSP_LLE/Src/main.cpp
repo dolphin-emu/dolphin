@@ -33,6 +33,7 @@
 #include "ChunkFile.h"
 
 #include "DSPTables.h"
+#include "DSPCore.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
@@ -178,7 +179,7 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (bIsRunning)
 	{
-		gdsp_run();
+		DSPInterpreter::gdsp_run();
 	}
 	return 0;
 }
@@ -248,7 +249,7 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
-	gdsp_stop();
+	DSPInterpreter::gdsp_stop();
 	bIsRunning = false;
 	if (g_dspInitialize.bOnThread)
 	{
@@ -265,13 +266,13 @@ void Shutdown()
 
 u16 DSP_WriteControlRegister(u16 _uFlag)
 {
-	gdsp_write_cr(_uFlag);
-	return gdsp_read_cr();
+	DSPInterpreter::gdsp_write_cr(_uFlag);
+	return DSPInterpreter::gdsp_read_cr();
 }
 
 u16 DSP_ReadControlRegister()
 {
-	return gdsp_read_cr();
+	return DSPInterpreter::gdsp_read_cr();
 }
 
 u16 DSP_ReadMailboxHigh(bool _CPUMailbox)
@@ -342,7 +343,7 @@ void DSP_Update(int cycles)
 	// If we're not on a thread, run cycles here.
 	if (!g_dspInitialize.bOnThread)
 	{
-		gdsp_run_cycles(cycles);
+		DSPInterpreter::gdsp_run_cycles(cycles);
 	}
 }
 

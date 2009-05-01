@@ -28,6 +28,7 @@
 #include "Thread.h"
 #include "MemoryUtil.h"
 
+#include "DSPCore.h"
 #include "DSPHost.h"
 #include "DSPAnalyzer.h"
 #include "gdsp_aram.h"
@@ -67,7 +68,6 @@ u32 gdsp_mbox_peek(u8 mbx)
 		g_CriticalSection.Leave();
 	return value;
 }
-
 
 void gdsp_mbox_write_h(u8 mbx, u16 val)
 {

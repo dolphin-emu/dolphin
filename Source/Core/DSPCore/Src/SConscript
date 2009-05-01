@@ -17,7 +17,7 @@ files = [
     "DSPJit.cpp",
     "DSPCodeUtil.cpp",
     "LabelMap.cpp",
-    #	"DSPHost.cpp",
+    "DSPCore.cpp",
     "DSPTables.cpp",
     ]
 
