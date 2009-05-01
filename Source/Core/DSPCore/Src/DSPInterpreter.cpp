@@ -166,6 +166,8 @@ void halt(const UDSPInstruction& opc)
 // from register $R reaches zero. Each execution decrement counter. Register
 // $R remains unchanged. If register $R is set to zero at the beginning of loop
 // then looped instruction will not get executed.
+// Actually, this instruction simply prepares the loop stacks for the above.
+// The looping hardware takes care of the rest.
 void loop(const UDSPInstruction& opc)
 {
 	u16 reg = opc.hex & 0x1f;
@@ -186,6 +188,8 @@ void loop(const UDSPInstruction& opc)
 // immediate value I reaches zero. Each execution decrement counter. If
 // immediate value I is set to zero at the beginning of loop then looped
 // instruction will not get executed.
+// Actually, this instruction simply prepares the loop stacks for the above.
+// The looping hardware takes care of the rest.
 void loopi(const UDSPInstruction& opc)
 {
 	u16 cnt = opc.hex & 0xff;
@@ -295,7 +299,7 @@ void lrrd(const UDSPInstruction& opc)
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
-	g_dsp.r[sreg]--;
+	dsp_decrement_addr_reg(sreg);
 }
 
 // LRRI $D, @$S
@@ -310,8 +314,7 @@ void lrri(const UDSPInstruction& opc)
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]); 
 	dsp_op_write_reg(dreg, val);
-	g_dsp.r[sreg]++;
-
+	dsp_increment_addr_reg(sreg);
 }
 
 // LRRN $D, @$S
@@ -326,7 +329,7 @@ void lrrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
-	g_dsp.r[sreg] += g_dsp.r[sreg + 4];
+	g_dsp.r[sreg] += g_dsp.r[DSP_REG_IX0 + sreg];
 }
 
 // SRR @$D, $S
@@ -355,7 +358,7 @@ void srrd(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	g_dsp.r[dreg]--;
+	dsp_decrement_addr_reg(dreg);
 }
 
 // SRRI @$D, $S
@@ -370,7 +373,7 @@ void srri(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	g_dsp.r[dreg]++;
+	dsp_increment_addr_reg(dreg);
 }
 
 // SRRN @$D, $S
@@ -411,7 +414,7 @@ void ilrrd(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	g_dsp.r[reg]--;
+	dsp_decrement_addr_reg(reg);
 }
 
 // ILRRI $acD.m, @$S
@@ -425,7 +428,7 @@ void ilrri(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	g_dsp.r[reg]++;
+	dsp_increment_addr_reg(reg);
 }
 
 // ILRRN $acD.m, @$arS
@@ -1385,30 +1388,20 @@ void asr(const UDSPInstruction& opc)
 }
 
 //-------------------------------------------------------------
-
-// hcs give me this code!!
-// DAR $arD
+// DAR $arD  ?
 // 0000 0000 0000 01dd
 // Decrement address register $arD.
-// More docs needed - the operation is really odd!
 void dar(const UDSPInstruction& opc)
 {
-	int reg = opc.hex & 0x3;
-
-	g_dsp.r[reg]--;   // TODO: Wrap properly.
+	dsp_decrement_addr_reg(opc.hex & 0x3);
 }
 
-
-// hcs give me this code!!
-// IAR $arD
+// IAR $arD  ?
 // 0000 0000 0000 10dd
 // Increment address register $arD.
-// More docs needed - the operation is really odd!
 void iar(const UDSPInstruction& opc)
 {
-	int reg = opc.hex & 0x3;
-
-	g_dsp.r[reg]++;   // TODO: Wrap properly according to the corresponding WR register.
+	dsp_increment_addr_reg(opc.hex & 0x3);
 }
 
 //-------------------------------------------------------------

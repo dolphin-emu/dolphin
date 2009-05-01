@@ -50,18 +50,14 @@ namespace Ext
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
 void dr(const UDSPInstruction& opc) {
-	u8 reg = opc.hex & 0x3;	
-	
-	g_dsp.r[reg]--;
+	dsp_decrement_addr_reg(opc.hex & 0x3);
 }
 
 // IR $arR
 // xxxx xxxx 0000 10rr
 // Increment addressing register $arR.
 void ir(const UDSPInstruction& opc) {
-	u8 reg = opc.hex & 0x3;	
-	
-	g_dsp.r[reg]++;
+	dsp_increment_addr_reg(opc.hex & 0x3);
 }
 
 // NR $arR
@@ -95,7 +91,7 @@ void s(const UDSPInstruction& opc)
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
-	g_dsp.r[dreg]++;
+	dsp_increment_addr_reg(dreg);
 }
 
 // SN @$D, $acD.l
@@ -124,7 +120,7 @@ void l(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
 
-	g_dsp.r[sreg]++;
+	dsp_increment_addr_reg(sreg);
 }
 
 // LN axD.l, @$S
@@ -153,8 +149,8 @@ void ld(const UDSPInstruction& opc)
 	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	g_dsp.r[sreg]++;
-	g_dsp.r[DSP_REG_AR3]++;
+	dsp_increment_addr_reg(sreg);
+	dsp_increment_addr_reg(DSP_REG_AR3);
 }
 
 // Not in duddie's doc
@@ -169,7 +165,7 @@ void ldn(const UDSPInstruction& opc)
 	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
 	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
-	g_dsp.r[DSP_REG_AR3]++;
+	dsp_increment_addr_reg(DSP_REG_AR3);
 }
 
 // Not in duddie's doc
@@ -183,7 +179,7 @@ void ldm(const UDSPInstruction& opc)
 	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	g_dsp.r[sreg]++;
+	dsp_increment_addr_reg(sreg);
 	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];
 }
 
@@ -215,11 +211,11 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 		break;
 		
 	case 0x01: // DR
-		g_dsp.r[reg]--;
+		dsp_decrement_addr_reg(reg);
 		break;
 		
 	case 0x02: // IR
-		g_dsp.r[reg]++;
+		dsp_increment_addr_reg(reg);
 		break;
 		
 	  case 0x03: // NR
@@ -251,7 +247,7 @@ void dsp_op_ext_s(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.r[dreg]++; // S
+		dsp_increment_addr_reg(dreg); // S
 	}
 }
 
@@ -270,7 +266,7 @@ void dsp_op_ext_l(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.r[sreg]++; // LS
+		dsp_increment_addr_reg(sreg); // LS
 	}
 }
 
@@ -286,7 +282,7 @@ void dsp_op_ext_ls_pro(const UDSPInstruction& opc)
 	} 
 	else // LS
 	{
-		g_dsp.r[0x03]++;
+		dsp_increment_addr_reg(0x03);
 	}
 }
 
@@ -303,7 +299,7 @@ void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
 	}
 	else // LS
 	{
-		g_dsp.r[0x00]++; 
+		dsp_increment_addr_reg(0x00); 
 	}
 }
 
@@ -319,7 +315,7 @@ void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
 	}
 	else // SL 
 	{
-		g_dsp.r[0x00]++;
+		dsp_increment_addr_reg(0x00);
 	}
 }
 
@@ -336,7 +332,7 @@ void dsp_op_ext_sl_epi(const UDSPInstruction& opc)
 	}
 	else // SL
 	{
-		g_dsp.r[0x03]++;
+		dsp_increment_addr_reg(0x03);
 	}
 }
 
@@ -355,7 +351,7 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.r[sreg]++;
+		dsp_increment_addr_reg(sreg);
 	}
 	
 	if (opc.hex & 0x08) // M
@@ -364,9 +360,8 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	}
 	else
 	{
-		g_dsp.r[0x03]++;
+		dsp_increment_addr_reg(0x03);
 	}
-	
 }
 
 

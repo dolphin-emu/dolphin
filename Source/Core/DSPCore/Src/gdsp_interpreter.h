@@ -48,14 +48,13 @@
 namespace DSPInterpreter {
 
 // steps through DSP code, returns false if error occured
-void gdsp_step();
-void gdsp_loop_step();
-void gdsp_run();
-void gdsp_run_cycles(int cycles);
-void gdsp_stop();
+void Step();
+void Run();
+void RunCycles(int cycles);
+void Stop();
 
-void gdsp_write_cr(u16 val);
-u16  gdsp_read_cr();
+void WriteCR(u16 val);
+u16  ReadCR();
 
 }  // namespace
 

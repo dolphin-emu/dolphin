@@ -38,10 +38,9 @@ namespace DSPInterpreter {
 
 volatile u32 gdsp_running;
 
-
 // Hm, should instructions that change CR use this? Probably not (but they
 // should call UpdateCachedCR())
-void gdsp_write_cr(u16 val)
+void WriteCR(u16 val)
 {
 	// reset
 	if (val & 0x0001)
@@ -55,9 +54,8 @@ void gdsp_write_cr(u16 val)
 	g_dsp.cr = val;
 }
 
-
 // Hm, should instructions that read CR use this? (Probably not).
-u16 gdsp_read_cr()
+u16 ReadCR()
 {
 	if (g_dsp.pc & 0x8000)
 	{
@@ -71,8 +69,7 @@ u16 gdsp_read_cr()
 	return g_dsp.cr;
 }
 
-
-void gdsp_handle_loop()
+void HandleLoop()
 {
 	// Handle looping hardware. 
 	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
@@ -100,7 +97,7 @@ void gdsp_handle_loop()
 	}
 }
 
-void gdsp_step()
+void Step()
 {
 	gdsp_check_exceptions();
 
@@ -123,11 +120,11 @@ void gdsp_step()
 
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
-	gdsp_handle_loop();
+	HandleLoop();
 }
 
 // Used by thread mode.
-void gdsp_run()
+void Run()
 {
 	gdsp_running = true;
 	while (!(g_dsp.cr & CR_HALT))
@@ -139,7 +136,7 @@ void gdsp_run()
 		gdsp_check_external_int();
 		// This number (500) is completely arbitrary. TODO: tweak.
 		for (int i = 0; i < 500 && !(g_dsp.cr & CR_HALT); i++)
-			gdsp_step();
+			Step();
 
 		if (!gdsp_running)
 			break;
@@ -148,7 +145,7 @@ void gdsp_run()
 }
 
 // Used by non-thread mode.
-void gdsp_run_cycles(int cycles)
+void RunCycles(int cycles)
 {
 	gdsp_check_external_int();
 
@@ -157,7 +154,7 @@ void gdsp_run_cycles(int cycles)
 	{
 		if (g_dsp.cr & CR_HALT)
 			return;
-		gdsp_step();
+		Step();
 		cycles--;
 	}
 
@@ -168,7 +165,7 @@ void gdsp_run_cycles(int cycles)
 			return;
 		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
 			return;
-		gdsp_step();
+		Step();
 		cycles--;
 	}
 
@@ -176,14 +173,14 @@ void gdsp_run_cycles(int cycles)
 	// idle loop and if so we waste some time here. Might be beneficial to slice even further.
 	while (cycles > 0)
 	{
-		gdsp_step();
+		Step();
 		cycles--;
 		// We don't bother directly supporting pause - if the main emu pauses,
 		// it just won't call this function anymore.
 	}
 }
 
-void gdsp_stop()
+void Stop()
 {
 	gdsp_running = false;
 }

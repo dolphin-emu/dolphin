@@ -179,7 +179,7 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (bIsRunning)
 	{
-		DSPInterpreter::gdsp_run();
+		DSPInterpreter::Run();
 	}
 	return 0;
 }
@@ -249,7 +249,7 @@ void Initialize(void *init)
 
 void DSP_StopSoundStream()
 {
-	DSPInterpreter::gdsp_stop();
+	DSPInterpreter::Stop();
 	bIsRunning = false;
 	if (g_dspInitialize.bOnThread)
 	{
@@ -266,13 +266,13 @@ void Shutdown()
 
 u16 DSP_WriteControlRegister(u16 _uFlag)
 {
-	DSPInterpreter::gdsp_write_cr(_uFlag);
-	return DSPInterpreter::gdsp_read_cr();
+	DSPInterpreter::WriteCR(_uFlag);
+	return DSPInterpreter::ReadCR();
 }
 
 u16 DSP_ReadControlRegister()
 {
-	return DSPInterpreter::gdsp_read_cr();
+	return DSPInterpreter::ReadCR();
 }
 
 u16 DSP_ReadMailboxHigh(bool _CPUMailbox)
@@ -343,7 +343,7 @@ void DSP_Update(int cycles)
 	// If we're not on a thread, run cycles here.
 	if (!g_dspInitialize.bOnThread)
 	{
-		DSPInterpreter::gdsp_run_cycles(cycles);
+		DSPInterpreter::RunCycles(cycles);
 	}
 }
 
