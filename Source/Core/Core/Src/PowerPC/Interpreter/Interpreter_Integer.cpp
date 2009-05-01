@@ -169,7 +169,7 @@ void twi(UGeckoInstruction _inst)
 	s32 b = _inst.SIMM_16;
 	s32 TO = _inst.TO;
 
-	ERROR_LOG(GEKKO, "twi rA %x SIMM %x TO %0x", a, b, TO);
+	ERROR_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
 
 	if (   ((a < b) && (TO & 0x10))
 		|| ((a > b) && (TO & 0x08))
@@ -397,7 +397,7 @@ void tw(UGeckoInstruction _inst)
 	s32 b = m_GPR[_inst.RB];
 	s32 TO = _inst.TO;
 
-	ERROR_LOG(GEKKO, "tw rA %0x rB %0x TO %0x", a, b, TO);
+	ERROR_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
 
 	if (   ((a < b) && (TO & 0x10))
 		|| ((a > b) && (TO & 0x08))

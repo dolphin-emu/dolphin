@@ -108,7 +108,7 @@ void HLEFunction(UGeckoInstruction _inst)
 
 void CompiledBlock(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO, 0, "CompiledBlock - shouldn't be here!");
+	_assert_msg_(POWERPC, 0, "CompiledBlock - shouldn't be here!");
 }
 
 void rfi(UGeckoInstruction _inst)
@@ -129,7 +129,7 @@ void rfi(UGeckoInstruction _inst)
 
 void rfid(UGeckoInstruction _inst) 
 {
-	_dbg_assert_msg_(GEKKO,0,"Instruction unimplemented (does this instruction even exist?)","rfid");
+	_dbg_assert_msg_(POWERPC,0,"Instruction unimplemented (does this instruction even exist?)","rfid");
 	m_EndBlock = true;
 }
 

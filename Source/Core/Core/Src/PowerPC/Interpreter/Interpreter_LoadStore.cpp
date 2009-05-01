@@ -265,7 +265,7 @@ void stwu(UGeckoInstruction _inst)
 
 void dcba(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO,0,"dcba - Not implemented - not a Gekko instruction");
+	_assert_msg_(POWERPC,0,"dcba - Not implemented - not a Gekko instruction");
 }
 
 void dcbf(UGeckoInstruction _inst)
@@ -285,24 +285,24 @@ void dcbf(UGeckoInstruction _inst)
 void dcbi(UGeckoInstruction _inst)
 {
 	//Used during initialization
-	//_assert_msg_(GEKKO,0,"dcbi - Not implemented");
+	//_assert_msg_(POWERPC,0,"dcbi - Not implemented");
 }
 
 void dcbst(UGeckoInstruction _inst)
 {
-	//_assert_msg_(GEKKO,0,"dcbst - Not implemented");
+	//_assert_msg_(POWERPC,0,"dcbst - Not implemented");
 }
 
 void dcbt(UGeckoInstruction _inst)
 {
 	//This should tell GFX plugin to throw out any cached data here
 	//Used by Ikaruga
-	//_assert_msg_(GEKKO,0,"dcbt - Not implemented");
+	//_assert_msg_(POWERPC,0,"dcbt - Not implemented");
 }
 
 void dcbtst(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO,0,"dcbtst - Not implemented");
+	_assert_msg_(POWERPC,0,"dcbtst - Not implemented");
 }
 
 // __________________________________________________________________________________________________
@@ -324,17 +324,17 @@ void dcbz(UGeckoInstruction _inst)
  
 void eciwx(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO,0,"eciwx - Not implemented"); 
+	_assert_msg_(POWERPC,0,"eciwx - Not implemented"); 
 }
 
 void ecowx(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO,0,"ecowx - Not implemented"); 
+	_assert_msg_(POWERPC,0,"ecowx - Not implemented"); 
 }
 
 void eieio(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO,0,"eieio - Not implemented"); 
+	_assert_msg_(POWERPC,0,"eieio - Not implemented"); 
 }
 
 void icbi(UGeckoInstruction _inst)

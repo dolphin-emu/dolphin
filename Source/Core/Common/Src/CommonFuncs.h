@@ -30,7 +30,9 @@
 char* strndup (char const *s, size_t n);
 size_t strnlen(const char *s, size_t n);
 #else
+#ifdef __linux__
 #include <byteswap.h>
+#endif
 #endif // APPLE
 	#include <errno.h>
 // go to debugger mode

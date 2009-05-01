@@ -3,7 +3,7 @@
 // ops actually do.
 // It's very unpolished though
 // Use Dolphin's dsptool to generate a new dsp_code.h.
-// Originally written by FIRES?
+// Originally written by duddie and modified by FIRES.
 
 #include <gccore.h>
 #include <malloc.h>
@@ -24,6 +24,9 @@
 #include "irq.h"
 #include "dsp.h"
 
+// Pull in some constants etc from DSPCore.
+#include "../Core/DSPCore/Src/gdsp_registers.h"
+
 // This is where the DSP binary is.
 #include "dsp_code.h"
 
@@ -40,6 +43,7 @@
 #define DSPCR_PIINT         0x0002        // assert DSP PI interrupt
 #define DSPCR_RES           0x0001        // reset DSP
 
+// Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000))); 
 
 // #define ENABLE_OUT
@@ -120,51 +124,49 @@ static void my__dsp_handler(u32 nIrq,void *pCtx)
 }
 
 
-void print_regs(int _step, int _dsp_steps)
+// When comparing regs, ignore the loop stack registers.
+bool regs_equal(int reg, u16 value1, u16 value2) {
+	if (reg >= DSP_REG_ST0 && reg <= DSP_REG_ST3)
+		return true;
+	else
+		return value1 == value2;
+}
+
+void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_regs)
 {
 	for (int j = 0; j < 4 ; j++)
 	{
 		for (int i = 0; i < 8 ; i++)
 		{
-			const int reg = j * 8 + i;
-			ds_set_colour(cursor_reg == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
-			ds_printf(0 + j * 8, i + 2, "%02x ", reg);
-			ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-			if (_step == 0)
-				ds_printf(3 + j * 8, i + 2, "%04x", dspreg_in[reg]);
-			else
-				ds_printf(3 + j * 8, i + 2, "%04x", dspreg_out[_step-1][reg]);
+			// Do not even display the loop stack registers.
+			if (j != 1 || i < 4)
+			{
+				const int reg = j * 8 + i;
+				ds_set_colour(sel == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
+				ds_printf(x + j * 8, i + y, "%02x ", reg);
+				ds_set_colour(regs_equal(reg, regs[reg], compare_regs[reg]) ? COLOR_WHITE : COLOR_RED, COLOR_BLACK);
+				ds_printf(x + 3 + j * 8, i + y, "%04x", regs[reg]);
+			}
 		}
 	}
+	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
+
+	ds_printf(x+2, y+9,  "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0]&0xff, regs[DSP_REG_ACM0], regs[DSP_REG_ACL0]);
+	ds_printf(x+2, y+10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1]&0xff, regs[DSP_REG_ACM1], regs[DSP_REG_ACL1]);
+	ds_printf(x+2, y+11, "AX0: %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
+	ds_printf(x+2, y+12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
+}
+
+void print_regs(int _step, int _dsp_steps)
+{
+	const u16 *regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
+	const u16 *regs2 = dspreg_out[_step];
+
+	print_reg_block(0, 2, cursor_reg, regs, regs2);
+	print_reg_block(33, 2, cursor_reg, regs2, regs);
 
 	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-	ds_printf(33, 11, "%i / %i      ", _step + 1, _dsp_steps);
-
-	for (int j = 0 ; j < 4 ; j++)
-	{
-		for (int i = 0 ; i < 8 ; i++)
-		{
-			const int reg = j * 8 + i;
-
-			char tmpbuf1[20];
-			sprintf(tmpbuf1, "%02x ", reg);
-			ds_set_colour(COLOR_GREEN, COLOR_BLACK);
-			ds_text_out(33 + j * 8, i + 2, tmpbuf1);
-			sprintf(tmpbuf1, "%04x", dspreg_out[_step][reg]);
-
-			bool Red = true;
-			if (_step == 0)
-				Red = dspreg_in[reg] != dspreg_out[_step][reg];
-			else
-				Red = dspreg_out[_step-1][reg] != dspreg_out[_step][reg];
-
-			if (Red)
-				ds_set_colour(COLOR_RED, COLOR_BLACK);
-			else
-				ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-			ds_text_out(36 + j * 8, i + 2, tmpbuf1);
-		}
-	}
+	ds_printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
 
 	return;
 
@@ -421,10 +423,10 @@ int main()
 
 		print_regs(show_step, dsp_steps);
 
-		ds_printf(2, 14, "Controls:");
-		ds_printf(4, 15, "+/- to move");
-		ds_printf(4, 16, "B to start over");
-		ds_printf(4, 17, "Home to exit");
+		ds_printf(2, 18, "Controls:");
+		ds_printf(4, 19, "+/- to move");
+		ds_printf(4, 20, "B to start over");
+		ds_printf(4, 21, "Home to exit");
 
 		switch (ui_mode)
 		{

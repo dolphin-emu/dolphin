@@ -81,7 +81,7 @@ int SyncTrace()
 		{
 			if (PowerPC::ppcState.gpr[i] != state.gpr[i])
 			{
-				DEBUG_LOG(GEKKO, "DIFFERENCE - r%i (local %08x, remote %08x)", i, PowerPC::ppcState.gpr[i], state.gpr[i]);
+				DEBUG_LOG(POWERPC, "DIFFERENCE - r%i (local %08x, remote %08x)", i, PowerPC::ppcState.gpr[i], state.gpr[i]);
 				difference = true;
 			}
 		}

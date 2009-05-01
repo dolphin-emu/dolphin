@@ -660,7 +660,7 @@ void CatchUpGPU()
 				//MessageBox(0,"Breakpoint enabled",0,0);
 				if ((fifo.CPReadPointer & ~0x1F) == (fifo.CPBreakpoint & ~0x1F))
 				{
-					//_assert_msg_(GEKKO,0,"BP: %08x",fifo.CPBreakpoint);
+					//_assert_msg_(POWERPC,0,"BP: %08x",fifo.CPBreakpoint);
 					//LOG(COMMANDPROCESSOR,"!!! BP irq raised");
 					fifo.bFF_Breakpoint = 1;
 					m_CPStatusReg.Breakpoint = 1;

@@ -110,7 +110,7 @@ void Helper_Quantize(const u32 _Addr, const float _fValue,
 		break;
 
 	default:
-		_dbg_assert_msg_(GEKKO,0,"PS dequantize","Unknown type to read");
+		_dbg_assert_msg_(POWERPC,0,"PS dequantize","Unknown type to read");
 		break;
 	}
 }
@@ -147,7 +147,7 @@ float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType,
 		break;
 
 	default:
-		_dbg_assert_msg_(GEKKO,0,"PS dequantize","Unknown type to read");
+		_dbg_assert_msg_(POWERPC,0,"PS dequantize","Unknown type to read");
 		fResult = 0;
 		break;
 	}

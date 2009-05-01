@@ -313,7 +313,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		UGeckoInstruction untouched_op = Memory::ReadUnchecked_U32(code[i].address);
 		if (untouched_op.OPCD == 1)  // Do handle HLE instructions.
 			inst = untouched_op;
-		_assert_msg_(GEKKO, inst.hex != 0, "Zero Op - Error flattening %08x op %08x", address + i*4, inst.hex);
+		_assert_msg_(POWERPC, inst.hex != 0, "Zero Op - Error flattening %08x op %08x", address + i*4, inst.hex);
 		code[i].inst = inst;
 		code[i].branchTo = -1;
 		code[i].branchToIndex = -1;
@@ -321,7 +321,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		GekkoOPInfo *opinfo = GetOpInfo(inst);
 		if (opinfo)
 			numCycles += opinfo->numCyclesMinusOne + 1;
-		_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
+		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
 		bool follow = false;
 		u32 destination;
 		if (inst.OPCD == 18)
@@ -355,7 +355,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		}
 	}
 
-	_assert_msg_(GEKKO, foundExit, "Analyzer ERROR - Function %08x too big", blockstart);
+	_assert_msg_(POWERPC, foundExit, "Analyzer ERROR - Function %08x too big", blockstart);
 	num_inst++;  // why?
 	st->numCycles = numCycles;
 
@@ -381,7 +381,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		code[i].wantsPS1 = false;
 
 		const GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
-		_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst.hex);
+		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst.hex);
 		int flags = opinfo->flags;
 
 		if (flags & FL_TIMER)

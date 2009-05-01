@@ -297,7 +297,7 @@ void mftb(UGeckoInstruction _inst)
 	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
 	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
 	else if (iIndex == 269)	m_GPR[_inst.RD] = TU;
-	else					_dbg_assert_(GEKKO,0);
+	else					_dbg_assert_(POWERPC, 0);
 }
 
 
@@ -372,14 +372,14 @@ void mtspr(UGeckoInstruction _inst)
 			//TODO(ector): Protect LC memory if LCE is false.
 			//TODO(ector): Honor PSE.
 
-			//_assert_msg_(GEKKO, WriteGatherPipeEnable, "Write gather pipe not enabled!");
+			//_assert_msg_(POWERPC, WriteGatherPipeEnable, "Write gather pipe not enabled!");
 			//if ((HID2.PSE == 0))
 			//	MessageBox(NULL, "PSE in HID2 is set", "Warning", MB_OK);
 		}
 		break;
 
 	case SPR_WPAR:
-		_assert_msg_(GEKKO, m_GPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x");
+		_assert_msg_(POWERPC, m_GPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x");
 		GPFifo::ResetGatherPipe();
 		break;
 

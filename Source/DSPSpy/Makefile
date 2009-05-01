@@ -20,7 +20,7 @@ BUILD		:=	build
 SOURCES		:=	. source
 RESOURCES	:=	../resources
 DATA		:=	data  
-INCLUDES	:=	include
+INCLUDES	:=	include ../Core/Common/Src .
 
 #---------------------------------------------------------------------------------
 # options for code generation

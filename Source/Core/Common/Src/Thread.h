@@ -26,6 +26,8 @@
 #include <unistd.h>
 #ifdef _POSIX_THREADS
 #include <pthread.h>
+#elif GEKKO
+#include <ogc/lwp_threads.h>
 #else
 #error unsupported platform (no pthreads?)
 #endif
@@ -59,7 +61,9 @@ class CriticalSection
 #ifdef _WIN32
 	CRITICAL_SECTION section;
 #else
+#ifdef _POSIX_THREADS
 	pthread_mutex_t mutex;
+#endif
 #endif
 public:
 
@@ -96,7 +100,9 @@ private:
 	HANDLE m_hThread;
 	DWORD m_threadId;
 #else
+#ifdef _POSIX_THREADS
 	pthread_t thread_id;
+#endif
 #endif
 };
 
@@ -140,8 +146,10 @@ private:
 	static const int THREAD_WAIT_TIMEOUT = 5000; // INFINITE or 5000 for example
 #else
 	bool is_set_;
+#ifdef _POSIX_THREADS
 	pthread_cond_t event_;
 	pthread_mutex_t mutex_;
+#endif
 #endif
 };
 

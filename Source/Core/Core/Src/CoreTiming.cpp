@@ -378,7 +378,7 @@ void Advance()
 	}
 	if (!first) 
 	{
-		WARN_LOG(GEKKO, "WARNING - no events in queue. Setting downcount to 10000");
+		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
 		downcount += 10000;
 	}
 	else
@@ -397,14 +397,14 @@ void LogPendingEvents()
 	Event *ptr = first;
 	while (ptr)
 	{
-		INFO_LOG(GEKKO, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
+		INFO_LOG(POWERPC, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
 		ptr = ptr->next;
 	}
 }
 
 void Idle()
 {
-	DEBUG_LOG(GEKKO, "Idle");
+	DEBUG_LOG(POWERPC, "Idle");
 	
 	idledCycles += downcount;
 	downcount = 0;

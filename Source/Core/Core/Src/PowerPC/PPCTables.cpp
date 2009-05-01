@@ -86,7 +86,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		case 59: return m_infoTable59[_inst.SUBOP5];
 		case 63: return m_infoTable63[_inst.SUBOP10];
 		default:
-			_assert_msg_(GEKKO,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
 			return 0;
 		}
 	}
@@ -94,7 +94,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	{
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
-			_assert_msg_(GEKKO,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
 			return 0;
 		}
 		return m_infoTable[_inst.OPCD];
@@ -115,7 +115,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 		case 59: return Interpreter::m_opTable59[_inst.SUBOP5];
 		case 63: return Interpreter::m_opTable63[_inst.SUBOP10];
 		default:
-			_assert_msg_(GEKKO,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
 			return 0;
 		}
 	}
@@ -123,7 +123,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	{
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
-			_assert_msg_(GEKKO,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
 			return 0;
 		}
 		return Interpreter::m_opTable[_inst.OPCD];
@@ -739,7 +739,7 @@ void PrintInstructionRunCounts()
 	{
 		if (temp[i].count == 0) 
 			break;
-        DEBUG_LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
+        DEBUG_LOG(POWERPC, "%s : %i", temp[i].name,temp[i].count);
 		//PanicAlert("%s : %i", temp[i].name,temp[i].count);
 	}
 }

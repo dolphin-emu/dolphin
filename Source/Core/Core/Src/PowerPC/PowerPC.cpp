@@ -237,7 +237,7 @@ void CheckExceptions()
 		MSR &= ~0x04EF36;
 		NPC = 0x80000400;
 
-		INFO_LOG(GEKKO, "EXCEPTION_ISI");
+		INFO_LOG(POWERPC, "EXCEPTION_ISI");
 		ppcState.Exceptions &= ~EXCEPTION_ISI;
 	}
 	else if (ppcState.Exceptions & EXCEPTION_PROGRAM)
@@ -250,7 +250,7 @@ void CheckExceptions()
 		MSR &= ~0x04EF36;
 		NPC = 0x80000700;
 
-		INFO_LOG(GEKKO, "EXCEPTION_PROGRAM");
+		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
 		ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
 	} 
 	else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
@@ -261,7 +261,7 @@ void CheckExceptions()
 		MSR &= ~0x04EF36;
 		NPC = 0x80000C00;
 
-		INFO_LOG(GEKKO, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+		INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
 	}
 	else if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
@@ -273,7 +273,7 @@ void CheckExceptions()
 		MSR &= ~0x04EF36;
 		NPC = 0x80000800;
 
-		INFO_LOG(GEKKO, "EXCEPTION_FPU_UNAVAILABLE");
+		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
 		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
 	}
 	else if (ppcState.Exceptions & EXCEPTION_DSI)
@@ -285,7 +285,7 @@ void CheckExceptions()
 		NPC = 0x80000300;
 		//DSISR and DAR regs are changed in GenerateDSIException()
 
-		INFO_LOG(GEKKO, "EXCEPTION_DSI");
+		INFO_LOG(POWERPC, "EXCEPTION_DSI");
 		ppcState.Exceptions &= ~EXCEPTION_DSI;
 	} 
 	else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
@@ -300,7 +300,7 @@ void CheckExceptions()
 
 		//TODO crazy amount of DSISR options to check out
 
-		INFO_LOG(GEKKO, "EXCEPTION_ALIGNMENT");
+		INFO_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
 		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
 	}
 
@@ -316,10 +316,10 @@ void CheckExceptions()
 			MSR &= ~0x04EF36;
 			NPC = 0x80000500;
 
-			INFO_LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
+			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
 			ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
-			_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");
+			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");
 		}
 		else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
 		{
@@ -329,13 +329,13 @@ void CheckExceptions()
 			MSR &= ~0x04EF36;
 			NPC = 0x80000900;
 
-			INFO_LOG(GEKKO, "EXCEPTION_DECREMENTER");
+			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
 			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
 		}
 		else
 		{
-			_dbg_assert_msg_(GEKKO, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
-			ERROR_LOG(GEKKO, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
+			_dbg_assert_msg_(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
+			ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
 		}
 	}
 }

@@ -148,7 +148,7 @@ void Run()
 					//2: check for breakpoint
 					if (BreakPoints::IsAddressBreakPoint(PC))
 					{
-						INFO_LOG(GEKKO, "Hit Breakpoint - %08x", PC);
+						INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
 						CCPU::Break();
 						if (BreakPoints::IsTempBreakPoint(PC))
 							BreakPoints::Remove(PC);
@@ -193,7 +193,7 @@ void unknown_instruction(UGeckoInstruction _inst)
 	DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
 	printf("Last PC = %08x : %s\n", last_pc, disasm);
 	Debugger::PrintCallstack();
-	_dbg_assert_msg_(GEKKO, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+	_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 }
 
 }  // namespace

@@ -40,7 +40,7 @@ LogManager::LogManager()\
 	m_Log[LogTypes::GPFIFO]				= new LogContainer("GP",			"GPFifo");
 	m_Log[LogTypes::EXPANSIONINTERFACE]	= new LogContainer("EXI",			"ExpansionInt");
 	m_Log[LogTypes::AUDIO_INTERFACE]	= new LogContainer("AI",			"AudioInt");
-	m_Log[LogTypes::GEKKO]				= new LogContainer("GEKKO",			"IBM CPU");
+	m_Log[LogTypes::POWERPC]			= new LogContainer("PowerPC",		"IBM CPU");
 	m_Log[LogTypes::HLE]				= new LogContainer("HLE",			"HLE");
 	m_Log[LogTypes::DSPHLE]			    = new LogContainer("DSPHLE",		"DSP HLE");
 	m_Log[LogTypes::DSPLLE]			    = new LogContainer("DSPLLE",		"DSP LLE");
