@@ -778,7 +778,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 		param_t params[10] = {{0}};
 		param_t params_ext[10] = {{0}};
-
+		
+		bool upper = true;
 		for (int i = 0; i < LINEBUF_SIZE; i++)
 		{
 			char c = line[i];
@@ -814,7 +815,9 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 				c = 0x00;
 			if (c == 0x09)				// tabs to spaces
 				c = ' ';
-			if (c >= 'a' && c <= 'z')	// convert to uppercase
+			if (c == '"')
+				upper = !upper;
+			if (upper && c >= 'a' && c <= 'z')	// convert to uppercase
 				c = c - 'a' + 'A';
 			line[i] = c;
 			if (c == 0)
