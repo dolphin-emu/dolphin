@@ -1,0 +1,319 @@
+; This test checks the effect of the index looping registers (R8-R11)
+incdir  "tests"
+include "dsp_base.inc"
+
+; First theories, fitting tests with nice masks in the loop registers
+; IR THEORY: if ((ar & lp) == lp)  ar &= ~lp;
+; DR THEORY: if ((ar & lp) == 0) ar |= lp;
+; These were proven FALSE though by the following:
+
+; Tests done using AR1 = 0x0010, IX1 = 0
+; LP1 = 0
+;   10, 11, 11, 11, 11......
+; LP1 = 1
+;   10, 11, 10, 11, 10......
+; LP1 = 2
+;   10, 11, 12, 13, 11, 12, 13, 11, 12, 13 ......
+; LP1 = 3
+;   10, 11, 12, 13, 10, 11, 12, 13, 10, 11, 12, 13.......
+; LP1 = 4
+;   10, 11, 12, 13, 14, 15, 16, 17, 13, 14, 15, 16, 17, 13, 14, 15 ......
+; LP1 = 5
+;   10, 11, 12, 13, 14, 15, 16, 17, 12, 13, 14, 15 ...
+; LP1 = 6
+;   10, 11, 12, 13, 14, 15, 16, 17, 11, 12, 13, 14...
+; LP1 = 7
+;   10, 11, 12, 13, 14, 15, 16, 17, 10, 11, ....
+; LP1 = 8
+;   10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1a, 1b, 1c, 1d, 1e, 1f, 17, 18, 19, 1a, 1b.....
+
+
+; I really don't know how the above could possibly be efficiently implemented in hardware.
+; And thus it's tricky to implement in software too :p
+
+; test using indexing register 1 - 0 is used in send_back
+lri $AR1, #16
+lri $IX1, #32
+lri $R09, #0
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #2
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #3
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #4
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #5
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #6
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #7
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $R09, #8
+
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+nx'ir  : $AR1
+call send_back  ; 1
+
+
+lri $R09, #0xFFFF
+
+; We're done, DO NOT DELETE THIS LINE
+jmp end_of_test

@@ -213,6 +213,8 @@ irq:
 	
 ; DMA:s the current state of the registers back to the PowerPC. To do this,
 ; it must write the contents of all regs to DRAM.
+; Unfortunately, this loop uses AR0 so it's best to use AR1 and friends for testing
+; when messing with indexing.
 send_back:
 	; make state safe.
 	set16
