@@ -94,7 +94,7 @@ inline bool isSign() {
 }
 
 inline bool isZero() {
-	return g_dsp.r[DSP_REG_SR] & 0x04;
+	return (g_dsp.r[DSP_REG_SR] & 0x04);
 }
 
 //see gdsp_registers.h for flags
