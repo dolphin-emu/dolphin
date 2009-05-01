@@ -330,7 +330,7 @@ const DSPOPCTemplate opcodes_ext[] =
 	{"SLNM",    0x008e, 0x00ce, nop, nop, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, NULL, NULL,},
 
 	/* FIXME: what are the LDX functions for? they have the same opcode as LD ones but different mask	
-`{"LDX",		0x00c0, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
+	{"LDX",		0x00c0, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXN",    0x00c4, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXM",    0x00c8, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},
 	{"LDXNM",   0x00cc, 0x00cf, nop, nop, 1, 3, {{P_REG18, 1, 0, 4, 0x0010}, {P_REG1A, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, NULL, NULL,},*/
