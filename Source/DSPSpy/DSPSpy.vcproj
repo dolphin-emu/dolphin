@@ -117,6 +117,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Config.h"
+			>
+		</File>
+		<File
 			RelativePath=".\display.cpp"
 			>
 		</File>
