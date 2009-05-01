@@ -136,12 +136,16 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x6: // L - LESS
-		if (g_dsp.r[DSP_REG_SR] & 0x02)
+		// Should be that once we set 0x02
+		// if (g_dsp.r[DSP_REG_SR] & 0x02)
+		if (isSign())
 			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
-		if (g_dsp.r[DSP_REG_SR] & SR_CARRY)
+		// Should be that once we set 0x01
+		//		if (g_dsp.r[DSP_REG_SR] & SR_CARRY)
+		if (! isSign() || isZero())
 			taken = true;
 		break;
 
