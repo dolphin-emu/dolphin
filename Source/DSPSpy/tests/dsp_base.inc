@@ -86,10 +86,10 @@ main:
 	lrri	$ix1, @$ar0
 	lrri	$ix2, @$ar0
 	lrri	$ix3, @$ar0
-	lrri	$r08, @$ar0
-	lrri	$r09, @$ar0
-	lrri	$r10, @$ar0
-	lrri	$r11, @$ar0
+	lrri	$wr0, @$ar0
+	lrri	$wr1, @$ar0
+	lrri	$wr2, @$ar0
+	lrri	$wr3, @$ar0
 	lrri	$st0, @$ar0
 	lrri	$st1, @$ar0
 	lrri	$st2, @$ar0
@@ -206,8 +206,8 @@ irq:
 	andcf	$ac1.m, #0x8000
 	jlz		irq
 	si		@DMBH, #0x8BAD
-	sr		@DMBL, $r11
-;sr		@DMBL, $ac0.m	
+	sr		@DMBL, $wr3     ; ???
+	;sr		@DMBL, $ac0.m	
 	si		@DIRQ, #0x0001
 	halt
 	
@@ -228,10 +228,10 @@ send_back:
 	srri	@$ar0, $ix1
 	srri	@$ar0, $ix2
 	srri	@$ar0, $ix3
-	srri	@$ar0, $r08
-	srri	@$ar0, $r09
-	srri	@$ar0, $r10
-	srri	@$ar0, $r11
+	srri	@$ar0, $wr0
+	srri	@$ar0, $wr1
+	srri	@$ar0, $wr2
+	srri	@$ar0, $wr3
 	srri	@$ar0, $st0
 	srri	@$ar0, $st1
 	srri	@$ar0, $st2
@@ -294,10 +294,10 @@ dma_copy:
 	lrri	$ix1, @$ar0
 	lrri	$ix2, @$ar0
 	lrri	$ix3, @$ar0
-	lrri	$r08, @$ar0
-	lrri	$r09, @$ar0
-	lrri	$r10, @$ar0
-	lrri	$r11, @$ar0
+	lrri	$wr0, @$ar0
+	lrri	$wr1, @$ar0
+	lrri	$wr2, @$ar0
+	lrri	$wr3, @$ar0
 	lrri	$st0, @$ar0
 	lrri	$st1, @$ar0
 	lrri	$st2, @$ar0

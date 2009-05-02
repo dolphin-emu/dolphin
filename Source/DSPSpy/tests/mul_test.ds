@@ -1,0 +1,58 @@
+; This test checks the effect of SET15 on multiplications.
+incdir  "tests"
+include "dsp_base.inc"
+
+SET40
+LRI     $AC0.M, #0x1234
+LRI     $AC0.L, #0x5678
+SET16
+
+m2
+CLR     $ACC0
+LRI     $AX0.L, #0xFFFF
+LRI		$AX1.L, #0x100
+MULX	$AX0.L, $AX1.L
+MULXAC	$AX0.L, $AX1.L, $ACC0
+call send_back
+
+CLR     $ACC0
+SET15	
+LRI     $AX0.L, #0xFFFF
+LRI		$AX1.L, #0x100
+MULX	$AX0.L, $AX1.L
+MULXAC	$AX0.L, $AX1.L, $ACC0
+CLR15	
+call send_back
+m0
+lri $AX0.L, #1
+lri $AX1.L, #2
+mulx $AX0.L, $AX1.L
+movp $ACC0
+call send_back  ; 1
+
+set15
+lri $AX0.L, #2
+lri $AX1.L, #4
+mulx $AX0.L, $AX1.L
+movp $ACC0
+clr15
+call send_back  ; 1
+
+m2
+lri $AX0.L, #1
+lri $AX1.L, #2
+mulx $AX0.L, $AX1.L
+movp $ACC0
+call send_back  ; 1
+
+set15
+lri $AX0.L, #2
+lri $AX1.L, #4
+mulx $AX0.L, $AX1.L
+movp $ACC0
+clr15
+call send_back  ; 1
+m0
+
+; We're done, DO NOT DELETE THIS LINE
+jmp end_of_test
