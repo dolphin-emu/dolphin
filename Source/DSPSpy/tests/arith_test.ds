@@ -1,0 +1,150 @@
+; various arithmetic tests
+incdir  "tests"
+include "dsp_base.inc"
+
+set40
+
+clr $acc0
+tst $acc0
+
+call send_back 	; 1
+
+clr $acc1
+tst $acc1
+
+call send_back 	; 2
+
+set16
+tst $acc0
+set40
+
+call send_back 	; 3
+
+lri $ac0.h, #0x1111
+lri $ac0.m, #0x0100
+lri $ac0.l, #0x0001
+lsl $acc0, #1
+
+call send_back 	; 4
+
+lri $ac0.h, #0x1111
+lri $ac0.m, #0x0100
+lri $ac0.l, #0x0001
+asl $acc0, #1
+
+call send_back 	; 5
+
+clr $acc0
+lri $ac0.h, #0x1111
+tst $acc0
+
+call send_back 	; 6
+
+lri $ac0.m, #0x0100
+tst $acc0
+
+call send_back 	; 7
+
+lri $ac0.l, #0x0001
+tst $acc0
+
+call send_back 	; 8
+clr $acc0
+
+lri $ac0.l, #-1
+tst $acc0
+
+call send_back 	; 9
+
+clr $acc0
+
+set16
+lri $ac0.l, #-1
+tst $acc0
+set40
+
+call send_back 	; 10
+
+clr $acc0
+lri $ac0.h, #0x1000
+tst $acc0
+
+call send_back 	; 11
+
+clr $acc0
+lri $ac0.h, #0x0100
+tst $acc0
+
+call send_back 	; 12
+
+
+clr $acc0
+lri $ac0.h, #0x0010
+tst $acc0
+
+call send_back 	; 13
+
+clr $acc0
+lri $ac0.h, #0x0001
+tst $acc0
+
+call send_back 	; 14
+
+clr $acc0
+lri $ac0.l, #0x1000
+tst $acc0
+
+call send_back 	; 15
+
+clr $acc0
+lri $ac0.l, #0x0100
+tst $acc0
+
+call send_back 	; 16
+
+
+clr $acc0
+lri $ac0.l, #0x0010
+tst $acc0
+
+call send_back 	; 17
+
+clr $acc0
+lri $ac0.l, #0x0001
+tst $acc0
+
+call send_back 	; 18
+
+clr $acc0
+clr $acc1
+lri $ac0.l, #0x0001
+sub $acc1, $acc0
+
+call send_back 	; 19
+
+clr $acc0
+clr $acc1
+set16
+lri $ac0.l, #0x0001
+sub $acc1, $acc0
+set40
+
+call send_back 	; 20
+
+clr $acc0
+clr $acc1
+lri $ac0.l, #0x0001
+lri $ac1.h, #0x8000
+sub $acc1, $acc0
+
+call send_back 	; 21
+
+clr $acc0
+clr $acc1
+set16
+lri $ac0.l, #0x0001
+lri $ac1.h, #0x8000
+sub $acc1, $acc0
+set40
+
+call send_back 	; 22

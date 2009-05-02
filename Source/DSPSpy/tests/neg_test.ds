@@ -2,109 +2,115 @@
 incdir  "tests"
 include "dsp_base.inc"
 
-lri $ACC0, #0x0001
-lri $SR, #0x0001
-
+clr $ACC0
 neg $ACC0
+
 call send_back 	; 1
 
-
-lri $ACC0, #0x0001
-lri $SR, #0x0002
+clr $ACC0
+lri $ac0.l, #0x0001
+lri $SR, #0x0001
 
 neg $ACC0
 call send_back 	; 2
 
-lri $ACC0, #0x0001
-lri $SR, #0x0004
+
+lri $ac0.l, #0x0001
+lri $SR, #0x0002
 
 neg $ACC0
 call send_back 	; 3
 
-lri $ACC0, #0x0001
-lri $SR, #0x0008
+lri $ac0.l, #0x0001
+lri $SR, #0x0004
 
 neg $ACC0
 call send_back 	; 4
 
-lri $ACC0, #0x0001
-lri $SR, #0x0010
+lri $ac0.l, #0x0001
+lri $SR, #0x0008
 
 neg $ACC0
 call send_back 	; 5
 
-lri $ACC0, #0x0001
-lri $SR, #0x0020
+lri $ac0.l, #0x0001
+lri $SR, #0x0010
 
 neg $ACC0
 call send_back 	; 6
 
-lri $ACC0, #0x0001
-lri $SR, #0x0040
+lri $ac0.l, #0x0001
+lri $SR, #0x0020
 
 neg $ACC0
 call send_back 	; 7
 
-lri $ACC0, #0x0001
-lri $SR, #0x0080
+lri $ac0.l, #0x0001
+lri $SR, #0x0040
 
 neg $ACC0
 call send_back 	; 8
 
-lri $ACC0, #0x0001
-lri $SR, #0x0100
+lri $ac0.l, #0x0001
+lri $SR, #0x0080
 
 neg $ACC0
 call send_back 	; 9
 
-lri $ACC0, #0x0001
-lri $SR, #0x0200
+lri $ac0.l, #0x0001
+lri $SR, #0x0100
 
 neg $ACC0
 call send_back 	; 10
 
-lri $ACC0, #0x0001
-lri $SR, #0x0400
+lri $ac0.l, #0x0001
+lri $SR, #0x0200
 
 neg $ACC0
 call send_back 	; 11
 
-lri $ACC0, #0x0001
-lri $SR, #0x0800
+lri $ac0.l, #0x0001
+lri $SR, #0x0400
 
 neg $ACC0
 call send_back 	; 12
 
-lri $ACC0, #0x0001
-lri $SR, #0x1000
+lri $ac0.l, #0x0001
+lri $SR, #0x0800
 
 neg $ACC0
 call send_back 	; 13
 
-lri $ACC0, #0x0001
-lri $SR, #0x2000
+lri $ac0.l, #0x0001
+lri $SR, #0x1000
 
 neg $ACC0
 call send_back 	; 14
 
-lri $ACC0, #0x0001
-lri $SR, #0x4000
+lri $ac0.l, #0x0001
+lri $SR, #0x2000
 
 neg $ACC0
 call send_back 	; 15
 
-lri $ACC0, #0x0001
-lri $SR, #0x8000
+lri $ac0.l, #0x0001
+lri $SR, #0x4000
 
 neg $ACC0
 call send_back 	; 16
 
+lri $ac0.l, #0x0001
+lri $SR, #0x8000
+
+neg $ACC0
+call send_back 	; 17
+
 set16
-lri $ACC0, #0x0001
+lri $ac0.l, #0x0001
 lri $SR, #0x2230
 
 neg $ACC0
 set40
-call send_back ; 17
+call send_back ; 18
 
 
