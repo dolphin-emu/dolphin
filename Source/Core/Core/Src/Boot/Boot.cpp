@@ -204,6 +204,8 @@ bool CBoot::BootUp()
             // setup the map from ISOFile ID
             VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
+			VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
+
             DVDInterface::SetDiscInside(true);
 
 			// Use HLE BIOS or not

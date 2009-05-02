@@ -47,6 +47,8 @@ namespace VideoInterface
 	// pre init
 	void PreInit(bool _bNTSC);
 
+	void SetRegionReg(char _region);
+
 	// VI Unknown Regs
 	extern u8 m_UVIUnknownRegs[0x1000];
 

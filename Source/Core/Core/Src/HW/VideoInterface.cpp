@@ -20,8 +20,8 @@
 
 #include "../PowerPC/PowerPC.h"
 
-#include "../Core.h" // <- for Core::GetStartupParameter().bUseDualCore
-#include "CommandProcessor.h" // <- for homebrew's XFB draw hack
+#include "../Core.h"			// <- for Core::GetStartupParameter().bUseDualCore
+#include "CommandProcessor.h"	// <- for homebrew's XFB draw hack
 #include "PeripheralInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
@@ -467,12 +467,16 @@ void PreInit(bool _bNTSC)
 	Write16(0x01ae, 0xcc002032);
 	Write16(0x1107, 0xcc002030);
 	Write16(0x0000, 0xcc00206c);
-	Write16(0x0001, 0xcc00206e);  // component cable is connected
 
     if (_bNTSC)
         Write16(0x0001, 0xcc002002);	// STATUS REG
     else
         Write16(0x0101, 0xcc002002);	// STATUS REG
+}
+
+void SetRegionReg(char _region)
+{
+	Write16((u16)_region, 0xcc00206e);
 }
 
 void UpdateTiming()
