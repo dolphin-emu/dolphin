@@ -206,3 +206,29 @@ const std::string& GameListItem::GetName(int index) const
 	return m_Name[0];
 }
 
+const std::string GameListItem::GetWiiFSPath() const
+{
+	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+
+	if (Iso != NULL)
+	{
+		if (DiscIO::IsVolumeWiiDisc(Iso))
+		{
+			char Path[250];
+			u64 Title;
+
+			Iso->RAWRead((u64)0x0F8001DC, 8, (u8*)&Title);
+			Title = Common::swap64(Title);
+
+			sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(Title>>32), (u32)Title);
+
+			if (!File::Exists(Path))
+				File::CreateFullPath(Path);
+
+			return std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+		}
+	}
+
+	return "NULL";
+}
+

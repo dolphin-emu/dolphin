@@ -73,7 +73,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
 		VolumeHandler::RAWReadToPtr((u8*)&m_TitleID, (u64)0x0F8001DC, 8);
-		m_TitleID = Common::swap64(m_TitleID);                      
+		m_TitleID = Common::swap64(m_TitleID);
     }
     else
     {
@@ -92,7 +92,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 	//FindValidTitleIDs();
 
 
-    INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", m_TitleID>>32, m_TitleID);
+    INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
 }
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -574,7 +574,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             }
             Memory::Write_U32(0, _CommandAddress + 0x4);	
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", TitleID >> 32, TitleID, MaxCount);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
             return true;            
         }
         break;

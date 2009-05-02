@@ -57,16 +57,19 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	// create home directory
     if (VolumeHandler::IsValid())
 	{
-		u32 TitleID = VolumeHandler::Read32(0);
-        _dbg_assert_(WII_IPC_FILEIO, TitleID != 0);
-		if (TitleID == 0) TitleID = 0xF00DBEEF;
-
-		char* pTitleID = (char*)&TitleID;
-
 		char Path[260+1];
-		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/",
-			(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-	
+		u32 TitleID, GameID;
+		VolumeHandler::RAWReadToPtr((u8*)&TitleID, 0x0F8001DC, 4);
+		
+		TitleID = Common::swap32(TitleID);
+		GameID = VolumeHandler::Read32(0);
+
+        _dbg_assert_(WII_IPC_FILEIO, GameID != 0);
+		if (GameID == 0) GameID = 0xF00DBEEF;
+		if (TitleID == 0) TitleID = 0x00010000;
+
+		sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/nocopy/", TitleID, GameID);
+
 		File::CreateFullPath(Path);
 	}
 

@@ -79,6 +79,7 @@ private:
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
+	void OnOpenSaveFolder(wxCommandEvent& event);
 	void OnSetDefaultGCM(wxCommandEvent& event);
 	void OnDeleteGCM(wxCommandEvent& event);
 	void OnCompressGCM(wxCommandEvent& event);

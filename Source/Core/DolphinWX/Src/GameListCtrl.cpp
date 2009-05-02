@@ -88,6 +88,7 @@ EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
 EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
+EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
@@ -620,6 +621,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.AppendSeparator();
+			if (selected_iso->IsWii())
+				popupMenu.Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
 			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
 			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 			
@@ -685,6 +688,15 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	std::string path;
 	SplitPath(iso->GetFileName(), &path, 0, 0);
 	WxUtils::Explore(path.c_str());
+}
+
+void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event)) 
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	if (iso->GetWiiFSPath() != "NULL")
+		WxUtils::Explore(iso->GetWiiFSPath().c_str());
 }
 
 

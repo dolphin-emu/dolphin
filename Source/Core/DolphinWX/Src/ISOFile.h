@@ -33,6 +33,7 @@ public:
 	const std::string& GetCompany() const {return m_Company;}
 	const std::string& GetDescription(int index) const;
 	const std::string& GetUniqueID() const {return m_UniqueID;}
+	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
 	const std::string& GetIssues() const {return m_Issues;}
 	bool IsCompressed() const {return m_BlobCompressed;}
