@@ -139,13 +139,20 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 		for (int i = 0; i < 8 ; i++)
 		{
 			// Do not even display the loop stack registers.
+			const int reg = j * 8 + i;
+			ds_set_colour(sel == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
+			ds_printf(x + j * 8, i + y, "%02x ", reg);
 			if (j != 1 || i < 4)
 			{
-				const int reg = j * 8 + i;
-				ds_set_colour(sel == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
-				ds_printf(x + j * 8, i + y, "%02x ", reg);
-				ds_set_colour(regs_equal(reg, regs[reg], compare_regs[reg]) ? COLOR_WHITE : COLOR_RED, COLOR_BLACK);
-				ds_printf(x + 3 + j * 8, i + y, "%04x", regs[reg]);
+				u32 color1 = regs_equal(reg, regs[reg], compare_regs[reg]) ? COLOR_WHITE : COLOR_RED;
+				for (int k = 0; k < 4; k++)
+				{
+					if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
+						ds_set_colour(COLOR_BLACK, color1);
+					else
+						ds_set_colour(color1, COLOR_BLACK);
+					ds_printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
+				}
 			}
 		}
 	}
@@ -162,8 +169,8 @@ void print_regs(int _step, int _dsp_steps)
 	const u16 *regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
 	const u16 *regs2 = dspreg_out[_step];
 
-	print_reg_block(0, 2, cursor_reg, regs, regs2);
-	print_reg_block(33, 2, cursor_reg, regs2, regs);
+	print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
+	print_reg_block(33, 2, -1, regs2, regs);
 
 	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
 	ds_printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
@@ -214,7 +221,7 @@ void ui_pad_sel(void)
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 	{
 		ui_mode = UIM_EDIT_REG;
-		reg_value = &dspreg_in[cursor_reg * 8];
+		reg_value = &dspreg_in[cursor_reg];
 	}
 }
 

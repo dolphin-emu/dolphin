@@ -1452,14 +1452,13 @@ void srbith(const UDSPInstruction& opc)
 		g_dsp.r[DSP_REG_SR] |= SR_MUL_MODIFY;
 		break;
 
-	// 15-bit precision? clamping? no idea :(
-	// CLR15 seems to be the default.
-    // It seems to come around mul operation, 
+	// If set, treat multiplicands as unsigned 16-bit ints.
+	// If clear, treat them as signed.
 	case 0xc:  // CLR15
-		g_dsp.r[DSP_REG_SR] &= ~SR_TOP_BIT_UNK;
+		g_dsp.r[DSP_REG_SR] &= ~SR_MUL_UNSIGNED;
 		break;
 	case 0xd:  // SET15
-		g_dsp.r[DSP_REG_SR] |= SR_TOP_BIT_UNK;
+		g_dsp.r[DSP_REG_SR] |= SR_MUL_UNSIGNED;
 		break;
 
 	// Automatic 40-bit sign extension when loading ACx.M.
