@@ -35,8 +35,6 @@
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 
-// #include "Tools.h"
-
 void gdsp_dma();
 
 Common::CriticalSection g_CriticalSection;
@@ -119,8 +117,6 @@ u16 gdsp_mbox_read_l(u8 mbx)
 
 void gdsp_ifx_write(u16 addr, u16 val)
 {
-	addr &= 0xff;
-
 	switch (addr & 0xff)
 	{
 	    case 0xfb: // DIRQ
@@ -137,7 +133,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    break;
 
 	    case 0xcb: // DSBL
-		    gdsp_ifx_regs[addr] = val;
+		    gdsp_ifx_regs[addr & 0xFF] = val;
 		    gdsp_dma();
 		    gdsp_ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
@@ -146,7 +142,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    case 0xce:
 	    case 0xcf:
 	    case 0xc9:
-		    gdsp_ifx_regs[addr] = val;
+		    gdsp_ifx_regs[addr & 0xFF] = val;
 		    break;
 
 	    default:
@@ -154,7 +150,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
    	    DEBUG_LOG(DSPLLE, "%04x MW %s (%04x)\n", g_dsp.pc, reg_names[addr - 0xa0], val);
    	else
    	    DEBUG_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);*/
-		    gdsp_ifx_regs[addr] = val;
+		    gdsp_ifx_regs[addr & 0xFF] = val;
 		    break;
 	}
 }
@@ -162,42 +158,30 @@ void gdsp_ifx_write(u16 addr, u16 val)
 
 u16 gdsp_ifx_read(u16 addr)
 {
-	u16 val;
-
-	addr &= 0xff;
-
 	switch (addr & 0xff)
 	{
 	    case 0xfc: // DMBH
-		    val = gdsp_mbox_read_h(GDSP_MBOX_DSP);
-		    break;
+		    return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 
 	    case 0xfe: // CMBH
-		    val = gdsp_mbox_read_h(GDSP_MBOX_CPU);
-		    break;
+		    return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 
 	    case 0xff: // CMBL
-		    val = gdsp_mbox_read_l(GDSP_MBOX_CPU);
-		    break;
+		    return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 
 	    case 0xc9:
-		    val = gdsp_ifx_regs[addr];
-		    break;
+		    return gdsp_ifx_regs[addr & 0xFF];
 
 	    case 0xdd:
-		    val = dsp_read_aram();
-		    break;
+		    return dsp_read_aram();
 
 	    default:
-		    val = gdsp_ifx_regs[addr];
+		    return gdsp_ifx_regs[addr & 0xFF];
 /*		if ((addr & 0xff) >= 0xc0 && reg_names[addr & 0x3f])
    	    printf("%04x MR %s (%04x)\n", g_dsp.pc, reg_names[addr & 0x3f], val);
    	else
    	    printf("%04x MR %04x (%04x)\n", g_dsp.pc, addr, val);*/
-		    break;
 	}
-
-	return val;
 }
 
 
@@ -206,7 +190,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	u8* dst = ((u8*)g_dsp.iram);
-	for (u32 i = 0; i < size; i += 2)
+	for (int i = 0; i < size; i += 2)
 	{ 
 		// TODO : this may be different on Wii.
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);

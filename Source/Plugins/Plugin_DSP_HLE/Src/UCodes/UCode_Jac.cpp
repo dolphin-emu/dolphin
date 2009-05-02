@@ -129,9 +129,9 @@ void CUCode_Jac::ExecuteList()
 	    }
 		    break;
 
-		    // ==============================================================================
-		    // UpdateDSPChannel
-		    // ==============================================================================
+	    // ==============================================================================
+	    // UpdateDSPChannel
+	    // ==============================================================================
 	    case 0x2000:
 	    case 0x4000: // animal crossing
 	    {
@@ -153,7 +153,7 @@ void CUCode_Jac::ExecuteList()
 		    break;
 	}
 
-	// sync, we are rdy
+	// sync, we are ready.
 	m_rMailHandler.PushMail(DSP_SYNC);
 	m_rMailHandler.PushMail(0xF3550000 | sync);
 }

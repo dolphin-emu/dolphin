@@ -402,6 +402,30 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Interpreter"
+			>
+			<File
+				RelativePath=".\Src\DspIntArithmetic.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DspIntBranch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DspIntLoadStore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DspIntMisc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DspIntMultiplier.cpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"
 			>
@@ -444,10 +468,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\DSPHost.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DSPInterpreter.cpp"
 			>
 		</File>
 		<File

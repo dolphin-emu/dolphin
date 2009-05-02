@@ -255,7 +255,7 @@ void dsp_op_ext_s(const UDSPInstruction& opc)
 void dsp_op_ext_l(const UDSPInstruction& opc)
 {
 	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 3) & 0x7) + 0x18;
+	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
@@ -289,7 +289,7 @@ void dsp_op_ext_ls_pro(const UDSPInstruction& opc)
 
 void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
 {
-	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
+	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
 	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
 	dsp_op_write_reg(dreg, val);
 
@@ -400,14 +400,11 @@ void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 	  case 0x09:
 	  case 0x0a:
 	  case 0x0b:
-		  
-		  if (opc.hex & 0x2) {
+		  if (opc.hex & 0x2)
 			  dsp_op_ext_sl_pro(opc.hex);
-		  }
-		  else {
+		  else
 			  dsp_op_ext_ls_pro(opc.hex);
-		  }
-		  
+	  
 		  break;
 			  
 	  case 0x0c:
@@ -423,26 +420,24 @@ void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
 {
 	if ((opc.hex & 0xFF) == 0)
-	{
 		return;
-	}
 
 	switch ((opc.hex >> 4) & 0xf)
 	{
-	  case 0x08:
-	  case 0x09:
-	  case 0x0a:
-	  case 0x0b:
-		  if (opc.hex & 0x2)
-		  {
-			  dsp_op_ext_sl_epi(opc.hex);
-		  }
-		  else
-		  {
-			  dsp_op_ext_ls_epi(opc.hex);
-		  }
-		  break;
+	case 0x08:
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+		if (opc.hex & 0x2)
+		{
+			dsp_op_ext_sl_epi(opc.hex);
+		}
+		else
+		{
+			dsp_op_ext_ls_epi(opc.hex);
+		}
+		break;
 
-		  return;
+		return;
 	}
 }

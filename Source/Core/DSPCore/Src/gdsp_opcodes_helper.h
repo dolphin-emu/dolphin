@@ -1,6 +1,6 @@
 /*====================================================================
 
-   filename:     opcodes.h
+   filename:     gdsp_opcodes_helper.h
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
    mail:		  duddie@walla.com
@@ -90,10 +90,10 @@ inline void dsp_increment_addr_reg(int reg)
 inline u16 dsp_op_read_reg(u8 reg)
 {
 	switch (reg & 0x1f) {
-	case 0x0c:
-	case 0x0d:
-	case 0x0e:
-	case 0x0f:
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
 		return dsp_reg_load_stack(reg - 0x0c);
 	default:
 		return g_dsp.r[reg];
@@ -111,10 +111,10 @@ inline void dsp_op_write_reg(u8 reg, u16 val)
 		break;
 
 	// Stack registers.
-	case 0x0c:
-	case 0x0d:
-	case 0x0e:
-	case 0x0f:
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
 		dsp_reg_store_stack(reg - 0x0c, val);
 		break;
 
@@ -140,14 +140,9 @@ inline void dsp_conditional_extend_accum(u8 reg)
 	}
 }
 
-
-
 // ---------------------------------------------------------------------------------------
-//
 // --- prod
-//
 // ---------------------------------------------------------------------------------------
-
 
 inline s64 dsp_get_long_prod()
 {
@@ -155,11 +150,9 @@ inline s64 dsp_get_long_prod()
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	s64 val;
-	s64 low_prod;
-	val   = (s8)g_dsp.r[0x16];
+	s64 val   = (s8)g_dsp.r[0x16];
 	val <<= 32;
-	low_prod  = g_dsp.r[0x15];
+	s64 low_prod  = g_dsp.r[0x15];
 	low_prod += g_dsp.r[0x17];
 	low_prod <<= 16;
 	low_prod |= g_dsp.r[0x14];
@@ -167,9 +160,8 @@ inline s64 dsp_get_long_prod()
 	return val;
 }
 
-// For accurate emulation, this is wrong - it should take the two multiplicands
-// as input and set the two mid stages accordingly. most likely it's doing something
-// pretty simple.
+// For accurate emulation, this is wrong - but the real prod registers behave
+// in completely bizarre ways. Probably not meaningful to emulate them accurately.
 inline void dsp_set_long_prod(s64 val)
 {
 #if PROFILE
@@ -195,8 +187,8 @@ inline s64 dsp_get_long_acc(int reg)
 #endif
 
 	_assert_(reg < 2);
-	s64 high = (s64)(s8)g_dsp.r[0x10 + reg] << 32;
-	u32 mid_low = ((u32)g_dsp.r[0x1e + reg] << 16) | g_dsp.r[0x1c + reg];
+	s64 high = (s64)(s8)g_dsp.r[DSP_REG_ACH0 + reg] << 32;
+	u32 mid_low = ((u32)g_dsp.r[DSP_REG_ACM0 + reg] << 16) | g_dsp.r[DSP_REG_ACL0 + reg];
 	return high | mid_low;
 }
 
@@ -207,32 +199,32 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 #endif
 
 	_assert_(_reg < 2);
-	g_dsp.r[0x1c + _reg] = (u16)val;
+	g_dsp.r[DSP_REG_ACL0 + _reg] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x1e + _reg] = (u16)val;
+	g_dsp.r[DSP_REG_ACM0 + _reg] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x10 + _reg] = (u16)(s16)(s8)(u8)val;
+	g_dsp.r[DSP_REG_ACH0 + _reg] = (u16)(s16)(s8)(u8)val;
 }
 
 
 inline s16 dsp_get_acc_l(int _reg)
 {
 	_assert_(_reg < 2);
-	return g_dsp.r[0x1c + _reg];
+	return g_dsp.r[DSP_REG_ACL0 + _reg];
 }
 
 
 inline s16 dsp_get_acc_m(int _reg)
 {
 	_assert_(_reg < 2);
-	return g_dsp.r[0x1e + _reg];
+	return g_dsp.r[DSP_REG_ACM0 + _reg];
 }
 
 
 inline s16 dsp_get_acc_h(int _reg)
 {
 	_assert_(_reg < 2);
-	return g_dsp.r[0x10 + _reg];
+	return g_dsp.r[DSP_REG_ACH0 + _reg];
 }
 
 
@@ -240,30 +232,26 @@ inline s16 dsp_get_acc_h(int _reg)
 // --- AX - extra accumulators (32-bit)
 // ---------------------------------------------------------------------------------------
 
-inline s64 dsp_get_long_acx(int _reg)
+inline s32 dsp_get_long_acx(int _reg)
 {
 #if PROFILE
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
 	_assert_(_reg < 2);
-	s64 val = (s16)g_dsp.r[0x1a + _reg];
-	val <<= 16;
-	s64 low_acc = g_dsp.r[0x18 + _reg];
-	val |= low_acc;
-	return val;
+	return ((u32)g_dsp.r[DSP_REG_AXH0 + _reg] << 16) | g_dsp.r[DSP_REG_AXL0 + _reg];
 }
 
 inline s16 dsp_get_ax_l(int _reg)
 {
 	_assert_(_reg < 2);
-	return (s16)g_dsp.r[0x18 + _reg];
+	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
 }
 
 inline s16 dsp_get_ax_h(int _reg)
 {
 	_assert_(_reg < 2);
-	return (s16)g_dsp.r[0x1a + _reg];
+	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
 }
 
 #endif

@@ -243,7 +243,7 @@ const DSPOPCTemplate opcodes[] =
 	{"CMP",		0x8200, 0xffff, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	
 	// This op does NOT exist, at least not under this name, in duddie's docs!
-	{"CMPAR" ,  0xc100, 0xe7ff, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
+	{"CMPAR" ,  0xc100, 0xe7ff, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 
 	{"CLRL",	0xfc00, 0xffff, DSPInterpreter::clrl, nop, 1 | P_EXT,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl0
 	{"CLR",		0x8100, 0xf7ff, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acc0

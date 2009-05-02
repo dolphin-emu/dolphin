@@ -96,7 +96,6 @@ u16 dsp_read_aram()
 
 	// TODO: Take ifx GAIN into account.
 
-
 	// check for loop
 	if (Address >= EndAddress)
 	{

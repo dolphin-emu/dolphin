@@ -40,13 +40,6 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x65d6cc6f: // CARD
 		return new CUCode_CARD(_rMailHandler);
 
-	case 0x088e38a5: // IPL - JAP
-	case 0xd73338cf: // IPL
-	case 0x42f64ac4: // Luigi       (after fix)
-	case 0x4be6a5cb: // AC, Pikmin  (after fix)
-		INFO_LOG(CONSOLE, "JAC ucode chosen\n");
-	return new CUCode_Jac(_rMailHandler);
-
 	case 0x3ad3b7ac: // Naruto3
 	case 0x3daf59b9: // Alien Hominid
 	case 0x4e8a8b21: // spdemo, ctaxi, 18 wheeler, disney, monkeyball2,cubivore,puzzlecollection,wario,
@@ -58,6 +51,13 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 		INFO_LOG(CONSOLE, "AX ucode chosen, yay!\n");
 		return new CUCode_AX(_rMailHandler);
+
+	case 0x088e38a5: // IPL - JAP
+	case 0xd73338cf: // IPL
+	case 0x42f64ac4: // Luigi       (after fix)
+	case 0x4be6a5cb: // AC, Pikmin  (after fix)
+		INFO_LOG(CONSOLE, "JAC ucode chosen\n");
+		return new CUCode_Jac(_rMailHandler);
 
 	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // zelda
@@ -83,8 +83,8 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		return new CUCode_AXWii(_rMailHandler, _CRC);
 
 	default:
-		PanicAlert("Unknown ucode (CRC = %08x) - forcing AX/AXWii", _CRC);
-		if(g_dspInitialize.bWii)
+		PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX/AXWii.\n\nTry LLE plugin if this is homebrew.", _CRC);
+		if (g_dspInitialize.bWii)
 			return new CUCode_AXWii(_rMailHandler, _CRC);
 		return new CUCode_AX(_rMailHandler);
 	}
