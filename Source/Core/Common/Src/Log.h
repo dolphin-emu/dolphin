@@ -103,8 +103,13 @@ enum LOG_LEVELS {
 // FIXME can we get rid of this?
 #include "LogManager.h"
 
+#ifdef GEKKO
+#define GENERIC_LOG(t, v, ...)
+#else
+
 // Let the compiler optimize this out
 #define GENERIC_LOG(t, v, ...) {if (v <= MAX_LOGLEVEL) {LogManager::GetInstance()->Log(v, t,  __VA_ARGS__);}}
+#endif
 
 #if MAX_LOGLEVEL >= ERROR_LEVEL
 #undef ERROR_LOG
@@ -155,6 +160,8 @@ enum LOG_LEVELS {
 #endif // MAX_LOGLEVEL DEBUG
 
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
+
+#ifndef GEKKO
 #ifdef _WIN32
 #define _assert_msg_(_t_, _a_, _fmt_, ...)		\
 	if (!(_a_)) {\
@@ -166,5 +173,8 @@ enum LOG_LEVELS {
 		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) {Crash();} \
 	}
 #endif // WIN32
+#else // GEKKO
+#define _assert_msg_(_t_, _a_, _fmt_, ...)
+#endif
 
 #endif // _LOG_H_

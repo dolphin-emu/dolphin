@@ -152,6 +152,10 @@
 			RelativePath=".\processor.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Stubs.cpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

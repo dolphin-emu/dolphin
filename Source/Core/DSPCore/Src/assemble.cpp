@@ -38,7 +38,6 @@ Initial import
 ====================================================================*/
 
 #include <cstdio>
-#include <memory.h>
 #include <cstdlib>
 
 #include <map>

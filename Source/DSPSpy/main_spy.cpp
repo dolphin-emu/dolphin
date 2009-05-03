@@ -303,7 +303,6 @@ void init_video(void)
 		break;
 	}
 
-	PAD_Init();
 	xfb = SYS_AllocateFramebuffer(rmode);
 
 	VIDEO_Configure(rmode);
@@ -366,6 +365,8 @@ int main()
 	//printf("Network Intitalized\n");
 #endif
 
+	// Both GC and Wii controls.
+	PAD_Init();
 	WPAD_Init();
 
 	int dsp_steps = 0;
@@ -424,6 +425,7 @@ int main()
 
 		VIDEO_WaitVSync();
 
+		PAD_ScanPads();
 		WPAD_ScanPads();
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)
 			exit(0);
@@ -452,7 +454,7 @@ int main()
 		DCFlushRange(xfb, 0x200000);
 
 		// Use B to start over.
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_B) 
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) || (PAD_ButtonsDown(0) & PAD_BUTTON_START)) 
 		{
 			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
 
@@ -474,14 +476,14 @@ int main()
 
 		// Navigate between results using + and - buttons.
 
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS)
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS) || (PAD_ButtonsDown(0) & PAD_BUTTON_X))
 		{
 			show_step++;
 			if (show_step >= dsp_steps) 
 				show_step = 0;
 		}
 
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS)
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
 		{
 			show_step--;
 			if (show_step < 0) 

@@ -36,7 +36,11 @@ size_t strnlen(const char *s, size_t n);
 #endif // APPLE
 	#include <errno.h>
 // go to debugger mode
-	#define Crash() {asm ("int $3");}
+	#ifdef GEKKO
+		#define Crash()
+	#else
+		#define Crash() {asm ("int $3");}
+	#endif
 	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 inline u32 _rotl(u32 x, int shift) {
     shift &= 31;

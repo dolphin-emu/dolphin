@@ -31,6 +31,7 @@ void RegisterMsgAlertHandler(MsgAlertHandler handler);
 extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...);
 void SetEnableAlert(bool enable);
 
+#ifndef GEKKO
 #ifdef _WIN32
 	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
 	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, __VA_ARGS__) 
@@ -41,6 +42,13 @@ void SetEnableAlert(bool enable);
 	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, ##__VA_ARGS__) 
 	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, ##__VA_ARGS__) 
 	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, ##__VA_ARGS__) 
+#endif
+#else
+// GEKKO
+	#define SuccessAlert(format, ...) ;
+	#define PanicAlert(format, ...) ;
+	#define PanicYesNo(format, ...) ;
+	#define AskYesNo(format, ...) ;
 #endif
 
 #endif // _MSGHANDLER_H_

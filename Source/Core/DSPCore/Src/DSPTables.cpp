@@ -473,7 +473,7 @@ const char *pdregnamelong(int val)
 
 const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
 {
-	for (u32 i = 0; i < opcodes_size; i++)
+	for (int i = 0; i < opcodes_size; i++)
 	{
 		u16 mask = opcodes[i].opcode_mask;
 		if (opcodes[i].size & P_EXT) {
@@ -501,7 +501,7 @@ void InitInstructionTable()
 	
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
-		for (u32 j = 0; j < opcodes_size; j++)
+		for (int j = 0; j < opcodes_size; j++)
 		{
 			u16 mask = opcodes[j].opcode_mask;
 			if (opcodes[j].size & P_EXT) {

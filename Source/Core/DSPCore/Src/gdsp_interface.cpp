@@ -138,6 +138,9 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    gdsp_ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
 
+		case 0xde:
+			//if (val)
+			//	PanicAlert("Gain written: %04x", val);   // BMX XXX does, and sounds HORRIBLE.
 	    case 0xcd:
 	    case 0xce:
 	    case 0xcf:

@@ -90,7 +90,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	{
 		printf("Extra code words:\n");
 		const std::vector<u16> &longest = code1.size() > code2.size() ? code1 : code2;
-		for (int i = min_size; i < longest.size(); i++)
+		for (int i = min_size; i < (int)longest.size(); i++)
 		{
 			u16 pc = i;
 			std::string line;
@@ -140,7 +140,7 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str)
 {
 	str.resize(code.size() * 2);
-	for (int i = 0; i < code.size(); i++)
+	for (int i = 0; i < (int)code.size(); i++)
 	{
 		str[i * 2 + 0] = code[i] >> 8;
 		str[i * 2 + 1] = code[i] & 0xff;
@@ -150,7 +150,7 @@ void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str)
 void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 {
 	code.resize(str.size() / 2);
-	for (int i = 0; i < code.size(); i++)
+	for (int i = 0; i < (int)code.size(); i++)
 	{
 		code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
 	}

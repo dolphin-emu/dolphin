@@ -148,7 +148,7 @@ void addpaxz(const UDSPInstruction& opc)
 	u8 dreg = (opc.hex >> 8) & 0x1;
 	u8 sreg = (opc.hex >> 9) & 0x1;
 
-	s64 prod = dsp_get_long_prod() & ~0x0ffff;
+	s64 prod = dsp_get_long_prod() & ~0xffff;  // hm, should we really mask here?
 	s64 ax = dsp_get_long_acx(sreg);
 	s64 acc = (prod + ax) & ~0xffff;
 
