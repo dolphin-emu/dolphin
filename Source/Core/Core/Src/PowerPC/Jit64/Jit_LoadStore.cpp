@@ -136,12 +136,40 @@
 			(Core::GetStartupParameter().bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 			Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 		{
+			// TODO(LinesPrower): 
+			// - Fix idle skipping in JITIL!
+			// - Rewrite this!
+			// It seems to be ugly and unefficient, but I don't know JIT stuff enough to make it right
+			// It only demonstrates the idea
+
+			// do our job at first
+			s32 offset = (s32)(s16)inst.SIMM_16;
+			gpr.FlushLockX(ABI_PARAM1);
+			gpr.Lock(d, a);
+			MOV(32, R(ABI_PARAM1), gpr.R(a));
+			SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
+			gpr.LoadToX64(d, false, true);
+			MOV(32, gpr.R(d), R(EAX));
+			gpr.UnlockAll();
+			gpr.UnlockAllX();
+
+			gpr.Flush(FLUSH_ALL); 
+
+			// if it's still 0, we can wait until the next event
+			CMP(32, R(RAX), Imm32(0));
+			FixupBranch noIdle = J_CC(CC_NE);
+
 			gpr.Flush(FLUSH_ALL);
 			fpr.Flush(FLUSH_ALL);
 			ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
-			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
+
+			// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
+			//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
 			JMP(asm_routines.testExceptions, true);
-			js.compilerPC += 8;
+
+			SetJumpTarget(noIdle);
+
+			//js.compilerPC += 8;
 			return;
 		}
 
