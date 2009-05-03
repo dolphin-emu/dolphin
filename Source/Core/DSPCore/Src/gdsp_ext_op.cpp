@@ -217,8 +217,8 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 	case 0x02: // IR
 		dsp_increment_addr_reg(reg);
 		break;
-		
-	  case 0x03: // NR
+
+	case 0x03: // NR
 		g_dsp.r[reg] += g_dsp.r[reg + 4];
 		break;
 	}
@@ -376,43 +376,43 @@ void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
 
 	switch ((opc.hex >> 4) & 0xf)
 	{
-	  case 0x00:
-		  dsp_op_ext_r_epi(opc.hex);
-		  break;
-		  
-	  case 0x01:
-		  dsp_op_ext_mv(opc.hex);
-		  break;
-		  
-	  case 0x02:
-	  case 0x03:
-		  dsp_op_ext_s(opc.hex);
-		  break;
-		  
-	  case 0x04:
-	  case 0x05:
-	  case 0x06:
-	  case 0x07:
-		  dsp_op_ext_l(opc.hex);
-		  break;
-		  
-	  case 0x08:
-	  case 0x09:
-	  case 0x0a:
-	  case 0x0b:
-		  if (opc.hex & 0x2)
-			  dsp_op_ext_sl_pro(opc.hex);
-		  else
-			  dsp_op_ext_ls_pro(opc.hex);
-	  
-		  break;
-			  
-	  case 0x0c:
-	  case 0x0d:
-	  case 0x0e:
-	  case 0x0f:
-		  dsp_op_ext_ld(opc.hex);
-		  break;
+	case 0x00:
+		dsp_op_ext_r_epi(opc.hex);
+		break;
+
+	case 0x01:
+		dsp_op_ext_mv(opc.hex);
+		break;
+
+	case 0x02:
+	case 0x03:
+		dsp_op_ext_s(opc.hex);
+		break;
+
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		dsp_op_ext_l(opc.hex);
+		break;
+
+	case 0x08:
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+		if (opc.hex & 0x2)
+			dsp_op_ext_sl_pro(opc.hex);
+		else
+			dsp_op_ext_ls_pro(opc.hex);
+
+		break;
+
+	case 0x0c:
+	case 0x0d:
+	case 0x0e:
+	case 0x0f:
+		dsp_op_ext_ld(opc.hex);
+		break;
 	}
 }
 

@@ -200,7 +200,7 @@ void mulcmvz(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), (s64)dsp_get_ax_h(treg));
+	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
@@ -223,7 +223,7 @@ void mulcmv(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), (s64)dsp_get_ax_h(treg));
+	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
@@ -244,7 +244,7 @@ void mulcac(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), (s64)dsp_get_ax_h(treg));
+	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;

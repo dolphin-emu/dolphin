@@ -23,12 +23,14 @@
 #include "processor.h"
 #include "irq.h"
 #include "dsp.h"
+#include "display.h"
 
 // Pull in some constants etc from DSPCore.
 #include "../Core/DSPCore/Src/gdsp_registers.h"
 
 // This is where the DSP binary is.
 #include "dsp_code.h"
+#include "mem_dump.h"
 
 // DSPCR bits
 #define DSPCR_DSPRESET      0x0800        // Reset DSP
@@ -45,9 +47,6 @@
 
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000))); 
-
-// #define ENABLE_OUT
-#undef ENABLE_OUT
 
 static void *xfb = NULL;
 void (*reload)() = (void(*)())0x80001800;
@@ -86,14 +85,7 @@ u16 dspreg_in[32] = {
 0x0000, 0x0000, 0x0000, 0xde6d, 0x0000, 0x0000, 0x0000, 0x004e,
 };*/ 
 
-#include "mem_dump.h"
 
-void ds_text_out(int xpos, int ypos, const char *str);
-void ds_set_colour(int f, int b);
-void ds_init(void *framebuffer, int xstart, int ystart, int xres, int yres, int stride);
-void ds_underline(int xpos, int ypos, int len, int col);
-void ds_printf(int x, int y, const char *fmt, ...);
-void ds_clear(void);
 
 u16 dspreg_out[1000][32];
 
@@ -117,10 +109,10 @@ volatile int regs_refreshed = false;
 
 
 // Handler for DSP interrupt.
-static void my__dsp_handler(u32 nIrq,void *pCtx)
+static void my__dsp_handler(u32 nIrq, void *pCtx)
 {
 	// Acknowledge interrupt?
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT)) | DSPCR_DSPINT;
+	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT)) | DSPCR_DSPINT;
 }
 
 
@@ -202,21 +194,13 @@ void print_regs(int _step, int _dsp_steps)
 void ui_pad_sel(void)
 {
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
-	{
-		cursor_reg+=8;
-	}
+		cursor_reg += 8;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
-	{
-		cursor_reg-=8;
-	}
+		cursor_reg -= 8;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
-	{
 		cursor_reg--;
-	}
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
-	{
 		cursor_reg++;
-	}
 	cursor_reg &= 0x1f;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
 	{
@@ -225,59 +209,20 @@ void ui_pad_sel(void)
 	}
 }
 
-/*
-void ui_pad_edit_bin(void)
-{
-	u8 pos;
-	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
-	{
-		small_cursor_x++;
-	}
-	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
-	{
-		small_cursor_x--;
-	}
-	small_cursor_x &= 0xf;
-	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
-	{
-		pos = 0xf - small_cursor_x;
-		*reg_value |= 1 << pos;
-	}
-	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
-	{
-		pos = 0xf - small_cursor_x;
-		*reg_value &= ~(1 << pos);
-	}
-	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
-	{
-		ui_mode = UIM_SEL;
-	}
-}*/
-
 void ui_pad_edit_reg(void)
 {
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
-	{
 		small_cursor_x++;
-	}
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
-	{
 		small_cursor_x--;
-	}
 	small_cursor_x &= 0x3;
 
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_UP)
-	{
 		*reg_value += 0x1 << (4 * (3 - small_cursor_x));
-	}
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
-	{
 		*reg_value -= 0x1 << (4 * (3 - small_cursor_x));
-	}
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
-	{
 		ui_mode = UIM_SEL;
-	}
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_1)
 		*reg_value = 0;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
@@ -349,21 +294,17 @@ int main()
 	dspbufU = (u32 *)(MEM_K0_TO_K1(dspbuffer));
 
 	DCInvalidateRange(dspbuffer, 0x2000);
-	for (int j = 0 ; j < 0x800; j++)
+	for (int j = 0; j < 0x800; j++)
 		dspbufU[j] = 0xffffffff;
 
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
+	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT)) | DSPCR_DSPRESET;
+	_dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
 
+	// This code looks odd - shouldn't we initialize level?
 	u32 level;
 	_CPU_ISR_Disable(level);
-	IRQ_Request(IRQ_DSP_DSP, my__dsp_handler,NULL);
-	_CPU_ISR_Restore(level);	
-
-#if ENABLE_OUT
-	if_config("192.168.0.5", "192.168.0.1", "255.255.255.0", false);
-	//printf("Network Intitalized\n");
-#endif
+	IRQ_Request(IRQ_DSP_DSP, my__dsp_handler, NULL);
+	_CPU_ISR_Restore(level);
 
 	// Both GC and Wii controls.
 	PAD_Init();
@@ -371,7 +312,6 @@ int main()
 
 	int dsp_steps = 0;
 	int show_step = 0;
-
 	while (true)
 	{
 		// Should put a loop around this too.
