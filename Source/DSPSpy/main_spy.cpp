@@ -104,6 +104,8 @@ s32 small_cursor_x;
 // Value currently being edited.
 u16 *reg_value;  
 
+char last_message[20] = "OK";
+
 // Got regs to draw. Dunno why we need this.
 volatile int regs_refreshed = false;
 
@@ -306,6 +308,9 @@ int main()
 	IRQ_Request(IRQ_DSP_DSP, my__dsp_handler, NULL);
 	_CPU_ISR_Restore(level);
 
+	// Initialize FAT so we can write to SD.
+	fatInit(8, false);
+
 	// Both GC and Wii controls.
 	PAD_Init();
 	WPAD_Init();
@@ -376,6 +381,9 @@ int main()
 		ds_printf(4, 19, "+/- to move");
 		ds_printf(4, 20, "B to start over");
 		ds_printf(4, 21, "Home to exit");
+		ds_printf(4, 22, "2 to dump results to SD");
+
+		ds_printf(4, 24, last_message);
 
 		switch (ui_mode)
 		{
@@ -412,6 +420,7 @@ int main()
 			while (_dspReg[5] & DSPCR_RES)
 				;
 			_dspReg[9] = 0x63;
+			strcpy(last_message, "OK");
 		}
 
 		// Navigate between results using + and - buttons.
@@ -421,6 +430,7 @@ int main()
 			show_step++;
 			if (show_step >= dsp_steps) 
 				show_step = 0;
+			strcpy(last_message, "OK");
 		}
 
 		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
@@ -428,6 +438,26 @@ int main()
 			show_step--;
 			if (show_step < 0) 
 				show_step = dsp_steps - 1;
+			strcpy(last_message, "OK");
+		}
+
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
+		{
+			FILE *f = fopen("sd:/dsp_dump.bin", "wb");
+			if (f) 
+			{
+				// First write initial regs
+				fwrite(dspreg_in, 1, 32 * 2, f);
+
+				// Then write all the dumps.
+				fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
+				fclose(f);
+				strcpy(last_message, "Dump Successful.");
+			}
+			else
+			{
+				strcpy(last_message, "SD Write Error");
+			}
 		}
 	}
 
