@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2002-2008, NVIDIA Corporation.
+ * Copyright (c) 2002-2009, NVIDIA Corporation.
  * 
  *  
  * 
@@ -60,10 +60,15 @@ CG_PROFILE_MACRO(ARBFragment,arbfp1,ARBFP1,"arbfp1",7000,0)
 CG_PROFILE_MACRO(Vertex40,vp40,VP40,"vp40",7001,1)
 CG_PROFILE_MACRO(GLSLVertex,glslv,GLSLV,"glslv",7007,1)
 CG_PROFILE_MACRO(GLSLFragment,glslf,GLSLF,"glslf",7008,0)
+CG_PROFILE_MACRO(GLSLGeometry,glslg,GLSLG,"glslg",7016,0)
 CG_PROFILE_MACRO(GLSLCombined, glslc, GLSLC, "glslc", 7009, 0)
 CG_PROFILE_MACRO(GPUFragment,gpu_fp,GPU_FP,"gp4fp",7010,0)
 CG_PROFILE_MACRO(GPUVertex,gpu_vp,GPU_VP,"gp4vp",7011,1)
 CG_PROFILE_MACRO(GPUGeometry,gpu_gp,GPU_GP,"gp4gp",7012,0)
+
+CG_PROFILE_ALIAS(GPUFragment,gp4fp,GP4FP,"gp4fp",7010,0)
+CG_PROFILE_ALIAS(GPUVertex,gp4vp,GP4VP,"gp4vp",7011,1)
+CG_PROFILE_ALIAS(GPUGeometry,gp4gp,GP4GP,"gp4gp",7012,0)
 
 #ifndef CG_IN_PROFILES_INCLUDE
 # undef CG_PROFILE_MACRO
