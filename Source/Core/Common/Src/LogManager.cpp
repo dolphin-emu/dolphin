@@ -34,6 +34,7 @@ LogManager::LogManager()\
 	m_Log[LogTypes::SERIALINTERFACE]	= new LogContainer("SI",			"SerialInt");
 	m_Log[LogTypes::PERIPHERALINTERFACE]= new LogContainer("PI",			"PeripheralInt");
 	m_Log[LogTypes::MEMMAP]				= new LogContainer("MI",			"MI & memmap");
+	m_Log[LogTypes::SP1]				= new LogContainer("SP1",			"Serial Port 1");
 	m_Log[LogTypes::STREAMINGINTERFACE] = new LogContainer("Stream",		"StreamingInt");
 	m_Log[LogTypes::DSPINTERFACE]		= new LogContainer("DSP",			"DSPInterface");
 	m_Log[LogTypes::DVDINTERFACE]		= new LogContainer("DVD",			"DVDInterface");
