@@ -83,6 +83,8 @@ private:
 		CMD_ID = 0x00,
 		CMD_READ_REG = 0x01,
 	};
+	void recordSendComplete();
+	bool sendPacket(u8 *etherpckt, size_t size);
 
 };
 #define CB_OFFSET 0x100

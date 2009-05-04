@@ -25,6 +25,12 @@ enum {
 	EXPECT_NONE = 0,
 	EXPECT_ID,
 } ;
+#define BBA_INTERRUPT_RECV 0x02
+#define BBA_INTERRUPT_SENT 0x04
+#define BBA_INTERRUPT_RECV_ERROR 0x08
+#define BBA_INTERRUPT_SEND_ERROR 0x10
+int mPacketsSent = 0;
+u8 mac_address[6] = {0x4D, 0xFF, 0x11, 0x88, 0xF1, 0x76};
 unsigned int Expecting;
 CEXIETHERNET::CEXIETHERNET() :
 	m_uPosition(0),
@@ -47,9 +53,15 @@ void CEXIETHERNET::SetCS(int cs)
 {
 	if (cs)
 	{
+		if(mExpectVariableLengthImmWrite)
+		{
+			mExpectVariableLengthImmWrite = false;
+			mReadyToSend = true;
+		}
+		mWriteP = mReadP = INVALID_P;
+		mExpectSpecialImmRead = false;
 		m_uPosition = 0;
 		Expecting = EXPECT_NONE;
-		mReadyToSend = true;
 	}
 }
 
@@ -90,6 +102,42 @@ inline u32 getbitsw(u32 dword, int start, int end) {
 	return (dword & makemaskw(start, end)) >> (31 - end);
 }
 #define MAKE(type, arg) (*(type *)&(arg))
+
+void CEXIETHERNET::recordSendComplete() 
+{
+	mBbaMem[0x00] &= ~0x06;
+	if(mBbaMem[0x08] & BBA_INTERRUPT_SENT) 
+	{
+		mBbaMem[0x09] |= BBA_INTERRUPT_SENT;
+		printf("BBA Send interrupt raised\n");
+		exit(0);
+		//interrupt.raiseEXI("BBA Send");
+	}
+	mPacketsSent++;
+}
+
+bool CEXIETHERNET::sendPacket(u8 *etherpckt, size_t size) 
+{
+		printf("Packet: 0x");
+		for(int a = 0; a < size; ++a)
+		{
+			printf("%02X", etherpckt[a]);
+		}
+		printf(" : Size: %d\n", size);
+	/*DWORD numBytesWrit;
+	OVERLAPPED overlap;
+	ZERO_OBJECT(overlap);
+	//overlap.hEvent = mHRecvEvent;
+	TGLE(WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap));
+	if(numBytesWrit != size) 
+	{
+		DEGUB("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
+		FAIL(UE_BBA_ERROR);
+	}*/
+	recordSendComplete();
+	//exit(0);
+	return true;
+}
 
 void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 {
@@ -132,7 +180,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				if(RISE(BBA_NCRA_SR) && isActivated())
 				{
 					printf("BBA Start Recieve\n");
-					//exit(0);
+					exit(0);
 					// TODO: Need to make our virtual network device start receiving
 					//HWGLE(startRecv());
 				}
@@ -146,11 +194,11 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 						//throw hardware_fatal_exception("BBA Transmit without a packet!");
 					}
 					// TODO: Actually Make it send a packet
-					//HWGLE(sendPacket(mWriteBuffer.p(), mWriteBuffer.size()));
+					sendPacket(mWriteBuffer.p(), mWriteBuffer.size());
 					mReadyToSend = false;
 					//exit(0);
-				};
-				mBbaMem[0x00] = MAKE(u8, SwappedData);
+				}
+				mBbaMem[0x00] = MAKE(u8, _uData);
 			}
 				break;
 			case BBA_NWAYC:
@@ -181,8 +229,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				break;
 			default:
 				printf("Default one!Size 0x%x _uData: 0x%08x Swapped 0x%08x to 0x%x\n", _uSize, _uData, Common::swap32(_uData),mWriteP);
-				_uData = Common::swap32(_uData);
-				memcpy(mBbaMem + mWriteP, &_uData, _uSize);
+				u32 SwappedData = Common::swap32(_uData);
+				memcpy(mBbaMem + mWriteP, &SwappedData, _uSize);
 				mWriteP = mWriteP + _uSize;
 		}
 		return;
@@ -197,10 +245,12 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	else if((_uSize == 4 && (_uData & 0xC0000000) == 0xC0000000) || (_uSize == 2 && (_uData & 0x4000) == 0x4000))
 	{ // Write to BBA Register
 		printf("Write to BBA register!\n");
+		u32 SwappedData = Common::swap32(_uData);
+		//u32 SwappedData = _uData;
 		if(_uSize == 4)
-			mWriteP = (u8)getbitsw(Common::swap32(_uData), 16, 23);
+			mWriteP = (u8)getbitsw(SwappedData, 16, 23);
 		else  //size == 2
-			mWriteP = (u8)getbitsw(Common::swap32(_uData) & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
+			mWriteP = (u8)getbitsw(SwappedData & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
 		// With Size of 4 and data of 0xc0006000 unswapped
 		// mWriteP will be 0x0060 unswapped and 0x0000 swapped. Which is correct?
 		if(mWriteP == 0x48) 
@@ -220,7 +270,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	else if((_uSize == 4 && (_uData & 0xC0000000) == 0x80000000) || (_uSize == 2 && (_uData & 0x4000) == 0x0000))
 	{	
 		printf("Read from BBA register!\n");
-		u32 SwappedData = Common::swap32(_uData);
+		//u32 SwappedData = Common::swap32(_uData);
+		u32 SwappedData = _uData;
 		// Read from BBA Register!
 		if(_uSize == 4) 
 		{
@@ -241,8 +292,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		{
 			case 0x20:	//MAC address
 				printf("Mac Address!\n");
-				exit(0);
-				//memcpy(mBbaMem + mReadP, g::mac_address, 6);
+				memcpy(mBbaMem + mReadP, mac_address, 6);
 				break;
 			case 0x01:	//Revision ID
 				break;
@@ -301,7 +351,8 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		u32 uResult = 0;
 		memcpy(&uResult, mBbaMem + mReadP, _uSize);
 		// TODO: We do as well?
-		uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
+		
+		//uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
 		printf("Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;
 		return uResult;
