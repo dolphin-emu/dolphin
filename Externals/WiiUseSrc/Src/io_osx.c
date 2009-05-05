@@ -52,6 +52,8 @@ IOBluetoothL2CAPChannel * _cchan;
 #include "wiiuse_internal.h"
 #include "io.h"
 
+byte DataFromWiimote[MAX_PAYLOAD];
+
 static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 
 @interface SearchBT: NSObject {}
@@ -72,6 +74,18 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 
 @implementation ConnectBT
 
+-(void)writeToWiimote: (void *)data length:(UInt16)length
+{
+
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+        [_cchan writeSync:data length:length];
+        usleep(10000);
+        [pool release];
+
+}
+
+
 #pragma mark -
 #pragma mark Bluetooth
 
@@ -82,10 +96,16 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 }
 
 
-- (void)l2capChannelData:(IOBluetoothL2CAPChannel *) l2capChannel data:(unsigned char *)buffer length:(NSUInteger)length {
-        //data ?
+- (void)l2capChannelData:(IOBluetoothL2CAPChannel *) l2capChannel data:(byte *)BtData length:(NSUInteger)length {
+		
 	//here we got data from wiimote
-        printf("data %d\n",length);
+	for (int o=0; o<MAX_PAYLOAD; o++)
+	{
+		DataFromWiimote[o] = BtData[o]; 
+	}
+	
+	//stop the main loop after reading
+	CFRunLoopStop( CFRunLoopGetCurrent() );
 }
 
 
@@ -142,11 +162,13 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 @end
 
 @implementation SearchBT
+
+
 -(void) deviceInquiryComplete: (IOBluetoothDeviceInquiry*) sender
                             error: (IOReturn) error
                             aborted: (BOOL) aborted
 {
-        int founded = [[bti foundDevices] count];
+        //int founded = [[bti foundDevices] count];
         CFRunLoopStop( CFRunLoopGetCurrent() );
 }
 -(void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry*) sender
@@ -204,6 +226,9 @@ void detectWiimote()
  */
 int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
+	int found_devices;
+	int found_wiimotes;
+
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
         sbt = [[SearchBT alloc] init];
@@ -214,6 +239,11 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
         CFRunLoopRun();
 
+	found_wiimotes = 0;
+
+	WIIUSE_INFO("Found %i bluetooth device(s).", found_devices);
+	
+	WIIMOTE_ENABLE_STATE(wm[found_wiimotes], WIIMOTE_STATE_DEV_FOUND);
 
         [bti release];
 	[sbt release];
@@ -281,14 +311,16 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
         cbt = [[ConnectBT alloc] init];
         //start to connect to the wiimotes
         [cbt connectToWiimotes];
+	
+	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
 
-        //run the main loop to get bt data
-        CFRunLoopRun();
 	        /* do the handshake */
         WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
         wiiuse_handshake(wm, NULL, 0);
 
         wiiuse_set_report_type(wm);
+
+
 
 	[pool release];
 
@@ -315,21 +347,23 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 }
 
-
 int wiiuse_io_read(struct wiimote_t* wm) {
 
-	//TODO
+        //run the main loop to get bt data
+        CFRunLoopRun();
+
+	for (int len=0; len<MAX_PAYLOAD; len++)
+	{
+		wm->event_buf[len] = DataFromWiimote[len]; 
+	}
+
 	return 1;
 }
 
 
 int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-        [_cchan writeSync:buf length:len];
-
-        usleep (10000);
-	[pool release];
+	[cbt writeToWiimote:buf length:len];
 	return 1;
 }
 
