@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "ARCodeAddEdit.h"
+#include "ARDecrypt.h"
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 
@@ -38,7 +39,7 @@ CARCodeAddEdit::~CARCodeAddEdit()
 
 void CARCodeAddEdit::CreateGUIControls(int _selection)
 {
-	wxString currentName = wxT("Insert name here");
+	wxString currentName = wxT("Insert name here..");
 	
 	if (_selection == -1)
 	{
@@ -51,7 +52,7 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	}
 
 	wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
-	wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Code"));
+	wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Cheat Code"));
 	wxStaticText* EditCheatNameText = new wxStaticText(this, ID_EDITCHEAT_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(currentName);
@@ -60,14 +61,15 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EntrySelection->SetValue((int)(arCodes.size() - _selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
+
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 	sgEntry->AddGrowableCol(1);
 	sgEntry->AddGrowableRow(1);
-	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxEXPAND|wxALL, 5);
+	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);
 	sgEntry->Add(EditCheatName,		wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EntrySelection,	wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditCheatCode,		wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sbEntry->Add(sgEntry, 1, wxEXPAND);
+	sbEntry->Add(sgEntry, 1, wxEXPAND|wxALL);
 	sEditCheat->Add(sbEntry, 1, wxEXPAND|wxALL, 5);
 	wxBoxSizer* sEditCheatButtons = new wxBoxSizer(wxHORIZONTAL);
 	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -94,30 +96,50 @@ void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 
 void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 {
-
 	std::vector<ActionReplay::AREntry> tempEntries;
+	std::vector<std::string> encryptedLine;
 	std::string cheatValues = std::string(EditCheatCode->GetValue().mb_str());
 	size_t line = 0;
-	u32 addr, value;
 
-	while (cheatValues.length() > (line + 17) && (line != std::string::npos))
+	// there's no newline, or newline is imcomplete, stop here.
+	while (line != std::string::npos)
 	{
-		// there's no newline, or newline is imcomplete, stop here.
+		if (line > 0) line++;
+		std::vector<std::string> pieces;
+		std::string line_str = cheatValues.substr(line, cheatValues.find('\n', line) - line);
 
-		addr = strtol(std::string(cheatValues.substr(line, line+8)).c_str(), NULL, 16);
-		value = strtol(std::string(cheatValues.substr(line+9, line+17)).c_str(), NULL, 16);
-
-		tempEntries.push_back(ActionReplay::AREntry(addr, value));
+		SplitString(line_str, " ", pieces);
 		
-		line = cheatValues.find('\n', line+1);
+		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
+		{
+			u32 addr = strtol(pieces[0].c_str(), NULL, 16);
+			u32 value = strtol(pieces[1].c_str(), NULL, 16);
+			// Decrypted code
+			tempEntries.push_back(ActionReplay::AREntry(addr, value));
+		}
+		else
+		{
+			SplitString(line_str, "-", pieces);
+			
+			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
+			{
+				// Encrypted code
+				encryptedLine.push_back(pieces[0]+pieces[1]+pieces[2]);
+			}
+		}
+		
+		if ((line = cheatValues.find('\n', line)) == std::string::npos && encryptedLine.size())
+		{
+			ActionReplay::DecryptARCode(encryptedLine, tempEntries);
+		}
 	}
 
 	if (selection == -1)
 	{
 		ActionReplay::ARCode newCheat;
+
 		newCheat.name = std::string(EditCheatName->GetValue().mb_str());
 		newCheat.ops = tempEntries;
-
 		newCheat.active = true;
 
 		arCodes.push_back(newCheat);
@@ -135,6 +157,9 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 {
 	EditCheatCode->Clear();
 
-	for (u32 i = 0; i < arCode.ops.size(); i++)
-		EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+	if (arCode.name != "")
+		for (u32 i = 0; i < arCode.ops.size(); i++)
+			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+	else
+		EditCheatCode->SetValue(_("Insert Encrypted or Decrypted code here..."));
 }
