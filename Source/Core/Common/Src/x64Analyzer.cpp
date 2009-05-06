@@ -143,7 +143,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 		//Write access
 		switch (codeByte)
 		{
-		case 0xC6: //move 8-bit immediate
+		case MOVE_8BIT: //move 8-bit immediate
 			{
 				info.hasImmediate = true;
 				info.immediate = *codePtr;
@@ -151,7 +151,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 			}
 			break;
 
-		case 0xC7: //move 16 or 32-bit immediate, easiest case for writes
+		case MOVE_16_32BIT: //move 16 or 32-bit immediate, easiest case for writes
 			{
 				if (info.operandSize == 2)
 				{
@@ -173,7 +173,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 				}
 			}
 			break;
-		case 0x89: //move reg to memory
+		case MOVE_REG_TO_MEM: //move reg to memory
 			break;
 
 		default:
@@ -191,19 +191,19 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 		case 0x0F:
 			switch (codeByte2)
 			{
-			case 0xB6: //movzx on byte
+			case MOVZX_BYTE: //movzx on byte
 				info.zeroExtend = true;
 				info.operandSize = 1;
 				break;
-			case 0xB7: //movzx on short
+			case MOVZX_SHORT: //movzx on short
 				info.zeroExtend = true;
 				info.operandSize = 2;
 				break;
-			case 0xBE: //movsx on byte
+			case MOVSX_BYTE: //movsx on byte
 				info.signExtend = true;
 				info.operandSize = 1;
 				break;
-			case 0xBF:
+			case MOVSX_SHORT: //movsx on short
 				info.signExtend = true;
 				info.operandSize = 2;
 				break;

@@ -46,6 +46,15 @@ struct ModRM
 	}
 };
 
+enum{
+	MOVZX_BYTE      = 0xB6, //movzx on byte
+	MOVZX_SHORT     = 0xB7, //movzx on short
+	MOVSX_BYTE      = 0xBE, //movsx on byte
+	MOVSX_SHORT     = 0xBF, //movsx on short
+	MOVE_8BIT	    = 0xC6, //move 8-bit immediate
+	MOVE_16_32BIT   = 0xC7, //move 16 or 32-bit immediate
+	MOVE_REG_TO_MEM = 0x89, //move reg to memory
+};
 
 enum AccessType{
 	OP_ACCESS_READ = 0,
