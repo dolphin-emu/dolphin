@@ -258,7 +258,7 @@ void CISOProperties::CreateGUIControls()
 	//////////////////////////////////////////////////////////////////////////
 	// GameConfig editing - Overrides and emulation state
 	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
-	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nGreyed out means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
+	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	// Core
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
