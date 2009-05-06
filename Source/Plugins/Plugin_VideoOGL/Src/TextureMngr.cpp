@@ -366,46 +366,62 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (expandedWidth != width)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 
-	int gl_format;
-	int gl_iformat;
-	int gl_type;
-	switch (dfmt)
+	if (dfmt != PC_TEX_FMT_DXT1)
 	{
-	default:
-	case PC_TEX_FMT_NONE:
-		PanicAlert("Invalid PC texture format %i", dfmt); 
-	case PC_TEX_FMT_BGRA32:
-		gl_format = GL_BGRA;
-		gl_iformat = 4;
-		gl_type = GL_UNSIGNED_BYTE;
-		break;
-	case PC_TEX_FMT_I8:
-		gl_format = GL_LUMINANCE;
-		gl_iformat = GL_INTENSITY;
-		gl_type = GL_UNSIGNED_BYTE;
-		break;
-	case PC_TEX_FMT_IA8:
-		gl_format = GL_LUMINANCE_ALPHA;
-		gl_iformat = GL_LUMINANCE8_ALPHA8;
-		gl_type = GL_UNSIGNED_BYTE;
-		break;
-	case PC_TEX_FMT_RGB565:
-		gl_format = GL_RGB;
-		gl_iformat = GL_RGB;
-		gl_type = GL_UNSIGNED_SHORT_5_6_5;
-		break;
-	}
+		int gl_format;
+		int gl_iformat;
+		int gl_type;
+		switch (dfmt)
+		{
+		default:
+		case PC_TEX_FMT_NONE:
+			PanicAlert("Invalid PC texture format %i", dfmt); 
+		case PC_TEX_FMT_BGRA32:
+			gl_format = GL_BGRA;
+			gl_iformat = 4;
+			gl_type = GL_UNSIGNED_BYTE;
+			break;
+		case PC_TEX_FMT_I8:
+			gl_format = GL_LUMINANCE;
+			gl_iformat = GL_INTENSITY;
+			gl_type = GL_UNSIGNED_BYTE;
+			break;
+		case PC_TEX_FMT_IA8:
+			gl_format = GL_LUMINANCE_ALPHA;
+			gl_iformat = GL_LUMINANCE8_ALPHA8;
+			gl_type = GL_UNSIGNED_BYTE;
+			break;
+		case PC_TEX_FMT_RGB565:
+			gl_format = GL_RGB;
+			gl_iformat = GL_RGB;
+			gl_type = GL_UNSIGNED_SHORT_5_6_5;
+			break;
+		}
 
-	if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) 
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-		glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+		if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) 
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-		entry.bHaveMipMaps = true;
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+			entry.bHaveMipMaps = true;
+		}
+		else
+			glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 	}
 	else
-		glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+	{
+		// Round dimensions up to the next multiple of 4; this is an OpenGL
+		// requirement.
+		// FIXME: Why does the GameCube have compressed textures that aren't
+		// multiples of 4, and what is the best way to handle them?
+		// An example is in SSB Melee's Adventure Mode on the Paratroopas'
+		// wings.
+		int nativeWidth = (width + 3) & ~3;
+		int nativeHeight = (height + 3) & ~3;
+		glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+			nativeWidth, nativeHeight, 0, nativeWidth*nativeHeight/2, temp);
+	}
 
 	if (expandedWidth != width) // reset
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

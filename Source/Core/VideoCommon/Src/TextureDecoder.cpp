@@ -323,6 +323,19 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
     }
 }
 
+static void copyDXTBlock(u8* dst, const u8* src)
+{
+	((u16*)dst)[0] = Common::swap16(((u16*)src)[0]);
+	((u16*)dst)[1] = Common::swap16(((u16*)src)[1]);
+	u32 pixels = ((u32*)src)[1];
+	// A bit of trickiness here: the row are in the same order
+	// between the two formats, but the ordering within the rows
+	// is reversed.
+	pixels = ((pixels >> 4) & 0x0F0F0F0F) | ((pixels << 4) & 0xF0F0F0F0);
+	pixels = ((pixels >> 2) & 0x33333333) | ((pixels << 2) & 0xCCCCCCCC);
+	((u32*)dst)[1] = pixels;
+}
+
 
 //switch endianness, unswizzle
 //TODO: to save memory, don't blindly convert everything to argb8888
@@ -439,24 +452,20 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:  // speed critical
 		{
-			// TODO: Shuffle to PC S3TC (DXTC) format instead of converting
-            // 11111111 22222222 55555555 66666666
-            // 33333333 44444444 77777777 88888888
-			// The metroid games use this format almost exclusively.
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                 {
-                    decodeDXTBlock((u32*)dst+y*width+x, (DXTBlock*)src, width);
-					src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst+y*width+x+4, (DXTBlock*)src, width);
-					src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst+(y+4)*width+x, (DXTBlock*)src, width);
-					src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst+(y+4)*width+x+4, (DXTBlock*)src, width);
-					src += sizeof(DXTBlock);
+					copyDXTBlock(dst+(y/2)*width+x*2, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2)*width+x*2+8, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2+2)*width+x*2, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2+2)*width+x*2+8, src);
+					src += 8;
                 }
         }
-        return PC_TEX_FMT_BGRA32;
+        return PC_TEX_FMT_DXT1;
     }
 
 	// The "copy" texture formats, too?
