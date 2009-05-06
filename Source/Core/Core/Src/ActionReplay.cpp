@@ -308,19 +308,19 @@ bool RunCode(const ARCode &arcode) {
 			LogInfo("Doing Zero Code %08x", zcode);
 			switch (zcode)
 			{
-				case 0x00: // END OF CODES
+				case AR_ZCODE_END: // END OF CODES
 					LogInfo("ZCode: End Of Codes");
 					return true;
-				case 0x02: // Normal execution of codes
+				case AR_ZCODE_NORM: // Normal execution of codes
 					// Todo: Set register 1BB4 to 0
 					LogInfo("ZCode: Normal execution of codes, set register 1BB4 to 0 (zcode not supported)");
 					break;
-				case 0x03: // Executes all codes in the same row
+				case AR_ZCODE_ROW: // Executes all codes in the same row
 					// Todo: Set register 1BB4 to 1
 					LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not supported)");
 					PanicAlert("Zero 3 code not supported");
 					return false;
-				case 0x04: // Fill & Slide or Memory Copy
+				case AR_ZCODE_MEM_COPY: // Fill & Slide or Memory Copy
 					if (((addr >> 25) & 0x03) == 0x3) {
 						LogInfo("ZCode: Memory Copy");
 						doMemoryCopy = true;
@@ -356,37 +356,37 @@ bool RunCode(const ARCode &arcode) {
 			if (!NormalCode(subtype, addr, data))
 				return false;
 			continue;
-		case 0x1:
+		case AR_CODE_IF_EQUAL:
 			LogInfo("Type 1: If Equal");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, EQUAL))
 				return false;
 			continue;
-		case 0x2:
+		case AR_CODE_IF_NOT_EQUAL:
 			LogInfo("Type 2: If Not Equal");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, NOT_EQUAL))
 				return false;
 			continue;
-		case 0x3:
+		case AR_CODE_IF_LESS_THAN_SIGNED:
 			LogInfo("Type 3: If Less Than (Signed)");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, LESS_THAN_SIGNED))
 				return false;
 			continue;
-		case 0x4:
+		case AR_CODE_IF_GREATER_THAN_SIGNED:
 			LogInfo("Type 4: If Greater Than (Signed)");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, GREATER_THAN_SIGNED))
 				return false;
 			continue;
-		case 0x5:
+		case AR_CODE_IF_LESS_THAN_UNSIGNED:
 			LogInfo("Type 5: If Less Than (Unsigned)");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, LESS_THAN_UNSIGNED))
 				return false;
 			continue;
-		case 0x6:
+		case AR_CODE_IF_GREATER_THAN_UNSIGNED:
 			LogInfo("Type 6: If Greater Than (Unsigned)");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, GREATER_THAN_UNSIGNED))
 				return false;
 			continue;
-		case 0x7:
+		case AR_CODE_IF_AND:
 			LogInfo("Type 7: If AND");
 			if (!ConditionalCode(subtype, addr, data, &count, &skip, LOGICAL_AND))
 				return false;
@@ -464,7 +464,7 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 	LogInfo("Size: %08x", size);
 	switch (size)
 	{
-	case 0x00: // Byte write
+	case AR_BYTE_WRITE: // Byte write
 		{
 			LogInfo("Byte Write");
 			LogInfo("--------");
@@ -477,7 +477,7 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 			break;
 		}
 
-	case 0x01: // Short write
+	case AR_SHORT_WRITE: // Short write
 		{
 			LogInfo("Short Write");
 			LogInfo("--------");
@@ -491,7 +491,7 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 		}
 	case 0x03: //some codes use 03, but its just the same as 02...
 		LogInfo("The odd size 3 code (we just decided to write a U32 for this)");
-	case 0x02: // Dword write
+	case AR_DWORD_WRITE: // Dword write
 		LogInfo("Dword Write");
 		LogInfo("--------");
 		Memory::Write_U32(data, new_addr);
@@ -514,7 +514,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 	LogInfo("Size: %08x", size);
 	switch (size)
 	{
-	case 0x00: // Byte write to pointer [40]
+	case AR_BYTE_WRITE_POINTER: // Byte write to pointer [40]
 		{
 			LogInfo("Write byte to pointer");
 			LogInfo("--------");
@@ -530,7 +530,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 			break;
 		}
 
-	case 0x01: // Short write to pointer [42]
+	case AR_SHORT_WRITE_POINTER: // Short write to pointer [42]
 		{
 			LogInfo("Write short to pointer");
 			LogInfo("--------");
@@ -546,7 +546,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 			break;
 		}
 	case 0x03:
-	case 0x02: // Dword write to pointer [44]
+	case AR_DWORD_WRITE_POINTER: // Dword write to pointer [44]
 		LogInfo("Write dword to pointer");
 		LogInfo("--------");
 		Memory::Write_U32(data, Memory::Read_U32(new_addr));
@@ -570,28 +570,28 @@ bool Subtype_AddCode(u32 addr, u32 data)
 	LogInfo("Size: %08x", size);
 	switch (size)
 	{
-	case 0x0: // Byte add
+	case AR_BYTE_ADD: // Byte add
 		LogInfo("Byte Add");
 		LogInfo("--------");
 		Memory::Write_U8(Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
 		LogInfo("--------");
 		break;
-	case 0x1: // Short add
+	case AR_SHORT_ADD: // Short add
 		LogInfo("Short Add");
 		LogInfo("--------");
 		Memory::Write_U16(Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
 		LogInfo("--------");
 		break;
-	case 0x2: // DWord add
+	case AR_DWORD_ADD: // DWord add
 		LogInfo("Dword Add");
 		LogInfo("--------");
 		Memory::Write_U32(Memory::Read_U32(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U32(new_addr) + data, new_addr);
 		LogInfo("--------");
 		break;
-	case 0x3: // Float add (not working?)
+	case AR_FLOAT_ADD: // Float add (not working?)
 		{
 			LogInfo("Float Add");
 			LogInfo("--------");
@@ -656,7 +656,7 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 
 	switch (size)
 	{
-		case 0x0: // Byte
+		case AR_SIZE_BYTE_WRITE: // Byte
 			LogInfo("Byte Write");
 			LogInfo("--------");
 			for (int i=0; i < write_num; i++) {
@@ -671,7 +671,7 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			}
 			LogInfo("--------");
 			break;
-		case 0x1: // Halfword
+		case AR_SIZE_SHORT_WRITE: // Halfword
 			LogInfo("Short Write");
 			LogInfo("--------");
 			for (int i=0; i < write_num; i++) {
@@ -686,7 +686,7 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			}
 			LogInfo("--------");
 			break;
-		case 0x2: // Word
+		case AR_SIZE_WORD_WRITE: // Word
 			LogInfo("Word Write");
 			LogInfo("--------");
 			for (int i = 0; i < write_num; i++) {
@@ -755,22 +755,22 @@ bool NormalCode(u8 subtype, u32 addr, u32 data)
 {
 	switch (subtype)
 	{
-	case 0x0: // Ram write (and fill)
+	case AR_SUB_RAM_WRITE: // Ram write (and fill)
 		LogInfo("Doing Ram Write And Fill");
 		if (!Subtype_RamWriteAndFill(addr, data))
 			return false;
 		break;
-	case 0x1: // Write to pointer
+	case AR_SUB_WRITE_POINTER: // Write to pointer
 		LogInfo("Doing Write To Pointer");
 		if (!Subtype_WriteToPointer(addr, data))
 			return false;
 		break;
-	case 0x2: // Add code
+	case AR_SUB_ADD_CODE: // Add code
 		LogInfo("Doing Add Code");
 		if (!Subtype_AddCode(addr, data))
 			return false;
 		break;
-	case 0x3: // Master Code & Write to CCXXXXXX
+	case AR_SUB_MASTER_CODE : // Master Code & Write to CCXXXXXX
 		LogInfo("Doing Master Code And Write to CCXXXXXX (ncode not supported)");
 		if (!Subtype_MasterCodeAndWriteToCCXXXXXX())
 			return false;
@@ -812,10 +812,10 @@ bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount)
 
 	switch (subtype)
 	{
-	case 0x0: *pCount = 1; break; // 1 line
-	case 0x1: *pCount = 2; break; // 2 lines
-	case 0x2: *pCount = -2; break; // all lines
-	case 0x3: *pCount = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
+	case AR_SUB_RAM_WRITE: *pCount = 1; break; // 1 line
+	case AR_SUB_WRITE_POINTER: *pCount = 2; break; // 2 lines
+	case AR_SUB_ADD_CODE: *pCount = -2; break; // all lines
+	case AR_SUB_MASTER_CODE : *pCount = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
 	default:
 		LogInfo("Bad Subtype");
 		PanicAlert("Action Replay: Normal Code %i: Invalid subtype %08x (%s)", codetype, subtype, code.name.c_str());
