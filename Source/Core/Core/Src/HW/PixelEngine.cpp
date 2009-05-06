@@ -36,22 +36,6 @@
 namespace PixelEngine
 {
 
-// internal hardware addresses
-enum
-{
-	PE_ZCONF         = 0x000, // Z Config
-	PE_ALPHACONF     = 0x002, // Alpha Config
-	PE_DSTALPHACONF  = 0x004, // Destination Alpha Config
-	PE_ALPHAMODE     = 0x006, // Alpha Mode Config
-	PE_ALPHAREAD     = 0x008, // Alpha Read
-	PE_CTRL_REGISTER = 0x00a, // Control
-	PE_TOKEN_REG     = 0x00e, // Token
-	PE_BBOX_LEFT	 = 0x010, // Flip Left
-	PE_BBOX_RIGHT	 = 0x012, // Flip Right
-	PE_BBOX_TOP		 = 0x014, // Flip Top
-	PE_BBOX_BOTTOM	 = 0x016, // Flip Bottom
-};
-
 // fifo Control Register
 union UPECtrlReg
 {
