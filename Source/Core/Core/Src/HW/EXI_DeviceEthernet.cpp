@@ -42,19 +42,11 @@ inline u32 getbitsw(u32 dword, int start, int end) {
 	return (dword & makemaskw(start, end)) >> (31 - end);
 }
 
-enum {
-	EXPECT_NONE = 0,
-	EXPECT_ID,
-};
+
 
 #define MAKE(type, arg) (*(type *)&(arg))
 
 #define RISE(flags) ((SwappedData & (flags)) && !(mBbaMem[0x00] & (flags)))
-
-#define BBA_INTERRUPT_RECV 0x02
-#define BBA_INTERRUPT_SENT 0x04
-#define BBA_INTERRUPT_RECV_ERROR 0x08
-#define BBA_INTERRUPT_SEND_ERROR 0x10
 
 int mPacketsSent = 0;
 u8 mac_address[6] = {0x4D, 0xFF, 0x11, 0x88, 0xF1, 0x76};

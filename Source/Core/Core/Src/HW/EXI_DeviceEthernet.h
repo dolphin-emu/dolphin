@@ -18,6 +18,8 @@
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
 
+
+
 class WriteBuffer {
 public:
 	WriteBuffer(u32 s) :_size(0) { _buffer = (u8*)malloc(s*sizeof(u8)); ucapacity = s;}
@@ -83,50 +85,60 @@ private:
 		CMD_ID = 0x00,
 		CMD_READ_REG = 0x01,
 	};
+
 	void recordSendComplete();
 	bool sendPacket(u8 *etherpckt, size_t size);
 
 };
-#define CB_OFFSET 0x100
-#define CB_SIZE (BBAMEM_SIZE - CB_OFFSET)
-#define SIZEOF_RECV_DESCRIPTOR 4
+enum {
+	EXPECT_NONE = 0,
+	EXPECT_ID,
+};
+enum{
+	CB_OFFSET = 0x100,
+	CB_SIZE = (BBAMEM_SIZE - CB_OFFSET),
+	SIZEOF_RECV_DESCRIPTOR = 4,
 
-#define EXI_DEVTYPE_ETHER		0x04020200
-#define BBA_NCRA				0x00		/* Network Control Register A, RW */
-#define BBA_NCRA_RESET			(1<<0)	/* RESET */
-#define BBA_NCRA_ST0			(1<<1)	/* ST0, Start transmit command/status */
-#define BBA_NCRA_ST1			(1<<2)	/* ST1,  " */
-#define BBA_NCRA_SR				(1<<3)	/* SR, Start Receive */
+	EXI_DEVTYPE_ETHER =		0x04020200,
+	BBA_NCRA		  =		0x00,		/* Network Control Register A, RW */
+	BBA_NCRA_RESET	  =		(1<<0),	/* RESET */
+	BBA_NCRA_ST0	  =		(1<<1),	/* ST0, Start transmit command/status */
+	BBA_NCRA_ST1	  =		(1<<2),	/* ST1,  " */
+	BBA_NCRA_SR		  =		(1<<3),	/* SR, Start Receive */
+	BBA_NCRB		  =		0x01,		/* Network Control Register B, RW */
+	BBA_NCRB_PR		  =		(1<<0),	/* PR, Promiscuous Mode */
+	BBA_NCRB_CA		  =		(1<<1),	/* CA, Capture Effect Mode */
+	BBA_NCRB_PM		  =		(1<<2),	/* PM, Pass Multicast */
+	BBA_NCRB_PB		  =		(1<<3),	/* PB, Pass Bad Frame */
+	BBA_NCRB_AB		  =		(1<<4),	/* AB, Accept Broadcast */
+	BBA_NCRB_HBD	  =		(1<<5),	/* HBD, reserved */
+	BBA_NCRB_RXINTC0  =		(1<<6),	/* RXINTC, Receive Interrupt Counter */
+	BBA_NCRB_RXINTC1  =		(1<<7),	/*  " */
+	BBA_NCRB_1_PACKET_PER_INT  = (0<<6),	/* 0 0 */
+	BBA_NCRB_2_PACKETS_PER_INT = (1<<6),	/* 0 1 */
+	BBA_NCRB_4_PACKETS_PER_INT = (2<<6),	/* 1 0 */
+	BBA_NCRB_8_PACKETS_PER_INT = (3<<6),	/* 1 1 */
 
-#define BBA_NCRB				0x01		/* Network Control Register B, RW */
-#define BBA_NCRB_PR				(1<<0)	/* PR, Promiscuous Mode */
-#define BBA_NCRB_CA				(1<<1)	/* CA, Capture Effect Mode */
-#define BBA_NCRB_PM				(1<<2)	/* PM, Pass Multicast */
-#define BBA_NCRB_PB				(1<<3)	/* PB, Pass Bad Frame */
-#define BBA_NCRB_AB				(1<<4)	/* AB, Accept Broadcast */
-#define BBA_NCRB_HBD			(1<<5)	/* HBD, reserved */
-#define BBA_NCRB_RXINTC0		(1<<6)	/* RXINTC, Receive Interrupt Counter */
-#define BBA_NCRB_RXINTC1		(1<<7)	/*  " */
-#define BBA_NCRB_1_PACKET_PER_INT  (0<<6)	/* 0 0 */
-#define BBA_NCRB_2_PACKETS_PER_INT (1<<6)	/* 0 1 */
-#define BBA_NCRB_4_PACKETS_PER_INT (2<<6)	/* 1 0 */
-#define BBA_NCRB_8_PACKETS_PER_INT (3<<6)	/* 1 1 */
+	BBA_NWAYC		 = 0x30,		/* NWAY Configuration Register, RW, 84h */
+	BBA_NWAYC_FD	 = (1<<0),	/* FD, Full Duplex Mode */
+	BBA_NWAYC_PS100  = (1<<1),	/* PS100/10, Port Select 100/10 */
+	BBA_NWAYC_ANE    = (1<<2),	/* ANE, Autonegotiation Enable */
+	BBA_NWAYC_ANS_RA = (1<<3),	/* ANS, Restart Autonegotiation */
+	BBA_NWAYC_LTE    = (1<<7),	/* LTE, Link Test Enable */
 
-#define BBA_NWAYC 0x30		/* NWAY Configuration Register, RW, 84h */
-#define   BBA_NWAYC_FD       (1<<0)	/* FD, Full Duplex Mode */
-#define   BBA_NWAYC_PS100    (1<<1)	/* PS100/10, Port Select 100/10 */
-#define   BBA_NWAYC_ANE      (1<<2)	/* ANE, Autonegotiation Enable */
-#define   BBA_NWAYC_ANS_RA   (1<<3)	/* ANS, Restart Autonegotiation */
-#define   BBA_NWAYC_LTE      (1<<7)	/* LTE, Link Test Enable */
-
-#define BBA_NWAYS 0x31
-#define   BBA_NWAYS_LS10	 (1<<0)
-#define   BBA_NWAYS_LS100	 (1<<1)
-#define   BBA_NWAYS_LPNWAY   (1<<2)
-#define   BBA_NWAYS_ANCLPT	 (1<<3)
-#define   BBA_NWAYS_100TXF	 (1<<4)
-#define   BBA_NWAYS_100TXH	 (1<<5)
-#define   BBA_NWAYS_10TXF	 (1<<6)
-#define   BBA_NWAYS_10TXH	 (1<<7)
+	BBA_NWAYS        =	 0x31,
+	BBA_NWAYS_LS10   =	 (1<<0),
+	BBA_NWAYS_LS100  =	 (1<<1),
+	BBA_NWAYS_LPNWAY =   (1<<2),
+	BBA_NWAYS_ANCLPT =	 (1<<3),
+	BBA_NWAYS_100TXF =	 (1<<4),
+	BBA_NWAYS_100TXH =	 (1<<5),
+	BBA_NWAYS_10TXF  =	 (1<<6),
+	BBA_NWAYS_10TXH  =	 (1<<7),
+    BBA_INTERRUPT_RECV = 0x02,
+	BBA_INTERRUPT_SENT = 0x04,
+	BBA_INTERRUPT_RECV_ERROR = 0x08,
+	BBA_INTERRUPT_SEND_ERROR = 0x10,
+};
 
 #endif
