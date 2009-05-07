@@ -60,6 +60,7 @@ void Config::Load()
 	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
+    iniFile.Get("Settings", "HiresTextures", &bHiresTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
 	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
     iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
@@ -110,6 +111,9 @@ void Config::GameIniLoad() {
 	if (iniFile->Exists("Video", "SafeTextureCache"))
 		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
 
+    if (iniFile->Exists("Video", "SMGhack"))
+        iniFile->Get("Video", "SMGhack", &bSMGhack, false); 
+
 	if (iniFile->Exists("Video", "MSAA"))
 		iniFile->Get("Video", "MSAA", &iMultisampleMode, 0);
 
@@ -146,6 +150,7 @@ void Config::Save()
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
 	iniFile.Set("Settings", "Show", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
+    iniFile.Set("Settings", "HiresTextures", bHiresTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
 	iniFile.Set("Settings", "DumpFrames", bDumpFrames);
     iniFile.Set("Settings", "FreeLook", bFreeLook);
@@ -167,6 +172,7 @@ void Config::Save()
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
     iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
+	iniFile.Set("Hacks", "SMGhack", bSMGhack);
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

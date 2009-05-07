@@ -29,7 +29,7 @@ class TextureMngr
 public:
     struct TCacheEntry
     {
-        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0), isRenderTarget(false), isUpsideDown(false), isNonPow2(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
+        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0), scaleX(1.0f), scaleY(1.0f), isRenderTarget(false), isUpsideDown(false), isNonPow2(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
         GLuint texture;
         u32 addr;
@@ -42,6 +42,8 @@ public:
 
         int frameCount;
         int w, h, fmt;
+
+		float scaleX, scaleY; // Hires texutres need this
 
         bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target
                              // later conversions would have to convert properly from rendertexfmt to texfmt

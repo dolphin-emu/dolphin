@@ -609,6 +609,50 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="SOIL"
+			>
+			<File
+				RelativePath=".\Src\SOIL\image_DXT.c"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\image_DXT.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\image_helper.c"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\image_helper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\SOIL.c"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\SOIL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\stb_image_aug.c"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\stb_image_aug.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\stbi_DDS_aug.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SOIL\stbi_DDS_aug_c.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\BPFunctions.h"
 			>
@@ -631,6 +675,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\Fifo.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HiresTextures.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\HiresTextures.h"
 			>
 		</File>
 		<File

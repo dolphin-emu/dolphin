@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ public:
 	static void SetAlpha(const AlphaFunc& alpha);
 	static void SetDestAlpha(const ConstantAlpha& alpha);
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
+	static void SetCustomTexScale(int texmapid, float x, float y);
+	static void SetCustomTexScale(int texmapid, float x, float y);
 	static void SetZTextureBias(u32 bias);
 	static void SetViewport(float* viewport);
 	static void SetIndMatrixChanged(int matrixidx);

@@ -54,6 +54,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_HIRESTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPEFBTARGET, ConfigDialog::AdvancedSettingsChanged)
     EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_FREELOOK, ConfigDialog::AdvancedSettingsChanged)
@@ -339,6 +340,8 @@ void ConfigDialog::CreateGUIControls()
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
+	m_HiresTextures = new wxCheckBox(m_PageAdvanced, ID_HIRESTEXTURES, wxT("Load Hires textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_DumpEFBTarget = new wxCheckBox(m_PageAdvanced, ID_DUMPEFBTARGET, wxT("Dump EFB Target"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
 	m_DumpFrames = new wxCheckBox(m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Rendered Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -374,6 +377,7 @@ void ConfigDialog::CreateGUIControls()
     m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,"
 		"\nDisabling it may speed up some games, but could also cause glitches."));
 	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
+	m_SMGh->SetToolTip(wxT("SMG hack for Super Mario Galaxy, Mario Kart Wii and other game probably  it will be disable for other game and during SMG ending sequence or movies use the M key to turn this option on or off"));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
@@ -418,7 +422,8 @@ void ConfigDialog::CreateGUIControls()
 	//sUtilities = new wxBoxSizer(wxHORIZONTAL);
     sUtilities = new wxGridBagSizer(0, 0);
 	sUtilities->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sUtilities->Add(m_DumpEFBTarget, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_HiresTextures, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_DumpEFBTarget, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_DumpFrames, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
     sUtilities->Add(m_FreeLook, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
@@ -553,6 +558,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DUMPTEXTURES:
 		g_Config.bDumpTextures = m_DumpTextures->IsChecked();
+		break;
+	case ID_HIRESTEXTURES:
+		g_Config.bHiresTextures = m_HiresTextures->IsChecked();
 		break;
 	case ID_DUMPEFBTARGET:
 		g_Config.bDumpEFBTarget = m_DumpEFBTarget->IsChecked();

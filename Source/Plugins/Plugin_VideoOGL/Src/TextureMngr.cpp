@@ -20,7 +20,7 @@
 #include "Globals.h"
 #include "CommonPaths.h"
 #include "StringUtil.h"
-
+#include <fstream>
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
 #define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
@@ -34,6 +34,7 @@
 #endif
 
 #include "Config.h"
+#include "Hash.h"
 #include "Statistics.h"
 #include "Profiler.h"
 #include "ImageWrite.h"
@@ -47,6 +48,10 @@
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+#include "FileUtil.h"
+#include "HiresTextures.h"
+
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 u8 *TextureMngr::temp = NULL;
 TextureMngr::TexCache TextureMngr::textures;
@@ -156,6 +161,7 @@ void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
+	HiresTextures::Init(((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
 }
 
 void TextureMngr::Invalidate(bool shutdown)
@@ -163,6 +169,7 @@ void TextureMngr::Invalidate(bool shutdown)
     for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
         iter->second.Destroy(shutdown);
     textures.clear();
+	HiresTextures::Shutdown();
 }
 
 void TextureMngr::Shutdown()
@@ -237,25 +244,25 @@ void TextureMngr::InvalidateRange(u32 start_address, u32 size) {
 
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt)
 {
-	/* notes (about "UNsafe texture cache"):
-	*	Have to be removed soon.
-	*	But we keep it until the "safe" way became rock solid
-	*	pros: it has an unique ID held by the texture data itself (@address) once cached.
-	*	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
-	*/
-	/* notes (about "safe texture cache"):
-	*	Metroids text issue (character table):
-	*	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
-	*	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
-	*	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
-	*	have to be a real unique ID. 
-	*	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
-	*
-	*	Pokemon Colosseum text issue (plain text):
-	*	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
-	*	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
-	*	so lot's of remaning old text. 	Thin white chars on black bg too.
-	*/
+	// notes (about "UNsafe texture cache"):
+	//	Have to be removed soon.
+	//	But we keep it until the "safe" way became rock solid
+	//	pros: it has an unique ID held by the texture data itself (@address) once cached.
+	//	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
+
+	// notes (about "safe texture cache"):
+	//	Metroids text issue (character table):
+	//	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
+	//	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
+	//	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
+	//	have to be a real unique ID. 
+	//	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
+
+	//	Pokemon Colosseum text issue (plain text):
+	//	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
+	//	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
+	//	so lot's of remaning old text. 	Thin white chars on black bg too.
+
 	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
 	//			- fix the key index situation with CopyRenderTargetToTexture. 
 	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
@@ -366,6 +373,26 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (expandedWidth != width)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 
+	u32 texHash = HashFNV(temp, entry.size_in_bytes);
+	if (g_Config.bHiresTextures)
+	{
+		//Load Custom textures
+		char texPathTemp[MAX_PATH];
+		int oldWidth = width;
+		int oldHeight = height;
+		sprintf(texPathTemp, "%s_%08x_%i", ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		PC_TexFormat customTex = HiresTextures::GetHiresTex(texPathTemp, &width, &height, temp);
+		
+		if (customTex != PC_TEX_FMT_NONE)
+		{
+			entry.size_in_bytes = sizeof(temp);
+			entry.scaleX = (float) width / oldWidth;
+			entry.scaleY = (float) height / oldHeight;
+			INFO_LOG(VIDEO, "loading custom texture from %s", texPathTemp);
+			dfmt = customTex;
+		}
+	}
+
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
 		int gl_format;
@@ -378,6 +405,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			PanicAlert("Invalid PC texture format %i", dfmt); 
 		case PC_TEX_FMT_BGRA32:
 			gl_format = GL_BGRA;
+			gl_iformat = 4;
+			gl_type = GL_UNSIGNED_BYTE;
+			break;
+		case PC_TEX_FMT_RGBA32:
+			gl_format = GL_RGBA;
 			gl_iformat = 4;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
@@ -434,10 +466,13 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     if (g_Config.bDumpTextures) // dump texture to file
 	{ 
-        static int counter = 0;
         char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/txt_%04i_%i.tga", FULL_DUMP_TEXTURES_DIR, counter++, tex_format);
-        SaveTexture(szTemp,target, entry.texture, width, height);
+		
+		sprintf(szTemp, "%s/%s_%08x_%i.tga", FULL_DUMP_TEXTURES_DIR, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		if (!File::Exists(szTemp))
+		{
+			SaveTexture(szTemp, target, entry.texture, width, height);
+		}
     }
 
     INCSTAT(stats.numTexturesCreated);

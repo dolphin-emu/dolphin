@@ -106,6 +106,8 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DisableFog;
         wxCheckBox *m_DstAlphaPass;
 		wxCheckBox *m_DumpTextures;
+		wxCheckBox *m_HiresTextures;
+		wxCheckBox *m_HiresTextures;
 		wxCheckBox *m_DumpEFBTarget;
 		wxCheckBox *m_DumpFrames;
         wxCheckBox *m_FreeLook;
@@ -167,6 +169,8 @@ class ConfigDialog : public wxDialog
 			ID_SMGHACK,
 
 			ID_DUMPTEXTURES,
+			ID_HIRESTEXTURES,
+			ID_HIRESTEXTURES,
 			ID_DUMPEFBTARGET,
 			ID_DUMPFRAMES,
             ID_FREELOOK,

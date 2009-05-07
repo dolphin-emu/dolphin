@@ -84,6 +84,8 @@ struct Config
     
     // Utility
     bool bDumpTextures;
+	bool bHiresTextures;
+	bool bHiresTextures;
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
     bool bFreeLook;
