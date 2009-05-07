@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
 typedef unsigned short u16;
 
 u16 reg_in[32], reg_out[1000][32];
 
+inline u16 swap16(u16 s) {
+    return (s >> 8) | (s << 8);
+}
+
 void printRegs(u16 *lastRegs, u16 *regs) {
 	for (int i = 0; i < 32; i++) {
 		if (! lastRegs || lastRegs[i] != regs[i]) {
-			printf("%02x %04x  ", i, htons(regs[i]));
+			printf("%02x %04x  ", i, swap16(regs[i]));
 		} else {
 			printf("         ");
 		}
