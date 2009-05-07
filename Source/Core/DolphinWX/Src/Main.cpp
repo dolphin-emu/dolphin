@@ -178,9 +178,23 @@ bool DolphinApp::OnInit()
 			
 			chdir(AppSupportDir);
 
-			if (!File::Exists("User")) File::CreateDir("User");
-			if (!File::Exists("User/GC")) File::CreateDir("User/GC");
-			if (!File::Exists("User/Config")) File::CreateDir("User/Config");
+			//create all necessary dir in user directory
+			if (!File::Exists(FULL_GC_USER_DIR)) File::CreateFullPath(FULL_GC_USER_DIR);
+			if (!File::Exists(FULL_WII_SYSCONF_DIR)) File::CreateFullPath(FULL_WII_SYSCONF_DIR);
+			if (!File::Exists(FULL_CONFIG_DIR)) File::CreateDir(FULL_CONFIG_DIR);
+			if (!File::Exists(FULL_CACHE_DIR)) File::CreateDir(FULL_CACHE_DIR);
+			if (!File::Exists(FULL_DSP_DUMP_DIR)) File::CreateFullPath(FULL_DSP_DUMP_DIR);
+			if (!File::Exists(FULL_DUMP_TEXTURES_DIR)) File::CreateFullPath(FULL_DUMP_TEXTURES_DIR);
+			if (!File::Exists(FULL_HIRES_TEXTURES_DIR)) File::CreateFullPath(FULL_HIRES_TEXTURES_DIR);
+			if (!File::Exists(FULL_MAIL_LOGS_DIR)) File::CreateFullPath(FULL_MAIL_LOGS_DIR);
+			if (!File::Exists(FULL_SCREENSHOTS_DIR)) File::CreateFullPath(FULL_SCREENSHOTS_DIR);
+			if (!File::Exists(FULL_STATESAVES_DIR)) File::CreateFullPath(FULL_STATESAVES_DIR);
+
+			//copy user wii shared2 SYSCONF if not exist
+			if (!File::Exists(WII_SYSCONF_FILE)) File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + WII_SYSCONF_FILE).c_str(),WII_SYSCONF_FILE);
+			//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
+			//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
+			
 			// HACK: Get rid of bogus osx param
 			if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
 				delete argv[argc-1];

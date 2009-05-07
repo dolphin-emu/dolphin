@@ -21,6 +21,7 @@
 #include "../Core.h"
 #include "../ConfigManager.h"
 #include "MemoryUtil.h"
+#include "FileUtil.h"
 
 // english
 SRAM sram_dump = {{
@@ -74,8 +75,8 @@ CEXIIPL::CEXIIPL() :
 	memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
 
 	// Load fonts
-	LoadFileToIPL(FONT_SJIS_FILE, 0x001aff00);
-	LoadFileToIPL(FONT_ANSI_FILE, 0x001fcf00);
+	LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS).c_str(), 0x001aff00);
+	LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI).c_str(), 0x001fcf00);
 
 	// Clear RTC 
 	memset(m_RTC, 0, sizeof(m_RTC));

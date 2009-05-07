@@ -213,13 +213,13 @@ void Initialize(void *init)
 //	g_dsp.exception_in_progress_hack = false;
 	gdsp_reset();
 
-	if (!gdsp_load_irom(DSP_IROM_FILE))
+	if (!gdsp_load_irom((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM).c_str()))
 	{
 		bCanWork = false;
 		PanicAlert("Failed loading DSP ROM from " DSP_IROM_FILE);
 	}
 
-	if (!gdsp_load_coef(DSP_COEF_FILE))
+	if (!gdsp_load_coef((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF).c_str()))
 	{
 		bCanWork = false;
 		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);

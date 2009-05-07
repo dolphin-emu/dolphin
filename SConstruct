@@ -368,7 +368,10 @@ env['binary_dir'] = env['prefix']
 #TODO add bin
 env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
-env['data_dir'] = env['prefix']
+if sys.platform == 'darwin':
+    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
+else:
+    env['data_dir'] = env['prefix']
 
 env['RPATH'].append(env['libs_dir'])
 

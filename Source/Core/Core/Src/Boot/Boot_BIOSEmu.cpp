@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "FileUtil.h"
 
 #include "../PowerPC/PowerPC.h"
 #include "../Core.h"
@@ -163,19 +164,19 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     // data\setting.txt directly after the read the SYSCONF file. The games also
     // read it to 0x3800, what is a little strange however is that it only reads
     // the first 100 bytes of it.
-    std::string filename(WII_EUR_SETTING_FILE);
+    std::string filename(File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING);
     switch((DiscIO::IVolume::ECountry)_CountryCode)
     {
     case DiscIO::IVolume::COUNTRY_JAP:
-        filename = WII_JAP_SETTING_FILE;
+        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
         break;
 
     case DiscIO::IVolume::COUNTRY_USA:
-        filename = WII_USA_SETTING_FILE;
+        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
         break;
 
     case DiscIO::IVolume::COUNTRY_EUROPE:
-        filename = WII_EUR_SETTING_FILE;
+        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
         break;
 
     default:

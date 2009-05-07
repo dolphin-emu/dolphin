@@ -197,7 +197,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	bHLEBios = true;
 	if (!bWii)
 	{
-		m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
+		m_strBios = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios)
 		{
 			if (File::Exists(m_strBios.c_str()))

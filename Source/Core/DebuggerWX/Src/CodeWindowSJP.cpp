@@ -162,7 +162,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 		PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
-		if (db.Load(TOTALDB_FILE))
+		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 			db.Apply(&g_symbolDB);
 
 		// HLE::PatchFunctions();
@@ -175,7 +175,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load(TOTALDB_FILE))
+			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 				db.Apply(&g_symbolDB);
 		} else {
 			g_symbolDB.LoadMap(mapfile.c_str());
