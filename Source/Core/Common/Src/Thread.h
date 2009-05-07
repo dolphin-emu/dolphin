@@ -164,4 +164,4 @@ LONG SyncInterlockedIncrement(LONG *Dest);
 
 } // namespace Common
 
-#endif // _STRINGUTIL_H_
+#endif // _THREAD_H_
