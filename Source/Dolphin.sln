@@ -182,6 +182,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSPSpy", "DSPSpy\DSPSpy.vcp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SOIL", "..\Externals\SOIL\SOIL.vcproj", "{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2008\sfml-network.vcproj", "{823DDC98-42D5-4A38-88CF-9DC06C788AE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -604,6 +606,20 @@ Global
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|Win32.Build.0 = Release|Win32
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|x64.ActiveCfg = Release|x64
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|x64.Build.0 = Release|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Debug|Win32.Build.0 = Debug|Win32
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Debug|x64.ActiveCfg = Debug|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Debug|x64.Build.0 = Debug|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.DebugFast|Win32.ActiveCfg = Debug|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.DebugFast|x64.ActiveCfg = Debug|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.DebugFast|x64.Build.0 = Debug|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release_JITIL|Win32.ActiveCfg = Release|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release_JITIL|x64.ActiveCfg = Release|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release_JITIL|x64.Build.0 = Release|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|Win32.ActiveCfg = Release|Win32
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|Win32.Build.0 = Release|Win32
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|x64.ActiveCfg = Release|x64
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
