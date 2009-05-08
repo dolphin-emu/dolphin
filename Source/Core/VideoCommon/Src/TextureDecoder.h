@@ -67,6 +67,7 @@ enum TextureFormat
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(int format);
+int TexDecoder_GetBlockHeightInTexels(int format);
 int TexDecoder_GetPaletteSize(int fmt);
 
 enum PC_TexFormat

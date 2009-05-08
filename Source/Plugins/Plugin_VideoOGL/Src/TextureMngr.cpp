@@ -274,14 +274,16 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-	int bs = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
-    int expandedWidth = (width + bs) & (~bs);
+	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
+	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1;
+    int expandedWidth = (width + bsw) & (~bsw);
+	int expandedHeight = (height + bsh) & (~bsh);
 
 	u32 hash_value;
     u32 texID = address;
 	if (g_Config.bSafeTextureCache)
 	{
-		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, tex_format, 0);  // remove last arg 
+		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0);  // remove last arg 
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
@@ -339,7 +341,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
     
-    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, tex_format, tlutaddr, tlutfmt);
+    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
@@ -370,9 +372,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		glBindTexture(target, entry.texture);
 	}
 
-    if (expandedWidth != width)
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-
 	u32 texHash = HashFNV(temp, entry.size_in_bytes);
 	if (g_Config.bHiresTextures)
 	{
@@ -395,6 +394,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
+		if (expandedWidth != width)
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
+
 		int gl_format;
 		int gl_iformat;
 		int gl_type;
@@ -440,23 +442,15 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		}
 		else
 			glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+
+		if (expandedWidth != width) // reset
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 	else
 	{
-		// Round dimensions up to the next multiple of 4; this is an OpenGL
-		// requirement.
-		// FIXME: Why does the GameCube have compressed textures that aren't
-		// multiples of 4, and what is the best way to handle them?
-		// An example is in SSB Melee's Adventure Mode on the Paratroopas'
-		// wings.
-		int nativeWidth = (width + 3) & ~3;
-		int nativeHeight = (height + 3) & ~3;
 		glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-			nativeWidth, nativeHeight, 0, nativeWidth*nativeHeight/2, temp);
+			expandedWidth, expandedHeight, 0, expandedWidth*expandedHeight/2, temp);
 	}
-
-	if (expandedWidth != width) // reset
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
     entry.frameCount = frameCount;
     entry.w = width;

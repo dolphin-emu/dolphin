@@ -109,6 +109,25 @@ int TexDecoder_GetBlockWidthInTexels(int format)
     }
 }
 
+// FIXME: Use reasonable values for block height
+int TexDecoder_GetBlockHeightInTexels(int format)
+{
+    switch (format) {
+    case GX_TF_I4: return 1;   
+    case GX_TF_I8: return 1;
+    case GX_TF_IA4: return 1;
+    case GX_TF_IA8: return 1;
+    case GX_TF_RGB565: return 1;
+    case GX_TF_RGB5A3: return 1;
+    case GX_TF_RGBA8: return  1;
+    case GX_TF_C4: return 1;
+    case GX_TF_C8: return 1;
+    case GX_TF_C14X2: return 1;
+    case GX_TF_CMPR: return 8;
+    default: return 1;
+    }
+}
+
 //returns bytes
 int TexDecoder_GetPaletteSize(int format)
 {
