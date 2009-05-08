@@ -44,7 +44,7 @@
                         <Tool
                                 Name="VCCLCompilerTool"
                                 Optimization="0"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
                                 MinimalRebuild="true"
                                 BasicRuntimeChecks="3"
@@ -109,7 +109,7 @@
                                 Name="VCCLCompilerTool"
                                 Optimization="2"
                                 EnableIntrinsicFunctions="true"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals\SOIL"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
                                 StringPooling="true"
                                 RuntimeLibrary="0"
@@ -131,8 +131,6 @@
                         />
                         <Tool
                                 Name="VCLibrarianTool"
-                                LinkLibraryDependencies="false"
-                                AdditionalLibraryDirectories="&quot;..\..\..\Externals\SOIL\$(OutDir)\SOIL.lib&quot;"
                         />
                         <Tool
                                 Name="VCALinkTool"
@@ -175,7 +173,7 @@
                         />
                         <Tool
                                 Name="VCCLCompilerTool"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
                                 RuntimeLibrary="0"
                                 BufferSecurityCheck="false"
@@ -237,7 +235,7 @@
                         <Tool
                                 Name="VCCLCompilerTool"
                                 Optimization="0"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_LIB;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
                                 MinimalRebuild="true"
                                 BasicRuntimeChecks="3"
@@ -305,7 +303,7 @@
                                 EnableIntrinsicFunctions="true"
                                 FavorSizeOrSpeed="1"
                                 OmitFramePointers="false"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
                                 RuntimeLibrary="0"
                                 BufferSecurityCheck="false"
@@ -367,7 +365,7 @@
                         />
                         <Tool
                                 Name="VCCLCompilerTool"
-                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
+                                AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;../../../Externals/SOIL"
                                 PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
                                 RuntimeLibrary="0"
                                 BufferSecurityCheck="false"

@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcproj", "{F0B874CB-4476-4199-9315-8343D05AE684}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7E5D50A-2916-464B-86A7-E10B3CC88ADA} = {C7E5D50A-2916-464B-86A7-E10B3CC88ADA}
@@ -589,16 +589,20 @@ Global
 		{3877AA3E-9CC0-4ADF-8E71-272EE4443478}.Release|x64.ActiveCfg = Release|x64
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Debug|Win32.ActiveCfg = Debug|Win32
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Debug|Win32.Build.0 = Debug|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Debug|x64.ActiveCfg = Debug|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|Win32.ActiveCfg = Debug|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|Win32.Build.0 = Debug|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|x64.ActiveCfg = Debug|Win32
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Debug|x64.ActiveCfg = Debug|x64
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Debug|x64.Build.0 = Debug|x64
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|Win32.ActiveCfg = DebugFast|Win32
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|Win32.Build.0 = DebugFast|Win32
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|x64.ActiveCfg = DebugFast|x64
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.DebugFast|x64.Build.0 = DebugFast|x64
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release_JITIL|Win32.ActiveCfg = Release|Win32
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release_JITIL|Win32.Build.0 = Release|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release_JITIL|x64.ActiveCfg = Release|Win32
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release_JITIL|x64.ActiveCfg = Release|x64
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release_JITIL|x64.Build.0 = Release|x64
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|Win32.ActiveCfg = Release|Win32
 		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|Win32.Build.0 = Release|Win32
-		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|x64.ActiveCfg = Release|Win32
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|x64.ActiveCfg = Release|x64
+		{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
