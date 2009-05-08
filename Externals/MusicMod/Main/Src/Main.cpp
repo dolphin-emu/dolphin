@@ -26,7 +26,7 @@
 
 #include "Common.h"	// Common
 #include "IniFile.h"
-#include "ConsoleWindow.h"
+#include "Log.h"
 
 #include "PowerPC/PowerPc.h" // Core
 
@@ -98,7 +98,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 {
 	MyFilesStructure temp;
 
-	//Console::Print("StructSort > Begin\n");
+	//INFO_LOG(AUDIO,"StructSort > Begin\n");
 
      for(int i = 0; i < MyFiles.size() - 1; i++)
      {
@@ -119,7 +119,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 		std::cout << i << " " << MyFiles[i].path.c_str() << "#" << MyFiles[i].offset << "\n";
 	}
 
-	//Console::Print("StructSort > Done\n");
+	//INFO_LOG(AUDIO,"StructSort > Done\n");
 }
 // ============================
 
@@ -129,7 +129,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 // ------------------------
 void ShowConsole()
 {
-	Console::Open(100, 2000, "MusicMod", true); // Give room for 2000 rows
+//	Console::Open(100, 2000, "MusicMod", true); // Give room for 2000 rows
 }
 
 void Init()
@@ -153,9 +153,9 @@ void Init()
 
 	// Write version
 	#ifdef _M_X64
-		Console::Print("64 bit version\n");
+		INFO_LOG(AUDIO,"64 bit version\n");
 	#else
-		Console::Print("32 bit version\n");
+		INFO_LOG(AUDIO,"32 bit version\n");
 	#endif
 	// -----------
 
@@ -165,7 +165,7 @@ void Init()
 	// Show DLL status
 	Player_Main(MusicMod::bShowConsole);
 	//play_file("c:\\demo36_02.ast");
-	//Console::Print("DLL loaded\n");
+	//INFO_LOG(AUDIO,"DLL loaded\n");
 
 	dllloaded = true; // Do this once
 }
@@ -202,7 +202,7 @@ void Main(std::string FileName)
 	LPSECURITY_ATTRIBUTES attr;
 	attr = NULL;
 	MusicPath = "Music\\";
-	Console::Print("Created a Music directory\n");
+	INFO_LOG(AUDIO,"Created a Music directory\n");
 	CreateDirectory(MusicPath.c_str(), attr);
 	// ----------------------------------------------------------------------------------------
 }
@@ -216,7 +216,7 @@ void CheckFile(std::string File, int FileNumber)
 	// Do nothing if we found the same file again
 	if (CurrentFile == File) return;
 
-	//Console::Print(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
+	//INFO_LOG(AUDIO,">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
 
 	// Check if it's a music file
 	if (CheckFileEnding(File.c_str()))
@@ -227,7 +227,7 @@ void CheckFile(std::string File, int FileNumber)
 		if (CurrentPlayFile == File) return;
 
 		// Notify the user
-		Console::Print("\n >>> (%i/%i) Match %s\n\n", FileNumber, MyFiles.size(), File.c_str());
+		INFO_LOG(AUDIO,"\n >>> (%i/%i) Match %s\n\n", FileNumber, MyFiles.size(), File.c_str());
 
 		 // Save the matched file
 		CurrentPlayFile = File;
@@ -245,7 +245,7 @@ void CheckFile(std::string File, int FileNumber)
 		std::string FilePath = (MusicPath + fragment);
 
 		WritingFile = true; // Avoid detecting the file we are writing
-		Console::Print("Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
+		INFO_LOG(AUDIO,"Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
 		my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str());
 		WritingFile = false;
 		
@@ -256,7 +256,7 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
 		} else {
-			Console::Print("Warning > Music DLL is not loaded");
+			INFO_LOG(AUDIO,"Warning > Music DLL is not loaded");
 		}
 
 		// ---------------------------------------------------------------------------------------
@@ -266,9 +266,9 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			if(!remove(CurrentPlayFilePath.c_str()))
 			{
-				Console::Print("The program failed to remove <%s>\n", CurrentPlayFilePath.c_str());
+				INFO_LOG(AUDIO,"The program failed to remove <%s>\n", CurrentPlayFilePath.c_str());
 			} else {
-				Console::Print("The program removed <%s>\n", CurrentPlayFilePath.c_str());
+				INFO_LOG(AUDIO,"The program removed <%s>\n", CurrentPlayFilePath.c_str());
 			}
 		}
 
@@ -279,7 +279,7 @@ void CheckFile(std::string File, int FileNumber)
 	}
 
 	// Tell the user about the files we ignored
-	Console::Print("(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
+	INFO_LOG(AUDIO,"(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
 	
 	// Update the current file
 	CurrentFile = File;
@@ -297,9 +297,10 @@ void FindFilename(u64 offset, u64 size)
 			2. Not if offset = 0.
 			3. Not when WritingFile. We will lead to calls back to here (Read) and it will mess
 			   upp the scanning */
-	if(PowerPC::state == PowerPC::CPUState::CPU_RUNNING && offset != 0 && !WritingFile)
+	if(PowerPC::GetState() == PowerPC::CPUState::CPU_RUNNING && offset != 0 && !WritingFile)
 	{
 
+		
 		//////////////////////////////////////////////////////////////////////////////////////////
 		/* Get the filename. Here we go through all files until we come to the file that has
 		   the matching offset. Before MyFiles has data this loop will go nowhere. We have to

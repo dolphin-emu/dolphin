@@ -125,9 +125,9 @@ void Player_Main(bool Console)
 
 	//MessageBox(0, "main() opened", "", 0);
 	//printf( "main() opened\n" );
-	Console::Print( "\n=========================================================\n\n\n" );
-	//Console::Print( "DLL > Player_Main() > Begin\n" );
-	Console::Print( "DLL > Settings:\n", bLoop);
+	INFO_LOG(AUDIO,"\n=========================================================\n\n\n" );
+	//INFO_LOG(AUDIO, "DLL > Player_Main() > Begin\n" );
+	INFO_LOG(AUDIO, "DLL > Settings:\n", bLoop);
 
 		
 	// =======================================================================================
@@ -137,8 +137,8 @@ void Player_Main(bool Console)
 
 	// ---------------------------------------------------------------------------------------
 	
-	Console::Print( "DLL > Loop: %i\n", bLoop);
-	Console::Print( "DLL > WarnPluginsMissing: %i\n", bWarnPluginsMissing);	
+	INFO_LOG(AUDIO, "DLL > Loop: %i\n", bLoop);
+	INFO_LOG(AUDIO, "DLL > WarnPluginsMissing: %i\n", bWarnPluginsMissing);	
 	// ---------------------------------------------------------------------------------------
 
 	// =======================================================================================
@@ -170,7 +170,7 @@ void Player_Main(bool Console)
 	memcpy( szPluginDir, szHomeDir, iHomeDirLen * sizeof( TCHAR ) );
 	memcpy( szPluginDir + iHomeDirLen, TEXT( "PluginsMusic" ), 12 * sizeof( TCHAR ) );
 	szPluginDir[ iHomeDirLen + 12 ] = TEXT( '\0' );
-	Console::Print("DLL > Plugindir: %s\n", szPluginDir);
+	INFO_LOG(AUDIO,"DLL > Plugindir: %s\n", szPluginDir);
 	// =======================================================================================
 	#ifndef NOGUI
 		Font::Create();
@@ -183,7 +183,7 @@ void Player_Main(bool Console)
 	//GlobalVolume = Playback::Volume::Get(); // Don't bother with this for now
 	//GlobalCurrentVolume = GlobalVolume;
 	//Output_SetVolume( GlobalVolume );
-	Console::Print("DLL > Volume: %i\n\n", GlobalVolume);
+	INFO_LOG(AUDIO,"DLL > Volume: %i\n\n", GlobalVolume);
 	// ---------------------------------------------------------------------------------------
 
 
@@ -206,10 +206,10 @@ void Player_Main(bool Console)
 	Plugin::FindAll<DspPlugin>   ( szPluginDir, TEXT( "dsp_*.dll" ), false );	
 	Plugin::FindAll<GenPlugin>   ( szPluginDir, TEXT( "gen_*.dll" ), true  );	
 
-	//Console::Print( "Winmain.cpp > PluginManager::Fill()\n" );
+	//INFO_LOG(AUDIO, "Winmain.cpp > PluginManager::Fill()\n" );
 	PluginManager::Fill();
 
-	//Console::Print( "Winmain.cpp > PluginManager::Fill()\n" );
+	//INFO_LOG(AUDIO, "Winmain.cpp > PluginManager::Fill()\n" );
 
 
 
@@ -251,26 +251,26 @@ void Player_Main(bool Console)
 	// Check the plugins
 	if( input_plugins.empty() )
 	{
-		Console::Print("\n *** Warning: No valid input plugins found\n\n");
+		INFO_LOG(AUDIO,"\n *** Warning: No valid input plugins found\n\n");
 	}
 	else
 	{
-		Console::Print(" >>> These valid input plugins were found:\n");
+		INFO_LOG(AUDIO," >>> These valid input plugins were found:\n");
 		for(int i = 0; i < input_plugins.size(); i++)
-			Console::Print("       %i: %s\n", (i + 1), input_plugins.at(i)->GetFilename());
-		Console::Print("\n");
+			INFO_LOG(AUDIO,"       %i: %s\n", (i + 1), input_plugins.at(i)->GetFilename());
+		INFO_LOG(AUDIO,"\n");
 	}
 
 	// The input plugins are never activated here, they are activate for each file
 	if( !active_input_plugin || !active_input_plugin->plugin )
 	{
-		// Console::Print("The input plugin is not activated yet\n");
+		// INFO_LOG(AUDIO,"The input plugin is not activated yet\n");
 	}
 	else
 	{
 		//const int ms_len = active_input_plugin->plugin->GetLength();
 		//const int ms_cur = active_input_plugin->plugin->GetOutputTime();
-		//Console::Print("We are at <%i of %i>\n", ms_cur, ms_len);
+		//INFO_LOG(AUDIO,"We are at <%i of %i>\n", ms_cur, ms_len);
 	}
 	// ---------------------------------------------------------------------------------------
 	if( active_output_count > 0 )
@@ -281,11 +281,11 @@ void Player_Main(bool Console)
 		{
 			res_temp = active_output_plugins[ i ]->plugin->GetOutputTime();
 		}
-		Console::Print("Playback progress <%i>\n", res_temp);*/
+		INFO_LOG(AUDIO,"Playback progress <%i>\n", res_temp);*/
 	}
 	else
 	{
-		Console::Print("\n *** Warning: The output plugin is not working\n\n");
+		INFO_LOG(AUDIO,"\n *** Warning: The output plugin is not working\n\n");
 	}
 	// =======================================================================================
 
@@ -293,14 +293,14 @@ void Player_Main(bool Console)
 	// Start the timer
 	if(!TimerCreated && bLoop) // Only create this the first time
 	{
-		//Console::Print("Created the timer\n");
+		//INFO_LOG(AUDIO,"Created the timer\n");
 		MakeTime();
 		TimerCreated = true;
 	}
 	// =======================================================================================
 
-	Console::Print( "\n=========================================================\n\n" );
-	//Console::Print( "DLL > main_dll() > End\n\n\n" );
+	INFO_LOG(AUDIO, "\n=========================================================\n\n" );
+	//INFO_LOG(AUDIO, "DLL > main_dll() > End\n\n\n" );
 
 	//std::cin.get();
 }

@@ -24,7 +24,7 @@
 #include "Core.h" // Core
 
 #include "IniFile.h"		// Common
-#include "ConsoleWindow.h"
+#include "Log.h"
 
 #include "../../../../Source/Core/DolphinWX/Src/Globals.h" // DolphinWX
 #include "../../../../Source/Core/DolphinWX/Src/Frame.h"
@@ -282,7 +282,7 @@ CFrame::MM_UpdateGUI()
 void
 CFrame::MM_OnPlay()
 {
-	//Console::Print("\nCFrame::OnPlayMusicMod > Begin\n");
+	//INFO_LOG(AUDIO,"\nCFrame::OnPlayMusicMod > Begin\n");
 
 	// Save the volume
 	MusicMod::GlobalVolume = mm_Slider->GetValue();	
@@ -296,7 +296,7 @@ CFrame::MM_OnPlay()
 	{
 		if (Core::GetState() == Core::CORE_RUN)
 		{
-			//Console::Print("CFrame::OnPlayMusicMod > Pause\n");
+			//INFO_LOG(AUDIO,"CFrame::OnPlayMusicMod > Pause\n");
 			if(!MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = true;
@@ -308,7 +308,7 @@ CFrame::MM_OnPlay()
 		}
 		else
 		{
-			//Console::Print("CFrame::OnPlayMusicMod > Play\n");
+			//INFO_LOG(AUDIO,"CFrame::OnPlayMusicMod > Play\n");
 			if(MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = false;
@@ -336,7 +336,7 @@ CFrame::MM_OnStop()
 void
 CFrame::MM_OnMute(wxCommandEvent& WXUNUSED (event))
 {
-	//Console::Print("CFrame::OnMute > Begin\n");
+	//INFO_LOG(AUDIO,"CFrame::OnMute > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::GlobalMute)
@@ -368,7 +368,7 @@ CFrame::MM_OnMute(wxCommandEvent& WXUNUSED (event))
 void
 CFrame::MM_OnPause(wxCommandEvent& WXUNUSED (event))
 {
-	Console::Print("CFrame::OnPause > Begin\n");
+	INFO_LOG(AUDIO,"CFrame::OnPause > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::GlobalPause)
@@ -399,7 +399,7 @@ CFrame::MM_OnPause(wxCommandEvent& WXUNUSED (event))
 // ---------------------------------------------------------------------------------------
 void CFrame::MM_OnVolume(wxScrollEvent& event)
 {
-	//Console::Print("CFrame::OnVolume > Begin <%i>\n", event.GetPosition());
+	//INFO_LOG(AUDIO,"CFrame::OnVolume > Begin <%i>\n", event.GetPosition());
 	//MessageBox(0, "", "", 0);
 
 	//if(event.GetEventType() == wxEVT_SCROLL_PAGEUP || event.GetEventType() == wxEVT_SCROLL_PAGEDOWN)
@@ -434,7 +434,7 @@ void CFrame::MM_OnVolume(wxScrollEvent& event)
 // ---------------------------------------------------------------------------------------
 void CFrame::MM_OnLog(wxCommandEvent& event)
 {
-	//Console::Print("CFrame::OnLog > Begin\n");
+	//INFO_LOG(AUDIO,"CFrame::OnLog > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::dllloaded) return; // Avoid crash

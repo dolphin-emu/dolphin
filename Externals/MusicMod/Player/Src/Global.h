@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯
-#include "../../../../Source/Core/Common/Src/ConsoleWindow.h" // Global common
+#include "../../../../Source/Core/Common/Src/Log.h" // Global common
 /////////////////////////
 
 
