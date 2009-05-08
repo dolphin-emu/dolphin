@@ -23,6 +23,7 @@
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "FileSearch.h"
+
 namespace HiresTextures
 {
 
