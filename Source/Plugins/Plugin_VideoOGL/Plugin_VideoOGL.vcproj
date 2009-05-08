@@ -57,7 +57,7 @@
 				EnableIntrinsicFunctions="true"
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew;..\..\..\Externals\SOIL"
 				PreprocessorDefinitions="_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -90,11 +90,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib SOIL.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoOGL.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SOIL\$(OutDir)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
@@ -133,7 +133,6 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"

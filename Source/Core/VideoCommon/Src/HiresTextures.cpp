@@ -19,11 +19,10 @@
 
 #include <cstring>
 #include <utility>
-#include "../../../Externals/SOIL/SOIL.h"
+#include "SOIL.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "FileSearch.h"
-
 namespace HiresTextures
 {
 
