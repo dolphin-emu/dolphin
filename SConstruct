@@ -51,6 +51,7 @@ include_paths = [
     basedir + 'Source/Core/DebuggerWX/Src',
     basedir + 'Externals/Bochs_disasm',
     basedir + 'Externals/LZO',
+    basedir + 'Externals/SOIL',
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
@@ -61,6 +62,7 @@ include_paths = [
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/LZO',
+    'Externals/SOIL',
     'Externals/WiiUseSrc/Src', 
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',

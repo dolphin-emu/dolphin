@@ -31,10 +31,6 @@ files = [
 	'VideoState.cpp',
 	'Profiler.cpp',
 	'HiresTextures.cpp',
-	'SOIL/image_DXT.c',
-	'SOIL/image_helper.c',
-	'SOIL/SOIL.c',
-	'SOIL/stb_image_aug.c'
 	]
 
 env_common = env.Clone()

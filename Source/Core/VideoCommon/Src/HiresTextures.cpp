@@ -19,7 +19,7 @@
 
 #include <cstring>
 #include <utility>
-#include "SOIL/SOIL.h"
+#include "../../../Externals/SOIL/SOIL.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "FileSearch.h"
