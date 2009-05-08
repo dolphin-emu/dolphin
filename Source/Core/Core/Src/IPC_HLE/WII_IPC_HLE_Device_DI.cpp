@@ -29,13 +29,6 @@
 #include "Filesystem.h"
 
 
-// Music mod
-#include "Setup.h" // Define MUSICMOD here
-#ifdef MUSICMOD
-#include "../../../../Externals/MusicMod/Main/Src/Main.h" 
-#endif
-
-
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pVolume(NULL)
@@ -244,11 +237,6 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
-
-			#ifdef MUSICMOD
-			std::string Tmp = pFilename;
-			MusicMod::CheckFile(Tmp);
-			#endif
 
 			return 1;
 		}

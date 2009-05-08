@@ -238,16 +238,6 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddSeparator();
 	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
-
-	//////////////////////////////////////////////////
-	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
-	#ifdef MUSICMOD
-		MM_PopulateGUI();
-	#endif
-	///////////////////////
-
-
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
 	toolBar->Realize();
@@ -367,14 +357,6 @@ void CFrame::InitBitmaps()
 	default: PanicAlert("Theme selection went wrong");
 	}
 
-	//////////////////////////////////////////////////
-	// Music modification
-	// -------------
-	#ifdef MUSICMOD
-		MM_InitBitmaps(Theme);
-	#endif
-	//////////////////////////
-
 	// Update in case the bitmap has been updated
 	if (GetToolBar() != NULL)
 		RecreateToolbar();
@@ -386,11 +368,6 @@ void CFrame::InitBitmaps()
 // -------------
 void CFrame::BootGame()
 {
-	// Music modification
-	#ifdef MUSICMOD
-		MM_OnPlay();
-	#endif
-
 	// Rerecording
 	#ifdef RERECORDING
 		Core::RerecordingStart();
@@ -567,11 +544,6 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 // Stop the emulation
 void CFrame::DoStop()
 {
-	// Music modification
-	#ifdef MUSICMOD
-		MM_OnStop();
-	#endif
-
 	// Rerecording
 	#ifdef RERECORDING
 		Core::RerecordingStop();
@@ -808,10 +780,6 @@ void CFrame::ToggleConsole(bool check)
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()
 {
-	#ifdef MUSICMOD
-		MM_UpdateGUI();
-	#endif
-
 	// Save status
 	bool initialized = Core::GetState() != Core::CORE_UNINITIALIZED;
 	bool running = Core::GetState() == Core::CORE_RUN;
