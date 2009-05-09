@@ -260,8 +260,11 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
 
 void PixelShaderManager::SetCustomTexScale(int texmapid, float x, float y)
 {
-	lastCustomTexScale[texmapid][0] = x;
-	lastCustomTexScale[texmapid][1] = y;
+	if (lastCustomTexScale[texmapid][0] != x || lastCustomTexScale[texmapid][1] != y) {
+		s_nTexDimsChanged |= 1 << texmapid;
+		lastCustomTexScale[texmapid][0] = x;
+		lastCustomTexScale[texmapid][1] = y;
+	}
 }
 
 void PixelShaderManager::SetZTextureBias(u32 bias)

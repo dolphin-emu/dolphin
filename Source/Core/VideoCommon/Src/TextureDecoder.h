@@ -18,7 +18,7 @@
 #ifndef _TEXTUREDECODER_H
 #define _TEXTUREDECODER_H
 
-enum
+enum 
 {
     TMEM_SIZE = 1024*1024,
     HALFTMEM_SIZE = 512*1024
@@ -67,18 +67,19 @@ enum TextureFormat
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(int format);
+int TexDecoder_GetBlockHeightInTexels(int format);
 int TexDecoder_GetPaletteSize(int fmt);
 
 enum PC_TexFormat
 {
-        PC_TEX_FMT_NONE = 0,
-        PC_TEX_FMT_BGRA32,
-        PC_TEX_FMT_RGBA32,
-        PC_TEX_FMT_IA4,
-        PC_TEX_FMT_I8,
-        PC_TEX_FMT_IA8,
-        PC_TEX_FMT_RGB565,
-        PC_TEX_FMT_DXT1,
+	PC_TEX_FMT_NONE = 0,
+	PC_TEX_FMT_BGRA32,
+	PC_TEX_FMT_RGBA32,
+	PC_TEX_FMT_IA4,
+	PC_TEX_FMT_I8,
+	PC_TEX_FMT_IA8,
+	PC_TEX_FMT_RGB565,
+	PC_TEX_FMT_DXT1,
 };
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
@@ -89,4 +90,3 @@ u32 TexDecoder_GetTlutHash(const u8* src, int len);
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 #endif
-

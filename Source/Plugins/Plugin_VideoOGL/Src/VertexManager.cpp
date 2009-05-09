@@ -237,7 +237,7 @@ void Flush()
 					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 				}
 				// texture is hires - pass the scaling size
-				if (tentry->scaleX != 1.0f && tentry->scaleY != 1.0f)
+				if (tentry->scaleX != 1.0f || tentry->scaleY != 1.0f)
 					PixelShaderManager::SetCustomTexScale(i, tentry->scaleX, tentry->scaleY);
 				if (g_Config.iLog & CONF_SAVETEXTURES) 
 				{
