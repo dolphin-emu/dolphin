@@ -281,7 +281,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	u32 hash_value;
     u32 texID = address;
-	if (g_Config.bSafeTextureCache)
+	u32 texHash;
+
+	if (g_Config.bSafeTextureCache || g_Config.bHiresTextures || g_Config.bDumpTextures)
 	{
 		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0);  // remove last arg 
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
@@ -298,6 +300,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
+
+		texHash = hash_value;
 	}
 
 	bool skip_texture_create = false;
@@ -340,11 +344,33 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             }
         }
     }
-    
-    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
+    PC_TexFormat dfmt;
+
+	if (g_Config.bHiresTextures)
+	{
+		//Load Custom textures
+		char texPathTemp[MAX_PATH];
+		int oldWidth = width;
+		int oldHeight = height;
+		sprintf(texPathTemp, "%s_%08x_%i", ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		dfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, temp);
+		
+		if (dfmt != PC_TEX_FMT_NONE)
+		{
+			expandedWidth = width;
+			expandedHeight = height;
+			entry.size_in_bytes = sizeof(temp);
+			entry.scaleX = (float) width / oldWidth;
+			entry.scaleY = (float) height / oldHeight;
+			INFO_LOG(VIDEO, "loading custom texture from %s", texPathTemp);
+		}
+	}
+
+	if (dfmt == PC_TEX_FMT_NONE)
+		dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
 	entry.hashoffset = 0;
     //entry.paletteHash = hashseed;
@@ -370,26 +396,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	if (!skip_texture_create) {
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(target, entry.texture);
-	}
-
-	u32 texHash = HashFNV(temp, entry.size_in_bytes);
-	if (g_Config.bHiresTextures)
-	{
-		//Load Custom textures
-		char texPathTemp[MAX_PATH];
-		int oldWidth = width;
-		int oldHeight = height;
-		sprintf(texPathTemp, "%s_%08x_%i", ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
-		PC_TexFormat customTex = HiresTextures::GetHiresTex(texPathTemp, &width, &height, temp);
-		
-		if (customTex != PC_TEX_FMT_NONE)
-		{
-			entry.size_in_bytes = sizeof(temp);
-			entry.scaleX = (float) width / oldWidth;
-			entry.scaleY = (float) height / oldHeight;
-			INFO_LOG(VIDEO, "loading custom texture from %s", texPathTemp);
-			dfmt = customTex;
-		}
 	}
 
 	if (dfmt != PC_TEX_FMT_DXT1)
@@ -465,7 +471,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		sprintf(szTemp, "%s/%s_%08x_%i.tga", FULL_DUMP_TEXTURES_DIR, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
 		if (!File::Exists(szTemp))
 		{
-			SaveTexture(szTemp, target, entry.texture, width, height);
+			SaveTexture(szTemp, target, entry.texture, expandedWidth, expandedHeight);
 		}
     }
 
