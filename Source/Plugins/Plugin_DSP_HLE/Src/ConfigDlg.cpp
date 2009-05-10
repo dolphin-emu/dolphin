@@ -24,6 +24,7 @@ EVT_BUTTON(wxID_OK, ConfigDialog::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, ConfigDialog::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, ConfigDialog::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, ConfigDialog::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_RE0_FIX, ConfigDialog::SettingsChanged)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -41,11 +42,13 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableRE0Fix = new wxCheckBox(this, ID_ENABLE_RE0_FIX, wxT("Enable RE0 Audio Fix"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
 	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
+	m_buttonEnableRE0Fix->SetValue(g_Config.m_EnableRE0Fix ? true : false);
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 
@@ -55,6 +58,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n"
 		"Disabling this also disables the speed throttle which this causes,\n"
 		"meaning that there will be no upper limit on your FPS."));
+	m_buttonEnableRE0Fix->SetToolTip(wxT("This fixes audo in RE0 and maybe some other games."));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog
@@ -63,6 +67,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	sbSettings->Add(m_buttonEnableHLEAudio, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
+	sbSettings->Add(m_buttonEnableRE0Fix, 0, wxALL, 5);
 	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
 	sBackend->Add(BackendText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 5);
 	sBackend->Add(m_BackendSelection);
@@ -95,6 +100,7 @@ ConfigDialog::~ConfigDialog()
 void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 {
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
+	g_Config.m_EnableRE0Fix = m_buttonEnableRE0Fix->GetValue();
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 	if (soundStream != NULL)

@@ -23,6 +23,7 @@
 extern CDebugger* m_frame;
 #endif
 #include <sstream>
+#include "../Config.h"
 
 #include "../Globals.h"
 #include "Mixer.h"
@@ -343,11 +344,25 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
 		if(numupd > 64) numupd = 64; // prevent crazy values
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
+		const u16 updpar = 0;
+		const u16 upddata = 0;
 		int on = false, off = false;
-		for (int j = 0; j < numupd; j++)
-		{			
-			const u16 updpar   = Memory_Read_U16(updaddr + j);
-			const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+
+		if(!g_Config.m_EnableRE0Fix)
+		{
+			for (int j = 0; j < numupd; j++)
+			{			
+				const u16 updpar   = Memory_Read_U16(updaddr + j);
+				const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+			}
+		}
+		else
+		{
+			const u16 updpar   = Memory_Read_U16(updaddr);
+			const u16 upddata   = Memory_Read_U16(updaddr + 2);
+		}
+		if (!g_Config.m_EnableRE0Fix || g_Config.m_EnableRE0Fix)
+		{
 			// some safety checks, I hope it's enough
 			if(updaddr > 0x80000000 && updaddr < 0x817fffff
 				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
@@ -360,9 +375,10 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			}
 			if (updpar == 7 && upddata == 1) on++;
 			if (updpar == 7 && upddata == 1) off++;
-		}
+		
 		// hack: if we get both an on and an off select on rather than off
 		if (on > 0 && off > 0) pDest[7] = 1;
+		}
 	}
 
 	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
