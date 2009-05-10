@@ -280,11 +280,14 @@ void CISOProperties::CreateGUIControls()
 	ProjHack1 = new wxCheckBox(m_GameConfig, ID_PROJHACK1, _("Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-		EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To Texture"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	//HLE Audio
+	sbHLEaudioOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("HLE Audio"));
+	UseRE0Fix = new wxCheckBox(m_GameConfig, ID_RE0FIX, _("Use RE0 Fix"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Manual edit config file
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
@@ -311,14 +314,16 @@ void CISOProperties::CreateGUIControls()
 	sbVideoOverrides->Add(ProjHack1, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
-		sbVideoOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
+	sbHLEaudioOverrides->Add(UseRE0Fix, 0, wxEXPAND|wxLEFT, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbHLEaudioOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(EditConfig);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
@@ -646,6 +651,12 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("HLEsound", "UseRE0Fix", &bTemp))
+		UseRE0Fix->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
+
+
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
 	if (iTemp == -1)
 	{
@@ -744,6 +755,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
 
+	if (UseRE0Fix->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("HLEaudio", "UseRE0Fix");
+	else
+		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());

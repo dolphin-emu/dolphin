@@ -58,6 +58,7 @@ class CISOProperties : public wxDialog
 		wxStaticBoxSizer *sbCoreOverrides;
 		wxStaticBoxSizer *sbWiiOverrides;
 		wxStaticBoxSizer *sbVideoOverrides;
+		wxStaticBoxSizer *sbHLEaudioOverrides;
 		wxBoxSizer *sEmuState;
 		wxBoxSizer *sPatches;
 		wxBoxSizer *sPatchButtons;
@@ -86,6 +87,8 @@ class CISOProperties : public wxDialog
 		wxCheckBox *ProjHack1, *ForceFiltering,
 			*EFBCopyDisable, *EFBCopyDisableHotKey, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB;
+		// HLE Audio
+		wxCheckBox *UseRE0Fix;
 
 		wxButton *EditConfig;
 		wxStaticText *EmuStateText;
@@ -160,6 +163,7 @@ class CISOProperties : public wxDialog
 			ID_SAFETEXTURECACHE,
 			ID_DSTALPHAPASS,
 			ID_USEXFB,
+			ID_RE0FIX,
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,
 			ID_OPTIMIZEQUANTIZERS,

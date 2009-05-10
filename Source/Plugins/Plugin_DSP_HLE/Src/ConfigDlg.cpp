@@ -32,6 +32,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 {
 	// Load config settings
 	g_Config.Load();
+	g_Config.GameIniLoad();
 
 	// Center window
 	CenterOnParent();

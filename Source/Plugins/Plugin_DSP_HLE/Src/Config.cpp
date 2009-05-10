@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Globals.h"
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
@@ -49,3 +50,13 @@ void CConfig::Save()
 
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }
+
+void CConfig::GameIniLoad() {
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	if (! iniFile) 
+		return;
+
+	if (iniFile->Exists("HLEaudio", "UseRE0Fix"))
+		iniFile->Get("HLEaudio", "UseRE0Fix", &m_EnableRE0Fix, 0);
+}
+
