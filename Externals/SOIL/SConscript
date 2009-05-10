@@ -1,0 +1,17 @@
+# -*- python -*-
+Import('env')
+import sys
+
+files = [
+	'image_DXT.c',
+	'image_helper.c',
+	'SOIL.c',
+	'stb_image_aug.c'
+	]
+
+env_soil = env.Clone(
+	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
+	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+	)
+env_soil.Append(CXXFLAGS = [ '-fPIC' ])
+env_soil.StaticLibrary(env['local_libs'] + "libsoil", files)
