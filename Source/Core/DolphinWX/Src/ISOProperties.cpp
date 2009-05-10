@@ -651,7 +651,7 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("HLEsound", "UseRE0Fix", &bTemp))
+	if (GameIni.Get("HLEaudio", "UseRE0Fix", &bTemp))
 		UseRE0Fix->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
