@@ -344,25 +344,26 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
 		if(numupd > 64) numupd = 64; // prevent crazy values
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-		const u16 updpar = 0;
-		const u16 upddata = 0;
+		const u16 updpar   = 0;
+		const u16 upddata   = 0;
 		int on = false, off = false;
 
-		if(!g_Config.m_EnableRE0Fix)
-		{
-			for (int j = 0; j < numupd; j++)
-			{			
+		for (int j = 0; j < numupd; j++)
+		{	
+			if(!g_Config.m_EnableRE0Fix)
+			{
 				const u16 updpar   = Memory_Read_U16(updaddr + j);
 				const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+				DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
 			}
-		}
-		else
-		{
-			const u16 updpar   = Memory_Read_U16(updaddr);
-			const u16 upddata   = Memory_Read_U16(updaddr + 2);
-		}
-		if (!g_Config.m_EnableRE0Fix || g_Config.m_EnableRE0Fix)
-		{
+			else
+			{
+				const u16 updpar   = Memory_Read_U16(updaddr);
+				const u16 upddata   = Memory_Read_U16(updaddr + 2);
+				DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
+			}		
+
+
 			// some safety checks, I hope it's enough
 			if(updaddr > 0x80000000 && updaddr < 0x817fffff
 				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
@@ -376,8 +377,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			if (updpar == 7 && upddata == 1) on++;
 			if (updpar == 7 && upddata == 1) off++;
 		
-		// hack: if we get both an on and an off select on rather than off
-		if (on > 0 && off > 0) pDest[7] = 1;
+			// hack: if we get both an on and an off select on rather than off
+			if (on > 0 && off > 0) pDest[7] = 1;
 		}
 	}
 
