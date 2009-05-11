@@ -87,6 +87,9 @@ class CISOProperties : public wxDialog
 		wxCheckBox *ProjHack1, *ForceFiltering,
 			*EFBCopyDisable, *EFBCopyDisableHotKey, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB;
+		wxStaticText *Hacktext;
+		wxArrayString arrayStringFor_Hack;
+		wxChoice *Hack;
 		// HLE Audio
 		wxCheckBox *UseRE0Fix;
 
@@ -163,6 +166,8 @@ class CISOProperties : public wxDialog
 			ID_SAFETEXTURECACHE,
 			ID_DSTALPHAPASS,
 			ID_USEXFB,
+			ID_HACK_TEXT,
+			ID_HACK,
 			ID_RE0FIX,
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,

@@ -76,6 +76,8 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 : wxDialog(parent, id, title, position, size, style)
 {
 	g_Config.Load();
+	g_Config.GameIniLoad();
+	g_Config.UpdateHack();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,48 +524,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_MSAAMODECB:
 		g_Config.iMultisampleMode = m_MSAAModeCB->GetSelection();
 		break;
-		case ID_PHACKVALUE:
+	case ID_PHACKVALUE:
 		g_Config.iPhackvalue = m_PhackvalueCB->GetSelection();
-	if (g_Config.iPhackvalue >= 0)
+		if (g_Config.iPhackvalue >= 0)
 		{
-			switch(g_Config.iPhackvalue)
-			{
-				case OGL_HACK_NONE:
-					g_Config.bPhackvalue1 = 0;
-					g_Config.bPhackvalue2 = 0;
-					break;
-				case OGL_HACK_ZELDA_TP_BLOOM_HACK:
-					g_Config.bPhackvalue1 = 1;
-					break;
-				case OGL_HACK_SUPER_MARIO_GALAXY:
-					g_Config.bPhackvalue1 = 1;
-					g_Config.fhackvalue1 = 0.00006f;
-					g_Config.bPhackvalue2 = 0;
-					break;
-				case OGL_HACK_MARIO_KART_WII:
-					g_Config.bPhackvalue1 = 1;
-					g_Config.fhackvalue1 = 0.00006f;
-					g_Config.bPhackvalue2 = 0;
-					break;
-				case OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT:
-					g_Config.bPhackvalue1 = 1;
-					g_Config.fhackvalue1 = 0.00002f;
-					g_Config.bPhackvalue2 = 1;
-					g_Config.fhackvalue2 = 1.999980f;
-					break;
-				case OGL_HACK_BLEACH_VERSUS_CRUSADE:
-					g_Config.bPhackvalue2 = 1;
-					g_Config.fhackvalue2 = 0.5f;
-					g_Config.bPhackvalue1 = 0;
-					break;
-				case OGL_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
-					g_Config.bPhackvalue1 = 1;
-					g_Config.fhackvalue1 = 0.8f;
-					g_Config.bPhackvalue2 = 1;
-					g_Config.fhackvalue2 = 1.2f;
-				break;
-			}
-
+		g_Config.UpdateHack();
 		}
 		break;
 	}
@@ -687,3 +652,45 @@ void ConfigDialog::UpdateGUI()
 	m_FullscreenCB->Enable(!g_Config.renderToMainframe);
 	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
 }
+void Config::UpdateHack()
+{
+	switch(g_Config.iPhackvalue)
+			{
+		case OGL_HACK_NONE:
+			g_Config.bPhackvalue1 = 0;
+			g_Config.bPhackvalue2 = 0;
+			break;
+		case OGL_HACK_ZELDA_TP_BLOOM_HACK:
+			g_Config.bPhackvalue1 = 1;
+			break;
+		case OGL_HACK_SUPER_MARIO_GALAXY:
+			g_Config.bPhackvalue1 = 1;
+			g_Config.fhackvalue1 = 0.00006f;
+			g_Config.bPhackvalue2 = 0;
+			break;
+		case OGL_HACK_MARIO_KART_WII:
+			g_Config.bPhackvalue1 = 1;
+			g_Config.fhackvalue1 = 0.00006f;
+			g_Config.bPhackvalue2 = 0;
+			break;
+		case OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT:
+			g_Config.bPhackvalue1 = 1;
+			g_Config.fhackvalue1 = 0.00002f;
+			g_Config.bPhackvalue2 = 1;
+			g_Config.fhackvalue2 = 1.999980f;
+		break;
+		case OGL_HACK_BLEACH_VERSUS_CRUSADE:
+			g_Config.bPhackvalue2 = 1;
+			g_Config.fhackvalue2 = 0.5f;
+			g_Config.bPhackvalue1 = 0;
+		break;
+		case OGL_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
+			g_Config.bPhackvalue1 = 1;
+			g_Config.fhackvalue1 = 0.8f;
+			g_Config.bPhackvalue2 = 1;
+			g_Config.fhackvalue2 = 1.2f;
+		break;
+		}
+}
+
+		

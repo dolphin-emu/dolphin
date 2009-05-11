@@ -222,6 +222,7 @@ void Initialize(void *init)
     g_Config.Load();
     
 	g_Config.GameIniLoad();
+	g_Config.UpdateHack();
 
     if (!OpenGL_Create(g_VideoInitialize, 640, 480)) // 640x480 will be the default if all else fails
 	{

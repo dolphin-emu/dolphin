@@ -57,7 +57,7 @@ class ConfigDialog : public wxDialog
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
 		void CreateGUIControls();
-
+		void GameIniLoad();
 		// Combo box lists, this one needs to be public
 		wxArrayString arrayStringFor_FullscreenCB;
 
@@ -196,6 +196,7 @@ class ConfigDialog : public wxDialog
 
 		void OnClose(wxCloseEvent& event);
 		void UpdateGUI();
+		void UpdateHack();
 
 		void AboutClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);

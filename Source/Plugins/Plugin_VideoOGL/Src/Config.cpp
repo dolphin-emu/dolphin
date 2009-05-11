@@ -123,6 +123,9 @@ void Config::GameIniLoad() {
 	if (iniFile->Exists("Video", "UseXFB"))
 		iniFile->Get("Video", "UseXFB", &bUseXFB, 0);
 
+	if (iniFile->Exists("Video", "Hack"))
+		iniFile->Get("Video", "Hack", &iPhackvalue, 0);
+
 }
 
 void Config::Save()

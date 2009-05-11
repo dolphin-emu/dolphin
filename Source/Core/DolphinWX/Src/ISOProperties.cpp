@@ -43,6 +43,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
+	EVT_CHOICE(ID_HACK, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
@@ -285,6 +286,17 @@ void CISOProperties::CreateGUIControls()
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	// Hack
+	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Hack for: "), wxDefaultPosition, wxDefaultSize);
+	arrayStringFor_Hack.Add(_("None"));
+	arrayStringFor_Hack.Add(_("Zelda Twighlight Princess Bloom hack"));
+	arrayStringFor_Hack.Add(_("Super Mario Galaxy"));
+	arrayStringFor_Hack.Add(_("Mario Kart Wii"));
+	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
+	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
+	arrayStringFor_Hack.Add(_("Final Fantasy CC Echo of Time"));
+	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
+	
 	//HLE Audio
 	sbHLEaudioOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("HLE Audio"));
 	UseRE0Fix = new wxCheckBox(m_GameConfig, ID_RE0FIX, _("Use RE0 Fix"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -319,6 +331,8 @@ void CISOProperties::CreateGUIControls()
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(Hacktext, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(Hack, 0, wxEXPAND|wxLEFT, 5);
 	sbHLEaudioOverrides->Add(UseRE0Fix, 0, wxEXPAND|wxLEFT, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
@@ -655,7 +669,14 @@ void CISOProperties::LoadGameConfig()
 		UseRE0Fix->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
-
+	
+	GameIni.Get("Video", "Hack", &iTemp, -1);
+	if (iTemp == -1)
+	{
+		iTemp = 0;
+		bRefreshList = true;
+	}
+	Hack->SetSelection(iTemp);
 
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
 	if (iTemp == -1)
@@ -760,6 +781,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
+	GameIni.Set("Video", "Hack", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
 
