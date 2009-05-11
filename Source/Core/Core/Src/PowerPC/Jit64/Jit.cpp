@@ -26,6 +26,7 @@
 #include "../../PatchEngine.h"
 #include "../../CoreTiming.h"
 #include "../../Debugger/Debugger_BreakPoints.h"
+#include "../../ConfigManager.h"
 #include "../PowerPC.h"
 #include "../Profiler.h"
 #include "../PPCTables.h"
@@ -160,6 +161,7 @@ ps_adds1
 
 */
 
+
 Jit64 jit;
 
 int CODE_SIZE = 1024*1024*16;
@@ -232,6 +234,8 @@ namespace CPUCompare
 	// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
 	void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	{
+
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		if (js.isLastInstruction)
@@ -241,6 +245,14 @@ namespace CPUCompare
 		}
 		Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 		ABI_CallFunctionC((void*)instr, inst.hex);
+
+		if (js.isLastInstruction && SConfig::GetInstance().m_EnableRE0Fix )
+		{
+			
+			SConfig::GetInstance().LoadSettingsHLE();//Make sure the settings are up to date
+			MOV(32, R(EAX), M(&NPC));
+			WriteRfiExitDestInEAX();
+		}
 	}
 
 	void Jit64::unknown_instruction(UGeckoInstruction inst)

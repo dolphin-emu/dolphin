@@ -30,6 +30,8 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
+	//Mkae sure we load settings
+	LoadSettingsHLE();
 }
 
 
@@ -247,4 +249,13 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 	}
 }
+void SConfig::LoadSettingsHLE()
+{
+	IniFile ini;
+	//
+	ini.Load(FULL_CONFIG_DIR "DSP.ini");
+	ini.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
+}
+
+
 

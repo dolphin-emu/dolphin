@@ -40,6 +40,9 @@ enum INTERFACE_LANGUAGE
 
 struct SConfig
 {
+	//DSP HLE Audio fix
+	bool m_EnableRE0Fix;
+
 	// hard coded default plugins ...
 	std::string m_DefaultGFXPlugin;
 	std::string m_DefaultDSPPlugin;
@@ -79,6 +82,9 @@ struct SConfig
 
 	// load settings
 	void LoadSettings();
+
+	//Special load settings
+	void LoadSettingsHLE();
 
 	/* Return the permanent and somewhat globally used instance of this struct
 	   there is also a Core::GetStartupParameter() instance of it with almost
