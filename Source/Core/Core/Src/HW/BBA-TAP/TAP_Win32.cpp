@@ -18,6 +18,7 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
+
 bool CEXIETHERNET::deactivate()
 {
 	return true;
@@ -30,7 +31,7 @@ bool CEXIETHERNET::isActivated()
 }
 
 bool CEXIETHERNET::activate() {
-	if(isActivated())
+	if (isActivated())
 		return true;
 	else
 		return false;

@@ -125,6 +125,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\display.h"
+			>
+		</File>
+		<File
 			RelativePath=".\display_font.cpp"
 			>
 		</File>
