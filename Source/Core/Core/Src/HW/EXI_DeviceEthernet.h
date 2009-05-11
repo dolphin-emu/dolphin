@@ -46,6 +46,26 @@ private:
 	u32 _size;
 };
 
+//Doesn't contain error checks for wraparound writes
+class CyclicBufferWriter 
+{
+	public:
+		CyclicBufferWriter(u8 *buffer, size_t cap) 
+		{
+			_buffer = buffer; _cap = cap; _write = 0;
+		}
+
+		size_t p_write() const { return _write; }
+		void reset() { _write = 0; }
+
+		void write(void *src, size_t size);
+		void align();	//aligns the write pointer to steps of 0x100, like the real BBA
+	private:
+		size_t _write;
+		size_t _cap;	//capacity
+		u8 *_buffer;
+};
+
 class CEXIETHERNET : public IEXIDevice
 {
 public:
@@ -54,7 +74,6 @@ public:
 	bool IsPresent();
 	void Update();
 	bool IsInterruptSet();
-	bool isActivated();
 	void ImmWrite(u32 _uData,  u32 _uSize);
 	u32  ImmRead(u32 _uSize);
 	void DMAWrite(u32 _uAddr, u32 _uSize);
@@ -72,10 +91,16 @@ private:
 	u32 mSpecialImmData;
 	bool Activated;
 	
+	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
+	bool mRBEmpty;
+	
+	u32 mRecvBufferLength;
+	
 	#define BBAMEM_SIZE 0x1000
 	u8 mBbaMem[BBAMEM_SIZE];
 	
 	WriteBuffer mWriteBuffer;
+	CyclicBufferWriter mCbw;
 	
 	bool mExpectVariableLengthImmWrite;
 	bool mReadyToSend;
@@ -88,6 +113,13 @@ private:
 
 	void recordSendComplete();
 	bool sendPacket(u8 *etherpckt, int size);
+	bool checkRecvBuffer();
+	bool handleRecvdPacket();
+	
+	//TAP interface
+	bool activate();
+	bool deactivate();
+	bool isActivated();
 
 };
 enum {

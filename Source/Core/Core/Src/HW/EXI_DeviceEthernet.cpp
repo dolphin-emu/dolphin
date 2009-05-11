@@ -17,6 +17,7 @@
 
 #include "Memmap.h"
 
+#include <assert.h>
 #include "../Core.h"
 
 #include "EXI_Device.h"
@@ -69,13 +70,16 @@ unsigned int Expecting;
 CEXIETHERNET::CEXIETHERNET() :
 	m_uPosition(0),
 	m_uCommand(0),
-	mWriteBuffer(2048)
+	mWriteBuffer(2048),
+	mCbw(mBbaMem + CB_OFFSET, CB_SIZE)
 {
 	ID = 0x04020200;
 	mWriteP = INVALID_P;
 	mReadP = INVALID_P;
 	mReadyToSend = false;
 	Activated = false;
+	
+	mRecvBufferLength = 0;
 	
 	mExpectSpecialImmRead = false;
 	
@@ -111,11 +115,6 @@ void CEXIETHERNET::Update()
 bool CEXIETHERNET::IsInterruptSet()
 {
 	return false;
-}
-bool CEXIETHERNET::isActivated()
-{
-	// Todo: Return actual check
-	return Activated;
 }
 
 void CEXIETHERNET::recordSendComplete() 
@@ -153,7 +152,19 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	//exit(0);
 	return true;
 }
-
+bool CEXIETHERNET::handleRecvdPacket() 
+{
+	DEBUGPRINT(" Handle received Packet!\n");
+	exit(0);
+}
+bool CEXIETHERNET::checkRecvBuffer() 
+{
+	if(mRecvBufferLength != 0) 
+	{
+		handleRecvdPacket();
+	}
+	return true;
+}
 void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 {
 	DEBUGPRINT( "IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
@@ -174,13 +185,18 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		switch (mWriteP) 
 		{
 			case 0x09:
-				DEBUGPRINT( "\t[INFO]mWriteP is %x\n", mWriteP);
+			{
 				//BBADEGUB("BBA Interrupt reset 0x%02X & ~(0x%02X) => 0x%02X\n", mBbaMem[0x09], MAKE(BYTE, data), mBbaMem[0x09] & ~MAKE(BYTE, data));
 				//assert(_uSize == 1);
 				// TODO: Should we swap our data?
-				mBbaMem[0x09] &= ~MAKE(u8, _uData);
-				exit(0);
+				// With _uData not swapped, it becomes 0 when the data is 0xff000000
+				// With _uData swapped, it becomes 0 as well. Who knows the right way?
+				u32 SwappedData = Common::swap32(_uData);
+				mBbaMem[0x09] &= ~MAKE(u8, SwappedData);
+				DEBUGPRINT( "\t[INFO]mWriteP is %x. mBbaMem[0x09] is 0x%x\n", mWriteP, mBbaMem[0x09]);
+				//exit(0);
 				break;
+			}
 			case BBA_NCRA:
 			{
 				u32 SwappedData = Common::swap32(_uData);
@@ -217,28 +233,27 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			}
 				break;
 			case BBA_NWAYC:
-				DEBUGPRINT( "\t[INFO]mWriteP is %x\n", mWriteP);
-				exit(0);
-				/*if(data & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
+				DEBUGPRINT( "\t[INFO]BBA_NWAYCn");
+				if(_uData & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
 				{
-					HWGLE(activate());
+					activate();
 					//say we've successfully negotiated for 10 Mbit full duplex
 					//should placate libogc
 					mBbaMem[BBA_NWAYS] = BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY |
 						BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF;
-				}*/
+				}
 				break;
 			case 0x18:	//RRP - Receive Buffer Read Page Pointer
-				DEBUGPRINT( "\t[INFO]mWriteP is %x\n", mWriteP);
-				exit(0);
-				/*MYASSERT(size == 2 || size == 1);
-				mRBRPP = (BYTE)data << 8;	//I hope this works with both write sizes.
-				mRBEmpty = mRBRPP == ((WORD)mCbw.p_write() + CB_OFFSET);
-				HWGLE(checkRecvBuffer());*/
+				DEBUGPRINT( "\t[INFO]RRP\n");
+				//exit(0);
+				assert(_uSize == 2 || _uSize == 1);
+				mRBRPP = (u8)_uData << 8;	//Whinecube: I hope this works with both write sizes.
+				mRBEmpty = mRBRPP == ((u32)mCbw.p_write() + CB_OFFSET);
+				checkRecvBuffer();
 				break;
-			case 0x16:	//RWP
-				DEBUGPRINT( "\t[INFO]mWriteP is %x\n", mWriteP);
-				exit(0);
+			case 0x16:	//RWP - Receive Buffer Write Page Pointer
+				DEBUGPRINT( "\t[INFO]RWP\n");
+				//exit(0);
 				/*MYASSERT(size == 2 || size == 1);
 				MYASSERT(data == DWORD((WORD)mCbw.p_write() + CB_OFFSET) >> 8);*/
 				break;
@@ -255,6 +270,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	{
 		// Device ID Request
 		// 100% this returns correctly
+		DEBUGPRINT( "\t[INFO]Request Dev ID\n");
 		mSpecialImmData = EXI_DEVTYPE_ETHER;
 		mExpectSpecialImmRead = true;
 		return;
@@ -350,7 +366,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		return;
 	}
 	DEBUGPRINT( "\t[EEE]Not expecting ImmWrite of size %d\n", _uSize);
-	exit(0);
+	DEBUGPRINT( "\t\t[INFO] SKIPPING!\n");
+	//exit(0);
 }
 
 u32 CEXIETHERNET::ImmRead(u32 _uSize)
