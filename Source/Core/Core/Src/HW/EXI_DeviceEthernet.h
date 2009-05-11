@@ -82,6 +82,7 @@ private:
 	u32 m_uPosition;
 	u32 m_uCommand;
 	
+	bool m_bInterruptSet;
 	u32 mWriteP, mReadP;
 	#define INVALID_P 0xFFFF
 	
@@ -149,6 +150,16 @@ enum{
 	BBA_NCRB_4_PACKETS_PER_INT = (2<<6),	/* 1 0 */
 	BBA_NCRB_8_PACKETS_PER_INT = (3<<6),	/* 1 1 */
 
+	BBA_IR					    = 	0x09,		/* Interrupt Register, RW, 00h */
+	BBA_IR_FRAGI       			=	(1<<0),	/* FRAGI, Fragment Counter Interrupt */
+	BBA_IR_RI          			=	(1<<1),	/* RI, Receive Interrupt */
+	BBA_IR_TI          			=	(1<<2),	/* TI, Transmit Interrupt */
+	BBA_IR_REI         			=	(1<<3),	/* REI, Receive Error Interrupt */
+	BBA_IR_TEI         			=	(1<<4),	/* TEI, Transmit Error Interrupt */
+	BBA_IR_FIFOEI      			=	(1<<5),	/* FIFOEI, FIFO Error Interrupt */
+	BBA_IR_BUSEI       			=	(1<<6),	/* BUSEI, BUS Error Interrupt */
+	BBA_IR_RBFI        			=	(1<<7),	/* RBFI, RX Buffer Full Interrupt */
+
 	BBA_NWAYC		 = 0x30,		/* NWAY Configuration Register, RW, 84h */
 	BBA_NWAYC_FD	 = (1<<0),	/* FD, Full Duplex Mode */
 	BBA_NWAYC_PS100  = (1<<1),	/* PS100/10, Port Select 100/10 */
@@ -169,6 +180,9 @@ enum{
 	BBA_INTERRUPT_SENT = 0x04,
 	BBA_INTERRUPT_RECV_ERROR = 0x08,
 	BBA_INTERRUPT_SEND_ERROR = 0x10,
+	BBA_RWP					 = 0x16,	/* Receive Buffer Write Page Pointer Register */
+	BBA_RRP					 = 0x18, 	/* Receive Buffer Read Page Pointer Register */
+	BBA_SI_ACTRL2			 = 0x60,
 };
 
 #endif
