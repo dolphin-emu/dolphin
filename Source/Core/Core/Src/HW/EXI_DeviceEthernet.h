@@ -87,7 +87,7 @@ private:
 	};
 
 	void recordSendComplete();
-	bool sendPacket(u8 *etherpckt, size_t size);
+	bool sendPacket(u8 *etherpckt, int size);
 
 };
 enum {
