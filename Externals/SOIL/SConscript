@@ -12,6 +12,7 @@ files = [
 env_soil = env.Clone(
 	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
 	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+	parse_flags = ['-fPIC']
 	)
-env_soil.Append(CXXFLAGS = [ '-fPIC' ])
+
 env_soil.StaticLibrary(env['local_libs'] + "libsoil", files)
