@@ -470,8 +470,13 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:  // speed critical
+        // The metroid games use this format almost exclusively.
 		{
-            for (int y = 0; y < height; y += 8)
+#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
+            // 11111111 22222222 55555555 66666666
+            // 33333333 44444444 77777777 88888888
+			for (int y = 0; y < height; y += 8)
+			{
                 for (int x = 0; x < width; x += 8)
                 {
 					copyDXTBlock(dst+(y/2)*width+x*2, src);
@@ -482,9 +487,27 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					src += 8;
 					copyDXTBlock(dst+(y/2+2)*width+x*2+8, src);
 					src += 8;
+				}
+			}
+			return PC_TEX_FMT_DXT1;
+#else
+			for (int y = 0; y < height; y += 8)
+			{
+                for (int x = 0; x < width; x += 8)
+                {
+                    decodeDXTBlock((u32*)dst+y*width+x, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst+y*width+x+4, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst+(y+4)*width+x, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst+(y+4)*width+x+4, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
                 }
-        }
-        return PC_TEX_FMT_DXT1;
+			}
+#endif
+			return PC_TEX_FMT_BGRA32;
+		}
     }
 
 	// The "copy" texture formats, too?
