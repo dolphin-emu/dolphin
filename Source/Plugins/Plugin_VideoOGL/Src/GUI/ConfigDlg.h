@@ -31,6 +31,17 @@
 #include <wx/filepicker.h>
 #include <wx/gbsizer.h>
 
+enum
+{
+	OGL_HACK_NONE = 0,
+	OGL_HACK_ZELDA_TP_BLOOM_HACK = 1,
+	OGL_HACK_SUPER_MARIO_GALAXY = 2,
+	OGL_HACK_MARIO_KART_WII = 3,
+	OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT = 4,
+	OGL_HACK_BLEACH_VERSUS_CRUSADE = 5,
+	OGL_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME = 6,
+};
+
 
 class ConfigDialog : public wxDialog
 {
