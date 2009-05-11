@@ -62,13 +62,14 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLEFOG, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SMGHACK, ConfigDialog::AdvancedSettingsChanged)
+	//EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_HACK, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
     EVT_CHECKBOX(ID_DSTALPHAPASS,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHOICE(ID_PHACKVALUE, ConfigDialog::GeneralSettingsChanged)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -361,29 +362,41 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("ZTP Bloom hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SMGh = new wxCheckBox(m_PageAdvanced, ID_SMGHACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("ZTP Bloom hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	//m_Hack = new wxCheckBox(m_PageAdvanced, ID_HACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
+	m_PhackvalueCB->Append(wxT("Zero"));
+	m_PhackvalueCB->Append(wxT("ZTP Bloom hack"));
+	m_PhackvalueCB->Append(wxT("SMG"));
+	m_PhackvalueCB->Append(wxT("MK"));
+	m_PhackvalueCB->Append(wxT("Sonic and Black"));
+	m_PhackvalueCB->Append(wxT("Bleach"));
+	m_PhackvalueCB->Append(wxT("FFCC-OE"));
+	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
-	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
-	m_SMGh->SetValue(g_Config.bSMGhack);
+	//m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+	//m_Hack->SetValue(g_Config.bHack);
 
 	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
 		"\n[This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
-	m_ProjectionHax1->SetToolTip(wxT("This should get ZTP's Bloom to show"));
+	//m_ProjectionHax1->SetToolTip(wxT("This should get ZTP's Bloom to show"));
     m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,"
 		"\nDisabling it may speed up some games, but could also cause glitches."));
 	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
-	m_SMGh->SetToolTip(wxT("SMG hack for Super Mario Galaxy, Mario Kart Wii and other game probably  it will be disable for other game and during SMG ending sequence or movies use the M key to turn this option on or off"));
+	//m_SMGh->SetToolTip(wxT("SMG hack for Super Mario Galaxy, Mario Kart Wii and other game probably  it will be disable for other game and during SMG ending sequence or movies use the M key to turn this option on or off"));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_SMGh, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	//sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+
+	//sHacks->Add(m_Hack, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_PhackvalueCB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
@@ -509,6 +522,53 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_MSAAMODECB:
 		g_Config.iMultisampleMode = m_MSAAModeCB->GetSelection();
 		break;
+		case ID_PHACKVALUE:
+		g_Config.iPhackvalue = m_PhackvalueCB->GetSelection();
+	if (g_Config.iPhackvalue >= 0)
+		{
+			if (g_Config.iPhackvalue == 0)
+			{
+				g_Config.bPhackvalue1 = 0;
+				g_Config.bPhackvalue2 = 0;
+			}
+			if (g_Config.iPhackvalue == 1)
+			{
+				g_Config.bProjectionHax1 = 1;
+			}
+			if (g_Config.iPhackvalue == 2)
+			{
+				g_Config.bPhackvalue1 = 1;
+				g_Config.fhackvalue1 = 0.00006f;
+				g_Config.bPhackvalue2 = 0;
+			}
+			if (g_Config.iPhackvalue == 3)
+			{
+				g_Config.bPhackvalue1 = 1;
+				g_Config.fhackvalue1 = 0.0006f;
+				g_Config.bPhackvalue2 = 0;
+			}
+			if (g_Config.iPhackvalue == 4)
+			{
+				g_Config.bPhackvalue1 = 1;
+				g_Config.fhackvalue1 = 0.00002f;
+				g_Config.bPhackvalue2 = 1;
+				g_Config.fhackvalue2 = 1.999980f;
+			}
+			if (g_Config.iPhackvalue == 5)
+			{
+				g_Config.bPhackvalue2 = 1;
+				g_Config.fhackvalue2 = 0.5f;
+				g_Config.bPhackvalue1 = 0;
+			}
+			if (g_Config.iPhackvalue == 6)
+			{
+				g_Config.bPhackvalue1 = 1;
+				g_Config.fhackvalue1 = 0.8f;
+				g_Config.bPhackvalue2 = 1;
+				g_Config.fhackvalue2 = 1.2f;
+			}
+		}
+		break;
 	}
 
 	UpdateGUI();
@@ -551,8 +611,7 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DISABLEFOG:
 		g_Config.bDisableFog = m_DisableFog->IsChecked();
-		break;
-		
+		break;		
     case ID_DSTALPHAPASS:
 		g_Config.bDstAlphaPass = m_DstAlphaPass->IsChecked();
 		break;
@@ -580,14 +639,14 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
 		break;
 	// Hacks
-	case ID_PROJECTIONHACK1:
+	/*case ID_PROJECTIONHACK1:
 		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
-		break;
+		break;*/
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-	case ID_SMGHACK:
-		g_Config.bSMGhack = m_SMGh->IsChecked();
+	case ID_HACK:
+		g_Config.bHack = m_Hack->IsChecked();
 		break;
 	case ID_RADIO_COPYEFBTORAM:
 		TextureMngr::ClearRenderTargets();

@@ -354,13 +354,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			{
 				const u16 updpar   = Memory_Read_U16(updaddr + j);
 				const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
-				DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
 			}
 			else
 			{
 				const u16 updpar   = Memory_Read_U16(updaddr);
 				const u16 upddata   = Memory_Read_U16(updaddr + 2);
-				DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
 			}		
 
 

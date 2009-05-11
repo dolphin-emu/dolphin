@@ -89,8 +89,8 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_WindowResolutionCB;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxChoice *m_MaxAnisotropyCB;
-		wxArrayString arrayStringFor_MSAAModeCB;
-		wxChoice *m_MSAAModeCB;
+		wxArrayString arrayStringFor_MSAAModeCB, arrayStringFor_PhackvalueCB;
+		wxChoice *m_MSAAModeCB, *m_PhackvalueCB;
 
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
@@ -114,8 +114,8 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
 		wxCheckBox *m_EFBCopyDisableHotKey;
-		wxCheckBox *m_ProjectionHax1;
-		wxCheckBox *m_SMGh;
+		//wxCheckBox *m_ProjectionHax1;
+		wxCheckBox *m_Hack;
 		wxCheckBox *m_SafeTextureCache;
 		// Screen size
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
@@ -165,7 +165,8 @@ class ConfigDialog : public wxDialog
 			ID_DISABLEFOG,
 			ID_STATICBOX_EFB,
 			ID_SAFETEXTURECACHE,
-			ID_SMGHACK,
+			ID_HACK,
+			ID_PHACKVALUE,
 
 			ID_DUMPTEXTURES,
 			ID_HIRESTEXTURES,
@@ -176,7 +177,7 @@ class ConfigDialog : public wxDialog
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
 			ID_EFBCOPYDISABLEHOTKEY,
-			ID_PROJECTIONHACK1,
+			//ID_PROJECTIONHACK1,
             ID_DSTALPHAPASS,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,

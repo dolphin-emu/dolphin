@@ -235,7 +235,7 @@ void Flush()
 		if (numVertices)
 		{
 			// set global constants
-			VertexShaderManager::SetConstants(false, false, false);
+			VertexShaderManager::SetConstants(false, false, 0, false, 0, false);
 			PixelShaderManager::SetConstants();
 
 			PixelShaderCache::SetShader();

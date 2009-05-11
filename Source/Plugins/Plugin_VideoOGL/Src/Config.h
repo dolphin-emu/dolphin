@@ -93,9 +93,12 @@ struct Config
     bool bEFBCopyDisable;
     bool bEFBCopyDisableHotKey;
     bool bProjectionHax1;
-	bool bSMGhack;
+	bool bHack;
 	bool bCopyEFBToRAM;
     bool bSafeTextureCache;
+	int iPhackvalue;
+	bool bPhackvalue1, bPhackvalue2;
+	float fhackvalue1, fhackvalue2;
 
     int iLog; // CONF_ bits
     int iSaveTargetId;
