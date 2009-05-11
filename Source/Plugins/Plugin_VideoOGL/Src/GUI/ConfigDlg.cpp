@@ -366,13 +366,13 @@ void ConfigDialog::CreateGUIControls()
 
 	//m_Hack = new wxCheckBox(m_PageAdvanced, ID_HACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
-	m_PhackvalueCB->Append(wxT("Zero"));
-	m_PhackvalueCB->Append(wxT("ZTP Bloom hack"));
-	m_PhackvalueCB->Append(wxT("SMG"));
-	m_PhackvalueCB->Append(wxT("MK"));
-	m_PhackvalueCB->Append(wxT("Sonic and Black"));
-	m_PhackvalueCB->Append(wxT("Bleach"));
-	m_PhackvalueCB->Append(wxT("FFCC-OE"));
+	m_PhackvalueCB->Append(wxT("None"));
+	m_PhackvalueCB->Append(wxT("Zelda Twighlight Princess Bloom hack"));
+	m_PhackvalueCB->Append(wxT("Super Mario Galaxy"));
+	m_PhackvalueCB->Append(wxT("Mario Kart Wii"));
+	m_PhackvalueCB->Append(wxT("Sonic and the Black Knight"));
+	m_PhackvalueCB->Append(wxT("Bleach Versus Crusade"));
+	m_PhackvalueCB->Append(wxT("Final Fantasy CC Echo of Time"));
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 
 	// Default values
