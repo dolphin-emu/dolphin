@@ -71,6 +71,9 @@ CEXIETHERNET::CEXIETHERNET() :
 	m_uPosition(0),
 	m_uCommand(0),
 	mWriteBuffer(2048),
+#ifdef _WIN32
+	mRecvBuffer(2048),
+#endif
 	mCbw(mBbaMem + CB_OFFSET, CB_SIZE)
 {
 	ID = 0x04020200;

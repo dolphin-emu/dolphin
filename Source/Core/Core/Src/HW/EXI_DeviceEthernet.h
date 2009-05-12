@@ -93,8 +93,9 @@ private:
 	
 	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
 	bool mRBEmpty;
-	
+#ifndef _WIN32
 	u32 mRecvBufferLength;
+#endif
 	
 	#define BBAMEM_SIZE 0x1000
 	u8 mBbaMem[BBAMEM_SIZE];
@@ -120,6 +121,17 @@ private:
 	bool activate();
 	bool deactivate();
 	bool isActivated();
+	bool resume();
+	bool startRecv();
+#ifdef _WIN32
+	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
+	DWORD mMtu;
+	OVERLAPPED mReadOverlapped;
+	WriteBuffer mRecvBuffer;
+	DWORD mRecvBufferLength;
+	volatile bool mWaiting;
+	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+#endif
 
 };
 enum {

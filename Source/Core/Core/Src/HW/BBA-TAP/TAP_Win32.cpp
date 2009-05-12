@@ -18,6 +18,8 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
+#include "Tap_Win32.h"
+
 
 bool CEXIETHERNET::deactivate()
 {
@@ -31,10 +33,84 @@ bool CEXIETHERNET::isActivated()
 }
 
 bool CEXIETHERNET::activate() {
-	if (isActivated())
+if(isActivated())
 		return true;
-	else
+
+	DEBUGPRINT("\nActivating BBA...\n");
+
+	DWORD len;
+
+#if 0
+	device_guid = get_device_guid (dev_node, guid_buffer, sizeof (guid_buffer), tap_reg, panel_reg, &gc);
+
+	if (!device_guid)
+		DEGUB("TAP-Win32 adapter '%s' not found\n", dev_node);
+
+	/* Open Windows TAP-Win32 adapter */
+	openvpn_snprintf (device_path, sizeof(device_path), "%s%s%s",
+		USERMODEDEVICEDIR,
+		device_guid,
+		TAPSUFFIX);
+#endif	//0
+
+	mHAdapter = CreateFile (/*device_path*/
+		USERMODEDEVICEDIR "{1B1F9D70-50B7-4F45-AA4A-ABD17451E736}" TAPSUFFIX,
+		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+		FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+	DEBUGPRINT("TAP-WIN32 device opened: %s\n",
+		USERMODEDEVICEDIR "{1B1F9D70-50B7-4F45-AA4A-ABD17451E736}" TAPSUFFIX);
+	if(mHAdapter == INVALID_HANDLE_VALUE) {
 		return false;
+	}
+
+	/* get driver version info */
+	{
+		ULONG info[3];
+		if (DeviceIoControl (mHAdapter, TAP_IOCTL_GET_VERSION,
+			&info, sizeof (info), &info, sizeof (info), &len, NULL))
+		{
+			DEBUGPRINT("TAP-Win32 Driver Version %d.%d %s\n",
+				info[0], info[1], (info[2] ? "(DEBUG)" : ""));
+		}
+		if ( !(info[0] > TAP_WIN32_MIN_MAJOR
+			|| (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)) )
+		{
+#define PACKAGE_NAME "Dolphin"
+			DEBUGPRINT("ERROR:  This version of " PACKAGE_NAME " requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your " PACKAGE_NAME " distribution, a reboot is probably required at this point to get Windows to see the new driver.\n",
+				TAP_WIN32_MIN_MAJOR,
+				TAP_WIN32_MIN_MINOR);
+			return false;
+		}
+	}
+
+	/* get driver MTU */
+	{
+		if(!DeviceIoControl(mHAdapter, TAP_IOCTL_GET_MTU,
+			&mMtu, sizeof (mMtu), &mMtu, sizeof (mMtu), &len, NULL))
+		{
+			return false;
+		}
+		DEBUGPRINT("TAP-Win32 MTU=%d (ignored)\n", mMtu);
+	}
+
+	/* set driver media status to 'connected' */
+	{
+		ULONG status = TRUE;
+		if (!DeviceIoControl (mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS,
+			&status, sizeof (status), &status, sizeof (status), &len, NULL))
+		{
+			DEBUGPRINT("WARNING: The TAP-Win32 driver rejected a TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.\n");
+			return false;
+		}
+	}
+
+	//set up recv event
+	mHRecvEvent = CreateEvent(NULL, false, false, NULL);
+	//ZERO_OBJECT(mReadOverlapped);
+	resume();
+
+	DEBUGPRINT("Success!\n\n");
+	return true;
 	//TODO: Activate Device!
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
@@ -45,17 +121,16 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 		DEBUGPRINT( "%02X", etherpckt[a]);
 	}
 	DEBUGPRINT( " : Size: %d\n", size);
-	//fwrite(etherpckt, size, size, raw_socket);
-	/*DWORD numBytesWrit;
+	DWORD numBytesWrit;
 	OVERLAPPED overlap;
-	ZERO_OBJECT(overlap);
+	//ZERO_OBJECT(overlap);
 	//overlap.hEvent = mHRecvEvent;
-	TGLE(WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap));
+	WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap);
 	if(numBytesWrit != size) 
 	{
-		DEGUB("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
-		FAIL(UE_BBA_ERROR);
-	}*/
+		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
+		return false;
+	}
 	recordSendComplete();
 	//exit(0);
 	return true;
@@ -64,4 +139,62 @@ bool CEXIETHERNET::handleRecvdPacket()
 {
 	DEBUGPRINT(" Handle received Packet!\n");
 	exit(0);
+}
+bool CEXIETHERNET::resume() {
+	if(!isActivated())
+		return true;
+	DEBUGPRINT("BBA resume\n");
+	//mStop = false;
+	RegisterWaitForSingleObject(&mHReadWait, mHRecvEvent, ReadWaitCallback,
+		this, INFINITE, WT_EXECUTEDEFAULT);//WT_EXECUTEINWAITTHREAD
+	mReadOverlapped.hEvent = mHRecvEvent;
+	if(mBbaMem[BBA_NCRA] & BBA_NCRA_SR) {
+		startRecv();
+	}
+	DEBUGPRINT("BBA resume complete\n");
+	return true;
+}
+bool CEXIETHERNET::startRecv() {
+	if(!isActivated())
+		return false;// Should actually be an assert
+	DEBUGPRINT("startRecv... ");
+	if(mWaiting) {
+		DEBUGPRINT("already waiting\n");
+		return true;
+	}
+	DWORD BytesRead = 0;
+	DWORD *Buffer = (DWORD *)malloc(2048); // Should be enough
+	DWORD res = ReadFile(mHAdapter, Buffer, BytesRead,
+		&mRecvBufferLength, &mReadOverlapped);
+	mRecvBuffer.write(BytesRead, Buffer);
+	free(Buffer);
+	if(res) {	//Operation completed immediately
+		DEBUGPRINT("completed, res %i\n", res);
+		mWaiting = true;
+	} else {
+		res = GetLastError();
+		if (res == ERROR_IO_PENDING) {	//'s ok :)
+			DEBUGPRINT("pending\n");
+			//WaitCallback will be called
+			mWaiting = true;
+		}	else {	//error occurred
+			return false;
+		}
+	}
+	return true;
+}
+VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired) {
+	static int sNumber = 0;
+	int cNumber = sNumber++;
+	DEBUGPRINT("WaitCallback %i\n", cNumber);
+	if(TimerFired)
+		return;
+	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
+	if(self->mHAdapter == INVALID_HANDLE_VALUE)
+		return;
+	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
+		&self->mRecvBufferLength, false);
+	self->mWaiting = false;
+	self->handleRecvdPacket();
+	DEBUGPRINT("WaitCallback %i done\n", cNumber);
 }
