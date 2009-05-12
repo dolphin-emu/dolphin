@@ -133,33 +133,6 @@ void CEXIETHERNET::recordSendComplete()
 	mPacketsSent++;
 }
 
-bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
-{
-	DEBUGPRINT( "Packet: 0x");
-	for(int a = 0; a < size; ++a)
-	{
-		DEBUGPRINT( "%02X", etherpckt[a]);
-	}
-	DEBUGPRINT( " : Size: %d\n", size);
-	/*DWORD numBytesWrit;
-	OVERLAPPED overlap;
-	ZERO_OBJECT(overlap);
-	//overlap.hEvent = mHRecvEvent;
-	TGLE(WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap));
-	if(numBytesWrit != size) 
-	{
-		DEGUB("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
-		FAIL(UE_BBA_ERROR);
-	}*/
-	recordSendComplete();
-	//exit(0);
-	return true;
-}
-bool CEXIETHERNET::handleRecvdPacket() 
-{
-	DEBUGPRINT(" Handle received Packet!\n");
-	exit(0);
-}
 bool CEXIETHERNET::checkRecvBuffer() 
 {
 	if(mRecvBufferLength != 0) 

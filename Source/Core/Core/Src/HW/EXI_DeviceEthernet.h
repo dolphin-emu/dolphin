@@ -18,6 +18,7 @@
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
 
+void DEBUGPRINT (const char * format, ...);
 class WriteBuffer {
 public:
 	WriteBuffer(u32 s) :_size(0) { _buffer = (u8*)malloc(s*sizeof(u8)); ucapacity = s;}

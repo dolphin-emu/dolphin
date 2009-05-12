@@ -18,6 +18,8 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
+	#include <sys/socket.h>
+#include <netinet/in.h>
 bool CEXIETHERNET::deactivate()
 {
 	return true;
@@ -35,4 +37,44 @@ bool CEXIETHERNET::activate() {
 	else
 		return false;
 	//TODO: Activate Device!
+}
+bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
+{
+	DEBUGPRINT( "Packet: 0x");
+	for(int a = 0; a < size; ++a)
+	{
+		DEBUGPRINT( "%02X", etherpckt[a]);
+	}
+	DEBUGPRINT( " : Size: %d\n", size);
+	int raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_TCP); 
+	DEBUGPRINT("Raw socket is : %d\n", raw_socket);
+	int sm=1;
+	const int *val=&sm;
+	int result = setsockopt(raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof(sm)); 
+	DEBUGPRINT("Result is : %d\n", result);
+	int numBytesWrit = write(raw_socket, etherpckt, size);
+	if(numBytesWrit != size)
+	{
+		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
+		return false;
+	}
+	//fwrite(etherpckt, size, size, raw_socket);
+	/*DWORD numBytesWrit;
+	OVERLAPPED overlap;
+	ZERO_OBJECT(overlap);
+	//overlap.hEvent = mHRecvEvent;
+	TGLE(WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap));
+	if(numBytesWrit != size) 
+	{
+		DEGUB("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
+		FAIL(UE_BBA_ERROR);
+	}*/
+	recordSendComplete();
+	//exit(0);
+	return true;
+}
+bool CEXIETHERNET::handleRecvdPacket() 
+{
+	DEBUGPRINT(" Handle received Packet!\n");
+	exit(0);
 }
