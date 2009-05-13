@@ -80,9 +80,7 @@ void Config::Load()
     
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
-    //iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
-	//iniFile.Get("Hacks", "Hack", &bHack, false);
 }
 
 void Config::GameIniLoad() {
@@ -102,17 +100,11 @@ void Config::GameIniLoad() {
 	if (iniFile->Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile->Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 
-	//if (iniFile->Exists("Video", "ProjectionHax1")) 
-	//	iniFile->Get("Video", "ProjectionHax1", &bProjectionHax1, 0);
-
 	if (iniFile->Exists("Video", "EFBToTextureEnable"))
 		iniFile->Get("Video", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 
 	if (iniFile->Exists("Video", "SafeTextureCache"))
 		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
-
-   // if (iniFile->Exists("Video", "SMGhack"))
-   //     iniFile->Get("Video", "SMGhack", &bSMGhack, false); 
 
 	if (iniFile->Exists("Video", "MSAA"))
 		iniFile->Get("Video", "MSAA", &iMultisampleMode, 0);
@@ -173,9 +165,7 @@ void Config::Save()
     
     iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
-    //iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
-	//iniFile.Set("Hacks", "SMGhack", bSMGhack);
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

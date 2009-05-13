@@ -43,7 +43,6 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
-	EVT_CHOICE(ID_HACK, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
@@ -278,7 +277,6 @@ void CISOProperties::CreateGUIControls()
 	}
 	// Video
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
-	ProjHack1 = new wxCheckBox(m_GameConfig, ID_PROJHACK1, _("Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -287,15 +285,16 @@ void CISOProperties::CreateGUIControls()
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Hack
-	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Hack for: "), wxDefaultPosition, wxDefaultSize);
+	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Hack.Add(_("None"));
-	arrayStringFor_Hack.Add(_("Zelda Twighlight Princess Bloom hack"));
+	arrayStringFor_Hack.Add(_("Zelda Twilight Princess Bloom hack"));
 	arrayStringFor_Hack.Add(_("Super Mario Galaxy"));
 	arrayStringFor_Hack.Add(_("Mario Kart Wii"));
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
 	arrayStringFor_Hack.Add(_("Final Fantasy CC Echo of Time"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
+
 	
 	//HLE Audio
 	sbHLEaudioOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("HLE Audio"));
@@ -323,7 +322,6 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(ProjHack1, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
@@ -613,7 +611,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
 
-
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -623,12 +620,6 @@ void CISOProperties::LoadGameConfig()
 		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
-
-
-	if (GameIni.Get("Video", "ProjectionHax1", &bTemp))
-		ProjHack1->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		ProjHack1->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Video", "ForceFiltering", &bTemp))
 		ForceFiltering->Set3StateValue((wxCheckBoxState)bTemp);
@@ -671,19 +662,9 @@ void CISOProperties::LoadGameConfig()
 		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
 	
 	GameIni.Get("Video", "Hack", &iTemp, -1);
-	if (iTemp == -1)
-	{
-		iTemp = 0;
-		bRefreshList = true;
-	}
 	Hack->SetSelection(iTemp);
 
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
-	if (iTemp == -1)
-	{
-		iTemp = 0;
-		bRefreshList = true;
-	}
 	EmuState->SetSelection(iTemp);
 
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
@@ -730,12 +711,6 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
-
-	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "ProjectionHax1");
-	else
-		GameIni.Set("Video", "ProjectionHax1", ProjHack1->Get3StateValue());
-
 	if (ForceFiltering->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ForceFiltering");
 	else
@@ -750,11 +725,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "EFBCopyDisableHotKey");
 	else
 		GameIni.Set("Video", "EFBCopyDisableHotKey", EFBCopyDisableHotKey->Get3StateValue());
-
-	if (ProjHack1->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "ProjectionHax1");
-	else
-		GameIni.Set("Video", "ProjectionHax1", ProjHack1->Get3StateValue());
 
 	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBToTextureEnable");
@@ -781,7 +751,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
-	GameIni.Set("Video", "Hack", EmuState->GetSelection());
+	GameIni.Set("Video", "Hack", Hack->GetSelection());
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
 

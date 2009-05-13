@@ -125,7 +125,6 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
 		wxCheckBox *m_EFBCopyDisableHotKey;
-		//wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_Hack;
 		wxCheckBox *m_SafeTextureCache;
 		// Screen size

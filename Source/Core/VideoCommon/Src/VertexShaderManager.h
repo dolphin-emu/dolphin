@@ -28,7 +28,7 @@ public:
     static void Shutdown();
 
     // constant management
-	static void SetConstants(bool proj_hax_1, bool Hack_hack1, float Hack_value1, bool Hack_hack2, float Hack_value2, bool freeLook);
+	static void SetConstants(bool Hack_hack1, float Hack_value1, bool Hack_hack2, float Hack_value2, bool freeLook);
 
     static void SetViewport(float* _Viewport);
     static void SetViewportChanged();

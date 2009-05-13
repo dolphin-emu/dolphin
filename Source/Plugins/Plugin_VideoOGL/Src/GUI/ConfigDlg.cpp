@@ -364,12 +364,10 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("ZTP Bloom hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	//m_Hack = new wxCheckBox(m_PageAdvanced, ID_HACK, wxT("Mario Galaxy Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
 	m_PhackvalueCB->Append(wxT("None"));
-	m_PhackvalueCB->Append(wxT("Zelda Twighlight Princess Bloom hack"));
+	m_PhackvalueCB->Append(wxT("Zelda Twilight Princess Bloom hack"));
 	m_PhackvalueCB->Append(wxT("Super Mario Galaxy"));
 	m_PhackvalueCB->Append(wxT("Mario Kart Wii"));
 	m_PhackvalueCB->Append(wxT("Sonic and the Black Knight"));
@@ -379,25 +377,19 @@ void ConfigDialog::CreateGUIControls()
 
 	// Default values
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
-	//m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
-	//m_Hack->SetValue(g_Config.bHack);
 
 	// Tool tips
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
 		"\n[This option will apply immediately and does not require a restart. However it may not"
 		" be entirely safe to change it midgames.]"));
-	//m_ProjectionHax1->SetToolTip(wxT("This should get ZTP's Bloom to show"));
+
     m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,"
 		"\nDisabling it may speed up some games, but could also cause glitches."));
 	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
-	//m_SMGh->SetToolTip(wxT("SMG hack for Super Mario Galaxy, Mario Kart Wii and other game probably  it will be disable for other game and during SMG ending sequence or movies use the M key to turn this option on or off"));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
-	//sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_SafeTextureCache, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-
-	//sHacks->Add(m_Hack, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_PhackvalueCB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
@@ -601,9 +593,6 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
 		break;
 	// Hacks
-	/*case ID_PROJECTIONHACK1:
-		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
-		break;*/
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;

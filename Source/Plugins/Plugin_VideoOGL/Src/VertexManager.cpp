@@ -281,7 +281,7 @@ void Flush()
 		Renderer::SetRenderMode(Renderer::RM_Normal);
 
 	// set global constants
-    VertexShaderManager::SetConstants(g_Config.bProjectionHax1, g_Config.bPhackvalue1, g_Config.fhackvalue1, g_Config.bPhackvalue2, g_Config.fhackvalue2, g_Config.bFreeLook);
+    VertexShaderManager::SetConstants(g_Config.bPhackvalue1, g_Config.fhackvalue1, g_Config.bPhackvalue2, g_Config.fhackvalue2, g_Config.bFreeLook);
 	PixelShaderManager::SetConstants();
 
 	// finally bind

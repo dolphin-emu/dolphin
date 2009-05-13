@@ -84,7 +84,7 @@ class CISOProperties : public wxDialog
 		// Wii
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
 		// Video
-		wxCheckBox *ProjHack1, *ForceFiltering,
+		wxCheckBox *ForceFiltering,
 			*EFBCopyDisable, *EFBCopyDisableHotKey, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB;
 		wxStaticText *Hacktext;
@@ -158,7 +158,6 @@ class CISOProperties : public wxDialog
 			ID_USEDUALCORE,
 			ID_IDLESKIP,
 			ID_TLBHACK,
-			ID_PROJHACK1,
 			ID_FORCEFILTERING,
 			ID_EFBCOPYDISABLE,
 			ID_EFBCOPYDISABLEHOTKEY,

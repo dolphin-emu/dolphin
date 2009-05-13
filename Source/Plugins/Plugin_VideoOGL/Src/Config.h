@@ -93,7 +93,6 @@ struct Config
     // Hacks
     bool bEFBCopyDisable;
     bool bEFBCopyDisableHotKey;
-    bool bProjectionHax1;
 	bool bHack;
 	bool bCopyEFBToRAM;
     bool bSafeTextureCache;
