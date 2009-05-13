@@ -19,24 +19,82 @@
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
 	#include <sys/socket.h>
-#include <netinet/in.h>
+	#include <netinet/in.h>
+	#include <stropts.h>
+	#include <stdio.h>
+	#include <fcntl.h>
+	#include <sys/ioctl.h>
+	#include <net/if.h>  
+	#include <linux/if_tun.h>
+	int fd = -1;
 bool CEXIETHERNET::deactivate()
 {
+	close(fd);
+	fd = -1;
 	return true;
-	// TODO: Actually deactivate
 }
 bool CEXIETHERNET::isActivated()
 { 
-	return false;
-	//TODO: Never Activated Yet!
+	return fd != -1 ? true : false;
 }
 
 bool CEXIETHERNET::activate() {
 	if(isActivated())
 		return true;
-	else
+	if( (fd = open("/dev/net/tun", O_RDWR)) < 0)
+	{
+		DEBUGPRINT("Couldn't Open device\n");
 		return false;
-	//TODO: Activate Device!
+	}
+	struct ifreq ifr;
+	int err;
+	
+	memset(&ifr, 0, sizeof(ifr));
+	ifr.ifr_flags = IFF_TAP;
+	
+	strncpy(ifr.ifr_name, "Dolphin", IFNAMSIZ);
+	
+	if( (err = ioctl(fd, TUNSETIFF, (void*) &ifr)) < 0)
+	{
+		close(fd);
+		fd = -1;
+		DEBUGPRINT(" Error with IOCTL: 0x%X\n", err);
+		return false;
+	}
+	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
+	return true;
+	
+}
+bool CEXIETHERNET::startRecv() {
+	DEBUGPRINT("Start Receive!\n");
+	exit(0);
+	/*if(!isActivated())
+		return false;// Should actually be an assert
+	DEBUGPRINT("startRecv... ");
+	if(mWaiting) {
+		DEBUGPRINT("already waiting\n");
+		return true;
+	}
+	DWORD BytesRead = 0;
+	DWORD *Buffer = (DWORD *)malloc(2048); // Should be enough
+	DWORD res = ReadFile(mHAdapter, Buffer, BytesRead,
+		&mRecvBufferLength, &mReadOverlapped);
+	mRecvBuffer.write(BytesRead, Buffer);
+	free(Buffer);
+	if(res) {	//Operation completed immediately
+		DEBUGPRINT("completed, res %i\n", res);
+		mWaiting = true;
+	} else {
+		res = GetLastError();
+		if (res == ERROR_IO_PENDING) {	//'s ok :)
+			DEBUGPRINT("pending\n");
+			//WaitCallback will be called
+			mWaiting = true;
+		}	else {	//error occurred
+			return false;
+		}
+	}
+	return true;*/
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
@@ -46,18 +104,14 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 		DEBUGPRINT( "%02X", etherpckt[a]);
 	}
 	DEBUGPRINT( " : Size: %d\n", size);
-	int raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_TCP); 
-	DEBUGPRINT("Raw socket is : %d\n", raw_socket);
-	int sm=1;
-	const int *val=&sm;
-	int result = setsockopt(raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof(sm)); 
-	DEBUGPRINT("Result is : %d\n", result);
-	int numBytesWrit = write(raw_socket, etherpckt, size);
+	int numBytesWrit = write(fd, etherpckt, size);
 	if(numBytesWrit != size)
 	{
 		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
 		return false;
 	}
+	else
+		DEBUGPRINT("Sent out the correct number of bytes: %d\n", size);
 	//fwrite(etherpckt, size, size, raw_socket);
 	/*DWORD numBytesWrit;
 	OVERLAPPED overlap;

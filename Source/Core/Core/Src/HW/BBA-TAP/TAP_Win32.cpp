@@ -137,8 +137,12 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	DWORD numBytesWrit;
 	OVERLAPPED overlap;
 	//ZERO_OBJECT(overlap);
-	//overlap.hEvent = mHRecvEvent;
-	WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap);
+	overlap.hEvent = mHRecvEvent;
+	if(!WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap))
+	{ // Fail Boat
+		DWORD res = GetLastError();
+		DEBUGPRINT("Failed to send packet with error 0x%X\n", res);
+	}
 	if(numBytesWrit != size) 
 	{
 		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);

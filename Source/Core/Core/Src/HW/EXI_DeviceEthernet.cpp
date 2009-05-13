@@ -23,7 +23,7 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 
-//#define SONICDEBUG
+#define SONICDEBUG
 
 void DEBUGPRINT (const char * format, ...)
 {
@@ -95,7 +95,6 @@ CEXIETHERNET::CEXIETHERNET() :
 	
 	Expecting = EXPECT_NONE;
 	mExpectVariableLengthImmWrite = false;
-	mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 }
 
 void CEXIETHERNET::SetCS(int cs)
@@ -130,10 +129,10 @@ bool CEXIETHERNET::IsInterruptSet()
 
 void CEXIETHERNET::recordSendComplete() 
 {
-	mBbaMem[0x00] &= ~0x06;
+	mBbaMem[BBA_NCRA] &= ~0x06;
 	if(mBbaMem[0x08] & BBA_INTERRUPT_SENT) 
 	{
-		mBbaMem[0x09] |= BBA_INTERRUPT_SENT;
+		mBbaMem[BBA_IR] |= BBA_INTERRUPT_SENT;
 		DEBUGPRINT( "\t\tBBA Send interrupt raised\n");
 		//exit(0);
 		m_bInterruptSet = true;
@@ -155,6 +154,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	DEBUGPRINT( "IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
 	if (mExpectVariableLengthImmWrite) 
 	{
+		DEBUGPRINT("Variable Length IMM Write: Size: %d _uData: 0x%08X swapped: 0x%08X\n", _uSize, _uData, Common::swap32(_uData));
+		// TODO: Use Swapped or unswapped?
 		if(_uSize == 4)
 		{
 			_uData = Common::swap32(_uData);
@@ -218,16 +219,15 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 						exit(0);
 						//throw hardware_fatal_exception("BBA Transmit without a packet!");
 					}
-					// TODO: Actually Make it send a packet
 					sendPacket(mWriteBuffer.p(), mWriteBuffer.size());
 					mReadyToSend = false;
 					//exit(0);
 				}
-				mBbaMem[0x00] = MAKE(u8, SwappedData);
+				mBbaMem[BBA_NCRA] = MAKE(u8, SwappedData);
 			}
 				break;
 			case BBA_NWAYC:
-				DEBUGPRINT( "\t[INFO]BBA_NWAYCn");
+				DEBUGPRINT( "\t[INFO]BBA_NWAYC\n");
 				if(Common::swap32(_uData) & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
 				{
 					DEBUGPRINT("ACTIVATING!\n");
@@ -242,7 +242,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				//exit(0);
 				assert(_uSize == 2 || _uSize == 1);
 				mRBRPP = (u8)_uData << 8;	//Whinecube: I hope this works with both write sizes.
-				mRBEmpty = mRBRPP == ((u32)mCbw.p_write() + CB_OFFSET);
+				mRBEmpty = (mRBRPP == ((u32)mCbw.p_write() + CB_OFFSET));
 				checkRecvBuffer();
 				break;
 			case BBA_RWP:	//RWP - Receive Buffer Write Page Pointer
@@ -388,8 +388,6 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		}
 		u32 uResult = 0;
 		memcpy(&uResult, mBbaMem + mReadP, _uSize);
-		if(mReadP == 0x31)
-			uResult = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY |BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 		// TODO: We do as well?
 		uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
 		
@@ -410,7 +408,7 @@ void CEXIETHERNET::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 	if(mExpectVariableLengthImmWrite) 
 	{
-		DEBUGPRINT("Address is 0x%x and size is 0x%x\n", _uAddr, _uSize);
+		DEBUGPRINT("DMA Write: Address is 0x%x and size is 0x%x\n", _uAddr, _uSize);
 		mWriteBuffer.write(_uSize, Memory::GetPointer(_uAddr));
 		return;
 	} 

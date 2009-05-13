@@ -123,13 +123,14 @@ private:
 	bool isActivated();
 	bool resume();
 	bool startRecv();
+	
+	volatile bool mWaiting;
 #ifdef _WIN32
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
 	DWORD mMtu;
 	OVERLAPPED mReadOverlapped;
 	WriteBuffer mRecvBuffer;
 	DWORD mRecvBufferLength;
-	volatile bool mWaiting;
 	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
 #endif
 
