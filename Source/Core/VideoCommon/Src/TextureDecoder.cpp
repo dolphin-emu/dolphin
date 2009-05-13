@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <cmath>
+
 #include "Common.h"
 //#include "VideoCommon.h" // to get debug logs
 
@@ -292,14 +294,15 @@ inline u32 makecol(int r, int g, int b, int a)
 
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
+	// S3TC Decoder (Note: GCN decodes differently from PC)
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
     int blue1 = lut5to8[c1 & 0x1F];
     int blue2 = lut5to8[c2 & 0x1F];
-    int green1 = lut6to8[(c1>>5) & 0x3F];
-    int green2 = lut6to8[(c2>>5) & 0x3F];
-    int red1 = lut5to8[(c1>>11) & 0x1F];
-    int red2 = lut5to8[(c2>>11) & 0x1F];
+    int green1 = lut6to8[(c1 >> 5) & 0x3F];
+    int green2 = lut6to8[(c2 >> 5) & 0x3F];
+    int red1 = lut5to8[(c1 >> 11) & 0x1F];
+    int red2 = lut5to8[(c2 >> 11) & 0x1F];
     
     int colors[4];
 
@@ -312,11 +315,10 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
     }
     else
     {
-        colors[0] = makecol(red1, green1, blue1, 255);
-        colors[1] = makecol(red2, green2, blue2, 255);
-        colors[2] = makecol((red1+red2)/2, (green1+green2)/2, (blue1+blue2)/2, 255);
-		// Not sure whether to use color 1 or 2 here. Let's try the average :P
-        colors[3] = makecol((red1+red2)/2, (green1+green2)/2, (blue1+blue2)/2, 0);  // 0 alpha, transparent
+        colors[0] = makecol(red1, green1, blue1, 255); // Color 1
+        colors[1] = makecol(red2, green2, blue2, 255); // Color 2
+        colors[2] = makecol((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255); // Average
+        colors[3] = makecol(red2, green2, blue2, 0);  // Color2 but transparent
     }
 
     for (int y = 0; y < 4; y++)
