@@ -344,21 +344,20 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
 		if(numupd > 64) numupd = 64; // prevent crazy values
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-		const u16 updpar   = 0;
-		const u16 upddata   = 0;
 		int on = false, off = false;
 
 		for (int j = 0; j < numupd; j++)
-		{	
-			if(!g_Config.m_EnableRE0Fix)
-			{
-				const u16 updpar   = Memory_Read_U16(updaddr + j);
-				const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
-			}
-			else
+		{
+			const u16 updpar   = Memory_Read_U16(updaddr + j);
+			const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+			if(g_Config.m_EnableRE0Fix)
 			{
 				const u16 updpar   = Memory_Read_U16(updaddr);
 				const u16 upddata   = Memory_Read_U16(updaddr + 2);
+			}
+			else
+			{
+				// Do nothing for now
 			}		
 
 
