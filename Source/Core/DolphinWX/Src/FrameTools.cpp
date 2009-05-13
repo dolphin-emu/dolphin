@@ -29,7 +29,7 @@ Core::GetWindowHandle().
 */
 
 
-#if defined(HAVE_SFML) && HAVE_SFML
+#if defined(HAVE_SFML) && HAVE_SFML || defined(_WIN32)
 #include "NetWindow.h"
 #endif
 

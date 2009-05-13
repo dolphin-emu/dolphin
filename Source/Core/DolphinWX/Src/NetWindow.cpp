@@ -137,7 +137,8 @@ void NetPlay::DrawGUI()
 	}
 
 	netmodes_str.Add(wxT("P2P Versus (2 players, faster)"));
-	netmodes_str.Add(wxT("Server Mode (4 players, slower)"));
+	// TODO :
+	// netmodes_str.Add(wxT("Server Mode (4 players, slower)"));
 
 	// Tabs
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -148,7 +149,7 @@ void NetPlay::DrawGUI()
 
 	// Nickname setting
 	m_SetNick_text = new wxStaticText(this, ID_SETNICK_TXT, wxT("  Nickname : "), wxDefaultPosition, wxDefaultSize);
-	m_SetNick = new wxTextCtrl(this, ID_SETNICK, wxT("Mingebag(r)"), wxDefaultPosition, wxDefaultSize, 0);
+	m_SetNick = new wxTextCtrl(this, ID_SETNICK, wxT("Mingebag"), wxDefaultPosition, wxDefaultSize, 0);
 	m_NetMode = new wxChoice(this, ID_NETMODE, wxDefaultPosition, wxDefaultSize, netmodes_str, 0, wxDefaultValidator);
 	m_NetMode->SetSelection(0);
 	
