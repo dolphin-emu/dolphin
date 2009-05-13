@@ -23,7 +23,7 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 
-#define SONICDEBUG
+//#define SONICDEBUG
 
 void DEBUGPRINT (const char * format, ...)
 {
@@ -79,9 +79,15 @@ CEXIETHERNET::CEXIETHERNET() :
 	ID = 0x04020200;
 	mWriteP = INVALID_P;
 	mReadP = INVALID_P;
+	mWaiting = false;
 	mReadyToSend = false;
 	Activated = false;
 	m_bInterruptSet = false;
+#ifdef _WIN32
+	mHAdapter = INVALID_HANDLE_VALUE;
+	mHRecvEvent = INVALID_HANDLE_VALUE;
+	mHReadWait = INVALID_HANDLE_VALUE;
+#endif
 	
 	mRecvBufferLength = 0;
 	
@@ -199,9 +205,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				if (RISE(BBA_NCRA_SR) && isActivated())
 				{
 					DEBUGPRINT( "\t[INFO]BBA Start Recieve\n");
-					exit(0);
+					//exit(0);
 					// TODO: Need to make our virtual network device start receiving
-					//HWGLE(startRecv());
+					startRecv();
 				}
 				if (RISE(BBA_NCRA_ST1)) 
 				{
@@ -222,8 +228,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				break;
 			case BBA_NWAYC:
 				DEBUGPRINT( "\t[INFO]BBA_NWAYCn");
-				if(_uData & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
+				if(Common::swap32(_uData) & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
 				{
+					DEBUGPRINT("ACTIVATING!\n");
 					activate();
 					//say we've successfully negotiated for 10 Mbit full duplex
 					//should placate libogc

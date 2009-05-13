@@ -23,13 +23,19 @@
 
 bool CEXIETHERNET::deactivate()
 {
+	DEBUGPRINT("Deactivating BBA...\n");
+	if(!isActivated())
+		return true;
+	CloseHandle(mHRecvEvent);
+	mHRecvEvent = INVALID_HANDLE_VALUE;
+	CloseHandle(mHAdapter);
+	mHAdapter = INVALID_HANDLE_VALUE;
+	DEBUGPRINT("Success!\n");
 	return true;
-	// TODO: Actually deactivate
 }
 bool CEXIETHERNET::isActivated()
 { 
-	return false;
-	//TODO: Never Activated Yet!
+	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
 bool CEXIETHERNET::activate() {
@@ -54,12 +60,14 @@ if(isActivated())
 #endif	//0
 
 	mHAdapter = CreateFile (/*device_path*/
-		USERMODEDEVICEDIR "{1B1F9D70-50B7-4F45-AA4A-ABD17451E736}" TAPSUFFIX,
+		//{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}
+		USERMODEDEVICEDIR "{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}" TAPSUFFIX,
 		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
 		FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
 	DEBUGPRINT("TAP-WIN32 device opened: %s\n",
-		USERMODEDEVICEDIR "{1B1F9D70-50B7-4F45-AA4A-ABD17451E736}" TAPSUFFIX);
+		USERMODEDEVICEDIR "{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}" TAPSUFFIX);
 	if(mHAdapter == INVALID_HANDLE_VALUE) {
+		DEBUGPRINT("mHAdapter is invalid\n");
 		return false;
 	}
 
@@ -88,6 +96,7 @@ if(isActivated())
 		if(!DeviceIoControl(mHAdapter, TAP_IOCTL_GET_MTU,
 			&mMtu, sizeof (mMtu), &mMtu, sizeof (mMtu), &len, NULL))
 		{
+			DEBUGPRINT("Couldn't get device MTU");
 			return false;
 		}
 		DEBUGPRINT("TAP-Win32 MTU=%d (ignored)\n", mMtu);
@@ -101,6 +110,10 @@ if(isActivated())
 		{
 			DEBUGPRINT("WARNING: The TAP-Win32 driver rejected a TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.\n");
 			return false;
+		}
+		else
+		{
+			DEBUGPRINT("TAP-WIN32 status as Connected\n");
 		}
 	}
 

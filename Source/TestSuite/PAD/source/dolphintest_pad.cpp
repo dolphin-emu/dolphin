@@ -28,7 +28,6 @@ int main()
 
 	while(1)
 	{
-		VIDEO_ClearFrameBuffer(rmode, xfb, 0);
 		std::cout<<"\x1b[0;0H"; // Position the cursor (at 0, 0)
 		PAD_Read(pad);
 		for(int a = 0; a < 4;a ++)
