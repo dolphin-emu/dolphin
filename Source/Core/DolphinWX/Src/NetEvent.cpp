@@ -216,7 +216,7 @@ void ServerSide::OnServerData(char sock, unsigned char data)
 
 				wxString error_str = wxString::Format(
 					wxT("WARNING : Player %s does Not have this Game !\n"), m_client[sock].nick.c_str());
-				four_bytes = error_str.size();
+				four_bytes = (int)error_str.size();
 
 				for (char i=0; i < 2; i++)
 					Event->AppendText(error_str);

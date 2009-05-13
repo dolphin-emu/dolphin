@@ -335,7 +335,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 			{
 				if (m_numClients > 0)
 				{
-					int buffer_size = buffer.size();
+					int buffer_size = (int)buffer.size();
 					for (int i=0; i < m_numClients ; i++)
 					{
 						m_sock_server->Write(i, (const char*)&value, 1);
@@ -407,7 +407,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 		{
 			value = 0x30;
 			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), m_nick.c_str(), m_Chat->GetValue().c_str());
-			int chat_size = chat_str.size(); 
+			int chat_size = (int)chat_str.size(); 
 
 			// If there's no distant connection, we write but we don't send
 			if (m_numClients == 0) {

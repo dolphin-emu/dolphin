@@ -156,7 +156,7 @@ void *ServerSide::Entry()
 
 						// Send disconnected message to all
 						unsigned char send = 0x11;
-						unsigned int str_size = player_left.size();
+						unsigned int str_size = (int)player_left.size();
 
 						for (int i=0; i < m_numplayers ; i++)
 						{
@@ -384,7 +384,7 @@ void *ClientSide::Entry()
 
 bool ClientSide::SyncValues()
 {
-	unsigned int buffer_size = m_nick.size();
+	unsigned int buffer_size = (int)m_nick.size();
 	char *buffer = NULL;
 	size_t recv_size;
 

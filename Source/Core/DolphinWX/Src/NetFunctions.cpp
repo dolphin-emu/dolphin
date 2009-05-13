@@ -343,7 +343,7 @@ void NetPlay::ChangeSelectedGame(std::string game)
 	if (game != m_selectedGame)
 	{
 		unsigned char value = 0x35;
-		int game_size = game.size();
+		int game_size = (int)game.size();
 
 		// Send command then Game String
 		for (int i=0; i < m_numClients ; i++)
