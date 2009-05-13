@@ -348,17 +348,23 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 		for (int j = 0; j < numupd; j++)
 		{
-			const u16 updpar   = Memory_Read_U16(updaddr + j);
-			const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+			int k = 0;
+
 			if(g_Config.m_EnableRE0Fix)
 			{
-				const u16 updpar   = Memory_Read_U16(updaddr);
-				const u16 upddata   = Memory_Read_U16(updaddr + 2);
+				k=j;
 			}
 			else
 			{
-				// Do nothing for now
-			}		
+				k=0;
+			}
+
+
+			const u16 updpar   = Memory_Read_U16(updaddr + k);
+			const u16 upddata   = Memory_Read_U16(updaddr + k + 2);
+
+			
+	
 
 
 			// some safety checks, I hope it's enough
