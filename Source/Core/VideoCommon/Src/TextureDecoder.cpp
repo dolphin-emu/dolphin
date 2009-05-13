@@ -185,80 +185,69 @@ struct DXTBlock
 };
 
 //inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC4(u32 *dst, const u8 *src, int tlutaddr, int tlutfmt)
+inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 {
     u16 *tlut = (u16*)(texMem + tlutaddr);
     for (int x = 0; x < 4; x++)
     {
-        int val = src[x];
-        switch (tlutfmt) {
-        case 0:
-            *dst++ = decodeIA8(Common::swap16(tlut[val >> 4]));
-            *dst++ = decodeIA8(Common::swap16(tlut[val & 15]));
-            break;
-        case 1:
-            *dst++ = decode565(Common::swap16(tlut[val >> 4]));
-            *dst++ = decode565(Common::swap16(tlut[val & 15]));
-            break;
-        case 2:
-            *dst++ = decode5A3(Common::swap16(tlut[val >> 4]));
-            *dst++ = decode5A3(Common::swap16(tlut[val & 15]));
-            break;
-        case 3: //ERROR
-            *dst++ = 0xFFFF00FF;
-            *dst++ = 0xFFFF00FF;
-            break;
-        }
+        u8 val = src[x];
+        *dst++ = decode5A3(Common::swap16(tlut[val >> 4]));
+        *dst++ = decode5A3(Common::swap16(tlut[val & 0xF]));
     }
 }
 
+inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
+{
+	u16* tlut = (u16*)(texMem+tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u8 val = src[x];
+		*dst++ = Common::swap16(tlut[val >> 4]);
+		*dst++ = Common::swap16(tlut[val & 0xF]);
+	}
+}
+
 //inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC8(u32 *dst, const u8 *src, int tlutaddr, int tlutfmt)
+inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 { 
     u16 *tlut = (u16*)(texMem+tlutaddr);
     for (int x = 0; x < 8; x++)
     {
-        int val = src[x];
-        switch (tlutfmt) {
-        case 0:
-            *dst++ = decodeIA8(Common::swap16(tlut[val]));
-            break;
-        case 1:
-            *dst++ = decode565(Common::swap16(tlut[val]));
-            break;
-        case 2:
-            *dst++ = decode5A3(Common::swap16(tlut[val]));
-            break;
-        case 3: //ERROR
-            *dst++ = 0xFFFF00FF;
-            break;
-        }
+        u8 val = src[x];
+        *dst++ = decode5A3(Common::swap16(tlut[val]));
     }
+}
+
+inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
+{
+	u16* tlut = (u16*)(texMem+tlutaddr);
+	for (int x = 0; x < 8; x++)
+	{
+		u8 val = src[x];
+		*dst++ = Common::swap16(tlut[val]);
+	}
 }
 
 
 //inline void decodebytesC14X2(u32 *dst, const u16 *src, int numpixels, int tlutaddr, int tlutfmt)
-inline void decodebytesC14X2(u32 *dst, const u16 *src, int tlutaddr, int tlutfmt)
+inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
 {
     u16 *tlut = (u16*)(texMem+tlutaddr);
     for (int x = 0; x < 4; x++)
     {
-        int val = Common::swap16(src[x]);
-        switch (tlutfmt) {
-        case 0:
-            *dst++ = decodeIA8(Common::swap16(tlut[(val&0x3FFF)]));
-            break;
-        case 1:
-            *dst++ = decode565(Common::swap16(tlut[(val&0x3FFF)]));
-            break;
-        case 2:
-            *dst++ = decode5A3(Common::swap16(tlut[(val&0x3FFF)]));
-            break;
-        case 3: //ERROR
-            *dst++ = 0xFFFF00FF;
-            break;
-        }
+        u16 val = Common::swap16(src[x]);
+		*dst++ = decode5A3(Common::swap16(tlut[(val&0x3FFF)]));
     }
+}
+
+inline void decodebytesC14X2_To_Raw16(u16* dst, const u16* src, int tlutaddr)
+{
+	u16* tlut = (u16*)(texMem+tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u16 val = Common::swap16(src[x]);
+		*dst++ = Common::swap16(tlut[(val&0x3FFF)]);
+	}
 }
 
 //inline void decodebytesIA4(u16 *dst, const u8 *src, int numbytes)
@@ -355,6 +344,18 @@ static void copyDXTBlock(u8* dst, const u8* src)
 	((u32*)dst)[1] = pixels;
 }
 
+static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
+{
+	switch (tlutfmt)
+	{
+	case 0: return PC_TEX_FMT_IA8;    // IA8
+	case 1: return PC_TEX_FMT_RGB565; // RGB565
+	case 2: return PC_TEX_FMT_BGRA32; // RGB5A3: This TLUT format requires
+		                              // extra work to decode.
+	}
+	return PC_TEX_FMT_NONE; // Error
+}
+
 
 //switch endianness, unswizzle
 //TODO: to save memory, don't blindly convert everything to argb8888
@@ -365,14 +366,22 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
     switch (texformat)
     {
     case GX_TF_C4:
+		if (tlutfmt == 2)
         {
+			// Special decoding is required for TLUT format 5A3
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 8; iy++, src += 4)
-                        //decodebytesC4((u32*)dst+(y+iy)*width+x, src, 4, tlutaddr, tlutfmt);
-                        decodebytesC4((u32*)dst+(y+iy)*width+x, src, tlutaddr, tlutfmt);
+                        decodebytesC4_5A3_To_BGRA32((u32*)dst+(y+iy)*width+x, src, tlutaddr);
         }
-        return PC_TEX_FMT_BGRA32;
+		else
+		{
+            for (int y = 0; y < height; y += 8)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 8; iy++, src += 4)
+                        decodebytesC4_To_Raw16((u16*)dst+(y+iy)*width+x, src, tlutaddr);
+		}
+        return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_I4:
 		{
 			for (int y = 0; y < height; y += 8)
@@ -385,7 +394,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 							dst[(y+iy)*width+x+ix*2+1] = lut4to8[val&15];
 						}
         }
-       return PC_TEX_FMT_I8;
+       return PC_TEX_FMT_I4_AS_I8;
 	case GX_TF_I8:  // speed critical
 		{
 			for (int y = 0; y < height; y += 4)
@@ -395,14 +404,22 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		}
 		return PC_TEX_FMT_I8;
     case GX_TF_C8:
+		if (tlutfmt == 2)
         {
+			// Special decoding is required for TLUT format 5A3
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesC8((u32*)dst+(y+iy)*width+x, src, 8, tlutaddr, tlutfmt);
-                        decodebytesC8((u32*)dst+(y+iy)*width+x, src, tlutaddr, tlutfmt);
+                        decodebytesC8_5A3_To_BGRA32((u32*)dst+(y+iy)*width+x, src, tlutaddr);
         }
-        return PC_TEX_FMT_BGRA32;
+		else
+		{
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC8_To_Raw16((u16*)dst+(y+iy)*width+x, src, tlutaddr);
+		}
+        return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_IA4:
         {
             for (int y = 0; y < height; y += 4)
@@ -412,7 +429,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
                         decodebytesIA4((u16*)dst+(y+iy)*width+x, src);
 					}
         }
-		return PC_TEX_FMT_IA8;
+		return PC_TEX_FMT_IA4_AS_IA8;
     case GX_TF_IA8:
         {
 			for (int y = 0; y < height; y += 4)
@@ -427,14 +444,22 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
         }
 		return PC_TEX_FMT_IA8;
     case GX_TF_C14X2: 
+		if (tlutfmt == 2)
         {
+			// Special decoding is required for TLUT format 5A3
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesC14X2((u32*)dst+(y+iy)*width+x, (u16*)src, 4, tlutaddr, tlutfmt);
-                        decodebytesC14X2((u32*)dst+(y+iy)*width+x, (u16*)src, tlutaddr, tlutfmt);
+                        decodebytesC14X2_5A3_To_BGRA32((u32*)dst+(y+iy)*width+x, (u16*)src, tlutaddr);
         }
-        return PC_TEX_FMT_BGRA32;
+		else
+		{
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC14X2_To_Raw16((u16*)dst+(y+iy)*width+x, (u16*)src, tlutaddr);
+		}
+		return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_RGB565:
 		{
 			for (int y = 0; y < height; y += 4)
@@ -565,7 +590,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 						break;
 					}
 				case PC_TEX_FMT_IA8:
-				case PC_TEX_FMT_IA4:
+				case PC_TEX_FMT_IA4_AS_IA8:
 					{
 						u16  *dtp = (u16*)dst;
 						dtp[(y+yoff)*width + x+xoff] = ptr[x]?0xFFFF:0xFF00;
