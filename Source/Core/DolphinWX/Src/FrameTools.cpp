@@ -17,24 +17,21 @@
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Windows
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-CFrame is the main parent window. Inside CFrame there is m_Panel which is the parent for
-the rendering window (when we render to the main window). In Windows the rendering window is
-created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
-child window to m_Panel. The new child window handle that is returned by CreateWindow() can
-be accessed from Core::GetWindowHandle().
+/*
+CFrame is the main parent window. Inside CFrame there is m_Panel which is the
+parent for the rendering window (when we render to the main window). In Windows
+the rendering window is created by giving CreateWindow() m_Panel->GetHandle()
+as parent window and creating a new child window to m_Panel. The new child
+window handle that is returned by CreateWindow() can be accessed from
+Core::GetWindowHandle().
+*/
 
-///////////////////////////////////////////////*/
 
-
-// ----------------------------------------------------------------------------
-// Includes
-// ----------------------------------------------------------------------------
-
+#if defined(HAVE_SFML) && HAVE_SFML
 #include "NetWindow.h"
+#endif
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -654,8 +651,12 @@ void CFrame::OnHelp(wxCommandEvent& event)
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
+#if defined(HAVE_SFML) && HAVE_SFML
+
 	new NetPlay(this, m_GameListCtrl->GetGamePaths(), m_GameListCtrl->GetGameNames());
+#endif
 }
+
 
 // Miscellaneous menu
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))

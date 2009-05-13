@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯
 #ifndef __FRAME_H_
 #define __FRAME_H_
 
@@ -26,12 +23,11 @@
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
 #include <wx/listctrl.h>
-////////////////////////////////
+
 #include "CDUtils.h"
 #include "LogWindow.h"
-//////////////////////////////////////////////////////////////////////////
+
 // A shortcut to access the bitmaps
-// ¯¯¯¯¯¯¯¯¯¯
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
 inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 {

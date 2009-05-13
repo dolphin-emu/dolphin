@@ -127,6 +127,8 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	memset(&PadStatus, 0, sizeof(PadStatus));
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+
+#if defined(HAVE_SFML) && HAVE_SFML
 	int NetPlay = GetNetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
 
 	if (NetPlay != 2)
@@ -140,7 +142,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		else
 			return false;
 	}
-
+#endif
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
 	_Hi |= (u32)((u16)PadStatus.button << 16);

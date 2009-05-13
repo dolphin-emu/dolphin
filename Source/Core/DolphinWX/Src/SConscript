@@ -43,7 +43,13 @@ if wxenv['HAVE_WX']:
                 ],
 
 	libs = [ 'debwx' ] + libs
-
+if wxenv['HAVE_SFML']:
+	files += [ 
+		'NetEvent.cpp',
+		'NetFunctions.cpp',
+		'NetSockets.cpp',
+		'NetWindow.cpp',
+		]
 
 if wxenv['HAVE_COCOA']:
     files += [ 'cocoaApp.m', ]
