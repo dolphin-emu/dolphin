@@ -18,6 +18,8 @@
 #ifndef _SI_DEVICEGCCONTROLLER_H
 #define _SI_DEVICEGCCONTROLLER_H
 
+#include "../PluginManager.h"
+
 //////////////////////////////////////////////////////////////////////////
 // standard gamecube controller
 //////////////////////////////////////////////////////////////////////////
@@ -79,6 +81,9 @@ public:
 
 	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+
+	// Send and Receive pad input from network
+	static int GetNetInput(u8 numPAD, SPADStatus, u32 *PADStatus);
 
 	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low);

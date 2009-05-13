@@ -20,6 +20,7 @@
 //
 // 3. This notice may not be removed or altered from any source distribution.
 //
+//  ** ALTERED SOURCE : replaced GetPublicAddress() **
 ////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
@@ -210,16 +211,24 @@ IPAddress IPAddress::GetPublicAddress()
     // (not very hard : the web page contains only our IP address)
 
     IPAddress PublicAddress;
+	std::string PageBody;
 
     // Connect to the web server and get its index page
-    Http Server("www.whatismyip.org");
+	// www.whatismyip.org is so slow that it time outs after ~60s
+	// better use this one instead, it is must faster... here :P
+    Http Server("www.monip.org");
     Http::Request Request(Http::Request::Get, "/");
     Http::Response Page = Server.SendRequest(Request);
 
     // If the request was successful, we can extract
     // the address from the body of the web page
     if (Page.GetStatus() == Http::Response::Ok)
-        PublicAddress = Page.GetBody();
+        PageBody = Page.GetBody();
+
+	size_t str_start = PageBody.find("IP : ", 0) + 5;
+	size_t str_end = PageBody.find('<', str_start);
+
+	PublicAddress = PageBody.substr(str_start, str_end - str_start);
 
     return PublicAddress;
 }

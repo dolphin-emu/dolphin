@@ -195,6 +195,8 @@ class CFrame : public wxFrame
 
 		void OnMemcard(wxCommandEvent& event); // Misc
 
+		void OnNetPlay(wxCommandEvent& event);
+
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnShow_InfoWindow(wxCommandEvent& event);
 		void OnLoadWiiMenu(wxCommandEvent& event);

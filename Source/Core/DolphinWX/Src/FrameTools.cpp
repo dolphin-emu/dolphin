@@ -34,6 +34,8 @@ be accessed from Core::GetWindowHandle().
 // Includes
 // ----------------------------------------------------------------------------
 
+#include "NetWindow.h"
+
 #include "Globals.h" // Local
 #include "Frame.h"
 #include "ConfigMain.h"
@@ -158,6 +160,9 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	toolsMenu->Append(IDM_INFO, _T("System Information"));
+
+	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
+
 	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
 
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
@@ -644,6 +649,12 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
 		break;
 	}
+}
+
+// NetPlay stuff
+void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
+{
+	new NetPlay(this, m_GameListCtrl->GetGamePaths(), m_GameListCtrl->GetGameNames());
 }
 
 // Miscellaneous menu

@@ -20,7 +20,6 @@
 
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
-#include "../PluginManager.h"
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
@@ -124,14 +123,28 @@ bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
-	memset(&PadStatus, 0 ,sizeof(PadStatus));
+	u32 netValues[2] = {0};
+	memset(&PadStatus, 0, sizeof(PadStatus));
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+	int NetPlay = GetNetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
+
+	if (NetPlay != 2)
+	{
+		if (NetPlay == 1)
+		{
+			_Hi  = netValues[0];	// first 4 bytes
+			_Low = netValues[1];	// last  4 bytes
+			return true;
+		}
+		else
+			return false;
+	}
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
 	_Hi |= (u32)((u16)PadStatus.button << 16);
-	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to math the "final" OSPad-Struct
+	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to match the "final" OSPad-Struct
 	//_Hi |= 0x20000000; // ?
 
 	_Low  = (u8)PadStatus.triggerRight;
