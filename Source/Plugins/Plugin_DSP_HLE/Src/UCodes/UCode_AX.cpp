@@ -359,13 +359,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 				k=0;
 			}
 
-
 			const u16 updpar   = Memory_Read_U16(updaddr + k);
 			const u16 upddata   = Memory_Read_U16(updaddr + k + 2);
-
-			
-	
-
 
 			// some safety checks, I hope it's enough
 			if(updaddr > 0x80000000 && updaddr < 0x817fffff

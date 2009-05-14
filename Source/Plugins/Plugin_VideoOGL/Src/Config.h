@@ -99,6 +99,7 @@ struct Config
 	int iPhackvalue;
 	bool bPhackvalue1, bPhackvalue2;
 	float fhackvalue1, fhackvalue2;
+	bool bProjHack1;
 
     int iLog; // CONF_ bits
     int iSaveTargetId;
