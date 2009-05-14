@@ -8,9 +8,9 @@
 #undef errno
 extern int errno;
 
-#include "asm.h"
-#include "processor.h"
-#include "color.h"
+#include <ogc/color.h>
+#include <ogc/machine/asm.h>
+#include <ogc/machine/processor.h>
 
 #define FONT_XSIZE			8
 #define FONT_YSIZE			16

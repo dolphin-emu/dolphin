@@ -115,14 +115,6 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\asm.h"
-			>
-		</File>
-		<File
-			RelativePath=".\color.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Config.h"
 			>
 		</File>
@@ -139,14 +131,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\dsp.h"
-			>
-		</File>
-		<File
-			RelativePath=".\irq.h"
-			>
-		</File>
-		<File
 			RelativePath=".\main_spy.cpp"
 			>
 		</File>
@@ -160,10 +144,6 @@
 		</File>
 		<File
 			RelativePath=".\mem_dump.h"
-			>
-		</File>
-		<File
-			RelativePath=".\processor.h"
 			>
 		</File>
 		<File

@@ -10,19 +10,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <network.h>
 #include <ogcsys.h>
 #include <time.h>
 #include <fat.h>
 #include <fcntl.h>
+#include <ogc/color.h>
+#include <ogc/dsp.h>
+#include <ogc/irq.h>
+#include <ogc/machine/asm.h>
+#include <ogc/machine/processor.h>
 #include <wiiuse/wpad.h>
 
-#include "color.h"
-#include "network.h"
-#include "dsp.h"
-#include "asm.h"
-#include "processor.h"
-#include "irq.h"
-#include "dsp.h"
 #include "display.h"
 
 // Pull in some constants etc from DSPCore.
