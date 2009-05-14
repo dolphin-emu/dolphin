@@ -43,7 +43,7 @@ NetPlay::NetPlay(wxWindow* parent, std::string GamePaths, std::string GameNames)
 	m_selectedGame = 'a'; m_hostaddr = 'a';
 	m_games = GameNames;  m_paths = GamePaths;
 	m_isHosting = 2;      m_ready = m_clients_ready = false;
-	m_loopframe = m_frame = 0;
+	m_loopframe = m_frame = m_NetModel = m_numClients = 0;
 
 	DrawGUI();
 }
@@ -498,7 +498,8 @@ void GameListPopup::OnButtons(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case wxID_OK:
-		m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()].mb_str()));
+		if (m_GameList->GetSelection() != wxNOT_FOUND)
+			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()].mb_str()));
 		Destroy();
 		break;
 	case wxID_CANCEL:

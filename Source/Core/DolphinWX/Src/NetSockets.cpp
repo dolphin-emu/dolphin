@@ -326,7 +326,7 @@ void *ClientSide::Entry()
 	}
 
 	m_netptr->ChangeSelectedGame(m_selectedgame);
-	Event->SendEvent(HOST_NEWPLAYER);
+	Event->SendEvent(HOST_NEWPLAYER, "NULL", m_netmodel);
 	Event->SendEvent(GUI_UPDATE);
 
 	m_selector.Add(m_socket);

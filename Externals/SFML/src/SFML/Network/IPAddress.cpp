@@ -214,8 +214,8 @@ IPAddress IPAddress::GetPublicAddress()
 	std::string PageBody;
 
     // Connect to the web server and get its index page
-	// www.whatismyip.org is so slow that it time outs after ~60s
-	// better use this one instead, it is must faster... here :P
+	// www.whatismyip.org is so slow that it times out after ~60s
+	// better use this one instead, it is much faster... at least here :P
     Http Server("www.monip.org");
     Http::Request Request(Http::Request::Get, "/");
     Http::Response Page = Server.SendRequest(Request);

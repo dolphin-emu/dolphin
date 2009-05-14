@@ -90,7 +90,7 @@ class ServerSide : public wxThread
 		NetEvent         *Event;
 
 		u32               m_netvalues[3][2];
-		bool              m_data_received;  // New Pad data received ?
+		bool              m_data_received; // New Pad data received ?
 
 		unsigned char     m_numplayers;
 		int               m_netmodel;
@@ -123,7 +123,7 @@ class ClientSide : public wxThread
 		NetEvent         *Event;
 
 		u32               m_netvalues[3][2];
-		bool              m_data_received;  // New Pad data received ?
+		bool              m_data_received; // New Pad data received ?
 
 		unsigned char     m_numplayers;
 		int               m_netmodel;

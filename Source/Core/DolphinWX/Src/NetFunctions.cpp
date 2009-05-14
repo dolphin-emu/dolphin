@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "NetWindow.h"
+#include "HW/SI_DeviceGCController.h"
 
 NetPlay *NetClass_ptr = NULL;
 
@@ -77,6 +78,7 @@ void NetPlay::OnNetEvent(wxCommandEvent& event)
 	case HOST_NEWPLAYER:
 		{
 			m_numClients++;
+			m_NetModel = event.GetInt();
 		}
 		break;
 	case CLIENTS_READY:
@@ -159,6 +161,7 @@ void NetPlay::LoadGame()
 	// Enable
 	NetClass_ptr = this;
 	m_timer.Start();
+	m_data_received = false;
 
 	// Find corresponding game path
 	for (int i=0; i < (int)m_paths.size(); i++)
@@ -189,43 +192,44 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 	netValues[1] |= (u32)((u8)PadStatus.substickY << 16);
 	netValues[1] |= (u32)((u8)PadStatus.substickX << 24);
 
-	// TODO : actually show this on the GUI :p
-	// Update the timer and increment total frame number
-	m_frame++;
-	m_timer.Update();
+	if (m_frame == 0)
+	{
+		// We make sure everyone's pad is enabled
+		for (int i = 0; i < m_numClients+1; i++)
+			SerialInterface::ChangeDevice(SI_GC_CONTROLLER, i);
 
-	// We make sure everyone's pad is enabled
-	for (char i = 0; i < m_numClients; i++)
-		SerialInterface::ChangeDevice(SI_GC_CONTROLLER, (int)i);
-
-	// Better disable unused ports 
-	for (char i = m_numClients; i < 3; i++)
-		SerialInterface::ChangeDevice(SI_DUMMY, (int)i);
+		// Better disable unused ports 
+		for (int i = m_numClients+1; i < 4; i++)
+			SerialInterface::ChangeDevice(SI_DUMMY, i);
+	}
 
 	if (m_NetModel == 0 && m_numClients == 1) // Use P2P Model
 	{
 		if (padnb == 0)
 		{
+			// TODO : actually show this on the GUI :p
+			// Update the timer and increment total frame number
+			m_frame++;
+			m_timer.Update();
+
 #ifdef NET_DEBUG
 			char sent[64];
 			sprintf(sent, "Sent Values: 0x%08x : 0x%08x \n", netValues[0], netValues[1]);
 			m_Logging->AppendText(wxString::FromAscii(sent));
 #endif
 			unsigned char init_value = 0xA1;
-			unsigned char recv_value = 0;
 			unsigned char player = 0;
 
 			if (m_isHosting == 1) {
 				// Send pads values
 				m_sock_server->Write(0, (const char*)&init_value, 1);
 				m_sock_server->Write(0, (const char*)netValues, 8);
-				player = 0; // Host is player 1
 			}
 			else {
 				// Send pads values
 				m_sock_client->Write((const char*)&init_value, 1);
 				m_sock_client->Write((const char*)netValues, 8);
-				player = 1; // Client is player 2
+				player = 1; 
 			}
 
 			if (!m_data_received)
@@ -236,24 +240,28 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 
 				// Try to read from peer...
 				if (m_isHosting == 1)
-					m_data_received = m_sock_server->isNewPadData(0, m_data_received);
+					m_data_received = m_sock_server->isNewPadData(0, false);
 				else
-					m_data_received = m_sock_client->isNewPadData(0, m_data_received);
+					m_data_received = m_sock_client->isNewPadData(0, false);
 
 				if (m_data_received)
 				{
+					// Set our practical frame delay
+					m_frameDelay = m_loopframe;
+					m_loopframe = 0;
+
 					// First Data has been received !
 					m_Logging->AppendText(_("** Data received from Peer. Starting Sync !"));
-
-					// Set our practical frame delay
-					if (recv_value == 0xA1) // init number
-					{
-						m_frameDelay = m_loopframe;
-						m_loopframe = 0;
-						m_Logging->AppendText(wxString::Format(wxT(" Frame Delay : %d **\n"), m_frameDelay));
-					}
+					m_Logging->AppendText(wxString::Format(wxT(" Frame Delay : %d **\n"), m_frameDelay));
 				}
 				else {
+					if (m_loopframe > 126)
+					{
+						m_Logging->AppendText(_("** Ping too high (>2000ms) or connection lost ! \n"));
+						m_Logging->AppendText(_("** Stopping game... \n"));
+						BootManager::Stop();
+					}
+
 					m_loopframe++;
 					return false;
 				}
@@ -269,25 +277,33 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 				// (i.e : framerate is too low) we have to wait for it thus slowing down emulation 
 
 				// Save current pad values, it will be used in 'm_frameDelay' frames :D
-				int saveslot = (m_loopframe-1 < 0 ? m_frameDelay : m_loopframe-1);
+				int saveslot = (m_loopframe - 1 < 0 ? m_frameDelay : m_loopframe - 1);
+				u32 recvedValues[2];
 
 				m_pads[player].nHi[saveslot]  = netValues[0];
 				m_pads[player].nLow[saveslot] = netValues[1];
 
 				// Read the socket for pad values
 				if (m_isHosting == 1)
-					while (!m_sock_server->isNewPadData(netValues, 1)) { /* Wait Data */ }
+					m_sock_server->isNewPadData(recvedValues, true);
 				else
-					while (!m_sock_client->isNewPadData(netValues, 1)) { }
+					m_sock_client->isNewPadData(recvedValues, true);
 
 				if (player == 0) 
 				{
 					// Store received peer values
-					m_pads[1].nHi[m_loopframe]  = netValues[0];
-					m_pads[1].nLow[m_loopframe] = netValues[1];
+					m_pads[1].nHi[m_loopframe]  = recvedValues[0];
+					m_pads[1].nLow[m_loopframe] = recvedValues[1];
+
 					// Apply synced pad values
 					netValues[0] = m_pads[0].nHi[m_loopframe];
 					netValues[1] = m_pads[0].nLow[m_loopframe];
+				}
+				else
+				{
+					// Apply received pad values
+					netValues[0] = recvedValues[0];
+					netValues[1] = recvedValues[1];
 				}
 			}
 
@@ -388,38 +404,54 @@ void NetPlay::OnDisconnect(wxCommandEvent& WXUNUSED(event))
 bool ClientSide::isNewPadData(u32 *netValues, bool current, bool isVersus)
 {
 	// TODO : adapt it to more than 2 players
-	wxCriticalSectionLocker lock(m_CriticalSection);
-
 	if (current)
 	{
-		if (m_data_received)
+		while (1)
 		{
-			if (isVersus) {
+			m_CriticalSection.Enter();
+			if (m_data_received && isVersus)
+			{
 				netValues[0] = m_netvalues[0][0];
 				netValues[1] = m_netvalues[0][1];
+				m_data_received = false;
+				
+				m_CriticalSection.Leave();
+				break;
 			}
+			m_CriticalSection.Leave();
 		}
-		else
-			return false;
+
+		return true;
 	}
+	else
+		wxCriticalSectionLocker lock(m_CriticalSection);
 
 	return m_data_received;
 }
 
 bool ServerSide::isNewPadData(u32 *netValues, bool current, char client)
 {
-	wxCriticalSectionLocker lock(m_CriticalSection);
-	
 	if (current)
 	{
-		if (m_data_received)
+		while (1)
 		{
-			netValues[0] = m_netvalues[client][0];
-			netValues[1] = m_netvalues[client][1];
+			m_CriticalSection.Enter();
+			if (m_data_received)
+			{
+				netValues[0] = m_netvalues[client][0];
+				netValues[1] = m_netvalues[client][1];
+				m_data_received = false;
+				
+				m_CriticalSection.Leave();
+				break;
+			}
+			m_CriticalSection.Leave();
 		}
-		else
-			return false;
+
+		return true;
 	}
+	else
+		wxCriticalSectionLocker lock(m_CriticalSection);
 
 	return m_data_received;
 }

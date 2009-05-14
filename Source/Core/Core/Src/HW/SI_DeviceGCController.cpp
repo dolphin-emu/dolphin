@@ -137,10 +137,9 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		{
 			_Hi  = netValues[0];	// first 4 bytes
 			_Low = netValues[1];	// last  4 bytes
-			return true;
 		}
-		else
-			return false;
+
+		return true;
 	}
 #endif
 	_Hi  = (u32)((u8)PadStatus.stickY);

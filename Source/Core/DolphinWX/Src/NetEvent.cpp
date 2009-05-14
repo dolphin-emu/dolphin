@@ -135,6 +135,7 @@ void ClientSide::OnClientData(unsigned char data)
 		{
 			m_socket.Receive((char*)m_netvalues[0], 8, recv_size);
 			m_data_received = true;
+
 #ifdef NET_DEBUG
 			char sent[64];
 			sprintf(sent, "Received Values: 0x%08x : 0x%08x \n", m_netvalues[0][0], m_netvalues[0][1]);
