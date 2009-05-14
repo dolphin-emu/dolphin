@@ -62,7 +62,7 @@ void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 	// Create the client socket
 	sf::SocketTCP sock_client;
 
-	if (sock_client.Connect(port, host.mb_str(), 1.5) == sf::Socket::Done)
+	if (sock_client.Connect(port, (const char *)host.mb_str(), 1.5) == sf::Socket::Done)
 	{
 		m_sock_client = new ClientSide(this, sock_client, std::string(addr.mb_str()), m_nick);
 		m_sock_client->Create();
@@ -303,14 +303,15 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos/*int fps, float 
 		// String of the type : FPSxPINGxFRAME_DELAY
 		SplitString(std::string(infos.mb_str()), "x", str_arr);
 
-		m_ConInfo_text->SetLabel(
-			wxString::Format( "  Fps : %s | Ping : %s | Frame Delay : %s",
-			str_arr[0].c_str(), str_arr[1].c_str(), str_arr[2].c_str() ));
+		m_ConInfo_text->SetLabel
+			(wxString::Format(wxT("  Fps : %s | Ping : %s | Frame Delay : %s"),
+							  str_arr[0].c_str(), str_arr[1].c_str(), 
+							  str_arr[2].c_str()) );
 	}
 	else
 	{
 		m_critical.Enter();
-			m_Game_str->SetLabel(wxString::Format(" Game : %s", m_selectedGame.c_str()));
+		m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
 		m_critical.Leave();
 	}
 }
@@ -430,13 +431,13 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 
 					// Send Chat string
 					m_sock_server->Write(i, (const char*)&chat_size, 4);
-					m_sock_server->Write(i, chat_str.c_str(), chat_size + 1);
+					m_sock_server->Write(i, chat_str.mb_str(), chat_size + 1);
 				}
 			}
 			else {
 				m_sock_client->Write((const char*)&value, 1);
 				m_sock_client->Write((const char*)&chat_size, 4);
-				m_sock_client->Write(chat_str.c_str(), chat_size + 1);
+				m_sock_client->Write(chat_str.mb_str(), chat_size + 1);
 			}
 
 			m_Chat->Clear();

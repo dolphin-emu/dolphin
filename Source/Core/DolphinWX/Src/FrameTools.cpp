@@ -29,6 +29,11 @@ Core::GetWindowHandle().
 */
 
 
+// FIXME: why doesn't it work on windows???
+#ifndef _WIN32
+#include "Common.h"
+#endif
+
 #if defined(HAVE_SFML) && HAVE_SFML || defined(_WIN32)
 #include "NetWindow.h"
 #endif

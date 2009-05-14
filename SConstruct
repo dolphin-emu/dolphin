@@ -253,7 +253,7 @@ else:
 
 # sfml
 env['HAVE_SFML'] = 0
-if conf.CheckPKG('sfml') and conf.CheckCHeader("SFML/Audio.hpp"):
+if conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp"):
     env['HAVE_SFML'] = 1;
 
 #osx 64 specifics

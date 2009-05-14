@@ -62,7 +62,7 @@ ServerSide::ServerSide(NetPlay* netptr, sf::SocketTCP socket, int netmodel, std:
 
 char ServerSide::GetSocket(sf::SocketTCP Socket)
 {
-	for (char i=0; i < m_numplayers; i++)
+	for (int i=0; i < m_numplayers; i++)
 	{
 		if(m_client[i].socket == Socket)
 			return i;
@@ -119,7 +119,7 @@ void *ServerSide::Entry()
 			else
 			{
 				unsigned char recv;
-				char socket_nb;
+				int socket_nb;
 				size_t recv_size;
 				sf::Socket::Status recv_status;
 
@@ -147,22 +147,22 @@ void *ServerSide::Entry()
 							player_left.c_str()) );
 
 						// We need to adjust the struct...
-						for (char i = socket_nb; i < m_numplayers; i++)
+						for (int j = socket_nb; j < m_numplayers; j++)
 						{
-							m_client[i].socket = m_client[i+1].socket;
-							m_client[i].nick   = m_client[i+1].nick;
-							m_client[i].ready  = m_client[i+1].ready;
+							m_client[j].socket = m_client[j+1].socket;
+							m_client[j].nick   = m_client[j+1].nick;
+							m_client[j].ready  = m_client[j+1].ready;
 						}
 
 						// Send disconnected message to all
 						unsigned char send = 0x11;
 						unsigned int str_size = (int)player_left.size();
 
-						for (int i=0; i < m_numplayers ; i++)
+						for (int j=0; j < m_numplayers ; j++)
 						{
-							m_client[i].socket.Send((const char*)&send, 1);
-							m_client[i].socket.Send((const char*)&str_size, 4);
-							m_client[i].socket.Send(player_left.c_str(), (int)str_size + 1);
+							m_client[j].socket.Send((const char*)&send, 1);
+							m_client[j].socket.Send((const char*)&str_size, 4);
+							m_client[j].socket.Send(player_left.c_str(), (int)str_size + 1);
 						}
 					}
 					else

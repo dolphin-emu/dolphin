@@ -144,7 +144,7 @@ class NetPlay : public wxDialog
 		NetPlay(wxWindow* parent, std::string GamePath = "", std::string GameName = "");
 		~NetPlay() {}
 
-		void UpdateNetWindow(bool update_infos, wxString="NULL");
+		void UpdateNetWindow(bool update_infos, wxString=wxT("NULL"));
 		void AppendText(const wxString text) { m_Logging->AppendText(text); }
 
 		// Send and receive pads values
