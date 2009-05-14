@@ -177,7 +177,7 @@ void NetPlay::DrawGUI()
 	m_SetPort = new wxTextCtrl(m_Tab_Host, ID_SETPORT, wxT("12345"), wxDefaultPosition, wxDefaultSize, 0);
 	m_GameList_text = new wxStaticText(m_Tab_Host, ID_GAMELIST_TXT, wxT("Warning: Use a forwarded port ! Select Game and press Host :"), wxDefaultPosition, wxDefaultSize);
 	m_GameList = new wxListBox(m_Tab_Host, ID_GAMELIST, wxDefaultPosition, wxDefaultSize,
-				m_GameList_str, wxLB_SINGLE | wxLB_SORT | wxLB_NEEDED_SB);
+		m_GameList_str, wxLB_SINGLE | wxLB_NEEDED_SB);
 	m_HostGame = new wxButton(m_Tab_Host, ID_BUTTON_HOST, wxT("Host"), wxDefaultPosition, wxDefaultSize);
 
 	// Sizers HOST
