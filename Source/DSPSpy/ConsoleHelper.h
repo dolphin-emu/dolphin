@@ -38,7 +38,7 @@ void CON_Printf(int x, int y, const char* fmt, ...)
 
 void CON_SetColor(u8 foreground, u8 background)
 {
-	u8 bright = foreground & 8 ? 1 : 0;
+	u8 bright = foreground & CON_BRIGHT ? 1 : 0;
 
 	if (bright)
 		foreground &= ~CON_BRIGHT;
