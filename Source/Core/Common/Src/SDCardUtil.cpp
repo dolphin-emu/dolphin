@@ -171,11 +171,11 @@ static int write_empty(FILE* file, u64 count)
 	count *= 512;
 	while (count > 0)
 	{
-		int len = sizeof(empty);
+		u64 len = sizeof(empty);
 		if (len > count)
 			len = count;
 
-		if ( fwrite(empty, 1, len, file) != (size_t)len )
+		if ( fwrite(empty, 1, (size_t)len, file) != (size_t)len )
 			return 1;
 
 		count -= len;
