@@ -151,7 +151,7 @@ bool CEXIETHERNET::checkRecvBuffer()
 }
 void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 {
-	DEBUGPRINT( "IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
+	//DEBUGPRINT( "IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
 	if (mExpectVariableLengthImmWrite) 
 	{
 		DEBUGPRINT("Variable Length IMM Write: Size: %d _uData: 0x%08X swapped: 0x%08X\n", _uSize, _uData, Common::swap32(_uData));
@@ -174,7 +174,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			DEBUGPRINT( "[EEE]Write error: mWriteP + size = 0x%04X + %i\n", mWriteP, _uSize);
 			exit(0);
 		}
-		//BBADEGUB("Write to BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mWriteP >= CB_OFFSET ? 4 : 2, mWriteP, size, (size==1?"":"s"), size*2, data);
+		DEBUGPRINT("\t[INFO]Write to BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mWriteP >= CB_OFFSET ? 4 : 2, mWriteP, _uSize, (_uSize==1?"":"s"), _uSize*2, _uData);
 
 		switch (mWriteP) 
 		{
@@ -188,12 +188,13 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				//u32 SwappedData = Common::swap32(_uData);
 				u32 SwappedData = _uData;
 				mBbaMem[BBA_IR] &= ~MAKE(u8, SwappedData);
-				DEBUGPRINT( "\t[INFO]mWriteP is %x. mBbaMem[0x09] is 0x%x\n", mWriteP, mBbaMem[0x09]);
+				DEBUGPRINT( "\t\t[INFO]mWriteP is %x. mBbaMem[0x09] is 0x%x\n", mWriteP, mBbaMem[0x09]);
 				//exit(0);
 				break;
 			}
 			case BBA_NCRA:
 			{
+				// Correct, we use the swap here
 				u32 SwappedData = Common::swap32(_uData);
 				//u32 SwappedData = _uData;
 				// TODO: Should we swap our data?
@@ -201,21 +202,21 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				{
 					// Normal
 					// Whinecube did nothing else as well
-					DEBUGPRINT( "\t[INFO]BBA Reset\n");
+					DEBUGPRINT( "\t\t[INFO]BBA Reset\n");
 				}
 				if (RISE(BBA_NCRA_SR) && isActivated())
 				{
-					DEBUGPRINT( "\t[INFO]BBA Start Recieve\n");
+					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
 					// TODO: Need to make our virtual network device start receiving
 					startRecv();
 				}
 				if (RISE(BBA_NCRA_ST1)) 
 				{
-					DEBUGPRINT( "\t[INFO]BBA Start Transmit\n");
+					DEBUGPRINT( "\t\t[INFO]BBA Start Transmit\n");
 					if (!mReadyToSend)
 					{
-						DEBUGPRINT( "\t\t[EEE]Not ready to send!\n");
+						DEBUGPRINT( "\t\t\t[EEE]Not ready to send!\n");
 						exit(0);
 						//throw hardware_fatal_exception("BBA Transmit without a packet!");
 					}
@@ -227,10 +228,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			}
 				break;
 			case BBA_NWAYC:
-				DEBUGPRINT( "\t[INFO]BBA_NWAYC\n");
+				DEBUGPRINT( "\t\t[INFO]BBA_NWAYC\n");
 				if(Common::swap32(_uData) & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
 				{
-					DEBUGPRINT("ACTIVATING!\n");
+					DEBUGPRINT("\t\t\tACTIVATING!\n");
 					activate();
 					//say we've successfully negotiated for 10 Mbit full duplex
 					//should placate libogc
@@ -238,18 +239,18 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				}
 				break;
 			case BBA_RRP:	//RRP - Receive Buffer Read Page Pointer
-				DEBUGPRINT( "\t[INFO]RRP\n");
+				DEBUGPRINT( "\t\t[INFO]RRP\n");
 				//exit(0);
 				assert(_uSize == 2 || _uSize == 1);
-				mRBRPP = (u8)_uData << 8;	//Whinecube: I hope this works with both write sizes.
+				mRBRPP = (u8)Common::swap32(_uData) << 8;	//Whinecube: I hope this works with both write sizes.
 				mRBEmpty = (mRBRPP == ((u32)mCbw.p_write() + CB_OFFSET));
 				checkRecvBuffer();
 				break;
 			case BBA_RWP:	//RWP - Receive Buffer Write Page Pointer
-				DEBUGPRINT( "\t[INFO]RWP\n");
+				DEBUGPRINT( "\t\t[INFO]RWP\n");
 				//exit(0);
-				/*MYASSERT(size == 2 || size == 1);
-				MYASSERT(data == DWORD((WORD)mCbw.p_write() + CB_OFFSET) >> 8);*/
+				assert(_uSize == 2 || _uSize == 1);
+				assert(Common::swap32(_uData) == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 				break;
 			case BBA_NWAYS:
 				DEBUGPRINT(" Call to BBA_NWAYS directly!\n");
@@ -257,9 +258,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				break;
 			case BBA_SI_ACTRL2:
 			default:
-				DEBUGPRINT( "\t[INFO]Default one!Size 0x%x _uData: 0x%08x Swapped 0x%08x to 0x%x\n", _uSize, _uData, Common::swap32(_uData),mWriteP);
-				//u32 SwappedData = Common::swap32(_uData);
-				u32 SwappedData = _uData;
+				DEBUGPRINT( "\t\t[INFO]Default one!Size 0x%x _uData: 0x%08x Swapped 0x%08x to 0x%x\n", _uSize, _uData, Common::swap32(_uData),mWriteP);
+				// Correct, use Swapped here
+				u32 SwappedData = Common::swap32(_uData);
+				//u32 SwappedData = _uData;
 				memcpy(mBbaMem + mWriteP, &SwappedData, _uSize);
 				mWriteP = mWriteP + _uSize;
 		}
@@ -277,7 +279,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	else if ((_uSize == 4 && (_uData & 0xC0000000) == 0xC0000000) || (_uSize == 2 && (_uData & 0x4000) == 0x4000))
 	{
 		// Write to BBA Register
-		DEBUGPRINT( "\t[INFO]Write to BBA register!\n");
+		//DEBUGPRINT( "\t[INFO]Write to BBA register!\n");
 		//u32 SwappedData = Common::swap32(_uData);
 		u32 SwappedData = _uData;
 		if (_uSize == 4)
@@ -301,10 +303,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	}
 	else if ((_uSize == 4 && (_uData & 0xC0000000) == 0x80000000) || (_uSize == 2 && (_uData & 0x4000) == 0x0000))
 	{	
-		DEBUGPRINT( "\t[INFO]Read from BBA register!\n");
-		// If swapped, we get a read from invalid BBA Address 0x2000 in Mario Kart: DD
-		// If not swapped, we always end up with an unexpected IMMwrite of 1 byte
-		//u32 SwappedData = Common::swap32(_uData);
+		//DEBUGPRINT( "\t[INFO]Read from BBA register!\n");
+		// Non-Swapped is the correct way
 		u32 SwappedData = _uData;
 		// Read from BBA Register!
 		if(_uSize == 4) 
@@ -320,14 +320,14 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		} 
 		else 
 		{  //size == 2
-			mReadP = (u8)getbitsw(SwappedData, 16, 23);
+			mReadP = (u16)getbitsw(SwappedData, 16, 23);
 		}
 		// With the data not swapped,after a few reads, nReadP is always 0 in Mario Kart: DD; Size always 2
 		// Before that, it does request the MAC address if it's unswapped
 		switch (mReadP) 
 		{
 		case 0x20:	//MAC address
-			DEBUGPRINT( "\t\t[INFO]Mac Address!\n");
+			//DEBUGPRINT( "\t\t[INFO]Mac Address!\n");
 			memcpy(mBbaMem + mReadP, mac_address, 6);
 			break;
 		case 0x01:	//Revision ID
@@ -352,16 +352,16 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			//mBbaMem[mReadP] = 0x00;
 			//if(!sendInProgress())
 			mBbaMem[mReadP] &= ~(0x06);
-			DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] &= ~(0x06);! Now 0x%x\n", mReadP, mBbaMem[mReadP]);
+			//DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] &= ~(0x06);! Now 0x%x\n", mReadP, mBbaMem[mReadP]);
 			//exit(0);
 			break;
 		case 0x03:
 			mBbaMem[mReadP] = 0x80;
-			DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] = 0x80;! Now %x\n", mReadP, mBbaMem[mReadP]);
+			//DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] = 0x80;! Now %x\n", mReadP, mBbaMem[mReadP]);
 			exit(0);
 			break;
 		}
-		printf("\t\t[INFO]BBA Read pointer set to 0x%0*X\n", _uSize, mReadP);
+		//DEBUGPRINT("BBA Read pointer set to 0x%0*X, Data: 0x%08X\n", _uSize, mReadP, _uData);
 		return;
 	}
 	DEBUGPRINT( "\t[EEE]Not expecting ImmWrite of size %d\n", _uSize);
@@ -371,7 +371,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 
 u32 CEXIETHERNET::ImmRead(u32 _uSize)
 {
-	DEBUGPRINT( "IMM Read, size 0x%x\n", _uSize);
+	//DEBUGPRINT( "IMM Read, size 0x%x\n", _uSize);
 	if (mExpectSpecialImmRead) 
 	{
 		// 100% that this returns correctly
