@@ -19,7 +19,7 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Wii|x64"
+			Name="Wii|Win32"
 			OutputDirectory="build"
 			IntermediateDirectory="build"
 			ConfigurationType="0"
@@ -42,30 +42,7 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="GC|x64"
-			OutputDirectory="build"
-			IntermediateDirectory="build"
-			ConfigurationType="0"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			BuildLogFile="build\BuildLogGC.htm"
-			>
-			<Tool
-				Name="VCNMakeTool"
-				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make -f MakefileGC"
-				ReBuildCommandLine="make clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make -f MakefileGC"
-				CleanCommandLine="make clean"
-				Output="DSPSpyGC.dol"
-				PreprocessorDefinitions=""
-				IncludeSearchPath="$(ProjectDir);C:\devkitPro\libogc\include"
-				ForcedIncludes=""
-				AssemblySearchPath=""
-				ForcedUsingAssemblies=""
-				CompileAsManaged=""
-			/>
-		</Configuration>
-		<Configuration
-			Name="Wii|Win32"
+			Name="Wii|x64"
 			OutputDirectory="build"
 			IntermediateDirectory="build"
 			ConfigurationType="0"
@@ -110,6 +87,29 @@
 				CompileAsManaged=""
 			/>
 		</Configuration>
+		<Configuration
+			Name="GC|x64"
+			OutputDirectory="build"
+			IntermediateDirectory="build"
+			ConfigurationType="0"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			BuildLogFile="build\BuildLogGC.htm"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make -f MakefileGC"
+				ReBuildCommandLine="make clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make -f MakefileGC"
+				CleanCommandLine="make clean"
+				Output="DSPSpyGC.dol"
+				PreprocessorDefinitions=""
+				IncludeSearchPath="$(ProjectDir);C:\devkitPro\libogc\include"
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -119,15 +119,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\display.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\display.h"
-			>
-		</File>
-		<File
-			RelativePath=".\display_font.cpp"
+			RelativePath=".\ConsoleHelper.h"
 			>
 		</File>
 		<File

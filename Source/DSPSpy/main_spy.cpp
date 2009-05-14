@@ -16,13 +16,14 @@
 #include <fat.h>
 #include <fcntl.h>
 #include <ogc/color.h>
+#include <ogc/consol.h>
 #include <ogc/dsp.h>
 #include <ogc/irq.h>
 #include <ogc/machine/asm.h>
 #include <ogc/machine/processor.h>
 #include <wiiuse/wpad.h>
 
-#include "display.h"
+#include "ConsoleHelper.h"
 
 // Pull in some constants etc from DSPCore.
 #include "../Core/DSPCore/Src/gdsp_registers.h"
@@ -133,28 +134,28 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 		{
 			// Do not even display the loop stack registers.
 			const int reg = j * 8 + i;
-			ds_set_colour(sel == reg ? COLOR_YELLOW : COLOR_GREEN, COLOR_BLACK);
-			ds_printf(x + j * 8, i + y, "%02x ", reg);
+			CON_SetColor(sel == reg ? CON_YELLOW : CON_GREEN, CON_BLACK);
+			CON_Printf(x + j * 8, i + y, "%02x ", reg);
 			if (j != 1 || i < 4)
 			{
-				u32 color1 = regs_equal(reg, regs[reg], compare_regs[reg]) ? COLOR_WHITE : COLOR_RED;
+				u8 color1 = regs_equal(reg, regs[reg], compare_regs[reg]) ? CON_WHITE : CON_RED;
 				for (int k = 0; k < 4; k++)
 				{
 					if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
-						ds_set_colour(COLOR_BLACK, color1);
+						CON_SetColor(CON_BLACK, color1);
 					else
-						ds_set_colour(color1, COLOR_BLACK);
-					ds_printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
+						CON_SetColor(color1, CON_BLACK);
+					CON_Printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
 				}
 			}
 		}
 	}
-	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
+	CON_SetColor(CON_WHITE, CON_BLACK);
 
-	ds_printf(x+2, y+9,  "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0]&0xff, regs[DSP_REG_ACM0], regs[DSP_REG_ACL0]);
-	ds_printf(x+2, y+10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1]&0xff, regs[DSP_REG_ACM1], regs[DSP_REG_ACL1]);
-	ds_printf(x+2, y+11, "AX0: %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
-	ds_printf(x+2, y+12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
+	CON_Printf(x+2, y+9, "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0]&0xff, regs[DSP_REG_ACM0], regs[DSP_REG_ACL0]);
+	CON_Printf(x+2, y+10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1]&0xff, regs[DSP_REG_ACM1], regs[DSP_REG_ACL1]);
+	CON_Printf(x+2, y+11, "AX0: %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
+	CON_Printf(x+2, y+12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
 }
 
 void print_regs(int _step, int _dsp_steps)
@@ -165,22 +166,22 @@ void print_regs(int _step, int _dsp_steps)
 	print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
 	print_reg_block(33, 2, -1, regs2, regs);
 
-	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
-	ds_printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
+	CON_SetColor(CON_WHITE, CON_BLACK);
+	CON_Printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
 
 	return;
 
 	static int count = 0;
 	int x = 0, y = 16;
 	if (count > 2)
-		ds_clear();
+		printf("\x1b[2J"); // Clear
 	count = 0;
-	ds_set_colour(COLOR_WHITE, COLOR_BLACK);
+	CON_SetColor(CON_WHITE, CON_BLACK);
 	for (int i = 0x0; i < 0xf70 ; i++)
 	{
 		if (dspbufC[i] != mem_dump[i])
 		{
-			ds_printf(x, y, "%04x=%04x", i, dspbufC[i]);
+			CON_Printf(x, y, "%04x=%04x", i, dspbufC[i]);
 			count++;
 			x += 10;
 			if (x >= 60) {
@@ -189,7 +190,7 @@ void print_regs(int _step, int _dsp_steps)
 			}
 		}
 	}
-	ds_printf(4, 25, "%08x", count);
+	CON_Printf(4, 25, "%08x", count);
 }
 
 void ui_pad_sel(void)
@@ -286,7 +287,7 @@ void my_send_task(void *addr, u16 iram_addr, u16 len, u16 start)
 int main()
 {
 	init_video();
-	ds_init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * 2);
+	CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * 2);
 
 	ui_mode = UIM_SEL;
 
@@ -322,7 +323,7 @@ int main()
 		if (DSP_CheckMailFrom())
 		{
 			u32 mail = DSP_ReadMailFrom();
-			ds_printf(2, 1, "Last mail: %08x", mail);
+			CON_Printf(2, 1, "Last mail: %08x", mail);
 
 			if (mail == 0x8071feed)
 			{
@@ -376,13 +377,13 @@ int main()
 
 		print_regs(show_step, dsp_steps);
 
-		ds_printf(2, 18, "Controls:");
-		ds_printf(4, 19, "+/- to move");
-		ds_printf(4, 20, "B to start over");
-		ds_printf(4, 21, "Home to exit");
-		ds_printf(4, 22, "2 to dump results to SD");
+		CON_Printf(2, 18, "Controls:");
+		CON_Printf(4, 19, "+/- to move");
+		CON_Printf(4, 20, "B to start over");
+		CON_Printf(4, 21, "Home to exit");
+		CON_Printf(4, 22, "2 to dump results to SD");
 
-		ds_printf(4, 24, last_message);
+		CON_Printf(4, 24, last_message);
 
 		switch (ui_mode)
 		{
