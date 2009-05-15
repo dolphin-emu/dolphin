@@ -460,7 +460,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (g_Config.bDumpTextures) // dump texture to file
 	{ 
         char szTemp[MAX_PATH];
-		&m_LastFilename
+		
 		sprintf(szTemp, "%s/%s_%08x_%i.tga", FULL_DUMP_TEXTURES_DIR, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
 		if (!File::Exists(szTemp))
 		{
