@@ -65,6 +65,8 @@ public:
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
 	static GLuint GetColorMatrixProgram();
+
+    static GLuint GetDepthMatrixProgram();
 };
 
 #endif // _PIXELSHADERCACHE_H_

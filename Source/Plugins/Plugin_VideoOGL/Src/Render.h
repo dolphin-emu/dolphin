@@ -41,19 +41,9 @@ extern int frameCount;
 
 class Renderer
 {
-private:
-    static void FlushZBufferAlphaToTarget();
 
 public:
-    enum RenderMode
-    {
-        RM_Normal=0,     // normal target as color0, ztarget as color1
-        RM_ZBufferOnly,  // zbuffer as color0
-        RM_ZBufferAlpha, // zbuffer as color0, also will dump alpha info to regular target once mode is switched
-                         // use stencil buffer to indicate what pixels were written
-    };
-
-	static bool Init();
+    static bool Init();
     static void Shutdown();
 
     // initialize opengl standard values (like viewport)
@@ -65,14 +55,10 @@ public:
 	static void SwapBuffers();
 
 	static bool IsUsingATIDrawBuffers();
-    static bool HaveStencilBuffer();
 
     static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();
-
-    static void SetRenderMode(RenderMode mode);
-    static RenderMode GetRenderMode();
 
 	// Render target management
     static int GetTargetWidth();
@@ -83,9 +69,7 @@ public:
     static float GetTargetScaleY();
 
     static void SetFramebuffer(GLuint fb);
-	static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
     static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
-    static void SetDepthTarget(GLuint targ);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
@@ -93,10 +77,9 @@ public:
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
 	static GLuint ResolveAndGetRenderTarget(const TRectangle &rect);
 
-	// Same as above but for the FakeZ Target.
+	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-    static GLuint ResolveAndGetFakeZTarget(const TRectangle &rect);
-    static bool UseFakeZTarget();  // This is used by some functions to check for Z target existence.
+    static GLuint ResolveAndGetDepthTarget(const TRectangle &rect);
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);

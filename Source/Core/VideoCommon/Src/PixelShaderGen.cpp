@@ -26,7 +26,7 @@
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
@@ -42,9 +42,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u3
 				   ((u32)dstAlphaEnable << 11) |
 				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
 				   (projtexcoords << 20) |
-				   ((u32)bpmem.ztex2.op << 28) |
-				   (zbufrender << 30) |
-				   (zBufRenderToCol0 << 31);
+				   ((u32)bpmem.ztex2.op << 28);
 
 	uid.values[0] = (uid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
 	// swap table
@@ -134,7 +132,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask);
 static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, bool HLSL);
-static void WriteFog(char *&p, bool bOutputZ);
+static void WriteFog(char *&p);
 
 const float epsilon8bit = 1.0f / 255.0f;
 
@@ -369,7 +367,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0, bool dstAlphaEnable, bool HLSL)
+const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
@@ -382,13 +380,6 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
     WRITE(p, "//Pixel Shader for TEV stages\n");
     WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
 		numStages, numTexgen, bpmem.genMode.numindstages);
-
-    bool bRenderZ = has_zbuffer_target && bpmem.zmode.updateenable;
-    bool bOutputZ = bpmem.ztex2.op != ZTEXTURE_DISABLE;
-    bool bInputZ = bpmem.ztex2.op==ZTEXTURE_ADD || bRenderZ || bpmem.fog.c_proj_fsel.fsel != 0;
-
-    // bool bRenderZToCol0 = ; // output z and alpha to color0
-    assert( !bRenderZToCol0 || bRenderZ );
 
     int nIndirectStagesUsed = 0;
     if (bpmem.genMode.numindstages > 0) {
@@ -437,12 +428,8 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 
     WRITE(p, "void main(\n");
 
-    WRITE(p, "out half4 ocol0 : COLOR0,\n");
-    if (bRenderZ && !bRenderZToCol0 )
-        WRITE(p, "out half4 ocol1 : COLOR1,\n");
-
-    if (bOutputZ )
-        WRITE(p, "  out float depth : DEPTH,\n");
+    WRITE(p, "  out half4 ocol0 : COLOR0,\n");
+    WRITE(p, "  out float depth : DEPTH,\n");
 
     // compute window position if needed because binding semantic WPOS is not widely supported
 	if (numTexgen < 7) {
@@ -504,20 +491,18 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
 		WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
 	}
 
-	if (bInputZ) {
-		// the screen space depth value = far z + (clip z / clip w) * z range		
-		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
-	}
+	// the screen space depth value = far z + (clip z / clip w) * z range
+	WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
 
-    if (bOutputZ) {
-        // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-        if (bpmem.ztex2.op == ZTEXTURE_ADD) {
-            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
-        }
-        else {
-            _assert_(bpmem.ztex2.op == ZTEXTURE_REPLACE);
-            WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");			
-        }
+    // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+    if (bpmem.ztex2.op == ZTEXTURE_ADD) {
+        WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
+    }
+    else if (bpmem.ztex2.op == ZTEXTURE_REPLACE) {
+        WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");
+    }
+    else {
+        WRITE(p, "depth = zCoord;\n");
     }
 
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
@@ -529,34 +514,14 @@ const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool 
         WRITE(p, "ocol0 = 0;\n");
     }
     else {
-        if (!bRenderZToCol0) {
-            if (dstAlphaEnable) {
-                WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
-            } else {			  
-                WriteFog(p, bOutputZ);
-                WRITE(p, "  ocol0 = prev;\n");
-            }
-		} else {
-			WRITE(p, "  ocol0 = prev;\n");
-		}
-    }
-
-    if (bRenderZ) {
-        // write depth as color
-        if (bRenderZToCol0) {
-            if (bOutputZ )
-                WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * depth);\n");
-            else
-                WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * zCoord);\n");
-            WRITE(p, "ocol0.w = prev.w;\n");
-        }
-        else {
-            if (bOutputZ)
-                WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * depth);\n");
-            else
-                WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * zCoord);\n");
+        if (dstAlphaEnable) {
+            WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
+        } else {
+            WriteFog(p);
+            WRITE(p, "  ocol0 = prev;\n");
         }
     }
+    
     WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
@@ -888,7 +853,7 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
     return true;
 }
 
-static void WriteFog(char *&p, bool bOutputZ)
+static void WriteFog(char *&p)
 {
 	bool enabled = bpmem.fog.c_proj_fsel.fsel == 0 ? false : true;
 
@@ -896,11 +861,11 @@ static void WriteFog(char *&p, bool bOutputZ)
         if (bpmem.fog.c_proj_fsel.proj == 0) {
             // perspective
             // ze = A/(B - Zs)
-            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - %s);\n", bOutputZ ? "depth" : "zCoord");
+            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - depth);\n");
         } else {
             // orthographic
             // ze = a*Zs
-            WRITE (p, "  float ze = "I_FOG"[1].x * %s;\n", bOutputZ ? "depth" : "zCoord");
+            WRITE (p, "  float ze = "I_FOG"[1].x * depth;\n");
         }
 
         WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");

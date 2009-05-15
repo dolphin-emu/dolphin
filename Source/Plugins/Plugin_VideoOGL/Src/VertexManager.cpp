@@ -257,29 +257,6 @@ void Flush()
 	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
-	bool bRestoreBuffers = false;
-	if (Renderer::UseFakeZTarget()) 
-	{
-		if (bpmem.zmode.updateenable) 
-		{
-			if (!bpmem.blendmode.colorupdate) 
-			{
-				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ?
-										Renderer::RM_ZBufferAlpha :
-										Renderer::RM_ZBufferOnly);    
-			}
-		}
-		else 
-		{
-			Renderer::SetRenderMode(Renderer::RM_Normal);
-			// remove temporarily
-			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-			bRestoreBuffers = true;
-		}
-	} 
-	else 
-		Renderer::SetRenderMode(Renderer::RM_Normal);
-
 	// set global constants
     VertexShaderManager::SetConstants(g_Config.bProjHack1,g_Config.bPhackvalue1, g_Config.fhackvalue1, g_Config.bPhackvalue2, g_Config.fhackvalue2, g_Config.bFreeLook);
 	PixelShaderManager::SetConstants();
@@ -330,8 +307,7 @@ void Flush()
 	    }
 
         // restore color mask
-        if (!bRestoreBuffers)
-            Renderer::SetColorMask();
+        Renderer::SetColorMask();
 
         if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
             glEnable(GL_BLEND);
@@ -360,13 +336,6 @@ void Flush()
 	g_Config.iSaveTargetId++;
 
 	GL_REPORT_ERRORD();
-
-	if (bRestoreBuffers) 
-	{
-		GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
-		glDrawBuffers(2, s_drawbuffers);
-		Renderer::SetColorMask();
-	}
 
 	ResetBuffer();
 }

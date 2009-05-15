@@ -55,7 +55,6 @@
 
 u8 *TextureMngr::temp = NULL;
 TextureMngr::TexCache TextureMngr::textures;
-std::map<u32, TextureMngr::DEPTHTARGET> TextureMngr::mapDepthTargets;
 
 extern int frameCount;
 static u32 s_TempFramebuffer = 0;
@@ -176,13 +175,6 @@ void TextureMngr::Shutdown()
 {
     Invalidate(true);
 
-    std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
-	for (itdepth = mapDepthTargets.begin(); itdepth != mapDepthTargets.end(); ++itdepth)
-	{
-		glDeleteRenderbuffersEXT(1, &itdepth->second.targ);
-	}
-    mapDepthTargets.clear();
-
     if (s_TempFramebuffer) {
         glDeleteFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
         s_TempFramebuffer = 0;
@@ -216,14 +208,6 @@ void TextureMngr::ProgressiveCleanup()
         }
         else
             iter++;
-    }
-
-    std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
-    while (itdepth != mapDepthTargets.end())
-	{
-        if (frameCount > 20 + itdepth->second.framecount)
-			ERASE_THROUGH_ITERATOR(mapDepthTargets, itdepth);
-        else ++itdepth;
     }
 }
 
@@ -588,8 +572,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
             
             case 3: // Z16 //?
-            case 11: // Z16
                 colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+            case 11: // Z16 (reverse order)
+                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
                 break;
             case 6: // Z24X8
                 colmat[0] = 1;
@@ -702,9 +687,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	// Make sure to resolve anything we need to read from.
 	// TODO - it seems that it sometimes doesn't resolve the entire area we are interested in. See shadows in Burnout 2.
-	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(scaled_rect) : Renderer::ResolveAndGetRenderTarget(scaled_rect);
+	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(scaled_rect) : Renderer::ResolveAndGetRenderTarget(scaled_rect);
 
-    Renderer::SetRenderMode(Renderer::RM_Normal); // set back to normal
     GL_REPORT_ERRORD();
 
     // We have to run a pixel shader, for color conversion.
@@ -716,29 +700,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     Renderer::SetFramebuffer(s_TempFramebuffer);
     Renderer::SetRenderTarget(entry.texture);
     GL_REPORT_ERRORD();
-
-    // create and attach the render target
-    std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.find((h << 16) | w);
-    if (itdepth == mapDepthTargets.end()) 
-	{
-        DEPTHTARGET& depth = mapDepthTargets[(h << 16) | w];
-        depth.framecount = frameCount;
-
-        glGenRenderbuffersEXT(1, &depth.targ);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth.targ);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w, h);
-        GL_REPORT_ERRORD();
-
-        Renderer::SetDepthTarget(depth.targ);
-        GL_REPORT_ERRORD();
-    }
-    else 
-	{
-        itdepth->second.framecount = frameCount;
-        Renderer::SetDepthTarget(itdepth->second.targ);
-        GL_REPORT_ERRORD();
-    }
-
+    
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
@@ -747,7 +709,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glViewport(0, 0, w, h);
 
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, PixelShaderCache::GetColorMatrixProgram());
+    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
 
@@ -764,9 +726,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     Renderer::RestoreGLState();
     VertexShaderManager::SetViewportChanged();
     TextureMngr::DisableStage(0);
-
-    if (bFromZBuffer)
-        Renderer::SetZBufferRender(); // notify for future settings
 
     GL_REPORT_ERRORD();
 

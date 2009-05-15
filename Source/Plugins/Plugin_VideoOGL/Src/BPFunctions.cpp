@@ -88,9 +88,6 @@ void SetDepthMode(const Bypass &bp)
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 	}
-
-	if (!bpmem.zmode.updateenable)
-		Renderer::SetRenderMode(Renderer::RM_Normal);
 }
 void SetBlendMode(const Bypass &bp)
 {
@@ -160,68 +157,38 @@ void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScal
 }
 void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
-	
-        // Clear color
-        Renderer::SetRenderMode(Renderer::RM_Normal);
-		// Clear Z-Buffer target
-        bool bRestoreZBufferTarget = Renderer::UseFakeZTarget();
-        
-		// Update the view port for clearing the picture
-		glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+	// Update the view port for clearing the picture
+	glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 
-        // Always set the scissor in case it was set by the game and has not been reset
-		glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-			(multirc.right - multirc.left), (multirc.bottom - multirc.top));
-		// ---------------------------
+    // Always set the scissor in case it was set by the game and has not been reset
+	glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
+		(multirc.right - multirc.left), (multirc.bottom - multirc.top));
+	// ---------------------------
 
-        VertexShaderManager::SetViewportChanged();
+    VertexShaderManager::SetViewportChanged();
 
-        // Since clear operations use the source rectangle, we have to do
-		// regular renders (glClear clears the entire buffer)
-        if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
-		{                    
-            GLbitfield bits = 0;
-            if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
-			{
-                u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-				glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
-							 ((clearColor>>8 ) & 0xff)*(1/255.0f),
-							 ((clearColor>>0 ) & 0xff)*(1/255.0f),
-							 ((clearColor>>24) & 0xff)*(1/255.0f));
-                bits |= GL_COLOR_BUFFER_BIT;
-            }
-            if (bpmem.zmode.updateenable)
-			{
-                glClearDepth((float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
-                bits |= GL_DEPTH_BUFFER_BIT;
-            }
-            if (bRestoreZBufferTarget)
-                glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);  // don't clear ztarget here
-            glClear(bits);
-        }
-
-		// Have to clear the target zbuffer
-        if (bpmem.zmode.updateenable && bRestoreZBufferTarget)
+    // Since clear operations use the source rectangle, we have to do
+	// regular renders (glClear clears the entire buffer)
+    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
+	{                    
+        GLbitfield bits = 0;
+        if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 		{
-            glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-            GL_REPORT_ERRORD();
-            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-            
-            // red should probably be the LSB
-            glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),
-				         ((bpmem.clearZValue>>8)&0xff)*(1/255.0f),
-                         ((bpmem.clearZValue>>16)&0xff)*(1/255.0f), 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-            Renderer::SetColorMask();
-            GL_REPORT_ERRORD();   
+            u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+			glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
+						 ((clearColor>>8 ) & 0xff)*(1/255.0f),
+						 ((clearColor>>0 ) & 0xff)*(1/255.0f),
+						 ((clearColor>>24) & 0xff)*(1/255.0f));
+            bits |= GL_COLOR_BUFFER_BIT;
         }
-
-        if (bRestoreZBufferTarget)
+        if (bpmem.zmode.updateenable)
 		{
-            // restore target
-            GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
-            glDrawBuffers(2, s_drawbuffers);
+            glClearDepth((float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
+            bits |= GL_DEPTH_BUFFER_BIT;
         }
+        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+        glClear(bits);
+    }
 }
 
 void RestoreRenderState(const Bypass &bp)

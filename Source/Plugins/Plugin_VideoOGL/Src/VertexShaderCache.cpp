@@ -71,8 +71,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 {
 	DVSTARTPROFILE();
 	VERTEXSHADERUID uid;
-	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::UseFakeZTarget();
-	GetVertexShaderId(uid, components, zbufrender);
+	GetVertexShaderId(uid, components);
 
 	VSCache::iterator iter = vshaders.find(uid);
 
@@ -86,7 +85,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	}
 
 	VSCacheEntry& entry = vshaders[uid];
-	const char *code = GenerateVertexShader(components, Renderer::UseFakeZTarget());
+	const char *code = GenerateVertexShader(components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {

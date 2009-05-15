@@ -36,6 +36,7 @@
 
 static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
+static GLuint s_DepthMatrixProgram = 0;
 PixelShaderCache::PSCache PixelShaderCache::pshaders;
 PIXELSHADERUID PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
@@ -86,12 +87,42 @@ void PixelShaderCache::Init()
 		glDeleteProgramsARB(1, &s_ColorMatrixProgram);
 		s_ColorMatrixProgram = 0;
 	}
+
+    sprintf(pmatrixprog, "!!ARBfp1.0"
+						"TEMP R0;\n"
+						"TEMP R1;\n"
+                        "TEMP R2;\n"
+                        "PARAM K0 = { 65536.0, 256.0 };\n" 
+						"TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
+                        "MUL R0.x, R2.x, K0.x;\n"
+                        "FRC R0.x, R0.x;\n"
+                        "MUL R0.y, R2.x, K0.y;\n"
+                        "FRC R0.y, R0.y;\n"
+                        "MOV R0.z, R2.x;\n"
+						"DP4 R1.x, R0, program.env[%d];\n"
+						"DP4 R1.y, R0, program.env[%d];\n"
+                        "DP4 R1.z, R0, program.env[%d];\n"
+                        "DP4 R1.w, R0, program.env[%d];\n"
+						"ADD result.color, R1, program.env[%d];\n"
+						"END\n", C_COLORMATRIX, C_COLORMATRIX+1, C_COLORMATRIX+2, C_COLORMATRIX+3, C_COLORMATRIX+4);
+	glGenProgramsARB(1, &s_DepthMatrixProgram);
+	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_DepthMatrixProgram);
+	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
+
+	err = GL_REPORT_ERROR();
+	if (err != GL_NO_ERROR) {
+		ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
+		glDeleteProgramsARB(1, &s_DepthMatrixProgram);
+		s_DepthMatrixProgram = 0;
+	}
 }
 
 void PixelShaderCache::Shutdown()
 {
 	glDeleteProgramsARB(1, &s_ColorMatrixProgram);
 	s_ColorMatrixProgram = 0;
+    glDeleteProgramsARB(1, &s_DepthMatrixProgram);
+	s_DepthMatrixProgram = 0;
 	PSCache::iterator iter = pshaders.begin();
 	for (; iter != pshaders.end(); iter++)
 		iter->second.Destroy();
@@ -103,15 +134,18 @@ GLuint PixelShaderCache::GetColorMatrixProgram()
 	return s_ColorMatrixProgram;
 }
 
+GLuint PixelShaderCache::GetDepthMatrixProgram()
+{
+	return s_DepthMatrixProgram;
+}
+
 
 FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-	u32 zbufrender = (Renderer::UseFakeZTarget() && bpmem.zmode.updateenable) ? 1 : 0;
-	u32 zBufRenderToCol0 = Renderer::GetRenderMode() != Renderer::RM_Normal;
     u32 dstAlpha = dstAlphaEnable ? 1 : 0;
-	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), zbufrender, zBufRenderToCol0, dstAlpha);
+	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
 
 	PSCache::iterator iter = pshaders.find(uid);
 
@@ -127,8 +161,6 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 
 	PSCacheEntry& newentry = pshaders[uid];
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
-										   Renderer::UseFakeZTarget(),
-										   Renderer::GetRenderMode() != Renderer::RM_Normal,
                                            dstAlphaEnable);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

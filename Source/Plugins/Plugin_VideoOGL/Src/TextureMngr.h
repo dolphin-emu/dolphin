@@ -57,19 +57,11 @@ public:
 		bool IntersectsMemoryRange(u32 range_address, u32 range_size);
     };
 
-    struct DEPTHTARGET
-    {
-        DEPTHTARGET() : targ(0), framecount(0) {}
-        GLuint targ;
-        int framecount;
-    };
-
 private:
     typedef std::map<u32, TCacheEntry> TexCache;
 
     static u8 *temp;
     static TexCache textures;
-	static std::map<u32, DEPTHTARGET> mapDepthTargets;
 
 public:
     static void Init();

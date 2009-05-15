@@ -165,6 +165,51 @@ void WriteSwizzler(char*& p, u32 format)
 	         "  sampleUv.y = sampleUv.y + textureDims.w;\n");
 }
 
+// block dimensions : widthStride, heightStride 
+// texture dims : width, height, x offset, y offset
+void Write32BitSwizzler(char*& p, u32 format)
+{
+    WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
+	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
+
+    float blkW = (float)GetBlockWidthInTexels(format);
+	float blkH = (float)GetBlockHeightInTexels(format);
+	float samples = (float)GetEncodedSampleCount(format);
+
+	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
+
+	WRITE(p, 
+	"uniform samplerRECT samp0 : register(s0);\n"
+	"void main(\n"
+	"  out float4 ocol0 : COLOR0,\n"
+	"  in float2 uv0 : TEXCOORD0)\n"
+	"{\n"
+    "  float2 sampleUv;\n"
+	"  float2 uv1 = floor(uv0);\n");
+	
+	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
+	WRITE(p, "  float yb = yl * %f;\n", blkH);
+	WRITE(p, "  float yoff = uv1.y - yb;\n");
+	WRITE(p, "  float xp = uv1.x + (yoff * textureDims.x);\n");
+	WRITE(p, "  float xel = floor(xp / 2);\n");
+	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
+	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
+	
+	WRITE(p, "  float x2 = uv1.x * 2;\n");
+	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);	
+	WRITE(p, "  float xib = x2 - (xl * %f);\n", blkW);
+	WRITE(p, "  float halfxb = floor(xb / 2);\n");
+
+	
+	WRITE(p, "  sampleUv.x = xib + (halfxb * %f);\n", blkW);
+	WRITE(p, "  sampleUv.y = yb + xoff;\n");
+	WRITE(p, "  sampleUv = sampleUv * blkDims.xy;\n");
+	WRITE(p, "  sampleUv.y = textureDims.y - sampleUv.y;\n");
+	
+	WRITE(p, "  sampleUv.x = sampleUv.x + textureDims.z;\n");
+	WRITE(p, "  sampleUv.y = sampleUv.y + textureDims.w;\n");
+}
+
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest)
 {
 	WRITE(p, "  %s = texRECT(samp0, sampleUv).%s;\n", dest, colorComp);
@@ -432,48 +477,9 @@ void WriteRGBA4443Encoder(char* p)
 	WRITE(p, "}\n");
 }
 
-// block dimensions : widthStride, heightStride 
-// texture dims : width, height, x offset, y offset
-void WriteRGBA8Encoder(char* p, bool fromDepth)
+void WriteRGBA8Encoder(char* p)
 {
-	WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
-	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
-
-    float blkW = (float)GetBlockWidthInTexels(GX_TF_RGBA8);
-	float blkH = (float)GetBlockHeightInTexels(GX_TF_RGBA8);
-	float samples = (float)GetEncodedSampleCount(GX_TF_RGBA8);
-
-	// Swizzling for RGBA8 format
-	WRITE(p, 
-	"uniform samplerRECT samp0 : register(s0);\n"
-	"void main(\n"
-	"  out float4 ocol0 : COLOR0,\n"
-	"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"
-    "  float2 sampleUv;\n"
-	"  float2 uv1 = floor(uv0);\n");
-	
-	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
-	WRITE(p, "  float yb = yl * %f;\n", blkH);
-	WRITE(p, "  float yoff = uv1.y - yb;\n");
-	WRITE(p, "  float xp = uv1.x + (yoff * textureDims.x);\n");
-	WRITE(p, "  float xel = floor(xp / 2);\n");
-	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
-	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
-	
-	WRITE(p, "  float x2 = uv1.x * 2;\n");
-	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);	
-	WRITE(p, "  float xib = x2 - (xl * %f);\n", blkW);
-	WRITE(p, "  float halfxb = floor(xb / 2);\n");
-
-	
-	WRITE(p, "  sampleUv.x = xib + (halfxb * %f);\n", blkW);
-	WRITE(p, "  sampleUv.y = yb + xoff;\n");
-	WRITE(p, "  sampleUv = sampleUv * blkDims.xy;\n");
-	WRITE(p, "  sampleUv.y = textureDims.y - sampleUv.y;\n");
-	
-	WRITE(p, "  sampleUv.x = sampleUv.x + textureDims.z;\n");
-	WRITE(p, "  sampleUv.y = sampleUv.y + textureDims.w;\n");
+	Write32BitSwizzler(p, GX_TF_RGBA8);
 
 	WRITE(p, "  float cl1 = xb - (halfxb * 2);\n");
 	WRITE(p, "  float cl0 = 1.0f - cl1;\n");
@@ -483,10 +489,7 @@ void WriteRGBA8Encoder(char* p, bool fromDepth)
 	WRITE(p, "  float4 color1;\n");
 
 	WriteSampleColor(p, "rgba", "texSample");
-	if(fromDepth)
-		WRITE(p, "  color0.b = 1.0f;\n");
-	else
-		WRITE(p, "  color0.b = texSample.a;\n");
+	WRITE(p, "  color0.b = texSample.a;\n");
 	WRITE(p, "  color0.g = texSample.r;\n");
 	WRITE(p, "  color1.b = texSample.g;\n");
 	WRITE(p, "  color1.g = texSample.b;\n");
@@ -494,10 +497,7 @@ void WriteRGBA8Encoder(char* p, bool fromDepth)
 	WriteIncrementSampleX(p);
 
 	WriteSampleColor(p, "rgba", "texSample");
-	if(fromDepth)
-		WRITE(p, "  color0.r = 1.0f;\n");
-	else
-		WRITE(p, "  color0.r = texSample.a;\n");
+	WRITE(p, "  color0.r = texSample.a;\n");
 	WRITE(p, "  color0.a = texSample.r;\n");
 	WRITE(p, "  color1.r = texSample.g;\n");
 	WRITE(p, "  color1.a = texSample.b;\n");
@@ -606,6 +606,101 @@ void WriteCC8Encoder(char* p, const char* comp)
 	WRITE(p, "}\n");
 }
 
+void WriteZ8Encoder(char* p, const char* multiplier)
+{
+	WriteSwizzler(p, GX_CTF_Z8M);
+
+    WRITE(p, " float depth;\n");
+
+	WriteSampleColor(p, "b", "depth");
+    WRITE(p, "ocol0.b = frac(depth * %s);\n", multiplier);
+	WriteIncrementSampleX(p);
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "ocol0.g = frac(depth * %s);\n", multiplier);
+	WriteIncrementSampleX(p);
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "ocol0.r = frac(depth * %s);\n", multiplier);
+	WriteIncrementSampleX(p);
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "ocol0.a = frac(depth * %s);\n", multiplier);
+
+	WRITE(p, "}\n");
+}
+
+void WriteZ16Encoder(char* p)
+{
+    WriteSwizzler(p, GX_TF_Z16);
+
+    WRITE(p, " float depth;\n");
+
+    // byte order is reversed
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "  ocol0.b = frac(depth * 256.0f);\n");
+    WRITE(p, "  ocol0.g = depth;\n");
+
+    WriteIncrementSampleX(p);
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "  ocol0.r = frac(depth * 256.0f);\n");
+    WRITE(p, "  ocol0.a = depth;\n");    
+
+    WRITE(p, "}\n");
+}
+
+void WriteZ16LEncoder(char* p)
+{
+    WriteSwizzler(p, GX_CTF_Z16L);
+
+    WRITE(p, " float depth;\n");
+
+    // byte order is reversed
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "  ocol0.b = frac(depth * 65536.0f);\n");
+    WRITE(p, "  ocol0.g = frac(depth * 256.0f);\n");
+
+    WriteIncrementSampleX(p);
+
+    WriteSampleColor(p, "b", "depth");
+    WRITE(p, "  ocol0.r = frac(depth * 65536.0f);\n");
+    WRITE(p, "  ocol0.a = frac(depth * 256.0f);\n");    
+
+    WRITE(p, "}\n");
+}
+
+void WriteZ24Encoder(char* p)
+{
+	Write32BitSwizzler(p, GX_TF_Z24X8);
+
+	WRITE(p, "  float cl = xb - (halfxb * 2);\n");
+
+	WRITE(p, "  float depth0;\n");
+    WRITE(p, "  float depth1;\n");
+
+	WriteSampleColor(p, "b", "depth0");
+    WriteIncrementSampleX(p);
+    WriteSampleColor(p, "b", "depth1");
+
+    WRITE(p, "  if(cl > 0.5f) {\n");
+    // upper 16
+    WRITE(p, "     ocol0.b = frac(depth0 * 256.0f);\n");
+    WRITE(p, "     ocol0.g = depth0\n");
+    WRITE(p, "     ocol0.r = frac(depth1 * 256.0f);\n");
+    WRITE(p, "     ocol0.a = depth1\n");
+    WRITE(p, "  } else {\n");
+    // lower 8
+    WRITE(p, "     ocol0.b = 1.0f;\n");
+    WRITE(p, "     ocol0.g = frac(depth0 * 65536.0f)\n");
+    WRITE(p, "     ocol0.r = 1.0f);\n");
+    WRITE(p, "     ocol0.a = frac(depth0 * 65536.0f)\n");
+    WRITE(p, "  }\n"
+             "}\n");
+}
+
 const char *GenerateEncodingShader(u32 format)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -633,7 +728,7 @@ const char *GenerateEncodingShader(u32 format)
 		WriteRGB5A3Encoder(p);
 		break;
 	case GX_TF_RGBA8:
-		WriteRGBA8Encoder(p, false);
+		WriteRGBA8Encoder(p);
 		break;
 	case GX_CTF_R4:
 		WriteC4Encoder(p, "r");
@@ -666,24 +761,22 @@ const char *GenerateEncodingShader(u32 format)
 		WriteC8Encoder(p, "b");
 		break;
 	case GX_TF_Z16:
-		// byte order is reversed
-		WriteCC8Encoder(p, "gb");
+		WriteZ16Encoder(p);
 		break;
 	case GX_TF_Z24X8:
-		WriteRGBA8Encoder(p, true);
+		WriteZ24Encoder(p);
 		break;
 	case GX_CTF_Z4:
 		WriteC4Encoder(p, "b");
 		break;
 	case GX_CTF_Z8M:
-		WriteC8Encoder(p, "g");
+		WriteZ8Encoder(p, "256.0f");
 		break;
 	case GX_CTF_Z8L:
-		WriteC8Encoder(p, "r");
+		WriteZ8Encoder(p, "65536.0f" );
 		break;
 	case GX_CTF_Z16L:
-		// byte order is reversed
-		WriteCC8Encoder(p, "rg");
+		WriteZ16LEncoder(p);
 		break;
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);

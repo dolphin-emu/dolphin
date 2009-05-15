@@ -69,7 +69,7 @@ void VertexShaderCache::SetShader(u32 components)
 	DVSTARTPROFILE();
 
 	VERTEXSHADERUID uid;
-	GetVertexShaderId(uid, components, false);
+	GetVertexShaderId(uid, components);
 
 	VSCache::iterator iter;
 	iter = vshaders.find(uid);
@@ -86,7 +86,7 @@ void VertexShaderCache::SetShader(u32 components)
 	}
 
 	bool HLSL = false;
-	const char *code = GenerateVertexShader(components, false);
+	const char *code = GenerateVertexShader(components);
 	LPDIRECT3DVERTEXSHADER9 shader = HLSL ? D3D::CompileVertexShader(code, (int)strlen(code), false) : CompileCgShader(code);
 	if (shader)
 	{

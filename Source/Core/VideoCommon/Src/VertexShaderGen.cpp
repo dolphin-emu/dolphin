@@ -25,13 +25,12 @@
 
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components, u32 zbufrender)
+void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
 {
 	vid.values[0] = components |
 		(xfregs.numTexGens << 23) |
 		(xfregs.nNumChans << 27) |
-		((u32)xfregs.bEnableDualTexTransform << 29) |
-		(zbufrender << 30);
+		((u32)xfregs.bEnableDualTexTransform << 29);
 
 	for (int i = 0; i < 2; ++i) {
 		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ?
@@ -77,7 +76,7 @@ static char text[16384];
 
 char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
 
-const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
+const char *GenerateVertexShader(u32 components)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();

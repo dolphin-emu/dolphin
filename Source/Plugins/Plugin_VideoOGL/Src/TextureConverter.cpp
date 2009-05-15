@@ -160,8 +160,6 @@ void Shutdown()
 void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, bool linearFilter)
 {
-	Renderer::SetRenderMode(Renderer::RM_Normal);
-
 	Renderer::ResetGLState();
 	
 	// switch to texture converter frame buffer
@@ -243,7 +241,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
+	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
 	int width = source.right - source.left;
 	int height = source.bottom - source.top;
 
@@ -288,9 +286,6 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.right = expandedWidth / samples;
 
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
-
-	if (bFromZBuffer)
-        Renderer::SetZBufferRender(); // notify for future settings
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
@@ -303,7 +298,6 @@ void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
 // Should be scale free.
 void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
-	Renderer::SetRenderMode(Renderer::RM_Normal);
 	Renderer::ResetGLState();
 
 	float srcFormatFactor = 0.5f;
