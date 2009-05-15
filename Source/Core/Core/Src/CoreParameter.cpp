@@ -194,22 +194,24 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, Region, true);
 	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, Region, false);
 	m_strSRAM = GC_SRAM_FILE;
-	bHLEBios = true;
 	if (!bWii)
 	{
 		m_strBios = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios)
+		if (!bHLEBios)
 		{
-			if (File::Exists(m_strBios.c_str()))
-			{
-				bHLEBios = false;
-			}
-			else 
+			if (!File::Exists(m_strBios.c_str()))
 			{
 				WARN_LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
+				bHLEBios = true;
 			}
 		}
 	}
+	else if (bWii && !bHLEBios)
+	{
+		WARN_LOG(BOOT, "GC BIOS file will not be loaded for Wii mode.");
+		bHLEBios = true;
+	}
+
 	return true;
 }
 
