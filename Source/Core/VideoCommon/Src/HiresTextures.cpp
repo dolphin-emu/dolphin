@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <utility>
+#include <algorithm>
 #include "SOIL.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
@@ -34,26 +35,26 @@ void Init(const char *gameCode)
 	CFileSearch::XStringVector Directories;
 	Directories.push_back(std::string(FULL_HIRES_TEXTURES_DIR));
 
-	for(u32 i = 0; i < Directories.size(); i++)
+	for (u32 i = 0; i < Directories.size(); i++)
 	{
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
-		for(u32 j = 0; j < FST_Temp.children.size(); j++)
+		for (u32 j = 0; j < FST_Temp.children.size(); j++)
 		{
-			if(FST_Temp.children.at(j).isDirectory)
+			if (FST_Temp.children.at(j).isDirectory)
 			{
 				bool duplicate = false;
 				NormalizeDirSep(&(FST_Temp.children.at(j).physicalName));
-				for(u32 k = 0; k < Directories.size(); k++)
+				for (u32 k = 0; k < Directories.size(); k++)
 				{
 					NormalizeDirSep(&Directories.at(k));
-					if(strcmp(Directories.at(k).c_str(), FST_Temp.children.at(j).physicalName.c_str()) == 0)
+					if (strcmp(Directories.at(k).c_str(), FST_Temp.children.at(j).physicalName.c_str()) == 0)
 					{
 						duplicate = true;
 						break;
 					}
 				}
-				if(!duplicate)
+				if (!duplicate)
 					Directories.push_back(FST_Temp.children.at(j).physicalName.c_str());
 			}
 		}
@@ -64,18 +65,21 @@ void Init(const char *gameCode)
 	Extensions.push_back("*.bmp");
 	Extensions.push_back("*.tga");
 	Extensions.push_back("*.dds");
+	Extensions.push_back("*.jpg"); // Why not? Could be useful for large photo-like textures
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+	char code[MAX_PATH];
+	sprintf(code, "%s_", gameCode);
 
-	if(rFilenames.size() > 0)
+	if (rFilenames.size() > 0)
 	{
-		for(u32 i = 0; i < rFilenames.size(); i++)
+		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
-			if(FileName.substr(0, strlen(gameCode)).compare(gameCode) == 0 && textureMap.find(FileName) == textureMap.end())
+			if (FileName.substr(0, strlen(code)).compare(code) == 0 && textureMap.find(FileName) == textureMap.end())
 				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilenames[i]));
 		}
 	}
@@ -86,7 +90,7 @@ void Shutdown()
 	textureMap.clear();
 }
 
-PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, u8 *data)
+PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int texformat, u8 *data)
 {
 	std::string key(fileName);
 
@@ -96,6 +100,7 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, u8 *da
 	int width;
 	int height;
 	int channels;
+
 	u8 *temp = SOIL_load_image(textureMap[key].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
 
 	if (temp == NULL) {
@@ -110,11 +115,34 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, u8 *da
 		return PC_TEX_FMT_NONE;
 	}
 
-	memcpy(data, temp, width*height*4);
+	int offset = 0;
+	PC_TexFormat returnTex;
+
+	switch (texformat)
+	{
+	case GX_TF_I4:
+	case GX_TF_I8:
+	case GX_TF_IA4:
+	case GX_TF_IA8:
+		for (int i = 0; i < width * height * 4; i += 4)
+		{
+			// Rather than use a luminosity function, just use the most intense color for luminance
+			data[offset++] = *std::max_element(temp+i, temp+i+3);
+			data[offset++] = temp[i+3];
+		}
+		returnTex = PC_TEX_FMT_IA8;
+		break;
+	default:
+		memcpy(data, temp, width*height*4);
+		returnTex = PC_TEX_FMT_RGBA32;
+		break;
+	}
+
 	*pWidth = width;
 	*pHeight = height;
 	SOIL_free_image_data(temp);
-	return PC_TEX_FMT_RGBA32;
+	INFO_LOG(VIDEO, "loading custom texture from %s", textureMap[key].c_str());
+	return returnTex;
 }
 
 }

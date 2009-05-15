@@ -332,7 +332,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
-    PC_TexFormat dfmt = PC_TEX_FMT_NONE;
+	PC_TexFormat dfmt = PC_TEX_FMT_NONE;
 
 	if (g_Config.bHiresTextures)
 	{
@@ -341,16 +341,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		int oldWidth = width;
 		int oldHeight = height;
 		sprintf(texPathTemp, "%s_%08x_%i", ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
-		dfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, temp);
-		
+		dfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);
+
 		if (dfmt != PC_TEX_FMT_NONE)
 		{
 			expandedWidth = width;
 			expandedHeight = height;
-			entry.size_in_bytes = sizeof(temp);
 			entry.scaleX = (float) width / oldWidth;
 			entry.scaleY = (float) height / oldHeight;
-			INFO_LOG(VIDEO, "loading custom texture from %s", texPathTemp);
 		}
 	}
 
@@ -462,7 +460,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (g_Config.bDumpTextures) // dump texture to file
 	{ 
         char szTemp[MAX_PATH];
-		
+		&m_LastFilename
 		sprintf(szTemp, "%s/%s_%08x_%i.tga", FULL_DUMP_TEXTURES_DIR, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
 		if (!File::Exists(szTemp))
 		{
