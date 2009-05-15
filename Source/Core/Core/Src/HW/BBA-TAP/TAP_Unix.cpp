@@ -20,12 +20,14 @@
 #include "../EXI_DeviceEthernet.h"
 	#include <sys/socket.h>
 	#include <netinet/in.h>
-	#include <stropts.h>
 	#include <stdio.h>
 	#include <fcntl.h>
 	#include <sys/ioctl.h>
 	#include <net/if.h>  
+#if !defined(__APPLE__)
+	#include <stropts.h>
 	#include <linux/if_tun.h>
+#endif
 	int fd = -1;
 bool CEXIETHERNET::deactivate()
 {
@@ -47,8 +49,8 @@ bool CEXIETHERNET::activate() {
 		return false;
 	}
 	struct ifreq ifr;
+#if !defined(__APPLE__)	
 	int err;
-	
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP;
 	
@@ -61,6 +63,7 @@ bool CEXIETHERNET::activate() {
 		DEBUGPRINT(" Error with IOCTL: 0x%X\n", err);
 		return false;
 	}
+#endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
 	return true;
 	

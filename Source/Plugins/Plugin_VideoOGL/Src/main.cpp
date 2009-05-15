@@ -195,6 +195,45 @@ void DllConfig(HWND _hParent)
 		}
 	}    
 	XFree(modes);
+#elif defined(HAVE_COCOA) && HAVE_COCOA && defined(HAVE_WX) && HAVE_WX
+	
+	CFArrayRef modes;
+	CFRange range;
+	CFDictionaryRef modesDict;
+	CFNumberRef modeValue;
+
+	int modeWidth;
+	int modeHeight;
+	int modeBpp;
+	int modeIndex;
+	int px = 0, py = 0;
+
+
+	modes = CGDisplayAvailableModes(CGMainDisplayID());
+
+	range.location = 0;
+	range.length = CFArrayGetCount(modes);
+
+	for (modeIndex=0; modeIndex<range.length; modeIndex++)
+	{
+		modesDict = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, modeIndex);
+		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayWidth);
+    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeWidth);
+		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayHeight);
+    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeHeight);
+		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayBitsPerPixel);
+    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeBpp);
+
+		if (px != modeWidth && py != modeHeight)
+		{
+			char temp[32];
+			sprintf(temp,"%dx%d", modeWidth, modeHeight);
+			config_dialog->AddFSReso(temp);
+			config_dialog->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+			px = modeWidth;
+			py = modeHeight;
+		}
+	}
 #endif
 	
 	// Check if at least one resolution was found. If we don't and the resolution array is empty

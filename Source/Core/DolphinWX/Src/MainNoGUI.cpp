@@ -8,6 +8,11 @@
 #endif
 
 #include "Common.h"
+#include "FileUtil.h"
+
+#ifdef __APPLE__
+#include <sys/param.h>
+#endif
 
 #if defined(HAVE_COCOA) && HAVE_COCOA
 #import "cocoaApp.h"
@@ -151,7 +156,7 @@ int main(int argc, char *argv[])
 	cocoaCreateApp();
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	CocoaThread *thread = [[CocoaThread alloc] init];
 	NSEvent *event = [[NSEvent alloc] init];	
 	
@@ -196,6 +201,24 @@ int main(int argc, char* argv[])
 	updateMainFrameEvent.Init();
 	cpu_info.Detect();
 	CPluginManager::GetInstance().ScanForPlugins();
+
+			// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
+			char AppSupportDir[MAXPATHLEN];
+			snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
+			if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
+				PanicAlert("Could not open ~/Library/Application Support");
+
+			strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
+			
+			if (!File::Exists(AppSupportDir))
+				File::CreateDir(AppSupportDir);
+			
+			if (!File::IsDirectory(AppSupportDir))
+				PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
+			
+			chdir(AppSupportDir);
+
+
 	BootManager::BootCore(bootFile);
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{

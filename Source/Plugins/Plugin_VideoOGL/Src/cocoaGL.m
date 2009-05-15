@@ -69,6 +69,7 @@ NSOpenGLContext* cocoaGLInit(int mode)
         attr[i++] = mode;
         attr[i++] = NSOpenGLPFASamples;
         attr[i++] = 1;
+	attr[i++] = NSOpenGLPFANoRecovery;
 #ifdef GL_VERSION_1_3
 
 #else
