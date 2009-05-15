@@ -352,11 +352,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 			if(g_Config.m_EnableRE0Fix)
 			{
-				k=j;
+				k=0;
 			}
 			else
 			{
-				k=0;
+				k=j;
 			}
 
 			const u16 updpar   = Memory_Read_U16(updaddr + k);
