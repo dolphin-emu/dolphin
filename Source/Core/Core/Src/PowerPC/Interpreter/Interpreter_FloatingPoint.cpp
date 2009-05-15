@@ -409,7 +409,6 @@ void fmulsx(UGeckoInstruction _inst)
 	double d_value = rPS0(_inst.FA) * rPS0(_inst.FC);
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(d_value);
 	FPSCR.FI = d_value != rPS0(_inst.FD);
-	FPSCR.FR = rand()&1;
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));  
 }
