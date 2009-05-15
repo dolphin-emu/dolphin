@@ -38,25 +38,6 @@ void DEBUGPRINT (const char * format, ...)
 	#endif
 	va_end (args);
 }
-inline u8 makemaskb(int start, int end) {
-	return (u8)_rotl((2 << (end - start)) - 1, 7 - end);
-}
-inline u32 makemaskh(int start, int end) {
-	return (u32)_rotl((2 << (end - start)) - 1, 15 - end);
-}
-inline u32 makemaskw(int start, int end) {
-	return _rotl((2 << (end - start)) - 1, 31 - end);
-}
-inline u8 getbitsb(u8 byte, int start, int end) {
-	return (byte & makemaskb(start, end)) >> u8(7 - end);
-}
-inline u32 getbitsh(u32 hword, int start, int end) {
-	return (hword & makemaskh(start, end)) >> u32(15 - end);
-}
-inline u32 getbitsw(u32 dword, int start, int end) {
-	return (dword & makemaskw(start, end)) >> (31 - end);
-}
-
 
 
 #define MAKE(type, arg) (*(type *)&(arg))
@@ -99,15 +80,15 @@ CEXIETHERNET::CEXIETHERNET() :
 
 void CEXIETHERNET::SetCS(int cs)
 {
-	if (cs)
+	if (!cs)
 	{
 		if (mExpectVariableLengthImmWrite)
 		{
 			mExpectVariableLengthImmWrite = false;
 			mReadyToSend = true;
 		}
-		mWriteP = mReadP = INVALID_P;
 		mExpectSpecialImmRead = false;
+		mWriteP = mReadP = INVALID_P;
 		m_uPosition = 0;
 		Expecting = EXPECT_NONE;
 	}
@@ -130,7 +111,7 @@ bool CEXIETHERNET::IsInterruptSet()
 void CEXIETHERNET::recordSendComplete() 
 {
 	mBbaMem[BBA_NCRA] &= ~0x06;
-	if(mBbaMem[0x08] & BBA_INTERRUPT_SENT) 
+	if(mBbaMem[BBA_IMR] & BBA_INTERRUPT_SENT) 
 	{
 		mBbaMem[BBA_IR] |= BBA_INTERRUPT_SENT;
 		DEBUGPRINT( "\t\tBBA Send interrupt raised\n");
@@ -154,7 +135,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	//DEBUGPRINT( "IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
 	if (mExpectVariableLengthImmWrite) 
 	{
-		DEBUGPRINT("Variable Length IMM Write: Size: %d _uData: 0x%08X swapped: 0x%08X\n", _uSize, _uData, Common::swap32(_uData));
 		// TODO: Use Swapped or unswapped?
 		if(_uSize == 4)
 		{
@@ -399,6 +379,7 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 	else
 	{
 		DEBUGPRINT( "\t[EEE]Unhandled IMM read of %d bytes\n", _uSize);
+		exit(0);
 	}
 	DEBUGPRINT( "[EEE]Not Expecting IMMRead of size %d!\n", _uSize);
 	exit(0);

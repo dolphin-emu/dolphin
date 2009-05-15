@@ -104,7 +104,7 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	DEBUGPRINT( "Packet: 0x");
 	for(int a = 0; a < size; ++a)
 	{
-		DEBUGPRINT( "%02X", etherpckt[a]);
+		DEBUGPRINT( "%02X ", etherpckt[a]);
 	}
 	DEBUGPRINT( " : Size: %d\n", size);
 	int numBytesWrit = write(fd, etherpckt, size);

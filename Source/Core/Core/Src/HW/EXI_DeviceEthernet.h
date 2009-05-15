@@ -18,6 +18,26 @@
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
 
+inline u8 makemaskb(int start, int end) {
+	return (u8)_rotl((2 << (end - start)) - 1, 7 - end);
+}
+inline u32 makemaskh(int start, int end) {
+	return (u32)_rotl((2 << (end - start)) - 1, 15 - end);
+}
+inline u32 makemaskw(int start, int end) {
+	return _rotl((2 << (end - start)) - 1, 31 - end);
+}
+inline u8 getbitsb(u8 byte, int start, int end) {
+	return (byte & makemaskb(start, end)) >> u8(7 - end);
+}
+inline u32 getbitsh(u32 hword, int start, int end) {
+	return (hword & makemaskh(start, end)) >> u32(15 - end);
+}
+inline u32 getbitsw(u32 dword, int start, int end) {
+	return (dword & makemaskw(start, end)) >> (31 - end);
+}
+
+
 void DEBUGPRINT (const char * format, ...);
 class WriteBuffer {
 public:
@@ -150,6 +170,7 @@ enum{
 	BBA_NCRA_ST0	  =		(1<<1),	/* ST0, Start transmit command/status */
 	BBA_NCRA_ST1	  =		(1<<2),	/* ST1,  " */
 	BBA_NCRA_SR		  =		(1<<3),	/* SR, Start Receive */
+	
 	BBA_NCRB		  =		0x01,		/* Network Control Register B, RW */
 	BBA_NCRB_PR		  =		(1<<0),	/* PR, Promiscuous Mode */
 	BBA_NCRB_CA		  =		(1<<1),	/* CA, Capture Effect Mode */
@@ -163,6 +184,8 @@ enum{
 	BBA_NCRB_2_PACKETS_PER_INT = (1<<6),	/* 0 1 */
 	BBA_NCRB_4_PACKETS_PER_INT = (2<<6),	/* 1 0 */
 	BBA_NCRB_8_PACKETS_PER_INT = (3<<6),	/* 1 1 */
+	
+	BBA_IMR 				   = 0x08, /* Interrupt Mask Register, RW, 00h */
 
 	BBA_IR					    = 	0x09,		/* Interrupt Register, RW, 00h */
 	BBA_IR_FRAGI       			=	(1<<0),	/* FRAGI, Fragment Counter Interrupt */
