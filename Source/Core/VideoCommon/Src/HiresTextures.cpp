@@ -30,10 +30,16 @@ namespace HiresTextures
 
 std::map<std::string, std::string> textureMap;
 
-void Init(const char *gameCode)
+void Init(const char *gameCode,const char *gameName)
 {
+	static bool bCheckedDir;
+
 	CFileSearch::XStringVector Directories;
-	Directories.push_back(std::string(FULL_HIRES_TEXTURES_DIR));
+	//Directories.push_back(std::string(FULL_HIRES_TEXTURES_DIR));
+	char szDir[MAX_PATH];
+	sprintf(szDir,"%s/%s",FULL_HIRES_TEXTURES_DIR,gameName);
+	Directories.push_back(std::string(szDir));
+	
 
 	for (u32 i = 0; i < Directories.size(); i++)
 	{
