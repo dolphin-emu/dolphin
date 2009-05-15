@@ -463,8 +463,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
         char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
-		static bool bCheckedDir;
-		int check;
+		bool bCheckedDir = false;
 
 		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.m_strName.c_str());
 
