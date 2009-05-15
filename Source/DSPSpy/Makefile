@@ -7,7 +7,12 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-include $(DEVKITPPC)/wii_rules
+#---------------------------------------------------------------------------------
+# build for wii by default, make HW_TYPE=gamecube will do what it sounds like
+#---------------------------------------------------------------------------------
+HW_TYPE = wii
+
+include $(DEVKITPPC)/$(HW_TYPE)_rules
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -15,7 +20,7 @@ include $(DEVKITPPC)/wii_rules
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	$(notdir $(CURDIR))_$(HW_TYPE)
 BUILD		:=	build
 SOURCES		:=	. emu
 RESOURCES	:=	../resources
@@ -34,7 +39,11 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
+ifeq ($(HW_TYPE), gamecube)
+LIBS	:=	-lfat -lasnd -lmodplay -lz -logc -lm
+else
 LIBS	:=	-lfat -lasnd -lmodplay -lwiiuse -lbte -lz -logc -lm
+endif
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -108,7 +117,11 @@ clean:
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
 #---------------------------------------------------------------------------------
 run:
+ifeq ($(HW_TYPE), gamecube)
+	PSOload $(OUTPUT).dol
+else
 	wiiload $(OUTPUT).dol
+endif
 
 #---------------------------------------------------------------------------------
 else

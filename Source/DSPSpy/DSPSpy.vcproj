@@ -75,9 +75,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make -f MakefileGC"
-				ReBuildCommandLine="make clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make -f MakefileGC"
-				CleanCommandLine="make clean"
+				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make HW_TYPE=gamecube"
+				ReBuildCommandLine="make  HW_TYPE=gamecube clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make HW_TYPE=gamecube"
+				CleanCommandLine="make  HW_TYPE=gamecube clean"
 				Output="DSPSpyGC.dol"
 				PreprocessorDefinitions=""
 				IncludeSearchPath="$(ProjectDir);C:\devkitPro\libogc\include"
@@ -98,9 +98,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make -f MakefileGC"
-				ReBuildCommandLine="make clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make -f MakefileGC"
-				CleanCommandLine="make clean"
+				BuildCommandLine="..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_test.ds&#x0D;&#x0A;make HW_TYPE=gamecube"
+				ReBuildCommandLine="make  HW_TYPE=gamecube clean&#x0D;&#x0A;..\..\Binary\$(PlatformName)\DSPTool.exe -h dsp_code tests\dsp_code.ds&#x0D;&#x0A;make HW_TYPE=gamecube"
+				CleanCommandLine="make  HW_TYPE=gamecube clean"
 				Output="DSPSpyGC.dol"
 				PreprocessorDefinitions=""
 				IncludeSearchPath="$(ProjectDir);C:\devkitPro\libogc\include"
@@ -128,10 +128,6 @@
 		</File>
 		<File
 			RelativePath=".\Makefile"
-			>
-		</File>
-		<File
-			RelativePath=".\MakefileGC"
 			>
 		</File>
 		<File

@@ -21,7 +21,9 @@
 #include <ogc/irq.h>
 #include <ogc/machine/asm.h>
 #include <ogc/machine/processor.h>
+#ifdef HW_RVL
 #include <wiiuse/wpad.h>
+#endif
 
 #include "ConsoleHelper.h"
 
@@ -195,6 +197,7 @@ void print_regs(int _step, int _dsp_steps)
 
 void ui_pad_sel(void)
 {
+#ifdef HW_RVL
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
 		cursor_reg += 8;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
@@ -209,10 +212,27 @@ void ui_pad_sel(void)
 		ui_mode = UIM_EDIT_REG;
 		reg_value = &dspreg_in[cursor_reg];
 	}
+#else
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
+		cursor_reg += 8;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
+		cursor_reg -= 8;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_UP)
+		cursor_reg--;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_DOWN)
+		cursor_reg++;
+	cursor_reg &= 0x1f;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_A)
+	{
+		ui_mode = UIM_EDIT_REG;
+		reg_value = &dspreg_in[cursor_reg];
+	}
+#endif
 }
 
 void ui_pad_edit_reg(void)
 {
+#ifdef HW_RVL
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
 		small_cursor_x++;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_LEFT)
@@ -229,6 +249,24 @@ void ui_pad_edit_reg(void)
 		*reg_value = 0;
 	if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
 		*reg_value = 0xffff;
+#else
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
+		small_cursor_x++;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
+		small_cursor_x--;
+	small_cursor_x &= 0x3;
+
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_UP)
+		*reg_value += 0x1 << (4 * (3 - small_cursor_x));
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_DOWN)
+		*reg_value -= 0x1 << (4 * (3 - small_cursor_x));
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_A)
+		ui_mode = UIM_SEL;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_X)
+		*reg_value = 0;
+	if (PAD_ButtonsDown(0) & PAD_BUTTON_Y)
+		*reg_value = 0xffff;
+#endif
 }
 
 void init_video(void)
@@ -313,7 +351,9 @@ int main()
 
 	// Both GC and Wii controls.
 	PAD_Init();
+#ifdef HW_RVL
 	WPAD_Init();
+#endif
 
 	int dsp_steps = 0;
 	int show_step = 0;
@@ -370,18 +410,29 @@ int main()
 
 		VIDEO_WaitVSync();
 
+#ifdef HW_RVL
 		PAD_ScanPads();
 		WPAD_ScanPads();
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) || (PAD_ButtonsDown(0) & PAD_BUTTON_START))
 			exit(0);
-
-		print_regs(show_step, dsp_steps);
 
 		CON_Printf(2, 18, "Controls:");
 		CON_Printf(4, 19, "+/- to move");
 		CON_Printf(4, 20, "B to start over");
 		CON_Printf(4, 21, "Home to exit");
 		CON_Printf(4, 22, "2 to dump results to SD");
+#else
+		PAD_ScanPads();
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_START)
+			exit(0);
+
+		CON_Printf(2, 18, "Controls:");
+		CON_Printf(4, 19, "L/R to move");
+		CON_Printf(4, 20, "B to start over");
+		CON_Printf(4, 21, "Start to exit");
+#endif
+
+		print_regs(show_step, dsp_steps);
 
 		CON_Printf(4, 24, last_message);
 
@@ -402,7 +453,11 @@ int main()
 		DCFlushRange(xfb, 0x200000);
 
 		// Use B to start over.
-		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) || (PAD_ButtonsDown(0) & PAD_BUTTON_START)) 
+#ifdef HW_RVL
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) || (PAD_ButtonsDown(0) & PAD_BUTTON_B))
+#else
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_B)
+#endif
 		{
 			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
 
@@ -424,16 +479,22 @@ int main()
 		}
 
 		// Navigate between results using + and - buttons.
-
-		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS) || (PAD_ButtonsDown(0) & PAD_BUTTON_X))
+#ifdef HW_RVL
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS) || (PAD_ButtonsDown(0) & PAD_TRIGGER_R))
+#else
+		if (PAD_ButtonsDown(0) & PAD_TRIGGER_R)
+#endif
 		{
 			show_step++;
 			if (show_step >= dsp_steps) 
 				show_step = 0;
 			strcpy(last_message, "OK");
 		}
-
-		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
+#ifdef HW_RVL
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) || (PAD_ButtonsDown(0) & PAD_TRIGGER_L))
+#else
+		if (PAD_ButtonsDown(0) & PAD_TRIGGER_L)
+#endif
 		{
 			show_step--;
 			if (show_step < 0) 
@@ -441,6 +502,8 @@ int main()
 			strcpy(last_message, "OK");
 		}
 
+#ifdef HW_RVL
+		// Probably could offer to save to memcard (sd gecko) but i dont have one so meh
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
 		{
 			FILE *f = fopen("sd:/dsp_dump.bin", "wb");
@@ -459,6 +522,7 @@ int main()
 				strcpy(last_message, "SD Write Error");
 			}
 		}
+#endif
 	}
 
 	// Reset the DSP
