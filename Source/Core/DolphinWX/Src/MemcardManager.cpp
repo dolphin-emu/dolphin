@@ -77,8 +77,6 @@ BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 
 	EVT_BUTTON(ID_COPYFROM_A,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_COPYFROM_B,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_FIXCHECKSUM_A,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_FIXCHECKSUM_B,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_DELETE_A,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_DELETE_B,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_SAVEIMPORT_B,CMemcardManager::CopyDeleteClick)
@@ -224,8 +222,6 @@ void CMemcardManager::CreateGUIControls()
 	{
 		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
 			wxString::Format(wxT("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]), DEFAULTS);
-		m_FixChecksum[slot]	= new wxButton(this, ID_FIXCHECKSUM_A + slot,
-			wxString::Format(wxT("%sFix Checksum%s"), ARROWS), DEFAULTS);
 		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
 			wxString::Format(wxT("%sImport GCI%s"), ARROWS), DEFAULTS);
 		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
@@ -264,9 +260,6 @@ void CMemcardManager::CreateGUIControls()
 	sButtons->Add(m_CopyFrom[SLOT_B], 0, wxEXPAND, 5);
 	sButtons->Add(m_CopyFrom[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_FixChecksum[SLOT_A], 0, wxEXPAND, 5);
-	sButtons->Add(m_FixChecksum[SLOT_B], 0, wxEXPAND, 5);
-	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_SaveImport[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->Add(m_SaveExport[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
@@ -293,7 +286,6 @@ void CMemcardManager::CreateGUIControls()
 		m_PrevPage[i]->Disable();
 		m_NextPage[i]->Disable();
 		m_CopyFrom[i]->Disable();
-		m_FixChecksum[i]->Disable();
 		m_SaveImport[i]->Disable();
 		m_SaveExport[i]->Disable();
 		m_Delete[i]->Disable();
@@ -339,7 +331,6 @@ void CMemcardManager::ChangePath(int id)
 		else if (ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
 			m_MemcardList[slot2]->twoCardsLoaded = true;
-			m_FixChecksum[slot]->Enable();
 			m_SaveImport[slot]->Enable();
 			m_SaveExport[slot]->Enable();
 			m_Delete[slot]->Enable();
@@ -354,7 +345,6 @@ void CMemcardManager::ChangePath(int id)
 		m_MemcardPath[slot]->SetPath(wxEmptyString);
 		m_MemcardList[slot]->ClearAll();
 		t_Status[slot]->SetLabel(wxEmptyString);
-		m_FixChecksum[slot]->Disable();
 		m_SaveImport[slot]->Disable();
 		m_SaveExport[slot]->Disable();
 		m_Delete[slot]->Disable();

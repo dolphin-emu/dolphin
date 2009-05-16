@@ -82,7 +82,6 @@ class CMemcardManager
 				   *sButtons,
 				   *sPages[2];
 		wxButton *m_CopyFrom[2],
-				 *m_FixChecksum[2],
 				 *m_SaveImport[2],
 				 *m_SaveExport[2],
 				 *m_Delete[2],
