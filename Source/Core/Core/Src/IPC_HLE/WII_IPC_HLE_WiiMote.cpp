@@ -28,109 +28,6 @@
 #include "l2cap.h" // Local
 #include "WiiMote_HID_Attr.h"
 
-#pragma pack(push, 1)
-
-#define SDP_CHANNEL						0x01
-#define HIDP_CONTROL_CHANNEL			0x11
-#define HID_INTERRUPT_CHANNEL			0x13
-
-
-struct SL2CAP_Header
-{
-	u16 Length;
-	u16 CID;
-};
-
-/* L2CAP command codes */
-#define L2CAP_COMMAND_REJ 0x01
-#define L2CAP_CONN_REQ    0x02
-#define L2CAP_CONN_RSP    0x03
-#define L2CAP_CONF_REQ    0x04
-#define L2CAP_CONF_RSP    0x05
-#define L2CAP_DISCONN_REQ 0x06
-#define L2CAP_DISCONN_RSP 0x07
-#define L2CAP_ECHO_REQ    0x08
-#define L2CAP_ECHO_RSP    0x09
-#define L2CAP_INFO_REQ    0x0a
-#define L2CAP_INFO_RSP    0x0b
-
-/* connect result */
-#define L2CAP_CR_SUCCESS    0x0000
-#define L2CAP_CR_PEND       0x0001
-#define L2CAP_CR_BAD_PSM    0x0002
-#define L2CAP_CR_SEC_BLOCK  0x0003
-#define L2CAP_CR_NO_MEM     0x0004
-
-/* connect status */
-#define L2CAP_CS_NO_INFO      0x0000
-#define L2CAP_CS_AUTHEN_PEND  0x0001
-#define L2CAP_CS_AUTHOR_PEND  0x0002
-
-
-struct SL2CAP_Command
-{
-	u8 code;
-	u8 ident;
-	u16 len;
-};
-
-struct SL2CAP_CommandConnectionReq // 0x02
-{
-	u16 psm;
-	u16 scid;
-};
-
-struct SL2CAP_ConnectionResponse // 0x03
-{
-	u16 dcid;
-	u16 scid;
-	u16 result;
-	u16 status;
-};
-
-struct SL2CAP_Options
-{
-	u8 type;
-	u8 length;
-};
-
-struct SL2CAP_OptionsMTU
-{
-	u16 MTU;
-};
-
-struct SL2CAP_OptionsFlushTimeOut
-{
-	u16 TimeOut;
-};
-
-struct SL2CAP_CommandConfigurationReq // 0x04
-{
-	u16 dcid;
-	u16 flags;
-};
-
-struct SL2CAP_CommandConfigurationResponse // 0x05
-{
-	u16 scid;
-	u16 flags;
-	u16 result;
-};
-
-struct SL2CAP_CommandDisconnectionReq // 0x06
-{
-	u16 dcid;
-	u16 scid;
-};
-
-struct SL2CAP_CommandDisconnectionResponse // 0x07
-{
-	u16 dcid;
-	u16 scid;
-};
-
-#pragma pack(pop)
-
 static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
 
 
@@ -143,8 +40,8 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDInterruptChannel_Connected(false)
 	, m_HIDInterruptChannel_ConnectedWait(false)
 	, m_HIDInterruptChannel_Config(false)
-	, m_HIDInterruptChannel_ConfigWait(false)          
-        , m_Name("Nintendo RVL-CNT-01")
+	, m_HIDInterruptChannel_ConfigWait(false)
+	, m_Name("Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
 
 
@@ -1050,3 +947,4 @@ namespace Core
 		DEBUG_LOG(WII_IPC_WIIMOTE, "=========================================================");
 	}
 }
+

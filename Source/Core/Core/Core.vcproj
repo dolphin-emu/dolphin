@@ -2180,6 +2180,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Usb_Kbd.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp"
 				>
 			</File>

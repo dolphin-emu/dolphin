@@ -23,6 +23,109 @@
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 
+enum
+{
+	SDP_CHANNEL			 = 0x01,
+	HIDP_CONTROL_CHANNEL = 0x11,
+	HID_INTERRUPT_CHANNEL= 0x13,
+
+	// L2CAP command codes
+	L2CAP_COMMAND_REJ    = 0x01,
+	L2CAP_CONN_REQ       = 0x02,
+	L2CAP_CONN_RSP       = 0x03,
+	L2CAP_CONF_REQ       = 0x04,
+	L2CAP_CONF_RSP       = 0x05,
+	L2CAP_DISCONN_REQ    = 0x06,
+	L2CAP_DISCONN_RSP    = 0x07,
+	L2CAP_ECHO_REQ       = 0x08,
+	L2CAP_ECHO_RSP       = 0x09,
+	L2CAP_INFO_REQ       = 0x0a,
+	L2CAP_INFO_RSP       = 0x0b,
+
+	// connect result
+	L2CAP_CR_SUCCESS     = 0x0000,
+	L2CAP_CR_PEND        = 0x0001,
+	L2CAP_CR_BAD_PSM     = 0x0002,
+	L2CAP_CR_SEC_BLOCK   = 0x0003,
+	L2CAP_CR_NO_MEM      = 0x0004,
+
+	//connect status
+	L2CAP_CS_NO_INFO     = 0x0000,
+	L2CAP_CS_AUTHEN_PEND = 0x0001,
+	L2CAP_CS_AUTHOR_PEND = 0x0002,
+};
+
+#pragma pack(push, 1)
+
+struct SL2CAP_Header
+{
+	u16 Length;
+	u16 CID;
+};
+
+struct SL2CAP_Command
+{
+	u8 code;
+	u8 ident;
+	u16 len;
+};
+
+struct SL2CAP_CommandConnectionReq // 0x02
+{
+	u16 psm;
+	u16 scid;
+};
+
+struct SL2CAP_ConnectionResponse // 0x03
+{
+	u16 dcid;
+	u16 scid;
+	u16 result;
+	u16 status;
+};
+
+struct SL2CAP_Options
+{
+	u8 type;
+	u8 length;
+};
+
+struct SL2CAP_OptionsMTU
+{
+	u16 MTU;
+};
+
+struct SL2CAP_OptionsFlushTimeOut
+{
+	u16 TimeOut;
+};
+
+struct SL2CAP_CommandConfigurationReq // 0x04
+{
+	u16 dcid;
+	u16 flags;
+};
+
+struct SL2CAP_CommandConfigurationResponse // 0x05
+{
+	u16 scid;
+	u16 flags;
+	u16 result;
+};
+
+struct SL2CAP_CommandDisconnectionReq // 0x06
+{
+	u16 dcid;
+	u16 scid;
+};
+
+struct SL2CAP_CommandDisconnectionResponse // 0x07
+{
+	u16 dcid;
+	u16 scid;
+};
+
+#pragma pack(pop)
 
 class CBigEndianBuffer
 {
