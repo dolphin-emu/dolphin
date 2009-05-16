@@ -277,7 +277,10 @@ void ReadWiimote()
 	   timing functions for recording playback that checks the time of the recording this should not
 	   be needed. But I still use it becase it seemed like state_changed() or the threshold values or
 	   something else might fail so that only huge status changed were reported. */
-	handle_event(g_WiiMotesFromWiiUse[0]);
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		handle_event(g_WiiMotesFromWiiUse[i]);
+	}
 
 	// Declaration
 	std::string Temp;
@@ -331,11 +334,11 @@ void ReadWiimote()
 					 *	Take a look at wiimotes[i]->read_req
 					 *	for the data.
 					 */
-					if(g_WiiMotesFromWiiUse[0]->read_req->size == sizeof(WiiMoteEmu::EepromData_0)
-						&& g_WiiMotesFromWiiUse[0]->read_req->addr == 0)
+					if(g_WiiMotesFromWiiUse[i]->read_req->size == sizeof(WiiMoteEmu::EepromData_0)
+						&& g_WiiMotesFromWiiUse[i]->read_req->addr == 0)
 					{				
-						Temp = ArrayToString(g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
-						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
+						Temp = ArrayToString(g_WiiMotesFromWiiUse[i]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
+						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[i]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
 						INFO_LOG(CONSOLE, "EEPROM: %s\n", Temp.c_str());
 						WiiMoteEmu::UpdateEeprom();
 						g_RunTemporary = false;
@@ -381,5 +384,4 @@ void ReadWiimote()
 
 
 }; // end of namespace
-
 

@@ -300,6 +300,7 @@ void SendAcc(u8 _ReportID)
 	DataAcc[2] = 0x00;
 	DataAcc[3] = _ReportID; // Reporting mode
 
+	// TODO: Update for multiple wiimotes?
 	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataAcc, MAX_PAYLOAD);
 
 	std::string Temp = ArrayToString(DataAcc, 28, 0, 30);
@@ -318,16 +319,25 @@ void ClearEvents()
 // Flash lights, and if connecting, also rumble
 void FlashLights(bool Connect)
 {
-	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
-	wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
-	sleep(100);
-	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);
 
-	// End with light 1 or 4
-	if(Connect)
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
-	else
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		if(Connect)	wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 1);
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
+	}
+	sleep(100);
+	
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		if(Connect)
+		{
+			wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 0);
+
+			// End with light 1 or 4
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1);
+		}
+		else wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_4);
+	}
 }
 
 int Initialize()
@@ -344,15 +354,17 @@ int Initialize()
 	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
 	INFO_LOG(CONSOLE, "Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
 
-	// Remove the wiiuse_poll() threshold
-	wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[0], 0);
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		// Remove the wiiuse_poll() threshold
+		wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[i], 0);
+		
+		// Set the sensor bar position, this should only affect the internal wiiuse api functions
+		wiiuse_set_ir_position(g_WiiMotesFromWiiUse[i], WIIUSE_IR_ABOVE);
 
-	// Set the sensor bar position, this should only affect the internal wiiuse api functions
-	wiiuse_set_ir_position(g_WiiMotesFromWiiUse[0], WIIUSE_IR_ABOVE);
-
-	// Set flags
-	//wiiuse_set_flags(g_WiiMotesFromWiiUse[0], NULL, WIIUSE_SMOOTHING);
-
+		// Set flags
+		//wiiuse_set_flags(g_WiiMotesFromWiiUse[i], NULL, WIIUSE_SMOOTHING);
+	}
 	// I don't seem to need wiiuse_connect() in Windows. But Linux needs it.
 	#ifndef _WIN32
 		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
@@ -378,6 +390,7 @@ int Initialize()
 	   is connected. Also, we can't change the neutral values the wiimote will report, I think, unless
 	   we update its eeprom? In any case it's probably better to let the current calibration be where it
 	   is and adjust the global values after that to avoid overwriting critical data on any Wiimote. */
+	// TODO: Update for multiple wiimotes?
 	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
 
@@ -426,7 +439,8 @@ void Shutdown(void)
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	//INFO_LOG(CONSOLE, "Real InterruptChannel\n");
-    g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
+	// TODO: Update for multiple Wiimotes
+	g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
@@ -442,10 +456,10 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 void Update()
 {
 	//INFO_LOG(CONSOLE, "Real Update\n");
-    for (int i = 0; i < g_NumberOfWiiMotes; i++)
-    {
-        g_WiiMotes[i]->Update();
-    }
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		g_WiiMotes[i]->Update();
+	}
 }
 
 //////////////////////////////////
@@ -459,8 +473,8 @@ void Update()
 	void *ReadWiimote_ThreadFunc(void* arg)
 #endif
 {
-    while (!g_Shutdown)
-    {
+	while (!g_Shutdown)
+	{
 		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
 		g_ThreadGoing = true;
 		if(g_Config.bUseRealWiimote && !g_RunTemporary)
@@ -468,11 +482,9 @@ void Update()
 		else
 			ReadWiimote();
 		g_ThreadGoing = false;
-    }
-    return 0;
+	}
+	return 0;
 }
-////////////////////
-
 
 }; // end of namespace
 

@@ -478,19 +478,15 @@ void ConfigDialog::CreateGUIControls()
 	// ----------------	
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
-	// Controller pages
-	m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxDefaultPosition, wxDefaultSize);
-	m_Controller[1] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE2, wxDefaultPosition, wxDefaultSize);
-	m_Controller[2] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE3, wxDefaultPosition, wxDefaultSize);
-	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxDefaultPosition, wxDefaultSize);
-	m_PageRecording = new wxPanel(m_Notebook, ID_PAGE_RECORDING, wxDefaultPosition, wxDefaultSize);
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		// Controller pages
+		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
+		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
+	}
 
-	m_Notebook->AddPage(m_Controller[0], wxT("Wiimote 1"));
-	m_Notebook->AddPage(m_Controller[1], wxT("Wiimote 2"));
-	m_Notebook->AddPage(m_Controller[2], wxT("Wiimote 3"));
-	m_Notebook->AddPage(m_Controller[3], wxT("Wiimote 4"));
+ 	m_PageRecording = new wxPanel(m_Notebook, ID_PAGE_RECORDING, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageRecording, wxT("Recording"));
-	///////////////////////////////
 
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -563,7 +559,7 @@ void ConfigDialog::CreateGUIControls()
 
 	/* Populate all four pages. Page 2, 3 and 4 are currently disabled since we can't use more than one
 	   Wiimote at the moment */
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 
 		////////////////////////////////////////////////////
@@ -1404,9 +1400,10 @@ void ConfigDialog::CreateGUIControls()
 	m_MainSizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
-	m_Controller[1]->Enable(false);
-	m_Controller[2]->Enable(false);
-	m_Controller[3]->Enable(false);
+	for (int i = MAX_WIIMOTES - 1; i > 0; i--)
+	{
+		m_Controller[i]->Enable(false);
+	}
 
 	this->SetSizer(m_MainSizer);
 	this->Layout();
@@ -1760,3 +1757,4 @@ void ConfigDialog::UpdateGUI(int Slot)
 			if(ControlsCreated) m_Notebook->FindItem(i)->Enable(ActiveRecording);
 	#endif
 }
+
