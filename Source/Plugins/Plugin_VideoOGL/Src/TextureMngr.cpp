@@ -160,7 +160,7 @@ void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
-	HiresTextures::Init(((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(),((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.m_strName.c_str());
+	HiresTextures::Init(((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
 }
 
 void TextureMngr::Invalidate(bool shutdown)
@@ -463,15 +463,16 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
         char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
-		bool bCheckedDir = false;
+		bool bCheckedDumpDir = false;
 
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.m_strName.c_str());
+		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
 
-		if(!bCheckedDir)
+		if(!bCheckedDumpDir)
 		{
-			File::CreateDir(szDir);
-			bCheckedDir = true;
+			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+				File::CreateDir(szDir);
 
+			bCheckedDumpDir = true;
 		}
 
 		sprintf(szTemp, "%s/%s_%08x_%i.tga",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);

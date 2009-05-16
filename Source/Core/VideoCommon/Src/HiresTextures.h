@@ -24,7 +24,7 @@
 
 namespace HiresTextures
 {
-void Init(const char *gameCode,const char *gameName);
+void Init(const char *gameCode);
 void Shutdown();
 PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int texformat, u8 *data);
 };
