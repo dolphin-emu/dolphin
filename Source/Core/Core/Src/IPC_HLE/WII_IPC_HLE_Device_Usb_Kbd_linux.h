@@ -16,10 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
-//Add support for apple keycodes
+//Add support for Linux keycodes
 };
 
 u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
-//Add support for apple keycodes
+//Add support for Linux keycodes
 };
 
