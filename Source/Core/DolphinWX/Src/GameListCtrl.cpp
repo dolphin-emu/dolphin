@@ -1001,9 +1001,8 @@ bool CGameListCtrl::CopySJISToString( wxString& _rDestination, const char* _src 
 		}		
 	}
 #else
-	// not implement other than windows
-	//_rDestination = _src;
-	//returnCode = true;
+	_rDestination = wxString(wxString(_src,wxConvLibc),wxConvUTF8);
+	returnCode = true;
 #endif
 	return returnCode;
 }
