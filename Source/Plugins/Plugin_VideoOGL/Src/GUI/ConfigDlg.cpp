@@ -662,7 +662,7 @@ void Config::UpdateHack()
 			break;
 		case OGL_HACK_MARIO_KART_WII:
 			g_Config.bPhackvalue1 = 1;
-			g_Config.fhackvalue1 = 0.00006f;
+			g_Config.fhackvalue1 = 0.0006f;
 			g_Config.bPhackvalue2 = 0;
 			g_Config.bProjHack1 = 0;
 			break;
