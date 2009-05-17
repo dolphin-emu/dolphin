@@ -2116,55 +2116,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_DI.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Error.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h"
 				>
 			</File>
 			<File
@@ -2179,26 +2131,118 @@
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Usb_Kbd.cpp"
+			<Filter
+				Name="Keyboard"
 				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp"
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_apple.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_linux.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_win32.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Usb_Kbd.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="WiiMote"
 				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.h"
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Net"
 				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.cpp"
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="SDIO - SD card"
 				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="FileIO"
 				>
-			</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="DI -DVD Interface"
+				>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_DI.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="ES"
+				>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_es.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="FS"
+				>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\Src\ConfigManager.cpp"
