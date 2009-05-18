@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <windows.h>
+#include <cmath>
 #include <dxerr.h>
 #include "DSoundStream.h"
 
@@ -40,7 +41,7 @@ bool DSound::CreateBuffer()
 
 	// Fill out DSound buffer description.
 	dsbdesc.dwSize  = sizeof(DSBUFFERDESC);
-	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS;
+	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS | DSBCAPS_CTRLVOLUME;
 	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 	dsbdesc.guid3DAlgorithm = DS3DALG_DEFAULT;
@@ -49,6 +50,7 @@ bool DSound::CreateBuffer()
 	if (SUCCEEDED(res))
 	{
 		dsBuffer->SetCurrentPosition(0);
+		dsBuffer->SetVolume(m_volume);
 		return true;
 	}
 	else
@@ -150,6 +152,17 @@ bool DSound::Start()
 	totalRenderedBytes = -bufferSize;
 	thread = new Common::Thread(soundThread, (void *)this);
 	return true;
+}
+
+void DSound::SetVolume(int volume)
+{
+	// This is in "dBA attenuation" from 0 to -10000, logarithmic
+	m_volume = (int)floor(log10((float)volume) * 5000.0f) - 10000;
+
+	soundCriticalSection.Enter();
+	if (ds != NULL)
+		dsBuffer->SetVolume(m_volume);
+	soundCriticalSection.Leave();
 }
 
 void DSound::Update()

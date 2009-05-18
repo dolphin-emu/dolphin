@@ -42,6 +42,7 @@ class DSound : public SoundStream
     
     int bufferSize;     //i bytes
     int totalRenderedBytes;
+	int m_volume;
     
     // playback position
     int currentPos;
@@ -73,6 +74,7 @@ public:
  
 	virtual bool Start();
     virtual void SoundLoop();
+	virtual void SetVolume(int volume);
     virtual void Stop();
     static bool isValid() { return true; }
     virtual bool usesMixer() const { return true; }

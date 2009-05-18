@@ -40,6 +40,7 @@ public:
 	static  bool isValid() { return false; }  
 	virtual CMixer *GetMixer() const { return m_mixer; }
 	virtual bool Start() { return false; }
+	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}
 	virtual void Stop() {}
 	virtual void Update() {}

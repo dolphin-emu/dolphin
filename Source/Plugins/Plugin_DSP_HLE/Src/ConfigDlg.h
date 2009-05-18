@@ -39,6 +39,8 @@ public:
 private:
     DECLARE_EVENT_TABLE();
     
+	wxSlider *m_volumeSlider;
+	wxStaticText *m_volumeText;
     wxButton *m_OK;
     wxCheckBox *m_buttonEnableHLEAudio;
     wxCheckBox *m_buttonEnableDTKMusic;
@@ -54,11 +56,13 @@ private:
 	    ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
 		ID_ENABLE_RE0_FIX,
-	    ID_BACKEND
+	    ID_BACKEND,
+		ID_VOLUME
 	};
     
     void OnOK(wxCommandEvent& event);
     void SettingsChanged(wxCommandEvent& event);
+	void VolumeChanged(wxScrollEvent& event);
 };
 
 #endif //__DSP_HLE_CONFIGDIALOG_h__
