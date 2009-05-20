@@ -23,6 +23,7 @@ BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
+EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogLLE::VolumeChanged)
 END_EVENT_TABLE()
 
 DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -40,7 +41,10 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
-	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
+	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
+
+	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
 
 	// Update values
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
@@ -55,36 +59,61 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *sSettings = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
+ 	wxBoxSizer *sButtons = new wxBoxSizer(wxHORIZONTAL);
+
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
-	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
-	sBackend->Add(BackendText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 5);
-	sBackend->Add(m_BackendSelection);
-	sbSettings->Add(sBackend);
 
-	sMain->Add(sbSettings, 0, wxEXPAND|wxALL, 5);
-	wxBoxSizer *sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(150, 0); // Lazy way to make the dialog as wide as we want it
-	sButtons->Add(m_OK, 0, wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND);
-	this->SetSizerAndFit(sMain);
+	sBackend->Add(BackendText, 0, wxALIGN_CENTER|wxALL, 5);
+	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
+	sbSettings->Add(sBackend, 0, wxALL, 2);
+
+	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
+	sbSettingsV->Add(m_volumeSlider, 0, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
+	sbSettingsV->Add(m_volumeText, 0, wxALL|wxALIGN_LEFT, 4);
+
+	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
+	sSettings->Add(sbSettingsV, 0, wxALL|wxEXPAND, 4);
+	sMain->Add(sSettings, 0, wxALL|wxEXPAND, 4);
+
+	sButtons->AddStretchSpacer();
+	sButtons->Add(m_OK, 0, wxALL, 1);
+	sMain->Add(sButtons, 0, wxALL|wxEXPAND, 4);
+	SetSizerAndFit(sMain);
+
 }
 
 // Add audio output options
 void DSPConfigDialogLLE::AddBackend(const char* backend)
 {
+		// Update value
     m_BackendSelection->Append(wxString::FromAscii(backend));
-	// Update value
+
 #ifdef __APPLE__
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend));
 #else
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
 #endif
 }
+	// Unfortunately, DSound is the only API having a volume setting...
+#ifndef _WIN32
+	m_volumeSlider->Disable();
+	m_volumeText->Disable();
+#endif
 
 DSPConfigDialogLLE::~DSPConfigDialogLLE()
 {
+}
+
+void DSPConfigDialogLLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
+{
+	ac_Config.m_Volume = m_volumeSlider->GetValue();
+	ac_Config.Update();
+
+	m_volumeText->SetLabel(wxString::Format(wxT("%d %%"), m_volumeSlider->GetValue()));
 }
 
 void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)

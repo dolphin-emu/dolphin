@@ -38,7 +38,9 @@ public:
 
 private:
     DECLARE_EVENT_TABLE();
-    
+
+	wxSlider *m_volumeSlider;
+	wxStaticText *m_volumeText;    
     wxButton *m_OK;
     wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
@@ -50,11 +52,13 @@ private:
 	    wxID_OK,
 		ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
-	    ID_BACKEND
+	    ID_BACKEND,
+		ID_VOLUME
 	};
     
     void OnOK(wxCommandEvent& event);
     void SettingsChanged(wxCommandEvent& event);
+	void VolumeChanged(wxScrollEvent& event);
 };
 
 #endif //__DSP_LLE_CONFIGDIALOG_h__
