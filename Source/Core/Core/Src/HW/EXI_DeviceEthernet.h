@@ -139,6 +139,7 @@ private:
 	
 	//TAP interface
 	bool activate();
+	bool CheckRecieved();
 	bool deactivate();
 	bool isActivated();
 	bool resume();

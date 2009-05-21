@@ -80,6 +80,7 @@ CEXIETHERNET::CEXIETHERNET() :
 
 void CEXIETHERNET::SetCS(int cs)
 {
+	DEBUGPRINT("Set CS: %s\n", cs ? "true" : "false");
 	if (!cs)
 	{
 		if (mExpectVariableLengthImmWrite)
@@ -89,8 +90,7 @@ void CEXIETHERNET::SetCS(int cs)
 		}
 		mExpectSpecialImmRead = false;
 		mWriteP = mReadP = INVALID_P;
-		m_uPosition = 0;
-		Expecting = EXPECT_NONE;
+		m_bInterruptSet = false;
 	}
 }
 
@@ -105,6 +105,9 @@ void CEXIETHERNET::Update()
 }
 bool CEXIETHERNET::IsInterruptSet()
 {
+	//bool Temp = m_bInterruptSet;
+	//m_bInterruptSet = false;
+	//return Temp;
 	return m_bInterruptSet;
 }
 
@@ -367,11 +370,22 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 			exit(0);
 		}
 		u32 uResult = 0;
+		switch(mReadP)
+		{
+			case BBA_NWAYS: // Bit of a hack
+				mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
+			break;
+			default:
+			break;
+		}
 		memcpy(&uResult, mBbaMem + mReadP, _uSize);
 		// TODO: We do as well?
 		uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
 		
 		//DEBUGPRINT("Mem spot is 0x%02x uResult is 0x%x\n", mBbaMem[mReadP], uResult);
+		#ifndef _WIN32
+		CheckRecieved();
+		#endif
 		DEBUGPRINT( "\t[INFO]Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;
 		return uResult;

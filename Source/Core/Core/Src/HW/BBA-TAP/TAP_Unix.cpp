@@ -68,6 +68,22 @@ bool CEXIETHERNET::activate() {
 	return true;
 	
 }
+bool CEXIETHERNET::CheckRecieved()
+{
+	if(!isActivated())
+		return false;
+	char RBuffer[2048]; // Bigger than MTU, but w/e
+	int Size = recv(fd, RBuffer, 2048, MSG_PEEK);
+	if(Size == -1)
+	{
+		DEBUGPRINT("Recieve check failed with %d\n", errno);
+		return false;
+	}
+	if(Size != 0)
+		DEBUGPRINT("Have waiting Packet of size %d\n", Size);
+	return true;
+}
+
 bool CEXIETHERNET::startRecv() {
 	DEBUGPRINT("Start Receive!\n");
 	exit(0);
@@ -101,6 +117,8 @@ bool CEXIETHERNET::startRecv() {
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
+	if(!isActivated())
+		activate();
 	DEBUGPRINT( "Packet: 0x");
 	for(int a = 0; a < size; ++a)
 	{
@@ -110,22 +128,11 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	int numBytesWrit = write(fd, etherpckt, size);
 	if(numBytesWrit != size)
 	{
-		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
+		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!errno: %d\n", size, numBytesWrit, errno);
 		return false;
 	}
 	else
 		DEBUGPRINT("Sent out the correct number of bytes: %d\n", size);
-	//fwrite(etherpckt, size, size, raw_socket);
-	/*DWORD numBytesWrit;
-	OVERLAPPED overlap;
-	ZERO_OBJECT(overlap);
-	//overlap.hEvent = mHRecvEvent;
-	TGLE(WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap));
-	if(numBytesWrit != size) 
-	{
-		DEGUB("BBA sendPacket %i only got %i bytes sent!\n", size, numBytesWrit);
-		FAIL(UE_BBA_ERROR);
-	}*/
 	recordSendComplete();
 	//exit(0);
 	return true;
