@@ -92,17 +92,18 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
 		// Update value
     m_BackendSelection->Append(wxString::FromAscii(backend));
 
+	// Unfortunately, DSound is the only API having a volume setting...
+#ifndef _WIN32
+	m_volumeSlider->Disable();
+	m_volumeText->Disable();
+#endif
+
 #ifdef __APPLE__
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend));
 #else
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
 #endif
 }
-	// Unfortunately, DSound is the only API having a volume setting...
-#ifndef _WIN32
-	m_volumeSlider->Disable();
-	m_volumeText->Disable();
-#endif
 
 DSPConfigDialogLLE::~DSPConfigDialogLLE()
 {
