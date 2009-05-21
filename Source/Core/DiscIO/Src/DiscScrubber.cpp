@@ -375,6 +375,8 @@ void ParsePartitionData(SPartition& _rPartition)
 			, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
 	}
 
+	delete FileSystem;
+
 	// Swap back
 	delete m_Disc;
 	m_Disc = OldVolume;

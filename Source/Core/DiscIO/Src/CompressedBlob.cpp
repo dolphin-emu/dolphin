@@ -168,14 +168,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 
 	if (sub_type == 1)
 	{
-		if (PanicYesNo("WARNING - Scrubbing Wii disc %s will permanently remove garbage data.\n"
-			"This should be 100%% OK, but you have the option to opt out.\n\n\n"
-			"Would you like to scrub it?", infile))
-		{
-			if (!DiscScrubber::Scrub(infile, callback, arg))
-				return false;
-		}
-		else
+		if (!DiscScrubber::Scrub(infile, callback, arg))
 			return false;
 	}
 
@@ -246,7 +239,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 
 		if (retval != Z_OK)
 		{
-			PanicAlert("Deflate failed");
+			ERROR_LOG(DISCIO, "Deflate failed");
 			goto cleanup;
 		}
 
