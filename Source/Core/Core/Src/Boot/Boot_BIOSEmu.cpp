@@ -256,11 +256,11 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		// IOS Version from TMD
 		VolumeHandler::RAWReadToPtr(Memory::GetPointer(0x00003141), TMDOffset + 0x18B, 1);
 		Memory::Write_U16(0xffff, 0x00003142);		// IOS revision
-		Memory::Write_U32(0x00062507, 0x00003144);	// ???
+		Memory::Write_U32(0x00062507, 0x00003144);	// Date in USA format
 	}
 	else
 	{
-		// Use fake IOS Version
+		// Fake IOS9 Version 2.4
 		Memory::Write_U64(0x0009020400062507ULL, 0x00003140);
 	}
 
@@ -271,7 +271,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     Memory::Write_U8(0x00, 0x00000006);				// DVDInit
     Memory::Write_U8(0x00, 0x00000007);				// DVDInit
     Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
-    Memory::Write_U32(0x80000000, 0x00003184);             // GameID Address
+    Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 
     // Fake the VI Init of the BIOS 
     Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);

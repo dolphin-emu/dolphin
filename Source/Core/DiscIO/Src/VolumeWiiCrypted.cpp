@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@
 
 namespace DiscIO
 {
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey)
+
+CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
+									 const unsigned char* _pVolumeKey)
 	: m_pReader(_pReader),
 	m_pBuffer(0),
 	m_VolumeOffset(_VolumeOffset),
@@ -53,8 +55,7 @@ bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
 	return true;
 }
 
-bool
-CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
+bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 {
 	if (m_pReader == NULL)
 	{
@@ -97,8 +98,7 @@ CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 	return(true);
 }
 
-std::string
-CVolumeWiiCrypted::GetUniqueID() const
+std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == NULL)
 	{
@@ -118,8 +118,7 @@ CVolumeWiiCrypted::GetUniqueID() const
 }
 
 
-IVolume::ECountry
-CVolumeWiiCrypted::GetCountry() const
+IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 {
 	if (!m_pReader)
 	{
@@ -181,8 +180,7 @@ CVolumeWiiCrypted::GetCountry() const
 	return(country);
 }
 
-std::string
-CVolumeWiiCrypted::GetMakerID() const
+std::string CVolumeWiiCrypted::GetMakerID() const
 {
 	if (m_pReader == NULL)
 	{
@@ -201,8 +199,7 @@ CVolumeWiiCrypted::GetMakerID() const
 	return(makerID);
 }
 
-std::string
-CVolumeWiiCrypted::GetName() const
+std::string CVolumeWiiCrypted::GetName() const
 {
 	if (m_pReader == NULL)
 	{
@@ -219,8 +216,7 @@ CVolumeWiiCrypted::GetName() const
 	return(name);
 }
 
-u32
-CVolumeWiiCrypted::GetFSTSize() const
+u32 CVolumeWiiCrypted::GetFSTSize() const
 {
 	if (m_pReader == NULL)
 	{
@@ -237,8 +233,7 @@ CVolumeWiiCrypted::GetFSTSize() const
 	return(size);
 }
 
-std::string
-CVolumeWiiCrypted::GetApploaderDate() const
+std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
 	if (m_pReader == NULL)
 	{
@@ -257,9 +252,7 @@ CVolumeWiiCrypted::GetApploaderDate() const
 	return(date);
 }
 
-
-u64
-CVolumeWiiCrypted::GetSize() const
+u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)
 	{
@@ -270,6 +263,5 @@ CVolumeWiiCrypted::GetSize() const
 		return(0);
 	}
 }
-
 
 } // namespace

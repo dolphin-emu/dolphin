@@ -15,45 +15,34 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DRIVE_BLOB_H
-#define _DRIVE_BLOB_H
 
+// DiscScrubber removes the garbage data from discs (currently wii only) which
+// is on the disc due to encryption
+
+// It could be adapted to gc discs, but the gain is most likely negligible,
+// and having 1:1 backups of discs is always nice when they are reasonably sized
+
+// Note: the technique is inspired by Wiiscrubber, but much simpler - intentionally :)
+
+#ifndef DISC_SCRUBBER_H
+#define DISC_SCRUBBER_H
+
+#include "Common.h"
 #include "Blob.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#include <winioctl.h>
-#endif
 
 namespace DiscIO
 {
 
-class DriveReader : public SectorReader
+namespace DiscScrubber
 {
-private:
-	DriveReader(const char *drive);
-	void GetBlock(u64 block_num, u8 *out_ptr);
 
-#ifdef _WIN32
-	HANDLE hDisc;
-	PREVENT_MEDIA_REMOVAL pmrLockCDROM;
-	bool IsOK() {return hDisc != INVALID_HANDLE_VALUE;}
-#else
-	FILE* file_;
-	bool IsOK() {return file_ != 0;}
-#endif
-	s64 size;
-	u64 *block_pointers;
+u32 IsScrubbed(const char* filename);
 
-public:
-	static DriveReader *Create(const char *drive);
-	~DriveReader();
-	u64 GetDataSize() const { return size; }
-	u64 GetRawSize() const { return size; }
+bool Scrub(const char* filename, CompressCB callback = 0, void* arg = 0);
 
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr);
-};
+} // namespace DiscScrubber
 
-}  // namespace
+} // namespace DiscIO
 
-#endif  // _DRIVE_BLOB_H
+#endif  // DISC_SCRUBBER_H

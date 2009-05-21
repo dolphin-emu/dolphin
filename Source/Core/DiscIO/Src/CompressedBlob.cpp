@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include "Common.h"
 #include "CompressedBlob.h"
+#include "DiscScrubber.h"
 #include "FileUtil.h"
 #include "Hash.h"
 
@@ -159,15 +160,23 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 						int block_size, CompressCB callback, void* arg)
 {
-	if (File::GetSize(infile) > 2000000000ULL) {
-		PanicAlert("Sorry - compressing Wii games not yet supported.");
-		return false;
-	}
-
 	if (IsCompressedBlob(infile))
 	{
 		PanicAlert("%s is already compressed! Cannot compress it further.", infile);
 		return false;
+	}
+
+	if (sub_type == 1)
+	{
+		if (PanicYesNo("WARNING - Scrubbing Wii disc %s will permanently remove garbage data.\n"
+			"This should be 100%% OK, but you have the option to opt out.\n\n\n"
+			"Would you like to scrub it?", infile))
+		{
+			if (!DiscScrubber::Scrub(infile, callback, arg))
+				return false;
+		}
+		else
+			return false;
 	}
 
 	FILE* inf = fopen(infile, "rb");

@@ -108,14 +108,14 @@ bool GetTMDOffset(u32 _Partition, u64& _Offset)
 	if (IsWii())
 	{
 		// Get the info table
-		u8 pInfoTableOffset[4];
-		ret |= RAWReadToPtr(pInfoTableOffset, 0x40004, 4);
-		u64 InfoTableOffset = (u32)(pInfoTableOffset[3] | pInfoTableOffset[2] << 8 | pInfoTableOffset[1] << 16 | pInfoTableOffset[0] << 24) << 2;
+		u32 pInfoTableOffset = 0;
+		ret |= RAWReadToPtr((u8*)&pInfoTableOffset, 0x40004, 4);
+		u64 InfoTableOffset = (u64)Common::swap32(pInfoTableOffset) << 2;
 
 		// Get the offset of the partition
-		u8 pInfoTableEntryOffset[4];
-		ret |= RAWReadToPtr(pInfoTableEntryOffset, InfoTableOffset + (_Partition << 2) + 4, 4);
-		u64 PartitionOffset = (u32)(pInfoTableEntryOffset[3] | pInfoTableEntryOffset[2] << 8 | pInfoTableEntryOffset[1] << 16 | pInfoTableEntryOffset[0] << 24) << 2;
+		u32 pInfoTableEntryOffset = 0;
+		ret |= RAWReadToPtr((u8*)&pInfoTableEntryOffset, InfoTableOffset + (_Partition * 8), 4);
+		u64 PartitionOffset = (u64)Common::swap32(pInfoTableEntryOffset) << 2;
 
 		_Offset = PartitionOffset + 0x2c0;
 	}
