@@ -169,7 +169,10 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	if (sub_type == 1)
 	{
 		if (!DiscScrubber::Scrub(infile, callback, arg))
+		{
+			PanicAlert("%s failed to be scrubbed. Probably the image is corrupt.", infile);
 			return false;
+		}
 	}
 
 	FILE* inf = fopen(infile, "rb");

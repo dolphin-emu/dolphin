@@ -82,8 +82,8 @@ void ReadFromDisc(u64 _Offset, u64 _Length, u32& _Buffer);
 void ReadFromDisc(u64 _Offset, u64 _Length, u64& _Buffer);
 void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer);
 void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer);
-void ParseDisc();
-void ParsePartitionData(SPartition& _rPartition);
+bool ParseDisc();
+bool ParsePartitionData(SPartition& _rPartition);
 u32 GetDOLSize(u64 _DOLOffset);
 
 
@@ -138,7 +138,8 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 
 	// Fill out table of free blocks
 	callback("DiscScrubber: Parsing...", 0, arg);
-	ParseDisc();
+	if (!ParseDisc())
+		success = false;
 	// Done with it; need it closed for the next part
 	delete m_Disc;
 	m_Disc = NULL;
@@ -149,8 +150,11 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	{
 		ERROR_LOG(DISCIO, "DiscScrubber failed to open %s", filename);
 		success = false;
-		return success;
 	}
+
+	// Let's not touch the file if we've failed up to here :p
+	if (!success)
+		goto cleanup;
 
 	// Modify file, obeying the table of free blocks
 	NOTICE_LOG(DISCIO, "Removing garbage data...go get some coffee :)");
@@ -186,14 +190,14 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	}
 	NOTICE_LOG(DISCIO, "Done removing garbage data");
 
-	fclose(pFile);
-
-	delete m_Sector1;
-	delete m_FreeTable;
-
 	if (success)
 		if (!MarkAsScrubbed(filename))
 			ERROR_LOG(DISCIO, "Really weird - failed to mark scrubbed disk as scrubbed :s");
+
+cleanup:
+	fclose(pFile);
+	delete m_Sector1;
+	delete m_FreeTable;
 
 	return success;
 }
@@ -270,7 +274,7 @@ void ReadFromVolume(u64 _Offset, u64 _Length, u64& _Buffer)
 	_Buffer <<= 2;
 }
 
-void ParseDisc()
+bool ParseDisc()
 {
 	// Mark the header as used - it's mostly 0s anyways
 	MarkAsUsed(0, 0x50000);
@@ -317,14 +321,19 @@ void ParseDisc()
 			//MarkAsUsed(rPartition.Offset + rHeader.DataOffset, rHeader.DataSize);
 
 			// Parse Data! This is where the big gain is
-			ParsePartitionData(rPartition);
+			if (!ParsePartitionData(rPartition))
+				return false;
 		}
 	}
+
+	return true;
 }
 
 // Operations dealing with encrypted space are done here - the volume is swapped to allow this
-void ParsePartitionData(SPartition& _rPartition)
+bool ParsePartitionData(SPartition& _rPartition)
 {
+	bool ParsedOK = true;
+
 	// Switch out the main volume temporarily
 	IVolume *OldVolume = m_Disc;
 
@@ -332,49 +341,57 @@ void ParsePartitionData(SPartition& _rPartition)
 	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
 	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
 
-	std::vector<const SFileInfo *> Files;
-	size_t numFiles = FileSystem->GetFileList(Files);
-
-	// Mark things as used which are not in the filesystem
-	// Header, Header Information, Apploader
-	ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize);
-	ReadFromVolume(0x2440 + 0x18, 4, _rPartition.Header.ApploaderTrailerSize);
-	MarkAsUsedE(_rPartition.Offset
-		+ _rPartition.Header.DataOffset
-		, 0
-		, 0x2440
-		+ _rPartition.Header.ApploaderSize
-		+ _rPartition.Header.ApploaderTrailerSize);
-
-	// DOL
-	ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset);
-	_rPartition.Header.DOLSize = GetDOLSize(_rPartition.Header.DOLOffset);
-	MarkAsUsedE(_rPartition.Offset
-		+ _rPartition.Header.DataOffset
-		, _rPartition.Header.DOLOffset
-		, _rPartition.Header.DOLSize);
-
-	// FST
-	ReadFromVolume(0x424, 4, _rPartition.Header.FSTOffset);
-	ReadFromVolume(0x428, 4, _rPartition.Header.FSTSize);
-	MarkAsUsedE(_rPartition.Offset
-		+ _rPartition.Header.DataOffset
-		, _rPartition.Header.FSTOffset
-		, _rPartition.Header.FSTSize);
-
-	// Go through the filesystem and mark entries as used
-	for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
+	if (!FileSystem)
 	{
-		DEBUG_LOG(DISCIO, "%s", (*Files.at(currentFile)).m_FullPath);
-		// Just 1byte for directory? - it will end up reserving a cluster this way
-		if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
-			MarkAsUsedE(_rPartition.Offset
+		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number)
+		ParsedOK = false;
+	}
+	else
+	{
+		std::vector<const SFileInfo *> Files;
+		size_t numFiles = FileSystem->GetFileList(Files);
+
+		// Mark things as used which are not in the filesystem
+		// Header, Header Information, Apploader
+		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize);
+		ReadFromVolume(0x2440 + 0x18, 4, _rPartition.Header.ApploaderTrailerSize);
+		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
-			, (*Files.at(currentFile)).m_Offset, 1);
-		else
-			MarkAsUsedE(_rPartition.Offset
+			, 0
+			, 0x2440
+			+ _rPartition.Header.ApploaderSize
+			+ _rPartition.Header.ApploaderTrailerSize);
+
+		// DOL
+		ReadFromVolume(0x420, 4, _rPartition.Header.DOLOffset);
+		_rPartition.Header.DOLSize = GetDOLSize(_rPartition.Header.DOLOffset);
+		MarkAsUsedE(_rPartition.Offset
 			+ _rPartition.Header.DataOffset
-			, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
+			, _rPartition.Header.DOLOffset
+			, _rPartition.Header.DOLSize);
+
+		// FST
+		ReadFromVolume(0x424, 4, _rPartition.Header.FSTOffset);
+		ReadFromVolume(0x428, 4, _rPartition.Header.FSTSize);
+		MarkAsUsedE(_rPartition.Offset
+			+ _rPartition.Header.DataOffset
+			, _rPartition.Header.FSTOffset
+			, _rPartition.Header.FSTSize);
+
+		// Go through the filesystem and mark entries as used
+		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
+		{
+			DEBUG_LOG(DISCIO, "%s", (*Files.at(currentFile)).m_FullPath);
+			// Just 1byte for directory? - it will end up reserving a cluster this way
+			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
+				MarkAsUsedE(_rPartition.Offset
+				+ _rPartition.Header.DataOffset
+				, (*Files.at(currentFile)).m_Offset, 1);
+			else
+				MarkAsUsedE(_rPartition.Offset
+				+ _rPartition.Header.DataOffset
+				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
+		}
 	}
 
 	delete FileSystem;
@@ -382,6 +399,8 @@ void ParsePartitionData(SPartition& _rPartition)
 	// Swap back
 	delete m_Disc;
 	m_Disc = OldVolume;
+
+	return ParsedOK;
 }
 
 u32 GetDOLSize(u64 _DOLOffset)
