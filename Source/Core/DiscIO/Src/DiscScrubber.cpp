@@ -60,6 +60,7 @@ struct SPartitionHeader
 };
 struct SPartition
 {
+	u32 GroupNumber;
 	u32 Number;
 	u64 Offset;
 	u32 Type;
@@ -284,6 +285,7 @@ void ParseDisc()
 		{
 			SPartition Partition;
 
+			Partition.GroupNumber = x;
 			Partition.Number = i;
 
 			ReadFromDisc(PartitionGroup[x].PartitionsOffset + (i * 8) + 0, 4, Partition.Offset);
@@ -327,7 +329,7 @@ void ParsePartitionData(SPartition& _rPartition)
 	IVolume *OldVolume = m_Disc;
 
 	// Ready some stuff
-	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.Number);
+	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
 	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
 
 	std::vector<const SFileInfo *> Files;

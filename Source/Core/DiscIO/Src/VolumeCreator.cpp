@@ -65,10 +65,10 @@ private:
 const unsigned char g_MasterKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
 const unsigned char g_MasterKeyK[16] = {0x63,0xb8,0x2b,0xb4,0xf4,0x61,0x4e,0x2e,0x13,0xf2,0xfe,0xfb,0xba,0x4c,0x9b,0x7e};
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, u32 _VolumeNum, bool Korean);
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
-IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _VolumeNum)
+IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionGroup, u32 _VolumeNum)
 {
 	IBlobReader* pReader = CreateBlobReader(_rFilename.c_str());
 	if (pReader == NULL)
@@ -85,7 +85,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _VolumeNum)
 			u8 region;
 			pReader->Read(0x3,1,&region);
 
-			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, 0, _VolumeNum, region == 'K');
+			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum, region == 'K');
 
 			if (pVolume == NULL)
 			{
@@ -122,15 +122,17 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
 }
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType, u32 _VolumeNum, bool Korean)
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
-	u32 numPartitions = Reader.Read32(0x40000);
+	u32 numPartitions = Reader.Read32(0x40000 + (_PartitionGroup * 8));
+	u64 PartitionsOffset = (u64)Reader.Read32(0x40000 + (_PartitionGroup * 8) + 4) << 2;
+
 	// Check if we're looking for a valid partition
 	if (_VolumeNum != -1 && _VolumeNum > numPartitions)
 		return NULL;
-	u64 PartitionsOffset = (u64)Reader.Read32(0x40004) << 2;
+
 	#ifdef _WIN32
 	struct SPartition
 	{
@@ -138,23 +140,32 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType,
 		u32 Type;
 	};
 	#endif
-	std::vector<SPartition> PartitionsVec;
+	struct SPartitionGroup
+	{
+		u32 numPartitions;
+		u64 PartitionsOffset;
+		std::vector<SPartition> PartitionsVec;
+	};
+	SPartitionGroup PartitionGroup[4];
 	
 	// read all partitions
-	for (u32 i = 0; i < numPartitions; i++)
+	for (u32 x = 0; x < 4; x++)
 	{
-		SPartition Partition;
-		Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
-		Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
-		PartitionsVec.push_back(Partition);
+		for (u32 i = 0; i < numPartitions; i++)
+		{
+			SPartition Partition;
+			Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
+			Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
+			PartitionGroup[x].PartitionsVec.push_back(Partition);
+		}
 	}
 
 	// return the partition type specified or number
 	// types: 0 = game, 1 = firmware update, 2 = channel installer
 	//  some partitions on ssbb use the ascii title id of the demo VC game they hold...
-	for (size_t i = 0; i < PartitionsVec.size(); i++)
+	for (size_t i = 0; i < PartitionGroup[_PartitionGroup].PartitionsVec.size(); i++)
 	{
-		const SPartition& rPartition = PartitionsVec[i];
+		const SPartition& rPartition = PartitionGroup[_PartitionGroup].PartitionsVec.at(i);
 
 		if (rPartition.Type == _VolumeType || i == _VolumeNum)
 		{

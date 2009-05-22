@@ -69,7 +69,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be that many partitions...
 		{
 			WiiPartition temp;
-			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, i)) != NULL)
+			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != NULL)
 			{
 				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != NULL)
 				{
