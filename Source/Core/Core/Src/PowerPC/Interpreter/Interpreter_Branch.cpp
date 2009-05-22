@@ -114,6 +114,7 @@ void CompiledBlock(UGeckoInstruction _inst)
 void rfi(UGeckoInstruction _inst)
 {
 	// Restore saved bits from SRR1 to MSR.
+	// Gecko/Broadway can save more bits than explicitly defined in ppc spec
 	const int mask = 0x87C0FFFF;
 	MSR = (MSR & ~mask) | (SRR1 & mask);
 	//MSR[13] is set to 0.
@@ -123,7 +124,7 @@ void rfi(UGeckoInstruction _inst)
 	//PowerPC::CheckExceptions();
 	//else
 	// set NPC to saved offset and resume
-	NPC = SRR0; // TODO: VERIFY...docs say ignore top two bits?
+	NPC = SRR0;
 	m_EndBlock = true;
 }
 

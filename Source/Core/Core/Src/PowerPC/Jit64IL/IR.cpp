@@ -2181,10 +2181,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			break;
 		}
 		case RFIExit: {
-			// Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed
-			// into the corresponding bits of the MSR.
-			// MSR[13] is set to 0.
-			const u32 mask = 0x87C0FF73;
+			// See Interpreter rfi for details
+			const u32 mask = 0x87C0FFFF;
 			// MSR = (MSR & ~mask) | (SRR1 & mask);
 			Jit->MOV(32, R(EAX), M(&MSR));
 			Jit->MOV(32, R(ECX), M(&SRR1));
