@@ -1188,14 +1188,13 @@ bool Renderer::IsBlack()
 		{
 			for (int i = 0; i < 2;i++)
 			{
-				for (int c = 0; c < 2 ;c++)
-				{
-					glReadPixels(500, 300, 1, 1, color[c], GL_BYTE, &pixels[i]);
-					if(pixels[i] != 0)
-						return false;
-					else
-						return true;
-				}
+//glReadPixels(x, y, 1, 1, color[i], GL_BYTE, &pixels[i]);
+//Using the x and y causes OpenGL not to display anything so temporarly it uses the 500 and 300 inplace of them(Still works fine)
+				glReadPixels(500, 300, 1, 1, color[i], GL_BYTE, &pixels[i]);
+				if(pixels[i] != 0)
+					return false;
+				else
+					return true;
 			}
 		}
 	}
