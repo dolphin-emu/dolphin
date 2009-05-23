@@ -119,7 +119,6 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_HiresTextures;
 		wxCheckBox *m_DumpEFBTarget;
-		wxCheckBox *m_RemoveFlicker;
 		wxCheckBox *m_DumpFrames;
         wxCheckBox *m_FreeLook;
 		wxStaticBox * m_StaticBox_EFB;
@@ -185,7 +184,6 @@ class ConfigDialog : public wxDialog
 			ID_DUMPFRAMES,
             ID_FREELOOK,
 			ID_TEXTUREPATH,
-			ID_REMOVEFLICKER,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
 			ID_EFBCOPYDISABLEHOTKEY,

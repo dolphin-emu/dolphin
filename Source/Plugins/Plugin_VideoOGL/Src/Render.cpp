@@ -1177,22 +1177,6 @@ void Renderer::DrawDebugText()
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 }
-bool Renderer::IsBlack()
-{
-	char pixels [2];
-	short color[] = {GL_RED, GL_GREEN, GL_BLUE};
-
-	for (int i = 0; i < 2;i++)
-	{
-		glReadPixels(500, 300, 1, 1, GL_RGB, GL_BYTE, &pixels[i]);
-		if(pixels[i] != 0)
-			return false;
-		else
-			return true;
-	}
-	
-}
-
 // -------------------------------------------------------------------------------------------------------
 // We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
 // -------------------------------------------------------------------------------------------------------
@@ -1233,19 +1217,9 @@ void Renderer::SwapBuffers()
     }
 #endif
     // Copy the rendered frame to the real window
-	// [ fix for Fragile by kamui_kun ...
-	// TODO get the fix to read the whole screen not just 5 pixels
-	if (g_Config.bRemoveFlicker)
-	{
-		BOOL pass = FALSE;
 
-		if(!Renderer::IsBlack())
-			OpenGL_SwapBuffers();
-	}
-	else
-	{
-		OpenGL_SwapBuffers();
-	}
+	OpenGL_SwapBuffers();
+
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
