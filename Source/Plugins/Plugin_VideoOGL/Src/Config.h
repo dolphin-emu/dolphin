@@ -100,6 +100,7 @@ struct Config
 	bool bPhackvalue1, bPhackvalue2;
 	float fhackvalue1, fhackvalue2;
 	bool bProjHack1;
+	bool bRemoveFlicker;
 
     int iLog; // CONF_ bits
     int iSaveTargetId;

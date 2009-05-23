@@ -81,6 +81,7 @@ void Config::Load()
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
+	iniFile.Get("Hacks", "RemoveFlicker", &bRemoveFlicker, 0);
 }
 
 void Config::GameIniLoad() {
@@ -117,7 +118,6 @@ void Config::GameIniLoad() {
 
 	if (iniFile->Exists("Video", "Hack"))
 		iniFile->Get("Video", "Hack", &iPhackvalue, 0);
-
 }
 
 void Config::Save()
@@ -166,6 +166,8 @@ void Config::Save()
     iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
+
+	iniFile.Set("Hacks", "RemoveFlicker", bRemoveFlicker);
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

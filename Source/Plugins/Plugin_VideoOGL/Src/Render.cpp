@@ -1218,7 +1218,37 @@ void Renderer::SwapBuffers()
     }
 #endif
     // Copy the rendered frame to the real window
-	OpenGL_SwapBuffers();
+	// [ fix for Fragile by kamui_kun ...
+	// TODO get the fix to read the whole screen not just 5 pixels
+	if (g_Config.bRemoveFlicker)
+	{
+		BOOL pass = FALSE;
+		char pixels [15];
+		short color[] = {GL_RED, GL_GREEN, GL_BLUE};
+
+		for( int i = 0; i < 14; i)
+		{
+			for( int c = 0; c < 3; c++,i+=5)
+			{
+				glReadPixels(300, 200, 1, 1, color[c], GL_BYTE, &pixels[i]);
+				glReadPixels(300, 400, 1, 1, color[c], GL_BYTE, &pixels[i+1]);
+				glReadPixels(700, 200, 1, 1, color[c], GL_BYTE, &pixels[i+2]);
+				glReadPixels(700, 400, 1, 1, color[c], GL_BYTE, &pixels[i+3]);
+				glReadPixels(500, 300, 1, 1, color[c], GL_BYTE, &pixels[i+4]);
+			}
+		}
+		for( int p = 0; p < 14; p++ )
+		{
+			if( pixels[p] != 0 )
+				pass = TRUE;
+		}
+		if( pass )
+			OpenGL_SwapBuffers();
+	}
+	else
+	{
+		OpenGL_SwapBuffers();
+	}
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
