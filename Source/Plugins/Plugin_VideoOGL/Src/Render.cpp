@@ -1182,21 +1182,13 @@ bool Renderer::IsBlack()
 	char pixels [2];
 	short color[] = {GL_RED, GL_GREEN, GL_BLUE};
 
-	for(int x = 0; x < (int) OpenGL_GetBackbufferHeight(); x++)
+	for (int i = 0; i < 2;i++)
 	{
-		for(int y = 0; y < (int) OpenGL_GetBackbufferWidth(); y++)
-		{
-			for (int i = 0; i < 2;i++)
-			{
-//glReadPixels(x, y, 1, 1, color[i], GL_BYTE, &pixels[i]);
-//Using the x and y causes OpenGL not to display anything so temporarly it uses the 500 and 300 inplace of them(Still works fine)
-				glReadPixels(500, 300, 1, 1, color[i], GL_BYTE, &pixels[i]);
-				if(pixels[i] != 0)
-					return false;
-				else
-					return true;
-			}
-		}
+		glReadPixels(500, 300, 1, 1, GL_RGB, GL_BYTE, &pixels[i]);
+		if(pixels[i] != 0)
+			return false;
+		else
+			return true;
 	}
 	
 }
