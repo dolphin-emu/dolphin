@@ -1177,6 +1177,30 @@ void Renderer::DrawDebugText()
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 }
+bool Renderer::IsBlack()
+{
+	char pixels [2];
+	short color[] = {GL_RED, GL_GREEN, GL_BLUE};
+
+	for(int x = 0; x < (int) OpenGL_GetBackbufferHeight(); x++)
+	{
+		for(int y = 0; y < (int) OpenGL_GetBackbufferWidth(); y++)
+		{
+			for (int i = 0; i < 2;i++)
+			{
+				for (int c = 0; c < 2 ;c++)
+				{
+					glReadPixels(500, 300, 1, 1, color[c], GL_BYTE, &pixels[i]);
+					if(pixels[i] != 0)
+						return false;
+					else
+						return true;
+				}
+			}
+		}
+	}
+	
+}
 
 // -------------------------------------------------------------------------------------------------------
 // We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
@@ -1223,26 +1247,8 @@ void Renderer::SwapBuffers()
 	if (g_Config.bRemoveFlicker)
 	{
 		BOOL pass = FALSE;
-		char pixels [15];
-		short color[] = {GL_RED, GL_GREEN, GL_BLUE};
 
-		for( int i = 0; i < 14; i)
-		{
-			for( int c = 0; c < 3; c++,i+=5)
-			{
-				glReadPixels(300, 200, 1, 1, color[c], GL_BYTE, &pixels[i]);
-				glReadPixels(300, 400, 1, 1, color[c], GL_BYTE, &pixels[i+1]);
-				glReadPixels(700, 200, 1, 1, color[c], GL_BYTE, &pixels[i+2]);
-				glReadPixels(700, 400, 1, 1, color[c], GL_BYTE, &pixels[i+3]);
-				glReadPixels(500, 300, 1, 1, color[c], GL_BYTE, &pixels[i+4]);
-			}
-		}
-		for( int p = 0; p < 14; p++ )
-		{
-			if( pixels[p] != 0 )
-				pass = TRUE;
-		}
-		if( pass )
+		if(!Renderer::IsBlack())
 			OpenGL_SwapBuffers();
 	}
 	else
