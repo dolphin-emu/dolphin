@@ -80,7 +80,7 @@ CEXIETHERNET::CEXIETHERNET() :
 void CEXIETHERNET::SetCS(int cs)
 {
 	DEBUGPRINT("Set CS: %s Expect Variable write?: %s\n", cs ? "true" : "false", mExpectVariableLengthImmWrite ? "true" : "false");
-	if (cs)
+	if (!cs)
 	{
 		if (mExpectVariableLengthImmWrite)
 		{
@@ -244,8 +244,21 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			case BBA_SI_ACTRL2:
 			default:
 				DEBUGPRINT( "\t\t[INFO]Default one!Size 0x%x _uData: 0x%08x Swapped 0x%08x to 0x%x\n", _uSize, _uData, Common::swap32(_uData),mWriteP);
-				// Correct, use Swapped here
-				u32 SwappedData = Common::swap32(_uData);
+				u32 SwappedData = 0;
+				if(_uSize == 4 || _uSize == 1)
+				{
+					// Correct, use Swapped here
+					// Size of 4 untested Though
+					SwappedData = Common::swap32(_uData);
+					if(_uSize == 4)
+						printf("\t\t\tData is 0x%08x\n", SwappedData);
+				}
+				else if( _uSize == 2)
+				{
+					//Correct
+					SwappedData = (u16)(_uData >> 16);
+					//printf("\t\t\tData is 0x%04x\n", SwappedData);
+				}
 				//u32 SwappedData = _uData;
 				memcpy(mBbaMem + mWriteP, &SwappedData, _uSize);
 				mWriteP = mWriteP + _uSize;
@@ -274,7 +287,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		}
 		else  //size == 2
 		{
-			// TODO: Might be wrong
+			// Correct
 			u16 SwappedData = (u16)Common::swap32(_uData >> 8);
 			mWriteP = (u8)getbitsw(SwappedData & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
 		}
@@ -312,10 +325,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		} 
 		else 
 		{  
-			// TODO: Don't know if this is correct
-			// Should Be
+			//Correct
 			//size == 2
-			mReadP = (u8)getbitsw(SwappedData, 16, 23);
+			mReadP = (u8)Common::swap32(_uData);
 		}
 		DEBUGPRINT( "\t[INFO]Read from BBA register! 0x%X\n", mReadP);
 		switch (mReadP) 
@@ -352,7 +364,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x03:
 			mBbaMem[mReadP] = 0x80;
 			//DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] = 0x80;! Now %x\n", mReadP, mBbaMem[mReadP]);
-			exit(0);
+			//exit(0);
 			break;
 		}
 		//DEBUGPRINT("BBA Read pointer set to 0x%0*X, Data: 0x%08X\n", _uSize, mReadP, _uData);
