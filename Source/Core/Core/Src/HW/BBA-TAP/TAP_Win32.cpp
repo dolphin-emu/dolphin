@@ -128,6 +128,8 @@ if(isActivated())
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
+	if(!isActivated())
+		activate();
 	DEBUGPRINT( "Packet: 0x");
 	for(int a = 0; a < size; ++a)
 	{
@@ -136,8 +138,9 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	DEBUGPRINT( " : Size: %d\n", size);
 	DWORD numBytesWrit;
 	OVERLAPPED overlap;
+	memset((void*)&overlap, 0, sizeof(overlap));
 	//ZERO_OBJECT(overlap);
-	overlap.hEvent = mHRecvEvent;
+	//overlap.hEvent = mHRecvEvent;
 	if(!WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap))
 	{ // Fail Boat
 		DWORD res = GetLastError();

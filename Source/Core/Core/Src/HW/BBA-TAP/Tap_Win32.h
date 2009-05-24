@@ -34,8 +34,8 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <winioctl.h>
-#define TAP_WIN32_MIN_MAJOR 8
-#define TAP_WIN32_MIN_MINOR 1
+#define TAP_WIN32_MIN_MAJOR 9
+#define TAP_WIN32_MIN_MINOR 0
 
 //=============
 // TAP IOCTLs
@@ -84,4 +84,4 @@
 // simultaneously.
 //=========================================================
 
-#define TAP_COMPONENT_ID "tap0801"
+#define TAP_COMPONENT_ID "tap0901"

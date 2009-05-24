@@ -144,13 +144,14 @@ private:
 	
 	volatile bool mWaiting;
 	WriteBuffer mRecvBuffer;
-	u32 mRecvBufferLength;
 #ifdef _WIN32
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
 	DWORD mMtu;
 	OVERLAPPED mReadOverlapped;
 	DWORD mRecvBufferLength;
 	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+#else
+	u32 mRecvBufferLength;
 #endif
 
 };
