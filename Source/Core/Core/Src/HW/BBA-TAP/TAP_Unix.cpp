@@ -65,6 +65,7 @@ bool CEXIETHERNET::activate() {
 	}
 #endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
+	resume();
 	return true;
 	
 }
@@ -72,48 +73,74 @@ bool CEXIETHERNET::CheckRecieved()
 {
 	if(!isActivated())
 		return false;
-	char RBuffer[2048]; // Bigger than MTU, but w/e
-	int Size = recv(fd, RBuffer, 2048, MSG_PEEK);
-	if(Size == -1)
-	{
-		DEBUGPRINT("Recieve check failed with %d\n", errno);
-		return false;
+	int i;
+	int maxfd;
+	int retval;
+	struct timeval tv;
+	int timeout = 3; // 3 seconds will kill him
+	fd_set mask;
+
+	/* Find the largest file descriptor */
+	maxfd = fd;
+
+	/* Check the file descriptors for available data */
+	errno = 0;
+
+	/* Set up the mask of file descriptors */
+	FD_ZERO(&mask);
+	
+	FD_SET(fd, &mask);
+
+	/* Set up the timeout */
+	tv.tv_sec = timeout/1000;
+	tv.tv_usec = (timeout%1000)*1000;
+
+	/* Look! */
+	retval = select(maxfd+1, &mask, NULL, NULL, &tv);
+
+	/* Mark all file descriptors ready that have data available */
+	if ( retval > 0 ) {
+		if ( FD_ISSET(fd, &mask) )
+		{
+			DEBUGPRINT("\t\t\t\tWe have data!\n");
+			return true;
+		}
 	}
-	if(Size != 0)
-		DEBUGPRINT("Have waiting Packet of size %d\n", Size);
+	return false;
+}
+bool CEXIETHERNET::resume() {
+	if(!isActivated())
+		return true;
+	DEBUGPRINT("BBA resume\n");
+	if(mBbaMem[BBA_NCRA] & BBA_NCRA_SR) {
+		startRecv();
+	}
+	DEBUGPRINT("BBA resume complete\n");
 	return true;
 }
-
 bool CEXIETHERNET::startRecv() {
 	DEBUGPRINT("Start Receive!\n");
-	exit(0);
-	/*if(!isActivated())
+	//exit(0);
+	if(!isActivated())
 		return false;// Should actually be an assert
+	if(!CheckRecieved()) // Check if we have data
+		return false; // Nope
 	DEBUGPRINT("startRecv... ");
 	if(mWaiting) {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
-	DWORD BytesRead = 0;
-	DWORD *Buffer = (DWORD *)malloc(2048); // Should be enough
-	DWORD res = ReadFile(mHAdapter, Buffer, BytesRead,
-		&mRecvBufferLength, &mReadOverlapped);
-	mRecvBuffer.write(BytesRead, Buffer);
-	free(Buffer);
-	if(res) {	//Operation completed immediately
-		DEBUGPRINT("completed, res %i\n", res);
-		mWaiting = true;
-	} else {
-		res = GetLastError();
-		if (res == ERROR_IO_PENDING) {	//'s ok :)
-			DEBUGPRINT("pending\n");
-			//WaitCallback will be called
-			mWaiting = true;
-		}	else {	//error occurred
-			return false;
-		}
+	u32 BytesRead = 0;
+	u8 B[2];
+	int Num = 0;
+	while(read(fd, B, 1))
+	{
+		DEBUGPRINT("Read 1 Byte!\n");
+		mRecvBuffer.write(1, B);
+		Num++;
 	}
-	return true;*/
+	DEBUGPRINT("Read %d bytes\n", Num);
+	return true; 
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
