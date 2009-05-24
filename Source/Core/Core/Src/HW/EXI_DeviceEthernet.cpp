@@ -139,14 +139,15 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	if (mExpectVariableLengthImmWrite) 
 	{
 		DEBUGPRINT("\t[INFO]Variable length IMM write\n");
-		// TODO: Use Swapped or unswapped?
 		if(_uSize == 4)
 		{
+			// Correct
 			_uData = Common::swap32(_uData);
 		}
 		else if(_uSize == 2)
 		{
-			_uData = Common::swap16(_uData);
+			// Correct
+			_uData = (u16)Common::swap32(_uData);
 		}
 		mWriteBuffer.write(_uSize, &_uData);
 		return;
@@ -273,6 +274,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		}
 		else  //size == 2
 		{
+			// TODO: Might be wrong
 			u16 SwappedData = (u16)Common::swap32(_uData >> 8);
 			mWriteP = (u8)getbitsw(SwappedData & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
 		}
@@ -293,11 +295,12 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	}
 	else if ((_uSize == 4 && (_uData & 0xC0000000) == 0x80000000) || (_uSize == 2 && ((u16)Common::swap32(_uData >> 8) & 0x4000) == 0x0000))
 	{	
-		// Non-Swapped is the correct way
+		
 		u32 SwappedData = _uData;
 		// Read from BBA Register!
 		if(_uSize == 4) 
 		{
+			// Correct
 			mReadP = (u16)getbitsw(SwappedData, 8, 23);
 			if (mReadP >= BBAMEM_SIZE)
 			{
@@ -308,7 +311,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			}
 		} 
 		else 
-		{  //size == 2
+		{  
+			// TODO: Don't know if this is correct
+			// Should Be
+			//size == 2
 			mReadP = (u8)getbitsw(SwappedData, 16, 23);
 		}
 		DEBUGPRINT( "\t[INFO]Read from BBA register! 0x%X\n", mReadP);
