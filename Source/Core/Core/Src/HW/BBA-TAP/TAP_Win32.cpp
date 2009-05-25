@@ -119,7 +119,7 @@ if(isActivated())
 
 	//set up recv event
 	mHRecvEvent = CreateEvent(NULL, false, false, NULL);
-	//ZERO_OBJECT(mReadOverlapped);
+	memset((void*)&mReadOverlapped, 0 , sizeof(mReadOverlapped));
 	resume();
 
 	DEBUGPRINT("Success!\n\n");
@@ -182,12 +182,8 @@ bool CEXIETHERNET::startRecv() {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
-	DWORD BytesRead = 0;
-	DWORD *Buffer = (DWORD *)malloc(2048); // Should be enough
-	DWORD res = ReadFile(mHAdapter, Buffer, BytesRead,
+	DWORD res = ReadFile(mHAdapter, mRecvBuffer, mRecvBuffer.size(),
 		&mRecvBufferLength, &mReadOverlapped);
-	mRecvBuffer.write(BytesRead, Buffer);
-	free(Buffer);
 	if(res) {	//Operation completed immediately
 		DEBUGPRINT("completed, res %i\n", res);
 		mWaiting = true;
