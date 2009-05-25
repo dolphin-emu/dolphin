@@ -76,7 +76,29 @@ CEXIETHERNET::CEXIETHERNET() :
 	Expecting = EXPECT_NONE;
 	mExpectVariableLengthImmWrite = false;
 }
-
+void CyclicBufferWriter::write(void *src, size_t size) 
+{
+	assert(size < _cap);
+	u8* bsrc = (u8*) src;
+	if(_write + size >= _cap) 
+	{ //wraparound
+		memcpy(_buffer + _write, src, _cap - _write);
+		memcpy(_buffer, bsrc + (_cap - _write), size - (_cap - _write));
+		_write = size - (_cap - _write);
+	} 
+	else 
+	{
+		memcpy(_buffer + _write, src, size);
+		_write += size;
+	}
+	//DEGUB("CBWrote %i bytes\n", size);
+}
+void CyclicBufferWriter::align() 
+{
+	_write = (_write + 0xff) & ~0xff;
+	if(_write >= _cap)
+		_write -= _cap;
+}
 void CEXIETHERNET::SetCS(int cs)
 {
 	DEBUGPRINT("Set CS: %s Expect Variable write?: %s\n", cs ? "true" : "false", mExpectVariableLengthImmWrite ? "true" : "false");
@@ -215,8 +237,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				DEBUGPRINT( "\t\t[INFO]BBA_NWAYC\n");
 				if(Common::swap32(_uData) & (BBA_NWAYC_ANE | BBA_NWAYC_ANS_RA)) 
 				{
-					DEBUGPRINT("\t\t\tACTIVATING!\n");
-					activate();
 					//say we've successfully negotiated for 10 Mbit full duplex
 					//should placate libogc
 					mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
@@ -335,18 +355,25 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x20:	//MAC address
 			DEBUGPRINT( "\t\t[INFO]Mac Address!\n");
 			memcpy(mBbaMem + mReadP, mac_address, 6);
+				DEBUGPRINT("\t\t\tACTIVATING!\n");
+				activate();
+				//say we've successfully negotiated for 10 Mbit full duplex
+				//should placate libogc
+				mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 			break;
 		case 0x01:	//Revision ID
 			break;
 		case 0x16:	//RWP - Receive Buffer Write Page Pointer
 			DEBUGPRINT( "\t\t[INFO]RWP!\n");
-			exit(0);
-			//MAKE(WORD, mBbaMem[mReadP]) = ((WORD)mCbw.p_write() + CB_OFFSET) >> 8;
+			//exit(0);
+			// TODO: Dunno if correct
+			MAKE(u16, mBbaMem[mReadP]) = ((u16)mCbw.p_write() + CB_OFFSET) >> 8;
 			break;
 		case 0x18:	//RRP - Receive Buffer Read Page Pointer
 			DEBUGPRINT( "\t\t[INFO]RRP!\n");
-			exit(0);
-			//MAKE(WORD, mBbaMem[mReadP]) = (mRBRPP) >> 8;
+			//exit(0);
+			// TODO: Dunno if correct
+			MAKE(u16, mBbaMem[mReadP]) = (mRBRPP) >> 8;
 			break;
 		case 0x3A:	//bit 1 set if no data available
 			DEBUGPRINT( "\t\t[INFO]Bit 1 set!\n");
@@ -399,7 +426,8 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		
 		//DEBUGPRINT("Mem spot is 0x%02x uResult is 0x%x\n", mBbaMem[mReadP], uResult);
 		#ifndef _WIN32
-		CheckRecieved();
+		if(CheckRecieved())
+			startRecv();
 		#endif
 		DEBUGPRINT( "\t[INFO]Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;
@@ -433,6 +461,26 @@ void CEXIETHERNET::DMAWrite(u32 _uAddr, u32 _uSize)
 
 void CEXIETHERNET::DMARead(u32 _uAddr, u32 _uSize) 
 {
-	DEBUGPRINT( "DMAR\n");
-	exit(0);
+	if(mReadP != INVALID_P) 
+	{
+		if(mReadP + _uSize > BBAMEM_SIZE) 
+		{
+			DEBUGPRINT("Read error: mReadP + size = 0x%04X + %i\n", mReadP, _uSize);
+			return;
+		}
+		//mem.write_physical(address, size, mBbaMem + mReadP);
+		memcpy(Memory::GetPointer(_uAddr), mBbaMem + mReadP, _uSize);
+		DEBUGPRINT("DMA Read from BBA address 0x%0*X, %i bytes\n",
+			mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize);
+		mReadP = mReadP + (u16)_uSize;
+		return;
+	} 
+	else 
+	{
+		DEBUGPRINT("Unhandled BBA DMA read: %i, 0x%08X\n", _uSize, _uAddr);
+		//if(g::bouehr)
+		exit(0);
+		//throw bouehr_exception("Unhandled BBA DMA read");
+		//return EXI_UNHANDLED;
+	}
 };

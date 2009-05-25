@@ -37,6 +37,99 @@ inline u32 getbitsw(u32 dword, int start, int end) {
 	return (dword & makemaskw(start, end)) >> (31 - end);
 }
 
+// Container Class Stolen from Whinecube
+template<class T> class SubContainer;
+
+template<class T> class Container {
+public:
+	Container(size_t _size) {
+		b = 0;
+		allocate(_size);
+	}
+	Container(size_t _size, const T *data) {
+		b = 0;
+		allocate(size);
+		memcpy(a, data, _size);
+	}
+	~Container() {
+		if(a) /*if(_msize(a))*/ free(a);
+	}
+	void resize(size_t _size) {
+		if(b == _size)
+			return;
+		free(a);
+		allocate(_size);
+	}
+
+	/*void insert(int before, void *src, size_t size) {
+	char *temp = a;
+	a = new char[b + size];
+	if(a == NULL)
+	BFE("Memory insert failed in container");
+	memcpy(a, temp, before);
+	memcpy(a+before, src, size);
+	memcpy(a+before+size, temp+before, b-before);
+	b += size;
+	delete temp;
+	}*/
+
+	class SubContainer : public Container {
+	private:
+		SubContainer(void* ptr, size_t size) : Container(ptr, size) {}
+		friend class Container;
+	public:
+		~SubContainer() {
+			a = NULL;
+			b = 0;
+		}
+	};
+	SubContainer getSub(size_t pos) {
+		return SubContainer(((char*)a) + pos, b - pos);
+	}
+
+	operator T*() { return (T *)a; }
+	operator const T*() const { return (T *)a; }
+	T* p() { return (T *)a; }
+	const T* p() const { return (T *)a; }
+	T *operator->() { return (T *)a; }
+	size_t size() const { return b; }
+	void steal(Container<T> &src) {
+		resize(0); a = src.a; b = src.b;
+		src.a = NULL; src.b = 0;
+	}
+	void swap(Container<T> &other) {
+		T *ta = a; size_t tb = b;
+		a = other.a; b = other.b;
+		other.a = ta; other.b = tb;
+	}
+protected:
+	void *a;
+	size_t b;
+private:
+	Container(const Container&);
+	Container &operator=(const Container&);
+	Container(void* ptr, size_t _size) : a(ptr), b(_size) {}
+	friend class SubContainer;
+
+	void allocate(size_t _size) {
+		if(_size > (100*1024*1024)) // 100 MB cap
+			exit(0);
+
+		//DEGUB("Resize: %i -> %i = %i\n", b, size, g_con_total);
+		//if(size > 1000*K) {
+		//DEGUB("Megabyte Container resize!\n");
+		//}
+
+		b = _size;
+		if(_size == 0)
+			a = NULL;
+		else {
+			a = malloc(_size);
+			//if(!_CrtIsValidHeapPointer(a))
+				//throw generic_fatal_exception("malloc failed in Container");
+		}
+	}
+};
 
 void DEBUGPRINT (const char * format, ...);
 class WriteBuffer {
@@ -141,9 +234,10 @@ private:
 	bool isActivated();
 	bool resume();
 	bool startRecv();
+	bool cbwriteDescriptor(u32 size);
 	
 	volatile bool mWaiting;
-	WriteBuffer mRecvBuffer;
+	Container<u8> mRecvBuffer;
 #ifdef _WIN32
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
 	DWORD mMtu;

@@ -27,6 +27,7 @@
 #if !defined(__APPLE__)
 	#include <stropts.h>
 	#include <linux/if_tun.h>
+	#include <assert.h>
 #endif
 	int fd = -1;
 bool CEXIETHERNET::deactivate()
@@ -63,6 +64,7 @@ bool CEXIETHERNET::activate() {
 		DEBUGPRINT(" Error with IOCTL: 0x%X\n", err);
 		return false;
 	}
+	ioctl( fd, TUNSETNOCSUM, 1 );
 #endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
 	resume();
@@ -123,23 +125,22 @@ bool CEXIETHERNET::startRecv() {
 	//exit(0);
 	if(!isActivated())
 		return false;// Should actually be an assert
-	if(!CheckRecieved()) // Check if we have data
-		return false; // Nope
+	if(!CheckRecieved())
+		return false;
 	DEBUGPRINT("startRecv... ");
 	if(mWaiting) {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
 	u32 BytesRead = 0;
-	u8 B[2];
-	int Num = 0;
-	while(read(fd, B, 1))
+	u8 B[1514];
+	if((BytesRead = read(fd, B, 1500)) > 0)
 	{
-		DEBUGPRINT("Read 1 Byte!\n");
-		mRecvBuffer.write(1, B);
-		Num++;
+		strncpy((char*)mRecvBuffer.p(), (const char*)B, BytesRead);
 	}
-	DEBUGPRINT("Read %d bytes\n", Num);
+	DEBUGPRINT("Read %d bytes\n", BytesRead);
+	mRecvBufferLength = BytesRead;
+	handleRecvdPacket();
 	return true; 
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
@@ -166,6 +167,101 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 }
 bool CEXIETHERNET::handleRecvdPacket() 
 {
-	DEBUGPRINT(" Handle received Packet!\n");
-	exit(0);
+
+	int rbwpp = mCbw.p_write() + CB_OFFSET;	//read buffer write page pointer
+	u32 available_bytes_in_cb;
+	if(rbwpp < mRBRPP)
+		available_bytes_in_cb = mRBRPP - rbwpp;
+	else if(rbwpp == mRBRPP)
+		available_bytes_in_cb = mRBEmpty ? CB_SIZE : 0;
+	else //rbwpp > mRBRPP
+		available_bytes_in_cb = CB_SIZE - rbwpp + (mRBRPP - CB_OFFSET);
+
+	//DUMPWORD(rbwpp);
+	//DUMPWORD(mRBRPP);
+	//DUMPWORD(available_bytes_in_cb);
+
+	assert(available_bytes_in_cb <= CB_SIZE);
+	if(available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
+	if(available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
+		return true;
+	cbwriteDescriptor(mRecvBufferLength);
+	mCbw.write(mRecvBuffer.p(), mRecvBufferLength);
+	mCbw.align();
+	rbwpp = mCbw.p_write() + CB_OFFSET;
+	//DUMPWORD(rbwpp);
+
+	//mPacketsRcvd++;
+	mRecvBufferLength = 0;
+
+	if(mBbaMem[0x08] & BBA_INTERRUPT_RECV) 
+	{
+		if(!(mBbaMem[0x09] & BBA_INTERRUPT_RECV)) 
+		{
+			mBbaMem[0x09] |= BBA_INTERRUPT_RECV;
+			DEBUGPRINT("BBA Recv interrupt raised\n");
+			m_bInterruptSet = true;
+		}
+	}
+
+	if(mBbaMem[BBA_NCRA] & BBA_NCRA_SR) 
+	{
+		startRecv();
+	}
+
+	return true;
+}
+union bba_descr {
+	struct { u32 next_packet_ptr:12, packet_len:12, status:8; };
+	u32 word;
+};
+bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
+	//if(size < 0x3C) {//60
+#define ETHERNET_HEADER_SIZE 0xE
+	if(size < ETHERNET_HEADER_SIZE) 
+	{
+		DEBUGPRINT("Packet too small: %i bytes\n", size);
+		return false;
+	}
+
+	size += SIZEOF_RECV_DESCRIPTOR;  //The descriptor supposed to include the size of itself
+
+	//We should probably not implement wraparound here,
+	//since neither tmbinc, riptool.dol, or libogc does...
+	if(mCbw.p_write() + SIZEOF_RECV_DESCRIPTOR >= CB_SIZE) 
+	{
+		DEBUGPRINT("The descriptor won't fit\n");
+		return false;
+	}
+	if(size >= CB_SIZE) 
+	{
+		DEBUGPRINT("Packet too big: %i bytes\n", size);
+		return false;
+	}
+
+	bba_descr descr;
+	descr.word = 0;
+	descr.packet_len = size;
+	descr.status = 0;
+	u32 npp;
+	if(mCbw.p_write() + size < CB_SIZE) 
+	{
+		npp = mCbw.p_write() + size + CB_OFFSET;
+	} 
+	else 
+	{
+		npp = mCbw.p_write() + size + CB_OFFSET - CB_SIZE;
+	}
+	npp = (npp + 0xff) & ~0xff;
+	if(npp >= CB_SIZE + CB_OFFSET)
+		npp -= CB_SIZE;
+	descr.next_packet_ptr = npp >> 8;
+	//DWORD swapped = swapw(descr.word);
+	//next_packet_ptr:12, packet_len:12, status:8;
+	DEBUGPRINT("Writing descriptor 0x%08X @ 0x%04X: next 0x%03X len 0x%03X status 0x%02X\n",
+		descr.word, mCbw.p_write() + CB_OFFSET, descr.next_packet_ptr,
+		descr.packet_len, descr.status);
+	mCbw.write(&descr.word, SIZEOF_RECV_DESCRIPTOR);
+
+	return true;
 }
