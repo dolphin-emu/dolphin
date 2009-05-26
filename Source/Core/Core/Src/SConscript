@@ -42,7 +42,6 @@ files = ["ActionReplay.cpp",
          "HW/EXI_DeviceMemoryCard.cpp",
          "HW/EXI_DeviceMic.cpp",
          "HW/EXI_DeviceEthernet.cpp",
-		 "HW/BBA-TAP/TAP_Unix.cpp",
          "HW/GPFifo.cpp",
          "HW/HW.cpp",
          "HW/Memmap.cpp",
@@ -122,7 +121,14 @@ else:
              ]
 
 if sys.platform == 'win32':
-    files += [ "stdafx.cpp" ]
+    files += [ "stdafx.cpp",
+		"HW/BBA-Tap/TAP_Win32.cpp"
+		 ]
+else: 
+    if sys.platform == 'darwine':
+        files += [ "HW/BBA-Tap/TAP_Apple.cpp"]
+    else:
+        files += [ "HW/BBA-Tap/TAP_Unix.cpp"]
 
 libs = [
 	'bdisasm',
