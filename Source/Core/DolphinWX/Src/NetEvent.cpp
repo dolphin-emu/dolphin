@@ -127,12 +127,15 @@ void ClientSide::OnClientData(unsigned char data)
 		case 0x50: // Everyone is Ready message received
 		{
 			// Load the game and start synching
-			Event->SendEvent(CLIENTS_READY, "NULL", 1);
+			m_netptr->LoadGame();
 
 			break;
 		}
 		case 0xA1: // Received pad data from host in versus mode
 		{
+			if (m_data_received)
+				wxThread::Sleep(10);
+			
 			m_socket.Receive((char*)m_netvalues[0], 8, recv_size);
 			m_data_received = true;
 
@@ -265,6 +268,9 @@ void ServerSide::OnServerData(char sock, unsigned char data)
 		}
 		case 0xA1: // Received pad data from a client
 		{
+			if (m_data_received)
+				wxThread::Sleep(10);
+
 			m_client[sock].socket.Receive((char*)m_netvalues[sock], 8, recv_size);
 			m_data_received = true;
 

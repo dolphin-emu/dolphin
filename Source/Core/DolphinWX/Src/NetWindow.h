@@ -43,6 +43,10 @@
 	#define NET_DEBUG
 #endif
 
+// Use TCP instead of UDP to send pad data @ 60fps. Suitable and better for LAN netplay, 
+// Unrealistic for Internet netplay, unless you have an uberfast connexion (<10ms ping)
+// #define USE_TCP
+
 class NetPlay;
 
 struct Netpads {
@@ -53,6 +57,8 @@ struct Netpads {
 struct Clients {
 	std::string       nick;
 	sf::SocketTCP     socket;
+	unsigned short    port;
+	sf::IPAddress     address;
 	bool              ready;
 };
 
@@ -72,16 +78,18 @@ class NetEvent
 class ServerSide : public wxThread
 {
 	public:
-		ServerSide(NetPlay* netptr, sf::SocketTCP socket, int netmodel, std::string nick);
+		ServerSide(NetPlay* netptr, sf::SocketTCP, sf::SocketUDP, int netmodel, std::string nick);
 		~ServerSide() {};
 
 		virtual void *Entry();
 
 		void Write(char socknb, const char *data, size_t size, long *ping=NULL);
+		void WriteUDP(char socknb, const char *data, size_t size);
 		bool isNewPadData(u32 *netValues, bool current, char client=0);
 
 	private:
-		void SyncValues(unsigned char, sf::IPAddress);
+		bool SyncValues(unsigned char, sf::IPAddress);
+		bool RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time = 0);
 		char GetSocket(sf::SocketTCP Socket);
 		void OnServerData(char sock, unsigned char data);
 		void IsEveryoneReady();
@@ -89,7 +97,7 @@ class ServerSide : public wxThread
 		NetPlay          *m_netptr;
 		NetEvent         *Event;
 
-		u32               m_netvalues[3][2];
+		u32               m_netvalues[3][3];
 		bool              m_data_received; // New Pad data received ?
 
 		unsigned char     m_numplayers;
@@ -99,6 +107,7 @@ class ServerSide : public wxThread
 		Clients           m_client[3];      // Connected client objects
 		sf::SelectorTCP   m_selector;
 		sf::SocketTCP     m_socket;	        // Server 'listening' socket
+		sf::SocketUDP     m_socketUDP;
 
 		wxCriticalSection m_CriticalSection;
 };
@@ -106,23 +115,25 @@ class ServerSide : public wxThread
 class ClientSide : public wxThread
 {
 	public:
-		ClientSide(NetPlay* netptr, sf::SocketTCP socket, std::string addr, std::string nick);
+		ClientSide(NetPlay* netptr, sf::SocketTCP, sf::SocketUDP, std::string addr, std::string nick);
 		~ClientSide() {}
 
 		virtual void *Entry();
 
 		void Write(const char *data, size_t size, long *ping=NULL);
+		void WriteUDP(const char *data, size_t size);
 		bool isNewPadData(u32 *netValues, bool current, bool isVersus=true);
 
 	private:
 		bool SyncValues();
 		void CheckGameFound();
 		void OnClientData(unsigned char data);
+		bool RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time=0);
 
 		NetPlay          *m_netptr;
 		NetEvent         *Event;
 
-		u32               m_netvalues[3][2];
+		u32               m_netvalues[3][3];
 		bool              m_data_received; // New Pad data received ?
 
 		unsigned char     m_numplayers;
@@ -133,16 +144,18 @@ class ClientSide : public wxThread
 
 		sf::SelectorTCP   m_selector;
 		sf::SocketTCP     m_socket;	        // Client I/O socket
+		sf::SocketUDP     m_socketUDP;
+		unsigned short    m_port;
 		std::string       m_addr;           // Contains the server addr
 
 		wxCriticalSection m_CriticalSection;
 };
 
-class NetPlay : public wxDialog
+class NetPlay : public wxFrame
 {
 	public:
 		NetPlay(wxWindow* parent, std::string GamePath = "", std::string GameName = "");
-		~NetPlay() {}
+		~NetPlay();
 
 		void UpdateNetWindow(bool update_infos, wxString=wxT("NULL"));
 		void AppendText(const wxString text) { m_Logging->AppendText(text); }
@@ -151,8 +164,9 @@ class NetPlay : public wxDialog
 		bool GetNetPads(u8 pad_nb, SPADStatus, u32 *netvalues);
 		void ChangeSelectedGame(std::string game);
 		void IsGameFound(unsigned char*, std::string);
-		bool IsReady() { wxCriticalSectionLocker lock(m_critical); return m_ready; }
 		std::string GetSelectedGame() { wxCriticalSectionLocker lock(m_critical); return m_selectedGame; }
+
+		void LoadGame();
 
 	protected:
 		// Protects our vars from being fuxored by threads
@@ -171,10 +185,9 @@ class NetPlay : public wxDialog
 		void OnJoin(wxCommandEvent& event);
 		void OnHost(wxCommandEvent& event);
 
-		void LoadGame();
-
 		// Net play vars (used ingame)
 		int              m_frame;
+		int              m_lastframe;
 		Common::Timer    m_timer;
 		int              m_loopframe;
 		int              m_frameDelay;
@@ -192,12 +205,13 @@ class NetPlay : public wxDialog
 		int              m_NetModel;	// Using P2P model (0) or Server model (1) 
 		int              m_isHosting;	// 0 = false ; 1 = true ; 2 = Not set
 		unsigned char    m_numClients;	// starting from 0, 4 players max thus 3 clients
+		std::string      m_address;     // The address entered into connection box
 		unsigned short   m_port;
 		
 		Netpads          m_pads[4];     // this struct is used to save synced pad values
+		IniFile          ConfigIni;
 
 		// Sockets objects
-		sf::SocketTCP    m_listensocket;
 		ServerSide      *m_sock_server;
 		ClientSide      *m_sock_client;
 
@@ -268,15 +282,11 @@ enum
 	ID_BUTTON_JOIN,
 	ID_NETMODE,
 	ID_GAMELIST,
-	ID_GAMELIST_TXT,
 	ID_LOGGING_TXT,
 	ID_CHAT,
-	ID_SETNICK_TXT,
 	ID_SETNICK,
 	ID_SETPORT,
-	ID_SETPORT_TXT,
 	ID_CONNADDR,
-	ID_CONNADDR_TXT,
 	ID_CONNINFO_TXT,
 	ID_USE_RANDOMPORT,
 	ID_BUTTON_GETPING,

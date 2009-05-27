@@ -23,13 +23,11 @@ NetPlay *NetClass_ptr = NULL;
 void NetPlay::IsGameFound(unsigned char * ptr, std::string m_selected)
 {
 	m_critical.Enter();
-		
+
 		m_selectedGame = m_selected;
 
 		if (m_games.find(m_selected) != std::string::npos)
-		{
 			*ptr = 0x1F;
-		}
 		else
 			*ptr = 0x1A;
 
@@ -68,6 +66,7 @@ void NetPlay::OnNetEvent(wxCommandEvent& event)
 			// has been killed and so we tell the GUI thread.
 			AppendText(_("*Connection to Host lost.\n*You have been Disconnected.\n\n"));
 			m_isHosting = 2;
+			m_numClients--;
 		}
 		break;
 	case HOST_PLAYERLEFT:
@@ -84,7 +83,9 @@ void NetPlay::OnNetEvent(wxCommandEvent& event)
 	case CLIENTS_READY:
 		{
 			m_clients_ready = true;
-			if (m_ready || event.GetInt())
+			
+			// Tell clients everyone is ready...
+			if (m_ready)
 				LoadGame();
 		}
 		break;
@@ -135,25 +136,38 @@ void NetPlay::LoadGame()
 	// and always sends to the server which then send it back to all the clients
 	// -> P2P model is faster, but is limited to 2 players
 	// -> Server model is slower, but supports up to 4 players 
-
-	m_Logging->AppendText(_("** Everyone is ready... Loading Game ! **\n"));
-
-	// Tell clients everyone is ready...
+	
 	if (m_isHosting == 1)
 	{
+		long ping[3] = {0};
 		unsigned char value = 0x50;
 
+		// Get ping
+		m_sock_server->Write(0, 0, 0, ping);
+		float fping = (ping[0]+ping[1]+ping[2])/(float)m_numClients;
+
+		// Tell client everyone is ready
 		for (int i=0; i < m_numClients ; i++)
 			m_sock_server->Write(i, (const char*)&value, 1);
+
+		// Sleep a bit to start the game at more or less the same time than the peer
+		wxMilliSleep(fping/2);
+		
+		m_Logging->AppendText(wxString::Format(wxT("** Everyone is ready... Loading Game ! **\n"
+			"** Ping to client(s) is : %f ms\n"), fping));
 	}
+	else
+		m_Logging->AppendText(_("** Everyone is ready... Loading Game ! **\n"));
 
 	// TODO : Throttle should be on by default, to avoid stuttering
 	//soundStream->GetMixer()->SetThrottle(true);
-	
+
 	int line_p = 0;
 	int line_n = 0;
 
+	m_critical.Enter();
 	std::string tmp = m_games.substr(0, m_games.find(m_selectedGame));
+
 	for (int i=0; i < (int)tmp.size(); i++)
 		if (tmp.c_str()[i] == '\n')
 			line_n++;
@@ -162,6 +176,7 @@ void NetPlay::LoadGame()
 	NetClass_ptr = this;
 	m_timer.Start();
 	m_data_received = false;
+	m_critical.Leave();
 
 	// Find corresponding game path
 	for (int i=0; i < (int)m_paths.size(); i++)
@@ -182,6 +197,15 @@ void NetPlay::LoadGame()
 
 bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 {
+	if (m_numClients < 1)
+	{
+		m_Logging->AppendText(_("** WARNING : "
+							"Ping too high (>2000ms) or connection lost ! \n"
+							"** WARNING : Stopping Netplay... \n"));
+		NetClass_ptr = NULL;
+		return false;
+	}
+
 	// Store current pad status in netValues[]
 	netValues[0] = (u32)((u8)PadStatus.stickY);
 	netValues[0] |= (u32)((u8)PadStatus.stickX << 8);
@@ -192,33 +216,36 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 	netValues[1] |= (u32)((u8)PadStatus.substickY << 16);
 	netValues[1] |= (u32)((u8)PadStatus.substickX << 24);
 
-	if (m_frame == 0)
-	{
-		// We make sure everyone's pad is enabled
-		for (int i = 0; i < m_numClients+1; i++)
-			SerialInterface::ChangeDevice(SI_GC_CONTROLLER, i);
-
-		// Better disable unused ports 
-		for (int i = m_numClients+1; i < 4; i++)
-			SerialInterface::ChangeDevice(SI_DUMMY, i);
-	}
-
-	if (m_NetModel == 0 && m_numClients == 1) // Use P2P Model
+	if (m_NetModel == 0) // Use 2 players Model
 	{
 		if (padnb == 0)
 		{
-			// TODO : actually show this on the GUI :p
 			// Update the timer and increment total frame number
 			m_frame++;
-			m_timer.Update();
+
+			if (m_frame == 1)
+			{
+				// We make sure everyone's pad is enabled
+				for (int i = 0; i < m_numClients+1; i++)
+					SerialInterface::ChangeDevice(SI_GC_CONTROLLER, i);
+
+				// Better disable unused ports 
+				for (int i = m_numClients+1; i < 4; i++)
+					SerialInterface::ChangeDevice(SI_DUMMY, i);
+			}
+			
+			if (m_timer.GetTimeDifference() > 1000)
+				m_timer.Update();
 
 #ifdef NET_DEBUG
 			char sent[64];
 			sprintf(sent, "Sent Values: 0x%08x : 0x%08x \n", netValues[0], netValues[1]);
 			m_Logging->AppendText(wxString::FromAscii(sent));
 #endif
-			unsigned char init_value = 0xA1;
 			unsigned char player = 0;
+
+#ifdef USE_TCP
+			unsigned char init_value = 0xA1;
 
 			if (m_isHosting == 1) {
 				// Send pads values
@@ -231,6 +258,23 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 				m_sock_client->Write((const char*)netValues, 8);
 				player = 1; 
 			}
+#else // UDP
+			u32 padsValues[3];
+
+			padsValues[0] = m_frame;
+			padsValues[1] = netValues[0];
+			padsValues[2] = netValues[1];
+
+			if (m_isHosting == 1) {
+				// Send pads values
+				m_sock_server->WriteUDP(0, (const char*)padsValues, 12);
+			}
+			else {
+				// Send pads values
+				m_sock_client->WriteUDP((const char*)padsValues, 12);
+				player = 1; 
+			}
+#endif
 
 			if (!m_data_received)
 			{
@@ -257,9 +301,10 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 				else {
 					if (m_loopframe > 126)
 					{
-						m_Logging->AppendText(_("** Ping too high (>2000ms) or connection lost ! \n"));
-						m_Logging->AppendText(_("** Stopping game... \n"));
-						BootManager::Stop();
+						m_Logging->AppendText(_("** WARNING : "
+							"Ping too high (>2000ms) or connection lost ! \n"
+							"** WARNING : Stopping Netplay... \n"));
+						NetClass_ptr = NULL;
 					}
 
 					m_loopframe++;
@@ -367,7 +412,6 @@ void NetPlay::ChangeSelectedGame(std::string game)
 			m_sock_server->Write(i, (const char*)&value, 1); // 0x35 -> Change game
 
 			m_sock_server->Write(i, (const char*)&game_size, 4);
-			//m_sock_server->Write(i, m_selectedGame.c_str(), game_size + 1);
 			m_sock_server->Write(i, game.c_str(), game_size + 1);
 		}
 
@@ -379,20 +423,19 @@ void NetPlay::ChangeSelectedGame(std::string game)
 
 void NetPlay::OnQuit(wxCloseEvent& WXUNUSED(event))
 {
+	// Disable netplay
 	NetClass_ptr = NULL;
 
-	// We Kill the threads
+	// Destroy the Window
+	Destroy();
+
+	// Then Kill the threads
 	if (m_isHosting == 0)
 		m_sock_client->Delete();
 	else if (m_isHosting == 1) {
 		m_sock_server->Delete();
-		// Stop listening, we're doing it here cause Doing it in the thread
-		// Cause SFML to crash when built in release build, odd ? :(
-		m_listensocket.Close();
 	}
 
-	// Destroy the Frame
-	Destroy();
 }
 
 void NetPlay::OnDisconnect(wxCommandEvent& WXUNUSED(event))
@@ -403,7 +446,7 @@ void NetPlay::OnDisconnect(wxCommandEvent& WXUNUSED(event))
 
 bool ClientSide::isNewPadData(u32 *netValues, bool current, bool isVersus)
 {
-	// TODO : adapt it to more than 2 players
+#ifdef USE_TCP
 	if (current)
 	{
 		while (1)
@@ -419,6 +462,9 @@ bool ClientSide::isNewPadData(u32 *netValues, bool current, bool isVersus)
 				break;
 			}
 			m_CriticalSection.Leave();
+
+			if (TestDestroy())
+				break;
 		}
 
 		return true;
@@ -427,10 +473,54 @@ bool ClientSide::isNewPadData(u32 *netValues, bool current, bool isVersus)
 		wxCriticalSectionLocker lock(m_CriticalSection);
 
 	return m_data_received;
+#else
+	size_t recv_size;
+
+	if (current)
+	{
+		m_CriticalSection.Enter();
+
+		if (isVersus)
+		{
+			if (m_netvalues[0][1] != 0)
+			{
+				netValues[0] = m_netvalues[0][1];
+				netValues[1] = m_netvalues[0][2];
+			}
+			else
+			{
+				while (true)
+				{
+					u32 frame_saved = m_netvalues[0][0];
+					bool pass = RecvT(m_socketUDP, (char*)&m_netvalues[0], 12, recv_size, 5);
+
+					if (m_netvalues[0][0] < frame_saved+1)
+						continue;
+					if (m_netvalues[0][0] > frame_saved+1 || !pass)
+						PanicAlert("Network ERROR !");
+
+					netValues[0] = m_netvalues[0][1];
+					netValues[1] = m_netvalues[0][2];
+					break;
+				}
+			}
+		}
+
+		m_netvalues[0][1] = 0;
+		m_CriticalSection.Leave();
+
+		return true;
+	}
+	else
+		return RecvT(m_socketUDP, (char*)&m_netvalues[0], 12, recv_size, 1/1000);
+
+#endif
+
 }
 
 bool ServerSide::isNewPadData(u32 *netValues, bool current, char client)
 {
+#ifdef USE_TCP
 	if (current)
 	{
 		while (1)
@@ -446,6 +536,9 @@ bool ServerSide::isNewPadData(u32 *netValues, bool current, char client)
 				break;
 			}
 			m_CriticalSection.Leave();
+
+			if (TestDestroy())
+				break;
 		}
 
 		return true;
@@ -454,5 +547,44 @@ bool ServerSide::isNewPadData(u32 *netValues, bool current, char client)
 		wxCriticalSectionLocker lock(m_CriticalSection);
 
 	return m_data_received;
+#else
+	size_t recv_size;
+
+	if (current)
+	{
+		m_CriticalSection.Enter();
+
+		if (m_netvalues[0][1] != 0)
+		{
+			netValues[0] = m_netvalues[client][1];
+			netValues[1] = m_netvalues[client][2];
+		}
+		else
+		{
+			while (true)
+			{
+				u32 frame_saved = m_netvalues[client][0];
+				bool pass = RecvT(m_socketUDP, (char*)&m_netvalues[client], 12, recv_size, 5);
+
+				if (m_netvalues[client][0] < frame_saved+1)
+					continue;
+				if (m_netvalues[client][0] > frame_saved+1 || !pass)
+					PanicAlert("Network ERROR !");
+
+				netValues[0] = m_netvalues[client][1];
+				netValues[1] = m_netvalues[client][2];
+				break;
+			}
+		}
+
+		m_netvalues[client][1] = 0;
+		m_CriticalSection.Leave();
+
+		return true;
+	}
+	else
+		return RecvT(m_socketUDP, (char*)&m_netvalues[client], 12, recv_size, 1/1000);
+
+#endif
 }
 

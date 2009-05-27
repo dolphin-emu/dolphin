@@ -20,7 +20,7 @@
 ///////////////////////
 // Main Frame window
 
-BEGIN_EVENT_TABLE(NetPlay, wxDialog)
+BEGIN_EVENT_TABLE(NetPlay, wxFrame)
 	EVT_BUTTON(ID_BUTTON_JOIN,     NetPlay::OnJoin)
 	EVT_BUTTON(ID_BUTTON_HOST,     NetPlay::OnHost)
 
@@ -38,7 +38,7 @@ BEGIN_EVENT_TABLE(NetPlay, wxDialog)
 END_EVENT_TABLE()
 
 NetPlay::NetPlay(wxWindow* parent, std::string GamePaths, std::string GameNames) :
-	wxDialog(parent, wxID_ANY, _T("Net Play"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~ wxMAXIMIZE_BOX )
+	wxFrame(parent, wxID_ANY, _T("Net Play"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~ wxMAXIMIZE_BOX)
 {
 	m_selectedGame = 'a'; m_hostaddr = 'a';
 	m_games = GameNames;  m_paths = GamePaths;
@@ -48,32 +48,62 @@ NetPlay::NetPlay(wxWindow* parent, std::string GamePaths, std::string GameNames)
 	DrawGUI();
 }
 
+NetPlay::~NetPlay()
+{
+	ConfigIni.Load(CONFIG_FILE);
+
+	ConfigIni.Set("Netplay", "Nickname", m_nick);
+	ConfigIni.Set("Netplay", "UsedPort", (int)m_port);
+	ConfigIni.Set("Netplay", "LastIP", m_address);
+
+	ConfigIni.Save(CONFIG_FILE);
+}
+
 void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 {
-	wxString addr = m_ConAddr->GetValue();
-	wxString host = addr.substr(0, addr.find(':'));
-	wxString port_str = addr.substr(addr.find(':')+1);
-	int port; TryParseInt(port_str.mb_str(), &port);
-	
+	unsigned short server_port;
+
+	m_address = std::string(m_ConAddr->GetValue().mb_str());
 	m_nick = std::string(m_SetNick->GetValue().mb_str());
+
+	wxString host = m_address.substr(0, m_address.find(':'));
+	wxString port_str = m_address.substr(m_address.find(':')+1);
+
+	TryParseInt(port_str.mb_str(), (int *)&server_port);          // Server port
+	TryParseInt(m_SetPort->GetValue().mb_str(), (int *)&m_port);  // User port
+	
 	if (m_nick.size() > 255)
 		m_nick = m_nick.substr(0 , 255);
 
+	SetTitle(_("Net Play : Connecting to Host..."));
+
 	// Create the client socket
 	sf::SocketTCP sock_client;
+	sf::SocketUDP sock_client_UDP;
 
-	if (sock_client.Connect(port, (const char *)host.mb_str(), 1.5) == sf::Socket::Done)
+	if (sock_client.Connect(server_port, (const char*)host.mb_str(), 1.5) == sf::Socket::Done)
 	{
-		m_sock_client = new ClientSide(this, sock_client, std::string(addr.mb_str()), m_nick);
-		m_sock_client->Create();
-		m_sock_client->Run();
+		// Try to Bind the UDP Socket
+		if (sock_client_UDP.Bind(m_port))
+		{
+			m_sock_client = new ClientSide(this, sock_client, sock_client_UDP, m_address, m_nick);
+			m_sock_client->Create();
+			m_sock_client->Run();
 
-		// Create the GUI
-		m_isHosting = false;
-		DrawNetWindow();
+			// Create the GUI
+			m_isHosting = false;
+			DrawNetWindow();
+		}
+		else
+		{
+			SetTitle(_("Net Play"));
+			PanicAlert("Can't Bind UDP socket on the specified Port: %d ! \n"
+				"Make sure port is forwarded and not in use !", m_port);
+		}
 	}
 	else
 	{
+		SetTitle(_("Net Play"));
 		PanicAlert("Can't connect to the specified IP Address ! \nMake sure Hosting port is forwarded !");
 	}
 }
@@ -82,26 +112,30 @@ void NetPlay::OnHost(wxCommandEvent& WXUNUSED(event))
 {
 	TryParseInt(m_SetPort->GetValue().mb_str(), (int*)&m_port);
 
+	m_nick = std::string(m_SetNick->GetValue().mb_str());
+
 	if (m_GameList->GetSelection() == wxNOT_FOUND) {
 		PanicAlert("No Game Selected ! Please select a Game...");
 		return;
 	}
-	if (!m_SetPort->GetValue().size() || m_port < 100 || m_port > 65535) {
+	if (!m_SetPort->GetValue().size() || m_port < 1000 || m_port > 65535) {
 		PanicAlert("Bad Port entered (%d) ! Please enter a working socket port...", m_port);
 		return;
 	}
-	
-	m_nick = std::string(m_SetNick->GetValue().mb_str());
-	if (m_nick.size() > 255) m_nick = m_nick.substr(0 , 255);
+	if (m_nick.size() > 255)
+		m_nick = m_nick.substr(0 , 255);
 
 	m_NetModel = m_NetMode->GetSelection();
 	m_selectedGame = std::string(m_GameList_str[m_GameList->GetSelection()].mb_str());
-	m_numClients = 0;
 
-	// Start the listening socket
-	if (m_listensocket.Listen(m_port))
+	// Create the listening socket
+	sf::SocketTCP sock_server;
+	sf::SocketUDP sock_server_UDP;
+
+	// Start the listening socket and bind UDP socket port
+	if (sock_server.Listen(m_port) && sock_server_UDP.Bind(m_port))
 	{
-		m_sock_server = new ServerSide(this, m_listensocket, m_NetModel, m_nick);
+		m_sock_server = new ServerSide(this, sock_server, sock_server_UDP, m_NetModel, m_nick);
 		m_sock_server->Create();
 		m_sock_server->Run();
 
@@ -137,27 +171,27 @@ void NetPlay::DrawGUI()
 	}
 
 	netmodes_str.Add(wxT("P2P Versus (2 players, faster)"));
-	// TODO :
-	// netmodes_str.Add(wxT("Server Mode (4 players, slower)"));
+	// TODO : netmodes_str.Add(wxT("Server Mode (4 players, slower)"));
+
+	wxPanel *panel = new wxPanel(this);
 
 	// Tabs
-	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+	m_Notebook = new wxNotebook(panel, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	m_Tab_Connect = new wxPanel(m_Notebook, ID_TAB_CONN, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Tab_Connect, wxT("Connect"));
 	m_Tab_Host = new wxPanel(m_Notebook, ID_TAB_HOST, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Tab_Host, wxT("Host"));
 
-	// Nickname setting
-	m_SetNick_text = new wxStaticText(this, ID_SETNICK_TXT, wxT("  Nickname : "), wxDefaultPosition, wxDefaultSize);
-	m_SetNick = new wxTextCtrl(this, ID_SETNICK, wxT("Mingebag"), wxDefaultPosition, wxDefaultSize, 0);
-	m_NetMode = new wxChoice(this, ID_NETMODE, wxDefaultPosition, wxDefaultSize, netmodes_str, 0, wxDefaultValidator);
-	m_NetMode->SetSelection(0);
+	// Tow window, Nickname & Port settings
+	m_SetNick_text = new wxStaticText(panel, wxID_ANY, wxT(" Nickname : "), wxDefaultPosition, wxDefaultSize);
+	m_SetNick = new wxTextCtrl(panel, ID_SETNICK, wxT("LOLWUT!"), wxDefaultPosition, wxDefaultSize);
+	m_SetPort_text = new wxStaticText(panel, wxID_ANY, wxT(" Port to Use : "), wxDefaultPosition, wxDefaultSize);
+	m_SetPort = new wxTextCtrl(panel, ID_SETPORT, wxT("12345"), wxDefaultPosition, wxDefaultSize);
 	
 	// CONNECTION TAB
-	m_ConAddr_text = new wxStaticText(m_Tab_Connect, ID_CONNADDR_TXT, wxT(" IP Address :"), wxDefaultPosition, wxDefaultSize);
+	m_ConAddr_text = new wxStaticText(m_Tab_Connect, wxID_ANY, wxT(" IP Address :"), wxDefaultPosition, wxDefaultSize);
 	m_ConAddr = new wxTextCtrl(m_Tab_Connect, ID_CONNADDR, wxT("127.0.0.1:12345"), wxDefaultPosition, wxSize(250,20), 0);
 	m_UseRandomPort = new wxCheckBox(m_Tab_Connect, ID_USE_RANDOMPORT, wxT("Use random client port for connection"));
-	m_UseRandomPort->SetValue(true); m_UseRandomPort->Enable(false);
 	m_JoinGame = new wxButton(m_Tab_Connect, ID_BUTTON_JOIN, wxT("Connect"), wxDefaultPosition, wxDefaultSize);
 
 	// Sizers CONNECT
@@ -165,7 +199,7 @@ void NetPlay::DrawGUI()
 	wxBoxSizer* sConnectSizer = new wxBoxSizer(wxVERTICAL);
 
 	sConnectTop->Add(m_ConAddr_text, 0, wxALL|wxALIGN_CENTER, 5);
-	sConnectTop->Add(m_ConAddr, 3, wxALL|wxEXPAND, 5);
+	sConnectTop->Add(m_ConAddr, 1, wxALL|wxEXPAND, 5);
 	sConnectTop->Add(m_JoinGame, 0, wxALL|wxALIGN_RIGHT, 5);
 	sConnectSizer->Add(sConnectTop, 0, wxALL|wxEXPAND, 5);
 	sConnectSizer->Add(m_UseRandomPort, 0, wxALL|wxALIGN_CENTER, 5);
@@ -173,44 +207,57 @@ void NetPlay::DrawGUI()
 	m_Tab_Connect->SetSizer(sConnectSizer);
 
 	// HOSTING TAB
-	m_SetPort_text = new wxStaticText(m_Tab_Host, ID_SETPORT_TXT, wxT(" Use Port : "), wxDefaultPosition, wxDefaultSize);
-	m_SetPort = new wxTextCtrl(m_Tab_Host, ID_SETPORT, wxT("12345"), wxDefaultPosition, wxDefaultSize, 0);
-	m_GameList_text = new wxStaticText(m_Tab_Host, ID_GAMELIST_TXT, wxT("Warning: Use a forwarded port ! Select Game and press Host :"), wxDefaultPosition, wxDefaultSize);
+	m_GameList_text = new wxStaticText(m_Tab_Host, wxID_ANY,
+		wxT("Warning: Use a forwarded port ! Select Game and press Host :"), wxDefaultPosition, wxDefaultSize);
 	m_GameList = new wxListBox(m_Tab_Host, ID_GAMELIST, wxDefaultPosition, wxDefaultSize,
 		m_GameList_str, wxLB_SINGLE | wxLB_NEEDED_SB);
 	m_HostGame = new wxButton(m_Tab_Host, ID_BUTTON_HOST, wxT("Host"), wxDefaultPosition, wxDefaultSize);
+	m_NetMode = new wxChoice(m_Tab_Host, ID_NETMODE, wxDefaultPosition, wxDefaultSize, netmodes_str, 0, wxDefaultValidator);
+	m_NetMode->SetSelection(0);
 
 	// Sizers HOST
 	wxBoxSizer *sHostBox = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer *sHostTop = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer *sHostMid = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *sHostBottom = new wxBoxSizer(wxHORIZONTAL);
 
-	sHostTop->Add(m_SetPort_text, 0, wxALL|wxALIGN_CENTER, 5);
-	sHostTop->Add(m_SetPort, 1, wxALL|wxEXPAND, 5);
-	sHostMid->Add(m_GameList, 1, wxALL|wxEXPAND, 5);
+	sHostBottom->Add(m_NetMode, 0, wxALL|wxALIGN_CENTER, 5);
+	sHostBottom->AddStretchSpacer();
+	sHostBottom->Add(m_HostGame, 0, wxALL, 10);
 
 	sHostBox->Add(m_GameList_text, 0, wxALL|wxALIGN_CENTER, 5);
-	sHostBox->Add(sHostTop, 0, wxALL|wxEXPAND, 1);
-	sHostBox->Add(sHostMid, 1, wxALL|wxEXPAND, 1);
-	sHostBox->Add(m_HostGame, 0, wxALL|wxALIGN_RIGHT, 10);
+	sHostBox->Add(m_GameList, 1, wxALL|wxEXPAND, 6);
+	sHostBox->Add(sHostBottom, 0, wxALL|wxEXPAND, 1);
 
 	m_Tab_Host->SetSizer(sHostBox);
-	sHostBox->Layout();
 
-	// main sizers
+	// Main sizers
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sMain_top = new wxBoxSizer(wxHORIZONTAL);
 
 	sMain_top->Add(m_SetNick_text, 0, wxALL|wxALIGN_CENTER, 3);
-	sMain_top->Add(m_SetNick, 0, wxALL, 3);
-	sMain_top->AddStretchSpacer(1);
-	sMain_top->Add(m_NetMode, 0, wxALL|wxALIGN_RIGHT, 3);
+	sMain_top->Add(m_SetNick, 1, wxALL|wxALIGN_CENTER, 3);
+	sMain_top->AddStretchSpacer();
+	sMain_top->Add(m_SetPort_text, 0, wxALL|wxALIGN_CENTER, 3);
+	sMain_top->Add(m_SetPort, 1, wxALL|wxALIGN_CENTER, 3);
 
 	sMain->Add(sMain_top, 0, wxALL|wxEXPAND, 5);
 	sMain->Add(m_Notebook, 1, wxALL|wxEXPAND, 5);
 
-	SetSizerAndFit(sMain);
-	Center(); Layout(); Show();
+	// Adjust panel to window's size, and set resizing minimum boundaries
+	panel->SetSizerAndFit(sMain);
+	sMain->SetSizeHints((wxWindow*)this);
+
+	if (ConfigIni.Load(CONFIG_FILE))
+	{
+		ConfigIni.Get("Netplay", "Nickname", &m_nick, "Unnamed");
+		ConfigIni.Get("Netplay", "UsedPort", (int*)&m_port, 12345);
+		ConfigIni.Get("Netplay", "LastIP", &m_address, "127.0.0.1:54321");
+
+		m_SetNick->SetValue(_(m_nick.c_str()));
+		m_SetPort->SetValue(wxString::Format(wxT("%d"), m_port));
+		m_ConAddr->SetValue(_(m_address.c_str()));
+	}
+
+	Center(); Show();
 }
 
 void NetPlay::DrawNetWindow()
@@ -218,33 +265,31 @@ void NetPlay::DrawNetWindow()
 	// Remove everything from the precedent GUI :D
 	DestroyChildren();
 
-	SetTitle(_("Connection Window"));
+	SetTitle(_("Net Play : Connection Window"));
 
+	wxPanel *panel = new wxPanel(this);
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sTop = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sBottom = new wxBoxSizer(wxHORIZONTAL);
 	
-	m_Game_str = new wxButton(this, wxID_ANY, wxT(" Game : "), wxDefaultPosition, wxSize(400, 25), wxBU_LEFT);
+	m_Game_str = new wxButton(panel, wxID_ANY, wxT(" Game : "), wxDefaultPosition, wxSize(400, 25), wxBU_LEFT);
 	m_Game_str->Disable();
 
-	m_Logging  = new wxTextCtrl(this, ID_LOGGING_TXT, wxEmptyString,
+	m_Logging  = new wxTextCtrl(panel, ID_LOGGING_TXT, wxEmptyString,
 			wxDefaultPosition, wxSize(400, 250),
 			wxTE_RICH2 | wxTE_MULTILINE | wxTE_READONLY);
 
-	// Too bad this doesn't work...
-	//m_Logging->SetDefaultStyle(wxTextAttr(*wxRED));
-
-	m_Chat = new wxTextCtrl(this, ID_CHAT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-	m_Chat_ok = new wxButton(this, ID_BUTTON_CHAT, wxT("Send"));;
+	m_Chat = new wxTextCtrl(panel, ID_CHAT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	m_Chat_ok = new wxButton(panel, ID_BUTTON_CHAT, wxT("Send"));;
 	
-	m_Ready = new wxCheckBox(this, ID_READY, wxT("Click here when ready"), wxDefaultPosition, wxDefaultSize, 0);
-	m_RecordGame = new wxCheckBox(this, ID_RECORD, wxT("Record Game Input"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Ready = new wxCheckBox(panel, ID_READY, wxT("Click here when ready"), wxDefaultPosition, wxDefaultSize, 0);
+	m_RecordGame = new wxCheckBox(panel, ID_RECORD, wxT("Record Game Input"), wxDefaultPosition, wxDefaultSize, 0);
 	// TODO: Fix the recording ?
 	m_RecordGame->Disable();
 
-	m_ConInfo_text = new wxStaticText(this, ID_CONNINFO_TXT, wxT("  Fps : 0 | Ping : 00 ms"));
-	m_GetPing = new wxButton(this, ID_BUTTON_GETPING, wxT("Ping"), wxDefaultPosition, wxDefaultSize);
-	m_Disconnect = new wxButton(this, ID_BUTTON_QUIT, wxT("Disconnect"), wxDefaultPosition, wxDefaultSize);
+	m_ConInfo_text = new wxStaticText(panel, ID_CONNINFO_TXT, wxT("  Fps : 0 | Ping : 00 ms"));
+	m_GetPing = new wxButton(panel, ID_BUTTON_GETPING, wxT("Ping"), wxDefaultPosition, wxDefaultSize);
+	m_Disconnect = new wxButton(panel, ID_BUTTON_QUIT, wxT("Disconnect"), wxDefaultPosition, wxDefaultSize);
 	
 	wxBoxSizer* sChat = new wxBoxSizer(wxHORIZONTAL);
 
@@ -274,10 +319,10 @@ void NetPlay::DrawNetWindow()
 
 	if (m_isHosting)
 	{
-		m_wtfismyip = new wxButton(this, ID_BUTTON_GETIP, wxT("What is my IP"));
-		m_ChangeGame = new wxButton(this, ID_CHANGEGAME, wxT("Change Game"));
+		m_wtfismyip = new wxButton(panel, ID_BUTTON_GETIP, wxT("What is my IP"));
+		m_ChangeGame = new wxButton(panel, ID_CHANGEGAME, wxT("Change Game"));
 
-		wxStaticBoxSizer* sBottom3 = new wxStaticBoxSizer(wxVERTICAL, this, _("Host"));
+		wxStaticBoxSizer* sBottom3 = new wxStaticBoxSizer(wxVERTICAL, panel, _("Host"));
 
 		sBottom3->Add(m_ChangeGame, 0, wxALL | wxEXPAND, 5);
 		sBottom3->Add(m_wtfismyip, 0, wxALL | wxEXPAND, 5);
@@ -289,18 +334,19 @@ void NetPlay::DrawNetWindow()
 	sMain->Add(sTop, 1, wxALL | wxEXPAND, 5);
 	sMain->Add(sBottom, 0, wxALL | wxEXPAND | wxALIGN_CENTER, 2);
 
-	SetSizerAndFit(sMain);
-	Center(); Layout();
+	panel->SetSizerAndFit(sMain);
+	sMain->SetSizeHints((wxWindow*)this);
+
 	Show();
 }
 
-void NetPlay::UpdateNetWindow(bool update_infos, wxString infos/*int fps, float ping, int frame_delay*/)
+// String of the type : FPSxPINGxFRAME_DELAY
+void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 {
 	std::vector<std::string> str_arr;
 
 	if (update_infos)
 	{
-		// String of the type : FPSxPINGxFRAME_DELAY
 		SplitString(std::string(infos.mb_str()), "x", str_arr);
 
 		m_ConInfo_text->SetLabel
@@ -346,9 +392,10 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 						m_sock_server->Write(i, buffer.c_str(), buffer_size + 1);
 					}
 				}
-					
+
 				m_Logging->AppendText(wxString::FromAscii(buffer.c_str()));
 
+				// Everyone is ready
 				if (m_ready && m_clients_ready)
 					LoadGame();
 			}
@@ -388,7 +435,6 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 			if (m_numClients == 0)
 				return;
 
-			// TODO : This is not designed for > 2 players
 			long ping[3] = {0};
 			float fping;
 
@@ -442,8 +488,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 
 			m_Chat->Clear();
 
-			// We should maybe wait for the server to send it... 
-			// but we write it anyway :p
+			// Do not wait for the server, just write as soon as sent
 			m_Logging->AppendText(chat_str);
 
 			break;

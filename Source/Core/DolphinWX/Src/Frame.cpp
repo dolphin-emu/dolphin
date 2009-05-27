@@ -325,7 +325,7 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Give it an icon
 	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_png));
+	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
 	SetIcon(IconTemp);
 
 	// Give it a status bar

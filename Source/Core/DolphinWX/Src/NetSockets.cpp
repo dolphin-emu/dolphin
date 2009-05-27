@@ -23,9 +23,9 @@
 
 void NetEvent::AppendText(const wxString text)
 {
-	// I have the feeling SendEvent may be a bit better...
-#if 0
-	SendEvent(ADD_TEXT, std::string(text.mb_str()))
+	// I have the feeling SendEvent may be a bit safer/better...
+#if 1
+	SendEvent(ADD_TEXT, std::string(text.mb_str()));
 #else
 	wxMutexGuiEnter();
 		m_netptr->AppendText(text);
@@ -48,13 +48,14 @@ void NetEvent::SendEvent(int EventType, const std::string text, int integer)
 //		SERVER SIDE THREAD
 //--------------------------------
 
-ServerSide::ServerSide(NetPlay* netptr, sf::SocketTCP socket, int netmodel, std::string nick)
+ServerSide::ServerSide(NetPlay* netptr, sf::SocketTCP socket, sf::SocketUDP socketUDP, int netmodel, std::string nick)
 	: wxThread()
 {
 	m_numplayers = 0;
 	m_data_received = false;
 	m_netmodel = netmodel;
 	m_socket = socket;
+	m_socketUDP = socketUDP;
     m_netptr = netptr;
 	m_nick = nick;
 	Event = new NetEvent(m_netptr);
@@ -69,6 +70,23 @@ char ServerSide::GetSocket(sf::SocketTCP Socket)
 	}
 
 	return 0xE;
+}
+
+bool ServerSide::RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time)
+{
+	sf::SelectorUDP Selector;
+	sf::IPAddress Addr;
+	Selector.Add(Socket);
+
+	if (Selector.Wait(Time) > 0)
+	{
+		Socket.Receive(Data, Max, Recvd, Addr);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void *ServerSide::Entry()
@@ -99,22 +117,30 @@ void *ServerSide::Entry()
 				if ((m_netmodel == 0 && m_numplayers > 0) || m_numplayers == 3)
 				{
 					Incoming.Send((const char *)&sent, 1);	// Tell it the server is full...
-					Incoming.Close();			// Then close the connection
+					Incoming.Close();						// Then close the connection
+
 					Event->AppendText(_(" Server is Full !\n"));
 				}
 				else
 				{
 					Event->AppendText(_(" Connection accepted\n"));
 					m_client[m_numplayers].socket = Incoming;
+					m_client[m_numplayers].address = Address;
+					
+					if (SyncValues(m_numplayers, Address))
+					{
+						// Add it to the selector
+						m_selector.Add(Incoming);
+						Event->SendEvent(HOST_NEWPLAYER);
 
-					SyncValues(m_numplayers, Address);
+						m_numplayers++;
+					}
+					else
+					{
+						Event->AppendText(_("ERROR : Unable to establish UDP connection !\n"));
+						Incoming.Close();
+					}
 				}
-
-				// Add it to the selector
-				m_selector.Add(Incoming);
-				Event->SendEvent(HOST_NEWPLAYER);
-
-				m_numplayers++;
 			}
 			else
 			{
@@ -122,9 +148,7 @@ void *ServerSide::Entry()
 				int socket_nb;
 				size_t recv_size;
 				sf::Socket::Status recv_status;
-
-				if ((socket_nb = GetSocket(Socket)) == 0xE)
-					PanicAlert("ERROR: How did you get there ?! Is that even possible ?!");
+				socket_nb = GetSocket(Socket);
 
 				if ((recv_status = Socket.Receive((char *)&recv, 1, recv_size)) == sf::Socket::Done)
 				{
@@ -182,6 +206,9 @@ void *ServerSide::Entry()
 
 		if(TestDestroy())
 		{
+			// Stop listening
+			m_socket.Close();
+
 			// Delete the Thread and close clients sockets
 			for (char i=0; i < m_numplayers ; i++)
 				m_client[i].socket.Close();
@@ -193,7 +220,7 @@ void *ServerSide::Entry()
 	return NULL;
 }
 
-void ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
+bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 {
 	sf::SocketTCP Socket = m_client[socketnb].socket;
 
@@ -201,7 +228,8 @@ void ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	char *buffer = NULL;
 	unsigned char init_number;
 	u32 buffer_size = (u32)buffer_str.size();
-	size_t received; 
+	size_t received;
+	bool errorUDP = false;
 
 	// First, Send the number of connected clients & netmodel
 	Socket.Send((const char *)&m_numplayers, 1);
@@ -216,6 +244,8 @@ void ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	Socket.Send((const char *)&buffer_size, 4);
 	Socket.Send(m_nick.c_str(), buffer_size + 1);
 
+	// Read client's UDP Port
+	Socket.Receive((char *)&m_client[m_numplayers].port, sizeof(short), received);
 
 	// Read returned nickname
 	Socket.Receive((char *)&buffer_size, 4, received);
@@ -225,35 +255,63 @@ void ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	m_client[socketnb].nick = std::string(buffer);
 	m_client[socketnb].ready = false;
 
+	///////////////////
+	// Test UDP Socket 
+	///////////////////
+	if (m_socketUDP.Send((const char*)&m_numplayers, 1, Address, m_client[m_numplayers].port) == sf::Socket::Done)
+	{
+		// Test UDP Socket Receive, 2s timeout
+		if (!RecvT(m_socketUDP, (char*)&init_number, 1, received, 2))
+			errorUDP = true;
+	}
+	else
+		errorUDP = true;
+
 	// Check if the client has the game
 	Socket.Receive((char *)&init_number, 1, received);
 
-	// Send to all connected clients
-	if (m_numplayers > 0)
-	{
-		unsigned char send = 0x10;
-		buffer_size = (int)m_client[socketnb].nick.size();
-		for (int i=0; i < m_numplayers ; i++)
-		{
-			// Do not send to connecting player
-			if (i == socketnb)
-				continue;
+	delete[] buffer;
 
-			m_client[i].socket.Send((const char *)&send, 1);		// Init new connection
-			m_client[i].socket.Send((const char *)&init_number, 1);	// Send Game found ?
-			m_client[i].socket.Send((const char *)&buffer_size, 4);	// Send client nickname
-			m_client[i].socket.Send(m_client[socketnb].nick.c_str(), buffer_size + 1);
+	if (!errorUDP)
+	{
+		// Send to all connected clients
+		if (m_numplayers > 0)
+		{
+			unsigned char send = 0x10;
+			buffer_size = (int)m_client[socketnb].nick.size();
+			for (int i=0; i < m_numplayers ; i++)
+			{
+				// Do not send to connecting player
+				if (i == socketnb)
+					continue;
+
+				m_client[i].socket.Send((const char *)&send, 1);		// Init new connection
+				m_client[i].socket.Send((const char *)&init_number, 1);	// Send Game found ?
+				m_client[i].socket.Send((const char *)&buffer_size, 4);	// Send client nickname
+				m_client[i].socket.Send(m_client[socketnb].nick.c_str(), buffer_size + 1);
+			}
 		}
+
+		Event->AppendText(  wxString::Format(wxT("*Connection established to %s (%s:%d)\n"),
+			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port)  );
+
+		if (init_number != 0x1F) // Not Found
+			for (int i = 0; i < 4; i++)
+				Event->AppendText(_("WARNING : Game Not Found on Client Side !\n"));
+
+		// UDP connecton successful
+		init_number = 0x16;
+		Socket.Send((const char *)&init_number, 1);
+	}
+	else	// UDP Error, disconnect client
+	{
+		// UDP connecton failed
+		init_number = 0x17;
+		Socket.Send((const char *)&init_number, 1);
+		return false;
 	}
 
-	Event->AppendText(  wxString::Format(wxT("*Connection established to %s (%s)\n"),
-		m_client[socketnb].nick.c_str(), Address.ToString().c_str())  );
-
-	if (init_number != 0x1F) // Not Found
-		for (int i = 0; i < 4; i++)
-			Event->AppendText(_("WARNING : Game Not Found on Client Side !\n"));
-
-	delete[] buffer;
+	return true;
 }
 
 void ServerSide::Write(char socknb, const char *data, size_t size, long *ping)
@@ -265,7 +323,7 @@ void ServerSide::Write(char socknb, const char *data, size_t size, long *ping)
 			// Ask for ping
 			unsigned char value = 0x15;
 			size_t recv_size;
-			int four_bytes = 0x101A7FA6;
+			u32 four_bytes = 0x101A7FA6;
 
 			Common::Timer timer;
 			timer.Start();
@@ -287,21 +345,47 @@ void ServerSide::Write(char socknb, const char *data, size_t size, long *ping)
 	m_client[socknb].socket.Send(data, size);
 }
 
+void ServerSide::WriteUDP(char socknb, const char *data, size_t size)
+{
+	wxCriticalSectionLocker lock(m_CriticalSection);
+
+	m_socketUDP.Send(data, size, m_client[socknb].address, m_client[socknb].port);
+}
+
 //--------------------------------
 //		CLIENT SIDE THREAD
 //--------------------------------
 
-ClientSide::ClientSide(NetPlay* netptr, sf::SocketTCP socket, std::string addr, std::string nick)
+ClientSide::ClientSide(NetPlay* netptr, sf::SocketTCP socket, sf::SocketUDP socketUDP, std::string addr, std::string nick)
 	: wxThread()
 {
 	m_numplayers = 0;
 	m_data_received = false;
 	m_netmodel = 0;
 	m_socket = socket;
+	m_socketUDP = socketUDP;
+	m_port = m_socketUDP.GetPort();
     m_netptr = netptr;
 	m_nick = nick;
 	m_addr = addr;
 	Event = new NetEvent(m_netptr);
+}
+
+bool ClientSide::RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time)
+{
+	sf::SelectorUDP Selector;
+	sf::IPAddress addr;
+	Selector.Add(Socket);
+
+	if (Selector.Wait(Time) > 0)
+	{
+		Socket.Receive(Data, Max, Recvd, addr);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void *ClientSide::Entry()
@@ -311,15 +395,31 @@ void *ClientSide::Entry()
 	// If we get here, the connection is already accepted, however the game may be full
 	if (SyncValues())
 	{
-		Event->AppendText(_("Connection successful !\n"));
-		Event->AppendText( wxString::Format(wxT("*Connection established to %s (%s)\n*Game is : %s\n"), 
-			m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str() ) );
-
 		// Tell the server if the client has the game	
 		CheckGameFound();
+
+		// Check UDP connection
+		unsigned char value;
+		size_t val_sz;
+		m_socket.Receive((char *)&value, 1, val_sz);
+		
+		if (value == 0x16)	// UDP connection successful
+		{
+			Event->AppendText(_("Connection successful !\n"));
+			Event->AppendText( wxString::Format(wxT("*Connection established to %s (%s)\n*Game is : %s\n"), 
+				m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str() ) );
+		}
+		else
+		{
+			Event->AppendText(_("UDP Connection FAILED !\n"
+				"ERROR : Unable to establish UDP Connection, please Check UDP Port forwarding !"));
+			m_socket.Close();
+			Event->SendEvent(HOST_ERROR);
+			return NULL;
+		}
 	}
-	else {
-		// Post ServerFull event to GUI 
+	else // Server is Full  
+	{
 		m_socket.Close();
 		Event->SendEvent(HOST_FULL);
 		return NULL;
@@ -385,14 +485,23 @@ void *ClientSide::Entry()
 bool ClientSide::SyncValues()
 {
 	unsigned int buffer_size = (int)m_nick.size();
+	unsigned char byterecv;
+	bool errorUDP;
 	char *buffer = NULL;
 	size_t recv_size;
+
+	unsigned short server_port;
+	std::string host = m_addr.substr(0, m_addr.find(':'));
+	TryParseInt(m_addr.substr(m_addr.find(':')+1).c_str(), (int *)&server_port);
 
 	// First, Read the init number : nbplayers (0-2) or server full (0x12)
 	m_socket.Receive((char *)&m_numplayers, 1, recv_size);
 	if (m_numplayers == 0x12)
 		return false;
 	m_socket.Receive((char *)&m_netmodel, 4, recv_size);
+
+	// Send client's UDP Port
+	m_socket.Send((const char *)&m_port, sizeof(short));
 
 	// Send client's nickname
 	m_socket.Send((const char *)&buffer_size, 4);
@@ -409,6 +518,18 @@ bool ClientSide::SyncValues()
 		buffer = new char[buffer_size + 1];
 	m_socket.Receive(buffer, buffer_size + 1, recv_size);
 		m_hostnick = std::string(buffer);
+
+	///////////////////
+	// Test UDP Socket
+	///////////////////
+	if (m_socketUDP.Send((const char*)&m_numplayers, 1, host.c_str(), server_port) == sf::Socket::Done)
+	{
+		// Test UDP Socket Receive, 2s timeout
+		if (!RecvT(m_socketUDP, (char*)&byterecv, 1, recv_size, 2))
+			errorUDP = true;
+	}
+	else
+		errorUDP = true;
 
 	delete[] buffer;
 	return true;
@@ -460,3 +581,13 @@ void ClientSide::Write(const char *data, size_t size, long *ping)
 	m_socket.Send(data, size);
 }
 
+void ClientSide::WriteUDP(const char *data, size_t size)
+{
+	wxCriticalSectionLocker lock(m_CriticalSection);
+
+	unsigned short server_port;
+	std::string host = m_addr.substr(0, m_addr.find(':'));
+	TryParseInt(m_addr.substr(m_addr.find(':')+1).c_str(), (int *)&server_port);
+
+	m_socketUDP.Send(data, size, host.c_str(), server_port);
+}
