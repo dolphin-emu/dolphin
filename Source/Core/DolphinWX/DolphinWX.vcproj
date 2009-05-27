@@ -953,6 +953,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resources\Platform_Gamecube.xpm"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\Platform_Wii.xpm"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>

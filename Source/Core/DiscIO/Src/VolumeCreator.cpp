@@ -120,6 +120,7 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 	_rVolume->Read(0x18, 4, (u8*)&MagicWord);
 
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
+	//Gamecube 0xc2339f3d
 }
 
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean)

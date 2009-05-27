@@ -39,6 +39,8 @@
 	#include "../resources/Flag_Italy.xpm"
     #include "../resources/Flag_Japan.xpm"
     #include "../resources/Flag_USA.xpm"
+    #include "../resources/Platform_Wii.xpm"
+    #include "../resources/Platform_Gamecube.xpm"
 #endif // USE_XPM_BITMAPS
 
 // ugly that this lib included code from the main
@@ -76,6 +78,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
+	case CGameListCtrl::COLUMN_PLATFORM:	return (one.GetPlatform() < other.GetPlatform());
 	default:                            return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
 	}
 }
@@ -125,6 +128,12 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAP] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(iconTemp);
+
+	m_PlatformImageIndex.resize(2);
+	iconTemp.CopyFromBitmap(wxBitmap(Platform_Gamecube_xpm));
+	m_PlatformImageIndex[0] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wii_xpm));
+	m_PlatformImageIndex[1] = m_imageListSmall->Add(iconTemp);
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -186,15 +195,16 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
-		
+		InsertColumn(COLUMN_PLATFORM, _("Platform"));
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_BANNER, 106);
 		SetColumnWidth(COLUMN_TITLE, 150);
-		SetColumnWidth(COLUMN_COMPANY, 100);
+		SetColumnWidth(COLUMN_COMPANY, 130);
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 130);
+		SetColumnWidth(COLUMN_PLATFORM, 90);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -361,6 +371,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
+	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
 	// Background color
 	SetBackgroundColor();
@@ -567,6 +578,10 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 	case CGameListCtrl::COLUMN_SIZE:
 		if (iso1->GetFileSize() > iso2->GetFileSize()) return  1 *t;
 		if (iso1->GetFileSize() < iso2->GetFileSize()) return -1 *t;
+		return 0;
+	case CGameListCtrl::COLUMN_PLATFORM:
+		if(iso1->GetPlatform() > iso2->GetPlatform()) return  1 *t;
+		if(iso1->GetPlatform() < iso2->GetPlatform()) return -1 *t;
 		return 0;
 	}
  
@@ -942,6 +957,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_COUNTRY)
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE)
+			+ GetColumnWidth(COLUMN_PLATFORM)
 			+ 5); // some pad to keep the horizontal scrollbar away :)
 
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));

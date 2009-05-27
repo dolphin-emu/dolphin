@@ -50,12 +50,14 @@ public:
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
 		COLUMN_EMULATION_STATE,
+		COLUMN_PLATFORM,
 		NUMBER_OF_COLUMN
 	};
 
 private:
 
 	std::vector<int> m_FlagImageIndex;
+	std::vector<int> m_PlatformImageIndex;
 	std::vector<GameListItem> m_ISOFiles;
 
 	// NetPlay string for the gamelist
