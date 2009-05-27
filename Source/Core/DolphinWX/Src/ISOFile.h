@@ -38,7 +38,6 @@ public:
 	const std::string& GetIssues() const {return m_Issues;}
 	bool IsCompressed() const {return m_BlobCompressed;}
 	bool IsWii() const {return m_IsWii;}
-	bool GetPlatform() const {return m_Platform;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 #if defined(HAVE_WX) && HAVE_WX

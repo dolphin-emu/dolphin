@@ -73,13 +73,13 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 
 	switch(currentColumn)
 	{
-	case CGameListCtrl::COLUMN_TITLE:   return strcasecmp(one.GetName(indexOne).c_str(),        other.GetName(indexOther).c_str()) < 0;
-	case CGameListCtrl::COLUMN_COMPANY: return strcasecmp(one.GetCompany().c_str(),     other.GetCompany().c_str()) < 0;
-	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
-	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
-	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
-	case CGameListCtrl::COLUMN_PLATFORM:	return (one.GetPlatform() < other.GetPlatform());
-	default:                            return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
+	case CGameListCtrl::COLUMN_TITLE:		return strcasecmp(one.GetName(indexOne).c_str(),        other.GetName(indexOther).c_str()) < 0;
+	case CGameListCtrl::COLUMN_COMPANY:		return strcasecmp(one.GetCompany().c_str(),     other.GetCompany().c_str()) < 0;
+	case CGameListCtrl::COLUMN_NOTES:		return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
+	case CGameListCtrl::COLUMN_COUNTRY:		return (one.GetCountry() < other.GetCountry());
+	case CGameListCtrl::COLUMN_SIZE:		return (one.GetFileSize() < other.GetFileSize());
+	case CGameListCtrl::COLUMN_PLATFORM:	return (one.IsWii() < other.IsWii());
+	default:								return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
 	}
 }
 
@@ -371,7 +371,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
-	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
+	//Platform
+	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.IsWii()]);
 
 	// Background color
 	SetBackgroundColor();
@@ -580,8 +581,8 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		if (iso1->GetFileSize() < iso2->GetFileSize()) return -1 *t;
 		return 0;
 	case CGameListCtrl::COLUMN_PLATFORM:
-		if(iso1->GetPlatform() > iso2->GetPlatform()) return  1 *t;
-		if(iso1->GetPlatform() < iso2->GetPlatform()) return -1 *t;
+		if(iso1->IsWii() > iso2->IsWii()) return  1 *t;
+		if(iso1->IsWii() < iso2->IsWii()) return -1 *t;
 		return 0;
 	}
  

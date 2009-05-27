@@ -47,7 +47,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_pImage(NULL)
 	, m_ImageSize(0)
 	, m_IsWii(false)
-	, m_Platform(false)
 {
 
 	if (LoadFromCache())
@@ -61,7 +60,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		if (pVolume != NULL)
 		{
 			m_IsWii = DiscIO::IsVolumeWiiDisc(pVolume);
-			m_Platform = DiscIO::IsVolumeWiiDisc(pVolume);
 
 			m_Company = "N/A";
 			for (int i = 0; i < 6; i++)
@@ -172,7 +170,6 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_BlobCompressed);
 	p.DoBuffer(&m_pImage, m_ImageSize);
 	p.Do(m_IsWii);
-	p.Do(m_Platform);
 }
 
 std::string GameListItem::CreateCacheFilename()
