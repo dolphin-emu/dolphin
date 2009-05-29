@@ -750,6 +750,10 @@
 					RelativePath=".\Src\HW\BBA-TAP\TAP_Win32.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\Src\HW\BBA-TAP\TAP_Win32.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="SI - Serial Interface"
