@@ -30,6 +30,7 @@
 	#include <assert.h>
 #endif
 	int fd = -1;
+	bool hasDHCP = false;
 bool CEXIETHERNET::deactivate()
 {
 	close(fd);
@@ -67,6 +68,9 @@ bool CEXIETHERNET::activate() {
 	ioctl( fd, TUNSETNOCSUM, 1 );
 #endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
+	system("brctl addif pan0 Dolphin");
+	system("ifconfig Dolphin up");
+	sleep(5);
 	resume();
 	return true;
 	
@@ -132,23 +136,26 @@ bool CEXIETHERNET::startRecv() {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
-	u32 BytesRead = 0;
 	u8 B[1514];
-	if((BytesRead = read(fd, B, 1500)) > 0)
+	if((mRecvBufferLength = read(fd, B, 1500)) > 0)
 	{
 		//mRecvBuffer.write(B, BytesRead);
 		//strncat(mRecvBuffer.p(), B, BytesRead);
-		memcpy((char*)mRecvBuffer.p(), (const char*)B, BytesRead);
+		memcpy(mRecvBuffer, B, mRecvBufferLength);
 	}
-	DEBUGPRINT("Read %d bytes\n", BytesRead);
-	mRecvBufferLength = BytesRead;
+	DEBUGPRINT("Read %d bytes\n", mRecvBufferLength);
+			if(hasDHCP && mRecvBufferLength == 342)
+			{
+				DEBUGPRINT("DHCP offer packet\n");
+				//exit(0);
+			}
 	handleRecvdPacket();
 	return true; 
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
 	if(!isActivated())
-		activate();
+		return false;
 	DEBUGPRINT( "Packet: 0x");
 	for(int a = 0; a < size; ++a)
 	{
@@ -163,6 +170,8 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	}
 	else
 		DEBUGPRINT("Sent out the correct number of bytes: %d\n", size);
+		if(size == 342)
+			hasDHCP = true;
 	recordSendComplete();
 	//exit(0);
 	return true;

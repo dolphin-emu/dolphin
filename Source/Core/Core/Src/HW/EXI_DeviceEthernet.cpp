@@ -200,6 +200,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			}
 			case BBA_NCRA:
 			{
+				DEBUGPRINT("\t\t[INFO]BBA_NCRA-----------------------------------------------------------\n");
 				// Correct, we use the swap here
 				u32 SwappedData = (u8)Common::swap32(_uData);
 				//u32 SwappedData = _uData;
@@ -427,10 +428,10 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
 		
 		//DEBUGPRINT("Mem spot is 0x%02x uResult is 0x%x\n", mBbaMem[mReadP], uResult);
-		#ifndef _WIN32
-		//if(CheckRecieved())
-			//startRecv();
-		#endif
+		/*#ifndef _WIN32
+		if(CheckRecieved())
+			startRecv();
+		#endif*/
 		DEBUGPRINT( "\t[INFO]Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;
 		return uResult;
@@ -474,6 +475,7 @@ void CEXIETHERNET::DMARead(u32 _uAddr, u32 _uSize)
 		memcpy(Memory::GetPointer(_uAddr), mBbaMem + mReadP, _uSize);
 		DEBUGPRINT("DMA Read from BBA address 0x%0*X, %i bytes\n",
 			mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize);
+		//exit(0);
 		mReadP = mReadP + (u16)_uSize;
 		return;
 	} 
