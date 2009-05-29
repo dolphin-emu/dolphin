@@ -18,7 +18,7 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
-#include "Tap_Win32.h"
+#include "TAP_Win32.h"
 #include <assert.h>
 
 
@@ -61,6 +61,7 @@ if(isActivated())
 #endif	//0
 
 	mHAdapter = CreateFile (/*device_path*/
+		//{DF0B593D-F759-4FE5-BCC8-844BC89245D7}
 		//{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}
 		USERMODEDEVICEDIR "{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}" TAPSUFFIX,
 		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
@@ -126,6 +127,14 @@ if(isActivated())
 	DEBUGPRINT("Success!\n\n");
 	return true;
 	//TODO: Activate Device!
+}
+bool CEXIETHERNET::CheckRecieved()
+{
+	if(!isActivated())
+		return false;
+
+	// I have no idea o_O
+	return false;
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
