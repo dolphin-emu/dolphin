@@ -21,6 +21,143 @@
 #include "TAP_Win32.h"
 #include <assert.h>
 
+namespace Win32TAPHelper
+{
+
+bool IsTAPDevice(const char *guid)
+{
+	HKEY netcard_key;
+	LONG status;
+	DWORD len;
+	int i = 0;
+
+	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTER_KEY, 0, KEY_READ, &netcard_key);
+
+	if (status != ERROR_SUCCESS)
+		return false;
+
+	for (;;)
+	{
+		char enum_name[256];
+		char unit_string[256];
+		HKEY unit_key;
+		char component_id_string[] = "ComponentId";
+		char component_id[256];
+		char net_cfg_instance_id_string[] = "NetCfgInstanceId";
+		char net_cfg_instance_id[256];
+		DWORD data_type;
+
+		len = sizeof(enum_name);
+		status = RegEnumKeyEx(netcard_key, i, enum_name, &len, NULL, NULL, NULL, NULL);
+
+		if (status == ERROR_NO_MORE_ITEMS)
+			break;
+		else if (status != ERROR_SUCCESS)
+			return false;
+
+		snprintf(unit_string, sizeof(unit_string), "%s\\%s", ADAPTER_KEY, enum_name);
+
+		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, unit_string, 0, KEY_READ, &unit_key);
+
+		if (status != ERROR_SUCCESS)
+		{
+			return false;
+		}
+		else
+		{
+			len = sizeof(component_id);
+			status = RegQueryValueEx(unit_key, component_id_string, NULL, &data_type, (LPBYTE)component_id, &len);
+
+			if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
+			{
+				len = sizeof(net_cfg_instance_id);
+				status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, NULL, &data_type, (LPBYTE)net_cfg_instance_id, &len);
+
+				if (status == ERROR_SUCCESS && data_type == REG_SZ)
+				{
+					if (!strcmp(component_id, TAP_COMPONENT_ID) && !strcmp(net_cfg_instance_id, guid))
+					{
+						RegCloseKey(unit_key);
+						RegCloseKey(netcard_key);
+						return true;
+					}
+				}
+			}
+			RegCloseKey(unit_key);
+		}
+		++i;
+	}
+
+	RegCloseKey(netcard_key);
+	return false;
+}
+
+bool GetGUID(char *name, int name_size)
+{
+	LONG status;
+	HKEY control_net_key;
+	DWORD len;
+	int i = 0;
+	bool stop = false;
+
+	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &control_net_key);
+
+	if (status != ERROR_SUCCESS)
+		return false;
+	
+	while (!stop)
+	{
+		char enum_name[256];
+		char connection_string[256];
+		HKEY connection_key;
+		char name_data[256];
+		DWORD name_type;
+		const char name_string[] = "Name";
+
+		len = sizeof(enum_name);
+		status = RegEnumKeyEx(control_net_key, i, enum_name, &len, NULL, NULL, NULL, NULL);
+
+		if (status == ERROR_NO_MORE_ITEMS)
+			break;
+		else if (status != ERROR_SUCCESS)
+			return false;
+
+		snprintf(connection_string, sizeof(connection_string), "%s\\%s\\Connection", NETWORK_CONNECTIONS_KEY, enum_name);
+
+		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string, 0, KEY_READ, &connection_key);
+
+		if (status == ERROR_SUCCESS)
+		{
+			len = sizeof(name_data);
+			status = RegQueryValueEx(connection_key, name_string, NULL, &name_type, (LPBYTE)name_data, &len);
+
+			if (status != ERROR_SUCCESS || name_type != REG_SZ)
+			{
+				return false;
+			}
+			else
+			{
+				if (IsTAPDevice(enum_name))
+				{
+					snprintf(name, name_size, "%s", enum_name);
+					stop = true;
+				}
+			}
+
+			RegCloseKey(connection_key);
+		}
+		i++;
+	}
+
+	RegCloseKey(control_net_key);
+
+	if (!stop)
+		return false;
+
+	return true;
+}
+
+} // namespace Win32TAPHelper
 
 bool CEXIETHERNET::deactivate()
 {
@@ -39,37 +176,39 @@ bool CEXIETHERNET::isActivated()
 	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-bool CEXIETHERNET::activate() {
-if(isActivated())
+bool CEXIETHERNET::activate()
+{
+
+	if (isActivated())
 		return true;
 
 	DEBUGPRINT("\nActivating BBA...\n");
 
 	DWORD len;
+	char device_path[256];
+	char device_guid[0x100];
 
-#if 0
-	device_guid = get_device_guid (dev_node, guid_buffer, sizeof (guid_buffer), tap_reg, panel_reg, &gc);
-
-	if (!device_guid)
-		DEGUB("TAP-Win32 adapter '%s' not found\n", dev_node);
+	if (!Win32TAPHelper::GetGUID(device_guid, sizeof(device_guid)))
+	{
+		DEBUGPRINT("Failed to find a TAP GUID");
+		return false;
+	}
 
 	/* Open Windows TAP-Win32 adapter */
-	openvpn_snprintf (device_path, sizeof(device_path), "%s%s%s",
-		USERMODEDEVICEDIR,
-		device_guid,
-		TAPSUFFIX);
-#endif	//0
+	snprintf(device_path, sizeof(device_path), "%s%s%s", USERMODEDEVICEDIR, device_guid, TAPSUFFIX);
 
-	mHAdapter = CreateFile (/*device_path*/
-		//{DF0B593D-F759-4FE5-BCC8-844BC89245D7}
-		//{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}
-		USERMODEDEVICEDIR "{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}" TAPSUFFIX,
-		GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
-		FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
-	DEBUGPRINT("TAP-WIN32 device opened: %s\n",
-		USERMODEDEVICEDIR "{E0277714-28A6-4EB6-8AA2-7DF4870C04F6}" TAPSUFFIX);
-	if(mHAdapter == INVALID_HANDLE_VALUE) {
-		DEBUGPRINT("mHAdapter is invalid\n");
+	mHAdapter = CreateFile (
+		device_path,
+		GENERIC_READ | GENERIC_WRITE,
+		0,
+		0,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
+		0 );
+
+	if (mHAdapter == INVALID_HANDLE_VALUE)
+	{
+		DEBUGPRINT("Failed to open TAP at %s\n", device_path);
 		return false;
 	}
 
