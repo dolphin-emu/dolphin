@@ -24,11 +24,8 @@
 	#include <fcntl.h>
 	#include <sys/ioctl.h>
 	#include <net/if.h>  
-#if !defined(__APPLE__)
-	#include <stropts.h>
 	#include <linux/if_tun.h>
 	#include <assert.h>
-#endif
 	int fd = -1;
 	bool hasDHCP = false;
 bool CEXIETHERNET::deactivate()
