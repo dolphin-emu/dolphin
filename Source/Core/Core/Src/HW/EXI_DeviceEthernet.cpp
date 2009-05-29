@@ -215,7 +215,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
 					// TODO: Need to make our virtual network device start receiving
-					startRecv();
+					if(CheckRecieved())
+						startRecv();
 				}
 				if (RISE(BBA_NCRA_ST1)) 
 				{
@@ -255,7 +256,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				DEBUGPRINT( "\t\t[INFO]RWP\n");
 				//exit(0);
 				assert(_uSize == 2 || _uSize == 1);
-				assert(Common::swap32(_uData) == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
+				DEBUGPRINT("\t\t\tThing is 0x%0X\n", (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
+				//assert(Common::swap32(_uData) == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 				break;
 			case BBA_NWAYS:
 				DEBUGPRINT("[ERR]Call to BBA_NWAYS directly!\n");
@@ -364,10 +366,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x01:	//Revision ID
 			break;
 		case 0x16:	//RWP - Receive Buffer Write Page Pointer
-			DEBUGPRINT( "\t\t[INFO]RWP!\n");
+			DEBUGPRINT( "\t\t[INFO]RWP! 0x%04x Swapped 0x%04x\n", (((u16)mCbw.p_write() + CB_OFFSET) >> 8), Common::swap16(((u16)mCbw.p_write() + CB_OFFSET) >> 8));
 			//exit(0);
 			// TODO: Dunno if correct
-			MAKE(u16, mBbaMem[mReadP]) = ((u16)mCbw.p_write() + CB_OFFSET) >> 8;
+			MAKE(u16, mBbaMem[mReadP]) = (((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 			break;
 		case 0x18:	//RRP - Receive Buffer Read Page Pointer
 			DEBUGPRINT( "\t\t[INFO]RRP!\n");
@@ -426,8 +428,8 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		
 		//DEBUGPRINT("Mem spot is 0x%02x uResult is 0x%x\n", mBbaMem[mReadP], uResult);
 		#ifndef _WIN32
-		if(CheckRecieved())
-			startRecv();
+		//if(CheckRecieved())
+			//startRecv();
 		#endif
 		DEBUGPRINT( "\t[INFO]Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;

@@ -53,7 +53,7 @@ bool CEXIETHERNET::activate() {
 #if !defined(__APPLE__)	
 	int err;
 	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_flags = IFF_TAP;
+	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	
 	strncpy(ifr.ifr_name, "Dolphin", IFNAMSIZ);
 	
@@ -136,7 +136,9 @@ bool CEXIETHERNET::startRecv() {
 	u8 B[1514];
 	if((BytesRead = read(fd, B, 1500)) > 0)
 	{
-		strncpy((char*)mRecvBuffer.p(), (const char*)B, BytesRead);
+		//mRecvBuffer.write(B, BytesRead);
+		//strncat(mRecvBuffer.p(), B, BytesRead);
+		memcpy((char*)mRecvBuffer.p(), (const char*)B, BytesRead);
 	}
 	DEBUGPRINT("Read %d bytes\n", BytesRead);
 	mRecvBufferLength = BytesRead;
@@ -186,7 +188,7 @@ bool CEXIETHERNET::handleRecvdPacket()
 	if(available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
 		return true;
 	cbwriteDescriptor(mRecvBufferLength);
-	mCbw.write(mRecvBuffer.p(), mRecvBufferLength);
+	mCbw.write(mRecvBuffer, mRecvBufferLength);
 	mCbw.align();
 	rbwpp = mCbw.p_write() + CB_OFFSET;
 	//DUMPWORD(rbwpp);

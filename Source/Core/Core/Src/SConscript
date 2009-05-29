@@ -122,13 +122,13 @@ else:
 
 if sys.platform == 'win32':
     files += [ "stdafx.cpp",
-		"HW/BBA-Tap/TAP_Win32.cpp"
+		"HW/BBA-TAP/TAP_Win32.cpp"
 		 ]
 else: 
-    if sys.platform == 'darwine':
-        files += [ "HW/BBA-Tap/TAP_Apple.cpp"]
+    if sys.platform == 'darwin':
+        files += [ "HW/BBA-TAP/TAP_Apple.cpp"]
     else:
-        files += [ "HW/BBA-Tap/TAP_Unix.cpp"]
+        files += [ "HW/BBA-TAP/TAP_Unix.cpp"]
 
 libs = [
 	'bdisasm',
