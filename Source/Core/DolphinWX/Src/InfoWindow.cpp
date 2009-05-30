@@ -50,14 +50,29 @@ wxInfoWindow::~wxInfoWindow()
 std::string Summarize_Plug()
 {
 	return StringFromFormat(
+		"Plugin Information\n\n"
 		"Default GFX Plugin: %s\n"
 		"Default DSP Plugin: %s\n"
 		"Default PAD Plugin: %s\n"
-		"Default WiiMote Plugin: %s\n",
+		"Default WiiMote Plugin: %s\n\n"
+		"Current GFX Plugin: %s\n"
+		"Current DSP Plugin: %s\n"
+		"Current PAD Plugin[0]: %s\n"
+		"Current PAD Plugin[1]: %s\n"
+		"Current PAD Plugin[2]: %s\n"
+		"Current PAD Plugin[3]: %s\n"
+		"Current WiiMote Plugin[0]: %s\n",
 		SConfig::GetInstance().m_DefaultGFXPlugin.c_str(),
 		SConfig::GetInstance().m_DefaultDSPPlugin.c_str(),
 		SConfig::GetInstance().m_DefaultPADPlugin.c_str(),
-		SConfig::GetInstance().m_DefaultWiiMotePlugin.c_str()
+		SConfig::GetInstance().m_DefaultWiiMotePlugin.c_str(),
+		Core::GetStartupParameter().m_strVideoPlugin.c_str(),
+		Core::GetStartupParameter().m_strDSPPlugin.c_str(),
+		Core::GetStartupParameter().m_strPadPlugin[0].c_str(),
+		Core::GetStartupParameter().m_strPadPlugin[1].c_str(),
+		Core::GetStartupParameter().m_strPadPlugin[2].c_str(),
+		Core::GetStartupParameter().m_strPadPlugin[3].c_str(),
+		Core::GetStartupParameter().m_strWiimotePlugin[0].c_str()
 		);
 }
 
@@ -82,27 +97,33 @@ std::string Summarize_Settings()
 		"Slot A: %d\n"
 		"Slot B: %d\n"
 		"Serial Port 1: %d\n"
-		"Widescreen: %s\n"
-		"Progressive Scan: %s\n",
-		Core::GetStartupParameter().bHLEBios?"true":"false",
-		Core::GetStartupParameter().bUseJIT?"true":"false",
-		Core::GetStartupParameter().bUseDualCore?"true":"false",
-		Core::GetStartupParameter().bDSPThread?"true":"false",
-		Core::GetStartupParameter().bSkipIdle?"true":"false",
-		Core::GetStartupParameter().bLockThreads?"true":"false",
-		Core::GetStartupParameter().bUseDualCore?"true":"false",
+		"Run Compare Server: %s\n"
+		"Run Compare Client: %s\n"
+		"TLB Hack: %s\n"
+		"[Wii]Widescreen: %s\n"
+		"[Wii]Progressive Scan: %s\n",
+		Core::GetStartupParameter().bHLEBios?"True":"False",
+		Core::GetStartupParameter().bUseJIT?"True":"False",
+		Core::GetStartupParameter().bUseDualCore?"True":"False",
+		Core::GetStartupParameter().bDSPThread?"True":"False",
+		Core::GetStartupParameter().bSkipIdle?"True":"False",
+		Core::GetStartupParameter().bLockThreads?"True":"False",
+		Core::GetStartupParameter().bUseDualCore?"True":"False",
 		Core::GetStartupParameter().m_strDefaultGCM.c_str(),
 		Core::GetStartupParameter().m_strDVDRoot.c_str(),
-		Core::GetStartupParameter().bOptimizeQuantizers?"true":"false",
-		Core::GetStartupParameter().bEnableCheats?"true":"false",
+		Core::GetStartupParameter().bOptimizeQuantizers?"True":"False",
+		Core::GetStartupParameter().bEnableCheats?"True":"False",
 		Core::GetStartupParameter().SelectedLanguage, //FIXME show language based on index
 		SConfig::GetInstance().m_strMemoryCardA.c_str(),
 		SConfig::GetInstance().m_strMemoryCardB.c_str(),
 		SConfig::GetInstance().m_EXIDevice[0], //FIXME
 		SConfig::GetInstance().m_EXIDevice[1], //FIXME
 		SConfig::GetInstance().m_EXIDevice[2], //FIXME
-		Core::GetStartupParameter().bWidescreen?"true":"false",
-		Core::GetStartupParameter().bProgressiveScan?"true":"false"
+		Core::GetStartupParameter().bRunCompareServer?"True":"False",
+		Core::GetStartupParameter().bRunCompareClient?"True":"False",
+		Core::GetStartupParameter().iTLBHack?"True":"False",
+		Core::GetStartupParameter().bWidescreen?"True":"False",
+		Core::GetStartupParameter().bProgressiveScan?"True":"False"
 		);
 }
 
@@ -119,11 +140,12 @@ void wxInfoWindow::Init_ChildControls()
 		Info.append(StringFromFormat("\nCD/DVD Drive%d: %s", i+1, drives[i]));
 	}
 	Info.append(StringFromFormat(
-		"\n\nPlugin Information\n\n%s\n%s\n"
-		"Processor Information:\n%s\n",
+		"\n\nProcessor Information:\n%s\n"
+		"\n%s\n\n%s\n",
+		cpu_info.Summarize().c_str(),
 		Summarize_Plug().c_str(),
-		Summarize_Settings().c_str(),
-		cpu_info.Summarize().c_str()));
+		Summarize_Settings().c_str()
+		));
 	
 	// Main Notebook
 	m_Notebook_Main = new wxNotebook(this, ID_NOTEBOOK_MAIN, wxDefaultPosition, wxDefaultSize);
