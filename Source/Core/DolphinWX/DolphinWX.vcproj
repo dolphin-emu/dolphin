@@ -1200,6 +1200,10 @@
 				RelativePath=".\src\ISOFile.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\Summarize.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\src\main.cpp"

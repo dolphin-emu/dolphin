@@ -21,6 +21,7 @@
 #include "Core.h"
 #include "ConfigManager.h"
 #include "CDUtils.h"
+#include "Summarize.h"//This holds all the summarize functions
 
 BEGIN_EVENT_TABLE(wxInfoWindow, wxWindow)
 	EVT_SIZE(                                            wxInfoWindow::OnEvent_Window_Resize)
@@ -47,15 +48,15 @@ wxInfoWindow::~wxInfoWindow()
 	// On Disposal
 }
 
-#include "Summarize.h";//Just used this to keep stuff clean.
-
 void wxInfoWindow::Init_ChildControls()
 {
 	std::string Info;
 	Info = StringFromFormat("Dolphin Revision: %s", SVN_REV_STR);
 
+
+
 	Info.append(StringFromFormat(
-		"\n\n%s\n\n%s\n%s\n\n%s\n\n",
+		"\n\n%s\n%s\n%s\n\n%s\n\n",
 		Summarize_Drives().c_str(),
 		Summarize_CPU().c_str(),
 		Summarize_Plug().c_str(),

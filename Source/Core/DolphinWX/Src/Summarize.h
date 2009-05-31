@@ -109,15 +109,17 @@ std::string Summarize_CPU()
 std::string Summarize_Drives()
 {
 	char ** drives = cdio_get_devices();
+	std::string drive;
 	for (int i = 0; drives[i] != NULL && i < 24; i++)
 	{
 
-		return StringFromFormat(
-			"CD/DVD Drive%d: %s",
-			i+1,
-			drives[i]
-			);
+		drive += StringFromFormat(
+			 "CD/DVD Drive%d: %s\n",
+			 i+1,
+			 drives[i]
+			 );
 	}
+	return drive;
 }
 
 #endif //__SUMMARIZE_H__
