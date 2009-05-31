@@ -27,6 +27,8 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
+#include "../../HW/Memmap.h"
+
 // The branches are known good, or at least reasonably good.
 // No need for a disable-mechanism.
 
@@ -127,7 +129,19 @@ using namespace Gen;
 		else
 			destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-		ibuild.EmitBranchCond(Test, ibuild.EmitIntConst(destination));
+		if (Core::GetStartupParameter().bSkipIdle &&
+			inst.hex == 0x4182fff8 &&			
+			(Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
+			(Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
+			(Core::GetStartupParameter().bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000)) 
+			)
+		{			
+			ibuild.EmitIdleBranch(Test, ibuild.EmitIntConst(destination));
+		}
+		else
+		{
+			ibuild.EmitBranchCond(Test, ibuild.EmitIntConst(destination));
+		}
 		ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 	}
 

@@ -92,6 +92,7 @@ void CompactCR();
 void ExpandCR();
 
 void OnIdle(u32 _uThreadAddr);
+void OnIdleIL();
 
 	// Easy register access macros.
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])

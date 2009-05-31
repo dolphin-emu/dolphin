@@ -514,6 +514,14 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(BranchCond, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldIdleBranch(InstLoc Op1, InstLoc Op2) {
+	return EmitBiOp(
+		IdleBranch,
+		EmitICmpEq(getOp1(getOp1(Op1)),
+		getOp2(getOp1(Op1))), Op2
+		);
+}
+
 InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 	if (isImm(*Op1)) {
 		if (isImm(*Op2)) {
@@ -659,6 +667,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case Shrl: return FoldShrl(Op1, Op2);
 		case Rol: return FoldRol(Op1, Op2);
 		case BranchCond: return FoldBranchCond(Op1, Op2);
+		case IdleBranch: return FoldIdleBranch(Op1, Op2);
 		case ICmpEq: case ICmpNe:
 		case ICmpUgt: case ICmpUlt: case ICmpUge: case ICmpUle:
 		case ICmpSgt: case ICmpSlt: case ICmpSge: case ICmpSle:
@@ -1310,9 +1319,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case InterpreterFallback:
 		case SystemCall:
 		case RFIExit:
-		case InterpreterBranch:
-		case IdleLoop:
-		case ShortIdleLoop:
+		case InterpreterBranch:		
+		case ShortIdleLoop:		
 		case Tramp:
 			// No liveness effects
 			break;
@@ -1419,6 +1427,9 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!isImm(*getOp1(I)))
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
+		case IdleBranch:
+			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+			break;						 
 		case BranchCond: {
 			if (isICmp(*getOp1(I)) &&
 			    isImm(*getOp2(getOp1(I)))) {
@@ -2112,6 +2123,26 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case BlockStart:
 		case BlockEnd:
 			break;
+
+		case IdleBranch: {			
+			Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
+					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));			
+			FixupBranch cont = Jit->J_CC(CC_NE);
+
+			RI.Jit->Cleanup(); // is it needed?			
+			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
+			
+			Jit->MOV(32, M(&PC), Imm32(ibuild->GetImmValue( getOp2(I) )));
+			Jit->JMP(asm_routines.testExceptions, true);
+
+			Jit->SetJumpTarget(cont);
+			if (RI.IInfo[I - RI.FirstI] & 4)
+					regClearInst(RI, getOp1(getOp1(I)));
+			if (RI.IInfo[I - RI.FirstI] & 8)
+				regClearInst(RI, getOp2(I));
+			break;
+		}
+
 		case BranchCond: {
 			if (isICmp(*getOp1(I)) &&
 			    isImm(*getOp2(getOp1(I)))) {
@@ -2151,15 +2182,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regWriteExit(RI, getOp1(I));
 			regNormalRegClear(RI, I);
 			break;
-		}
-		case IdleLoop: {
-			unsigned IdleParam = ibuild->GetImmValue(getOp1(I));
-			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
-			Jit->ABI_CallFunctionC((void *)&PowerPC::OnIdle, IdleParam);
-			Jit->MOV(32, M(&PC), Imm32(InstLoc + 12));
-			Jit->JMP(asm_routines.testExceptions, true);
-			break;
-		}
+		}		
 		case ShortIdleLoop: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);

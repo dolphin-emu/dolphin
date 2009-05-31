@@ -348,4 +348,9 @@ void OnIdle(u32 _uThreadAddr)
 		CoreTiming::Idle();
 }
 
+void OnIdleIL()
+{
+	CoreTiming::Idle();
+}
+
 }  // namespace

@@ -156,7 +156,9 @@ namespace IREmitter {
 		SystemCall,
 		RFIExit,
 		InterpreterBranch,
-		IdleLoop,      // The "usual" idle loop, load+compare+branch
+
+		//IdleLoop,      // The "usual" idle loop, load+compare+branch
+		IdleBranch,	   // branch operation belonging to idle loop
 		ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
 			       // just a branch
 
@@ -220,6 +222,7 @@ namespace IREmitter {
 		InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
+		InstLoc FoldIdleBranch(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
 		InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
@@ -245,6 +248,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitBranchCond(InstLoc check, InstLoc dest) {
 			return FoldBiOp(BranchCond, check, dest);
+		}
+		InstLoc EmitIdleBranch(InstLoc check, InstLoc dest) {
+			return FoldBiOp(IdleBranch, check, dest);
 		}
 		InstLoc EmitLoadCR(unsigned crreg) {
 			return FoldZeroOp(LoadCR, crreg);
@@ -380,10 +386,7 @@ namespace IREmitter {
 		}
 		InstLoc EmitRFIExit() {
 			return FoldZeroOp(RFIExit, 0);
-		}
-		InstLoc EmitIdleLoop(InstLoc idleParam, InstLoc pc) {
-			return FoldBiOp(IdleLoop, idleParam, pc);
-		}
+		}		
 		InstLoc EmitShortIdleLoop(InstLoc pc) {
 			return FoldUOp(ShortIdleLoop, pc);
 		}
