@@ -130,11 +130,7 @@ union UVIDisplayControlRegister
 union UVIHorizontalTiming0
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned HLW		:	9; // Halfline Width (W*16 = Width (720))
@@ -149,17 +145,14 @@ union UVIHorizontalTiming0
 union UVIHorizontalTiming1
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned HSY		:	 7; // Horizontal Sync Width
-		unsigned HBE		:	10; // Horizontal Sync Start to horizontal blank end
-		unsigned HBS		:	10; // Half line to horizontal blanking start
-		unsigned			:	 5;
+		unsigned HBE640		:	 9; // Horizontal Sync Start to horizontal blank end
+		unsigned			:	 1;
+		unsigned HBS640		:	 9; // Half line to horizontal blanking start
+		unsigned			:	 6;
 	};
 };
 
@@ -167,11 +160,7 @@ union UVIHorizontalTiming1
 union UVIVBlankTimingRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned PRB		:	10; // Pre-blanking in half lines
@@ -185,11 +174,7 @@ union UVIVBlankTimingRegister
 union UVIBurstBlankingRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned BS0		:	 5; // Field x start to burst blanking start in halflines
@@ -202,11 +187,7 @@ union UVIBurstBlankingRegister
 union UVIFBInfoRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{
 		// TODO: mask out lower 9bits/align to 9bits???
@@ -222,11 +203,7 @@ union UVIFBInfoRegister
 union UVIInterruptRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned HCT		:	11; // Horizontal Position
@@ -242,11 +219,7 @@ union UVIInterruptRegister
 union UVILatchRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct  
 	{		
 		unsigned HCT		:	11; // Horizontal Count
@@ -285,11 +258,7 @@ union UVIHorizontalScaling
 union UVIFilterCoefTable3
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct
 	{
 		unsigned Tap0		:	10;
@@ -302,11 +271,7 @@ union UVIFilterCoefTable3
 union UVIFilterCoefTable4
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct
 	{
 		unsigned Tap0		:	 8;
@@ -325,18 +290,13 @@ struct SVIFilterCoefTables
 union UVIBorderBlankRegister
 {
 	u32 Hex;
-	struct
-	{
-		u16 Lo;
-		u16 Hi;
-	};
+	struct { u16 Lo, Hi; };
 	struct
 	{
 		unsigned HBE656		:	10; // Border Horizontal Blank End
-		unsigned			:	 5;
-		unsigned BRDR_EN	:	 1; // Border Enable
+		unsigned			:	11;
 		unsigned HBS656		:	10; // Border Horizontal Blank start
-		unsigned			:	 6;
+		unsigned BRDR_EN	:	 1; // Border Enable
 	};
 };
 
@@ -364,7 +324,7 @@ static UVIHorizontalScaling			m_HorizontalScaling;
 static SVIFilterCoefTables			m_FilterCoefTables;
 static u32							m_UnkAARegister = 0;// ??? 0x00FF0000
 static u16							m_Clock = 0;		// 0: 27MHz, 1: 54MHz
-static u16							m_DTVStatus = 0;
+static u16							m_DTVStatus = 0;	// Region char and component cable bit (only low 2bits are used?)
 static u16							m_FBWidth = 0;		// Only correct when scaling is enabled?
 static UVIBorderBlankRegister		m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
@@ -443,11 +403,13 @@ void PreInit(bool _bNTSC)
 	Write16(0x0001, 0xcc002036);
 	Write16(0x2828, 0xcc002048);
 	Write16(0x0000, 0xcc00206c);
+	// Say component cable is plugged
+	m_DTVStatus = 1;
 }
 
 void SetRegionReg(char _region)
 {
-	Write16((u16)_region, 0xcc00206e);
+	m_DTVStatus = _region | (m_DTVStatus & 1);
 }
 
 void Init()
@@ -458,6 +420,19 @@ void Init()
 	m_DisplayControlRegister.Hex = 0;
 
 	NextXFBRender = 1;
+}
+
+void Read8(u8& _uReturnValue, const u32 _iAddress)
+{
+	u16 val = 0;
+
+	if (_iAddress % 2 == 0)
+		Read16(val, _iAddress);
+	else
+		Read16(val, _iAddress - 1);
+
+	_uReturnValue = (u8)val;
+	INFO_LOG(VIDEOINTERFACE, "(r 8): 0x%02x, 0x%08x", _uReturnValue, _iAddress);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)

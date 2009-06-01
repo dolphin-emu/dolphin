@@ -37,6 +37,7 @@ namespace VideoInterface
 	void Init();	
 	void DoState(PointerWrap &p);
 
+	void Read8(u8& _uReturnValue, const u32 _uAddress);
 	void Read16(u16& _uReturnValue, const u32 _uAddress);
 	void Read32(u32& _uReturnValue, const u32 _uAddress);
 				
