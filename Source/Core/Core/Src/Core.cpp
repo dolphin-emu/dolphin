@@ -381,7 +381,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pSysMessage			= Host_SysMessage;
 	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
 	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
-	VideoInitialize.pVIRegs             = VideoInterface::m_UVIUnknownRegs;
 	VideoInitialize.pPeekMessages       = NULL;
 	VideoInitialize.pUpdateFPSDisplay   = NULL;
 	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;

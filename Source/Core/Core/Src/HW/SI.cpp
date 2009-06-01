@@ -131,7 +131,7 @@ union USIPoll
 		unsigned EN2		:	1; //  does not affect communication RAM transfers
 		unsigned EN1		:	1;
 		unsigned EN0		:	1;
-		unsigned Y			:  10; // Polls per frame
+		unsigned Y			:   8; // Polls per frame
 		unsigned X			:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
 		unsigned			:	6;
 	};
@@ -395,7 +395,11 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case SI_CHANNEL_3_IN_HI:	g_Channel[3].m_InHi.Hex = _iValue; break;
 	case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
 
-	case SI_POLL:				
+	case SI_POLL:
+		DEBUG_LOG(SERIALINTERFACE, "Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
+			g_Poll.X, g_Poll.Y,
+			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ", g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
+			g_Poll.VBCPY0 ? "VBCPY0 ":" ", g_Poll.VBCPY1 ? "VBCPY1 ":" ", g_Poll.VBCPY2 ? "VBCPY2 ":" ", g_Poll.VBCPY3 ? "VBCPY3 ":" ");
 		g_Poll.Hex = _iValue;
 		break;
 

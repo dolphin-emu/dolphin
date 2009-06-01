@@ -69,12 +69,14 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:	    rfi	
 	Memory::Write_U32(0x4c000064,	0x80000C00);	// write default Syscall Handler:   rfi	
 	Memory::Write_U32(0xc2339f3d,   0x8000001C);    // game disc
-	Memory::Write_U32(0x0D15EA5E,   0x80000020);    // funny magic word for normal boot
+	Memory::Write_U32(0x0D15EA5E,   0x80000020);    // booted from bootrom. 0xE5207C22 = booted from jtag
 	Memory::Write_U32(0x01800000,	0x80000028);	// Physical Memory Size
 
 	// On any of the production boards, ikaruga fails to read the memcard the first time. It succeeds on the second time though.
 	// And (only sometimes?) with 0x00000003, the loading picture in the bottom right will become corrupt and
 	// the emu will slow to 7mhz...I don't think it ever actually progresses
+	// This seems to be caused by the initialization of the memcard going amiss (remember, this uses a dsp program!)
+	// so, probably some fault with dsp timing/emulation in general (endless dsp interrupts...)
 	Memory::Write_U32(0x10000006,	0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
 
 	Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
@@ -83,7 +85,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// but it seems like the size can be variable. Compare with yagcd chap 13.
 	// 
 	PowerPC::ppcState.gpr[1] = 0x816ffff0;			// StackPointer
-	u32 iAppLoaderOffset = 0x2440;                  // 0x1c40 (what is 0x1c40?)
+	u32 iAppLoaderOffset = 0x2440;                  // 0x1c40 - 2MB lower...perhaps used on early GCMs? MYSTERY OLD COMMENT
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
 	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))

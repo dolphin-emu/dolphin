@@ -69,7 +69,6 @@ typedef struct
 	TKeyPressed                     pKeyPress;
 
 	SCPFifoStruct                   *pCPFifo;
-	unsigned char                   *pVIRegs;
 	void *pMemoryBase;
 	bool bWii;
 	bool bUseDualCore;

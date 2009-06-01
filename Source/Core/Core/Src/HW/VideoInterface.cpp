@@ -34,22 +34,66 @@ namespace VideoInterface
 // VI Internal Hardware Addresses
 enum
 {
-	VI_VERTICAL_TIMING					= 0x0,
+	VI_VERTICAL_TIMING					= 0x00,
 	VI_CONTROL_REGISTER	                = 0x02,
-	VI_FRAMEBUFFER_TOP_HI				= 0x01C,
-	VI_FRAMEBUFFER_TOP_LO				= 0x01E,
-	VI_FRAMEBUFFER_BOTTOM_HI			= 0x024,
-	VI_FRAMEBUFFER_BOTTOM_LO			= 0x026,
-	VI_VERTICAL_BEAM_POSITION			= 0x02C,
-	VI_HORIZONTAL_BEAM_POSITION			= 0x02e,
-	VI_PRERETRACE						= 0x030,
-	VI_POSTRETRACE						= 0x034,
-	VI_DI2                              = 0x038,
-	VI_DI3                              = 0x03C,
-	VI_INTERLACE						= 0x850,
-	VI_HSCALEW                          = 0x048,
-	VI_HSCALER                          = 0x04A,
-	VI_FBWIDTH							= 0x070,
+	VI_HORIZONTAL_TIMING_0_HI			= 0x04,
+	VI_HORIZONTAL_TIMING_0_LO			= 0x06,
+	VI_HORIZONTAL_TIMING_1_HI			= 0x08,
+	VI_HORIZONTAL_TIMING_1_LO			= 0x0a,
+	VI_VBLANK_TIMING_ODD_HI				= 0x0c,
+	VI_VBLANK_TIMING_ODD_LO				= 0x0e,
+	VI_VBLANK_TIMING_EVEN_HI			= 0x10,
+	VI_VBLANK_TIMING_EVEN_LO			= 0x12,
+	VI_BURST_BLANKING_ODD_HI			= 0x14,
+	VI_BURST_BLANKING_ODD_LO			= 0x16,
+	VI_BURST_BLANKING_EVEN_HI			= 0x18,
+	VI_BURST_BLANKING_EVEN_LO			= 0x1a,
+	VI_FB_LEFT_TOP_HI					= 0x1c, // FB_LEFT_TOP is first half of XFB info
+	VI_FB_LEFT_TOP_LO					= 0x1e,
+	VI_FB_RIGHT_TOP_HI					= 0x20, // FB_RIGHT_TOP is only used in 3D mode
+	VI_FB_RIGHT_TOP_LO					= 0x22,
+	VI_FB_LEFT_BOTTOM_HI				= 0x24, // FB_LEFT_TOP is second half of XFB info
+	VI_FB_LEFT_BOTTOM_LO				= 0x26,
+	VI_FB_RIGHT_BOTTOM_HI				= 0x28, // FB_RIGHT_BOTTOM is only used in 3D mode
+	VI_FB_RIGHT_BOTTOM_LO				= 0x2a,
+	VI_VERTICAL_BEAM_POSITION			= 0x2c,
+	VI_HORIZONTAL_BEAM_POSITION			= 0x2e,
+	VI_PRERETRACE_HI					= 0x30,
+	VI_PRERETRACE_LO					= 0x32,
+	VI_POSTRETRACE_HI					= 0x34,
+	VI_POSTRETRACE_LO					= 0x36,
+	VI_DISPLAY_INTERRUPT_2_HI			= 0x38,
+	VI_DISPLAY_INTERRUPT_2_LO			= 0x3a,
+	VI_DISPLAY_INTERRUPT_3_HI			= 0x3c,
+	VI_DISPLAY_INTERRUPT_3_LO			= 0x3e,
+	VI_DISPLAY_LATCH_0_HI				= 0x40,
+	VI_DISPLAY_LATCH_0_LO				= 0x42,
+	VI_DISPLAY_LATCH_1_HI				= 0x44,
+	VI_DISPLAY_LATCH_1_LO				= 0x46,
+	VI_HSCALEW                          = 0x48,
+	VI_HSCALER                          = 0x4a,
+	VI_FILTER_COEF_0_HI					= 0x4c,
+	VI_FILTER_COEF_0_LO					= 0x4e,
+	VI_FILTER_COEF_1_HI					= 0x50,
+	VI_FILTER_COEF_1_LO					= 0x52,
+	VI_FILTER_COEF_2_HI					= 0x54,
+	VI_FILTER_COEF_2_LO					= 0x56,
+	VI_FILTER_COEF_3_HI					= 0x58,
+	VI_FILTER_COEF_3_LO					= 0x5a,
+	VI_FILTER_COEF_4_HI					= 0x5c,
+	VI_FILTER_COEF_4_LO					= 0x5e,
+	VI_FILTER_COEF_5_HI					= 0x60,
+	VI_FILTER_COEF_5_LO					= 0x62,
+	VI_FILTER_COEF_6_HI					= 0x64,
+	VI_FILTER_COEF_6_LO					= 0x66,
+	VI_UNK_AA_REG_HI					= 0x68,
+	VI_UNK_AA_REG_LO					= 0x6a,
+	VI_CLOCK							= 0x6c,
+	VI_DTV_STATUS						= 0x6e,
+	VI_FBWIDTH							= 0x70,
+	VI_BORDER_BLANK_END					= 0x72, // Only used in debug video mode
+	VI_BORDER_BLANK_START				= 0x74, // Only used in debug video mode
+	VI_INTERLACE						= 0x850, // ??? MYSTERY OLD CODE
 };
 
 union UVIVerticalTimingRegister
@@ -57,9 +101,9 @@ union UVIVerticalTimingRegister
 	u16 Hex;
 	struct
 	{
-		unsigned EQU	:	4;
-		unsigned ACV	:	10;
-		unsigned		:	2;
+		unsigned EQU	:	 4; // Equalization pulse in half lines
+		unsigned ACV	:	10; // Active Video (in full lines) ? other source says half lines
+		unsigned		:	 2;
 	};
 	UVIVerticalTimingRegister(u16 _hex) { Hex = _hex;}
 	UVIVerticalTimingRegister() { Hex = 0;}
@@ -70,17 +114,108 @@ union UVIDisplayControlRegister
 	u16 Hex;
 	struct
 	{
-		unsigned ENB	:	1;
-		unsigned RST	:	1;
-		unsigned NIN	:	1;
-		unsigned DLR	:	1;
-		unsigned LE0	:	2;
+		unsigned ENB	:	1; // Enables video timing generation and data request
+		unsigned RST	:	1; // Clears all data requests and puts VI into its idle state
+		unsigned NIN	:	1; // 0: Interlaced, 1: Non-Interlaced: top field drawn at field rate and bottom field is not displayed
+		unsigned DLR	:	1; // Selects 3D Display Mode
+		unsigned LE0	:	2; // Display Latch; 0: Off, 1: On for 1 field, 2: On for 2 fields, 3: Always on
 		unsigned LE1	:	2;
-		unsigned FMT	:	2;
+		unsigned FMT	:	2; // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
 		unsigned		:	6;
 	};
 	UVIDisplayControlRegister(u16 _hex) { Hex = _hex;}
 	UVIDisplayControlRegister() { Hex = 0;}
+};
+
+union UVIHorizontalTiming0
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{		
+		unsigned HLW		:	9; // Halfline Width (W*16 = Width (720))
+		unsigned			:	7;
+		unsigned HCE		:	7; // Horizontal Sync Start to Color Burst End
+		unsigned			:	1;
+		unsigned HCS		:	7; // Horizontal Sync Start to Color Burst Start
+		unsigned			:	1;
+	};
+};
+
+union UVIHorizontalTiming1
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{		
+		unsigned HSY		:	 7; // Horizontal Sync Width
+		unsigned HBE		:	10; // Horizontal Sync Start to horizontal blank end
+		unsigned HBS		:	10; // Half line to horizontal blanking start
+		unsigned			:	 5;
+	};
+};
+
+// Exists for both odd and even fields
+union UVIVBlankTimingRegister
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{		
+		unsigned PRB		:	10; // Pre-blanking in half lines
+		unsigned			:	 6;
+		unsigned PSB		:	10; // Post blanking in half lines
+		unsigned			:	 6;
+	};
+};
+
+// Exists for both odd and even fields
+union UVIBurstBlankingRegister
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{		
+		unsigned BS0		:	 5; // Field x start to burst blanking start in halflines
+		unsigned BE0		:	11; // Field x start to burst blanking end in halflines
+		unsigned BS1		:	 5; // Field x+2 start to burst blanking start in halflines
+		unsigned BE1		:	11; // Field x+2 start to burst blanking end in halflines
+	};
+};
+
+union UVIFBInfoRegister
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{
+		// TODO: mask out lower 9bits/align to 9bits???
+		unsigned FBB		:	24; // Base address of the framebuffer in external mem
+		// TODO: do XOFF/POFF exist in bottom reg?
+		unsigned XOFF		:	 4; // Horizontal Offset of the left-most pixel within the first word of the fetched picture
+		unsigned POFF		:	 1; // Page offest: 1: fb address is (address>>5)
+		unsigned CLRPOFF	:	 3; // ? setting bit 31 clears POFF
+	};
 };
 
 // VI Interrupt Register
@@ -94,13 +229,31 @@ union UVIInterruptRegister
 	};
 	struct  
 	{		
-		unsigned HCT		:	11;
-		unsigned			:	5;
-		unsigned VCT		:	11;
-		unsigned			:	1;
-		unsigned IR_MASK	:	1;
-		unsigned			:	2;
-		unsigned IR_INT		:	1;
+		unsigned HCT		:	11; // Horizontal Position
+		unsigned			:	 5;
+		unsigned VCT		:	11; // Vertical Position
+		unsigned			:	 1;
+		unsigned IR_MASK	:	 1; // Interrupt Enable Bit
+		unsigned			:	 2;
+		unsigned IR_INT		:	 1; // Interrupt Status (1=Active) (Write to clear)
+	};
+};
+
+union UVILatchRegister
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct  
+	{		
+		unsigned HCT		:	11; // Horizontal Count
+		unsigned			:	 5;
+		unsigned VCT		:	11; // Vertical Count
+		unsigned			:	 4;
+		unsigned TRG		:	 1; // Trigger Flag
 	};
 };
 
@@ -109,8 +262,8 @@ union UVIHorizontalStepping
 	u16 Hex;
 	struct
 	{
-		unsigned FbSteps		:	8;
-		unsigned FieldSteps		:	8;
+		unsigned FbSteps	:	 8;
+		unsigned FieldSteps	:	 8;
 	};
 };
 
@@ -119,16 +272,17 @@ union UVIHorizontalScaling
 	u16 Hex;
 	struct
 	{
-		unsigned STP		:	9;
+		unsigned STP		:	9; // Horizontal stepping size (U1.8 Scaler Value) (0x160 Works for 320)
 		unsigned			:	3;
-		unsigned HS_EN		:	1;
+		unsigned HS_EN		:	1; // Enable Horizontal Scaling
 		unsigned			:	3;
 	};
 	UVIHorizontalScaling(u16 _hex) { Hex = _hex;}
 	UVIHorizontalScaling() { Hex = 0;}
 };
 
-union UVIFrameBufferAddress
+// Used for tables 0-2
+union UVIFilterCoefTable3
 {
 	u32 Hex;
 	struct
@@ -136,29 +290,86 @@ union UVIFrameBufferAddress
 		u16 Lo;
 		u16 Hi;
 	};
-	UVIFrameBufferAddress(u16 _hex) { Hex = _hex;}
-	UVIFrameBufferAddress() { Hex = 0;}
+	struct
+	{
+		unsigned Tap0		:	10;
+		unsigned Tap1		:	10;
+		unsigned Tap2		:	10;
+		unsigned			:	 2;
+	};
+};
+// Used for tables 3-6
+union UVIFilterCoefTable4
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct
+	{
+		unsigned Tap0		:	 8;
+		unsigned Tap1		:	 8;
+		unsigned Tap2		:	 8;
+		unsigned Tap3		:	 8;
+	};
+};
+struct SVIFilterCoefTables
+{
+	UVIFilterCoefTable3 Tables02[3];
+	UVIFilterCoefTable4 Tables36[4];
 };
 
+// Debug video mode only, probably never used in dolphin...
+union UVIBorderBlankRegister
+{
+	u32 Hex;
+	struct
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	struct
+	{
+		unsigned HBE656		:	10; // Border Horizontal Blank End
+		unsigned			:	 5;
+		unsigned BRDR_EN	:	 1; // Border Enable
+		unsigned HBS656		:	10; // Border Horizontal Blank start
+		unsigned			:	 6;
+	};
+};
+
+
 // STATE_TO_SAVE
-static UVIVerticalTimingRegister m_VIVerticalTimingRegister;
+// Registers listed in order:
+static UVIVerticalTimingRegister	m_VerticalTimingRegister;
+static UVIDisplayControlRegister	m_DisplayControlRegister;
+static UVIHorizontalTiming0			m_HTiming0;
+static UVIHorizontalTiming1			m_HTiming1;
+static UVIVBlankTimingRegister		m_VBlankTimingOdd;
+static UVIVBlankTimingRegister		m_VBlankTimingEven;
+static UVIBurstBlankingRegister		m_BurstBlankingOdd;
+static UVIBurstBlankingRegister		m_BurstBlankingEven;
+static UVIFBInfoRegister			m_XFBInfoTop;
+static UVIFBInfoRegister			m_XFBInfoBottom;
+static UVIFBInfoRegister			m_3DFBInfoTop;		// Start making your stereoscopic demos! :p
+static UVIFBInfoRegister			m_3DFBInfoBottom;
+static u16							m_VBeamPos = 0;
+static u16							m_HBeamPos = 0;
+static UVIInterruptRegister			m_InterruptRegister[4];
+static UVILatchRegister				m_LatchRegister[2];
+static UVIHorizontalStepping		m_HorizontalStepping;
+static UVIHorizontalScaling			m_HorizontalScaling;
+static SVIFilterCoefTables			m_FilterCoefTables;
+static u32							m_UnkAARegister = 0;// ??? 0x00FF0000
+static u16							m_Clock = 0;		// 0: 27MHz, 1: 54MHz
+static u16							m_DTVStatus = 0;
+static u16							m_FBWidth = 0;		// Only correct when scaling is enabled?
+static UVIBorderBlankRegister		m_BorderHBlank;
+// 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
+// 0xcc002080 - 0xcc002100 even more unknown
 
-static UVIDisplayControlRegister m_VIDisplayControlRegister;
-
-// Framebuffers
-static UVIFrameBufferAddress m_FrameBufferTop;		// normal framebuffer address
-static UVIFrameBufferAddress m_FrameBufferBottom;
-
-// VI Interrupt Registers
-static UVIInterruptRegister m_VIInterruptRegister[4];
-
-static UVIHorizontalStepping m_VIHorizontalStepping;
-static UVIHorizontalScaling m_VIHorizontalScaling;
-
-u8 m_UVIUnknownRegs[0x1000];
-
-static u16 HorizontalBeamPos = 0;
-static u16 VerticalBeamPos = 0;
 
 static u32 TicksPerFrame = 0;
 static u32 LineCount = 0;
@@ -166,34 +377,85 @@ static u32 LinesPerField = 0;
 static u64 LastTime = 0;
 static u32 NextXFBRender = 0;
 
-// only correct when scaling is enabled?
-static u16 FbWidth = 0;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_VIVerticalTimingRegister);
-	p.Do(m_VIDisplayControlRegister);
-	p.Do(m_FrameBufferTop);
-	p.Do(m_FrameBufferBottom);
-	p.Do(m_VIInterruptRegister);
-	p.DoArray(m_UVIUnknownRegs, 0x1000);
-	p.Do(HorizontalBeamPos);
-	p.Do(VerticalBeamPos);
+	p.Do(m_VerticalTimingRegister);
+	p.Do(m_DisplayControlRegister);
+	p.Do(m_HTiming0);
+	p.Do(m_HTiming1);
+	p.Do(m_VBlankTimingOdd);
+	p.Do(m_VBlankTimingEven);
+	p.Do(m_BurstBlankingOdd);
+	p.Do(m_BurstBlankingEven);
+	p.Do(m_XFBInfoTop);
+	p.Do(m_XFBInfoBottom);
+	p.Do(m_3DFBInfoTop);
+	p.Do(m_3DFBInfoBottom);
+	p.Do(m_VBeamPos);
+	p.Do(m_HBeamPos);
+	p.DoArray(m_InterruptRegister, 4);
+	p.DoArray(m_LatchRegister, 2);
+	p.Do(m_HorizontalStepping);
+	p.Do(m_HorizontalScaling);
+	p.Do(m_FilterCoefTables);
+	p.Do(m_UnkAARegister);
+	p.Do(m_Clock);
+	p.Do(m_DTVStatus);
+	p.Do(m_FBWidth);
+	p.Do(m_BorderHBlank);
+
 	p.Do(TicksPerFrame);
 	p.Do(LineCount);
 	p.Do(LinesPerField);
 	p.Do(LastTime);
-	// p.Do(NextXFBRender);   // Activate when changing saves next time.
+	p.Do(NextXFBRender);
+}
+
+void PreInit(bool _bNTSC)
+{
+	TicksPerFrame = 0;
+	LineCount = 0;
+	LastTime = 0;
+
+	Write16(0x0006, 0xcc002000);
+
+	if (_bNTSC)
+		Write16(0x0001, 0xcc002002);
+	else
+		Write16(0x0101, 0xcc002002);
+
+	Write16(0x4769, 0xcc002004);
+	Write16(0x01ad, 0xcc002006);
+	Write16(0x02ea, 0xcc002008);
+	Write16(0x5140, 0xcc00200a);
+	Write16(0x0005, 0xcc00200c);
+	Write16(0x01f6, 0xcc00200e);
+	Write16(0x0004, 0xcc002010);
+	Write16(0x01f7, 0xcc002012);
+	Write16(0x410c, 0xcc002014);
+	Write16(0x410c, 0xcc002016);
+	Write16(0x40ed, 0xcc002018);
+	Write16(0x40ed, 0xcc00201a);
+	Write16(0x1107, 0xcc002030);
+	Write16(0x01ae, 0xcc002032);
+	Write16(0x1001, 0xcc002034);
+	Write16(0x0001, 0xcc002036);
+	Write16(0x2828, 0xcc002048);
+	Write16(0x0000, 0xcc00206c);
+}
+
+void SetRegionReg(char _region)
+{
+	Write16((u16)_region, 0xcc00206e);
 }
 
 void Init()
 {
 	for (int i = 0; i < 4; i++)
-		m_VIInterruptRegister[i].Hex = 0x00;
+		m_InterruptRegister[i].Hex = 0;
 
-	m_VIDisplayControlRegister.Hex = 0x0000;
-	m_VIDisplayControlRegister.ENB = 0;
-	m_VIDisplayControlRegister.FMT = 0;
+	m_DisplayControlRegister.Hex = 0;
 
 	NextXFBRender = 1;
 }
@@ -203,73 +465,220 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	switch (_iAddress & 0xFFF)
 	{
 	case VI_VERTICAL_TIMING:
-		_uReturnValue = m_VIVerticalTimingRegister.Hex;
+		_uReturnValue = m_VerticalTimingRegister.Hex;
 		return;
 
 	case VI_CONTROL_REGISTER:
-        DEBUG_LOG(VIDEOINTERFACE, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
-		_uReturnValue = m_VIDisplayControlRegister.Hex;
+		_uReturnValue = m_DisplayControlRegister.Hex;
 		return;
 
-	case VI_FRAMEBUFFER_TOP_HI:
-		_uReturnValue = m_FrameBufferTop.Hi;
+	case VI_HORIZONTAL_TIMING_0_HI:
+		_uReturnValue = m_HTiming0.Hi;
+		break;
+	case VI_HORIZONTAL_TIMING_0_LO:
+		_uReturnValue = m_HTiming0.Lo;
 		break;
 
-	case VI_FRAMEBUFFER_TOP_LO:
-		_uReturnValue = m_FrameBufferTop.Lo;
+	case VI_HORIZONTAL_TIMING_1_HI:
+		_uReturnValue = m_HTiming1.Hi;
+		break;
+	case VI_HORIZONTAL_TIMING_1_LO:
+		_uReturnValue = m_HTiming1.Lo;
 		break;
 
-	case VI_FRAMEBUFFER_BOTTOM_HI:
-		_uReturnValue = m_FrameBufferBottom.Hi;
+	case VI_VBLANK_TIMING_ODD_HI:
+		_uReturnValue = m_VBlankTimingOdd.Hi;
+		break;
+	case VI_VBLANK_TIMING_ODD_LO:
+		_uReturnValue = m_VBlankTimingOdd.Lo;
 		break;
 
-	case VI_FRAMEBUFFER_BOTTOM_LO:
-		_uReturnValue = m_FrameBufferBottom.Lo;
+	case VI_VBLANK_TIMING_EVEN_HI:
+		_uReturnValue = m_VBlankTimingEven.Hi;
+		break;
+	case VI_VBLANK_TIMING_EVEN_LO:
+		_uReturnValue = m_VBlankTimingEven.Lo;
+		break;
+
+	case VI_BURST_BLANKING_ODD_HI:
+		_uReturnValue = m_BurstBlankingOdd.Hi;
+		break;
+	case VI_BURST_BLANKING_ODD_LO:
+		_uReturnValue = m_BurstBlankingOdd.Lo;
+		break;
+
+	case VI_BURST_BLANKING_EVEN_HI:
+		_uReturnValue = m_BurstBlankingEven.Hi;
+		break;
+	case VI_BURST_BLANKING_EVEN_LO:
+		_uReturnValue = m_BurstBlankingEven.Lo;
+		break;
+
+	case VI_FB_LEFT_TOP_HI:
+		_uReturnValue = m_XFBInfoTop.Hi;
+		break;
+	case VI_FB_LEFT_TOP_LO:
+		_uReturnValue = m_XFBInfoTop.Lo;
+		break;
+
+	case VI_FB_RIGHT_TOP_HI:
+		_uReturnValue = m_3DFBInfoTop.Hi;
+		break;
+	case VI_FB_RIGHT_TOP_LO:
+		_uReturnValue = m_3DFBInfoTop.Lo;
+		break;
+
+	case VI_FB_LEFT_BOTTOM_HI:
+		_uReturnValue = m_XFBInfoBottom.Hi;
+		break;
+	case VI_FB_LEFT_BOTTOM_LO:
+		_uReturnValue = m_XFBInfoBottom.Lo;
+		break;
+
+	case VI_FB_RIGHT_BOTTOM_HI:
+		_uReturnValue = m_3DFBInfoBottom.Hi;
+		break;
+	case VI_FB_RIGHT_BOTTOM_LO:
+		_uReturnValue = m_3DFBInfoBottom.Lo;
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
-    	_uReturnValue = VerticalBeamPos;
+    	_uReturnValue = m_VBeamPos;
 		return;
 
 	case VI_HORIZONTAL_BEAM_POSITION:
-        _uReturnValue = HorizontalBeamPos;
+        _uReturnValue = m_HBeamPos;
 		return;
 
 	// RETRACE STUFF ...
-	case VI_PRERETRACE:
-		_uReturnValue =	m_VIInterruptRegister[0].Hi;
+	case VI_PRERETRACE_HI:
+		_uReturnValue =	m_InterruptRegister[0].Hi;
+		return;
+	case VI_PRERETRACE_LO:
+		_uReturnValue =	m_InterruptRegister[0].Lo;
 		return;
 
-	case VI_POSTRETRACE:
-		_uReturnValue =	m_VIInterruptRegister[1].Hi;
+	case VI_POSTRETRACE_HI:
+		_uReturnValue =	m_InterruptRegister[1].Hi;
+		return;
+	case VI_POSTRETRACE_LO:
+		_uReturnValue =	m_InterruptRegister[1].Lo;
 		return;
 
-	case VI_DI2:
-		_uReturnValue =	m_VIInterruptRegister[2].Hi;
+	case VI_DISPLAY_INTERRUPT_2_HI:
+		_uReturnValue =	m_InterruptRegister[2].Hi;
+		return;
+	case VI_DISPLAY_INTERRUPT_2_LO:
+		_uReturnValue =	m_InterruptRegister[2].Lo;
 		return;
 
-	case VI_DI3:
-		_uReturnValue =	m_VIInterruptRegister[3].Hi;
+	case VI_DISPLAY_INTERRUPT_3_HI:
+		_uReturnValue =	m_InterruptRegister[3].Hi;
 		return;
+	case VI_DISPLAY_INTERRUPT_3_LO:
+		_uReturnValue =	m_InterruptRegister[3].Lo;
+		return;
+
+	case VI_DISPLAY_LATCH_0_HI:
+		_uReturnValue = m_LatchRegister[0].Hi;
+		break;
+	case VI_DISPLAY_LATCH_0_LO:
+		_uReturnValue = m_LatchRegister[0].Lo;
+		break;
+
+	case VI_DISPLAY_LATCH_1_HI:
+		_uReturnValue = m_LatchRegister[1].Hi;
+		break;
+	case VI_DISPLAY_LATCH_1_LO:
+		_uReturnValue = m_LatchRegister[1].Lo;
+		break;
 
 	case VI_HSCALEW:
-		_uReturnValue = m_VIHorizontalStepping.Hex;
+		_uReturnValue = m_HorizontalStepping.Hex;
 		break;
 
 	case VI_HSCALER:
-		_uReturnValue = m_VIHorizontalScaling.Hex;
+		_uReturnValue = m_HorizontalScaling.Hex;
+		break;
+
+	case VI_FILTER_COEF_0_HI:
+		_uReturnValue = m_FilterCoefTables.Tables02[0].Hi;
+		break;
+	case VI_FILTER_COEF_0_LO:
+		_uReturnValue = m_FilterCoefTables.Tables02[0].Lo;
+		break;
+	case VI_FILTER_COEF_1_HI:
+		_uReturnValue = m_FilterCoefTables.Tables02[1].Hi;
+		break;
+	case VI_FILTER_COEF_1_LO:
+		_uReturnValue = m_FilterCoefTables.Tables02[1].Lo;
+		break;
+	case VI_FILTER_COEF_2_HI:
+		_uReturnValue = m_FilterCoefTables.Tables02[2].Hi;
+		break;
+	case VI_FILTER_COEF_2_LO:
+		_uReturnValue = m_FilterCoefTables.Tables02[2].Lo;
+		break;
+	case VI_FILTER_COEF_3_HI:
+		_uReturnValue = m_FilterCoefTables.Tables36[0].Hi;
+		break;
+	case VI_FILTER_COEF_3_LO:
+		_uReturnValue = m_FilterCoefTables.Tables36[0].Lo;
+		break;
+	case VI_FILTER_COEF_4_HI:
+		_uReturnValue = m_FilterCoefTables.Tables36[1].Hi;
+		break;
+	case VI_FILTER_COEF_4_LO:
+		_uReturnValue = m_FilterCoefTables.Tables36[1].Lo;
+		break;
+	case VI_FILTER_COEF_5_HI:
+		_uReturnValue = m_FilterCoefTables.Tables36[2].Hi;
+		break;
+	case VI_FILTER_COEF_5_LO:
+		_uReturnValue = m_FilterCoefTables.Tables36[2].Lo;
+		break;
+	case VI_FILTER_COEF_6_HI:
+		_uReturnValue = m_FilterCoefTables.Tables36[3].Hi;
+		break;
+	case VI_FILTER_COEF_6_LO:
+		_uReturnValue = m_FilterCoefTables.Tables36[3].Lo;
+		break;
+
+	case VI_UNK_AA_REG_HI:
+		_uReturnValue = (m_UnkAARegister & 0xffff0000) >> 16;
+		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA reg, not sure what it does :)");
+		break;
+	case VI_UNK_AA_REG_LO:
+		_uReturnValue = m_UnkAARegister & 0x0000ffff;
+		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA reg, not sure what it does :)");
+		break;
+
+	case VI_CLOCK:
+		_uReturnValue = m_Clock;
+		break;
+
+	case VI_DTV_STATUS:
+		_uReturnValue = m_DTVStatus;
 		break;
 
 	case VI_FBWIDTH:
-		_uReturnValue = FbWidth;
+		_uReturnValue = m_FBWidth;
 		break;
 
-	default:		
-		_uReturnValue = *(u16*)&m_UVIUnknownRegs[_iAddress & 0xFFF];
-		return;
+	case VI_BORDER_BLANK_END:
+		_uReturnValue = m_BorderHBlank.Lo;
+		break;
+	case VI_BORDER_BLANK_START:
+		_uReturnValue = m_BorderHBlank.Hi;
+		break;
+
+	default:
+		ERROR_LOG(VIDEOINTERFACE, "(r16) unk reg %x", _iAddress & 0xfff);
+		_uReturnValue = 0x0;
+		break;
 	}
 
-	_uReturnValue = 0x0;
+	DEBUG_LOG(VIDEOINTERFACE, "(r16): 0x%04x, 0x%08x", _uReturnValue, _iAddress);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
@@ -281,42 +690,100 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 	switch (_iAddress & 0xFFF)
 	{
 	case VI_VERTICAL_TIMING:
-		m_VIVerticalTimingRegister.Hex = _iValue;
+		m_VerticalTimingRegister.Hex = _iValue;
 		break;
 
 	case VI_CONTROL_REGISTER:
 		{
 			UVIDisplayControlRegister tmpConfig(_iValue);
-			m_VIDisplayControlRegister.ENB = tmpConfig.ENB;
-			m_VIDisplayControlRegister.NIN = tmpConfig.NIN;
-			m_VIDisplayControlRegister.DLR = tmpConfig.DLR;
-			m_VIDisplayControlRegister.LE0 = tmpConfig.LE0;
-			m_VIDisplayControlRegister.LE1 = tmpConfig.LE1;
-			m_VIDisplayControlRegister.FMT = tmpConfig.FMT;
+			m_DisplayControlRegister.ENB = tmpConfig.ENB;
+			m_DisplayControlRegister.NIN = tmpConfig.NIN;
+			m_DisplayControlRegister.DLR = tmpConfig.DLR;
+			m_DisplayControlRegister.LE0 = tmpConfig.LE0;
+			m_DisplayControlRegister.LE1 = tmpConfig.LE1;
+			m_DisplayControlRegister.FMT = tmpConfig.FMT;
 
 			if (tmpConfig.RST)
 			{
-				m_VIDisplayControlRegister.RST = 0;
+				m_DisplayControlRegister.RST = 0;
 			}
 
             UpdateTiming();
 		}		
 		break;
 
-	case VI_FRAMEBUFFER_TOP_HI:
-		m_FrameBufferTop.Hi = _iValue;
+	case VI_HORIZONTAL_TIMING_0_HI:
+		m_HTiming0.Hi = _iValue;
+		break;
+	case VI_HORIZONTAL_TIMING_0_LO:
+		m_HTiming0.Lo = _iValue;
 		break;
 
-	case VI_FRAMEBUFFER_TOP_LO:
-		m_FrameBufferTop.Lo = _iValue;
+	case VI_HORIZONTAL_TIMING_1_HI:
+		m_HTiming1.Hi = _iValue;
+		break;
+	case VI_HORIZONTAL_TIMING_1_LO:
+		m_HTiming1.Lo = _iValue;
 		break;
 
-	case VI_FRAMEBUFFER_BOTTOM_HI:
-		m_FrameBufferBottom.Hi = _iValue;
+	case VI_VBLANK_TIMING_ODD_HI:
+		m_VBlankTimingOdd.Hi = _iValue;
+		break;
+	case VI_VBLANK_TIMING_ODD_LO:
+		m_VBlankTimingOdd.Lo = _iValue;
 		break;
 
-	case VI_FRAMEBUFFER_BOTTOM_LO:
-		m_FrameBufferBottom.Lo = _iValue;
+	case VI_VBLANK_TIMING_EVEN_HI:
+		m_VBlankTimingEven.Hi = _iValue;
+		break;
+	case VI_VBLANK_TIMING_EVEN_LO:
+		m_VBlankTimingEven.Lo = _iValue;
+		break;
+
+	case VI_BURST_BLANKING_ODD_HI:
+		m_BurstBlankingOdd.Hi = _iValue;
+		break;
+	case VI_BURST_BLANKING_ODD_LO:
+		m_BurstBlankingOdd.Lo = _iValue;
+		break;
+
+	case VI_BURST_BLANKING_EVEN_HI:
+		m_BurstBlankingEven.Hi = _iValue;
+		break;
+	case VI_BURST_BLANKING_EVEN_LO:
+		m_BurstBlankingEven.Lo = _iValue;
+		break;
+
+	case VI_FB_LEFT_TOP_HI:
+		m_XFBInfoTop.Hi = _iValue;
+		if (m_XFBInfoTop.CLRPOFF) m_XFBInfoTop.POFF = 0;
+		break;
+	case VI_FB_LEFT_TOP_LO:
+		m_XFBInfoTop.Lo = _iValue;
+		break;
+
+	case VI_FB_RIGHT_TOP_HI:
+		m_3DFBInfoTop.Hi = _iValue;
+		if (m_3DFBInfoTop.CLRPOFF) m_3DFBInfoTop.POFF = 0;
+		break;
+	case VI_FB_RIGHT_TOP_LO:
+		m_3DFBInfoTop.Lo = _iValue;
+		break;
+
+	case VI_FB_LEFT_BOTTOM_HI:
+		m_XFBInfoBottom.Hi = _iValue;
+		if (m_XFBInfoBottom.CLRPOFF) m_XFBInfoBottom.POFF = 0;
+		break;
+	case VI_FB_LEFT_BOTTOM_LO:
+		m_XFBInfoBottom.Lo = _iValue;
+		break;
+
+	case VI_FB_RIGHT_BOTTOM_HI:
+		m_3DFBInfoBottom.Hi = _iValue;
+		if (m_3DFBInfoBottom.CLRPOFF) m_3DFBInfoBottom.POFF = 0;
+		break;
+	case VI_FB_RIGHT_BOTTOM_LO:
+		m_3DFBInfoBottom.Lo = _iValue;
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
@@ -328,72 +795,154 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 		// RETRACE STUFF ...
-	case VI_PRERETRACE:
-		m_VIInterruptRegister[0].Hi = _iValue;
+	case VI_PRERETRACE_HI:
+		m_InterruptRegister[0].Hi = _iValue;
+		UpdateInterrupts();
+		break;
+	case VI_PRERETRACE_LO:
+		m_InterruptRegister[0].Lo = _iValue;
 		UpdateInterrupts();
 		break;
 
-	case VI_POSTRETRACE:
-		m_VIInterruptRegister[1].Hi = _iValue;
+	case VI_POSTRETRACE_HI:
+		m_InterruptRegister[1].Hi = _iValue;
+		UpdateInterrupts();
+		break;
+	case VI_POSTRETRACE_LO:
+		m_InterruptRegister[1].Lo = _iValue;
 		UpdateInterrupts();
 		break;
 
-	case VI_DI2:
-		m_VIInterruptRegister[2].Hi = _iValue;
+	case VI_DISPLAY_INTERRUPT_2_HI:
+		m_InterruptRegister[2].Hi = _iValue;
+		UpdateInterrupts();
+		break;
+	case VI_DISPLAY_INTERRUPT_2_LO:
+		m_InterruptRegister[2].Lo = _iValue;
 		UpdateInterrupts();
 		break;
 
-	case VI_DI3:
-		m_VIInterruptRegister[3].Hi = _iValue;
+	case VI_DISPLAY_INTERRUPT_3_HI:
+		m_InterruptRegister[3].Hi = _iValue;
 		UpdateInterrupts();
+		break;
+	case VI_DISPLAY_INTERRUPT_3_LO:
+		m_InterruptRegister[3].Lo = _iValue;
+		UpdateInterrupts();
+		break;
+
+	case VI_DISPLAY_LATCH_0_HI:
+		m_LatchRegister[0].Hi = _iValue;
+		break;
+	case VI_DISPLAY_LATCH_0_LO:
+		m_LatchRegister[0].Lo = _iValue;
+		break;
+
+	case VI_DISPLAY_LATCH_1_HI:
+		m_LatchRegister[1].Hi = _iValue;
+		break;
+	case VI_DISPLAY_LATCH_1_LO:
+		m_LatchRegister[1].Lo = _iValue;
 		break;
 
 	case VI_HSCALEW:
-		m_VIHorizontalStepping.Hex = _iValue;
+		m_HorizontalStepping.Hex = _iValue;
 		break;
 
 	case VI_HSCALER:
-		m_VIHorizontalScaling.Hex = _iValue;
+		m_HorizontalScaling.Hex = _iValue;
+		break;
+
+	case VI_FILTER_COEF_0_HI:
+		m_FilterCoefTables.Tables02[0].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_0_LO:
+		m_FilterCoefTables.Tables02[0].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_1_HI:
+		m_FilterCoefTables.Tables02[1].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_1_LO:
+		m_FilterCoefTables.Tables02[1].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_2_HI:
+		m_FilterCoefTables.Tables02[2].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_2_LO:
+		m_FilterCoefTables.Tables02[2].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_3_HI:
+		m_FilterCoefTables.Tables36[0].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_3_LO:
+		m_FilterCoefTables.Tables36[0].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_4_HI:
+		m_FilterCoefTables.Tables36[1].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_4_LO:
+		m_FilterCoefTables.Tables36[1].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_5_HI:
+		m_FilterCoefTables.Tables36[2].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_5_LO:
+		m_FilterCoefTables.Tables36[2].Lo = _iValue;
+		break;
+	case VI_FILTER_COEF_6_HI:
+		m_FilterCoefTables.Tables36[3].Hi = _iValue;
+		break;
+	case VI_FILTER_COEF_6_LO:
+		m_FilterCoefTables.Tables36[3].Lo = _iValue;
+		break;
+
+	case VI_UNK_AA_REG_HI:
+		m_UnkAARegister = (m_UnkAARegister & 0x0000ffff) | (u32)(_iValue << 16);
+		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA reg, not sure what it does :)");
+		break;
+	case VI_UNK_AA_REG_LO:
+		m_UnkAARegister = (m_UnkAARegister & 0xffff0000) | _iValue;
+		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA reg, not sure what it does :)");
+		break;
+
+	case VI_CLOCK:
+		m_Clock = _iValue;
+		break;
+
+	case VI_DTV_STATUS:
+		m_DTVStatus = _iValue;
 		break;
 
 	case VI_FBWIDTH:
-		FbWidth = _iValue;
+		m_FBWidth = _iValue;
+		break;
+
+	case VI_BORDER_BLANK_END:
+		m_BorderHBlank.Lo = _iValue;
+		break;
+	case VI_BORDER_BLANK_START:
+		m_BorderHBlank.Hi = _iValue;
 		break;
 
 	default:
-		*(u16*)&m_UVIUnknownRegs[_iAddress & 0xFFF] = _iValue;
+		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unk reg %x", _iValue, _iAddress & 0xfff);
 		break;
 	}
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	INFO_LOG(VIDEOINTERFACE, "(r32): 0x%08x", _iAddress);
+	u16 Hi = 0, Lo = 0;
+	Read16(Hi, _iAddress);
+	Read16(Lo, _iAddress + 2);
+	_uReturnValue = (Hi << 16) | Lo;
 
-	if ((_iAddress & 0xFFF) < 0x20)
-	{
-		_uReturnValue = 0;
-		return;
-	}
-	switch (_iAddress & 0xFFF)
-	{
-	case 0x000:
-	case 0x004:
-	case 0x008:
-	case 0x00C:
-		_uReturnValue = 0; //FL
-		return;
-
-	default:
-		//_assert_(0);
-		_uReturnValue = 0xAFFE;
-		return;
-	}
+	INFO_LOG(VIDEOINTERFACE, "(r32): 0x%08x, 0x%08x", _uReturnValue, _iAddress);
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	INFO_LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x",_iValue,_iAddress);
+	INFO_LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x", _iValue, _iAddress);
 
 	// Allow 32-bit writes to the VI: although this is officially not
 	// allowed, the hardware seems to accept it (for example, DesktopMan GC
@@ -404,10 +953,10 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 void UpdateInterrupts()
 {
-	if ((m_VIInterruptRegister[0].IR_INT & m_VIInterruptRegister[0].IR_MASK) ||
-		(m_VIInterruptRegister[1].IR_INT & m_VIInterruptRegister[1].IR_MASK) ||
-		(m_VIInterruptRegister[2].IR_INT & m_VIInterruptRegister[2].IR_MASK) ||
-		(m_VIInterruptRegister[3].IR_INT & m_VIInterruptRegister[3].IR_MASK))
+	if ((m_InterruptRegister[0].IR_INT & m_InterruptRegister[0].IR_MASK) ||
+		(m_InterruptRegister[1].IR_INT & m_InterruptRegister[1].IR_MASK) ||
+		(m_InterruptRegister[2].IR_INT & m_InterruptRegister[2].IR_MASK) ||
+		(m_InterruptRegister[3].IR_INT & m_InterruptRegister[3].IR_MASK))
 	{
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_VI, true);
 	}
@@ -421,80 +970,58 @@ void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 {
 	switch(_VIInterrupt)
 	{
-	case INT_PRERETRACE:	m_VIInterruptRegister[0].IR_INT = 1; break;
-	case INT_POSTRETRACE:	m_VIInterruptRegister[1].IR_INT = 1; break;
-	case INT_REG_2:			m_VIInterruptRegister[2].IR_INT = 1; break;
-	case INT_REG_3:			m_VIInterruptRegister[3].IR_INT = 1; break;
+	case INT_PRERETRACE:	m_InterruptRegister[0].IR_INT = 1; break;
+	case INT_POSTRETRACE:	m_InterruptRegister[1].IR_INT = 1; break;
+	case INT_REG_2:			m_InterruptRegister[2].IR_INT = 1; break;
+	case INT_REG_3:			m_InterruptRegister[3].IR_INT = 1; break;
 	}
 
 	UpdateInterrupts();
 
 	// debug check
-	if ((m_VIInterruptRegister[2].IR_MASK == 1) ||
-		(m_VIInterruptRegister[3].IR_MASK == 1))
+	if ((m_InterruptRegister[2].IR_MASK == 1) ||
+		(m_InterruptRegister[3].IR_MASK == 1))
 	{
-		PanicAlert("m_VIInterruptRegister[2 and 3] activated - Tell F|RES :)");
+		PanicAlert("m_InterruptRegister[2 and 3] activated - Tell F|RES :)");
 	}
 }
 
-u8* GetFrameBufferPointer()
+u8* GetXFBPointerTop()
 {
-	return Memory::GetPointer(VideoInterface::m_FrameBufferTop.Hex);
+	if (m_XFBInfoTop.POFF)
+		return Memory::GetPointer(m_XFBInfoTop.FBB << 5);
+	else
+		return Memory::GetPointer(m_XFBInfoTop.FBB);
 }
 
-void PreInit(bool _bNTSC)
+u8* GetXFBPointerBottom()
 {
-	TicksPerFrame = 0;
-	LineCount = 0;
-	LastTime = 0;
-
-	Write16(0x4769, 0xcc002004);
-	Write16(0x01ad, 0xcc002006);
-	Write16(0x5140, 0xcc00200a);
-	Write16(0x02ea, 0xcc002008);
-	Write16(0x0006, 0xcc002000);
-	Write16(0x01f6, 0xcc00200e);
-	Write16(0x0005, 0xcc00200c);
-	Write16(0x01f7, 0xcc002012);
-	Write16(0x0004, 0xcc002010);
-	Write16(0x410c, 0xcc002016);
-	Write16(0x410c, 0xcc002014);
-	Write16(0x40ed, 0xcc00201a);
-	Write16(0x40ed, 0xcc002018);
-	Write16(0x2828, 0xcc002048);
-	Write16(0x0001, 0xcc002036);
-	Write16(0x1001, 0xcc002034);
-	Write16(0x01ae, 0xcc002032);
-	Write16(0x1107, 0xcc002030);
-	Write16(0x0000, 0xcc00206c);
-
-    if (_bNTSC)
-        Write16(0x0001, 0xcc002002);	// STATUS REG
-    else
-        Write16(0x0101, 0xcc002002);	// STATUS REG
-}
-
-void SetRegionReg(char _region)
-{
-	Write16((u16)_region, 0xcc00206e);
+	if (m_XFBInfoBottom.POFF)
+		return Memory::GetPointer(m_XFBInfoBottom.FBB << 5);
+	else
+		return Memory::GetPointer(m_XFBInfoBottom.FBB);
 }
 
 void UpdateTiming()
 {
-    switch (m_VIDisplayControlRegister.FMT)
+    switch (m_DisplayControlRegister.FMT)
     {
-    case 0:
-    case 2:
+    case 0: // NTSC
+    case 2: // MPAL
         TicksPerFrame = SystemTimers::GetTicksPerSecond() / 30;
-        LineCount = m_VIDisplayControlRegister.NIN ? 263 : 525;
+        LineCount = m_DisplayControlRegister.NIN ? 263 : 525;
 		LinesPerField = 263;
         break;
 
-    case 1:
+    case 1: // PAL
         TicksPerFrame = SystemTimers::GetTicksPerSecond() / 25;
-        LineCount = m_VIDisplayControlRegister.NIN ? 313 : 625;
+        LineCount = m_DisplayControlRegister.NIN ? 313 : 625;
 		LinesPerField = 313;
         break;
+
+	case 3: // Debug
+		PanicAlert("Debug video mode not implemented");
+		break;
 
     default:
         PanicAlert("Unknown Video Format - CVideoInterface");
@@ -508,13 +1035,13 @@ void Update()
     {
         LastTime += (TicksPerFrame / LineCount);
 
-        VerticalBeamPos++;
-        if (VerticalBeamPos > LineCount)
+        m_VBeamPos++;
+        if (m_VBeamPos > LineCount)
         {
-            VerticalBeamPos = 1;
+            m_VBeamPos = 1;
         }
 
-		if (VerticalBeamPos == NextXFBRender)
+		if (m_VBeamPos == NextXFBRender)
 		{
 			u8* xfbPtr = 0;
 			int yOffset = 0;
@@ -528,30 +1055,28 @@ void Update()
 					// TODO: proper VI regs typedef and logic for XFB to work.
 					// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
 					// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
-					u32 addr = (m_FrameBufferTop.Hex & 0x00FFFFFF);
-					if (m_FrameBufferTop.Hex & 0x10000000)
-						addr = addr << 5;
-					xfbPtr = Memory::GetPointer(addr);
+					xfbPtr = GetXFBPointerTop();
 					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad top XFB address");
 				}
 				else
 				{
 					NextXFBRender = 1;
-					// TODO: proper VI regs typedef and logic for XFB to work.
-					u32 addr = (m_FrameBufferBottom.Hex & 0x00FFFFFF);
-					// check the top buffer address not the bottom <- (mb2) why not on the bottom one?
-					if (m_FrameBufferTop.Hex & 0x10000000)
-						addr = addr << 5;
-					xfbPtr = Memory::GetPointer(addr);
+					// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
+					xfbPtr = GetXFBPointerBottom();
 					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad bottom XFB address");
 					yOffset = -1;
 				}
+
 				Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+
 				if (xfbPtr && video->IsValid())
 				{
-					int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
-					int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;
-					//LOGV(VIDEOINTERFACE,2,"(VI->XFBUpdate): ptr: %08x | %ix%i", (u32)xfbptr, fbWidth, fbHeight);
+					int fbWidth = m_HorizontalStepping.FieldSteps * 16;
+					int fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+					
+					DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %p | %ix%i | xoff: %i",
+						xfbPtr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
+
 					if (Core::GetStartupParameter().bUseDualCore)
 						// scheduled on EmuThread in DC mode
 						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 
@@ -563,16 +1088,16 @@ void Update()
 		}
 
         // check INT_PRERETRACE
-        if (m_VIInterruptRegister[0].VCT == VerticalBeamPos)
+        if (m_InterruptRegister[0].VCT == m_VBeamPos)
         {
-            m_VIInterruptRegister[0].IR_INT = 1;
+            m_InterruptRegister[0].IR_INT = 1;
             UpdateInterrupts();
         }
 
         // INT_POSTRETRACE
-        if (m_VIInterruptRegister[1].VCT == VerticalBeamPos)
+        if (m_InterruptRegister[1].VCT == m_VBeamPos)
         {
-            m_VIInterruptRegister[1].IR_INT = 1;
+            m_InterruptRegister[1].IR_INT = 1;
             UpdateInterrupts();
         }
     }

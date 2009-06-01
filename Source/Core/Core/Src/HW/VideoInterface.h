@@ -30,6 +30,10 @@ namespace VideoInterface
 		INT_REG_3,
 	};
 
+	// For BIOS HLE
+	void PreInit(bool _bNTSC);
+	void SetRegionReg(char _region);
+
 	void Init();	
 	void DoState(PointerWrap &p);
 
@@ -41,28 +45,20 @@ namespace VideoInterface
 				
 	void GenerateVIInterrupt(VIInterruptType _VIInterrupt);	
 
-	// returns a pointer to the current visible framebuffer
-	u8* GetFrameBufferPointer();
+	// returns a pointer to the current visible xfb
+	u8* GetXFBPointerTop();
+	u8* GetXFBPointerBottom();
 
-	// pre init
-	void PreInit(bool _bNTSC);
-
-	void SetRegionReg(char _region);
-
-	// VI Unknown Regs
-	extern u8 m_UVIUnknownRegs[0x1000];
-
-    // ??????
+    // Update and draw framebuffer(s)
     void Update();
 
-
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt
-	void UpdateInterrupts();	
+	void UpdateInterrupts();
 
-    // ??????
+    // Change values pertaining to video mode
     void UpdateTiming();
 };
 
-#endif
+#endif // _VIDEOINTERFACE_H
 
 
