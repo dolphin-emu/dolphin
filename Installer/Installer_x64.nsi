@@ -6,7 +6,7 @@
 !define PRODUCT_NAME "Dolphin x64"
 !define PRODUCT_PUBLISHER "Dolphin Team"
 !define PRODUCT_WEB_SITE "http://www.dolphin-emu.com"
-!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\DolphinWx.exe"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Dolphin.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
@@ -136,22 +136,21 @@ Section "Complete" SEC01
   ; TODO: Make a nice subsection-ized display
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File "${BASE_DIR}\DolphinWx.exe"
+  File "${BASE_DIR}\Dolphin.exe"
   File "..\Externals\Cg64\cg.dll"
   File "..\Externals\Cg64\cgGL.dll"
   File "..\Externals\WiiUse\X64\wiiuse.dll"
   File "..\Externals\SDL\x64\SDL.dll"
-  ; This needs to be done after DolphinWx.exe is copied
+  ; This needs to be done after Dolphin.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(^Name).lnk" "$INSTDIR\DolphinWx.exe"
-  CreateShortCut "$DESKTOP\$(^Name).lnk" "$INSTDIR\DolphinWx.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(^Name).lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$DESKTOP\$(^Name).lnk" "$INSTDIR\Dolphin.exe"
 
   ; Plugins
   SetOutPath "$INSTDIR\Plugins"
   SetOverwrite ifnewer
   File "${BASE_DIR}\Plugins\Plugin_DSP_HLE.dll"
   File "${BASE_DIR}\Plugins\Plugin_DSP_LLE.dll"
-  File "${BASE_DIR}\Plugins\Plugin_DSP_NULL.dll"
   File "${BASE_DIR}\Plugins\Plugin_nJoy_SDL.dll"
   File "${BASE_DIR}\Plugins\Plugin_nJoy_SDL_Test.dll"
   File "${BASE_DIR}\Plugins\Plugin_PadSimple.dll"
@@ -189,10 +188,10 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\DolphinWx.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\Dolphin.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\DolphinWx.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Dolphin.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -227,7 +226,7 @@ Section Uninstall
   Delete "$INSTDIR\Sys\Wii\setting-eur.txt"
   Delete "$INSTDIR\Sys\GC\font_sjis.bin"
   Delete "$INSTDIR\Sys\GC\font_ansi.bin"
-  Delete "$INSTDIR\DolphinWx.exe"
+  Delete "$INSTDIR\Dolphin.exe"
 
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
   Delete "$DESKTOP\$(^Name).lnk"
