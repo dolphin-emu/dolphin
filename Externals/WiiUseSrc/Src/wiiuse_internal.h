@@ -152,6 +152,7 @@
 
 /* encrypted expansion id codes (located at 0x04A400FC) */
 #define EXP_ID_CODE_NUNCHUK					0x9A1EFEFE
+#define EXP_ID_CODE_WII_BOARD				0xa4200402
 #define EXP_ID_CODE_CLASSIC_CONTROLLER		0x9A1EFDFD
 #define EXP_ID_CODE_GUITAR					0x9A1EFDFB
 

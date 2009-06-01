@@ -444,6 +444,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\wiiboard.c"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\wiiuse.c"
 				>
 			</File>
@@ -486,6 +490,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\os.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\wiiboard.h"
 				>
 			</File>
 			<File
