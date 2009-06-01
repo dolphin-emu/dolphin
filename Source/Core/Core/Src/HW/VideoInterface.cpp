@@ -179,8 +179,8 @@ union UVIBurstBlankingRegister
 	{		
 		unsigned BS0		:	 5; // Field x start to burst blanking start in halflines
 		unsigned BE0		:	11; // Field x start to burst blanking end in halflines
-		unsigned BS1		:	 5; // Field x+2 start to burst blanking start in halflines
-		unsigned BE1		:	11; // Field x+2 start to burst blanking end in halflines
+		unsigned BS2		:	 5; // Field x+2 start to burst blanking start in halflines
+		unsigned BE2		:	11; // Field x+2 start to burst blanking end in halflines
 	};
 };
 
@@ -378,33 +378,50 @@ void PreInit(bool _bNTSC)
 	LineCount = 0;
 	LastTime = 0;
 
-	Write16(0x0006, 0xcc002000);
+	m_VerticalTimingRegister.EQU = 6;
 
-	if (_bNTSC)
-		Write16(0x0001, 0xcc002002);
-	else
-		Write16(0x0101, 0xcc002002);
+	m_DisplayControlRegister.ENB = 1;
+	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
 
-	Write16(0x4769, 0xcc002004);
-	Write16(0x01ad, 0xcc002006);
-	Write16(0x02ea, 0xcc002008);
-	Write16(0x5140, 0xcc00200a);
-	Write16(0x0005, 0xcc00200c);
-	Write16(0x01f6, 0xcc00200e);
-	Write16(0x0004, 0xcc002010);
-	Write16(0x01f7, 0xcc002012);
-	Write16(0x410c, 0xcc002014);
-	Write16(0x410c, 0xcc002016);
-	Write16(0x40ed, 0xcc002018);
-	Write16(0x40ed, 0xcc00201a);
-	Write16(0x1107, 0xcc002030);
-	Write16(0x01ae, 0xcc002032);
-	Write16(0x1001, 0xcc002034);
-	Write16(0x0001, 0xcc002036);
-	Write16(0x2828, 0xcc002048);
-	Write16(0x0000, 0xcc00206c);
+	m_HTiming0.HLW = 429;
+	m_HTiming0.HCE = 105;
+	m_HTiming0.HCS = 71;
+	m_HTiming1.HSY = 64;
+	m_HTiming1.HBE640 = 162;
+	m_HTiming1.HBS640 = 373;
+
+	m_VBlankTimingOdd.PRB = 502;
+	m_VBlankTimingOdd.PSB = 5;
+	m_VBlankTimingEven.PRB = 503;
+	m_VBlankTimingEven.PSB = 4;
+
+	m_BurstBlankingOdd.BS0 = 12;
+	m_BurstBlankingOdd.BE0 = 520;
+	m_BurstBlankingOdd.BS2 = 12;
+	m_BurstBlankingOdd.BE2 = 520;
+	m_BurstBlankingEven.BS0 = 13;
+	m_BurstBlankingEven.BE0 = 519;
+	m_BurstBlankingEven.BS2 = 13;
+	m_BurstBlankingEven.BE2 = 519;
+
+	m_InterruptRegister[0].HCT = 430;
+	m_InterruptRegister[0].VCT = 263;
+	m_InterruptRegister[0].IR_MASK = 1;
+	m_InterruptRegister[0].IR_INT = 0;
+	m_InterruptRegister[1].HCT = 1;
+	m_InterruptRegister[1].VCT = 1;
+	m_InterruptRegister[1].IR_MASK = 1;
+	m_InterruptRegister[1].IR_INT = 0;
+
+	m_HorizontalStepping.FbSteps = 40;
+	m_HorizontalStepping.FieldSteps = 40;
+
+	m_Clock = 0;
+
 	// Say component cable is plugged
 	m_DTVStatus = 1;
+
+	UpdateTiming();
 }
 
 void SetRegionReg(char _region)
