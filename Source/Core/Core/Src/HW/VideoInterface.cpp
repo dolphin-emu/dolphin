@@ -441,14 +441,21 @@ void Init()
 
 void Read8(u8& _uReturnValue, const u32 _iAddress)
 {
+	// Just like 32bit VI transfers, this is technically not allowed,
+	// but the hardware accepts it. Action Replay uses this.
 	u16 val = 0;
 
 	if (_iAddress % 2 == 0)
+	{
 		Read16(val, _iAddress);
+		_uReturnValue = (u8)(val >> 8);
+	}
 	else
+	{
 		Read16(val, _iAddress - 1);
+		_uReturnValue = (u8)val;
+	}
 
-	_uReturnValue = (u8)val;
 	INFO_LOG(VIDEOINTERFACE, "(r 8): 0x%02x, 0x%08x", _uReturnValue, _iAddress);
 }
 
