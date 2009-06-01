@@ -6,7 +6,7 @@ include "dsp_base.inc"
 </header>
 <body>
 lri $IX0, #0x0000
-lri $SR @SR@
+lri $SR, @SR@
 
 @CMD@
 lri $IX0, #0x1337       
