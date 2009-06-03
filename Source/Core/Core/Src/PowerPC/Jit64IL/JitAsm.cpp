@@ -211,6 +211,15 @@ const float m_dequantizeTableS[] =
 
 float psTemp[2];
 
+const float m_65535 = 65535.0f;
+
+
+#define QUANTIZE_OVERFLOW_SAFE
+// according to Intel Docs CVTPS2DQ writes 0x80000000 if the source floating point value is out of int32 range
+// while it's OK for large negatives, it isn't for positives
+// I don't know whether the overflow actually happens in any games
+// but it potentially can cause problems, so we need some clamping
+
 void AsmRoutineManager::GenQuantizedStores() {
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
@@ -253,6 +262,11 @@ void AsmRoutineManager::GenQuantizedStores() {
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
+#ifdef QUANTIZE_OVERFLOW_SAFE	
+	MOVSS(XMM1, M((void *)&m_65535));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MINPS(XMM0, R(XMM1));
+#endif
 	CVTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	PACKUSWB(XMM0, R(XMM0));
@@ -270,6 +284,11 @@ void AsmRoutineManager::GenQuantizedStores() {
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
+#ifdef QUANTIZE_OVERFLOW_SAFE	
+	MOVSS(XMM1, M((void *)&m_65535));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MINPS(XMM0, R(XMM1));
+#endif
 	CVTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	PACKSSWB(XMM0, R(XMM0));
@@ -287,14 +306,24 @@ void AsmRoutineManager::GenQuantizedStores() {
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
-	CVTPS2DQ(XMM0, R(XMM0));
+
+	// PACKUSDW is available only in SSE4	
 	PXOR(XMM1, R(XMM1));
-	PCMPGTD(XMM1, R(XMM0));
-	PANDN(XMM0, R(XMM1));
-	PACKSSDW(XMM0, R(XMM0)); //PACKUSDW(XMM0, R(XMM0)); // FIXME: Wrong!
-	MOVD_xmm(R(EAX), XMM0);
+	MAXPS(XMM0, R(XMM1));
+	MOVSS(XMM1, M((void *)&m_65535));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MINPS(XMM0, R(XMM1));
+
+	CVTPS2DQ(XMM0, R(XMM0));
+	MOVQ_xmm(M(psTemp), XMM0);
+	// place ps[0] into the higher word, ps[1] into the lower
+	// so no need in ROL after BSWAP
+	MOVZX(32, 16, EAX, M((char*)psTemp + 0));
+	SHL(32, R(EAX), Imm8(16));
+	MOV(16, R(AX), M((char*)psTemp + 4));
+
 	BSWAP(32, EAX);
-	ROL(32, R(EAX), Imm8(16));
+	//ROL(32, R(EAX), Imm8(16));
 #ifdef _M_X64
 	MOV(32, MComplex(RBX, RCX, 1, 0), R(EAX));
 #else
@@ -308,6 +337,11 @@ void AsmRoutineManager::GenQuantizedStores() {
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
+#ifdef QUANTIZE_OVERFLOW_SAFE	
+	MOVSS(XMM1, M((void *)&m_65535));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MINPS(XMM0, R(XMM1));
+#endif
 	CVTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
