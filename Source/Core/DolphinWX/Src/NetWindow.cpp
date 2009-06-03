@@ -63,14 +63,14 @@ void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 {
 	unsigned short server_port;
 
-	m_address = std::string(m_ConAddr->GetValue().mb_str());
-	m_nick = std::string(m_SetNick->GetValue().mb_str());
+	m_address	= std::string(m_ConAddr->GetValue().mb_str());
+	m_nick		= std::string(m_SetNick->GetValue().mb_str());
 
-	wxString host = m_address.substr(0, m_address.find(':'));
-	wxString port_str = m_address.substr(m_address.find(':')+1);
+	sf::IPAddress host		= m_address.substr(0, m_address.find(':'));
+	std::string port_str	= m_address.substr(m_address.find(':') + 1);
 
-	TryParseInt(port_str.mb_str(), (int *)&server_port);          // Server port
-	TryParseInt(m_SetPort->GetValue().mb_str(), (int *)&m_port);  // User port
+	TryParseUInt(port_str,							(u32*)&server_port);	// Server port
+	TryParseUInt(m_SetPort->GetValue().mb_str(),	(u32*)&m_port);			// User port
 	
 	if (m_nick.size() > 255)
 		m_nick = m_nick.substr(0 , 255);
@@ -81,7 +81,7 @@ void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 	sf::SocketTCP sock_client;
 	sf::SocketUDP sock_client_UDP;
 
-	if (sock_client.Connect(server_port, (const char*)host.mb_str(), 1.5) == sf::Socket::Done)
+	if (sock_client.Connect(server_port, host, 1.5) == sf::Socket::Done)
 	{
 		// Try to Bind the UDP Socket
 		if (sock_client_UDP.Bind(m_port))
