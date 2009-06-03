@@ -45,7 +45,7 @@ struct Config
     void Load();
 	void GameIniLoad();
     void Save();
-	void UpdateHack();
+	void UpdateProjectionHack();
 
     // General
     bool bFullscreen;

@@ -217,7 +217,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     0x8000003c	Size of FST Size
     0x80000060	Copyright code */	
 
-    DVDInterface::DVDRead(0x00000000, 0x00000000, 6); // Game Code
+    DVDInterface::DVDRead(0x00000000, 0x00000000, 10); // Game Code
     Memory::Write_U32(0x5d1c9ea3, 0x00000018);		// Magic word it is a wii disc
     Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
     Memory::Write_U32(0x00000001, 0x00000024);		// Unknown
@@ -250,24 +250,11 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low       
     Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
     Memory::Write_U32(0x00000011, 0x00003138);		// Console type
-
-	// Pass the "#002 check"
-	u64 TMDOffset = 0;
-	if (VolumeHandler::GetTMDOffset(1, TMDOffset))
-	{
-		// IOS Version from TMD
-		VolumeHandler::RAWReadToPtr(Memory::GetPointer(0x00003141), TMDOffset + 0x18B, 1);
-		Memory::Write_U16(0xffff, 0x00003142);		// IOS revision
-		Memory::Write_U32(0x00062507, 0x00003144);	// Date in USA format
-	}
-	else
-	{
-		// Fake IOS9 Version 2.4
-		Memory::Write_U64(0x0009020400062507ULL, 0x00003140);
-	}
-
+	// 40 is copied from 88 after running apploader
+	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format
 	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
     Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
+	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
 
     Memory::Write_U8(0x80, 0x0000315c);				// OSInit
     Memory::Write_U8(0x00, 0x00000006);				// DVDInit
@@ -278,7 +265,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     // Fake the VI Init of the BIOS 
     Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
-    // Clear exception handler. Why? Don't we begin with only zeroes?
+    // Clear exception handler. Why? Don't we begin with only zeros?
     for (int i = 0x3000; i <= 0x3038; i += 4)
     {
         Memory::Write_U32(0x00000000, 0x80000000 + i);
@@ -314,8 +301,6 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;
-
-		//TODO: Game iso info to 0x80000000 according to yagcd - or does apploader do this?
 
 		Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:		rfi
 		Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:	    rfi	
@@ -354,9 +339,9 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		PowerPC::ppcState.gpr[3] = 0x81300000; 
 		RunFunction(iAppLoaderInit);
 
-		// Let the apploader load the exe to memory. At this point I get an unknwon IPC command
+		// Let the apploader load the exe to memory. At this point I get an unknown IPC command
 		// (command zero) when I load Wii Sports or other games a second time. I don't notice
-		// any side effects however. It's a little disconcerning however that Start after Stop
+		// any side effects however. It's a little disconcerting however that Start after Stop
 		// behaves differently than the first Start after starting Dolphin. It means something
 		// was not reset correctly. 
 		DEBUG_LOG(BOOT, "Run iAppLoaderMain");
@@ -379,6 +364,10 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		// iAppLoaderClose
 		DEBUG_LOG(BOOT, "Run iAppLoaderClose");
 		RunFunction(iAppLoaderClose);
+
+		// Pass the "#002 check"
+		// Apploader writes the IOS version and revision here, we copy it
+		Memory::Write_U32(Memory::Read_U32(0x80003188), 0x00003140);
 
 		// Load patches and run startup patches
 		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
