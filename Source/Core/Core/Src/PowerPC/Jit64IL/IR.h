@@ -119,6 +119,7 @@ namespace IREmitter {
 		ExpandPackedToMReg,
 		CompactMRegToPacked,
 		LoadFReg,
+		LoadFRegDENToZero,
 		FSMul,
 		FSAdd,
 		FSSub,
@@ -410,6 +411,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitLoadFReg(unsigned freg) {
 			return FoldZeroOp(LoadFReg, freg);
+		}
+		InstLoc EmitLoadFRegDENToZero(unsigned freg) {
+			return FoldZeroOp(LoadFRegDENToZero, freg);
 		}
 		InstLoc EmitStoreFReg(InstLoc val, unsigned freg) {
 			return FoldUOp(StoreFReg, val, freg);

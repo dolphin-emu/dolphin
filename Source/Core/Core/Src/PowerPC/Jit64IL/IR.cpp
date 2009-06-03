@@ -257,6 +257,10 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 			FRegCache[extra] = EmitZeroOp(LoadFReg, extra);
 		return FRegCache[extra];
 	}
+	if (Opcode == LoadFRegDENToZero) {
+		// cant use cache here
+		return EmitZeroOp(LoadFRegDENToZero, extra);
+	}
 	if (Opcode == LoadCarry) {
 		if (!CarryCache)
 			CarryCache = EmitZeroOp(LoadCarry, extra);
@@ -1313,6 +1317,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case LoadCTR:
 		case LoadMSR:
 		case LoadFReg:
+		case LoadFRegDENToZero:
 		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
@@ -1978,6 +1983,22 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
+			Jit->MOVAPD(reg, M(&PowerPC::ppcState.ps[ppcreg]));
+			RI.fregs[reg] = I;
+			break;
+		}	    
+		case LoadFRegDENToZero: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			unsigned ppcreg = *I >> 8;
+			char *p = (char*)&(PowerPC::ppcState.ps[ppcreg][0]);
+			Jit->MOV(32, R(ECX), M(p+4));
+			Jit->AND(32, R(ECX), Imm32(0x7ff00000));
+			Jit->CMP(32, R(ECX), Imm32(0x38000000));
+			FixupBranch ok = Jit->J_CC(CC_AE);
+			Jit->AND(32, M(p+4), Imm32(0x80000000));
+			Jit->MOV(32, M(p), Imm32(0));
+			Jit->SetJumpTarget(ok);
 			Jit->MOVAPD(reg, M(&PowerPC::ppcState.ps[ppcreg]));
 			RI.fregs[reg] = I;
 			break;
