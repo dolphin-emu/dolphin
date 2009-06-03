@@ -160,7 +160,7 @@ void DSound::SetVolume(int volume)
 	m_volume = (int)floor(log10((float)volume) * 5000.0f) - 10000;
 
 	soundCriticalSection.Enter();
-	if (ds != NULL)
+	if (dsBuffer != NULL)
 		dsBuffer->SetVolume(m_volume);
 	soundCriticalSection.Leave();
 }

@@ -68,6 +68,8 @@ public:
 		, totalRenderedBytes(0)
 		, currentPos(0)
 		, lastPos(0)
+		, dsBuffer(0)
+		, ds(0)
 	{}
 
     virtual ~DSound() {}

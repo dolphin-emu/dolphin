@@ -329,7 +329,7 @@ void ConfigDialog::ToBlank(bool ToBlank)
 {
 	if (!ControlsCreated) return;
 
-	for (int j = 0; j < 4; j++)
+	for (int j = 0; j < 1; j++)
 	{
 		if(ToBlank)
 		{
