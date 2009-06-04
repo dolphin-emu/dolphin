@@ -570,9 +570,7 @@ void BPWritten(const Bypass& bp)
 			case BPMEM_TEV_ALPHA_ENV+30:
 			case BPMEM_TEV_COLOR_ENV+32: // Texture Environment 16
 			case BPMEM_TEV_ALPHA_ENV+32:
-				break;
-			default:
-				//WARN_LOG(VIDEO, "Unknown Bypass opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue); 
+				break; 
 			}
 			
 		}
