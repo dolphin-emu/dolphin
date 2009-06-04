@@ -460,6 +460,7 @@ void Host_UpdateGUI()
 }
 #endif
 
+// g_VideoInitialize.pSysMessage() goes here
 void Host_SysMessage(const char *fmt, ...) 
 {
 	va_list list;
@@ -470,7 +471,8 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(list);
 
 	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	wxMessageBox(wxString::FromAscii(msg));
+	//wxMessageBox(wxString::FromAscii(msg));
+	PanicAlert("%s", msg);
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
