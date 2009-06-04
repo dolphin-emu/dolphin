@@ -28,8 +28,12 @@ int main()
 
 	while(1)
 	{
-		std::cout<<"\x1b[0;0H"; // Position the cursor (at 0, 0)
+		VIDEO_WaitVSync();
+
+		console_init(xfb,20,20,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
+
 		PAD_Read(pad);
+
 		for(int a = 0; a < 4;a ++)
 		{
 			if(pad[a].err & PAD_ERR_NO_CONTROLLER)
@@ -38,7 +42,7 @@ int main()
 				continue;
 			}
 			std::cout<<"pad["<<a<<"] Sticks: Main[ "<<(int)pad[a].stickX<<", "<<(int)pad[a].stickY<<" ] Sub[ "<<(int)pad[a].substickX<<", "<<(int)pad[a].substickX<<" ]\n";
-			std::cout<<"pad["<<a<<"] Analog Triggers: Left "<<(int)pad[a].triggerL<<" Right "<<(int)pad[a].triggerL<<"\n";
+			std::cout<<"pad["<<a<<"] Analog Triggers: Left "<<(int)pad[a].triggerL<<" Right "<<(int)pad[a].triggerR<<"\n";
 			std::cout<<"pad["<<a<<"] Buttons: "<<
 				(pad[a].button & PAD_BUTTON_START? "Start " : "")<<
 				(pad[a].button & PAD_BUTTON_A ? "A " : "")<<
@@ -54,11 +58,7 @@ int main()
 				(pad[a].button & PAD_BUTTON_LEFT ? "Left " : "")<<
 				(pad[a].button & PAD_BUTTON_RIGHT ? "Right " : "")<<std::endl;
 			}
-		VIDEO_WaitVSync();
-
-		int buttonsDown = PAD_ButtonsDown(0);
-	}
-	
+	}	
 }
 
 void Initialise()
