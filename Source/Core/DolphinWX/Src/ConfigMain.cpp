@@ -255,7 +255,10 @@ void CConfigMain::CreateGUIControls()
 	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,"
 		"\nwhich can be more accurate, but is MUCH slower"));
 	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(wxT("Show Panic Alerts Popups"));
+	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured."
+		" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin"
+		" suddenly crashes without any explanation at all."
+		));
 	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
 	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window."
 		"\nIt can be convenient in a Wii game that already has a cursor."));
