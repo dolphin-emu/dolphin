@@ -145,7 +145,7 @@ CSIDevice_GBA::GetData(u32& _Hi, u32& _Low)
 // SendCommand
 //////////////////////////////////////////////////////////////////////////
 void
-CSIDevice_GBA::SendCommand(u32 _Cmd)
+CSIDevice_GBA::SendCommand(u32 _Cmd, u8 _Poll)
 {
 	INFO_LOG(SERIALINTERFACE, "GBA %i SendCommand: (0x%08x)", this->m_iDeviceNumber, _Cmd);
 }

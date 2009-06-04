@@ -54,7 +54,7 @@ public:
 	virtual bool GetData(u32& _Hi, u32& _Low) = 0;
 
 	// Send a command directly (no detour per buffer)
-	virtual void SendCommand(u32 _Cmd) = 0;
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
 };
 
 // SI Device IDs

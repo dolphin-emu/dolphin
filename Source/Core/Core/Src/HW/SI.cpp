@@ -452,10 +452,10 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			// send command to devices
 			if (tmpStatus.WR)
 			{
-				g_Channel[0].m_pDevice->SendCommand(g_Channel[0].m_Out.Hex);
-				g_Channel[1].m_pDevice->SendCommand(g_Channel[1].m_Out.Hex);
-				g_Channel[2].m_pDevice->SendCommand(g_Channel[2].m_Out.Hex);
-				g_Channel[3].m_pDevice->SendCommand(g_Channel[3].m_Out.Hex);
+				g_Channel[0].m_pDevice->SendCommand(g_Channel[0].m_Out.Hex, g_Poll.EN0);
+				g_Channel[1].m_pDevice->SendCommand(g_Channel[1].m_Out.Hex, g_Poll.EN1);
+				g_Channel[2].m_pDevice->SendCommand(g_Channel[2].m_Out.Hex, g_Poll.EN2);
+				g_Channel[3].m_pDevice->SendCommand(g_Channel[3].m_Out.Hex, g_Poll.EN3);
 
 				g_StatusReg.WR = 0;
 				g_StatusReg.WRST0 = 0;

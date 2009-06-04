@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
 
@@ -44,8 +45,8 @@ CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
 	m_origin.uSubStickStickY	= 0x80;
 	m_origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
 	m_origin.uTrigger_R			= 0x1F;
-	// I'm borrowing this variable for the PadAnalogMode
-	m_origin.unk_1				= 3; // Mode 3 as default
+	// Dunno if we need to do this, game/lib should set it?
+	m_Mode						= 0x03; // PadAnalogMode 3 as default
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -54,14 +55,14 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	ISIDevice::RunBuffer(_pBuffer, _iLength);
 
 	int iPosition = 0;
-	while(iPosition < _iLength)
+	while (iPosition < _iLength)
 	{
 		// Read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
 
 		// Handle it
-		switch(command)
+		switch (command)
 		{
 		case CMD_RESET:
 			{
@@ -144,31 +145,58 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		return true;
 	}
 #endif
+
+	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
 	_Hi |= (u32)((u16)PadStatus.button << 16);
 	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to match the "final" OSPad-Struct
 	//_Hi |= 0x20000000; // ?
 
-	if (m_origin.unk_1 == 0)
+	// Low bits are packed differently per mode
+	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 6 || m_Mode == 7)
 	{
-		// Mode 0, 5, 6, 7
-		_Low  = (u8)(PadStatus.analogB >> 4);
-		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);
-		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);
-		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);
-		_Low |= (u32)((u8)(PadStatus.substickY) << 16);
-		_Low |= (u32)((u8)(PadStatus.substickX) << 24);
+		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);	// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);	// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.substickY) << 16);			// All 8 bits
+		_Low |= (u32)((u8)(PadStatus.substickX) << 24);			// All 8 bits
 	}
-	else
+	else if (m_Mode == 1)
 	{
-		// Mode 3
-		_Low  = (u8)PadStatus.triggerRight;
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
-		_Low |= (u32)((u8)PadStatus.substickY << 16);
-		_Low |= (u32)((u8)PadStatus.substickX << 24);
+		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
+		_Low |= (u32)((u8)PadStatus.triggerRight << 8);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 16);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
 	}
-
+	else if (m_Mode == 2)
+	{
+		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 16);	// Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 20);	// Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
+	}
+	else if (m_Mode == 3)
+	{
+		// Analog A/B are always 0
+		_Low  = (u8)PadStatus.triggerRight;						// All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+	}
+	else if (m_Mode == 4)
+	{
+		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
+		// triggerLeft/Right are always 0
+		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+	}
 
 	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
@@ -179,28 +207,29 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 // SendCommand
 //////////////////////////////////////////////////////////////////////////
 void
-CSIDevice_GCController::SendCommand(u32 _Cmd)
+CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 {
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	UCommand command(_Cmd);
 
-	switch(command.Command)
+	switch (command.Command)
 	{
 	// Costis sent it in some demos :)
 	case 0x00:
 		break;
 
-	case CMD_RUMBLE:
+	case CMD_WRITE:
 		{
 			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 			unsigned int uStrength = command.Parameter2;
 			if (pad->PAD_Rumble)
 				pad->PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
 
-			// Set PadAnalogMode. Hopefully this will not be confused with rumble messages. Most games
-			// seems to always use uStrength = 3 for all rumble messages.
-			if (command.Parameter1 == 0 && command.Parameter2 == 0)
-				m_origin.unk_1 = 0;
+			if (!_Poll)
+			{
+				m_Mode = command.Parameter2;
+				ERROR_LOG(SERIALINTERFACE, "PAD %i set to mode %i", ISIDevice::m_iDeviceNumber, m_Mode);
+			}
 		}
 		break;
 

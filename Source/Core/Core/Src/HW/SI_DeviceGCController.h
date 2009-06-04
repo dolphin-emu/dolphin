@@ -55,24 +55,25 @@ private:
 
 	enum EDirectCommands
 	{
-		CMD_RUMBLE = 0x40
+		CMD_WRITE = 0x40
 	};
 
 	union UCommand
 	{
 		u32 Hex;
 		struct  
-		{		
+		{
 			unsigned Parameter1	:	8;
 			unsigned Parameter2	:	8;
 			unsigned Command	:	8;
 			unsigned			:	8;
 		};
-		UCommand()			{Hex = 0;}
+		UCommand()				{Hex = 0;}
 		UCommand(u32 _iValue)	{Hex = _iValue;}		
 	};
 
 	SOrigin m_origin;
+	u8 m_Mode;
 
 public:
 
@@ -89,6 +90,6 @@ public:
 	virtual bool GetData(u32& _Hi, u32& _Low);
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd);
+	virtual void SendCommand(u32 _Cmd, u8 _Poll);
 };
 #endif

@@ -72,7 +72,7 @@ public:
 	}
 
 	bool GetData(u32& _Hi, u32& _Low)	{INFO_LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
-	void SendCommand(u32 _Cmd)			{INFO_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
+	void SendCommand(u32 _Cmd, u8 _Poll){INFO_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
 };
 
 //////////////////////////////////////////////////////////////////////////
