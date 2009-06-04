@@ -587,10 +587,10 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0xE2:
 		{
-	/*		if (m_bStream)
+	/**/	if (m_bStream)
 				dvdMem.Immediate = 1;
 			else
-				dvdMem.Immediate = 0;*/
+				dvdMem.Immediate = 0;
 		}
 		DEBUG_LOG(DVDINTERFACE, "DVD(Audio): Request Audio status");
 		break;
@@ -609,16 +609,16 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E4010000 (enable)
 	//=========================================================================================================
 	case 0xE4:
-/*		if (((dvdMem.Command[0] & 0x00FF0000) >> 16) == 1)
+/**/		if (((dvdMem.Command[0] & 0x00FF0000) >> 16) == 1)
 		{
 			m_bStream = true;
-			LOG(DVDINTERFACE, "DVD(Audio): Audio enabled");
+			DEBUG_LOG(DVDINTERFACE, "DVD(Audio): Audio enabled");
 		}
 		else
 		{
 			m_bStream = false;
-			LOG(DVDINTERFACE, "DVD(Audio): Audio disabled");
-		}*/
+			DEBUG_LOG(DVDINTERFACE, "DVD(Audio): Audio disabled");
+		}
 		break;
 
 	//=========================================================================================================

@@ -174,6 +174,12 @@ void Write32(const u32 _Value, const u32 _Address)
                 INFO_LOG(AUDIO_INTERFACE, "Change Freq to %s", tmpAICtrl.AFR ? "48khz":"32khz");
                 g_AudioRegister.m_Control.AFR = tmpAICtrl.AFR;
             }
+			// Set DSP frequency
+            if (tmpAICtrl.DSPFR != g_AudioRegister.m_Control.DSPFR)
+            {	
+                INFO_LOG(AUDIO_INTERFACE, "AI_CONTROL_REGISTER: Change DSPFR Freq to %s", tmpAICtrl.DSPFR ? "48khz":"32khz");
+                g_AudioRegister.m_Control.DSPFR = tmpAICtrl.DSPFR;
+            }
 
 			g_SampleRate = tmpAICtrl.AFR ? 32000 : 48000;
 			g_DSPSampleRate = tmpAICtrl.DSPFR ? 32000 : 48000;
@@ -186,8 +192,11 @@ void Write32(const u32 _Value, const u32 _Address)
             {
                 INFO_LOG(AUDIO_INTERFACE, "Change StreamingCounter to %s", tmpAICtrl.PSTAT ? "startet":"stopped");
                 g_AudioRegister.m_Control.PSTAT	= tmpAICtrl.PSTAT;
-
                 g_LastCPUTime = CoreTiming::GetTicks();
+
+				// This is the only new code in this ~3,326 revision, it seems to avoid hanging Crazy Taxi,
+				// while the 1080 and Wave Race music still works
+				if (!tmpAICtrl.PSTAT) DVDInterface::m_bStream = false;
             }
 
             // AI Interrupt
@@ -209,7 +218,8 @@ void Write32(const u32 _Value, const u32 _Address)
                 g_LastCPUTime = CoreTiming::GetTicks();
             }
 
-			g_AudioRegister.m_Control = tmpAICtrl;
+			// I don't think we need this
+			//g_AudioRegister.m_Control = tmpAICtrl;
 
             UpdateInterrupts();
 		}

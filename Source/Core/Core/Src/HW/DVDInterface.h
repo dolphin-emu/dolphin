@@ -38,6 +38,7 @@ bool IsLidOpen();
 // DVD Access Functions
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
+extern bool m_bStream;
 
 // Read32
 void Read32(u32& _uReturnValue, const u32 _iAddress);
