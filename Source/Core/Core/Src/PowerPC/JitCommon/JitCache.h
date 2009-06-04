@@ -46,6 +46,7 @@ struct JitBlock
 	u32 codeSize; 
 	u32 originalSize;
 	int runCount;  // for profiling.
+	int blockNum;
 
 #ifdef _WIN32
 	// we don't really need to save start and stop
@@ -55,6 +56,7 @@ struct JitBlock
 	LARGE_INTEGER ticCounter;	// for profiling - time.
 #endif
 	const u8 *checkedEntry;
+	const u8 *normalEntry;
 	bool invalid;
 	int flags;
 

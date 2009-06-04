@@ -168,6 +168,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		b.exitPtrs[1] = 0;
 		b.linkStatus[0] = false;
 		b.linkStatus[1] = false;
+		b.blockNum = num_blocks;
 		num_blocks++; //commit the current block
 		return num_blocks - 1;
 	}

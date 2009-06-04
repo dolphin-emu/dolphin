@@ -428,6 +428,7 @@ namespace CPUCompare
 		SetJumpTarget(skip);
 
 		const u8 *normalEntry = GetCodePtr();
+		b->normalEntry = normalEntry;
 		
 		if (ImHereDebug)
 			ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful

@@ -223,6 +223,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SlotA",			(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
 		ini.Get("Core", "SlotB",			(int*)&m_EXIDevice[1], EXIDEVICE_MEMORYCARD_B);
 		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2], EXIDEVICE_DUMMY);
+		ini.Get("Core", "ProfiledReJIT", &m_LocalCoreStartupParameter.bJITProfiledReJIT, false);
 		char sidevicenum[16];
 		for (int i = 0; i < 4; ++i)
 		{

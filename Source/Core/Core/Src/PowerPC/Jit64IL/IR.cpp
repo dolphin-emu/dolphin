@@ -138,6 +138,7 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #include "JitAsm.h"
 #include "Jit.h"
 #include "../../HW/GPFifo.h"
+#include "../../Core.h"
 using namespace Gen;
 
 namespace IREmitter {
@@ -1287,17 +1288,18 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
 		RI.Jit->WriteExit(RI.Build->GetImmValue(dest), RI.exitNumber++);
 	} else {
-		RI.Jit->MOV(32, R(EAX), regLocForInst(RI, dest));
+		if (!regLocForInst(RI, dest).IsSimpleReg(EAX))
+			RI.Jit->MOV(32, R(EAX), regLocForInst(RI, dest));
 		RI.Jit->WriteExitDestInEAX(RI.exitNumber++);
 	}
 }
 
-static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
+static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool MakeProfile) {
 	//printf("Writing block: %x\n", js.blockStart);
 	RegInfo RI(Jit, ibuild->getFirstInst(), ibuild->getNumInsts());
 	RI.Build = ibuild;
 	RI.UseProfile = UseProfile;
-	RI.MakeProfile = false;//!RI.UseProfile;
+	RI.MakeProfile = MakeProfile;
 	// Pass to compute liveness
 	ibuild->StartBackPass();
 	for (unsigned int index = (unsigned int)RI.IInfo.size() - 1; index != -1U; --index) {
@@ -2268,13 +2270,12 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 }
 
 void Jit64::WriteCode() {
-	DoWriteCode(&ibuild, this, false);
+	DoWriteCode(&ibuild, this, false, Core::GetStartupParameter().bJITProfiledReJIT);
 }
 
 void ProfiledReJit() {
-	u8* x = (u8*)jit.GetCodePtr();
 	jit.SetCodePtr(jit.js.rewriteStart);
-	DoWriteCode(&jit.ibuild, &jit, true);
+	DoWriteCode(&jit.ibuild, &jit, true, false);
 	jit.js.curBlock->codeSize = (int)(jit.GetCodePtr() - jit.js.rewriteStart);
-	jit.SetCodePtr(x);
+	jit.GetBlockCache()->FinalizeBlock(jit.js.curBlock->blockNum, jit.jo.enableBlocklink, jit.js.curBlock->normalEntry);
 }
