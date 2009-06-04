@@ -657,7 +657,6 @@ void CFrame::OnHelp(wxCommandEvent& event)
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
 #if defined(HAVE_SFML) && HAVE_SFML
-
 	new NetPlay(this, m_GameListCtrl->GetGamePaths(), m_GameListCtrl->GetGameNames());
 #endif
 }
@@ -715,6 +714,7 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 
 void CFrame::OnResize(wxSizeEvent& event)
 {
+	FitInside();
 	DoMoveIcons();  // In FrameWiimote.cpp
 	event.Skip();
 }

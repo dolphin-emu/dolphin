@@ -454,7 +454,7 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
 		// This is for usability purposes, it may not be obvious at all that this must be unchecked
 		// for the recording to work
-		for(int i = 0; i < 4; i++) m_UseRealWiimote[i]->SetValue(false); g_Config.bUseRealWiimote = false;
+		for(int i = 0; i < 1; i++) m_UseRealWiimote[i]->SetValue(false); g_Config.bUseRealWiimote = false;
 		return;
 	}
 
