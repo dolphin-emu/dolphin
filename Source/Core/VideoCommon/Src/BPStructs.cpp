@@ -572,7 +572,7 @@ void BPWritten(const Bypass& bp)
 			case BPMEM_TEV_ALPHA_ENV+32:
 				break;
 			default:
-				WARN_LOG(VIDEO, "Unknown Bypass opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue); 
+				//WARN_LOG(VIDEO, "Unknown Bypass opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue); 
 			}
 			
 		}
