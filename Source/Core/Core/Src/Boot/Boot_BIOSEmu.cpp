@@ -367,7 +367,9 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 		// Pass the "#002 check"
 		// Apploader writes the IOS version and revision here, we copy it
-		Memory::Write_U32(Memory::Read_U32(0x80003188), 0x00003140);
+		// Fake IOSv9 r2.4 if no version is found (elf loading)
+		u32 firmwareVer = Memory::Read_U32(0x80003188);
+		Memory::Write_U32(firmwareVer ? firmwareVer : 0x00090204, 0x00003140);
 
 		// Load patches and run startup patches
 		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
