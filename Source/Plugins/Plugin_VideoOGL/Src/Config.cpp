@@ -82,6 +82,12 @@ void Config::Load()
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
+
+	// Load common settings
+	iniFile.Load(FULL_CONFIG_DIR "Dolphin.ini");
+	bool bTmp;
+	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
+	SetEnableAlert(bTmp);
 }
 
 void Config::GameIniLoad() {
