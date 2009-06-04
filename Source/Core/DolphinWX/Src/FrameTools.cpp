@@ -380,12 +380,6 @@ void CFrame::BootGame()
 		Core::RerecordingStart();
 	#endif
 
-	// shuffle2: wxBusyInfo is meant to be created on the stack
-	// and only stay around for the life of the scope it's in.
-	// If that is not what we want, find another solution. I don't
-	// think such a dialog is needed anyways, so maybe kill it?
-	wxBusyInfo bootingDialog(wxString::FromAscii("Booting..."), this);
-
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Core::GetState() == Core::CORE_RUN)
