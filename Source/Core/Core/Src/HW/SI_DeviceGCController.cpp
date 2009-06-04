@@ -44,6 +44,8 @@ CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
 	m_origin.uSubStickStickY	= 0x80;
 	m_origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
 	m_origin.uTrigger_R			= 0x1F;
+	// I'm borrowing this variable for the PadAnalogMode
+	m_origin.unk_1				= 3; // Mode 3 as default
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -148,10 +150,25 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to match the "final" OSPad-Struct
 	//_Hi |= 0x20000000; // ?
 
-	_Low  = (u8)PadStatus.triggerRight;
-	_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
-	_Low |= (u32)((u8)PadStatus.substickY << 16);
-	_Low |= (u32)((u8)PadStatus.substickX << 24);
+	if (m_origin.unk_1 == 0)
+	{
+		// Mode 0, 5, 6, 7
+		_Low  = (u8)(PadStatus.analogB >> 4);
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);
+		_Low |= (u32)((u8)(PadStatus.substickY) << 16);
+		_Low |= (u32)((u8)(PadStatus.substickX) << 24);
+	}
+	else
+	{
+		// Mode 3
+		_Low  = (u8)PadStatus.triggerRight;
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
+		_Low |= (u32)((u8)PadStatus.substickY << 16);
+		_Low |= (u32)((u8)PadStatus.substickX << 24);
+	}
+
 
 	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
@@ -179,6 +196,11 @@ CSIDevice_GCController::SendCommand(u32 _Cmd)
 			unsigned int uStrength = command.Parameter2;
 			if (pad->PAD_Rumble)
 				pad->PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
+
+			// Set PadAnalogMode. Hopefully this will not be confused with rumble messages. Most games
+			// seems to always use uStrength = 3 for all rumble messages.
+			if (command.Parameter1 == 0 && command.Parameter2 == 0)
+				m_origin.unk_1 = 0;
 		}
 		break;
 
