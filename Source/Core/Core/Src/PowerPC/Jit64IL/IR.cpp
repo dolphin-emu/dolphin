@@ -259,8 +259,9 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 		return FRegCache[extra];
 	}
 	if (Opcode == LoadFRegDENToZero) {
-		// cant use cache here
-		return EmitZeroOp(LoadFRegDENToZero, extra);
+		FRegCacheStore[extra] = 0; // prevent previous store operation from zapping
+		FRegCache[extra] = EmitZeroOp(LoadFRegDENToZero, extra);
+		return FRegCache[extra];
 	}
 	if (Opcode == LoadCarry) {
 		if (!CarryCache)
