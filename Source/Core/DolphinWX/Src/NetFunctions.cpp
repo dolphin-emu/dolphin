@@ -56,7 +56,7 @@ void NetPlay::OnNetEvent(wxCommandEvent& event)
 				m_numClients--;
 				AppendText( wxString::Format(wxT("ERROR : Network Error !\n"
 					"*Player : %s has been dropped from the game.\n\n"),
-					event.GetString().mb_str()) );
+			   		 (const char *)event.GetString().mb_str()) );
 			}
 		}
 		break;
@@ -518,7 +518,7 @@ bool ClientSide::isNewPadData(u32 *netValues, bool current, bool isVersus)
 
 }
 
-bool ServerSide::isNewPadData(u32 *netValues, bool current, char client)
+bool ServerSide::isNewPadData(u32 *netValues, bool current, int client)
 {
 #ifdef USE_TCP
 	if (current)

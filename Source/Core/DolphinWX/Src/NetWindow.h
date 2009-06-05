@@ -83,15 +83,15 @@ class ServerSide : public wxThread
 
 		virtual void *Entry();
 
-		void Write(char socknb, const char *data, size_t size, long *ping=NULL);
-		void WriteUDP(char socknb, const char *data, size_t size);
-		bool isNewPadData(u32 *netValues, bool current, char client=0);
+		void Write(int socknb, const char *data, size_t size, long *ping=NULL);
+		void WriteUDP(int socknb, const char *data, size_t size);
+		bool isNewPadData(u32 *netValues, bool current, int client=0);
 
 	private:
 		bool SyncValues(unsigned char, sf::IPAddress);
 		bool RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time = 0);
 		char GetSocket(sf::SocketTCP Socket);
-		void OnServerData(char sock, unsigned char data);
+		void OnServerData(int sock, unsigned char data);
 		void IsEveryoneReady();
 
 		NetPlay          *m_netptr;

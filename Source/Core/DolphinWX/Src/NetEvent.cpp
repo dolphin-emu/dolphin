@@ -151,7 +151,7 @@ void ClientSide::OnClientData(unsigned char data)
 	delete[] buffer;	
 }
 
-void ServerSide::OnServerData(char sock, unsigned char data)
+void ServerSide::OnServerData(int sock, unsigned char data)
 {
 	size_t recv_size;
 	char *buffer = NULL;
@@ -193,7 +193,7 @@ void ServerSide::OnServerData(char sock, unsigned char data)
 
 			sent = 0x30;
 			// Send to all
-			for (char i=0; i < m_numplayers ; i++)
+			for (int i=0; i < m_numplayers ; i++)
 			{
 				if (i == sock)
 					continue;
@@ -222,11 +222,11 @@ void ServerSide::OnServerData(char sock, unsigned char data)
 					wxT("WARNING : Player %s does Not have this Game !\n"), m_client[sock].nick.c_str());
 				four_bytes = (int)error_str.size();
 
-				for (char i=0; i < 2; i++)
+				for (int i=0; i < 2; i++)
 					Event->AppendText(error_str);
 
 				// Send to all
-				for (char i=0; i < m_numplayers ; i++)
+				for (int i=0; i < m_numplayers ; i++)
 				{
 					if (i == sock)
 						continue;
@@ -253,7 +253,7 @@ void ServerSide::OnServerData(char sock, unsigned char data)
 			four_bytes = (int)buffer_str.size();
 
 			// Send to all
-			for (char i=0; i < m_numplayers ; i++)
+			for (int i=0; i < m_numplayers ; i++)
 			{
 				m_client[i].socket.Send((const char*)&data, 1); 
 

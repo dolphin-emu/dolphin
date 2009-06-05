@@ -70,12 +70,12 @@ void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 	std::string port_str	= m_address.substr(m_address.find(':') + 1);
 
 	TryParseUInt(port_str,							(u32*)&server_port);	// Server port
-	TryParseUInt(m_SetPort->GetValue().mb_str(),	(u32*)&m_port);			// User port
+	TryParseUInt((const char *)m_SetPort->GetValue().mb_str(),	(u32*)&m_port);			// User port
 	
 	if (m_nick.size() > 255)
 		m_nick = m_nick.substr(0 , 255);
 
-	SetTitle(_("Net Play : Connecting to Host..."));
+	SetTitle(wxT("Net Play : Connecting to Host..."));
 
 	// Create the client socket
 	sf::SocketTCP sock_client;
@@ -96,14 +96,14 @@ void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
 		}
 		else
 		{
-			SetTitle(_("Net Play"));
+			SetTitle(wxT("Net Play"));
 			PanicAlert("Can't Bind UDP socket on the specified Port: %d ! \n"
 				"Make sure port is forwarded and not in use !", m_port);
 		}
 	}
 	else
 	{
-		SetTitle(_("Net Play"));
+		SetTitle(wxT("Net Play"));
 		PanicAlert("Can't connect to the specified IP Address ! \nMake sure Hosting port is forwarded !");
 	}
 }
@@ -252,9 +252,9 @@ void NetPlay::DrawGUI()
 		ConfigIni.Get("Netplay", "UsedPort", (int*)&m_port, 12345);
 		ConfigIni.Get("Netplay", "LastIP", &m_address, "127.0.0.1:54321");
 
-		m_SetNick->SetValue(_(m_nick.c_str()));
+		m_SetNick->SetValue(wxString::FromAscii(m_nick.c_str()));
 		m_SetPort->SetValue(wxString::Format(wxT("%d"), m_port));
-		m_ConAddr->SetValue(_(m_address.c_str()));
+		m_ConAddr->SetValue(wxString::FromAscii(m_address.c_str()));
 	}
 
 	Center(); Show();
@@ -265,7 +265,7 @@ void NetPlay::DrawNetWindow()
 	// Remove everything from the precedent GUI :D
 	DestroyChildren();
 
-	SetTitle(_("Net Play : Connection Window"));
+	SetTitle(wxT("Net Play : Connection Window"));
 
 	wxPanel *panel = new wxPanel(this);
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
@@ -322,7 +322,7 @@ void NetPlay::DrawNetWindow()
 		m_wtfismyip = new wxButton(panel, ID_BUTTON_GETIP, wxT("What is my IP"));
 		m_ChangeGame = new wxButton(panel, ID_CHANGEGAME, wxT("Change Game"));
 
-		wxStaticBoxSizer* sBottom3 = new wxStaticBoxSizer(wxVERTICAL, panel, _("Host"));
+		wxStaticBoxSizer* sBottom3 = new wxStaticBoxSizer(wxVERTICAL, panel, wxT("Host"));
 
 		sBottom3->Add(m_ChangeGame, 0, wxALL | wxEXPAND, 5);
 		sBottom3->Add(m_wtfismyip, 0, wxALL | wxEXPAND, 5);

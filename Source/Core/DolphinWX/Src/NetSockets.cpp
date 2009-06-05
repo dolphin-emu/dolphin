@@ -210,7 +210,7 @@ void *ServerSide::Entry()
 			m_socket.Close();
 
 			// Delete the Thread and close clients sockets
-			for (char i=0; i < m_numplayers ; i++)
+			for (int i=0; i < m_numplayers ; i++)
 				m_client[i].socket.Close();
 
 			break;
@@ -314,7 +314,7 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	return true;
 }
 
-void ServerSide::Write(char socknb, const char *data, size_t size, long *ping)
+void ServerSide::Write(int socknb, const char *data, size_t size, long *ping)
 {
 	wxCriticalSectionLocker lock(m_CriticalSection);
 
@@ -345,7 +345,7 @@ void ServerSide::Write(char socknb, const char *data, size_t size, long *ping)
 	m_client[socknb].socket.Send(data, size);
 }
 
-void ServerSide::WriteUDP(char socknb, const char *data, size_t size)
+void ServerSide::WriteUDP(int socknb, const char *data, size_t size)
 {
 	wxCriticalSectionLocker lock(m_CriticalSection);
 
