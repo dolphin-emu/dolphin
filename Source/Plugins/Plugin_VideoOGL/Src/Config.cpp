@@ -37,13 +37,12 @@ void Config::Load()
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
     strncpy(iWindowedRes, temp.c_str(), 16);
-
-    iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
+	// apply this to the fullscreen resolution too
     strncpy(iFSResolution, temp.c_str(), 16);
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
+    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, true);
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);

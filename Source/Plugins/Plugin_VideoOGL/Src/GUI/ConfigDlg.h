@@ -65,8 +65,8 @@ class ConfigDialog : public wxDialog
 		DECLARE_EVENT_TABLE();
 
 		wxBoxSizer* sGeneral;
-		wxStaticBoxSizer* sbBasic;
-		wxGridBagSizer* sBasic;
+		wxStaticBoxSizer* sbBasic, *sbBasicAdvanced;
+		wxGridBagSizer* sBasic, *sBasicAdvanced;
 		wxStaticBoxSizer* sbEnhancements;
 		wxGridBagSizer* sEnhancements;
 		wxBoxSizer* sAdvanced;
@@ -95,7 +95,6 @@ class ConfigDialog : public wxDialog
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
-		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;

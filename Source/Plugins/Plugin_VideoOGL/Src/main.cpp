@@ -15,6 +15,25 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// OpenGL Plugin Documentation
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+1.1 Display settings
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+Internal and fullscreen resolution: Since the only internal resolutions allowed are also
+fullscreen resolution allowed by the system there is only need for one resolution setting
+that applies to both the internal resolution and the fullscreen resolution.
+
+Todo: Make the internal resolution option apply instantly, currently only the native or not option
+applies instantly
+
+////////////////////////////////////////////////////////////////////////////////////////*/
+
+
+
 #include "Globals.h"
 
 #include <cstdarg>

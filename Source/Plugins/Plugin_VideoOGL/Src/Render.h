@@ -86,7 +86,7 @@ public:
 	static void DrawDebugText();
 	static void SetScreenshot(const char *filename);
 	static void FlipImageData(u8 *data, int w, int h);
-	static bool SaveRenderTarget(const char *filename, int w, int h);
+	static bool SaveRenderTarget(const char *filename, int, int, int);
 
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);

@@ -160,19 +160,16 @@ void ConfigDialog::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-	// General
-	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Settings"));
-	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Fullscreen->SetValue(g_Config.bFullscreen);
-	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_VSync->SetValue(g_Config.bVSync);
+	// General Display Settings
+	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
-	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native resolution"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Aspect ratio / positioning controls
-	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("Keep 16:9 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("4:3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("16:9"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -189,13 +186,16 @@ void ConfigDialog::CreateGUIControls()
 		m_HideCursor->SetValue(g_Config.bHideCursor); 
 	#endif
 
-	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
-	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
-
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Internal resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
+
+	// Advanced Display Settings
+	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
+	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Fullscreen->SetValue(g_Config.bFullscreen);
+	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_VSync->SetValue(g_Config.bVSync);
 
 	wxStaticText *MSAAText = new wxStaticText(m_PageGeneral, ID_MSAAMODETEXT, wxT("Antialias (MSAA):"), wxDefaultPosition, wxDefaultSize, 0);
 	m_MSAAModeCB = new wxChoice(m_PageGeneral, ID_MSAAMODECB, wxDefaultPosition, wxDefaultSize, arrayStringFor_MSAAModeCB, 0, wxDefaultValidator);
@@ -209,26 +209,26 @@ void ConfigDialog::CreateGUIControls()
 	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
-
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This will create a Fullscreen window using the chosen Fullscreen resolution."
 		"\nPress Alt+Enter to switch between Fullscreen and Windowed mode."
-		));
+		"\n\nApplies instanty during gameplay: No"));
 	m_NativeResolution->SetToolTip(wxT(
 		"This will use the game's native resolution and stretch it to fill the"
 		"\nwindow instead of changing the internal display resolution. It"
-		"\nmay result in a slightly blurrier image, but it may also give a higher"
-		"\nFPS if you have a slow graphics card."));
+		"\nmay result in a blurrier image, but it may also give a higher"
+		"\nFPS if you have a slow graphics card."
+		"\n\nApplies instanty during gameplay: Yes"));
 	m_Crop->SetToolTip(wxT(
 		"Crop the picture instead of creating a letterbox. It will assume that your screen"
 		"\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume"
-		"\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio."));
-	m_FullscreenCB->SetToolTip(wxT(
-		"Select resolution for the (separate window) fullscreen mode."));
-	// This almost sounds like an unnecessary option
+		"\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio."
+		"\n\nApplies instanty during gameplay: Yes"));
 	m_WindowResolutionCB->SetToolTip(wxT(
-		"Select initial resolution for the separate rendering window."));
+		"Select internal resolution for the separate rendering window. This resolution also applies"
+		" to the fullscreen mode"
+		"\n\nApplies instanty during gameplay: No"));
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
@@ -243,31 +243,36 @@ void ConfigDialog::CreateGUIControls()
 	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
-	// Usage: The wxGBPosition() must have a column and row
+	// How to use the wxGridBagSizer: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
-	sBasic = new wxGridBagSizer(0, 0);
-	sBasic->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_VSync, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_RenderToMainWindow, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_AutoScale, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_NativeResolution, wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_UseXFB,    wxGBPosition(5, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasic->Add(m_KeepAR43,  wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_KeepAR169, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop,      wxGBPosition(6, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic = new wxGridBagSizer(0, 0);	
 
-	// Because of the ifdef here we need this variable for the row number
-	int Row = 7;
+	sBasic->Add(WMText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_NativeResolution, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxTOP, 0);
+	sBasic->Add(m_WindowResolutionCB, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALL, 5);
+
+	sBasic->Add(KeepARText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_KeepAR43,			wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_KeepAR169,		wxGBPosition(1, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop,				wxGBPosition(1, 3), wxGBSpan(1, 1), wxALL, 5);
+
+	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
-	sBasic->Add(m_HideCursor, wxGBPosition(Row++, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_HideCursor, wxGBPosition(5, 0), wxGBSpan(1, 3), wxALL, 5);
 	#endif
-	sBasic->Add(FSText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_FullscreenCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(WMText, wxGBPosition(Row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowResolutionCB, wxGBPosition(Row++, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
+
+	sBasicAdvanced = new wxGridBagSizer(0, 0);
+	sBasicAdvanced->Add(m_Fullscreen,	wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_VSync,		wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_UseXFB,		wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_RenderToMainWindow, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,		wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
+
+	sbBasicAdvanced->Add(sBasicAdvanced);
+	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
 
 	sEnhancements = new wxGridBagSizer(0, 0);
 	sEnhancements->Add(AnisoText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -502,11 +507,10 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bHideCursor = m_HideCursor->IsChecked();
 		break; 
 	#endif
-	case ID_FULLSCREENCB:
-		strcpy(g_Config.iFSResolution, m_FullscreenCB->GetValue().mb_str() );
-		break;
 	case ID_WINDOWRESOLUTIONCB:
 		strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
+		// Apply this resolution as fullscreen resolution too
+		strcpy(g_Config.iFSResolution, m_WindowResolutionCB->GetValue().mb_str() );
 		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
@@ -636,9 +640,12 @@ void ConfigDialog::UpdateGUI()
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);
 	if (g_Config.renderToMainframe)
 		m_Fullscreen->SetValue(false);
-	m_FullscreenCB->Enable(!g_Config.renderToMainframe);
-	m_WindowResolutionCB->Enable(!g_Config.renderToMainframe);
+
+	// Disable the internal resolution option if it's set to native
+	m_WindowResolutionCB->Enable(!g_Config.bNativeResolution);
 }
+
+
 void Config::UpdateProjectionHack()
 {
 	switch(g_Config.iPhackvalue)

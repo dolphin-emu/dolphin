@@ -50,6 +50,7 @@
 #include "XFB.h"
 #include "OnScreenDisplay.h"
 #include "Timer.h"
+#include "StringUtil.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -868,6 +869,32 @@ void Renderer::Swap(const TRectangle& rc)
 		v_max = (float)GetTargetHeight();
 	}
 
+	// ---------------------------------------------------------------------
+	// Save screenshot
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	if (s_bScreenshot)
+	{
+		s_criticalScreenshot.Enter();
+
+		/*
+		// Logging
+		char msg[255];
+		sprintf(msg, "Target: %i |  %i  %i  %i %i\n",
+			(int)v_min,
+			//back_rc.top, back_rc.left, back_rc.right, back_rc.bottom);
+			rc.right, rc.bottom - (int)(v_min), rc.right, rc.bottom);
+		OSD::AddMessage(msg, 5000);
+		*/
+
+		// Save screenshot
+		SaveRenderTarget(s_sScreenshotName.c_str(), rc.right, rc.bottom, (int)(v_min));
+		// Reset settings
+		s_sScreenshotName = "";
+		s_bScreenshot = false;
+		s_criticalScreenshot.Leave();
+	}
+	// ---------------------------------------------------------------------
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
@@ -939,21 +966,6 @@ void Renderer::Swap(const TRectangle& rc)
 	// Wireframe
 	if (g_Config.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	// Take screenshot, if requested
-	if (s_bScreenshot) {
-		s_criticalScreenshot.Enter();
-		if (SaveRenderTarget(s_sScreenshotName.c_str(), OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight())) {
-			char msg[255];
-			sprintf(msg, "Saved %s\n", s_sScreenshotName.c_str());
-			OSD::AddMessage(msg, 2000);
-		} else {
-			PanicAlert("Error capturing or saving screenshot.");
-		}
-		s_sScreenshotName = "";
-		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
-	}
 
 	// Frame dumps are handled a little differently in Windows
 #ifdef _WIN32
@@ -1262,18 +1274,60 @@ void Renderer::SetScreenshot(const char *filename)
 	s_criticalScreenshot.Leave();
 }
 
-bool Renderer::SaveRenderTarget(const char *filename, int w, int h)
+bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
-	u8 *data = (u8 *)malloc(3 * w * h);
+	// The height seemed to be one less than the setting sometimes (and sometimes not),
+	// perhaps a rounding error
+	if (H == 479) H = 480;
+	if (H == 599) H = 600;
+	if (H == 767) H = 768;
+	if (H == 1023) H = 1024;
+
+	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glReadPixels(0, YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+	// Show failure messages
 	if (glGetError() != GL_NO_ERROR)
-		return false;
-	FlipImageData(data, w, h);
+		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
+	// Turn image upside down
+	FlipImageData(data, W, H);
 #if defined(HAVE_WX) && HAVE_WX
-	wxImage a(w, h, data);
+	// Create wxImage
+	wxImage a(W, H, data);
+
+	// ---------------------------------------------------------------------
+	// If it's not a 4:3 picture rescale it to 4:3. This only applied to native resolutions.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// Todo: There is currently no adjustment for non-16:9 source pictures that are intended for a 16:9
+	// size because I think all Wii 16:9 source pictures are 16:9 to begin with. If not, add a 16:9 adjustment
+	// too.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	/**/
+	float Ratio = (float)W / (float)(H);
+	// Don't bother with 1.25 resolutions either, for example 1280 x 1024
+	if (g_Config.bNativeResolution && Ratio != 4.0/3.0 && Ratio != 1.25 && Ratio != 16.0/9.0)
+	{
+		// Check if the height or width should be changed
+		if (Ratio < 4.0/3.0)
+		{
+			float fW = (float)W * 4.0/3.0;
+			W = (int)fW;
+		}
+		else
+		{
+			float fH = (float)W * 3.0/4.0;
+			H = (int)fH;
+		}
+		a.Rescale(W, H, wxIMAGE_QUALITY_HIGH);
+	}	
+	// ---------------------------------------------------------------------
+
 	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
 	bool result = true;
+
+	// Show success messages
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s\n", W, H, s_sScreenshotName.c_str()).c_str(), 2000);
+
 #else
 	bool result = SaveTGA(filename, w, h, data);
 	free(data);
