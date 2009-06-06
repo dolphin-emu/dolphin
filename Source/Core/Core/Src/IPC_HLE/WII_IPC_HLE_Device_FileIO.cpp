@@ -19,6 +19,7 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 
+#include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
 
 
@@ -94,7 +95,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	// Reading requires the file to exist
 	if(_Mode == 0x01 && !File::Exists(m_Filename.c_str())) {
 		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open for reading: %s - File doesn't exist", m_Filename.c_str());
-		ReturnValue = -106;
+		ReturnValue = FS_FILE_NOT_EXIST;
 	} else {
 		switch(_Mode)
 		{
@@ -113,7 +114,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     else if(ReturnValue == 0)
     {
         ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s(%s) - I/O Error", m_Filename.c_str(), Modes[_Mode]);
-        ReturnValue = -101;
+        ReturnValue = FS_INVALID_ARGUMENT;
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress+4);
@@ -141,7 +142,6 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	if (m_FileLength > 0 && SeekPosition > m_FileLength && Mode == 0)
 	{
 		NewSeekPosition = SeekPosition % m_FileLength;
-		INFO_LOG(WII_IPC_FILEIO, "***********************************:");
 	}
 
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: New Seek Pos: %s, Mode: %i (Device=%s)", ThS(NewSeekPosition).c_str(), Mode, GetDeviceName().c_str());	

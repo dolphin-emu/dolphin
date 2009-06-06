@@ -27,13 +27,6 @@
 
 extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 
-#define FS_RESULT_OK			(0)
-#define FS_DIRFILE_NOT_FOUND      	(-6)
-#define FS_INVALID_ARGUMENT		(-101)
-#define FS_FILE_EXIST			(-105)
-#define FS_FILE_NOT_EXIST		(-106)
-#define FS_RESULT_FATAL			(-128)
-
 #define MAX_NAME				(12)
 
 
