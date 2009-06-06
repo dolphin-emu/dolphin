@@ -35,9 +35,9 @@ public:
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
+	int GetPlatform() const {return m_Platform;}
 	const std::string& GetIssues() const {return m_Issues;}
 	bool IsCompressed() const {return m_BlobCompressed;}
-	bool IsWii() const {return m_IsWii;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 #if defined(HAVE_WX) && HAVE_WX
@@ -45,6 +45,15 @@ public:
 #endif
 
 	void DoState(PointerWrap &p);
+
+	enum
+	{
+		GAMECUBE_DISC = 0,
+		WII_DISC,
+		WII_WAD,
+		NUMBER_OF_PLATFORMS
+	};
+
 private:
 	std::string m_FileName;
 	std::string m_Name[6];
@@ -57,6 +66,7 @@ private:
 	u64 m_VolumeSize;
 
 	DiscIO::IVolume::ECountry m_Country;
+	int m_Platform;
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxImage m_Image;
@@ -65,8 +75,6 @@ private:
 	bool m_BlobCompressed;
 	u8* m_pImage;
 	u32 m_ImageSize;
-	bool m_IsWii;
-	bool m_Platform;
 
 	bool LoadFromCache();
 	void SaveToCache();

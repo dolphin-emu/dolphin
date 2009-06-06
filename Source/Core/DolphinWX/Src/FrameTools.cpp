@@ -52,6 +52,7 @@ Core::GetWindowHandle().
 
 #include "Common.h" // Common
 #include "FileUtil.h"
+#include "FileSearch.h"
 #include "Timer.h"
 #include "Setup.h"
 
@@ -199,6 +200,8 @@ void CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _T("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 #endif
+	viewMenu->AppendSeparator();
+	viewMenu->Append(IDM_PURGECACHE, _T("Purge ISO Cache"));
 	menuBar->Append(viewMenu, _T("&View"));	
 
 	// Help menu
@@ -892,6 +895,20 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LISTDRIVES:
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();
+		break;
+	case IDM_PURGECACHE:
+		CFileSearch::XStringVector Directories;
+		Directories.push_back(FULL_CACHE_DIR);
+		CFileSearch::XStringVector Extensions;
+		Extensions.push_back("*.cache");
+		
+		CFileSearch FileSearch(Extensions, Directories);
+		const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+		
+		for (u32 i = 0; i < rFilenames.size(); i++)
+		{
+			File::Delete(rFilenames[i].c_str());
+		}
 		break;
 	}
 	

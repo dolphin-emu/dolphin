@@ -78,7 +78,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	case CGameListCtrl::COLUMN_NOTES:		return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY:		return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:		return (one.GetFileSize() < other.GetFileSize());
-	case CGameListCtrl::COLUMN_PLATFORM:	return (one.IsWii() < other.IsWii());
+	case CGameListCtrl::COLUMN_PLATFORM:	return (one.GetPlatform() < other.GetPlatform());
 	default:								return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
 	}
 }
@@ -372,7 +372,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
 	//Platform
-	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.IsWii()]);
+	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
 	// Background color
 	SetBackgroundColor();
@@ -468,7 +468,6 @@ void CGameListCtrl::ScanForISOs()
 
 			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
-
 			if (!Cont)
 			{
 				break;
@@ -478,10 +477,17 @@ void CGameListCtrl::ScanForISOs()
 			{
 				bool list = true;
 
-				if (!SConfig::GetInstance().m_ListWii && ISOFile.IsWii())
-					list = false;
-				if (!SConfig::GetInstance().m_ListGC && !ISOFile.IsWii())
-					list = false;
+				switch(ISOFile.GetPlatform())
+				{
+				case GameListItem::WII_DISC:
+					if (!SConfig::GetInstance().m_ListWii)
+						list = false;
+					break;
+				default:
+					if (!SConfig::GetInstance().m_ListGC)
+						list = false;
+					break;
+				}
 
 				switch(ISOFile.GetCountry())
 				{
@@ -581,8 +587,8 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		if (iso1->GetFileSize() < iso2->GetFileSize()) return -1 *t;
 		return 0;
 	case CGameListCtrl::COLUMN_PLATFORM:
-		if(iso1->IsWii() > iso2->IsWii()) return  1 *t;
-		if(iso1->IsWii() < iso2->IsWii()) return -1 *t;
+		if(iso1->GetPlatform() > iso2->GetPlatform()) return  1 *t;
+		if(iso1->GetPlatform() < iso2->GetPlatform()) return -1 *t;
 		return 0;
 	}
  
@@ -637,7 +643,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.AppendSeparator();
-			if (selected_iso->IsWii())
+			if (selected_iso->GetPlatform() == GameListItem::WII_DISC)
 				popupMenu.Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
 			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
 			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
@@ -838,7 +844,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
-				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), OutputFileName.c_str(), iso->IsWii() ? 1 : 0, 16384, &MultiCompressCB, &progressDialog);					
+				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), OutputFileName.c_str(), (iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0, 16384, &MultiCompressCB, &progressDialog);					
 			}
 			else if (iso->IsCompressed() && !_compress)
 			{
@@ -931,7 +937,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	if (iso->IsCompressed())
 		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.char_str(), &CompressCB, &dialog);	
 	else
-		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), iso->IsWii() ? 1 : 0, 16384, &CompressCB, &dialog);
+		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), (iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0, 16384, &CompressCB, &dialog);
 
 	Update();
 }

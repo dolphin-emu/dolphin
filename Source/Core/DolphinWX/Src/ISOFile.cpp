@@ -32,7 +32,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x108
+#define CACHE_REVISION 0x109
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -46,7 +46,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_BlobCompressed(false)
 	, m_pImage(NULL)
 	, m_ImageSize(0)
-	, m_IsWii(false)
 {
 
 	if (LoadFromCache())
@@ -59,7 +58,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != NULL)
 		{
-			m_IsWii = DiscIO::IsVolumeWiiDisc(pVolume);
+			m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
 
 			m_Company = "N/A";
 			for (int i = 0; i < 6; i++)
@@ -71,7 +70,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_Country  = pVolume->GetCountry();
 			m_FileSize = File::GetSize(_rFileName.c_str());
 			m_VolumeSize = pVolume->GetSize();
-			
+
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
@@ -99,10 +98,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 								m_pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
 								m_pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
 								m_pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
-							}		
+							}
 						}
 					}
-
 					delete pBannerLoader;
 				}
 
@@ -136,7 +134,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 }
 
-
 GameListItem::~GameListItem()
 {
 }
@@ -169,7 +166,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
 	p.DoBuffer(&m_pImage, m_ImageSize);
-	p.Do(m_IsWii);
+	p.Do(m_Platform);
 }
 
 std::string GameListItem::CreateCacheFilename()
