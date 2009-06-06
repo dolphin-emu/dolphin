@@ -258,7 +258,7 @@ void ConfigDialog::CreateGUIControls()
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
-	sBasic->Add(m_HideCursor, wxGBPosition(5, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasic->Add(m_HideCursor, wxGBPosition(2, 0), wxGBSpan(1, 4), wxALL, 5);
 	#endif
 
 	sbBasic->Add(sBasic);
