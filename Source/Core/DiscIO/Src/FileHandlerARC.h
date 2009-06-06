@@ -32,6 +32,8 @@ class CARCFile
 
         CARCFile(const std::string& _rFilename);
 
+		CARCFile(const std::string& _rFilename, u32 offset);
+
 		CARCFile(const u8* _pBuffer, size_t _BufferSize);
 
 		virtual ~CARCFile();

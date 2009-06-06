@@ -23,6 +23,7 @@
 #include "ColorUtil.h"
 #include "BannerLoaderWii.h"
 #include "FileUtil.h"
+#include "FileHandlerARC.h"
 
 namespace DiscIO
 {
@@ -42,11 +43,45 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 
 	if (!File::Exists(Filename))
 	{
+		// TODO(XK): Finish the 'commented' code. Turns out the banner.bin
+		//           from the savefiles is very different from the banner.bin
+		//           inside opening.bnr
+#if 0
+		char bnrFilename[260], titleFolder[260];
+
+		// Creating title folder
+		sprintf(titleFolder, FULL_WII_USER_DIR "title/%08x/%08x/data/",
+			(u32)(TitleID>>32), (u32)TitleID);
+		if(!File::Exists(titleFolder))
+			File::CreateFullPath(titleFolder);
+		
+		// Extracting banner.bin from opening.bnr
+		sprintf(bnrFilename, FULL_WII_USER_DIR "title/%08x/%08x/data/opening.bnr",
+			(u32)(TitleID>>32), (u32)TitleID);
+
+		if(!_rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
+			m_IsValid = false;
+			return;
+		}
+
+		CARCFile bnrArc (bnrFilename, 0x600);
+
+		if(!bnrArc.ExportFile("meta/banner.bin", Filename)) {
+			m_IsValid = false;
+			return;
+		}
+
+		// Now we have an LZ77-compressed file with a short IMD5 header
+		// TODO: Finish the job
+		
+		File::Delete(bnrFilename);
+#else
 		m_IsValid = false;
 		return;
+#endif
 	}
 
-	// load the opening.bnr
+	// load the banner.bin
 	size_t FileSize = (size_t) File::GetSize(Filename);
 
 	if (FileSize > 0)
