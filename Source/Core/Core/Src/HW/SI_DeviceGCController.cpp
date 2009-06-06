@@ -228,7 +228,7 @@ CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			if (!_Poll)
 			{
 				m_Mode = command.Parameter2;
-				ERROR_LOG(SERIALINTERFACE, "PAD %i set to mode %i", ISIDevice::m_iDeviceNumber, m_Mode);
+				INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", ISIDevice::m_iDeviceNumber, m_Mode);
 			}
 		}
 		break;
