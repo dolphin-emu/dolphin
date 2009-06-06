@@ -876,16 +876,6 @@ void Renderer::Swap(const TRectangle& rc)
 	{
 		s_criticalScreenshot.Enter();
 
-		/*
-		// Logging
-		char msg[255];
-		sprintf(msg, "Target: %i |  %i  %i  %i %i\n",
-			(int)v_min,
-			//back_rc.top, back_rc.left, back_rc.right, back_rc.bottom);
-			rc.right, rc.bottom - (int)(v_min), rc.right, rc.bottom);
-		OSD::AddMessage(msg, 5000);
-		*/
-
 		// Save screenshot
 		SaveRenderTarget(s_sScreenshotName.c_str(), rc.right, rc.bottom, (int)(v_min));
 		// Reset settings
@@ -1281,14 +1271,18 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	if (H == 479) H = 480;
 	if (H == 599) H = 600;
 	if (H == 767) H = 768;
+	if (H == 959) H = 960;
 	if (H == 1023) H = 1024;
 
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
-	// Show failure messages
+	// Show failure message
 	if (glGetError() != GL_NO_ERROR)
+	{
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
+		return false;
+	}
 	// Turn image upside down
 	FlipImageData(data, W, H);
 #if defined(HAVE_WX) && HAVE_WX
@@ -1296,7 +1290,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	wxImage a(W, H, data);
 
 	// ---------------------------------------------------------------------
-	// If it's not a 4:3 picture rescale it to 4:3. This only applied to native resolutions.
+	// If it's not a 4:3 picture rescale it to 4:3. This only applies to native resolutions.
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Todo: There is currently no adjustment for non-16:9 source pictures that are intended for a 16:9
 	// size because I think all Wii 16:9 source pictures are 16:9 to begin with. If not, add a 16:9 adjustment
@@ -1304,8 +1298,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	/**/
 	float Ratio = (float)W / (float)(H);
-	// Don't bother with 1.25 resolutions either, for example 1280 x 1024
-	if (g_Config.bNativeResolution && Ratio != 4.0/3.0 && Ratio != 1.25 && Ratio != 16.0/9.0)
+	if (g_Config.bNativeResolution && Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
 	{
 		// Check if the height or width should be changed
 		if (Ratio < 4.0/3.0)
