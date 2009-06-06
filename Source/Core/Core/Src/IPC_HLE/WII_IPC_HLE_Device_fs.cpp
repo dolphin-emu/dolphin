@@ -438,7 +438,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			else
 			{
 				ERROR_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s - failed", Filename.c_str(), FilenameRename.c_str());
-				PanicAlert("CWII_IPC_HLE_Device_fs: rename %s to %s failed", Filename.c_str(), FilenameRename.c_str());
+				return FS_FILE_NOT_EXIST;
 			}
 
 			return FS_RESULT_OK;
