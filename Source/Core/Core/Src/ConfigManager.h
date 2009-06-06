@@ -71,6 +71,7 @@ struct SConfig
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceConsole;
 	bool m_ListDrives;
+	bool m_ListWad;
 	bool m_ListWii;
 	bool m_ListGC;
 	bool m_ListPal;
