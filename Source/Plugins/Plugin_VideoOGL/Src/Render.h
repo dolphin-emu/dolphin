@@ -54,7 +54,6 @@ public:
 
 	static void SwapBuffers();
 
-	static bool IsUsingATIDrawBuffers();
 	static bool IsBlack();
     static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);

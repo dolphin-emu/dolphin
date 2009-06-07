@@ -70,8 +70,6 @@
 	#include "Win32Window.h" // warning: crapcode
 #else
 #endif
-//////////////////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
@@ -126,7 +124,6 @@ static GLuint s_DepthBuffer  = 0;
 static GLuint s_ResolvedRenderTarget = 0;
 static GLuint s_ResolvedDepthTarget  = 0;
 
-static bool s_bATIDrawBuffers = false;
 static bool s_bHaveStencilBuffer = false;
 static bool s_bHaveFramebufferBlit = false;
 static bool s_bHaveCoverageMSAA = false;
@@ -237,10 +234,6 @@ bool Renderer::Init()
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", (const char*)glGetString(GL_VENDOR), 
 															 (const char*)glGetString(GL_RENDERER), 
 															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
-
-	// Checks if it ONLY has the ATI_draw_buffers extension, some have both
-    if (GLEW_ATI_draw_buffers && !GLEW_ARB_draw_buffers) 
-        s_bATIDrawBuffers = true;
 
     s_bFullscreen = g_Config.bFullscreen;
 
@@ -732,13 +725,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-bool Renderer::IsUsingATIDrawBuffers()
-{
-    return s_bATIDrawBuffers;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Function: This function handles the OpenGL glScissor() function
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -793,8 +779,6 @@ bool Renderer::SetScissorRect()
 
     return false;
 }
-//////////////////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Aspect ratio functions
@@ -1336,53 +1320,64 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
 	// The height seemed to be one less than the setting sometimes (and sometimes not),
 	// perhaps a rounding error
-	if (H == 479) H = 480;
-	if (H == 599) H = 600;
-	if (H == 767) H = 768;
-	if (H == 959) H = 960;
-	if (H == 1023) H = 1024;
+	if (H & 1)
+		H++;
 
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+
 	// Show failure message
 	if (glGetError() != GL_NO_ERROR)
 	{
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
+
 	// Turn image upside down
 	FlipImageData(data, W, H);
+
 #if defined(HAVE_WX) && HAVE_WX
 	// Create wxImage
 	wxImage a(W, H, data);
 
-	// ---------------------------------------------------------------------
-	// If it's not a 4:3 picture rescale it to 4:3. For example in RE1 some native pictures
-	// have non-4:3 resolutions. This only applies to native resolutions.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	// Todo: There is currently no adjustment for non-16:9 source pictures that are intended for a 16:9
-	// size because I think all Wii 16:9 source pictures are 16:9 to begin with. If not, add a 16:9 adjustment
-	// too.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	float Ratio = (float)W / (float)(H);
-	if (g_Config.bNativeResolution && s_MSAASamples == 1 && !g_Config.bWireFrame
-		&& Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
+	int nW, nH;
+
+	// Resize the output to correctly use the Aspect ratio setting
+	// This way, games are saved using the correct A/R scaling
+
+	if ((g_Config.bKeepAR169 || g_Config.bKeepAR43) && s_MSAASamples == 1 && !g_Config.bWireFrame)
 	{
+		float Ratio = (float)W / (float)H;
+
 		// Check if the height or width should be changed
-		if (Ratio < 4.0/3.0)
+		if (Ratio != 4.0f/3.0f && g_Config.bKeepAR43)
 		{
+			// Change the A/R to 4/3
 			float fW = (float)W * 4.0/3.0;
-			W = (int)fW;
+			nW = (int)floor(fW);
+			float fH = fW * 3.0/4.0;
+			nH = (int)floor(fH);
+
+			// Then rescale the width
+			W = nW * H / nH;
+			H = nH * H / nH;
 		}
-		else
+		if (Ratio != 16.0/9.0 && g_Config.bKeepAR169)
 		{
-			float fH = (float)W * 3.0/4.0;
-			H = (int)fH;
+			// Change the A/R to 16/9
+			float fW = (float)W * 16.0/9.0;
+			nW = (int)floor(fW);
+			float fH = fW * 9.0/16.0;
+			nH = (int)floor(fH);
+
+			// Then rescale the height
+			W = nW * W / nW;
+			H = nH * W / nW;
 		}
+
 		a.Rescale(W, H, wxIMAGE_QUALITY_HIGH);
-	}	
-	// ---------------------------------------------------------------------
+	}
 
 	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
 	bool result = true;
@@ -1483,4 +1478,4 @@ void UpdateViewport()
 	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
 	*/
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+

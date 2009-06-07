@@ -237,9 +237,9 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_BANNER, wxLIST_AUTOSIZE);
 	}
 
-	AutomaticColumnWidth();
-
 	Show();
+
+	AutomaticColumnWidth();
 }
 
 wxString NiceSizeFormat(s64 _size)

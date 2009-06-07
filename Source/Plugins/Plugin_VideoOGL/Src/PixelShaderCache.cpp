@@ -240,17 +240,6 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		plocal = strstr(plocal+13, "program.local");
 	}
 
-	if (Renderer::IsUsingATIDrawBuffers()) {
-		// Sometimes compilation can use ARB_draw_buffers, which would fail for ATI cards.
-		// Replace the three characters ARB with ATI. TODO - check whether this is fixed in modern ATI drivers.
-		char *poptions = strstr(pcompiledprog, "ARB_draw_buffers");
-		if (poptions != NULL) {
-			poptions[0] = 'A';
-			poptions[1] = 'T';
-			poptions[2] = 'I';
-		}
-	}
-
 	glGenProgramsARB(1, &ps.glprogid);
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
