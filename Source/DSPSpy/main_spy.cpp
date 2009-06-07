@@ -20,7 +20,7 @@
 // ops actually do.
 // It's very unpolished though
 // Use Dolphin's dsptool to generate a new dsp_code.h.
-// Originally written by duddie and modified by FIRES.
+// Originally written by duddie and modified by FIRES. Then further modified by ector.
 
 #include <gccore.h>
 #include <malloc.h>
@@ -32,12 +32,10 @@
 #include <time.h>
 #include <fat.h>
 #include <fcntl.h>
+
 #include <ogc/color.h>
 #include <ogc/consol.h>
-#include <ogc/dsp.h>
-#include <ogc/irq.h>
-#include <ogc/machine/asm.h>
-#include <ogc/machine/processor.h>
+
 #ifdef HW_RVL
 #include <wiiuse/wpad.h>
 #endif
@@ -51,24 +49,16 @@
 #include "dsp_code.h"
 #include "mem_dump.h"
 
-// DSPCR bits
-#define DSPCR_DSPRESET      0x0800        // Reset DSP
-#define DSPCR_ARDMA         0x0200        // ARAM dma in progress, if set
-#define DSPCR_DSPINTMSK     0x0100        // * interrupt mask   (RW)
-#define DSPCR_DSPINT        0x0080        // * interrupt active (RWC)
-#define DSPCR_ARINTMSK      0x0040
-#define DSPCR_ARINT         0x0020
-#define DSPCR_AIINTMSK      0x0010
-#define DSPCR_AIINT         0x0008
-#define DSPCR_HALT          0x0004        // halt DSP
-#define DSPCR_PIINT         0x0002        // assert DSP PI interrupt
-#define DSPCR_RES           0x0001        // reset DSP
+// Communication with the real DSP and with the DSP emulator.
+#include "dsp_interface.h"
+#include "real_dsp.h"
+// #include "virtual_dsp.h"
 
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000))); 
 
 static void *xfb = NULL;
-void (*reload)() = (void(*)())0x80001800;
+void (*reboot)() = (void(*)())0x80001800;
 GXRModeObj *rmode;
 
 static vu16* const _dspReg = (u16*)0xCC005000;
@@ -104,14 +94,13 @@ u16 dspreg_in[32] = {
 0x0000, 0x0000, 0x0000, 0xde6d, 0x0000, 0x0000, 0x0000, 0x004e,
 };*/ 
 
-
-
 u16 dspreg_out[1000][32];
 
 u32 padding[1024];
 
 // UI (interactive register editing)
 u32 ui_mode;
+
 #define UIM_SEL			1
 #define UIM_EDIT_REG	2
 #define	UIM_EDIT_BIN	4
@@ -125,17 +114,7 @@ u16 *reg_value;
 
 char last_message[20] = "OK";
 
-// Got regs to draw. Dunno why we need this.
-volatile int regs_refreshed = false;
-
-
-// Handler for DSP interrupt.
-static void my__dsp_handler(u32 nIrq, void *pCtx)
-{
-	// Acknowledge interrupt?
-	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT)) | DSPCR_DSPINT;
-}
-
+RealDSP real_dsp;
 
 // When comparing regs, ignore the loop stack registers.
 bool regs_equal(int reg, u16 value1, u16 value2) {
@@ -153,11 +132,11 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 		{
 			// Do not even display the loop stack registers.
 			const int reg = j * 8 + i;
-			CON_SetColor(sel == reg ? CON_YELLOW : CON_GREEN, CON_BLACK);
+			CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN, CON_BLACK);
 			CON_Printf(x + j * 8, i + y, "%02x ", reg);
 			if (j != 1 || i < 4)
 			{
-				u8 color1 = regs_equal(reg, regs[reg], compare_regs[reg]) ? CON_WHITE : CON_RED;
+				u8 color1 = regs_equal(reg, regs[reg], compare_regs[reg]) ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
 				for (int k = 0; k < 4; k++)
 				{
 					if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
@@ -314,30 +293,6 @@ void init_video(void)
 	VIDEO_WaitVSync();
 }
 
-void my_send_task(void *addr, u16 iram_addr, u16 len, u16 start)
-{
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0x80F3A001);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo((u32)addr);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0x80F3C002);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(iram_addr);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0x80F3A002);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(len);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0x80F3B002);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(0x80F3D001);
-	while(DSP_CheckMailTo());
-	DSP_SendMailTo(start);
-	while(DSP_CheckMailTo());
-}
 
 int main()
 {
@@ -354,14 +309,8 @@ int main()
 	for (int j = 0; j < 0x800; j++)
 		dspbufU[j] = 0xffffffff;
 
-	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT)) | DSPCR_DSPRESET;
-	_dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
-
-	// This code looks odd - shouldn't we initialize level?
-	u32 level;
-	_CPU_ISR_Disable(level);
-	IRQ_Request(IRQ_DSP_DSP, my__dsp_handler, NULL);
-	_CPU_ISR_Restore(level);
+	// Initialize DSP.
+	real_dsp.Init();
 
 	// Initialize FAT so we can write to SD.
 	fatInit(8, false);
@@ -390,8 +339,8 @@ int main()
 					dspbufC[0x00 + n] = dspreg_in[n];
 				DCFlushRange(dspbufC, 0x2000);
 				// Then send the code.
-				DCFlushRange((void *)dsp_code, 0x1000);
-				my_send_task((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code), 0, 4000, 0x10);
+				DCFlushRange((void *)dsp_code, 0x2000);
+				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code), 0, 4000, 0x10);
 			}
 			else if (mail == 0x8888dead)
 			{
@@ -400,14 +349,12 @@ int main()
 				while (DSP_CheckMailTo());
 				DSP_SendMailTo((u32)tmpBuf);
 				while (DSP_CheckMailTo());
-				regs_refreshed = false;
 			}			
 			else if (mail == 0x8888beef)
 			{
 				while (DSP_CheckMailTo());
 				DSP_SendMailTo((u32)dspbufP);
 				while (DSP_CheckMailTo());
-				regs_refreshed = false;
 			}
 			else if (mail == 0x8888feeb)
 			{
@@ -415,7 +362,6 @@ int main()
 				DCInvalidateRange(dspbufC, 0x2000);
 				for (int i = 0 ; i < 32 ; i++)
 					dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
-				regs_refreshed = true;
 
 				dsp_steps++;
 
@@ -427,8 +373,10 @@ int main()
 
 		VIDEO_WaitVSync();
 
-#ifdef HW_RVL
 		PAD_ScanPads();
+		if (PAD_ButtonsDown(0) & PAD_BUTTON_START)
+			exit(0);
+#ifdef HW_RVL
 		WPAD_ScanPads();
 		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) || (PAD_ButtonsDown(0) & PAD_BUTTON_START))
 			exit(0);
@@ -439,10 +387,6 @@ int main()
 		CON_Printf(4, 21, "Home to exit");
 		CON_Printf(4, 22, "2 to dump results to SD");
 #else
-		PAD_ScanPads();
-		if (PAD_ButtonsDown(0) & PAD_BUTTON_START)
-			exit(0);
-
 		CON_Printf(2, 18, "Controls:");
 		CON_Printf(4, 19, "L/R to move");
 		CON_Printf(4, 20, "B to start over");
@@ -486,12 +430,7 @@ int main()
 			DCFlushRange(dspbufC, 0x2000);
 
 			// Reset the DSP.
-			_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT)) | DSPCR_DSPRESET;
-			_dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
-			_dspReg[5] |= DSPCR_RES;
-			while (_dspReg[5] & DSPCR_RES)
-				;
-			_dspReg[9] = 0x63;
+			real_dsp.Reset();
 			strcpy(last_message, "OK");
 		}
 
@@ -543,11 +482,12 @@ int main()
 	}
 
 	// Reset the DSP
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT))|DSPCR_DSPRESET;
-	_dspReg[5] = (_dspReg[5]&~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
-	reload();
+	real_dsp.Reset();
 
-	// Exit
+	// Reboot back to Homebrew Channel or whatever started this binary.
+	reboot();
+
+	// Will never reach here, but just to be sure..
 	exit(0);
 	return 0;
 }
