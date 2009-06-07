@@ -190,6 +190,8 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
 	viewMenu->AppendCheckItem(IDM_LISTGC, _T("Show GameCube"));
 	viewMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
+	viewMenu->AppendCheckItem(IDM_LISTWAD, _T("Show Wad"));
+	viewMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
 	viewMenu->AppendCheckItem(IDM_LISTJAP, _T("Show JAP"));
 	viewMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
 	viewMenu->AppendCheckItem(IDM_LISTPAL, _T("Show PAL"));
@@ -201,7 +203,7 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 #endif
 	viewMenu->AppendSeparator();
-	viewMenu->Append(IDM_PURGECACHE, _T("Purge ISO Cache"));
+	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
 	menuBar->Append(viewMenu, _T("&View"));	
 
 	// Help menu
@@ -883,6 +885,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LISTGC:
 		SConfig::GetInstance().m_ListGC = event.IsChecked();
+		break;
+	case IDM_LISTWAD:
+		SConfig::GetInstance().m_ListWad = event.IsChecked();
 		break;
 	case IDM_LISTJAP:
 		SConfig::GetInstance().m_ListJap = event.IsChecked();

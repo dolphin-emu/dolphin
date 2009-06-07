@@ -87,7 +87,7 @@ void SConfig::SaveSettings()
 
 		// Game List Control
 		ini.Set("GameList", "ListDrives",	m_ListDrives);
-		//ini.Set("GameList", "ListWad",		m_ListWad);
+		ini.Set("GameList", "ListWad",		m_ListWad);
 		ini.Set("GameList", "ListWii",		m_ListWii);
 		ini.Set("GameList", "ListGC",		m_ListGC);
 		ini.Set("GameList", "ListJap",		m_ListJap);
@@ -201,7 +201,7 @@ void SConfig::LoadSettings()
 
 		// Game List Control
 		ini.Get("GameList", "ListDrives",	&m_ListDrives, false);
-		//ini.Get("GameList", "ListWad",		&m_ListWad, true);
+		ini.Get("GameList", "ListWad",		&m_ListWad, true);
 		ini.Get("GameList", "ListWii",		&m_ListWii, true);
 		ini.Get("GameList", "ListGC",		&m_ListGC, true);
 		ini.Get("GameList", "ListJap",		&m_ListJap, true);

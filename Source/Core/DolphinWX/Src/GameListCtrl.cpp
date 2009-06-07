@@ -38,6 +38,7 @@
     #include "../resources/Flag_France.xpm"
 	#include "../resources/Flag_Italy.xpm"
     #include "../resources/Flag_Japan.xpm"
+	#include "../resources/Platform_Wad.xpm"
     #include "../resources/Flag_USA.xpm"
     #include "../resources/Platform_Wii.xpm"
     #include "../resources/Platform_Gamecube.xpm"
@@ -74,7 +75,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	switch(currentColumn)
 	{
 	case CGameListCtrl::COLUMN_TITLE:		return strcasecmp(one.GetName(indexOne).c_str(),        other.GetName(indexOther).c_str()) < 0;
-	case CGameListCtrl::COLUMN_COMPANY:		return strcasecmp(one.GetCompany().c_str(),     other.GetCompany().c_str()) < 0;
+	case CGameListCtrl::COLUMN_COMPANY:		return strcasecmp(one.GetCompany().c_str(),		other.GetCompany().c_str()) < 0;
 	case CGameListCtrl::COLUMN_NOTES:		return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY:		return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:		return (one.GetFileSize() < other.GetFileSize());
@@ -129,11 +130,13 @@ void CGameListCtrl::InitBitmaps()
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(iconTemp);
 
-	m_PlatformImageIndex.resize(2);
+	m_PlatformImageIndex.resize(3);
 	iconTemp.CopyFromBitmap(wxBitmap(Platform_Gamecube_xpm));
 	m_PlatformImageIndex[0] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wii_xpm));
 	m_PlatformImageIndex[1] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wad_xpm));
+	m_PlatformImageIndex[2] = m_imageListSmall->Add(iconTemp);
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -163,9 +166,10 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
-	// Don't let the user refresh it while the a game is running
+	// Don't let the user refresh it while a game is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
+
 	if (m_imageListSmall)
 	{
 		delete m_imageListSmall;
@@ -187,6 +191,10 @@ void CGameListCtrl::Update()
 		// Don't load bitmaps unless there are games to list
 		InitBitmaps();
 
+		// this is needed to get the correct column width on startup
+		// This way, we avoid the dumb horizontal scrollbar
+		Show();
+
 		// add columns
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
@@ -197,14 +205,17 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
 		InsertColumn(COLUMN_PLATFORM, _("Platform"));
 
+
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_BANNER, 106);
 		SetColumnWidth(COLUMN_TITLE, 150);
 		SetColumnWidth(COLUMN_COMPANY, 130);
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 130);
-		SetColumnWidth(COLUMN_PLATFORM, 90);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 120);
+		SetColumnWidth(COLUMN_PLATFORM, 50);
+
+		Hide();
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -437,6 +448,7 @@ void CGameListCtrl::ScanForISOs()
 	Extensions.push_back("*.iso");
 	Extensions.push_back("*.gcm");
 	Extensions.push_back("*.gcz");
+	Extensions.push_back("*.wad");
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
@@ -481,6 +493,10 @@ void CGameListCtrl::ScanForISOs()
 				{
 				case GameListItem::WII_DISC:
 					if (!SConfig::GetInstance().m_ListWii)
+						list = false;
+					break;
+				case GameListItem::WII_WAD:
+					if (!SConfig::GetInstance().m_ListWad)
 						list = false;
 					break;
 				default:
@@ -643,8 +659,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.AppendSeparator();
-			if (selected_iso->GetPlatform() == GameListItem::WII_DISC)
+
+			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
 				popupMenu.Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
+
 			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
 			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 			
@@ -656,10 +674,13 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.AppendSeparator();
 			popupMenu.Append(IDM_DELETEGCM, _("&Delete ISO..."));
 
-			if (selected_iso->IsCompressed())
-				popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-			else
-				popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO..."));
+			if (selected_iso->GetPlatform() != GameListItem::WII_WAD)
+			{
+				if (selected_iso->IsCompressed())
+					popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
+				else
+					popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO..."));
+			}
 
 			PopupMenu(&popupMenu);
 		}
@@ -965,7 +986,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE)
 			+ GetColumnWidth(COLUMN_PLATFORM)
-			+ 5); // some pad to keep the horizontal scrollbar away :)
+			+ 8); // some pad to keep the horizontal scrollbar away :)
 
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
 		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 90));

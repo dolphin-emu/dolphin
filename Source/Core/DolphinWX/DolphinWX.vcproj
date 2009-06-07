@@ -957,6 +957,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resources\Platform_wad.xpm"
+				>
+			</File>
+			<File
 				RelativePath=".\resources\Platform_Wii.xpm"
 				>
 			</File>
