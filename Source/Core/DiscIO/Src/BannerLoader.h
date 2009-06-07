@@ -57,7 +57,7 @@ class IBannerLoader
 		}
 };
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem);
+IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
 } // namespace
 
 #endif

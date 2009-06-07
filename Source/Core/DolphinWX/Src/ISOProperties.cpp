@@ -83,15 +83,19 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 	else
 	{
-		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-		pFileSystem->GetFileList(GCFiles);
+		// TODO : Should we add a way to browse the wad file ?
+		if (!DiscIO::IsVolumeWadFile(OpenISO))
+		{
+			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
+			pFileSystem->GetFileList(GCFiles);
+		}
 	}
 
 	OpenGameListItem = new GameListItem(fileName);
 
 	bRefreshList = false;
 
-	CreateGUIControls();
+	CreateGUIControls(DiscIO::IsVolumeWadFile(OpenISO));
 
 	GameIniFile = FULL_GAMECONFIG_DIR + (OpenISO->GetUniqueID()) + ".ini";
 	if (GameIni.Load(GameIniFile.c_str()))
@@ -157,8 +161,12 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 	else
 	{
-		fileIter beginning = GCFiles.begin(), end = GCFiles.end(), pos = GCFiles.begin();
-		CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
+		// TODO : Should we add a way to browse the wad file ?
+		if (!DiscIO::IsVolumeWadFile(OpenISO))
+		{
+			fileIter beginning = GCFiles.begin(), end = GCFiles.end(), pos = GCFiles.begin();
+			CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
+		}
 	}
 	m_Treectrl->Expand(RootId);
 
@@ -177,7 +185,8 @@ CISOProperties::~CISOProperties()
 	if (IsVolumeWiiDisc(OpenISO))
 		WiiDisc.clear();
 	else
-		delete pFileSystem;
+		if (!IsVolumeWadFile(OpenISO))
+			delete pFileSystem;
 
 	delete OpenISO;
 }
@@ -232,9 +241,11 @@ void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 	} while(bRoot || strstr(name, directory));
 }
 
-void CISOProperties::CreateGUIControls()
+void CISOProperties::CreateGUIControls(bool IsWad)
 {
 	m_Close = new wxButton(this, ID_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EditConfig = new wxButton(this, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
+	EditConfig->SetToolTip(_("This will let you Manually Edit the INI config file"));
 
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -251,6 +262,7 @@ void CISOProperties::CreateGUIControls()
 
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->Add(EditConfig, 0, wxALL, 5);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_Close, 0, wxALL, 5);
 
@@ -269,7 +281,7 @@ void CISOProperties::CreateGUIControls()
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		sbWiiOverrides->ShowItems(false);
  		EnableProgressiveScan->Hide();
@@ -299,10 +311,9 @@ void CISOProperties::CreateGUIControls()
 	//HLE Audio
 	sbHLEaudioOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("HLE Audio"));
 	UseRE0Fix = new wxCheckBox(m_GameConfig, ID_RE0FIX, _("Use RE0 Fix"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	// Manual edit config file
-	sEmuState = new wxBoxSizer(wxHORIZONTAL);
-	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
+
 	// Emulation State
+	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
@@ -336,7 +347,6 @@ void CISOProperties::CreateGUIControls()
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbHLEaudioOverrides, 0, wxEXPAND);
-	sbGameConfig->Add(EditConfig);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
 	sEmuState->Add(EmuState, 0, wxEXPAND);
@@ -474,13 +484,17 @@ void CISOProperties::CreateGUIControls()
 	m_Filesystem->SetSizer(sTreePage);
 	sTreePage->Layout();
 
+	// It's a wad file, so we remove the FileSystem page
+	if (IsWad)
+		m_Notebook->RemovePage(4);
+
 	//////////////////////////////////////////////////////////////////////////
 	// Add notebook and buttons to the dialog
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	sMain->SetMinSize(wxSize(400,550));
+	sMain->SetMinSize(wxSize(400,500));
 	SetSizerAndFit(sMain);
 }
 
@@ -790,6 +804,9 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 
 		bRefreshList = true; // Just in case
 	}
+
+	// Once we're done with the ini edit, give the focus back to Dolphin 
+	SetFocus();
 }
 
 void CISOProperties::ListSelectionChanged(wxCommandEvent& event)

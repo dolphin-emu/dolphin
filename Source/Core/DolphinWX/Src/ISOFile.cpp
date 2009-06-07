@@ -58,7 +58,10 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != NULL)
 		{
-			m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
+			if (!DiscIO::IsVolumeWadFile(pVolume))
+				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
+			else
+				m_Platform = WII_WAD;
 
 			m_Company = "N/A";
 			for (int i = 0; i < 6; i++)
@@ -77,9 +80,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			// check if we can get some infos from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-			if (pFileSystem != NULL)
+			if (pFileSystem != NULL || m_Platform == WII_WAD)
 			{
-				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem);
+				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
 
 				if (pBannerLoader != NULL)
 				{
@@ -210,12 +213,16 @@ const std::string GameListItem::GetWiiFSPath() const
 
 	if (Iso != NULL)
 	{
-		if (DiscIO::IsVolumeWiiDisc(Iso))
+		if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
 		{
 			char Path[250];
 			u64 Title;
 
-			Iso->RAWRead((u64)0x0F8001DC, 8, (u8*)&Title);
+			if (DiscIO::IsVolumeWiiDisc(Iso))
+				Iso->RAWRead((u64)0x0F8001DC, 8, (u8*)&Title);
+			else
+				Iso->GetTitleID((u8*)&Title);
+
 			Title = Common::swap64(Title);
 
 			sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(Title>>32), (u32)Title);

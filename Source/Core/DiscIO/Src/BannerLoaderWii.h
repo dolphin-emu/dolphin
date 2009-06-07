@@ -27,7 +27,7 @@ class CBannerLoaderWii
 {
 	public:
 
-		CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem);
+		CBannerLoaderWii(DiscIO::IVolume *pVolume);
 
 		virtual ~CBannerLoaderWii();
 

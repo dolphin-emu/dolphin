@@ -25,6 +25,7 @@
 #include "VolumeDirectory.h"
 #include "VolumeGC.h"
 #include "VolumeWiiCrypted.h"
+#include "VolumeWad.h"
 
 #include "Hash.h"
 
@@ -35,7 +36,8 @@ enum EDiscType
 	DISC_TYPE_UNK,
 	DISC_TYPE_WII,
 	DISC_TYPE_WII_CONTAINER,
-	DISC_TYPE_GC
+	DISC_TYPE_GC,
+	DISC_TYPE_WAD
 };
 
 #ifndef _WIN32
@@ -80,6 +82,9 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 		case DISC_TYPE_GC:
 			return new CVolumeGC(pReader);
 
+		case DISC_TYPE_WAD:
+			return new CVolumeWAD(pReader);
+
 		case DISC_TYPE_WII_CONTAINER:
 		{
 			u8 region;
@@ -121,6 +126,15 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
 	//Gamecube 0xc2339f3d
+}
+
+bool IsVolumeWadFile(const IVolume *_rVolume)
+{
+	u32 MagicWord = 0;
+	_rVolume->Read(0x02, 4, (u8*)&MagicWord);
+
+	return (Common::swap32(MagicWord) == 0x00204973);
+	// That would be 0x00206962 for boot2 wads
 }
 
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean)
@@ -207,6 +221,16 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 			else
 				return(DISC_TYPE_WII_CONTAINER);
 		}
+	}
+
+	// check for WAD
+	{
+		u32 MagicWord = Reader.Read32(0x02);
+
+		// That would be 0x206962 for boot2 wads
+		// Should we add them too ?
+		if (MagicWord == 0x00204973)
+			return(DISC_TYPE_WAD);
 	}
 
 	// check for GC

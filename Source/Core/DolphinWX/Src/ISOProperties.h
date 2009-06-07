@@ -217,7 +217,7 @@ class CISOProperties : public wxDialog
 			IDM_BNRSAVEAS
 		};
 
-		void CreateGUIControls();
+		void CreateGUIControls(bool);
 		void OnClose(wxCloseEvent& event);
 		void OnCloseClick(wxCommandEvent& event);
 		void OnEditConfig(wxCommandEvent& event);

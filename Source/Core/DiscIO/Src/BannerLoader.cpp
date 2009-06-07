@@ -140,11 +140,11 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 }
 
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem)
+IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {
-	if (IsVolumeWiiDisc(_rFileSystem.GetVolume()))
+	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
 	{
-		return(new CBannerLoaderWii(_rFileSystem));
+		return(new CBannerLoaderWii(pVolume));
 	}
 
 	return(new CBannerLoaderGC(_rFileSystem));

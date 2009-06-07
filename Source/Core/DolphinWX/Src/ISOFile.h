@@ -78,7 +78,6 @@ private:
 
 	bool LoadFromCache();
 	void SaveToCache();
-	
 
 	std::string CreateCacheFilename();
 };

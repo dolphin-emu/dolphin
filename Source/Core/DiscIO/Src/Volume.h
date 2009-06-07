@@ -39,6 +39,7 @@ class IVolume
 
 		virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
 		virtual bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
+		virtual bool GetTitleID(u8* _pBuffer) const { return false; }
 		virtual std::string GetUniqueID() const = 0;
 		virtual std::string GetMakerID() const = 0;
 		virtual std::string GetName() const = 0;
