@@ -26,9 +26,6 @@
 #ifndef _DSPCORE_H
 #define _DSPCORE_H
 
-//namespace DSPCore
-//{
-
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
 #define DSP_IRAM_MASK        0x0fff
@@ -83,19 +80,14 @@ struct SDSP
 
 extern SDSP g_dsp;
 
-void gdsp_init();
-void gdsp_reset();
-void gdsp_shutdown();
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename);
+void DSPCore_Reset();
+void DSPCore_Shutdown();  // Frees all allocated memory.
 
-bool gdsp_load_irom(const char *filename);
-bool gdsp_load_coef(const char *filename);
-
-void gdsp_check_external_int();
-void gdsp_check_exceptions();
+void DSPCore_CheckExternalInterrupt();
+void DSPCore_CheckExceptions();
 
 // sets a flag in the pending exception register.
-void gdsp_generate_exception(u8 level);
-
-//}  // namespace
+void DSPCore_SetException(u8 level);
 
 #endif  // _DSPCORE_H

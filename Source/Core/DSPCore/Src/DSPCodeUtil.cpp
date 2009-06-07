@@ -59,7 +59,7 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &t
 	settings.decode_registers = true;
 
 	DSPDisassembler disasm(settings);
-	bool success = disasm.Disassemble(0, code, text);
+	bool success = disasm.Disassemble(0, code, 0x0000, text);
 	return success;
 }
 
@@ -80,9 +80,9 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			std::string line1, line2;
 			u16 pc = i;
-			disassembler.DisOpcode(&code1[0], 2, &pc, line1);
+			disassembler.DisOpcode(&code1[0], 0x0000, 2, &pc, line1);
 			pc = i;
-			disassembler.DisOpcode(&code2[0], 2, &pc, line2);
+			disassembler.DisOpcode(&code2[0], 0x0000, 2, &pc, line2);
 			printf("!! %04x : %04x vs %04x - %s  vs  %s\n", i, code1[i], code2[i], line1.c_str(), line2.c_str());
 		}
 	}
@@ -94,7 +94,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			u16 pc = i;
 			std::string line;
-			disassembler.DisOpcode(&longest[0], 2, &pc, line);
+			disassembler.DisOpcode(&longest[0], 0x0000, 2, &pc, line);
 			printf("!! %s\n", line.c_str());
 		}
 	}

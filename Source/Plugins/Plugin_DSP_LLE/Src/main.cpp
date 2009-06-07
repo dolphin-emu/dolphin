@@ -206,28 +206,17 @@ void Initialize(void *init)
 
 	g_Config.Load();
 
-	gdsp_init();
-	g_dsp.step_counter = 0;
+	std::string irom_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM;
+	std::string coef_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF;
+	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str());
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	g_dsp.irq_request = dspi_req_dsp_irq;
 //	g_dsp.exception_in_progress_hack = false;
-	gdsp_reset();
-
-	if (!gdsp_load_irom((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM).c_str()))
-	{
-		bCanWork = false;
-		PanicAlert("Failed loading DSP ROM from " DSP_IROM_FILE);
-	}
-
-	if (!gdsp_load_coef((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF).c_str()))
-	{
-		bCanWork = false;
-		PanicAlert("Failed loading DSP COEF from " DSP_COEF_FILE);
-	}
+	DSPCore_Reset();
 
 	if (!bCanWork)
 	{
-		gdsp_shutdown();
+		DSPCore_Shutdown();
 		return;
 	}
 
@@ -261,7 +250,7 @@ void DSP_StopSoundStream()
 void Shutdown()
 {
 	AudioCommon::ShutdownSoundStream();
-	gdsp_shutdown();
+	DSPCore_Shutdown();
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)

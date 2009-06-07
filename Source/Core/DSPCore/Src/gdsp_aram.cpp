@@ -103,8 +103,8 @@ u16 dsp_read_aram()
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
 
 		// Do we really need both?
-		gdsp_generate_exception(3);
-		gdsp_generate_exception(5);
+		DSPCore_SetException(3);
+		DSPCore_SetException(5);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values, so yeah,
 		// it seems likely that we should raise an exception to let the DSP program do that,

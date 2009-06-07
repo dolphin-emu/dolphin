@@ -60,7 +60,8 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 
 	std::string text;
 	DSPDisassembler disasm(settings);
-	if (!disasm.Disassemble(0, code, text))
+
+	if (!disasm.Disassemble(0, code, 0x0000, text))
 		return false;
 
 	return File::WriteStringToFile(true, text, txtFile);

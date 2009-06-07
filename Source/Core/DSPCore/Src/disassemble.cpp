@@ -71,7 +71,7 @@ DSPDisassembler::~DSPDisassembler()
 	fclose(uo);
 }
 
-bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, std::string &text)
+bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, int base_addr, std::string &text)
 {
 	const char *tmp1 = "tmp1.bin";
 	const char *tmp2 = "tmp.txt";
@@ -186,7 +186,7 @@ static void MakeLowerCase(char *ptr)
 	}
 }
 
-void DSPDisassembler::DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string &dest)
+void DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
 {
 	char buffer[256];
 	char *buf = buffer;
@@ -339,7 +339,7 @@ bool DSPDisassembler::DisFile(const char* name, int pass, std::string &output)
 	// Actually do the disassembly.
 	for (u16 pc = 0; pc < (size / 2);)
 	{
-		DisOpcode(binbuf, pass, &pc, output);
+		DisOpcode(binbuf, 0x0000, pass, &pc, output);
 		if (pass == 2)
 			output.append("\n");
 	}

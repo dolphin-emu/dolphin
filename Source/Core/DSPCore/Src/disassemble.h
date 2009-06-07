@@ -63,11 +63,11 @@ public:
 	DSPDisassembler(const AssemblerSettings &settings);
 	~DSPDisassembler();
 
-	bool Disassemble(int start_pc, const std::vector<u16> &code, std::string &text);
+	bool Disassemble(int start_pc, const std::vector<u16> &code, int base_addr, std::string &text);
 
 	// Warning - this one is trickier to use right.
 	// Use pass == 2 if you're just using it by itself.
-	void DisOpcode(const u16 *binbuf, int pass, u16 *pc, std::string &dest);
+	void DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest);
 
 private:
 	// Moves PC forward and writes the result to dest.

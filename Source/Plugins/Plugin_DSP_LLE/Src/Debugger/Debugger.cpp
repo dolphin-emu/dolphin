@@ -219,7 +219,8 @@ void DSPDebuggerLLE::RebuildDisAsmListView()
 
 		DSPDisassembler disasm(settings);
 		std::string op_str;
-		disasm.DisOpcode(binbuf, 2, &settings.pc, op_str);
+
+		disasm.DisOpcode(binbuf, settings.pc & 0x8000, 2, &settings.pc, op_str);
 		const char* pParameter = NULL;
 		const char* pExtension = NULL;
 

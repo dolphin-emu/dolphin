@@ -811,6 +811,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\DSPDebugInterface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPDebugInterface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Debugger\DSPRegisterView.cpp"
 				>
 			</File>

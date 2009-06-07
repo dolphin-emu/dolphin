@@ -45,7 +45,7 @@ void WriteCR(u16 val)
 	// reset
 	if (val & 0x0001)
 	{
-		gdsp_reset();
+		DSPCore_Reset();
 	}
 
 	val &= ~0x0001;
@@ -99,7 +99,7 @@ void HandleLoop()
 
 void Step()
 {
-	gdsp_check_exceptions();
+	DSPCore_CheckExceptions();
 
 	g_dsp.step_counter++;
 
@@ -133,7 +133,7 @@ void Run()
 		if (DSPHost_Running())
 			break;
 
-		gdsp_check_external_int();
+		DSPCore_CheckExternalInterrupt();
 		// This number (500) is completely arbitrary. TODO: tweak.
 		for (int i = 0; i < 500 && !(g_dsp.cr & CR_HALT); i++)
 			Step();
@@ -147,7 +147,7 @@ void Run()
 // Used by non-thread mode.
 void RunCycles(int cycles)
 {
-	gdsp_check_external_int();
+	DSPCore_CheckExternalInterrupt();
 
 	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
 	for (int i = 0; i < 8; i++)

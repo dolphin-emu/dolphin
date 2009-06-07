@@ -35,10 +35,11 @@
 // "index" register (the second four, IXx). The addressing registers will wrap
 // in odd ways, dictated by the corresponding wrapping register, WP0-3.
 
-// The following should be applied as a decrement:
+// The following should be applied as a decrement (and is applied by dsp_decrement_addr_reg):
 // ar[i] = (ar[i] & wp[i]) == 0 ? ar[i] | wp[i] : ar[i] - 1;
 // I have not found the corresponding algorithms for increments yet.
 // It's gotta be fairly simple though. See R3123, R3125 in Google Code.
+// (May have something to do with (ar[i] ^ wp[i]) == 0)
 
 namespace DSPInterpreter
 {
