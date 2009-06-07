@@ -445,10 +445,16 @@ void CGameListCtrl::ScanForISOs()
 	}
 
 	CFileSearch::XStringVector Extensions;
-	Extensions.push_back("*.iso");
-	Extensions.push_back("*.gcm");
-	Extensions.push_back("*.gcz");
-	Extensions.push_back("*.wad");
+
+	if (SConfig::GetInstance().m_ListGC)
+		Extensions.push_back("*.gcm");
+	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
+	{
+		Extensions.push_back("*.iso");
+		Extensions.push_back("*.gcz");
+	}
+	if (SConfig::GetInstance().m_ListWad)
+		Extensions.push_back("*.wad");
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
