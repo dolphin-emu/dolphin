@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Globals.h"
 
 #include <vector>
@@ -66,7 +70,12 @@
 	#include "Win32Window.h" // warning: crapcode
 #else
 #endif
+//////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
@@ -137,7 +146,6 @@ static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
 
-
 namespace {
 
 static const GLenum glSrcFactors[8] =
@@ -180,8 +188,13 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 	}
 }
 
-}  // namespace
+} // namespace
+//////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Init functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Renderer::Init()
 {
     bool bSuccess = true;
@@ -537,6 +550,7 @@ bool Renderer::InitializeGL()
 
     return GL_REPORT_ERROR() == GL_NO_ERROR;
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -564,6 +578,10 @@ float Renderer::GetTargetScaleY()
 
 /////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Various supporting functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SetRenderTarget(GLuint targ)
 {
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 
@@ -714,18 +732,25 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-// -------------------------------------------------------------------------------------------
+bool Renderer::IsUsingATIDrawBuffers()
+{
+    return s_bATIDrawBuffers;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Function: This function handles the OpenGL glScissor() function
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
-// ---------------
-// This function handles the OpenGL glScissor() function
-// ---------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // bpmem.scissorTL.x, y = 342x342
 // bpmem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-// -------------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -768,12 +793,12 @@ bool Renderer::SetScissorRect()
 
     return false;
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
-bool Renderer::IsUsingATIDrawBuffers()
-{
-    return s_bATIDrawBuffers;
-}
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Aspect ratio functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ComputeBackbufferRectangle(TRectangle *rc)
 {
 	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
@@ -840,10 +865,12 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	rc->right = XOffset + ceil(FloatGLWidth);
 	rc->bottom = YOffset + ceil(FloatGLHeight);
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
-// ---------------------------------------------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
-// ---------------------------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
@@ -1077,7 +1104,82 @@ void Renderer::Swap(const TRectangle& rc)
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void Renderer::SwapBuffers()
+{
+	// ---------------------------------------------------------------------
+	// Count FPS.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	static int fpscount = 0;
+    static unsigned long lasttime;
+    ++fpscount;
+    if (timeGetTime() - lasttime > 1000) 
+    {
+        lasttime = timeGetTime();
+        s_fps = fpscount - 1;
+        fpscount = 0;
+    }
+	// ---------------------------------------------------------------------
+
+	for (int i = 0; i < 8; i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	DrawDebugText();
+
+	OSD::DrawMessages();
+
+#if defined(DVPROFILE)
+    if (g_bWriteProfile) { 
+        //g_bWriteProfile = 0;
+        static int framenum = 0;
+        const int UPDATE_FRAMES = 8;
+        if (++framenum >= UPDATE_FRAMES) {
+            DVProfWrite("prof.txt", UPDATE_FRAMES);
+            DVProfClear();
+            framenum = 0;
+        }
+    }
+#endif
+    // Copy the rendered frame to the real window
+
+	OpenGL_SwapBuffers();
+
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+    GL_REPORT_ERRORD();
+
+    // Clean out old stuff from caches
+    VertexShaderCache::ProgressiveCleanup();
+    PixelShaderCache::ProgressiveCleanup();
+    TextureMngr::ProgressiveCleanup();
+
+    frameCount++;
+
+    // New frame
+    stats.ResetFrame();
+
+	// Render to the framebuffer.
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+
+	GL_REPORT_ERRORD();
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create On-Screen-Messages
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::DrawDebugText()
 {
 	// Reset viewport for drawing text
@@ -1205,71 +1307,6 @@ void Renderer::DrawDebugText()
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 }
-// -------------------------------------------------------------------------------------------------------
-// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
-// -------------------------------------------------------------------------------------------------------
-void Renderer::SwapBuffers()
-{
-	// Count FPS.
-	static int fpscount = 0;
-    static unsigned long lasttime;
-    ++fpscount;
-    if (timeGetTime() - lasttime > 1000) 
-    {
-        lasttime = timeGetTime();
-        s_fps = fpscount - 1;
-        fpscount = 0;
-    }
-
-	for (int i = 0; i < 8; i++) {
-		glActiveTexture(GL_TEXTURE0 + i);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_TEXTURE_RECTANGLE_ARB);
-	}
-	glActiveTexture(GL_TEXTURE0);
-
-	DrawDebugText();
-
-	OSD::DrawMessages();
-
-#if defined(DVPROFILE)
-    if (g_bWriteProfile) { 
-        //g_bWriteProfile = 0;
-        static int framenum = 0;
-        const int UPDATE_FRAMES = 8;
-        if (++framenum >= UPDATE_FRAMES) {
-            DVProfWrite("prof.txt", UPDATE_FRAMES);
-            DVProfClear();
-            framenum = 0;
-        }
-    }
-#endif
-    // Copy the rendered frame to the real window
-
-	OpenGL_SwapBuffers();
-
-
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-    GL_REPORT_ERRORD();
-
-    // Clean out old stuff from caches
-    VertexShaderCache::ProgressiveCleanup();
-    PixelShaderCache::ProgressiveCleanup();
-    TextureMngr::ProgressiveCleanup();
-
-    frameCount++;
-
-    // New frame
-    stats.ResetFrame();
-
-	// Render to the framebuffer.
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-
-	GL_REPORT_ERRORD();
-}
-
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
@@ -1281,11 +1318,12 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Save screenshot
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SetScreenshot(const char *filename)
 {
 	s_criticalScreenshot.Enter();
@@ -1376,10 +1414,10 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-// ------------------------------------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////
 // Function: This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
 // Call schedule: Called from VertexShaderManager
-// ------------------------------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void UpdateViewport()
 {
 	// ---------
@@ -1445,3 +1483,4 @@ void UpdateViewport()
 	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
 	*/
 }
+//////////////////////////////////////////////////////////////////////////////////////////
