@@ -30,6 +30,22 @@ that applies to both the internal resolution and the fullscreen resolution.
 Todo: Make the internal resolution option apply instantly, currently only the native or not option
 applies instantly
 
+1.2 Screenshots
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+The screenshots should be taken from the internal representation of the picture regardless of
+what the current window size is. Since AA and wireframe is applied together with the picture resizing
+this rule is not currently applied to AA or wireframe pictures, they are instead taken from whatever
+the window size is.
+
+Todo: Render AA and wireframe to a separate picture used for the screenshot in addition to the one
+for display.
+
+1.3 AA
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+Make AA apply instantly during gameplay if possible
+
 ////////////////////////////////////////////////////////////////////////////////////////*/
 
 

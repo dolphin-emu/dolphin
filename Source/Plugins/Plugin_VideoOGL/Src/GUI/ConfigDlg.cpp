@@ -229,6 +229,8 @@ void ConfigDialog::CreateGUIControls()
 		"Select internal resolution for the separate rendering window. This resolution also applies"
 		" to the fullscreen mode"
 		"\n\nApplies instanty during gameplay: No"));
+	m_MSAAModeCB->SetToolTip(wxT(
+		"Applies instanty during gameplay: No"));
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));

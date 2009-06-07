@@ -870,9 +870,9 @@ void Renderer::Swap(const TRectangle& rc)
 	}
 
 	// ---------------------------------------------------------------------
-	// Save screenshot
+	// Save screenshot if AA and wireframe is off.
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	if (s_bScreenshot)
+	if (s_bScreenshot && s_MSAASamples == 1 && !g_Config.bWireFrame)
 	{
 		s_criticalScreenshot.Enter();
 
@@ -885,6 +885,9 @@ void Renderer::Swap(const TRectangle& rc)
 	}
 	// ---------------------------------------------------------------------
 
+	// ---------------------------------------------------------------------
+	// Apply AA
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
@@ -952,12 +955,34 @@ void Renderer::Swap(const TRectangle& rc)
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);
 	}
+	// ---------------------------------------------------------------------
 
+	// ---------------------------------------------------------------------
 	// Wireframe
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (g_Config.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// ---------------------------------------------------------------------
 
+	// ---------------------------------------------------------------------
+	// Save screenshot if AA or wireframe is on.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	if (s_bScreenshot && (s_MSAASamples > 1 || g_Config.bWireFrame))
+	{
+		s_criticalScreenshot.Enter();
+
+		// Save screenshot
+		SaveRenderTarget(s_sScreenshotName.c_str(), OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight(), 0);
+		// Reset settings
+		s_sScreenshotName = "";
+		s_bScreenshot = false;
+		s_criticalScreenshot.Leave();
+	}
+	// ---------------------------------------------------------------------
+
+	// ---------------------------------------------------------------------
 	// Frame dumps are handled a little differently in Windows
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 	if (g_Config.bDumpFrames) {
 		s_criticalScreenshot.Enter();
@@ -1037,6 +1062,7 @@ void Renderer::Swap(const TRectangle& rc)
 		s_bLastFrameDumped = false;
 	}
 #endif
+	// ---------------------------------------------------------------------
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
@@ -1256,6 +1282,10 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		0, nBackbufferWidth, nBackbufferHeight);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Save screenshot
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SetScreenshot(const char *filename)
 {
 	s_criticalScreenshot.Enter();
@@ -1290,15 +1320,16 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	wxImage a(W, H, data);
 
 	// ---------------------------------------------------------------------
-	// If it's not a 4:3 picture rescale it to 4:3. This only applies to native resolutions.
+	// If it's not a 4:3 picture rescale it to 4:3. For example in RE1 some native pictures
+	// have non-4:3 resolutions. This only applies to native resolutions.
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Todo: There is currently no adjustment for non-16:9 source pictures that are intended for a 16:9
 	// size because I think all Wii 16:9 source pictures are 16:9 to begin with. If not, add a 16:9 adjustment
 	// too.
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	/**/
 	float Ratio = (float)W / (float)(H);
-	if (g_Config.bNativeResolution && Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
+	if (g_Config.bNativeResolution && s_MSAASamples == 1 && !g_Config.bWireFrame
+		&& Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
 	{
 		// Check if the height or width should be changed
 		if (Ratio < 4.0/3.0)
@@ -1328,6 +1359,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	return result;
 }
 
+
 void Renderer::FlipImageData(u8 *data, int w, int h)
 {
 	// Flip image upside down. Damn OpenGL.
@@ -1341,6 +1373,8 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 		}
 	}
 }
+//////////////////////////////////////////////////////////////////////////////////////////
+
 
 // ------------------------------------------------------------------------------------------------------------
 // Function: This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
