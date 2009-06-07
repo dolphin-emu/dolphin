@@ -165,12 +165,18 @@ void ConfigDialog::CreateGUIControls()
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Use Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Internal resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Window Mode:"), wxDefaultPosition, wxDefaultSize , 0 );
+	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
+	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("4:3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("16:9"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -186,14 +192,8 @@ void ConfigDialog::CreateGUIControls()
 		m_HideCursor->SetValue(g_Config.bHideCursor); 
 	#endif
 
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Internal resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
-
 	// Advanced Display Settings
 	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
-	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_VSync->SetValue(g_Config.bVSync);
 
@@ -249,7 +249,7 @@ void ConfigDialog::CreateGUIControls()
 	sGeneral = new wxBoxSizer(wxVERTICAL);
 	sBasic = new wxGridBagSizer(0, 0);	
 
-	sBasic->Add(WMText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(IRText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_NativeResolution, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL | wxTOP, 0);
 
@@ -257,21 +257,22 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_KeepAR43,			wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_KeepAR169,		wxGBPosition(1, 2), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Crop,				wxGBPosition(1, 3), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(WMText,				wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Fullscreen,		wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
-	sBasic->Add(m_HideCursor, wxGBPosition(2, 0), wxGBSpan(1, 4), wxALL, 5);
+	sBasic->Add(m_HideCursor, wxGBPosition(3, 0), wxGBSpan(1, 4), wxALL, 5);
 	#endif
 
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
-	sBasicAdvanced->Add(m_Fullscreen,	wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_VSync,		wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_UseXFB,		wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_RenderToMainWindow, wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,		wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_VSync,		wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_UseXFB,		wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_RenderToMainWindow, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,		wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
