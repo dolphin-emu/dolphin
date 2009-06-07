@@ -42,7 +42,7 @@ void Config::Load()
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, true);
+    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);

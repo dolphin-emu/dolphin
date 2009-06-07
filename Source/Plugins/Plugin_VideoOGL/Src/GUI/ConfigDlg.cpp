@@ -164,7 +164,7 @@ void ConfigDialog::CreateGUIControls()
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
-	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Use Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -250,8 +250,8 @@ void ConfigDialog::CreateGUIControls()
 	sBasic = new wxGridBagSizer(0, 0);	
 
 	sBasic->Add(WMText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_NativeResolution, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxTOP, 0);
-	sBasic->Add(m_WindowResolutionCB, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALL, 5);
+	sBasic->Add(m_WindowResolutionCB, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_NativeResolution, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL | wxTOP, 0);
 
 	sBasic->Add(KeepARText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR43,			wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
