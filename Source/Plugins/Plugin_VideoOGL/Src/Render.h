@@ -38,6 +38,7 @@ extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
 
 extern int frameCount;
+extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 
 class Renderer
 {

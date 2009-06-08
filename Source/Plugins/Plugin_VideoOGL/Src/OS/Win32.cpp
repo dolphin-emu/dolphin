@@ -94,8 +94,50 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 
 void DoDllDebugger();
 extern bool gShowDebugger;
+int OSDChoice = 0, OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
-// ----------------------
+// ---------------------------------------------------------------------
+// OSD Menu
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Let's begin with 3 since 1 and 2 are default Wii keys
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void OSDMenu(WPARAM wParam)
+{
+	switch( LOWORD( wParam ))
+	{
+	case '3':
+		OSDChoice = 1;
+		// Toggle native resolution
+		g_Config.bNativeResolution = !g_Config.bNativeResolution;
+		break;
+	case '4':
+		OSDChoice = 2;
+		// Toggle aspect ratio
+		if (!(g_Config.bKeepAR43 || g_Config.bKeepAR169))
+			{ g_Config.bKeepAR43 = true; g_Config.bCrop = false; }
+		else if (g_Config.bKeepAR43 && !g_Config.bCrop)
+			g_Config.bCrop = true;
+		else if (g_Config.bKeepAR43)
+			{ g_Config.bKeepAR43 = false; g_Config.bCrop = false; g_Config.bKeepAR169 = true; }
+		else if (g_Config.bKeepAR169 && !g_Config.bCrop)
+			g_Config.bCrop = true;
+		else
+			{ g_Config.bKeepAR43 = false; g_Config.bKeepAR169 = false; g_Config.bCrop = false; }
+		break;
+	case '5':
+		OSDChoice = 3;
+		// Toggle EFB copy
+		g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
+		break;
+	case '6':
+		//OSDChoice = 4;
+		break;
+	}
+}
+// ---------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------
 // The rendering window
 // ----------------------
 namespace EmuWindow
@@ -110,7 +152,7 @@ WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = "DolphinEmuWnd";
 int g_winstyle;
 
-// ------------------------------------------
+// ---------------------------------------------------------------------
 /* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
    an empty transparent cursor */
 // ------------------
@@ -243,13 +285,11 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
 			}
 			break;
-		case 'E': // EFB hotkey
-			if (g_Config.bEFBCopyDisableHotKey)
-			{
-				g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
-				OSD::AddMessage(StringFromFormat("Copy EFB was turned %s",
-					g_Config.bEFBCopyDisable ? "off" : "on").c_str(), 5000);
-			}
+		case '3': // OSD keys
+		case '4':
+		case '5':
+		case '6':
+			OSDMenu(wParam);
 			break;
 		}
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);

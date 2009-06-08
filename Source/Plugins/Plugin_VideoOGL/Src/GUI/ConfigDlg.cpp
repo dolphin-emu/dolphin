@@ -209,6 +209,13 @@ void ConfigDialog::CreateGUIControls()
 	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
+	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageGeneral, ID_EFBCOPYDISABLEHOTKEY, wxT("OSD Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	#ifndef _WIN32
+	// JPeterson set the hot key to be Win32-specific
+	m_EFBCopyDisableHotKey->Enable(false);
+	#endif
+	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
+
 	// Tool tips
 	m_Fullscreen->SetToolTip(wxT(
 		"This will create a Fullscreen window using the chosen Fullscreen resolution."
@@ -231,6 +238,8 @@ void ConfigDialog::CreateGUIControls()
 		"\n\nApplies instanty during gameplay: No"));
 	m_MSAAModeCB->SetToolTip(wxT(
 		"Applies instanty during gameplay: No"));
+	m_EFBCopyDisableHotKey->SetToolTip(wxT(
+		"Enable OSD hotkeys '3', '4', '5', etc."));
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
@@ -269,10 +278,11 @@ void ConfigDialog::CreateGUIControls()
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
-	sBasicAdvanced->Add(m_VSync,		wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_UseXFB,		wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_RenderToMainWindow, wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,		wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_EFBCopyDisableHotKey,		wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_VSync,				wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_RenderToMainWindow,	wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
@@ -337,14 +347,6 @@ void ConfigDialog::CreateGUIControls()
 	m_Radio_CopyEFBToGL = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTOGL, wxT("Copy EFB to GL texture (hack)"));
 	m_Radio_CopyEFBToGL->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 	g_Config.bCopyEFBToRAM ? m_Radio_CopyEFBToRAM->SetValue(true) : m_Radio_CopyEFBToGL->SetValue(true);
-	
-	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageAdvanced, ID_EFBCOPYDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBCopyDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
-	#ifndef _WIN32
-	// JPeterson set the hot key to be Win32-specific
-	m_EFBCopyDisableHotKey->Enable(false);
-	#endif
-	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
@@ -425,7 +427,6 @@ void ConfigDialog::CreateGUIControls()
 				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
 					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
 					sStrip1->Add(m_CheckBox_DisableCopyEFB, 0, wxALL|wxEXPAND, 5);
-					sStrip1->Add(m_EFBCopyDisableHotKey, 0, wxALL|wxEXPAND, 5);
 				sSBox->Add(sStrip1, 0, wxALL|wxEXPAND, 0);
 				sSBox->Add(m_Radio_CopyEFBToRAM, 0, wxALL|wxEXPAND, 5);
 				sSBox->Add(m_Radio_CopyEFBToGL, 0, wxALL|wxEXPAND, 5);

@@ -885,6 +885,9 @@ void Renderer::Swap(const TRectangle& rc)
 		v_max = (float)GetTargetHeight();
 	}
 
+	// Tell the OSD Menu about the current internal resolution
+	OSDInternalW = rc.right; OSDInternalH = rc.bottom;
+
 	// ---------------------------------------------------------------------
 	// Apply AA
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -1287,6 +1290,53 @@ void Renderer::DrawDebugText()
 	// Render a shadow, and then the text.
 	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+
+	// OSD Menu messages
+	if (OSDChoice > 0 && g_Config.bEFBCopyDisableHotKey)
+	{
+		OSDTime = timeGetTime() + 3000;
+		OSDChoice = -OSDChoice;
+	}
+	if (OSDTime > timeGetTime() && g_Config.bEFBCopyDisableHotKey)
+	{
+		std::string T1 = "";
+		std::string T2 = "";
+
+		int W, H;
+		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
+
+		std::string OSDM1 =
+			g_Config.bNativeResolution ? StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
+			: StringFromFormat("%i x %i", W, H);
+		std::string OSDM21 =
+			!(g_Config.bKeepAR43 || g_Config.bKeepAR169) ? "-": (g_Config.bKeepAR43 ? "4:3" : "16:9");
+		std::string OSDM22 =
+			g_Config.bCrop ? " (crop)" : "";			
+		std::string OSDM31 =
+			g_Config.bCopyEFBToRAM ? "RAM" : "Texture";
+		std::string OSDM32 =
+			g_Config.bEFBCopyDisable ? "Yes" : "No";
+
+		// If there is more text than this we will have a collission
+		if (g_Config.bShowFPS)
+			{ T1 += "\n\n"; T2 += "\n\n"; }
+
+		// The latest changed setting in yellow
+		T1 += (OSDChoice == -1) ? StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()) : "\n";
+		T1 += (OSDChoice == -2) ? StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()) : "\n";
+		T1 += (OSDChoice == -3) ? StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()) : "\n";
+			
+		// The other settings in cyan
+		T2 += !(OSDChoice == -1) ? StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()) : "\n";
+		T2 += !(OSDChoice == -2) ? StringFromFormat("4: Lock Aspect Ratio: %s\n", OSDM21.c_str(), OSDM22.c_str()) : "\n";
+		T2 += !(OSDChoice == -3) ? StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()) : "\n";
+
+		// Render a shadow, and then the text
+		Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
+		Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
+		Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
+		Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
+	}
 }
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {

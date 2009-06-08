@@ -515,7 +515,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		ShowFullScreen(!IsFullScreen());
 	}
 #ifdef _WIN32
-	if(event.GetKeyCode() == 'E','M') // Send this to the video plugin WndProc
+	if(event.GetKeyCode() == 'M', '3', '4', '5', '6') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
 		event.Skip(); // Don't block the E key
