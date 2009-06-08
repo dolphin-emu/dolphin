@@ -15,6 +15,7 @@ files = [
         "ir.c",
         "nunchuk.c",
         "guitar_hero_3.c",
+        "wiiboard.c",
         "wiiuse.c",
 	]
 
