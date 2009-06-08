@@ -487,7 +487,7 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 {
 	if(VolumeHandler::IsValid()) {
 		VolumeHandler::EjectVolume();
-		GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText("Load Disc");
+		GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText(wxT("Load Disc"));
 		return;
 	}
 
@@ -495,7 +495,7 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 	DoOpen(false);
 	DVDInterface::SetLidOpen(false);
 	DVDInterface::SetDiscInside(true);
-	GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText("Eject");
+	GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText(wxT("Eject"));
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
