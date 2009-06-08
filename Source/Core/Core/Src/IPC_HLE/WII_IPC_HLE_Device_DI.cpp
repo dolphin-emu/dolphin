@@ -31,13 +31,11 @@
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-    , m_pVolume(NULL)
     , m_pFileSystem(NULL)
 	, m_ErrorStatus(0)
 {
-	m_pVolume = VolumeHandler::GetVolume();
-    if (m_pVolume)
-        m_pFileSystem = DiscIO::CreateFileSystem(m_pVolume);
+	if (VolumeHandler::IsValid())
+        m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
@@ -47,10 +45,6 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 		delete m_pFileSystem;
 		m_pFileSystem = NULL;
 	}
-	// This caused the crash in VolumeHandler.cpp, setting m_pVolume = NULL; didn't help
-	// it still makes VolumeHandler.cpp have a  non-NULL pointer with no content so that
-	// delete crashes
-	//if(m_pVolume) { delete m_pVolume; m_pVolume = NULL; }
 }
 
 bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
@@ -67,10 +61,7 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
-	INFO_LOG(WII_IPC_DVD, "*******************************");
     INFO_LOG(WII_IPC_DVD,  "CWII_IPC_DVD_Device_di::IOCtl");
-    INFO_LOG(WII_IPC_DVD, "*******************************");
-
 
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
@@ -82,7 +73,7 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 		GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	if (Command == 0x7a)
-		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_DVD, LogTypes::LWARNING);
+		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_DVD, LogTypes::LINFO);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -92,9 +83,7 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
 {  
-	INFO_LOG(WII_IPC_DVD, "*******************************");
 	INFO_LOG(WII_IPC_DVD,  "CWII_IPC_DVD_Device_di::IOCtlV");
-	INFO_LOG(WII_IPC_DVD, "*******************************");
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
@@ -153,6 +142,16 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		// Set out buffer to zeroes as a safety precaution to avoid answering
 		// nonsense values
 		Memory::Memset(_BufferOut, 0, _BufferOutSize);
+	}
+
+	// Initializing a filesystem if it was just loaded
+	if(!m_pFileSystem && VolumeHandler::IsValid())
+		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
+
+	// De-initializing a filesystem if the volume was unmounted
+	if(m_pFileSystem && !VolumeHandler::IsValid()) {
+		delete m_pFileSystem;
+		m_pFileSystem = NULL;
 	}
 
 	switch (Command)
@@ -252,19 +251,40 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
         break;
 
 	// DVDLowPrepareCoverRegister
-    // DVDLowGetCoverReg - Called by "Legend of Spyro" and MP3
+    // DVDLowGetCoverReg - Called by "Legend of Spyro", MP3 and Wii System Menu
     case 0x7a:
         {   
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverReg (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			u8* buffer = Memory::GetPointer(_BufferOut);
+			
+			// DVD Cover Register States:
+			// 0x00: Unknown state (keeps checking for DVD)
+			// 0x01: No Disc inside
+			// 0xFE: Reads Disc
 
-			// --------------------------------------------------------------------
-			/* Hack for Legend of Spyro. Switching the 4th byte between 0 and 1 gets
+			// We notify the application that we ejected a disc by
+			// replacing the Change Disc menu button with "Eject" which 
+			// in turn makes volume handler invalid for at least one
+			// ioctl and then the user has enough time to load another
+			// disc.
+			// TODO: Make ejection mechanism recognized. (Currently eject 
+			//       only works if DVDLowReset is called)
+			
+			buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0x00;
+
+			if(m_pFileSystem)
+				buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0xFE;
+
+			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverReg (Buffer 0x%08x, 0x%x) %s",
+				GetDeviceName().c_str(), _BufferOut, _BufferOutSize, 
+				ArrayToString(buffer, _BufferOutSize, 0, _BufferOutSize).c_str());
+
+
+			/* 
+			   Hack for Legend of Spyro. Switching the 4th byte between 0 and 1 gets
 			   through this check. The out buffer address remains the same all the
 			   time so we don't have to bother making a global function.
 			   
-			   TODO: Make this compatible with MP3 */
-			// -------------------------
+			   TODO: Make this compatible with MP3 			
 			/*
 			static u8 coverByte = 0;
 
@@ -275,9 +295,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				coverByte = 0;
 			else
 				coverByte = 0x01;
-			
+
 			return 1;
 			*/
+			
         }
         break;
 

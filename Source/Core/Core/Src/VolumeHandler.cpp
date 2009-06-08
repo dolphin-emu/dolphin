@@ -27,6 +27,19 @@ DiscIO::IVolume *GetVolume() {
 	return g_pVolume;
 }
 
+void EjectVolume() 
+{
+	if (g_pVolume)
+	{
+		// This code looks scary. Can the try/catch stuff be removed?
+		// This cause a "Unhandled exception ... Access violation
+		// reading location ..." after you have started and stopped two
+		// or three games
+		delete g_pVolume;
+		g_pVolume = NULL;
+	}
+}
+
 bool SetVolumeName(const std::string& _rFullPath)
 {
     if (g_pVolume)

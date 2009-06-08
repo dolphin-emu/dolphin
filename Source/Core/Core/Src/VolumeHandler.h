@@ -42,6 +42,8 @@ bool IsWii();
 
 DiscIO::IVolume *GetVolume();
 
+void EjectVolume();
+
 }  // namespace
 
 #endif

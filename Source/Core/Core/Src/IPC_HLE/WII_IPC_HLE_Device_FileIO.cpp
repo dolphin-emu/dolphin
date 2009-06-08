@@ -49,11 +49,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 {
-    if (m_pFileHandle != NULL)
-    {
-        fclose(m_pFileHandle);
-        m_pFileHandle = NULL;
-    }
+
 }
 
 bool 
@@ -61,6 +57,12 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 {
 	u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);	
+
+	if (m_pFileHandle != NULL)
+	{
+		fclose(m_pFileHandle);
+		m_pFileHandle = NULL;
+	}
 
 	// Close always return 0 for success
 	Memory::Write_U32(0, _CommandAddress + 4);
@@ -101,7 +103,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		{
 		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
 		case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
-		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
+		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "a+b"); break;
 		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
 		}
 	}

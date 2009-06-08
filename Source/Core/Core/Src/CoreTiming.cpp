@@ -404,7 +404,7 @@ void LogPendingEvents()
 
 void Idle()
 {
-	DEBUG_LOG(POWERPC, "Idle");
+	//DEBUG_LOG(POWERPC, "Idle");
 	
 	idledCycles += downcount;
 	downcount = 0;

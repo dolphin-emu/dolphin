@@ -43,7 +43,6 @@ private:
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 
-    DiscIO::IVolume* m_pVolume;
     DiscIO::IFileSystem* m_pFileSystem;
 	u32 m_ErrorStatus;
 };

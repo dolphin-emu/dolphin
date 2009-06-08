@@ -131,7 +131,7 @@ void CFrame::CreateMenu()
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, _T("&Play"));
-	emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
+	emulationMenu->Append(IDM_CHANGEDISC, _T("Load Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
@@ -485,10 +485,17 @@ void CFrame::DoOpen(bool Boot)
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 {
+	if(VolumeHandler::IsValid()) {
+		VolumeHandler::EjectVolume();
+		GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText("Load Disc");
+		return;
+	}
+
 	DVDInterface::SetLidOpen(true);
 	DoOpen(false);
 	DVDInterface::SetLidOpen(false);
 	DVDInterface::SetDiscInside(true);
+	GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText("Eject");
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
