@@ -339,8 +339,9 @@ int main()
 					dspbufC[0x00 + n] = dspreg_in[n];
 				DCFlushRange(dspbufC, 0x2000);
 				// Then send the code.
-				DCFlushRange((void *)dsp_code, 0x2000);
-				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code), 0, 4000, 0x10);
+				DCFlushRange((void *)dsp_code[0], 0x2000);
+				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[0]), 
+					0, 4000, 0x10);
 			}
 			else if (mail == 0x8888dead)
 			{
