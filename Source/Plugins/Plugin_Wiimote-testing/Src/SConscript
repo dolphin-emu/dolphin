@@ -1,0 +1,53 @@
+# -*- python -*- 
+ 
+Import('env')
+import sys
+
+wmenv = env.Clone()
+name = "Plugin_Wiimote"
+
+files = [
+        "Config.cpp",
+        "DataReports.cpp",
+        "EmuDefinitions.cpp",
+		"EmuDynamics.cpp",
+        "EmuMain.cpp",
+        "EmuPad.cpp",
+        "EmuSubroutines.cpp",
+        "Encryption.cpp",
+        "main.cpp",
+	]
+if wmenv['HAVE_WX']:
+    files += [
+        "ConfigDlg.cpp",
+		"ConfigGamepad.cpp",
+        "ConfigRecording.cpp",
+        "Logging.cpp",
+        "FillReport.cpp",
+        ]
+
+libs = [ 'common', 'inputcommon' ]
+
+
+cxxflags = [ '-fPIC' ]
+
+if wmenv['HAVE_WIIUSE']:
+    libs  += [ 'wiiuse' ]
+    files += [ "wiimote_real.cpp" ]
+    files += [ "ReadWiimote.cpp" ]
+    cxxflags += ['-DHAVE_WIIUSE']
+
+if sys.platform == 'darwin':
+    wmenv.Append(
+    	CXXFLAGS = cxxflags,
+    	LINKFLAGS = ['-framework' ,'IOBluetooth'],
+    	LIBS = libs,
+    	)
+else:
+    wmenv.Append(
+    	CXXFLAGS = cxxflags,
+   	LIBS = libs,
+    	)
+
+
+wmenv.SharedLibrary(env['plugin_dir']+name, files)
