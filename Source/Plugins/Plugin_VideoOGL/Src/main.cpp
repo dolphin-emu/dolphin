@@ -81,6 +81,7 @@ Make AA apply instantly during gameplay if possible
 #include "XFB.h"
 #include "XFBConvert.h"
 #include "TextureConverter.h"
+#include "PostProcessing.h"
 #include "OnScreenDisplay.h"
 #include "Setup.h"
 
@@ -353,6 +354,7 @@ void Video_Prepare(void)
     VertexShaderManager::Init();
     PixelShaderCache::Init();
     PixelShaderManager::Init();
+	PostProcessing::Init();
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
     TextureConverter::Init();
@@ -362,6 +364,7 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	Fifo_Shutdown();
+	PostProcessing::Shutdown();
 	TextureConverter::Shutdown();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();

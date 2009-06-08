@@ -51,6 +51,7 @@
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
+#include "PostProcessing.h"
 #include "XFB.h"
 #include "OnScreenDisplay.h"
 #include "Timer.h"
@@ -955,7 +956,8 @@ void Renderer::Swap(const TRectangle& rc)
 		*/
 
 		// Here's an opportunity to bind a fragment shader to do post processing.
-		
+		PostProcessing::ApplyShader();
+
 		glBegin(GL_QUADS);
 			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
 			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);

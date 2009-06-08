@@ -753,6 +753,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PostProcessing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PostProcessing.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Render.cpp"
 				>
 			</File>

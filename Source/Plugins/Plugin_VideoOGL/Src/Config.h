@@ -66,6 +66,7 @@ struct Config
     int iMultisampleMode;
     bool bForceFiltering;
     int iMaxAnisotropy;
+	std::string sPostProcessingShader;
 
 	// Information
     bool bShowFPS;
