@@ -50,6 +50,7 @@ public:
 
     virtual bool IsValid() const = 0;
     virtual u64 GetTitleID() const = 0;
+    virtual u16 GetIosVersion() const = 0;
     virtual u32 GetBootIndex() const = 0;
     virtual size_t GetContentSize() const = 0;
     virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;

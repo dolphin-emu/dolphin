@@ -123,6 +123,7 @@ public:
 
     bool IsValid() const    { return m_Valid; }
     u64 GetTitleID() const  { return m_TitleID; }
+	u16 GetIosVersion() const { return m_IosVersion; }
     u32 GetBootIndex() const  { return m_BootIndex; }
     size_t GetContentSize() const { return m_Content.size(); }
     const SNANDContent* GetContentByIndex(int _Index) const;
@@ -138,6 +139,7 @@ private:
 
     bool m_Valid;
     u64 m_TitleID;
+	u16 m_IosVersion;
     u32 m_BootIndex;
     u16 m_numEntries;
     u16 m_TileVersion;
@@ -166,6 +168,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
     : m_TitleID(-1)
     , m_BootIndex(-1)
     , m_Valid(false)
+	, m_IosVersion(0x09)
 {
     if (File::IsDirectory(_rName.c_str()))
     {
@@ -233,7 +236,8 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
     m_TileVersion = Common::swap16(pTMD + 0x01dc);
     m_numEntries = Common::swap16(pTMD + 0x01de);
     m_BootIndex = Common::swap16(pTMD + 0x01e0);
-    m_TitleID = Common::swap64(pTMD + 0x018C);
+    m_TitleID = Common::swap64(pTMD + 0x018c);
+    m_IosVersion = Common::swap16(pTMD + 0x018a);
 
     m_Content.resize(m_numEntries);
 
@@ -325,7 +329,8 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 	
 	u32 numEntries = Common::swap16(pTMD + 0x01de);
 	m_BootIndex = Common::swap16(pTMD + 0x01e0);
-    m_TitleID = Common::swap64(pTMD + 0x018C);
+	m_TitleID = Common::swap64(pTMD + 0x018c);
+	m_IosVersion = Common::swap16(pTMD + 0x018a);
 
 	u8* p = pDataApp;
 

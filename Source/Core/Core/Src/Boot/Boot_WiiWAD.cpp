@@ -20,12 +20,14 @@
 #include "../HLE/HLE.h"
 #include "../HW/Memmap.h"
 #include "../ConfigManager.h"
+#include "../PatchEngine.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 
 #include "NANDContentLoader.h"
 #include "FileUtil.h"
 #include "Boot_DOL.h"
 #include "Volume.h"
+#include "VolumeCreator.h"
 
 
 bool CBoot::IsWiiWAD(const char *filename)
@@ -61,6 +63,21 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
     CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
 	PC = DolLoader.GetEntryPoint() | 0x80000000;
+
+	// Pass the "#002 check"
+	// Apploader should write the IOS version and revision to 0x3140, and compare it
+	// to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS rev...
+	// Currently we just write 0xFFFF for the revision, copy manually and it works fine :p
+
+	// TODO : figure it correctly : where should we read the IOS rev that the wad "needs" ?
+	Memory::Write_U16(ContentLoader.GetIosVersion(), 0x00003140);
+	Memory::Write_U16(0xFFFF, 0x00003142);
+	Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
+
+	// Load patches and run startup patches
+	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
+	if (pVolume != NULL)
+		PatchEngine::LoadPatches(pVolume->GetUniqueID().c_str());
 
     return true;
 }
