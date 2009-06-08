@@ -57,6 +57,9 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
+
+	m_strName = "NONE";
+	m_strUniqueID = "00000000";
 }
 
 bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios) 
@@ -152,20 +155,20 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 
 				// NTSC or PAL
 				if (pTitleID[0] == 'E' || pTitleID[0] == 'J')
-				{
 					bNTSC = true;
-				}
 				else
-				{
 					bNTSC = false;
-				}
 
 				bWii = true;
 				Region = EUR_DIR; 
 				m_BootType = BOOT_WII_NAND;
 
-				m_strName = pVolume->GetName();
-				m_strUniqueID = pVolume->GetUniqueID();
+				if (pVolume)
+				{
+					m_strName = pVolume->GetName();
+					m_strUniqueID = pVolume->GetUniqueID();
+				}
+
 				delete pVolume;
 			}
 			else
