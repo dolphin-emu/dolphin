@@ -765,8 +765,16 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
-	GameIni.Set("Video", "Hack", Hack->GetSelection());
-	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+	if (EmuState->GetSelection() == -1)
+		GameIni.DeleteKey("Video", "Hack");
+	else
+		GameIni.Set("Video", "Hack", Hack->GetSelection());
+
+	if (EmuState->GetSelection() == -1)
+		GameIni.DeleteKey("EmuState", "EmulationStateId");
+	else
+		GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+
 	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
 
 	PatchList_Save();
