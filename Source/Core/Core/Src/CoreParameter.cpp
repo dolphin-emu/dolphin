@@ -145,23 +145,28 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 			}
             else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
-                const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
-                u64 TitleID = ContentLoader.GetTitleID();
-                char* pTitleID = (char*)&TitleID;
+				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+				u64 TitleID = ContentLoader.GetTitleID();
+				char* pTitleID = (char*)&TitleID;
 
-                // NTSC or PAL
-                if ((pTitleID[0] == 'E') || (pTitleID[0] == 'J'))
-                {
-                    bNTSC = true;
-                }
-                else
-                {
-                    bNTSC = false;
-                }
+				// NTSC or PAL
+				if (pTitleID[0] == 'E' || pTitleID[0] == 'J')
+				{
+					bNTSC = true;
+				}
+				else
+				{
+					bNTSC = false;
+				}
 
 				bWii = true;
 				Region = EUR_DIR; 
 				m_BootType = BOOT_WII_NAND;
+
+				m_strName = pVolume->GetName();
+				m_strUniqueID = pVolume->GetUniqueID();
+				delete pVolume;
 			}
 			else
 			{

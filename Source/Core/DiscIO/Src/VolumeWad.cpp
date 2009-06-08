@@ -104,7 +104,6 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 			break; // SDK
 
 		default:
-			// PanicAlert("Unknown Country Code!");
 			country = COUNTRY_UNKNOWN;
 			break;
 	}
@@ -132,9 +131,10 @@ std::string CVolumeWAD::GetMakerID() const
 {
 	u32 Offset = ALIGN_40(hdr_size) + ALIGN_40(cert_size) + ALIGN_40(tick_size);
 
-	char temp[3];
-	if (!Read(0x198 + Offset, 2, (u8*)temp))
-		return "0";
+	char temp[3] = {1};
+	// Some weird channels use 0x0000 in place of the MakerID, so we need a check there
+	if (!Read(0x198 + Offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
+		return "00";
 
 	temp[2] = 0;
 
@@ -153,16 +153,14 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 
 std::string CVolumeWAD::GetName() const
 {
-	if (m_pReader == NULL)
-		return "Unknown";
-
 	u32 footer_size;
+
 	if (!Read(0x1C, 4, (u8*)&footer_size))
 		return "Unknown";
 
 	// Offset to the english title
 	char temp[85];
-	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp))
+	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || footer_size < 0xF1)
 		return "Unknown";
 
 	char out_temp[43];

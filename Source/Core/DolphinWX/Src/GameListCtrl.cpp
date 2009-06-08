@@ -302,22 +302,23 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
 		//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
 		//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
+
+		m_gameList.append(std::string(name.mb_str()) + " (J)\n");
 		if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
 			SetItem(_Index, COLUMN_TITLE, name, -1);
 		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
 			SetItem(_Index, COLUMN_NOTES, description, -1);
-
-		// NetPLay string
-		m_gameList.append(std::string(name.mb_str()) + " (J)\n");
-
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_gameList.append(std::string(wxString::From8BitData(rISOFile.GetName(0).c_str()).mb_str()) + " (U)\n");
-		SetItem(_Index, COLUMN_TITLE, wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
-		SetItem(_Index, COLUMN_NOTES, wxString::From8BitData(rISOFile.GetDescription(0).c_str()), -1);
+		m_gameList.append(std::string(name.mb_str()) + " (U)\n");
+		if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
+			SetItem(_Index, COLUMN_TITLE, name, -1);
+		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
+			SetItem(_Index, COLUMN_NOTES, description, -1);
 		break;
 	default:
-		m_gameList.append(std::string(wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()).mb_str()) + " (E)\n");
+		m_gameList.append(std::string(
+			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()).mb_str()) + " (E)\n");
 		SetItem(_Index, COLUMN_TITLE, 
 			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, 
