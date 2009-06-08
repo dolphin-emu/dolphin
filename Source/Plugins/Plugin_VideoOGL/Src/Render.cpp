@@ -307,7 +307,7 @@ bool Renderer::Init()
 	// This should really be grabbed from config rather than from OpenGL.
 	// JP: Set these big enough to accomodate any potential 2x mode
 	s_targetwidth = 1280;
-    s_targetheight = 1024;
+    s_targetheight = 960;
 	
 	// Compensate height of render target for scaling, so that we get something close to the correct number of
 	// vertical pixels.
@@ -990,41 +990,52 @@ void Renderer::Swap(const TRectangle& rc)
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
-
-		// Switch to the window backbuffer, we'll draw debug text on top
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	}
+	// It should not be necessary to read from the window backbuffer beyond this point
+	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	// ---------------------------------------------------------------------
 
 	// ---------------------------------------------------------------------
 	// Frame dumps are handled a little differently in Windows
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
-	if (g_Config.bDumpFrames) {
+	if (g_Config.bDumpFrames)
+	{
+		// Select source
+		if (s_MSAASamples > 1)
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		else
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+
 		s_criticalScreenshot.Enter();
-		int w = OpenGL_GetBackbufferWidth();
-		int h = OpenGL_GetBackbufferHeight();
+		int w = rc.right;
+		int h = rc.bottom;
+		int t = (int)(v_min);
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(0, t, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (glGetError() == GL_NO_ERROR) 
 		{
 			if (!s_bLastFrameDumped) 
 			{
 				s_bAVIDumping = AVIDump::Start(EmuWindow::GetChildParentWnd(), w, h);
 				if (!s_bAVIDumping) 
-					PanicAlert("Error dumping frames to AVI.");
+					OSD::AddMessage("AVIDump Start failed", 2000);
 				else 
 				{
-					char msg [255];
-					sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, w, h);
-					OSD::AddMessage(msg, 2000);
+					OSD::AddMessage(StringFromFormat(
+						"Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, w, h).c_str(), 2000);
 				}
 			}
 			if (s_bAVIDumping) 
 				AVIDump::AddFrame((char *) data);
 
 			s_bLastFrameDumped = true;
+		}
+		else
+		{
+			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 		}
 		free(data);
 		s_criticalScreenshot.Leave();
@@ -1035,8 +1046,8 @@ void Renderer::Swap(const TRectangle& rc)
 		{
 			AVIDump::Stop();
 			s_bAVIDumping = false;
+			OSD::AddMessage("Stop dumping frames to AVI", 2000);
 		}
-
 		s_bLastFrameDumped = false;
 	}
 #else

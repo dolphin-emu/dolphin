@@ -41,7 +41,6 @@ void SetEnableAlert(bool enable) {
    correct windows is shown */
 bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
 {
-
 	// Read message and write it to the log
 	char buffer[2048];
 	bool ret = true;
@@ -53,7 +52,8 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
 
-	if (msg_handler && AlertEnabled) {
+	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
+	if (msg_handler && (AlertEnabled || yes_no)) {
 		ret = msg_handler(caption, buffer, yes_no, Style);
 	}
 	return ret;

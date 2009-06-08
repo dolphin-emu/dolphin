@@ -23,6 +23,7 @@
 #include <vfw.h>
 #include <winerror.h>
 
+#include "FileUtil.h"
 #include "CommonPaths.h"
 #include "Log.h"
 
@@ -52,35 +53,56 @@ bool AVIDump::Start(HWND hWnd, int w, int h)
 	return CreateFile();
 }
 
-bool AVIDump::CreateFile() {
+bool AVIDump::CreateFile()
+{
 	m_totalBytes = 0;
 	m_frameCount = 0;
 	char movie_file_name[255];
 	sprintf(movie_file_name, "%s/framedump%d.avi", FULL_FRAMES_DIR, m_fileCount);
+	// Create path
+	File::CreateFullPath(movie_file_name);
+
+	// Ask to delete file
+	if (File::Exists(movie_file_name))
+	{
+		if (AskYesNo("Delete the existing file '%s'?", movie_file_name))
+			File::Delete(movie_file_name);
+	}
+
 	AVIFileInit();
 	NOTICE_LOG(VIDEO, "Opening AVI file (%s) for dumping", movie_file_name);
 	// TODO: Make this work with AVIFileOpenW without it throwing REGDB_E_CLASSNOTREG
-	if (FAILED(AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, NULL))) {
+	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, NULL);
+	if (FAILED(hr)) {
+		if (hr == AVIERR_BADFORMAT) NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format."); 
+		if (hr == AVIERR_MEMORY)  NOTICE_LOG(VIDEO, "The file could not be opened because of insufficient memory."); 
+		if (hr == AVIERR_FILEREAD) NOTICE_LOG(VIDEO, "A disk error occurred while reading the file."); 
+		if (hr == AVIERR_FILEOPEN) NOTICE_LOG(VIDEO, "A disk error occurred while opening the file.");
+		if (hr == REGDB_E_CLASSNOTREG) NOTICE_LOG(VIDEO, "AVI class not registered");
 		Stop();
 		return false;
 	}
 	SetBitmapFormat();
 	NOTICE_LOG(VIDEO, "Setting video format...");
 	if (!SetVideoFormat()) {
+		NOTICE_LOG(VIDEO, "Setting video format failed");
 		Stop();
 		return false;
 	}
 	if (!m_fileCount) {
 		if (!SetCompressionOptions()) {
+			NOTICE_LOG(VIDEO, "SetCompressionOptions failed");
 			Stop();
 			return false;
 		}
 	}
 	if (FAILED(AVIMakeCompressedStream(&m_streamCompressed, m_stream, &m_options, NULL))) {
+		NOTICE_LOG(VIDEO, "AVIMakeCompressedStream failed");
 		Stop();
 		return false;
 	}
 	if (FAILED(AVIStreamSetFormat(m_streamCompressed, 0, &m_bitmap, m_bitmap.biSize))) {
+		NOTICE_LOG(VIDEO, "AVIStreamSetFormat failed");
 		Stop();
 		return false;
 	}
@@ -108,8 +130,8 @@ void AVIDump::CloseFile()
 void AVIDump::Stop()
 {
 	CloseFile();
-
 	m_fileCount = 0;
+	NOTICE_LOG(VIDEO, "Stop");
 }
 
 void AVIDump::AddFrame(char *data)
