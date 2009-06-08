@@ -36,7 +36,7 @@ void Config::Load()
 
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
-    strncpy(iWindowedRes, temp.c_str(), 16);
+    strncpy(iInternalRes, temp.c_str(), 16);
 	// apply this to the fullscreen resolution too
     strncpy(iFSResolution, temp.c_str(), 16);
     
@@ -129,7 +129,7 @@ void Config::Save()
 {
     IniFile iniFile;
     iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
-    iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
+    iniFile.Set("Hardware", "WindowedRes", iInternalRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "VSync", bVSync);

@@ -151,7 +151,7 @@ public:
 		sscanf(g_Config.iFSResolution, "%dx%d",
 			&currFullRes.x, &currFullRes.y);  
 
-		sscanf(g_Config.iWindowedRes, "%dx%d",
+		sscanf(g_Config.iInternalRes, "%dx%d",
 			&currWinRes.x, &currWinRes.y);
 
 		SetProperty(OGL_FULLSCREEN, g_Config.bFullscreen);

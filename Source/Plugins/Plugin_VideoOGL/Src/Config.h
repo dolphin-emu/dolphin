@@ -55,7 +55,7 @@ struct Config
 
 	// Resolution control
 	char iFSResolution[16];
-    char iWindowedRes[16];
+    char iInternalRes[16];
 
     bool bNativeResolution;  // Should possibly be augmented with 2x, 4x native.
     bool bKeepAR43, bKeepAR169, bCrop;   // Aspect ratio controls.

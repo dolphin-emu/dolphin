@@ -586,64 +586,6 @@ void Renderer::SetFramebuffer(GLuint fb)
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer);
 }
 
-GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
-{
-	if (s_MSAASamples > 1)
-	{
-		// Flip the rectangle
-		TRectangle flipped_rect;
-		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
-
-		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
-		// Do the resolve.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		// Return the resolved target.
-		return s_ResolvedRenderTarget;
-	}
-	else 
-	{
-		return s_RenderTarget;
-	}
-}
-
-GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
-{
-	// This logic should be moved elsewhere.
-	if (s_MSAASamples > 1)
-	{
-		// Flip the rectangle	
-		TRectangle flipped_rect;
-		//source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
-
-        // donkopunchstania - some bug causes the offsets to be ignored. driver bug?
-        flipped_rect.top = 0;
-        flipped_rect.bottom = GetTargetHeight();
-
-        flipped_rect.left = 0;
-        flipped_rect.right = GetTargetWidth();
-
-		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
-		// Do the resolve.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-							 GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-		// Return the resolved target.
-		return s_ResolvedDepthTarget;
-	}
-	else 
-	{
-		return s_DepthTarget;
-	}
-}
-
 void Renderer::ResetGLState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
@@ -724,6 +666,69 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	s_blendMode = newval;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Apply AA if enabled
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
+{
+	if (s_MSAASamples > 1)
+	{
+		// Flip the rectangle
+		TRectangle flipped_rect;
+		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
+
+		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
+		// Do the resolve.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		// Return the resolved target.
+		return s_ResolvedRenderTarget;
+	}
+	else 
+	{
+		return s_RenderTarget;
+	}
+}
+
+GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
+{
+	// This logic should be moved elsewhere.
+	if (s_MSAASamples > 1)
+	{
+		// Flip the rectangle	
+		TRectangle flipped_rect;
+		//source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
+
+        // donkopunchstania - some bug causes the offsets to be ignored. driver bug?
+        flipped_rect.top = 0;
+        flipped_rect.bottom = GetTargetHeight();
+
+        flipped_rect.left = 0;
+        flipped_rect.right = GetTargetWidth();
+
+		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
+		// Do the resolve.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
+							 GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+		// Return the resolved target.
+		return s_ResolvedDepthTarget;
+	}
+	else 
+	{
+		return s_DepthTarget;
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Function: This function handles the OpenGL glScissor() function
@@ -881,22 +886,6 @@ void Renderer::Swap(const TRectangle& rc)
 	}
 
 	// ---------------------------------------------------------------------
-	// Save screenshot if AA and wireframe is off.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	if (s_bScreenshot && s_MSAASamples == 1 && !g_Config.bWireFrame)
-	{
-		s_criticalScreenshot.Enter();
-
-		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), rc.right, rc.bottom, (int)(v_min));
-		// Reset settings
-		s_sScreenshotName = "";
-		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
-	}
-	// ---------------------------------------------------------------------
-
-	// ---------------------------------------------------------------------
 	// Apply AA
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -914,11 +903,11 @@ void Renderer::Swap(const TRectangle& rc)
 		{
 			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
 		}
+		// Draw to the window buffer with bilinear filtering
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
 		glBlitFramebufferEXT(0, v_min, u_max, v_max,
-							 back_rc.left, back_rc.top, back_rc.right, back_rc.bottom,
-							 GL_COLOR_BUFFER_BIT, GL_LINEAR);
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);  // switch to the window backbuffer, we'll draw debug text on top
+							back_rc.left, back_rc.top, back_rc.right, back_rc.bottom,
+							GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 	else
 	{
@@ -976,18 +965,26 @@ void Renderer::Swap(const TRectangle& rc)
 	// ---------------------------------------------------------------------
 
 	// ---------------------------------------------------------------------
-	// Save screenshot if AA or wireframe is on.
+	// Save screenshot
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	if (s_bScreenshot && (s_MSAASamples > 1 || g_Config.bWireFrame))
+	if (s_bScreenshot)
 	{
-		s_criticalScreenshot.Enter();
+		// Select source
+		if (s_MSAASamples > 1)
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
+		else
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
 
+		s_criticalScreenshot.Enter();
 		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight(), 0);
+		SaveRenderTarget(s_sScreenshotName.c_str(), rc.right, rc.bottom, (int)(v_min));
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
+
+		// Switch to the window backbuffer, we'll draw debug text on top
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	}
 	// ---------------------------------------------------------------------
 
@@ -1318,10 +1315,13 @@ void Renderer::SetScreenshot(const char *filename)
 
 bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
-	// The height seemed to be one less than the setting sometimes (and sometimes not),
-	// perhaps a rounding error
-	if (H & 1)
-		H++;
+	// The height seemed to often be one less than the setting (but sometimes not),
+	// perhaps the source is the (bpmem.copyTexSrcWH.y + 1) in BPStructs.cpp that I'm guessing
+	// is there because of how some GL function works. But the buffer we are reading from here
+	// seems to have the necessary pixels for a complete height so we use the complete height
+	// from the settings.
+	if (!g_Config.bNativeResolution)
+		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
 
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -1341,43 +1341,37 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	// Create wxImage
 	wxImage a(W, H, data);
 
-	int nW, nH;
-
-	// Resize the output to correctly use the Aspect ratio setting
-	// This way, games are saved using the correct A/R scaling
-
-	if ((g_Config.bKeepAR169 || g_Config.bKeepAR43) && s_MSAASamples == 1 && !g_Config.bWireFrame)
-	{
-		float Ratio = (float)W / (float)H;
-
-		// Check if the height or width should be changed
-		if (Ratio != 4.0f/3.0f && g_Config.bKeepAR43)
+	// ---------------------------------------------------------------------
+	// To get past the problem of non-4:3 and non-16:9 native resolution pictures (for example
+	// in RE1 some pictures have non-4:3 resolutions like 640 x 448 and 512 x 448 and such that
+	// are meant to be rescaled to 4:3, and most Wii games use 640 x 480 even for the 16:9 mode)
+	// we let the user use the keep aspect ratio functions to control the resulting aspect ratio.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// We don't adjust non-native resolutions to avoid blurring the picture.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	float Ratio = (float)W / (float)(H), TargetRatio, TargetRatio1;
+	if (g_Config.bNativeResolution && (g_Config.bKeepAR169 || g_Config.bKeepAR43)
+		&& Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
+	{		
+		if (g_Config.bKeepAR43)
+			TargetRatio = 4.0/3.0;
+		else
+			TargetRatio = 16.0/9.0;
+		// Check if the height or width should be changed (we only increase the picture size, not
+		// the other way around)
+		if (Ratio < TargetRatio)
 		{
-			// Change the A/R to 4/3
-			float fW = (float)W * 4.0/3.0;
-			nW = (int)floor(fW);
-			float fH = fW * 3.0/4.0;
-			nH = (int)floor(fH);
-
-			// Then rescale the width
-			W = nW * H / nH;
-			H = nH * H / nH;
+			 float fW = (float)H * TargetRatio;
+			 W = (int)fW;
 		}
-		if (Ratio != 16.0/9.0 && g_Config.bKeepAR169)
+		else
 		{
-			// Change the A/R to 16/9
-			float fW = (float)W * 16.0/9.0;
-			nW = (int)floor(fW);
-			float fH = fW * 9.0/16.0;
-			nH = (int)floor(fH);
-
-			// Then rescale the height
-			W = nW * W / nW;
-			H = nH * W / nW;
+			 float fH = (float)W * (1 /	TargetRatio);
+			 H = (int)fH;
 		}
-
 		a.Rescale(W, H, wxIMAGE_QUALITY_HIGH);
 	}
+	// ---------------------------------------------------------------------
 
 	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
 	bool result = true;

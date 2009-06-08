@@ -404,8 +404,8 @@ void ToggleFullscreen(HWND hParent)
 			g_Config.bFullscreen = false;
 			RECT rc = {0, 0, w_fs, h_fs};
 
-			if (strlen(g_Config.iWindowedRes) > 1)
-				sscanf(g_Config.iWindowedRes, "%dx%d", &w_fs, &h_fs);
+			if (strlen(g_Config.iInternalRes) > 1)
+				sscanf(g_Config.iInternalRes, "%dx%d", &w_fs, &h_fs);
 			// FullScreen -> Desktop
 			ChangeDisplaySettings(NULL, 0);
 

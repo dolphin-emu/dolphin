@@ -150,9 +150,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else // Going Windowed
     {
-        if (strlen(g_Config.iWindowedRes) > 1)
+        if (strlen(g_Config.iInternalRes) > 1)
         {
-            sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
+            sscanf(g_Config.iInternalRes, "%dx%d", &_twidth, &_theight);
         }
         else // No Window resolution set, fall back to default
         {
