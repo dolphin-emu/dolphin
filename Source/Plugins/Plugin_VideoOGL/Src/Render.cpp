@@ -833,17 +833,15 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 		// The new width and height
 		FloatGLWidth = FloatGLWidth * Ratio;
 		FloatGLHeight = FloatGLHeight * Ratio;
-		// We need this adjustment too, the -6 adjustment was needed to never show any pixels outside the actual picture
-		// The result in offset in actual pixels is only around 1 or 2 pixels in a 1280 x 1024 resolution. In 1280 x 1024 the
-		// picture is only about 2 to 4 pixels (1 up and 1 down for example) to big to produce a minimal margin
-		// of error, while rather having a full screen and hiding one pixel, than having a one pixel black border. But it seems
-		// to be just enough in all games I tried.
-		float WidthRatio = ((float)FloatGLWidth - 6.0) / 640.0;
-		float HeightRatio = ((float)FloatGLHeight - 6.0) / 480.0;
+		// The new width and height ratio
+		float WidthRatio = ((float)FloatGLWidth) / 640.0;
+		float HeightRatio = ((float)FloatGLHeight) / 480.0;
 		// Adjust the X and Y offset
-		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0 / WidthRatio / Ratio);
-		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0 / HeightRatio / Ratio);
-		//DEBUG_LOG(CONSOLE, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
+		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0);
+		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0);
+		//NOTICE_LOG(OSREPORT, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
+		//NOTICE_LOG(OSREPORT, "Crop       FloatGLWidth:%1.2f FloatGLHeight:%3.0f", (float)FloatGLWidth, (float)FloatGLHeight);
+		//NOTICE_LOG(OSREPORT, "");
 	}
 
 	// round(float) = floor(float + 0.5)
