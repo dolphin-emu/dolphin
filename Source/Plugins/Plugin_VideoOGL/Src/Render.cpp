@@ -305,8 +305,9 @@ bool Renderer::Init()
 	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
 	// So the below is wrong.
 	// This should really be grabbed from config rather than from OpenGL.
-	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
-    s_targetheight = (int)OpenGL_GetBackbufferHeight();
+	// JP: Set these big enough to accomodate any potential 2x mode
+	s_targetwidth = 1280;
+    s_targetheight = 1024;
 	
 	// Compensate height of render target for scaling, so that we get something close to the correct number of
 	// vertical pixels.
@@ -467,6 +468,10 @@ bool Renderer::Init()
 
 	XFB_Init();
     return glGetError() == GL_NO_ERROR && bSuccess;
+
+	// Now save the actual settings
+	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
+    s_targetheight = (int)OpenGL_GetBackbufferHeight();
 }
 
 void Renderer::Shutdown(void)
@@ -551,12 +556,14 @@ bool Renderer::InitializeGL()
 // ------------------------
 int Renderer::GetTargetWidth()
 {
-	return s_bNativeResolution ? EFB_WIDTH : s_targetwidth;
+	return (s_bNativeResolution || g_Config.b2xResolution) ?
+		(s_bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : s_targetwidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-    return s_bNativeResolution ? EFB_HEIGHT : s_targetheight;
+	return (s_bNativeResolution || g_Config.b2xResolution) ?
+		(s_bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : s_targetheight;
 }
 
 float Renderer::GetTargetScaleX()
@@ -1075,6 +1082,7 @@ void Renderer::Swap(const TRectangle& rc)
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
+	// Why save this as s_bNativeResolution if we updated it all the time?
 	s_bNativeResolution = g_Config.bNativeResolution;
 
     RestoreGLState();
@@ -1304,8 +1312,11 @@ void Renderer::DrawDebugText()
 		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
 
 		std::string OSDM1 =
-			g_Config.bNativeResolution ? StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
-			: StringFromFormat("%i x %i", W, H);
+			g_Config.bNativeResolution || g_Config.b2xResolution ?
+			(g_Config.bNativeResolution ? 
+			StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
+			: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
+			: StringFromFormat("%i x %i (custom)", W, H);
 		std::string OSDM21 =
 			!(g_Config.bKeepAR43 || g_Config.bKeepAR169) ? "-": (g_Config.bKeepAR43 ? "4:3" : "16:9");
 		std::string OSDM22 =
@@ -1368,7 +1379,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	// is there because of how some GL function works. But the buffer we are reading from here
 	// seems to have the necessary pixels for a complete height so we use the complete height
 	// from the settings.
-	if (!g_Config.bNativeResolution)
+	if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
 		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
 
 	u8 *data = (u8 *)malloc(3 * W * H);

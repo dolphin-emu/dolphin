@@ -35,6 +35,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_2X_RESOLUTION, ConfigDialog::GeneralSettingsChanged)	
 	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, ConfigDialog::GeneralSettingsChanged)
@@ -164,7 +165,8 @@ void ConfigDialog::CreateGUIControls()
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
-	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Use native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Internal resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
@@ -180,7 +182,9 @@ void ConfigDialog::CreateGUIControls()
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
+	// Default values
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
+	m_2xResolution->SetValue(g_Config.b2xResolution);
 	m_KeepAR43->SetValue(g_Config.bKeepAR43);
 	m_KeepAR169->SetValue(g_Config.bKeepAR169);
 	m_Crop->SetValue(g_Config.bCrop);
@@ -220,24 +224,26 @@ void ConfigDialog::CreateGUIControls()
 	m_Fullscreen->SetToolTip(wxT(
 		"This will create a Fullscreen window using the chosen Fullscreen resolution."
 		"\nPress Alt+Enter to switch between Fullscreen and Windowed mode."
-		"\n\nApplies instanty during gameplay: No"));
+		"\n\nApplies instanty during gameplay: <No>"));
 	m_NativeResolution->SetToolTip(wxT(
 		"This will use the game's native resolution and stretch it to fill the"
 		"\nwindow instead of changing the internal display resolution. It"
 		"\nmay result in a blurrier image, but it may also give a higher"
 		"\nFPS if you have a slow graphics card."
-		"\n\nApplies instanty during gameplay: Yes"));
+		"\n\nApplies instanty during gameplay: <Yes>"));
+	m_2xResolution->SetToolTip(wxT(
+		"Applies instanty during gameplay: <Yes>"));
 	m_Crop->SetToolTip(wxT(
 		"Crop the picture instead of creating a letterbox. It will assume that your screen"
 		"\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume"
 		"\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio."
-		"\n\nApplies instanty during gameplay: Yes"));
+		"\n\nApplies instanty during gameplay: <Yes>"));
 	m_WindowResolutionCB->SetToolTip(wxT(
 		"Select internal resolution for the separate rendering window. This resolution also applies"
 		" to the fullscreen mode"
-		"\n\nApplies instanty during gameplay: No"));
+		"\n\nApplies instanty during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
-		"Applies instanty during gameplay: No"));
+		"Applies instanty during gameplay: <No>"));
 	m_EFBCopyDisableHotKey->SetToolTip(wxT(
 		"Enable OSD hotkeys '3', '4', '5', etc."));
 	
@@ -260,7 +266,8 @@ void ConfigDialog::CreateGUIControls()
 
 	sBasic->Add(IRText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_NativeResolution, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_NativeResolution, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_2xResolution, wxGBPosition(0, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	sBasic->Add(KeepARText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR43,			wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -479,6 +486,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
 		break;
+	case ID_2X_RESOLUTION:
+		g_Config.b2xResolution = m_2xResolution->IsChecked();
+		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();
 		break;
@@ -642,11 +652,10 @@ void ConfigDialog::UpdateGUI()
 
 	// These options are for the separate rendering window
 	m_Fullscreen->Enable(!g_Config.renderToMainframe);
-	if (g_Config.renderToMainframe)
-		m_Fullscreen->SetValue(false);
+	if (g_Config.renderToMainframe) m_Fullscreen->SetValue(false);
 
 	// Disable the internal resolution option if it's set to native
-	m_WindowResolutionCB->Enable(!g_Config.bNativeResolution);
+	m_WindowResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
 }
 
 

@@ -44,6 +44,7 @@ void Config::Load()
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
+	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
@@ -135,6 +136,7 @@ void Config::Save()
     iniFile.Set("Hardware", "VSync", bVSync);
     iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
     iniFile.Set("Settings", "StretchToFit", bNativeResolution);
+	iniFile.Set("Settings", "2xResolution", b2xResolution);
     iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
 	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
 	iniFile.Set("Settings", "Crop", bCrop);

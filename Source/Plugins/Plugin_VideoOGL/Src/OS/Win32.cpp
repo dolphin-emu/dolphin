@@ -108,7 +108,12 @@ void OSDMenu(WPARAM wParam)
 	case '3':
 		OSDChoice = 1;
 		// Toggle native resolution
-		g_Config.bNativeResolution = !g_Config.bNativeResolution;
+		if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
+			g_Config.bNativeResolution = true;
+		else if (g_Config.bNativeResolution)
+			{ g_Config.bNativeResolution = false; g_Config.b2xResolution = true; }
+		else
+			g_Config.b2xResolution = false;
 		break;
 	case '4':
 		OSDChoice = 2;
