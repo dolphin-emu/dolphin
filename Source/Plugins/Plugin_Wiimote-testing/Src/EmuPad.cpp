@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 
@@ -36,18 +33,14 @@
 #include "EmuSubroutines.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
-////////////////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
 
-// ===================================================
 // Fill joyinfo with the current connected devices
-// ----------------
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
 	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
@@ -72,11 +65,8 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 
 	return Success;
 }
-// ===========================
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Return adjusted input values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
 {
 	// This has to be changed if multiple Wiimotes are to be supported later
@@ -126,16 +116,11 @@ void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
 	}
 }
 
-////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Request joystick state
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-/* Called from: PAD_GetStatus()
-   Input: The virtual device 0, 1, 2 or 3
-   Function: Updates the PadState struct with the current pad status. The input value "controller" is
-   for a virtual controller 0 to 3. */
+/* Called from: PAD_GetStatus() Input: The virtual device 0, 1, 2 or 3
+   Function: Updates the PadState struct with the current pad status. The input
+   value "controller" is for a virtual controller 0 to 3. */
 
 void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons)
 {
@@ -188,7 +173,6 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 		_PadState.Axis.Lx, _PadState.Axis.Ly
 		);*/
 }
-////////////////////////////////////////////
 
 
 } // end of namespace WiiMoteEmu

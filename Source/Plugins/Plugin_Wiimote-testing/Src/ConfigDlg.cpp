@@ -16,10 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
@@ -33,24 +29,17 @@
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
 #include "EmuDefinitions.h" // for joyinfo
-//////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Variables
-// ----------------
 // Trigger Type
 enum
 {
 	CTL_TRIGGER_SDL = 0, // 
 	CTL_TRIGGER_XINPUT // The XBox 360 pad
 };
-//////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Event table
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
@@ -220,9 +209,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		UpdateGUI();
 	}
 
-	// ----------------------------------------------------
 	// Handle the keyboard key mapping
-	// ------------------
 	std::string StrKey;
 	if(ClickedButton != NULL)
 	{
@@ -230,7 +217,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		if (g_Pressed == WXK_ESCAPE)
 		{
 			SaveKeyboardMapping(Page, ClickedButton->GetId(), -1);
-			SetButtonText(ClickedButton->GetId(), "");
+			SetButtonText(ClickedButton->GetId(), (char *)"");
 			ClickedButton = NULL;
 			return;
 		}
@@ -259,7 +246,6 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 
 	// Remove the button control pointer
 	ClickedButton = NULL;
-	// ---------------------------
 }
 
 // Input button clicked
@@ -267,7 +253,8 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	//INFO_LOG(CONSOLE, "OnButtonClick: %i\n", g_Pressed);
 
-	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
+	// Don't allow space to start a new Press Key option, that will interfer
+	// with setting a key to space
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
 
 	// Reset the old label
@@ -294,9 +281,11 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 	event.Skip();
 }
 
-/* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
-   call a frame function after the main thread has entered WaitForSingleObject() or any other loop.
-   We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
+/* Timeout the shutdown. In Windows at least the g_pReadThread execution will
+   hang at any attempt to call a frame function after the main thread has
+   entered WaitForSingleObject() or any other loop.  We must therefore shut
+   down the thread from here and wait for that before we can call
+   ShutDown(). */
 void ConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 {
 	// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
@@ -350,11 +339,9 @@ void ConfigDialog::UpdateOnce(wxTimerEvent& event)
 		break;
 	}
 }
-//////////////////////////////////////
 
 
 
-////////////////////////////////////////////////////////////////////////////
 // Save Settings
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -374,7 +361,8 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 
 	if(ChangePad)
 	{
-		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
+		// Since we are selecting the pad to save to by the Id we can't update
+		// it when we change the pad
 		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
 		// Save the settings for the current pad
 		g_Config.Save(Slot);
@@ -393,12 +381,8 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 
 	INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
 }
-//////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Bitmap box and dot
-// ----------------
 wxBitmap ConfigDialog::CreateBitmap()
 {
 	BoxW = 70, BoxH = 70;
@@ -467,15 +451,12 @@ wxBitmap ConfigDialog::CreateBitmapClear()
 	//dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-//////////////////////////////////////
 
 
 void ConfigDialog::CreateGUIControls()
 {
 
-	////////////////////////////////////////////////////////////////////////////////
 	// Notebook
-	// ----------------	
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
@@ -488,10 +469,7 @@ void ConfigDialog::CreateGUIControls()
  	m_PageRecording = new wxPanel(m_Notebook, ID_PAGE_RECORDING, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageRecording, wxT("Recording"));
 
-
-	////////////////////////////////////////////////////////////////////////////////
 	// Text lists
-	// ----------------	
 
 	// Search for devices and add them to the device list
 	wxArrayString StrJoyname; // The string array
@@ -537,11 +515,8 @@ void ConfigDialog::CreateGUIControls()
 
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-	///////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////
 	// This can take a few seconds so we show a progress bar for it
-	// ----------------	
 	wxProgressDialog dialog(_T("Opening Wii Remote Configuration"),
 				wxT("Loading controls..."),
 				6, // range
@@ -555,16 +530,13 @@ void ConfigDialog::CreateGUIControls()
 				);
 	// I'm not sure what parent this refers to
 	dialog.CenterOnParent();
-	///////////////////////////////////////
 
-	/* Populate all four pages. Page 2, 3 and 4 are currently disabled since we can't use more than one
-	   Wiimote at the moment */
+	/* Populate all four pages. Page 2, 3 and 4 are currently disabled since we
+	   can't use more than one Wiimote at the moment */
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 
-		////////////////////////////////////////////////////
 		// General and basic Settings
-		// ----------------
 
 		// Configuration controls sizes
 		static const int TxtW = 50, TxtH = 19, ChW = 257, BtW = 75, BtH = 20;
@@ -605,9 +577,7 @@ void ConfigDialog::CreateGUIControls()
 			"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
 			" when a recording is to be done. No status in this window will be updated when this is checked."));
 		
-		// -----------------------------------------------
 		// Screen size
-		// ---------------------
 		// Controls
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
@@ -663,11 +633,8 @@ void ConfigDialog::CreateGUIControls()
 
 		// Tool tips
 		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
-		// -------------------------------
 
-		// --------------------------------------------------------------------
 		// Row 1 Sizers: General settings
-		// -----------------------------
 		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
 		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
 		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
@@ -704,20 +671,9 @@ void ConfigDialog::CreateGUIControls()
 
 		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
 		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 5);
-		// ------------------------
-
-		///////////////////////////
 
 
-
-
-		////////////////////////////////////////////////////////////////////////
 		// Gamepad input
-		// ----------------
-
-		// --------------------------------------------------------------------
-		// Controller
-		// -----------------------------
 
 		// Controller
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
@@ -780,10 +736,8 @@ void ConfigDialog::CreateGUIControls()
 		m_gJoyname[i]->AddStretchSpacer();
 
 
-		// --------------------------------------------------------------------
 		// Tilt Wiimote
-		// -----------------------------
-		/**/
+
 		// Controls
 		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
 		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_ROLL, StrTiltRangeRoll[0], wxDefaultPosition, wxDefaultSize, StrTiltRangeRoll, wxCB_READONLY);
@@ -822,10 +776,7 @@ void ConfigDialog::CreateGUIControls()
 		m_TiltComboRangeRoll[i]->SetToolTip(wxT("The maximum roll in degrees. Set to 0 to turn off."));	
 		m_TiltComboRangePitch[i]->SetToolTip(wxT("The maximum pitch in degrees. Set to 0 to turn off."));
 
-		// --------------------------------------------------------------------
 		// Analog triggers
-		// -----------------------------
-		/**/
 		m_gTrigger[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Triggers"));
 		
 		m_TriggerStatusL[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: "));
@@ -883,9 +834,7 @@ void ConfigDialog::CreateGUIControls()
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 
-		// --------------------------------------------------------------------
 		// Row 2 Sizers: Connected pads, tilt, triggers
-		// -----------------------------
 		m_HorizControllerTilt[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_HorizControllerTilt[i]->Add(m_gJoyname[i], 0, wxALIGN_CENTER | wxEXPAND, 0);
 		m_HorizControllerTilt[i]->Add(m_gTilt[i], 0, wxEXPAND | (wxLEFT), 5);
@@ -896,9 +845,7 @@ void ConfigDialog::CreateGUIControls()
 
 
 
-		// --------------------------------------------------------------------
 		// Analog sticks
-		// -----------------------------
 		
 		// Status panels
 		m_TStatusLeftIn[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("In"));
@@ -993,26 +940,18 @@ void ConfigDialog::CreateGUIControls()
 		m_gAnalogRight[i]->Add(m_SizeAnalogRight[i], 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
 
 		
-		// --------------------------------------------------------------------
 		// Row 3 Sizers
-		// -----------------------------
 		m_HorizControllers[i] = new wxBoxSizer(wxHORIZONTAL);
 		//m_HorizControllers[i]->AddStretchSpacer();
 		m_HorizControllers[i]->AddSpacer(17);
 		m_HorizControllers[i]->Add(m_gAnalogLeft[i]);
 		m_HorizControllers[i]->Add(m_gAnalogRight[i], 0, (wxLEFT), 5);
 		//m_HorizControllers[i]->AddStretchSpacer();
-		///////////////////////////
 
 
-		////////////////////////////////////////////////////////////////////////
 		// Keyboard mapping
-		// ----------------
 		
-		// --------------------------------------------------------------------
 		// Wiimote
-		// -----------------------------
-
 		m_tWmA[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("A"));
 		m_tWmB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("B"));
 		m_tWm1[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("1"));
@@ -1100,9 +1039,7 @@ void ConfigDialog::CreateGUIControls()
 		m_gWiimote[i]->Add(m_SWmVertRight[i], 0, wxALIGN_RIGHT | (wxLEFT), 5);
 		m_gWiimote[i]->AddSpacer(1);
 
-		// --------------------------------------------------------------------
 		// Nunchuck
-		// -----------------------------
 
 		// Stick controls
 		m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick"));
@@ -1165,9 +1102,7 @@ void ConfigDialog::CreateGUIControls()
 		//Set values
 		m_NunchuckComboStick[i]->SetSelection(g_Config.Nunchuck.Type);
 
-		// --------------------------------------------------------------------
 		// Classic Controller
-		// -----------------------------
 		
 		// Stick controls
 		m_CcTextLeftStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left stick"));
@@ -1335,21 +1270,15 @@ void ConfigDialog::CreateGUIControls()
 		m_CcComboRightStick[i]->SetSelection(g_Config.ClassicController.RType);
 		m_CcComboTriggers[i]->SetSelection(g_Config.ClassicController.TType);
 
-		// --------------------------------------------------------------------
 		// Row 4 Sizers
-		// -----------------------------
 		m_HorizControllerMapping[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_HorizControllerMapping[i]->AddStretchSpacer();
 		m_HorizControllerMapping[i]->Add(m_gWiimote[i]);
 		m_HorizControllerMapping[i]->Add(m_gNunchuck[i], 0, (wxLEFT), 5);
 		m_HorizControllerMapping[i]->Add(m_gClassicController[i], 0, (wxLEFT), 5);
 		m_HorizControllerMapping[i]->AddStretchSpacer();
-		///////////////////////////
 
-
-		////////////////////////////////////////////////////////////////
 		// Set up sizers and layout
-		// ----------------
 		m_SizeParent[i] = new wxBoxSizer(wxVERTICAL);
 		m_SizeParent[i]->Add(m_SizeBasicGeneral[i], 0, wxBORDER_STATIC | wxEXPAND | (wxALL), 5);
 		m_SizeParent[i]->Add(m_HorizControllerTiltParent[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
@@ -1368,17 +1297,13 @@ void ConfigDialog::CreateGUIControls()
 		dialog.Update(i + 1, wxT("Loading notebook pages..."));
 	}
 
-	////////////////////////////////////////////
 	// Movement recording
-	// ----------------
 	CreateGUIControlsRecording();
-	/////////////////////////////////
 
 	// Update with the progress (i) and the message (msg)
 	dialog.Update(5, wxT("Loading notebook pages..."));
 	//dialog.Close();
 
-	////////////////////////////////////////////////////////////////////////////////
 	// Buttons
 	//m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -1390,12 +1315,9 @@ void ConfigDialog::CreateGUIControls()
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_Apply, 0, (wxALL), 0);
 	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
-	///////////////////////////////
 
 
-	////////////////////////////////////////////
 	// Set sizers and layout
-	// ----------------
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_MainSizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
@@ -1417,15 +1339,11 @@ void ConfigDialog::CreateGUIControls()
 	#endif
 
 	ControlsCreated = true;
-	/////////////////////////////////
 }
-/////////////////////////////////
 
 
 
-// ===================================================
 /* Do connect real wiimote */
-// ----------------
 void ConfigDialog::DoConnectReal()
 {
 	g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
@@ -1454,10 +1372,8 @@ void ConfigDialog::DoConnectReal()
 }
 
 
-// ===================================================
-/* Do use real wiimote. We let the game set up the real Wiimote reporting mode and init the Extension when we change
-   want to use it again. */
-// ----------------
+/* Do use real wiimote. We let the game set up the real Wiimote reporting mode
+   and init the Extension when we change want to use it again. */
 void ConfigDialog::DoUseReal()
 {
 	// Clear any eventual events in the Wiimote queue
@@ -1480,19 +1396,15 @@ void ConfigDialog::DoUseReal()
 		// Disable the checkbox for a moment
 		SetCursor(wxCursor(wxCURSOR_WAIT));
 		m_bEnableUseRealWiimote = false;
-		// We may not need this if there is already a message queue that allows the nessesary timeout
-		//sleep(100);
 
-		/* Start the timer to allow the approximate time it takes for the Wiimote to come online
-		   it would simpler to use sleep(1000) but that doesn't work because we need the functions in main.cpp
-		   to work */
+		/* Start the timer to allow the approximate time it takes for the
+		   Wiimote to come online it would simpler to use sleep(1000) but that
+		   doesn't work because we need the functions in main.cpp to work */
 		m_TimeoutOnce->Start(1000, true);
 	}
 }
 
-// ===================================================
 /* Generate connect/disconnect status event */
-// ----------------
 void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
@@ -1506,9 +1418,7 @@ void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs, Extension);
 }
 
-// ===================================================
 /* Change settings */
-// ----------------
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	long TmpValue;
@@ -1528,9 +1438,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bSidewaysDPad = m_SidewaysDPad[Page]->IsChecked();
 		break;
 
-	//////////////////////////
 	// Extensions
-	// -----------
 	case ID_NUNCHUCKCONNECTED:
 		// Don't allow two extensions at the same time
 		if(m_ClassicControllerConnected[Page]->IsChecked())
@@ -1571,9 +1479,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		DoExtensionConnectedDisconnected();
 		break;
 
-	//////////////////////////
 	// Gamepad
-	// -----------
 	case ID_TRIGGER_TYPE:
 		WiiMoteEmu::PadMapping[Page].triggertype = m_TriggerType[Page]->GetSelection();
 		break;
@@ -1616,9 +1522,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		SaveButtonMappingAll(Page);
 		break;
 
-	//////////////////////////
 	// Recording
-	// -----------
 	case ID_UPDATE_REAL:
 		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
 		break;
@@ -1651,15 +1555,12 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			//	m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
 		}
 		break;
-		/////////////////
 	}
 	g_Config.Save();
 	UpdateGUI();
 }
 
-// =======================================================
 // Apparently we need a scroll event version of this for the sliders
-// -------------
 void ConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
 {
 	switch (event.GetId())
@@ -1682,9 +1583,7 @@ void ConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
 	UpdateGUI();
 }
 
-// =======================================================
 // Update the IR pointer calibration sliders
-// -------------
 void ConfigDialog::UpdateControls()
 {
 	// Update the slider position if a configuration has been loaded
@@ -1699,12 +1598,9 @@ void ConfigDialog::UpdateControls()
 	m_TextScreenLeft[Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
 	m_TextScreenTop[Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
 }
-// ==============================
 
 
-// =======================================================
 // Update the enabled/disabled status
-// -------------
 void ConfigDialog::UpdateGUI(int Slot)
 {
 	//INFO_LOG(CONSOLE, "UpdateGUI: \n");
@@ -1718,19 +1614,21 @@ void ConfigDialog::UpdateGUI(int Slot)
 	// Update the Wiimote IR pointer calibration
 	UpdateControls();
 
-	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
-	   from the data scanning functions in main.cpp */
+	/* We only allow a change of extension if we are not currently using the
+	   real Wiimote, if it's in use the status will be updated from the data
+	   scanning functions in main.cpp */
 	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
 	m_NunchuckConnected[Page]->SetValue(g_Config.bNunchuckConnected);
 	m_ClassicControllerConnected[Page]->SetValue(g_Config.bClassicControllerConnected);
 	m_NunchuckConnected[Page]->Enable(AllowExtensionChange);
 	m_ClassicControllerConnected[Page]->Enable(AllowExtensionChange);
 
-	/* I have disabled this option during a running game because it's enough to be able to switch
-	   between using and not using then. To also use the connect option during a running game would
-	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
-	   has been initialized. Functions for that are basically already in place so these two options
-	   could possibly be simplified to one option. */
+	/* I have disabled this option during a running game because it's enough to
+	   be able to switch between using and not using then. To also use the
+	   connect option during a running game would mean that the wiimote must be
+	   sent the current reporting mode and the channel ID after it has been
+	   initialized. Functions for that are basically already in place so these
+	   two options could possibly be simplified to one option. */
 	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || (!g_EmulatorRunning && g_Config.bConnectRealWiimote));
 
@@ -1738,8 +1636,8 @@ void ConfigDialog::UpdateGUI(int Slot)
 	// Disable all pad items if no pads are detected
 	if(ControlsCreated)
 	{
-		bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
 		#ifdef _WIN32
+      		bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++) m_Notebook->FindItem(i)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_LEFT_C2S)->Enable(PadEnabled);
@@ -1751,8 +1649,8 @@ void ConfigDialog::UpdateGUI(int Slot)
 	}		
 
 	// Disable all recording buttons
-	bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
 	#ifdef _WIN32
+		bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
 		for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
 			if(ControlsCreated) m_Notebook->FindItem(i)->Enable(ActiveRecording);
 	#endif

@@ -16,10 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
@@ -32,15 +28,13 @@
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
 #include "EmuDefinitions.h" // for joyinfo
-//////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
 // Change Joystick
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-/* Function: When changing the joystick we save and load the settings and update the PadMapping
-   and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
-   the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
+/* Function: When changing the joystick we save and load the settings and
+   update the PadMapping and PadState array. PadState[].joy is the gamepad
+   handle that is used to access the pad throughout the plugin. Joyinfo[].joy
+   is only used the first time the pads are checked. */
 void ConfigDialog::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
@@ -69,10 +63,10 @@ void ConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 	INFO_LOG(CONSOLE, "Update the Slot %i handle to Id %i\n", Page, WiiMoteEmu::PadMapping[Open].ID);
 	WiiMoteEmu::PadState[Open].joy = SDL_JoystickOpen(WiiMoteEmu::PadMapping[Open].ID);
 }
-void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
+void ConfigDialog::PadClose(int _Close) // Close for slot 1, 2, 3 or 4
 {
-	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[Close].joy);
-	WiiMoteEmu::PadState[Close].joy = NULL;
+	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[_Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[_Close].joy);
+	WiiMoteEmu::PadState[_Close].joy = NULL;
 }
 
 void ConfigDialog::DoChangeDeadZone(bool Left)
@@ -96,12 +90,9 @@ void ConfigDialog::DoChangeDeadZone(bool Left)
 		m_bmpDeadZoneRightIn[Page]->Refresh();	
 	}
 }
-//////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
 // Change settings
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // Set the button text for all four Wiimotes
 void ConfigDialog::SetButtonTextAll(int id, char text[128])
@@ -130,7 +121,6 @@ void ConfigDialog::SaveButtonMappingAll(int Slot)
 }
 
 // Set dialog items from saved values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::UpdateGUIButtonMapping(int controller)
 {	
 	// Temporary storage
@@ -324,18 +314,18 @@ void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::ToBlank(bool ToBlank)
+void ConfigDialog::ToBlank(bool _ToBlank)
 {
 	if (!ControlsCreated) return;
 
 	for (int j = 0; j < 1; j++)
 	{
-		if(ToBlank)
+		if(_ToBlank)
 		{
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++)
 				#ifndef _WIN32
-					if(GetButtonText(i, j).ToAscii() == "-1") SetButtonText(i, "", j);
+					if(GetButtonText(i, j).ToAscii() == "-1")
+						SetButtonText(i, (char *)"", j);
 				#else
 					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
 				#endif
@@ -343,11 +333,10 @@ void ConfigDialog::ToBlank(bool ToBlank)
 		else
 		{
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++)
-				if(GetButtonText(i, j).IsEmpty()) SetButtonText(i, "-1", j);
+				if(GetButtonText(i, j).IsEmpty()) SetButtonText(i, (char *)"-1", j);
 		}
 	}	
 }
-//////////////////////////////////////
 
 
 
@@ -458,18 +447,20 @@ wxString ConfigDialog::GetButtonText(int id, int _Page)
 
 // Wait for button press
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-/* Loop or timer: There are basically two ways to do this. With a while() or for() loop, or with a
-   timer. The downside with the while() or for() loop is that there is no way to stop it if the user
-   should select to configure another button while we are still in an old loop. What will happen then
-   is that we start another parallel loop (at least in Windows) that blocks the old loop. And our only
-   option to wait for the old loop to finish is with a new loop, and that will block the old loop for as
-   long as it's going on. Therefore a timer is easier to control. */
+/* Loop or timer: There are basically two ways to do this. With a while() or
+   for() loop, or with a timer. The downside with the while() or for() loop is
+   that there is no way to stop it if the user should select to configure
+   another button while we are still in an old loop. What will happen then is
+   that we start another parallel loop (at least in Windows) that blocks the
+   old loop. And our only option to wait for the old loop to finish is with a
+   new loop, and that will block the old loop for as long as it's going
+   on. Therefore a timer is easier to control. */
 void ConfigDialog::GetButtons(wxCommandEvent& event)
 {
 	DoGetButtons(event.GetId());
 }
 
-void ConfigDialog::DoGetButtons(int GetId)
+void ConfigDialog::DoGetButtons(int _GetId)
 {
 	// =============================================
 	// Collect the starting values
@@ -483,11 +474,11 @@ void ConfigDialog::DoGetButtons(int GetId)
 	int TriggerType = WiiMoteEmu::PadMapping[Controller].triggertype;
 
 	// Collect the accepted buttons for this slot
-	bool LeftRight = (GetId == IDB_TRIGGER_L || GetId == IDB_TRIGGER_R);
+	bool LeftRight = (_GetId == IDB_TRIGGER_L || _GetId == IDB_TRIGGER_R);
 
-	bool Axis = (GetId >= IDB_ANALOG_LEFT_X && GetId <= IDB_TRIGGER_R)
+	bool Axis = (_GetId >= IDB_ANALOG_LEFT_X && _GetId <= IDB_TRIGGER_R)
 		// Don't allow SDL axis input for the shoulder buttons if XInput is selected
-		&& !(TriggerType == InputCommon::CTL_TRIGGER_XINPUT && (GetId == IDB_TRIGGER_L || GetId == IDB_TRIGGER_R) );
+		&& !(TriggerType == InputCommon::CTL_TRIGGER_XINPUT && (_GetId == IDB_TRIGGER_L || _GetId == IDB_TRIGGER_R) );
 	
 	bool XInput = (TriggerType == InputCommon::CTL_TRIGGER_XINPUT);
 
@@ -511,10 +502,10 @@ void ConfigDialog::DoGetButtons(int GetId)
 	// =======================
 
 	//INFO_LOG(CONSOLE, "Before (%i) Id:%i %i  IsRunning:%i\n",
-	//	GetButtonWaitingTimer, GetButtonWaitingID, GetId, m_ButtonMappingTimer->IsRunning());
+	//	GetButtonWaitingTimer, GetButtonWaitingID, _GetId, m_ButtonMappingTimer->IsRunning());
 
 	// If the Id has changed or the timer is not running we should start one
-	if( GetButtonWaitingID != GetId || !m_ButtonMappingTimer->IsRunning() )
+	if( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
 	{
 		if(m_ButtonMappingTimer->IsRunning())
 		{
@@ -522,26 +513,26 @@ void ConfigDialog::DoGetButtons(int GetId)
 			GetButtonWaitingTimer = 0;
 
 			// Update the old textbox
-			SetButtonText(GetButtonWaitingID, "");
+			SetButtonText(GetButtonWaitingID, (char *)"");
 		}
 
 		 // Save the button Id
-		GetButtonWaitingID = GetId;
+		GetButtonWaitingID = _GetId;
 
 		// Reset the key in case we happen to have an old one
 		g_Pressed = 0;
 
 		// Update the text box
 		sprintf(format, "[%d]", Seconds);
-		SetButtonText(GetId, format);
+		SetButtonText(_GetId, format);
 
 		// Start the timer
 		#if wxUSE_TIMER
 			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 		#endif
-		INFO_LOG(CONSOLE, "Timer Started for Pad:%i GetId:%i\n"
+		INFO_LOG(CONSOLE, "Timer Started for Pad:%i _GetId:%i\n"
 			"Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i\n",
-			WiiMoteEmu::PadMapping[Controller].ID, GetId,
+			WiiMoteEmu::PadMapping[Controller].ID, _GetId,
 			Axis, LeftRight, XInput, Button, Hat);
 	}
 
@@ -575,7 +566,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 
 		// Update text
 		sprintf(format, "[%d]", TmpTime);
-		SetButtonText(GetId, format);
+		SetButtonText(_GetId, format);
 
 		/* Debug 
 		INFO_LOG(CONSOLE, "Keyboard: %i\n", g_Pressed);*/
@@ -586,7 +577,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 	{
 		Stop = true;
 		// Leave a blank mapping
-		SetButtonTextAll(GetId, "-1");
+		SetButtonTextAll(_GetId, (char *)"-1");
 	}
 
 	// If we got a button
@@ -595,7 +586,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 		Stop = true;		
 		// Write the number of the pressed button to the text box
 		sprintf(format, "%d", pressed);
-		SetButtonTextAll(GetId, format);
+		SetButtonTextAll(_GetId, format);
 	}
 
 	// Stop the timer
@@ -604,21 +595,23 @@ void ConfigDialog::DoGetButtons(int GetId)
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
 
-		/* Update the button mapping for all slots that use this device. (It doesn't make sense to have several slots
-		   controlled by the same device, but several DirectInput instances of different but identical devices may possible
-		   have the same id, I don't know. So we have to do this. The user may also have selected the same device for
-		   several disabled slots. */
+		/* Update the button mapping for all slots that use this device. (It
+		   doesn't make sense to have several slots controlled by the same
+		   device, but several DirectInput instances of different but identical
+		   devices may possible have the same id, I don't know. So we have to
+		   do this. The user may also have selected the same device for several
+		   disabled slots. */
 		SaveButtonMappingAll(Controller);
 
-		INFO_LOG(CONSOLE, "Timer Stopped for Pad:%i GetId:%i\n",
-			WiiMoteEmu::PadMapping[Controller].ID, GetId);
+		INFO_LOG(CONSOLE, "Timer Stopped for Pad:%i _GetId:%i\n",
+			WiiMoteEmu::PadMapping[Controller].ID, _GetId);
 	}
 
 	// If we got a bad button
 	if(g_Pressed == -1)
 	{
 		// Update text
-		SetButtonTextAll(GetId, "-1");
+		SetButtonTextAll(_GetId, (char *)"-1");
 		
 		// Notify the user
 		wxMessageBox(wxString::Format(wxT(
@@ -635,32 +628,28 @@ void ConfigDialog::DoGetButtons(int GetId)
 		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
 		);*/
 }
-/////////////////////////////////////////////////////////// Configure button mapping
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Show current input status
-// ¯¯¯¯¯¯¯¯¯¯
-
 // Convert the 0x8000 range values to BoxW and BoxH for the plot
 void ConfigDialog::Convert2Box(int &x)
 {
 	// Border adjustment
-	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2;
+	int BoxW_ = BoxW - 2;// int BoxH_ = BoxH - 2;
 
 	// Convert values
 	x = (BoxW_ / 2) + (x * BoxW_ / (32767 * 2));
 }
 
 // Update the input status boxes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::PadGetStatus()
 {
 	//INFO_LOG(CONSOLE, "SDL_WasInit: %i\n", SDL_WasInit(0));
 
-	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
-	   because of a manual ini file change, but we make that check anway. */
+	/* Return if it's not detected. The ID should never be less than zero here,
+	   it can only be that because of a manual ini file change, but we make
+	   that check anway. */
 	if(WiiMoteEmu::PadMapping[Page].ID < 0 || WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
 	{
 		m_TStatusLeftIn[Page]->SetLabel(wxT("Not connected"));
@@ -685,17 +674,15 @@ void ConfigDialog::PadGetStatus()
 	}
 
 	// Get physical device status
-	int PhysicalDevice = WiiMoteEmu::PadMapping[Page].ID;
-	int TriggerType = WiiMoteEmu::PadMapping[Page].triggertype;
+	//	int PhysicalDevice = WiiMoteEmu::PadMapping[Page].ID;
+	//	int TriggerType = WiiMoteEmu::PadMapping[Page].triggertype;
 
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	//if (IsFocus())
 		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page, WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Page].ID).NumButtons);
 
 
-	//////////////////////////////////////
 	// Analog stick
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Set Deadzones perhaps out of function
 	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
@@ -732,9 +719,7 @@ void ConfigDialog::PadGetStatus()
 		right_y_after = 0;
 	}
 
-	// -------------------------------------------
 	// Show the adjusted angles in the status box
-	// --------------
 	// Change 0x8000 to 180
 	/*
 	float x8000 = 0x8000;
@@ -750,7 +735,6 @@ void ConfigDialog::PadGetStatus()
 	main_x_after = main_x_after * (x8000 / 180);
 	main_y_after = main_y_after * (x8000 / 180);
 	*/
-	// ---------------------
 
 	// Convert the values to fractions
 	float f_x = main_x / 32767.0;
@@ -788,13 +772,9 @@ void ConfigDialog::PadGetStatus()
 	m_bmpDotLeftOut[Page]->SetPosition(wxPoint(main_x_after, main_y_after));
 	m_bmpDotRightIn[Page]->SetPosition(wxPoint(right_x, right_y));
 	m_bmpDotRightOut[Page]->SetPosition(wxPoint(right_x_after, right_y_after));
-	///////////////////// Analog stick
 
 
-	//////////////////////////////////////
 	// Triggers
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	int TriggerValue = 0;
 
 	// Get the selected keys
 	long Left, Right;
@@ -816,11 +796,9 @@ void ConfigDialog::PadGetStatus()
 		wxT("%03i"), TriggerLeft));
 	m_TriggerStatusRx[Page]->SetLabel(wxString::Format(
 		wxT("%03i"), TriggerRight));
-	///////////////////// Triggers
 }
 
 // Populate the advanced tab
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 {
 	// Show the current status
@@ -835,4 +813,3 @@ void ConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 
 	PadGetStatus();
 }
-/////////////////////////////////////////////////////

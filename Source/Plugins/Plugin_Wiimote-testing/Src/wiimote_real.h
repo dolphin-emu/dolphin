@@ -20,12 +20,7 @@
 #define WIIMOTE_REAL_H
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "wiiuse.h"
-///////////////////////////////////
-
 
 namespace WiiMoteReal
 {
@@ -47,20 +42,18 @@ void ClearEvents();
 void ReadWiimote();
 bool IRDataOK(struct wiimote_t* wm);
 
-#ifndef EXCLUDE_H
-	extern wiimote_t**		g_WiiMotesFromWiiUse;
-	extern bool				g_Shutdown;
-	extern bool				g_ThreadGoing;
-	extern int				g_NumberOfWiiMotes;
-	extern bool				g_MotionSensing;
-	extern bool				g_IRSensing;
-	extern u64				g_UpdateTime;
-	extern int				g_UpdateCounter;
-	extern bool				g_RunTemporary;
-	extern int				g_RunTemporaryCountdown;
-	extern u8				g_EventBuffer[32];
-#endif
-
+extern wiimote_t**		g_WiiMotesFromWiiUse;
+extern bool				g_Shutdown;
+extern bool				g_ThreadGoing;
+extern int				g_NumberOfWiiMotes;
+extern bool				g_MotionSensing;
+extern bool				g_IRSensing;
+extern u64				g_UpdateTime;
+extern int				g_UpdateCounter;
+extern bool				g_RunTemporary;
+extern int				g_RunTemporaryCountdown;
+extern u8				g_EventBuffer[32];
+ 
 }; // WiiMoteReal
 
 #endif

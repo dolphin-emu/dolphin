@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ¯¯¯¯¯¯¯¯¯
 #ifndef _EMU_SUBFUNCTIONS_
 #define _EMU_SUBFUNCTIONS_
 
@@ -32,13 +29,8 @@
 #include "wiimote_hid.h" // Local
 #include "EmuDefinitions.h"
 #include "Encryption.h"
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
-////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 

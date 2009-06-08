@@ -16,10 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
@@ -31,9 +27,6 @@
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
-//////////////////////////////////////
-
-
 
 void ConfigDialog::LoadFile()
 {
@@ -123,18 +116,12 @@ void ConfigDialog::SaveFile()
 
 
 
-/////////////////////////////////////////////////////////////////////////
 // Create GUI
-// ------------
 void ConfigDialog::CreateGUIControlsRecording()
 {
-	////////////////////////////////////////////////////////////////////////////////
 	// Real Wiimote
-	// ----------------
 
-	// ---------------------------------------------
 	// Status
-	// ----------------	
 	m_TextUpdateRate = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Update rate: 000 times/s"));
 	m_UpdateMeters = new wxCheckBox(m_PageRecording, ID_UPDATE_REAL, wxT("Update gauges"));
 
@@ -144,7 +131,6 @@ void ConfigDialog::CreateGUIControlsRecording()
 		"You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n"
 		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
 		));
-	// -----------------------
 
 	// Width and height of the gauges
 	static const int Gw = 35, Gh = 110;
@@ -162,9 +148,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 	// The text controls
 	m_TextIR = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Cursor: 000 000\nDistance: 0000"));
 
-	// ------------------------------------
 	// The sizers for all gauges together with their label
-	// -----------
 	wxBoxSizer * sBoxBattery = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * sBoxRoll[2];
 	sBoxRoll[0] = new wxBoxSizer(wxVERTICAL);
@@ -185,11 +169,8 @@ void ConfigDialog::CreateGUIControlsRecording()
 	m_TextX[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextY[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextZ[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-	// ----------------
 
-	// ----------------------------------------------
 	// Row 1 Sizers
-	// -----------
 	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 0); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxUP), 5);
 
 	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxUP), 5);
@@ -231,16 +212,12 @@ void ConfigDialog::CreateGUIControlsRecording()
 	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
-	// --------------------
 
 	// Tool tips
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
-	// ==========================================
 
 
-	// ====================================================================
 	// Record movement
-	// ----------------
 	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Record movements"));
 
 	wxArrayString StrHotKeySwitch;
@@ -322,9 +299,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 		m_RecordIRBytesText[i]->Enable(false);
 		m_RecordSpeed[i]->Enable(false);
 
-		// ------------------------------------
 		// Row 2 Sizers
-		// -----------
 		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeySwitch[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeyWiimote[i], 0, wxEXPAND | (wxLEFT), 2);
@@ -338,24 +313,17 @@ void ConfigDialog::CreateGUIControlsRecording()
 
 		sbRealRecord->Add(sRealRecord[i], 0, wxEXPAND | (wxTOP), 2);
 	}
-	// ==========================================
 
-	// ----------------------------------------------------------------------
 	// Set up sizers for the whole page
-	// ----------------
 	m_sRecordingMain = new wxBoxSizer(wxVERTICAL);
 	m_sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
 	m_sRecordingMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 	m_PageRecording->SetSizer(m_sRecordingMain);	
 }
-/////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////
 /* Record movement */
-// ------------
-
 void ConfigDialog::ConvertToString()
 {
 	// Load ini file
@@ -382,8 +350,10 @@ void ConfigDialog::ConvertToString()
 		TmpTime += StringFromFormat("%05i", Time);
 		if (i < ((int)m_vRecording.size() - 1)) TmpTime += ",";
 
-		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
-		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
+		/* Break just short of the IniFile.cpp byte limit so that we don't
+		   crash file.Load() the next time.  This limit should never be hit
+		   because of the recording limit below. I keep it here just in
+		   case. */
 		if(TmpStr.length() > (1024*10 - 10) || TmpIR.length() > (1024*10 - 10) || TmpTime.length() > (1024*10 - 10))
 		{
 			break;
@@ -452,8 +422,8 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 	else
 	{
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
-		// This is for usability purposes, it may not be obvious at all that this must be unchecked
-		// for the recording to work
+		// This is for usability purposes, it may not be obvious at all that
+		// this must be unchecked for the recording to work
 		for(int i = 0; i < 1; i++) m_UseRealWiimote[i]->SetValue(false); g_Config.bUseRealWiimote = false;
 		return;
 	}
@@ -531,5 +501,4 @@ void ConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _
 		UpdateGUI();
 	}
 }
-/////////////////////////////////
 

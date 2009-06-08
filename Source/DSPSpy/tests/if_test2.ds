@@ -47,7 +47,7 @@ lri $IX0, #0x1338
 call send_back ; 8
 
 lri $IX0, #0x0000
-lri $SR, #0x000a
+lri $SR, #0x000a 
 
 ifg
 lri $IX0, #0x1337	

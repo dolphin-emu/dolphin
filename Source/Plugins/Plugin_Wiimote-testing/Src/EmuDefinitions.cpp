@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifndef _EMU_DEFINITIONS_
 #define _EMU_DEFINITIONS_
 
@@ -29,8 +26,6 @@
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h"
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
-//////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 

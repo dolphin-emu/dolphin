@@ -16,34 +16,31 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Current issues
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+/*
+The real Wiimote fails to answer the core correctly sometmes. Leading to an
+unwanted disconnection. And there is currenty no functions to reconnect with
+the game. There are two ways to solve this:
 
-The real Wiimote fails to answer the core correctly sometmes. Leading to an unwanted disconnection. And
-there is currenty no functions to reconnect with the game. There are two ways to solve this:
-	1. Make a reconnect function in the IOS emulation
-	2. Detect failed answers in this plugin and solve it by replacing them with emulated answers.
+1. Make a reconnect function in the IOS emulation
 
-The first solution seems easier, if I knew a little better how the /dev/usb/oh1 and Wiimote functions
-worked.
+2. Detect failed answers in this plugin and solve it by replacing them with
+emulated answers.
 
-/////////////////////////////////////////////*/
-
+The first solution seems easier, if I knew a little better how the /dev/usb/oh1
+and Wiimote functions worked.
+*/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "Timer.h"
 
-#define EXCLUDEMAIN_H // Avoid certain declarations in main.h
 #include "EmuDefinitions.h"  // Local
 #include "wiimote_hid.h"
 #include "main.h"
-#include "Logging.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
 #endif
@@ -53,12 +50,8 @@ worked.
 #if HAVE_WIIUSE
 	#include "wiimote_real.h"
 #endif
-///////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
@@ -114,12 +107,9 @@ HWND g_ParentHWND = NULL;
 	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
-////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Main function and WxWidgets initialization
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
@@ -149,7 +139,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 #endif
-/////////////////////////////////////
 
 
 //******************************************************************************
@@ -536,9 +525,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// data[4]: Size and error
 		// data[5, 6]: The registry offset
 
-		// ---------------------------------------------------------------------
 		// Show the extension ID
-		// --------------------------
 		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
 			if(data[4] == 0x10)
@@ -584,13 +571,11 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
-		// ---------------------------------------------
 
-		// ---------------------------------------------------------------------
 		// Show the Wiimote neutral values
-		// --------------------------
-		/* The only difference between the Nunchuck and Wiimote that we go after is calibration here is
-		   the offset in memory. If needed we can check the preceding 0x17 request to. */
+		/* The only difference between the Nunchuck and Wiimote that we go
+		   after is calibration here is the offset in memory. If needed we can
+		   check the preceding 0x17 request to. */
 		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10)
 		{
 			if(data[6] == 0x10)
@@ -604,11 +589,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 +12]);
 			}
 		}
-		// ---------------------------------------------
 
-		// ---------------------------------------------------------------------
 		// Show the Nunchuck neutral values
-		// --------------------------
 		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// Save the encrypted data
@@ -680,7 +662,6 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			// Show the encrypted data
 			INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 		}
-		// ---------------------------------------------
 		
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
@@ -727,9 +708,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 	if (!DataReport && g_DebugComm)
 	{
-		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
+		std::string tmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), TmpData.c_str()); // No timestamp
+		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), tmpData.c_str()); // No timestamp
 		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 
@@ -1083,18 +1064,16 @@ int GetUpdateRate()
 
 void DoInitialize()
 {
-	// Open console
-	//OpenConsole(true);
-
 	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
 	WiiMoteEmu::Initialize();
 
-	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
-	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
-	   we will return before creating a new thread for it if we find no real Wiimotes.
-	   Then g_RealWiiMotePresent will also be false. This function call will be done
-	   instantly whether there is a real Wiimote connected or not. It takes no time for
-	   Wiiuse to check for connected Wiimotes. */
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real
+	   wiimote, to check if there is a real wiimote connected. We will initiate
+	   wiiuse.dll, but we will return before creating a new thread for it if we
+	   find no real Wiimotes.  Then g_RealWiiMotePresent will also be
+	   false. This function call will be done instantly whether there is a real
+	   Wiimote connected or not. It takes no time for Wiiuse to check for
+	   connected Wiimotes. */
 	#if HAVE_WIIUSE
 		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
 	#endif

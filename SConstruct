@@ -10,7 +10,7 @@ import wxconfig
 import utils
 
 # Some features needs at least scons 0.98
-EnsureSConsVersion(0, 98)
+EnsureSConsVersion(1, 2)
 
 # TODO: how do we use it in help?
 name="Dolphin"
@@ -80,6 +80,7 @@ dirs = [
     'Source/Plugins/Plugin_nJoy_SDL/Src',
     'Source/Plugins/Plugin_nJoy_Testing/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
+	'Source/Plugins/Plugin_Wiimote-testing/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     ]

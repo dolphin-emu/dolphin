@@ -3,8 +3,8 @@
 Import('env')
 import sys
 
-wmenv = env.Clone()
-name = "Plugin_Wiimote"
+wiienv = env.Clone()
+name = "Plugin_Wiimote-testing"
 
 files = [
         "Config.cpp",
@@ -17,12 +17,11 @@ files = [
         "Encryption.cpp",
         "main.cpp",
 	]
-if wmenv['HAVE_WX']:
+if wiienv['HAVE_WX']:
     files += [
         "ConfigDlg.cpp",
 		"ConfigGamepad.cpp",
         "ConfigRecording.cpp",
-        "Logging.cpp",
         "FillReport.cpp",
         ]
 
@@ -31,23 +30,23 @@ libs = [ 'common', 'inputcommon' ]
 
 cxxflags = [ '-fPIC' ]
 
-if wmenv['HAVE_WIIUSE']:
+if wiienv['HAVE_WIIUSE']:
     libs  += [ 'wiiuse' ]
     files += [ "wiimote_real.cpp" ]
     files += [ "ReadWiimote.cpp" ]
     cxxflags += ['-DHAVE_WIIUSE']
 
 if sys.platform == 'darwin':
-    wmenv.Append(
+    wiienv.Append(
     	CXXFLAGS = cxxflags,
     	LINKFLAGS = ['-framework' ,'IOBluetooth'],
     	LIBS = libs,
     	)
 else:
-    wmenv.Append(
+    wiienv.Append(
     	CXXFLAGS = cxxflags,
-   	LIBS = libs,
-    	)
+		LIBS = libs,
+	)
 
 
-wmenv.SharedLibrary(env['plugin_dir']+name, files)
+wiienv.SharedLibrary(env['plugin_dir']+name, files)

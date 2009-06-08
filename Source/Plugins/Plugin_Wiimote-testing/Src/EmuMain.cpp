@@ -16,9 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 #include <vector>
 #include <string>
 
@@ -36,17 +34,14 @@
 #include "EmuSubroutines.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
-////////////////////////////////////
+
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
 
-// ===================================================
 /* Bit shift conversions */
-// -------------
 u32 convert24bit(const u8* src) {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
 }
@@ -54,12 +49,9 @@ u32 convert24bit(const u8* src) {
 u16 convert16bit(const u8* src) {
 	return (src[0] << 8) | src[1];
 }
-// ==============
 
 
-// ===================================================
 /* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
-// ----------------
 void GetMousePos(float& x, float& y)
 {
 #ifdef _WIN32
@@ -184,12 +176,9 @@ void GetMousePos(float& x, float& y)
 	y = 0.5f;
 #endif
 }
-// ==============
 
 
-// ===================================================
 /* Homebrew encryption for 16 byte zero keys. */
-// ----------------
 void CryptBuffer(u8* _buffer, u8 _size)
 {
 	for (int i=0; i<_size; i++)
@@ -204,30 +193,23 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 	CryptBuffer((u8*)&cryptedValue, sizeof(u16));
 
 	*(u16*)(_baseBlock + _address) = cryptedValue;
-	//PanicAlert("Converted %04x to %04x", _value, cryptedValue);
 }
-// ================
 
 
-// ===================================================
 /* Calculate Extenstion Regisister Calibration Checksum */
-// This function is not currently used, it's just here to show how the values in EmuDefinitions.h are calculated.
-// ----------------
+// This function is not currently used, it's just here to show how the values
+// in EmuDefinitions.h are calculated.
 void GetCalibrationChecksum()
 {
 	u8 sum = 0;
-	for (int i = 0; i < sizeof(nunchuck_calibration) - 2; i++)
+	for (u32 i = 0; i < sizeof(nunchuck_calibration) - 2; i++)
 		sum += nunchuck_calibration[i];
-	u8 Check1 = sum + 0x55;
-	u8 Check2 = sum + 0xaa;
-	INFO_LOG(CONSOLE, "0x%02x 0x%02x", Check1, Check2);
+
+	INFO_LOG(CONSOLE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
 }
-// ================
 
 
-// ===================================================
 /* Load pre-recorded movements */
-// ----------------
 void LoadRecordedMovements()
 {
 	INFO_LOG(CONSOLE, "LoadRecordedMovements()\n");
@@ -282,12 +264,12 @@ void LoadRecordedMovements()
 			Tmp.y = atoi(StrY.c_str());
 			Tmp.z = atoi(StrZ.c_str());
 
-			// ---------------------------------
 			// Go to next set of IR values
-			// ---------
-			// If there is no IR data saving we fill the array with zeroes. This should only be able to occur from manual ini editing
-			// but we check for it anyway
-			if (TmpIRBytes == 0) for(int i = 0; i < 12; i++) Tmp.IR[i] = 0;
+
+			// If there is no IR data saving we fill the array with
+			// zeroes. This should only be able to occur from manual ini
+			// editing but we check for it anyway
+			if (TmpIRBytes == 0) for(int n = 0; n < 12; n++) Tmp.IR[n] = 0;
 			for(int ii = 0; ii < TmpIRBytes; ii++)
 			{
 				if(TmpIR.length() < (u32)(k + i + TmpIRBytes)) continue; // Safety check
@@ -297,7 +279,6 @@ void LoadRecordedMovements()
 				Tmp.IR[ii] = (u8)TmpU32;
 			}
 			if (TmpIRBytes == 10) k += (10*2 + 1); else k += (12*2 + 1);
-			// ---------------------
 
 			// Go to next set of time values
 			double Time = (double)atoi(TmpTime.substr(l, 5).c_str());
@@ -307,9 +288,7 @@ void LoadRecordedMovements()
 			// Save the values
 			VRecording.at(i).Recording.push_back(Tmp);
 
-			// ---------------------------------
 			// Log results
-			// ---------
 			/*INFO_LOG(CONSOLE, "Time:%f\n", Tmp.Time);
 			std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
 			INFO_LOG(CONSOLE, "IR: %s\n", TmpIRLog.c_str());
@@ -326,9 +305,7 @@ void LoadRecordedMovements()
 		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
 		VRecording.at(i).PlaybackSpeed = TmpPlaybackSpeed;
 
-		// ---------------------------------
 		// Logging
-		// ---------
 		/*std::string TmpIRLog;
 		if(TmpIRBytes > 0 && VRecording.size() > i)
 			TmpIRLog = ArrayToString(VRecording.at(i).Recording.at(0).IR, TmpIRBytes, 0, 30);
@@ -340,10 +317,8 @@ void LoadRecordedMovements()
 			TmpIRLog.c_str(),
 			VRecording.at(i).Recording.at(0).x, VRecording.at(i).Recording.at(0).y, VRecording.at(i).Recording.at(0).z
 			);*/
-		// ---------------------
 	}
 }
-// ================
 
 // Update the accelerometer neutral values
 void UpdateEeprom()
@@ -407,24 +382,19 @@ void UpdateEeprom()
 // Calculate checksum for the nunchuck calibration. The last two bytes.
 void ExtensionChecksum(u8 * Calibration)
 {
-	u8 sum = 0; u8 Byte15, Byte16;
-	for (int i = 0; i < sizeof(Calibration) - 2; i++)
+	u8 sum = 0; //u8 Byte15, Byte16;
+	for (u32 i = 0; i < sizeof(Calibration) - 2; i++)
 	{
 		sum += Calibration[i];
 		printf("Plus 0x%02x\n", Calibration[i]);
 	}
-	Byte15 = sum + 0x55; // Byte 15
-	Byte16 = sum + 0xaa; // Byte 16
+	//	Byte15 = sum + 0x55; // Byte 15
+	//	Byte16 = sum + 0xaa; // Byte 16
 }
 
 // Set initial valuesm this done both in Init and Shutdown
 void ResetVariables()
 {
-	u8 g_Leds = 0x0; // 4 bits
-	u8 g_Speaker = 0x0; // 1 = on
-	u8 g_SpeakerVoice = 0x0; // 1 = on
-	u8 g_IR = 0x0; // 1 = on
-
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
 	g_Encryption = false;
@@ -466,9 +436,7 @@ void SetDefaultExtensionRegistry()
 }
 
 
-// ===================================================
 /* Write initial values to Eeprom and registers. */
-// ----------------
 void Initialize()
 {
 	if (g_EmulatedWiiMoteInitialized) return;
@@ -476,14 +444,15 @@ void Initialize()
 	// Reset variables
 	ResetVariables();
 
-	// Write default Eeprom data to g_Eeprom[], this may be overwritten by WiiMoteReal::Initialize()
-	// after this function.
+	// Write default Eeprom data to g_Eeprom[], this may be overwritten by
+	// WiiMoteReal::Initialize() after this function.
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 
-	/* Populate joyinfo for all attached devices and do g_Config.Load() if the configuration window is
-	   not already open, if it's already open we continue with the settings we have */
+	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
+	   configuration window is not already open, if it's already open we
+	   continue with the settings we have */
 	if(!g_FrameOpen)
 	{
 		Search_Devices(joyinfo, NumPads, NumGoodPads);
@@ -498,15 +467,15 @@ void Initialize()
 	// Load pre-recorded movements
 	LoadRecordedMovements();
 
-	/* The Nuncheck extension ID for homebrew applications that use the zero key. This writes 0x0000
-	   in encrypted form (0xfefe) to 0xfe in the extension register. */
+	/* The Nuncheck extension ID for homebrew applications that use the zero
+	   key. This writes 0x0000 in encrypted form (0xfefe) to 0xfe in the
+	   extension register. */
 	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
 
 	// I forgot what these were for? Is this the zero key encrypted 0xa420?
 	//	g_RegExt[0xfd] = 0x1e;
 	//	g_RegExt[0xfc] = 0x9a;
 }
-// ================
 
 
 void DoState(void* ptr, int mode) 
@@ -514,24 +483,24 @@ void DoState(void* ptr, int mode)
 	//TODO: implement
 }
 
-/* This is not needed if we call FreeLibrary() when we stop a game, but if it's not called we need to reset
-   these variables. */
+/* This is not needed if we call FreeLibrary() when we stop a game, but if it's
+   not called we need to reset these variables. */
 void Shutdown(void) 
 {
 	INFO_LOG(CONSOLE, "ShutDown\n");
 
 	ResetVariables();
 
-	/* Close all devices carefully. We must check that we are not accessing any undefined
-	   vector elements or any bad devices */
+	/* Close all devices carefully. We must check that we are not accessing any
+	   undefined vector elements or any bad devices */
 	for (int i = 0; i < 1; i++)
 	{
 		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 			{
 				INFO_LOG(CONSOLE, "ShutDown: %i\n", PadState[i].joy);
-				/* SDL_JoystickClose() crashes for some reason so I avoid this for now, SDL_Quit() should
-				   close the pads to I think */
+				/* SDL_JoystickClose() crashes for some reason so I avoid this
+				   for now, SDL_Quit() should close the pads to I think */
 				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
 				//PadState[i].joy = NULL;
 			}
@@ -547,12 +516,11 @@ void Shutdown(void)
 }
 
 
-// ===================================================
-/* An ack delay of 1 was not small enough, but 2 seemed to work, that was about between 20 ms and
-   100 ms in my case in Zelda - TP. You may have to increase this value for other things to work, for
-   example in the wpad demo I had to set it to at least 3 for the Sound to be able to turned on (I have
-   an update rate of around 150 fps in the wpad demo) */
-// ----------------
+/* An ack delay of 1 was not small enough, but 2 seemed to work, that was about
+   between 20 ms and 100 ms in my case in Zelda - TP. You may have to increase
+   this value for other things to work, for example in the wpad demo I had to
+   set it to at least 3 for the Sound to be able to turned on (I have an update
+   rate of around 150 fps in the wpad demo) */
 void CreateAckDelay(u8 _ChannelID, u16 _ReportID)
 {
 	// Settings
@@ -586,23 +554,20 @@ void CheckAckDelay()
 		}
 	}
 }
-// ================
 
 
-// ===================================================
-/* This function produce Wiimote Input, i.e. reports from the Wiimote in response
-   to Output from the Wii. */
-// ----------------
+/* This function produce Wiimote Input, i.e. reports from the Wiimote in
+   response to Output from the Wii. */
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
 	//INFO_LOG(CONSOLE, "Emu InterruptChannel\n");
 
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
 
-	/* Debugging. We have not yet decided how much of 'data' we will use, it's not determined
-	   by sizeof(data). We have to determine it by looking at the data cases. */
+	/* Debugging. We have not yet decided how much of 'data' we will use, it's
+	   not determined by sizeof(data). We have to determine it by looking at
+	   the data cases. */
 	InterruptDebugging(true, data);
 
 	hid_packet* hidp = (hid_packet*) data;
@@ -617,19 +582,23 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					wm_report* sr = (wm_report*)hidp->data;
 					HidOutputReport(_channelID, sr);
 
-					/* This is the 0x22 answer to all Inputs. In most games it didn't matter
-					   if it was written before or after HidOutputReport(), but Wii Sports
-					   and Mario Galaxy would stop working if it was placed before
-					   HidOutputReport(). Zelda - TP is even more sensitive and require
-					   a delay after the Input for the Nunchuck to work. It seemed to be
-					   enough to delay only the Nunchuck registry reads and writes but
-					   for now I'm delaying all inputs. Both for status changes and Eeprom
-					   and registry reads and writes. */
+					/* This is the 0x22 answer to all Inputs. In most games it
+					   didn't matter if it was written before or after
+					   HidOutputReport(), but Wii Sports and Mario Galaxy would
+					   stop working if it was placed before
+					   HidOutputReport(). Zelda - TP is even more sensitive and
+					   require a delay after the Input for the Nunchuck to
+					   work. It seemed to be enough to delay only the Nunchuck
+					   registry reads and writes but for now I'm delaying all
+					   inputs. Both for status changes and Eeprom and registry
+					   reads and writes. */
 
-					// There are no 0x22 replys to these report from the real wiimote from what I could see
-					// Report 0x10 that seems to be only used for rumble, and we don't need to answer that,
-					// also if we do *we should update the 0x22 to have the core keys* otherwise the game will
-					// think we release the key every time it rumbles
+					// There are no 0x22 replys to these report from the real
+					// wiimote from what I could see Report 0x10 that seems to
+					// be only used for rumble, and we don't need to answer
+					// that, also if we do *we should update the 0x22 to have
+					// the core keys* otherwise the game will think we release
+					// the key every time it rumbles
 					if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
 						&& !(data[1] == WM_REQUEST_STATUS)
 						&& !(data[1] == WM_WRITE_SPEAKER_DATA)
@@ -639,7 +608,6 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 				break;
 
 			default:
-				ERROR_LOG(WII_IPC_WIIMOTE, "HidInput: HID_TYPE_DATA - param 0x%02x", hidp->type, hidp->param);
 				PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp->type, hidp->param);
 				break;
 			}
@@ -647,11 +615,9 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_WIIMOTE,"HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);     
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
 	}
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
 
 
@@ -676,12 +642,10 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	case HID_TYPE_HANDSHAKE:
 		if (hidp->param == HID_PARAM_INPUT)
 		{
-			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
 			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
 		}
 		else
 		{
-			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT");
 			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT"); 
 		}
 		break;
@@ -689,7 +653,6 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	case HID_TYPE_SET_REPORT:
 		if (hidp->param == HID_PARAM_INPUT)
 		{
-			ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_SET_REPORT input");
 			PanicAlert("HID_TYPE_SET_REPORT input"); 
 		}
 		else
@@ -703,12 +666,10 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	case HID_TYPE_DATA:
-		ERROR_LOG(WII_IPC_WIIMOTE, "HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
 		PanicAlert("HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_WIIMOTE, "HidControlChannel: Unknown type %x and param %x", hidp->type, hidp->param); 
 		PanicAlert("HidControlChannel: Unknown type %x and param %x", hidp->type, hidp->param);
 		break;
 	}
@@ -716,11 +677,10 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 }
 
 
-// ===================================================
-/* This is called from Wiimote_Update(). See SystemTimers.cpp for a documentation. I'm
-   not sure exactly how often this function is called but I think it's tied to the frame
-   rate of the game rather than a certain amount of times per second. */
-// ----------------
+/* This is called from Wiimote_Update(). See SystemTimers.cpp for a
+   documentation. I'm not sure exactly how often this function is called but I
+   think it's tied to the frame rate of the game rather than a certain amount
+   of times per second. */
 void Update() 
 {
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
