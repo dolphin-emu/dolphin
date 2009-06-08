@@ -27,8 +27,9 @@ Internal and fullscreen resolution: Since the only internal resolutions allowed 
 fullscreen resolution allowed by the system there is only need for one resolution setting
 that applies to both the internal resolution and the fullscreen resolution.
 
-Todo: Make the internal resolution option apply instantly, currently only the native or not option
-applies instantly
+Todo: Make the internal resolution option apply instantly, currently only the native and 2x option
+applies instantly. To do this we need to enumerate all avaliable display resolutions before
+Renderer:Init().
 
 1.2 Screenshots
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯

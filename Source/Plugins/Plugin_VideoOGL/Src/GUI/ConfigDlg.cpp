@@ -485,9 +485,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
+		if (g_Config.bNativeResolution) g_Config.b2xResolution = false;
 		break;
 	case ID_2X_RESOLUTION:
 		g_Config.b2xResolution = m_2xResolution->IsChecked();
+		if (g_Config.b2xResolution) g_Config.bNativeResolution = false;
 		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();

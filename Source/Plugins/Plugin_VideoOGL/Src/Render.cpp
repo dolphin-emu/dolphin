@@ -306,10 +306,12 @@ bool Renderer::Init()
 	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
 	// So the below is wrong.
 	// This should really be grabbed from config rather than from OpenGL.
-	// JP: Set these big enough to accomodate any potential 2x mode
-	s_targetwidth = 1280;
-    s_targetheight = 960;
-	
+	// JP: Set these to the biggest of the 2x mode and the custom resolution so that the framebuffer
+	// does not get to be too small
+	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
+	s_targetwidth = (1280 >= W) ? 1280 : W;
+	s_targetheight = (960 >= H) ? 960 : H;
+
 	// Compensate height of render target for scaling, so that we get something close to the correct number of
 	// vertical pixels.
 	s_targetheight *= 528.0 / 480.0;
@@ -1098,7 +1100,7 @@ void Renderer::Swap(const TRectangle& rc)
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
-	// Why save this as s_bNativeResolution if we updated it all the time?
+	// Why save this as s_bNativeResolution if we updated it every frame?
 	s_bNativeResolution = g_Config.bNativeResolution;
 
     RestoreGLState();
@@ -1156,10 +1158,8 @@ void Renderer::SwapBuffers()
     }
 #endif
     // Copy the rendered frame to the real window
-
 	OpenGL_SwapBuffers();
-
-
+	// Clear framebuffer
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1340,7 +1340,7 @@ void Renderer::DrawDebugText()
 		std::string OSDM31 =
 			g_Config.bCopyEFBToRAM ? "RAM" : "Texture";
 		std::string OSDM32 =
-			g_Config.bEFBCopyDisable ? "Yes" : "No";
+			g_Config.bEFBCopyDisable ? "No" : "Yes";
 
 		// If there is more text than this we will have a collission
 		if (g_Config.bShowFPS)
@@ -1398,6 +1398,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
 		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
 
+
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -1424,8 +1425,8 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// We don't adjust non-native resolutions to avoid blurring the picture.
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	float Ratio = (float)W / (float)(H), TargetRatio, TargetRatio1;
-	if (g_Config.bNativeResolution && (g_Config.bKeepAR169 || g_Config.bKeepAR43)
+	float Ratio = (float)W / (float)(H), TargetRatio;
+	if ((g_Config.bNativeResolution || g_Config.b2xResolution) && (g_Config.bKeepAR169 || g_Config.bKeepAR43)
 		&& Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
 	{		
 		if (g_Config.bKeepAR43)
