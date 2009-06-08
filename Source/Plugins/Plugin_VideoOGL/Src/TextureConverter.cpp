@@ -40,13 +40,15 @@ const int renderBufferHeight = 1024;
 static FRAGMENTSHADER s_rgbToYuyvProgram;
 static FRAGMENTSHADER s_yuyvToRgbProgram;
 
-// todo - store shaders in a smarter way - there are not 64 different copy texture formats
+// Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 void CreateRgbToYuyvProgram()
 {
-	// output is BGRA because that is slightly faster than RGBA
+	// Output is BGRA because that is slightly faster than RGBA.
+
+	// TODO: Use the dot() function for faster dot products. Probably mostly helps ATI (nvidia is scalar anyway).
 	const char *FProgram =
 	"uniform samplerRECT samp0 : register(s0);\n"	
 	"void main(\n"
@@ -152,6 +154,13 @@ void Shutdown()
 	glDeleteTextures(1, &s_srcTexture);	
 	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
+
+	s_rgbToYuyvProgram.Destroy();
+	s_yuyvToRgbProgram.Destroy();
+
+	for (int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
+		s_encodingPrograms[i].Destroy();
+
 	s_srcTexture = 0;
 	s_dstRenderBuffer = 0;
 	s_texConvFrameBuffer = 0;

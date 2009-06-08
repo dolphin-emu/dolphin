@@ -893,11 +893,12 @@ void Renderer::Swap(const TRectangle& rc)
 	// Tell the OSD Menu about the current internal resolution
 	OSDInternalW = rc.right; OSDInternalH = rc.bottom;
 
-	// ---------------------------------------------------------------------
-	// Apply AA
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// Make sure that the wireframe setting doesn't screw up the screen copy.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	// ---------------------------------------------------------------------
+	// Resolve the multisampled rendertarget into the normal one.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
 	{
 		// Use framebuffer blit to stretch screen.
@@ -952,6 +953,8 @@ void Renderer::Swap(const TRectangle& rc)
 		glTexCoordPointer(2, GL_FLOAT, 0, (void *)uv_data);
 		glDrawArrays(GL_QUADS, 0, 4);
 		*/
+
+		// Here's an opportunity to bind a fragment shader to do post processing.
 		
 		glBegin(GL_QUADS);
 			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);

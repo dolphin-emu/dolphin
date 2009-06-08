@@ -160,7 +160,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 	case IDM_SCANFUNCTIONS:
 		{
-		PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
+		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 		SignatureDB db;
 		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 			db.Apply(&g_symbolDB);

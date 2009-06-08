@@ -27,6 +27,14 @@
 struct FRAGMENTSHADER
 {
 	FRAGMENTSHADER() : glprogid(0) { }
+	void Destroy()
+	{
+		if (glprogid)
+		{
+			glDeleteProgramsARB(1, &glprogid);
+			glprogid = 0;
+		}
+	}
 	GLuint glprogid; // opengl program id
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
@@ -41,10 +49,9 @@ class PixelShaderCache
 		int frameCount;
 		PSCacheEntry() : frameCount(0) {}
 		~PSCacheEntry() {}
-		void Destroy() {
-			// printf("Destroying ps %i\n", shader.glprogid);
-			glDeleteProgramsARB(1, &shader.glprogid);
-			shader.glprogid = 0;
+		void Destroy()
+		{
+			shader.Destroy();
 		}
 	};
 
