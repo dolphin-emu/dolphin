@@ -1,19 +1,8 @@
 uniform samplerRECT samp0 : register(s0);
 
-const float2 samples[8] = {
-  float2(-1.5, -1.5),
-  float2(-2.5, 0),
-  float2(-1.5, 1.5),
-  float2(0, 2.5),
-  float2(1.5, 1.5),
-  float2(2.5, 0),
-  float2(1.5, -1.5),
-  float2(0, -2.5),
-};
-
-void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0, in float2 uv1 : TEXCOORD1)
 {
-  float4 c_center = texRECT(samp0, uv0).rgba;
+  float4 c_center = texRECT(samp0, uv0.xy).rgba;
 
   float4 bloom_sum = float4(0.0, 0.0, 0.0, 0.0);
   uv0 += float2(0.3, 0.3);
@@ -41,5 +30,9 @@ void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
   bloom_sum -= float4(0.3, 0.3, 0.3, 0.3);
   bloom_sum = max(bloom_sum, float4(0,0,0,0));
 
-  ocol0 = c_center * 0.7 + bloom_sum;
+  float2 vpos = (uv1 - float2(.5, .5)) * 2;
+  float dist = (dot(vpos, vpos));
+  dist = 1 - 0.4*dist;
+
+  ocol0 = (c_center * 0.7 + bloom_sum) * dist;
 }

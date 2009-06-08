@@ -961,10 +961,10 @@ void Renderer::Swap(const TRectangle& rc)
 		PostProcessing::ApplyShader();
 
 		glBegin(GL_QUADS);
-			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
-			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
-			glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
-			glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+			glTexCoord2f(0,     v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
+			glTexCoord2f(0,     v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
+			glTexCoord2f(u_max, v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
+			glTexCoord2f(u_max, v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
 		glEnd();
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
