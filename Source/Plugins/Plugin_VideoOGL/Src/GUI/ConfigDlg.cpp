@@ -29,7 +29,7 @@
 
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
-#include "PostProcessing.h"
+#include "../PostProcessing.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -281,12 +281,12 @@ void ConfigDialog::CreateGUIControls()
 	{
 		File::FSTEntry entry;
 		File::ScanDirectoryTree("User/Shaders", entry);
-		for (int i = 0; i < entry.children.size(); i++) 
+		for (u32 i = 0; i < entry.children.size(); i++) 
 		{
 			std::string name = entry.children[i].virtualName.c_str();
-			if (!stricmp(name.substr(name.size() - 4).c_str(), ".txt"))
+			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
 				name = name.substr(0, name.size() - 4);
-			m_PostShaderCB->Append(wxT(name));
+			m_PostShaderCB->Append(wxString::FromAscii(name.c_str()));
 		}
 	}
 	else
@@ -294,9 +294,9 @@ void ConfigDialog::CreateGUIControls()
 		File::CreateDir("User/Shaders");
 	}
 
-	wxString shader = wxT(g_Config.sPostProcessingShader.c_str());
-	if (shader == "")
-		shader = "(off)";
+	wxString shader= wxString::FromAscii(g_Config.sPostProcessingShader.c_str());
+	if (shader == _(""))
+		shader = wxT("(off)");
 	m_PostShaderCB->SetStringSelection(shader);
 
 	// How to use the wxGridBagSizer: The wxGBPosition() must have a column and row
@@ -525,9 +525,9 @@ void ConfigDialog::ReloadShaderClick(wxCommandEvent& WXUNUSED (event))
 
 void ConfigDialog::EditShaderClick(wxCommandEvent& WXUNUSED (event))
 {
-	if (m_PostShaderCB->GetStringSelection() == "(off)")
+	if (m_PostShaderCB->GetStringSelection() == wxT("(off)"))
 		return;
-	wxString shader = "User/Shaders/" + m_PostShaderCB->GetStringSelection() + ".txt";
+	wxString shader = wxT("User/Shaders/") + m_PostShaderCB->GetStringSelection() + _(".txt");
 	if (wxFileExists(shader))
 	{
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("txt"));
@@ -622,7 +622,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		}
 		break;
 	case ID_POSTSHADER:
-		g_Config.sPostProcessingShader = m_PostShaderCB->GetString(m_PostShaderCB->GetSelection());
+		g_Config.sPostProcessingShader = m_PostShaderCB->GetString(m_PostShaderCB->GetSelection()).mb_str();
 		if (g_Config.sPostProcessingShader == "(off)")
 			g_Config.sPostProcessingShader = "";
 		break;
