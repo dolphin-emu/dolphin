@@ -45,6 +45,7 @@ EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
+EVT_CHOICE(ID_INTERFACE_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
@@ -172,6 +173,20 @@ void CConfigMain::CreateGUIControls()
 	arrayStringFor_WiiSystemLang.Add(wxT("Korean"));
 	// GUI
 	arrayStringFor_InterfaceLang = arrayStringFor_GCSystemLang;
+	// Framelimit
+	arrayStringFor_Framelimit.Add(wxT("off"));
+	arrayStringFor_Framelimit.Add(wxT("5"));
+	arrayStringFor_Framelimit.Add(wxT("10"));
+	arrayStringFor_Framelimit.Add(wxT("15"));
+	arrayStringFor_Framelimit.Add(wxT("20"));
+	arrayStringFor_Framelimit.Add(wxT("25"));
+	arrayStringFor_Framelimit.Add(wxT("30"));
+	arrayStringFor_Framelimit.Add(wxT("35"));
+	arrayStringFor_Framelimit.Add(wxT("40"));
+	arrayStringFor_Framelimit.Add(wxT("45"));
+	arrayStringFor_Framelimit.Add(wxT("50"));
+	arrayStringFor_Framelimit.Add(wxT("55"));
+	arrayStringFor_Framelimit.Add(wxT("60"));
 		
 	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -240,6 +255,11 @@ void CConfigMain::CreateGUIControls()
 	InterfaceLang = new wxChoice(GeneralPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
 	// need redesign
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
+
+	// Choose Framelimit
+	wxStaticText *InterfaceFramelimitText = new wxStaticText(GeneralPage, ID_INTERFACE_FRAMELIMIT_TEXT, wxT("Framelimit (experimental):"), wxDefaultPosition, wxDefaultSize);
+	InterfaceFramelimit = new wxChoice(GeneralPage, ID_INTERFACE_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
+	InterfaceFramelimit->SetSelection(SConfig::GetInstance().m_InterfaceFramelimit);
 
 	// Themes
 	wxArrayString ThemeChoices;
@@ -311,6 +331,10 @@ void CConfigMain::CreateGUIControls()
 	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterfaceLanguage->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterfaceLanguage, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer *sInterfaceFramelimit = new wxBoxSizer(wxHORIZONTAL);
+	sInterfaceFramelimit->Add(InterfaceFramelimitText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sInterfaceFramelimit->Add(InterfaceFramelimit, 0, wxEXPAND | wxALL, 5);
+	sbInterface->Add(sInterfaceFramelimit, 0, wxEXPAND | wxALL, 5);
 
 	// Populate the entire page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);
@@ -629,6 +653,10 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_INTERFACE_LANG:
 		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
+		bRefreshList = true;
+		break;
+	case ID_INTERFACE_FRAMELIMIT:
+		SConfig::GetInstance().m_InterfaceFramelimit = (u32)InterfaceFramelimit->GetSelection();
 		bRefreshList = true;
 		break;
 

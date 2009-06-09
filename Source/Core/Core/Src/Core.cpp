@@ -664,20 +664,42 @@ void Callback_VideoCopiedToXFB()
 	static u64 ticks = 0;
 	static u64 idleTicks = 0;
 
+
+	u32 targetfps = (SConfig::GetInstance().m_InterfaceFramelimit)*5;
+	static u64 old_frametime=0;
+	u64 new_frametime;
+	s16 wait_frametime;
+
 	frames++;
- 
+
+	if (targetfps>0)
+	{	
+		new_frametime=Timer.GetTimeDifference()-old_frametime;
+
+		old_frametime=Timer.GetTimeDifference();
+
+		wait_frametime=((1000/targetfps)-new_frametime);
+		if (targetfps<35)
+			wait_frametime--;
+		if (wait_frametime>0)
+			Common::SleepCurrentThread(wait_frametime*2);
+	}
+
 	if (Timer.GetTimeDifference() >= 1000)
 	{
+		old_frametime=0;
+
 		u64 newTicks = CoreTiming::GetTicks();
 		u64 newIdleTicks = CoreTiming::GetIdleTicks();
- 
+
 		s64 diff = (newTicks - ticks) / 1000000;
 		s64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
- 
+
 		ticks = newTicks;
 		idleTicks = newIdleTicks;
  
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
+
 		char temp[256];
 		sprintf(temp, "FPS:%8.2f - Core: %s | %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
 			(float)frames / t, 
@@ -709,7 +731,7 @@ void Callback_VideoCopiedToXFB()
         Timer.Update();
 	}
 }
- 
+
 // __________________________________________________________________________________________________
 // Callback_DSPLog
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD

@@ -65,6 +65,8 @@ struct SConfig
 
 	// interface language
 	INTERFACE_LANGUAGE m_InterfaceLanguage;
+	// framelimit choose
+	u32 m_InterfaceFramelimit;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;

@@ -56,6 +56,9 @@ class CConfigMain
 		wxArrayString arrayStringFor_InterfaceLang;
 		wxChoice* InterfaceLang;
 
+		wxArrayString arrayStringFor_Framelimit;
+		wxChoice* InterfaceFramelimit;
+
 		wxRadioBox* Theme;
 		
 		wxBoxSizer* sCore;
@@ -226,6 +229,7 @@ class CConfigMain
 			ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
 			ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 			ID_INTERFACE_THEME,
+			ID_INTERFACE_FRAMELIMIT_TEXT, ID_INTERFACE_FRAMELIMIT,
 
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,

@@ -237,7 +237,7 @@ void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 
 void Init()
 {
-	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 15;
+	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 60;
 	if (Core::GetStartupParameter().bWii)
 	{
 		CPU_CORE_CLOCK = 729000000u;
