@@ -229,10 +229,23 @@ void CGameListCtrl::Update()
 	}
 	else
 	{
-		InsertColumn(COLUMN_BANNER, _("No ISOs found"));
-
+		std::string errorString;
+		if ((SConfig::GetInstance().m_ListGC  ||
+			SConfig::GetInstance().m_ListWii  ||
+			SConfig::GetInstance().m_ListWad) &&
+			(SConfig::GetInstance().m_ListJap ||
+			SConfig::GetInstance().m_ListUsa  ||
+			SConfig::GetInstance().m_ListPal))
+		{
+			errorString = "Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files...";
+		}
+		else
+		{
+			errorString = "Dolphin is currently set to hide all games. Doubleclick here to show all games...";
+		}
+		InsertColumn(COLUMN_BANNER, _("No ISOs or WADS found"));
 		long index = InsertItem(0, wxString::FromAscii("msgRow"));
-		SetItem(index, COLUMN_BANNER, _("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files..."));
+		SetItem(index, COLUMN_BANNER, wxString::FromAscii(errorString.c_str()));
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(COLUMN_BANNER, wxLIST_AUTOSIZE);
 	}

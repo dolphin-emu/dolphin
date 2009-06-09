@@ -488,7 +488,35 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
-	BootGame();
+	// Show all platforms and regions if...
+	// 1. All platforms are set to hide
+	// 2. All Regions are set to hide
+	// Otherwise call BootGame to either...
+	// 1. Boot the selected iso
+	// 2. Call BrowseForDirectory and boot the default or last loaded iso.
+	// TODO: (LPFaint99) We shouldn't boot an iso after BrowseForDirectory
+	if (!m_GameListCtrl->GetGameNames().size() &&
+		!((SConfig::GetInstance().m_ListGC ||
+		SConfig::GetInstance().m_ListWii ||
+		SConfig::GetInstance().m_ListWad) &&
+		(SConfig::GetInstance().m_ListJap ||
+		SConfig::GetInstance().m_ListUsa  ||
+		SConfig::GetInstance().m_ListPal)))
+	{
+		SConfig::GetInstance().m_ListGC  =	SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListWad =	SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListUsa =	SConfig::GetInstance().m_ListPal = true;
+
+		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTWII)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTWAD)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTJAP)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTPAL)->Check(true);
+
+		m_GameListCtrl->Update();
+	}			
+	else BootGame();
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
