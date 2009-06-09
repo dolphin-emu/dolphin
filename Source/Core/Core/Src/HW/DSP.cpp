@@ -639,7 +639,7 @@ u8 ReadARAM(u32 _iAddress)
 		}
 		else
 		{
-			return g_ARAM[_iAddress & ARAM_MASK];
+			return g_ARAM[_iAddress];
 		}		
 	}
 	else
