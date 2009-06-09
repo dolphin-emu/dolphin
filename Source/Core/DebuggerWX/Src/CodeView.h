@@ -39,6 +39,7 @@ class CCodeView
 		void OnMouseUpL(wxMouseEvent& event);
 		void OnMouseUpR(wxMouseEvent& event);
 		void OnPopupMenu(wxCommandEvent& event);
+		void InsertBlrNop(int);
 
 		u32 GetSelection() {return(selection);}
 

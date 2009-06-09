@@ -99,7 +99,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_end(args);
 
 	static const char level_to_char[7] = "-NEWID";
-	sprintf(msg, "%s %c: %s %s\n",
+	sprintf(msg, "%s %c[%s]: %s\n",
 			Common::Timer::GetTimeFormatted().c_str(),
 			level_to_char[(int)level],
 			log->getShortName(),

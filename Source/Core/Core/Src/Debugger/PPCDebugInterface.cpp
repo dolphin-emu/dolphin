@@ -112,9 +112,9 @@ void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 		BreakPoints::Add(address);
 }
 
-void PPCDebugInterface::insertBLR(unsigned int address) 
+void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 
 {
-	Memory::Write_U32(0x4e800020, address);
+	Memory::Write_U32(value, address);
 }
 
 

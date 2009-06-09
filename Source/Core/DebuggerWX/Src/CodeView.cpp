@@ -38,7 +38,7 @@ enum
 	IDM_COPYADDRESS,
 	IDM_COPYHEX,
 	IDM_COPYCODE,
-	IDM_INSERTBLR,
+	IDM_INSERTBLR, IDM_INSERTNOP,
 	IDM_RUNTOHERE,
 	IDM_JITRESULTS,
 	IDM_FOLLOWBRANCH,
@@ -190,6 +190,36 @@ u32 CCodeView::AddrToBranch(u32 addr)
 	return 0;
 }
 
+void CCodeView::InsertBlrNop(int Blr)
+{
+	// Check if this address has been modified
+	int find = -1;				
+	for(u32 i = 0; i < BlrList.size(); i++)
+	{
+		if(BlrList.at(i).Address == selection)
+		{ find = i; break;  }					
+	}
+
+	// Save the old value				
+	if(find >= 0)
+	{
+		Memory::Write_U32(BlrList.at(find).OldValue, selection);
+		BlrList.erase(BlrList.begin() + find);
+	}
+	else
+	{
+		BlrStruct Temp;
+		Temp.Address = selection;
+		Temp.OldValue = debugger->readMemory(selection);
+		BlrList.push_back(Temp);
+		if (Blr == 0)
+			debugger->insertBLR(selection, 0x4e800020);			
+		else
+			debugger->insertBLR(selection, 0x60000000);	
+	}
+	redraw();	
+}
+
 void CCodeView::OnPopupMenu(wxCommandEvent& event)
 {
 #if wxUSE_CLIPBOARD
@@ -252,31 +282,10 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		// Insert blr or restore old value
 		case IDM_INSERTBLR:
-			{
-				// Check if this address has been modified
-				int find = -1;				
-				for(u32 i = 0; i < BlrList.size(); i++)
-				{
-					if(BlrList.at(i).Address == selection)
-					{ find = i; break;  }					
-				}
-
-				// Save the old value				
-				if(find >= 0)
-				{
-					Memory::Write_U32(BlrList.at(find).OldValue, selection);
-					BlrList.erase(BlrList.begin() + find);
-				}
-				else
-				{
-					BlrStruct Temp;
-					Temp.Address = selection;
-					Temp.OldValue = debugger->readMemory(selection);
-					BlrList.push_back(Temp);
-					debugger->insertBLR(selection);					
-				}
-				redraw();
-			}
+			InsertBlrNop(0);
+			break;
+		case IDM_INSERTNOP:
+			InsertBlrNop(1);
 			break;
 
 	    case IDM_JITRESULTS:
@@ -349,6 +358,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_ADDFUNCTION, _T("&Add function"));
 	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
 	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
+	menu.Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));	
 	menu.Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
 	PopupMenu(&menu);
 	event.Skip(true);

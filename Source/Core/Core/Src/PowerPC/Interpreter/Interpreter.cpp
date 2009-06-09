@@ -129,6 +129,14 @@ void SingleStep()
 	}
 }
 
+//#define SHOW_HISTORY
+#ifdef SHOW_HISTORY
+std::vector <int> PCVec;
+std::vector <int> PCBlockVec;
+int ShowBlocks = 30;
+int ShowSteps = 300;
+#endif
+
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Run()
 {
@@ -137,6 +145,12 @@ void Run()
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
 		if (Core::GetStartupParameter().bEnableDebugging)
 		{
+			#ifdef SHOW_HISTORY
+				PCBlockVec.push_back(PC);
+				if (PCBlockVec.size() > ShowBlocks)
+					PCBlockVec.erase(PCBlockVec.begin());
+			#endif
+
 			// Debugging friendly version of inner loop. Tries to do the timing as similarly to the
 			// JIT as possible. Does not take into account that some instructions take multiple cycles.
 			while (CoreTiming::downcount > 0)
@@ -145,9 +159,32 @@ void Run()
 				int i;
 				for (i = 0; !m_EndBlock; i++)
 				{
+					#ifdef SHOW_HISTORY
+						PCVec.push_back(PC);
+						if (PCVec.size() > ShowSteps)
+							PCVec.erase(PCVec.begin());
+					#endif
+
 					//2: check for breakpoint
 					if (BreakPoints::IsAddressBreakPoint(PC))
 					{
+						#ifdef SHOW_HISTORY
+							NOTICE_LOG(POWERPC, "----------------------------");
+							NOTICE_LOG(POWERPC, "Blocks:");
+							for (int j = 0; j < PCBlockVec.size(); j++)
+								NOTICE_LOG(POWERPC, "PC: 0x%08x", PCBlockVec.at(j));
+							NOTICE_LOG(POWERPC, "----------------------------");
+							NOTICE_LOG(POWERPC, "Steps:");
+							for (int j = 0; j < PCVec.size(); j++)
+							{
+								// Write space
+								if (j > 0)
+									if (PCVec.at(j) != PCVec.at(j-1) + 4)
+										NOTICE_LOG(POWERPC, "");
+
+								NOTICE_LOG(POWERPC, "PC: 0x%08x", PCVec.at(j));
+							}
+						#endif
 						INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
 						CCPU::Break();
 						if (BreakPoints::IsTempBreakPoint(PC))
@@ -156,7 +193,6 @@ void Run()
 						Host_UpdateDisasmDialog();
 						return;
 					}
-
 					SingleStepInner();
 				}
 				CoreTiming::downcount -= i;

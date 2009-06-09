@@ -138,8 +138,8 @@ void AVIDump::AddFrame(char *data)
 {
 	AVIStreamWrite(m_streamCompressed, ++m_frameCount, 1, (LPVOID) data, m_bitmap.biSizeImage, AVIIF_KEYFRAME, NULL, &m_byteBuffer);
 	m_totalBytes += m_byteBuffer;
-	// Fun fact: VfW can't property save files over 2gb in size, but can keep
-	// writing to them up to 4gb.
+	// Close the recording if the file is more than 2gb
+	// VfW can't properly save files over 2gb in size, but can keep writing to them up to 4gb.
 	if (m_totalBytes >= 2000000000) {
 		CloseFile();
 		m_fileCount++;

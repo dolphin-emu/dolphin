@@ -53,7 +53,7 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
 
 	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-	if (msg_handler && (AlertEnabled || yes_no)) {
+	if (msg_handler && (AlertEnabled || Style == QUESTION)) {
 		ret = msg_handler(caption, buffer, yes_no, Style);
 	}
 	return ret;
