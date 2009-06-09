@@ -25,7 +25,6 @@ Config g_Config;
 
 Config::Config()
 {
-    memset(this, 0, sizeof(Config));
 }
 
 void Config::Load()

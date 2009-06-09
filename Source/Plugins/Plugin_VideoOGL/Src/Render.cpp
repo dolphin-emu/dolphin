@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Globals.h"
 
 #include <vector>
@@ -143,6 +140,9 @@ static int s_fps = 0;
 static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
+#ifndef _WIN32
+int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
+#endif
 
 namespace {
 
@@ -187,12 +187,9 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 }
 
 } // namespace
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Init functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Renderer::Init()
 {
     bool bSuccess = true;
@@ -551,12 +548,9 @@ bool Renderer::InitializeGL()
 
     return GL_REPORT_ERROR() == GL_NO_ERROR;
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////
 // Return the rendering window width and height
-// ------------------------
 int Renderer::GetTargetWidth()
 {
 	return (s_bNativeResolution || g_Config.b2xResolution) ?
@@ -579,12 +573,10 @@ float Renderer::GetTargetScaleY()
     return (float)GetTargetHeight() / (float)EFB_HEIGHT;
 }
 
-/////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Various supporting functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SetRenderTarget(GLuint targ)
 {
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 
@@ -677,9 +669,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Apply AA if enabled
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 {
 	if (s_MSAASamples > 1)
@@ -737,10 +727,9 @@ GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
 		return s_DepthTarget;
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 // Function: This function handles the OpenGL glScissor() function
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
@@ -751,7 +740,6 @@ GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -795,9 +783,7 @@ bool Renderer::SetScissorRect()
     return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Aspect ratio functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ComputeBackbufferRectangle(TRectangle *rc)
 {
 	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
@@ -862,12 +848,11 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	rc->right = XOffset + ceil(FloatGLWidth);
 	rc->bottom = YOffset + ceil(FloatGLHeight);
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// This function has the final picture if the XFB functions are not used. We adjust the aspect ratio here.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// This function has the final picture if the XFB functions are not used. We
+// adjust the aspect ratio here.
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
@@ -983,18 +968,12 @@ void Renderer::Swap(const TRectangle& rc)
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);
 	}
-	// ---------------------------------------------------------------------
 
-	// ---------------------------------------------------------------------
 	// Wireframe
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (g_Config.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	// ---------------------------------------------------------------------
 
-	// ---------------------------------------------------------------------
 	// Save screenshot
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (s_bScreenshot)
 	{
 		// Select source
@@ -1014,11 +993,8 @@ void Renderer::Swap(const TRectangle& rc)
 	// It should not be necessary to read from the window backbuffer beyond this point
 	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	// ---------------------------------------------------------------------
 
-	// ---------------------------------------------------------------------
 	// Frame dumps are handled a little differently in Windows
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 	if (g_Config.bDumpFrames)
 	{
@@ -1193,12 +1169,9 @@ void Renderer::SwapBuffers()
 
 	GL_REPORT_ERRORD();
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Create On-Screen-Messages
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::DrawDebugText()
 {
 	// Reset viewport for drawing text
@@ -1387,12 +1360,9 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Save screenshot
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SetScreenshot(const char *filename)
 {
 	s_criticalScreenshot.Enter();
