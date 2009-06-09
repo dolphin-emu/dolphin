@@ -388,6 +388,9 @@ void ConfigDialog::CreateGUIControls()
 	m_PhackvalueCB->Append(wxT("Sonic and the Black Knight"));
 	m_PhackvalueCB->Append(wxT("Bleach Versus Crusade"));
 	m_PhackvalueCB->Append(wxT("Final Fantasy CC Echo of Time"));
+	m_PhackvalueCB->Append(wxT("Harvest Moon Magical Melody"));
+	m_PhackvalueCB->Append(wxT("Baten Kaitos"));
+	m_PhackvalueCB->Append(wxT("Baten Kaitos Origin"));
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 
 	// Default values
@@ -706,6 +709,25 @@ void Config::UpdateProjectionHack()
 		g_Config.bPhackvalue2 = 1;
 		g_Config.fhackvalue2 = 1.2f;
 		g_Config.bProjHack1 = 0;
+		break;
+	case OGL_HACK_HARVESTMOON_MM:
+		g_Config.bPhackvalue1 = 1;
+		g_Config.fhackvalue1 = 0.0075f;
+		g_Config.bPhackvalue2 = 0;
+		g_Config.bProjHack1 = 0;
+	case OGL_HACK_BATEN_KAITOS:
+		g_Config.bPhackvalue1 = 1;
+		g_Config.fhackvalue1 = 0.0026f;
+		g_Config.bPhackvalue2 = 1;
+		g_Config.fhackvalue2 = 1.9974f;
+		g_Config.bProjHack1 = 1;
+		break;
+	case OGL_HACK_BATEN_KAITOS_ORIGIN:
+		g_Config.bPhackvalue1 = 1;
+		g_Config.fhackvalue1 = 0.0012f;
+		g_Config.bPhackvalue2 = 1;
+		g_Config.fhackvalue2 = 1.9988f;
+		g_Config.bProjHack1 = 1;
 		break;
 	}
 }

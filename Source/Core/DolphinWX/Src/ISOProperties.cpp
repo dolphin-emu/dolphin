@@ -305,6 +305,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
 	arrayStringFor_Hack.Add(_("Final Fantasy CC Echo of Time"));
+	arrayStringFor_Hack.Add(_("Harvest Moon Magical Melody"));
+	arrayStringFor_Hack.Add(_("Baten Kaitos"));
+	arrayStringFor_Hack.Add(_("Baten Kaitos Origin"));
+
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
 	
