@@ -74,7 +74,9 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	// in WW we get SetDolbyDelay
 	// SyncFrame
 	// The last mails we get before the audio goes bye-bye
-	// 0, 0, 0
+	// 0
+	// 0x00000
+	// 0
 	// 0x10000
 	// 0
 	// 0x20000

@@ -83,7 +83,7 @@
 	#define HAVE_WIIUSE 1
 	#define HAVE_WX 1
 	#define HAVE_SFML 1
-//	#define HAVE_OPENAL 1
+	#define HAVE_OPENAL 1
 
 namespace
 {
