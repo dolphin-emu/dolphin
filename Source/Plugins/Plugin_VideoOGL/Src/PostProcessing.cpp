@@ -38,16 +38,20 @@ void Shutdown()
 	s_shader.Destroy();
 }
 
-void ApplyShader()
+void ReloadShader()
 {
-#ifdef _WIN32
-	if (GetAsyncKeyState(VK_LSHIFT))
-		s_currentShader = "";
-#endif
+	s_currentShader = "";
+}
+
+bool ApplyShader()
+{
 	if (s_currentShader != "User/Shaders/" + g_Config.sPostProcessingShader + ".txt")
 	{
 		// Set immediately to prevent endless recompiles on failure.
-		s_currentShader = "User/Shaders/" + g_Config.sPostProcessingShader + ".txt";
+		if (!g_Config.sPostProcessingShader.empty())
+			s_currentShader = "User/Shaders/" + g_Config.sPostProcessingShader + ".txt";
+		else
+			s_currentShader.clear();
 
 		s_shader.Destroy();
 
@@ -66,22 +70,20 @@ void ApplyShader()
 				ERROR_LOG(VIDEO, "Failed to load post-processing shader %s - does not exist?", s_currentShader.c_str());
 			}
 		}
-		else
-		{
-			ERROR_LOG(VIDEO, "No post-processing shader selected.");
-		}
 	}
 
-	if (s_shader.glprogid == 0)
+	if (s_shader.glprogid != 0)
 	{
-		ERROR_LOG(VIDEO, "WTF");
+		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_shader.glprogid);
+		return true;
 	}
 	else
 	{
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		return false;
 	}
-	// If anything went wrong above, glprogid will be 0, which is OK.
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_shader.glprogid);
 }
 
 }  // namespace

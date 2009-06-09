@@ -220,12 +220,8 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
-        if (s_displayCompileAlert) {
-            PanicAlert("Failed to create pixel shader");
-            s_displayCompileAlert = false;
-        }
         cgDestroyProgram(tempprog);
-		ERROR_LOG(VIDEO, "Failed to create ps %s:", cgGetLastListing(g_cgcontext));
+		ERROR_LOG(VIDEO, "Failed to compile ps %s:", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;
 	}

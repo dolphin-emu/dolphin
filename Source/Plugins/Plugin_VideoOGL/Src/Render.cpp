@@ -179,10 +179,10 @@ void SetDefaultRectTexParams()
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
-	ERROR_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
+	DEBUG_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
 	const char* listing = cgGetLastListing(g_cgcontext);
 	if (listing != NULL) {
-		ERROR_LOG(VIDEO, "    last listing: %s", listing);
+		DEBUG_LOG(VIDEO, "    last listing: %s", listing);
 	}
 }
 
@@ -957,15 +957,28 @@ void Renderer::Swap(const TRectangle& rc)
 		glDrawArrays(GL_QUADS, 0, 4);
 		*/
 
-		// Here's an opportunity to bind a fragment shader to do post processing.
-		PostProcessing::ApplyShader();
+		// We must call ApplyShader here even if no post proc is selected - it takes 
+		// care of disabling it in that case. It returns false in case of no post processing.
+		if (PostProcessing::ApplyShader()) 
+		{
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,     v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
+				glTexCoord2f(0,     v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
+				glTexCoord2f(u_max, v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
+				glTexCoord2f(u_max, v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
+			glEnd();
 
-		glBegin(GL_QUADS);
-			glTexCoord2f(0,     v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
-			glTexCoord2f(0,     v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
-			glTexCoord2f(u_max, v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
-			glTexCoord2f(u_max, v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
-		glEnd();
+			glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		}
+		else 
+		{
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
+				glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
+				glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
+				glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+			glEnd();
+		}
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		TextureMngr::DisableStage(0);

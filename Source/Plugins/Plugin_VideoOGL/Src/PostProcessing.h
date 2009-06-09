@@ -27,7 +27,9 @@ namespace PostProcessing
 void Init();
 void Shutdown();
 
-void ApplyShader();
+void ReloadShader();
+// Returns false if no shader was applied.
+bool ApplyShader();
 
 }  // namespace
 

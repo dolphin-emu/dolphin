@@ -15,13 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <wx/wx.h>
+#include <wx/sizer.h>
+#include <wx/filepicker.h>
+#include <wx/gbsizer.h>
+#include <wx/notebook.h>
+#include <wx/mimetype.h>
 
 #include "ConfigDlg.h"
+#include "FileUtil.h"
 #include "../Globals.h"
 #include "../Config.h"
 
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
+#include "PostProcessing.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -70,6 +78,9 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHOICE(ID_PHACKVALUE, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(ID_POSTSHADER, ConfigDialog::GeneralSettingsChanged)
+	EVT_BUTTON(ID_RELOADSHADER, ConfigDialog::ReloadShaderClick)
+	EVT_BUTTON(ID_EDITSHADER, ConfigDialog::EditShaderClick)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -260,6 +271,34 @@ void ConfigDialog::CreateGUIControls()
 	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
+	wxStaticText *PostShaderText = new wxStaticText(m_PageGeneral, ID_POSTSHADERTEXT, wxT("Post-processing shader:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_PostShaderCB = new wxChoice(m_PageGeneral, ID_POSTSHADER, wxDefaultPosition, wxDefaultSize, arrayStringFor_PostShaderCB, 0, wxDefaultValidator);
+	m_PostShaderCB->Append(wxT("(off)"));
+	m_ReloadShader = new wxButton(m_PageGeneral, ID_RELOADSHADER, wxT("&Reload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EditShader = new wxButton(m_PageGeneral, ID_EDITSHADER, wxT("&Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	if (File::IsDirectory("User/Shaders"))
+	{
+		File::FSTEntry entry;
+		File::ScanDirectoryTree("User/Shaders", entry);
+		for (int i = 0; i < entry.children.size(); i++) 
+		{
+			std::string name = entry.children[i].virtualName.c_str();
+			if (!stricmp(name.substr(name.size() - 4).c_str(), ".txt"))
+				name = name.substr(0, name.size() - 4);
+			m_PostShaderCB->Append(wxT(name));
+		}
+	}
+	else
+	{
+		File::CreateDir("User/Shaders");
+	}
+
+	wxString shader = wxT(g_Config.sPostProcessingShader.c_str());
+	if (shader == "")
+		shader = "(off)";
+	m_PostShaderCB->SetStringSelection(shader);
+
 	// How to use the wxGridBagSizer: The wxGBPosition() must have a column and row
 	sGeneral = new wxBoxSizer(wxVERTICAL);
 	sBasic = new wxGridBagSizer(0, 0);	
@@ -300,6 +339,10 @@ void ConfigDialog::CreateGUIControls()
 	sEnhancements->Add(MSAAText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
 	sEnhancements->Add(m_ForceFiltering, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(PostShaderText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_PostShaderCB, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sEnhancements->Add(m_ReloadShader, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
+	sEnhancements->Add(m_EditShader, wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
@@ -475,6 +518,38 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 		_T("Dolphin OGL"), wxOK, this);
 }
 
+void ConfigDialog::ReloadShaderClick(wxCommandEvent& WXUNUSED (event))
+{
+	PostProcessing::ReloadShader();
+}
+
+void ConfigDialog::EditShaderClick(wxCommandEvent& WXUNUSED (event))
+{
+	if (m_PostShaderCB->GetStringSelection() == "(off)")
+		return;
+	wxString shader = "User/Shaders/" + m_PostShaderCB->GetStringSelection() + ".txt";
+	if (wxFileExists(shader))
+	{
+		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("txt"));
+		if (filetype == NULL) // From extension failed, trying with MIME type now
+		{
+			filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_("text/plain"));
+			if (filetype == NULL) // MIME type failed, aborting mission
+			{
+				PanicAlert("Filetype 'txt' is unknown! Will not open!");
+				return;
+			}
+		}
+		wxString OpenCommand;
+		OpenCommand = filetype->GetOpenCommand(shader);
+		if (OpenCommand.IsEmpty())
+			PanicAlert("Couldn't find open command for extension 'ini'!");
+		else
+			if (wxExecute(OpenCommand, wxEXEC_ASYNC) == -1)
+				PanicAlert("wxExecute returned -1 on application run!");
+	}
+}
+
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -545,6 +620,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		{
 			g_Config.UpdateProjectionHack();
 		}
+		break;
+	case ID_POSTSHADER:
+		g_Config.sPostProcessingShader = m_PostShaderCB->GetString(m_PostShaderCB->GetSelection());
+		if (g_Config.sPostProcessingShader == "(off)")
+			g_Config.sPostProcessingShader = "";
 		break;
 	}
 

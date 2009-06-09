@@ -84,6 +84,9 @@ class ConfigDialog : public wxDialog
 		
 		wxButton *m_About;
 		wxButton *m_Close;
+		wxButton *m_ReloadShader;
+		wxButton *m_EditShader;
+
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageAdvanced;
@@ -103,7 +106,8 @@ class ConfigDialog : public wxDialog
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxChoice *m_MaxAnisotropyCB;
 		wxArrayString arrayStringFor_MSAAModeCB, arrayStringFor_PhackvalueCB;
-		wxChoice *m_MSAAModeCB, *m_PhackvalueCB;
+		wxArrayString arrayStringFor_PostShaderCB;
+		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB;
 
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
@@ -194,6 +198,10 @@ class ConfigDialog : public wxDialog
             ID_DSTALPHAPASS,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,
+			ID_POSTSHADER,
+			ID_POSTSHADERTEXT,
+			ID_RELOADSHADER,
+			ID_EDITSHADER,
 		};
 
 		void OnClose(wxCloseEvent& event);
@@ -201,6 +209,8 @@ class ConfigDialog : public wxDialog
 		void UpdateHack();
 
 		void AboutClick(wxCommandEvent& event);
+		void ReloadShaderClick(wxCommandEvent& event);
+		void EditShaderClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void AdvancedSettingsChanged(wxCommandEvent& event); 
 };
