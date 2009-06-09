@@ -101,9 +101,11 @@ u32 padding[1024];
 // UI (interactive register editing)
 u32 ui_mode;
 
-#define UIM_SEL			1
-#define UIM_EDIT_REG	2
-#define	UIM_EDIT_BIN	4
+enum {
+	UIM_SEL	= 1,
+	UIM_EDIT_REG = 2,
+	UIM_EDIT_BIN = 4,
+};
 
 // Currently selected register.
 s32 cursor_reg = 0;
@@ -321,6 +323,9 @@ int main()
 	WPAD_Init();
 #endif
 
+	// Currently running microcode
+	int curUcode = 0, runningUcode = 1;
+
 	int dsp_steps = 0;
 	int show_step = 0;
 	while (true)
@@ -329,7 +334,6 @@ int main()
 		if (DSP_CheckMailFrom())
 		{
 			u32 mail = DSP_ReadMailFrom();
-			CON_Printf(2, 1, "Last mail: %08x", mail);
 
 			if (mail == 0x8071feed)
 			{
@@ -339,9 +343,11 @@ int main()
 					dspbufC[0x00 + n] = dspreg_in[n];
 				DCFlushRange(dspbufC, 0x2000);
 				// Then send the code.
-				DCFlushRange((void *)dsp_code[0], 0x2000);
-				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[0]), 
+				DCFlushRange((void *)dsp_code[curUcode], 0x2000);
+				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 
 					0, 4000, 0x10);
+
+				runningUcode = curUcode + 1;
 			}
 			else if (mail == 0x8888dead)
 			{
@@ -370,6 +376,8 @@ int main()
 				DSP_SendMailTo(0x8000DEAD);
 				while (DSP_CheckMailTo());
 			}
+
+			CON_Printf(2, 1, "UCode: %d/%d, Last mail: %08x", runningUcode, NUM_UCODES, mail);
 		}
 
 		VIDEO_WaitVSync();
@@ -379,19 +387,21 @@ int main()
 			exit(0);
 #ifdef HW_RVL
 		WPAD_ScanPads();
-		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME) || (PAD_ButtonsDown(0) & PAD_BUTTON_START))
+		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME)
 			exit(0);
 
 		CON_Printf(2, 18, "Controls:");
 		CON_Printf(4, 19, "+/- to move");
-		CON_Printf(4, 20, "B to start over");
-		CON_Printf(4, 21, "Home to exit");
-		CON_Printf(4, 22, "2 to dump results to SD");
+		CON_Printf(4, 20, "A to edit register, B to start over");
+		CON_Printf(4, 21, "1 to move to next microcode");
+		CON_Printf(4, 22, "2 to dump all microcode results to SD");
+		CON_Printf(4, 23, "Home to exit");
 #else
 		CON_Printf(2, 18, "Controls:");
 		CON_Printf(4, 19, "L/R to move");
-		CON_Printf(4, 20, "B to start over");
-		CON_Printf(4, 21, "Start to exit");
+		CON_Printf(4, 21, "A to edit register, B to start over");
+		CON_Printf(4, 20, "Z to move to next microcode");
+		CON_Printf(4, 22, "Start to exit");
 #endif
 
 		print_regs(show_step, dsp_steps);
@@ -414,6 +424,33 @@ int main()
 		}
 		DCFlushRange(xfb, 0x200000);
 
+#ifdef HW_RVL
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_1) || (PAD_ButtonsDown(0) & PAD_TRIGGER_Z))
+#else
+		if (PAD_ButtonsDown(0) & PAD_TRIGGER_Z)
+#endif
+		{
+			curUcode++;
+			if(curUcode == NUM_UCODES)
+				curUcode = 0;
+
+			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
+
+			DCInvalidateRange(dspbufC, 0x2000);
+			for (int n = 0 ; n < 0x2000 ; n++)
+			{
+				//	dspbufU[n/2] = 0; dspbufC[n] = 0;
+			}
+			DCFlushRange(dspbufC, 0x2000);
+
+			// Reset the DSP.
+			real_dsp.Reset();
+			strcpy(last_message, "OK");
+
+			// Waiting for video to synchronize (enough time to set our new microcode)
+			VIDEO_WaitVSync();
+		}
+
 		// Use B to start over.
 #ifdef HW_RVL
 		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) || (PAD_ButtonsDown(0) & PAD_BUTTON_B))
@@ -424,10 +461,6 @@ int main()
 			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
 
 			DCInvalidateRange(dspbufC, 0x2000);
-			for (int n = 0 ; n < 0x2000 ; n++)
-			{
-				//	dspbufU[n/2] = 0; dspbufC[n] = 0;
-			}
 			DCFlushRange(dspbufC, 0x2000);
 
 			// Reset the DSP.
