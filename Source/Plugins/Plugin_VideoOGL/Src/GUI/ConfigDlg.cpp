@@ -485,11 +485,13 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
-		if (g_Config.bNativeResolution) g_Config.b2xResolution = false;
+		// Don't allow 1x and 2x at the same time
+		if (g_Config.bNativeResolution) { g_Config.b2xResolution = false; m_2xResolution->SetValue(false); }
 		break;
 	case ID_2X_RESOLUTION:
 		g_Config.b2xResolution = m_2xResolution->IsChecked();
-		if (g_Config.b2xResolution) g_Config.bNativeResolution = false;
+		// Don't allow 1x and 2x at the same time
+		if (g_Config.b2xResolution) { g_Config.bNativeResolution = false; m_NativeResolution->SetValue(false); }
 		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();
