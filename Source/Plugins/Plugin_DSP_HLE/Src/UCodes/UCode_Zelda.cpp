@@ -29,6 +29,15 @@
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
+	, m_bSyncInProgress(false)
+	, m_SyncIndex(0)
+	, m_SyncStep(0)
+	, m_SyncMaxStep(0)
+	, m_bSyncCmdPending(false)
+	, m_SyncEndSync(0)
+	, m_SyncCurStep(0)
+	, m_SyncCount(0)
+	, m_SyncMax(0)
 	, m_numSteps(0)
 	, m_bListInProgress(false)
 	, m_step(0)
@@ -36,8 +45,10 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 	m_rMailHandler.PushMail(DSP_INIT);
-	m_rMailHandler.PushMail(0x80000000); // handshake
+	g_dspInitialize.pGenerateDSPInterrupt();
+	m_rMailHandler.PushMail(0xF3551111); // handshake
 	memset(m_Buffer, 0, sizeof(m_Buffer));
+	memset(m_SyncValues, 0, sizeof(m_SyncValues));
 }
 
 
@@ -50,15 +61,15 @@ CUCode_Zelda::~CUCode_Zelda()
 void CUCode_Zelda::Update(int cycles)
 {
 	// check if we have to sent something
-	if (!m_rMailHandler.IsEmpty())
-		g_dspInitialize.pGenerateDSPInterrupt();
+	//if (!m_rMailHandler.IsEmpty())
+	//	g_dspInitialize.pGenerateDSPInterrupt();
 }
 
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
-	//PanicAlert("Zelda mail 0x%08X, list in progress? %s", _uMail, 
-	//	m_bListInProgress ? "Yes" : "No");
+	DEBUG_LOG(DSPHLE, "Zelda mail 0x%08X, list in progress? %s, sync in progress? %s", _uMail, 
+		m_bListInProgress ? "Yes" : "No", m_bSyncInProgress ? "Yes" : "No");
 	// SetupTable
 	// in WW we get SetDolbyDelay
 	// SyncFrame
@@ -70,37 +81,53 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	// 0
 	// 0x30000
 	// And then silence...
-	if (m_bListInProgress == false)
+
+	if (m_bSyncInProgress)
 	{
-		if(_uMail == 0) {
-			g_dspInitialize.pGenerateDSPInterrupt();
-		} else if((_uMail >> 16) == 0) {
-			m_bListInProgress = true;
-			m_numSteps = _uMail;
-			m_step = 0;
-		} else {
-			// Release halt
-			#if 0
-			// The _uMail seems to be 1,2,3 when bitshifted right 16
-			// after 3, we get some unknown values, probably supposed to be in the list
-			if((_uMail >> 16) == 1)
-				m_rMailHandler.PushMail(DSP_RESUME);
-			else if((_uMail >> 16) == 2)
-				m_rMailHandler.PushMail(DSP_YIELD);
-			else if((_uMail >> 16) == 3)
-				m_rMailHandler.PushMail(DSP_DONE);
-			else
-				{ /*Unknown values here*/}
-			#else
-			m_rMailHandler.PushMail(DSP_RESUME);
-			#endif
-			g_dspInitialize.pGenerateDSPInterrupt();
+		if (m_bSyncCmdPending)
+		{
+			u32 n = (_uMail >> 16) & 0xF;
+			m_SyncStep = (n + 1) << 4;
+			m_SyncValues[n] = _uMail & 0xFFFF;
+			m_bSyncInProgress = false;
+
+			m_SyncCurStep = m_SyncStep;
+			if (m_SyncCurStep == m_SyncMaxStep)
+			{
+				m_SyncCount++;
+
+				m_rMailHandler.PushMail(DSP_SYNC);
+				g_dspInitialize.pGenerateDSPInterrupt();
+				m_rMailHandler.PushMail(0xF355FF00 | m_SyncCount);
+
+				m_SyncCurStep = 0;
+
+				if (m_SyncCount == (m_SyncMax + 1))
+				{
+					m_rMailHandler.PushMail(DSP_UNKN);
+					g_dspInitialize.pGenerateDSPInterrupt();
+
+					soundStream->GetMixer()->SetHLEReady(true);
+					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+					soundStream->Update(); //do it in this thread to avoid sync problems
+
+					m_bSyncCmdPending = false;
+				}
+			}
 		}
+		else
+		{
+			m_bSyncInProgress = false;
+		}
+
+		return;
 	}
-	else
+
+	if (m_bListInProgress)
 	{
 		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
 			PanicAlert("m_step out of range");
+
 		((u32*)m_Buffer)[m_step] = _uMail;
 		m_step++;
 
@@ -109,6 +136,23 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 			ExecuteList();
 			m_bListInProgress = false;
 		}
+
+		return;
+	}
+
+	if (_uMail == 0) 
+	{
+		m_bSyncInProgress = true;
+	} 
+	else if ((_uMail >> 16) == 0) 
+	{
+		m_bListInProgress = true;
+		m_numSteps = _uMail;
+		m_step = 0;
+	} 
+	else 
+	{
+		DEBUG_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
 	}
 }
 
@@ -122,9 +166,9 @@ void CUCode_Zelda::ExecuteList()
 	// begin with the list
 	m_readOffset = 0;
 
-	u32 Temp = Read32();
-	u32 Command = (Temp >> 24) & 0x7f;
-	u32 Sync = Temp >> 16;
+	u32 CmdMail = Read32();
+	u32 Command = (CmdMail >> 24) & 0x7f;
+	u32 Sync = CmdMail >> 16;
 
 	DEBUG_LOG(DSPHLE, "==============================================================================");
 	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
@@ -139,6 +183,8 @@ void CUCode_Zelda::ExecuteList()
 		    tmp[1] = Read32();
 		    tmp[2] = Read32();
 		    tmp[3] = Read32();
+
+			m_SyncMaxStep = CmdMail & 0xFFFF;
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
 		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
@@ -157,16 +203,21 @@ void CUCode_Zelda::ExecuteList()
 		    tmp[2] = Read32();
 
 			// We're ready to mix
-			soundStream->GetMixer()->SetHLEReady(true);
-			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-			soundStream->Update(); //do it in this thread to avoid sync problems
+		//	soundStream->GetMixer()->SetHLEReady(true);
+		//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+		//	soundStream->Update(); //do it in this thread to avoid sync problems
 
+			m_bSyncCmdPending = true;
+			m_SyncEndSync = Sync;
+			m_SyncCount = 0;
+			m_SyncMax = (CmdMail >> 16) & 0xFF;
 
 		    DEBUG_LOG(DSPHLE, "DsyncFrame");
 		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
 		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[1]);
 		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
 	    }
+		return;
 		    break;
 
 /*
@@ -194,8 +245,21 @@ void CUCode_Zelda::ExecuteList()
 		    break;
 
 		    // Set VARAM
+			// Luigi__: in the real Zelda ucode, this opcode is dummy
+			// however, in the ucode used by SMG it isn't
 	    case 0x0e:
-//        MessageBox(NULL, "Zelda VARAM", "cmd", MB_OK);
+			{
+				/*
+				 00b0 0080 037d lri         $AR0, #0x037d
+				 00b2 0e01      lris        $AC0.M, #0x01
+				 00b3 02bf 0065 call        0x0065
+				 00b5 00de 037d lr          $AC0.M, @0x037d
+				 00b7 0240 7fff andi        $AC0.M, #0x7fff
+				 00b9 00fe 037d sr          @0x037d, $AC0.M
+				 00bb 029f 0041 jmp         0x0041
+				*/
+				//
+			}
 		    break;
 
 		    // default ... zelda ww jumps to 0x0043
@@ -206,6 +270,7 @@ void CUCode_Zelda::ExecuteList()
 
 	// sync, we are rdy
 	m_rMailHandler.PushMail(DSP_SYNC);
+	g_dspInitialize.pGenerateDSPInterrupt();
 	m_rMailHandler.PushMail(0xF3550000 | Sync);
 }
 

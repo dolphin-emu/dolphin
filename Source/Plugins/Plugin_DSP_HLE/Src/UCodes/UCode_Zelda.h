@@ -34,6 +34,21 @@ private:
 		DSP_UNKN   = 0xDCD10005,
 	};
 
+	bool m_bSyncInProgress;
+	u32 m_SyncIndex;
+	u32 m_SyncStep;
+	u32 m_SyncValues[16];
+
+	// Command 0x1: SetupTable
+	u32 m_SyncMaxStep;
+
+	// Command 0x2: SyncFrame
+	bool m_bSyncCmdPending;
+	u32 m_SyncEndSync;
+	u32 m_SyncCurStep;
+	u32 m_SyncCount;
+	u32 m_SyncMax;
+
 	// List in progress
 	u32 m_numSteps;
 	bool m_bListInProgress;
