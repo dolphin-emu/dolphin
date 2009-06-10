@@ -1305,7 +1305,7 @@ void Renderer::DrawDebugText()
 		OSDTime = timeGetTime() + 3000;
 		OSDChoice = -OSDChoice;
 	}
-	if (OSDTime > timeGetTime() && g_Config.bEFBCopyDisableHotKey)
+	if ((u32)OSDTime > timeGetTime() && g_Config.bEFBCopyDisableHotKey)
 	{
 		std::string T1 = "";
 		std::string T2 = "";

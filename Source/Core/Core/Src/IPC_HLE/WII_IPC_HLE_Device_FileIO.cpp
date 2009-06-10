@@ -103,7 +103,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		{
 		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
 		case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
-		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "a+b"); break;
+		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
 		}
 	}
@@ -130,7 +130,7 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: %s, Mode: %i (Device=%s, FileSize=%s)", ThS(SeekPosition).c_str(), Mode, GetDeviceName().c_str(), ThS(m_FileLength).c_str());	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: %s, Mode: %i (Device=%s, FileSize=%s)", ThS(SeekPosition).c_str(), Mode, GetDeviceName().c_str(), ThS((int)m_FileLength).c_str());	
 
 	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
 	   it's probably better than trying to read outside the file (it seeks to 0x6000 instead
