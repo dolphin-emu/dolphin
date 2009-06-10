@@ -434,6 +434,7 @@ void ConfigDialog::CreateGUIControls()
 	m_PhackvalueCB->Append(wxT("Harvest Moon Magical Melody"));
 	m_PhackvalueCB->Append(wxT("Baten Kaitos"));
 	m_PhackvalueCB->Append(wxT("Baten Kaitos Origin"));
+	m_PhackvalueCB->Append(wxT("Skies of Arcadia"));
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 
 	// Default values
@@ -808,6 +809,12 @@ void Config::UpdateProjectionHack()
 		g_Config.bPhackvalue2 = 1;
 		g_Config.fhackvalue2 = 1.9988f;
 		g_Config.bProjHack1 = 1;
+		break;
+	case OGL_HACK_SKIES_OF_ARCADIA:
+		g_Config.bPhackvalue1 = 1;
+		g_Config.fhackvalue1 = 0.04f;
+		g_Config.bPhackvalue2 = 0;
+		g_Config.bProjHack1 = 0;
 		break;
 	}
 }

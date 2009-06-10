@@ -308,7 +308,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Harvest Moon Magical Melody"));
 	arrayStringFor_Hack.Add(_("Baten Kaitos"));
 	arrayStringFor_Hack.Add(_("Baten Kaitos Origin"));
-
+	arrayStringFor_Hack.Add(_("Skies of Arcadia"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
 	
@@ -679,7 +679,7 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
 	
-	GameIni.Get("Video", "Hack", &iTemp, -1);
+	GameIni.Get("Video", "ProjectionHack", &iTemp, -1);
 	Hack->SetSelection(iTemp);
 
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
@@ -770,9 +770,9 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
 	if (EmuState->GetSelection() == -1)
-		GameIni.DeleteKey("Video", "Hack");
+		GameIni.DeleteKey("Video", "ProjectionHack");
 	else
-		GameIni.Set("Video", "Hack", Hack->GetSelection());
+		GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
 
 	if (EmuState->GetSelection() == -1)
 		GameIni.DeleteKey("EmuState", "EmulationStateId");
