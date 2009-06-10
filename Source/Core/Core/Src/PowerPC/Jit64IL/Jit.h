@@ -71,6 +71,14 @@ struct CONTEXT
 		Core::g_CoreStartupParameter.bJIT##type##Off) \
 		{Default(inst); return;}
 
+#ifdef _M_X64
+#define DISABLE64 \
+	{Default(inst); return;}
+#else
+#define DISABLE64
+#endif
+
+
 class TrampolineCache : public Gen::XCodeBlock
 {
 public:

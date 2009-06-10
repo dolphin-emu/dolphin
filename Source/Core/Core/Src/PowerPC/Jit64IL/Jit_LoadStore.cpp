@@ -41,6 +41,7 @@
 void Jit64::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
@@ -53,6 +54,7 @@ void Jit64::lhax(UGeckoInstruction inst)
 void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)	
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -73,6 +75,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 void Jit64::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr =
 		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
@@ -86,6 +89,7 @@ void Jit64::lha(UGeckoInstruction inst)
 void Jit64::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
@@ -108,6 +112,8 @@ void Jit64::lXzx(UGeckoInstruction inst)
 void Jit64::dcbz(UGeckoInstruction inst)
 {
 	Default(inst); return;
+
+	// TODO!
 #if 0
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -131,6 +137,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -150,6 +157,7 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -169,6 +177,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -184,6 +193,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)

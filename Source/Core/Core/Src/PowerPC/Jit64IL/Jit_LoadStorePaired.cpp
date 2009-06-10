@@ -44,6 +44,7 @@
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStorePaired)
 	if (inst.W || !Core::GetStartupParameter().bOptimizeQuantizers) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
@@ -59,6 +60,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+	DISABLE64
 	JITDISABLE(LoadStorePaired)
 	if (inst.W || !Core::GetStartupParameter().bOptimizeQuantizers) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;

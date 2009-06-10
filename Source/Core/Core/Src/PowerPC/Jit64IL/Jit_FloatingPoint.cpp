@@ -28,86 +28,86 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-	void Jit64::fp_arith_s(UGeckoInstruction inst)
-	{
-		INSTRUCTION_START
-		JITDISABLE(FloatingPoint)
-		if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
-			Default(inst); return;
-		}
-		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
-		switch (inst.SUBOP5)
-		{
-		case 25: //mul
-			val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
-			break;
-		case 18: //div
-		case 20: //sub
-			val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
-			break;
-		case 21: //add
-			val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
-			break;
-		case 23: //sel
-		case 24: //res
-		default:
-			_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
-		}
-
-		if (inst.OPCD == 59) {
-			val = ibuild.EmitDoubleToSingle(val);
-			val = ibuild.EmitDupSingleToMReg(val);
-		} else {
-			val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
-		}
-		ibuild.EmitStoreFReg(val, inst.FD);
+void Jit64::fp_arith_s(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
+		Default(inst); return;
 	}
-
-	void Jit64::fmaddXX(UGeckoInstruction inst)
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	switch (inst.SUBOP5)
 	{
-		INSTRUCTION_START
-		JITDISABLE(FloatingPoint)
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-
-		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	case 25: //mul
 		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
-		if (inst.SUBOP5 & 1)
-			val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
-		else
-			val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
-		if (inst.SUBOP5 & 2)
-			val = ibuild.EmitFDNeg(val);
-		if (inst.OPCD == 59) {
-			val = ibuild.EmitDoubleToSingle(val);
-			val = ibuild.EmitDupSingleToMReg(val);
-		} else {
-			val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
-		}
-		ibuild.EmitStoreFReg(val, inst.FD);
-	}
-	
-	void Jit64::fmrx(UGeckoInstruction inst)
-	{
-		INSTRUCTION_START
-		JITDISABLE(FloatingPoint)
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FB);
-		val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
-		ibuild.EmitStoreFReg(val, inst.FD);
+		break;
+	case 18: //div
+	case 20: //sub
+		val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
+		break;
+	case 21: //add
+		val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
+		break;
+	case 23: //sel
+	case 24: //res
+	default:
+		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
 	}
 
-	void Jit64::fcmpx(UGeckoInstruction inst)
-	{
-		INSTRUCTION_START
-		JITDISABLE(FloatingPoint)
-		IREmitter::InstLoc lhs, rhs, res;
-		lhs = ibuild.EmitLoadFRegDENToZero(inst.FA);
-		rhs = ibuild.EmitLoadFRegDENToZero(inst.FB);
-		res = ibuild.EmitFDCmpCR(lhs, rhs);
-		ibuild.EmitStoreFPRF(res);
-		ibuild.EmitStoreCR(res, inst.CRFD);
+	if (inst.OPCD == 59) {
+		val = ibuild.EmitDoubleToSingle(val);
+		val = ibuild.EmitDupSingleToMReg(val);
+	} else {
+		val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
 	}
+	ibuild.EmitStoreFReg(val, inst.FD);
+}
+
+void Jit64::fmaddXX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
+	if (inst.SUBOP5 & 1)
+		val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
+	else
+		val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
+	if (inst.SUBOP5 & 2)
+		val = ibuild.EmitFDNeg(val);
+	if (inst.OPCD == 59) {
+		val = ibuild.EmitDoubleToSingle(val);
+		val = ibuild.EmitDupSingleToMReg(val);
+	} else {
+		val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
+	}
+	ibuild.EmitStoreFReg(val, inst.FD);
+}
+
+void Jit64::fmrx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FB);
+	val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
+	ibuild.EmitStoreFReg(val, inst.FD);
+}
+
+void Jit64::fcmpx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	IREmitter::InstLoc lhs, rhs, res;
+	lhs = ibuild.EmitLoadFRegDENToZero(inst.FA);
+	rhs = ibuild.EmitLoadFRegDENToZero(inst.FB);
+	res = ibuild.EmitFDCmpCR(lhs, rhs);
+	ibuild.EmitStoreFPRF(res);
+	ibuild.EmitStoreCR(res, inst.CRFD);
+}
