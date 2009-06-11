@@ -210,9 +210,10 @@ int main(int argc, const char *argv[])
 {
 	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{
-		printf("USAGE: DSPTool [-?] [--help] [-d] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
+		printf("USAGE: DSPTool [-?] [--help] [-d] [-m] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
 		printf("-? / --help: Prints this message\n");
 		printf("-d: Disassemble\n");
+		printf("-m: Input file contains a list of files (Header assembly only)\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
 		return 0;
@@ -228,8 +229,7 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false;
-	bool compare = false;
+	bool disassemble = false, compare = false, multiple = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -240,20 +240,29 @@ int main(int argc, const char *argv[])
 			output_header_name = argv[++i];
 		else if (!strcmp(argv[i], "-c"))
 			compare = true;
+		else if (!strcmp(argv[i], "-m"))
+			multiple = true;
 		else 
 		{
 			if (!input_name.empty())
 			{
-				printf("Can only take one input file.\n");
+				printf("ERROR: Can only take one input file.\n");
 				return 1;
 			}
 			input_name = argv[i];
 			if (!File::Exists(input_name.c_str()))
 			{
-				printf("Input path does not exist.\n");
+				printf("ERROR: Input path does not exist.\n");
 				return 1;
 			}
 		}
+	}
+
+	if(multiple && (compare || disassemble || output_header_name.empty() ||
+					input_name.empty())) {
+		printf("ERROR: Multiple files can only be used with assembly "
+			"and must compile a header file.\n");
+		return 1;
 	}
 
 	if (compare)
@@ -297,24 +306,82 @@ int main(int argc, const char *argv[])
 		std::string source;
 		if (File::ReadFileToString(true, input_name.c_str(), source))
 		{
-			std::vector<u16> code;
-
-			if(!Assemble(source.c_str(), code)) {
-				printf("Assemble: Assembly failed due to errors\n");
-				return 1;
-			}
-
-			if (!output_name.empty())
+			if(multiple) 
 			{
-				std::string binary_code;
-				CodeToBinaryStringBE(code, binary_code);
-				File::WriteStringToFile(false, binary_code, output_name.c_str());
-			}
-			if (!output_header_name.empty())
-			{
-				std::string header;
-				CodeToHeader(code, output_header_name.c_str(), header);
+				// When specifying a list of files we must compile a header
+				// (we can't assemble multiple files to one binary)
+				// since we checked it before, we assume output_header_name isn't empty
+				int lines;
+				std::vector<u16> *codes;
+				std::vector<std::string> files;
+				std::string header, currentSource;
+				size_t lastPos = 0, pos = 0;
+
+				source.append("\n");
+				
+				while((pos = source.find('\n', lastPos)) != std::string::npos) 
+				{
+					std::string temp = source.substr(lastPos, pos - lastPos);
+					if(!temp.empty())
+						files.push_back(temp);
+					lastPos = pos + 1;
+				}
+
+				lines = (int)files.size();
+
+				if(lines == 0) 
+				{
+					printf("ERROR: Must specify at least one file\n");
+					return 1;
+				}
+				
+				codes = new std::vector<u16>[lines];
+
+				for(int i = 0; i < lines; i++) 
+				{
+					if (!File::ReadFileToString(true, files[i].c_str(), currentSource))
+					{
+						printf("ERROR reading %s, skipping...\n", files[i].c_str());
+						lines--;
+					}
+					else 
+					{
+						if(!Assemble(currentSource.c_str(), codes[i])) 
+						{
+							printf("Assemble: Assembly of %s failed due to errors\n", 
+									files[i].c_str());
+							lines--;
+						}
+					}
+				}
+				
+
+				CodesToHeader(codes, lines, output_header_name.c_str(), header);
 				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
+
+				delete[] codes;
+			}
+			else
+			{
+				std::vector<u16> code;
+
+				if(!Assemble(source.c_str(), code)) {
+					printf("Assemble: Assembly failed due to errors\n");
+					return 1;
+				}
+
+				if (!output_name.empty())
+				{
+					std::string binary_code;
+					CodeToBinaryStringBE(code, binary_code);
+					File::WriteStringToFile(false, binary_code, output_name.c_str());
+				}
+				if (!output_header_name.empty())
+				{
+					std::string header;
+					CodeToHeader(code, output_header_name.c_str(), header);
+					File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
+				}
 			}
 		}
 		source.clear();

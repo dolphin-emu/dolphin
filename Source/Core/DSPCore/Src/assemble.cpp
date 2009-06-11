@@ -140,7 +140,7 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	failed = true;
 	char error_buffer[1024];
 	char *buf_ptr = error_buffer;
-	buf_ptr += sprintf(buf_ptr, "%i : %s", code_line, cur_line.c_str());
+	buf_ptr += sprintf(buf_ptr, "%i : %s ", code_line, cur_line.c_str());
 	if (!extra_info)
 		extra_info = "-";
 

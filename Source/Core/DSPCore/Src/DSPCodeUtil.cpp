@@ -113,7 +113,6 @@ void GenRandomCode(int size, std::vector<u16> &code)
 
 void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &header)
 {
-	int const ucodes = 1; // TODO: Make variable size
 	std::vector<u16> code_copy = code;
 	// Add some nops at the end to align the size a bit.
 	while (code_copy.size() & 7)
@@ -121,8 +120,7 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 	char buffer[1024];
 	header.clear();
 	header.reserve(code.size() * 4);
-	sprintf(buffer, "#define NUM_UCODES %d\n\n", ucodes);
-	header.append(buffer);
+	header.append("#define NUM_UCODES 1\n\n");
 	header.append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] = {\n", name);
 	header.append(buffer);
@@ -131,13 +129,55 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 	header.append(buffer);
 	header.append("#endif\n\n");
 	
-	for(int i = 0; i < ucodes; i++) {
+	header.append("\t{\n\t\t");
+	for (int j = 0; j < code.size(); j++) 
+	{
+		if (j && ((j & 15) == 0))
+			header.append("\n\t\t");
+		sprintf(buffer, "0x%04x, ", code[j]);
+		header.append(buffer);
+	}
+	header.append("\n\t},\n");
+
+	header.append("};\n");
+}
+
+void CodesToHeader(const std::vector<u16> *codes, int numCodes,
+				   const char *name, std::string &header) 
+{
+	char buffer[1024];
+	int reserveSize = 0;
+	for(int i = 0; i < numCodes; i++)
+		reserveSize += (int)codes[i].size();
+
+	
+	header.clear();
+	header.reserve(reserveSize * 4);
+	sprintf(buffer, "#define NUM_UCODES %d\n\n", numCodes);
+	header.append(buffer);
+	header.append("#ifndef _MSCVER\n");
+	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] = {\n", name);
+	header.append(buffer);
+	header.append("#else\n");
+	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n", name);
+	header.append(buffer);
+	header.append("#endif\n\n");
+
+	for(int i = 0; i < numCodes; i++) {
+		if(codes[i].size() == 0)
+			continue;
+
+		std::vector<u16> code_copy = codes[i];
+		// Add some nops at the end to align the size a bit.
+		while (code_copy.size() & 7)
+			code_copy.push_back(0);
+
 		header.append("\t{\n\t\t");
-		for (int j = 0; j < code.size(); j++) 
+		for (int j = 0; j < codes[i].size(); j++) 
 		{
 			if (j && ((j & 15) == 0))
 				header.append("\n\t\t");
-			sprintf(buffer, "0x%04x, ", code[j]);
+			sprintf(buffer, "0x%04x, ", codes[i][j]);
 			header.append(buffer);
 		}
 		header.append("\n\t},\n");

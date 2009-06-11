@@ -28,6 +28,8 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &t
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
 void GenRandomCode(int size, std::vector<u16> &code);
 void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &header);
+void CodesToHeader(const std::vector<u16> *codes, int numCodes,
+				   const char *name, std::string &header);
 
 // Big-endian, for writing straight to file using File::WriteStringToFile.
 void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str);
