@@ -31,7 +31,7 @@ public:
 	CMixer() : m_sampleRate(48000),m_bits(16),m_channels(2), m_mode(2), m_HLEready(false),m_queueSize(0) {}
 
 	// Called from audio threads
-	virtual void Mix(short *sample, int numSamples);
+	virtual int Mix(short *sample, int numSamples);
 	
 	// Called from main thread
 	virtual void PushSamples(short* samples, int num_stereo_samples, int core_sample_rate);
@@ -39,7 +39,9 @@ public:
 	virtual void Premix(short *samples, int numSamples) {}
 
 	int GetSampleRate() {return m_sampleRate;}
-	
+
+	int GetDataSize() {return m_queueSize;}
+
 	void SetThrottle(bool use) { m_throttle = use;}
 	void SetDTKMusic(bool use) { m_EnableDTKMusic = use;}
 

@@ -86,7 +86,10 @@ void OpenALStream::Stop()
 
 void OpenALStream::Update()
 {
-	soundSyncEvent.Set();
+	//if (m_mixer->GetDataSize())	//here need debug
+	{
+		soundSyncEvent.Set();
+	}
 }
 
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
@@ -120,28 +123,37 @@ void OpenALStream::SoundLoop()
 
 	while (!threadData) 
 	{
-		ALint iBuffersProcessed = 0;
-		alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
+		soundCriticalSection.Enter();
+		int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
+		int numBytesRender = m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+		soundCriticalSection.Leave();
 
-		if (iBuffersProcessed)
+		//if (numBytesRender)	//here need debug
 		{
-			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-			ALuint uiTempBuffer = 0;
-			alSourceUnqueueBuffers(uiSource, 1, &uiTempBuffer);
+			ALint iBuffersProcessed = 0;
+			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
 
-			soundCriticalSection.Enter();
-			int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
-			 m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-			soundCriticalSection.Leave();
-
-			unsigned long	ulBytesWritten = 0;
-			//if (ulBytesWritten)
+			if (iBuffersProcessed)
 			{
-				//alBufferData(uiTempBuffer, ulFormat, pDecodeBuffer, ulBytesWritten, ulFrequency);
-				alBufferData(uiTempBuffer, AL_FORMAT_STEREO16, realtimeBuffer, numBytesToRender, ulFrequency);
+				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
+				ALuint uiTempBuffer = 0;
+				alSourceUnqueueBuffers(uiSource, 1, &uiTempBuffer);
+/*
+				soundCriticalSection.Enter();
+				int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
+				 m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+				soundCriticalSection.Leave();
+
+				unsigned long	ulBytesWritten = 0;
+*/
+				//if (numBytesRender)
+				{
+					alBufferData(uiTempBuffer, AL_FORMAT_STEREO16, realtimeBuffer, numBytesToRender, ulFrequency);
+				}
 				alSourceQueueBuffers(uiSource, 1, &uiTempBuffer);
 			}
 		}
+		
 		if (!threadData)
 			soundSyncEvent.Wait();
 	}

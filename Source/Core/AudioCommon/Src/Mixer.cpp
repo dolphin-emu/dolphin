@@ -25,18 +25,18 @@
 #include "FixedSizeQueue.h"
 #include "AudioCommon.h"
 
-void CMixer::Mix(short *samples, int numSamples)
+int CMixer::Mix(short *samples, int numSamples)
 {
 	if (! samples) {
 		Premix(NULL, 0);
-		return;
+		return 0;
 	}
 	// silence
 	memset(samples, 0, numSamples * 2 * sizeof(short));
 
 	if (g_dspInitialize.pEmulatorState) {
 		if (*g_dspInitialize.pEmulatorState != 0)
-			return;
+			return 0;
 	}
 
 	// first get the DTK Music
@@ -46,9 +46,11 @@ void CMixer::Mix(short *samples, int numSamples)
 
 	Premix(samples, numSamples);
 	
-	push_sync.Enter();
 	int count = 0;
-	while (m_queueSize > queue_minlength && count < numSamples * 2) {
+
+	push_sync.Enter();
+	while (m_queueSize > queue_minlength && count < numSamples * 2) 
+	{
 		int x = samples[count];
 		x += sample_queue.front();
 		if (x > 32767) x = 32767;
@@ -64,6 +66,8 @@ void CMixer::Mix(short *samples, int numSamples)
 		m_queueSize-=2;
 	}
 	push_sync.Leave();
+
+	return count;
 }
 
 

@@ -23,7 +23,7 @@
 
 class NullMixer : public CMixer {
 public:
-	virtual void Mix(short *sample, int numSamples) {}
+	virtual int Mix(short *sample, int numSamples) {return 0;}
 	virtual void PushSamples(short* samples, int num_stereo_samples, 
 							 int core_sample_rate) {}
 };
