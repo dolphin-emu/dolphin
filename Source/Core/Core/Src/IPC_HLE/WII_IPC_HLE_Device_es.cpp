@@ -238,7 +238,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             m_ContentAccessMap[CFD].m_Position = 0;
             m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(TitleID).GetContentByIndex(Index);
             _dbg_assert_msg_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL, "No Content for TitleID: %08x/%08x at Index %x", (u32)(TitleID>>32), (u32)TitleID, Index);
-
+			// Fix for DLC by itsnotmailmail
+			if (m_ContentAccessMap[CFD].m_pContent == NULL)
+				CFD = 0xffffffff;
             Memory::Write_U32(CFD, _CommandAddress + 0x4);		
 
             INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", (u32)(TitleID>>32), (u32)TitleID, Index, CFD);
