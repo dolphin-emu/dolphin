@@ -672,16 +672,16 @@ void Callback_VideoCopiedToXFB()
 
 	frames++;
 
-	if (targetfps>0)
+	if (targetfps > 0)
 	{	
-		new_frametime=Timer.GetTimeDifference()-old_frametime;
+		new_frametime = Timer.GetTimeDifference() - old_frametime;
 
-		old_frametime=Timer.GetTimeDifference();
+		old_frametime = Timer.GetTimeDifference();
 
-		wait_frametime=((1000/targetfps)-new_frametime);
-		if (targetfps<35)
+		wait_frametime = (1000/targetfps) - (u16)new_frametime;
+		if (targetfps < 35)
 			wait_frametime--;
-		if (wait_frametime>0)
+		if (wait_frametime > 0)
 			Common::SleepCurrentThread(wait_frametime*2);
 	}
 

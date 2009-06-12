@@ -160,7 +160,7 @@ std::string CVolumeWAD::GetName() const
 
 	// Offset to the english title
 	char temp[85];
-	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || footer_size < 0xF1)
+	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1)
 		return "Unknown";
 
 	char out_temp[43];

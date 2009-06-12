@@ -73,13 +73,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	case DLL_PROCESS_DETACH:
 		#if defined(HAVE_WX) && HAVE_WX
 			// This causes a "stop hang", if the gfx config dialog has been opened.
-			/* JP: Are you sure? Because I tried to debug that for hours with countless Stop and Start
-		       and I frequently gor the stop hang even if I did not open the wxDialog
-			   Update: Howwver, compiling with 'HAVE_WX 0' seems to have reduced the number of hangins,
-			   it only hanged once with that option. And that was when I stopped Starfox Assault that
-			   by the way doesn't work now (it has a black screen).
-			   Update again: No it was probably related to something else, now I had the same luck
-			   with WxWidgets in it to. */
 			// Old comment: "Use wxUninitialize() if you don't want GUI"
 			wxEntryCleanup();
 		#endif
@@ -459,10 +452,16 @@ void ToggleFullscreen(HWND hParent)
 
 			ShowCursor(TRUE);
 
+			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-			// SetWindowPos to the center of the screen
-			SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Note: we now use the same res for fullscreen and windowed, so we need to check if the window
+			// is not too big here
+			if (w_fs == rcdesktop.right-rcdesktop.left)
+				SetWindowPos(hParent, NULL, X*0.75, Y*0.75, w_fs*0.75, h_fs*0.75, SWP_NOREPOSITION | SWP_NOZORDER);
+			else
+				SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style FS -> Windowed
 			SetWindowLong(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);

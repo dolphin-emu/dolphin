@@ -633,7 +633,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	if (!f)
 		return false;
 	fseek(f, 0, SEEK_END);
-	size_t len = ftell(f);
+	size_t len = (size_t)ftell(f);
 	fseek(f, 0, SEEK_SET);
 	char *buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;

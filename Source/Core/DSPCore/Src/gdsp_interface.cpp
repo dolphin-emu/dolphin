@@ -193,7 +193,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	u8* dst = ((u8*)g_dsp.iram);
-	for (int i = 0; i < (int)size; i += 2)
+	for (u32 i = 0; i < size; i += 2)
 	{ 
 		// TODO : this may be different on Wii.
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);

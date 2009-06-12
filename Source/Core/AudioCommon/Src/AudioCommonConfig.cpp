@@ -22,7 +22,7 @@ AudioCommonConfig ac_Config;
 void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-	file.Get("Config", "Volume", &m_Volume, 0);
+	file.Get("Config", "Volume", &m_Volume, 75);
 #ifdef _WIN32
 	file.Get("Config", "Backend", &sBackend, "DSound");
 #elif defined(__APPLE__)
