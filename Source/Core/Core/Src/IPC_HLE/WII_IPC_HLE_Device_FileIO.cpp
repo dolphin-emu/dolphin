@@ -95,7 +95,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
 	// Reading requires the file to exist, but writing doesn't (what a smart thought)
-	if(_Mode != 0x02 &&  && !File::Exists(m_Filename.c_str())) {
+	if(_Mode != 0x02 && !File::Exists(m_Filename.c_str())) {
 		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open for reading: %s - File doesn't exist", m_Filename.c_str());
 		ReturnValue = FS_FILE_NOT_EXIST;
 	} else {
