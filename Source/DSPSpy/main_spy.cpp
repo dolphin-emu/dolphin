@@ -118,6 +118,11 @@ char last_message[20] = "OK";
 
 RealDSP real_dsp;
 
+// Currently running microcode
+int curUcode = 0, runningUcode = 1;
+
+int dsp_steps = 0;
+
 // When comparing regs, ignore the loop stack registers.
 bool regs_equal(int reg, u16 value1, u16 value2) {
 	if (reg >= DSP_REG_ST0 && reg <= DSP_REG_ST3)
@@ -267,6 +272,99 @@ void ui_pad_edit_reg(void)
 #endif
 }
 
+void handle_dsp_mail(void)
+{
+	// Should put a loop around this too.
+	if (DSP_CheckMailFrom())
+	{
+		u32 mail = DSP_ReadMailFrom();
+
+		if (mail == 0x8071feed)
+		{
+			// DSP ready for task. Let's send one.
+			// First, prepare data.
+			for (int n = 0 ; n < 32 ; n++)
+				dspbufC[0x00 + n] = dspreg_in[n];
+			DCFlushRange(dspbufC, 0x2000);
+			// Then send the code.
+			DCFlushRange((void *)dsp_code[curUcode], 0x2000);
+			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 
+				0, 4000, 0x10);
+
+			runningUcode = curUcode + 1;
+		}
+		else if (mail == 0x8888dead)
+		{
+			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
+
+			while (DSP_CheckMailTo());
+			DSP_SendMailTo((u32)tmpBuf);
+			while (DSP_CheckMailTo());
+		}			
+		else if (mail == 0x8888beef)
+		{
+			while (DSP_CheckMailTo());
+			DSP_SendMailTo((u32)dspbufP);
+			while (DSP_CheckMailTo());
+		}
+		else if (mail == 0x8888feeb)
+		{
+			// We got a stepful of registers.
+			DCInvalidateRange(dspbufC, 0x2000);
+			for (int i = 0 ; i < 32 ; i++)
+				dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
+
+			dsp_steps++;
+
+			while (DSP_CheckMailTo());
+			DSP_SendMailTo(0x8000DEAD);
+			while (DSP_CheckMailTo());
+		}
+
+		CON_Printf(2, 1, "UCode: %d/%d, Last mail: %08x", runningUcode, NUM_UCODES, mail);
+	}
+}
+
+void dump_all_ucodes(void)
+{
+	char filename[260] = {0};
+	for(int i = 0; i < NUM_UCODES; i++)
+	{
+		// First, change the microcode
+		dsp_steps = 0;
+		curUcode = i;
+		runningUcode = 0;
+
+		DCInvalidateRange(dspbufC, 0x2000);
+		DCFlushRange(dspbufC, 0x2000);
+
+		real_dsp.Reset();
+		VIDEO_WaitVSync();
+
+		while(runningUcode != (curUcode + 1))
+			handle_dsp_mail();
+
+		// Then write microcode dump to file
+		sprintf(filename, "sd:/dsp_dump%d.bin", i + 1);
+		FILE *f = fopen(filename, "wb");
+		if (f) 
+		{
+			// First write initial regs
+			fwrite(dspreg_in, 1, 32 * 2, f);
+
+			// Then write all the dumps.
+			fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
+			fclose(f);
+			strcpy(last_message, "Dump Successful.");
+		}
+		else
+		{
+			strcpy(last_message, "SD Write Error");
+			break;
+		}
+	}
+}
+
 void init_video(void)
 {
 	VIDEO_Init();
@@ -295,7 +393,6 @@ void init_video(void)
 	VIDEO_WaitVSync();
 }
 
-
 int main()
 {
 	init_video();
@@ -323,62 +420,11 @@ int main()
 	WPAD_Init();
 #endif
 
-	// Currently running microcode
-	int curUcode = 0, runningUcode = 1;
 
-	int dsp_steps = 0;
 	int show_step = 0;
 	while (true)
 	{
-		// Should put a loop around this too.
-		if (DSP_CheckMailFrom())
-		{
-			u32 mail = DSP_ReadMailFrom();
-
-			if (mail == 0x8071feed)
-			{
-				// DSP ready for task. Let's send one.
-				// First, prepare data.
-				for (int n = 0 ; n < 32 ; n++)
-					dspbufC[0x00 + n] = dspreg_in[n];
-				DCFlushRange(dspbufC, 0x2000);
-				// Then send the code.
-				DCFlushRange((void *)dsp_code[curUcode], 0x2000);
-				real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 
-					0, 4000, 0x10);
-
-				runningUcode = curUcode + 1;
-			}
-			else if (mail == 0x8888dead)
-			{
-				u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
-
-				while (DSP_CheckMailTo());
-				DSP_SendMailTo((u32)tmpBuf);
-				while (DSP_CheckMailTo());
-			}			
-			else if (mail == 0x8888beef)
-			{
-				while (DSP_CheckMailTo());
-				DSP_SendMailTo((u32)dspbufP);
-				while (DSP_CheckMailTo());
-			}
-			else if (mail == 0x8888feeb)
-			{
-				// We got a stepful of registers.
-				DCInvalidateRange(dspbufC, 0x2000);
-				for (int i = 0 ; i < 32 ; i++)
-					dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
-
-				dsp_steps++;
-
-				while (DSP_CheckMailTo());
-				DSP_SendMailTo(0x8000DEAD);
-				while (DSP_CheckMailTo());
-			}
-
-			CON_Printf(2, 1, "UCode: %d/%d, Last mail: %08x", runningUcode, NUM_UCODES, mail);
-		}
+		handle_dsp_mail();
 
 		VIDEO_WaitVSync();
 
@@ -496,21 +542,7 @@ int main()
 		// Probably could offer to save to memcard (sd gecko) but i dont have one so meh
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
 		{
-			FILE *f = fopen("sd:/dsp_dump.bin", "wb");
-			if (f) 
-			{
-				// First write initial regs
-				fwrite(dspreg_in, 1, 32 * 2, f);
-
-				// Then write all the dumps.
-				fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
-				fclose(f);
-				strcpy(last_message, "Dump Successful.");
-			}
-			else
-			{
-				strcpy(last_message, "SD Write Error");
-			}
+			dump_all_ucodes();
 		}
 #endif
 	}
