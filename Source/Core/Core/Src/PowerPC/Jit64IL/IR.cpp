@@ -1136,12 +1136,12 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	case 16: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16, 1), ECX); break;
 	case 8:  RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8, 1), ECX);  break;
 	}
-#ifdef _M_IX86
 	if (reg != EAX) {
 		RI.Jit->MOV(32, R(reg), R(EAX));
+#ifdef _M_IX86
 		RI.Jit->POP(32, R(EAX));
-	}
 #endif
+	}
 	FixupBranch arg2 = RI.Jit->J();
 	RI.Jit->SetJumpTarget(argh);
 	RI.Jit->UnsafeLoadRegToReg(ECX, reg, Size, 0, false);

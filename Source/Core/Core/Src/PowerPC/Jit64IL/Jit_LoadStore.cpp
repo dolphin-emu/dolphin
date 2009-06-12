@@ -41,7 +41,6 @@
 void Jit64::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
@@ -54,7 +53,6 @@ void Jit64::lhax(UGeckoInstruction inst)
 void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)	
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -62,7 +60,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	if (inst.OPCD & 1)
 		ibuild.EmitStoreGReg(addr, inst.RA);
 	IREmitter::InstLoc val;
-	switch (inst.OPCD & -2)
+	switch (inst.OPCD & ~0x1)
 	{
 	case 32: val = ibuild.EmitLoad32(addr); break; //lwz	
 	case 40: val = ibuild.EmitLoad16(addr); break; //lhz
@@ -75,7 +73,6 @@ void Jit64::lXz(UGeckoInstruction inst)
 void Jit64::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr =
 		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
@@ -89,7 +86,6 @@ void Jit64::lha(UGeckoInstruction inst)
 void Jit64::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
@@ -137,7 +133,6 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -157,7 +152,6 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -177,7 +171,6 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -193,7 +186,6 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStore)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)

@@ -183,7 +183,11 @@ void CJitWindow::Compare(u32 em_address)
 	int num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)
 	{
+#ifdef _M_X64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
+#else
+		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
+#endif
 		sptr += strlen(sptr);
 		*sptr++ = 13;
 		*sptr++ = 10;

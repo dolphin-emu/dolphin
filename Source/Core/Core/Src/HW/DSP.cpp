@@ -362,9 +362,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.DSP_mask	= tmpControl.DSP_mask;
 
 			// Interrupt
-			if (tmpControl.AID)		g_dspState.DSPControl.AID		= 0;
-			if (tmpControl.ARAM)	g_dspState.DSPControl.ARAM	    = 0;
-			if (tmpControl.DSP)		g_dspState.DSPControl.DSP		= 0;
+			if (tmpControl.AID)  g_dspState.DSPControl.AID  = 0;
+			if (tmpControl.ARAM) g_dspState.DSPControl.ARAM = 0;
+			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
 			// g_ARAM
 			g_dspState.DSPControl.ARAM_DMAState = 0;	// keep g_ARAM DMA State zero
@@ -374,7 +374,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.pad   = tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
 			{
-				PanicAlert("DSPInterface(w) g_dspState.DSPControl gets a value with junk in the padding %08x", _Value);
+				PanicAlert("DSPInterface (w) g_dspState.DSPControl (CC00500A) gets a value with junk in the padding %08x", _Value);
 			}
 
 			UpdateInterrupts();

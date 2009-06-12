@@ -286,7 +286,8 @@ static std::map<u32, int> been_here;
 void ImHere()
 {
 	static FILE *f = 0;
-	if (ImHereLog) {
+	if (ImHereLog)
+	{
 		if (!f)
 		{
 #ifdef _M_X64
@@ -295,7 +296,7 @@ void ImHere()
 			f = fopen("log32.txt", "w");
 #endif
 		}
-		fprintf(f, "%08x\n", PC);
+		fprintf(f, "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0], PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]); fflush(f);
 	}
 	if (been_here.find(PC) != been_here.end()) {
 		been_here.find(PC)->second++;
@@ -430,9 +431,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 	
+	//MOV(32, M(&PowerPC::ppcState.pc), Imm32(em_address));
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
-	
+	//if (em_address == 0x80137868)
+	//	INT3();
+
 	if (js.fpa.any)
 	{
 		//This block uses FPU - needs to add FP exception bailout
