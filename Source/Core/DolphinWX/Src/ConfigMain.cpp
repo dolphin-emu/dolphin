@@ -657,9 +657,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_INTERFACE_FRAMELIMIT:
 		SConfig::GetInstance().m_InterfaceFramelimit = (u32)InterfaceFramelimit->GetSelection();
-		bRefreshList = true;
 		break;
-
 	case ID_ALLWAYS_HLEBIOS: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AlwaysUseHLEBIOS->IsChecked();
 		break;

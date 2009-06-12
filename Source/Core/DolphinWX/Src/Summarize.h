@@ -71,6 +71,7 @@ std::string Summarize_Settings()
 		"Run Compare Server: %s\n"
 		"Run Compare Client: %s\n"
 		"TLB Hack: %s\n"
+		"Frame Limit: %d\n"
 		"[Wii]Widescreen: %s\n"
 		"[Wii]Progressive Scan: %s\n",
 		Core::GetStartupParameter().bHLEBios?"True":"False",
@@ -93,6 +94,7 @@ std::string Summarize_Settings()
 		Core::GetStartupParameter().bRunCompareServer?"True":"False",
 		Core::GetStartupParameter().bRunCompareClient?"True":"False",
 		Core::GetStartupParameter().iTLBHack?"True":"False",
+		SConfig::GetInstance().m_InterfaceFramelimit*5,
 		Core::GetStartupParameter().bWidescreen?"True":"False",
 		Core::GetStartupParameter().bProgressiveScan?"True":"False"
 		);
