@@ -121,7 +121,7 @@ THREAD_RETURN innerFlush(void *pArgs)
 		PanicAlert("Could not write memory card file %s.\n\n"
 			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
 		delete data;
-		return 1;
+		return 0;
 	}
 
 	fwrite(data->memcardContent, data->memcardSize, 1, pFile);

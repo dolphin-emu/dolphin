@@ -380,21 +380,19 @@ int PPCFPClass(double dvalue)
 	} value;
 	value.d = dvalue;
 	// 5 bits (C, <, >, =, ?)
-	// top: class descriptor
-	FPSCR.FPRF = 4;
 	// easy cases first
 	if (value.i == 0) {
 		// positive zero
-		FPSCR.FPRF = 0x2;
+		return 0x2;
 	} else if (value.i == 0x8000000000000000ULL) {
 		// negative zero
-		FPSCR.FPRF = 0x12;
+	   return 0x12;
 	} else if (value.i == 0x7FF0000000000000ULL) {
 		// positive inf
-		FPSCR.FPRF = 0x5;
+		return 0x5;
 	} else if (value.i == 0xFFF0000000000000ULL) {
 		// negative inf
-		FPSCR.FPRF = 0x9;
+		return 0x9;
 	} else {
 		// OK let's dissect this thing.
 		int sign = (int)(value.i & 0x8000000000000000ULL) ? 1 : 0;
@@ -402,25 +400,25 @@ int PPCFPClass(double dvalue)
 		if (exp >= 1 && exp <= 2046) {
 			// Nice normalized number.
 			if (sign) {
-				FPSCR.FPRF = 0x8; // negative
+				return 0x8; // negative
 			} else {
-				FPSCR.FPRF = 0x4; // positive
+				return 0x4; // positive
 			}
-			return;
 		}
 		u64 mantissa = value.i & 0x000FFFFFFFFFFFFFULL;
 		if (exp == 0 && mantissa) {
 			// Denormalized number.
 			if (sign) {
-				FPSCR.FPRF = 0x18;
+				return 0x18;
 			} else {
-				FPSCR.FPRF = 0x14;
+				return 0x14;
 			}
 		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
-			FPSCR.FPRF = 0x11; // Quiet NAN
-			return;
+			return 0x11; // Quiet NAN
 		}
 	}
+	
+	return 0x4;
 #endif
 }
 
