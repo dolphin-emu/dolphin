@@ -16,20 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__)
-
-#include <OpenGL/gl.h>
-
-#else
-
-#include <GL/gl.h>
-
-#endif
+#include "GLUtil.h"
 
 #include <string.h>
 
@@ -154,13 +141,28 @@ RasterFont::~RasterFont()
 
 void RasterFont::printString(const char *s, double x, double y, double z)
 {
+	int length = strlen(s);
+	if (!length)
+		return;
+
+	// Sanitize string to avoid GL errors.
+	char *s2 = new char[length + 1];
+	strcpy(s2, s);
+	for (int i = 0; i < length; i++) {
+		if (s2[i] < 32 || s2[i] > 126)
+			s2[i] = '!';
+	}
+
 	// go to the right spot
 	glRasterPos3d(x, y, z);
+	GL_REPORT_ERRORD();
 
 	glPushAttrib (GL_LIST_BIT);
 	glListBase(fontOffset);
-	glCallLists((GLsizei)strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-	glPopAttrib ();
+	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte *) s2);
+	GL_REPORT_ERRORD();
+	glPopAttrib();
+	GL_REPORT_ERRORD();
 }
 
 void RasterFont::printCenteredString(const char *s, double y, int screen_width, double z)

@@ -196,6 +196,8 @@
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
 			SetJumpTarget(continue1);
 			SetJumpTarget(continue2);
+			// TODO: If we ever care about SO, borrow a trick from 
+			// http://maws.mameworld.info/maws/mamesrc/src/emu/cpu/powerpc/drc_ops.c : bt, adc
 		} else {
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			bool condition = (js.next_inst.BO & 8) ? false : true;

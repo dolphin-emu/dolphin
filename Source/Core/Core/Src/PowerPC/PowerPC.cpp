@@ -357,7 +357,7 @@ void OnIdleIL()
 
 int PPCFPClass(double dvalue)
 {
-#ifdef _WIN32
+	/* // win32-only reference implementation, to compare to:
 	switch (_fpclass(dvalue))
 	{
 	case _FPCLASS_SNAN:
@@ -371,9 +371,9 @@ int PPCFPClass(double dvalue)
 	case _FPCLASS_PN:   return 0x4;
 	case _FPCLASS_PINF: return 0x5;
 	default:			return 0x4;
-	}
-#else
-	// TODO: Make sure the below is equivalent to the above - then switch win32 implementation to it.
+	}*/
+
+	// TODO: Optimize the below to be as fast as possible.
 	union {
 		double d;
 		u64 i;
@@ -395,7 +395,7 @@ int PPCFPClass(double dvalue)
 		return 0x9;
 	} else {
 		// OK let's dissect this thing.
-		int sign = (int)(value.i & 0x8000000000000000ULL) ? 1 : 0;
+		int sign = value.i >> 63;
 		int exp = (int)((value.i >> 52) & 0x7FF);
 		if (exp >= 1 && exp <= 2046) {
 			// Nice normalized number.
@@ -419,12 +419,22 @@ int PPCFPClass(double dvalue)
 	}
 	
 	return 0x4;
-#endif
 }
 
 }  // namespace
 
+
+// FPSCR update functions
+
 void UpdateFPRF(double dvalue)
 {
 	FPSCR.FPRF = PowerPC::PPCFPClass(dvalue);
+}
+
+void UpdateFEX() {
+	FPSCR.FEX = (FPSCR.XX & FPSCR.XE) |
+		        (FPSCR.ZX & FPSCR.ZE) |
+				(FPSCR.UX & FPSCR.UE) |
+				(FPSCR.OX & FPSCR.OE) |
+				(FPSCR.VX & FPSCR.VE);
 }

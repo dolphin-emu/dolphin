@@ -444,7 +444,7 @@ static GekkoOPTemplate table31_2[] =
 
 static GekkoOPTemplate table59[] = 
 {
-	{18, Interpreter::fdivsx,   &Jit64::fp_arith_s,    {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
+	{18, Interpreter::fdivsx,   &Jit64::Default, /*TODO*/       {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
 	{20, Interpreter::fsubsx,   &Jit64::fp_arith_s,    {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{21, Interpreter::faddsx,   &Jit64::fp_arith_s,    {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 //	{22, Interpreter::fsqrtsx,  &Jit64::Default,       {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
@@ -687,7 +687,7 @@ void InitTables()
 }
 
 #define OPLOG
-#define OP_TO_LOG "mcrfs"
+#define OP_TO_LOG "mffs"
 
 #ifdef OPLOG
 namespace {

@@ -81,8 +81,13 @@ void DrawMessages()
 		}
 	}
 
+	GL_REPORT_ERRORD();
+
 	if (enabled)
 		glEnable(GL_BLEND);
+
+	
+	GL_REPORT_ERRORD();
 }
 
 }  // namespace

@@ -20,7 +20,7 @@ EventHandler::~EventHandler() {
 }
 
 EventHandler *EventHandler::GetInstance() {
-    fprintf(stderr, "handler instance %p\n", m_Instance);
+    // fprintf(stderr, "handler instance %p\n", m_Instance);
 
     if (! m_Instance)
 	m_Instance = new EventHandler();
@@ -30,13 +30,13 @@ EventHandler *EventHandler::GetInstance() {
 void EventHandler::Destroy() {
     if (m_Instance)
        	delete m_Instance;
-    fprintf(stderr, "deleting instance %p\n", m_Instance);
+    // fprintf(stderr, "deleting instance %p\n", m_Instance);
     m_Instance = 0;
 }
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
-	fprintf(stderr, "Registering %d:%d  %p %p \n", key.keyCode, key.mods, func, this);
+	// fprintf(stderr, "Registering %d:%d  %p %p \n", key.keyCode, key.mods, func, this);
 	if (key.keyCode == sf::Key::Count || key.mods >= NUMMODS ||  
 	    key.keyCode >= NUMKEYS) 
 	    return false;

@@ -215,25 +215,39 @@ const float m_65535 = 65535.0f;
 
 
 #define QUANTIZE_OVERFLOW_SAFE
+
 // according to Intel Docs CVTPS2DQ writes 0x80000000 if the source floating point value is out of int32 range
 // while it's OK for large negatives, it isn't for positives
 // I don't know whether the overflow actually happens in any games
 // but it potentially can cause problems, so we need some clamping
 
+// TODO(ector): Improve 64-bit version
+static void WriteDual32(u64 value, u32 address)
+{
+	Memory::Write_U32((u32)(value >> 32), address);
+	Memory::Write_U32((u32)value, address + 4);
+}
+
 void AsmRoutineManager::GenQuantizedStores() {
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
+	// IN: value = XMM0, two singles in bottom. PPC address = ECX. 
 #ifdef _M_X64
-	MOVQ_xmm(R(RAX), XMM0);
-	ROL(64, R(RAX), Imm8(32));
+	// INT3();
+	MOVQ_xmm(M(&psTemp[0]), XMM0);
+	MOV(64, R(RAX), M(&psTemp[0]));
+	//INT3();
+	//MOVQ_xmm(R(RAX), XMM0);
+	//INT3();
+	ROL(64, R(RAX), Imm8(32));  // Swap the two - the big BSWAP will unswap.
 	TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch argh = J_CC(CC_NZ);
 	BSWAP(64, RAX);
-	MOV(64, MComplex(RBX, RCX, 1, 0), R(RAX));
+	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
 	FixupBranch arg2 = J();
 	SetJumpTarget(argh);
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U64, 2), RAX, RCX); 
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&WriteDual32, 2), RAX, RCX); 
 	SetJumpTarget(arg2);
 #else
 	MOVQ_xmm(M(&psTemp[0]), XMM0);
@@ -258,11 +272,12 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedU8 = AlignCode4();
+	INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MULPS(XMM0, R(XMM1));
-#ifdef QUANTIZE_OVERFLOW_SAFE	
+#ifdef QUANTIZE_OVERFLOW_SAFE
 	MOVSS(XMM1, M((void *)&m_65535));
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MINPS(XMM0, R(XMM1));
@@ -280,6 +295,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedS8 = AlignCode4();
+	INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
@@ -302,6 +318,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedU16 = AlignCode4();
+	INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
@@ -333,6 +350,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedS16 = AlignCode4();
+	INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));

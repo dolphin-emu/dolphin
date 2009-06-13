@@ -405,25 +405,45 @@ void faddsx(UGeckoInstruction _inst)
 
 void fdivx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS0(_inst.FA) / rPS0(_inst.FB);
+	double a = rPS0(_inst.FA);
+	double b = rPS0(_inst.FB);
+	if (a == 0.0f && b == 0.0f)
+		rPS0(_inst.FD) = rPS1(_inst.FD) = 0.0;  // NAN?
+	else
+		rPS0(_inst.FD) = rPS1(_inst.FD) = a / b;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
+		if (!FPSCR.ZX)
+			FPSCR.FX = 1;
 		FPSCR.ZX = 1;
+		FPSCR.XX = 1;
 	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void fdivsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) / rPS0(_inst.FB));
-	if (fabs(rPS0(_inst.FB)) == 0.0) {
+	float a = rPS0(_inst.FA);
+	float b = rPS0(_inst.FB);
+	if (a != a || b != b)
+		rPS0(_inst.FD) = rPS1(_inst.FD) = 0.0;  // NAN?
+	else
+		rPS0(_inst.FD) = rPS1(_inst.FD) = a / b;
+	if (b == 0.0) {
+		if (!FPSCR.ZX)
+			FPSCR.FX = 1;
 		FPSCR.ZX = 1;
+		FPSCR.XX = 1;
 	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));  
 }
 void fresx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(1.0f / rPS0(_inst.FB));
+	double b = rPS0(_inst.FB);
+	rPS0(_inst.FD) = rPS1(_inst.FD) = 1.0 / b;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
+		if (!FPSCR.ZX)
+			FPSCR.FX = 1;
 		FPSCR.ZX = 1;
+		FPSCR.XX = 1;
 	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
@@ -480,16 +500,24 @@ void fsubsx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-
 void frsqrtex(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = 1.0f / (sqrt(rPS0(_inst.FB)));
+	double b = rPS0(_inst.FB);
+	if (b <= 0.0)
+		rPS0(_inst.FD) = 0.0;
+	else
+		rPS0(_inst.FD) = 1.0f / (sqrt(b));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void fsqrtx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = sqrt(rPS0(_inst.FB));
+	double b = rPS0(_inst.FB);
+	if (b < 0.0)
+	{
+		FPSCR.VXSQRT = 1;
+	}
+	rPS0(_inst.FD) = sqrt(b);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 

@@ -1122,6 +1122,7 @@ void Renderer::SwapBuffers()
         fpscount = 0;
     }
 	// ---------------------------------------------------------------------
+    GL_REPORT_ERRORD();
 
 	for (int i = 0; i < 8; i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
@@ -1132,7 +1133,11 @@ void Renderer::SwapBuffers()
 
 	DrawDebugText();
 
+    GL_REPORT_ERRORD();
+
 	OSD::DrawMessages();
+
+	GL_REPORT_ERRORD();
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) { 
@@ -1148,6 +1153,9 @@ void Renderer::SwapBuffers()
 #endif
     // Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
+    
+	GL_REPORT_ERRORD();
+	
 	// Clear framebuffer
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1359,6 +1367,7 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
+	GL_REPORT_ERRORD();
 }
 
 

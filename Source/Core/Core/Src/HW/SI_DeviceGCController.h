@@ -19,6 +19,7 @@
 #define _SI_DEVICEGCCONTROLLER_H
 
 #include "../PluginManager.h"
+#include "SI_Device.h"
 
 //////////////////////////////////////////////////////////////////////////
 // standard gamecube controller

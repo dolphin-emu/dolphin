@@ -144,7 +144,7 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 #define GL_REPORT_ERRORD() OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
 #else
-#define GL_REPORT_ERRORD() GL_NO_ERROR
+#define GL_REPORT_ERRORD()
 #endif
 
 #endif  // GLTEST ??
