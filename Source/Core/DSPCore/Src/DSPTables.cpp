@@ -434,12 +434,6 @@ const pdlabel_t regnames[] =
 	{0x21, "ACC1",		"Accu Full 1",},
 	{0x22, "AX0",		"Extra Accu 0",},
 	{0x23, "AX1",		"Extra Accu 1",},
-
-	// Old names for the wrapping registers, for compatibility.
-	{0x08, "R08",       "Wrapping Register 0(08)",},
-	{0x09, "R09",       "Wrapping Register 1(09)",},
-	{0x0a, "R10",       "Wrapping Register 2(10)",},
-	{0x0b, "R11",       "Wrapping Register 3(11)",},
 };
 
 u8 opSize[OPTABLE_SIZE];

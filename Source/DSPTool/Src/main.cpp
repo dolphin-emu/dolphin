@@ -356,7 +356,7 @@ int main(int argc, const char *argv[])
 				}
 				
 
-				CodesToHeader(codes, lines, output_header_name.c_str(), header);
+				CodesToHeader(codes, files, lines, output_header_name.c_str(), header);
 				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
 
 				delete[] codes;
@@ -379,7 +379,7 @@ int main(int argc, const char *argv[])
 				if (!output_header_name.empty())
 				{
 					std::string header;
-					CodeToHeader(code, output_header_name.c_str(), header);
+					CodeToHeader(code, input_name, output_header_name.c_str(), header);
 					File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
 				}
 			}

@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+#include "StringUtil.h"
 #include "DSPCodeUtil.h"
 #include "assemble.h"
 #include "disassemble.h"
@@ -111,7 +112,8 @@ void GenRandomCode(int size, std::vector<u16> &code)
 	}
 }
 
-void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &header)
+void CodeToHeader(const std::vector<u16> &code, std::string _filename,
+				  const char *name, std::string &header)
 {
 	std::vector<u16> code_copy = code;
 	// Add some nops at the end to align the size a bit.
@@ -121,6 +123,9 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 	header.clear();
 	header.reserve(code.size() * 4);
 	header.append("#define NUM_UCODES 1\n\n");
+	std::string filename;
+	SplitPath(_filename, NULL, &filename, NULL);
+	header.append("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str());
 	header.append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] = {\n", name);
 	header.append(buffer);
@@ -130,7 +135,7 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 	header.append("#endif\n\n");
 	
 	header.append("\t{\n\t\t");
-	for (int j = 0; j < code.size(); j++) 
+	for (int j = 0; j < code.size(); j++)
 	{
 		if (j && ((j & 15) == 0))
 			header.append("\n\t\t");
@@ -142,8 +147,8 @@ void CodeToHeader(const std::vector<u16> &code, const char *name, std::string &h
 	header.append("};\n");
 }
 
-void CodesToHeader(const std::vector<u16> *codes, int numCodes,
-				   const char *name, std::string &header) 
+void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> filenames,
+				   int numCodes, const char *name, std::string &header)
 {
 	char buffer[1024];
 	int reserveSize = 0;
@@ -154,6 +159,15 @@ void CodesToHeader(const std::vector<u16> *codes, int numCodes,
 	header.clear();
 	header.reserve(reserveSize * 4);
 	sprintf(buffer, "#define NUM_UCODES %d\n\n", numCodes);
+	header.append(buffer);
+	sprintf(buffer, "const char* UCODE_NAMES[NUM_UCODES] = {\n");
+	for (int i = 0; i < numCodes; i++)
+	{
+		std::string filename;
+		SplitPath(filenames.at(i), NULL, &filename, NULL);
+		sprintf(buffer, "%s\t\"%s\",\n", buffer, filename.c_str());
+	}
+	sprintf(buffer, "%s};\n\n", buffer);
 	header.append(buffer);
 	header.append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] = {\n", name);

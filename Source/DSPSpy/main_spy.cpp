@@ -321,7 +321,7 @@ void handle_dsp_mail(void)
 			while (DSP_CheckMailTo());
 		}
 
-		CON_Printf(2, 1, "UCode: %d/%d, Last mail: %08x", runningUcode, NUM_UCODES, mail);
+		CON_Printf(2, 1, "UCode: %d/%d %s, Last mail: %08x", runningUcode, NUM_UCODES, UCODE_NAMES[runningUcode - 1], mail);
 	}
 }
 

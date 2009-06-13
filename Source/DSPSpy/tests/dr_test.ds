@@ -2,7 +2,7 @@
 incdir  "tests"
 include "dsp_base.inc"
 
-; Tests done using AR1 = 0x0010, IX1 = 0. WR1 (wrap 1) means R09.
+; Tests done using AR1 = 0x0010, IX1 = 0. WR1 (wrap 1) means WR1.
 ; WR1 = 0
 ;   10, 10, 10, 10,
 ; WR1 = 1
@@ -29,7 +29,7 @@ include "dsp_base.inc"
 ; test using indexing register 1 - 0 is used in send_back
 lri $AR1, #16
 lri $IX1, #32
-lri $R09, #0
+lri $WR1, #0
 
 call send_back  ; 1
 nx'dr  : $AR1
@@ -40,27 +40,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-
-lri $AR1, #16
-lri $R09, #2
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
+lri $WR1, #1
 call send_back  ; 1
 nx'dr  : $AR1
 call send_back  ; 1
@@ -72,14 +52,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #3
-
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
+lri $WR1, #2
 call send_back  ; 1
 nx'dr  : $AR1
 call send_back  ; 1
@@ -99,7 +72,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #4
+lri $WR1, #3
 
 call send_back  ; 1
 nx'dr  : $AR1
@@ -126,7 +99,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #5
+lri $WR1, #4
 
 call send_back  ; 1
 nx'dr  : $AR1
@@ -153,14 +126,8 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #6
+lri $WR1, #5
 
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
-call send_back  ; 1
-nx'dr  : $AR1
 call send_back  ; 1
 nx'dr  : $AR1
 call send_back  ; 1
@@ -186,7 +153,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #7
+lri $WR1, #6
 
 call send_back  ; 1
 nx'dr  : $AR1
@@ -219,7 +186,40 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 lri $AR1, #16
-lri $R09, #8
+lri $WR1, #7
+
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+nx'dr  : $AR1
+call send_back  ; 1
+
+lri $AR1, #16
+lri $WR1, #8
 
 call send_back  ; 1
 nx'dr  : $AR1
@@ -308,7 +308,7 @@ nx'dr  : $AR1
 call send_back  ; 1
 
 
-lri $R09, #0xFFFF
+lri $WR1, #0xFFFF
 
 ; We're done, DO NOT DELETE THIS LINE
 jmp end_of_test
