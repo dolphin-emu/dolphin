@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DSPSpy"
 	ProjectGUID="{3877AA3E-9CC0-4ADF-8E71-272EE4443478}"
 	RootNamespace="DSPSpy"
@@ -120,6 +120,10 @@
 		</File>
 		<File
 			RelativePath=".\ConsoleHelper.h"
+			>
+		</File>
+		<File
+			RelativePath=".\dsp_interface.cpp"
 			>
 		</File>
 		<File

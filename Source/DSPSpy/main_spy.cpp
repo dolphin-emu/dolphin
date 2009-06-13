@@ -480,7 +480,9 @@ int main()
 			if(curUcode == NUM_UCODES)
 				curUcode = 0;
 
-			dsp_steps = 0;  // Let's not add the new steps after the original ones. That was just annoying.
+			// Reset step counters for since we're in a new ucode.
+			show_step = 0;
+			dsp_steps = 0;
 
 			DCInvalidateRange(dspbufC, 0x2000);
 			for (int n = 0 ; n < 0x2000 ; n++)
