@@ -41,12 +41,12 @@ void TestDivision() {
 }
 
 void TestFres() {
-	u32 fpscr;
+	u32 fpscr[2];
 	float out, out2;
-	TestFRES1(&fpscr, &out, &out2);
+	TestFRES1(fpscr, &out, &out2);
 	char temp[100];
-	sprintf(temp, "%08x %1.1f %1.1f", fpscr, out, out2);
-	Compare(temp, "ffc00004 inf 0.0");
+	sprintf(temp, "%08x %1.1f %1.1f", fpscr[1], out, out2);
+	Compare(temp, "86002004 inf 0.0");
 }
 
 void TestNormalize() {

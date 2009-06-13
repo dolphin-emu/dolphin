@@ -1,9 +1,9 @@
 #define _LANGUAGE_ASSEMBLY
 #include "asm.h"
 
-	.globl	TestFRES1
 	//r3 = &fpscr
 	//r4 = result
+	.globl	TestFRES1
 TestFRES1:
 	lis			r9,Unit01@ha
 	addi		r9,r9,Unit01@l
@@ -13,7 +13,7 @@ TestFRES1:
 	fres fr0, fr0
 	stfs fr0, 0(r5)
 	mffs fr1
-	stfs fr1, 0(r3)
+	stfd fr1, 0(r3)
 	blr
 
 	.section .data
