@@ -261,8 +261,10 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Ha
 
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = (Hack_hack1 ? -(Hack_value1 + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
-            g_fProjectionMatrix[11] = (Hack_hack2 ? -(Hack_value2 + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
+            //g_fProjectionMatrix[10] = (Hack_hack1 ? -(Hack_value1 + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
+            //g_fProjectionMatrix[11] = (Hack_hack2 ? -(Hack_value2 + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
+            g_fProjectionMatrix[10] = xfregs.rawProjection[4];
+            g_fProjectionMatrix[11] = xfregs.rawProjection[5];
             
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;

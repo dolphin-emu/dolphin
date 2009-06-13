@@ -85,7 +85,7 @@ void Pos_ReadDirect()
 	if (three)
 		((float*)VertexManager::s_pCurBufferPointer)[2] = (float)(T)DataRead<T>() * posScale;
 	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
@@ -115,7 +115,7 @@ void LOADERDECL Pos_ReadDirect_Float2()
 	// No need to use floating point here.
 	((u32 *)VertexManager::s_pCurBufferPointer)[0] = DataReadU32(); 
 	((u32 *)VertexManager::s_pCurBufferPointer)[1] = DataReadU32();
-	((u32 *)VertexManager::s_pCurBufferPointer)[2] = 0x3f800000;  // 1.0f
+	((u32 *)VertexManager::s_pCurBufferPointer)[2] = 0;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
@@ -130,7 +130,7 @@ inline void Pos_ReadIndex_Byte(int Index)
 	if (three)
 		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)(pData[2])) * posScale;
 	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
@@ -144,7 +144,7 @@ inline void Pos_ReadIndex_Short(int Index)
 	if (three)
 		((float*)VertexManager::s_pCurBufferPointer)[2] = ((float)(T)Common::swap16(pData[2])) * posScale;
 	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
@@ -158,7 +158,7 @@ inline void Pos_ReadIndex_Float(int Index)
 	if (three)
 		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
 	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
+		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
