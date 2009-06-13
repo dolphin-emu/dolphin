@@ -68,8 +68,11 @@ void CUCode_Zelda::Update(int cycles)
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
+	// XK: Sync mails spam the logs
+	/*
 	DEBUG_LOG(DSPHLE, "Zelda mail 0x%08X, list in progress? %s, sync in progress? %s", _uMail, 
 		m_bListInProgress ? "Yes" : "No", m_bSyncInProgress ? "Yes" : "No");
+	*/
 	// SetupTable
 	// in WW we get SetDolbyDelay
 	// SyncFrame
@@ -125,6 +128,11 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		return;
 	}
 
+	if(_uMail != 0) {
+		DEBUG_LOG(DSPHLE, "Zelda mail 0x%08X, list in progress? %s", _uMail, 
+			m_bListInProgress ? "Yes" : "No");
+	}
+
 	if (m_bListInProgress)
 	{
 		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
@@ -154,7 +162,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	} 
 	else 
 	{
-		DEBUG_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
+		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
 	}
 }
 
@@ -270,7 +278,7 @@ void CUCode_Zelda::ExecuteList()
 		    break;
 	}
 
-	// sync, we are rdy
+	// sync, we are ready
 	m_rMailHandler.PushMail(DSP_SYNC);
 	g_dspInitialize.pGenerateDSPInterrupt();
 	m_rMailHandler.PushMail(0xF3550000 | Sync);
