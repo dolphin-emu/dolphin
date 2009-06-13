@@ -174,6 +174,13 @@ bool CEXIMemoryCard::IsPresent()
 
 void CEXIMemoryCard::SetCS(int cs)
 {
+	// So that memory card won't be invalidated during flushing
+	if(flushThread)
+	{
+		delete flushThread;
+		flushThread = NULL;
+	}
+
 	if (cs)  // not-selected to selected
 		m_uPosition = 0;
 	else
