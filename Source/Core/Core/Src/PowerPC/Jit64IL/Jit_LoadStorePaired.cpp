@@ -39,8 +39,6 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-// The big problem is likely instructions that set the quantizers in the same block.
-// We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

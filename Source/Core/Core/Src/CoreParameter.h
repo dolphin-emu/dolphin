@@ -65,6 +65,7 @@ struct SCoreStartupParameter
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;
+	bool bEnableFPRF;
 	bool bEnableCheats;
 	bool bEnableIsoCache;
 

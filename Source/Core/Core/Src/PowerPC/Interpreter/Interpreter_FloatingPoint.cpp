@@ -71,67 +71,25 @@ namespace Interpreter
 void UpdateFPSCR(UReg_FPSCR fp);
 void UpdateSSEState();
 
-void UpdateFPRF(double value)
+
+// start of unit test - Dolphin needs more of these!
+/*
+void TestFPRF()
 {
-	u64 ivalue = *((u64*)&value);
-	// 5 bits (C, <, >, =, ?)
-	// top: class descriptor
-	FPSCR.FPRF = 4;
-	// easy cases first
-	if (ivalue == 0) {
-		// positive zero
-		FPSCR.FPRF = 0x2;
-	} else if (ivalue == 0x8000000000000000ULL) {
-		// negative zero
-		FPSCR.FPRF = 0x12;
-	} else if (ivalue == 0x7FF0000000000000ULL) {
-		// positive inf
-		FPSCR.FPRF = 0x5;
-	} else if (ivalue == 0xFFF0000000000000ULL) {
-		// negative inf
-		FPSCR.FPRF = 0x9;
-	} else {
-		// OK let's dissect this thing.
-		int sign = (int)(ivalue >> 63);
-		int exp = (int)((ivalue >> 52) & 0x7FF);
-		if (exp >= 1 && exp <= 2046) {
-			// Nice normalized number.
-			if (sign) {
-				FPSCR.FPRF = 0x8; // negative
-			} else {
-				FPSCR.FPRF = 0x4; // positive
-			}
-			return;
-		}
-		u64 mantissa = ivalue & 0x000FFFFFFFFFFFFFULL;
-                //		int mantissa_top = (int)(mantissa >> 51);
-		if (exp == 0 && mantissa) {
-			// Denormalized number.
-			if (sign) {
-				FPSCR.FPRF = 0x18;
-			} else {
-				FPSCR.FPRF = 0x14;
-			}
-		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
-			FPSCR.FPRF = 0x11; // Quiet NAN
-			return;
-		}
-	}
-}
+	UpdateFPRF(1.0);
+	if (FPSCR.FPRF != 0x4)
+		PanicAlert("Error 1");
+	UpdateFPRF(-1.0);
+	if (FPSCR.FPRF != 0x8)
+		PanicAlert("Error 2");
+	PanicAlert("Test done");
+}*/
 
 
 // extremely rare
 void Helper_UpdateCR1(double _fValue)
 {
-	FPSCR.FPRF = 0;
-	if (_fValue == 0.0 || _fValue == -0.0)
-		FPSCR.FPRF |= 2;
-	if (_fValue > 0.0)
-		FPSCR.FPRF |= 4;
-	if (_fValue < 0.0)
-		FPSCR.FPRF |= 8;
-	SetCRField(1, (FPSCR.Hex & 0x0000F000) >> 12);
-
+	// Should just update exception flags, not do any compares.
 	PanicAlert("CR1");
 }
 
@@ -218,7 +176,7 @@ void fcmpu(UGeckoInstruction _inst)
 // Apply current rounding mode
 void fctiwx(UGeckoInstruction _inst)
 {
-	UpdateSSEState();
+	//UpdateSSEState();
 	const double b = rPS0(_inst.FB);
 	u32 value;
 	if (b > (double)0x7fffffff)
@@ -257,7 +215,7 @@ largest representable int on PowerPC. */
 // Always round toward zero
 void fctiwzx(UGeckoInstruction _inst)
 {
-	//UpdateFPSCR(FPSCR);
+	//UpdateSSEState();
 	const double b = rPS0(_inst.FB);
 	u32 value;
 	if (b > (double)0x7fffffff)
@@ -279,7 +237,6 @@ void fctiwzx(UGeckoInstruction _inst)
 //		FPSCR.XX |= FPSCR.FI;
 //		FPSCR.FR = 1; //fabs(d_value) > fabs(b);
 	}
-	//FPRF undefined
 
 	riPS0(_inst.FD) = (u64)value;
 	if (_inst.Rc) 
@@ -305,7 +262,7 @@ void fnabsx(UGeckoInstruction _inst)
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
-}
+}	
 
 void fnegx(UGeckoInstruction _inst)
 {
@@ -331,11 +288,12 @@ void frspx(UGeckoInstruction _inst)  // round to single
 	if (true || FPSCR.RN != 0)
 	{
 		// Not used in Super Monkey Ball
-		UpdateSSEState();
+		// UpdateSSEState();
 		double b = rPS0(_inst.FB);
 		double rounded = (double)(float)b;
-		FPSCR.FI = b != rounded;  // changing both of these affect Super Monkey Ball behaviour greatly.
-		FPSCR.FR = 1;  // WHY? fabs(rounded) > fabs(b);
+		//FPSCR.FI = b != rounded;  // changing both of these affect Super Monkey Ball behaviour greatly.
+		if (Core::g_CoreStartupParameter.bEnableFPRF)
+			UpdateFPRF(rounded);
 		rPS0(_inst.FD) = rPS1(_inst.FD) = rounded;
 		return;
 		// PanicAlert("frspx: FPSCR.RN=%i", FPSCR.RN);
@@ -389,8 +347,8 @@ void frspx(UGeckoInstruction _inst)  // round to single
 			//PanicAlert("NAN %08x %08x", in.i >> 32, in.i);
 		}
 	}
+
 	UpdateFPRF(out.d);
-	FPSCR.FR = 1; // SUPER MONKEY BALL HACK
 	rPS0(_inst.FD) = rPS1(_inst.FD) = out.d;
 
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
@@ -416,19 +374,19 @@ void fmulsx(UGeckoInstruction _inst)
 
 void fmaddx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
-	FPSCR.FI = 0;
-	FPSCR.FR = 0;
+	double result = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
+	rPS0(_inst.FD) = result;
+	UpdateFPRF(result);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
+
 void fmaddsx(UGeckoInstruction _inst)
 {
 	double d_value = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
-	rPS0(_inst.FD) = rPS1(_inst.FD) = 
-		static_cast<float>(d_value);
+	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(d_value);
 	FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FR = 0;
-	UpdateFPRF(rPS0(_inst.FD));
+ 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -436,16 +394,11 @@ void fmaddsx(UGeckoInstruction _inst)
 void faddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) + rPS0(_inst.FB);
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 1;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void faddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) + rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 1;
-//	FPSCR.Hex = (rand() ^ (rand() << 8) ^ (rand() << 16)) & ~(0x000000F8);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -453,8 +406,6 @@ void faddsx(UGeckoInstruction _inst)
 void fdivx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) / rPS0(_inst.FB);
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 1;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
 		FPSCR.ZX = 1;
 	}
@@ -463,8 +414,6 @@ void fdivx(UGeckoInstruction _inst)
 void fdivsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) / rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 1;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
 		FPSCR.ZX = 1;
 	}
@@ -473,8 +422,6 @@ void fdivsx(UGeckoInstruction _inst)
 void fresx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(1.0f / rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 1;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
 		FPSCR.ZX = 1;
 	}
@@ -485,8 +432,6 @@ void fresx(UGeckoInstruction _inst)
 void fmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = (rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB);
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -494,8 +439,6 @@ void fmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -503,16 +446,12 @@ void fmsubsx(UGeckoInstruction _inst)
 void fnmaddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = -((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void fnmaddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
 		static_cast<float>(-((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB)));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -520,16 +459,12 @@ void fnmaddsx(UGeckoInstruction _inst)
 void fnmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = -((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void fnmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
 		static_cast<float>(-((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB)));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -537,15 +472,11 @@ void fnmsubsx(UGeckoInstruction _inst)
 void fsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) - rPS0(_inst.FB);
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) - rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -553,17 +484,12 @@ void fsubsx(UGeckoInstruction _inst)
 void frsqrtex(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = 1.0f / (sqrt(rPS0(_inst.FB)));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void fsqrtx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = sqrt(rPS0(_inst.FB));
-//	FPSCR.FI = 0;
-//	FPSCR.FR = 0;
-
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 

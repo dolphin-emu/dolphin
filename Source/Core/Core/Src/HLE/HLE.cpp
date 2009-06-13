@@ -68,19 +68,21 @@ static const SPatch OSPatches[] =
 	// wii only
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
 
-	// Super Monkey Ball
-	{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
-	{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
-	{ ".evil_vec_setlength",        HLE_Misc::SMB_evil_vec_setlength },
-	{ ".evil_vec_something",        HLE_Misc::FZero_evil_vec_normalize },
-	{ "PanicAlert",			        HLE_Misc::HLEPanicAlert },
-	{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
-	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
-	{ ".atan2",						HLE_Misc::SMB_atan2},
-	{ ".sqrt_fz",                   HLE_Misc::FZ_sqrt},
+	// Super Monkey Ball - no longer needed.
+	//{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
+	//{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
+	//{ ".evil_vec_setlength",        HLE_Misc::SMB_evil_vec_setlength },
+	//{ ".evil_vec_something",        HLE_Misc::FZero_evil_vec_normalize },
+	{ "PanicAlert",			          HLE_Misc::HLEPanicAlert },
+	//{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
+	//{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
+	//{ ".atan2",						HLE_Misc::SMB_atan2},
+	//{ ".sqrt_fz",                   HLE_Misc::FZ_sqrt},
 
-	{ ".sqrt_internal_fz",   HLE_Misc::FZ_sqrt_internal },
-	{ ".rsqrt_internal_fz",  HLE_Misc::FZ_rsqrt_internal },
+	// F-zero still isn't working correctly, but these aren't really helping.
+
+	//{ ".sqrt_internal_fz",   HLE_Misc::FZ_sqrt_internal },
+	//{ ".rsqrt_internal_fz",  HLE_Misc::FZ_rsqrt_internal },
 
 	//{ ".kill_infinites",			HLE_Misc::FZero_kill_infinites },
 	// special

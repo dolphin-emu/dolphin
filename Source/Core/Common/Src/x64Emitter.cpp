@@ -1030,6 +1030,8 @@ enum NormalSSEOps
 	}
 
 	void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src) {
+		if (arg.IsSimpleReg())
+			PanicAlert("Emitter: MOVQ_xmm doesn't support single registers as destination");
 		if (src > 7)
 		{
 			// Alternate encoding

@@ -687,6 +687,7 @@ void InitTables()
 }
 
 #define OPLOG
+#define OP_TO_LOG "mcrfs"
 
 #ifdef OPLOG
 namespace {
@@ -700,7 +701,7 @@ void CompileInstruction(UGeckoInstruction _inst)
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info) {
 #ifdef OPLOG
-		if (!strcmp(info->opname, "mffsx")) {  ///"mcrfs"
+		if (!strcmp(info->opname, OP_TO_LOG)){  ///"mcrfs"
 			rsplocations.push_back(jit.js.compilerPC);
 		}
 #endif
@@ -764,9 +765,9 @@ void LogCompiledInstructions()
 	}
 	fclose(f);
 #ifdef OPLOG
-	f = fopen(StringFromFormat(FULL_LOGS_DIR "mcrfs_at.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat(FULL_LOGS_DIR OP_TO_LOG "_at.txt", time).c_str(), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
-		fprintf(f, "mffsx: %08x\n", rsplocations[i]);
+		fprintf(f, OP_TO_LOG ": %08x\n", rsplocations[i]);
 	}
 	fclose(f);
 #endif

@@ -130,7 +130,7 @@ void UpdateFPSCR(UReg_FPSCR fp)
 
 void mcrfs(UGeckoInstruction _inst)
 {
-	u32 fpflags = ((FPSCR.Hex >> (4*(_inst.CRFS))) & 0xF);
+	u32 fpflags = ((FPSCR.Hex >> (4*(7 - _inst.CRFS))) & 0xF);
 	switch (_inst.CRFS) {
 	case 0:
 		FPSCR.FX = 0;
@@ -216,7 +216,7 @@ void mtfsfx(UGeckoInstruction _inst)
 	u32 m = 0;
 	for (int i = 0; i < 8; i++) {  //7?? todo check
 		if (fm & (1 << i))
-			m |= (0xf << (i*4));
+			m |= (0xF << (i*4));
 	}
 
 	FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
@@ -238,12 +238,15 @@ void mfcr(UGeckoInstruction _inst)
 
 void mtcrf(UGeckoInstruction _inst)
 {
-	u32 mask = 0;
 	u32 crm = _inst.CRM;
-	if (crm == 0xFF) {
+	if (crm == 0xFF)
+	{
 		SetCR(m_GPR[_inst.RS]);
-	} else {
+	}
+	else
+	{
 		//TODO: use lookup table? probably not worth it
+		u32 mask = 0;
 		for (int i = 0; i < 8; i++) {
 			if (crm & (1 << i))
 				mask |= 0xF << (i*4);
@@ -470,10 +473,8 @@ void crxor(UGeckoInstruction _inst)
 
 void mcrf(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 crmask = ~(0xF0000000 >> (4*_inst.CRFD));
-	u32 flags = ((cr << (4*_inst.CRFS)) & 0xF0000000) >> (4*_inst.CRFD);
-	SetCR((cr & crmask) | flags);
+	int cr_f = GetCRField(_inst.CRFS);
+	SetCRField(_inst.CRFD, cr_f);
 }
 
 void isync(UGeckoInstruction _inst)

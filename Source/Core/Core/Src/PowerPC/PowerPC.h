@@ -127,9 +127,8 @@ void OnIdleIL();
 
 }  // namespace
 
-// Wrappers to make it easier to in the future completely replace the storage of CR and Carry bits
-// to something more x86-friendly. These are not used 100% consistently yet - and if we do this, we
-// need the corresponding stuff on the JIT side too.
+// Fast CR system - store them in single bytes instead of nibbles to not have to
+// mask/shift them out.
 
 // These are intended to stay fast, probably become faster, and are not likely to slow down much if at all.
 inline void SetCRField(int cr_field, int value) {
@@ -186,5 +185,7 @@ inline int GetXER_SO() {
 inline void SetXER_SO(int value) {
 	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO = value;
 }
+
+void UpdateFPRF(double dvalue);
 
 #endif

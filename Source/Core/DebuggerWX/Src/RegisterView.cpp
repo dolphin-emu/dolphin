@@ -18,6 +18,7 @@
 #include "Debugger.h"
 #include "RegisterView.h"
 #include "PowerPC/PowerPC.h"
+#include "HW/PeripheralInterface.h"
 
 // F-zero 80005e60 wtf??
 
@@ -25,7 +26,7 @@ extern const char* GetGPRName(unsigned int index);
 extern const char* GetFPRName(unsigned int index);
 
 static const char *special_reg_names[] = {
-	"PC", "LR", "CTR", "CR", "FPSCR", "SRR0", "SRR1",
+	"PC", "LR", "CTR", "CR", "FPSCR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
 };
 
 static u32 GetSpecialRegValue(int reg) {
@@ -37,7 +38,10 @@ static u32 GetSpecialRegValue(int reg) {
 	case 4: return PowerPC::ppcState.fpscr;
 	case 5: return PowerPC::ppcState.spr[SPR_SRR0];
 	case 6: return PowerPC::ppcState.spr[SPR_SRR1];
-	default: return 0;
+	case 7: return PowerPC::ppcState.Exceptions;
+	case 8: return CPeripheralInterface::GetMask();
+	case 9: return CPeripheralInterface::GetCause();
+	default: return 0;	
 	}
 }
 

@@ -29,14 +29,16 @@
 // PC  (specials)
 // LR
 // CTR
-// CR0
+// CR0-7
+// FPSCR
 // SRR0
 // SRR1
+// Exceptions
 
 class CRegTable : public wxGridTableBase
 {
 	enum {
-		NUM_SPECIALS = 7,
+		NUM_SPECIALS = 10,
 	};
 
 public:

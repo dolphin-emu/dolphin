@@ -1878,7 +1878,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		case StorePaired: {
 			regSpill(RI, EAX);
 			regSpill(RI, EDX);
-			unsigned quantreg = *I >> 24;
+			u32 quantreg = *I >> 24;
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!

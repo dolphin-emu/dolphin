@@ -110,7 +110,12 @@ void SMB_EvilNormalize()
 	float x = F(r3);
 	float y = F(r3 + 4);
 	float z = F(r3 + 8);
-	float inv_len = 1.0f / sqrtf(x*x + y*y + z*z);
+	float len = x*x + y*y + z*z;
+	float inv_len;
+	if (len <= 0)
+		inv_len = 0;
+	else 
+		inv_len = 1.0f / sqrtf(len);
 	x *= inv_len;
 	y *= inv_len;
 	z *= inv_len;

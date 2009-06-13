@@ -100,6 +100,9 @@ public:
     static void Init();
 	static void DoState(PointerWrap &p);
     
+	static u32 GetMask() { return m_InterruptMask; }
+	static u32 GetCause() { return m_InterruptCause; }
+
     static void SetInterrupt(InterruptCause _causemask, bool _bSet=true);
     
     // Read32

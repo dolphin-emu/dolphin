@@ -43,19 +43,21 @@ static CoreMode mode;
 
 void CompactCR()
 {
-	ppcState.cr = 0;
-	for (int i = 0; i < 8; i++) {
-		ppcState.cr |= ppcState.cr_fast[i] << (28 - i * 4);
+	u32 new_cr = ppcState.cr_fast[0] << 28;
+	for (int i = 1; i < 8; i++)
+	{
+		new_cr |= ppcState.cr_fast[i] << (28 - i * 4);
 	}
+	ppcState.cr = new_cr;
 }
 
 void ExpandCR()
 {
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
 	}
 }
-
 
 void DoState(PointerWrap &p)
 {
@@ -304,7 +306,7 @@ void CheckExceptions()
 		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
 	}
 
-	// EXTERNAL INTTERUPT
+	// EXTERNAL INTERRUPT
 	else if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
 	{
 		if (ppcState.Exceptions & EXCEPTION_EXTERNAL_INT)
@@ -353,4 +355,78 @@ void OnIdleIL()
 	CoreTiming::Idle();
 }
 
+int PPCFPClass(double dvalue)
+{
+#ifdef _WIN32
+	switch (_fpclass(dvalue))
+	{
+	case _FPCLASS_SNAN:
+	case _FPCLASS_QNAN: return 0x11;
+	case _FPCLASS_NINF: return 0x9;
+	case _FPCLASS_NN:   return 0x8;
+	case _FPCLASS_ND:   return 0x18;
+	case _FPCLASS_NZ:   return 0x12;
+	case _FPCLASS_PZ:   return 0x2;
+	case _FPCLASS_PD:   return 0x14;
+	case _FPCLASS_PN:   return 0x4;
+	case _FPCLASS_PINF: return 0x5;
+	default:			return 0x4;
+	}
+#else
+	// TODO: Make sure the below is equivalent to the above - then switch win32 implementation to it.
+	union {
+		double d;
+		u64 i;
+	} value;
+	value.d = dvalue;
+	// 5 bits (C, <, >, =, ?)
+	// top: class descriptor
+	FPSCR.FPRF = 4;
+	// easy cases first
+	if (value.i == 0) {
+		// positive zero
+		FPSCR.FPRF = 0x2;
+	} else if (value.i == 0x8000000000000000ULL) {
+		// negative zero
+		FPSCR.FPRF = 0x12;
+	} else if (value.i == 0x7FF0000000000000ULL) {
+		// positive inf
+		FPSCR.FPRF = 0x5;
+	} else if (value.i == 0xFFF0000000000000ULL) {
+		// negative inf
+		FPSCR.FPRF = 0x9;
+	} else {
+		// OK let's dissect this thing.
+		int sign = (int)(value.i & 0x8000000000000000ULL) ? 1 : 0;
+		int exp = (int)((value.i >> 52) & 0x7FF);
+		if (exp >= 1 && exp <= 2046) {
+			// Nice normalized number.
+			if (sign) {
+				FPSCR.FPRF = 0x8; // negative
+			} else {
+				FPSCR.FPRF = 0x4; // positive
+			}
+			return;
+		}
+		u64 mantissa = value.i & 0x000FFFFFFFFFFFFFULL;
+		if (exp == 0 && mantissa) {
+			// Denormalized number.
+			if (sign) {
+				FPSCR.FPRF = 0x18;
+			} else {
+				FPSCR.FPRF = 0x14;
+			}
+		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
+			FPSCR.FPRF = 0x11; // Quiet NAN
+			return;
+		}
+	}
+#endif
+}
+
 }  // namespace
+
+void UpdateFPRF(double dvalue)
+{
+	FPSCR.FPRF = PowerPC::PPCFPClass(dvalue);
+}
