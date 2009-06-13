@@ -147,7 +147,7 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 				for (int k = 0; k < 4; k++)
 				{
 					if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
-						CON_SetColor(CON_BLACK, color1);
+						CON_SetColor(CON_BRIGHT_CYAN, color1);
 					else
 						CON_SetColor(color1, CON_BLACK);
 					CON_Printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
