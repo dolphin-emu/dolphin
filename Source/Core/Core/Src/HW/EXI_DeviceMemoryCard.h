@@ -18,6 +18,15 @@
 #ifndef _EXI_DEVICEMEMORYCARD_H
 #define _EXI_DEVICEMEMORYCARD_H
 
+// Data structure to be passed to the flushing thread.
+typedef struct 
+{
+	bool bExiting;
+	std::string filename;
+	u8 *memcardContent;
+	int memcardSize, memcardIndex;
+} flushStruct;
+
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
@@ -76,6 +85,8 @@ private:
 	unsigned int address;	
 	int memory_card_size; //! in bytes, must be power of 2.
 	u8 *memory_card_content; 
+
+	Common::Thread *flushThread;
 	
 protected:
 	virtual void TransferByte(u8 &byte);

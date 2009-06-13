@@ -98,38 +98,62 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
 	}
-
+	flushThread = NULL;
 }
 
-// Flush memory card contents to disc
-void CEXIMemoryCard::Flush(bool exiting)
+THREAD_RETURN innerFlush(void *pArgs)
 {
+	flushStruct *data = ((flushStruct *)pArgs);
 	FILE* pFile = NULL;
-	pFile = fopen(m_strFilename.c_str(), "wb");
+	pFile = fopen(data->filename.c_str(), "wb");
 
 	if (!pFile)
 	{
 		std::string dir;
-		SplitPath(m_strFilename, &dir, 0, 0);
+		SplitPath(data->filename, &dir, 0, 0);
 		if(!File::IsDirectory(dir.c_str()))
 			File::CreateFullPath(dir.c_str());
-		pFile = fopen(m_strFilename.c_str(), "wb");
+		pFile = fopen(data->filename.c_str(), "wb");
 	}
 
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlert("Could not write memory card file %s.\n\n"
-			       "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", m_strFilename.c_str());
-		return;
+			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
+		delete data;
+		return 1;
 	}
 
-	fwrite(memory_card_content, memory_card_size, 1, pFile);
+	fwrite(data->memcardContent, data->memcardSize, 1, pFile);
 	fclose(pFile);
 
-	if (!exiting)
-	{
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", card_index ? 'B' : 'A', m_strFilename.c_str()).c_str(), 4000);
-	}
+	if (!data->bExiting)
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", data->memcardIndex ? 'B' : 'A', 
+						     data->filename.c_str()).c_str(), 4000);
+
+	delete data;
+	return 0;
+}
+
+// Flush memory card contents to disc
+void CEXIMemoryCard::Flush(bool exiting)
+{
+	if(flushThread)
+		delete flushThread;
+
+	if(!exiting)
+		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
+
+	flushStruct *fs = new flushStruct;
+	fs->filename = m_strFilename;
+	fs->memcardContent = memory_card_content;
+	fs->memcardIndex = card_index;
+	fs->memcardSize = memory_card_size;
+	fs->bExiting = exiting;
+
+	flushThread = new Common::Thread(innerFlush, fs);
+	if(exiting)
+		flushThread->WaitForDeath();
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
@@ -137,6 +161,9 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	Flush(true);
 	delete [] memory_card_content;
 	memory_card_content = NULL;
+	if(flushThread)
+		delete flushThread;
+	flushThread = NULL;
 }
 
 bool CEXIMemoryCard::IsPresent() 
