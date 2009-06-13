@@ -173,7 +173,7 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 			break; // SDK
 
 		default:
-			PanicAlert(StringFromFormat("Unknown Country Code!").c_str());
+			PanicAlert("Unknown Country Code!");
 			break;
 	}
 

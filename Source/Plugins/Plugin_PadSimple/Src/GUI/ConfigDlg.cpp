@@ -76,6 +76,11 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	ClickedButton = NULL;
 	CreateGUIControls();
 	Fit();
+
+	// Connect keydown to the window
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+		wxKeyEventHandler(ConfigDialog::OnKeyDown),
+		(wxObject*)NULL, this);
 }
 
 ConfigDialog::~ConfigDialog()
@@ -376,10 +381,7 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 	oldLabel = ClickedButton->GetLabel();
 	ClickedButton->SetLabel(_("Press Key"));
 
-	// Connect EVT_KEY_DOWN to OnKeyDown()
-    ClickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-                           wxKeyEventHandler(ConfigDialog::OnKeyDown),
-                           (wxObject*)NULL, this);
+	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
 }
 
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)
