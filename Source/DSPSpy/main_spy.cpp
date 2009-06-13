@@ -139,7 +139,7 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 		{
 			// Do not even display the loop stack registers.
 			const int reg = j * 8 + i;
-			CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN, CON_BLACK);
+			CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
 			CON_Printf(x + j * 8, i + y, "%02x ", reg);
 			if (j != 1 || i < 4)
 			{
@@ -147,15 +147,15 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 				for (int k = 0; k < 4; k++)
 				{
 					if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
-						CON_SetColor(CON_BRIGHT_CYAN, color1);
+						CON_SetColor(CON_BRIGHT_CYAN);
 					else
-						CON_SetColor(color1, CON_BLACK);
+						CON_SetColor(color1);
 					CON_Printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
 				}
 			}
 		}
 	}
-	CON_SetColor(CON_WHITE, CON_BLACK);
+	CON_SetColor(CON_WHITE);
 
 	CON_Printf(x+2, y+9, "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0]&0xff, regs[DSP_REG_ACM0], regs[DSP_REG_ACL0]);
 	CON_Printf(x+2, y+10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1]&0xff, regs[DSP_REG_ACM1], regs[DSP_REG_ACL1]);
@@ -171,7 +171,7 @@ void print_regs(int _step, int _dsp_steps)
 	print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
 	print_reg_block(33, 2, -1, regs2, regs);
 
-	CON_SetColor(CON_WHITE, CON_BLACK);
+	CON_SetColor(CON_WHITE);
 	CON_Printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
 
 	return;
@@ -179,9 +179,9 @@ void print_regs(int _step, int _dsp_steps)
 	static int count = 0;
 	int x = 0, y = 16;
 	if (count > 2)
-		printf("\x1b[2J"); // Clear
+		CON_Clear();
 	count = 0;
-	CON_SetColor(CON_WHITE, CON_BLACK);
+	CON_SetColor(CON_WHITE);
 	for (int i = 0x0; i < 0xf70 ; i++)
 	{
 		if (dspbufC[i] != mem_dump[i])
@@ -365,38 +365,48 @@ void dump_all_ucodes(void)
 	}
 }
 
-void init_video(void)
+// Shove common, un-dsp-ish init things here
+void InitGeneral()
 {
+	// Initialise the video system
 	VIDEO_Init();
-	switch (VIDEO_GetCurrentTvMode())
-	{
-	case VI_NTSC:
-		rmode = &TVNtsc480IntDf;
-		break;
-	case VI_PAL:
-		rmode = &TVPal528IntDf;
-		break;
-	case VI_MPAL:
-		rmode = &TVMpal480IntDf;
-		break;
-	default:
-		rmode = &TVNtsc480IntDf;
-		break;
-	}
 
-	xfb = SYS_AllocateFramebuffer(rmode);
+	// This function initialises the attached controllers
+	PAD_Init();
+#ifdef HW_RVL
+	WPAD_Init();
+#endif
 
+	// Obtain the preferred video mode from the system
+	// This will correspond to the settings in the Wii menu
+	rmode = VIDEO_GetPreferredMode(NULL);
+
+	// Allocate memory for the display in the uncached region
+	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
+
+	// Set up the video registers with the chosen mode
 	VIDEO_Configure(rmode);
+	// Tell the video hardware where our display memory is
 	VIDEO_SetNextFramebuffer(xfb);
+	// Make the display visible
 	VIDEO_SetBlack(FALSE);
+	// Flush the video register changes to the hardware
 	VIDEO_Flush();
+	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
+	if (rmode->viTVMode & VI_NON_INTERLACE)
+		VIDEO_WaitVSync();
+
+	// Initialise the console, required for printf
+	CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+
+	// Initialize FAT so we can write to SD.
+	fatInit(8, false);
 }
 
 int main()
 {
-	init_video();
-	CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * 2);
+	InitGeneral();
 
 	ui_mode = UIM_SEL;
 
@@ -410,15 +420,6 @@ int main()
 
 	// Initialize DSP.
 	real_dsp.Init();
-
-	// Initialize FAT so we can write to SD.
-	fatInit(8, false);
-
-	// Both GC and Wii controls.
-	PAD_Init();
-#ifdef HW_RVL
-	WPAD_Init();
-#endif
 
 
 	int show_step = 0;
@@ -480,7 +481,7 @@ int main()
 			if(curUcode == NUM_UCODES)
 				curUcode = 0;
 
-			// Reset step counters for since we're in a new ucode.
+			// Reset step counters since we're in a new ucode.
 			show_step = 0;
 			dsp_steps = 0;
 
@@ -541,7 +542,8 @@ int main()
 		}
 
 #ifdef HW_RVL
-		// Probably could offer to save to memcard (sd gecko) but i dont have one so meh
+		// Probably could offer to save to sd gecko or something on gc...
+		// The future is web-based reporting ;)
 		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
 		{
 			dump_all_ucodes();

@@ -53,7 +53,7 @@ void CON_Printf(int x, int y, const char* fmt, ...)
 	printf("\x1b[%d;%dH%s", y, x, tmpbuf);
 }
 
-void CON_SetColor(u8 foreground, u8 background = 0)
+void CON_SetColor(u8 foreground, u8 background = CON_BLACK)
 {
 	u8 bright = foreground & CON_BRIGHT ? 1 : 0;
 
@@ -61,6 +61,12 @@ void CON_SetColor(u8 foreground, u8 background = 0)
 		foreground &= ~CON_BRIGHT;
 
 	printf("\x1b[%d;%d;%dm", 30+foreground, bright, 40+background);
+}
+
+void CON_Clear()
+{
+	// Escape code to clear the whole screen.
+	printf("\x1b[2J");
 }
 
 #endif
