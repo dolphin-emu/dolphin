@@ -7,7 +7,7 @@ use Getopt::Long;
 use Data::Dumper;
 
 sub usage() {
-	die("createtest -i <test template>\n");
+	die("createtest -i <test template> -c <command> \n");
 }
 
 sub parseString {
@@ -36,6 +36,33 @@ sub generateTest {
 	}
 }
 
+sub calculateLines {
+	my $text = shift;
+	my $lines = 0;
+	my $incdir = "./";
+	
+	foreach my $line (split /\n/, $text) {
+	    next if ($line =~ /^\S*$/);
+		next if ($line =~ /^\S*;/);
+		next if ($line =~ /:/);
+
+		if ($line =~ /incdir\s*\"(.*)\"/) {
+			$incdir = $1;
+		} elsif ($line =~ /include\s*\"(.*)\"/) {
+			my $incname = "$incdir/$1";
+			open(INCLUDE, "<$incname") ||
+				die("Can't open include file $incname: $!\n");
+   
+			my $include = join "", <INCLUDE>;
+			$lines += calculateLines($include);
+		} else {
+			$lines++;
+		}
+	}
+
+	return $lines;
+}
+
 my ($cmds,$input,$output);
 if (!GetOptions('cmds|c=s'   => \$cmds,
 				'input|i=s'  => \$input,
@@ -54,8 +81,12 @@ foreach my $cmd (split(/,/, $cmds)) {
 	my $name = parseString($xtest->{'name'}, $cmd);
 	$name =~ s/ /_/g;
 	my $desc = parseString($xtest->{'description'}, $cmd);
+
 	my $header = parseString($xtest->{'header'}, $cmd);
+	my $hsize = calculateLines($header);
+
 	my $body = parseString($xtest->{'body'}, $cmd);
+	my $bsize = calculateLines($body);
 
 	open(OUTPUT, ">$name.ds") ||
 		die("Can't open file $name for writing: $!\n");
