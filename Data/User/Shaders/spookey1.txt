@@ -6,11 +6,15 @@ void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
   float red   = 0.0;
   float blue  = 0.0;
 
-  if (c0.r > 0.25 && c0.b > 0.25)
+  if (c0.r < 0.50 || c0.b > 0.5)
   {
-    blue = c0.b;
-    red = c0.r;
+	red = c0.g + (c0.b / 2);
   }
-
-  ocol0 = float4(red, c0.g, blue, 1.0);
+  else
+  {
+    red = c0.g + (c0.b / 2);
+	blue = c0.r + (c0.b / 2);
+  }
+  
+  ocol0 = float4(red, 0.0, blue, 1.0);
 }

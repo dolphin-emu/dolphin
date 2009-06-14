@@ -4,13 +4,12 @@ void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
 {
   float4 c0 = texRECT(samp0, uv0).rgba;
   float red   = 0.0;
+  float green = 0.0;
   float blue  = 0.0;
+  float avg = (c0.r + c0.g + c0.b) / 3;
 
-  if (c0.r > 0.25 && c0.b > 0.25)
-  {
-    blue = c0.b;
-    red = c0.r;
-  }
-
-  ocol0 = float4(red, c0.g, blue, 1.0);
+  red = c0.r + (c0.g / 2) + (c0.b / 3);
+  green = c0.r / 3;
+  
+  ocol0 = float4(red, green, blue, 1.0);
 }
