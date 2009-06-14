@@ -18,6 +18,7 @@
 #include <float.h>
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "ChunkFile.h"
 
 #include "../HW/Memmap.h"
@@ -355,72 +356,6 @@ void OnIdleIL()
 	CoreTiming::Idle();
 }
 
-int PPCFPClass(double dvalue)
-{
-	/* // win32-only reference implementation, to compare to:
-	switch (_fpclass(dvalue))
-	{
-	case _FPCLASS_SNAN:
-	case _FPCLASS_QNAN: return 0x11;
-	case _FPCLASS_NINF: return 0x9;
-	case _FPCLASS_NN:   return 0x8;
-	case _FPCLASS_ND:   return 0x18;
-	case _FPCLASS_NZ:   return 0x12;
-	case _FPCLASS_PZ:   return 0x2;
-	case _FPCLASS_PD:   return 0x14;
-	case _FPCLASS_PN:   return 0x4;
-	case _FPCLASS_PINF: return 0x5;
-	default:			return 0x4;
-	}*/
-
-	// TODO: Optimize the below to be as fast as possible.
-	union {
-		double d;
-		u64 i;
-	} value;
-	value.d = dvalue;
-	// 5 bits (C, <, >, =, ?)
-	// easy cases first
-	if (value.i == 0) {
-		// positive zero
-		return 0x2;
-	} else if (value.i == 0x8000000000000000ULL) {
-		// negative zero
-	   return 0x12;
-	} else if (value.i == 0x7FF0000000000000ULL) {
-		// positive inf
-		return 0x5;
-	} else if (value.i == 0xFFF0000000000000ULL) {
-		// negative inf
-		return 0x9;
-	} else {
-		// OK let's dissect this thing.
-		int sign = value.i >> 63;
-		int exp = (int)((value.i >> 52) & 0x7FF);
-		if (exp >= 1 && exp <= 2046) {
-			// Nice normalized number.
-			if (sign) {
-				return 0x8; // negative
-			} else {
-				return 0x4; // positive
-			}
-		}
-		u64 mantissa = value.i & 0x000FFFFFFFFFFFFFULL;
-		if (exp == 0 && mantissa) {
-			// Denormalized number.
-			if (sign) {
-				return 0x18;
-			} else {
-				return 0x14;
-			}
-		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
-			return 0x11; // Quiet NAN
-		}
-	}
-	
-	return 0x4;
-}
-
 }  // namespace
 
 
@@ -428,7 +363,9 @@ int PPCFPClass(double dvalue)
 
 void UpdateFPRF(double dvalue)
 {
-	FPSCR.FPRF = PowerPC::PPCFPClass(dvalue);
+	FPSCR.FPRF = MathUtil::ClassifyFP(dvalue);
+	//if (FPSCR.FPRF == 0x11)
+	//	PanicAlert("QNAN alert");
 }
 
 void UpdateFEX() {

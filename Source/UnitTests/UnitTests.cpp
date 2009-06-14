@@ -18,6 +18,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "StringUtil.h"
+#include "MathUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/SI_DeviceGCController.h"
 
@@ -25,32 +27,68 @@ using namespace std;
 
 int fail_count = 0;
 
+#define EXPECT_TRUE(a) \
+	if (!a) { \
+		cout << "FAIL (" __FUNCTION__ "): " << #a << " is false" << endl; \
+		cout << "Value: " << a << endl << "Expected: true" << endl; \
+		fail_count++; \
+	}
+
+#define EXPECT_FALSE(a) \
+	if (a) { \
+		cout << "FAIL (" __FUNCTION__ "): " << #a << " is true" << endl; \
+		cout << "Value: " << a << endl << "Expected: false" << endl; \
+		fail_count++; \
+	}
+
 #define EXPECT_EQ(a, b) \
 	if ((a) != (b)) { \
-		cout << "FAIL: " << #a << " %s is not equal to " << #b << endl; \
+		cout << "FAIL (" __FUNCTION__ "): " << #a << " is not equal to " << #b << endl; \
 		cout << "Actual: " << a << endl << "Expected: " << b << endl; \
 		fail_count++; \
 	}
 
 void CoreTests()
 {
+}
+
+void MathTests()
+{
 	// Tests that our fp classifier is correct.
-	EXPECT_EQ(PowerPC::PPCFPClass(1.0), 0x4);
-	EXPECT_EQ(PowerPC::PPCFPClass(-1.0), 0x8);
-	EXPECT_EQ(PowerPC::PPCFPClass(1235223.0), 0x4);
-	EXPECT_EQ(PowerPC::PPCFPClass(-126323521.0), 0x8);
-	EXPECT_EQ(PowerPC::PPCFPClass(1.0E-308), 0x14);
-	EXPECT_EQ(PowerPC::PPCFPClass(-1.0E-308), 0x18);
-	EXPECT_EQ(PowerPC::PPCFPClass(0.0), 0x2);
-	EXPECT_EQ(PowerPC::PPCFPClass(-0.0), 0x12);
-	EXPECT_EQ(PowerPC::PPCFPClass(HUGE_VAL), 0x5);  // weird #define for infinity
-	EXPECT_EQ(PowerPC::PPCFPClass(-HUGE_VAL), 0x9);
-	EXPECT_EQ(PowerPC::PPCFPClass(sqrt(-1.0)), 0x11);  // SNAN
+	EXPECT_EQ(MathUtil::ClassifyFP(1.0), MathUtil::PPC_FPCLASS_PN);
+	EXPECT_EQ(MathUtil::ClassifyFP(-1.0), 0x8);
+	EXPECT_EQ(MathUtil::ClassifyFP(1235223.0), 0x4);
+	EXPECT_EQ(MathUtil::ClassifyFP(-126323521.0), 0x8);
+	EXPECT_EQ(MathUtil::ClassifyFP(1.0E-308), 0x14);
+	EXPECT_EQ(MathUtil::ClassifyFP(-1.0E-308), 0x18);
+	EXPECT_EQ(MathUtil::ClassifyFP(0.0), 0x2);
+	EXPECT_EQ(MathUtil::ClassifyFP(-0.0), 0x12);
+	EXPECT_EQ(MathUtil::ClassifyFP(HUGE_VAL), 0x5);  // weird #define for infinity
+	EXPECT_EQ(MathUtil::ClassifyFP(-HUGE_VAL), 0x9);
+	EXPECT_EQ(MathUtil::ClassifyFP(sqrt(-1.0)), 0x11);  // SNAN
+
+	EXPECT_FALSE(MathUtil::IsNAN(1.0));
+	EXPECT_TRUE(MathUtil::IsNAN(sqrt(-1.0)));
+	EXPECT_FALSE(MathUtil::IsSNAN(sqrt(-1.0)));
+	// EXPECT_TRUE(MathUtil::IsQNAN(sqrt(-1.0)));  // Hmm...
+	EXPECT_EQ(pow2(2.0), 4.0);
+	EXPECT_EQ(pow2(-2.0), 4.0);
+}
+
+void StringTests()
+{
+	EXPECT_EQ(StripSpaces(" abc   "), "abc");
+	EXPECT_EQ(StripNewline(" abc \n"), " abc ");
+	EXPECT_EQ(StripNewline(" abc \n "), " abc \n ");
+	EXPECT_EQ(StripQuotes("\"abc\""), "abc");
+	EXPECT_EQ(StripQuotes("\"abc\" "), "\"abc\" ");
 }
 
 int main(int argc, _TCHAR* argv[])
 {
 	CoreTests();
+	MathTests();
+	StringTests();
 	if (fail_count == 0)
 	{
 		printf("All tests passed.\n");

@@ -83,8 +83,29 @@ inline double FlushToZeroAsFloat(double d)
 	return x.d;
 }
 
-}  // namespace MathUtil
+enum PPCFpClass
+{
+	PPC_FPCLASS_QNAN = 0x11,
+	PPC_FPCLASS_NINF = 0x9,
+	PPC_FPCLASS_NN   = 0x8,
+	PPC_FPCLASS_ND   = 0x18,
+	PPC_FPCLASS_NZ   = 0x12,
+	PPC_FPCLASS_PZ   = 0x2,
+	PPC_FPCLASS_PD   = 0x14,
+	PPC_FPCLASS_PN   = 0x4,
+	PPC_FPCLASS_PINF = 0x5,
+};
 
+// Uses PowerPC conventions for the return value, so it can be easily
+// used directly in CPU emulation.
+int ClassifyFP(double dvalue);
+
+// TODO: More efficient float version.
+inline int ClassifyFP(float fvalue) {
+	ClassifyFP((double)fvalue);
+}
+
+}  // namespace MathUtil
 
 inline float pow2f(float x) {return x * x;}
 inline double pow2(double x) {return x * x;}
@@ -103,7 +124,10 @@ void LoadDefaultSSEState();
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 
-// ugly matrix implementation
+
+// Tiny matrix/vector library.
+// Used for things like Free-Look in the gfx plugin.
+
 class Matrix33
 {
 public:

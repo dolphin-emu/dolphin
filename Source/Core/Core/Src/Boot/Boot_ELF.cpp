@@ -21,7 +21,6 @@
 #include "Boot_ELF.h"
 #include "Boot_WiiWAD.h"
 #include "ElfReader.h"
-#include "MappedFile.h"
 
 bool CBoot::IsElfWii(const char *filename)
 {

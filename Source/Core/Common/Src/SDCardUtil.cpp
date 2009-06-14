@@ -25,8 +25,8 @@
 ** ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// A simple and portable program used to generate a blank FAT32 image file
-// Modified for Dolphin-emu
+// A simple and portable piece of code used to generate a blank FAT32 image file.
+// Modified for Dolphin.
 
 #include "SDCardUtil.h"
 

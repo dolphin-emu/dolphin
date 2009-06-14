@@ -22,7 +22,6 @@
 #include "CompressedBlob.h"
 #include "FileBlob.h"
 #include "DriveBlob.h"
-#include "MappedFile.h"
 
 namespace DiscIO
 {

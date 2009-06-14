@@ -91,8 +91,6 @@ volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern d
 void CompactCR();
 void ExpandCR();
 
-int PPCFPClass(double dvalue);
-
 void OnIdle(u32 _uThreadAddr);
 void OnIdleIL();
 
