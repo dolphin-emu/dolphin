@@ -20,15 +20,82 @@
 
 #include <xmmintrin.h>
 
+#include "Common.h"
+
+namespace MathUtil
+{
+
+static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
+	DOUBLE_EXP  = 0x7FF0000000000000ULL,
+	DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
+	DOUBLE_ZERO = 0x0000000000000000ULL,
+
+	FLOAT_SIGN = 0x80000000,
+	FLOAT_EXP  = 0x7F800000,
+	FLOAT_FRAC = 0x007FFFFF,
+	FLOAT_ZERO = 0x00000000ULL;
+
+union IntDouble {
+	double d;
+	u64 i;
+};
+union IntFloat {
+	float f;
+	u32 i;
+};
+
+inline bool IsNAN(double d)
+{
+	IntDouble x; x.d = d;
+	return ( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+			 ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) );
+}
+
+inline bool IsQNAN(double d)
+{
+	IntDouble x; x.d = d;
+	return ( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+		     ((x.i & 0x0007fffffffffffULL) == 0x000000000000000ULL) &&
+		     ((x.i & 0x000800000000000ULL) == 0x000800000000000ULL) );
+}
+
+inline bool IsSNAN(double d)
+{
+	IntDouble x; x.d = d;
+	return( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+			((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
+			((x.i & 0x0008000000000000ULL) == DOUBLE_ZERO) );
+}
+
+inline float FlushToZero(float f)
+{
+	IntFloat x; x.f = f;
+	if ((x.i & FLOAT_EXP) == 0)
+		x.i &= FLOAT_SIGN;  // turn into signed zero
+	return x.f;
+}
+
+inline double FlushToZeroAsFloat(double d)
+{
+	IntDouble x; x.d = d;
+	if ((x.i & DOUBLE_EXP) < 0x3800000000000000ULL)
+		x.i &= DOUBLE_SIGN;  // turn into signed zero
+	return x.d;
+}
+
+}  // namespace MathUtil
+
+
+inline float pow2f(float x) {return x * x;}
+inline double pow2(double x) {return x * x;}
+
+
 /*
    There are two different flavors of float to int conversion:
    _mm_cvtps_epi32() and _mm_cvttps_epi32(). The first rounds
    according to the MXCSR rounding bits. The second one always
    uses round towards zero.
  */
-
-inline float pow2f(float x) {return x * x;}
-inline double pow2(double x) {return x * x;}
 
 void SaveSSEState();
 void LoadSSEState();

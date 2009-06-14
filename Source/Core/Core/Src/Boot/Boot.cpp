@@ -19,7 +19,6 @@
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "FileUtil.h"
-#include "MappedFile.h"
 
 #include "../HLE/HLE.h" // Core
 #include "../PowerPC/PowerPC.h"
@@ -145,25 +144,13 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
     bool bResult = false;
-    Common::IMappedFile* pFile = Common::IMappedFile::CreateMappedFileDEPRECATED();
-    if (pFile->Open(_rBiosFilename.c_str()))
-    {
-        if (pFile->GetSize() >= 1024*1024*2)
-        {
-			// Write it to memory
-            u32 CopySize = (u32)pFile->GetSize() - 0x820;
-            u8* pData = pFile->Lock(0x820, CopySize);
-            Memory::WriteBigEData(pData, 0x81300000, CopySize);
-            pFile->Unlock(pData);
-            pFile->Close();
+	std::string data;
+	if (!File::ReadFileToString(false, _rBiosFilename.c_str(), data))
+		return false;
 
-            PC = 0x81300000;
-
-            bResult = true;
-        }
-    }
-    delete pFile;
-    return bResult;
+	Memory::WriteBigEData((const u8*)data.data(), 0x81300000, data.size());
+    PC = 0x81300000;
+    return true;
 }
 /////////////////////////////////
 
