@@ -338,8 +338,10 @@ void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+#ifdef _WIN32
 	if (GetAsyncKeyState(VK_LSHIFT))
 		ABI_CallFunction(thunks.ProtectFunction((void *)&CheckForNans, 0));
+#endif
 }
 
 void Jit64::WriteExit(u32 destination, int exit_num)
