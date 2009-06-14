@@ -954,6 +954,7 @@ void Renderer::Swap(const TRectangle& rc)
 			glEnd();
 
 			glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+			glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		}
 		else 
 		{
