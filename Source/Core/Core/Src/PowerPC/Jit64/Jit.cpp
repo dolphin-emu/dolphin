@@ -338,9 +338,12 @@ void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+
+#ifdef NAN_CHECK
 #ifdef _WIN32
 	if (GetAsyncKeyState(VK_LSHIFT))
 		ABI_CallFunction(thunks.ProtectFunction((void *)&CheckForNans, 0));
+#endif
 #endif
 }
 
@@ -497,14 +500,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 		// get start tic
 		PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStart);
 	}
-//#if defined(_DEBUG) || defined(DEBUGFAST)
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
 	// should help logged stacktraces become more accurate
 	MOV(32, M(&PC), Imm32(js.blockStart));
-//#endif
+#endif
 
-
-//	if (em_address == 0x801e4188)
-//		INT3();
 	//Start up the register allocators
 	//They use the information in gpa/fpa to preload commonly used registers.
 	gpr.Start(js.gpa);
