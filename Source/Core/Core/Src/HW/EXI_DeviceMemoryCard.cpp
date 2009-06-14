@@ -42,7 +42,8 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 
 CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
 	m_strFilename(_rFilename),
-	card_index(_card_index)
+	card_index(_card_index),
+	flushThread(NULL)
 {
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
@@ -98,7 +99,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
 	}
-	flushThread = NULL;
 }
 
 THREAD_RETURN innerFlush(void *pArgs)
@@ -139,7 +139,10 @@ THREAD_RETURN innerFlush(void *pArgs)
 void CEXIMemoryCard::Flush(bool exiting)
 {
 	if(flushThread)
+	{
 		delete flushThread;
+		flushThread = NULL;
+	}
 
 	if(!exiting)
 		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
@@ -162,8 +165,10 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	delete [] memory_card_content;
 	memory_card_content = NULL;
 	if(flushThread)
+	{
 		delete flushThread;
-	flushThread = NULL;
+		flushThread = NULL;
+	}
 }
 
 bool CEXIMemoryCard::IsPresent() 
