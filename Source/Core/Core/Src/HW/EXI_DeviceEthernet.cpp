@@ -23,8 +23,11 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 
-#define SONICDEBUG
-
+//#define SONICDEBUG
+//#define FILEDEBUG
+#ifdef FILEDEBUG
+FILE *ME = 0;
+#endif
 void DEBUGPRINT (const char * format, ...)
 {
 	char buffer[256];
@@ -32,6 +35,9 @@ void DEBUGPRINT (const char * format, ...)
 	va_start (args, format);
 	vsprintf (buffer,format, args);
 	#ifdef SONICDEBUG
+		#ifdef FILEDEBUG
+			fprintf(ME, "%s",  buffer);
+		#endif
 		printf("%s", buffer);
 	#else
 		INFO_LOG(SP1, buffer);
@@ -47,7 +53,12 @@ void DEBUGPRINT (const char * format, ...)
 int mPacketsSent = 0;
 u8 mac_address[6] = {'D', 'O', 'L', 'P', 'H', 'I'}; // Looks Appropriate
 unsigned int Expecting;
-
+CEXIETHERNET::~CEXIETHERNET()
+{
+	#ifdef FILEDEBUG
+		fclose(ME);
+	#endif
+}
 CEXIETHERNET::CEXIETHERNET() :
 	m_uPosition(0),
 	m_uCommand(0),
@@ -75,6 +86,9 @@ CEXIETHERNET::CEXIETHERNET() :
 	
 	Expecting = EXPECT_NONE;
 	mExpectVariableLengthImmWrite = false;
+	#ifdef FILEDEBUG
+	ME = fopen("Debug.txt", "wb");
+	#endif
 }
 void CyclicBufferWriter::write(void *src, size_t size) 
 {
@@ -187,13 +201,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		{
 			case BBA_IR:
 			{
-				DEBUGPRINT("\t\t[INFO]BBA Interrupt reset 0x%02X & ~(0x%02X) => 0x%02X\n", mBbaMem[0x09], MAKE(u8, _uData), mBbaMem[0x09] & ~MAKE(u8, _uData));
 				//assert(_uSize == 1);
-				// TODO: Should we swap our data?
-				// With _uData not swapped, it becomes 0 when the data is 0xff000000
-				// With _uData swapped, it becomes 0 as well. Who knows the right way?
-				//u32 SwappedData = Common::swap32(_uData);
-				u32 SwappedData = _uData;
+				// Correct, we use swapped
+				u32 SwappedData = Common::swap32(_uData);
+				DEBUGPRINT("\t\t[INFO]BBA Interrupt reset 0x%02X & ~(0x%02X) => 0x%02X\n", mBbaMem[0x09], MAKE(u8, SwappedData), mBbaMem[0x09] & ~MAKE(u8, SwappedData));
 				mBbaMem[BBA_IR] &= ~MAKE(u8, SwappedData);
 				//exit(0);
 				break;
@@ -203,8 +214,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				DEBUGPRINT("\t\t[INFO]BBA_NCRA-----------------------------------------------------------\n");
 				// Correct, we use the swap here
 				u32 SwappedData = (u8)Common::swap32(_uData);
-				//u32 SwappedData = _uData;
-				// TODO: Should we swap our data?
 				if (RISE(BBA_NCRA_RESET)) 
 				{
 					// Normal
@@ -477,6 +486,7 @@ void CEXIETHERNET::DMARead(u32 _uAddr, u32 _uSize)
 			mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize);
 		//exit(0);
 		mReadP = mReadP + (u16)_uSize;
+		exit(0);
 		return;
 	} 
 	else 

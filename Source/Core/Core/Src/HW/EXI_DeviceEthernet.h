@@ -182,6 +182,7 @@ class CEXIETHERNET : public IEXIDevice
 {
 public:
 	CEXIETHERNET();
+	~CEXIETHERNET();
 	void SetCS(int _iCS);
 	bool IsPresent();
 	void Update();
