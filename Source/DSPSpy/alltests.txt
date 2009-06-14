@@ -1,0 +1,11 @@
+tests/arith_test.ds
+tests/dr_test.ds
+tests/mul_test.ds
+tests/neg_test.ds
+tests/ir_test.ds
+tests/if_test.ds
+tests/if_test2.ds
+tests/if_test3.ds
+tests/if_test4.ds
+tests/if_test5.ds
+tests/dsp_test.ds
