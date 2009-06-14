@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
+#include "Common.h"
 #include "ConfigDlg.h"
 #include "../PadSimple.h"
 
@@ -334,6 +334,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 
 void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
+	char keyStr[10] = {0};
 	if(ClickedButton != NULL)
 	{
 		// Get the selected notebook page
@@ -345,7 +346,6 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		{
 			if(m_dinput.diks[i])
 			{
-				char keyStr[10] = {0};
 				// Save the mapped key, the wxButtons have the Id 0 to 21
 				pad[page].keyForControl[ClickedButton->GetId()] = i;
 				// Get the key name
@@ -356,13 +356,15 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		}
 #elif defined(HAVE_X11) && HAVE_X11
 		pad[page].keyForControl[ClickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
-		ClickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
+
+                XKeyToString(pad[page].keyForControl[ClickedButton->GetId()], keyStr);
+		ClickedButton->SetLabel(wxString::FromAscii(keyStr));
 #endif
 		ClickedButton->Disconnect();
 	}
 	// Reset 
 	ClickedButton = NULL;
-	event.Skip();
+	//event.Skip();
 }
 
 // We have clicked a button
