@@ -35,6 +35,7 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include <xmmintrin.h>
 #endif
 
+#include "CPUDetect.h"
 #include "../../CoreTiming.h"
 #include "../../HW/Memmap.h"
 #include "../../HW/GPFifo.h"
@@ -60,37 +61,11 @@ mffsx: 80036650 (huh?)
 namespace Interpreter
 {
 
-void UpdateSSEState()
-{
-	u32 csr = _mm_getcsr();
-	
-	const int ssetable[4] = 
-	{
-		0,
-		3,
-		2,
-		1,
-	};
-	csr = csr & 0x9FFF;
-	csr |= ssetable[FPSCR.RN] << 13;
+const u32 MASKS = 0x1F80;  // mask away the interrupts.
+const u32 DAZ = 0x40;
+const u32 FTZ = 0x8000;
 
-	// Also handle denormals as zero (FZ + DAZ)
-	csr &= ~0x8020;
-
-	// SETTING FTZ+DAZ KILLS BEYOND GOOD AND EVIL
-	//if (daz)
-	//	csr |= 0x20; // Only set DAZ  //0x8020;
-	
-	_mm_setcsr(csr);
-}
-
-void RestoreSSEState()
-{
-	// A reasonable default
-	_mm_setcsr(0x1fa0);
-}
-
-void UpdateFPSCR(UReg_FPSCR fp)
+void FPSCRtoFPUSettings(UReg_FPSCR fp)
 {
 	// Set FPU rounding mode to mimic the PowerPC's
 #ifdef _M_IX86
@@ -120,12 +95,28 @@ void UpdateFPSCR(UReg_FPSCR fp)
 #endif
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
-		// PanicAlert("FPSCR - exceptions enabled. Please report.");
+		//PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
+		//	fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
 		// Pokemon Colosseum does this. Gah.
 	}
 
 	// Also corresponding SSE rounding mode setting
-	UpdateSSEState();
+	static const u32 ssetable[4] = 
+	{
+		(0 << 13) | MASKS,
+		(3 << 13) | MASKS,
+		(2 << 13) | MASKS,
+		(1 << 13) | MASKS,
+	};
+	u32 csr = ssetable[FPSCR.RN];
+	if (FPSCR.NI)
+	{
+		// Either one of these two breaks Beyond Good & Evil.
+		// if (cpu_info.bSSSE3)
+		//     csr |= DAZ;
+		// csr |= FTZ;
+	}
+	_mm_setcsr(csr);
 }
 
 void mcrfs(UGeckoInstruction _inst)
@@ -158,24 +149,8 @@ void mcrfs(UGeckoInstruction _inst)
 		break;
 	}
 	SetCRField(_inst.CRFD, fpflags);
-	UpdateFPSCR(FPSCR);
+	FPSCRtoFPUSettings(FPSCR);
 }
-
-#define MXCSR_IE 1
-#define MXCSR_DE 2  // denormal
-#define MXCSR_ZE 4  // divide by zero, sticky
-#define MXCSR_OE 8  // overflow
-#define MXCSR_UE 16 // underflow
-#define MXCSR_PE 32 // precision
-#define MXCSR_DAZ 64
-#define MXCSR_IM 128
-#define MXCSR_DM 256
-#define MXCSR_ZM 512
-#define MXCSR_OM 1024
-#define MXCSR_UM 2048
-#define MXCSR_PM 4096
-#define MXCSR_ROUND (16384|8192)
-#define MXCSR_FLUSH 32768
 
 void mffsx(UGeckoInstruction _inst)
 {
@@ -190,14 +165,14 @@ void mffsx(UGeckoInstruction _inst)
 void mtfsb0x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex &= (~(0x80000000 >> _inst.CRBD));
-	UpdateFPSCR(FPSCR);
+	FPSCRtoFPUSettings(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsb0x: inst_.Rc");
 }
 
 void mtfsb1x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex |= 0x80000000 >> _inst.CRBD;
-	UpdateFPSCR(FPSCR);
+	FPSCRtoFPUSettings(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
 }
 
@@ -206,7 +181,7 @@ void mtfsfix(UGeckoInstruction _inst)
 	u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
 	u32 imm = (_inst.hex << 16) & 0xF0000000;
 	FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * _inst.CRFD));
-	UpdateFPSCR(FPSCR);
+	FPSCRtoFPUSettings(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsfix: inst_.Rc");
 }
 
@@ -214,13 +189,14 @@ void mtfsfx(UGeckoInstruction _inst)
 {
 	u32 fm = _inst.FM;
 	u32 m = 0;
-	for (int i = 0; i < 8; i++) {  //7?? todo check
+	for (int i = 0; i < 8; i++)  //7?? todo check
+	{
 		if (fm & (1 << i))
-			m |= (0xF << (i*4));
+			m |= (0xF << (i * 4));
 	}
 
 	FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
-	UpdateFPSCR(FPSCR);
+	FPSCRtoFPUSettings(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsfx: inst_.Rc");
 }
 

@@ -311,7 +311,6 @@ namespace Interpreter
 
 	// other helper
 	u32 Helper_Mask(int mb, int me);
-	inline bool IsNAN(double _dValue);
 
 	extern _interpreterInstruction m_opTable[64];
 	extern _interpreterInstruction m_opTable4[1024];

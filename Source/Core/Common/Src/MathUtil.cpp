@@ -32,7 +32,7 @@ static const u32 default_sse_state = _mm_getcsr();
 namespace MathUtil
 {
 
-int ClassifyFP(double dvalue)
+int ClassifyDouble(double dvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
 	IntDouble value;
@@ -72,6 +72,53 @@ int ClassifyFP(double dvalue)
 				return 0x14;
 			}
 		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
+			return 0x11; // Quiet NAN
+		}
+	}
+	
+	return 0x4;
+}
+
+int ClassifyFloat(float fvalue)
+{
+	// TODO: Optimize the below to be as fast as possible.
+	IntFloat value;
+	value.f = fvalue;
+	// 5 bits (C, <, >, =, ?)
+	// easy cases first
+	if (value.i == 0) {
+		// positive zero
+		return 0x2;
+	} else if (value.i == 0x80000000) {
+		// negative zero
+	   return 0x12;
+	} else if (value.i == 0x7F800000) {
+		// positive inf
+		return 0x5;
+	} else if (value.i == 0xFF800000) {
+		// negative inf
+		return 0x9;
+	} else {
+		// OK let's dissect this thing.
+		int sign = value.i >> 31;
+		int exp = (int)((value.i >> 23) & 0xFF);
+		if (exp >= 1 && exp <= 254) {
+			// Nice normalized number.
+			if (sign) {
+				return 0x8; // negative
+			} else {
+				return 0x4; // positive
+			}
+		}
+		u64 mantissa = value.i & 0x007FFFFF;
+		if (exp == 0 && mantissa) {
+			// Denormalized number.
+			if (sign) {
+				return 0x18;
+			} else {
+				return 0x14;
+			}
+		} else if (exp == 0xFF && mantissa /* && mantissa_top*/) {
 			return 0x11; // Quiet NAN
 		}
 	}

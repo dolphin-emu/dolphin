@@ -745,16 +745,16 @@ void Callback_VideoCopiedToXFB()
 		*/
 		
 		/**/
-		if (FPS_To_VPS_Rate > 0 && FPS_To_VPS_Rate < ((1.0/3.0 + 1.0/2.0)/2)) FPS_To_VPS_Rate = 1.0/3.0;
-		else if (FPS_To_VPS_Rate > ((1.0/3.0 + 1.0/2.0)/2) && FPS_To_VPS_Rate < ((1.0/2.0 + 1.0/1.0)/2)) FPS_To_VPS_Rate = 1.0/2.0;
+		if (FPS_To_VPS_Rate > 0 && FPS_To_VPS_Rate < ((1.0f/3.0f + 1.0f/2.0f)/2)) FPS_To_VPS_Rate = 1.0f/3.0f;
+		else if (FPS_To_VPS_Rate > ((1.0f/3.0f + 1.0f/2.0f)/2) && FPS_To_VPS_Rate < ((1.0f/2.0f + 1.0f/1.0f)/2)) FPS_To_VPS_Rate = 1.0/2.0;
 		else FPS_To_VPS_Rate = 1.0;	
 		// PAL patch adjustment
-		if (VideoInterface::TargetRefreshRate == 50) FPS_To_VPS_Rate = FPS_To_VPS_Rate * 1.2;
+		if (VideoInterface::TargetRefreshRate == 50) FPS_To_VPS_Rate = FPS_To_VPS_Rate * 1.2f;
 		
 		
 		float TargetFPS = FPS_To_VPS_Rate * (float)VideoInterface::TargetRefreshRate;
-		float FPSPercentage = (FPS / TargetFPS) * 100.0;
-		float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0;
+		float FPSPercentage = (FPS / TargetFPS) * 100.0f;
+		float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0f;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat(" | Core: %s %s",

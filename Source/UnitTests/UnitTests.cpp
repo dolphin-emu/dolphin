@@ -55,21 +55,35 @@ void CoreTests()
 void MathTests()
 {
 	// Tests that our fp classifier is correct.
-	EXPECT_EQ(MathUtil::ClassifyFP(1.0), MathUtil::PPC_FPCLASS_PN);
-	EXPECT_EQ(MathUtil::ClassifyFP(-1.0), 0x8);
-	EXPECT_EQ(MathUtil::ClassifyFP(1235223.0), 0x4);
-	EXPECT_EQ(MathUtil::ClassifyFP(-126323521.0), 0x8);
-	EXPECT_EQ(MathUtil::ClassifyFP(1.0E-308), 0x14);
-	EXPECT_EQ(MathUtil::ClassifyFP(-1.0E-308), 0x18);
-	EXPECT_EQ(MathUtil::ClassifyFP(0.0), 0x2);
-	EXPECT_EQ(MathUtil::ClassifyFP(-0.0), 0x12);
-	EXPECT_EQ(MathUtil::ClassifyFP(HUGE_VAL), 0x5);  // weird #define for infinity
-	EXPECT_EQ(MathUtil::ClassifyFP(-HUGE_VAL), 0x9);
-	EXPECT_EQ(MathUtil::ClassifyFP(sqrt(-1.0)), 0x11);  // SNAN
+	EXPECT_EQ(MathUtil::ClassifyDouble(1.0),        MathUtil::PPC_FPCLASS_PN);
+	EXPECT_EQ(MathUtil::ClassifyDouble(-1.0),       MathUtil::PPC_FPCLASS_NN);
+	EXPECT_EQ(MathUtil::ClassifyDouble(1235223.0),  MathUtil::PPC_FPCLASS_PN);
+	EXPECT_EQ(MathUtil::ClassifyDouble(-1263221.0), MathUtil::PPC_FPCLASS_NN);
+	EXPECT_EQ(MathUtil::ClassifyDouble(1.0E-308),   MathUtil::PPC_FPCLASS_PD);
+	EXPECT_EQ(MathUtil::ClassifyDouble(-1.0E-308),  MathUtil::PPC_FPCLASS_ND);
+	EXPECT_EQ(MathUtil::ClassifyDouble(0.0),        MathUtil::PPC_FPCLASS_PZ);
+	EXPECT_EQ(MathUtil::ClassifyDouble(-0.0),       MathUtil::PPC_FPCLASS_NZ);
+	EXPECT_EQ(MathUtil::ClassifyDouble(HUGE_VAL),   MathUtil::PPC_FPCLASS_PINF);  // weird #define for infinity
+	EXPECT_EQ(MathUtil::ClassifyDouble(-HUGE_VAL),  MathUtil::PPC_FPCLASS_NINF);
+	EXPECT_EQ(MathUtil::ClassifyDouble(sqrt(-1.0)), MathUtil::PPC_FPCLASS_QNAN);
+
+	// Float version
+	EXPECT_EQ(MathUtil::ClassifyFloat(1.0f),        MathUtil::PPC_FPCLASS_PN);
+	EXPECT_EQ(MathUtil::ClassifyFloat(-1.0f),       MathUtil::PPC_FPCLASS_NN);
+	EXPECT_EQ(MathUtil::ClassifyFloat(1235223.0f),  MathUtil::PPC_FPCLASS_PN);
+	EXPECT_EQ(MathUtil::ClassifyFloat(-1263221.0f), MathUtil::PPC_FPCLASS_NN);
+	EXPECT_EQ(MathUtil::ClassifyFloat(1.0E-43f),    MathUtil::PPC_FPCLASS_PD);
+	EXPECT_EQ(MathUtil::ClassifyFloat(-1.0E-43f),   MathUtil::PPC_FPCLASS_ND);
+	EXPECT_EQ(MathUtil::ClassifyFloat(0.0f),        MathUtil::PPC_FPCLASS_PZ);
+	EXPECT_EQ(MathUtil::ClassifyFloat(-0.0f),       MathUtil::PPC_FPCLASS_NZ);
+	EXPECT_EQ(MathUtil::ClassifyFloat((float)HUGE_VAL),  MathUtil::PPC_FPCLASS_PINF);  // weird #define for infinity
+	EXPECT_EQ(MathUtil::ClassifyFloat((float)-HUGE_VAL), MathUtil::PPC_FPCLASS_NINF);
+	EXPECT_EQ(MathUtil::ClassifyFloat(sqrtf(-1.0f)),     MathUtil::PPC_FPCLASS_QNAN);
 
 	EXPECT_FALSE(MathUtil::IsNAN(1.0));
 	EXPECT_TRUE(MathUtil::IsNAN(sqrt(-1.0)));
 	EXPECT_FALSE(MathUtil::IsSNAN(sqrt(-1.0)));
+
 	// EXPECT_TRUE(MathUtil::IsQNAN(sqrt(-1.0)));  // Hmm...
 	EXPECT_EQ(pow2(2.0), 4.0);
 	EXPECT_EQ(pow2(-2.0), 4.0);

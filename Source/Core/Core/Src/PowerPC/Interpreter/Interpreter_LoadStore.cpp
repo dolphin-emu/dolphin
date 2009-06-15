@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "MathUtil.h"
+
 #include "../../HW/Memmap.h"
 #include "../../HW/CommandProcessor.h"
 #include "../../HW/PixelEngine.h"
@@ -92,16 +95,18 @@ void lfdx(UGeckoInstruction _inst)
 void lfs(UGeckoInstruction _inst)
 {
 	u32 uTemp = Memory::Read_U32(Helper_Get_EA(_inst));
-	rPS0(_inst.FD) = *(float*)&uTemp;
-	rPS1(_inst.FD) = rPS0(_inst.FD);
+	double value = *(float*)&uTemp;
+	rPS0(_inst.FD) = value;
+	rPS1(_inst.FD) = value;
 }
 
 void lfsu(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_U(_inst);
 	u32 uTemp = Memory::Read_U32(uAddress);
-	rPS0(_inst.FD) = *(float*)&uTemp;
-	rPS1(_inst.FD) = rPS0(_inst.FD);
+	double value = *(float*)&uTemp;
+	rPS0(_inst.FD) = value;
+	rPS1(_inst.FD) = value;
 	m_GPR[_inst.RA] = uAddress;
 }
 
@@ -109,16 +114,18 @@ void lfsux(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_UX(_inst);
 	u32 uTemp = Memory::Read_U32(uAddress);
-	rPS0(_inst.FD) = *(float*)&uTemp;
-	rPS1(_inst.FD) = rPS0(_inst.FD);
+	double value = *(float*)&uTemp;
+	rPS0(_inst.FD) = value;
+	rPS1(_inst.FD) = value;
 	m_GPR[_inst.RA] = uAddress;
 }
 
 void lfsx(UGeckoInstruction _inst)
 {
 	u32 uTemp = Memory::Read_U32(Helper_Get_EA_X(_inst));
-	rPS0(_inst.FD) = *(float*)&uTemp;
-	rPS1(_inst.FD) = rPS0(_inst.FD);
+	double value = *(float*)&uTemp;
+	rPS0(_inst.FD) = value;
+	rPS1(_inst.FD) = value;
 }
 
 void lha(UGeckoInstruction _inst)
@@ -227,7 +234,8 @@ void stfdu(UGeckoInstruction _inst)
 
 void stfs(UGeckoInstruction _inst)
 {
-	float fTemp = (float)rPS0(_inst.FS);
+	double value = rPS0(_inst.FS);
+	float fTemp = (float)value;
 	Memory::Write_U32(*(u32*)&fTemp, Helper_Get_EA(_inst));
 }
 
@@ -453,27 +461,20 @@ void stfiwx(UGeckoInstruction _inst)
 	Memory::Write_U32((u32)riPS0(_inst.FS), uAddress);
 }
 
-// __________________________________________________________________________________________________
-// stfsux
-//
-// no paired ??
-//
+
 void stfsux(UGeckoInstruction _inst)
 {
-	float fTemp = (float)rPS0(_inst.FS);
+	double value = rPS0(_inst.FS);
+	float fTemp = (float)value;
 	u32 uAddress = Helper_Get_EA_UX(_inst);
 	Memory::Write_U32(*(u32*)&fTemp, uAddress);
 	m_GPR[_inst.RA] = uAddress;
 }
 
-// __________________________________________________________________________________________________
-// stfsx
-//
-// no paired ??
-//
 void stfsx(UGeckoInstruction _inst)
 {
-	float fTemp = (float)rPS0(_inst.FS);
+	double value = rPS0(_inst.FS);
+	float fTemp = (float)value;
 	Memory::Write_U32(*(u32 *)&fTemp, Helper_Get_EA_X(_inst));
 }
 

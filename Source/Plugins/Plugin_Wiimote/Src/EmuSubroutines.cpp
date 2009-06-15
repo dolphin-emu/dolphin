@@ -285,8 +285,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 					size, address, (address & 0xffff), Tmp.c_str());*/
 			break;
 		default:
-			ERROR_LOG(WII_IPC_WIIMOTE, "WmWriteData: bad register block!");
-			PanicAlert("WmWriteData: bad register block!");
+			ERROR_LOG(WII_IPC_WIIMOTE, "WmReadData: bad register block!");
+			PanicAlert("WmReadData: bad register block!");
 			return;
 		}
 
@@ -340,6 +340,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
 }
+
 // ===================================================
 /* Here we produce the actual 0x21 Input report that we send to the Wii. The message
    is divided into 16 bytes pieces and sent piece by piece. There will be five formatting

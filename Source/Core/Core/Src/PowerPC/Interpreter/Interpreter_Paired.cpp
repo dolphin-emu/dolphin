@@ -16,8 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <math.h>
+#include "Common.h"
+#include "MathUtil.h"
 #include "Interpreter.h"
 #include "../../HW/Memmap.h"
+
+using namespace MathUtil;
 
 namespace Interpreter
 {
@@ -25,32 +29,39 @@ namespace Interpreter
 // These "binary instructions" do not alter FPSCR.
 void ps_sel(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>((rPS0(_inst.FA) >= -0.0) ? rPS0(_inst.FC) : rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>((rPS1(_inst.FA) >= -0.0) ? rPS1(_inst.FC) : rPS1(_inst.FB));
+	rPS0(_inst.FD) = !IsNAN(rPS0(_inst.FA)) && rPS0(_inst.FA) >= -0.0 ?
+		              rPS0(_inst.FC) : rPS0(_inst.FB);
+	rPS1(_inst.FD) = !IsNAN(rPS1(_inst.FA)) && rPS1(_inst.FA) >= -0.0 ?
+		              rPS1(_inst.FC) : rPS1(_inst.FB);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_neg(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) ^ (1ULL << 63);
 	riPS1(_inst.FD) = riPS1(_inst.FB) ^ (1ULL << 63);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_mr(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FB);
 	rPS1(_inst.FD) = rPS1(_inst.FB);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nabs(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63); 
 	riPS1(_inst.FD) = riPS1(_inst.FB) | (1ULL << 63); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_abs(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) &~ (1ULL << 63); 
 	riPS1(_inst.FD) = riPS1(_inst.FB) &~ (1ULL << 63); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 // These are just moves, double is OK.
@@ -60,6 +71,7 @@ void ps_merge00(UGeckoInstruction _inst)
 	double p1 = rPS0(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_merge01(UGeckoInstruction _inst)
@@ -68,6 +80,7 @@ void ps_merge01(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_merge10(UGeckoInstruction _inst)
@@ -76,6 +89,7 @@ void ps_merge10(UGeckoInstruction _inst)
 	double p1 = rPS0(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_merge11(UGeckoInstruction _inst)
@@ -84,6 +98,7 @@ void ps_merge11(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 
@@ -97,63 +112,75 @@ void ps_div(UGeckoInstruction _inst)
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
 		FPSCR.ZX = 1;
 	}
-}
-
-void ps_sub(UGeckoInstruction _inst)
-{
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) - rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) - rPS1(_inst.FB));
-}
-
-void ps_add(UGeckoInstruction _inst)
-{
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) + rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) + rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_res(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = 1.0f / static_cast<float>(rPS0(_inst.FB));
 	rPS1(_inst.FD) = 1.0f / static_cast<float>(rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+}
+
+void ps_rsqrte(UGeckoInstruction _inst)
+{
+	// PanicAlert("ps_rsqrte");
+	rPS0(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS0(_inst.FB)));
+	rPS1(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS1(_inst.FB)));
+	if (fabs(rPS0(_inst.FB)) == 0.0) {
+		FPSCR.ZX = 1;
+	}
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+}
+
+void ps_sub(UGeckoInstruction _inst)
+{
+	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) - rPS0(_inst.FB));
+	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) - rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+}
+
+void ps_add(UGeckoInstruction _inst)
+{
+	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) + rPS0(_inst.FB));
+	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) + rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_mul(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) * rPS0(_inst.FC));
 	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) * rPS1(_inst.FC));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void ps_rsqrte(UGeckoInstruction _inst)
-{
-	rPS0(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS0(_inst.FB)));
-	rPS1(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS1(_inst.FB)));
-	if (fabs(rPS0(_inst.FB)) == 0.0) {
-		FPSCR.ZX = 1;
-	}
-}
 
 void ps_msub(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
 	rPS1(_inst.FD) = static_cast<float>((rPS1(_inst.FA) * rPS1(_inst.FC)) - rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madd(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB));
 	rPS1(_inst.FD) = static_cast<float>((rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nmsub(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>(-(rPS0(_inst.FA) * rPS0(_inst.FC) - rPS0(_inst.FB)));
 	rPS1(_inst.FD) = static_cast<float>(-(rPS1(_inst.FA) * rPS1(_inst.FC) - rPS1(_inst.FB)));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nmadd(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>(-(rPS0(_inst.FA) * rPS0(_inst.FC) + rPS0(_inst.FB)));
 	rPS1(_inst.FD) = static_cast<float>(-(rPS1(_inst.FA) * rPS1(_inst.FC) + rPS1(_inst.FB)));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_sum0(UGeckoInstruction _inst)
@@ -162,6 +189,7 @@ void ps_sum0(UGeckoInstruction _inst)
 	double p1 = (float)(rPS1(_inst.FC));
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_sum1(UGeckoInstruction _inst)
@@ -170,6 +198,7 @@ void ps_sum1(UGeckoInstruction _inst)
 	double p1 = rPS0(_inst.FA) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_muls0(UGeckoInstruction _inst)
@@ -178,6 +207,7 @@ void ps_muls0(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FA) * rPS0(_inst.FC);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_muls1(UGeckoInstruction _inst)
@@ -186,6 +216,7 @@ void ps_muls1(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FA) * rPS1(_inst.FC);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madds0(UGeckoInstruction _inst)
@@ -194,6 +225,7 @@ void ps_madds0(UGeckoInstruction _inst)
 	double p1 = (rPS1(_inst.FA) * rPS0(_inst.FC)) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madds1(UGeckoInstruction _inst)
@@ -202,6 +234,7 @@ void ps_madds1(UGeckoInstruction _inst)
 	double p1 = (rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpu0(UGeckoInstruction _inst)
@@ -209,10 +242,12 @@ void ps_cmpu0(UGeckoInstruction _inst)
 	double fa = rPS0(_inst.FA);
 	double fb = rPS0(_inst.FB);
 	int compareResult;
-	if (fa < fb)		compareResult = 8; 
-	else if (fa > fb) 	compareResult = 4; 
-	else				compareResult = 2;
+	if (IsNAN(fa) || IsNAN(fb)) compareResult = 1;
+	else if (fa < fb)         	compareResult = 8; 
+	else if (fa > fb)        	compareResult = 4; 
+	else			        	compareResult = 2;
 	SetCRField(_inst.CRFD, compareResult);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpo0(UGeckoInstruction _inst)
@@ -226,10 +261,12 @@ void ps_cmpu1(UGeckoInstruction _inst)
 	double fa = rPS1(_inst.FA);
 	double fb = rPS1(_inst.FB);
 	int compareResult;
-	if (fa < fb)		compareResult = 8; 
-	else if (fa > fb)	compareResult = 4; 
-	else				compareResult = 2;
+	if (IsNAN(fa) || IsNAN(fb)) compareResult = 1;
+	else if (fa < fb)         	compareResult = 8; 
+	else if (fa > fb)        	compareResult = 4; 
+	else			        	compareResult = 2;
 	SetCRField(_inst.CRFD, compareResult);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpo1(UGeckoInstruction _inst)

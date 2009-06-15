@@ -493,7 +493,7 @@ void divwux(UGeckoInstruction _inst)
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
 
-	if (b == 0 || (a == 0x80000000 && b == 0xFFFFFFFF))
+	if (b == 0) // || (a == 0x80000000 && b == 0xFFFFFFFF))
 	{
 		if (_inst.OE) 
 			PanicAlert("OE: divwux");

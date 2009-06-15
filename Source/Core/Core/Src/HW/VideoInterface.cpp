@@ -338,7 +338,9 @@ static u32 LineCount = 0;
 static u32 LinesPerField = 0;
 static u64 LastTime = 0;
 static u32 NextXFBRender = 0;
-int TargetRefreshRate = 0, SyncTicksProgress = 0; float ActualRefreshRate = 0.0;
+int TargetRefreshRate = 0;
+s64 SyncTicksProgress = 0;
+float ActualRefreshRate = 0.0;
 
 void DoState(PointerWrap &p)
 {
@@ -1042,23 +1044,24 @@ void UpdateTiming()
 // Run when: This is run 7200 times per second on full speed
 void Update()
 {
-	
 	// Update the target refresh rate
 	TargetRefreshRate = (m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
 		? 60 : 50;
 
 	// Calculate actual refresh rate
 	static u64 LastTick = 0;
-	static int UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
+	static s64 UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
 	if (UpdateCheck < (int)timeGetTime())
 	{
 		UpdateCheck = timeGetTime() + 1000;
 		TickProgress = CoreTiming::GetTicks() - LastTick;
 		// Calculated CPU-GPU synced ticks for the dual core mode too
-		NOTICE_LOG(VIDEO, "Removed: %s Mhz", ThS(SyncTicksProgress / 1000000, false).c_str());
+		// NOTICE_LOG(VIDEO, "Removed: %s Mhz", ThS(SyncTicksProgress / 1000000, false).c_str());
 		SyncTicksProgress += TickProgress;
 		// Multipled by two because of the way TicksPerFrame is calculated (divided by 25 and 30
 		// rather than 50 and 60)
+
+		// TODO : Feed the FPS estimate into Iulius' framelimiter.
 		ActualRefreshRate = ((float)SyncTicksProgress / (float)TicksPerFrame) * 2.0;		
 		LastTick = CoreTiming::GetTicks();
 		SyncTicksProgress = 0;

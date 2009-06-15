@@ -123,6 +123,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\tests\dsp_base.inc"
+			>
+		</File>
+		<File
 			RelativePath=".\dsp_interface.cpp"
 			>
 		</File>

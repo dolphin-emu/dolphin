@@ -98,12 +98,9 @@ enum PPCFpClass
 
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
-int ClassifyFP(double dvalue);
-
-// TODO: More efficient float version.
-inline int ClassifyFP(float fvalue) {
-	ClassifyFP((double)fvalue);
-}
+int ClassifyDouble(double dvalue);
+// More efficient float version.
+int ClassifyFloat(float fvalue);
 
 }  // namespace MathUtil
 

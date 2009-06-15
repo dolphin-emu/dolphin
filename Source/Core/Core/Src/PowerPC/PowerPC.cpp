@@ -363,7 +363,7 @@ void OnIdleIL()
 
 void UpdateFPRF(double dvalue)
 {
-	FPSCR.FPRF = MathUtil::ClassifyFP(dvalue);
+	FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
 	//if (FPSCR.FPRF == 0x11)
 	//	PanicAlert("QNAN alert");
 }
