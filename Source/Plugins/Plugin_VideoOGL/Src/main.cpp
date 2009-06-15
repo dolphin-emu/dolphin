@@ -379,9 +379,10 @@ void Shutdown(void)
 	OpenGL_Shutdown();
 }
 
-// -------------------------------
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Enter and exit the video loop
-// -------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -391,13 +392,27 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Screenshot and screen message
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_Screenshot(const char *_szFilename)
 {
 	Renderer::SetScreenshot(_szFilename);
 }
 
+void Video_AddMessage(const char* pstr, u32 milliseconds)
+{
+	OSD::AddMessage(pstr, milliseconds);
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Run from the CPU thread (from VideoInterface.cpp) for certain homebrew games only
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
 	if (g_Config.bUseXFB && XFB_isInit())
@@ -422,8 +437,4 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 		}
 	}
 }
-
-void Video_AddMessage(const char* pstr, u32 milliseconds)
-{
-	OSD::AddMessage(pstr, milliseconds);
-}
+/////////////////////////////////////////////////////////////////////////////////////////

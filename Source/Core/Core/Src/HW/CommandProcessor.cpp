@@ -641,7 +641,7 @@ void STACKALIGN GatherPipeBursted()
 }
 
 
-
+// This is mostly used in single core mode
 void CatchUpGPU()
 {
 	// check if we are able to run this buffer

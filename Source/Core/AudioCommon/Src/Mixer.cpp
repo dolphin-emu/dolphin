@@ -92,14 +92,16 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 
 	// Write Other Audio
 	if (!m_throttle)
-		return;
+		return;	
 	
-	
+	// -----------------------------------------------------------------------	
+	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	/* This is only needed for non-AX sound, currently directly
 	   streamed and DTK sound. For AX we call SoundStream::Update in
 	   AXTask() for example. */
-	while (m_queueSize > queue_maxlength / 2) {
-
+	while (m_queueSize > queue_maxlength / 2)
+	{
 		// Urgh.
 		if (g_dspInitialize.pEmulatorState) {
 			if (*g_dspInitialize.pEmulatorState != 0) 
@@ -108,7 +110,8 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 		soundStream->Update();
 		Common::SleepCurrentThread(0);
 	}
-	
+	// -----------------------------------------------------------------------
+
 	push_sync.Enter();
 	while (num_stereo_samples) {
 		acc += core_sample_rate;

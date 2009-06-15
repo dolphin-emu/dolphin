@@ -258,7 +258,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 }
 
 // SetFinish
-// THIS IS EXECUTED FROM VIDEO THREAD
+// THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
 	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack

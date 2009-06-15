@@ -52,6 +52,7 @@ namespace VideoInterface
 
     // Update and draw framebuffer(s)
     void Update();
+	extern float ActualRefreshRate; extern int TargetRefreshRate, SyncTicksProgress;
 
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt
 	void UpdateInterrupts();

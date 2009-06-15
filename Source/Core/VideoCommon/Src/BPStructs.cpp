@@ -160,7 +160,8 @@ void BPWritten(const Bypass& bp)
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
 			break;
 		}
-	case BPMEM_SETDRAWDONE: // This is called when the game is done drawing (eg: like in DX: Begin(); Draw(); End();)
+	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
+	case BPMEM_SETDRAWDONE: 
 		switch (bp.newvalue & 0xFF)
         {
         case 0x02:

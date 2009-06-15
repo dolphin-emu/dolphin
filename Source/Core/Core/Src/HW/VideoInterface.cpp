@@ -28,6 +28,9 @@
 #include "../PluginManager.h"
 #include "../CoreTiming.h"
 #include "../HW/SystemTimers.h"
+#include "StringUtil.h"
+
+#include <mmsystem.h>
 
 namespace VideoInterface
 {
@@ -336,7 +339,7 @@ static u32 LineCount = 0;
 static u32 LinesPerField = 0;
 static u64 LastTime = 0;
 static u32 NextXFBRender = 0;
-
+int TargetRefreshRate = 0, SyncTicksProgress = 0; float ActualRefreshRate = 0.0;
 
 void DoState(PointerWrap &p)
 {
@@ -965,6 +968,7 @@ void UpdateInterrupts()
 	}
 }
 
+// This function is unused
 void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 {
 	switch(_VIInterrupt)
@@ -1001,6 +1005,10 @@ u8* GetXFBPointerBottom()
 		return Memory::GetPointer(m_XFBInfoBottom.FBB);
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Screenshot and screen message
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void UpdateTiming()
 {
     switch (m_DisplayControlRegister.FMT)
@@ -1027,9 +1035,42 @@ void UpdateTiming()
         break;
     }
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Purpose 1: Send VI interrupt for every screen refresh
+// Purpose 2: Execute XFB copy in homebrew games
+// Run when: This is run 7200 times per second on full speed
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Update()
 {
+	// -----------------------------------------------------------------------
+	// Calculate actual refresh rate
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// Update the target refresh rate
+	TargetRefreshRate = (m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
+		? 60 : 50;
+
+	// Calculate actual refresh rate
+	static u64 LastTick = 0;
+	static int UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
+	if (UpdateCheck < timeGetTime())
+	{
+		UpdateCheck = timeGetTime() + 1000;
+		TickProgress = CoreTiming::GetTicks() - LastTick;
+		// Calculated CPU-GPU synced ticks for the dual core mode too
+		NOTICE_LOG(VIDEO, "Removed: %s Mhz", ThS(SyncTicksProgress / 1000000, false).c_str());
+		SyncTicksProgress += TickProgress;
+		// Multipled by two because of the way TicksPerFrame is calculated (divided by 25 and 30
+		// rather than 50 and 60)
+		ActualRefreshRate = ((float)SyncTicksProgress / (float)TicksPerFrame) * 2.0;		
+		LastTick = CoreTiming::GetTicks();
+		SyncTicksProgress = 0;
+	}
+	// -----------------------------------------------------------------------
+
+	// Go through all lines
     while ((CoreTiming::GetTicks() - LastTime) > (TicksPerFrame / LineCount))
     {
         LastTime += (TicksPerFrame / LineCount);
@@ -1101,5 +1142,6 @@ void Update()
         }
     }
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace

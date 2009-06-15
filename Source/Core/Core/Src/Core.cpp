@@ -29,6 +29,7 @@
 #include "Timer.h"
 #include "Common.h"
 #include "StringUtil.h"
+#include "MathUtil.h"
 
 #include "Console.h"
 #include "Core.h"
@@ -672,61 +673,143 @@ void Callback_VideoCopiedToXFB()
 
 	frames++;
 
+	// -----------------------------------------------------------------------
+	// Custom frame limiter
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (targetfps > 0)
 	{	
 		new_frametime = Timer.GetTimeDifference() - old_frametime;
-
 		old_frametime = Timer.GetTimeDifference();
-
 		wait_frametime = (1000/targetfps) - (u16)new_frametime;
 		if (targetfps < 35)
 			wait_frametime--;
 		if (wait_frametime > 0)
 			Common::SleepCurrentThread(wait_frametime*2);
 	}
+	// -----------------------------------------------------------------------
+
+	// -----------------------------------------------------------------------	
+	// Is it possible to calculate the CPU-GPU synced ticks for the dual core mode too?
+	// And possible the idle skipping mode too?
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	static int Diff = 0, DistOld = 0;
+	Diff = CommandProcessor::fifo.CPReadWriteDistance - DistOld;
+	// If the CPReadWriteDistance has increased since the last frame we assume the CPU has raced
+	// ahead of the GPU and we adjust the ticks. Why multiply the difference with 700? I don't know,
+	// please fix it if possible.
+	if (Diff > 0) VideoInterface::SyncTicksProgress -= Diff * 700;
+	DistOld = CommandProcessor::fifo.CPReadWriteDistance;
+	// -----------------------------------------------------------------------
 
 	if (Timer.GetTimeDifference() >= 1000)
 	{
-		old_frametime=0;
-
-		u64 newTicks = CoreTiming::GetTicks();
-		u64 newIdleTicks = CoreTiming::GetIdleTicks();
-
-		s64 diff = (newTicks - ticks) / 1000000;
-		s64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-
-		ticks = newTicks;
-		idleTicks = newIdleTicks;
- 
+		// Time passed
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
 
-		char temp[256];
-		sprintf(temp, "FPS:%8.2f - Core: %s | %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
-			(float)frames / t, 
-#if defined(JITTEST) && JITTEST
-#ifdef _M_IX86
-			_CoreParameter.bUseJIT ? "JIT32IL" : "Int32", 
-#else
-			_CoreParameter.bUseJIT ? "JIT64IL" : "Int64", 
-#endif
-#else
-#ifdef _M_IX86
-			_CoreParameter.bUseJIT ? "JIT32" : "Int32", 
-#else
-			_CoreParameter.bUseJIT ? "JIT64" : "Int64", 
-#endif
-#endif
-			_CoreParameter.bUseDualCore ? "DC" : "SC",
-			(int)(diff),
-			(int)(diff - idleDiff),
-			(int)(idleDiff),
-			SystemTimers::GetTicksPerSecond() / 1000000);
- 
+		// Use extended or summary information. The summary information does not print the ticks data,
+		// that's more of a debugging interest, it can always be optional of course if someone is interested.
+		//#define EXTENDED_INFO
+		#ifdef EXTENDED_INFO
+			u64 newTicks = CoreTiming::GetTicks();
+			u64 newIdleTicks = CoreTiming::GetIdleTicks();
+	 
+			s64 diff = (newTicks - ticks) / 1000000;
+			s64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
+	 
+			ticks = newTicks;
+			idleTicks = newIdleTicks;	 
+			
+			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
+		#endif
+
+		float FPS = (float)frames / t;
+		float FPS_To_VPS_Rate = ((float)FPS / VideoInterface::ActualRefreshRate);
+		// ---------------------------------------------------------------------
+		// For the sake of the dual core mode calculate an average to somewhat reduce the variations
+		// in the FPS/VPS rate
+		// ______________________________
+		/**/
+		if (_CoreParameter.bUseDualCore)
+		{
+			static std::vector <float> FPSVPSList;
+			static float AverageOver = 5.0;
+			if (FPSVPSList.size() == AverageOver) FPSVPSList.erase(FPSVPSList.begin());
+			FPSVPSList.push_back(FPS_To_VPS_Rate);
+			if (FPSVPSList.size() == AverageOver)
+				FPS_To_VPS_Rate = MathFloatVectorSum(FPSVPSList) / AverageOver;
+		}
+		
+		// ---------------------------------------------------------------------
+		// Correct the FPS/VPS rate for temporary CPU-GPU timing variations. This rate can only be 1/Integer
+		// so we set it to either 0.33, 0.5 or 1.0 depending on which it's closest to.
+		/*
+			1. Notice: This rate can currently not be calculated with any accuracy at all when idle skipping
+			   is on (the suggested tick rate in that case is much to high in proportion to the actual FPS)
+			2. When dual core is enabled the CommandProcessor allow some elasticity in the FPS/VPS rate. This
+			   is especially noticable in Zelda TP who's FPS/VPS for me varies between 0.25 and 0.6 as a
+			   result of this.
+			3. PAL 50Hz games: Are 'patched' so that they still run at the correct speed. So if the NTSC 60Hz
+			   version has a FPS/VPS of 0.5 the 50Hz game will run at 0.6.
+		*/
+		// ______________________________
+		/**/
+		if (FPS_To_VPS_Rate > 0 && FPS_To_VPS_Rate < ((1.0/3.0 + 1.0/2.0)/2)) FPS_To_VPS_Rate = 1.0/3.0;
+		else if (FPS_To_VPS_Rate > ((1.0/3.0 + 1.0/2.0)/2) && FPS_To_VPS_Rate < ((1.0/2.0 + 1.0/1.0)/2)) FPS_To_VPS_Rate = 1.0/2.0;
+		else FPS_To_VPS_Rate = 1.0;	
+		// PAL patch adjustment
+		if (VideoInterface::TargetRefreshRate == 50) FPS_To_VPS_Rate = FPS_To_VPS_Rate * 1.2;
+		
+		// ---------------------------------------------------------------------
+		float TargetFPS = FPS_To_VPS_Rate * (float)VideoInterface::TargetRefreshRate;
+		float FPSPercentage = (FPS / TargetFPS) * 100.0;
+		float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0;
+		
+		// Settings are shown the same for both extended and summary info
+		std::string SSettings = StringFromFormat(" | Core: %s %s",
+			#if defined(JITTEST) && JITTEST
+				#ifdef _M_IX86
+							_CoreParameter.bUseJIT ? "JIT32IL" : "Int32", 
+				#else
+							_CoreParameter.bUseJIT ? "JIT64IL" : "Int64", 
+				#endif
+			#else
+				#ifdef _M_IX86
+							_CoreParameter.bUseJIT ? "JIT32" : "Int32",
+				#else
+							_CoreParameter.bUseJIT ? "JIT64" : "Int64",
+				#endif
+			#endif
+			_CoreParameter.bUseDualCore ? "DC" : "SC");
+		// Show ~ to indicate that the value may be wrong because the ticks are wrong
+		std::string IdleSkipMessage = "";
+		if (_CoreParameter.bSkipIdle || _CoreParameter.bUseDualCore) IdleSkipMessage = "~";
+		#ifdef EXTENDED_INFO
+			std::string SFPS = StringFromFormat("FPS: %4.1f/%s%2.0f (%s%3.0f%% | %s%1.2f) VPS:%4.0f/%i (%3.0f%%)",
+				FPS, IdleSkipMessage.c_str(), TargetFPS,
+				IdleSkipMessage.c_str(), FPSPercentage, IdleSkipMessage.c_str(), FPS_To_VPS_Rate, 
+				VideoInterface::ActualRefreshRate, VideoInterface::TargetRefreshRate, VPSPercentage);
+			std::string STicks = StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
+					IdleSkipMessage.c_str(),
+					(int)(diff),
+					(int)(diff - idleDiff),
+					(int)(idleDiff),
+					SystemTimers::GetTicksPerSecond() / 1000000,
+					IdleSkipMessage.c_str(),
+					TicksPercentage);
+		// Summary information
+		#else
+			std::string SFPS = StringFromFormat("FPS: %4.1f/%s%2.0f (%s%3.0f%%)",
+				FPS, IdleSkipMessage.c_str(), TargetFPS, IdleSkipMessage.c_str(), FPSPercentage);
+			std::string STicks = ""; 
+		#endif
+
+			std::string SMessage = StringFromFormat("%s%s%s", SFPS.c_str(), SSettings.c_str(), STicks.c_str());
+
+		// Show message
 		if (g_pUpdateFPSDisplay != NULL)
-		    g_pUpdateFPSDisplay(temp);
- 
-		Host_UpdateStatusBar(temp);
- 
+			g_pUpdateFPSDisplay(SMessage.c_str()); 
+		Host_UpdateStatusBar(SMessage.c_str());
+		// Reset frame counter
 		frames = 0;
         Timer.Update();
 	}

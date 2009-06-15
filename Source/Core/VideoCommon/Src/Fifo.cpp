@@ -76,26 +76,6 @@ u8* FAKE_GetFifoEndPtr()
 	return &videoBuffer[size];
 }
 
-// The loop in EnterLoop sends data through this function.
-// TODO: Possibly inline it? This one is exported so it will likely not be inlined at all.
-void Video_SendFifoData(u8* _uData, u32 len)
-{
-    if (size + len >= FIFO_SIZE)
-    {
-		int pos = (int)(g_pVideoData - videoBuffer);
-        if (size - pos > pos)
-        {
-            PanicAlert("FIFO out of bounds (sz = %i, at %08x)", size, pos);
-        }
-        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos);
-        size -= pos;
-		g_pVideoData = FAKE_GetFifoStartPtr();
-    }
-    memcpy(videoBuffer + size, _uData, len);
-    size += len;
-    OpcodeDecoder_Run();
-}
-
 // Executed from another thread, no the graphics thread!
 // Basically, all it does is set a flag so that the loop will eventually exit, then
 // waits for the event to be set, which happens when the loop does exit.
@@ -124,7 +104,35 @@ void Fifo_ExitLoopNonBlocking() {
 	fifoStateRun = false;
 }
 
-// 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description: Fifo_EnterLoop() sends data through this function.
+// TODO: Possibly inline it? This one is exported so it will likely not be inlined at all.
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void Video_SendFifoData(u8* _uData, u32 len)
+{
+    if (size + len >= FIFO_SIZE)
+    {
+		int pos = (int)(g_pVideoData - videoBuffer);
+        if (size - pos > pos)
+        {
+            PanicAlert("FIFO out of bounds (sz = %i, at %08x)", size, pos);
+        }
+        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos);
+        size -= pos;
+		g_pVideoData = FAKE_GetFifoStartPtr();
+    }
+	// Copy new video instructions to videoBuffer for future use in rendering the new picture
+    memcpy(videoBuffer + size, _uData, len);
+    size += len;
+    OpcodeDecoder_Run();
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Description: Main FIFO update loop
+// Purpose: Keep the Core HW updated about the CPU-GPU distance
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     fifoStateRun = true;
@@ -160,7 +168,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					video_initialize.pPeekMessages();
 					peek_counter = 0;
 				}
-                // read the data and send it to the VideoPlugin
+                // Create pointer to video data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
 
@@ -204,6 +212,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 						readPtr += distToSend; 
 #endif
 				}
+				// Execute new instructions found in uData
 				Video_SendFifoData(uData, distToSend);
                 Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
                 Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
@@ -217,3 +226,4 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		fifo_exit_event.SetTimer();
 	#endif
 }
+//////////////////////////////////////////////////////////////////////////////////////////

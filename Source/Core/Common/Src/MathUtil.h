@@ -121,6 +121,7 @@ inline double pow2(double x) {return x * x;}
 void SaveSSEState();
 void LoadSSEState();
 void LoadDefaultSSEState();
+float MathFloatVectorSum(std::vector<float>);
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 
