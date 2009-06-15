@@ -214,6 +214,7 @@ int main(int argc, const char *argv[])
 		printf("-? / --help: Prints this message\n");
 		printf("-d: Disassemble\n");
 		printf("-m: Input file contains a list of files (Header assembly only)\n");
+		printf("-s: Print the final size in bytes (only)\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
 		return 0;
@@ -229,7 +230,7 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false, compare = false, multiple = false;
+	bool disassemble = false, compare = false, multiple = false, outputSize = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -240,6 +241,8 @@ int main(int argc, const char *argv[])
 			output_header_name = argv[++i];
 		else if (!strcmp(argv[i], "-c"))
 			compare = true;
+		else if (!strcmp(argv[i], "-s"))
+			outputSize = true;
 		else if (!strcmp(argv[i], "-m"))
 			multiple = true;
 		else 
@@ -258,7 +261,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	if(multiple && (compare || disassemble || output_header_name.empty() ||
+	if(multiple && (compare || disassemble || !output_name.empty() ||
 					input_name.empty())) {
 		printf("ERROR: Multiple files can only be used with assembly "
 			"and must compile a header file.\n");
@@ -352,6 +355,8 @@ int main(int argc, const char *argv[])
 									files[i].c_str());
 							lines--;
 						}
+						if(outputSize)
+							printf("%s: %d\n", files[i].c_str(), codes[i].size());
 					}
 				}
 				
@@ -370,6 +375,9 @@ int main(int argc, const char *argv[])
 					return 1;
 				}
 
+				if(outputSize)
+					printf("%s: %d\n", input_name.c_str(), code.size());
+				
 				if (!output_name.empty())
 				{
 					std::string binary_code;
@@ -387,7 +395,8 @@ int main(int argc, const char *argv[])
 		source.clear();
 	}
 
-	printf("Assembly completed successfully!\n");
+	if(!outputSize)
+		printf("Assembly completed successfully!\n");
 
 	return 0;
 }

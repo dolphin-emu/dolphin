@@ -20,47 +20,22 @@ sub parseString {
 sub generateSRFull {
 	my $res = shift;
 	my $body = shift;
+	my $start = shift;
+	my $end = shift;
 	
-    $res .= join "\n", map {my $b = sprintf "\#0x%04X", $_; (my $a = $body) =~ s/\@SR\@/$b/g; $a} 1..65535;
+    $res .= join "\n", map {my $b = sprintf "\#0x%04X", $_; (my $a = $body) =~ s/\@SR\@/$b/g; $a} $start..$end;
 
 	return $res;
 }
 
-sub generateTest {
-	my $type = shift;
-	my $header = shift;
-	my $body = shift;
-
-	if ($type eq "srfull") {
-		return generateSRFull($header, $body);
-	}
-}
-
 sub calculateLines {
-	my $text = shift;
-	my $lines = 0;
-	my $incdir = "./";
+	my $file = shift;
+
+	my @lines = `dsptool -s $file`;
+	$lines[0] =~ /:\s*(.*)/;
+	my $lnum = $1;
 	
-	foreach my $line (split /\n/, $text) {
-	    next if ($line =~ /^\S*$/);
-		next if ($line =~ /^\S*;/);
-		next if ($line =~ /:/);
-
-		if ($line =~ /incdir\s*\"(.*)\"/) {
-			$incdir = $1;
-		} elsif ($line =~ /include\s*\"(.*)\"/) {
-			my $incname = "$incdir/$1";
-			open(INCLUDE, "<$incname") ||
-				die("Can't open include file $incname: $!\n");
-   
-			my $include = join "", <INCLUDE>;
-			$lines += calculateLines($include);
-		} else {
-			$lines++;
-		}
-	}
-
-	return $lines;
+	return $lnum;
 }
 
 my ($cmds,$input,$output);
@@ -83,18 +58,38 @@ foreach my $cmd (split(/,/, $cmds)) {
 	my $desc = parseString($xtest->{'description'}, $cmd);
 
 	my $header = parseString($xtest->{'header'}, $cmd);
-	my $hsize = calculateLines($header);
+	open(OUTPUT, ">$name.tmp");
+	print OUTPUT $header;
+	close(OUTPUT);
+
+	my $hsize = calculateLines("$name.tmp");
 
 	my $body = parseString($xtest->{'body'}, $cmd);
-	my $bsize = calculateLines($body);
+	open(OUTPUT, ">$name.tmp");
+	print OUTPUT generateSRFull($header, $body, 1, 1);
+	close(OUTPUT);	
 
-	open(OUTPUT, ">$name.ds") ||
-		die("Can't open file $name for writing: $!\n");
+	my $bsize = calculateLines("$name.tmp") - $hsize;
+	unlink("$name.tmp");
 	
-	print OUTPUT "; $name\n";
-	print OUTPUT "; $desc\n";
-	my $test = generateTest($type, $header, $body);
-	print OUTPUT $test . "\n";
+	# how many tests we can fit in a ucode.
+	my $ucodes = int((0x1000 - $hsize) / $bsize);
+
+	open(NAMES, ">$name.lst");
+#	print NAMES "; $name\n";
+#	print NAMES "; $desc\n";
+
+
+	for(my $j = 1; $j < int((0xFFFF / $ucodes)+1); $j++) {
+		open(OUTPUT, ">$name$j.tst");
+		print OUTPUT generateSRFull($header, $body, $j*$ucodes, $j*($ucodes+1));
+		close(OUTPUT);	 
+		print NAMES "$name$j.tst\n";
+	}
+	     
+	close(NAMES);
+#	my $test = generateTest($type, $header, $body);
+#	print OUTPUT $test . "\n";
 	
 }
 

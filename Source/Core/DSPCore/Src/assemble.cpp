@@ -758,7 +758,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		return false;
 	}
 
-	printf("%s: Pass %d\n", fname, pass);
+	//printf("%s: Pass %d\n", fname, pass);
 	code_line = 0;
 	m_cur_pass = pass;
 
