@@ -3,8 +3,9 @@
 use strict;
 use XML::Simple;
 use Getopt::Long;
+use POSIX qw(ceil floor);
 
-use Data::Dumper;
+#use Data::Dumper;
 
 sub usage() {
 	die("createtest -i <test template> -c <command> \n");
@@ -22,7 +23,8 @@ sub generateSRFull {
 	my $body = shift;
 	my $start = shift;
 	my $end = shift;
-	
+	$end = 0xFFFF if ($end > 0xFFFF);
+
     $res .= join "\n", map {my $b = sprintf "\#0x%04X", $_; (my $a = $body) =~ s/\@SR\@/$b/g; $a} $start..$end;
 
 	return $res;
@@ -66,30 +68,32 @@ foreach my $cmd (split(/,/, $cmds)) {
 
 	my $body = parseString($xtest->{'body'}, $cmd);
 	open(OUTPUT, ">$name.tmp");
-	print OUTPUT generateSRFull($header, $body, 1, 1);
+	print OUTPUT generateSRFull($header, $body, 0, 0);
 	close(OUTPUT);	
 
 	my $bsize = calculateLines("$name.tmp") - $hsize;
 	unlink("$name.tmp");
 	
 	# how many tests we can fit in a ucode.
-	my $ucodes = int((0x1000 - $hsize) / $bsize);
+	my $ucodes = POSIX::floor((0x1000 - $hsize) / $bsize);
 
 	open(NAMES, ">$name.lst");
 #	print NAMES "; $name\n";
 #	print NAMES "; $desc\n";
 
-
-	for(my $j = 1; $j < int((0xFFFF / $ucodes)+1); $j++) {
+	for(my $j = 0; $j < POSIX::ceil(0xFFFF / $ucodes); $j++) {
 		open(OUTPUT, ">$name$j.tst");
-		print OUTPUT generateSRFull($header, $body, $j*$ucodes, $j*($ucodes+1));
+		print OUTPUT generateSRFull($header, $body, $j*$ucodes, 
+									($j+1)*$ucodes-1);
 		close(OUTPUT);	 
 		print NAMES "$name$j.tst\n";
 	}
-	     
+
 	close(NAMES);
-#	my $test = generateTest($type, $header, $body);
-#	print OUTPUT $test . "\n";
+
+	system("dsptool -m $name.lst -h $name");
+	unlink <$name*.tst>;
+	unlink "$name.lst";
 	
 }
 
