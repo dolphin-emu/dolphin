@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
  
  
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// 
 #ifdef _WIN32
 	#include <windows.h>
 #else
@@ -68,9 +65,9 @@
 namespace Core
 {
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Declarations and definitions
-// ------------
+
  
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
@@ -104,9 +101,9 @@ SCoreStartupParameter g_CoreStartupParameter;
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
 
-// -----------------------------------------
+
 #ifdef SETUP_TIMER_WAITING
-// -----------------
+
 	bool VideoThreadRunning = false;
 	bool StopUpToVideoDone = false;
 	bool EmuThreadReachedEnd = false;
@@ -115,11 +112,11 @@ Common::Event cpuRunloopQuit;
 	static Common::Event VideoThreadEvent2;
 	void EmuThreadEnd();
 #endif
-// ---------------------------
-//////////////////////////////////////
+
+
  
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Display messages and return values
 // 
 bool PanicAlertToVideo(const char* text, bool yes_no)
@@ -174,9 +171,9 @@ void ReconnectWiimote()
 	INFO_LOG(CONSOLE, "ReconnectWiimote()\n");
 }
 
-// -----------------------------------------
+
 #ifdef SETUP_TIMER_WAITING
-// -----------------
+
 	void VideoThreadEnd()
 	{
 		VideoThreadRunning = false;
@@ -185,13 +182,13 @@ void ReconnectWiimote()
 		//INFO_LOG(CONSOLE, "VideoThreadEnd\n");
 	}
 #endif
-// ---------------------------
-/////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
-// -----------------
+
 bool Init()
 {
 	if (g_EmuThread != NULL)
@@ -241,7 +238,6 @@ void Stop()
 #ifdef SETUP_TIMER_WAITING
 	if (!StopUpToVideoDone)
 	{
-	INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
 	INFO_LOG(CONSOLE, "Stop [Main Thread]:    Shutting down...\n");
 	// Reset variables
 	StopReachedEnd = false;
@@ -306,15 +302,13 @@ void Stop()
 	Host_UpdateGUI();
 	StopUpToVideoDone = false;
 	StopReachedEnd = true;
-	//INFO_LOG(CONSOLE, "Stop() reached the end\n");
-	if (EmuThreadReachedEnd) INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
 #endif
 }
 
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Create the CPU thread. For use with Single Core mode only.
-// ---------------
+
 THREAD_RETURN CpuThread(void *pArg)
 {
 	Common::SetCurrentThreadName("CPU thread");
@@ -346,12 +340,12 @@ THREAD_RETURN CpuThread(void *pArg)
 	cpuRunloopQuit.Set();
  	return 0;
 }
-//////////////////////////////////////////
+
 
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Initalize plugins and create emulation thread
-// -------------
+
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 THREAD_RETURN EmuThread(void *pArg)
 {
@@ -581,10 +575,8 @@ void EmuThreadEnd()
 		Host_UpdateMainFrame();
 #ifdef SETUP_TIMER_WAITING
 	EmuThreadReachedEnd = true;
-	//INFO_LOG(CONSOLE, "EmuThread() reached the end\n");
 	Host_UpdateGUI();
 	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Done\n");
-	if (StopReachedEnd) INFO_LOG(CONSOLE, "--------------------------------------------------------------\n");
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
 #endif
@@ -594,9 +586,9 @@ void EmuThreadEnd()
 }
  
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Set or get the running state
-// --------------
+
 void SetState(EState _State)
 {
 	switch (_State)
@@ -640,7 +632,7 @@ void LoadState() {
  
 // --- Callbacks for plugins / engine ---
  
-// __________________________________________________________________________________________________
+
 // Callback_VideoLog
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
 void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
@@ -648,7 +640,7 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 	INFO_LOG(VIDEO, _szMessage);
 }
  
-// __________________________________________________________________________________________________
+
 // Callback_VideoCopiedToXFB
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
 // We do not write to anything outside this function here
@@ -673,7 +665,7 @@ void Callback_VideoCopiedToXFB()
 
 	frames++;
 
-	// -----------------------------------------------------------------------
+	
 	// Custom frame limiter
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (targetfps > 0)
@@ -686,9 +678,9 @@ void Callback_VideoCopiedToXFB()
 		if (wait_frametime > 0)
 			Common::SleepCurrentThread(wait_frametime*2);
 	}
-	// -----------------------------------------------------------------------
+	
 
-	// -----------------------------------------------------------------------	
+		
 	// Is it possible to calculate the CPU-GPU synced ticks for the dual core mode too?
 	// And possible the idle skipping mode too?
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -699,7 +691,7 @@ void Callback_VideoCopiedToXFB()
 	// please fix it if possible.
 	if (Diff > 0) VideoInterface::SyncTicksProgress -= Diff * 700;
 	DistOld = CommandProcessor::fifo.CPReadWriteDistance;
-	// -----------------------------------------------------------------------
+	
 
 	if (Timer.GetTimeDifference() >= 1000)
 	{
@@ -724,10 +716,10 @@ void Callback_VideoCopiedToXFB()
 
 		float FPS = (float)frames / t;
 		float FPS_To_VPS_Rate = ((float)FPS / VideoInterface::ActualRefreshRate);
-		// ---------------------------------------------------------------------
+		
 		// For the sake of the dual core mode calculate an average to somewhat reduce the variations
 		// in the FPS/VPS rate
-		// ______________________________
+		
 		/**/
 		if (_CoreParameter.bUseDualCore)
 		{
@@ -739,7 +731,7 @@ void Callback_VideoCopiedToXFB()
 				FPS_To_VPS_Rate = MathFloatVectorSum(FPSVPSList) / AverageOver;
 		}
 		
-		// ---------------------------------------------------------------------
+		
 		// Correct the FPS/VPS rate for temporary CPU-GPU timing variations. This rate can only be 1/Integer
 		// so we set it to either 0.33, 0.5 or 1.0 depending on which it's closest to.
 		/*
@@ -751,7 +743,7 @@ void Callback_VideoCopiedToXFB()
 			3. PAL 50Hz games: Are 'patched' so that they still run at the correct speed. So if the NTSC 60Hz
 			   version has a FPS/VPS of 0.5 the 50Hz game will run at 0.6.
 		*/
-		// ______________________________
+		
 		/**/
 		if (FPS_To_VPS_Rate > 0 && FPS_To_VPS_Rate < ((1.0/3.0 + 1.0/2.0)/2)) FPS_To_VPS_Rate = 1.0/3.0;
 		else if (FPS_To_VPS_Rate > ((1.0/3.0 + 1.0/2.0)/2) && FPS_To_VPS_Rate < ((1.0/2.0 + 1.0/1.0)/2)) FPS_To_VPS_Rate = 1.0/2.0;
@@ -759,7 +751,7 @@ void Callback_VideoCopiedToXFB()
 		// PAL patch adjustment
 		if (VideoInterface::TargetRefreshRate == 50) FPS_To_VPS_Rate = FPS_To_VPS_Rate * 1.2;
 		
-		// ---------------------------------------------------------------------
+		
 		float TargetFPS = FPS_To_VPS_Rate * (float)VideoInterface::TargetRefreshRate;
 		float FPSPercentage = (FPS / TargetFPS) * 100.0;
 		float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0;
@@ -815,7 +807,7 @@ void Callback_VideoCopiedToXFB()
 	}
 }
 
-// __________________________________________________________________________________________________
+
 // Callback_DSPLog
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD
 	void Callback_DSPLog(const TCHAR* _szMessage, int _v)
@@ -823,7 +815,7 @@ void Callback_VideoCopiedToXFB()
 	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
  
-// __________________________________________________________________________________________________
+
 // Callback_DSPInterrupt
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD
 void Callback_DSPInterrupt()
@@ -831,7 +823,7 @@ void Callback_DSPInterrupt()
 	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
 }
  
-// __________________________________________________________________________________________________
+
 // Callback_PADLog 
 //
 void Callback_PADLog(const TCHAR* _szMessage)
@@ -840,7 +832,7 @@ void Callback_PADLog(const TCHAR* _szMessage)
 	INFO_LOG(SERIALINTERFACE, _szMessage);
 }
  
-// __________________________________________________________________________________________________
+
 // Callback_ISOName: Let the DSP plugin get the game name
 //
 const char *Callback_ISOName()
@@ -852,7 +844,7 @@ const char *Callback_ISOName()
           return "";
 }
 
-// __________________________________________________________________________________________________
+
 // Called from ANY thread!
 void Callback_KeyPress(int key, bool shift, bool control)
 {
@@ -868,7 +860,6 @@ void Callback_KeyPress(int key, bool shift, bool control)
 	}
 }
  
-// __________________________________________________________________________________________________
 // Callback_WiimoteLog
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)

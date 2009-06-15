@@ -104,10 +104,8 @@ void Fifo_ExitLoopNonBlocking() {
 	fifoStateRun = false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Description: Fifo_EnterLoop() sends data through this function.
 // TODO: Possibly inline it? This one is exported so it will likely not be inlined at all.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_SendFifoData(u8* _uData, u32 len)
 {
     if (size + len >= FIFO_SIZE)
@@ -126,13 +124,9 @@ void Video_SendFifoData(u8* _uData, u32 len)
     size += len;
     OpcodeDecoder_Run();
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Description: Main FIFO update loop
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     fifoStateRun = true;
@@ -226,4 +220,4 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		fifo_exit_event.SetTimer();
 	#endif
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+

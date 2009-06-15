@@ -16,12 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // OpenGL Plugin Documentation
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* 
 
 1.1 Display settings
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 
 Internal and fullscreen resolution: Since the only internal resolutions allowed are also
 fullscreen resolution allowed by the system there is only need for one resolution setting
@@ -32,7 +32,7 @@ applies instantly. To do this we need to enumerate all avaliable display resolut
 Renderer:Init().
 
 1.2 Screenshots
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 
 The screenshots should be taken from the internal representation of the picture regardless of
 what the current window size is. Since AA and wireframe is applied together with the picture resizing
@@ -43,11 +43,11 @@ Todo: Render AA and wireframe to a separate picture used for the screenshot in a
 for display.
 
 1.3 AA
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 
 Make AA apply instantly during gameplay if possible
 
-////////////////////////////////////////////////////////////////////////////////////////*/
+*/
 
 
 
@@ -162,9 +162,9 @@ void DllConfig(HWND _hParent)
 	//Console::Open();
 
 #if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
-	// ---------------------------------------------------------------
+	
 	// Search for avaliable resolutions
-	// ---------------------
+	
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
@@ -380,9 +380,8 @@ void Shutdown(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Enter and exit the video loop
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -392,12 +391,12 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Screenshot and screen message
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void Video_Screenshot(const char *_szFilename)
 {
 	Renderer::SetScreenshot(_szFilename);
@@ -407,12 +406,11 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	OSD::AddMessage(pstr, milliseconds);
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Run from the CPU thread (from VideoInterface.cpp) for certain homebrew games only
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
 	if (g_Config.bUseXFB && XFB_isInit())
@@ -437,4 +435,4 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 		}
 	}
 }
-/////////////////////////////////////////////////////////////////////////////////////////
+

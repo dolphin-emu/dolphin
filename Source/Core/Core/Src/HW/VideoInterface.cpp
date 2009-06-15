@@ -29,8 +29,7 @@
 #include "../CoreTiming.h"
 #include "../HW/SystemTimers.h"
 #include "StringUtil.h"
-
-#include <mmsystem.h>
+#include "Timer.h"
 
 namespace VideoInterface
 {
@@ -1006,9 +1005,8 @@ u8* GetXFBPointerBottom()
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Screenshot and screen message
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void UpdateTiming()
 {
     switch (m_DisplayControlRegister.FMT)
@@ -1035,19 +1033,16 @@ void UpdateTiming()
         break;
     }
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Purpose 1: Send VI interrupt for every screen refresh
 // Purpose 2: Execute XFB copy in homebrew games
 // Run when: This is run 7200 times per second on full speed
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Update()
 {
-	// -----------------------------------------------------------------------
-	// Calculate actual refresh rate
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	
 	// Update the target refresh rate
 	TargetRefreshRate = (m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
 		? 60 : 50;
@@ -1068,7 +1063,7 @@ void Update()
 		LastTick = CoreTiming::GetTicks();
 		SyncTicksProgress = 0;
 	}
-	// -----------------------------------------------------------------------
+	
 
 	// Go through all lines
     while ((CoreTiming::GetTicks() - LastTime) > (TicksPerFrame / LineCount))
@@ -1142,6 +1137,5 @@ void Update()
         }
     }
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

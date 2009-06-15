@@ -22,8 +22,6 @@
 #include "CoreTiming.h"
 #include "StringUtil.h"
 
-#include <mmsystem.h>
-
 namespace CoreTiming
 {
 
