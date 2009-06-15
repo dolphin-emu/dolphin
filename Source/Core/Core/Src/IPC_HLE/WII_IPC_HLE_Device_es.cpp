@@ -644,8 +644,69 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
+    case IOCTL_ES_GETSTOREDTMD:
+        {
+            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETSTOREDTMD no in buffer");
+            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETSTOREDTMD no out buffer");
+
+            u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+            u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+            std::string TitleFilename = CreateTitleContentPath(TitleID);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);            
+
+
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+
+            u32 Count = 0;
+            if (Loader.IsValid())
+            {
+                u32 Address = Buffer.PayloadBuffer[0].m_Address;
+
+				Memory::WriteBigEData(Loader.GetTmdHeader(), Address, DiscIO::INANDContentLoader::TMD_HEADER_SIZE);
+                Address += DiscIO::INANDContentLoader::TMD_HEADER_SIZE;
+                
+                const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
+                for (size_t i=0; i<Loader.GetContentSize(); i++)
+                {
+                    Memory::Write_U32(rContent[i].m_ContentID,  Address); Address += 4;
+                    Memory::Write_U16(rContent[i].m_Index,      Address); Address += 2;
+                    Memory::Write_U16(rContent[i].m_Type,       Address); Address += 2;
+                    Memory::Write_U64(rContent[i].m_Size,       Address); Address += 8;
+					Memory::WriteBigEData(rContent[i].m_SHA1Hash,   Address, 20); Address += 20;
+                }
+
+                _dbg_assert_(WII_IPC_ES, (Address-Buffer.PayloadBuffer[0].m_Address) == Buffer.PayloadBuffer[0].m_Size);
+            }
+            Memory::Write_U32(0, _CommandAddress + 0x4);	
+
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+            return true;            
+        }
+        break;
+
     case IOCTL_ES_GETSTOREDTMDSIZE:
-        _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETSTOREDTMDSIZE: this looks really wrong...");
+        {
+            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_GETSTOREDTMDSIZE no in buffer");
+            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "CWII_IPC_HLE_Device_es: IOCTL_ES_ES_GETSTOREDTMDSIZE no out buffer");
+
+            u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+            std::string TitleFilename = CreateTitleContentPath(TitleID);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleFilename);
+
+            _dbg_assert_(WII_IPC_ES, Loader.IsValid());
+            u32 TMDCnt = 0;
+            if (Loader.IsValid())
+            {
+				TMDCnt += DiscIO::INANDContentLoader::TMD_HEADER_SIZE;
+                TMDCnt += (u32)Loader.GetContentSize() * (4 + 2 + 2 + 8 + 20); //id, index, type, size, hash
+            }
+            Memory::Write_U32(TMDCnt, Buffer.PayloadBuffer[0].m_Address);
+
+            Memory::Write_U32(0, _CommandAddress + 0x4);		
+
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
+            return true;            
+        }
         break;
 
     case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
@@ -654,6 +715,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
         _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+        break;
+
+    case IOCTL_ES_GETDEVICECERT: // 
+        _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
         break;
 
     default:

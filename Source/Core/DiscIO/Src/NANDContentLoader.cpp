@@ -128,6 +128,7 @@ public:
     size_t GetContentSize() const { return m_Content.size(); }
     const SNANDContent* GetContentByIndex(int _Index) const;
     const u8* GetTicket() const { return m_TicketView; }
+    const u8* GetTmdHeader() const { return m_TmdHeader; }
 
     const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
@@ -144,8 +145,10 @@ private:
     u16 m_numEntries;
     u16 m_TileVersion;
     u8 m_TicketView[TICKET_VIEW_SIZE];
+	u8 m_TmdHeader[TMD_HEADER_SIZE];
 
     std::vector<SNANDContent> m_Content;
+
 
     bool CreateFromDirectory(const std::string& _rPath);
     bool CreateFromWAD(const std::string& _rName);
@@ -231,6 +234,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
     fclose(pTMDFile);
 
     memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
+	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
 
     ////// 
     m_TileVersion = Common::swap16(pTMD + 0x01dc);
@@ -326,17 +330,21 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 	u8 IV[16];
 
 	GetKeyFromTicket(pTicket, DecryptTitleKey);
+
+    memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
+	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
 	
-	u32 numEntries = Common::swap16(pTMD + 0x01de);
+    m_TileVersion = Common::swap16(pTMD + 0x01dc);
+    m_numEntries = Common::swap16(pTMD + 0x01de);
 	m_BootIndex = Common::swap16(pTMD + 0x01e0);
 	m_TitleID = Common::swap64(pTMD + 0x018c);
 	m_IosVersion = Common::swap16(pTMD + 0x018a);
 
 	u8* p = pDataApp;
 
-	m_Content.resize(numEntries);
+	m_Content.resize(m_numEntries);
 
-	for (u32 i=0; i<numEntries; i++) 
+	for (u32 i=0; i<m_numEntries; i++) 
 	{
 		SNANDContent& rContent = m_Content[i];
 				

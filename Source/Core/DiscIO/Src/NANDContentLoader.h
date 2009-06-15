@@ -55,6 +55,7 @@ public:
     virtual size_t GetContentSize() const = 0;
     virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
     virtual const u8* GetTicket() const = 0;
+    virtual const u8* GetTmdHeader() const = 0;
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
     virtual const u16 GetTitleVersion() const = 0;
     virtual const u16 GetNumEntries() const = 0;
@@ -62,7 +63,8 @@ public:
 
     enum
     {
-        TICKET_VIEW_SIZE = 0x58
+        TICKET_VIEW_SIZE = 0x58,
+        TMD_HEADER_SIZE = 0x1e4
     };
 };
 
