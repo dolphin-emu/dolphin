@@ -1,0 +1,49 @@
+incdir "tests"
+include "dsp_base.inc"
+
+;    Reads regs from 0xFF80 to 0xFF8D and sends them back
+
+       lr $AC0.M, @0xff80	
+	call send_back
+
+       lr $AC0.M, @0xff81	
+	call send_back
+
+       lr $AC0.M, @0xff82	
+	call send_back
+
+       lr $AC0.M, @0xff83	
+	call send_back
+
+       lr $AC0.M, @0xff84	
+	call send_back
+
+       lr $AC0.M, @0xff85	
+	call send_back
+
+       lr $AC0.M, @0xff86	
+	call send_back
+
+       lr $AC0.M, @0xff87	
+	call send_back
+
+       lr $AC0.M, @0xff88	
+	call send_back
+
+       lr $AC0.M, @0xff89	
+	call send_back
+
+       lr $AC0.M, @0xff8A	
+	call send_back
+
+       lr $AC0.M, @0xff8B	
+	call send_back
+
+       lr $AC0.M, @0xff8C	
+	call send_back
+
+       lr $AC0.M, @0xff8D	
+	call send_back
+
+; We're done, DO NOT DELETE THIS LINE
+	jmp end_of_test
