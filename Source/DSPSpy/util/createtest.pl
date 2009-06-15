@@ -5,7 +5,9 @@ use XML::Simple;
 use Getopt::Long;
 use POSIX qw(ceil floor);
 
-#use Data::Dumper;
+use Data::Dumper;
+
+my $merge = 0;
 
 sub usage() {
 	die("createtest -i <test template> -c <command> \n");
@@ -43,6 +45,7 @@ sub calculateLines {
 my ($cmds,$input,$output);
 if (!GetOptions('cmds|c=s'   => \$cmds,
 				'input|i=s'  => \$input,
+				'merge|m'    => \$merge,
 #                'output|o=s' => \$output,
    )) {
   usage();
@@ -77,7 +80,12 @@ foreach my $cmd (split(/,/, $cmds)) {
 	# how many tests we can fit in a ucode.
 	my $ucodes = POSIX::floor((0x1000 - $hsize) / $bsize);
 
-	open(NAMES, ">$name.lst");
+	if ($merge) {
+		open(NAMES, ">>all.lst");
+	} else {
+		open(NAMES, ">$name.lst");
+	}
+
 #	print NAMES "; $name\n";
 #	print NAMES "; $desc\n";
 
@@ -91,9 +99,23 @@ foreach my $cmd (split(/,/, $cmds)) {
 
 	close(NAMES);
 
-	system("dsptool -m $name.lst -h $name");
-	unlink <$name*.tst>;
-	unlink "$name.lst";
-	
+	if (! $merge) {
+		system("dsptool -m $name.lst -h $name");
+		open(NAMES, "$name.lst");
+		my @names = <NAMES>;
+		chomp @names;
+		unlink @names;
+		close(NAMES);
+		unlink("$name.lst");
+	}
 }
 
+if ($merge) {
+	system("dsptool -m all.lst -h unite_test");
+	open(NAMES, "all.lst");
+	my @names = <NAMES>;
+	chomp @names;
+	unlink @names;
+	close(NAMES);
+	unlink "all.lst";
+}
