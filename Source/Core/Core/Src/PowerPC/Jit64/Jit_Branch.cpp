@@ -217,12 +217,6 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
-	// TODO: This instruction branches to count register
-    //       JIT needs currently does not implement this opcode,
-	//       so we will fall back to the interpretor
-
-	// Default(inst);
-
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 		{Default(inst); return;} // turn off from debugger
 
@@ -235,8 +229,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 	if ((inst.BO & 16) == 0)				
 	{
-		PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
-		_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
+		// Rare condition usually used by NES Emulators
+		// TODO: JIT does not support this
+		ERROR_LOG(DYNA_REC, "Bizarro bcctrx %08x, not supported.", inst.hex);
+		//_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
 		/*
 		fastway = false;
 		MOV(32, M(&PC), Imm32(js.compilerPC+4));
