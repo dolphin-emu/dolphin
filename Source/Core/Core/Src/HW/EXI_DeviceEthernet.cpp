@@ -23,8 +23,8 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 
-//#define SONICDEBUG
-//#define FILEDEBUG
+#define SONICDEBUG
+#define FILEDEBUG
 #ifdef FILEDEBUG
 FILE *ME = 0;
 #endif
@@ -126,6 +126,8 @@ void CEXIETHERNET::SetCS(int cs)
 		mExpectSpecialImmRead = false;
 		mWriteP = mReadP = INVALID_P;
 		m_bInterruptSet = false;
+		//mBbaMem[BBA_IR] = 0;
+		//mBbaMem[BBA_IRM] = 0;
 	}
 }
 
@@ -225,8 +227,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
 					// TODO: Need to make our virtual network device start receiving
-					if(CheckRecieved())
-						startRecv();
+					startRecv();
 				}
 				if (RISE(BBA_NCRA_ST1)) 
 				{
@@ -405,6 +406,24 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			//DEBUGPRINT( "\t\t[INFO]mBbaMem[0x%x] = 0x80;! Now %x\n", mReadP, mBbaMem[mReadP]);
 			//exit(0);
 			break;
+		case 0x0e:
+		case 0x0f: // TWP - Transmit Buffer Write Page Pointer Register
+			break;
+		case 0x5b: // ??
+		case 0x5c: // These two go together
+			break;
+		case 0x31: // NWAYS - NWAY Status Register
+		case 0x09: // IR
+		case 0x08: // IRM
+		case 0x100: // Input Queue?
+		case 0x110: // ?? Not even in YAGCD
+		case 0x04: // LTPS - Last Transmitted Packet Status (transmit error code ?)
+		case 0x30: // NWAYC - NWAY Configuration Register
+			break;
+		default:
+			printf("Read from 0x%02x\n", mReadP);
+			//exit(0);
+			break;
 		}
 		//DEBUGPRINT("BBA Read pointer set to 0x%0*X, Data: 0x%08X\n", _uSize, mReadP, _uData);
 		return;
@@ -485,8 +504,7 @@ void CEXIETHERNET::DMARead(u32 _uAddr, u32 _uSize)
 		DEBUGPRINT("DMA Read from BBA address 0x%0*X, %i bytes\n",
 			mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize);
 		//exit(0);
-		mReadP = mReadP + (u16)_uSize;
-		exit(0);
+		mReadP = mReadP + _uSize;
 		return;
 	} 
 	else 

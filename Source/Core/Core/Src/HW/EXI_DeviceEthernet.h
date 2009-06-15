@@ -17,6 +17,7 @@
 
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
+#include "Thread.h"
 
 inline u8 makemaskb(int start, int end) {
 	return (u8)_rotl((2 << (end - start)) - 1, 7 - end);
@@ -192,7 +193,7 @@ public:
 	void DMAWrite(u32 _uAddr, u32 _uSize);
 	void DMARead(u32 _uAddr, u32 _uSize);
 
-private:
+//private:
 	// STATE_TO_SAVE
 	u32 m_uPosition;
 	u32 m_uCommand;
@@ -236,6 +237,7 @@ private:
 	bool resume();
 	bool startRecv();
 	bool cbwriteDescriptor(u32 size);
+
 	
 	volatile bool mWaiting;
 	Container<u8> mRecvBuffer;

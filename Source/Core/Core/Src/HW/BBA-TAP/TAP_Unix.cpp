@@ -120,32 +120,38 @@ bool CEXIETHERNET::resume() {
 	DEBUGPRINT("BBA resume complete\n");
 	return true;
 }
+THREAD_RETURN CpuThread(void *pArg)
+{
+	CEXIETHERNET* self = (CEXIETHERNET*)pArg;
+	while(1)
+	{
+		if(self->CheckRecieved())
+		{
+			u8 B[1514];
+			if((self->mRecvBufferLength = read(fd, B, 1500)) > 0)
+			{
+				//mRecvBuffer.write(B, BytesRead);
+				//strncat(mRecvBuffer.p(), B, BytesRead);
+				memcpy(self->mRecvBuffer, B, self->mRecvBufferLength);
+			}
+			self->handleRecvdPacket();
+			self->mWaiting = false;
+			return 0;
+		}
+		sleep(1);
+	}
+	return 0;
+}
 bool CEXIETHERNET::startRecv() {
 	DEBUGPRINT("Start Receive!\n");
 	//exit(0);
-	if(!isActivated())
-		return false;// Should actually be an assert
-	if(!CheckRecieved())
-		return false;
-	DEBUGPRINT("startRecv... ");
+		DEBUGPRINT("startRecv... ");
 	if(mWaiting) {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
-	u8 B[1514];
-	if((mRecvBufferLength = read(fd, B, 1500)) > 0)
-	{
-		//mRecvBuffer.write(B, BytesRead);
-		//strncat(mRecvBuffer.p(), B, BytesRead);
-		memcpy(mRecvBuffer, B, mRecvBufferLength);
-	}
-	DEBUGPRINT("Read %d bytes\n", mRecvBufferLength);
-			if(hasDHCP && mRecvBufferLength == 342)
-			{
-				DEBUGPRINT("DHCP offer packet\n");
-				//exit(0);
-			}
-	handleRecvdPacket();
+	
+	Common::Thread *cpuThread = new Common::Thread(CpuThread, (void*)this);
 	return true; 
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
@@ -201,11 +207,11 @@ bool CEXIETHERNET::handleRecvdPacket()
 	//mPacketsRcvd++;
 	mRecvBufferLength = 0;
 
-	if(mBbaMem[0x08] & BBA_INTERRUPT_RECV) 
+	if(mBbaMem[BBA_IMR] & BBA_INTERRUPT_RECV) 
 	{
-		if(!(mBbaMem[0x09] & BBA_INTERRUPT_RECV)) 
+		if(!(mBbaMem[BBA_IR] & BBA_INTERRUPT_RECV)) 
 		{
-			mBbaMem[0x09] |= BBA_INTERRUPT_RECV;
+			mBbaMem[BBA_IR] |= BBA_INTERRUPT_RECV;
 			DEBUGPRINT("BBA Recv interrupt raised\n");
 			m_bInterruptSet = true;
 		}
