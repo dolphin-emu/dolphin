@@ -217,45 +217,51 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
+	// TODO: This instruction branches to count register
+    //       JIT needs currently does not implement this opcode,
+	//       so we will fall back to the interpretor
 
-	INSTRUCTION_START;
+	Default(inst);
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+	//	{Default(inst); return;} // turn off from debugger
 
-	// bool fastway = true;
+	//INSTRUCTION_START;
 
-	if ((inst.BO & 16) == 0)				
-	{
-		PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
-		_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
-		/*
-		fastway = false;
-		MOV(32, M(&PC), Imm32(js.compilerPC+4));
-		MOV(32, R(EAX), M(&CR));
-		XOR(32, R(ECX), R(ECX));
-		AND(32, R(EAX), Imm32(0x80000000 >> inst.BI));
+	//gpr.Flush(FLUSH_ALL);
+	//fpr.Flush(FLUSH_ALL);
 
-		CCFlags branch;
-		if(inst.BO & 8)
-			branch = CC_NZ;
-		else
-			branch = CC_Z;
-			*/
-		// TODO(ector): Why is this commented out?
-		//SETcc(branch, R(ECX));
-		// check for EBX
-		//TEST(32, R(ECX), R(ECX));
-		//linkEnd = J_CC(branch);
-	}
-	// NPC = CTR & 0xfffffffc;
-	MOV(32, R(EAX), M(&CTR));
-	if (inst.LK)
-		MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-	AND(32, R(EAX), Imm32(0xFFFFFFFC));
-	WriteExitDestInEAX(0);
+	//// bool fastway = true;
+
+	//if ((inst.BO & 16) == 0)				
+	//{
+	//	PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
+	//	_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
+	//	/*
+	//	fastway = false;
+	//	MOV(32, M(&PC), Imm32(js.compilerPC+4));
+	//	MOV(32, R(EAX), M(&CR));
+	//	XOR(32, R(ECX), R(ECX));
+	//	AND(32, R(EAX), Imm32(0x80000000 >> inst.BI));
+
+	//	CCFlags branch;
+	//	if(inst.BO & 8)
+	//		branch = CC_NZ;
+	//	else
+	//		branch = CC_Z;
+	//		*/
+	//	// TODO(ector): Why is this commented out?
+	//	//SETcc(branch, R(ECX));
+	//	// check for EBX
+	//	//TEST(32, R(ECX), R(ECX));
+	//	//linkEnd = J_CC(branch);
+	//}
+	//// NPC = CTR & 0xfffffffc;
+	//MOV(32, R(EAX), M(&CTR));
+	//if (inst.LK)
+	//	MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+	//AND(32, R(EAX), Imm32(0xFFFFFFFC));
+	//WriteExitDestInEAX(0);
 }
 
 

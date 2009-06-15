@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include <string>
+#include <mmsystem.h>
 
 namespace Common
 {

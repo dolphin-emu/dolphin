@@ -1050,7 +1050,7 @@ void Update()
 	// Calculate actual refresh rate
 	static u64 LastTick = 0;
 	static int UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
-	if (UpdateCheck < timeGetTime())
+	if (UpdateCheck < (int)timeGetTime())
 	{
 		UpdateCheck = timeGetTime() + 1000;
 		TickProgress = CoreTiming::GetTicks() - LastTick;
