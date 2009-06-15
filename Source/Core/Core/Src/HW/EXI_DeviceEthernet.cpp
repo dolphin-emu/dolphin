@@ -159,6 +159,7 @@ void CEXIETHERNET::recordSendComplete()
 		m_bInterruptSet = true;
 		//interrupt.raiseEXI("BBA Send");
 	}
+	startRecv();
 	mPacketsSent++;
 }
 
@@ -203,17 +204,16 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		{
 			case BBA_IR:
 			{
-				//assert(_uSize == 1);
 				// Correct, we use swapped
+				assert(_uSize == 1);
 				u32 SwappedData = Common::swap32(_uData);
 				DEBUGPRINT("\t\t[INFO]BBA Interrupt reset 0x%02X & ~(0x%02X) => 0x%02X\n", mBbaMem[0x09], MAKE(u8, SwappedData), mBbaMem[0x09] & ~MAKE(u8, SwappedData));
 				mBbaMem[BBA_IR] &= ~MAKE(u8, SwappedData);
-				//exit(0);
 				break;
 			}
 			case BBA_NCRA:
 			{
-				DEBUGPRINT("\t\t[INFO]BBA_NCRA-----------------------------------------------------------\n");
+				DEBUGPRINT("\t\t[INFO]BBA_NCRA\n");
 				// Correct, we use the swap here
 				u32 SwappedData = (u8)Common::swap32(_uData);
 				if (RISE(BBA_NCRA_RESET)) 
@@ -226,7 +226,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				{
 					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
-					// TODO: Need to make our virtual network device start receiving
 					startRecv();
 				}
 				if (RISE(BBA_NCRA_ST1)) 
@@ -240,7 +239,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					}
 					sendPacket(mWriteBuffer.p(), mWriteBuffer.size());
 					mReadyToSend = false;
-					//exit(0);
 				}
 				mBbaMem[BBA_NCRA] = MAKE(u8, SwappedData);
 			}
@@ -251,13 +249,13 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				{
 					//say we've successfully negotiated for 10 Mbit full duplex
 					//should placate libogc
+					activate();
 					mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 				}
 
 				break;
 			case BBA_RRP:	//RRP - Receive Buffer Read Page Pointer
 				DEBUGPRINT( "\t\t[INFO]RRP\n");
-				//exit(0);
 				assert(_uSize == 2 || _uSize == 1);
 				mRBRPP = (u8)Common::swap32(_uData) << 8;	//Whinecube: I hope this works with both write sizes.
 				mRBEmpty = (mRBRPP == ((u32)mCbw.p_write() + CB_OFFSET));
@@ -265,9 +263,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				break;
 			case BBA_RWP:	//RWP - Receive Buffer Write Page Pointer
 				DEBUGPRINT( "\t\t[INFO]RWP\n");
-				//exit(0);
 				assert(_uSize == 2 || _uSize == 1);
 				DEBUGPRINT("\t\t\tThing is 0x%0X\n", (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
+				// TODO: This assert FAILS!
 				//assert(Common::swap32(_uData) == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 				break;
 			case BBA_NWAYS:
@@ -305,24 +303,24 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		DEBUGPRINT( "\t[INFO]Request Dev ID\n");
 		mSpecialImmData = EXI_DEVTYPE_ETHER;
 		mExpectSpecialImmRead = true;
+		mBbaMem[0x01] = 0x0; // Refuse to use BBA if not 0 on reset?
 		return;
 	}
 	else if ((_uSize == 4 && (_uData & 0xC0000000) == 0xC0000000) || (_uSize == 2 && ((u16)Common::swap32(_uData >> 8) & 0x4000) == 0x4000))
 	{
 		// Write to BBA Register
 		DEBUGPRINT( "\t[INFO]Write to BBA register!\n");
-
-		// Dunno if this is correct TODO
 		if (_uSize == 4)
 		{
+			// Dunno if this is correct TODO
 			u32 SwappedData = _uData;
 			mWriteP = (u8)getbitsw(SwappedData, 16, 23);
 		}
 		else  //size == 2
 		{
-			// Correct
+			// Correct, Size of 1 untested, should be correct.
 			u16 SwappedData = (u16)Common::swap32(_uData >> 8);
-			mWriteP = (u8)getbitsw(SwappedData & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
+			mWriteP = (u8)getbitsw(SwappedData & ~0x4000, 16, 23);
 		}
 		//Write of size 4 data 0xc0006000 causes write pointer to be set to 0x0000 when swapped.
 		// When not swapped, the write pointer is set to 0x0060
@@ -368,11 +366,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x20:	//MAC address
 			DEBUGPRINT( "\t\t[INFO]Mac Address!\n");
 			memcpy(mBbaMem + mReadP, mac_address, 6);
-				DEBUGPRINT("\t\t\tACTIVATING!\n");
-				activate();
-				//say we've successfully negotiated for 10 Mbit full duplex
-				//should placate libogc
-				mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 			break;
 		case 0x01:	//Revision ID
 			break;
@@ -413,6 +406,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x5c: // These two go together
 			break;
 		case 0x31: // NWAYS - NWAY Status Register
+			activate();
+			mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 		case 0x09: // IR
 		case 0x08: // IRM
 		case 0x100: // Input Queue?

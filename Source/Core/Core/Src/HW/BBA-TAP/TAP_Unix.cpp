@@ -28,6 +28,7 @@
 	#include <assert.h>
 	int fd = -1;
 	bool hasDHCP = false;
+#define IGNOREARP true
 bool CEXIETHERNET::deactivate()
 {
 	close(fd);
@@ -134,6 +135,17 @@ THREAD_RETURN CpuThread(void *pArg)
 				//strncat(mRecvBuffer.p(), B, BytesRead);
 				memcpy(self->mRecvBuffer, B, self->mRecvBufferLength);
 			}
+			if(IGNOREARP)
+			{
+				if(self->mRecvBuffer[12] == 0x08 && self->mRecvBuffer[13] == 0x06)
+				{
+					DEBUGPRINT("ARP Packet!Skipping!\n");
+					memset(self->mRecvBuffer, 0, self->mRecvBufferLength);
+					self->mRecvBufferLength = 0;
+					continue;
+				}
+			}
+			DEBUGPRINT("Received %d bytes of data\n", self->mRecvBufferLength);
 			self->handleRecvdPacket();
 			self->mWaiting = false;
 			return 0;
@@ -150,8 +162,10 @@ bool CEXIETHERNET::startRecv() {
 		DEBUGPRINT("already waiting\n");
 		return true;
 	}
-	
 	Common::Thread *cpuThread = new Common::Thread(CpuThread, (void*)this);
+	if(cpuThread)
+		mWaiting = true;
+		
 	return true; 
 }
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
@@ -195,7 +209,6 @@ bool CEXIETHERNET::handleRecvdPacket()
 	//DUMPWORD(available_bytes_in_cb);
 
 	assert(available_bytes_in_cb <= CB_SIZE);
-	if(available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
 	if(available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
 		return true;
 	cbwriteDescriptor(mRecvBufferLength);
