@@ -89,12 +89,18 @@ foreach my $cmd (split(/,/, $cmds)) {
 #	print NAMES "; $name\n";
 #	print NAMES "; $desc\n";
 
-	for(my $j = 0; $j < POSIX::ceil(0xFFFF / $ucodes); $j++) {
+	my $numLines = POSIX::ceil(0xFFFF / $ucodes);
+	for(my $j = 0; $j < $numLines; $j++) {
 		open(OUTPUT, ">$name$j.tst");
 		print OUTPUT generateSRFull($header, $body, $j*$ucodes, 
 									($j+1)*$ucodes-1);
 		close(OUTPUT);	 
-		print NAMES "$name$j.tst\n";
+		print NAMES "$name$j.tst";
+		
+		# Don't end with a newline
+		if ($j < $numLines - 1) {
+			print NAMES "\n";
+		}
 	}
 
 	close(NAMES);
