@@ -15,11 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <assert.h>
 #include "../Memmap.h"
+// GROSS CODE ALERT: headers need to be included in the following order
+#include "TAP_Win32.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
-#include "TAP_Win32.h"
-#include <assert.h>
 
 namespace Win32TAPHelper
 {
