@@ -27,8 +27,6 @@
 	#include <linux/if_tun.h>
 	#include <assert.h>
 	int fd = -1;
-	bool hasDHCP = false;
-#define IGNOREARP true
 bool CEXIETHERNET::deactivate()
 {
 	close(fd);
@@ -52,7 +50,7 @@ bool CEXIETHERNET::activate() {
 #if !defined(__APPLE__)	
 	int err;
 	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+	ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE;
 	
 	strncpy(ifr.ifr_name, "Dolphin", IFNAMSIZ);
 	
@@ -64,6 +62,17 @@ bool CEXIETHERNET::activate() {
 		return false;
 	}
 	ioctl( fd, TUNSETNOCSUM, 1 );
+	/*int flags;
+	if ((flags = fcntl( fd, F_GETFL)) < 0) 
+	{
+		DEBUGPRINT("getflags on tun device: %s", strerror (errno));
+	}
+	flags |= O_NONBLOCK;
+	if (fcntl( fd, F_SETFL, flags ) < 0) 
+	{
+		DEBUGPRINT("set tun device flags: %s", strerror (errno));
+	}*/
+
 #endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
 	system("brctl addif pan0 Dolphin");
@@ -80,7 +89,7 @@ bool CEXIETHERNET::CheckRecieved()
 	int maxfd;
 	int retval;
 	struct timeval tv;
-	int timeout = 3; // 3 seconds will kill him
+	int timeout = 9999; // 3 seconds will kill him
 	fd_set mask;
 
 	/* Find the largest file descriptor */
@@ -129,28 +138,34 @@ THREAD_RETURN CpuThread(void *pArg)
 		if(self->CheckRecieved())
 		{
 			u8 B[1514];
-			if((self->mRecvBufferLength = read(fd, B, 1500)) > 0)
+			self->mRecvBufferLength = read(fd, B, 1500);
+			//DEBUGPRINT("read return of 0x%x\n", self->mRecvBufferLength);
+			if (self->mRecvBufferLength == 0xffffffff)
+			{
+				//Fail Boat
+				continue;
+			}
+			else if(self->mRecvBufferLength > 0)
 			{
 				//mRecvBuffer.write(B, BytesRead);
 				//strncat(mRecvBuffer.p(), B, BytesRead);
 				memcpy(self->mRecvBuffer, B, self->mRecvBufferLength);
 			}
-			if(IGNOREARP)
+			else if(self->mRecvBufferLength == -1)
 			{
-				if(self->mRecvBuffer[12] == 0x08 && self->mRecvBuffer[13] == 0x06)
-				{
-					DEBUGPRINT("ARP Packet!Skipping!\n");
-					memset(self->mRecvBuffer, 0, self->mRecvBufferLength);
-					self->mRecvBufferLength = 0;
-					continue;
-				}
+				continue;
+			}
+			else
+			{
+				DEBUGPRINT("Unknown read return of 0x%x\n", self->mRecvBufferLength);
+				exit(0);
 			}
 			DEBUGPRINT("Received %d bytes of data\n", self->mRecvBufferLength);
-			self->handleRecvdPacket();
 			self->mWaiting = false;
+			self->handleRecvdPacket();
 			return 0;
 		}
-		sleep(1);
+		//sleep(1);
 	}
 	return 0;
 }
@@ -184,12 +199,7 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!errno: %d\n", size, numBytesWrit, errno);
 		return false;
 	}
-	else
-		DEBUGPRINT("Sent out the correct number of bytes: %d\n", size);
-		if(size == 342)
-			hasDHCP = true;
 	recordSendComplete();
-	//exit(0);
 	return true;
 }
 bool CEXIETHERNET::handleRecvdPacket() 

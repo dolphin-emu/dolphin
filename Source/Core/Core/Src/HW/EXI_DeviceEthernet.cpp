@@ -51,7 +51,7 @@ void DEBUGPRINT (const char * format, ...)
 #define RISE(flags) ((SwappedData & (flags)) && !(mBbaMem[0x00] & (flags)))
 
 int mPacketsSent = 0;
-u8 mac_address[6] = {'D', 'O', 'L', 'P', 'H', 'I'}; // Looks Appropriate
+u8 mac_address[6] = {0x00, 0x1A, 0x4D, 0x5E, 0x64, 0x2B}; // Looks Appropriate
 unsigned int Expecting;
 CEXIETHERNET::~CEXIETHERNET()
 {
@@ -159,7 +159,6 @@ void CEXIETHERNET::recordSendComplete()
 		m_bInterruptSet = true;
 		//interrupt.raiseEXI("BBA Send");
 	}
-	startRecv();
 	mPacketsSent++;
 }
 
@@ -222,7 +221,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					// Whinecube did nothing else as well
 					DEBUGPRINT( "\t\t[INFO]BBA Reset\n");
 				}
-				if (RISE(BBA_NCRA_SR) && isActivated())
+				if ((SwappedData & BBA_NCRA_SR) && isActivated())
 				{
 					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
@@ -251,6 +250,14 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					//should placate libogc
 					activate();
 					mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
+				}
+				else
+				{
+					if(_uData != 0x0)
+					{
+						DEBUGPRINT("Not activate!\n");
+						exit(0);
+					}
 				}
 
 				break;
@@ -282,7 +289,10 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					// Size of 4 untested Though
 					SwappedData = Common::swap32(_uData);
 					if(_uSize == 4)
+					{
 						printf("\t\t\tData is 0x%08x\n", SwappedData);
+						exit(0);
+					}
 				}
 				else if( _uSize == 2)
 				{
@@ -303,7 +313,6 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		DEBUGPRINT( "\t[INFO]Request Dev ID\n");
 		mSpecialImmData = EXI_DEVTYPE_ETHER;
 		mExpectSpecialImmRead = true;
-		mBbaMem[0x01] = 0x0; // Refuse to use BBA if not 0 on reset?
 		return;
 	}
 	else if ((_uSize == 4 && (_uData & 0xC0000000) == 0xC0000000) || (_uSize == 2 && ((u16)Common::swap32(_uData >> 8) & 0x4000) == 0x4000))
@@ -406,6 +415,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		case 0x5c: // These two go together
 			break;
 		case 0x31: // NWAYS - NWAY Status Register
+		// HACK
 			activate();
 			mBbaMem[BBA_NWAYS] = (BBA_NWAYS_LS10 | BBA_NWAYS_LPNWAY | BBA_NWAYS_ANCLPT | BBA_NWAYS_10TXF);
 		case 0x09: // IR
