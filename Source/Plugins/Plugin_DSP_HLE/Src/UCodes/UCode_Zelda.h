@@ -21,6 +21,26 @@
 #include "Common.h"
 #include "UCodes.h"
 
+
+// Here's a piece of pure guesswork, looking at random supposedly-PBs
+// from Zelda Four Swords.
+
+// These are 0x180 bytes large.
+struct ZPB
+{
+	u16 temp[0x80];
+	u16 temp2; u16 temp3;
+	u16 whatever[0x14 / 2];
+
+	// Not sure what addresses this is, hopefully to sample data in ARAM.
+	// These are the only things in the param blocks that look a lot like pointers.
+	u16 addr_high;  // at 0x18 = 0xC * 2
+	u16 addr_low;
+
+	u16 filler[(0x80 - 0x1C) / 2];
+};
+
+
 class CUCode_Zelda : public IUCode
 {
 private:
@@ -58,6 +78,24 @@ private:
 
 	u32 m_readOffset;
 
+
+
+	// HLE state
+	int num_param_blocks;
+
+	u32 param_blocks_ptr;
+	u32 param_blocks2_ptr;
+
+	ZPB zpbs[0x40];
+	ZPB zpbs2[4];
+
+	void CopyPBsFromRAM();
+	void CopyPBsToRAM();
+	
+	u32 GetParamBlockAddr(int block_no) const {
+		return param_blocks_ptr + sizeof(ZPB) * block_no;
+	}
+
 	u8 Read8()
 	{
 		return m_Buffer[m_readOffset++];
@@ -74,6 +112,9 @@ private:
 	{
 		u32 res = *(u32*)&m_Buffer[m_readOffset];
 		m_readOffset += 4;
+		if ((m_readOffset >> 2) >= m_numSteps + 1) {
+			WARN_LOG(DSPHLE, "Read32 out of bounds");
+		}
 		return res;
 	}
 public:
