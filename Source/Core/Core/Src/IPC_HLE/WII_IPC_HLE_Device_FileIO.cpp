@@ -90,37 +90,47 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		{ "Read and Write" }
 	};
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
-
 	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
 	// Reading requires the file to exist, but writing doesn't (what a smart thought)
-	if(_Mode != 0x02 && !File::Exists(m_Filename.c_str())) {
-		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open for reading: %s - File doesn't exist", m_Filename.c_str());
-		ReturnValue = FS_FILE_NOT_EXIST;
-	} else {
+	if(File::Exists(m_Filename.c_str()))
+	{
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s), File exists", GetDeviceName().c_str(), Modes[_Mode]);
 		switch(_Mode)
 		{
 		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
-		case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case 0x02:	// m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+			// MK Wii gets here corrupting its saves, however using rb+ mode works fine
+			// TODO : figure it properly...
 		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
-		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
+		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode : 0x%02x", _Mode); break;
 		}
 	}
-	
-    if (m_pFileHandle != NULL)
-    {
-        m_FileLength = File::GetSize(m_Filename.c_str());
-        ReturnValue = GetDeviceID();
-    }
-    else if(ReturnValue == 0)
-    {
-        ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s(%s) - I/O Error", m_Filename.c_str(), Modes[_Mode]);
-        ReturnValue = FS_INVALID_ARGUMENT;
-    }
+	else
+	{
+		if (_Mode == 0x02) {
+			INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s), File doesn't exist", GetDeviceName().c_str(), Modes[_Mode]);
+			m_pFileHandle = fopen(m_Filename.c_str(), "wb");
+		}
+		else {
+			ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open for reading: %s - File doesn't exist", m_Filename.c_str());
+			ReturnValue = FS_FILE_NOT_EXIST;
+		}
+	}
 
-    Memory::Write_U32(ReturnValue, _CommandAddress+4);
-    return true;
+	if (m_pFileHandle != NULL)
+	{
+		m_FileLength = File::GetSize(m_Filename.c_str());
+		ReturnValue = GetDeviceID();
+	}
+	else if(ReturnValue == 0)
+	{
+		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s(%s) - I/O Error", m_Filename.c_str(), Modes[_Mode]);
+		ReturnValue = FS_INVALID_ARGUMENT;
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	return true;
 }
 
 bool 
@@ -132,6 +142,7 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: %s, Mode: %i (Device=%s, FileSize=%s)", ThS(SeekPosition).c_str(), Mode, GetDeviceName().c_str(), ThS((int)m_FileLength).c_str());	
 
+	// TODO : The following hack smells bad 
 	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
 	   it's probably better than trying to read outside the file (it seeks to 0x6000 instead
 	   of the correct 0x2000 for the second half of the file). Could this be right

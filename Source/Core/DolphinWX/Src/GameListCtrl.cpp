@@ -32,6 +32,7 @@
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "CDUtils.h"
+#include "WxUtils.h"
 
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
@@ -43,9 +44,6 @@
     #include "../resources/Platform_Wii.xpm"
     #include "../resources/Platform_Gamecube.xpm"
 #endif // USE_XPM_BITMAPS
-
-// ugly that this lib included code from the main
-#include "../../DolphinWX/Src/WxUtils.h"
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
