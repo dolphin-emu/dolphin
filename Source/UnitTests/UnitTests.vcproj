@@ -90,6 +90,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -164,6 +165,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -240,6 +242,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -317,6 +320,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 	</Configurations>
