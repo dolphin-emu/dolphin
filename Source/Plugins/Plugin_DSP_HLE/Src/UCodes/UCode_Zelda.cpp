@@ -143,6 +143,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 
 		if (m_step >= m_numSteps)
 		{
+			DEBUG_LOG(DSPHLE, "Executing %i-step list.", m_numSteps);
 			ExecuteList();
 			m_bListInProgress = false;
 		}
@@ -159,6 +160,11 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		m_bListInProgress = true;
 		m_numSteps = _uMail;
 		m_step = 0;
+
+		// make sure we never read outside the buffer by mistake.
+		// Before deleting extra reads in ExecuteList, we were getting these
+		// values.
+		memset(m_Buffer, 0xcc, sizeof(m_Buffer));
 	} 
 	else 
 	{
@@ -176,9 +182,11 @@ void CUCode_Zelda::ExecuteList()
 	// begin with the list
 	m_readOffset = 0;
 
+	// First figure out what command we're dealing with.
 	u32 CmdMail = Read32();
 	u32 Command = (CmdMail >> 24) & 0x7f;
 	u32 Sync = CmdMail >> 16;
+	u16 ExtraData = CmdMail & 0xFFFF;  // not yet used
 
 	DEBUG_LOG(DSPHLE, "==============================================================================");
 	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
@@ -202,7 +210,11 @@ void CUCode_Zelda::ExecuteList()
 			// This points to some strange data table.
 		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", tmp[1]);
 
-			// See 0x02, same thing as DSPADPCM_FILTER there.
+			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
+			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
+			// which can play Zelda audio.
+			// There's also a lot more table-looking data immediately after - maybe alternative
+			// tables? I wonder where the parameter blocks are?
 		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
 			DEBUG_LOG(DSPHLE, "Some other mixing buffer:      0x%08x", tmp[3]);
 		}
@@ -214,7 +226,6 @@ void CUCode_Zelda::ExecuteList()
 			u32 tmp[3];
 			tmp[0] = Read32();
 			tmp[1] = Read32();
-			tmp[2] = Read32();
 
 			// We're ready to mix
 		//	soundStream->GetMixer()->SetHLEReady(true);
@@ -232,13 +243,6 @@ void CUCode_Zelda::ExecuteList()
 			// but not at, the ADMA read addresses.
 			DEBUG_LOG(DSPHLE, "Left mixing buffer?            0x%08x", tmp[0]);
 			DEBUG_LOG(DSPHLE, "Right mixing buffer?           0x%08x", tmp[1]);
-
-			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
-			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
-			// which can play Zelda audio.
-			// There's also a lot more table-looking data immediately after - maybe alternative
-			// tables? I wonder where the parameter blocks are?
-			DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x40):  0x%08x", tmp[2]);
 	    }
 		return;
 		    break;
@@ -259,11 +263,9 @@ void CUCode_Zelda::ExecuteList()
 	    {
 		    u32 tmp[2];
 		    tmp[0] = Read32();
-		    tmp[1] = Read32();
 
 		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
 		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp[0]);
-		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER    (size 0x500): 0x%08x", tmp[1]);
 	    }
 		    break;
 
