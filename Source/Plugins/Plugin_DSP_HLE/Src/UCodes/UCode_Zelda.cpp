@@ -188,7 +188,7 @@ void CUCode_Zelda::ExecuteList()
 		// DsetupTable ... zelda ww jumps to 0x0095
 	    case 0x01:
 	    {
-		    u32 tmp[4];
+			u32 tmp[4];
 		    tmp[0] = Read32();
 		    tmp[1] = Read32();
 		    tmp[2] = Read32();
@@ -197,20 +197,24 @@ void CUCode_Zelda::ExecuteList()
 			m_SyncMaxStep = CmdMail & 0xFFFF;
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
-		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
-		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", tmp[1]);
-		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
-		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[3]);
-	    }
-		    break;
+		    DEBUG_LOG(DSPHLE, "Some mixing buffer:            0x%08x", tmp[0]);
 
-		    // SyncFrame ... zelda ww jumps to 0x0243
-	    case 0x02:
-	    {
-		    u32 tmp[3];
-		    tmp[0] = Read32();
-		    tmp[1] = Read32();
-		    tmp[2] = Read32();
+			// This points to some strange data table.
+		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", tmp[1]);
+
+			// See 0x02, same thing as DSPADPCM_FILTER there.
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
+			DEBUG_LOG(DSPHLE, "Some other mixing buffer:      0x%08x", tmp[3]);
+		}
+			break;
+
+			// SyncFrame ... zelda ww jumps to 0x0243
+		case 0x02:
+		{
+			u32 tmp[3];
+			tmp[0] = Read32();
+			tmp[1] = Read32();
+			tmp[2] = Read32();
 
 			// We're ready to mix
 		//	soundStream->GetMixer()->SetHLEReady(true);
@@ -222,10 +226,19 @@ void CUCode_Zelda::ExecuteList()
 			m_SyncCount = 0;
 			m_SyncMax = (CmdMail >> 16) & 0xFF;
 
-		    DEBUG_LOG(DSPHLE, "DsyncFrame");
-		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[0]);
-		    DEBUG_LOG(DSPHLE, "???:                           0x%08x", tmp[1]);
-		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]);
+			DEBUG_LOG(DSPHLE, "DsyncFrame");
+
+			// These alternate between three sets of mixing buffers. They are all three fairly near,
+			// but not at, the ADMA read addresses.
+			DEBUG_LOG(DSPHLE, "Left mixing buffer?            0x%08x", tmp[0]);
+			DEBUG_LOG(DSPHLE, "Right mixing buffer?           0x%08x", tmp[1]);
+
+			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
+			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
+			// which can play Zelda audio.
+			// There's also a lot more table-looking data immediately after - maybe alternative
+			// tables? I wonder where the parameter blocks are?
+			DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x40):  0x%08x", tmp[2]);
 	    }
 		return;
 		    break;
