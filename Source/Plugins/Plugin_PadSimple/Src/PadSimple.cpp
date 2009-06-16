@@ -861,8 +861,8 @@ void LoadConfig()
 	{
 		DIK_X,	//A
 		DIK_Z,
-		DIK_S,
 		DIK_C,
+		DIK_S,
 		DIK_D,
 		DIK_RETURN,
 		DIK_Q,
@@ -887,8 +887,8 @@ void LoadConfig()
 	{
           XK_x, //A
           XK_z,
-          XK_s,
           XK_c,
+		  XK_s,
           XK_d,
           XK_Return,
           XK_q,
@@ -913,8 +913,8 @@ void LoadConfig()
         {
           7, //A
           6,
-          1,
           8,
+		  1,
           2,
           36,
           12,
