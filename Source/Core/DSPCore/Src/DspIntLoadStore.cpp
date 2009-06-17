@@ -28,12 +28,15 @@ namespace DSPInterpreter {
 // 0010 1sss mmmm mmmm
 // Store value from register $(0x18+S) to a memory pointed by address M. 
 // (8-bit sign extended). 
+// ALTERNATIVELY: It now seems that the upper 8 bits are controlled
+// by CR, not sign extension.
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
-	u16 addr = (u16)(s16)(s8)opc.hex;
+//	u16 addr = (u16)(s16)(s8)opc.hex;
+	u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc.hex & 0xFF);
 	dsp_dmem_write(addr, g_dsp.r[reg]);
 }
   
@@ -41,12 +44,15 @@ void srs(const UDSPInstruction& opc)
 // 0010 0ddd mmmm mmmm
 // Move value from data memory pointed by address M (8-bit sign
 // extended) to register $(0x18+D). 
+// ALTERNATIVELY: It now seems that the upper 8 bits are controlled
+// by CR, not sign extension.
 // FIXME: Perform additional operation depending on destination register.
 // Note: pc+=2 in duddie's doc seems wrong
 void lrs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
-	u16 addr = (u16)(s16)(s8)opc.hex;
+	//u16 addr = (u16)(s16)(s8)opc.hex;
+	u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc.hex & 0xFF);
 	g_dsp.r[reg] = dsp_dmem_read(addr);
 }
 
