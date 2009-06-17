@@ -36,6 +36,67 @@
 namespace PixelEngine
 {
 
+union UPEZConfReg
+{
+	u16 Hex;
+	struct 
+	{
+		unsigned ZCompEnable	: 1; // Z Comparator Enable
+		unsigned Function		: 3;
+		unsigned ZUpdEnable		: 1;
+		unsigned				: 11;
+	};
+};
+
+union UPEAlphaConfReg
+{
+	u16 Hex;
+	struct 
+	{
+		unsigned BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
+		unsigned BMLogic		: 1; // GX_BM_LOGIC
+		unsigned Dither			: 1;
+		unsigned ColorUpdEnable	: 1;
+		unsigned AlphaUpdEnable	: 1;
+		unsigned DstFactor		: 3;
+		unsigned SrcFactor		: 3;
+		unsigned Substract		: 1; // Additive mode by default
+		unsigned BlendOperator	: 4;
+	};
+};
+
+union UPEDstAlphaConfReg
+{
+	u16 Hex;
+	struct 
+	{
+		unsigned DstAlpha		: 8;
+		unsigned Enable			: 1;
+		unsigned				: 7;
+	};
+};
+
+union UPEAlphaModeConfReg
+{
+	u16 Hex;
+	struct 
+	{
+		unsigned Threshold		: 8;
+		unsigned CompareMode	: 8;
+	};
+};
+
+// Not sure about this reg...
+union UPEAlphaReadReg
+{
+	u16 Hex;
+	struct 
+	{
+		unsigned ReadMode		: 3;
+		unsigned				: 13;
+	};
+};
+
 // fifo Control Register
 union UPECtrlReg
 {
@@ -53,7 +114,13 @@ union UPECtrlReg
 };
 
 // STATE_TO_SAVE
-static UPECtrlReg g_ctrlReg;
+static UPEZConfReg			m_ZConf;
+static UPEAlphaConfReg		m_AlphaConf;
+static UPEDstAlphaConfReg	m_DstAlphaConf;
+static UPEAlphaModeConfReg	m_AlphaModeConf;
+static UPEAlphaReadReg		m_AlphaRead;
+static UPECtrlReg			m_Control;
+//static u16					m_Token; // token value most recently encountered
 
 static bool g_bSignalTokenInterrupt;
 static bool g_bSignalFinishInterrupt;
@@ -63,8 +130,14 @@ static int et_SetFinishOnMainThread;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(g_ctrlReg);
+	p.Do(m_ZConf);
+	p.Do(m_AlphaConf);
+	p.Do(m_DstAlphaConf);
+	p.Do(m_AlphaModeConf);
+	p.Do(m_AlphaRead);
+	p.Do(m_Control);
 	p.Do(CommandProcessor::fifo.PEToken);
+
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
 }
@@ -76,7 +149,7 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 
 void Init()
 {
-	g_ctrlReg.Hex = 0;
+	m_Control.Hex = 0;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -84,77 +157,90 @@ void Init()
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
-	DEBUG_LOG(PIXELENGINE, "(r16): 0x%08x", _iAddress);
+	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
-	
-	// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
-	// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
-	case PE_BBOX_LEFT:
-        _uReturnValue = 0x80;
-        return;
-
-    case PE_BBOX_RIGHT:
-        _uReturnValue = 0xA0;
-        return;
-
-    case PE_BBOX_TOP:
-        _uReturnValue = 0x80;
-        return;
-
-    case PE_BBOX_BOTTOM:
-        _uReturnValue = 0xA0;
-        return;
+		// CPU Direct Access EFB Raster State Config
+	case PE_ZCONF:
+		_uReturnValue = m_ZConf.Hex;
+		INFO_LOG(PIXELENGINE, "(r16) ZCONF");
+		break;
+	case PE_ALPHACONF:
+		// Most games read this early. no idea why.
+		_uReturnValue = m_AlphaConf.Hex;
+		INFO_LOG(PIXELENGINE, "(r16) ALPHACONF");
+		break;
+	case PE_DSTALPHACONF:
+		_uReturnValue = m_DstAlphaConf.Hex;
+		INFO_LOG(PIXELENGINE, "(r16) DSTALPHACONF");
+		break;
+	case PE_ALPHAMODE:
+		_uReturnValue = m_AlphaModeConf.Hex;
+		INFO_LOG(PIXELENGINE, "(r16) ALPHAMODE");
+		break;	
+	case PE_ALPHAREAD:
+		_uReturnValue = m_AlphaRead.Hex;
+		WARN_LOG(PIXELENGINE, "(r16) ALPHAREAD");
+		break;
 
 	case PE_CTRL_REGISTER:
-		_uReturnValue = g_ctrlReg.Hex;
-		INFO_LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
-		return;
+		_uReturnValue = m_Control.Hex;
+		INFO_LOG(PIXELENGINE, "(r16) CTRL_REGISTER : %04x", _uReturnValue);
+		break;
 
 	case PE_TOKEN_REG:
 		_uReturnValue = CommandProcessor::fifo.PEToken;
-		INFO_LOG(PIXELENGINE,"\t TOKEN_REG : %04x", _uReturnValue);
-		return;
+		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
+		break;
 
-	case PE_ALPHACONF:
-		// Most games read this early. no idea why.
-		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHACONF");
-		return;
-
-	case PE_ZCONF:
-		INFO_LOG(PIXELENGINE, "(r16): PE_ZCONF");
-		return;	
-	
-	case PE_DSTALPHACONF:
-		INFO_LOG(PIXELENGINE, "(r16): PE_DSTALPHACONF");
-		return;
-
-	case PE_ALPHAMODE:
-		INFO_LOG(PIXELENGINE, "(r16): PE_ALPHAMODE");
-		return;	
-
-	case PE_ALPHAREAD:
-		WARN_LOG(PIXELENGINE, "(r16): PE_ALPHAREAD");
+		// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
+		// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
+	case PE_BBOX_LEFT:
+		_uReturnValue = 0x80;
+		break;
+	case PE_BBOX_RIGHT:
+		_uReturnValue = 0xA0;
+		break;
+	case PE_BBOX_TOP:
+		_uReturnValue = 0x80;
+		break;
+	case PE_BBOX_BOTTOM:
+		_uReturnValue = 0xA0;
 		break;
 
 	default:
-		WARN_LOG(PIXELENGINE, "(r16): unknown @ %08x", _iAddress);
+		WARN_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);
+		_uReturnValue = 1;
 		break;
 	}
-
-	_uReturnValue = 0x001;
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	WARN_LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	switch (_iAddress & 0xFFF)
 	{
+		// CPU Direct Access EFB Raster State Config
+	case PE_ZCONF:
+		m_ZConf.Hex = _iValue;
+		INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);
+		break;
+	case PE_ALPHACONF:
+		m_AlphaConf.Hex = _iValue;
+		INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);
+		break;
+	case PE_DSTALPHACONF:
+		m_DstAlphaConf.Hex = _iValue;
+		INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue);
+		break;
+	case PE_ALPHAMODE:
+		m_AlphaModeConf.Hex = _iValue;
+		INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);
+		break;
+	case PE_ALPHAREAD:
+		m_AlphaRead.Hex = _iValue;
+		INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);
+		break;
 
 	case PE_CTRL_REGISTER:	
 		{
@@ -163,12 +249,12 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
 			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
 
-			g_ctrlReg.PETokenEnable  = tmpCtrl.PETokenEnable;
-			g_ctrlReg.PEFinishEnable = tmpCtrl.PEFinishEnable;
-			g_ctrlReg.PEToken = 0;		// this flag is write only
-			g_ctrlReg.PEFinish = 0;		// this flag is write only
+			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
+			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
+			m_Control.PEToken = 0;		// this flag is write only
+			m_Control.PEFinish = 0;		// this flag is write only
 
-			DEBUG_LOG(PIXELENGINE, "(w16): PE_CTRL_REGISTER: 0x%04x", _iValue);
+			DEBUG_LOG(PIXELENGINE, "(w16) CTRL_REGISTER: 0x%04x", _iValue);
 			UpdateInterrupts();
 		}
 		break;
@@ -180,34 +266,32 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		//g_token = _iValue;
 		break;
 
-	// CPU Direct Access EFB Raster State Config
-	case PE_ZCONF:        INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);        break;
-	case PE_ALPHACONF:    INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);    break;
-	case PE_DSTALPHACONF: INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue); break;
-	case PE_ALPHAMODE:    INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);    break;
-	case PE_ALPHAREAD:    INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);    break;
-
 	default:
-		WARN_LOG(PIXELENGINE, "Write16: unknown %04x @ %08x", _iValue, _iAddress);
+		WARN_LOG(PIXELENGINE, "(w16) unknown %04x @ %08x", _iValue, _iAddress);
 		break;
 	}
 }
 
+void Write32(const u32 _iValue, const u32 _iAddress)
+{
+	WARN_LOG(PIXELENGINE, "(w32) 0x%08x @ 0x%08x IGNORING...",_iValue,_iAddress);
+}
+
 bool AllowIdleSkipping()
 {
-	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore || (!g_ctrlReg.PETokenEnable && !g_ctrlReg.PEFinishEnable);
+	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }
 
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
-	if (g_bSignalTokenInterrupt	& g_ctrlReg.PETokenEnable)
+	if (g_bSignalTokenInterrupt	& m_Control.PETokenEnable)
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_TOKEN, true);
 	else
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_TOKEN, false);
 
 	// check if there is a finish-interrupt
-	if (g_bSignalFinishInterrupt & g_ctrlReg.PEFinishEnable)
+	if (g_bSignalFinishInterrupt & m_Control.PEFinishEnable)
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, true);
 	else
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, false);
