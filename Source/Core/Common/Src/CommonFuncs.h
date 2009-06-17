@@ -24,6 +24,9 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+template <bool> struct CompileTimeAssert;
+template<> struct CompileTimeAssert<true> {};
+
 #ifndef _WIN32
 
 #if defined __APPLE__

@@ -16,9 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯
 #include "Common.h"
 
 #include <wx/button.h>
@@ -75,7 +73,7 @@ extern "C"  // Bitmaps
 	#include "../resources/toolbar_add_breakpoint.c"
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 class CPluginInfo;
 class CPluginManager;
 
@@ -92,7 +90,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
     EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
@@ -159,7 +157,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 END_EVENT_TABLE()
 
 
-//////////////////////////////////////////////////////////////////////////
+
 // Class, input event handler and host message handler
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
@@ -277,13 +275,13 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
 	}
 }
-////////////////////////////////////////////////
 
 
 
-// =======================================================================================
+
+
 // Load these settings before CreateGUIControls()
-// --------------
+
 void CCodeWindow::Load_( IniFile &ini )
 {
 	// The font to override DebuggerFont with
@@ -299,7 +297,7 @@ void CCodeWindow::Load_( IniFile &ini )
 	ini.Get("ShowOnStart", "JitWindow", &bJitWindow, true);
 	ini.Get("ShowOnStart", "SoundWindow", &bSoundWindow, false);
 	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
-	// ===============
+	
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
@@ -353,7 +351,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 {
 	CreateMenu(_LocalCoreStartupParameter);
 
-	// =======================================================================================
+	
 	// Configure the code window
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
@@ -377,7 +375,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	sizerBig->Fit(this);
 
 	sync_event.Init();
-	// =================
+	
 
 
 	if (bRegisterWindow)
@@ -425,17 +423,17 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	} // don't have any else, just ignore it
 }
 
-// ===================================================================
+
 // Create CPU Mode and Views menus
-// ---------------
+
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
 	// Create menu
 	pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
-	// --------------------------------
+	
 	// CPU Mode
-	// -------------
+	
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
@@ -493,11 +491,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
 	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
-	// -----------------
+	
 
-	// --------------------------------
+	
 	// Views
-	// ---------------
+	
 	wxMenu* pDebugDialogs = new wxMenu;
 
 	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
@@ -522,7 +520,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
 	pMenuBar->Append(pDebugDialogs, _T("&Views"));
-	// -----------------
+	
 
 	CreateSymbolsMenu();
 
@@ -530,9 +528,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 }
 
 
-// =======================================================================================
+
 // Toolbar and bitmaps for the toolbar
-// --------------
+
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
@@ -573,12 +571,12 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 	// the changes
 	toolBar->Realize();
 }
-// ===================================
 
 
-// =======================================================================================
+
+
 // Shortcuts
-// --------------
+
 bool CCodeWindow::UseInterpreter()
 {
 	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
@@ -603,12 +601,12 @@ bool CCodeWindow::JITBlockLinking()
 {
 	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
 }
-// =========================
 
 
-// =======================================================================================
+
+
 // CPU Mode and JIT Menu
-// --------------
+
 void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -662,27 +660,26 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		case IDM_SEARCHINSTRUCTION:
 		{
 			wxString str;
-			str = wxGetTextFromUser("", "Op?", wxEmptyString, this);
+			str = wxGetTextFromUser(_(""), wxT("Op?"), wxEmptyString, this);
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4) {
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
-				if (name && !strcmp(str.c_str(), name))
+				if (name && !strcmp((const char *)str.mb_str(), name))
 					NOTICE_LOG(POWERPC, "Found %s at %08x", str.c_str(), addr);
 			}
 			break;
 		}
 	}
 }
-// =====================================
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Events
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-// =======================================================================================
+
 // The Play, Stop, Step, Skip, Go to PC and Show PC buttons all go here
-// --------------
+
 void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -865,13 +862,13 @@ void CCodeWindow::Update()
 	   when we pause SINCE THIS CAN BE CALLED AT OTHER TIMES TOO */
 	// codeview->Center(PC);
 }
-/////////////////////////////////////////////////
 
 
 
-// =======================================================================================
+
+
 // Update GUI
-// --------------
+
 void CCodeWindow::UpdateButtonStates()
 {
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
@@ -947,12 +944,12 @@ void CCodeWindow::RecreateToolbar()
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);
 }
-// =============
 
 
-// =======================================================================================
+
+
 // Show Tool Tip for menu items
-// --------------
+
 void CCodeWindow::DoTip(wxString text)
 {
 	// Create a blank tooltip to clear the eventual old one
@@ -998,4 +995,4 @@ void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 		//if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
 	#endif
 }
-// =============
+

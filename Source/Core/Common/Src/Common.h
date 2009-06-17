@@ -92,8 +92,6 @@ namespace
 	#ifndef _SECURE_SCL
 		#error Please define _SECURE_SCL=0 in the project settings
 	#else
-		template <bool> struct CompileTimeAssert;
-		template<> struct CompileTimeAssert<true> {};
 		CompileTimeAssert<_SECURE_SCL==0> x;
 	#endif
 }

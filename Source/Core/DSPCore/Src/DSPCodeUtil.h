@@ -29,7 +29,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
 void GenRandomCode(int size, std::vector<u16> &code);
 void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 				  const char *name, std::string &header);
-void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> filenames,
+void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> *filenames,
 				   int numCodes, const char *name, std::string &header);
 
 // Big-endian, for writing straight to file using File::WriteStringToFile.

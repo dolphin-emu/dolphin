@@ -361,7 +361,7 @@ int main(int argc, const char *argv[])
 				}
 				
 
-				CodesToHeader(codes, files, lines, output_header_name.c_str(), header);
+				CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
 				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
 
 				delete[] codes;

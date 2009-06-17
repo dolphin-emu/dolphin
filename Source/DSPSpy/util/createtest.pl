@@ -57,7 +57,10 @@ usage() if (! defined $input);
 my $xtest = XMLin($input);
 my $type = $xtest->{'type'};
 
-foreach my $cmd (split(/,/, $cmds)) {
+my @cmdList = split(/,/, $cmds);
+
+for(my $i = 0;$i < scalar(@cmdList);$i++) {
+	my $cmd = $cmdList[$i];
 	my $name = parseString($xtest->{'name'}, $cmd);
 	$name =~ s/ /_/g;
 	my $desc = parseString($xtest->{'description'}, $cmd);
@@ -86,9 +89,6 @@ foreach my $cmd (split(/,/, $cmds)) {
 		open(NAMES, ">$name.lst");
 	}
 
-#	print NAMES "; $name\n";
-#	print NAMES "; $desc\n";
-
 	my $numLines = POSIX::ceil(0xFFFF / $ucodes);
 	for(my $j = 0; $j < $numLines; $j++) {
 		open(OUTPUT, ">$name$j.tst");
@@ -98,7 +98,7 @@ foreach my $cmd (split(/,/, $cmds)) {
 		print NAMES "$name$j.tst";
 		
 		# Don't end with a newline
-		if ($j < $numLines - 1) {
+		if ($j < $numLines - 1 || ($merge && $i != scalar(@cmdList)-1)) {
 			print NAMES "\n";
 		}
 	}

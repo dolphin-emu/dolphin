@@ -68,7 +68,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 {		
 	if (code1.size() != code2.size())
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
-	int count_equal = 0;
+	u32 count_equal = 0;
 	const int min_size = (int)std::min(code1.size(), code2.size());
 
 	AssemblerSettings settings;
@@ -135,7 +135,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	header.append("#endif\n\n");
 	
 	header.append("\t{\n\t\t");
-	for (int j = 0; j < code.size(); j++)
+	for (u32 j = 0; j < code.size(); j++)
 	{
 		if (j && ((j & 15) == 0))
 			header.append("\n\t\t");
@@ -147,7 +147,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	header.append("};\n");
 }
 
-void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> filenames,
+void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
 				   int numCodes, const char *name, std::string &header)
 {
 	char buffer[1024];
@@ -164,7 +164,8 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	for (int i = 0; i < numCodes; i++)
 	{
 		std::string filename;
-		SplitPath(filenames.at(i), NULL, &filename, NULL);
+		SplitPath(filenames->at(i), NULL, &filename, NULL);
+		//	printf("files %s\n", (filenames->at(i).c_str()));
 		sprintf(buffer, "%s\t\"%s\",\n", buffer, filename.c_str());
 	}
 	sprintf(buffer, "%s};\n\n", buffer);
@@ -187,7 +188,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 			code_copy.push_back(0);
 
 		header.append("\t{\n\t\t");
-		for (int j = 0; j < codes[i].size(); j++) 
+		for (u32 j = 0; j < codes[i].size(); j++) 
 		{
 			if (j && ((j & 15) == 0))
 				header.append("\n\t\t");

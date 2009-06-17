@@ -23,7 +23,7 @@
 #include "../PatchEngine.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 
-#include "WiiWAD.h"
+#include "WiiWad.h"
 #include "NANDContentLoader.h"
 #include "FileUtil.h"
 #include "Boot_DOL.h"

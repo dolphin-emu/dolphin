@@ -46,7 +46,7 @@ struct ZPB
 
 namespace {
 // If this miscompiles, adjust the size of ZPB to 0x180 bytes (0xc0 shorts).
-CompileTimeAssert<sizeof(ZPB) == 0x180> ensure_zpb_size_correct;
+	CompileTimeAssert<sizeof(ZPB) == 0x180> ensure_zpb_size_correct;
 }  // namespace
 
 
