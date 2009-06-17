@@ -87,6 +87,7 @@ private:
 	void OnCompressGCM(wxCommandEvent& event);
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
+	void OnInstallWAD(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();

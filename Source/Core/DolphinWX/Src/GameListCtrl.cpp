@@ -96,6 +96,7 @@ EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+EVT_MENU(IDM_INSTALLWAD, CGameListCtrl::OnInstallWAD)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -698,7 +699,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 					popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
 				else
 					popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO..."));
-			}
+			} else
+				popupMenu.Append(IDM_INSTALLWAD, _("Install to Wii Menu"));
 
 			PopupMenu(&popupMenu);
 		}
@@ -822,6 +824,29 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	CISOProperties ISOProperties(iso->GetFileName(), this);
 	if(ISOProperties.ShowModal() == wxID_OK)
 		Update();
+}
+
+void CGameListCtrl::OnInstallWAD(wxCommandEvent& WXUNUSED (event))
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso)
+		return;
+
+	wxProgressDialog dialog(_T("Installing WAD to Wii Menu..."),
+		_T("Working..."),
+		1000, // range
+		this, // parent
+		wxPD_APP_MODAL |
+		// wxPD_AUTO_HIDE | -- try this as well
+		wxPD_ELAPSED_TIME |
+		wxPD_ESTIMATED_TIME |
+		wxPD_REMAINING_TIME |
+		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		);
+
+	dialog.CenterOnParent();
+
+	CBoot::Install_WiiWAD(iso->GetFileName().c_str());
 }
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
