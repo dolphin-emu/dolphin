@@ -12,7 +12,7 @@ class PPCDebugInterface : public DebugInterface
 public:
 	PPCDebugInterface(){} 
 	virtual void disasm(unsigned int address, char *dest, int max_size);
-	virtual void getRawMemoryString(unsigned int address, char *dest, int max_size);
+	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size);
 	virtual int getInstructionSize(int instruction) {return 4;}
 	virtual bool isAlive();
 	virtual bool isBreakpoint(unsigned int address);
@@ -21,6 +21,11 @@ public:
 	virtual void clearAllBreakpoints();
 	virtual void toggleBreakpoint(unsigned int address);
 	virtual unsigned int readMemory(unsigned int address);
+
+	enum {
+		EXTRAMEM_ARAM = 1,
+	};
+	virtual unsigned int readExtraMemory(int memory, unsigned int address);
 	virtual unsigned int readInstruction(unsigned int address);
 	virtual unsigned int getPC();
 	virtual void setPC(unsigned int address);

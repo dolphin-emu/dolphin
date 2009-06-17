@@ -22,55 +22,47 @@
 #include "Common.h"
 #include "Debugger/DebugInterface.h"
 
-
-class CMemoryView
-	: public wxControl
+class CMemoryView : public wxControl
 {
-	public:
+public:
+	CMemoryView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
+	wxSize DoGetBestSize() const;
+	void OnPaint(wxPaintEvent& event);
+	void OnErase(wxEraseEvent& event);
+	void OnMouseDown(wxMouseEvent& event);
+	void OnMouseMove(wxMouseEvent& event);
+	void OnMouseUpL(wxMouseEvent& event);
+	void OnMouseUpR(wxMouseEvent& event);
+	void OnPopupMenu(wxCommandEvent& event);
 
-		CMemoryView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
-		wxSize DoGetBestSize() const;
-		void OnPaint(wxPaintEvent& event);
-		void OnErase(wxEraseEvent& event);
-		void OnMouseDown(wxMouseEvent& event);
-		void OnMouseMove(wxMouseEvent& event);
-		void OnMouseUpL(wxMouseEvent& event);
-		void OnMouseUpR(wxMouseEvent& event);
-		void OnPopupMenu(wxCommandEvent& event);
+	u32 GetSelection() {return(selection);}
 
+	void Center(u32 addr)
+	{
+		curAddress = addr;
+		redraw();
+	}
 
-		u32 GetSelection() {return(selection);}
+private:
+	int YToAddress(int y);
+	void redraw() {Refresh();}
 
+	DebugInterface* debugger;
 
-		void Center(u32 addr)
-		{
-			curAddress = addr;
-			redraw();
-		}
+	int curAddress;
+	int align;
+	int rowHeight;
 
+	u32 selection;
+	u32 oldSelection;
+	bool selectionChanged;
+	bool selecting;
+	bool hasFocus;
+	bool showHex;
 
-	private:
+	int memory;
 
-		int YToAddress(int y);
-
-
-		void redraw() {Refresh();}
-
-
-		DebugInterface* debugger;
-
-		int curAddress;
-		int align;
-		int rowHeight;
-
-		u32 selection;
-		u32 oldSelection;
-		bool selectionChanged;
-		bool selecting;
-		bool hasFocus;
-		bool showHex;
-
-		DECLARE_EVENT_TABLE()
+	DECLARE_EVENT_TABLE()
 };
 
 #endif /*MEMORYVIEW_H_*/

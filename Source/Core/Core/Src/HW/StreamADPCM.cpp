@@ -11,11 +11,12 @@ static int histl2;
 static int histr1;
 static int histr2;
 
-short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p) {
-	int hist, cur;
+short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p)
+{
 	const int hist1 = *hist1p;
 	const int hist2 = *hist2p;
 	
+	int hist;
 	switch (q >> 4)
 	{
 	case 0:
@@ -35,7 +36,7 @@ short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p) {
 	if (hist >  0x1fffff) hist =  0x1fffff;
 	if (hist < -0x200000) hist = -0x200000;
 
-	cur = (((short)(bits << 12) >> (q & 0xf)) << 6) + hist;
+	int cur = (((short)(bits << 12) >> (q & 0xf)) << 6) + hist;
 	
 	*hist2p = *hist1p;
 	*hist1p = cur;

@@ -31,6 +31,7 @@ enum
 	IDM_COPYCODE,
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
+	IDM_TOGGLEMEMORY,
 };
 
 
@@ -54,7 +55,8 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent, wxWin
       selectionChanged(false),
       selecting(false),
       hasFocus(false),
-      showHex(false)
+      showHex(false),
+	  memory(0)
 {
 	rowHeight = 13;
 	align = debuginterface->getInstructionSize(0);
@@ -169,10 +171,15 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	    case IDM_COPYHEX:
 	    {
 		    char temp[24];
-		    sprintf(temp, "%08x", debugger->readMemory(selection));
+		    sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 	    }
-		    break;
+	    break;
+
+		case IDM_TOGGLEMEMORY:
+			memory ^= 1;
+			redraw();
+			break;
 #endif
 	}
 
@@ -192,6 +199,7 @@ void CMemoryView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 #endif
+	menu.Append(IDM_TOGGLEMEMORY, wxString::FromAscii("Toggle &memory (RAM/ARAM)"));
 	PopupMenu(&menu);
 	event.Skip(true);
 }
@@ -276,7 +284,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		dc.SetTextForeground(_T("#600000"));
 		dc.DrawText(temp, 17, rowY1);
 		char mem[256];
-		debugger->getRawMemoryString(address, mem, 256);
+		debugger->getRawMemoryString(memory, address, mem, 256);
 		dc.SetTextForeground(_T("#000080"));
 		dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
 		dc.SetTextForeground(_T("#000000"));
@@ -284,12 +292,12 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		if (debugger->isAlive())
 		{
 			char dis[256] = {0};
-			u32 mem = debugger->readMemory(address);
+			u32 mem = debugger->readExtraMemory(memory, address);
 			float flt = *(float *)(&mem);
 			sprintf(dis, "f: %f", flt);
 			char desc[256] = "";
 
-			dc.DrawText(wxString::FromAscii(dis), 17 + fontSize*(8 + 8), rowY1);
+			dc.DrawText(wxString::FromAscii(dis), 77 + fontSize*(8 + 8), rowY1);
 
 			if (desc[0] == 0)
 			{

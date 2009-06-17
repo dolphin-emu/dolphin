@@ -21,6 +21,7 @@
 #include "PPCDebugInterface.h"
 #include "PowerPCDisasm.h"
 #include "../Core.h"
+#include "../HW/DSP.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/Jit64/Jit.h"
@@ -51,17 +52,17 @@ void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 	}
 }
 
-void PPCDebugInterface::getRawMemoryString(unsigned int address, char *dest, int max_size)
+void PPCDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (Memory::IsRAMAddress(address, true))
+		if (memory || Memory::IsRAMAddress(address, true))
 		{
-			snprintf(dest, max_size, "%08X", readMemory(address));
+			snprintf(dest, max_size, "%08X%s", readExtraMemory(memory, address), memory ? " (ARAM)" : "");
 		}
 		else
 		{
-			strcpy(dest, "--------");
+			strcpy(dest, memory ? "--ARAM--" : "--------");
 		}
 	}
 	else
@@ -73,6 +74,22 @@ void PPCDebugInterface::getRawMemoryString(unsigned int address, char *dest, int
 unsigned int PPCDebugInterface::readMemory(unsigned int address)
 {
 	return Memory::ReadUnchecked_U32(address);
+}
+
+unsigned int PPCDebugInterface::readExtraMemory(int memory, unsigned int address)
+{
+	switch (memory)
+	{
+	case 0:
+		return Memory::ReadUnchecked_U32(address);
+	case 1:
+		return (DSP::ReadARAM(address)     << 24) |
+			   (DSP::ReadARAM(address + 1) << 16) |
+			   (DSP::ReadARAM(address + 2) << 8) |
+			   (DSP::ReadARAM(address + 3));
+	default:
+		return 0;
+	}
 }
 
 unsigned int PPCDebugInterface::readInstruction(unsigned int address)

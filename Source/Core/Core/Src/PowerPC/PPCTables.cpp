@@ -687,13 +687,19 @@ void InitTables()
 }
 
 #define OPLOG
-#define OP_TO_LOG "mffs"
+#define OP_TO_LOG "mtfsb0x"
 
 #ifdef OPLOG
 namespace {
 	std::vector<u32> rsplocations;
 }
 #endif
+
+const char *GetInstructionName(UGeckoInstruction _inst)
+{
+	const GekkoOPInfo *info = GetOpInfo(_inst);
+	return info ? info->opname : 0;
+}
 
 void CompileInstruction(UGeckoInstruction _inst)
 {
@@ -712,9 +718,9 @@ void CompileInstruction(UGeckoInstruction _inst)
 	}
 }
 
-bool IsValidInstruction(UGeckoInstruction _instCode)
+bool IsValidInstruction(UGeckoInstruction _inst)
 {
-	const GekkoOPInfo *info = GetOpInfo(_instCode);
+	const GekkoOPInfo *info = GetOpInfo(_inst);
 	return info != 0;
 }
 

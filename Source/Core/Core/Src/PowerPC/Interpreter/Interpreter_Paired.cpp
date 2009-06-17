@@ -108,7 +108,6 @@ void ps_div(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) / rPS0(_inst.FB));
 	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) / rPS1(_inst.FB));
-	FPSCR.FI = 0;
 	if (fabs(rPS0(_inst.FB)) == 0.0) {
 		FPSCR.ZX = 1;
 	}
@@ -119,12 +118,14 @@ void ps_res(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = 1.0f / static_cast<float>(rPS0(_inst.FB));
 	rPS1(_inst.FD) = 1.0f / static_cast<float>(rPS1(_inst.FB));
+	if (fabs(rPS0(_inst.FB)) == 0.0) {
+		FPSCR.ZX = 1;
+	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_rsqrte(UGeckoInstruction _inst)
 {
-	// PanicAlert("ps_rsqrte");
 	rPS0(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS0(_inst.FB)));
 	rPS1(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS1(_inst.FB)));
 	if (fabs(rPS0(_inst.FB)) == 0.0) {

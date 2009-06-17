@@ -27,84 +27,63 @@
 #include "../main.h"
 #include "Mixer.h"
 
-
-namespace {
-CompileTimeAssert<sizeof(ZPB) == 0x180> dummy_name;
-}
-
 // TODO: replace with table from RAM.
-unsigned short afccoef[16][2] =
-{{0,0},
-{0x0800,0},
-{0,0x0800},
-{0x0400,0x0400},
-{0x1000,0xf800},
-{0x0e00,0xfa00},
-{0x0c00,0xfc00},
-{0x1200,0xf600},
-{0x1068,0xf738},
-{0x12c0,0xf704},
-{0x1400,0xf400},
-{0x0800,0xf800},
-{0x0400,0xfc00},
-{0xfc00,0x0400},
-{0xfc00,0},
-{0xf800,0}};
-
+const u16 afccoef[16][2] =
+{
+	{0,0},          {0x0800,0},     {0,     0x0800},{0x0400,0x0400},
+	{0x1000,0xf800},{0x0e00,0xfa00},{0x0c00,0xfc00},{0x1200,0xf600},
+	{0x1068,0xf738},{0x12c0,0xf704},{0x1400,0xf400},{0x0800,0xf800},
+	{0x0400,0xfc00},{0xfc00,0x0400},{0xfc00,0},     {0xf800,0}
+};
 
 // Decoder from in_cube by hcs/destop/etc. Haven't yet found a valid use for it.
 
 // Looking at in_cube, it seems to be 9 bytes of input = 16 samples of output.
 // Different from AX ADPCM which is 8 bytes of input = 14 samples of output.
-void AFCdecodebuffer
-(
- u8    *input, // location of encoded source samples
- s16   *out,   // location of destination buffer (16 bits / sample)
- short *histp,
- short *hist2p
- )
+// input = location of encoded source samples
+// out = location of destination buffer (16 bits / sample)
+void AFCdecodebuffer(const u8 *input, s16 *out, short *histp, short *hist2p)
 {
-	int sample;
 	short nibbles[16];
-	u8 *src, *dst;
-	short idx;
-	short delta;
-	short hist=*histp;
-	short hist2=*hist2p;
+	u8 *dst = (u8 *)out;
+	short hist = *histp;
+	short hist2 = *hist2p;
+	const u8 *src = input;
 
-	dst = (u8 *)out;
-
-	src = input;
-	delta = 1 << (((*src) >> 4)&0xf);
-	idx = (*src) & 0xf;
-
+	// 9 bytes input - first byte contain delta scaling and coef index.
+	const short delta = 1 << (((*src) >> 4) & 0xf);
+	const short idx = *src & 0xf;
 	src++;
 
-	for (int i = 0; i < 16; i = i + 2)
+	// denibble the rest of the 8 bytes into 16 values.
+	for (int i = 0; i < 16; i += 2)
 	{
-		int j = ( *src & 255) >> 4;
+		int j = *src >> 4;
 		nibbles[i] = j;
-		j = *src & 255 & 15;
+		j = *src & 0xF;
 		nibbles[i + 1] = j;
 		src++;
 	}
 
-	for (int i = 0; i < 16; i = i + 1)
+	// make the nibbles signed.
+	for (int i = 0; i < 16; i++)
 	{
 		if (nibbles[i] >= 8) 
 			nibbles[i] = nibbles[i] - 16;
 	}
 
-	for (int i = 0; i < 16; i = i + 1)
+	// Perform ADPCM filtering.
+	for (int i = 0; i < 16; i++)
 	{
-		sample = (delta * nibbles[i]) << 11;
+		int sample = (delta * nibbles[i]) << 11;
 		sample += ((long)hist * afccoef[idx][0]) + ((long)hist2 * afccoef[idx][1]);
 		sample = sample >> 11;
 
-		if(sample > 32767) {
+		// Clamp sample.
+		if (sample > 32767) {
 			sample = 32767;
 		}
-		if(sample < -32768) {
+		if (sample < -32768) {
 			sample = -32768;
 		}
 
@@ -115,10 +94,10 @@ void AFCdecodebuffer
 		hist = (short)sample;
 	}
 
-	*histp=hist;
-	*hist2p=hist2;
+	// Store state.
+	*histp = hist;
+	*hist2p = hist2;
 }
-
 
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
@@ -136,6 +115,9 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 	, m_bListInProgress(false)
 	, m_step(0)
 	, m_readOffset(0)
+	, num_param_blocks(0)
+	, param_blocks_ptr(0)
+	, param_blocks2_ptr(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 
@@ -163,15 +145,7 @@ void CUCode_Zelda::Update(int cycles)
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
-	// XK: Sync mails spam the logs
-	/*
-	DEBUG_LOG(DSPHLE, "Zelda mail 0x%08X, list in progress? %s, sync in progress? %s", _uMail, 
-		m_bListInProgress ? "Yes" : "No", m_bSyncInProgress ? "Yes" : "No");
-	*/
-	// SetupTable
-	// in WW we get SetDolbyDelay
-	// SyncFrame
-	// The last mails we get before the audio goes bye-bye
+	// When we used to lose sync, the last mails we get before the audio goes bye-bye
 	// 0
 	// 0x00000
 	// 0
@@ -180,8 +154,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	// 0x20000
 	// 0
 	// 0x30000
-	// And then silence...
-
+	// And then silence... Looks like some reverse countdown :)
 	if (m_bSyncInProgress)
 	{
 		if (m_bSyncCmdPending)
@@ -223,14 +196,15 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		return;
 	}
 
-	if(_uMail != 0) {
+	if (_uMail != 0)
+	{
 		DEBUG_LOG(DSPHLE, "Zelda mail 0x%08X, list in progress? %s", _uMail, 
 			m_bListInProgress ? "Yes" : "No");
 	}
 
 	if (m_bListInProgress)
 	{
-		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
+		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
 		((u32*)m_Buffer)[m_step] = _uMail;
@@ -315,7 +289,7 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-			u32 tmp[3];
+			u32 tmp[2];
 			tmp[0] = Read32();
 			tmp[1] = Read32();
 
@@ -346,12 +320,13 @@ void CUCode_Zelda::ExecuteList()
 			CopyPBsFromRAM();
 			for (int i = 0; i < num_param_blocks; i++)
 			{
+				const ZPB &pb = zpbs[i];
 				// The only thing that consistently looks like a pointer in the param blocks. 
-				u32 addr = (zpbs[i].addr_high << 16) | zpbs[i].addr_low;
+				u32 addr = (pb.addr_high << 16) | pb.addr_low;
 				if (addr)
 				{
 					DEBUG_LOG(DSPHLE, "Param block:  ==== %i ( %08x ) ====", i, GetParamBlockAddr(i));
-					DEBUG_LOG(DSPHLE, "Addr: %08x", addr);
+					DEBUG_LOG(DSPHLE, "Addr: %08x  Type: %i", addr, pb.type);
 
 					// Got one! Read from ARAM, dump to file.
 					// I can't get the below to produce anything resembling sane audio :(
@@ -406,11 +381,9 @@ void CUCode_Zelda::ExecuteList()
 		    // DsetDolbyDelay ... zelda ww jumps to 0x00b2
 	    case 0x0d:
 	    {
-		    u32 tmp[2];
-		    tmp[0] = Read32();
-
+		    u32 tmp = Read32();
 		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
-		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp);
 	    }
 		    break;
 
@@ -473,11 +446,13 @@ void CUCode_Zelda::CopyPBsToRAM()
 	}
 }
 
+// size is in stereo samples.
 void CUCode_Zelda::MixAdd(short* buffer, int size)
 {
-	//TODO(XK): Zelda UCode MixAdd?
-//	for (int i = 0; i < size; i++) {
-//		buffer[i] = rand();
+//	for (int i = 0; i < size; i++)
+//	{
+//		buffer[i*2] = rand();
+//		buffer[i*2+1] = rand();
 //	}
 }
 

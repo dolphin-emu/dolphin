@@ -65,7 +65,7 @@ void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 	}*/
 }
 
-void DSPDebugInterface::getRawMemoryString(unsigned int address, char *dest, int max_size)
+void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
 	/*
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)

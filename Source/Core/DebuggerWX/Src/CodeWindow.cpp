@@ -46,6 +46,7 @@
 
 #include "FileUtil.h"
 #include "Core.h"
+#include "HW/Memmap.h"
 #include "HLE/HLE.h"
 #include "Boot/Boot.h"
 #include "LogManager.h"
@@ -140,6 +141,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
+	EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
 
 	EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
 	EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
@@ -656,6 +658,18 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 
 		case IDM_CLEARCODECACHE:
 			jit.ClearCache(); break;
+
+		case IDM_SEARCHINSTRUCTION:
+		{
+			wxString str;
+			str = wxGetTextFromUser("", "Op?", wxEmptyString, this);
+			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4) {
+				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
+				if (name && !strcmp(str.c_str(), name))
+					NOTICE_LOG(POWERPC, "Found %s at %08x", str.c_str(), addr);
+			}
+			break;
+		}
 	}
 }
 // =====================================

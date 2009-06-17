@@ -11,7 +11,7 @@ protected:
 
 public:
 	virtual void disasm(unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
-	virtual void getRawMemoryString(unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
+	virtual void getRawMemoryString(int memory, unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
 	virtual int getInstructionSize(int /*instruction*/) {return 1;}
 	virtual bool isAlive() {return true;}
 	virtual bool isBreakpoint(unsigned int /*address*/) {return false;}
@@ -20,6 +20,7 @@ public:
 	virtual void clearAllBreakpoints() {}
 	virtual void toggleBreakpoint(unsigned int /*address*/){}
 	virtual unsigned int readMemory(unsigned int /*address*/){return 0;}
+	virtual unsigned int readExtraMemory(int memory, unsigned int address){return 0;}
 	virtual unsigned int readInstruction(unsigned int /*address*/){return 0;}
 	virtual unsigned int getPC() {return 0;}
 	virtual void setPC(unsigned int /*address*/) {}

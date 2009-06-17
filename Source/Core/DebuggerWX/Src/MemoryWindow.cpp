@@ -42,24 +42,11 @@
 
 enum
 {
-	IDM_DEBUG_GO = 350,
-	IDM_STEP,
-	IDM_STEPOVER,
-	IDM_SKIP,
-	IDM_SETPC,
-	IDM_GOTOPC,
-	IDM_ADDRBOX,
-	IDM_CALLSTACKLIST,
+	IDM_ADDRBOX = 350,
 	IDM_SYMBOLLIST,
-	IDM_INTERPRETER,
-	IDM_DUALCORE,
-	IDM_LOGWINDOW,
-	IDM_REGISTERWINDOW,
-	IDM_BREAKPOINTWINDOW,
-	IDM_VALBOX,
 	IDM_SETVALBUTTON,
 	IDM_DUMP_MEMORY,
-
+	IDM_VALBOX,
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
@@ -69,7 +56,6 @@ BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
 	EVT_BUTTON(IDM_DUMP_MEMORY,     CMemoryWindow::OnDumpMemory)
 END_EVENT_TABLE()
-
 
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
@@ -87,9 +73,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(buttonGo = new wxButton(this, IDM_DEBUG_GO, _T("&Go")));
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
-	sizerRight->Add(new wxButton(this, IDM_SETPC, _T("S&et PC")));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
 	
@@ -162,14 +146,15 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 	Memory::Write_U32(val, addr);
 	memview->Refresh();
 }
+
 void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
 	wxString txt = addrbox->GetValue();
-	if (txt.size() == 8)
+	if (txt.size())
 	{
 		u32 addr;
 		sscanf(txt.mb_str(), "%08x", &addr);
-		memview->Center(addr);
+		memview->Center(addr & ~3);
 	}
 
 	event.Skip(1);

@@ -283,9 +283,11 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		// Insert blr or restore old value
 		case IDM_INSERTBLR:
 			InsertBlrNop(0);
+			redraw();
 			break;
 		case IDM_INSERTNOP:
 			InsertBlrNop(1);
+			redraw();
 			break;
 
 	    case IDM_JITRESULTS:

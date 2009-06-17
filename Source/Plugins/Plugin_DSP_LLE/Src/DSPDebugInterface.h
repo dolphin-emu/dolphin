@@ -10,7 +10,7 @@ class DSPDebugInterface : public DebugInterface
 public:
 	DSPDebugInterface(){} 
 	virtual void disasm(unsigned int address, char *dest, int max_size);
-	virtual void getRawMemoryString(unsigned int address, char *dest, int max_size);
+	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size);
 	virtual int getInstructionSize(int instruction) {return 2;}
 	virtual bool isAlive();
 	virtual bool isBreakpoint(unsigned int address);

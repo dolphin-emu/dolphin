@@ -474,6 +474,7 @@ void UpdateAudioDMA()
 			// Latch new parameters
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	} else {

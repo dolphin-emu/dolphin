@@ -110,6 +110,7 @@ void CCodeWindow::CreateSymbolsMenu()
 	wxMenu *pJitMenu = new wxMenu;
 	pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));
 	pJitMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
+	pJitMenu->Append(IDM_SEARCHINSTRUCTION, _T("&Search for an op"));
 	pMenuBar->Append(pJitMenu, _T("&JIT"));
 
 	wxMenu *pProfilerMenu = new wxMenu;

@@ -102,8 +102,6 @@ class Jit64;
 namespace PPCTables
 {
 
-
-
 typedef void (Jit64::*_recompilerInstruction) (UGeckoInstruction instCode);
 typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
@@ -115,6 +113,7 @@ void CountInstruction(UGeckoInstruction _inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
 void CompileInstruction(UGeckoInstruction _inst);
+const char *GetInstructionName(UGeckoInstruction _inst);
 
 }  // namespace
 
