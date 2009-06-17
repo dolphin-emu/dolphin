@@ -304,22 +304,22 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowNotifyReset
 	case 0x7e:
-		PanicAlert("DVDLowNotifyReset");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowNotifyReset");
 		break;
 
 	// DVDLowReadDvdPhysical
 	case 0x80:
-		PanicAlert("DVDLowReadDvdPhysical");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdPhysical");
 		break;
 
 	// DVDLowReadDvdCopyright
 	case 0x81:
-		PanicAlert("DVDLowReadDvdCopyright");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdCopyright");
 		break;
 
 	// DVDLowReadDvdDiscKey
 	case 0x82:
-		PanicAlert("DVDLowReadDvdDiscKey");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdDiscKey");
 		break;
 
 	// DVDLowClearCoverInterrupt
@@ -351,7 +351,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowOpenPartition
 	case 0x8b:
-		PanicAlert("DVDLowOpenPartition");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowOpenPartition");
 		return 1;
 		break;
 
@@ -412,7 +412,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowEnableDvdVideo
 	case 0x8e:
-		PanicAlert("DVDLowEnableDvdVideo");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowEnableDvdVideo");
 		break;
 
 	// DVDLowReportKey
@@ -425,53 +425,53 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
     
 	// DVDLowSeek
     case 0xab:
-		PanicAlert("DVDLowSeek");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowSeek");
         break;
 
 // Apparently Dx commands have never been seen in dolphin? *shrug*
 	// DVDLowReadDvd
 	case 0xd0:
-		PanicAlert("DVDLowReadDvd");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvd");
 		break;
 
 	// DVDLowReadDvdConfig
 	case 0xd1:
-		PanicAlert("DVDLowReadDvdConfig");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdConfig");
 		break;
 
 	// DVDLowStopLaser
 	case 0xd2:
-		PanicAlert("DVDLowStopLaser");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowStopLaser");
 		break;
 
 	// DVDLowOffset
 	case 0xd9:
-		PanicAlert("DVDLowOffset");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowOffset");
 		break;
 
 	// DVDLowReadDiskBca
 	case 0xda:
-		PanicAlert("DVDLowReadDiskBca");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDiskBca");
 		break;
 
 	// DVDLowRequestDiscStatus
 	case 0xdb:
-		PanicAlert("DVDLowRequestDiscStatus");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowRequestDiscStatus");
 		break;
 
 	// DVDLowRequestRetryNumber
 	case 0xdc:
-		PanicAlert("DVDLowRequestRetryNumber");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowRequestRetryNumber");
 		break;
 
 	// DVDLowSetMaximumRotation
 	case 0xdd:
-		PanicAlert("DVDLowSetMaximumRotation");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowSetMaximumRotation");
 		break;
 
 	// DVDLowSerMeasControl
 	case 0xdf:
-		PanicAlert("DVDLowSerMeasControl");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowSerMeasControl");
 		break;
 
 	// DVDLowRequestError
@@ -499,7 +499,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// DVDLowAudioBufferConfig
 	case 0xe4:
-		PanicAlert("DVDLowAudioBufferConfig");
+		ERROR_LOG(WII_IPC_DVD, "DVDLowAudioBufferConfig");
 		break;
 
 	default:
