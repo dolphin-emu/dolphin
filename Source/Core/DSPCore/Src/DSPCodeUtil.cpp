@@ -150,7 +150,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
 				   int numCodes, const char *name, std::string &header)
 {
-	char buffer[0x1000];
+	char buffer[1024];
 	int reserveSize = 0;
 	for(int i = 0; i < numCodes; i++)
 		reserveSize += (int)codes[i].size();
@@ -160,15 +160,16 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	header.reserve(reserveSize * 4);
 	sprintf(buffer, "#define NUM_UCODES %d\n\n", numCodes);
 	header.append(buffer);
-	sprintf(buffer, "const char* UCODE_NAMES[NUM_UCODES] = {\n");
+	header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
 	for (int i = 0; i < numCodes; i++)
 	{
 		std::string filename;
-		SplitPath(filenames->at(i), NULL, &filename, NULL);
-		sprintf(buffer, "%s\t\"%s\",\n", buffer, filename.c_str());
+		if (! SplitPath(filenames->at(i), NULL, &filename, NULL))
+			filename = filenames->at(i);
+		sprintf(buffer, "\t\"%s\",\n", filename.c_str());
+		header.append(buffer);
 	}
-	sprintf(buffer, "%s};\n\n", buffer);
-	header.append(buffer);
+	header.append("};\n\n");
 	header.append("#ifndef _MSCVER\n");
 	sprintf(buffer, "const unsigned short %s[NUM_UCODES][0x1000] = {\n", name);
 	header.append(buffer);

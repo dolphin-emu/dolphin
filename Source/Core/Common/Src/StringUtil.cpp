@@ -338,14 +338,14 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 
 	if (last_slash == std::string::npos)
 	{
-		return false;
+		return false; // FIXME return the filename
 	}
 
 	size_t last_dot = full_path.rfind('.');
 
 	if ((last_dot == std::string::npos) || (last_dot < last_slash))
 	{
-		return false;
+		return false; // FIXME why missing . is critical?
 	}
 
 	if (_pPath)
