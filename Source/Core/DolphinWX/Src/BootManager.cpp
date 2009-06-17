@@ -23,7 +23,7 @@
 // -------------
 /* Purpose of this file: Collect boot settings for Core::Init()
 
-   Call sequenc: This file has one of the first function called when a game is booted,
+   Call sequence: This file has one of the first function called when a game is booted,
    the boot sequence in the code is:
    
 	DolphinWX:	GameListCtrl.cpp	OnActivated

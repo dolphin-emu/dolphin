@@ -1160,6 +1160,14 @@
 				RelativePath=".\Src\NANDContentLoader.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\WiiWAD.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\WiiWAD.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="DiscScrubber"

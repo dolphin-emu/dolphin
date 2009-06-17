@@ -32,6 +32,8 @@ public:
 	static bool IsWiiWAD(const char *filename);	
 
 	static std::string GenerateMapFilename();
+	
+	static bool Install_WiiWAD(const char *filename);
 
 private:
 	enum { BIOS_SIZE = 2*1024*1024 };

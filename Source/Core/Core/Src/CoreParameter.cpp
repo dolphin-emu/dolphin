@@ -151,6 +151,16 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 			{
 				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
 				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+		
+				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == NULL)
+				{
+					//WAD is valid yet cannot be booted. Install instead.
+					bool installed = CBoot::Install_WiiWAD(m_strFilename.c_str());
+					if (installed)
+						SuccessAlert("The WAD has been installed successfully");
+					return false; //do not boot
+				}
+
 				u64 TitleID = ContentLoader.GetTitleID();
 				char* pTitleID = (char*)&TitleID;
 

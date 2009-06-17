@@ -36,6 +36,8 @@ struct SNANDContent
     u16 m_Type;
     u32 m_Size;
     u8 m_SHA1Hash[20];
+    u8 m_Header[36]; //all of the above
+
     u8* m_pData;
 };
 
@@ -54,7 +56,7 @@ public:
     virtual u32 GetBootIndex() const = 0;
     virtual size_t GetContentSize() const = 0;
     virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
-    virtual const u8* GetTicket() const = 0;
+    virtual const u8* GetTicketView() const = 0;
     virtual const u8* GetTmdHeader() const = 0;
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
     virtual const u16 GetTitleVersion() const = 0;
@@ -64,7 +66,8 @@ public:
     enum
     {
         TICKET_VIEW_SIZE = 0x58,
-        TMD_HEADER_SIZE = 0x1e4
+        TMD_HEADER_SIZE = 0x1e4,
+		CONTENT_HEADER_SIZE = 0x24
     };
 };
 
@@ -77,8 +80,6 @@ public:
     static CNANDContentManager& Access() { return m_Instance; }
 
     const INANDContentLoader& GetNANDLoader(const std::string& _rName);
-
-    static bool IsWiiWAD(const std::string& _rName);
 
 private:
 
