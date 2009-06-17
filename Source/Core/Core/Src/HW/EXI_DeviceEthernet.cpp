@@ -221,7 +221,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					// Whinecube did nothing else as well
 					DEBUGPRINT( "\t\t[INFO]BBA Reset\n");
 				}
-				if ((SwappedData & BBA_NCRA_SR) && isActivated())
+				if (RISE(BBA_NCRA_SR) && isActivated())
 				{
 					DEBUGPRINT( "\t\t[INFO]BBA Start Recieve\n");
 					//exit(0);
