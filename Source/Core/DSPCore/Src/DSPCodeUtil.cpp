@@ -150,7 +150,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
 				   int numCodes, const char *name, std::string &header)
 {
-	char buffer[1024];
+	char buffer[0x1000];
 	int reserveSize = 0;
 	for(int i = 0; i < numCodes; i++)
 		reserveSize += (int)codes[i].size();
@@ -165,7 +165,6 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	{
 		std::string filename;
 		SplitPath(filenames->at(i), NULL, &filename, NULL);
-		//	printf("files %s\n", (filenames->at(i).c_str()));
 		sprintf(buffer, "%s\t\"%s\",\n", buffer, filename.c_str());
 	}
 	sprintf(buffer, "%s};\n\n", buffer);
