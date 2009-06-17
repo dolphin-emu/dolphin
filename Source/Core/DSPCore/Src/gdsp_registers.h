@@ -48,7 +48,7 @@
 #define DSP_REG_ST2         0x0e
 #define DSP_REG_ST3         0x0f
 
-#define DSP_REG_CONFIG      0x12
+#define DSP_REG_CR          0x12    // Seems to be the top 8 bits of LRS/SRS.
 #define DSP_REG_SR          0x13
 
 #define DSP_REG_PRODL       0x14    // product.
