@@ -76,7 +76,7 @@ bool CEXIETHERNET::activate() {
 #endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
 	system("brctl addif pan0 Dolphin");
-	system("ifconfig Dolphin up");
+	system("ifconfig Dolphin 0.0.0.0 promisc up");
 	resume();
 	return true;
 	

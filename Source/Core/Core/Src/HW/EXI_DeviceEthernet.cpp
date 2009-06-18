@@ -159,6 +159,7 @@ void CEXIETHERNET::recordSendComplete()
 		m_bInterruptSet = true;
 		//interrupt.raiseEXI("BBA Send");
 	}
+	startRecv();
 	mPacketsSent++;
 }
 
@@ -291,7 +292,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					if(_uSize == 4)
 					{
 						printf("\t\t\tData is 0x%08x\n", SwappedData);
-						exit(0);
+						//exit(0);
 					}
 				}
 				else if( _uSize == 2)
