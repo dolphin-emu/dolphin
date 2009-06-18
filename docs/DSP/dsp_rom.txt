@@ -1,0 +1,2047 @@
+8000 0092 00ff LRI	$CR, #0x00ff
+8002 1206      SBCLR	#0x06
+8003 1202      SBCLR	#0x02
+8004 1203      SBCLR	#0x03
+8005 1204      SBCLR	#0x04
+8006 1205      SBCLR	#0x05
+8007 8e00      S40	
+8008 8c00      CLR15	
+8009 8b00      M0	
+800a 16fc 8071 SI	@DMBH, #0x8071
+800c 16fd feed SI	@DMBL, #0xfeed
+
+// hm. Lots of JMPs to here.
+800e 8100      CLR	$AC0.M
+800f 8900      CLR	$AC1.M
+8010 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8012 009f 80f3 LRI	$AC1.M, #0x80f3
+8014 8200      CMP	
+8015 0295 801f JEQ	0x801f  // skip below dsp mailbox write...
+8017 27ff      LRS	$AC1.M, @CMBL
+8018 16fc feee SI	@DMBH, #0xfeee  // Write to dsp mailbox
+801a 2efd      SRS	@DMBL, $AC0.M
+801b 02bf 807e CALL	0x807e
+801d 029f 800e JMP	0x800e
+
+801f 26ff      LRS	$AC0.M, @CMBLa   // ...and end up here (skip above)
+
+// if equal to a001 ...
+8020 009f a001 LRI	$AC1.M, #0xa001
+8022 8200      CMP	
+8023 0294 802c JNE	0x802c
+8025 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8027 27ff      LRS	$AC1.M, @CMBL
+8028 1c9e      MRR	$R04, $AC0.M
+8029 1cbf      MRR	$R05, $AC1.M
+802a 029f 800e JMP	0x800e
+
+// elseif a002 ...
+802c 009f a002 LRI	$AC1.M, #0xa002
+802e 8200      CMP	
+802f 0294 8037 JNE	0x8037
+8031 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8033 27ff      LRS	$AC1.M, @CMBL
+8034 1cff      MRR	$R07, $AC1.M
+8035 029f 800e JMP	0x800e
+
+// elseif c002 ...
+8037 009f c002 LRI	$AC1.M, #0xc002
+8039 8200      CMP	
+803a 0294 8042 JNE	0x8042
+803c 02bf 8078 CALL	0x8078				 		// wait for CPU mailbox & 0x8000
+803e 27ff      LRS	$AC1.M, @CMBL
+803f 1cdf      MRR	$R06, $AC1.M
+8040 029f 800e JMP	0x800e
+
+// elseif b001 ...
+8042 009f b001 LRI	$AC1.M, #0xb001
+8044 8200      CMP	
+8045 0294 804e JNE	0x804e
+8047 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8049 27ff      LRS	$AC1.M, @CMBL
+804a 1f5e      MRR	$AX0.H, $AC0.M
+804b 1f1f      MRR	$AX0.L, $AC1.M
+804c 029f 800e JMP	0x800e
+
+// elseif b002 ...
+804e 009f b002 LRI	$AC1.M, #0xb002
+8050 8200      CMP	
+8051 0294 8059 JNE	0x8059
+8053 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8055 27ff      LRS	$AC1.M, @CMBL
+8056 1f3f      MRR	$AX1.L, $AC1.M
+8057 029f 800e JMP	0x800e
+
+// elseif c001 ...
+8059 009f c001 LRI	$AC1.M, #0xc001
+805b 8200      CMP	
+805c 0294 8064 JNE	0x8064
+805e 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+8060 27ff      LRS	$AC1.M, @CMBL
+8061 1f7f      MRR	$AX1.H, $AC1.M
+8062 029f 800e JMP	0x800e
+
+// elseif d001 ...
+8064 009f d001 LRI	$AC1.M, #0xd001
+8066 8200      CMP	
+8067 0294 8071 JNE	0x8071
+8069 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
+806b 8100      CLR	$AC0.M
+806c 26ff      LRS	$AC0.M, @CMBL
+806d 1c1e      MRR	$R00, $AC0.M		
+806e 029f 80b5 JMP	0x80b5						 // Do DMA, probably
+
+// endif - never reaches here.
+8070 0021      HALT	
+
+// default:
+8071 16fc faaa SI	@DMBH, #0xfaaa
+8073 2efd      SRS	@DMBL, $AC0.M
+8074 02bf 807e CALL	0x807e
+8076 029f 800e JMP	0x800e
+8078 26fe      LRS	$AC0.M, @CMBH
+
+// wait for CMBH & 0x8000
+8079 02c0 8000 ANDF	$AC0.M, #0x8000
+807b 029c 8078 JZR	0x8078
+807d 02df      RET	
+
+// wait for DMBH & 0x8000
+807e 26fc      LRS	$AC0.M, @DMBH
+807f 02a0 8000 ANDCF	$AC0.M, #0x8000
+8081 029c 807e JZR	0x807e
+8083 02df      RET	
+8084 0021      HALT	
+
+
+8085 8e00      S40	
+8086 8100      CLR	$AC0.M
+8087 1fd9      MRR	$AC0.M, $AX1.L
+8088 b100      TST	$AC0.M
+8089 0295 809d JEQ	0x809d
+808b 00fa ffce SR	@DSMAH, $AX0.H
+808d 00f8 ffcf SR	@DSMAL, $AX0.L
+808f 009e 0001 LRI	$AC0.M, #0x0001
+8091 00fe ffc9 SR	@DSCR, $AC0.M
+8093 00fb ffcd SR	@DSPA, $AX1.H
+8095 00f9 ffcb SR	@DSBL, $AX1.L
+8097 00de ffc9 LR	$AC0.M, @DSCR
+8099 02a0 0004 ANDCF	$AC0.M, #0x0004
+809b 029c 8097 JZR	0x8097
+809d 8100      CLR	$AC0.M
+809e 1fc7      MRR	$AC0.M, $R07
+809f b100      TST	$AC0.M
+80a0 0295 80b4 JEQ	0x80b4
+80a2 00e4 ffce SR	@DSMAH, $R04
+80a4 00e5 ffcf SR	@DSMAL, $R05
+80a6 009e 0003 LRI	$AC0.M, #0x0003
+80a8 00fe ffc9 SR	@DSCR, $AC0.M
+80aa 00e6 ffcd SR	@DSPA, $R06
+80ac 00e7 ffcb SR	@DSBL, $R07
+80ae 00de ffc9 LR	$AC0.M, @DSCR
+80b0 02a0 0004 ANDCF	$AC0.M, #0x0004
+80b2 029c 80ae JZR	0x80ae
+80b4 02df      RET	
+
+// DMA utility function - maybe 2 modes, read, write?
+80b5 8e00      S40	
+80b6 8100      CLR	$AC0.M
+80b7 8900      CLR	$AC1.M
+80b8 1ff9      MRR	$AC1.M, $AX1.L
+80b9 b900      TST	$AC1.M
+80ba 0295 80ce JEQ	0x80ce
+80bc 00fa ffce SR	@DSMAH, $AX0.H
+80be 00f8 ffcf SR	@DSMAL, $AX0.L
+80c0 009e 0000 LRI	$AC0.M, #0x0000
+80c2 00fe ffc9 SR	@DSCR, $AC0.M
+80c4 00fb ffcd SR	@DSPA, $AX1.H
+80c6 00f9 ffcb SR	@DSBL, $AX1.L
+80c8 00de ffc9 LR	$AC0.M, @DSCR
+80ca 02a0 0004 ANDCF	$AC0.M, #0x0004
+80cc 029c 80c8 JZR	0x80c8
+80ce 8900      CLR	$AC1.M
+// jump destionation from 80ba
+80cf 1fe7      MRR	$AC1.M, $R07
+80d0 b900      TST	$AC1.M
+80d1 0295 80e5 JEQ	0x80e5
+80d3 00e4 ffce SR	@DSMAH, $R04
+80d5 00e5 ffcf SR	@DSMAL, $R05
+80d7 009e 0002 LRI	$AC0.M, #0x0002
+80d9 00fe ffc9 SR	@DSCR, $AC0.M
+80db 00e6 ffcd SR	@DSPA, $R06
+80dd 00e7 ffcb SR	@DSBL, $R07
+80df 00de ffc9 LR	$AC0.M, @DSCR			// tiny loop here, wait for DMA completion
+80e1 02a0 0004 ANDCF	$AC0.M, #0x0004
+80e3 029c 80df JZR	0x80df
+80e5 170f      JMPR	$R00					// Jump through register? jump table?
+
+80e6 0021      HALT	
+
+
+
+// Large mixer function - called a lot by AX
+// Prolly simple Stereo Mixer
+80e7 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+80e8 8949      CLR.L	$AC1.M : $AX1.L, @$R01
+80e9 b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+80ea 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+80eb f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+80ec 191a      LRRI	$AX0.H, @$R00
+80ed b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+80ee 9100      ASR16	$AC0.M
+80ef f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+80f0 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+80f1 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+80f2 195c      LRRI	$AC0.L, @$R02
+80f3 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+80f4 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+80f5 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+80f6 195d      LRRI	$AC1.L, @$R02
+80f7 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+80f8 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+80f9 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+80fa 195c      LRRI	$AC0.L, @$R02
+80fb f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+80fc b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+80fd 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+80fe 195d      LRRI	$AC1.L, @$R02
+80ff f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8100 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8101 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8102 195c      LRRI	$AC0.L, @$R02
+8103 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8104 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8105 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8106 195d      LRRI	$AC1.L, @$R02
+8107 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8108 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8109 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+810a 195c      LRRI	$AC0.L, @$R02
+810b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+810c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+810d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+810e 195d      LRRI	$AC1.L, @$R02
+810f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8110 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8111 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8112 195c      LRRI	$AC0.L, @$R02
+8113 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8114 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8115 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8116 195d      LRRI	$AC1.L, @$R02
+8117 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8118 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8119 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+811a 195c      LRRI	$AC0.L, @$R02
+811b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+811c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+811d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+811e 195d      LRRI	$AC1.L, @$R02
+811f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8120 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8121 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8122 195c      LRRI	$AC0.L, @$R02
+8123 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8124 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8125 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8126 195d      LRRI	$AC1.L, @$R02
+8127 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8128 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8129 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+812a 195c      LRRI	$AC0.L, @$R02
+812b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+812c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+812d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+812e 195d      LRRI	$AC1.L, @$R02
+812f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8130 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8131 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8132 195c      LRRI	$AC0.L, @$R02
+8133 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8134 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8135 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8136 195d      LRRI	$AC1.L, @$R02
+8137 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8138 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8139 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+813a 195c      LRRI	$AC0.L, @$R02
+813b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+813c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+813d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+813e 195d      LRRI	$AC1.L, @$R02
+813f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8140 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8141 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8142 195c      LRRI	$AC0.L, @$R02
+8143 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8144 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8145 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8146 195d      LRRI	$AC1.L, @$R02
+8147 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8148 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8149 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+814a 195c      LRRI	$AC0.L, @$R02
+814b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+814c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+814d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+814e 195d      LRRI	$AC1.L, @$R02
+814f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8150 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8151 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8152 195c      LRRI	$AC0.L, @$R02
+8153 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8154 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8155 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8156 195d      LRRI	$AC1.L, @$R02
+8157 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8158 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8159 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+815a 195c      LRRI	$AC0.L, @$R02
+815b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+815c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+815d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+815e 195d      LRRI	$AC1.L, @$R02
+815f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8160 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8161 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8162 195c      LRRI	$AC0.L, @$R02
+8163 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8164 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8165 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8166 195d      LRRI	$AC1.L, @$R02
+8167 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8168 1b7c      SRRI	@$R03, $AC0.L
+8169 6e00      MOVP	$AC0.M
+816a b512      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX0.L, $AC0.M
+816b 9909      ASR16.IR	$AC1.M : $R01
+816c 1b7f      SRRI	@$R03, $AC1.M
+816d 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+
+
+816e 1c04      MRR	$R00, $R04
+816f 1c45      MRR	$R02, $R05
+8170 1c62      MRR	$R03, $R02
+8171 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+8172 8949      CLR.L	$AC1.M : $AX1.L, @$R01
+8173 b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+8174 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+8175 f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+8176 191a      LRRI	$AX0.H, @$R00
+8177 b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+8178 9100      ASR16	$AC0.M
+8179 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+817a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+817b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+817c 195c      LRRI	$AC0.L, @$R02
+817d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+817e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+817f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8180 195d      LRRI	$AC1.L, @$R02
+8181 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8182 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8183 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8184 195c      LRRI	$AC0.L, @$R02
+8185 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8186 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8187 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8188 195d      LRRI	$AC1.L, @$R02
+8189 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+818a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+818b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+818c 195c      LRRI	$AC0.L, @$R02
+818d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+818e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+818f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8190 195d      LRRI	$AC1.L, @$R02
+8191 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8192 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8193 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8194 195c      LRRI	$AC0.L, @$R02
+8195 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8196 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8197 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8198 195d      LRRI	$AC1.L, @$R02
+8199 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+819a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+819b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+819c 195c      LRRI	$AC0.L, @$R02
+819d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+819e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+819f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81a0 195d      LRRI	$AC1.L, @$R02
+81a1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81a2 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81a3 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81a4 195c      LRRI	$AC0.L, @$R02
+81a5 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81a6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81a7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81a8 195d      LRRI	$AC1.L, @$R02
+81a9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81aa b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81ab 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81ac 195c      LRRI	$AC0.L, @$R02
+81ad f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81ae b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81af 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81b0 195d      LRRI	$AC1.L, @$R02
+81b1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81b2 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81b3 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81b4 195c      LRRI	$AC0.L, @$R02
+81b5 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81b6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81b7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81b8 195d      LRRI	$AC1.L, @$R02
+81b9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81ba b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81bb 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81bc 195c      LRRI	$AC0.L, @$R02
+81bd f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81be b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81bf 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81c0 195d      LRRI	$AC1.L, @$R02
+81c1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81c2 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81c3 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81c4 195c      LRRI	$AC0.L, @$R02
+81c5 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81c6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81c7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81c8 195d      LRRI	$AC1.L, @$R02
+81c9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81ca b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81cb 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81cc 195c      LRRI	$AC0.L, @$R02
+81cd f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81ce b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81cf 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81d0 195d      LRRI	$AC1.L, @$R02
+81d1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81d2 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81d3 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81d4 195c      LRRI	$AC0.L, @$R02
+81d5 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81d6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81d7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81d8 195d      LRRI	$AC1.L, @$R02
+81d9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81da b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81db 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81dc 195c      LRRI	$AC0.L, @$R02
+81dd f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81de b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81df 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81e0 195d      LRRI	$AC1.L, @$R02
+81e1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81e2 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81e3 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81e4 195c      LRRI	$AC0.L, @$R02
+81e5 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81e6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81e7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81e8 195d      LRRI	$AC1.L, @$R02
+81e9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81ea b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+81eb 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+81ec 195c      LRRI	$AC0.L, @$R02
+81ed f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+81ee b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+81ef 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+81f0 195d      LRRI	$AC1.L, @$R02
+81f1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+81f2 1b7c      SRRI	@$R03, $AC0.L
+81f3 6e00      MOVP	$AC0.M
+81f4 b51e      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX1.H, $AC0.M
+81f5 9909      ASR16.IR	$AC1.M : $R01
+81f6 1b7f      SRRI	@$R03, $AC1.M
+81f7 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+81f8 02df      RET	
+// End of 1st big mixer function
+
+
+// Second big mixer function?
+81f9 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+81fa 8949      CLR.L	$AC1.M : $AX1.L, @$R01
+81fb b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+81fc 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+81fd f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+81fe 191a      LRRI	$AX0.H, @$R00
+81ff b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+8200 9100      ASR16	$AC0.M
+8201 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8202 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8203 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8204 195c      LRRI	$AC0.L, @$R02
+8205 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8206 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8207 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8208 195d      LRRI	$AC1.L, @$R02
+8209 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+820a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+820b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+820c 195c      LRRI	$AC0.L, @$R02
+820d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+820e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+820f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8210 195d      LRRI	$AC1.L, @$R02
+8211 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8212 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8213 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8214 195c      LRRI	$AC0.L, @$R02
+8215 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8216 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8217 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8218 195d      LRRI	$AC1.L, @$R02
+8219 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+821a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+821b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+821c 195c      LRRI	$AC0.L, @$R02
+821d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+821e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+821f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8220 195d      LRRI	$AC1.L, @$R02
+8221 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8222 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8223 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8224 195c      LRRI	$AC0.L, @$R02
+8225 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8226 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8227 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8228 195d      LRRI	$AC1.L, @$R02
+8229 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+822a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+822b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+822c 195c      LRRI	$AC0.L, @$R02
+822d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+822e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+822f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8230 195d      LRRI	$AC1.L, @$R02
+8231 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8232 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8233 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8234 195c      LRRI	$AC0.L, @$R02
+8235 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8236 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8237 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8238 195d      LRRI	$AC1.L, @$R02
+8239 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+823a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+823b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+823c 195c      LRRI	$AC0.L, @$R02
+823d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+823e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+823f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8240 195d      LRRI	$AC1.L, @$R02
+8241 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8242 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8243 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8244 195c      LRRI	$AC0.L, @$R02
+8245 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8246 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8247 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8248 195d      LRRI	$AC1.L, @$R02
+8249 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+824a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+824b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+824c 195c      LRRI	$AC0.L, @$R02
+824d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+824e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+824f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8250 195d      LRRI	$AC1.L, @$R02
+8251 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8252 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8253 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8254 195c      LRRI	$AC0.L, @$R02
+8255 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8256 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8257 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8258 195d      LRRI	$AC1.L, @$R02
+8259 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+825a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+825b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+825c 195c      LRRI	$AC0.L, @$R02
+825d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+825e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+825f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8260 195d      LRRI	$AC1.L, @$R02
+8261 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8262 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8263 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8264 195c      LRRI	$AC0.L, @$R02
+8265 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8266 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8267 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8268 195d      LRRI	$AC1.L, @$R02
+8269 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+826a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+826b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+826c 195c      LRRI	$AC0.L, @$R02
+826d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+826e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+826f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8270 195d      LRRI	$AC1.L, @$R02
+8271 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8272 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8273 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8274 195c      LRRI	$AC0.L, @$R02
+8275 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8276 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8277 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8278 195d      LRRI	$AC1.L, @$R02
+8279 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+827a 1b7c      SRRI	@$R03, $AC0.L
+827b 6e00      MOVP	$AC0.M
+827c b512      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX0.L, $AC0.M
+827d 9909      ASR16.IR	$AC1.M : $R01
+827e 1b7f      SRRI	@$R03, $AC1.M
+827f 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+8280 1f63      MRR	$AX1.H, $R03
+8281 02df      RET
+// End of 2nd big mixer function
+
+
+// 3rd big mixer function
+8282 1ce3      MRR	$R07, $R03
+8283 8100      CLR	$AC0.M
+8284 8971      CLR.L	$AC1.M : $AC0.M, @$R01
+8285 18bf      LRRD	$AC1.M, @$R01
+8286 1b7e      SRRI	@$R03, $AC0.M
+8287 4c00      ADD	$AC0.M, $AC1.M
+8288 1b7e      SRRI	@$R03, $AC0.M
+8289 4c00      ADD	$AC0.M, $AC1.M
+828a 1b7e      SRRI	@$R03, $AC0.M
+828b 4c00      ADD	$AC0.M, $AC1.M
+828c 1b7e      SRRI	@$R03, $AC0.M
+828d 4c00      ADD	$AC0.M, $AC1.M
+828e 1b7e      SRRI	@$R03, $AC0.M
+828f 4c00      ADD	$AC0.M, $AC1.M
+8290 1b7e      SRRI	@$R03, $AC0.M
+8291 4c00      ADD	$AC0.M, $AC1.M
+8292 1b7e      SRRI	@$R03, $AC0.M
+8293 4c00      ADD	$AC0.M, $AC1.M
+8294 1b7e      SRRI	@$R03, $AC0.M
+8295 4c00      ADD	$AC0.M, $AC1.M
+8296 1b7e      SRRI	@$R03, $AC0.M
+8297 4c00      ADD	$AC0.M, $AC1.M
+8298 1b7e      SRRI	@$R03, $AC0.M
+8299 4c00      ADD	$AC0.M, $AC1.M
+829a 1b7e      SRRI	@$R03, $AC0.M
+829b 4c00      ADD	$AC0.M, $AC1.M
+829c 1b7e      SRRI	@$R03, $AC0.M
+829d 4c00      ADD	$AC0.M, $AC1.M
+829e 1b7e      SRRI	@$R03, $AC0.M
+829f 4c00      ADD	$AC0.M, $AC1.M
+82a0 1b7e      SRRI	@$R03, $AC0.M
+82a1 4c00      ADD	$AC0.M, $AC1.M
+82a2 1b7e      SRRI	@$R03, $AC0.M
+82a3 4c00      ADD	$AC0.M, $AC1.M
+82a4 1b7e      SRRI	@$R03, $AC0.M
+82a5 4c00      ADD	$AC0.M, $AC1.M
+82a6 1b7e      SRRI	@$R03, $AC0.M
+82a7 4c00      ADD	$AC0.M, $AC1.M
+82a8 1b7e      SRRI	@$R03, $AC0.M
+82a9 4c00      ADD	$AC0.M, $AC1.M
+82aa 1b7e      SRRI	@$R03, $AC0.M
+82ab 4c00      ADD	$AC0.M, $AC1.M
+82ac 1b7e      SRRI	@$R03, $AC0.M
+82ad 4c00      ADD	$AC0.M, $AC1.M
+82ae 1b7e      SRRI	@$R03, $AC0.M
+82af 4c00      ADD	$AC0.M, $AC1.M
+82b0 1b7e      SRRI	@$R03, $AC0.M
+82b1 4c00      ADD	$AC0.M, $AC1.M
+82b2 1b7e      SRRI	@$R03, $AC0.M
+82b3 4c00      ADD	$AC0.M, $AC1.M
+82b4 1b7e      SRRI	@$R03, $AC0.M
+82b5 4c00      ADD	$AC0.M, $AC1.M
+82b6 1b7e      SRRI	@$R03, $AC0.M
+82b7 4c00      ADD	$AC0.M, $AC1.M
+82b8 1b7e      SRRI	@$R03, $AC0.M
+82b9 4c00      ADD	$AC0.M, $AC1.M
+82ba 1b7e      SRRI	@$R03, $AC0.M
+82bb 4c00      ADD	$AC0.M, $AC1.M
+82bc 1b7e      SRRI	@$R03, $AC0.M
+82bd 4c00      ADD	$AC0.M, $AC1.M
+82be 1b7e      SRRI	@$R03, $AC0.M
+82bf 4c00      ADD	$AC0.M, $AC1.M
+82c0 1b7e      SRRI	@$R03, $AC0.M
+82c1 4c00      ADD	$AC0.M, $AC1.M
+82c2 1b7e      SRRI	@$R03, $AC0.M
+82c3 4c00      ADD	$AC0.M, $AC1.M
+82c4 1b7e      SRRI	@$R03, $AC0.M
+82c5 4c00      ADD	$AC0.M, $AC1.M
+82c6 8931      CLR.S	$AC1.M : @$R01, $AC0.M
+82c7 8109      CLR.IR	$AC0.M : $R01
+82c8 193e      LRRI	$AC0.M, @$R01
+82c9 18bf      LRRD	$AC1.M, @$R01
+82ca 1b7e      SRRI	@$R03, $AC0.M
+82cb 4c00      ADD	$AC0.M, $AC1.M
+82cc 1b7e      SRRI	@$R03, $AC0.M
+82cd 4c00      ADD	$AC0.M, $AC1.M
+82ce 1b7e      SRRI	@$R03, $AC0.M
+82cf 4c00      ADD	$AC0.M, $AC1.M
+82d0 1b7e      SRRI	@$R03, $AC0.M
+82d1 4c00      ADD	$AC0.M, $AC1.M
+82d2 1b7e      SRRI	@$R03, $AC0.M
+82d3 4c00      ADD	$AC0.M, $AC1.M
+82d4 1b7e      SRRI	@$R03, $AC0.M
+82d5 4c00      ADD	$AC0.M, $AC1.M
+82d6 1b7e      SRRI	@$R03, $AC0.M
+82d7 4c00      ADD	$AC0.M, $AC1.M
+82d8 1b7e      SRRI	@$R03, $AC0.M
+82d9 4c00      ADD	$AC0.M, $AC1.M
+82da 1b7e      SRRI	@$R03, $AC0.M
+82db 4c00      ADD	$AC0.M, $AC1.M
+82dc 1b7e      SRRI	@$R03, $AC0.M
+82dd 4c00      ADD	$AC0.M, $AC1.M
+82de 1b7e      SRRI	@$R03, $AC0.M
+82df 4c00      ADD	$AC0.M, $AC1.M
+82e0 1b7e      SRRI	@$R03, $AC0.M
+82e1 4c00      ADD	$AC0.M, $AC1.M
+82e2 1b7e      SRRI	@$R03, $AC0.M
+82e3 4c00      ADD	$AC0.M, $AC1.M
+82e4 1b7e      SRRI	@$R03, $AC0.M
+82e5 4c00      ADD	$AC0.M, $AC1.M
+82e6 1b7e      SRRI	@$R03, $AC0.M
+82e7 4c00      ADD	$AC0.M, $AC1.M
+82e8 1b7e      SRRI	@$R03, $AC0.M
+82e9 4c00      ADD	$AC0.M, $AC1.M
+82ea 1b7e      SRRI	@$R03, $AC0.M
+82eb 4c00      ADD	$AC0.M, $AC1.M
+82ec 1b7e      SRRI	@$R03, $AC0.M
+82ed 4c00      ADD	$AC0.M, $AC1.M
+82ee 1b7e      SRRI	@$R03, $AC0.M
+82ef 4c00      ADD	$AC0.M, $AC1.M
+82f0 1b7e      SRRI	@$R03, $AC0.M
+82f1 4c00      ADD	$AC0.M, $AC1.M
+82f2 1b7e      SRRI	@$R03, $AC0.M
+82f3 4c00      ADD	$AC0.M, $AC1.M
+82f4 1b7e      SRRI	@$R03, $AC0.M
+82f5 4c00      ADD	$AC0.M, $AC1.M
+82f6 1b7e      SRRI	@$R03, $AC0.M
+82f7 4c00      ADD	$AC0.M, $AC1.M
+82f8 1b7e      SRRI	@$R03, $AC0.M
+82f9 4c00      ADD	$AC0.M, $AC1.M
+82fa 1b7e      SRRI	@$R03, $AC0.M
+82fb 4c00      ADD	$AC0.M, $AC1.M
+82fc 1b7e      SRRI	@$R03, $AC0.M
+82fd 4c00      ADD	$AC0.M, $AC1.M
+82fe 1b7e      SRRI	@$R03, $AC0.M
+82ff 4c00      ADD	$AC0.M, $AC1.M
+8300 1b7e      SRRI	@$R03, $AC0.M
+8301 4c00      ADD	$AC0.M, $AC1.M
+8302 1b7e      SRRI	@$R03, $AC0.M
+8303 4c00      ADD	$AC0.M, $AC1.M
+8304 1b7e      SRRI	@$R03, $AC0.M
+8305 4c00      ADD	$AC0.M, $AC1.M
+8306 1b7e      SRRI	@$R03, $AC0.M
+8307 4c00      ADD	$AC0.M, $AC1.M
+8308 1b7e      SRRI	@$R03, $AC0.M
+8309 4c00      ADD	$AC0.M, $AC1.M
+830a 1b3e      SRRI	@$R01, $AC0.M
+830b 1c27      MRR	$R01, $R07
+830c 1c62      MRR	$R03, $R02
+830d 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+830e 8949      CLR.L	$AC1.M : $AX1.L, @$R01
+830f b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+8310 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+8311 f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+8312 191a      LRRI	$AX0.H, @$R00
+8313 1939      LRRI	$AX1.L, @$R01
+8314 b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+8315 9100      ASR16	$AC0.M
+8316 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8317 1939      LRRI	$AX1.L, @$R01
+8318 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8319 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+831a 195c      LRRI	$AC0.L, @$R02
+831b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+831c 1939      LRRI	$AX1.L, @$R01
+831d b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+831e 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+831f 195d      LRRI	$AC1.L, @$R02
+8320 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8321 1939      LRRI	$AX1.L, @$R01
+8322 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8323 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8324 195c      LRRI	$AC0.L, @$R02
+8325 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8326 1939      LRRI	$AX1.L, @$R01
+8327 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8328 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8329 195d      LRRI	$AC1.L, @$R02
+832a f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+832b 1939      LRRI	$AX1.L, @$R01
+832c b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+832d 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+832e 195c      LRRI	$AC0.L, @$R02
+832f f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8330 1939      LRRI	$AX1.L, @$R01
+8331 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8332 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8333 195d      LRRI	$AC1.L, @$R02
+8334 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8335 1939      LRRI	$AX1.L, @$R01
+8336 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8337 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8338 195c      LRRI	$AC0.L, @$R02
+8339 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+833a 1939      LRRI	$AX1.L, @$R01
+833b b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+833c 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+833d 195d      LRRI	$AC1.L, @$R02
+833e f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+833f 1939      LRRI	$AX1.L, @$R01
+8340 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8341 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8342 195c      LRRI	$AC0.L, @$R02
+8343 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8344 1939      LRRI	$AX1.L, @$R01
+8345 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8346 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8347 195d      LRRI	$AC1.L, @$R02
+8348 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8349 1939      LRRI	$AX1.L, @$R01
+834a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+834b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+834c 195c      LRRI	$AC0.L, @$R02
+834d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+834e 1939      LRRI	$AX1.L, @$R01
+834f b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8350 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8351 195d      LRRI	$AC1.L, @$R02
+8352 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8353 1939      LRRI	$AX1.L, @$R01
+8354 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8355 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8356 195c      LRRI	$AC0.L, @$R02
+8357 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8358 1939      LRRI	$AX1.L, @$R01
+8359 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+835a 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+835b 195d      LRRI	$AC1.L, @$R02
+835c f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+835d 1939      LRRI	$AX1.L, @$R01
+835e b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+835f 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8360 195c      LRRI	$AC0.L, @$R02
+8361 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8362 1939      LRRI	$AX1.L, @$R01
+8363 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8364 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8365 195d      LRRI	$AC1.L, @$R02
+8366 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8367 1939      LRRI	$AX1.L, @$R01
+8368 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8369 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+836a 195c      LRRI	$AC0.L, @$R02
+836b f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+836c 1939      LRRI	$AX1.L, @$R01
+836d b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+836e 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+836f 195d      LRRI	$AC1.L, @$R02
+8370 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8371 1939      LRRI	$AX1.L, @$R01
+8372 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8373 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8374 195c      LRRI	$AC0.L, @$R02
+8375 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8376 1939      LRRI	$AX1.L, @$R01
+8377 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8378 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8379 195d      LRRI	$AC1.L, @$R02
+837a f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+837b 1939      LRRI	$AX1.L, @$R01
+837c b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+837d 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+837e 195c      LRRI	$AC0.L, @$R02
+837f f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8380 1939      LRRI	$AX1.L, @$R01
+8381 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8382 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8383 195d      LRRI	$AC1.L, @$R02
+8384 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8385 1939      LRRI	$AX1.L, @$R01
+8386 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8387 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8388 195c      LRRI	$AC0.L, @$R02
+8389 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+838a 1939      LRRI	$AX1.L, @$R01
+838b b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+838c 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+838d 195d      LRRI	$AC1.L, @$R02
+838e f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+838f 1939      LRRI	$AX1.L, @$R01
+8390 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8391 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8392 195c      LRRI	$AC0.L, @$R02
+8393 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8394 1939      LRRI	$AX1.L, @$R01
+8395 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8396 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8397 195d      LRRI	$AC1.L, @$R02
+8398 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8399 1939      LRRI	$AX1.L, @$R01
+839a b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+839b 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+839c 195c      LRRI	$AC0.L, @$R02
+839d f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+839e 1939      LRRI	$AX1.L, @$R01
+839f b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83a0 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83a1 195d      LRRI	$AC1.L, @$R02
+83a2 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83a3 1939      LRRI	$AX1.L, @$R01
+83a4 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83a5 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83a6 195c      LRRI	$AC0.L, @$R02
+83a7 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83a8 1939      LRRI	$AX1.L, @$R01
+83a9 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83aa 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83ab 195d      LRRI	$AC1.L, @$R02
+83ac f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83ad 1b7c      SRRI	@$R03, $AC0.L
+83ae 6e00      MOVP	$AC0.M
+83af b512      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX0.L, $AC0.M
+83b0 9900      ASR16	$AC1.M
+83b1 1b7f      SRRI	@$R03, $AC1.M
+83b2 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+83b3 1c04      MRR	$R00, $R04
+83b4 1c45      MRR	$R02, $R05
+83b5 1c62      MRR	$R03, $R02
+83b6 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+83b7 8949      CLR.L	$AC1.M : $AX1.L, @$R01
+83b8 b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+83b9 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+83ba f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+83bb 191a      LRRI	$AX0.H, @$R00
+83bc 1939      LRRI	$AX1.L, @$R01
+83bd b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+83be 9100      ASR16	$AC0.M
+83bf f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83c0 1939      LRRI	$AX1.L, @$R01
+83c1 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83c2 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83c3 195c      LRRI	$AC0.L, @$R02
+83c4 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83c5 1939      LRRI	$AX1.L, @$R01
+83c6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83c7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83c8 195d      LRRI	$AC1.L, @$R02
+83c9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83ca 1939      LRRI	$AX1.L, @$R01
+83cb b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83cc 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83cd 195c      LRRI	$AC0.L, @$R02
+83ce f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83cf 1939      LRRI	$AX1.L, @$R01
+83d0 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83d1 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83d2 195d      LRRI	$AC1.L, @$R02
+83d3 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83d4 1939      LRRI	$AX1.L, @$R01
+83d5 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83d6 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83d7 195c      LRRI	$AC0.L, @$R02
+83d8 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83d9 1939      LRRI	$AX1.L, @$R01
+83da b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83db 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83dc 195d      LRRI	$AC1.L, @$R02
+83dd f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83de 1939      LRRI	$AX1.L, @$R01
+83df b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83e0 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83e1 195c      LRRI	$AC0.L, @$R02
+83e2 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83e3 1939      LRRI	$AX1.L, @$R01
+83e4 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83e5 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83e6 195d      LRRI	$AC1.L, @$R02
+83e7 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83e8 1939      LRRI	$AX1.L, @$R01
+83e9 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83ea 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83eb 195c      LRRI	$AC0.L, @$R02
+83ec f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83ed 1939      LRRI	$AX1.L, @$R01
+83ee b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83ef 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83f0 195d      LRRI	$AC1.L, @$R02
+83f1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83f2 1939      LRRI	$AX1.L, @$R01
+83f3 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83f4 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83f5 195c      LRRI	$AC0.L, @$R02
+83f6 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+83f7 1939      LRRI	$AX1.L, @$R01
+83f8 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+83f9 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+83fa 195d      LRRI	$AC1.L, @$R02
+83fb f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+83fc 1939      LRRI	$AX1.L, @$R01
+83fd b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+83fe 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+83ff 195c      LRRI	$AC0.L, @$R02
+8400 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8401 1939      LRRI	$AX1.L, @$R01
+8402 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8403 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8404 195d      LRRI	$AC1.L, @$R02
+8405 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8406 1939      LRRI	$AX1.L, @$R01
+8407 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8408 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8409 195c      LRRI	$AC0.L, @$R02
+840a f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+840b 1939      LRRI	$AX1.L, @$R01
+840c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+840d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+840e 195d      LRRI	$AC1.L, @$R02
+840f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8410 1939      LRRI	$AX1.L, @$R01
+8411 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8412 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8413 195c      LRRI	$AC0.L, @$R02
+8414 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8415 1939      LRRI	$AX1.L, @$R01
+8416 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8417 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8418 195d      LRRI	$AC1.L, @$R02
+8419 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+841a 1939      LRRI	$AX1.L, @$R01
+841b b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+841c 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+841d 195c      LRRI	$AC0.L, @$R02
+841e f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+841f 1939      LRRI	$AX1.L, @$R01
+8420 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8421 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8422 195d      LRRI	$AC1.L, @$R02
+8423 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8424 1939      LRRI	$AX1.L, @$R01
+8425 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8426 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8427 195c      LRRI	$AC0.L, @$R02
+8428 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8429 1939      LRRI	$AX1.L, @$R01
+842a b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+842b 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+842c 195d      LRRI	$AC1.L, @$R02
+842d f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+842e 1939      LRRI	$AX1.L, @$R01
+842f b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8430 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8431 195c      LRRI	$AC0.L, @$R02
+8432 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8433 1939      LRRI	$AX1.L, @$R01
+8434 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8435 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8436 195d      LRRI	$AC1.L, @$R02
+8437 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8438 1939      LRRI	$AX1.L, @$R01
+8439 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+843a 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+843b 195c      LRRI	$AC0.L, @$R02
+843c f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+843d 1939      LRRI	$AX1.L, @$R01
+843e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+843f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8440 195d      LRRI	$AC1.L, @$R02
+8441 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8442 1939      LRRI	$AX1.L, @$R01
+8443 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8444 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8445 195c      LRRI	$AC0.L, @$R02
+8446 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8447 1939      LRRI	$AX1.L, @$R01
+8448 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8449 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+844a 195d      LRRI	$AC1.L, @$R02
+844b f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+844c 1939      LRRI	$AX1.L, @$R01
+844d b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+844e 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+844f 195c      LRRI	$AC0.L, @$R02
+8450 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8451 1939      LRRI	$AX1.L, @$R01
+8452 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8453 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8454 195d      LRRI	$AC1.L, @$R02
+8455 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8456 1b7c      SRRI	@$R03, $AC0.L
+8457 6e00      MOVP	$AC0.M
+8458 b51e      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX1.H, $AC0.M
+8459 9900      ASR16	$AC1.M
+845a 1b7f      SRRI	@$R03, $AC1.M
+845b 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+845c 02df      RET	
+
+
+
+// Don't know what this is, looks like more mixing
+845d 1ce3      MRR	$R07, $R03
+845e 8100      CLR	$AC0.M
+845f 8971      CLR.L	$AC1.M : $AC0.M, @$R01
+8460 18bf      LRRD	$AC1.M, @$R01
+8461 1b7e      SRRI	@$R03, $AC0.M
+8462 4c00      ADD	$AC0.M, $AC1.M
+8463 1b7e      SRRI	@$R03, $AC0.M
+8464 4c00      ADD	$AC0.M, $AC1.M
+8465 1b7e      SRRI	@$R03, $AC0.M
+8466 4c00      ADD	$AC0.M, $AC1.M
+8467 1b7e      SRRI	@$R03, $AC0.M
+8468 4c00      ADD	$AC0.M, $AC1.M
+8469 1b7e      SRRI	@$R03, $AC0.M
+846a 4c00      ADD	$AC0.M, $AC1.M
+846b 1b7e      SRRI	@$R03, $AC0.M
+846c 4c00      ADD	$AC0.M, $AC1.M
+846d 1b7e      SRRI	@$R03, $AC0.M
+846e 4c00      ADD	$AC0.M, $AC1.M
+846f 1b7e      SRRI	@$R03, $AC0.M
+8470 4c00      ADD	$AC0.M, $AC1.M
+8471 1b7e      SRRI	@$R03, $AC0.M
+8472 4c00      ADD	$AC0.M, $AC1.M
+8473 1b7e      SRRI	@$R03, $AC0.M
+8474 4c00      ADD	$AC0.M, $AC1.M
+8475 1b7e      SRRI	@$R03, $AC0.M
+8476 4c00      ADD	$AC0.M, $AC1.M
+8477 1b7e      SRRI	@$R03, $AC0.M
+8478 4c00      ADD	$AC0.M, $AC1.M
+8479 1b7e      SRRI	@$R03, $AC0.M
+847a 4c00      ADD	$AC0.M, $AC1.M
+847b 1b7e      SRRI	@$R03, $AC0.M
+847c 4c00      ADD	$AC0.M, $AC1.M
+847d 1b7e      SRRI	@$R03, $AC0.M
+847e 4c00      ADD	$AC0.M, $AC1.M
+847f 1b7e      SRRI	@$R03, $AC0.M
+8480 4c00      ADD	$AC0.M, $AC1.M
+8481 1b7e      SRRI	@$R03, $AC0.M
+8482 4c00      ADD	$AC0.M, $AC1.M
+8483 1b7e      SRRI	@$R03, $AC0.M
+8484 4c00      ADD	$AC0.M, $AC1.M
+8485 1b7e      SRRI	@$R03, $AC0.M
+8486 4c00      ADD	$AC0.M, $AC1.M
+8487 1b7e      SRRI	@$R03, $AC0.M
+8488 4c00      ADD	$AC0.M, $AC1.M
+8489 1b7e      SRRI	@$R03, $AC0.M
+848a 4c00      ADD	$AC0.M, $AC1.M
+848b 1b7e      SRRI	@$R03, $AC0.M
+848c 4c00      ADD	$AC0.M, $AC1.M
+848d 1b7e      SRRI	@$R03, $AC0.M
+848e 4c00      ADD	$AC0.M, $AC1.M
+848f 1b7e      SRRI	@$R03, $AC0.M
+8490 4c00      ADD	$AC0.M, $AC1.M
+8491 1b7e      SRRI	@$R03, $AC0.M
+8492 4c00      ADD	$AC0.M, $AC1.M
+8493 1b7e      SRRI	@$R03, $AC0.M
+8494 4c00      ADD	$AC0.M, $AC1.M
+8495 1b7e      SRRI	@$R03, $AC0.M
+8496 4c00      ADD	$AC0.M, $AC1.M
+8497 1b7e      SRRI	@$R03, $AC0.M
+8498 4c00      ADD	$AC0.M, $AC1.M
+8499 1b7e      SRRI	@$R03, $AC0.M
+849a 4c00      ADD	$AC0.M, $AC1.M
+849b 1b7e      SRRI	@$R03, $AC0.M
+849c 4c00      ADD	$AC0.M, $AC1.M
+849d 1b7e      SRRI	@$R03, $AC0.M
+849e 4c00      ADD	$AC0.M, $AC1.M
+849f 1b7e      SRRI	@$R03, $AC0.M
+84a0 4c00      ADD	$AC0.M, $AC1.M
+84a1 8931      CLR.S	$AC1.M : @$R01, $AC0.M
+84a2 1c27      MRR	$R01, $R07
+84a3 1c62      MRR	$R03, $R02
+84a4 8150      CLR.L	$AC0.M : $AX0.H, @$R00
+84a5 1939      LRRI	$AX1.L, @$R01
+84a6 b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
+84a7 8962      CLR.L	$AC1.M : $AC0.L, @$R02
+84a8 f07a      LSL16.L	$AC0.M : $AC1.M, @$R02
+84a9 191a      LRRI	$AX0.H, @$R00
+84aa 1939      LRRI	$AX1.L, @$R01
+84ab b46a      MULXAC.L	$AX0.H, $AX1.L, $AC0.M : $AC1.L, @$R02
+84ac 9100      ASR16	$AC0.M
+84ad f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84ae 1939      LRRI	$AX1.L, @$R01
+84af b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84b0 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84b1 195c      LRRI	$AC0.L, @$R02
+84b2 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84b3 1939      LRRI	$AX1.L, @$R01
+84b4 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84b5 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84b6 195d      LRRI	$AC1.L, @$R02
+84b7 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84b8 1939      LRRI	$AX1.L, @$R01
+84b9 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84ba 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84bb 195c      LRRI	$AC0.L, @$R02
+84bc f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84bd 1939      LRRI	$AX1.L, @$R01
+84be b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84bf 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84c0 195d      LRRI	$AC1.L, @$R02
+84c1 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84c2 1939      LRRI	$AX1.L, @$R01
+84c3 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84c4 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84c5 195c      LRRI	$AC0.L, @$R02
+84c6 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84c7 1939      LRRI	$AX1.L, @$R01
+84c8 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84c9 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84ca 195d      LRRI	$AC1.L, @$R02
+84cb f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84cc 1939      LRRI	$AX1.L, @$R01
+84cd b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84ce 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84cf 195c      LRRI	$AC0.L, @$R02
+84d0 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84d1 1939      LRRI	$AX1.L, @$R01
+84d2 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84d3 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84d4 195d      LRRI	$AC1.L, @$R02
+84d5 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84d6 1939      LRRI	$AX1.L, @$R01
+84d7 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84d8 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84d9 195c      LRRI	$AC0.L, @$R02
+84da f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84db 1939      LRRI	$AX1.L, @$R01
+84dc b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84dd 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84de 195d      LRRI	$AC1.L, @$R02
+84df f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84e0 1939      LRRI	$AX1.L, @$R01
+84e1 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84e2 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84e3 195c      LRRI	$AC0.L, @$R02
+84e4 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84e5 1939      LRRI	$AX1.L, @$R01
+84e6 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84e7 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84e8 195d      LRRI	$AC1.L, @$R02
+84e9 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84ea 1939      LRRI	$AX1.L, @$R01
+84eb b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84ec 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84ed 195c      LRRI	$AC0.L, @$R02
+84ee f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84ef 1939      LRRI	$AX1.L, @$R01
+84f0 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84f1 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84f2 195d      LRRI	$AC1.L, @$R02
+84f3 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84f4 1939      LRRI	$AX1.L, @$R01
+84f5 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+84f6 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+84f7 195c      LRRI	$AC0.L, @$R02
+84f8 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+84f9 1939      LRRI	$AX1.L, @$R01
+84fa b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+84fb 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+84fc 195d      LRRI	$AC1.L, @$R02
+84fd f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+84fe 1939      LRRI	$AX1.L, @$R01
+84ff b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8500 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8501 195c      LRRI	$AC0.L, @$R02
+8502 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8503 1939      LRRI	$AX1.L, @$R01
+8504 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8505 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8506 195d      LRRI	$AC1.L, @$R02
+8507 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8508 1939      LRRI	$AX1.L, @$R01
+8509 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+850a 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+850b 195c      LRRI	$AC0.L, @$R02
+850c f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+850d 1939      LRRI	$AX1.L, @$R01
+850e b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+850f 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8510 195d      LRRI	$AC1.L, @$R02
+8511 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8512 1939      LRRI	$AX1.L, @$R01
+8513 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8514 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8515 195c      LRRI	$AC0.L, @$R02
+8516 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8517 1939      LRRI	$AX1.L, @$R01
+8518 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8519 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+851a 195d      LRRI	$AC1.L, @$R02
+851b f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+851c 1939      LRRI	$AX1.L, @$R01
+851d b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+851e 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+851f 195c      LRRI	$AC0.L, @$R02
+8520 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8521 1939      LRRI	$AX1.L, @$R01
+8522 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8523 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8524 195d      LRRI	$AC1.L, @$R02
+8525 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8526 1939      LRRI	$AX1.L, @$R01
+8527 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8528 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8529 195c      LRRI	$AC0.L, @$R02
+852a f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+852b 1939      LRRI	$AX1.L, @$R01
+852c b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+852d 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+852e 195d      LRRI	$AC1.L, @$R02
+852f f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8530 1939      LRRI	$AX1.L, @$R01
+8531 b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+8532 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+8533 195c      LRRI	$AC0.L, @$R02
+8534 f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+8535 1939      LRRI	$AX1.L, @$R01
+8536 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8537 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8538 195d      LRRI	$AC1.L, @$R02
+8539 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+853a 1939      LRRI	$AX1.L, @$R01
+853b b523      MULXAC.S	$AX0.H, $AX1.L, $AC1.M : @$R03, $AC0.L
+853c 9972      ASR16.L	$AC1.M : $AC0.M, @$R02
+853d 195c      LRRI	$AC0.L, @$R02
+853e f0a1      LSL16.LS	$AC0.M : $AX0.H, $AC1.M
+853f 1939      LRRI	$AX1.L, @$R01
+8540 b42b      MULXAC.S	$AX0.H, $AX1.L, $AC0.M : @$R03, $AC1.L
+8541 917a      ASR16.L	$AC0.M : $AC1.M, @$R02
+8542 195d      LRRI	$AC1.L, @$R02
+8543 f1a0      LSL16.LS	$AC1.M : $AX0.H, $AC0.M
+8544 1b7c      SRRI	@$R03, $AC0.L
+8545 6e00      MOVP	$AC0.M
+8546 b512      MULXAC.MV	$AX0.H, $AX1.L, $AC1.M : $AX0.L, $AC0.M
+8547 9900      ASR16	$AC1.M
+8548 1b7f      SRRI	@$R03, $AC1.M
+8549 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+854a 02df      RET	
+
+
+// Don't know what this is. There's deadbeef and 1234 in it. Suspicious.
+854b 8e00      S40	
+854c 0080 0800 LRI	$R00, #0x0800
+854e 0092 00ff LRI	$CR, #0x00ff
+8550 00c4 0403 LR	$R04, @0x0403
+8552 1fe4      MRR	$AC1.M, $R04
+8553 0503      ADDIS	$ACC1, #0x03
+8554 156e      LSR	$ACC1, #0x2e
+8555 1502      LSL	$ACC1, #0x02
+8556 29c9      SRS	@DSCR, $AX1.L
+8557 00de 0400 LR	$AC0.M, @0x0400
+8559 2ece      SRS	@DSMAH, $AC0.M
+855a 00de 0401 LR	$AC0.M, @0x0401
+855c 2ecf      SRS	@DSMAL, $AC0.M
+855d 00e0 ffcd SR	@DSPA, $R00
+855f 2dcb      SRS	@DSBL, $AC1.L
+8560 02bf 863d CALL	0x863d
+8562 29d1      SRS	@SampleFormat, $AX1.L
+8563 29d4      SRS	@ACSAH, $AX1.L
+8564 29d5      SRS	@ACSAL, $AX1.L
+8565 16d6 01ff SI	@ACEAH, #0x01ff
+8567 16d7 ffff SI	@ACEAL, #0xffff
+8569 00df 0404 LR	$AC1.M, @0x0404
+856b 00dd 0405 LR	$AC1.L, @0x0405
+856d 157f      LSR	$ACC1, #0x3f
+856e 0360 8000 ORI	$ACC1, #0x8000
+8570 2fd8      SRS	@ACCAH, $AC1.M
+8571 2dd9      SRS	@ACCAL, $AC1.L
+8572 0082 ffd3 LRI	$R02, #0xffd3
+8574 0086 0000 LRI	$R06, #0x0000
+8576 1fe4      MRR	$AC1.M, $R04
+8577 03c0 0001 ANDF	$AC1.M, #0x0001
+8579 157f      LSR	$ACC1, #0x3f
+857a 1cbf      MRR	$R05, $AC1.M
+857b 009a fff8 LRI	$AX0.H, #0xfff8
+857d 009b 0018 LRI	$AX1.H, #0x0018
+857f 8178      CLR.L	$AC0.M : $AC1.M, @$R00
+8580 0065 8586 BLOOP	$R05, 0x8586
+8582 35be      ANDR.SLNM	$AC1.M, $AX0.H : $AC0.M, $AX1.H
+8583 3793      ANDR.SL	$AC1.M, $AX1.H : $AC1.M, $AX1.L
+8584 f500      LSR16	$AC1.M
+8585 7017      ADDAXL.MV	$AC0.M, $AX0.L : $AX1.L, $AC1.M
+8586 7278      ADDAXL.L	$AC0.M, $AX1.L : $AC1.M, @$R00
+8587 029c 858c JZR	0x858c
+8589 35be      ANDR.SLNM	$AC1.M, $AX0.H : $AC0.M, $AX1.H
+858a 1f1f      MRR	$AX0.L, $AC1.M
+858b 7000      ADDAXL	$AC0.M, $AX0.L
+858c 6d00      MOV	$AC1.M, $AC0.M
+858d 0080 0408 LRI	$R00, #0x0408
+858f 009a 12df LRI	$AX0.H, #0x12df
+8591 0098 acbd LRI	$AX0.L, #0xacbd
+8593 4800      ADDAX	$AC0.M, $AX0.L
+8594 1b1e      SRRI	@$R00, $AC0.M
+8595 1b1c      SRRI	@$R00, $AC0.L
+8596 009e fbca LRI	$AC0.M, #0xfbca
+8598 1b1e      SRRI	@$R00, $AC0.M
+8599 009e deb0 LRI	$AC0.M, #0xdeb0
+859b 1b1e      SRRI	@$R00, $AC0.M
+859c 009e fde1 LRI	$AC0.M, #0xfde1
+859e 1b1e      SRRI	@$R00, $AC0.M
+859f 009e facb LRI	$AC0.M, #0xfacb
+85a1 1b1e      SRRI	@$R00, $AC0.M
+85a2 009e dead LRI	$AC0.M, #0xdead
+85a4 1b1e      SRRI	@$R00, $AC0.M
+85a5 009e beef LRI	$AC0.M, #0xbeef
+85a7 080d      LRIS	$AX0.L, #0x0d
+85a8 7130      ADDAXL.S	$AC1.M, $AX0.L : @$R00, $AC0.M
+85a9 1b1d      SRRI	@$R00, $AC1.L
+85aa 1b11      SRRI	@$R00, $ACH1
+85ab 0080 0800 LRI	$R00, #0x0800
+85ad 0081 0409 LRI	$R01, #0x0409
+85af 0082 040f LRI	$R02, #0x040f
+85b1 0085 0410 LRI	$R05, #0x0410
+85b3 0086 040e LRI	$R06, #0x040e
+85b5 0087 fffe LRI	$R07, #0xfffe
+85b7 16d1 0005 SI	@SampleFormat, #0x0005
+85b9 16d4 0000 SI	@ACSAH, #0x0000
+85bb 16d5 0000 SI	@ACSAL, #0x0000
+85bd 16d6 0000 SI	@ACEAH, #0x0000
+85bf 16d7 00ff SI	@ACEAL, #0x00ff
+85c1 16d8 0000 SI	@ACCAH, #0x0000
+85c3 16d9 0000 SI	@ACCAL, #0x0000
+85c5 16da 0000 SI	@pred_scale, #0x0000
+85c7 16a0 f9b8 SI	@COEF_A1_0, #0xf9b8
+85c9 16a1 fec7 SI	@COEF_A2_0, #0xfec7
+85cb 16de 0800 SI	@GAIN, #0x0800
+85cd 16db 0000 SI	@yn1, #0x0000
+85cf 16dc 0000 SI	@yn2, #0x0000
+85d1 1fe4      MRR	$AC1.M, $R04
+85d2 1918      LRRI	$AX0.L, @$R00
+85d3 00f8 ffdf SR	@0xffdf, $AX0.L
+85d5 1c65      MRR	$R03, $R05
+85d6 18bc      LRRD	$AC0.L, @$R01
+85d7 193e      LRRI	$AC0.M, @$R01
+85d8 00d8 ffdd LR	$AX0.L, @ARAM
+85da 7000      ADDAXL	$AC0.M, $AX0.L
+85db 1abc      SRRD	@$R01, $AC0.L
+85dc 7931      DECM.S	$AC1.M : @$R01, $AC0.M
+85dd 157f      LSR	$ACC1, #0x3f
+85de 007f 85fd BLOOP	$AC1.M, 0x85fd
+85e0 02bf 8611 CALL	0x8611
+85e2 191e      LRRI	$AC0.M, @$R00
+85e3 3160      XORR.L	$AC1.M, $AX0.H : $AC0.L, @$R00
+85e4 1478      LSR	$ACC0, #0x38
+85e5 00fc ffdf SR	@0xffdf, $AC0.L
+85e7 1c65      MRR	$R03, $R05
+85e8 18bc      LRRD	$AC0.L, @$R01
+85e9 3371      XORR.L	$AC1.M, $AX1.H : $AC0.M, @$R01
+85ea 00d8 ffdd LR	$AX0.L, @ARAM
+85ec 702a      ADDAXL.S	$AC0.M, $AX0.L : @$R02, $AC1.L
+85ed 1a5f      SRR	@$R02, $AC1.M
+85ee 1abc      SRRD	@$R01, $AC0.L
+85ef 1b3e      SRRI	@$R01, $AC0.M
+85f0 02bf 8611 CALL	0x8611
+85f2 3140      XORR.L	$AC1.M, $AX0.H : $AX0.L, @$R00
+85f3 00f8 ffdf SR	@0xffdf, $AX0.L
+85f5 1c65      MRR	$R03, $R05
+85f6 18bc      LRRD	$AC0.L, @$R01
+85f7 3371      XORR.L	$AC1.M, $AX1.H : $AC0.M, @$R01
+85f8 00d8 ffdd LR	$AX0.L, @ARAM
+85fa 702a      ADDAXL.S	$AC0.M, $AX0.L : @$R02, $AC1.L
+85fb 1a5f      SRR	@$R02, $AC1.M
+85fc 1abc      SRRD	@$R01, $AC0.L
+85fd 1b3e      SRRI	@$R01, $AC0.M
+85fe 029d 8602 JNZ	0x8602
+8600 02bf 8611 CALL	0x8611
+8602 16c9 0001 SI	@DSCR, #0x0001
+8604 00de 0406 LR	$AC0.M, @0x0406
+8606 2ece      SRS	@DSMAH, $AC0.M
+8607 00de 0407 LR	$AC0.M, @0x0407
+8609 2ecf      SRS	@DSMAL, $AC0.M
+860a 16cd 040a SI	@DSPA, #0x040a
+860c 16cb 0004 SI	@DSBL, #0x0004
+860e 02bf 863d CALL	0x863d
+8610 02df      RET	
+
+
+// No idea what this is either.
+8611 18da      LRRD	$AX0.H, @$R02
+8612 18db      LRRD	$AX1.H, @$R02
+8613 18dd      LRRD	$AC1.L, @$R02
+8614 18df      LRRD	$AC1.M, @$R02
+8615 4c04      ADD.DR	$AC0.M, $AC1.M : $R00
+8616 1ffc      MRR	$AC1.M, $AC0.L
+8617 3143      XORR.L	$AC1.M, $AX0.H : $AX0.L, @$R03
+8618 f563      LSR16.L	$AC1.M : $AC0.L, @$R03
+8619 1ffe      MRR	$AC1.M, $AC0.M
+861a 7607      INC.DR	$AC0.M : $R03
+861b 3323      XORR.S	$AC1.M, $AX1.H : @$R03, $AC0.L
+861c 7042      ADDAXL.L	$AC0.M, $AX0.L : $AX0.L, @$R02
+861d 1423      LSL	$ACC0, #0x23
+861e 146d      LSR	$ACC0, #0x2d
+861f 1f5e      MRR	$AX0.H, $AC0.M
+8620 04e0      ADDIS	$ACC0, #0xe0
+8621 6c1e      MOV.MV	$AC0.M, $AC1.M : $AX1.H, $AC0.M
+8622 1c66      MRR	$R03, $R06
+8623 3486      ANDR.SLN	$AC0.M, $AX0.H : $AC0.M, $AX0.L
+8624 3786      ANDR.SLN	$AC1.M, $AX1.H : $AC0.M, $AX0.L
+8625 4c52      ADD.L	$AC0.M, $AC1.M : $AX0.H, @$R02
+8626 486b      ADDAX.L	$AC0.M, $AX0.L : $AC1.L, @$R03
+8627 1adc      SRRD	@$R02, $AC0.L
+8628 1a5e      SRR	@$R02, $AC0.M
+8629 183e      LRR	$AC0.M, @$R01
+862a 18bf      LRRD	$AC1.M, @$R01
+862b 33d2      XORR.LD	$AC1.M, $AX1.H : $AX0.L, $AX1.H, @$R02
+862c 195b      LRRI	$AX1.H, @$R02
+862d 365f      ANDR.LN	$AC0.M, $AX1.H : $AX1.H, @$R03
+862e 371e      ANDR.MV	$AC1.M, $AX1.H : $AX1.H, $AC0.M
+862f 3b1d      ORR.MV	$AC1.M, $AX1.H : $AX1.H, $AC1.L
+8630 1aff      SRRD	@$R03, $AC1.M
+8631 183e      LRR	$AC0.M, @$R01
+8632 3479      ANDR.L	$AC0.M, $AX0.H : $AC1.M, @$R01
+8633 339a      XORR.SLM	$AC1.M, $AX1.H : $AC0.M, $AX1.L
+8634 3705      ANDR.DR	$AC1.M, $AX1.H : $R01
+8635 390a      ORR.IR	$AC1.M, $AX0.H : $R02
+8636 1bff      SRRN	@$R03, $AC1.M
+8637 197b      LRRI	$AX1.H, @$R03
+8638 3359      XORR.L	$AC1.M, $AX1.H : $AX1.H, @$R01
+8639 335a      XORR.L	$AC1.M, $AX1.H : $AX1.H, @$R02
+863a f557      LSR16.LN	$AC1.M : $AX0.H, @$R03
+863b 197f      LRRI	$AC1.M, @$R03
+863c 02df      RET
+
+
+// waits for DMA control reg - probably completion.	
+863d 00df ffc9 LR	$AC1.M, @DSCR
+863f 03c0 0004 ANDF	$AC1.M, #0x0004
+8641 029d 863d JNZ	0x863d
+8643 02df      RET	
+
+
+// This one does some DMA-ing.
+8644 8e00      S40	
+8645 0081 0800 LRI	$R01, #0x0800
+8647 0092 00ff LRI	$CR, #0x00ff
+8649 00df 0403 LR	$AC1.M, @0x0403
+864b 0503      ADDIS	$ACC1, #0x03
+864c 156e      LSR	$ACC1, #0x2e
+864d 1502      LSL	$ACC1, #0x02
+864e 29c9      SRS	@DSCR, $AX1.L
+864f 00de 0400 LR	$AC0.M, @0x0400
+8651 2ece      SRS	@DSMAH, $AC0.M
+8652 00de 0401 LR	$AC0.M, @0x0401
+8654 2ecf      SRS	@DSMAL, $AC0.M
+8655 00e1 ffcd SR	@DSPA, $R01
+8657 2dcb      SRS	@DSBL, $AC1.L
+8658 02bf 863d CALL	0x863d
+865a 29d1      SRS	@SampleFormat, $AX1.L
+865b 29d4      SRS	@ACSAH, $AX1.L
+865c 29d5      SRS	@ACSAL, $AX1.L
+865d 16d6 01ff SI	@ACEAH, #0x01ff
+865f 16d7 ffff SI	@ACEAL, #0xffff
+8661 00df 0404 LR	$AC1.M, @0x0404
+8663 00dd 0405 LR	$AC1.L, @0x0405
+8665 157f      LSR	$ACC1, #0x3f
+8666 0360 8000 ORI	$ACC1, #0x8000
+8668 2fd8      SRS	@ACCAH, $AC1.M
+8669 2dd9      SRS	@ACCAL, $AC1.L
+866a 0080 ffd3 LRI	$R00, #0xffd3
+866c 0084 0000 LRI	$R04, #0x0000
+866e 00df 0403 LR	$AC1.M, @0x0403
+8670 03c0 0001 ANDF	$AC1.M, #0x0001
+8672 157f      LSR	$ACC1, #0x3f
+8673 1cdf      MRR	$R06, $AC1.M
+8674 009a fff8 LRI	$AX0.H, #0xfff8
+8676 009b 0018 LRI	$AX1.H, #0x0018
+8678 8179      CLR.L	$AC0.M : $AC1.M, @$R01
+8679 0066 867f BLOOP	$R06, 0x867f
+867b 35bc      ANDR.LSNM	$AC1.M, $AX0.H : $AX1.H, $AC0.M
+867c 3793      ANDR.SL	$AC1.M, $AX1.H : $AC1.M, $AX1.L
+867d f500      LSR16	$AC1.M
+867e 7017      ADDAXL.MV	$AC0.M, $AX0.L : $AX1.L, $AC1.M
+867f 7279      ADDAXL.L	$AC0.M, $AX1.L : $AC1.M, @$R01
+8680 029c 8685 JZR	0x8685
+8682 35bc      ANDR.LSNM	$AC1.M, $AX0.H : $AX1.H, $AC0.M
+8683 1f1f      MRR	$AX0.L, $AC1.M
+8684 7000      ADDAXL	$AC0.M, $AX0.L
+8685 6d00      MOV	$AC1.M, $AC0.M
+8686 0081 0408 LRI	$R01, #0x0408
+8688 009a 170a LRI	$AX0.H, #0x170a
+868a 0098 7489 LRI	$AX0.L, #0x7489
+868c 4800      ADDAX	$AC0.M, $AX0.L
+868d 1b3e      SRRI	@$R01, $AC0.M
+868e 1b3c      SRRI	@$R01, $AC0.L
+868f 009e 05ef LRI	$AC0.M, #0x05ef
+8691 1b3e      SRRI	@$R01, $AC0.M
+8692 009e e0aa LRI	$AC0.M, #0xe0aa
+8694 1b3e      SRRI	@$R01, $AC0.M
+8695 009e daf4 LRI	$AC0.M, #0xdaf4
+8697 1b3e      SRRI	@$R01, $AC0.M
+8698 009e b157 LRI	$AC0.M, #0xb157
+869a 1b3e      SRRI	@$R01, $AC0.M
+869b 009e 6bbe LRI	$AC0.M, #0x6bbe
+869d 1b3e      SRRI	@$R01, $AC0.M
+869e 009e c3b6 LRI	$AC0.M, #0xc3b6
+86a0 0808      LRIS	$AX0.L, #0x08
+86a1 7131      ADDAXL.S	$AC1.M, $AX0.L : @$R01, $AC0.M
+86a2 1b3d      SRRI	@$R01, $AC1.L
+86a3 1b31      SRRI	@$R01, $ACH1
+86a4 28d1      SRS	@SampleFormat, $AX0.L
+86a5 28d4      SRS	@ACSAH, $AX0.L
+86a6 28d5      SRS	@ACSAL, $AX0.L
+86a7 16d6 07ff SI	@ACEAH, #0x07ff
+86a9 16d7 ffff SI	@ACEAL, #0xffff
+86ab 00de 0404 LR	$AC0.M, @0x0404
+86ad 00dc 0405 LR	$AC0.L, @0x0405
+86af 1401      LSL	$ACC0, #0x01
+86b0 2ed8      SRS	@ACCAH, $AC0.M
+86b1 2cd9      SRS	@ACCAL, $AC0.L
+86b2 0081 0409 LRI	$R01, #0x0409
+86b4 0082 040e LRI	$R02, #0x040e
+86b6 0085 0410 LRI	$R05, #0x0410
+86b8 0087 fffe LRI	$R07, #0xfffe
+86ba 0088 040e LRI	$R08, #0x040e
+86bc 00df 0403 LR	$AC1.M, @0x0403
+86be 7900      DECM	$AC1.M
+86bf 157f      LSR	$ACC1, #0x3f
+86c0 1f3f      MRR	$AX1.L, $AC1.M
+86c1 199d      LRRN	$AC1.L, @$R00
+86c2 199a      LRRN	$AX0.H, @$R00
+86c3 1c65      MRR	$R03, $R05
+86c4 0079 86cf BLOOP	$AX1.L, 0x86cf
+86c6 02bf 86e5 CALL	0x86e5
+86c8 1fb9      MRR	$AC1.L, $AX1.L
+86c9 1f46      MRR	$AX0.H, $R06
+86ca 1c65      MRR	$R03, $R05
+86cb 02bf 86e5 CALL	0x86e5
+86cd 1fb9      MRR	$AC1.L, $AX1.L
+86ce 1f46      MRR	$AX0.H, $R06
+86cf 1c65      MRR	$R03, $R05
+86d0 029d 86d4 JNZ	0x86d4
+86d2 02bf 86e5 CALL	0x86e5
+86d4 0088 ffff LRI	$R08, #0xffff
+86d6 16c9 0001 SI	@DSCR, #0x0001
+86d8 00de 0406 LR	$AC0.M, @0x0406
+86da 2ece      SRS	@DSMAH, $AC0.M
+86db 00de 0407 LR	$AC0.M, @0x0407
+86dd 2ecf      SRS	@DSMAL, $AC0.M
+86de 16cd 040a SI	@DSPA, #0x040a
+86e0 16cb 0004 SI	@DSBL, #0x0004
+86e2 02bf 863d CALL	0x863d
+86e4 02df      RET	
+86e5 1999      LRRN	$AX1.L, @$R00
+86e6 199c      LRRN	$AC0.L, @$R00
+86e7 1cdc      MRR	$R06, $AC0.L
+86e8 1414      LSL	$ACC0, #0x14
+86e9 385a      ORR.L	$AC0.M, $AX0.H : $AX1.H, @$R02
+86ea f052      LSL16.L	$AC0.M : $AX0.H, @$R02
+86eb 9106      ASR16.DR	$AC0.M : $R02
+86ec 1518      LSL	$ACC1, #0x18
+86ed 3086      XORR.SLN	$AC0.M, $AX0.H : $AC0.M, $AX0.L
+86ee 1ff9      MRR	$AC1.M, $AX1.L
+86ef 150c      LSL	$ACC1, #0x0c
+86f0 3086      XORR.SLN	$AC0.M, $AX0.H : $AC0.M, $AX0.L
+86f1 1f1e      MRR	$AX0.L, $AC0.M
+86f2 18bc      LRRD	$AC0.L, @$R01
+86f3 193e      LRRI	$AC0.M, @$R01
+86f4 7000      ADDAXL	$AC0.M, $AX0.L
+86f5 1abc      SRRD	@$R01, $AC0.L
+86f6 18df      LRRD	$AC1.M, @$R02
+86f7 3131      XORR.S	$AC1.M, $AX0.H : @$R01, $AC0.M
+86f8 f543      LSR16.L	$AC1.M : $AX0.L, @$R03
+86f9 18df      LRRD	$AC1.M, @$R02
+86fa 3300      XORR	$AC1.M, $AX1.H
+86fb 4d63      ADD.L	$AC1.M, $AC0.M : $AC0.L, @$R03
+86fc 7607      INC.DR	$AC0.M : $R03
+86fd 1b7c      SRRI	@$R03, $AC0.L
+86fe 7042      ADDAXL.L	$AC0.M, $AX0.L : $AX0.L, @$R02
+86ff 1423      LSL	$ACC0, #0x23
+8700 145d      LSR	$ACC0, #0x1d
+8701 7c00      NEG	$AC0.M
+8702 f000      LSL16	$AC0.M
+8703 04f8      ADDIS	$ACC0, #0xf8
+8704 1f5e      MRR	$AX0.H, $AC0.M
+8705 0428      ADDIS	$ACC0, #0x28
+8706 6c1e      MOV.MV	$AC0.M, $AC1.M : $AX1.H, $AC0.M
+8707 1408      LSL	$ACC0, #0x08
+8708 1c68      MRR	$R03, $R08
+8709 3486      ANDR.SLN	$AC0.M, $AX0.H : $AC0.M, $AX0.L
+870a 3786      ANDR.SLN	$AC1.M, $AX1.H : $AC0.M, $AX0.L
+870b 4c52      ADD.L	$AC0.M, $AC1.M : $AX0.H, @$R02
+870c 486b      ADDAX.L	$AC0.M, $AX0.L : $AC1.L, @$R03
+870d 1adc      SRRD	@$R02, $AC0.L
+870e 1a5e      SRR	@$R02, $AC0.M
+870f 183e      LRR	$AC0.M, @$R01
+8710 18bf      LRRD	$AC1.M, @$R01
+8711 33d2      XORR.LD	$AC1.M, $AX1.H : $AX0.L, $AX1.H, @$R02
+8712 19fb      LRRN	$AX1.H, @$R03
+8713 365a      ANDR.L	$AC0.M, $AX1.H : $AX1.H, @$R02
+8714 371e      ANDR.MV	$AC1.M, $AX1.H : $AX1.H, $AC0.M
+8715 3b1d      ORR.MV	$AC1.M, $AX1.H : $AX1.H, $AC1.L
+8716 1aff      SRRD	@$R03, $AC1.M
+8717 183e      LRR	$AC0.M, @$R01
+8718 3679      ANDR.L	$AC0.M, $AX1.H : $AC1.M, @$R01
+8719 339e      XORR.SLNM	$AC1.M, $AX1.H : $AC0.M, $AX1.L
+871a 3505      ANDR.DR	$AC1.M, $AX0.H : $R01
+871b 3b0a      ORR.IR	$AC1.M, $AX1.H : $R02
+871c 1bff      SRRN	@$R03, $AC1.M
+871d 197b      LRRI	$AX1.H, @$R03
+871e 3359      XORR.L	$AC1.M, $AX1.H : $AX1.H, @$R01
+871f 335a      XORR.L	$AC1.M, $AX1.H : $AX1.H, @$R02
+8720 f557      LSR16.LN	$AC1.M : $AX0.H, @$R03
+8721 197f      LRRI	$AC1.M, @$R03
+8722 312a      XORR.S	$AC1.M, $AX0.H : @$R02, $AC1.L
+8723 3300      XORR	$AC1.M, $AX1.H
+8724 1adf      SRRD	@$R02, $AC1.M
+8725 02df      RET	
+8726 8e00      S40	
+8727 0081 0800 LRI	$R01, #0x0800
+8729 0092 00ff LRI	$CR, #0x00ff
+872b 00df 0403 LR	$AC1.M, @0x0403
+872d f500      LSR16	$AC1.M
+872e 29c9      SRS	@DSCR, $AX1.L
+872f 00de 0400 LR	$AC0.M, @0x0400
+8731 2ece      SRS	@DSMAH, $AC0.M
+8732 00de 0401 LR	$AC0.M, @0x0401
+8734 2ecf      SRS	@DSMAL, $AC0.M
+8735 00e1 ffcd SR	@DSPA, $R01
+8737 2dcb      SRS	@DSBL, $AC1.L
+8738 02bf 863d CALL	0x863d
+873a 29d1      SRS	@SampleFormat, $AX1.L
+873b 29d4      SRS	@ACSAH, $AX1.L
+873c 29d5      SRS	@ACSAL, $AX1.L
+873d 16d6 01ff SI	@ACEAH, #0x01ff
+873f 16d7 ffff SI	@ACEAL, #0xffff
+8741 00df 0404 LR	$AC1.M, @0x0404
+8743 00dd 0405 LR	$AC1.L, @0x0405
+8745 157f      LSR	$ACC1, #0x3f
+8746 0360 8000 ORI	$ACC1, #0x8000
+8748 2fd8      SRS	@ACCAH, $AC1.M
+8749 2dd9      SRS	@ACCAL, $AC1.L
+874a 0080 ffd3 LRI	$R00, #0xffd3
+874c 0084 0000 LRI	$R04, #0x0000
+874e 00df 0403 LR	$AC1.M, @0x0403
+8750 157f      LSR	$ACC1, #0x3f
+8751 1cdf      MRR	$R06, $AC1.M
+8752 009a fff8 LRI	$AX0.H, #0xfff8
+8754 009b 0018 LRI	$AX1.H, #0x0018
+8756 8179      CLR.L	$AC0.M : $AC1.M, @$R01
+8757 0066 875d BLOOP	$R06, 0x875d
+8759 35bc      ANDR.LSNM	$AC1.M, $AX0.H : $AX1.H, $AC0.M
+875a 3793      ANDR.SL	$AC1.M, $AX1.H : $AC1.M, $AX1.L
+875b f500      LSR16	$AC1.M
+875c 7017      ADDAXL.MV	$AC0.M, $AX0.L : $AX1.L, $AC1.M
+875d 7279      ADDAXL.L	$AC0.M, $AX1.L : $AC1.M, @$R01
+875e 6d00      MOV	$AC1.M, $AC0.M
+875f 0081 0408 LRI	$R01, #0x0408
+8761 009a 298f LRI	$AX0.H, #0x298f
+8763 0098 0b7f LRI	$AX0.L, #0x0b7f
+8765 4800      ADDAX	$AC0.M, $AX0.L
+8766 1b3e      SRRI	@$R01, $AC0.M
+8767 1b3c      SRRI	@$R01, $AC0.L
+8768 009e 4bf9 LRI	$AC0.M, #0x4bf9
+876a 1b3e      SRRI	@$R01, $AC0.M
+876b 009e c9b1 LRI	$AC0.M, #0xc9b1
+876d 1b3e      SRRI	@$R01, $AC0.M
+876e 009e d30d LRI	$AC0.M, #0xd30d
+8770 1b3e      SRRI	@$R01, $AC0.M
+8771 009e 6b99 LRI	$AC0.M, #0x6b99
+8773 1b3e      SRRI	@$R01, $AC0.M
+8774 009e 191d LRI	$AC0.M, #0x191d
+8776 1b3e      SRRI	@$R01, $AC0.M
+8777 009e 31dd LRI	$AC0.M, #0x31dd
+8779 0812      LRIS	$AX0.L, #0x12
+877a 7131      ADDAXL.S	$AC1.M, $AX0.L : @$R01, $AC0.M
+877b 1b3d      SRRI	@$R01, $AC1.L
+877c 1b31      SRRI	@$R01, $ACH1
+877d 28d1      SRS	@SampleFormat, $AX0.L
+877e 28d4      SRS	@ACSAH, $AX0.L
+877f 28d5      SRS	@ACSAL, $AX0.L
+8780 16d6 07ff SI	@ACEAH, #0x07ff
+8782 16d7 ffff SI	@ACEAL, #0xffff
+8784 00de 0404 LR	$AC0.M, @0x0404
+8786 00dc 0405 LR	$AC0.L, @0x0405
+8788 7600      INC	$AC0.M
+8789 1401      LSL	$ACC0, #0x01
+878a 2ed8      SRS	@ACCAH, $AC0.M
+878b 2cd9      SRS	@ACCAL, $AC0.L
+878c 00de 0800 LR	$AC0.M, @0x0800
+878e 1478      LSR	$ACC0, #0x38
+878f 2eda      SRS	@pred_scale, $AC0.M
+8790 16a0 01ba SI	@COEF_A1_0, #0x01ba
+8792 16a1 04b0 SI	@COEF_A2_0, #0x04b0
+8794 16a2 044d SI	@COEF_A1_1, #0x044d
+8796 16a3 01e7 SI	@COEF_A2_1, #0x01e7
+8798 16a4 02da SI	@COEF_A1_2, #0x02da
+879a 16a5 0452 SI	@COEF_A2_2, #0x0452
+879c 16a6 057a SI	@COEF_A1_3, #0x057a
+879e 16a7 01bf SI	@COEF_A2_3, #0x01bf
+87a0 28db      SRS	@yn1, $AX0.L
+87a1 28dc      SRS	@yn2, $AX0.L
+87a2 0080 ffdd LRI	$R00, #0xffdd
+87a4 0081 0409 LRI	$R01, #0x0409
+87a6 0082 040f LRI	$R02, #0x040f
+87a8 0085 0410 LRI	$R05, #0x0410
+87aa 0086 ffff LRI	$R06, #0xffff
+87ac 0087 fffe LRI	$R07, #0xfffe
+87ae 8b00      M0	
+87af 8c00      CLR15	
+87b0 00de 0403 LR	$AC0.M, @0x0403
+87b2 147d      LSR	$ACC0, #0x3d
+87b3 0a07      LRIS	$AX0.H, #0x07
+87b4 c000      MULC	$AX0.H, $AC0.M
+87b5 6e00      MOVP	$AC0.M
+87b6 7a00      DEC	$AC0.M
+87b7 1f3c      MRR	$AX1.L, $AC0.L
+87b8 199d      LRRN	$AC1.L, @$R00
+87b9 18bc      LRRD	$AC0.L, @$R01
+87ba 193e      LRRI	$AC0.M, @$R01
+87bb 19da      LRRN	$AX0.H, @$R02
+87bc 1c65      MRR	$R03, $R05
+87bd 199f      LRRN	$AC1.M, @$R00
+87be 4c5e      ADD.LN	$AC0.M, $AC1.M : $AX1.H, @$R02
+87bf 1abc      SRRD	@$R01, $AC0.L
+87c0 1b3e      SRRI	@$R01, $AC0.M
+87c1 0079 87cd BLOOP	$AX1.L, 0x87cd
+87c3 02bf 87df CALL	0x87df
+87c5 199d      LRRN	$AC1.L, @$R00
+87c6 18bc      LRRD	$AC0.L, @$R01
+87c7 193e      LRRI	$AC0.M, @$R01
+87c8 19da      LRRN	$AX0.H, @$R02
+87c9 1c65      MRR	$R03, $R05
+87ca 199f      LRRN	$AC1.M, @$R00
+87cb 4c5e      ADD.LN	$AC0.M, $AC1.M : $AX1.H, @$R02
+87cc 1abc      SRRD	@$R01, $AC0.L
+87cd 1b3e      SRRI	@$R01, $AC0.M
+87ce 02bf 87df CALL	0x87df
+87d0 16c9 0001 SI	@DSCR, #0x0001
+87d2 00de 0406 LR	$AC0.M, @0x0406
+87d4 2ece      SRS	@DSMAH, $AC0.M
+87d5 00de 0407 LR	$AC0.M, @0x0407
+87d7 2ecf      SRS	@DSMAL, $AC0.M
+87d8 16cd 040a SI	@DSPA, #0x040a
+87da 16cb 0004 SI	@DSBL, #0x0004
+87dc 02bf 863d CALL	0x863d
+87de 02df      RET	
+87df 1ffc      MRR	$AC1.M, $AC0.L
+87e0 3166      XORR.LN	$AC1.M, $AX0.H : $AC0.L, @$R02
+87e1 f543      LSR16.L	$AC1.M : $AX0.L, @$R03
+87e2 1ffe      MRR	$AC1.M, $AC0.M
+87e3 3376      XORR.LN	$AC1.M, $AX1.H : $AC0.M, @$R02
+87e4 4d63      ADD.L	$AC1.M, $AC0.M : $AC0.L, @$R03
+87e5 7607      INC.DR	$AC0.M : $R03
+87e6 1b7c      SRRI	@$R03, $AC0.L
+87e7 7046      ADDAXL.LN	$AC0.M, $AX0.L : $AX0.L, @$R02
+87e8 1423      LSL	$ACC0, #0x23
+87e9 145d      LSR	$ACC0, #0x1d
+87ea 7c0f      NEG.NR	$AC0.M : $R03
+87eb f00f      LSL16.NR	$AC0.M : $R03
+87ec 04f8      ADDIS	$ACC0, #0xf8
+87ed 1f5e      MRR	$AX0.H, $AC0.M
+87ee 0428      ADDIS	$ACC0, #0x28
+87ef 6c1e      MOV.MV	$AC0.M, $AC1.M : $AX1.H, $AC0.M
+87f0 1408      LSL	$ACC0, #0x08
+87f1 3485      ANDR.LSN	$AC0.M, $AX0.H : $AX0.L, $AC1.M
+87f2 37d9      ANDR.LDM	$AC1.M, $AX1.H : $AX0.L, $AX1.H, @$R01
+87f3 4c52      ADD.L	$AC0.M, $AC1.M : $AX0.H, @$R02
+87f4 4853      ADDAX.L	$AC0.M, $AX0.L : $AX0.H, @$R03
+87f5 1bdc      SRRN	@$R02, $AC0.L
+87f6 1b5e      SRRI	@$R02, $AC0.M
+87f7 325f      XORR.LN	$AC0.M, $AX1.H : $AX1.H, @$R03
+87f8 3051      XORR.L	$AC0.M, $AX0.H : $AX0.H, @$R01
+87f9 000a      IAR	$R02
+87fa f032      LSL16.S	$AC0.M : @$R02, $AC0.M
+87fb 3005      XORR.DR	$AC0.M, $AX0.H : $R01
+87fc 320f      XORR.NR	$AC0.M, $AX1.H : $R03
+87fd 1b5e      SRRI	@$R02, $AC0.M
+87fe 183b      LRR	$AX1.H, @$R01
+87ff 3653      ANDR.L	$AC0.M, $AX1.H : $AX0.H, @$R03
+8800 18bf      LRRD	$AC1.M, @$R01
+8801 339e      XORR.SLNM	$AC1.M, $AX1.H : $AC0.M, $AX1.L
+8802 3571      ANDR.L	$AC1.M, $AX0.H : $AC0.M, @$R01
+8803 3b05      ORR.DR	$AC1.M, $AX1.H : $R01
+8804 f557      LSR16.LN	$AC1.M : $AX0.H, @$R03
+8805 193f      LRRI	$AC1.M, @$R01
+8806 345f      ANDR.LN	$AC0.M, $AX0.H : $AX1.H, @$R03
+8807 339a      XORR.SLM	$AC1.M, $AX1.H : $AC0.M, $AX1.L
+8808 370a      ANDR.IR	$AC1.M, $AX1.H : $R02
+8809 392e      ORR.SN	$AC1.M, $AX0.H : @$R02, $AC1.L
+880a 1b5f      SRRI	@$R02, $AC1.M
+880b 02df      RET	
+880c 8e00      S40	
+880d 0081 0800 LRI	$R01, #0x0800
+880f 0092 00ff LRI	$CR, #0x00ff
+8811 00df 0403 LR	$AC1.M, @0x0403
+8813 0503      ADDIS	$ACC1, #0x03
+8814 156e      LSR	$ACC1, #0x2e
+8815 1502      LSL	$ACC1, #0x02
+8816 29c9      SRS	@DSCR, $AX1.L
+8817 00de 0400 LR	$AC0.M, @0x0400
+8819 2ece      SRS	@DSMAH, $AC0.M
+881a 00de 0401 LR	$AC0.M, @0x0401
+881c 2ecf      SRS	@DSMAL, $AC0.M
+881d 00e1 ffcd SR	@DSPA, $R01
+881f 2dcb      SRS	@DSBL, $AC1.L
+8820 02bf 863d CALL	0x863d
+8822 29d1      SRS	@SampleFormat, $AX1.L
+8823 29d4      SRS	@ACSAH, $AX1.L
+8824 29d5      SRS	@ACSAL, $AX1.L
+8825 16d6 01ff SI	@ACEAH, #0x01ff
+8827 16d7 ffff SI	@ACEAL, #0xffff
+8829 00df 0404 LR	$AC1.M, @0x0404
+882b 00dd 0405 LR	$AC1.L, @0x0405
+882d 157f      LSR	$ACC1, #0x3f
+882e 0360 8000 ORI	$ACC1, #0x8000
+8830 2fd8      SRS	@ACCAH, $AC1.M
+8831 2dd9      SRS	@ACCAL, $AC1.L
+8832 0080 ffd3 LRI	$R00, #0xffd3
+8834 0084 0000 LRI	$R04, #0x0000
+8836 00df 0403 LR	$AC1.M, @0x0403
+8838 03c0 0001 ANDF	$AC1.M, #0x0001
+883a 157f      LSR	$ACC1, #0x3f
+883b 1cdf      MRR	$R06, $AC1.M
+883c 009a fff8 LRI	$AX0.H, #0xfff8
+883e 009b 0018 LRI	$AX1.H, #0x0018
+8840 8179      CLR.L	$AC0.M : $AC1.M, @$R01
+8841 0066 8847 BLOOP	$R06, 0x8847
+8843 35bc      ANDR.LSNM	$AC1.M, $AX0.H : $AX1.H, $AC0.M
+8844 3793      ANDR.SL	$AC1.M, $AX1.H : $AC1.M, $AX1.L
+8845 f500      LSR16	$AC1.M
+8846 7017      ADDAXL.MV	$AC0.M, $AX0.L : $AX1.L, $AC1.M
+8847 7279      ADDAXL.L	$AC0.M, $AX1.L : $AC1.M, @$R01
+8848 029c 884d JZR	0x884d
+884a 35bc      ANDR.LSNM	$AC1.M, $AX0.H : $AX1.H, $AC0.M
+884b 1f1f      MRR	$AX0.L, $AC1.M
+884c 7000      ADDAXL	$AC0.M, $AX0.L
+884d 6d00      MOV	$AC1.M, $AC0.M
+884e 0081 0408 LRI	$R01, #0x0408
+8850 009a 4ea2 LRI	$AX0.H, #0x4ea2
+8852 0098 1e71 LRI	$AX0.L, #0x1e71
+8854 4800      ADDAX	$AC0.M, $AX0.L
+8855 1b3e      SRRI	@$R01, $AC0.M
+8856 1b3c      SRRI	@$R01, $AC0.L
+8857 009e cc0a LRI	$AC0.M, #0xcc0a
+8859 1b3e      SRRI	@$R01, $AC0.M
+885a 009e 144b LRI	$AC0.M, #0x144b
+885c 1b3e      SRRI	@$R01, $AC0.M
+885d 009e f541 LRI	$AC0.M, #0xf541
+885f 1b3e      SRRI	@$R01, $AC0.M
+8860 009e 878d LRI	$AC0.M, #0x878d
+8862 1b3e      SRRI	@$R01, $AC0.M
+8863 009e a3bc LRI	$AC0.M, #0xa3bc
+8865 1b3e      SRRI	@$R01, $AC0.M
+8866 009e 64e4 LRI	$AC0.M, #0x64e4
+8868 0803      LRIS	$AX0.L, #0x03
+8869 7131      ADDAXL.S	$AC1.M, $AX0.L : @$R01, $AC0.M
+886a 1b3d      SRRI	@$R01, $AC1.L
+886b 1b31      SRRI	@$R01, $ACH1
+886c 16d1 0018 SI	@SampleFormat, #0x0018
+886e 28d4      SRS	@ACSAH, $AX0.L
+886f 28d5      SRS	@ACSAL, $AX0.L
+8870 16d6 07ff SI	@ACEAH, #0x07ff
+8872 16d7 ffff SI	@ACEAL, #0xffff
+8874 00de 0404 LR	$AC0.M, @0x0404
+8876 00dc 0405 LR	$AC0.L, @0x0405
+8878 1401      LSL	$ACC0, #0x01
+8879 2ed8      SRS	@ACCAH, $AC0.M
+887a 2cd9      SRS	@ACCAL, $AC0.L
+887b 28da      SRS	@pred_scale, $AX0.L
+887c 16a0 0978 SI	@COEF_A1_0, #0x0978
+887e 16a1 e541 SI	@COEF_A2_0, #0xe541
+8880 16de fc82 SI	@GAIN, #0xfc82
+8882 28db      SRS	@yn1, $AX0.L
+8883 0080 ffdd LRI	$R00, #0xffdd
+8885 0081 0409 LRI	$R01, #0x0409
+8887 0082 040f LRI	$R02, #0x040f
+8889 0085 0410 LRI	$R05, #0x0410
+888b 0086 ffff LRI	$R06, #0xffff
+888d 0087 fffc LRI	$R07, #0xfffc
+888f 28dc      SRS	@yn2, $AX0.L
+8890 00de 0403 LR	$AC0.M, @0x0403
+8892 7800      DECM	$AC0.M
+8893 1f3e      MRR	$AX1.L, $AC0.M
+8894 199f      LRRN	$AC1.M, @$R00
+8895 18bc      LRRD	$AC0.L, @$R01
+8896 193e      LRRI	$AC0.M, @$R01
+8897 19da      LRRN	$AX0.H, @$R02
+8898 1c65      MRR	$R03, $R05
+8899 199d      LRRN	$AC1.L, @$R00
+889a 4c5a      ADD.L	$AC0.M, $AC1.M : $AX1.H, @$R02
+889b 1abc      SRRD	@$R01, $AC0.L
+889c 1b3e      SRRI	@$R01, $AC0.M
+889d 0079 88a9 BLOOP	$AX1.L, 0x88a9
+889f 02bf 88bb CALL	0x88bb
+88a1 199f      LRRN	$AC1.M, @$R00
+88a2 18bc      LRRD	$AC0.L, @$R01
+88a3 193e      LRRI	$AC0.M, @$R01
+88a4 19da      LRRN	$AX0.H, @$R02
+88a5 1c65      MRR	$R03, $R05
+88a6 199d      LRRN	$AC1.L, @$R00
+88a7 4c5a      ADD.L	$AC0.M, $AC1.M : $AX1.H, @$R02
+88a8 1abc      SRRD	@$R01, $AC0.L
+88a9 1b3e      SRRI	@$R01, $AC0.M
+88aa 02bf 88bb CALL	0x88bb
+88ac 16c9 0001 SI	@DSCR, #0x0001
+88ae 00de 0406 LR	$AC0.M, @0x0406
+88b0 2ece      SRS	@DSMAH, $AC0.M
+88b1 00de 0407 LR	$AC0.M, @0x0407
+88b3 2ecf      SRS	@DSMAL, $AC0.M
+88b4 16cd 040a SI	@DSPA, #0x040a
+88b6 16cb 0004 SI	@DSBL, #0x0004
+88b8 02bf 863d CALL	0x863d
+88ba 02df      RET	
+88bb 19d8      LRRN	$AX0.L, @$R02
+88bc 19da      LRRN	$AX0.H, @$R02
+88bd 4856      ADDAX.LN	$AC0.M, $AX0.L : $AX0.H, @$R02
+88be 1ffc      MRR	$AC1.M, $AC0.L
+88bf 3156      XORR.LN	$AC1.M, $AX0.H : $AX0.H, @$R02
+88c0 f543      LSR16.L	$AC1.M : $AX0.L, @$R03
+88c1 1ffe      MRR	$AC1.M, $AC0.M
+88c2 3163      XORR.L	$AC1.M, $AX0.H : $AC0.L, @$R03
+88c3 7607      INC.DR	$AC0.M : $R03
+88c4 1b7c      SRRI	@$R03, $AC0.L
+88c5 7046      ADDAXL.LN	$AC0.M, $AX0.L : $AX0.L, @$R02
+88c6 1423      LSL	$ACC0, #0x23
+88c7 146d      LSR	$ACC0, #0x2d
+88c8 1f5e      MRR	$AX0.H, $AC0.M
+88c9 04e0      ADDIS	$ACC0, #0xe0
+88ca 001f      CW	0x001f		; *** UNKNOWN OPCODE ***
+88cb 6c1e      MOV.MV	$AC0.M, $AC1.M : $AX1.H, $AC0.M
+88cc 3485      ANDR.LSN	$AC0.M, $AX0.H : $AX0.L, $AC1.M
+88cd 37d9      ANDR.LDM	$AC1.M, $AX1.H : $AX0.L, $AX1.H, @$R01
+88ce 4c52      ADD.L	$AC0.M, $AC1.M : $AX0.H, @$R02
+88cf 4853      ADDAX.L	$AC0.M, $AX0.L : $AX0.H, @$R03
+88d0 1bdc      SRRN	@$R02, $AC0.L
+88d1 1b5e      SRRI	@$R02, $AC0.M
+88d2 325f      XORR.LN	$AC0.M, $AX1.H : $AX1.H, @$R03
+88d3 3051      XORR.L	$AC0.M, $AX0.H : $AX0.H, @$R01
+88d4 000a      IAR	$R02
+88d5 f032      LSL16.S	$AC0.M : @$R02, $AC0.M
+88d6 3005      XORR.DR	$AC0.M, $AX0.H : $R01
+88d7 3200      XORR	$AC0.M, $AX1.H
+88d8 1b5e      SRRI	@$R02, $AC0.M
+88d9 183f      LRR	$AC1.M, @$R01
+88da 339e      XORR.SLNM	$AC1.M, $AX1.H : $AC0.M, $AX1.L
+88db 18be      LRRD	$AC0.M, @$R01
+88dc 3753      ANDR.L	$AC1.M, $AX1.H : $AX0.H, @$R03
+88dd 341f      ANDR.MV	$AC0.M, $AX0.H : $AX1.H, $AC1.M
+88de 3a79      ORR.L	$AC0.M, $AX1.H : $AC1.M, @$R01
+88df f405      LSR16.DR	$AC0.M : $R01
+88e0 33d3      XORR.LD	$AC1.M, $AX1.H : $AX0.L, $AX1.H, @$R03
+88e1 3571      ANDR.L	$AC1.M, $AX0.H : $AC0.M, @$R01
+88e2 0009      IAR	$R01
+88e3 183b      LRR	$AX1.H, @$R01
+88e4 361b      ANDR.MV	$AC0.M, $AX1.H : $AX0.H, $AC1.M
+88e5 387a      ORR.L	$AC0.M, $AX0.H : $AC1.M, @$R02
+88e6 18dd      LRRD	$AC1.L, @$R02
+88e7 4c05      ADD.DR	$AC0.M, $AC1.M : $R01
+88e8 1b5e      SRRI	@$R02, $AC0.M
+88e9 1a5c      SRR	@$R02, $AC0.L
+88ea 02df      RET	
+
+
+88eb 0000      NOP	
+88ec 0000      NOP	
+88ed 0000      NOP	
+88ee 0000      NOP	
+88ef 0000      NOP	
+
+88f0 to 8ffd = invalid data
+
+8ffe 06e2      CMPIS	$ACC0, #0xe2
+8fff 8845      CW	0x8845		; *** UNKNOWN OPCODE ***
+8AFFEX

@@ -1,0 +1,176 @@
+HCI sniffer - Bluetooth packet analyzer ver 1.40
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+< HCI Command: Inquiry (0x01|0x0001) plen 5
+    lap 0x9e8b33 len 8 num 0
+> HCI Event: Command Status (0x0f) plen 4
+    Inquiry (0x01|0x0001) status 0x00 ncmd 1
+< HCI Command: Inquiry Cancel (0x01|0x0002) plen 0
+> HCI Event: Command Complete (0x0e) plen 4
+    Inquiry Cancel (0x01|0x0002) ncmd 1
+    status 0x00
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+< HCI Command: Inquiry (0x01|0x0001) plen 5
+    lap 0x9e8b33 len 8 num 0
+> HCI Event: Command Status (0x0f) plen 4
+    Inquiry (0x01|0x0001) status 0x00 ncmd 1
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 10                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 10 00                                       .0..
+> HCI Event: Inquiry Complete (0x01) plen 1
+    status 0x00
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 10 00                                       .0..
+> ACL data: handle 12 flags 0x02 dlen 8
+    L2CAP(d): cid 0x0041 len 4 [psm 0]
+      0000: a1 30 00 00                                       .0..
+< HCI Command: Create Connection (0x01|0x0005) plen 13
+    bdaddr 00:1F:C5:36:2B:32 ptype 0xcc18 rswitch 0x01 clkoffset 0x0000
+    Packet type: DM1 DM3 DM5 DH1 DH3 DH5 
+> HCI Event: Command Status (0x0f) plen 4
+    Create Connection (0x01|0x0005) status 0x00 ncmd 1
+< HCI Command: Create Connection Cancel (0x01|0x0008) plen 6
+    bdaddr 00:1F:C5:36:2B:32
+> HCI Event: Command Complete (0x0e) plen 10
+    Create Connection Cancel (0x01|0x0008) ncmd 1
+    status 0x00 bdaddr 00:1F:C5:36:2B:32
+> HCI Event: Connect Complete (0x03) plen 11
+    status 0x02 handle 12 bdaddr 00:1F:C5:36:2B:32 type ACL encrypt 0x00
+    Error: Unknown Connection Identifier
+< HCI Command: Create Connection (0x01|0x0005) plen 13
+    bdaddr 00:1F:C5:36:2B:32 ptype 0xcc18 rswitch 0x01 clkoffset 0x0000
+    Packet type: DM1 DM3 DM5 DH1 DH3 DH5 
+> HCI Event: Command Status (0x0f) plen 4
+    Create Connection (0x01|0x0005) status 0x00 ncmd 1
+> HCI Event: Connect Complete (0x03) plen 11
+    status 0x00 handle 12 bdaddr 00:1F:C5:36:2B:32 type ACL encrypt 0x00
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Connect req: psm 1 scid 0x0040
+< HCI Command: Read Remote Supported Features (0x01|0x001b) plen 2
+    handle 12
+> HCI Event: Command Status (0x0f) plen 4
+    Read Remote Supported Features (0x01|0x001b) status 0x00 ncmd 1
+< HCI Command: Write Link Policy Settings (0x02|0x000d) plen 4
+    handle 12 policy 0x0f
+    Link policy: RSWITCH HOLD SNIFF PARK 
+> HCI Event: Read Remote Supported Features (0x0b) plen 11
+    status 0x00 handle 12
+    Features: 0xbc 0x02 0x04 0x38 0x08 0x00 0x00 0x00
+> HCI Event: Command Complete (0x0e) plen 6
+    Write Link Policy Settings (0x02|0x000d) ncmd 1
+    status 0x00 handle 12
+< HCI Command: Remote Name Request (0x01|0x0019) plen 10
+    bdaddr 00:1F:C5:36:2B:32 mode 2 clkoffset 0x0000
+> HCI Event: Command Status (0x0f) plen 4
+    Remote Name Request (0x01|0x0019) status 0x00 ncmd 1
+> ACL data: handle 12 flags 0x02 dlen 16
+    L2CAP(s): Connect rsp: dcid 0x0043 scid 0x0040 result 0 status 0
+      Connection successful
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Config req: dcid 0x0043 flags 0x00 clen 0
+> HCI Event: Number of Completed Packets (0x13) plen 5
+    handle 12 packets 2
+> ACL data: handle 12 flags 0x02 dlen 18
+    L2CAP(s): Config rsp: scid 0x0040 flags 0x00 result 0 clen 4
+      Success
+      MTU 185 
+> ACL data: handle 12 flags 0x02 dlen 16
+    L2CAP(s): Config req: dcid 0x0040 flags 0x00 clen 4
+      MTU 185 
+< ACL data: handle 12 flags 0x02 dlen 18
+    L2CAP(s): Config rsp: scid 0x0043 flags 0x00 result 0 clen 4
+      Success
+      MTU 185 
+< ACL data: handle 12 flags 0x02 dlen 23
+    L2CAP(d): cid 0x0043 len 19 [psm 1]
+        SDP SA Req: tid 0x0 len 0xe
+          handle 0x10001
+          max 65535
+          aid(s) 0x0000 - 0xffff
+          cont 00
+> HCI Event: Remote Name Req Complete (0x07) plen 255
+    status 0x00 bdaddr 00:1F:C5:36:2B:32 name 'Nintendo RVL-CNT-01'
+> HCI Event: Number of Completed Packets (0x13) plen 5
+    handle 12 packets 2
+> ACL data: handle 12 flags 0x02 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 24
+    L2CAP(d): cid 0x0040 len 101 [psm 1]
+        SDP SA Rsp: tid 0x0 len 0x60
+          count 93
+          aid 0x0000 (SrvRecHndl)
+             uint 0x10001
+          aid 0x0001 (SrvClassIDList)
+             < uuid-16 0x1200 (PNPInfo) >
+          aid 0x0004 (ProtocolDescList)
+             < < uuid-16 0x0100 (L2CAP) uint 0x1 > <
+             uuid-16 0x0001 (SDP) > >
+          aid 0x0005 (BrwGrpList)
+             < uuid-16 0x1002 (PubBrwsGrp) >
+          aid 0x0009 (BTProfileDescList)
+             < < uuid-16 0x1200 (PNPInfo) uint 0x100 > >
+          aid 0x0200 (VersionNumList)
+             uint 0x100
+          aid 0x0201 (SrvDBState)
+             uint 0x57e
+          aid 0x0202 (unknown)
+             uint 0x306
+          aid 0x0203 (unknown)
+             uint 0x600
+          aid 0x0204 (unknown)
+             bool 0x1
+          aid 0x0205 (unknown)
+             uint 0x2
+          cont 00
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Disconn req: dcid 0x0043 scid 0x0040
+> ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Disconn rsp: dcid 0x0043 scid 0x0040
+> HCI Event: Number of Completed Packets (0x13) plen 5
+    handle 12 packets 1
+< HCI Command: Disconnect (0x01|0x0006) plen 3
+    handle 12 reason 0x13
+    Reason: Remote User Terminated Connection
+> HCI Event: Command Status (0x0f) plen 4
+    Disconnect (0x01|0x0006) status 0x00 ncmd 1
+> HCI Event: Disconn Complete (0x05) plen 4
+    status 0x00 handle 12 reason 0x16
+    Reason: Connection Terminated by Local Host

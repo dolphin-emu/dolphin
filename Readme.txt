@@ -9,7 +9,7 @@ Open Source Release under GPL 2
 
 Project Leaders: F|RES, ector
 
-Team members: zerofrog, vincent.hamm, falc4ever, Sonicadvance1, tmator, shuffle2, gigaherz, mthuurne, drkIIRaziel, masken, daco, XTra.KrazzY, nakeee, memberTwo.mb2, donkopunchstania, jpeterson, omegadox, lpfaint99, bushing, magumagu9, mizvekov, cooliscool, facugaich
+Team members: zerofrog, vincent.hamm, falc4ever, Sonicadvance1, tmator, shuffle2, gigaherz, mthuurne, drkIIRaziel, masken, DacoTaco, XTra.KrazzY, nakeee, memberTwo.mb2, donkopunchstania, jpeterson, omegadox, lpfaint99, bushing, magumagu9, mizvekov, cooliscool, facugaich
 
 
 Please read the FAQ before use: http://code.google.com/p/dolphin-emu/wiki/Facts_And_Questions

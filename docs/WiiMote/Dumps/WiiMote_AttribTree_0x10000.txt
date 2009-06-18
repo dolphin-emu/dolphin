@@ -1,0 +1,200 @@
+chaoscode@chaoscode-desktop:~$ sudo hcidump -x -p 1 -R -w rawdump4.bin
+[sudo] password for chaoscode: 
+HCI sniffer - Bluetooth packet analyzer ver 1.40
+device: hci0 snap_len: 1028 filter: 0x0
+
+chaoscode@chaoscode-desktop:~$ hcidump -r rawdump4.bin -X
+HCI sniffer - Bluetooth packet analyzer ver 1.40
+< HCI Command: Create Connection (0x01|0x0005) plen 13
+  0000: d7 c8 d9 47 21 00 18 cc  02 00 00 00 01           ...G!........
+> HCI Event: Command Status (0x0f) plen 4
+  0000: 00 01 05 04                                       ....
+> HCI Event: Connect Complete (0x03) plen 11
+  0000: 00 0c 00 d7 c8 d9 47 21  00 01 00                 ......G!...
+< ACL data: handle 12 flags 0x02 dlen 10
+    L2CAP(s): Info req: type 2
+< HCI Command: Read Remote Supported Features (0x01|0x001b) plen 2
+  0000: 0c 00                                             ..
+> HCI Event: Command Status (0x0f) plen 4
+  0000: 00 01 1b 04                                       ....
+< HCI Command: Write Link Policy Settings (0x02|0x000d) plen 4
+  0000: 0c 00 0f 00                                       ....
+> HCI Event: Read Remote Supported Features (0x0b) plen 11
+  0000: 00 0c 00 bc 02 04 38 08  00 00 00                 ......8....
+> HCI Event: Command Complete (0x0e) plen 6
+  0000: 01 0d 08 00 0c 00                                 ......
+< HCI Command: Remote Name Request (0x01|0x0019) plen 10
+  0000: d7 c8 d9 47 21 00 02 00  00 00                    ...G!.....
+> HCI Event: Command Status (0x0f) plen 4
+  0000: 00 01 19 04                                       ....
+> ACL data: handle 12 flags 0x02 dlen 16
+    L2CAP(s): Info rsp: type 2 result 0
+      Extended feature mask 0x0004
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Connect req: psm 1 scid 0x0040
+> ACL data: handle 12 flags 0x02 dlen 16
+    L2CAP(s): Connect rsp: dcid 0x0051 scid 0x0040 result 0 status 0
+      Connection successful
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Config req: dcid 0x0051 flags 0x00 clen 0
+> ACL data: handle 12 flags 0x02 dlen 18
+    L2CAP(s): Config rsp: scid 0x0040 flags 0x00 result 0 clen 4
+      Success
+      MTU 185 
+> ACL data: handle 12 flags 0x02 dlen 16
+    L2CAP(s): Config req: dcid 0x0040 flags 0x00 clen 4
+      MTU 185 
+< ACL data: handle 12 flags 0x02 dlen 18
+    L2CAP(s): Config rsp: scid 0x0051 flags 0x00 result 0 clen 4
+      Success
+      MTU 185 
+< ACL data: handle 12 flags 0x02 dlen 23
+    L2CAP(d): cid 0x0051 len 19 [psm 1]
+        SDP SA Req: tid 0x0 len 0xe
+          handle 0x10000
+          max 65535
+          aid(s) 0x0000 - 0xffff
+          cont 00
+> HCI Event: Remote Name Req Complete (0x07) plen 255
+  0000: 00 d7 c8 d9 47 21 00 4e  69 6e 74 65 6e 64 6f 20  ....G!.Nintendo 
+  0010: 52 56 4c 2d 43 4e 54 2d  30 31 00 00 00 00 00 00  RVL-CNT-01......
+  0020: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0030: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0040: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0050: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0060: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0070: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0080: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  0090: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00a0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00b0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00c0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00d0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00e0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+  00f0: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00     ...............
+> HCI Event: Number of Completed Packets (0x13) plen 5
+  0000: 01 0c 00 04 00                                    .....
+> ACL data: handle 12 flags 0x02 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 24
+    L2CAP(d): cid 0x0040 len 128 [psm 1]
+        SDP SA Rsp: tid 0x0 len 0x7b
+          count 118
+          cont 02 00 76
+< ACL data: handle 12 flags 0x02 dlen 25
+    L2CAP(d): cid 0x0051 len 21 [psm 1]
+        SDP SA Req: tid 0x1 len 0x10
+          handle 0x10000
+          max 65535
+          aid(s) 0x0000 - 0xffff
+          cont 02 00 76
+> ACL data: handle 12 flags 0x02 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 24
+    L2CAP(d): cid 0x0040 len 128 [psm 1]
+        SDP SA Rsp: tid 0x1 len 0x7b
+          count 118
+          cont 02 00 EC
+< ACL data: handle 12 flags 0x02 dlen 25
+    L2CAP(d): cid 0x0051 len 21 [psm 1]
+        SDP SA Req: tid 0x2 len 0x10
+          handle 0x10000
+          max 65535
+          aid(s) 0x0000 - 0xffff
+          cont 02 00 EC
+> ACL data: handle 12 flags 0x02 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 24
+    L2CAP(d): cid 0x0040 len 128 [psm 1]
+        SDP SA Rsp: tid 0x2 len 0x7b
+          count 118
+          cont 02 01 62
+< ACL data: handle 12 flags 0x02 dlen 25
+    L2CAP(d): cid 0x0051 len 21 [psm 1]
+        SDP SA Req: tid 0x3 len 0x10
+          handle 0x10000
+          max 65535
+          aid(s) 0x0000 - 0xffff
+          cont 02 01 62
+> HCI Event: Number of Completed Packets (0x13) plen 5
+  0000: 01 0c 00 04 00                                    .....
+> ACL data: handle 12 flags 0x02 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 27
+> ACL data: handle 12 flags 0x01 dlen 13
+    L2CAP(d): cid 0x0040 len 117 [psm 1]
+        SDP SA Rsp: tid 0x3 len 0x70
+          count 109
+          aid 0x0000 (SrvRecHndl)
+             uint 0x10000
+          aid 0x0001 (SrvClassIDList)
+             < uuid-16 0x1124 (HID) >
+          aid 0x0004 (ProtocolDescList)
+             < < uuid-16 0x0100 (L2CAP) uint 0x11 > <
+             uuid-16 0x0011 (HIDP) > >
+          aid 0x0005 (BrwGrpList)
+             < uuid-16 0x1002 (PubBrwsGrp) >
+          aid 0x0006 (LangBaseAttrIDList)
+             < uint 0x656e uint 0x6a uint 0x100 >
+          aid 0x0009 (BTProfileDescList)
+             < < uuid-16 0x1124 (HID) uint 0x100 > >
+          aid 0x000d (IconURL)
+             < < < uuid-16 0x0100 (L2CAP) uint 0x13 > < uuid-16 0x0011 (HIDP) > > >
+          aid 0x0100 (SrvName)
+             str "Nintendo RVL-CNT-01"
+          aid 0x0101 (SrvDesc)
+             str "Nintendo RVL-CNT-01"
+          aid 0x0102 (ProviderName)
+             str "Nintendo"
+          aid 0x0200 (VersionNumList)
+             uint 0x100
+          aid 0x0201 (SrvDBState)
+             uint 0x111
+          aid 0x0202 (unknown)
+             uint 0x4
+          aid 0x0203 (unknown)
+             uint 0x33
+          aid 0x0204 (unknown)
+             bool 0x0
+          aid 0x0205 (unknown)
+             bool 0x1
+          aid 0x0206 (unknown)
+             < < uint 0x22 str 05 01 09 05 a1 01 85 10 15 00 26 ff 00 75 08 95 01 06 00 ff 09 01 91 00 85 11 95 01 09 01 91 00 85 12 95 02 09 01 91 00 85 13 95 01 09 01 91 00 85 14 95 01 09 01 91 00 85 15 95 01 09 01 91 00 85 16 95 15 09 01 91 00 85 17 95 06 09 01 91 00 85 18 95 15 09 01 91 00 85 19 95 01 09 01 91 00 85 1a 95 01 09 01 91 00 85 20 95 06 09 01 81 00 85 21 95 15 09 01 81 00 85 22 95 04 09 01 81 00 85 30 95 02 09 01 81 00 85 31 95 05 09 01 81 00 85 32 95 0a 09 01 81 00 85 33 95 11 09 01 81 00 85 34 95 15 09 01 81 00 85 35 95 15 09 01 81 00 85 36 95 15 09 01 81 00 85 37 95 15 09 01 81 00 85 3d 95 15 09 01 81 00 85 3e 95 15 09 01 81 00 85 3f 95 15 09 01 81 00 c0 > >
+          aid 0x0207 (unknown)
+             < < uint 0x409 uint 0x100 > >
+          aid 0x0208 (unknown)
+             bool 0x0
+          aid 0x0209 (unknown)
+             bool 0x1
+          aid 0x020a (unknown)
+             bool 0x1
+          aid 0x020b (unknown)
+             uint 0x100
+          aid 0x020c (unknown)
+             uint 0xc80
+          aid 0x020d (unknown)
+             bool 0x0
+          aid 0x020e (unknown)
+             bool 0x0
+          cont 00
+< ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Disconn req: dcid 0x0051 scid 0x0040
+> ACL data: handle 12 flags 0x02 dlen 12
+    L2CAP(s): Disconn rsp: dcid 0x0051 scid 0x0040
+> HCI Event: Number of Completed Packets (0x13) plen 5
+  0000: 01 0c 00 01 00                                    .....
+< HCI Command: Disconnect (0x01|0x0006) plen 3
+  0000: 0c 00 13                                          ...
+> HCI Event: Command Status (0x0f) plen 4
+  0000: 00 01 06 04                                       ....
+> HCI Event: Disconn Complete (0x05) plen 4
+  0000: 00 0c 00 16                                       ....
+chaoscode@chaoscode-desktop:~$ 
+
