@@ -94,7 +94,7 @@ std::string Summarize_Settings()
 		Core::GetStartupParameter().bRunCompareServer?"True":"False",
 		Core::GetStartupParameter().bRunCompareClient?"True":"False",
 		Core::GetStartupParameter().iTLBHack?"True":"False",
-		SConfig::GetInstance().m_InterfaceFramelimit*5,
+		SConfig::GetInstance().m_Framelimit*5,
 		Core::GetStartupParameter().bWidescreen?"True":"False",
 		Core::GetStartupParameter().bProgressiveScan?"True":"False"
 		);

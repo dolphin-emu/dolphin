@@ -120,7 +120,7 @@ void SConfig::SaveSettings()
 
 		ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
-		ini.Set("Core", "FrameLimit",	m_InterfaceFramelimit);
+		ini.Set("Core", "FrameLimit",	m_Framelimit);
 
 		// Wii
 		ini.Set("Wii", "Widescreen", m_LocalCoreStartupParameter.bWidescreen);
@@ -237,7 +237,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
 		ini.Get("Core", "TLBHack", &m_LocalCoreStartupParameter.iTLBHack, 0);
-		ini.Get("Core", "FrameLimit",	&m_InterfaceFramelimit,0);
+		ini.Get("Core", "FrameLimit",	&m_Framelimit,0);
 
 		// Wii
 		ini.Get("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen, false);

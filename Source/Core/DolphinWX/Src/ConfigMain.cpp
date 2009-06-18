@@ -45,7 +45,6 @@ EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
-EVT_CHOICE(ID_INTERFACE_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
@@ -55,6 +54,7 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
+EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
 EVT_CHOICE(ID_GC_EXIDEVICE_SLOTA, CConfigMain::GCSettingsChanged)
@@ -257,9 +257,9 @@ void CConfigMain::CreateGUIControls()
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
 
 	// Choose Framelimit
-	wxStaticText *InterfaceFramelimitText = new wxStaticText(GeneralPage, ID_INTERFACE_FRAMELIMIT_TEXT, wxT("Framelimit (experimental):"), wxDefaultPosition, wxDefaultSize);
-	InterfaceFramelimit = new wxChoice(GeneralPage, ID_INTERFACE_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
-	InterfaceFramelimit->SetSelection(SConfig::GetInstance().m_InterfaceFramelimit);
+	wxStaticText *FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, wxT("Framelimit (experimental):"), wxDefaultPosition, wxDefaultSize);
+	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
+	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// Themes
 	wxArrayString ThemeChoices;
@@ -331,10 +331,10 @@ void CConfigMain::CreateGUIControls()
 	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterfaceLanguage->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterfaceLanguage, 0, wxEXPAND | wxALL, 5);
-	wxBoxSizer *sInterfaceFramelimit = new wxBoxSizer(wxHORIZONTAL);
-	sInterfaceFramelimit->Add(InterfaceFramelimitText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sInterfaceFramelimit->Add(InterfaceFramelimit, 0, wxEXPAND | wxALL, 5);
-	sbInterface->Add(sInterfaceFramelimit, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer *sFramelimit = new wxBoxSizer(wxHORIZONTAL);
+	sFramelimit->Add(FramelimitText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sFramelimit->Add(Framelimit, 0, wxEXPAND | wxALL, 5);
+	sbInterface->Add(sFramelimit, 0, wxEXPAND | wxALL, 5);
 
 	// Populate the entire page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);
@@ -655,8 +655,8 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
 		bRefreshList = true;
 		break;
-	case ID_INTERFACE_FRAMELIMIT:
-		SConfig::GetInstance().m_InterfaceFramelimit = (u32)InterfaceFramelimit->GetSelection();
+	case ID_FRAMELIMIT:
+		SConfig::GetInstance().m_Framelimit = (u32)Framelimit->GetSelection();
 		break;
 	case ID_ALLWAYS_HLEBIOS: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AlwaysUseHLEBIOS->IsChecked();

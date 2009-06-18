@@ -658,7 +658,7 @@ void Callback_VideoCopiedToXFB()
 	static u64 idleTicks = 0;
 
 
-	u32 targetfps = (SConfig::GetInstance().m_InterfaceFramelimit)*5;
+	u32 targetfps = (SConfig::GetInstance().m_Framelimit)*5;
 	static u64 old_frametime=0;
 	u64 new_frametime;
 	s16 wait_frametime;
