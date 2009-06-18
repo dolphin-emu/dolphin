@@ -127,11 +127,9 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	SplitPath(_filename, NULL, &filename, NULL);
 	header.append("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str());
 	header.append("#ifndef _MSCVER\n");
-	sprintf(buffer, "const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n", name);
-	header.append(buffer);
+	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 	header.append("#else\n");
-	sprintf(buffer, "const unsigned short dsp_code[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n", name);
-	header.append(buffer);
+	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n");
 	header.append("#endif\n\n");
 	
 	header.append("\t{\n\t\t");
@@ -174,7 +172,6 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	header.append("const unsigned short dsp_ucode[NUM_UCODES][0x1000] = {\n");
 	header.append("#else\n");
 	header.append("const unsigned short dsp_ucode[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n");
-	header.append(buffer);
 	header.append("#endif\n\n");
 
 	for(int i = 0; i < numCodes; i++) {
