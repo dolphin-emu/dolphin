@@ -106,7 +106,7 @@ for(my $i = 0;$i < scalar(@cmdList);$i++) {
 	close(NAMES);
 
 	if (! $merge) {
-		system("dsptool -m $name.lst -h $name");
+		print `dsptool -m $name.lst -h $name`;
 		open(NAMES, "$name.lst");
 		my @names = <NAMES>;
 		chomp @names;
@@ -117,7 +117,7 @@ for(my $i = 0;$i < scalar(@cmdList);$i++) {
 }
 
 if ($merge) {
-	system("dsptool -m all.lst -h unite_test");
+	print `dsptool -m all.lst -h unite_test`;
 	open(NAMES, "all.lst");
 	my @names = <NAMES>;
 	chomp @names;
