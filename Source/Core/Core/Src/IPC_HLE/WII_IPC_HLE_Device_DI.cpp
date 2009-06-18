@@ -19,6 +19,7 @@
 
 #include "WII_IPC_HLE_Device_DI.h"
 
+#include "../HW/DVDInterface.h"
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
 #include "../Core.h"
@@ -27,6 +28,8 @@
 
 #include "VolumeCreator.h"
 #include "Filesystem.h"
+
+using namespace DVDInterface;
 
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
@@ -61,21 +64,16 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
-    INFO_LOG(WII_IPC_DVD,  "CWII_IPC_DVD_Device_di::IOCtl");
-
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
     u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
 
-    DEBUG_LOG(WII_IPC_DVD, "%s - Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
-		GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+		Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
-	if (Command == 0x7a)
-		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_DVD, LogTypes::LINFO);
-
-	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
+	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
@@ -83,8 +81,6 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
 {  
-	INFO_LOG(WII_IPC_DVD,  "CWII_IPC_DVD_Device_di::IOCtlV");
-
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
@@ -98,33 +94,29 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	switch (CommandBuffer.Parameter)
 	{
-	// DVDLowOpenPartition
-	case 0x8b:
+	case DVDLowOpenPartition:
 		{
 			_dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[1].m_Address == 0, "DVDLowOpenPartition with ticket");
 			_dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[2].m_Address == 0, "DVDLowOpenPartition with cert chain");
 
-			u8 partition = Memory::Read_U32(CommandBuffer.m_Address + 4);
-			INFO_LOG(WII_IPC_DVD, "DVD IOCtlV: DVDLowOpenPartition %i", partition);
-
 			bool readOK = false;
 
-			u64 TMDOffset = 0;
-			readOK |= VolumeHandler::GetTMDOffset(partition, TMDOffset);
+			// Get TMD offset for requested partition...
+			u64 TMDOffset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2 ) + 0x2c0;
+			
+			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016llx", TMDOffset);
 
 			// Read TMD to the buffer
 			readOK |= VolumeHandler::RAWReadToPtr(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address),
 				TMDOffset, CommandBuffer.PayloadBuffer[0].m_Size);
-
-			// Second outbuffer is error, we can ignore it
 
 			ReturnValue = readOK ? 1 : 0;
 		}
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_DVD, "DVD IOCtlV: %i", CommandBuffer.Parameter);
-		_dbg_assert_msg_(WII_IPC_DVD, 0, "DVD IOCtlV: %i", CommandBuffer.Parameter);
+		ERROR_LOG(WII_IPC_DVD, "IOCtlV: %i", CommandBuffer.Parameter);
+		_dbg_assert_msg_(WII_IPC_DVD, 0, "IOCtlV: %i", CommandBuffer.Parameter);
 		break;
 	}
 
@@ -149,15 +141,15 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
 
 	// De-initializing a filesystem if the volume was unmounted
-	if(m_pFileSystem && !VolumeHandler::IsValid()) {
+	if(m_pFileSystem && !VolumeHandler::IsValid())
+	{
 		delete m_pFileSystem;
 		m_pFileSystem = NULL;
 	}
 
 	switch (Command)
 	{
-	// DVDLowInquiry
-	case 0x12:
+	case DVDLowInquiry:
 		{
 			u8* buffer = Memory::GetPointer(_BufferOut);
 			
@@ -184,27 +176,21 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			buffer[7] = 0x02;
 			buffer[8] = 0x61; // version
 
-			DEBUG_LOG(WII_IPC_DVD, "%s executes DVDLowInquiry (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-
-            return 1;
+			INFO_LOG(WII_IPC_DVD, "DVDLowInquiry (Buffer 0x%08x, 0x%x)",
+				_BufferOut, _BufferOutSize);
 		}
 		break;
 
-	// DVDLowReadDiskID
-	case 0x70:
+	case DVDLowReadDiskID:
 		{
 			VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
 
-			DEBUG_LOG(WII_IPC_DVD, "DVDLowReadDiskID %s",
+			INFO_LOG(WII_IPC_DVD, "DVDLowReadDiskID %s",
 				ArrayToString(Memory::GetPointer(_BufferOut), _BufferOutSize, 0, _BufferOutSize).c_str());
-
-			return 1;
 		}
 		break;
 
-	// DVDLowRead
-	case 0x71:
+	case DVDLowRead:
 		{
 			if (_BufferOut == 0)
 			{
@@ -217,12 +203,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
 			if (pFilename != NULL)
 			{
-				INFO_LOG(WII_IPC_DVD, "    DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "    DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)",
 					DVDAddress, Size);
 			}
 
@@ -236,133 +222,78 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
-
-			return 1;
 		}
 		break;
 
-	// DVDLowWaitForCoverClose
-    case 0x79:
+    case DVDLowWaitForCoverClose:
         {
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-			return 4;
+			INFO_LOG(WII_IPC_DVD, "DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)",
+				_BufferOut, _BufferOutSize);
+			return 4; // ???
         }
         break;
 
-	// DVDLowPrepareCoverRegister
-    // DVDLowGetCoverReg - Called by "Legend of Spyro", MP3 and Wii System Menu
-    case 0x7a:
-        {   
-			u8* buffer = Memory::GetPointer(_BufferOut);
-			
-			// DVD Cover Register States:
-			// 0x00: Unknown state (keeps checking for DVD)
-			// 0x01: No Disc inside
-			// 0xFE: Reads Disc
+    case DVDLowGetCoverReg:
+		// DVD Cover Register States:
+		// 0x00: Unknown state (keeps checking for DVD)
+		// 0x01: No Disc inside
+		// 0xFE: Read Disc
 
-			// We notify the application that we ejected a disc by
-			// replacing the Change Disc menu button with "Eject" which 
-			// in turn makes volume handler invalid for at least one
-			// ioctl and then the user has enough time to load another
-			// disc.
-			// TODO: Make ejection mechanism recognized. (Currently eject 
-			//       only works if DVDLowReset is called)
-			
-			buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0x00;
+		// TODO: Make user-generated ejection mechanism recognized.
+		// (Currently eject only works if DVDLowReset is called)
 
-			if(m_pFileSystem)
-				buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0xFE;
+		// Test cases for this command: Legend of Spyro, MP3, WiiMenu
+		// WiiMenu currently will stop polling /dev/di if no disc is inserted on boot
+		// This makes me think it is wanting some interrupt when a disc is inserted
+		// However, DVDInterface::ChangeDisc does not accomplish this...needs investigation!
 
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverReg (Buffer 0x%08x, 0x%x) %s",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize, 
-				ArrayToString(buffer, _BufferOutSize, 0, _BufferOutSize).c_str());
+		if (IsDiscInside())
+			Memory::Write_U32(0xfe, _BufferOut);
+		else if (IsLidOpen())
+			Memory::Write_U32(0x00, _BufferOut);
+		else
+			Memory::Write_U32(0x01, _BufferOut);
 
-
-			/* 
-			   Hack for Legend of Spyro. Switching the 4th byte between 0 and 1 gets
-			   through this check. The out buffer address remains the same all the
-			   time so we don't have to bother making a global function.
-			   
-			   TODO: Make this compatible with MP3 			
-			/*
-			static u8 coverByte = 0;
-
-			u8* buffer = Memory::GetPointer(_BufferOut);
-			buffer[3] = coverByte;
-
-			if(coverByte)
-				coverByte = 0;
-			else
-				coverByte = 0x01;
-
-			return 1;
-			*/
-			
-        }
-        break;
-
-	// DVDLowNotifyReset
-	case 0x7e:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowNotifyReset");
+		INFO_LOG(WII_IPC_DVD, "DVDLowGetCoverReg 0x%08x", Memory::Read_U32(_BufferOut));
 		break;
 
-	// DVDLowReadDvdPhysical
-	case 0x80:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdPhysical");
+	case DVDLowNotifyReset:
+		PanicAlert("DVDLowNotifyReset");
 		break;
 
-	// DVDLowReadDvdCopyright
-	case 0x81:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdCopyright");
+	case DVDLowReadDvdPhysical:
+		PanicAlert("DVDLowReadDvdPhysical");
 		break;
 
-	// DVDLowReadDvdDiscKey
-	case 0x82:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdDiscKey");
+	case DVDLowReadDvdCopyright:
+		PanicAlert("DVDLowReadDvdCopyright");
 		break;
 
-	// DVDLowClearCoverInterrupt
-	case 0x86:
-		{
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowClearCoverInterrupt (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-			return 1;
-		}
+	case DVDLowReadDvdDiscKey:
+		PanicAlert("DVDLowReadDvdDiscKey");
 		break;
 
-	// DVDLowGetCoverStatus
-	case 0x88:
-		{
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverStatus (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-			return 1;
-		}
+	case DVDLowClearCoverInterrupt:
+		// TODO: check (seems to work ok)
+		INFO_LOG(WII_IPC_DVD, "DVDLowClearCoverInterrupt");
+		ClearCoverInterrupt();
 		break;
 
-	// DVDLowReset
-	case 0x8a:
-		{
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowReset (Buffer 0x%08x, 0x%x)",
-				GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-			return 1;
-		}
+	case DVDLowGetCoverStatus:
+		// TODO: check (haven't tested yet)
+		Memory::Write_U32(IsDiscInside() ? 2 : 0, _BufferOut);
+		INFO_LOG(WII_IPC_DVD, "DVDLowGetCoverStatus %i", IsDiscInside() ? 2 : 0);
 		break;
 
-	// DVDLowOpenPartition
-	case 0x8b:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowOpenPartition");
-		return 1;
+	case DVDLowReset:
+		INFO_LOG(WII_IPC_DVD, "DVDLowReset");
 		break;
 
-	// DVDLowClosePartition
-	case 0x8c:
-		DEBUG_LOG(WII_IPC_DVD, "DVDLowClosePartition");
-		return 1;
+	case DVDLowClosePartition:
+		INFO_LOG(WII_IPC_DVD, "DVDLowClosePartition");
 		break;
 
-	// DVDLowUnencryptedRead 
-	case 0x8d:
+	case DVDLowUnencryptedRead:
 		{
 			if (_BufferOut == 0)
 			{
@@ -385,8 +316,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				|| (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)
 				))
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
-				m_ErrorStatus = 0x52100; // Logical block address out of range
+				WARN_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
+				m_ErrorStatus = ERROR_READY | ERROR_BLOCK_OOB;
 				// Should cause software to call DVDLowRequestError
 				return 2;
 			}
@@ -405,108 +336,109 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
-
-			return 1;
 		}
 		break;
 
-	// DVDLowEnableDvdVideo
-	case 0x8e:
+	case DVDLowEnableDvdVideo:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowEnableDvdVideo");
 		break;
 
-	// DVDLowReportKey
-	case 0xa4:
+	case DVDLowReportKey:
 		INFO_LOG(WII_IPC_DVD, "DVDLowReportKey");
-		// Does not work on commercial discs
-		m_ErrorStatus = 0x052000; // Invalid command operation code
+		// Does not work on retail discs/drives
+		// Retail games send this command to see if they are running on real retail hw
+		m_ErrorStatus = ERROR_READY | ERROR_INV_CMD;
 		return 2;
 		break;
-    
-	// DVDLowSeek
-    case 0xab:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowSeek");
+
+    case DVDLowSeek:
+		{
+			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
+			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
+			if (pFilename != NULL)
+			{
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%x) - (DVDAddr: 0x%x)",
+					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);
+			}
+			else
+			{
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unkw - (DVDAddr: 0x%x)",
+					DVDAddress);
+			}
+		}
         break;
 
 // Apparently Dx commands have never been seen in dolphin? *shrug*
-	// DVDLowReadDvd
-	case 0xd0:
+	case DVDLowReadDvd:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvd");
 		break;
 
-	// DVDLowReadDvdConfig
-	case 0xd1:
+	case DVDLowReadDvdConfig:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvdConfig");
 		break;
 
-	// DVDLowStopLaser
-	case 0xd2:
+	case DVDLowStopLaser:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowStopLaser");
 		break;
 
-	// DVDLowOffset
-	case 0xd9:
+	case DVDLowOffset:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowOffset");
 		break;
 
-	// DVDLowReadDiskBca
-	case 0xda:
+	case DVDLowReadDiskBca:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDiskBca");
 		break;
 
-	// DVDLowRequestDiscStatus
-	case 0xdb:
+	case DVDLowRequestDiscStatus:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowRequestDiscStatus");
 		break;
 
-	// DVDLowRequestRetryNumber
-	case 0xdc:
+	case DVDLowRequestRetryNumber:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowRequestRetryNumber");
 		break;
 
-	// DVDLowSetMaximumRotation
-	case 0xdd:
+	case DVDLowSetMaximumRotation:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowSetMaximumRotation");
 		break;
 
-	// DVDLowSerMeasControl
-	case 0xdf:
+	case DVDLowSerMeasControl:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowSerMeasControl");
 		break;
 
-	// DVDLowRequestError
-	case 0xe0:
+	case DVDLowRequestError:
 		// Identical to the error codes found in yagcd section 5.7.3.5.1 (so far)
 		WARN_LOG(WII_IPC_DVD, "DVDLowRequestError status = 0x%08x", m_ErrorStatus);
 		Memory::Write_U32(m_ErrorStatus, _BufferOut);
+		// When does error status get reset?
 		break;
 
 // Ex commands are immediate and respond with 4 bytes
-	// DVDLowStopMotor
-	case 0xe3:
+	case DVDLowStopMotor:
 		{
-			u32 eject = Memory::Read_U32(_BufferIn + 0x04);			
+			u32 eject = Memory::Read_U32(_BufferIn + 4);
+			// Drive won't do anything till reset is issued. I think it replies like nothing is wrong though?
+			u32 kill = Memory::Read_U32(_BufferIn + 8);
 
-			INFO_LOG(WII_IPC_DVD, "%s executes DVDLowStopMotor eject = %s",
-				GetDeviceName().c_str(), eject ? "true" : "false");
+			INFO_LOG(WII_IPC_DVD, "DVDLowStopMotor %s %s",
+				eject ? "eject" : "", kill ? "kill!" : "");
 
 			if (eject)
 			{
-				// TODO: eject the disc
+				SetLidOpen(true);
+				SetDiscInside(false);
 			}
 		}
 		break;
 
-	// DVDLowAudioBufferConfig
-	case 0xe4:
+	case DVDLowAudioBufferConfig:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowAudioBufferConfig");
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_DVD, "%s executes unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
-			GetDeviceName().c_str(), Command, _BufferOut, _BufferOutSize);
+		ERROR_LOG(WII_IPC_DVD, "unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
+			Command, _BufferOut, _BufferOutSize);
 
-        PanicAlert("%s executes unknown cmd 0x%08x", GetDeviceName().c_str(), Command);
+        PanicAlert("unknown cmd 0x%08x", Command);
 		break;
 	}
 

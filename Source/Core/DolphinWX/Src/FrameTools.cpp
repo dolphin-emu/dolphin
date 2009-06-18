@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-
-// Windows
-
 /*
 CFrame is the main parent window. Inside CFrame there is m_Panel which is the
 parent for the rendering window (when we render to the main window). In Windows
@@ -27,7 +24,6 @@ as parent window and creating a new child window to m_Panel. The new child
 window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
-
 
 // FIXME: why doesn't it work on windows???
 #ifndef _WIN32
@@ -67,10 +63,7 @@ Core::GetWindowHandle().
 #include <wx/datetime.h> // wxWidgets
 
 
-// ----------------------------------------------------------------------------
 // Resources
-// ----------------------------------------------------------------------------
-
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
 #include "../resources/toolbar_browse.c"
@@ -130,7 +123,7 @@ void CFrame::CreateMenu()
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, _T("&Play"));
-	emulationMenu->Append(IDM_CHANGEDISC, _T("Load Disc"));
+	emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
@@ -272,13 +265,14 @@ void CFrame::RecreateToolbar()
 	SetToolBar(TheToolBar);
 	UpdateGUI();
 }
+
 void CFrame::InitBitmaps()
 {
 	// Get selected theme
 	int Theme = SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme;
 
-	/* Save memory by only having one set of bitmaps loaded at any time. I mean, they are still
-	   in the exe, which is in memory, but at least we wont make another copy of all of them. */
+	// Save memory by only having one set of bitmaps loaded at any time. I mean, they are still
+	// in the exe, which is in memory, but at least we wont make another copy of all of them. */
 	switch (Theme)
 	{
 	case BOOMY:
@@ -374,9 +368,7 @@ void CFrame::InitBitmaps()
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////
 // Start the game or change the disc
-// -------------
 void CFrame::BootGame()
 {
 	// Rerecording
@@ -401,8 +393,8 @@ void CFrame::BootGame()
 	{
 		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
-	/* Start the default ISO, or if we don't have a default ISO, start the last
-	started ISO */
+	// Start the default ISO, or if we don't have a default ISO, start the last
+	// started ISO
 	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
 		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
 		m_strDefaultGCM.c_str(), wxConvUTF8)))
@@ -416,13 +408,9 @@ void CFrame::BootGame()
 	}
 }
 
-// Open file to boot or for changing disc
+// Open file to boot
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
-	// Don't allow this for an initialized core
-	//if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	//	return;
-
 	DoOpen(true);
 }
 
@@ -441,60 +429,36 @@ void CFrame::DoOpen(bool Boot)
 			),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-	if (!path)
-	{
-		return;
-	}
+
+	bool fileChosen = path ? true : false;
 
     std::string currentDir2 = File::GetCurrentDirectory();
 
     if (currentDir != currentDir2)
     {
-        PanicAlert("Current dir changed has been changeg from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
+        PanicAlert("Current dir changed from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
         File::SetCurrentDirectory(currentDir.c_str());
     }
 
 
 	// Should we boot a new game or just change the disc?
-	if(Boot)
+	if (Boot)
 	{
+		if (!fileChosen)
+			return;
 		BootManager::BootCore(std::string(path.ToAscii()));
 	}
 	else
 	{
-		// Get the current ISO name
-		std::string OldName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
-
-		// Change the iso and make sure it's a valid file
-		if(!VolumeHandler::SetVolumeName(std::string(path.ToAscii())))
-		{
-			PanicAlert("The file you selected is not a valid ISO file. Please try again.");
-
-			// Put back the old one
-			VolumeHandler::SetVolumeName(OldName);
-		}
-		// Yes it is a valid ISO file
-		else
-		{
-			// Save the new ISO file name
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename = std::string(path.ToAscii());
-		}
+		if (!fileChosen)
+			path = wxT("");
+		DVDInterface::ChangeDisc(path.c_str());
 	}
 }
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 {
-	if(VolumeHandler::IsValid()) {
-		VolumeHandler::EjectVolume();
-		GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText(wxT("Load Disc"));
-		return;
-	}
-
-	DVDInterface::SetLidOpen(true);
 	DoOpen(false);
-	DVDInterface::SetLidOpen(false);
-	DVDInterface::SetDiscInside(true);
-	GetMenuBar()->FindItem(IDM_CHANGEDISC)->SetText(wxT("Eject"));
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
@@ -507,12 +471,7 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1]);
 }
 
-////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////
 // Refresh the file list and browse for a favorites directory
-// -------------
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
@@ -570,14 +529,15 @@ void CFrame::DoStop()
 	
 		Core::Stop();
 
-		/* This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
-		   we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works.
-		   It's also needed when a WaitForSingleObject() has timed out so that the ShutDown() process
-		   has continued without all threads having come to a rest. It's not compatible with the
-		   SETUP_TIMER_WAITING option (because the Stop returns before it's finished).
-		   
-		   Without this we just see the gray CPanel background because the ISO list will not be displayed.
-		   */
+		/*
+		This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
+		we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works.
+		It's also needed when a WaitForSingleObject() has timed out so that the ShutDown() process
+		has continued without all threads having come to a rest. It's not compatible with the
+		SETUP_TIMER_WAITING option (because the Stop returns before it's finished).
+
+		Without this we just see the gray CPanel background because the ISO list will not be displayed.
+		*/
 		#ifndef SETUP_TIMER_WAITING
 			if (bRenderToMain)
 				while(Core::GetState() != Core::CORE_UNINITIALIZED) SLEEP(10);
@@ -591,8 +551,6 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	DoStop();
 }
-////////////////////////////////////////////////////
-
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
@@ -600,7 +558,6 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
 }
-
 
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
@@ -690,8 +647,8 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
     BootManager::BootCore(FULL_WII_MENU_DIR);
 }
 
-/* Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
-   the entire screen (when we render to the main window). */
+// Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
+// the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
 	ShowFullScreen(true);
@@ -928,4 +885,3 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		m_GameListCtrl->Update();
 	}
 }
-

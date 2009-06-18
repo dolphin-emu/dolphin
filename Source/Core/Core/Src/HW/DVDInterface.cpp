@@ -17,6 +17,8 @@
 
 #include "Common.h" // Common
 #include "ChunkFile.h"
+#include "../ConfigManager.h"
+#include "../CoreTiming.h"
 
 #include "StreamADPCM.H" // Core
 #include "DVDInterface.h"
@@ -197,6 +199,9 @@ bool g_bDiscInside = false;
 
 Common::CriticalSection dvdread_section;
 
+static int changeDisc;
+void ChangeDiscCallback(u64 userdata, int cyclesLate);
+
 void DoState(PointerWrap &p)
 {
 	p.Do(dvdMem);
@@ -224,7 +229,7 @@ void Init()
 	dvdMem.AudioPos           = 0;
 	dvdMem.AudioLength        = 0;
 
-//	SetLidOpen(true);
+	changeDisc = CoreTiming::RegisterEvent("ChangeDisc", ChangeDiscCallback);
 }
 
 void Shutdown()
@@ -237,22 +242,65 @@ void SetDiscInside(bool _DiscInside)
     g_bDiscInside = _DiscInside;
 }
 
+bool IsDiscInside()
+{	
+	return g_bDiscInside;
+}
+
+// Take care of all logic of "swapping discs"
+// We want this in the "backend", NOT the gui
+void ChangeDiscCallback(u64 userdata, int cyclesLate)
+{
+	std::string FileName((const char*)userdata);
+	SetDiscInside(false);
+	SetLidOpen();
+
+	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+
+	if (FileName.empty())
+	{
+		// Empty the drive
+		VolumeHandler::EjectVolume();
+	}
+	else if (VolumeHandler::SetVolumeName(FileName))
+	{
+		// Save the new ISO file name
+		SavedFileName = FileName;
+	}
+	else
+	{
+		PanicAlert("Invalid file");
+
+		// Put back the old one
+		VolumeHandler::SetVolumeName(SavedFileName);
+	}
+
+	SetLidOpen(false);
+	SetDiscInside(VolumeHandler::IsValid());
+}
+
+void ChangeDisc(const char* _FileName)
+{
+	const char* NoDisc = "";
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDisc, (u64)NoDisc);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDisc, (u64)_FileName);
+}
+
 void SetLidOpen(bool _bOpen)
 {
-	if (_bOpen)
-		dvdMem.CoverReg.CVR = 1;
-	else
-		dvdMem.CoverReg.CVR = 0;
+	dvdMem.CoverReg.CVR = _bOpen ? 1 : 0;
 
 	GenerateDVDInterrupt(INT_CVRINT);
 }
 
 bool IsLidOpen()
 {	
-	if (dvdMem.CoverReg.CVR)
-		return true;
-	else
-		return false;
+	return (dvdMem.CoverReg.CVR == 1);
+}
+
+void ClearCoverInterrupt()
+{
+	dvdMem.CoverReg.CVRINT = 0;
 }
 
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
@@ -457,7 +505,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//   0004-0007  releaseDate 
 	//	 0008-001F  padding(0)
 	//=========================================================================================================
-	case 0x12:
+	case DVDLowInquiry:
 		{
 			// small safety check, dunno if it's needed
 			if ((dvdMem.Command[1] == 0) && (dvdMem.DMALength.Length == 0x20))
@@ -494,7 +542,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command2                   <- Address in ram of the buffer
 	//=========================================================================================================
 	case 0xA8:
-		{	
+		{
 			if (g_bDiscInside)
 			{
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
@@ -515,7 +563,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 				_DMAControlReg.TSTART = 0;
 				dvdMem.DMALength.Length = 0;
 				GenerateDVDInterrupt(INT_DEINT);
-				g_ErrorCode = 0x03023A00;
+				g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
 				return;
 			}
 		}
@@ -526,7 +574,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- AB000000
 	//	Command0                   <- Position on DVD shr 2 
 	//=========================================================================================================
-	case 0xAB:
+	case DVDLowSeek:
 		{
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 			u32 offset = dvdMem.Command[1] << 2;
@@ -535,14 +583,15 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 		}		
 		break;
 
+	case DVDLowOffset:
+		DEBUG_LOG(DVDINTERFACE, "DVDLowOffset: ignoring...");
+		break;
+
 	//=========================================================================================================
 	// REQUEST ERROR (Immediate)
 	//	Command/Subcommand/Padding <- E0000000
 	//=========================================================================================================
-	case 0xD9:
-		INFO_LOG(DVDINTERFACE, "DVD: command 0xD9, called by gcos multigame discs\n Report if you are running anything else");
-		break;
-	case 0xE0:
+	case DVDLowRequestError:
 		ERROR_LOG(DVDINTERFACE, "Requesting error");
 		dvdMem.Immediate = g_ErrorCode;
 		break;
@@ -587,7 +636,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0xE2:
 		{
-	/**/	if (m_bStream)
+			if (m_bStream)
 				dvdMem.Immediate = 1;
 			else
 				dvdMem.Immediate = 0;
@@ -599,7 +648,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	// STOP MOTOR (Immediate)
 	//	Command/Subcommand/Padding <- E3000000
 	//=========================================================================================================
-	case 0xE3:
+	case DVDLowStopMotor:
 		DEBUG_LOG(DVDINTERFACE, "Stop motor");
 		break;
 
@@ -608,8 +657,8 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//	Command/Subcommand/Padding <- E4000000 (disable)
 	//	Command/Subcommand/Padding <- E4010000 (enable)
 	//=========================================================================================================
-	case 0xE4:
-/**/		if (((dvdMem.Command[0] & 0x00FF0000) >> 16) == 1)
+	case DVDLowAudioBufferConfig:
+		if (((dvdMem.Command[0] & 0x00FF0000) >> 16) == 1)
 		{
 			m_bStream = true;
 			DEBUG_LOG(DVDINTERFACE, "DVD(Audio): Audio enabled");

@@ -171,7 +171,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 					bNTSC = false;
 
 				bWii = true;
-				Region = EUR_DIR; 
+				Region = EUR_DIR;
 				m_BootType = BOOT_WII_NAND;
 
 				if (pVolume)

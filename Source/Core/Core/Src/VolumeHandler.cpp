@@ -44,10 +44,6 @@ bool SetVolumeName(const std::string& _rFullPath)
 {
     if (g_pVolume)
     {
-		// This code looks scary. Can the try/catch stuff be removed?
-		// This cause a "Unhandled exception ... Access violation
-		// reading location ..." after you have started and stopped two
-		// or three games
         delete g_pVolume;
         g_pVolume = NULL;
     }
@@ -113,28 +109,5 @@ bool IsWii()
 
     return false;
 }
-
-bool GetTMDOffset(u32 _Partition, u64& _Offset)
-{
-	bool ret = false;
-
-	if (IsWii())
-	{
-		// Get the info table
-		u32 pInfoTableOffset = 0;
-		ret |= RAWReadToPtr((u8*)&pInfoTableOffset, 0x40004, 4);
-		u64 InfoTableOffset = (u64)Common::swap32(pInfoTableOffset) << 2;
-
-		// Get the offset of the partition
-		u32 pInfoTableEntryOffset = 0;
-		ret |= RAWReadToPtr((u8*)&pInfoTableEntryOffset, InfoTableOffset + (_Partition * 8), 4);
-		u64 PartitionOffset = (u64)Common::swap32(pInfoTableEntryOffset) << 2;
-
-		_Offset = PartitionOffset + 0x2c0;
-	}
-
-	return ret;
-}
-
 
 }  // namespace

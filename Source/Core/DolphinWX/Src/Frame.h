@@ -34,14 +34,11 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 	wxMemoryInputStream is(data, length);
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
-////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////
 // Class declarations
-// ¯¯¯¯¯¯¯¯¯¯
 class CGameListCtrl;
 class CLogWindow;
+
 class CFrame : public wxFrame
 {
 	public:
@@ -76,7 +73,6 @@ class CFrame : public wxFrame
 
 		// ---------------------------------------
 		// Wiimote leds
-		// ---------------
 		void ModifyStatusBar();
 		void CreateDestroy(int Case);
 		void CreateLeds(); void CreateSpeakers();
@@ -156,7 +152,8 @@ class CFrame : public wxFrame
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 
-		void OnOpen(wxCommandEvent& event); void DoOpen(bool Boot); // File menu
+		void OnOpen(wxCommandEvent& event); // File menu
+		void DoOpen(bool Boot);
 		void OnRefresh(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
 		void OnBootDrive(wxCommandEvent& event);
@@ -184,8 +181,10 @@ class CFrame : public wxFrame
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleConsole(wxCommandEvent& event);
-		void OnKeyDown(wxKeyEvent& event); void OnKeyUp(wxKeyEvent& event);
-		void OnDoubleClick(wxMouseEvent& event); void OnMotion(wxMouseEvent& event);
+		void OnKeyDown(wxKeyEvent& event);
+		void OnKeyUp(wxKeyEvent& event);
+		void OnDoubleClick(wxMouseEvent& event);
+		void OnMotion(wxMouseEvent& event);
 		
 		void OnHostMessage(wxCommandEvent& event);
 
@@ -223,7 +222,5 @@ class CFrame : public wxFrame
 		// Event table
 		DECLARE_EVENT_TABLE();
 };
-////////////////////////////////
 
 #endif  // __FRAME_H_
-

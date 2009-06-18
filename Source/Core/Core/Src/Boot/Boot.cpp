@@ -140,7 +140,6 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Load a GC or Wii BIOS file
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
     bool bResult = false;
@@ -148,16 +147,13 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 	if (!File::ReadFileToString(false, _rBiosFilename.c_str(), data))
 		return false;
 
-	Memory::WriteBigEData((const u8*)data.data(), 0x81300000, data.size());
+	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, data.size() - 0x820);
     PC = 0x81300000;
     return true;
 }
-/////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool CBoot::BootUp()
 {
     const bool bDebugIsoBootup = false;
@@ -193,7 +189,7 @@ bool CBoot::BootUp()
 
 			VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
 
-            DVDInterface::SetDiscInside(true);
+            DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
 			// Use HLE BIOS or not
             if (_StartupPara.bHLEBios)
@@ -259,6 +255,8 @@ bool CBoot::BootUp()
 				}
 			}
 
+			DVDInterface::SetDiscInside(VolumeHandler::IsValid());
+
             CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
             PC = dolLoader.GetEntryPoint();
 #ifdef _DEBUG
@@ -274,7 +272,7 @@ bool CBoot::BootUp()
         {
 			if(!File::Exists(_StartupPara.m_strFilename.c_str()))
 			{
-				PanicAlert("The file you specified (%s) does not exists",
+				PanicAlert("The file you specified (%s) does not exist",
 					_StartupPara.m_strFilename.c_str());
 				return false;
 			}
@@ -327,6 +325,15 @@ bool CBoot::BootUp()
 
         if (LoadMapFromFilename(_StartupPara.m_strFilename))
             HLE::PatchFunctions();
+
+		// load default image or create virtual drive from directory
+		if (!_StartupPara.m_strDVDRoot.empty())
+			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
+		else if (!_StartupPara.m_strDefaultGCM.empty())
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+
+		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
+
 		break;
 
 
@@ -334,7 +341,7 @@ bool CBoot::BootUp()
     // ===================================================================================
     case SCoreStartupParameter::BOOT_BIOS:
         {
-            DVDInterface::SetDiscInside(false);
+            DVDInterface::SetDiscInside(VolumeHandler::IsValid());
             if (Load_BIOS(_StartupPara.m_strBios))
             {
                 if (LoadMapFromFilename(_StartupPara.m_strFilename))
