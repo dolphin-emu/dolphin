@@ -452,7 +452,7 @@ void CFrame::DoOpen(bool Boot)
 	{
 		if (!fileChosen)
 			path = wxT("");
-		DVDInterface::ChangeDisc(path.c_str());
+		DVDInterface::ChangeDisc((const char *)path.mb_str());
 	}
 }
 
