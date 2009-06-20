@@ -34,6 +34,11 @@ be accessed from Core::GetWindowHandle().
 // includes
 // ----------------------------------------------------------------------------
 
+#include "Common.h" // Common
+#include "FileUtil.h"
+#include "Timer.h"
+#include "Setup.h"
+
 #include "Globals.h" // Local
 #include "Frame.h"
 #include "ConfigMain.h"
@@ -43,11 +48,6 @@ be accessed from Core::GetWindowHandle().
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
-
-#include "Common.h" // Common
-#include "FileUtil.h"
-#include "Timer.h"
-#include "Setup.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -82,7 +82,6 @@ extern "C" {
 };
 
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 /* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
    Probably because it's somehow reset from the WndProc() in the child window */
@@ -114,7 +113,7 @@ HWND MSWGetParent_(HWND Parent)
 	return GetParent(Parent);
 }
 #endif
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -226,13 +225,12 @@ int abc = 0;
 		return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 	}
 #endif
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-// ----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////
 // event tables
-// ----------------------------------------------------------------------------
+// ----------------------------
 
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
@@ -255,6 +253,13 @@ EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
+
+#ifdef MUSICMOD
+EVT_MENU(IDM_MUTE, CFrame::MM_OnMute)
+EVT_MENU(IDM_MUSIC_PLAY, CFrame::MM_OnPause)
+EVT_COMMAND_SCROLL(IDM_VOLUME, CFrame::MM_OnVolume)
+//EVT_MENU(IDM_MM_LOG, CFrame::MM_OnLog)
+#endif
 
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
@@ -291,13 +296,12 @@ EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 	EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
 END_EVENT_TABLE()
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
-// ----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////
 // Creation and close, quit functions
-// ----------------------------------------------------------------------------
-
+// ----------------------------------------
 CFrame::CFrame(bool showLogWindow,
 		wxFrame* parent,
 		wxWindowID id,
@@ -342,6 +346,12 @@ CFrame::CFrame(bool showLogWindow,
 	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole)
 		console->Open();
+	//////////////////////////////////////////
+	// Init MusicMod and the console window in the dll
+	#ifdef MUSICMOD
+		MM_OnLog(SConfig::GetInstance().m_InterfaceConsole);
+	#endif
+	//////////////////////////////////////////
 
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	//m_Panel = new wxPanel(this, IDM_MPANEL);
@@ -443,7 +453,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 		UpdateGUI();
 	}
 }
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

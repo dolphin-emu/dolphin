@@ -37,7 +37,7 @@ InputPlugin::InputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDllp
 	iFiltersLen    = 0;
 	plugin         = NULL;
 	
-	//INFO_LOG(AUDIO,"\InputPlugin::InputPlugin > Begin\n");
+	//NOTICE_LOG(AUDIO,"\InputPlugin::InputPlugin > Begin\n");
 
 	if( !Load() )
 	{

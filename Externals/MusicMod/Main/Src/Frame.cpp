@@ -25,6 +25,7 @@
 
 #include "IniFile.h"		// Common
 #include "Log.h"
+#include "Setup.h"
 
 #include "../../../../Source/Core/DolphinWX/Src/Globals.h" // DolphinWX
 #include "../../../../Source/Core/DolphinWX/Src/Frame.h"
@@ -39,10 +40,9 @@
 //////////////////////////////////
 
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 namespace MusicMod
 {
 	bool GlobalMute = false;
@@ -51,16 +51,15 @@ namespace MusicMod
 	int GlobalVolume = 125;
 	extern bool dllloaded;
 
-	void ShowConsole();
+	void ShowConsole(bool);
 	void Init();
 }
-//////////////////////////////////
-
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Change the brightness of a wxBitmap
-// ¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxBitmap SetBrightness(wxBitmap _Bitmap, int _Brightness, bool Gray)
 {
 	wxImage _Image = _Bitmap.ConvertToImage();
@@ -126,9 +125,12 @@ wxBitmap SetBrightness(wxBitmap _Bitmap, int _Brightness, bool Gray)
 
 	//wxMessageBox(Tmp);
 }
-//////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create bitmaps
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef MUSICMOD
 void
 CFrame::MM_InitBitmaps(int Theme)
@@ -158,20 +160,22 @@ CFrame::MM_InitBitmaps(int Theme)
 	// Update in case the bitmap has been updated
 	//if (GetToolBar() != NULL) TheToolBar->FindById(Toolbar_Log)->SetNormalBitmap(m_Bitmaps[Toolbar_Log]);
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
-void
-CFrame::MM_PopulateGUI()
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create GUI controls
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CFrame::MM_PopulateGUI()
 {	
 	wxToolBar* toolBar = TheToolBar; // Shortcut
 
 	toolBar->AddSeparator();
 
-	MusicMod::Init();
-
-	// ---------------------------------------
+	// ------------------------------------------------------------
 	// Draw a rotated music label
 	// ---------------------
+	/*
 	wxBitmap m_RotatedText(30, 15);
 	wxMemoryDC dc;
 	dc.SelectObject(m_RotatedText);
@@ -180,7 +184,7 @@ CFrame::MM_PopulateGUI()
 	// Set outline and fill colors
 	dc.SetBackground(BackgroundGrayBrush);
 	dc.Clear();
-	
+	// Set font style and color
 	wxFont m_font(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 	dc.SetFont(m_font);
 	dc.SetTextForeground(wxColour(*wxLIGHT_GREY));
@@ -191,8 +195,8 @@ CFrame::MM_PopulateGUI()
 	wxStaticBitmap * m_StaticBitmap = new wxStaticBitmap(toolBar, wxID_ANY, m_RotatedText);
 
 	toolBar->AddControl(m_StaticBitmap);
-	// ---------------------------
-
+	*/
+	// ------------------------------------------------------------
 
 
 	mm_ToolMute = toolBar->AddTool(IDM_MUTE, _T("Mute"),   m_Bitmaps[Toolbar_PluginDSP], _T("Mute music"));
@@ -210,16 +214,17 @@ CFrame::MM_PopulateGUI()
 	*/
 
 
-	// ---------------------
+	// ---------------------------------------------------------
 	/* Lots of code to get a label for the slider, in 2.9.0 AddControl accepts a label so then
 	   this code can be simplified a lot */
 	// ---------
-	wxPanel * mm_SliderPanel = new wxPanel(toolBar, IDS_VOLUME_PANEL, wxDefaultPosition, wxDefaultSize);
-	mm_Slider = new wxSlider(mm_SliderPanel, IDS_VOLUME, 125, 0, 255, wxDefaultPosition, wxDefaultSize);
+	wxPanel * mm_SliderPanel = new wxPanel(toolBar, IDM_VOLUME_PANEL, wxDefaultPosition, wxDefaultSize);
+	mm_Slider = new wxSlider(mm_SliderPanel, IDM_VOLUME, 125, 0, 255, wxDefaultPosition, wxDefaultSize);
 	//mm_Slider->SetToolTip("Change the music volume");
 	mm_Slider->SetValue(MusicMod::GlobalVolume);
+	// ---------------------------------------------------------
 
-	wxStaticText * mm_SliderText = new wxStaticText(mm_SliderPanel, IDS_VOLUME_LABEL, _T("Volume"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText * mm_SliderText = new wxStaticText(mm_SliderPanel, IDM_VOLUME_LABEL, _T("Volume"), wxDefaultPosition, wxDefaultSize);
 	wxBoxSizer * mm_VolSizer = new wxBoxSizer(wxVERTICAL);
 	mm_VolSizer->Add(mm_Slider, 0, wxEXPAND | wxALL, 0);
 	mm_VolSizer->Add(mm_SliderText, 0, wxCENTER | wxALL, 0);
@@ -230,14 +235,16 @@ CFrame::MM_PopulateGUI()
 	toolBar->AddControl((wxControl*)mm_SliderPanel);
 	// ---------
 
-	mm_ToolLog = toolBar->AddTool(IDT_LOG, _T("Log"),   m_Bitmaps[Toolbar_Log],
-		wxT("Show or hide log. Enable the log window and restart Dolphin to show the DLL status."));
+	// Console button disabled
+	//mm_ToolLog = toolBar->AddTool(IDM_LOG, _T("Log"),   m_Bitmaps[Toolbar_Log],
+	//	wxT("Show or hide log. Enable the log window and restart Dolphin to show the DLL status."));
 }
+//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Update GUI
-// ¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void
 CFrame::MM_UpdateGUI()
 {
@@ -263,6 +270,7 @@ CFrame::MM_UpdateGUI()
 			mm_ToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
 		}
 
+		/*
 		if(MusicMod::bShowConsole)
 		{
 			mm_ToolLog->SetNormalBitmap(m_Bitmaps[Toolbar_Log]);
@@ -271,18 +279,19 @@ CFrame::MM_UpdateGUI()
 		{
 			mm_ToolLog->SetNormalBitmap(m_Bitmaps[Toolbar_Log_Dis]);
 		}
+		*/
 }
 //////////////////////////////////
 
 
 
-// =======================================================================================
+//////////////////////////////////////////////////////////////////////////////////////////
 // Play and stop music
-// ---------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void
 CFrame::MM_OnPlay()
 {
-	//INFO_LOG(AUDIO,"\nCFrame::OnPlayMusicMod > Begin\n");
+	//NOTICE_LOG(AUDIO,"\nCFrame::OnPlayMusicMod > Begin\n");
 
 	// Save the volume
 	MusicMod::GlobalVolume = mm_Slider->GetValue();	
@@ -296,7 +305,7 @@ CFrame::MM_OnPlay()
 	{
 		if (Core::GetState() == Core::CORE_RUN)
 		{
-			//INFO_LOG(AUDIO,"CFrame::OnPlayMusicMod > Pause\n");
+			//NOTICE_LOG(AUDIO,"CFrame::OnPlayMusicMod > Pause\n");
 			if(!MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = true;
@@ -308,7 +317,7 @@ CFrame::MM_OnPlay()
 		}
 		else
 		{
-			//INFO_LOG(AUDIO,"CFrame::OnPlayMusicMod > Play\n");
+			//NOTICE_LOG(AUDIO,"CFrame::OnPlayMusicMod > Play\n");
 			if(MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = false;
@@ -332,11 +341,11 @@ CFrame::MM_OnStop()
 
 // =======================================================================================
 // Mute music
-// ---------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void
 CFrame::MM_OnMute(wxCommandEvent& WXUNUSED (event))
 {
-	//INFO_LOG(AUDIO,"CFrame::OnMute > Begin\n");
+	//NOTICE_LOG(AUDIO,"CFrame::OnMute > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::GlobalMute)
@@ -364,11 +373,11 @@ CFrame::MM_OnMute(wxCommandEvent& WXUNUSED (event))
 
 // =======================================================================================
 // Pause music
-// ---------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void
 CFrame::MM_OnPause(wxCommandEvent& WXUNUSED (event))
 {
-	INFO_LOG(AUDIO,"CFrame::OnPause > Begin\n");
+	NOTICE_LOG(AUDIO,"CFrame::OnPause > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::GlobalPause)
@@ -392,14 +401,12 @@ CFrame::MM_OnPause(wxCommandEvent& WXUNUSED (event))
 }
 
 
-
-
 // =======================================================================================
 // Change volume
-// ---------------------------------------------------------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::MM_OnVolume(wxScrollEvent& event)
 {
-	//INFO_LOG(AUDIO,"CFrame::OnVolume > Begin <%i>\n", event.GetPosition());
+	//NOTICE_LOG(AUDIO,"CFrame::OnVolume > Begin <%i>\n", event.GetPosition());
 	//MessageBox(0, "", "", 0);
 
 	//if(event.GetEventType() == wxEVT_SCROLL_PAGEUP || event.GetEventType() == wxEVT_SCROLL_PAGEDOWN)
@@ -428,38 +435,29 @@ void CFrame::MM_OnVolume(wxScrollEvent& event)
 //=======================================================================================
 
 
-
 // =======================================================================================
 // Show log
-// ---------------------------------------------------------------------------------------
-void CFrame::MM_OnLog(wxCommandEvent& event)
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CFrame::MM_OnLog(bool Show)
 {
-	//INFO_LOG(AUDIO,"CFrame::OnLog > Begin\n");
+	//NOTICE_LOG(AUDIO, "CFrame::OnLog > Begin\n");
 	//MessageBox(0, "", "", 0);
+	//NOTICE_LOG(AUDIO, "MM_OnLog: %i", MusicMod::dllloaded);
 
-	if(!MusicMod::dllloaded) return; // Avoid crash
+	// Check that Init() was run
+	if(!MusicMod::dllloaded) MusicMod::Init();
+	 // Check that it succeeded
+	if(!MusicMod::dllloaded) return;
 
-	MusicMod::bShowConsole = !MusicMod::bShowConsole;
-
-	if(MusicMod::bShowConsole)
-		/* What we do here is run StartConsoleWin() in Common directly after each
-		   other first in the exe then in the DLL, sometimes this would give me a rampant memory
-		   usage increase until the exe crashed at 700 MB memory usage or something like that.
-		   For that reason I'm trying to sleep for a moment between them here. */
-		{ MusicMod::ShowConsole(); Sleep(100); Player_Console(true); }
-	else
-	{
-		#if defined (_WIN32)
-			Console::Close(); Player_Console(false); 
-		#endif
-	}
+	MusicMod::bShowConsole = Show;
+	MusicMod::ShowConsole(MusicMod::bShowConsole);
 
 	IniFile file;
 	file.Load("Plainamp.ini");
 	file.Set("Interface", "ShowConsole", MusicMod::bShowConsole);
 	file.Save("Plainamp.ini");
 
-	UpdateGUI();
+	//UpdateGUI();
 }
 //=======================================================================================
 

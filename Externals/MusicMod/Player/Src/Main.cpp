@@ -371,7 +371,7 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 	static bool bRemoveIcon = false;
 
 	#ifdef NOGUI
-		//INFO_LOG(AUDIO,"DLL > Main.cpp:WndprocMain() was called. But nothing will be done. \n");
+		//NOTICE_LOG(AUDIO,"DLL > Main.cpp:WndprocMain() was called. But nothing will be done. \n");
 	#else
 		Console::Append( TEXT( "Main.cpp:WndprocMain was called" ) );
 	#endif	

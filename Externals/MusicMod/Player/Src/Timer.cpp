@@ -48,7 +48,7 @@ extern bool GlobalPause;
 	void CALLBACK Update(unsigned int,unsigned int,unsigned long,unsigned long,unsigned long)
 #endif
 {
-	//INFO_LOG(AUDIO,"DLL > Update() > Begin (%i)\n", active_input_plugin);
+	//NOTICE_LOG(AUDIO,"DLL > Update() > Begin (%i)\n", active_input_plugin);
 
 	// --------------------------------
 	// Manage restart when playback for a file has reached the end of the file
@@ -56,7 +56,7 @@ extern bool GlobalPause;
 	// Check if the input plugin is activated
 	if(!active_input_plugin || !active_input_plugin->plugin)
 	{
-		//INFO_LOG(AUDIO,"The input plugin is not activated yet\n");
+		//NOTICE_LOG(AUDIO,"The input plugin is not activated yet\n");
 	}
 	else
 	{
@@ -73,20 +73,20 @@ extern bool GlobalPause;
 		if (  progress > 0.7 ) // Only show this if we are getting close to the end, for bugtesting
 									// basically
 		{
-			//INFO_LOG(AUDIO,"Playback progress <%i of %i>\n", ms_cur, ms_len);
+			//NOTICE_LOG(AUDIO,"Playback progress <%i of %i>\n", ms_cur, ms_len);
 		}
 
 		// Because cur never go all the way to len we can't use a == comparison. Insted of this
 		// we could also check if the location is the same as right before.
 		if(ms_cur > ms_len - 1000 && !GlobalPause) // avoid restarting in cases where we just pressed pause
 		{
-			INFO_LOG(AUDIO,"Restart <%s>\n", CurrentlyPlayingFile.c_str());
+			NOTICE_LOG(AUDIO,"Restart <%s>\n", CurrentlyPlayingFile.c_str());
 			Player_Play((char *)CurrentlyPlayingFile.c_str());
 		}
 	}
 	// --------------
 	
-	//INFO_LOG(AUDIO,"Make new time\n");
+	//NOTICE_LOG(AUDIO,"Make new time\n");
 	MakeTime(); // Make a new one
 }
 
@@ -119,7 +119,7 @@ int MainTimer()
 	//	cout << ".";
 	//}
 
-	//INFO_LOG(AUDIO,"MakeTime\n");
+	//NOTICE_LOG(AUDIO,"MakeTime\n");
 
 	return 0;
 }

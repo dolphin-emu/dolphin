@@ -60,21 +60,21 @@ void AddFileToPlaylist(char * a)
 
 void Player_Play(char * FileName)
 {
-	INFO_LOG(AUDIO,"Play file <%s>\n", FileName);
+	NOTICE_LOG(AUDIO,"Play file '%s'", FileName);
 
 	// Check if the file exists
 	if(GetFileAttributes(FileName) == INVALID_FILE_ATTRIBUTES)
 	{
-		INFO_LOG(AUDIO,"Warning: The file <%s> does not exist. Something is wrong.\n", FileName);
+		NOTICE_LOG(AUDIO,"Warning: The file '%s' does not exist. Something is wrong.", FileName);
 		return;
 	}
 
 	Playback::Stop();
-	//INFO_LOG(AUDIO,"Stop\n");
+	//NOTICE_LOG(AUDIO,"Stop\n");
 	playlist->RemoveAll();
-	//INFO_LOG(AUDIO,"RemoveAll\n");
+	//NOTICE_LOG(AUDIO,"RemoveAll\n");
 	AddFileToPlaylist(FileName);
-	//INFO_LOG(AUDIO,"addfiletoplaylist\n");
+	//NOTICE_LOG(AUDIO,"addfiletoplaylist\n");
 
 	// Play the file
 	Playback::Play();
@@ -84,7 +84,7 @@ void Player_Play(char * FileName)
 	// ---------------------------------------------------------------------------------------
 	// Set volume. This must probably be done after the dll is loaded.
 	//Output_SetVolume( Playback::Volume::Get() );
-	//INFO_LOG(AUDIO,"Volume(%i)\n", Playback::Volume::Get());
+	//NOTICE_LOG(AUDIO,"Volume(%i)\n", Playback::Volume::Get());
 	// ---------------------------------------------------------------------------------------
 
 	GlobalPause = false;
@@ -93,7 +93,7 @@ void Player_Play(char * FileName)
 void Player_Stop()
 {
 	Playback::Stop();
-	//INFO_LOG(AUDIO,"Stop\n");
+	//NOTICE_LOG(AUDIO,"Stop\n");
 	playlist->RemoveAll();
 
 	CurrentlyPlayingFile = "";
@@ -106,13 +106,13 @@ void Player_Pause()
 {
 	if (!GlobalPause)
 	{
-		INFO_LOG(AUDIO,"DLL > Pause\n");
+		NOTICE_LOG(AUDIO,"DLL > Pause\n");
 		Playback::Pause();
 		GlobalPause = true;
 	}
 	else
 	{
-		INFO_LOG(AUDIO,"DLL > UnPause from Pause\n");
+		NOTICE_LOG(AUDIO,"DLL > UnPause from Pause\n");
 		Player_Unpause();
 		GlobalPause = false;
 	}
@@ -120,7 +120,7 @@ void Player_Pause()
 
 void Player_Unpause()
 {
-	INFO_LOG(AUDIO,"DLL > UnPause\n");
+	NOTICE_LOG(AUDIO,"DLL > UnPause\n");
 	Playback::Play();
 	GlobalPause = false;
 }
@@ -136,7 +136,7 @@ void Player_Unpause()
 void Player_Mute(int Vol)
 {
 	if(GlobalVolume == -1) GlobalVolume = Vol;
-	INFO_LOG(AUDIO,"DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalMute);
+	NOTICE_LOG(AUDIO,"DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalMute);
 
 	GlobalMute = !GlobalMute;
 
@@ -144,15 +144,15 @@ void Player_Mute(int Vol)
 	if(GlobalMute)
 	{
 		Output_SetVolume( 0 );
-		INFO_LOG(AUDIO,"DLL > Volume <%i>\n", GlobalMute);
+		NOTICE_LOG(AUDIO,"DLL > Volume <%i>\n", GlobalMute);
 	}
 	else
 	{
 		Output_SetVolume( GlobalVolume );
-		INFO_LOG(AUDIO,"DLL > Volume <%i>\n", GlobalMute);
+		NOTICE_LOG(AUDIO,"DLL > Volume <%i>\n", GlobalMute);
 	}
 
-	//INFO_LOG(AUDIO,"Volume(%i)\n", Playback::Volume::Get());
+	//NOTICE_LOG(AUDIO,"Volume(%i)\n", Playback::Volume::Get());
 }
 ///////////////////////////////////////
 
@@ -161,11 +161,13 @@ void Player_Volume(int Vol)
 {
 	GlobalVolume = Vol;
 	Output_SetVolume( GlobalVolume );
-	//INFO_LOG(AUDIO,"DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
+	//NOTICE_LOG(AUDIO,"DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
 }
 
 void ShowConsole()
 {
+	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
+	console->Open(100, 2000, "MusicMod");
 //	Console::Open(100, 2000, "MusicMod", true); // give room for 2000 rows
 }
 

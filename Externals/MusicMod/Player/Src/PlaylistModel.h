@@ -105,7 +105,7 @@ public:
 
 		if( 0 > iIndex || iIndex >= ( int )_database.size() )
 		{
-			INFO_LOG(AUDIO,"SetCurIndex > Return"); 
+			NOTICE_LOG(AUDIO,"SetCurIndex > Return"); 
 			return;
 		}
 

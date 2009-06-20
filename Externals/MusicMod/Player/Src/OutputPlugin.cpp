@@ -248,7 +248,7 @@ bool OutputPlugin::Config( HWND hParent )
 ////////////////////////////////////////////////////////////////////////////////
 bool OutputPlugin::Start()
 {
-	//INFO_LOG(AUDIO, "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n",
+	//NOTICE_LOG(AUDIO, "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n",
 	//	IsLoaded(), bActive, active_output_count );
 
 	if( !IsLoaded() ) return false;
@@ -275,7 +275,7 @@ bool OutputPlugin::Start()
 		Console::Append( szBuffer );
 		Console::Append( TEXT( " " ) );
 	#else
-		INFO_LOG(AUDIO, "\n >>> Output plugin '%s' activated\n\n" , GetFilename() );
+		NOTICE_LOG(AUDIO, "\n >>> Output plugin '%s' activated\n\n" , GetFilename() );
 	#endif
 	
 	bActive = true;

@@ -98,7 +98,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 {
 	MyFilesStructure temp;
 
-	//INFO_LOG(AUDIO,"StructSort > Begin\n");
+	//NOTICE_LOG(AUDIO,"StructSort > Begin\n");
 
      for(int i = 0; i < MyFiles.size() - 1; i++)
      {
@@ -119,16 +119,29 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 		std::cout << i << " " << MyFiles[i].path.c_str() << "#" << MyFiles[i].offset << "\n";
 	}
 
-	//INFO_LOG(AUDIO,"StructSort > Done\n");
+	//NOTICE_LOG(AUDIO,"StructSort > Done\n");
 }
 // ============================
 
 
 // =======================================================================================
-/* Run these things once */
+/* Run these things once when Dolphin starts */
 // ------------------------
-void ShowConsole()
+void ShowConsole(bool Show)
 {
+	if (Show)
+	{
+		/* What we do here is run StartConsoleWin() in Common directly after each
+		   other first in the exe then in the DLL, sometimes this would give me a rampant memory
+		   usage increase until the exe crashed at 700 MB memory usage or something like that.
+		   For that reason I'm trying to sleep for a moment between them here. */
+		Sleep(100);
+		Player_Console(true);
+	}
+	else
+	{
+		Player_Console(false);
+	}
 //	Console::Open(100, 2000, "MusicMod", true); // Give room for 2000 rows
 }
 
@@ -149,13 +162,13 @@ void Init()
 	// ---------------------------------------
 	// Make a debugging window
 	// ---------------------
-	if(MusicMod::bShowConsole) ShowConsole();
+	//if(MusicMod::bShowConsole) ShowConsole();
 
 	// Write version
 	#ifdef _M_X64
-		INFO_LOG(AUDIO,"64 bit version\n");
+		NOTICE_LOG(AUDIO,"64 bit version\n");
 	#else
-		INFO_LOG(AUDIO,"32 bit version\n");
+		NOTICE_LOG(AUDIO,"32 bit version\n");
 	#endif
 	// -----------
 
@@ -165,7 +178,7 @@ void Init()
 	// Show DLL status
 	Player_Main(MusicMod::bShowConsole);
 	//play_file("c:\\demo36_02.ast");
-	//INFO_LOG(AUDIO,"DLL loaded\n");
+	//NOTICE_LOG(AUDIO,"DLL loaded\n");
 
 	dllloaded = true; // Do this once
 }
@@ -173,15 +186,17 @@ void Init()
 
 
 // =======================================================================================
-/* This will read the GC file system. */
+/* Function: Read the GC file system when a game is booted
+   Called from: BootManager.cpp */
 // ------------------------
 void Main(std::string FileName)
 {
 	//
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(FileName.c_str());
-	
+	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(FileName);
 	//
 	my_pFileSystem = new DiscIO::CFileSystemGCWii(pVolume);
+	// Check that it worked
+	if (my_pFileSystem->m_FileInfoVector.size() == 0) NOTICE_LOG(AUDIO, "Volume creation failed")
 
 	/* We have to sort the files according to offset so that out scan in Blob.cpp works.
 	   Because StructSort() only works for MyFilesStructure I copy the offset and filenames
@@ -202,7 +217,7 @@ void Main(std::string FileName)
 	LPSECURITY_ATTRIBUTES attr;
 	attr = NULL;
 	MusicPath = "Music\\";
-	INFO_LOG(AUDIO,"Created a Music directory\n");
+	NOTICE_LOG(AUDIO,"Created a Music directory\n");
 	CreateDirectory(MusicPath.c_str(), attr);
 	// ----------------------------------------------------------------------------------------
 }
@@ -216,8 +231,6 @@ void CheckFile(std::string File, int FileNumber)
 	// Do nothing if we found the same file again
 	if (CurrentFile == File) return;
 
-	//INFO_LOG(AUDIO,">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
-
 	// Check if it's a music file
 	if (CheckFileEnding(File.c_str()))
 	{
@@ -227,7 +240,7 @@ void CheckFile(std::string File, int FileNumber)
 		if (CurrentPlayFile == File) return;
 
 		// Notify the user
-		INFO_LOG(AUDIO,"\n >>> (%i/%i) Match %s\n\n", FileNumber, MyFiles.size(), File.c_str());
+		NOTICE_LOG(AUDIO,"\n >>> (%i/%i) Match %s\n", FileNumber, MyFiles.size(), File.c_str());
 
 		 // Save the matched file
 		CurrentPlayFile = File;
@@ -236,7 +249,7 @@ void CheckFile(std::string File, int FileNumber)
 		// We will now save the file to the PC hard drive
 		// ------------------
 		// Get the filename
-		std::size_t pointer = File.find_last_of("\\");
+		std::size_t pointer = File.find_last_of("/");
 		std::string fragment = File.substr (0, (pointer-0));
 		int compare = File.length() - fragment.length(); // Get the length of the filename
 		fragment = File.substr ((pointer+1), compare); // Now we have the filename
@@ -245,9 +258,11 @@ void CheckFile(std::string File, int FileNumber)
 		std::string FilePath = (MusicPath + fragment);
 
 		WritingFile = true; // Avoid detecting the file we are writing
-		INFO_LOG(AUDIO,"Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
-		my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str());
+		NOTICE_LOG(AUDIO, "Writing '%s' to '%s'", File.c_str(), FilePath.c_str());
+		if (!my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str()))
+			NOTICE_LOG(AUDIO, "ERROR: ExportFile failed");
 		WritingFile = false;
+		// ------------------------------------------------------
 		
 		// ---------------------------------------------------------------------------------------
 		// Play the file we found
@@ -256,8 +271,9 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
 		} else {
-			INFO_LOG(AUDIO,"Warning > Music DLL is not loaded");
+			NOTICE_LOG(AUDIO, "Warning > Music DLL is not loaded");
 		}
+		// ------------------------------------------------------
 
 		// ---------------------------------------------------------------------------------------
 		// Remove the last file, if any
@@ -266,11 +282,12 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			if(!remove(CurrentPlayFilePath.c_str()))
 			{
-				INFO_LOG(AUDIO,"The program failed to remove <%s>\n", CurrentPlayFilePath.c_str());
+				NOTICE_LOG(AUDIO,"The program failed to remove '%s'", CurrentPlayFilePath.c_str());
 			} else {
-				INFO_LOG(AUDIO,"The program removed <%s>\n", CurrentPlayFilePath.c_str());
+				NOTICE_LOG(AUDIO,"The program removed '%s'", CurrentPlayFilePath.c_str());
 			}
 		}
+		// ------------------------------------------------------
 
 		// ---------------------------------------------------------------------------------------
 		// Save the current playing file
@@ -279,7 +296,7 @@ void CheckFile(std::string File, int FileNumber)
 	}
 
 	// Tell the user about the files we ignored
-	INFO_LOG(AUDIO,"(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
+	NOTICE_LOG(AUDIO,"(%i/%i) Ignored '%s'\n", FileNumber, MyFiles.size(), File.c_str());
 	
 	// Update the current file
 	CurrentFile = File;
@@ -299,8 +316,6 @@ void FindFilename(u64 offset, u64 size)
 			   upp the scanning */
 	if(PowerPC::GetState() == PowerPC::CPUState::CPU_RUNNING && offset != 0 && !WritingFile)
 	{
-
-		
 		//////////////////////////////////////////////////////////////////////////////////////////
 		/* Get the filename. Here we go through all files until we come to the file that has
 		   the matching offset. Before MyFiles has data this loop will go nowhere. We have to
@@ -310,6 +325,9 @@ void FindFilename(u64 offset, u64 size)
 		// ---------------------------------------------------------------------------------------
 		for (int i = 0; i < (int)(MyFiles.size() - 1); ++i)
 		{
+			// Log
+			//NOTICE_LOG(AUDIO, ">>> Comparing %s [#%i, Size: %i, Location: %u] with %u", MyFiles[i].path.c_str(), i, size, MyFiles[i].offset, offset);
+
 			// ---------------------------------------------------------------------------------------
 			/* If we assume that myoffset is the begginning of every file this works. 
 			   Suppose there are three files
@@ -331,6 +349,12 @@ void FindFilename(u64 offset, u64 size)
 
 				// Stop checking
 				break;
+			}
+
+			// If the file check failed
+			if (i == (int)(MyFiles.size() - 1) - 1)
+			{
+				NOTICE_LOG(AUDIO, "ERROR: GC filename search failed");
 			}
 		}
 	} // This ends the entire filescan
