@@ -56,7 +56,6 @@ public:
             s32 DataL = PV1l;
 
             if (m_mode == 1) { //linear
-
                 DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
             }
             else if (m_mode == 2) {//cubic
@@ -129,7 +128,7 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
     
     if (pTest[0x06] != 0x00)
     {
-        // probably pTest[0x06] ==0 -> AFC (and variants)
+        // probably pTest[0x06] == 0 -> AFC (and variants)
     }
     else
     {
@@ -138,9 +137,7 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
         case 0x05:
         case 0x09:
             {
-                //
                 // initialize "decoder" if the sample is played the first time
-                //
                 if (pTest[0x04] != 0)
                 {
                     // zelda: 
@@ -464,8 +461,8 @@ void CUCode_Zelda::ExecuteList()
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
 		    DEBUG_LOG(DSPHLE, "Param Blocks 1:                0x%08x", m_PBAddress);
-            DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp1);
-			DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", tmp2);
+            DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", DSPADPCM_FILTER);
+			DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", DSPRES_FILTER);
 		    DEBUG_LOG(DSPHLE, "Param Blocks 2:                0x%08x", m_PBAddress2);
 	    }
 		break;
