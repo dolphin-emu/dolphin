@@ -139,9 +139,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		video_initialize.pPeekMessages();
 #endif
 
-        if (_fifo.CPReadWriteDistance == 0)
-			Common::SleepCurrentThread(1);
-
 		// Draw XFB if CP/GPfifo isn't used
 		if (g_XFBUpdateRequested)
 		{
