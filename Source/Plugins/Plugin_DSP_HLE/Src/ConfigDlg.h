@@ -45,7 +45,7 @@ private:
     wxCheckBox *m_buttonEnableHLEAudio;
     wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
-	wxCheckBox *m_buttonEnableRE0Fix;
+	wxCheckBox *m_buttonEnableRE0Fix, *m_buttonDisableStreaming;
     wxArrayString wxArrayBackends;
     wxComboBox  *m_BackendSelection;
 
@@ -55,7 +55,7 @@ private:
 	    ID_ENABLE_HLE_AUDIO,
 	    ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
-		ID_ENABLE_RE0_FIX,
+		ID_ENABLE_RE0_FIX, ID_DISABLE_STREAMING,
 	    ID_BACKEND,
 		ID_VOLUME
 	};

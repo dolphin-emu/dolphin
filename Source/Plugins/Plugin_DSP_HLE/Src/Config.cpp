@@ -37,6 +37,7 @@ void CConfig::Load()
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
+	file.Get("Config", "DisableStreaming", &m_DisableStreaming, false); // Music hack
 	ac_Config.Load(file);
 }
 
@@ -46,6 +47,7 @@ void CConfig::Save()
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableRE0AudioFix", m_EnableRE0Fix); // RE0 Hack
+	file.Set("Config", "DisableStreaming", m_DisableStreaming); // Music hack
 	ac_Config.Set(file);
 
 	file.Save(FULL_CONFIG_DIR "DSP.ini");

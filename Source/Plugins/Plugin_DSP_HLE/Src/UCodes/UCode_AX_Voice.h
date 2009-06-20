@@ -22,6 +22,7 @@
 #include "UCode_AX.h"
 #include "../main.h"
 #include "Mixer.h"
+#include "../Config.h"
 
 // ----------------------------------------------------
 // Externals
@@ -164,7 +165,14 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		{
 			pb.audio_addr.looping = 1;
 		}
-		// ==============
+		// =============
+
+
+		// =======================================================================================
+		// If the no streaming hack is on, do nothing
+		// --------------
+		if (g_Config.m_DisableStreaming && pb.audio_addr.looping) return;
+		// =============
 
 		// Top Spin 3 Wii
 		if(pb.audio_addr.sample_format > 25) pb.audio_addr.sample_format = 0;
