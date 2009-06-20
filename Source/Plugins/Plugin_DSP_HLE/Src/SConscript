@@ -21,6 +21,7 @@ files = [
 	'UCodes/UCode_ROM.cpp',
 	'UCodes/UCodes.cpp',
 	'UCodes/UCode_Zelda.cpp',
+	'UCodes/UCode_Zelda_ADPCM.cpp',
 	]
 
 dspenv = env.Clone()
