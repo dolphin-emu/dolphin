@@ -19,6 +19,7 @@
 #define _UCODES_H
 
 #include "Common.h"
+#include "ChunkFile.h"
 
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
@@ -40,6 +41,8 @@ public:
 	// Cycles are out of the 81/121mhz the DSP runs at.
 	virtual void Update(int cycles) = 0;
 	virtual void MixAdd(short* buffer, int size) {}
+
+	virtual void DoState(PointerWrap &p) {}
 
 protected:
 	CMailHandler& m_rMailHandler;

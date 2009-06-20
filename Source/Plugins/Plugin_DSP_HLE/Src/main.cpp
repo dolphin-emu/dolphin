@@ -225,6 +225,7 @@ void Shutdown()
 void DoState(unsigned char **ptr, int mode)
 {
 	PointerWrap p(ptr, mode);
+	CDSPHandler::GetInstance().GetUCode()->DoState(p);
 }
 
 

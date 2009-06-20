@@ -783,3 +783,17 @@ int CUCode_Zelda::DumpAFC(u8* pIn, const int size, const int srate)
 } 
 
 
+void CUCode_Zelda::DoState(PointerWrap &p) {
+	p.Do(m_MailState);
+	p.Do(m_PBMask);
+	p.Do(m_NumPBs);
+	p.Do(m_PBAddress);
+	p.Do(m_MaxSyncedPB);
+	p.Do(m_PBs);
+	p.Do(m_readOffset);
+	p.Do(m_NumberOfFramesToRender);
+	p.Do(m_CurrentFrameToRender);
+	p.Do(m_numSteps);
+	p.Do(m_step);
+	p.Do(m_Buffer);
+}

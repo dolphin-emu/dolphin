@@ -140,6 +140,7 @@ public:
     void CopyPBsFromRAM();
     void CopyPBsToRAM();
 
+	void DoState(PointerWrap &p);
 
     int AFCdecodebuffer(char *input, signed short *out, short * histp, short * hist2p, int type = 9);
 
