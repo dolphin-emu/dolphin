@@ -330,7 +330,7 @@ bool Renderer::Init()
 		glGenTextures(1, (GLuint *)&s_RenderTarget);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
 		// Create our main color render target as a texture rectangle of the desired size.
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 3, s_targetwidth, s_targetheight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		SetDefaultRectTexParams();
 
 		// Create the depth target texture
@@ -370,9 +370,9 @@ bool Renderer::Init()
 		glGenRenderbuffersEXT(1, &s_RenderTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTarget);
 		if (s_MSAACoverageSamples) {
-			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_RGB, s_targetwidth, s_targetheight);
+			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
 		} else {
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGB, s_targetwidth, s_targetheight);
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
 		}
 		glGenRenderbuffersEXT(1, &s_DepthTarget);
 		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
@@ -398,7 +398,7 @@ bool Renderer::Init()
 		// Generate the resolve targets.
 		glGenTextures(1, (GLuint *)&s_ResolvedRenderTarget);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ResolvedRenderTarget);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 3, s_targetwidth, s_targetheight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		SetDefaultRectTexParams();
 		// Generate the resolve targets.
 		glGenTextures(1, (GLuint *)&s_ResolvedDepthTarget);
