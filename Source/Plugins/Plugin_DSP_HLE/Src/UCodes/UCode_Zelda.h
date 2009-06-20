@@ -21,8 +21,6 @@
 #include "Common.h"
 #include "UCodes.h"
 
-
-
 struct ZPB
 {
     // R/W data =============
@@ -35,17 +33,18 @@ struct ZPB
     u16 unk5;
     u16 unk6;
 
-    u16 unk7[0x2C];       // 0x033
-    u16 SampleData[0x4D];
+    u16 unk7[0x2C];          // 0x033
+    u16 SampleData[0x4D];    // 0x4D = 9 * 8
 
-    // Read only data(0x80 to the end)
-    u16 type;                // 0x5, 0x9 = AFC.
+	// From here, "read only" data (0x80 to the end)
+	// 0x88, 0x89 could be volume
+    u16 type;                // 0x5, 0x9 = AFC. There are more types but we've only seen AFC so far.
     u16 r_unknown1;
 
     u16 r_unknown2[0x14 / 2];
 
-    // Not sure what addresses this is, hopefully to sample data in ARAM.
-    // These are the only things in the param blocks that look a lot like pointers.
+	// Pointer to sample data in ARAM.
+	// These are the only things in the param blocks that look a lot like pointers.
     u16 addr_high;  // at 0x18 = 0xC * 2
     u16 addr_low;
 
@@ -60,6 +59,28 @@ namespace {
 
 class CUCode_Zelda : public IUCode
 {
+public:
+	CUCode_Zelda(CMailHandler& _rMailHandler);
+	virtual ~CUCode_Zelda();
+
+	void HandleMail(u32 _uMail);
+	void Update(int cycles);
+	void MixAdd(short* buffer, int size);
+
+    void UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size);
+
+    void CopyPBsFromRAM();
+    void CopyPBsToRAM();
+
+	void DoState(PointerWrap &p);
+
+    int *templbuffer;
+    int *temprbuffer;
+
+    // simple dump ...
+    void DumpPB(const ZPB& _rPB);
+    int DumpAFC(u8* pIn, const int size, const int srate);
+
 private:
 	enum EDSP_Codes
 	{
@@ -72,7 +93,7 @@ private:
 	};
 
     // AFC CoefTable
-    short m_AFCCoefTable[16][2];
+    s16 m_AFCCoefTable[32];
 
 	// Command 0x2: SyncFrame
     int m_NumberOfFramesToRender;
@@ -86,7 +107,6 @@ private:
 
 	u32 m_readOffset;
 
-
     enum EMailState  
     {
         WaitForMail,
@@ -94,30 +114,21 @@ private:
         ReadingMessage,
         ReadingSystemMsg
     };
+
     EMailState m_MailState;
     u16 m_PBMask[0x10];
 
 
     u32 m_NumPBs;
-    u32 m_PBAddress;
+    u32 m_PBAddress;   // The main param block array
+    u32 m_PBAddress2;  // 4 smaller param blocks
+
+	u32 m_MixingBufferLeft;
+	u32 m_MixingBufferRight;
 
     u32 m_MaxSyncedPB;
 
     ZPB m_PBs[0x40];
-
-
-
-	u8 Read8()
-	{
-		return m_Buffer[m_readOffset++];
-	}
-
-	u16 Read16()
-	{
-		u16 res = *(u16*)&m_Buffer[m_readOffset];
-		m_readOffset += 2;
-		return res;
-	}
 
 	u32 Read32()
 	{
@@ -125,32 +136,6 @@ private:
 		m_readOffset += 4;
 		return res;
 	}
-public:
-
-	CUCode_Zelda(CMailHandler& _rMailHandler);
-	virtual ~CUCode_Zelda();
-
-	void HandleMail(u32 _uMail);
-	void Update(int cycles);
-	void MixAdd(short* buffer, int size);
-
-
-    void UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size);
-
-    void CopyPBsFromRAM();
-    void CopyPBsToRAM();
-
-	void DoState(PointerWrap &p);
-
-    int AFCdecodebuffer(char *input, signed short *out, short * histp, short * hist2p, int type = 9);
-
-
-    int *templbuffer;
-    int *temprbuffer;
-
-    // simple dump ...
-    void DumpPB(const ZPB& _rPB);
-    int DumpAFC(u8* pIn, const int size, const int srate);
 };
 
 #endif

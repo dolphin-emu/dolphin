@@ -594,14 +594,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\UCodes\UCode_Zelda.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\UCodes\UCode_Zelda.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\UCodes\UCodes.cpp"
 				>
 			</File>
@@ -670,6 +662,26 @@
 				</File>
 				<File
 					RelativePath=".\Src\UCodes\UCode_AXWii.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="UCode Zelda"
+				>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda_ADPCM.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda_ADPCM.h"
 					>
 				</File>
 			</Filter>

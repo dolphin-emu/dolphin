@@ -56,13 +56,14 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xd73338cf: // IPL
 	case 0x42f64ac4: // Luigi       (after fix)
 	case 0x4be6a5cb: // AC, Pikmin  (after fix)
-		INFO_LOG(CONSOLE, "JAC ucode chosen\n");
+		INFO_LOG(CONSOLE, "JAC (early Zelda) ucode chosen\n");
 		return new CUCode_Jac(_rMailHandler);
+//		return new CUCode_Zelda(_rMailHandler, false);
 
 	case 0x6CA33A6D: // DK Jungle Beat
-	case 0x86840740: // zelda
-	case 0x56d36052: // mario
-	case 0x2fcdf1ec: // mariokart, zelda 4 swords
+	case 0x86840740: // Zelda WW
+	case 0x56d36052: // Mario Sunshine
+	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
 		INFO_LOG(CONSOLE, "Zelda ucode chosen\n");
 		return new CUCode_Zelda(_rMailHandler);
 

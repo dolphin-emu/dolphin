@@ -20,6 +20,10 @@
 
 #include "UCodes.h"
 
+// This uCode should be deleted and replaced with a small modification of the Zelda uCode.
+// The big difference is that games using this one won't send "message counts"
+// before sending the command data.
+
 class CUCode_Jac : public IUCode
 {
 private:
