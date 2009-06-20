@@ -85,7 +85,7 @@ bool VisPlugin::Load()
 	{
 		// Note:  The prefix is not removed to hide their
 		//        origin at Nullsoft! It just reads easier.
-		if( !strnicmp( header->description, "nullsoft ", 9 ) )
+		if( !_strnicmp( header->description, "nullsoft ", 9 ) )
 		{
 			header->description += 9;
 		}

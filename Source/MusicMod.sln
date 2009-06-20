@@ -130,17 +130,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_nJoy_SDL", "Plugins\
 		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MusicMod", "MusicMod", "{77CF6E34-3038-4B23-A2E7-90AD17801609}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{5C17B1EB-6C76-438A-A503-8F3C7831023B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Externals", "Externals", "{4F427D1B-8C90-4D9C-B23D-A51493A1C471}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dolphin", "Dolphin", "{61C7F431-0623-4A8D-9C4B-EDE35696554A}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputCommon", "Core\InputCommon\InputCommon.vcproj", "{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "..\Externals\MusicMod\Common\Common.vcproj", "{DE7C596C-CBC4-4278-8909-146D63990803}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Main", "..\Externals\MusicMod\Main\Main.vcproj", "{95CCAABC-7062-47C4-B8C1-A064DD5F16FF}"
 	ProjectSection(ProjectDependencies) = postProject

@@ -97,7 +97,7 @@ bool GenPlugin::Load()
 	{
 		// Note:  The prefix is not removed to hide their
 		//        origin at Nullsoft! It just reads easier.
-		if( !strnicmp( plugin->description, "nullsoft ", 9 ) )
+		if( !_strnicmp( plugin->description, "nullsoft ", 9 ) )
 		{
 			plugin->description += 9;
 		}
@@ -106,7 +106,7 @@ bool GenPlugin::Load()
 		char * walk = plugin->description + strlen( plugin->description ) - 5;
 		while( true )
 		{
-			if( ( walk <= plugin->description ) || strnicmp( walk, ".dll)", 5 ) ) break;
+			if( ( walk <= plugin->description ) || _strnicmp( walk, ".dll)", 5 ) ) break;
 			while( ( walk > plugin->description ) && ( *walk != '(' ) ) walk--;
 			if( walk <= plugin->description ) break;
 			walk--;

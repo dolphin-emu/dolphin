@@ -121,10 +121,10 @@ bool InputPlugin::Load()
 	{
 		// Note:  The prefix is not removed to hide their
 		//        origin at Nullsoft! It just reads easier.
-		if( !strnicmp( plugin->description, "nullsoft ", 9 ) )
+		if( !_strnicmp( plugin->description, "nullsoft ", 9 ) )
 		{
 			plugin->description += 9;
-			if( !strnicmp( plugin->description, "mpeg(layer1-3/ct aac+/dolby aac) ", 33 ) )
+			if( !_strnicmp( plugin->description, "mpeg(layer1-3/ct aac+/dolby aac) ", 33 ) )
 			{
 				plugin->description += ( 33 - 5 );
 				memcpy( plugin->description, "MPEG", 4 * sizeof( char ) );

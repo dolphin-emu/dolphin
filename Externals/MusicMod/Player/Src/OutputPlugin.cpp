@@ -118,7 +118,7 @@ bool OutputPlugin::Load()
 	{
 		// Note:  The prefix is not removed to hide their
 		//        origin at Nullsoft! It just reads easier.
-		if( !strnicmp( plugin->description, "nullsoft ", 9 ) )
+		if( !_strnicmp( plugin->description, "nullsoft ", 9 ) )
 		{
 			plugin->description += 9;
 		}

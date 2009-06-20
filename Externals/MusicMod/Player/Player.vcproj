@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\Source\Core\Common\Src"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
