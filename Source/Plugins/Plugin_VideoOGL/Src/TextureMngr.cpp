@@ -417,7 +417,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			break;
 		case PC_TEX_FMT_I8:
 			gl_format = GL_LUMINANCE;
-			gl_iformat = GL_INTENSITY;
+			gl_iformat = GL_INTENSITY8;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
 		case PC_TEX_FMT_IA8:

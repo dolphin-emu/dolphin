@@ -250,7 +250,10 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
+	TRectangle scaledTargetSource;
+	source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
+
+	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(scaledTargetSource) : Renderer::ResolveAndGetRenderTarget(scaledTargetSource);
 	int width = source.right - source.left;
 	int height = source.bottom - source.top;
 
