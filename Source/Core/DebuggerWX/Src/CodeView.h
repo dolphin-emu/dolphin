@@ -20,71 +20,69 @@
 
 #include "Debugger.h"
 #include "Common.h"
-#include "Debugger/DebugInterface.h"
 
 #include <vector>
 
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
 
-class CCodeView
-	: public wxControl
+class DebugInterface;
+
+class CCodeView : public wxControl
 {
-	public:
-		CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
-		wxSize DoGetBestSize() const;
-		void OnPaint(wxPaintEvent& event);
-		void OnErase(wxEraseEvent& event);
-		void OnMouseDown(wxMouseEvent& event);
-		void OnMouseMove(wxMouseEvent& event);
-		void OnMouseUpL(wxMouseEvent& event);
-		void OnMouseUpR(wxMouseEvent& event);
-		void OnPopupMenu(wxCommandEvent& event);
-		void InsertBlrNop(int);
+public:
+	CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
+	wxSize DoGetBestSize() const;
+	void OnPaint(wxPaintEvent& event);
+	void OnErase(wxEraseEvent& event);
+	void OnMouseDown(wxMouseEvent& event);
+	void OnMouseMove(wxMouseEvent& event);
+	void OnMouseUpL(wxMouseEvent& event);
+	void OnMouseUpR(wxMouseEvent& event);
+	void OnPopupMenu(wxCommandEvent& event);
+	void InsertBlrNop(int);
 
-		u32 GetSelection() {return(selection);}
+	u32 GetSelection() {return(selection);}
 
-		struct BlrStruct // for IDM_INSERTBLR
-		{
-			u32 Address;
-			u32 OldValue;
-		};
-		std::vector<BlrStruct> BlrList;
+	struct BlrStruct // for IDM_INSERTBLR
+	{
+		u32 Address;
+		u32 OldValue;
+	};
+	std::vector<BlrStruct> BlrList;
 
-		void Center(u32 addr)
-		{
-			curAddress = addr;
-			selection = addr;
-			redraw();
-		}
+	void Center(u32 addr)
+	{
+		curAddress = addr;
+		selection = addr;
+		redraw();
+	}
 
-	private:
+private:
+	void RaiseEvent();
+	int YToAddress(int y);
 
-		void RaiseEvent();
-		int YToAddress(int y);
+	u32 AddrToBranch(u32 addr);
 
-		u32 AddrToBranch(u32 addr);
+	void redraw() {Refresh();}
 
-		void redraw() {Refresh();}
+	DebugInterface* debugger;
 
+	int curAddress;
+	int align;
+	int rowHeight;
 
-		DebugInterface* debugger;
+	u32 selection;
+	u32 oldSelection;
+	bool selectionChanged;
+	bool selecting;
+	bool hasFocus;
+	bool showHex;
 
-		int curAddress;
-		int align;
-		int rowHeight;
+	int lx, ly;
+	void _MoveTo(int x, int y) {lx = x; ly = y;}
+	void _LineTo(wxPaintDC &dc, int x, int y);
 
-		u32 selection;
-		u32 oldSelection;
-		bool selectionChanged;
-		bool selecting;
-		bool hasFocus;
-		bool showHex;
-
-		int lx, ly;
-		void _MoveTo(int x, int y) {lx = x; ly = y;}
-		void _LineTo(wxPaintDC &dc, int x, int y);
-
-		DECLARE_EVENT_TABLE()
+	DECLARE_EVENT_TABLE()
 };
 
 #endif /*CODEVIEW_H_*/

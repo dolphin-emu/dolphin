@@ -21,6 +21,7 @@
 #include "HW/Memmap.h" // for Write_U32
 #include "Common.h"
 #include "StringUtil.h"
+#include "Debugger/DebugInterface.h"
 
 #include "Host.h"
 #include "CodeView.h"
