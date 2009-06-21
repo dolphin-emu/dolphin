@@ -675,7 +675,7 @@ void lsrn(const UDSPInstruction& opc)
 
 // (NEW)
 // ASRN  (fixed parameters)
-// 0000 0010 1100 1010
+// 0000 0010 1100 1011
 // Arithmetically shifts right accumulator $ACC0 by signed 16-bit value $AC1.M
 // (if value negative, becomes left shift).
 void asrn(const UDSPInstruction& opc)

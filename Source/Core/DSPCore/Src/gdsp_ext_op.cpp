@@ -41,6 +41,8 @@
 // It's gotta be fairly simple though. See R3123, R3125 in Google Code.
 // (May have something to do with (ar[i] ^ wp[i]) == 0)
 
+/*
+
 namespace DSPInterpreter
 {
 
@@ -204,6 +206,8 @@ void ldnm(const UDSPInstruction& opc)
 
 } // end namespace ext
 } // end namespace DSPInterpeter
+*/ 
+
 
 void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 {
