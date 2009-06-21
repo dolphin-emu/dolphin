@@ -12,7 +12,7 @@ files = [
 
 libs = [
 	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
-	'common', 'z'
+	'common', 'z', 'debugger_ui_util'
 	]
 
 if wxenv['HAVE_WX']:

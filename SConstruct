@@ -56,6 +56,7 @@ include_paths = [
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
     basedir + 'Source/Core/AudioCommon/Src',
+	basedir + 'Source/Core/DebuggerUICommon/Src',
     basedir + 'Source/Core/DSPCore/Src',
     ]
 
@@ -70,6 +71,7 @@ dirs = [
     'Source/Core/VideoCommon/Src',
     'Source/Core/InputCommon/Src',
     'Source/Core/AudioCommon/Src',
+	'Source/Core/DebuggerUICommon/Src',
     'Source/Core/DSPCore/Src',
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',

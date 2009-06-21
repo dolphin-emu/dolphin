@@ -12,6 +12,8 @@ if not env['HAVE_AO']:
 
 files = [
 	"Config.cpp",
+	"DSPDebugInterface.cpp",
+	"DSPSymbols.cpp",
 	"Globals.cpp",
 	"main.cpp",
 	"Tools.cpp",
@@ -31,7 +33,7 @@ if env['HAVE_WX']:
 lleenv = env.Clone()
 lleenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
-	LIBS = [ 'dspcore', 'audiocommon', 'common',  ],
+	LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util'  ],
 	)
 
 lleenv.SharedLibrary(env['plugin_dir']+name, files)

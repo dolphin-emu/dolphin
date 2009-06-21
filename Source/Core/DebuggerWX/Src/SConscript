@@ -29,7 +29,8 @@ wxenv.Append(
 		]
 	)
 libs = [
-    'common'
+    'common',
+	'debugger_ui_util'
 ]
 
 wxenv.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)

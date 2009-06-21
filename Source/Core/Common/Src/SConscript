@@ -29,6 +29,7 @@ files = [
 	"PluginPAD.cpp",
 	"SDCardUtil.cpp",
 	"StringUtil.cpp",
+	"SymbolDB.cpp",
 	"Thread.cpp",
 	"Thunk.cpp",
 	"Timer.cpp",

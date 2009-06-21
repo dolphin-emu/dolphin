@@ -4,6 +4,7 @@
 #include <string>
 
 #include "DebugInterface.h"
+#include "Common.h"
 
 class DSPDebugInterface : public DebugInterface
 {
