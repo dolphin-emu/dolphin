@@ -82,6 +82,20 @@ inline void dsp_increment_addr_reg(int reg)
 		g_dsp.r[reg]++;
 }
 
+inline void dsp_increase_addr_reg(int reg, s16 value)
+{
+	// TODO: DO RIGHT!
+	if (value > 0) {
+		for (int i = 0; i < value; i++) {
+			dsp_increment_addr_reg(reg);
+		}
+	} else if (value < 0) {
+		for (int i = 0; i < (int)(-value); i++) {
+			dsp_decrement_addr_reg(reg);
+		}
+	}
+}
+
 
 // ---------------------------------------------------------------------------------------
 // --- reg

@@ -97,7 +97,11 @@ void addarn(const UDSPInstruction& opc)
 	u8 dreg = opc.hex & 0x3;
 	u8 sreg = (opc.hex >> 2) & 0x3;
 
-	g_dsp.r[dreg] += (s16)g_dsp.r[DSP_REG_IX0 + sreg];
+	// g_dsp.r[dreg] += (s16)g_dsp.r[DSP_REG_IX0 + sreg];
+
+	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+
+	// It is critical for the Zelda ucode that this one wraps correctly.
 }
 
 // NX
