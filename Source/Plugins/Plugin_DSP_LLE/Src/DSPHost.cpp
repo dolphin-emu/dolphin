@@ -68,7 +68,7 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	
 	// TODO: Don't hardcode for Zelda.
 	NOTICE_LOG(DSPLLE, "CRC: %08x", ector_crc);
-	if (!DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"))
+	if (ector_crc != 0x86840740 || !DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"))
 	{
 		DSPSymbols::Clear();
 		DSPSymbols::AutoDisassembly(0x0, 0x1000);
