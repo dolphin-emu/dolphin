@@ -98,6 +98,8 @@ void lsl(const UDSPInstruction& opc);
 void lsr(const UDSPInstruction& opc);
 void asl(const UDSPInstruction& opc);
 void asr(const UDSPInstruction& opc);  
+void lsrn(const UDSPInstruction& opc);
+void asrn(const UDSPInstruction& opc);
 void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);

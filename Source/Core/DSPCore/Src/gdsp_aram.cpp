@@ -64,19 +64,42 @@ s16 ADPCM_Step(u32& _rSamplePos)
 	return val;
 }
 
+u16 dsp_read_aram_d3()
+{
+	// Zelda ucode reads ARAM through 0xffd3.
+
+	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
+	u8 value = 0;
+	switch (gdsp_ifx_regs[DSP_FORMAT]) {
+		case 0x5:   // unsigned 8-bit reads .. I think.
+			value = DSPHost_ReadHostMemory(Address);
+			break;
+		default:
+			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
+			break;
+	}
+	return value;
+}
+
 void dsp_write_aram_d3(u16 value)
 {
-	// Not sure about this one but it sure looks like Zelda is writing to ARAM
-	// through 0xFFd3...
+	// Zelda ucode writes a bunch of zeros to ARAM through d3 during initialization.
+	// Don't know if it ever does it later, too.
 
 	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
-
-	DSPHost_WriteHostMemory(value >> 8, Address);
-	DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
+	switch (gdsp_ifx_regs[DSP_FORMAT]) {
+		case 0xA:   // 16-bit writes
+			DSPHost_WriteHostMemory(value >> 8, Address);
+			DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
+			break;
+		default:
+			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
+			break;
+	}
 }
 
-u16 dsp_read_aram()
+u16 dsp_read_accelerator()
 {
 	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];

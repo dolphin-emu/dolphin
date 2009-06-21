@@ -18,7 +18,9 @@
 #ifndef _GDSP_ARAM_H
 #define _GDSP_ARAM_H
 
-u16 dsp_read_aram();
+u16 dsp_read_accelerator();
+
+u16 dsp_read_aram_d3();
 void dsp_write_aram_d3(u16 value);
 
 #endif

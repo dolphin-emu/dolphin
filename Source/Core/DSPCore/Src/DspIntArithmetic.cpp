@@ -652,6 +652,46 @@ void asr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+
+// (NEW)
+// LSRN  (fixed parameters)
+// 0000 0010 1100 1010
+// Logically shifts right accumulator $ACC0 by signed 16-bit value $AC1.M
+// (if value negative, becomes left shift).
+void lsrn(const UDSPInstruction& opc)
+{
+	s16 shift = (s16)g_dsp.r[DSP_REG_ACM1];
+	u64 acc = dsp_get_long_acc(0);
+	// Lop off the extraneous sign extension our 64-bit fake accum causes
+	acc &= 0x000000FFFFFFFFFFULL;
+	if (shift > 0) {
+		acc >>= shift;
+	} else if (shift < 0) {
+		acc <<= -shift;
+	}
+	dsp_set_long_acc(0, (s64)acc);
+	Update_SR_Register64(acc);
+}
+
+// (NEW)
+// ASRN  (fixed parameters)
+// 0000 0010 1100 1010
+// Arithmetically shifts right accumulator $ACC0 by signed 16-bit value $AC1.M
+// (if value negative, becomes left shift).
+void asrn(const UDSPInstruction& opc)
+{
+	s16 shift = (s16)g_dsp.r[DSP_REG_ACM1];
+	s64 acc = dsp_get_long_acc(0);
+	if (shift > 0) {
+		acc >>= shift;
+	} else if (shift < 0) {
+		acc <<= -shift;
+	}
+	dsp_set_long_acc(0, acc);
+	Update_SR_Register64(acc);
+}
+
+
 // CMPAR $acS axR.h
 // 1100 0001 xxxx xxxx
 // Compares accumulator $acS with accumulator axR.h.

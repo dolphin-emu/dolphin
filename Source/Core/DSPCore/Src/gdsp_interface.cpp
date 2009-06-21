@@ -173,26 +173,28 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	}
 }
 
-
 u16 gdsp_ifx_read(u16 addr)
 {
 	switch (addr & 0xff)
 	{
-	    case 0xfc: // DMBH
+	    case 0xfc:  // DMBH
 		    return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 
-	    case 0xfe: // CMBH
+	    case 0xfe:  // CMBH
 		    return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 
-	    case 0xff: // CMBL
+	    case 0xff:  // CMBL
 		    return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 
 	    case 0xc9:
 		    return gdsp_ifx_regs[addr & 0xFF];
 
-	    case 0xdd:
-			// ERROR_LOG(DSPLLE, "Accelerator");
-		    return dsp_read_aram();
+	    case 0xdd:  // ADPCM Accelerator reads
+		    return dsp_read_accelerator();
+
+	    case 0xd3:
+	   		ERROR_LOG(DSPLLE, "DSP read aram D3");
+		    return dsp_read_aram_d3();
 
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
@@ -209,7 +211,6 @@ u16 gdsp_ifx_read(u16 addr)
 		    return gdsp_ifx_regs[addr & 0xFF];
 	}
 }
-
 
 void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
@@ -235,6 +236,7 @@ void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 }
 
 
+// TODO: These should eat clock cycles.
 void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
