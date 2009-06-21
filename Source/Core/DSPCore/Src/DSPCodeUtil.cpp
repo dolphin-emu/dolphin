@@ -125,7 +125,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	header.append("#define NUM_UCODES 1\n\n");
 	std::string filename;
 	SplitPath(_filename, NULL, &filename, NULL);
-	header.append("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str());
+	header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str()));
 	header.append("#ifndef _MSCVER\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 	header.append("#else\n");

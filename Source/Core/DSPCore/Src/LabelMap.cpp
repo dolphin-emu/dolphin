@@ -27,11 +27,13 @@ void LabelMap::RegisterDefaults()
 {
 	for (int i = 0; i < 0x24; i++)
 	{
-		RegisterLabel(regnames[i].name, regnames[i].addr);
+		if (regnames[i].name)
+			RegisterLabel(regnames[i].name, regnames[i].addr);
 	}
 	for (int i = 0; i < (int)pdlabels_size; i++)
 	{
-		RegisterLabel(pdlabels[i].name, pdlabels[i].addr);
+		if (pdlabels[i].name)
+			RegisterLabel(pdlabels[i].name, pdlabels[i].addr);
 	}
 }
 
