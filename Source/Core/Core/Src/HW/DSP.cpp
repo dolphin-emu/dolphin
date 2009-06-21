@@ -474,7 +474,7 @@ void UpdateAudioDMA()
 			// Latch new parameters
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
+			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	} else {
@@ -647,11 +647,35 @@ u8 ReadARAM(u32 _iAddress)
 		return g_ARAM[_iAddress & ARAM_MASK];
 }
 
+void WriteARAM(u8 value, u32 _uAddress)
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		//LOGV(DSPINTERFACE, 0, "ARAM (w) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
+
+		// Does this make any sense?
+		if (_uAddress > WII_MASK)
+		{
+			if (_uAddress > WII_MEM2)
+				_uAddress = (_uAddress & WII_MEM2);
+			g_MEM2[_uAddress] = value;
+		}
+		else
+		{
+			g_ARAM[_uAddress] = value;
+		}		
+	}
+	else
+		g_ARAM[_uAddress & ARAM_MASK] = value;
+}
+
+
 u8 *GetARAMPtr()
 {
 	return g_ARAM;
 }
 
+/*
 // Should this really be a function? The hardware only supports block DMA.
 void WriteARAM(u8 _iValue, u32 _iAddress)
 {
@@ -661,7 +685,7 @@ void WriteARAM(u8 _iValue, u32 _iAddress)
 	// rouge leader writes WAY outside
 	// not really surprising since it uses a totally different memory model :P
 	g_ARAM[_iAddress & ARAM_MASK] = _iValue;
-}
+}*/
 
 } // end of namespace DSP
 // ===================

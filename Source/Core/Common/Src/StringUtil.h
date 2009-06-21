@@ -66,6 +66,8 @@ bool AsciiToHex(const char* _szValue, u32& result);
 u32 Ascii2Hex(std::string _Text);
 std::string Hex2Ascii(u32 _Text);
 
+std::string TabsToSpaces(int tab_size, const std::string &in);
+
 void SplitString(const std::string& str, const std::string& delim, std::vector<std::string>& output);
 int ChooseStringFrom(const char* str, const char* * items);
 

@@ -18,15 +18,34 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "Debugger_SymbolMap.h"
+#include "Debugger_Breakpoints.h"
 #include "../Core.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 #include "../../../../Externals/Bochs_disasm/PowerPCDisasm.h"
 
 namespace Debugger
 {
+
+void AddAutoBreakpoints()
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#if 1
+	const char *bps[] = {
+		"PPCHalt",
+	};
+
+	for (u32 i = 0; i < sizeof(bps) / sizeof(const char *); i++)
+	{
+		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
+		if (symbol)
+		    g_breakpoints.Add(symbol->address, false);
+	}
+#endif
+#endif
+}
 
 bool GetCallstack(std::vector<CallstackEntry> &output) 
 {

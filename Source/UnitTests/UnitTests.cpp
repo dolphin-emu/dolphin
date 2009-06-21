@@ -96,6 +96,7 @@ void StringTests()
 	EXPECT_EQ(StripNewline(" abc \n "), " abc \n ");
 	EXPECT_EQ(StripQuotes("\"abc\""), "abc");
 	EXPECT_EQ(StripQuotes("\"abc\" "), "\"abc\" ");
+	EXPECT_EQ(TabsToSpaces(4, "a\tb"), "a    b");
 }
 
 int main(int argc, _TCHAR* argv[])

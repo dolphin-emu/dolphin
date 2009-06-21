@@ -20,7 +20,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "SymbolDB.h"
+#include "PPCSymbolDB.h"
 
 namespace Profiler
 {

@@ -30,6 +30,7 @@
 
 #include "DSPCore.h"
 #include "DSPHost.h"
+#include "DSPTables.h"
 #include "DSPAnalyzer.h"
 #include "gdsp_aram.h"
 #include "gdsp_interpreter.h"
@@ -89,6 +90,8 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 	if (mbx == GDSP_MBOX_DSP)
 	{
 		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
+	} else {
+		// Trigger exception?
 	}
 }
 
@@ -138,6 +141,11 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    gdsp_ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
 
+		case 0xd3:   // ZeldaUnk (accelerator WRITE)
+		   	ERROR_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)\n", g_dsp.pc, val);
+			dsp_write_aram_d3(val);
+			break;
+
 		case 0xde:
 			//if (val)
 			//	PanicAlert("Gain written: %04x", val);   // BMX XXX does, and sounds HORRIBLE.
@@ -149,10 +157,17 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    break;
 
 	    default:
-/*		if ((addr & 0xff) >= 0xa0 && reg_names[addr - 0xa0])
-   	    DEBUG_LOG(DSPLLE, "%04x MW %s (%04x)\n", g_dsp.pc, reg_names[addr - 0xa0], val);
-   	else
-   	    DEBUG_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);*/
+			if ((addr & 0xff) >= 0xa0) {
+				if (pdlabels[(addr & 0xFF) - 0xa0].name) {
+		   			INFO_LOG(DSPLLE, "%04x MW %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+				}
+				else {
+		   			ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);
+				}
+			}
+			else {
+		   	    ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);
+			}
 		    gdsp_ifx_regs[addr & 0xFF] = val;
 		    break;
 	}
@@ -176,14 +191,22 @@ u16 gdsp_ifx_read(u16 addr)
 		    return gdsp_ifx_regs[addr & 0xFF];
 
 	    case 0xdd:
+			// ERROR_LOG(DSPLLE, "Accelerator");
 		    return dsp_read_aram();
 
 	    default:
+			if ((addr & 0xff) >= 0xa0) {
+				if (pdlabels[(addr & 0xFF) - 0xa0].name) {
+	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
+				}
+				else {
+	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)\n", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+				}
+			}
+			else {
+   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)\n", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+			}
 		    return gdsp_ifx_regs[addr & 0xFF];
-/*		if ((addr & 0xff) >= 0xc0 && reg_names[addr & 0x3f])
-   	    printf("%04x MR %s (%04x)\n", g_dsp.pc, reg_names[addr & 0x3f], val);
-   	else
-   	    printf("%04x MR %04x (%04x)\n", g_dsp.pc, addr, val);*/
 	}
 }
 

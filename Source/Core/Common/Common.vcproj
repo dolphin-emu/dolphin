@@ -605,6 +605,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DebugInterface.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DynamicLibrary.cpp"
 			>
 		</File>
@@ -778,6 +782,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\StringUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SymbolDB.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SymbolDB.h"
 			>
 		</File>
 		<File

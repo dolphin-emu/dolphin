@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="UnitTests"
-	ProjectGUID="{40C636FA-B5BF-4D67-ABC8-376B524A7551}"
-	RootNamespace="UnitTests"
+	Name="DebuggerUICommon"
+	ProjectGUID="{F81AE75C-3D17-4D8C-A201-82FA5351C123}"
+	RootNamespace="DebuggerUICommon"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -21,10 +21,10 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -44,8 +44,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -63,17 +63,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="2"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -85,20 +78,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			ConfigurationType="4"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -119,8 +107,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -138,17 +126,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="2"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -160,20 +141,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -195,8 +171,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -213,19 +189,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -237,20 +204,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			ConfigurationType="4"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -273,8 +235,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -291,19 +253,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -315,20 +268,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
 			Name="DebugFast|Win32"
-			OutputDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			ConfigurationType="4"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -350,8 +298,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -368,19 +316,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -392,20 +331,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
 			Name="DebugFast|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="1"
+			ConfigurationType="4"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -428,8 +362,9 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				WholeProgramOptimization="false"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -446,19 +381,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -470,12 +396,7 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot; /e /s /y /d"
-				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 	</Configurations>
@@ -483,7 +404,23 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\UnitTests.cpp"
+			RelativePath=".\Src\CodeView.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\CodeView.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DebuggerUIUtil.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DebuggerUIUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 	</Files>

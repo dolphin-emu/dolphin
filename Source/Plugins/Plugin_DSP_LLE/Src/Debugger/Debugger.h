@@ -37,8 +37,10 @@
 #include "disassemble.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_memory.h"
+#include "../DSPDebugInterface.h"
 
 class DSPRegisterView;
+class CCodeView;
 
 class DSPDebuggerLLE : public wxFrame
 {
@@ -66,14 +68,16 @@ private:
 		ID_RUNTOOL,
 		ID_STEPTOOL,
 		ID_SHOWPCTOOL,
+		ID_ADDRBOX,
 		ID_JUMPTOTOOL,
 		ID_DISASMDUMPTOOL,
 		ID_CHECK_ASSERTINT,
 		ID_CHECK_HALT,
 		ID_CHECK_INIT,
+		ID_SYMBOLLIST,
 
-		// Disasm view
-		ID_DISASM,
+		// Code view
+		ID_CODEVIEW,
 
 		// Register View
 		ID_DSP_REGS,
@@ -100,39 +104,10 @@ private:
 	};
 	EState m_State;
 
+	DSPDebugInterface debug_interface;
 	u64 m_CachedStepCounter;
 	u16 m_CachedCR;
 	u32 m_CachedUCodeCRC;
-
-	// Break point handling
-	typedef std::list<u16>CBreakPointList;
-	CBreakPointList m_BreakPoints;
-
-	bool IsBreakPoint(u16 _Address);
-	void ToggleBreakPoint(u16 _Address);
-	void RemoveBreakPoint(u16 _Address);
-	void AddBreakPoint(u16 _Address);
-	void ClearBreakPoints();
-
-	// Symbols
-	struct SSymbol
-	{
-		u32 AddressStart;
-		u32 AddressEnd;
-		std::string Name;
-
-		SSymbol(u32 _AddressStart = 0, u32 _AddressEnd = 0, char* _Name = NULL)
-			: AddressStart(_AddressStart)
-			, AddressEnd(_AddressEnd)
-			, Name(_Name)
-		{
-		}
-	};
-
-	typedef std::map<u16, SSymbol>CSymbolMap;
-	CSymbolMap m_SymbolMap;
-
-	bool LoadSymbolMap(const char* _pFileName);
 
 	// GUI updaters
 	void UpdateDisAsmListView();
@@ -140,18 +115,21 @@ private:
 	void UpdateSymbolMap();
 	void UpdateState();
 
-	void RebuildDisAsmListView();
-
 	// GUI items
 	wxToolBar* m_Toolbar;
-	wxListCtrl* m_Disasm;
+	CCodeView* m_CodeView;
 	DSPRegisterView* m_Regs;
+	wxListBox* m_SymbolList;
 
 	void OnClose(wxCloseEvent& event);
 	void OnChangeState(wxCommandEvent& event);
 	void OnShowPC(wxCommandEvent& event);
 	void OnRightClick(wxListEvent& event);
 	void OnDoubleClick(wxListEvent& event);
+	void OnAddrBoxChange(wxCommandEvent& event);
+	void OnSymbolListChange(wxCommandEvent& event);
+
+	bool JumpToAddress(u16 addr);
 
 	void CreateGUIControls();
 	void FocusOnPC();

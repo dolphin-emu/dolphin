@@ -19,5 +19,6 @@
 #define _GDSP_ARAM_H
 
 u16 dsp_read_aram();
+void dsp_write_aram_d3(u16 value);
 
 #endif

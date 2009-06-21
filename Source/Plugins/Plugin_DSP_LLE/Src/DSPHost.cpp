@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "DSPHost.h"
+#include "DSPSymbols.h"
 #include "Tools.h"
 #include "pluginspecs_dsp.h"
 
@@ -30,6 +31,11 @@ extern DSPInitialize g_dspInitialize;
 u8 DSPHost_ReadHostMemory(u32 addr)
 {
 	return g_dspInitialize.pARAM_Read_U8(addr);
+}
+
+void DSPHost_WriteHostMemory(u8 value, u32 addr)
+{
+	g_dspInitialize.pARAM_Write_U8(value, addr);
 }
 
 bool DSPHost_OnThread()
@@ -46,5 +52,29 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
 	u32 crc = GenerateCRC(ptr, size);
 	DumpDSPCode(ptr, size, crc);
+
+	// this crc is comparable with the HLE plugin
+	u32 ector_crc = 0;
+	for (u32 i = 0; i < size; i++)
+	{
+		ector_crc ^= ptr[i];
+		//let's rol
+		ector_crc = (ector_crc << 3) | (ector_crc >> 29);
+	}
+
+	DSPSymbols::Clear();
+
+	// Auto load text file - if none just disassemble.
+	
+	// TODO: Don't hardcode for Zelda.
+	NOTICE_LOG(DSPLLE, "CRC: %08x", ector_crc);
+	if (!DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"))
+	{
+		DSPSymbols::Clear();
+		DSPSymbols::AutoDisassembly(0x0, 0x1000);
+	}
+
+	// Always add the ROM.
+	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
 	return crc;
 }

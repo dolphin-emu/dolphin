@@ -25,7 +25,7 @@
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/Jit64/Jit.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {
@@ -104,18 +104,18 @@ bool PPCDebugInterface::isAlive()
 
 bool PPCDebugInterface::isBreakpoint(unsigned int address) 
 {
-	return BreakPoints::IsAddressBreakPoint(address);
+	return g_breakpoints.IsAddressBreakPoint(address);
 }
 
 void PPCDebugInterface::setBreakpoint(unsigned int address)
 {
-	if (BreakPoints::Add(address))
+	if (g_breakpoints.Add(address))
 		jit.NotifyBreakpoint(address, true);
 }
 
 void PPCDebugInterface::clearBreakpoint(unsigned int address)
 {
-	if (BreakPoints::Remove(address))
+	if (g_breakpoints.Remove(address))
 		jit.NotifyBreakpoint(address, false);
 }
 
@@ -123,10 +123,10 @@ void PPCDebugInterface::clearAllBreakpoints() {}
 
 void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 {
-	if (BreakPoints::IsAddressBreakPoint(address))
-		BreakPoints::Remove(address);
+	if (g_breakpoints.IsAddressBreakPoint(address))
+		g_breakpoints.Remove(address);
 	else
-		BreakPoints::Add(address);
+		g_breakpoints.Add(address);
 }
 
 void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 

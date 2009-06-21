@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -132,7 +132,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -222,7 +222,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -314,7 +314,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -403,8 +403,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
+				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
@@ -495,8 +495,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="../../Core/DSPCore/Src;../../Core/Common/Src;../../PluginSpecs;../../Core/AudioCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Debugger\Src;../../Core/DebuggerUICommon/Src"
+				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_LLE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
@@ -826,6 +826,14 @@
 				RelativePath=".\Src\Debugger\DSPRegisterView.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\DSPSymbols.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPSymbols.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\Config.cpp"
@@ -833,14 +841,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Config.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\Core\DSPCore\Src\DSPConfigDlgLLE.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\Core\DSPCore\Src\DSPConfigDlgLLE.h"
 			>
 		</File>
 		<File

@@ -20,69 +20,42 @@
 #include "DSPCore.h"
 #include "disassemble.h"
 
+#include "DSPSymbols.h"
+#include "gdsp_memory.h"
+
 void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {
-	AssemblerSettings settings;
-	settings.print_tabs = true;
-
-	u16 pc = address;
-	DSPDisassembler dis(settings);
-
-	u16 base = 0;
-	const u16 *binbuf = g_dsp.iram;
-	if (pc & 0x8000)
-	{
-		binbuf = g_dsp.irom;
-		base = 0x8000;
-	}
-
-	std::string text;
-	dis.DisOpcode(binbuf, base, 2, &pc, text);
-	strncpy(dest, text.c_str(), max_size);
-	dest[max_size - 1] = '\0';
-
-	/*
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (Memory::IsRAMAddress(address, true))
-		{
-			u32 op = Memory::Read_Instruction(address);
-			DisassembleGekko(op, address, dest, max_size);
-			UGeckoInstruction inst;
-			inst.hex = Memory::ReadUnchecked_U32(address);
-			if (inst.OPCD == 1) {
-				strcat(dest, " (hle)");
-			}
-		}
-		else
-		{
-			strcpy(dest, "(No RAM here)");
-		}
-	}
-	else
-	{
-		strcpy(dest, "<unknown>");
-	}*/
+	// we'll treat addresses as line numbers.
+	strncpy(dest, DSPSymbols::GetLineText(address), max_size);
+	dest[max_size-1] = 0;
 }
 
 void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
-	/*
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (Memory::IsRAMAddress(address, true))
-		{
-			snprintf(dest, max_size, "%08X", readMemory(address));
+	switch (memory) {
+	case 0:  // IMEM
+		switch (address >> 12) {
+		case 0:
+		case 0x8:
+			sprintf(dest, "%04x", dsp_imem_read(address));
+			break;
+		default:
+			sprintf(dest, "----");
+			break;
 		}
-		else
-		{
-			strcpy(dest, "--------");
+		break;
+	case 1:  // DMEM
+		switch (address >> 12) {
+		case 0:
+		case 1:
+			sprintf(dest, "%04x", dsp_dmem_read(address));
+			break;
+		default:
+			sprintf(dest, "----");
+			break;
 		}
+		break;
 	}
-	else
-	{
-		strcpy(dest, "<unknwn>");  // bad spelling - 8 chars
-	}*/
 }
 
 unsigned int DSPDebugInterface::readMemory(unsigned int address)
@@ -129,19 +102,14 @@ void DSPDebugInterface::toggleBreakpoint(unsigned int address)
 
 void DSPDebugInterface::insertBLR(unsigned int address) 
 {
-	// Memory::Write_U32(0x4e800020, address);
+	
 }
-
 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
 int DSPDebugInterface::getColor(unsigned int address)
 {
-	return 0xEEEEEE;
-	/*
-	if (!Memory::IsRAMAddress(address, true))
-		return 0xeeeeee;
 	static const int colors[6] =
 	{ 
 		0xd0FFFF,  // light cyan
@@ -152,29 +120,42 @@ int DSPDebugInterface::getColor(unsigned int address)
 		0xFFFFd0,  // light yellow
 	};
 
-	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+	// Scan backwards so we don't miss it. Hm, actually, let's not - it looks pretty good.
+	int addr = -1;
+	for (int i = 0; i < 1; i++)
+	{
+		addr = DSPSymbols::Line2Addr(address - i);
+		if (addr >= 0)
+			break;
+	}
+	if (addr == -1)
+		return 0xFFFFFF;
+
+	Symbol *symbol = DSPSymbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
 	if (!symbol)
 		return 0xFFFFFF;
 	if (symbol->type != Symbol::SYMBOL_FUNCTION)
 		return 0xEEEEFF;
-	return colors[symbol->index % 6];*/
+	return colors[symbol->index % 6];
 }
 // =============
 
 
 std::string DSPDebugInterface::getDescription(unsigned int address) 
 {
-	return "asdf";  // g_symbolDB.GetDescription(address);
+	return "";  // g_symbolDB.GetDescription(address);
 }
 
 unsigned int DSPDebugInterface::getPC() 
 {
-	return 0;
+	return DSPSymbols::Addr2Line(g_dsp.pc);
 }
 
 void DSPDebugInterface::setPC(unsigned int address) 
 {
-	//PowerPC::ppcState.pc = address;
+	int new_pc = DSPSymbols::Line2Addr(address);
+	if (new_pc > 0)
+		g_dsp.pc = new_pc;
 }
 
 void DSPDebugInterface::runToBreakpoint() 

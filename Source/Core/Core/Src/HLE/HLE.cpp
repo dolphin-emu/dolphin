@@ -21,7 +21,7 @@
 #include "HLE.h"
 
 #include "../PowerPC/PowerPC.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 #include "../HW/Memmap.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Debugger/Debugger_BreakPoints.h"
@@ -132,7 +132,7 @@ void PatchFunctions()
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
 		if (symbol > 0)
 		{
-			BreakPoints::Add(symbol->address, false);
+			g_breakpoints.Add(symbol->address, false);
 			INFO_LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
 		}
 	}

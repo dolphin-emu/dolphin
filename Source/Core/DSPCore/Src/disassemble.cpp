@@ -82,7 +82,7 @@ bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, in
 	fclose(f);
 
 	// Run the two passes.
-	return DisFile(tmp1, 1, text) && DisFile(tmp1, 2, text);
+	return DisFile(tmp1, base_addr, 1, text) && DisFile(tmp1, base_addr, 2, text);
 }
 
 char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char *strbuf)
@@ -186,7 +186,7 @@ static void MakeLowerCase(char *ptr)
 	}
 }
 
-void DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
+bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
 {
 	char buffer[256];
 	char *buf = buffer;
@@ -200,11 +200,10 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	{
 		*pc++;
 		dest.append("; outside memory");
-		return;
+		return false;
 	}
 
-	*pc &= 0x0fff;
-	const u32 op1 = binbuf[*pc];
+	const u32 op1 = binbuf[*pc & 0x0fff];
 
 	const DSPOPCTemplate *opc = NULL;
 	const DSPOPCTemplate *opc_ext = NULL;
@@ -259,7 +258,7 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	// Size 2 - the op has a large immediate.
 	if ((opc->size & ~P_EXT) == 2)
 	{
-		op2 = binbuf[*pc + 1];
+		op2 = binbuf[(*pc + 1) & 0x0fff];
 		if (settings_.show_hex)
 			buf += sprintf(buf, "%04x %04x ", op1, op2);
 	}
@@ -318,9 +317,10 @@ void DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 
 	if (pass == 2)
 		dest.append(buffer);
+	return true;
 }
 
-bool DSPDisassembler::DisFile(const char* name, int pass, std::string &output)
+bool DSPDisassembler::DisFile(const char* name, int base_addr, int pass, std::string &output)
 {
 	FILE* in = fopen(name, "rb");
 	if (in == NULL)
@@ -339,7 +339,7 @@ bool DSPDisassembler::DisFile(const char* name, int pass, std::string &output)
 	// Actually do the disassembly.
 	for (u16 pc = 0; pc < (size / 2);)
 	{
-		DisOpcode(binbuf, 0x0000, pass, &pc, output);
+		DisOpcode(binbuf, base_addr, pass, &pc, output);
 		if (pass == 2)
 			output.append("\n");
 	}

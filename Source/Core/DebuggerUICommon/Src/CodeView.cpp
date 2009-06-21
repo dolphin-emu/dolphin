@@ -15,17 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-//#include "Debugger.h"
-#include "Debugger/PPCDebugInterface.h"
-#include "PowerPC/SymbolDB.h"
-#include "HW/Memmap.h" // for Write_U32
+// #include "Debugger.h"
+// #include "Debugger/PPCDebugInterface.h"
+
+// #include "PowerPC/SymbolDB.h"
 #include "Common.h"
 #include "StringUtil.h"
-#include "Debugger/DebugInterface.h"
+#include "DebuggerUIUtil.h"
+#include "DebugInterface.h"
 
-#include "Host.h"
+// #include "Host.h"
 #include "CodeView.h"
-#include "JitWindow.h"
+#include "SymbolDB.h"
+// #include "JitWindow.h"
 
 #include <wx/event.h>
 #include <wx/clipbrd.h>
@@ -61,9 +63,11 @@ BEGIN_EVENT_TABLE(CCodeView, wxControl)
 	EVT_MENU(-1, CCodeView::OnPopupMenu)
 END_EVENT_TABLE()
 
-CCodeView::CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id, const wxSize& Size)
+CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb, wxWindow* parent, wxWindowID Id, const wxSize& Size)
 	: wxControl(parent, Id, wxDefaultPosition, Size),
       debugger(debuginterface),
+	  symbol_db(symboldb),
+	  plain(false),
       rowHeight(13),
       selection(0),
       oldSelection(0),
@@ -121,7 +125,7 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 	{
 		debugger->toggleBreakpoint(YToAddress(y));
 		redraw();
-		Host_UpdateBreakPointView();
+//		Host_UpdateBreakPointView();
 	}
 
 	event.Skip(true);
@@ -202,9 +206,9 @@ void CCodeView::InsertBlrNop(int Blr)
 	}
 
 	// Save the old value				
-	if(find >= 0)
+	if (find >= 0)
 	{
-		Memory::Write_U32(BlrList.at(find).OldValue, selection);
+		debugger->writeExtraMemory(0, BlrList.at(find).OldValue, selection);
 		BlrList.erase(BlrList.begin() + find);
 	}
 	else
@@ -257,7 +261,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_COPYFUNCTION:
 			{
-			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
+			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
 			if (symbol) {
 				std::string text;
 				text = text + symbol->name + "\r\n";
@@ -292,7 +296,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 
 	    case IDM_JITRESULTS:
-			CJitWindow::ViewAddr(selection);
+			// CJitWindow::ViewAddr(selection);
 		    break;
 			
 		case IDM_FOLLOWBRANCH:
@@ -306,14 +310,14 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	
 		case IDM_ADDFUNCTION:
 			{
-			g_symbolDB.AddFunction(selection);
-			Host_NotifyMapLoaded();
+			symbol_db->AddFunction(selection);
+//			Host_NotifyMapLoaded();
 			}
 			break;
 
 		case IDM_RENAMESYMBOL:
 			{
-			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
+			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
 			if (symbol) {
 				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"), wxGetTextFromUserPromptStr,
 					wxString::FromAscii(symbol->name.c_str()));
@@ -321,7 +325,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					symbol->name = input_symbol.GetValue().mb_str();
 				}
 //			    redraw();
-				Host_NotifyMapLoaded();
+//				Host_NotifyMapLoaded();
 			}
 			}
 			break;
@@ -342,7 +346,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
-	bool isSymbol = g_symbolDB.GetSymbolFromAddr(selection) != 0;
+	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != 0;
 	// popup menu
 	wxMenu menu;
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
@@ -379,7 +383,9 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// -------------------------
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
+
 	dc.SetFont(DebuggerFont);
+
 	struct branch
 	{
 		int src, dst, srcAddr;
@@ -448,9 +454,11 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 		dc.DrawRectangle(16, rowY1, width, rowY2 - rowY1 + 1);
 		dc.SetBrush(currentBrush);
-		dc.SetTextForeground(_T("#600000")); // the address text is dark red
-		dc.DrawText(temp, 17, rowY1);
-		dc.SetTextForeground(_T("#000000"));
+		if (!plain) {
+			dc.SetTextForeground(_T("#600000")); // the address text is dark red
+			dc.DrawText(temp, 17, rowY1);
+			dc.SetTextForeground(_T("#000000"));
+		}
 
 		if (debugger->isAlive())
 		{
@@ -464,23 +472,17 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			{
 				*dis2 = 0;
 				dis2++;
+				// look for hex strings to decode branches
 				const char* mojs = strstr(dis2, "0x8");
-
-				// --------------------------------------------------------------------
-				// Colors and brushes
-				// -------------------------
 				if (mojs)
 				{
 					for (int k = 0; k < 8; k++)
 					{
 						bool found = false;
-
 						for (int j = 0; j < 22; j++)
 						{
 							if (mojs[k + 2] == "0123456789ABCDEFabcdef"[j])
-							{
 								found = true;
-							}
 						}
 						if (!found)
 						{
@@ -489,12 +491,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 						}
 					}
 				}
-				// ------------
-
-			
-				// --------------------------------------------------------------------
-				// Colors and brushes
-				// -------------------------
 				if (mojs)
 				{
 					int offs;
@@ -520,20 +516,22 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				dc.SetTextForeground(_T("#8000FF")); // purple
 
-			dc.DrawText(wxString::FromAscii(dis), 80, rowY1);
+			dc.DrawText(wxString::FromAscii(dis), plain ? 25 : 80, rowY1);
 
 			if (desc[0] == 0)
 			{
 				strcpy(desc, debugger->getDescription(address).c_str());
 			}
 
-			dc.SetTextForeground(_T("#0000FF")); // blue
+			if (!plain) {
+				dc.SetTextForeground(_T("#0000FF")); // blue
 
-			//char temp[256];
-			//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
-			if (strlen(desc))
-			{
-				dc.DrawText(wxString::FromAscii(desc), 270, rowY1);
+				//char temp[256];
+				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
+				if (strlen(desc))
+				{
+					dc.DrawText(wxString::FromAscii(desc), 270, rowY1);
+				}
 			}
 
 			// Show red breakpoint dot
@@ -541,7 +539,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			{
 				dc.SetBrush(bpBrush);
 				dc.DrawRectangle(2, rowY1 + 1, 11, 11);
-				//DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
 			}
 		}
 	} // end of for

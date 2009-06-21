@@ -26,7 +26,7 @@
 #include "Common.h"
 #include "Gekko.h"
 
-class SymbolDB;
+class PPCSymbolDB;
 struct Symbol;
 
 namespace PPCAnalyst
@@ -94,7 +94,7 @@ public:
 
 bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer);
 void LogFunctionCall(u32 addr);
-void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
+void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 
 }  // namespace

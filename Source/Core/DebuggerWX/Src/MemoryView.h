@@ -20,7 +20,7 @@
 
 #include "Debugger.h"
 #include "Common.h"
-#include "Debugger/DebugInterface.h"
+#include "DebugInterface.h"
 
 class CMemoryView : public wxControl
 {

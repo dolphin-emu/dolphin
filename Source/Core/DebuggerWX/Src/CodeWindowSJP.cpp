@@ -39,6 +39,7 @@
 #include "Host.h"
 
 #include "Debugger.h"
+#include "DebuggerUIUtil.h"
 
 #include "RegisterWindow.h"
 #include "BreakpointWindow.h"
@@ -59,7 +60,7 @@
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPC/Profiler.h"
-#include "PowerPC/SymbolDB.h"
+#include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
@@ -273,7 +274,7 @@ void CCodeWindow::NotifyMapLoaded()
 	//symbols->Show(false); // hide it for faster filling
 	symbols->Freeze();	// HyperIris: wx style fast filling
 	symbols->Clear();
-	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
+	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
 	{
 		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
 		symbols->SetClientData(idx, (void*)&iter->second);

@@ -72,7 +72,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 	u32 Address = 0;
 	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
-		BreakPoints::Add(Address);
+		g_breakpoints.Add(Address);
 		Host_UpdateBreakPointView();
 		Close();		
 	}

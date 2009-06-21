@@ -54,7 +54,7 @@
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPC/Profiler.h"
-#include "PowerPC/SymbolDB.h"
+#include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
@@ -78,9 +78,6 @@ class CPluginInfo;
 class CPluginManager;
 
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-
-// The default font
-wxFont DebuggerFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace"));
 
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -358,7 +355,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	DebugInterface* di = new PPCDebugInterface();
 
-	codeview = new CCodeView(di, this, ID_CODEVIEW);
+	codeview = new CCodeView(di, &g_symbolDB, this, ID_CODEVIEW);
 	sizerBig->Add(sizerLeft, 2, wxEXPAND);
 	sizerBig->Add(codeview, 5, wxEXPAND);
 
@@ -375,8 +372,6 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	sizerBig->Fit(this);
 
 	sync_event.Init();
-	
-
 
 	if (bRegisterWindow)
 	{

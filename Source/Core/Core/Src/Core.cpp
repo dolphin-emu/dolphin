@@ -399,6 +399,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	DSPInitialize dspInit;
 	dspInit.hWnd = g_pWindowHandle;
 	dspInit.pARAM_Read_U8 = (u8  (__cdecl *)(const u32))DSP::ReadARAM; 
+	dspInit.pARAM_Write_U8 = (void (__cdecl *)(const u8, const u32))DSP::WriteARAM; 
 	dspInit.pGetARAMPointer = DSP::GetARAMPtr;
 	dspInit.pGetMemoryPointer = Memory::GetPointer;
 	dspInit.pLog = Callback_DSPLog;

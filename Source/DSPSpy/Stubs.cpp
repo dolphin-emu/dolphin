@@ -54,6 +54,9 @@ u8 DSPHost_ReadHostMemory(u32 address)
 	return *ptr;
 }
 
+void DSPHost_WriteHostMemory(u8 value, u32 addr) {}
+
+
 void DSPHost_CodeLoaded(const u8 *code, int size)
 {
 }

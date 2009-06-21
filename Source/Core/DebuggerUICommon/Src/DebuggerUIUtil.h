@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Dolphin Project.
+// Copyright (C) 2003-2008 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,18 +15,22 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DSPHOST_H
-#define _DSPHOST_H
+#ifndef _DEBUGGER_UI_UTIL_H
+#define _DEBUGGER_UI_UTIL_H
 
-// The user of the DSPCore library must supply a few functions so that the
-// emulation core can access the environment it runs in. If the emulation
-// core isn't used, for example in an asm/disasm tool, then most of these
-// can be stubbed out.
+#include <wx/wx.h>
 
-u8 DSPHost_ReadHostMemory(u32 addr);
-void DSPHost_WriteHostMemory(u8 value, u32 addr);
-bool DSPHost_OnThread();
-bool DSPHost_Running();
-u32 DSPHost_CodeLoaded(const u8 *ptr, int size);
+#define wxUSE_XPM_IN_MSW 1
+#define USE_XPM_BITMAPS 1
+
+// Defined in CodeWindow.cpp
+extern wxFont DebuggerFont;
+
+// define this to use XPMs everywhere (by default, BMPs are used under Win)
+// BMPs use less space, but aren't compiled into the executable on other platforms
+
+#if USE_XPM_BITMAPS && defined (__WXMSW__) && !wxUSE_XPM_IN_MSW
+#error You need to enable XPM support to use XPM bitmaps with toolbar!
+#endif // USE_XPM_BITMAPS
 
 #endif

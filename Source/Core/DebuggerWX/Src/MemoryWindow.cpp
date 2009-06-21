@@ -29,7 +29,7 @@
 #include "Host.h"
 
 #include "Debugger/PPCDebugInterface.h"
-#include "PowerPC/SymbolDB.h"
+#include "PowerPC/PPCSymbolDB.h"
 
 #include "Core.h"
 #include "LogManager.h"

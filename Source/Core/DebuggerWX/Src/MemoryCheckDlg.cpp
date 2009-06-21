@@ -91,7 +91,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 		MemCheck.Log = true;
 		MemCheck.Break = true;
 
-		MemChecks::Add(MemCheck);
+		g_memchecks.Add(MemCheck);
 		Host_UpdateBreakPointView();
 		Close();
 	}

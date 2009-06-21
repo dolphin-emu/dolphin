@@ -22,7 +22,7 @@
 
 // You're not meant to keep around SignatureDB objects persistently. Use 'em, throw them away.
 
-class SymbolDB;
+class PPCSymbolDB;
 
 class SignatureDB
 {
@@ -50,8 +50,8 @@ public:
 	void Clear();
 	void List();
 	
-	void Initialize(SymbolDB *func_db, const char *prefix = "");
-	void Apply(SymbolDB *func_db);
+	void Initialize(PPCSymbolDB *func_db, const char *prefix = "");
+	void Apply(PPCSymbolDB *func_db);
 
 	static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 };

@@ -20,7 +20,7 @@
 #include "../HW/Memmap.h"
 
 #include "SignatureDB.h"
-#include "SymbolDB.h"
+#include "PPCSymbolDB.h"
 
 namespace {
 
@@ -111,7 +111,7 @@ void SignatureDB::Clear()
 	database.clear();
 }
 
-void SignatureDB::Apply(SymbolDB *symbol_db)
+void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 {
 	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); iter++)
 	{
@@ -135,10 +135,10 @@ void SignatureDB::Apply(SymbolDB *symbol_db)
 	symbol_db->Index();
 }
 
-void SignatureDB::Initialize(SymbolDB *symbol_db, const char *prefix)
+void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 {
 	std::string prefix_str(prefix);
-	for (SymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
+	for (PPCSymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
 	{
 		if (iter->second.name.substr(0, prefix_str.size()) == prefix_str)
 		{

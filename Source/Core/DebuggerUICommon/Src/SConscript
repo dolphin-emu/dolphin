@@ -1,0 +1,13 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+    'CodeView.cpp',
+    'DebuggerUIUtil.cpp',
+    ]
+
+acenv = env.Clone()
+acenv.Append(CXXFLAGS = [ '-fPIC' ])
+
+acenv.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)

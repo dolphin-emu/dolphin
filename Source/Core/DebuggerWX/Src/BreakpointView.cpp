@@ -21,7 +21,7 @@
 #include "BreakpointView.h"
 #include "Debugger/Debugger_BreakPoints.h"
 #include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/SymbolDB.h"
+#include "PowerPC/PPCSymbolDB.h"
 
 BEGIN_EVENT_TABLE(CBreakPointView, wxListCtrl)
 
@@ -47,7 +47,7 @@ void CBreakPointView::Update()
     InsertColumn(4, wxT("Flags"), wxLIST_FORMAT_CENTER, 100);
 
     char szBuffer[64];
-	const BreakPoints::TBreakPoints& rBreakPoints = BreakPoints::GetBreakPoints();
+	const BreakPoints::TBreakPoints& rBreakPoints = g_breakpoints.GetBreakPoints();
 	for (size_t i = 0; i < rBreakPoints.size(); i++)
 	{
 		const TBreakPoint& rBP = rBreakPoints[i];
@@ -74,7 +74,7 @@ void CBreakPointView::Update()
 		}
 	}
 
-	const MemChecks::TMemChecks& rMemChecks = MemChecks::GetMemChecks();
+	const MemChecks::TMemChecks& rMemChecks = g_memchecks.GetMemChecks();
 	for (size_t i = 0; i < rMemChecks.size(); i++)
 	{
 		const TMemCheck& rMemCheck = rMemChecks[i];
@@ -115,8 +115,8 @@ void CBreakPointView::DeleteCurrentSelection()
     if (Item >= 0)
     {
         u32 Address = (u32)GetItemData(Item);
-        BreakPoints::DeleteByAddress(Address);
-        MemChecks::DeleteByAddress(Address);
+        g_breakpoints.DeleteByAddress(Address);
+        g_memchecks.DeleteByAddress(Address);
 		Update();
     }
 }

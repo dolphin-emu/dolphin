@@ -120,19 +120,22 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
 {
     u16* pTest = (u16*)&_rPB;
 
+	// Checks at 0293
     if (pTest[0x00] == 0) 
         return;
 
     if (pTest[0x01] != 0)
         return;
     
+
     if (pTest[0x06] != 0x00)
     {
         // probably pTest[0x06] == 0 -> AFC (and variants)
+		// See 02a4
     }
     else
     {
-        switch(_rPB.type)  // or Bytes per Sample
+        switch (_rPB.type)  // or Bytes per Sample
         {
         case 0x05:
         case 0x09:
@@ -140,6 +143,10 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
                 // initialize "decoder" if the sample is played the first time
                 if (pTest[0x04] != 0)
                 {
+					// This is 0717_ReadOutPBStuff
+
+					// increment 4fb
+
                     // zelda: 
                     // perhaps init or "has played before"
                     pTest[0x32] = 0x00;
@@ -151,7 +158,7 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
                     pTest[0x3a] = pTest[0x8a];
                     pTest[0x3b] = pTest[0x8b];
 
-                    // copy ARAM addr from r to rw area
+                    // Copy ARAM addr from r to rw area.
                     pTest[0x38] = pTest[0x8c];
                     pTest[0x39] = pTest[0x8d];
                 }
@@ -177,20 +184,19 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
 				// Then, resample from this buffer to the output as you go. When it needs
 				// wrapping, decode more.
 				
-#define USE_RESAMPLE 1
-#if USE_RESAMPLE != 1
-                for (int s=0; s<(_Size/16);s++)
+#define USE_RESAMPLE
+#if !defined(USE_RESAMPLE)
+                for (int s = 0; s < _Size/16; s++)
                 {
-                    for (int i=0; i<9; i++)    
+                    for (int i = 0; i < 9; i++)    
                     {
-                        inBuffer[i] =  g_dspInitialize.pARAM_Read_U8(ARAMAddr);
+                        inBuffer[i] = g_dspInitialize.pARAM_Read_U8(ARAMAddr);
                         ARAMAddr++;
                     }
                                         
-
                     AFCdecodebuffer((char*)inBuffer, outbuf, (short*)&pTest[0x66], (short*)&pTest[0x67]);
 
-                    for (int i=0; i<16; i++)
+                    for (int i = 0; i < 16; i++)
                     {
                         templbuffer[sampleCount] += outbuf[i];
                         temprbuffer[sampleCount] += outbuf[i];
@@ -218,7 +224,7 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
                     {
                         int sample = Sampler.sample_queue.front();
                         Sampler.sample_queue.pop();
-                        Sampler.m_queueSize-=1;
+                        Sampler.m_queueSize -= 1;
 
                         templbuffer[sampleCount] += sample;
                         temprbuffer[sampleCount] += sample;
@@ -273,10 +279,17 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
                 // end of block (Zelda 03b2)
                 if (pTest[0x06] == 0)
                 {
+					// 02a4
+					//
+
                     pTest[0x04] = 0;
                 }
             }
             break;
+
+        default:
+			ERROR_LOG(DSPHLE, "Zelda Ucode: Unknown PB type %i", _rPB.type);
+			break;
         }
     }
 }

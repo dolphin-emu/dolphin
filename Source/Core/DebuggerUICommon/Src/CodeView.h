@@ -18,7 +18,12 @@
 #ifndef CODEVIEW_H_
 #define CODEVIEW_H_
 
-#include "Debugger.h"
+#define wxUSE_XPM_IN_MSW 1
+#define USE_XPM_BITMAPS 1
+
+#include <wx/wx.h>
+
+// #include "Debugger.h"
 #include "Common.h"
 
 #include <vector>
@@ -26,11 +31,12 @@
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
 
 class DebugInterface;
+class SymbolDB;
 
 class CCodeView : public wxControl
 {
 public:
-	CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
+	CCodeView(DebugInterface* debuginterface, SymbolDB *symbol_db, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
 	wxSize DoGetBestSize() const;
 	void OnPaint(wxPaintEvent& event);
 	void OnErase(wxEraseEvent& event);
@@ -57,6 +63,10 @@ public:
 		redraw();
 	}
 
+	void SetPlain() {
+		plain = true;
+	}
+
 private:
 	void RaiseEvent();
 	int YToAddress(int y);
@@ -66,6 +76,9 @@ private:
 	void redraw() {Refresh();}
 
 	DebugInterface* debugger;
+	SymbolDB* symbol_db;
+
+	bool plain;
 
 	int curAddress;
 	int align;

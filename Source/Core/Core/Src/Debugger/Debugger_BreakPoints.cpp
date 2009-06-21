@@ -19,12 +19,11 @@
 
 #include "../HW/CPU.h"
 #include "../Host.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 #include "Debugger_BreakPoints.h"
 
-BreakPoints::TBreakPoints BreakPoints::m_BreakPoints;
-
-MemChecks::TMemChecks MemChecks::m_MemChecks;
+BreakPoints g_breakpoints;
+MemChecks g_memchecks;
 
 void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
@@ -97,24 +96,6 @@ void BreakPoints::Clear()
 {
 	m_BreakPoints.clear();
 	Host_UpdateBreakPointView();
-}
-
-void BreakPoints::AddAutoBreakpoints()
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#if 1
-	const char *bps[] = {
-		"PPCHalt",
-	};
-
-	for (u32 i = 0; i < sizeof(bps) / sizeof(const char *); i++)
-	{
-		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
-		if (symbol)
-		    BreakPoints::Add(symbol->address, false);
-	}
-#endif
-#endif
 }
 
 void BreakPoints::DeleteByAddress(u32 _Address)

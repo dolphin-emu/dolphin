@@ -26,7 +26,7 @@
 #include "CoreTiming.h"
 #include "Core.h"
 #include "PowerPC/Jit64/Jit.h"
-#include "PowerPC/SymbolDB.h"
+#include "PowerPC/PPCSymbolDB.h"
 #include "PowerPCDisasm.h"
 #include "Console.h"
 

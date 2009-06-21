@@ -78,10 +78,12 @@ void HandleLoop()
 		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
 		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
 
+		// This does not always work correctly!
+		// The loop end tends to point to the second part of 
+		// two-byte instructions!
 		if (g_dsp.pc == (rLoopAddress + 1))
 		{
 			rLoopCounter--;
-
 			if (rLoopCounter > 0)
 			{
 				g_dsp.pc = rCallAddress;
@@ -147,6 +149,21 @@ void Run()
 // Used by non-thread mode.
 void RunCycles(int cycles)
 {
+	if (cycles < 18)
+	{
+		for (int i = 0; i < cycles; i++)
+		{
+			if (g_dsp.cr & CR_HALT)
+				return;
+			if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+				return;
+			Step();
+			cycles--;
+		}
+		return;
+	}
+
+
 	DSPCore_CheckExternalInterrupt();
 
 	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
@@ -158,7 +175,7 @@ void RunCycles(int cycles)
 		cycles--;
 	}
 
-	// Next, let's run a few cycles with idle skipping, so that we can skip loops.
+	// Next, let's run a few cycles with idle skipping, so that we can skip idle loops.
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)

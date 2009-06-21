@@ -67,11 +67,11 @@ public:
 
 	// Warning - this one is trickier to use right.
 	// Use pass == 2 if you're just using it by itself.
-	void DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest);
+	bool DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest);
 
 private:
 	// Moves PC forward and writes the result to dest.
-	bool DisFile(const char* name, int pass, std::string &output);
+	bool DisFile(const char* name, int base_addr, int pass, std::string &output);
 
 	char* DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char* strbuf);
 	std::map<u16, int> unk_opcodes;

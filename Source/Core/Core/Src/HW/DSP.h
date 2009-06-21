@@ -48,6 +48,7 @@ void Write32(const u32 _uValue, const u32 _uAddress);
 
 // Audio/DSP Plugin Helper
 u8 ReadARAM(const u32 _uAddress);
+void WriteARAM(u8 value, u32 _uAddress);
 
 // Debugger Helper
 u8* GetARAMPtr();

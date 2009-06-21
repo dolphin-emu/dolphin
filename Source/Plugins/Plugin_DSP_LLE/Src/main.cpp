@@ -24,6 +24,7 @@
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 #include "disassemble.h"
+#include "DSPSymbols.h"
 #include "Config.h"
 
 #include "AudioCommon.h"
@@ -163,10 +164,10 @@ void DoState(unsigned char **ptr, int mode)
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if(!m_DebuggerFrame)
+	if (!m_DebuggerFrame)
 		m_DebuggerFrame = new DSPDebuggerLLE(NULL);
 
-	if(Show)
+	if (Show)
 		m_DebuggerFrame->Show();
 	else
 		m_DebuggerFrame->Hide();
@@ -231,7 +232,7 @@ void Initialize(void *init)
 	soundStream = AudioCommon::InitSoundStream();
 
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_DebuggerFrame)
+	if (m_DebuggerFrame)
 		m_DebuggerFrame->Refresh();
 #endif
 }

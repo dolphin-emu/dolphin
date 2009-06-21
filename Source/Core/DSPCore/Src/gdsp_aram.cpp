@@ -64,6 +64,18 @@ s16 ADPCM_Step(u32& _rSamplePos)
 	return val;
 }
 
+void dsp_write_aram_d3(u16 value)
+{
+	// Not sure about this one but it sure looks like Zelda is writing to ARAM
+	// through 0xFFd3...
+
+	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
+	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
+
+	DSPHost_WriteHostMemory(value >> 8, Address);
+	DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
+}
+
 u16 dsp_read_aram()
 {
 	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];

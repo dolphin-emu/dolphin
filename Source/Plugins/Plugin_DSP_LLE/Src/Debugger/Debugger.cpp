@@ -22,6 +22,8 @@
 
 #include "Debugger.h"
 #include "DSPRegisterView.h"
+#include "CodeView.h"
+#include "../DSPSymbols.h"
 
 // Event table and class
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)	
@@ -29,9 +31,8 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)
 
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
-
-	EVT_LIST_ITEM_RIGHT_CLICK(ID_DISASM, DSPDebuggerLLE::OnRightClick)
-	EVT_LIST_ITEM_ACTIVATED(ID_DISASM, DSPDebuggerLLE::OnDoubleClick)
+	EVT_TEXT(ID_ADDRBOX,    DSPDebuggerLLE::OnAddrBoxChange)
+    EVT_LISTBOX(ID_SYMBOLLIST,     DSPDebuggerLLE::OnSymbolListChange)
 END_EVENT_TABLE()
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow *parent, wxWindowID id, const wxString &title,
@@ -59,18 +60,29 @@ void DSPDebuggerLLE::CreateGUIControls()
 	m_Toolbar = CreateToolBar(wxTB_NODIVIDER|wxTB_NOICONS|wxTB_HORZ_TEXT|wxTB_DOCKABLE, ID_TOOLBAR); 
 	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Run"), wxNullBitmap, wxEmptyString, wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"), wxNullBitmap, wxT("Step Code "), wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Reset To PC counter"), wxITEM_NORMAL);
+	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Show where PC is"), wxITEM_NORMAL);
 	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
 	m_Toolbar->AddSeparator();
+
 	m_Toolbar->AddCheckTool(ID_CHECK_ASSERTINT, wxT("AssertInt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
 	m_Toolbar->AddCheckTool(ID_CHECK_HALT, wxT("Halt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
 	m_Toolbar->AddCheckTool(ID_CHECK_INIT, wxT("Init"), wxNullBitmap, wxNullBitmap, wxEmptyString);
+	m_Toolbar->AddSeparator();
+
+	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, _T("")));
+
 	m_Toolbar->Realize();
 
 	wxBoxSizer* sMain = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
+	sizerLeft->Add(m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
 
-	m_Disasm = new wxListCtrl(this, ID_DISASM, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
-	sMain->Add(m_Disasm, 4, wxALL|wxEXPAND, 5);
+	m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, this, ID_CODEVIEW);
+	m_CodeView->SetPlain();
+
+	sMain->Add(sizerLeft, 1, wxALL|wxEXPAND, 0);
+
+	sMain->Add(m_CodeView, 4, wxALL|wxEXPAND, 5);
 
 	wxStaticLine* m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
 	sMain->Add(m_staticline, 0, wxEXPAND|wxALL, 5);
@@ -80,15 +92,6 @@ void DSPDebuggerLLE::CreateGUIControls()
 
 	this->SetSizer(sMain);
 	this->Layout();
-
-	// Add the disasm columns
-	m_Disasm->InsertColumn(COLUMN_BP, wxT("BP"), wxLIST_FORMAT_LEFT, 25);
-	m_Disasm->InsertColumn(COLUMN_FUNCTION, wxT("Function"), wxLIST_FORMAT_LEFT, 160);
-	m_Disasm->InsertColumn(COLUMN_ADDRESS, wxT("Address"), wxLIST_FORMAT_LEFT, 55);
-	m_Disasm->InsertColumn(COLUMN_MNEMONIC, wxT("Mnemonic"), wxLIST_FORMAT_LEFT, 55);
-	m_Disasm->InsertColumn(COLUMN_OPCODE, wxT("Opcode"), wxLIST_FORMAT_LEFT, 60);
-	m_Disasm->InsertColumn(COLUMN_EXT, wxT("Ext"), wxLIST_FORMAT_LEFT, 40);
-	m_Disasm->InsertColumn(COLUMN_PARAM, wxT("Param"), wxLIST_FORMAT_LEFT, 500);
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
@@ -110,6 +113,9 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 	case ID_STEPTOOL:
 		m_State = STEP;
 		break;
+	case ID_SHOWPCTOOL:
+		FocusOnPC();
+		break;
 	}
 
 	UpdateState();
@@ -119,27 +125,6 @@ void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
 {
 	Refresh();
 	FocusOnPC();
-}
-
-void DSPDebuggerLLE::OnRightClick(wxListEvent& event)
-{
-	long item = m_Disasm->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
-	u16 SelectedPC = static_cast<u16>(m_Disasm->GetItemData(item));
-	g_dsp.pc = SelectedPC;
-
-	Refresh();
-}
-
-void DSPDebuggerLLE::OnDoubleClick(wxListEvent& event)
-{
-	long item = m_Disasm->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
-	u16 SelectedPC = static_cast<u16>(m_Disasm->GetItemData(item));
-	ToggleBreakPoint(SelectedPC);
-
-	if (IsBreakPoint(SelectedPC))
-		m_Disasm->SetItem(item, COLUMN_BP, wxT("*"));
-	else
-		m_Disasm->SetItem(item, COLUMN_BP, wxT(""));
 }
 
 void DSPDebuggerLLE::Refresh()
@@ -152,26 +137,7 @@ void DSPDebuggerLLE::Refresh()
 
 void DSPDebuggerLLE::FocusOnPC()
 {
-	UnselectAll();
-
-	for (int i = 0; i < m_Disasm->GetItemCount(); i++)
-	{
-		if (m_Disasm->GetItemData(i) == g_dsp.pc)
-		{
-			m_Disasm->EnsureVisible(i - 5);
-			m_Disasm->EnsureVisible(i + 5);
-			m_Disasm->SetItemState(i, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED, wxLIST_STATE_FOCUSED|wxLIST_STATE_SELECTED);
-			break;
-		}
-	}
-}
-
-void DSPDebuggerLLE::UnselectAll()
-{
-	for (int i = 0; i < m_Disasm->GetItemCount(); i++)
-	{
-		m_Disasm->SetItemState(i, 0, wxLIST_STATE_SELECTED);
-	}
+	JumpToAddress(g_dsp.pc);
 }
 
 void DSPDebuggerLLE::UpdateState()
@@ -183,129 +149,14 @@ void DSPDebuggerLLE::UpdateState()
 	m_Toolbar->Realize();
 }
 
-void DSPDebuggerLLE::RebuildDisAsmListView()
-{
-	m_Disasm->Freeze();
-	m_Disasm->DeleteAllItems();
-
-	AssemblerSettings settings;
-
-	const u16 *binbuf;
-	if (g_dsp.pc & 0x8000)
-		binbuf = g_dsp.irom;
-	else
-		binbuf = g_dsp.iram;
-
-	settings.ext_separator = (char)0xff;
-
-	settings.show_pc      = false;
-	settings.show_hex     = false;
-	settings.print_tabs   = true;
-	settings.decode_names = true;
-	settings.decode_registers = true;
-
-	for (settings.pc = 0; settings.pc < DSP_IROM_SIZE;)
-	{
-		u16 CurrentPC = settings.pc;
-
-		if (g_dsp.pc & 0x8000)
-			CurrentPC |= 0x8000;
-
-		char Temp[256];
-		sprintf(Temp, "0x%04x", CurrentPC);
-
-		char Temp2[256];
-		sprintf(Temp2, "0x%04x", dsp_imem_read(CurrentPC));
-
-		DSPDisassembler disasm(settings);
-		std::string op_str;
-
-		disasm.DisOpcode(binbuf, settings.pc & 0x8000, 2, &settings.pc, op_str);
-		const char* pParameter = NULL;
-		const char* pExtension = NULL;
-
-		size_t WholeString = op_str.size();
-
-		/*
-		for (size_t i = 0; i < WholeString; i++)
-		{
-			if (pOpcode[i] == (char)0xff)
-			{
-				pOpcode[i] = 0x00;
-				pExtension = &pOpcode[i + 1];
-			}
-
-			if (pOpcode[i] == 0x09)
-			{
-				pOpcode[i] = 0x00;
-				pParameter = &pOpcode[i + 1];
-			}
-		}*/
-
-		const char* pFunctionName = NULL;
-
-		if (m_SymbolMap.find(CurrentPC) != m_SymbolMap.end())
-		{
-			pFunctionName = m_SymbolMap[CurrentPC].Name.c_str();
-		}
-
-		int Item = m_Disasm->InsertItem(settings.pc, wxEmptyString);
-		m_Disasm->SetItem(Item, COLUMN_BP, wxEmptyString);
-		m_Disasm->SetItem(Item, COLUMN_FUNCTION, wxString::FromAscii(pFunctionName));
-		m_Disasm->SetItem(Item, COLUMN_ADDRESS, wxString::FromAscii(Temp));
-		m_Disasm->SetItem(Item, COLUMN_MNEMONIC, wxString::FromAscii(Temp2));
-		m_Disasm->SetItem(Item, COLUMN_OPCODE, wxString::FromAscii(op_str.c_str()));
-		m_Disasm->SetItem(Item, COLUMN_EXT, wxString::FromAscii(pExtension));
-
-		if (!strcasecmp(op_str.c_str(), "CALL"))
-		{
-			u32 FunctionAddress = -1;
-			sscanf(pParameter, "0x%04x", &FunctionAddress);
-
-			if (m_SymbolMap.find(FunctionAddress) != m_SymbolMap.end())
-			{
-				pParameter = m_SymbolMap[FunctionAddress].Name.c_str();
-			}
-		}
-
-		m_Disasm->SetItem(Item, COLUMN_PARAM, wxString::FromAscii(pParameter));
-
-		m_Disasm->SetItemData(Item, CurrentPC);
-	}
-
-//	m_Disasm->SortItems(CompareFunc, this); // TODO verify
-
-	m_Disasm->Thaw();
-}
-
 void DSPDebuggerLLE::UpdateDisAsmListView()
 {
-	if (g_dsp.dram == NULL)
-		return;
-
-	// check if we have to rebuild the list view
-	if (m_Disasm->GetItemCount() == 0)
-	{
-		RebuildDisAsmListView();
-	}
-	else
-	{
-		u16 FirstPC = static_cast<u16>(m_Disasm->GetItemData(0)); // TODO verify
-
-		if ((FirstPC & 0x8000) != (g_dsp.pc & 0x8000))
-		{
-			RebuildDisAsmListView();
-		}
-	}
-
 	if (m_CachedStepCounter == g_dsp.step_counter)
 		return;
 
 	// show PC
 	FocusOnPC();
-
 	m_CachedStepCounter = g_dsp.step_counter;
-
 	m_Regs->Update();
 }
 
@@ -320,10 +171,36 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 		m_CachedUCodeCRC = g_dsp.iram_crc;
 		char FileName[256];
 		sprintf(FileName, "%sDSP_%08x.map", FULL_MAPS_DIR, m_CachedUCodeCRC);
-		LoadSymbolMap(FileName);
+
+		// LoadSymbolMap(FileName);
+		
+		m_SymbolList->Freeze();	// HyperIris: wx style fast filling
+		m_SymbolList->Clear();
+		for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
+			 iter != DSPSymbols::g_dsp_symbol_db.End(); iter++)
+		{
+			int idx = m_SymbolList->Append(wxString::FromAscii(iter->second.name.c_str()));
+			m_SymbolList->SetClientData(idx, (void*)&iter->second);
+		}
+		m_SymbolList->Thaw();
 
 		// rebuild the disasm
-		RebuildDisAsmListView();
+		// RebuildDisAsmListView();
+	}
+}
+
+void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
+{
+	int index = m_SymbolList->GetSelection();
+	if (index >= 0) {
+		Symbol* pSymbol = static_cast<Symbol *>(m_SymbolList->GetClientData(index));
+		if (pSymbol != NULL)
+		{
+			if (pSymbol->type == Symbol::SYMBOL_FUNCTION)
+			{
+				JumpToAddress(pSymbol->address);
+			}
+		}
 	}
 }
 
@@ -351,13 +228,13 @@ bool DSPDebuggerLLE::CanDoStep()
 		return true;
 
 	case RUN:
-
+		/*
 		if (IsBreakPoint(g_dsp.pc))
 		{
 			Refresh();
 			m_State = PAUSE;
 			return false;
-		}
+		}*/
 
 		return true;
 
@@ -379,89 +256,32 @@ void DSPDebuggerLLE::DebugBreak()
 	m_State = PAUSE;
 }
 
-bool DSPDebuggerLLE::IsBreakPoint(u16 _Address)
+void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 {
-	return(std::find(m_BreakPoints.begin(), m_BreakPoints.end(), _Address) != m_BreakPoints.end());
-}
+	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(ID_ADDRBOX);
+	wxString txt = pAddrCtrl->GetValue();
 
-void DSPDebuggerLLE::ToggleBreakPoint(u16 _Address)
-{
-	if (IsBreakPoint(_Address))
-		RemoveBreakPoint(_Address);
-	else
-		AddBreakPoint(_Address);
-}
-
-void DSPDebuggerLLE::RemoveBreakPoint(u16 _Address)
-{
-	CBreakPointList::iterator itr = std::find(m_BreakPoints.begin(), m_BreakPoints.end(), _Address);
-
-	if (itr != m_BreakPoints.end())
-		m_BreakPoints.erase(itr);
-}
-
-void DSPDebuggerLLE::AddBreakPoint(u16 _Address)
-{
-	CBreakPointList::iterator itr = std::find(m_BreakPoints.begin(), m_BreakPoints.end(), _Address);
-
-	if (itr == m_BreakPoints.end())
-		m_BreakPoints.push_back(_Address);
-}
-
-void DSPDebuggerLLE::ClearBreakPoints()
-{
-	m_BreakPoints.clear();
-}
-
-bool DSPDebuggerLLE::LoadSymbolMap(const char* _pFileName)
-{
-	m_SymbolMap.clear();
-
-	FILE* pFile = fopen(_pFileName, "r");
-
-	if (!pFile)
-		return false;
-
-	char Name[1024];
-	u32 AddressStart, AddressEnd;
-
-	while (!feof(pFile))
+	std::string text(txt.mb_str());
+	text = StripSpaces(text);
+	if (text.size())
 	{
-		char line[512];
-		fgets(line, 511, pFile);
-
-		if (strlen(line) < 2)
-			continue;
-
-		// check for comment
-		if (line[0] == '.')
-			continue;
-
-		// clear all breakpoints
-		if (line[0] == 'C')
-		{
-			ClearBreakPoints();
-			continue;
-		}
-
-		// add breakpoint
-		if (line[0] == 'B')
-		{
-			sscanf(line, "B %04x", &AddressStart);
-			AddBreakPoint(static_cast<u16>(AddressStart));
-			continue;
-		}
-
-		// default add new symbol
-		sscanf(line, "%04x %04x %s", &AddressStart, &AddressEnd, Name);
-
-		if (m_SymbolMap.find(AddressStart) == m_SymbolMap.end())
-			m_SymbolMap.insert(std::pair<u16, SSymbol>(AddressStart, SSymbol(AddressStart, AddressEnd, Name)));
+		u32 addr;
+		sscanf(text.c_str(), "%04x", &addr);
+		if (JumpToAddress(addr))
+			pAddrCtrl->SetBackgroundColour(*wxWHITE);
 		else
-			m_SymbolMap[AddressStart] = SSymbol(AddressStart, AddressEnd, Name);
+			pAddrCtrl->SetBackgroundColour(*wxRED);
 	}
+	event.Skip(1);
+}
 
-	fclose(pFile);
-
-	return true;
+bool DSPDebuggerLLE::JumpToAddress(u16 addr)
+{
+	int new_line = DSPSymbols::Addr2Line(addr);
+	if (new_line >= 0) {
+		m_CodeView->Center(new_line);
+		return true;
+	} else {
+		return false;
+	}
 }

@@ -21,7 +21,7 @@
 #include "Interpreter/Interpreter.h"
 #include "../HW/Memmap.h"
 #include "PPCTables.h"
-#include "SymbolDB.h"
+#include "PPCSymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
@@ -582,11 +582,11 @@ void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 	}
 }
 
-void FindFunctionsAfterBLR(SymbolDB *func_db)
+void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 {
 	vector<u32> funcAddrs;
 
-	for (SymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
+	for (PPCSymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 		funcAddrs.push_back(iter->second.address + iter->second.size);
 
 	for (vector<u32>::iterator iter = funcAddrs.begin(); iter != funcAddrs.end(); iter++)
@@ -609,7 +609,7 @@ void FindFunctionsAfterBLR(SymbolDB *func_db)
 	}
 }
 
-void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
+void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 {
 	//Step 1: Find all functions
 	FindFunctionsFromBranches(startAddr, endAddr, func_db);
@@ -621,7 +621,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 	int numLeafs = 0, numNice = 0, numUnNice = 0;
 	int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
 	int leafSize = 0, niceSize = 0, unniceSize = 0;
-	for (SymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
+	for (PPCSymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 	{
 		if (iter->second.address == 4)
 		{

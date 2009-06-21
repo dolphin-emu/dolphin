@@ -20,7 +20,7 @@
 #include "Common.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../HW/Memmap.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 #include "ElfReader.h"
 
 void bswap(Elf32_Word &w) {w = Common::swap32(w);}

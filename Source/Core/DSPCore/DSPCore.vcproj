@@ -299,7 +299,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\Common\Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_LIB;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -363,7 +363,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\Common\Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_LIB;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -425,6 +425,10 @@
 				RelativePath=".\Src\DspIntMultiplier.cpp"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Debugger"
+			>
 		</Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"

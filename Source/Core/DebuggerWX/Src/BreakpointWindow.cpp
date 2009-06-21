@@ -205,7 +205,7 @@ CBreakPointWindow::OnDelete(wxCommandEvent& event)
 void 
 CBreakPointWindow::OnClear(wxCommandEvent& event)
 {
-	BreakPoints::Clear();
+	g_breakpoints.Clear();
 }
 // ============
 
@@ -244,7 +244,7 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 			u32 Address = 0;
 			if (AsciiToHex(line.c_str(), Address))
 			{
-				BreakPoints::Add(Address);
+				g_breakpoints.Add(Address);
 			}
 		}
 		// only update after we are done with the loop
@@ -346,7 +346,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.Log = true;
 				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
-				MemChecks::Add(MemCheck);	
+				g_memchecks.Add(MemCheck);	
 			}
 		}
 		// update after we are done with the loop

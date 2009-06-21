@@ -460,3 +460,32 @@ void NormalizeDirSep(std::string* str)
 	}
 #endif
 }
+
+std::string TabsToSpaces(int tab_size, const std::string &in)
+{
+	std::string out;
+	int len = 0;
+	// First, compute the size of the new string.
+	for (int i = 0; i < in.size(); i++)
+	{
+		if (in[i] == '\t')
+			len += tab_size;
+		else
+			len += 1;
+	}
+	out.resize(len);
+	int out_ctr = 0;
+	for (int i = 0; i < in.size(); i++)
+	{
+		if (in[i] == '\t')
+		{
+			for (int j = 0; j < tab_size; j++)
+				out[out_ctr++] = ' ';
+		} 
+		else 
+		{
+			out[out_ctr++] = in[i];
+		}
+	}
+	return out;
+}

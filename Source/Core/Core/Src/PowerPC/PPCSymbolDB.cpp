@@ -22,49 +22,24 @@
 #include <vector>
 
 #include "../HW/Memmap.h"
-#include "SymbolDB.h"
+#include "PPCSymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
-SymbolDB g_symbolDB;
+PPCSymbolDB g_symbolDB;
 
-SymbolDB::SymbolDB()
+PPCSymbolDB::PPCSymbolDB()
 {
 	// Get access to the disasm() fgnction
 	debugger = new PPCDebugInterface();
 }
 
-SymbolDB::~SymbolDB()
+PPCSymbolDB::~PPCSymbolDB()
 {
-}
-
-void SymbolDB::List()
-{
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
-	{
-		DEBUG_LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls", iter->second.name.c_str(), iter->second.address, iter->second.size, iter->second.hash,iter->second.numCalls);
-	}
-	INFO_LOG(HLE,"%i functions known in this program above.", functions.size());
-}
-
-void SymbolDB::Clear(const char *prefix)
-{
-	// TODO: honor prefix
-	functions.clear();
-	checksumToFunction.clear();
-}
-
-void SymbolDB::Index()
-{
-	int i = 0;
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
-	{
-		iter->second.index = i++;
-	}
 }
 
 // Adds the function to the list, unless it's already there
-Symbol *SymbolDB::AddFunction(u32 startAddr)
+Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 {
 	if (startAddr < 0x80000010)
 		return 0;
@@ -88,7 +63,7 @@ Symbol *SymbolDB::AddFunction(u32 startAddr)
 	}
 }
 
-void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type)
+void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type)
 {
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
@@ -116,7 +91,7 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 	}
 }
 
-Symbol *SymbolDB::GetSymbolFromAddr(u32 addr)
+Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	if (!Memory::IsRAMAddress(addr))
 		return 0;
@@ -134,17 +109,7 @@ Symbol *SymbolDB::GetSymbolFromAddr(u32 addr)
 	return 0;
 }
 
-Symbol *SymbolDB::GetSymbolFromName(const char *name)
-{
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
-	{
-		if (!strcmp(iter->second.name.c_str(), name))
-			return &iter->second;
-	}
-	return 0;
-}
-
-const char *SymbolDB::GetDescription(u32 addr)
+const char *PPCSymbolDB::GetDescription(u32 addr)
 {
 	Symbol *symbol = GetSymbolFromAddr(addr);
 	if (symbol)
@@ -153,7 +118,7 @@ const char *SymbolDB::GetDescription(u32 addr)
 		return " --- ";
 }
 
-void SymbolDB::FillInCallers()
+void PPCSymbolDB::FillInCallers()
 {
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
 	{
@@ -183,7 +148,7 @@ void SymbolDB::FillInCallers()
 	}
 }
 
-void SymbolDB::PrintCalls(u32 funcAddr) const
+void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
 	XFuncMap::const_iterator iter = functions.find(funcAddr);
 	if (iter != functions.end())
@@ -205,7 +170,7 @@ void SymbolDB::PrintCalls(u32 funcAddr) const
 	}
 }
 
-void SymbolDB::PrintCallers(u32 funcAddr) const
+void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
 	XFuncMap::const_iterator iter = functions.find(funcAddr);
 	if (iter != functions.end())
@@ -223,7 +188,7 @@ void SymbolDB::PrintCallers(u32 funcAddr) const
 	}
 }
 
-void SymbolDB::LogFunctionCall(u32 addr)
+void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
 	//u32 from = PC;
 	XFuncMap::iterator iter = functions.find(addr);
@@ -236,7 +201,7 @@ void SymbolDB::LogFunctionCall(u32 addr)
 
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
-bool SymbolDB::LoadMap(const char *filename)
+bool PPCSymbolDB::LoadMap(const char *filename)
 {
 	FILE *f = fopen(filename, "r");
 	if (!f)
@@ -302,7 +267,7 @@ bool SymbolDB::LoadMap(const char *filename)
 // ===================================================
 /* Save the map file and save a code file */
 // ----------------
-bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
+bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 {
 	// Format the name for the codes version
 	std::string mapFile = filename;

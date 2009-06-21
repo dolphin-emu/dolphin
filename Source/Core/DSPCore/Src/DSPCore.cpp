@@ -155,6 +155,8 @@ void DSPCore_CheckExternalInterrupt()
 		{
 			// level 7 is the interrupt exception
 			DSPCore_SetException(7);
+			
+			// Uh, confusing. Can this really be right?
 			g_dsp.cr &= ~0x0002;
 		}
 	}

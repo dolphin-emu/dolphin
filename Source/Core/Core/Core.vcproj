@@ -964,6 +964,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PowerPC\PPCSymbolDB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\PPCSymbolDB.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PowerPC\PPCTables.cpp"
 				>
 			</File>
@@ -985,14 +993,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\PowerPC\SignatureDB.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PowerPC\SymbolDB.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PowerPC\SymbolDB.h"
 				>
 			</File>
 			<Filter

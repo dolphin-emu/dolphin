@@ -23,6 +23,7 @@
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
+void DSPHost_WriteHostMemory(u8 value, u32 addr) {}
 bool DSPHost_OnThread() { return false; }
 bool DSPHost_Running() { return true; }
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size) {return 0x1337c0de;}

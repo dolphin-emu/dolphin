@@ -61,7 +61,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 //		return new CUCode_Zelda(_rMailHandler, false);
 
 	case 0x6CA33A6D: // DK Jungle Beat
-	case 0x86840740: // Zelda WW
+	case 0x86840740: // Zelda WW - US
 	case 0x56d36052: // Mario Sunshine
 	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
 		INFO_LOG(CONSOLE, "Zelda ucode chosen\n");

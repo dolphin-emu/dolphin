@@ -41,7 +41,7 @@
 #include "../VolumeHandler.h"
 #include "../PatchEngine.h"
 #include "../PowerPC/SignatureDB.h"
-#include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/PPCSymbolDB.h"
 #include "../MemTools.h"
 
 #include "../ConfigManager.h"
@@ -314,7 +314,7 @@ bool CBoot::BootUp()
 			
             Boot_ELF(_StartupPara.m_strFilename.c_str()); 
             UpdateDebugger_MapLoaded();
-			BreakPoints::AddAutoBreakpoints();
+			Debugger::AddAutoBreakpoints();
         }
         break;
 

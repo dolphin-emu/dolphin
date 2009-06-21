@@ -166,7 +166,7 @@ void Run()
 					#endif
 
 					//2: check for breakpoint
-					if (BreakPoints::IsAddressBreakPoint(PC))
+					if (g_breakpoints.IsAddressBreakPoint(PC))
 					{
 						#ifdef SHOW_HISTORY
 							NOTICE_LOG(POWERPC, "----------------------------");
@@ -187,8 +187,8 @@ void Run()
 						#endif
 						INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
 						CCPU::Break();
-						if (BreakPoints::IsTempBreakPoint(PC))
-							BreakPoints::Remove(PC);
+						if (g_breakpoints.IsTempBreakPoint(PC))
+							g_breakpoints.Remove(PC);
 
 						Host_UpdateDisasmDialog();
 						return;

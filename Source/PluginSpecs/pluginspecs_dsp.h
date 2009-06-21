@@ -9,6 +9,7 @@
 #include "ExportProlog.h"
 
 typedef unsigned char   (*TARAM_Read_U8)(const unsigned int _uAddress);
+typedef void            (*TARAM_Write_U8)(const unsigned char _uValue, const unsigned int _uAddress);
 typedef unsigned char*  (*TGetMemoryPointer)(const unsigned int  _uAddress);
 typedef unsigned char* 	(*TGetARAMPointer)(void);
 typedef void            (*TLogv)(const char* _szMessage, int _v);
@@ -21,6 +22,7 @@ typedef struct
 {
 	void                   *hWnd;
 	TARAM_Read_U8			pARAM_Read_U8;
+	TARAM_Write_U8			pARAM_Write_U8;
 	TGetMemoryPointer		pGetMemoryPointer;
 	TGetARAMPointer			pGetARAMPointer;
 	TLogv					pLog;	

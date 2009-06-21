@@ -8,11 +8,9 @@ if not env['HAVE_WX']:
 files = [
     "BreakPointDlg.cpp",
     "BreakpointView.cpp",
-    "CodeView.cpp",
     "BreakpointWindow.cpp",
     "CodeWindow.cpp",
     "CodeWindowSJP.cpp",
-    "CodeView.cpp",
     "MemoryCheckDlg.cpp",
     "MemoryView.cpp",
     "MemoryWindow.cpp",

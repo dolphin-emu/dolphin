@@ -15,18 +15,40 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DSPHOST_H
-#define _DSPHOST_H
+#ifndef _DSPSYMBOLS_H
+#define _DSPSYMBOLS_H
 
-// The user of the DSPCore library must supply a few functions so that the
-// emulation core can access the environment it runs in. If the emulation
-// core isn't used, for example in an asm/disasm tool, then most of these
-// can be stubbed out.
+#include "Common.h"
+#include "SymbolDB.h"
+#include "AudioCommon.h"
 
-u8 DSPHost_ReadHostMemory(u32 addr);
-void DSPHost_WriteHostMemory(u8 value, u32 addr);
-bool DSPHost_OnThread();
-bool DSPHost_Running();
-u32 DSPHost_CodeLoaded(const u8 *ptr, int size);
+#include <stdio.h>
+
+namespace DSPSymbols {
+
+class DSPSymbolDB : public SymbolDB 
+{
+public:
+	DSPSymbolDB() {}
+	~DSPSymbolDB() {}
+	
+	Symbol *GetSymbolFromAddr(u32 addr);
+
+};
+
+extern DSPSymbolDB g_dsp_symbol_db;
+
+bool ReadAnnotatedAssembly(const char *filename);
+void AutoDisassembly(u16 start_addr, u16 end_addr);
+
+void Clear();
+
+int Addr2Line(u16 address);
+int Line2Addr(int line);   // -1 for not found
+
+const char *GetLineText(int line);
+
+}  // namespace DSPSymbols
 
 #endif
+

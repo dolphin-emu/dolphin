@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Dolphin Project.
+// Copyright (C) 2003-2008 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,18 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DSPHOST_H
-#define _DSPHOST_H
 
-// The user of the DSPCore library must supply a few functions so that the
-// emulation core can access the environment it runs in. If the emulation
-// core isn't used, for example in an asm/disasm tool, then most of these
-// can be stubbed out.
+#include "DebuggerUIUtil.h"
 
-u8 DSPHost_ReadHostMemory(u32 addr);
-void DSPHost_WriteHostMemory(u8 value, u32 addr);
-bool DSPHost_OnThread();
-bool DSPHost_Running();
-u32 DSPHost_CodeLoaded(const u8 *ptr, int size);
+// The default font
+wxFont DebuggerFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace"));
 
-#endif
