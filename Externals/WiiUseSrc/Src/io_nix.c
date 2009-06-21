@@ -51,7 +51,7 @@
 #include "definitions.h"
 #include "wiiuse_internal.h"
 #include "io.h"
-
+ 
 static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 
 /**
@@ -181,13 +181,17 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 		return 0;
 
 	addr.l2_family = AF_BLUETOOTH;
-
+	bdaddr_t *bdaddr = &wm->bdaddr;
 	if (address)
 		/* use provided address */
 		str2ba(address, &addr.l2_bdaddr);
 	else
+	{
+		bacmp(bdaddr, BDADDR_ANY);
 		/* use address of device discovered */
-		addr.l2_bdaddr = wm->bdaddr;
+		addr.l2_bdaddr = *bdaddr;
+		
+	}
 
 	/*
 	 *	OUTPUT CHANNEL
@@ -225,7 +229,6 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 	}
 
 	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
-
 	/* do the handshake */
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	wiiuse_handshake(wm, NULL, 0);
@@ -262,7 +265,7 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 int wiiuse_io_read(struct wiimote_t* wm) {
 	if (!wm)
 	{
-		printf("Wiimote is Null0x%x\n", wm);
+		WIIUSE_INFO("Wiimote is Null0x%x\n", wm);
 		return 0;
 	}
 		/*
@@ -276,22 +279,22 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 		if (r == -1) 
 		{
 			/* error reading data */
-			printf("Receiving wiimote data (id %i).", wm->unid);
+			WIIUSE_INFO("Receiving wiimote data (id %i).", wm->unid);
 			perror("Error Details");
 
 			if (errno == ENOTCONN) {
 				/* this can happen if the bluetooth dongle is disconnected */
-				printf("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
+				WIIUSE_INFO("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
 				wiiuse_disconnect(wm);
 				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
 			}
 
 			return 0;
 		}
-		//printf("Size %d, first 4 0x%02X%02X%02X%02X\n",r,  wm->event_buf[0],wm->event_buf[1], wm->event_buf[2],wm->event_buf[3]);
+		//WIIUSE_INFO("Size %d, first 4 0x%02X%02X%02X%02X\n",r,  wm->event_buf[0],wm->event_buf[1], wm->event_buf[2],wm->event_buf[3]);
 		if (!r) {
 			/* remote disconnect */
-			printf("Wiimote Disconnect\n");
+			WIIUSE_INFO("Wiimote Disconnect\n");
 			wiiuse_disconnected(wm);
 			return 0;
 		}
