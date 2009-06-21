@@ -1,0 +1,41 @@
+; This test tries to figure out a couple of unknown opcodes.
+incdir  "tests"
+include "dsp_base.inc"
+
+// 0x02ca is an unknown opcode found in Zelda ucodes.
+
+// 0x02ca logically shifts (not rotates) the whole ACC0 right by signed 16-bit value AC1.M
+// (So, if AC1.M is negative, it shifts left).
+// We'll call it  lsrn, no arguments.
+// 0x02cb is the same opcode, but arithmetic.
+// We'll call it  asrn, no arguments.
+
+clr $ACC0
+clr $ACC1
+lri $AC0.H, #0
+lri $AC0.M, #256
+//neg $ACC0
+lri $AC0.L, #1
+lri $AC1.H, #0xFF
+lri $AC1.M, #1
+lri $AC1.L, #0xFF
+
+call send_back
+
+cw 0x02ca
+
+call send_back
+
+cw 0x02ca
+
+call send_back
+
+cw 0x02ca
+
+call send_back
+
+cw 0x02ca
+
+call send_back
+
+jmp end_of_test
