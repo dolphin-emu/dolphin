@@ -1814,15 +1814,23 @@ void 05A4_ResetAccelerator()
 }
 
  
-void 05ad_SetupAccelerator(_accleratorH(AC0.M), _accleratorL(AC0.L), _format(AC1.M))
- {
-	 05ad 00ff ffd1 sr          @SampleFormat, $AC1.M
-	 05af 0340 0003 andi        $AC1.M, #0x0003
-	 05b1 7900      decm        $AC1.M
-	 05b2 02ca      cw          0x02ca		; *** UNKNOWN OPCODE ***
-	 05b3 00fe ffd8 sr          @ACCAH, $AC0.M
-	 05b5 00fc ffd9 sr          @ACCAL, $AC0.L
-	 05b7 02df      ret         
+void 05ad_SetupAccelerator(_acceleratorH(AC0.M), _accleratorL(AC0.L), _format(AC1.M))
+{
+	// 05ad 00ff ffd1 sr          @SampleFormat, $AC1.M
+	*SampleFormat = AC1.M
+	
+	// 05af 0340 0003 andi        $AC1.M, #0x0003
+	// 05b1 7900      decm        $AC1.M
+	// 05b2 02ca      lsrn		// ACC0 >>= AC1.M
+	// 05b3 00fe ffd8 sr          @ACCAH, $AC0.M
+	// 05b5 00fc ffd9 sr          @ACCAL, $AC0.L
+	
+	*ACCAH/ACCAL = address >> ((sampleFormat & 3) - 1);
+	// ACCAH/ACCAL is current read address
+    // Hm, this seems to imply some direct relationship between the sample format number and 
+    // the nibbles-per-sample value
+	 
+	// 05b7 02df      ret
 }	 
  
 void 05b8_NewMail()
