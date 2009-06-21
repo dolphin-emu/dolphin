@@ -150,7 +150,8 @@ void lrrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
-	g_dsp.r[sreg] += g_dsp.r[DSP_REG_IX0 + sreg];
+	//	g_dsp.r[sreg] += g_dsp.r[DSP_REG_IX0 + sreg];
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
 // SRR @$D, $S
@@ -209,7 +210,8 @@ void srrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	g_dsp.r[dreg] += g_dsp.r[DSP_REG_IX0 + dreg];
+	//	g_dsp.r[dreg] += g_dsp.r[DSP_REG_IX0 + dreg];
+	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
 // ILRR $acD.m, @$arS
@@ -264,7 +266,8 @@ void ilrrn(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	g_dsp.r[reg] += g_dsp.r[DSP_REG_IX0 + reg];
+	//	g_dsp.r[reg] += g_dsp.r[DSP_REG_IX0 + reg];
+	dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 }
 
 }  // namespace

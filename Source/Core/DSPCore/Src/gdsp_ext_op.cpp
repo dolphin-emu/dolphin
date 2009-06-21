@@ -67,7 +67,8 @@ void ir(const UDSPInstruction& opc) {
 void nr(const UDSPInstruction& opc) {
 	u8 reg = opc.hex & 0x3;	
  
-	g_dsp.r[reg] += g_dsp.r[reg + DSP_REG_IX0];
+	//	g_dsp.r[reg] += g_dsp.r[reg + DSP_REG_IX0];
+	dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 }
 
 // MV $axD, $acS.l
@@ -106,7 +107,8 @@ void sn(const UDSPInstruction& opc)
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
-	g_dsp.r[dreg] += g_dsp.r[dreg + DSP_REG_IX0];
+	//	g_dsp.r[dreg] += g_dsp.r[dreg + DSP_REG_IX0];
+	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
 // L axD.l, @$S
@@ -136,7 +138,8 @@ void ln(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
 
-	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
+	//	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
 // Not in duddie's doc
@@ -220,7 +223,8 @@ void dsp_op_ext_r_epi(const UDSPInstruction& opc)
 		break;
 
 	case 0x03: // NR
-		g_dsp.r[reg] += g_dsp.r[reg + 4];
+		//		g_dsp.r[reg] += g_dsp.r[reg + 4];
+		dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 		break;
 	}
 }
@@ -244,7 +248,8 @@ void dsp_op_ext_s(const UDSPInstruction& opc)
 
 	if (opc.hex & 0x04) // SN
 	{
-		g_dsp.r[dreg] += g_dsp.r[dreg + 4];
+		//		g_dsp.r[dreg] += g_dsp.r[dreg + 4];
+		dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 	}
 	else
 	{
@@ -263,7 +268,8 @@ void dsp_op_ext_l(const UDSPInstruction& opc)
 
 	if (opc.hex & 0x04) // LN/LSMN
 	{
-		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+		//		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
 	}
 	else
 	{
@@ -276,14 +282,16 @@ void dsp_op_ext_ls_pro(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex & 0x1) + 0x1e;
 	dsp_dmem_write(g_dsp.r[0x03], g_dsp.r[areg]);
+	u8 sreg = 0x03;
 
 	if (opc.hex & 0x8) // LSM/LSMN
 	{
-		g_dsp.r[0x03] += g_dsp.r[0x07];
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+		//		g_dsp.r[0x03] += g_dsp.r[0x07];
 	} 
 	else // LS
 	{
-		dsp_increment_addr_reg(0x03);
+		dsp_increment_addr_reg(sreg);
 	}
 }
 
@@ -296,7 +304,8 @@ void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
 
 	if (opc.hex & 0x4) // LSN/LSMN
 	{
-		g_dsp.r[0x00] += g_dsp.r[0x04];
+		//g_dsp.r[0x00] += g_dsp.r[0x04];
+		dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
 	}
 	else // LS
 	{
@@ -312,7 +321,8 @@ void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
 
 	if (opc.hex & 0x4) // SLN/SLNM
 	{
-		g_dsp.r[0x00] += g_dsp.r[0x04];
+		dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
+		//		g_dsp.r[0x00] += g_dsp.r[0x04];
 	}
 	else // SL 
 	{
@@ -326,14 +336,16 @@ void dsp_op_ext_sl_epi(const UDSPInstruction& opc)
 	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
 	u16 val = dsp_dmem_read(g_dsp.r[0x03]);
 	dsp_op_write_reg(dreg, val);
+	u8 sreg = 0x03;
 
 	if (opc.hex & 0x8) // SLM/SLMN
 	{
-		g_dsp.r[0x03] += g_dsp.r[0x07];
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+		//		g_dsp.r[0x03] += g_dsp.r[0x07];
 	}
 	else // SL
 	{
-		dsp_increment_addr_reg(0x03);
+		dsp_increment_addr_reg(sreg);
 	}
 }
 
@@ -348,7 +360,8 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 
    	if (opc.hex & 0x04) // N
 	{
-		g_dsp.r[sreg] += g_dsp.r[sreg + 0x04];
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+		//g_dsp.r[sreg] += g_dsp.r[sreg + 0x04];
 	}
 	else
 	{
@@ -357,7 +370,8 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	
 	if (opc.hex & 0x08) // M
 	{
-		g_dsp.r[0x03] += g_dsp.r[0x07];
+		dsp_increase_addr_reg(0x03, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
+		//		g_dsp.r[0x03] += g_dsp.r[0x07];
 	}
 	else
 	{
