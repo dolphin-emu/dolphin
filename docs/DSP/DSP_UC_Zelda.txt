@@ -1,7 +1,7 @@
 /* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-All code is now wrapped in void Function() {}  - the upcoming new DSP LLE debugger
+All code is now wrapped in void Function() {}  - the new DSP LLE debugger
 can parse this file and auto read symbols using those.
 
 BIG Questions:
@@ -10,6 +10,9 @@ BIG Questions:
  - What does 00eb_Unk_BufferMultWithDest??
  - Why is a PB-Transfer from RAM to DMEM 0xC0 shorts long but DMEM to RAM just 0x80
 
+DSP functionality to test:
+ - CR
+ - Interrupts (7)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 //
@@ -171,8 +174,8 @@ There's definitely a bunch of sample data stored in each PB but I don't know exa
 
 // reset vector
  
- void 0012_ResetVector()
- {
+void 0012_ResetVector()
+{
 	// 0012 1205      sbclr       #0x05
 		
 	// 0013 02bf 0057 call        0x0057
@@ -515,7 +518,7 @@ void 00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _facto
  
  // Clears the 0d00 and 0d60 buffers, plus a lot of other intermediate buffers.
  // Also does some other things. 
- void 0102_PrepareFrameBuffers()
+void 0102_PrepareFrameBuffers()
  {
 	 // 0102 8100      clr         $ACC0
 	 // 0103 8900      clr         $ACC1
@@ -833,7 +836,7 @@ void 022a_Copy_XXX_From_RAM_To_0x03a8()
 
 	// 0232 02df      ret         
 }
- 
+	
  
 void 0233_Increase_32BitAddress_InMem(_MemAddr(AR0), _Bytes(AX0.L))
 {
@@ -1465,7 +1468,9 @@ void 041d_Unk() {
 	0472 193c      lrri        $AC0.L, @$AR1
 	0473 009f 0400 lri         $AC1.M, #0x0400
 	0475 00c0 0345 lr          $AR0, @0x0345
-	0477 02bf 0555 call        0x0555
+	// 0477 02bf 0555 call        0x0555              // ReadFromMysteryReg
+	0555_UnknownReadFromMysteryReg(ARAMAddress(ACC0), DestBuffer(AC1.M), Length(AC0.M)) {
+	
 	0479 0081 0348 lri         $AR1, #0x0348
 	047b 193e      lrri        $AC0.M, @$AR1
 	047c 193c      lrri        $AC0.L, @$AR1
@@ -1532,7 +1537,9 @@ void 04c0_UnknownInit()
  
  
 void 04d0_Unk() {
-	04d0 02bf 04e1 call        0x04e1
+	// 04d0 02bf 04e1 call        0x04e1
+	04e1_Read0x40WordsFromZeroTo0b00()
+	
 	// 04fb is incremented when you reset a voice
 	04d2 00df 04fb lr          $AC1.M, @0x04fb
 	04d4 009e 0b00 lri         $AC0.M, #0x0b00
@@ -1550,15 +1557,14 @@ void 04d0_Unk() {
 	04e0 02df      ret
 }
 
-void 04e1_Strange() {
+void 04e1_Read0x40WordsFromZeroTo0b00() {
 	04e1 0092 00ff lri         $CR, #0x00ff
 	04e3 8100      clr         $ACC0
 	04e4 009f 0b00 lri         $AC1.M, #0x0b00
 	04e6 0080 0040 lri         $AR0, #0x0040
-	04e8 029f 0555 jmp         0x0555
-	GOTO 0555_UnknownReadFromMysteryReg
+	// 04e8 029f 0555 jmp         0x0555
+	GOTO 0555_UnknownReadFromMysteryReg(ARAMAddress(ACC0), DestBuffer(AC1.M), Length(AR0)) {
 }
-
 
 void 04ea_Call0573With0b00And0050() {
 	04ea 8100      clr         $ACC0
@@ -1570,9 +1576,9 @@ void 04ea_Call0573With0b00And0050() {
 }
  
 	 
-void 04f1_strange() {
-	04f1 02bf 04e1 call        0x04e1
-	04e1_Strange();
+void 04f1_Read0x40WordsFromZeroTo0b00() {
+	// 04f1 02bf 04e1 call        0x04e1
+	04e1_Read0x40WordsFromZeroTo0b00();
 }
 
 void 04f3_strange() {
@@ -1679,7 +1685,7 @@ void 0536_WaitForDMATransfer()
 }
 
 // Can't find any calls to this one.
-void 053c_Unk() { 
+void 053c_Unk_Unused() { 
 	053c 193e      lrri        $AC0.M, @$AR1
 	053d 193c      lrri        $AC0.L, @$AR1
 	053e 00ff ffcd sr          @DSPA, $AC1.M
@@ -1706,9 +1712,9 @@ void 0553_UnknownReadFromMysteryReg_Unused() {
 	// continues...
 	
 void 0555_UnknownReadFromMysteryReg(ARAMAddress(ACC0), DestBuffer(AC1.M), Length(AC0.M)) {
-	// 0555 0240 7fff andi        $AC0.M, #0x7fff   // Don't know the purpose of this and
+	// 0555 0240 7fff andi        $AC0.M, #0x7fff
 	// 0557 02bf 0561 call        0x0561
-	0561_SetupAcceleratorForMysteryRead(ACC0, AR0, AC1.M);
+	0561_SetupAcceleratorForMysteryAccess(ACC0 & 0x7FFFFFFF, AR0, AC1.M);
 	// After that, length is now in AX0.H
 	
 	// 0559 007a 055f bloop       $AX0.H, 0x055f
@@ -1723,7 +1729,7 @@ void 0555_UnknownReadFromMysteryReg(ARAMAddress(ACC0), DestBuffer(AC1.M), Length
 	// 0560 02df      ret
 }
 
-void 0561_SetupAcceleratorForMysteryRead(ARAMAddress(ACC0), DestBuffer(AC1.M), Length(AR0)) {
+void 0561_SetupAcceleratorForMysteryAccess(ARAMAddress(ACC0), DestBuffer(AC1.M), Length(AR0)) {
 	0561 1c3f      mrr         $AR1, $AC1.M
 	0562 0f0a      lris        $AC1.M, #0x0a
 	0563 2fd1      srs         @SampleFormat, $AC1.M
@@ -1748,9 +1754,10 @@ void 0571_Mystery_Write_FirstLoadTwoRegs_Unused() {
 	0571 193e      lrri        $AC0.M, @$AR1
 	0572 193c      lrri        $AC0.L, @$AR1
 	
-void 0573_Mystery_Write(InBuffer($AR1), _COUNT(AX0.H)) {
+void 0573_Mystery_Write(InBuffer($AR1), SourceBuffer(AC1.M), _COUNT(AX0.H)) {
 	0573 0090 0001 lri         $AC0.H, #0x0001
-	0575 02bf 0561 call        0x0561
+	// 0575 02bf 0561 call        0x0561
+	0561_SetupAcceleratorForMysteryAccess(ACC0, AR0, AC1.M);
 	0577 007a 057e bloop       $AX0.H, 0x057e
 		0579 193e      lrri        $AC0.M, @$AR1
 		057a 2ed3      srs         @Unk Zelda, $AC0.M
@@ -1762,7 +1769,7 @@ void 0573_Mystery_Write(InBuffer($AR1), _COUNT(AX0.H)) {
 }
 
 
- void 0095_COMMAND_04()
+void 0095_COMMAND_04()
  {
 	// commando looks buggy...
 	// it copies data to the switch casement data address... sounds like BS
@@ -1795,7 +1802,7 @@ void 0573_Mystery_Write(InBuffer($AR1), _COUNT(AX0.H)) {
 }	 
  
  
- void 05A4_ResetAccelerator()
+void 05A4_ResetAccelerator()
  {
 	 05a4 0092 00ff lri         $CR, #0x00ff
 	 05a6 009e ffff lri         $AC0.M, #0xffff
@@ -1807,7 +1814,7 @@ void 0573_Mystery_Write(InBuffer($AR1), _COUNT(AX0.H)) {
 }
 
  
- void 05ad_SetupAccelerator(_accleratorH(AC0.M), _accleratorL(AC0.L), _format(AC1.M))
+void 05ad_SetupAccelerator(_accleratorH(AC0.M), _accleratorL(AC0.L), _format(AC1.M))
  {
 	 05ad 00ff ffd1 sr          @SampleFormat, $AC1.M
 	 05af 0340 0003 andi        $AC1.M, #0x0003
@@ -1818,7 +1825,7 @@ void 0573_Mystery_Write(InBuffer($AR1), _COUNT(AX0.H)) {
 	 05b7 02df      ret         
 }	 
  
- void 05b8_NewMail()
+void 05b8_NewMail()
  {
 	 # 05b8 1205      sbclr       #0x05
 	 # 05b9 8e00      set16       
@@ -1912,7 +1919,7 @@ EndOfMailException:
 	 05ef 02ff      rti         
 }
 
- void 05f0_HaltUCode()
+void 05f0_HaltUCode()
  {
 	05f0 009a 0002 lri         $AX0.H, #0x0002
 	05f2 00fa 03a3 sr          @0x03a3, $AX0.H
@@ -2052,7 +2059,7 @@ void 065e_WaitForCPUMailBox_AC0()
  0667 029c 0664 jlnz        0x0664
  0669 02df      ret         
  
- void SendMB_DCD1(_low)
+void SendMB_DCD1(_low)
  { 
 	 // 066a 02bf 0682 call        0x0682
 	 WaitForEmptyDSPMailBox_ovAC1();
@@ -2096,7 +2103,7 @@ void SendMB_F355(_low)
 0681 02df      ret         
 
  
- void WaitForEmptyDSPMailBox_ovAC1.M()
+void WaitForEmptyDSPMailBox_ovAC1.M()
  {
 	// 0682 27fc      lrs         $AC1.M, @DMBH
 	// 0683 03c0 8000 andcf       $AC1.M, #0x8000
@@ -2173,7 +2180,7 @@ void 0688_InitCommandBlock()
 }
 	 
  
- void 06c5_CopyCommandBlock()
+void 06c5_CopyCommandBlock()
  {
 	// 06c5 00c0 0351 lr          $AR0, @0x0351
 	short srcCommandQueueAddr = *0x0351
@@ -2278,7 +2285,7 @@ void 0688_InitCommandBlock()
 } 
  
  
- void 06f9_Unk_PrepareSampleDecode()
+void 06f9_Unk_PrepareSampleDecode()
  {
 	 06f9 8100      clr         $ACC0
 	 06fa 0e10      lris        $AC0.M, #0x10
@@ -2315,7 +2322,7 @@ void 0688_InitCommandBlock()
 }
 
 // Here, CR is 0x04 and thus these are not hw regs.
- void 0717_InitializeDecoderState()   // 0xff88 to 0xff8B
+void 0717_InitializeDecoderState()   // 0xff88 to 0xff8B
  {
 	 // 0717 00de 04fb lr          $AC0.M, @0x04fb
 	 // 0719 7400      incm        $AC0.M
@@ -2528,8 +2535,6 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		 
 		 
 		 
-		 
-		 
 		 07c0 2380      lrs         $AX1.H, @0xff80
 		 07c1 2688      lrs         $AC0.M, @0xff88
 		 07c2 2489      lrs         $AC0.L, @0xff89
@@ -2579,175 +2584,169 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		 return 
 	}
 }	 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
+
 
 
 void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 {
-	 // 07eb 00ff 0360 sr          @0x0360, $AC1.M
-	 // 07ed 00fe 0361 sr          @0x0361, $AC0.M
-	 // 07ef 2638      lrs         $AC0.M, @0x0038
-	 // 07f0 2439      lrs         $AC0.L, @0x0039
-	 // 07f1 0f05      lris        $AC1.M, #0x05
-	 // 07f2 02bf 05ad call        0x05ad
-	 05ad_SetupAccelerator(AC0.M, AC0.L, AC1.M)
-	 
-	 
-	 // 07f4 2638      lrs         $AC0.M, @0x0038
-	 // 07f5 2439      lrs         $AC0.L, @0x0039
-	 // 07f6 8900      clr         $ACC1
-	 // 07f7 00df 0361 lr          $AC1.M, @0x0361
-	 // 07f9 2280      lrs         $AX0.H, @0xff80
-	 // 07fa d000      mulc        $AC1.M, $AX0.H
-	 // 07fb 6f00      movp        $ACC1
-	 // 07fc 4c00      add         $ACC0, $AC1.L
-	 // 07fd 2e38      srs         @0x0038, $AC0.M
-	 // 07fe 2c39      srs         @0x0039, $AC0.L
-	 //inrease sample offset in ARAM
-	 AC0 = (*0x0038 << 16) | *0x0039
-	 AC1 = _numberOfSample * *0x0480   // bytes per sample
-	 *0x0038 = AC0.M
-	 *0x0039 = AC0.L
-	 	 	 
-	 
-	 // 07ff 8100      clr         $ACC0
-	 // 0800 00de 0361 lr          $AC0.M, @0x0361
-	  //0802 007e 086b bloop       $AC0.M, 0x086b
-	 for (int i=0; i<_numberOfSample; i++)
-	 {
-		 0804 0080 ffd3 lri         $AR0, #0xffd3
-		 0806 0084 0000 lri         $IX0, #0x0000
-		 0808 199e      lrrn        $AC0.M, @$AR0
-		 0809 8900      clr         $ACC1
-		 080a 1ffe      mrr         $AC1.M, $AC0.M
-		 080b 1401      lsl         $ACC0, #1
-		 080c 0240 001e andi        $AC0.M, #0x001e
-		 080e 0200 0300 addi        $AC0.M, #0x0300         // AFC COEF Table
-		 0810 1c3e      mrr         $AR1, $AC0.M
-		 0811 157c      lsr         $ACC1, #-4
-		 0812 0340 000f andi        $AC1.M, #0x000f
-		 0814 0a11      lris        $AX0.H, #0x11
-		 0815 5500      subr        $ACC1, $AX0.H
-		 
-		 
-		 // 0816 8100      clr         $ACC0
-		 // 0817 2680      lrs         $AC0.M, @0xff80		 
-		 // 0818 0605      cmpis       $ACC0, #0x05		 		 
-		 // 0819 0295 0832 jz          0x0832
-		 if (*0x480 == 0x09) 
-		 {		 
-			 081b 009a 00f0 lri         $AX0.H, #0x00f0
-			 081d 0b0f      lris        $AX1.H, #0x0f
-			 081e 0082 0364 lri         $AR2, #0x0364
-			 0820 1998      lrrn        $AX0.L, @$AR0
-			 0821 6000      movr        $ACC0, $AX0.L
-			 
-			 // Unpack the nibbles
-			 0822 1107 0829 bloopi      #0x07, 0x0829
-			 for (int j=0; j<7; j++)
-			 {
-				 0824 3400      andr        $AC0.M, $AX0.H
-				 0825 1408      lsl         $ACC0, #8
-				 0826 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-				 0827 3644      andr'ln     $AC0.M, $AX1.H : $AX0.L, @$AR0
-				 0828 140c      lsl         $ACC0, #12
-				 0829 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			}
-			 082a 3400      andr        $AC0.M, $AX0.H
-			 082b 1408      lsl         $ACC0, #8
-			 082c 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			 082d 3600      andr        $AC0.M, $AX1.H
-			 082e 140c      lsl         $ACC0, #12
-			 082f 1b5e      srri        @$AR2, $AC0.M
-			 0830 029f 0852 jmp         0x0852
-		}
-		else  // (*0x480 == 5?)
+	// 07eb 00ff 0360 sr          @0x0360, $AC1.M
+	// 07ed 00fe 0361 sr          @0x0361, $AC0.M
+	// 07ef 2638      lrs         $AC0.M, @0x0038
+	// 07f0 2439      lrs         $AC0.L, @0x0039
+	// 07f1 0f05      lris        $AC1.M, #0x05
+	// 07f2 02bf 05ad call        0x05ad
+	05ad_SetupAccelerator(AC0.M, AC0.L, AC1.M)
+		
+	// 07f4 2638      lrs         $AC0.M, @0x0038
+	// 07f5 2439      lrs         $AC0.L, @0x0039
+	// 07f6 8900      clr         $ACC1
+	// 07f7 00df 0361 lr          $AC1.M, @0x0361
+	// 07f9 2280      lrs         $AX0.H, @0xff80
+	// 07fa d000      mulc        $AC1.M, $AX0.H
+	// 07fb 6f00      movp        $ACC1
+	// 07fc 4c00      add         $ACC0, $AC1.L
+	// 07fd 2e38      srs         @0x0038, $AC0.M
+	// 07fe 2c39      srs         @0x0039, $AC0.L
+	//inrease sample offset in ARAM
+	AC0 = (*0x0038 << 16) | *0x0039
+	AC1 = _numberOfSample * *0x0480   // bytes per sample
+	*0x0038 = AC0.M
+	*0x0039 = AC0.L
+		 	 
+	
+	// 07ff 8100      clr         $ACC0
+	// 0800 00de 0361 lr          $AC0.M, @0x0361
+	 //0802 007e 086b bloop       $AC0.M, 0x086b
+	for (int i = 0; i < _numberOfSample; i++)
+	{
+		// Look for the lrrn below to find the ARAM reads.
+		
+		// FFD3 seems to be some interface to do plain single byte reads
+		// from ARAM with no ADPCM fanciness or similar.
+		
+		// It loads through AR0 loaded with immediate #ffd3, not through
+		// lrs, so CR doesn't affect the effective address.
+		
+		0804 0080 ffd3 lri         $AR0, #0xffd3
+		0806 0084 0000 lri         $IX0, #0x0000
+		0808 199e      lrrn        $AC0.M, @$AR0
+		0809 8900      clr         $ACC1
+		080a 1ffe      mrr         $AC1.M, $AC0.M
+		080b 1401      lsl         $ACC0, #1
+		080c 0240 001e andi        $AC0.M, #0x001e
+		080e 0200 0300 addi        $AC0.M, #0x0300         // AFC COEF Table
+		0810 1c3e      mrr         $AR1, $AC0.M
+		0811 157c      lsr         $ACC1, #-4
+		0812 0340 000f andi        $AC1.M, #0x000f
+		0814 0a11      lris        $AX0.H, #0x11
+		0815 5500      subr        $ACC1, $AX0.H
+		
+		// 0816 8100      clr         $ACC0
+		// 0817 2680      lrs         $AC0.M, @0xff80		 
+		// 0818 0605      cmpis       $ACC0, #0x05		 		 
+		// 0819 0295 0832 jz          0x0832
+		if (*0x480 != 0x5)  // ( == 0x09) 
 		{		 
-			 0832 009a c000 lri         $AX0.H, #0xc000
-			 0834 0082 0364 lri         $AR2, #0x0364
-			 0836 1998      lrrn        $AX0.L, @$AR0
-			 0837 6000      movr        $ACC0, $AX0.L
-			 
-			 // Unpack half nibbles (half quality, ~half space)
-			 //0838 1103 0845 bloopi      #0x03, 0x0845
-			 for (j=0; j<3; j++)
-			 {
-				 083a 1408      lsl         $ACC0, #8
-				 083b 3400      andr        $AC0.M, $AX0.H
-				 083c 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-				 083d 140a      lsl         $ACC0, #10
-				 083e 3400      andr        $AC0.M, $AX0.H
-				 083f 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-				 0840 140c      lsl         $ACC0, #12
-				 0841 3400      andr        $AC0.M, $AX0.H
-				 0842 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-				 0843 140e      lsl         $ACC0, #14
-				 0844 3444      andr'ln     $AC0.M, $AX0.H : $AX0.L, @$AR0			 
-				 0845 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			 }
-			 
-			 0846 1408      lsl         $ACC0, #8
-			 0847 3400      andr        $AC0.M, $AX0.H
-			 0848 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			 0849 140a      lsl         $ACC0, #10
-			 084a 3400      andr        $AC0.M, $AX0.H
-			 084b 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			 084c 140c      lsl         $ACC0, #12
-			 084d 3400      andr        $AC0.M, $AX0.H
-			 084e 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
-			 084f 140e      lsl         $ACC0, #14
-			 0850 3400      andr        $AC0.M, $AX0.H
-			 0851 1b5e      srri        @$AR2, $AC0.M
+			081b 009a 00f0 lri         $AX0.H, #0x00f0
+			081d 0b0f      lris        $AX1.H, #0x0f
+			081e 0082 0364 lri         $AR2, #0x0364
+			0820 1998      lrrn        $AX0.L, @$AR0
+			0821 6000      movr        $ACC0, $AX0.L
+			
+			// Unpack 14 of the nibbles..
+			0822 1107 0829 bloopi      #0x07, 0x0829
+			for (int j=0; j<7; j++)
+			{
+				0824 3400      andr        $AC0.M, $AX0.H
+				0825 1408      lsl         $ACC0, #8
+				0826 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+				
+				0827 3644      andr'ln     $AC0.M, $AX1.H : $AX0.L, @$AR0
+				0828 140c      lsl         $ACC0, #12
+				0829 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			}
+			// Then do the last two .. 
+			082a 3400      andr        $AC0.M, $AX0.H
+			082b 1408      lsl         $ACC0, #8
+			082c 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			082d 3600      andr        $AC0.M, $AX1.H
+			082e 140c      lsl         $ACC0, #12
+			082f 1b5e      srri        @$AR2, $AC0.M
+			
+			0830 029f 0852 jmp         0x0852
+		}
+		else  // (*0x480 == 5)
+		{
+			0832 009a c000 lri         $AX0.H, #0xc000
+			0834 0082 0364 lri         $AR2, #0x0364
+			0836 1998      lrrn        $AX0.L, @$AR0
+			0837 6000      movr        $ACC0, $AX0.L
+			
+			// Unpack half nibbles (half quality, ~half space)
+			//0838 1103 0845 bloopi      #0x03, 0x0845
+			for (j=0; j<3; j++)
+			{
+				083a 1408      lsl         $ACC0, #8
+				083b 3400      andr        $AC0.M, $AX0.H
+				083c 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+				083d 140a      lsl         $ACC0, #10
+				083e 3400      andr        $AC0.M, $AX0.H
+				083f 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+				0840 140c      lsl         $ACC0, #12
+				0841 3400      andr        $AC0.M, $AX0.H
+				0842 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+				0843 140e      lsl         $ACC0, #14
+				0844 3444      andr'ln     $AC0.M, $AX0.H : $AX0.L, @$AR0			 
+				0845 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			}
+			
+			0846 1408      lsl         $ACC0, #8
+			0847 3400      andr        $AC0.M, $AX0.H
+			0848 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			0849 140a      lsl         $ACC0, #10
+			084a 3400      andr        $AC0.M, $AX0.H
+			084b 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			084c 140c      lsl         $ACC0, #12
+			084d 3400      andr        $AC0.M, $AX0.H
+			084e 6032      movr's      $ACC0, $AX0.L : @$AR2, $AC0.M
+			084f 140e      lsl         $ACC0, #14
+			0850 3400      andr        $AC0.M, $AX0.H
+			0851 1b5e      srri        @$AR2, $AC0.M
 		}
 		 
-		 0852 8f00      set40       		 
-		 0853 1f7f      mrr         $AX1.H, $AC1.M
-		 0854 2066      lrs         $AX0.L, @0x0066
-		 0855 2767      lrs         $AC1.M, @0x0067
-		 0856 193a      lrri        $AX0.H, @$AR1
-		 0857 1939      lrri        $AX1.L, @$AR1
-		 0858 0080 0364 lri         $AR0, #0x0364
-		 085a 1c80      mrr         $IX0, $AR0
-		 085b a000      mulx        $AX0.L, $AX1.L
-		 085c ea70      maddc'l     $AC1.M, $AX1.L : $AC0.M, @$AR0
-		 
-		 // ADPCM decoding main loop.
-		 085d 1108 0866 bloopi      #0x08, 0x0866
-		 for (int i=0; i<8; i++)
-		 {
-			 085f 3a93      orr'sl      $AC0.M, $AX1.H : $AC1.M, $AX1.L
-			 0860 a478      mulxac'l    $AX0.L, $AX1.L, $ACC0 : $AC1.M, @$AR0
-			 0861 1485      asl         $ACC0, #5
-			 0862 e833      maddc's     $AC0.M, $AX1.L : @$AR3, $AC0.M
-			 0863 3b92      orr'sl      $AC1.M, $AX1.H : $AC0.M, $AX1.L
-			 0864 a570      mulxac'l    $AX0.L, $AX1.L, $ACC1 : $AC0.M, @$AR0
-			 0865 1585      asl         $ACC1, #5
-			 0866 ea3b      maddc's     $AC1.M, $AX1.L : @$AR3, $AC1.M
+		0852 8f00      set40       		 
+		0853 1f7f      mrr         $AX1.H, $AC1.M
+		0854 2066      lrs         $AX0.L, @0x0066
+		0855 2767      lrs         $AC1.M, @0x0067
+		0856 193a      lrri        $AX0.H, @$AR1
+		0857 1939      lrri        $AX1.L, @$AR1
+		0858 0080 0364 lri         $AR0, #0x0364
+		085a 1c80      mrr         $IX0, $AR0
+		085b a000      mulx        $AX0.L, $AX1.L
+		085c ea70      maddc'l     $AC1.M, $AX1.L : $AC0.M, @$AR0
+		
+		// ADPCM decoding main loop.
+		085d 1108 0866 bloopi      #0x08, 0x0866
+		for (int i=0; i<8; i++)
+		{
+			085f 3a93      orr'sl      $AC0.M, $AX1.H : $AC1.M, $AX1.L
+			0860 a478      mulxac'l    $AX0.L, $AX1.L, $ACC0 : $AC1.M, @$AR0
+			0861 1485      asl         $ACC0, #5
+			0862 e833      maddc's     $AC0.M, $AX1.L : @$AR3, $AC0.M
+			0863 3b92      orr'sl      $AC1.M, $AX1.H : $AC0.M, $AX1.L
+			0864 a570      mulxac'l    $AX0.L, $AX1.L, $ACC1 : $AC0.M, @$AR0
+			0865 1585      asl         $ACC1, #5
+			0866 ea3b      maddc's     $AC1.M, $AX1.L : @$AR3, $AC1.M
 		}
-		 0867 2f67      srs         @0x0067, $AC1.M
-		 0868 8e00      set16       
-		 0869 1ff8      mrr         $AC1.M, $AX0.L
-		 086a 2f66      srs         @0x0066, $AC1.M
-		 086b 8900      clr         $ACC1
+		0867 2f67      srs         @0x0067, $AC1.M
+		0868 8e00      set16       
+		0869 1ff8      mrr         $AC1.M, $AX0.L
+		086a 2f66      srs         @0x0066, $AC1.M
+		086b 8900      clr         $ACC1
 	}
-	 086c 00df 0360 lr          $AC1.M, @0x0360
-	 086e 02df      ret         
+	086c 00df 0360 lr          $AC1.M, @0x0360
+	086e 02df      ret         
 }
  
  
@@ -2793,7 +2792,7 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
  
  
  //////////////////////////////////////////// DEFAULT DECODER 
- void 087c_DefaultDecoder()
+void 087c_DefaultDecoder()
  {
 	 087c 8100      clr         $ACC0
 	 087d 1f5e      mrr         $AX0.H, $AC0.M
@@ -3154,6 +3153,7 @@ void 09f9_UsedBy08Decoder() {
 }
  
 void 0a0a_UsedBy08Decoder() {
+	// Read from ARAM.
 	0a0a 0080 ffd3 lri         $AR0, #0xffd3
 	0a0c 0084 0000 lri         $IX0, #0x0000
 	0a0e 007a 0a12 bloop       $AX0.H, 0x0a12
@@ -3783,6 +3783,9 @@ void 0c1c_Unk()
 	0c59 008b 009f lri         $WR3, #0x009f   // 0xa0 wrap
 	0c5b 0080 0a00 lri         $AR0, #0x0a00
 	0c5d 0900      lris        $AX1.L, #0x00
+
+	// This is the loop that used to go crazy in the LLE emulation
+	// before we fixed addarn to obey the wrapping register.
 	
 	// 0c5e 1150 0c65 bloopi      #0x50, 0x0c65
 	for (int i = 0; i < 0x50; i++) {
@@ -3804,7 +3807,7 @@ void 0c1c_Unk()
 } 
  
  
- void 0c71_Unk()
+void 0c71_Unk()
  {
 	 // 0c71 0f50      lris        $AC1.M, #0x50
 	 // 0c72 0080 0a00 lri         $AR0, #0x0a00
