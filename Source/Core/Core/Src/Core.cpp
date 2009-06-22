@@ -696,6 +696,9 @@ void Callback_VideoCopiedToXFB()
 
 	if (Timer.GetTimeDifference() >= 1000)
 	{
+		// reset timer for framelimiter, placed here so no additional check for 1000ms is required -> don't delete please :)
+		old_frametime = 0;
+
 		// Time passed
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
 
