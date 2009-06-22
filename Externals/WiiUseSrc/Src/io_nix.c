@@ -268,37 +268,61 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 		WIIUSE_INFO("Wiimote is Null0x%x\n", wm);
 		return 0;
 	}
-		/*
-		 *	*nix
-		 */
+	
+	struct timeval tv;
+		fd_set fds;
 		int r;
 		int i;
+		if (!wm) return 0;
 
-		/* read the pending message into the buffer */
-		r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
-		if (r == -1) 
-		{
-			/* error reading data */
-			WIIUSE_INFO("Receiving wiimote data (id %i).", wm->unid);
+		/* block select() for 1/2000th of a second */
+		tv.tv_sec = 0;
+		tv.tv_usec = 500;
+
+		FD_ZERO(&fds);
+		/* only poll it if it is connected */
+		if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_CONNECTED)) {
+			FD_SET(wm->in_sock, &fds);
+			//highest_fd = wm[i]->in_sock;
+		}
+		else
+			/* nothing to poll */
+			return 0;
+
+		if (select(wm->in_sock + 1, &fds, NULL, NULL, &tv) == -1) {
+			WIIUSE_ERROR("Unable to select() the wiimote interrupt socket(s).");
 			perror("Error Details");
+			return 0;
+		}
 
-			if (errno == ENOTCONN) {
-				/* this can happen if the bluetooth dongle is disconnected */
-				WIIUSE_INFO("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
-				wiiuse_disconnect(wm);
-				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+		/* if this wiimote is not connected, skip it */
+		if (!WIIMOTE_IS_CONNECTED(wm))
+			return 0;
+
+		if (FD_ISSET(wm->in_sock, &fds)) 
+		{
+			/* read the pending message into the buffer */
+			r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
+			if (r == -1) {
+				/* error reading data */
+				WIIUSE_ERROR("Receiving wiimote data (id %i).", wm->unid);
+				perror("Error Details");
+
+				if (errno == ENOTCONN) {
+					/* this can happen if the bluetooth dongle is disconnected */
+					WIIUSE_ERROR("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
+					wiiuse_disconnect(wm);
+					wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+				}
+
+				return 0;
 			}
-
-			return 0;
+			if (!r) {
+				/* remote disconnect */
+				wiiuse_disconnected(wm);
+				return 0;
+			}
 		}
-		//WIIUSE_INFO("Size %d, first 4 0x%02X%02X%02X%02X\n",r,  wm->event_buf[0],wm->event_buf[1], wm->event_buf[2],wm->event_buf[3]);
-		if (!r) {
-			/* remote disconnect */
-			WIIUSE_INFO("Wiimote Disconnect\n");
-			wiiuse_disconnected(wm);
-			return 0;
-		}
-		
 	return 1;
 }
 
