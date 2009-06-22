@@ -57,11 +57,15 @@
 
 #include "WII_IPC_HLE_Device_net.h"
 #include <stdio.h>
+#ifdef _WIN32
+#include <winsock.h>
+typedef int socklen_t;
+#else
 #include <sys/types.h>
 #include <sys/socket.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
-
+#endif
 
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
@@ -269,7 +273,7 @@ struct GC_sockaddr {
   s8 sa_data[14];
 };
 struct GC_in_addr {
-  u32 s_addr;
+  u32 s_addr_;    // this cannot be named s_addr under windows - collides with some crazy define.
 };
 struct GC_sockaddr_in {
   u8 sin_len;
@@ -304,7 +308,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		memcpy(&addrPC, addr->name, sizeof(GC_sockaddr_in));
 		sockaddr_in address;
 		  address.sin_family = addrPC.sin_family;
-		  address.sin_addr.s_addr = addrPC.sin_addr.s_addr;
+		  address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
 		  address.sin_port = htons(addrPC.sin_port);
 		int Return = bind(addr->socket, (sockaddr*)&address, sizeof(address));
 		return Return;
@@ -328,7 +332,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		int Return = accept(S, (struct sockaddr *)&address, &addrlen);
 		GC_sockaddr_in *addr = (GC_sockaddr_in*)Memory::GetPointer(BufferOut);
 		addr->sin_family = address.sin_family;
-		addr->sin_addr.s_addr = address.sin_addr.s_addr;
+		addr->sin_addr.s_addr_ = address.sin_addr.s_addr;
 		addr->sin_port = address.sin_port;
 		socklen_t *Len = (socklen_t *)Memory::GetPointer(BufferOut + 0x04);
 		*Len = addrlen;
