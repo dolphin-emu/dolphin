@@ -272,7 +272,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedU8 = AlignCode4();
-	INT3();
+	//INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
@@ -295,7 +295,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedS8 = AlignCode4();
-	INT3();
+	//INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
@@ -318,7 +318,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedU16 = AlignCode4();
-	INT3();
+	//INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
@@ -350,7 +350,7 @@ void AsmRoutineManager::GenQuantizedStores() {
 	RET();
 
 	const u8* storePairedS16 = AlignCode4();
-	INT3();
+	//INT3();
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
 	PUNPCKLDQ(XMM1, R(XMM1));
