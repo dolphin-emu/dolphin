@@ -10,7 +10,7 @@ import platform
 name = "Plugin_VideoOGL"
 
 files = [
-	'BPFunctions.cpp',
+	'SUFunctions.cpp',
 	'Config.cpp',
 	'rasterfont.cpp',
 	'Render.cpp',

@@ -18,7 +18,7 @@
 #ifndef _PIXELSHADERMANAGER_H
 #define _PIXELSHADERMANAGER_H
 
-#include "BPMemory.h"
+#include "SUMemory.h"
 #include "PixelShaderGen.h"
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4);

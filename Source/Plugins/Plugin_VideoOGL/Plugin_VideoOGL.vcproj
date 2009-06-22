@@ -717,11 +717,11 @@
 			Name="Decoder"
 			>
 			<File
-				RelativePath=".\Src\BPFunctions.cpp"
+				RelativePath=".\Src\NativeVertexFormat.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\NativeVertexFormat.cpp"
+				RelativePath=".\Src\SUFunctions.cpp"
 				>
 			</File>
 			<File

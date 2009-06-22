@@ -20,7 +20,7 @@
 #include "Profiler.h"
 #include "NativeVertexFormat.h"
 
-#include "BPMemory.h"
+#include "SUMemory.h"
 #include "VertexShaderGen.h"
 
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
@@ -42,8 +42,8 @@ void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
 	}
 
 	// fog
-	vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-	vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
+	vid.values[1] |= (((u32)sumem.fog.c_proj_fsel.fsel & 3) << 30);
+	vid.values[2] |= (((u32)sumem.fog.c_proj_fsel.fsel >> 2) << 30);
 
 	u32* pcurvalue = &vid.values[3];
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
@@ -81,8 +81,8 @@ const char *GenerateVertexShader(u32 components)
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
-    _assert_( bpmem.genMode.numtexgens == xfregs.numTexGens);
-    _assert_( bpmem.genMode.numcolchans == xfregs.nNumChans);
+    _assert_( sumem.genMode.numtexgens == xfregs.numTexGens);
+    _assert_( sumem.genMode.numcolchans == xfregs.nNumChans);
     
     u32 lightMask = 0;
     if (xfregs.nNumChans > 0)
@@ -432,8 +432,8 @@ const char *GenerateVertexShader(u32 components)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-//    if (bpmem.fog.c_proj_fsel.fsel != 0) {
-//        switch (bpmem.fog.c_proj_fsel.fsel) {
+//    if (sumem.fog.c_proj_fsel.fsel != 0) {
+//        switch (sumem.fog.c_proj_fsel.fsel) {
 //            case 1: // linear
 //                break;
 //            case 4: // exp

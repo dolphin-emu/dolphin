@@ -38,7 +38,7 @@
 #include "ImageWrite.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
-#include "BPStructs.h"
+#include "SUStructs.h"
 #include "TextureMngr.h"
 #include "rasterfont.h"
 #include "VertexShaderGen.h"
@@ -606,9 +606,9 @@ void Renderer::ResetGLState()
 void Renderer::RestoreGLState()
 {
 	// Gets us back into a more game-like state.
-    if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
-    if (bpmem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
-    if (bpmem.zmode.updateenable)   glDepthMask(GL_TRUE);
+    if (sumem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
+    if (sumem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
+    if (sumem.zmode.updateenable)   glDepthMask(GL_TRUE);
 
     glEnable(GL_SCISSOR_TEST);
 	SetScissorRect();
@@ -621,11 +621,11 @@ void Renderer::RestoreGLState()
 
 void Renderer::SetColorMask()
 {
-    if (bpmem.blendmode.alphaupdate && bpmem.blendmode.colorupdate)
+    if (sumem.blendmode.alphaupdate && sumem.blendmode.colorupdate)
         glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_TRUE);
-    else if (bpmem.blendmode.alphaupdate)
+    else if (sumem.blendmode.alphaupdate)
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-    else if (bpmem.blendmode.colorupdate) 
+    else if (sumem.blendmode.colorupdate) 
         glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_FALSE);
 	else
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -639,14 +639,14 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
 
-	u32 newval = bpmem.blendmode.subtract << 2;
+	u32 newval = sumem.blendmode.subtract << 2;
 
-    if (bpmem.blendmode.subtract) {
+    if (sumem.blendmode.subtract) {
         newval |= 0x0049;   // enable blending src 1 dst 1
-    } else if (bpmem.blendmode.blendenable) {		
+    } else if (sumem.blendmode.blendenable) {		
 		newval |= 1;    // enable blending
-		newval |= bpmem.blendmode.srcfactor << 3;
-		newval |= bpmem.blendmode.dstfactor << 6;
+		newval |= sumem.blendmode.srcfactor << 3;
+		newval |= sumem.blendmode.dstfactor << 6;
 	}
 	
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
@@ -735,30 +735,30 @@ GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// bpmem.scissorTL.x, y = 342x342
-// bpmem.scissorBR.x, y = 981x821
+// sumem.scissorTL.x, y = 342x342
+// sumem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
 bool Renderer::SetScissorRect()
 {
-    int xoff = bpmem.scissorOffset.x * 2 - 342;
-    int yoff = bpmem.scissorOffset.y * 2 - 342;
+    int xoff = sumem.scissorOffset.x * 2 - 342;
+    int yoff = sumem.scissorOffset.y * 2 - 342;
     float MValueX = GetTargetScaleX();
     float MValueY = GetTargetScaleY();
-	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
+	float rc_left = (float)sumem.scissorTL.x - xoff - 342; // left = 0
 	rc_left *= MValueX;
 	if (rc_left < 0) rc_left = 0;
 
-	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
+	float rc_top = (float)sumem.scissorTL.y - yoff - 342; // right = 0
 	rc_top *= MValueY;
 	if (rc_top < 0) rc_top = 0;
     
-	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
+	float rc_right = (float)sumem.scissorBR.x - xoff - 341; // right = 640
 	rc_right *= MValueX;
 	if (rc_right > EFB_WIDTH * MValueX) rc_right = EFB_WIDTH * MValueX;
 
-	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
+	float rc_bottom = (float)sumem.scissorBR.y - yoff - 341; // bottom = 480
 	rc_bottom *= MValueY;
 	if (rc_bottom > EFB_HEIGHT * MValueY) rc_bottom = EFB_HEIGHT * MValueY;
 
@@ -1384,7 +1384,7 @@ void Renderer::SetScreenshot(const char *filename)
 bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
 	// The height seemed to often be one less than the setting (but sometimes not),
-	// perhaps the source is the (bpmem.copyTexSrcWH.y + 1) in BPStructs.cpp that I'm guessing
+	// perhaps the source is the (sumem.copyTexSrcWH.y + 1) in SUStructs.cpp that I'm guessing
 	// is there because of how some GL function works. But the buffer we are reading from here
 	// seems to have the necessary pixels for a complete height so we use the complete height
 	// from the settings.
@@ -1495,8 +1495,8 @@ void UpdateViewport()
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 	// --------
 
-	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
-	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
+	int scissorXOff = sumem.scissorOffset.x * 2 - 342;
+	int scissorYOff = sumem.scissorOffset.y * 2 - 342;
 	// -------------------------------------
 
 	float MValueX = Renderer::GetTargetScaleX();

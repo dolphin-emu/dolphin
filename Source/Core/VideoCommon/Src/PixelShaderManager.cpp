@@ -99,7 +99,7 @@ void PixelShaderManager::SetConstants()
 	{    
         static float ffrac = 255.0f/256.0f;
         float ftemp[4];
-        switch (bpmem.ztex2.type) 
+        switch (sumem.ztex2.type) 
 		{
             case 0:
                 // 8 bits
@@ -122,7 +122,7 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bZBiasChanged || s_bDepthRangeChanged) 
 	{
-        //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);        
+        //ERROR_LOG("pixel=%x,%x, bias=%x\n", sumem.zcontrol.pixel_format, sumem.ztex2.type, lastZBias);        
         SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
@@ -137,8 +137,8 @@ void PixelShaderManager::SetConstants()
 		{
             for (u32 i = 0; i < 2; ++i) 
 			{
-                f[2 * i] = bpmem.texscale[0].getScaleS(i & 1);
-                f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
+                f[2 * i] = sumem.texscale[0].getScaleS(i & 1);
+                f[2 * i + 1] = sumem.texscale[0].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
             SetPSConstant4fv(C_INDTEXSCALE, f);
@@ -146,8 +146,8 @@ void PixelShaderManager::SetConstants()
 
         if (s_nIndTexScaleChanged & 0x0c) {
             for (u32 i = 2; i < 4; ++i) {
-                f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
-                f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
+                f[2 * i] = sumem.texscale[1].getScaleS(i & 1);
+                f[2 * i + 1] = sumem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }            
             SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
@@ -162,28 +162,28 @@ void PixelShaderManager::SetConstants()
 		{
             if (s_nIndTexMtxChanged & (1 << i)) 
 			{
-                int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
-					        ((u32)bpmem.indmtx[i].col1.s1 << 2) |
-					        ((u32)bpmem.indmtx[i].col2.s2 << 4);
+                int scale = ((u32)sumem.indmtx[i].col0.s0 << 0) |
+					        ((u32)sumem.indmtx[i].col1.s1 << 2) |
+					        ((u32)sumem.indmtx[i].col2.s2 << 4);
                 float fscale = powf(2.0f, (float)(scale - 17)) / 1024.0f;
 
                 // xyz - static matrix
                 // TODO w - dynamic matrix scale / 256...... somehow / 4 works better
                 // rev 2972 - now using / 256.... verify that this works
                 SetPSConstant4f(C_INDTEXMTX + 2 * i,
-                    bpmem.indmtx[i].col0.ma * fscale,
-					bpmem.indmtx[i].col1.mc * fscale,
-					bpmem.indmtx[i].col2.me * fscale,
+                    sumem.indmtx[i].col0.ma * fscale,
+					sumem.indmtx[i].col1.mc * fscale,
+					sumem.indmtx[i].col2.me * fscale,
 					fscale * 4.0f);
                 SetPSConstant4f(C_INDTEXMTX + 2 * i + 1,
-                    bpmem.indmtx[i].col0.mb * fscale,
-					bpmem.indmtx[i].col1.md * fscale,
-					bpmem.indmtx[i].col2.mf * fscale,
+                    sumem.indmtx[i].col0.mb * fscale,
+					sumem.indmtx[i].col1.md * fscale,
+					sumem.indmtx[i].col2.mf * fscale,
 					fscale * 4.0f);
 
                 PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n", i,
-                    1024.0f*fscale, bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
-                    bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale, fscale);
+                    1024.0f*fscale, sumem.indmtx[i].col0.ma * fscale, sumem.indmtx[i].col1.mc * fscale, sumem.indmtx[i].col2.me * fscale,
+                    sumem.indmtx[i].col0.mb * fscale, sumem.indmtx[i].col1.md * fscale, sumem.indmtx[i].col2.mf * fscale, fscale);
             }
         }
         s_nIndTexMtxChanged = 0;
@@ -191,15 +191,15 @@ void PixelShaderManager::SetConstants()
 
     if (s_bFogColorChanged) 
 	{
-        SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
+        SetPSConstant4f(C_FOG, sumem.fog.color.r / 255.0f, sumem.fog.color.g / 255.0f, sumem.fog.color.b / 255.0f, 0);
         s_bFogColorChanged = false;
     }
 
     if (s_bFogParamChanged) 
 	{
-        float a = bpmem.fog.a.GetA() * ((float)(1 << bpmem.fog.b_shift));
-        float b = ((float)bpmem.fog.b_magnitude / 8388638) * ((float)(1 << (bpmem.fog.b_shift - 1)));
-        SetPSConstant4f(C_FOG + 1, a, b, bpmem.fog.c_proj_fsel.GetC(), 0);
+        float a = sumem.fog.a.GetA() * ((float)(1 << sumem.fog.b_shift));
+        float b = ((float)sumem.fog.b_magnitude / 8388638) * ((float)(1 << (sumem.fog.b_shift - 1)));
+        SetPSConstant4f(C_FOG + 1, a, b, sumem.fog.c_proj_fsel.GetC(), 0);
         s_bFogParamChanged = false;
     }
 	for (int i = 0; i < 8; i++)
@@ -214,7 +214,7 @@ void PixelShaderManager::SetPSTextureDims(int texid)
     float fdims[4];
 	if (s_texturemask & (1 << texid))
 	{
-		TCoordInfo& tc = bpmem.texcoords[texid];
+		TCoordInfo& tc = sumem.texcoords[texid];
 		fdims[0] = (float)(lastTexDims[texid] & 0xffff);
 		fdims[1] = (float)((lastTexDims[texid] >> 16) & 0xfff);
         fdims[2] = (float)(tc.s.scale_minus_1 + 1)*lastCustomTexScale[texid][0];
@@ -222,7 +222,7 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 	}
 	else 
 	{
-        TCoordInfo& tc = bpmem.texcoords[texid];
+        TCoordInfo& tc = sumem.texcoords[texid];
 		fdims[0] = 1.0f / (float)(lastTexDims[texid] & 0xffff);
 		fdims[1] = 1.0f / (float)((lastTexDims[texid] >> 16) & 0xfff);
 		fdims[2] = (float)(tc.s.scale_minus_1 + 1) * lastCustomTexScale[texid][0];
@@ -235,10 +235,10 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 
 void PixelShaderManager::SetColorChanged(int type, int num)
 {
-    int r = bpmem.tevregs[num].low.a;
-	int a = bpmem.tevregs[num].low.b;
-    int b = bpmem.tevregs[num].high.a;
-	int g = bpmem.tevregs[num].high.b;
+    int r = sumem.tevregs[num].low.a;
+	int a = sumem.tevregs[num].low.b;
+    int b = sumem.tevregs[num].high.a;
+	int g = sumem.tevregs[num].high.b;
     float *pf = &lastRGBAfull[type][num][0];
     pf[0] = (float)r / 255.0f;
     pf[1] = (float)g / 255.0f;

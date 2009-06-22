@@ -20,7 +20,7 @@
 #include "TextureDecoder.h"
 #include "PixelShaderManager.h"
 #include "PixelShaderGen.h"
-#include "BPMemory.h"
+#include "SUMemory.h"
 
 #include <stdio.h>
 #include <math.h>

@@ -28,7 +28,7 @@
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
-#include "BPStructs.h"
+#include "SUStructs.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexShaderManager.h"
@@ -223,7 +223,7 @@ void Video_Prepare(void)
 
 	TextureCache::Init();
 
-	BPInit();
+	SUInit();
 	VertexManager::Init();
 	Fifo_Init();
 	VertexLoaderManager::Init();

@@ -33,7 +33,7 @@
 #include "NativeVertexWriter.h"
 #include "TextureCache.h"
 
-#include "BPStructs.h"
+#include "SUStructs.h"
 #include "XFStructs.h"
 
 using namespace D3D;
@@ -185,15 +185,15 @@ void Flush()
 			g_nativeVertexFmt->SetupVertexPointers();
 
 		u32 usedtextures = 0;
-		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
-			if (bpmem.tevorders[i/2].getEnable(i & 1))
-				usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
+		for (u32 i = 0; i < (u32)sumem.genMode.numtevstages + 1; ++i) {
+			if (sumem.tevorders[i/2].getEnable(i & 1))
+				usedtextures |= 1 << sumem.tevorders[i/2].getTexMap(i & 1);
 		}
 
-		if (bpmem.genMode.numindstages > 0) {
-			for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
-				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
-					usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
+		if (sumem.genMode.numindstages > 0) {
+			for (u32 i = 0; i < (u32)sumem.genMode.numtevstages + 1; ++i) {
+				if (sumem.tevind[i].IsActive() && sumem.tevind[i].bt < sumem.genMode.numindstages) {
+					usedtextures |= 1 << sumem.tevindref.getTexMap(sumem.tevind[i].bt);
 				}
 			}
 		}
@@ -202,7 +202,7 @@ void Flush()
 		for (int i = 0; i < 8; i++)
 		{
 			if (usedtextures & (1 << i)) {
-				FourTexUnits &tex = bpmem.tex[i >> 2];
+				FourTexUnits &tex = sumem.tex[i >> 2];
 				TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
 					(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 					tex.texImage0[i&3].width+1, tex.texImage0[i&3].height+1,

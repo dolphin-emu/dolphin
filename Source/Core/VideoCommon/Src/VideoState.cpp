@@ -17,7 +17,7 @@
 
 #include "VideoState.h"
 
-#include "BPMemory.h"
+#include "SUMemory.h"
 #include "CPMemory.h"
 #include "XFMemory.h"
 #include "TextureDecoder.h"
@@ -26,7 +26,7 @@
 static void DoState(PointerWrap &p)
 {
     // BP Memory
-    p.Do(bpmem);
+    p.Do(sumem);
     // CP Memory
     p.DoArray(arraybases, 16);
     p.DoArray(arraystrides, 16);

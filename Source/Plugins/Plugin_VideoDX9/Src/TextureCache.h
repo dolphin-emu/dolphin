@@ -22,7 +22,7 @@
 #include <map>
 
 #include "D3DBase.h"
-#include "BPMemory.h"
+#include "SUMemory.h"
 
 class TextureCache
 {

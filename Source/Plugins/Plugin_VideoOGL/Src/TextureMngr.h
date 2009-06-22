@@ -22,7 +22,7 @@
 
 #include "VideoCommon.h"
 #include "GLUtil.h"
-#include "BPStructs.h"
+#include "SUStructs.h"
 
 class TextureMngr
 {

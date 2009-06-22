@@ -42,7 +42,7 @@
 #include "Render.h"
 
 #include "MemoryUtil.h"
-#include "BPStructs.h"
+#include "SUStructs.h"
 #include "TextureDecoder.h"
 #include "TextureMngr.h"
 #include "PixelShaderCache.h"
@@ -256,7 +256,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (address == 0)
         return NULL;
 
-    TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
+    TexMode0 &tm0 = sumem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
 	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1;

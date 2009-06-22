@@ -25,7 +25,7 @@
 
 #include "VertexShaderGen.h"
 #include "VertexShaderManager.h"
-#include "BPMemory.h"
+#include "SUMemory.h"
 #include "CPMemory.h"
 #include "XFMemory.h"
 #include "VideoCommon.h"

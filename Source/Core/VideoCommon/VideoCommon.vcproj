@@ -429,19 +429,31 @@
 			Name="Sections"
 			>
 			<File
-				RelativePath=".\Src\BPMemory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\BPMemory.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\CPMemory.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\CPMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SUFunctions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SUMemory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SUMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SUStructs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SUStructs.h"
 				>
 			</File>
 			<File
@@ -609,18 +621,26 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\Src\BPFunctions.h"
+		<Filter
+			Name="Decoding"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\BPStructs.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\BPStructs.h"
-			>
-		</File>
+			<File
+				RelativePath=".\Src\OpcodeDecoding.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OpcodeDecoding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureDecoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureDecoder.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\DataReader.h"
 			>
@@ -658,23 +678,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\OpcodeDecoding.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OpcodeDecoding.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureDecoder.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureDecoder.h"
 			>
 		</File>
 		<File

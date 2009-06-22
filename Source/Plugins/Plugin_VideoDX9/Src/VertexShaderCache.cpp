@@ -25,7 +25,7 @@
 #include "Config.h"
 #include "VertexShaderCache.h"
 #include "VertexLoader.h"
-#include "BPMemory.h"
+#include "SUMemory.h"
 #include "XFMemory.h"
 
 #include <Cg/cg.h>

@@ -141,7 +141,7 @@ RasterFont::~RasterFont()
 
 void RasterFont::printString(const char *s, double x, double y, double z)
 {
-	int length = strlen(s);
+	int length = (int)strlen(s);
 	if (!length)
 		return;
 

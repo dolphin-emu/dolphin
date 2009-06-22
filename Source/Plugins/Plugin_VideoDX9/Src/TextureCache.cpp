@@ -213,7 +213,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.w = width;
 	entry.h = height;
 	entry.fmt = format;
-	entry.mode = bpmem.tex[stage > 3].texMode0[stage & 3];
+	entry.mode = sumem.tex[stage > 3].texMode0[stage & 3];
 	
 	if (g_Config.bDumpTextures)
 	{ // dump texture to file
