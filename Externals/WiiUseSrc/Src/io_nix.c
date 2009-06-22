@@ -231,9 +231,9 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
 	/* do the handshake */
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
-	wiiuse_handshake(wm, NULL, 0);
-
+	
 	wiiuse_set_report_type(wm);
+	wiiuse_handshake(wm, NULL, 0);
 
 	return 1;
 }
@@ -263,71 +263,78 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 }
 int wiiuse_io_read(struct wiimote_t* wm) {
-	if (!wm)
-	{
-		WIIUSE_INFO("Wiimote is Null0x%x\n", wm);
+	struct timeval tv;
+	fd_set fds;
+	int r;
+	int i;
+	if (!wm) 
+		return 0;
+
+	/* block select() for 1/2000th of a second */
+	tv.tv_sec = 0;
+	tv.tv_usec = 500;
+
+	FD_ZERO(&fds);
+	/* only poll it if it is connected */
+	if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_CONNECTED)) {
+		FD_SET(wm->in_sock, &fds);
+		//highest_fd = wm[i]->in_sock;
+	}
+	else
+		/* nothing to poll */
+		return 0;
+
+	if (select(wm->in_sock + 1, &fds, NULL, NULL, &tv) == -1) {
+		WIIUSE_ERROR("Unable to select() the wiimote interrupt socket(s).");
+		perror("Error Details");
 		return 0;
 	}
-	
-	struct timeval tv;
-		fd_set fds;
-		int r;
-		int i;
-		if (!wm) return 0;
 
-		/* block select() for 1/2000th of a second */
-		tv.tv_sec = 0;
-		tv.tv_usec = 500;
+	/* if this wiimote is not connected, skip it */
+	if (!WIIMOTE_IS_CONNECTED(wm))
+		return 0;
 
-		FD_ZERO(&fds);
-		/* only poll it if it is connected */
-		if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_CONNECTED)) {
-			FD_SET(wm->in_sock, &fds);
-			//highest_fd = wm[i]->in_sock;
-		}
-		else
-			/* nothing to poll */
-			return 0;
-
-		if (select(wm->in_sock + 1, &fds, NULL, NULL, &tv) == -1) {
-			WIIUSE_ERROR("Unable to select() the wiimote interrupt socket(s).");
+	if (FD_ISSET(wm->in_sock, &fds)) 
+	{
+		/* read the pending message into the buffer */
+		r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
+		if (r == -1) {
+			/* error reading data */
+			WIIUSE_ERROR("Receiving wiimote data (id %i).", wm->unid);
 			perror("Error Details");
+
+			if (errno == ENOTCONN) {
+				/* this can happen if the bluetooth dongle is disconnected */
+				WIIUSE_ERROR("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
+				wiiuse_disconnect(wm);
+				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+			}
+
 			return 0;
 		}
-
-		/* if this wiimote is not connected, skip it */
-		if (!WIIMOTE_IS_CONNECTED(wm))
+		if (!r) {
+			/* remote disconnect */
+			wiiuse_disconnected(wm);
 			return 0;
-
-		if (FD_ISSET(wm->in_sock, &fds)) 
-		{
-			/* read the pending message into the buffer */
-			r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
-			if (r == -1) {
-				/* error reading data */
-				WIIUSE_ERROR("Receiving wiimote data (id %i).", wm->unid);
-				perror("Error Details");
-
-				if (errno == ENOTCONN) {
-					/* this can happen if the bluetooth dongle is disconnected */
-					WIIUSE_ERROR("Bluetooth appears to be disconnected.  Wiimote unid %i will be disconnected.", wm->unid);
-					wiiuse_disconnect(wm);
-					wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
-				}
-
-				return 0;
-			}
-			if (!r) {
-				/* remote disconnect */
-				wiiuse_disconnected(wm);
-				return 0;
-			}
 		}
-	return 1;
+		memcpy(wm->event_buf, &wm->event_buf[1], sizeof(wm->event_buf) - 1);
+		return 1;
+	}
+	return 0;
 }
 
 
-int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
+int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) 
+{
+	if(buf[0] != (WM_SET_REPORT | WM_BT_OUTPUT))
+	{
+		// Linux and OSX need this, Windows strips it out
+		// Only packets from Dolphin don't have the start
+		// Wiiuse uses ifdefs to add the first byte without you ever knowing it
+		// Should find out a nice way of doing this, getting windows to stop stripping the packets would be nice
+		memcpy(buf + 1, buf, len - 1);
+		buf[0] = (WM_SET_REPORT | WM_BT_OUTPUT);
+	}
 	return write(wm->out_sock, buf, len);
 }
 

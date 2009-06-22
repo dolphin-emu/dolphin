@@ -84,29 +84,31 @@ static int state_changed(struct wiimote_t* wm);
 int wiiuse_poll(struct wiimote_t** wm, int wiimotes) {
 	int evnt = 0;
 
-	#ifndef WIN32
-		int i;
+	#if defined(__APPLE__)
 
-		if (!wm)
-				return 0;
+                int i;
 
-		for (i = 0; i < wiimotes; ++i) {
-				wm[i]->event = WIIUSE_NONE;
+                if (!wm)
+                        return 0;
 
-				if (wiiuse_io_read(wm[i])) {
-						/* propagate the event */
-						propagate_event(wm[i], wm[i]->event_buf[1], wm[i]->event_buf+2);
-						evnt += (wm[i]->event != WIIUSE_NONE);
+                for (i = 0; i < wiimotes; ++i) {
+                        wm[i]->event = WIIUSE_NONE;
 
-						/* clear out the event buffer */
-						memset(wm[i]->event_buf, 0, sizeof(wm[i]->event_buf));
-				} else {
-						idle_cycle(wm[i]);
-				}
-		}
+                        if (wiiuse_io_read(wm[i])) {
+                                /* propagate the event */
+                                propagate_event(wm[i], wm[i]->event_buf[1], wm[i]->event_buf+2);
+                                evnt += (wm[i]->event != WIIUSE_NONE);
+
+                                /* clear out the event buffer */
+                                memset(wm[i]->event_buf, 0, sizeof(wm[i]->event_buf));
+                        } else {
+                                idle_cycle(wm[i]);
+                        }
+                }
+
 	#else
 		/*
-		 *	Windows
+		 *	Windows, Unix
 		 */
 		int i;
 

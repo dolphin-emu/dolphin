@@ -164,10 +164,6 @@ void ReadData()
 	if (wiiuse_io_read(m_pWiiMote))
 	{
 		const byte* pBuffer = m_pWiiMote->event_buf;
-		#ifndef _WIN32
-			// The Linux packets are starting out one spot before the Windows one. This should really be handled in the wiiuse library
-			pBuffer++;
-		#endif
 		// Check if we have a channel (connection) if so save the data...
 		if (m_channelID > 0)
 		{
