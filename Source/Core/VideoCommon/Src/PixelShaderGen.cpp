@@ -22,63 +22,63 @@
 #include "Profiler.h"
 #include "PixelShaderGen.h"
 #include "XFMemory.h"  // for texture projection mode
-#include "SUMemory.h"
+#include "BPMemory.h"
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
-	for (u32 i = 0; i < (u32)sumem.genMode.numtevstages + 1; i++) {
-		if (sumem.tevorders[i/2].getEnable(i&1)) {
-			int texcoord = sumem.tevorders[i/2].getTexCoord(i&1);
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
+		if (bpmem.tevorders[i/2].getEnable(i&1)) {
+			int texcoord = bpmem.tevorders[i/2].getTexCoord(i&1);
 			if (xfregs.texcoords[texcoord].texmtxinfo.projection )
 				projtexcoords |= 1 << texcoord;
 		}
 	}
-	uid.values[0] = (u32)sumem.genMode.numtevstages |
-				   ((u32)sumem.genMode.numindstages << 4) |
-				   ((u32)sumem.genMode.numtexgens << 7) |
+	uid.values[0] = (u32)bpmem.genMode.numtevstages |
+				   ((u32)bpmem.genMode.numindstages << 4) |
+				   ((u32)bpmem.genMode.numtexgens << 7) |
 				   ((u32)dstAlphaEnable << 11) |
-				   ((u32)((sumem.alphaFunc.hex >> 16) & 0xff) << 12) |
+				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
 				   (projtexcoords << 20) |
-				   ((u32)sumem.ztex2.op << 28);
+				   ((u32)bpmem.ztex2.op << 28);
 
 	uid.values[0] = (uid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
 	// swap table
 	for (int i = 0; i < 8; i += 2)
-		((u8*)&uid.values[1])[i/2] = (sumem.tevksel[i].hex & 0xf) | ((sumem.tevksel[i + 1].hex & 0xf) << 4);
+		((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
 	uid.values[2] = s_texturemask;
 
-    uid.values[3] = (u32)sumem.fog.c_proj_fsel.fsel |
-                   ((u32)sumem.fog.c_proj_fsel.proj << 3);
+    uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
+                   ((u32)bpmem.fog.c_proj_fsel.proj << 3);
 
 	int hdr = 4;
 	u32* pcurvalue = &uid.values[hdr];
-	for (u32 i = 0; i < (u32)sumem.genMode.numtevstages+1; ++i) {
-		TevStageCombiner::ColorCombiner &cc = sumem.combiners[i].colorC;
-		TevStageCombiner::AlphaCombiner &ac = sumem.combiners[i].alphaC;
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
+		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
+		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
 
 		u32 val0 = cc.hex&0xffffff;
 		u32 val1 = ac.hex&0xffffff;
-		val0 |= sumem.tevksel[i/2].getKC(i&1)<<24;
-		val1 |= sumem.tevksel[i/2].getKA(i&1)<<24;
+		val0 |= bpmem.tevksel[i/2].getKC(i&1)<<24;
+		val1 |= bpmem.tevksel[i/2].getKA(i&1)<<24;
 		pcurvalue[0] = val0;
 		pcurvalue[1] = val1;
 		pcurvalue += 2;
 	}
 
-	for (u32 i = 0; i < ((u32)sumem.genMode.numtevstages+1)/2; ++i) {
+	for (u32 i = 0; i < ((u32)bpmem.genMode.numtevstages+1)/2; ++i) {
 		u32 val0, val1;
-		if (sumem.tevorders[i].hex & 0x40)
-			val0 = sumem.tevorders[i].hex & 0x3ff;
+		if (bpmem.tevorders[i].hex & 0x40)
+			val0 = bpmem.tevorders[i].hex & 0x3ff;
 		else
-			val0 = sumem.tevorders[i].hex & 0x380;
-		if (sumem.tevorders[i].hex & 0x40000)
-			val1 = (sumem.tevorders[i].hex & 0x3ff000) >> 12;
+			val0 = bpmem.tevorders[i].hex & 0x380;
+		if (bpmem.tevorders[i].hex & 0x40000)
+			val1 = (bpmem.tevorders[i].hex & 0x3ff000) >> 12;
 		else
-			val1 = (sumem.tevorders[i].hex & 0x380000) >> 12;
+			val1 = (bpmem.tevorders[i].hex & 0x380000) >> 12;
 
 		switch (i % 3) {
 			case 0: pcurvalue[0] = val0|(val1<<10); break;
@@ -87,27 +87,27 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 		}
 	}
 
-	if ((sumem.genMode.numtevstages + 1) & 1) { // odd
+	if ((bpmem.genMode.numtevstages + 1) & 1) { // odd
 		u32 val0;
-		if (sumem.tevorders[sumem.genMode.numtevstages/2].hex & 0x40)
-			val0 = sumem.tevorders[sumem.genMode.numtevstages/2].hex&0x3ff;
+		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
+			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex&0x3ff;
 		else
-			val0 = sumem.tevorders[sumem.genMode.numtevstages/2].hex & 0x380;
+			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
 
-		switch (sumem.genMode.numtevstages % 3) {
+		switch (bpmem.genMode.numtevstages % 3) {
 			case 0: pcurvalue[0] = val0; break;
 			case 1: pcurvalue[0] |= val0 << 20; break;
 			case 2: pcurvalue[1] |= val0 << 10; pcurvalue++; break;
 		}
 	}
 
-	if ((sumem.genMode.numtevstages % 3) != 2)
+	if ((bpmem.genMode.numtevstages % 3) != 2)
 		++pcurvalue;
 
 	uid.tevstages = (u32)(pcurvalue-&uid.values[0]-hdr);
 
-	for (u32 i = 0; i < sumem.genMode.numindstages; ++i) {
-		u32 val = sumem.tevind[i].hex & 0x1fffff; // 21 bits
+	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
+		u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
 		switch (i%3) {
 			case 0: pcurvalue[0] = val; break;
 			case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
@@ -121,9 +121,9 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 
 //   old tev->pixelshader notes
 //
-//   color for this stage (alpha, color) is given by sumem.tevorders[0].colorchan0
-//   konstant for this stage (alpha, color) is given by sumem.tevksel   
-//   inputs are given by sumem.combiners[0].colorC.a/b/c/d     << could be current chan color
+//   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0
+//   konstant for this stage (alpha, color) is given by bpmem.tevksel   
+//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current chan color
 //   according to GXTevColorArg table above
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
@@ -356,13 +356,13 @@ static char text[16384];
 
 static void BuildSwapModeTable()
 {
-    //sumem.tevregs[0].
+    //bpmem.tevregs[0].
     for (int i = 0; i < 4; i++)
     {
-        swapModeTable[i][0] = swapColors[sumem.tevksel[i*2].swap1];
-        swapModeTable[i][1] = swapColors[sumem.tevksel[i*2].swap2];
-        swapModeTable[i][2] = swapColors[sumem.tevksel[i*2+1].swap1];
-        swapModeTable[i][3] = swapColors[sumem.tevksel[i*2+1].swap2];
+        swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
+        swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
+        swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
+        swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
         swapModeTable[i][4] = 0;
     }
 }
@@ -373,19 +373,19 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     DVSTARTPROFILE();
 
     BuildSwapModeTable();
-    int numStages = sumem.genMode.numtevstages + 1;
-    int numTexgen = sumem.genMode.numtexgens;
+    int numStages = bpmem.genMode.numtevstages + 1;
+    int numTexgen = bpmem.genMode.numtexgens;
 
     char *p = text;
     WRITE(p, "//Pixel Shader for TEV stages\n");
     WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, sumem.genMode.numindstages);
+		numStages, numTexgen, bpmem.genMode.numindstages);
 
     int nIndirectStagesUsed = 0;
-    if (sumem.genMode.numindstages > 0) {
+    if (bpmem.genMode.numindstages > 0) {
         for (int i = 0; i < numStages; ++i) {
-            if (sumem.tevind[i].IsActive() && sumem.tevind[i].bt < sumem.genMode.numindstages) {
-                nIndirectStagesUsed |= 1<<sumem.tevind[i].bt;
+            if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
+                nIndirectStagesUsed |= 1<<bpmem.tevind[i].bt;
             }
         }
     }
@@ -462,9 +462,9 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     }
 
     // indirect texture map lookup
-    for(u32 i = 0; i < sumem.genMode.numindstages; ++i) {
+    for(u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
         if (nIndirectStagesUsed & (1<<i)) {
-            int texcoord = sumem.tevindref.getTexCoord(i);
+            int texcoord = bpmem.tevindref.getTexCoord(i);
 
             if (texcoord < numTexgen) {
                 WRITE(p, "tempcoord=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
@@ -475,7 +475,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 
             char buffer[32];
             sprintf(buffer, "float3 indtex%d", i);
-            SampleTexture(p, buffer, "tempcoord", "abg", sumem.tevindref.getTexMap(i), texture_mask);
+            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask);
         }
     }
 
@@ -495,17 +495,17 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 	WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
 
     // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-    if (sumem.ztex2.op == ZTEXTURE_ADD) {
+    if (bpmem.ztex2.op == ZTEXTURE_ADD) {
         WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
     }
-    else if (sumem.ztex2.op == ZTEXTURE_REPLACE) {
+    else if (bpmem.ztex2.op == ZTEXTURE_REPLACE) {
         WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");
     }
     else {
         WRITE(p, "depth = zCoord;\n");
     }
 
-    //if (sumem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
+    //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
     if (!WriteAlphaTest(p, HLSL)) {
         // alpha test will always fail, so restart the shader and just make it an empty function
@@ -530,13 +530,13 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 
 static void WriteStage(char *&p, int n, u32 texture_mask)
 {
-    char *rasswap = swapModeTable[sumem.combiners[n].alphaC.rswap];
-    char *texswap = swapModeTable[sumem.combiners[n].alphaC.tswap];
+    char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
+    char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 
 
-    int texcoord = sumem.tevorders[n/2].getTexCoord(n&1);
-    bool bHasTexCoord = (u32)texcoord < sumem.genMode.numtexgens;
-    bool bHasIndStage = sumem.tevind[n].IsActive() && sumem.tevind[n].bt < sumem.genMode.numindstages;
+    int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
+    bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
+    bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
 
     // HACK to handle cases where the tex gen is not enabled
     if (!bHasTexCoord) {
@@ -545,46 +545,46 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
     if (bHasIndStage) {
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
-		if (sumem.tevind[n].bs != ITBA_OFF) {
+		if (bpmem.tevind[n].bs != ITBA_OFF) {
             // write the bump alpha
 
-			if (sumem.tevind[n].fmt == ITF_8) {
-				WRITE(p, "alphabump = indtex%d.%s %s;\n", sumem.tevind[n].bt, 
-					tevIndAlphaSel[sumem.tevind[n].bs], tevIndAlphaScale[sumem.tevind[n].fmt]);
+			if (bpmem.tevind[n].fmt == ITF_8) {
+				WRITE(p, "alphabump = indtex%d.%s %s;\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
 			}
 			else {			
 				// donkopunchstania: really bad way to do this
 				// cannot always use fract because fract(1.0) is 0.0 when it needs to be 1.0
 				// omitting fract seems to work as well
-				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", sumem.tevind[n].bt, 
-					tevIndAlphaSel[sumem.tevind[n].bs]);
+				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs]);
 				WRITE(p, "   alphabump = 1.0f;\n");
 				WRITE(p, "else\n");
-				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", sumem.tevind[n].bt, 
-					tevIndAlphaSel[sumem.tevind[n].bs], tevIndAlphaScale[sumem.tevind[n].fmt]);
+				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
 			}
 		}
 
         // format
-        WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, sumem.tevind[n].bt, tevIndFmtScale[sumem.tevind[n].fmt]);
+        WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
         // bias
-        if (sumem.tevind[n].bias != ITB_NONE )
-            WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[sumem.tevind[n].bias], tevIndBiasAdd[sumem.tevind[n].fmt]);
+        if (bpmem.tevind[n].bias != ITB_NONE )
+            WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
         // multiply by offset matrix and scale
-        if (sumem.tevind[n].mid != 0) {
-            if (sumem.tevind[n].mid <= 3) {
-                int mtxidx = 2*(sumem.tevind[n].mid-1);
+        if (bpmem.tevind[n].mid != 0) {
+            if (bpmem.tevind[n].mid <= 3) {
+                int mtxidx = 2*(bpmem.tevind[n].mid-1);
                 WRITE(p, "float2 indtevtrans%d = float2(dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
                     n, mtxidx, n, mtxidx+1, n);
             }
-            else if (sumem.tevind[n].mid <= 7 && bHasTexCoord) { // s matrix
-                int mtxidx = 2*(sumem.tevind[n].mid-5);
+            else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord) { // s matrix
+                int mtxidx = 2*(bpmem.tevind[n].mid-5);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
             }
-            else if (sumem.tevind[n].mid <= 11 && bHasTexCoord) { // t matrix
-                int mtxidx = 2*(sumem.tevind[n].mid-9);
+            else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord) { // t matrix
+                int mtxidx = 2*(bpmem.tevind[n].mid-9);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
             else {
@@ -598,28 +598,28 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         // wrapping
 
         // wrap S
-        if (sumem.tevind[n].sw == ITW_OFF) {
+        if (bpmem.tevind[n].sw == ITW_OFF) {
             WRITE(p, "wrappedcoord.x = uv%d.x;\n", texcoord);
         }
-        else if (sumem.tevind[n].sw == ITW_0) {
+        else if (bpmem.tevind[n].sw == ITW_0) {
             WRITE(p, "wrappedcoord.x = 0.0f;\n");
         }
         else {
-            WRITE(p, "wrappedcoord.x = fmod( uv%d.x, %s );\n", texcoord, tevIndWrapStart[sumem.tevind[n].sw]);
+            WRITE(p, "wrappedcoord.x = fmod( uv%d.x, %s );\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
         }
 
         // wrap T
-        if (sumem.tevind[n].tw == ITW_OFF) {
+        if (bpmem.tevind[n].tw == ITW_OFF) {
             WRITE(p, "wrappedcoord.y = uv%d.y;\n", texcoord);
         }
-        else if (sumem.tevind[n].tw == ITW_0) {
+        else if (bpmem.tevind[n].tw == ITW_0) {
             WRITE(p, "wrappedcoord.y = 0.0f;\n");
         }
         else {
-            WRITE(p, "wrappedcoord.y = fmod( uv%d.y, %s );\n", texcoord, tevIndWrapStart[sumem.tevind[n].tw]);
+            WRITE(p, "wrappedcoord.y = fmod( uv%d.y, %s );\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
         }
 
-        if (sumem.tevind[n].fb_addprev) {
+        if (bpmem.tevind[n].fb_addprev) {
             // add previous tevcoord
             WRITE(p, "tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
         }
@@ -628,10 +628,10 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         }
     }
 
-    WRITE(p, "rastemp=%s.%s;\n",tevRasTable[sumem.tevorders[n/2].getColorChan(n&1)],rasswap);
+    WRITE(p, "rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
 
-    if (sumem.tevorders[n/2].getEnable(n&1)) {
-        int texmap = sumem.tevorders[n/2].getTexMap(n&1);
+    if (bpmem.tevorders[n/2].getEnable(n&1)) {
+        int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
         if(!bHasIndStage) {
             // calc tevcord
             if(bHasTexCoord) {
@@ -646,11 +646,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
     else
         WRITE(p, "textemp=float4(1,1,1,1);\n");
 
-    int kc = sumem.tevksel[n/2].getKC(n&1);
-    int ka = sumem.tevksel[n/2].getKA(n&1);
+    int kc = bpmem.tevksel[n/2].getKC(n&1);
+    int ka = bpmem.tevksel[n/2].getKA(n&1);
 
-    TevStageCombiner::ColorCombiner &cc = sumem.combiners[n].colorC;
-    TevStageCombiner::AlphaCombiner &ac = sumem.combiners[n].alphaC;
+    TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
+    TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
     bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
     bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
@@ -797,8 +797,8 @@ static void WriteAlphaCompare(char *&p, int num, int comp)
 
 static bool WriteAlphaTest(char *&p, bool HLSL)
 {
-    u32 op = sumem.alphaFunc.logic;
-    u32 comp[2] = {sumem.alphaFunc.comp0,sumem.alphaFunc.comp1};
+    u32 op = bpmem.alphaFunc.logic;
+    u32 comp[2] = {bpmem.alphaFunc.comp0,bpmem.alphaFunc.comp1};
 
     //first kill all the simple cases
     switch(op) {
@@ -839,26 +839,26 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 	else {
 		WRITE(p, "discard( ");
 	}
-    WriteAlphaCompare(p, 0, sumem.alphaFunc.comp0);
+    WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     
     // negated because testing the inverse condition
-    switch (sumem.alphaFunc.logic) {
+    switch (bpmem.alphaFunc.logic) {
     case 0: WRITE(p, " || "); break; // and
     case 1: WRITE(p, " && "); break; // or
     case 2: WRITE(p, " == "); break; // xor
     case 3: WRITE(p, " != "); break; // xnor
     }
-    WriteAlphaCompare(p, 1, sumem.alphaFunc.comp1);
+    WriteAlphaCompare(p, 1, bpmem.alphaFunc.comp1);
     WRITE(p, ");\n");
     return true;
 }
 
 static void WriteFog(char *&p)
 {
-	bool enabled = sumem.fog.c_proj_fsel.fsel == 0 ? false : true;
+	bool enabled = bpmem.fog.c_proj_fsel.fsel == 0 ? false : true;
 
     if (enabled) {
-        if (sumem.fog.c_proj_fsel.proj == 0) {
+        if (bpmem.fog.c_proj_fsel.proj == 0) {
             // perspective
             // ze = A/(B - Zs)
             WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - depth);\n");
@@ -871,7 +871,7 @@ static void WriteFog(char *&p)
         WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
     }
 
-    switch (sumem.fog.c_proj_fsel.fsel) {       
+    switch (bpmem.fog.c_proj_fsel.fsel) {       
         case 2: // linear
             // empty
             break;

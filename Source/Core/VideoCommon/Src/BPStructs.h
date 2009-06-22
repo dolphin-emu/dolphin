@@ -15,13 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _SUSTRUCTS_H_
-#define _SUSTRUCTS_H_
+#ifndef _BPSTRUCTS_H_
+#define _BPSTRUCTS_H_
 
-#include "SUMemory.h"
+#include "BPMemory.h"
 
-void SUInit();
-void LoadSUReg(u32 value0);
-void SUReload();
+void BPInit();
+void LoadBPReg(u32 value0);
+void BPReload();
 
-#endif // _SUSTRUCTS_H_
+#endif // _BPSTRUCTS_H_

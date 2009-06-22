@@ -26,7 +26,7 @@
 #include "Profiler.h"
 #include "Render.h"
 #include "ImageWrite.h"
-#include "SUMemory.h"
+#include "BPMemory.h"
 #include "TextureMngr.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
@@ -155,8 +155,8 @@ void Flush()
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_Config.iSaveTargetId, xfregs.numTexGens,
-		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, sumem.ztex2.op,
-		sumem.blendmode.colorupdate, sumem.blendmode.alphaupdate, sumem.zmode.updateenable);
+		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
+		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 
 	for (int i = 0; i < xfregs.nNumChans; ++i) 
 	{
@@ -177,8 +177,8 @@ void Flush()
 			xfregs.texcoords[i].postmtxinfo.index, xfregs.texcoords[i].postmtxinfo.normalize);
 	}
 
-	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", sumem.genMode.numtevstages+1, sumem.genMode.numindstages,
-		sumem.genMode.numtexgens, (u32)sumem.dstalpha.enable, (sumem.alphaFunc.hex>>16)&0xff);
+	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
+		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
 #endif
 
 	DVSTARTPROFILE();
@@ -198,14 +198,14 @@ void Flush()
 	DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
 	u32 usedtextures = 0;
-	for (u32 i = 0; i < (u32)sumem.genMode.numtevstages + 1; ++i)
-		if (sumem.tevorders[i / 2].getEnable(i & 1))
-			usedtextures |= 1 << sumem.tevorders[i/2].getTexMap(i & 1);
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
+		if (bpmem.tevorders[i / 2].getEnable(i & 1))
+			usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
 
-	if (sumem.genMode.numindstages > 0)
-		for (u32 i = 0; i < (u32)sumem.genMode.numtevstages + 1; ++i)
-			if (sumem.tevind[i].IsActive() && sumem.tevind[i].bt < sumem.genMode.numindstages) 
-				usedtextures |= 1 << sumem.tevindref.getTexMap(sumem.tevind[i].bt);
+	if (bpmem.genMode.numindstages > 0)
+		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
+				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
 	u32 nonpow2tex = 0;
 	for (int i = 0; i < 8; i++) 
@@ -214,7 +214,7 @@ void Flush()
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
 
-			FourTexUnits &tex = sumem.tex[i >> 2];
+			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
@@ -284,7 +284,7 @@ void Flush()
 	}
 
     // run through vertex groups again to set alpha
-    if (!g_Config.bDstAlphaPass && sumem.dstalpha.enable && sumem.blendmode.alphaupdate) 
+    if (!g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 	{
         ps = PixelShaderCache::GetShader(true);
 
@@ -309,7 +309,7 @@ void Flush()
         // restore color mask
         Renderer::SetColorMask();
 
-        if (sumem.blendmode.blendenable || sumem.blendmode.subtract) 
+        if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
             glEnable(GL_BLEND);
     }
 

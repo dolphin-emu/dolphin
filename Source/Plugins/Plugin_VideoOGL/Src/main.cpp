@@ -71,7 +71,7 @@ Make AA apply instantly during gameplay if possible
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
-#include "SUStructs.h"
+#include "BPStructs.h"
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 #include "VertexManager.h"
@@ -330,7 +330,7 @@ void DoState(unsigned char **ptr, int mode) {
     // Refresh state.
 	if (mode == PointerWrap::MODE_READ)
 	{
-        SUReload();
+        BPReload();
 		RecomputeCachedArraybases();
 	}
 }
@@ -347,7 +347,7 @@ void Video_Prepare(void)
 
     TextureMngr::Init();
 
-    SUInit();
+    BPInit();
     VertexManager::Init();
     Fifo_Init(); // must be done before OpcodeDecoder_Init()
     OpcodeDecoder_Init();

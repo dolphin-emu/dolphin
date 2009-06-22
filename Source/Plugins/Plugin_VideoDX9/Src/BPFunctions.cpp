@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "SUFunctions.h"
+#include "BPFunctions.h"
 #include "D3DBase.h"
 #include "Config.h"
 #include "Common.h"
@@ -92,7 +92,7 @@ static const D3DTEXTUREADDRESS d3dClamps[4] =
 	D3DTADDRESS_WRAP //reserved
 };
 
-namespace SUFunctions
+namespace BPFunctions
 {
 
 void FlushPipeline()
@@ -100,12 +100,12 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode(const BPCommand &bp)
+void SetGenerationMode(const Bypass &bp)
 {
-	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[sumem.genMode.cullmode]);
-	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[sumem.genMode.cullmode]);
+	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
+	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 
-	if (sumem.genMode.cullmode == 3)
+	if (bpmem.genMode.cullmode == 3)
 	{
 		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
 		Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
@@ -113,9 +113,9 @@ void SetGenerationMode(const BPCommand &bp)
 	else
 	{
 		DWORD write = 0;
-		if (sumem.blendmode.alphaupdate) 
+		if (bpmem.blendmode.alphaupdate) 
 			write = D3DCOLORWRITEENABLE_ALPHA;
-		if (sumem.blendmode.colorupdate) 
+		if (bpmem.blendmode.colorupdate) 
 			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 		
 		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
@@ -123,27 +123,27 @@ void SetGenerationMode(const BPCommand &bp)
 	}
 }
 
-void SetScissor(const BPCommand &bp)
+void SetScissor(const Bypass &bp)
 {
 	Renderer::SetScissorRect();
 }
-void SetLineWidth(const BPCommand &bp)
+void SetLineWidth(const Bypass &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
-	float psize = float(sumem.lineptwidth.pointsize) * 6.0f;
+	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
-void SetDepthMode(const BPCommand &bp)
+void SetDepthMode(const Bypass &bp)
 {
-	if (sumem.zmode.testenable)
+	if (bpmem.zmode.testenable)
 	{
 		// dev->SetRenderState(D3DRS_ZENABLE, TRUE);
-		// dev->SetRenderState(D3DRS_ZWRITEENABLE, sumem.zmode.updateenable);
-		// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[sumem.zmode.func]);
+		// dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+		// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
 
 		Renderer::SetRenderState(D3DRS_ZENABLE, TRUE);
-		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, sumem.zmode.updateenable);
-		Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[sumem.zmode.func]);
+		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+		Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
 	}
 	else
 	{
@@ -155,23 +155,23 @@ void SetDepthMode(const BPCommand &bp)
 		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	}			
 
-	//if (!sumem.zmode.updateenable)
+	//if (!bpmem.zmode.updateenable)
 	//    Renderer::SetRenderMode(Renderer::RM_Normal);
 	
 }
-void SetBlendMode(const BPCommand &bp)
+void SetBlendMode(const Bypass &bp)
 {
 	if (bp.changes & 1)
-		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, sumem.blendmode.blendenable);
+		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
 
-	D3DBLEND src = d3dSrcFactors[sumem.blendmode.srcfactor];
-	D3DBLEND dst = d3dDestFactors[sumem.blendmode.dstfactor];
+	D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
+	D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
 
 	if (bp.changes & 0x700)
 		Renderer::SetRenderState(D3DRS_SRCBLEND, src);
 
 	if (bp.changes & 0xE0) {
-		if (!sumem.blendmode.subtract)
+		if (!bpmem.blendmode.subtract)
 		{
 			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 		}
@@ -182,7 +182,7 @@ void SetBlendMode(const BPCommand &bp)
 	}
 	if (bp.changes & 0x800) 
 	{
-		if (sumem.blendmode.subtract)
+		if (bpmem.blendmode.subtract)
 		{
 			Renderer::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
 			Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
@@ -193,23 +193,23 @@ void SetBlendMode(const BPCommand &bp)
 			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 		}
 		
-		Renderer::SetRenderState(D3DRS_BLENDOP, sumem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
+		Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 	}
 }
-void SetDitherMode(const BPCommand &bp)
+void SetDitherMode(const Bypass &bp)
 {
-	Renderer::SetRenderState(D3DRS_DITHERENABLE,sumem.blendmode.dither);
+	Renderer::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
-void SetLogicOpMode(const BPCommand &bp)
+void SetLogicOpMode(const Bypass &bp)
 {
 	// Logic op blending. D3D can't do this but can fake some modes.
 }
-void SetColorMask(const BPCommand &bp)
+void SetColorMask(const Bypass &bp)
 {
 	DWORD write = 0;
-	if (sumem.blendmode.alphaupdate) 
+	if (bpmem.blendmode.alphaupdate) 
 		write = D3DCOLORWRITEENABLE_ALPHA;
-	if (sumem.blendmode.colorupdate) 
+	if (bpmem.blendmode.colorupdate) 
 		write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 
 	Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
@@ -222,19 +222,19 @@ float GetRendererTargetScaleY()
 {
 	return Renderer::GetYScale();
 }
-void CopyEFB(const BPCommand &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
-	TextureCache::CopyEFBToRenderTarget(sumem.copyTexDest<<5, &rec);
+	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const BPCommand &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
+void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
@@ -247,17 +247,17 @@ void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
 	D3DCOLOR col = 0;
 	float clearZ = 0;
 
-	if (sumem.blendmode.colorupdate || sumem.blendmode.alphaupdate)
+	if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 	{                    
-		if (sumem.blendmode.colorupdate || sumem.blendmode.alphaupdate)
-			col = (sumem.clearcolorAR << 16) | sumem.clearcolorGB;
+		if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
+			col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		// clearflags |= D3DCLEAR_TARGET;   set to break animal crossing :p
 	}
 
 	// clear z-buffer
-	if (sumem.zmode.updateenable)
+	if (bpmem.zmode.updateenable)
 	{
-		clearZ = (float)(sumem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
+		clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
 		if (clearZ > 1.0f) clearZ = 1.0f;
 		if (clearZ < 0.0f) clearZ = 0.0f;
 		clearflags |= D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL;
@@ -266,7 +266,7 @@ void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
 	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
 }
 
-void RestoreRenderState(const BPCommand &bp)
+void RestoreRenderState(const Bypass &bp)
 {
 	//Renderer::SetRenderMode(Renderer::RM_Normal);
 }
@@ -290,9 +290,9 @@ u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
-void SetSamplerState(const BPCommand &bp)
+void SetSamplerState(const Bypass &bp)
 {
-	FourTexUnits &tex = sumem.tex[(bp.address & 0xE0) == 0xA0];
+	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
 	int stage = (bp.address & 3);//(addr>>4)&2;
 	TexMode0 &tm0 = tex.texMode0[stage];
 	
@@ -329,7 +329,7 @@ void SetSamplerState(const BPCommand &bp)
 	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
 	//g_VideoInitialize.pLog(temp);
 }
-void SetInterlacingMode(const BPCommand &bp)
+void SetInterlacingMode(const Bypass &bp)
 {
 	// TODO
 }

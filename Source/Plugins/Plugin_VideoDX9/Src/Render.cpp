@@ -26,7 +26,7 @@
 #include "VertexManager.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
-#include "SUStructs.h"
+#include "BPStructs.h"
 #include "XFStructs.h"
 #include "D3DPostprocess.h"
 #include "D3DUtil.h"
@@ -386,7 +386,7 @@ void Renderer::SwapBuffers()
 	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
 	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x101010, 0, 0);
-	u32 clearColor = (sumem.clearcolorAR << 16) | sumem.clearcolorGB;
+	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 //	clearColor |= 0x003F003F;
 //	D3D::BeginFrame(true,clearColor,1.0f);
 	D3D::BeginFrame(false, clearColor, 1.0f);
@@ -441,13 +441,13 @@ void Renderer::SetViewport(float* _Viewport)
 
 void Renderer::SetScissorRect()
 {
-	int xoff = sumem.scissorOffset.x * 2 - 342;
-	int yoff = sumem.scissorOffset.y * 2 - 342;
+	int xoff = bpmem.scissorOffset.x * 2 - 342;
+	int yoff = bpmem.scissorOffset.y * 2 - 342;
 	RECT rc;
-	rc.left   = (int)((float)sumem.scissorTL.x - xoff - 342);
-	rc.top    = (int)((float)sumem.scissorTL.y - yoff - 342);
-	rc.right  = (int)((float)sumem.scissorBR.x - xoff - 341);
-	rc.bottom = (int)((float)sumem.scissorBR.y - yoff - 341);
+	rc.left   = (int)((float)bpmem.scissorTL.x - xoff - 342);
+	rc.top    = (int)((float)bpmem.scissorTL.y - yoff - 342);
+	rc.right  = (int)((float)bpmem.scissorBR.x - xoff - 341);
+	rc.bottom = (int)((float)bpmem.scissorBR.y - yoff - 341);
 
 	rc.left   = (int)(rc.left   * xScale);
 	rc.top    = (int)(rc.top    * yScale);
@@ -588,8 +588,8 @@ void UpdateViewport()
 
 	// Keep aspect ratio at 4:3
 	// rawViewport[0] = 320, rawViewport[1] = -240
-	int scissorXOff = sumem.scissorOffset.x * 2 - 342;
-	int scissorYOff = sumem.scissorOffset.y * 2 - 342;
+	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
+	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 	float fourThree = 4.0f / 3.0f;
 	// These were commented out to fix "unreferenced local variable" compiler warnings.
 	// float wAdj, hAdj;

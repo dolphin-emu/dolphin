@@ -20,13 +20,13 @@
 // The plugins has to define these functions
 // ------------------------------------------
 
-#ifndef _SUFUNCTIONS_H_
-#define _SUFUNCTIONS_H_
+#ifndef _BPFUNCTIONS_H_
+#define _BPFUNCTIONS_H_
 
-#include "SUMemory.h"
+#include "BPMemory.h"
 #include "VideoCommon.h"
 
-namespace SUFunctions
+namespace BPFunctions
 {
 
 enum
@@ -37,24 +37,24 @@ enum
 };
 
 void FlushPipeline();
-void SetGenerationMode(const BPCommand &bp);
-void SetScissor(const BPCommand &bp);
-void SetLineWidth(const BPCommand &bp);
-void SetDepthMode(const BPCommand &bp);
-void SetBlendMode(const BPCommand &bp);
-void SetDitherMode(const BPCommand &bp);
-void SetLogicOpMode(const BPCommand &bp);
-void SetColorMask(const BPCommand &bp);
+void SetGenerationMode(const Bypass &bp);
+void SetScissor(const Bypass &bp);
+void SetLineWidth(const Bypass &bp);
+void SetDepthMode(const Bypass &bp);
+void SetBlendMode(const Bypass &bp);
+void SetDitherMode(const Bypass &bp);
+void SetLogicOpMode(const Bypass &bp);
+void SetColorMask(const Bypass &bp);
 float GetRendererTargetScaleX();
 float GetRendererTargetScaleY();
-void CopyEFB(const BPCommand &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
-void RenderToXFB(const BPCommand &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight);
-void ClearScreen(const BPCommand &bp, const TRectangle &multirc);
-void RestoreRenderState(const BPCommand &bp);
+void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight);
+void ClearScreen(const Bypass &bp, const TRectangle &multirc);
+void RestoreRenderState(const Bypass &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
-void SetSamplerState(const BPCommand &bp);
-void SetInterlacingMode(const BPCommand &bp);
+void SetSamplerState(const Bypass &bp);
+void SetInterlacingMode(const Bypass &bp);
 };
 
-#endif // _SUFUNCTIONS_H_
+#endif // _BPFUNCTIONS_H_

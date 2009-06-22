@@ -21,7 +21,7 @@
 #include <map>
 #include <string>
 
-#include "SUMemory.h"
+#include "BPMemory.h"
 #include "VertexShaderGen.h"
 
 struct VERTEXSHADER

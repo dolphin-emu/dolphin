@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "SUFunctions.h"
+#include "BPFunctions.h"
 #include "Globals.h"
 #include "Profiler.h"
 #include "Config.h"
@@ -27,7 +27,7 @@
 #include "XFB.h"
 #include "main.h"
 
-namespace SUFunctions
+namespace BPFunctions
 {
 // ----------------------------------------------
 // State translation lookup tables
@@ -47,40 +47,40 @@ void FlushPipeline()
 {
 	VertexManager::Flush();
 }
-void SetGenerationMode(const BPCommand &bp)
+void SetGenerationMode(const Bypass &bp)
 {
     // none, ccw, cw, ccw
-    if (sumem.genMode.cullmode > 0) 
+    if (bpmem.genMode.cullmode > 0) 
 	{
         glEnable(GL_CULL_FACE);
-        glFrontFace(sumem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
+        glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
     }
     else
 		glDisable(GL_CULL_FACE);
 }
 
 
-void SetScissor(const BPCommand &bp)
+void SetScissor(const Bypass &bp)
 {
 	if (!Renderer::SetScissorRect())
-		if (bp.address == SUMEM_SCISSORBR)
+		if (bp.address == BPMEM_SCISSORBR)
 			ERROR_LOG(VIDEO, "bad scissor!");
 }
-void SetLineWidth(const BPCommand &bp)
+void SetLineWidth(const Bypass &bp)
 {
 	float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
-	if (sumem.lineptwidth.linesize > 0)
-		glLineWidth((float)sumem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
-	if (sumem.lineptwidth.pointsize > 0)
-		glPointSize((float)sumem.lineptwidth.pointsize * fratio / 6.0f);
+	if (bpmem.lineptwidth.linesize > 0)
+		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
+	if (bpmem.lineptwidth.pointsize > 0)
+		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 }
-void SetDepthMode(const BPCommand &bp)
+void SetDepthMode(const Bypass &bp)
 {
-	if (sumem.zmode.testenable) 
+	if (bpmem.zmode.testenable) 
 	{
 		glEnable(GL_DEPTH_TEST);
-		glDepthMask(sumem.zmode.updateenable ? GL_TRUE : GL_FALSE);
-		glDepthFunc(glCmpFuncs[sumem.zmode.func]);
+		glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
+		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
 	}
 	else 
 	{
@@ -89,28 +89,28 @@ void SetDepthMode(const BPCommand &bp)
 		glDepthMask(GL_FALSE);
 	}
 }
-void SetBlendMode(const BPCommand &bp)
+void SetBlendMode(const Bypass &bp)
 {
 	Renderer::SetBlendMode(false);
 }
-void SetDitherMode(const BPCommand &bp)
+void SetDitherMode(const Bypass &bp)
 {
-    if (sumem.blendmode.dither) 
+    if (bpmem.blendmode.dither) 
 		glEnable(GL_DITHER);
     else 
 		glDisable(GL_DITHER);
 }
-void SetLogicOpMode(const BPCommand &bp)
+void SetLogicOpMode(const Bypass &bp)
 {
-	if (sumem.blendmode.logicopenable) 
+	if (bpmem.blendmode.logicopenable) 
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
-		glLogicOp(glLogicOpCodes[sumem.blendmode.logicmode]);
+		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
 	}
 	else 
 		glDisable(GL_COLOR_LOGIC_OP);
 }
-void SetColorMask(const BPCommand &bp)
+void SetColorMask(const Bypass &bp)
 {
     Renderer::SetColorMask();
 }
@@ -122,9 +122,9 @@ float GetRendererTargetScaleY()
 {
 	return Renderer::GetTargetScaleY();
 }
-void CopyEFB(const BPCommand &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
-	// sumem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
+	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_Config.bEFBCopyDisable)
 		if (g_Config.bCopyEFBToRAM) // To RAM
 			TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
@@ -132,7 +132,7 @@ void CopyEFB(const BPCommand &bp, const TRectangle &rc, const u32 &address, cons
 			TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 }
 
-void RenderToXFB(const BPCommand &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
     // EFB to XFB
 	if (g_Config.bUseXFB)
@@ -155,7 +155,7 @@ void RenderToXFB(const BPCommand &bp, const TRectangle &multirc, const float &yS
 	}
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
+void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
 	// Update the view port for clearing the picture
 	glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
@@ -169,21 +169,21 @@ void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
 
     // Since clear operations use the source rectangle, we have to do
 	// regular renders (glClear clears the entire buffer)
-    if (sumem.blendmode.colorupdate || sumem.blendmode.alphaupdate || sumem.zmode.updateenable)
+    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
 	{                    
         GLbitfield bits = 0;
-        if (sumem.blendmode.colorupdate || sumem.blendmode.alphaupdate)
+        if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 		{
-            u32 clearColor = (sumem.clearcolorAR << 16) | sumem.clearcolorGB;
+            u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 			glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
 						 ((clearColor>>8 ) & 0xff)*(1/255.0f),
 						 ((clearColor>>0 ) & 0xff)*(1/255.0f),
 						 ((clearColor>>24) & 0xff)*(1/255.0f));
             bits |= GL_COLOR_BUFFER_BIT;
         }
-        if (sumem.zmode.updateenable)
+        if (bpmem.zmode.updateenable)
 		{
-            glClearDepth((float)(sumem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
+            glClearDepth((float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
             bits |= GL_DEPTH_BUFFER_BIT;
         }
         glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -191,7 +191,7 @@ void ClearScreen(const BPCommand &bp, const TRectangle &multirc)
     }
 }
 
-void RestoreRenderState(const BPCommand &bp)
+void RestoreRenderState(const Bypass &bp)
 {
 	Renderer::RestoreGLState();
 }
@@ -215,11 +215,11 @@ u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
-void SetSamplerState(const BPCommand &bp)
+void SetSamplerState(const Bypass &bp)
 {
 	// TODO
 }
-void SetInterlacingMode(const BPCommand &bp)
+void SetInterlacingMode(const Bypass &bp)
 {
 	// TODO
 }

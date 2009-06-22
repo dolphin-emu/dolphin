@@ -29,7 +29,7 @@
 #include "Statistics.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
-#include "SUMemory.h"
+#include "BPMemory.h"
 #include "DataReader.h"
 #include "NativeVertexWriter.h"
 
@@ -539,7 +539,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	}
 	g_nativeVertexFmt = m_NativeFmt;
 
-	if (sumem.genMode.cullmode == 3 && primitive < 5)
+	if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
 		// if cull mode is none, ignore triangles and quads
 		DataSkip(count * m_VertexSize);

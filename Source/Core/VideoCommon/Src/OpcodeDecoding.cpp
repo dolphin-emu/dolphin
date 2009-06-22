@@ -35,7 +35,7 @@
 
 #include "XFMemory.h"
 #include "CPMemory.h"
-#include "SUMemory.h"
+#include "BPMemory.h"
 
 #include "Fifo.h"
 #include "DataReader.h"
@@ -267,7 +267,7 @@ static void Decode()
     case GX_LOAD_BP_REG: //0x61
         {
 			u32 cmd = DataReadU32();
-            LoadSUReg(cmd);
+            LoadBPReg(cmd);
 			INCSTAT(stats.thisFrame.numBPLoads);
         }
         break;

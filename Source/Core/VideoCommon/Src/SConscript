@@ -3,11 +3,11 @@
 Import('env')
 
 files = [
-	'SUMemory.cpp',
+	'BPMemory.cpp',
 	'CPMemory.cpp',
 	'XFMemory.cpp',
 	'XFStructs.cpp',
-	'SUStructs.cpp',
+	'BPStructs.cpp',
 	'memcpy_amd.cpp',
 	'LookUpTables.cpp',
 	'OpcodeDecoding.cpp',
