@@ -544,7 +544,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 
 	INFO_LOG(WII_IPC_WIIMOTE, "    Extension: %x", pStatus->extension);
 	INFO_LOG(WII_IPC_WIIMOTE, "    SendStatusReport() Flags: 0x%02x Battery: %d"
-			 pStatus->padding1[2], pStatus->battery);
+			 ,pStatus->padding1[2], pStatus->battery);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 

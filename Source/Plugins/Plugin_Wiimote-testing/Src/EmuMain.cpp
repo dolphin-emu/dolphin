@@ -120,9 +120,9 @@ void GetMousePos(float& x, float& y)
 		// Logging
 		/*
 //		Console::ClearScreen();
-		INFO_LOG(CONSOLE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
-		INFO_LOG(CONSOLE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
-		INFO_LOG(CONSOLE, "----------------------------------------------------------------\n");
+		INFO_LOG(WII_IPC_WIIMOTE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
+		INFO_LOG(WII_IPC_WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		INFO_LOG(WII_IPC_WIIMOTE, "----------------------------------------------------------------\n");
 		*/
 	}
 	// -------------------------------------
@@ -149,9 +149,9 @@ void GetMousePos(float& x, float& y)
 
 		// Logging
 		/*
-		INFO_LOG(CONSOLE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f\n", Ratio, IncreasedWidth, IncreasedHeight);
-		INFO_LOG(CONSOLE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
-		INFO_LOG(CONSOLE, "----------------------------------------------------------------\n");
+		INFO_LOG(WII_IPC_WIIMOTE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f\n", Ratio, IncreasedWidth, IncreasedHeight);
+		INFO_LOG(WII_IPC_WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		INFO_LOG(WII_IPC_WIIMOTE, "----------------------------------------------------------------\n");
 		*/
 	}
 	// -------------------------------------
@@ -164,9 +164,9 @@ void GetMousePos(float& x, float& y)
 	// Logging
 	// -------------
 	/*
-	INFO_LOG(CONSOLE, "GetCursorPos:  %i %i\n", point.x, point.y);
-	INFO_LOG(CONSOLE, "GetClientRect: %i %i  %i %i\n", Rect.left, Rect.right, Rect.top, Rect.bottom);
-	INFO_LOG(CONSOLE, "Position       X:%1.2f Y:%1.2f\n", x, y);
+	INFO_LOG(WII_IPC_WIIMOTE, "GetCursorPos:  %i %i\n", point.x, point.y);
+	INFO_LOG(WII_IPC_WIIMOTE, "GetClientRect: %i %i  %i %i\n", Rect.left, Rect.right, Rect.top, Rect.bottom);
+	INFO_LOG(WII_IPC_WIIMOTE, "Position       X:%1.2f Y:%1.2f\n", x, y);
 	*/
 	// ---------------------------
 
@@ -205,14 +205,14 @@ void GetCalibrationChecksum()
 	for (u32 i = 0; i < sizeof(nunchuck_calibration) - 2; i++)
 		sum += nunchuck_calibration[i];
 
-	INFO_LOG(CONSOLE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
+	INFO_LOG(WII_IPC_WIIMOTE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
 }
 
 
 /* Load pre-recorded movements */
 void LoadRecordedMovements()
 {
-	INFO_LOG(CONSOLE, "LoadRecordedMovements()\n");
+	INFO_LOG(WII_IPC_WIIMOTE, "LoadRecordedMovements()\n");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
@@ -220,7 +220,7 @@ void LoadRecordedMovements()
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
 		// Logging
-		//INFO_LOG(CONSOLE, "Recording%i ", i + 1);
+		//INFO_LOG(WII_IPC_WIIMOTE, "Recording%i ", i + 1);
 
 		// Temporary storage
 		int iTmp;
@@ -289,10 +289,10 @@ void LoadRecordedMovements()
 			VRecording.at(i).Recording.push_back(Tmp);
 
 			// Log results
-			/*INFO_LOG(CONSOLE, "Time:%f\n", Tmp.Time);
+			/*INFO_LOG(WII_IPC_WIIMOTE, "Time:%f\n", Tmp.Time);
 			std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
-			INFO_LOG(CONSOLE, "IR: %s\n", TmpIRLog.c_str());
-			INFO_LOG(CONSOLE, "\n");*/
+			INFO_LOG(WII_IPC_WIIMOTE, "IR: %s\n", TmpIRLog.c_str());
+			INFO_LOG(WII_IPC_WIIMOTE, "\n");*/
 		}
 
 		// Get HotKey
@@ -312,7 +312,7 @@ void LoadRecordedMovements()
 		else
 			TmpIRLog = "";
 		
-		INFO_LOG(CONSOLE, "Size:%i HotKey:%i PlSpeed:%i IR:%s X:%i Y:%i Z:%i\n",
+		INFO_LOG(WII_IPC_WIIMOTE, "Size:%i HotKey:%i PlSpeed:%i IR:%s X:%i Y:%i Z:%i\n",
 			VRecording.at(i).Recording.size(), VRecording.at(i).HotKeyWiimote, VRecording.at(i).PlaybackSpeed,
 			TmpIRLog.c_str(),
 			VRecording.at(i).Recording.at(0).x, VRecording.at(i).Recording.at(0).y, VRecording.at(i).Recording.at(0).z
@@ -330,7 +330,7 @@ void UpdateEeprom()
 	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
 	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
-	INFO_LOG(CONSOLE, "\nUpdateEeprom: %i %i %i\n",
+	INFO_LOG(WII_IPC_WIIMOTE, "\nUpdateEeprom: %i %i %i\n",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
 
 	if(g_Config.bNunchuckConnected)
@@ -348,7 +348,7 @@ void UpdateEeprom()
 		g_nu.jy.min = g_RegExt[0x2c];
 		g_nu.jy.center = g_RegExt[0x2d];
 
-		INFO_LOG(CONSOLE, "UpdateNunchuck: %i %i   %i %i %i\n\n",
+		INFO_LOG(WII_IPC_WIIMOTE, "UpdateNunchuck: %i %i   %i %i %i\n\n",
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
@@ -371,7 +371,7 @@ void UpdateEeprom()
 		g_cc.Tl.neutral = g_RegExt[0x2c];
 		g_cc.Tr.neutral = g_RegExt[0x2d];
 
-		INFO_LOG(CONSOLE, "UpdateCC: %i %i   %i %i %i\n\n",
+		INFO_LOG(WII_IPC_WIIMOTE, "UpdateCC: %i %i   %i %i %i\n\n",
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
@@ -430,7 +430,7 @@ void SetDefaultExtensionRegistry()
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 
-	INFO_LOG(CONSOLE, "\nSetDefaultExtensionRegistry()\n\n");
+	INFO_LOG(WII_IPC_WIIMOTE, "\nSetDefaultExtensionRegistry()\n\n");
 
 	UpdateEeprom();
 }
@@ -487,7 +487,7 @@ void DoState(void* ptr, int mode)
    not called we need to reset these variables. */
 void Shutdown(void) 
 {
-	INFO_LOG(CONSOLE, "ShutDown\n");
+	INFO_LOG(WII_IPC_WIIMOTE, "ShutDown\n");
 
 	ResetVariables();
 
@@ -498,7 +498,7 @@ void Shutdown(void)
 		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 			{
-				INFO_LOG(CONSOLE, "ShutDown: %i\n", PadState[i].joy);
+				INFO_LOG(WII_IPC_WIIMOTE, "ShutDown: %i\n", PadState[i].joy);
 				/* SDL_JoystickClose() crashes for some reason so I avoid this
 				   for now, SDL_Quit() should close the pads to I think */
 				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
@@ -550,7 +550,7 @@ void CheckAckDelay()
 			}
 			AckDelay.at(i).Delay--;
 
-			//INFO_LOG(CONSOLE, "%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
+			//INFO_LOG(WII_IPC_WIIMOTE, "%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
 		}
 	}
 }
@@ -560,7 +560,7 @@ void CheckAckDelay()
    response to Output from the Wii. */
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(CONSOLE, "Emu InterruptChannel\n");
+	//INFO_LOG(WII_IPC_WIIMOTE, "Emu InterruptChannel\n");
 
 	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
@@ -623,16 +623,13 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(CONSOLE, "Emu ControlChannel\n");
+	//INFO_LOG(WII_IPC_WIIMOTE, "Emu ControlChannel\n");
 
 	const u8* data = (const u8*)_pData;
 	// Dump raw data
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
-#if defined(HAVE_WX) && HAVE_WX
-		INFO_LOG(CONSOLE, "\n%s: ControlChannel: %s\n", Tm().c_str(), Temp.c_str());
-#endif
 		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
@@ -684,7 +681,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 void Update() 
 {
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
-	//INFO_LOG(CONSOLE, "Emu Update: %i\n", g_ReportingMode);
+	//INFO_LOG(WII_IPC_WIIMOTE, "Emu Update: %i\n", g_ReportingMode);
 
 	// Check if the pad state should be updated
 	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
