@@ -215,7 +215,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
         else
         {
 			ERROR_LOG(WII_IPC_FILEIO, "Unknown device: %s", _rDeviceName.c_str());
-            PanicAlert("Unknown device: %s", _rDeviceName.c_str());
+         	PanicAlert("Unknown device: %s", _rDeviceName.c_str());
             pDevice = new CWII_IPC_HLE_Device_Error(u32(-1), _rDeviceName);
         }
     }

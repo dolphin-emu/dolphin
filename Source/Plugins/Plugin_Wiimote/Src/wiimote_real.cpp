@@ -349,6 +349,12 @@ int Initialize()
 	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
 	INFO_LOG(CONSOLE, "Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
+		// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
+	// The Functionality should REALLY be changed
+	#ifndef _WIN32
+		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+		INFO_LOG(CONSOLE, "Connected: %i\n", Connect);
+	#endif
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
@@ -361,11 +367,6 @@ int Initialize()
 		// Set flags
 		//wiiuse_set_flags(g_WiiMotesFromWiiUse[i], NULL, WIIUSE_SMOOTHING);
 	}
-	// I don't seem to need wiiuse_connect() in Windows. But Linux needs it.
-	#ifndef _WIN32
-		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		INFO_LOG(CONSOLE, "Connected: %i\n", Connect);
-	#endif
 
 	// If we are connecting from the config window without a game running we flash the lights
 	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(true);
