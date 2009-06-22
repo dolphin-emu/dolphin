@@ -64,6 +64,10 @@
 #define BPMEM_CLEARBBOX2       0x56
 #define BPMEM_UNKNOWN          0x58
 #define BPMEM_SCISSOROFFSET    0x59
+#define BPMEM_UNKNOWN1         0x60
+#define BPMEM_UNKNOWN2         0x61
+#define BPMEM_UNKNOWN3         0x62
+#define BPMEM_UNKNOWN4         0x63
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
 #define BPMEM_TEXINVALIDATE    0x66

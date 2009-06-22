@@ -48,13 +48,13 @@ void BPInit()
 // ----------------------------------------------------------------------------------------------------------
 void BPWritten(const Bypass& bp)
 {
-
 	// --------------------------------------------------------------------------------------------------------
 	// First the pipeline is flushed then update the bpmem with the new value.
 	// Some of the BP cases have to call certain functions while others just update the bpmem.
 	// some bp cases check the changes variable, because they might not have to be updated all the time
 	// NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
 	//       had to be ditched and the games seem to work fine with out it.
+	// NOTE2: Yet Another Gamecube Documentation calls them Bypass Registers
 	// --------------------------------------------------------------------------------------------------------
 
 	// Debugging only, this lets you skip a bp update
@@ -298,12 +298,17 @@ void BPWritten(const Bypass& bp)
 			#endif
 			break;
 		}
-	case BPMEM_DISPLAYCOPYFILER: // Display Filtering Control, ignore this
+	// ----------------------------------
+	// Display Copy Filtering Control
+	// Fields: Destination, Frame2Field, Gamma, Source
+	// TODO: We might have to implement the gamma one, some games might need this, if they are too dark to see.
+	// ----------------------------------
+	case BPMEM_DISPLAYCOPYFILER: 
 	case BPMEM_DISPLAYCOPYFILER+1:
 	case BPMEM_DISPLAYCOPYFILER+2:
 	case BPMEM_DISPLAYCOPYFILER+3:
-	case BPMEM_COPYFILTER0:
-	case BPMEM_COPYFILTER1:
+	case BPMEM_COPYFILTER0: //GXSetCopyFilter
+	case BPMEM_COPYFILTER1: 
 		break;
 	case BPMEM_FIELDMASK: // Interlacing Control
 	case BPMEM_FIELDMODE:
@@ -372,6 +377,13 @@ void BPWritten(const Bypass& bp)
 			PanicAlert("Unknown is not 0xF! val = 0x%08x", bp.newvalue);
 		break;
 
+	// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
+	// Are these related to BBox?
+	case BPMEM_UNKNOWN1:
+	case BPMEM_UNKNOWN2:
+	case BPMEM_UNKNOWN3:
+	case BPMEM_UNKNOWN4:
+		break;
 		// ------------------------------------------------
 		// On Default, we try to look for other things
 		// before we give up and say its an unknown opcode
@@ -392,7 +404,7 @@ void BPWritten(const Bypass& bp)
 		case BPMEM_TREF+7:
 			break;
 		// ----------------------
-		// Set a triangle's Wrap
+		// Set wrap size
 	    // ----------------------
 		case BPMEM_SU_SSIZE:
 		case BPMEM_SU_TSIZE:
@@ -571,7 +583,10 @@ void BPWritten(const Bypass& bp)
 			case BPMEM_TEV_ALPHA_ENV+30:
 			case BPMEM_TEV_COLOR_ENV+32: // Texture Environment 16
 			case BPMEM_TEV_ALPHA_ENV+32:
-				break; 
+				break;
+			default:
+				WARN_LOG(VIDEO, "Unknown Bypass opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
+				break;
 			}
 			
 		}
