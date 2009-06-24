@@ -341,8 +341,10 @@ void dump_all_ucodes(void)
 		real_dsp.Reset();
 		VIDEO_WaitVSync();
 
-		while(runningUcode != (curUcode + 1))
+		while(runningUcode != (curUcode + 1)) {
 			handle_dsp_mail();
+                        VIDEO_WaitVSync();
+                }
 
 		// Then write microcode dump to file
 		sprintf(filename, "sd:/dsp_dump%d.bin", i + 1);
