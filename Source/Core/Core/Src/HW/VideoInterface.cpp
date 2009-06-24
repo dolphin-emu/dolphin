@@ -336,7 +336,6 @@ static UVIBorderBlankRegister		m_BorderHBlank;
 static u32 TicksPerFrame = 0;
 static u32 LineCount = 0;
 static u32 LinesPerField = 0;
-static u64 LastTime = 0;
 static u32 NextXFBRender = 0;
 int TargetRefreshRate = 0;
 s64 SyncTicksProgress = 0;
@@ -372,7 +371,6 @@ void DoState(PointerWrap &p)
 	p.Do(TicksPerFrame);
 	p.Do(LineCount);
 	p.Do(LinesPerField);
-	p.Do(LastTime);
 	p.Do(NextXFBRender);
 }
 
@@ -380,7 +378,6 @@ void PreInit(bool _bNTSC)
 {
 	TicksPerFrame = 0;
 	LineCount = 0;
-	LastTime = 0;
 
 	m_VerticalTimingRegister.EQU = 6;
 
@@ -1036,7 +1033,11 @@ void UpdateTiming()
     }
 }
 
-
+int getTicksPerLine() {
+	if (LineCount == 0)
+		return 100000;
+	return TicksPerFrame / LineCount;
+}
 
 
 // Purpose 1: Send VI interrupt for every screen refresh
@@ -1067,77 +1068,70 @@ void Update()
 		SyncTicksProgress = 0;
 	}
 	
-
-	// Go through all lines
-    while ((CoreTiming::GetTicks() - LastTime) > (TicksPerFrame / LineCount))
+    m_VBeamPos++;
+    if (m_VBeamPos > LineCount)
     {
-        LastTime += (TicksPerFrame / LineCount);
+        m_VBeamPos = 1;
+    }
 
-        m_VBeamPos++;
-        if (m_VBeamPos > LineCount)
-        {
-            m_VBeamPos = 1;
-        }
+	if (m_VBeamPos == NextXFBRender)
+	{
+		u8* xfbPtr = 0;
+		int yOffset = 0;
 
-		if (m_VBeamPos == NextXFBRender)
+		// (mb2) hack: We request XFB updates from CPUthread (here) only when homebrews use directly XFB without FIFO and CP
+		if (!Core::GetStartupParameter().bUseDualCore || CommandProcessor::IsCommandProcessorNotUsed())
 		{
-			u8* xfbPtr = 0;
-			int yOffset = 0;
-
-			// (mb2) hack: We request XFB updates from CPUthread (here) only when homebrews use directly XFB without FIFO and CP
-			if (!Core::GetStartupParameter().bUseDualCore || CommandProcessor::IsCommandProcessorNotUsed())
+			if (NextXFBRender == 1)
 			{
-				if (NextXFBRender == 1)
-				{
-					NextXFBRender = LinesPerField;
-					// TODO: proper VI regs typedef and logic for XFB to work.
-					// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
-					// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
-					xfbPtr = GetXFBPointerTop();
-					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad top XFB address");
-				}
+				NextXFBRender = LinesPerField;
+				// TODO: proper VI regs typedef and logic for XFB to work.
+				// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
+				// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
+				xfbPtr = GetXFBPointerTop();
+				_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad top XFB address");
+			}
+			else
+			{
+				NextXFBRender = 1;
+				// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
+				xfbPtr = GetXFBPointerBottom();
+				_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad bottom XFB address");
+				yOffset = -1;
+			}
+
+			Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+
+			if (xfbPtr && video->IsValid())
+			{
+				int fbWidth = m_HorizontalStepping.FieldSteps * 16;
+				int fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+				
+				DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %p | %ix%i | xoff: %i",
+					xfbPtr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
+
+				if (Core::GetStartupParameter().bUseDualCore)
+					// scheduled on EmuThread in DC mode
+					video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 
 				else
-				{
-					NextXFBRender = 1;
-					// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
-					xfbPtr = GetXFBPointerBottom();
-					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad bottom XFB address");
-					yOffset = -1;
-				}
-
-				Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
-
-				if (xfbPtr && video->IsValid())
-				{
-					int fbWidth = m_HorizontalStepping.FieldSteps * 16;
-					int fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
-					
-					DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %p | %ix%i | xoff: %i",
-						xfbPtr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
-
-					if (Core::GetStartupParameter().bUseDualCore)
-						// scheduled on EmuThread in DC mode
-						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 
-					else
-						// otherwise do it now from here (CPUthread)
-						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, FALSE);
-				}
+					// otherwise do it now from here (CPUthread)
+					video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, FALSE);
 			}
 		}
+	}
 
-        // check INT_PRERETRACE
-        if (m_InterruptRegister[0].VCT == m_VBeamPos)
-        {
-            m_InterruptRegister[0].IR_INT = 1;
-            UpdateInterrupts();
-        }
+    // check INT_PRERETRACE
+    if (m_InterruptRegister[0].VCT == m_VBeamPos)
+    {
+        m_InterruptRegister[0].IR_INT = 1;
+        UpdateInterrupts();
+    }
 
-        // INT_POSTRETRACE
-        if (m_InterruptRegister[1].VCT == m_VBeamPos)
-        {
-            m_InterruptRegister[1].IR_INT = 1;
-            UpdateInterrupts();
-        }
+    // INT_POSTRETRACE
+    if (m_InterruptRegister[1].VCT == m_VBeamPos)
+    {
+        m_InterruptRegister[1].IR_INT = 1;
+        UpdateInterrupts();
     }
 }
 

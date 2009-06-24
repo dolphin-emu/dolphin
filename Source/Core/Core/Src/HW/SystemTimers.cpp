@@ -112,11 +112,6 @@ int et_FakeGPWD; // for DC watchdog hack
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 int
-	// update VI often to let it go through its scanlines with decent accuracy
-	// Maybe should actually align this with the scanline update? Current method in
-	// VideoInterface::Update is stupid!
-	VI_PERIOD,
-
 	// TODO: The SI in fact actually has a register that determines the polling frequency.
 	// We should obey that instead of arbitrarly checking at 60fps.
 	SI_PERIOD, // once a frame is good for controllers
@@ -185,7 +180,7 @@ void VICallback(u64 userdata, int cyclesLate)
 		WII_IPC_HLE_Interface::Update();
 
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VI_PERIOD-cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::getTicksPerLine() - cyclesLate, et_VI);
 }
 
 void SICallback(u64 userdata, int cyclesLate)
@@ -241,7 +236,6 @@ void Init()
 	if (Core::GetStartupParameter().bWii)
 	{
 		CPU_CORE_CLOCK = 729000000u;
-		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 
 		if (!Core::GetStartupParameter().bDSPThread) {
@@ -258,7 +252,6 @@ void Init()
 	else
 	{
 		CPU_CORE_CLOCK = 486000000;
-		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 	
 		if (!Core::GetStartupParameter().bDSPThread) {
@@ -285,7 +278,7 @@ void Init()
 	et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
 
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
-	CoreTiming::ScheduleEvent(VI_PERIOD, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::getTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
 	CoreTiming::ScheduleEvent(SI_PERIOD, et_SI);
 	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);

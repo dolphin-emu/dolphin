@@ -63,6 +63,8 @@ namespace VideoInterface
 
     // Change values pertaining to video mode
     void UpdateTiming();
+
+	int getTicksPerLine();
 };
 
 #endif // _VIDEOINTERFACE_H
