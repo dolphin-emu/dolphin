@@ -70,13 +70,6 @@ namespace AudioCommon
 			delete soundStream;
 			soundStream = NULL;
 		}
-		
-		// Check that soundstream already is stopped.
-		while (soundStream) 
-		{
-			ERROR_LOG(DSPHLE, "Waiting for sound stream");
-			Common::SleepCurrentThread(2000);
-		}
 
 		INFO_LOG(DSPHLE, "Done shutting down sound stream");	
 	}

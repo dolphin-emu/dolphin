@@ -28,4 +28,10 @@ void State_Shutdown();
 void State_Save(int slot);
 void State_Load(int slot);
 
+typedef struct
+{
+	u8 *buffer;
+	size_t size;
+} saveStruct;
+
 #endif

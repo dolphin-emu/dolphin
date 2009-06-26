@@ -584,19 +584,13 @@ void CFrame::DoStop()
 	
 		Core::Stop();
 
-		/*
-		This is needed together with the option to not "delete g_EmuThread" in Core.cpp, because then
-		we have to wait a moment before GetState() == CORE_UNINITIALIZED so that UpdateGUI() works.
-		It's also needed when a WaitForSingleObject() has timed out so that the ShutDown() process
-		has continued without all threads having come to a rest. It's not compatible with the
-		SETUP_TIMER_WAITING option (because the Stop returns before it's finished).
-
-		Without this we just see the gray CPanel background because the ISO list will not be displayed.
-		*/
-		#ifndef SETUP_TIMER_WAITING
-			if (bRenderToMain)
-				while(Core::GetState() != Core::CORE_UNINITIALIZED) SLEEP(10);
-		#endif
+#ifdef SETUP_TIMER_WAITING
+		// Idle-wait for core to completely shut down (without this wait the 
+		// GameCtrlPanel is restored to a state where we can open another game
+		// and effectively crash Dolphin)
+		while(Core::isRunning()) 
+			SLEEP(10);
+#endif
 		
 		UpdateGUI();
 	}
@@ -828,7 +822,7 @@ void CFrame::UpdateGUI()
 	#endif
 
 	// Save status
-	bool initialized = Core::GetState() != Core::CORE_UNINITIALIZED;
+	bool initialized = Core::isRunning();
 	bool running = Core::GetState() == Core::CORE_RUN;
 	bool paused = Core::GetState() == Core::CORE_PAUSE;
 

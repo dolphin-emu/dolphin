@@ -184,7 +184,10 @@ void ReconnectWiimote()
 #endif
 
 
-
+bool isRunning()
+{
+	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
+}
 
 
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
@@ -563,25 +566,23 @@ void EmuThreadEnd()
 	}
 #endif
 
-	// The hardware is uninitialized
-	g_bHwInit = false;
-	
 	HW::Shutdown();
 	Plugins.ShutdownPlugins();
 
+	// The hardware is uninitialized
+	g_bHwInit = false;
+
  	INFO_LOG(MASTER_LOG, "EmuThread exited");
-	// The CPU should return when a game is stopped and cleanup should be done here, 
-	// so we can restart the plugins (or load new ones) for the next game.
-	if (_CoreParameter.hMainWindow == g_pWindowHandle)
-		Host_UpdateMainFrame();
+
+	Host_UpdateMainFrame();
+
 #ifdef SETUP_TIMER_WAITING
 	EmuThreadReachedEnd = true;
 	Host_UpdateGUI();
 	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Done\n");
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
-#endif
-#ifndef SETUP_TIMER_WAITING
+#else
 	return 0;
 #endif
 }

@@ -78,25 +78,20 @@ void DoState(PointerWrap &p)
 	CoreTiming::DoState(p);
 }
 
-void SaveStateCallback(u64 userdata, int cyclesLate)
+THREAD_RETURN CompressAndDumpState(void *pArgs)
 {
+	saveStruct *saveArg = (saveStruct *)pArgs;
+	u8 *buffer = saveArg->buffer;
+	size_t sz = saveArg->size;
 	lzo_uint out_len = 0;
+
+	delete saveArg;
 
 	FILE *f = fopen(cur_filename.c_str(), "wb");
 	if(f == NULL) {
 		Core::DisplayMessage("Could not save state", 2000);
-		return;
+		return 0;
 	}
-
-	jit.ClearCache();
-	u8 *ptr = 0;
-	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-	DoState(p);
-	size_t sz = (size_t)ptr;
-	u8 *buffer = new u8[sz];
-	ptr = buffer;
-	p.SetMode(PointerWrap::MODE_WRITE);
-	DoState(p);
 
 	if (bCompressed) {
 		fwrite(&sz, sizeof(int), 1, f);
@@ -139,7 +134,39 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	delete [] buffer;
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
-		                 cur_filename.c_str()).c_str(), 2000);
+		cur_filename.c_str()).c_str(), 2000);
+
+	return 0;
+}
+
+Common::Thread *saveThread = NULL;
+
+void SaveStateCallback(u64 userdata, int cyclesLate)
+{
+	// If already saving state, wait for it to finish
+	if(saveThread)
+	{
+		delete saveThread;
+		saveThread = NULL;
+	}
+
+	jit.ClearCache();
+	u8 *ptr = 0;
+	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+	DoState(p);
+	size_t sz = (size_t)ptr;
+	u8 *buffer = new u8[sz];
+	ptr = buffer;
+	p.SetMode(PointerWrap::MODE_WRITE);
+	DoState(p);
+
+	saveStruct *saveData = new saveStruct;
+	saveData->buffer = buffer;
+	saveData->size = sz;
+
+	Core::DisplayMessage("Saving State...", 1000);
+
+	saveThread = new Common::Thread(CompressAndDumpState, saveData);
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
@@ -214,7 +241,11 @@ void State_Init()
 
 void State_Shutdown()
 {
-	// nothing to do, here for consistency.
+	if(saveThread)
+	{
+		delete saveThread;
+		saveThread = NULL;
+	}
 }
 
 std::string MakeStateFilename(int state_number)

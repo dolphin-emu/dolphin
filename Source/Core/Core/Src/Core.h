@@ -43,6 +43,8 @@ namespace Core
     // Init core
     bool Init();
     void Stop();
+
+	bool isRunning();
     
     void SetState(EState _State);
     EState GetState();
