@@ -67,15 +67,9 @@
 	#pragma comment(lib, "winmm.lib")
 	#include <dinput.h>
 	void FreeDirectInput(); // Needed in both nJoy.cpp and Rumble.cpp
-
-#endif // _WIN32
-
-#ifdef _WIN32
-	#define SLEEP(x) Sleep(x)
 #else
 	#include <unistd.h>
 	#include <sys/ioctl.h>
-	#define SLEEP(x) usleep(x*1000)
 #endif
 
 #ifdef __linux__

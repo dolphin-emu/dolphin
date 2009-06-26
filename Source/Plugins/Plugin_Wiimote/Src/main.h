@@ -18,23 +18,9 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
-////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Definitions and declarations
-// ¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
-#define sleep(x) Sleep(x)
-#else
-#define sleep(x) usleep(x*1000)
-#endif
-
-
 void DoInitialize();
 double GetDoubleTime();
 int GetUpdateRate();
@@ -103,7 +89,6 @@ struct SRecordingAll
 	//	extern ConfigDialog *frame;
 	//#endif
 #endif
-////////////////////////////////
 
 
 #endif // MAIN_H

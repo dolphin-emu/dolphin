@@ -321,7 +321,7 @@ void FlashLights(bool Connect)
 		if(Connect)	wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 1);
 		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
 	}
-	sleep(100);
+	SLEEP(100);
 	
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
