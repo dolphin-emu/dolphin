@@ -94,6 +94,8 @@ PLUGIN_GLOBALS* globals = NULL;
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
+static bool s_PluginInitialized = false;
+
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
@@ -359,11 +361,15 @@ void Video_Prepare(void)
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
     TextureConverter::Init();
+
+	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 }
 
 void Shutdown(void)
 {
+	s_PluginInitialized = false;
+
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
 	TextureConverter::Shutdown();
@@ -409,29 +415,46 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 
 
 
+static volatile struct 
+{ 
+	u8* pXFB;
+	u32 width;
+	u32 height;
+	s32 yOffset;
+} tUpdateXFBArgs;
 
 // Run from the CPU thread (from VideoInterface.cpp) for certain homebrew games only
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
-	if (g_Config.bUseXFB && XFB_isInit())
+	if (s_PluginInitialized)
 	{
-		if (scheduling) // from CPU in DC without fifo&CP (some 2D homebrews)
+		if (scheduling) // From CPU in DC mode
 		{
-			XFB_SetUpdateArgs(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+			tUpdateXFBArgs.pXFB = _pXFB;
+			tUpdateXFBArgs.width = _dwWidth;
+			tUpdateXFBArgs.height = _dwHeight;
+			tUpdateXFBArgs.yOffset = _dwYOffset;
+
 			g_XFBUpdateRequested = TRUE;
 		}
-		else
+		else // From CPU in SC mode or graphics thread in DC mode
 		{
-			if (_pXFB) // from CPU in SC mode
+			g_XFBUpdateRequested = FALSE;
+
+			if (g_Config.bUseXFB)
 			{
-				XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
-				g_VideoInitialize.pCopiedToXFB();
+				if (!_pXFB)
+					// From graphics thread in DC mode
+					Renderer::DecodeFromXFB(tUpdateXFBArgs.pXFB, tUpdateXFBArgs.width, tUpdateXFBArgs.height, tUpdateXFBArgs.yOffset);
+				else
+					// From CPU in SC mode
+					Renderer::DecodeFromXFB(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
 			}
-			else // from GP in DC without fifo&CP (some 2D homebrews)
-			{
-				XFB_Draw();
-				g_XFBUpdateRequested = FALSE;
-			}
+
+			// TODO: Use real XFB source parameters based on VI settings
+			Renderer::Swap();
+
+			g_VideoInitialize.pCopiedToXFB();
 		}
 	}
 }

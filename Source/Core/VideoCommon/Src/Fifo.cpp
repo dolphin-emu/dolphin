@@ -143,7 +143,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		if (g_XFBUpdateRequested)
 		{
 			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
-			video_initialize.pCopiedToXFB();
 		}
 
         // check if we are able to run this buffer

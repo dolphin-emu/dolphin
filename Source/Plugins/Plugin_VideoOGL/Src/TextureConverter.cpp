@@ -321,6 +321,8 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
 
+	GL_REPORT_FBO_ERROR();
+
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
 
@@ -349,9 +351,12 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
     TextureMngr::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();
+
+	Renderer::SetFramebuffer(0);
 
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();

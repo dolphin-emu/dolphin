@@ -134,26 +134,7 @@ void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const b
 
 void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
 {
-    // EFB to XFB
-	if (g_Config.bUseXFB)
-	{
-		
-		XFB_Write(pXFB, multirc, dstWidth, dstHeight);
-		// FIXME: we draw XFB from here in DC mode.
-		// Bad hack since we can have multiple EFB to XFB copy before a draw.
-		// Plus we should use width and height from VI regs (see VI->Update()).
-		// Dixit donkopunchstania for the info.
-		//DebugLog("(EFB to XFB->XFB_Draw): ptr: %08x | %ix%i", (u32)pXFB, dstWidth, dstHeight);
-		if (g_VideoInitialize.bUseDualCore)
-			XFB_Draw(pXFB, dstWidth, dstHeight, 0);
-	}
-	else
-	{
-		// Hm, we need to compensate for the fact that the copy may be bigger than what is displayed.
-		// Seen in Spartan Warrior. Not sure how to deal with it yet.
-		Renderer::Swap(multirc);
-	}
-	g_VideoInitialize.pCopiedToXFB();
+	Renderer::RenderToXFB(pXFB, multirc, dstWidth, dstHeight);
 }
 void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {
