@@ -950,7 +950,13 @@ void Renderer::Swap()
 	float u_max;
 	float v_min = 0.f;
 	float v_max;
-	if (g_Config.bAutoScale)
+	if (g_Config.bUseXFB)
+	{
+		u_max = XFB_WIDTH;
+		v_min = 0;
+		v_max = XFB_HEIGHT;
+	}
+	else if (g_Config.bAutoScale)
 	{
 		u_max = (s_efbSourceRc.right - s_efbSourceRc.left);
 		v_min = (float)GetTargetHeight() - (s_efbSourceRc.bottom - s_efbSourceRc.top);
