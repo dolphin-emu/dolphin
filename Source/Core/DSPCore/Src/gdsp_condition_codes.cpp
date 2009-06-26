@@ -90,6 +90,9 @@ int GetMultiplyModifier()
 		return 2;
 }
 
+inline bool isCarry() {
+	return (g_dsp.r[DSP_REG_SR] & 0x01) ? true : false;
+}
 inline bool isSign() {
 	return ((g_dsp.r[DSP_REG_SR] & 0x02) != (g_dsp.r[DSP_REG_SR] & 0x08));
 }
@@ -97,6 +100,8 @@ inline bool isSign() {
 inline bool isZero() {
 	return (g_dsp.r[DSP_REG_SR] & 0x04) ? true : false;
 }
+
+
 
 //see gdsp_registers.h for flags
 bool CheckCondition(u8 _Condition)
@@ -115,7 +120,7 @@ bool CheckCondition(u8 _Condition)
 		break;
  
 	case 0x2: // G - GREATER
-		if (! isSign() || g_dsp.r[DSP_REG_SR] & SR_CARRY)
+		if (! isSign() || !isZero())
 			taken = true;
 		break;
 
@@ -137,16 +142,16 @@ bool CheckCondition(u8 _Condition)
 		break;
 
 	case 0x6: // L - LESS
-		// Should be that once we set 0x02
-		// if (g_dsp.r[DSP_REG_SR] & 0x02)
-		if (isSign())
+		// Should be that once we set 0x01
+		if (!isCarry())
+			//		if (isSign())
 			taken = true;
 		break;
 
 	case 0x7: // GE - GREATER EQUAL
 		// Should be that once we set 0x01
-		//		if (g_dsp.r[DSP_REG_SR] & SR_CARRY)
-		if (! isSign() || isZero())
+		if (isCarry())
+			//		if (! isSign() || isZero())
 			taken = true;
 		break;
 
