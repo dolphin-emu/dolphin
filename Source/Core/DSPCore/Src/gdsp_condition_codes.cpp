@@ -120,7 +120,7 @@ bool CheckCondition(u8 _Condition)
 		break;
  
 	case 0x2: // G - GREATER
-		if (! isSign() || !isZero())
+		if (! isSign() && !isZero())
 			taken = true;
 		break;
 
