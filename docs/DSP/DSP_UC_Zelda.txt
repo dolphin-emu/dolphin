@@ -467,7 +467,7 @@ void 00da_CopyBuffer(_src($AR0), _dest($AR3), _LenInDWORDs(_AC1.M))
 }
 
 
-void 00fa_XorBuffer( .., _LenInDWORDs(_AC1.M)) { 
+void 00e1_XorBuffer( .., _LenInDWORDs(_AC1.M)) { 
 	00e1 191e      lrri        $AC0.M, @$AR0
 	00e2 191a      lrri        $AX0.H, @$AR0
 	// 00e3 007f 00e8 bloop       $AC1.M, 0x00e8
@@ -504,16 +504,17 @@ void 00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _facto
 	 return
 }
  
- 
- 00fa 8a00      m2
- 00fb 191a      lrri        $AX0.H, @$AR0
- 00fc 9050      mul'l       $AX0.L, $AX0.H : $AX0.H, @$AR0
- 00fd 9250      mulmvz'l    $AX0.L, $AX0.H, $ACC0 : $AX0.H, @$AR0
- 00fe 005f      loop        $AC1.M
- 00ff 92a0      mulmvz'ls   $AX0.L, $AX0.H, $ACC0 : $AX0.H, $AC0.M
- 0100 8b00      m0          
- 0101 02df      ret         
- 
+void 00fa_Unk()
+{
+        00fa 8a00      m2
+        00fb 191a      lrri        $AX0.H, @$AR0
+        00fc 9050      mul'l       $AX0.L, $AX0.H : $AX0.H, @$AR0
+        00fd 9250      mulmvz'l    $AX0.L, $AX0.H, $ACC0 : $AX0.H, @$AR0
+        00fe 005f      loop        $AC1.M
+        00ff 92a0      mulmvz'ls   $AX0.L, $AX0.H, $ACC0 : $AX0.H, $AC0.M
+        0100 8b00      m0          
+        0101 02df      ret
+}
  
  
  // Clears the 0d00 and 0d60 buffers, plus a lot of other intermediate buffers.
@@ -1932,7 +1933,11 @@ void 05f0_HaltUCode()
 	05f0 009a 0002 lri         $AX0.H, #0x0002
 	05f2 00fa 03a3 sr          @0x03a3, $AX0.H
 	05f4 00e0 03f9 sr          @0x03f9, $AR0
-	05f6 02bf 067c call        0x067c
+	/*
+        05f6 02bf 067c call        0x067c
+       */
+       067c_Unk()
+        
 	05f8 16fc dcd1 si          @DMBH, #0xdcd1
 	05fa 16fd 0002 si          @DMBL, #0x0002
 	05fc 16fb 0001 si          @DIRQ, #0x0001
@@ -1993,11 +1998,19 @@ void 0618_Unk() {
 	061a 00fa 03a3 sr          @0x03a3, $AX0.H
 	061c 8100      clr         $ACC0
 	061d 8900      clr         $ACC1
-	061e 02bf 065e call        0x065e
+	//061e 02bf 065e call        0x065e
+       065e_WaitForCPUMailBox_AC0()
+        
 	0620 24ff      lrs         $AC0.L, @CMBL
-	0621 02bf 0664 call        0x0664
+        
+    	//0621 02bf 0664 call        0x0664
+       0664_WaitForCPUMailBox_AC1()
+        
 	0623 25ff      lrs         $AC1.L, @CMBL
-	0624 02bf 0664 call        0x0664
+       
+       //0624 02bf 0664 call        0x0664
+       0664_WaitForCPUMailBox_AC1()
+                
 	0626 27ff      lrs         $AC1.M, @CMBL
 	0627 2ece      srs         @DSMAH, $AC0.M
 	0628 2ccf      srs         @DSMAL, $AC0.L
@@ -2006,28 +2019,46 @@ void 0618_Unk() {
 	062c 2dcb      srs         @DSBL, $AC1.L
 	062d 8100      clr         $ACC0
 	062e 8900      clr         $ACC1
-	062f 02bf 065e call        0x065e
+	
+       //062f 02bf 065e call        0x065e
+       065e_WaitForCPUMailBox_AC0()
+        
 	0631 24ff      lrs         $AC0.L, @CMBL
 	0632 1c9e      mrr         $IX0, $AC0.M
 	0633 1cbc      mrr         $IX1, $AC0.L
-	0634 02bf 0664 call        0x0664
+	//0634 02bf 0664 call        0x0664
+       0664_WaitForCPUMailBox_AC1()
+        
 	0636 25ff      lrs         $AC1.L, @CMBL
-	0637 02bf 0664 call        0x0664
-	0639 27ff      lrs         $AC1.M, @CMBL
+	
+       //0637 02bf 0664 call        0x0664
+       0664_WaitForCPUMailBox_AC1()
+
+       0639 27ff      lrs         $AC1.M, @CMBL
 	063a 1cdf      mrr         $IX2, $AC1.M
 	063b 1cfd      mrr         $IX3, $AC1.L
 	063c 8100      clr         $ACC0
-	063d 02bf 065e call        0x065e
-	063f 26ff      lrs         $AC0.M, @CMBL
+        
+	//063d 02bf 065e call        0x065e
+       065e_WaitForCPUMailBox_AC0()
+	
+       063f 26ff      lrs         $AC0.M, @CMBL
 	0640 1c1e      mrr         $AR0, $AC0.M
 	0641 8900      clr         $ACC1
-	0642 02bf 0664 call        0x0664
+       //0642 02bf 0664 call        0x0664
+       0664_WaitForCPUMailBox_AC1()
+       
 	0644 20ff      lrs         $AX0.L, @CMBL
 	0645 1f5f      mrr         $AX0.H, $AC1.M
-	0646 02bf 065e call        0x065e
+       //0646 02bf 065e call        0x065e
+       065e_WaitForCPUMailBox_AC0()
+       
 	0648 21ff      lrs         $AX1.L, @CMBL
-	0649 02bf 065e call        0x065e
-	064b 23ff      lrs         $AX1.H, @CMBL
+	
+       //0649 02bf 065e call        0x065e
+       065e_WaitForCPUMailBox_AC0()
+	
+       064b 23ff      lrs         $AX1.H, @CMBL
 	064c 26c9      lrs         $AC0.M, @DSCR
 	064d 02a0 0004 andf        $AC0.M, #0x0004
 	064f 029c 064c jlnz        0x064c
@@ -2061,12 +2092,13 @@ void 065e_WaitForCPUMailBox_AC0()
 	0663 02df      ret    
 }
 
- 
- 0664 27fe      lrs         $AC1.M, @CMBH
- 0665 03c0 8000 andcf       $AC1.M, #0x8000
- 0667 029c 0664 jlnz        0x0664
- 0669 02df      ret         
- 
+void 0664_WaitForCPUMailBox_AC1()
+{
+       0664 27fe      lrs         $AC1.M, @CMBH
+       0665 03c0 8000 andcf       $AC1.M, #0x8000
+       0667 029c 0664 jlnz        0x0664
+       0669 02df      ret         
+} 
 void SendMB_DCD1(_low)
  { 
 	 // 066a 02bf 0682 call        0x0682
@@ -2105,10 +2137,13 @@ void SendMB_F355(_low)
 }
 	
 	
-067c 26fc      lrs         $AC0.M, @DMBH
-067d 02c0 8000 andcf       $AC0.M, #0x8000
-067f 029d 067c jlz         0x067c
-0681 02df      ret         
+void 067c_Unk() 
+{ 
+        067c 26fc      lrs         $AC0.M, @DMBH
+        067d 02c0 8000 andcf       $AC0.M, #0x8000
+        067f 029d 067c jlz         0x067c
+        0681 02df      ret
+}
 
  
 void WaitForEmptyDSPMailBox_ovAC1.M()
@@ -2802,7 +2837,7 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
  //////////////////////////////////////////// DEFAULT DECODER 
 void 087c_DefaultDecoder()
  {
-	 087c 8100      clr         $ACC0
+     	 087c 8100      clr         $ACC0
 	 087d 1f5e      mrr         $AX0.H, $AC0.M
 	 087e 00d8 0402 lr          $AX0.L, @0x0402
 	 0880 00dc 0430 lr          $AC0.L, @0x0430
@@ -4270,7 +4305,8 @@ void 0e3f_UnknownProcess()
 	0e43 8900      clr         $ACC1
 	0e44 0f50      lris        $AC1.M, #0x50
 	0e45 0098 6784 lri         $AX0.L, #0x6784
-	0e47 02bf 00fa call        0x00fa   // XorBuffer
+	//0e47 02bf 00fa call        0x00fa   // XorBuffer
+       00fa_Unk()
 	
 	0e49 0080 04e8 lri         $AR0, #0x04e8
 	0e4b 0082 04ec lri         $AR2, #0x04ec
@@ -4299,6 +4335,7 @@ void 0e3f_UnknownProcess()
 	0e6a 0f50      lris        $AC1.M, #0x50
 	0e6b 0098 6784 lri         $AX0.L, #0x6784
 	// 0e6d 02bf 00fa call        0x00fa              // XorBuffer
+       00fa_Unk()
 	
 	0e6f 0080 04e8 lri         $AR0, #0x04e8
 	0e71 0082 04f4 lri         $AR2, #0x04f4
