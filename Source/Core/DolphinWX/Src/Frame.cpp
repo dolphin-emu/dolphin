@@ -315,10 +315,9 @@ CFrame::CFrame(bool showLogWindow,
 		const wxSize& size,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
+	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
+	, HaveSpeakers(false), m_Panel(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
-	, m_pStatusBar(NULL), bRenderToMain(true)
-	, HaveLeds(false), HaveSpeakers(false)
-    , m_Panel(NULL)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)

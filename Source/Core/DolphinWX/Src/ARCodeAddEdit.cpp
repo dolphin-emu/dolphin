@@ -39,6 +39,7 @@ CARCodeAddEdit::~CARCodeAddEdit()
 
 void CARCodeAddEdit::CreateGUIControls(int _selection)
 {
+	ActionReplay::ARCode tempEntries;
 	wxString currentName = wxT("Insert name here..");
 	
 	if (_selection == -1)

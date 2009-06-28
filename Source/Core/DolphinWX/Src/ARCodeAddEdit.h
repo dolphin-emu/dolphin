@@ -54,7 +54,6 @@ class CARCodeAddEdit : public wxDialog
 		void UpdateTextCtrl(ActionReplay::ARCode arCode);
 
 		int selection;
-		ActionReplay::ARCode tempEntries;
 
 };
 #endif // __PATCH_ADDEDIT_h__
