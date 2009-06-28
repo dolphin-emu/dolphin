@@ -16,10 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Documentation
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
+/*
 1.1 Windows
 
 CFrame is the main parent window. Inside CFrame there is m_Panel which is the
@@ -28,8 +25,7 @@ the rendering window is created by giving CreateWindow() m_Panel->GetHandle()
 as parent window and creating a new child window to m_Panel. The new child
 window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
-
-///////////////////////////////////////////////*/
+*/
 
 
 // FIXME: why doesn't it work on windows???
@@ -100,9 +96,7 @@ wxCheatsWindow* CheatsWindow;
 wxInfoWindow* InfoWindow;
 
 
-//////////////////////////////////////////////////////////////////////////////////////
 // Create menu items
-// ----------------------
 void CFrame::CreateMenu()
 {
 	if (GetMenuBar())
@@ -231,12 +225,9 @@ void CFrame::CreateMenu()
 	// Associate the menu bar with the frame
 	SetMenuBar(menuBar);
 }
-//////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////
 // Create toolbar items
-// ----------------------
 void CFrame::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
@@ -263,20 +254,16 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
 
-	//////////////////////////////////////////////////
 	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
 	#ifdef MUSICMOD
 		MM_PopulateGUI();
 	#endif
-	///////////////////////
 
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
 	toolBar->Realize();
 }
-//////////////////////////////////////////////////////////////////////////////////////
 
 
 // Delete and recreate the toolbar
@@ -393,13 +380,10 @@ void CFrame::InitBitmaps()
 	default: PanicAlert("Theme selection went wrong");
 	}
 
-	//////////////////////////////////////////////////
 	// Music modification
-	// -------------
 	#ifdef MUSICMOD
 		MM_InitBitmaps(Theme);
 	#endif
-	//////////////////////////
 
 
 	// Update in case the bitmap has been updated
@@ -408,9 +392,7 @@ void CFrame::InitBitmaps()
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Start the game or change the disc
-// -------------
 void CFrame::BootGame()
 {
 	// Music modification
@@ -517,12 +499,9 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 {
 	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1]);
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Refresh the file list and browse for a favorites directory
-// --------------------
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
@@ -536,12 +515,9 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
 	m_GameListCtrl->BrowseForDirectory();
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Create screenshot
-// --------------------
 static inline void GenerateScreenshotName(std::string& name)
 {
 	int index = 1;
@@ -566,12 +542,9 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 	if(!bPaused)
 		Core::SetState(Core::CORE_RUN);
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Stop the emulation
-// --------------------
 void CFrame::DoStop()
 {
 	// Music modification
@@ -609,7 +582,6 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	DoStop();
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
@@ -741,7 +713,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if(path)
-		State_LoadAs(path.ToAscii());
+		State_LoadAs((const char *)path.ToAscii());
 }
 
 void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
@@ -759,7 +731,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if(path)
-		State_SaveAs(path.ToAscii());
+		State_SaveAs((const char *)path.ToAscii());
 }
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
@@ -856,13 +828,10 @@ void CFrame::ToggleConsole(bool check)
 	else
 		console->Close();
 
-	//////////////////////////////////////////////////
 	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
 	#ifdef MUSICMOD
 		MM_OnLog(SConfig::GetInstance().m_InterfaceConsole);
 	#endif
-	///////////////////////
 
 	// Make sure the check is updated (if wxw isn't calling this func)
 	GetMenuBar()->FindItem(IDM_TOGGLE_CONSOLE)->Check(check);

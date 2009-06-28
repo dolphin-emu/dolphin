@@ -26,7 +26,7 @@
 #ifndef _DSPCORE_H
 #define _DSPCORE_H
 
-#include "Breakpoints.h"
+#include "BreakPoints.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
