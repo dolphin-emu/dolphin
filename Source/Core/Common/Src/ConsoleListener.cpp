@@ -43,7 +43,7 @@ ConsoleListener::~ConsoleListener()
 // 100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void ConsoleListener::Open(int width, int height, char *title)
+void ConsoleListener::Open(int width, int height, const char *title)
 {
 #ifdef _WIN32
 	// Open the console window and create the window handle for GetStdHandle()
