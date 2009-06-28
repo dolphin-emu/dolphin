@@ -44,6 +44,7 @@ static CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
+PPCDebugInterface debug_interface;
 
 void CompactCR()
 {

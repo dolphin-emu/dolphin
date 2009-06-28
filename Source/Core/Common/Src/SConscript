@@ -5,6 +5,7 @@ import sys
 
 files = [
 	"ABI.cpp",
+	"BreakPoints.cpp",
 	"CDUtils.cpp",
 	"ChunkFile.cpp",
 	"ColorUtil.cpp",

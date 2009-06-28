@@ -1988,14 +1988,6 @@
 			Name="Debugger"
 			>
 			<File
-				RelativePath=".\Src\Debugger\Debugger_BreakPoints.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Debugger_BreakPoints.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\Debugger\Debugger_SymbolMap.cpp"
 				>
 			</File>

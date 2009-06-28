@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Debugger_BreakPoints.h"
 #include "Debugger_SymbolMap.h"
 #include "DebugInterface.h"
 #include "PPCDebugInterface.h"
 #include "PowerPCDisasm.h"
 #include "../Core.h"
+#include "../HW/CPU.h"
 #include "../HW/DSP.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
@@ -132,6 +132,11 @@ void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 
 {
 	Memory::Write_U32(value, address);
+}
+
+void PPCDebugInterface::breakNow()
+{
+	CCPU::Break();
 }
 
 

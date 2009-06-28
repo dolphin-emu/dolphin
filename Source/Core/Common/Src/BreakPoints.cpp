@@ -17,12 +17,10 @@
 
 #include "Common.h"
 
-#include "../HW/CPU.h"
-#include "../Host.h"
-#include "../PowerPC/PPCSymbolDB.h"
-#include "Debugger_BreakPoints.h"
+#include "DebugInterface.h"
+#include "BreakPoints.h"
 
-void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
+void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
@@ -31,11 +29,11 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 			DEBUG_LOG(MEMMAP, "CHK %08x %s%i at %08x (%s)",
 				iValue, write ? "Write" : "Read", // read or write
 				size*8, addr, // address
-				g_symbolDB.GetDescription(addr) // symbol map description
+				debug_interface->GetDescription(addr).c_str() // symbol map description
 				);
 		}
 		if (Break)
-			CCPU::Break();
+			debug_interface->breakNow();
 	}
 }
 
@@ -92,7 +90,6 @@ bool BreakPoints::Remove(u32 _iAddress)
 void BreakPoints::Clear()
 {
 	m_BreakPoints.clear();
-	Host_UpdateBreakPointView();
 }
 
 void BreakPoints::DeleteByAddress(u32 _Address)
@@ -151,8 +148,7 @@ void MemChecks::DeleteByAddress(u32 _Address)
         if ((*iter).StartAddress == _Address)
         {
             m_MemChecks.erase(iter);
-            Host_UpdateBreakPointView();
-            return;
+			return;
         }
     }
 }

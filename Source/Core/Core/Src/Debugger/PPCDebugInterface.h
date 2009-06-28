@@ -4,7 +4,7 @@
 #include <string>
 
 #include "DebugInterface.h"
-#include "Debugger_Breakpoints.h"
+
 //wrapper between disasm control and Dolphin debugger
 
 class PPCDebugInterface : public DebugInterface
@@ -30,6 +30,7 @@ public:
 	virtual unsigned int getPC();
 	virtual void setPC(unsigned int address);
 	virtual void step() {}
+	virtual void breakNow();
 	virtual void runToBreakpoint();
 	virtual void insertBLR(unsigned int address, unsigned int);
 	virtual int getColor(unsigned int address);

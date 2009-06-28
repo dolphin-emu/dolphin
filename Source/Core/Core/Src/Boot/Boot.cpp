@@ -33,7 +33,6 @@
 #include "../HW/CPU.h"
 
 #include "../Debugger/Debugger_SymbolMap.h" // Debugger
-#include "../Debugger/Debugger_BreakPoints.h"
 
 #include "Boot_DOL.h"
 #include "Boot.h"
@@ -147,7 +146,7 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 	if (!File::ReadFileToString(false, _rBiosFilename.c_str(), data))
 		return false;
 
-	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, data.size() - 0x820);
+	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, (int)data.size() - 0x820);
     PC = 0x81300000;
     return true;
 }

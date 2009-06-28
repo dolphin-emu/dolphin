@@ -24,7 +24,6 @@
 #include "../PowerPC/PPCSymbolDB.h"
 #include "../HW/Memmap.h"
 #include "../Debugger/Debugger_SymbolMap.h"
-#include "../Debugger/Debugger_BreakPoints.h"
 
 #include "HLE_OS.h"
 #include "HLE_Misc.h"

@@ -20,7 +20,8 @@
 
 #include "Common.h"
 #include "Gekko.h"
-#include "../Debugger/Debugger_BreakPoints.h"
+#include "BreakPoints.h"
+#include "../Debugger/PPCDebugInterface.h"
 
 class PointerWrap;
 
@@ -76,6 +77,7 @@ extern PowerPCState ppcState;
 
 extern BreakPoints breakpoints;
 extern MemChecks memchecks;
+extern PPCDebugInterface debug_interface;
 
 void Init();
 void Shutdown();

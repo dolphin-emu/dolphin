@@ -18,7 +18,6 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "Debugger_SymbolMap.h"
-#include "Debugger_BreakPoints.h"
 #include "../Core.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"

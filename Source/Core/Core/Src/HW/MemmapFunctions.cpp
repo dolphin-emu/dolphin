@@ -257,7 +257,7 @@ u8 Read_U8(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address,false, 1, PC);
+		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 1, PC);
 	}
 #endif
 	return (u8)_var;
@@ -272,7 +272,7 @@ u16 Read_U16(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address,false, 2, PC);
+		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 2, PC);
 	}
 #endif
 	return (u16)_var;
@@ -294,7 +294,7 @@ u32 Read_U32(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_var, _Address, false, 4, PC);
+		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 4, PC);
 	}
 #endif
 	return _var;
@@ -310,7 +310,7 @@ u64 Read_U64(const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action((u32)_var, _Address, false, 8, PC);
+		mc->Action(&PowerPC::debug_interface, (u32)_var, _Address, false, 8, PC);
 	}
 #endif
 	return _var;
@@ -324,7 +324,7 @@ void Write_U8(const u8 _Data, const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_Data,_Address,true,1,PC);
+		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,1,PC);
 	}
 #endif
 	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
@@ -338,7 +338,7 @@ void Write_U16(const u16 _Data, const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_Data,_Address,true,2,PC);
+		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,2,PC);
 	}
 #endif
 
@@ -353,7 +353,7 @@ void Write_U32(const u32 _Data, const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action(_Data,_Address,true,4,PC);
+		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,4,PC);
 	}
 #endif
 	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
@@ -367,7 +367,7 @@ void Write_U64(const u64 _Data, const u32 _Address)
 	if (mc)
 	{
 		mc->numHits++;
-		mc->Action((u32)_Data,_Address,true,8,PC);
+		mc->Action(&PowerPC::debug_interface, (u32)_Data,_Address,true,8,PC);
 	}
 #endif
 

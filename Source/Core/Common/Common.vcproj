@@ -557,6 +557,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\BreakPoints.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\BreakPoints.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\CDUtils.cpp"
 			>
 		</File>

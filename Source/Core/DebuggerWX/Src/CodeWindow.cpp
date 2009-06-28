@@ -353,7 +353,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
-	DebugInterface* di = new PPCDebugInterface();
+	DebugInterface* di = &PowerPC::debug_interface;
 
 	codeview = new CCodeView(di, &g_symbolDB, this, ID_CODEVIEW);
 	sizerBig->Add(sizerLeft, 2, wxEXPAND);

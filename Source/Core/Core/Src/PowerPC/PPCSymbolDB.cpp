@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "../HW/Memmap.h"
+#include "../PowerPC/PowerPC.h"
 #include "PPCSymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
@@ -31,7 +32,7 @@ PPCSymbolDB g_symbolDB;
 PPCSymbolDB::PPCSymbolDB()
 {
 	// Get access to the disasm() fgnction
-	debugger = new PPCDebugInterface();
+	debugger = &PowerPC::debug_interface;
 }
 
 PPCSymbolDB::~PPCSymbolDB()

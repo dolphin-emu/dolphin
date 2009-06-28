@@ -66,7 +66,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	// didn't see anything usefull in the left part
 	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
-	DebugInterface* di = new PPCDebugInterface();
+	DebugInterface* di = &PowerPC::debug_interface;
 
 	//sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(20, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
 	memview = new CMemoryView(di, this, wxID_ANY);
