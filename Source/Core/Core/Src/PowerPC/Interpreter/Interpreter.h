@@ -293,21 +293,21 @@ namespace Interpreter
 	void RunTable63(UGeckoInstruction _instCode);
 
 	// flag helper
-	inline void Helper_UpdateCR0(u32 _uValue);
-	inline void Helper_UpdateCR1(double _fValue);
-	inline void Helper_UpdateCR1(float _fValue);
-	inline void Helper_UpdateCRx(int _x, u32 _uValue);
-	inline u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
+	void Helper_UpdateCR0(u32 _uValue);
+	void Helper_UpdateCR1(double _fValue);
+	void Helper_UpdateCR1(float _fValue);
+	void Helper_UpdateCRx(int _x, u32 _uValue);
+	u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
 
 	// address helper
-	inline u32 Helper_Get_EA   (const UGeckoInstruction _inst);
-	inline u32 Helper_Get_EA_U (const UGeckoInstruction _inst);
-	inline u32 Helper_Get_EA_X (const UGeckoInstruction _inst);
-	inline u32 Helper_Get_EA_UX(const UGeckoInstruction _inst);
+	u32 Helper_Get_EA   (const UGeckoInstruction _inst);
+	u32 Helper_Get_EA_U (const UGeckoInstruction _inst);
+	u32 Helper_Get_EA_X (const UGeckoInstruction _inst);
+	u32 Helper_Get_EA_UX(const UGeckoInstruction _inst);
 
 	// paired helper
-	float inline Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, const unsigned int _uScale);
-	void  inline Helper_Quantize  (const u32 _Addr, const float _fValue, const EQuantizeType _quantizeType, const unsigned _uScale);
+	float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, const unsigned int _uScale);
+	void  Helper_Quantize  (const u32 _Addr, const float _fValue, const EQuantizeType _quantizeType, const unsigned _uScale);
 
 	// other helper
 	u32 Helper_Mask(int mb, int me);
