@@ -414,7 +414,7 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 }
 
 
-
+// TODO: Protect this structure with a mutex.
 static volatile struct 
 { 
 	u8* pXFB;
@@ -441,15 +441,17 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 		{
 			g_XFBUpdateRequested = FALSE;
 
-			if (g_Config.bUseXFB)
+			if (!_pXFB)
 			{
-				if (!_pXFB)
-					// From graphics thread in DC mode
-					Renderer::DecodeFromXFB(tUpdateXFBArgs.pXFB, tUpdateXFBArgs.width, tUpdateXFBArgs.height, tUpdateXFBArgs.yOffset);
-				else
-					// From CPU in SC mode
-					Renderer::DecodeFromXFB(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+				// From graphics thread in DC mode
+				_pXFB = tUpdateXFBArgs.pXFB;
+				_dwWidth = tUpdateXFBArgs.width;
+				_dwHeight = tUpdateXFBArgs.height;
+				_dwYOffset = tUpdateXFBArgs.yOffset;
 			}
+
+			if (g_Config.bUseXFB)
+				Renderer::DecodeFromXFB(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
 
 			// TODO: Use real XFB source parameters based on VI settings
 			Renderer::Swap();

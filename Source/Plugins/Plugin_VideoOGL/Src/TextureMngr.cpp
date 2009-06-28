@@ -710,7 +710,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         glGenFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
 
     Renderer::SetFramebuffer(s_TempFramebuffer);
-    Renderer::SetRenderTarget(entry.texture);
+	// Bind texture to temporary framebuffer
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, entry.texture, 0);
+	GL_REPORT_FBO_ERROR();
     GL_REPORT_ERRORD();
     
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -734,6 +736,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     GL_REPORT_ERRORD();
 
+	// Unbind texture from temporary framebuffer
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+
+	// Return to the EFB.
     Renderer::SetFramebuffer(0);
     Renderer::RestoreGLState();
     VertexShaderManager::SetViewportChanged();

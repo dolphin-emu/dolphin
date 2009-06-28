@@ -54,6 +54,7 @@
 #include "OnScreenDisplay.h"
 #include "Timer.h"
 #include "StringUtil.h"
+#include "FramebufferManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -92,37 +93,7 @@ static FILE* f_pFrameDump;
 static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 
-// Normal Mode
-//
-// By default the depth target is used
-// if there is an error creating and attaching it a depth buffer will be used instead
-//
-// s_RenderTarget is a texture_rect
-// s_DepthTarget is a texture_rect
-// s_DepthBuffer is a Z renderbuffer
-
-// MSAA mode
-// s_uFramebuffer is a FBO
-// s_RenderTarget is a MSAA renderbuffer
-// s_DepthTarget is a MSAA renderbuffer
-// 
-// s_ResolvedFramebuffer is a FBO
-// s_ResolvedRenderTarget is a texture
-// s_ResolvedDepthTarget is a texture
-
-// A framebuffer is a set of render targets: a color and a z buffer. They can be either RenderBuffers or Textures.
-static GLuint s_uFramebuffer = 0;
-static GLuint s_uResolvedFramebuffer = 0;
-
-// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn't.
-// These are all texture IDs. Bind them as rect arb textures.
-static GLuint s_RenderTarget = 0;
-static GLuint s_DepthTarget  = 0;
-static GLuint s_DepthBuffer  = 0;
-
-static GLuint s_ResolvedRenderTarget = 0;
-static GLuint s_ResolvedDepthTarget  = 0;
-
+// TODO: Move these to FramebufferManager
 static TRectangle s_efbSourceRc;
 static GLuint s_xfbFramebuffer = 0; // Only used when multisampling is on
 static GLuint s_xfbTexture = 0;
@@ -144,6 +115,8 @@ static int s_fps = 0;
 // TODO: Add functionality to reinit all the render targets when the window is resized.
 static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
+
+static FramebufferManager s_framebufferManager;
 
 #ifndef _WIN32
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
@@ -304,19 +277,27 @@ bool Renderer::Init()
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported. This extension is not yet used, though.");
 	}
 
-	// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
-	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
-	// So the below is wrong.
-	// This should really be grabbed from config rather than from OpenGL.
-	// JP: Set these to the biggest of the 2x mode and the custom resolution so that the framebuffer
-	// does not get to be too small
-	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
-	s_targetwidth = (1280 >= W) ? 1280 : W;
-	s_targetheight = (960 >= H) ? 960 : H;
+	if (g_Config.bNativeResolution)
+	{
+		s_targetwidth = g_Config.b2xResolution ? EFB_WIDTH * 2 : EFB_WIDTH;
+		s_targetheight = g_Config.b2xResolution ? EFB_HEIGHT * 2 : EFB_HEIGHT;
+	}
+	else
+	{
+		// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
+		// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
+		// So the below is wrong.
+		// This should really be grabbed from config rather than from OpenGL.
+		// JP: Set these to the biggest of the 2x mode and the custom resolution so that the framebuffer
+		// does not get to be too small
+		int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
+		s_targetwidth = (1280 >= W) ? 1280 : W;
+		s_targetheight = (960 >= H) ? 960 : H;
 
-	// Compensate height of render target for scaling, so that we get something close to the correct number of
-	// vertical pixels.
-	s_targetheight *= 528.0 / 480.0;
+		// Compensate height of render target for scaling, so that we get something close to the correct number of
+		// vertical pixels.
+		s_targetheight *= 528.0 / 480.0;
+	}
 
 	// Ensure a minimum target size so that the native res target always fits.
 	if (s_targetwidth < EFB_WIDTH)
@@ -330,122 +311,22 @@ bool Renderer::Init()
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	SetDefaultRectTexParams();
 
-	glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
-	if (s_uFramebuffer == 0) {
-		ERROR_LOG(VIDEO, "failed to create the renderbufferDoes your video card support OpenGL 2.x?");
-	}
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-
-	if (s_MSAASamples <= 1) {
-		// Create the framebuffer target texture
-		glGenTextures(1, (GLuint *)&s_RenderTarget);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
-		// Create our main color render target as a texture rectangle of the desired size.
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		SetDefaultRectTexParams();
-
-		// Create the depth target texture
-		glGenTextures(1, &s_DepthTarget);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_DepthTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT24, s_targetwidth, s_targetheight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-        SetDefaultRectTexParams();
-	
-		// Our framebuffer object is still bound here. Attach the two render targets, color and depth, to the framebuffer object.
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, s_DepthTarget, 0);
-		GL_REPORT_FBO_ERROR();
-
-        bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-
-        // Check that the FBO is attached. If there is an error revert to a depth buffer.
-        if (bFailed) {
-            ERROR_LOG(VIDEO, "Disabling ztarget feature");
-
-            // detach and delete depth texture
-            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-		    glDeleteTextures(1, (GLuint *)&s_DepthTarget);
-            s_DepthTarget = 0;
-
-            // create and attach depth buffer
-		    glGenRenderbuffersEXT(1, (GLuint *)&s_DepthBuffer);
-            glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthBuffer);
-            glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_targetwidth, s_targetheight);
-            glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthBuffer);
-            GL_REPORT_FBO_ERROR();
-        }
-	}
-	else
+	// Bind it to an XFB framebuffer if MSAA is used
+	if (s_MSAASamples > 1)
 	{
-		// Create XFB framebuffer for transferring the multisampled EFB to the
-		// XFB texture
 		glGenFramebuffersEXT(1, &s_xfbFramebuffer);
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_xfbFramebuffer);
-
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_xfbTexture, 0);
 
 		GL_REPORT_FBO_ERROR();
-
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
-
-		// MSAA rendertarget init.
-		// First set up the boring multisampled rendertarget.
-		glGenRenderbuffersEXT(1, &s_RenderTarget);
-		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTarget);
-		if (s_MSAACoverageSamples) {
-			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
-		} else {
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_RGBA, s_targetwidth, s_targetheight);
-		}
-		glGenRenderbuffersEXT(1, &s_DepthTarget);
-		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-		if (s_MSAACoverageSamples) {
-			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER_EXT, s_MSAACoverageSamples, s_MSAASamples, GL_DEPTH_COMPONENT24, s_targetwidth, s_targetheight);
-		} else {
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, s_MSAASamples, GL_DEPTH_COMPONENT24, s_targetwidth, s_targetheight);
-		}
-		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-
-		// Attach them to our multisampled FBO. The multisampled FBO is still bound here.
-		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTarget);
-		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,  GL_RENDERBUFFER_EXT, s_DepthTarget);
-		GL_REPORT_FBO_ERROR();
-
-		bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-		if (bFailed) PanicAlert("Incomplete rt");
-
-		// Create our resolve FBO, and bind it.
-		glGenFramebuffersEXT(1, (GLuint *)&s_uResolvedFramebuffer);
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-
-		// Generate the resolve targets.
-		glGenTextures(1, (GLuint *)&s_ResolvedRenderTarget);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ResolvedRenderTarget);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		SetDefaultRectTexParams();
-		// Generate the resolve targets.
-		glGenTextures(1, (GLuint *)&s_ResolvedDepthTarget);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ResolvedDepthTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT24, s_targetwidth, s_targetheight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-		SetDefaultRectTexParams();
-		
-		// Attach our resolve targets to our resolved FBO.
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ResolvedRenderTarget, 0);
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ResolvedDepthTarget, 0);
-
-		GL_REPORT_FBO_ERROR();
-
-		bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-		if (bFailed) PanicAlert("Incomplete rt2");
-
-        if (bFailed) {
-            ERROR_LOG(VIDEO, "AA rendering init failed.");
-        }
 	}
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
-	// glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
+	// Initialize the FramebufferManager
+	s_framebufferManager.Init(s_targetwidth, s_targetheight, s_MSAASamples, s_MSAACoverageSamples);
+
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
@@ -501,16 +382,9 @@ void Renderer::Shutdown(void)
         g_cgcontext = 0;
 	}
 
+	s_framebufferManager.Shutdown();
+
 	// Note: OpenGL delete functions automatically ignore if parameter is 0
-
-    glDeleteFramebuffersEXT(1, &s_uFramebuffer);
-    s_uFramebuffer = 0;
-
-    glDeleteTextures(1, &s_RenderTarget);
-    s_RenderTarget = 0;
-
-    glDeleteRenderbuffersEXT(1, &s_DepthTarget);
-	s_DepthTarget = 0;
 
 	glDeleteFramebuffersEXT(1, &s_xfbFramebuffer);
 	s_xfbFramebuffer = 0;
@@ -574,14 +448,12 @@ bool Renderer::InitializeGL()
 // Return the rendering window width and height
 int Renderer::GetTargetWidth()
 {
-	return (s_bNativeResolution || g_Config.b2xResolution) ?
-		(s_bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : s_targetwidth;
+	return s_targetwidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-	return (s_bNativeResolution || g_Config.b2xResolution) ?
-		(s_bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : s_targetheight;
+	return s_targetheight;
 }
 
 float Renderer::GetTargetScaleX()
@@ -594,22 +466,9 @@ float Renderer::GetTargetScaleY()
     return (float)GetTargetHeight() / (float)EFB_HEIGHT;
 }
 
-
-
-
-// Various supporting functions
-void Renderer::SetRenderTarget(GLuint targ)
-{
-	if (!targ && s_MSAASamples > 1)
-		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTarget);
-	else
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 
-			targ != 0 ? targ : s_RenderTarget, 0);
-}
-
 void Renderer::SetFramebuffer(GLuint fb)
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_framebufferManager.GetEFBFramebuffer());
 }
 
 void Renderer::ResetGLState()
@@ -701,60 +560,12 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // Apply AA if enabled
 GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
 {
-	if (s_MSAASamples > 1)
-	{
-		// Flip the rectangle
-		TRectangle flipped_rect;
-		source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
-
-		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
-		// Do the resolve.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-							 GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		// Return the resolved target.
-		return s_ResolvedRenderTarget;
-	}
-	else 
-	{
-		return s_RenderTarget;
-	}
+	return s_framebufferManager.GetEFBColorTexture(source_rect);
 }
 
 GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
 {
-	// This logic should be moved elsewhere.
-	if (s_MSAASamples > 1)
-	{
-		// Flip the rectangle	
-		TRectangle flipped_rect;
-		//source_rect.FlipYPosition(GetTargetHeight(), &flipped_rect);
-
-        // donkopunchstania - some bug causes the offsets to be ignored. driver bug?
-        flipped_rect.top = 0;
-        flipped_rect.bottom = GetTargetHeight();
-
-        flipped_rect.left = 0;
-        flipped_rect.right = GetTargetWidth();
-
-		flipped_rect.Clamp(0, 0, GetTargetWidth(), GetTargetHeight());
-		// Do the resolve.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		glBlitFramebufferEXT(flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-			                 flipped_rect.left, flipped_rect.top, flipped_rect.right, flipped_rect.bottom,
-							 GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-		// Return the resolved target.
-		return s_ResolvedDepthTarget;
-	}
-	else 
-	{
-		return s_DepthTarget;
-	}
+	return s_framebufferManager.GetEFBDepthTexture(source_rect);
 }
 
 
@@ -891,6 +702,7 @@ void Renderer::RenderToXFB(u8* xfbInRam, const TRectangle& sourceRc, u32 dstWidt
 		Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
 	}
 
+	// TODO: Move this logic to FramebufferManager
 	if (g_Config.bUseXFB)
 	{
 		s_efbSourceRc.left = 0;
@@ -909,7 +721,7 @@ void Renderer::RenderToXFB(u8* xfbInRam, const TRectangle& sourceRc, u32 dstWidt
 			// Cannot use glCopyTexImage2D on multisampled framebuffers, so
 			// EXT_framebuffer_blit must be used
 
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_xfbFramebuffer);
 
 			glBlitFramebufferEXT(
@@ -1033,11 +845,8 @@ void Renderer::Swap()
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		// Select source
-		if (s_MSAASamples > 1)
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		else
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		// TODO: Wrong. The EFB may contain something else by now. We want to read from the XFB.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 
 		s_criticalScreenshot.Enter();
 		// Save screenshot
@@ -1055,11 +864,8 @@ void Renderer::Swap()
 #ifdef _WIN32
 	if (g_Config.bDumpFrames)
 	{
-		// Select source
-		if (s_MSAASamples > 1)
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uResolvedFramebuffer);
-		else
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer);
+		// TODO: Wrong. The EFB may contain something else by now. We want to read from the XFB.
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 
 		s_criticalScreenshot.Enter();
 		int w = s_efbSourceRc.right;

@@ -69,7 +69,6 @@ public:
     static float GetTargetScaleY();
 
     static void SetFramebuffer(GLuint fb);
-    static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
