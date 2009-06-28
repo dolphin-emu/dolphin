@@ -32,7 +32,6 @@
 #include "DSPCore.h"
 #include "DSPMemoryMap.h"
 #include "DSPStacks.h"
-// #include "DSPIntExtOps.h"
 
 // ---------------------------------------------------------------------------------------
 // --- SR

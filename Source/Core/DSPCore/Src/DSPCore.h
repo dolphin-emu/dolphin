@@ -101,17 +101,35 @@
 
 // Hardware registers address
 
-#define DSP_REG_DSCR        0xffc9  // DSP DMA Control Reg
-#define DSP_REG_DSBL        0xffcb  // DSP DMA Block Length
-#define DSP_REG_DSPA        0xffcd  // DSP DMA DMEM Address
-#define DSP_REG_DSMAH       0xffce  // DSP DMA Mem Address H
-#define DSP_REG_DSMAL       0xffcf  // DSP DMA Mem Address L
+#define DSP_COEF_A1_0   0xa0
 
-#define DSP_REG_DIRQ        0xfffb  // DSP Irq Rest
-#define DSP_REG_DMBH        0xfffc  // DSP Mailbox H
-#define DSP_REG_DMBL        0xfffd  // DSP Mailbox L
-#define DSP_REG_CMBH        0xfffe  // CPU Mailbox H
-#define DSP_REG_CMBL        0xffff  // CPU Mailbox L
+#define DSP_DSMAH   0xce
+#define DSP_DSMAL   0xcf
+#define DSP_DSCR    0xc9  // DSP DMA Control Reg
+#define DSP_DSPA    0xcd  // DSP DMA Block Length
+#define DSP_DSBL    0xcb  // DSP DMA DMEM Address
+#define DSP_DSMAH   0xce  // DSP DMA Mem Address H
+#define DSP_DSMAL   0xcf  // DSP DMA Mem Address L
+
+#define DSP_FORMAT      0xd1
+#define DSP_ACDATA1     0xd3  // used only by Zelda ucodes
+#define DSP_ACSAH       0xd4
+#define DSP_ACSAL       0xd5
+#define DSP_ACEAH       0xd6
+#define DSP_ACEAL       0xd7
+#define DSP_ACCAH       0xd8
+#define DSP_ACCAL       0xd9
+#define DSP_PRED_SCALE  0xda
+#define DSP_YN1         0xdb
+#define DSP_YN2         0xdc
+#define DSP_ACCELERATOR 0xdd  // ADPCM accelerator read. Used by AX.
+#define DSP_GAIN        0xde
+
+#define DSP_DIRQ        0xfb  // DSP Irq Rest
+#define DSP_DMBH        0xfc  // DSP Mailbox H
+#define DSP_DMBL        0xfd  // DSP Mailbox L
+#define DSP_CMBH        0xfe  // CPU Mailbox H
+#define DSP_CMBL        0xff  // CPU Mailbox L
 
 #define DMA_TO_DSP          0
 #define DMA_TO_CPU          1
@@ -124,6 +142,7 @@
 // See HW/DSP.cpp.
 #define CR_HALT         0x0004
 #define CR_EXTERNAL_INT 0x0002
+
 
 // SR bits
 #define SR_CARRY        0x0001
@@ -193,5 +212,19 @@ void DSPCore_CheckExceptions();
 
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);
+
+enum DSPCoreState
+{
+	DSPCORE_RUNNING = 0,
+	DSPCORE_STEPPING = 1,
+};
+
+int DSPCore_RunCycles(int cycles);
+
+// These are meant to be called from the UI thread.
+void DSPCore_SetState(DSPCoreState new_state);
+DSPCoreState DSPCore_GetState();
+
+void DSPCore_Step();
 
 #endif  // _DSPCORE_H

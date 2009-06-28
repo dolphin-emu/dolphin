@@ -54,8 +54,6 @@ public:
 
 	virtual ~DSPDebuggerLLE();
 
-	bool CanDoStep();
-	void DebugBreak();
 	void Refresh();
 
 private:
@@ -95,18 +93,8 @@ private:
 		COLUMN_PARAM,
 	};
 
-	enum EState
-	{
-		PAUSE,
-		STEP,
-		RUN,
-		RUN_START // ignores breakpoints and switches after one step to RUN
-	};
-	EState m_State;
-
 	DSPDebugInterface debug_interface;
 	u64 m_CachedStepCounter;
-	u16 m_CachedCR;
 
 	// GUI updaters
 	void UpdateDisAsmListView();

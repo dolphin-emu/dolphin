@@ -69,7 +69,7 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	// this crc is comparable with the HLE plugin
 	u32 ector_crc = 0;
-	for (u32 i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		ector_crc ^= ptr[i];
 		//let's rol
@@ -85,7 +85,8 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	DSPSymbols::Clear();
 	bool success = false;
-	switch (ector_crc) {
+	switch (ector_crc)
+	{
 		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"); break;
 		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Luigi.txt"); break;
 		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_AX1.txt"); break;
@@ -101,4 +102,9 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	m_DebuggerFrame->Refresh();
 	return crc;
+}
+
+void DSPHost_UpdateDebugger()
+{
+	m_DebuggerFrame->Refresh();
 }

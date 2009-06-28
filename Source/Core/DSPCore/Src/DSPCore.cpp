@@ -24,7 +24,9 @@
    ====================================================================*/
 
 #include "Common.h"
+#include "Thread.h"
 #include "DSPCore.h"
+#include "DSPHost.h"
 #include "DSPAnalyzer.h"
 #include "MemoryUtil.h"
 
@@ -33,6 +35,8 @@
 
 SDSP g_dsp;
 BreakPoints dsp_breakpoints;
+DSPCoreState core_state = DSPCORE_RUNNING;
+Common::Event step_event;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
@@ -118,11 +122,13 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	DSPAnalyzer::Analyze();
 
+	step_event.Init();
 	return true;
 }
 
 void DSPCore_Shutdown()
 {
+	step_event.Shutdown();
 	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
@@ -183,4 +189,58 @@ void DSPCore_CheckExceptions()
 			}
 		}
 	}
+}
+
+// Delegate to JIT (when it is written) or interpreter as appropriate.
+// Handle state changes and stepping.
+int DSPCore_RunCycles(int cycles)
+{
+	while (cycles > 0) {
+	reswitch:
+		switch (core_state)
+		{
+		case DSPCORE_RUNNING:
+#if 0   // Set to 1 to enable stepping
+			// Enable breakpoints
+			cycles = DSPInterpreter::RunCyclesDebug(cycles);
+#else
+			//1: enter a fast runloop
+			cycles = DSPInterpreter::RunCycles(cycles);
+#endif
+			break;
+
+		case DSPCORE_STEPPING:
+			step_event.Wait();
+			if (core_state != DSPCORE_STEPPING)
+				goto reswitch;
+
+			DSPInterpreter::Step();
+			cycles--;
+
+			DSPHost_UpdateDebugger();
+			break;
+		}
+	}
+	return cycles;
+}
+
+void DSPCore_SetState(DSPCoreState new_state)
+{
+	core_state = new_state;
+	// kick the event, in case we are waiting
+	if (new_state == DSPCORE_RUNNING)
+		step_event.Set();
+	// Sleep(10);
+	DSPHost_UpdateDebugger();
+}
+
+DSPCoreState DSPCore_GetState()
+{
+	return core_state;
+}
+
+void DSPCore_Step()
+{
+	if (core_state == DSPCORE_STEPPING)
+		step_event.Set();
 }

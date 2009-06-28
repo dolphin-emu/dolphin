@@ -36,7 +36,7 @@
 #include "DSPInterpreter.h"
 #include "DSPHWInterface.h"
 
-void gdsp_dma();
+void gdsp_do_dma();
 
 Common::CriticalSection g_CriticalSection;
 
@@ -137,7 +137,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 
 	    case 0xcb: // DSBL
 		    gdsp_ifx_regs[addr & 0xFF] = val;
-		    gdsp_dma();
+		    gdsp_do_dma();
 		    gdsp_ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
 
@@ -274,7 +274,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
 }
 
-void gdsp_dma()
+void gdsp_do_dma()
 {
 	u16 ctl;
 	u32 addr;

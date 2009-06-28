@@ -252,8 +252,7 @@ const DSPOPCTemplate opcodes[] =
 	{"CLRL",	0xfc00, 0xffff, DSPInterpreter::clrl, nop, 1 | P_EXT,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acl0
 	{"CLR",		0x8100, 0xf7ff, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // clear acc0
 	{"CLRP",	0x8400, 0xffff, DSPInterpreter::clrp, nop, 1 | P_EXT,  0, {}, },
-
-      
+     
 	{"MOV",		0x6c00, 0xfeff, DSPInterpreter::mov,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVAX",   0x6800, 0xfcff, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MOVR",    0x6000, 0xf8ff, DSPInterpreter::movr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
@@ -368,6 +367,7 @@ const pdlabel_t pdlabels[] =
 	{0xffad, "COEF_A2_6", "COEF_A2_6",},
 	{0xffae, "COEF_A1_7", "COEF_A1_7",},
 	{0xffaf, "COEF_A2_7", "COEF_A2_7",},
+
 	{0xffb0, 0, 0,},
 	{0xffb1, 0, 0,},
 	{0xffb2, 0, 0,},
@@ -384,6 +384,7 @@ const pdlabel_t pdlabels[] =
 	{0xffbd, 0, 0,},
 	{0xffbe, 0, 0,},
 	{0xffbf, 0, 0,},
+
 	{0xffc0, 0, 0,},
 	{0xffc1, 0, 0,},
 	{0xffc2, 0, 0,},
@@ -400,6 +401,7 @@ const pdlabel_t pdlabels[] =
 	{0xffcd, "DSPA", "DSP DMA DMEM Address",},
 	{0xffce, "DSMAH", "DSP DMA Mem Address H",},
 	{0xffcf, "DSMAL", "DSP DMA Mem Address L",},
+
 	{0xffd0, 0,0,},
 	{0xffd1, "SampleFormat", "SampleFormat",},
 	{0xffd2, 0,0,},
@@ -416,6 +418,7 @@ const pdlabel_t pdlabels[] =
 	{0xffdd, "ARAM", "Direct Read from ARAM (uses ADPCM)",},
 	{0xffde, "GAIN", "Gain",},
 	{0xffdf, 0,0,},
+
 	{0xffe0, 0,0,},
 	{0xffe1, 0,0,},
 	{0xffe2, 0,0,},
@@ -432,6 +435,7 @@ const pdlabel_t pdlabels[] =
 	{0xffed, 0,0,},
 	{0xffee, 0,0,},
 	{0xffef, "AMDM", "ARAM DMA Request Mask",},
+
 	{0xfff0, 0,0,},
 	{0xfff1, 0,0,},
 	{0xfff2, 0,0,},

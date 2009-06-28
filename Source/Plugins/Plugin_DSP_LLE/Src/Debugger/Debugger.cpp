@@ -39,8 +39,6 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow *parent, wxWindowID id, const wxString &
 							   const wxPoint &position, const wxSize& size, long style)
 							   : wxFrame(parent, id, title, position, size, style)
 							   , m_CachedStepCounter(-1)
-							   , m_CachedCR(-1)
-							   , m_State(RUN)
 {
 	CreateGUIControls();
 }
@@ -87,6 +85,8 @@ void DSPDebuggerLLE::CreateGUIControls()
 
 	this->SetSizer(sMain);
 	this->Layout();
+
+	UpdateState();
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
@@ -99,15 +99,17 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_RUNTOOL:
-		if ((m_State == RUN) || (m_State == RUN_START))
-			m_State = PAUSE;
+		if (DSPCore_GetState() == DSPCORE_RUNNING)
+			DSPCore_SetState(DSPCORE_STEPPING);
 		else
-			m_State = RUN_START;
+			DSPCore_SetState(DSPCORE_RUNNING);
 		break;
 
 	case ID_STEPTOOL:
-		m_State = STEP;
+		if (DSPCore_GetState() == DSPCORE_STEPPING)
+			DSPCore_Step();
 		break;
+
 	case ID_SHOWPCTOOL:
 		FocusOnPC();
 		break;
@@ -137,10 +139,14 @@ void DSPDebuggerLLE::FocusOnPC()
 
 void DSPDebuggerLLE::UpdateState()
 {
-	if ((m_State == RUN) || (m_State == RUN_START))
+	if (DSPCore_GetState() == DSPCORE_RUNNING) {
 		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Pause"));
-	else
+		m_Toolbar->FindById(ID_STEPTOOL)->Enable(false);
+	}
+	else {
 		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Run"));
+		m_Toolbar->FindById(ID_STEPTOOL)->Enable(true);
+	}
 	m_Toolbar->Realize();
 }
 
@@ -188,54 +194,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 
 void DSPDebuggerLLE::UpdateRegisterFlags()
 {
-	if (m_CachedCR == g_dsp.cr)
-		return;
 
-	// m_Toolbar->ToggleTool(ID_CHECK_ASSERTINT, g_dsp.cr & 0x02 ? true : false);
-	// m_Toolbar->ToggleTool(ID_CHECK_HALT, g_dsp.cr & 0x04 ? true : false);
-	// m_Toolbar->ToggleTool(ID_CHECK_INIT, g_dsp.cr & 0x800 ? true : false);
-
-	m_CachedCR = g_dsp.cr;
-}
-
-bool DSPDebuggerLLE::CanDoStep()
-{
-	// update the symbols all the time because they're script cmds like bps
-	UpdateSymbolMap();
-
-	switch (m_State)
-	{
-	case RUN_START:
-		m_State = RUN;
-		return true;
-
-	case RUN:
-		/*
-		if (IsBreakPoint(g_dsp.pc))
-		{
-			Refresh();
-			m_State = PAUSE;
-			return false;
-		}*/
-
-		return true;
-
-	case PAUSE:
-		Refresh();
-		return false;
-
-	case STEP:
-		Refresh();
-		m_State = PAUSE;
-		return true;
-	}
-
-	return false;
-}
-
-void DSPDebuggerLLE::DebugBreak()
-{
-	m_State = PAUSE;
 }
 
 void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)

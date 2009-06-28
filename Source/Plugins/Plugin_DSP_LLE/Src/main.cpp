@@ -45,17 +45,12 @@ DSPDebuggerLLE* m_DebuggerFrame = NULL;
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 Common::Thread *g_hDSPThread = NULL;
-
 SoundStream *soundStream = NULL;
 
-#define GDSP_MBOX_CPU   0
-#define GDSP_MBOX_DSP   1
-
-bool bCanWork = false;
 bool bIsRunning = false;
 
 //////////////////////////////////////////////////////////////////////////
-// UGLY wxw stuff, TODO fix up
+// UGLY WxW stuff, TODO fix up
 // wxWidgets: Create the wxApp
 #if defined(HAVE_WX) && HAVE_WX
 class wxDLLApp : public wxApp
@@ -188,14 +183,14 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 void DSP_DebugBreak()
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_DebuggerFrame)
-		m_DebuggerFrame->DebugBreak();
+	// if (m_DebuggerFrame)
+	//  	m_DebuggerFrame->DebugBreak();
 #endif
 }
 
 void Initialize(void *init)
 {
-    bCanWork = true;
+    bool bCanWork = true;
     g_dspInitialize = *(DSPInitialize*)init;
 
 	g_Config.Load();
@@ -324,7 +319,7 @@ void DSP_Update(int cycles)
 	// If we're not on a thread, run cycles here.
 	if (!g_dspInitialize.bOnThread)
 	{
-		DSPInterpreter::RunCycles(cycles);
+		DSPCore_RunCycles(cycles);
 	}
 }
 
@@ -347,8 +342,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	// so each sample now triggers the sound stream)
 	
 	// TODO: think about this.
-	//static int counter = 0;
-	//counter++;
+	// static int counter = 0;
+	// counter++;
 	if (/*(counter & 31) == 0 &&*/ soundStream)
 		soundStream->Update();
 }

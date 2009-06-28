@@ -26,6 +26,7 @@ bool DSPHost_OnThread() { return false; }
 bool DSPHost_Running() { return true; }
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size) {return 0x1337c0de;}
 void DSPHost_InterruptRequest() {}
+void DSPHost_UpdateDebugger() {}
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Then the two binaries are compared.

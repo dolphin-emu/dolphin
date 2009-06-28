@@ -32,12 +32,12 @@ void Update_SR_Register64(s64 _Value)
 
 	if (_Value < 0)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x8;
+		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
 	}
 
 	if (_Value == 0)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x4;
+		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
 	}
 
 	// weird
@@ -53,12 +53,12 @@ void Update_SR_Register16(s16 _Value)
 
 	if (_Value < 0)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x8;
+		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
 	}
 
 	if (_Value == 0)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x4;
+		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
 	}
 
 	// weird
@@ -90,92 +90,51 @@ int GetMultiplyModifier()
 }
 
 inline bool isCarry() {
-	return (g_dsp.r[DSP_REG_SR] & 0x01) ? true : false;
+	return (g_dsp.r[DSP_REG_SR] & SR_CARRY) ? true : false;
 }
 inline bool isSign() {
-	return ((g_dsp.r[DSP_REG_SR] & 0x02) != (g_dsp.r[DSP_REG_SR] & 0x08));
+	return ((g_dsp.r[DSP_REG_SR] & SR_2) != (g_dsp.r[DSP_REG_SR] & SR_SIGN));
 }
-
 inline bool isZero() {
-	return (g_dsp.r[DSP_REG_SR] & 0x04) ? true : false;
+	return (g_dsp.r[DSP_REG_SR] & SR_ARITH_ZERO) ? true : false;
 }
-
-
 
 //see gdsp_registers.h for flags
 bool CheckCondition(u8 _Condition)
 {
-	bool taken = false;
 	switch (_Condition & 0xf)
 	{
 	case 0x0: //NS - NOT SIGN
-		if (! isSign())
-			taken = true;
-		break;
-		
+		return !isSign();
 	case 0x1: // S - SIGN
-		if (isSign())
-			taken = true;
-		break;
- 
+		return isSign();
 	case 0x2: // G - GREATER
-		if (! isSign() && !isZero())
-			taken = true;
-		break;
-
+		return !isSign() && !isZero();
 	case 0x3: // LE - LESS EQUAL
-		if (isSign() || isZero())
-			taken = true;
-		break;
-
+		return isSign() || isZero();
 	case 0x4: // NZ - NOT ZERO
-
-		if (!isZero())
-			taken = true;
-		break;
-
+		return !isZero();
 	case 0x5: // Z - ZERO 
-
-		if (isZero())
-			taken = true;
-		break;
-
+		return isZero();
 	case 0x6: // L - LESS
 		// Should be that once we set 0x01
-		if (!isCarry())
+		return !isCarry();
 			//		if (isSign())
-			taken = true;
-		break;
-
 	case 0x7: // GE - GREATER EQUAL
 		// Should be that once we set 0x01
-		if (isCarry())
+		return isCarry();
 			//		if (! isSign() || isZero())
-			taken = true;
-		break;
-
 	case 0xc: // LNZ  - LOGIC NOT ZERO
-
-		if (!(g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO))
-			taken = true;
-		break;
-
+		return !(g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO);
 	case 0xd: // LZ - LOGIC ZERO
+		return (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO) != 0;
 
-		if (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO)
-			taken = true;
-		break;
-
-	case 0xf: // Empty
-		taken = true;
-		break;
-
+	case 0xf: // Empty - always true.
+		return true;
 	default:
 		ERROR_LOG(DSPLLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
-		break;
+		return false;
 	}
-
-	return taken;
 }
 
 }  // namespace

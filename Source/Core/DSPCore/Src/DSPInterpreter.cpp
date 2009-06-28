@@ -71,8 +71,6 @@ u16 ReadCR()
 	return g_dsp.cr;
 }
 
-
-
 void HandleLoop()
 {
 	// Handle looping hardware. 
@@ -85,6 +83,7 @@ void HandleLoop()
 		// This does not always work correctly!
 		// The loop end tends to point to the second part of 
 		// two-byte instructions!
+		// 0179 1104 019f bloopi      #0x04, 0x019f  in zelda, for example
 		if (g_dsp.pc == (rLoopAddress + 1))
 		{
 			rLoopCounter--;
@@ -150,23 +149,54 @@ void Run()
 	gdsp_running = false;
 }
 
-// Used by non-thread mode.
-void RunCycles(int cycles)
+// This one has basic idle skipping, and checks breakpoints.
+int RunCyclesDebug(int cycles)
+{
+	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
+	for (int i = 0; i < 8; i++)
+	{
+		if (g_dsp.cr & CR_HALT)
+			return 0; 
+		Step();
+		cycles--;
+	}
+
+	while (cycles > 0)
+	{
+		if (g_dsp.cr & CR_HALT) {
+			return 0;
+		}
+		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		{
+			DSPCore_SetState(DSPCORE_STEPPING);
+			return cycles;
+		}
+		DSPCore_CheckExternalInterrupt();
+		Step();
+		cycles--;
+
+		// Idle skipping.
+		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+			return 0;
+	}
+}
+
+// Used by non-thread mode. Meant to be efficient.
+int RunCycles(int cycles)
 {
 	if (cycles < 18)
 	{
 		for (int i = 0; i < cycles; i++)
 		{
 			if (g_dsp.cr & CR_HALT)
-				return;
+				return 0;
 			if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-				return;
+				return 0;
 			Step();
 			cycles--;
 		}
-		return;
+		return cycles;
 	}
-
 
 	DSPCore_CheckExternalInterrupt();
 
@@ -174,7 +204,7 @@ void RunCycles(int cycles)
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
-			return;
+			return 0; 
 		Step();
 		cycles--;
 	}
@@ -183,9 +213,9 @@ void RunCycles(int cycles)
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
-			return;
+			return 0;
 		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-			return;
+			return 0;
 		Step();
 		cycles--;
 	}
@@ -199,6 +229,8 @@ void RunCycles(int cycles)
 		// We don't bother directly supporting pause - if the main emu pauses,
 		// it just won't call this function anymore.
 	}
+
+	return cycles;
 }
 
 void Stop()

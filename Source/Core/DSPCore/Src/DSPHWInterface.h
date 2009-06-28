@@ -30,26 +30,6 @@
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
 
-#define DSP_DSMAH   0xce
-#define DSP_DSMAL   0xcf
-#define DSP_DSCR    0xc9
-#define DSP_DSPA    0xcd
-#define DSP_DSBL    0xcb
-#define DSP_ACSAH   0xd4
-#define DSP_ACSAL   0xd5
-#define DSP_ACEAH   0xd6
-#define DSP_ACEAL   0xd7
-#define DSP_ACCAH   0xd8
-#define DSP_ACCAL   0xd9
-
-#define DSP_COEF_A1_0   0xa0
-#define DSP_FORMAT      0xd1
-#define DSP_PRED_SCALE  0xda
-#define DSP_YN1         0xdb
-#define DSP_YN2         0xdc
-#define DSP_ARAM        0xdd
-#define DSP_GAIN        0xde
-
 extern u16 gdsp_ifx_regs[256];
 
 u32  gdsp_mbox_peek(u8 mbx);

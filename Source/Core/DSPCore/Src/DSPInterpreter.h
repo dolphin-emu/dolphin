@@ -27,7 +27,13 @@ namespace DSPInterpreter {
 
 void Step();
 void Run();
-void RunCycles(int cycles);
+
+// If these simply return the same number of cycles as was passed into them,
+// chances are that the DSP is halted.
+// The difference between them is that the debug one obeys breakpoints.
+int RunCycles(int cycles);
+int RunCyclesDebug(int cycles);
+
 void Stop();
 
 void WriteCR(u16 val);

@@ -11,7 +11,6 @@ BIG Questions:
  - Why is a PB-Transfer from RAM to DMEM 0xC0 shorts long but DMEM to RAM just 0x80
 
 DSP functionality to test:
- - CR
  - Interrupts (7)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
@@ -354,8 +353,8 @@ void 0067_CopyCommand(_destAddr($AR0), _loopCount($AC0.M))
 	
 	// 0072 02df      ret         
 }
- /*
-	
+
+/*
 	0073 029f 0043 jmp         0x0043
 	0075 029f 0043 jmp         0x0043
 	0077 029f 0095 jmp         0x0095
@@ -1752,7 +1751,7 @@ void 0561_SetupAcceleratorForMysteryAccess(ARAMAddress(ACC0), DestBuffer(AC1.M),
 	0569 2ed7      srs         @ACEAL, $AC0.M
 	056a 1fda      mrr         $AC0.M, $AX0.H
 	056b 1f98      mrr         $AC0.L, $AX0.L
-	// Multiply "current" address by 2 since it's in nibbles? (love these negative shifts :/)
+	// Divide "current" address by 2.
 	056c 147f      lsr         $ACC0, #-1
 	056d 2ed8      srs         @ACCAH, $AC0.M  // Current address
 	056e 2cd9      srs         @ACCAL, $AC0.L
@@ -1844,8 +1843,7 @@ void 05ad_SetupAccelerator(_acceleratorH(AC0.M), _accleratorL(AC0.L), _format(AC
 	// 05b7 02df      ret
 }	 
  
-void 05b8_NewMail()
- {
+void 05b8_NewMail() {
 	# 05b8 1205      sbclr       #0x05
 	# 05b9 8e00      set16       
 	
@@ -1861,7 +1859,7 @@ void 05b8_NewMail()
 	*/
 	
 	*0x03fd = AC0.H
-	*0x03fF = AC0.L
+	*0x03ff = AC0.L
 	ACC0 >>= 16
 	*0x03fe = AC0.L
 	*0x03fa = AX0.H
@@ -1871,7 +1869,7 @@ void 05b8_NewMail()
 	// 05c8 029c 06b9 jlnz        0x06b9
 	if (@CMBH & 0x8000 > 0)
 	{
-	!MISSING!
+		!MISSING!
 	}
 	
 	// 05ca 00da ffff lr          $AX0.H, @CMBL
@@ -2000,8 +1998,8 @@ void 0603_Unk(_returnAddr($AR0))
 }	 
  
  
- 0616 0021      halt        
- 0617 0021      halt        
+0616 0021      halt        
+0617 0021      halt        
  
 void 0618_Unk() {
 	0618 009a 0002 lri         $AX0.H, #0x0002
@@ -3124,6 +3122,7 @@ void Decoder0x08() {
 	09a7 2605      lrs         $AC0.M, @0x0005
 	09a8 b100      tst         $ACC0
 	09a9 0295 09be jz          0x09be
+	
 	09ab 8100      clr         $ACC0
 	09ac 2e05      srs         @0x0005, $AC0.M
 	09ad 2281      lrs         $AX0.H, @0xff81
@@ -3162,6 +3161,7 @@ void Decoder0x08() {
 	09d4 0a01      lris        $AX0.H, #0x01
 	09d5 00fa 0405 sr          @0x0405, $AX0.H
 	09d7 029f 09ab jmp         0x09ab
+	
 	09d9 1f5f      mrr         $AX0.H, $AC1.M
 	09da 02bf 0a0a call        0x0a0a
 	09dc 00fa 0362 sr          @0x0362, $AX0.H
@@ -3174,7 +3174,7 @@ void Decoder0x08() {
 	09e5 5c00      sub         $ACC0, $AC1.L
 	09e6 b100      tst         $ACC0
 	09e7 0275      ifz         
-	09e8 1a3a      srr         @$AR1, $AX0.H
+		09e8 1a3a      srr         @$AR1, $AX0.H
 	09e9 2e3a      srs         @0x003a, $AC0.M
 	09ea 2c3b      srs         @0x003b, $AC0.L
 	09eb 2638      lrs         $AC0.M, @0x0038
@@ -3263,28 +3263,28 @@ void Decoder_0x10() {
 	0a2e 0295 0a43 jz          0x0a43
 	if (*0x405) {
 
-	 retry_0a30:
-		 0a30 8100      clr         $ACC0
-		 0a31 2e05      srs         @0x0005, $AC0.M
-		 0a32 2281      lrs         $AX0.H, @0xff81
-		 0a33 8600      tstaxh      $AX0.H
-		 0a34 0294 0a3d jnz         0x0a3d
-		 if (!*401) {
-			 0a36 8100      clr         $ACC0
-			 0a37 005f      loop        $AC1.M
-			 0a38 1b7e      srri        @$AR3, $AC0.M
-			 0a39 7400      incm        $AC0.M
-			 0a3a 2e01      srs         @0x0001, $AC0.M
-			 0a3b 029f 0a78 jmp         0x0a78
-		 } else {
-			 // Copy [88,89] to [34,35]
-			 0a3d 2688      lrs         $AC0.M, @0xff88
-			 0a3e 2489      lrs         $AC0.L, @0xff89
-			 0a3f 2e34      srs         @0x0034, $AC0.M
-			 0a40 2c35      srs         @0x0035, $AC0.L
-			 0a41 02bf 0a7f call        0x0a7f
-			 0a7f_UpdateSampleCounters10()
-	 }
+	retry_0a30:
+		0a30 8100      clr         $ACC0
+		0a31 2e05      srs         @0x0005, $AC0.M
+		0a32 2281      lrs         $AX0.H, @0xff81
+		0a33 8600      tstaxh      $AX0.H
+		0a34 0294 0a3d jnz         0x0a3d
+		if (!*401) {
+			0a36 8100      clr         $ACC0
+			0a37 005f      loop        $AC1.M
+			0a38 1b7e      srri        @$AR3, $AC0.M
+			0a39 7400      incm        $AC0.M
+			0a3a 2e01      srs         @0x0001, $AC0.M
+			0a3b 029f 0a78 jmp         0x0a78
+		} else {
+			// Copy [88,89] to [34,35]
+			0a3d 2688      lrs         $AC0.M, @0xff88
+			0a3e 2489      lrs         $AC0.L, @0xff89
+			0a3f 2e34      srs         @0x0034, $AC0.M
+			0a40 2c35      srs         @0x0035, $AC0.L
+			0a41 02bf 0a7f call        0x0a7f
+			0a7f_UpdateSampleCounters10()
+		}
 	}
 	
 	0a43:
