@@ -622,15 +622,34 @@ EState GetState()
 	return CORE_UNINITIALIZED;
 }
  
-// Save or recreate the emulation state
-void SaveState() {
-    State_Save(0);
-}
- 
-void LoadState() {
-    State_Load(0);
+static inline std::string GenerateScreenshotName()
+{
+	int index = 1;
+	std::string tempname, name;
+	tempname = FULL_SCREENSHOTS_DIR + GetStartupParameter().GetUniqueID();
+
+	name = StringFromFormat("%s-%d.bmp", tempname.c_str(), index);
+
+	while(File::Exists(name.c_str()))
+		name = StringFromFormat("%s-%d.bmp", tempname.c_str(), ++index);
+
+	return name;
 }
 
+void ScreenShot(const std::string& name)
+{
+	bool bPaused = (GetState() == CORE_PAUSE);
+
+	SetState(CORE_PAUSE);
+	CPluginManager::GetInstance().GetVideo()->Video_Screenshot(name.c_str());
+	if(!bPaused)
+		SetState(CORE_RUN);
+}
+
+void ScreenShot()
+{
+	ScreenShot(GenerateScreenshotName());
+}
  
 // --- Callbacks for plugins / engine ---
  
@@ -849,28 +868,38 @@ const char *Callback_ISOName()
           return "";
 }
 
-
 // Called from ANY thread!
+// The hotkey function
 void Callback_KeyPress(int key, bool shift, bool control)
 {
-	// 0x70 == VK_F1
-	if (key >= 0x70 && key < 0x79) {
+	// F1 - F8: Save states
+	if (key >= 0x70 && key < 0x78) {
 		// F-key
 		int slot_number = key - 0x70 + 1;
-		if (shift) {
+		if (shift)
 			State_Save(slot_number);
-		} else {
+		else
 			State_Load(slot_number);
-		}
 	}
+
+	// 0x78 == VK_F9
+	if (key == 0x78)
+		ScreenShot();
 
 	// 0x7a == VK_F11
 	if (key == 0x7a)
 		State_LoadLastSaved();
 
 	// 0x7a == VK_F12
-	if (key == 0x7b)
-		State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
+	if (key == 0x7b) 
+	{
+		// TODO: Move to memory buffer, implement last state before loading
+		if(shift)
+			State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
+		/*else
+			State_LoadAs(FULL_STATESAVES_DIR "tempState.sav");
+		*/
+	}
 }
  
 // Callback_WiimoteLog

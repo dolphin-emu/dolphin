@@ -49,8 +49,8 @@ static unsigned char __LZO_MMODEL out [ OUT_LEN ];
 static HEAP_ALLOC(wrkmem,LZO1X_1_MEM_COMPRESS);
 
 
-static int ev_Save;
-static int ev_Load;
+static int ev_Save, ev_BufferSave;
+static int ev_Load, ev_BufferLoad;
 
 static std::string cur_filename, lastFilename;
 

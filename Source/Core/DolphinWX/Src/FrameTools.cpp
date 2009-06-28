@@ -144,7 +144,7 @@ void CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDOSTATE,     _T("Last Overwritten State\tF12"));
 	loadMenu->AppendSeparator();
 
-	for (int i = 1; i < 10; i++) {
+	for (int i = 1; i <= 8; i++) {
 		loadMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i\tF%i"), i, i));
 		saveMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i\tShift+F%i"), i, i));
 	}
@@ -516,33 +516,11 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 	m_GameListCtrl->BrowseForDirectory();
 }
 
-
 // Create screenshot
-static inline void GenerateScreenshotName(std::string& name)
-{
-	int index = 1;
-	std::string tempname;
-	tempname = FULL_SCREENSHOTS_DIR;
-	tempname += Core::GetStartupParameter().GetUniqueID();
-
-	name = StringFromFormat("%s-%d.bmp", tempname.c_str(), index);
-
-	while(File::Exists(name.c_str()))
-		name = StringFromFormat("%s-%d.bmp", tempname.c_str(), ++index);
-}
-
 void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 {
-	std::string name;
-	GenerateScreenshotName(name);
-	bool bPaused = (Core::GetState() == Core::CORE_PAUSE);
-
-    Core::SetState(Core::CORE_PAUSE);
-    CPluginManager::GetInstance().GetVideo()->Video_Screenshot(name.c_str());
-	if(!bPaused)
-		Core::SetState(Core::CORE_RUN);
+	Core::ScreenShot();
 }
-
 
 // Stop the emulation
 void CFrame::DoStop()
@@ -582,7 +560,6 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	DoStop();
 }
-
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {

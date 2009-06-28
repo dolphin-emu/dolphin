@@ -49,9 +49,8 @@ namespace Core
     void SetState(EState _State);
     EState GetState();
 
-    // Save/Load state
-    void SaveState();
-    void LoadState();
+	void ScreenShot(const std::string& name);
+	void ScreenShot();
     
     // Get core parameters kill use SConfig instead
     const SCoreStartupParameter& GetStartupParameter();
