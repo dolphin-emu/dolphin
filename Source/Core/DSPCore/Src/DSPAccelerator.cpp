@@ -18,8 +18,8 @@
 #include "Common.h"
 #include "DSPCore.h"
 #include "DSPHost.h"
-#include "gdsp_interface.h"
-#include "gdsp_interpreter.h"
+#include "DSPHWInterface.h"
+#include "DSPInterpreter.h"
 
 // The hardware adpcm decoder :)
 s16 ADPCM_Step(u32& _rSamplePos)
@@ -106,7 +106,12 @@ u16 dsp_read_accelerator()
 
 	u16 val;
 
-	// lets the "hardware" decode
+	// let's do the "hardware" decode
+	// DSP_FORMAT is interesting - the Zelda ucode seems to indicate that the bottom
+	// two bits specify the "read size" and the address multiplier.
+	// The bits above that may be things like sign extention and do/do not use ADPCM.
+	// It also remains to be figured out whether there's a difference between the usual
+	// accelerator "read address" and 0xd3.
 	switch (gdsp_ifx_regs[DSP_FORMAT])
 	{
 	    case 0x00:  // ADPCM audio
@@ -129,9 +134,9 @@ u16 dsp_read_accelerator()
 		    break;
 	}
 
-	// TODO: Take ifx GAIN into account.
+	// TODO: Take GAIN into account, whatever it is.
 
-	// check for loop
+	// Check for loop.
 	if (Address >= EndAddress)
 	{
 		// Set address back to start address.

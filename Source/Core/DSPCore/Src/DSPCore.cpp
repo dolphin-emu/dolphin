@@ -28,8 +28,7 @@
 #include "DSPAnalyzer.h"
 #include "MemoryUtil.h"
 
-#include "gdsp_interface.h"
-#include "gdsp_registers.h"
+#include "DSPHWInterface.h"
 #include "DSPIntUtil.h"
 
 SDSP g_dsp;

@@ -24,12 +24,7 @@
 
 #include "Common.h"
 
-#include "gdsp_registers.h"
-
 namespace DSPInterpreter {
-
-// SR flag defines.
-#define SR_CMP_MASK     0x3f   // Shouldn't this include 0x40?
 
 bool CheckCondition(u8 _Condition);
 

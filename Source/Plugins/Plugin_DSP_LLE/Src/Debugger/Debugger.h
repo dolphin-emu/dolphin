@@ -35,7 +35,7 @@
 #include <wx/statline.h>
 
 #include "disassemble.h"
-#include "gdsp_interpreter.h"
+#include "DSPInterpreter.h"
 #include "DSPMemoryMap.h"
 #include "../DSPDebugInterface.h"
 

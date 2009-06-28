@@ -31,9 +31,7 @@
 #include "DSPInterpreter.h"
 #include "DSPCore.h"
 #include "DSPMemoryMap.h"
-
-#include "gdsp_interpreter.h"
-#include "gdsp_registers.h"
+#include "DSPStacks.h"
 // #include "DSPIntExtOps.h"
 
 // ---------------------------------------------------------------------------------------

@@ -91,6 +91,7 @@ void Config::Load()
 }
 
 void Config::GameIniLoad() {
+	return;
 	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
 	if (! iniFile) 
 		return;

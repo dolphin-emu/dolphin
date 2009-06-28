@@ -414,6 +414,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\DSPIntCCUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPIntCCUtil.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\DSPIntExtOps.cpp"
 				>
 			</File>
@@ -495,6 +503,18 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPHWInterface.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPHWInterface.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPInterpreter.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DSPInterpreter.h"
 			>
 		</File>
@@ -515,43 +535,19 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPStacks.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPStacks.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DSPTables.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\DSPTables.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_condition_codes.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_condition_codes.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_interface.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_interface.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_interpreter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_interpreter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_registers.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_registers.h"
 			>
 		</File>
 		<File

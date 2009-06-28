@@ -19,10 +19,11 @@
 
 #include "DSPInterpreter.h"
 #include "DSPCore.h"
-
-#include "gdsp_condition_codes.h"
-#include "DSPIntUtil.h"
 #include "DSPMemoryMap.h"
+#include "DSPStacks.h"
+
+#include "DSPIntCCUtil.h"
+#include "DSPIntUtil.h"
 
 namespace DSPInterpreter {
 

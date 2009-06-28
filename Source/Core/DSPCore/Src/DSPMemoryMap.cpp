@@ -25,10 +25,9 @@
 
 #include <stdio.h>
 
-#include "gdsp_interpreter.h"
-#include "gdsp_interface.h"
-
+#include "DSPInterpreter.h"
 #include "DSPMemoryMap.h"
+#include "DSPHWInterface.h"
 #include "DSPCore.h"
 
 u16 dsp_imem_read(u16 addr)

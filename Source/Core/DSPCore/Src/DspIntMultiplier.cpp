@@ -22,9 +22,8 @@
 
 #include "DSPInterpreter.h"
 
-#include "gdsp_condition_codes.h"
+#include "DSPIntCCUtil.h"
 #include "DSPIntUtil.h"
-#include "gdsp_registers.h"
 
 namespace DSPInterpreter {
 

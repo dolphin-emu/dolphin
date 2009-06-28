@@ -26,7 +26,7 @@
 #include "DSPCodeUtil.h"
 #include "Tools.h"
 #include "disassemble.h"
-#include "gdsp_interpreter.h"
+#include "DSPInterpreter.h"
 
 bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {

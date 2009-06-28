@@ -18,8 +18,7 @@
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
 #include "DSPInterpreter.h"
-
-#include "gdsp_condition_codes.h"
+#include "DSPIntCCUtil.h"
 #include "DSPIntUtil.h"
 
 // Arithmetic and accumulator control.

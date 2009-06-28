@@ -25,8 +25,18 @@
 
 namespace DSPInterpreter {
 
+void Step();
+void Run();
+void RunCycles(int cycles);
+void Stop();
+
+void WriteCR(u16 val);
+u16  ReadCR();
+
+
 typedef void (*DSPInterpreterFunc)(const UDSPInstruction& opc);
 
+// All the opcode functions.
 void unknown(const UDSPInstruction& opc);
 void call(const UDSPInstruction& opc);
 void callr(const UDSPInstruction& opc);
@@ -143,11 +153,10 @@ void srbith(const UDSPInstruction& opc);
 // END OF FIXMEs
 
 // TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
- void tstaxl(const UDSPInstruction& opc);
+void tstaxl(const UDSPInstruction& opc);
 // The mysterious a100
 
 // END OF UNIMPLEMENTED
-
 
 // Helpers
 inline void tsta(int reg);

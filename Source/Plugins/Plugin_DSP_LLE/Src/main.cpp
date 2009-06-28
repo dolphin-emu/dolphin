@@ -21,8 +21,8 @@
 #include "Mixer.h"
 
 #include "Globals.h" // Local
-#include "gdsp_interpreter.h"
-#include "gdsp_interface.h"
+#include "DSPInterpreter.h"
+#include "DSPHWInterface.h"
 #include "disassemble.h"
 #include "DSPSymbols.h"
 #include "Config.h"

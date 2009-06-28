@@ -20,8 +20,7 @@
 
 // HELPER FUNCTIONS
 
-#include "gdsp_condition_codes.h"
-#include "gdsp_interpreter.h"
+#include "DSPIntCCUtil.h"
 #include "DSPCore.h"
 #include "DSPInterpreter.h"
 

@@ -1,6 +1,6 @@
 /*====================================================================
 
-   filename:     gdsp_memory.h
+   filename:     gdsp_registers.cpp
    project:      GCemu
    created:      2004-6-18
    mail:		  duddie@walla.com
@@ -23,27 +23,37 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_MEMORY_H
-#define _GDSP_MEMORY_H
-
 #include "Common.h"
-#include "DSPInterpreter.h"
+
 #include "DSPCore.h"
+// #include "DSPInterpreter.h"
+#include "DSPStacks.h"
 
-u16  dsp_imem_read(u16 addr);
-void dsp_dmem_write(u16 addr, u16 val);
-u16  dsp_dmem_read(u16 addr);
+// Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 
-inline u16 dsp_fetch_code()
+void dsp_reg_stack_push(u8 stack_reg)
 {
-	u16 opc = dsp_imem_read(g_dsp.pc);
-	g_dsp.pc++;
-	return opc;
+	g_dsp.reg_stack_ptr[stack_reg]++;
+	g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
+	g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
 }
 
-inline u16 dsp_peek_code()
+void dsp_reg_stack_pop(u8 stack_reg)
 {
-	return dsp_imem_read(g_dsp.pc);
+	g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
+	g_dsp.reg_stack_ptr[stack_reg]--;
+	g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
 }
 
-#endif
+void dsp_reg_store_stack(u8 stack_reg, u16 val)
+{
+	dsp_reg_stack_push(stack_reg);
+	g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
+}
+
+u16 dsp_reg_load_stack(u8 stack_reg)
+{
+	u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
+	dsp_reg_stack_pop(stack_reg);
+	return val;
+}

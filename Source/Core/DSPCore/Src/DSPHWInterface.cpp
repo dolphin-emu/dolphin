@@ -33,8 +33,8 @@
 #include "DSPTables.h"
 #include "DSPAnalyzer.h"
 #include "DSPAccelerator.h"
-#include "gdsp_interpreter.h"
-#include "gdsp_interface.h"
+#include "DSPInterpreter.h"
+#include "DSPHWInterface.h"
 
 void gdsp_dma();
 

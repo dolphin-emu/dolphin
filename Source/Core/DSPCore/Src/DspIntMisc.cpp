@@ -21,8 +21,6 @@
 #include "DSPInterpreter.h"
 
 #include "DSPCore.h"
-
-#include "gdsp_registers.h"
 #include "DSPIntUtil.h"
 
 namespace DSPInterpreter {
