@@ -6,6 +6,7 @@ files = [
     "assemble.cpp",
     "disassemble.cpp",
     "DSPAccelerator.cpp",
+	"DSPBreakpoints.cpp",
     "DSPIntCCUtil.cpp",
     "DSPIntExtOps.cpp",
     "DSPHWInterface.cpp",

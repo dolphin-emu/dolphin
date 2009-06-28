@@ -157,33 +157,59 @@ int RunCyclesDebug(int cycles)
 	{
 		if (g_dsp.cr & CR_HALT)
 			return 0; 
-		Step();
-		cycles--;
-	}
-
-	while (cycles > 0)
-	{
-		if (g_dsp.cr & CR_HALT) {
-			return 0;
-		}
 		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
 		{
 			DSPCore_SetState(DSPCORE_STEPPING);
 			return cycles;
 		}
-		DSPCore_CheckExternalInterrupt();
 		Step();
 		cycles--;
+		if (cycles < 0)
+			return 0;
+	}
 
+	DSPCore_CheckExternalInterrupt();
+	
+	// Now, let's run a few cycles with idle skipping.
+	for (int i = 0; i < 8; i++)
+	{
+		if (g_dsp.cr & CR_HALT)
+			return 0;
+		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		{
+			DSPCore_SetState(DSPCORE_STEPPING);
+			return cycles;
+		}
 		// Idle skipping.
 		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
 			return 0;
+
+		Step();
+		cycles--;
+		if (cycles < 0)
+			return 0;
 	}
+
+	// Finally, run the rest of the block without.
+	while (cycles > 0)
+	{
+		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		{
+			DSPCore_SetState(DSPCORE_STEPPING);
+			return cycles;
+		}
+		Step();
+		cycles--;
+	}
+
+	return cycles;
 }
 
 // Used by non-thread mode. Meant to be efficient.
 int RunCycles(int cycles)
 {
+	DSPCore_CheckExternalInterrupt();
+
 	if (cycles < 18)
 	{
 		for (int i = 0; i < cycles; i++)

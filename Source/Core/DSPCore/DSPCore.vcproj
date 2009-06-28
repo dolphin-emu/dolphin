@@ -483,6 +483,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPBreakpoints.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPBreakpoints.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DSPCodeUtil.cpp"
 			>
 		</File>

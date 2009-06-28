@@ -50,8 +50,8 @@ DSPDebuggerLLE::~DSPDebuggerLLE()
 void DSPDebuggerLLE::CreateGUIControls()
 {
 	// Basic settings
-	SetSize(700, 500);
-	this->SetSizeHints(700, 500);
+	SetSize(700, 800);
+	this->SetSizeHints(700, 800);
 	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 
 	m_Toolbar = CreateToolBar(wxTB_NODIVIDER|wxTB_NOICONS|wxTB_HORZ_TEXT|wxTB_DOCKABLE, ID_TOOLBAR); 

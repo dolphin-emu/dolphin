@@ -21,7 +21,7 @@
 
 wxString CRegTable::GetValue(int row, int col)
 {
-	if (row < 36) // 32 "normal" regs
+	if (row < 32) // 32 "normal" regs
 	{
 		switch (col)
 		{
@@ -46,7 +46,7 @@ void CRegTable::UpdateCachedRegs()
 
 	m_CachedCounter = g_dsp.step_counter;
 
-	for (int i = 0; i < 36; ++i)
+	for (int i = 0; i < 32; ++i)
 	{
 		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != g_dsp.r[i]);
 		m_CachedRegs[i] = g_dsp.r[i];

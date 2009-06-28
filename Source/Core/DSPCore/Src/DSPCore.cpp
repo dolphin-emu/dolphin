@@ -34,7 +34,7 @@
 #include "DSPIntUtil.h"
 
 SDSP g_dsp;
-BreakPoints dsp_breakpoints;
+DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_RUNNING;
 Common::Event step_event;
 
@@ -200,11 +200,9 @@ int DSPCore_RunCycles(int cycles)
 		switch (core_state)
 		{
 		case DSPCORE_RUNNING:
-#if 0   // Set to 1 to enable stepping
-			// Enable breakpoints
+#if 1   // Set to 0 to disable breakpoints, for a speed boost.
 			cycles = DSPInterpreter::RunCyclesDebug(cycles);
 #else
-			//1: enter a fast runloop
 			cycles = DSPInterpreter::RunCycles(cycles);
 #endif
 			break;

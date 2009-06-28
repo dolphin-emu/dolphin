@@ -865,7 +865,7 @@ void 0233_Increase_32BitAddress_InMem(_MemAddr(AR0), _Bytes(AX0.L))
 void 0239_WaitUntilLastFrameGotSynced()
 {
 	// 0239 8100      clr         $ACC0
-	// 23a 8900      clr         $ACC1
+	// 023a 8900      clr         $ACC1
 	// 023b 00df 0354 lr          $AC1.M, @0x0354
 	// 023d 00de 034e lr          $AC0.M, @0x034e
 	// 023f 8200      cmp         

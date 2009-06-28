@@ -23,8 +23,6 @@ namespace DSPAnalyzer {
 
 #define ISPACE 65536
 
-
-
 // Useful things to detect:
 // * Loop endpoints - so that we can avoid checking for loops every cycle.
 

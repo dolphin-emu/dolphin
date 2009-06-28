@@ -26,7 +26,7 @@
 #ifndef _DSPCORE_H
 #define _DSPCORE_H
 
-#include "BreakPoints.h"
+#include "DSPBreakpoints.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
@@ -201,7 +201,7 @@ struct SDSP
 };
 
 extern SDSP g_dsp;
-extern BreakPoints dsp_breakpoints;
+extern DSPBreakpoints dsp_breakpoints;
 
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename);
 void DSPCore_Reset();

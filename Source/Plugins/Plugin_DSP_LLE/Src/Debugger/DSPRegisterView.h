@@ -38,7 +38,7 @@ public:
 	}
 
 	int GetNumberCols(void) {return 2;}
-	int GetNumberRows(void) {return 36;}
+	int GetNumberRows(void) {return 32;}
 	bool IsEmptyCell(int row, int col) {return false;}
 	wxString GetValue(int row, int col);
 	void SetValue(int row, int col, const wxString &);
