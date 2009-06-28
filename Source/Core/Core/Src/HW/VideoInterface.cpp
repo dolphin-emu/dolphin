@@ -997,7 +997,8 @@ u8* GetXFBPointerTop()
 
 u8* GetXFBPointerBottom()
 {
-	if (m_XFBInfoBottom.POFF)
+	// POFF for XFB bottom is connected to POFF for XFB top
+	if (m_XFBInfoTop.POFF)
 		return Memory::GetPointer(m_XFBInfoBottom.FBB << 5);
 	else
 		return Memory::GetPointer(m_XFBInfoBottom.FBB);
