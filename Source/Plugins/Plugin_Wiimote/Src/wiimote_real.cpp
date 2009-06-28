@@ -147,7 +147,7 @@ void ReadData()
     {
 		//INFO_LOG(CONSOLE, "Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
-		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
+		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, m_EventWriteQueue.size());
 		m_EventWriteQueue.pop();
 		
 #ifdef _WIN32
@@ -349,12 +349,6 @@ int Initialize()
 	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
 	INFO_LOG(CONSOLE, "Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
-		// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
-	// The Functionality should REALLY be changed
-	#ifndef _WIN32
-		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		INFO_LOG(CONSOLE, "Connected: %i\n", Connect);
-	#endif
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
@@ -367,6 +361,12 @@ int Initialize()
 		// Set flags
 		//wiiuse_set_flags(g_WiiMotesFromWiiUse[i], NULL, WIIUSE_SMOOTHING);
 	}
+	// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
+	// The Functionality should REALLY be changed
+	#ifndef _WIN32
+		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+		INFO_LOG(CONSOLE, "Connected: %i\n", Connect);
+	#endif
 
 	// If we are connecting from the config window without a game running we flash the lights
 	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(true);
@@ -475,7 +475,8 @@ void Update()
 		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
 		g_ThreadGoing = true;
 		if(g_Config.bUseRealWiimote && !g_RunTemporary)
-			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
+			for (int i = 0; i < g_NumberOfWiiMotes; i++) 
+				g_WiiMotes[i]->ReadData();
 		else
 			ReadWiimote();
 		g_ThreadGoing = false;

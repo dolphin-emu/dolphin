@@ -317,7 +317,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 			wiiuse_disconnected(wm);
 			return 0;
 		}
-		memcpy(wm->event_buf, &wm->event_buf[1], sizeof(wm->event_buf) - 1);
+		memcpy(wm->event_buf, &wm->event_buf[1], r - 1);
 		return 1;
 	}
 	return 0;
