@@ -30,6 +30,7 @@
 
 #include "WaveFile.h"
 
+/*
 class CResampler
 {
 public:
@@ -85,6 +86,7 @@ public:
     int m_queueSize;
     int m_mode;
 };
+*/
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	: IUCode(_rMailHandler)
@@ -527,39 +529,27 @@ void CUCode_Zelda::ExecuteList()
 		// DsetupTable ... zelda ww jumps to 0x0095
 	    case 0x01:
 	    {
-			u16 *TempPtr;
-			int i;
-		//	num_param_blocks = ExtraData;
-		//	u32 tmp[4];
-		    //param_blocks_ptr = tmp[0] = Read32();
-		   // tmp[1] = Read32();
-		   // tmp[2] = Read32();
-		    //param_blocks2_ptr = tmp[3] = Read32();
-
 			m_NumVoices = ExtraData;
-
 			m_VoicePBsAddr = Read32() & 0x7FFFFFFF;
 			m_UnkTableAddr = Read32() & 0x7FFFFFFF;
 			m_AFCCoefTableAddr = Read32() & 0x7FFFFFFF;
-			m_ReverbPBsAddr = Read32() & 0x7FFFFFFF; // WARNING: reverb PBs are very different from voice PBs!
+			m_ReverbPBsAddr = Read32() & 0x7FFFFFFF;  // WARNING: reverb PBs are very different from voice PBs!
 
 			// Read AFC coef table
-			TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
-			for (i = 0; i < 32; i++)
+			u16 *TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
+			for (int i = 0; i < 32; i++)
 				m_AFCCoefTable[i] = Common::swap16(TempPtr[i]);
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
 			DEBUG_LOG(DSPHLE, "Num voice param blocks:             %i", m_NumVoices);
 			DEBUG_LOG(DSPHLE, "Voice param blocks address:         0x%08x", m_VoicePBsAddr);
 
-			// This points to some strange data table.
+			// This points to some strange data table. Don't know yet what it's for. Reverb coefs?
 		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):       0x%08x", m_UnkTableAddr);
 
 			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
 			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
-			// which can play Zelda audio.
-			// There's also a lot more table-looking data immediately after - maybe alternative
-			// tables? I wonder where the parameter blocks are?
+			// which can play Zelda audio. So, these should definitely be used when decoding AFC.
 		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500):      0x%08x", m_AFCCoefTableAddr);
 			DEBUG_LOG(DSPHLE, "Reverb param blocks address:        0x%08x", m_ReverbPBsAddr);
 		}
@@ -568,11 +558,6 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-			//u32 tmp[2];
-			//tmp[0] = Read32();
-			//tmp[1] = Read32();
-
-			// We're ready to mix
 			//	soundStream->GetMixer()->SetHLEReady(true);
 			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			//soundStream->Update(); //do it in this thread to avoid sync problems
@@ -592,14 +577,12 @@ void CUCode_Zelda::ExecuteList()
 			// but not at, the ADMA read addresses.
 		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
 		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
-		    //DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]); // wtf?
 
 			// Let's log the parameter blocks.
 			// Copy and byteswap the parameter blocks.
 
-			// For some reason, in Z:WW we get no param blocks until in-game,
-			// while Zelda Four Swords happily sets param blocks as soon as the title screen comes up.
-			// Looks like it's playing midi music.
+			// Both Z:TP, Z:WW and Zelda Four Swords happily sets param blocks as soon as the title screen comes up.
+			// Although in Z:WW, it won't set any param blocks until in-game if the item hack is on.
 #if 0
 			DEBUG_LOG(DSPHLE, "Param block at %08x:", param_blocks_ptr);
 			CopyPBsFromRAM();
@@ -665,8 +648,7 @@ void CUCode_Zelda::ExecuteList()
 		    // DsetDolbyDelay ... zelda ww jumps to 0x00b2
 	    case 0x0d:
 	    {
-		    u32 tmp[1];
-		    tmp[0] = Read32();
+		    u32 tmp = Read32();
 		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
 		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960):      0x%08x", tmp);
 	    }
@@ -677,13 +659,12 @@ void CUCode_Zelda::ExecuteList()
 	    case 0x0e:
 			{
 				m_DMABaseAddr = Read32() & 0x7FFFFFFF;
-				
 				DEBUG_LOG(DSPHLE, "DsetDMABaseAddr");
 				DEBUG_LOG(DSPHLE, "DMA base address:                   0x%08x", m_DMABaseAddr);
 			}
 		    break;
 
-		    // default ... zelda ww jumps to 0x0043
+		// default ... zelda ww jumps to 0x0043
 	    default:
 		    PanicAlert("Zelda UCode - unknown cmd: %x (size %i)", Command, m_numSteps);
 		    break;
@@ -693,61 +674,6 @@ void CUCode_Zelda::ExecuteList()
 	m_rMailHandler.PushMail(DSP_SYNC);
 	g_dspInitialize.pGenerateDSPInterrupt();
 	m_rMailHandler.PushMail(0xF3550000 | Sync);
-}
-
-#if 0
-void CUCode_Zelda::CopyPBsFromRAM()
-{
-    for (u32 i = 0; i < m_NumPBs; i++)
-    {
-        u32 addr = m_PBAddress + i * sizeof(ZPB);
-        const u16 *src_ptr = (u16 *)g_dspInitialize.pGetMemoryPointer(addr);
-        u16 *dst_ptr = (u16 *)&m_PBs[i];
-
-        for (size_t p = 0; p < 0xC0; p++)
-        {
-            dst_ptr[p] = Common::swap16(src_ptr[p]);
-        }
-    }
-}
-
-void CUCode_Zelda::CopyPBsToRAM()
-{
-    for (u32 i = 0; i < m_NumPBs; i++)
-    {
-        u32 addr = m_PBAddress + i * sizeof(ZPB);
-        const u16 *src_ptr = (u16 *)&m_PBs[i];
-        u16 *dst_ptr = (u16 *)g_dspInitialize.pGetMemoryPointer(addr);
-        for (size_t p = 0; p < 0x80; p++)               // we write the first 0x80 shorts back only
-        {
-            dst_ptr[p] = Common::swap16(src_ptr[p]);
-        }
-    }
-}
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// --- Debug Helper 
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CUCode_Zelda::DumpPB(const ZPB& _rPB)
-{
-    u16* pTmp = (u16*)&_rPB;
-    FILE* pF = fopen("d:\\dump\\PB.txt", "a");
-    if (pF)
-    {
-		if (_rPB.addr_high)
-		{
-			for (int i = 0; i < 0xc0; i += 4)
-			{
-				fprintf(pF, "[0x%02x] %04x %04x %04x %04x\n", i, pTmp[i], pTmp[i + 1], pTmp[i + 2], pTmp[i + 3]);
-			}
-			fprintf(pF, "\n");
-			fclose(pF);
-		}
-    }
 }
 
 // size is in stereo samples.

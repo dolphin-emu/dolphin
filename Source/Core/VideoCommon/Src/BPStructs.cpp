@@ -125,42 +125,28 @@ void BPWritten(const Bypass& bp)
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 				// Set LogicOp Blending Mode
 				if (bp.changes & 2)
-				{
-					SETSTAT(stats.logicOpMode, bpmem.blendmode.logicopenable != 0 ? bpmem.blendmode.logicmode : stats.logicOpMode);
 					SetLogicOpMode(bp);
-				}
 				// Set Dithering Mode
 				if (bp.changes & 4)
-				{
-					SETSTAT(stats.dither, bpmem.blendmode.dither);
 					SetDitherMode(bp);
-				}
 				// Set Blending Mode
 				if (bp.changes & 0xFE1)
-				{
-					SETSTAT(stats.srcFactor, bpmem.blendmode.srcfactor);
-					SETSTAT(stats.dstFactor, bpmem.blendmode.dstfactor);
 					SetBlendMode(bp);
-				}
 				// Set Color Mask
 				if (bp.changes & 0x18)
-				{
-					SETSTAT(stats.alphaUpdate, bpmem.blendmode.alphaupdate);
-					SETSTAT(stats.colorUpdate, bpmem.blendmode.colorupdate);
 					SetColorMask(bp);
-				}
 			}
 			break;
 		}
 	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-			SETSTAT(stats.dstAlphaEnable, bpmem.dstalpha.enable);
-			SETSTAT_UINT(stats.dstAlpha, bpmem.dstalpha.alpha);
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
 			break;
 		}
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
+	// Triggers an interrupt on the PPC side so that the game knows when the GPU has finished drawing.
+	// Tokens are similar.
 	case BPMEM_SETDRAWDONE: 
 		switch (bp.newvalue & 0xFF)
         {
@@ -272,7 +258,7 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_FOGBMAGNITUDE:
 	case BPMEM_FOGBEXPONENT:
 	case BPMEM_FOGPARAM3:
-		if(!GetConfig(CONFIG_DISABLEFOG))
+		if (!GetConfig(CONFIG_DISABLEFOG))
 			PixelShaderManager::SetFogParamChanged();
 		break;
 	case BPMEM_FOGCOLOR: // Fog Color
@@ -383,6 +369,7 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_UNKNOWN2:
 	case BPMEM_UNKNOWN3:
 	case BPMEM_UNKNOWN4:
+
 		break;
 		// ------------------------------------------------
 		// On Default, we try to look for other things

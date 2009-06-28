@@ -1327,18 +1327,6 @@ void Renderer::DrawDebugText()
 		p+=sprintf(p,"%s",text1.c_str());
     }
 
-	if (g_Config.bOverlayBlendStats)
-	{
-		p+=sprintf(p,"LogicOp Mode: %i\n", stats.logicOpMode);
-		p+=sprintf(p,"Source Factor: %i\n", stats.srcFactor);
-		p+=sprintf(p,"Destination Factor: %i\n", stats.dstFactor);
-		p+=sprintf(p,"Dithering: %s\n", stats.dither==1 ? "Enabled" : "Disabled");
-		p+=sprintf(p,"Color Update: %s\n", stats.colorUpdate==1 ? "Enabled" : "Disabled");
-		p+=sprintf(p,"Alpha Update: %s\n", stats.alphaUpdate==1 ? "Enabled" : "Disabled");
-		p+=sprintf(p,"Dst Alpha Enabled: %s\n", stats.dstAlphaEnable==1 ? "Enabled" : "Disabled");
-		p+=sprintf(p,"Dst Alpha: %08x\n", stats.dstAlpha);
-	}
-
 	if (g_Config.bOverlayProjStats)
 	{
 		p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");

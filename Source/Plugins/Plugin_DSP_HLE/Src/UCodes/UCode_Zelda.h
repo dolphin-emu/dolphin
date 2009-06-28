@@ -21,6 +21,10 @@
 #include "Common.h"
 #include "UCodes.h"
 
+// Obviously missing things that must be in here, somewhere among the "unknown":
+//   * Volume
+//   * L/R Pan
+//   * (probably) choice of resampling algorithm (point, linear, cubic)
 
 struct ZeldaVoicePB
 {
@@ -44,7 +48,7 @@ struct ZeldaVoicePB
 	u16 Unk3C[0x2A];				// 0x3C | unknown
 	u16 YN1;						// 0x66 | YN1
 	u16 YN2;						// 0x67 | YN2
-	u16 Unk68[0x18];				// 0x68 | unknwon
+	u16 Unk68[0x18];				// 0x68 | unknown
 
 	// Read-only part
 	u16 Format;						// 0x80 | audio format
@@ -57,45 +61,10 @@ struct ZeldaVoicePB
 	u16 Padding[0x30];				// 0x90 | padding
 };
 
-// Here's a piece of pure guesswork, looking at random supposedly-PBs
-// from Zelda Four Swords.
-
-// These are 0x180 bytes large.
-struct ZPB
-{
-    // R/W data =============
-    // AFC history (2 shorts) must be in here somewhere, plus lots of other state.
-    u16 unk0;
-    u16 unk1;
-    u16 unk2;
-    u16 unk3;
-    u16 unk4;
-    u16 unk5;
-    u16 unk6;
-
-    u16 unk7[0x2C];          // 0x033
-    u16 SampleData[0x4D];    // 0x4D = 9 * 8
-
-	// From here, "read only" data (0x80 to the end)
-	// 0x88, 0x89 could be volume
-    u16 type;                // 0x5, 0x9 = AFC. There are more types but we've only seen AFC so far.
-    u16 r_unknown1;
-
-    u16 r_unknown2[0x14 / 2];
-
-	// Pointer to sample data in ARAM.
-	// These are the only things in the param blocks that look a lot like pointers.
-    u16 addr_high;  // at 0x18 = 0xC * 2
-    u16 addr_low;
-
-    u16 r_unknown3[(0x80 - 0x1C) / 2];
-};
-
 namespace {
-    // If this miscompiles, adjust the size of ZPB to 0x180 bytes (0xc0 shorts).
-    CompileTimeAssert<sizeof(ZPB) == 0x180> ensure_zpb_size_correct;
+    // If this miscompiles, adjust the size of ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
+    CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
 }  // namespace
-
 
 class CUCode_Zelda : public IUCode
 {
@@ -107,8 +76,6 @@ public:
 	void Update(int cycles);
 	void MixAdd(short* buffer, int size);
 
-    void UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size);
-
     void CopyPBsFromRAM();
     void CopyPBsToRAM();
 
@@ -118,7 +85,6 @@ public:
     int *temprbuffer;
 
     // simple dump ...
-    void DumpPB(const ZPB& _rPB);
     int DumpAFC(u8* pIn, const int size, const int srate);
 
 	u32 Read32()
