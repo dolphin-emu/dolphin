@@ -90,8 +90,8 @@ void Config::Load()
 	SetEnableAlert(bTmp);
 }
 
-void Config::GameIniLoad() {
-	return;
+void Config::GameIniLoad()
+{
 	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
 	if (! iniFile) 
 		return;
@@ -179,4 +179,3 @@ void Config::Save()
 
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }
-
