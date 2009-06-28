@@ -286,7 +286,8 @@ EVT_MENU(IDM_LISTUSA,	 CFrame::GameListChanged)
 EVT_MENU(IDM_PURGECACHE, CFrame::GameListChanged)
 
 EVT_MENU(IDM_LOADLASTSTATE, CFrame::OnLoadLastState)
-EVT_MENU(IDM_UNDOSTATE,     CFrame::OnUndoState)
+EVT_MENU(IDM_UNDOLOADSTATE,     CFrame::OnUndoLoadState)
+EVT_MENU(IDM_UNDOSAVESTATE,     CFrame::OnUndoSaveState)
 EVT_MENU(IDM_LOADSTATEFILE, CFrame::OnLoadStateFromFile)
 EVT_MENU(IDM_SAVESTATEFILE, CFrame::OnSaveStateToFile)
 

@@ -20,6 +20,12 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
+typedef struct
+{
+	u8 *buffer;
+	size_t size;
+} saveStruct;
+
 void State_Init();
 void State_Shutdown();
 
@@ -32,12 +38,11 @@ void State_SaveAs(const std::string &filename);
 void State_LoadAs(const std::string &filename);
 
 void State_LoadLastSaved();
+void State_UndoSaveState();
+void State_UndoLoadState();
 
-typedef struct
-{
-	u8 *buffer;
-	size_t size;
-} saveStruct;
+void State_LoadFromBuffer(u8 **buffer);
+void State_SaveToBuffer(u8 **buffer);
 
 
 typedef struct  

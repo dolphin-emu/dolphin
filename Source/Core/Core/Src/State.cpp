@@ -53,8 +53,14 @@ static int ev_Save, ev_BufferSave;
 static int ev_Load, ev_BufferLoad;
 
 static std::string cur_filename, lastFilename;
+static u8 **cur_buffer = NULL;
+
+// Temporary undo state buffers
+static u8 *undoLoad = NULL;
 
 static bool const bCompressed = true;
+
+static Common::Thread *saveThread = NULL;
 
 enum
 {
@@ -77,6 +83,49 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
+}
+
+void LoadBufferStateCallback(u64 userdata, int cyclesLate)
+{
+	if(!cur_buffer || !*cur_buffer) {
+		Core::DisplayMessage("State does not exist", 1000);
+		return;
+	}
+
+	jit.ClearCache();
+
+	u8 *ptr = *cur_buffer;
+	PointerWrap p(&ptr, PointerWrap::MODE_READ);
+	DoState(p);
+
+	cur_buffer = NULL;
+
+	Core::DisplayMessage("Loaded state", 2000);
+}
+
+void SaveBufferStateCallback(u64 userdata, int cyclesLate)
+{
+	size_t sz;
+
+	if(!cur_buffer) {
+		Core::DisplayMessage("Error saving state", 1000);
+		return;
+	}
+
+	jit.ClearCache();
+
+	u8 *ptr = NULL;
+
+	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+	DoState(p);
+	sz = (size_t)ptr;
+
+	*cur_buffer = new u8[sz];
+	ptr = *cur_buffer;
+	p.SetMode(PointerWrap::MODE_WRITE);
+	DoState(p);
+
+	cur_buffer = NULL;
 }
 
 THREAD_RETURN CompressAndDumpState(void *pArgs)
@@ -149,8 +198,6 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	return 0;
 }
 
-Common::Thread *saveThread = NULL;
-
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
 	// If already saving state, wait for it to finish
@@ -192,6 +239,10 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		delete saveThread;
 		saveThread = NULL;
 	}
+
+	// Save temp buffer for undo load state
+	cur_buffer = &undoLoad;
+	SaveBufferStateCallback(userdata, cyclesLate);
 
 	FILE *f = fopen(cur_filename.c_str(), "rb");
 	if (!f) {
@@ -270,6 +321,8 @@ void State_Init()
 {
 	ev_Load = CoreTiming::RegisterEvent("LoadState", &LoadStateCallback);
 	ev_Save = CoreTiming::RegisterEvent("SaveState", &SaveStateCallback);
+	ev_BufferLoad = CoreTiming::RegisterEvent("LoadBufferState", &LoadBufferStateCallback);
+	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
 }
 
 void State_Shutdown()
@@ -278,6 +331,12 @@ void State_Shutdown()
 	{
 		delete saveThread;
 		saveThread = NULL;
+	}
+
+	if(undoLoad)
+	{
+		delete[] undoLoad;
+		undoLoad = NULL;
 	}
 }
 
@@ -315,4 +374,28 @@ void State_LoadLastSaved()
 		Core::DisplayMessage("There is no last saved state", 2000);
 	else
 		State_LoadAs(lastFilename);
+}
+
+void State_LoadFromBuffer(u8 **buffer)
+{
+	cur_buffer = buffer;
+	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferLoad);
+}
+
+void State_SaveToBuffer(u8 **buffer)
+{
+	cur_buffer = buffer;
+	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferSave);
+}
+
+// Load the last state before loading the state
+void State_UndoLoadState()
+{
+	State_LoadFromBuffer(&undoLoad);
+}
+
+// Load the state that the last save state overwritten on
+void State_UndoSaveState()
+{
+	State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
 }

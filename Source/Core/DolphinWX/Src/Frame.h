@@ -188,7 +188,8 @@ class CFrame : public wxFrame
 		void OnLoadStateFromFile(wxCommandEvent& event);
 		void OnSaveStateToFile(wxCommandEvent& event);
 		void OnLoadLastState(wxCommandEvent& event);
-		void OnUndoState(wxCommandEvent& event);
+		void OnUndoLoadState(wxCommandEvent& event);
+		void OnUndoSaveState(wxCommandEvent& event);
 		
 		void OnConfigMain(wxCommandEvent& event); // Options
 		void OnPluginGFX(wxCommandEvent& event);

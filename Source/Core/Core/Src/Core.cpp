@@ -895,12 +895,10 @@ void Callback_KeyPress(int key, bool shift, bool control)
 	// 0x7a == VK_F12
 	if (key == 0x7b) 
 	{
-		// TODO: Move to memory buffer, implement last state before loading
 		if(shift)
-			State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
-		/*else
-			State_LoadAs(FULL_STATESAVES_DIR "tempState.sav");
-		*/
+			State_UndoSaveState();
+		else
+			State_UndoLoadState();	
 	}
 }
  

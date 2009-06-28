@@ -137,11 +137,12 @@ void CFrame::CreateMenu()
 	m_pSubMenuSave = emulationMenu->AppendSubMenu(saveMenu, _T("Sa&ve State"));
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _T("Save State..."));
+	loadMenu->Append(IDM_UNDOSAVESTATE, _T("Last Overwritten State\tShift+F12"));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOADSTATEFILE, _T("Load State..."));
 	loadMenu->Append(IDM_LOADLASTSTATE, _T("Last Saved State\tF11"));
-	loadMenu->Append(IDM_UNDOSTATE,     _T("Last Overwritten State\tF12"));
+	loadMenu->Append(IDM_UNDOLOADSTATE, _T("Undo Load State\tF12"));
 	loadMenu->AppendSeparator();
 
 	for (int i = 1; i <= 8; i++) {
@@ -716,10 +717,16 @@ void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 	State_LoadLastSaved();
 }
 
-void CFrame::OnUndoState(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
+	State_UndoLoadState();
 }
+
+void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
+{
+	State_UndoSaveState();
+}
+
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
