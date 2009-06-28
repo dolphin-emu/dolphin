@@ -65,13 +65,13 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x56d36052: // Mario Sunshine
 	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
 		INFO_LOG(CONSOLE, "Zelda ucode chosen\n");
-		return new CUCode_Zelda(_rMailHandler);
+		return new CUCode_Zelda(_rMailHandler, _CRC);
 
       // WII CRCs
 	case 0x6c3f6f94: // zelda - PAL
 	case 0xd643001f: // mario galaxy - PAL    
 		INFO_LOG(CONSOLE, "Zelda Wii ucode chosen\n");
-		return new CUCode_Zelda(_rMailHandler);
+		return new CUCode_Zelda(_rMailHandler, _CRC);
 
 	case 0x5ef56da3: // AX demo
 	case 0x347112ba: // raving rabbits

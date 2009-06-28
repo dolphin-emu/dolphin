@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"
@@ -76,6 +76,188 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../Core/AudioCommon/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableEnhancedInstructionSet="2"
+				FloatingPointModel="0"
+				UsePrecompiledHeader="2"
+				AssemblerListingLocation="$(IntDir)\"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
+				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
+				GenerateManifest="false"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="DebugFast|Win32"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../Core/AudioCommon/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableEnhancedInstructionSet="2"
+				FloatingPointModel="0"
+				UsePrecompiledHeader="2"
+				AssemblerListingLocation="$(IntDir)\"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
+				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
+				GenerateManifest="false"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
@@ -191,97 +373,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../Core/AudioCommon/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
-				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
-				EnableEnhancedInstructionSet="2"
-				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				AssemblerListingLocation="$(IntDir)\"
-				WarningLevel="3"
-				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
@@ -370,97 +461,6 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="copy ..\..\..\Externals\OpenAL\Win64\OpenAL32.dll ..\..\..\Binary\x64\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win64\wrap_oal.dll ..\..\..\Binary\x64\wrap_oal.dll /Y&#x0D;&#x0A;"
-			/>
-		</Configuration>
-		<Configuration
-			Name="DebugFast|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../Core/AudioCommon/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
-				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
-				EnableEnhancedInstructionSet="2"
-				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				AssemblerListingLocation="$(IntDir)\"
-				WarningLevel="3"
-				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy ..\..\..\Externals\OpenAL\Win32\OpenAL32.dll ..\..\..\Binary\Win32\OpenAL32.dll /Y&#x0D;&#x0A;copy ..\..\..\Externals\OpenAL\Win32\wrap_oal.dll ..\..\..\Binary\Win32\wrap_oal.dll /Y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -616,7 +616,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release|x64"
+						Name="DebugFast|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -624,7 +624,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="DebugFast|Win32"
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -674,6 +674,10 @@
 				</File>
 				<File
 					RelativePath=".\Src\UCodes\UCode_Zelda.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda_Voice.h"
 					>
 				</File>
 				<File
@@ -806,14 +810,6 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
 				Name="Release|Win32"
 				>
 				<Tool
@@ -822,7 +818,7 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release|x64"
+				Name="DebugFast|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
@@ -830,7 +826,15 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="DebugFast|Win32"
+				Name="Debug|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
 				>
 				<Tool
 					Name="VCCLCompilerTool"

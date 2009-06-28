@@ -21,6 +21,7 @@
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
+#include "UCode_Zelda_Voice.h"
 #include "UCode_Zelda_ADPCM.h"
 #include "../MailHandler.h"
 
@@ -85,37 +86,54 @@ public:
     int m_mode;
 };
 
-CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
+CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	: IUCode(_rMailHandler)
+	, m_CRC(_CRC)
+	, m_bSyncInProgress(false)
+	, m_MaxVoice(0)
+	, m_NumVoices(0)
+	, m_bSyncCmdPending(false)
+	, m_CurVoice(0)
+	, m_CurBuffer(0)
+	, m_NumBuffers(0)
+	, m_VoicePBsAddr(0)
+	, m_UnkTableAddr(0)
+	, m_AFCCoefTableAddr(0)
+	, m_ReverbPBsAddr(0)
+	, m_RightBuffersAddr(0)
+	, m_LeftBuffersAddr(0)
+	, m_DMABaseAddr(0)
 	, m_numSteps(0)
 	, m_step(0)
 	, m_readOffset(0)
-    , m_NumberOfFramesToRender(0)
-    , m_CurrentFrameToRender(0)
-    , m_MaxSyncedPB(0)
     , m_MailState(WaitForMail)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 	m_rMailHandler.PushMail(DSP_INIT);
 	g_dspInitialize.pGenerateDSPInterrupt();
 	m_rMailHandler.PushMail(0xF3551111); // handshake
+
+	m_TempBuffer = new s32[256 * 1024];
+	m_LeftBuffer = new s32[256 * 1024];
+	m_RightBuffer = new s32[256 * 1024];
+
 	memset(m_Buffer, 0, sizeof(m_Buffer));
+	memset(m_SyncFlags, 0, sizeof(m_SyncFlags));
+	memset(m_AFCCoefTable, 0, sizeof(m_AFCCoefTable));
 
-    for (int i = 0; i < 0x10; i++)
-        m_PBMask[i] = false;
-
-    templbuffer = new int[1024 * 1024];
-    temprbuffer = new int[1024 * 1024];
+	m_pos = 0;
 }
 
 CUCode_Zelda::~CUCode_Zelda()
 {
 	m_rMailHandler.Clear();
 
-    delete [] templbuffer;
-    delete [] temprbuffer;
+	delete [] m_TempBuffer;
+	delete [] m_LeftBuffer;
+	delete [] m_RightBuffer;
 }
 
+#if 0
 void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size)
 {
     u16* pTest = (u16*)&_rPB;
@@ -293,72 +311,144 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
         }
     }
 }
+#endif
 
 void CUCode_Zelda::Update(int cycles)
 {
-	// This is called at arbitrary intervals from the core emu.
-	// We don't need it.
+	// check if we have to sent something
+	if (!m_rMailHandler.IsEmpty())
+		g_dspInitialize.pGenerateDSPInterrupt();
 }
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
-    switch (m_MailState)
-    {
-        case WaitForMail:
-            {
-                if (_uMail == 0x00000000)
-                {
-                    m_MailState = ReadingFrameSync;
-                }
-                else if (_uMail < 0x255)
-                {
-                    m_numSteps = _uMail;
-                    m_MailState = ReadingMessage;
-                }
-                else
-                {
-                    PanicAlert("Unknown Mail: 0x%08x", _uMail);
-                }
-            }
-            break;
+	// When we used to lose sync, the last mails we get before the audio goes bye-bye
+	// 0
+	// 0x00000
+	// 0
+	// 0x10000
+	// 0
+	// 0x20000
+	// 0
+	// 0x30000
+	// And then silence... Looks like some reverse countdown :)
+	if (m_bSyncInProgress)
+	{
+		if (m_bSyncCmdPending)
+		{
+			u32 n = (_uMail >> 16) & 0xF;
+			m_MaxVoice = (n + 1) << 4;
+			m_SyncFlags[n] = _uMail & 0xFFFF;
+			m_bSyncInProgress = false;
 
-        case ReadingFrameSync:
-            {
-                int Slot = (_uMail >> 16) & 0x000F;
-                m_PBMask[Slot] = _uMail & 0xFFFF;
-                m_MailState = WaitForMail;
+			// Normally, we should mix to the buffers used by the game.
+			// We don't do it currently for a simple reason:
+			// if the game runs fast all the time, then it's OK,
+			// but if it runs slow, sound can become choppy.
+			// This problem won't happen when mixing to the buffer
+			// provided by MixAdd(), because the size of this buffer
+			// is automatically adjusted if the game runs slow.
+#if 0
+			if (m_SyncFlags[n] & 0x8000)
+			{
+				for (; m_CurVoice < m_MaxVoice; m_CurVoice++)
+				{
+					if (m_CurVoice >= m_NumVoices)
+						break;
 
-                // Zelda UC 05db
-                m_MaxSyncedPB = (Slot+1) << 4;
-            }
-            break;
+					MixVoice(m_CurVoice);
+				}
+			}
+			else
+#endif
+				m_CurVoice = m_MaxVoice;
 
-        case ReadingMessage:
-            {
-                if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
-                    PanicAlert("m_step out of range");
+			if (m_CurVoice >= m_NumVoices)
+			{
+				m_CurBuffer++;
 
-                ((u32*)m_Buffer)[m_step] = _uMail;
-                m_step++;
+				m_rMailHandler.PushMail(DSP_SYNC);
+				g_dspInitialize.pGenerateDSPInterrupt();
+				m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
+					
+				m_CurVoice = 0;
 
-                if (m_step >= m_numSteps)
-                {
-                    ExecuteList();
-                    m_MailState = WaitForMail;
-                    m_step = 0;
-                }
-            }
-            break;
+				if (m_CurBuffer == m_NumBuffers)
+				{
+					m_rMailHandler.PushMail(DSP_FRAME_END);
+					g_dspInitialize.pGenerateDSPInterrupt();
 
-        case ReadingSystemMsg:
-            {
-                _dbg_assert_msg_(DSPHLE, (_uMail & 0xFFFF0000) == 0xCDD10000, "This is not a system msg", _uMail);
-                m_MailState = WaitForMail;
-            }
-            break;
+					soundStream->GetMixer()->SetHLEReady(true);
+					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+					soundStream->Update(); //do it in this thread to avoid sync problems
+
+					m_bSyncCmdPending = false;
+
+				}
+			}
+		}
+		else
+		{
+			m_bSyncInProgress = false;
+		}
+
+		return;
+
     }
+
+	if (m_bListInProgress)
+	{
+		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
+			PanicAlert("m_step out of range");
+
+		((u32*)m_Buffer)[m_step] = _uMail;
+		m_step++;
+
+		if (m_step >= m_numSteps)
+		{
+			ExecuteList();
+			m_bListInProgress = false;
+		}
+
+		return;
+	}
+
+	if (_uMail == 0) 
+	{
+		m_bSyncInProgress = true;
+	} 
+	else if ((_uMail >> 16) == 0) 
+	{
+		m_bListInProgress = true;
+		m_numSteps = _uMail;
+		m_step = 0;
+	}
+	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
+	{
+		// The low part of the mail tells the operation to perform
+		switch (_uMail & 0xFFFF)
+		{
+		case 0x0003:		// Do nothing
+			return;
+
+		case 0x0000:		// Halt
+		case 0x0001:		// Dump memory? and halt
+		case 0x0002:		// Do something and halt
+			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", _uMail & 0xFFFF);
+			return;
+
+		default:			// Invalid (the real ucode would likely crash)
+			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", _uMail & 0xFFFF);
+			return;
+		}
+	}
+	else 
+	{
+		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
+	}
 }
 
+#if 0
 void CUCode_Zelda::MixAdd(short* _pBuffer, int _iSize)
 {
     if (m_NumberOfFramesToRender > 0)
@@ -410,24 +500,13 @@ void CUCode_Zelda::MixAdd(short* _pBuffer, int _iSize)
 
         m_CurrentFrameToRender++;
 
-        // sync, we are ready
-        m_rMailHandler.PushMail(DSP_SYNC);
-        g_dspInitialize.pGenerateDSPInterrupt();
-        m_rMailHandler.PushMail(0xF3550000 | m_CurrentFrameToRender | 0xFF00);
-
-        if (m_CurrentFrameToRender == m_NumberOfFramesToRender)
-        {
-            /*           
-            afaik zelda hasnt registered a handler to FRAME_END... so skip it
-            m_rMailHandler.PushMail(DSP_FRAME_END);
-            g_dspInitialize.pGenerateDSPInterrupt();
-            m_MailState = ReadingSystemMsg;
-            */
-            m_NumberOfFramesToRender = 0;
-            m_CurrentFrameToRender = 0;
-        }
-    }
+		// make sure we never read outside the buffer by mistake.
+		// Before deleting extra reads in ExecuteList, we were getting these
+		// values.
+		memset(m_Buffer, 0xcc, sizeof(m_Buffer));
+	}
 }
+#endif
 
 // zelda debug ..803F6418
 void CUCode_Zelda::ExecuteList()
@@ -438,6 +517,7 @@ void CUCode_Zelda::ExecuteList()
 	u32 CmdMail = Read32();
 	u32 Command = (CmdMail >> 24) & 0x7f;
 	u32 Sync = CmdMail >> 16;
+	u32 ExtraData = CmdMail & 0xFFFF;
 
 	DEBUG_LOG(DSPHLE, "==============================================================================");
 	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
@@ -447,55 +527,128 @@ void CUCode_Zelda::ExecuteList()
 		// DsetupTable ... zelda ww jumps to 0x0095
 	    case 0x01:
 	    {
-            m_NumPBs = (CmdMail & 0xFFFF);
-            if (m_NumPBs > 0x40)
-            {
-                PanicAlert("(m_NumPBs > 0x40) to much PBs");
-                m_NumPBs = 0x40;
-            }
+			u16 *TempPtr;
+			int i;
+		//	num_param_blocks = ExtraData;
+		//	u32 tmp[4];
+		    //param_blocks_ptr = tmp[0] = Read32();
+		   // tmp[1] = Read32();
+		   // tmp[2] = Read32();
+		    //param_blocks2_ptr = tmp[3] = Read32();
 
-		    m_PBAddress = Read32();
-		    u32 DSPADPCM_FILTER = Read32();
-		    u32 DSPRES_FILTER = Read32();
-		    m_PBAddress2 = Read32();
+			m_NumVoices = ExtraData;
 
-			// What is this stuff?
-            u16 Buffer[0x280];
-            for (int i = 0; i < 0x280; i++) 
-            {
-                Buffer[i] = Memory_Read_U16(DSPADPCM_FILTER + (i*2));
-            }
+			m_VoicePBsAddr = Read32() & 0x7FFFFFFF;
+			m_UnkTableAddr = Read32() & 0x7FFFFFFF;
+			m_AFCCoefTableAddr = Read32() & 0x7FFFFFFF;
+			m_ReverbPBsAddr = Read32() & 0x7FFFFFFF; // WARNING: reverb PBs are very different from voice PBs!
 
-            u16* pTmp = (u16*)m_AFCCoefTable;
-            for (int i = 0; i < 0x20; i++) 
-            {
-                pTmp[i] = Memory_Read_U16(DSPRES_FILTER + (i*2));
-            }
+			// Read AFC coef table
+			TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
+			for (i = 0; i < 32; i++)
+				m_AFCCoefTable[i] = Common::swap16(TempPtr[i]);
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
-		    DEBUG_LOG(DSPHLE, "Param Blocks 1:                0x%08x", m_PBAddress);
-            DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", DSPADPCM_FILTER);
-			DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):  0x%08x", DSPRES_FILTER);
-		    DEBUG_LOG(DSPHLE, "Param Blocks 2:                0x%08x", m_PBAddress2);
-	    }
-		break;
+			DEBUG_LOG(DSPHLE, "Num voice param blocks:             %i", m_NumVoices);
+			DEBUG_LOG(DSPHLE, "Voice param blocks address:         0x%08x", m_VoicePBsAddr);
 
-		// SyncFrame ... zelda ww jumps to 0x0243
-        // SyncFrame doesn't send a 0xDCD10004 SYNC at all ... just the 0xDCD10005 for "frame end"
-	    case 0x02:
-	    {
-            m_MixingBufferLeft = Read32();
-		    m_MixingBufferRight = Read32();
+			// This points to some strange data table.
+		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):       0x%08x", m_UnkTableAddr);
 
-            m_NumberOfFramesToRender = (CmdMail >> 16) & 0xFF;
-            m_MaxSyncedPB = 0;
+			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
+			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
+			// which can play Zelda audio.
+			// There's also a lot more table-looking data immediately after - maybe alternative
+			// tables? I wonder where the parameter blocks are?
+		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500):      0x%08x", m_AFCCoefTableAddr);
+			DEBUG_LOG(DSPHLE, "Reverb param blocks address:        0x%08x", m_ReverbPBsAddr);
+		}
+			break;
+
+			// SyncFrame ... zelda ww jumps to 0x0243
+		case 0x02:
+		{
+			//u32 tmp[2];
+			//tmp[0] = Read32();
+			//tmp[1] = Read32();
+
+			// We're ready to mix
+			//	soundStream->GetMixer()->SetHLEReady(true);
+			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+			//soundStream->Update(); //do it in this thread to avoid sync problems
+
+			m_bSyncCmdPending = true;
+			m_CurBuffer = 0;
+			m_NumBuffers = (CmdMail >> 16) & 0xFF;
+
+			// Addresses for right & left buffers in main memory
+			// Each buffer is 160 bytes long. The number of (both left & right) buffers
+			// is set by the first mail of the list.
+			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
+			m_LeftBuffersAddr = Read32() & 0x7FFFFFFF;
 
 		    DEBUG_LOG(DSPHLE, "DsyncFrame");
-		    DEBUG_LOG(DSPHLE, "Left Mixing Buffer:            0x%08x", m_MixingBufferLeft);
-		    DEBUG_LOG(DSPHLE, "Right Mixing Buffer:           0x%08x", m_MixingBufferRight);
+			// These alternate between three sets of mixing buffers. They are all three fairly near,
+			// but not at, the ADMA read addresses.
+		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
+		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
+		    //DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500): 0x%08x", tmp[2]); // wtf?
 
-			// This is where we should render.
-            soundStream->GetMixer()->SetHLEReady(true);
+			// Let's log the parameter blocks.
+			// Copy and byteswap the parameter blocks.
+
+			// For some reason, in Z:WW we get no param blocks until in-game,
+			// while Zelda Four Swords happily sets param blocks as soon as the title screen comes up.
+			// Looks like it's playing midi music.
+#if 0
+			DEBUG_LOG(DSPHLE, "Param block at %08x:", param_blocks_ptr);
+			CopyPBsFromRAM();
+			for (int i = 0; i < num_param_blocks; i++)
+			{
+				const ZPB &pb = zpbs[i];
+				// The only thing that consistently looks like a pointer in the param blocks. 
+				u32 addr = (pb.addr_high << 16) | pb.addr_low;
+				if (addr)
+				{
+					DEBUG_LOG(DSPHLE, "Param block:  ==== %i ( %08x ) ====", i, GetParamBlockAddr(i));
+					DEBUG_LOG(DSPHLE, "Addr: %08x  Type: %i", addr, pb.type);
+
+					// Got one! Read from ARAM, dump to file.
+					// I can't get the below to produce anything resembling sane audio :(
+					//addr *= 2;
+					/*
+					int size = 0x10000;
+					u8 *temp = new u8[size];
+					for (int i = 0; i < size; i++) {
+						temp[i] = g_dspInitialize.pARAM_Read_U8(addr + i);
+					}
+					s16 *audio = new s16[size * 4];
+					int aoff = 0;
+					short hist1 = 0, hist2 = 0;
+					for (int i = 0; i < size; i+=9)
+					{
+						AFCdecodebuffer(temp + i, audio + aoff, &hist1, &hist2);
+						aoff += 16;
+					}
+					char fname[256];
+					sprintf(fname, "%08x.bin", addr);
+					if (File::Exists(fname))
+						continue;
+
+					FILE *f = fopen(fname, "wb");
+					fwrite(audio, 1, size*4, f);
+					fclose(f);
+
+					sprintf(fname, "%08x_raw.bin", addr);
+
+					f = fopen(fname, "wb");
+					fwrite(temp, 1, size, f);
+					fclose(f);
+					*/
+				}
+			}
+			CopyPBsToRAM();
+#endif
 	    }
 		return;
 
@@ -515,26 +668,18 @@ void CUCode_Zelda::ExecuteList()
 		    u32 tmp[1];
 		    tmp[0] = Read32();
 		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
-		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960): 0x%08x", tmp[0]);
+		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960):      0x%08x", tmp);
 	    }
 		    break;
 
-	    // Set VARAM
-		// Luigi__: in the real Zelda ucode, this opcode is dummy
-		// however, in the ucode used by SMG it isn't
+			// This opcode, in the SMG ucode, sets the base address for audio data transfers from main memory (using DMA).
+			// In the Zelda ucode, it is dummy, because this ucode uses accelerator for audio data transfers.
 	    case 0x0e:
 			{
-				DEBUG_LOG(DSPHLE, "Set VARAM - ???");
-				/*
-				 00b0 0080 037d lri         $AR0, #0x037d
-				 00b2 0e01      lris        $AC0.M, #0x01
-				 00b3 02bf 0065 call        0x0065
-				 00b5 00de 037d lr          $AC0.M, @0x037d
-				 00b7 0240 7fff andi        $AC0.M, #0x7fff
-				 00b9 00fe 037d sr          @0x037d, $AC0.M
-				 00bb 029f 0041 jmp         0x0041
-				*/
-				//
+				m_DMABaseAddr = Read32() & 0x7FFFFFFF;
+				
+				DEBUG_LOG(DSPHLE, "DsetDMABaseAddr");
+				DEBUG_LOG(DSPHLE, "DMA base address:                   0x%08x", m_DMABaseAddr);
 			}
 		    break;
 
@@ -550,6 +695,7 @@ void CUCode_Zelda::ExecuteList()
 	m_rMailHandler.PushMail(0xF3550000 | Sync);
 }
 
+#if 0
 void CUCode_Zelda::CopyPBsFromRAM()
 {
     for (u32 i = 0; i < m_NumPBs; i++)
@@ -578,18 +724,7 @@ void CUCode_Zelda::CopyPBsToRAM()
         }
     }
 }
-
-// Decoder from in_cube by hcs/destop/etc. Haven't yet found a valid use for it.
-
-// Looking at in_cube, it seems to be 9 bytes of input = 16 samples of output.
-// Different from AX ADPCM which is 8 bytes of input = 14 samples of output.
-// input = location of encoded source samples
-// out = location of destination buffer (16 bits / sample)
-
-// I am sure that there are 5 bytes of input for 16 samples output too... just check the UCode
-// if (type == 5) -> 5 input bytes
-// if (type == 9) -> 9 input bytes
-//
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -615,65 +750,65 @@ void CUCode_Zelda::DumpPB(const ZPB& _rPB)
     }
 }
 
-void write32le(int in, unsigned char * buf) {
-    buf[0]=in&0xff;
-    buf[1]=(in>>8)&0xff;
-    buf[2]=(in>>16)&0xff;
-    buf[3]=(in>>24)&0xff;
-} 
-
-int CUCode_Zelda::DumpAFC(u8* pIn, const int size, const int srate)
+// size is in stereo samples.
+void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
 {
-    unsigned char inbuf[9];
-    short outbuf[16];
-    FILE * outfile;
-    int sizeleft;
-    int outsize,outsizetotal;
-    short hist=0,hist2=0;
+	if (_Size > 256 * 1024)
+		_Size = 256 * 1024;
 
-    unsigned char wavhead[44] = {
-        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,  0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
-        0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,  0x00, 0x00, 0x00, 0x00
-    };
+	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
+	memset(m_RightBuffer, 0, _Size * sizeof(s32));
 
-    outfile = fopen("d:/supa.wav","wb");
-    if (!outfile) return 1;
+	for (u32 i = 0; i < m_NumVoices; i++)
+	{
+		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
+		if (!(flags & 0x8000))
+			continue;
 
-    outsize = size/9*16*2;
-    outsizetotal = outsize+8;
-    write32le(outsizetotal,wavhead+4);
-    write32le(outsize,wavhead+40);
-    write32le(srate,wavhead+24);
-    write32le(srate*2,wavhead+28);
-    if (fwrite(wavhead,1,44,outfile)!=44) return 1;
+		ZeldaVoicePB pb;
+		ReadVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
 
-    for (sizeleft=size;sizeleft>=9;sizeleft-=9) {
-        memcpy(inbuf, pIn, 9);
-        pIn += 9;
+		if (pb.Status == 0)
+			continue;
+		if (pb.KeyOff != 0)
+			continue;
 
-        AFCdecodebuffer(m_AFCCoefTable, (char*)inbuf,outbuf,&hist,&hist2,9);
+		MixAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
+		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
+	}
 
-        if (fwrite(outbuf,1,16*2,outfile) != 16*2)
-            return 1;
-    }
+	if (_Buffer)
+	{
+		for (u32 i = 0; i < _Size; i++)
+		{
+			s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
+			s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
 
-    if (fclose(outfile)==EOF) return 1;
+			if (left < -32768) left = -32768;
+			if (left > 32767)  left = 32767;
+			_Buffer[0] = (short)left;
 
-    return 0;
-} 
+			if (right < -32768) right = -32768;
+			if (right > 32767)  right = 32767;
+			_Buffer[1] = (short)right;
+
+			_Buffer += 2;
+		}
+	}
+}
 
 void CUCode_Zelda::DoState(PointerWrap &p) {
-	p.Do(m_MailState);
-	p.Do(m_PBMask);
-	p.Do(m_NumPBs);
-	p.Do(m_PBAddress);
-	p.Do(m_MaxSyncedPB);
-	p.Do(m_PBs);
+	//p.Do(m_MailState);
+	//p.Do(m_PBMask);
+	//p.Do(m_NumPBs);
+	//p.Do(m_PBAddress);
+	//p.Do(m_MaxSyncedPB);
+	//p.Do(m_PBs);
 	p.Do(m_readOffset);
-	p.Do(m_NumberOfFramesToRender);
-	p.Do(m_CurrentFrameToRender);
+	//p.Do(m_NumberOfFramesToRender);
+	//p.Do(m_CurrentFrameToRender);
 	p.Do(m_numSteps);
 	p.Do(m_step);
 	p.Do(m_Buffer);
 }
+
