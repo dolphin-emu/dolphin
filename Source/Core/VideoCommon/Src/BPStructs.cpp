@@ -211,7 +211,12 @@ void BPWritten(const Bypass& bp)
 			}
 			else
 			{
+				// We should be able to get away with deactivating the current bbox tracking
+				// here. Not sure if there's a better spot to put this.
 				// the number of lines copied is determined by the y scale * source efb height
+#ifdef BBOX_SUPPORT
+				*g_VideoInitialize.pBBoxActive = false;
+#endif
 				const float yScale = bpmem.dispcopyyscale / 256.0f;
 				const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
 				RenderToXFB(bp, multirc, yScale, xfbLines, 
@@ -324,13 +329,35 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_CLEAR_Z:  // Z Components (24-bit Zbuffer)
 		break;
 	// -------------------------
-	// Culling Occulsion, we don't support this
-	// let's hope not many games use bboxes..
-	// TODO(ector): add something that watches bboxes
+	// Bounding Box support
 	// -------------------------
 	case BPMEM_CLEARBBOX1:
-	case BPMEM_CLEARBBOX2:
+	case BPMEM_CLEARBBOX2: {
+
+#ifdef BBOX_SUPPORT
+		// which is which? these are GUESSES!
+		if (bp.address == BPMEM_CLEARBBOX1) {
+			int right = bp.newvalue >> 10;
+			int left = bp.newvalue & 0x3ff;
+			
+			// We should only set these if bbox is calculated properly.
+			g_VideoInitialize.pBBox[0] = left;
+			g_VideoInitialize.pBBox[1] = right;
+			*g_VideoInitialize.pBBoxActive = true;
+			// WARN_LOG(VIDEO, "ClearBBox LR: %i, %08x - %i, %i", bp.address, bp.newvalue, left, right);
+		} else {
+			int bottom = bp.newvalue >> 10;
+			int top = bp.newvalue & 0x3ff;
+
+			// We should only set these if bbox is calculated properly.
+			g_VideoInitialize.pBBox[2] = top;
+			g_VideoInitialize.pBBox[3] = bottom;
+			*g_VideoInitialize.pBBoxActive = true;
+			// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
+		}
+#endif
 		break;
+						   }
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -363,14 +390,14 @@ void BPWritten(const Bypass& bp)
 			PanicAlert("Unknown is not 0xF! val = 0x%08x", bp.newvalue);
 		break;
 
-	// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
-	// Are these related to BBox?
 	case BPMEM_UNKNOWN1:
 	case BPMEM_UNKNOWN2:
 	case BPMEM_UNKNOWN3:
 	case BPMEM_UNKNOWN4:
-
+		// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
+		// Are these related to BBox?
 		break;
+
 		// ------------------------------------------------
 		// On Default, we try to look for other things
 		// before we give up and say its an unknown opcode

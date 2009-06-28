@@ -55,6 +55,10 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
 bool AllowIdleSkipping();
 
+// Bounding box functionality. Paper Mario (both) are a couple of the few games that use it.
+extern u16 bbox[4];
+extern bool bbox_active;
+
 } // end of namespace PixelEngine
 
 #endif

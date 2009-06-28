@@ -128,6 +128,9 @@ static bool g_bSignalFinishInterrupt;
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
+u16 bbox[4];
+bool bbox_active;
+
 void DoState(PointerWrap &p)
 {
 	p.Do(m_ZConf);
@@ -140,6 +143,9 @@ void DoState(PointerWrap &p)
 
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
+	
+	p.Do(bbox);
+	p.Do(bbox_active);
 }
 
 void UpdateInterrupts();
@@ -153,6 +159,13 @@ void Init()
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
+
+	bbox[0] = 0x80;
+	bbox[1] = 0xA0;
+	bbox[2] = 0x80;
+	bbox[3] = 0xA0;
+
+	bbox_active = false;
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -196,18 +209,12 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
 		// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
-	case PE_BBOX_LEFT:
-		_uReturnValue = 0x80;
-		break;
-	case PE_BBOX_RIGHT:
-		_uReturnValue = 0xA0;
-		break;
-	case PE_BBOX_TOP:
-		_uReturnValue = 0x80;
-		break;
-	case PE_BBOX_BOTTOM:
-		_uReturnValue = 0xA0;
-		break;
+
+	// 0x80, 0xa0, 0x80, 0xa0 makes Paper Mario happy.
+	case PE_BBOX_LEFT:   _uReturnValue = bbox[0]; INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", bbox[0]); bbox_active = false; break;
+	case PE_BBOX_RIGHT:  _uReturnValue = bbox[1]; INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", bbox[1]); bbox_active = false; break;
+	case PE_BBOX_TOP:    _uReturnValue = bbox[2]; INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", bbox[2]); bbox_active = false; break;
+	case PE_BBOX_BOTTOM: _uReturnValue = bbox[3]; INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", bbox[3]); bbox_active = false; break;
 
 	default:
 		WARN_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);

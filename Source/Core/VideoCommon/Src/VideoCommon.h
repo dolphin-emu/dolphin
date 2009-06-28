@@ -45,7 +45,15 @@ enum
 	// TODO: figure out what to do with PAL
 };
 
+// If this is enabled, bounding boxes will be computed for everything drawn.
+// This can theoretically have a big speed hit in some geom heavy games. Needs more work.
+// Helps some effects in Paper Mario (but they aren't quite right yet).
+// May help Super Mario Galaxy?
+// Do testing to figure out if the speed hit is bad?
+// #define BBOX_SUPPORT
+
 extern SVideoInitialize g_VideoInitialize;
+
 // (mb2) for XFB update hack. TODO: find a static better place
 extern volatile u32 g_XFBUpdateRequested;
 

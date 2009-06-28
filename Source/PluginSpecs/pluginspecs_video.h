@@ -72,6 +72,11 @@ typedef struct
 	void *pMemoryBase;
 	bool bWii;
 	bool bUseDualCore;
+
+	unsigned short                  *pBBox;  // points to four shorts: left, top, right, bottom
+	// TODO:
+	bool                            *pBBoxActive;  // we guess that after a bbox reset, we only need to track bbox size until the corresponding read.
+
 } SVideoInitialize;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

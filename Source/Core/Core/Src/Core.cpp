@@ -387,6 +387,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
+	VideoInitialize.pBBox               = &PixelEngine::bbox[0];
+	VideoInitialize.pBBoxActive         = &PixelEngine::bbox_active;
+
+
 	// May be needed for Stop and Start
 	#ifdef SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
 		Plugins.FreeVideo();

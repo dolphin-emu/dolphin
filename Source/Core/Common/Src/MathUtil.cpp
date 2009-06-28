@@ -145,12 +145,15 @@ void SaveSSEState()
 	saved_sse_state = _mm_getcsr();
 }
 
-void MatrixMul(int n, const float *a, const float *b, float *result)
+inline void MatrixMul(int n, const float *a, const float *b, float *result)
 {    
-    for(int i = 0; i < n; ++i) {        
-        for(int j= 0; j < n; ++j) {
+    for (int i = 0; i < n; ++i)
+	{
+        for (int j = 0; j < n; ++j)
+		{
             float temp = 0;
-            for(int k = 0; k < n; ++k) {
+            for (int k = 0; k < n; ++k)
+			{
                 temp += a[i * n + k] * b[k * n + j];
             }
             result[i * n + j] = temp;
@@ -207,9 +210,9 @@ void Matrix33::Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result)
 
 void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
 {
-    for(int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i) {
         result[i] = 0;
-        for(int k = 0; k < 3; ++k) {
+        for (int k = 0; k < 3; ++k) {
             result[i] += a.data[i * 3 + k] * vec[k];
         }
     }
@@ -226,13 +229,16 @@ void Matrix44::LoadIdentity(Matrix44 &mtx)
 
 void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 {
-    for(int i = 0; i < 3; ++i) {
-        for(int j = 0; j < 3; ++j) {
+    for (int i = 0; i < 3; ++i)
+	{
+        for (int j = 0; j < 3; ++j)
+		{
             mtx.data[i * 4 + j] = m33.data[i * 3 + j];
         }
     }
 
-    for(int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i)
+	{
         mtx.data[i * 4 + 3] = 0;
         mtx.data[i + 12] = 0;
     }

@@ -36,7 +36,8 @@ namespace VertexManager
 	void Flush();
 }
 
-static float s_fMaterials[16];
+static float GC_ALIGNED16(s_fMaterials[16]);
+float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -204,8 +205,6 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Ha
 
     if (bProjectionChanged) {
         bProjectionChanged = false;
-		static float GC_ALIGNED16(g_fProjectionMatrix[16]);
-
 
         if (xfregs.rawProjection[6] == 0) { // Perspective
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
