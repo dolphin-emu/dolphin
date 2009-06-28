@@ -165,7 +165,7 @@ inline void MatrixMul(int n, const float *a, const float *b, float *result)
 float MathFloatVectorSum(std::vector<float> Vec)
 {
 	float Sum = 0.0;
-	for(int i = 0; i < Vec.size(); i++)
+	for(unsigned i = 0; i < Vec.size(); i++)
 	{
 		Sum += Vec.at(i);
 	}

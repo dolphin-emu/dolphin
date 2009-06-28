@@ -51,7 +51,6 @@
 static u8 s_boot_sector		[ BYTES_PER_SECTOR ];	/* boot sector */
 static u8 s_fsinfo_sector	[ BYTES_PER_SECTOR ];	/* FS Info sector */
 static u8 s_fat_head		[ BYTES_PER_SECTOR ];	/* first FAT sector */
-static u8 s_zero_sector		[ BYTES_PER_SECTOR ];	/* empty sector */
 
 /* this is the date and time when creating the disk */
 static int get_serial_id()

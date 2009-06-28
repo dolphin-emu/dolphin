@@ -162,10 +162,10 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
     INFO_LOG(BOOT, "Setup Wii Memory...");
 
     // Write the 256 byte setting.txt to memory. This may not be needed as
-    // most or all games read the setting.txt file from \title\00000001\00000002\
-    // data\setting.txt directly after the read the SYSCONF file. The games also
-    // read it to 0x3800, what is a little strange however is that it only reads
-    // the first 100 bytes of it.
+    // most or all games read the setting.txt file from
+    // \title\00000001\00000002\data\setting.txt directly after the read the
+    // SYSCONF file. The games also read it to 0x3800, what is a little strange
+    // however is that it only reads the first 100 bytes of it.
     std::string filename(File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING);
     switch((DiscIO::IVolume::ECountry)_CountryCode)
     {

@@ -23,8 +23,6 @@
 namespace Gen
 {
 
-static bool enableBranchHints = false;
-
 // TODO(ector): Add EAX special casing, for ever so slightly smaller code.
 struct NormalOpDef
 {

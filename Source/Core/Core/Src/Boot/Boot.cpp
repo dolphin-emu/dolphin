@@ -141,7 +141,6 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 // Load a GC or Wii BIOS file
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
-    bool bResult = false;
 	std::string data;
 	if (!File::ReadFileToString(false, _rBiosFilename.c_str(), data))
 		return false;

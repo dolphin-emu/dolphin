@@ -466,7 +466,7 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 	std::string out;
 	int len = 0;
 	// First, compute the size of the new string.
-	for (int i = 0; i < in.size(); i++)
+	for (unsigned i = 0; i < in.size(); i++)
 	{
 		if (in[i] == '\t')
 			len += tab_size;
@@ -475,7 +475,7 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 	}
 	out.resize(len);
 	int out_ctr = 0;
-	for (int i = 0; i < in.size(); i++)
+	for (unsigned i = 0; i < in.size(); i++)
 	{
 		if (in[i] == '\t')
 		{

@@ -679,8 +679,6 @@ void Callback_VideoCopiedToXFB()
 	//count FPS
 	static Common::Timer Timer;
 	static u32 frames = 0;
-	static u64 ticks = 0;
-	static u64 idleTicks = 0;
 
 
 	u32 targetfps = (SConfig::GetInstance().m_Framelimit)*5;
@@ -782,7 +780,6 @@ void Callback_VideoCopiedToXFB()
 		
 		float TargetFPS = FPS_To_VPS_Rate * (float)VideoInterface::TargetRefreshRate;
 		float FPSPercentage = (FPS / TargetFPS) * 100.0f;
-		float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0f;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat(" | Core: %s %s",
@@ -804,6 +801,7 @@ void Callback_VideoCopiedToXFB()
 		std::string IdleSkipMessage = "";
 		if (_CoreParameter.bSkipIdle || _CoreParameter.bUseDualCore) IdleSkipMessage = "~";
 		#ifdef EXTENDED_INFO
+			float VPSPercentage = (VideoInterface::ActualRefreshRate / (float)VideoInterface::TargetRefreshRate) * 100.0f;
 			std::string SFPS = StringFromFormat("FPS: %4.1f/%s%2.0f (%s%3.0f%% | %s%1.2f) VPS:%4.0f/%i (%3.0f%%)",
 				FPS, IdleSkipMessage.c_str(), TargetFPS,
 				IdleSkipMessage.c_str(), FPSPercentage, IdleSkipMessage.c_str(), FPS_To_VPS_Rate, 

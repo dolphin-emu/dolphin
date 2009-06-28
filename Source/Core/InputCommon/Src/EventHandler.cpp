@@ -7,14 +7,10 @@
 EventHandler *EventHandler::m_Instance = 0;
 
 EventHandler::EventHandler() {
-    for (int i=0; i<NUMKEYS; i++)
-		for (int j=0; j<NUMMODS; j++)
-			keys[i][j] = NULL;
-    //    memset(keys, sizeof(listenFuncPtr) * NUMKEYS*NUMMODS, 0);
-    memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
-    memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);
-
- }
+	memset(keys, 0, sizeof(keys));
+	memset(mouse, 0, sizeof(mouse));
+	memset(joys, 0, sizeof(joys));
+}
 
 EventHandler::~EventHandler() {
 }
