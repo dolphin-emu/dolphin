@@ -36,7 +36,7 @@
 
 #include "disassemble.h"
 #include "gdsp_interpreter.h"
-#include "gdsp_memory.h"
+#include "DSPMemoryMap.h"
 #include "../DSPDebugInterface.h"
 
 class DSPRegisterView;
@@ -107,7 +107,6 @@ private:
 	DSPDebugInterface debug_interface;
 	u64 m_CachedStepCounter;
 	u16 m_CachedCR;
-	u32 m_CachedUCodeCRC;
 
 	// GUI updaters
 	void UpdateDisAsmListView();

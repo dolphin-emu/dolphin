@@ -6,7 +6,7 @@ can parse this file and auto read symbols using those.
 
 BIG Questions:
 
- - Who resets the 0x0350 to the beginning of the command block?
+ - Who resets the 0x0350 to the beginning of the command block? Wrap register?
  - What does 00eb_Unk_BufferMultWithDest??
  - Why is a PB-Transfer from RAM to DMEM 0xC0 shorts long but DMEM to RAM just 0x80
 
@@ -170,6 +170,7 @@ There's definitely a bunch of sample data stored in each PB but I don't know exa
 000c 02ff      rti         
 000d 0000      nop         
 000e 029f 05b8 jmp         0x05b8	-> 05b8_NewMail()
+
 0010 029f 004e jmp         0x004e	-> 004e_ContinueUCode() ???
 
 // reset vector
@@ -220,7 +221,7 @@ void 0012_ResetVector()
 	// 002a 00fe 034e sr          @0x034e, $AC0.M
 	*0x034e = 0x00
  
-	# 002c 1305      sbset       #0x05
+	002c 1305      sbset       #0x05
 
 	// 002d 029f 06c5 jmp         0x06c5
 	
@@ -251,12 +252,10 @@ void 0012_ResetVector()
 	upperCommand = (upperCommand >> 7) & 0x7e							// F|RES: i think duddy is wrong here ... a negative must be a shift right
 	*0x0343 = upperCommand
 		
-	/*
-		003f 0200 0075 addi        $AC0.M, #0x0075
-		0041 1c1e      mrr         $AR0, $AC0.M
-		0042 170f      jmpr        $AR0
-	switch casement of the commands.. jump table is at 0075
-	*/
+	//	003f 0200 0075 addi        $AC0.M, #0x0075
+	//	0041 1c1e      mrr         $AR0, $AC0.M
+	//	0042 170f      jmpr        $AR0
+	// switch casement of the commands.. jump table is at 0075
 	
 	switch (upperCommand >> 1)   // command must be shift >> 1 in our source code because the jump table is aligned with 2 Bytes 
 	{
@@ -319,14 +318,18 @@ void 0057_InitHardware()
 	005b 8e00      set16       
 	005c 8c00      clr15       
 	005d 8b00      m0          
+	
+	// Set all indexing wrappers to max range.
 	005e 009e ffff lri         $AC0.M, #0xffff
 	0060 1d1e      mrr         $WR0, $AC0.M
 	0061 1d3e      mrr         $WR1, $AC0.M
 	0062 1d5e      mrr         $WR2, $AC0.M
 	0063 1d7e      mrr         $WR3, $AC0.M
+	
+	// Have CR point to the HW interface.
 	0064 0092 00ff lri         $CR, #0x00ff
-	0066 02df      ret         
-}	 
+	// 0066 02df      ret         
+} 
 
 void 0067_CopyCommand(_destAddr($AR0), _loopCount($AC0.M))
 {
@@ -597,13 +600,16 @@ void 0127_Unk() {
 	0135 0508      addis       $ACC1, #0x08
 	0136 02bf 0525 call        0x0525					// 0525_CopyRAMtoDMEM
 	// 0525_CopyRAMtoDMEM(... ,.. , 0x50)
-	0138 00de 0390 lr          $AC0.M, @0x0390
-	013a 02a0 0001 andf        $AC0.M, #0x0001
-	013c 029d 0145 jlz         0x0145
-	013e 0080 0398 lri         $AR0, #0x0398
-	0140 0e08      lris        $AC0.M, #0x08
-	0141 00c1 03a1 lr          $AR1, @0x03a1
-	0143 02bf 0b2e call        0x0b2e                  // 0b2e_Unk_Multiply
+	
+	// 0138 00de 0390 lr          $AC0.M, @0x0390
+	// 013a 02a0 0001 andf        $AC0.M, #0x0001
+	// 013c 029d 0145 jlz         0x0145
+	if (*0x0390 & 1) {
+		013e 0080 0398 lri         $AR0, #0x0398
+		0140 0e08      lris        $AC0.M, #0x08
+		0141 00c1 03a1 lr          $AR1, @0x03a1
+		0143 02bf 0b2e call        0x0b2e                  // 0b2e_Unk_Multiply
+	}
 	0145 0f50      lris        $AC1.M, #0x50
 	0146 00c0 03a1 lr          $AR0, @0x03a1
 	0148 00da 0394 lr          $AX0.H, @0x0394
@@ -619,12 +625,16 @@ void 0127_Unk() {
 	0155 00da 0396 lr          $AX0.H, @0x0396
 	0157 8600      tstaxh      $AX0.H
 	0158 0295 015f jz          0x015f
-	015a 1c7a      mrr         $AR3, $AX0.H
-	015b 00d8 0397 lr          $AX0.L, @0x0397
-	015d 02bf 00eb call        0x00eb                   // 00eb_Unk_BufferMultWithDest
-	015f 00de 0390 lr          $AC0.M, @0x0390
-	0161 02a0 0002 andf        $AC0.M, #0x0002
-	0163 02dd      retlz       
+		015a 1c7a      mrr         $AR3, $AX0.H
+		015b 00d8 0397 lr          $AX0.L, @0x0397
+		015d 02bf 00eb call        0x00eb                   // 00eb_Unk_BufferMultWithDest
+	
+	// 015f 00de 0390 lr          $AC0.M, @0x0390
+	// 0161 02a0 0002 andf        $AC0.M, #0x0002
+	// 0163 02dd      retlz       
+	if (*0x390 & 2)
+		return;
+		
 	0164 0080 0398 lri         $AR0, #0x0398
 	0166 0e08      lris        $AC0.M, #0x08
 	0167 00c1 03a1 lr          $AR1, @0x03a1
@@ -1089,56 +1099,56 @@ void 0243_COMMAND_02()  // sync frame
 			// A block of audio is now present at 0x520.
 
 		ContinueWithBlock:
-			 // 02d8 00da 04a8 lr          $AX0.H, @0x04a8
-			 // 02da 8600      tstaxh      $AX0.H
-			 // 02db 0295 02e1 jz          0x02e1
-			 // 02dd 0080 0520 lri         $AR0, #0x0520
-			 // 02df 02bf 0c84 call        0x0c84
-			 			 
-			 if (0x04a8 != 0)
+			// 02d8 00da 04a8 lr          $AX0.H, @0x04a8
+			// 02da 8600      tstaxh      $AX0.H
+			// 02db 0295 02e1 jz          0x02e1
+			// 02dd 0080 0520 lri         $AR0, #0x0520
+			// 02df 02bf 0c84 call        0x0c84
+						 
+			if (0x04a8 != 0)
 				0c84_ModifySample(0x0520)
-			 			 
-			 // 02e1 009e 0520 lri         $AC0.M, #0x0520
-			 // 02e3 00fe 038f sr          @0x038f, $AC0.M			 
-			 *0x038f  = 0x0520
+						 
+			// 02e1 009e 0520 lri         $AC0.M, #0x0520
+			// 02e3 00fe 038f sr          @0x038f, $AC0.M			 
+			*0x038f  = 0x0520
 
-			 // 02e5 8900      clr         $ACC1
-			 // 02e6 00df 0484 lr          $AC1.M, @0x0484
-			 // 02e8 0340 001f andi        $AC1.M, #0x001f
-			 // 02ea b900      tst         $ACC1
-			 // 02eb 0295 0311 jz          0x0311			 
-			 if ((*0x0484 & 0x1f) != 0x00)
-			 {
-				 // 02ed 00de 038f lr          $AC0.M, @0x038f
-				 // 02ef 5c00      sub         $ACC0, $AC1.L
-				 // 02f0 00fe 038f sr          @0x038f, $AC0.M
-				 (*0x038f) -= AC1.L;  // where did AC1.L get its value? should be 0, unless sub is wrong?
-				 
-				 // 02f2 1c7e      mrr         $AR3, $AC0.M
-				 // 02f3 0080 0440 lri         $AR0, #0x0440
-				 // 02f5 05fe      addis       $ACC1, #0xfe
-				 // 02f6 02bf 00da call        0x00da
-				 00da_CopyBuffer(0x0440, (*0x038f), (*0x0484) + 0xfe)
-				 
-				 // 02f8 0080 0490 lri         $AR0, #0x0490
-				 // 02fa 00c1 038f lr          $AR1, @0x038f
-				 // 02fc 8900      clr         $ACC1
-				 // 02fd 00df 0484 lr          $AC1.M, @0x0484
-				 // 02ff 0340 001f andi        $AC1.M, #0x001f
-				 // 0301 02bf 0b4d call        0x0b4d
-				 0b4d_IIR_Filter(In(0x0490), Out(*0x038f), FilterLength(*0x0484 & 0x1f))
-				 
-				 0303 00de 038f lr          $AC0.M, @0x038f
-				 0305 0450      addis       $ACC0, #0x50
-				 0306 1c1e      mrr         $AR0, $AC0.M
-				 // 0307 0083 0440 lri         $AR3, #0x0440
-				 0309 8900      clr         $ACC1
-				 030a 00df 0484 lr          $AC1.M, @0x0484
-				 030c 0340 001f andi        $AC1.M, #0x001f
-				 030e 05fe      addis       $ACC1, #0xfe
-				 // 030f 02bf 00da call        0x00da
-				 00da_CopyBuffer(, 0x0440)
-			 }
+			// 02e5 8900      clr         $ACC1
+			// 02e6 00df 0484 lr          $AC1.M, @0x0484
+			// 02e8 0340 001f andi        $AC1.M, #0x001f
+			// 02ea b900      tst         $ACC1
+			// 02eb 0295 0311 jz          0x0311			 
+			if ((*0x0484 & 0x1f) != 0x00)
+			{
+				// 02ed 00de 038f lr          $AC0.M, @0x038f
+				// 02ef 5c00      sub         $ACC0, $AC1.L
+				// 02f0 00fe 038f sr          @0x038f, $AC0.M
+				(*0x038f) -= AC1.L;  // where did AC1.L get its value? should be 0, unless sub is wrong?
+				
+				// 02f2 1c7e      mrr         $AR3, $AC0.M
+				// 02f3 0080 0440 lri         $AR0, #0x0440
+				// 02f5 05fe      addis       $ACC1, #0xfe
+				// 02f6 02bf 00da call        0x00da
+				00da_CopyBuffer(0x0440, (*0x038f), (*0x0484) + 0xfe)
+				
+				// 02f8 0080 0490 lri         $AR0, #0x0490
+				// 02fa 00c1 038f lr          $AR1, @0x038f
+				// 02fc 8900      clr         $ACC1
+				// 02fd 00df 0484 lr          $AC1.M, @0x0484
+				// 02ff 0340 001f andi        $AC1.M, #0x001f
+				// 0301 02bf 0b4d call        0x0b4d
+				0b4d_IIR_Filter(In(0x0490), Out(*0x038f), FilterLength(*0x0484 & 0x1f))
+				
+				0303 00de 038f lr          $AC0.M, @0x038f
+				0305 0450      addis       $ACC0, #0x50
+				0306 1c1e      mrr         $AR0, $AC0.M
+				// 0307 0083 0440 lri         $AR3, #0x0440
+				0309 8900      clr         $ACC1
+				030a 00df 0484 lr          $AC1.M, @0x0484
+				030c 0340 001f andi        $AC1.M, #0x001f
+				030e 05fe      addis       $ACC1, #0xfe
+				// 030f 02bf 00da call        0x00da
+				00da_CopyBuffer(, 0x0440)
+			}
 
 			// 0311 00de 0484 lr          $AC0.M, @0x0484
 			// 0313 0240 0020 andi        $AC0.M, #0x0020
@@ -2182,18 +2192,25 @@ void 0688_InitCommandBlock()
 	0694 00e8 03fc sr          @0x03fc, $WR0
 	0696 00c0 0350 lr          $AR0, @0x0350
 	0698 0088 002f lri         $WR0, #0x002f
-	069a 1b1a      srri        @$AR0, $AX0.H
-	069b 00de fffe lr          $AC0.M, @CMBH
-	069d 02c0 8000 andcf       $AC0.M, #0x8000
-	069f 029c 069b jlnz        0x069b
-	06a1 00dc ffff lr          $AC0.L, @CMBL
-	06a3 1b1e      srri        @$AR0, $AC0.M
-	06a4 1b1c      srri        @$AR0, $AC0.L
-	06a5 1fda      mrr         $AC0.M, $AX0.H
-	06a6 7800      decm        $AC0.M
-	06a7 1f5e      mrr         $AX0.H, $AC0.M
-	06a8 8600      tstaxh      $AX0.H
-	06a9 0294 069b jnz         0x069b
+	
+	do {
+		069a 1b1a      srri        @$AR0, $AX0.H
+
+		// 069b 00de fffe lr          $AC0.M, @CMBH
+		// 069d 02c0 8000 andcf       $AC0.M, #0x8000
+		// 069f 029c 069b jlnz        0x069b
+		while (!CMBH & 0x8000)
+			;
+		06a1 00dc ffff lr          $AC0.L, @CMBL
+		06a3 1b1e      srri        @$AR0, $AC0.M
+		06a4 1b1c      srri        @$AR0, $AC0.L
+		06a5 1fda      mrr         $AC0.M, $AX0.H
+		06a6 7800      decm        $AC0.M
+		06a7 1f5e      mrr         $AX0.H, $AC0.M
+
+		// 06a8 8600      tstaxh      $AX0.H
+		// 06a9 0294 069b jnz         0x069b
+	} while (AX0.H);
 		 
 	/*
 		06ab 8100      clr         $ACC0
@@ -2213,6 +2230,7 @@ void 0688_InitCommandBlock()
 	GOTO EndOfMailException // return values and leave exception
 		 
 	// looks like a read from ring buffer [0x350, 0x37f]
+	// note the use of the wrap register WR0.
 	06b9 00e0 03fb sr          @0x03fb, $AR0
 	06bb 00e8 03fc sr          @0x03fc, $WR0
 	06bd 00c0 0350 lr          $AR0, @0x0350
@@ -2260,16 +2278,14 @@ void 06c5_CopyCommandBlock()
 	// 06d6 0081 0356 lri         $AR1, #0x0356
 	short destCommandQueueAddr = 0x0356	
 	
-	/* 
-		06d8 191e      lrri        $AC0.M, @$AR0
-		06d9 02c0 8000 andcf       $AC0.M, #0x8000
-		06db 029d 06f1 jlz         0x06f1
-	 	06dd 1f5e      mrr         $AX0.H, $AC0.M
-		06de 8600      tstaxh      $AX0.H
-		06df 0295 06f5 jz          0x06f5
+	// 06d8 191e      lrri        $AC0.M, @$AR0
+	// 06d9 02c0 8000 andcf       $AC0.M, #0x8000
+	// 06db 029d 06f1 jlz         0x06f1
+	// 06dd 1f5e      mrr         $AX0.H, $AC0.M
+	// 06de 8600      tstaxh      $AX0.H
+	// 06df 0295 06f5 jz          0x06f5
 
 	// check if command is valid
-	*/
 	
 	short numCommands = *srcCommandQueueAddr++ 
 	numCommands &= 0x8000
@@ -2333,8 +2349,11 @@ void 06f9_Unk_PrepareSampleDecode()
 	06f9 8100      clr         $ACC0
 	06fa 0e10      lris        $AC0.M, #0x10
 	06fb 2232      lrs         $AX0.H, @0x0032
-	06fc 8600      tstaxh      $AX0.H
-	06fd 02d5      retz        
+	// 06fc 8600      tstaxh      $AX0.H
+	// 06fd 02d5      retz        
+	if (!*0x0432)
+		return;
+		
 	06fe 5400      subr        $ACC0, $AX0.H
 	06ff 0200 0458 addi        $AC0.M, #0x0458
 	0701 1c1e      mrr         $AR0, $AC0.M
@@ -2342,18 +2361,21 @@ void 06f9_Unk_PrepareSampleDecode()
 	0703 04fe      addis       $ACC0, #0xfe
 	0704 1f1e      mrr         $AX0.L, $AC0.M
 	0705 191e      lrri        $AC0.M, @$AR0
-	0706 0291 070c js          0x070c
-	0708 191a      lrri        $AX0.H, @$AR0
-	0709 0058      loop        $AX0.L
-	070a 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
-	070b 6433      movr's      $ACC0, $AX0.H : @$AR3, $AC0.M
+	// 0706 0291 070c js          0x070c
+	if ( .. ?? ..) {
+		0708 191a      lrri        $AX0.H, @$AR0
+		// Copy-loop
+		0709 0058      loop        $AX0.L
+			070a 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
+		070b 6433      movr's      $ACC0, $AX0.H : @$AR3, $AC0.M
+	}
 	070c 1b7e      srri        @$AR3, $AC0.M
 	070d 02df      ret         
 }
  
 
 // early out for 073d_DECODE_0x05_0x09
- {
+void EarlyOutFrom_073d_DECODE_0x05_0x09() {
 	//070e 02bf 06f9 call        0x06f9
 	06f9_Unk_PrepareSampleDecode()
 	0710 8100      clr         $ACC0
@@ -3501,7 +3523,7 @@ void 0af6_Unk() {
 	0b1d 0274      ifnz        
 	if (ACC1) {
 		0b1e 0008      iar         $AR0
-	}
+	}	
 	0b1f 8900      clr         $ACC1
 	0b20 1fe1      mrr         $AC1.M, $AR1
 	0b21 191e      lrri        $AC0.M, @$AR0
@@ -3522,7 +3544,7 @@ void 0af6_Unk() {
 }
 
 
-void 0b2e_Unk_Multiply() {
+void 0b2e_Unk_Multiply() {   // ZWW: 01c2_Unk
 	0b2e 8a00      m2          
 	0b2f 0083 03e8 lri         $AR3, #0x03e8
 	0b31 191e      lrri        $AC0.M, @$AR0

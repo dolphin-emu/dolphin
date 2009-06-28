@@ -21,7 +21,7 @@
 #include "disassemble.h"
 
 #include "DSPSymbols.h"
-#include "gdsp_memory.h"
+#include "DSPMemoryMap.h"
 
 void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {

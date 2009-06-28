@@ -53,7 +53,7 @@ jnz, ifs, retlnz
 
 #include "DSPInterpreter.h"
 #include "DSPJit.h"
-#include "gdsp_ext_op.h"
+#include "DSPIntExtOps.h"
 
 void nop(const UDSPInstruction& opc)
 {

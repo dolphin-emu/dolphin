@@ -26,20 +26,20 @@
 #include <stdio.h>
 
 #include "gdsp_interpreter.h"
-#include "gdsp_memory.h"
 #include "gdsp_interface.h"
 
+#include "DSPMemoryMap.h"
 #include "DSPCore.h"
 
 u16 dsp_imem_read(u16 addr)
 {
 	switch (addr >> 12)
 	{
-	case 0:
+	case 0:   // 0xxx IRAM
 		return g_dsp.iram[addr & DSP_IRAM_MASK];
-	case 8:
+	case 8:   // 8xxx IROM - contains code to receive code for IRAM, and a bunch of mixing loops.
 		return g_dsp.irom[addr & DSP_IROM_MASK];
-	default:
+	default:  // Unmapped/non-existing memory
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Executing from invalid (%04x) memory", g_dsp.pc, addr);
 		return 0;
 	}
@@ -49,16 +49,17 @@ u16 dsp_dmem_read(u16 addr)
 {
 	switch (addr >> 12)
 	{
-	case 0x0: // 0xxx DRAM
+	case 0x0:  // 0xxx DRAM
 		return g_dsp.dram[addr & DSP_DRAM_MASK];
 		
-	case 0x1: // 1xxx COEF
+	case 0x1:  // 1xxx COEF
+		// DEBUG_LOG(DSPLLE, "%04x : Coef Read @ %04x", g_dsp.pc, addr);
 		return g_dsp.coef[addr & DSP_COEF_MASK];
 
-	case 0xf: // Fxxx HW regs
+	case 0xf:  // Fxxx HW regs
 		return gdsp_ifx_read(addr);
 		
-	default: // error
+	default:   // Unmapped/non-existing memory
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
 		return 0;
 	}
@@ -73,14 +74,14 @@ void dsp_dmem_write(u16 addr, u16 val)
 		break;
 
 	case 0x1: // 1xxx COEF
-		ERROR_LOG(DSPLLE, "someone writes to COEF (pc = %02x)", g_dsp.pc);
+		ERROR_LOG(DSPLLE, "Illegal write to COEF (pc = %02x)", g_dsp.pc);
 		break;
 
 	case 0xf: // Fxxx HW regs
 		gdsp_ifx_write(addr, val);
 		break;
 
-	default: // error
+	default:  // Unmapped/non-existing memory
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
 		break;
 	}

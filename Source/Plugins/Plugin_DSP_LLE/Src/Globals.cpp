@@ -26,18 +26,18 @@
 // =======================================================================================
 // For PB address detection
 // --------------
+
+// This will only work on GC, not Wii.
 u32 RAM_MASK = 0x1FFFFFF;
 
 u16 Memory_Read_U16(u32 _uAddress)
 {
-	_uAddress &= RAM_MASK;
-	return Common::swap16(*(u16*)&g_dsp.cpu_ram[_uAddress]);
+	return Common::swap16(*(u16*)&g_dsp.cpu_ram[_uAddress & RAM_MASK]);
 }
 
 u32 Memory_Read_U32(u32 _uAddress)
 {
-	_uAddress &= RAM_MASK;
-	return Common::swap32(*(u32*)&g_dsp.cpu_ram[_uAddress]);
+	return Common::swap32(*(u32*)&g_dsp.cpu_ram[_uAddress & RAM_MASK]);
 }
 
 #if PROFILE

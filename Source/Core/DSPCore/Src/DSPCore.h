@@ -59,23 +59,35 @@ struct SDSP
 #if PROFILE
 	u16 err_pc;
 #endif
-	u16 *iram;
-	u16 *dram;
-	u16 *irom;
-	u16 *coef;
-	u8  *cpu_ram;
+	
+	// This is NOT the same cr as r[DSP_REG_CR].
+	// This register is shared with the main emulation, see DSP.cpp
+	// The plugin has control over 0x0C07 of this reg.
+	// Bits are defined in a struct in DSP.cpp.
 	u16 cr;
+
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions?
 	bool exception_in_progress_hack;  // is this the same as "exception enabled"?
 
-	// lets make stack depth to 32 for now
+	// Let's make stack depth 32 for now. The real DSP has different depths
+	// for the different stacks, but it would be strange if any ucode relied on stack
+	// overflows since on the DSP, when the stack overflows, you're screwed.
 	u16 reg_stack[4][DSP_STACK_DEPTH];
-	void (*irq_request)(void);
 
-	// for debugger only
+	// For debugging.
 	u32 iram_crc;
 	u64 step_counter;
+
+	// When state saving, all of the above can just be memcpy'd into the save state.
+	// The below needs special handling.
+	u16 *iram;
+	u16 *dram;
+	u16 *irom;
+	u16 *coef;
+
+	// This one doesn't really belong here.
+	u8  *cpu_ram;
 };
 
 extern SDSP g_dsp;

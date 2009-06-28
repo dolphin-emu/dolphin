@@ -20,7 +20,7 @@
 #include "DSPInterpreter.h"
 
 #include "gdsp_condition_codes.h"
-#include "gdsp_opcodes_helper.h"
+#include "DSPIntUtil.h"
 
 // Arithmetic and accumulator control.
 

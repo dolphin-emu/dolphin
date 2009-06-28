@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _GDSP_ARAM_H
-#define _GDSP_ARAM_H
+#ifndef _DSP_ACCELERATOR_H
+#define _DSP_ACCELERATOR_H
 
 u16 dsp_read_accelerator();
 

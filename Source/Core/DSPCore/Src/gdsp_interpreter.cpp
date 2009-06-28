@@ -32,11 +32,13 @@
 #include "DSPAnalyzer.h"
 
 #include "gdsp_interface.h"
-#include "gdsp_opcodes_helper.h"
+#include "DSPIntUtil.h"
 
 namespace DSPInterpreter {
 
 volatile u32 gdsp_running;
+
+// NOTE: These have nothing to do with g_dsp.r[DSP_REG_CR].
 
 // Hm, should instructions that change CR use this? Probably not (but they
 // should call UpdateCachedCR())
@@ -68,6 +70,8 @@ u16 ReadCR()
 
 	return g_dsp.cr;
 }
+
+
 
 void HandleLoop()
 {

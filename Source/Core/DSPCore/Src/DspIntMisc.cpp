@@ -23,7 +23,7 @@
 #include "DSPCore.h"
 
 #include "gdsp_registers.h"
-#include "gdsp_opcodes_helper.h"
+#include "DSPIntUtil.h"
 
 namespace DSPInterpreter {
 

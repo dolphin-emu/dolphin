@@ -414,6 +414,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\DSPIntExtOps.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPIntExtOps.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\DspIntLoadStore.cpp"
 				>
 			</File>
@@ -423,6 +431,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\DspIntMultiplier.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPIntUtil.h"
 				>
 			</File>
 		</Filter>
@@ -444,6 +456,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\disassemble.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPAccelerator.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPAccelerator.h"
 			>
 		</File>
 		<File
@@ -487,6 +507,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPMemoryMap.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPMemoryMap.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DSPTables.cpp"
 			>
 		</File>
@@ -495,27 +523,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\gdsp_aram.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_aram.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\gdsp_condition_codes.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\gdsp_condition_codes.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_ext_op.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_ext_op.h"
 			>
 		</File>
 		<File
@@ -532,18 +544,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\gdsp_interpreter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_memory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_memory.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\gdsp_opcodes_helper.h"
 			>
 		</File>
 		<File

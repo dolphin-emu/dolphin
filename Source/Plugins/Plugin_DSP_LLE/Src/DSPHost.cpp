@@ -23,6 +23,14 @@
 
 extern DSPInitialize g_dspInitialize;
 
+#if defined(HAVE_WX) && HAVE_WX
+
+#include "DSPConfigDlgLLE.h"
+#include "Debugger/Debugger.h" // For the DSPDebuggerLLE class
+extern DSPDebuggerLLE* m_DebuggerFrame;
+
+#endif
+
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
 // core isn't used, for example in an asm/disasm tool, then most of these
@@ -48,6 +56,12 @@ bool DSPHost_Running()
 	return !(*g_dspInitialize.pEmulatorState);
 }
 
+void DSPHost_InterruptRequest()
+{
+	// Fire an interrupt on the PPC ASAP.
+	g_dspInitialize.pGenerateDSPInterrupt();
+}
+
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
 	u32 crc = GenerateCRC(ptr, size);
@@ -68,13 +82,22 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	
 	// TODO: Don't hardcode for Zelda.
 	NOTICE_LOG(DSPLLE, "CRC: %08x", ector_crc);
-	if (ector_crc != 0x86840740 || !DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"))
-	{
-		DSPSymbols::Clear();
+
+	DSPSymbols::Clear();
+	bool success = false;
+	switch (ector_crc) {
+		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"); break;
+		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Luigi.txt"); break;
+		default: success = false; break;
+	}
+
+	if (!success) {
 		DSPSymbols::AutoDisassembly(0x0, 0x1000);
 	}
 
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
+
+	m_DebuggerFrame->Refresh();
 	return crc;
 }

@@ -77,7 +77,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 }
 
 DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
-: wxGrid(parent, id)
+	: wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
 {
 	SetTable(new CRegTable(), true);
 	SetRowLabelSize(0);

@@ -54,8 +54,8 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 
 	case 0x088e38a5: // IPL - JAP
 	case 0xd73338cf: // IPL
-	case 0x42f64ac4: // Luigi       (after fix)
-	case 0x4be6a5cb: // AC, Pikmin  (after fix)
+	case 0x42f64ac4: // Luigi
+	case 0x4be6a5cb: // AC, Pikmin
 		INFO_LOG(CONSOLE, "JAC (early Zelda) ucode chosen\n");
 		return new CUCode_Jac(_rMailHandler);
 //		return new CUCode_Zelda(_rMailHandler, false);

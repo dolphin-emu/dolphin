@@ -18,7 +18,7 @@
 #include "DSPAnalyzer.h"
 #include "DSPInterpreter.h"
 #include "DSPTables.h"
-#include "gdsp_memory.h"
+#include "DSPMemoryMap.h"
 
 namespace DSPAnalyzer {
 
@@ -30,12 +30,13 @@ u8 code_flags[ISPACE];
 // as well give up its time slice immediately, after executing once.
 
 // Max signature length is 6. A 0 in a signature is ignored.
-#define NUM_IDLE_SIGS 4
+#define NUM_IDLE_SIGS 5
 #define MAX_IDLE_SIG_SIZE 6
 
 // 0xFFFF means ignore.
 const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 {
+	// From AX:
 	{ 0x26fc,          // LRS $30, @DMBH
 	  0x02c0, 0x8000,  // ANDCF $30, #0x8000
 	  0x029d, 0xFFFF,  // JLZ 0x027a
@@ -52,6 +53,12 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
 	  0x029c, 0xFFFF,  // JLNZ 0x0280
 	  0, 0 },     // RET
+
+	// From Zelda:
+	{ 0x00de, 0xFFFE,  // LR $AC0.M, @CMBH
+	  0x02c0, 0x8000,  // ANDCF $AC0.M, #0x8000 
+	  0x029c, 0xFFFF,  // JLNZ 0x05cf
+	  0 }
 };
 
 void Reset()

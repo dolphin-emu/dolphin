@@ -93,7 +93,8 @@
 #define DSP_STACK_D 1
 
 
-// CR bits
+// cr (Not g_dsp.r[CR]) bits
+// See HW/DSP.cpp.
 #define CR_HALT         0x0004
 #define CR_EXTERNAL_INT 0x0002
 

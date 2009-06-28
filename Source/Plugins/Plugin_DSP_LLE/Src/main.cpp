@@ -193,13 +193,6 @@ void DSP_DebugBreak()
 #endif
 }
 
-
-void dspi_req_dsp_irq()
-{
-	// Fire an interrupt on the PPC ASAP.
-	g_dspInitialize.pGenerateDSPInterrupt();
-}
-
 void Initialize(void *init)
 {
     bCanWork = true;
@@ -211,8 +204,6 @@ void Initialize(void *init)
 	std::string coef_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF;
 	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str());
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
-	g_dsp.irq_request = dspi_req_dsp_irq;
-//	g_dsp.exception_in_progress_hack = false;
 	DSPCore_Reset();
 
 	if (!bCanWork)

@@ -23,19 +23,18 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_OPCODES_HELPER_H
-#define _GDSP_OPCODES_HELPER_H
+#ifndef _DSP_INT_UTIL_H
+#define _DSP_INT_UTIL_H
 
 #include "Common.h"
 
 #include "DSPInterpreter.h"
 #include "DSPCore.h"
+#include "DSPMemoryMap.h"
 
-#include "gdsp_memory.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_registers.h"
-#include "gdsp_ext_op.h"
-
+// #include "DSPIntExtOps.h"
 
 // ---------------------------------------------------------------------------------------
 // --- SR
@@ -51,20 +50,8 @@ inline bool dsp_SR_is_flag_set(int flag)
 }
 
 
-// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-inline void dsp_decrement_addr_reg(int reg)
-{
-	// This one was easy. increment is worse...
-	if ((g_dsp.r[reg] & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
-		g_dsp.r[reg] |= g_dsp.r[DSP_REG_WR0 + reg];
-	else
-		g_dsp.r[reg]--;
-}
-
-
 // HORRIBLE UGLINESS, someone please fix.
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-
 inline u16 ToMask(u16 a)
 {
 	a = a | (a >> 8);
@@ -80,6 +67,16 @@ inline void dsp_increment_addr_reg(int reg)
 		g_dsp.r[reg] ^= g_dsp.r[DSP_REG_WR0 + reg];
 	else
 		g_dsp.r[reg]++;
+}
+
+// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+inline void dsp_decrement_addr_reg(int reg)
+{
+	// This one is easy. Looks like a hw implementation. Increment is worse...
+	if ((g_dsp.r[reg] & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
+		g_dsp.r[reg] |= g_dsp.r[DSP_REG_WR0 + reg];
+	else
+		g_dsp.r[reg]--;
 }
 
 inline void dsp_increase_addr_reg(int reg, s16 value)

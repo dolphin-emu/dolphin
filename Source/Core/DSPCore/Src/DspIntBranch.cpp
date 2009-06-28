@@ -21,9 +21,8 @@
 #include "DSPCore.h"
 
 #include "gdsp_condition_codes.h"
-#include "gdsp_opcodes_helper.h"
-#include "gdsp_memory.h"
-
+#include "DSPIntUtil.h"
+#include "DSPMemoryMap.h"
 
 namespace DSPInterpreter {
 

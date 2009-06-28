@@ -32,7 +32,7 @@
 #include "DSPHost.h"
 #include "DSPTables.h"
 #include "DSPAnalyzer.h"
-#include "gdsp_aram.h"
+#include "DSPAccelerator.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 
@@ -124,7 +124,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	{
 	    case 0xfb: // DIRQ
 		    if (val & 0x1)
-			    g_dsp.irq_request();
+			    DSPHost_InterruptRequest();
 		    break;
 
 	    case 0xfc: // DMBH
@@ -311,5 +311,3 @@ void gdsp_dma()
 		    break;
 	}
 }
-
-

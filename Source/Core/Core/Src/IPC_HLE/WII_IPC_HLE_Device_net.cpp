@@ -58,8 +58,7 @@
 #include "WII_IPC_HLE_Device_net.h"
 #include <stdio.h>
 #ifdef _WIN32
-#include <winsock.h>
-typedef int socklen_t;
+#include <ws2tcpip.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h> 
@@ -287,7 +286,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 	// Clean the location of the output buffer to zeroes as a safety precaution */
 	Memory::Memset(BufferOut, 0, BufferOutSize);
 
-	switch(_Command)
+	switch (_Command)
 	{
 	case IOCTL_SO_STARTUP:
 		break;
@@ -297,7 +296,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		u32 TYPE = Memory::Read_U32(_BufferIn + 0x04);
 		u32 PROT = Memory::Read_U32(_BufferIn + 0x04 * 2);
 		u32 Unk1 = Memory::Read_U32(_BufferIn + 0x04 * 3);
-		u32 Socket = socket(AF,TYPE,PROT);
+		u32 Socket = socket(AF, TYPE, PROT);
 		return Common::swap32(Socket); // So it doesn't get mangled later on
 	}
 	break;

@@ -41,7 +41,6 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow *parent, wxWindowID id, const wxString &
 							   , m_CachedStepCounter(-1)
 							   , m_CachedCR(-1)
 							   , m_State(RUN)
-							   , m_CachedUCodeCRC(-1)
 {
 	CreateGUIControls();
 }
@@ -64,31 +63,27 @@ void DSPDebuggerLLE::CreateGUIControls()
 	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
 	m_Toolbar->AddSeparator();
 
-	m_Toolbar->AddCheckTool(ID_CHECK_ASSERTINT, wxT("AssertInt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
-	m_Toolbar->AddCheckTool(ID_CHECK_HALT, wxT("Halt"), wxNullBitmap, wxNullBitmap, wxEmptyString);
-	m_Toolbar->AddCheckTool(ID_CHECK_INIT, wxT("Init"), wxNullBitmap, wxNullBitmap, wxEmptyString);
-	m_Toolbar->AddSeparator();
-
 	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, _T("")));
 
 	m_Toolbar->Realize();
 
 	wxBoxSizer* sMain = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
-	sizerLeft->Add(m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+	sizerLeft->Add(m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition, wxSize(140, 100), 0, NULL, wxLB_SORT),
+		1, wxEXPAND);
 
 	m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, this, ID_CODEVIEW);
 	m_CodeView->SetPlain();
 
-	sMain->Add(sizerLeft, 1, wxALL|wxEXPAND, 0);
+	sMain->Add(sizerLeft, 0, wxEXPAND, 0);
 
-	sMain->Add(m_CodeView, 4, wxALL|wxEXPAND, 5);
+	sMain->Add(m_CodeView, 4, wxEXPAND, 0);
 
 	wxStaticLine* m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-	sMain->Add(m_staticline, 0, wxEXPAND|wxALL, 5);
+	sMain->Add(m_staticline, 0, wxEXPAND|wxALL, 0);
 
 	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
-	sMain->Add(m_Regs, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(m_Regs, 0, wxEXPAND|wxALL, 5);
 
 	this->SetSizer(sMain);
 	this->Layout();
@@ -165,28 +160,15 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 	if (g_dsp.dram == NULL)
 		return;
 
-	if (m_CachedUCodeCRC != g_dsp.iram_crc)
+	m_SymbolList->Freeze();	// HyperIris: wx style fast filling
+	m_SymbolList->Clear();
+	for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
+		 iter != DSPSymbols::g_dsp_symbol_db.End(); iter++)
 	{
-		// load symbol map (if there is one)
-		m_CachedUCodeCRC = g_dsp.iram_crc;
-		char FileName[256];
-		sprintf(FileName, "%sDSP_%08x.map", FULL_MAPS_DIR, m_CachedUCodeCRC);
-
-		// LoadSymbolMap(FileName);
-		
-		m_SymbolList->Freeze();	// HyperIris: wx style fast filling
-		m_SymbolList->Clear();
-		for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
-			 iter != DSPSymbols::g_dsp_symbol_db.End(); iter++)
-		{
-			int idx = m_SymbolList->Append(wxString::FromAscii(iter->second.name.c_str()));
-			m_SymbolList->SetClientData(idx, (void*)&iter->second);
-		}
-		m_SymbolList->Thaw();
-
-		// rebuild the disasm
-		// RebuildDisAsmListView();
+		int idx = m_SymbolList->Append(wxString::FromAscii(iter->second.name.c_str()));
+		m_SymbolList->SetClientData(idx, (void*)&iter->second);
 	}
+	m_SymbolList->Thaw();
 }
 
 void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
@@ -209,9 +191,9 @@ void DSPDebuggerLLE::UpdateRegisterFlags()
 	if (m_CachedCR == g_dsp.cr)
 		return;
 
-	m_Toolbar->ToggleTool(ID_CHECK_ASSERTINT, g_dsp.cr & 0x02 ? true : false);
-	m_Toolbar->ToggleTool(ID_CHECK_HALT, g_dsp.cr & 0x04 ? true : false);
-	m_Toolbar->ToggleTool(ID_CHECK_INIT, g_dsp.cr & 0x800 ? true : false);
+	// m_Toolbar->ToggleTool(ID_CHECK_ASSERTINT, g_dsp.cr & 0x02 ? true : false);
+	// m_Toolbar->ToggleTool(ID_CHECK_HALT, g_dsp.cr & 0x04 ? true : false);
+	// m_Toolbar->ToggleTool(ID_CHECK_INIT, g_dsp.cr & 0x800 ? true : false);
 
 	m_CachedCR = g_dsp.cr;
 }
