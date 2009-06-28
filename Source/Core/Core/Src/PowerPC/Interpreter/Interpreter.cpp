@@ -21,7 +21,6 @@
 #include "../PPCTables.h"
 #include "Interpreter.h"
 #include "../../Debugger/Debugger_SymbolMap.h"
-#include "../../Debugger/Debugger_BreakPoints.h"
 #include "../../CoreTiming.h"
 #include "../../Core.h"
 #include "PowerPCDisasm.h"
@@ -166,7 +165,7 @@ void Run()
 					#endif
 
 					//2: check for breakpoint
-					if (g_breakpoints.IsAddressBreakPoint(PC))
+					if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 					{
 						#ifdef SHOW_HISTORY
 							NOTICE_LOG(POWERPC, "----------------------------");
@@ -187,8 +186,8 @@ void Run()
 						#endif
 						INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
 						CCPU::Break();
-						if (g_breakpoints.IsTempBreakPoint(PC))
-							g_breakpoints.Remove(PC);
+						if (PowerPC::breakpoints.IsTempBreakPoint(PC))
+							PowerPC::breakpoints.Remove(PC);
 
 						Host_UpdateDisasmDialog();
 						return;

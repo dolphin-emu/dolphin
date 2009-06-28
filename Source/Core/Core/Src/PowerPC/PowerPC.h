@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "Gekko.h"
+#include "../Debugger/Debugger_BreakPoints.h"
 
 class PointerWrap;
 
@@ -72,6 +73,9 @@ enum CPUState
 };
 
 extern PowerPCState ppcState;
+
+extern BreakPoints breakpoints;
+extern MemChecks memchecks;
 
 void Init();
 void Shutdown();

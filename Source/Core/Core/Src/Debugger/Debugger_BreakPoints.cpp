@@ -22,16 +22,13 @@
 #include "../PowerPC/PPCSymbolDB.h"
 #include "Debugger_BreakPoints.h"
 
-BreakPoints g_breakpoints;
-MemChecks g_memchecks;
-
 void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
 		if (Log)
 		{
-			DEBUG_LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)",
+			DEBUG_LOG(MEMMAP, "CHK %08x %s%i at %08x (%s)",
 				iValue, write ? "Write" : "Read", // read or write
 				size*8, addr, // address
 				g_symbolDB.GetDescription(addr) // symbol map description

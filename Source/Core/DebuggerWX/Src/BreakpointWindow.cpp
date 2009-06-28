@@ -23,7 +23,7 @@
 #include "BreakPointDlg.h"
 #include "MemoryCheckDlg.h"
 #include "Host.h"
-#include "Debugger/Debugger_BreakPoints.h" // for TMemCheck
+#include "PowerPC/PowerPC.h"
 
 #include <wx/mstream.h>
 
@@ -205,7 +205,7 @@ CBreakPointWindow::OnDelete(wxCommandEvent& event)
 void 
 CBreakPointWindow::OnClear(wxCommandEvent& event)
 {
-	g_breakpoints.Clear();
+	PowerPC::breakpoints.Clear();
 }
 // ============
 
@@ -244,7 +244,7 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 			u32 Address = 0;
 			if (AsciiToHex(line.c_str(), Address))
 			{
-				g_breakpoints.Add(Address);
+				PowerPC::breakpoints.Add(Address);
 			}
 		}
 		// only update after we are done with the loop
@@ -346,7 +346,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.Log = true;
 				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
-				g_memchecks.Add(MemCheck);	
+				PowerPC::memchecks.Add(MemCheck);	
 			}
 		}
 		// update after we are done with the loop

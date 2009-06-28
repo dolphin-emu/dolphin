@@ -41,7 +41,7 @@ void AddAutoBreakpoints()
 	{
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
 		if (symbol)
-		    g_breakpoints.Add(symbol->address, false);
+		    PowerPC::breakpoints.Add(symbol->address, false);
 	}
 #endif
 #endif

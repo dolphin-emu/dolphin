@@ -42,6 +42,9 @@ volatile CPUState state = CPU_STEPPING;
 
 static CoreMode mode;
 
+BreakPoints breakpoints;
+MemChecks memchecks;
+
 void CompactCR()
 {
 	u32 new_cr = ppcState.cr_fast[0] << 28;

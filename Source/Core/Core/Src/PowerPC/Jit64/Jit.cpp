@@ -25,7 +25,6 @@
 #include "../../Core.h"
 #include "../../PatchEngine.h"
 #include "../../CoreTiming.h"
-#include "../../Debugger/Debugger_BreakPoints.h"
 #include "../../ConfigManager.h"
 #include "../PowerPC.h"
 #include "../Profiler.h"
@@ -550,7 +549,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 		}
 
 		// If starting from the breakpointed instruction, we don't break.
-		if (em_address != ops[i].address && g_breakpoints.IsAddressBreakPoint(ops[i].address))
+		if (em_address != ops[i].address && PowerPC::breakpoints.IsAddressBreakPoint(ops[i].address))
 		{
 			
 		}

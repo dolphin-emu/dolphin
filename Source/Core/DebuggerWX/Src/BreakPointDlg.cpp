@@ -20,7 +20,7 @@
 #include "Host.h"
 #include "Debugger.h"
 #include "StringUtil.h"
-#include "Debugger/Debugger_BreakPoints.h"
+#include "PowerPC/PowerPC.h"
 
 
 BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
@@ -72,7 +72,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 	u32 Address = 0;
 	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
-		g_breakpoints.Add(Address);
+		PowerPC::breakpoints.Add(Address);
 		Host_UpdateBreakPointView();
 		Close();		
 	}

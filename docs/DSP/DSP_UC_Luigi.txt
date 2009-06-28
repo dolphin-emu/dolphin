@@ -6,7 +6,8 @@
 // ector-CRC: 42f64ac4
 
 // Notable differences:
-// Luigi init:
+//
+// Luigi init (not using mail exception):
 //  sbset       #0x02
 //  sbset       #0x03
 //  sbclr       #0x04
@@ -16,11 +17,21 @@
 //  clr15       
 //  m0          
 
-// Zelda init:
+// Zelda init (using mail exception):
 //  sbclr       #0x02  !
 //  sbclr       #0x03  !
 //  sbclr       #0x04
 //  sbset       #0x05  (late, just when it's time to receive messages)
+//  sbset       #0x06
+//  set16       
+//  clr15       
+//  m0          
+
+// AX1 init (not using mail exception, same as Luigi init):
+//  sbset       #0x02
+//  sbset       #0x03
+//  sbclr       #0x04
+//  sbset       #0x05
 //  sbset       #0x06
 //  set16       
 //  clr15       

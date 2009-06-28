@@ -104,18 +104,18 @@ bool PPCDebugInterface::isAlive()
 
 bool PPCDebugInterface::isBreakpoint(unsigned int address) 
 {
-	return g_breakpoints.IsAddressBreakPoint(address);
+	return PowerPC::breakpoints.IsAddressBreakPoint(address);
 }
 
 void PPCDebugInterface::setBreakpoint(unsigned int address)
 {
-	if (g_breakpoints.Add(address))
+	if (PowerPC::breakpoints.Add(address))
 		jit.NotifyBreakpoint(address, true);
 }
 
 void PPCDebugInterface::clearBreakpoint(unsigned int address)
 {
-	if (g_breakpoints.Remove(address))
+	if (PowerPC::breakpoints.Remove(address))
 		jit.NotifyBreakpoint(address, false);
 }
 
@@ -123,10 +123,10 @@ void PPCDebugInterface::clearAllBreakpoints() {}
 
 void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 {
-	if (g_breakpoints.IsAddressBreakPoint(address))
-		g_breakpoints.Remove(address);
+	if (PowerPC::breakpoints.IsAddressBreakPoint(address))
+		PowerPC::breakpoints.Remove(address);
 	else
-		g_breakpoints.Add(address);
+		PowerPC::breakpoints.Add(address);
 }
 
 void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 

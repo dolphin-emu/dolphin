@@ -26,7 +26,6 @@
 #include "Common.h"
 
 #include "DSPCore.h"
-// #include "DSPInterpreter.h"
 #include "DSPStacks.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.

@@ -77,8 +77,6 @@ private:
 	u32	m_iBreakOnCount;
 };
 
-extern BreakPoints g_breakpoints;
-
 
 // Memory breakpoints
 class MemChecks
@@ -95,8 +93,6 @@ public:
 
 	void Clear();
 };
-
-extern MemChecks g_memchecks;
 
 #endif
 

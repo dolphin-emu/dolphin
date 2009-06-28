@@ -20,7 +20,7 @@
 #include "Debugger.h"
 #include "StringUtil.h"
 #include "Host.h"
-#include "Debugger/Debugger_BreakPoints.h"
+#include "PowerPC/PowerPC.h"
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
 	EVT_CLOSE(MemoryCheckDlg::OnClose)
@@ -91,7 +91,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 		MemCheck.Log = true;
 		MemCheck.Break = true;
 
-		g_memchecks.Add(MemCheck);
+		PowerPC::memchecks.Add(MemCheck);
 		Host_UpdateBreakPointView();
 		Close();
 	}

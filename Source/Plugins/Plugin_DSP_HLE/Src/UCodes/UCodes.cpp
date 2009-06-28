@@ -40,9 +40,9 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x65d6cc6f: // CARD
 		return new CUCode_CARD(_rMailHandler);
 
-	case 0x3ad3b7ac: // Naruto3
+	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
 	case 0x3daf59b9: // Alien Hominid
-	case 0x4e8a8b21: // spdemo, ctaxi, 18 wheeler, disney, monkeyball2,cubivore,puzzlecollection,wario,
+	case 0x4e8a8b21: // spdemo, ctaxi, 18 wheeler, disney, monkeyball 1/2,cubivore,puzzlecollection,wario,
 	// capcom vs snk, naruto2, lost kingdoms, star fox, mario party 4, mortal kombat,
        // smugglers run warzone, smash brothers, sonic mega collection, ZooCube
        // nddemo, starfox

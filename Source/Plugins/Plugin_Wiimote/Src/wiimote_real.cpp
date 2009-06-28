@@ -147,7 +147,7 @@ void ReadData()
     {
 		//INFO_LOG(CONSOLE, "Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
-		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, m_EventWriteQueue.size());
+		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, (int)m_EventWriteQueue.size());
 		m_EventWriteQueue.pop();
 		
 #ifdef _WIN32

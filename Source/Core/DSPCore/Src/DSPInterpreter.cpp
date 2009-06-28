@@ -31,7 +31,7 @@
 #include "DSPCore.h"
 #include "DSPAnalyzer.h"
 
-#include "gdsp_interface.h"
+#include "DSPHWInterface.h"
 #include "DSPIntUtil.h"
 
 namespace DSPInterpreter {
