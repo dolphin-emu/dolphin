@@ -100,11 +100,13 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
 
-	m_DebuggerFrame->Refresh();
+	if (m_DebuggerFrame)
+		m_DebuggerFrame->Refresh();
 	return crc;
 }
 
 void DSPHost_UpdateDebugger()
 {
-	m_DebuggerFrame->Refresh();
+	if (m_DebuggerFrame)
+		m_DebuggerFrame->Refresh();
 }
