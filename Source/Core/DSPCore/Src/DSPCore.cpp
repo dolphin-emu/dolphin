@@ -32,6 +32,7 @@
 #include "DSPIntUtil.h"
 
 SDSP g_dsp;
+BreakPoints dsp_breakpoints;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {

@@ -75,34 +75,49 @@ bool DSPDebugInterface::isAlive()
 
 bool DSPDebugInterface::isBreakpoint(unsigned int address) 
 {
-	return false; //BreakPoints::IsAddressBreakPoint(address);
+	int real_addr = DSPSymbols::Line2Addr(address);
+	if (real_addr >= 0)
+		return dsp_breakpoints.IsAddressBreakPoint(real_addr);
+	else
+		return false;
 }
 
 void DSPDebugInterface::setBreakpoint(unsigned int address)
 {
-	//if (BreakPoints::Add(address))
-	//	jit.NotifyBreakpoint(address, true);
+	int real_addr = DSPSymbols::Line2Addr(address);
+	if (real_addr >= 0) {
+		if (dsp_breakpoints.Add(real_addr))
+			;
+	}
 }
 
 void DSPDebugInterface::clearBreakpoint(unsigned int address)
 {
-	//if (BreakPoints::Remove(address))
-	//	jit.NotifyBreakpoint(address, false);
+	int real_addr = DSPSymbols::Line2Addr(address);
+	if (real_addr >= 0) {
+		if (dsp_breakpoints.Remove(real_addr))
+			;
+	}
 }
 
-void DSPDebugInterface::clearAllBreakpoints() {}
+void DSPDebugInterface::clearAllBreakpoints() {
+	dsp_breakpoints.Clear();
+}
 
 void DSPDebugInterface::toggleBreakpoint(unsigned int address)
 {
-	//if (BreakPoints::IsAddressBreakPoint(address))
-	//	BreakPoints::Remove(address);
-	//else
-	//	BreakPoints::Add(address);
+	int real_addr = DSPSymbols::Line2Addr(address);
+	if (real_addr >= 0) {
+		if (dsp_breakpoints.IsAddressBreakPoint(real_addr))
+			dsp_breakpoints.Remove(real_addr);
+		else
+			dsp_breakpoints.Add(real_addr);
+	}
 }
 
 void DSPDebugInterface::insertBLR(unsigned int address) 
 {
-	
+	PanicAlert("insertBLR functionality not supported in DSP module.");
 }
 
 // =======================================================
