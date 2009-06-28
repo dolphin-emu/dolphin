@@ -28,10 +28,22 @@ void State_Shutdown();
 void State_Save(int slot);
 void State_Load(int slot);
 
+void State_SaveAs(const std::string &filename);
+void State_LoadAs(const std::string &filename);
+
+void State_LoadLastSaved();
+
 typedef struct
 {
 	u8 *buffer;
 	size_t size;
 } saveStruct;
+
+
+typedef struct  
+{
+	u8 gameID[6];
+	size_t sz;
+} state_header;
 
 #endif

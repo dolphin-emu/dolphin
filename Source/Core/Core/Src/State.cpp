@@ -52,12 +52,13 @@ static HEAP_ALLOC(wrkmem,LZO1X_1_MEM_COMPRESS);
 static int ev_Save;
 static int ev_Load;
 
-static std::string cur_filename;
+static std::string cur_filename, lastFilename;
 
 static bool const bCompressed = true;
 
-enum {
-	version = 1
+enum
+{
+	version = 1,
 };
 
 void DoState(PointerWrap &p)
@@ -84,22 +85,31 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	u8 *buffer = saveArg->buffer;
 	size_t sz = saveArg->size;
 	lzo_uint out_len = 0;
+	state_header header;
+	std::string filename = cur_filename;
 
 	delete saveArg;
 
-	FILE *f = fopen(cur_filename.c_str(), "wb");
+	// Moving to last overwritten save-state
+	if(File::Exists(cur_filename.c_str())) {
+		if(File::Exists(FULL_STATESAVES_DIR "lastState.sav"))
+			File::Delete(FULL_STATESAVES_DIR "lastState.sav");
+
+		if(!File::Rename(cur_filename.c_str(), FULL_STATESAVES_DIR "lastState.sav"))
+			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
+	}
+
+	FILE *f = fopen(filename.c_str(), "wb");
 	if(f == NULL) {
 		Core::DisplayMessage("Could not save state", 2000);
 		return 0;
 	}
 
-	if (bCompressed) {
-		fwrite(&sz, sizeof(int), 1, f);
-	} else {
-		int zero = 0;
-		fwrite(&zero, sizeof(int), 1, f);
-	}
+	// Setting up the header
+	memcpy(header.gameID, Core::GetStartupParameter().GetUniqueID().c_str(), 6);
+	header.sz = bCompressed ? sz : 0;
 
+	fwrite(&header, sizeof(state_header), 1, f);
 
 	if (bCompressed) {
 		if (lzo_init() != LZO_E_OK)
@@ -134,7 +144,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	delete [] buffer;
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
-		cur_filename.c_str()).c_str(), 2000);
+		filename.c_str()).c_str(), 2000);
 
 	return 0;
 }
@@ -176,22 +186,43 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	bool bCompressedState;
 
+	// If saving state, wait for it to finish
+	if(saveThread)
+	{
+		delete saveThread;
+		saveThread = NULL;
+	}
+
 	FILE *f = fopen(cur_filename.c_str(), "rb");
 	if (!f) {
 		Core::DisplayMessage("State not found", 2000);
 		return;
 	}
 
-	jit.ClearCache();
-
 	u8 *buffer = NULL;
+	state_header header;
+	size_t sz;
 
-	int sz;
-	fread(&sz, sizeof(int), 1, f);
+	fread(&header, sizeof(state_header), 1, f);
+	
+	if(memcmp(Core::GetStartupParameter().GetUniqueID().c_str(), header.gameID, 6)) 
+	{
+		char gameID[7] = {0};
+		memcpy(gameID, header.gameID, 6);
+		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %s)",
+			gameID), 2000);
 
+		fclose(f);
+
+		return;
+	}
+
+	sz = header.sz;
 	bCompressedState = (sz != 0);
 
 	if (bCompressedState) {
+		Core::DisplayMessage("Decompressing State...", 500);
+
 		if (lzo_init() != LZO_E_OK)
 			PanicAlert("Internal LZO Error - lzo_init() failed");
 		else {
@@ -225,6 +256,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	fclose(f);
 
+	jit.ClearCache();
+
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
@@ -253,14 +286,33 @@ std::string MakeStateFilename(int state_number)
 	return StringFromFormat(FULL_STATESAVES_DIR "%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
 }
 
+void State_SaveAs(const std::string &filename)
+{
+	cur_filename = filename;
+	lastFilename = filename;
+	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
+}
+
 void State_Save(int slot)
 {
-	cur_filename = MakeStateFilename(slot);
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
+	State_SaveAs(MakeStateFilename(slot));
+}
+
+void State_LoadAs(const std::string &filename)
+{
+	cur_filename = filename;
+	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
 }
 
 void State_Load(int slot)
 {
-	cur_filename = MakeStateFilename(slot);
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
+	State_LoadAs(MakeStateFilename(slot));
+}
+
+void State_LoadLastSaved()
+{
+	if(lastFilename.empty())
+		Core::DisplayMessage("There is no last saved state", 2000);
+	else
+		State_LoadAs(lastFilename);
 }

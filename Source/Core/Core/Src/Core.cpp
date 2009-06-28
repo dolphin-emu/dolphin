@@ -863,6 +863,14 @@ void Callback_KeyPress(int key, bool shift, bool control)
 			State_Load(slot_number);
 		}
 	}
+
+	// 0x7a == VK_F11
+	if (key == 0x7a)
+		State_LoadLastSaved();
+
+	// 0x7a == VK_F12
+	if (key == 0x7b)
+		State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
 }
  
 // Callback_WiimoteLog
