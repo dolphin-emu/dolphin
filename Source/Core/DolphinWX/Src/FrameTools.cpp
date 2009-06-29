@@ -122,14 +122,16 @@ void CFrame::CreateMenu()
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 
 	fileMenu->AppendSeparator();
-	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
+	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	menuBar->Append(fileMenu, _T("&File"));
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
-	emulationMenu->Append(IDM_PLAY, _T("&Play"));
-	emulationMenu->Append(IDM_CHANGEDISC, _T("Change Disc"));
+	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
+	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	emulationMenu->AppendSeparator();
+	emulationMenu->Append(IDM_SCREENSHOT, _T("Take S&creenshot\tF9"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
@@ -852,6 +854,7 @@ void CFrame::UpdateGUI()
 
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
+	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);
 
@@ -868,7 +871,7 @@ void CFrame::UpdateGUI()
 			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Pause"));
 			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Pause"));
 		}
-		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause"));
+		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause\tF10"));
 		
 	}
 	else
@@ -879,7 +882,7 @@ void CFrame::UpdateGUI()
 			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Play"));
 			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Play"));
 		}
-		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play"));
+		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));
 		
 	}
 	if (GetToolBar() != NULL)
