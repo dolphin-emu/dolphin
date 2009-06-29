@@ -103,6 +103,7 @@ if env['JITTEST']:
               "PowerPC/Jit64IL/Jit_LoadStoreFloating.cpp",
               "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
               "PowerPC/Jit64IL/IR.cpp",
+              "PowerPC/Jit64IL/IR_X86.cpp",
              ]
 else:
     files += ["PowerPC/Jit64/Jit.cpp",

@@ -158,7 +158,6 @@ enum Opcode {
 	RFIExit,
 	InterpreterBranch,
 
-	//IdleLoop,      // The "usual" idle loop, load+compare+branch
 	IdleBranch,	   // branch operation belonging to idle loop
 	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
 		       // just a branch
