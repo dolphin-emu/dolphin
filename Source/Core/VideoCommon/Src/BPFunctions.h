@@ -48,7 +48,7 @@ void SetColorMask(const Bypass &bp);
 float GetRendererTargetScaleX();
 float GetRendererTargetScaleY();
 void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
-void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight);
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight);
 void ClearScreen(const Bypass &bp, const TRectangle &multirc);
 void RestoreRenderState(const Bypass &bp);
 u8 *GetPointer(const u32 &address);

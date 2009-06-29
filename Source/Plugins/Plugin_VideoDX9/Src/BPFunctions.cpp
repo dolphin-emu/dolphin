@@ -228,7 +228,7 @@ void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const b
 	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");

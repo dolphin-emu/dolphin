@@ -415,22 +415,22 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 
 
 // TODO: Protect this structure with a mutex.
-static volatile struct 
+volatile struct 
 { 
-	u8* pXFB;
+	u32 xfbAddr;
 	u32 width;
 	u32 height;
 	s32 yOffset;
 } tUpdateXFBArgs;
 
 // Run from the CPU thread (from VideoInterface.cpp) for certain homebrew games only
-void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
+void Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
 	if (s_PluginInitialized)
 	{
 		if (scheduling) // From CPU in DC mode
 		{
-			tUpdateXFBArgs.pXFB = _pXFB;
+			tUpdateXFBArgs.xfbAddr = _dwXFBAddr;
 			tUpdateXFBArgs.width = _dwWidth;
 			tUpdateXFBArgs.height = _dwHeight;
 			tUpdateXFBArgs.yOffset = _dwYOffset;
@@ -441,20 +441,17 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, boo
 		{
 			g_XFBUpdateRequested = FALSE;
 
-			if (!_pXFB)
+			if (!_dwXFBAddr)
 			{
 				// From graphics thread in DC mode
-				_pXFB = tUpdateXFBArgs.pXFB;
+				_dwXFBAddr = tUpdateXFBArgs.xfbAddr;
 				_dwWidth = tUpdateXFBArgs.width;
 				_dwHeight = tUpdateXFBArgs.height;
 				_dwYOffset = tUpdateXFBArgs.yOffset;
 			}
 
-			if (g_Config.bUseXFB)
-				Renderer::DecodeFromXFB(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
-
 			// TODO: Use real XFB source parameters based on VI settings
-			Renderer::Swap();
+			Renderer::Swap(_dwXFBAddr, _dwWidth, _dwHeight, g_Config.bUseXFB ? _dwYOffset : 0);
 
 			g_VideoInitialize.pCopiedToXFB();
 		}

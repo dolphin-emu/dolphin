@@ -18,7 +18,64 @@
 #ifndef _FRAMEBUFFERMANAGER_H_
 #define _FRAMEBUFFERMANAGER_H_
 
+#include <list>
 #include "GLUtil.h"
+
+// On the GameCube, the game sends a request for the graphics processor to
+// transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
+// called the XFB (External Framebuffer). The size and location of the XFB is
+// decided at the time of the copy, and the format is always YUYV. The video
+// interface is given a pointer to the XFB, which will be decoded and
+// displayed on the TV.
+//
+// There are two ways for Dolphin to emulate this:
+//
+// Real XFB mode:
+//
+// Dolphin will behave like the GameCube and encode the EFB to
+// a portion of GameCube RAM. The emulated video interface will decode the data
+// for output to the screen.
+//
+// Advantages: Behaves exactly like the GameCube.
+// Disadvantages: Resolution will be limited.
+//
+// Virtual XFB mode:
+//
+// When a request is made to copy the EFB to an XFB, Dolphin
+// will remember the RAM location and size of the XFB in a Virtual XFB list.
+// The video interface will look up the XFB in the list and use the enhanced
+// data stored there, if available.
+//
+// Advantages: Enables high resolution graphics, better than real hardware.
+// Disadvantages: If the GameCube CPU writes directly to the XFB (which is
+// possible but uncommon), the Virtual XFB will not capture this information.
+
+// There may be multiple XFBs in GameCube RAM. This is the maximum number to
+// virtualize.
+const int MAX_VIRTUAL_XFB = 4;
+
+inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+{
+	return (
+		(aLower >= bLower && aLower < bUpper) ||
+		(aUpper >= bLower && aUpper < bUpper) ||
+		(bLower >= aLower && bLower < aUpper) ||
+		(bUpper >= aLower && bUpper < aUpper)
+		);
+}
+
+struct XFBSource
+{
+	XFBSource() :
+		texture(0)
+	{}
+
+	GLuint texture;
+	int texWidth;
+	int texHeight;
+
+	TRectangle sourceRc;
+};
 
 class FramebufferManager
 {
@@ -38,6 +95,12 @@ public:
 	void Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
 	void Shutdown();
 
+	// sourceRc is in GL target coordinates, not GameCube EFB coordinates!
+	// TODO: Clean that up.
+	void CopyToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
+
+	const XFBSource* GetXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
+
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
 	GLuint GetEFBColorTexture(const TRectangle& sourceRc) const;
@@ -46,6 +109,25 @@ public:
 	GLuint GetEFBFramebuffer() const { return m_efbFramebuffer; }
 
 private:
+
+	struct VirtualXFB
+	{
+		// Address and size in GameCube RAM
+		u32 xfbAddr;
+		u32 xfbWidth;
+		u32 xfbHeight;
+
+		XFBSource xfbSource;
+	};
+
+	typedef std::list<VirtualXFB> VirtualXFBListType;
+
+	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
+
+	void copyToRealXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
+	void copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
+	const XFBSource* getRealXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
+	const XFBSource* getVirtualXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
 
 	int m_targetWidth;
 	int m_targetHeight;
@@ -62,6 +144,8 @@ private:
 	GLuint m_resolvedDepthTexture;
 
 	GLuint m_xfbFramebuffer; // Only used in MSAA mode
+	XFBSource m_realXFBSource; // Only used in Real XFB mode
+	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
 
 };
 

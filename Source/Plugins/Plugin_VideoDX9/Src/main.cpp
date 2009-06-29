@@ -249,7 +249,7 @@ void Shutdown(void)
 	DeInit();
 }
 
-void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, bool /*scheduling*/)
+void Video_UpdateXFB(u32 /*_dwXFBAddr*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, bool /*scheduling*/)
 {
 	/*
 	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);

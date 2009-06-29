@@ -220,7 +220,7 @@ void BPWritten(const Bypass& bp)
 				const float yScale = bpmem.dispcopyyscale / 256.0f;
 				const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
 				RenderToXFB(bp, multirc, yScale, xfbLines, 
-									 Memory_GetPtr(bpmem.copyTexDest << 5), 
+									 bpmem.copyTexDest << 5, 
 									 bpmem.copyMipMapStrideChannels << 4, 
 									 (u32)ceil(xfbLines));
 			}

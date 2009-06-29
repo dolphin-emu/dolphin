@@ -132,9 +132,9 @@ void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const b
 			TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 }
 
-void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u8* pXFB, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
 {
-	Renderer::RenderToXFB(pXFB, multirc, dstWidth, dstHeight);
+	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, multirc);
 }
 void ClearScreen(const Bypass &bp, const TRectangle &multirc)
 {

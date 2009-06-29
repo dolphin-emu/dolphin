@@ -308,8 +308,15 @@ void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
 
 
 // Should be scale free.
-void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTexture)
+void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
+	u8* srcAddr = Memory_GetPtr(xfbAddr);
+	if (!srcAddr)
+	{
+		WARN_LOG(VIDEO, "Tried to decode from invalid memory address");
+		return;
+	}
+
 	Renderer::ResetGLState();
 
 	float srcFormatFactor = 0.5f;

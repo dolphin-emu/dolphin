@@ -93,11 +93,6 @@ static FILE* f_pFrameDump;
 static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 
-// TODO: Move these to FramebufferManager
-static TRectangle s_efbSourceRc;
-static GLuint s_xfbFramebuffer = 0; // Only used when multisampling is on
-static GLuint s_xfbTexture = 0;
-
 static bool s_bHaveStencilBuffer = false;
 static bool s_bHaveFramebufferBlit = false;
 static bool s_bHaveCoverageMSAA = false;
@@ -305,22 +300,6 @@ bool Renderer::Init()
 	if (s_targetheight < EFB_HEIGHT)
 		s_targetheight = EFB_HEIGHT;
 
-	// Create the XFB texture
-	glGenTextures(1, &s_xfbTexture);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_xfbTexture);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, s_targetwidth, s_targetheight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	SetDefaultRectTexParams();
-
-	// Bind it to an XFB framebuffer if MSAA is used
-	if (s_MSAASamples > 1)
-	{
-		glGenFramebuffersEXT(1, &s_xfbFramebuffer);
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_xfbFramebuffer);
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_xfbTexture, 0);
-
-		GL_REPORT_FBO_ERROR();
-	}
-
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
@@ -383,14 +362,6 @@ void Renderer::Shutdown(void)
 	}
 
 	s_framebufferManager.Shutdown();
-
-	// Note: OpenGL delete functions automatically ignore if parameter is 0
-
-	glDeleteFramebuffersEXT(1, &s_xfbFramebuffer);
-	s_xfbFramebuffer = 0;
-
-	glDeleteTextures(1, &s_xfbTexture);
-	s_xfbTexture = 0;
 
 #ifdef _WIN32
 	if(s_bAVIDumping) {
@@ -689,68 +660,45 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	rc->bottom = YOffset + ceil(FloatGLHeight);
 }
 
-void Renderer::DecodeFromXFB(u8* xfbInRam, u32 dstWidth, u32 dstHeight, s32 yOffset)
-{
-	TextureConverter::DecodeToTexture(xfbInRam + yOffset*(XFB_WIDTH*2), dstWidth, dstHeight, s_xfbTexture);
-}
+// TODO: Use something less ugly than an Evil Global Variable.
+// Also, protect this structure with a mutex.
+extern volatile struct // Comes from main.cpp
+{ 
+	u32 xfbAddr;
+	u32 width;
+	u32 height;
+	s32 yOffset;
+} tUpdateXFBArgs;
 
-void Renderer::RenderToXFB(u8* xfbInRam, const TRectangle& sourceRc, u32 dstWidth, u32 dstHeight)
+void Renderer::RenderToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc)
 {
-	// Make sure the previous contents made it to the screen if requested
-	if (g_XFBUpdateRequested)
+	u32 aLower = xfbAddr;
+	u32 aUpper = xfbAddr + 2 * dstWidth * dstHeight;
+	u32 bLower = tUpdateXFBArgs.xfbAddr;
+	u32 bUpper = tUpdateXFBArgs.xfbAddr + 2 * tUpdateXFBArgs.width * tUpdateXFBArgs.height;
+
+	// If we're about to write into a requested XFB, make sure the previous
+	// contents make it to the screen first.
+	if (g_XFBUpdateRequested && addrRangesOverlap(aLower, aUpper, bLower, bUpper))
 	{
 		Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
 	}
 
-	// TODO: Move this logic to FramebufferManager
-	if (g_Config.bUseXFB)
-	{
-		s_efbSourceRc.left = 0;
-		s_efbSourceRc.top = 0;
-		s_efbSourceRc.right = GetTargetWidth();
-		s_efbSourceRc.bottom = GetTargetHeight();
-		XFB_Write(xfbInRam, sourceRc, dstWidth, dstHeight);
-	}
-	else
-	{
-		// Renderer::Swap will use the source rectangle saved here
-		s_efbSourceRc = sourceRc;
-
-		if (s_MSAASamples > 1)
-		{
-			// Cannot use glCopyTexImage2D on multisampled framebuffers, so
-			// EXT_framebuffer_blit must be used
-
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
-			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, s_xfbFramebuffer);
-
-			glBlitFramebufferEXT(
-				0, 0, s_targetwidth, s_targetheight,
-				0, 0, s_targetwidth, s_targetheight,
-				GL_COLOR_BUFFER_BIT, GL_NEAREST
-				);
-
-			// Return to the EFB
-			SetFramebuffer(0);
-		}
-		else
-		{
-			// Just copy the EFB directly
-			SetFramebuffer(0);
-
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_xfbTexture);
-			glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB, 0, 0, s_targetwidth, s_targetheight, 0);
-
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-		}
-	}
+	s_framebufferManager.CopyToXFB(xfbAddr, dstWidth, dstHeight, sourceRc);
 }
 
 
-// This function has the final picture. We
-// adjust the aspect ratio here.
-void Renderer::Swap()
+// This function has the final picture. We adjust the aspect ratio here.
+// yOffset is used to eliminate interlacing jitter in Real XFB mode.
+void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 {
+	const XFBSource* xfbSource = s_framebufferManager.GetXFBSource(xfbAddr, srcWidth, srcHeight);
+	if (!xfbSource)
+	{
+		WARN_LOG(VIDEO, "Failed to get video for this frame");
+		return;
+	}
+
     OpenGL_Update(); // just updates the render window position and the backbuffer size
     DVSTARTPROFILE();
 
@@ -760,28 +708,24 @@ void Renderer::Swap()
 	ComputeBackbufferRectangle(&back_rc);
 
 	float u_max;
-	float v_min = 0.f;
+	float v_min;
 	float v_max;
-	if (g_Config.bUseXFB)
+	if (g_Config.bAutoScale)
 	{
-		u_max = XFB_WIDTH;
-		v_min = 0;
-		v_max = XFB_HEIGHT;
-	}
-	else if (g_Config.bAutoScale)
-	{
-		u_max = (s_efbSourceRc.right - s_efbSourceRc.left);
-		v_min = (float)GetTargetHeight() - (s_efbSourceRc.bottom - s_efbSourceRc.top);
-		v_max = (float)GetTargetHeight();
+		u_max = (xfbSource->sourceRc.right - xfbSource->sourceRc.left);
+		v_min = (float)xfbSource->texHeight - (xfbSource->sourceRc.bottom - xfbSource->sourceRc.top);
+		v_max = (float)xfbSource->texHeight;
 	}
 	else
 	{
-		u_max = (float)GetTargetWidth();
-		v_max = (float)GetTargetHeight();
+		u_max = (float)xfbSource->texWidth;
+		v_max = (float)xfbSource->texHeight;
 	}
+	v_min -= yOffset;
+	v_max -= yOffset;
 
 	// Tell the OSD Menu about the current internal resolution
-	OSDInternalW = s_efbSourceRc.GetWidth(); OSDInternalH = s_efbSourceRc.bottom;
+	OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.bottom;
 
 	// Make sure that the wireframe setting doesn't screw up the screen copy.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -806,7 +750,7 @@ void Renderer::Swap()
 	// Texture map s_xfbTexture onto the main buffer
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_xfbTexture);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
 	// Use linear filtering.
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -850,7 +794,7 @@ void Renderer::Swap()
 
 		s_criticalScreenshot.Enter();
 		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), s_efbSourceRc.right, s_efbSourceRc.bottom, (int)(v_min));
+		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.right, xfbSource->sourceRc.bottom, (int)(v_min));
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
@@ -868,8 +812,8 @@ void Renderer::Swap()
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 
 		s_criticalScreenshot.Enter();
-		int w = s_efbSourceRc.right;
-		int h = s_efbSourceRc.bottom;
+		int w = xfbSource->sourceRc.right;
+		int h = xfbSource->sourceRc.bottom;
 		int t = (int)(v_min);
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);

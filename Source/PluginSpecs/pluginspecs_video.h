@@ -110,7 +110,7 @@ EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 // input:    pointer to the XFB, width and height of the XFB
 // output:   none
 //
-EXPORT void CALL Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling);
+EXPORT void CALL Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling);
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot

@@ -995,6 +995,14 @@ u8* GetXFBPointerTop()
 		return Memory::GetPointer(m_XFBInfoTop.FBB);
 }
 
+u32 GetXFBPointerTop_GC()
+{
+	if (m_XFBInfoTop.POFF)
+		return m_XFBInfoTop.FBB << 5;
+	else
+		return m_XFBInfoTop.FBB;
+}
+
 u8* GetXFBPointerBottom()
 {
 	// POFF for XFB bottom is connected to POFF for XFB top
@@ -1002,6 +1010,15 @@ u8* GetXFBPointerBottom()
 		return Memory::GetPointer(m_XFBInfoBottom.FBB << 5);
 	else
 		return Memory::GetPointer(m_XFBInfoBottom.FBB);
+}
+
+u32 GetXFBPointerBottom_GC()
+{
+	// POFF for XFB bottom is connected to POFF for XFB top
+	if (m_XFBInfoTop.POFF)
+		return m_XFBInfoBottom.FBB << 5;
+	else
+		return m_XFBInfoBottom.FBB;
 }
 
 
@@ -1077,7 +1094,7 @@ void Update()
 
 	if (m_VBeamPos == NextXFBRender)
 	{
-		u8* xfbPtr = 0;
+		u32 xfbAddr = 0;
 		int yOffset = 0;
 
 		if (NextXFBRender == 1)
@@ -1086,34 +1103,34 @@ void Update()
 			// TODO: proper VI regs typedef and logic for XFB to work.
 			// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
 			// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
-			xfbPtr = GetXFBPointerTop();
-			_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad top XFB address");
+			xfbAddr = GetXFBPointerTop_GC();
+			_dbg_assert_msg_(VIDEOINTERFACE, xfbAddr, "Bad top XFB address");
 		}
 		else
 		{
 			NextXFBRender = 1;
 			// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
-			xfbPtr = GetXFBPointerBottom();
-			_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad bottom XFB address");
+			xfbAddr = GetXFBPointerBottom_GC();
+			_dbg_assert_msg_(VIDEOINTERFACE, xfbAddr, "Bad bottom XFB address");
 			yOffset = -1;
 		}
 
 		Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 
-		if (xfbPtr && video->IsValid())
+		if (xfbAddr && video->IsValid())
 		{
 			int fbWidth = m_HorizontalStepping.FieldSteps * 16;
 			int fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
 			
-			DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %p | %ix%i | xoff: %i",
-				xfbPtr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
+			DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %.08X | %ix%i | xoff: %i",
+				xfbAddr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
 
 			if (Core::GetStartupParameter().bUseDualCore)
 				// scheduled on EmuThread in DC mode
-				video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 
+				video->Video_UpdateXFB(xfbAddr, fbWidth, fbHeight, yOffset, TRUE); 
 			else
 				// otherwise do it now from here (CPUthread)
-				video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, FALSE);
+				video->Video_UpdateXFB(xfbAddr, fbWidth, fbHeight, yOffset, FALSE);
 		}
 	}
 
