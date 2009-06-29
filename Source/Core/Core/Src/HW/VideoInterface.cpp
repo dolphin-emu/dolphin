@@ -194,7 +194,7 @@ union UVIFBInfoRegister
 	{
 		// TODO: mask out lower 9bits/align to 9bits???
 		unsigned FBB		:	24; // Base address of the framebuffer in external mem
-		// TODO: do XOFF/POFF exist in bottom reg?
+		// POFF only seems to exist in the top reg. XOFF, unknown.
 		unsigned XOFF		:	 4; // Horizontal Offset of the left-most pixel within the first word of the fetched picture
 		unsigned POFF		:	 1; // Page offest: 1: fb address is (address>>5)
 		unsigned CLRPOFF	:	 3; // ? setting bit 31 clears POFF
@@ -1104,14 +1104,12 @@ void Update()
 			// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
 			// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
 			xfbAddr = GetXFBPointerTop_GC();
-			_dbg_assert_msg_(VIDEOINTERFACE, xfbAddr, "Bad top XFB address");
 		}
 		else
 		{
 			NextXFBRender = 1;
 			// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
 			xfbAddr = GetXFBPointerBottom_GC();
-			_dbg_assert_msg_(VIDEOINTERFACE, xfbAddr, "Bad bottom XFB address");
 			yOffset = -1;
 		}
 

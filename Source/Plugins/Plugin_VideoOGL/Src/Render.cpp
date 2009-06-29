@@ -112,6 +112,7 @@ static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
 static FramebufferManager s_framebufferManager;
+static GLuint s_tempScreenshotFramebuffer = 0;
 
 #ifndef _WIN32
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
@@ -360,6 +361,9 @@ void Renderer::Shutdown(void)
         cgDestroyContext(g_cgcontext);
         g_cgcontext = 0;
 	}
+
+	glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
+	s_tempScreenshotFramebuffer = 0;
 
 	s_framebufferManager.Shutdown();
 
@@ -725,7 +729,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 	v_max -= yOffset;
 
 	// Tell the OSD Menu about the current internal resolution
-	OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.bottom;
+	OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
 	// Make sure that the wireframe setting doesn't screw up the screen copy.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -789,31 +793,37 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		// TODO: Wrong. The EFB may contain something else by now. We want to read from the XFB.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
+		if (!s_tempScreenshotFramebuffer)
+			glGenFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
+
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_tempScreenshotFramebuffer);
+		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture, 0);
 
 		s_criticalScreenshot.Enter();
 		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.right, xfbSource->sourceRc.bottom, (int)(v_min));
+		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.GetWidth(), xfbSource->sourceRc.GetHeight(), (int)(v_min));
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
+
+		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 	}
-	// It should not be necessary to read from the window backbuffer beyond this point
-	if (/*s_bHaveFramebufferBlit*/ s_MSAASamples > 1)
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	// Frame dumps are handled a little differently in Windows
 #ifdef _WIN32
 	if (g_Config.bDumpFrames)
 	{
-		// TODO: Wrong. The EFB may contain something else by now. We want to read from the XFB.
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
+		if (!s_tempScreenshotFramebuffer)
+			glGenFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
+
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_tempScreenshotFramebuffer);
+		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture, 0);
 
 		s_criticalScreenshot.Enter();
-		int w = xfbSource->sourceRc.right;
-		int h = xfbSource->sourceRc.bottom;
+		int w = xfbSource->sourceRc.GetWidth();
+		int h = xfbSource->sourceRc.GetHeight();
 		int t = (int)(v_min);
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -842,6 +852,9 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 		}
 		free(data);
 		s_criticalScreenshot.Leave();
+
+		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
 	} 
 	else 
 	{
