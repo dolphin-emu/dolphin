@@ -284,7 +284,6 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 			return;
 
 		case 0x0005:		// AFC / unknown
-		case 0x0021:		// AFC / ADPCM???
 		case 0x0009:		// AFC / ADPCM
 			MixAddVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
@@ -293,7 +292,14 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 			MixAddVoice_PCM16(PB, m_TempBuffer, _Size);
 			break;
 
+		// Cases we're missing: 0x0008, 0x0020, 0x0021
+		case 0x0008:
+		case 0x0020:
+		case 0x0021:
+			PanicAlert("Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+
 		default:
+			// TODO: Implement general decoder here
 			PanicAlert("Unknown MixAddVoice format in zelda %04x", PB.Format);
 			break;
 		}

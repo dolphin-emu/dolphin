@@ -2875,16 +2875,16 @@ void 087c_DefaultDecoder()
  {
 		 087c 8100      clr         $ACC0
 	087d 1f5e      mrr         $AX0.H, $AC0.M
-	087e 00d8 0402 lr          $AX0.L, @0x0402
-	0880 00dc 0430 lr          $AC0.L, @0x0430
-	0882 0080 0520 lri         $AR0, #0x0520
-	0884 00df 0480 lr          $AC1.M, @0x0480
-	0886 1501      lsl         $ACC1, #1
-	0887 0340 007e andi        $AC1.M, #0x007e
-	0889 0300 0891 addi        $AC1.M, #0x0891
-	088b 1c5f      mrr         $AR2, $AC1.M
-	088c 175f      callr       $AR2
-	088d 00fc 0430 sr          @0x0430, $AC0.L
+	087e 00d8 0402 lr          $AX0.L, @0x0402 // AX0.L = PB.RatioInt
+	0880 00dc 0430 lr          $AC0.L, @0x0430 // AC0.L = PB.RatioFrac
+	0882 0080 0520 lri         $AR0, #0x0520   // AR0 = 0x0520
+	0884 00df 0480 lr          $AC1.M, @0x0480 
+	0886 1501      lsl         $ACC1, #1       // AC1.M = (PB.Format << 1)
+	0887 0340 007e andi        $AC1.M, #0x007e // AC1.M &= 0x007e
+	0889 0300 0891 addi        $AC1.M, #0x0891 // AC1.M += 0x0891
+	088b 1c5f      mrr         $AR2, $AC1.M    // AR2 = AC1.M
+	088c 175f      callr       $AR2            // (*$AR2)()  <-- Need to check where it actually goes
+	088d 00fc 0430 sr          @0x0430, $AC0.L // PB.RatioFrac = AC0.L
 
 	// 088f 029f 02d8 jmp         0x02d8
 	GOTO ContinueWithBlock:  // in SyncFrame
