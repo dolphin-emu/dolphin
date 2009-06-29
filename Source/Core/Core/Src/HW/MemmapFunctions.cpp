@@ -25,6 +25,22 @@
 namespace Memory
 {
 
+// EFB RE
+/*
+GXPeekZ
+80322de8: rlwinm	r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc      
+80322dec: oris	r0, r0, 0xC800                     a |= 0xc8000000
+80322df0: rlwinm	r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
+80322df4: rlwinm	r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000; 
+80322df8: or	r0, r3, r0                         a |= x;
+80322dfc: rlwinm	r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
+80322e00: oris	r3, r0, 0x0040                     x = a | 0x00400000
+80322e04: lwz	r0, 0 (r3)
+80322e08: stw	r0, 0 (r5)
+80322e0c: blr	
+*/
+
+
 // =================================
 // From Memmap.cpp
 // ----------------
@@ -106,8 +122,20 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
 	if ((em_address & 0xC8000000) == 0xC8000000)
+	{
 		if (em_address < 0xcc000000)
-			_var = bswap((*(const T*)&m_pEFB[em_address & EFB_MASK]));
+		{
+			// TODO: glReadPixels :p
+			_var = 0;
+
+			int x = (em_address & 0xfff) >> 2;
+			int y = (em_address >> 12) & 0x3ff;
+			if (em_address & 0x00400000) {
+				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i", x, y);
+			} else {
+				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i", x, y);
+			}
+		}
 		else if (em_address <= 0xcc009000)
 			hwRead(_var, em_address);
 		/* WIIMODE */
@@ -122,20 +150,27 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 			/* Disabled because the debugger makes trouble with */
 			/*_dbg_assert_(MEMMAP,0); */
 		}
+	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
 		((em_address & 0xF0000000) == 0x00000000))
+	{
 		_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
+	}
 	else if (((em_address & 0xF0000000) == 0x90000000) ||
 		((em_address & 0xF0000000) == 0xD0000000) ||
 		((em_address & 0xF0000000) == 0x10000000))
+	{
 		_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
+	}
 	else if ((em_address >= 0xE0000000) && (em_address < (0xE0000000+L1_CACHE_SIZE)))
 	{
 		_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
 	}
 	else if (em_address >= 0xE0000000)
+	{
 		PanicAlert("READ: Invalid address: %08x", em_address);
+	}
 
 	/* If we get this far we may be in the TLB area */
 	else
@@ -165,7 +200,13 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 	{
 		if (em_address < 0xcc000000)
 		{
-			*(T*)&m_pEFB[em_address & EFB_MASK] = bswap(data);
+			int x = (em_address & 0xfff) >> 2;
+			int y = (em_address >> 12) & 0x3ff;
+			if (em_address & 0x00400000) {
+				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
+			} else {
+				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
+			}
 			return;
 		}
 		else if (em_address <= 0xcc009000) {
