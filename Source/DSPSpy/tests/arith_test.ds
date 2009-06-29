@@ -2,8 +2,6 @@
 incdir  "tests"
 include "dsp_base.inc"
 
-set40
-
 clr $acc0
 tst $acc0
 
@@ -48,10 +46,10 @@ call send_back 	; 7
 
 clr $acc0
 
-set16
+set40
 lri $ac0.l, #-1
 tst $acc0
-set40
+set16
 
 call send_back 	; 8
 
@@ -114,10 +112,10 @@ call send_back 	; 17
 
 clr $acc0
 clr $acc1
-set16
+set40
 lri $ac0.l, #0x0001
 sub $acc1, $acc0
-set40
+set16
 
 call send_back 	; 18
 
@@ -131,10 +129,10 @@ call send_back 	; 19
 
 clr $acc0
 clr $acc1
-set16
+set40
 lri $ac0.l, #0x0001
 lri $ac1.h, #0x8000
 sub $acc1, $acc0
-set40
+set16
 
 call send_back 	; 20
