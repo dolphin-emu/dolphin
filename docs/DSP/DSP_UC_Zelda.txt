@@ -1454,6 +1454,10 @@ void 041d_Unk() {
 	0447 00c0 0345 lr          $AR0, @0x0345
 	0449 02bf 0532 call        0x0532
 	044b 029f 0043 jmp         0x0043
+}
+
+void 044d_COMMAND_07()
+{
 	044d 0080 0346 lri         $AR0, #0x0346
 	044f 02bf 0067 call        0x0067
 	0451 02bf 0067 call        0x0067
@@ -1470,6 +1474,10 @@ void 041d_Unk() {
 	0463 00c0 0345 lr          $AR0, @0x0345
 	0465 02bf 0532 call        0x0532
 	0467 029f 0043 jmp         0x0043
+}
+
+void 0469_COMMAND_06_09()
+{
 	0469 0080 0346 lri         $AR0, #0x0346
 	046b 02bf 0067 call        0x0067
 	046d 02bf 0067 call        0x0067
@@ -1488,6 +1496,10 @@ void 041d_Unk() {
 	047f 00c0 0345 lr          $AR0, @0x0345
 	0481 02bf 0532 call        0x0532
 	0483 029f 0043 jmp         0x0043
+}
+
+void 0485_COMMAND_08()
+{
 	0485 0080 0346 lri         $AR0, #0x0346
 	0487 02bf 0067 call        0x0067
 	0489 02bf 0067 call        0x0067
@@ -1779,7 +1791,7 @@ void 0573_Mystery_Write(InBuffer($AR1), SourceBuffer(AC1.M), _COUNT(AX0.H)) {
 }
 
 
-void 0095_COMMAND_04()
+void 0580_COMMAND_04()
  {
 	// commando looks buggy...
 	// it copies data to the switch casement data address... sounds like BS
@@ -1796,6 +1808,10 @@ void 0095_COMMAND_04()
 	058c 00c0 0345 lr          $AR0, @0x0345
 	058e 02bf 0523 call        0x0523
 	0590 029f 0043 jmp         0x0043
+}
+
+void 0592_COMMAND_05()
+{
 	0592 0080 0346 lri         $AR0, #0x0346
 	0594 02bf 0067 call        0x0067
 	0596 02bf 0067 call        0x0067

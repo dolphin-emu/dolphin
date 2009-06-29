@@ -574,9 +574,11 @@ void CUCode_Zelda::ExecuteList()
 	    }
 		return;
 
-/*
-		case 0x03: break;   // dunno ... zelda ww jmps to 0x0073
-		case 0x04: break;   // dunno ... zelda ww jmps to 0x0580
+
+		// Simply sends the sync messages
+		case 0x03: break;
+
+/*		case 0x04: break;   // dunno ... zelda ww jmps to 0x0580
 		case 0x05: break;   // dunno ... zelda ww jmps to 0x0592
 		case 0x06: break;   // dunno ... zelda ww jmps to 0x0469
 		case 0x07: break;   // dunno ... zelda ww jmps to 0x044d
@@ -675,5 +677,24 @@ void CUCode_Zelda::DoState(PointerWrap &p) {
 	p.Do(m_numSteps);
 	p.Do(m_step);
 	p.Do(m_Buffer);
+	/*p.Do(m_CRC);
+	p.Do(m_bSyncInProgress);
+	p.Do(m_MaxVoice);
+	p.Do(m_NumVoices);
+	p.Do(m_bSyncCmdPending);
+	p.Do(m_CurVoice);
+	p.Do(m_CurBuffer);
+	p.Do(m_NumBuffers);
+	p.Do(m_VoicePBsAddr);
+	p.Do(m_UnkTableAddr);
+	p.Do(m_AFCCoefTableAddr);
+	p.Do(m_ReverbPBsAddr);
+	p.Do(m_RightBuffersAddr);
+	p.Do(m_LeftBuffersAddr);
+	p.Do(m_DMABaseAddr);
+	p.Do(m_numSteps);
+	p.Do(m_step);
+	p.Do(m_readOffset);
+	p.Do(m_MailState);*/
 }
 
