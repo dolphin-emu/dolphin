@@ -76,11 +76,12 @@ bool ServerSide::RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Re
 {
 	sf::SelectorUDP Selector;
 	sf::IPAddress Addr;
+	unsigned short Port;
 	Selector.Add(Socket);
 
 	if (Selector.Wait(Time) > 0)
 	{
-		Socket.Receive(Data, Max, Recvd, Addr);
+		Socket.Receive(Data, Max, Recvd, Addr, Port);
 		return true;
 	}
 	else
@@ -374,12 +375,13 @@ ClientSide::ClientSide(NetPlay* netptr, sf::SocketTCP socket, sf::SocketUDP sock
 bool ClientSide::RecvT(sf::SocketUDP Socket, char * Data, size_t Max, size_t& Recvd, float Time)
 {
 	sf::SelectorUDP Selector;
-	sf::IPAddress addr;
+	sf::IPAddress Addr;
+	unsigned short Port;
 	Selector.Add(Socket);
 
 	if (Selector.Wait(Time) > 0)
 	{
-		Socket.Receive(Data, Max, Recvd, addr);
+		Socket.Receive(Data, Max, Recvd, Addr, Port);
 		return true;
 	}
 	else
