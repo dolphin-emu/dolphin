@@ -23,64 +23,6 @@
 #include "../main.h"
 #include "Mixer.h"
 
-
-class CResampler
-{
-public:
-    CResampler(short* samples, int num_stereo_samples, int core_sample_rate)
-        : m_mode(1)
-        , m_queueSize(0)
-    {
-        int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
-        int acc=0;     
-
-        while (num_stereo_samples) 
-        {
-            acc += core_sample_rate;
-            while (num_stereo_samples && (acc >= 48000)) 
-            {
-                PV4l=PV3l;
-                PV3l=PV2l;
-                PV2l=PV1l;
-                PV1l=*(samples++); //32bit processing
-                num_stereo_samples--;
-                acc-=48000;
-            }
-
-            // defaults to nearest
-            s32 DataL = PV1l;
-
-            if (m_mode == 1) { //linear
-                DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
-            }
-            else if (m_mode == 2) {//cubic
-                s32 a0l = PV1l - PV2l - PV4l + PV3l;
-                s32 a1l = PV4l - PV3l - a0l;
-                s32 a2l = PV1l - PV4l;
-                s32 a3l = PV2l;
-
-                s32 t0l = ((a0l    )*acc)/48000;
-                s32 t1l = ((t0l+a1l)*acc)/48000;
-                s32 t2l = ((t1l+a2l)*acc)/48000;
-                s32 t3l = ((t2l+a3l));
-
-                DataL = t3l;
-            }
-
-            int l = DataL;
-            if (l < -32767) l = -32767;
-            if (l > 32767) l = 32767;
-            sample_queue.push(l);
-            m_queueSize += 1;
-        }
-    }
-
-    FixedSizeQueue<s16, queue_maxlength> sample_queue;
-    int m_queueSize;
-    int m_mode;
-};
-
-
 void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)g_dspInitialize.pGetMemoryPointer(_Addr);
@@ -117,6 +59,7 @@ void CUCode_Zelda::MixAddVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
 	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
+
 	u32 pos[2] = {0, 0};
 	int i = 0;
 
@@ -180,10 +123,15 @@ _lRestart:
 		PB.RemLength -= pos[1];
 
 	PB.CurAddr += pos[1] << 1;
+	// There should be a position fraction as well.
 }
 
 void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
+	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	u32 _ratio = (PB.RatioInt<<16) + PB.RatioFrac;
+	s64 ratio = (_ratio * ratioFactor) * 16; // (s64)(((_ratio / 80) << 16) * ratioFactor);
+
 	// initialize "decoder" if the sample is played the first time
     if (PB.NeedsReset != 0)
     {
@@ -203,20 +151,16 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 
         // Copy ARAM addr from r to rw area.
         PB.CurAddr = PB.StartAddr;
+		PB.ReachedEnd = 0;
     }
 
     if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
         return;
 
-    u32 Addr			= PB.CurAddr;
-    u32 NumberOfSamples = PB.RemLength;
-
 	// round upwards how many samples we need to copy, 0759
-    NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
-    u32 frac = NumberOfSamples & 0xF;
+    // u32 frac = NumberOfSamples & 0xF;
+    // NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
 
-    u8 inBuffer[9];
-    short outbuf[16];
     u32 sampleCount = 0;
 
 	u8 *source;
@@ -231,59 +175,93 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	// If it's empty or "used", decode to it.
 	// Then, resample from this buffer to the output as you go. When it needs
 	// wrapping, decode more.
-	
-    while (NumberOfSamples > 0)
+
+restart:
+	if (PB.ReachedEnd)
+	{
+		PB.ReachedEnd = 0;
+
+		// HACK: Looping doesn't work.
+		if (true || PB.RepeatMode == 0)
+		{
+			PB.KeyOff = 1;
+			PB.RemLength = 0;
+			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
+			return;
+		}
+		else
+		{
+			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
+			PB.RestartPos = PB.LoopStartPos;
+			PB.RemLength = PB.Length - PB.RestartPos;
+			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+//			pos[1] = 0; pos[0] = 0;
+		}
+	}
+
+	short outbuf[16] = {0};
+
+	u16 prev_yn1 = PB.YN1;
+	u16 prev_yn2 = PB.YN2;
+	u32 prev_addr = PB.CurAddr;
+
+	// Prefill the decode buffer.
+    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + PB.CurAddr), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+	PB.CurAddr += 9;
+
+	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 32;
+	s64 delta = ratio;  // 0x100000000ULL;
+    while (sampleCount < _Size)
     {
-        for (int i = 0; i < 9; i++)    
-        {
-           // inBuffer[i] =  g_dspInitialize.pARAM_Read_U8(ARAMAddr);
-			inBuffer[i] = source[Addr];
-            Addr++;
-        }
+		int SamplePosition = TrueSamplePosition >> 32;
+		_Buffer[sampleCount] = outbuf[SamplePosition & 15];
 
-        AFCdecodebuffer(m_AFCCoefTable, (char*)inBuffer, outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
-        CResampler Sampler(outbuf, 16, 48000);
+		sampleCount++;
+		TrueSamplePosition += delta;
 
-        while (Sampler.m_queueSize > 0) 
-        {
-            int sample = Sampler.sample_queue.front();
-            Sampler.sample_queue.pop();
-            Sampler.m_queueSize -= 1;
+		int TargetPosition = TrueSamplePosition >> 32;
 
-           // templbuffer[sampleCount] += sample;
-           // temprbuffer[sampleCount] += sample;
-			_Buffer[sampleCount] = sample;
-            sampleCount++;
+		// Decode forwards...
+		while (SamplePosition < TargetPosition)
+		{
+			SamplePosition++;
+		    PB.RemLength--;
+			if (PB.RemLength == 0)
+			{
+				PB.ReachedEnd = 1;
+				goto restart;
+			}
 
-            if (sampleCount > _Size)
-                break;
-        }
+			// Need new samples!
+			if ((SamplePosition & 15) == 0) {
+				prev_yn1 = PB.YN1;
+				prev_yn2 = PB.YN2;
+				prev_addr = PB.CurAddr;
 
-        if (sampleCount > _Size)
-            break;
-
-        NumberOfSamples--;
+				AFCdecodebuffer(m_AFCCoefTable, (char*)(source + PB.CurAddr), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+				PB.CurAddr += 9;
+			}
+		}
     }
 
-    if (NumberOfSamples == 0)
-    {
-        PB.KeyOff = 1; // we are done ??
-    }
+	// Here we should back off to the previous addr/yn1/yn2, since we didn't consume the full last block.
+	// We'll have to re-decode it the next time around.
+	// if (SamplePosition & 15) {
+		PB.YN2 = prev_yn2;
+		PB.YN1 = prev_yn1;
+		PB.CurAddr = prev_addr;
+	// }
 
-    // write back
-    NumberOfSamples = (NumberOfSamples << 4);    // missing fraction
+    PB.NeedsReset = 0;
 
-    PB.CurAddr = Addr;
-    PB.RemLength = NumberOfSamples;
-
+	// write back
+    // NumberOfSamples = (NumberOfSamples << 4) | frac;    // missing fraction
 
     // i think  pTest[0x3a] and pTest[0x3b] got an update after you have decoded some samples...
     // just decrement them with the number of samples you have played
     // and incrrease the ARAM Offset in pTest[0x38], pTest[0x39]
 
-
     // end of block (Zelda 03b2)
-    PB.NeedsReset = 0;
 }
 
 void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)

@@ -30,7 +30,6 @@ void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, shor
 	// First 2 nibbles are ADPCM scale etc.
     short delta = 1 << (((*src) >> 4) & 0xf);
     short idx = (*src) & 0xf;
-
     src++;
 
     if (type == 9)
@@ -91,7 +90,6 @@ void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, shor
         hist2 = hist;
         hist = (short)sample;
     }
-
-	*histp=hist;
-    *hist2p=hist2;
+	*histp = hist;
+    *hist2p = hist2;
 } 
