@@ -29,7 +29,6 @@ public:
 	~CMailHandler();
 
 	void PushMail(u32 _Mail);
-	void PushMail(u32 _Mail, bool _TriggerIRQ);
 	void Clear();
 	void Halt(bool _Halt);
 	bool IsEmpty();
