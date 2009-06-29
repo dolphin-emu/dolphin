@@ -1379,6 +1379,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Jit64IL\IR_X86.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\Jit.cpp"
 					>
 					<FileConfiguration
@@ -1904,62 +1908,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\JitAsm.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\JitRegCache.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="DebugFast|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64IL\JitRegCache.h"
 					>
 				</File>
 			</Filter>
