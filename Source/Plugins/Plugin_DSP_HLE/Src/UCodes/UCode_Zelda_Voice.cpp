@@ -278,6 +278,11 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 	{
 		switch (PB.Format)
 		{
+		case 0x0000:        // Silences sound and stops all looping sounds
+			for (int i = 0; i < _Size; i++)
+				_LeftBuffer[i] = _RightBuffer[i] = 0;
+			return;
+
 		case 0x0005:		// AFC / unknown
 		case 0x0021:		// AFC / ADPCM???
 		case 0x0009:		// AFC / ADPCM
@@ -286,6 +291,10 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 
 		case 0x0010:		// PCM16
 			MixAddVoice_PCM16(PB, m_TempBuffer, _Size);
+			break;
+
+		default:
+			PanicAlert("Unknown MixAddVoice format in zelda %04x", PB.Format);
 			break;
 		}
 
