@@ -94,7 +94,7 @@ static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 
 static bool s_bHaveStencilBuffer = false;
-static bool s_bHaveFramebufferBlit = false;
+bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
 static bool s_bNativeResolution = false;

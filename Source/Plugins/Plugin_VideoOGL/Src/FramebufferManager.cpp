@@ -21,6 +21,8 @@
 #include "TextureConverter.h"
 #include "XFB.h"
 
+extern bool s_bHaveFramebufferBlit; // comes from Render.cpp
+
 void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
 {
 	m_targetWidth = targetWidth;
@@ -105,10 +107,6 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 
 		GL_REPORT_FBO_ERROR();
 
-		// Create XFB framebuffer; targets will be created elsewhere.
-
-		glGenFramebuffersEXT(1, &m_xfbFramebuffer);
-
 		// Create resolved targets for transferring multisampled EFB to texture.
 
 		glGenFramebuffersEXT(1, &m_resolvedFramebuffer);
@@ -138,6 +136,10 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_efbFramebuffer);
 	}
+
+	// Create XFB framebuffer; targets will be created elsewhere.
+
+	glGenFramebuffersEXT(1, &m_xfbFramebuffer);
 
 	// EFB framebuffer is currently bound.
 }
@@ -322,7 +324,11 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeig
 
 		glGenTextures(1, &xfbTexture);
 
+#if 0 // XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
 		if (m_msaaSamples > 1)
+#else
+		if (s_bHaveFramebufferBlit)
+#endif
 		{
 			// In MSAA mode, allocate the texture image here. In non-MSAA mode,
 			// the image will be allocated by glCopyTexImage2D (later).
@@ -358,7 +364,11 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeig
 
 	// Copy EFB to XFB texture
 
+#if 0
 	if (m_msaaSamples <= 1)
+#else
+	if (!s_bHaveFramebufferBlit)
+#endif
 	{
 		// Just copy the EFB directly.
 
