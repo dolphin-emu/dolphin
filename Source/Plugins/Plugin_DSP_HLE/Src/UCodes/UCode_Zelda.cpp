@@ -21,7 +21,6 @@
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
-#include "UCode_Zelda_Voice.h"
 #include "UCode_Zelda_ADPCM.h"
 #include "../MailHandler.h"
 
@@ -29,64 +28,6 @@
 #include "Mixer.h"
 
 #include "WaveFile.h"
-
-/*
-class CResampler
-{
-public:
-    CResampler(short* samples, int num_stereo_samples, int core_sample_rate)
-        : m_mode(1)
-        , m_queueSize(0)
-    {
-        int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
-        int acc=0;     
-
-        while (num_stereo_samples) 
-        {
-            acc += core_sample_rate;
-            while (num_stereo_samples && (acc >= 48000)) 
-            {
-                PV4l=PV3l;
-                PV3l=PV2l;
-                PV2l=PV1l;
-                PV1l=*(samples++); //32bit processing
-                num_stereo_samples--;
-                acc-=48000;
-            }
-
-            // defaults to nearest
-            s32 DataL = PV1l;
-
-            if (m_mode == 1) { //linear
-                DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
-            }
-            else if (m_mode == 2) {//cubic
-                s32 a0l = PV1l - PV2l - PV4l + PV3l;
-                s32 a1l = PV4l - PV3l - a0l;
-                s32 a2l = PV1l - PV4l;
-                s32 a3l = PV2l;
-
-                s32 t0l = ((a0l    )*acc)/48000;
-                s32 t1l = ((t0l+a1l)*acc)/48000;
-                s32 t2l = ((t1l+a2l)*acc)/48000;
-                s32 t3l = ((t2l+a3l));
-
-                DataL = t3l;
-            }
-
-            int l = DataL;
-            if (l < -32767) l = -32767;
-            if (l > 32767) l = 32767;
-            sample_queue.push(l);
-            m_queueSize += 1;
-        }
-    }
-
-    FixedSizeQueue<s16, queue_maxlength> sample_queue;
-    int m_queueSize;
-    int m_mode;
-};
-*/
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	: IUCode(_rMailHandler)
@@ -536,7 +477,7 @@ void CUCode_Zelda::ExecuteList()
 			// Read AFC coef table
 			u16 *TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
 			for (int i = 0; i < 32; i++)
-				m_AFCCoefTable[i] = Common::swap16(TempPtr[i]);
+				m_AFCCoefTable[i] = (s16)Common::swap16(TempPtr[i]);
 
 		    DEBUG_LOG(DSPHLE, "DsetupTable");
 			DEBUG_LOG(DSPHLE, "Num voice param blocks:             %i", m_NumVoices);
@@ -686,7 +627,7 @@ void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
 	for (u32 i = 0; i < m_NumVoices; i++)
 	{
 		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
-		if (!(flags & 0x8000))
+		if (!(flags & 1 << (15 - (i & 0xF))))
 			continue;
 
 		ZeldaVoicePB pb;

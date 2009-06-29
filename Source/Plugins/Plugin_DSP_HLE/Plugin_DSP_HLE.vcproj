@@ -677,15 +677,15 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\UCodes\UCode_Zelda_Voice.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\UCodes\UCode_Zelda_ADPCM.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\Src\UCodes\UCode_Zelda_ADPCM.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda_Voice.cpp"
 					>
 				</File>
 			</Filter>

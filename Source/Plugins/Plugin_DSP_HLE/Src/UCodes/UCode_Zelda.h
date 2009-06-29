@@ -46,8 +46,8 @@ struct ZeldaVoicePB
 	u32 CurAddr;					// 0x38 | current address
 	u32 RemLength;					// 0x3A | remaining length
 	u16 Unk3C[0x2A];				// 0x3C | unknown
-	u16 YN1;						// 0x66 | YN1
-	u16 YN2;						// 0x67 | YN2
+	u16 YN2;						// 0x66 | YN2
+	u16 YN1;						// 0x67 | YN1
 	u16 Unk68[0x18];				// 0x68 | unknown
 
 	// Read-only part
@@ -111,7 +111,7 @@ private:
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
-	u16 m_AFCCoefTable[32];
+	s16 m_AFCCoefTable[32];
 
 	bool m_bSyncInProgress;
 	u32 m_MaxVoice;
@@ -172,6 +172,7 @@ private:
 	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 
 	void MixAddVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void MixAddVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void MixAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
 };
 
