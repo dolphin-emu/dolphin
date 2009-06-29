@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -100,11 +100,12 @@ public :
     /// \param MaxSize :      Maximum number of bytes to read
     /// \param SizeReceived : Number of bytes received
     /// \param Address :      Address of the computer which sent the data
+    /// \param Port :         Port on which the remote computer sent the data
     ///
     /// \return Status code
     ///
     ////////////////////////////////////////////////////////////
-    Socket::Status Receive(char* Data, std::size_t MaxSize, std::size_t& SizeReceived, IPAddress& Address);
+    Socket::Status Receive(char* Data, std::size_t MaxSize, std::size_t& SizeReceived, IPAddress& Address, unsigned short& Port);
 
     ////////////////////////////////////////////////////////////
     /// Send a packet of data
@@ -124,11 +125,12 @@ public :
     ///
     /// \param PacketToReceive : Packet to fill with received data
     /// \param Address :         Address of the computer which sent the packet
+    /// \param Port :            Port on which the remote computer sent the data
     ///
     /// \return Status code
     ///
     ////////////////////////////////////////////////////////////
-    Socket::Status Receive(Packet& PacketToReceive, IPAddress& Address);
+    Socket::Status Receive(Packet& PacketToReceive, IPAddress& Address, unsigned short& Port);
 
     ////////////////////////////////////////////////////////////
     /// Close the socket

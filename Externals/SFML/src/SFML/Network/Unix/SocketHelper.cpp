@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -68,6 +68,12 @@ void SocketHelper::SetBlocking(SocketHelper::SocketType Socket, bool Block)
 ////////////////////////////////////////////////////////////
 Socket::Status SocketHelper::GetErrorStatus()
 {
+    // The followings are sometimes equal to EWOULDBLOCK,
+    // so we have to make a special case for them in order
+    // to avoid having double values in the switch case
+    if ((errno == EAGAIN) || (errno == EINPROGRESS))
+        return Socket::NotReady;
+
     switch (errno)
     {
         case EWOULDBLOCK :  return Socket::NotReady;

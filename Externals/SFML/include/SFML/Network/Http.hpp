@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -315,12 +315,13 @@ public :
     /// not return instantly; use a thread if you don't want to block your
     /// application.
     ///
-    /// \param Req : Request to send
+    /// \param Req :     Request to send
+    /// \param Timeout : Maximum time to wait, in seconds (0 by default, means no timeout)
     ///
     /// \return Server's response
     ///
     ////////////////////////////////////////////////////////////
-    Response SendRequest(const Request& Req);
+    Response SendRequest(const Request& Req, float Timeout = 0.f);
 
 private :
 

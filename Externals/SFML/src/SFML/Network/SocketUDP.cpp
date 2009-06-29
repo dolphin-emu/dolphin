@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -66,12 +66,8 @@ bool SocketUDP::Bind(unsigned short Port)
     // Check if the socket is already bound to the specified port
     if (myPort != Port)
     {
-        // If the socket was previously bound to another port, we need to recreate it
-        if (myPort != 0)
-        {
-            Close();
-            Create();
-        }
+        // If the socket was previously bound to another port, we need to unbind it first
+        Unbind();
 
         if (Port != 0)
         {
@@ -163,7 +159,7 @@ Socket::Status SocketUDP::Send(const char* Data, std::size_t Size, const IPAddre
 /// Receive an array of bytes.
 /// This function will block if the socket is blocking
 ////////////////////////////////////////////////////////////
-Socket::Status SocketUDP::Receive(char* Data, std::size_t MaxSize, std::size_t& SizeReceived, IPAddress& Address)
+Socket::Status SocketUDP::Receive(char* Data, std::size_t MaxSize, std::size_t& SizeReceived, IPAddress& Address, unsigned short& Port)
 {
     // First clear the size received
     SizeReceived = 0;
@@ -185,7 +181,7 @@ Socket::Status SocketUDP::Receive(char* Data, std::size_t MaxSize, std::size_t& 
         // Data that will be filled with the other computer's address
         sockaddr_in Sender;
         Sender.sin_family      = AF_INET;
-        Sender.sin_port        = htons(myPort);
+        Sender.sin_port        = 0;
         Sender.sin_addr.s_addr = INADDR_ANY;
         memset(Sender.sin_zero, 0, sizeof(Sender.sin_zero));
         SocketHelper::LengthType SenderSize = sizeof(Sender);
@@ -197,12 +193,14 @@ Socket::Status SocketUDP::Receive(char* Data, std::size_t MaxSize, std::size_t& 
         if (Received > 0)
         {
             Address = IPAddress(inet_ntoa(Sender.sin_addr));
+            Port = ntohs(Sender.sin_port);
             SizeReceived = static_cast<std::size_t>(Received);
             return Socket::Done;
         }
         else
         {
             Address = IPAddress();
+            Port = 0;
             return Received == 0 ? Socket::Disconnected : SocketHelper::GetErrorStatus();
         }
     }
@@ -244,7 +242,7 @@ Socket::Status SocketUDP::Send(Packet& PacketToSend, const IPAddress& Address, u
 /// Receive a packet.
 /// This function will block if the socket is blocking
 ////////////////////////////////////////////////////////////
-Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address)
+Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address, unsigned short& Port)
 {
     // This is not safe at all, as data can be lost, duplicated, or arrive in a different order.
     // So if a packet is split into more than one chunk, nobody knows what could happen...
@@ -255,7 +253,7 @@ Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address)
     std::size_t Received   = 0;
     if (myPendingPacketSize < 0)
     {
-        Socket::Status Status = Receive(reinterpret_cast<char*>(&PacketSize), sizeof(PacketSize), Received, Address);
+        Socket::Status Status = Receive(reinterpret_cast<char*>(&PacketSize), sizeof(PacketSize), Received, Address, Port);
         if (Status != Socket::Done)
             return Status;
 
@@ -273,6 +271,7 @@ Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address)
     // Use another address instance for receiving the packet data ;
     // chunks of data coming from a different sender will be discarded (and lost...)
     IPAddress Sender;
+    unsigned short SenderPort;
 
     // Then loop until we receive all the packet data
     char Buffer[1024];
@@ -280,7 +279,7 @@ Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address)
     {
         // Receive a chunk of data
         std::size_t SizeToGet = std::min(static_cast<std::size_t>(PacketSize - myPendingPacket.size()), sizeof(Buffer));
-        Socket::Status Status = Receive(Buffer, SizeToGet, Received, Sender);
+        Socket::Status Status = Receive(Buffer, SizeToGet, Received, Sender, SenderPort);
         if (Status != Socket::Done)
         {
             // We must save the size of the pending packet until we can receive its content
@@ -290,7 +289,7 @@ Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address)
         }
 
         // Append it into the packet
-        if ((Sender == Address) && (Received > 0))
+        if ((Sender == Address) && (SenderPort == Port) && (Received > 0))
         {
             myPendingPacket.resize(myPendingPacket.size() + Received);
             char* Begin = &myPendingPacket[0] + myPendingPacket.size() - Received;

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -20,7 +20,6 @@
 //
 // 3. This notice may not be removed or altered from any source distribution.
 //
-//  ** ALTERED SOURCE : replaced GetPublicAddress() **
 ////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
@@ -158,7 +157,7 @@ IPAddress IPAddress::GetLocalAddress()
 {
     // The method here is to connect a UDP socket to anyone (here to localhost),
     // and get the local socket address with the getsockname function.
-    // UDP connection will not send anything to the network, so this function won't cause any overhead
+    // UDP connection will not send anything to the network, so this function won't cause any overhead.
 
     IPAddress LocalAddress;
 
@@ -202,35 +201,22 @@ IPAddress IPAddress::GetLocalAddress()
 ////////////////////////////////////////////////////////////
 /// Get the computer's public IP address (from the web point of view)
 ////////////////////////////////////////////////////////////
-IPAddress IPAddress::GetPublicAddress()
+IPAddress IPAddress::GetPublicAddress(float Timeout)
 {
     // The trick here is more complicated, because the only way
     // to get our public IP address is to get it from a distant computer.
-    // Here we get the web page from http://www.whatismyip.org
+    // Here we get the web page from http://www.sfml-dev.org/ip-provider.php
     // and parse the result to extract our IP address
-    // (not very hard : the web page contains only our IP address)
+    // (not very hard : the web page contains only our IP address).
 
-    IPAddress PublicAddress;
-	std::string PageBody;
-
-    // Connect to the web server and get its index page
-	// www.whatismyip.org is so slow that it times out after ~60s
-	// better use this one instead, it is much faster... at least here :P
-    Http Server("www.monip.org");
-    Http::Request Request(Http::Request::Get, "/");
-    Http::Response Page = Server.SendRequest(Request);
-
-    // If the request was successful, we can extract
-    // the address from the body of the web page
+    Http Server("www.sfml-dev.org");
+    Http::Request Request(Http::Request::Get, "/ip-provider.php");
+    Http::Response Page = Server.SendRequest(Request, Timeout);
     if (Page.GetStatus() == Http::Response::Ok)
-        PageBody = Page.GetBody();
+        return IPAddress(Page.GetBody());
 
-	size_t str_start = PageBody.find("IP : ", 0) + 5;
-	size_t str_end = PageBody.find('<', str_start);
-
-	PublicAddress = PageBody.substr(str_start, str_end - str_start);
-
-    return PublicAddress;
+    // Something failed: return an invalid address
+    return IPAddress();
 }
 
 

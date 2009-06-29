@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -123,10 +123,12 @@ public :
     /// distant website ; as a consequence, this function may be
     /// very slow -- use it as few as possible !
     ///
+    /// \param Timeout : Maximum time to wait, in seconds (0 by default : no timeout)
+    ///
     /// \return Public IP address
     ///
     ////////////////////////////////////////////////////////////
-    static IPAddress GetPublicAddress();
+    static IPAddress GetPublicAddress(float Timeout = 0.f);
 
     ////////////////////////////////////////////////////////////
     /// Comparison operator ==
