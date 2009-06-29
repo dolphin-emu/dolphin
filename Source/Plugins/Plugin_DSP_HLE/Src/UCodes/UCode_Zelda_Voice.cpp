@@ -279,6 +279,7 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 		switch (PB.Format)
 		{
 		case 0x0005:		// AFC / unknown
+		case 0x0021:		// AFC / ADPCM???
 		case 0x0009:		// AFC / ADPCM
 			MixAddVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
