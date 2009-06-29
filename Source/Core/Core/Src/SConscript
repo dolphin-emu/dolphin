@@ -92,7 +92,6 @@ files = ["ActionReplay.cpp",
 
 if env['JITTEST']:
     files += ["PowerPC/Jit64IL/Jit.cpp",
-              "PowerPC/Jit64IL/JitRegCache.cpp",
               "PowerPC/Jit64IL/JitAsm.cpp",
               "PowerPC/Jit64IL/Jit_Branch.cpp",
               "PowerPC/Jit64IL/Jit_Integer.cpp",

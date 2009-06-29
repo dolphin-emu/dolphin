@@ -32,13 +32,14 @@
 #include "../Jit64IL/Jit.h"
 #include "JitCache.h"
 #include "../Jit64IL/JitAsm.h"
-#include "../Jit64IL/JitRegCache.h"
 #else
 #include "../Jit64/Jit.h"
 #include "JitCache.h"
 #include "../Jit64/JitAsm.h"
 #include "../Jit64/JitRegCache.h"
 #endif
+
+using namespace Gen;
 
 void Jit64::JitClearCA()
 {

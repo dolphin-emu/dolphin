@@ -24,7 +24,6 @@
 #include "x64Emitter.h"
 
 #include "Jit.h"
-#include "JitRegCache.h"
 #include "JitAsm.h"
 
 #include "../../HW/Memmap.h"

@@ -46,7 +46,10 @@ The register allocation is just a simple forward greedy allocator.
 #include "Jit.h"
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
+#include "x64Emitter.h"
+
 using namespace IREmitter;
+using namespace Gen;
 
 struct RegInfo {
 	Jit64* Jit;

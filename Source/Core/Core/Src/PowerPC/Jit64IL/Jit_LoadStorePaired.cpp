@@ -34,7 +34,6 @@
 
 #include "Jit.h"
 #include "JitAsm.h"
-#include "JitRegCache.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START

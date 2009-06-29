@@ -32,11 +32,6 @@
 
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitCache.h"
-#if JITTEST
-#include "../Jit64IL/JitRegCache.h"
-#else
-#include "../Jit64/JitRegCache.h"
-#endif
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
 #include "IR.h"
@@ -134,8 +129,6 @@ private:
 
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
-	GPRRegCache gpr;
-	FPURegCache fpr;
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.

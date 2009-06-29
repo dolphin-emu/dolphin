@@ -34,7 +34,6 @@
 #include "Jit.h"
 #include "JitAsm.h"
 #include "../JitCommon/JitCache.h"
-#include "JitRegCache.h"
 
 #if  !defined JITTEST || ! JITTEST
 #error JitIL needs JITTEST define
@@ -197,9 +196,6 @@ void Jit64::Init()
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;
 
-	gpr.SetEmitter(this);
-	fpr.SetEmitter(this);
-
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
 
@@ -226,8 +222,6 @@ void Jit64::Shutdown()
 
 void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
 	if (js.isLastInstruction)
 	{
 		MOV(32, M(&PC), Imm32(js.compilerPC));
@@ -257,8 +251,6 @@ void Jit64::Default(UGeckoInstruction _inst)
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	MOV(32, R(EAX), M(&NPC));
 	WriteExitDestInEAX(0);

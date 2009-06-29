@@ -25,7 +25,6 @@
 #include "x64Emitter.h"
 
 #include "Jit.h"
-#include "JitRegCache.h"
 #include "JitAsm.h"
 
 //#define INSTRUCTION_START Default(inst); return;
