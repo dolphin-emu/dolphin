@@ -317,8 +317,7 @@ void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _
 
 void CUCode_Zelda::Update(int cycles)
 {
-	// check if we have to sent something
-	if (!m_rMailHandler.IsEmpty())
+	if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
 		g_dspInitialize.pGenerateDSPInterrupt();
 }
 
@@ -378,14 +377,13 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 				if (m_CurBuffer == m_NumBuffers)
 				{
 					m_rMailHandler.PushMail(DSP_FRAME_END);
-					g_dspInitialize.pGenerateDSPInterrupt();
+					//g_dspInitialize.pGenerateDSPInterrupt();
 
 					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 					soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
-
 				}
 			}
 		}

@@ -29,6 +29,7 @@ public:
 	~CMailHandler();
 
 	void PushMail(u32 _Mail);
+	void PushMail(u32 _Mail, bool _TriggerIRQ);
 	void Clear();
 	void Halt(bool _Halt);
 	bool IsEmpty();
@@ -36,6 +37,8 @@ public:
 	u16 ReadDSPMailboxHigh();
 	u16 ReadDSPMailboxLow();
 	void Update();
+
+	u32 GetNextMail() { return m_Mails.front(); }
 
 private:
 	// mail handler
