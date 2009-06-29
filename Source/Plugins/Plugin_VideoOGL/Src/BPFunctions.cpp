@@ -156,10 +156,15 @@ void ClearScreen(const Bypass &bp, const TRectangle &multirc)
         if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 		{
             u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+
+			// Alpha may or may not be present depending on the EFB pixel format.
+			GLclampf clearAlpha = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24) ?
+				((clearColor>>24) & 0xff)*(1/255.0f) : 1.0f;
+
 			glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
 						 ((clearColor>>8 ) & 0xff)*(1/255.0f),
 						 ((clearColor>>0 ) & 0xff)*(1/255.0f),
-						 ((clearColor>>24) & 0xff)*(1/255.0f));
+						 clearAlpha);
             bits |= GL_COLOR_BUFFER_BIT;
         }
         if (bpmem.zmode.updateenable)

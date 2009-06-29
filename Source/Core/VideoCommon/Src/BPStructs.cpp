@@ -358,7 +358,7 @@ void BPWritten(const Bypass& bp)
 #endif
 		break;
 						   }
-	case BPMEM_ZCOMPARE:      // Set the Z-Compare
+	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale

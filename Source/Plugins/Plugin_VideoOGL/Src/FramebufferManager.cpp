@@ -25,6 +25,17 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 	m_msaaSamples = msaaSamples;
 	m_msaaCoverageSamples = msaaCoverageSamples;
 
+	// The EFB can be set to different pixel formats by the game through the
+	// BPMEM_ZCOMPARE register (which should probably have a different name).
+	// They are:
+	// - 24-bit RGB (8-bit components) with 24-bit Z
+	// - 24-bit RGBA (6-bit components) with 24-bit Z
+	// - Multisampled 16-bit RGB (5-6-5 format) with 16-bit Z
+	// We only use one EFB format here: 32-bit ARGB with 24-bit Z.
+	// Multisampling depends on user settings.
+	// The distinction becomes important for certain operations, i.e. the
+	// alpha channel should be ignored if the EFB does not have one.
+
 	// Create EFB target.
 
 	glGenFramebuffersEXT(1, &m_efbFramebuffer);
