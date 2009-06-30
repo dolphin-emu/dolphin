@@ -296,11 +296,12 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 		case 0x0008:
 		case 0x0020:
 		case 0x0021:
-			PanicAlert("Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+			WARN_LOG(DSPLLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+			break;
 
 		default:
 			// TODO: Implement general decoder here
-			PanicAlert("Unknown MixAddVoice format in zelda %04x", PB.Format);
+			ERROR_LOG(DSPLLE, "Unknown MixAddVoice format in zelda %04x", PB.Format);
 			break;
 		}
 
