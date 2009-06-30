@@ -137,10 +137,8 @@ void DSPCore_Shutdown()
 
 void DSPCore_Reset()
 {
-    _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "reset while exception");
     g_dsp.pc = DSP_RESET_VECTOR;
-    g_dsp.exception_in_progress_hack = false;
-
+	g_dsp.r[DSP_REG_SR] |=  SR_INT_ENABLE;
 	g_dsp.r[DSP_REG_WR0] = 0xffff;
 	g_dsp.r[DSP_REG_WR1] = 0xffff;
 	g_dsp.r[DSP_REG_WR2] = 0xffff;
@@ -160,7 +158,7 @@ void DSPCore_CheckExternalInterrupt()
 		if (dsp_SR_is_flag_set(SR_INT_ENABLE))
 		{
 			// level 7 is the interrupt exception. is it?
-			//			DSPCore_SetException(7);			
+			DSPCore_SetException(7);			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		}
 	}
