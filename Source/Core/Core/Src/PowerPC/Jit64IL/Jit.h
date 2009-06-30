@@ -95,7 +95,6 @@ private:
 		u32 blockStart;
 		bool cancel;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
-		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
 		int block_flags;

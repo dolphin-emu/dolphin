@@ -422,11 +422,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 	
-	//MOV(32, M(&PowerPC::ppcState.pc), Imm32(em_address));
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
-	//if (em_address == 0x80137868)
-	//	INT3();
 
 	if (js.fpa.any)
 	{
@@ -445,7 +442,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	ibuild.Reset();
 
 	js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
-	js.blockSize = size;
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
 	{
