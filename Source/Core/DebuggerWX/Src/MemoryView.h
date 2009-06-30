@@ -35,7 +35,8 @@ public:
 	void OnMouseUpR(wxMouseEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
 
-	u32 GetSelection() {return(selection);}
+	u32 GetSelection() { return selection ; }
+	int GetMemoryType() { return memory; }
 
 	void Center(u32 addr)
 	{

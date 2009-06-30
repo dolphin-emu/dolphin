@@ -31,6 +31,15 @@ enum DSPInterruptType
 	INT_AID		= 2
 };
 
+// aram size and mask
+enum
+{
+	ARAM_SIZE	= 0x01000000,			// 16 MB
+	ARAM_MASK	= 0x00FFFFFF,
+	WII_MASK	= 0x017FFFFF,			// 24 MB
+	WII_MEM2	= 0x03FFFFFF			// 64 MB
+};
+
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);

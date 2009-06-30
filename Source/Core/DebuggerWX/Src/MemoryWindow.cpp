@@ -35,6 +35,7 @@
 #include "LogManager.h"
 
 #include "HW/Memmap.h"
+#include "HW/DSP.h"
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
@@ -208,18 +209,41 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-// this is a simple main 1Tsram dump,
 // so we can view memory in a tile/hex viewer for data analysis
 void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 {
-	FILE* pDumpFile = fopen(MAINRAM_DUMP_FILE, "wb");
-	if (pDumpFile)
+	switch (memview->GetMemoryType())
 	{
-		if (Memory::m_pRAM)
+	case 0:
+	default:
 		{
-			fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, pDumpFile);
+			FILE* pDumpFile = fopen(MAINRAM_DUMP_FILE, "wb");
+			if (pDumpFile)
+			{
+				if (Memory::m_pRAM)
+				{
+					fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, pDumpFile);
+				}
+				fclose(pDumpFile);
+				delete pDumpFile;
+			}
 		}
-		fclose(pDumpFile);
-	}
-}
+		break;
 
+	case 1:
+		{
+			FILE* pDumpFile = fopen(ARAM_DUMP_FILE, "wb");
+			if (pDumpFile)
+			{
+				u8* aram = DSP::GetARAMPtr();
+				if (aram)
+				{
+					fwrite(aram, DSP::ARAM_SIZE, 1, pDumpFile);
+				}
+				fclose(pDumpFile);
+				delete pDumpFile;
+			}
+		}
+		break;
+	}	
+}
