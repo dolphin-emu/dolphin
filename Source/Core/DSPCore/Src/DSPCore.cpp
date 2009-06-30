@@ -157,11 +157,10 @@ void DSPCore_CheckExternalInterrupt()
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT)
 	{
-		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
+		if (dsp_SR_is_flag_set(SR_INT_ENABLE))
 		{
-			// level 7 is the interrupt exception
-			DSPCore_SetException(7);
-			
+			// level 7 is the interrupt exception. is it?
+			//			DSPCore_SetException(7);			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		}
 	}
@@ -170,21 +169,20 @@ void DSPCore_CheckExternalInterrupt()
 void DSPCore_CheckExceptions()
 {
 	// check exceptions
-	if ((g_dsp.exceptions != 0) && (!g_dsp.exception_in_progress_hack))
+	if (g_dsp.exceptions != 0)
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			if (g_dsp.exceptions & (1 << i))
+			if (g_dsp.exceptions & (1 << i) && dsp_SR_is_flag_set(SR_INT_ENABLE))
 			{
-				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-
+				
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
+				g_dsp.r[DSP_REG_SR] &= ~ SR_INT_ENABLE;
 
 				g_dsp.pc = i * 2;
 				g_dsp.exceptions &= ~(1 << i);
 
-				g_dsp.exception_in_progress_hack = true;
 				break;
 			}
 		}

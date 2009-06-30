@@ -48,8 +48,8 @@ void call(const UDSPInstruction& opc)
 // Generic callr implementation
 // CALLRcc $R
 // 0001 0111 rrr1 cccc
-// Call functionif condition cc has been met.Push program counter of 
-// instruction following "call" tocall stack $st0. Set program counter to 
+// Call function if condition cc has been met.Push program counter of 
+// instruction following "call" to call stack $st0. Set program counter to 
 // register $R.
 void callr(const UDSPInstruction& opc)
 {
@@ -121,13 +121,10 @@ void ret(const UDSPInstruction& opc)
 // Return from exception. Pops stored status register $sr from data stack
 // $st1 and program counter PC from call stack $st0 and sets $pc to this
 // location.
-// FIXME: is it also conditional? unknown opcodes 0x02fx
 void rti(const UDSPInstruction& opc)
 {
 	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
-
-	g_dsp.exception_in_progress_hack = false;
 }
 
 // HALT

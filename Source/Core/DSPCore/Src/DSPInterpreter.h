@@ -21,7 +21,6 @@
 #include "DSPTables.h"
 
 #define DSP_REG_MASK    0x1f
-#define FLAG_ENABLE_INTERUPT    11
 
 namespace DSPInterpreter {
 

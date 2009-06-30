@@ -75,6 +75,15 @@ void gdsp_mbox_write_h(u8 mbx, u16 val)
 	gdsp_mbox[mbx][0] = val & 0x7fff;
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
+
+	if (mbx == GDSP_MBOX_DSP)
+	{
+		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
+	} else {
+		// mailbox
+		DSPCore_SetException(7);
+	}
+
 }
 
 
@@ -91,7 +100,8 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 	{
 		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
 	} else {
-		// Trigger exception?
+		// mailbox
+		DSPCore_SetException(7);
 	}
 }
 
