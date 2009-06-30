@@ -145,8 +145,7 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 		PB.YN2 = 0x00;     // history1 
         PB.YN1 = 0x00;     // history2 
 
-        // samplerate? length? num of samples? i dunno...
-		// Likely length...
+		// Length in samples.
         PB.RemLength = PB.Length;
 
         // Copy ARAM addr from r to rw area.
@@ -164,8 +163,11 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
     u32 sampleCount = 0;
 
 	u8 *source;
-	if (m_CRC == 0xD643001F)
+	u32 ram_mask = 1024 * 1024 * 16 - 1;
+	if (m_CRC == 0xD643001F) {
 		source = g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr);
+		ram_mask = 1024 * 1024 * 64 - 1;
+	}
 	else
 		source = g_dspInitialize.pGetARAMPointer();
 
@@ -192,6 +194,7 @@ restart:
 		else
 		{
 			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
+			// We should also probably reinitialize YN1 and YN2 with something - but with what?
 			PB.RestartPos = PB.LoopStartPos;
 			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
@@ -206,7 +209,7 @@ restart:
 	u32 prev_addr = PB.CurAddr;
 
 	// Prefill the decode buffer.
-    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + PB.CurAddr), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
 	PB.CurAddr += 9;
 
 	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 32;
@@ -238,7 +241,7 @@ restart:
 				prev_yn2 = PB.YN2;
 				prev_addr = PB.CurAddr;
 
-				AFCdecodebuffer(m_AFCCoefTable, (char*)(source + PB.CurAddr), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+				AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
 				PB.CurAddr += 9;
 			}
 		}
@@ -278,24 +281,26 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 	{
 		switch (PB.Format)
 		{
-		case 0x0000:        // Silences sound and stops all looping sounds
-			for (int i = 0; i < _Size; i++)
-				_LeftBuffer[i] = _RightBuffer[i] = 0;
-			return;
-
-		case 0x0005:		// AFC / unknown
-		case 0x0009:		// AFC / ADPCM
+		// AFC formats
+		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
+			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
+		case 0x0009:		// AFC with normal bitrate (32:9 compression).
 			MixAddVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
 
-		case 0x0010:		// PCM16
+		case 0x0010:		// PCM16 - normal PCM 16-bit audio.
 			MixAddVoice_PCM16(PB, m_TempBuffer, _Size);
 			break;
 
-		// Cases we're missing: 0x0008, 0x0020, 0x0021
-		case 0x0008:
+		// These are "synth" formats - square wave, saw wave etc.
+		case 0x0000:
+		case 0x0001:        // Used for "Denied" sound in Zelda
+		case 0x0002:          
+			return;
+
+		case 0x0008:   // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
 		case 0x0020:
-		case 0x0021:
+		case 0x0021:   // Important for Zelda WW. Really need to implement - missing it causes hangs.
 			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 			break;
 
@@ -305,6 +310,7 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 			break;
 		}
 
+		// Necessary for SMG, not for Zelda. Weird.
 		PB.NeedsReset = 0;
 	}
 
