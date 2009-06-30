@@ -81,7 +81,7 @@ void gdsp_mbox_write_h(u8 mbx, u16 val)
 		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
 	} else {
 		// mailbox
-		DSPCore_SetException(7);
+		//		DSPCore_SetException(EXP_INT);
 	}
 
 }
@@ -101,7 +101,7 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
 	} else {
 		// mailbox
-		DSPCore_SetException(7);
+		DSPCore_SetException(EXP_INT);
 	}
 }
 
@@ -152,7 +152,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    break;
 
 		case 0xd3:   // ZeldaUnk (accelerator WRITE)
-		   	ERROR_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)\n", g_dsp.pc, val);
+		   	DEBUG_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)\n", g_dsp.pc, val);
 			dsp_write_aram_d3(val);
 			break;
 

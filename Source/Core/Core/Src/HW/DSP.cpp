@@ -21,14 +21,16 @@
 // that is, 4 bytes at 32 khz, which is 32 bytes at 4 khz. We thereforce schedule an
 // event that runs at 4khz, that eats audio from the fifo. Thus, we have homebrew audio.
 
-// The AID interrupt is set when the fifo STARTS a transfer. It latches address and count
-// into internal registers and starts copying. This means that the interrupt handler can simply
-// set the registers to where the next buffer is, and start filling it. When the DMA is complete,
-// it will automatically relatch and fire a new interrupt.
+// The AID interrupt is set when the fifo STARTS a transfer. It latches address
+// and count into internal registers and starts copying. This means that the
+// interrupt handler can simply set the registers to where the next buffer is,
+// and start filling it. When the DMA is complete, it will automatically
+// relatch and fire a new interrupt.
 
-// Then there's the DSP... what likely happens is that the fifo-latched-interrupt handler
-// kicks off the DSP, requesting it to fill up the just used buffer through the AXList (or
-// whatever it might be called in Nintendo games).
+// Then there's the DSP... what likely happens is that the
+// fifo-latched-interrupt handler kicks off the DSP, requesting it to fill up
+// the just used buffer through the AXList (or whatever it might be called in
+// Nintendo games).
 
 #include "DSP.h"
 

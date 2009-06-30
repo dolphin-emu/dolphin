@@ -155,10 +155,10 @@ void DSPCore_CheckExternalInterrupt()
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT)
 	{
-		if (dsp_SR_is_flag_set(SR_INT_ENABLE))
+		if (dsp_SR_is_flag_set(SR_800) && dsp_SR_is_flag_set(SR_INT_ENABLE))
 		{
 			// level 7 is the interrupt exception. is it?
-			DSPCore_SetException(7);			
+			DSPCore_SetException(EXP_INT);			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		}
 	}
