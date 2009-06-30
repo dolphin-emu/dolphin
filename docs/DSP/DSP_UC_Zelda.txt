@@ -2883,7 +2883,7 @@ void 087c_DefaultDecoder()
 	0887 0340 007e andi        $AC1.M, #0x007e // AC1.M &= 0x007e
 	0889 0300 0891 addi        $AC1.M, #0x0891 // AC1.M += 0x0891
 	088b 1c5f      mrr         $AR2, $AC1.M    // AR2 = AC1.M
-	088c 175f      callr       $AR2            // (*$AR2)()  <-- Need to check where it actually goes
+	088c 175f      callr       $AR2            // (*$AR2)()  <-- See jump table at 0x0891
 	088d 00fc 0430 sr          @0x0430, $AC0.L // PB.RatioFrac = AC0.L
 
 	// 088f 029f 02d8 jmp         0x02d8
@@ -2892,22 +2892,23 @@ void 087c_DefaultDecoder()
  
  
 // Jump table
-0891 029f 08b2 jmp         0x08b2
-0893 029f 08ed jmp         0x08ed
-0895 029f 08d5 jmp         0x08d5
-0897 029f 08c2 jmp         0x08c2
-0899 029f 08fb jmp         0x08fb
-089b 029f 08b1 jmp         0x08b1
-089d 029f 0919 jmp         0x0919
-089f 029f 091c jmp         0x091c
-08a1 029f 08b1 jmp         0x08b1
-08a3 029f 08b1 jmp         0x08b1
-08a5 029f 093a jmp         0x093a
-08a7 029f 08f3 jmp         0x08f3
-08a9 029f 08f7 jmp         0x08f7
-08ab 029f 08b1 jmp         0x08b1
-08ad 029f 08b1 jmp         0x08b1
-08af 029f 08b1 jmp         0x08b1
+// switch(PB.Format)
+0891 029f 08b2 jmp         0x08b2 // case 0x0
+0893 029f 08ed jmp         0x08ed // case 0x1
+0895 029f 08d5 jmp         0x08d5 // case 0x2
+0897 029f 08c2 jmp         0x08c2 // case 0x3
+0899 029f 08fb jmp         0x08fb // case 0x4
+089b 029f 08b1 jmp         0x08b1 // case 0x5 (can never happen)
+089d 029f 0919 jmp         0x0919 // case 0x6
+089f 029f 091c jmp         0x091c // case 0x7
+08a1 029f 08b1 jmp         0x08b1 // case 0x8 (can never happen)
+08a3 029f 08b1 jmp         0x08b1 // case 0x9 (can never happen)
+08a5 029f 093a jmp         0x093a // case 0xa
+08a7 029f 08f3 jmp         0x08f3 // case 0xb
+08a9 029f 08f7 jmp         0x08f7 // case 0xc
+08ab 029f 08b1 jmp         0x08b1 // case 0xd (unused)
+08ad 029f 08b1 jmp         0x08b1 // case 0xe (unused)
+08af 029f 08b1 jmp         0x08b1 // case 0xf (unused)
 08b1 02df      ret         
 
 void 08b2_Unk() { 
@@ -2922,7 +2923,10 @@ void 08b2_Unk() {
 		08be 1b19      srri        @$AR0, $AX1.L
 		08bf 4800      addax       $ACC0, $AX0.L
 	08c0 147f      lsr         $ACC0, #-1
-	08c1 02df      ret         
+	08c1 02df      ret
+}
+
+void 08c2_Unk() {         
 	08c2 1402      lsl         $ACC0, #2
 	08c3 8900      clr         $ACC1
 	08c4 1fb8      mrr         $AC1.L, $AX0.L
@@ -3000,6 +3004,8 @@ void 08f3_Unk() {
 }
 
 void 0919_Unk() {
+	// case 0x6: Fills the buffer with PB.RatioInt (zero?)
+
 	0919 1050      loopi       #0x50
 	091a 1b18      srri        @$AR0, $AX0.L
 	091b 02df      ret         
