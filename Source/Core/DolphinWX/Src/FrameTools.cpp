@@ -420,8 +420,9 @@ void CFrame::BootGame()
 		}
 		UpdateGUI();
 	}
-	// Start the selected ISO
-	else if (m_GameListCtrl->GetSelectedISO() != 0)
+	// Start the selected ISO, return if gamelist is empty
+	else if (m_GameListCtrl->GetSelectedISO() == 0) return;
+	else if (m_GameListCtrl->GetSelectedISO()->IsValid())
 	{
 		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
@@ -462,7 +463,7 @@ void CFrame::DoOpen(bool Boot)
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
-	bool fileChosen = path ? true : false;
+	bool fileChosen = !path.IsEmpty();
 
     std::string currentDir2 = File::GetCurrentDirectory();
 

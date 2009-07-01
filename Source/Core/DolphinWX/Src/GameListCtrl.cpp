@@ -727,8 +727,8 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	else
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
-		if (item == -1) // -1 means the selection is bogus, not a gamelistitem
-			return 0;
+		if (item == wxNOT_FOUND)
+			return new GameListItem("");
 		else
 		{
 			// Here is a little workaround for multiselections:

@@ -508,8 +508,8 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 2. All Regions are set to hide
 	// Otherwise call BootGame to either...
 	// 1. Boot the selected iso
-	// 2. Call BrowseForDirectory and boot the default or last loaded iso.
-	// TODO: (LPFaint99) We shouldn't boot an iso after BrowseForDirectory
+	// 2. Boot the default or last loaded iso.
+	// 3. Call BrowseForDirectory if the gamelist is empty
 	if (!m_GameListCtrl->GetGameNames().size() &&
 		!((SConfig::GetInstance().m_ListGC ||
 		SConfig::GetInstance().m_ListWii ||
