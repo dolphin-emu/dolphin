@@ -161,15 +161,6 @@
 // This should be the bits affected by CMP. Does not include logic zero.
 #define SR_CMP_MASK     0x3f
 
-// exceptions vector
-#define EXP_RESET 0 // 0x0000
-#define EXP_STOVF 1 // 0x0002 stack under/over flow
-#define EXP_4     2 // 0x0004
-#define EXP_6     3 // 0x0006
-#define EXP_8     4 // 0x0008
-#define EXP_ACCOV 5 // 0x000a accelerator address overflow
-#define EXP_c     6 // 0x000c
-#define EXP_INT   7 // 0x000e external int? (mail?)
 
 struct SDSP
 {
@@ -187,6 +178,7 @@ struct SDSP
 
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions?
+	bool exception_in_progress_hack;  // is this the same as "exception enabled"?
 
 	// Let's make stack depth 32 for now. The real DSP has different depths
 	// for the different stacks, but it would be strange if any ucode relied on stack
