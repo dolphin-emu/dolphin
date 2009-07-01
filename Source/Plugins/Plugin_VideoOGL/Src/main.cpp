@@ -467,13 +467,22 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 			if (!g_VideoInitialize.bUseDualCore)
 			{
 				u32 z = 0;
-				TRectangle source, scaledTargetSource;
-				ComputeBackbufferRectangle(&source);
-				source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
-				GLuint depth_tex = Renderer::ResolveAndGetDepthTarget(scaledTargetSource);
+
+				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
+				{
+					// Find the proper dimensions
+					TRectangle source, scaledTargetSource;
+					ComputeBackbufferRectangle(&source);
+					source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
+					// This will resolve and bind to the depth buffer
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
+				}
+
+				// Read the z value!
 				glReadPixels(x, Renderer::GetTargetHeight()-y, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 				GL_REPORT_ERRORD();
-				// mask away the stencil bits
+
+				// Mask away the stencil bits
 				return z & 0xffffff;
 			}
 		}
