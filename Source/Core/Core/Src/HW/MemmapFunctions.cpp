@@ -21,6 +21,7 @@
 #include "WII_IOB.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
+#include "../PluginManager.h"
 
 namespace Memory
 {
@@ -35,8 +36,8 @@ GXPeekZ
 80322df8: or	r0, r3, r0                         a |= x;
 80322dfc: rlwinm	r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
 80322e00: oris	r3, r0, 0x0040                     x = a | 0x00400000
-80322e04: lwz	r0, 0 (r3)
-80322e08: stw	r0, 0 (r5)
+80322e04: lwz	r0, 0 (r3)						   r0 = *r3
+80322e08: stw	r0, 0 (r5)						   z = 
 80322e0c: blr	
 */
 
@@ -125,15 +126,14 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 	{
 		if (em_address < 0xcc000000)
 		{
-			// TODO: glReadPixels :p
-			_var = 0;
-
 			int x = (em_address & 0xfff) >> 2;
 			int y = (em_address >> 12) & 0x3ff;
 			if (em_address & 0x00400000) {
-				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i", x, y);
+				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::PEEK_Z, x, y);
+				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= %i", x, y, _var);
 			} else {
-				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i", x, y);
+				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::PEEK_COLOR, x, y);
+				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= %i", x, y, _var);
 			}
 		}
 		else if (em_address <= 0xcc009000)
@@ -203,8 +203,10 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 			int x = (em_address & 0xfff) >> 2;
 			int y = (em_address >> 12) & 0x3ff;
 			if (em_address & 0x00400000) {
+				CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::POKE_Z, x, y);
 				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
 			} else {
+				CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::POKE_COLOR, x, y);
 				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
 			}
 			return;

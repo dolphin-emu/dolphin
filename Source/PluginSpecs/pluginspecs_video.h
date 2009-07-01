@@ -23,6 +23,14 @@ typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
 
+enum EFBAccessType
+{
+	PEEK_Z = 0,
+	POKE_Z,
+	PEEK_COLOR,
+	POKE_COLOR
+};
+
 typedef struct
 {
 	// fifo registers
@@ -111,6 +119,13 @@ EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 // output:   none
 //
 EXPORT void CALL Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling);
+
+// __________________________________________________________________________________________________
+// Function: Video_AccessEFB
+// input:    type of access (r/w, z/color, ...), x coord, y coord
+// output:   response to the access request (ex: peek z data at specified coord)
+//
+EXPORT u32 CALL Video_AccessEFB(EFBAccessType type, u32 x, u32 y);
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot

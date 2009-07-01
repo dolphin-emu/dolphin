@@ -30,6 +30,7 @@ typedef bool (__cdecl* TVideo_Screenshot)(const char* filename);
 typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_ExitLoop)();
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
+typedef u32 (__cdecl* TVideo_AccessEFB)(EFBAccessType, u32, u32);
 
 class PluginVideo : public CPlugin
 {
@@ -43,6 +44,7 @@ public:
 	TVideo_EnterLoop    Video_EnterLoop;
 	TVideo_ExitLoop     Video_ExitLoop;
 	TVideo_UpdateXFB    Video_UpdateXFB;
+	TVideo_AccessEFB	Video_AccessEFB;
 
 	TVideo_AddMessage   Video_AddMessage;
 	TVideo_Screenshot   Video_Screenshot;

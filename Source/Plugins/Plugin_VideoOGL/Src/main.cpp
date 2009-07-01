@@ -458,3 +458,38 @@ void Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset
 	}
 }
 
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+{
+	switch (type)
+	{
+	case EFBAccessType::PEEK_Z:
+		{
+			if (!g_VideoInitialize.bUseDualCore)
+			{
+				u32 z = 0;
+				TRectangle source, scaledTargetSource;
+				ComputeBackbufferRectangle(&source);
+				source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
+				GLuint depth_tex = Renderer::ResolveAndGetDepthTarget(scaledTargetSource);
+				glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+				GL_REPORT_ERRORD();
+				return z;
+			}
+		}
+		break;
+
+	case EFBAccessType::POKE_Z:
+		break;
+
+	case EFBAccessType::PEEK_COLOR:
+		break;
+
+	case EFBAccessType::POKE_COLOR:
+		break;
+
+	default:
+		break;
+	}
+	return 0;
+}
+
