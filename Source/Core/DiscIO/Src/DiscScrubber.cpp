@@ -195,7 +195,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 			ERROR_LOG(DISCIO, "Really weird - failed to mark scrubbed disk as scrubbed :s");
 
 cleanup:
-	fclose(pFile);
+	if (pFile) fclose(pFile);
 	delete m_Sector1;
 	delete m_FreeTable;
 
