@@ -19,6 +19,7 @@ DSP functionality to test:
 // todo - define syntax for this so it can be auto read.
 
 // 
+0x0000 to 0x280             // Unknown table
 0x0280       				// command queue
 
 ///////////////////////////////////////////
@@ -1091,13 +1092,15 @@ void 0243_COMMAND_02()  // sync frame
 				// 02d0 0080 0580 lri         $AR0, #0x0580
 				// 02d2 0081 0520 lri         $AR1, #0x0520
 				// 02d4 0099 0000 lri         $AX1.L, #0x0000
-				// 02d6 02bf 0d7f call        0x0d7f					
+				// 02d6 02bf 0d7f call        0x0d7f
 				0d7f_Unk_MaybeResample(0x0580, 0x0520, 0x0000);
 			}
 			
 			// A block of audio is now present at 0x520.
 
 		ContinueWithBlock:
+			// I would guess that the below applies various voice effects.
+		
 			// 02d8 00da 04a8 lr          $AX0.H, @0x04a8
 			// 02da 8600      tstaxh      $AX0.H
 			// 02db 0295 02e1 jz          0x02e1
@@ -1214,9 +1217,9 @@ void 0243_COMMAND_02()  // sync frame
 					034d 0084 ffff lri         $IX0, #0xffff
 					034f 0087 ffff lri         $IX3, #0xffff
 					0351 199a      lrrn        $AX0.H, @$AR0
-					0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
+						0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
 					0353 005e      loop        $AC0.M
-					0354 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M					 				
+						0354 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M					 				
 				}
 				 
 				// 0355 00da 0485 lr          $AX0.H, @0x0485
@@ -2870,10 +2873,11 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 }	 
  
  
- //////////////////////////////////////////// DEFAULT DECODER 
+//////////////////////////////////////////// DEFAULT DECODER 
 void 087c_DefaultDecoder()
- {
-        087c 8100      clr         $ACC0           // ACC0 = 0
+{
+	087c 8100      clr         $ACC0
+    087c 8100      clr         $ACC0           // ACC0 = 0
 	087d 1f5e      mrr         $AX0.H, $AC0.M
 	087e 00d8 0402 lr          $AX0.L, @0x0402 // AX0.L = PB.RatioInt
 	0880 00dc 0430 lr          $AC0.L, @0x0430 // AC0.L = PB.RatioFrac
@@ -2893,14 +2897,14 @@ void 087c_DefaultDecoder()
  
 // Jump table
 // switch(PB.Format)
-0891 029f 08b2 jmp         0x08b2 // case 0x0
-0893 029f 08ed jmp         0x08ed // case 0x1
-0895 029f 08d5 jmp         0x08d5 // case 0x2
-0897 029f 08c2 jmp         0x08c2 // case 0x3
-0899 029f 08fb jmp         0x08fb // case 0x4
+0891 029f 08b2 jmp         0x08b2 // case 0x0  // 08b2_Decoder0x0_SquareWave
+0893 029f 08ed jmp         0x08ed // case 0x1  // 08ed_Decoder0x1_SawWave
+0895 029f 08d5 jmp         0x08d5 // case 0x2  // 08d5_Decoder0x2_SquareSaw
+0897 029f 08c2 jmp         0x08c2 // case 0x3  // 08c2_Decoder0x3_RectangleWave
+0899 029f 08fb jmp         0x08fb // case 0x4  
 089b 029f 08b1 jmp         0x08b1 // case 0x5 (can never happen)
 089d 029f 0919 jmp         0x0919 // case 0x6
-089f 029f 091c jmp         0x091c // case 0x7
+089f 029f 091c jmp         0x091c // case 0x7  // 091c_Decoder0x7_WaveTable
 08a1 029f 08b1 jmp         0x08b1 // case 0x8 (can never happen)
 08a3 029f 08b1 jmp         0x08b1 // case 0x9 (can never happen)
 08a5 029f 093a jmp         0x093a // case 0xa
@@ -2911,7 +2915,7 @@ void 087c_DefaultDecoder()
 08af 029f 08b1 jmp         0x08b1 // case 0xf (unused)
 08b1 02df      ret         
 
-void 08b2_Unk() { 
+void 08b2_Decoder0x0_SquareWave() { 
 	08b2 1401      lsl         $ACC0, #1       // t = PB.RatioFrac * 2
 
 	// Set up sound buffers
@@ -2933,10 +2937,12 @@ void 08b2_Unk() {
 		08bf 4800      addax       $ACC0, $AX0.L // t += PB.RatioInt
 	}
 	08c0 147f      lsr         $ACC0, #-1 // t /= 2
-	08c1 02df      ret
+	
+	// Where ACC0 gets stored after this is interesting.
+	// 08c1 02df      ret
 }
 
-void 08c2_Unk() {         
+void 08c2_Decoder0x3_RectangleWave() {	
 	08c2 1402      lsl         $ACC0, #2       // t = PB.RatioFrac * 4
 	08c3 8900      clr         $ACC1           // ACC1 = 0
 	08c4 1fb8      mrr         $AC1.L, $AX0.L  // AC1.L = PB.RatioInt
@@ -2960,10 +2966,10 @@ void 08c2_Unk() {
 		t += (PB.RatioInt * 2);
 	}
 	08d3 147e      lsr         $ACC0, #-2 // t /= 4
-	08d4 02df      ret         
+	// 08d4 02df      ret         
 }
 
-void 08d5_Unk() {
+void 08d5_Decoder0x2_SquareSaw() {
 	08d5 1401      lsl         $ACC0, #1
 	08d6 0081 0ca0 lri         $AR1, #0x0ca0
 	08d8 009b c000 lri         $AX1.H, #0xc000
@@ -2982,8 +2988,9 @@ void 08d5_Unk() {
 		08ea 4c39      add's       $ACC0, $AC1.L : @$AR1, $AC1.M
 	08eb 147f      lsr         $ACC0, #-1
 	// 08ec 02df      ret         
+}
 
-void 08ed_Unk() {
+void 08ed_Decoder0x1_SawWave() {
 	08ed 8900      clr         $ACC1
 	08ee 1fb8      mrr         $AC1.L, $AX0.L
 	08ef 157f      lsr         $ACC1, #-1
@@ -2995,8 +3002,10 @@ void 08ed_Unk() {
 void 08f3_Unk() {
 	08f3 0082 0180 lri         $AR2, #0x0180    // Three entrances
 	08f5 029f 08fd jmp         0x08fd
+	
 	08f7 0082 01c0 lri         $AR2, #0x01c0    // Entrance 2
 	08f9 029f 08fd jmp         0x08fd
+	
 	08fb 0082 0140 lri         $AR2, #0x0140    // Entrance 3
 	08fd 008a 003f lri         $WR2, #0x003f
 	08ff 0086 0000 lri         $IX2, #0x0000
@@ -3022,15 +3031,15 @@ void 08f3_Unk() {
 	// 0918 02df      ret         
 }
 
-void 0919_Unk() {
+void 0919_Decoder0x6() {
 	// case 0x6: Fills the buffer with PB.RatioInt (zero?)
 
 	0919 1050      loopi       #0x50
-	091a 1b18      srri        @$AR0, $AX0.L
+	091a 1b18          srri        @$AR0, $AX0.L
 	091b 02df      ret         
 }
 
-void 091c_Unk() {
+void 091c_Decoder0x7_WaveTable() {
 	091c 0082 0100 lri         $AR2, #0x0100
 	091e 008a 003f lri         $WR2, #0x003f
 	0920 0086 0000 lri         $IX2, #0x0000
@@ -3125,7 +3134,7 @@ void 095f_Unk_SetupMemAt0_0180() {
 void 0983_Unk(ACC0, ACC1) {
 	0983 b900      tst         $ACC1
 	0984 0272      ifg         
-	0985 7c00      neg         $ACC0
+		0985 7c00      neg         $ACC0
 	0986 1f7e      mrr         $AX1.H, $AC0.M
 	0987 4700      addr        $ACC1, $AX1.H
 	// 0988 1110 098d bloopi      #0x10, 0x098d
@@ -3197,14 +3206,16 @@ void Decoder0x08() {
 	09cd 5c00      sub         $ACC0, $AC1.L
 	09ce 0290 09d9 jns         0x09d9
 	09d0 223b      lrs         $AX0.H, @0x003b
-	09d1 02bf 0a0a call        0x0a0a
+	
+	09d1 02bf 0a0a call        0x0a0a   // Load more samples.
 	09d3 5500      subr        $ACC1, $AX0.H
 	09d4 0a01      lris        $AX0.H, #0x01
 	09d5 00fa 0405 sr          @0x0405, $AX0.H
 	09d7 029f 09ab jmp         0x09ab
 	
 	09d9 1f5f      mrr         $AX0.H, $AC1.M
-	09da 02bf 0a0a call        0x0a0a
+	09da 02bf 0a0a call        0x0a0a   // Load more samples.
+	
 	09dc 00fa 0362 sr          @0x0362, $AX0.H
 	09de 8100      clr         $ACC0
 	09df 263a      lrs         $AC0.M, @0x003a
@@ -3259,7 +3270,7 @@ void 09f9_UsedBy08Decoder() {
 }
  
 void 0a0a_UsedBy08Decoder() {
-	// Read from ARAM.
+	// Read from ARAM. Convert 8-bit samples to 16-bit.
 	0a0a 0080 ffd3 lri         $AR0, #0xffd3
 	0a0c 0084 0000 lri         $IX0, #0x0000
 	0a0e 007a 0a12 bloop       $AX0.H, 0x0a12
@@ -3272,6 +3283,7 @@ void 0a0a_UsedBy08Decoder() {
  
  
 //////////////////////////////////////////// 0x10 DECODER 
+// This should be the easiest decoder to decipher in full.
 void Decoder_0x10() {
 	0a14 0092 0004 lri         $CR, #0x0004
 	0a16 2002      lrs         $AX0.L, @0x0002
@@ -3420,7 +3432,6 @@ void 0a91_Unk() {
 	0a99 02df      ret         
 }
 
-
 //////////////////////////////////////////// 0x20 DECODER 
 {
 	0a9a 8900      clr         $ACC1
@@ -3431,39 +3442,49 @@ void 0a91_Unk() {
 	GOTO ContinueWithBlock:  // in SyncFrame
 }
 	
- 
 //////////////////////////////////////////// 0x21 DECODER 
-{
-	0aa2 00d8 0402 lr          $AX0.L, @0x0402
-	0aa4 8100      clr         $ACC0
-	0aa5 8900      clr         $ACC1
-	0aa6 00dc 0430 lr          $AC0.L, @0x0430
-	0aa8 0a50      lris        $AX0.H, #0x50
-	0aa9 9000      mul         $AX0.L, $AX0.H
-	0aaa 9400      mulac       $AX0.L, $AX0.H, $ACC0
-	0aab 1404      lsl         $ACC0, #4
-	0aac 1ffe      mrr         $AC1.M, $AC0.M
-	0aad 0083 0580 lri         $AR3, #0x0580
-	0aaf 02bf 0ab3 call        0x0ab3				// 
+void 0aa2_Decoder0x21() {
+	// 0aa2 00d8 0402 lr          $AX0.L, @0x0402
+	// 0aa4 8100      clr         $ACC0
+	// 0aa5 8900      clr         $ACC1
+	AX0.L = *0x0402;
+	ACC0 = 0
+	ACC1 = 0
+	// 0aa6 00dc 0430 lr          $AC0.L, @0x0430
+	// 0aa8 0a50      lris        $AX0.H, #0x50
+	// 0aa9 9000      mul         $AX0.L, $AX0.H
+	// 0aaa 9400      mulac       $AX0.L, $AX0.H, $ACC0
+	// 0aab 1404      lsl         $ACC0, #4
+	ACC0 = (*0x0430 + (*0x0402 * 0x50)) << 4;
+	
+	// 0aac 1ffe      mrr         $AC1.M, $AC0.M
+	ACC1 = ACC0 & 0xFFFF0000;
+	
+	// 0aad 0083 0580 lri         $AR3, #0x0580
+	// 0aaf 02bf 0ab3 call        0x0ab3   // 0ab3_Decoder0x21Core
+	0ab3_Decoder0x21Core(AC1.M, AR3=#0x0580);
 	// 0ab1 029f 02d0 jmp         0x02d0
 	GOTO MixFrom_0580_to_0520:
 }
 
-
-// This has something to do with the address/length of the sample...
-void 0ab3_Unk() {
-	0ab3 0092 0004 lri         $CR, #0x0004
-	0ab5 8100      clr         $ACC0
-	0ab6 263a      lrs         $AC0.M, @0x003a
-	0ab7 243b      lrs         $AC0.L, @0x003b
-	0ab8 1f1f      mrr         $AX0.L, $AC1.M
-	0ab9 0a00      lris        $AX0.H, #0x00
-	0aba 5800      subax       $ACC0, $AX0.L
+// 0x21 Decoder Core
+// I get the feeling that decoder 0x21 simply streams raw audio
+// by using DMA. Lots of buffer wrap trickery etc but no actual decoding.
+void 0ab3_Decoder0x21Core(AC1.M, AR3) {
+	// 0ab3 0092 0004 lri         $CR, #0x0004
+	// 0ab5 8100      clr         $ACC0
+	// 0ab6 263a      lrs         $AC0.M, @0x003a
+	// 0ab7 243b      lrs         $AC0.L, @0x003b
+	// 0ab8 1f1f      mrr         $AX0.L, $AC1.M
+	// 0ab9 0a00      lris        $AX0.H, #0x00
+	// 0aba 5800      subax       $ACC0, $AX0.L
+	ACC0 = [3a,3b] - AC1.M;
+	
 	0abb 0292 0ad1 jg          0x0ad1
-	if (prev val of)ACC0 > AX0.L) {
+	if ((prev val of)ACC0 > AX0.L) {
 		0abd 8900      clr         $ACC1
 		0abe 00c0 043b lr          $AR0, @0x043b
-		0ac0 02bf 0af6 call        0x0af6
+		0ac0 02bf 0af6 call        0x0af6  // 0af6_Decoder0x21_MoreStuff()
 		
 		0ac2 8100      clr         $ACC0
 		0ac3 1fd8      mrr         $AC0.M, $AX0.L
@@ -3491,23 +3512,24 @@ void 0ab3_Unk() {
 	0ad9 5000      subr        $ACC0, $AX0.L
 	0ada 0290 0af0 jns         0x0af0
 	if () {
-		0adc 00c0 0436 lr          $AR0, @0x0436
+		// 0adc 00c0 0436 lr          $AR0, @0x0436
 		// 0ade 02bf 0af6 call        0x0af6
-		0af6_Unk()
+		0af6_Decoder0x21_MoreStuff($AR0 = *0x0436);
 		
-		0ae0 8100      clr         $ACC0
+		// 0ae0 8100      clr         $ACC0
 		0ae1 1fd8      mrr         $AC0.M, $AX0.L
-		0ae2 2236      lrs         $AX0.H, @0x0036
+		0ae2 2236      lrs         $AX0.H, @0x0036   // 0x0436
 		0ae3 5400      subr        $ACC0, $AX0.H
 		0ae4 1c1e      mrr         $AR0, $AC0.M
 		0ae5 8100      clr         $ACC0
 		0ae6 2e34      srs         @0x0034, $AC0.M
-		0ae7 2688      lrs         $AC0.M, @0xff88
-		0ae8 2489      lrs         $AC0.L, @0xff89
+		0ae7 2688      lrs         $AC0.M, @0xff88   // 0x0488
+		0ae8 2489      lrs         $AC0.L, @0xff89   // 0x0489
 		0ae9 2e8c      srs         @0xff8c, $AC0.M
 		0aea 2c8d      srs         @0xff8d, $AC0.L
 		// 0aeb 02bf 0af6 call        0x0af6
-		0af6_Unk()
+		0af6_Decoder0x21_MoreStuff($AR0 = *0x0436);
+		
 		0aed 0092 00ff lri         $CR, #0x00ff
 		// 0aef 02df      ret  
 		return;
@@ -3521,60 +3543,77 @@ void 0ab3_Unk() {
 
 // CR = 0x4
 // Does strange stuff with PB[0x34] and the address PB[0x8c,d]
-void 0af6_Unk() {
+// Does not touch AX0.L
+void 0af6_Decoder0x21_MoreStuff($AR0) {
 	0af6 8100      clr         $ACC0
 	0af7 1fc0      mrr         $AC0.M, $AR0
-	0af8 b100      tst         $ACC0
-	0af9 02d5      retz        
-	if (!*AR0)
-	return;
+	// 0af8 b100      tst         $ACC0
+	// 0af9 02d5      retz        
+	if (!AR0)
+		return;
 	
-	0afa 8900      clr         $ACC1
-	0afb 2734      lrs         $AC1.M, @0x0034
-	0afc 0340 0001 andi        $AC1.M, #0x0001
-	0afe 0b00      lris        $AX1.H, #0x00
-	0aff 1f3f      mrr         $AX1.L, $AC1.M
-	0b00 268c      lrs         $AC0.M, @0xff8c
-	0b01 248d      lrs         $AC0.L, @0xff8d
-	0b02 8900      clr         $ACC1
-	0b03 2534      lrs         $AC1.L, @0x0034
-	0b04 1501      lsl         $ACC1, #1
-	0b05 4c00      add         $ACC0, $AC1.L
-	0b06 5a00      subax       $ACC0, $AX1.L
-	0b07 5a00      subax       $ACC0, $AX1.L
+	// 0afa 8900      clr         $ACC1
+	// 0afb 2734      lrs         $AC1.M, @0x0034
+	// 0afc 0340 0001 andi        $AC1.M, #0x0001
+	// 0afe 0b00      lris        $AX1.H, #0x00
+	// 0aff 1f3f      mrr         $AX1.L, $AC1.M
+	// AX1.L = *0x0434 & 1;
+	// 0b00 268c      lrs         $AC0.M, @0xff8c
+	// 0b01 248d      lrs         $AC0.L, @0xff8d
+	// 0b02 8900      clr         $ACC1
+	// 0b03 2534      lrs         $AC1.L, @0x0034
+	// 0b04 1501      lsl         $ACC1, #1
+	// 0b05 4c00      add         $ACC0, $AC1.L
 	
+	// 0b06 5a00      subax       $ACC0, $AX1.L
+	// 0b07 5a00      subax       $ACC0, $AX1.L
+	
+	ACC0 = {8c,8d} + *0x0434 * 2 - (*0x0434 & 1) * 2
+
 	0b08 1c20      mrr         $AR1, $AR0
-	0b09 1fe0      mrr         $AC1.M, $AR0
-	0b0a 0502      addis       $ACC1, #0x02
+
+	// 0b09 1fe0      mrr         $AC1.M, $AR0
+	// 0b0a 0502      addis       $ACC1, #0x02
+	ACC1 = ($AR0 << 16) + 0x20000;
+	
+	// 
 	0b0b 1c1f      mrr         $AR0, $AC1.M
 	0b0c 009f 0b00 lri         $AC1.M, #0x0b00
 	0b0e 0092 00ff lri         $CR, #0x00ff
-	0b10 02bf 0525 call        0x0525                    // 0525_CopyRAMtoDMEM
-	0525_CopyRAMtoDMEM($AR1, 0x0b00, $AR0)
 	
-	0b12 0092 0004 lri         $CR, #0x0004
-	0b14 2734      lrs         $AC1.M, @0x0034
-	0b15 1f61      mrr         $AX1.H, $AR1
-	0b16 4700      addr        $ACC1, $AX1.H
-	0b17 2f34      srs         @0x0034, $AC1.M
-	0b18 0080 0b00 lri         $AR0, #0x0b00
-	0b1a 8900      clr         $ACC1
-	0b1b 1ff9      mrr         $AC1.M, $AX1.L
-	0b1c b900      tst         $ACC1
-	0b1d 0274      ifnz        
-	if (ACC1) {
-		0b1e 0008      iar         $AR0
+	// Load more audio from RAM by DMA??
+	
+	// 0b10 02bf 0525 call        0x0525                    // 0525_CopyRAMtoDMEM
+	0525_CopyRAMtoDMEM($AR1 == $ACC1 >> 16, 0x0b00, $AR0)
+	
+	// 0b12 0092 0004 lri         $CR, #0x0004
+	
+	// 0b14 2734      lrs         $AC1.M, @0x0034
+	// 0b15 1f61      mrr         $AX1.H, $AR1
+	// 0b16 4700      addr        $ACC1, $AX1.H
+	// 0b17 2f34      srs         @0x0034, $AC1.M
+	*0x0434 += AR1;
+
+	// 0b18 0080 0b00 lri         $AR0, #0x0b00
+	// 0b1a 8900      clr         $ACC1
+	// 0b1b 1ff9      mrr         $AC1.M, $AX1.L
+	// 0b1c b900      tst         $ACC1
+	// 0b1d 0274      ifnz        
+	if (AX1.L) {
+		// 0b1e 0008      iar         $AR0
+		$AR0++;
 	}	
-	0b1f 8900      clr         $ACC1
-	0b20 1fe1      mrr         $AC1.M, $AR1
-	0b21 191e      lrri        $AC0.M, @$AR0
-	0b22 0701      cmpis       $ACC1, #0x01
-	0b23 0293 0b2c jle         0x0b2c
-	if (ACC1 <= 1) {
+	// 0b1f 8900      clr         $ACC1
+	// 0b20 1fe1      mrr         $AC1.M, $AR1
+	// 0b21 191e      lrri        $AC0.M, @$AR0
+	// 0b22 0701      cmpis       $ACC1, #0x01
+	AC0.M = *$AR0;
+	// 0b23 0293 0b2c jle         0x0b2c
+	if (ACC1 > 1<<16) {
 		0b25 191a      lrri        $AX0.H, @$AR0
 		0b26 05fe      addis       $ACC1, #0xfe
 		0b27 005f      loop        $AC1.M
-		0b28 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
+			0b28 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
 		0b29 1b7e      srri        @$AR3, $AC0.M
 		0b2a 1b7a      srri        @$AR3, $AX0.H
 		0b2b 02df      ret    
@@ -3948,14 +3987,14 @@ void 0c84_ModifySample(_sampleAddr($AR0))
 	0c95 0900      lris        $AX1.L, #0x00
 	0c96 0084 0000 lri         $IX0, #0x0000
 	0c98 1150 0ca1 bloopi      #0x50, 0x0ca1
-	0c9a 199e      lrrn        $AC0.M, @$AR0
-	0c9b 5c7c      sub'ln      $ACC0, $AC1.L : $AC1.M, @$AR0
-	0c9c c000      mulc        $AC0.M, $AX0.H
-	0c9d 6e00      movp        $ACC0
-	0c9e 1488      asl         $ACC0, #8
-	0c9f 4a00      addax       $ACC0, $AX1.L
-	0ca0 1b1e      srri        @$AR0, $AC0.M
-	0ca1 1f7e      mrr         $AX1.H, $AC0.M
+		0c9a 199e      lrrn        $AC0.M, @$AR0
+		0c9b 5c7c      sub'ln      $ACC0, $AC1.L : $AC1.M, @$AR0
+		0c9c c000      mulc        $AC0.M, $AX0.H    // Where does AX0.H get set?
+		0c9d 6e00      movp        $ACC0
+		0c9e 1488      asl         $ACC0, #8
+		0c9f 4a00      addax       $ACC0, $AX1.L
+		0ca0 1b1e      srri        @$AR0, $AC0.M
+		0ca1 1f7e      mrr         $AX1.H, $AC0.M
 	0ca2 00fb 0478 sr          @0x0478, $AX1.H
 	0ca4 00ff 0479 sr          @0x0479, $AC1.M
 	0ca6 8b00      m0          
@@ -4059,7 +4098,7 @@ void 0cd3_Unk()
 	0cf6 8100      clr         $ACC0
 	0cf7 8900      clr         $ACC1
 	0cf8 009f 0200 lri         $AC1.M, #0x0200
-	0cfa 1fd8      mrr         $AC0.M, $AX0.L  # AC0.M?
+	0cfa 1fd8      mrr         $AC0.M, $AX0.L
 	0cfb 4c00      add         $ACC0, $AC1.L   # broken disasm? this doesn't make much sense.
 	0cfc 1c1e      mrr         $AR0, $AC0.M
 	0cfd 1818      lrr         $AX0.L, @$AR0
@@ -4141,7 +4180,9 @@ void 0cd3_Unk()
 		
 	0d60 8e00      set16       
 	0d61 02df      ret         
-	
+}
+
+void 0d62_Unk() {
 	0d62 191f      lrri        $AC1.M, @$AR0
 	0d63 d078      mulc'l      $AC1.M, $AX0.H : $AC1.M, @$AR0
 	0d64 d678      mulcmv'l    $AC1.M, $AX0.H, $ACC0 : $AC1.M, @$AR0
@@ -4150,8 +4191,10 @@ void 0cd3_Unk()
 	0d67 d631      mulcmv's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
 	0d68 6e31      movp's      $ACC0 : @$AR1, $AC0.M
 	0d69 1b3e      srri        @$AR1, $AC0.M
-	0d6a 02df      ret         
-	
+	// 0d6a 02df      ret         
+}
+
+void 0d6b_Unk() {
 	0d6b 8d00      set15       
 	0d6c 1f7e      mrr         $AX1.H, $AC0.M
 	0d6d 1918      lrri        $AX0.L, @$AR0
@@ -4163,25 +4206,26 @@ void 0cd3_Unk()
 	0d73 6e31      movp's      $ACC0 : @$AR1, $AC0.M
 	0d74 1b3e      srri        @$AR1, $AC0.M
 	0d75 8c00      clr15       
-	0d76 02df      ret    
+	// 0d76 02df      ret    
 } 
  
 // table for 0cd3_Unk
 // This is a bunch of buffer addresses!
 short table = {0x0d00, 0x0d60, 0x0f40, 0x0ca0, 0x0e80, 0x0ee0, 0x0c00, 0x0c50};
 
-0d77 0d00      lris        $AC1.L, #0x00
-0d78 0d60      lris        $AC1.L, #0x60
-0d79 0f40      lris        $AC1.M, #0x40
-0d7a 0ca0      lris        $AC0.L, #0xa0
-0d7b 0e80      lris        $AC0.M, #0x80
-0d7c 0ee0      lris        $AC0.M, #0xe0
-0d7d 0c00      lris        $AC0.L, #0x00
-0d7e 0c50      lris        $AC0.L, #0x50
+0d77 0d00
+0d78 0d60
+0d79 0f40
+0d7a 0ca0
+0d7b 0e80
+0d7c 0ee0
+0d7d 0c00
+0d7e 0c50
 
-void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), _option??) 
+void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??) 
 {
-	0d7f 00f9 0361 sr          @0x0361, $AX1.L
+	0d7f 00f9 0361 sr          @0x0361, $AX1.L   // always 0
+	
 	0d81 1fc0      mrr         $AC0.M, $AR0
 	0d82 0200 fffc addi        $AC0.M, #0xfffc
 	0d84 1c1e      mrr         $AR0, $AC0.M
@@ -4195,13 +4239,13 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), _option??)
 	0d8d 1b1f      srri        @$AR0, $AC1.M
 	0d8e 1c02      mrr         $AR0, $AR2
 	0d8f 8100      clr         $ACC0
-	0d90 00de 0402 lr          $AC0.M, @0x0402
+	0d90 00de 0402 lr          $AC0.M, @0x0402   // Ratio int
 	0d92 00fe 0362 sr          @0x0362, $AC0.M
 	0d94 1474      lsr         $ACC0, #-12
 	0d95 1f7e      mrr         $AX1.H, $AC0.M
 	0d96 1f3c      mrr         $AX1.L, $AC0.L
 	0d97 8900      clr         $ACC1
-	0d98 00dd 0430 lr          $AC1.L, @0x0430
+	0d98 00dd 0430 lr          $AC1.L, @0x0430   // Ratio frac
 	0d9a 1504      lsl         $ACC1, #4
 	0d9b 0604      cmpis       $ACC0, #0x04
 	// 0d9c 0290 0df3 jns         0x0df3   // subroutine
@@ -4217,7 +4261,8 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), _option??)
 	0da7 1fbe      mrr         $AC1.L, $AC0.M
 	0da8 0af8      lris        $AX0.H, #0xf8
 	0da9 009b 00fc lri         $AX1.H, #0x00fc
-	0dab 00d8 0361 lr          $AX0.L, @0x0361
+	0dab 00d8 0361 lr          $AX0.L, @0x0361  // parameter was stashed here.
+	
 	0dad 0082 02b0 lri         $AR2, #0x02b0
 	0daf 0083 02b0 lri         $AR3, #0x02b0
 	0db1 195e      lrri        $AC0.M, @$AR2
