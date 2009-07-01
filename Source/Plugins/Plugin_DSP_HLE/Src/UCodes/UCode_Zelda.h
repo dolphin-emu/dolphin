@@ -174,6 +174,10 @@ private:
 	void MixAddVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void MixAddVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void MixAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
+
+
+        void MixAddSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+        void MixAddSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 };
 
 #endif

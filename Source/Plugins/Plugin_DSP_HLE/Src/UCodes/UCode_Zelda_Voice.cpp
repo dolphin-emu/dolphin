@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -281,6 +281,22 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 	{
 		switch (PB.Format)
 		{
+
+		// Synthesized sounds
+		case 0x0000:
+		case 0x0001:        // Used for "Denied" sound in Zelda
+                    //MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
+                        break;
+
+		case 0x0006:
+                    //MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
+                        break;
+                        
+      		// These are more "synth" formats - square wave, saw wave etc.
+		case 0x0002:          
+			return;
+
+                    
 		// AFC formats
 		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
 			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
@@ -292,11 +308,6 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 			MixAddVoice_PCM16(PB, m_TempBuffer, _Size);
 			break;
 
-		// These are "synth" formats - square wave, saw wave etc.
-		case 0x0000:
-		case 0x0001:        // Used for "Denied" sound in Zelda
-		case 0x0002:          
-			return;
 
 		case 0x0008:   // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
 		case 0x0020:
