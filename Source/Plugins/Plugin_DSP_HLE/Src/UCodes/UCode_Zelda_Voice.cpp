@@ -303,6 +303,11 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
 			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
 		case 0x0009:		// AFC with normal bitrate (32:9 compression).
+			
+			// Use this to disable music (GREAT for testing)
+			//if(PB.SoundType == 0x0d00)
+			//	break;
+
 			MixAddVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
 
@@ -334,10 +339,10 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 
 		if (left < -32768) left = -32768;
 		if (left > 32767)  left = 32767;
-		_LeftBuffer[i] = left;
+		_LeftBuffer[i] = left; //(s32)(((float)left * (float)PB.volumeLeft) / 1000.f);
 
 		if (right < -32768) right = -32768;
 		if (right > 32767)  right = 32767;
-		_RightBuffer[i] = right;
+		_RightBuffer[i] = right; //(s32)(((float)right * (float)PB.volumeRight) / 1000.0f);
 	}
 }

@@ -36,8 +36,12 @@ struct ZeldaVoicePB
 	u16 NeedsReset;					// 0x04 | indicates if some values in PB need to be reset
 	u16 ReachedEnd;					// 0x05 | set to 1 when end reached
 	u16 IsBlank;					// 0x06 | 0 = normal sound, 1 = samples are always the same
-	u16 Unk07;						// 0x07 | unknown
-	u16 Unk08[0x10];                // 0x08 | unknown  // Buffer / something, see 036e/ZWW. there's a pattern here
+	u16 Unk07;						// 0x07 | unknown, in zelda always 0x0010
+	u16 SoundType;					// 0x08 | Sound type: so far in zww: 0x0d00 for music, 0x4861 for sfx
+	u32 volumeRight;				// 0x09 | Right Volume
+	u16 Unk0B[2];					// 0x0B | unknown
+	u32 volumeLeft;					// 0x0D | Left Volume
+	u16 Unk0F[0x8];					// 0x0F | unknown // Buffer / something, see 036e/ZWW. there's a pattern here
 	u16 Unk18[0x10];                // 0x18 | unknown
 	u16 Unk28;      				// 0x28 | unknown  
 	u16 Unk29;      				// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
