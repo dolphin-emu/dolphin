@@ -25,19 +25,75 @@
 
 void CUCode_Zelda::MixAddSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
-	int mask = PB.Format ? 3 : 1;
-        
-	for (int i = 0; i < _Size; i++)
+	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
+	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
+	int mask = PB.Format ? 3 : 1, shift = PB.Format ? 2 : 1;
+	
+	u32 pos[2] = {0, 0};
+	int i = 0;
+
+	if (PB.KeyOff != 0)
+		return;
+
+	if (PB.NeedsReset)
 	{
-		s16 sample = (i & mask) ? 0xc000 : 0x4000;
+		PB.RemLength = PB.Length - PB.RestartPos;
+		PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+		PB.ReachedEnd = 0;
+	}
+
+_lRestart:
+	if (PB.ReachedEnd)
+	{
+		PB.ReachedEnd = 0;
+
+		if (PB.RepeatMode == 0)
+		{
+			PB.KeyOff = 1;
+			PB.RemLength = 0;
+			PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1) + PB.Length;
+			return;
+		}
+		else
+		{
+			PB.RestartPos = PB.LoopStartPos;
+			PB.RemLength = PB.Length - PB.RestartPos;
+			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+			pos[1] = 0; pos[0] = 0;
+		}
+	}
+
+	for (; i < _Size;)
+	{
+		s16 sample = ((pos[1] & mask) == mask) ? 0xc000 : 0x4000;
 
 		_Buffer[i++] = (s32)sample;
+
+		(*(u64*)&pos) += ratio;
+		if ((pos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
+		{
+			PB.ReachedEnd = 1;
+			goto _lRestart;
+		}
 	}
+
+	if (PB.RemLength < pos[1])
+	{
+		PB.RemLength = 0;
+		PB.ReachedEnd = 1;
+	}
+	else
+		PB.RemLength -= pos[1];
+
+	PB.CurAddr += pos[1] << 1;
+	// There should be a position fraction as well.
 }
 
 
 void CUCode_Zelda::MixAddSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
+	// TODO: Header, footer and cases this synth actually happens
 	for (int i = 0; i < _Size; i++)
             _Buffer[i++] = (s32)PB.RatioInt;
 }

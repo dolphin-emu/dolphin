@@ -281,20 +281,22 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 	{
 		switch (PB.Format)
 		{
-
 		// Synthesized sounds
-		case 0x0000:
-		case 0x0001:        // Used for "Denied" sound in Zelda
-                    //MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
-                        break;
+		case 0x0000: // Example: Magic meter filling up in ZWW
+		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
+			         // indoors in ZWW
+			MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
+			break;
 
 		case 0x0006:
-                    //MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
-                        break;
+			WARN_LOG(DSPHLE, "Synthesizing 0x0006 (constant sound)");
+			MixAddSynth_Constant(PB, m_TempBuffer, _Size);
+			break;
                         
-      		// These are more "synth" formats - square wave, saw wave etc.
+      	// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:          
-			return;
+			WARN_LOG(DSPHLE, "Synthesizing 0x0002");
+			break;
 
                     
 		// AFC formats

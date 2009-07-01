@@ -2915,37 +2915,51 @@ void 08b2_Unk() {
 	08b2 1401      lsl         $ACC0, #1       // t = PB.RatioFrac * 2
 
 	// Set up sound buffers
-	08b3 009b c000 lri         $AX1.H, #0xc000 // a = 0xc000
-	08b5 0099 4000 lri         $AX1.L, #0x4000 // b = 0x4000
+	//08b3 009b c000 lri         $AX1.H, #0xc000
+	//08b5 0099 4000 lri         $AX1.L, #0x4000
 
-	08b7 1150 08bf bloopi      #0x50, 0x08bf
-	// for(int i = 0; i < 80; i++) {
-		08b9 02c0 0001 andcf       $AC0.M, #0x0001
-		08bb 027c      iflnz       
-			08bc 1b1b      srri        @$AR0, $AX1.H
-		08bd 027d      iflz        
-			08be 1b19      srri        @$AR0, $AX1.L
-		08bf 4800      addax       $ACC0, $AX0.L
-	// }
-	08c0 147f      lsr         $ACC0, #-1
+	//08b7 1150 08bf bloopi      #0x50, 0x08bf
+	for(int i = 0; i < 80; i++) {
+		//08b9 02c0 0001 andcf       $AC0.M, #0x0001
+		//08bb 027c      iflnz       
+		//	08bc 1b1b      srri        @$AR0, $AX1.H
+		//08bd 027d      iflz        
+		//	08be 1b19      srri        @$AR0, $AX1.L
+		if(($AC0.M & 1) == 1)
+			*$AR0++ = 0x4000;
+		else
+			*$AR0++ = 0xc000;
+		
+		08bf 4800      addax       $ACC0, $AX0.L // t += PB.RatioInt
+	}
+	08c0 147f      lsr         $ACC0, #-1 // t /= 2
 	08c1 02df      ret
 }
 
 void 08c2_Unk() {         
-	08c2 1402      lsl         $ACC0, #2
-	08c3 8900      clr         $ACC1
-	08c4 1fb8      mrr         $AC1.L, $AX0.L
-	08c5 1501      lsl         $ACC1, #1
+	08c2 1402      lsl         $ACC0, #2       // t = PB.RatioFrac * 4
+	08c3 8900      clr         $ACC1           // ACC1 = 0
+	08c4 1fb8      mrr         $AC1.L, $AX0.L  // AC1.L = PB.RatioInt
+	08c5 1501      lsl         $ACC1, #1       // ACC1 *= 2
 	08c6 009b c000 lri         $AX1.H, #0xc000
 	08c8 0099 4000 lri         $AX1.L, #0x4000
-	08ca 1150 08d2 bloopi      #0x50, 0x08d2
-		08cc 02c0 0003 andcf       $AC0.M, #0x0003
-		08ce 027c      iflnz       
-			08cf 1b1b      srri        @$AR0, $AX1.H
-		08d0 027d      iflz        
-			08d1 1b19      srri        @$AR0, $AX1.L
-		08d2 4c00      add         $ACC0, $AC1.L
-	08d3 147e      lsr         $ACC0, #-2
+	//08ca 1150 08d2 bloopi      #0x50, 0x08d2
+	for(int i = 0; i < 80; i++) {
+		//08cc 02c0 0003 andcf       $AC0.M, #0x0003
+		//08ce 027c      iflnz       
+		//	08cf 1b1b      srri        @$AR0, $AX1.H
+		//08d0 027d      iflz        
+		//	08d1 1b19      srri        @$AR0, $AX1.L
+		//08d2 4c00      add         $ACC0, $AC1.L
+		
+		if(($AC0.M & 3) == 3)
+			*$AR0++ = 0x4000;
+		else
+			*$AR0++ = 0xc000;
+			
+		t += (PB.RatioInt * 2);
+	}
+	08d3 147e      lsr         $ACC0, #-2 // t /= 4
 	08d4 02df      ret         
 }
 

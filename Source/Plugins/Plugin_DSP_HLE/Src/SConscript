@@ -23,6 +23,7 @@ files = [
 	'UCodes/UCode_Zelda.cpp',
 	'UCodes/UCode_Zelda_ADPCM.cpp',
 	'UCodes/UCode_Zelda_Voice.cpp',
+	'UCodes/UCode_Zelda_Synth.cpp',
 	]
 
 dspenv = env.Clone()
