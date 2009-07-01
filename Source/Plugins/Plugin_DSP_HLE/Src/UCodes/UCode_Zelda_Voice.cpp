@@ -325,7 +325,6 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			// XK: Use this to disable music (GREAT for testing)
 			//if(PB.SoundType == 0x0d00)
 			//	break;
-
 			RenderVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
 
@@ -338,6 +337,9 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		case 0x0020:
 		case 0x0021:   // Important for Zelda WW. Really need to implement - missing it causes hangs.
 			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+			PB.ReachedEnd = 1;
+			PB.KeyOff = 1;
+			PB.Status = 0;
 			break;
 
 		default:
