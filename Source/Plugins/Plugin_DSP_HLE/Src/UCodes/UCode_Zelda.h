@@ -30,8 +30,8 @@ struct ZeldaVoicePB
 {
 	// Read-Write part
 	u16 Status;						// 0x00 | 1 = play, 0 = stop
-	u16 KeyOff;						// 0x01 | writing 1 stops voice?
-	u16 RatioInt;					// 0x02 | delta? ratio? integer part
+	u16 KeyOff;						// 0x01 | writing 1 stops voice? 
+	u16 RatioInt;					// 0x02 | Position delta (playback speed)
 	u16 Unk03;						// 0x03 | unknown
 	u16 NeedsReset;					// 0x04 | indicates if some values in PB need to be reset
 	u16 ReachedEnd;					// 0x05 | set to 1 when end reached
@@ -43,7 +43,13 @@ struct ZeldaVoicePB
 	u16 Unk0B[2];					// 0x0B | unknown
 	u16 volumeRight1;				// 0x0D | Right Volume 1
 	u16 volumeRight2;				// 0x0E | Right Volume 2
-	u16 Unk0F[0x8];					// 0x0F | unknown // Buffer / something, see 036e/ZWW. there's a pattern here
+	u16 Unk0F[2];					// 0x0F | unknown // Buffer / something, see 036e/ZWW. there's a pattern here
+	u16 volumeUnknown1_1;			// 0x11 | Unknown Volume 1
+	u16 volumeUnknown1_2;			// 0x12 | Unknown Volume 1
+	u16 Unk13[2];                   // 0x13 | unknown
+	u16 volumeUnknown2_1;			// 0x15 | Unknown Volume 2
+	u16 volumeUnknown2_2;			// 0x16 | Unknown Volume 2
+	u16 Unk17;                      // 0x17 | unknown
 	u16 Unk18[0x10];                // 0x18 | unknown
 	u16 Unk28;      				// 0x28 | unknown  
 	u16 Unk29;      				// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
@@ -53,7 +59,7 @@ struct ZeldaVoicePB
 	u16 Unk2D;      				// 0x2D | unknown
 	u16 Unk2E;      				// 0x2E | unknown
 	u16 Unk2F;      				// 0x2F | unknown
-	u16 RatioFrac;					// 0x30 | ??? ratio fractional part
+	u16 CurSampleFrac;				// 0x30 | Fractional part of the current sample position
 	u16 Unk31;						// 0x31 | unknown / unused
 	u16 CurBlock;					// 0x32 | current block?
 	u16 FixedSample;				// 0x33 | sample value for "blank" voices

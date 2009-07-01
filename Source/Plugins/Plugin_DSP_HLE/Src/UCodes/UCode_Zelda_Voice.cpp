@@ -57,7 +57,7 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
+	u32 _ratio = (((PB.RatioInt * 80) + PB.CurSampleFrac) << 4) & 0xFFFF0000;
 	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
 
 	u32 pos[2] = {0, 0};
@@ -129,7 +129,7 @@ _lRestart:
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (PB.RatioInt<<16) + PB.RatioFrac;
+	u32 _ratio = (PB.RatioInt << 16);//  + PB.RatioFrac;
 	s64 ratio = (_ratio * ratioFactor) * 16; // (s64)(((_ratio / 80) << 16) * ratioFactor);
 
 	// initialize "decoder" if the sample is played the first time
@@ -151,17 +151,23 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
         // Copy ARAM addr from r to rw area.
         PB.CurAddr = PB.StartAddr;
 		PB.ReachedEnd = 0;
-
+		PB.CurSampleFrac = 0;
 		// Looking at Zelda Four Swords
 		// WARN_LOG(DSPHLE, "PB -----: %04x", PB.Unk03);
 		// WARN_LOG(DSPHLE, "PB Unk03: %04x", PB.Unk03);      0
 		// WARN_LOG(DSPHLE, "PB Unk07: %04x", PB.Unk07[0]);   0
 
-		//WARN_LOG(DSPHLE, "PB Unk09: %04x", PB.volumeLeft1);      // often same value as 0a
-		//WARN_LOG(DSPHLE, "PB Unk0a: %04x", PB.volumeLeft2);      
+		WARN_LOG(DSPHLE, "PB Unk09: %04x", PB.volumeLeft1);      // often same value as 0a
+		WARN_LOG(DSPHLE, "PB Unk0a: %04x", PB.volumeLeft2);      
 
-		//WARN_LOG(DSPHLE, "PB Unk0d: %04x", PB.volumeRight1);      // often same value as 0e
-		//WARN_LOG(DSPHLE, "PB Unk0e: %04x", PB.volumeRight2);
+		WARN_LOG(DSPHLE, "PB Unk0d: %04x", PB.volumeRight1);      // often same value as 0e
+		WARN_LOG(DSPHLE, "PB Unk0e: %04x", PB.volumeRight2);
+
+		WARN_LOG(DSPHLE, "PB UnkVol11: %04x", PB.volumeUnknown1_1);
+		WARN_LOG(DSPHLE, "PB UnkVol12: %04x", PB.volumeUnknown1_2);      
+
+		WARN_LOG(DSPHLE, "PB UnkVol21: %04x", PB.volumeUnknown2_1);
+		WARN_LOG(DSPHLE, "PB UnkVol22: %04x", PB.volumeUnknown2_2);
 
 		/// WARN_LOG(DSPHLE, "PB Unk78: %04x", PB.Unk78);
 		// WARN_LOG(DSPHLE, "PB Unk79: %04x", PB.Unk79);
@@ -222,18 +228,19 @@ restart:
     AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
 	PB.CurAddr += 9;
 
-	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 32;
-	s64 delta = ratio;  // 0x100000000ULL;
+	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 16;
+	TrueSamplePosition += PB.CurSampleFrac;
+	s64 delta = ratio >> 16;  // 0x100000000ULL;
     int sampleCount = 0;
     while (sampleCount < _Size)
     {
-		int SamplePosition = TrueSamplePosition >> 32;
+		int SamplePosition = TrueSamplePosition >> 16;
 		_Buffer[sampleCount] = outbuf[SamplePosition & 15];
 
 		sampleCount++;
 		TrueSamplePosition += delta;
 
-		int TargetPosition = TrueSamplePosition >> 32;
+		int TargetPosition = TrueSamplePosition >> 16;
 
 		// Decode forwards...
 		while (SamplePosition < TargetPosition)
@@ -267,7 +274,7 @@ restart:
 	// }
 
     PB.NeedsReset = 0;
-
+	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 	// write back
     // NumberOfSamples = (NumberOfSamples << 4) | frac;    // missing fraction
 
@@ -315,7 +322,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
 		case 0x0009:		// AFC with normal bitrate (32:9 compression).
 			
-			// Use this to disable music (GREAT for testing)
+			// XK: Use this to disable music (GREAT for testing)
 			//if(PB.SoundType == 0x0d00)
 			//	break;
 

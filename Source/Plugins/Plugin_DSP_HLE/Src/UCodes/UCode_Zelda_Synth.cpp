@@ -26,8 +26,9 @@
 void CUCode_Zelda::RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
-	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
+	u32 _ratio = (PB.RatioInt << 16);
+	s64 ratio = (_ratio * ratioFactor) * 16;
+
 	int mask = PB.Format ? 3 : 1, shift = PB.Format ? 2 : 1;
 	
 	u32 pos[2] = {0, 0};

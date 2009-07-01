@@ -2880,15 +2880,23 @@ void 087c_DefaultDecoder()
     087c 8100      clr         $ACC0           // ACC0 = 0
 	087d 1f5e      mrr         $AX0.H, $AC0.M
 	087e 00d8 0402 lr          $AX0.L, @0x0402 // AX0.L = PB.RatioInt
-	0880 00dc 0430 lr          $AC0.L, @0x0430 // AC0.L = PB.RatioFrac
+
+	// Sample fraction is stored in a common way, but sample position is not, so
+	// it's in the individual decoders. Some decoders, like square wave, only care about 
+	// fractional sample position. So here we just load up the fractional sample
+	// position before handing control over.
+	0880 00dc 0430 lr          $AC0.L, @0x0430 // AC0.L = PB.CurSampleFrac
 	0882 0080 0520 lri         $AR0, #0x0520   // AR0 = 0x0520
-	0884 00df 0480 lr          $AC1.M, @0x0480 
-	0886 1501      lsl         $ACC1, #1       // AC1.M = (PB.Format << 1)
-	0887 0340 007e andi        $AC1.M, #0x007e // AC1.M &= 0x007e
-	0889 0300 0891 addi        $AC1.M, #0x0891 // AC1.M += 0x0891
-	088b 1c5f      mrr         $AR2, $AC1.M    // AR2 = AC1.M
-	088c 175f      callr       $AR2            // (*$AR2)()  <-- See jump table at 0x0891
-	088d 00fc 0430 sr          @0x0430, $AC0.L // PB.RatioFrac = AC0.L
+
+	// 0884 00df 0480 lr          $AC1.M, @0x0480
+	// 0886 1501      lsl         $ACC1, #1       // AC1.M = (PB.Format << 1)
+	// 0887 0340 007e andi        $AC1.M, #0x007e // AC1.M &= 0x007e
+	// 0889 0300 0891 addi        $AC1.M, #0x0891 // AC1.M += 0x0891
+	// 088b 1c5f      mrr         $AR2, $AC1.M    // AR2 = AC1.M
+	// 088c 175f      callr       $AR2            // (*$AR2)()  <-- See jump table at 0x0891
+	JumpTable0891(PB.Format);
+	
+	088d 00fc 0430 sr          @0x0430, $AC0.L    // PB.CurSampleFrac = AC0.L
 
 	// 088f 029f 02d8 jmp         0x02d8
 	GOTO ContinueWithBlock:  // in SyncFrame
@@ -2916,7 +2924,7 @@ void 087c_DefaultDecoder()
 08b1 02df      ret         
 
 void 08b2_Decoder0x0_SquareWave() { 
-	08b2 1401      lsl         $ACC0, #1       // t = PB.RatioFrac * 2
+	08b2 1401      lsl         $ACC0, #1       // t = samplePosition * 2
 
 	// Set up sound buffers
 	//08b3 009b c000 lri         $AX1.H, #0xc000
@@ -2934,16 +2942,15 @@ void 08b2_Decoder0x0_SquareWave() {
 		else
 			*$AR0++ = 0xc000;
 		
-		08bf 4800      addax       $ACC0, $AX0.L // t += PB.RatioInt
+		08bf 4800      addax       $ACC0, $AX0.L // t += PB.Ratio
 	}
 	08c0 147f      lsr         $ACC0, #-1 // t /= 2
 	
-	// Where ACC0 gets stored after this is interesting.
 	// 08c1 02df      ret
 }
 
 void 08c2_Decoder0x3_RectangleWave() {	
-	08c2 1402      lsl         $ACC0, #2       // t = PB.RatioFrac * 4
+	08c2 1402      lsl         $ACC0, #2       // t = PB.CurSampleFrac * 4
 	08c3 8900      clr         $ACC1           // ACC1 = 0
 	08c4 1fb8      mrr         $AC1.L, $AX0.L  // AC1.L = PB.RatioInt
 	08c5 1501      lsl         $ACC1, #1       // ACC1 *= 2
