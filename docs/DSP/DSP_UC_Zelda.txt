@@ -2269,7 +2269,7 @@ void 06c5_CopyCommandBlock()
 		06c9 00da 0352 lr          $AX0.H, @0x0352
 		06cb 8600      tstaxh      $AX0.H
 		06cc 0295 06ed jz          0x06ed
-	check how much commands are inside the "queue"
+	check how many commands are inside the "queue"
 	*/
 	
 	if (*0x352 == 0) 
@@ -2873,7 +2873,7 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
  //////////////////////////////////////////// DEFAULT DECODER 
 void 087c_DefaultDecoder()
  {
-		 087c 8100      clr         $ACC0
+        087c 8100      clr         $ACC0           // ACC0 = 0
 	087d 1f5e      mrr         $AX0.H, $AC0.M
 	087e 00d8 0402 lr          $AX0.L, @0x0402 // AX0.L = PB.RatioInt
 	0880 00dc 0430 lr          $AC0.L, @0x0430 // AC0.L = PB.RatioFrac
@@ -2912,16 +2912,21 @@ void 087c_DefaultDecoder()
 08b1 02df      ret         
 
 void 08b2_Unk() { 
-	08b2 1401      lsl         $ACC0, #1
-	08b3 009b c000 lri         $AX1.H, #0xc000
-	08b5 0099 4000 lri         $AX1.L, #0x4000
+	08b2 1401      lsl         $ACC0, #1       // t = PB.RatioFrac * 2
+
+	// Set up sound buffers
+	08b3 009b c000 lri         $AX1.H, #0xc000 // a = 0xc000
+	08b5 0099 4000 lri         $AX1.L, #0x4000 // b = 0x4000
+
 	08b7 1150 08bf bloopi      #0x50, 0x08bf
+	// for(int i = 0; i < 80; i++) {
 		08b9 02c0 0001 andcf       $AC0.M, #0x0001
 		08bb 027c      iflnz       
-		08bc 1b1b      srri        @$AR0, $AX1.H
+			08bc 1b1b      srri        @$AR0, $AX1.H
 		08bd 027d      iflz        
-		08be 1b19      srri        @$AR0, $AX1.L
+			08be 1b19      srri        @$AR0, $AX1.L
 		08bf 4800      addax       $ACC0, $AX0.L
+	// }
 	08c0 147f      lsr         $ACC0, #-1
 	08c1 02df      ret
 }
