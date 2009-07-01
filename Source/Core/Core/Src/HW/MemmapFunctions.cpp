@@ -130,10 +130,10 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 			int y = (em_address >> 12) & 0x3ff;
 			if (em_address & 0x00400000) {
 				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::PEEK_Z, x, y);
-				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= %i", x, y, _var);
+				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, _var);
 			} else {
 				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::PEEK_COLOR, x, y);
-				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= %i", x, y, _var);
+				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, _var);
 			}
 		}
 		else if (em_address <= 0xcc009000)
@@ -202,6 +202,7 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 		{
 			int x = (em_address & 0xfff) >> 2;
 			int y = (em_address >> 12) & 0x3ff;
+			// TODO figure out a way to send data without falling into the template trap
 			if (em_address & 0x00400000) {
 				CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(EFBAccessType::POKE_Z, x, y);
 				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);

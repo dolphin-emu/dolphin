@@ -462,7 +462,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
 	switch (type)
 	{
-	case EFBAccessType::PEEK_Z:
+	case PEEK_Z:
 		{
 			if (!g_VideoInitialize.bUseDualCore)
 			{
@@ -471,20 +471,21 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 				ComputeBackbufferRectangle(&source);
 				source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
 				GLuint depth_tex = Renderer::ResolveAndGetDepthTarget(scaledTargetSource);
-				glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+				glReadPixels(x, Renderer::GetTargetHeight()-y, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 				GL_REPORT_ERRORD();
-				return z;
+				// mask away the stencil bits
+				return z & 0xffffff;
 			}
 		}
 		break;
 
-	case EFBAccessType::POKE_Z:
+	case POKE_Z:
 		break;
 
-	case EFBAccessType::PEEK_COLOR:
+	case PEEK_COLOR:
 		break;
 
-	case EFBAccessType::POKE_COLOR:
+	case POKE_COLOR:
 		break;
 
 	default:
