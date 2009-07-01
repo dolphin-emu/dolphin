@@ -45,8 +45,10 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	, m_ReverbPBsAddr(0)
 	, m_RightBuffersAddr(0)
 	, m_LeftBuffersAddr(0)
+	, m_pos(0)
 	, m_DMABaseAddr(0)
 	, m_numSteps(0)
+	, m_bListInProgress(false)
 	, m_step(0)
 	, m_readOffset(0)
     , m_MailState(WaitForMail)
@@ -63,8 +65,6 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	memset(m_Buffer, 0, sizeof(m_Buffer));
 	memset(m_SyncFlags, 0, sizeof(m_SyncFlags));
 	memset(m_AFCCoefTable, 0, sizeof(m_AFCCoefTable));
-
-	m_pos = 0;
 }
 
 CUCode_Zelda::~CUCode_Zelda()
@@ -390,66 +390,6 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	}
 }
 
-#if 0
-void CUCode_Zelda::MixAdd(short* _pBuffer, int _iSize)
-{
-    if (m_NumberOfFramesToRender > 0)
-    {
-        if (m_NumPBs <= m_MaxSyncedPB)  // we just render if all PBs are synced...Zelda does it in steps of 0x10 PBs but hey this is HLE
-        {
-            if (_iSize > 1024 * 1024)
-                _iSize = 1024 * 1024;
-
-            memset(templbuffer, 0, _iSize * sizeof(int));
-            memset(temprbuffer, 0, _iSize * sizeof(int));
-
-            CopyPBsFromRAM();
-
-            // render frame...
-            for (u32 i = 0; i < m_NumPBs; i++)
-            {
-                // masking of PBs is done in zelda 0272... skip it for the moment
-                /* int Slot = i >> 4;
-                int Mask = i & 0x0F;
-                if (m_PBMask[Slot] & Mask)) */
-                {
-                    UpdatePB(m_PBs[i], templbuffer, temprbuffer, _iSize);
-                }                
-            }
-            CopyPBsToRAM();
-            m_MaxSyncedPB = 0;
-
-            if (_pBuffer) {
-                for (int i = 0; i < _iSize; i++)
-                {
-                    // Clamp into 16-bit. Maybe we should add a volume compressor here.
-                    int left  = templbuffer[i] + _pBuffer[0];
-                    int right = temprbuffer[i] + _pBuffer[1];
-                    if (left < -32767)  left = -32767;
-                    if (left > 32767)   left = 32767;
-                    if (right < -32767) right = -32767;
-                    if (right >  32767) right = 32767;
-                    *_pBuffer++ = left;
-                    *_pBuffer++ = right;
-                }
-            }
-
-        }
-        else
-        {
-            return;
-        }
-
-        m_CurrentFrameToRender++;
-
-		// make sure we never read outside the buffer by mistake.
-		// Before deleting extra reads in ExecuteList, we were getting these
-		// values.
-		memset(m_Buffer, 0xcc, sizeof(m_Buffer));
-	}
-}
-#endif
-
 // zelda debug ..803F6418
 void CUCode_Zelda::ExecuteList()
 {
@@ -518,60 +458,6 @@ void CUCode_Zelda::ExecuteList()
 		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
 		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
 
-			// Let's log the parameter blocks.
-			// Copy and byteswap the parameter blocks.
-
-			// Both Z:TP, Z:WW and Zelda Four Swords happily sets param blocks as soon as the title screen comes up.
-			// Although in Z:WW, it won't set any param blocks until in-game if the item hack is on.
-#if 0
-			DEBUG_LOG(DSPHLE, "Param block at %08x:", param_blocks_ptr);
-			CopyPBsFromRAM();
-			for (int i = 0; i < num_param_blocks; i++)
-			{
-				const ZPB &pb = zpbs[i];
-				// The only thing that consistently looks like a pointer in the param blocks. 
-				u32 addr = (pb.addr_high << 16) | pb.addr_low;
-				if (addr)
-				{
-					DEBUG_LOG(DSPHLE, "Param block:  ==== %i ( %08x ) ====", i, GetParamBlockAddr(i));
-					DEBUG_LOG(DSPHLE, "Addr: %08x  Type: %i", addr, pb.type);
-
-					// Got one! Read from ARAM, dump to file.
-					// I can't get the below to produce anything resembling sane audio :(
-					//addr *= 2;
-					/*
-					int size = 0x10000;
-					u8 *temp = new u8[size];
-					for (int i = 0; i < size; i++) {
-						temp[i] = g_dspInitialize.pARAM_Read_U8(addr + i);
-					}
-					s16 *audio = new s16[size * 4];
-					int aoff = 0;
-					short hist1 = 0, hist2 = 0;
-					for (int i = 0; i < size; i+=9)
-					{
-						AFCdecodebuffer(temp + i, audio + aoff, &hist1, &hist2);
-						aoff += 16;
-					}
-					char fname[256];
-					sprintf(fname, "%08x.bin", addr);
-					if (File::Exists(fname))
-						continue;
-
-					FILE *f = fopen(fname, "wb");
-					fwrite(audio, 1, size*4, f);
-					fclose(f);
-
-					sprintf(fname, "%08x_raw.bin", addr);
-
-					f = fopen(fname, "wb");
-					fwrite(temp, 1, size, f);
-					fclose(f);
-					*/
-				}
-			}
-			CopyPBsToRAM();
-#endif
 	    }
 		return;
 
