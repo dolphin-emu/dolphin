@@ -32,12 +32,15 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	switch (_CRC)
 	{
 	case UCODE_ROM:
+		INFO_LOG(DSPHLE, "Switching to ROM ucode");
 		return new CUCode_Rom(_rMailHandler);
       
 	case UCODE_INIT_AUDIO_SYSTEM:
+		INFO_LOG(DSPHLE, "Switching to INIT ucode");
 		return new CUCode_InitAudioSystem(_rMailHandler);
 
 	case 0x65d6cc6f: // CARD
+		INFO_LOG(DSPHLE, "Switching to CARD ucode");
 		return new CUCode_CARD(_rMailHandler);
 
 	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
@@ -49,28 +52,29 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
        // Zelda:OOT, Tony hawk, viewtiful joe
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
-		INFO_LOG(CONSOLE, "AX ucode chosen, yay!\n");
+		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
 		return new CUCode_AX(_rMailHandler);
 
 	case 0x088e38a5: // IPL - JAP
 	case 0xd73338cf: // IPL
 	case 0x42f64ac4: // Luigi
+	case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
 	case 0x4be6a5cb: // AC, Pikmin
-		INFO_LOG(CONSOLE, "JAC (early Zelda) ucode chosen\n");
+		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", _CRC);
 		return new CUCode_Jac(_rMailHandler);
-//		return new CUCode_Zelda(_rMailHandler, false);
+//		return new CUCode_Zelda(_rMailHandler, _CRC);
 
 	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // Zelda WW - US
 	case 0x56d36052: // Mario Sunshine
 	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
-		INFO_LOG(CONSOLE, "Zelda ucode chosen\n");
+		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", _CRC);
 		return new CUCode_Zelda(_rMailHandler, _CRC);
 
       // WII CRCs
 	case 0x6c3f6f94: // zelda - PAL
 	case 0xd643001f: // mario galaxy - PAL    
-		INFO_LOG(CONSOLE, "Zelda Wii ucode chosen\n");
+		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", _CRC);
 		return new CUCode_Zelda(_rMailHandler, _CRC);
 
 	case 0x5ef56da3: // AX demo
@@ -80,7 +84,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xb7eb9a9c: // Wii Pikmin - JAP
 	case 0x4cc52064: // Bleach: Versus Crusade    
     case 0xd9c4bf34: // WiiMenu ... pray 
-		INFO_LOG(CONSOLE, "Wii - AXWii chosen\n");
+		INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", _CRC);
 		return new CUCode_AXWii(_rMailHandler, _CRC);
 
 	default:

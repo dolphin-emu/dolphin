@@ -23,7 +23,7 @@
 #include "../main.h"
 #include "Mixer.h"
 
-void CUCode_Zelda::MixAddSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
@@ -91,11 +91,11 @@ _lRestart:
 }
 
 
-void CUCode_Zelda::MixAddSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	// TODO: Header, footer and cases this synth actually happens
 	for (int i = 0; i < _Size; i++)
-            _Buffer[i++] = (s32)PB.RatioInt;
+		_Buffer[i++] = (s32)PB.RatioInt;
 }
 
 

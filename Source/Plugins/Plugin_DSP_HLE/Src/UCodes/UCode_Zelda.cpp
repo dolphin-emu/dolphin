@@ -264,6 +264,7 @@ void CUCode_Zelda::Update(int cycles)
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
+	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
 	// When we used to lose sync, the last mails we get before the audio goes bye-bye
 	// 0
 	// 0x00000
@@ -640,7 +641,7 @@ void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
 		if (pb.KeyOff != 0)
 			continue;
 
-		MixAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
+		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
 		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
 	}
 

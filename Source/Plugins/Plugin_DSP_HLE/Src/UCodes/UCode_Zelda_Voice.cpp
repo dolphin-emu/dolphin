@@ -54,7 +54,7 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 		memory[i] = Common::swap16(((u16*)&PB)[i]);
 }
 
-void CUCode_Zelda::MixAddVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (((PB.RatioInt * 80) + PB.RatioFrac) << 4) & 0xFFFF0000;
@@ -126,7 +126,7 @@ _lRestart:
 	// There should be a position fraction as well.
 }
 
-void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt<<16) + PB.RatioFrac;
@@ -151,6 +151,25 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
         // Copy ARAM addr from r to rw area.
         PB.CurAddr = PB.StartAddr;
 		PB.ReachedEnd = 0;
+
+		// Looking at Zelda Four Swords
+		// WARN_LOG(DSPHLE, "PB -----: %04x", PB.Unk03);
+		// WARN_LOG(DSPHLE, "PB Unk03: %04x", PB.Unk03);      0
+		// WARN_LOG(DSPHLE, "PB Unk07: %04x", PB.Unk07[0]);   0
+
+		//WARN_LOG(DSPHLE, "PB Unk09: %04x", PB.volumeLeft1);      // often same value as 0a
+		//WARN_LOG(DSPHLE, "PB Unk0a: %04x", PB.volumeLeft2);      
+
+		//WARN_LOG(DSPHLE, "PB Unk0d: %04x", PB.volumeRight1);      // often same value as 0e
+		//WARN_LOG(DSPHLE, "PB Unk0e: %04x", PB.volumeRight2);
+
+		/// WARN_LOG(DSPHLE, "PB Unk78: %04x", PB.Unk78);
+		// WARN_LOG(DSPHLE, "PB Unk79: %04x", PB.Unk79);
+		// WARN_LOG(DSPHLE, "PB Unk31: %04x", PB.Unk31);
+		// WARN_LOG(DSPHLE, "PB Unk36: %04x", PB.Unk36[0]);
+		// WARN_LOG(DSPHLE, "PB Unk37: %04x", PB.Unk36[1]);
+		// WARN_LOG(DSPHLE, "PB Unk3c: %04x", PB.Unk3C[0]);
+		// WARN_LOG(DSPHLE, "PB Unk3d: %04x", PB.Unk3C[1]);
     }
 
     if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
@@ -160,8 +179,6 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
     // u32 frac = NumberOfSamples & 0xF;
     // NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
 
-    u32 sampleCount = 0;
-
 	u8 *source;
 	u32 ram_mask = 1024 * 1024 * 16 - 1;
 	if (m_CRC == 0xD643001F) {
@@ -170,13 +187,6 @@ void CUCode_Zelda::MixAddVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	}
 	else
 		source = g_dspInitialize.pGetARAMPointer();
-
-	// It must be something like this:
-
-	// The PB contains a small sample buffer of 0x4D decoded samples.
-	// If it's empty or "used", decode to it.
-	// Then, resample from this buffer to the output as you go. When it needs
-	// wrapping, decode more.
 
 restart:
 	if (PB.ReachedEnd)
@@ -196,7 +206,7 @@ restart:
 			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
 			// We should also probably reinitialize YN1 and YN2 with something - but with what?
 			PB.RestartPos = PB.LoopStartPos;
-			PB.RemLength = PB.Length - PB.RestartPos;
+ 			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
 //			pos[1] = 0; pos[0] = 0;
 		}
@@ -209,11 +219,12 @@ restart:
 	u32 prev_addr = PB.CurAddr;
 
 	// Prefill the decode buffer.
-    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
 	PB.CurAddr += 9;
 
 	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 32;
 	s64 delta = ratio;  // 0x100000000ULL;
+    int sampleCount = 0;
     while (sampleCount < _Size)
     {
 		int SamplePosition = TrueSamplePosition >> 32;
@@ -241,7 +252,7 @@ restart:
 				prev_yn2 = PB.YN2;
 				prev_addr = PB.CurAddr;
 
-				AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, 9);
+				AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
 				PB.CurAddr += 9;
 			}
 		}
@@ -267,7 +278,7 @@ restart:
     // end of block (Zelda 03b2)
 }
 
-void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
+void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
 	memset(m_TempBuffer, 0, _Size * sizeof(s32));
 
@@ -285,12 +296,12 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 		case 0x0000: // Example: Magic meter filling up in ZWW
 		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
 			         // indoors in ZWW
-			MixAddSynth_Waveform(PB, m_TempBuffer, _Size);
+			RenderSynth_Waveform(PB, m_TempBuffer, _Size);
 			break;
 
 		case 0x0006:
 			WARN_LOG(DSPHLE, "Synthesizing 0x0006 (constant sound)");
-			MixAddSynth_Constant(PB, m_TempBuffer, _Size);
+			RenderSynth_Constant(PB, m_TempBuffer, _Size);
 			break;
                         
       	// These are more "synth" formats - square wave, saw wave etc.
@@ -308,11 +319,11 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 			//if(PB.SoundType == 0x0d00)
 			//	break;
 
-			MixAddVoice_AFC(PB, m_TempBuffer, _Size);
+			RenderVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
 
 		case 0x0010:		// PCM16 - normal PCM 16-bit audio.
-			MixAddVoice_PCM16(PB, m_TempBuffer, _Size);
+			RenderVoice_PCM16(PB, m_TempBuffer, _Size);
 			break;
 
 
@@ -334,8 +345,13 @@ void CUCode_Zelda::MixAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBu
 
 	for (int i = 0; i < _Size; i++)
 	{
-		s32 left = _LeftBuffer[i] + m_TempBuffer[i];
-		s32 right = _RightBuffer[i] + m_TempBuffer[i];
+		// TODO: Some noises in Zelda WW (birds, etc) have a volume of 0
+		// Really not sure about the masking here, but it seems to kill off some overly loud
+		// sounds in Zelda TP. Needs investigation.
+		s32 left = _LeftBuffer[i] + (m_TempBuffer[i] * (float)(
+			(PB.volumeLeft1 & 0x1FFF) + (PB.volumeLeft2 & 0x1FFF)) * 0.00005);
+		s32 right = _RightBuffer[i] + (m_TempBuffer[i] * (float)(
+			(PB.volumeRight1 & 0x1FFF) + (PB.volumeRight2 & 0x1FFF)) * 0.00005);
 
 		if (left < -32768) left = -32768;
 		if (left > 32767)  left = 32767;
