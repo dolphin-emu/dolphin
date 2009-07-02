@@ -488,7 +488,7 @@ void Video_OnThreadAccessEFB()
 
 			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
 			// Plus we need to flip the y value as the OGL image is upside down
-			glReadPixels(s_EFBx*xScale, Renderer::GetTargetHeight() - s_EFBy*yScale, xScale, yScale, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+			glReadPixels(s_EFBx*xScale, Renderer::GetTargetHeight() - s_EFBy*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 			GL_REPORT_ERRORD();
 
 			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
