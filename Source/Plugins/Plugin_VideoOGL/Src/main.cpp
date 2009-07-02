@@ -96,6 +96,11 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
+static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
+static volatile EFBAccessType s_AccessEFBType;
+static Common::Event s_AccessEFBDone;
+static Common::CriticalSection s_criticalEFB;
+
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
@@ -458,36 +463,36 @@ void Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset
 	}
 }
 
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+void Video_OnThreadAccessEFB()
 {
-	switch (type)
+	s_criticalEFB.Enter();
+	s_AccessEFBResult = 0;
+
+	switch (s_AccessEFBType)
 	{
 	case PEEK_Z:
 		{
-			if (!g_VideoInitialize.bUseDualCore)
+			u32 z = 0;
+			float xScale = Renderer::GetTargetScaleX();
+			float yScale = Renderer::GetTargetScaleY();
+
+			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
 			{
-				u32 z = 0;
-				float xScale = Renderer::GetTargetScaleX();
-				float yScale = Renderer::GetTargetScaleY();
-
-				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
-				{
-					// Find the proper dimensions
-					TRectangle source, scaledTargetSource;
-					ComputeBackbufferRectangle(&source);
-					source.Scale(xScale, yScale, &scaledTargetSource);
-					// This will resolve and bind to the depth buffer
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
-				}
-
-				// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
-				// Plus we need to flip the y value as the OGL image is upside down
-				glReadPixels(x*xScale, Renderer::GetTargetHeight() - y*yScale, xScale, yScale, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
-				GL_REPORT_ERRORD();
-
-				// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
-				return z / 0x100;
+				// Find the proper dimensions
+				TRectangle source, scaledTargetSource;
+				ComputeBackbufferRectangle(&source);
+				source.Scale(xScale, yScale, &scaledTargetSource);
+				// This will resolve and bind to the depth buffer
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
 			}
+
+			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
+			// Plus we need to flip the y value as the OGL image is upside down
+			glReadPixels(s_EFBx*xScale, Renderer::GetTargetHeight() - s_EFBy*yScale, xScale, yScale, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+			GL_REPORT_ERRORD();
+
+			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
+			s_AccessEFBResult = z / 0x100;
 		}
 		break;
 
@@ -503,6 +508,42 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 	default:
 		break;
 	}
-	return 0;
+	
+	s_AccessEFBDone.Set();
+
+	s_criticalEFB.Leave();
+}
+
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+{
+	u32 result;
+
+	s_criticalEFB.Enter();
+
+	s_AccessEFBType = type;
+	s_EFBx = x;
+	s_EFBy = y;
+
+	if (g_VideoInitialize.bUseDualCore)
+	{
+		g_EFBAccessRequested = true;
+		s_AccessEFBDone.Init();
+	}
+
+	s_criticalEFB.Leave();
+
+	if (g_VideoInitialize.bUseDualCore)
+		s_AccessEFBDone.Wait();
+	else
+		Video_OnThreadAccessEFB();
+
+	s_criticalEFB.Enter();
+	if (g_VideoInitialize.bUseDualCore)
+		s_AccessEFBDone.Shutdown();
+
+	result = s_AccessEFBResult;
+	s_criticalEFB.Leave();
+
+	return result;
 }
 

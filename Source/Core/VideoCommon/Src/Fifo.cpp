@@ -32,6 +32,8 @@
 volatile u32 g_XFBUpdateRequested = FALSE;
 extern u8* g_pVideoData;
 
+volatile bool g_EFBAccessRequested = false;
+
 namespace {
 
 static volatile bool fifoStateRun = false;
@@ -138,6 +140,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(_WIN32) && !defined(SETUP_AVOID_OPENGL_SCREEN_MESSAGE_HANG)
 		video_initialize.pPeekMessages();
 #endif
+
+		if (g_EFBAccessRequested)
+		{
+			Video_OnThreadAccessEFB();
+			g_EFBAccessRequested = false;
+		}
 
 		// Draw XFB if CP/GPfifo isn't used
 		if (g_XFBUpdateRequested)

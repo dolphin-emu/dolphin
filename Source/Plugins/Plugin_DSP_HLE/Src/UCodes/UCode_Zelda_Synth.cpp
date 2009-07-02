@@ -87,8 +87,7 @@ _lRestart:
 	else
 		PB.RemLength -= pos[1];
 
-	PB.CurAddr += pos[1] << 1;
-	// There should be a position fraction as well.
+	//PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
 

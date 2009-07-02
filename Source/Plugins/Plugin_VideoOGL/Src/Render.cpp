@@ -907,7 +907,6 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 		s_bLastFrameDumped = false;
 	}
 #endif
-	// ---------------------------------------------------------------------
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();

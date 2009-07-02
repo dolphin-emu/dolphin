@@ -57,6 +57,8 @@ extern SVideoInitialize g_VideoInitialize;
 // (mb2) for XFB update hack. TODO: find a static better place
 extern volatile u32 g_XFBUpdateRequested;
 
+extern volatile bool g_EFBAccessRequested;
+
 //////////////////////////////////////////////////////////////////////////
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
