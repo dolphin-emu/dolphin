@@ -219,11 +219,11 @@ const char *GenerateVertexShader(u32 components)
     }
 
     if (!(components & VB_HAS_NRM0))
-        WRITE(p, "half3 _norm0 = half3(0,0,0), norm0= half3(0,0,0);\n");
+        WRITE(p, "half3 _norm0 = half3(0,0,0), norm0 = half3(0,0,0);\n");
 
     WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
 
-    WRITE(p, "half4 mat, lacc;\n"
+    WRITE(p, "half4 mat;\n" // = half4(1,1,1,1), lacc = half4(0,0,0,0);\n"
     "half3 ldir, h;\n"
     "half dist, dist2, attn;\n");
 
@@ -235,20 +235,23 @@ const char *GenerateVertexShader(u32 components)
         const LitChannel& alpha = xfregs.colChans[j].alpha;
 
         WRITE(p, "{\n");
-
+	
+		WRITE(p, "half4 lacc = half4(1,1,1,1);\n");
         if (color.matsource) {// from vertex
-            if (components & (VB_HAS_COL0<<j) )
+            if (components & (VB_HAS_COL0 << j))
                 WRITE(p, "mat = color%d;\n", j);
-            else WRITE(p, "mat = half4(1,1,1,1);\n");
+            else
+				WRITE(p, "mat = half4(1,1,1,1);\n");
         }
         else // from color
             WRITE(p, "mat = "I_MATERIALS".C%d;\n", j+2);
 
         if (color.enablelighting) {
-            if (color.ambsource) {// from vertex
+            if (color.ambsource) { // from vertex
                 if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "lacc = color%d;\n", j);
-                else WRITE(p, "lacc = half4(0.0f,0.0f,0.0f,0.0f);\n");
+                else
+					WRITE(p, "lacc = half4(0.0f,0.0f,0.0f,0.0f);\n");
             }
             else // from color
                 WRITE(p, "lacc = "I_MATERIALS".C%d;\n", j);
@@ -284,7 +287,7 @@ const char *GenerateVertexShader(u32 components)
                 // if lights are shared, compute those first
                 mask = color.GetFullLightMask() & alpha.GetFullLightMask();
                 for (int i = 0; i < 8; ++i) {
-                    if (mask&(1<<i))
+                    if (mask & (1<<i))
                         p = GenerateLightShader(p, i, color, "lacc", 3);
                 }
             }
@@ -307,7 +310,7 @@ const char *GenerateVertexShader(u32 components)
         }
 
         if (color.enablelighting != alpha.enablelighting) {
-            if (color.enablelighting )
+            if (color.enablelighting)
                 WRITE(p, "o.colors[%d].xyz = mat.xyz * clamp(lacc.xyz,float3(0.0f,0.0f,0.0f),float3(1.0f,1.0f,1.0f));\n"
                     "o.colors[%d].w = mat.w;\n", j, j);
             else
@@ -315,16 +318,17 @@ const char *GenerateVertexShader(u32 components)
                     "o.colors[%d].w = mat.w  * clamp(lacc.w,0.0f,1.0f);\n", j, j);
         }
         else {
-            if (alpha.enablelighting )
-                WRITE(p, "o.colors[%d] = mat * clamp(lacc,float4(0.0f,0.0f,0.0f,0.0f), float4(1.0f,1.0f,1.0f,1.0f));\n", j);
-            else WRITE(p, "o.colors[%d] = mat;\n", j);
+            if (alpha.enablelighting)
+                WRITE(p, "o.colors[%d] = mat * clamp(lacc, float4(0.0f,0.0f,0.0f,0.0f), float4(1.0f,1.0f,1.0f,1.0f));\n", j);
+            else
+				WRITE(p, "o.colors[%d] = mat;\n", j);
         }
         WRITE(p, "}\n");
     }
 
     // zero left over channels
     for (int i = xfregs.nNumChans; i < 2; ++i)
-		WRITE(p, "o.colors[%d] = 0;\n", i);
+		WRITE(p, "o.colors[%d] = float4(0,0,0,0);\n", i);
 
     // transform texcoords
     for (int i = 0; i < xfregs.numTexGens; ++i) {
