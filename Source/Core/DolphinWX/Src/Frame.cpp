@@ -468,22 +468,22 @@ void CFrame::OnClose(wxCloseEvent& event)
 // Input and host messages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
-	WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+	switch (nMsg)
 	{
-		switch (nMsg)
+	case WM_SYSCOMMAND:
+		switch (wParam & 0xFFF0)
 		{
-		case WM_SYSCOMMAND:
-			switch (wParam)
-			{
-			case SC_SCREENSAVE:
-			case SC_MONITORPOWER:
-				return 0;
-			}
-		default:
-			// Let wxWidgets process it as normal
-			return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+		case SC_SCREENSAVE:
+		case SC_MONITORPOWER:
+			return 0;
 		}
+	default:
+		// Let wxWidgets process it as normal
+		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 	}
+}
 #endif
 
 void CFrame::OnHostMessage(wxCommandEvent& event)
@@ -738,4 +738,3 @@ void CFrame::Update()
 	}
 }
 #endif
-
