@@ -61,6 +61,9 @@ Make AA apply instantly during gameplay if possible
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
+GFXConfigDialogOGL *m_ConfigFrame = NULL;
+#include "Debugger/Debugger.h"
+GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #endif
 
 #include "Config.h"
@@ -101,18 +104,6 @@ static volatile EFBAccessType s_AccessEFBType;
 static Common::Event s_AccessEFBDone;
 static Common::CriticalSection s_criticalEFB;
 
-#if defined(HAVE_WX) && HAVE_WX
-void DllDebugger(HWND _hParent, bool Show)
-{
-	// TODO: Debugger needs recoding, right now its useless
-}
-
-void DoDllDebugger(){}
-#else
-void DllDebugger(HWND _hParent, bool Show) { }
-void DoDllDebugger() { }
-#endif
-
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
@@ -135,41 +126,50 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
-// This is used for the fuctions right below here, in DllConfig()
-#if defined(HAVE_WX) && HAVE_WX && defined _WIN32
+// This is used for the functions right below here which use wxwidgets
+#if defined(HAVE_WX) && HAVE_WX
+#ifdef _WIN32
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 	extern HINSTANCE g_hInstance;
+#endif
+
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
+void DllDebugger(HWND _hParent, bool Show)
+{
+	if (!m_DebuggerFrame)
+		m_DebuggerFrame = new GFXDebuggerOGL(GetParentedWxWindow(_hParent));
+
+	if (Show)
+		m_DebuggerFrame->ShowModal();
+	else
+		m_DebuggerFrame->Hide();
+}
+#else
+void DllDebugger(HWND _hParent, bool Show) { }
 #endif
 
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	// This is needed because now we use wxEntryCleanup() when closing the configuration window
-	//		if (!wxTheApp || !wxTheApp->CallOnInit())
-	//	{
-#ifdef _WIN32
-		wxSetInstance((HINSTANCE)g_hInstance);
-#endif
-		//		int argc = 0;
-		// 		char **argv = NULL;
-		//		wxEntryStart(argc, argv);
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
 
-		//	}
-	
-		wxWindow *win = new wxWindow();
-#ifdef _WIN32
-		win->SetHWND((WXHWND)_hParent);
-		win->AdoptAttributesFromHWND();
-#endif
-		ConfigDialog *config_dialog = new ConfigDialog(win);
+#if defined(_WIN32)
 
-
-#endif
-	
-	//Console::Open();
-
-#if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
-	
 	// Search for avaliable resolutions
 	
 	DWORD iModeNum = 0;
@@ -199,15 +199,13 @@ void DllConfig(HWND _hParent)
 		{
 			resos.push_back(strBuffer);
 			i++;
-			config_dialog->AddFSReso(szBuffer);
-			config_dialog->AddWindowReso(szBuffer);
+			m_ConfigFrame->AddFSReso(szBuffer);
+			m_ConfigFrame->AddWindowReso(szBuffer);
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 
-
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\
-        HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM
 
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
@@ -231,15 +229,16 @@ void DllConfig(HWND _hParent)
 			{
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
-				config_dialog->AddFSReso(temp);
-				config_dialog->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+				m_ConfigFrame->AddFSReso(temp);
+				m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
 				px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
 				py = modes[i]->vdisplay;
 			}
 		}
 	}    
 	XFree(modes);
-#elif defined(HAVE_COCOA) && HAVE_COCOA && defined(HAVE_WX) && HAVE_WX
+
+#elif defined(HAVE_COCOA) && HAVE_COCOA
 	
 	CFArrayRef modes;
 	CFRange range;
@@ -272,27 +271,31 @@ void DllConfig(HWND _hParent)
 		{
 			char temp[32];
 			sprintf(temp,"%dx%d", modeWidth, modeHeight);
-			config_dialog->AddFSReso(temp);
-			config_dialog->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+			m_ConfigFrame->AddFSReso(temp);
+			m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
 			px = modeWidth;
 			py = modeHeight;
 		}
 	}
 #endif
-	
+
 	// Check if at least one resolution was found. If we don't and the resolution array is empty
 	// CreateGUIControls() will crash because the array is empty.
-#if defined(HAVE_WX) && HAVE_WX
-	if (config_dialog->arrayStringFor_FullscreenCB.size() == 0)
+	if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0)
 	{
-		config_dialog->AddFSReso("<No resolutions found>");
-		config_dialog->AddWindowReso("<No resolutions found>");
+		m_ConfigFrame->AddFSReso("<No resolutions found>");
+		m_ConfigFrame->AddWindowReso("<No resolutions found>");
 	}
 
-	config_dialog->CreateGUIControls();
-	// Hm, why does this code show it modally?
-	config_dialog->ShowModal();
-#endif	
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+	{
+		m_ConfigFrame->CreateGUIControls();
+		m_ConfigFrame->ShowModal();
+	}
+	else
+		m_ConfigFrame->Hide();
+#endif
 }
 
 void Initialize(void *init)

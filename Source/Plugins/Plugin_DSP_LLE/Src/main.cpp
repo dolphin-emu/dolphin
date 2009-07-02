@@ -38,7 +38,8 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
-#include "Debugger/Debugger.h" // For the DSPDebuggerLLE class
+DSPConfigDialogLLE* m_ConfigFrame = NULL;
+#include "Debugger/Debugger.h"
 DSPDebuggerLLE* m_DebuggerFrame = NULL;
 #endif
 
@@ -49,9 +50,9 @@ SoundStream *soundStream = NULL;
 
 bool bIsRunning = false;
 
-//////////////////////////////////////////////////////////////////////////
-// UGLY WxW stuff, TODO fix up
-// wxWidgets: Create the wxApp
+#ifdef _WIN32
+HINSTANCE g_hInstance;
+
 #if defined(HAVE_WX) && HAVE_WX
 class wxDLLApp : public wxApp
 {
@@ -60,46 +61,55 @@ class wxDLLApp : public wxApp
 		return true;
 	}
 };
-
-IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
-// DllMain
-#ifdef _WIN32
-HINSTANCE g_hInstance = NULL;
-
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
-					  DWORD dwReason, // reason called
-					  LPVOID lpvReserved) // reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+					  DWORD dwReason,		// reason called
+					  LPVOID lpvReserved)	// reserved
 {
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
 		{
-
-			// more stuff wx needs
+#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
-
-			// This is for ?
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
+#endif
 		}
-		break;
+		break; 
 
 	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); // use this or get a crash
+#if defined(HAVE_WX) && HAVE_WX
+		wxEntryCleanup();
+#endif
 		break;
-
 	default:
 		break;
 	}
 
 	g_hInstance = hinstDLL;
-	return(TRUE);
+	return TRUE;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
 }
 #endif
 
@@ -126,27 +136,25 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
-void DllAbout(HWND _hParent)
-{
-
-}
-
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	// (shuffle2) TODO: reparent dlg with DolphinApp
-	DSPConfigDialogLLE dlg(NULL);
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new DSPConfigDialogLLE(GetParentedWxWindow(_hParent));
 
 	// add backends
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
 
 	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
 		 iter != backends.end(); ++iter) {
-		dlg.AddBackend((*iter).c_str());
+		m_ConfigFrame->AddBackend((*iter).c_str());
 	}
 
-	// Show the window
-	dlg.ShowModal();
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+		m_ConfigFrame->ShowModal();
+	else
+		m_ConfigFrame->Hide();
 #endif
 }
 
@@ -160,7 +168,7 @@ void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_DebuggerFrame)
-		m_DebuggerFrame = new DSPDebuggerLLE(NULL);
+		m_DebuggerFrame = new DSPDebuggerLLE(GetParentedWxWindow(_hParent));
 
 	if (Show)
 		m_DebuggerFrame->Show();

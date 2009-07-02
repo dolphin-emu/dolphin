@@ -24,33 +24,31 @@
 
 extern int g_Preset;
 
-BEGIN_EVENT_TABLE(CDebugger,wxDialog)
-	EVT_CLOSE(CDebugger::OnClose)
-	EVT_CHECKBOX(ID_SAVETOFILE,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_SHOWCONSOLE,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_INFOLOG,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_PRIMLOG,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_SAVETEXTURES,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_SAVETARGETS,CDebugger::GeneralSettings)
-	EVT_CHECKBOX(ID_SAVESHADERS,CDebugger::GeneralSettings)
+BEGIN_EVENT_TABLE(GFXDebuggerOGL,wxDialog)
+	EVT_CLOSE(GFXDebuggerOGL::OnClose)
+	EVT_CHECKBOX(ID_SAVETOFILE,GFXDebuggerOGL::GeneralSettings)
+	EVT_CHECKBOX(ID_INFOLOG,GFXDebuggerOGL::GeneralSettings)
+	EVT_CHECKBOX(ID_PRIMLOG,GFXDebuggerOGL::GeneralSettings)
+	EVT_CHECKBOX(ID_SAVETEXTURES,GFXDebuggerOGL::GeneralSettings)
+	EVT_CHECKBOX(ID_SAVETARGETS,GFXDebuggerOGL::GeneralSettings)
+	EVT_CHECKBOX(ID_SAVESHADERS,GFXDebuggerOGL::GeneralSettings)
 END_EVENT_TABLE()
 
-CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
+GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &title,
 				   const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
 
 	LoadSettings();
-	DoShowConsole();
 }
 
-CDebugger::~CDebugger()
+GFXDebuggerOGL::~GFXDebuggerOGL()
 {
 	SaveSettings();
 }
 
-void CDebugger::OnClose(wxCloseEvent& event)
+void GFXDebuggerOGL::OnClose(wxCloseEvent& event)
 {
 	// save the window position when we hide the window
 	SaveSettings();
@@ -58,16 +56,7 @@ void CDebugger::OnClose(wxCloseEvent& event)
 	event.Skip(); // This means wxDialog's Destroy is used
 }
 
-void CDebugger::DoShowConsole()
-{
-	ConsoleListener* console = LogManager::GetInstance()->getConsoleListener();
-	if (m_Check[1]->IsChecked() && console->IsOpen())
-		console->Open();
-	else
-		console->Close();
-}
-
-void CDebugger::SaveSettings() const
+void GFXDebuggerOGL::SaveSettings() const
 {
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
@@ -86,7 +75,6 @@ void CDebugger::SaveSettings() const
 	}
 
 	file.Set("VideoWindow", "WriteToFile", m_Check[0]->IsChecked());
-	file.Set("VideoWindow", "Console", m_Check[1]->IsChecked());
 
 	g_Config.iLog = bInfoLog ? CONF_LOG : 0;
 	g_Config.iLog |= bPrimLog ? CONF_PRIMLOG : 0;
@@ -99,21 +87,17 @@ void CDebugger::SaveSettings() const
 	file.Save(DEBUGGER_CONFIG_FILE);
 }
 
-void CDebugger::LoadSettings()
+void GFXDebuggerOGL::LoadSettings()
 {
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 
-	int x,y,w,h;
+	int x = 100, y = 100, w = 100, h = 100;
 	file.Get("VideoWindow", "x", &x, GetPosition().x);
 	file.Get("VideoWindow", "y", &y, GetPosition().y);
 	file.Get("VideoWindow", "w", &w, GetSize().GetWidth());
 	file.Get("VideoWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
-
-	bool Console;
-	file.Get("VideoWindow", "Console", &Console, m_Check[1]->IsChecked());
-	m_Check[1]->SetValue(Console);
 
 	file.Get("VideoWindow", "ConfBits", &g_Config.iLog, 0);
 	bInfoLog = (g_Config.iLog & CONF_LOG) ? true : false;
@@ -121,14 +105,14 @@ void CDebugger::LoadSettings()
 	bSaveTextures = (g_Config.iLog & CONF_SAVETEXTURES) ? true : false;
 	bSaveTargets = (g_Config.iLog & CONF_SAVETARGETS) ? true : false;
 	bSaveShaders = (g_Config.iLog & CONF_SAVESHADERS) ? true : false;
-	m_Check[2]->SetValue(bInfoLog);
-	m_Check[3]->SetValue(bPrimLog);
-	m_Check[4]->SetValue(bSaveTextures);
-	m_Check[5]->SetValue(bSaveTargets);
-	m_Check[6]->SetValue(bSaveShaders);
+	m_Check[1]->SetValue(bInfoLog);
+	m_Check[2]->SetValue(bPrimLog);
+	m_Check[3]->SetValue(bSaveTextures);
+	m_Check[4]->SetValue(bSaveTargets);
+	m_Check[5]->SetValue(bSaveShaders);
 }
 
-void CDebugger::CreateGUIControls()
+void GFXDebuggerOGL::CreateGUIControls()
 {
 	// Basic settings
 	SetIcon(wxNullIcon);
@@ -140,12 +124,11 @@ void CDebugger::CreateGUIControls()
 	// Options
 	wxStaticBoxSizer *sOptions = new wxStaticBoxSizer(wxVERTICAL, m_MainPanel, wxT("Options"));
 	m_Check[0] = new wxCheckBox(m_MainPanel, ID_SAVETOFILE, wxT("Save to file"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(m_MainPanel, ID_SHOWCONSOLE, wxT("Show console"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[2] = new wxCheckBox(m_MainPanel, ID_INFOLOG, wxT("Info log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[3] = new wxCheckBox(m_MainPanel, ID_PRIMLOG, wxT("Primary log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[4] = new wxCheckBox(m_MainPanel, ID_SAVETEXTURES, wxT("Save Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[5] = new wxCheckBox(m_MainPanel, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[6] = new wxCheckBox(m_MainPanel, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[1] = new wxCheckBox(m_MainPanel, ID_INFOLOG, wxT("Info log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[2] = new wxCheckBox(m_MainPanel, ID_PRIMLOG, wxT("Primary log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[3] = new wxCheckBox(m_MainPanel, ID_SAVETEXTURES, wxT("Save Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[4] = new wxCheckBox(m_MainPanel, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[5] = new wxCheckBox(m_MainPanel, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
     for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
 		sOptions->Add(m_Check[i], 0, 0, 5);
@@ -159,13 +142,10 @@ void CDebugger::CreateGUIControls()
 }
 
 // General settings
-void CDebugger::GeneralSettings(wxCommandEvent& event)
+void GFXDebuggerOGL::GeneralSettings(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_SHOWCONSOLE:
-		DoShowConsole();
-		break;
 	case ID_INFOLOG:
 		bInfoLog = event.IsChecked();
 		break;

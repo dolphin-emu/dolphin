@@ -25,24 +25,20 @@
 
 class IniFile;
 
-class CDebugger : public wxDialog
+class GFXDebuggerOGL : public wxDialog
 {
 public:
-	CDebugger(wxWindow *parent,
+	GFXDebuggerOGL(wxWindow *parent,
 		wxWindowID id = 1,
 		const wxString &title = wxT("OGL Debugguer"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
 
-	virtual ~CDebugger();
+	virtual ~GFXDebuggerOGL();
 
 	void SaveSettings() const;
 	void LoadSettings();
-	void DoShowConsole();
-	void DoShow();
-
-	void GeneralSettings(wxCommandEvent& event);
 
 	bool bInfoLog;
 	bool bPrimLog;
@@ -55,14 +51,13 @@ private:
 
 	wxPanel *m_MainPanel;
 
-	wxCheckBox *m_Check[7];
+	wxCheckBox *m_Check[6];
 
 	// WARNING: Make sure these are not also elsewhere
 	enum
 	{
 		ID_MAINPANEL = 2000,
 		ID_SAVETOFILE,
-		ID_SHOWCONSOLE,
 		ID_INFOLOG,
 		ID_PRIMLOG,
 		ID_SAVETEXTURES,
@@ -71,9 +66,10 @@ private:
 		NUM_OPTIONS
 	};
 
-	void OnShow(wxShowEvent& event);
 	void OnClose(wxCloseEvent& event);		
-	void CreateGUIControls();		
+	void CreateGUIControls();
+
+	void GeneralSettings(wxCommandEvent& event);
 };
 
 #endif // _CDEBUGGER_H_

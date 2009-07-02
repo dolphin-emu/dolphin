@@ -32,8 +32,6 @@
 
 #include "StringUtil.h"
 
-//void OpenConsole();
-//void CloseConsole();
 
 HINSTANCE g_hInstance;
 
@@ -85,7 +83,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 
-void DoDllDebugger();
 extern bool gShowDebugger;
 int OSDChoice = 0, OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 

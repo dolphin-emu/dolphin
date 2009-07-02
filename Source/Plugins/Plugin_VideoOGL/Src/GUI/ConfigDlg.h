@@ -47,15 +47,15 @@ enum
 };
 
 
-class ConfigDialog : public wxDialog
+class GFXConfigDialogOGL : public wxDialog
 {
 	public:
-		ConfigDialog(wxWindow *parent, wxWindowID id = 1,
+		GFXConfigDialogOGL(wxWindow *parent, wxWindowID id = 1,
 			const wxString &title = wxT("OpenGL Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
-		virtual ~ConfigDialog();
+		virtual ~GFXConfigDialogOGL();
 		void CloseClick(wxCommandEvent& event);
 
 		void AddFSReso(char *reso);

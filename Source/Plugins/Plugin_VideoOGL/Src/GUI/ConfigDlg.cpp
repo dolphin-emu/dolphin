@@ -31,59 +31,59 @@
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"
 
-BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
-	EVT_CLOSE(ConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
-	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
-	EVT_CHECKBOX(ID_FULLSCREEN, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_VSYNC, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(ID_MSAAMODECB, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_NATIVERESOLUTION, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_2X_RESOLUTION, ConfigDialog::GeneralSettingsChanged)	
-	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_AUTOSCALE, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR_4_3, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR_16_9, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_CROP, ConfigDialog::GeneralSettingsChanged)
+BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
+	EVT_CLOSE(GFXConfigDialogOGL::OnClose)
+	EVT_BUTTON(ID_CLOSE, GFXConfigDialogOGL::CloseClick)
+	EVT_BUTTON(ID_ABOUTOGL, GFXConfigDialogOGL::AboutClick)
+	EVT_CHECKBOX(ID_FULLSCREEN, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_FULLSCREENCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_KEEPAR_4_3, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_KEEPAR_16_9, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
 	#ifndef _WIN32
-		EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
+		EVT_CHECKBOX(ID_HIDECURSOR, GFXConfigDialogOGL::GeneralSettingsChanged)
 	#endif
-	EVT_CHECKBOX(ID_WIREFRAME, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SHOWFPS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_BLENDSTATS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_PROJSTATS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SHOWEFBCOPYREGIONS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SHADERERRORS, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_HIRESTEXTURES, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DUMPEFBTARGET, ConfigDialog::AdvancedSettingsChanged)
-    EVT_CHECKBOX(ID_DUMPFRAMES, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_FREELOOK, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLEFOG, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_HACK, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
-    EVT_CHECKBOX(ID_DSTALPHAPASS,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
-	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
-	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHOICE(ID_PHACKVALUE, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(ID_POSTSHADER, ConfigDialog::GeneralSettingsChanged)
-	EVT_BUTTON(ID_RELOADSHADER, ConfigDialog::ReloadShaderClick)
-	EVT_BUTTON(ID_EDITSHADER, ConfigDialog::EditShaderClick)
+	EVT_CHECKBOX(ID_WIREFRAME, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHOWFPS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_STATISTICS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_BLENDSTATS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJSTATS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHOWEFBCOPYREGIONS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHADERERRORS, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_TEXFMTOVERLAY, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_TEXFMTCENTER, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPTEXTURES, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_HIRESTEXTURES, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPEFBTARGET, GFXConfigDialogOGL::AdvancedSettingsChanged)
+    EVT_CHECKBOX(ID_DUMPFRAMES, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_FREELOOK, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLELIGHTING, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLETEXTURING, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_HACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SAFETEXTURECACHE,GFXConfigDialogOGL::AdvancedSettingsChanged)
+    EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHOICE(ID_PHACKVALUE, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_POSTSHADER, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_BUTTON(ID_RELOADSHADER, GFXConfigDialogOGL::ReloadShaderClick)
+	EVT_BUTTON(ID_EDITSHADER, GFXConfigDialogOGL::EditShaderClick)
 END_EVENT_TABLE()
 
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+GFXConfigDialogOGL::GFXConfigDialogOGL(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 	g_Config.Load();
@@ -94,11 +94,11 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Close and unload the window
 // ---------------
-ConfigDialog::~ConfigDialog()
+GFXConfigDialogOGL::~GFXConfigDialogOGL()
 {
-	INFO_LOG(CONSOLE, "ConfigDialog Closed");
+	INFO_LOG(CONSOLE, "GFXConfigDialogOGL Closed");
 }
-void ConfigDialog::OnClose(wxCloseEvent& event)
+void GFXConfigDialogOGL::OnClose(wxCloseEvent& event)
 {
 	g_Config.Save();
 
@@ -116,7 +116,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 	event.Skip();
 }
 
-void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
+void GFXConfigDialogOGL::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
 	INFO_LOG(CONSOLE, "CloseClick");
 
@@ -131,12 +131,12 @@ void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Add avaliable resolutions and other settings
 // ---------------
-void ConfigDialog::AddFSReso(char *reso)
+void GFXConfigDialogOGL::AddFSReso(char *reso)
 {
 	arrayStringFor_FullscreenCB.Add(wxString::FromAscii(reso));
 }
 
-void ConfigDialog::AddWindowReso(char *reso)
+void GFXConfigDialogOGL::AddWindowReso(char *reso)
 {
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }
@@ -144,7 +144,7 @@ void ConfigDialog::AddWindowReso(char *reso)
 ///////////////////////////////////////
 
 
-void ConfigDialog::CreateGUIControls()
+void GFXConfigDialogOGL::CreateGUIControls()
 {
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -511,7 +511,7 @@ void ConfigDialog::CreateGUIControls()
 }
 
 
-void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
+void GFXConfigDialogOGL::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 	wxMessageBox(_T("Dolphin OpenGL Plugin\nBy zerofrog(@gmail.com)\n\n"
 		"A card supporting Vertex/Pixel Shader 2.0 or higher, framebuffer objects, "
@@ -519,12 +519,12 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 		_T("Dolphin OGL"), wxOK, this);
 }
 
-void ConfigDialog::ReloadShaderClick(wxCommandEvent& WXUNUSED (event))
+void GFXConfigDialogOGL::ReloadShaderClick(wxCommandEvent& WXUNUSED (event))
 {
 	PostProcessing::ReloadShader();
 }
 
-void ConfigDialog::EditShaderClick(wxCommandEvent& WXUNUSED (event))
+void GFXConfigDialogOGL::EditShaderClick(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_PostShaderCB->GetStringSelection() == wxT("(off)"))
 		return;
@@ -551,7 +551,7 @@ void ConfigDialog::EditShaderClick(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
+void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -633,7 +633,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 }
 
 
-void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
+void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -726,7 +726,7 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 }
 
 
-void ConfigDialog::UpdateGUI()
+void GFXConfigDialogOGL::UpdateGUI()
 {
 	// This is only used together with the aspect ratio options
 	m_Crop->Enable(g_Config.bKeepAR43 || g_Config.bKeepAR169);
