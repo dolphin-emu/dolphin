@@ -51,6 +51,11 @@ SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 int initCount = 0;
 
+static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
+static volatile EFBAccessType s_AccessEFBType;
+static Common::Event s_AccessEFBDone;
+static Common::CriticalSection s_criticalEFB;
+
 
 void DllDebugger(HWND _hParent, bool Show)
 {
@@ -311,4 +316,67 @@ void Video_Screenshot(const char *_szFilename)
 		message += _szFilename;
 		Renderer::AddMessage(message, 2000);
 	}
+}
+
+void Video_OnThreadAccessEFB()
+{
+	s_criticalEFB.Enter();
+	s_AccessEFBResult = 0;
+
+	/*
+	switch (s_AccessEFBType)
+	{
+	case PEEK_Z:
+		break;
+
+	case POKE_Z:
+		break;
+
+	case PEEK_COLOR:
+		break;
+
+	case POKE_COLOR:
+		break;
+
+	default:
+		break;
+	}
+	*/
+
+	s_AccessEFBDone.Set();
+
+	s_criticalEFB.Leave();
+}
+
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+{
+	u32 result;
+
+	s_criticalEFB.Enter();
+
+	s_AccessEFBType = type;
+	s_EFBx = x;
+	s_EFBy = y;
+
+	if (g_VideoInitialize.bUseDualCore)
+	{
+		g_EFBAccessRequested = true;
+		s_AccessEFBDone.Init();
+	}
+
+	s_criticalEFB.Leave();
+
+	if (g_VideoInitialize.bUseDualCore)
+		s_AccessEFBDone.Wait();
+	else
+		Video_OnThreadAccessEFB();
+
+	s_criticalEFB.Enter();
+	if (g_VideoInitialize.bUseDualCore)
+		s_AccessEFBDone.Shutdown();
+
+	result = s_AccessEFBResult;
+	s_criticalEFB.Leave();
+
+	return result;
 }
