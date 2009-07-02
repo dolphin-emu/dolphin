@@ -337,7 +337,7 @@ int IsKey(int Key)
 	case g_Wm.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
 	case g_Wm.PITCH_L: return GetAsyncKeyState(PadMapping[0].Wm.PitchL);
 	case g_Wm.PITCH_R: return GetAsyncKeyState(PadMapping[0].Wm.PitchR);
-	case g_Wm.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake);
+	case g_Wm.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake) || GetAsyncKeyState(VK_MBUTTON);
 
 	// Nunchuck
 	case g_Nc.Z: return GetAsyncKeyState(PadMapping[0].Nc.Z);
