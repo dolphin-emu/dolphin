@@ -51,111 +51,111 @@ enum
 //////////////////////////////////////////////////////////////////////////////////////////
 // Event table
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
-BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
-	EVT_CLOSE(ConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
-	EVT_BUTTON(ID_APPLY, ConfigDialog::CloseClick)
-	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
+BEGIN_EVENT_TABLE(WiimoteConfigDialog,wxDialog)
+	EVT_CLOSE(WiimoteConfigDialog::OnClose)
+	EVT_BUTTON(ID_CLOSE, WiimoteConfigDialog::CloseClick)
+	EVT_BUTTON(ID_APPLY, WiimoteConfigDialog::CloseClick)
+	EVT_BUTTON(ID_ABOUTOGL, WiimoteConfigDialog::AboutClick)
 
-	EVT_CHECKBOX(ID_SIDEWAYSDPAD, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
-	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)
 
-	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_UPDATE_REAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_USE_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_UPDATE_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
 
 	// Recording
-	EVT_CHOICE(IDC_RECORD + 1, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 2, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 3, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 4, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 5, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 6, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 7, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 8, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 9, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 10, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 11, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 12, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 13, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 14, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 15, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 1, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 2, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 3, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 4, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 5, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 6, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 7, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 8, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 9, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 10, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 11, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 12, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 13, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 14, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 15, WiimoteConfigDialog::GeneralSettingsChanged)
 
-	EVT_BUTTON(IDB_RECORD + 1, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 2, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 3, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 4, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 5, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 6, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 7, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 8, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 9, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 10, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 11, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 12, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 13, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 14, ConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 1, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 2, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 3, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 4, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 5, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 6, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 7, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 8, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 9, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 10, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 11, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 12, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 13, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 14, WiimoteConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 15, WiimoteConfigDialog::RecordMovement)
 
 	// Gamepad
-	EVT_COMBOBOX(IDC_JOYNAME, ConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TRIGGER_TYPE, ConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TILT_INPUT, ConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_DEAD_ZONE_LEFT, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_DEAD_ZONE_RIGHT, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(IDC_LEFT_C2S, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_LEFT_STICK, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_RIGHT_STICK, ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_TRIGGERS, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDC_JOYNAME, WiimoteConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TRIGGER_TYPE, WiimoteConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_INPUT, WiimoteConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_LEFT, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_RIGHT, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_LEFT_C2S, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_LEFT_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_RIGHT_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_TRIGGERS, WiimoteConfigDialog::GeneralSettingsChanged)
 	
 	// Wiimote
-	EVT_BUTTON(IDB_WM_A, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_1, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_P, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_SHAKE, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_PITCH_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_A, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_1, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_P, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_U, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_SHAKE, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_PITCH_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, WiimoteConfigDialog::OnButtonClick)
 	// IR cursor
-	EVT_COMMAND_SCROLL(IDS_WIDTH, ConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_HEIGHT, ConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_LEFT, ConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_TOP, ConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_LEFT, WiimoteConfigDialog::GeneralSettingsChangedScroll)
+	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteConfigDialog::GeneralSettingsChangedScroll)
 
 	// Nunchuck
-	EVT_BUTTON(IDB_NC_Z, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_L, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_U, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_D, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_SHAKE, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_Z, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_U, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_D, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_SHAKE, WiimoteConfigDialog::OnButtonClick)
 
 	// Classic Controller
-	EVT_BUTTON(IDB_CC_A, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_B, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_X, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_Y, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_P, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_M, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_H, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_TL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZR, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_TR, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_DL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_DL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_LL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LU, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LR, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LD, ConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_RL, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RU, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RR, ConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RD, ConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_A, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_B, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_X, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_Y, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_P, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_M, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_H, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_TL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_TR, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_DL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_DL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_LL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LD, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_RL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RD, WiimoteConfigDialog::OnButtonClick)
 	
-	EVT_BUTTON(IDB_ANALOG_LEFT_X, ConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_LEFT_Y, ConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_RIGHT_X, ConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_RIGHT_Y, ConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_TRIGGER_L, ConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_TRIGGER_R, ConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimoteConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimoteConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimoteConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_RIGHT_Y, WiimoteConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_TRIGGER_L, WiimoteConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_TRIGGER_R, WiimoteConfigDialog::GetButtons)
 
-	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)
-	EVT_TIMER(IDTM_UPDATE_ONCE, ConfigDialog::UpdateOnce)
-	EVT_TIMER(IDTM_SHUTDOWN, ConfigDialog::ShutDown)
-	EVT_TIMER(IDTM_BUTTON, ConfigDialog::OnButtonTimer)
-	EVT_TIMER(IDTM_UPDATE_PAD, ConfigDialog::UpdatePad)
+	EVT_TIMER(IDTM_UPDATE, WiimoteConfigDialog::Update)
+	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteConfigDialog::UpdateOnce)
+	EVT_TIMER(IDTM_SHUTDOWN, WiimoteConfigDialog::ShutDown)
+	EVT_TIMER(IDTM_BUTTON, WiimoteConfigDialog::OnButtonTimer)
+	EVT_TIMER(IDTM_UPDATE_PAD, WiimoteConfigDialog::UpdatePad)
 END_EVENT_TABLE()
 //////////////////////////////////////
 
@@ -163,7 +163,7 @@ END_EVENT_TABLE()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Class
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
+WiimoteConfigDialog::WiimoteConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
@@ -197,15 +197,15 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	UpdateGUI();
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-		wxKeyEventHandler(ConfigDialog::OnKeyDown),
+		wxKeyEventHandler(WiimoteConfigDialog::OnKeyDown),
 		(wxObject*)0, this);
 }
 
-ConfigDialog::~ConfigDialog()
+WiimoteConfigDialog::~WiimoteConfigDialog()
 {	
 }
 
-void ConfigDialog::OnKeyDown(wxKeyEvent& event)
+void WiimoteConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
 	event.Skip();
 
@@ -263,7 +263,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 }
 
 // Input button clicked
-void ConfigDialog::OnButtonClick(wxCommandEvent& event)
+void WiimoteConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	//INFO_LOG(CONSOLE, "OnButtonClick: %i\n", g_Pressed);
 
@@ -282,7 +282,7 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 }
 
 
-void ConfigDialog::OnClose(wxCloseEvent& event)
+void WiimoteConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
 	m_UpdatePad->Stop();
@@ -297,7 +297,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 /* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
    call a frame function after the main thread has entered WaitForSingleObject() or any other loop.
    We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
-void ConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
+void WiimoteConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 {
 	// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
 	if(!WiiMoteReal::g_ThreadGoing)
@@ -307,7 +307,7 @@ void ConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 	}
 }
 
-void ConfigDialog::CloseClick(wxCommandEvent& event)
+void WiimoteConfigDialog::CloseClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
@@ -333,12 +333,12 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 	}
 }
 
-void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
+void WiimoteConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 }
 
 // Execute a delayed function
-void ConfigDialog::UpdateOnce(wxTimerEvent& event)
+void WiimoteConfigDialog::UpdateOnce(wxTimerEvent& event)
 {
 	switch(event.GetId())
 	{
@@ -367,7 +367,7 @@ void ConfigDialog::UpdateOnce(wxTimerEvent& event)
    Input: ChangePad needs to be used when we change the pad for a slot. Slot needs to be used when
    we only want to save changes to one slot.
 */
-void ConfigDialog::DoSave(bool ChangePad, int Slot)
+void WiimoteConfigDialog::DoSave(bool ChangePad, int Slot)
 {
 	// Replace "" with "-1" before we are saving
 	ToBlank(false);
@@ -399,7 +399,7 @@ void ConfigDialog::DoSave(bool ChangePad, int Slot)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Bitmap box and dot
 // ----------------
-wxBitmap ConfigDialog::CreateBitmap()
+wxBitmap WiimoteConfigDialog::CreateBitmap()
 {
 	BoxW = 70, BoxH = 70;
 	wxBitmap bitmap(BoxW, BoxH);
@@ -419,7 +419,7 @@ wxBitmap ConfigDialog::CreateBitmap()
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap ConfigDialog::CreateBitmapDot()
+wxBitmap WiimoteConfigDialog::CreateBitmapDot()
 {
 	int w = 2, h = 2;
 	wxBitmap bitmap(w, h);
@@ -437,7 +437,7 @@ wxBitmap ConfigDialog::CreateBitmapDot()
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap ConfigDialog::CreateBitmapDeadZone(int Radius)
+wxBitmap WiimoteConfigDialog::CreateBitmapDeadZone(int Radius)
 {
 	wxBitmap bitmap(Radius*2, Radius*2);
 	wxMemoryDC dc;
@@ -453,7 +453,7 @@ wxBitmap ConfigDialog::CreateBitmapDeadZone(int Radius)
 	//dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap ConfigDialog::CreateBitmapClear()
+wxBitmap WiimoteConfigDialog::CreateBitmapClear()
 {
 	wxBitmap bitmap(BoxW, BoxH);
 	wxMemoryDC dc;
@@ -470,7 +470,7 @@ wxBitmap ConfigDialog::CreateBitmapClear()
 //////////////////////////////////////
 
 
-void ConfigDialog::CreateGUIControls()
+void WiimoteConfigDialog::CreateGUIControls()
 {
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -1426,7 +1426,7 @@ void ConfigDialog::CreateGUIControls()
 // ===================================================
 /* Do connect real wiimote */
 // ----------------
-void ConfigDialog::DoConnectReal()
+void WiimoteConfigDialog::DoConnectReal()
 {
 	g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
 
@@ -1440,15 +1440,6 @@ void ConfigDialog::DoConnectReal()
 		if (g_RealWiiMoteInitialized)
 		{
 			WiiMoteReal::Shutdown();
-			/*
-			if (g_WiimoteUnexpectedDisconnect)
-			{
-				#ifdef _WIN32
-					PostMessage(g_ParentHWND, WM_USER, WIIMOTE_RECONNECT, 0);
-					g_WiimoteUnexpectedDisconnect = false;
-				#endif
-			}
-			*/
 		}
 	}
 }
@@ -1458,7 +1449,7 @@ void ConfigDialog::DoConnectReal()
 /* Do use real wiimote. We let the game set up the real Wiimote reporting mode and init the Extension when we change
    want to use it again. */
 // ----------------
-void ConfigDialog::DoUseReal()
+void WiimoteConfigDialog::DoUseReal()
 {
 	// Clear any eventual events in the Wiimote queue
 	WiiMoteReal::ClearEvents();
@@ -1493,7 +1484,7 @@ void ConfigDialog::DoUseReal()
 // ===================================================
 /* Generate connect/disconnect status event */
 // ----------------
-void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
+void WiimoteConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
 	if(!g_EmulatorRunning) return; 
@@ -1509,7 +1500,7 @@ void ConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 // ===================================================
 /* Change settings */
 // ----------------
-void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
+void WiimoteConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	long TmpValue;
 
@@ -1660,7 +1651,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // =======================================================
 // Apparently we need a scroll event version of this for the sliders
 // -------------
-void ConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
+void WiimoteConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -1685,7 +1676,7 @@ void ConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
 // =======================================================
 // Update the IR pointer calibration sliders
 // -------------
-void ConfigDialog::UpdateControls()
+void WiimoteConfigDialog::UpdateControls()
 {
 	// Update the slider position if a configuration has been loaded
 	m_SliderWidth[Page]->SetValue(g_Config.iIRWidth);
@@ -1705,7 +1696,7 @@ void ConfigDialog::UpdateControls()
 // =======================================================
 // Update the enabled/disabled status
 // -------------
-void ConfigDialog::UpdateGUI(int Slot)
+void WiimoteConfigDialog::UpdateGUI(int Slot)
 {
 	//INFO_LOG(CONSOLE, "UpdateGUI: \n");
 

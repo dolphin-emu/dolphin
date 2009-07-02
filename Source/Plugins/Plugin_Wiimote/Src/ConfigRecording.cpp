@@ -35,7 +35,7 @@
 
 
 
-void ConfigDialog::LoadFile()
+void WiimoteConfigDialog::LoadFile()
 {
 	INFO_LOG(CONSOLE, "LoadFile()\n");
 
@@ -77,7 +77,7 @@ void ConfigDialog::LoadFile()
 		file.Get(SaveName.c_str(), "PlaybackSpeed", &iTmp, -1); m_RecordPlayBackSpeed[i]->SetSelection(iTmp);
 	}
 }
-void ConfigDialog::SaveFile()
+void WiimoteConfigDialog::SaveFile()
 {
 	INFO_LOG(CONSOLE, "SaveFile\n");
 
@@ -126,7 +126,7 @@ void ConfigDialog::SaveFile()
 /////////////////////////////////////////////////////////////////////////
 // Create GUI
 // ------------
-void ConfigDialog::CreateGUIControlsRecording()
+void WiimoteConfigDialog::CreateGUIControlsRecording()
 {
 	////////////////////////////////////////////////////////////////////////////////
 	// Real Wiimote
@@ -356,7 +356,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 /* Record movement */
 // ------------
 
-void ConfigDialog::ConvertToString()
+void WiimoteConfigDialog::ConvertToString()
 {
 	// Load ini file
 	IniFile file;
@@ -428,7 +428,7 @@ void ConfigDialog::ConvertToString()
 }
 
 // Timeout the recording
-void ConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
+void WiimoteConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 {
 	m_bWaitForRecording = false;
 	m_bRecording = false;
@@ -436,7 +436,7 @@ void ConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 	UpdateGUI();
 }
 
-void ConfigDialog::RecordMovement(wxCommandEvent& event)
+void WiimoteConfigDialog::RecordMovement(wxCommandEvent& event)
 {
 	m_iRecordTo = event.GetId() - 2000;
 
@@ -467,7 +467,7 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 	m_TimeoutTimer->Start(5000, true);
 }
 
-void ConfigDialog::DoRecordA(bool Pressed)
+void WiimoteConfigDialog::DoRecordA(bool Pressed)
 {
 	// Return if we are not waiting or recording
 	if (! (m_bWaitForRecording || m_bRecording)) return;
@@ -501,7 +501,7 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	UpdateGUI();
 }
 
-void ConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
+void WiimoteConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
 {
 	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
 	//INFO_LOG(CONSOLE, "DoRecordMovement: %s\n", Tmp1.c_str());

@@ -20,7 +20,7 @@
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
 //#include "../Logging/File.h" // For PrintFile()
-extern CDebugger* m_frame;
+extern DSPDebuggerHLE* m_DebuggerFrame;
 #endif
 #include <sstream>
 #include "../Config.h"
@@ -98,7 +98,7 @@ void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
     vsprintf(Msg, _fmt, ap);
 
 #if defined(HAVE_WX) && HAVE_WX
-if(m_frame->ScanMails)
+if(m_DebuggerFrame->ScanMails)
 {	
 
 	if(strcmp(Msg, "Begin") == 0)
@@ -128,12 +128,12 @@ if(m_frame->ScanMails)
 
 			sMailLog.push_back(TmpMailLog);
 			// Save file to disc
-			if(m_frame->StoreMails)
+			if(m_DebuggerFrame->StoreMails)
 			{
 				SaveLogFile(TmpMailLog, saveNext, 1, Wii);
 			}
 			
-			m_frame->DoUpdateMail(); // update the view
+			m_DebuggerFrame->DoUpdateMail(); // update the view
 			saveNext = 0;
 		}
 	}
@@ -157,7 +157,7 @@ if(m_frame->ScanMails)
 void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
 {
 #if defined(HAVE_WX) && HAVE_WX
-if(m_frame->ScanMails)
+if(m_DebuggerFrame->ScanMails)
 {
 	int i = 0;
 	std::string sTemp;
@@ -192,11 +192,11 @@ if(m_frame->ScanMails)
 
 	// Compare this mail to old mails
 	u32 addnew = 0;
-	for (u32 j = 0; j < m_frame->sMail.size(); j++)
+	for (u32 j = 0; j < m_DebuggerFrame->sMail.size(); j++)
 	{
-		if(m_frame->sMail.at(j).length() != sTemp.length())
+		if(m_DebuggerFrame->sMail.at(j).length() != sTemp.length())
 		{
-			//wxMessageBox( wxString::Format("%s  \n\n%s", m_frame->sMail.at(i).c_str(),
+			//wxMessageBox( wxString::Format("%s  \n\n%s", m_DebuggerFrame->sMail.at(i).c_str(),
 			//	sTemp.c_str()) );
 			addnew++;	
 		}
@@ -204,10 +204,10 @@ if(m_frame->ScanMails)
 
 
 	// In case the mail didn't match any saved mail, save it
-	if(addnew == m_frame->sMail.size())
+	if(addnew == m_DebuggerFrame->sMail.size())
 	{		
-		//Console::Print("%i  |  %i\n", addnew, m_frame->sMail.size());
-		u32 resizeTo = (u32)(m_frame->sMail.size() + 1);		
+		//Console::Print("%i  |  %i\n", addnew, m_DebuggerFrame->sMail.size());
+		u32 resizeTo = (u32)(m_DebuggerFrame->sMail.size() + 1);		
 
 		// ------------------------------------
 		// get timestamp
@@ -219,15 +219,15 @@ if(m_frame->ScanMails)
 		sMailTime.push_back(Msg);
 		// ------------------------------------
 
-		m_frame->sMail.push_back(sTemp); // save the main comparison mail
+		m_DebuggerFrame->sMail.push_back(sTemp); // save the main comparison mail
 		std::string lMail = sTemp +  "------------------\n" + sTempEnd;
-		m_frame->sFullMail.push_back(lMail);
+		m_DebuggerFrame->sFullMail.push_back(lMail);
 
 		// enable the radio button and update view
-		if(resizeTo <= m_frame->m_RadioBox[3]->GetCount())
+		if(resizeTo <= m_DebuggerFrame->m_RadioBox[3]->GetCount())
 		{
-			m_frame->m_RadioBox[3]->Enable(resizeTo - 1, true);
-			m_frame->m_RadioBox[3]->Select(resizeTo - 1);
+			m_DebuggerFrame->m_RadioBox[3]->Enable(resizeTo - 1, true);
+			m_DebuggerFrame->m_RadioBox[3]->Select(resizeTo - 1);
 		}
 
 		addnew = 0;
@@ -235,9 +235,9 @@ if(m_frame->ScanMails)
 
 		// ------------------------------------
 		// Save as file
-		if(m_frame->StoreMails)
+		if(m_DebuggerFrame->StoreMails)
 		{
-			//Console::Print("m_frame->sMail.size(): %i  |  resizeTo:%i\n", m_frame->sMail.size(), resizeTo);
+			//Console::Print("m_DebuggerFrame->sMail.size(): %i  |  resizeTo:%i\n", m_DebuggerFrame->sMail.size(), resizeTo);
 			SaveLogFile(lMail, resizeTo, 0, Wii);
 		}
 		
@@ -268,7 +268,7 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 
 #if defined(HAVE_WX) && HAVE_WX                               
 				#if defined(_DEBUG) || defined(DEBUGFAST)
-					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
+					if(m_DebuggerFrame) m_DebuggerFrame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 #endif
 			}
@@ -321,7 +321,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger
-	if (m_frame && _pBuffer)
+	if (m_DebuggerFrame && _pBuffer)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 0, false);
 	}
@@ -408,7 +408,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	}
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
-	if (m_frame && _pBuffer)
+	if (m_DebuggerFrame && _pBuffer)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 1, false);
 	}
@@ -453,7 +453,7 @@ void CUCode_AX::SaveLog(const char* _fmt, ...)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	va_list ap; va_start(ap, _fmt); 
-	if(m_frame) SaveLog_(false, _fmt, ap); 
+	if(m_DebuggerFrame) SaveLog_(false, _fmt, ap); 
 	va_end(ap);
 #endif
 }
@@ -488,7 +488,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	bool bExecuteList = true;
 
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_frame) SaveMail(false, _uMail); // Save mail for debugging
+	if(m_DebuggerFrame) SaveMail(false, _uMail); // Save mail for debugging
 #endif
 	while (bExecuteList)
 	{

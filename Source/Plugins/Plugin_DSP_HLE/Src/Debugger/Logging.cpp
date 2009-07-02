@@ -51,7 +51,7 @@
 // -------------
 
 // Externals
-extern CDebugger* m_frame;
+extern DSPDebuggerHLE* m_DebuggerFrame;
 //int PBSize = 128;
 
 // Parameter blocks
@@ -148,7 +148,7 @@ std::vector<int> numberRunning(NUMBER_OF_PBS);
 
 // Classes
 
-extern CDebugger* m_frame;
+extern DSPDebuggerHLE* m_DebuggerFrame;
 //////////////////////////
 
 
@@ -160,7 +160,7 @@ std::string writeTitle(int a, bool Wii)
 	std::string b;
 	if(a == 0)
 	{		
-		if(m_frame->bShowBase) // show base 10
+		if(m_DebuggerFrame->bShowBase) // show base 10
 		{
 			b =     "                                                                                  adpcm           adpcm_loop\n";
 			b = b + "                Nr m       pos / end        lpos      | voll  volr    | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
@@ -173,7 +173,7 @@ std::string writeTitle(int a, bool Wii)
 	}
 	else if(a == 1)
 	{
-		if(m_frame->bShowBase) // show base 10
+		if(m_DebuggerFrame->bShowBase) // show base 10
 		{
 			b = "                Nr       pos / end       lpos       | voll   volr   | src form coef | 1 2 3 4 5 addr     value\n";
 		}
@@ -184,7 +184,7 @@ std::string writeTitle(int a, bool Wii)
 	}
 	else if(a == 2)
 	{
-		if(m_frame->bShowBase) // show base 10
+		if(m_DebuggerFrame->bShowBase) // show base 10
 		{
 			b = "                Nr     pos / end      lpos          | voll   volr | isl iss | e-l      e-s\n";
 		}
@@ -195,7 +195,7 @@ std::string writeTitle(int a, bool Wii)
 	}
 	else if(a == 3)
 	{
-		if(m_frame->bShowBase) // show base 10
+		if(m_DebuggerFrame->bShowBase) // show base 10
 		{
 			if(Wii)
 				b = "                Nr  voll  volr  dl    dr    curv  delt  mixc     r | v1    v2    v3    v4    v5    v6    v7    | d1    d2    d3    d4    d5    d6    d7\n";
@@ -244,7 +244,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	*/
 	if(a == 0)
 	{
-		if(m_frame->bShowBase) // base 10 (decimal)
+		if(m_DebuggerFrame->bShowBase) // base 10 (decimal)
 		{
 			if(Wii) // Wii
 			{
@@ -280,7 +280,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	}
 	else if(a == 1)
 	{
-		if(m_frame->bShowBase) // base 10 (decimal)
+		if(m_DebuggerFrame->bShowBase) // base 10 (decimal)
 		{
                     sprintf(buf,"%c%02i %10s/%10s %10s | %6s %6s | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x %08x",
 			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
@@ -316,7 +316,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	}
 	else if(a == 2)
 	{
-		if(m_frame->bShowBase)
+		if(m_DebuggerFrame->bShowBase)
 		{
 		sprintf(buf,"%c%02i %10s/%10s %10s | %05i %05i | %i   %i   | %10s     %10s",
 			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
@@ -342,7 +342,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	*/
 	else if(a == 3)
 	{
-		if(m_frame->bShowBase)
+		if(m_DebuggerFrame->bShowBase)
 		{
 			if(Wii) // Wii
 			{
@@ -532,23 +532,23 @@ bool PrepareConditions(bool Wii, int i, ParamBlockType &PBs)
 {
 	bool Conditions;
 
-	if (m_frame->gOnlyLooping) // show only looping blocks
+	if (m_DebuggerFrame->gOnlyLooping) // show only looping blocks
 	{
 		Conditions = PBs[i].audio_addr.looping ? true : false;
 	}
-	else if (m_frame->gShowAll) // show all blocks
+	else if (m_DebuggerFrame->gShowAll) // show all blocks
 	{
 		Conditions = true;
 	}
-	else if (m_frame->giShowAll > -1) // show all blocks
+	else if (m_DebuggerFrame->giShowAll > -1) // show all blocks
 	{
-		if (m_frame->giShowAll == 0)
+		if (m_DebuggerFrame->giShowAll == 0)
 			Conditions = (i < 31);
-		else if(m_frame->giShowAll == 1)
+		else if(m_DebuggerFrame->giShowAll == 1)
 			Conditions = (i > 30 && i < 61);
-		else if(m_frame->giShowAll == 2)
+		else if(m_DebuggerFrame->giShowAll == 2)
 			Conditions = (i > 60 && i < 91);
-		else if(m_frame->giShowAll == 3)
+		else if(m_DebuggerFrame->giShowAll == 3)
 			Conditions = (i > 90 && i < 121);
 	}		
 	else // show only the ones that have recently been running
@@ -640,7 +640,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 	// Control how often the screen is updated, and then update the screen
 	// --------------
 	if(a == 0) count1++; // a == 0 when Logging is called before the blocks are updated
-	if (m_frame->gUpdFreq > 0 && count1 > (200/m_frame->gUpdFreq))
+	if (m_DebuggerFrame->gUpdFreq > 0 && count1 > (200/m_DebuggerFrame->gUpdFreq))
 	{
 
 		// =======================================================================================
@@ -712,7 +712,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
-		sbuff = writeTitle(m_frame->gPreset, Wii);
+		sbuff = writeTitle(m_DebuggerFrame->gPreset, Wii);
 		// ==============
 
 
@@ -733,7 +733,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 			// --------------------------------------
 			// Save playback history text string for the console and GUI debugger
 			// ------------------
-			if(m_frame)
+			if(m_DebuggerFrame)
 			{
 				std::string guipr; // gui progress
 
@@ -750,7 +750,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 				}
 
 				u32 run = atoi( guipr.c_str());
-				m_frame->m_GPRListView->m_CachedRegs[1][i] = run;
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[1][i] = run;
 				guipr.clear();
 			}
 
@@ -771,41 +771,41 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 
 
 			// Hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
-			if(m_frame)
+			if(m_DebuggerFrame)
 			{
-				m_frame->m_GPRListView->m_CachedRegs[2][i] = gsamplePos[i];
-				m_frame->m_GPRListView->m_CachedRegs[3][i] = gsampleEnd[i];
-				m_frame->m_GPRListView->m_CachedRegs[4][i] = gloopPos[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[2][i] = gsamplePos[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[3][i] = gsampleEnd[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[4][i] = gloopPos[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[5][i] = gvolume_left[i];
-				m_frame->m_GPRListView->m_CachedRegs[6][i] = gvolume_right[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[5][i] = gvolume_left[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[6][i] = gvolume_right[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[7][i] = glooping[i];
-				m_frame->m_GPRListView->m_CachedRegs[8][i] = gloop1[i];
-				m_frame->m_GPRListView->m_CachedRegs[9][i] = gloop2[i];
-				m_frame->m_GPRListView->m_CachedRegs[10][i] = gloop3[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[7][i] = glooping[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[8][i] = gloop1[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[9][i] = gloop2[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[10][i] = gloop3[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[11][i] = gis_stream[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[11][i] = gis_stream[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[12][i] = gaudioFormat[i];
-				m_frame->m_GPRListView->m_CachedRegs[13][i] = gsrc_type[i];
-				m_frame->m_GPRListView->m_CachedRegs[14][i] = gcoef[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[12][i] = gaudioFormat[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[13][i] = gsrc_type[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[14][i] = gcoef[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[15][i] = gfrac[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[15][i] = gfrac[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[16][i] = gratio[i];
-				m_frame->m_GPRListView->m_CachedRegs[17][i] = gratiohi[i];
-				m_frame->m_GPRListView->m_CachedRegs[18][i] = gratiolo[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[16][i] = gratio[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[17][i] = gratiohi[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[18][i] = gratiolo[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[19][i] = gupdates1[i];
-				m_frame->m_GPRListView->m_CachedRegs[20][i] = gupdates2[i];
-				m_frame->m_GPRListView->m_CachedRegs[21][i] = gupdates3[i];
-				m_frame->m_GPRListView->m_CachedRegs[22][i] = gupdates4[i];
-				m_frame->m_GPRListView->m_CachedRegs[23][i] = gupdates5[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[19][i] = gupdates1[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[20][i] = gupdates2[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[21][i] = gupdates3[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[22][i] = gupdates4[i];
+				m_DebuggerFrame->m_GPRListView->m_CachedRegs[23][i] = gupdates5[i];
 			}
 
 			// add new line
-			sbuff = sbuff + writeMessage(m_frame->gPreset, i, Wii); strcpy(buffer, "");
+			sbuff = sbuff + writeMessage(m_DebuggerFrame->gPreset, i, Wii); strcpy(buffer, "");
 			sbuff = sbuff + "\n";
 
 		} // end of if(Conditions)
@@ -818,13 +818,13 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		// Write global values
 		// ---------------
 		int nOfBlocks;
-		int span = m_frame->gLastBlock - m_addressPBs;
+		int span = m_DebuggerFrame->gLastBlock - m_addressPBs;
 		if(Wii)
-			nOfBlocks = (m_frame->gLastBlock-m_addressPBs) / 256;
+			nOfBlocks = (m_DebuggerFrame->gLastBlock-m_addressPBs) / 256;
 		else
-			nOfBlocks = (m_frame->gLastBlock-m_addressPBs) / 192;
+			nOfBlocks = (m_DebuggerFrame->gLastBlock-m_addressPBs) / 192;
 		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x (%s bytes) impl. %i blocks | numberOfPBs %i | _iSize %i\n",
-			m_addressPBs, m_frame->gLastBlock, ThS(span).c_str(), nOfBlocks, numberOfPBs, _iSize);
+			m_addressPBs, m_DebuggerFrame->gLastBlock, ThS(span).c_str(), nOfBlocks, numberOfPBs, _iSize);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			
@@ -834,7 +834,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		// ---------------
 		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i\nSequenced %i | Volume %i | Reset %i | Only looping %i | Save file %i\n",
 			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced,
-			gVolume, gReset, m_frame->gOnlyLooping, m_frame->gSaveFile);
+			gVolume, gReset, m_DebuggerFrame->gOnlyLooping, m_DebuggerFrame->gSaveFile);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 
@@ -895,9 +895,9 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		// New values are written so update - DISABLED - It flickered a lot, even worse than a
 		// console window. So for now only the console windows is updated.
 		/*
-		if(m_frame)
+		if(m_DebuggerFrame)
 		{
-			m_frame->NotifyUpdate();
+			m_DebuggerFrame->NotifyUpdate();
 		}
 		*/			
 
@@ -914,7 +914,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 {
 	/* Doing all this may have a noticable CPU effect, so we can disable it completely
 	   this way. But remember that "Save to file" will not write anything then either. */
-	if (m_frame->gUpdFreq > 0)
+	if (m_DebuggerFrame->gUpdFreq > 0)
 	{
 		int version; // AX version
 		int numberOfPBs;

@@ -16,9 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <stdio.h>
 #include <math.h>
 
@@ -32,6 +31,7 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "GUI/ConfigDlg.h"
+	PADConfigDialogSimple* m_ConfigFrame = NULL;
 #endif
 
 #ifdef _WIN32
@@ -55,23 +55,81 @@
 	#include <Cocoa/Cocoa.h>
 	bool KeyStatus[NUMCONTROLS];
 #endif
-////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // Declarations
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SPads pad[4];
-
-HINSTANCE g_hInstance;
 SPADInitialize g_PADInitialize;
-////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Standard crap to make wxWidgets happy
+#ifdef _WIN32
+HINSTANCE g_hInstance;
+
+#if defined(HAVE_WX) && HAVE_WX
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+					  DWORD dwReason,		// reason called
+					  LPVOID lpvReserved)	// reserved
+{
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		{
+#if defined(HAVE_WX) && HAVE_WX
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+			if (!wxTheApp || !wxTheApp->CallOnInit())
+				return FALSE;
+#endif
+		}
+		break; 
+
+	case DLL_PROCESS_DETACH:
+#if defined(HAVE_WX) && HAVE_WX
+		wxEntryCleanup();
+#endif
+		break;
+	default:
+		break;
+	}
+
+	g_hInstance = hinstDLL;
+	return TRUE;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
+}
+#endif
 
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // Input Recording
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // Enable these to record or play back
 //#define RECORD_REPLAY
@@ -83,7 +141,6 @@ PLUGIN_GLOBALS* globals = NULL;
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
 bool g_EmulatorRunning = false;
-////////////////////////////////
 
 //******************************************************************************
 // Supporting functions
@@ -169,57 +226,11 @@ bool IsFocus()
 #endif
 }
 
-
-#ifdef _WIN32
-
-class wxDLLApp : public wxApp
-{
-	bool OnInit()
-	{
-		return true;
-	}
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp)
-
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
-					  DWORD dwReason,		// reason called
-					  LPVOID lpvReserved)	// reserved
-{
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
-		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
-			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
-				return FALSE;
-		}
-		break;
-
-	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
-		break;
-	default:
-		break;
-	}
-
-	g_hInstance = hinstDLL;
-	return(TRUE);
-}
-
-#endif
-
-
-const float kDeadZone = 0.1f;
-
 // Implement circular deadzone
+const float kDeadZone = 0.1f;
 void ScaleStickValues(unsigned char* outx,
-		unsigned char* outy,
-		short inx, short iny)
+					  unsigned char* outy,
+					  short inx, short iny)
 {
 	float x = ((float)inx + 0.5f) / 32767.5f;
 	float y = ((float)iny + 0.5f) / 32767.5f;
@@ -616,21 +627,19 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 void DllConfig(HWND _hParent)
 {
-	//Console::Open(70, 5000);	
-
 	// Load configuration
 	LoadConfig();
 
 	// Show wxDialog
-#ifdef _WIN32
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigDialog frame(&win);
-	frame.ShowModal();
-	win.SetHWND(0);
-#elif defined(HAVE_WX) && HAVE_WX
-	ConfigDialog frame(NULL);
-	frame.ShowModal();
+#if defined(HAVE_WX) && HAVE_WX
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new PADConfigDialogSimple(GetParentedWxWindow(_hParent));
+
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+		m_ConfigFrame->ShowModal();
+	else
+		m_ConfigFrame->Hide();
 #endif
 
 	// Save configuration
@@ -641,18 +650,13 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void Initialize(void *init)
 {
-	//Console::Open(70, 5000);
-
 	// We are now running a game
 	g_EmulatorRunning = true;
 
 	// Load configuration
 	LoadConfig();
 
-	// -------------------------------------------
-	// Rerecording
-	// ----------------------
-	#ifdef RERECORDING
+#ifdef RERECORDING
 	/* Check if we are starting the pad to record the input, and an old file exists. In that case ask
 	   if we really want to start the recording and eventually overwrite the file */
 	if (pad[0].bRecording && File::Exists("pad-record.bin"))
@@ -670,8 +674,7 @@ void Initialize(void *init)
 
 	// Load recorded input if we are to play it back, otherwise begin with a blank recording
 	if (pad[0].bPlayback) LoadRecord();
-	#endif
-	// ----------------------
+#endif
 
 	g_PADInitialize = *(SPADInitialize*)init;
 
@@ -706,18 +709,13 @@ void DoState(unsigned char **ptr, int mode)
 
 void Shutdown()
 {
-	//Console::Print("ShutDown()\n");
-
-	// -------------------------------------------
 	// Save the recording and reset the counter
-	// ----------------------
-	#ifdef RERECORDING
+#ifdef RERECORDING
 	// Save recording
 	if (pad[0].bRecording) SaveRecord();
 	// Reset the counter
 	count = 0;
-	#endif
-	// ----------------------
+#endif
 
 	// We have stopped the game
 	g_EmulatorRunning = false;
@@ -737,7 +735,6 @@ void Shutdown()
 
 
 // Set buttons status from wxWidgets in the main application
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u16 _Key, u8 _UpDown) {}
 
 
@@ -746,17 +743,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Check if all is okay
 	if (_pPADStatus == NULL) return;
 
-	// -------------------------------------------
 	// Play back input instead of accepting any user input
-	// ----------------------
-	#ifdef RERECORDING
+#ifdef RERECORDING
 	if (pad[0].bPlayback)
 	{
 		*_pPADStatus = PlayRecord();
 		return;
 	}
-	#endif
-	// ----------------------
+#endif
 
 	const int base = 0x80;
 	// Clear pad
@@ -788,14 +782,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	cocoa_Read(_numPAD, _pPADStatus);
 #endif
 
-	// -------------------------------------------
-	// Rerecording
-	// ----------------------
-	#ifdef RERECORDING
+#ifdef RERECORDING
 	// Record input
 	if (pad[0].bRecording) RecordInput(*_pPADStatus);
-	#endif
-	// ----------------------
+#endif
 }
 
 
@@ -950,7 +940,6 @@ void LoadConfig()
 		file.Get(SectionName, "RumbleStrength", &pad[i].RumbleStrength, 8000);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 
-		// Recording
 		#ifdef RERECORDING
 			file.Get(SectionName, "Recording", &pad[0].bRecording, false);
 			file.Get(SectionName, "Playback", &pad[0].bPlayback, false);
@@ -986,12 +975,12 @@ void SaveConfig()
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
 		file.Set(SectionName, "RumbleStrength", pad[i].RumbleStrength);
 		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
-		// Recording
+
 		#ifdef RERECORDING
 			file.Set(SectionName, "Recording", pad[0].bRecording);
 			file.Set(SectionName, "Playback", pad[0].bPlayback);
 		#endif
-		
+
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{
 			file.Set(SectionName, controlNames[x], pad[i].keyForControl[x]);
@@ -999,5 +988,3 @@ void SaveConfig()
 	}
 	file.Save(FULL_CONFIG_DIR "pad.ini");
 }
-
-

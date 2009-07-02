@@ -20,7 +20,7 @@
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
 //#include "../Logging/File.h" // For PrintFile
-extern CDebugger * m_frame;
+extern DSPDebuggerHLE * m_DebuggerFrame;
 #endif 
 
 #include "../MailHandler.h"
@@ -110,7 +110,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	// -------------------------------------------
 	// write logging data to debugger
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_frame && _pBuffer)
+	if (m_DebuggerFrame && _pBuffer)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
 
@@ -119,7 +119,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 		int p = numberOfPBs - 1;
 		if(numberOfPBs > p)
 		{
-			if(PBs[p].running && !m_frame->upd95)
+			if(PBs[p].running && !m_DebuggerFrame->upd95)
 			{
 				const u32 blockAddr = (u32)(PBs[p].this_pb_hi<< 16) | PBs[p].this_pb_lo;
 				const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
@@ -127,24 +127,24 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 				{
 					if(i == 10 || i == 34 || i == 41 || i == 46 || i == 46 || i == 58 || i == 60
 						|| i == 68 || i == 88 || i == 95)
-						{m_frame->str0 += "\n"; m_frame->str95 += "\n";}
+						{m_DebuggerFrame->str0 += "\n"; m_DebuggerFrame->str95 += "\n";}
 
 					std::string line = StringFromFormat("%02i|%02i : %s : %s",
 						i/2, i,
-						m_frame->PBn[i].c_str(), m_frame->PBp[i].c_str()
+						m_DebuggerFrame->PBn[i].c_str(), m_DebuggerFrame->PBp[i].c_str()
 						);
 					for (u32 j = 0; j < 50 - line.length(); ++j)						
 						line += " ";
-						m_frame->str0 += line;
+						m_DebuggerFrame->str0 += line;
 
-					m_frame->str0 += "\n"; 
-					m_frame->str95 += StringFromFormat(" : %02i|%02i : %04x%04x\n",
+					m_DebuggerFrame->str0 += "\n"; 
+					m_DebuggerFrame->str95 += StringFromFormat(" : %02i|%02i : %04x%04x\n",
 						i/2, i,
 						Common::swap16(pSrc[i]), Common::swap16(pSrc[i+1]));
 				}
-				m_frame->m_bl95->AppendText(wxString::FromAscii(m_frame->str95.c_str()));
-				m_frame->m_bl0->AppendText(wxString::FromAscii(m_frame->str0.c_str()));
-				m_frame->upd95 = true;
+				m_DebuggerFrame->m_bl95->AppendText(wxString::FromAscii(m_DebuggerFrame->str95.c_str()));
+				m_DebuggerFrame->m_bl0->AppendText(wxString::FromAscii(m_DebuggerFrame->str0.c_str()));
+				m_DebuggerFrame->upd95 = true;
 			}	
 		}
 	}
@@ -217,7 +217,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	
 #if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
-	if (m_frame && _pBuffer)
+	if (m_DebuggerFrame && _pBuffer)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 1, true);
 	}
@@ -241,7 +241,7 @@ void CUCode_AXWii::SaveLog(const char* _fmt, ...)
 #if defined(HAVE_WX) && HAVE_WX
 	va_list ap; 
 	va_start(ap, _fmt); 
-	if(m_frame) 
+	if(m_DebuggerFrame) 
 	    lCUCode_AX->SaveLog_(true, _fmt, ap); 
 	va_end(ap);
 #endif
@@ -271,7 +271,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_frame) lCUCode_AX->SaveMail(true, uAddress); // Save mail for debugging
+	if(m_DebuggerFrame) lCUCode_AX->SaveMail(true, uAddress); // Save mail for debugging
 #endif
 	if (false) 
 	{

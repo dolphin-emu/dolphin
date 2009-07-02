@@ -41,7 +41,7 @@
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
    and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
    the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
-void ConfigDialog::DoChangeJoystick()
+void WiimoteConfigDialog::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
 	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
@@ -56,7 +56,7 @@ void ConfigDialog::DoChangeJoystick()
 	// Open the new pad
 	if (WiiMoteEmu::PadMapping[Page].enabled) PadOpen(Page);
 }
-void ConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
+void WiimoteConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 {
 	// Check that we got a good pad
 	if (!WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Open].ID).Good)
@@ -69,13 +69,13 @@ void ConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 	INFO_LOG(CONSOLE, "Update the Slot %i handle to Id %i\n", Page, WiiMoteEmu::PadMapping[Open].ID);
 	WiiMoteEmu::PadState[Open].joy = SDL_JoystickOpen(WiiMoteEmu::PadMapping[Open].ID);
 }
-void ConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
+void WiimoteConfigDialog::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 {
 	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[Close].joy);
 	WiiMoteEmu::PadState[Close].joy = NULL;
 }
 
-void ConfigDialog::DoChangeDeadZone(bool Left)
+void WiimoteConfigDialog::DoChangeDeadZone(bool Left)
 {
 	if(Left)
 	{
@@ -104,7 +104,7 @@ void ConfigDialog::DoChangeDeadZone(bool Left)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // Set the button text for all four Wiimotes
-void ConfigDialog::SetButtonTextAll(int id, char text[128])
+void WiimoteConfigDialog::SetButtonTextAll(int id, char text[128])
 {
 	for (int i = 0; i < 1; i++)
 	{
@@ -116,7 +116,7 @@ void ConfigDialog::SetButtonTextAll(int id, char text[128])
 }
 
 
-void ConfigDialog::SaveButtonMappingAll(int Slot)
+void WiimoteConfigDialog::SaveButtonMappingAll(int Slot)
 {
 	//INFO_LOG(CONSOLE, "SaveButtonMappingAll()\n");
 
@@ -131,7 +131,7 @@ void ConfigDialog::SaveButtonMappingAll(int Slot)
 
 // Set dialog items from saved values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::UpdateGUIButtonMapping(int controller)
+void WiimoteConfigDialog::UpdateGUIButtonMapping(int controller)
 {	
 	// Temporary storage
 	wxString tmp;
@@ -217,7 +217,7 @@ void ConfigDialog::UpdateGUIButtonMapping(int controller)
 /* Populate the PadMapping array with the dialog items settings (for example
    selected joystick, enabled or disabled status and so on) */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
+void WiimoteConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
 {
 	// Temporary storage
 	wxString tmp;
@@ -265,7 +265,7 @@ void ConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int From
 }
 
 // Save keyboard key mapping
-void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
+void WiimoteConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 {
 	switch(Id)
 	{
@@ -325,7 +325,7 @@ void ConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::ToBlank(bool ToBlank)
+void WiimoteConfigDialog::ToBlank(bool ToBlank)
 {
 	if (!ControlsCreated) return;
 
@@ -354,7 +354,7 @@ void ConfigDialog::ToBlank(bool ToBlank)
 
 // Update the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
+void WiimoteConfigDialog::SetButtonText(int id, char text[128], int _Page)
 {
 	// Set controller value
 	int controller;	
@@ -426,7 +426,7 @@ void ConfigDialog::SetButtonText(int id, char text[128], int _Page)
 
 // Get the text in the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-wxString ConfigDialog::GetButtonText(int id, int _Page)
+wxString WiimoteConfigDialog::GetButtonText(int id, int _Page)
 {
 	//INFO_LOG(CONSOLE, "GetButtonText: %i\n", id);
 
@@ -464,12 +464,12 @@ wxString ConfigDialog::GetButtonText(int id, int _Page)
    is that we start another parallel loop (at least in Windows) that blocks the old loop. And our only
    option to wait for the old loop to finish is with a new loop, and that will block the old loop for as
    long as it's going on. Therefore a timer is easier to control. */
-void ConfigDialog::GetButtons(wxCommandEvent& event)
+void WiimoteConfigDialog::GetButtons(wxCommandEvent& event)
 {
 	DoGetButtons(event.GetId());
 }
 
-void ConfigDialog::DoGetButtons(int GetId)
+void WiimoteConfigDialog::DoGetButtons(int GetId)
 {
 	// =============================================
 	// Collect the starting values
@@ -644,7 +644,7 @@ void ConfigDialog::DoGetButtons(int GetId)
 // ¯¯¯¯¯¯¯¯¯¯
 
 // Convert the 0x8000 range values to BoxW and BoxH for the plot
-void ConfigDialog::Convert2Box(int &x)
+void WiimoteConfigDialog::Convert2Box(int &x)
 {
 	// Border adjustment
 	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2;
@@ -655,7 +655,7 @@ void ConfigDialog::Convert2Box(int &x)
 
 // Update the input status boxes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::PadGetStatus()
+void WiimoteConfigDialog::PadGetStatus()
 {
 	//INFO_LOG(CONSOLE, "SDL_WasInit: %i\n", SDL_WasInit(0));
 
@@ -821,7 +821,7 @@ void ConfigDialog::PadGetStatus()
 
 // Populate the advanced tab
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
+void WiimoteConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 {
 	// Show the current status
 	/*

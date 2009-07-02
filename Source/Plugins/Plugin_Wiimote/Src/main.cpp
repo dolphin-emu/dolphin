@@ -46,6 +46,7 @@ worked.
 #include "Logging.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
+	WiimoteConfigDialog *m_ConfigFrame = NULL;
 #endif
 #include "Config.h"
 #include "pluginspecs_wiimote.h"
@@ -93,34 +94,22 @@ std::vector<int> g_UpdateTimeList (5, 0);
 // Movement recording
 std::vector<SRecordingAll> VRecording(RECORDING_ROWS); 
 
-// DLL instance
+// Standard crap to make wxWidgets happy
+#ifdef _WIN32
 HINSTANCE g_hInstance;
 
-#ifdef _WIN32
-HWND g_ParentHWND = NULL;
-#endif
-
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow win;
-	ConfigDialog *frame = NULL;
-
-	class wxDLLApp : public wxApp
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
 	{
-		bool OnInit()
-		{
-			return true;
-		}
-	};
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
-////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Main function and WxWidgets initialization
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
 					  LPVOID lpvReserved)	// reserved
@@ -128,18 +117,22 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
+		{
+#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
 			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
+#endif
 		}
-		break;
+		break; 
 
 	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
+#if defined(HAVE_WX) && HAVE_WX
+		wxEntryCleanup();
+#endif
 		break;
 	default:
 		break;
@@ -149,25 +142,38 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 #endif
-/////////////////////////////////////
 
+#if defined(HAVE_WX) && HAVE_WX
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
+}
+#endif
 
 //******************************************************************************
 // Exports
 //******************************************************************************
-extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
-	#ifdef DEBUGFAST
-		sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
-	#else
-		#ifndef _DEBUG
-			sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
-		#else
-			sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
-		#endif
-	#endif
+#ifdef DEBUGFAST
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
+#else
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
+#else
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
+#endif
+#endif
 }
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
@@ -181,36 +187,25 @@ void DllDebugger(HWND _hParent, bool Show) {}
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-
-	#ifdef _WIN32
-		win.SetHWND(_hParent);
-	#endif
-
-	//Console::Open();
+	
 	DoInitialize();
 
-	frame = new ConfigDialog(&win);
-	g_FrameOpen = true;
-	/* We don't need to use ShowModal() anymore becaue FreeLibrary() is not called after this function
-	   anymore */
-	frame->Show();
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new WiimoteConfigDialog(GetParentedWxWindow(_hParent));
 
-	#ifdef _WIN32
-		win.SetHWND(0);
-	#endif
-
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+		m_ConfigFrame->ShowModal();
+	else
+		m_ConfigFrame->Hide();
 #endif
 }
 
-extern "C" void Initialize(void *init)
+void Initialize(void *init)
 {
 	// Declarations
     SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
 	g_WiimoteInitialize = _WiimoteInitialize;
-
-	#ifdef _WIN32
-		g_ParentHWND = GetParent(g_WiimoteInitialize.hWnd);
-	#endif
 
 	g_EmulatorRunning = true;
 
@@ -224,7 +219,7 @@ extern "C" void Initialize(void *init)
 		g_ISOId = g_WiimoteInitialize.ISOId;
 		// Load the settings
 		g_Config.Load();
-		if(frame) frame->UpdateGUI();
+		if(m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 	}
 	#endif
 
@@ -237,7 +232,7 @@ extern "C" void Initialize(void *init)
 }
 
 // If a game is not running this is called by the Configuration window when it's closed
-extern "C" void Shutdown(void)
+void Shutdown(void)
 {
 	// Not running
 	g_EmulatorRunning = false;
@@ -245,11 +240,11 @@ extern "C" void Shutdown(void)
 	// Reset the game ID in all cases
 	g_ISOId = 0;
 
-	// We will only shutdown when both a game and the frame is closed
+	// We will only shutdown when both a game and the m_ConfigFrame is closed
 	if (g_FrameOpen)
 	{
 		#if defined(HAVE_WX) && HAVE_WX
-			if(frame) frame->UpdateGUI();
+			if(m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 		#endif
 
 		// Reset the variables
@@ -264,12 +259,10 @@ extern "C" void Shutdown(void)
 	if (g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
 #endif
 	WiiMoteEmu::Shutdown();
-
-	//	Console::Close();
 }
 
 
-extern "C" void DoState(unsigned char **ptr, int mode)
+void DoState(unsigned char **ptr, int mode)
 {
 #if HAVE_WIIUSE
 	WiiMoteReal::DoState(ptr, mode);
@@ -286,7 +279,7 @@ extern "C" void DoState(unsigned char **ptr, int mode)
    so that it knows the channel ID and the data reporting mode at all times.
    */
 // ----------------
-extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
@@ -315,7 +308,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 // ===================================================
 /* Function: Used for the initial Bluetooth HID handshake. */
 // ----------------
-extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
@@ -327,7 +320,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
 #if defined(HAVE_WX) && HAVE_WX
-		if (frame) frame->UpdateGUI();
+		if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 #endif
 		return;
 	}
@@ -356,16 +349,16 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 /* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
    update. */
 // ----------------
-extern "C" void Wiimote_Update()
+void Wiimote_Update()
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
 #if defined(HAVE_WX) && HAVE_WX
-	if (frame)
+	if (m_ConfigFrame)
 	{
 		GetUpdateRate();
 		if (g_UpdateWriteScreen > g_UpdateRate)
 		{
-			frame->m_TextUpdateRate->SetLabel(wxString::Format(wxT("Update rate: %03i times/s"), g_UpdateRate));
+			m_ConfigFrame->m_TextUpdateRate->SetLabel(wxString::Format(wxT("Update rate: %03i times/s"), g_UpdateRate));
 			g_UpdateWriteScreen = 0;
 		}
 		g_UpdateWriteScreen++;
@@ -398,7 +391,7 @@ extern "C" void Wiimote_Update()
 #endif
 }
 
-extern "C" unsigned int Wiimote_GetAttachedControllers()
+unsigned int Wiimote_GetAttachedControllers()
 {
 	return 1;
 }
@@ -458,7 +451,7 @@ bool IsFocus()
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
 	// Allow updates when the config window is in focus to
-	HWND Config = NULL; if (frame) Config = (HWND)frame->GetHWND();
+	HWND Config = NULL; if (m_ConfigFrame) Config = (HWND)m_ConfigFrame->GetHWND();
 	// Support both rendering to main window and not
 	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
 		return true;
@@ -525,7 +518,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			{
 				DisableExtensions();
 #if defined(HAVE_WX) && HAVE_WX
-				if (frame) frame->UpdateGUI();
+				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 #endif
 			}
 		}
@@ -565,7 +558,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 #if defined(HAVE_WX) && HAVE_WX
-				if (frame) frame->UpdateGUI();
+				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 #endif
 				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
@@ -578,7 +571,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 #if defined(HAVE_WX) && HAVE_WX
-				if (frame) frame->UpdateGUI();
+				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
 #endif
 				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
@@ -1083,9 +1076,6 @@ int GetUpdateRate()
 
 void DoInitialize()
 {
-	// Open console
-	//OpenConsole(true);
-
 	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
 	WiiMoteEmu::Initialize();
 
@@ -1099,5 +1089,3 @@ void DoInitialize()
 		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
 	#endif
 }
-
-

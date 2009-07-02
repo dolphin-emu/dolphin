@@ -60,7 +60,7 @@ inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 
 #if defined(HAVE_WX) && HAVE_WX
 				#if defined(_DEBUG) || defined(DEBUGFAST)
-					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
+					if(m_DebuggerFrame) m_DebuggerFrame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 #endif
 			}

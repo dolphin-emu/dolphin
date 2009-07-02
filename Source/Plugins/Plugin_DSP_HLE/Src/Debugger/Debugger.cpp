@@ -42,38 +42,38 @@
 
 // =======================================================================================
 // Event table and class
-BEGIN_EVENT_TABLE(CDebugger,wxDialog)	
-	EVT_CLOSE(CDebugger::OnClose) // on close event
+BEGIN_EVENT_TABLE(DSPDebuggerHLE,wxDialog)	
+	EVT_CLOSE(DSPDebuggerHLE::OnClose) // on close event
 
-	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate) // buttons
+	EVT_BUTTON(ID_UPD,DSPDebuggerHLE::OnUpdate) // buttons
 
 	// left cotrols
-	EVT_CHECKLISTBOX(IDC_CHECKLIST5, CDebugger::OnOptions) // options
-	EVT_CHECKLISTBOX(IDC_CHECKLIST6, CDebugger::OnShowAll)
-	EVT_RADIOBOX(IDC_RADIO0,CDebugger::ShowBase) // update frequency
+	EVT_CHECKLISTBOX(IDC_CHECKLIST5, DSPDebuggerHLE::OnOptions) // options
+	EVT_CHECKLISTBOX(IDC_CHECKLIST6, DSPDebuggerHLE::OnShowAll)
+	EVT_RADIOBOX(IDC_RADIO0,DSPDebuggerHLE::ShowBase) // update frequency
 
 	// right cotrols
-	EVT_RADIOBOX(IDC_RADIO0,CDebugger::ShowBase)
-	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency) // update frequency
-	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset) // presets
-	EVT_CHECKLISTBOX(IDC_CHECKLIST1, CDebugger::OnSettingsCheck) // settings
+	EVT_RADIOBOX(IDC_RADIO0,DSPDebuggerHLE::ShowBase)
+	EVT_RADIOBOX(IDC_RADIO1,DSPDebuggerHLE::ChangeFrequency) // update frequency
+	EVT_RADIOBOX(IDC_RADIO2,DSPDebuggerHLE::ChangePreset) // presets
+	EVT_CHECKLISTBOX(IDC_CHECKLIST1, DSPDebuggerHLE::OnSettingsCheck) // settings
 
-	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, CDebugger::UpdateMail) // mails
-	EVT_RADIOBOX(IDC_RADIO3,CDebugger::ChangeMail)
-	EVT_CHECKLISTBOX(IDC_CHECKLIST2, CDebugger::OnGameChange) // gc
-	EVT_CHECKLISTBOX(IDC_CHECKLIST3, CDebugger::OnGameChange) // wii
-	EVT_CHECKLISTBOX(IDC_CHECKLIST4, CDebugger::MailSettings) // settings
+	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, DSPDebuggerHLE::UpdateMail) // mails
+	EVT_RADIOBOX(IDC_RADIO3,DSPDebuggerHLE::ChangeMail)
+	EVT_CHECKLISTBOX(IDC_CHECKLIST2, DSPDebuggerHLE::OnGameChange) // gc
+	EVT_CHECKLISTBOX(IDC_CHECKLIST3, DSPDebuggerHLE::OnGameChange) // wii
+	EVT_CHECKLISTBOX(IDC_CHECKLIST4, DSPDebuggerHLE::MailSettings) // settings
 
-	//EVT_RIGHT_DOWN(CDebugger::ScrollBlocks)
-	//EVT_LEFT_DOWN(CDebugger::ScrollBlocks)
-	//EVT_MOUSE_EVENTS(CDebugger::ScrollBlocks)
-	//EVT_MOTION(CDebugger::ScrollBlocks)
+	//EVT_RIGHT_DOWN(DSPDebuggerHLE::ScrollBlocks)
+	//EVT_LEFT_DOWN(DSPDebuggerHLE::ScrollBlocks)
+	//EVT_MOUSE_EVENTS(DSPDebuggerHLE::ScrollBlocks)
+	//EVT_MOTION(DSPDebuggerHLE::ScrollBlocks)
 
-	//EVT_SCROLL(CDebugger::ScrollBlocks)
-	//EVT_SCROLLWIN(CDebugger::ScrollBlocks)
+	//EVT_SCROLL(DSPDebuggerHLE::ScrollBlocks)
+	//EVT_SCROLLWIN(DSPDebuggerHLE::ScrollBlocks)
 END_EVENT_TABLE()
 
-CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
+DSPDebuggerHLE::DSPDebuggerHLE(wxWindow *parent, wxWindowID id, const wxString &title,
 				   const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 	, m_GPRListView(NULL)
@@ -131,16 +131,16 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	//m_bl95, m_PageBlock, sBlock
 
 	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBTRACK,
-		wxScrollWinEventHandler(CDebugger::ScrollBlocksCursor), (wxObject*)NULL, this);
+		wxScrollWinEventHandler(DSPDebuggerHLE::ScrollBlocksCursor), (wxObject*)NULL, this);
 	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBRELEASE,
-		wxScrollWinEventHandler(CDebugger::ScrollBlocksCursor), (wxObject*)NULL, this);
+		wxScrollWinEventHandler(DSPDebuggerHLE::ScrollBlocksCursor), (wxObject*)NULL, this);
 	m_bl95->Connect(wxID_ANY, wxEVT_MOTION,
-		wxMouseEventHandler(CDebugger::ScrollBlocksMouse), (wxObject*)NULL, this);
+		wxMouseEventHandler(DSPDebuggerHLE::ScrollBlocksMouse), (wxObject*)NULL, this);
 	m_bl95->Connect(wxID_ANY, wxEVT_MOUSEWHEEL,
-		wxMouseEventHandler(CDebugger::ScrollBlocksMouse), (wxObject*)NULL, this);			
+		wxMouseEventHandler(DSPDebuggerHLE::ScrollBlocksMouse), (wxObject*)NULL, this);			
 }
 
-CDebugger::~CDebugger()
+DSPDebuggerHLE::~DSPDebuggerHLE()
 {
 	// empty
 	IniFile file;
@@ -154,7 +154,7 @@ CDebugger::~CDebugger()
 // ========================================================================
 // System functions
 // --------------
-void CDebugger::OnClose(wxCloseEvent& /*event*/)
+void DSPDebuggerHLE::OnClose(wxCloseEvent& /*event*/)
 {	
 	// Save the window position when we hide the window to
 	IniFile file;
@@ -165,18 +165,7 @@ void CDebugger::OnClose(wxCloseEvent& /*event*/)
 	EndModal(0);
 }
 
-void CDebugger::DoHide()
-{
-	Hide();
-}
-
-void CDebugger::DoShow()
-{
-	Show();
-	DoShowConsole(); // The console goes with the wx window
-}
-
-void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
+void DSPDebuggerHLE::OnUpdate(wxCommandEvent& /*event*/)
 {
 	this->NotifyUpdate();
 }
@@ -186,19 +175,18 @@ void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 // ==========================================================================
 // Save and load settings
 // --------------
-void CDebugger::Save(IniFile& _IniFile) const
+void DSPDebuggerHLE::Save(IniFile& _IniFile) const
 {
 	// TODO2: get the screen resolution and make limits from that
 	if(GetPosition().x < 1000 && GetPosition().y < 1000
-		&& GetSize().GetWidth() < 1000 && GetSize().GetHeight() < 1000
-		)
+		&& GetSize().GetWidth() < 1000 && GetSize().GetHeight() < 1000)
 	{
 		_IniFile.Set("SoundWindow", "x", GetPosition().x);
 		_IniFile.Set("SoundWindow", "y", GetPosition().y);
 		_IniFile.Set("SoundWindow", "w", GetSize().GetWidth());
 		_IniFile.Set("SoundWindow", "h", GetSize().GetHeight());
 	}	
-	_IniFile.Set("SoundWindow", "Console", m_options->IsChecked(3)); // save settings
+	// save settings
 	_IniFile.Set("SoundWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 	_IniFile.Set("SoundWindow", "ScanMails", m_gcwiiset->IsChecked(0));
 	_IniFile.Set("SoundWindow", "StoreMails", m_gcwiiset->IsChecked(1));
@@ -206,7 +194,7 @@ void CDebugger::Save(IniFile& _IniFile) const
 }
 
 
-void CDebugger::Load(IniFile& _IniFile)
+void DSPDebuggerHLE::Load(IniFile& _IniFile)
 {
 	int x,y,w,h;
 	_IniFile.Get("SoundWindow", "x", &x, GetPosition().x);
@@ -214,12 +202,6 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("SoundWindow", "w", &w, GetSize().GetWidth());
 	_IniFile.Get("SoundWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
-
-	// Show console or not
-	bool Console;
-	_IniFile.Get("SoundWindow", "Console", &Console, m_options->IsChecked(3));
-	m_options->Check(3, Console);
-	DoShowConsole();
 
 	// Show number base
 	_IniFile.Get("SoundWindow", "ShowBase", &bShowBase, !m_RadioBox[0]->GetSelection());
@@ -241,7 +223,7 @@ void CDebugger::Load(IniFile& _IniFile)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Create GUI controls
 // -------------
-void CDebugger::CreateGUIControls()
+void DSPDebuggerHLE::CreateGUIControls()
 {
 SetTitle(wxT("Sound Debugging"));
 
@@ -350,12 +332,10 @@ SetTitle(wxT("Sound Debugging"));
 	m_options->Append(wxT("Save to file"));
 	m_options->Append(wxT("Only looping"));
 	m_options->Append(wxT("Show all"));
-	m_options->Append(wxT("Show console"));
 
 	m_options->Check(0, gSaveFile);
 	m_options->Check(1, gOnlyLooping);
 	m_options->Check(2, gShowAll);
-	m_options->Check(3, gSaveFile);
 
 	m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,
 	m_options->GetCount() * 15));
@@ -563,7 +543,7 @@ SetTitle(wxT("Sound Debugging"));
 
 // =======================================================================================
 // Settings
-void CDebugger::OnSettingsCheck(wxCommandEvent& event)
+void DSPDebuggerHLE::OnSettingsCheck(wxCommandEvent& event)
 {
 	gSSBM = m_settings->IsChecked(0);
 	gSSBMremedy1 = m_settings->IsChecked(1);
@@ -576,12 +556,12 @@ void CDebugger::OnSettingsCheck(wxCommandEvent& event)
 
 // =======================================================================================
 // Change preset
-void CDebugger::ChangePreset(wxCommandEvent& event)
+void DSPDebuggerHLE::ChangePreset(wxCommandEvent& event)
 {
 	DoChangePreset();
 }
 
-void CDebugger::DoChangePreset()
+void DSPDebuggerHLE::DoChangePreset()
 {
 	if(m_RadioBox[2]->GetSelection() == 0)
 		gPreset = 0;
@@ -595,7 +575,7 @@ void CDebugger::DoChangePreset()
 
 // =======================================================================================
 // Show base
-void CDebugger::ShowBase(wxCommandEvent& event)
+void DSPDebuggerHLE::ShowBase(wxCommandEvent& event)
 {
 	if(m_RadioBox[0]->GetSelection() == 0)
 		bShowBase = true;
@@ -605,12 +585,12 @@ void CDebugger::ShowBase(wxCommandEvent& event)
 
 // =======================================================================================
 // Change update frequency
-void CDebugger::ChangeFrequency(wxCommandEvent& event)
+void DSPDebuggerHLE::ChangeFrequency(wxCommandEvent& event)
 {
 	DoChangeFrequency();
 }
 
-void CDebugger::DoChangeFrequency()
+void DSPDebuggerHLE::DoChangeFrequency()
 {
 	if(m_RadioBox[1]->GetSelection() == 0)
 		gUpdFreq = 0;
@@ -624,17 +604,14 @@ void CDebugger::DoChangeFrequency()
 
 // =======================================================================================
 // Options
-void CDebugger::OnOptions(wxCommandEvent& event)
+void DSPDebuggerHLE::OnOptions(wxCommandEvent& event)
 {
 	gSaveFile = m_options->IsChecked(0);
 	gOnlyLooping = m_options->IsChecked(1);
 	gShowAll = m_options->IsChecked(2);
-	gSaveFile = m_options->IsChecked(3);
-
-	if(event.GetInt() == 3) DoShowConsole();
 }
 
-void CDebugger::OnShowAll(wxCommandEvent& event)
+void DSPDebuggerHLE::OnShowAll(wxCommandEvent& event)
 {
 	/// Only allow one selection at a time
 	for (u32 i = 0; i < m_opt_showall->GetCount(); ++i)
@@ -647,24 +624,7 @@ void CDebugger::OnShowAll(wxCommandEvent& event)
 	else giShowAll = -1;
 }
 
-// --------------
-
-
-// =======================================================================================
-// Show or hide console window
-void CDebugger::ShowHideConsole(wxCommandEvent& event)
-{
-	DoShowConsole();
-}
-
-void CDebugger::DoShowConsole()
-{
-	ConsoleListener* console = LogManager::GetInstance()->getConsoleListener();
-	if(m_options->IsChecked(3) && !console->IsOpen())
-		console->Open();
-}
-
-void CDebugger::NotifyUpdate()
+void DSPDebuggerHLE::NotifyUpdate()
 {
 	if (m_GPRListView != NULL)
 	{

@@ -42,7 +42,7 @@
 
 
 // Make the wxTextCtrls scroll with each other
-void CDebugger::DoScrollBlocks()
+void DSPDebuggerHLE::DoScrollBlocks()
 {
 	// ShowPosition = in letters
 	// GetScrollPos = number of lines from the top
@@ -75,13 +75,13 @@ void CDebugger::DoScrollBlocks()
 	}*/
 }
 
-void CDebugger::ScrollBlocksMouse(wxMouseEvent& event)
+void DSPDebuggerHLE::ScrollBlocksMouse(wxMouseEvent& event)
 {
 	DoScrollBlocks();
 	event.Skip(); // otherwise we remove the regular behavior, for example scrolling
 }
 
-void CDebugger::ScrollBlocksCursor(wxScrollWinEvent& event)
+void DSPDebuggerHLE::ScrollBlocksCursor(wxScrollWinEvent& event)
 {
 	DoScrollBlocks();
 	event.Skip(); // otherwise we remove the regular behavior, for example scrolling

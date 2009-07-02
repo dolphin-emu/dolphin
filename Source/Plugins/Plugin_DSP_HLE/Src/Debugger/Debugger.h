@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __CDebugger_h__
-#define __CDebugger_h__
+#ifndef __DSPDebuggerHLE_h__
+#define __DSPDebuggerHLE_h__
 
 // general things
 #include <iostream>
@@ -51,42 +51,41 @@
 class CPBView;
 class IniFile;
 
-// Window settings
-#undef CDebugger_STYLE
-#define CDebugger_STYLE wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE
 
-class CDebugger : public wxDialog
+class DSPDebuggerHLE : public wxDialog
 {
 	private:
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		CDebugger(wxWindow *parent, wxWindowID id = 1, const wxString &title = _("Sound Debugger"),
-			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-			long style = CDebugger_STYLE);
+		DSPDebuggerHLE(wxWindow *parent,
+			wxWindowID id = 1,
+			const wxString &title = wxT("Sound Debugger"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
-		virtual ~CDebugger();
+		virtual ~DSPDebuggerHLE();
 
 		void Save(IniFile& _IniFile) const;
 		void Load(IniFile& _IniFile);
-		void DoHide(); void DoShow();
 	
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
 
-		void ShowHideConsole(wxCommandEvent& event); // options
+		// options
 		void ShowBase(wxCommandEvent& event);
-		void DoShowConsole();
-		//void OnlyLooping(wxCommandEvent& event);
 		void OnOptions(wxCommandEvent& event);
 		void OnShowAll(wxCommandEvent& event);
 
-		void ChangeFrequency(wxCommandEvent& event); // update frequency
+		// update frequency
+		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
 		void ChangePreset(wxCommandEvent& event);
 		void DoChangePreset();
 
-		void OnSettingsCheck(wxCommandEvent& event); // settings
+		// settings
+		void OnSettingsCheck(wxCommandEvent& event);
 
 		// ============== Mail
 		void DoUpdateMail();
@@ -161,8 +160,6 @@ class CDebugger : public wxDialog
 			ID_NOTEBOOK, ID_PAGEMAIN, ID_PAGEMAIL, ID_PAGEBLOCK, // notebook
 			ID_LOG, ID_LOG1, // mails
 			ID_BL0, ID_BL95, ID_BL94, ID_BL93, ID_BL92,
-			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
-
 		};
 
 		void OnClose(wxCloseEvent& event);		

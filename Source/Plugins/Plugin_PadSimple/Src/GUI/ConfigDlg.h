@@ -33,15 +33,15 @@
 #include "../XInputBase.h"
 #endif
 
-class ConfigDialog : public wxDialog
+class PADConfigDialogSimple : public wxDialog
 {
 
 		
 	public:
-		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"),
+		PADConfigDialogSimple(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
 		
-		virtual ~ConfigDialog();
+		virtual ~PADConfigDialogSimple();
 
 	private:
 		DECLARE_EVENT_TABLE();

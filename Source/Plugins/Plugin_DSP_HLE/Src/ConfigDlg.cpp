@@ -19,17 +19,17 @@
 #include "Config.h"
 #include "ConfigDlg.h"
 
-BEGIN_EVENT_TABLE(ConfigDialog, wxDialog)
-EVT_BUTTON(wxID_OK, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_THROTTLE, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_RE0_FIX, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_DISABLE_STREAMING, ConfigDialog::SettingsChanged)
-EVT_COMMAND_SCROLL(ID_VOLUME, ConfigDialog::VolumeChanged)
+BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
+EVT_BUTTON(wxID_OK, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_DISABLE_STREAMING, DSPConfigDialogHLE::SettingsChanged)
+EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
 
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 	// Load config settings
@@ -107,7 +107,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 }
 
 // Add audio output options
-void ConfigDialog::AddBackend(const char* backend)
+void DSPConfigDialogHLE::AddBackend(const char* backend)
 {
 	// Update values
     m_BackendSelection->Append(wxString::FromAscii(backend));
@@ -124,11 +124,11 @@ void ConfigDialog::AddBackend(const char* backend)
 #endif
 }
 
-ConfigDialog::~ConfigDialog()
+DSPConfigDialogHLE::~DSPConfigDialogHLE()
 {
 }
 
-void ConfigDialog::VolumeChanged(wxScrollEvent& WXUNUSED(event))
+void DSPConfigDialogHLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 {
 	ac_Config.m_Volume = m_volumeSlider->GetValue();
 	ac_Config.Update();
@@ -136,7 +136,7 @@ void ConfigDialog::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 	m_volumeText->SetLabel(wxString::Format(wxT("%d %%"), m_volumeSlider->GetValue()));
 }
 
-void ConfigDialog::SettingsChanged(wxCommandEvent& event)
+void DSPConfigDialogHLE::SettingsChanged(wxCommandEvent& event)
 {
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	g_Config.m_EnableRE0Fix = m_buttonEnableRE0Fix->GetValue();

@@ -27,7 +27,7 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
-extern CDebugger* m_frame;
+extern DSPDebuggerHLE* m_DebuggerFrame;
 #endif
 #include "../Debugger/File.h"
 
@@ -88,7 +88,7 @@ int PrintFile(int a, char *fmt, ...)
 {
 #if defined(DEBUG_HLE) && defined(_WIN32)
 
-	if(m_frame->gSaveFile)
+	if(m_DebuggerFrame->gSaveFile)
 	{
 		char s[StringSize]; 
 		va_list argptr;

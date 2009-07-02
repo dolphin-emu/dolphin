@@ -26,48 +26,48 @@
 DInput m_dinput;
 #endif
 
-BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
-	EVT_CLOSE(ConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE,ConfigDialog::OnCloseClick)
-	EVT_BUTTON(ID_PAD_ABOUT,ConfigDialog::DllAbout)
+BEGIN_EVENT_TABLE(PADConfigDialogSimple,wxDialog)
+	EVT_CLOSE(PADConfigDialogSimple::OnClose)
+	EVT_BUTTON(ID_CLOSE,PADConfigDialogSimple::OnCloseClick)
+	EVT_BUTTON(ID_PAD_ABOUT,PADConfigDialogSimple::DllAbout)
 
-	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::ControllerSettingsChanged)	
-	EVT_CHECKBOX(ID_X360PAD,ConfigDialog::ControllerSettingsChanged)
-	EVT_CHOICE(ID_X360PAD_CHOICE,ConfigDialog::ControllerSettingsChanged)
-	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::ControllerSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_ATTACHED,PADConfigDialogSimple::ControllerSettingsChanged)	
+	EVT_CHECKBOX(ID_X360PAD,PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_CHOICE(ID_X360PAD_CHOICE,PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_RUMBLE,PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLE,PADConfigDialogSimple::ControllerSettingsChanged)
 
 	// Input recording
 	#ifdef RERECORDING
-		EVT_CHECKBOX(ID_RECORDING,ConfigDialog::ControllerSettingsChanged)
-		EVT_CHECKBOX(ID_PLAYBACK,ConfigDialog::ControllerSettingsChanged)
-		EVT_BUTTON(ID_SAVE_RECORDING,ConfigDialog::ControllerSettingsChanged)	
+		EVT_CHECKBOX(ID_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)
+		EVT_CHECKBOX(ID_PLAYBACK,PADConfigDialogSimple::ControllerSettingsChanged)
+		EVT_BUTTON(ID_SAVE_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)	
 	#endif
 
-	EVT_BUTTON(CTL_A,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_B,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_X,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_Y,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_Z,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_START,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_L,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_R,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_MAINUP,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_MAINDOWN,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_MAINLEFT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_MAINRIGHT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_SUBUP,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_SUBDOWN,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_SUBLEFT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_SUBRIGHT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_DPADUP,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_DPADDOWN,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_DPADLEFT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_DPADRIGHT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_HALFPRESS,ConfigDialog::OnButtonClick)
+	EVT_BUTTON(CTL_A,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_B,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_X,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_Y,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_Z,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_START,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_L,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_R,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINUP,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINDOWN,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINLEFT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINRIGHT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBUP,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBDOWN,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBLEFT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBRIGHT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADUP,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADDOWN,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADLEFT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADRIGHT,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_HALFPRESS,PADConfigDialogSimple::OnButtonClick)
 END_EVENT_TABLE()
 
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+PADConfigDialogSimple::PADConfigDialogSimple(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 #ifdef _WIN32
@@ -79,11 +79,11 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 
 	// Connect keydown to the window
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-		wxKeyEventHandler(ConfigDialog::OnKeyDown),
+		wxKeyEventHandler(PADConfigDialogSimple::OnKeyDown),
 		(wxObject*)NULL, this);
 }
 
-ConfigDialog::~ConfigDialog()
+PADConfigDialogSimple::~PADConfigDialogSimple()
 {
 }
 
@@ -118,7 +118,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 ////////////////////////////////////
 
 
-void ConfigDialog::CreateGUIControls()
+void PADConfigDialogSimple::CreateGUIControls()
 {
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -324,7 +324,7 @@ void ConfigDialog::CreateGUIControls()
 	}
 }
 
-void ConfigDialog::OnClose(wxCloseEvent& event)
+void PADConfigDialogSimple::OnClose(wxCloseEvent& event)
 {
 #ifdef _WIN32
 	m_dinput.Free();
@@ -332,7 +332,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 	EndModal(0);
 }
 
-void ConfigDialog::OnKeyDown(wxKeyEvent& event)
+void PADConfigDialogSimple::OnKeyDown(wxKeyEvent& event)
 {
 	char keyStr[10] = {0};
 	if(ClickedButton != NULL)
@@ -368,7 +368,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 }
 
 // We have clicked a button
-void ConfigDialog::OnButtonClick(wxCommandEvent& event)
+void PADConfigDialogSimple::OnButtonClick(wxCommandEvent& event)
 {
 	// Check if the Space key was set, to solve the problem that the Space key calls this function
 	#ifdef _WIN32
@@ -386,12 +386,12 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
 }
 
-void ConfigDialog::OnCloseClick(wxCommandEvent& event)
+void PADConfigDialogSimple::OnCloseClick(wxCommandEvent& event)
 {
 	Close();
 }
 
-void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
+void PADConfigDialogSimple::ControllerSettingsChanged(wxCommandEvent& event)
 {
 	int page = m_Notebook->GetSelection();
 
@@ -438,7 +438,7 @@ void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 	}
 }
 
-void ConfigDialog::DllAbout(wxCommandEvent& event)
+void PADConfigDialogSimple::DllAbout(wxCommandEvent& event)
 {
 	wxString message;
 #ifdef _WIN32

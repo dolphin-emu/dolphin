@@ -50,6 +50,7 @@ SoundStream *soundStream = NULL;
 
 bool bIsRunning = false;
 
+// Standard crap to make wxWidgets happy
 #ifdef _WIN32
 HINSTANCE g_hInstance;
 

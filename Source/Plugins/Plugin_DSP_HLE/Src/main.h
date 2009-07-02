@@ -23,7 +23,7 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "Debugger/Debugger.h"
-	extern CDebugger* m_frame;
+	extern DSPDebuggerHLE* m_DebuggerFrame;
 #endif
 
 extern SoundStream *soundStream;

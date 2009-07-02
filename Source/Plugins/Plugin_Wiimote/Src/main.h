@@ -59,9 +59,6 @@ struct SRecordingAll
 	extern bool g_RealWiiMoteInitialized;
 	extern bool g_EmulatedWiiMoteInitialized;
 	extern bool g_WiimoteUnexpectedDisconnect;
-	#ifdef _WIN32
-		extern HWND g_ParentHWND;
-	#endif
 
 	// Settings
 	extern accel_cal g_wm;

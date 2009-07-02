@@ -34,14 +34,16 @@
 #include <wx/gbsizer.h>
 #include <wx/progdlg.h>
 
-class ConfigDialog : public wxDialog
+class WiimoteConfigDialog : public wxDialog
 {
 	public:
-		ConfigDialog(wxWindow *parent, wxWindowID id = 1,
+		WiimoteConfigDialog(wxWindow *parent,
+			wxWindowID id = 1,
 			const wxString &title = wxT("Wii Remote Plugin Configuration"),
-			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
-		virtual ~ConfigDialog();
+		virtual ~WiimoteConfigDialog();
 
 		// General open, close and event functions
 		void CloseClick(wxCommandEvent& event);
@@ -270,6 +272,6 @@ class ConfigDialog : public wxDialog
 		int GetButtonWaitingID, GetButtonWaitingTimer;
 };
 
-extern ConfigDialog *frame;
+extern WiimoteConfigDialog *m_ConfigFrame;
 
 #endif

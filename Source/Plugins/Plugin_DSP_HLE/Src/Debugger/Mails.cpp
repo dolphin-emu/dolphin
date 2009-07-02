@@ -46,14 +46,14 @@
 // Declarations and definitions
 // -------------
 extern std::vector<std::string> sMailLog, sMailTime;
-extern CDebugger* m_frame;
+extern DSPDebuggerHLE* m_DebuggerFrame;
 ///////////////////////////////
 
 
 // =======================================================================================
 // Update mail window
 // --------------
-void CDebugger::DoUpdateMail()
+void DSPDebuggerHLE::DoUpdateMail()
 {
 	//Console::Print("i  %i  %i\n", sFullMail.size(), sMailLog.size());
 
@@ -68,17 +68,17 @@ void CDebugger::DoUpdateMail()
 }
 
 
-void CDebugger::UpdateMail(wxNotebookEvent& event)
+void DSPDebuggerHLE::UpdateMail(wxNotebookEvent& event)
 {
 	DoUpdateMail();
-	/* This may be called before m_frame is fully created through the
+	/* This may be called before m_DebuggerFrame is fully created through the
 	   EVT_NOTEBOOK_PAGE_CHANGED, in that case it will crash because this
 	   is accessing members of it */
-	if(StoreMails && m_frame) ReadDir();
+	if(StoreMails && m_DebuggerFrame) ReadDir();
 }
 
 // Change mail from radio button change
-void CDebugger::ChangeMail(wxCommandEvent& event)
+void DSPDebuggerHLE::ChangeMail(wxCommandEvent& event)
 {
 	//Console::Print("abc");
 	DoUpdateMail();
@@ -91,7 +91,7 @@ void CDebugger::ChangeMail(wxCommandEvent& event)
 // =======================================================================================
 // Read out mails from dir
 // --------------
-void CDebugger::ReadDir()
+void DSPDebuggerHLE::ReadDir()
 {
 	CFileSearch::XStringVector Directories;
 	//Directories.push_back("Logs/Mail");
@@ -157,7 +157,7 @@ void CDebugger::ReadDir()
 // =======================================================================================
 // Check for duplicates and count files from all_all_files
 // --------------
-bool CDebugger::NoDuplicate(std::string FileName)
+bool DSPDebuggerHLE::NoDuplicate(std::string FileName)
 {
 	for (u32 i = 0; i < all_files.size(); i++)
 	{
@@ -168,7 +168,7 @@ bool CDebugger::NoDuplicate(std::string FileName)
 }
 
 // Count the number of files for each game
-u32 CDebugger::CountFiles(std::string FileName)
+u32 DSPDebuggerHLE::CountFiles(std::string FileName)
 {
 	int match = 0;
 
@@ -187,7 +187,7 @@ u32 CDebugger::CountFiles(std::string FileName)
 // =======================================================================================
 // Read file from harddrive
 // --------------
-std::string CDebugger::Readfile_(std::string FileName)
+std::string DSPDebuggerHLE::Readfile_(std::string FileName)
 {
 	char c;     // declare a char variable
 	FILE *file; // declare a FILE pointer
@@ -220,7 +220,7 @@ std::string CDebugger::Readfile_(std::string FileName)
 }
 
 // Read file
-void CDebugger::Readfile(std::string FileName, bool GC)
+void DSPDebuggerHLE::Readfile(std::string FileName, bool GC)
 {
 	u32 n = CountFiles(FileName); // count how many mails we have
 	u32 curr_n = 0;
@@ -264,7 +264,7 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 // =======================================================================================
 // Read the file to the text window
 // ---------------
-void CDebugger::OnGameChange(wxCommandEvent& event)
+void DSPDebuggerHLE::OnGameChange(wxCommandEvent& event)
 {
     if(event.GetId() == 2006)
 	{
@@ -286,7 +286,7 @@ void CDebugger::OnGameChange(wxCommandEvent& event)
 }
 
 // Settings
-void CDebugger::MailSettings(wxCommandEvent& event)
+void DSPDebuggerHLE::MailSettings(wxCommandEvent& event)
 {
 	//for (int i = 0; i < all_all_files.size(); ++i)
 		//Console::Print("s: %s \n", all_all_files.at(i).c_str());

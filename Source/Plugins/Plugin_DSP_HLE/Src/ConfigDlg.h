@@ -24,16 +24,16 @@
 #include <wx/statbox.h>
 #include "AudioCommon.h"
 
-class ConfigDialog : public wxDialog
+class DSPConfigDialogHLE : public wxDialog
 {
 public:
-	ConfigDialog(wxWindow *parent,
+	DSPConfigDialogHLE(wxWindow *parent,
 		     wxWindowID id = 1,
 		     const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
 		     const wxPoint& pos = wxDefaultPosition,
 		     const wxSize& size = wxDefaultSize,
 		     long style = wxDEFAULT_DIALOG_STYLE);
-    virtual ~ConfigDialog();
+    virtual ~DSPConfigDialogHLE();
     void AddBackend(const char *backend);
     
 private:
