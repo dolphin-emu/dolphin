@@ -206,12 +206,14 @@ void Initialize(void *init)
 
 	std::string irom_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM;
 	std::string coef_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF;
-	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str());
+	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str(), &g_dspInitialize);
+
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	DSPCore_Reset();
 
 	if (!bCanWork)
 	{
+		PanicAlert("DSPLLE: Failed to initialize plugin, exiting");
 		DSPCore_Shutdown();
 		return;
 	}

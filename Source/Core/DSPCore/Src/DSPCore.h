@@ -27,6 +27,7 @@
 #define _DSPCORE_H
 
 #include "DSPBreakpoints.h"
+#include "AudioCommon.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
@@ -153,7 +154,7 @@
 #define SR_TOP2BITS     0x0020   // this is an odd one. (set by tst)
 #define SR_LOGIC_ZERO   0x0040
 #define SR_INT_ENABLE   0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
-#define SR_800          0x0800   // Appears in zelda - what is it? where in the zelda ucode?
+#define SR_EXT_INT_ENABLE 0x0800   // Appears in zelda - seems to disable external interupts
 #define SR_MUL_MODIFY   0x2000   // 1 = normal. 0 = x2   (M0, M2)
 #define SR_40_MODE_BIT  0x4000   // 0 = "16", 1 = "40"  (SET16, SET40)  Controls sign extension when loading mid accums.
 #define SR_MUL_UNSIGNED 0x8000   // 0 = normal. 1 = unsigned  (CLR15, SET15) If set, treats operands as unsigned. Tested with mulx only so far.
@@ -161,6 +162,15 @@
 // This should be the bits affected by CMP. Does not include logic zero.
 #define SR_CMP_MASK     0x3f
 
+// exceptions vector
+#define EXP_RESET 0 // 0x0000
+#define EXP_STOVF 1 // 0x0002 stack under/over flow
+#define EXP_4     2 // 0x0004
+#define EXP_6     3 // 0x0006
+#define EXP_8     4 // 0x0008
+#define EXP_ACCOV 5 // 0x000a accelerator address overflow
+#define EXP_c     6 // 0x000c
+#define EXP_INT   7 // 0x000e external int? (mail?)
 
 struct SDSP
 {
@@ -202,8 +212,10 @@ struct SDSP
 
 extern SDSP g_dsp;
 extern DSPBreakpoints dsp_breakpoints;
+extern DSPInitialize *dsp_initialize;
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename);
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename, DSPInitialize *dspInit = NULL);
+
 void DSPCore_Reset();
 void DSPCore_Shutdown();  // Frees all allocated memory.
 

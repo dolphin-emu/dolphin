@@ -37,6 +37,7 @@ SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_RUNNING;
 Common::Event step_event;
+DSPInitialize *dsp_initialize = NULL;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
@@ -64,8 +65,10 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 	return false;
 }
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename, DSPInitialize *dspInit)
 {
+	dsp_initialize = dspInit;
+
 	g_dsp.step_counter = 0;
 
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
@@ -157,10 +160,10 @@ void DSPCore_CheckExternalInterrupt()
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT)
 	{
-		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
+		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE) && (g_dsp.exception_in_progress_hack == false))
 		{
 			// level 7 is the interrupt exception
-			DSPCore_SetException(7);
+			DSPCore_SetException(EXP_INT);
 			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		}

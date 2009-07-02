@@ -143,8 +143,8 @@ u16 dsp_read_accelerator()
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
 
 		// Do we really need both?
-		DSPCore_SetException(3);
-		DSPCore_SetException(5);
+		DSPCore_SetException(EXP_4); 
+		DSPCore_SetException(EXP_ACCOV);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values, so yeah,
 		// it seems likely that we should raise an exception to let the DSP program do that,
