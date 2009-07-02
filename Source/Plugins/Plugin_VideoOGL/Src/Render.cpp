@@ -714,6 +714,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 	float u_max;
 	float v_min;
 	float v_max;
+
 	if (g_Config.bAutoScale)
 	{
 		u_max = (xfbSource->sourceRc.right - xfbSource->sourceRc.left);
@@ -725,6 +726,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 		u_max = (float)xfbSource->texWidth;
 		v_max = (float)xfbSource->texHeight;
 	}
+
 	v_min -= yOffset;
 	v_max -= yOffset;
 
@@ -909,6 +911,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
+
 	// Why save this as s_bNativeResolution if we updated it every frame?
 	s_bNativeResolution = g_Config.bNativeResolution;
 
@@ -921,7 +924,6 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

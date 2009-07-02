@@ -467,23 +467,26 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 			if (!g_VideoInitialize.bUseDualCore)
 			{
 				u32 z = 0;
+				float xScale = Renderer::GetTargetScaleX();
+				float yScale = Renderer::GetTargetScaleY();
 
 				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
 				{
 					// Find the proper dimensions
 					TRectangle source, scaledTargetSource;
 					ComputeBackbufferRectangle(&source);
-					source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
+					source.Scale(xScale, yScale, &scaledTargetSource);
 					// This will resolve and bind to the depth buffer
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
 				}
 
-				// Read the z value!
-				glReadPixels(x, Renderer::GetTargetHeight()-y, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+				// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
+				// Plus we need to flip the y value as the OGL image is upside down
+				glReadPixels(x*xScale, Renderer::GetTargetHeight() - y*yScale, xScale, yScale, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 				GL_REPORT_ERRORD();
 
-				// Mask away the stencil bits
-				return z & 0xffffff;
+				// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
+				return z / 0x100;
 			}
 		}
 		break;
