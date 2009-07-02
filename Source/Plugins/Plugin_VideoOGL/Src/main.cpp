@@ -496,6 +496,11 @@ void Video_OnThreadAccessEFB()
 
 			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
 			s_AccessEFBResult = z / 0x100;
+
+			// We should probably re-bind the old fbo here.
+			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
+				Renderer::SetFramebuffer(0);
+			}
 		}
 		break;
 
