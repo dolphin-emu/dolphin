@@ -27,7 +27,6 @@
 #define _DSPCORE_H
 
 #include "DSPBreakpoints.h"
-#include "AudioCommon.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
 #define DSP_IRAM_SIZE        0x1000
@@ -212,9 +211,8 @@ struct SDSP
 
 extern SDSP g_dsp;
 extern DSPBreakpoints dsp_breakpoints;
-extern DSPInitialize *dsp_initialize;
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename, DSPInitialize *dspInit = NULL);
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename);
 
 void DSPCore_Reset();
 void DSPCore_Shutdown();  // Frees all allocated memory.
