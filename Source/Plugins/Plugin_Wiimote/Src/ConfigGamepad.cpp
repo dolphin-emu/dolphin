@@ -118,12 +118,10 @@ void WiimoteConfigDialog::SetButtonTextAll(int id, char text[128])
 
 void WiimoteConfigDialog::SaveButtonMappingAll(int Slot)
 {
-	//INFO_LOG(CONSOLE, "SaveButtonMappingAll()\n");
-
 	for (int i = 0; i < 4; i++)
 	{
 		// This can occur when no gamepad is detected
-		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
+		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID && WiiMoteEmu::PadMapping[i].ID >= 0)
 			if (WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name == WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Slot].ID].Name)
 				SaveButtonMapping(i, false, Slot);
 	}
