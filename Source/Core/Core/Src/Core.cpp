@@ -232,9 +232,7 @@ bool Init()
 }
 
 // Called from GUI thread or VI thread (why VI??? That must be bad. Window close? TODO: Investigate.)
-// JP: No, when you press Stop this is run from the Main Thread it seems
-// - Hammertime!
-void Stop()  
+void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -253,12 +251,12 @@ void Stop()
 	// Stop the CPU
 	PowerPC::Stop();
 	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
-	
+
 	// Wait until the CPU finishes exiting the main run loop
 	cpuRunloopQuit.Wait();
 	cpuRunloopQuit.Shutdown();
 	// At this point, we must be out of the CPU:s runloop.
-	
+
 	// Stop audio thread.
 	CPluginManager::GetInstance().GetDSP()->DSP_StopSoundStream();
  
@@ -300,8 +298,7 @@ void Stop()
 #endif
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
-#endif
-#ifdef SETUP_TIMER_WAITING
+#else
 	Host_UpdateGUI();
 	StopUpToVideoDone = false;
 	StopReachedEnd = true;

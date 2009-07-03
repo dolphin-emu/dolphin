@@ -31,6 +31,9 @@
 
 #include "minilzo.h"
 
+///////////
+// TODO: Investigate a memory leak on save/load state
+///////////
 
 #if defined(__LZO_STRICT_16BIT)
 #define IN_LEN      (8*1024u)
@@ -286,8 +289,12 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 				fread(out, 1, cur_len, f);
 
 				int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
-				if(res != LZO_E_OK)
-					PanicAlert("Internal LZO Error - decompression failed (%d)", res);
+				if(res != LZO_E_OK) {
+					PanicAlert("Internal LZO Error - decompression failed (%d)\n"
+						"Try loading the state again", res);
+					fclose(f);
+					return;
+				}
 		
 				// The size of the data to read to our buffer is 'new_len'
 				i += new_len;

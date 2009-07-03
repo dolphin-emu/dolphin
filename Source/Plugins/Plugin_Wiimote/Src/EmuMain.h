@@ -25,6 +25,7 @@
 
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
+#include "ChunkFile.h"
 
 namespace WiiMoteEmu
 {
@@ -35,7 +36,7 @@ void GetMousePos(float& x, float& y);
 
 // General functions
 void Initialize();
-void DoState(void* ptr, int mode);
+void DoState(PointerWrap &p);
 void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;

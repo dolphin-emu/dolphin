@@ -266,10 +266,28 @@ void Shutdown(void)
 
 void DoState(unsigned char **ptr, int mode)
 {
+	PointerWrap p(ptr, mode);
+	
+	return;
+
+	// TODO: Shorten the list
+	//p.Do(g_EmulatorRunning);
+	//p.Do(g_ISOId);
+	p.Do(g_FrameOpen);
+	p.Do(g_RealWiiMotePresent);
+	p.Do(g_RealWiiMoteInitialized);
+	p.Do(g_EmulatedWiiMoteInitialized);
+	p.Do(g_WiimoteUnexpectedDisconnect);
+	p.Do(g_UpdateCounter);
+	p.Do(g_UpdateTime);
+	p.Do(g_UpdateRate);
+	p.Do(g_UpdateWriteScreen);
+	p.Do(g_UpdateTimeList);
+
 #if HAVE_WIIUSE
-	WiiMoteReal::DoState(ptr, mode);
+	WiiMoteReal::DoState(p);
 #endif
-	WiiMoteEmu::DoState(ptr, mode);
+	WiiMoteEmu::DoState(p);
 }
 
 

@@ -24,6 +24,7 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "wiiuse.h"
+#include "ChunkFile.h"
 ///////////////////////////////////
 
 
@@ -33,7 +34,7 @@ namespace WiiMoteReal
 #define MAX_WIIMOTES 1
 
 int Initialize();
-void DoState(void* ptr, int mode);
+void DoState(PointerWrap &p);
 void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size);

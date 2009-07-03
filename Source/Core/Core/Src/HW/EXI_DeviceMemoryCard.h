@@ -79,6 +79,7 @@ private:
 	u32 m_uPosition;
 	u8 programming_buffer[128];
 	u32 formatDelay;
+	bool m_bDirty;
 	
 	//! memory card parameters 
 	unsigned int nintendo_card_id, card_id;

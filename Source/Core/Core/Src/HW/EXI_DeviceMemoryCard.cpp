@@ -43,7 +43,8 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
 	m_strFilename(_rFilename),
 	card_index(_card_index),
-	flushThread(NULL)
+	flushThread(NULL),
+	m_bDirty(false)
 {
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
@@ -138,6 +139,9 @@ THREAD_RETURN innerFlush(void *pArgs)
 // Flush memory card contents to disc
 void CEXIMemoryCard::Flush(bool exiting)
 {
+	if(!m_bDirty)
+		return;
+
 	if(flushThread)
 	{
 		delete flushThread;
@@ -157,6 +161,8 @@ void CEXIMemoryCard::Flush(bool exiting)
 	flushThread = new Common::Thread(innerFlush, fs);
 	if(exiting)
 		flushThread->WaitForDeath();
+
+	m_bDirty = false;
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
@@ -205,6 +211,7 @@ void CEXIMemoryCard::SetCS(int cs)
 				status &= ~MC_STATUS_BUSY;
 
 				m_bInterruptSet = 1;
+				m_bDirty = true;
 			}
 			break;
 
@@ -213,6 +220,7 @@ void CEXIMemoryCard::SetCS(int cs)
 			{
 				memset(memory_card_content, 0xFF, memory_card_size);
 				status &= ~MC_STATUS_BUSY;
+				m_bDirty = true;
 			}
 			break;
 
@@ -234,6 +242,7 @@ void CEXIMemoryCard::SetCS(int cs)
 				status &= ~MC_STATUS_BUSY;
 
 				m_bInterruptSet = 1;
+				m_bDirty = true;
 			}
 			
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)

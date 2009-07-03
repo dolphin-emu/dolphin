@@ -509,9 +509,37 @@ void Initialize()
 // ================
 
 
-void DoState(void* ptr, int mode) 
+void DoState(PointerWrap &p) 
 {
-	//TODO: implement
+	return;
+	// TODO: Shorten the list
+	p.Do(g_Leds);
+	//p.Do(g_Speaker);
+	//p.Do(g_SpeakerVoice);
+	p.Do(g_IR);
+	p.DoArray(g_Eeprom, WIIMOTE_EEPROM_SIZE);
+	p.DoArray(g_RegSpeaker, WIIMOTE_REG_SPEAKER_SIZE);
+	p.DoArray(g_RegExt, WIIMOTE_REG_EXT_SIZE);
+	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
+	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
+
+	p.Do(g_ReportingMode);
+	p.Do(g_ReportingChannel);
+
+	p.Do(AckDelay);
+
+	p.Do(g_ExtKey);
+	p.Do(g_Encryption);
+
+	p.Do(NumPads);
+	p.Do(NumGoodPads);
+	p.Do(joyinfo);
+	p.DoArray(PadState, 4);
+	p.DoArray(PadMapping, 4);
+
+	p.Do(g_Wm);
+	p.Do(g_Nc);
+	p.Do(g_Cc);	
 }
 
 /* This is not needed if we call FreeLibrary() when we stop a game, but if it's not called we need to reset

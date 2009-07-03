@@ -75,7 +75,7 @@ namespace HW
 	{
 		SystemTimers::Shutdown();
 		CCPU::Shutdown();
-		ExpansionInterface::Shutdown();
+		ExpansionInterface::Shutdown();		
 		DVDInterface::Shutdown();
 		DSP::Shutdown();
 		Memory::Shutdown();

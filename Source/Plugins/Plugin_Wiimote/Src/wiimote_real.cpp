@@ -400,7 +400,10 @@ int Initialize()
 	return g_NumberOfWiiMotes;
 }
 
-void DoState(void* ptr, int mode) {}
+void DoState(PointerWrap &p) 
+{
+	//TODO: Implement
+}
 
 void Shutdown(void)
 {
