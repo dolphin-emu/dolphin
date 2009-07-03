@@ -216,6 +216,21 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_BBOX_TOP:    _uReturnValue = bbox[2]; INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", bbox[2]); bbox_active = false; break;
 	case PE_BBOX_BOTTOM: _uReturnValue = bbox[3]; INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", bbox[3]); bbox_active = false; break;
 
+	case PE_PERF_0L:
+	case PE_PERF_0H:
+	case PE_PERF_1L:
+	case PE_PERF_1H:
+	case PE_PERF_2L:
+	case PE_PERF_2H:
+	case PE_PERF_3L:
+	case PE_PERF_3H:
+	case PE_PERF_4L:
+	case PE_PERF_4H:
+	case PE_PERF_5L:
+	case PE_PERF_5H:
+		WARN_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
+		break;
+
 	default:
 		WARN_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);
 		_uReturnValue = 1;

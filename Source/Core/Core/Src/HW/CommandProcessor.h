@@ -31,6 +31,7 @@ enum
 	STATUS_REGISTER				= 0x00,
 	CTRL_REGISTER				= 0x02,
 	CLEAR_REGISTER				= 0x04,
+	PERF_SELECT                 = 0x06,
 	FIFO_TOKEN_REGISTER			= 0x0E,
 	FIFO_BOUNDING_BOX_LEFT		= 0x10,
 	FIFO_BOUNDING_BOX_RIGHT		= 0x12,
@@ -51,7 +52,15 @@ enum
 	FIFO_READ_POINTER_LO		= 0x38,
 	FIFO_READ_POINTER_HI		= 0x3A,
 	FIFO_BP_LO					= 0x3C,
-	FIFO_BP_HI					= 0x3E
+	FIFO_BP_HI					= 0x3E,
+	CP_PERF0_L                  = 0x40,
+	CP_PERF0_H                  = 0x42,
+	CP_PERF1_L                  = 0x44,
+	CP_PERF1_H                  = 0x46,
+	CP_PERF2_L                  = 0x48,
+	CP_PERF2_H                  = 0x4a,
+	CP_PERF3_L                  = 0x4c,
+	CP_PERF3_H                  = 0x4e,
 };
 
 extern SCPFifoStruct fifo;

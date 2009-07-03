@@ -299,10 +299,14 @@ bool CBoot::BootUp()
 			}
 
 			// load image or create virtual drive from directory
-			if (!_StartupPara.m_strDVDRoot.empty())
+			if (!_StartupPara.m_strDVDRoot.empty()) {
+				NOTICE_LOG(BOOT, "Setting DVDroot %s", _StartupPara.m_strDefaultGCM.c_str());
 				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
-			else if (!_StartupPara.m_strDefaultGCM.empty())
+			} 
+			else if (!_StartupPara.m_strDefaultGCM.empty()) {
+				NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
 				VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			}
 			else
 				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strFilename, elfWii);
 
@@ -313,6 +317,9 @@ bool CBoot::BootUp()
             Boot_ELF(_StartupPara.m_strFilename.c_str()); 
             UpdateDebugger_MapLoaded();
 			Debugger::AddAutoBreakpoints();
+
+			
+            HLE::PatchFunctions();
         }
         break;
 

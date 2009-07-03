@@ -26,6 +26,8 @@
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
+// It would likely be a lot more efficient to build this incrementally as the attributes
+// are set...
 void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
@@ -90,7 +92,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 	if ((bpmem.genMode.numtevstages + 1) & 1) { // odd
 		u32 val0;
 		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex&0x3ff;
+			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x3ff;
 		else
 			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
 
@@ -104,11 +106,11 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 	if ((bpmem.genMode.numtevstages % 3) != 2)
 		++pcurvalue;
 
-	uid.tevstages = (u32)(pcurvalue-&uid.values[0]-hdr);
+	uid.tevstages = (u32)(pcurvalue - &uid.values[0] - hdr);
 
 	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
 		u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
-		switch (i%3) {
+		switch (i % 3) {
 			case 0: pcurvalue[0] = val; break;
 			case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
 			case 2: pcurvalue[0] |= val << 10; ++pcurvalue; break;
@@ -320,8 +322,8 @@ static const char *tevAInputTable2[] = // CA
 
 static const char *tevRasTable[] =
 {
-    "colors[0]",
-    "colors[1]",
+    "colors_0",
+    "colors_1",
     "ERROR", //2
     "ERROR", //3
     "ERROR", //4
@@ -356,7 +358,6 @@ static char text[16384];
 
 static void BuildSwapModeTable()
 {
-    //bpmem.tevregs[0].
     for (int i = 0; i < 4; i++)
     {
         swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
@@ -442,7 +443,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 			WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i<4?4:3, i, i);
 	}
 
-    WRITE(p, "  in float4 colors[2] : COLOR0){\n");
+	WRITE(p, "  in float4 colors_0 : COLOR0, in float4 colors_1 : COLOR1){\n");
 
     char* pmainstart = p;
 
@@ -628,7 +629,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         }
     }
 
-    WRITE(p, "rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
+    WRITE(p, "rastemp=%s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)],rasswap);
 
     if (bpmem.tevorders[n/2].getEnable(n&1)) {
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);

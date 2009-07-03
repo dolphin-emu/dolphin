@@ -669,6 +669,10 @@
 				Name="UCode Zelda"
 				>
 				<File
+					RelativePath="..\..\..\docs\DSP\DSP_UC_Zelda.txt"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\UCodes\UCode_Zelda.cpp"
 					>
 				</File>
@@ -682,6 +686,10 @@
 				</File>
 				<File
 					RelativePath=".\Src\UCodes\UCode_Zelda_ADPCM.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_Zelda_Obsolete.txt"
 					>
 				</File>
 				<File

@@ -22,7 +22,6 @@
 #define _GLOBALS_H
 
 #include "Common.h"
-#include "svnrev.h"
 
 // Constant Colors
 const unsigned long COLOR_GRAY = 0xDCDCDC;

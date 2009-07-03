@@ -192,8 +192,9 @@ void GLVertexFormat::SetupVertexPointers() const {
 		if (vtx_decl.color_offset[i] != -1) {
 			if (i == 0)
 				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]);
-			else
+			else {
 				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]); 
+			}
 		}
 	}
 
@@ -252,7 +253,7 @@ void GLVertexFormat::EnableComponents(u32 components)
 		{
 			if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) 
 			{
-				if (components & (VB_HAS_COL0 << 0))
+				if (components & (VB_HAS_COL0 << i))
 					glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
 				else
 					glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);

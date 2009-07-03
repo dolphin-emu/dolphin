@@ -107,11 +107,16 @@ void LOADERDECL UpdateBoundingBox()
 	t[2] = p[0] * world_matrix[8] + p[1] * world_matrix[9] + p[2] * world_matrix[10] + world_matrix[11];
 
 	float o[4];
+	o[2] = t[0] * proj_matrix[8]  + t[1] * proj_matrix[9]  + t[2] * proj_matrix[10] + proj_matrix[11];
+	// Depth culling
+	if (o[2] < 0.0) {
+		// No pixels are likely to be drawn - don't update bounding box.
+		return;
+	}
 	o[0] = t[0] * proj_matrix[0]  + t[1] * proj_matrix[1]  + t[2] * proj_matrix[2] + proj_matrix[3];
 	o[1] = t[0] * proj_matrix[4]  + t[1] * proj_matrix[5]  + t[2] * proj_matrix[6] + proj_matrix[7];
-	o[2] = t[0] * proj_matrix[8]  + t[1] * proj_matrix[9]  + t[2] * proj_matrix[10] + proj_matrix[11];
 	o[3] = t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
-
+	
 	o[0] /= o[3];
 	o[1] /= o[3];
 

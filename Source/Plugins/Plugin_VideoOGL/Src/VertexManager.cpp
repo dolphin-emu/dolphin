@@ -190,7 +190,7 @@ void Flush()
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
-	if(g_nativeVertexFmt)
+	if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 

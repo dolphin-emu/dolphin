@@ -30,28 +30,41 @@
 #include "WaveFile.h"
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
-	: IUCode(_rMailHandler)
-	, m_CRC(_CRC)
-	, m_bSyncInProgress(false)
-	, m_MaxVoice(0)
-	, m_NumVoices(0)
-	, m_bSyncCmdPending(false)
-	, m_CurVoice(0)
-	, m_CurBuffer(0)
-	, m_NumBuffers(0)
-	, m_VoicePBsAddr(0)
-	, m_UnkTableAddr(0)
-	, m_AFCCoefTableAddr(0)
-	, m_ReverbPBsAddr(0)
-	, m_RightBuffersAddr(0)
-	, m_LeftBuffersAddr(0)
-	, m_pos(0)
-	, m_DMABaseAddr(0)
-	, m_numSteps(0)
-	, m_bListInProgress(false)
-	, m_step(0)
-	, m_readOffset(0)
-    , m_MailState(WaitForMail)
+	: 
+	IUCode(_rMailHandler),
+	m_CRC(_CRC),
+
+	m_bSyncInProgress(0),
+	m_MaxVoice(0),
+
+	m_NumVoices(0),
+
+	m_bSyncCmdPending(0),
+	m_CurVoice(0),
+	m_CurBuffer(0),
+	m_NumBuffers(0),
+
+	m_VoicePBsAddr(0),
+	m_UnkTableAddr(0),
+	m_ReverbPBsAddr(0),
+
+	m_RightBuffersAddr(0),
+	m_LeftBuffersAddr(0),
+	m_pos(0),
+
+	m_DMABaseAddr(0),
+
+	m_numSteps(0),
+	m_bListInProgress(0),
+	m_step(0),
+
+	m_readOffset(0),
+
+	m_MailState(WaitForMail),
+
+	m_NumPBs(0),
+	m_PBAddress(0),
+	m_PBAddress2(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -65,6 +78,7 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	memset(m_Buffer, 0, sizeof(m_Buffer));
 	memset(m_SyncFlags, 0, sizeof(m_SyncFlags));
 	memset(m_AFCCoefTable, 0, sizeof(m_AFCCoefTable));
+	memset(m_PBMask, 0, sizeof(m_PBMask));
 }
 
 CUCode_Zelda::~CUCode_Zelda()
@@ -75,186 +89,6 @@ CUCode_Zelda::~CUCode_Zelda()
 	delete [] m_LeftBuffer;
 	delete [] m_RightBuffer;
 }
-
-#if 0
-void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size)
-{
-    u16* pTest = (u16*)&_rPB;
-
-	// Checks at 0293
-    if (pTest[0x00] == 0) 
-        return;
-
-    if (pTest[0x01] != 0)
-        return;
-    
-
-    if (pTest[0x06] != 0x00)
-    {
-        // probably pTest[0x06] == 0 -> AFC (and variants)
-		// See 02a4
-    }
-    else
-    {
-        switch (_rPB.type)  // or Bytes per Sample
-        {
-        case 0x05:
-        case 0x09:
-            {
-                // initialize "decoder" if the sample is played the first time
-                if (pTest[0x04] != 0)
-                {
-					// This is 0717_ReadOutPBStuff
-
-					// increment 4fb
-
-                    // zelda: 
-                    // perhaps init or "has played before"
-                    pTest[0x32] = 0x00;
-					pTest[0x66] = 0x00;     // history1 
-                    pTest[0x67] = 0x00;     // history2 
-
-                    // samplerate? length? num of samples? i dunno...
-					// Likely length...
-                    pTest[0x3a] = pTest[0x8a];
-                    pTest[0x3b] = pTest[0x8b];
-
-                    // Copy ARAM addr from r to rw area.
-                    pTest[0x38] = pTest[0x8c];
-                    pTest[0x39] = pTest[0x8d];
-                }
-
-                if (pTest[0x01] != 0)  // 0747 early out... i dunno if this can happen because we filter it above
-                    return;
-
-                u32 ARAMAddr        = (pTest[0x38] << 16) | pTest[0x39];
-                u32 NumberOfSamples = (pTest[0x3a] << 16) | pTest[0x3b];
-
-				// round upwards how many samples we need to copy, 0759
-                NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
-                u32 frac = NumberOfSamples & 0xF;
-
-                u8 inBuffer[9];
-                short outbuf[16];
-                u32 sampleCount = 0;
-
-				// It must be something like this:
-
-				// The PB contains a small sample buffer of 0x4D decoded samples.
-				// If it's empty or "used", decode to it.
-				// Then, resample from this buffer to the output as you go. When it needs
-				// wrapping, decode more.
-				
-#define USE_RESAMPLE
-#if !defined(USE_RESAMPLE)
-                for (int s = 0; s < _Size/16; s++)
-                {
-                    for (int i = 0; i < 9; i++)    
-                    {
-                        inBuffer[i] = g_dspInitialize.pARAM_Read_U8(ARAMAddr);
-                        ARAMAddr++;
-                    }
-                                        
-                    AFCdecodebuffer((char*)inBuffer, outbuf, (short*)&pTest[0x66], (short*)&pTest[0x67]);
-
-                    for (int i = 0; i < 16; i++)
-                    {
-                        templbuffer[sampleCount] += outbuf[i];
-                        temprbuffer[sampleCount] += outbuf[i];
-                        sampleCount++;
-                    }
-
-                    NumberOfSamples--;
-
-                    if (NumberOfSamples<=0)
-                        break;
-                }
-#else
-                while (NumberOfSamples > 0)
-                {
-                    for (int i = 0; i < 9; i++)    
-                    {
-                        inBuffer[i] =  g_dspInitialize.pARAM_Read_U8(ARAMAddr);
-                        ARAMAddr++;
-                    }
-
-                    AFCdecodebuffer(m_AFCCoefTable, (char*)inBuffer, outbuf, (short*)&pTest[0x66], (short*)&pTest[0x67], 9);
-                    CResampler Sampler(outbuf, 16, 48000);
-
-                    while (Sampler.m_queueSize > 0) 
-                    {
-                        int sample = Sampler.sample_queue.front();
-                        Sampler.sample_queue.pop();
-                        Sampler.m_queueSize -= 1;
-
-                        templbuffer[sampleCount] += sample;
-                        temprbuffer[sampleCount] += sample;
-                        sampleCount++;
-
-                        if (sampleCount > _Size)
-                            break;
-                    }
-
-                    if (sampleCount > _Size)
-                        break;
-
-                    NumberOfSamples--;
-                }
-#endif
-                if (NumberOfSamples == 0)
-                {
-                    pTest[0x01] = 1; // we are done ??
-                }
-
-                // write back
-                NumberOfSamples = (NumberOfSamples << 4);    // missing fraction
-
-                pTest[0x38] = ARAMAddr >> 16;
-                pTest[0x39] = ARAMAddr & 0xFFFF;
-                pTest[0x3a] = NumberOfSamples >> 16;
-                pTest[0x3b] = NumberOfSamples & 0xFFFF;
-                
-
-#if 0
-                NumberOfSamples = (NumberOfSamples + 0xf) >> 4;
-                
-                static u8 Buffer[500000];
-                for (int i =0; i<NumberOfSamples*9; i++)
-                {
-                    Buffer[i] = g_dspInitialize.pARAM_Read_U8(ARAMAddr+i);
-                }
-
-                // yes, the dumps are really zelda sound ;)
-                DumpAFC(Buffer, NumberOfSamples*9, 0x3d00);
-
-                DumpPB(_rPB);
-
-             //   exit(1);
-#endif
-
-                // i think  pTest[0x3a] and pTest[0x3b] got an update after you have decoded some samples...
-                // just decrement them with the number of samples you have played
-                // and incrrease the ARAM Offset in pTest[0x38], pTest[0x39]
-
-
-                // end of block (Zelda 03b2)
-                if (pTest[0x06] == 0)
-                {
-					// 02a4
-					//
-
-                    pTest[0x04] = 0;
-                }
-            }
-            break;
-
-        default:
-			ERROR_LOG(DSPHLE, "Zelda Ucode: Unknown PB type %i", _rPB.type);
-			break;
-        }
-    }
-}
-#endif
 
 void CUCode_Zelda::Update(int cycles)
 {
@@ -552,36 +386,42 @@ void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
 }
 
 void CUCode_Zelda::DoState(PointerWrap &p) {
-	//p.Do(m_MailState);
-	//p.Do(m_PBMask);
-	//p.Do(m_NumPBs);
-	//p.Do(m_PBAddress);
-	//p.Do(m_MaxSyncedPB);
-	//p.Do(m_PBs);
-	p.Do(m_readOffset);
-	//p.Do(m_NumberOfFramesToRender);
-	//p.Do(m_CurrentFrameToRender);
-	p.Do(m_numSteps);
-	p.Do(m_step);
-	p.Do(m_Buffer);
-	/*p.Do(m_CRC);
+	p.Do(m_CRC);
+
 	p.Do(m_bSyncInProgress);
 	p.Do(m_MaxVoice);
+	p.Do(m_SyncFlags);
+
 	p.Do(m_NumVoices);
+
 	p.Do(m_bSyncCmdPending);
 	p.Do(m_CurVoice);
 	p.Do(m_CurBuffer);
 	p.Do(m_NumBuffers);
+
 	p.Do(m_VoicePBsAddr);
 	p.Do(m_UnkTableAddr);
 	p.Do(m_AFCCoefTableAddr);
 	p.Do(m_ReverbPBsAddr);
+
 	p.Do(m_RightBuffersAddr);
 	p.Do(m_LeftBuffersAddr);
+	p.Do(m_pos);
+
 	p.Do(m_DMABaseAddr);
+
 	p.Do(m_numSteps);
+	p.Do(m_bListInProgress);
 	p.Do(m_step);
+	p.Do(m_Buffer);
+
 	p.Do(m_readOffset);
-	p.Do(m_MailState);*/
+
+	p.Do(m_MailState);
+	p.Do(m_PBMask);
+
+	p.Do(m_NumPBs);
+	p.Do(m_PBAddress);
+	p.Do(m_PBAddress2);
 }
 

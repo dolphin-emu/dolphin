@@ -152,10 +152,13 @@ private:
 
 	u32 m_CRC;
 
+	// These are the only dynamically allocated things allowed in the ucode.
 	s32* m_TempBuffer;
-
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
+
+
+	// If you add variables, remember to keep DoState() and the constructor up to date.
 
 	s16 m_AFCCoefTable[32];
 
@@ -190,7 +193,6 @@ private:
 	bool m_bListInProgress;
 	u32 m_step;
 	u8 m_Buffer[1024];
-	void ExecuteList();
 
 	u32 m_readOffset;
 
@@ -205,14 +207,11 @@ private:
     EMailState m_MailState;
     u16 m_PBMask[0x10];
 
-
     u32 m_NumPBs;
     u32 m_PBAddress;   // The main param block array
     u32 m_PBAddress2;  // 4 smaller param blocks
 
-	u32 m_MixingBufferLeft;
-	u32 m_MixingBufferRight;
-
+	void ExecuteList();
 
 	void ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);

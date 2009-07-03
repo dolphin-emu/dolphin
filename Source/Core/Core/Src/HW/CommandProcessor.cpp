@@ -263,6 +263,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
 				);
 		return;
+
 	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
 	case CLEAR_REGISTER:	_rReturnValue = m_CPClearReg.Hex; return;
 
@@ -286,55 +287,59 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = 0;
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_RW_DISTANCE_HI:
 		//_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = 0;
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_LO:
 		_rReturnValue = ReadLow (fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_HI:
 		_rReturnValue = ReadHigh(fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_LO:
 		//_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = ReadLow (fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_HI:
 		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
 		_rReturnValue = ReadHigh(fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
-	case FIFO_BP_LO:			_rReturnValue = ReadLow (fifo.CPBreakpoint); return;
-	case FIFO_BP_HI:			_rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
 
-//	case 0x42: // first metric reg (I guess) read in case of "fifo unknown state"
-//		Crash();
-//		return;
+	case FIFO_BP_LO: _rReturnValue = ReadLow (fifo.CPBreakpoint); return;
+	case FIFO_BP_HI: _rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
+
+	case CP_PERF0_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF0_L: %04x", _rReturnValue); break;  // XF counters
+	case CP_PERF0_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF0_H: %04x", _rReturnValue); break;
+
+	case CP_PERF1_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF1_L: %04x", _rReturnValue); break;
+	case CP_PERF1_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF1_H: %04x", _rReturnValue); break;
+
+	case CP_PERF2_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF2_L: %04x", _rReturnValue); break;
+	case CP_PERF2_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF2_H: %04x", _rReturnValue); break;
+
+	case CP_PERF3_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF3_L: %04x", _rReturnValue); break;
+	case CP_PERF3_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF3_H: %04x", _rReturnValue); break;
 
 //	case 0x64:
 //		return 4; //Number of clocks per vertex.. todo: calculate properly
 
 		//add all the other regs here? are they ever read?
 	default:
-		{
-//			char szTemp[111];
-//			sprintf(szTemp, "CCommandProcessor 0x%x", (_Address&0xFFF));
-//			MessageBox(NULL, szTemp, "mm", MB_OK);
-		}		
+		WARN_LOG(COMMANDPROCESSOR, "(r16) unknown CP reg @ %08x", _Address);
 		_rReturnValue = 0;
-		 return;
+		return;
 	}
-
 }
 
 bool AllowIdleSkipping()
@@ -462,11 +467,18 @@ void Write16(const u16 _Value, const u32 _Address)
 		}
 		break;
 
+	case PERF_SELECT:
+		{
+			WARN_LOG(COMMANDPROCESSOR, "write to PERF_SELECT: %04x", _Value);
+			// Seems to select which set of perf counters should be exposed.
+		}
+		break;
+
 	case CLEAR_REGISTER:
 		{
+			// ????
 			UCPClearReg tmpClearReg(_Value);			
 			m_CPClearReg.Hex = 0;
-
 			INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
 		}		
 		break;
@@ -556,6 +568,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		//WriteLow((u32 &)fifo.CPReadWriteDistance, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
+	default:
+		WARN_LOG(COMMANDPROCESSOR, "(w16) unknown CP reg write %04x @ %08x", _Value, _Address);
 	}
 
 	// TODO(mb2): better. Check if it help: avoid CPReadPointer overwrites when stupidly done like in Super Monkey Ball
