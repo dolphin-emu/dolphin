@@ -16,7 +16,7 @@ short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p)
 	const int hist1 = *hist1p;
 	const int hist2 = *hist2p;
 	
-	int hist;
+	int hist = 0;
 	switch (q >> 4)
 	{
 	case 0:

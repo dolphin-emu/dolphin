@@ -126,12 +126,12 @@ bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
-	u32 netValues[2] = {0};
 	memset(&PadStatus, 0, sizeof(PadStatus));
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 #if defined(HAVE_SFML) && HAVE_SFML
+	u32 netValues[2] = {0};
 	int NetPlay = GetNetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
 
 	if (NetPlay != 2)

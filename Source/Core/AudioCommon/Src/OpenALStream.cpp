@@ -125,7 +125,7 @@ void OpenALStream::SoundLoop()
 	{
 		soundCriticalSection.Enter();
 		int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
-		int numBytesRender = m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+		/*int numBytesRender =*/ m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
 		soundCriticalSection.Leave();
 
 		//if (numBytesRender)	//here need debug

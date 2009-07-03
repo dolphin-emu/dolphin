@@ -85,7 +85,6 @@ bool CEXIETHERNET::CheckRecieved()
 {
 	if(!isActivated())
 		return false;
-	int i;
 	int maxfd;
 	int retval;
 	struct timeval tv;
@@ -151,7 +150,7 @@ THREAD_RETURN CpuThread(void *pArg)
 				//strncat(mRecvBuffer.p(), B, BytesRead);
 				memcpy(self->mRecvBuffer, B, self->mRecvBufferLength);
 			}
-			else if(self->mRecvBufferLength == -1)
+			else if(self->mRecvBufferLength == -1U)
 			{
 				continue;
 			}

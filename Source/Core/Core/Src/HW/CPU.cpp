@@ -25,7 +25,6 @@
 
 namespace
 {
-	static bool g_Branch;
 	static Common::Event m_StepEvent;
 	static Common::Event *m_SyncEvent;
 }

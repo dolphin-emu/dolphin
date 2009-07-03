@@ -202,7 +202,7 @@ public:
         }
 
 		// Write return value to the IPC call, 0 means success
-        Memory::Write_U32(0, _CommandAddress + 0x4);   
+        Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);   
 
 		// Generate true or false reply for the main UpdateInterrupts() function
         return false;
