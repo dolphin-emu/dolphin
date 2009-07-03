@@ -58,10 +58,6 @@
 	#include "Frame.h"
 	#include "CodeWindow.h"
 	#include "Setup.h"
-	// MusicMod
-	#ifdef MUSICMOD
-		#include "../../../Externals/MusicMod/Main/Src/Main.h"
-	#endif
 #endif
 
 
@@ -203,16 +199,6 @@ bool BootCore(const std::string& _rFilename)
 	Core::SetState(Core::CORE_RUN);
 #endif
 	// =====================	
-
-
-	// =================================================================
-	// Init MusicMod
-	// ¯¯¯¯¯¯¯¯¯¯
-	#ifdef MUSICMOD
-		MusicMod::Main(StartUp.m_strFilename);
-	#endif
-	// ===================
-
 
 	return true;
 }

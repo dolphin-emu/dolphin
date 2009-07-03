@@ -80,17 +80,6 @@ enum
 	IDM_HELPWEBSITE,
 	IDM_HELPGOOGLECODE,
 
-	//////////////////////////////////////////////////////
-	// Music modification
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	#ifdef MUSICMOD 
-		IDM_MUTE,
-		IDM_MUSIC_PLAY,
-		IDM_VOLUME, IDM_VOLUME_LABEL, IDM_VOLUME_PANEL,
-		IDM_MM_LOG,
-	#endif
-	//////////////////////////////////////////////////////
-
 	IDM_CONFIG_MAIN,
 	IDM_CONFIG_GFX_PLUGIN,
 	IDM_CONFIG_DSP_PLUGIN,

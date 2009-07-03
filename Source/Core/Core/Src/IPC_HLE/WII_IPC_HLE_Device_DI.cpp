@@ -29,12 +29,6 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 
-// Music mod
-#include "Setup.h" // Define MUSICMOD here
-#ifdef MUSICMOD
-#include "../../../../Externals/MusicMod/Main/Src/Main.h" 
-#endif
-
 using namespace DVDInterface;
 
 
@@ -228,11 +222,6 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
-
-			#ifdef MUSICMOD
-			std::string Tmp = pFilename;
-			MusicMod::CheckFile(Tmp);
-			#endif
 		}
 		break;
 

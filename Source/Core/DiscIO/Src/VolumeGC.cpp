@@ -20,14 +20,6 @@
 #include "VolumeGC.h"
 #include "StringUtil.h"
 
-//////////////////////////////////////////////////
-// Music mod
-// ¯¯¯¯¯¯¯¯¯¯
-#include "Setup.h" // Define MUSICMOD here
-#ifdef MUSICMOD
-#include "../../../../Externals/MusicMod/Main/Src/Main.h" 
-#endif
-///////////////////////
 
 namespace DiscIO
 {
@@ -45,13 +37,7 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
 	if (m_pReader == NULL)
 		return false;
-	//////////////////////////////////////////////////
-	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
-	#ifdef MUSICMOD
-		MusicMod::FindFilename(_Offset, _Length);
-	#endif
-	///////////////////////
+
 	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 

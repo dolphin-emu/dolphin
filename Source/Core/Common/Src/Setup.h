@@ -57,9 +57,6 @@
 // Build with playback rerecording options
 //#define RERECORDING
 
-// Build with music modification
-//#define MUSICMOD
-
 // -----------------------------------------------------------------------------------------------------
 
 #endif // _SETUP_H_

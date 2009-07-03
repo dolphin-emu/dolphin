@@ -100,22 +100,6 @@ class CFrame : public wxFrame
 
 		char **drives;
 
-		//////////////////////////////////////////////////////////////////////////////////////
-		// Music mod
-		// ¯¯¯¯¯¯¯¯¯¯
-		#ifdef MUSICMOD
-			wxToolBarToolBase* mm_ToolMute, * mm_ToolPlay, * mm_ToolLog;
-			wxSlider * mm_Slider;
-
-			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps(int Theme);
-			void MM_OnPlay(); void MM_OnStop();
-			void MM_OnMute(wxCommandEvent& event);
-			void MM_OnPause(wxCommandEvent& event);
-			void MM_OnVolume(wxScrollEvent& event);
-			void MM_OnLog(bool);
-		#endif
-		///////////////////////////////////
-
 		enum EToolbar
 		{
 			Toolbar_FileOpen,
@@ -132,11 +116,6 @@ class CFrame : public wxFrame
 			Toolbar_PluginPAD,
 			Toolbar_Wiimote,			
 			Toolbar_Help,
-
-			#ifdef MUSICMOD  // Music modification
-				Toolbar_Log, Toolbar_PluginDSP_Dis, Toolbar_Log_Dis,
-			#endif
-
 			EToolbar_Max
 		};
 

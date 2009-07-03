@@ -254,13 +254,6 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
-#ifdef MUSICMOD
-EVT_MENU(IDM_MUTE, CFrame::MM_OnMute)
-EVT_MENU(IDM_MUSIC_PLAY, CFrame::MM_OnPause)
-EVT_COMMAND_SCROLL(IDM_VOLUME, CFrame::MM_OnVolume)
-//EVT_MENU(IDM_MM_LOG, CFrame::MM_OnLog)
-#endif
-
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 #endif
@@ -354,12 +347,6 @@ CFrame::CFrame(bool showLogWindow,
 	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole)
 		console->Open();
-	//////////////////////////////////////////
-	// Init MusicMod and the console window in the dll
-	#ifdef MUSICMOD
-		MM_OnLog(SConfig::GetInstance().m_InterfaceConsole);
-	#endif
-	//////////////////////////////////////////
 
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	//m_Panel = new wxPanel(this, IDM_MPANEL);
