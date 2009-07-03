@@ -131,12 +131,12 @@ void GFXConfigDialogOGL::CloseClick(wxCommandEvent& WXUNUSED (event))
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Add avaliable resolutions and other settings
 // ---------------
-void GFXConfigDialogOGL::AddFSReso(char *reso)
+void GFXConfigDialogOGL::AddFSReso(const char *reso)
 {
 	arrayStringFor_FullscreenCB.Add(wxString::FromAscii(reso));
 }
 
-void GFXConfigDialogOGL::AddWindowReso(char *reso)
+void GFXConfigDialogOGL::AddWindowReso(const char *reso)
 {
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }

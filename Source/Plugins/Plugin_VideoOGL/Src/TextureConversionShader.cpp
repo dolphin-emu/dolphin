@@ -174,7 +174,6 @@ void Write32BitSwizzler(char*& p, u32 format)
 
     float blkW = (float)GetBlockWidthInTexels(format);
 	float blkH = (float)GetBlockHeightInTexels(format);
-	float samples = (float)GetEncodedSampleCount(format);
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 

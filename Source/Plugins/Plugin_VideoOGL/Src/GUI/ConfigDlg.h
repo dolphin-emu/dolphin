@@ -58,8 +58,8 @@ class GFXConfigDialogOGL : public wxDialog
 		virtual ~GFXConfigDialogOGL();
 		void CloseClick(wxCommandEvent& event);
 
-		void AddFSReso(char *reso);
-		void AddWindowReso(char *reso);
+		void AddFSReso(const char *reso);
+		void AddWindowReso(const char *reso);
 		void CreateGUIControls();
 		void GameIniLoad();
 		// Combo box lists, this one needs to be public

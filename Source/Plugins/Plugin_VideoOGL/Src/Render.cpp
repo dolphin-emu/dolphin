@@ -93,7 +93,6 @@ static FILE* f_pFrameDump;
 static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 
-static bool s_bHaveStencilBuffer = false;
 bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
@@ -644,9 +643,6 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 		// The new width and height
 		FloatGLWidth = FloatGLWidth * Ratio;
 		FloatGLHeight = FloatGLHeight * Ratio;
-		// The new width and height ratio
-		float WidthRatio = ((float)FloatGLWidth) / 640.0;
-		float HeightRatio = ((float)FloatGLHeight) / 480.0;
 		// Adjust the X and Y offset
 		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0);
 		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0);
@@ -724,6 +720,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 	else
 	{
 		u_max = (float)xfbSource->texWidth;
+		v_min = 0.f;
 		v_max = (float)xfbSource->texHeight;
 	}
 

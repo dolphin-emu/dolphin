@@ -158,7 +158,7 @@ void Shutdown()
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
 
-	for (int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
+	for (unsigned int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
 		s_encodingPrograms[i].Destroy();
 
 	s_srcTexture = 0;
