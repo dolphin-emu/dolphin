@@ -50,17 +50,17 @@
 
 #include "../nJoy.h"
 
-class ConfigBox : public wxDialog
+class PADConfigDialognJoy : public wxDialog
 {
 	private:
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		ConfigBox(wxWindow *parent, wxWindowID id = 1,
+		PADConfigDialognJoy(wxWindow *parent, wxWindowID id = 1,
 			const wxString &title = wxT("Configure: nJoy Input Plugin"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
-		virtual ~ConfigBox();
+		virtual ~PADConfigDialognJoy();
 
 	#if wxUSE_TIMER
 		void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }

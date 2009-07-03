@@ -47,15 +47,15 @@
 #include <wx/statbmp.h>
 
 
-class ConfigBox : public wxDialog
+class PADConfigDialognJoy4 : public wxDialog
 {
 	private:
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		ConfigBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"),
+		PADConfigDialognJoy4(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
-		virtual ~ConfigBox();		
+		virtual ~PADConfigDialognJoy4();		
 		
 	private:
 		wxButton *m_About;

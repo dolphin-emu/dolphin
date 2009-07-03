@@ -192,6 +192,8 @@ void DllConfig(HWND _hParent)
 
 	if (!m_ConfigFrame)
 		m_ConfigFrame = new WiimoteConfigDialog(GetParentedWxWindow(_hParent));
+	else if (!m_ConfigFrame->GetParent()->IsShown())
+		m_ConfigFrame->Close(true);
 
 	// Only allow one open at a time
 	if (!m_ConfigFrame->IsShown())

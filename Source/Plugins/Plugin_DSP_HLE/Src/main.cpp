@@ -172,6 +172,8 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
 		m_ConfigFrame = new DSPConfigDialogHLE(GetParentedWxWindow(_hParent));
+	else if (!m_ConfigFrame->GetParent()->IsShown())
+		m_ConfigFrame->Close(true);
 
 	// add backends
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();

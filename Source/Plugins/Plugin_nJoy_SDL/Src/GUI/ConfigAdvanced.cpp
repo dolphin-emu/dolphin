@@ -46,7 +46,7 @@ bool StrangeHack = true;
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::PadGetStatus()
+void PADConfigDialognJoy::PadGetStatus()
 {
 	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
 	   because of a manual ini file change, but we make that check anway. */
@@ -248,7 +248,7 @@ std::string ShowStatus(int VirtualController)
 
 // Populate the advanced tab
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::Update()
+void PADConfigDialognJoy::Update()
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	/* If the emulator is running and unpaused GetJoyState() is run a little more often than needed,
@@ -276,7 +276,7 @@ void ConfigBox::Update()
 
 // Populate the advanced tab
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::CreateAdvancedControls(int i)
+void PADConfigDialognJoy::CreateAdvancedControls(int i)
 {
 	m_TStatusIn[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
 	m_TStatusOut[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
@@ -342,7 +342,7 @@ void ConfigBox::CreateAdvancedControls(int i)
 }
 
 
-wxBitmap ConfigBox::CreateBitmap() // Create box
+wxBitmap PADConfigDialognJoy::CreateBitmap() // Create box
 {
 	BoxW = 70, BoxH = 70;
 	wxBitmap bitmap(BoxW, BoxH);
@@ -363,7 +363,7 @@ wxBitmap ConfigBox::CreateBitmap() // Create box
 	return bitmap;
 }
 
-wxBitmap ConfigBox::CreateBitmapDot() // Create dot
+wxBitmap PADConfigDialognJoy::CreateBitmapDot() // Create dot
 {
 	int w = 2, h = 2;
 	wxBitmap bitmap(w, h);

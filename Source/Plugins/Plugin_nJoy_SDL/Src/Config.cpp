@@ -38,7 +38,7 @@
 
 Config g_Config;
 #if defined(HAVE_WX) && HAVE_WX
-extern ConfigBox* m_frame;
+extern PADConfigDialognJoy* m_ConfigFrame;
 #endif
 //////////////////////////////////
 
@@ -179,7 +179,7 @@ void Config::Save(int Slot)
 		// ======================================
 
 		// Debugging
-		//if(m_frame) m_frame->LogMsg("Saved: %s %i\n", SectionName.c_str(), PadMapping[i].triggertype);
+		//if(m_ConfigFrame) m_ConfigFrame->LogMsg("Saved: %s %i\n", SectionName.c_str(), PadMapping[i].triggertype);
 	}
 
 	INFO_LOG(CONSOLE, "%i: Save: %i\n", 0, PadMapping[0].halfpress);
@@ -221,7 +221,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	{
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
 
-		// Don't update this when we are loading settings from the ConfigBox
+		// Don't update this when we are loading settings from the PADConfigDialognJoy
 		if(!ChangePad)
 		{
 			file.Get(SectionName.c_str(), "joy_id", &PadMapping[i].ID, 0);
@@ -273,7 +273,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		// =============================
 
 		// Debugging
-		//if(m_frame) m_frame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);		
+		//if(m_ConfigFrame) m_ConfigFrame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);		
 	}
 
 	INFO_LOG(CONSOLE, "%i: Load: %i\n", 0, PadMapping[0].halfpress);

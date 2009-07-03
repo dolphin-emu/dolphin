@@ -45,7 +45,7 @@ extern bool g_EmulatorRunning;
 
 // Set dialog items from saved values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::UpdateGUIButtonMapping(int controller)
+void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 {	
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
 	wxString tmp;
@@ -105,7 +105,7 @@ void ConfigBox::UpdateGUIButtonMapping(int controller)
 /* Populate the PadMapping array with the dialog items settings (for example
    selected joystick, enabled or disabled status and so on) */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
+void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
 {
 	// Temporary storage
 	wxString tmp;
@@ -169,7 +169,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 
 // Update the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetButtonText(int id, const char *text, int Page)
+void PADConfigDialognJoy::SetButtonText(int id, const char *text, int Page)
 {
 	// Set controller value
 	int controller;	
@@ -204,7 +204,7 @@ void ConfigBox::SetButtonText(int id, const char *text, int Page)
 
 // Get the text in the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-wxString ConfigBox::GetButtonText(int id, int Page)
+wxString PADConfigDialognJoy::GetButtonText(int id, int Page)
 {
 	// Set controller value
 	int controller;	
@@ -255,12 +255,12 @@ wxString ConfigBox::GetButtonText(int id, int Page)
    is that we start another parallel loop (at least in Windows) that blocks the old loop. And our only
    option to wait for the old loop to finish is with a new loop, and that will block the old loop for as
    long as it's going on. Therefore a timer is easier to control. */
-void ConfigBox::GetButtons(wxCommandEvent& event)
+void PADConfigDialognJoy::GetButtons(wxCommandEvent& event)
 {
 	DoGetButtons(event.GetId());
 }
 
-void ConfigBox::DoGetButtons(int GetId)
+void PADConfigDialognJoy::DoGetButtons(int GetId)
 {
 	// =============================================
 	// Collect the starting values

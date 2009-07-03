@@ -45,51 +45,51 @@ static const char* ControllerType[] =
 //	"Keyboard"				// Not supported yet, sorry F|RES ;( ...
 };
 
-BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
-	EVT_CLOSE(ConfigBox::OnClose)
-	EVT_BUTTON(ID_ABOUT, ConfigBox::AboutClick)
-	EVT_BUTTON(ID_OK, ConfigBox::OKClick)
-	EVT_BUTTON(ID_CANCEL, ConfigBox::CancelClick)
-	EVT_COMBOBOX(IDC_JOYNAME, ConfigBox::ChangeJoystick)
-	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeControllertype)
-	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, ConfigBox::NotebookPageChanged)
+BEGIN_EVENT_TABLE(PADConfigDialognJoy4,wxDialog)
+	EVT_CLOSE(PADConfigDialognJoy4::OnClose)
+	EVT_BUTTON(ID_ABOUT, PADConfigDialognJoy4::AboutClick)
+	EVT_BUTTON(ID_OK, PADConfigDialognJoy4::OKClick)
+	EVT_BUTTON(ID_CANCEL, PADConfigDialognJoy4::CancelClick)
+	EVT_COMBOBOX(IDC_JOYNAME, PADConfigDialognJoy4::ChangeJoystick)
+	EVT_COMBOBOX(IDC_CONTROLTYPE, PADConfigDialognJoy4::ChangeControllertype)
+	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, PADConfigDialognJoy4::NotebookPageChanged)
 
-	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTON_A, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTON_B, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTON_X, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTON_Y, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTON_Z, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTONSTART, ConfigBox::GetInputs)
-	EVT_BUTTON(ID_BUTTONCALIBRATE, ConfigBox::Calibrate)
-	EVT_BUTTON(IDB_BUTTONHALFPRESS, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_DPAD_UP, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_DPAD_DOWN, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_DPAD_LEFT, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_DPAD_RIGHT, ConfigBox::GetInputs)
+	EVT_BUTTON(IDB_SHOULDER_L, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_SHOULDER_R, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTON_A, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTON_B, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTON_X, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTON_Y, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTON_Z, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTONSTART, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(ID_BUTTONCALIBRATE, PADConfigDialognJoy4::Calibrate)
+	EVT_BUTTON(IDB_BUTTONHALFPRESS, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_DPAD_UP, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_DPAD_DOWN, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_DPAD_LEFT, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_DPAD_RIGHT, PADConfigDialognJoy4::GetInputs)
 
-	EVT_BUTTON(IDB_ANALOG_MAIN_X, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_ANALOG_MAIN_Y, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_ANALOG_SUB_X, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_ANALOG_SUB_Y, ConfigBox::GetInputs)
-	EVT_BUTTON(IDB_BUTTONDEBUGSTART,ConfigBox::StartDebug)
+	EVT_BUTTON(IDB_ANALOG_MAIN_X, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_ANALOG_MAIN_Y, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_ANALOG_SUB_X, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_ANALOG_SUB_Y, PADConfigDialognJoy4::GetInputs)
+	EVT_BUTTON(IDB_BUTTONDEBUGSTART,PADConfigDialognJoy4::StartDebug)
 END_EVENT_TABLE()
 
-ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+PADConfigDialognJoy4::PADConfigDialognJoy4(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 	notebookpage = 0;
 	CreateGUIControls();
 }
 
-ConfigBox::~ConfigBox()
+PADConfigDialognJoy4::~PADConfigDialognJoy4()
 {
 	// empty
 } 
 
 // Warning: horrible code below proceed at own risk!
-void ConfigBox::CreateGUIControls()
+void PADConfigDialognJoy4::CreateGUIControls()
 {
 	#ifndef _DEBUG		
 		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" Input Plugin"));
@@ -288,12 +288,12 @@ void ConfigBox::CreateGUIControls()
 	m_bJoyDebug = new wxButton(m_Controller[4], IDB_BUTTONDEBUGSTART, wxT("Start"), wxPoint(297, 385), wxDefaultSize, 0, wxDefaultValidator, wxT("Start"));
 }
 
-void ConfigBox::OnClose(wxCloseEvent& /*event*/)
+void PADConfigDialognJoy4::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
 }
 
-void ConfigBox::AboutClick(wxCommandEvent& event)
+void PADConfigDialognJoy4::AboutClick(wxCommandEvent& event)
 {
 // Call about dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -313,7 +313,7 @@ void ConfigBox::AboutClick(wxCommandEvent& event)
 #endif	
 }
 
-void ConfigBox::OKClick(wxCommandEvent& event)
+void PADConfigDialognJoy4::OKClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_OK)
 	{
@@ -325,7 +325,7 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 	}
 }
 
-void ConfigBox::CancelClick(wxCommandEvent& event)
+void PADConfigDialognJoy4::CancelClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_CANCEL)
 	{
@@ -333,7 +333,7 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 		Close(); 
 	}
 }
-void ConfigBox::StartDebug(wxCommandEvent& event)
+void PADConfigDialognJoy4::StartDebug(wxCommandEvent& event)
 {
 	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[0].ID);
 	int axes = SDL_JoystickNumAxes(joy);
@@ -356,7 +356,7 @@ void ConfigBox::StartDebug(wxCommandEvent& event)
 		}
 	}
 }
-void ConfigBox::Calibrate(wxCommandEvent& event)
+void PADConfigDialognJoy4::Calibrate(wxCommandEvent& event)
 {
 	int controller = notebookpage;
 	
@@ -391,7 +391,7 @@ void ConfigBox::Calibrate(wxCommandEvent& event)
 }
 // Set dialog items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetControllerAll(int controller)
+void PADConfigDialognJoy4::SetControllerAll(int controller)
 {	
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
 	wxString tmp;
@@ -439,7 +439,7 @@ void ConfigBox::SetControllerAll(int controller)
 
 // Get dialog items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::GetControllerAll(int controller)
+void PADConfigDialognJoy4::GetControllerAll(int controller)
 {
 	wxString tmp;
 	long lvalue;
@@ -481,7 +481,7 @@ void ConfigBox::GetControllerAll(int controller)
 	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
 }
 
-void ConfigBox::UpdateVisibleItems(int controller)
+void PADConfigDialognJoy4::UpdateVisibleItems(int controller)
 {	
 	if(joysticks[controller].controllertype)	
 	{
@@ -515,7 +515,7 @@ void ConfigBox::UpdateVisibleItems(int controller)
 	}	
 }
 
-void ConfigBox::ChangeJoystick(wxCommandEvent& event)
+void PADConfigDialognJoy4::ChangeJoystick(wxCommandEvent& event)
 {
 	joysticks[0].ID = m_Joyname[0]->GetSelection();
 	joysticks[1].ID = m_Joyname[1]->GetSelection();
@@ -523,7 +523,7 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 	joysticks[3].ID = m_Joyname[3]->GetSelection();	
 }
 		
-void ConfigBox::ChangeControllertype(wxCommandEvent& event)
+void PADConfigDialognJoy4::ChangeControllertype(wxCommandEvent& event)
 {
 	joysticks[0].controllertype = m_Controltype[0]->GetSelection();
 	joysticks[1].controllertype = m_Controltype[1]->GetSelection();
@@ -534,12 +534,12 @@ void ConfigBox::ChangeControllertype(wxCommandEvent& event)
 		UpdateVisibleItems(i);	
 }
 	
-void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
+void PADConfigDialognJoy4::NotebookPageChanged(wxNotebookEvent& event)
 {	
 	notebookpage = event.GetSelection();
 }
 
-void ConfigBox::SetButtonText(int id, char text[128])
+void PADConfigDialognJoy4::SetButtonText(int id, char text[128])
 {
 	int controller = notebookpage;
 
@@ -651,7 +651,7 @@ void ConfigBox::SetButtonText(int id, char text[128])
 			break;
 	}
 }
-void ConfigBox::GetInputs(wxCommandEvent& event)
+void PADConfigDialognJoy4::GetInputs(wxCommandEvent& event)
 {
 	int ID = event.GetId();
 	int controller = notebookpage;
@@ -744,7 +744,7 @@ InputEnd:
 
 // Wait for D-Pad
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::GetHats(int ID)
+void PADConfigDialognJoy4::GetHats(int ID)
 {	
 	int controller = notebookpage;
 

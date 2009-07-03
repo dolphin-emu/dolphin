@@ -634,6 +634,8 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
 		m_ConfigFrame = new PADConfigDialogSimple(GetParentedWxWindow(_hParent));
+	else if (!m_ConfigFrame->GetParent()->IsShown())
+		m_ConfigFrame->Close(true);
 
 	// Only allow one open at a time
 	if (!m_ConfigFrame->IsShown())

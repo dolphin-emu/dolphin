@@ -60,65 +60,65 @@ static const char* TriggerType[] =
 //////////////////////////////////////////////////////////////////////////////////////////
 // The wxWidgets class
 // ¯¯¯¯¯¯¯
-BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
-	EVT_CLOSE(ConfigBox::OnClose)
-	EVT_BUTTON(ID_ABOUT, ConfigBox::AboutClick)
-	EVT_BUTTON(ID_OK, ConfigBox::OKClick)
-	EVT_BUTTON(ID_CANCEL, ConfigBox::CancelClick)
-	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, ConfigBox::NotebookPageChanged)
+BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
+	EVT_CLOSE(PADConfigDialognJoy::OnClose)
+	EVT_BUTTON(ID_ABOUT, PADConfigDialognJoy::AboutClick)
+	EVT_BUTTON(ID_OK, PADConfigDialognJoy::OKClick)
+	EVT_BUTTON(ID_CANCEL, PADConfigDialognJoy::CancelClick)
+	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, PADConfigDialognJoy::NotebookPageChanged)
 
 	// Change and enable or disable gamepad
-	EVT_COMBOBOX(IDC_JOYNAME, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDC_JOYATTACH, ConfigBox::ChangeSettings)
+	EVT_COMBOBOX(IDC_JOYNAME, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDC_JOYATTACH, PADConfigDialognJoy::ChangeSettings)
 
 	 // Other settings
-	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDCB_CHECKFOCUS, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDC_TRIGGERTYPE, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDC_DEADZONE, ConfigBox::ChangeSettings)	
+	EVT_CHECKBOX(IDC_SAVEBYID, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDC_SHOWADVANCED, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_CHECKFOCUS, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDC_CONTROLTYPE, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDC_TRIGGERTYPE, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDC_DEADZONE, PADConfigDialognJoy::ChangeSettings)	
 
 	// Rumble settings
-	EVT_CHECKBOX(IDC_ENABLERUMBLE, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDC_RUMBLESTRENGTH, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDC_ENABLERUMBLE, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDC_RUMBLESTRENGTH, PADConfigDialognJoy::ChangeSettings)
 
 	// Advanced settings
-	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, ConfigBox::ChangeSettings)
+	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, PADConfigDialognJoy::ChangeSettings)
 #ifdef RERECORDING
-	EVT_CHECKBOX(ID_RECORDING, ConfigBox::ChangeSettings)
-	EVT_CHECKBOX(ID_PLAYBACK, ConfigBox::ChangeSettings)
-	EVT_BUTTON(ID_SAVE_RECORDING, ConfigBox::GetButtons)
+	EVT_CHECKBOX(ID_RECORDING, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(ID_PLAYBACK, PADConfigDialognJoy::ChangeSettings)
+	EVT_BUTTON(ID_SAVE_RECORDING, PADConfigDialognJoy::GetButtons)
 #endif
 
-	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTON_A, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTON_B, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTON_X, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTON_Y, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTON_Z, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTONSTART, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_BUTTONHALFPRESS, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_DPAD_UP, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_DPAD_DOWN, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_DPAD_LEFT, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_DPAD_RIGHT, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_MAIN_X, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_MAIN_Y, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_SUB_X, ConfigBox::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_SUB_Y, ConfigBox::GetButtons)
+	EVT_BUTTON(IDB_SHOULDER_L, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_SHOULDER_R, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTON_A, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTON_B, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTON_X, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTON_Y, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTON_Z, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTONSTART, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_BUTTONHALFPRESS, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_DPAD_UP, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_DPAD_DOWN, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_DPAD_LEFT, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_DPAD_RIGHT, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_MAIN_X, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_MAIN_Y, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_SUB_X, PADConfigDialognJoy::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_SUB_Y, PADConfigDialognJoy::GetButtons)
 
 	#if wxUSE_TIMER
-		EVT_TIMER(IDTM_CONSTANT, ConfigBox::OnTimer)
-		EVT_TIMER(IDTM_BUTTON, ConfigBox::OnButtonTimer)
+		EVT_TIMER(IDTM_CONSTANT, PADConfigDialognJoy::OnTimer)
+		EVT_TIMER(IDTM_BUTTON, PADConfigDialognJoy::OnButtonTimer)
 	#endif
 END_EVENT_TABLE()
 
-ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
+PADConfigDialognJoy::PADConfigDialognJoy(wxWindow *parent, wxWindowID id, const wxString &title,
 					 const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
@@ -146,11 +146,11 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 
 	// wxEVT_KEY_DOWN is blocked for enter, tab and the directional keys
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
-			wxKeyEventHandler(ConfigBox::OnKeyDown),
+			wxKeyEventHandler(PADConfigDialognJoy::OnKeyDown),
 			(wxObject*)0, this);
 }
 
-ConfigBox::~ConfigBox()
+PADConfigDialognJoy::~PADConfigDialognJoy()
 {
 // The statbar sample has this so I add this to
 #if wxUSE_TIMER
@@ -158,7 +158,7 @@ ConfigBox::~ConfigBox()
 #endif
 }
 
-void ConfigBox::OnKeyDown(wxKeyEvent& event)
+void PADConfigDialognJoy::OnKeyDown(wxKeyEvent& event)
 {
 	/*m_pStatusBar->SetLabel(wxString::Format(
 		"Key: %i", event.GetKeyCode()
@@ -168,7 +168,7 @@ void ConfigBox::OnKeyDown(wxKeyEvent& event)
 
 // Close window
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OnClose(wxCloseEvent& event)
+void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 {
 	// Allow wxWidgets to close the window
 	event.Skip();
@@ -182,7 +182,7 @@ void ConfigBox::OnClose(wxCloseEvent& event)
 
 // Call about dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::AboutClick(wxCommandEvent& event)
+void PADConfigDialognJoy::AboutClick(wxCommandEvent& event)
 {
 	#ifdef _WIN32
 		wxWindow win;
@@ -202,7 +202,7 @@ void ConfigBox::AboutClick(wxCommandEvent& event)
 
 // Click OK
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OKClick(wxCommandEvent& event)
+void PADConfigDialognJoy::OKClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_OK)
 	{
@@ -214,7 +214,7 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 
 // Click Cancel
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::CancelClick(wxCommandEvent& event)
+void PADConfigDialognJoy::CancelClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_CANCEL)
 	{
@@ -226,7 +226,7 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 
 // Debugging
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::LogMsg(const char* format, ...)
+void PADConfigDialognJoy::LogMsg(const char* format, ...)
 {
 	#ifdef _WIN32
 	if(Debugging)
@@ -262,7 +262,7 @@ void ConfigBox::LogMsg(const char* format, ...)
    Input: ChangePad needs to be used when we change the pad for a slot. Slot needs to be used when
    we only want to save changes to one slot.
 */
-void ConfigBox::DoSave(bool ChangePad, int Slot)
+void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 {
 	// Replace "" with "-1" before we are saving
 	ToBlank(false);
@@ -289,7 +289,7 @@ void ConfigBox::DoSave(bool ChangePad, int Slot)
 
 // On changing the SaveById option we update all pages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OnSaveById()
+void PADConfigDialognJoy::OnSaveById()
 {
 	// Save current settings
 	DoSave(false, notebookpage);
@@ -307,7 +307,7 @@ void ConfigBox::OnSaveById()
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
    and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
    the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
-void ConfigBox::DoChangeJoystick()
+void PADConfigDialognJoy::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
 	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
@@ -322,7 +322,7 @@ void ConfigBox::DoChangeJoystick()
 	// Open the new pad
 	if (PadMapping[notebookpage].enabled) PadOpen(notebookpage);
 }
-void ConfigBox::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
+void PADConfigDialognJoy::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 {
 	// Check that we got a good pad
 	if (!joyinfo.at(PadMapping[Open].ID).Good)
@@ -333,7 +333,7 @@ void ConfigBox::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 
 	PadState[Open].joy = SDL_JoystickOpen(PadMapping[Open].ID);
 }
-void ConfigBox::PadClose(int Close) // Close for slot 1, 2, 3 or 4
+void PADConfigDialognJoy::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 {
 	if (SDL_JoystickOpened(PadMapping[Close].ID)) SDL_JoystickClose(PadState[Close].joy);
 	PadState[Close].joy = NULL;
@@ -341,7 +341,7 @@ void ConfigBox::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 
 // Notebook page changed
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
+void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 {	
 	// Save current settings now, don't wait for OK
 	if(ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
@@ -355,7 +355,7 @@ void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::ToBlank(bool ToBlank)
+void PADConfigDialognJoy::ToBlank(bool ToBlank)
 {
 	if (!ControlsCreated) return;
 
@@ -383,7 +383,7 @@ void ConfigBox::ToBlank(bool ToBlank)
 ///////////////////////////////////////////////////////////////////////////////////
 // Change settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetButtonTextAll(int id, const char *text)
+void PADConfigDialognJoy::SetButtonTextAll(int id, const char *text)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -394,7 +394,7 @@ void ConfigBox::SetButtonTextAll(int id, const char *text)
 	};
 }
 
-void ConfigBox::SaveButtonMappingAll(int Slot)
+void PADConfigDialognJoy::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < 4; i++)
 	{
@@ -405,7 +405,7 @@ void ConfigBox::SaveButtonMappingAll(int Slot)
 	}
 }
 
-void ConfigBox::UpdateGUIAll(int Slot)
+void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 {
 	if(Slot == -1)
 	{
@@ -423,7 +423,7 @@ void ConfigBox::UpdateGUIAll(int Slot)
 	}
 }
 
-void ConfigBox::ChangeSettings( wxCommandEvent& event )
+void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 {
 	switch(event.GetId())
 	{
@@ -519,7 +519,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 // Update GUI
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Called from: CreateGUIControls(), ChangeControllertype()
-void ConfigBox::UpdateGUI(int _notebookpage)
+void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 {
 	// If there are no good pads disable the entire notebook
 	if (NumGoodPads == 0)
@@ -597,7 +597,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 
 // Paint the background
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::OnPaint(wxPaintEvent &event)
+void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 {
 	event.Skip();
 
@@ -611,7 +611,7 @@ void ConfigBox::OnPaint(wxPaintEvent &event)
 
 // Populate the config window
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::CreateGUIControls()
+void PADConfigDialognJoy::CreateGUIControls()
 {
 	INFO_LOG(CONSOLE, "CreateGUIControls()\n");
 
@@ -739,7 +739,7 @@ void ConfigBox::CreateGUIControls()
 
 		 // Paint background. This allows objects to be visible on top of the picture
 		m_pKeys[i]->Connect(wxID_ANY, wxEVT_PAINT,
-			wxPaintEventHandler(ConfigBox::OnPaint),
+			wxPaintEventHandler(PADConfigDialognJoy::OnPaint),
 			(wxObject*)0, this);
 
 
@@ -1098,7 +1098,7 @@ void ConfigBox::CreateGUIControls()
 	ToBlank();
 }
 
-void ConfigBox::SizeWindow()
+void PADConfigDialognJoy::SizeWindow()
 {
 	SetClientSize(m_MainSizer->GetMinSize().GetWidth(), m_MainSizer->GetMinSize().GetHeight());
 }

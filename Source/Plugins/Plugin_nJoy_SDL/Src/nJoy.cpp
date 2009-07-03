@@ -56,7 +56,7 @@
    controllers. Joysticks[].ID will have the number of the physical input device mapped to that
    controller (this value range between 0 and the total number of connected physical devices). The
    mapping of a certain physical device to PadState[].joy is initially done by Initialize(), but
-   for the configuration we can remap that, like in ConfigBox::ChangeJoystick().
+   for the configuration we can remap that, like in PADConfigDialognJoy::ChangeJoystick().
 
    The joyinfo[] array holds the physical gamepad info for a certain physical device. It's therefore
    used as joyinfo[PadMapping[controller].ID] if we want to get the joyinfo for a certain joystick.
@@ -72,7 +72,7 @@
 
 // Declare config window so that we can write debugging info to it from functions in this file
 #if defined(HAVE_WX) && HAVE_WX
-	ConfigBox* m_frame;
+	PADConfigDialognJoy* m_ConfigFrame = NULL;
 #endif
 /////////////////////////
 
@@ -83,7 +83,6 @@
 
 #define _EXCLUDE_MAIN_ // Avoid certain declarations in nJoy.h
 FILE *pFile;
-HINSTANCE nJoy_hInst = NULL;
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
@@ -100,56 +99,67 @@ PLUGIN_GLOBALS* globals = NULL;
 	extern int fd;
 #endif
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// wxWidgets
-// ¯¯¯¯¯¯¯¯¯
-#if defined(HAVE_WX) && HAVE_WX
-	class wxDLLApp : public wxApp
-	{
-		bool OnInit()
-		{
-			return true;
-		}
-	};
+// Standard crap to make wxWidgets happy
+#ifdef _WIN32
+HINSTANCE g_hInstance;
 
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+#if defined(HAVE_WX) && HAVE_WX
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
- 
-//////////////////////////////////////////////////////////////////////////////////////////
-// DllMain
-// ¯¯¯¯¯¯¯
-#ifdef _WIN32
-BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
-						DWORD dwReason,		// reason called
-						LPVOID lpvReserved)	// reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+	DWORD dwReason,		// reason called
+	LPVOID lpvReserved)	// reserved
 {
 	switch (dwReason)
 	{
-		case DLL_PROCESS_ATTACH:
-		{       
-			//use wxInitialize() if you don't want GUI instead of the following 12 lines
+	case DLL_PROCESS_ATTACH:
+		{
+#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
-
-			if (!wxTheApp || !wxTheApp->CallOnInit() )
+			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
+#endif
 		}
-		break;
+		break; 
 
-		case DLL_PROCESS_DETACH:		
-			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
+	case DLL_PROCESS_DETACH:
+#if defined(HAVE_WX) && HAVE_WX
+		wxEntryCleanup();
+#endif
 		break;
-
-		default:
-			break;
+	default:
+		break;
 	}
 
-	nJoy_hInst = hinstDLL;
+	g_hInstance = hinstDLL;
 	return TRUE;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
 }
 #endif
 
@@ -187,43 +197,41 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
-	// Debugging
-	//	#ifdef SHOW_PAD_STATUS
-	//		Console::Open(100);
-	//		m_hConsole = Console::GetHwnd();
-	//	#endif
+#ifdef _WIN32
+	// Start the pads so we can use them in the configuration and advanced controls
+	if (!g_EmulatorRunning)
+	{
+		Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
 
-	#ifdef _WIN32
-		// Start the pads so we can use them in the configuration and advanced controls
-		if(!g_EmulatorRunning)
+		// Check if a DirectInput error occured
+		if (ReloadDLL())
 		{
-			Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
-
-			// Check if a DirectInput error occured
-			if(ReloadDLL())
-			{
-				PostMessage(_hParent, WM_USER, NJOY_RELOAD, 0);
-				return;
-			}
-		}
-
-		m_frame = new ConfigBox(NULL);
-		m_frame->Show();
-
-	#else
-		if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-		{
-			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			PostMessage(_hParent, WM_USER, NJOY_RELOAD, 0);
 			return;
 		}
+	}
+#else
+	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+		return;
+	}
+#endif
 
-		g_Config.Load();	// load settings
+	g_Config.Load();	// load settings
 
-		#if defined(HAVE_WX) && HAVE_WX
-			ConfigBox frame(NULL);
-			frame.ShowModal();
-		#endif
-	#endif
+#if defined(HAVE_WX) && HAVE_WX
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new PADConfigDialognJoy(GetParentedWxWindow(_hParent));
+	else if (!m_ConfigFrame->GetParent()->IsShown())
+		m_ConfigFrame->Close(true);
+
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+		m_ConfigFrame->ShowModal();
+	else
+		m_ConfigFrame->Hide();
+#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {}
@@ -257,7 +265,7 @@ void Initialize(void *init)
 
 	// Populate joyinfo for all attached devices if the configuration window is not already open
 #if defined(HAVE_WX) && HAVE_WX
-	if(!m_frame)
+	if(!m_ConfigFrame)
 	{
 		Search_Devices(joyinfo, NumPads, NumGoodPads);
 		// Check if a DirectInput error occured
@@ -273,7 +281,7 @@ void Initialize(void *init)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Information: This function can not be run twice without an Initialize in between. If
    it's run twice the SDL_...() functions below will cause a crash.
-   Called from: The Dolphin Core, ConfigBox::OnClose() */
+   Called from: The Dolphin Core, PADConfigDialognJoy::OnClose() */
 void Shutdown()
 {
 	INFO_LOG(CONSOLE, "Shutdown: %i\n", SDL_WasInit(0));
@@ -297,7 +305,7 @@ void Shutdown()
 	// Don't shutdown the gamepad if the configuration window is still showing
 	// Todo: Coordinate with the Wiimote plugin, SDL_Quit() will remove the pad for it to
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_frame) return;
+	if (m_ConfigFrame) return;
 #endif
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
@@ -663,7 +671,7 @@ return true;
 	HWND RenderingWindow = NULL; if (g_PADInitialize) RenderingWindow = g_PADInitialize->hWnd;
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
-	HWND Config = NULL; if (m_frame) Config = (HWND)m_frame->GetHWND();
+	HWND Config = NULL; if (m_ConfigFrame) Config = (HWND)m_ConfigFrame->GetHWND();
 	// Support both rendering to main window and not, and the config and eventual console window
 	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config || GetForegroundWindow() == m_hConsole)
 		return true;

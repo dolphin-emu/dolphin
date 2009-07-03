@@ -52,7 +52,6 @@ bool g_rumbleEnable = FALSE;
 
 // Rumble in windows
 #ifdef _WIN32
-HINSTANCE nJoy_hInst = NULL;
 #ifdef USE_RUMBLE_DINPUT_HACK
 LPDIRECTINPUT8          g_pDI = NULL;
 LPDIRECTINPUTDEVICE8    g_pDevice = NULL;
@@ -77,11 +76,12 @@ HRESULT SetDeviceForcesXY();
 	struct ff_effect effect;
 	bool CanRumble = false;
 #endif
+
+// Standard crap to make wxWidgets happy
 #ifdef _WIN32
+HINSTANCE g_hInstance;
+
 #if defined(HAVE_WX) && HAVE_WX
-//////////////////////////////////////////////////////////////////////////////////////////
-// wxWidgets
-// ¯¯¯¯¯¯¯¯¯
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -89,48 +89,58 @@ class wxDLLApp : public wxApp
 		return true;
 	}
 };
-
-IMPLEMENT_APP_NO_MAIN(wxDLLApp)
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// DllMain
-// ¯¯¯¯¯¯¯
-
-BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
-						DWORD dwReason,		// reason called
-						LPVOID lpvReserved)	// reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+	DWORD dwReason,		// reason called
+	LPVOID lpvReserved)	// reserved
 {
 	switch (dwReason)
 	{
-		case DLL_PROCESS_ATTACH:
-		{       
+	case DLL_PROCESS_ATTACH:
+		{
 #if defined(HAVE_WX) && HAVE_WX
-			//use wxInitialize() if you don't want GUI instead of the following 12 lines
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
-
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+			if (!wxTheApp || !wxTheApp->CallOnInit())
 				return FALSE;
 #endif
 		}
-		break;
+		break; 
 
-		case DLL_PROCESS_DETACH:		
+	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
-			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
+		wxEntryCleanup();
 #endif
 		break;
-
-		default:
-			break;
+	default:
+		break;
 	}
 
-	nJoy_hInst = hinstDLL;
+	g_hInstance = hinstDLL;
 	return TRUE;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
+
+PADConfigDialognJoy4* m_ConfigFrame = NULL;
+
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
 }
 #endif
 
@@ -167,36 +177,34 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {		
-	#ifdef _WIN32
+#ifdef _WIN32
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
 		return;
 	}
-
-	LoadConfig();	// load settings
-
-#if defined(HAVE_WX) && HAVE_WX
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigBox frame(&win);
-	frame.ShowModal();
-	win.SetHWND(0);
-#endif
-	#else
+#else
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
 		return;
 	}
+#endif
 
 	LoadConfig();	// load settings
 
 #if defined(HAVE_WX) && HAVE_WX
-	ConfigBox frame(NULL);
-	frame.ShowModal();
+	if (!m_ConfigFrame)
+		m_ConfigFrame = new PADConfigDialognJoy4(GetParentedWxWindow(_hParent));
+	else if (!m_ConfigFrame->GetParent()->IsShown())
+		m_ConfigFrame->Close(true);
+
+	// Only allow one open at a time
+	if (!m_ConfigFrame->IsShown())
+		m_ConfigFrame->ShowModal();
+	else
+		m_ConfigFrame->Hide();
 #endif
-	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
