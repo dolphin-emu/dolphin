@@ -102,7 +102,7 @@ static bool s_PluginInitialized = false;
 static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
 static volatile EFBAccessType s_AccessEFBType;
 static Common::Event s_AccessEFBDone;
-static Common::CriticalSection s_criticalEFB;
+static Common::CriticalSection s_criticalEFB, s_criticalAccess;
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -513,6 +513,7 @@ void Video_OnThreadAccessEFB()
 		break;
 
 	case POKE_COLOR:
+		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
 
 	default:
@@ -528,6 +529,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
 	u32 result;
 
+	s_criticalAccess.Enter();
+
 	s_criticalEFB.Enter();
 
 	s_AccessEFBType = type;
@@ -536,8 +539,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 	if (g_VideoInitialize.bUseDualCore)
 	{
-		g_EFBAccessRequested = true;
 		s_AccessEFBDone.Init();
+		g_EFBAccessRequested = true;	
 	}
 
 	s_criticalEFB.Leave();
@@ -548,11 +551,14 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		Video_OnThreadAccessEFB();
 
 	s_criticalEFB.Enter();
+
 	if (g_VideoInitialize.bUseDualCore)
 		s_AccessEFBDone.Shutdown();
 
 	result = s_AccessEFBResult;
 	s_criticalEFB.Leave();
+
+	s_criticalAccess.Leave();
 
 	return result;
 }

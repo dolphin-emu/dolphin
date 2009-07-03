@@ -39,6 +39,7 @@ namespace {
 static volatile bool fifoStateRun = false;
 static u8 *videoBuffer;
 static Common::Event fifo_exit_event;
+static Common::CriticalSection s_criticalFifo;
 // STATE_TO_SAVE
 static int size = 0;
 
@@ -46,11 +47,15 @@ static int size = 0;
 
 void Fifo_DoState(PointerWrap &p) 
 {
+	s_criticalFifo.Enter();
+
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
 	int pos = (int)(g_pVideoData - videoBuffer); // get offset
 	p.Do(pos); // read or write offset (depends on the mode afaik)
 	g_pVideoData = &videoBuffer[pos]; // overwrite g_pVideoData -> expected no change when load ss and change when save ss
+
+	s_criticalFifo.Leave();
 }
 
 void Fifo_Init()
@@ -153,6 +158,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
 		}
 
+		s_criticalFifo.Enter();
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
@@ -161,6 +167,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			int peek_counter = 0;
             while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 			{
+				if(!fifoStateRun)
+					break;
+
 				peek_counter++;
 				if (peek_counter == 1000) {
 					video_initialize.pPeekMessages();
@@ -218,6 +227,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			//video_initialize.pLog("..........................IDLE",FALSE);
 			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
         }
+		s_criticalFifo.Leave();
     }
 	fifo_exit_event.Set();
 	#ifdef SETUP_TIMER_WAITING
