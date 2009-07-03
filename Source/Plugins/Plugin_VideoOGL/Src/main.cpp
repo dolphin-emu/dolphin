@@ -102,7 +102,7 @@ static bool s_PluginInitialized = false;
 static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
 static volatile EFBAccessType s_AccessEFBType;
 static Common::Event s_AccessEFBDone;
-static Common::CriticalSection s_criticalEFB, s_criticalAccess;
+static Common::CriticalSection s_criticalEFB;
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -519,7 +519,8 @@ void Video_OnThreadAccessEFB()
 	default:
 		break;
 	}
-	
+
+	g_EFBAccessRequested = false;
 	s_AccessEFBDone.Set();
 
 	s_criticalEFB.Leave();
@@ -528,8 +529,6 @@ void Video_OnThreadAccessEFB()
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
 	u32 result;
-
-	s_criticalAccess.Enter();
 
 	s_criticalEFB.Enter();
 
@@ -540,7 +539,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 	if (g_VideoInitialize.bUseDualCore)
 	{
 		s_AccessEFBDone.Init();
-		g_EFBAccessRequested = true;	
+		g_EFBAccessRequested = true;
 	}
 
 	s_criticalEFB.Leave();
@@ -556,9 +555,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		s_AccessEFBDone.Shutdown();
 
 	result = s_AccessEFBResult;
-	s_criticalEFB.Leave();
 
-	s_criticalAccess.Leave();
+	s_criticalEFB.Leave();
 
 	return result;
 }

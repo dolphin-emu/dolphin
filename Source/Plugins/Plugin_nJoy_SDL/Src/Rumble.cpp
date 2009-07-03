@@ -76,24 +76,24 @@
 // Use PAD rumble
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-void Pad_Use_Rumble(u8 _numPAD)//, SPADStatus* _pPADStatus)
+void Pad_Use_Rumble(u8 _numPAD)
 {
-	#ifdef _WIN32
-
-	if (PadMapping[_numPAD].rumble) {
-		if (!g_Rumble) {
+#ifdef _WIN32
+	if (PadMapping[_numPAD].rumble)
+	{
+		if (!g_Rumble)
+		{
 			// GetForegroundWindow() always sends the good HWND
 			if (FAILED(InitRumble(GetForegroundWindow())))
 				PanicAlert("Could not initialize Rumble!");
-
-		} else {
+		} else
+		{
 			// Acquire gamepad
 			if (pRumble[_numPAD].g_pDevice != NULL)
 				pRumble[_numPAD].g_pDevice->Acquire();
 		}
 	}
-
-	#elif defined(__linux__)
+#elif defined(__linux__)
 	if (!fd)
 	{
 		sprintf(device_file_name, "/dev/input/event%d", PadMapping[_numPAD].eventnum); //TODO: Make dynamic //
@@ -125,7 +125,7 @@ void Pad_Use_Rumble(u8 _numPAD)//, SPADStatus* _pPADStatus)
 			CanRumble = false; //We have effects but it doesn't support the rumble we are using. This is basic rumble, should work for most
 		}
 	}
-	#endif
+#endif
 }
 
 ////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	Pad_Use_Rumble(_numPAD);
 
 	// SDL can't rumble the gamepad so we need to use platform specific code
-	#ifdef _WIN32
+#ifdef _WIN32
 	int a = 0;
 
 	if (_uType == 1)
@@ -158,7 +158,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		SetDeviceForcesXY(_numPAD, a);
 	}
 
-	#elif defined(__linux__)
+#elif defined(__linux__)
 	struct input_event event;
 	if (CanRumble)
 	{
@@ -183,7 +183,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 			}
 		}
 	}
-	#endif
+#endif
 }
 
 #ifdef _WIN32

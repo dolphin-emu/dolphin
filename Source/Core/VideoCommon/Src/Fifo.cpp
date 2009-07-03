@@ -146,19 +146,19 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		video_initialize.pPeekMessages();
 #endif
 
-		if (g_EFBAccessRequested)
-		{
-			Video_OnThreadAccessEFB();
-			g_EFBAccessRequested = false;
-		}
-
 		// Draw XFB if CP/GPfifo isn't used
 		if (g_XFBUpdateRequested)
 		{
 			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
 		}
 
+		if (g_EFBAccessRequested)
+		{
+			Video_OnThreadAccessEFB();
+		}
+
 		s_criticalFifo.Enter();
+
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {

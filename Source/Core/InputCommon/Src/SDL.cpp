@@ -161,6 +161,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 	}
 	else
 	{
+		// XInput triggers for Xbox360 pads
 		_PadState.axis[CTL_L_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_L_SHOULDER] - 1000);
 		_PadState.axis[CTL_R_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_R_SHOULDER] - 1000);
 	}
@@ -176,9 +177,12 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 	ReadButton(_PadState, _PadMapping, CTL_Z_TRIGGER, NumButtons);
 	ReadButton(_PadState, _PadMapping, CTL_START, NumButtons);
 
-	//
-	if (_PadMapping.halfpress < NumButtons)
+	// Update Halfpress state, this one is not in the standard _PadState.buttons array
+	if (_PadMapping.halfpress < NumButtons && _PadMapping.halfpress >= 0)
 		_PadState.halfpress = SDL_JoystickGetButton(_PadState.joy, _PadMapping.halfpress);
+	else
+		_PadState.halfpress = 0;
+
 
 	// Check if we have an analog or digital joypad
 	if (_PadMapping.controllertype == CTL_DPAD_HAT)
@@ -187,8 +191,8 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 	}
 	else
 	{
-		/* Only do this if the assigned button is in range (to allow for the current way of saving keyboard
-		   keys in the same array) */
+		// Only do this if the assigned button is in range (to allow for the current way of saving keyboard
+		// keys in the same array) 
 		if(_PadMapping.dpad2[CTL_D_PAD_UP] <= NumButtons)
 			_PadState.dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_UP]);
 		if(_PadMapping.dpad2[CTL_D_PAD_DOWN] <= NumButtons)
@@ -199,7 +203,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 			_PadState.dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_RIGHT]);
 	}
 
-	#ifdef SHOW_PAD_STATUS
+#ifdef SHOW_PAD_STATUS
 	// Show the status of all connected pads
 	//if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console::ClearScreen();	
 	g_LastPad = Controller;
@@ -228,7 +232,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 			_PadState.dpad,
 			_PadState.dpad2[InputCommon::CTL_D_PAD_UP], _PadState.dpad2[InputCommon::CTL_D_PAD_DOWN]
 		);
-	#endif
+#endif
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 
