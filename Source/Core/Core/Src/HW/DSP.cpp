@@ -170,6 +170,9 @@ u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 							// 0x43 -> written by OSAudioInit at the UCode upload (upload UCode)
 							// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
 
+
+Common::PluginDSP *dsp_plugin;
+
 void DoState(PointerWrap &p)
 {
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
@@ -197,6 +200,8 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 
 void Init()
 {
+	dsp_plugin = CPluginManager::GetInstance().GetDSP();
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		// On the Wii, ARAM is simply mapped to EXRAM.
@@ -217,6 +222,7 @@ void Shutdown()
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		FreeMemoryPages(g_ARAM, ARAM_SIZE);
 	g_ARAM = NULL;
+	dsp_plugin = NULL;
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -224,34 +230,34 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	// WTF is this check about? DSP is at 5000    TODO remove
 	if ((_iAddress & 0x6C00) !=  0x6c00)
 	{
-		if (_iAddress != 0xCC005004) {
+		if (_iAddress != 0xCC005004)
+		{
 			DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x", _iAddress);
 		}
-		Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 		switch (_iAddress & 0xFFFF)
 		{
 		// ==================================================================================
 		// AI_REGS 0x5000+
 		// ==================================================================================
 		case DSP_MAIL_TO_DSP_HI:
-			_uReturnValue = dsp->DSP_ReadMailboxHigh(true);
+			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
 			return;
 
 		case DSP_MAIL_TO_DSP_LO:
-			_uReturnValue = dsp->DSP_ReadMailboxLow(true);
+			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(true);
 			return;
 
 		case DSP_MAIL_FROM_DSP_HI:
-			_uReturnValue = dsp->DSP_ReadMailboxHigh(false);
+			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
 			return;
 
 		case DSP_MAIL_FROM_DSP_LO:
-			_uReturnValue = dsp->DSP_ReadMailboxLow(false);
+			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(false);
 			return;
 
 		case DSP_CONTROL:
 			_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
-							(dsp->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+							(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
 			return;
 
 		// ==================================================================================
@@ -311,7 +317,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 void Write16(const u16 _Value, const u32 _Address)
 {
 	DEBUG_LOG(DSPINTERFACE, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
-	Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
+
 	switch(_Address & 0xFFFF)
 	{
 	// ==================================================================================
@@ -319,11 +325,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	// ==================================================================================
 
 	case DSP_MAIL_TO_DSP_HI:
-		dsp->DSP_WriteMailboxHigh(true, _Value);
+		dsp_plugin->DSP_WriteMailboxHigh(true, _Value);
 		break;
 
 	case DSP_MAIL_TO_DSP_LO:
-		dsp->DSP_WriteMailboxLow(true, _Value);
+		dsp_plugin->DSP_WriteMailboxLow(true, _Value);
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
@@ -341,7 +347,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UDSPControl tmpControl;
 			tmpControl.Hex = (_Value & ~DSP_CONTROL_MASK) |
-							(dsp->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
+							(dsp_plugin->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
 			// Update DSP related flags
 			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
@@ -452,12 +458,11 @@ void Write16(const u16 _Value, const u32 _Address)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-    Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
 		// to be mixed with the disc streaming output. If that audio queue fills up, we delay the emulator.
 		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
-		dsp->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
+		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
 
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
