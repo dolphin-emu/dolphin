@@ -35,14 +35,17 @@
 #include "WxUtils.h"
 
 #if USE_XPM_BITMAPS
-    #include "../resources/Flag_Europe.xpm"
-    #include "../resources/Flag_France.xpm"
+	#include "../resources/Flag_Europe.xpm"
+	#include "../resources/Flag_France.xpm"
 	#include "../resources/Flag_Italy.xpm"
-    #include "../resources/Flag_Japan.xpm"
+	#include "../resources/Flag_Japan.xpm"
+	#include "../resources/Flag_USA.xpm"
+	#include "../resources/Flag_Taiwan.xpm"
+	#include "../resources/Flag_Unknown.xpm"
+
 	#include "../resources/Platform_Wad.xpm"
-    #include "../resources/Flag_USA.xpm"
-    #include "../resources/Platform_Wii.xpm"
-    #include "../resources/Platform_Gamecube.xpm"
+	#include "../resources/Platform_Wii.xpm"
+	#include "../resources/Platform_Gamecube.xpm"
 #endif // USE_XPM_BITMAPS
 
 size_t CGameListCtrl::m_currentItem = 0;
@@ -58,14 +61,14 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 
 	switch (one.GetCountry())
 	{
-	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_JAPAN:;
 	case DiscIO::IVolume::COUNTRY_USA:indexOne = 0; break;
 	default: indexOne = (int)SConfig::GetInstance().m_InterfaceLanguage;
 	}
 
 	switch (other.GetCountry())
 	{
-	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_JAPAN:;
 	case DiscIO::IVolume::COUNTRY_USA:indexOther = 0; break;
 	default: indexOther = (int)SConfig::GetInstance().m_InterfaceLanguage;
 	}
@@ -116,17 +119,25 @@ void CGameListCtrl::InitBitmaps()
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	wxIcon iconTemp;
+
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_France_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Italy_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_USA_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Japan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAP] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm)); // TODO add korea flag
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Italy_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Taiwan_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] = m_imageListSmall->Add(iconTemp);
+
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(iconTemp);
 
 	m_PlatformImageIndex.resize(3);
@@ -308,7 +319,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	switch (rISOFile.GetCountry())
 	{
-	case DiscIO::IVolume::COUNTRY_JAP:
+	case DiscIO::IVolume::COUNTRY_JAPAN:
 		// keep these codes, when we move to wx unicode...
 		//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 		//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
@@ -526,7 +537,11 @@ void CGameListCtrl::ScanForISOs()
 
 				switch(ISOFile.GetCountry())
 				{
-				case DiscIO::IVolume::COUNTRY_JAP:
+				case DiscIO::IVolume::COUNTRY_TAIWAN: 
+				case DiscIO::IVolume::COUNTRY_KOREA:
+					// TODO: Add these to interface choices, or combine with japan?
+					break;
+				case DiscIO::IVolume::COUNTRY_JAPAN:
 					if (!SConfig::GetInstance().m_ListJap)
 						list = false;
 					break;
@@ -593,14 +608,14 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 
 	switch (iso1->GetCountry())
 	{
-	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_JAPAN:;
 	case DiscIO::IVolume::COUNTRY_USA:indexOne = 0; break;
 	default: indexOne = (int)SConfig::GetInstance().m_InterfaceLanguage;
 	}
 
 	switch (iso2->GetCountry())
 	{
-	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_JAPAN:;
 	case DiscIO::IVolume::COUNTRY_USA:indexOther = 0; break;
 	default: indexOther = (int)SConfig::GetInstance().m_InterfaceLanguage;
 	}

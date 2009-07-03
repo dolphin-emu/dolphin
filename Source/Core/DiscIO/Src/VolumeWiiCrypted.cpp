@@ -121,63 +121,12 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 {
 	if (!m_pReader)
-	{
-		return(COUNTRY_UNKNOWN);
-	}
+		return COUNTRY_UNKNOWN;
 
 	u8 CountryCode;
 	m_pReader->Read(3, 1, &CountryCode);
 
-	ECountry country = COUNTRY_UNKNOWN;
-
-	switch (CountryCode)
-	{
-		case 'S':
-			country = COUNTRY_EUROPE;
-			break; // PAL // <- that is shitty :) zelda demo disc
-
-		case 'P':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'D':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'F':
-			country = COUNTRY_FRANCE;
-			break; // PAL
-
-		case 'I':
-			country = COUNTRY_ITALY;
-			break; // PAL
-
-		case 'X':
-			country = COUNTRY_EUROPE;
-			break; // XIII <- uses X but is PAL rip
-
-		case 'E':
-			country = COUNTRY_USA;
-			break; // USA
-
-		case 'J':
-			country = COUNTRY_JAP;
-			break; // JAP
-
-		case 'K':
-			country = COUNTRY_KOR;
-			break; // KOR
-
-		case 'O':
-			country = COUNTRY_UNKNOWN;
-			break; // SDK
-
-		default:
-			PanicAlert("Unknown Country Code!");
-			break;
-	}
-
-	return(country);
+	return CountrySwitch(CountryCode);
 }
 
 std::string CVolumeWiiCrypted::GetMakerID() const

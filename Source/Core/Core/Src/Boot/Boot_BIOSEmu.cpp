@@ -65,11 +65,11 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	//
 	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write boot info needed for multidisc games
 
-	Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:	    rfi
-	Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:	    rfi	
+	Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:		rfi
+	Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:		rfi	
 	Memory::Write_U32(0x4c000064,	0x80000C00);	// write default Syscall Handler:   rfi	
-	Memory::Write_U32(0xc2339f3d,   0x8000001C);    // game disc
-	Memory::Write_U32(0x0D15EA5E,   0x80000020);    // booted from bootrom. 0xE5207C22 = booted from jtag
+	Memory::Write_U32(0xc2339f3d,   0x8000001C);	// game disc
+	Memory::Write_U32(0x0D15EA5E,   0x80000020);	// booted from bootrom. 0xE5207C22 = booted from jtag
 	Memory::Write_U32(0x01800000,	0x80000028);	// Physical Memory Size
 
 	// On any of the production boards, ikaruga fails to read the memcard the first time. It succeeds on the second time though.
@@ -83,9 +83,9 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 	// Load Apploader to Memory - The apploader is hardcoded to begin at byte 9 280 on the disc,
 	// but it seems like the size can be variable. Compare with yagcd chap 13.
-	// 
+
 	PowerPC::ppcState.gpr[1] = 0x816ffff0;			// StackPointer
-	u32 iAppLoaderOffset = 0x2440;                  // 0x1c40 - 2MB lower...perhaps used on early GCMs? MYSTERY OLD COMMENT
+	u32 iAppLoaderOffset = 0x2440;					// 0x1c40 - 2MB lower...perhaps used on early GCMs? MYSTERY OLD COMMENT
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
 	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
@@ -98,15 +98,15 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	u32 iAppLoaderFuncAddr = 0x80003100;
 	PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 	PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-	PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;	
+	PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
 	RunFunction(iAppLoaderEntry);
 	u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 0);
 	u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 4);
 	u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 8);
-	
+
 	// iAppLoaderInit
 	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
-	PowerPC::ppcState.gpr[3] = 0x81300000; 
+	PowerPC::ppcState.gpr[3] = 0x81300000;
 	RunFunction(iAppLoaderInit);
 	
 	// iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
@@ -141,136 +141,139 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// return
 	PC = PowerPC::ppcState.gpr[3];
 
-    // --- preinit some stuff from bios ---
+	// --- preinit some stuff from bios ---
 
-    // Bus Clock Speed
-    Memory::Write_U32(0x09a7ec80, 0x800000F8);
-    // CPU Clock Speed
-    Memory::Write_U32(0x1cf7c580, 0x800000FC);
+	// Bus Clock Speed
+	Memory::Write_U32(0x09a7ec80, 0x800000F8);
+	// CPU Clock Speed
+	Memory::Write_U32(0x1cf7c580, 0x800000FC);
 
-    // fake the VI Init of the BIOS 
-    Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC 
-		      ? 0 : 1, 0x800000CC);
+	// fake the VI Init of the BIOS 
+	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC 
+			  ? 0 : 1, 0x800000CC);
 
-    // preset time base ticks
-    Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
+	// preset time base ticks
+	Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
 }
 
 
 bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 {
-    INFO_LOG(BOOT, "Setup Wii Memory...");
+	INFO_LOG(BOOT, "Setup Wii Memory...");
 
-    // Write the 256 byte setting.txt to memory. This may not be needed as
-    // most or all games read the setting.txt file from
-    // \title\00000001\00000002\data\setting.txt directly after the read the
-    // SYSCONF file. The games also read it to 0x3800, what is a little strange
-    // however is that it only reads the first 100 bytes of it.
-    std::string filename(File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING);
-    switch((DiscIO::IVolume::ECountry)_CountryCode)
-    {
-    case DiscIO::IVolume::COUNTRY_JAP:
-        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
-        break;
+	// Write the 256 byte setting.txt to memory. This may not be needed as
+	// most or all games read the setting.txt file from
+	// \title\00000001\00000002\data\setting.txt directly after the read the
+	// SYSCONF file. The games also read it to 0x3800, what is a little strange
+	// however is that it only reads the first 100 bytes of it.
+	std::string filename(File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING);
+	switch((DiscIO::IVolume::ECountry)_CountryCode)
+	{
+	case DiscIO::IVolume::COUNTRY_KOREA:
+	case DiscIO::IVolume::COUNTRY_TAIWAN: 
+		// TODO: Determine if Korea / Taiwan have their own specific settings.
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
+		break;
 
-    case DiscIO::IVolume::COUNTRY_USA:
-        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
-        break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
+		break;
 
-    case DiscIO::IVolume::COUNTRY_EUROPE:
-        filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
-        break;
+	case DiscIO::IVolume::COUNTRY_EUROPE:
+		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
+		break;
 
-    default:
-        // PanicAlert("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
-        filename = WII_EUR_SETTING_FILE;
-        break;
-    }
+	default:
+		// PanicAlert("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
+		filename = WII_EUR_SETTING_FILE;
+		break;
+	}
 
-    FILE* pTmp = fopen(filename.c_str(), "rb");
-    if (!pTmp)
-    {
-        PanicAlert("SetupWiiMem: Cant find setting file");	
-        return false;
-    }
+	FILE* pTmp = fopen(filename.c_str(), "rb");
+	if (!pTmp)
+	{
+		PanicAlert("SetupWiiMem: Cant find setting file");	
+		return false;
+	}
 
-    fread(Memory::GetPointer(0x3800), 256, 1, pTmp);
-    fclose(pTmp);
+	fread(Memory::GetPointer(0x3800), 256, 1, pTmp);
+	fclose(pTmp);
 
 
-    /* Set hardcoded global variables to Wii memory. These are partly collected from
-    Wiibrew. These values are needed for the games to function correctly. A few
-    values in this region will also be placed here by the game as it boots.
-    They are:
+	/* Set hardcoded global variables to Wii memory. These are partly collected from
+	Wiibrew. These values are needed for the games to function correctly. A few
+	values in this region will also be placed here by the game as it boots.
+	They are:
 
-    // Strange values that I don't know the meaning of, all games write these
-    0x00 to 0x18:	0x029f0010
-    0x029f0033
-    0x029f0034
-    0x029f0035
-    0x029f0036
-    0x029f0037
-    0x029f0038
-    0x029f0039 // Replaces the previous 0x5d1c9ea3 magic word
+	// Strange values that I don't know the meaning of, all games write these
+	0x00 to 0x18:	0x029f0010
+	0x029f0033
+	0x029f0034
+	0x029f0035
+	0x029f0036
+	0x029f0037
+	0x029f0038
+	0x029f0039 // Replaces the previous 0x5d1c9ea3 magic word
 
-    0x80000038	Start of FST
-    0x8000003c	Size of FST Size
-    0x80000060	Copyright code */	
+	0x80000038	Start of FST
+	0x8000003c	Size of FST Size
+	0x80000060	Copyright code */	
 
-    DVDInterface::DVDRead(0x00000000, 0x00000000, 10); // Game Code
-    Memory::Write_U32(0x5d1c9ea3, 0x00000018);		// Magic word it is a wii disc
-    Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
-    Memory::Write_U32(0x00000001, 0x00000024);		// Unknown
-    Memory::Write_U32(0x01800000, 0x00000028);		// MEM1 size 24MB
-    Memory::Write_U32(0x00000023, 0x0000002c);		// Production Board Model
-    Memory::Write_U32(0x00000000, 0x00000030);		// Init
-    Memory::Write_U32(0x817FEC60, 0x00000034);		// Init
-    // 38, 3C should get start, size of FST through apploader
-    Memory::Write_U32(0x38a00040, 0x00000060);		// Exception init
-    Memory::Write_U32(0x8008f7b8, 0x000000e4);		// Thread Init
-    Memory::Write_U32(0x01800000, 0x000000f0);		// "Simulated memory size" (debug mode?)
-    Memory::Write_U32(0x8179b500, 0x000000f4);		// __start
-    Memory::Write_U32(0x0e7be2c0, 0x000000f8);		// Bus speed
-    Memory::Write_U32(0x2B73A840, 0x000000fc);		// CPU speed
-    Memory::Write_U16(0x0000,     0x000030e6);		// Console type
-    Memory::Write_U32(0x00000000, 0x000030c0);		// EXI
-    Memory::Write_U32(0x00000000, 0x000030c4);		// EXI
-    Memory::Write_U32(0x00000000, 0x000030dc);		// Time
-    Memory::Write_U32(0x00000000, 0x000030d8);		// Time
-    Memory::Write_U32(0x00000000, 0x000030f0);		// Apploader
-    Memory::Write_U32(0x01800000, 0x00003100);		// BAT
-    Memory::Write_U32(0x01800000, 0x00003104);		// BAT
-    Memory::Write_U32(0x00000000, 0x0000310c);		// Init
-    Memory::Write_U32(0x8179d500, 0x00003110);		// Init
-    Memory::Write_U32(0x04000000, 0x00003118);		// Unknown
-    Memory::Write_U32(0x04000000, 0x0000311c);		// BAT
-    Memory::Write_U32(0x93400000, 0x00003120);		// BAT
-    Memory::Write_U32(0x90000800, 0x00003124);		// Init - MEM2 low
-    Memory::Write_U32(0x93ae0000, 0x00003128);		// Init - MEM2 high
-    Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low       
-    Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
-    Memory::Write_U32(0x00000011, 0x00003138);		// Console type
+	DVDInterface::DVDRead(0x00000000, 0x00000000, 10); // Game Code
+	Memory::Write_U32(0x5d1c9ea3, 0x00000018);		// Magic word it is a wii disc
+	Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
+	Memory::Write_U32(0x00000001, 0x00000024);		// Unknown
+	Memory::Write_U32(0x01800000, 0x00000028);		// MEM1 size 24MB
+	Memory::Write_U32(0x00000023, 0x0000002c);		// Production Board Model
+	Memory::Write_U32(0x00000000, 0x00000030);		// Init
+	Memory::Write_U32(0x817FEC60, 0x00000034);		// Init
+	// 38, 3C should get start, size of FST through apploader
+	Memory::Write_U32(0x38a00040, 0x00000060);		// Exception init
+	Memory::Write_U32(0x8008f7b8, 0x000000e4);		// Thread Init
+	Memory::Write_U32(0x01800000, 0x000000f0);		// "Simulated memory size" (debug mode?)
+	Memory::Write_U32(0x8179b500, 0x000000f4);		// __start
+	Memory::Write_U32(0x0e7be2c0, 0x000000f8);		// Bus speed
+	Memory::Write_U32(0x2B73A840, 0x000000fc);		// CPU speed
+	Memory::Write_U16(0x0000,     0x000030e6);		// Console type
+	Memory::Write_U32(0x00000000, 0x000030c0);		// EXI
+	Memory::Write_U32(0x00000000, 0x000030c4);		// EXI
+	Memory::Write_U32(0x00000000, 0x000030dc);		// Time
+	Memory::Write_U32(0x00000000, 0x000030d8);		// Time
+	Memory::Write_U32(0x00000000, 0x000030f0);		// Apploader
+	Memory::Write_U32(0x01800000, 0x00003100);		// BAT
+	Memory::Write_U32(0x01800000, 0x00003104);		// BAT
+	Memory::Write_U32(0x00000000, 0x0000310c);		// Init
+	Memory::Write_U32(0x8179d500, 0x00003110);		// Init
+	Memory::Write_U32(0x04000000, 0x00003118);		// Unknown
+	Memory::Write_U32(0x04000000, 0x0000311c);		// BAT
+	Memory::Write_U32(0x93400000, 0x00003120);		// BAT
+	Memory::Write_U32(0x90000800, 0x00003124);		// Init - MEM2 low
+	Memory::Write_U32(0x93ae0000, 0x00003128);		// Init - MEM2 high
+	Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low
+	Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
+	Memory::Write_U32(0x00000011, 0x00003138);		// Console type
 	// 40 is copied from 88 after running apploader
 	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format
 	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
-    Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
+	Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
 	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
 
-    Memory::Write_U8(0x80, 0x0000315c);				// OSInit
-    Memory::Write_U8(0x00, 0x00000006);				// DVDInit
-    Memory::Write_U8(0x00, 0x00000007);				// DVDInit
-    Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
-    Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
+	Memory::Write_U8(0x80, 0x0000315c);				// OSInit
+	Memory::Write_U8(0x00, 0x00000006);				// DVDInit
+	Memory::Write_U8(0x00, 0x00000007);				// DVDInit
+	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
+	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 
-    // Fake the VI Init of the BIOS 
-    Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
+	// Fake the VI Init of the BIOS 
+	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
-    // Clear exception handler. Why? Don't we begin with only zeros?
-    for (int i = 0x3000; i <= 0x3038; i += 4)
-    {
-        Memory::Write_U32(0x00000000, 0x80000000 + i);
-    }	
-    return true;
+	// Clear exception handler. Why? Don't we begin with only zeros?
+	for (int i = 0x3000; i <= 0x3038; i += 4)
+	{
+		Memory::Write_U32(0x00000000, 0x80000000 + i);
+	}
+	return true;
 }
 
 // __________________________________________________________________________________________________
@@ -283,28 +286,28 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 {	
 	INFO_LOG(BOOT, "Faking Wii BIOS...");
 
-    // setup wii memory
-    DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
-    if (VolumeHandler::IsValid())
-        CountryCode = VolumeHandler::GetVolume()->GetCountry();
-    if (SetupWiiMemory(CountryCode) == false)
-        return false;
+	// setup wii memory
+	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
+	if (VolumeHandler::IsValid())
+		CountryCode = VolumeHandler::GetVolume()->GetCountry();
+	if (SetupWiiMemory(CountryCode) == false)
+		return false;
 
-    // This is some kind of consistency check that is compared to the 0x00
-    // values as the game boots. This location keep the 4 byte ID for as long
-    // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
-    // after this check during booting. 
-    VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
+	// This is some kind of consistency check that is compared to the 0x00
+	// values as the game boots. This location keep the 4 byte ID for as long
+	// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
+	// after this check during booting. 
+	VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
 
 	// Execute the apploader
-    if (VolumeHandler::IsValid() && VolumeHandler::IsWii())	
+	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())	
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;
 
 		Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:		rfi
-		Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:	    rfi	
-		Memory::Write_U32(0x4c000064,	0x80000C00);	// write default Syscall Handler:	rfi	
+		Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:		rfi
+		Memory::Write_U32(0x4c000064,	0x80000C00);	// write default Syscall Handler:	rfi
 
 		Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
 

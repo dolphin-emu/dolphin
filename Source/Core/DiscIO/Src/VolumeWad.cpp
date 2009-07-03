@@ -57,58 +57,12 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 		return COUNTRY_UNKNOWN;
 
 	u8 CountryCode;
-
 	u32 Offset = ALIGN_40(hdr_size) + ALIGN_40(cert_size);
 
 	// read the last digit of the titleID in the ticket
 	Read(Offset + 0x01E3, 1, &CountryCode);
 
-	ECountry country = COUNTRY_UNKNOWN;
-
-	switch (CountryCode)
-	{
-		case 'S':
-			country = COUNTRY_EUROPE;
-			break; // PAL // <- that is shitty :) zelda demo disc
-
-		case 'P':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'D':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'F':
-			country = COUNTRY_FRANCE;
-			break; // PAL
-
-		case 'I':
-			country = COUNTRY_ITALY;
-			break; // PAL
-
-		case 'X':
-			country = COUNTRY_EUROPE;
-			break; // XIII <- uses X but is PAL
-
-		case 'E':
-			country = COUNTRY_USA;
-			break; // USA
-
-		case 'J':
-			country = COUNTRY_JAP;
-			break; // JAP
-
-		case 'O':
-			country = COUNTRY_UNKNOWN;
-			break; // SDK
-
-		default:
-			country = COUNTRY_UNKNOWN;
-			break;
-	}
-
-	return(country);
+	return CountrySwitch(CountryCode);
 }
 
 std::string CVolumeWAD::GetUniqueID() const

@@ -537,6 +537,58 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\VolumeCommon.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugFast|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugFast|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ForcedIncludeFiles="stdafx.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Src\VolumeCreator.cpp"
 				>
 				<FileConfiguration

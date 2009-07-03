@@ -52,9 +52,11 @@ class IVolume
 			COUNTRY_EUROPE = 0,
 			COUNTRY_FRANCE = 1,
 			COUNTRY_USA = 2,
-			COUNTRY_JAP,
-			COUNTRY_KOR,
+			COUNTRY_JAPAN,
+			COUNTRY_KOREA,
 			COUNTRY_ITALY,
+			COUNTRY_TAIWAN,
+			COUNTRY_SDK,
 			COUNTRY_UNKNOWN,
 			NUMBER_OF_COUNTRIES
 		};
@@ -62,6 +64,10 @@ class IVolume
 		virtual ECountry GetCountry() const = 0;
 		virtual u64 GetSize() const = 0;
 };
+
+// Generic Switch function for all volumes
+IVolume::ECountry CountrySwitch(u8 CountryCode);
+
 } // namespace
 
 #endif

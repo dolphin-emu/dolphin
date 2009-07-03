@@ -163,52 +163,7 @@ IVolume::ECountry CVolumeDirectory::GetCountry() const
 	
 	u8 CountryCode = m_diskHeader[3];
 
-	ECountry country = COUNTRY_UNKNOWN;
-
-	switch (CountryCode)
-	{
-		case 'S':
-			country = COUNTRY_EUROPE;
-			break; // PAL <- that is shitty :) zelda demo disc
-
-		case 'P':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'D':
-			country = COUNTRY_EUROPE;
-			break; // PAL
-
-		case 'F':
-			country = COUNTRY_FRANCE;
-			break; // PAL
-		
-		case 'I':
-			country = COUNTRY_ITALY;
-			break; // PAL
-
-		case 'X':
-			country = COUNTRY_EUROPE;
-			break; // XIII <- uses X but is PAL rip
-
-		case 'E':
-			country = COUNTRY_USA;
-			break; // USA
-
-		case 'J':
-			country = COUNTRY_JAP;
-			break; // JAP
-
-		case 'O':
-			country = COUNTRY_UNKNOWN;
-			break; // SDK
-
-		default:
-			country = COUNTRY_UNKNOWN;
-			break;
-	}
-
-	return(country);
+	return CountrySwitch(CountryCode);
 }
 
 std::string CVolumeDirectory::GetMakerID() const
@@ -250,18 +205,12 @@ u64 CVolumeDirectory::GetSize() const
 	return 0;
 }
 
-static const char DIR_SEPARATOR =
-#ifdef _WIN32
-	'\\';
-#else
-	'/';
-#endif
 
 std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
 {
 	std::string directoryName = _rDirectory;
 
-	size_t lastSep = directoryName.find_last_of(DIR_SEPARATOR);
+	size_t lastSep = directoryName.find_last_of(DIR_SEP_CHR);
 
 	if(lastSep != directoryName.size() - 1)
 	{

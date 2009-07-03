@@ -109,7 +109,10 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 					Region = USA_DIR; 
 					break;
 
-				case DiscIO::IVolume::COUNTRY_JAP:
+				case DiscIO::IVolume::COUNTRY_TAIWAN:
+				case DiscIO::IVolume::COUNTRY_KOREA:
+					// TODO: Should these have their own Region Dir?
+				case DiscIO::IVolume::COUNTRY_JAPAN:
 					bNTSC = true;
 					Region = JAP_DIR; 
 					break;

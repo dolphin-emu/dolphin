@@ -121,15 +121,28 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_EUROPE:
+		m_Country->SetValue(wxString::FromAscii("EUROPE"));
+		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
+		m_Country->SetValue(wxString::FromAscii("FRANCE"));
+		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
-		m_Country->SetValue(wxString::FromAscii("EUR"));
+		m_Country->SetValue(wxString::FromAscii("ITALY"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(wxString::FromAscii("USA"));
 		break;
-	case DiscIO::IVolume::COUNTRY_JAP:
-		m_Country->SetValue(wxString::FromAscii("JAP"));
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+		m_Country->SetValue(wxString::FromAscii("JAPAN"));
+		break;
+	case DiscIO::IVolume::COUNTRY_KOREA:
+		m_Country->SetValue(wxString::FromAscii("KOREA"));
+		break;
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
+		m_Country->SetValue(wxString::FromAscii("TAIWAN"));
+		break;
+	case DiscIO::IVolume::COUNTRY_SDK:
+		m_Country->SetValue(wxString::FromAscii("No Country (SDK)"));
 		break;
 	default:
 		m_Country->SetValue(wxString::FromAscii("UNKNOWN"));

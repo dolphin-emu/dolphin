@@ -949,6 +949,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resources\Flag_Taiwan.xpm"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\Flag_Unknown.xpm"
+				>
+			</File>
+			<File
 				RelativePath=".\resources\Flag_USA.xpm"
 				>
 			</File>
