@@ -381,7 +381,10 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
 	// check for seperator
 	if (_CompleteFilename[_CompleteFilename.size() - 1] != DIR_SEP_CHR)
 	{
-		_CompleteFilename += DIR_SEP_CHR;
+#ifdef _WIN32
+		if (_CompleteFilename[_CompleteFilename.size() - 1] != '\\')
+#endif
+			_CompleteFilename += DIR_SEP_CHR;
 	}
 
 	// add the filename
