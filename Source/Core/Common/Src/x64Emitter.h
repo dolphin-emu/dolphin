@@ -409,7 +409,6 @@ public:
 	void SQRTSS(X64Reg regOp, OpArg arg); 
 	void SQRTSD(X64Reg regOp, OpArg arg); 
 	void RSQRTSS(X64Reg regOp, OpArg arg);
-	void RSQRTSD(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point bitwise (yes)
 	void CMPSS(X64Reg regOp, OpArg arg, u8 compare);  
@@ -441,7 +440,6 @@ public:
 	void SQRTPS(X64Reg regOp, OpArg arg);
 	void SQRTPD(X64Reg regOp, OpArg arg);
 	void RSQRTPS(X64Reg regOp, OpArg arg);
-	void RSQRTPD(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point packed bitwise (x4 for float, x2 for double)
 	void ANDPS(X64Reg regOp, OpArg arg); 

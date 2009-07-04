@@ -1086,7 +1086,6 @@ enum NormalSSEOps
 	void XEmitter::SQRTSS(X64Reg regOp, OpArg arg)  {WriteSSEOp(32, sseSQRT, false, regOp, arg);}
 	void XEmitter::SQRTSD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseSQRT, false, regOp, arg);}
 	void XEmitter::RSQRTSS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, sseRSQRT, false, regOp, arg);}
-	void XEmitter::RSQRTSD(X64Reg regOp, OpArg arg) {WriteSSEOp(64, sseRSQRT, false, regOp, arg);}
 
 	void XEmitter::ADDPS(X64Reg regOp, OpArg arg)   {WriteSSEOp(32, sseADD, true, regOp, arg);}
 	void XEmitter::ADDPD(X64Reg regOp, OpArg arg)   {WriteSSEOp(64, sseADD, true, regOp, arg);}
@@ -1113,7 +1112,6 @@ enum NormalSSEOps
 	void XEmitter::SQRTPS(X64Reg regOp, OpArg arg)  {WriteSSEOp(32, sseSQRT, true, regOp, arg);}
 	void XEmitter::SQRTPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseSQRT, true, regOp, arg);}
 	void XEmitter::RSQRTPS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, sseRSQRT, true, regOp, arg);}
-	void XEmitter::RSQRTPD(X64Reg regOp, OpArg arg) {WriteSSEOp(64, sseRSQRT, true, regOp, arg);}
 	void XEmitter::SHUFPS(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(32, sseSHUF, true, regOp, arg,1); Write8(shuffle);} 
 	void XEmitter::SHUFPD(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(64, sseSHUF, true, regOp, arg,1); Write8(shuffle);} 
 
