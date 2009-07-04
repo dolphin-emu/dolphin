@@ -31,24 +31,28 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
+	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 &&
+	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26)) {
 		Default(inst); return;
 	}
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
 	{
-	case 25: //mul
-		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
-		break;
-	case 18: //div
 	case 20: //sub
 		val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
 		break;
 	case 21: //add
 		val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
 		break;
-	case 23: //sel
-	case 24: //res
+	case 25: //mul
+		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
+		break;
+	case 26: //rsqrte
+		val = ibuild.EmitLoadFReg(inst.FB);
+		val = ibuild.EmitDoubleToSingle(val);
+		val = ibuild.EmitFSRSqrt(val);
+		val = ibuild.EmitDupSingleToMReg(val);
+		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
 	}

@@ -80,6 +80,11 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		Default(inst); return;
 	}
 
+	if (inst.SUBOP5 != 18 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21 &&
+	    inst.SUBOP5 != 25) {
+	  Default(inst); return;
+	}
+
 	// Only the interpreter has "proper" support for (some) FP flags
 	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
 		Default(inst); return;
@@ -91,12 +96,6 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::DIVSD); break; //div
 	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::SUBSD); break; //sub
 	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  dupe, &XEmitter::ADDSD); break; //add
-	case 23: //sel
-		Default(inst);
-		break;
-	case 24: //res
-		Default(inst);
-		break;
 	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, dupe, &XEmitter::MULSD); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");

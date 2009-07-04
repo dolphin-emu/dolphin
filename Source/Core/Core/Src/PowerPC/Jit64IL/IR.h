@@ -124,6 +124,7 @@ enum Opcode {
 	FSAdd,
 	FSSub,
 	FSNeg,
+	FSRSqrt,
 	FPAdd,
 	FPMul,
 	FPSub,
@@ -443,6 +444,9 @@ public:
 	}
 	InstLoc EmitFSNeg(InstLoc op1) {
 		return FoldUOp(FSNeg, op1);
+	}
+	InstLoc EmitFSRSqrt(InstLoc op1) {
+		return FoldUOp(FSRSqrt, op1);
 	}
 	InstLoc EmitFDMul(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FDMul, op1, op2);

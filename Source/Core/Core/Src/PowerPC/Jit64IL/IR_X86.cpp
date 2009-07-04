@@ -430,7 +430,8 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #ifdef _M_IX86
 		return MDisp(baseReg, (u32)Memory::base + offset + ProfileOffset);
 #else
-		return MComplex(RBX, baseReg, 1, offset + ProfileOffset);
+		LEA(32, EAX, MDisp(baseReg, offset + ProfileOffset));
+		return MComplex(RBX, EAX, 1, 0);
 #endif
 	}
 	return MDisp(baseReg, offset);
@@ -734,6 +735,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		case FSMul:
 		case FSAdd:
 		case FSSub:
+		case FSRSqrt:
 		case FDMul:
 		case FDAdd:
 		case FDSub:
@@ -1368,6 +1370,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		case FSSub: {
 			if (!thisUsed) break;
 			fregEmitBinInst(RI, I, &Jit64::SUBSS);
+			break;
+		}
+		case FSRSqrt: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->RSQRTSS(reg, fregLocForInst(RI, getOp1(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
 			break;
 		}
 		case FDMul: {
