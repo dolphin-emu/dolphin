@@ -430,7 +430,7 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #ifdef _M_IX86
 		return MDisp(baseReg, (u32)Memory::base + offset + ProfileOffset);
 #else
-		LEA(32, EAX, MDisp(baseReg, offset + ProfileOffset));
+		RI.Jit->LEA(32, EAX, MDisp(baseReg, offset + ProfileOffset));
 		return MComplex(RBX, EAX, 1, 0);
 #endif
 	}
