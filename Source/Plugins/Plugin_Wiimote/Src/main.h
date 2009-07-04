@@ -63,7 +63,8 @@ struct SRecordingAll
 	// Settings
 	extern accel_cal g_wm;
 	extern nu_cal g_nu;
-	extern cc_cal g_cc;
+	extern cc_cal g_ClassicContCalibration;
+	extern gh3_cal g_GH3Calibration;
 
 	// Debugging
 	extern bool g_DebugAccelerometer;

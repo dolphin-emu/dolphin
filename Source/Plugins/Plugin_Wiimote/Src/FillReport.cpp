@@ -322,60 +322,60 @@ int IsKey(int Key)
 	switch(Key)
 	{
 	// Wiimote
-	case g_Wm.MA: return GetAsyncKeyState(VK_LBUTTON);
-	case g_Wm.MB: return GetAsyncKeyState(VK_RBUTTON);
-	case g_Wm.A: return GetAsyncKeyState(PadMapping[0].Wm.A);
-	case g_Wm.B: return GetAsyncKeyState(PadMapping[0].Wm.B);
-	case g_Wm.ONE: return GetAsyncKeyState(PadMapping[0].Wm.One);
-	case g_Wm.TWO: return GetAsyncKeyState(PadMapping[0].Wm.Two);
-	case g_Wm.P: return GetAsyncKeyState(PadMapping[0].Wm.P);
-	case g_Wm.M: return GetAsyncKeyState(PadMapping[0].Wm.M);
-	case g_Wm.H: return GetAsyncKeyState(PadMapping[0].Wm.H);
-	case g_Wm.L: return GetAsyncKeyState(PadMapping[0].Wm.L);
-	case g_Wm.R: return GetAsyncKeyState(PadMapping[0].Wm.R);
-	case g_Wm.U: return GetAsyncKeyState(PadMapping[0].Wm.U);
-	case g_Wm.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
-	case g_Wm.PITCH_L: return GetAsyncKeyState(PadMapping[0].Wm.PitchL);
-	case g_Wm.PITCH_R: return GetAsyncKeyState(PadMapping[0].Wm.PitchR);
-	case g_Wm.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake) || GetAsyncKeyState(VK_MBUTTON);
+	case g_Wiimote_kbd.MA: return GetAsyncKeyState(VK_LBUTTON);
+	case g_Wiimote_kbd.MB: return GetAsyncKeyState(VK_RBUTTON);
+	case g_Wiimote_kbd.A: return GetAsyncKeyState(PadMapping[0].Wm.A);
+	case g_Wiimote_kbd.B: return GetAsyncKeyState(PadMapping[0].Wm.B);
+	case g_Wiimote_kbd.ONE: return GetAsyncKeyState(PadMapping[0].Wm.One);
+	case g_Wiimote_kbd.TWO: return GetAsyncKeyState(PadMapping[0].Wm.Two);
+	case g_Wiimote_kbd.P: return GetAsyncKeyState(PadMapping[0].Wm.P);
+	case g_Wiimote_kbd.M: return GetAsyncKeyState(PadMapping[0].Wm.M);
+	case g_Wiimote_kbd.H: return GetAsyncKeyState(PadMapping[0].Wm.H);
+	case g_Wiimote_kbd.L: return GetAsyncKeyState(PadMapping[0].Wm.L);
+	case g_Wiimote_kbd.R: return GetAsyncKeyState(PadMapping[0].Wm.R);
+	case g_Wiimote_kbd.U: return GetAsyncKeyState(PadMapping[0].Wm.U);
+	case g_Wiimote_kbd.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
+	case g_Wiimote_kbd.PITCH_L: return GetAsyncKeyState(PadMapping[0].Wm.PitchL);
+	case g_Wiimote_kbd.PITCH_R: return GetAsyncKeyState(PadMapping[0].Wm.PitchR);
+	case g_Wiimote_kbd.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake) || GetAsyncKeyState(VK_MBUTTON);
 
 	// Nunchuck
-	case g_Nc.Z: return GetAsyncKeyState(PadMapping[0].Nc.Z);
-	case g_Nc.C: return GetAsyncKeyState(PadMapping[0].Nc.C);
-	case g_Nc.L: return GetAsyncKeyState(PadMapping[0].Nc.L);
-	case g_Nc.R: return GetAsyncKeyState(PadMapping[0].Nc.R);
-	case g_Nc.U: return GetAsyncKeyState(PadMapping[0].Nc.U);
-	case g_Nc.D: return GetAsyncKeyState(PadMapping[0].Nc.D);
-	case g_Nc.SHAKE: return GetAsyncKeyState(PadMapping[0].Nc.Shake);
+	case g_NunchuckExt.Z: return GetAsyncKeyState(PadMapping[0].Nc.Z);
+	case g_NunchuckExt.C: return GetAsyncKeyState(PadMapping[0].Nc.C);
+	case g_NunchuckExt.L: return GetAsyncKeyState(PadMapping[0].Nc.L);
+	case g_NunchuckExt.R: return GetAsyncKeyState(PadMapping[0].Nc.R);
+	case g_NunchuckExt.U: return GetAsyncKeyState(PadMapping[0].Nc.U);
+	case g_NunchuckExt.D: return GetAsyncKeyState(PadMapping[0].Nc.D);
+	case g_NunchuckExt.SHAKE: return GetAsyncKeyState(PadMapping[0].Nc.Shake);
 
 	// Classic Controller
-	case g_Cc.A: return GetAsyncKeyState(PadMapping[0].Cc.A);
-	case g_Cc.B: return GetAsyncKeyState(PadMapping[0].Cc.B);
-	case g_Cc.X: return GetAsyncKeyState(PadMapping[0].Cc.X);
-	case g_Cc.Y: return GetAsyncKeyState(PadMapping[0].Cc.Y);
-	case g_Cc.P: return GetAsyncKeyState(PadMapping[0].Cc.P); // Default is O instead of P
-	case g_Cc.M: return GetAsyncKeyState(PadMapping[0].Cc.M); // Default is N instead of M
-	case g_Cc.H: return GetAsyncKeyState(PadMapping[0].Cc.H); // Default is U instead of H
+	case g_ClassicContExt.A: return GetAsyncKeyState(PadMapping[0].Cc.A);
+	case g_ClassicContExt.B: return GetAsyncKeyState(PadMapping[0].Cc.B);
+	case g_ClassicContExt.X: return GetAsyncKeyState(PadMapping[0].Cc.X);
+	case g_ClassicContExt.Y: return GetAsyncKeyState(PadMapping[0].Cc.Y);
+	case g_ClassicContExt.P: return GetAsyncKeyState(PadMapping[0].Cc.P); // Default is O instead of P
+	case g_ClassicContExt.M: return GetAsyncKeyState(PadMapping[0].Cc.M); // Default is N instead of M
+	case g_ClassicContExt.H: return GetAsyncKeyState(PadMapping[0].Cc.H); // Default is U instead of H
 
-	case g_Cc.Tl: return GetAsyncKeyState(PadMapping[0].Cc.Tl); // Digital left trigger
-	case g_Cc.Zl: return GetAsyncKeyState(PadMapping[0].Cc.Zl);
-	case g_Cc.Zr: return GetAsyncKeyState(PadMapping[0].Cc.Zr);
-	case g_Cc.Tr: return GetAsyncKeyState(PadMapping[0].Cc.Tr); // Digital right trigger
+	case g_ClassicContExt.Tl: return GetAsyncKeyState(PadMapping[0].Cc.Tl); // Digital left trigger
+	case g_ClassicContExt.Zl: return GetAsyncKeyState(PadMapping[0].Cc.Zl);
+	case g_ClassicContExt.Zr: return GetAsyncKeyState(PadMapping[0].Cc.Zr);
+	case g_ClassicContExt.Tr: return GetAsyncKeyState(PadMapping[0].Cc.Tr); // Digital right trigger
 
-	case g_Cc.Dl: return GetAsyncKeyState(PadMapping[0].Cc.Dl); // Digital left
-	case g_Cc.Du: return GetAsyncKeyState(PadMapping[0].Cc.Du); // Up
-	case g_Cc.Dr: return GetAsyncKeyState(PadMapping[0].Cc.Dr); // Right
-	case g_Cc.Dd: return GetAsyncKeyState(PadMapping[0].Cc.Dd); // Down
+	case g_ClassicContExt.Dl: return GetAsyncKeyState(PadMapping[0].Cc.Dl); // Digital left
+	case g_ClassicContExt.Du: return GetAsyncKeyState(PadMapping[0].Cc.Du); // Up
+	case g_ClassicContExt.Dr: return GetAsyncKeyState(PadMapping[0].Cc.Dr); // Right
+	case g_ClassicContExt.Dd: return GetAsyncKeyState(PadMapping[0].Cc.Dd); // Down
 
-	case g_Cc.Ll: return GetAsyncKeyState(PadMapping[0].Cc.Ll); // Left analog
-	case g_Cc.Lu: return GetAsyncKeyState(PadMapping[0].Cc.Lu);
-	case g_Cc.Lr: return GetAsyncKeyState(PadMapping[0].Cc.Lr);
-	case g_Cc.Ld: return GetAsyncKeyState(PadMapping[0].Cc.Ld);
+	case g_ClassicContExt.Ll: return GetAsyncKeyState(PadMapping[0].Cc.Ll); // Left analog
+	case g_ClassicContExt.Lu: return GetAsyncKeyState(PadMapping[0].Cc.Lu);
+	case g_ClassicContExt.Lr: return GetAsyncKeyState(PadMapping[0].Cc.Lr);
+	case g_ClassicContExt.Ld: return GetAsyncKeyState(PadMapping[0].Cc.Ld);
 
-	case g_Cc.Rl: return GetAsyncKeyState(PadMapping[0].Cc.Rl); // Right analog
-	case g_Cc.Ru: return GetAsyncKeyState(PadMapping[0].Cc.Ru);
-	case g_Cc.Rr: return GetAsyncKeyState(PadMapping[0].Cc.Rr);
-	case g_Cc.Rd: return GetAsyncKeyState(PadMapping[0].Cc.Rd);
+	case g_ClassicContExt.Rl: return GetAsyncKeyState(PadMapping[0].Cc.Rl); // Right analog
+	case g_ClassicContExt.Ru: return GetAsyncKeyState(PadMapping[0].Cc.Ru);
+	case g_ClassicContExt.Rr: return GetAsyncKeyState(PadMapping[0].Cc.Rr);
+	case g_ClassicContExt.Rd: return GetAsyncKeyState(PadMapping[0].Cc.Rd);
 
 	// This should not happen
 	default: PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key); return false;
@@ -404,31 +404,31 @@ void FillReportInfo(wm_core& _core)
 	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
 
 	// Allow both mouse buttons and keyboard to press a and b
-	if((IsKey(g_Wm.MA) && InsideScreen) || IsKey(g_Wm.A))
+	if((IsKey(g_Wiimote_kbd.MA) && InsideScreen) || IsKey(g_Wiimote_kbd.A))
 		_core.a = 1;
-	if((IsKey(g_Wm.MB) && InsideScreen) || IsKey(g_Wm.B))
+	if((IsKey(g_Wiimote_kbd.MB) && InsideScreen) || IsKey(g_Wiimote_kbd.B))
 		_core.b = 1;
 
-	_core.one = IsKey(g_Wm.ONE) ? 1 : 0;
-	_core.two = IsKey(g_Wm.TWO) ? 1 : 0;
-	_core.plus = IsKey(g_Wm.P) ? 1 : 0;
-	_core.minus = IsKey(g_Wm.M) ? 1 : 0;
-	_core.home = IsKey(g_Wm.H) ? 1 : 0;
+	_core.one = IsKey(g_Wiimote_kbd.ONE) ? 1 : 0;
+	_core.two = IsKey(g_Wiimote_kbd.TWO) ? 1 : 0;
+	_core.plus = IsKey(g_Wiimote_kbd.P) ? 1 : 0;
+	_core.minus = IsKey(g_Wiimote_kbd.M) ? 1 : 0;
+	_core.home = IsKey(g_Wiimote_kbd.H) ? 1 : 0;
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(g_Config.bSidewaysDPad)
 	{
-		_core.left = IsKey(g_Wm.D) ? 1 : 0;
-		_core.up = IsKey(g_Wm.L) ? 1 : 0;
-		_core.right = IsKey(g_Wm.U) ? 1 : 0;
-		_core.down = IsKey(g_Wm.R) ? 1 : 0;
+		_core.left = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
+		_core.up = IsKey(g_Wiimote_kbd.L) ? 1 : 0;
+		_core.right = IsKey(g_Wiimote_kbd.U) ? 1 : 0;
+		_core.down = IsKey(g_Wiimote_kbd.R) ? 1 : 0;
 	}
 	else
 	{
-		_core.left = IsKey(g_Wm.L) ? 1 : 0;
-		_core.up = IsKey(g_Wm.U) ? 1 : 0;
-		_core.right = IsKey(g_Wm.R) ? 1 : 0;
-		_core.down = IsKey(g_Wm.D) ? 1 : 0;
+		_core.left = IsKey(g_Wiimote_kbd.L) ? 1 : 0;
+		_core.up = IsKey(g_Wiimote_kbd.U) ? 1 : 0;
+		_core.right = IsKey(g_Wiimote_kbd.R) ? 1 : 0;
+		_core.down = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
 	}
 }
 //////////////////////////
@@ -467,7 +467,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 {
 #ifdef _WIN32
 	// Shake Wiimote with S, Nunchuck with D
-	if((i == 0 && IsKey(g_Wm.SHAKE)) || (i == 1 && IsKey(g_Nc.SHAKE)))
+	if((i == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (i == 1 && IsKey(g_NunchuckExt.SHAKE)))
 	{
 		_z = 0;
 		_y = 0;
@@ -572,13 +572,13 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 {
 #ifdef _WIN32
-	if(IsKey(g_Wm.PITCH_L))
+	if(IsKey(g_Wiimote_kbd.PITCH_L))
 	{
 		// Stop at the upper end of the range
 		if(KbDegree < g_Config.Trigger.Range.Pitch)
 			KbDegree += 3; // aim left
 	}
-	else if(IsKey(g_Wm.PITCH_R))
+	else if(IsKey(g_Wiimote_kbd.PITCH_R))
 	{
 		// Stop at the lower end of the range
 		if(KbDegree > -g_Config.Trigger.Range.Pitch)
@@ -590,8 +590,8 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	// ----------
 	// Check for activity
 	yhist[yhist.size() - 1] = (
-		IsKey(g_Wm.PITCH_L)
-		||IsKey(g_Wm.PITCH_R)
+		IsKey(g_Wiimote_kbd.PITCH_L)
+		||IsKey(g_Wiimote_kbd.PITCH_R)
 		);	
 
 	// Move all items back, and check if any of them are true
@@ -1013,14 +1013,14 @@ void FillReportExtension(wm_extension& _ext)
 	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
 	{
 		// Set the max values to the current calibration values
-		if(IsKey(g_Nc.L)) // x
+		if(IsKey(g_NunchuckExt.L)) // x
 			_ext.jx = g_nu.jx.min;
-		if(IsKey(g_Nc.R))
+		if(IsKey(g_NunchuckExt.R))
 			_ext.jx = g_nu.jx.max;
 
-		if(IsKey(g_Nc.D)) // y
+		if(IsKey(g_NunchuckExt.D)) // y
 			_ext.jy = g_nu.jy.min;
-		if(IsKey(g_Nc.U))
+		if(IsKey(g_NunchuckExt.U))
 			_ext.jy = g_nu.jy.max;
 	}
 	else
@@ -1079,11 +1079,11 @@ void FillReportExtension(wm_extension& _ext)
 		}
 	}
 
-	if(IsKey(g_Nc.C))
+	if(IsKey(g_NunchuckExt.C))
 		_ext.bt = 0x01;
-	if(IsKey(g_Nc.Z))
+	if(IsKey(g_NunchuckExt.Z))
 		_ext.bt = 0x02;	
-	if(IsKey(g_Nc.C) && IsKey(g_Nc.Z))
+	if(IsKey(g_NunchuckExt.C) && IsKey(g_NunchuckExt.Z))
 		_ext.bt = 0x00;
 
 	/* Here we encrypt the report */
@@ -1109,9 +1109,9 @@ void FillReportExtension(wm_extension& _ext)
 void FillReportClassicExtension(wm_classic_extension& _ext)
 {
 	/* These are the default neutral values for the analog triggers and sticks */
-	u8	Rx = g_cc.Rx.center, Ry = g_cc.Ry.center,
-		Lx = g_cc.Lx.center, Ly = g_cc.Ly.center,
-		lT = g_cc.Tl.neutral, rT = g_cc.Tl.neutral;
+	u8	Rx = g_ClassicContCalibration.Rx.center, Ry = g_ClassicContCalibration.Ry.center,
+		Lx = g_ClassicContCalibration.Lx.center, Ly = g_ClassicContCalibration.Ly.center,
+		lT = g_ClassicContCalibration.Tl.neutral, rT = g_ClassicContCalibration.Tl.neutral;
 
 	_ext.b1.padding = 0x01; // 0x01 means not pressed
 	_ext.b1.bRT = 0x01;
@@ -1156,14 +1156,14 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		// Update the left analog stick
 		if (g_Config.ClassicController.LType == g_Config.ClassicController.KEYBOARD)
 		{
-			if(IsKey(g_Cc.Ll)) // Left analog left
-				Lx = g_cc.Lx.min;
-			if(IsKey(g_Cc.Lu)) // up
-				Ly = g_cc.Ly.max;
-			if(IsKey(g_Cc.Lr)) // right
-				Lx = g_cc.Lx.max;
-			if(IsKey(g_Cc.Ld)) // down
-				Ly = g_cc.Ly.min;
+			if(IsKey(g_ClassicContExt.Ll)) // Left analog left
+				Lx = g_ClassicContCalibration.Lx.min;
+			if(IsKey(g_ClassicContExt.Lu)) // up
+				Ly = g_ClassicContCalibration.Ly.max;
+			if(IsKey(g_ClassicContExt.Lr)) // right
+				Lx = g_ClassicContCalibration.Lx.max;
+			if(IsKey(g_ClassicContExt.Ld)) // down
+				Ly = g_ClassicContCalibration.Ly.min;
 
 		}
 		else
@@ -1196,14 +1196,14 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		// Update the right analog stick
 		if (g_Config.ClassicController.RType == g_Config.ClassicController.KEYBOARD)
 		{
-			if(IsKey(g_Cc.Rl)) // Right analog left
-				Rx = g_cc.Rx.min;
-			if(IsKey(g_Cc.Ru)) // up
-				Ry = g_cc.Ry.max;
-			if(IsKey(g_Cc.Rr)) // right
-				Rx = g_cc.Rx.max;
-			if(IsKey(g_Cc.Rd)) // down
-				Ry = g_cc.Ry.min;
+			if(IsKey(g_ClassicContExt.Rl)) // Right analog left
+				Rx = g_ClassicContCalibration.Rx.min;
+			if(IsKey(g_ClassicContExt.Ru)) // up
+				Ry = g_ClassicContCalibration.Ry.max;
+			if(IsKey(g_ClassicContExt.Rr)) // right
+				Rx = g_ClassicContCalibration.Rx.max;
+			if(IsKey(g_ClassicContExt.Rd)) // down
+				Ry = g_ClassicContCalibration.Ry.min;
 		}
 		else
 		{
@@ -1235,9 +1235,9 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		// Update the left and right analog triggers
 		if (g_Config.ClassicController.TType == g_Config.ClassicController.KEYBOARD)
 		{
-			if(IsKey(g_Cc.Tl)) // analog left trigger
+			if(IsKey(g_ClassicContExt.Tl)) // analog left trigger
 				{ _ext.b1.bLT = 0x00; lT = 0x1f; }
-			if(IsKey(g_Cc.Tr)) // analog right trigger
+			if(IsKey(g_ClassicContExt.Tr)) // analog right trigger
 				{ _ext.b1.bRT = 0x00; rT = 0x1f; }
 		}
 		else // g_Config.ClassicController.TRIGGER
@@ -1276,10 +1276,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			0: bdU
 			1: bdL	
 		*/
-		if(IsKey(g_Cc.Dl)) _ext.b2.bdL = 0x00; // Digital left
-		if(IsKey(g_Cc.Du)) _ext.b2.bdU = 0x00; // Up
-		if(IsKey(g_Cc.Dr)) _ext.b1.bdR = 0x00; // Right
-		if(IsKey(g_Cc.Dd)) _ext.b1.bdD = 0x00; // Down		
+		if(IsKey(g_ClassicContExt.Dl)) _ext.b2.bdL = 0x00; // Digital left
+		if(IsKey(g_ClassicContExt.Du)) _ext.b2.bdU = 0x00; // Up
+		if(IsKey(g_ClassicContExt.Dr)) _ext.b1.bdR = 0x00; // Right
+		if(IsKey(g_ClassicContExt.Dd)) _ext.b1.bdD = 0x00; // Down		
 		// --------------
 
 		// --------------------------------------
@@ -1299,31 +1299,31 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 				6: bB
 				7: bZl
 		*/
-		if(IsKey(g_Cc.A))
+		if(IsKey(g_ClassicContExt.A))
 			_ext.b2.bA = 0x00;
 
-		if(IsKey(g_Cc.B))
+		if(IsKey(g_ClassicContExt.B))
 			_ext.b2.bB = 0x00;
 
-		if(IsKey(g_Cc.Y))
+		if(IsKey(g_ClassicContExt.Y))
 			_ext.b2.bY = 0x00;
 
-		if(IsKey(g_Cc.X))
+		if(IsKey(g_ClassicContExt.X))
 			_ext.b2.bX = 0x00;
 
-		if(IsKey(g_Cc.P)) // O instead of P
+		if(IsKey(g_ClassicContExt.P)) // O instead of P
 			_ext.b1.bP = 0x00;
 
-		if(IsKey(g_Cc.M)) // N instead of M
+		if(IsKey(g_ClassicContExt.M)) // N instead of M
 			_ext.b1.bM = 0x00;
 
-		if(IsKey(g_Cc.H)) // Home button
+		if(IsKey(g_ClassicContExt.H)) // Home button
 			_ext.b1.bH = 0x00;
 
-		if(IsKey(g_Cc.Zl)) // Digital left trigger
+		if(IsKey(g_ClassicContExt.Zl)) // Digital left trigger
 			_ext.b2.bZL = 0x00;
 
-		if(IsKey(g_Cc.Zr)) // Digital right trigger
+		if(IsKey(g_ClassicContExt.Zr)) // Digital right trigger
 			_ext.b2.bZR = 0x00;
 		
 		// All buttons pressed
@@ -1370,5 +1370,163 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 }
 // =======================
 
+// ===================================================
+/* Generate the 6 byte extension report for the Classic Controller, encrypted.
+   The bytes are ... */
+// ----------------
+void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
+{
+	//_ext.SX   : 6;
+	//_ext.SY   : 6;
+	//	u8 TB   : 5; // not used in GH3
+	//	u8 WB   : 5;
+	u8 SX = g_GH3Calibration.Lx.center,
+		SY = g_GH3Calibration.Ly.center;
+
+
+	_ext.pad1 = 3;
+	_ext.pad2 = 3;
+	_ext.pad3 = 0;
+	_ext.pad4 = 0;
+	_ext.pad5 = 3;
+	_ext.pad6 = 1;
+	_ext.pad7 = 1;
+	_ext.pad8 = 1;	
+	_ext.pad9 = 3;
+
+	_ext.BP = 1;
+	_ext.BM = 1;
+	_ext.BD = 1;
+	_ext.BU = 1;
+	_ext.BY = 1;
+	_ext.BG = 1;
+	_ext.BB = 1;
+	_ext.BR = 1;
+	_ext.BO = 1;
+
+
+	// --------------------------------------
+	// Check that Dolphin is in focus
+	if (IsFocus())
+	{
+		// --------------------------------------
+		/* Left and right analog sticks and analog triggers
+
+			u8 Lx : 6; // byte 0
+			u8 Rx : 2;
+			u8 Ly : 6; // byte 1
+			u8 Rx2 : 2;
+			u8 Ry : 5; // byte 2
+			u8 lT : 2;
+			u8 Rx3 : 1;
+			u8 rT : 5; // byte 3
+			u8 lT2 : 3;
+
+		   We use a 200 range (28 to 228) for the left analog stick and a 176 range
+		   (40 to 216) for the right analog stick to match our calibration values
+		   in classic_calibration
+		*/
+
+		// Update the left analog stick
+		if (g_Config.GH3Controller.LType == g_Config.GH3Controller.KEYBOARD)
+		{
+			if(IsKey(g_GH3Ext.Ll)) // Left analog left
+				_ext.SX = g_GH3Calibration.Lx.min;
+			if(IsKey(g_ClassicContExt.Lu)) // up
+				_ext.SY = g_GH3Calibration.Ly.max;
+			if(IsKey(g_ClassicContExt.Lr)) // right
+				_ext.SX = g_GH3Calibration.Lx.max;
+			if(IsKey(g_ClassicContExt.Ld)) // down
+				_ext.SY = g_GH3Calibration.Ly.min;
+
+		}
+		else
+		{
+			// Get adjusted pad state values
+			int _Sx, _Sy,
+				_Rx, _Ry, _Tl, _Tr; // Not Yet used
+			PadStateAdjustments(_Sx, _Sy, _Rx, _Ry, _Tl, _Tr);
+			// The Y-axis is inverted
+			_Sy = 0xff - _Sy;
+			//_Ry = 0xff - _Ry;
+
+			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
+			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			   
+			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   */
+
+			if (g_Config.GH3Controller.LType == g_Config.GH3Controller.ANALOG1)
+			{
+				SX = _Sx;
+				SY = _Sy;
+			}
+			else // ANALOG2
+			{
+		//		Lx = _Rx;
+		//		Ly = _Ry;
+			}
+		}
+
+		if(IsKey(g_GH3Ext.Bu)) _ext.BU = 0x00; // Strum Up
+		if(IsKey(g_GH3Ext.Bd)) _ext.BD= 0x00; // Strum Down
+
+		if(IsKey(g_GH3Ext.BP))
+			_ext.BP = 0x00;
+		if(IsKey(g_GH3Ext.BM))
+			_ext.BM = 0x00;
+
+		if(IsKey(g_GH3Ext.BY))
+			_ext.BY = 0x00;
+		if(IsKey(g_GH3Ext.BG))
+			_ext.BG = 0x00;
+		if(IsKey(g_GH3Ext.BB))
+			_ext.BB = 0x00;
+		if(IsKey(g_GH3Ext.BR))
+			_ext.BR = 0x00;
+		if(IsKey(g_GH3Ext.BO))
+			_ext.BO = 0x00;
+	}
+	// --------------------------------------
+
+
+	// --------------------------------------
+	// Convert data for reporting
+	// --------------
+	_ext.SX = (SX >> 2);
+	_ext.SY = (SY >> 2);
+
+
+
+/*	// 5 bit to 1 bit
+	_ext.Rx = (Rx >> 3) & 0x01;
+	// 5 bit to the next 2 bit
+	_ext.Rx2 = ((Rx >> 3) >> 1) & 0x03;
+	// 5 bit to the next 2 bit
+	_ext.Rx3 = ((Rx >> 3) >> 3) & 0x03;
+	_ext.Ry = (Ry >> 3);
+
+	// 5 bit to 3 bit
+	_ext.lT = (lT >> 3) & 0x07;
+	// 5 bit to the highest two bits
+	_ext.lT2 = (lT >> 3) >> 3;
+	_ext.rT = (rT >> 3);
+	// --------------
+*/
+
+	/* Here we encrypt the report */
+
+	// Create a temporary storage for the data
+	u8 Tmp[sizeof(_ext)];
+	// Clear the array by copying zeroes to it
+	memset(Tmp, 0, sizeof(_ext));
+	// Copy the data to it
+	memcpy(Tmp, &_ext, sizeof(_ext));
+	// Encrypt it
+	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	// Write it back to the struct
+	memcpy(&_ext, Tmp, sizeof(_ext));
+	
+}
 
 } // end of namespace

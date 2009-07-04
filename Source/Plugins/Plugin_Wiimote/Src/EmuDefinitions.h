@@ -155,6 +155,20 @@ static const u8 classic_id[] =
 	0x00, 0x00, 0xa4, 0x20, 0x01, 0x01
 };
 
+/* The GH3 guitar id. It should be written to the last bytes of the
+   extension register */
+static const u8 gh3glp_id[] =
+{
+	0x00, 0x00, 0xa4, 0x20, 0x01, 0x03
+};
+
+/* The GHWT drums id. It should be written to the last bytes of the
+   extension register */
+static const u8 ghwtdrums_id[] =
+{
+	0x01, 0x00, 0xa4, 0x20, 0x01, 0x03
+};
+
 /* The id for nothing inserted */
 static const u8 nothing_id[] =
 {
@@ -205,14 +219,14 @@ struct KeyboardWiimote
 	// Raw X and Y coordinate and processed X and Y coordinates
 	SIR IR;
 };
-extern KeyboardWiimote g_Wm;
+extern KeyboardWiimote g_Wiimote_kbd;
 struct KeyboardNunchuck
 {
 	enum EKeyboardNunchuck
 	{
 		// This is not allowed in Linux so we have to set the starting value manually
 		#ifdef _WIN32
-			Z = g_Wm.LAST_CONSTANT,
+			Z = g_Wiimote_kbd.LAST_CONSTANT,
 		#else
 			Z = 16,
 		#endif
@@ -222,14 +236,14 @@ struct KeyboardNunchuck
 		LAST_CONSTANT
 	};
 };
-extern KeyboardNunchuck g_Nc;
+extern KeyboardNunchuck g_NunchuckExt;
 struct KeyboardClassicController
 {
 	enum EKeyboardClassicController
 	{
 		// This is not allowed in Linux so we have to set the starting value manually
 		#ifdef _WIN32
-			A = g_Nc.LAST_CONSTANT,
+			A = g_NunchuckExt.LAST_CONSTANT,
 		#else
 			A = 23,
 		#endif
@@ -239,10 +253,31 @@ struct KeyboardClassicController
 		Tl, Tr, Zl, Zr,
 		Ll, Lr, Lu, Ld,
 		Rl, Rr, Ru, Rd,
+		SHAKE,
+		LAST_CONSTANT
+	};
+};
+extern KeyboardClassicController g_ClassicContExt;
+
+struct KeyboardGH3GLP
+{
+	enum EKeyboardGH3GLP
+	{
+		// This is not allowed in Linux so we have to set the starting value manually
+		#ifdef _WIN32
+			BG = g_ClassicContExt.LAST_CONSTANT,
+		#else
+			BG = 47,
+		#endif
+		BR, BY, BB,
+		BO, BP, BM,
+		WB,
+		Ll, Lr, Lu, Ld,
+		Bu, Bd,
 		SHAKE
 	};
 };
-extern KeyboardClassicController g_Cc;
+extern KeyboardGH3GLP g_GH3Ext;
 
 } // namespace
 

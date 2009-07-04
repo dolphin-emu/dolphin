@@ -226,6 +226,39 @@ struct wm_classic_extension
 	wm_cc_5 b2; // byte 5
 };
 
+struct wm_GH3_extension
+{
+	u8 SX   : 6;
+	u8 pad1 : 2; // 1 on GH3, 0 on GHWT
+
+	u8 SY   : 6;
+	u8 pad2 : 2; // 1 on GH3, 0 on GHWT
+
+	u8 TB   : 5; // not used in GH3
+	u8 pad3 : 3; // Always 0
+
+	u8 WB   : 5;
+	u8 pad4 : 3; // Always 0
+
+	u8 pad5 : 2; // Always 1
+	u8 BP   : 1;
+	u8 pad6 : 1; // Always 1
+	u8 BM   : 1;
+	u8 pad7 : 1; // Always 1
+	u8 BD   : 1;
+	u8 pad8 : 1; // Always 1
+
+	u8 BU   : 1;
+	u8 pad9 : 2; // Always 1
+	u8 BY   : 1;
+	u8 BG   : 1;
+	u8 BB   : 1;
+	u8 BR   : 1;
+	u8 BO   : 1;
+};
+
+	
+	
 //******************************************************************************
 // Data reports
 //******************************************************************************
@@ -323,6 +356,13 @@ struct cc_cal
 	nu_js Ry;				//
 	cc_trigger Tl;				//
 	cc_trigger Tr;				//
+};
+struct gh3_cal
+{
+	nu_js Lx
+	nu_js Ly;
+	nu_js Rx;
+	nu_js Ry;
 };
 
 #pragma pack(pop)

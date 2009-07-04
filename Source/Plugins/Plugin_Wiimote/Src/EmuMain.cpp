@@ -379,22 +379,22 @@ void UpdateEeprom()
 	}
 	else if(g_Config.bClassicControllerConnected)
 	{
-		g_cc.Lx.max = g_RegExt[0x20];
-		g_cc.Lx.min = g_RegExt[0x21];
-		g_cc.Lx.center = g_RegExt[0x22];
-		g_cc.Ly.max = g_RegExt[0x23];
-		g_cc.Ly.min = g_RegExt[0x24];
-		g_cc.Ly.center = g_RegExt[0x25];
+		g_ClassicContCalibration.Lx.max = g_RegExt[0x20];
+		g_ClassicContCalibration.Lx.min = g_RegExt[0x21];
+		g_ClassicContCalibration.Lx.center = g_RegExt[0x22];
+		g_ClassicContCalibration.Ly.max = g_RegExt[0x23];
+		g_ClassicContCalibration.Ly.min = g_RegExt[0x24];
+		g_ClassicContCalibration.Ly.center = g_RegExt[0x25];
 
-		g_cc.Rx.max = g_RegExt[0x26];
-		g_cc.Rx.min = g_RegExt[0x27];
-		g_cc.Rx.center = g_RegExt[0x28];
-		g_cc.Ry.max = g_RegExt[0x29];
-		g_cc.Ry.min = g_RegExt[0x2a];
-		g_cc.Ry.center = g_RegExt[0x2b];
+		g_ClassicContCalibration.Rx.max = g_RegExt[0x26];
+		g_ClassicContCalibration.Rx.min = g_RegExt[0x27];
+		g_ClassicContCalibration.Rx.center = g_RegExt[0x28];
+		g_ClassicContCalibration.Ry.max = g_RegExt[0x29];
+		g_ClassicContCalibration.Ry.min = g_RegExt[0x2a];
+		g_ClassicContCalibration.Ry.center = g_RegExt[0x2b];
 
-		g_cc.Tl.neutral = g_RegExt[0x2c];
-		g_cc.Tr.neutral = g_RegExt[0x2d];
+		g_ClassicContCalibration.Tl.neutral = g_RegExt[0x2c];
+		g_ClassicContCalibration.Tr.neutral = g_RegExt[0x2d];
 
 		INFO_LOG(CONSOLE, "UpdateCC: %i %i   %i %i %i\n\n",
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
@@ -458,6 +458,12 @@ void SetDefaultExtensionRegistry()
 		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
+	}
+	else if(g_Config.bGuitarConnected)
+	{
+	//	memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
+	//	memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0xfa, gh3glp_id, sizeof(gh3glp_id));
 	}
 
 	INFO_LOG(CONSOLE, "\nSetDefaultExtensionRegistry()\n\n");
@@ -537,9 +543,9 @@ void DoState(PointerWrap &p)
 	p.DoArray(PadState, 4);
 	p.DoArray(PadMapping, 4);
 
-	p.Do(g_Wm);
-	p.Do(g_Nc);
-	p.Do(g_Cc);	
+	p.Do(g_Wiimote_kbd);
+	p.Do(g_NunchuckExt);
+	p.Do(g_ClassicContExt);	
 }
 
 /* This is not needed if we call FreeLibrary() when we stop a game, but if it's not called we need to reset
@@ -782,4 +788,3 @@ void Update()
 
 
 } // end of namespace
-

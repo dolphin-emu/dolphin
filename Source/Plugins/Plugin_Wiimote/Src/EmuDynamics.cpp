@@ -221,7 +221,7 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2DotsBasic(u8 *Data)
 {
-	struct SDot* Dot = g_Wm.IR.Dot;
+	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
 
 	Dot[0].Rx = 1023 - (Data[0] | ((Data[2] & 0x30) << 4));
 	Dot[0].Ry = Data[1] | ((Data[2] & 0xc0) << 2);
@@ -263,7 +263,7 @@ void IRData2DotsBasic(u8 *Data)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2Dots(u8 *Data)
 {
-	struct SDot* Dot = g_Wm.IR.Dot;
+	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -299,7 +299,7 @@ void IRData2Dots(u8 *Data)
 void ReorderIRDots()
 {
 	// Create a shortcut
-	struct SDot* Dot = g_Wm.IR.Dot;
+	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
 
 	// Variables
 	int i, j, order;
@@ -335,7 +335,7 @@ void ReorderIRDots()
 void IRData2Distance()
 {
 	// Create a shortcut
-	struct SDot* Dot = g_Wm.IR.Dot;
+	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
 
 	// Make these ones global
 	int i1, i2;
@@ -344,14 +344,14 @@ void IRData2Distance()
 		if (Dot[i1].Visible) break;
 
 	// Only one dot was visible, we can not calculate the distance
-	if (i1 == 4) { g_Wm.IR.Distance = 0; return; }
+	if (i1 == 4) { g_Wiimote_kbd.IR.Distance = 0; return; }
 
 	// Look at the next dot
 	for (i2 = i1 + 1; i2 < 4; ++i2)
 		if (Dot[i2].Visible) break;
 
 	// Only one dot was visible, we can not calculate the distance
-	if (i2 == 4) { g_Wm.IR.Distance = 0; return; }
+	if (i2 == 4) { g_Wiimote_kbd.IR.Distance = 0; return; }
 
 	/* For the emulated Wiimote the y distance is always zero so then the distance is the
 	   simple distance between the x dots, i.e. the sensor bar width */
@@ -359,7 +359,7 @@ void IRData2Distance()
 	int yd = Dot[i2].Y - Dot[i1].Y;
 
 	// Save the distance
-	g_Wm.IR.Distance = (int)sqrt((float)(xd*xd) + (float)(yd*yd));
+	g_Wiimote_kbd.IR.Distance = (int)sqrt((float)(xd*xd) + (float)(yd*yd));
 }
 ////////////////////////////////
 

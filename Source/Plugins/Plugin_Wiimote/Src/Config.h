@@ -68,10 +68,25 @@ struct Config
 		int TType;
 	};
 
+	struct PadGH3
+	{
+		enum EGH3Stick
+		{
+			KEYBOARD,
+			ANALOG1,
+			ANALOG2
+		};
+		int LType; // Analog Stick
+		int RType;
+		int TType; // Whammy bar
+	};
+
     // Emulated Wiimote
 	bool bSidewaysDPad;
 	bool bWideScreen;
-	bool bNunchuckConnected, bClassicControllerConnected;
+	bool bNunchuckConnected;
+	bool bClassicControllerConnected;
+	bool bGuitarConnected;
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
@@ -84,7 +99,7 @@ struct Config
 	PadTrigger Trigger;
 	PadNunchuck Nunchuck;
 	PadClassicController ClassicController;
-
+	PadGH3 GH3Controller;
 	// Screen size settings
 	bool bKeepAR43, bKeepAR169, bCrop;
 };

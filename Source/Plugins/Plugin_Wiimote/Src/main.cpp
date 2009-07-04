@@ -75,7 +75,8 @@ bool g_WiimoteUnexpectedDisconnect = false;
 // Settings
 accel_cal g_wm;
 nu_cal g_nu;
-cc_cal g_cc;
+cc_cal g_ClassicContCalibration;
+gh3_cal g_GH3Calibration;
 
 // Debugging
 bool g_DebugAccelerometer = false;
@@ -489,7 +490,7 @@ void DisableExtensions()
 	g_Config.bNunchuckConnected = false;
 	g_Config.bClassicControllerConnected = false;
 	//g_Config.bBalanceBoard = false;
-	//g_Config.bGuitar = false;
+	g_Config.bGuitarConnected = false;
 	//g_Config.bDrums = false;
 }
 
@@ -841,7 +842,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		if (data[1] == WM_REPORT_CORE_ACCEL_IR10_EXT6) WiiMoteEmu::IRData2DotsBasic(&data[7]); else WiiMoteEmu::IRData2Dots(&data[7]);
 		std::string IRData;
 		// Create a shortcut
-		struct WiiMoteEmu::SDot* Dot = WiiMoteEmu::g_Wm.IR.Dot;
+		struct WiiMoteEmu::SDot* Dot = WiiMoteEmu::g_Wiimote_kbd.IR.Dot;
 		for (int i = 0; i < 4; ++i)
 		{
 			if(Dot[i].Visible)
@@ -850,7 +851,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				IRData += StringFromFormat("[%i]", Dot[i].Order);
 		}
 		// Dot distance
-		IRData += StringFromFormat(" | Distance:%i", WiiMoteEmu::g_Wm.IR.Distance);
+		IRData += StringFromFormat(" | Distance:%i", WiiMoteEmu::g_Wiimote_kbd.IR.Distance);
 		// -------------------------
 
 		// Classic Controller data

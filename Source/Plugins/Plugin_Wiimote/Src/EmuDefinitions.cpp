@@ -67,9 +67,10 @@ InputCommon::CONTROLLER_STATE_NEW PadState[4];
 InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
 // Keyboard input
-KeyboardWiimote g_Wm;
-KeyboardNunchuck g_Nc;
-KeyboardClassicController g_Cc;
+KeyboardWiimote g_Wiimote_kbd;
+KeyboardNunchuck g_NunchuckExt;
+KeyboardClassicController g_ClassicContExt;
+KeyboardGH3GLP g_GH3Ext;
 
 } // namespace
 
