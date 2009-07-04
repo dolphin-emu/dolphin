@@ -359,7 +359,7 @@ struct cc_cal
 };
 struct gh3_cal
 {
-	nu_js Lx
+	nu_js Lx;
 	nu_js Ly;
 	nu_js Rx;
 	nu_js Ry;
