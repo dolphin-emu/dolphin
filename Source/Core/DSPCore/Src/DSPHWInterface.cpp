@@ -87,12 +87,19 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 
+#ifdef DEBUG_EXP
 	if (mbx == GDSP_MBOX_DSP)
 	{
-		DEBUG_LOG(DSPLLE, " - DSP writes mail to mbx %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
+		NOTICE_LOG(DSPLLE, " - DSP writes mail to mbx low %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
+		//DSPHost_InterruptRequest();
+		//DSPCore_SetException(EXP_INT);
 	} else {
-		// Trigger exception?
+		NOTICE_LOG(DSPLLE, " - CPU writes mail to mbx low %i: 0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_CPU), g_dsp.pc);
+		
+		//		DSPHost_InterruptRequest();
+		//	DSPCore_SetException(EXP_INT);
 	}
+#endif
 }
 
 
@@ -110,10 +117,23 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	u16 val = gdsp_mbox[mbx][1];
 	gdsp_mbox[mbx][0] &= ~0x8000;
 
-	DEBUG_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.pc);
 
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
+
+#ifdef DEBUG_EXP
+	if (mbx == GDSP_MBOX_DSP)
+	{
+		NOTICE_LOG(DSPLLE, "- DSP reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.pc);
+		//	DSPCore_SetException(EXP_INT);
+		//	DSPHost_InterruptRequest();
+	} else {
+		NOTICE_LOG(DSPLLE, "- CPU reads mail from mbx %i: %08x (pc=0x%04x)", mbx, gdsp_mbox_peek(mbx), g_dsp.pc);
+		//	DSPCore_SetException(EXP_INT);
+		// DSPHost_InterruptRequest();
+	}
+#endif	
+
 	return val;
 }
 
@@ -134,6 +154,12 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    case 0xfd: // DMBL
 		    gdsp_mbox_write_l(GDSP_MBOX_DSP, val);
 		    break;
+
+	    case 0xfe:  // CMBH
+		    return gdsp_mbox_write_h(GDSP_MBOX_CPU, val);
+
+	    case 0xff:  // CMBL
+		    return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
 
 	    case 0xcb: // DSBL
 		    gdsp_ifx_regs[addr & 0xFF] = val;
@@ -159,14 +185,14 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-		   			INFO_LOG(DSPLLE, "%04x MW %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+		   			WARN_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
 				}
 				else {
-		   			ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);
+		   			ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
 				}
 			}
 			else {
-		   	    ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)\n", g_dsp.pc, addr, val);
+		   	    ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
 			}
 		    gdsp_ifx_regs[addr & 0xFF] = val;
 		    break;
@@ -179,6 +205,9 @@ u16 gdsp_ifx_read(u16 addr)
 	{
 	    case 0xfc:  // DMBH
 		    return gdsp_mbox_read_h(GDSP_MBOX_DSP);
+
+	    case 0xfd:  // DMBL
+		    return gdsp_mbox_read_l(GDSP_MBOX_DSP);
 
 	    case 0xfe:  // CMBH
 		    return gdsp_mbox_read_h(GDSP_MBOX_CPU);
@@ -199,7 +228,7 @@ u16 gdsp_ifx_read(u16 addr)
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
+	   				NOTICE_LOG(DSPLLE, "%04x MR %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
 				}
 				else {
 	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)\n", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);

@@ -22,6 +22,7 @@
 // emulation core can access the environment it runs in. If the emulation
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
+//#define DEBUG_EXP 1
 
 u8 DSPHost_ReadHostMemory(u32 addr);
 void DSPHost_WriteHostMemory(u8 value, u32 addr);

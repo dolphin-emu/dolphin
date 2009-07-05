@@ -145,6 +145,7 @@ void DSPCore_Reset()
 	g_dsp.r[DSP_REG_WR1] = 0xffff;
 	g_dsp.r[DSP_REG_WR2] = 0xffff;
 	g_dsp.r[DSP_REG_WR3] = 0xffff;
+
 }
 
 void DSPCore_SetException(u8 level)
@@ -157,8 +158,14 @@ void DSPCore_CheckExternalInterrupt()
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT)
 	{
-		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE) && (g_dsp.exception_in_progress_hack == false))
+#ifdef DEBUG_EXP
+		NOTICE_LOG(DSPLLE, "trying External interupt fired");
+#endif
+		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
 		{
+#ifdef DEBUG_EXP
+			NOTICE_LOG(DSPLLE, "External interupt fired");
+#endif
 			// level 7 is the interrupt exception
 			DSPCore_SetException(EXP_INT);
 			
@@ -167,25 +174,30 @@ void DSPCore_CheckExternalInterrupt()
 	}
 }
 
-void DSPCore_CheckExceptions()
+void DSPCore_CheckExceptions() 
 {
-	// check exceptions
-	if ((g_dsp.exceptions != 0) && (!g_dsp.exception_in_progress_hack))
-	{
-		for (int i = 0; i < 8; i++)
-		{
-			if (g_dsp.exceptions & (1 << i))
-			{
-				_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
-
-				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
-
-				g_dsp.pc = i * 2;
-				g_dsp.exceptions &= ~(1 << i);
-
-				g_dsp.exception_in_progress_hack = true;
-				break;
+	if (g_dsp.exceptions != 0) {
+#ifdef DEBUG_EXP
+		NOTICE_LOG(DSPLLE, "trying exception %d fired", g_dsp.exceptions);
+#endif
+		// check exceptions
+		for (int i = 0; i < 8; i++) {
+			// Seems 7 must pass or zelda dies
+			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT) {
+				if (g_dsp.exceptions & (1 << i)) {
+					_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+					
+					dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+					dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
+					
+					g_dsp.pc = i * 2;
+					g_dsp.exceptions &= ~(1 << i);
+#ifdef DEBUG_EXP
+					NOTICE_LOG(DSPLLE, "exception %d fired");
+#endif
+					g_dsp.exception_in_progress_hack = true;
+					break;
+				}
 			}
 		}
 	}

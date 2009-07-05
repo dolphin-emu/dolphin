@@ -58,6 +58,9 @@ bool DSPHost_Running()
 
 void DSPHost_InterruptRequest()
 {
+#ifdef DEBUG_EXP
+	NOTICE_LOG(DSPLLE, "Firing an interrupt on the PPC ASAP");
+#endif
 	// Fire an interrupt on the PPC ASAP.
 	g_dspInitialize.pGenerateDSPInterrupt();
 }
