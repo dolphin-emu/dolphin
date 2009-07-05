@@ -92,7 +92,7 @@ CUCode_Zelda::~CUCode_Zelda()
 
 void CUCode_Zelda::Update(int cycles)
 {
-	if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
+	if (!m_rMailHandler.IsEmpty())
 		g_dspInitialize.pGenerateDSPInterrupt();
 }
 
