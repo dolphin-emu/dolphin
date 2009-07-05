@@ -90,9 +90,9 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	bool success = false;
 	switch (ector_crc)
 	{
-		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Zelda.txt"); break;
-		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_Luigi.txt"); break;
-		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../Docs/DSP/DSP_UC_AX1.txt"); break;
+		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Zelda.txt"); break;
+		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Luigi.txt"); break;
+		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX1.txt"); break;
 		default: success = false; break;
 	}
 
