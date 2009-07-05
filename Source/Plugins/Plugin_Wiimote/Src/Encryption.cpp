@@ -246,9 +246,7 @@ void gentabs(u8 *rand, u8 *key, u8 idx, u8 *ft, u8 *sb)
 
 
 
-// ===================================================
 /* Generate key from the 0x40-0x4c data in g_RegExt */
-// ----------------
 void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 {
 	u8 rand[10];
@@ -282,9 +280,7 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 }
 
 
-// ===================================================
 /* Encrypt data */
-// ----------------
 void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 {
 	for(int i = 0; i < len; i++, addr++)	
@@ -292,9 +288,7 @@ void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 }
 
 
-// ===================================================
 /* Decrypt data */
-// ----------------
 void wiimote_decrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 {
 	for(int i = 0; i < len; i++, addr++)

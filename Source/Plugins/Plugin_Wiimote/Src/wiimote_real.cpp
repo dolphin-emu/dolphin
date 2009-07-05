@@ -37,14 +37,11 @@
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 
-
 namespace WiiMoteReal
 {
 
-//******************************************************************************
 // Forwarding
-//******************************************************************************
-	
+
 class CWiiMote;
 
 #ifdef _WIN32
@@ -52,10 +49,9 @@ class CWiiMote;
 #else
 	void* ReadWiimote_ThreadFunc(void* arg);
 #endif
-//******************************************************************************
+
 // Variable declarations
-//******************************************************************************
-		
+
 wiimote_t**			g_WiiMotesFromWiiUse = NULL;
 Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
@@ -71,17 +67,12 @@ bool				g_RunTemporary = false;
 int					g_RunTemporaryCountdown = 0;
 u8					g_EventBuffer[32];
 
-//******************************************************************************
 // Probably this class should be in its own file
-//******************************************************************************
 
 class CWiiMote
 {
 public:
 
-//////////////////////////////////////////
-// On create and on uncreate
-// ---------------
 CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote) 
     : m_WiimoteNumber(_WiimoteNumber)
     , m_channelID(0)
@@ -103,12 +94,9 @@ virtual ~CWiiMote()
 {
     delete m_pCriticalSection;
 };
-//////////////////////
 
 
-//////////////////////////////////////////
 // Queue raw HID data from the core to the wiimote
-// ---------------
 void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 {
     m_channelID = _channelID;
@@ -125,12 +113,9 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
     }
     m_pCriticalSection->Leave();
 }
-/////////////////////
 
 
-//////////////////////////////////////////////////
 /* Read and write data to the Wiimote */
-// ---------------
 void ReadData() 
 {
     m_pCriticalSection->Enter();
@@ -188,12 +173,9 @@ void ReadData()
 		}
 	}
 };
-/////////////////////
 
 
-//////////////////////////////////////////
 // Send queued data to the core
-// ---------------
 void Update() 
 {
 	// Thread function
@@ -213,12 +195,9 @@ void Update()
 
     m_pCriticalSection->Leave();
 };
-/////////////////////
 
 
-//////////////////////////////////////////
 // Clear events
-// ---------------
 void ClearEvents()
 {
 	while (!m_EventReadQueue.empty())
@@ -226,7 +205,6 @@ void ClearEvents()
 	while (!m_EventWriteQueue.empty())
 		m_EventWriteQueue.pop();	
 }
-/////////////////////
 
 private:
 
@@ -249,9 +227,7 @@ private:
     SEvent m_LastReport;
 	wiimote_t* m_pWiiMote; // This is g_WiiMotesFromWiiUse[]
 
-//////////////////////////////////////////
 // Send queued data to the core
-// ---------------
 void SendEvent(SEvent& _rEvent)
 {
     // We don't have an answer channel
@@ -267,8 +243,9 @@ void SendEvent(SEvent& _rEvent)
 
 	// Create the buffer
     memcpy(&Buffer[Offset], _rEvent.m_PayLoad, MAX_PAYLOAD);
-	/* This Offset value is not exactly correct like it is for the emulated Wiimote reports. It's
-	   often to big, but I guess that's okay. The game will know how big the actual data is. */
+	/* This Offset value is not exactly correct like it is for the emulated
+	   Wiimote reports. It's often to big, but I guess that's okay. The game
+	   will know how big the actual data is. */
     Offset += MAX_PAYLOAD;
 
 	// Send it
@@ -277,14 +254,11 @@ void SendEvent(SEvent& _rEvent)
 	// Debugging
 	// ReadDebugging(false, Buffer, Offset);  
 }
-/////////////////////
 };
 
 
 
-//******************************************************************************
 // Function Definitions 
-//******************************************************************************
 
 void SendAcc(u8 _ReportID)
 {
@@ -381,11 +355,13 @@ int Initialize()
 	// If we are not using the emulated wiimote we can run the thread temporary until the data has beeen copied
 	if(g_Config.bUseRealWiimote) g_RunTemporary = true;
 
-	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values to g_Eeprom. Unlike with
-	   and extension we have to do this here, because this data is only read once when the Wiimote
-	   is connected. Also, we can't change the neutral values the wiimote will report, I think, unless
-	   we update its eeprom? In any case it's probably better to let the current calibration be where it
-	   is and adjust the global values after that to avoid overwriting critical data on any Wiimote. */
+	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values
+	   to g_Eeprom. Unlike with and extension we have to do this here, because
+	   this data is only read once when the Wiimote is connected. Also, we
+	   can't change the neutral values the wiimote will report, I think, unless
+	   we update its eeprom? In any case it's probably better to let the
+	   current calibration be where it is and adjust the global values after
+	   that to avoid overwriting critical data on any Wiimote. */
 	// TODO: Update for multiple wiimotes?
 	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
@@ -449,9 +425,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 }
 
 
-//////////////////////////////////
 // Read the Wiimote once
-// ---------------
 void Update()
 {
 	//INFO_LOG(CONSOLE, "Real Update\n");
@@ -461,11 +435,10 @@ void Update()
 	}
 }
 
-//////////////////////////////////
-/* Continuously read the Wiimote status. However, the actual sending of data occurs in Update(). If we are
-   not currently using the real Wiimote we allow the separate ReadWiimote() function to run. Wo don't use
-   them at the same time to avoid a potential collision. */
-// ---------------
+/* Continuously read the Wiimote status. However, the actual sending of data
+   occurs in Update(). If we are not currently using the real Wiimote we allow
+   the separate ReadWiimote() function to run. Wo don't use them at the same
+   time to avoid a potential collision. */
 #ifdef _WIN32
 	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg)
 #else
@@ -477,8 +450,7 @@ void Update()
 		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
 		g_ThreadGoing = true;
 		if(g_Config.bUseRealWiimote && !g_RunTemporary)
-			for (int i = 0; i < g_NumberOfWiiMotes; i++) 
-				g_WiiMotes[i]->ReadData();
+			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
 		else
 			ReadWiimote();
 		g_ThreadGoing = false;

@@ -17,21 +17,19 @@
 
 
 
-
-// ===================================================
-/* Data reports guide. The different structures location in the Input reports. The ? in
-   the IR coordinates is the High coordinates that are four in one byte.
+/* Data reports guide. The different structures location in the Input
+   reports. The ? in the IR coordinates is the High coordinates that are four
+   in one byte.
    
-   0x37: For the data reportingmode 0x37 there are five unused IR bytes in the end (represented)
-   by "..." below, it seems like they can be set to either 0xff or 0x00 without affecting the
-   IR emulation. */
-// ----------------
+   0x37: For the data reportingmode 0x37 there are five unused IR bytes in the
+   end (represented) by "..." below, it seems like they can be set to either
+   0xff or 0x00 without affecting the IR emulation. */
 
-/* 0x33
-   [c.left etc] [c.a etc]   acc.x y z   ir0.x y ? ir1.x y ? ir2.x y ? ir3.x y ?
+/* 0x33 [c.left etc] [c.a etc] acc.x y z ir0.x y ? ir1.x y ? ir2.x y ? ir3.x y
+   ?
 
-   0x37
-   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2 ...  ext.jx jy ax ay az bt
+   0x37 [c.left etc] [c.a etc] acc.x y z ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2
+   ...  ext.jx jy ax ay az bt
 
 
    The Data Report's path from here is
@@ -41,9 +39,8 @@
 	  WII_IPC_HLE_Device_usb.cpp:
 	     CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame()
 	  at that point the message is queued and will be sent by the next
-	     CWII_IPC_HLE_Device_usb_oh1_57e_305::Update() */
-         
-// ================
+	     CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
+*/
 
 #include "pluginspecs_wiimote.h"
 
@@ -61,23 +58,19 @@
 #include "Encryption.h" // for extension encryption
 #include "Config.h" // for g_Config
 
-extern SWiimoteInitialize g_WiimoteInitialize;
 
+extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
 
-//******************************************************************************
 // Subroutines
-//******************************************************************************
 
 
-// ===================================================
-/* Update the data reporting mode */
-// ----------------
+// Update the data reporting mode 
+
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr) 
 {
-	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
 	DEBUG_LOG(WII_IPC_WIIMOTE, " Set Data reporting mode");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
@@ -105,14 +98,11 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 
 	// WmSendAck(_channelID, WM_DATA_REPORTING);
 
-	INFO_LOG(WII_IPC_WIIMOTE, "===========================================================");
 }
 
 
 
-// ===================================================
 /* Case 0x30: Core Buttons */
-// ----------------
 void SendReportCore(u16 _channelID) 
 {
 	u8 DataFrame[1024];
@@ -134,9 +124,7 @@ void SendReportCore(u16 _channelID)
 }
 
 
-// ===================================================
 /* 0x31: Core Buttons and Accelerometer */
-// ----------------
 void SendReportCoreAccel(u16 _channelID) 
 {
 	u8 DataFrame[1024];
@@ -162,9 +150,7 @@ void SendReportCoreAccel(u16 _channelID)
 }
 
 
-// ===================================================
 /* Case 0x33: Core Buttons and Accelerometer with 12 IR bytes   */
-// ----------------
 void SendReportCoreAccelIr12(u16 _channelID) {
 	u8 DataFrame[1024];
 	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
@@ -193,9 +179,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 }
 
 
-// ===================================================
 /* Case 0x35: Core Buttons and Accelerometer with 16 Extension Bytes  */
-// ----------------
 void SendReportCoreAccelExt16(u16 _channelID) 
 {
 	u8 DataFrame[1024];
@@ -225,7 +209,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
 #endif
-		// Copy _ext to pReport->ext
+//TODO		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
 
@@ -240,9 +224,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 }
 
 
-// ===================================================
 /* Case 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes */
-// ----------------
 void SendReportCoreAccelIr10Ext(u16 _channelID) 
 {
 	u8 DataFrame[1024];
@@ -261,7 +243,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
 #endif
-
+//TODO
 	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX

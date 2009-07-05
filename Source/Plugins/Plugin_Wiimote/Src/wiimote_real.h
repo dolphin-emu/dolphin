@@ -23,7 +23,6 @@
 #include "wiiuse.h"
 #include "ChunkFile.h"
 
-
 namespace WiiMoteReal
 {
 

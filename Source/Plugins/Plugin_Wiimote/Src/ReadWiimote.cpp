@@ -229,7 +229,6 @@ void handle_event(struct wiimote_t* wm)
 
 			if(!g_DebugData)
 			{
-//				Console::ClearScreen();
 				INFO_LOG(CONSOLE, "Roll:%03i Pitch:%03i\n", (int)wm->orient.roll, (int)wm->orient.pitch);
 			}
 			if(m_PadConfigFrame)

@@ -16,15 +16,20 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+
 // Current issues
 /*
-The real Wiimote fails to answer the core correctly sometmes. Leading to an unwanted disconnection. And
-there is currenty no functions to reconnect with the game. There are two ways to solve this:
-	1. Make a reconnect function in the IOS emulation
-	2. Detect failed answers in this plugin and solve it by replacing them with emulated answers.
+The real Wiimote fails to answer the core correctly sometmes. Leading to an
+unwanted disconnection. And there is currenty no functions to reconnect with
+the game. There are two ways to solve this:
 
-The first solution seems easier, if I knew a little better how the /dev/usb/oh1 and Wiimote functions
-worked.
+1. Make a reconnect function in the IOS emulation
+
+2. Detect failed answers in this plugin and solve it by replacing them with
+emulated answers.
+
+The first solution seems easier, if I knew a little better how the /dev/usb/oh1
+and Wiimote functions worked.
 */
 
 #include "Common.h" // Common
@@ -119,7 +124,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 				return FALSE;
 #endif
 		}
-		break; 
+		break;
 
 	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
@@ -150,9 +155,7 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-//******************************************************************************
 // Exports
-//******************************************************************************
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
@@ -179,7 +182,7 @@ void DllDebugger(HWND _hParent, bool Show) {}
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	
+
 	DoInitialize();
 
 	if (!m_BasicConfigFrame)
@@ -198,7 +201,7 @@ void DllConfig(HWND _hParent)
 void Initialize(void *init)
 {
 	// Declarations
-    SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
+	SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
 	g_WiimoteInitialize = _WiimoteInitialize;
 
 	g_EmulatorRunning = true;
@@ -283,17 +286,14 @@ void DoState(unsigned char **ptr, int mode)
 }
 
 
-// ===================================================
 /* This function produce Wiimote Input (reports from the Wiimote) in response
    to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp.
    
    Switch between real and emulated wiimote: We send all this Input to WiiMoteEmu::InterruptChannel()
    so that it knows the channel ID and the data reporting mode at all times.
    */
-// ----------------
 void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// Debugging
@@ -311,18 +311,13 @@ void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	if (g_RealWiiMotePresent)
 		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 #endif
-		
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
-// ==============================
 
 
-// ===================================================
-/* Function: Used for the initial Bluetooth HID handshake. */
-// ----------------
+// Function: Used for the initial Bluetooth HID handshake.
+
 void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// Check for custom communication
@@ -351,16 +346,11 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	if (g_RealWiiMotePresent)
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
-		
-	DEBUG_LOG(WII_IPC_WIIMOTE, "=============================================================");
 }
-// ==============================
 
 
-// ===================================================
 /* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
    update. */
-// ----------------
 void Wiimote_Update()
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
@@ -407,55 +397,15 @@ unsigned int Wiimote_GetAttachedControllers()
 {
 	return 1;
 }
-// ================
 
 
 
-
-//******************************************************************************
 // Supporting functions
-//******************************************************************************
 
 
 
-
-// ----------------------------------------
-// Debugging window
-// ----------
-/*
-void OpenConsole(bool Open)
-{
-	// Close the console window
-	#ifdef _WIN32
-//		if (Console::GetHwnd() != NULL && !Open)
-	#else
-		if (false)
-	#endif
-	{
-//		Console::Close();
-		// Wait here until we have let go of the button again
-		#ifdef _WIN32
-			while(GetAsyncKeyState(VK_INSERT)) {Sleep(10);}
-		#endif
-		return;
-	}
-
-	// Open the console window
-//	Console::Open(140, 1000, "Wiimote"); // give room for 20 rows
-	INFO_LOG(CONSOLE, "\n\nWiimote console opened\n");
-
-	// Move window
-	#ifdef _WIN32
-		//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-		//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
-//	MoveWindow(Console::GetHwnd(), 200,0, 140*8,70*14, true); // big wide window
-	#endif
-	}*/
-// ---------------
-
-// ----------------------------------------
 // Check if Dolphin is in focus
-// ----------
+
 bool IsFocus()
 {
 #ifdef _WIN32
@@ -538,9 +488,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// data[4]: Size and error
 		// data[5, 6]: The registry offset
 
-		// ---------------------------------------------------------------------
 		// Show the extension ID
-		// --------------------------
 		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
 			if(data[4] == 0x10)
@@ -590,13 +538,11 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
-		// ---------------------------------------------
 
-		// ---------------------------------------------------------------------
 		// Show the Wiimote neutral values
-		// --------------------------
-		/* The only difference between the Nunchuck and Wiimote that we go after is calibration here is
-		   the offset in memory. If needed we can check the preceding 0x17 request to. */
+		/* The only difference between the Nunchuck and Wiimote that we go
+		   after is calibration here is the offset in memory. If needed we can
+		   check the preceding 0x17 request to. */
 		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10)
 		{
 			if(data[6] == 0x10)
@@ -610,11 +556,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 +12]);
 			}
 		}
-		// ---------------------------------------------
 
-		// ---------------------------------------------------------------------
 		// Show the Nunchuck neutral values
-		// --------------------------
 		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// Save the encrypted data
@@ -686,7 +629,6 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			// Show the encrypted data
 			INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 		}
-		// ---------------------------------------------
 		
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
@@ -733,9 +675,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 	if (!DataReport && g_DebugComm)
 	{
-		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
+		std::string tmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), TmpData.c_str()); // No timestamp
+		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), tmpData.c_str()); // No timestamp
 		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 
@@ -1036,9 +978,9 @@ double GetDoubleTime()
 	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
 
-	// Remove a few years. We only really want enough seconds to make sure that we are
-	// detecting actual actions, perhaps 60 seconds is enough really, but I leave a
-	// year of seconds anyway, in case the user's clock is incorrect or something like that
+	/* Remove a few years. We only really want enough seconds to make sure that we are
+	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
+	   year of seconds anyway, in case the user's clock is incorrect or something like that */
 	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
 
 	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
@@ -1092,12 +1034,13 @@ void DoInitialize()
 	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
 	WiiMoteEmu::Initialize();
 
-	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
-	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
-	   we will return before creating a new thread for it if we find no real Wiimotes.
-	   Then g_RealWiiMotePresent will also be false. This function call will be done
-	   instantly whether there is a real Wiimote connected or not. It takes no time for
-	   Wiiuse to check for connected Wiimotes. */
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real
+	   wiimote, to check if there is a real wiimote connected. We will initiate
+	   wiiuse.dll, but we will return before creating a new thread for it if we
+	   find no real Wiimotes.  Then g_RealWiiMotePresent will also be
+	   false. This function call will be done instantly whether there is a real
+	   Wiimote connected or not. It takes no time for Wiiuse to check for
+	   connected Wiimotes. */
 	#if HAVE_WIIUSE
 		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
 	#endif

@@ -82,10 +82,6 @@ struct SRecordingAll
 	
 	// Movement recording
 	extern std::vector<SRecordingAll> VRecording;
-
-	//#if defined(HAVE_WX) && HAVE_WX && defined(__CONFIGDIALOG_h__)
-	//	extern ConfigDialog *frame;
-	//#endif
 #endif
 
 

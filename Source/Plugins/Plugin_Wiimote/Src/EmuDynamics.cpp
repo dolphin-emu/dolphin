@@ -45,9 +45,7 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Test the calculations
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void TiltTest(u8 x, u8 y, u8 z)
 {
 	int Roll, Pitch, RollAdj, PitchAdj;
@@ -63,13 +61,11 @@ void TiltTest(u8 x, u8 y, u8 z)
 		(_Pitch >= 0) ? StringFromFormat(" %03i", (int)_Pitch).c_str() : StringFromFormat("%04i", (int)_Pitch).c_str());
 	INFO_LOG(CONSOLE, "%s\n", To.c_str());
 }
-////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-/* Angles adjustment for the upside down state when both roll and pitch is used. When the absolute values
-   of the angles go over 90° the Wiimote is upside down and these adjustments are needed. */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Angles adjustment for the upside down state when both roll and pitch is
+   used. When the absolute values of the angles go over 90° the Wiimote is
+   upside down and these adjustments are needed. */
 void AdjustAngles(float &Roll, float &Pitch)
 {
 	float OldPitch = Pitch;
@@ -90,12 +86,9 @@ void AdjustAngles(float &Roll, float &Pitch)
 			Roll = -180 - Roll; // -15 to -165
 	}	
 }
-////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Angles to accelerometer values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_z)
 {
 	// We need radiands for the math functions
@@ -119,21 +112,22 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 	else
 	{
 		// ====================================================
-		/* This seems to always produce the exact same combination of x, y, z and Roll and Pitch that the
-		   real Wiimote produce. There is an unlimited amount of x, y, z combinations for any combination of
-		   Roll and Pitch. But if we select a Z from the smallest of the absolute value of cos(Roll) and
-		   cos (Pitch) we get the right values. */
+		/* This seems to always produce the exact same combination of x, y, z
+		   and Roll and Pitch that the real Wiimote produce. There is an
+		   unlimited amount of x, y, z combinations for any combination of Roll
+		   and Pitch. But if we select a Z from the smallest of the absolute
+		   value of cos(Roll) and cos (Pitch) we get the right values. */
 		// ---------	
 		if (abs(cos(_Roll)) < abs(cos(_Pitch))) z = cos(_Roll); else z = cos(_Pitch);
-		/* I got these from reversing the calculation in PitchAccelerometerToDegree() in a math program
-		   I don't know if we can derive these from some kind of matrix or something */
+		/* I got these from reversing the calculation in
+		   PitchAccelerometerToDegree() in a math program I don't know if we
+		   can derive these from some kind of matrix or something */
 		float x_num = 2 * tanf(0.5f * _Roll) * z;
 		float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
 		x = - (x_num / x_den);
 		float y_num = 2 * tanf(0.5f * _Pitch) * z;
 		float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
 		y = - (y_num / y_den);
-		// =========================
 	}
 
 	// Multiply with the neutral of z and its g
@@ -156,9 +150,7 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 	_z = iz;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Accelerometer to roll and pitch angles
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 float AccelerometerToG(float Current, float Neutral, float G)
 {
 	float _G = (Current - Neutral) / G;
@@ -208,11 +200,7 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 // IR data functions
 //******************************************************************************
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Calculate dot positions from the basic 10 byte IR data
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2DotsBasic(u8 *Data)
 {
 	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
@@ -252,9 +240,7 @@ void IRData2DotsBasic(u8 *Data)
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Calculate dot positions from the extented 12 byte IR data
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2Dots(u8 *Data)
 {
 	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
@@ -284,12 +270,9 @@ void IRData2Dots(u8 *Data)
 	ReorderIRDots();
 	IRData2Distance();
 }
-////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Reorder the IR dots according to their x-axis value
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ReorderIRDots()
 {
 	// Create a shortcut
@@ -320,12 +303,9 @@ void ReorderIRDots()
 		Dot[i].Order = order;
 	}
 }
-////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Calculate dot positions from the extented 12 byte IR data
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void IRData2Distance()
 {
 	// Create a shortcut
@@ -355,7 +335,6 @@ void IRData2Distance()
 	// Save the distance
 	g_Wiimote_kbd.IR.Distance = (int)sqrt((float)(xd*xd) + (float)(yd*yd));
 }
-////////////////////////////////
 
 
 //******************************************************************************

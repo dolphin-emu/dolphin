@@ -37,24 +37,16 @@ namespace WiiMoteEmu
 {
 
 
-//**************************************************************************************
 // Recorded movements
-//**************************************************************************************
-
-// ------------------------------------------
 // Variables: 0 = Wiimote, 1 = Nunchuck
-// ----------------
 int g_RecordingPlaying[3]; //g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
 int g_RecordingCounter[3]; //g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
 int g_RecordingPoint[3]; //g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
 double g_RecordingStart[3]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
 double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
-// --------------------------
 
-/////////////////////////////////////////////////////////////////////////
 /* Convert from -350 to -3.5 g. The Nunchuck gravity size is 51 compared to the 26 to 28 for the Wiimote.
    So the maximum g values are higher for the Wiimote. */
-// ---------------
 int G2Accelerometer(int _G, int XYZ, int Wm)
 {
 	float G = (float)_G / 100.0;
@@ -378,12 +370,9 @@ int IsKey(int Key)
 	return false;
 #endif
 }
-//////////////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////
 // Wiimote core buttons
-// ---------------
 void FillReportInfo(wm_core& _core)
 {
 	/* This has to be filled with zeroes (and not for example 0xff) because when no buttons are pressed the
@@ -425,24 +414,20 @@ void FillReportInfo(wm_core& _core)
 		_core.down = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
 	}
 }
-//////////////////////////
 
 
-///////////////////////////////////////////////////////////////////
 // Wiimote accelerometer
-// ---------------
-/* The accelerometer x, y and z values range from 0x00 to 0xff with the default netural values
-   being [y = 0x84, x = 0x84, z = 0x9f] according to a source. The extremes are 0x00 for (-)
-   and 0xff for (+). It's important that all values are not 0x80, the mouse pointer can disappear
-   from the screen permanently then, until z is adjusted back. This is because the game detects
+/* The accelerometer x, y and z values range from 0x00 to 0xff with the default
+   netural values being [y = 0x84, x = 0x84, z = 0x9f] according to a
+   source. The extremes are 0x00 for (-) and 0xff for (+). It's important that
+   all values are not 0x80, the mouse pointer can disappear from the screen
+   permanently then, until z is adjusted back. This is because the game detects
    a steep pitch of the Wiimote then. */
 
 
-// ----------
-// Global declarations for FillReportAcc: These variables are global so they can be changed during debugging
-//int A = 0, B = 128, C = 64; // for debugging
-//int a = 1, b = 1, c = 2, d = -2; // for debugging
-//int consoleDisplay = 0;
+// Global declarations for FillReportAcc: These variables are global so they
+//can be changed during debugging int A = 0, B = 128, C = 64; // for debugging
+//int a = 1, b = 1, c = 2, d = -2; // for debugging int consoleDisplay = 0;
 
 // For all functions
 u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
@@ -454,9 +439,7 @@ int Shake[] = {-1, -1};
 std::vector<u8> yhist(15, 0); float KbDegree;
 
 
-// ------------------------------------------
 // Single shake of Wiimote while holding it sideways (Wario Land pound ground)
-// ---------------
 void SingleShake(u8 &_y, u8 &_z, int i)
 {
 #ifdef _WIN32
@@ -483,11 +466,9 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 }
 
 
-// ------------------------------------------
-/* Tilting Wiimote with gamepad. We can guess that the game will calculate a Wiimote pitch and use it as a
-   measure of the tilting of the Wiimote. We are interested in this tilting range
-		90° to -90° */
-// ---------------
+/* Tilting Wiimote with gamepad. We can guess that the game will calculate a
+   Wiimote pitch and use it as a measure of the tilting of the Wiimote. We are
+   interested in this tilting range 90° to -90° */
 void TiltWiimoteGamepad(float &Roll, float &Pitch)
 {
 	// Return if we have no pads
@@ -496,10 +477,12 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 	// This has to be changed if multiple Wiimotes are to be supported later
 	const int Page = 0;
 
-	/* Adjust the pad state values, including a downscaling from the original 0x8000 size values
-	   to 0x80. The only reason we do this is that the code below crrently assume that the range
-	   is 0 to 255 for all axes. If we lose any precision by doing this we could consider not
-	   doing this adjustment. And instead for example upsize the XInput trigger from 0x80 to 0x8000. */
+	/* Adjust the pad state values, including a downscaling from the original
+	   0x8000 size values to 0x80. The only reason we do this is that the code
+	   below crrently assume that the range is 0 to 255 for all axes. If we
+	   lose any precision by doing this we could consider not doing this
+	   adjustment. And instead for example upsize the XInput trigger from 0x80
+	   to 0x8000. */
 	int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 	PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
 	float Lx = (float)_Lx;
@@ -526,8 +509,9 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 			- Tr * (PitchRange / 128.0);
 	}
 
-	/* For the analog stick roll us by default set to the X-axis, pitch is by default set to the Y-axis.
-	   By changing the axis mapping and the invert options this can be altered in any way */
+	/* For the analog stick roll us by default set to the X-axis, pitch is by
+	   default set to the Y-axis.  By changing the axis mapping and the invert
+	   options this can be altered in any way */
 	else if (g_Config.Trigger.Type == g_Config.Trigger.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
@@ -560,9 +544,7 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 }
 
 
-// ------------------------------------------
 // Tilting Wiimote with keyboard
-// ---------------
 void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 {
 #ifdef _WIN32
@@ -579,9 +561,7 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 			KbDegree -= 3; // aim right
 	}
 
-	// -----------------------------------
 	// Check for inactivity in the tilting, the Y value will be reset after ten inactive updates
-	// ----------
 	// Check for activity
 	yhist[yhist.size() - 1] = (
 		IsKey(g_Wiimote_kbd.PITCH_L)
@@ -605,13 +585,10 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 		Pitch = KbDegree;
 		//INFO_LOG(CONSOLE, "Degree: %2.1f\n", KbDegree);
 	}
-	// --------------------
 #endif
 }
 
-// ------------------------------------------
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
-// ---------------
 void Tilt(u8 &_x, u8 &_y, u8 &_z)
 {
 	// Ceck if it's on
@@ -635,7 +612,6 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 
 	if (g_DebugData)
 	{
-		//Console::ClearScreen();
 		/*INFO_LOG(CONSOLE, "L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
 			Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
 		/*INFO_LOG(CONSOLE, "Roll:%2.1f Pitch:%2.1f\n", Roll, Pitch);*/
@@ -644,9 +620,7 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 
 void FillReportAcc(wm_accel& _acc)
 {
-	// ------------------------------------
 	// Recorded movements
-	// --------------
 	// Check for a playback command
 	if(g_RecordingPlaying[0] < 0)
 	{
@@ -658,7 +632,6 @@ void FillReportAcc(wm_accel& _acc)
 		if (RecordingPlay(_acc.x, _acc.y, _acc.z, 0)) return;
 		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
 	}
-	// ---------------------
 
 	// The default values can change so we need to update them all the time
 	g_X = g_wm.cal_zero.x;
@@ -675,9 +648,7 @@ void FillReportAcc(wm_accel& _acc)
 		return;
 	}
 
-	// ------------------------------------------------
 	// Wiimote to Gamepad translations
-	// ------------
 	
 	// The following functions may or may not update these values
 	g_x = g_X;
@@ -696,9 +667,7 @@ void FillReportAcc(wm_accel& _acc)
 	_acc.z = g_z;
 	
 
-	// ----------------------------
 	// Debugging for translating Wiimote to Keyboard (or Gamepad)
-	// ----------
 	/*
 	
 	// Toogle console display
@@ -773,7 +742,6 @@ void FillReportAcc(wm_accel& _acc)
 		AX, AY, AZ
 		);*/	
 }
-/////////////////////////
 
 
 
@@ -783,14 +751,10 @@ void FillReportAcc(wm_accel& _acc)
 		Bottom = BOTTOM, SensorBarRadius = SENSOR_BAR_RADIUS;		
 */
 
-///////////////////////////////////////////////////////////////////
 // The extended 12 byte (3 byte per object) reporting
-// ---------------
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 {
-	// ------------------------------------
 	// Recorded movements
-	// --------------
 	// Check for a playback command
 	if(g_RecordingPlaying[2] < 0)
 	{
@@ -801,10 +765,10 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
 		if (RecordingPlayIR(_ir0)) return;		
 	}
-	// ---------------------
 
-	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it doesn't see a certain point,
-	   at least from how WiiMoteReal::SendEvent() works. */
+	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it
+	   doesn't see a certain point, at least from how WiiMoteReal::SendEvent()
+	   works. */
 	memset(&_ir0, 0xff, sizeof(wm_ir_extended));
 	memset(&_ir1, 0xff, sizeof(wm_ir_extended));
 
@@ -814,19 +778,13 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
-	// --------------------------------------
 	// Position calculation
-	// ----------
 	int y0 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
 	int y1 = y0;
 	// The distance between the x positions are two sensor bar radii
 	int x0 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
 	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
-	// ------------------
-
-	// ----------------------------
 	// Debugging for calibration
-	// ----------
 	/*
 	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_RIGHT))
 		Right +=1;
@@ -854,12 +812,9 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	INFO_LOG(CONSOLE, "x0:%03i x1:%03i  y0:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
 		x0, x1, y0, y1, Top, Left, Right, Bottom, SensorBarRadius
 		);*/
-	// ------------------
 
 
-	// --------------------------------------
 	// Converted to IR data
-	// ----------
 	// The width is 0 to 1023
 	// The height is 0 to 767
 	x0 = 1023 - x0;
@@ -872,18 +827,13 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	_ir1.x = x1 & 0xff; _ir1.xHi = x1 >> 8;
 	_ir1.y = y1 & 0xff; _ir1.yHi = y1 >> 8;
 	_ir1.size = 10;
-	// ------------------
 }
 
-///////////////////////////////////////////////////////////////////
 // The 10 byte reporting used when an extension is connected
-// ---------------
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
 
-	// ------------------------------------
 	// Recorded movements
-	// --------------
 	// Check for a playback command
 	if(g_RecordingPlaying[2] < 0)
 	{
@@ -895,7 +845,6 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
 		if (RecordingPlayIR(_ir0)) return;		
 	}
-	// ---------------------
 
 	// Fill with 0xff if empty
 	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
@@ -913,8 +862,9 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
 	int x2 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
 
-	/* As with the extented report we settle with emulating two out of four possible objects
-	   the only difference is that we don't report any size of the tracked object here */
+	/* As with the extented report we settle with emulating two out of four
+	   possible objects the only difference is that we don't report any size of
+	   the tracked object here */
 	x1 = 1023 - x1;
 	_ir0.x1 = x1 & 0xff; _ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
 	_ir0.y1 = y1 & 0xff; _ir0.y1Hi = (y1 >> 8);
@@ -924,9 +874,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	_ir0.y2 = y2 & 0xff; _ir0.y2Hi = (y2 >> 8);
 
 
-	// ------------------------------------
 	// Debugging for calibration
-	// ----------	
 	/*
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		Right +=1;
@@ -966,19 +914,14 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 }
 
 
-//**************************************************************************************
 // Extensions
-//**************************************************************************************
 
 
-// ===================================================
-/* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes are JX JY AX AY AZ BT. */
-// ----------------
+/* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes
+   are JX JY AX AY AZ BT. */
 void FillReportExtension(wm_extension& _ext)
 {
-	// ------------------------------------------
 	// Recorded movements
-	// --------------
 	// Check for a playback command
 	if(g_RecordingPlaying[1] < 0) g_RecordingPlaying[1] = RecordingCheckKeys(1);
 
@@ -990,18 +933,14 @@ void FillReportExtension(wm_extension& _ext)
 		_ext.ay = g_nu.cal_zero.y;
 		_ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
 	}
-	// ---------------------
 
 	// Shake the Wiimote
 	SingleShake(_ext.ay, _ext.az, 1);
 
-	// ------------------------------------
 	// The default joystick and button values unless we use them
-	// --------------
 	_ext.jx = g_nu.jx.center;
 	_ext.jy = g_nu.jy.center;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
-	// ---------------------
 
 	// Update the analog stick
 	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
@@ -1026,9 +965,10 @@ void FillReportExtension(wm_extension& _ext)
 		_Ly = 0xff - _Ly;
 		_Ry = 0xff - _Ry;
 
-		/* This is if we are also using a real Nunchuck that we are sharing the calibration with. It's not
-		   needed if we are using our default values. We adjust the values to the configured range, we even
-		   allow the center to not be 0x80. */
+		/* This is if we are also using a real Nunchuck that we are sharing the
+		   calibration with. It's not needed if we are using our default
+		   values. We adjust the values to the configured range, we even allow
+		   the center to not be 0x80. */
 		if(g_nu.jx.max != 0xff || g_nu.jy.max != 0xff
 			|| g_nu.jx.min != 0 || g_nu.jy.min != 0
 			|| g_nu.jx.center != 0x80 || g_nu.jy.center != 0x80)
@@ -1037,8 +977,8 @@ void FillReportExtension(wm_extension& _ext)
 			float Ly = (float)_Ly;
 			float Rx = (float)_Rx;
 			float Ry = (float)_Ry;
-			float Tl = (float)_Tl;
-			float Tr = (float)_Tr;
+			//			float Tl = (float)_Tl;
+			//			float Tr = (float)_Tr;
 
 			float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
 			float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
@@ -1093,13 +1033,10 @@ void FillReportExtension(wm_extension& _ext)
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
 }
-// =======================
 
 
-// ===================================================
 /* Generate the 6 byte extension report for the Classic Controller, encrypted.
    The bytes are ... */
-// ----------------
 void FillReportClassicExtension(wm_classic_extension& _ext)
 {
 	/* These are the default neutral values for the analog triggers and sticks */
@@ -1125,11 +1062,9 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.b2.bB = 0x01;
 	_ext.b2.bZL = 0x01;
 
-	// --------------------------------------
 	// Check that Dolphin is in focus
 	if (IsFocus())
 	{
-		// --------------------------------------
 		/* Left and right analog sticks and analog triggers
 
 			u8 Lx : 6; // byte 0
@@ -1169,10 +1104,13 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			_Ly = 0xff - _Ly;
 			_Ry = 0xff - _Ry;
 
-			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
-			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			/* This is if we are also using a real Classic Controller that we
+			   are sharing the calibration with.  It's not needed if we are
+			   using our default values. We adjust the values to the configured
+			   range.
 			   
-			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   Status: Not added, we are not currently sharing the calibration
+			   with the real Classic Controller
 			   */
 
 			if (g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1)
@@ -1208,10 +1146,13 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			_Ly = 0xff - _Ly;
 			_Ry = 0xff - _Ry;
 
-			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
-			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			/* This is if we are also using a real Classic Controller that we
+			   are sharing the calibration with.  It's not needed if we are
+			   using our default values. We adjust the values to the configured
+			   range.
 			   
-			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   Status: Not added, we are not currently sharing the calibration
+			   with the real Classic Controller
 			   */
 
 			if (g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1)
@@ -1240,25 +1181,28 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
 
-			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
-			   It's not needed if we are using our default values. We adjust the values to the configured range.
+			/* This is if we are also using a real Classic Controller that we
+			   are sharing the calibration with.  It's not needed if we are
+			   using our default values. We adjust the values to the configured
+			   range.
 			   
-			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
+			   Status: Not added, we are not currently sharing the calibration
+			   with the real Classic Controller
 			   */
 
-			// Check if the trigger is fully pressed, then update the digital trigger values to
+			// Check if the trigger is fully pressed, then update the digital
+			// trigger values to
 			if (_Tl == 0xff)  _ext.b1.bLT = 0x00;
 			if (_Tr == 0xff)  _ext.b1.bRT = 0x00;
 
-			// These can be copied directly, the bitshift further down fix this value to
+			// These can be copied directly, the bitshift further down fix this
+			// value to
 			lT = _Tl;
 			rT = _Tr;
 		}
 
 
-		// --------------
 
-		// --------------------------------------
 		/* D-Pad
 		
 		u8 b1;
@@ -1274,9 +1218,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		if(IsKey(g_ClassicContExt.Du)) _ext.b2.bdU = 0x00; // Up
 		if(IsKey(g_ClassicContExt.Dr)) _ext.b1.bdR = 0x00; // Right
 		if(IsKey(g_ClassicContExt.Dd)) _ext.b1.bdD = 0x00; // Down		
-		// --------------
 
-		// --------------------------------------
 		/* Buttons
 			u8 b1;
 				0:
@@ -1323,14 +1265,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		// All buttons pressed
 		//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
 		//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
-		// --------------
 	}
-	// --------------------------------------
 
 
-	// --------------------------------------
 	// Convert data for reporting
-	// --------------
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
 	// 5 bit to 1 bit
@@ -1346,7 +1284,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// 5 bit to the highest two bits
 	_ext.lT2 = (lT >> 3) >> 3;
 	_ext.rT = (rT >> 3);
-	// --------------
 
 
 	/* Here we encrypt the report */
@@ -1362,12 +1299,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
 }
-// =======================
 
-// ===================================================
-/* Generate the 6 byte extension report for the Classic Controller, encrypted.
+/* Generate the 6 byte extension report for the GH3 Controller, encrypted.
    The bytes are ... */
-// ----------------
+
 void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 {
 	//_ext.SX   : 6;
@@ -1399,11 +1334,9 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.BO = 1;
 
 
-	// --------------------------------------
 	// Check that Dolphin is in focus
 	if (IsFocus())
 	{
-		// --------------------------------------
 		/* Left and right analog sticks and analog triggers
 
 			u8 Lx : 6; // byte 0
@@ -1481,12 +1414,8 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 		if(IsKey(g_GH3Ext.BO))
 			_ext.BO = 0x00;
 	}
-	// --------------------------------------
 
-
-	// --------------------------------------
 	// Convert data for reporting
-	// --------------
 	_ext.SX = (SX >> 2);
 	_ext.SY = (SY >> 2);
 
@@ -1505,7 +1434,6 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	// 5 bit to the highest two bits
 	_ext.lT2 = (lT >> 3) >> 3;
 	_ext.rT = (rT >> 3);
-	// --------------
 */
 
 	/* Here we encrypt the report */

@@ -28,7 +28,6 @@
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
 
-
 void WiimoteRecordingConfigDialog::LoadFile()
 {
 	INFO_LOG(CONSOLE, "LoadFile()\n");
@@ -289,9 +288,7 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 		m_RecordIRBytesText[i]->Enable(false);
 		m_RecordSpeed[i]->Enable(false);
 
-		// ------------------------------------
 		// Row 2 Sizers
-		// -----------
 		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeySwitch[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKeyWiimote[i], 0, wxEXPAND | (wxLEFT), 2);
@@ -364,8 +361,10 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 		TmpTime += StringFromFormat("%05i", Time);
 		if (i < ((int)m_vRecording.size() - 1)) TmpTime += ",";
 
-		// Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
-		//   This limit should never be hit because of the recording limit below. I keep it here just in case.
+		/* Break just short of the IniFile.cpp byte limit so that we don't
+		   crash file.Load() the next time.  This limit should never be hit
+		   because of the recording limit below. I keep it here just in
+		   case. */
 		if(TmpStr.length() > (1024*10 - 10) || TmpIR.length() > (1024*10 - 10) || TmpTime.length() > (1024*10 - 10))
 		{
 			break;
@@ -434,8 +433,8 @@ void WiimoteRecordingConfigDialog::RecordMovement(wxCommandEvent& event)
 	else
 	{
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
-		// This is for usability purposes, it may not be obvious at all that this must be unchecked
-		// for the recording to work
+		// This is for usability purposes, it may not be obvious at all that
+		// this must be unchecked for the recording to work
 		for(int i = 0; i < MAX_WIIMOTES; i++)
 			m_BasicConfigFrame->m_UseRealWiimote[i]->SetValue(false);
 		g_Config.bUseRealWiimote = false;
@@ -514,3 +513,4 @@ void WiimoteRecordingConfigDialog::DoRecordMovement(int _x, int _y, int _z, cons
 		UpdateRecordingGUI();
 	}
 }
+

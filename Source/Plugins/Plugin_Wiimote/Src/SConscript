@@ -24,7 +24,6 @@ if wmenv['HAVE_WX']:
         "ConfigRecordingDlg.cpp",
 		"ConfigGamepad.cpp",
         "ConfigRecording.cpp",
-        "Logging.cpp",
         "FillReport.cpp",
         ]
 
