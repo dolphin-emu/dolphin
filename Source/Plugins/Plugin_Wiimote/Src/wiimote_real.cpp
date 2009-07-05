@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
 #include <queue>
 
@@ -37,12 +34,8 @@
 #include "EmuDefinitions.h"
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
-#if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigDlg.h"
-#endif
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-////////////////////////////////////////
 
 
 namespace WiiMoteReal

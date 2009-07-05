@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -45,11 +45,6 @@
          
 // ================
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "pluginspecs_wiimote.h"
 
 #include <vector>
@@ -64,16 +59,9 @@
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h" // for extension encryption
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
-///////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 extern SWiimoteInitialize g_WiimoteInitialize;
-///////////////////////////////
 
 
 namespace WiiMoteEmu
@@ -226,13 +214,13 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	FillReportAcc(pReport->a);
 #endif
 
-	if(g_Config.bNunchuckConnected)
+	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
 #endif
 	}
-	else if(g_Config.bClassicControllerConnected)
+	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
@@ -274,13 +262,13 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
 #endif
 
-	if(g_Config.bNunchuckConnected)
+	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
 #endif
 	}
-	else if(g_Config.bClassicControllerConnected)
+	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);

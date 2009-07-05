@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <wx/msgdlg.h>
 
 #include <vector>
@@ -33,9 +29,7 @@
 #include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
-#include "Logging.h" // For startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // For g_Config
-//////////////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 

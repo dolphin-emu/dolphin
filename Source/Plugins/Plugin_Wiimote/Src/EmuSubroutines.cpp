@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -36,9 +36,6 @@
 // ================
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 
@@ -48,7 +45,6 @@
 
 #include "EmuMain.h" // Local
 #include "EmuSubroutines.h"
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 /////////////////////////////////
 
@@ -580,10 +576,10 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	if (Extension == -1)
 	{
 		// Read config value for this one
-		if(g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
-			pStatus->extension = 1;
-		else
+		if(g_Config.iExtensionConnected == EXT_NONE)
 			pStatus->extension = 0;
+		else
+			pStatus->extension = 1;
 	}
 	else
 	{

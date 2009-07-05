@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 
 #include "wiimote_hid.h" // Local
 #include "Encryption.h"
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 

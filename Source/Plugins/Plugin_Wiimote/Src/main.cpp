@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,10 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Current issues
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
-
+/*
 The real Wiimote fails to answer the core correctly sometmes. Leading to an unwanted disconnection. And
 there is currenty no functions to reconnect with the game. There are two ways to solve this:
 	1. Make a reconnect function in the IOS emulation
@@ -27,14 +25,8 @@ there is currenty no functions to reconnect with the game. There are two ways to
 
 The first solution seems easier, if I knew a little better how the /dev/usb/oh1 and Wiimote functions
 worked.
+*/
 
-/////////////////////////////////////////////*/
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "Timer.h"
@@ -43,10 +35,14 @@ worked.
 #include "EmuDefinitions.h"  // Local
 #include "wiimote_hid.h"
 #include "main.h"
-#include "Logging.h"
 #if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigDlg.h"
-	WiimoteConfigDialog *m_ConfigFrame = NULL;
+	#include "ConfigPadDlg.h"
+	#include "ConfigRecordingDlg.h"
+	#include "ConfigBasicDlg.h"
+
+	WiimotePadConfigDialog *m_PadConfigFrame = NULL;
+	WiimoteRecordingConfigDialog *m_RecordingConfigFrame = NULL;
+	WiimoteBasicConfigDialog *m_BasicConfigFrame = NULL;
 #endif
 #include "Config.h"
 #include "pluginspecs_wiimote.h"
@@ -54,12 +50,7 @@ worked.
 #if HAVE_WIIUSE
 	#include "wiimote_real.h"
 #endif
-///////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
@@ -191,16 +182,16 @@ void DllConfig(HWND _hParent)
 	
 	DoInitialize();
 
-	if (!m_ConfigFrame)
-		m_ConfigFrame = new WiimoteConfigDialog(GetParentedWxWindow(_hParent));
-	else if (!m_ConfigFrame->GetParent()->IsShown())
-		m_ConfigFrame->Close(true);
+	if (!m_BasicConfigFrame)
+		m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
+	else if (!m_BasicConfigFrame->GetParent()->IsShown())
+		m_BasicConfigFrame->Close(true);
 
 	// Only allow one open at a time
-	if (!m_ConfigFrame->IsShown())
-		m_ConfigFrame->ShowModal();
+	if (!m_BasicConfigFrame->IsShown())
+		m_BasicConfigFrame->ShowModal();
 	else
-		m_ConfigFrame->Hide();
+		m_BasicConfigFrame->Hide();
 #endif
 }
 
@@ -222,7 +213,7 @@ void Initialize(void *init)
 		g_ISOId = g_WiimoteInitialize.ISOId;
 		// Load the settings
 		g_Config.Load();
-		if(m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+		if(m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 	}
 	#endif
 
@@ -247,7 +238,7 @@ void Shutdown(void)
 	if (g_FrameOpen)
 	{
 		#if defined(HAVE_WX) && HAVE_WX
-			if(m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+			if(m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 		#endif
 
 		// Reset the variables
@@ -341,7 +332,7 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
 #if defined(HAVE_WX) && HAVE_WX
-		if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+		if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
 		return;
 	}
@@ -374,12 +365,12 @@ void Wiimote_Update()
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_ConfigFrame)
+	if (m_RecordingConfigFrame)
 	{
 		GetUpdateRate();
 		if (g_UpdateWriteScreen > g_UpdateRate)
 		{
-			m_ConfigFrame->m_TextUpdateRate->SetLabel(wxString::Format(wxT("Update rate: %03i times/s"), g_UpdateRate));
+			m_RecordingConfigFrame->m_TextUpdateRate->SetLabel(wxString::Format(wxT("Update rate: %03i times/s"), g_UpdateRate));
 			g_UpdateWriteScreen = 0;
 		}
 		g_UpdateWriteScreen++;
@@ -472,7 +463,9 @@ bool IsFocus()
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
 	// Allow updates when the config window is in focus to
-	HWND Config = NULL; if (m_ConfigFrame) Config = (HWND)m_ConfigFrame->GetHWND();
+	HWND Config = NULL;
+	if (m_BasicConfigFrame)
+		Config = (HWND)m_BasicConfigFrame->GetHWND();
 	// Support both rendering to main window and not
 	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
 		return true;
@@ -486,12 +479,7 @@ bool IsFocus()
 // Turn off all extensions
 void DisableExtensions()
 {
-	//g_Config.bMotionPlus = false;
-	g_Config.bNunchuckConnected = false;
-	g_Config.bClassicControllerConnected = false;
-	//g_Config.bBalanceBoard = false;
-	g_Config.bGuitarConnected = false;
-	//g_Config.bDrums = false;
+	g_Config.iExtensionConnected = EXT_NONE;
 }
 
 
@@ -539,7 +527,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			{
 				DisableExtensions();
 #if defined(HAVE_WX) && HAVE_WX
-				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+				if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
 			}
 		}
@@ -574,12 +562,14 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			if(data[4] == 0x10)
 			{
 				if (!Emu) DisableExtensions();
-				if (!Emu && data[7] == 0x00 && data[8] == 0x00) g_Config.bNunchuckConnected = true;
-				if (!Emu && data[7] == 0x01 && data[8] == 0x01) g_Config.bClassicControllerConnected = true;
+				if (!Emu && data[7] == 0x00 && data[8] == 0x00)
+					g_Config.iExtensionConnected = EXT_NUNCHUCK;
+				if (!Emu && data[7] == 0x01 && data[8] == 0x01)
+					g_Config.iExtensionConnected = EXT_CLASSIC_CONTROLLER;
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 #if defined(HAVE_WX) && HAVE_WX
-				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+				if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
 				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
@@ -587,12 +577,14 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			else if(data[4] == 0x50)
 			{
 				if (!Emu) DisableExtensions();
-				if (!Emu && data[11] == 0x00 && data[12] == 0x00) g_Config.bNunchuckConnected = true;
-				if (!Emu && data[11] == 0x01 && data[12] == 0x01) g_Config.bClassicControllerConnected = true;
+				if (!Emu && data[11] == 0x00 && data[12] == 0x00)
+					g_Config.iExtensionConnected = EXT_NUNCHUCK;
+				if (!Emu && data[11] == 0x01 && data[12] == 0x01)
+					g_Config.iExtensionConnected = EXT_CLASSIC_CONTROLLER;
 				g_Config.Save();
 				WiiMoteEmu::UpdateEeprom();
 #if defined(HAVE_WX) && HAVE_WX
-				if (m_ConfigFrame) m_ConfigFrame->UpdateGUI();
+				if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
 				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
 				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
@@ -632,7 +624,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			if(WiiMoteEmu::g_Encryption)
 				wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
-			if (g_Config.bNunchuckConnected)
+			if (g_Config.iExtensionConnected == EXT_NUNCHUCK)
 			{
 				INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
 				INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
@@ -1044,9 +1036,9 @@ double GetDoubleTime()
 	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
 
-	/* Remove a few years. We only really want enough seconds to make sure that we are
-	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
-	   year of seconds anyway, in case the user's clock is incorrect or something like that */
+	// Remove a few years. We only really want enough seconds to make sure that we are
+	// detecting actual actions, perhaps 60 seconds is enough really, but I leave a
+	// year of seconds anyway, in case the user's clock is incorrect or something like that
 	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
 
 	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat

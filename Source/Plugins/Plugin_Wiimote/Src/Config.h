@@ -18,12 +18,20 @@
 #ifndef _PLUGIN_WIIMOTE_CONFIG_H
 #define _PLUGIN_WIIMOTE_CONFIG_H
 
+enum
+{
+	EXT_NONE = 0,
+	EXT_NUNCHUCK,
+	EXT_CLASSIC_CONTROLLER,
+	EXT_GUITARHERO3_CONTROLLER,
+	EXT_GUITARHEROWT_DRUMS,
+};
 
 struct Config
 {
-    Config();
-    void Load(bool ChangePad = false);
-    void Save(int Slot = -1);
+	Config();
+	void Load(bool ChangePad = false);
+	void Save(int Slot = -1);
 
 	struct PadRange
 	{
@@ -81,12 +89,10 @@ struct Config
 		int TType; // Whammy bar
 	};
 
-    // Emulated Wiimote
+	// Emulated Wiimote
 	bool bSidewaysDPad;
 	bool bWideScreen;
-	bool bNunchuckConnected;
-	bool bClassicControllerConnected;
-	bool bGuitarConnected;
+	int iExtensionConnected;
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
@@ -105,5 +111,4 @@ struct Config
 };
 
 extern Config g_Config;
-
 #endif  // _PLUGIN_WIIMOTE_CONFIG_H

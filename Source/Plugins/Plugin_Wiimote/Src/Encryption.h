@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 // Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
 // This program is free software: you can redistribute it and/or modify

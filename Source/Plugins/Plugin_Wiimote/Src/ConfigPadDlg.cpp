@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,214 +15,122 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
-#include "Timer.h"
 #include "StringUtil.h"
 
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "main.h"
-#include "ConfigDlg.h"
+#include "ConfigPadDlg.h"
+#include "ConfigBasicDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
 #include "EmuDefinitions.h" // for joyinfo
-//////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Variables
-// ----------------
-// Trigger Type
-enum
+enum TriggerType
 {
-	CTL_TRIGGER_SDL = 0, // 
-	CTL_TRIGGER_XINPUT // The XBox 360 pad
+	CTL_TRIGGER_SDL = 0,
+	CTL_TRIGGER_XINPUT
 };
-//////////////////////////////////////
 
+BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxFrame)
+	EVT_CLOSE(WiimotePadConfigDialog::OnClose)
+	EVT_BUTTON(ID_CLOSE, WiimotePadConfigDialog::CloseClick)
+	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Event table
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-BEGIN_EVENT_TABLE(WiimoteConfigDialog,wxDialog)
-	EVT_CLOSE(WiimoteConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, WiimoteConfigDialog::CloseClick)
-	EVT_BUTTON(ID_APPLY, WiimoteConfigDialog::CloseClick)
-	EVT_BUTTON(ID_ABOUTOGL, WiimoteConfigDialog::AboutClick)
-
-	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)	
-	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)
-
-	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_USE_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_UPDATE_REAL, WiimoteConfigDialog::GeneralSettingsChanged)
-
-	// Recording
-	EVT_CHOICE(IDC_RECORD + 1, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 2, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 3, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 4, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 5, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 6, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 7, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 8, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 9, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 10, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 11, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 12, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 13, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 14, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_RECORD + 15, WiimoteConfigDialog::GeneralSettingsChanged)
-
-	EVT_BUTTON(IDB_RECORD + 1, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 2, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 3, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 4, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 5, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 6, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 7, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 8, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 9, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 10, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 11, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 12, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 13, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 14, WiimoteConfigDialog::RecordMovement)
-	EVT_BUTTON(IDB_RECORD + 15, WiimoteConfigDialog::RecordMovement)
-
-	// Gamepad
-	EVT_COMBOBOX(IDC_JOYNAME, WiimoteConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TRIGGER_TYPE, WiimoteConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TILT_INPUT, WiimoteConfigDialog::GeneralSettingsChanged)	
-	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_DEAD_ZONE_LEFT, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_DEAD_ZONE_RIGHT, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(IDC_LEFT_C2S, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_LEFT_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_RIGHT_STICK, WiimoteConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_CC_TRIGGERS, WiimoteConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDC_JOYNAME, WiimotePadConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TRIGGER_TYPE, WiimotePadConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_INPUT, WiimotePadConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_TILT_RANGE_PITCH, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_LEFT_DIAGONAL, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_LEFT, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_DEAD_ZONE_RIGHT, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_LEFT_C2S, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_ROLL, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_TILT_INVERT_PITCH, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_NUNCHUCK_STICK, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_LEFT_STICK, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_RIGHT_STICK, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_CC_TRIGGERS, WiimotePadConfigDialog::GeneralSettingsChanged)
 	
 	// Wiimote
-	EVT_BUTTON(IDB_WM_A, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_1, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_P, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_U, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_SHAKE, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_PITCH_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, WiimoteConfigDialog::OnButtonClick)
-	// IR cursor
-	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_LEFT, WiimoteConfigDialog::GeneralSettingsChangedScroll)
-	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteConfigDialog::GeneralSettingsChangedScroll)
+	EVT_BUTTON(IDB_WM_A, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_1, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_P, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_U, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_SHAKE, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_PITCH_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, WiimotePadConfigDialog::OnButtonClick)
 
 	// Nunchuck
-	EVT_BUTTON(IDB_NC_Z, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_L, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_U, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_D, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_NC_SHAKE, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_Z, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_R, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_U, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_D, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_NC_SHAKE, WiimotePadConfigDialog::OnButtonClick)
 
 	// Classic Controller
-	EVT_BUTTON(IDB_CC_A, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_B, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_X, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_Y, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_P, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_M, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_H, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_TL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_TR, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_DL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_DL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_LL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LD, WiimoteConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_CC_RL, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RU, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RR, WiimoteConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RD, WiimoteConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_A, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_B, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_X, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_Y, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_P, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_M, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_H, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_TL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_ZR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_TR, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_DL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_DL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_LL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LD, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_CC_RL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RD, WiimotePadConfigDialog::OnButtonClick)
 	
-	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimoteConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimoteConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimoteConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_RIGHT_Y, WiimoteConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_TRIGGER_L, WiimoteConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_TRIGGER_R, WiimoteConfigDialog::GetButtons)
-
-	EVT_TIMER(IDTM_UPDATE, WiimoteConfigDialog::Update)
-	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteConfigDialog::UpdateOnce)
-	EVT_TIMER(IDTM_SHUTDOWN, WiimoteConfigDialog::ShutDown)
-	EVT_TIMER(IDTM_BUTTON, WiimoteConfigDialog::OnButtonTimer)
-	EVT_TIMER(IDTM_UPDATE_PAD, WiimoteConfigDialog::UpdatePad)
+	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_RIGHT_Y, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_TRIGGER_L, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_TRIGGER_R, WiimotePadConfigDialog::GetButtons)
+	EVT_TIMER(IDTM_BUTTON, WiimotePadConfigDialog::OnButtonTimer)
+	EVT_TIMER(IDTM_UPDATE_PAD, WiimotePadConfigDialog::UpdatePad)
 END_EVENT_TABLE()
-//////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Class
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-WiimoteConfigDialog::WiimoteConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
+WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
-: wxDialog(parent, id, title, position, size, style)
+: wxFrame(parent, id, title, position, size, style)
 {
-	#if wxUSE_TIMER
-		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
-		m_ShutDownTimer = new wxTimer(this, IDTM_SHUTDOWN);
-		m_TimeoutOnce = new wxTimer(this, IDTM_UPDATE_ONCE);
-		m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
-		m_UpdatePad = new wxTimer(this, IDTM_UPDATE_PAD);
+#if wxUSE_TIMER
+	m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
+	m_UpdatePad = new wxTimer(this, IDTM_UPDATE_PAD);
 
-		// Reset values
-		m_bWaitForRecording = false;
-		m_bRecording = false;
-		GetButtonWaitingID = 0; GetButtonWaitingTimer = 0;
+	// Reset values
+	GetButtonWaitingID = 0;
+	GetButtonWaitingTimer = 0;
 
-		// Start the permanent timer
-		const int TimesPerSecond = 30;
-		m_UpdatePad->Start( floor((double)(1000 / TimesPerSecond)) );
-	#endif
+	// Start the permanent timer
+	const int TimesPerSecond = 30;
+	m_UpdatePad->Start( floor((double)(1000 / TimesPerSecond)) );
+#endif
 
 	ControlsCreated = false;
-	m_bEnableUseRealWiimote = true;
 	Page = 0;
-	m_vRecording.resize(RECORDING_ROWS + 1);
 	ClickedButton = NULL;
 
 	g_Config.Load();
-	CreateGUIControls();
-	LoadFile();
+	CreatePadGUIControls();
+	SetBackgroundColour(m_Notebook->GetBackgroundColour());
+	
 	// Set control values
 	UpdateGUI();
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-		wxKeyEventHandler(WiimoteConfigDialog::OnKeyDown),
+		wxKeyEventHandler(WiimotePadConfigDialog::OnKeyDown),
 		(wxObject*)0, this);
 }
 
-WiimoteConfigDialog::~WiimoteConfigDialog()
-{	
-}
-
-void WiimoteConfigDialog::OnKeyDown(wxKeyEvent& event)
+void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
 	event.Skip();
 
 	// Save the key
 	g_Pressed = event.GetKeyCode();
 
-	// Escape a recording event
-	if (event.GetKeyCode() == WXK_ESCAPE)
-	{
-		m_bWaitForRecording = false;
-		m_bRecording = false;
-		UpdateGUI();
-	}
-
-	// ----------------------------------------------------
 	// Handle the keyboard key mapping
-	// ------------------
 	std::string StrKey;
 	if(ClickedButton != NULL)
 	{
@@ -256,14 +164,11 @@ void WiimoteConfigDialog::OnKeyDown(wxKeyEvent& event)
 			//ClickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
 		#endif
 	}
-
-	// Remove the button control pointer
 	ClickedButton = NULL;
-	// ---------------------------
 }
 
 // Input button clicked
-void WiimoteConfigDialog::OnButtonClick(wxCommandEvent& event)
+void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	//INFO_LOG(CONSOLE, "OnButtonClick: %i\n", g_Pressed);
 
@@ -282,92 +187,35 @@ void WiimoteConfigDialog::OnButtonClick(wxCommandEvent& event)
 }
 
 
-void WiimoteConfigDialog::OnClose(wxCloseEvent& event)
+void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
-	m_UpdatePad->Stop();
-	SaveFile();
-	g_Config.Save();	
-	//SuccessAlert("Saved\n");
-	if (!g_EmulatorRunning) Shutdown();
-	// This will let the Close() function close and remove the wxDialog
-	event.Skip();
+	SaveButtonMappingAll(Page);
+	if(m_UpdatePad)
+		m_UpdatePad->Stop();
+	g_Config.Save();
+	Hide();
+	if(!m_BasicConfigFrame->Closing)
+		m_BasicConfigFrame->Close();
 }
 
-/* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
-   call a frame function after the main thread has entered WaitForSingleObject() or any other loop.
-   We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
-void WiimoteConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
-{
-	// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
-	if(!WiiMoteReal::g_ThreadGoing)
-	{
-		m_ShutDownTimer->Stop();
-		Close();
-	}
-}
-
-void WiimoteConfigDialog::CloseClick(wxCommandEvent& event)
+void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		// Wait for the Wiimote thread to stop, then close and shutdown
-		if(!g_EmulatorRunning)
-		{
-			WiiMoteReal::g_Shutdown = true;
-			m_ShutDownTimer->Start(10);
-		}
-		// Close directly
-		else
-		{
-			Close();
-		}
+		Close();
 		break;
 	case ID_APPLY:
 		SaveButtonMappingAll(Page);
 		g_Config.Save();
-		SaveFile();
-		WiiMoteEmu::LoadRecordedMovements();
 		break;
 	}
 }
 
-void WiimoteConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
-{
-}
-
-// Execute a delayed function
-void WiimoteConfigDialog::UpdateOnce(wxTimerEvent& event)
-{
-	switch(event.GetId())
-	{
-	case IDTM_UPDATE_ONCE:
-		// Reenable the checkbox
-		m_bEnableUseRealWiimote = true;
-		SetCursor(wxCursor(wxCURSOR_ARROW));
-		UpdateGUI();
-		break;
-	}
-}
-//////////////////////////////////////
 
 
-
-////////////////////////////////////////////////////////////////////////////
-// Save Settings
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-   Saving is currently done when:
-
-   1. Closing the configuration window
-   2. Changing the gamepad
-   3. When the gamepad is enabled or disbled
-
-   Input: ChangePad needs to be used when we change the pad for a slot. Slot needs to be used when
-   we only want to save changes to one slot.
-*/
-void WiimoteConfigDialog::DoSave(bool ChangePad, int Slot)
+void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 {
 	// Replace "" with "-1" before we are saving
 	ToBlank(false);
@@ -375,7 +223,8 @@ void WiimoteConfigDialog::DoSave(bool ChangePad, int Slot)
 	if(ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
-		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
+		for(int i = 0; i < 4; i++)
+			SaveButtonMapping(i, true);
 		// Save the settings for the current pad
 		g_Config.Save(Slot);
 		// Now we can update the ID
@@ -384,7 +233,8 @@ void WiimoteConfigDialog::DoSave(bool ChangePad, int Slot)
 	else
 	{
 		// Update PadMapping[] from the GUI controls
-		for(int i = 0; i < 4; i++) SaveButtonMapping(i);
+		for(int i = 0; i < 4; i++)
+			SaveButtonMapping(i);
 		g_Config.Save(Slot);
 	}		
 
@@ -393,13 +243,9 @@ void WiimoteConfigDialog::DoSave(bool ChangePad, int Slot)
 
 	INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
 }
-//////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Bitmap box and dot
-// ----------------
-wxBitmap WiimoteConfigDialog::CreateBitmap()
+wxBitmap WiimotePadConfigDialog::CreateBitmap()
 {
 	BoxW = 70, BoxH = 70;
 	wxBitmap bitmap(BoxW, BoxH);
@@ -419,7 +265,7 @@ wxBitmap WiimoteConfigDialog::CreateBitmap()
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap WiimoteConfigDialog::CreateBitmapDot()
+wxBitmap WiimotePadConfigDialog::CreateBitmapDot()
 {
 	int w = 2, h = 2;
 	wxBitmap bitmap(w, h);
@@ -437,7 +283,7 @@ wxBitmap WiimoteConfigDialog::CreateBitmapDot()
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap WiimoteConfigDialog::CreateBitmapDeadZone(int Radius)
+wxBitmap WiimotePadConfigDialog::CreateBitmapDeadZone(int Radius)
 {
 	wxBitmap bitmap(Radius*2, Radius*2);
 	wxMemoryDC dc;
@@ -453,7 +299,7 @@ wxBitmap WiimoteConfigDialog::CreateBitmapDeadZone(int Radius)
 	//dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap WiimoteConfigDialog::CreateBitmapClear()
+wxBitmap WiimotePadConfigDialog::CreateBitmapClear()
 {
 	wxBitmap bitmap(BoxW, BoxH);
 	wxMemoryDC dc;
@@ -467,31 +313,12 @@ wxBitmap WiimoteConfigDialog::CreateBitmapClear()
 	//dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-//////////////////////////////////////
 
 
-void WiimoteConfigDialog::CreateGUIControls()
+
+void WiimotePadConfigDialog::CreatePadGUIControls()
 {
 
-	////////////////////////////////////////////////////////////////////////////////
-	// Notebook
-	// ----------------	
-	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-
-	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{
-		// Controller pages
-		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
-		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
-	}
-
- 	m_PageRecording = new wxPanel(m_Notebook, ID_PAGE_RECORDING, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageRecording, wxT("Recording"));
-
-
-	////////////////////////////////////////////////////////////////////////////////
-	// Text lists
-	// ----------------	
 
 	// Search for devices and add them to the device list
 	wxArrayString StrJoyname; // The string array
@@ -535,189 +362,21 @@ void WiimoteConfigDialog::CreateGUIControls()
 	StrCcTriggers.Add(wxString::FromAscii("Keyboard"));
 	StrCcTriggers.Add(wxString::FromAscii("Triggers"));
 
-	// A small type font
-	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-	///////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////
-	// This can take a few seconds so we show a progress bar for it
-	// ----------------	
-	wxProgressDialog dialog(_T("Opening Wii Remote Configuration"),
-				wxT("Loading controls..."),
-				6, // range
-				this, // parent
-				wxPD_APP_MODAL |
-				// wxPD_AUTO_HIDE | -- try this as well
-				wxPD_ELAPSED_TIME |
-				wxPD_ESTIMATED_TIME |
-				wxPD_REMAINING_TIME |
-				wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-				);
-	// I'm not sure what parent this refers to
-	dialog.CenterOnParent();
-	///////////////////////////////////////
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
-	/* Populate all four pages. Page 2, 3 and 4 are currently disabled since we can't use more than one
-	   Wiimote at the moment */
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
+		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
+		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
 
-		////////////////////////////////////////////////////
-		// General and basic Settings
-		// ----------------
+		// A small type font
+		wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 		// Configuration controls sizes
 		static const int TxtW = 50, TxtH = 19, ChW = 257, BtW = 75, BtH = 20;
 
-		// Basic Settings
-		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"), wxDefaultPosition, wxSize(ChW, -1));
-		// Emulated Wiimote
-		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxSize(ChW, -1));
-		// Extension
-		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Wii Motion Plus Connected"), wxDefaultPosition, wxSize(ChW, -1), 0, wxDefaultValidator);
-		m_NunchuckConnected[i] = new wxCheckBox(m_Controller[i], ID_NUNCHUCKCONNECTED, wxT("Nunchuck Connected"));
-		m_ClassicControllerConnected[i] = new wxCheckBox(m_Controller[i], ID_CLASSICCONTROLLERCONNECTED, wxT("Classic Controller Connected"));
-		m_BalanceBoardConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Balance Board Connected"));
-		m_GuitarHeroGuitarConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Guitar Hero Guitar Connected"));
-		m_GuitarHeroWorldTourDrumsConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Guitar Hero World Tour Drums Connected"));
-		// Real Wiimote
-		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_CONNECT_REAL, wxT("Connect Real Wiimote"), wxDefaultPosition, wxSize(ChW, -1));
-		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_USE_REAL, wxT("Use Real Wiimote"));
 
-		// Default values
-		m_WiimoteOnline[0]->SetValue(true);
-		m_NunchuckConnected[0]->SetValue(g_Config.bNunchuckConnected);
-		m_ClassicControllerConnected[0]->SetValue(g_Config.bClassicControllerConnected);
-		m_SidewaysDPad[0]->SetValue(g_Config.bSidewaysDPad);
-		m_ConnectRealWiimote[0]->SetValue(g_Config.bConnectRealWiimote);
-		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
-
-		m_WiimoteOnline[0]->Enable(false);
-		m_WiiMotionPlusConnected[0]->Enable(false);
-		m_BalanceBoardConnected[0]->Enable(false);
-		m_GuitarHeroGuitarConnected[0]->Enable(false);
-		m_GuitarHeroWorldTourDrumsConnected[0]->Enable(false);
-
-		// Tooltips
-		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
-		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
-		m_UseRealWiimote[i]->SetToolTip(wxT(
-			"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
-			" when a recording is to be done. No status in this window will be updated when this is checked."));
-		
-		// -----------------------------------------------
-		// Screen size
-		// ---------------------
-		// Controls
-		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
-		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
-		m_TextScreenLeft[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: 000"));
-		m_TextScreenTop[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Top: 000"));
-		m_TextAR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Aspect Ratio"));
-				
-		m_SliderWidth[i] = new wxSlider(m_Controller[i], IDS_WIDTH, 0, 100, 923, wxDefaultPosition, wxSize(75, -1));
-		m_SliderHeight[i] = new wxSlider(m_Controller[i], IDS_HEIGHT, 0, 0, 727, wxDefaultPosition, wxSize(75, -1));
-		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
-		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
-		//m_ScreenSize = new wxCheckBox(m_Controller[i], IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
-		m_CheckAR43[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("4:3"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-		m_CheckAR169[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("16:9"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-		m_Crop[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Crop"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-
-		// Sizers
-		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerWidth[i]->Add(m_SliderLeft[i], 0, wxEXPAND | (wxRIGHT), 0);
-		m_SizerIRPointerWidth[i]->Add(m_TextScreenWidth[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerWidth[i]->Add(m_SliderWidth[i], 0, wxEXPAND | (wxLEFT), 0);
-
-		m_SizerIRPointerHeight[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizerIRPointerHeight[i]->Add(m_TextScreenTop[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerHeight[i]->Add(m_SliderTop[i], 0, wxEXPAND | (wxRIGHT), 0);
-		m_SizerIRPointerHeight[i]->Add(m_TextScreenHeight[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerHeight[i]->Add(m_SliderHeight[i], 0, wxEXPAND | (wxLEFT), 0);
-
-		m_SizerIRPointerScreen[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizerIRPointerScreen[i]->Add(m_TextAR[i], 0, wxEXPAND | (wxTOP), 0);
-		m_SizerIRPointerScreen[i]->Add(m_CheckAR43[i], 0, wxEXPAND | (wxLEFT), 5);
-		m_SizerIRPointerScreen[i]->Add(m_CheckAR169[i], 0, wxEXPAND | (wxLEFT), 5);
-		m_SizerIRPointerScreen[i]->Add(m_Crop[i], 0, wxEXPAND | (wxLEFT), 5);
-
-		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR pointer"));
-		//m_SizerIRPointer[i]->Add(m_ScreenSize[i], 0, wxEXPAND | (wxALL), 5);
-		m_SizerIRPointer[i]->Add(m_SizerIRPointerWidth[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-		m_SizerIRPointer[i]->Add(m_SizerIRPointerHeight[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-		m_SizerIRPointer[i]->Add(m_SizerIRPointerScreen[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-
-		// Default values
-		m_CheckAR43[i]->SetValue(g_Config.bKeepAR43);
-		m_CheckAR169[i]->SetValue(g_Config.bKeepAR169);
-		m_Crop[i]->SetValue(g_Config.bCrop);
-
-		// These are changed from the graphics plugin settings, so they are just here to show the loaded status
-		m_TextAR[i]->Enable(false);
-		m_CheckAR43[i]->Enable(false);
-		m_CheckAR169[i]->Enable(false);
-		m_Crop[i]->Enable(false);		
-
-		// Tool tips
-		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
-		// -------------------------------
-
-		// --------------------------------------------------------------------
-		// Row 1 Sizers: General settings
-		// -----------------------------
-		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
-		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
-		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
-		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
-
-		m_SizeBasicPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeBasic[i]->Add(m_SizeBasicPadding[i], 0, wxEXPAND | (wxALL), 5);
-		m_SizeBasicPadding[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | (wxUP), 2);
-
-		m_SizeEmuPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeEmu[i]->Add(m_SizeEmuPadding[i], 0, wxEXPAND | (wxALL), 5);
-		m_SizeEmuPadding[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | (wxUP), 0);
-
-		m_SizeRealPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeReal[i]->Add(m_SizeRealPadding[i], 0, wxEXPAND | (wxALL), 5);
-		m_SizeRealPadding[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeRealPadding[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | (wxUP), 2);
-
-		m_SizeExtensionsPadding[i] = new wxBoxSizer(wxVERTICAL); m_SizeExtensions[i]->Add(m_SizeExtensionsPadding[i], 0, wxEXPAND | (wxALL), 5);
-		m_SizeExtensionsPadding[i]->Add(m_WiiMotionPlusConnected[i], 0, (wxUP), 0);
-		m_SizeExtensionsPadding[i]->Add(m_NunchuckConnected[i], 0, (wxUP), 2);
-		m_SizeExtensionsPadding[i]->Add(m_ClassicControllerConnected[i], 0, (wxUP), 2);
-		m_SizeExtensionsPadding[i]->Add(m_BalanceBoardConnected[i], 0, (wxUP), 2);
-		m_SizeExtensionsPadding[i]->Add(m_GuitarHeroGuitarConnected[i], 0, (wxUP), 2);
-		m_SizeExtensionsPadding[i]->Add(m_GuitarHeroWorldTourDrumsConnected[i], 0, (wxUP), 2);
-
-		m_SizeBasicGeneral[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
-		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
-
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 5);
-
-		m_SizeBasicGeneralRight[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneralRight[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
-		m_SizeBasicGeneralRight[i]->Add(m_SizerIRPointer[i], 0, wxEXPAND | (wxUP), 5);
-
-		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 5);
-		// ------------------------
-
-		///////////////////////////
-
-
-
-
-		////////////////////////////////////////////////////////////////////////
-		// Gamepad input
-		// ----------------
-
-		// --------------------------------------------------------------------
-		// Controller
-		// -----------------------------
 
 		// Controller
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
@@ -1351,7 +1010,6 @@ void WiimoteConfigDialog::CreateGUIControls()
 		// Set up sizers and layout
 		// ----------------
 		m_SizeParent[i] = new wxBoxSizer(wxVERTICAL);
-		m_SizeParent[i]->Add(m_SizeBasicGeneral[i], 0, wxBORDER_STATIC | wxEXPAND | (wxALL), 5);
 		m_SizeParent[i]->Add(m_HorizControllerTiltParent[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_SizeParent[i]->Add(m_HorizControllers[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_SizeParent[i]->Add(m_HorizControllerMapping[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
@@ -1362,40 +1020,19 @@ void WiimoteConfigDialog::CreateGUIControls()
 
 		// Set the main sizer
 		m_Controller[i]->SetSizer(m_sMain[i]);
-		/////////////////////////////////
-
-		// Update with the progress (i) and the message
-		dialog.Update(i + 1, wxT("Loading notebook pages..."));
 	}
 
-	////////////////////////////////////////////
-	// Movement recording
-	// ----------------
-	CreateGUIControlsRecording();
-	/////////////////////////////////
 
-	// Update with the progress (i) and the message (msg)
-	dialog.Update(5, wxT("Loading notebook pages..."));
-	//dialog.Close();
 
-	////////////////////////////////////////////////////////////////////////////////
-	// Buttons
-	//m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
 	m_Close->SetToolTip(wxT("Apply and Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	//sButtons->Add(m_About, 0, wxALL, 5); // there is no about
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_Apply, 0, (wxALL), 0);
 	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
-	///////////////////////////////
 
-
-	////////////////////////////////////////////
-	// Set sizers and layout
-	// ----------------
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_MainSizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
@@ -1417,154 +1054,15 @@ void WiimoteConfigDialog::CreateGUIControls()
 	#endif
 
 	ControlsCreated = true;
-	/////////////////////////////////
-}
-/////////////////////////////////
-
-
-
-// ===================================================
-/* Do connect real wiimote */
-// ----------------
-void WiimoteConfigDialog::DoConnectReal()
-{
-	g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
-
-	if(g_Config.bConnectRealWiimote)
-	{
-		if (!g_RealWiiMoteInitialized) WiiMoteReal::Initialize();
-	}
-	else
-	{
-		INFO_LOG(CONSOLE, "Post Message: %i\n", g_RealWiiMoteInitialized);
-		if (g_RealWiiMoteInitialized)
-		{
-			WiiMoteReal::Shutdown();
-		}
-	}
 }
 
 
-// ===================================================
-/* Do use real wiimote. We let the game set up the real Wiimote reporting mode and init the Extension when we change
-   want to use it again. */
-// ----------------
-void WiimoteConfigDialog::DoUseReal()
-{
-	// Clear any eventual events in the Wiimote queue
-	WiiMoteReal::ClearEvents();
-
-	// Are we using an extension now? The report that it's removed, then reconnected.
-	bool UsingExtension = false;
-	if (g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
-		UsingExtension = true;
-
-	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
-	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
-
-	UsingExtension = !UsingExtension;
-	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
-	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
-
-	if(g_EmulatorRunning)
-	{
-		// Disable the checkbox for a moment
-		SetCursor(wxCursor(wxCURSOR_WAIT));
-		m_bEnableUseRealWiimote = false;
-		// We may not need this if there is already a message queue that allows the nessesary timeout
-		//sleep(100);
-
-		/* Start the timer to allow the approximate time it takes for the Wiimote to come online
-		   it would simpler to use sleep(1000) but that doesn't work because we need the functions in main.cpp
-		   to work */
-		m_TimeoutOnce->Start(1000, true);
-	}
-}
-
-// ===================================================
-/* Generate connect/disconnect status event */
-// ----------------
-void WiimoteConfigDialog::DoExtensionConnectedDisconnected(int Extension)
-{
-	// There is no need for this if no game is running
-	if(!g_EmulatorRunning) return; 
-
-	u8 DataFrame[8]; // make a blank report for it
-	wm_request_status *rs = (wm_request_status*)DataFrame;
-
-	// Check if a game is running, in that case change the status
-	if(WiiMoteEmu::g_ReportingChannel > 0)
-		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs, Extension);
-}
-
-// ===================================================
-/* Change settings */
-// ----------------
-void WiimoteConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
+void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	long TmpValue;
 
 	switch (event.GetId())
 	{
-	case ID_CONNECT_REAL:
-		DoConnectReal();
-		break;
-	case ID_USE_REAL:
-		// Enable the Wiimote thread
-		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
-		if(g_Config.bUseRealWiimote) DoUseReal();		
-		break;
-
-	case ID_SIDEWAYSDPAD:
-		g_Config.bSidewaysDPad = m_SidewaysDPad[Page]->IsChecked();
-		break;
-
-	//////////////////////////
-	// Extensions
-	// -----------
-	case ID_NUNCHUCKCONNECTED:
-		// Don't allow two extensions at the same time
-		if(m_ClassicControllerConnected[Page]->IsChecked())
-		{
-			m_ClassicControllerConnected[Page]->SetValue(false);
-			g_Config.bClassicControllerConnected = false;
-			// Disconnect the extension so that the game recognize the change
-			DoExtensionConnectedDisconnected();
-			/* It doesn't seem to be needed but shouldn't it at least take 25 ms to
-			   reconnect an extension after we disconnected another? */
-			if(g_EmulatorRunning) SLEEP(25);
-		}
-
-		// Update status
-		g_Config.bNunchuckConnected = m_NunchuckConnected[Page]->IsChecked();
-
-		// Copy the calibration data
-		WiiMoteEmu::SetDefaultExtensionRegistry();
-
-		// Generate connect/disconnect status event
-		DoExtensionConnectedDisconnected();
-		break;
-
-	case ID_CLASSICCONTROLLERCONNECTED:
-		// Don't allow two extensions at the same time
-		if(m_NunchuckConnected[Page]->IsChecked())
-		{
-			m_NunchuckConnected[Page]->SetValue(false);
-			g_Config.bNunchuckConnected = false;
-			// Disconnect the extension so that the game recognize the change
-			DoExtensionConnectedDisconnected();
-		}
-		g_Config.bClassicControllerConnected = m_ClassicControllerConnected[Page]->IsChecked();
-
-		// Copy the calibration data
-		WiiMoteEmu::SetDefaultExtensionRegistry();
-		// Generate connect/disconnect status event
-		DoExtensionConnectedDisconnected();
-		break;
-
-	//////////////////////////
-	// Gamepad
-	// -----------
 	case ID_TRIGGER_TYPE:
 		WiiMoteEmu::PadMapping[Page].triggertype = m_TriggerType[Page]->GetSelection();
 		break;
@@ -1606,124 +1104,15 @@ void WiimoteConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case IDCB_DEAD_ZONE_RIGHT:
 		SaveButtonMappingAll(Page);
 		break;
-
-	//////////////////////////
-	// Recording
-	// -----------
-	case ID_UPDATE_REAL:
-		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
-		break;
-
-	case IDC_RECORD + 1:
-	case IDC_RECORD + 2:
-	case IDC_RECORD + 3:
-	case IDC_RECORD + 4:
-	case IDC_RECORD + 5:
-	case IDC_RECORD + 6:
-	case IDC_RECORD + 7:
-	case IDC_RECORD + 8:
-	case IDC_RECORD + 9:
-	case IDC_RECORD + 10:
-	case IDC_RECORD + 11:
-	case IDC_RECORD + 12:
-	case IDC_RECORD + 13:
-	case IDC_RECORD + 14:
-	case IDC_RECORD + 15:
-		// Check if any of the other choice boxes has the same hotkey
-		for (int i = 1; i < (RECORDING_ROWS + 1); i++)
-		{
-			int CurrentChoiceBox = (event.GetId() - IDC_RECORD);
-			if (i == CurrentChoiceBox) continue;
-			if (m_RecordHotKeyWiimote[i]->GetSelection() == m_RecordHotKeyWiimote[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyWiimote[i]->SetSelection(10);
-			if (m_RecordHotKeyNunchuck[i]->GetSelection() == m_RecordHotKeyNunchuck[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyNunchuck[i]->SetSelection(10);
-			if (m_RecordHotKeyIR[i]->GetSelection() == m_RecordHotKeyIR[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyIR[i]->SetSelection(10);
-			
-			//INFO_LOG(CONSOLE, "HotKey: %i %i\n",
-			//	m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
-		}
-		break;
-		/////////////////
 	}
 	g_Config.Save();
 	UpdateGUI();
 }
 
-// =======================================================
-// Apparently we need a scroll event version of this for the sliders
-// -------------
-void WiimoteConfigDialog::GeneralSettingsChangedScroll(wxScrollEvent& event)
+void WiimotePadConfigDialog::UpdateGUI(int Slot)
 {
-	switch (event.GetId())
-	{
-	// IR cursor position
-	case IDS_WIDTH:
-		g_Config.iIRWidth = m_SliderWidth[Page]->GetValue();
-		break;
-	case IDS_HEIGHT:
-		g_Config.iIRHeight = m_SliderHeight[Page]->GetValue();
-		break;
-	case IDS_LEFT:
-		g_Config.iIRLeft = m_SliderLeft[Page]->GetValue();
-		break;
-	case IDS_TOP:
-		g_Config.iIRTop = m_SliderTop[Page]->GetValue();
-		break;
-	}
-
-	UpdateGUI();
-}
-
-// =======================================================
-// Update the IR pointer calibration sliders
-// -------------
-void WiimoteConfigDialog::UpdateControls()
-{
-	// Update the slider position if a configuration has been loaded
-	m_SliderWidth[Page]->SetValue(g_Config.iIRWidth);
-	m_SliderHeight[Page]->SetValue(g_Config.iIRHeight);
-	m_SliderLeft[Page]->SetValue(g_Config.iIRLeft);
-	m_SliderTop[Page]->SetValue(g_Config.iIRTop);
-
-	// Update the labels
-	m_TextScreenWidth[Page]->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iIRWidth));
-	m_TextScreenHeight[Page]->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iIRHeight));
-	m_TextScreenLeft[Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
-	m_TextScreenTop[Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
-}
-// ==============================
-
-
-// =======================================================
-// Update the enabled/disabled status
-// -------------
-void WiimoteConfigDialog::UpdateGUI(int Slot)
-{
-	//INFO_LOG(CONSOLE, "UpdateGUI: \n");
-
-	// Update the gamepad settings
 	UpdateGUIButtonMapping(Page);
-
-	// Update dead zone
 	DoChangeDeadZone(true); DoChangeDeadZone(false);
-
-	// Update the Wiimote IR pointer calibration
-	UpdateControls();
-
-	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
-	   from the data scanning functions in main.cpp */
-	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
-	m_NunchuckConnected[Page]->SetValue(g_Config.bNunchuckConnected);
-	m_ClassicControllerConnected[Page]->SetValue(g_Config.bClassicControllerConnected);
-	m_NunchuckConnected[Page]->Enable(AllowExtensionChange);
-	m_ClassicControllerConnected[Page]->Enable(AllowExtensionChange);
-
-	/* I have disabled this option during a running game because it's enough to be able to switch
-	   between using and not using then. To also use the connect option during a running game would
-	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
-	   has been initialized. Functions for that are basically already in place so these two options
-	   could possibly be simplified to one option. */
-	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
-	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || (!g_EmulatorRunning && g_Config.bConnectRealWiimote));
 
 	// Linux has no FindItem()
 	// Disable all pad items if no pads are detected
@@ -1740,12 +1129,5 @@ void WiimoteConfigDialog::UpdateGUI(int Slot)
 			m_Notebook->FindItem(ID_TRIGGER_TYPE)->Enable(PadEnabled);
 		#endif
 	}		
-
-	// Disable all recording buttons
-	bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
-	#ifdef _WIN32
-		for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
-			if(ControlsCreated) m_Notebook->FindItem(i)->Enable(ActiveRecording);
-	#endif
 }
 

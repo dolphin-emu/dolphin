@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 
@@ -36,9 +32,7 @@
 #include "EmuSubroutines.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
-////////////////////////////////////
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
@@ -358,7 +352,7 @@ void UpdateEeprom()
 	INFO_LOG(CONSOLE, "\nUpdateEeprom: %i %i %i\n",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
 
-	if(g_Config.bNunchuckConnected)
+	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 		g_nu.cal_zero.x = g_RegExt[0x20];
 		g_nu.cal_zero.y = g_RegExt[0x21];
@@ -377,7 +371,7 @@ void UpdateEeprom()
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
-	else if(g_Config.bClassicControllerConnected)
+	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 		g_ClassicContCalibration.Lx.max = g_RegExt[0x20];
 		g_ClassicContCalibration.Lx.min = g_RegExt[0x21];
@@ -447,19 +441,19 @@ void ResetVariables()
 void SetDefaultExtensionRegistry()
 {
 	// Copy extension id and calibration to its register	
-	if(g_Config.bNunchuckConnected)
+	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
 		memcpy(g_RegExt + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
 		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
 	}
-	else if(g_Config.bClassicControllerConnected)
+	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
-	else if(g_Config.bGuitarConnected)
+	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
 	{
 	//	memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
 	//	memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));

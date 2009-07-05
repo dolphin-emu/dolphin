@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,11 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-//#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
@@ -27,15 +22,14 @@
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "main.h"
-#include "ConfigDlg.h"
+#include "ConfigRecordingDlg.h"
+#include "ConfigBasicDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
-//////////////////////////////////////
 
 
-
-void WiimoteConfigDialog::LoadFile()
+void WiimoteRecordingConfigDialog::LoadFile()
 {
 	INFO_LOG(CONSOLE, "LoadFile()\n");
 
@@ -77,7 +71,8 @@ void WiimoteConfigDialog::LoadFile()
 		file.Get(SaveName.c_str(), "PlaybackSpeed", &iTmp, -1); m_RecordPlayBackSpeed[i]->SetSelection(iTmp);
 	}
 }
-void WiimoteConfigDialog::SaveFile()
+
+void WiimoteRecordingConfigDialog::SaveFile()
 {
 	INFO_LOG(CONSOLE, "SaveFile\n");
 
@@ -117,24 +112,11 @@ void WiimoteConfigDialog::SaveFile()
 	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
 	INFO_LOG(CONSOLE, "SaveFile()\n");
 }
-/////////////////////////////
 
-
-
-
-
-/////////////////////////////////////////////////////////////////////////
-// Create GUI
-// ------------
-void WiimoteConfigDialog::CreateGUIControlsRecording()
+void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 {
-	////////////////////////////////////////////////////////////////////////////////
-	// Real Wiimote
-	// ----------------
+	m_PageRecording = new wxPanel(this, ID_RECORDINGPAGE, wxDefaultPosition, wxDefaultSize);
 
-	// ---------------------------------------------
-	// Status
-	// ----------------	
 	m_TextUpdateRate = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Update rate: 000 times/s"));
 	m_UpdateMeters = new wxCheckBox(m_PageRecording, ID_UPDATE_REAL, wxT("Update gauges"));
 
@@ -144,10 +126,9 @@ void WiimoteConfigDialog::CreateGUIControlsRecording()
 		"You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n"
 		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
 		));
-	// -----------------------
 
 	// Width and height of the gauges
-	static const int Gw = 35, Gh = 110;
+	static const int Gw = 35, Gh = 110; //ugly
 
 	m_GaugeBattery = new wxGauge( m_PageRecording, wxID_ANY, 100, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 	m_GaugeRoll[0] = new wxGauge( m_PageRecording, wxID_ANY, 360, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
@@ -162,9 +143,6 @@ void WiimoteConfigDialog::CreateGUIControlsRecording()
 	// The text controls
 	m_TextIR = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Cursor: 000 000\nDistance: 0000"));
 
-	// ------------------------------------
-	// The sizers for all gauges together with their label
-	// -----------
 	wxBoxSizer * sBoxBattery = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * sBoxRoll[2];
 	sBoxRoll[0] = new wxBoxSizer(wxVERTICAL);
@@ -185,11 +163,7 @@ void WiimoteConfigDialog::CreateGUIControlsRecording()
 	m_TextX[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextY[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextZ[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-	// ----------------
 
-	// ----------------------------------------------
-	// Row 1 Sizers
-	// -----------
 	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 0); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxUP), 5);
 
 	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxUP), 5);
@@ -231,16 +205,9 @@ void WiimoteConfigDialog::CreateGUIControlsRecording()
 	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
-	// --------------------
 
-	// Tool tips
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
-	// ==========================================
 
-
-	// ====================================================================
-	// Record movement
-	// ----------------
 	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Record movements"));
 
 	wxArrayString StrHotKeySwitch;
@@ -338,27 +305,42 @@ void WiimoteConfigDialog::CreateGUIControlsRecording()
 
 		sbRealRecord->Add(sRealRecord[i], 0, wxEXPAND | (wxTOP), 2);
 	}
-	// ==========================================
 
-	// ----------------------------------------------------------------------
-	// Set up sizers for the whole page
-	// ----------------
 	m_sRecordingMain = new wxBoxSizer(wxVERTICAL);
 	m_sRecordingMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
 	m_sRecordingMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
-	m_PageRecording->SetSizer(m_sRecordingMain);	
+	m_PageRecording->SetSizer(m_sRecordingMain);
+
+	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+	m_Close->SetToolTip(wxT("Apply and Close"));
+
+	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(m_Apply, 0, (wxALL), 0);
+	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
+
+	m_MainSizer = new wxBoxSizer(wxVERTICAL);
+	m_MainSizer->Add(m_PageRecording, 1, wxEXPAND | wxALL, 5);
+	m_MainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+
+	this->SetSizer(m_MainSizer);
+	this->Layout();
+
+	Fit();
+
+	// Center the window if there is room for it
+	#ifdef _WIN32
+		if (GetSystemMetrics(SM_CYFULLSCREEN) > 800)
+			Center();
+	#endif
+
+	ControlsCreated = true;
 }
-/////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////
-/* Record movement */
-// ------------
-
-void WiimoteConfigDialog::ConvertToString()
+void WiimoteRecordingConfigDialog::ConvertToString()
 {
-	// Load ini file
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
 	std::string TmpStr = "", TmpIR = "", TmpTime = "";
@@ -382,8 +364,8 @@ void WiimoteConfigDialog::ConvertToString()
 		TmpTime += StringFromFormat("%05i", Time);
 		if (i < ((int)m_vRecording.size() - 1)) TmpTime += ",";
 
-		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
-		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
+		// Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
+		//   This limit should never be hit because of the recording limit below. I keep it here just in case.
 		if(TmpStr.length() > (1024*10 - 10) || TmpIR.length() > (1024*10 - 10) || TmpTime.length() > (1024*10 - 10))
 		{
 			break;
@@ -428,15 +410,15 @@ void WiimoteConfigDialog::ConvertToString()
 }
 
 // Timeout the recording
-void WiimoteConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
+void WiimoteRecordingConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 {
 	m_bWaitForRecording = false;
 	m_bRecording = false;
 	m_RecordButton[m_iRecordTo]->SetLabel(wxT(""));
-	UpdateGUI();
+	UpdateRecordingGUI();
 }
 
-void WiimoteConfigDialog::RecordMovement(wxCommandEvent& event)
+void WiimoteRecordingConfigDialog::RecordMovement(wxCommandEvent& event)
 {
 	m_iRecordTo = event.GetId() - 2000;
 
@@ -454,20 +436,21 @@ void WiimoteConfigDialog::RecordMovement(wxCommandEvent& event)
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
 		// This is for usability purposes, it may not be obvious at all that this must be unchecked
 		// for the recording to work
-		for(int i = 0; i < 1; i++) m_UseRealWiimote[i]->SetValue(false); g_Config.bUseRealWiimote = false;
+		for(int i = 0; i < MAX_WIIMOTES; i++)
+			m_BasicConfigFrame->m_UseRealWiimote[i]->SetValue(false);
+		g_Config.bUseRealWiimote = false;
 		return;
 	}
 
 	m_bWaitForRecording = true;
-	m_bAllowA = true;
 	m_bRecording = false;
 
-	UpdateGUI();
+	UpdateRecordingGUI();
 
 	m_TimeoutTimer->Start(5000, true);
 }
 
-void WiimoteConfigDialog::DoRecordA(bool Pressed)
+void WiimoteRecordingConfigDialog::DoRecordA(bool Pressed)
 {
 	// Return if we are not waiting or recording
 	if (! (m_bWaitForRecording || m_bRecording)) return;
@@ -498,10 +481,10 @@ void WiimoteConfigDialog::DoRecordA(bool Pressed)
 		ConvertToString();
 	}
 
-	UpdateGUI();
+	UpdateRecordingGUI();
 }
 
-void WiimoteConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
+void WiimoteRecordingConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
 {
 	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
 	//INFO_LOG(CONSOLE, "DoRecordMovement: %s\n", Tmp1.c_str());
@@ -521,15 +504,13 @@ void WiimoteConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR
 	// Save the number of IR bytes
 	IRBytes = _IRBytes;
 
-	/* The upper limit of a recording coincides with the IniFile.cpp limit, each list element
-	   is 7 bytes, therefore be divide by 7 */
+	// The upper limit of a recording coincides with the IniFile.cpp limit, each list element
+	// is 7 bytes, therefore be divide by 7
 	if (m_vRecording.size() > (10*1024 / 7 - 2) )
 	{
 		m_bRecording = false;
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Done"));
 		ConvertToString();
-		UpdateGUI();
+		UpdateRecordingGUI();
 	}
 }
-/////////////////////////////////
-

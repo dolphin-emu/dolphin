@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
 
 #include "wiiuse.h" // Externals
@@ -33,10 +29,11 @@
 #include "EmuMain.h"
 #include "main.h"
 #if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigDlg.h"
+	#include "ConfigBasicDlg.h"
+	#include "ConfigRecordingDlg.h"
+	#include "ConfigPadDlg.h"
 #endif
 #include "Config.h"
-////////////////////////////////////////
 
 namespace WiiMoteReal
 {
@@ -114,8 +111,8 @@ void handle_event(struct wiimote_t* wm)
 
 	// Print battery status
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_ConfigFrame && g_Config.bUpdateRealWiimote)
-		m_ConfigFrame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+	if(m_RecordingConfigFrame && g_Config.bUpdateRealWiimote)
+		m_RecordingConfigFrame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 #endif
 	// Create shortcut to the nunchuck
 	struct nunchuk_t* nc = NULL;
@@ -170,7 +167,7 @@ void handle_event(struct wiimote_t* wm)
 		//INFO_LOG(CONSOLE, "%s\n\n", Tmp.c_str());
 
 #if defined(HAVE_WX) && HAVE_WX
-		if(m_ConfigFrame)
+		if(m_RecordingConfigFrame)
 		{
 			// Produce adjusted accelerometer values		
 			float _Gx = (float)(wm->accel.x - wm->accel_calib.cal_zero.x) / (float)wm->accel_calib.cal_g.x;
@@ -194,56 +191,58 @@ void handle_event(struct wiimote_t* wm)
 			if(g_Config.bUpdateRealWiimote)
 			{
 				// Update gauges
-				m_ConfigFrame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
-				m_ConfigFrame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
+				m_RecordingConfigFrame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
+				m_RecordingConfigFrame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
 				// Show g. forces between -3 and 3
-				m_ConfigFrame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
-				m_ConfigFrame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
-				m_ConfigFrame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));				
+				m_RecordingConfigFrame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
+				m_RecordingConfigFrame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
+				m_RecordingConfigFrame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));				
 
-				m_ConfigFrame->m_GaugeAccel[0]->SetValue(wm->accel.x);
-				m_ConfigFrame->m_GaugeAccel[1]->SetValue(wm->accel.y);
-				m_ConfigFrame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+				m_RecordingConfigFrame->m_GaugeAccel[0]->SetValue(wm->accel.x);
+				m_RecordingConfigFrame->m_GaugeAccel[1]->SetValue(wm->accel.y);
+				m_RecordingConfigFrame->m_GaugeAccel[2]->SetValue(wm->accel.z);
 
-				m_ConfigFrame->m_TextIR->SetLabel(wxString::Format(
+				m_RecordingConfigFrame->m_TextIR->SetLabel(wxString::Format(
 					wxT("Cursor: %03u %03u\nDistance:%4.0f"), wm->ir.x, wm->ir.y, wm->ir.z));
 
-				//m_ConfigFrame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
+				//m_RecordingConfigFrame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
 				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
-				if(m_ConfigFrame->m_bRecording)
+				if(m_RecordingConfigFrame->m_bRecording)
 					INFO_LOG(CONSOLE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", Gx, Gy, Gz);
 					//INFO_LOG(CONSOLE, "Wiiuse Recorded accel x, y, z: %02x %02x %02x\n", Gx, Gy, Gz);
 			}
 
 			// Send the data to be saved
 			//const u8* data = (const u8*)wm->event_buf;
-			m_ConfigFrame->DoRecordMovement(Gx, Gy, Gz, (g_EventBuffer + 6),
+			m_RecordingConfigFrame->DoRecordMovement(Gx, Gy, Gz, (g_EventBuffer + 6),
 				(WIIUSE_USING_EXP(wm) ? 10 : 12));
 
 			// Turn recording on and off
-			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) m_ConfigFrame->DoRecordA(true);
-				else m_ConfigFrame->DoRecordA(false);
+			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) m_RecordingConfigFrame->DoRecordA(true);
+				else m_RecordingConfigFrame->DoRecordA(false);
 
 			// ------------------------------------
 			// Show roll and pitch in the status box
 			// --------------
-			/*
+
 			if(!g_DebugData)
 			{
 //				Console::ClearScreen();
 				INFO_LOG(CONSOLE, "Roll:%03i Pitch:%03i\n", (int)wm->orient.roll, (int)wm->orient.pitch);
 			}
-			// Convert Roll and Pitch from 180 to 0x8000
-			int Roll = (int)wm->orient.roll * (0x8000 / 180);
-			int Pitch = (int)wm->orient.pitch * (0x8000 / 180);
-			// Convert it to the box
-			m_ConfigFrame->Convert2Box(Roll);
-			m_ConfigFrame->Convert2Box(Pitch);
-			// Show roll and pitch in the axis boxes
-			m_ConfigFrame->m_bmpDotRightOut[0]->SetPosition(wxPoint(Roll, Pitch));*/
-			// ---------------------
+			if(m_PadConfigFrame)
+			{
+				// Convert Roll and Pitch from 180 to 0x8000
+				int Roll = (int)wm->orient.roll * (0x8000 / 180);
+				int Pitch = (int)wm->orient.pitch * (0x8000 / 180);
+				// Convert it to the box
+				m_PadConfigFrame->Convert2Box(Roll);
+				m_PadConfigFrame->Convert2Box(Pitch);
+				// Show roll and pitch in the axis boxes
+				m_PadConfigFrame->m_bmpDotRightOut[0]->SetPosition(wxPoint(Roll, Pitch));
+			}
 		}
 #endif
 	}
@@ -251,20 +250,20 @@ void handle_event(struct wiimote_t* wm)
 	else
 	{
 #if defined(HAVE_WX) && HAVE_WX
-		if (m_ConfigFrame)
+		if (m_RecordingConfigFrame)
 		{
-			m_ConfigFrame->m_GaugeRoll[0]->SetValue(0);
-			m_ConfigFrame->m_GaugeRoll[1]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeRoll[0]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeRoll[1]->SetValue(0);
 
-			m_ConfigFrame->m_GaugeGForce[0]->SetValue(0);
-			m_ConfigFrame->m_GaugeGForce[1]->SetValue(0);
-			m_ConfigFrame->m_GaugeGForce[2]->SetValue(0);	
+			m_RecordingConfigFrame->m_GaugeGForce[0]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeGForce[1]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeGForce[2]->SetValue(0);
 
-			m_ConfigFrame->m_GaugeAccel[0]->SetValue(0);
-			m_ConfigFrame->m_GaugeAccel[1]->SetValue(0);
-			m_ConfigFrame->m_GaugeAccel[2]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeAccel[0]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeAccel[1]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeAccel[2]->SetValue(0);
 
-			m_ConfigFrame->m_TextIR->SetLabel(wxT("Cursor:\nDistance:"));
+			m_RecordingConfigFrame->m_TextIR->SetLabel(wxT("Cursor:\nDistance:"));
 		}
 #endif
 	}
@@ -384,4 +383,3 @@ void ReadWiimote()
 
 
 }; // end of namespace
-

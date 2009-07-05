@@ -526,18 +526,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Debugging"
-			>
-			<File
-				RelativePath=".\Src\Logging.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Logging.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Emulated Wiimote"
 			>
 			<File
@@ -621,19 +609,42 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\ConfigDlg.cpp"
+				RelativePath=".\Src\ConfigBasicDlg.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\ConfigDlg.h"
+				RelativePath=".\Src\ConfigBasicDlg.h"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\ConfigGamepad.cpp"
 				>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigPadDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigPadDlg.h"
+				>
 			</File>
 			<File
 				RelativePath=".\Src\ConfigRecording.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigRecordingDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigRecordingDlg.h"
 				>
 			</File>
 		</Filter>

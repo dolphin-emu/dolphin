@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 
@@ -36,9 +32,7 @@
 #include "EmuSubroutines.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
-#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
-////////////////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 
@@ -192,4 +186,3 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 
 
 } // end of namespace WiiMoteEmu
-

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -43,19 +43,18 @@ Config g_Config;
 Config::Config()
 {
 	// Set all default values to zero
-    memset(this, 0, sizeof(Config));
+	memset(this, 0, sizeof(Config));
 }
 
 void Config::Load(bool ChangePad)
 {
-    std::string temp;
-    IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+	std::string temp;
+	IniFile iniFile;
+	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// General
-    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
-	iniFile.Get("Settings", "NunchuckConnected", &bNunchuckConnected, false);
-	iniFile.Get("Settings", "ClassicControllerConnected", &bClassicControllerConnected, false);
+	iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
+	iniFile.Get("Settings", "ExtensionConnected", &iExtensionConnected, EXT_NONE);
 
 	// Real Wiimote
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
@@ -219,11 +218,10 @@ void Config::Load(bool ChangePad)
 
 void Config::Save(int Slot)
 {
-    IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-    iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
-	iniFile.Set("Settings", "NunchuckConnected", bNunchuckConnected);
-	iniFile.Set("Settings", "ClassicControllerConnected", bClassicControllerConnected);
+	IniFile iniFile;
+	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+	iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
+	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
 
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
 	iniFile.Set("Real", "Use", bUseRealWiimote);
