@@ -80,11 +80,7 @@ void HandleLoop()
 		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
 		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
 
-		// This does not always work correctly!
-		// The loop end tends to point to the second part of 
-		// two-byte instructions!
-		// 0179 1104 019f bloopi      #0x04, 0x019f  in zelda, for example
-		if (g_dsp.pc == (rLoopAddress + 1))
+		if (g_dsp.pc == (rLoopAddress + opSize[rLoopAddress]))
 		{
 			rLoopCounter--;
 			if (rLoopCounter > 0)
