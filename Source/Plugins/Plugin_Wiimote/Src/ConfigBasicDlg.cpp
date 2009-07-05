@@ -38,9 +38,14 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	//EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)	
 	EVT_CHOICE(ID_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	// IR cursor
+	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
+	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteBasicConfigDialog::IRCursorChanged)
+	EVT_COMMAND_SCROLL(IDS_LEFT, WiimoteBasicConfigDialog::IRCursorChanged)
+	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteBasicConfigDialog::IRCursorChanged)
+
 	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteBasicConfigDialog::UpdateOnce)
 	EVT_TIMER(IDTM_SHUTDOWN, WiimoteBasicConfigDialog::ShutDown)
-
 END_EVENT_TABLE()
 
 
@@ -187,12 +192,12 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		arrayStringFor_extension.Add(wxT("None"));
 		arrayStringFor_extension.Add(wxT("Nunchuck"));
 		arrayStringFor_extension.Add(wxT("Classic Controller"));
-		arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
+		//arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
 		//arrayStringFor_extension.Add(wxT("Guitar Hero World Tour Drums Connected"));
 		// Prolly needs to be a separate plugin
 		//arrayStringFor_extension.Add(wxT("Balance Board"));
 
-		extensionChoice[i] = new wxChoice(m_Controller[i], wxID_ANY, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
+		extensionChoice[i] = new wxChoice(m_Controller[i], ID_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 		extensionChoice[i]->SetSelection(0);
 
 		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
