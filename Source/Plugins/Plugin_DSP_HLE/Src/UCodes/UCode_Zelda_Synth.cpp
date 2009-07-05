@@ -28,6 +28,8 @@ void CUCode_Zelda::RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt << 16);
 	s64 ratio = (_ratio * ratioFactor) * 16;
+	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 16;
+	TrueSamplePosition += PB.CurSampleFrac;
 
 	int mask = PB.Format ? 3 : 1, shift = PB.Format ? 2 : 1;
 	
@@ -65,9 +67,11 @@ _lRestart:
 		}
 	}
 
-	for (; i < _Size;)
+	while(i < _Size) 
 	{
 		s16 sample = ((pos[1] & mask) == mask) ? 0xc000 : 0x4000;
+
+		TrueSamplePosition += (ratio >> 16);
 
 		_Buffer[i++] = (s32)sample;
 
@@ -87,7 +91,7 @@ _lRestart:
 	else
 		PB.RemLength -= pos[1];
 
-	//PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
+	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
 

@@ -221,6 +221,7 @@ private:
 	void RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void RenderVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderVoice_Raw(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);

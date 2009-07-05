@@ -99,16 +99,7 @@ void CUCode_Zelda::Update(int cycles)
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
-	// When we used to lose sync, the last mails we get before the audio goes bye-bye
-	// 0
-	// 0x00000
-	// 0
-	// 0x10000
-	// 0
-	// 0x20000
-	// 0
-	// 0x30000
-	// And then silence... Looks like some reverse countdown :)
+
 	if (m_bSyncInProgress)
 	{
 		if (m_bSyncCmdPending)
