@@ -23,7 +23,7 @@
 struct CConfig
 {
     bool m_EnableHLEAudio;
-	bool m_EnableRE0Fix, m_DisableStreaming;
+	bool m_EnableRE0Fix;
 
     CConfig();
     
