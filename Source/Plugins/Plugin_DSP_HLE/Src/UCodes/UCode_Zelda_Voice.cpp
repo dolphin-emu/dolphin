@@ -23,8 +23,6 @@
 #include "../main.h"
 #include "Mixer.h"
 
-#include "../Config.h"
-
 void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)g_dspInitialize.pGetMemoryPointer(_Addr);
@@ -361,7 +359,7 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 
 void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
-	static u16 lastLeft = 0x1FF, lastRight = 0x1FF;
+	//static u16 lastLeft = 0x1FF, lastRight = 0x1FF;
 	memset(m_TempBuffer, 0, _Size * sizeof(s32));
 
 	if (PB.IsBlank)
@@ -373,7 +371,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	else
 	{
 		// XK: Use this to disable music (GREAT for testing)
-		//if(g_Config.m_DisableStreaming && PB.SoundType == 0x0d00) {
+		//if(PB.SoundType == 0x0d00) {
 		//	PB.NeedsReset = 0;
 		//	return;
 		//}
@@ -444,18 +442,18 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 
 	for (int i = 0; i < _Size; i++)
 	{
-		if(PB.volumeLeft2)
+		/*if(PB.volumeLeft2)
 			lastLeft = PB.volumeLeft2;
 		if(PB.volumeRight2)
-			lastRight = PB.volumeRight2;
+			lastRight = PB.volumeRight2;*/
 
 		// TODO: Some noises in Zelda WW (birds, etc) have a volume of 0
 		// Really not sure about the masking here, but it seems to kill off some overly loud
 		// sounds in Zelda TP. Needs investigation.
 		s32 left = _LeftBuffer[i] + (m_TempBuffer[i] * (float)(
-			(lastLeft & 0x1FFF) + (lastLeft & 0x1FFF)) * 0.00005);
+			(PB.volumeLeft1 & 0x1FFF) + (PB.volumeLeft2 & 0x1FFF)) * 0.00005);
 		s32 right = _RightBuffer[i] + (m_TempBuffer[i] * (float)(
-			(lastRight & 0x1FFF) + (lastRight & 0x1FFF)) * 0.00005);
+			(PB.volumeRight1 & 0x1FFF) + (PB.volumeRight2 & 0x1FFF)) * 0.00005);
 
 		if (left < -32768) left = -32768;
 		if (left > 32767)  left = 32767;
