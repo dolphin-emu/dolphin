@@ -185,7 +185,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-		   			WARN_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+		   			INFO_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
 				}
 				else {
 		   			ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
@@ -228,14 +228,14 @@ u16 gdsp_ifx_read(u16 addr)
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-	   				NOTICE_LOG(DSPLLE, "%04x MR %s (%04x)\n", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
+	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
 				}
 				else {
-	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)\n", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
 				}
 			}
 			else {
-   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)\n", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
 			}
 		    return gdsp_ifx_regs[addr & 0xFF];
 	}

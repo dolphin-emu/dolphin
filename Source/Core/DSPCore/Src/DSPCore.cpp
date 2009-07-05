@@ -156,7 +156,7 @@ void DSPCore_SetException(u8 level)
 void DSPCore_CheckExternalInterrupt()
 {
 	// check if there is an external interrupt
-	if (g_dsp.cr & CR_EXTERNAL_INT)
+	if (g_dsp.cr & CR_EXTERNAL_INT && !g_dsp.exception_in_progress_hack)
 	{
 #ifdef DEBUG_EXP
 		NOTICE_LOG(DSPLLE, "trying External interupt fired");
@@ -176,7 +176,7 @@ void DSPCore_CheckExternalInterrupt()
 
 void DSPCore_CheckExceptions() 
 {
-	if (g_dsp.exceptions != 0) {
+	if (g_dsp.exceptions != 0 && !g_dsp.exception_in_progress_hack) {
 #ifdef DEBUG_EXP
 		NOTICE_LOG(DSPLLE, "trying exception %d fired", g_dsp.exceptions);
 #endif
