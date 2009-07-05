@@ -19,13 +19,13 @@
 #include "Config.h"
 #include "ConfigDlg.h"
 
-BEGIN_EVENT_TABLE(ConfigDialog, wxDialog)
-EVT_BUTTON(wxID_OK, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_THROTTLE, ConfigDialog::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_RE0_FIX, ConfigDialog::SettingsChanged)
-EVT_COMMAND_SCROLL(ID_VOLUME, ConfigDialog::VolumeChanged)
+BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
+EVT_BUTTON(wxID_OK, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
+EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
 
 DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
