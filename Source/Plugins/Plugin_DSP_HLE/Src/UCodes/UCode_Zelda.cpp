@@ -91,9 +91,9 @@ CUCode_Zelda::~CUCode_Zelda()
 
 void CUCode_Zelda::Update(int cycles)
 {
-//	if (!m_rMailHandler.IsEmpty())
-//		g_dspInitialize.pGenerateDSPInterrupt();
-	if (m_bSyncCmdPending && (m_CurBuffer == m_NumBuffers) && (m_rMailHandler.IsEmpty()))
+	if (!m_rMailHandler.IsEmpty())
+		g_dspInitialize.pGenerateDSPInterrupt();
+/*	if (m_bSyncCmdPending && (m_CurBuffer == m_NumBuffers) && (m_rMailHandler.IsEmpty()))
 	{
 		m_rMailHandler.PushMail(DSP_FRAME_END);
 		g_dspInitialize.pGenerateDSPInterrupt();
@@ -103,7 +103,7 @@ void CUCode_Zelda::Update(int cycles)
 		soundStream->Update(); //do it in this thread to avoid sync problems
 
 		m_bSyncCmdPending = false;
-	}
+	}*/
 }
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
@@ -153,14 +153,14 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 
 				if (m_CurBuffer == m_NumBuffers)
 				{
-					//m_rMailHandler.PushMail(DSP_FRAME_END);
+					m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
-				//	soundStream->GetMixer()->SetHLEReady(true);
-				//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-				//	soundStream->Update(); //do it in this thread to avoid sync problems
+					soundStream->GetMixer()->SetHLEReady(true);
+					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+					soundStream->Update(); //do it in this thread to avoid sync problems
 
-					//m_bSyncCmdPending = false;
+					m_bSyncCmdPending = false;
 				}
 			}
 		}
