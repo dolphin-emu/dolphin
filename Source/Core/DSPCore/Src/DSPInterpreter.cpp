@@ -80,6 +80,7 @@ void HandleLoop()
 		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
 		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
 
+
 		if (g_dsp.pc == (rLoopAddress + opSize[rLoopAddress]))
 		{
 			rLoopCounter--;
@@ -148,7 +149,8 @@ void Run()
 // This one has basic idle skipping, and checks breakpoints.
 int RunCyclesDebug(int cycles)
 {
-	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
+	// First, let's run a few cycles with no idle skipping so that things can
+	// progress a bit.
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
@@ -231,7 +233,8 @@ int RunCycles(int cycles)
 		cycles--;
 	}
 
-	// Next, let's run a few cycles with idle skipping, so that we can skip idle loops.
+	// Next, let's run a few cycles with idle skipping, so that we can skip
+	// idle loops.
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
@@ -242,8 +245,9 @@ int RunCycles(int cycles)
 		cycles--;
 	}
 
-	// Now, run the rest of the block without idle skipping. It might trip into a 
-	// idle loop and if so we waste some time here. Might be beneficial to slice even further.
+	// Now, run the rest of the block without idle skipping. It might trip into
+	// a idle loop and if so we waste some time here. Might be beneficial to
+	// slice even further.
 	while (cycles > 0)
 	{
 		Step();

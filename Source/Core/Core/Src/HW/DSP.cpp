@@ -16,10 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 // AID / AUDIO_DMA controls pushing audio out to the SRC and then the speakers.
-// The audio DMA pushes audio through a small FIFO 32 bytes at a time, as needed.
+// The audio DMA pushes audio through a small FIFO 32 bytes at a time, as
+// needed.
+
 // The SRC behind the fifo eats stereo 16-bit data at a sample rate of 32khz,
-// that is, 4 bytes at 32 khz, which is 32 bytes at 4 khz. We thereforce schedule an
-// event that runs at 4khz, that eats audio from the fifo. Thus, we have homebrew audio.
+// that is, 4 bytes at 32 khz, which is 32 bytes at 4 khz. We thereforce
+// schedule an event that runs at 4khz, that eats audio from the fifo. Thus, we
+// have homebrew audio.
 
 // The AID interrupt is set when the fifo STARTS a transfer. It latches address
 // and count into internal registers and starts copying. This means that the
@@ -236,9 +239,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		}
 		switch (_iAddress & 0xFFFF)
 		{
-		// ==================================================================================
+
 		// AI_REGS 0x5000+
-		// ==================================================================================
 		case DSP_MAIL_TO_DSP_HI:
 			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
 			return;
@@ -260,9 +262,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 							(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
 			return;
 
-		// ==================================================================================
 		// AR_REGS 0x501x+
-		// ==================================================================================
 		case 0x5012:
 			_uReturnValue = g_AR_MODE;
 			return;
@@ -282,11 +282,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex >> 16; return;
 		case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
 
-		// ==================================================================================
 		// DMA_REGS 0x5030+
-		// ==================================================================================
 		case AUDIO_DMA_BYTES_LEFT:
-			// Hmm. Would be stupid to ask for bytes left. Assume it wants blocks left.
+			// Hmm. Would be stupid to ask for bytes left. Assume it wants
+			// blocks left.
 			_uReturnValue = g_audioDMA.BlocksLeft;
 			return;
 
@@ -320,10 +319,8 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	switch(_Address & 0xFFFF)
 	{
-	// ==================================================================================
-	// DSP Regs 0x5000+
-	// ==================================================================================
 
+	// DSP Regs 0x5000+
 	case DSP_MAIL_TO_DSP_HI:
 		dsp_plugin->DSP_WriteMailboxHigh(true, _Value);
 		break;
@@ -340,9 +337,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		_dbg_assert_msg_(DSPINTERFACE, 0, "W16: DSP_MAIL_FROM_DSP_LO");
 		break;
 
-	// ==================================================================================
 	// Control Register
-	// ==================================================================================
 	case DSP_CONTROL:
 		{
 			UDSPControl tmpControl;
@@ -380,11 +375,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		}			
 		break;
 
-	// ==================================================================================
 	// AR_REGS 0x501x+
 	// DMA back and forth between ARAM and RAM
-	// ==================================================================================
-
 	case 0x5012:
 		g_AR_MODE = _Value;
 		break;
@@ -418,10 +410,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		Update_ARAM_DMA();
 		break;
 
-	// ==================================================================================
 	// Audio DMA_REGS 0x5030+
 	// This is the DMA that goes straight out the speaker.
-	// ==================================================================================
 	case AUDIO_DMA_START_HI:
 		g_audioDMA.SourceAddress = (g_audioDMA.SourceAddress & 0xFFFF) | (_Value<<16);
 		break;
@@ -459,25 +449,27 @@ void Write16(const u16 _Value, const u32 _Address)
 void UpdateAudioDMA()
 {
 	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
-		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
-		// to be mixed with the disc streaming output. If that audio queue fills up, we delay the emulator.
+		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
+		// external audio fifo in the emulator, to be mixed with the disc
+		// streaming output. If that audio queue fills up, we delay the
+		// emulator.
 		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
 		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
 
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 		if (!g_audioDMA.BlocksLeft) {
-			// No need to turn off the DMA - we can only get here if we had blocks left when we
-			// entered this function, and no longer have any.
-			// Latch new parameters
+			// No need to turn off the DMA - we can only get here if we had
+			// blocks left when we entered this function, and no longer have
+			// any.  Latch new parameters
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	} else {
-		// Send silence. Yeah, it's a bit of a waste to sample rate convert silence.
-		// or hm. Maybe we shouldn't do this :)
+		// Send silence. Yeah, it's a bit of a waste to sample rate convert
+		// silence.  or hm. Maybe we shouldn't do this :)
 		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
 	}
 }
@@ -504,10 +496,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFFF)
 	{
-	// ==================================================================================
-	// AR_REGS - i dont know why they are accessed 32 bit too ...
-	// ==================================================================================
 
+	// AR_REGS - i dont know why they are accessed 32 bit too ...
 	case AR_DMA_MMADDR_H:
 		g_arDMA.MMAddr = _iValue;
 		break;
@@ -528,9 +518,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	}
 }
 
-// __________________________________________________________________________________________________
+
 // UpdateInterrupts
-//
 void UpdateInterrupts()
 {
 	if ((g_dspState.DSPControl.AID  & g_dspState.DSPControl.AID_mask) ||
@@ -613,21 +602,21 @@ void Update_ARAM_DMA()
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
-// =============================================================
-// This is how it works: The game has written sound to RAM, the DSP will read it with
-// this function. SamplePos in the plugin is double the value given here because it
-// works on a nibble level. In Wii addresses can eather be for MEM1 or MEM2, when it wants
-// to read from MEM2 it adds 0x2000000 (in nibble terms) to get up to the MEM2 hardware
-// address. But in our case we use a second pointer and adjust the value down to 0x00...
-// -------------------
+
+// This is how it works: The game has written sound to RAM, the DSP will read
+// it with this function. SamplePos in the plugin is double the value given
+// here because it works on a nibble level. In Wii addresses can eather be for
+// MEM1 or MEM2, when it wants to read from MEM2 it adds 0x2000000 (in nibble
+// terms) to get up to the MEM2 hardware address. But in our case we use a
+// second pointer and adjust the value down to 0x00...
 u8 ReadARAM(u32 _iAddress)
 {
-	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
+	//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
 
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
+		//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
 
 		// Does this make any sense?
 		if (_iAddress > WII_MASK)
@@ -649,7 +638,7 @@ void WriteARAM(u8 value, u32 _uAddress)
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		//LOGV(DSPINTERFACE, 0, "ARAM (w) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
+		//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (w) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
 
 		// Does this make any sense?
 		if (_uAddress > WII_MASK)
@@ -686,4 +675,4 @@ void WriteARAM(u8 _iValue, u32 _iAddress)
 }*/
 
 } // end of namespace DSP
-// ===================
+

@@ -153,51 +153,59 @@ void DSPCore_SetException(u8 level)
 	g_dsp.exceptions |= 1 << level;
 }
 
+// Comming from the CPU
 void DSPCore_CheckExternalInterrupt()
 {
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT && !g_dsp.exception_in_progress_hack)
 	{
 #ifdef DEBUG_EXP
-		NOTICE_LOG(DSPLLE, "trying External interupt fired");
+		NOTICE_LOG(DSPLLE, "Firing external interrupt");
 #endif
 		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
 		{
-#ifdef DEBUG_EXP
-			NOTICE_LOG(DSPLLE, "External interupt fired");
-#endif
-			// level 7 is the interrupt exception
+			// Signal the SPU about new mail
 			DSPCore_SetException(EXP_INT);
 			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
+		} else {
+#ifdef DEBUG_EXP
+			ERROR_LOG(DSPLLE, "External interupt firing failed");
+#endif
 		}
+
 	}
 }
 
 void DSPCore_CheckExceptions() 
 {
+	// it's unclear what to do when there are two exceptions are the same time
+	// but for sure they should not be called together therefore the
+	// g_dsp.exception_in_progress_hack
 	if (g_dsp.exceptions != 0 && !g_dsp.exception_in_progress_hack) {
 #ifdef DEBUG_EXP
-		NOTICE_LOG(DSPLLE, "trying exception %d fired", g_dsp.exceptions);
+		NOTICE_LOG(DSPLLE, "Firing exception %d", g_dsp.exceptions);
 #endif
-		// check exceptions
+		// check exceptions should it be 0..7 or 7..0?
 		for (int i = 0; i < 8; i++) {
-			// Seems 7 must pass or zelda dies
+			// Seems exp int is not masked by sr_int_enable
 			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT) {
 				if (g_dsp.exceptions & (1 << i)) {
 					_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 					
+					// store pc and sr until RTI
 					dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 					dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
 					
-					g_dsp.pc = i * 2;
+					g_dsp.pc = i * 2; 
 					g_dsp.exceptions &= ~(1 << i);
-#ifdef DEBUG_EXP
-					NOTICE_LOG(DSPLLE, "exception %d fired");
-#endif
 					g_dsp.exception_in_progress_hack = true;
 					break;
 				}
+			} else {
+#ifdef DEBUG_EXP
+				ERROR_LOG(DSPLLE, "Firing exception %d failed");
+#endif
 			}
 		}
 	}

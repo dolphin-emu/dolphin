@@ -106,12 +106,12 @@ u16 dsp_read_accelerator()
 
 	u16 val;
 
-	// let's do the "hardware" decode
-	// DSP_FORMAT is interesting - the Zelda ucode seems to indicate that the bottom
-	// two bits specify the "read size" and the address multiplier.
-	// The bits above that may be things like sign extention and do/do not use ADPCM.
-	// It also remains to be figured out whether there's a difference between the usual
-	// accelerator "read address" and 0xd3.
+	// let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
+	// ucode seems to indicate that the bottom two bits specify the "read size"
+	// and the address multiplier.  The bits above that may be things like sign
+	// extention and do/do not use ADPCM.  It also remains to be figured out
+	// whether there's a difference between the usual accelerator "read
+	// address" and 0xd3.
 	switch (gdsp_ifx_regs[DSP_FORMAT])
 	{
 	    case 0x00:  // ADPCM audio
@@ -146,9 +146,9 @@ u16 dsp_read_accelerator()
 		DSPCore_SetException(EXP_4); 
 		DSPCore_SetException(EXP_ACCOV);
 
-		// Somehow, YN1 and YN2 must be initialized with their "loop" values, so yeah,
-		// it seems likely that we should raise an exception to let the DSP program do that,
-		// at least if DSP_FORMAT == 0x0A. 
+		// Somehow, YN1 and YN2 must be initialized with their "loop" values,
+		// so yeah, it seems likely that we should raise an exception to let
+		// the DSP program do that, at least if DSP_FORMAT == 0x0A.
 	}
 
 	gdsp_ifx_regs[DSP_ACCAH] = Address >> 16;
