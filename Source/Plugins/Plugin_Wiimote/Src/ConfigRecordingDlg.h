@@ -29,7 +29,7 @@
 #include <wx/checkbox.h>
 #include <wx/panel.h>
 
-class WiimoteRecordingConfigDialog : public wxFrame
+class WiimoteRecordingConfigDialog : public wxDialog
 {
 	public:
 		WiimoteRecordingConfigDialog(wxWindow *parent,

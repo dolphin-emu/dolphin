@@ -40,7 +40,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
-		virtual ~WiimoteBasicConfigDialog();
+		virtual ~WiimoteBasicConfigDialog(){;}
 
 		// General open, close and event functions
 		void ButtonClick(wxCommandEvent& event);

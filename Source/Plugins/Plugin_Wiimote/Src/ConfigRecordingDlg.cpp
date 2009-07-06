@@ -30,7 +30,7 @@
 #include "EmuSubroutines.h" // for WmRequestStatus
 #include "EmuDefinitions.h" // for joyinfo
 
-BEGIN_EVENT_TABLE(WiimoteRecordingConfigDialog,wxFrame)//wxDialog)
+BEGIN_EVENT_TABLE(WiimoteRecordingConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteRecordingConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, WiimoteRecordingConfigDialog::CloseClick)
 	EVT_BUTTON(ID_APPLY, WiimoteRecordingConfigDialog::CloseClick)
@@ -71,7 +71,7 @@ END_EVENT_TABLE()
 
 WiimoteRecordingConfigDialog::WiimoteRecordingConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
-: wxFrame
+: wxDialog
 (parent, id, title, position, size, style)
 {
 	#if wxUSE_TIMER
@@ -94,10 +94,7 @@ void WiimoteRecordingConfigDialog::OnClose(wxCloseEvent& event)
 	g_FrameOpen = false;
 	SaveFile();
 	g_Config.Save();
-
-	Hide();
-	if(!m_BasicConfigFrame->Closing)
-		m_BasicConfigFrame->Close();
+	event.Skip();
 }
 
 
@@ -106,8 +103,6 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		g_Config.Save();
-		SaveFile();
 		Close();
 		break;
 	case ID_APPLY:

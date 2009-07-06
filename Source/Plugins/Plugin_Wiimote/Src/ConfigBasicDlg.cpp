@@ -67,33 +67,21 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	UpdateGUI();
 }
 
-WiimoteBasicConfigDialog::~WiimoteBasicConfigDialog(){}
-
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
 	g_Config.Save();
-	if ((m_PadConfigFrame && m_PadConfigFrame->IsShown()) || (m_RecordingConfigFrame && m_RecordingConfigFrame->IsShown()))
+	if (m_PadConfigFrame)
 	{
-		Closing = false;
-		Hide();
+		m_PadConfigFrame->EndModal(wxID_CLOSE);
+		m_PadConfigFrame = NULL;
 	}
-	else
+	if (m_RecordingConfigFrame)
 	{
-		Closing = true;
-		if (m_PadConfigFrame)
-		{
-			m_PadConfigFrame->Close();
-			m_PadConfigFrame = NULL;
-		}
-		if (m_RecordingConfigFrame)
-		{
-			m_RecordingConfigFrame->Close();
-			m_RecordingConfigFrame = NULL;
-		}
-
-		if (!g_EmulatorRunning) Shutdown();
+		m_RecordingConfigFrame->EndModal(wxID_CLOSE);
+		m_RecordingConfigFrame = NULL;
 	}
+	if (!g_EmulatorRunning) Shutdown();
 	// This will let the Close() function close and remove the wxDialog
 	event.Skip();
 }
@@ -135,14 +123,14 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		if (!m_PadConfigFrame)
 			m_PadConfigFrame = new WiimotePadConfigDialog(this);
 		if (!m_PadConfigFrame->IsShown())
-			m_PadConfigFrame->Show();
+			m_PadConfigFrame->ShowModal();
 		break;
 	case ID_BUTTONRECORDING:
 		if (!m_RecordingConfigFrame)
 			m_RecordingConfigFrame = new WiimoteRecordingConfigDialog(this);
 
 		if (!m_RecordingConfigFrame->IsShown())
-			m_RecordingConfigFrame->Show();
+			m_RecordingConfigFrame->ShowModal();
 		break;
 	}
 }
@@ -297,7 +285,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
 	m_Close->SetToolTip(wxT("Apply and Close"));
 
@@ -374,9 +362,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 	}
 }
 
-// ===================================================
-/* Generate connect/disconnect status event */
-// ----------------
+// Generate connect/disconnect status event
 void WiimoteBasicConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running

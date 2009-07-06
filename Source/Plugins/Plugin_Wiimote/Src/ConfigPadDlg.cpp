@@ -35,7 +35,7 @@ enum TriggerType
 	CTL_TRIGGER_XINPUT
 };
 
-BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxFrame)
+BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_CLOSE(WiimotePadConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, WiimotePadConfigDialog::CloseClick)
 	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
@@ -92,7 +92,7 @@ END_EVENT_TABLE()
 
 WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
-: wxFrame(parent, id, title, position, size, style)
+: wxDialog(parent, id, title, position, size, style)
 {
 #if wxUSE_TIMER
 	m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
@@ -194,9 +194,7 @@ void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
 	if(m_UpdatePad)
 		m_UpdatePad->Stop();
 	g_Config.Save();
-	Hide();
-	if(!m_BasicConfigFrame->Closing)
-		m_BasicConfigFrame->Close();
+	event.Skip();
 }
 
 void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
@@ -1024,7 +1022,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 
 
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
 	m_Close->SetToolTip(wxT("Apply and Close"));
 

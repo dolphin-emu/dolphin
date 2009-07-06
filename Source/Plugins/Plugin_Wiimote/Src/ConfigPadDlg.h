@@ -31,7 +31,7 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
-class WiimotePadConfigDialog : public wxFrame
+class WiimotePadConfigDialog : public wxDialog
 {
 	public:
 		WiimotePadConfigDialog(wxWindow *parent,
