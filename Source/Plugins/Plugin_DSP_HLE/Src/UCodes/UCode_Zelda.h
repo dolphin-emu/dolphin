@@ -214,7 +214,7 @@ private:
 	void ExecuteList();
 
 	// AFC decoder
-	void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type);
+	static void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type);
 
 	void ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);

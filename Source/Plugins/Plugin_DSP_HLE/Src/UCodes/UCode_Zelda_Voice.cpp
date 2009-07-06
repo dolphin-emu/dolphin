@@ -18,7 +18,6 @@
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
-#include "UCode_Zelda_ADPCM.h"
 
 #include "../main.h"
 #include "Mixer.h"
@@ -60,8 +59,8 @@ void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	u32 _ratio = (((PB.RatioInt * 80) + PB.CurSampleFrac) << 4) & 0xFFFF0000;
 	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
 
-	u32 pos[2] = {0, 0};
-	int i = 0;
+	u32 inpos[2] = {0, 0};
+	int outpos = 0;
 
 	if (PB.KeyOff != 0)
 		return;
@@ -90,7 +89,7 @@ _lRestart:
 			PB.RestartPos = PB.LoopStartPos;
 			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
-			pos[1] = 0; pos[0] = 0;
+			inpos[1] = 0; inpos[0] = 0;
 		}
 	}
 
@@ -100,29 +99,29 @@ _lRestart:
 	else
 		source = (s16*)(g_dspInitialize.pGetARAMPointer() + PB.CurAddr);
 
-	for (; i < _Size;)
+	for (; outpos < _Size;)
 	{
-		s16 sample = Common::swap16(source[pos[1]]);
+		s16 sample = Common::swap16(source[inpos[1]]);
 
-		_Buffer[i++] = (s32)sample;
+		_Buffer[outpos++] = (s32)sample;
 
-		(*(u64*)&pos) += ratio;
-		if ((pos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
+		(*(u64*)&inpos) += ratio;
+		if ((inpos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
 		{
 			PB.ReachedEnd = 1;
 			goto _lRestart;
 		}
 	}
 
-	if (PB.RemLength < pos[1])
+	if (PB.RemLength < inpos[1])
 	{
 		PB.RemLength = 0;
 		PB.ReachedEnd = 1;
 	}
 	else
-		PB.RemLength -= pos[1];
+		PB.RemLength -= inpos[1];
 
-	PB.CurAddr += pos[1] << 1;
+	PB.CurAddr += inpos[1] << 1;
 	// There should be a position fraction as well.
 }
 
@@ -272,7 +271,7 @@ restart:
 
     // end of block (Zelda 03b2)
 }
-
+//u32 last_remlength = 0;
 // Researching what's actually inside the mysterious 0x21 case
 void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
@@ -414,6 +413,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 
 		case 0x0010:		// PCM16 - normal PCM 16-bit audio.
 			RenderVoice_PCM16(PB, m_TempBuffer, _Size);
+			//last_remlength = PB.RemLength;
 			break;
 
 
