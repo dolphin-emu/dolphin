@@ -16,9 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "UCode_Zelda_ADPCM.h"
+#include "UCode_Zelda.h"
 
-void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type)
+void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type)
 {
     short nibbles[16];
     short hist = *histp;
@@ -79,6 +79,7 @@ void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, shor
         int sample = (delta * nibbles[i]) << 11;
         sample += ((long)hist * coef[idx * 2]) + ((long)hist2 * coef[idx * 2 + 1]);
         sample = sample >> 11;
+
         if (sample > 32767) {
             sample = 32767;
         }
