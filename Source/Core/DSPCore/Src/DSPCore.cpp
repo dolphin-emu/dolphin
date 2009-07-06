@@ -170,7 +170,7 @@ void DSPCore_CheckExternalInterrupt()
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		} else {
 #ifdef DEBUG_EXP
-			ERROR_LOG(DSPLLE, "External interupt firing failed");
+			ERROR_LOG(DSPLLE, "External interrupt firing failed");
 #endif
 		}
 
@@ -189,8 +189,8 @@ void DSPCore_CheckExceptions()
 		// check exceptions should it be 0..7 or 7..0?
 		for (int i = 0; i < 8; i++) {
 			// Seems exp int is not masked by sr_int_enable
-			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT) {
-				if (g_dsp.exceptions & (1 << i)) {
+			if (g_dsp.exceptions & (1 << i)) {
+				if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT) {
 					_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
 					
 					// store pc and sr until RTI
@@ -201,11 +201,11 @@ void DSPCore_CheckExceptions()
 					g_dsp.exceptions &= ~(1 << i);
 					g_dsp.exception_in_progress_hack = true;
 					break;
-				}
-			} else {
+				} else {
 #ifdef DEBUG_EXP
-				ERROR_LOG(DSPLLE, "Firing exception %d failed");
+					ERROR_LOG(DSPLLE, "Firing exception %d failed");
 #endif
+				}
 			}
 		}
 	}

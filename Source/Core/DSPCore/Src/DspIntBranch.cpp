@@ -145,6 +145,33 @@ void halt(const UDSPInstruction& opc)
 // then PC is modified with calue from call stack $st0. Otherwise values from
 // callstack $st0 and both loop stacks $st2 and $st3 are poped and execution
 // continues at next opcode.
+void HandleLoop()
+{
+	// Handle looping hardware. 
+	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
+	if (rLoopCounter > 0)
+	{
+		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
+		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
+
+
+		if (g_dsp.pc == (rLoopAddress + 1)) //opSize[rLoopAddress]))
+		{
+			rLoopCounter--;
+			if (rLoopCounter > 0)
+			{
+				g_dsp.pc = rCallAddress;
+			}
+			else
+			{
+				// end of loop
+				dsp_reg_load_stack(0);
+				dsp_reg_load_stack(2);
+				dsp_reg_load_stack(3);
+			}
+		}
+	}
+}
 
 
 // LOOP $R

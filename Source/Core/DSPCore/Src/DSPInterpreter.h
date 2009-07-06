@@ -27,6 +27,9 @@ namespace DSPInterpreter {
 void Step();
 void Run();
 
+// See: DspIntBranch.cpp
+void HandleLoop();
+
 // If these simply return the same number of cycles as was passed into them,
 // chances are that the DSP is halted.
 // The difference between them is that the debug one obeys breakpoints.

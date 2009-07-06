@@ -71,34 +71,6 @@ u16 ReadCR()
 	return g_dsp.cr;
 }
 
-void HandleLoop()
-{
-	// Handle looping hardware. 
-	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
-	if (rLoopCounter > 0)
-	{
-		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
-		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
-
-
-		if (g_dsp.pc == (rLoopAddress + opSize[rLoopAddress]))
-		{
-			rLoopCounter--;
-			if (rLoopCounter > 0)
-			{
-				g_dsp.pc = rCallAddress;
-			}
-			else
-			{
-				// end of loop
-				dsp_reg_load_stack(0);
-				dsp_reg_load_stack(2);
-				dsp_reg_load_stack(3);
-			}
-		}
-	}
-}
-
 void Step()
 {
 	DSPCore_CheckExceptions();
