@@ -142,20 +142,20 @@ void halt(const UDSPInstruction& opc)
 // LOOP handling: Loop stack is used to control execution of repeated blocks of
 // instructions. Whenever there is value on stack $st2 and current PC is equal
 // value at $st2, then value at stack $st3 is decremented. If value is not zero
-// then PC is modified with calue from call stack $st0. Otherwise values from
-// callstack $st0 and both loop stacks $st2 and $st3 are poped and execution
+// then PC is modified with value from call stack $st0. Otherwise values from
+// call stack $st0 and both loop stacks $st2 and $st3 are poped and execution
 // continues at next opcode.
 void HandleLoop()
 {
 	// Handle looping hardware. 
+	const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
+	const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
 	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
-	if (rLoopCounter > 0)
+
+	if (rLoopAddress > 0 && rLoopCounter > 0)
 	{
-		const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
-		const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
-
-
-		if (g_dsp.pc == (rLoopAddress + 1)) //opSize[rLoopAddress]))
+		// FIXME: why -1? 
+		if (g_dsp.pc - 1 == rLoopAddress)
 		{
 			rLoopCounter--;
 			if (rLoopCounter > 0)
@@ -239,11 +239,11 @@ void bloop(const UDSPInstruction& opc)
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
-	else
+	/*	else
 	{
 		g_dsp.pc = loop_pc;
 		g_dsp.pc += opSize[dsp_peek_code()];
-	}
+		}*/
 }
 
 // BLOOPI #I, addrA
@@ -260,17 +260,17 @@ void bloopi(const UDSPInstruction& opc)
 	u16 cnt = opc.hex & 0xff;
 	u16 loop_pc = dsp_fetch_code();
 
-	if (cnt)
+	if (cnt) 
 	{
 		dsp_reg_store_stack(0, g_dsp.pc);
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
-	else
+	/*	else
 	{
 		g_dsp.pc = loop_pc;
 		g_dsp.pc += opSize[dsp_peek_code()];
-	}
+		}*/
 }
 
 }  // namespace
