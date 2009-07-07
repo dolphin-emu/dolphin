@@ -92,11 +92,17 @@ int GetMultiplyModifier()
 inline bool isCarry() {
 	return (g_dsp.r[DSP_REG_SR] & SR_CARRY) ? true : false;
 }
-inline bool isSign() {
-	return ((g_dsp.r[DSP_REG_SR] & SR_2) != (g_dsp.r[DSP_REG_SR] & SR_SIGN));
+
+inline bool isLess() {
+	return ((g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) != (g_dsp.r[DSP_REG_SR] & SR_SIGN));
 }
+
 inline bool isZero() {
 	return (g_dsp.r[DSP_REG_SR] & SR_ARITH_ZERO) ? true : false;
+}
+
+inline bool isLogicZero() {
+	return (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO) ? true : false;
 }
 
 //see gdsp_registers.h for flags
@@ -104,30 +110,26 @@ bool CheckCondition(u8 _Condition)
 {
 	switch (_Condition & 0xf)
 	{
-	case 0x0: //NS - NOT SIGN
-		return !isSign();
-	case 0x1: // S - SIGN
-		return isSign();
-	case 0x2: // G - GREATER
-		return !isSign() && !isZero();
-	case 0x3: // LE - LESS EQUAL
-		return isSign() || isZero();
-	case 0x4: // NZ - NOT ZERO
+	case 0x0: // GE - Greater Equal
+		return !isLess();
+	case 0x1: // L - Less
+		return isLess();
+	case 0x2: // G - Greater
+		return !isLess() && !isZero();
+	case 0x3: // LE - Less Equal
+		return isLess() || isZero();
+	case 0x4: // NZ - Not Zero
 		return !isZero();
-	case 0x5: // Z - ZERO 
+	case 0x5: // Z - Zero 
 		return isZero();
-	case 0x6: // L - LESS
-		// Should be that once we set 0x01
+	case 0x6: // NC - Not carry
 		return !isCarry();
-			//		if (isSign())
-	case 0x7: // GE - GREATER EQUAL
-		// Should be that once we set 0x01
+	case 0x7: // C - Carry 
 		return isCarry();
-			//		if (! isSign() || isZero())
-	case 0xc: // LNZ  - LOGIC NOT ZERO
-		return !(g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO);
-	case 0xd: // LZ - LOGIC ZERO
-		return (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO) != 0;
+	case 0xc: // LNZ  - Logic Not Zero
+		return !isLogicZero();
+	case 0xd: // LZ - Logic Zero
+		return isLogicZero();
 
 	case 0xf: // Empty - always true.
 		return true;

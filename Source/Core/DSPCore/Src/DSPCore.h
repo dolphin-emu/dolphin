@@ -146,7 +146,7 @@
 
 // SR bits
 #define SR_CARRY        0x0001
-#define SR_2            0x0002   // overflow???
+#define SR_OVERFLOW     0x0002  
 #define SR_ARITH_ZERO   0x0004
 #define SR_SIGN         0x0008
 #define SR_10           0x0010   // seem to be set by tst
@@ -169,7 +169,7 @@
 #define EXP_8     4 // 0x0008
 #define EXP_ACCOV 5 // 0x000a accelerator address overflow
 #define EXP_c     6 // 0x000c
-#define EXP_INT   7 // 0x000e external int? (mail?)
+#define EXP_INT   7 // 0x000e external int (message from cpu)
 
 struct SDSP
 {
