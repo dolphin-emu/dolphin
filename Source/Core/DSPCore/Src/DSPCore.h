@@ -164,11 +164,11 @@
 // exceptions vector
 #define EXP_RESET 0 // 0x0000
 #define EXP_STOVF 1 // 0x0002 stack under/over flow
-#define EXP_4     2 // 0x0004
-#define EXP_6     3 // 0x0006
-#define EXP_8     4 // 0x0008
+#define EXP_2     2 // 0x0004
+#define EXP_3     3 // 0x0006
+#define EXP_4     4 // 0x0008
 #define EXP_ACCOV 5 // 0x000a accelerator address overflow
-#define EXP_c     6 // 0x000c
+#define EXP_6     6 // 0x000c
 #define EXP_INT   7 // 0x000e external int (message from cpu)
 
 struct SDSP
