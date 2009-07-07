@@ -609,7 +609,7 @@ void lsl(const UDSPInstruction& opc)
 // calculated by negating sign extended bits 0-6.
 void lsr(const UDSPInstruction& opc)
 {
-	u16 shift = -opc.ushift;
+	u16 shift = (u16) -(((s8)(opc.ushift << 2)) >> 2);
 	u64 acc = dsp_get_long_acc(opc.areg);
 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 	acc &= 0x000000FFFFFFFFFFULL;
