@@ -640,7 +640,7 @@ void asl(const UDSPInstruction& opc)
 // value calculated by negating sign extended bits 0-6.
 void asr(const UDSPInstruction& opc)
 {
-	u16 shift = -opc.ushift;
+	u16 shift = (u16) -(((s8)(opc.ushift << 2)) >> 2);
 
 	// arithmetic shift
 	s64 acc = dsp_get_long_acc(opc.areg);
