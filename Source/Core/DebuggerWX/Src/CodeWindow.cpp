@@ -830,9 +830,9 @@ void CCodeWindow::UpdateCallstack()
 {
 	callstack->Clear();
 
-	std::vector<Debugger::CallstackEntry> stack;
+	std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
-	if (Debugger::GetCallstack(stack))
+	if (Dolphin_Debugger::GetCallstack(stack))
 	{
 		for (size_t i = 0; i < stack.size(); i++)
 		{

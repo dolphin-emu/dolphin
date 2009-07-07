@@ -23,7 +23,7 @@
 
 #include "Common.h"
 
-namespace Debugger
+namespace Dolphin_Debugger
 {
 
 struct CallstackEntry 

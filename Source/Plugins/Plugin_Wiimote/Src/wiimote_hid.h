@@ -18,7 +18,7 @@
 #ifndef WIIMOTE_HID_H
 #define WIIMOTE_HID_H
 
-#include <CommonTypes.h>
+#include "CommonTypes.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4200)

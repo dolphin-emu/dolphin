@@ -316,7 +316,7 @@ bool CBoot::BootUp()
 			
             Boot_ELF(_StartupPara.m_strFilename.c_str()); 
             UpdateDebugger_MapLoaded();
-			Debugger::AddAutoBreakpoints();
+			Dolphin_Debugger::AddAutoBreakpoints();
 
 			
             HLE::PatchFunctions();

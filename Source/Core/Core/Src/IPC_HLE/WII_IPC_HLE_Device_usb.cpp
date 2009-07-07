@@ -590,7 +590,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 
 /////////////////////////////////////////////////////////////
 /* This is called from Update() after ScanEnable has been enabled. */
-// ¯¯¯¯¯¯¯¯¯
+// Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
 	// We have to disable scan now to avoid running this function over and over again
@@ -1429,7 +1429,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 
 /////////////////////////////////////////////////////////////
 /* This will enable ScanEnable so that Update() can start the Wiimote. */
-// ¯¯¯¯¯¯¯¯¯
+// Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜Ã˜
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 {
 	// Command parameters
@@ -1584,7 +1584,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4F(u8* _Input,
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
 
-	Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4F, &Reply, sizeof(hci_status_rp));
 }
@@ -1597,7 +1597,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
-	Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4C, &Reply, sizeof(hci_status_rp));
 }

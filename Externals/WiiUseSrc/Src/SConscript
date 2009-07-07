@@ -8,15 +8,15 @@ if not (env['HAVE_BLUEZ'] or sys.platform == 'darwin'):
     Return()
 
 files = [
-	"classic.c",
-        "dynamics.c",
-        "events.c",
-        "io.c",
-        "ir.c",
-        "nunchuk.c",
-        "guitar_hero_3.c",
-        "wiiboard.c",
-        "wiiuse.c",
+	"classic.cpp",
+        "dynamics.cpp",
+        "events.cpp",
+        "io.cpp",
+        "ir.cpp",
+        "nunchuk.cpp",
+        "guitar_hero_3.cpp",
+        "wiiboard.cpp",
+        "wiiuse.cpp",
 	]
 
 if env['HAVE_BLUEZ']:

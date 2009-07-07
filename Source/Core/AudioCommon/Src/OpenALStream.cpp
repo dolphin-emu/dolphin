@@ -33,7 +33,7 @@ bool OpenALStream::Start()
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
-		pDevice = alcOpenDevice((const ALCchar *)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+		pDevice = alcOpenDevice((ALCubyte *)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
 		if (pDevice)
 		{
 			pContext = alcCreateContext(pDevice, NULL);

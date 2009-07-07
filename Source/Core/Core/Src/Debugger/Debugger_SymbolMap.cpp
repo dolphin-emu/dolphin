@@ -23,9 +23,9 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "../../../../Externals/Bochs_disasm/PowerPCDisasm.h"
+#include "Bochs_disasm/PowerPCDisasm.h"
 
-namespace Debugger
+namespace Dolphin_Debugger
 {
 
 void AddAutoBreakpoints()
