@@ -3450,7 +3450,7 @@ void 0a91_Unk() {
 	AC1.M = 0x50;
 	AR3 = 0x520;
 
-	0ab3_Decoder0x21Core(AC1.M=0x50, AR3=#0x0580);
+	0ab3_Decoder0x21Core(AC1.M=0x50, AR3=#0x0520);
 
 	// 0aa0 029f 02d8 jmp         0x02d8
 	GOTO ContinueWithBlock:  // in SyncFrame
@@ -3492,11 +3492,12 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	// 0ab8 1f1f      mrr         $AX0.L, $AC1.M
 	// 0ab9 0a00      lris        $AX0.H, #0x00
 	// 0aba 5800      subax       $ACC0, $AX0.L
-	ACC0 = [0x043a,0x043b] - AC1.M;
+	ACC0 =  [0x043a,0x043b];
+	ACC0 -= AC1.M;
 
 	
 	// 0abb 0292 0ad1 jg          0x0ad1
-	if ([0x043a,0x043b] > *0x043a) {
+	if ([0x043a,0x043b] > AC1.M) {
 		// Happens when sound has finished playing?
 
 		// 0abd 8900      clr         $ACC1
@@ -3505,7 +3506,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 		AR0  = 0x043b;
 		
 		// 0ac0 02bf 0af6 call        0x0af6  // 0af6_Decoder0x21_MoreStuff()
-		0af6_Decoder0x21_MoreStuff(AR0=0x043b);
+		0af6_Decoder0x21_MoreStuff(AR0=0x043b, AR3);
 		
 		// 0ac2 8100      clr         $ACC0
 		// 0ac3 1fd8      mrr         $AC0.M, $AX0.L
@@ -3574,7 +3575,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	if (ACC0 < 0) {
 		// 0adc 00c0 0436 lr          $AR0, @0x0436
 		// 0ade 02bf 0af6 call        0x0af6
-		0af6_Decoder0x21_MoreStuff(AR0=*0x0436);
+		0af6_Decoder0x21_MoreStuff(AR0=*0x0436, AR3);
 		
 		// 0ae0 8100      clr         $ACC0
 		// 0ae1 1fd8      mrr         $AC0.M, $AX0.L
@@ -3605,7 +3606,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 		*0x048d = *0x0489;
 
 		// 0aeb 02bf 0af6 call        0x0af6
-		0af6_Decoder0x21_MoreStuff(AR0=*0x0436);
+		0af6_Decoder0x21_MoreStuff(AR0=*0x0436, AR3);
 		
 		0aed 0092 00ff lri         $CR, #0x00ff
 		// 0aef 02df      ret  
@@ -3616,7 +3617,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	// 0af1 02bf 0af6 call        0x0af6
 
 	AR0 = AX0.L;
-	0af6_Decoder0x21_MoreStuff(AR0=AX0.L);
+	0af6_Decoder0x21_MoreStuff(AR0=AX0.L, AR3);
 
 
 	0af3 0092 00ff lri         $CR, #0x00ff
@@ -3627,16 +3628,13 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 // CR = 0x4
 // Does strange stuff with PB[0x34] and the address PB[0x8c,d]
 // Does not touch AX0.L
-void 0af6_Decoder0x21_MoreStuff($AR0) {
+void 0af6_Decoder0x21_MoreStuff($AR0, $AR3) {
 	// 0af6 8100      clr         $ACC0
 	// 0af7 1fc0      mrr         $AC0.M, $AR0
 	// 0af8 b100      tst         $ACC0
 	// 0af9 02d5      retz        
 	if (!AR0)
 		return;
-
-	ACC0 = 0;
-	AC0.M = AR0;
 	
 	// 0afa 8900      clr         $ACC1
 	// 0afb 2734      lrs         $AC1.M, @0x0034
@@ -3656,7 +3654,7 @@ void 0af6_Decoder0x21_MoreStuff($AR0) {
 	// 0b06 5a00      subax       $ACC0, $AX1.L
 	// 0b07 5a00      subax       $ACC0, $AX1.L
 	
-	ACC0 = {8c,8d} + *0x0434 * 2 - (*0x0434 & 1) * 2
+	ACC0 = [8c,8d] + *0x0434 * 2 - ((*0x0434 & 1) * 2);
 
 	// 0b08 1c20      mrr         $AR1, $AR0
 	
@@ -3667,9 +3665,12 @@ void 0af6_Decoder0x21_MoreStuff($AR0) {
 	ACC1 = ($AR0 << 16) + 0x20000;
 	
 	// 
-	0b0b 1c1f      mrr         $AR0, $AC1.M
-	0b0c 009f 0b00 lri         $AC1.M, #0x0b00
+	// 0b0b 1c1f      mrr         $AR0, $AC1.M
+	// 0b0c 009f 0b00 lri         $AC1.M, #0x0b00
 	0b0e 0092 00ff lri         $CR, #0x00ff
+
+        AR0 = AC1.M;
+        AC1.M = 0x0b00;
 	
 	// Load more audio from RAM by DMA??
 	
@@ -3697,19 +3698,35 @@ void 0af6_Decoder0x21_MoreStuff($AR0) {
 	// 0b20 1fe1      mrr         $AC1.M, $AR1
 	// 0b21 191e      lrri        $AC0.M, @$AR0
 	// 0b22 0701      cmpis       $ACC1, #0x01
-	AC0.M = *$AR0;
+        ACC1 = 0;
+        AC1.M = AR1;
+	AC0.M = *$AR0++;
 	// 0b23 0293 0b2c jle         0x0b2c
-	if (ACC1 > 1<<16) {
-		0b25 191a      lrri        $AX0.H, @$AR0
-		0b26 05fe      addis       $ACC1, #0xfe
-		0b27 005f      loop        $AC1.M
-			0b28 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
-		0b29 1b7e      srri        @$AR3, $AC0.M
-		0b2a 1b7a      srri        @$AR3, $AX0.H
-		0b2b 02df      ret    
+	if (AC1.M > 1) {
+		// 0b25 191a      lrri        $AX0.H, @$AR0
+		// 0b26 05fe      addis       $ACC1, #0xfe
+		AX0.H = *$AR0++;
+		ACC1 += 0xfe0000;
+
+		// 0b27 005f      loop        $AC1.M
+		for(int i = 0; i < AC1.M; i++) {
+			// 0b28 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
+			AC0.L = 0;
+			AC0.H = AX0.H;
+			AC0.M = AX0.H;
+			AX0.H = *$AR0++;
+			*$AR3++ = AC0.M;
+		}
+		//0b29 1b7e      srri        @$AR3, $AC0.M
+		//0b2a 1b7a      srri        @$AR3, $AX0.H
+		//0b2b 02df      ret
+
+		*$AR3++ = AC0.M;
+		*$AR3++ = AX0.H;
 	} else {
-		0b2c 1b7e      srri        @$AR3, $AC0.M
-		0b2d 02df      ret         
+		//0b2c 1b7e      srri        @$AR3, $AC0.M
+		//0b2d 02df      ret
+		*$AR3++ = AC0.M;
 	}
 }
 

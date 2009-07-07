@@ -30,7 +30,7 @@ CMailHandler::~CMailHandler()
 void CMailHandler::PushMail(u32 _Mail)
 {
 	m_Mails.push(_Mail);
-
+	DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", _Mail);
 	Update();
 }
 
@@ -53,7 +53,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 	if (!m_Mails.empty())
 	{
 		u16 result = m_Mails.front() & 0xFFFF;
-		m_Mails.pop();
+                m_Mails.pop();
 
 		Update();
 

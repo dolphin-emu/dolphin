@@ -23,7 +23,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "Bochs_disasm/PowerPCDisasm.h"
+#include "PowerPCDisasm.h"
 
 namespace Dolphin_Debugger
 {

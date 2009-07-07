@@ -50,6 +50,9 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *input, signed sh
     else
     {
         // untested !!! i havnt seen such a sample yet :)
+
+        ERROR_LOG(DSPHLE, "Untested AFC sample");
+        
         for (int i = 0; i < 16; i += 4)
         {
             int j = (*src >> 0) & 0x02;

@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef _WIN32
-#include "DSoundStream.h"
-#endif
-
 #include "DSPHandler.h"
 
 CDSPHandler* CDSPHandler::m_pInstance = NULL;
@@ -72,8 +68,10 @@ unsigned short CDSPHandler::ReadControlRegister()
 
 void CDSPHandler::SendMailToDSP(u32 _uMail)
 {
-	if (m_pUCode != NULL)
+	if (m_pUCode != NULL) {
+		DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", _uMail);
 		m_pUCode->HandleMail(_uMail);
+	}
 }
 
 IUCode* CDSPHandler::GetUCode()

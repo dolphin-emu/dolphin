@@ -203,7 +203,8 @@ void Initialize(void *init)
 	CDSPHandler::CreateInstance();
 
 	soundStream = AudioCommon::InitSoundStream(new HLEMixer()); 
-
+        if(!soundStream)
+            PanicAlert("Error starting up sound stream");
 }
 
 void DSP_StopSoundStream()

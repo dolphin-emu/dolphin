@@ -46,7 +46,7 @@ void AOSound::SoundLoop()
     while (!threadData)
 	{
         soundCriticalSection.Enter();
-		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+        m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
         ao_play(device, (char*)realtimeBuffer, numBytesToRender);
         soundCriticalSection.Leave();
 
@@ -65,7 +65,7 @@ void *soundThread(void *args)
 
 bool AOSound::Start()
 {
-	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+    memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
     soundSyncEvent.Init();
 	

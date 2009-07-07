@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 // Games that uses this UCode:
-// Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess
+// Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess,
+// Super Mario Galaxy
 
 #include "../Globals.h"
 #include "UCodes.h"
@@ -273,7 +274,7 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-			//	soundStream->GetMixer()->SetHLEReady(true);
+                    //soundStream->GetMixer()->SetHLEReady(true);
 			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			//soundStream->Update(); //do it in this thread to avoid sync problems
 

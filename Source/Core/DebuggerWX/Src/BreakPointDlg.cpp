@@ -20,7 +20,7 @@
 #include "Host.h"
 #include "Debugger.h"
 #include "StringUtil.h"
-#include "PowerPC.h"
+#include "PowerPC/PowerPC.h"
 
 
 BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
