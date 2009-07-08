@@ -23,7 +23,7 @@ if env['HAVE_BLUEZ']:
 	files += [ "io_nix.cpp", ]
 
 if sys.platform == 'darwin':
-	files += [ "io_osx.cpp", ]
+	files += [ "io_osx.m", ]
 
 if sys.platform == 'darwin':
 	env_wiiuse = env.Clone(

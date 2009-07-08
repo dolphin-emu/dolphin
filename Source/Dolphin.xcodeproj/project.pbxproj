@@ -11,7 +11,6 @@
 		5208D8450EEA398B003D9F1D /* libao.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5208D8440EEA398B003D9F1D /* libao.a */; };
 		520A5FB90EEA5799004FE1ED /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 520A5FB80EEA5799004FE1ED /* SDL.framework */; };
 		520A5FC20EEA5825004FE1ED /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
-		5232B1570EEA5B0F0093A7B1 /* libGLEW.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1560EEA5B0F0093A7B1 /* libGLEW.a */; };
 		5232B1660EEA5BD50093A7B1 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 520A5FB80EEA5799004FE1ED /* SDL.framework */; };
 		5232B1CE0EEB623A0093A7B1 /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
 		5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
@@ -22,10 +21,6 @@
 		52FFFDB30EECC8E900FD8C0D /* libPlugin_nJoy_SDL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 52771A740EEA55E8006A702B /* libPlugin_nJoy_SDL.dylib */; };
 		52FFFDB40EECC8E900FD8C0D /* libPlugin_VideoOGL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 520A5FD30EEA5863004FE1ED /* libPlugin_VideoOGL.dylib */; };
 		52FFFDB50EECC8E900FD8C0D /* libPlugin_DSP_HLE.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5280817E0EEA2EBE00B63386 /* libPlugin_DSP_HLE.dylib */; };
-		52FFFDB80EECC99200FD8C0D /* libGL.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FFFDB70EECC99200FD8C0D /* libGL.dylib */; };
-		52FFFDBA0EECC9A700FD8C0D /* libX11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FFFDB90EECC9A700FD8C0D /* libX11.dylib */; };
-		52FFFDBD0EECC9E800FD8C0D /* libGLU.1.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FFFDBC0EECC9E800FD8C0D /* libGLU.1.3.dylib */; };
-		52FFFDBF0EECCA0300FD8C0D /* libXxf86vm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FFFDBE0EECCA0300FD8C0D /* libXxf86vm.dylib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		B122D9F11003541B00D86E1A /* ExportEpilog.h in Headers */ = {isa = PBXBuildFile; fileRef = B122D9EA1003541B00D86E1A /* ExportEpilog.h */; };
 		B122D9F21003541B00D86E1A /* ExportProlog.h in Headers */ = {isa = PBXBuildFile; fileRef = B122D9EB1003541B00D86E1A /* ExportProlog.h */; };
@@ -155,13 +150,8 @@
 		B122DB1D1003546C00D86E1A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAE31003546C00D86E1A /* main.cpp */; };
 		B122DB1E1003546C00D86E1A /* main.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAE41003546C00D86E1A /* main.h */; };
 		B122DB1F1003546C00D86E1A /* NativeVertexFormat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAE51003546C00D86E1A /* NativeVertexFormat.cpp */; };
-		B122DB201003546C00D86E1A /* nGLUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAE61003546C00D86E1A /* nGLUtil.cpp */; };
-		B122DB211003546C00D86E1A /* nGLUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAE71003546C00D86E1A /* nGLUtil.h */; };
-		B122DB221003546C00D86E1A /* nmain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAE81003546C00D86E1A /* nmain.cpp */; };
 		B122DB231003546C00D86E1A /* OnScreenDisplay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAE91003546C00D86E1A /* OnScreenDisplay.cpp */; };
 		B122DB241003546C00D86E1A /* OnScreenDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAEA1003546C00D86E1A /* OnScreenDisplay.h */; };
-		B122DB251003546C00D86E1A /* Win32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAEC1003546C00D86E1A /* Win32.cpp */; };
-		B122DB261003546C00D86E1A /* Win32.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAED1003546C00D86E1A /* Win32.h */; };
 		B122DB271003546C00D86E1A /* PixelShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAEE1003546C00D86E1A /* PixelShaderCache.cpp */; };
 		B122DB281003546C00D86E1A /* PixelShaderCache.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAEF1003546C00D86E1A /* PixelShaderCache.h */; };
 		B122DB291003546C00D86E1A /* PostProcessing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAF01003546C00D86E1A /* PostProcessing.cpp */; };
@@ -172,8 +162,6 @@
 		B122DB2E1003546C00D86E1A /* Render.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAF51003546C00D86E1A /* Render.h */; };
 		B122DB2F1003546C00D86E1A /* SDLWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAF71003546C00D86E1A /* SDLWindow.cpp */; };
 		B122DB301003546C00D86E1A /* SDLWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAF81003546C00D86E1A /* SDLWindow.h */; };
-		B122DB311003546C00D86E1A /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAF91003546C00D86E1A /* stdafx.cpp */; };
-		B122DB321003546C00D86E1A /* stdafx.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAFA1003546C00D86E1A /* stdafx.h */; };
 		B122DB331003546C00D86E1A /* TextureConversionShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAFB1003546C00D86E1A /* TextureConversionShader.cpp */; };
 		B122DB341003546C00D86E1A /* TextureConversionShader.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DAFC1003546C00D86E1A /* TextureConversionShader.h */; };
 		B122DB351003546C00D86E1A /* TextureConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DAFD1003546C00D86E1A /* TextureConverter.cpp */; };
@@ -185,12 +173,6 @@
 		B122DB3B1003546C00D86E1A /* VertexManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB031003546C00D86E1A /* VertexManager.h */; };
 		B122DB3C1003546C00D86E1A /* VertexShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB041003546C00D86E1A /* VertexShaderCache.cpp */; };
 		B122DB3D1003546C00D86E1A /* VertexShaderCache.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB051003546C00D86E1A /* VertexShaderCache.h */; };
-		B122DB3E1003546C00D86E1A /* Win32Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB061003546C00D86E1A /* Win32Window.cpp */; };
-		B122DB3F1003546C00D86E1A /* Win32Window.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB071003546C00D86E1A /* Win32Window.h */; };
-		B122DB401003546C00D86E1A /* WXGLWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB081003546C00D86E1A /* WXGLWindow.cpp */; };
-		B122DB411003546C00D86E1A /* WXGLWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB091003546C00D86E1A /* WXGLWindow.h */; };
-		B122DB421003546C00D86E1A /* X11Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB0A1003546C00D86E1A /* X11Window.cpp */; };
-		B122DB431003546C00D86E1A /* X11Window.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB0B1003546C00D86E1A /* X11Window.h */; };
 		B122DB441003546C00D86E1A /* XFB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB0C1003546C00D86E1A /* XFB.cpp */; };
 		B122DB451003546C00D86E1A /* XFB.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB0D1003546C00D86E1A /* XFB.h */; };
 		B122DB6D1003548600D86E1A /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB501003548600D86E1A /* Config.cpp */; };
@@ -790,6 +772,11 @@
 		B122E4841003798800D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
 		B122E4A810037BA700D86E1A /* libInputCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD5A1003576200D86E1A /* libInputCommon.a */; };
 		B122E531100387BB00D86E1A /* libVideoCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD611003576A00D86E1A /* libVideoCommon.a */; };
+		B122E57D100474C200D86E1A /* Profiler.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E13010035F5000D86E1A /* Profiler.h */; };
+		B122E5A21004757F00D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
+		B122E5A81004761800D86E1A /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E5A71004761800D86E1A /* AGL.framework */; };
+		B122E5C3100481E600D86E1A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F50EEB638F0093A7B1 /* OpenGL.framework */; };
+		B122E5DA100482B000D86E1A /* libSOIL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E19310035F8400D86E1A /* libSOIL.a */; };
 		B14A0CD7100353110054D25E /* Dolphin.c in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B3A100353100054D25E /* Dolphin.c */; };
 		B14A0CD8100353110054D25E /* dolphin_logo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B3D100353100054D25E /* dolphin_logo.cpp */; };
 		B14A0CD9100353110054D25E /* no_banner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B46100353100054D25E /* no_banner.cpp */; };
@@ -1058,6 +1045,13 @@
 			remoteGlobalIDString = B122DD601003576900D86E1A /* VideoCommon */;
 			remoteInfo = VideoCommon;
 		};
+		B122E5E4100483C300D86E1A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 520A5FD20EEA5863004FE1ED /* Plugin_VideoOGL */;
+			remoteInfo = Plugin_VideoOGL;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1093,7 +1087,6 @@
 		5208D8440EEA398B003D9F1D /* libao.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libao.a; path = ../../../lib/libao.a; sourceTree = SOURCE_ROOT; };
 		520A5FB80EEA5799004FE1ED /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
 		520A5FD30EEA5863004FE1ED /* libPlugin_VideoOGL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPlugin_VideoOGL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		5232B1560EEA5B0F0093A7B1 /* libGLEW.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGLEW.a; path = ../../../../lib/libGLEW.a; sourceTree = SOURCE_ROOT; };
 		5232B1F00EEB634D0093A7B1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		5232B1F50EEB638F0093A7B1 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		5232B2810EEBE2210093A7B1 /* Cg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cg.framework; path = /Library/Frameworks/Cg.framework; sourceTree = "<absolute>"; };
@@ -1226,13 +1219,8 @@
 		B122DAE31003546C00D86E1A /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		B122DAE41003546C00D86E1A /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		B122DAE51003546C00D86E1A /* NativeVertexFormat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativeVertexFormat.cpp; sourceTree = "<group>"; };
-		B122DAE61003546C00D86E1A /* nGLUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nGLUtil.cpp; sourceTree = "<group>"; };
-		B122DAE71003546C00D86E1A /* nGLUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nGLUtil.h; sourceTree = "<group>"; };
-		B122DAE81003546C00D86E1A /* nmain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nmain.cpp; sourceTree = "<group>"; };
 		B122DAE91003546C00D86E1A /* OnScreenDisplay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OnScreenDisplay.cpp; sourceTree = "<group>"; };
 		B122DAEA1003546C00D86E1A /* OnScreenDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OnScreenDisplay.h; sourceTree = "<group>"; };
-		B122DAEC1003546C00D86E1A /* Win32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Win32.cpp; sourceTree = "<group>"; };
-		B122DAED1003546C00D86E1A /* Win32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Win32.h; sourceTree = "<group>"; };
 		B122DAEE1003546C00D86E1A /* PixelShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelShaderCache.cpp; sourceTree = "<group>"; };
 		B122DAEF1003546C00D86E1A /* PixelShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelShaderCache.h; sourceTree = "<group>"; };
 		B122DAF01003546C00D86E1A /* PostProcessing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PostProcessing.cpp; sourceTree = "<group>"; };
@@ -1244,8 +1232,6 @@
 		B122DAF61003546C00D86E1A /* SConscript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConscript; sourceTree = "<group>"; };
 		B122DAF71003546C00D86E1A /* SDLWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SDLWindow.cpp; sourceTree = "<group>"; };
 		B122DAF81003546C00D86E1A /* SDLWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLWindow.h; sourceTree = "<group>"; };
-		B122DAF91003546C00D86E1A /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stdafx.cpp; sourceTree = "<group>"; };
-		B122DAFA1003546C00D86E1A /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
 		B122DAFB1003546C00D86E1A /* TextureConversionShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureConversionShader.cpp; sourceTree = "<group>"; };
 		B122DAFC1003546C00D86E1A /* TextureConversionShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextureConversionShader.h; sourceTree = "<group>"; };
 		B122DAFD1003546C00D86E1A /* TextureConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureConverter.cpp; sourceTree = "<group>"; };
@@ -1257,12 +1243,6 @@
 		B122DB031003546C00D86E1A /* VertexManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexManager.h; sourceTree = "<group>"; };
 		B122DB041003546C00D86E1A /* VertexShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VertexShaderCache.cpp; sourceTree = "<group>"; };
 		B122DB051003546C00D86E1A /* VertexShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexShaderCache.h; sourceTree = "<group>"; };
-		B122DB061003546C00D86E1A /* Win32Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Win32Window.cpp; sourceTree = "<group>"; };
-		B122DB071003546C00D86E1A /* Win32Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Win32Window.h; sourceTree = "<group>"; };
-		B122DB081003546C00D86E1A /* WXGLWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WXGLWindow.cpp; sourceTree = "<group>"; };
-		B122DB091003546C00D86E1A /* WXGLWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WXGLWindow.h; sourceTree = "<group>"; };
-		B122DB0A1003546C00D86E1A /* X11Window.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = X11Window.cpp; sourceTree = "<group>"; };
-		B122DB0B1003546C00D86E1A /* X11Window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X11Window.h; sourceTree = "<group>"; };
 		B122DB0C1003546C00D86E1A /* XFB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XFB.cpp; sourceTree = "<group>"; };
 		B122DB0D1003546C00D86E1A /* XFB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XFB.h; sourceTree = "<group>"; };
 		B122DB4A1003547A00D86E1A /* Plugin_Wiimote.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = Plugin_Wiimote.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1874,6 +1854,7 @@
 		B122E40E1003728700D86E1A /* SocketHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketHelper.cpp; sourceTree = "<group>"; };
 		B122E4631003775900D86E1A /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		B122E4681003777B00D86E1A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
+		B122E5A71004761800D86E1A /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = /System/Library/Frameworks/AGL.framework; sourceTree = "<absolute>"; };
 		B14A0B35100353100054D25E /* DolphinWX.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DolphinWX.rc; sourceTree = "<group>"; };
 		B14A0B36100353100054D25E /* DolphinWX.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = DolphinWX.vcproj; sourceTree = "<group>"; };
 		B14A0B37100353100054D25E /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
@@ -1977,16 +1958,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5232B1570EEA5B0F0093A7B1 /* libGLEW.a in Frameworks */,
 				B122E531100387BB00D86E1A /* libVideoCommon.a in Frameworks */,
+				B122E5A21004757F00D86E1A /* libCommon.a in Frameworks */,
+				B122E5DA100482B000D86E1A /* libSOIL.a in Frameworks */,
 				5232B1660EEA5BD50093A7B1 /* SDL.framework in Frameworks */,
 				5232B1CE0EEB623A0093A7B1 /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
+				B122E5C3100481E600D86E1A /* OpenGL.framework in Frameworks */,
 				5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */,
 				5232B2820EEBE2210093A7B1 /* Cg.framework in Frameworks */,
-				52FFFDB80EECC99200FD8C0D /* libGL.dylib in Frameworks */,
-				52FFFDBA0EECC9A700FD8C0D /* libX11.dylib in Frameworks */,
-				52FFFDBD0EECC9E800FD8C0D /* libGLU.1.3.dylib in Frameworks */,
-				52FFFDBF0EECCA0300FD8C0D /* libXxf86vm.dylib in Frameworks */,
+				B122E5A81004761800D86E1A /* AGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2222,6 +2202,7 @@
 		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				B122E5A71004761800D86E1A /* AGL.framework */,
 				B122E4681003777B00D86E1A /* IOKit.framework */,
 				B122E4631003775900D86E1A /* CoreFoundation.framework */,
 				B122E28D1003651800D86E1A /* IOBluetooth.framework */,
@@ -2234,7 +2215,6 @@
 				5232B2810EEBE2210093A7B1 /* Cg.framework */,
 				5232B1F50EEB638F0093A7B1 /* OpenGL.framework */,
 				5232B1F00EEB634D0093A7B1 /* Cocoa.framework */,
-				5232B1560EEA5B0F0093A7B1 /* libGLEW.a */,
 				520A5FB80EEA5799004FE1ED /* SDL.framework */,
 				5208D8440EEA398B003D9F1D /* libao.a */,
 				52492CB70ED19A02008ADF7D /* libz.dylib */,
@@ -2506,9 +2486,6 @@
 				B122DAE31003546C00D86E1A /* main.cpp */,
 				B122DAE41003546C00D86E1A /* main.h */,
 				B122DAE51003546C00D86E1A /* NativeVertexFormat.cpp */,
-				B122DAE61003546C00D86E1A /* nGLUtil.cpp */,
-				B122DAE71003546C00D86E1A /* nGLUtil.h */,
-				B122DAE81003546C00D86E1A /* nmain.cpp */,
 				B122DAE91003546C00D86E1A /* OnScreenDisplay.cpp */,
 				B122DAEA1003546C00D86E1A /* OnScreenDisplay.h */,
 				B122DAEB1003546C00D86E1A /* OS */,
@@ -2523,8 +2500,6 @@
 				B122DAF61003546C00D86E1A /* SConscript */,
 				B122DAF71003546C00D86E1A /* SDLWindow.cpp */,
 				B122DAF81003546C00D86E1A /* SDLWindow.h */,
-				B122DAF91003546C00D86E1A /* stdafx.cpp */,
-				B122DAFA1003546C00D86E1A /* stdafx.h */,
 				B122DAFB1003546C00D86E1A /* TextureConversionShader.cpp */,
 				B122DAFC1003546C00D86E1A /* TextureConversionShader.h */,
 				B122DAFD1003546C00D86E1A /* TextureConverter.cpp */,
@@ -2536,12 +2511,6 @@
 				B122DB031003546C00D86E1A /* VertexManager.h */,
 				B122DB041003546C00D86E1A /* VertexShaderCache.cpp */,
 				B122DB051003546C00D86E1A /* VertexShaderCache.h */,
-				B122DB061003546C00D86E1A /* Win32Window.cpp */,
-				B122DB071003546C00D86E1A /* Win32Window.h */,
-				B122DB081003546C00D86E1A /* WXGLWindow.cpp */,
-				B122DB091003546C00D86E1A /* WXGLWindow.h */,
-				B122DB0A1003546C00D86E1A /* X11Window.cpp */,
-				B122DB0B1003546C00D86E1A /* X11Window.h */,
 				B122DB0C1003546C00D86E1A /* XFB.cpp */,
 				B122DB0D1003546C00D86E1A /* XFB.h */,
 			);
@@ -2569,8 +2538,6 @@
 		B122DAEB1003546C00D86E1A /* OS */ = {
 			isa = PBXGroup;
 			children = (
-				B122DAEC1003546C00D86E1A /* Win32.cpp */,
-				B122DAED1003546C00D86E1A /* Win32.h */,
 			);
 			path = OS;
 			sourceTree = "<group>";
@@ -3719,24 +3686,19 @@
 				B122DB1A1003546C00D86E1A /* GLWindow.h in Headers */,
 				B122DB1C1003546C00D86E1A /* ConfigDlg.h in Headers */,
 				B122DB1E1003546C00D86E1A /* main.h in Headers */,
-				B122DB211003546C00D86E1A /* nGLUtil.h in Headers */,
 				B122DB241003546C00D86E1A /* OnScreenDisplay.h in Headers */,
-				B122DB261003546C00D86E1A /* Win32.h in Headers */,
 				B122DB281003546C00D86E1A /* PixelShaderCache.h in Headers */,
 				B122DB2A1003546C00D86E1A /* PostProcessing.h in Headers */,
 				B122DB2C1003546C00D86E1A /* rasterfont.h in Headers */,
 				B122DB2E1003546C00D86E1A /* Render.h in Headers */,
 				B122DB301003546C00D86E1A /* SDLWindow.h in Headers */,
-				B122DB321003546C00D86E1A /* stdafx.h in Headers */,
 				B122DB341003546C00D86E1A /* TextureConversionShader.h in Headers */,
 				B122DB361003546C00D86E1A /* TextureConverter.h in Headers */,
 				B122DB381003546C00D86E1A /* TextureMngr.h in Headers */,
 				B122DB3B1003546C00D86E1A /* VertexManager.h in Headers */,
 				B122DB3D1003546C00D86E1A /* VertexShaderCache.h in Headers */,
-				B122DB3F1003546C00D86E1A /* Win32Window.h in Headers */,
-				B122DB411003546C00D86E1A /* WXGLWindow.h in Headers */,
-				B122DB431003546C00D86E1A /* X11Window.h in Headers */,
 				B122DB451003546C00D86E1A /* XFB.h in Headers */,
+				B122E57D100474C200D86E1A /* Profiler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4302,6 +4264,7 @@
 			dependencies = (
 				B122E4E41003837A00D86E1A /* PBXTargetDependency */,
 				B122E4E81003838400D86E1A /* PBXTargetDependency */,
+				B122E5E5100483C300D86E1A /* PBXTargetDependency */,
 				B122E4EC1003838B00D86E1A /* PBXTargetDependency */,
 				B122E451100375E400D86E1A /* PBXTargetDependency */,
 				B122E4E61003837D00D86E1A /* PBXTargetDependency */,
@@ -4631,25 +4594,18 @@
 				B122DB1B1003546C00D86E1A /* ConfigDlg.cpp in Sources */,
 				B122DB1D1003546C00D86E1A /* main.cpp in Sources */,
 				B122DB1F1003546C00D86E1A /* NativeVertexFormat.cpp in Sources */,
-				B122DB201003546C00D86E1A /* nGLUtil.cpp in Sources */,
-				B122DB221003546C00D86E1A /* nmain.cpp in Sources */,
 				B122DB231003546C00D86E1A /* OnScreenDisplay.cpp in Sources */,
-				B122DB251003546C00D86E1A /* Win32.cpp in Sources */,
 				B122DB271003546C00D86E1A /* PixelShaderCache.cpp in Sources */,
 				B122DB291003546C00D86E1A /* PostProcessing.cpp in Sources */,
 				B122DB2B1003546C00D86E1A /* rasterfont.cpp in Sources */,
 				B122DB2D1003546C00D86E1A /* Render.cpp in Sources */,
 				B122DB2F1003546C00D86E1A /* SDLWindow.cpp in Sources */,
-				B122DB311003546C00D86E1A /* stdafx.cpp in Sources */,
 				B122DB331003546C00D86E1A /* TextureConversionShader.cpp in Sources */,
 				B122DB351003546C00D86E1A /* TextureConverter.cpp in Sources */,
 				B122DB371003546C00D86E1A /* TextureMngr.cpp in Sources */,
 				B122DB391003546C00D86E1A /* VertexLoaderManager.cpp in Sources */,
 				B122DB3A1003546C00D86E1A /* VertexManager.cpp in Sources */,
 				B122DB3C1003546C00D86E1A /* VertexShaderCache.cpp in Sources */,
-				B122DB3E1003546C00D86E1A /* Win32Window.cpp in Sources */,
-				B122DB401003546C00D86E1A /* WXGLWindow.cpp in Sources */,
-				B122DB421003546C00D86E1A /* X11Window.cpp in Sources */,
 				B122DB441003546C00D86E1A /* XFB.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -5308,6 +5264,11 @@
 			target = B122DD601003576900D86E1A /* VideoCommon */;
 			targetProxy = B122E532100387CD00D86E1A /* PBXContainerItemProxy */;
 		};
+		B122E5E5100483C300D86E1A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 520A5FD20EEA5863004FE1ED /* Plugin_VideoOGL */;
+			targetProxy = B122E5E4100483C300D86E1A /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -5343,8 +5304,11 @@
 				EXECUTABLE_EXTENSION = dylib;
 				EXECUTABLE_PREFIX = lib;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GCC_MODEL_TUNING = G5;
 				HEADER_SEARCH_PATHS = (
+					Core/VideoCommon/Src,
+					/opt/local/include,
 					/Library/Frameworks/SDL.framework/Headers,
 					"/usr/lib/wx/include/mac-unicode-debug-2.8/",
 					"/usr/include/wx-2.8",
@@ -5356,6 +5320,7 @@
 					"\"$(SRCROOT)/../../../../X11/lib\"",
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
+				OTHER_LDFLAGS = "-lglew";
 				PREBINDING = NO;
 				PRODUCT_NAME = Plugin_VideoOGL;
 				ZERO_LINK = NO;
