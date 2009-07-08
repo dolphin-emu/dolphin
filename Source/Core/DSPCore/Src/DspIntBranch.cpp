@@ -239,11 +239,11 @@ void bloop(const UDSPInstruction& opc)
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
-	/*	else
+	else
 	{
 		g_dsp.pc = loop_pc;
 		g_dsp.pc += opSize[dsp_peek_code()];
-		}*/
+	}
 }
 
 // BLOOPI #I, addrA
@@ -266,11 +266,11 @@ void bloopi(const UDSPInstruction& opc)
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
-	/*	else
+	else
 	{
 		g_dsp.pc = loop_pc;
 		g_dsp.pc += opSize[dsp_peek_code()];
-		}*/
+	}
 }
 
 }  // namespace
