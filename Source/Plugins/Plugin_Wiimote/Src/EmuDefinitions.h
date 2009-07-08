@@ -205,13 +205,14 @@ struct KeyboardWiimote
 {
 	enum EKeyboardWiimote
 	{
-		A = 0, MA, // Keyboard A and Mouse A
-		B, MB,
+		A = 0, // Keyboard A and Mouse A
+		B,
 		ONE, TWO,
 		P, M, H,
 		L, R, U, D,
-		PITCH_L, PITCH_R,
 		SHAKE,
+		PITCH_L, PITCH_R,
+		MA, MB,
 		LAST_CONSTANT
 	};
 
@@ -264,15 +265,15 @@ struct KeyboardGH3GLP
 	{
 		// This is not allowed in Linux so we have to set the starting value manually
 		#ifdef _WIN32
-			BG = g_ClassicContExt.LAST_CONSTANT,
+			Green = g_ClassicContExt.LAST_CONSTANT,
 		#else
-			BG = 47,
+			Green = 47,
 		#endif
-		BR, BY, BB,
-		BO, BP, BM,
-		WB,
-		Ll, Lr, Lu, Ld,
-		Bu, Bd,
+		Red, Yellow, Blue,
+		Orange,Plus, Minus,
+		Whammy,
+		Al, Ar, Au, Ad,
+		StrumUp, StrumDown,
 		SHAKE
 	};
 };

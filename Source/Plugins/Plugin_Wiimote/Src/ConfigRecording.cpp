@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "CommonTypes.h" // for u16
 #include "IniFile.h"
 #include "Timer.h"
 

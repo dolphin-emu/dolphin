@@ -237,24 +237,24 @@ struct wm_GH3_extension
 	u8 TB   : 5; // not used in GH3
 	u8 pad3 : 3; // Always 0
 
-	u8 WB   : 5;
+	u8 Whammy : 5;
 	u8 pad4 : 3; // Always 0
 
 	u8 pad5 : 2; // Always 1
-	u8 BP   : 1;
+	u8 Plus : 1;
 	u8 pad6 : 1; // Always 1
-	u8 BM   : 1;
+	u8 Minus : 1;
 	u8 pad7 : 1; // Always 1
-	u8 BD   : 1;
+	u8 StrumDown : 1;
 	u8 pad8 : 1; // Always 1
 
-	u8 BU   : 1;
+	u8 StrumUp : 1;
 	u8 pad9 : 2; // Always 1
-	u8 BY   : 1;
-	u8 BG   : 1;
-	u8 BB   : 1;
-	u8 BR   : 1;
-	u8 BO   : 1;
+	u8 Yellow : 1;
+	u8 Green  : 1;
+	u8 Blue   : 1;
+	u8 Red    : 1;
+	u8 Orange : 1;
 };
 
 	

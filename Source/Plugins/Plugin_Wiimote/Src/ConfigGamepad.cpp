@@ -15,18 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "CommonTypes.h" // for u16
-#include "IniFile.h"
-#include "Timer.h"
-
-#include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "main.h"
 #include "ConfigPadDlg.h"
 #include "Config.h"
-#include "EmuMain.h" // for LoadRecordedMovements()
-#include "EmuSubroutines.h" // for WmRequestStatus
-#include "EmuDefinitions.h" // for joyinfo
+#include "EmuMain.h" // for WiiMoteEmu class
 
 // Change Joystick
 /* Function: When changing the joystick we save and load the settings and
@@ -147,57 +140,57 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 
 	// Wiimote
 #ifdef _WIN32
-	m_bWmA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str()));
-	m_bWmB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.B).c_str())); 
-	m_bWm1[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.One).c_str()));
-	m_bWm2[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.Two).c_str())); 
-	m_bWmP[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.P).c_str()));
-	m_bWmM[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.M).c_str())); 
-	m_bWmH[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.H).c_str()));
-	m_bWmL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.L).c_str())); 
-	m_bWmR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.R).c_str()));
-	m_bWmU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.U).c_str())); 
-	m_bWmD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.D).c_str()));
-	m_bWmShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.Shake).c_str()));
-	m_bWmPitchL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.PitchL).c_str()));
-	m_bWmPitchR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.PitchR).c_str()));
+	m_bWmA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0]).c_str()));
+	m_bWmB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[1]).c_str())); 
+	m_bWm1[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[2]).c_str()));
+	m_bWm2[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[3]).c_str())); 
+	m_bWmP[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[4]).c_str()));
+	m_bWmM[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[5]).c_str())); 
+	m_bWmH[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[6]).c_str()));
+	m_bWmL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[7]).c_str())); 
+	m_bWmR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[8]).c_str()));
+	m_bWmU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[9]).c_str())); 
+	m_bWmD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[10]).c_str()));
+	m_bWmShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[11]).c_str()));
+	m_bWmPitchL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[12]).c_str()));
+	m_bWmPitchR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[13]).c_str()));
 
 	// Nunchuck
-	m_bNcZ[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Z).c_str()));
-	m_bNcC[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.C).c_str()));
-	m_bNcL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.L).c_str()));
-	m_bNcR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.R).c_str()));
-	m_bNcU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.U).c_str()));
-	m_bNcD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.D).c_str()));
-	m_bNcShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.Shake).c_str()));
+	m_bNcZ[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[0]).c_str()));
+	m_bNcC[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[1]).c_str()));
+	m_bNcL[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[2]).c_str()));
+	m_bNcR[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[3]).c_str()));
+	m_bNcU[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[4]).c_str()));
+	m_bNcD[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[5]).c_str()));
+	m_bNcShake[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[6]).c_str()));
 
 	// Classic Controller
-	m_bCcA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.A).c_str()));
-	m_bCcB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.B).c_str()));
-	m_bCcX[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.X).c_str()));
-	m_bCcY[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Y).c_str()));
-	m_bCcP[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.P).c_str()));
-	m_bCcM[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.M).c_str()));
-	m_bCcH[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.H).c_str()));
-	m_bCcTl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Tl).c_str()));
-	m_bCcZl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Zl).c_str()));
-	m_bCcZr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Zr).c_str()));
-	m_bCcTr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Tr).c_str()));
-	m_bCcDl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dl).c_str()));
-	m_bCcDu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Du).c_str()));
-	m_bCcDr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dr).c_str()));
-	m_bCcDd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Dd).c_str()));
-	m_bCcLl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ll).c_str()));
-	m_bCcLu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Lu).c_str()));
-	m_bCcLr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Lr).c_str()));
-	m_bCcLd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ld).c_str()));
-	m_bCcRl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rl).c_str()));
-	m_bCcRu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Ru).c_str()));
-	m_bCcRr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rr).c_str()));
-	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.Rd).c_str()));
+	m_bCcA[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[0]).c_str()));
+	m_bCcB[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[1]).c_str()));
+	m_bCcX[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[2]).c_str()));
+	m_bCcY[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[3]).c_str()));
+	m_bCcP[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[4]).c_str()));
+	m_bCcM[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[5]).c_str()));
+	m_bCcH[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[6]).c_str()));
+	m_bCcTl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[7]).c_str()));
+	m_bCcZl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[8]).c_str()));
+	m_bCcZr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[9]).c_str()));
+	m_bCcTr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[10]).c_str()));
+	m_bCcDl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[11]).c_str()));
+	m_bCcDu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[12]).c_str()));
+	m_bCcDr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[13]).c_str()));
+	m_bCcDd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[14]).c_str()));
+	m_bCcLl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[15]).c_str()));
+	m_bCcLu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[16]).c_str()));
+	m_bCcLr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[17]).c_str()));
+	m_bCcLd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[18]).c_str()));
+	m_bCcRl[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[19]).c_str()));
+	m_bCcRu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[20]).c_str()));
+	m_bCcRr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[21]).c_str()));
+	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[22]).c_str()));
 #endif
 
-	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.A, InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.A).c_str());
+	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0], InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0]).c_str());
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -253,57 +246,17 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 // Save keyboard key mapping
 void WiimotePadConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 {
-	switch(Id)
+	if (IDB_WM_A <= Id && Id <= IDB_WM_PITCH_R)
 	{
-	// Wiimote
-	case IDB_WM_A: WiiMoteEmu::PadMapping[Controller].Wm.A = Key; break;
-	case IDB_WM_B: WiiMoteEmu::PadMapping[Controller].Wm.B = Key; break;
-	case IDB_WM_1: WiiMoteEmu::PadMapping[Controller].Wm.One = Key; break;
-	case IDB_WM_2: WiiMoteEmu::PadMapping[Controller].Wm.Two = Key; break;
-	case IDB_WM_P: WiiMoteEmu::PadMapping[Controller].Wm.P = Key; break;
-	case IDB_WM_M: WiiMoteEmu::PadMapping[Controller].Wm.M = Key; break;
-	case IDB_WM_H: WiiMoteEmu::PadMapping[Controller].Wm.H = Key; break;
-	case IDB_WM_L: WiiMoteEmu::PadMapping[Controller].Wm.L = Key; break;
-	case IDB_WM_R: WiiMoteEmu::PadMapping[Controller].Wm.R = Key; break;
-	case IDB_WM_U: WiiMoteEmu::PadMapping[Controller].Wm.U = Key; break;
-	case IDB_WM_D: WiiMoteEmu::PadMapping[Controller].Wm.D = Key; break;
-	case IDB_WM_SHAKE: WiiMoteEmu::PadMapping[Controller].Wm.Shake = Key; break;
-	case IDB_WM_PITCH_L: WiiMoteEmu::PadMapping[Controller].Wm.PitchL = Key; break;
-	case IDB_WM_PITCH_R: WiiMoteEmu::PadMapping[Controller].Wm.PitchR = Key; break;
-
-	// Nunchuck
-	case IDB_NC_Z: WiiMoteEmu::PadMapping[Controller].Nc.Z = Key; break;
-	case IDB_NC_C: WiiMoteEmu::PadMapping[Controller].Nc.C = Key; break;
-	case IDB_NC_L: WiiMoteEmu::PadMapping[Controller].Nc.L = Key; break;
-	case IDB_NC_R: WiiMoteEmu::PadMapping[Controller].Nc.R = Key; break;
-	case IDB_NC_U: WiiMoteEmu::PadMapping[Controller].Nc.U = Key; break;
-	case IDB_NC_D: WiiMoteEmu::PadMapping[Controller].Nc.D = Key; break;
-	case IDB_NC_SHAKE: WiiMoteEmu::PadMapping[Controller].Nc.Shake = Key; break;
-
-	// Classic Controller
-	case IDB_CC_A: WiiMoteEmu::PadMapping[Controller].Cc.A = Key; break;
-	case IDB_CC_B: WiiMoteEmu::PadMapping[Controller].Cc.B = Key; break;
-	case IDB_CC_X: WiiMoteEmu::PadMapping[Controller].Cc.X = Key; break;
-	case IDB_CC_Y: WiiMoteEmu::PadMapping[Controller].Cc.Y = Key; break;
-	case IDB_CC_P: WiiMoteEmu::PadMapping[Controller].Cc.P = Key; break;
-	case IDB_CC_M: WiiMoteEmu::PadMapping[Controller].Cc.M = Key; break;
-	case IDB_CC_H: WiiMoteEmu::PadMapping[Controller].Cc.H = Key; break;
-	case IDB_CC_TL: WiiMoteEmu::PadMapping[Controller].Cc.Tl = Key; break;
-	case IDB_CC_ZL: WiiMoteEmu::PadMapping[Controller].Cc.Zl = Key; break;
-	case IDB_CC_ZR: WiiMoteEmu::PadMapping[Controller].Cc.Zr = Key; break;
-	case IDB_CC_TR: WiiMoteEmu::PadMapping[Controller].Cc.Tr = Key; break;
-	case IDB_CC_DL: WiiMoteEmu::PadMapping[Controller].Cc.Dl = Key; break;
-	case IDB_CC_DU: WiiMoteEmu::PadMapping[Controller].Cc.Du = Key; break;
-	case IDB_CC_DR: WiiMoteEmu::PadMapping[Controller].Cc.Dr = Key; break;
-	case IDB_CC_DD: WiiMoteEmu::PadMapping[Controller].Cc.Dd = Key; break;
-	case IDB_CC_LL: WiiMoteEmu::PadMapping[Controller].Cc.Ll = Key; break;
-	case IDB_CC_LU: WiiMoteEmu::PadMapping[Controller].Cc.Lu = Key; break;
-	case IDB_CC_LR: WiiMoteEmu::PadMapping[Controller].Cc.Lr = Key; break;
-	case IDB_CC_LD: WiiMoteEmu::PadMapping[Controller].Cc.Ld = Key; break;
-	case IDB_CC_RL: WiiMoteEmu::PadMapping[Controller].Cc.Rl = Key; break;
-	case IDB_CC_RU: WiiMoteEmu::PadMapping[Controller].Cc.Ru = Key; break;
-	case IDB_CC_RR: WiiMoteEmu::PadMapping[Controller].Cc.Rr = Key; break;
-	case IDB_CC_RD: WiiMoteEmu::PadMapping[Controller].Cc.Rd = Key; break;
+		WiiMoteEmu::PadMapping[Controller].Wm.keyForControls[Id - IDB_WM_A] = Key;
+	}
+	else if (IDB_NC_Z <= Id && Id <= IDB_NC_SHAKE)
+	{
+		WiiMoteEmu::PadMapping[Controller].Nc.keyForControls[Id - IDB_NC_Z] = Key;
+	}
+	else if (IDB_CC_A <= Id && Id <= IDB_CC_RD)
+	{
+		WiiMoteEmu::PadMapping[Controller].Cc.keyForControls[Id - IDB_CC_A] = Key;
 	}
 
 	//INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
@@ -339,7 +292,6 @@ void WiimotePadConfigDialog::ToBlank(bool _ToBlank)
 
 
 // Update the textbox for the buttons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void WiimotePadConfigDialog::SetButtonText(int id, char text[128], int _Page)
 {
 	// Set controller value
@@ -411,7 +363,6 @@ void WiimotePadConfigDialog::SetButtonText(int id, char text[128], int _Page)
 }
 
 // Get the text in the textbox for the buttons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxString WiimotePadConfigDialog::GetButtonText(int id, int _Page)
 {
 	//INFO_LOG(CONSOLE, "GetButtonText: %i\n", id);
@@ -456,9 +407,7 @@ void WiimotePadConfigDialog::GetButtons(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 {
-	// =============================================
 	// Collect the starting values
-	// ----------------
 
 	// Get the current controller	
 	int Controller = Page;
@@ -493,7 +442,6 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	int pressed = 0;
 	bool Succeed = false;
 	bool Stop = false; // Stop the timer
-	// =======================
 
 	//INFO_LOG(CONSOLE, "Before (%i) Id:%i %i  IsRunning:%i\n",
 	//	GetButtonWaitingTimer, GetButtonWaitingID, _GetId, m_ButtonMappingTimer->IsRunning());
@@ -530,9 +478,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 			Axis, LeftRight, XInput, Button, Hat);
 	}
 
-	// ===============================================
 	// Check for buttons
-	// ----------------
 
 	// If there is a timer but we should not create a new one
 	else
@@ -542,12 +488,8 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 			g_Pressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
-	// ========================= Check for keys
 
-
-	// ===============================================
 	// Process results
-	// ----------------
 
 	// Count each time
 	GetButtonWaitingTimer++;
@@ -577,7 +519,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	// If we got a button
 	if(Succeed)
 	{
-		Stop = true;		
+		Stop = true;
 		// Write the number of the pressed button to the text box
 		sprintf(format, "%d", pressed);
 		SetButtonTextAll(_GetId, format);
@@ -613,8 +555,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 			" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
-	// ======================== Process results
-
+	
 	// Debugging
 	/*
 	INFO_LOG(CONSOLE, "Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",

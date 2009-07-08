@@ -294,78 +294,45 @@ int RecordingCheckKeys(int WmNuIr)
 }
 
 
-//******************************************************************************
 // Subroutines
-//******************************************************************************
 
 
-/////////////////////////////////////////////////////////////////////////
 // Multi System Input Status Check
-// ---------------
 int IsKey(int Key)
 {
 #ifdef _WIN32
+	if (Key == g_Wiimote_kbd.SHAKE)
+		return GetAsyncKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]) || GetAsyncKeyState(VK_MBUTTON);
+	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_R)
+	{
+		return GetAsyncKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]);
+	}
+	if (g_NunchuckExt.Z <= Key && Key <= g_NunchuckExt.SHAKE)
+	{
+		return GetAsyncKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z]);
+	}
+	if (g_ClassicContExt.A <= Key && Key <= g_ClassicContExt.Rd)
+	{
+		return GetAsyncKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A]);
+	}
+	if (g_GH3Ext.Green <= Key && Key <= g_GH3Ext.StrumDown)
+	{
+		return GetAsyncKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green]);
+	}
+
 	switch(Key)
 	{
 	// Wiimote
-	case g_Wiimote_kbd.MA: return GetAsyncKeyState(VK_LBUTTON);
-	case g_Wiimote_kbd.MB: return GetAsyncKeyState(VK_RBUTTON);
-	case g_Wiimote_kbd.A: return GetAsyncKeyState(PadMapping[0].Wm.A);
-	case g_Wiimote_kbd.B: return GetAsyncKeyState(PadMapping[0].Wm.B);
-	case g_Wiimote_kbd.ONE: return GetAsyncKeyState(PadMapping[0].Wm.One);
-	case g_Wiimote_kbd.TWO: return GetAsyncKeyState(PadMapping[0].Wm.Two);
-	case g_Wiimote_kbd.P: return GetAsyncKeyState(PadMapping[0].Wm.P);
-	case g_Wiimote_kbd.M: return GetAsyncKeyState(PadMapping[0].Wm.M);
-	case g_Wiimote_kbd.H: return GetAsyncKeyState(PadMapping[0].Wm.H);
-	case g_Wiimote_kbd.L: return GetAsyncKeyState(PadMapping[0].Wm.L);
-	case g_Wiimote_kbd.R: return GetAsyncKeyState(PadMapping[0].Wm.R);
-	case g_Wiimote_kbd.U: return GetAsyncKeyState(PadMapping[0].Wm.U);
-	case g_Wiimote_kbd.D: return GetAsyncKeyState(PadMapping[0].Wm.D);
-	case g_Wiimote_kbd.PITCH_L: return GetAsyncKeyState(PadMapping[0].Wm.PitchL);
-	case g_Wiimote_kbd.PITCH_R: return GetAsyncKeyState(PadMapping[0].Wm.PitchR);
-	case g_Wiimote_kbd.SHAKE: return GetAsyncKeyState(PadMapping[0].Wm.Shake) || GetAsyncKeyState(VK_MBUTTON);
-
-	// Nunchuck
-	case g_NunchuckExt.Z: return GetAsyncKeyState(PadMapping[0].Nc.Z);
-	case g_NunchuckExt.C: return GetAsyncKeyState(PadMapping[0].Nc.C);
-	case g_NunchuckExt.L: return GetAsyncKeyState(PadMapping[0].Nc.L);
-	case g_NunchuckExt.R: return GetAsyncKeyState(PadMapping[0].Nc.R);
-	case g_NunchuckExt.U: return GetAsyncKeyState(PadMapping[0].Nc.U);
-	case g_NunchuckExt.D: return GetAsyncKeyState(PadMapping[0].Nc.D);
-	case g_NunchuckExt.SHAKE: return GetAsyncKeyState(PadMapping[0].Nc.Shake);
-
-	// Classic Controller
-	case g_ClassicContExt.A: return GetAsyncKeyState(PadMapping[0].Cc.A);
-	case g_ClassicContExt.B: return GetAsyncKeyState(PadMapping[0].Cc.B);
-	case g_ClassicContExt.X: return GetAsyncKeyState(PadMapping[0].Cc.X);
-	case g_ClassicContExt.Y: return GetAsyncKeyState(PadMapping[0].Cc.Y);
-	case g_ClassicContExt.P: return GetAsyncKeyState(PadMapping[0].Cc.P); // Default is O instead of P
-	case g_ClassicContExt.M: return GetAsyncKeyState(PadMapping[0].Cc.M); // Default is N instead of M
-	case g_ClassicContExt.H: return GetAsyncKeyState(PadMapping[0].Cc.H); // Default is U instead of H
-
-	case g_ClassicContExt.Tl: return GetAsyncKeyState(PadMapping[0].Cc.Tl); // Digital left trigger
-	case g_ClassicContExt.Zl: return GetAsyncKeyState(PadMapping[0].Cc.Zl);
-	case g_ClassicContExt.Zr: return GetAsyncKeyState(PadMapping[0].Cc.Zr);
-	case g_ClassicContExt.Tr: return GetAsyncKeyState(PadMapping[0].Cc.Tr); // Digital right trigger
-
-	case g_ClassicContExt.Dl: return GetAsyncKeyState(PadMapping[0].Cc.Dl); // Digital left
-	case g_ClassicContExt.Du: return GetAsyncKeyState(PadMapping[0].Cc.Du); // Up
-	case g_ClassicContExt.Dr: return GetAsyncKeyState(PadMapping[0].Cc.Dr); // Right
-	case g_ClassicContExt.Dd: return GetAsyncKeyState(PadMapping[0].Cc.Dd); // Down
-
-	case g_ClassicContExt.Ll: return GetAsyncKeyState(PadMapping[0].Cc.Ll); // Left analog
-	case g_ClassicContExt.Lu: return GetAsyncKeyState(PadMapping[0].Cc.Lu);
-	case g_ClassicContExt.Lr: return GetAsyncKeyState(PadMapping[0].Cc.Lr);
-	case g_ClassicContExt.Ld: return GetAsyncKeyState(PadMapping[0].Cc.Ld);
-
-	case g_ClassicContExt.Rl: return GetAsyncKeyState(PadMapping[0].Cc.Rl); // Right analog
-	case g_ClassicContExt.Ru: return GetAsyncKeyState(PadMapping[0].Cc.Ru);
-	case g_ClassicContExt.Rr: return GetAsyncKeyState(PadMapping[0].Cc.Rr);
-	case g_ClassicContExt.Rd: return GetAsyncKeyState(PadMapping[0].Cc.Rd);
-
+	case g_Wiimote_kbd.MA:
+		return GetAsyncKeyState(VK_LBUTTON);
+	case g_Wiimote_kbd.MB:
+		return GetAsyncKeyState(VK_RBUTTON);
 	// This should not happen
-	default: PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key); return false;
+	default:
+		PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key);
+		return false;
 	}
+
 #else
 	return false;
 #endif
@@ -1323,15 +1290,15 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.pad8 = 1;	
 	_ext.pad9 = 3;
 
-	_ext.BP = 1;
-	_ext.BM = 1;
-	_ext.BD = 1;
-	_ext.BU = 1;
-	_ext.BY = 1;
-	_ext.BG = 1;
-	_ext.BB = 1;
-	_ext.BR = 1;
-	_ext.BO = 1;
+	_ext.Plus = 1;
+	_ext.Minus = 1;
+	_ext.StrumDown = 1;
+	_ext.StrumUp = 1;
+	_ext.Yellow = 1;
+	_ext.Green = 1;
+	_ext.Blue = 1;
+	_ext.Red = 1;
+	_ext.Orange = 1;
 
 
 	// Check that Dolphin is in focus
@@ -1357,13 +1324,13 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 		// Update the left analog stick
 		if (g_Config.GH3Controller.LType == g_Config.GH3Controller.KEYBOARD)
 		{
-			if(IsKey(g_GH3Ext.Ll)) // Left analog left
+			if(IsKey(g_GH3Ext.Al)) // Left analog left
 				_ext.SX = g_GH3Calibration.Lx.min;
-			if(IsKey(g_ClassicContExt.Lu)) // up
+			if(IsKey(g_GH3Ext.Au)) // up
 				_ext.SY = g_GH3Calibration.Ly.max;
-			if(IsKey(g_ClassicContExt.Lr)) // right
+			if(IsKey(g_GH3Ext.Ar)) // right
 				_ext.SX = g_GH3Calibration.Lx.max;
-			if(IsKey(g_ClassicContExt.Ld)) // down
+			if(IsKey(g_GH3Ext.Ad)) // down
 				_ext.SY = g_GH3Calibration.Ly.min;
 
 		}
@@ -1395,24 +1362,24 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 			}
 		}
 
-		if(IsKey(g_GH3Ext.Bu)) _ext.BU = 0x00; // Strum Up
-		if(IsKey(g_GH3Ext.Bd)) _ext.BD= 0x00; // Strum Down
+		if(IsKey(g_GH3Ext.StrumUp)) _ext.StrumUp = 0x00; // Strum Up
+		if(IsKey(g_GH3Ext.StrumDown)) _ext.StrumDown= 0x00; // Strum Down
 
-		if(IsKey(g_GH3Ext.BP))
-			_ext.BP = 0x00;
-		if(IsKey(g_GH3Ext.BM))
-			_ext.BM = 0x00;
+		if(IsKey(g_GH3Ext.Plus))
+			_ext.Plus = 0x00;
+		if(IsKey(g_GH3Ext.Minus))
+			_ext.Minus = 0x00;
 
-		if(IsKey(g_GH3Ext.BY))
-			_ext.BY = 0x00;
-		if(IsKey(g_GH3Ext.BG))
-			_ext.BG = 0x00;
-		if(IsKey(g_GH3Ext.BB))
-			_ext.BB = 0x00;
-		if(IsKey(g_GH3Ext.BR))
-			_ext.BR = 0x00;
-		if(IsKey(g_GH3Ext.BO))
-			_ext.BO = 0x00;
+		if(IsKey(g_GH3Ext.Yellow))
+			_ext.Yellow = 0x00;
+		if(IsKey(g_GH3Ext.Green))
+			_ext.Green = 0x00;
+		if(IsKey(g_GH3Ext.Blue))
+			_ext.Blue = 0x00;
+		if(IsKey(g_GH3Ext.Red))
+			_ext.Red = 0x00;
+		if(IsKey(g_GH3Ext.Orange))
+			_ext.Orange = 0x00;
 	}
 
 	// Convert data for reporting

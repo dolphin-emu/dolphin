@@ -173,32 +173,29 @@ struct PadAxis
 };
 struct PadWiimote
 {
-	int A;
-	int B;
-	int One;
-	int Two;
-	int P;
-	int M;
-	int H;
-	int L, R, U, D;
-	int Shake;
-	int PitchL, PitchR;
+	int keyForControls[14];
+	// Order is A, B, 1, 2, +, -, Home
+	// L, R, U, D, Shake, PitchL, PitchR
 };
+
 struct PadNunchuck
 {
-	int Z;
-	int C;
-	int L, R, U, D;
-	int Shake;
+	int keyForControls[7];
+	// Order is Z, C, L, R, U, D, Shake
 };
 struct PadClassicController
 {
-	int A, B, X, Y;
-	int P, M, H;
-	int Tl, Zl, Zr, Tr;
-	int Dl, Du, Dr, Dd;
-	int Ll, Lu, Lr, Ld;
-	int Rl, Ru, Rr, Rd;
+ 	int keyForControls[23];
+	// Order is A, B, X, Y, +, -, Home
+	// Tl, Zl, Zr, Tr, Dl, Du, Dr, Dd
+	// Ll, Lu, Lr, Ld, Rl, Ru, Rr, Rd
+}; 
+struct PadGH3Controller
+{
+	int keyForControls[14];
+	// Order is Green, Red, Yellow, Blue, Orange,
+	// +, -, Whammy, Al, Au, Ar, Ad,
+	// StrumUp, StrumDown
 };
 struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE
 {
@@ -211,6 +208,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	PadWiimote Wm;
 	PadNunchuck Nc;
 	PadClassicController Cc;
+	PadGH3Controller GH3c;
 	bool enabled;			// Pad attached?
 	int DeadZoneL;			// Analog 1 Deadzone
 	int DeadZoneR;			// Analog 2 Deadzone

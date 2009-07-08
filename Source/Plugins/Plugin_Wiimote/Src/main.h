@@ -19,6 +19,9 @@
 #define MAIN_H
 
 #include <iostream> // System
+#include <vector>
+
+#include "CommonTypes.h"
 
 // Definitions and declarations
 void DoInitialize();

@@ -15,20 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-#include "CommonTypes.h" // for u16
-#include "IniFile.h"
-#include "StringUtil.h"
-
-#include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "main.h"
 #include "ConfigRecordingDlg.h"
 #include "ConfigBasicDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
-#include "EmuSubroutines.h" // for WmRequestStatus
-#include "EmuDefinitions.h" // for joyinfo
 
 BEGIN_EVENT_TABLE(WiimoteRecordingConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteRecordingConfigDialog::OnClose)
@@ -74,11 +66,13 @@ WiimoteRecordingConfigDialog::WiimoteRecordingConfigDialog(wxWindow *parent, wxW
 : wxDialog
 (parent, id, title, position, size, style)
 {
-	#if wxUSE_TIMER
-		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
-		m_bWaitForRecording = false;
-		m_bRecording = false;
-	#endif
+#if wxUSE_TIMER
+	m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
+#endif
+
+	m_bWaitForRecording = false;
+	m_bRecording = false;
+
 	m_vRecording.resize(RECORDING_ROWS + 1);
 
 	g_Config.Load();
