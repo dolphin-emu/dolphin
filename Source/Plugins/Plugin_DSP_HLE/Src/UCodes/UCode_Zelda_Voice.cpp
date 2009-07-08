@@ -386,9 +386,13 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		{
 		// Synthesized sounds
 		case 0x0000: // Example: Magic meter filling up in ZWW
+		case 0x0003: 
+			RenderSynth_RectWave(PB, m_TempBuffer, _Size);
+			break;
+
 		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
-			         // indoors in ZWW
-			RenderSynth_Waveform(PB, m_TempBuffer, _Size);
+					 // indoors in ZWW
+			RenderSynth_SawWave(PB, m_TempBuffer, _Size);
 			break;
 
 		case 0x0006:

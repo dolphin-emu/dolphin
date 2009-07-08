@@ -22,14 +22,14 @@
 #include "../main.h"
 #include "Mixer.h"
 
-void CUCode_Zelda::RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt << 16);
 	s64 ratio = (_ratio * ratioFactor) * 16;
-	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 16;
-	TrueSamplePosition += PB.CurSampleFrac;
+	s64 TrueSamplePosition = PB.CurSampleFrac;
 
+	// PB.Format == 0x3 -> Rectangular Wave, 0x0 -> Square Wave
 	int mask = PB.Format ? 3 : 1, shift = PB.Format ? 2 : 1;
 	
 	u32 pos[2] = {0, 0};
@@ -93,6 +93,19 @@ _lRestart:
 	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
+void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size) 
+{
+	s32 ratio = PB.RatioInt * 2;
+	s64 pos = PB.CurSampleFrac;
+
+	for(int i = 0; i < 0x50; i++) {
+		pos += ratio;
+
+		_Buffer[i] = pos & 0xFFFF;
+	}
+
+	PB.CurSampleFrac = pos & 0xFFFF;
+}
 
 void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {

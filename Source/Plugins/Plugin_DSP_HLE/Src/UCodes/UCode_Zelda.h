@@ -221,7 +221,8 @@ private:
 
 	// Voice formats
 	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_Waveform(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void RenderVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void RenderVoice_Raw(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
