@@ -195,10 +195,12 @@ static int wmDefaultControls[] =
 	80, // WmP
 	77, // WmM
 	72, // WmH
+#ifdef _WIN32
 	VK_LEFT, // Regular directional keys
 	VK_RIGHT,
 	VK_UP,
 	VK_DOWN, 
+#endif
 	83, // WmShake (S)
 	51, // WmPitchL (3)
 	52, // WmPitchR (4)
@@ -207,11 +209,13 @@ static int nCDefaultControls[] =
 {
 	90, // NcZ Z
 	67, // NcC C
+#ifdef _WIN32
 	VK_NUMPAD4, // NcL
 	VK_NUMPAD6, // NcR
 	VK_NUMPAD8, // NcU
 	VK_NUMPAD5, // NcD
-68, // NcShake D
+#endif
+	68, // NcShake D
 };
 
 static int ccDefaultControls[] =
@@ -227,10 +231,12 @@ static int ccDefaultControls[] =
 	0x38, // CcZl 8
 	0x39, // CcZr 9
 	0x30, // CcTr 0
+#ifdef _WIN32
 	VK_NUMPAD4, //CcDl
 	VK_NUMPAD8, // CcDu
 	VK_NUMPAD6, // CcDr
 	VK_NUMPAD5, // CcDd
+#endif
 	0x4a, // CcLl J
 	0x49, // CcLu I
 	0x4c, // CcLr L
