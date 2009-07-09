@@ -249,7 +249,7 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	DSPAnalyzer::Analyze();
 	// This calls the reset functions, but it get some games stuck
 	// uncomment it to help with debugging
-	DSPCore_SetException(EXP_RESET);
+	//	DSPCore_SetException(EXP_RESET);
 }
 
 
