@@ -88,18 +88,13 @@ void PADConfigDialognJoy::PadGetStatus()
 	int main_x_after = main_x, main_y_after = main_y;
 	if(PadMapping[notebookpage].bSquareToCircle)
 	{
-		std::vector<int> main_xy = InputCommon::Square2Circle(main_x, main_y, notebookpage, PadMapping[notebookpage].SDiagonal);
-		main_x_after = main_xy.at(0);
-		main_y_after = main_xy.at(1);
+		InputCommon::Square2Circle(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SDiagonal);
 	}
 	// Adjust radius
 	if(PadMapping[notebookpage].bRadiusOnOff)
 	{
 		// Get the manually configured diagonal distance
-		int Tmp = atoi (PadMapping[notebookpage].SRadius.substr(0, PadMapping[notebookpage].SRadius.length() - 1).c_str());
-		float Radius = Tmp / 100.0f;
-		main_x_after = (int)((float)main_x_after * Radius);
-		main_y_after = (int)((float)main_y_after * Radius);
+		InputCommon::RadiusAdjustment(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SRadius);
 	}
 
 	// 

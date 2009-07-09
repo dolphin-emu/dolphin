@@ -113,6 +113,30 @@ int Pad_Convert(int _val)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Adjust the radius
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
+{
+	// Get the radius setting
+	int Tmp = atoi (SRadius.substr(0, SRadius.length() - 1).c_str());
+	float RadiusSetting = Tmp / 100.0f;
+
+	// Get current angle
+	float Deg = Rad2Deg(atan2((float)_y, (float)_x));
+	// Get the current radius
+	float Radius = sqrt((float)(_x*_x + _y*_y));
+	// Adjust radius
+	Radius = Radius * RadiusSetting;
+	// Produce new coordinates
+	float x = Radius * cos(Deg2Rad(Deg));
+	float y = Radius * sin(Deg2Rad(Deg));
+	// Update values
+	_x = (int)x, _y = (int)y;
+}
+/////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 /* Convert the stick raidus from a square or rounded box to a circular radius. I don't know what
    input values the actual GC controller produce for the GC, it may be a square, a circle or
    something in between. But one thing that is certain is that PC pads differ in their output
@@ -148,9 +172,9 @@ float Square2CircleDistance(float deg)
 	return Distance;
 }
 // Produce a perfect circle from an original square or rounded box
-std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square)
+void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circle2Square)
 {
-	// Do we need this?
+	// Do we need to do this check?
 	if(_x >  32767) _x =  32767; if(_y >  32767) _y =  32767; // upper limit
 	if(_x < -32768) _x = -32768; if(_y < -32768) _y = -32768; // lower limit
 
@@ -189,21 +213,15 @@ std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, 
 	// Calculate x and y and return it
 	float x = result_dist * cos(Deg2Rad(deg));
 	float y = result_dist * sin(Deg2Rad(deg));
-	// Make integers
-	int int_x = (int)floor(x);
-	int int_y = (int)floor(y);
+	// Update coordinates
+	_x = (int)floor(x);
+	_y = (int)floor(y);
 	// Boundaries
-	if (int_x < -32768) int_x = -32768; if (int_x > 32767) int_x = 32767;
-	if (int_y < -32768) int_y = -32768; if (int_y > 32767) int_y = 32767;
-	// Return it
-	std::vector<int> vec;
-	vec.push_back(int_x);
-	vec.push_back(int_y);
+	if (_x < -32768) _x = -32768; if (_x > 32767) _x = 32767;
+	if (_y < -32768) _y = -32768; if (_y > 32767) _y = 32767;
 
 	// Debugging
 	//Console::Print("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
-
-	return vec;
 }
 /////////////////////////////////////////////////////////////////////
 

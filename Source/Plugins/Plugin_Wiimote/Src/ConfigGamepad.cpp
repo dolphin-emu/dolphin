@@ -635,11 +635,7 @@ void WiimotePadConfigDialog::PadGetStatus()
 	// Produce square
 	if(WiiMoteEmu::PadMapping[Page].bCircle2Square)
 	{
-		std::vector<int> main_xy = InputCommon::Square2Circle(main_x, main_y, Page, WiiMoteEmu::PadMapping[Page].SDiagonal, true);
-		main_x_after = main_xy.at(0);
-		main_y_after = main_xy.at(1);
-		//main_x = main_xy.at(0);
-		//main_y = main_xy.at(1);
+		InputCommon::Square2Circle(main_x_after, main_y_after, Page, WiiMoteEmu::PadMapping[Page].SDiagonal, true);
 	}	
 	// Check dead zone
 	float DeadZoneLeft = (float)WiiMoteEmu::PadMapping[Page].DeadZoneL / 100.0;

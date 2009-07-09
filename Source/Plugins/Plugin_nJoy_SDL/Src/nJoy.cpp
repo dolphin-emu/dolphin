@@ -447,18 +447,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Check if we should make adjustments
 	if (PadMapping[_numPAD].bSquareToCircle)
 	{
-		std::vector<int> main_xy = InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
-		i_main_stick_x = main_xy.at(0);
-		i_main_stick_y = main_xy.at(1);
+		InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
 	}
 	// Radius adjustment
 	if (PadMapping[_numPAD].bRadiusOnOff)
 	{
-		// Get the manually configured diagonal distance
-		int Tmp = atoi (PadMapping[_numPAD].SRadius.substr(0, PadMapping[_numPAD].SRadius.length() - 1).c_str());
-		float Radius = Tmp / 100.0f;
-		i_main_stick_x = (int)((float)i_main_stick_x * Radius);
-		i_main_stick_y = (int)((float)i_main_stick_y * Radius);
+		InputCommon::RadiusAdjustment(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SRadius);
 	}
 
 	// Convert axis values

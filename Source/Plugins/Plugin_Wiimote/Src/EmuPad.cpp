@@ -83,10 +83,7 @@ void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
 	// Check the circle to square option
 	if(PadMapping[Page].bCircle2Square)
 	{
-		std::vector<int> main_xy = InputCommon::Square2Circle(Lx, Ly, Page, PadMapping[Page].SDiagonal, true);
-		
-		Lx = main_xy.at(0);
-		Ly = main_xy.at(1);
+		InputCommon::Square2Circle(Lx, Ly, Page, PadMapping[Page].SDiagonal, true);
 	}
 
 	// Dead zone adjustment

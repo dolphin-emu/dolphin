@@ -239,7 +239,8 @@ float Rad2Deg(float Rad);
 int Pad_Convert(int _val);
 float SquareDistance(float deg);
 bool IsDeadZone(float DeadZone, int x, int y);
-std::vector<int> Square2Circle(int _x, int _y, int _pad, std::string SDiagonal, bool Circle2Square = false);
+void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circle2Square = false);
+void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius);
 
 // Input configuration
 std::string VKToString(int keycode);
