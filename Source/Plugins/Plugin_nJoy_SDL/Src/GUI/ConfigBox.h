@@ -193,7 +193,7 @@ class PADConfigDialognJoy : public wxDialog
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
 		wxStaticBitmap *m_controllerimage[4],
-			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4];
+			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4], *m_bmpAreaOut[4];
 		
 		int notebookpage; bool ControlsCreated;
 #ifdef RERECORDING
@@ -339,6 +339,7 @@ class PADConfigDialognJoy : public wxDialog
 		void SizeWindow();
 		wxBitmap CreateBitmap(); 
 		wxBitmap CreateBitmapDot();
+		wxBitmap CreateBitmapArea();
 		void PadGetStatus(); 
 		void Update();
  

@@ -301,9 +301,11 @@ void PADConfigDialognJoy::CreateAdvancedControls(int i)
 		//wxPoint(4, 20), wxDefaultSize);
 		wxDefaultPosition, wxDefaultSize);
 
+	m_bmpAreaOut[i] = new wxStaticBitmap(m_pOutStatus[i], wxID_ANY, CreateBitmapArea(),
+		wxPoint(1, 1), wxDefaultSize);
+
 	m_bmpDotOut[i] = new wxStaticBitmap(m_pOutStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
 		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
-
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Rerecording
@@ -367,7 +369,8 @@ wxBitmap PADConfigDialognJoy::CreateBitmap() // Create box
 	return bitmap;
 }
 
-wxBitmap PADConfigDialognJoy::CreateBitmapDot() // Create dot
+// Create dot
+wxBitmap PADConfigDialognJoy::CreateBitmapDot()
 {
 	int w = 2, h = 2;
 	wxBitmap bitmap(w, h);
@@ -384,5 +387,43 @@ wxBitmap PADConfigDialognJoy::CreateBitmapDot() // Create dot
 	dc.Clear();
 	dc.DrawRectangle(0, 0, w, h);
 	dc.SelectObject(wxNullBitmap);
+	return bitmap;
+}
+wxBitmap PADConfigDialognJoy::CreateBitmapArea()
+{
+	wxBitmap bitmap(BoxW - 2, BoxH - 2);
+	wxMemoryDC dc;
+	dc.SelectObject(bitmap);
+
+	// Set outline and fill colors
+	// wxMEDIUM_GREY_PEN, wxLIGHT_GREY_BRUSH
+	wxBrush LightGrayBrush(_T("#dddddd"));
+	wxPen LightGrayPen(_T("#bfbfbf"));
+	dc.SetBrush(LightGrayBrush);
+	dc.SetPen(LightGrayPen);
+	
+	// Clear bitmap
+	dc.Clear();
+
+	// Create offset for polygon
+	float Adj = (float)BoxW / 256.0;
+	float iAdj = 127.0 * Adj;
+	// The polygon corners
+	// Yes the diagonals for the original GC controller are this narrow (i.e. around 80% of the full radius),
+	// it's not a perfect octagon. Some third party GC controllers has a diagonal at 90% however,
+	// i.e. at around 63,63 rather than 55,55.
+	float Max = 100.0, Diagonal = 55.0;
+    wxPoint Points[8];
+    Points[0].x = (int)(0.0 * Adj + iAdj); Points[0].y = (int)(Max * Adj + iAdj);
+    Points[1].x = (int)(Diagonal * Adj + iAdj); Points[1].y = (int)(Diagonal * Adj + iAdj);
+    Points[2].x = (int)(Max * Adj + iAdj); Points[2].y = (int)(0.0 * Adj + iAdj);
+	Points[3].x = (int)(Diagonal * Adj + iAdj); Points[3].y = (int)(-Diagonal * Adj + iAdj);
+	Points[4].x = (int)(0.0 * Adj + iAdj); Points[4].y = (int)(-Max * Adj + iAdj);
+	Points[5].x = (int)(-Diagonal * Adj + iAdj); Points[5].y = (int)(-Diagonal * Adj + iAdj);
+	Points[6].x = (int)(-Max * Adj + iAdj); Points[6].y = (int)(0.0 * Adj + iAdj);
+	Points[7].x = (int)(-Diagonal * Adj + iAdj); Points[7].y = (int)(Diagonal * Adj + iAdj);
+	// Draw polygon 
+	dc.DrawPolygon(8, Points);
+
 	return bitmap;
 }
