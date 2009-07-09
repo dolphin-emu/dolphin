@@ -236,14 +236,15 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 
 	// Make a classic extension struct
 	wm_classic_extension _ext;
+	wm_GH3_extension _GH3_ext;
 	memset(&_ext, 0, sizeof(wm_classic_extension));
+	memset(&_GH3_ext, 0, sizeof(wm_GH3_extension));
 
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
 #endif
-//TODO
 	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
@@ -257,6 +258,11 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 #endif
 		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
+	}
+	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	{
+		FillReportGuitarHero3Extension(_GH3_ext);
+		memcpy(&pReport->ext, &_GH3_ext, sizeof(_GH3_ext));
 	}
 
 	INFO_LOG(WII_IPC_WIIMOTE,  "  SendReportCoreAccelIr10Ext()");

@@ -15,18 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "CommonTypes.h" // for u16
-#include "IniFile.h"
-#include "StringUtil.h"
-
-#include "wiimote_real.h" // Local
+#include "wiimote_real.h" // for MAX_WIIMOTES
 #include "wiimote_hid.h"
 #include "main.h"
 #include "ConfigPadDlg.h"
 #include "ConfigBasicDlg.h"
 #include "Config.h"
-#include "EmuMain.h" // for LoadRecordedMovements()
-#include "EmuSubroutines.h" // for WmRequestStatus
 #include "EmuDefinitions.h" // for joyinfo
 
 enum TriggerType
@@ -79,7 +73,24 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_CC_DL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_DD, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_CC_LL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_LD, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_CC_RL, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RU, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RR, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_CC_RD, WiimotePadConfigDialog::OnButtonClick)
-	
+
+	EVT_BUTTON(IDB_GH3_GREEN, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_RED, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_YELLOW, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_BLUE, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_ORANGE, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_PLUS, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_MINUS, WiimotePadConfigDialog::OnButtonClick)
+//	EVT_COMBOBOX(IDB_GH3_WHAMMY, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_GH3_ANALOG_STICK, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_BUTTON(IDB_GH3_ANALOG_LEFT, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_ANALOG_RIGHT, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_ANALOG_UP, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_ANALOG_DOWN, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_STRUM_UP, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_GH3_STRUM_DOWN, WiimotePadConfigDialog::OnButtonClick) 			
+
+
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimotePadConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimotePadConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimotePadConfigDialog::GetButtons)
@@ -372,8 +383,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 		// Configuration controls sizes
-		static const int TxtW = 50, TxtH = 19, ChW = 257, BtW = 75, BtH = 20;
-
+		static const int TxtW = 50, TxtH = 19, BtW = 75, BtH = 20;
 
 
 		// Controller
@@ -437,10 +447,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gJoyname[i]->AddStretchSpacer();
 
 
-		// --------------------------------------------------------------------
 		// Tilt Wiimote
-		// -----------------------------
-		/**/
+
 		// Controls
 		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition, wxDefaultSize, StrTilt, wxCB_READONLY);
 		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_ROLL, StrTiltRangeRoll[0], wxDefaultPosition, wxDefaultSize, StrTiltRangeRoll, wxCB_READONLY);
@@ -479,10 +487,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_TiltComboRangeRoll[i]->SetToolTip(wxT("The maximum roll in degrees. Set to 0 to turn off."));	
 		m_TiltComboRangePitch[i]->SetToolTip(wxT("The maximum pitch in degrees. Set to 0 to turn off."));
 
-		// --------------------------------------------------------------------
 		// Analog triggers
-		// -----------------------------
-		/**/
 		m_gTrigger[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Triggers"));
 		
 		m_TriggerStatusL[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: "));
@@ -540,9 +545,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_gTrigger[i]->Add(m_SizeAnalogTriggerVertRight[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 
-		// --------------------------------------------------------------------
 		// Row 2 Sizers: Connected pads, tilt, triggers
-		// -----------------------------
 		m_HorizControllerTilt[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_HorizControllerTilt[i]->Add(m_gJoyname[i], 0, wxALIGN_CENTER | wxEXPAND, 0);
 		m_HorizControllerTilt[i]->Add(m_gTilt[i], 0, wxEXPAND | (wxLEFT), 5);
@@ -553,9 +556,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 
 
-		// --------------------------------------------------------------------
 		// Analog sticks
-		// -----------------------------
 		
 		// Status panels
 		m_TStatusLeftIn[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("In"));
@@ -650,25 +651,19 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gAnalogRight[i]->Add(m_SizeAnalogRight[i], 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
 
 		
-		// --------------------------------------------------------------------
 		// Row 3 Sizers
-		// -----------------------------
 		m_HorizControllers[i] = new wxBoxSizer(wxHORIZONTAL);
 		//m_HorizControllers[i]->AddStretchSpacer();
 		m_HorizControllers[i]->AddSpacer(17);
 		m_HorizControllers[i]->Add(m_gAnalogLeft[i]);
 		m_HorizControllers[i]->Add(m_gAnalogRight[i], 0, (wxLEFT), 5);
 		//m_HorizControllers[i]->AddStretchSpacer();
-		///////////////////////////
 
 
-		////////////////////////////////////////////////////////////////////////
+
 		// Keyboard mapping
-		// ----------------
 		
-		// --------------------------------------------------------------------
 		// Wiimote
-		// -----------------------------
 
 		m_tWmA[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("A"));
 		m_tWmB[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("B"));
@@ -757,10 +752,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gWiimote[i]->Add(m_SWmVertRight[i], 0, wxALIGN_RIGHT | (wxLEFT), 5);
 		m_gWiimote[i]->AddSpacer(1);
 
-		// --------------------------------------------------------------------
 		// Nunchuck
-		// -----------------------------
-
 		// Stick controls
 		m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick"));
 		m_NunchuckComboStick[i] = new wxComboBox(m_Controller[i], IDCB_NUNCHUCK_STICK, StrNunchuck[0], wxDefaultPosition, wxDefaultSize, StrNunchuck, wxCB_READONLY);
@@ -822,10 +814,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		//Set values
 		m_NunchuckComboStick[i]->SetSelection(g_Config.Nunchuck.Type);
 
-		// --------------------------------------------------------------------
 		// Classic Controller
-		// -----------------------------
-		
+
 		// Stick controls
 		m_CcTextLeftStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left stick"));
 		m_CcComboLeftStick[i] = new wxComboBox(m_Controller[i], IDCB_CC_LEFT_STICK, StrNunchuck[0], wxDefaultPosition, wxDefaultSize, StrNunchuck, wxCB_READONLY);
@@ -899,7 +889,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_SCcLeftStick[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SCcLeftStick[i]->Add(m_CcTextLeftStick[i], 0, (wxUP), 4);
 		m_SCcLeftStick[i]->Add(m_CcComboLeftStick[i], 0, (wxLEFT), 2);
-		
+
 		m_SCcRightStick[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SCcRightStick[i]->Add(m_CcTextRightStick[i], 0, (wxUP), 4);
 		m_SCcRightStick[i]->Add(m_CcComboRightStick[i], 0, (wxLEFT), 2);
@@ -992,21 +982,165 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_CcComboRightStick[i]->SetSelection(g_Config.ClassicController.RType);
 		m_CcComboTriggers[i]->SetSelection(g_Config.ClassicController.TType);
 
-		// --------------------------------------------------------------------
+		//GH3
+		// Stick controls
+		m_tGH3_Analog[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("stick"));
+		m_GH3ComboAnalog[i] = new wxComboBox(m_Controller[i], IDCB_GH3_ANALOG_STICK, StrNunchuck[0], wxDefaultPosition, wxDefaultSize, StrNunchuck, wxCB_READONLY);
+
+
+
+		m_tGH3_Green[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Green"));
+		m_tGH3_Red[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Red"));
+		m_tGH3_Yellow[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Yellow"));
+		m_tGH3_Blue[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Blue"));
+		m_tGH3_Orange[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Orange"));
+		m_tGH3_Plus[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("+"));
+		m_tGH3_Minus[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("- "));
+		m_tGH3_Whammy[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Whammy"));
+
+		m_tGH3_ALeft[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left")); //analog stick
+		m_tGH3_ARight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Up"));
+		m_tGH3_AUp[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right"));
+		m_tGH3_ADown[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Down"));
+
+		m_tGH3_StrumUp[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Strum Up"));
+		m_tGH3_StrumDown[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Strum Down"));
+
+		m_bGH3_Green[i] = new wxButton(m_Controller[i], IDB_GH3_GREEN, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Red[i] = new wxButton(m_Controller[i], IDB_GH3_RED, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Yellow[i] = new wxButton(m_Controller[i], IDB_GH3_YELLOW, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Blue[i] = new wxButton(m_Controller[i], IDB_GH3_BLUE, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Orange[i] = new wxButton(m_Controller[i], IDB_GH3_ORANGE, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Plus[i] = new wxButton(m_Controller[i], IDB_GH3_PLUS, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_Minus[i] = new wxButton(m_Controller[i], IDB_GH3_MINUS, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+
+		m_bGH3_Whammy[i] = new wxButton(m_Controller[i], IDB_GH3_WHAMMY, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		
+		m_bGH3_ALeft[i] = new wxButton(m_Controller[i], IDB_GH3_ANALOG_LEFT, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH)); // Left analog stick
+		m_bGH3_AUp[i] = new wxButton(m_Controller[i], IDB_GH3_ANALOG_UP, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_ARight[i] = new wxButton(m_Controller[i], IDB_GH3_ANALOG_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_ADown[i] = new wxButton(m_Controller[i], IDB_GH3_ANALOG_DOWN, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+
+		m_bGH3_StrumUp[i] = new wxButton(m_Controller[i], IDB_GH3_STRUM_UP, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+		m_bGH3_StrumDown[i] = new wxButton(m_Controller[i], IDB_GH3_STRUM_DOWN, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+	
+		m_GH3ComboAnalog[i]->Disable();
+		m_bGH3_Whammy[i]->Disable();
+		m_bGH3_ALeft[i]->Disable();
+		m_bGH3_AUp[i]->Disable();
+		m_bGH3_ARight[i]->Disable();
+		m_bGH3_ADown[i]->Disable();
+
+		// Sizers
+		m_sGH3_Analog[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Analog[i]->Add(m_tGH3_Analog[i], 0, (wxUP), 4);
+		m_sGH3_Analog[i]->Add(m_GH3ComboAnalog[i], 0, (wxLEFT), 2);
+
+
+		m_sGH3_Whammy[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Whammy[i]->Add(m_tGH3_Whammy[i], 0, (wxUP), 4);
+		m_sGH3_Whammy[i]->Add(m_bGH3_Whammy[i], 0, (wxLEFT), 2);
+
+		m_sGH3_StrumUp[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_StrumDown[i] = new wxBoxSizer(wxHORIZONTAL);
+
+		m_sGH3_Green[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Green[i]->Add(m_tGH3_Green[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Green[i]->Add(m_bGH3_Green[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Red[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Red[i]->Add(m_tGH3_Red[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Red[i]->Add(m_bGH3_Red[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Yellow[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Yellow[i]->Add(m_tGH3_Yellow[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Yellow[i]->Add(m_bGH3_Yellow[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Blue[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Blue[i]->Add(m_tGH3_Blue[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Blue[i]->Add(m_bGH3_Blue[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Orange[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Orange[i]->Add(m_tGH3_Orange[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Orange[i]->Add(m_bGH3_Orange[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Plus[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Plus[i]->Add(m_tGH3_Plus[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Plus[i]->Add(m_bGH3_Plus[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_Minus[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_Minus[i]->Add(m_tGH3_Minus[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_Minus[i]->Add(m_bGH3_Minus[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_ALeft[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_ALeft[i]->Add(m_tGH3_ALeft[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_ALeft[i]->Add(m_bGH3_ALeft[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_ARight[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_ARight[i]->Add(m_tGH3_ARight[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_ARight[i]->Add(m_bGH3_ARight[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_AUp[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_AUp[i]->Add(m_tGH3_AUp[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_AUp[i]->Add(m_bGH3_AUp[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_ADown[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_ADown[i]->Add(m_tGH3_ADown[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_ADown[i]->Add(m_bGH3_ADown[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_StrumUp[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_StrumUp[i]->Add(m_tGH3_StrumUp[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_StrumUp[i]->Add(m_bGH3_StrumUp[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		m_sGH3_StrumDown[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sGH3_StrumDown[i]->Add(m_tGH3_StrumDown[i], 0, wxALIGN_RIGHT | (wxUP), 4);
+		m_sGH3_StrumDown[i]->Add(m_bGH3_StrumDown[i], 0, wxALIGN_RIGHT | (wxLEFT), 2);
+
+		// The left parent
+		m_SGH3VertLeft[i] = new wxBoxSizer(wxVERTICAL);
+		m_SGH3VertLeft[i]->Add(m_sGH3_Analog[i], 0, wxALIGN_RIGHT | (wxALL), 2);
+		m_SGH3VertLeft[i]->Add(m_sGH3_Whammy[i], 0, wxALIGN_RIGHT | (wxALL), 2);		
+		m_SGH3VertLeft[i]->Add(m_sGH3_ALeft[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertLeft[i]->Add(m_sGH3_AUp[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertLeft[i]->Add(m_sGH3_ARight[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertLeft[i]->Add(m_sGH3_ADown[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+
+		// The right parent
+		m_SGH3VertRight[i] = new wxBoxSizer(wxVERTICAL);
+
+		m_SGH3VertRight[i]->Add(m_sGH3_Green[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Red[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Yellow[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Blue[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Orange[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Plus[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_Minus[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_StrumUp[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_SGH3VertRight[i]->Add(m_sGH3_StrumDown[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+
+		// The parent sizer
+		m_gGuitarHero3Controller[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Guitar Hero 3 Controller"));
+		m_gGuitarHero3Controller[i]->Add(m_SGH3VertLeft[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+	//	m_gGuitarHero3Controller[i]->Add(m_SGH3VertMiddle[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_gGuitarHero3Controller[i]->Add(m_SGH3VertRight[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+
+		//Set values
+		m_CcComboLeftStick[i]->SetSelection(g_Config.ClassicController.LType);
+		m_CcComboRightStick[i]->SetSelection(g_Config.ClassicController.RType);
+		m_CcComboTriggers[i]->SetSelection(g_Config.ClassicController.TType);
+
+
 		// Row 4 Sizers
-		// -----------------------------
+
 		m_HorizControllerMapping[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_HorizControllerMapping[i]->AddStretchSpacer();
-		m_HorizControllerMapping[i]->Add(m_gWiimote[i]);
+		m_HorizControllerMapping[i]->Add(m_gWiimote[i], 0, (wxLEFT), 5);
+		m_HorizControllerMapping[i]->AddStretchSpacer(2);
 		m_HorizControllerMapping[i]->Add(m_gNunchuck[i], 0, (wxLEFT), 5);
 		m_HorizControllerMapping[i]->Add(m_gClassicController[i], 0, (wxLEFT), 5);
-		m_HorizControllerMapping[i]->AddStretchSpacer();
-		///////////////////////////
+		m_HorizControllerMapping[i]->Add(m_gGuitarHero3Controller[i], 0, (wxLEFT), 5);
+		m_HorizControllerMapping[i]->AddStretchSpacer(2);
 
-
-		////////////////////////////////////////////////////////////////
 		// Set up sizers and layout
-		// ----------------
 		m_SizeParent[i] = new wxBoxSizer(wxVERTICAL);
 		m_SizeParent[i]->Add(m_HorizControllerTiltParent[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_SizeParent[i]->Add(m_HorizControllers[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);

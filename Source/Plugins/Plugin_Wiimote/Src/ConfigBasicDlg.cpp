@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "CommonTypes.h" // for u16
-#include "IniFile.h"
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "main.h"
@@ -60,7 +58,6 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 	ControlsCreated = false;
 	m_bEnableUseRealWiimote = true;
-	Closing = true;
 	Page = 0;
 	g_Config.Load();
 	CreateGUIControls();
@@ -120,8 +117,9 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		g_Config.Save();
 		break;
 	case ID_BUTTONMAPPING:
-		if (!m_PadConfigFrame)
-			m_PadConfigFrame = new WiimotePadConfigDialog(this);
+		if (m_PadConfigFrame)
+			m_PadConfigFrame->EndModal(wxID_CLOSE);
+		m_PadConfigFrame = new WiimotePadConfigDialog(this);
 		if (!m_PadConfigFrame->IsShown())
 			m_PadConfigFrame->ShowModal();
 		break;

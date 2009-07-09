@@ -1294,11 +1294,11 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.Minus = 1;
 	_ext.StrumDown = 1;
 	_ext.StrumUp = 1;
-	_ext.Yellow = 1;
-	_ext.Green = 1;
-	_ext.Blue = 1;
-	_ext.Red = 1;
-	_ext.Orange = 1;
+	_ext.Yellow = 0;
+	_ext.Green = 0;
+	_ext.Blue = 0;
+	_ext.Red = 0;
+	_ext.Orange = 0;
 
 
 	// Check that Dolphin is in focus
@@ -1371,15 +1371,15 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 			_ext.Minus = 0x00;
 
 		if(IsKey(g_GH3Ext.Yellow))
-			_ext.Yellow = 0x00;
+			_ext.Yellow = 0x01;
 		if(IsKey(g_GH3Ext.Green))
-			_ext.Green = 0x00;
+			_ext.Green = 0x01;
 		if(IsKey(g_GH3Ext.Blue))
-			_ext.Blue = 0x00;
+			_ext.Blue = 0x01;
 		if(IsKey(g_GH3Ext.Red))
-			_ext.Red = 0x00;
+			_ext.Red = 0x01;
 		if(IsKey(g_GH3Ext.Orange))
-			_ext.Orange = 0x00;
+			_ext.Orange = 0x01;
 	}
 
 	// Convert data for reporting

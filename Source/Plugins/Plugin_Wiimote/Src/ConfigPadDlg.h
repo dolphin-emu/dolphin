@@ -31,6 +31,8 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
+#define GH3_CONTROLS 14
+
 class WiimotePadConfigDialog : public wxDialog
 {
 	public:
@@ -158,6 +160,25 @@ class WiimotePadConfigDialog : public wxDialog
 					*m_SCcRu[4],
 					*m_SCcRr[4],
 					*m_SCcRd[4];
+		//GH3
+		wxBoxSizer	*m_SGH3VertLeft[4],
+					*m_SGH3VertMiddle[4],
+					*m_SGH3VertRight[4],
+					*m_sGH3_Green[4],
+					*m_sGH3_Red[4],
+					*m_sGH3_Yellow[4],
+					*m_sGH3_Blue[4],
+					*m_sGH3_Orange[4],
+					*m_sGH3_Plus[4],
+					*m_sGH3_Minus[4],
+					*m_sGH3_Whammy[4],
+					*m_sGH3_Analog[4],
+					*m_sGH3_ALeft[4],
+					*m_sGH3_ARight[4],
+					*m_sGH3_AUp[4],
+					*m_sGH3_ADown[4],
+					*m_sGH3_StrumUp[4],
+					*m_sGH3_StrumDown[4];
 
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
@@ -177,6 +198,23 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_bCcDl[4], *m_bCcDu[4], *m_bCcDr[4], *m_bCcDd[4],
 			*m_bCcLl[4], *m_bCcLu[4], *m_bCcLr[4], *m_bCcLd[4],
 			*m_bCcRl[4], *m_bCcRu[4], *m_bCcRr[4], *m_bCcRd[4];
+			//GH3
+		wxButton *m_bGH3_Green[4],
+				 *m_bGH3_Red[4],
+				 *m_bGH3_Yellow[4],
+				 *m_bGH3_Blue[4],
+				 *m_bGH3_Orange[4],
+				 *m_bGH3_Plus[4],
+				 *m_bGH3_Minus[4],
+				 *m_bGH3_Whammy[4],
+				 *m_bGH3_Analog[4],
+				 *m_bGH3_ALeft[4],
+				 *m_bGH3_ARight[4],
+				 *m_bGH3_AUp[4],
+				 *m_bGH3_ADown[4],
+				 *m_bGH3_StrumUp[4],
+				 *m_bGH3_StrumDown[4];
+
 		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
@@ -194,17 +232,34 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_tCcDl[4], *m_tCcDu[4], *m_tCcDr[4], *m_tCcDd[4],
 			*m_tCcLl[4], *m_tCcLu[4], *m_tCcLr[4], *m_tCcLd[4],
 			*m_tCcRl[4], *m_tCcRu[4], *m_tCcRr[4], *m_tCcRd[4],
-			*m_CcTextLeftStick[4], *m_CcTextRightStick[4], *m_CcTextTriggers[4];
+			*m_CcTextLeftStick[4], *m_CcTextRightStick[4], *m_CcTextTriggers[4],
+			// GH3
+			*m_tGH3_Green[4],
+			*m_tGH3_Red[4],
+			*m_tGH3_Yellow[4],
+			*m_tGH3_Blue[4],
+			*m_tGH3_Orange[4],
+			*m_tGH3_Plus[4],
+			*m_tGH3_Minus[4],
+			*m_tGH3_Whammy[4],
+			*m_tGH3_Analog[4],
+			*m_tGH3_ALeft[4],
+			*m_tGH3_ARight[4],
+			*m_tGH3_AUp[4],
+			*m_tGH3_ADown[4],
+			*m_tGH3_StrumUp[4],
+			*m_tGH3_StrumDown[4];
+
 		wxButton *ClickedButton;
 		wxString OldLabel;
 
 		wxComboBox *m_TiltComboInput[4], *m_TiltComboRangeRoll[4], *m_TiltComboRangePitch[4], *m_Joyname[4], *m_ComboDiagonal[4], *m_ComboDeadZoneLeft[4], *m_ComboDeadZoneRight[4], *m_TriggerType[4],
-			*m_NunchuckComboStick[4], *m_CcComboLeftStick[4], *m_CcComboRightStick[4], *m_CcComboTriggers[4];
+			*m_NunchuckComboStick[4], *m_CcComboLeftStick[4], *m_CcComboRightStick[4], *m_CcComboTriggers[4], *m_GH3ComboAnalog[4];
 
 		wxPanel *m_pLeftInStatus[4], *m_pLeftOutStatus[4], *m_pRightInStatus[4], *m_pRightOutStatus[4];
 		wxStaticBitmap *m_bmpSquareLeftIn[4], *m_bmpSquareLeftOut[4], *m_bmpSquareRightIn[4], *m_bmpSquareRightOut[4];
 		wxStaticBoxSizer *m_gAnalogLeft[4], *m_gAnalogRight[4], *m_gTrigger[4],
-			*m_gWiimote[4], *m_gNunchuck[4], *m_gClassicController[4];
+			*m_gWiimote[4], *m_gNunchuck[4], *m_gClassicController[4], *m_gGuitarHero3Controller[4];
 
 		wxBitmap CreateBitmapDot();
 		wxBitmap CreateBitmap();
@@ -234,6 +289,8 @@ class WiimotePadConfigDialog : public wxDialog
 			ID_ANALOG_RIGHT_X, ID_ANALOG_RIGHT_Y,
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
+			IDCB_GH3_ANALOG_STICK,
+
 			// Wiimote
 			IDS_WIDTH, IDS_HEIGHT, IDS_LEFT, IDS_TOP,
 			IDB_WM_A, IDB_WM_B,
@@ -255,10 +312,26 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_CC_LL, IDB_CC_LU, IDB_CC_LR, IDB_CC_LD, // Left analog stick
 			IDB_CC_RL, IDB_CC_RU, IDB_CC_RR, IDB_CC_RD, // Right analog stick
 
+			// Guitar Hero 3 Controller
+			IDB_GH3_GREEN,
+			IDB_GH3_RED,
+			IDB_GH3_YELLOW,
+			IDB_GH3_BLUE,
+			IDB_GH3_ORANGE,
+			IDB_GH3_PLUS,
+			IDB_GH3_MINUS,
+			IDB_GH3_WHAMMY,
+			IDB_GH3_ANALOG_LEFT,
+			IDB_GH3_ANALOG_UP,			
+			IDB_GH3_ANALOG_RIGHT,
+			IDB_GH3_ANALOG_DOWN,
+			IDB_GH3_STRUM_UP,
+			IDB_GH3_STRUM_DOWN,
+
 			// Gamepad settings
 			IDC_JOYNAME, IDC_LEFT_C2S, IDCB_LEFT_DIAGONAL, IDCB_DEAD_ZONE_LEFT, IDCB_DEAD_ZONE_RIGHT,
 			ID_TRIGGER_TYPE, ID_TILT_INPUT, ID_TILT_RANGE_ROLL, ID_TILT_RANGE_PITCH, ID_TILT_INVERT_ROLL, ID_TILT_INVERT_PITCH,
-			IDCB_NUNCHUCK_STICK, IDCB_CC_LEFT_STICK, IDCB_CC_RIGHT_STICK, IDCB_CC_TRIGGERS,
+			IDCB_NUNCHUCK_STICK, IDCB_CC_LEFT_STICK, IDCB_CC_RIGHT_STICK, IDCB_CC_TRIGGERS, IDCB_GH3_ANALOG,
 		};
 
 		void OnClose(wxCloseEvent& event);

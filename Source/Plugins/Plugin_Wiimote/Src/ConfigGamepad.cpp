@@ -188,6 +188,21 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_bCcRu[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[20]).c_str()));
 	m_bCcRr[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[21]).c_str()));
 	m_bCcRd[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[22]).c_str()));
+	m_bGH3_Green[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[0]).c_str()));
+	m_bGH3_Red[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[1]).c_str()));
+	m_bGH3_Yellow[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[2]).c_str()));
+	m_bGH3_Blue[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[3]).c_str()));
+	m_bGH3_Orange[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[4]).c_str()));
+	m_bGH3_Plus[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[5]).c_str()));
+	m_bGH3_Minus[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[6]).c_str()));
+	m_bGH3_Whammy[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[7]).c_str()));
+	m_bGH3_ALeft[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[8]).c_str()));
+	m_bGH3_AUp[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[9]).c_str()));
+	m_bGH3_ARight[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[10]).c_str()));
+	m_bGH3_ADown[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[11]).c_str()));
+	m_bGH3_StrumUp[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[12]).c_str()));
+	m_bGH3_StrumDown[controller]->SetLabel(wxString::FromAscii(InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[13]).c_str()));
+
 #endif
 
 	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0], InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0]).c_str());
@@ -258,7 +273,10 @@ void WiimotePadConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key
 	{
 		WiiMoteEmu::PadMapping[Controller].Cc.keyForControls[Id - IDB_CC_A] = Key;
 	}
-
+	else if (IDB_GH3_GREEN <= Id && Id <= IDB_GH3_STRUM_DOWN)
+	{
+		WiiMoteEmu::PadMapping[Controller].GH3c.keyForControls[Id - IDB_GH3_GREEN] = Key;
+	}
 	//INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].Wm.A = %i", Controller, WiiMoteEmu::PadMapping[Controller].Wm.A);
 }
 
@@ -357,6 +375,50 @@ void WiimotePadConfigDialog::SetButtonText(int id, char text[128], int _Page)
 		case IDB_CC_RU: m_bCcRu[controller]->SetLabel(wxString::FromAscii(text)); break;
 		case IDB_CC_RR: m_bCcRr[controller]->SetLabel(wxString::FromAscii(text)); break;
 		case IDB_CC_RD: m_bCcRd[controller]->SetLabel(wxString::FromAscii(text)); break;
+
+		// GH3 Controller
+		case IDB_GH3_GREEN:
+			m_bGH3_Green[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_RED:
+			m_bGH3_Red[controller]->SetLabel(wxString::FromAscii(text));
+			break;
+		case IDB_GH3_YELLOW:
+			m_bGH3_Yellow[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_BLUE:
+			m_bGH3_Blue[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_ORANGE:
+			m_bGH3_Orange[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_PLUS:
+			m_bGH3_Plus[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_MINUS:
+			m_bGH3_Minus[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_WHAMMY:
+			m_bGH3_Whammy[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_ANALOG_LEFT:
+			m_bGH3_ALeft[controller]->SetLabel(wxString::FromAscii(text)); 
+			break; 
+		case IDB_GH3_ANALOG_RIGHT:
+			m_bGH3_ARight[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_ANALOG_UP:
+			m_bGH3_AUp[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_ANALOG_DOWN:
+			m_bGH3_ADown[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_STRUM_UP:
+			m_bGH3_StrumUp[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
+		case IDB_GH3_STRUM_DOWN:
+			m_bGH3_StrumDown[controller]->SetLabel(wxString::FromAscii(text)); 
+			break;
 		default: break;
 	}
 	//INFO_LOG(CONSOLE, "SetButtonText: %s\n", text);

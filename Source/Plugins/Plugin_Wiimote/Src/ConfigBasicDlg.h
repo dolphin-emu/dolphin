@@ -54,7 +54,6 @@ class WiimoteBasicConfigDialog : public wxDialog
 				*m_ShutDownTimer;
 		wxCheckBox *m_UseRealWiimote[4];
 
-		bool Closing;
 	private:
 		DECLARE_EVENT_TABLE();
 

@@ -60,6 +60,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1);
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1);
 void FillReportExtension(wm_extension& _ext);
 void FillReportClassicExtension(wm_classic_extension& _ext);
+void FillReportGuitarHero3Extension(wm_GH3_extension& _ext);
 
 } // namespace
 

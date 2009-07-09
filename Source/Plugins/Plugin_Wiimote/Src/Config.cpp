@@ -192,6 +192,9 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName, "CcTriggers", ClassicController.TType);
 		for (int x = 0; x < 23; x++)
 			iniFile.Set(SectionName, ccControlNames[x], WiiMoteEmu::PadMapping[i].Cc.keyForControls[x]);
+		// GH3
+		for (int x = 0; x < 14; x++)
+			iniFile.Set(SectionName, gh3ControlNames[x], WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x]);
 
 		// Save the physical device ID number
 		iniFile.Set(SectionName, "DeviceID", WiiMoteEmu::PadMapping[i].ID);
