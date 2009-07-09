@@ -89,7 +89,7 @@ class PADConfigDialognJoy : public wxDialog
 		wxNotebook *m_Notebook;
 		wxBoxSizer * m_MainSizer;
 
-		wxPanel * m_pKeys[4], * m_pInStatus[4], * m_pOutStatus[4];
+		wxPanel *m_pKeys[4], *m_pInStatus[4], *m_pOutStatus[4], *m_pInStatusC[4], *m_pOutStatusC[4];
 		wxBitmap WxStaticBitmap1_BITMAP, WxStaticBitmap1_BITMAPGray;
 		wxStaticBoxSizer * m_sKeys[4];
 		wxBoxSizer *m_sMain[4], *m_sMainLeft[4], *m_sMainRight[4];
@@ -116,12 +116,12 @@ class PADConfigDialognJoy : public wxDialog
 		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
-		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4], *m_gStatusAdvancedSettings[4]; // Advanced settings
-		wxBoxSizer *m_gStatusInSettingsH[4], *m_gStatusInSettingsRadiusH[4];
-		wxGridBagSizer *m_GBAdvancedMainStick[4];
-		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4];
-		wxComboBox *m_CoBRadius[4]; wxCheckBox *m_CBRadius[4];
-		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
+		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4], *m_gStatusInC[4], *m_gStatusInSettingsC[4], *m_gStatusAdvancedSettings[4]; // Advanced settings
+		wxBoxSizer *m_gStatusInSettingsH[4], *m_gStatusInSettingsRadiusH[4], *m_gStatusInSettingsHC[4], *m_gStatusInSettingsRadiusHC[4];
+		wxGridBagSizer *m_GBAdvancedMainStick[4], *m_GBAdvancedCStick[4];
+		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_TStatusInC[4], *m_TStatusOutC[4];
+		wxComboBox *m_CoBRadius[4], *m_CoBRadiusC[4]; wxCheckBox *m_CBRadius[4], *m_CBRadiusC[4];
+		wxComboBox *m_CoBDiagonal[4], *m_CoBDiagonalC[4]; wxCheckBox *m_CBS_to_C[4], *m_CBS_to_CC[4];
 		wxCheckBox *m_CBCheckFocus[4], *m_AdvancedMapFilter[4];
 		
 		wxCheckBox *m_Rumble[4];	// Rumble settings
@@ -193,7 +193,8 @@ class PADConfigDialognJoy : public wxDialog
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
 		wxStaticBitmap *m_controllerimage[4],
-			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4], *m_bmpAreaOut[4];
+			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4], *m_bmpAreaOut[4],
+			*m_bmpSquareC[4], *m_bmpDotC[4], *m_bmpSquareOutC[4], *m_bmpDotOutC[4], *m_bmpAreaOutC[4];
 		
 		int notebookpage; bool ControlsCreated;
 #ifdef RERECORDING
@@ -233,7 +234,9 @@ class PADConfigDialognJoy : public wxDialog
 			IDT_STATUS_IN, IDT_STATUS_OUT,
 
 			// Advaced settings
-			IDCB_MAINSTICK_RADIUS, IDCB_MAINSTICK_CB_RADIUS, IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
+			IDCB_MAINSTICK_RADIUS, IDCB_MAINSTICK_CB_RADIUS, IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL,
+			IDCB_CSTICK_RADIUS, IDCB_CSTICK_CB_RADIUS, IDCB_CSTICK_DIAGONAL, IDCB_CSTICK_S_TO_C, IDT_CSTICK_DIAGONAL,
+			IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
 #ifdef RERECORDING
 			ID_RECORDING, ID_PLAYBACK, ID_SAVE_RECORDING,
 #endif
@@ -339,7 +342,7 @@ class PADConfigDialognJoy : public wxDialog
 		void SizeWindow();
 		wxBitmap CreateBitmap(); 
 		wxBitmap CreateBitmapDot();
-		wxBitmap CreateBitmapArea();
+		wxBitmap CreateBitmapArea(int,int);
 		void PadGetStatus(); 
 		void Update();
  

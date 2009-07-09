@@ -52,8 +52,8 @@ void PADConfigDialognJoy::PadGetStatus()
 	   because of a manual ini file change, but we make that check anway. */
 	if(PadMapping[notebookpage].ID < 0 || PadMapping[notebookpage].ID >= SDL_NumJoysticks())
 	{
-		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected"));
-		m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));
+		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected")); m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));
+		m_TStatusInC[notebookpage]->SetLabel(wxT("Not connected")); m_TStatusOutC[notebookpage]->SetLabel(wxT("Not connected"));
 		m_TStatusTriggers[notebookpage]->SetLabel(wxT("Not connected"));
 		return;
 	}
@@ -61,8 +61,8 @@ void PADConfigDialognJoy::PadGetStatus()
 	// Return if it's not enabled
 	if (!PadMapping[notebookpage].enabled)
 	{
-		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled"));
-		m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
+		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled")); m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
+		m_TStatusInC[notebookpage]->SetLabel(wxT("Not enabled")); m_TStatusOutC[notebookpage]->SetLabel(wxT("Not enabled"));
 		m_TStatusTriggers[notebookpage]->SetLabel(wxT("Not enabled"));
 		return;
 	}
@@ -81,50 +81,52 @@ void PADConfigDialognJoy::PadGetStatus()
 	// Get original values
 	int main_x = PadState[notebookpage].axis[InputCommon::CTL_MAIN_X];
 	int main_y = PadState[notebookpage].axis[InputCommon::CTL_MAIN_Y];
-    //int sub_x = (PadState[_numPAD].axis[CTL_SUB_X];
-	//int sub_y = -(PadState[_numPAD].axis[CTL_SUB_Y];
+    int sub_x = PadState[notebookpage].axis[InputCommon::CTL_SUB_X];
+	int sub_y = PadState[notebookpage].axis[InputCommon::CTL_SUB_Y];
 
 	// Get adjusted values
 	int main_x_after = main_x, main_y_after = main_y;
-	if(PadMapping[notebookpage].bSquareToCircle)
-	{
-		InputCommon::Square2Circle(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SDiagonal);
-	}
+	if(PadMapping[notebookpage].bSquareToCircle) InputCommon::Square2Circle(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SDiagonal);
 	// Adjust radius
-	if(PadMapping[notebookpage].bRadiusOnOff)
-	{
-		// Get the manually configured diagonal distance
-		InputCommon::RadiusAdjustment(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SRadius);
-	}
+	if(PadMapping[notebookpage].bRadiusOnOff) InputCommon::RadiusAdjustment(main_x_after, main_y_after, notebookpage, PadMapping[notebookpage].SRadius);
+	// C-stick
+	int sub_x_after = sub_x, sub_y_after = sub_y;
+	if(PadMapping[notebookpage].bSquareToCircleC) InputCommon::Square2Circle(sub_x_after, sub_y_after, notebookpage, PadMapping[notebookpage].SDiagonalC);
+	if(PadMapping[notebookpage].bRadiusOnOffC) InputCommon::RadiusAdjustment(sub_x_after, sub_y_after, notebookpage, PadMapping[notebookpage].SRadiusC);
 
-	// 
+	// Convert values
 	float f_x = main_x / 32767.0;
 	float f_y = main_y / 32767.0;
 	float f_x_aft = main_x_after / 32767.0;
 	float f_y_aft = main_y_after / 32767.0;
-
-	m_TStatusIn[notebookpage]->SetLabel(wxString::Format(
-		wxT("x:%1.2f y:%1.2f"),
-		f_x, f_y	
-		));
-
-	m_TStatusOut[notebookpage]->SetLabel(wxString::Format(
-		wxT("x:%1.2f y:%1.2f"),
-		f_x_aft, f_y_aft
-		));
+	// C-stick
+	float f_x_c = sub_x / 32767.0;
+	float f_y_c = sub_y / 32767.0;
+	float f_x_aft_c = sub_x_after / 32767.0;
+	float f_y_aft_c = sub_y_after / 32767.0;
+	// Print values
+	m_TStatusIn[notebookpage]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x, f_y));
+	m_TStatusOut[notebookpage]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x_aft, f_y_aft));
+	m_TStatusInC[notebookpage]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x_c, f_y_c));
+	m_TStatusOutC[notebookpage]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x_aft_c, f_y_aft_c));
 
 	// Adjust the values for the plot
-	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2; // Border adjustment
-
+	// Border adjustment
+	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2;
 	main_x = (BoxW_ / 2) + (main_x * BoxW_ / (32767 * 2));
 	main_y = (BoxH_ / 2) + (main_y * BoxH_ / (32767 * 2));
-
 	int main_x_out = (BoxW_ / 2) + (main_x_after * BoxW_ / (32767 * 2));
-	int main_y_out = (BoxH_ / 2) + (main_y_after * BoxH_ / (32767 * 2));
-	
+	int main_y_out = (BoxH_ / 2) + (main_y_after * BoxH_ / (32767 * 2));	
 	// Adjust the dot
 	m_bmpDot[notebookpage]->SetPosition(wxPoint(main_x, main_y));
 	m_bmpDotOut[notebookpage]->SetPosition(wxPoint(main_x_out, main_y_out));
+	// C-stick
+	sub_x = (BoxW_ / 2) + (sub_x * BoxW_ / (32767 * 2));
+	sub_y = (BoxH_ / 2) + (sub_y * BoxH_ / (32767 * 2));
+	int sub_x_out = (BoxW_ / 2) + (sub_x_after * BoxW_ / (32767 * 2));
+	int sub_y_out = (BoxH_ / 2) + (sub_y_after * BoxH_ / (32767 * 2));	
+	m_bmpDotC[notebookpage]->SetPosition(wxPoint(sub_x, sub_y));
+	m_bmpDotOutC[notebookpage]->SetPosition(wxPoint(sub_x_out, sub_y_out));
 	///////////////////// Analog stick
 
 
@@ -282,16 +284,21 @@ void PADConfigDialognJoy::Update()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::CreateAdvancedControls(int i)
 {
+	// Main-stick
 	m_TStatusIn[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
 	m_TStatusOut[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
 	m_gStatusIn[i] = new wxStaticBoxSizer( wxHORIZONTAL, m_Controller[i], wxT("Main-stick (In) (Out)"));
+	// C-stick
+	m_TStatusInC[i] = new wxStaticText(m_Controller[i], IDT_STATUS_IN, wxT("In"));
+	m_TStatusOutC[i] = new wxStaticText(m_Controller[i], IDT_STATUS_OUT, wxT("Out"));
+	m_gStatusInC[i] = new wxStaticBoxSizer( wxHORIZONTAL, m_Controller[i], wxT("C-stick (In) (Out)"));
 
+	// Main-stick In-Out
 	m_pInStatus[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
 	m_bmpSquare[i] = new wxStaticBitmap(m_pInStatus[i], ID_STATUSBMP1 + i, CreateBitmap(),
 		//wxPoint(4, 15), wxSize(70,70));
 		//wxPoint(4, 20), wxDefaultSize);
 		wxDefaultPosition, wxDefaultSize);
-
 	m_bmpDot[i] = new wxStaticBitmap(m_pInStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
 		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 
@@ -300,11 +307,31 @@ void PADConfigDialognJoy::CreateAdvancedControls(int i)
 		//wxPoint(4, 15), wxSize(70,70));
 		//wxPoint(4, 20), wxDefaultSize);
 		wxDefaultPosition, wxDefaultSize);
-
-	m_bmpAreaOut[i] = new wxStaticBitmap(m_pOutStatus[i], wxID_ANY, CreateBitmapArea(),
+	// Yes the diagonals for the original GC controller are this narrow (i.e. around 80% of the full radius),
+	// it's not a perfect octagon. Some third party GC controllers has a diagonal at 90% however,
+	// i.e. at around 63,63 rather than 55,55.
+	m_bmpAreaOut[i] = new wxStaticBitmap(m_pOutStatus[i], wxID_ANY, CreateBitmapArea(100,55),
 		wxPoint(1, 1), wxDefaultSize);
-
 	m_bmpDotOut[i] = new wxStaticBitmap(m_pOutStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
+		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+	// C-stick In-Out
+	m_pInStatusC[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
+	m_bmpSquareC[i] = new wxStaticBitmap(m_pInStatusC[i], wxID_ANY, CreateBitmap(),
+		//wxPoint(4, 15), wxSize(70,70));
+		//wxPoint(4, 20), wxDefaultSize);
+		wxDefaultPosition, wxDefaultSize);
+	m_bmpDotC[i] = new wxStaticBitmap(m_pInStatusC[i], wxID_ANY, CreateBitmapDot(),
+		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+	m_pOutStatusC[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
+	m_bmpSquareOutC[i] = new wxStaticBitmap(m_pOutStatusC[i], wxID_ANY, CreateBitmap(),
+		//wxPoint(4, 15), wxSize(70,70));
+		//wxPoint(4, 20), wxDefaultSize);
+		wxDefaultPosition, wxDefaultSize);
+	m_bmpAreaOutC[i] = new wxStaticBitmap(m_pOutStatusC[i], wxID_ANY, CreateBitmapArea(85,46),
+		wxPoint(1, 1), wxDefaultSize);
+	m_bmpDotOutC[i] = new wxStaticBitmap(m_pOutStatusC[i], wxID_ANY, CreateBitmapDot(),
 		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -389,7 +416,7 @@ wxBitmap PADConfigDialognJoy::CreateBitmapDot()
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
-wxBitmap PADConfigDialognJoy::CreateBitmapArea()
+wxBitmap PADConfigDialognJoy::CreateBitmapArea(int Max, int Diagonal)
 {
 	wxBitmap bitmap(BoxW - 2, BoxH - 2);
 	wxMemoryDC dc;
@@ -406,13 +433,9 @@ wxBitmap PADConfigDialognJoy::CreateBitmapArea()
 	dc.Clear();
 
 	// Create offset for polygon
-	float Adj = (float)BoxW / 256.0;
+	float Adj = (float)(BoxW-2) / 256.0;
 	float iAdj = 127.0 * Adj;
 	// The polygon corners
-	// Yes the diagonals for the original GC controller are this narrow (i.e. around 80% of the full radius),
-	// it's not a perfect octagon. Some third party GC controllers has a diagonal at 90% however,
-	// i.e. at around 63,63 rather than 55,55.
-	float Max = 100.0, Diagonal = 55.0;
     wxPoint Points[8];
     Points[0].x = (int)(0.0 * Adj + iAdj); Points[0].y = (int)(Max * Adj + iAdj);
     Points[1].x = (int)(Diagonal * Adj + iAdj); Points[1].y = (int)(Diagonal * Adj + iAdj);

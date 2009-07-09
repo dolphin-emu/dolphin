@@ -81,6 +81,11 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 	m_CBRadius[controller]->SetValue(PadMapping[controller].bRadiusOnOff);
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
+	// C-stick
+	m_CoBRadiusC[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SRadiusC.c_str()));
+	m_CBRadiusC[controller]->SetValue(PadMapping[controller].bRadiusOnOffC);
+	m_CoBDiagonalC[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonalC.c_str()));
+	m_CBS_to_CC[controller]->SetValue(PadMapping[controller].bSquareToCircleC);
 	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
 	// Update Rumble checkbox
 	m_Rumble[controller]->SetValue(PadMapping[controller].rumble);
@@ -129,6 +134,11 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 	PadMapping[controller].bRadiusOnOff = m_CBRadius[FromSlot]->IsChecked();
 	PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
 	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();
+	// C-stick
+	PadMapping[controller].SRadiusC = m_CoBRadiusC[FromSlot]->GetLabel().mb_str();
+	PadMapping[controller].bRadiusOnOffC = m_CBRadiusC[FromSlot]->IsChecked();
+	PadMapping[controller].SDiagonalC = m_CoBDiagonalC[FromSlot]->GetLabel().mb_str();
+	PadMapping[controller].bSquareToCircleC = m_CBS_to_CC[FromSlot]->IsChecked();
 
 	// The analog buttons
 	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[InputCommon::CTL_MAIN_X] = value; tmp.clear();

@@ -89,6 +89,11 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_CHECKBOX(IDCB_MAINSTICK_CB_RADIUS, PADConfigDialognJoy::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, PADConfigDialognJoy::ChangeSettings)
+	// C-stick
+	EVT_COMBOBOX(IDCB_CSTICK_RADIUS, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_CSTICK_CB_RADIUS, PADConfigDialognJoy::ChangeSettings)
+	EVT_COMBOBOX(IDCB_CSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_CSTICK_S_TO_C, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, PADConfigDialognJoy::ChangeSettings)
 #ifdef RERECORDING
 	EVT_CHECKBOX(ID_RECORDING, PADConfigDialognJoy::ChangeSettings)
@@ -600,6 +605,10 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 			else m_CoBRadius[_notebookpage]->Enable(false);
 		if (PadMapping[_notebookpage].bSquareToCircle) m_CoBDiagonal[_notebookpage]->Enable(true);
 			else m_CoBDiagonal[_notebookpage]->Enable(false);
+		if (PadMapping[_notebookpage].bRadiusOnOffC) m_CoBRadiusC[_notebookpage]->Enable(true);
+			else m_CoBRadiusC[_notebookpage]->Enable(false);
+		if (PadMapping[_notebookpage].bSquareToCircleC) m_CoBDiagonalC[_notebookpage]->Enable(true);
+			else m_CoBDiagonalC[_notebookpage]->Enable(false);
 	}
 
 	 // Repaint the background
@@ -955,20 +964,29 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Input status text
 		CreateAdvancedControls(i);
 
-		// Sizers
+		// Main-stick sizers
 		m_GBAdvancedMainStick[i] = new wxGridBagSizer(0, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pInStatus[i], wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 0);
 		m_GBAdvancedMainStick[i]->Add(m_pOutStatus[i], wxGBPosition(0, 1), wxGBSpan(1, 1), wxLEFT, 5);
 		m_GBAdvancedMainStick[i]->Add(m_TStatusIn[i], wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 0);
 		m_GBAdvancedMainStick[i]->Add(m_TStatusOut[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxLEFT, 5);
-
+		// Cstick sizers
+		m_GBAdvancedCStick[i] = new wxGridBagSizer(0, 0);
+		m_GBAdvancedCStick[i]->Add(m_pInStatusC[i], wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 0);
+		m_GBAdvancedCStick[i]->Add(m_pOutStatusC[i], wxGBPosition(0, 1), wxGBSpan(1, 1), wxLEFT, 5);
+		m_GBAdvancedCStick[i]->Add(m_TStatusInC[i], wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 0);
+		m_GBAdvancedCStick[i]->Add(m_TStatusOutC[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxLEFT, 5);
+		// Add sizers
 		m_gStatusIn[i]->Add(m_GBAdvancedMainStick[i], 0, wxLEFT, 5);
+		m_gStatusInC[i]->Add(m_GBAdvancedCStick[i], 0, wxLEFT, 5);
 
 		// Populate input status settings
 
 		// The drop down menu
 		m_gStatusInSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Main-stick settings"));
 		m_gStatusInSettingsRadiusH[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_gStatusInSettingsC[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("C-stick settings"));
+		m_gStatusInSettingsRadiusHC[i] = new wxBoxSizer(wxHORIZONTAL);
 		wxArrayString asRadius;
 			asRadius.Add(wxT("100%"));
 			asRadius.Add(wxT("90%"));
@@ -976,16 +994,20 @@ void PADConfigDialognJoy::CreateGUIControls()
 			asRadius.Add(wxT("70%"));
 			asRadius.Add(wxT("60%"));
 			asRadius.Add(wxT("50%"));
+			asRadius.Add(wxT("40%"));
 		m_CoBRadius[i] = new wxComboBox(m_Controller[i], IDCB_MAINSTICK_RADIUS, asRadius[0], wxDefaultPosition, wxDefaultSize, asRadius, wxCB_READONLY);
+		m_CoBRadiusC[i] = new wxComboBox(m_Controller[i], IDCB_CSTICK_RADIUS, asRadius[0], wxDefaultPosition, wxDefaultSize, asRadius, wxCB_READONLY);
 
 		// The checkbox
 		m_CBRadius[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_CB_RADIUS, wxT("Radius"));
-		m_CBRadius[i]->SetToolTip(wxT(
-			"This will reduce the stick radius."
-			));
+		m_CBRadiusC[i] = new wxCheckBox(m_Controller[i], IDCB_CSTICK_CB_RADIUS, wxT("Radius"));
+		wxString CBRadiusToolTip = "This will reduce the stick radius.";
+		m_CBRadius[i]->SetToolTip(CBRadiusToolTip);
+		m_CBRadiusC[i]->SetToolTip(CBRadiusToolTip);
 
 		// The drop down menu);
 		m_gStatusInSettingsH[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_gStatusInSettingsHC[i] = new wxBoxSizer(wxHORIZONTAL);
 		wxArrayString asStatusInSet;
 			asStatusInSet.Add(wxT("100%"));
 			asStatusInSet.Add(wxT("95%"));
@@ -994,22 +1016,34 @@ void PADConfigDialognJoy::CreateGUIControls()
 			asStatusInSet.Add(wxT("80%"));
 			asStatusInSet.Add(wxT("75%"));
 		m_CoBDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_MAINSTICK_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxDefaultSize, asStatusInSet, wxCB_READONLY);
+		m_CoBDiagonalC[i] = new wxComboBox(m_Controller[i], IDCB_CSTICK_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxDefaultSize, asStatusInSet, wxCB_READONLY);
 
 		// The checkbox
 		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Diagonal"));
-		m_CBS_to_C[i]->SetToolTip(wxT(
+		m_CBS_to_CC[i] = new wxCheckBox(m_Controller[i], IDCB_CSTICK_S_TO_C, wxT("Diagonal"));
+		wxString CBS_to_CToolTip = 
 			"This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce."
 			" To produce a smooth circle in the 'Out' window you have to manually set"
-			" your diagonal values from the 'In' window in the drop down menu."
-			));
+			" your diagonal values from the 'In' window in the drop down menu.";
+		m_CBS_to_C[i]->SetToolTip(CBS_to_CToolTip);
+		m_CBS_to_CC[i]->SetToolTip(CBS_to_CToolTip);
 
+		// Populate sizers
 		m_gStatusInSettings[i]->Add(m_gStatusInSettingsRadiusH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);
-		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
+		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);	
+		// C-stick
+		m_gStatusInSettingsC[i]->Add(m_gStatusInSettingsRadiusHC[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);
+		m_gStatusInSettingsC[i]->Add(m_gStatusInSettingsHC[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
 
 		m_gStatusInSettingsRadiusH[i]->Add(m_CBRadius[i], 0, wxLEFT | wxTOP, 3);
 		m_gStatusInSettingsRadiusH[i]->Add(m_CoBRadius[i], 0, wxLEFT, 3);
 		m_gStatusInSettingsH[i]->Add(m_CBS_to_C[i], 0, wxLEFT | wxTOP, 3);
 		m_gStatusInSettingsH[i]->Add(m_CoBDiagonal[i], 0, wxLEFT, 3);
+		// C-stick
+		m_gStatusInSettingsRadiusHC[i]->Add(m_CBRadiusC[i], 0, wxLEFT | wxTOP, 3);
+		m_gStatusInSettingsRadiusHC[i]->Add(m_CoBRadiusC[i], 0, wxLEFT, 3);
+		m_gStatusInSettingsHC[i]->Add(m_CBS_to_CC[i], 0, wxLEFT | wxTOP, 3);
+		m_gStatusInSettingsHC[i]->Add(m_CoBDiagonalC[i], 0, wxLEFT, 3);
 
 		// The trigger values
 		m_gStatusTriggers[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Trigger values"));
@@ -1049,7 +1083,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// -----------------------------
 		m_sMainRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
-		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);	
+		m_sMainRight[i]->Add(m_gStatusInC[i], 0, wxEXPAND | (wxLEFT), 2);
+		m_sMainRight[i]->Add(m_gStatusInSettingsC[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 		m_sMainRight[i]->Add(m_gStatusTriggers[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 		m_sMainRight[i]->Add(m_gStatusAdvancedSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 #ifdef RERECORDING

@@ -445,15 +445,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int TriggerRight = PadState[_numPAD].axis[InputCommon::CTL_R_SHOULDER];
 
 	// Check if we should make adjustments
-	if (PadMapping[_numPAD].bSquareToCircle)
-	{
-		InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
-	}
+	if (PadMapping[_numPAD].bSquareToCircle) InputCommon::Square2Circle(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SDiagonal);
 	// Radius adjustment
-	if (PadMapping[_numPAD].bRadiusOnOff)
-	{
-		InputCommon::RadiusAdjustment(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SRadius);
-	}
+	if (PadMapping[_numPAD].bRadiusOnOff) InputCommon::RadiusAdjustment(i_main_stick_x, i_main_stick_y, _numPAD, PadMapping[_numPAD].SRadius);
+	// C-stick
+	if (PadMapping[_numPAD].bSquareToCircleC) InputCommon::Square2Circle(i_sub_stick_x, i_sub_stick_y, _numPAD, PadMapping[_numPAD].SDiagonalC);
+	if (PadMapping[_numPAD].bRadiusOnOffC) InputCommon::RadiusAdjustment(i_sub_stick_x, i_sub_stick_y, _numPAD, PadMapping[_numPAD].SRadiusC);
 
 	// Convert axis values
 	u8 main_stick_x = InputCommon::Pad_Convert(i_main_stick_x);
@@ -573,16 +570,18 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// ----------------------
 
 	// Debugging 
-	/*	
+	/*	*/
 	// Show the status of all connected pads
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console->ClearScreen();	
 	LastPad = _numPAD;
 //	Console->ClearScreen();
 	int X = _pPADStatus->stickX - 128, Y = _pPADStatus->stickY - 128;
+	int Xc = _pPADStatus->substickX - 128, Yc = _pPADStatus->substickY - 128;
 	NOTICE_LOG(CONSOLE, 
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
 		"Stick      | X:%03i Y:%03i R:%3.0f\n"
+		"C-Stick    | X:%03i Y:%03i R:%3.0f\n"
 		"Trigger    | StatusL:%04x StatusR:%04x  TriggerL:%04x TriggerR:%04x  TriggerValue:%i\n"
 		"Buttons    | Overall:%i  A:%i X:%i\n"
 		"======================================================\n",
@@ -590,6 +589,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
 
 		X, Y, sqrt((float)(X*X + Y*Y)),
+		Xc, Yc, sqrt((float)(Xc*Xc + Yc*Yc)),
 
 		_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
 
@@ -597,7 +597,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		PadState[_numPAD].buttons[InputCommon::CTL_A_BUTTON],
 		PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
 		);
-	*/
+	
 }
 
 
