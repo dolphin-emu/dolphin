@@ -164,21 +164,8 @@ class WiimotePadConfigDialog : public wxDialog
 		wxBoxSizer	*m_SGH3VertLeft[4],
 					*m_SGH3VertMiddle[4],
 					*m_SGH3VertRight[4],
-					*m_sGH3_Green[4],
-					*m_sGH3_Red[4],
-					*m_sGH3_Yellow[4],
-					*m_sGH3_Blue[4],
-					*m_sGH3_Orange[4],
-					*m_sGH3_Plus[4],
-					*m_sGH3_Minus[4],
-					*m_sGH3_Whammy[4],
-					*m_sGH3_Analog[4],
-					*m_sGH3_ALeft[4],
-					*m_sGH3_ARight[4],
-					*m_sGH3_AUp[4],
-					*m_sGH3_ADown[4],
-					*m_sGH3_StrumUp[4],
-					*m_sGH3_StrumDown[4];
+					*m_sizer_GH3[GH3_CONTROLS][4],
+					*m_sGH3_Analog[4];
 
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
@@ -199,21 +186,8 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_bCcLl[4], *m_bCcLu[4], *m_bCcLr[4], *m_bCcLd[4],
 			*m_bCcRl[4], *m_bCcRu[4], *m_bCcRr[4], *m_bCcRd[4];
 			//GH3
-		wxButton *m_bGH3_Green[4],
-				 *m_bGH3_Red[4],
-				 *m_bGH3_Yellow[4],
-				 *m_bGH3_Blue[4],
-				 *m_bGH3_Orange[4],
-				 *m_bGH3_Plus[4],
-				 *m_bGH3_Minus[4],
-				 *m_bGH3_Whammy[4],
-				 *m_bGH3_Analog[4],
-				 *m_bGH3_ALeft[4],
-				 *m_bGH3_ARight[4],
-				 *m_bGH3_AUp[4],
-				 *m_bGH3_ADown[4],
-				 *m_bGH3_StrumUp[4],
-				 *m_bGH3_StrumDown[4];
+		wxButton *m_Button_GH3[GH3_CONTROLS][4],
+				 *m_bGH3_Analog[4];
 
 		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
@@ -234,21 +208,8 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_tCcRl[4], *m_tCcRu[4], *m_tCcRr[4], *m_tCcRd[4],
 			*m_CcTextLeftStick[4], *m_CcTextRightStick[4], *m_CcTextTriggers[4],
 			// GH3
-			*m_tGH3_Green[4],
-			*m_tGH3_Red[4],
-			*m_tGH3_Yellow[4],
-			*m_tGH3_Blue[4],
-			*m_tGH3_Orange[4],
-			*m_tGH3_Plus[4],
-			*m_tGH3_Minus[4],
-			*m_tGH3_Whammy[4],
-			*m_tGH3_Analog[4],
-			*m_tGH3_ALeft[4],
-			*m_tGH3_ARight[4],
-			*m_tGH3_AUp[4],
-			*m_tGH3_ADown[4],
-			*m_tGH3_StrumUp[4],
-			*m_tGH3_StrumDown[4];
+			*m_statictext_GH3[GH3_CONTROLS][4],
+			*m_tGH3_Analog[4];
 
 		wxButton *ClickedButton;
 		wxString OldLabel;
