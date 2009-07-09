@@ -570,7 +570,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// ----------------------
 
 	// Debugging 
-	/*	*/
+	/*	
 	// Show the status of all connected pads
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console->ClearScreen();	
@@ -597,7 +597,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		PadState[_numPAD].buttons[InputCommon::CTL_A_BUTTON],
 		PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
 		);
-	
+	*/
 }
 
 
