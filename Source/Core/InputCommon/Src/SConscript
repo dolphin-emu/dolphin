@@ -9,6 +9,11 @@ files = [
 	'SDL.cpp',
 	]
 
+if env['HAVE_X11']:
+	files += [
+		"X11InputBase.cpp",
+		]
+
 env_inputcommon = env.Clone()
 env_inputcommon.Append(CXXFLAGS = [ '-fPIC' ])
 env_inputcommon.StaticLibrary(env['local_libs'] + "inputcommon", files)

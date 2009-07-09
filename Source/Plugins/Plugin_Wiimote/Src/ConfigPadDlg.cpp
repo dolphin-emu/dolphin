@@ -142,7 +142,7 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 	g_Pressed = event.GetKeyCode();
 
 	// Handle the keyboard key mapping
-	std::string StrKey;
+	char keyStr[64] = {0};
 	if(ClickedButton != NULL)
 	{
 		// Allow the escape key to set a blank key
@@ -164,15 +164,17 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 					// Use the left and right specific keys instead of the common ones
 					if (i == VK_SHIFT || i == VK_CONTROL || i == VK_MENU) continue;
 					// Update the button label
-					char KeyStr[64] = {0}; strcpy(KeyStr, InputCommon::VKToString(i).c_str());
-					SetButtonText(ClickedButton->GetId(), KeyStr);
+					strcpy(keyStr, InputCommon::VKToString(i).c_str());
+					SetButtonText(ClickedButton->GetId(), keyStr);
 					// Save the setting
 					SaveKeyboardMapping(Page, ClickedButton->GetId(), i);
 				}
 			}
 		#elif defined(HAVE_X11) && HAVE_X11
-			//pad[page].keyForControl[ClickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
-			//ClickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
+			g_Pressed = InputCommon::wxCharCodeWXToX(g_Pressed);
+			InputCommon::XKeyToString(g_Pressed, keyStr);
+			SetButtonText(ClickedButton->GetId(), keyStr);
+			SaveKeyboardMapping(Page, ClickedButton->GetId(), g_Pressed);
 		#endif
 	}
 	ClickedButton = NULL;

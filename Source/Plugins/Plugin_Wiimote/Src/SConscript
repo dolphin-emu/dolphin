@@ -26,6 +26,10 @@ if wmenv['HAVE_WX']:
         "ConfigRecording.cpp",
         "FillReport.cpp",
         ]
+if wmenv['HAVE_X11']:
+	files += [
+		"XInputBase.cpp",
+		]
 
 libs = [ 'common', 'inputcommon' ]
 

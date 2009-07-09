@@ -31,6 +31,14 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
+#if defined(HAVE_X11) && HAVE_X11
+	#include <X11/Xlib.h>
+	#include <X11/Xutil.h>
+	#include <X11/keysym.h>
+	#include <X11/XKBlib.h>
+	#include "X11InputBase.h"
+#endif
+
 #define GH3_CONTROLS 14
 
 class WiimotePadConfigDialog : public wxDialog

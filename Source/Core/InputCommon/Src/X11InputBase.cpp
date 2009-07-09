@@ -1,6 +1,7 @@
 
-#include "XInputBase.h"
-
+#include "X11InputBase.h"
+namespace InputCommon
+{
 // Taken from wxw source code
 KeySym wxCharCodeWXToX(int id)
 {
@@ -126,4 +127,5 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
   default:
     sprintf(keyStr, "%c", toupper(keycode));
   }
+}
 }

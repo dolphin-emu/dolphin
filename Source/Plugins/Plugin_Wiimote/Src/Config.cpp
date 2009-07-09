@@ -26,18 +26,6 @@
 #include "EmuDefinitions.h" // for PadMapping
 #include "main.h"
 
-// TODO: Figure out what to do for non-Win32
-#ifndef _WIN32
-#define VK_LEFT 0
-#define VK_RIGHT 0
-#define VK_UP 0
-#define VK_DOWN 0
-#define VK_NUMPAD4 0
-#define VK_NUMPAD6 0
-#define VK_NUMPAD8 0
-#define VK_NUMPAD5 0
-#endif
-
 Config g_Config;
 
 Config::Config()

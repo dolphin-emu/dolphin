@@ -199,12 +199,15 @@ static int wmDefaultControls[] =
 	VK_LEFT, // Regular directional keys
 	VK_RIGHT,
 	VK_UP,
-	VK_DOWN, 
+	VK_DOWN,
+#else
+	0,0,0,0,
 #endif
 	83, // WmShake (S)
 	51, // WmPitchL (3)
 	52, // WmPitchR (4)
 };
+
 static int nCDefaultControls[] =
 {
 	90, // NcZ Z
@@ -214,6 +217,8 @@ static int nCDefaultControls[] =
 	VK_NUMPAD6, // NcR
 	VK_NUMPAD8, // NcU
 	VK_NUMPAD5, // NcD
+#else
+	0,0,0,0,
 #endif
 	68, // NcShake D
 };
@@ -236,6 +241,8 @@ static int ccDefaultControls[] =
 	VK_NUMPAD8, // CcDu
 	VK_NUMPAD6, // CcDr
 	VK_NUMPAD5, // CcDd
+#else
+	0,0,0,0,
 #endif
 	0x4a, // CcLl J
 	0x49, // CcLu I

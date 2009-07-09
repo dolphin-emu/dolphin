@@ -106,7 +106,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 #ifdef _WIN32
 	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
 #elif defined(HAVE_X11) && HAVE_X11
-	XKeyToString(pad[controller].keyForControl[ctl], keyStr);
+	InputCommon::XKeyToString(pad[controller].keyForControl[ctl], keyStr);
 #endif
 
 	// Add the button to its sizer
@@ -355,9 +355,9 @@ void PADConfigDialogSimple::OnKeyDown(wxKeyEvent& event)
 			}
 		}
 #elif defined(HAVE_X11) && HAVE_X11
-		pad[page].keyForControl[ClickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
+		pad[page].keyForControl[ClickedButton->GetId()] = InputCommon::wxCharCodeWXToX(event.GetKeyCode());
 
-                XKeyToString(pad[page].keyForControl[ClickedButton->GetId()], keyStr);
+		InputCommon::XKeyToString(pad[page].keyForControl[ClickedButton->GetId()], keyStr);
 		ClickedButton->SetLabel(wxString::FromAscii(keyStr));
 #endif
 		ClickedButton->Disconnect();

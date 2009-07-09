@@ -199,6 +199,17 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 			m_Button_GH3[x][controller]->SetLabel(wxString::FromAscii(
 			InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[x]).c_str()));
 	}
+#else
+	 if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	{
+		//TODO: fix this and add for all key settings
+		for (int x = 0; x < GH3_CONTROLS; x++)
+		{
+			char keyStr[10] = {0};
+			//InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[x], keyStr);
+			m_Button_GH3[x][controller]->SetLabel(wxString::FromAscii(keyStr));
+		}
+	}
 #endif
 
 	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0], InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0]).c_str());
