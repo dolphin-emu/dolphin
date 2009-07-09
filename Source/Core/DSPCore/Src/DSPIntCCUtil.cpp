@@ -134,7 +134,7 @@ bool CheckCondition(u8 _Condition)
 	case 0xf: // Empty - always true.
 		return true;
 	default:
-		ERROR_LOG(DSPLLE, "Unknown condition check: 0x%04x\n", _Condition & 0xf);
+		ERROR_LOG(DSPLLE, "Unknown condition check: 0x%04x", _Condition & 0xf);
 		return false;
 	}
 }

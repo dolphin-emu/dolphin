@@ -221,7 +221,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 			// Sanity check
 			if (hex > last_addr + 3 || hex < last_addr - 3) {
 				static int errors = 0;
-				ERROR_LOG(DSPLLE, "Got Insane Hex Digit %04x (%04x) from %s", hex, last_addr, line);
+				ERROR_INFO(DSPLLE, "Got Insane Hex Digit %04x (%04x) from %s", hex, last_addr, line);
 				errors++;
 				if (errors > 10)
 				{

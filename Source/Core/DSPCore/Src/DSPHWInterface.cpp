@@ -159,7 +159,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    break;
 
 		case 0xd3:   // ZeldaUnk (accelerator WRITE)
-		   	INFO_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)\n", g_dsp.pc, val);
+		   	INFO_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)", g_dsp.pc, val);
 			dsp_write_aram_d3(val);
 			break;
 
@@ -244,18 +244,18 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	
-	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
+	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	DSPAnalyzer::Analyze();
 	// This calls the reset functions, but it get some games stuck
 	// uncomment it to help with debugging
-	//	DSPCore_SetException(EXP_RESET);
+	DSPCore_SetException(EXP_RESET);
 }
 
 
 void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
+	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
 }
 
 
@@ -264,7 +264,7 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
-		ERROR_LOG(DSPLLE, "*** ddma_in read from invalid addr (0x%08x)\n", addr);
+		ERROR_LOG(DSPLLE, "*** ddma_in read from invalid addr (0x%08x)", addr);
 		return;
 	}
 
@@ -275,7 +275,7 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
 	}
 
-	INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)\n", addr, dsp_addr / 2, size);
+	INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr, dsp_addr / 2, size);
 }
 
 
@@ -283,7 +283,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
 	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
 	{
-		ERROR_LOG(DSPLLE, "*** gdsp_ddma_out to invalid addr (0x%08x)\n", addr);
+		ERROR_LOG(DSPLLE, "*** gdsp_ddma_out to invalid addr (0x%08x)", addr);
 		return;
 	}
 
@@ -294,7 +294,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] = Common::swap16(*(const u16*)&src[dsp_addr + i]);
 	}
 
-	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)\n", dsp_addr / 2, addr, size);
+	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
 }
 
 void gdsp_do_dma()
@@ -311,7 +311,7 @@ void gdsp_do_dma()
 
 	if ((ctl > 3) || (len > 0x4000))
 	{
-		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x\n", g_dsp.pc, ctl, addr, dsp_addr, len);
+		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
 
