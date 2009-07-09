@@ -859,7 +859,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		#endif
 		m_Joyattach[i]->SetToolTip(wxString::Format(wxT("Decide if Controller %i shall be detected by the game."), i + 1));
 
-		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller:"));
+		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller"));
 		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
 		m_gJoyname[i]->Add(m_Joyattach[i], 0, (wxRIGHT | wxLEFT | wxBOTTOM), 1);
 
@@ -901,7 +901,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_TriggerType[i] = new wxComboBox(m_Controller[i], IDC_TRIGGERTYPE, wxAS_TriggerType[0], wxDefaultPosition, wxDefaultSize, wxAS_TriggerType, wxCB_READONLY);
 
 		// Populate general settings 2 (controller typ)
-		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Trigger"));
+		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-pad and trigger"));
 		m_gGBGenSettings[i] = new wxGridBagSizer(0, 0);
 		m_gGBGenSettings[i]->Add(m_TSControltype[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
 		m_gGBGenSettings[i]->Add(m_ControlType[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM | wxLEFT), 2);
@@ -923,7 +923,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], IDC_ENABLERUMBLE, wxT("Enable Rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 		// Populate general settings 4
-		m_gRumble[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Rumble Settings"));
+		m_gRumble[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Rumble settings"));
 		m_gGBRumble[i] = new wxGridBagSizer(0, 0);
 		m_gGBRumble[i]->Add(m_Rumble[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 1);
 		m_gGBRumble[i]->Add(m_RStrength[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 6);
