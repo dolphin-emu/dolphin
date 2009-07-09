@@ -1,4 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////////
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: nJoy
@@ -7,8 +6,6 @@
 // Author: Falcon4ever (nJoy@falcon4ever.com)
 // Site: www.multigesture.net
 // Copyright (C) 2003-2009 Dolphin Project.
-//
-//////////////////////////////////////////////////////////////////////////////////////////
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -27,12 +24,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ¯¯¯¯¯¯¯¯¯
 #include "math.h" // System
 
 #include "ConfigBox.h" // Local
@@ -54,12 +46,9 @@ static const char* TriggerType[] =
 	"SDL", // -0x8000 to 0x7fff
 	"XInput", // 0x00 to 0xff
 };
-////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // The wxWidgets class
-// ¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_CLOSE(PADConfigDialognJoy::OnClose)
 	EVT_BUTTON(ID_ABOUT, PADConfigDialognJoy::AboutClick)
@@ -174,7 +163,6 @@ void PADConfigDialognJoy::OnKeyDown(wxKeyEvent& event)
 }
 
 // Close window
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 {
 	// Allow wxWidgets to close the window
@@ -188,7 +176,6 @@ void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 }
 
 // Call about dialog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::AboutClick(wxCommandEvent& event)
 {
 	#ifdef _WIN32
@@ -208,7 +195,6 @@ void PADConfigDialognJoy::AboutClick(wxCommandEvent& event)
 }
 
 // Click OK
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::OKClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_OK)
@@ -220,7 +206,6 @@ void PADConfigDialognJoy::OKClick(wxCommandEvent& event)
 }
 
 // Click Cancel
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::CancelClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_CANCEL)
@@ -232,7 +217,6 @@ void PADConfigDialognJoy::CancelClick(wxCommandEvent& event)
 }
 
 // Debugging
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::LogMsg(const char* format, ...)
 {
 	#ifdef _WIN32
@@ -255,9 +239,9 @@ void PADConfigDialognJoy::LogMsg(const char* format, ...)
 }
 
 
-//////////////////////////////////////
+
 // Save Settings
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/*
 
    Saving is currently done when:
 
@@ -295,7 +279,6 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 }
 
 // On changing the SaveById option we update all pages
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::OnSaveById()
 {
 	// Save current settings
@@ -310,7 +293,6 @@ void PADConfigDialognJoy::OnSaveById()
 }
 
 // Change Joystick
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
    and PadState array. PadState[].joy is the gamepad handle that is used to access the pad throughout
    the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
@@ -347,7 +329,6 @@ void PADConfigDialognJoy::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 }
 
 // Notebook page changed
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 {	
 	// Save current settings now, don't wait for OK
@@ -361,7 +342,6 @@ void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::ToBlank(bool ToBlank)
 {
 	if (!ControlsCreated) return;
@@ -384,12 +364,9 @@ void PADConfigDialognJoy::ToBlank(bool ToBlank)
 		}
 	}	
 }
-//////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
 // Change settings
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::SetButtonTextAll(int id, const char *text)
 {
 	for (int i = 0; i < 4; i++)
@@ -519,12 +496,9 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 	if(g_Config.bSaveByID) SaveButtonMappingAll(notebookpage);
 	if(g_Config.bSaveByID) UpdateGUIAll(notebookpage);
 }
-///////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
 // Update GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Called from: CreateGUIControls(), ChangeControllertype()
 void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 {
@@ -614,11 +588,9 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 	 // Repaint the background
 	m_Controller[_notebookpage]->Refresh();
 }
-///////////////////////////////
 
 
 // Paint the background
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 {
 	event.Skip();
@@ -632,7 +604,6 @@ void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 }
 
 // Populate the config window
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PADConfigDialognJoy::CreateGUIControls()
 {
 	INFO_LOG(CONSOLE, "CreateGUIControls()\n");
@@ -684,9 +655,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 	WxImageGray = WxImageGray.ConvertToGreyscale();
 	WxStaticBitmap1_BITMAPGray = wxBitmap(WxImageGray);
 
-	// --------------------------------------------------------------------
 	// Search for devices and add them to the device list
-	// -----------------------------
 	wxArrayString arrayStringFor_Joyname; // The string array
 	if(NumGoodPads > 0)
 	{
@@ -700,9 +669,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		arrayStringFor_Joyname.Add(wxString::FromAscii("<No Gamepad Detected>"));
 	}
 
-	// --------------------------------------------------------------------
 	// Populate the DPad type and Trigger type list
-	// -----------------------------
 	wxArrayString wxAS_DPadType;
 	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_HAT]));
 	wxAS_DPadType.Add(wxString::FromAscii(DPadType[InputCommon::CTL_DPAD_CUSTOM]));
@@ -711,9 +678,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_SDL]));
 	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[InputCommon::CTL_TRIGGER_XINPUT]));
 	
-	// --------------------------------------------------------------------
 	// Populate the deadzone list and the Rumble Strength
-	// -----------------------------
 
 	char buffer[8];
 
@@ -734,9 +699,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 	// Populate all four pages
 	for(int i = 0; i < 4; i++)
 	{
-		// --------------------------------------------------------------------
 		// Populate keys sizer
-		// -----------------------------
 		// Set relative values for the keys
 		int t = -75; // Top
 		int l = -4; // Left
@@ -745,9 +708,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		//m_sKeys[i] = new wxStaticBox (m_Controller[i], IDG_JOYSTICK, wxT("Keys"), wxDefaultPosition, wxSize(608, 500));
 		m_sKeys[i]->Add(m_pKeys[i], 0, (wxALL), 0); // margin = 0
 
-		// --------------------------------------------------------------------
 		// GameCube controller picture
-		// -----------------------------
 		// TODO: Controller image
 		// Placeholder instead of bitmap
 		// m_PlaceholderBMP[i] = new wxTextCtrl(m_Controller[i], ID_CONTROLLERPICTURE, wxT("BITMAP HERE PLZ KTHX!"), wxPoint(98, 75), wxSize(423, 306), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("BITMAP HERE PLZ KTHX!"));
@@ -765,9 +726,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 			(wxObject*)0, this);
 
 
-		// --------------------------------------------------------------------
 		// Keys objects
-		// -----------------------------
 		// Left and right shoulder buttons
 		m_JoyShoulderL[i] = new wxTextCtrl(m_pKeys[i], ID_SHOULDER_L, wxT("0"), wxPoint(l + 6, t + 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyShoulderL[i]->Enable(false);
@@ -775,7 +734,6 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_JoyShoulderR[i] = new wxTextCtrl(m_pKeys[i], ID_SHOULDER_R, wxT("0"), wxPoint(l + 552, t + 106), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyShoulderR[i]->Enable(false);
 		m_bJoyShoulderR[i] = new wxButton(m_pKeys[i], IDB_SHOULDER_R, wxEmptyString, wxPoint(l + 526, t + 108), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		
 		// Left analog
 		int ALt = 169; int ALw = ALt + 14; int ALb = ALw + 2; // Set offset
 		m_JoyAnalogMainX[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_MAIN_X, wxT("0"), wxPoint(l + 6, t + ALw), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -846,9 +804,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		#endif
 
 
-		// --------------------------------------------------------------------
 		// Populate Controller sizer
-		// -----------------------------
 		// Groups
 		#ifdef _WIN32
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(476, 21), arrayStringFor_Joyname, wxCB_READONLY);
@@ -866,9 +822,8 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 
 
-		////////////////////////////////////////////
+
 		// General settings
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 		// General settings 1
 		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxDefaultPosition, wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -950,14 +905,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_sSettings[i]->Add(m_gGenSettingsID[i], 0, wxEXPAND | wxLEFT, 5);
 		m_sSettings[i]->Add(m_gRumble[i], 0, wxEXPAND | wxLEFT, 5);
 
-		// -------------------------
-
-		//////////////////////////// General settings
-
-
-		////////////////////////////////////////////
 		// Advanced settings
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 		// Input status controls
 		
@@ -1001,7 +949,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// The checkbox
 		m_CBRadius[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_CB_RADIUS, wxT("Radius"));
 		m_CBRadiusC[i] = new wxCheckBox(m_Controller[i], IDCB_CSTICK_CB_RADIUS, wxT("Radius"));
-		wxString CBRadiusToolTip = "This will reduce the stick radius.";
+		wxString CBRadiusToolTip = wxT("This will reduce the stick radius.");
 		m_CBRadius[i]->SetToolTip(CBRadiusToolTip);
 		m_CBRadiusC[i]->SetToolTip(CBRadiusToolTip);
 
@@ -1022,9 +970,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Diagonal"));
 		m_CBS_to_CC[i] = new wxCheckBox(m_Controller[i], IDCB_CSTICK_S_TO_C, wxT("Diagonal"));
 		wxString CBS_to_CToolTip = 
-			"This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce."
+			wxT("This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce."
 			" To produce a smooth circle in the 'Out' window you have to manually set"
-			" your diagonal values from the 'In' window in the drop down menu.";
+				" your diagonal values from the 'In' window in the drop down menu.");
 		m_CBS_to_C[i]->SetToolTip(CBS_to_CToolTip);
 		m_CBS_to_CC[i]->SetToolTip(CBS_to_CToolTip);
 
@@ -1063,24 +1011,17 @@ void PADConfigDialognJoy::CreateGUIControls()
 			"This will allow you to map a digital axis to the main stick or the C-stick. If you don't have"
 			" any analog triggers that will be automatically set when the trigger filter is off."
 			));
-		////////////////////////// Advanced settings		
 		
 
-		//////////////////////////////////////
 		// Populate sizers
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-		// --------------------------------------------------------------------
 		// Populate main left sizer
-		// -----------------------------
 		m_sMainLeft[i] = new wxBoxSizer(wxVERTICAL);
 		m_sMainLeft[i]->Add(m_gJoyname[i], 0, wxEXPAND | (wxALL), 5);
 		m_sMainLeft[i]->Add(m_sKeys[i], 1, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 		m_sMainLeft[i]->Add(m_sSettings[i], 0, wxEXPAND | (wxALL), 5);
 
-		// --------------------------------------------------------------------
 		// Populate main right sizer
-		// -----------------------------
 		m_sMainRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
 		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);	
@@ -1092,9 +1033,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_sMainRight[i]->Add(m_SizeRecording[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 #endif
 
-		// --------------------------------------------------------------------
 		// Populate main sizer
-		// -----------------------------
 		m_sMain[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_sMain[i]->Add(m_sMainLeft[i], 0, wxEXPAND | (wxALL), 0);
 		m_sMain[i]->Add(m_sMainRight[i], 0, wxEXPAND | (wxRIGHT | wxTOP), 5);
@@ -1116,9 +1055,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 	} // end of loop
 
 
-	// --------------------------------------------------------------------
 	// Populate buttons sizer.
-	// -----------------------------
 	wxBoxSizer * m_sButtons = new wxBoxSizer(wxHORIZONTAL);
 	m_sButtons->Add(m_About, 0, (wxBOTTOM), 0);
 	m_sButtons->AddStretchSpacer(1);
@@ -1126,17 +1063,13 @@ void PADConfigDialognJoy::CreateGUIControls()
 	m_sButtons->Add(m_Cancel, 0, wxALIGN_RIGHT | (wxLEFT), 5);
 
 
-	// --------------------------------------------------------------------
 	// Populate master sizer.
-	// -----------------------------
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_MainSizer->Add(m_Notebook, 0, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(m_sButtons, 1, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);
 	this->SetSizer(m_MainSizer);
 
-	// --------------------------------------------------------------------
 	// Debugging
-	// -----------------------------
 	#ifdef SHOW_PAD_STATUS
 		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	#endif
@@ -1149,9 +1082,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 	m_LogSizer->Add(m_TCDebugging, 0, wxEXPAND | (wxALL), 0);
 	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);*/
 
-	// --------------------------------------------------------------------
 	// Set window size
-	// -----------------------------
 	SizeWindow();
 	Center();
 
