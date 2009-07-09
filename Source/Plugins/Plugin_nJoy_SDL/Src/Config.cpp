@@ -174,8 +174,10 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "eventnum", PadMapping[i].eventnum);
 		file.Set(SectionName.c_str(), "use_rumble", PadMapping[i].rumble);
 
+		file.Set(SectionName.c_str(), "Radius", PadMapping[i].SRadius);
+		file.Set(SectionName.c_str(), "RadiusOnOff", PadMapping[i].bRadiusOnOff);	
 		file.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
-		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);			
+		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);		
 		// ======================================
 
 		// Debugging
@@ -268,6 +270,8 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		file.Get(SectionName.c_str(), "eventnum", &PadMapping[i].eventnum, 0);
 		file.Get(SectionName.c_str(), "use_rumble", &PadMapping[i].rumble, false);
 
+		file.Get(SectionName.c_str(), "Radius", &PadMapping[i].SRadius, "100%");
+		file.Get(SectionName.c_str(), "RadiusOnOff", &Tmp, false); PadMapping[i].bRadiusOnOff = Tmp;
 		file.Get(SectionName.c_str(), "Diagonal", &PadMapping[i].SDiagonal, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); PadMapping[i].bSquareToCircle = Tmp;
 		// =============================

@@ -205,9 +205,10 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 
 #ifdef SHOW_PAD_STATUS
 	// Show the status of all connected pads
-	//if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console::ClearScreen();	
+	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	//if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console->ClearScreen();	
 	g_LastPad = Controller;
-	DEBUG_LOG(CONSOLE, 
+	NOTICE_LOG(CONSOLE, 
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
 		"Main Stick | X:%03i  Y:%03i\n"
 		"C Stick    | X:%03i  Y:%03i\n"

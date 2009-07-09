@@ -85,6 +85,8 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_COMBOBOX(IDC_RUMBLESTRENGTH, PADConfigDialognJoy::ChangeSettings)
 
 	// Advanced settings
+	EVT_COMBOBOX(IDCB_MAINSTICK_RADIUS, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDCB_MAINSTICK_CB_RADIUS, PADConfigDialognJoy::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, PADConfigDialognJoy::ChangeSettings)
@@ -581,13 +583,24 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_RADIUS)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_CB_RADIUS)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDCB_FILTER_SETTINGS)->Enable(Enabled);
 	#endif
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
 	ToBlank();
+
+	// Advanced settings
+	if (g_Config.bShowAdvanced)
+	{
+		if (PadMapping[_notebookpage].bRadiusOnOff) m_CoBRadius[_notebookpage]->Enable(true);
+			else m_CoBRadius[_notebookpage]->Enable(false);
+		if (PadMapping[_notebookpage].bSquareToCircle) m_CoBDiagonal[_notebookpage]->Enable(true);
+			else m_CoBDiagonal[_notebookpage]->Enable(false);
+	}
 
 	 // Repaint the background
 	m_Controller[_notebookpage]->Refresh();
@@ -953,34 +966,49 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 		// Populate input status settings
 
-		// The label
-		m_STDiagonal[i] = new wxStaticText(m_Controller[i], IDT_MAINSTICK_DIAGONAL, wxT("Diagonal"));
-		m_STDiagonal[i]->SetToolTip(wxT(
-			"To produce a smooth circle in the 'Out' window you have to manually set"
-			"\nyour diagonal values here from the 'In' window."
-			));
-
 		// The drop down menu
 		m_gStatusInSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Main-stick settings"));
+		m_gStatusInSettingsRadiusH[i] = new wxBoxSizer(wxHORIZONTAL);
+		wxArrayString asRadius;
+			asRadius.Add(wxT("100%"));
+			asRadius.Add(wxT("90%"));
+			asRadius.Add(wxT("80%"));
+			asRadius.Add(wxT("70%"));
+			asRadius.Add(wxT("60%"));
+			asRadius.Add(wxT("50%"));
+		m_CoBRadius[i] = new wxComboBox(m_Controller[i], IDCB_MAINSTICK_RADIUS, asRadius[0], wxDefaultPosition, wxDefaultSize, asRadius, wxCB_READONLY);
+
+		// The checkbox
+		m_CBRadius[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_CB_RADIUS, wxT("Radius"));
+		m_CBRadius[i]->SetToolTip(wxT(
+			"This will reduce the stick radius."
+			));
+
+		// The drop down menu);
 		m_gStatusInSettingsH[i] = new wxBoxSizer(wxHORIZONTAL);
 		wxArrayString asStatusInSet;
 			asStatusInSet.Add(wxT("100%"));
 			asStatusInSet.Add(wxT("95%"));
 			asStatusInSet.Add(wxT("90%"));
 			asStatusInSet.Add(wxT("85%"));
+			asStatusInSet.Add(wxT("80%"));
+			asStatusInSet.Add(wxT("75%"));
 		m_CoBDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_MAINSTICK_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxDefaultSize, asStatusInSet, wxCB_READONLY);
 
 		// The checkbox
-		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Square-to-circle"));
+		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Diagonal"));
 		m_CBS_to_C[i]->SetToolTip(wxT(
-			"This will convert a square stick radius to a circle stick radius like the one that the actual GameCube pad produce."
-			" That is also the input the games expect to see."
+			"This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce."
+			" To produce a smooth circle in the 'Out' window you have to manually set"
+			" your diagonal values from the 'In' window in the drop down menu."
 			));
 
-		m_gStatusInSettings[i]->Add(m_CBS_to_C[i], 0, (wxALL), 4);
+		m_gStatusInSettings[i]->Add(m_gStatusInSettingsRadiusH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);
 		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
 
-		m_gStatusInSettingsH[i]->Add(m_STDiagonal[i], 0, wxTOP, 3);
+		m_gStatusInSettingsRadiusH[i]->Add(m_CBRadius[i], 0, wxLEFT | wxTOP, 3);
+		m_gStatusInSettingsRadiusH[i]->Add(m_CoBRadius[i], 0, wxLEFT, 3);
+		m_gStatusInSettingsH[i]->Add(m_CBS_to_C[i], 0, wxLEFT | wxTOP, 3);
 		m_gStatusInSettingsH[i]->Add(m_CoBDiagonal[i], 0, wxLEFT, 3);
 
 		// The trigger values

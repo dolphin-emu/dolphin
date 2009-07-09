@@ -451,6 +451,15 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		i_main_stick_x = main_xy.at(0);
 		i_main_stick_y = main_xy.at(1);
 	}
+	// Radius adjustment
+	if (PadMapping[_numPAD].bRadiusOnOff)
+	{
+		// Get the manually configured diagonal distance
+		int Tmp = atoi (PadMapping[_numPAD].SRadius.substr(0, PadMapping[_numPAD].SRadius.length() - 1).c_str());
+		float Radius = Tmp / 100.0f;
+		i_main_stick_x = (int)((float)i_main_stick_x * Radius);
+		i_main_stick_y = (int)((float)i_main_stick_y * Radius);
+	}
 
 	// Convert axis values
 	u8 main_stick_x = InputCommon::Pad_Convert(i_main_stick_x);
@@ -570,18 +579,23 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// ----------------------
 
 	// Debugging 
-	/*
+	/*	
 	// Show the status of all connected pads
-//	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console::ClearScreen();	
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console->ClearScreen();	
 	LastPad = _numPAD;
-//	Console::ClearScreen();
-	INFO_LOG(CONSOLE, 
+//	Console->ClearScreen();
+	int X = _pPADStatus->stickX - 128, Y = _pPADStatus->stickY - 128;
+	NOTICE_LOG(CONSOLE, 
 		"Pad        | Number:%i Enabled:%i Handle:%i\n"
+		"Stick      | X:%03i Y:%03i R:%3.0f\n"
 		"Trigger    | StatusL:%04x StatusR:%04x  TriggerL:%04x TriggerR:%04x  TriggerValue:%i\n"
 		"Buttons    | Overall:%i  A:%i X:%i\n"
 		"======================================================\n",
 
 		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
+
+		X, Y, sqrt((float)(X*X + Y*Y)),
 
 		_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
 

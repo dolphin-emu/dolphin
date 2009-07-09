@@ -117,9 +117,10 @@ class PADConfigDialognJoy : public wxDialog
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4], *m_gStatusAdvancedSettings[4]; // Advanced settings
-		wxBoxSizer *m_gStatusInSettingsH[4];
+		wxBoxSizer *m_gStatusInSettingsH[4], *m_gStatusInSettingsRadiusH[4];
 		wxGridBagSizer *m_GBAdvancedMainStick[4];
-		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_STDiagonal[4];
+		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4];
+		wxComboBox *m_CoBRadius[4]; wxCheckBox *m_CBRadius[4];
 		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
 		wxCheckBox *m_CBCheckFocus[4], *m_AdvancedMapFilter[4];
 		
@@ -232,7 +233,7 @@ class PADConfigDialognJoy : public wxDialog
 			IDT_STATUS_IN, IDT_STATUS_OUT,
 
 			// Advaced settings
-			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
+			IDCB_MAINSTICK_RADIUS, IDCB_MAINSTICK_CB_RADIUS, IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
 #ifdef RERECORDING
 			ID_RECORDING, ID_PLAYBACK, ID_SAVE_RECORDING,
 #endif

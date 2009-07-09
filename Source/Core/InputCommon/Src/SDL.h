@@ -90,8 +90,8 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int ID;					// SDL joystick device ID
 	int controllertype;		// Hat: Hat or custom buttons
 	int triggertype;		// Triggers range
-	std::string SDiagonal;
-	bool bSquareToCircle;
+	std::string SRadius, SDiagonal;
+	bool bRadiusOnOff, bSquareToCircle;
 	bool rumble;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };

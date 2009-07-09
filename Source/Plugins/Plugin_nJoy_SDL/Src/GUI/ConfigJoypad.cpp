@@ -77,6 +77,8 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 	m_ControlType[controller]->SetSelection(PadMapping[controller].controllertype);
 	m_TriggerType[controller]->SetSelection(PadMapping[controller].triggertype);
 	m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
+	m_CoBRadius[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SRadius.c_str()));
+	m_CBRadius[controller]->SetValue(PadMapping[controller].bRadiusOnOff);
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
 	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
@@ -123,6 +125,8 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 	PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
+	PadMapping[controller].SRadius = m_CoBRadius[FromSlot]->GetLabel().mb_str();
+	PadMapping[controller].bRadiusOnOff = m_CBRadius[FromSlot]->IsChecked();
 	PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
 	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();
 

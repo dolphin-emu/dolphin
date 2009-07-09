@@ -92,6 +92,15 @@ void PADConfigDialognJoy::PadGetStatus()
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
 	}
+	// Adjust radius
+	if(PadMapping[notebookpage].bRadiusOnOff)
+	{
+		// Get the manually configured diagonal distance
+		int Tmp = atoi (PadMapping[notebookpage].SRadius.substr(0, PadMapping[notebookpage].SRadius.length() - 1).c_str());
+		float Radius = Tmp / 100.0f;
+		main_x_after = (int)((float)main_x_after * Radius);
+		main_y_after = (int)((float)main_y_after * Radius);
+	}
 
 	// 
 	float f_x = main_x / 32767.0;
