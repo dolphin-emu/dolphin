@@ -18,6 +18,11 @@
 #include "Setup.h"
 #include "Thread.h"
 #include "Log.h"
+
+#ifdef USE_BEGINTHREADEX
+#include <process.h>
+#endif
+
 #ifdef SETUP_TIMER_WAITING
 	#include <windows.h>
 	#include "ConsoleWindow.h"
@@ -68,13 +73,11 @@ void CriticalSection::Leave()
 Thread::Thread(ThreadFunc function, void* arg)
 	: m_hThread(NULL), m_threadId(0)
 {
-	m_hThread = CreateThread(
-			0, // Security attributes
-			0, // Stack size
-			function,
-			arg,
-			0,
-			&m_threadId);
+#ifdef USE_BEGINTHREADEX
+	m_hThread = (HANDLE)_beginthreadex(NULL, 0, function, arg, 0, &m_threadId);
+#else
+	m_hThread = CreateThread(NULL, 0, function, arg, 0, &m_threadId);
+#endif
 }
 
 Thread::~Thread()

@@ -94,7 +94,7 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 }
 
 // The audio thread.
-DWORD WINAPI soundThread(void* args)
+THREAD_RETURN soundThread(void* args)
 {
 	(reinterpret_cast<DSound *>(args))->SoundLoop();
 	return 0;

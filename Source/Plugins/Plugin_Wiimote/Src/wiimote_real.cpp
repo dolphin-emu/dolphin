@@ -44,11 +44,7 @@ namespace WiiMoteReal
 
 class CWiiMote;
 
-#ifdef _WIN32
-	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg);
-#else
-	void* ReadWiimote_ThreadFunc(void* arg);
-#endif
+THREAD_RETURN ReadWiimote_ThreadFunc(void* arg);
 
 // Variable declarations
 
@@ -433,11 +429,7 @@ void Update()
    occurs in Update(). If we are not currently using the real Wiimote we allow
    the separate ReadWiimote() function to run. Wo don't use them at the same
    time to avoid a potential collision. */
-#ifdef _WIN32
-	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg)
-#else
-	void *ReadWiimote_ThreadFunc(void* arg)
-#endif
+THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 {
 	while (!g_Shutdown)
 	{

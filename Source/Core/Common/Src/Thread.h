@@ -19,9 +19,23 @@
 #define _THREAD_H_
 
 #ifdef _WIN32
+
+#if defined(_MSC_VER) && defined(_MT)
+// When linking with LIBCMT (the multithreaded C library), Microsoft recommends
+// using _beginthreadex instead of CreateThread.
+#define USE_BEGINTHREADEX
+#endif
+
 #include <windows.h>
-#define THREAD_RETURN DWORD WINAPI
+
+#ifdef USE_BEGINTHREADEX
+#define THREAD_RETURN unsigned __stdcall
 #else
+#define THREAD_RETURN DWORD WINAPI
+#endif
+
+#else
+
 #define THREAD_RETURN void*
 #include <unistd.h>
 #ifdef _POSIX_THREADS
@@ -31,6 +45,7 @@
 #else
 #error unsupported platform (no pthreads?)
 #endif
+
 #endif
 
 // Don't include common.h here as it will break LogManager
@@ -75,9 +90,17 @@ public:
 };
 
 #ifdef _WIN32
-typedef DWORD (WINAPI * ThreadFunc)(void* arg);
+
+#ifdef USE_BEGINTHREADEX
+typedef unsigned (__stdcall *ThreadFunc)(void* arg);
 #else
+typedef DWORD (WINAPI *ThreadFunc)(void* arg);
+#endif
+
+#else
+
 typedef void* (*ThreadFunc)(void* arg);
+
 #endif
 
 class Thread
@@ -97,12 +120,20 @@ public:
 private:
 
 #ifdef _WIN32
+
 	HANDLE m_hThread;
-	DWORD m_threadId;
+#ifdef USE_BEGINTHREADEX
+	unsigned m_threadId;
 #else
+	DWORD m_threadId;
+#endif
+
+#else
+
 #ifdef _POSIX_THREADS
 	pthread_t thread_id;
 #endif
+
 #endif
 };
 
@@ -137,6 +168,7 @@ public:
 
 private:
 #ifdef _WIN32
+
 	HANDLE m_hEvent;
 	/* If we have waited more than five seconds we can be pretty sure that the thread is deadlocked.
 	   So then we can just as well continue and hope for the best. I could try several times that
@@ -144,12 +176,15 @@ private:
 	   start another game without any noticable problems). But several times it failed to, and ended
 	   with a crash. But it's better than an infinite deadlock. */
 	static const int THREAD_WAIT_TIMEOUT = 5000; // INFINITE or 5000 for example
+
 #else
+
 	bool is_set_;
 #ifdef _POSIX_THREADS
 	pthread_cond_t event_;
 	pthread_mutex_t mutex_;
 #endif
+
 #endif
 };
 
