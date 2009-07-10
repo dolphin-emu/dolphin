@@ -18,7 +18,11 @@
 #ifndef _PLUGIN_WIIMOTE_CONFIG_H
 #define _PLUGIN_WIIMOTE_CONFIG_H
 
-#define GH3_CONTROLS 14 
+#define WM_CONTROLS 14
+#define NC_CONTROLS 7
+#define CC_CONTROLS 23
+#define GH3_CONTROLS 14
+
 enum
 {
 	EXT_NONE = 0,
@@ -113,7 +117,7 @@ struct Config
 
 // Ini Control Names
 // Do not change the order unless you change the related arrays
-static const char* wmControlNames[] = // 14
+static const char* wmControlNames[] =
 { 
 	"WmA",
 	"WmB",
@@ -130,7 +134,7 @@ static const char* wmControlNames[] = // 14
 	"WmPitchL",
 	"WmPitchR",
  };
-static const char* ncControlNames[] = // 7
+static const char* ncControlNames[] =
 {
 	"NcZ",
 	"NcC",
@@ -141,7 +145,7 @@ static const char* ncControlNames[] = // 7
 	"NcShake",
 };
 
-static const char* ccControlNames[] = // 23 
+static const char* ccControlNames[] =
 {
 	"CcA",
 	"CcB",

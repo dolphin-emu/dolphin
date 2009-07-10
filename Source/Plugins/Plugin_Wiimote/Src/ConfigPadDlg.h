@@ -30,6 +30,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
+#include "Config.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 	#include <X11/Xlib.h>
@@ -38,8 +39,6 @@
 	#include <X11/XKBlib.h>
 	#include "X11InputBase.h"
 #endif
-
-#define GH3_CONTROLS 14
 
 class WiimotePadConfigDialog : public wxDialog
 {
@@ -107,73 +106,26 @@ class WiimotePadConfigDialog : public wxDialog
 					*m_SizeAnalogRightHorizY[4],
 					*m_SizeAnalogTriggerVertLeft[4],
 					*m_SizeAnalogTriggerVertRight[4],
-					*m_SizeAnalogTriggerHorizInput[4];
+					*m_SizeAnalogTriggerHorizInput[4],
 
-					// Nunchuck
-		wxBoxSizer  *m_SNcShake[4],
-					*m_SNcZ[4],
-					*m_SNcC[4],
-					*m_SNcL[4],
-					*m_SNcR[4],
-					*m_SNcU[4],
-					*m_SNcD[4];
-
-					// Wiimote
-		wxBoxSizer	*m_SWmVertLeft[4],
-					*m_SWmVertRight[4],
-					*m_SWmShake[4],
-					*m_SWmPitchL[4],
-					*m_SWmPitchR[4],
-					*m_SWmA[4],
-					*m_SWmB[4],
-					*m_SWm1[4],
-					*m_SWm2[4],
-					*m_SWmP[4],
-					*m_SWmM[4],
-					*m_SWmH[4],
-					*m_SWmL[4],
-					*m_SWmR[4],
-					*m_SWmU[4],
-					*m_SWmD[4],					
 					*m_HorizControllerMapping[4],
-					*m_NunchuckStick[4];
-
-					// Classic Controller
-		wxBoxSizer	*m_SCcVertLeft[4],
+					*m_Sizer_Wiimote[WM_CONTROLS][4],
+					*m_SWmVertLeft[4],
+					*m_SWmVertRight[4],
+					*m_Sizer_NunChuck[NC_CONTROLS][4],
+					*m_NunchuckStick[4],
+					*m_Sizer_Classic[CC_CONTROLS][4],
+					*m_SCcVertLeft[4],
 					*m_SCcVertMiddle[4],
 					*m_SCcVertRight[4],
 					*m_SCcLeftStick[4],
 					*m_SCcRightStick[4],
 					*m_SCcTriggers[4],
-					*m_SCcA[4],
-					*m_SCcB[4],
-					*m_SCcX[4],
-					*m_SCcY[4],
-					*m_SCcP[4],
-					*m_SCcM[4],
-					*m_SCcH[4],
-					*m_SCcTl[4],
-					*m_SCcZl[4],
-					*m_SCcZr[4],
-					*m_SCcTr[4],
-					*m_SCcDl[4],
-					*m_SCcDu[4],
-					*m_SCcDr[4],
-					*m_SCcDd[4],
-					*m_SCcLl[4],
-					*m_SCcLu[4],
-					*m_SCcLr[4],
-					*m_SCcLd[4],
-					*m_SCcRl[4],
-					*m_SCcRu[4],
-					*m_SCcRr[4],
-					*m_SCcRd[4];
-		//GH3
-		wxBoxSizer	*m_SGH3VertLeft[4],
-					*m_SGH3VertMiddle[4],
-					*m_SGH3VertRight[4],
 					*m_sizer_GH3[GH3_CONTROLS][4],
-					*m_sGH3_Analog[4];
+					*m_sGH3_Analog[4],
+					*m_SGH3VertLeft[4],
+					*m_SGH3VertMiddle[4],
+					*m_SGH3VertRight[4];
 
 		wxGridBagSizer *m_SizeAnalogTriggerHorizConfig[4], *m_SizeAnalogTriggerStatusBox[4], *m_TiltGrid[4],
 			*m_GridLeftStick[4], *m_GridRightStick[4];
@@ -183,40 +135,27 @@ class WiimotePadConfigDialog : public wxDialog
 		wxButton *m_bAnalogLeftX[4], *m_bAnalogLeftY[4], *m_bAnalogRightX[4], *m_bAnalogRightY[4],
 			*m_bAnalogTriggerL[4], *m_bAnalogTriggerR[4],
 			// Nunchuck
-			*m_bNcShake[4], *m_bNcZ[4], *m_bNcC[4], *m_bNcL[4], *m_bNcR[4], *m_bNcU[4], *m_bNcD[4],
-			// Wiimote
-			*m_bWmShake[4], *m_bWmPitchL[4], *m_bWmPitchR[4], *m_bWmA[4], *m_bWmB[4], *m_bWm1[4], *m_bWm2[4], *m_bWmP[4], *m_bWmM[4], *m_bWmH[4], *m_bWmD[4], *m_bWmU[4], *m_bWmR[4], *m_bWmL[4],
-			// Classic Controller
-			*m_bCcA[4], *m_bCcB[4], *m_bCcX[4], *m_bCcY[4],
-			*m_bCcP[4], *m_bCcM[4], *m_bCcH[4],
-			*m_bCcTl[4], *m_bCcZl[4], *m_bCcZr[4], *m_bCcTr[4],
-			*m_bCcDl[4], *m_bCcDu[4], *m_bCcDr[4], *m_bCcDd[4],
-			*m_bCcLl[4], *m_bCcLu[4], *m_bCcLr[4], *m_bCcLd[4],
-			*m_bCcRl[4], *m_bCcRu[4], *m_bCcRr[4], *m_bCcRd[4];
-			//GH3
-		wxButton *m_Button_GH3[GH3_CONTROLS][4],
-				 *m_bGH3_Analog[4];
+
+			*m_Button_Wiimote[WM_CONTROLS][4],
+			*m_Button_NunChuck[NC_CONTROLS][4],
+			*m_Button_Classic[CC_CONTROLS][4],
+			*m_Button_GH3[GH3_CONTROLS][4],
+			*m_bGH3_Analog[4];
 
 		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
 			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
 			*m_tAnalogTriggerInput[4], *m_tAnalogTriggerL[4], *m_tAnalogTriggerR[4],
-			// Nunchuck
-			*m_tNcShake[4], *m_tNcZ[4], *m_tNcC[4], *m_tNcL[4], *m_tNcR[4], *m_tNcU[4], *m_tNcD[4],
-			// Wiimote
-			*m_tWmShake[4], *m_tWmPitchL[4], *m_tWmPitchR[4], *m_tWmA[4], *m_tWmB[4], *m_tWm1[4], *m_tWm2[4], *m_tWmP[4], *m_tWmM[4], *m_tWmH[4], *m_tWmL[4], *m_tWmR[4], *m_tWmU[4],*m_tWmD[4],
-			*m_NunchuckTextStick[5],
-			// Classic Controller
-			*m_tCcA[4], *m_tCcB[4], *m_tCcX[4], *m_tCcY[4],
-			*m_tCcP[4], *m_tCcM[4], *m_tCcH[4],
-			*m_tCcTl[4], *m_tCcZl[4], *m_tCcZr[4], *m_tCcTr[4],
-			*m_tCcDl[4], *m_tCcDu[4], *m_tCcDr[4], *m_tCcDd[4],
-			*m_tCcLl[4], *m_tCcLu[4], *m_tCcLr[4], *m_tCcLd[4],
-			*m_tCcRl[4], *m_tCcRu[4], *m_tCcRr[4], *m_tCcRd[4],
-			*m_CcTextLeftStick[4], *m_CcTextRightStick[4], *m_CcTextTriggers[4],
-			// GH3
+
+			*m_statictext_Wiimote[WM_CONTROLS][4],
+			*m_statictext_NunChuck[NC_CONTROLS][4],
+			*m_statictext_Classic[CC_CONTROLS][4],
 			*m_statictext_GH3[GH3_CONTROLS][4],
+			*m_NunchuckTextStick[5],
+			*m_CcTextLeftStick[4],
+			*m_CcTextRightStick[4],
+			*m_CcTextTriggers[4],
 			*m_tGH3_Analog[4];
 
 		wxButton *ClickedButton;
@@ -269,7 +208,12 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_WM_SHAKE, IDB_WM_PITCH_L, IDB_WM_PITCH_R,
 
 			// Nunchuck
-			IDB_NC_Z, IDB_NC_C, IDB_NC_L, IDB_NC_R, IDB_NC_U, IDB_NC_D,
+			IDB_NC_Z,
+			IDB_NC_C,
+			IDB_NC_L,
+			IDB_NC_R,
+			IDB_NC_U,
+			IDB_NC_D,
 			IDB_NC_SHAKE,
 
 			// Classic Controller
