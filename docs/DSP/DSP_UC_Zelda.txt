@@ -1122,9 +1122,9 @@ void 0243_COMMAND_02()  // sync frame
 			if ((*0x0484 & 0x1f) != 0x00)
 			{
 				// 02ed 00de 038f lr          $AC0.M, @0x038f
-				// 02ef 5c00      sub         $ACC0, $AC1.L
+				// 02ef 5c00      sub         $ACC0, $ACC1
 				// 02f0 00fe 038f sr          @0x038f, $AC0.M
-				(*0x038f) -= AC1.L;  // where did AC1.L get its value? should be 0, unless sub is wrong?
+				(*0x038f) -= AC1.M;
 				
 				// 02f2 1c7e      mrr         $AR3, $AC0.M
 				// 02f3 0080 0440 lri         $AR0, #0x0440
@@ -1187,39 +1187,61 @@ void 0243_COMMAND_02()  // sync frame
 				}
 			}
 			 
+			// Check volume mode, apply volume as appropriate
+			
 			// 0333 8100      clr         $ACC0
 			// 0334 00de 042c lr          $AC0.M, @0x042c
 			// 0336 b100      tst         $ACC0
 			// 0337 0295 033d jz          0x033d
-			if (*0x042c != 0)
+			
+			if (*0x042c != 0)  // Volume mode != 0
 			{
 				// 0339 02bf 0cd3 call        0x0cd3
 				// 033b 029f 03b2 jmp         0x03b2
-				0cd3_Unk()
+				0cd3_VolumeMixer1()   // The complex one, probably with surround and stuff
 			}
 			else
 			{
-				033d 8100      clr         $ACC0
-				033e 1c9e      mrr         $IX0, $AC0.M
-				033f 1cde      mrr         $IX2, $AC0.M
-				0340 7400      incm        $AC0.M
-				0341 1cfe      mrr         $IX3, $AC0.M
-				0342 8100      clr         $ACC0
+				// Volume mode == 0  - simple volumes
+				// 033d 8100      clr         $ACC0
+				// 033e 1c9e      mrr         $IX0, $AC0.M
+				// 033f 1cde      mrr         $IX2, $AC0.M
+				// 0340 7400      incm        $AC0.M
+				// 0341 1cfe      mrr         $IX3, $AC0.M
+				// 0342 8100      clr         $ACC0
+				$IX0 = 0;
+				$IX2 = 0;
+				$IX3 = 1;
 				 
 				// 0343 00de 0407 lr          $AC0.M, @0x0407
 				// 0345 b100      tst         $ACC0
 				// 0346 0295 0355 jz          0x0355				 
-				if (*0x0407 != 0)
+				if (*0x0407 != 0)   // Unknown, in zelda always 0x10, apparently.
 				{					
-					0348 00c3 038f lr          $AR3, @0x038f
-					034a 0007      dar         $AR3
-					034b 0080 0477 lri         $AR0, #0x0477
-					034d 0084 ffff lri         $IX0, #0xffff
-					034f 0087 ffff lri         $IX3, #0xffff
-					0351 199a      lrrn        $AX0.H, @$AR0
-						0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
-					0353 005e      loop        $AC0.M
-						0354 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M					 				
+					// Seems like this all boils down to a backwards copy of 
+					// 0x0470-0x0477 to *(*(0x038f));
+					
+					// 0348 00c3 038f lr          $AR3, @0x038f
+					// 034a 0007      dar         $AR3
+					$AR3 = *(0x038f) - 1;
+					// 034b 0080 0477 lri         $AR0, #0x0477
+					// 034d 0084 ffff lri         $IX0, #0xffff
+					// 034f 0087 ffff lri         $IX3, #0xffff
+					$AR0 = 0x477;
+					$IX0 = -1;
+					$IX3 = -1;
+					// 0351 199a      lrrn        $AX0.H, @$AR0
+					AX0.H = *$AR0;
+					AR0 += IX0;
+
+					0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
+					$ACC1 = $AX0.H;
+					$AX0.H = *$AR0;
+					$AR0 += IX0;
+					// 0353 005e      loop        $AC0.M
+					for (int i = 0; i < AC0.M; i++) {
+						0354 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M
+					}
 				}
 				 
 				// 0355 00da 0485 lr          $AX0.H, @0x0485
@@ -1228,66 +1250,112 @@ void 0243_COMMAND_02()  // sync frame
 				if (*0x0485 != 0)
 				{
 					035a 8900      clr         $ACC1
-					035b 0086 0005 lri         $IX2, #0x0005  // Why?
+					035b 0086 0005 lri         $IX2, #0x0005  // 5 - 1 = 4, see loop
 					035d 0082 040a lri         $AR2, #0x040a
-					035f 1106 0363 bloopi      #0x06, 0x0363
-					// Sum up 0x040a->0x040f, at the same time store the sums back? don't get it?
+					// 035f 1106 0363 bloopi      #0x06, 0x0363
+
+					// Store half of every 4th value from 0x040a onwards in the position before. (!!!!)
+					// At the same time, keep their sum in ACC1.
 					for (int i = 0; i < 0x6; i++) {
-						0361 18de      lrrd        $AC0.M, @$AR2
-						0362 147f      lsr         $ACC0, #-1
-						0363 4d36      add'sn      $ACC1, $AC0.L : @$AR2, $AC0.M
+						// 0361 18de      lrrd        $AC0.M, @$AR2
+						// 0362 147f      lsr         $ACC0, #-1
+						// 0363 4d36      add'sn      $ACC1, $ACC0 : @$AR2, $AC0.M
+						$AC0.M = *$AR2 >> 1;
+						$AR2--;
+						$ACC1 += $ACC0;
+						*$AR2 = $ACC0;
+						$AR2 += 5;
 					}
-					0364 b900      tst         $ACC1
-					0365 0294 036b jnz         0x036b
+					// 0364 b900      tst         $ACC1
+					// 0365 0294 036b jnz         0x036b
+					
+					// Volume has dropped to 0 on all channels, stop sound?
 					if (sum == 0) {
-						0367 009a 0001 lri         $AX0.H, #0x0001
-						0369 00fa 0401 sr          @0x0401, $AX0.H
+						// 0367 009a 0001 lri         $AX0.H, #0x0001
+						// 0369 00fa 0401 sr          @0x0401, $AX0.H    // Write 1 to KeyOff.
 					}
 				}
 				
-				036b 8f00      set40       
-				036c 0086 0002 lri         $IX2, #0x0002
-				036e 0082 0408 lri         $AR2, #0x0408
-								 
+				// 036b 8f00      set40       
+				// 036c 0086 0002 lri         $IX2, #0x0002
+				// 036e 0082 0408 lri         $AR2, #0x0408
+				$IX2 = 0x0002;
+				$AR2 = 0x0408;
+				
+				// Volume data starts at 0x0408, it's like this:
+				// 1 word controls sbset #0x00 apparently
+				// 2 volume values
+				// 1 other word.
+				// BUT not quite - looks like it can vary and some of these words
+				// can be dropped... damnit.
+				
 				// 0370 1106 039b bloopi      #0x06, 0x039b
-				for (int i=0; i<6; i++)
+				for (int i = 0; i < 6; i++)
 				{
-					0372 8100      clr         $ACC0
-					0373 195e      lrri        $AC0.M, @$AR2
-					0374 1200      sbclr       #0x00
-					0375 b100      tst         $ACC0
-					0376 0275      ifz         
-						0377 1300      sbset       #0x00
+					// 0372 8100      clr         $ACC0
+					// 0373 195e      lrri        $AC0.M, @$AR2
+					// 0374 1200      sbclr       #0x00     // W T F???
+					// 0375 b100      tst         $ACC0
+					// 0376 0275      ifz         
+					//      0377 1300      sbset       #0x00
+					
+					// sbset #0x00 is logic zero ... we use it to store a bit here. see 0394
+					if (*$AR2 == 0) {
+						sbset #0x00
+					} else {
+						sbclr #0x00
+					}
+					
 					0378 1c7e      mrr         $AR3, $AC0.M
-					0379 195e      lrri        $AC0.M, @$AR2
+					
+					0379 195e      lrri        $AC0.M, @$AR2  // Load the two volume values
 					037a 195f      lrri        $AC1.M, @$AR2
-					037b 5c00      sub         $ACC0, $AC1.L
-					037c 14fb      asr         $ACC0, #-5
-					037d 1f5e      mrr         $AX0.H, $AC0.M
-					037e 1f1c      mrr         $AX0.L, $AC0.L
-					037f 185e      lrr         $AC0.M, @$AR2
-					0380 0240 00ff andi        $AC0.M, #0x00ff
-					0382 1f7e      mrr         $AX1.H, $AC0.M
-					0383 185e      lrr         $AC0.M, @$AR2
-					0384 1478      lsr         $ACC0, #-8
-					0385 009c 0000 lri         $AC0.L, #0x0000
+					
+					// 037b 5c00      sub         $ACC0, $ACC1   // Subtract them - find volume delta?
+					// 037c 14fb      asr         $ACC0, #-5
+					// 037d 1f5e      mrr         $AX0.H, $AC0.M
+					// 037e 1f1c      mrr         $AX0.L, $AC0.L
+					$AX0 = (vol1 - vol2) >> 5;   // 32 steps ..
+					
+					// 037f 185e      lrr         $AC0.M, @$AR2
+					// 0380 0240 00ff andi        $AC0.M, #0x00ff
+					// 0382 1f7e      mrr         $AX1.H, $AC0.M
+					$AX1.H = *$AR2 & 0xFF;
+										
+					// 0383 185e      lrr         $AC0.M, @$AR2
+					// 0384 1478      lsr         $ACC0, #-8
+					// 0385 009c 0000 lri         $AC0.L, #0x0000
+					$AC0.M = *$AR2 >> 8;
+					
+					// Seems like we might be dealing with variable
+					// length data here... $AR2 is never restored
+					// after the zany if thing below.
 					0387 d100      cmpar       $ACC1, $AX0.H
 					0388 0295 0390 jz          0x0390
-					038a 185e      lrr         $AC0.M, @$AR2
-					038b 0272      ifg         
-						038c 7400      incm        $AC0.M
-					038d 0271      ifs         
-						038e 7800      decm        $AC0.M
-					038f 1a5e      srr         @$AR2, $AC0.M
+						038a 185e      lrr         $AC0.M, @$AR2
+						038b 0272      ifg         
+							038c 7400      incm        $AC0.M
+						038d 0271      ifs         
+							038e 7800      decm        $AC0.M
+						038f 1a5e      srr         @$AR2, $AC0.M
 					0390 0006      dar         $AR2
+					
+					// Here's this 0x038f again.. what is it?
 					0391 00de 038f lr          $AC0.M, @0x038f
 					0393 5600      subr        $ACC0, $AX1.H
-					0394 029d 0399 jlz         0x0399
-						0396 1c1e      mrr         $AR0, $AC0.M
-						0397 02bf 0ca9 call        0x0ca9
+					
+					// Use that stored logic zero bit, to skip mixing if the first word is (or isn't? not sure) 0.
+					// 0394 029d 0399 jlz         0x0399
+					if (!logic zero) {
+						// 0396 1c1e      mrr         $AR0, $AC0.M
+						// 0397 02bf 0ca9 call        0x0ca9
+						0x0ca9_RampedMultiplyBuffer(...)
+					}
 					0399 0000      nop         
-					039a 1b5f      srri        @$AR2, $AC1.M
-					039b 000a      iar         $AR2
+					// 039a 1b5f      srri        @$AR2, $AC1.M
+					*$AR2++ = $AC1.M;
+					// 039b 000a      iar         $AR2
+					$AR2++;  // Next block of four volumes.
 				}
 				 
 				# 039c 8e00      set16       
@@ -1365,7 +1433,6 @@ void 0243_COMMAND_02()  // sync frame
 		// 03df 02bf 00eb call        0x00eb		 
 		00eb_Unk_BufferMultWithDest(0x09a0, 0x0d00, 0x50, 0x5a82)
 	
-
 		// 03e1 0080 09a0 lri         $AR0, #0x09a0
 		// 03e3 0083 0d60 lri         $AR3, #0x0d60
 		// 03e5 0f50      lris        $AC1.M, #0x50
@@ -1568,7 +1635,7 @@ void 04d0_Unk() {
 	// 04fb is incremented when you reset a voice
 	04d2 00df 04fb lr          $AC1.M, @0x04fb
 	04d4 009e 0b00 lri         $AC0.M, #0x0b00
-	04d6 4c00      add         $ACC0, $AC1.L
+	04d6 4c00      add         $ACC0, $ACC1
 	04d7 1c1e      mrr         $AR0, $AC0.M
 
 	04d8 181e      lrr         $AC0.M, @$AR0
@@ -1642,7 +1709,7 @@ void 04f3_strange() {
 	0514 00fe 0b4b sr          @0x0b4b, $AC0.M
 	
 	0516 009e 0b00 lri         $AC0.M, #0x0b00
-	0518 4c00      add         $ACC0, $AC1.L     // The value is in AC1.M, this must be wrong disasm
+	0518 4c00      add         $ACC0, $ACC1     // The value is in AC1.M, this must be wrong disasm
 	0519 1c1e      mrr         $AR0, $AC0.M
 
 	// Increment the counter at [ #0b00 + masked voice count]
@@ -1795,7 +1862,7 @@ void 0573_Mystery_Write(InBuffer($AR1), SourceBuffer(AC1.M), _COUNT(AX0.H)) {
 
 
 void 0580_COMMAND_04()
- {
+{
 	// commando looks buggy...
 	// it copies data to the switch casement data address... sounds like BS
  
@@ -1832,7 +1899,7 @@ void 0592_COMMAND_05()
  
  
 void 05A4_ResetAccelerator()
- {
+{
 	05a4 0092 00ff lri         $CR, #0x00ff
 	05a6 009e ffff lri         $AC0.M, #0xffff
 	05a8 2ed4      srs         @ACSAH, $AC0.M
@@ -1956,7 +2023,7 @@ EndOfMailException:
 }
 
 void 05f0_HaltUCode()
- {
+{
 	05f0 009a 0002 lri         $AX0.H, #0x0002
 	05f2 00fa 03a3 sr          @0x03a3, $AX0.H
 	05f4 00e0 03f9 sr          @0x03f9, $AR0
@@ -1997,7 +2064,7 @@ void 0603_Unk(_returnAddr($AR0))
 
 	// 060e 27ff      lrs         $AC1.M, @CMBL
 	// 060f 009e 05ff lri         $AC0.M, #0x05ff
-	// 0611 4c00      add         $ACC0, $AC1.L	 
+	// 0611 4c00      add         $ACC0, $ACC1	 
 	AC0.M = 0x05ff + *CMBL
 
 	// 0612 1c7e      mrr         $AR3, $AC0.M
@@ -2397,7 +2464,7 @@ void EarlyOutFrom_073d_DECODE_0x05_0x09() {
 	06f9_Unk_PrepareSampleDecode()
 	0710 8100      clr         $ACC0
 	0711 2632      lrs         $AC0.M, @0x0032
-	0712 5c00      sub         $ACC0, $AC1.L
+	0712 5c00      sub         $ACC0, $ACC1
 	0713 2e32      srs         @0x0032, $AC0.M
 	0714 0092 00ff lri         $CR, #0x00ff
 	0716 02df      ret     
@@ -2501,7 +2568,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 	0757 0291 07ab js          0x07ab	 
 	if ()
 	{	 
-		// math how much samples we have to copy
+		// compute how many samples we have to copy
 		0759 8100      clr         $ACC0
 		075a 1fdf      mrr         $AC0.M, $AC1.M
 		075b 040f      addis       $ACC0, #0x0f
@@ -2521,7 +2588,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		{
 			0768 8100      clr         $ACC0
 			0769 263b      lrs         $AC0.M, @0x003b
-			076a 5c00      sub         $ACC0, $AC1.L
+			076a 5c00      sub         $ACC0, $ACC1
 			076b 2e32      srs         @0x0032, $AC0.M
 			076c 8100      clr         $ACC0
 			076d 2e3a      srs         @0x003a, $AC0.M
@@ -2534,7 +2601,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 			0772 2c3b      srs         @0x003b, $AC0.L
 			0773 0c00      lris        $AC0.L, #0x00
 			0774 1fd8      mrr         $AC0.M, $AX0.L
-			0775 5c00      sub         $ACC0, $AC1.L
+			0775 5c00      sub         $ACC0, $ACC1
 			0776 2e32      srs         @0x0032, $AC0.M
 		}
 		 
@@ -2595,7 +2662,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 	{
 		 07ab b100      tst         $ACC0
 		 07ac 0295 07bb jz          0x07bb
-		 07ae 5d00      sub         $ACC1, $AC0.L
+		 07ae 5d00      sub         $ACC1, $ACC0
 		 07af 040f      addis       $ACC0, #0x0f
 		 07b0 147c      lsr         $ACC0, #-4
 		 07b1 0c00      lris        $AC0.L, #0x00
@@ -2614,7 +2681,6 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		 07bc 2681      lrs         $AC0.M, @0xff81
 		 07bd b100      tst         $ACC0
 		 07be 0295 07e3 jz          0x07e3   // stop rendering, see below 7e3
-		 
 		 
 		 
 		 07c0 2380      lrs         $AX1.H, @0xff80
@@ -2687,7 +2753,7 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 	// 07f9 2280      lrs         $AX0.H, @0xff80
 	// 07fa d000      mulc        $AC1.M, $AX0.H
 	// 07fb 6f00      movp        $ACC1
-	// 07fc 4c00      add         $ACC0, $AC1.L
+	// 07fc 4c00      add         $ACC0, $ACC1
 	// 07fd 2e38      srs         @0x0038, $AC0.M
 	// 07fe 2c39      srs         @0x0039, $AC0.L
 	//inrease sample offset in ARAM
@@ -2831,44 +2897,25 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 	086e 02df      ret         
 }
  
+
+
  
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- // unreachable
+ // probably unreachable
  {
-	086f b100      tst         $ACC0
-	0870 02d5      retz        
+	// 086f b100      tst         $ACC0
+	// 0870 02d5      retz        
+	if (!$ACC0) return;
+	
 	0871 04fe      addis       $ACC0, #0xfe
 	0872 1f1e      mrr         $AX0.L, $AC0.M
 	0873 191e      lrri        $AC0.M, @$AR0
 	0874 0291 087a js          0x087a
-	0876 191a      lrri        $AX0.H, @$AR0
-	0877 0058      loop        $AX0.L
-	0878 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
-	0879 6433      movr's      $ACC0, $AX0.H : @$AR3, $AC0.M
-	087a 1b7e      srri        @$AR3, $AC0.M
+		0876 191a      lrri        $AX0.H, @$AR0
+		0877 0058      loop        $AX0.L
+			0878 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
+		0879 6433      movr's      $ACC0, $AX0.H : @$AR3, $AC0.M
+		087a 1b7e      srri        @$AR3, $AC0.M
 	087b 02df      ret         
 }	 
  
@@ -2973,9 +3020,9 @@ void 08c2_Decoder0x3_RectangleWave(ACC0, AR0, AX0.L) {
 		//	08cf 1b1b      srri        @$AR0, $AX1.H
 		//08d0 027d      iflz        
 		//	08d1 1b19      srri        @$AR0, $AX1.L
-		//08d2 4c00      add         $ACC0, $AC1.L
+		//08d2 4c00      add         $ACC0, $ACC1
 		
-		if(($AC0.M & 3) == 3)
+		if (($AC0.M & 3) == 3)
 			*$AR0++ = 0x4000;
 		else
 			*$AR0++ = 0xc000;
@@ -3002,7 +3049,7 @@ void 08d5_Decoder0x2_SquareSaw(ACC0, AR0, AX0.L) {
 		08e7 183d      lrr         $AC1.L, @$AR1
 		08e8 4900      addax       $ACC1, $AX0.L
 		08e9 1fe2      mrr         $AC1.M, $AR2
-		08ea 4c39      add's       $ACC0, $AC1.L : @$AR1, $AC1.M
+		08ea 4c39      add's       $ACC0, $ACC1 : @$AR1, $AC1.M
 	08eb 147f      lsr         $ACC0, #-1
 	// 08ec 02df      ret         
 }
@@ -3015,18 +3062,16 @@ void 08ed_Decoder0x1_SawWave(ACC0, AR0, AX0.L) {
 	// At this point AX0.L is PB.RatioInt and AC0.L is PB.CurSampleFrac
 	ACC1 = 0;
 	AC1.L = AX0.L * 2;
-	
-	
-	
+
 	// 08f0 1050      loopi       #0x50
 	for(int i = 0; i < 0x50; i++) {
-		// 08f1 4c20      add's       $ACC0, $AC1.L : @$AR0, $AC0.L
-		ACC0 += AC1.L; 
-		
+		// 08f1 4c20      add's       $ACC0, $ACC1 : @$AR0, $AC0.L
+		ACC0 += ACC1;
 		*$AR0++ = AC0.L; 
 	}
 	// 08f2 02df      ret         
 }
+
 
 void 08f3_Unk() {
 	08f3 0082 0180 lri         $AR2, #0x0180    // Three entrances
@@ -3049,7 +3094,7 @@ void 08f3_Unk() {
 	090b 001a      addarn      $AR2, $IX2
 	090c 3400      andr        $AC0.M, $AX0.H
 	090d 1150 0913 bloopi      #0x50, 0x0913
-		090f 4c4a      add'l       $ACC0, $AC1.L : $AX1.L, @$AR2
+		090f 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
 		0910 3606      andr'dr     $AC0.M, $AX1.H : $AR2
 		0911 1cde      mrr         $IX2, $AC0.M
 		0912 340e      andr'nr     $AC0.M, $AX0.H : $AR2
@@ -3083,7 +3128,7 @@ void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
 	092c 001a      addarn      $AR2, $IX2
 	092d 3400      andr        $AC0.M, $AX0.H
 	092e 1150 0934 bloopi      #0x50, 0x0934
-		0930 4c4a      add'l       $ACC0, $AC1.L : $AX1.L, @$AR2
+		0930 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
 		0931 3606      andr'dr     $AC0.M, $AX1.H : $AR2
 		0932 1cde      mrr         $IX2, $AC0.M
 		0933 340e      andr'nr     $AC0.M, $AX0.H : $AR2
@@ -3115,7 +3160,7 @@ void 093a_Unk() {
 		0952 140a      lsl         $ACC0, #10
 		0953 4e00      addp        $ACC0
 		0954 1476      lsr         $ACC0, #-10
-		0955 4c4a      add'l       $ACC0, $AC1.L : $AX1.L, @$AR2
+		0955 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
 		0956 3606      andr'dr     $AC0.M, $AX1.H : $AR2
 		0957 1cde      mrr         $IX2, $AC0.M
 		0958 340e      andr'nr     $AC0.M, $AX0.H : $AR2
@@ -3182,7 +3227,7 @@ void Decoder0x08() {
 	0991 2002      lrs         $AX0.L, @0x0002
 	0992 8100      clr         $ACC0
 	0993 8900      clr         $ACC1
-	0994 2430      lrs         $AC0.L, @0x0030
+	0994 2430      lrs         $AC0.L, @0x0030   // CurSampleFrac
 	0995 8d00      set15       
 	0996 0950      lris        $AX1.L, #0x50
 	0997 a000      mulx        $AX0.L, $AX1.L
@@ -3232,7 +3277,7 @@ void Decoder0x08() {
 	09c9 b100      tst         $ACC0
 	09ca 0294 09d9 jnz         0x09d9
 	09cc 263b      lrs         $AC0.M, @0x003b
-	09cd 5c00      sub         $ACC0, $AC1.L
+	09cd 5c00      sub         $ACC0, $ACC1
 	09ce 0290 09d9 jns         0x09d9
 	09d0 223b      lrs         $AX0.H, @0x003b
 	
@@ -3252,7 +3297,7 @@ void Decoder0x08() {
 	09e1 1570      lsr         $ACC1, #-16
 	09e2 0a01      lris        $AX0.H, #0x01
 	09e3 0081 0405 lri         $AR1, #0x0405
-	09e5 5c00      sub         $ACC0, $AC1.L
+	09e5 5c00      sub         $ACC0, $ACC1
 	09e6 b100      tst         $ACC0
 	09e7 0275      ifz         
 		09e8 1a3a      srr         @$AR1, $AX0.H
@@ -3308,11 +3353,11 @@ void 0a0a_UsedBy08Decoder() {
 		0a12 1b7e      srri        @$AR3, $AC0.M
 	// 0a13 02df      ret         
 }
- 
- 
+
  
 //////////////////////////////////////////// 0x10 DECODER 
-// This should be the easiest decoder to decipher in full.
+// This should be the easiest decoder to decipher in full -- except the really
+// trivial ones like the synths.
 void Decoder_0x10() {
 	0a14 0092 0004 lri         $CR, #0x0004
 	0a16 2002      lrs         $AX0.L, @0x0002
@@ -3384,7 +3429,7 @@ void Decoder_0x10() {
 	0a4f 0294 0a5e jnz         0x0a5e
 	if (!*0x043a) {
 		0a51 263b      lrs         $AC0.M, @0x003b
-		0a52 5c00      sub         $ACC0, $AC1.L
+		0a52 5c00      sub         $ACC0, $ACC1
 		0a53 0290 0a5e jns         0x0a5e
 		if (0x43b <= ACC1) {   // not sure, but ..  not enough samples?
 			0a55 223b      lrs         $AX0.H, @0x003b
@@ -3405,7 +3450,7 @@ void Decoder_0x10() {
 	0a66 1570      lsr         $ACC1, #-16
 	0a67 0a01      lris        $AX0.H, #0x01
 	0a68 0081 0405 lri         $AR1, #0x0405
-	0a6a 5c00      sub         $ACC0, $AC1.L
+	0a6a 5c00      sub         $ACC0, $ACC1
 	0a6b b100      tst         $ACC0
 	0a6c 0275      ifz         
 		0a6d 1a3a      srr         @$AR1, $AX0.H
@@ -3584,7 +3629,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	AC0.M = *0x048a;
 	AC1.M = *0x0434;
 
-	// 0ad7 5c00      sub         $ACC0, $AC1.L
+	// 0ad7 5c00      sub         $ACC0, $ACC1
 	// 0ad8 2e36      srs         @0x0036, $AC0.M
 
 	ACC0 -= AC1.L;
@@ -3671,7 +3716,7 @@ void 0af6_Decoder0x21_MoreStuff($AR0, $AR3) {
 	// 0b02 8900      clr         $ACC1
 	// 0b03 2534      lrs         $AC1.L, @0x0034
 	// 0b04 1501      lsl         $ACC1, #1
-	// 0b05 4c00      add         $ACC0, $AC1.L
+	// 0b05 4c00      add         $ACC0, $ACC1
 	
 	// 0b06 5a00      subax       $ACC0, $AX1.L
 	// 0b07 5a00      subax       $ACC0, $AX1.L
@@ -4018,16 +4063,16 @@ void 0c1c_Unk()
 	0c22 8900      clr         $ACC1
 	0c23 009f 00a0 lri         $AC1.M, #0x00a0
 	0c25 00de 03f1 lr          $AC0.M, @0x03f1
-	0c27 5d00      sub         $ACC1, $AC0.L
+	0c27 5d00      sub         $ACC1, $ACC0
 	0c28 0e50      lris        $AC0.M, #0x50
 	0c29 0750      cmpis       $ACC1, #0x50
 	0c2a 0270      ifns        
-		0c2b 5d00      sub         $ACC1, $AC0.L
+		0c2b 5d00      sub         $ACC1, $ACC0
 	0c2c 00da 03f2 lr          $AX0.H, @0x03f2
 	0c2e 8600      tstaxh      $AX0.H
 	0c2f 0290 0c4d jns         0x0c4d
 	0c31 00de 03f3 lr          $AC0.M, @0x03f3
-	0c33 5c00      sub         $ACC0, $AC1.L
+	0c33 5c00      sub         $ACC0, $ACC1
 	0c34 0293 0c38 jle         0x0c38
 		0c36 029f 0c52 jmp         0x0c52
 	0c38 00db 03f7 lr          $AX1.H, @0x03f7
@@ -4046,7 +4091,7 @@ void 0c1c_Unk()
 	0c4b 029f 0c52 jmp         0x0c52
 
 	0c4d 00de 03f4 lr          $AC0.M, @0x03f4
-	0c4f 5d00      sub         $ACC1, $AC0.L
+	0c4f 5d00      sub         $ACC1, $ACC0
 	0c50 0293 0c3f jle         0x0c3f
 
 	0c52 8900      clr         $ACC1
@@ -4064,7 +4109,7 @@ void 0c1c_Unk()
 	// 0c5e 1150 0c65 bloopi      #0x50, 0x0c65
 	for (int i = 0; i < 0x50; i++) {
 		0c60 1878      lrr         $AX0.L, @$AR3
-		0c61 4c00      add         $ACC0, $AC1.L
+		0c61 4c00      add         $ACC0, $ACC1
 		0c62 1cfe      mrr         $IX3, $AC0.M
 		0c63 001f      addarn      $AR3, $IX3
 		0c64 1fd9      mrr         $AC0.M, $AX1.L
@@ -4073,7 +4118,7 @@ void 0c1c_Unk()
 
 	0c66 009f 0a60 lri         $AC1.M, #0x0a60
 	0c68 1fc3      mrr         $AC0.M, $AR3
-	0c69 5c00      sub         $ACC0, $AC1.L
+	0c69 5c00      sub         $ACC0, $ACC1
 	0c6a 00fe 03f1 sr          @0x03f1, $AC0.M
 	0c6c 00fc 03f6 sr          @0x03f6, $AC0.L
 	0c6e 008b ffff lri         $WR3, #0xffff    // restore wrap
@@ -4117,7 +4162,7 @@ void 0c84_ModifySample(_sampleAddr($AR0))
 	0c96 0084 0000 lri         $IX0, #0x0000
 	0c98 1150 0ca1 bloopi      #0x50, 0x0ca1
 		0c9a 199e      lrrn        $AC0.M, @$AR0
-		0c9b 5c7c      sub'ln      $ACC0, $AC1.L : $AC1.M, @$AR0
+		0c9b 5c7c      sub'ln      $ACC0, $ACC1 : $AC1.M, @$AR0
 		0c9c c000      mulc        $AC0.M, $AX0.H    // Where does AX0.H get set?
 		0c9d 6e00      movp        $ACC0
 		0c9e 1488      asl         $ACC0, #8
@@ -4131,36 +4176,52 @@ void 0c84_ModifySample(_sampleAddr($AR0))
 	0ca8 02df      ret         
 }	 
  
-// Called from loop in 0cd3_Unk
-void 0ca9_Unk($ACC1, $AR0, $AR3) {
+// Called from both volume handlers.
+// ACC1 is volume, AX is volume delta.
+void 0ca9_RampedMultiplyBuffer($ACC1, $AX0, $AR0, $AR3) {
 	0ca9 b900      tst         $ACC1
 	0caa 0294 0caf jnz         0x0caf
-	if (!ACC0) {
-		0cac 6800      movax       $ACC0, $AX0.L
-		0cad b100      tst         $ACC0
-		0cae 02d5      retz
-		
-		ACC0 = AX0.L
-		if (!ACC0)
+	if (!ACC1) {
+		// 0cac 6800      movax       $ACC0, $AX0.L
+		// 0cad b100      tst         $ACC0
+		// 0cae 02d5      retz
+		if (!AX0.L)
+			// If incoming volume is zero and ramp delta is zero,
+			// not really much point to do anything.
 		    return
 	}
 	0caf 1c23      mrr         $AR1, $AR3
 	0cb0 197e      lrri        $AC0.M, @$AR3
+	
+	// Load multiplier from AR0, twice?
 	0cb1 191b      lrri        $AX1.H, @$AR0
+		
+	// This is another heavily software pipelined loop, so it's very confusing.
+	// See the docs for mulc and mulcac if you want to have any hope of understanding it.
+	// What it turns into if you unwind it is something like:
+	// 
+	// todo
+	// 
+	// Produce the first result, so it's ready in the prod register.
 	0cb2 d858      mulc'l      $AC1.M, $AX1.H : $AX1.H, @$AR0
 	
 	// 0cb3 1120 0cb9 bloopi      #0x20, 0x0cb9
 	for (int i = 0; i < 0x20; i++) {
-		0cb5 dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3
-		0cb6 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M
+		0cb5 dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3  
+		0cb6 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M  
+		
 		0cb7 dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3
-		0cb8 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M
+		0cb8 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M  // Store 1
+		
+		// Walk the ramp.
 		0cb9 4900      addax       $ACC1, $AX0.L
 	}
+
 	// 0cba 1108 0cbf bloopi      #0x08, 0x0cbf
 	for (int i = 0; i < 0x8; i++) {
 		0cbc dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3
 		0cbd 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M
+		
 		0cbe dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3
 		0cbf 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M
 	}
@@ -4168,6 +4229,9 @@ void 0ca9_Unk($ACC1, $AR0, $AR3) {
 	// NOTE - The above two loops are very similar and the sum of their lengths is
 	// 0x28 - which is half of 0x50. And each does two loads and two stores, so together
 	// it's 50. Just strange that the addax is missing in the second loop.
+	
+	// It looks like we're dealing with crappy volume ramping - the delta is computed using
+	// (vol2 - vol1) >> 5! That's why it can only ramp the volume the first 32 (0x20) samples!
 	
 	0cc0 02df      ret         
 }
@@ -4193,125 +4257,178 @@ void 0cc1_UnkFilter(_pBuffer(AR3))
 	
 	// 0cd2 02df      ret         
 } 
- 
+
+
 // called from sync frame if (*0x042c != 0)
-void 0cd3_Unk()
+// That is, if volume mode != 0.
+// It first seems to compute a lot of parameters and store them at 0x0b00 forwards.
+// Then it uses those as input for the usual (ramped?) mixes.
+void 0cd3_VolumeMixer1()
 {
-	0cd3 00da 0485 lr          $AX0.H, @0x0485
-	0cd5 8600      tstaxh      $AX0.H
-	0cd6 0295 0ce5 jz          0x0ce5
+	// 0cd3 00da 0485 lr          $AX0.H, @0x0485
+	// 0cd5 8600      tstaxh      $AX0.H
+	// 0cd6 0295 0ce5 jz          0x0ce5
 	if (*0x0485 != 0) {
-		0cd8 8100      clr         $ACC0
-		0cd9 00de 042a lr          $AC0.M, @0x042a
-		0cdb 147f      lsr         $ACC0, #-1
-		0cdc 00fe 042b sr          @0x042b, $AC0.M
-		0cde b100      tst         $ACC0
-		0cdf 0294 0ce5 jnz         0x0ce5
-		0ce1 009a 0001 lri         $AX0.H, #0x0001
-		0ce3 00fa 0401 sr          @0x0401, $AX0.H
+		// 0cd8 8100      clr         $ACC0
+		// 0cd9 00de 042a lr          $AC0.M, @0x042a
+		// 0cdb 147f      lsr         $ACC0, #-1
+		// 0cdc 00fe 042b sr          @0x042b, $AC0.M
+		*(0x042b) = *(0x042a) >> 1;
+		
+		// 0cde b100      tst         $ACC0
+		// 0cdf 0294 0ce5 jnz         0x0ce5
+		if (*0x042b == 0) {
+			// 0ce1 009a 0001 lri         $AX0.H, #0x0001
+			// 0ce3 00fa 0401 sr          @0x0401, $AX0.H
+			*(0x0401) = 1;  // KeyOff
+		}
 	}
 	
-	0ce5 8f00      set40       
-	0ce6 8100      clr         $ACC0
-	0ce7 00de 0428 lr          $AC0.M, @0x0428
-	0ce9 1478      lsr         $ACC0, #-8
-	0cea 00df 0428 lr          $AC1.M, @0x0428
-	0cec 0340 007f andi        $AC1.M, #0x007f
-	0cee 1f1e      mrr         $AX0.L, $AC0.M
-	0cef 1f5f      mrr         $AX0.H, $AC1.M
-	0cf0 0220 007f xori        $ACC0, #0x007f
-	0cf2 1f3e      mrr         $AX1.L, $AC0.M
-	0cf3 0320 007f xori        $ACC1, #0x007f
-	0cf5 1f7f      mrr         $AX1.H, $AC1.M
+	// 0ce5 8f00      set40       
+	// 0ce6 8100      clr         $ACC0
+	// 0ce7 00de 0428 lr          $AC0.M, @0x0428
+	// 0ce9 1478      lsr         $ACC0, #-8
+	(ACC0 = *(0x0428) << 8);
+
+	// 0cea 00df 0428 lr          $AC1.M, @0x0428
+	// 0cec 0340 007f andi        $AC1.M, #0x007f
+	// 0cee 1f1e      mrr         $AX0.L, $AC0.M
+	// 0cef 1f5f      mrr         $AX0.H, $AC1.M
+	// 0cf0 0220 007f xori        $ACC0, #0x007f
+	// 0cf2 1f3e      mrr         $AX1.L, $AC0.M
+	// 0cf3 0320 007f xori        $ACC1, #0x007f
+	// 0cf5 1f7f      mrr         $AX1.H, $AC1.M
+	AX0.L = *(0x0428) >> 8;
+	AX0.H = *(0x0428) & 0x7F;
+	AX1.L = AX0.L ^ 0x7f;
+	AX1.H = AX1.H ^ 0x7f;
 	
-	0cf6 8100      clr         $ACC0
-	0cf7 8900      clr         $ACC1
-	0cf8 009f 0200 lri         $AC1.M, #0x0200
-	0cfa 1fd8      mrr         $AC0.M, $AX0.L
-	0cfb 4c00      add         $ACC0, $AC1.L   # broken disasm? this doesn't make much sense.
-	0cfc 1c1e      mrr         $AR0, $AC0.M
-	0cfd 1818      lrr         $AX0.L, @$AR0
-	0cfe 1fda      mrr         $AC0.M, $AX0.H
-	0cff 4c00      add         $ACC0, $AC1.L
-	0d00 1c1e      mrr         $AR0, $AC0.M
-	0d01 181a      lrr         $AX0.H, @$AR0
-	0d02 1fd9      mrr         $AC0.M, $AX1.L
-	0d03 4c00      add         $ACC0, $AC1.L
-	0d04 1c1e      mrr         $AR0, $AC0.M
-	0d05 1819      lrr         $AX1.L, @$AR0
-	0d06 1fdb      mrr         $AC0.M, $AX1.H
-	0d07 4c00      add         $ACC0, $AC1.L
-	0d08 1c1e      mrr         $AR0, $AC0.M
-	0d09 181b      lrr         $AX1.H, @$AR0
+	// 0cf6 8100      clr         $ACC0
+	// 0cf7 8900      clr         $ACC1
+	// 0cf8 009f 0200 lri         $AC1.M, #0x0200
+
+	// 0cfa 1fd8      mrr         $AC0.M, $AX0.L
+	// 0cfb 4c00      add         $ACC0, $ACC1   # broken disasm? this doesn't make much sense.
+	// 0cfc 1c1e      mrr         $AR0, $AC0.M
+	// 0cfd 1818      lrr         $AX0.L, @$AR0
+	AR0 = AX0.L + 0x0200;
+	AX0.L = *AR0;
 	
-	0d0a 0080 0b00 lri         $AR0, #0x0b00
-	0d0c 9800      mul         $AX1.L, $AX1.H
-	0d0d ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
-	0d0e b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
-	0d0f 9630      mulmv's     $AX0.L, $AX0.H, $ACC0 : @$AR0, $AC0.M
-	0d10 6e30      movp's      $ACC0 : @$AR0, $AC0.M
-	0d11 1b1e      srri        @$AR0, $AC0.M
-	0d12 0080 0b00 lri         $AR0, #0x0b00
-	0d14 0081 0b04 lri         $AR1, #0x0b04
-	0d16 00da 042a lr          $AX0.H, @0x042a
-	0d18 02bf 0d62 call        0x0d62
+	// 0cfe 1fda      mrr         $AC0.M, $AX0.H
+	// 0cff 4c00      add         $ACC0, $ACC1
+	// 0d00 1c1e      mrr         $AR0, $AC0.M
+	// 0d01 181a      lrr         $AX0.H, @$AR0
+	AR0 = AX0.H + 0x200;
+	AX0.H = *AR0;
 	
-	0d1a 0081 0b08 lri         $AR1, #0x0b08
-	0d1c 0080 0b04 lri         $AR0, #0x0b04
-	0d1e 00da 042a lr          $AX0.H, @0x042a
-	0d20 00de 0429 lr          $AC0.M, @0x0429
-	0d22 c000      mulc        $AC0.M, $AX0.H
-	0d23 6e00      movp        $ACC0
-	0d24 1481      asl         $ACC0, #1
-	0d25 1f5e      mrr         $AX0.H, $AC0.M
-	0d26 02bf 0d62 call        0x0d62
+	// 0d02 1fd9      mrr         $AC0.M, $AX1.L
+	// 0d03 4c00      add         $ACC0, $ACC1
+	// 0d04 1c1e      mrr         $AR0, $AC0.M
+	// 0d05 1819      lrr         $AX1.L, @$AR0
+	AR0 = AX1.L + 0x200;
+	AX1.L = *AR0
 	
-	0d28 0080 0b00 lri         $AR0, #0x0b00
-	0d2a 0081 0b0c lri         $AR1, #0x0b0c
-	0d2c 8100      clr         $ACC0
-	0d2d 8900      clr         $ACC1
-	0d2e 00de 042b lr          $AC0.M, @0x042b
-	0d30 00df 042a lr          $AC1.M, @0x042a
-	0d32 00fe 042a sr          @0x042a, $AC0.M
-	0d34 5c00      sub         $ACC0, $AC1.L
-	0d35 1f5e      mrr         $AX0.H, $AC0.M
-	0d36 02bf 0d6b call        0x0d6b
+	// 0d06 1fdb      mrr         $AC0.M, $AX1.H
+	// 0d07 4c00      add         $ACC0, $ACC1
+	// 0d08 1c1e      mrr         $AR0, $AC0.M
+	// 0d09 181b      lrr         $AX1.H, @$AR0
+	AR0 = AX1.H + 0x200;
+	AX1.H = *AR0;
+
+	// 0d0a 0080 0b00 lri         $AR0, #0x0b00
+	// 0d0c 9800      mul         $AX1.L, $AX1.H
+	// 0d0d ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+	// 0d0e b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
+	// 0d0f 9630      mulmv's     $AX0.L, $AX0.H, $ACC0 : @$AR0, $AC0.M
+	// 0d10 6e30      movp's      $ACC0 : @$AR0, $AC0.M
+	// 0d11 1b1e      srri        @$AR0, $AC0.M
+
+	// The above is heavily "sw-pipelined" but I think it turns into:
+	$AR0 = 0x0b00;
+	*$AR0++ = AX1.L * AX1.H;
+	*$AR0++ = AX0.L * AX1.H;
+	*$AR0++ = AX0.H * AX1.L;
+	*$AR0++ = AX0.L * AX0.H;
+
+	// 0d12 0080 0b00 lri         $AR0, #0x0b00
+	// 0d14 0081 0b04 lri         $AR1, #0x0b04
+	// 0d16 00da 042a lr          $AX0.H, @0x042a
+	// 0d18 02bf 0d62 call        0x0d62  // some tricky multiplication
+	0d62_TrickyMul(0x0b00, 0x0b04, *(0x042a));
 	
-	0d38 0080 0b0c lri         $AR0, #0x0b0c
-	0d3a 0081 0b10 lri         $AR1, #0x0b10
-	0d3c 00da 0429 lr          $AX0.H, @0x0429
-	0d3e 02bf 0d62 call        0x0d62
+	// 0d1a 0081 0b08 lri         $AR1, #0x0b08
+	// 0d1c 0080 0b04 lri         $AR0, #0x0b04
+	// 0d1e 00da 042a lr          $AX0.H, @0x042a    // interesting
+	// 0d20 00de 0429 lr          $AC0.M, @0x0429    // interesting
+	// 0d22 c000      mulc        $AC0.M, $AX0.H
+	// 0d23 6e00      movp        $ACC0
+	// 0d24 1481      asl         $ACC0, #1
+	// 0d25 1f5e      mrr         $AX0.H, $AC0.M
+
+	0d62_TrickyMul(0x0b00, 0x0b04, (*(0x042a) * *(0x0429) << 1) >> 16);
+	// 0d26 02bf 0d62 call        0x0d62  // some tricky multiplication
+	
+	// 0d28 0080 0b00 lri         $AR0, #0x0b00
+	// 0d2a 0081 0b0c lri         $AR1, #0x0b0c
+	// 0d2c 8100      clr         $ACC0
+	// 0d2d 8900      clr         $ACC1
+	// 0d2e 00de 042b lr          $AC0.M, @0x042b   // interesting
+	// 0d30 00df 042a lr          $AC1.M, @0x042a   // interesting
+	// 0d32 00fe 042a sr          @0x042a, $AC0.M
+	*(0x042a) = *(0x042b);
+	
+	// 0d34 5c00      sub         $ACC0, $ACC1
+	// 0d35 1f5e      mrr         $AX0.H, $AC0.M
+	// 0d36 02bf 0d6b call        0x0d6b  // some other tricky multiplication
+	0d6b_TrickierMul(0xb00, 0x0b0c, (*(0x042a) - *(0x042b)))
+	
+	// 0d38 0080 0b0c lri         $AR0, #0x0b0c
+	// 0d3a 0081 0b10 lri         $AR1, #0x0b10
+	// 0d3c 00da 0429 lr          $AX0.H, @0x0429   // interesting
+	0d3e 02bf 0d62 call        0x0d62  // some tricky multiplication
+	0d62_TrickyMul(0x0b0c, 0x0b10, *(0x0429));
+	
 	
 	0d40 0081 0b04 lri         $AR1, #0x0b04
-	0d42 0082 0b0c lri         $AR2, #0x0b0c   // Load buffer index from 0b0c
+	0d42 0082 0b0c lri         $AR2, #0x0b0c
 	0d44 0083 0d77 lri         $AR3, #0x0d77
 	
 	// 0d46 1108 0d5f bloopi      #0x08, 0x0d5f
 	for (int i = 0; i < 8; i++) {
-		0d48 195f      lrri        $AC1.M, @$AR2
-		0d49 15fb      asr         $ACC1, #-5
-		0d4a 1f1d      mrr         $AX0.L, $AC1.L
-		0d4b 1f5f      mrr         $AX0.H, $AC1.M
-		0d4c 193f      lrri        $AC1.M, @$AR1
-		0d4d 00e1 0b24 sr          @0x0b24, $AR1
-		0d4f 00e2 0b25 sr          @0x0b25, $AR2
-		0d51 021b      ilrri       $AC0.M, @$AR3   // Table lookup (see above)
-		0d52 00e3 0b26 sr          @0x0b26, $AR3
-		0d54 1c7e      mrr         $AR3, $AC0.M
-		0d55 00c0 038f lr          $AR0, @0x038f
-		0d57 02bf 0ca9 call        0x0ca9
+		// 0d48 195f      lrri        $AC1.M, @$AR2
+		// 0d49 15fb      asr         $ACC1, #-5
+		// 0d4a 1f1d      mrr         $AX0.L, $AC1.L
+		// 0d4b 1f5f      mrr         $AX0.H, $AC1.M
+		AX0 = *AR2++ << 11;
+		// 0d4c 193f      lrri        $AC1.M, @$AR1
+		AC1.M = *AR1++;
+
+		// 0d4d 00e1 0b24 sr          @0x0b24, $AR1
+		// 0d4f 00e2 0b25 sr          @0x0b25, $AR2
+		// 0d51 021b      ilrri       $AC0.M, @$AR3   // Buffer address table lookup (see above)
+		// 0d52 00e3 0b26 sr          @0x0b26, $AR3
+		(stash AR1, AR2, AR3)
+		// 0d54 1c7e      mrr         $AR3, $AC0.M
+		// 0d55 00c0 038f lr          $AR0, @0x038f
+		// 0d57 02bf 0ca9 call        0x0ca9
+		0ca9_RampedMultiplyBuffer(...  $AR3)
 		
+		// Restore AR1, AR2, AR3.
 		0d59 00c1 0b24 lr          $AR1, @0x0b24
 		0d5b 00c2 0b25 lr          $AR2, @0x0b25
 		0d5d 00c3 0b26 lr          $AR3, @0x0b26
 		0d5f 0000      nop       
-	}  
+	}
+	
+	// So basically the above loop is:
+	// For i in 0 to 8:
+	//    Call 0x0ca9_RampedMultiplyBuffer($AR0 = *0x038f, $AR3=0x0d77[i], AX0=0xb0c[i]<<11, AC1.M=0x0b04[i])
 		
 	0d60 8e00      set16       
-	0d61 02df      ret         
+	// 0d61 02df      ret         
 }
 
-void 0d62_Unk() {
+void 0d62_TrickyMul(in_buffer($AR0), out_buffer($AR1), multiplicand($AX0.H)) {
 	0d62 191f      lrri        $AC1.M, @$AR0
 	0d63 d078      mulc'l      $AC1.M, $AX0.H : $AC1.M, @$AR0
 	0d64 d678      mulcmv'l    $AC1.M, $AX0.H, $ACC0 : $AC1.M, @$AR0
@@ -4323,7 +4440,7 @@ void 0d62_Unk() {
 	// 0d6a 02df      ret         
 }
 
-void 0d6b_Unk() {
+void 0d6b_TrickierMul(in_buffer($AR0), out_buffer($AR1)) {
 	0d6b 8d00      set15       
 	0d6c 1f7e      mrr         $AX1.H, $AC0.M
 	0d6d 1918      lrri        $AX0.L, @$AR0
