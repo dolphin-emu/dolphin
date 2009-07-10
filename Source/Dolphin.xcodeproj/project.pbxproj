@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 44;
+	objectVersion = 45;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -818,6 +818,9 @@
 		B14A0CFE100353110054D25E /* PatchAddEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B91100353110054D25E /* PatchAddEdit.cpp */; };
 		B14A0CFF100353110054D25E /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B94100353110054D25E /* stdafx.cpp */; };
 		B14A0D00100353110054D25E /* WxUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B14A0B97100353110054D25E /* WxUtils.cpp */; };
+		B1C736E91007E7410088EA1B /* Jit_Tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1C736E71007E7410088EA1B /* Jit_Tables.cpp */; };
+		B1C736EA1007E7410088EA1B /* Jit_Tables.h in Headers */ = {isa = PBXBuildFile; fileRef = B1C736E81007E7410088EA1B /* Jit_Tables.h */; };
+		B1C736EC1007E7540088EA1B /* Interpreter_Tables.h in Headers */ = {isa = PBXBuildFile; fileRef = B1C736EB1007E7540088EA1B /* Interpreter_Tables.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -825,231 +828,231 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122DD1C100356CB00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122DD1E100356CF00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122DD20100356D200D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122DD22100356D500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122DD9D100357D600D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD2F1003571D00D86E1A /* AudioCommon */;
+			remoteGlobalIDString = B122DD2F1003571D00D86E1A;
 			remoteInfo = AudioCommon;
 		};
 		B122DD9F100357D800D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD2F1003571D00D86E1A /* AudioCommon */;
+			remoteGlobalIDString = B122DD2F1003571D00D86E1A;
 			remoteInfo = AudioCommon;
 		};
 		B122DF7F1003590600D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DF5E100358E300D86E1A /* Bochs_Disasm */;
+			remoteGlobalIDString = B122DF5E100358E300D86E1A;
 			remoteInfo = Bochs_Disasm;
 		};
 		B122DF8B100359CC00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD4B1003574D00D86E1A /* DiscIO */;
+			remoteGlobalIDString = B122DD4B1003574D00D86E1A;
 			remoteInfo = DiscIO;
 		};
 		B122E06610035BED00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD3D1003573400D86E1A /* DebuggerUICommon */;
+			remoteGlobalIDString = B122DD3D1003573400D86E1A;
 			remoteInfo = DebuggerUICommon;
 		};
 		B122E07310035C0100D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD361003572900D86E1A /* Core */;
+			remoteGlobalIDString = B122DD361003572900D86E1A;
 			remoteInfo = Core;
 		};
 		B122E1B710035FA600D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122E19210035F8400D86E1A /* SOIL */;
+			remoteGlobalIDString = B122E19210035F8400D86E1A;
 			remoteInfo = SOIL;
 		};
 		B122E1C610035FE700D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD4B1003574D00D86E1A /* DiscIO */;
+			remoteGlobalIDString = B122DD4B1003574D00D86E1A;
 			remoteInfo = DiscIO;
 		};
 		B122E1DE100360C900D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD521003575600D86E1A /* DSPCore */;
+			remoteGlobalIDString = B122DD521003575600D86E1A;
 			remoteInfo = DSPCore;
 		};
 		B122E1E91003610A00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD3D1003573400D86E1A /* DebuggerUICommon */;
+			remoteGlobalIDString = B122DD3D1003573400D86E1A;
 			remoteInfo = DebuggerUICommon;
 		};
 		B122E1F01003612900D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD591003576200D86E1A /* InputCommon */;
+			remoteGlobalIDString = B122DD591003576200D86E1A;
 			remoteInfo = InputCommon;
 		};
 		B122E2A31003661C00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122E2001003619200D86E1A /* WiiUse */;
+			remoteGlobalIDString = B122E2001003619200D86E1A;
 			remoteInfo = WiiUse;
 		};
 		B122E2DA1003668200D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD591003576200D86E1A /* InputCommon */;
+			remoteGlobalIDString = B122DD591003576200D86E1A;
 			remoteInfo = InputCommon;
 		};
 		B122E337100369B500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DF5E100358E300D86E1A /* Bochs_Disasm */;
+			remoteGlobalIDString = B122DF5E100358E300D86E1A;
 			remoteInfo = Bochs_Disasm;
 		};
 		B122E339100369B500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD4B1003574D00D86E1A /* DiscIO */;
+			remoteGlobalIDString = B122DD4B1003574D00D86E1A;
 			remoteInfo = DiscIO;
 		};
 		B122E33B100369B500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD441003574100D86E1A /* DebuggerWX */;
+			remoteGlobalIDString = B122DD441003574100D86E1A;
 			remoteInfo = DebuggerWX;
 		};
 		B122E33D100369B500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD3D1003573400D86E1A /* DebuggerUICommon */;
+			remoteGlobalIDString = B122DD3D1003573400D86E1A;
 			remoteInfo = DebuggerUICommon;
 		};
 		B122E33F100369B500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD361003572900D86E1A /* Core */;
+			remoteGlobalIDString = B122DD361003572900D86E1A;
 			remoteInfo = Core;
 		};
 		B122E450100375E400D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122E3A61003726F00D86E1A /* SFML */;
+			remoteGlobalIDString = B122E3A61003726F00D86E1A;
 			remoteInfo = SFML;
 		};
 		B122E486100379AE00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122E4B1100381CA00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DC731003562E00D86E1A /* Common */;
+			remoteGlobalIDString = B122DC731003562E00D86E1A;
 			remoteInfo = Common;
 		};
 		B122E4D21003830500D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD591003576200D86E1A /* InputCommon */;
+			remoteGlobalIDString = B122DD591003576200D86E1A;
 			remoteInfo = InputCommon;
 		};
 		B122E4E31003837A00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 5280817D0EEA2EBE00B63386 /* Plugin_DSP_HLE */;
+			remoteGlobalIDString = 5280817D0EEA2EBE00B63386;
 			remoteInfo = Plugin_DSP_HLE;
 		};
 		B122E4E51003837D00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 52C432F80EEA514900B87C53 /* Plugin_DSP_LLE */;
+			remoteGlobalIDString = 52C432F80EEA514900B87C53;
 			remoteInfo = Plugin_DSP_LLE;
 		};
 		B122E4E71003838400D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 52771A730EEA55E8006A702B /* Plugin_nJoy_SDL */;
+			remoteGlobalIDString = 52771A730EEA55E8006A702B;
 			remoteInfo = Plugin_nJoy_SDL;
 		};
 		B122E4EB1003838B00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DB491003547A00D86E1A /* Plugin_Wiimote */;
+			remoteGlobalIDString = B122DB491003547A00D86E1A;
 			remoteInfo = Plugin_Wiimote;
 		};
 		B122E532100387CD00D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B122DD601003576900D86E1A /* VideoCommon */;
+			remoteGlobalIDString = B122DD601003576900D86E1A;
 			remoteInfo = VideoCommon;
 		};
 		B122E5E4100483C300D86E1A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 20286C28FDCF999611CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 520A5FD20EEA5863004FE1ED /* Plugin_VideoOGL */;
+			remoteGlobalIDString = 520A5FD20EEA5863004FE1ED;
 			remoteInfo = Plugin_VideoOGL;
 		};
 /* End PBXContainerItemProxy section */
@@ -1951,6 +1954,11 @@
 		B14A0B96100353110054D25E /* Summarize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Summarize.h; sourceTree = "<group>"; };
 		B14A0B97100353110054D25E /* WxUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WxUtils.cpp; sourceTree = "<group>"; };
 		B14A0B98100353110054D25E /* WxUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WxUtils.h; sourceTree = "<group>"; };
+		B1C736E71007E7410088EA1B /* Jit_Tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Jit_Tables.cpp; sourceTree = "<group>"; };
+		B1C736E81007E7410088EA1B /* Jit_Tables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Jit_Tables.h; sourceTree = "<group>"; };
+		B1C736EB1007E7540088EA1B /* Interpreter_Tables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Interpreter_Tables.h; sourceTree = "<group>"; };
+		B1C7370C1007E7930088EA1B /* DolphinIL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphinIL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1C7370E1007E7940088EA1B /* DolphinIL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DolphinIL-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2140,6 +2148,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1C7370A1007E7930088EA1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -2161,6 +2176,7 @@
 				B122E19310035F8400D86E1A /* libSOIL.a */,
 				B122E2011003619200D86E1A /* libWiiUse.a */,
 				B122E3A71003726F00D86E1A /* libSFML.a */,
+				B1C7370C1007E7930088EA1B /* DolphinIL.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2173,6 +2189,7 @@
 				20286C2CFDCF999611CA2CEA /* Resources */,
 				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
+				B1C7370E1007E7940088EA1B /* DolphinIL-Info.plist */,
 			);
 			name = Dolphin;
 			sourceTree = "<group>";
@@ -2950,6 +2967,7 @@
 		B122DE3A100357F300D86E1A /* Interpreter */ = {
 			isa = PBXGroup;
 			children = (
+				B1C736EB1007E7540088EA1B /* Interpreter_Tables.h */,
 				B122DE3B100357F300D86E1A /* Interpreter.cpp */,
 				B122DE3C100357F300D86E1A /* Interpreter.h */,
 				B122DE3D100357F300D86E1A /* Interpreter_Branch.cpp */,
@@ -2988,6 +3006,8 @@
 		B122DE64100357F300D86E1A /* JitCommon */ = {
 			isa = PBXGroup;
 			children = (
+				B1C736E71007E7410088EA1B /* Jit_Tables.cpp */,
+				B1C736E81007E7410088EA1B /* Jit_Tables.h */,
 				B122DE65100357F300D86E1A /* Jit_Util.cpp */,
 				B122DE66100357F300D86E1A /* JitBackpatch.cpp */,
 				B122DE67100357F300D86E1A /* JitCache.cpp */,
@@ -3965,6 +3985,8 @@
 				B122E01910035B7800D86E1A /* lzoconf.h in Headers */,
 				B122E01A10035B7800D86E1A /* lzodefs.h in Headers */,
 				B122E01C10035B7800D86E1A /* minilzo.h in Headers */,
+				B1C736EA1007E7410088EA1B /* Jit_Tables.h in Headers */,
+				B1C736EC1007E7540088EA1B /* Interpreter_Tables.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4529,6 +4551,23 @@
 			productReference = B122E3A71003726F00D86E1A /* libSFML.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		B1C7370B1007E7930088EA1B /* DolphinIL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1C737111007E7950088EA1B /* Build configuration list for PBXNativeTarget "DolphinIL" */;
+			buildPhases = (
+				B1C737081007E7930088EA1B /* Resources */,
+				B1C737091007E7930088EA1B /* Sources */,
+				B1C7370A1007E7930088EA1B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DolphinIL;
+			productName = DolphinIL;
+			productReference = B1C7370C1007E7930088EA1B /* DolphinIL.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -4560,9 +4599,20 @@
 				B122E19210035F8400D86E1A /* SOIL */,
 				B122E2001003619200D86E1A /* WiiUse */,
 				B122E3A61003726F00D86E1A /* SFML */,
+				B1C7370B1007E7930088EA1B /* DolphinIL */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B1C737081007E7930088EA1B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		5280814F0EEA275100B63386 /* ShellScript */ = {
@@ -4906,6 +4956,7 @@
 				B122DF48100357F300D86E1A /* Tracer.cpp in Sources */,
 				B122DF4A100357F300D86E1A /* VolumeHandler.cpp in Sources */,
 				B122E01B10035B7800D86E1A /* minilzo.c in Sources */,
+				B1C736E91007E7410088EA1B /* Jit_Tables.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5098,6 +5149,13 @@
 				B122E4261003728700D86E1A /* SocketTCP.cpp in Sources */,
 				B122E4271003728700D86E1A /* SocketUDP.cpp in Sources */,
 				B122E4281003728700D86E1A /* SocketHelper.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1C737091007E7930088EA1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6138,6 +6196,55 @@
 			};
 			name = Release;
 		};
+		B1C7370F1007E7950088EA1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/UIKit.framework/Headers/UIKit.h";
+				INFOPLIST_FILE = "DolphinIL-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					UIKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = DolphinIL;
+				SDKROOT = iphoneos2.1;
+			};
+			name = Debug;
+		};
+		B1C737101007E7950088EA1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "Don't Code Sign";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/UIKit.framework/Headers/UIKit.h";
+				INFOPLIST_FILE = "DolphinIL-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					UIKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = DolphinIL;
+				SDKROOT = "";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		C0E91AC608A95435008D54AB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5048396E09E3307300765E4B /* DolphinTarget.xcconfig */;
@@ -6217,7 +6324,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5048396D09E3307300765E4B /* DolphinProj.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -6229,7 +6336,7 @@
 					../Externals,
 				);
 				LIBRARY_SEARCH_PATHS = /opt/local/lib;
-				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH)";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -6246,8 +6353,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5048396D09E3307300765E4B /* DolphinProj.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = 4.0;
 				HEADER_SEARCH_PATHS = (
@@ -6431,6 +6537,15 @@
 			buildConfigurations = (
 				B122E3A81003727000D86E1A /* Debug */,
 				B122E3A91003727000D86E1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1C737111007E7950088EA1B /* Build configuration list for PBXNativeTarget "DolphinIL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1C7370F1007E7950088EA1B /* Debug */,
+				B1C737101007E7950088EA1B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
