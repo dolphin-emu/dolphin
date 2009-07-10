@@ -20,7 +20,9 @@
 #include "ConfigPadDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for WiiMoteEmu class
-
+#if defined(HAVE_X11) && HAVE_X11
+	#include "X11InputBase.h"
+#endif
 // Change Joystick
 /* Function: When changing the joystick we save and load the settings and
    update the PadMapping and PadState array. PadState[].joy is the gamepad
@@ -161,19 +163,39 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 			m_Button_GH3[x][controller]->SetLabel(wxString::FromAscii(
 			InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[x]).c_str()));
 	}
-#else
-	 if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+#elif defined(HAVE_X11) && HAVE_X11
+	char keyStr[10] = {0};
+	for (int x = 0; x < WM_CONTROLS; x++)
 	{
-		//TODO: fix this and add for all key settings
+		InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[x], keyStr);
+		m_Button_Wiimote[x][controller]->SetLabel(wxString::FromAscii(keyStr));
+	}
+	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
+	{
+		for (int x = 0; x < NC_CONTROLS; x++)
+		{
+			InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].Nc.keyForControls[x], keyStr);
+			m_Button_NunChuck[x][controller]->SetLabel(wxString::FromAscii(keyStr));
+		}
+
+	}
+	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
+	{
+		for (int x = 0; x < CC_CONTROLS; x++)
+		{
+			InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].Cc.keyForControls[x], keyStr);
+			m_Button_Classic[x][controller]->SetLabel(wxString::FromAscii(keyStr));
+		}
+	}
+	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	{
 		for (int x = 0; x < GH3_CONTROLS; x++)
 		{
-			char keyStr[10] = {0};
-			//InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[x], keyStr);
+			InputCommon::XKeyToString(WiiMoteEmu::PadMapping[controller].GH3c.keyForControls[x], keyStr);
 			m_Button_GH3[x][controller]->SetLabel(wxString::FromAscii(keyStr));
 		}
 	}
 #endif
-
 	//INFO_LOG(CONSOLE, "m_bWmA[%i] = %i = %s\n", controller, WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0], InputCommon::VKToString(WiiMoteEmu::PadMapping[controller].Wm.keyForControls[0]).c_str());
 }
 
