@@ -126,7 +126,7 @@ void rti(const UDSPInstruction& opc)
 	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 
-	g_dsp.exception_in_progress_hack = false;
+	g_dsp.exception_in_progress  = -1;
 }
 
 // HALT

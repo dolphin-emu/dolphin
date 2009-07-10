@@ -116,6 +116,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 
 	g_dsp.r[DSP_REG_SR] |= SR_INT_ENABLE;
 	g_dsp.r[DSP_REG_SR] |= SR_EXT_INT_ENABLE;
+	g_dsp.exception_in_progress = -1;
 
 	g_dsp.cr = 0x804;
 	gdsp_ifx_init();
@@ -125,7 +126,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	DSPAnalyzer::Analyze();
 	step_event.Init();
-	
+
 	return true;
 }
 
@@ -140,19 +141,22 @@ void DSPCore_Shutdown()
 
 void DSPCore_Reset()
 {
-    _assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "reset while exception");
+    _assert_msg_(MASTER_LOG, g_dsp.exception_in_progress == -1, "reset while exception");
     g_dsp.pc = DSP_RESET_VECTOR;
-    g_dsp.exception_in_progress_hack = false;
+    g_dsp.exception_in_progress = -1;
 
 	g_dsp.r[DSP_REG_WR0] = 0xffff;
 	g_dsp.r[DSP_REG_WR1] = 0xffff;
 	g_dsp.r[DSP_REG_WR2] = 0xffff;
 	g_dsp.r[DSP_REG_WR3] = 0xffff;
-
 }
 
 void DSPCore_SetException(u8 level)
 {
+#ifdef DEBUG_EXP
+	NOTICE_LOG(DSPLLE, "Firing exception %d", g_dsp.exceptions);
+#endif
+
 	g_dsp.exceptions |= 1 << level;
 }
 
@@ -160,56 +164,57 @@ void DSPCore_SetException(u8 level)
 void DSPCore_CheckExternalInterrupt()
 {
 	// check if there is an external interrupt
-	if (g_dsp.cr & CR_EXTERNAL_INT && !g_dsp.exception_in_progress_hack)
-	{
+	if (g_dsp.cr & CR_EXTERNAL_INT) {
+		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE) && g_dsp.exception_in_progress < 1) {
 #ifdef DEBUG_EXP
-		NOTICE_LOG(DSPLLE, "Firing external interrupt");
+			NOTICE_LOG(DSP_MAIL, "External interrupt fired");
 #endif
-		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
-		{
 			// Signal the SPU about new mail
 			DSPCore_SetException(EXP_INT);
 			
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		} else {
 #ifdef DEBUG_EXP
-			ERROR_LOG(DSPLLE, "External interrupt firing failed");
+			ERROR_LOG(DSP_MAIL, "External interrupt failed(masked)");
 #endif
 		}
-
 	}
 }
+
 
 void DSPCore_CheckExceptions() 
 {
 	// it's unclear what to do when there are two exceptions are the same time
 	// but for sure they should not be called together therefore the
 	// g_dsp.exception_in_progress_hack
-	if (g_dsp.exceptions != 0 && !g_dsp.exception_in_progress_hack) {
-#ifdef DEBUG_EXP
-		NOTICE_LOG(DSPLLE, "Firing exception %d", g_dsp.exceptions);
-#endif
-		// check exceptions should it be 0..7 or 7..0?
-		for (int i = 0; i < 8; i++) {
-			// Seems exp int or reset are not masked by sr_int_enable 
-			if (g_dsp.exceptions & (1 << i)) {
-				if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT || i == EXP_RESET) {
-					_assert_msg_(MASTER_LOG, !g_dsp.exception_in_progress_hack, "assert while exception");
+	if (g_dsp.exceptions != 0) {
+		if (g_dsp.exception_in_progress < 1) {
+			// check exceptions should it be 0..7 or 7..0?
+			for (int i = 7; i >= 0; i--) {
+				// Seems exp int or reset are not masked by sr_int_enable 
+				if (g_dsp.exceptions & (1 << i)) {
+					if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT || i == EXP_RESET) { 
+						_assert_msg_(MASTER_LOG, g_dsp.exception_in_progress == -1, "assert %d while exception", g_dsp.exception_in_progress);
 					
-					// store pc and sr until RTI
-					dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-					dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
-					
-					g_dsp.pc = i * 2; 
-					g_dsp.exceptions &= ~(1 << i);
-					g_dsp.exception_in_progress_hack = true;
-					break;
-				} else {
+						// store pc and sr until RTI
+						dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+						dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
+						
+						g_dsp.pc = i * 2; 
+						g_dsp.exceptions &= ~(1 << i);
+						g_dsp.exception_in_progress = i;
+						break;
+					} else {
 #ifdef DEBUG_EXP
-					ERROR_LOG(DSPLLE, "Firing exception %d failed");
+						ERROR_LOG(DSPLLE, "Firing exception %d failed", g_dsp.exceptions);
 #endif
+					}
 				}
 			}
+		} else { 
+#ifdef DEBUG_EXP
+			ERROR_LOG(DSPLLE, "Firing exception %d failed exception active", g_dsp.exceptions);
+#endif
 		}
 	}
 }

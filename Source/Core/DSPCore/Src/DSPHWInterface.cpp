@@ -136,6 +136,8 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    case 0xfb: // DIRQ
 		    if (val & 0x1)
 			    DSPHost_InterruptRequest();
+			else 
+				ERROR_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 		    break;
 
 	    case 0xfc: // DMBH
@@ -244,12 +246,12 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	
-	INFO_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
+	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	DSPAnalyzer::Analyze();
 	// This calls the reset functions, but it get some games stuck
 	// uncomment it to help with debugging
-	//	DSPCore_SetException(EXP_RESET);
+	DSPCore_SetException(EXP_RESET);
 }
 
 

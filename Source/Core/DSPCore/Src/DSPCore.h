@@ -186,8 +186,8 @@ struct SDSP
 	u16 cr;
 
 	u8 reg_stack_ptr[4];
-	u8 exceptions;   // pending exceptions?
-	bool exception_in_progress_hack;  // is this the same as "exception enabled"?
+	u8 exceptions;   // pending exceptions
+	int exception_in_progress;  // inside exp flag
 
 	// Let's make stack depth 32 for now. The real DSP has different depths
 	// for the different stacks, but it would be strange if any ucode relied on stack
