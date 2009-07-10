@@ -149,12 +149,13 @@ void DSPCore_Reset()
 	g_dsp.r[DSP_REG_WR1] = 0xffff;
 	g_dsp.r[DSP_REG_WR2] = 0xffff;
 	g_dsp.r[DSP_REG_WR3] = 0xffff;
+	
 }
 
 void DSPCore_SetException(u8 level)
 {
 #ifdef DEBUG_EXP
-	NOTICE_LOG(DSPLLE, "Firing exception %d", g_dsp.exceptions);
+	NOTICE_LOG(DSPLLE, "Set exception %d", level);
 #endif
 
 	g_dsp.exceptions |= 1 << level;
@@ -165,7 +166,7 @@ void DSPCore_CheckExternalInterrupt()
 {
 	// check if there is an external interrupt
 	if (g_dsp.cr & CR_EXTERNAL_INT) {
-		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE) && g_dsp.exception_in_progress < 1) {
+		if (dsp_SR_is_flag_set(SR_EXT_INT_ENABLE) && g_dsp.exception_in_progress == -1) {
 #ifdef DEBUG_EXP
 			NOTICE_LOG(DSP_MAIL, "External interrupt fired");
 #endif
@@ -175,7 +176,7 @@ void DSPCore_CheckExternalInterrupt()
 			g_dsp.cr &= ~CR_EXTERNAL_INT;
 		} else {
 #ifdef DEBUG_EXP
-			ERROR_LOG(DSP_MAIL, "External interrupt failed(masked)");
+			ERROR_LOG(DSP_MAIL, "External interrupt failed(masked) by %d", g_dsp.exception_in_progress);
 #endif
 		}
 	}
@@ -188,12 +189,12 @@ void DSPCore_CheckExceptions()
 	// but for sure they should not be called together therefore the
 	// g_dsp.exception_in_progress_hack
 	if (g_dsp.exceptions != 0) {
-		if (g_dsp.exception_in_progress < 1) {
+		if (g_dsp.exception_in_progress == -1) {
 			// check exceptions should it be 0..7 or 7..0?
 			for (int i = 7; i >= 0; i--) {
 				// Seems exp int or reset are not masked by sr_int_enable 
 				if (g_dsp.exceptions & (1 << i)) {
-					if (dsp_SR_is_flag_set(SR_INT_ENABLE) || i == EXP_INT || i == EXP_RESET) { 
+					if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT && dsp_SR_is_flag_set(SR_EXT_INT_ENABLE)) || i == EXP_RESET) { 
 						_assert_msg_(MASTER_LOG, g_dsp.exception_in_progress == -1, "assert %d while exception", g_dsp.exception_in_progress);
 					
 						// store pc and sr until RTI
@@ -202,18 +203,19 @@ void DSPCore_CheckExceptions()
 						
 						g_dsp.pc = i * 2; 
 						g_dsp.exceptions &= ~(1 << i);
-						g_dsp.exception_in_progress = i;
+						if (i)
+							g_dsp.exception_in_progress = i;
 						break;
 					} else {
 #ifdef DEBUG_EXP
-						ERROR_LOG(DSPLLE, "Firing exception %d failed", g_dsp.exceptions);
+						ERROR_LOG(DSPLLE, "Firing exception %d failed", i);
 #endif
 					}
 				}
 			}
 		} else { 
 #ifdef DEBUG_EXP
-			ERROR_LOG(DSPLLE, "Firing exception %d failed exception active", g_dsp.exceptions);
+			ERROR_LOG(DSPLLE, "Firing exception %d failed exception %d active", g_dsp.exceptions, g_dsp.exception_in_progress);
 #endif
 		}
 	}

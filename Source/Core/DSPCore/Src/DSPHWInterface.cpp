@@ -236,6 +236,7 @@ u16 gdsp_ifx_read(u16 addr)
 
 void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
+	static bool reset = true;
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	u8* dst = ((u8*)g_dsp.iram);
@@ -249,9 +250,13 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	DSPAnalyzer::Analyze();
-	// This calls the reset functions, but it get some games stuck
-	// uncomment it to help with debugging
-	DSPCore_SetException(EXP_RESET);
+
+	if (reset) {
+		// This calls the reset functions, but it get some games stuck
+		// uncomment it to help with debugging
+		//		DSPCore_SetException(EXP_RESET);
+		reset = false;
+	}
 }
 
 
