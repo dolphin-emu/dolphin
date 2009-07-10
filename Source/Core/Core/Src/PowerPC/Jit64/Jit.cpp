@@ -35,7 +35,7 @@
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
-#include "Jit_Tables.h"
+#include "../JitCommon/Jit_Tables.h"
 
 #if defined JITTEST && JITTEST
 #error Jit64 cannot have JITTEST define
