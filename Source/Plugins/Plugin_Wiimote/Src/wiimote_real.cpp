@@ -125,13 +125,7 @@ void ReadData()
     {
 		//INFO_LOG(CONSOLE, "Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
-		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, 
-#ifdef _WIN32 // dunno if this is needed, sonic ran away when i found the bug :p
-			MAX_PAYLOAD
-#else
-			(int)m_EventWriteQueue.size()
-#endif
-			);
+		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
 		m_EventWriteQueue.pop();
 		
 #ifdef _WIN32

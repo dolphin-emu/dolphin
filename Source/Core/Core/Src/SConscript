@@ -82,6 +82,7 @@ files = ["ActionReplay.cpp",
          "PowerPC/Interpreter/Interpreter_LoadStore.cpp",
          "PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp",
          "PowerPC/Interpreter/Interpreter_SystemRegisters.cpp",
+		 "PowerPC/Interpreter/Interpreter_Tables.cpp",
          "PowerPC/JitCommon/JitCache.cpp",
          "PowerPC/JitCommon/JitBackpatch.cpp",
          "PowerPC/JitCommon/Jit_Util.cpp",
@@ -103,6 +104,7 @@ if env['JITTEST']:
               "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
               "PowerPC/Jit64IL/IR.cpp",
               "PowerPC/Jit64IL/IR_X86.cpp",
+			  "PowerPC/JitCommon//Jit_Tables.cpp",
              ]
 else:
     files += ["PowerPC/Jit64/Jit.cpp",
@@ -116,6 +118,7 @@ else:
               "PowerPC/Jit64/Jit_LoadStore.cpp",
               "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
               "PowerPC/Jit64/Jit_SystemRegisters.cpp",
+			  "PowerPC/JitCommon/Jit_Tables.cpp",
              ]
 
 if sys.platform == 'win32':

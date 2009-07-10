@@ -35,6 +35,7 @@
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
+#include "Jit_Tables.h"
 
 #if defined JITTEST && JITTEST
 #error Jit64 cannot have JITTEST define
@@ -555,7 +556,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 		}
 
 		if (!ops[i].skip)
-			PPCTables::CompileInstruction(ops[i].inst);
+			JitTables::CompileInstruction(ops[i].inst);
 
 		gpr.SanityCheck();
 		fpr.SanityCheck();

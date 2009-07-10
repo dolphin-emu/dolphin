@@ -82,7 +82,6 @@ enum {
 enum {
 	OP_BLR = 0x4e800020,
 };
-
 struct GekkoOPInfo
 {
 	const char *opname;
@@ -93,17 +92,24 @@ struct GekkoOPInfo
 	int compileCount;
 	u32 lastUse;
 };
+extern GekkoOPInfo *m_infoTable[64];
+extern GekkoOPInfo *m_infoTable4[1024];
+extern GekkoOPInfo *m_infoTable19[1024];
+extern GekkoOPInfo *m_infoTable31[1024];
+extern GekkoOPInfo *m_infoTable59[32];
+extern GekkoOPInfo *m_infoTable63[1024];
+
+extern GekkoOPInfo *m_allInstructions[512];
+
+extern int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
-class Jit64;
+class cJit64;
 
 namespace PPCTables
 {
-
-typedef void (Jit64::*_recompilerInstruction) (UGeckoInstruction instCode);
-typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
 void InitTables();
 bool IsValidInstruction(UGeckoInstruction _instCode);
@@ -112,9 +118,7 @@ bool UsesFPU(UGeckoInstruction _inst);
 void CountInstruction(UGeckoInstruction _inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
-void CompileInstruction(UGeckoInstruction _inst);
 const char *GetInstructionName(UGeckoInstruction _inst);
 
 }  // namespace
-
 #endif

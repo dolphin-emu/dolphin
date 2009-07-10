@@ -111,7 +111,7 @@ CPluginManager::~CPluginManager()
 
 	for (int i = 0; i < MAXPADS; i++)
 	{
-		if (m_pad[i] && OkayToInitPlugin(i))
+		if (m_pad[i] && (OkayToInitPlugin(i) != -1))
 		{
 			INFO_LOG(CONSOLE, "Delete: %i\n", i);
 			delete m_pad[i];

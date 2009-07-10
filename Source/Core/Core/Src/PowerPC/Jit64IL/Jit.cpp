@@ -34,6 +34,7 @@
 #include "Jit.h"
 #include "JitAsm.h"
 #include "../JitCommon/JitCache.h"
+#include "../JitCommon/Jit_Tables.h"
 
 #if  !defined JITTEST || ! JITTEST
 #error JitIL needs JITTEST define
@@ -461,7 +462,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 		}
 
 		if (!ops[i].skip)
-			PPCTables::CompileInstruction(ops[i].inst);
+			JitTables::CompileInstruction(ops[i].inst);
 	}
 
 	// Perform actual code generation
