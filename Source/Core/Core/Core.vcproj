@@ -1066,6 +1066,14 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_Tables.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_Tables.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Jit64"
@@ -1914,6 +1922,14 @@
 			<Filter
 				Name="JitCommon"
 				>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\Jit_Tables.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\Jit_Tables.h"
+					>
+				</File>
 				<File
 					RelativePath=".\Src\PowerPC\JitCommon\Jit_Util.cpp"
 					>
