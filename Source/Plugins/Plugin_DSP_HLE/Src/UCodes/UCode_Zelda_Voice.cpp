@@ -285,6 +285,23 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	u32 _ratio = (PB.RatioInt << 16);//  + PB.RatioFrac;
 	s64 ratio = (_ratio * ratioFactor) * 16; // (s64)(((_ratio / 80) << 16) * ratioFactor);
 
+	s64 value1;
+	
+	// TODO: De-Ugly
+	if(PB.Format == 0x21)       // Resampled
+		value1 = (((PB.raw[0x30] + (PB.raw[2] * 0x50)) << 4) & 0xFFFF0000) >> 8;
+	else if(PB.Format == 0x20)  // Unsampled
+		value1 = 0x50;
+	
+	// End of sound
+	if(((PB.raw[0x3a] << 16) | PB.raw[0x3b]) <= value1)
+	{
+		PB.KeyOff = 1;
+		PB.RemLength = 0;
+		return;
+	}
+
+
 	if (PB.NeedsReset != 0)
 	{
 		PB.CurBlock = 0x00;
@@ -326,17 +343,17 @@ restart:
 	}
 
 	u32 prev_addr = PB.CurAddr;
-	// PanicAlert("%08x DMA", PB.CurAddr);
+	//ERROR_LOG(DSPHLE,  "%08x %08x DMA", PB.StartAddr, PB.CurAddr);
 
 	const u16 *src = (u16 *)(source + (PB.CurAddr & ram_mask));
 
-	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 16;
-	TrueSamplePosition += PB.CurSampleFrac;
+	s64 TrueSamplePosition = PB.CurSampleFrac; //(s64)(PB.Length - PB.RemLength) << 16;
+	//TrueSamplePosition += PB.CurSampleFrac;
 	s64 delta = ratio >> 16;  // 0x100000000ULL;
 	int sampleCount = 0, realSample = 0;
 	while (sampleCount < _Size)
 	{
-		_Buffer[sampleCount] = realSample >> 2;
+		_Buffer[sampleCount] = realSample >> 3;
 
 		sampleCount++;
 		int SamplePosition = TrueSamplePosition >> 16;
@@ -407,8 +424,10 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
                         
       	// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:          
-			WARN_LOG(DSPHLE, "Synthesizing 0x0002");
+		case 0x000c: // Appears in yellow force-field in Temple of the Gods, ZWW
+			WARN_LOG(DSPHLE, "Synthesizing 0x%04x", PB.Format);
 			break;
+
                     
 		// AFC formats
 		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
