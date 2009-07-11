@@ -473,7 +473,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		short AX0L = PB.raw[0x28] >> 8;
 		short AX0H = PB.raw[0x28] & 0x7F;
 		short AX1L = AX0L ^ 0x7F;
-		short AX1H = AX1L ^ 0x7F;
+		short AX1H = AX0H ^ 0x7F;
 		AX0L = m_MiscTable[0x200 + AX0L];
 		AX0H = m_MiscTable[0x200 + AX0H];
 		AX1L = m_MiscTable[0x200 + AX1L];
@@ -484,27 +484,46 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		b00[1] = AX0L * AX1H >> 16;
 		b00[2] = AX0H * AX1L >> 16;
 		b00[3] = AX0L * AX0H >> 16;
+
 		for (int i = 0; i < 4; i++) {
-			b00[i + 4] = b00[i] * PB.raw[0x2a] >> 16;
+			b00[i + 4] = (s16)b00[i] * (s16)PB.raw[0x2a] >> 16;
 		}
 
-		// ... not done yet...
+		int prod = ((s16)PB.raw[0x2a] * (s16)PB.raw[0x29] * 2) >> 16;
+		for (int i = 0; i < 4; i++) {
+			b00[i + 8] = (s16)b00[i + 4] * prod;
+		}
+
+		// ZWW 0d34
+		
+		int diff = (s16)PB.raw[0x2b] - (s16)PB.raw[0x2a];
+		PB.raw[0x2a] = PB.raw[0x2b];
+
+		for (int i = 0; i < 4; i++) {
+			b00[i + 0xc] = (unsigned short)b00[i] * diff >> 16;
+		}
+
+		for (int i = 0; i < 4; i++) {
+			b00[i + 0x10] = (s16)b00[i + 0xc] * PB.raw[0x29];
+		}
 
 		for (int count = 0; count < 8; count++)
 		{
 			// The 8 buffers to mix to: 0d00, 0d60, 0f40 0ca0 0e80 0ee0 0c00 0c50
+			// We just mix to the first to and call it stereo :p
+			int value = b00[0x4 + count];
+			int delta = b00[0xC + count] << 11;
 			
-		}
-
-		// this should be scrapped
-		for (int i = 0; i < _Size; i++)
-		{
-			// arbitrary
-			s32 left = m_TempBuffer[i] >> 3;
-			s32 right = m_TempBuffer[i] >> 3;
-
-			_LeftBuffer[i] += left; //(s32)(((float)left * (float)PB.volumeLeft) / 1000.f);
-			_RightBuffer[i] += right; //(s32)(((float)right * (float)PB.volumeRight) / 1000.0f);
+			int ramp = value << 16;
+			for (int i = 0; i < _Size; i++)
+			{
+				int unmixed_audio = m_TempBuffer[i];
+				switch (count) {
+				case 0: _LeftBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
+				case 1: _RightBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
+					break;
+				}
+			}
 		}
 	}
 	else
