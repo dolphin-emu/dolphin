@@ -424,7 +424,6 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
                         
       	// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:
-		case 0x0008: // Example: Second time in "Hyrule", in the king's room, when fighting the two knights (in ZWW, of course)          
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
 			WARN_LOG(DSPHLE, "Synthesizing 0x%04x", PB.Format);
 			break;
@@ -443,6 +442,8 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			break;
 
 		case 0x0008:   // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
+			// Example: Second time in "Hyrule", in the king's 
+			// room, when fighting the two knights (in ZWW, of course)
 			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 			break;
 
