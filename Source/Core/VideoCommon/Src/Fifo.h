@@ -37,4 +37,8 @@ void Fifo_ExitLoopNonBlocking();
 
 void Fifo_DoState(PointerWrap &f);
 
+// Implemented by the Video Plugin
+void VideoFifo_CheckSwapRequest();
+void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+
 #endif

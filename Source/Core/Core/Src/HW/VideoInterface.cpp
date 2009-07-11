@@ -987,15 +987,7 @@ void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 	}
 }
 
-u8* GetXFBPointerTop()
-{
-	if (m_XFBInfoTop.POFF)
-		return Memory::GetPointer(m_XFBInfoTop.FBB << 5);
-	else
-		return Memory::GetPointer(m_XFBInfoTop.FBB);
-}
-
-u32 GetXFBPointerTop_GC()
+u32 GetXFBAddressTop()
 {
 	if (m_XFBInfoTop.POFF)
 		return m_XFBInfoTop.FBB << 5;
@@ -1003,16 +995,7 @@ u32 GetXFBPointerTop_GC()
 		return m_XFBInfoTop.FBB;
 }
 
-u8* GetXFBPointerBottom()
-{
-	// POFF for XFB bottom is connected to POFF for XFB top
-	if (m_XFBInfoTop.POFF)
-		return Memory::GetPointer(m_XFBInfoBottom.FBB << 5);
-	else
-		return Memory::GetPointer(m_XFBInfoBottom.FBB);
-}
-
-u32 GetXFBPointerBottom_GC()
+u32 GetXFBAddressBottom()
 {
 	// POFF for XFB bottom is connected to POFF for XFB top
 	if (m_XFBInfoTop.POFF)
@@ -1058,6 +1041,25 @@ int getTicksPerLine() {
 }
 
 
+static void BeginField(u32 xfbAddr, FieldType field)
+{
+	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
+	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
+		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
+		fieldTypeNames[field]
+		);
+
+	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
+	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+
+	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+	if (xfbAddr && video->IsValid())
+	{
+		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
+	}
+}
+
+
 // Purpose 1: Send VI interrupt for every screen refresh
 // Purpose 2: Execute XFB copy in homebrew games
 // Run when: This is run 7200 times per second on full speed
@@ -1094,57 +1096,32 @@ void Update()
 
 	if (m_VBeamPos == NextXFBRender)
 	{
-		u32 xfbAddr = 0;
-		int yOffset = 0;
-
 		if (NextXFBRender == 1)
 		{
 			NextXFBRender = LinesPerField;
 			// TODO: proper VI regs typedef and logic for XFB to work.
 			// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
 			// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
-			xfbAddr = GetXFBPointerTop_GC();
+			u32 xfbAddr = GetXFBAddressTop();
+			BeginField(xfbAddr, m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
 		}
 		else
 		{
 			NextXFBRender = 1;
 			// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
-			xfbAddr = GetXFBPointerBottom_GC();
-			yOffset = -1;
-		}
-
-		Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
-
-		if (xfbAddr && video->IsValid())
-		{
-			int fbWidth = m_HorizontalStepping.FieldSteps * 16;
-			int fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
-			
-			DEBUG_LOG(VIDEOINTERFACE, "(VI->XFBUpdate): ptr: %.08X | %ix%i | xoff: %i",
-				xfbAddr, fbWidth, fbHeight, m_XFBInfoTop.XOFF);
-
-			if (Core::GetStartupParameter().bUseDualCore)
-				// scheduled on EmuThread in DC mode
-				video->Video_UpdateXFB(xfbAddr, fbWidth, fbHeight, yOffset, TRUE); 
-			else
-				// otherwise do it now from here (CPUthread)
-				video->Video_UpdateXFB(xfbAddr, fbWidth, fbHeight, yOffset, FALSE);
+			u32 xfbAddr = GetXFBAddressBottom();
+			BeginField(xfbAddr, m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
 		}
 	}
 
-    // check INT_PRERETRACE
-    if (m_InterruptRegister[0].VCT == m_VBeamPos)
-    {
-        m_InterruptRegister[0].IR_INT = 1;
-        UpdateInterrupts();
-    }
-
-    // INT_POSTRETRACE
-    if (m_InterruptRegister[1].VCT == m_VBeamPos)
-    {
-        m_InterruptRegister[1].IR_INT = 1;
-        UpdateInterrupts();
-    }
+	for (int i = 0; i < 4; ++i)
+	{
+		if (m_InterruptRegister[i].VCT == m_VBeamPos)
+		{
+			m_InterruptRegister[i].IR_INT = 1;
+			UpdateInterrupts();
+		}
+	}
 }
 
 } // namespace

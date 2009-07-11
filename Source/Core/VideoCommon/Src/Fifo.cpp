@@ -28,8 +28,6 @@
 #include "Fifo.h"
 
 
-// TODO (mb2): move/rm this global
-volatile u32 g_XFBUpdateRequested = FALSE;
 extern u8* g_pVideoData;
 
 volatile bool g_EFBAccessRequested = false;
@@ -63,7 +61,6 @@ void Fifo_Init()
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
 	fifo_exit_event.Init();
 	fifoStateRun = false;
-	g_XFBUpdateRequested = FALSE;
 }
 
 void Fifo_Shutdown()
@@ -147,10 +144,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #endif
 
 		// Draw XFB if CP/GPfifo isn't used
-		if (g_XFBUpdateRequested)
-		{
-			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
-		}
+		VideoFifo_CheckSwapRequest();
 
 		if (g_EFBAccessRequested)
 		{

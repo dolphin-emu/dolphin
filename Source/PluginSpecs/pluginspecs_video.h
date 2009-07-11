@@ -5,7 +5,6 @@
 #ifndef _VIDEO_H_INCLUDED__
 #define _VIDEO_H_INCLUDED__
 
-#include "Thread.h"
 #include "PluginSpecs.h"
 
 #include "ExportProlog.h"
@@ -22,6 +21,13 @@ typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
+
+enum FieldType
+{
+	FIELD_PROGRESSIVE = 0,
+	FIELD_UPPER,
+	FIELD_LOWER
+};
 
 enum EFBAccessType
 {
@@ -110,15 +116,14 @@ EXPORT void CALL Video_Prepare(void);
 EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 
 // __________________________________________________________________________________________________
-// Function: Video_UpdateXFB
-// TODO: This DOC IS BROKEN!
-// Purpose:  This function is called when you have to flip the yuv2
-//		     video-buffer. You should ignore this function after you
-//		     got the first EFB to XFB copy.
-// input:    pointer to the XFB, width and height of the XFB
+// Function: Video_BeginField
+// Purpose:  When a vertical blank occurs in the VI emulator, this function tells the video plugin
+//           what the parameters of the upcoming field are. The video plugin should make sure the
+//           previous field is on the player's display before returning.
+// input:    vi parameters of the next field
 // output:   none
 //
-EXPORT void CALL Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling);
+EXPORT void CALL Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
 
 // __________________________________________________________________________________________________
 // Function: Video_AccessEFB

@@ -25,7 +25,7 @@ namespace Common {
 
 typedef void (__cdecl* TVideo_Prepare)();
 typedef void (__cdecl* TVideo_SendFifoData)(u8*,u32);
-typedef void (__cdecl* TVideo_UpdateXFB)(u32, u32, u32, s32, bool);
+typedef void (__cdecl* TVideo_BeginField)(u32, FieldType, u32, u32);
 typedef bool (__cdecl* TVideo_Screenshot)(const char* filename);
 typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_ExitLoop)();
@@ -43,7 +43,7 @@ public:
 	TVideo_SendFifoData Video_SendFifoData;
 	TVideo_EnterLoop    Video_EnterLoop;
 	TVideo_ExitLoop     Video_ExitLoop;
-	TVideo_UpdateXFB    Video_UpdateXFB;
+	TVideo_BeginField   Video_BeginField;
 	TVideo_AccessEFB	Video_AccessEFB;
 
 	TVideo_AddMessage   Video_AddMessage;

@@ -254,7 +254,15 @@ void Shutdown(void)
 	DeInit();
 }
 
-void Video_UpdateXFB(u32 /*_dwXFBAddr*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, bool /*scheduling*/)
+void VideoFifo_CheckSwapRequest()
+{
+}
+
+void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+{
+}
+
+void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	/*
 	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);

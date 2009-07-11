@@ -97,9 +97,9 @@ public:
 
 	// sourceRc is in GL target coordinates, not GameCube EFB coordinates!
 	// TODO: Clean that up.
-	void CopyToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
+	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
 
-	const XFBSource* GetXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
+	const XFBSource* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
@@ -124,10 +124,10 @@ private:
 
 	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 
-	void copyToRealXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
-	void copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
-	const XFBSource* getRealXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
-	const XFBSource* getVirtualXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight);
+	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
+	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
+	const XFBSource* getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	const XFBSource* getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 
 	int m_targetWidth;
 	int m_targetHeight;

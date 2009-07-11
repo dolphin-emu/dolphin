@@ -55,6 +55,7 @@
 #include "Timer.h"
 #include "StringUtil.h"
 #include "FramebufferManager.h"
+#include "Fifo.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -660,39 +661,19 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	rc->bottom = YOffset + ceil(FloatGLHeight);
 }
 
-// TODO: Use something less ugly than an Evil Global Variable.
-// Also, protect this structure with a mutex.
-extern volatile struct // Comes from main.cpp
-{ 
-	u32 xfbAddr;
-	u32 width;
-	u32 height;
-	s32 yOffset;
-} tUpdateXFBArgs;
-
-void Renderer::RenderToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc)
+void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
 {
-	u32 aLower = xfbAddr;
-	u32 aUpper = xfbAddr + 2 * dstWidth * dstHeight;
-	u32 bLower = tUpdateXFBArgs.xfbAddr;
-	u32 bUpper = tUpdateXFBArgs.xfbAddr + 2 * tUpdateXFBArgs.width * tUpdateXFBArgs.height;
-
-	// If we're about to write into a requested XFB, make sure the previous
+	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
-	if (g_XFBUpdateRequested && addrRangesOverlap(aLower, aUpper, bLower, bUpper))
-	{
-		Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
-	}
+	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 
-	s_framebufferManager.CopyToXFB(xfbAddr, dstWidth, dstHeight, sourceRc);
+	s_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 }
 
-
 // This function has the final picture. We adjust the aspect ratio here.
-// yOffset is used to eliminate interlacing jitter in Real XFB mode.
-void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	const XFBSource* xfbSource = s_framebufferManager.GetXFBSource(xfbAddr, srcWidth, srcHeight);
+	const XFBSource* xfbSource = s_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
 	if (!xfbSource)
 	{
 		WARN_LOG(VIDEO, "Failed to get video for this frame");
@@ -724,6 +705,7 @@ void Renderer::Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset)
 		v_max = (float)xfbSource->texHeight;
 	}
 
+	int yOffset = (g_Config.bUseXFB && field == FIELD_LOWER) ? -1 : 0;
 	v_min -= yOffset;
 	v_max -= yOffset;
 

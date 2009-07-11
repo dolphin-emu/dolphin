@@ -183,20 +183,20 @@ void FramebufferManager::Shutdown()
 	m_virtualXFBList.clear();
 }
 
-void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc)
+void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
 {
 	if (g_Config.bUseXFB)
-		copyToRealXFB(xfbAddr, dstWidth, dstHeight, sourceRc);
+		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	else
-		copyToVirtualXFB(xfbAddr, dstWidth, dstHeight, sourceRc);
+		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 }
 
-const XFBSource* FramebufferManager::GetXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight)
+const XFBSource* FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	if (g_Config.bUseXFB)
-		return getRealXFBSource(xfbAddr, srcWidth, srcHeight);
+		return getRealXFBSource(xfbAddr, fbWidth, fbHeight);
 	else
-		return getVirtualXFBSource(xfbAddr, srcWidth, srcHeight);
+		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight);
 }
 
 GLuint FramebufferManager::GetEFBColorTexture(const TRectangle& sourceRc) const
@@ -283,7 +283,7 @@ FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 	return m_virtualXFBList.end();
 }
 
-void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc)
+void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
 {
 	u8* pXFB = Memory_GetPtr(xfbAddr);
 	if (!pXFB)
@@ -292,22 +292,22 @@ void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight,
 		return;
 	}
 
-	XFB_Write(pXFB, sourceRc, dstWidth, dstHeight);
+	XFB_Write(pXFB, sourceRc, fbWidth, fbHeight);
 }
 
-void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc)
+void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
 {
 	GLuint xfbTexture;
 
-	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, dstWidth, dstHeight);
+	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
 	if (it != m_virtualXFBList.end())
 	{
 		// Overwrite an existing Virtual XFB.
 
 		it->xfbAddr = xfbAddr;
-		it->xfbWidth = dstWidth;
-		it->xfbHeight = dstHeight;
+		it->xfbWidth = fbWidth;
+		it->xfbHeight = fbHeight;
 
 		it->xfbSource.texWidth = m_targetWidth;
 		it->xfbSource.texHeight = m_targetHeight;
@@ -342,8 +342,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeig
 		VirtualXFB newVirt;
 
 		newVirt.xfbAddr = xfbAddr;
-		newVirt.xfbWidth = dstWidth;
-		newVirt.xfbHeight = dstHeight;
+		newVirt.xfbWidth = fbWidth;
+		newVirt.xfbHeight = fbHeight;
 
 		newVirt.xfbSource.texture = xfbTexture;
 		newVirt.xfbSource.texWidth = m_targetWidth;
@@ -405,15 +405,15 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeig
 	}
 }
 
-const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight)
+const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	m_realXFBSource.texWidth = XFB_WIDTH;
 	m_realXFBSource.texHeight = XFB_HEIGHT;
 
 	m_realXFBSource.sourceRc.left = 0;
 	m_realXFBSource.sourceRc.top = 0;
-	m_realXFBSource.sourceRc.right = srcWidth;
-	m_realXFBSource.sourceRc.bottom = srcHeight;
+	m_realXFBSource.sourceRc.right = fbWidth;
+	m_realXFBSource.sourceRc.bottom = fbHeight;
 
 	if (!m_realXFBSource.texture)
 	{
@@ -426,12 +426,12 @@ const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 srcWidth,
 	}
 
 	// Decode YUYV data from GameCube RAM
-	TextureConverter::DecodeToTexture(xfbAddr, srcWidth, srcHeight, m_realXFBSource.texture);
+	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, m_realXFBSource.texture);
 
 	return &m_realXFBSource;
 }
 
-const XFBSource* FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 srcWidth, u32 srcHeight)
+const XFBSource* FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	if (m_virtualXFBList.size() == 0)
 	{
@@ -439,7 +439,7 @@ const XFBSource* FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 srcWid
 		return NULL;
 	}
 
-	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, srcWidth, srcHeight);
+	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
 	if (it == m_virtualXFBList.end())
 	{
 		// Virtual XFB is not in the list, so return the most recently rendered

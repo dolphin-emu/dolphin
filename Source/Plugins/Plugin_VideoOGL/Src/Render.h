@@ -87,10 +87,10 @@ public:
 	static void FlipImageData(u8 *data, int w, int h);
 	static bool SaveRenderTarget(const char *filename, int w, int h, int YOffset = 0);
 
-	static void RenderToXFB(u32 xfbAddr, u32 dstWidth, u32 dstHeight, const TRectangle& sourceRc);
+	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
 
     // Finish up the current frame, print some stats
-    static void Swap(u32 xfbAddr, u32 srcWidth, u32 srcHeight, s32 yOffset);
+    static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
 };
 
 void ComputeBackbufferRectangle(TRectangle *rc);

@@ -99,6 +99,9 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
+static bool s_swapRequested = false;
+static Common::Event s_swapResponseEvent;
+
 static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
 static volatile EFBAccessType s_AccessEFBType;
 static Common::Event s_AccessEFBDone;
@@ -372,6 +375,10 @@ void Video_Prepare(void)
     VertexLoaderManager::Init();
     TextureConverter::Init();
 
+	s_swapRequested = false;
+	s_swapResponseEvent.Init();
+	s_swapResponseEvent.Set();
+
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 }
@@ -379,6 +386,9 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	s_PluginInitialized = false;
+
+	s_swapRequested = false;
+	s_swapResponseEvent.Shutdown();
 
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
@@ -423,48 +433,75 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 	OSD::AddMessage(pstr, milliseconds);
 }
 
-
-// TODO: Protect this structure with a mutex.
-volatile struct 
-{ 
+static volatile struct
+{
 	u32 xfbAddr;
-	u32 width;
-	u32 height;
-	s32 yOffset;
-} tUpdateXFBArgs;
+	FieldType field;
+	u32 fbWidth;
+	u32 fbHeight;
+} s_beginFieldArgs = { 0 };
 
-// Run from the CPU thread (from VideoInterface.cpp) for certain homebrew games only
-void Video_UpdateXFB(u32 _dwXFBAddr, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
+// Run from the graphics thread (from Fifo.cpp)
+void VideoFifo_CheckSwapRequest()
+{
+	if (s_swapRequested)
+	{
+		s_swapRequested = false;
+
+		Common::MemFence();
+
+		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+
+		// TODO: Find better name for this because I don't know if it means what it says.
+		g_VideoInitialize.pCopiedToXFB();
+
+		s_swapResponseEvent.Set();
+	}
+}
+
+inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+{
+	return (
+		(aLower >= bLower && aLower < bUpper) ||
+		(aUpper >= bLower && aUpper < bUpper) ||
+		(bLower >= aLower && bLower < aUpper) ||
+		(bUpper >= aLower && bUpper < aUpper)
+		);
+}
+
+// Run from the graphics thread (from Fifo.cpp)
+void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+{
+	if (s_swapRequested)
+	{
+		u32 aLower = xfbAddr;
+		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
+
+		Common::MemFence();
+
+		u32 bLower = s_beginFieldArgs.xfbAddr;
+		u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
+
+		if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
+			VideoFifo_CheckSwapRequest();
+	}
+}
+
+// Run from the CPU thread (from VideoInterface.cpp)
+void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized)
 	{
-		if (scheduling) // From CPU in DC mode
-		{
-			tUpdateXFBArgs.xfbAddr = _dwXFBAddr;
-			tUpdateXFBArgs.width = _dwWidth;
-			tUpdateXFBArgs.height = _dwHeight;
-			tUpdateXFBArgs.yOffset = _dwYOffset;
+		s_swapResponseEvent.MsgWait();
 
-			g_XFBUpdateRequested = TRUE;
-		}
-		else // From CPU in SC mode or graphics thread in DC mode
-		{
-			g_XFBUpdateRequested = FALSE;
+		s_beginFieldArgs.xfbAddr = xfbAddr;
+		s_beginFieldArgs.field = field;
+		s_beginFieldArgs.fbWidth = fbWidth;
+		s_beginFieldArgs.fbHeight = fbHeight;
 
-			if (!_dwXFBAddr)
-			{
-				// From graphics thread in DC mode
-				_dwXFBAddr = tUpdateXFBArgs.xfbAddr;
-				_dwWidth = tUpdateXFBArgs.width;
-				_dwHeight = tUpdateXFBArgs.height;
-				_dwYOffset = tUpdateXFBArgs.yOffset;
-			}
+		Common::MemFence();
 
-			// TODO: Use real XFB source parameters based on VI settings
-			Renderer::Swap(_dwXFBAddr, _dwWidth, _dwHeight, g_Config.bUseXFB ? _dwYOffset : 0);
-
-			g_VideoInitialize.pCopiedToXFB();
-		}
+		s_swapRequested = true;
 	}
 }
 
