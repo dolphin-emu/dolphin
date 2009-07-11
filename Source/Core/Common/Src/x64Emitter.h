@@ -585,6 +585,8 @@ public:
 	// These will destroy the 1 or 2 first "parameter regs".
 	void ABI_CallFunctionC(void *func, u32 param1);
 	void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
+	void ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param3);
+	void ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *param3);
 	void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 
 	// Pass a register as a paremeter.
@@ -607,7 +609,7 @@ public:
 	void ABI_RestoreStack(unsigned int frameSize);
 
 	// Sets up a __cdecl function.
-	// Only x64 really needs the parameter.
+	// Only x64 really needs the parameter count.
 	void ABI_EmitPrologue(int maxCallParams);
 	void ABI_EmitEpilogue(int maxCallParams);
 

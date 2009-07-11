@@ -77,6 +77,13 @@ extern readFn8   hwReadWii8 [NUMHWMEMFUN];
 extern readFn16  hwReadWii16[NUMHWMEMFUN];
 extern readFn32  hwReadWii32[NUMHWMEMFUN];
 
+// Overloaded byteswap functions, for use within the templated functions below.
+inline u8 bswap(u8 val)   {return val;}
+inline u16 bswap(u16 val) {return Common::swap16(val);}
+inline u32 bswap(u32 val) {return Common::swap32(val);}
+inline u64 bswap(u64 val) {return Common::swap64(val);}
+// =================
+
 ///////////////////////////////////////////////////////////////////////////////////
 // Read and write
 // ----------------

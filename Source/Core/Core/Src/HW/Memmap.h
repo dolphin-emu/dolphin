@@ -102,16 +102,7 @@ namespace Memory
 
 	u32 Read_Opcode(const u32 _Address);
 
-
 	// For use by emulator
-
-	/* Local byteswap shortcuts. They are placed inline so that they may hopefully be executed faster
-	   than otherwise */
-	inline u8 bswap(u8 val) {return val;}
-	inline u16 bswap(u16 val) {return Common::swap16(val);}
-	inline u32 bswap(u32 val) {return Common::swap32(val);}
-	inline u64 bswap(u64 val) {return Common::swap64(val);}
-	// =================
 
 	// Read and write functions
 	#define NUMHWMEMFUN 64

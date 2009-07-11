@@ -317,7 +317,6 @@ void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
 	}
 }
 
-
 void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex & 0x1) + 0x1e;
@@ -334,13 +333,12 @@ void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
 	}
 }
 
-
 void dsp_op_ext_sl_epi(const UDSPInstruction& opc)
 {
 	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
-	u16 val = dsp_dmem_read(g_dsp.r[0x03]);
+	const u8 sreg = 0x03;
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	dsp_op_write_reg(dreg, val);
-	u8 sreg = 0x03;
 
 	if (opc.hex & 0x8) // SLM/SLMN
 	{
@@ -379,6 +377,8 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	}
 	else
 	{
+		// Hmm
+		// if (sreg != 0x3)
 		dsp_increment_addr_reg(0x03);
 	}
 }

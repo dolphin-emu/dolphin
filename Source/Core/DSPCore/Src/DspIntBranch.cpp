@@ -154,7 +154,7 @@ void HandleLoop()
 
 	if (rLoopAddress > 0 && rLoopCounter > 0)
 	{
-		// FIXME: why -1? 
+		// FIXME: why -1? because we just read past it.
 		if (g_dsp.pc - 1 == rLoopAddress)
 		{
 			rLoopCounter--;
