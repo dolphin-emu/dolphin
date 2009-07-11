@@ -457,7 +457,8 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message
-	wxPostEvent(main_frame, event);
+	// DISABLED - this has been found to cause random hangs.
+	// wxPostEvent(main_frame, event);
 }
 
 #ifdef SETUP_TIMER_WAITING
