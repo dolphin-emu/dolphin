@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="wiiuse"
 	ProjectGUID="{944EF6DE-471D-447E-A2FD-D37D58805169}"
 	TargetFrameworkVersion="0"
@@ -87,6 +87,101 @@
 				DataExecutionPrevention="0"
 				ImportLibrary=".\win32\Release/wiiuse.lib"
 				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+				SuppressStartupBanner="true"
+				OutputFile=".\Release/wiiuse.bsc"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="3"
+				TypeLibraryName=".\Release/wiiuse.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\DDK_HID\Include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;_WIN64"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				PrecompiledHeaderFile=".\x64\Release/wiiuse.pch"
+				AssemblerListingLocation=".\x64\Release/"
+				ObjectFile=".\x64\Release/"
+				ProgramDataBaseFileName=".\x64\Release/"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
+				OutputFile=".\x64\Release/wiiuse.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\DDK_HID\x64"
+				ProgramDatabaseFile=".\x64\Release/wiiuse.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary=".\x64\Release/wiiuse.lib"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -209,101 +304,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				SuppressStartupBanner="true"
-				TargetEnvironment="3"
-				TypeLibraryName=".\Release/wiiuse.tlb"
-				HeaderFileName=""
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\DDK_HID\Include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;_WIN64"
-				StringPooling="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\x64\Release/wiiuse.pch"
-				AssemblerListingLocation=".\x64\Release/"
-				ObjectFile=".\x64\Release/"
-				ProgramDataBaseFileName=".\x64\Release/"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
-				OutputFile=".\x64\Release/wiiuse.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\DDK_HID\x64"
-				ProgramDatabaseFile=".\x64\Release/wiiuse.pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=".\x64\Release/wiiuse.lib"
-				TargetMachine="17"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Release/wiiuse.bsc"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Debug|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
@@ -404,72 +404,18 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			Name="Expansion Devices"
 			>
 			<File
-				RelativePath=".\Src\classic.c"
+				RelativePath=".\Src\classic.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\dynamics.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\events.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\guitar_hero_3.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\io.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\io_nix.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\io_win.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ir.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\nunchuk.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiiboard.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiiuse.c"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
-			>
 			<File
 				RelativePath=".\Src\classic.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\definitions.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\dynamics.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\events.h"
+				RelativePath=".\Src\guitar_hero_3.cpp"
 				>
 			</File>
 			<File
@@ -477,11 +423,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\io.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ir.h"
+				RelativePath=".\Src\nunchuk.cpp"
 				>
 			</File>
 			<File
@@ -489,27 +431,98 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\os.h"
+				RelativePath=".\Src\wiiboard.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\wiiboard.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="I/O"
+			>
 			<File
-				RelativePath=".\Src\wiiuse.h"
+				RelativePath=".\Src\io.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\wiiuse_internal.h"
+				RelativePath=".\Src\io.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\io_nix.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\io_osx.m"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\io_win.cpp"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			Name="Wiimote Data"
 			>
+			<File
+				RelativePath=".\Src\dynamics.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\dynamics.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\events.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\events.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ir.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ir.h"
+				>
+			</File>
 		</Filter>
+		<Filter
+			Name="Common"
+			>
+			<File
+				RelativePath=".\Src\definitions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\os.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\Src\Makefile"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiiuse.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiiuse.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiiuse_internal.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
