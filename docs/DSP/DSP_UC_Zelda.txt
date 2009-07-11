@@ -7,7 +7,7 @@ can parse this file and auto read symbols using those.
 BIG Questions:
 
  - Who resets the 0x0350 to the beginning of the command block? Wrap register?
- - What does 00eb_Unk_BufferMultWithDest??
+ - What does 00eb_Unk_BufferMultAddToDest??
  - Why is a PB-Transfer from RAM to DMEM 0xC0 shorts long but DMEM to RAM just 0x80
 
 DSP functionality to test:
@@ -109,7 +109,7 @@ DSP functionality to test:
 0x0484 & 0x1f ->  (02ed to 030f)
 0x0484 & 0x20
 
-0x04a8   if != zero  sample is modified with function at 0x0c84.. perhaps an filter
+0x04a8   if != zero  sample is modified with function at 0x0c84.. perhaps an filter or volume
 
 
 ////////////////////////////////////////
@@ -146,6 +146,7 @@ There's definitely a bunch of sample data stored in each PB but I don't know exa
 ///////////////////////////////////////////
 // Initialized at 04c0_Unk()... used by SyncFrame
 0x0B00 to 0x0C00          
+// The memory at 0b00 seems to be generally used as scratch space for various things.
 
 
 //////////////////////////////////////////
@@ -207,7 +208,7 @@ void 0012_ResetVector()
 	04c0_UnknownInit();
  
 	// 0020 02bf 0e14 call        0x0e14
-	0e14_UnknownInit();				// Init from 0x04e8 to 0x04f8
+	0e14_DolbyInit();				// Init from 0x04e8 to 0x04f8
  
 	// 0022 0e00      lris        $AC0.M, #0x00
 	// 0023 02bf 066a call        0x066a
@@ -458,7 +459,7 @@ void 00ca_CopyPBToRAM()
 } 
 
  
-void 00da_CopyBuffer(_src($AR0), _dest($AR3), _LenInDWORDs(_AC1.M))
+void 00da_CopyBuffer(_src($AR0), _dest($AR3), LenMinusOne(_AC1.M))
 {
 	00da 191e      lrri        $AC0.M, @$AR0
 	00db 191a      lrri        $AX0.H, @$AR0
@@ -486,37 +487,56 @@ void 00e1_XorBuffer( .., _LenInDWORDs(_AC1.M)) {
  
  
 // --- the disasm looks buggy... AR3 seems to be the destination but it isnt used at all... no idea
-void 00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+// Hm, SL actually is able to use AR3 implicitly.
+void 00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 {
-	00eb 8a00      m2
-	00ec 157f      lsr         $ACC1, #-1
+	// 00eb 8a00      m2  // All multiplication results are multiplied by 2.
+	// 00ec 157f      lsr         $ACC1, #-1     //_size/2
 	00ed 1c20      mrr         $AR1, $AR0 
-	00ee 1c03      mrr         $AR0, $AR3
+	00ee 1c03      mrr         $AR0, $AR3     //  'sl stores to AR0
+	
+	// SW pipelineing strikes again...
 	00ef 193a      lrri        $AX0.H, @$AR1
 	00f0 9051      mul'l       $AX0.L, $AX0.H : $AX0.H, @$AR1
 	00f1 925b      mulmvz'l    $AX0.L, $AX0.H, $ACC0 : $AX1.H, @$AR3
 	// 00f2 007f 00f7 bloop       $AC1.M, 0x00f7
-	for (int i = 0; i < AC1.M; i++) {
-		 00f4 4651      addr'l      $ACC0, $AX1.H : $AX0.H, @$AR1
-		 00f5 92b2      mulmvz'sl   $AX0.L, $AX0.H, $ACC0 : $AC0.M, $AX1.H
-		 00f6 4651      addr'l      $ACC0, $AX1.H : $AX0.H, @$AR1
-		 00f7 92b2      mulmvz'sl   $AX0.L, $AX0.H, $ACC0 : $AC0.M, $AX1.H
+	for (int i = 0; i < _size/2; i++) {
+		 AX0.H = *AR1;
+		 PROD = *
+		 // 00f4 4651      addr'l      $ACC0, $AX1.H : $AX0.H, @$AR1
+		 // 00f5 92b2      mulmvz'sl   $AX0.L, $AX0.H, $ACC0 : $AC0.M, $AX1.H
+		 // 00f6 4651      addr'l      $ACC0, $AX1.H : $AX0.H, @$AR1
+		 // 00f7 92b2      mulmvz'sl   $AX0.L, $AX0.H, $ACC0 : $AC0.M, $AX1.H
+		 ACC0 += AX1
+		 AX0.H = *AR1;
+		 *(AR3++) = AC0.M;
+		 ACC0 = PROD;
+		 PROD = AX0.L * AX0.H;
+		 ...
 	}
-	00f8 8b00      m0
-	00f9 02df      ret         
-	return
+	
+	// In simplified form:
+	AR1 = AR0;
+	AR0 = AR3;
+	for (int i = 0; i < _size; i++) {
+		*AR0 = ((*AR0 << 16) + *AR1 * Factor) >> 16);
+	}
+		
+	// 00f8 8b00      m0    // Restore multiplication results.
+	// 00f9 02df      ret         
 }
  
-void 00fa_Unk()
+void 00fa_BufferMultiply(src($AR0), dst($AR3), count($AC1.M), $mult($AX0.L))
 {
-	00fa 8a00      m2
+	//00fa 8a00      m2
 	00fb 191a      lrri        $AX0.H, @$AR0
 	00fc 9050      mul'l       $AX0.L, $AX0.H : $AX0.H, @$AR0
 	00fd 9250      mulmvz'l    $AX0.L, $AX0.H, $ACC0 : $AX0.H, @$AR0
 	00fe 005f      loop        $AC1.M
-	00ff 92a0      mulmvz'ls   $AX0.L, $AX0.H, $ACC0 : $AX0.H, $AC0.M
-	0100 8b00      m0          
-	0101 02df      ret
+		00ff 92a0      mulmvz'ls   $AX0.L, $AX0.H, $ACC0 : $AX0.H, $AC0.M
+	
+	//0100 8b00      m0          
+	//0101 02df      ret
 }
  
  
@@ -544,7 +564,9 @@ void 0102_PrepareFrameBuffers()
 		*0x0d60++ = 0x00
 		 
 	// 10d 02bf 0e3f call        0x0e3f
-	0e3f_UnknownProcess()				// it seems to set up some tables with data from 0x0b00
+
+	// This one adds and multiplies buffers together. Maybe surround or reverb stuff.
+	0e3f_DolbyMixdown()
 	
 	// 010f 8100      clr         $ACC0
 	// 0110 8900      clr         $ACC1
@@ -618,7 +640,7 @@ void 0127_Unk() {
 	if (*0x0394 != 0) {
 		014d 1c7a      mrr         $AR3, $AX0.H
 		014e 00d8 0395 lr          $AX0.L, @0x0395
-		0150 02bf 00eb call        0x00eb              // 00eb_Unk_BufferMultWithDest
+		0150 02bf 00eb call        0x00eb              // 00eb_Unk_BufferMultAddToDest
 	}
 	0152 0f50      lris        $AC1.M, #0x50
 	0153 00c0 03a1 lr          $AR0, @0x03a1
@@ -627,7 +649,7 @@ void 0127_Unk() {
 	0158 0295 015f jz          0x015f
 		015a 1c7a      mrr         $AR3, $AX0.H
 		015b 00d8 0397 lr          $AX0.L, @0x0397
-		015d 02bf 00eb call        0x00eb                   // 00eb_Unk_BufferMultWithDest
+		015d 02bf 00eb call        0x00eb                   // 00eb_Unk_BufferMultAddToDest
 	
 	// 015f 00de 0390 lr          $AC0.M, @0x0390
 	// 0161 02a0 0002 andf        $AC0.M, #0x0002
@@ -658,6 +680,9 @@ void 016c_Unk_SetupMemAt_0c00()
 	// 0177 00ff 03a0 sr          @0x03a0, $AC1.M
 	*0x03a0 = 0x03a4;
 
+	// Dangerous bloopi! It points to the SECOND HALF of a 2-word instruction so
+	// a naive check won't catch it! I think our current code does, though.
+	
 	// 0179 1104 019f bloopi      #0x04, 0x019f
 	for (int i = 0; i < 4; i++) {
 		 // 017b 00c0 03a2 lr          $AR0, @0x03a2
@@ -677,9 +702,10 @@ void 016c_Unk_SetupMemAt_0c00()
 			 // 018b 1c1f      mrr         $AR0, $AC1.M
 			 // 018c 0f06      lris        $AC1.M, #0x06
 			 // 018d 02bf 00da call        0x00da
-			 00da_CopyBuffer($AC1.M, $AR3, 0x06)
+			 00da_CopyBuffer($AC1.M, $AR3, 0x06);
 			 
-			 018f 02bf 0127 call        0x0127
+			 // 018f 02bf 0127 call        0x0127
+			 0127_Unk();
 		 }
 		 // 0191 00de 03a2 lr          $AC0.M, @0x03a2
 		 // 0193 0410      addis       $ACC0, #0x10
@@ -702,27 +728,27 @@ void 016c_Unk_SetupMemAt_0c00()
 	// 01a3 0083 0e80 lri         $AR3, #0x0e80
 	// 01a5 0098 7fff lri         $AX0.L, #0x7fff
 	// 01a7 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src(0x0c00), _Dest(0x0e80), _size(0x50), _factor(0x7fff))
+	00eb_Unk_BufferMultAddToDest(_Src(0x0c00), _Dest(0x0e80), _size(0x50), _factor(0x7fff))
 
 	// 01a9 0f50      lris        $AC1.M, #0x50
 	// 01aa 0080 0c00 lri         $AR0, #0x0c00
 	// 01ac 0083 0ee0 lri         $AR3, #0x0ee0
 	// 01ae 0098 b820 lri         $AX0.L, #0xb820
 	// 01b0 02bf 00eb call        0x00eb
- 	00eb_Unk_BufferMultWithDest(_Src(0x0c00), _Dest(0x0ee0), _size(0x50), _factor(0xb820))
+ 	00eb_Unk_BufferMultAddToDest(_Src(0x0c00), _Dest(0x0ee0), _size(0x50), _factor(0xb820))
 
 	// 01b2 0f28      lris        $AC1.M, #0x28
 	// 01b3 0080 0c78 lri         $AR0, #0x0c78
 	// 01b5 0083 0e80 lri         $AR3, #0x0e80
 	// 01b7 0098 b820 lri         $AX0.L, #0xb820
 	// 01b9 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src(0x0c78), _Dest(0x0e80), _size(0x28), _factor(0xb820))
+	00eb_Unk_BufferMultAddToDest(_Src(0x0c78), _Dest(0x0e80), _size(0x28), _factor(0xb820))
 	// 01bb 0f28      lris        $AC1.M, #0x28
 	// 01bc 0080 0c78 lri         $AR0, #0x0c78
 	// 01be 0083 0ee0 lri         $AR3, #0x0ee0
 	// 01c0 0098 7fff lri         $AX0.L, #0x7fff
 	// 01c2 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src(0x0c78), _Dest(0x0e80), _size(0x28), _factor(0x7fff))
+	00eb_Unk_BufferMultAddToDest(_Src(0x0c78), _Dest(0x0e80), _size(0x28), _factor(0x7fff))
 	
 	// Zero the temporary buffers 0x0c00 and 0x0c50
 	01c4 8100      clr         $ACC0
@@ -781,7 +807,7 @@ void 01ea_Unk() {
 	// 01ee 0083 0ea8 lri         $AR3, #0x0ea8
 	// 01f0 0098 b820 lri         $AX0.L, #0xb820
 	// 01f2 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 	
 	01f4 8900      clr         $ACC1
 	// 01f5 0f28      lris        $AC1.M, #0x28
@@ -789,7 +815,7 @@ void 01ea_Unk() {
 	// 01f8 0083 0f08 lri         $AR3, #0x0f08
 	// 01fa 0098 7fff lri         $AX0.L, #0x7fff
 	// 01fc 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 
 	
 	// 01fe 009f 0dc0 lri         $AC1.M, #0x0dc0
@@ -802,6 +828,9 @@ void 01ea_Unk() {
 	(*0x03a2) = 0x03a8;
 	(*0x03a0) = 0x03a4;
 	
+	// Dangerous bloopi! It points to the SECOND HALF of a 2-word instruction so
+	// a naive check won't catch it! I think our current code does, though.
+
 	// 020a 1104 0228 bloopi      #0x04, 0x0228
 	for (int i = 0; i < 4; i++) {
 		// 020c 00c0 03a2 lr          $AR0, @0x03a2
@@ -815,6 +844,8 @@ void 01ea_Unk() {
 		// 0216 0295 021a jz          0x021a
 		if (*0x0390) {
 			// 0218 02bf 01d0 call        0x01d0
+			
+			// Copy some buffer to RAM?
 			01d0_Unk();
 		}
 		
@@ -853,7 +884,7 @@ void 0233_Increase_32BitAddress_InMem(_MemAddr(AR0), _Bytes(AX0.L))
 {
 	// 0233 191e      lrri        $AC0.M, @$AR0
 	// 0234 189c      lrrd        $AC0.L, @$AR0
-	// 0235 4800      addax       $ACC0, $AX0.L
+	// 0235 4800      addax       $ACC0, $AX0
 	// 0236 1b1e      srri        @$AR0, $AC0.M
 	// 0237 1b1c      srri        @$AR0, $AC0.L
 
@@ -957,7 +988,7 @@ void 0243_COMMAND_02()  // sync frame
 		 	
 		// 026a 00de 0342 lr          $AC0.M, @0x0342
 		// 026c 007e 03c0 bloop       $AC0.M, 0x03c0
-		for (int i=0; i<*0x0342; i++)					// 0x0342 - low part of the DSetupTable Command? Some kind of number of PBs?
+		for (int i=0; i<*0x0342; i++)		// 0x0342 - low part of the DSetupTable Command. Number of PBs?
 		{		 
 			// 026e 02bf 0239 call        0x0239
 			0239_WaitUntilLastFrameGotSynced();
@@ -970,66 +1001,68 @@ void 0243_COMMAND_02()  // sync frame
 			// this block is for masking out PBs... the lower part of the sync messages are updating this mask
 			// but i am not 100 percent sure how it works
 			{
-				 // 0272 00de 0354 lr          $AC0.M, @0x0354
-				 // 0274 147c      lsr         $ACC0, #-4			 
-				 // 0275 0200 04fc addi        $AC0.M, #0x04fc
-				 // 0277 1c1e      mrr         $AR0, $AC0.M
-				 AC0.M = *0x0354 >> 4;
-				 AR0 = AC0.M + 0x04fc;
-				 
-				 0278 181f      lrr         $AC1.M, @$AR0
-				 0279 00de 0354 lr          $AC0.M, @0x0354
-				 027b 0240 000f andi        $AC0.M, #0x000f
-				 027d 3d80      andc'ls     $AC1.M : $AX0.L, $AC0.M
-				 027e 03c0 8000 andcf       $AC1.M, #0x8000
-				 // 0280 029c 03bc jlnz        0x03bc
-				 GOTO NEXT_BLOCK:
-			 }
-			 
-			 // 0282 00d8 0354 lr          $AX0.L, @0x0354
-			 // 0284 009a 0180 lri         $AX0.H, #0x0180
-			 // 0286 8100      clr         $ACC0
-			 // 0287 00de 0380 lr          $AC0.M, @0x0380
-			 // 0289 00dc 0381 lr          $AC0.L, @0x0381
-			 // 028b 9000      mul         $AX0.L, $AX0.H
-			 // 028c 9400      mulac       $AX0.L, $AX0.H, $ACC0
-			 // 028d 00fe 034c sr          @0x034c, $AC0.M
-			 // 028f 00fc 034d sr          @0x034d, $AC0.L			 
-			 AX0.L = *0x0354						// number of rendered frames
-			 AX0.H = 0x0180							// PB Size with dummy buffer			 
-			 ACC0 = (*0x0380 << 16) | *0x0381
-			 ACC0 += AX0.L * AX0.H
-			 
-			 // Compute the RAM address of the current PB.
-			 *0x034C = AC0.M
-			 *0x034D = AC0.L
-			 
-			 // Copy the current PB to 0x400, so we can access it from DSP code.
-			 // 0291 02bf 00c1 call        0x00c1
-			 00c1_CopyPBToDMEM()
-			 
-			 // 0293 00da 0400 lr          $AX0.H, @0x0400
-			 // 0295 8600      tstaxh      $AX0.H
-			 // 0296 0295 03bc jz          0x03bc
-			 if (*0x0400 == 0x00)
+				// 0272 00de 0354 lr          $AC0.M, @0x0354
+				// 0274 147c      lsr         $ACC0, #-4			 
+				// 0275 0200 04fc addi        $AC0.M, #0x04fc
+				// 0277 1c1e      mrr         $AR0, $AC0.M
+				AC0.M = *0x0354 >> 4;
+				AR0 = AC0.M + 0x04fc;
+				
+				0278 181f      lrr         $AC1.M, @$AR0
+				0279 00de 0354 lr          $AC0.M, @0x0354
+				027b 0240 000f andi        $AC0.M, #0x000f
+				027d 3d80      andc'ls     $AC1.M : $AX0.L, $AC0.M
+				027e 03c0 8000 andcf       $AC1.M, #0x8000
+				// 0280 029c 03bc jlnz        0x03bc
 				GOTO NEXT_BLOCK:
-			 
-			 // 0298 00da 0401 lr          $AX0.H, @0x0401
-			 // 029a 8600      tstaxh      $AX0.H
-			 // 029b 0294 03bc jnz         0x03bc
-			 if (*0x0401 != 0x00)
+			}
+			
+			// 0282 00d8 0354 lr          $AX0.L, @0x0354
+			// 0284 009a 0180 lri         $AX0.H, #0x0180
+			// 0286 8100      clr         $ACC0
+			// 0287 00de 0380 lr          $AC0.M, @0x0380
+			// 0289 00dc 0381 lr          $AC0.L, @0x0381
+			// 028b 9000      mul         $AX0.L, $AX0.H
+			// 028c 9400      mulac       $AX0.L, $AX0.H, $ACC0
+			// 028d 00fe 034c sr          @0x034c, $AC0.M
+			// 028f 00fc 034d sr          @0x034d, $AC0.L			 
+			AX0.L = *0x0354						// number of rendered frames
+			AX0.H = 0x0180							// PB Size with dummy buffer			 
+			ACC0 = (*0x0380 << 16) | *0x0381
+			ACC0 += AX0.L * AX0.H
+			
+			// Compute the RAM address of the current PB.
+			*0x034C = AC0.M
+			*0x034D = AC0.L
+			
+			// Copy the current PB to 0x400, so we can access it from DSP code.
+			// 0291 02bf 00c1 call        0x00c1
+			00c1_CopyPBToDMEM()
+			
+			// 0293 00da 0400 lr          $AX0.H, @0x0400
+			// 0295 8600      tstaxh      $AX0.H
+			// 0296 0295 03bc jz          0x03bc
+			if (*0x0400 == 0x00)
 				GOTO NEXT_BLOCK:
-			 			 
-			 // 029d 00da 0433 lr          $AX0.H, @0x0433
-			 // 029f 00fa 03f8 sr          @0x03f8, $AX0.H
-			 *0x03f8 = *0x0433
-			 
- 			 // 02a1 00da 0406 lr          $AX0.H, @0x0406
-			 // 02a3 8600      tstaxh      $AX0.H
-			 // 02a4 0294 0dff jnz         0x0dff
+			
+			// 0298 00da 0401 lr          $AX0.H, @0x0401
+			// 029a 8600      tstaxh      $AX0.H
+			// 029b 0294 03bc jnz         0x03bc
+			if (*0x0401 != 0x00)
+				GOTO NEXT_BLOCK:
+						 
+			// 029d 00da 0433 lr          $AX0.H, @0x0433
+			// 029f 00fa 03f8 sr          @0x03f8, $AX0.H
+			*0x03f8 = *0x0433
+			
+ 			// 02a1 00da 0406 lr          $AX0.H, @0x0406
+			// 02a3 8600      tstaxh      $AX0.H
+			// 02a4 0294 0dff jnz         0x0dff
 			if (*0x0406 != 0x00)
 			{
-			    The Code at 0x0dff copies from *0x0433 0x50 shorts to 0x0520
+			    // The Code at 0x0dff sets the value from *0x0433 to 0x50 shorts at 0x0520.
+			    // Then it JMPs to ContinueWithBlock.
+				0dff_Zero520_50(). 
 			}
 			else
 			{
@@ -1099,16 +1132,17 @@ void 0243_COMMAND_02()  // sync frame
 			// A block of audio is now present at 0x520.
 
 		ContinueWithBlock:
-			// I would guess that the below applies various voice effects.
+			// Apply various per-voice effects.
 		
+			// First up, a trivial in-place filter, if $0x04a8 is set.
+
 			// 02d8 00da 04a8 lr          $AX0.H, @0x04a8
 			// 02da 8600      tstaxh      $AX0.H
 			// 02db 0295 02e1 jz          0x02e1
-			// 02dd 0080 0520 lri         $AR0, #0x0520
-			// 02df 02bf 0c84 call        0x0c84
-						 
+				// 02dd 0080 0520 lri         $AR0, #0x0520
+				// 02df 02bf 0c84 call        0x0c84		 
 			if (0x04a8 != 0)
-				0c84_ModifySample(0x0520)
+				void 0c84_FilterBufferInPlace(_sampleAddr($AR0), multiplier($AX0.H))
 						 
 			// 02e1 009e 0520 lri         $AC0.M, #0x0520
 			// 02e3 00fe 038f sr          @0x038f, $AC0.M			 
@@ -1202,7 +1236,7 @@ void 0243_COMMAND_02()  // sync frame
 			}
 			else
 			{
-				// Volume mode == 0  - simple volumes
+				// Volume mode == 0  - simple(r) volumes
 				// 033d 8100      clr         $ACC0
 				// 033e 1c9e      mrr         $IX0, $AC0.M
 				// 033f 1cde      mrr         $IX2, $AC0.M
@@ -1220,6 +1254,8 @@ void 0243_COMMAND_02()  // sync frame
 				{					
 					// Seems like this all boils down to a backwards copy of 
 					// 0x0470-0x0477 to *(*(0x038f));
+					// Is that where we save samples in the PB, so that filters 
+					// have something to read from at the start of each block?
 					
 					// 0348 00c3 038f lr          $AR3, @0x038f
 					// 034a 0007      dar         $AR3
@@ -1234,7 +1270,7 @@ void 0243_COMMAND_02()  // sync frame
 					AX0.H = *$AR0;
 					AR0 += IX0;
 
-					0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
+					// 0352 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
 					$ACC1 = $AX0.H;
 					$AX0.H = *$AR0;
 					$AR0 += IX0;
@@ -1255,6 +1291,7 @@ void 0243_COMMAND_02()  // sync frame
 					// 035f 1106 0363 bloopi      #0x06, 0x0363
 
 					// Store half of every 4th value from 0x040a onwards in the position before. (!!!!)
+					// This really doesn't make a lot of sense.
 					// At the same time, keep their sum in ACC1.
 					for (int i = 0; i < 0x6; i++) {
 						// 0361 18de      lrrd        $AC0.M, @$AR2
@@ -1286,8 +1323,6 @@ void 0243_COMMAND_02()  // sync frame
 				// 1 word controls sbset #0x00 apparently
 				// 2 volume values
 				// 1 other word.
-				// BUT not quite - looks like it can vary and some of these words
-				// can be dropped... damnit.
 				
 				// 0370 1106 039b bloopi      #0x06, 0x039b
 				for (int i = 0; i < 6; i++)
@@ -1298,7 +1333,6 @@ void 0243_COMMAND_02()  // sync frame
 					// 0375 b100      tst         $ACC0
 					// 0376 0275      ifz         
 					//      0377 1300      sbset       #0x00
-					
 					// sbset #0x00 is logic zero ... we use it to store a bit here. see 0394
 					if (*$AR2 == 0) {
 						sbset #0x00
@@ -1317,6 +1351,8 @@ void 0243_COMMAND_02()  // sync frame
 					// 037e 1f1c      mrr         $AX0.L, $AC0.L
 					$AX0 = (vol1 - vol2) >> 5;   // 32 steps ..
 					
+					// Read the value after the volumes.
+					
 					// 037f 185e      lrr         $AC0.M, @$AR2
 					// 0380 0240 00ff andi        $AC0.M, #0x00ff
 					// 0382 1f7e      mrr         $AX1.H, $AC0.M
@@ -1327,38 +1363,49 @@ void 0243_COMMAND_02()  // sync frame
 					// 0385 009c 0000 lri         $AC0.L, #0x0000
 					$AC0.M = *$AR2 >> 8;
 					
-					// Seems like we might be dealing with variable
-					// length data here... $AR2 is never restored
-					// after the zany if thing below.
-					0387 d100      cmpar       $ACC1, $AX0.H
-					0388 0295 0390 jz          0x0390
-						038a 185e      lrr         $AC0.M, @$AR2
-						038b 0272      ifg         
-							038c 7400      incm        $AC0.M
-						038d 0271      ifs         
-							038e 7800      decm        $AC0.M
-						038f 1a5e      srr         @$AR2, $AC0.M
-					0390 0006      dar         $AR2
+					// ACC1 is here the second volume. Compare to delta.
+					// Adjust *$AR2 for some reason accordingly...
+
+					// 0387 d100      cmpar       $ACC1, $AX0.H
+					// 0388 0295 0390 jz          0x0390
+						// 038a 185e      lrr         $AC0.M, @$AR2
+						// 038b 0272      ifg         
+						//	038c 7400      incm        $AC0.M
+						// 038d 0271      ifs         
+						//	038e 7800      decm        $AC0.M
+						// 038f 1a5e      srr         @$AR2, $AC0.M
+					if ($ACC1 < $AX0.H) {
+						(*$AR2)--;
+					} else if ($ACC1 > $AX0.H) {
+						(*$AR2)++
+					}
+
+					// 0390 0006      dar         $AR2
+					$AR2--;
 					
-					// Here's this 0x038f again.. what is it?
+					// $AR2 again points at the second volume.
+					
 					0391 00de 038f lr          $AC0.M, @0x038f
-					0393 5600      subr        $ACC0, $AX1.H
+					
+					// Per channel mini-delay?
+					0393 5600      subr        $ACC0, $AX1.H  // see 0382
 					
 					// Use that stored logic zero bit, to skip mixing if the first word is (or isn't? not sure) 0.
 					// 0394 029d 0399 jlz         0x0399
 					if (!logic zero) {
 						// 0396 1c1e      mrr         $AR0, $AC0.M
 						// 0397 02bf 0ca9 call        0x0ca9
-						0x0ca9_RampedMultiplyBuffer(...)
+						0ca9_RampedMultiplyAddBuffer(Volume($ACC1), VolumeDelta($AX0), MultiplierData($AR0), Buffer($AR3))
 					}
-					0399 0000      nop         
+					// 0399 0000      nop         
 					// 039a 1b5f      srri        @$AR2, $AC1.M
-					*$AR2++ = $AC1.M;
+					// Update the second volume.
+					*($AR2++) = $AC1.M;
 					// 039b 000a      iar         $AR2
-					$AR2++;  // Next block of four volumes.
+					$AR2++;  // Next block of four values.
 				}
 				 
-				# 039c 8e00      set16       
+				// 039c 8e00      set16       
 				 
 				// 039d 8100      clr         $ACC0
 				// 039e 00de 0407 lr          $AC0.M, @0x0407
@@ -1366,6 +1413,9 @@ void 0243_COMMAND_02()  // sync frame
 				// 03a1 0295 03b2 jz          0x03b2				 
 				if (*0x0407 != 0)
 				{
+					// Stash away the last bunch of samples into 0x0477 and backwards,
+					// so that filter kernels and resampler have some previous data to
+					// read from the next time.
 					03a3 00c3 038f lr          $AR3, @0x038f
 					03a5 0087 004f lri         $IX3, #0x004f
 					03a7 001f      addarn      $AR3, $IX3
@@ -1397,7 +1447,9 @@ void 0243_COMMAND_02()  // sync frame
 			03be 7400      incm        $AC0.M
 			03bf 00fe 0354 sr          @0x0354, $AC0.M
 		}
-		 
+		
+		// Done mixing all voices, sync up with host before the final mixdown.
+		
 		// 03c1 0e00      lris        $AC0.M, #0x00
 		// 03c2 00fe 034e sr          @0x034e, $AC0.M		 
 		*0x034e = 0x00		 
@@ -1410,55 +1462,64 @@ void 0243_COMMAND_02()  // sync frame
 		// 03c9 0260 ff00 ori         $AC0.M, #0xff00
 		// 03cb 02bf 0674 call        0x0674
 		SendMB_F355(*0x0355 | 0xFF00)						// *0x0355 - current frame
-				 
+
+
+		// Buffer 0D00 and 0D60 are the final L & R mixing buffers.
+		
+		// This is where global effects are applied, and final mixdown is done.
+
 		// 03cd 02bf 0c0a call        0x0c0a
-		0c0a_Unk()								// free buffer at 0x0A00 ??
+		0c0a_Unk()								// Copy 0a00 to 0a60?
 		
 		// 03cf 02bf 0c1c call        0x0c1c
-		0c1c_Unk()
+		0c1c_ComputeReverbFrom0a60To0a00()   // Not sure if this really is reverb but could be.
 		
 		// 03d1 02bf 0c71 call        0x0c71		 
-		0c71_Unk()								// copy/mix/math 0x0D00 and 0x0D60 together to 0x0A00
+		0c71_AddBufferA00ToD60AndD00();			// add A00 on top of 0x0D00 and 0x0D60
 		
 		// 03d3 00de 0341 lr          $AC0.M, @0x0341
 		// 03d5 7800      decm        $AC0.M
 		// 03d6 00fe 0341 sr          @0x0341, $AC0.M
 		
 		(*0x0341)--;
+	
+		// The audio at 09a0 is added to both channels,
+		// then the channel buffers are copied to RAM.
+		// For unknown reasons, the audio at 0x0fa0 is ONLY added to the right channel.
 		
 		// 03d8 0080 09a0 lri         $AR0, #0x09a0
 		// 03da 0083 0d00 lri         $AR3, #0x0d00
 		// 03dc 0f50      lris        $AC1.M, #0x50
 		// 03dd 0098 5a82 lri         $AX0.L, #0x5a82
 		// 03df 02bf 00eb call        0x00eb		 
-		00eb_Unk_BufferMultWithDest(0x09a0, 0x0d00, 0x50, 0x5a82)
+		00eb_Unk_BufferMultAddToDest(0x09a0, 0x0d00, 0x50, 0x5a82)
 	
 		// 03e1 0080 09a0 lri         $AR0, #0x09a0
 		// 03e3 0083 0d60 lri         $AR3, #0x0d60
 		// 03e5 0f50      lris        $AC1.M, #0x50
 		// 03e6 02bf 00eb call        0x00eb
-		00eb_Unk_BufferMultWithDest(0x09a0, 0x0d60, 0x50, 0x5a82)
-				 
+		00eb_Unk_BufferMultAddToDest(0x09a0, 0x0d60, 0x50, 0x5a82)
+
 		// 03e8 0083 0d00 lri         $AR3, #0x0d00
 		// 03ea 02bf 0cc1 call        0x0cc1
-		0cc1_UnkFilter(0x0d00)
+		0cc1_StrangeORRFilter(0x0d00)
 		
 		// 03ec 0081 0388 lri         $AR1, #0x0388
 		// 03ee 009f 0d00 lri         $AC1.M, #0x0d00
 		// 03f0 0080 0050 lri         $AR0, #0x0050
 		// 03f2 02bf 0530 call        0x0530
 		0530_DMEMtoRAM_Ind(0x0d00, 0x0388, 0x050)
-				 
+
 		// 03f4 0080 0fa0 lri         $AR0, #0x0fa0
 		// 03f6 0083 0d60 lri         $AR3, #0x0d60
 		// 03f8 0f50      lris        $AC1.M, #0x50
 		// 03f9 0098 8000 lri         $AX0.L, #0x8000
 		// 03fb 02bf 00eb call        0x00eb
-		00eb_Unk_BufferMultWithDest(0x0fa0, 0x0d60, 0x50, 0x8000)
+		00eb_Unk_BufferMultAddToDest(0x0fa0, 0x0d60, 0x50, 0x8000)
 				 
 		// 03fd 0083 0d60 lri         $AR3, #0x0d60
 		// 03ff 02bf 0cc1 call        0x0cc1
-		0cc1_UnkFilter(0x0d60)
+		0cc1_StrangeORRFilter(0x0d60)
 				 
 		// 0401 0081 038a lri         $AR1, #0x038a
 		// 0403 009f 0d60 lri         $AC1.M, #0x0d60
@@ -1467,7 +1528,7 @@ void 0243_COMMAND_02()  // sync frame
 		0530_DMEMtoRAM_Ind(0x0d60, 0x038a, 0x050)
 		 
 		 
-		// Move both output buffer pointers forward, 0xa0 bytes (0x50 samples).
+		// Move both RAM output buffer pointers forward, 0xa0 bytes (0x50 samples).
 				 		 
 		// 0409 009a 0000 lri         $AX0.H, #0x0000		 
 		// 040b 0098 00a0 lri         $AX0.L, #0x00a0
@@ -2513,12 +2574,12 @@ void 0729_UpdateDecoderState()
 	// 0733 248b      lrs         $AC0.L, @0xff8b
 	// 0734 2288      lrs         $AX0.H, @0xff88
 	// 0735 2089      lrs         $AX0.L, @0xff89
-	// 0736 5800      subax       $ACC0, $AX0.L
+	// 0736 5800      subax       $ACC0, $AX0
 	ACC0 = [8a,8b] - [88,89];
 	
 	// 0737 0a00      lris        $AX0.H, #0x00
 	// 0738 2032      lrs         $AX0.L, @0x0032
-	// 0739 5800      subax       $ACC0, $AX0.L
+	// 0739 5800      subax       $ACC0, $AX0
 	ACC0 -= *0x0432;
 	
 	// 073a 2e3a      srs         @0x003a, $AC0.M
@@ -2582,7 +2643,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		0762 8100      clr         $ACC0
 		0763 263a      lrs         $AC0.M, @0x003a
 		0764 243b      lrs         $AC0.L, @0x003b
-		0765 5800      subax       $ACC0, $AX0.L
+		0765 5800      subax       $ACC0, $AX0
 		0766 0290 0771 jns         0x0771
 		if ()
 		{
@@ -2697,7 +2758,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		 07cb 4e00      addp        $ACC0
 		 07cc 238c      lrs         $AX1.H, @0xff8c
 		 07cd 218d      lrs         $AX1.L, @0xff8d
-		 07ce 4a00      addax       $ACC0, $AX1.L
+		 07ce 4a00      addax       $ACC0, $AX1
 		 07cf 2e38      srs         @0x0038, $AC0.M
 		 07d0 2c39      srs         @0x0039, $AC0.L
 		 07d1 2682      lrs         $AC0.M, @0xff82
@@ -2934,6 +2995,7 @@ void 087c_DefaultDecoder()
 	// it's in the individual decoders. Some decoders, like square wave, only care about 
 	// fractional sample position. So here we just load up the fractional sample
 	// position before handing control over.
+	
 	// 0880 00dc 0430 lr          $AC0.L, @0x0430  
 	// 0882 0080 0520 lri         $AR0, #0x0520   
 	
@@ -2999,7 +3061,7 @@ void 08b2_Decoder0x0_SquareWave(ACC0, AR0, AX0.L) {
 		else
 			*$AR0++ = 0xc000;
 		
-		08bf 4800      addax       $ACC0, $AX0.L // t += PB.Ratio
+		08bf 4800      addax       $ACC0, $AX0 // t += PB.Ratio
 	}
 	08c0 147f      lsr         $ACC0, #-1 // t /= 2
 	
@@ -3047,7 +3109,7 @@ void 08d5_Decoder0x2_SquareSaw(ACC0, AR0, AX0.L) {
 		08e5 027d      iflz        
 			08e6 1b19      srri        @$AR0, $AX1.L
 		08e7 183d      lrr         $AC1.L, @$AR1
-		08e8 4900      addax       $ACC1, $AX0.L
+		08e8 4900      addax       $ACC1, $AX0
 		08e9 1fe2      mrr         $AC1.M, $AR2
 		08ea 4c39      add's       $ACC0, $ACC1 : @$AR1, $AC1.M
 	08eb 147f      lsr         $ACC0, #-1
@@ -3198,19 +3260,24 @@ void 095f_Unk_SetupMemAt0_0180() {
 	097b f800      addpaxz     $ACC0, $AX0.H
 	097c 0240 01ff andi        $AC0.M, #0x01ff
 	097e 0260 2000 ori         $AC0.M, #0x2000
+	
 	//0980 02bf 0983 call        0x0983
-	0983_Unk()
+	0983_WriteRamp($ACC0, $ACC1, Dest($AR3))
 	
 	// 0982 02df      ret         
 }	 
  
- 
-void 0983_Unk(ACC0, ACC1) {
-	0983 b900      tst         $ACC1
-	0984 0272      ifg         
-		0985 7c00      neg         $ACC0
-	0986 1f7e      mrr         $AX1.H, $AC0.M
-	0987 4700      addr        $ACC1, $AX1.H
+void 0983_WriteRamp(ACC0, ACC1, Dest($AR3)) {
+	// 0983 b900      tst         $ACC1
+	// 0984 0272      ifg         
+	//	0985 7c00      neg         $ACC0
+	if ($ACC1 > 0) {
+		$ACC0 = -$ACC0;
+	}
+	
+	// 0986 1f7e      mrr         $AX1.H, $AC0.M
+	// 0987 4700      addr        $ACC1, $AX1.H
+	
 	// 0988 1110 098d bloopi      #0x10, 0x098d
 	for (int i = 0; i < 0x10; i++) {
 		098a 473b      addr's      $ACC1, $AX1.H : @$AR3, $AC1.M
@@ -3328,14 +3395,14 @@ void 09f9_UsedBy08Decoder() {
 	09fa 2135      lrs         $AX1.L, @0x0035
 	09fb 268a      lrs         $AC0.M, @0xff8a
 	09fc 248b      lrs         $AC0.L, @0xff8b
-	09fd 5a00      subax       $ACC0, $AX1.L
+	09fd 5a00      subax       $ACC0, $AX1
 	09fe 2e3a      srs         @0x003a, $AC0.M
 	09ff 2c3b      srs         @0x003b, $AC0.L
 	0a00 2634      lrs         $AC0.M, @0x0034
 	0a01 2435      lrs         $AC0.L, @0x0035
 	0a02 238c      lrs         $AX1.H, @0xff8c
 	0a03 218d      lrs         $AX1.L, @0xff8d
-	0a04 4a00      addax       $ACC0, $AX1.L
+	0a04 4a00      addax       $ACC0, $AX1
 	0a05 2e38      srs         @0x0038, $AC0.M
 	0a06 2c39      srs         @0x0039, $AC0.L
 	0a07 8100      clr         $ACC0
@@ -3479,7 +3546,7 @@ void 0a7f_UpdateSampleCounters() {
 	0a80 2135      lrs         $AX1.L, @0x0035
 	0a81 268a      lrs         $AC0.M, @0xff8a
 	0a82 248b      lrs         $AC0.L, @0xff8b
-	0a83 5a00      subax       $ACC0, $AX1.L     // Subtract [34,35] from [8a, 8b]
+	0a83 5a00      subax       $ACC0, $AX1     // Subtract [34,35] from [8a, 8b]
 	0a84 2e3a      srs         @0x003a, $AC0.M
 	0a85 2c3b      srs         @0x003b, $AC0.L
 	0a86 2634      lrs         $AC0.M, @0x0034
@@ -3487,7 +3554,7 @@ void 0a7f_UpdateSampleCounters() {
 	0a88 1401      lsl         $ACC0, #1
 	0a89 238c      lrs         $AX1.H, @0xff8c
 	0a8a 218d      lrs         $AX1.L, @0xff8d
-	0a8b 4a00      addax       $ACC0, $AX1.L     // Add [34,35]<<1 to [8c, 8d]
+	0a8b 4a00      addax       $ACC0, $AX1     // Add [34,35]<<1 to [8c, 8d]
 	0a8c 2e38      srs         @0x0038, $AC0.M
 	0a8d 2c39      srs         @0x0039, $AC0.L
 	0a8e 8100      clr         $ACC0
@@ -3558,7 +3625,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	// 0ab7 243b      lrs         $AC0.L, @0x003b
 	// 0ab8 1f1f      mrr         $AX0.L, $AC1.M
 	// 0ab9 0a00      lris        $AX0.H, #0x00
-	// 0aba 5800      subax       $ACC0, $AX0.L
+	// 0aba 5800      subax       $ACC0, $AX0
 	ACC0 =  [0x043a,0x043b];
 	ACC0 -= AC1.M;
 
@@ -3718,8 +3785,8 @@ void 0af6_Decoder0x21_MoreStuff($AR0, $AR3) {
 	// 0b04 1501      lsl         $ACC1, #1
 	// 0b05 4c00      add         $ACC0, $ACC1
 	
-	// 0b06 5a00      subax       $ACC0, $AX1.L
-	// 0b07 5a00      subax       $ACC0, $AX1.L
+	// 0b06 5a00      subax       $ACC0, $AX1
+	// 0b07 5a00      subax       $ACC0, $AX1
 	
 	ACC0 = [8c,8d] + *0x0434 * 2 - ((*0x0434 & 1) * 2);
 
@@ -3804,7 +3871,7 @@ void 0b2e_Unk_Multiply() {   // ZWW: 01c2_Unk
 	0b31 191e      lrri        $AC0.M, @$AR0
 	0b32 191a      lrri        $AX0.H, @$AR0
 	0b33 1006      loopi       #0x06
-	0b34 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
+		0b34 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
 	0b35 1b7e      srri        @$AR3, $AC0.M
 	0b36 1b7a      srri        @$AR3, $AX0.H
 	0b37 0080 03e8 lri         $AR0, #0x03e8
@@ -3923,8 +3990,12 @@ void 0b68_4TapFIR(InBuffer($AR2), FilterBuffer($AR0), OutBuffer($AR1)) {
 	0ba3 02df      ret         
 }
 
-void 0ba4_UnknownFilter() {	
+// Fixed length 0x50.
+void 0ba4_UnknownFilter(params($AR0), buffer($AR1), filter_state($AR2)) {	
 	0ba4 0083 03e8 lri         $AR3, #0x03e8
+	
+	// Load 4 parameters from *$AR0, copy them into the tiny ring buffer
+	// later handled by $AR0/$WR0 (filter state?)
 	0ba6 191e      lrri        $AC0.M, @$AR0
 	0ba7 191a      lrri        $AX0.H, @$AR0
 	0ba8 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
@@ -3935,16 +4006,23 @@ void 0ba4_UnknownFilter() {
 	0bae 0088 0003 lri         $WR0, #0x0003         // That's a short wrap - filter coefs?
 	0bb0 0085 0000 lri         $IX1, #0x0000
 	0bb2 0087 0000 lri         $IX3, #0x0000
+	
+	// Load more parameters from *$AR2
 	0bb4 1fc2      mrr         $AC0.M, $AR2
 	0bb5 195b      lrri        $AX1.H, @$AR2
 	0bb6 1959      lrri        $AX1.L, @$AR2
 	0bb7 195f      lrri        $AC1.M, @$AR2
 	0bb8 195a      lrri        $AX0.H, @$AR2
+	
 	0bb9 1c5e      mrr         $AR2, $AC0.M
 	0bba 1fda      mrr         $AC0.M, $AX0.H
+	
+	// Setup AR3, now ready to read in data.
 	0bbb 1c61      mrr         $AR3, $AR1
 	0bbc 8a00      m2          
-	0bbd 8f00      set40       
+	0bbd 8f00      set40 
+	      
+	// Start the pipeline
 	0bbe 191a      lrri        $AX0.H, @$AR0
 	0bbf b800      mulx        $AX0.H, $AX1.H
 	0bc0 e350      maddx'l     $AX0.H, $AX1.H : $AX0.H, @$AR0
@@ -3986,8 +4064,8 @@ void 0ba4_UnknownFilter() {
 	0bde ea7f      maddc'ln    $AC1.M, $AX1.L : $AC1.M, @$AR3
 	0bdf eef8      msubc'ldm   $AC1.M, $AX1.L : $AX0.H, $AX1.H, @$AR0
 	0be0 bb00      mulxmvz     $AX0.H, $AX1.H, $ACC1
-	
 	0be1 1bff      srrn        @$AR3, $AC1.M
+	
 	0be2 197f      lrri        $AC1.M, @$AR3
 	0be3 8e00      set16       
 	0be4 8b00      m0          
@@ -4035,30 +4113,45 @@ void 0bec_Unk() {
 }
  
 void 0c0a_Unk() {
-	0c0a 0080 0a00 lri         $AR0, #0x0a00
-	0c0c 8100      clr         $ACC0
-	0c0d 00de 03f0 lr          $AC0.M, @0x03f0
-	0c0f 8900      clr         $ACC1
-	0c10 b100      tst         $ACC0
-	0c11 0275      ifz         
-	0c12 0550      addis       $ACC1, #0x50
-	0c13 00ff 03f0 sr          @0x03f0, $AC1.M
-	0c15 0200 0a60 addi        $AC0.M, #0x0a60
+	// 0c0a 0080 0a00 lri         $AR0, #0x0a00
+	// 0c0c 8100      clr         $ACC0
+	// 0c0d 00de 03f0 lr          $AC0.M, @0x03f0
+	// 0c0f 8900      clr         $ACC1
+	// 0c10 b100      tst         $ACC0
+		
+	// 0c11 0275      ifz         
+	//     0c12 0550      addis       $ACC1, #0x50
+	$AC0.M = *(0x03f0);
+	if (*(0x03f0) == 0) {
+		$ACC1 = 0x50 << 16;
+	}
+	// 0c13 00ff 03f0 sr          @0x03f0, $AC1.M
+	*(0x03f0) = $ACC1;
 
+	// 0c15 0200 0a60 addi        $AC0.M, #0x0a60
 	// 0c17 1c7e      mrr         $AR3, $AC0.M
 	// 0c18 0f4e      lris        $AC1.M, #0x4e
+	
+	$AC0.M += 0xa60;
+	$AR3 = $AC0.M
+	$AC1.M = 0x4e;
+
 	// 0c19 02bf 00da call        0x00da
-	00da_CopyBuffer(0x0a00, $AC0.M, #0x4e)
+	00da_CopyBuffer(src=0x0a00, dst=$AC0.M, #0x4e)
 
 	// 0c1b 02df      ret         
 }
 
 // The control flow of this thing is NOT easy ...
-void 0c1c_Unk()
+// Reads from buffer at 0x0a60
+// Writes to buffer at 0x0a00
+void 0c1c_ComputeReverbFrom0a60To0a00()
 {
-	0c1c 00de 03f1 lr          $AC0.M, @0x03f1
-	0c1e 0200 0a60 addi        $AC0.M, #0x0a60
-	0c20 1c7e      mrr         $AR3, $AC0.M
+	// 0c1c 00de 03f1 lr          $AC0.M, @0x03f1
+	// 0c1e 0200 0a60 addi        $AC0.M, #0x0a60
+	// 0c20 1c7e      mrr         $AR3, $AC0.M
+	$AR3 = 0x0a60 + *(0x03f1);
+	
 	0c21 8100      clr         $ACC0
 	0c22 8900      clr         $ACC1
 	0c23 009f 00a0 lri         $AC1.M, #0x00a0
@@ -4074,7 +4167,8 @@ void 0c1c_Unk()
 	0c31 00de 03f3 lr          $AC0.M, @0x03f3
 	0c33 5c00      sub         $ACC0, $ACC1
 	0c34 0293 0c38 jle         0x0c38
-		0c36 029f 0c52 jmp         0x0c52
+		0c36 029f 0c52 jmp         0x0c52       // done:
+		
 	0c38 00db 03f7 lr          $AX1.H, @0x03f7
 	0c3a 009e 8000 lri         $AC0.M, #0x8000
 	0c3c 4600      addr        $ACC0, $AX1.H
@@ -4083,17 +4177,19 @@ void 0c1c_Unk()
 	0c3f 00db 03f7 lr          $AX1.H, @0x03f7
 	0c41 009e 8000 lri         $AC0.M, #0x8000
 	0c43 5600      subr        $ACC0, $AX1.H
+	
 	0c44 00fe 03f5 sr          @0x03f5, $AC0.M
 	0c46 1fda      mrr         $AC0.M, $AX0.H
 	0c47 7c00      neg         $ACC0
 	0c48 1f5e      mrr         $AX0.H, $AC0.M
 	0c49 00fe 03f2 sr          @0x03f2, $AC0.M
-	0c4b 029f 0c52 jmp         0x0c52
+	0c4b 029f 0c52 jmp         0x0c52           // done:
 
 	0c4d 00de 03f4 lr          $AC0.M, @0x03f4
 	0c4f 5d00      sub         $ACC1, $ACC0
 	0c50 0293 0c3f jle         0x0c3f
 
+done:
 	0c52 8900      clr         $ACC1
 	0c53 00dd 03f5 lr          $AC1.L, @0x03f5
 	0c55 1501      lsl         $ACC1, #1
@@ -4106,6 +4202,10 @@ void 0c1c_Unk()
 	// This is the loop that used to go crazy in the LLE emulation
 	// before we fixed addarn to obey the wrapping register.
 	
+	// Feels like some crazy delay function with a slowly drifting delay time.
+	
+	// Could this be part of a reverb? Or just a flanger?
+
 	// 0c5e 1150 0c65 bloopi      #0x50, 0x0c65
 	for (int i = 0; i < 0x50; i++) {
 		0c60 1878      lrr         $AX0.L, @$AR3
@@ -4114,6 +4214,13 @@ void 0c1c_Unk()
 		0c63 001f      addarn      $AR3, $IX3
 		0c64 1fd9      mrr         $AC0.M, $AX1.L
 		0c65 1b18      srri        @$AR0, $AX0.L
+		
+		$AX0.L = *AR3;
+		$ACC0 += $ACC1;
+		$IX3 = $AC0.M;
+		$AR3 += $IX3;
+		$AC0.M = $AX1.L;
+		*(AR0++) = $AX0.L;
 	}
 
 	0c66 009f 0a60 lri         $AC1.M, #0x0a60
@@ -4126,61 +4233,79 @@ void 0c1c_Unk()
 } 
  
  
-void 0c71_Unk()
- {
+void 0c71_AddBufferA00ToD60AndD00()
+{
 	// 0c71 0f50      lris        $AC1.M, #0x50
 	// 0c72 0080 0a00 lri         $AR0, #0x0a00
 	// 0c74 0083 0d60 lri         $AR3, #0x0d60
 	// 0c76 0098 3fff lri         $AX0.L, #0x3fff
 	// 0c78 02bf 00eb call        0x00eb	 
-	00eb_Unk_BufferMultWithDest(0x0a00, 0x0d60, 0x50, 0x3fff)
+	00eb_Unk_BufferMultAddToDest(0x0a00, 0x0d60, 0x50, 0x3fff)
 	
 	// 0c7a 0f50      lris        $AC1.M, #0x50
 	// 0c7b 0080 0a00 lri         $AR0, #0x0a00
 	// 0c7d 0083 0d00 lri         $AR3, #0x0d00
 	// 0c7f 0098 3fff lri         $AX0.L, #0x3fff
 	// 0c81 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(0x0a00, 0x0d00, 0x50, 0x3fff)
+	00eb_Unk_BufferMultAddToDest(0x0a00, 0x0d00, 0x50, 0x3fff)
 	
 	// 0c83 02df      ret         
 }	 
  
-void 0c84_ModifySample(_sampleAddr($AR0))
+void 0c84_FilterBufferInPlace(_sampleAddr($AR0), multiplier($AX0.H))
 {
-	0c84 8a00      m2          
-	0c85 8f00      set40       
-	0c86 8100      clr         $ACC0
-	0c87 00de 0404 lr          $AC0.M, @0x0404
-	0c89 b100      tst         $ACC0
-	0c8a 0295 0c91 jz          0x0c91
-	0c8c 8100      clr         $ACC0
-	0c8d 00fe 0478 sr          @0x0478, $AC0.M
-	0c8f 00fe 0479 sr          @0x0479, $AC0.M
-	0c91 00df 0479 lr          $AC1.M, @0x0479
-	0c93 00db 0478 lr          $AX1.H, @0x0478
-	0c95 0900      lris        $AX1.L, #0x00
-	0c96 0084 0000 lri         $IX0, #0x0000
-	0c98 1150 0ca1 bloopi      #0x50, 0x0ca1
-		0c9a 199e      lrrn        $AC0.M, @$AR0
-		0c9b 5c7c      sub'ln      $ACC0, $ACC1 : $AC1.M, @$AR0
-		0c9c c000      mulc        $AC0.M, $AX0.H    // Where does AX0.H get set?
-		0c9d 6e00      movp        $ACC0
-		0c9e 1488      asl         $ACC0, #8
-		0c9f 4a00      addax       $ACC0, $AX1.L
-		0ca0 1b1e      srri        @$AR0, $AC0.M
-		0ca1 1f7e      mrr         $AX1.H, $AC0.M
+	// 0c84 8a00      m2          
+	// 0c85 8f00      set40       
+	// 0c86 8100      clr         $ACC0
+	// 0c87 00de 0404 lr          $AC0.M, @0x0404
+	// 0c89 b100      tst         $ACC0
+	// 0c8a 0295 0c91 jz          0x0c91
+	if (*(0x0404)) {
+		// 0c8c 8100      clr         $ACC0
+		// 0c8d 00fe 0478 sr          @0x0478, $AC0.M
+		// 0c8f 00fe 0479 sr          @0x0479, $AC0.M
+		*0x0478 = 0;
+		*0x0479 = 0;
+	}
+	// 0c91 00df 0479 lr          $AC1.M, @0x0479
+	// 0c93 00db 0478 lr          $AX1.H, @0x0478
+	// 0c95 0900      lris        $AX1.L, #0x00
+	// 0c96 0084 0000 lri         $IX0, #0x0000
+	// 0c98 1150 0ca1 bloopi      #0x50, 0x0ca1
+	$AC1.M = *0x0479;
+	$AX1.H = *0x0478;
+	
+	// ACC1 always contains the value from the previous iteration.
+	for (int i = 0; i < 0x50; i++) {
+		// 0c9a 199e      lrrn        $AC0.M, @$AR0
+		// 0c9b 5c7c      sub'ln      $ACC0, $ACC1 : $AC1.M, @$AR0
+		// 0c9c c000      mulc        $AC0.M, $AX0.H    // Where does AX0.H get set?
+		// 0c9d 6e00      movp        $ACC0
+		// 0c9e 1488      asl         $ACC0, #8
+		// 0c9f 4a00      addax       $ACC0, $AX1
+		// 0ca0 1b1e      srri        @$AR0, $AC0.M
+		// 0ca1 1f7e      mrr         $AX1.H, $AC0.M
+		*$AC0.M = *$AR0;
+		$ACC0 -= $ACC1;
+		( $AC1.M = *AR0; )
+		$ACC0 = ($AC0.M * $AX0.H * 2 << 8) + ($AX1.L);
+		*($AR0++) = $AC0.M;
+		$AX1.H = $AC0.M;
+	
+	// Write back
 	0ca2 00fb 0478 sr          @0x0478, $AX1.H
 	0ca4 00ff 0479 sr          @0x0479, $AC1.M
-	0ca6 8b00      m0          
-	0ca7 8e00      set16       
-	0ca8 02df      ret         
+	
+	// 0ca6 8b00      m0          
+	// 0ca7 8e00      set16       
+	// 0ca8 02df      ret         
 }	 
  
 // Called from both volume handlers.
 // ACC1 is volume, AX is volume delta.
-void 0ca9_RampedMultiplyBuffer($ACC1, $AX0, $AR0, $AR3) {
-	0ca9 b900      tst         $ACC1
-	0caa 0294 0caf jnz         0x0caf
+void 0ca9_RampedMultiplyAddBuffer(Volume($ACC1), Delta($AX0), InBuffer($AR0), Buffer($AR3)) {
+	// 0ca9 b900      tst         $ACC1
+	// 0caa 0294 0caf jnz         0x0caf
 	if (!ACC1) {
 		// 0cac 6800      movax       $ACC0, $AX0.L
 		// 0cad b100      tst         $ACC0
@@ -4193,16 +4318,11 @@ void 0ca9_RampedMultiplyBuffer($ACC1, $AX0, $AR0, $AR3) {
 	0caf 1c23      mrr         $AR1, $AR3
 	0cb0 197e      lrri        $AC0.M, @$AR3
 	
-	// Load multiplier from AR0, twice?
-	0cb1 191b      lrri        $AX1.H, @$AR0
-		
 	// This is another heavily software pipelined loop, so it's very confusing.
 	// See the docs for mulc and mulcac if you want to have any hope of understanding it.
-	// What it turns into if you unwind it is something like:
-	// 
-	// todo
 	// 
 	// Produce the first result, so it's ready in the prod register.
+	0cb1 191b      lrri        $AX1.H, @$AR0
 	0cb2 d858      mulc'l      $AC1.M, $AX1.H : $AX1.H, @$AR0
 	
 	// 0cb3 1120 0cb9 bloopi      #0x20, 0x0cb9
@@ -4213,8 +4333,8 @@ void 0ca9_RampedMultiplyBuffer($ACC1, $AX0, $AR0, $AR3) {
 		0cb7 dcd3      mulcac'ld   $AC1.M, $AX1.H, $ACC0 : $AX0.L, $AX1.H, @$AR3
 		0cb8 6231      movr's      $ACC0, $AX1.L : @$AR1, $AC0.M  // Store 1
 		
-		// Walk the ramp.
-		0cb9 4900      addax       $ACC1, $AX0.L
+		// Walk the ramp. Somewhat odd that it's done only every 2 samples.
+		0cb9 4900      addax       $ACC1, $AX0
 	}
 
 	// 0cba 1108 0cbf bloopi      #0x08, 0x0cbf
@@ -4231,27 +4351,30 @@ void 0ca9_RampedMultiplyBuffer($ACC1, $AX0, $AR0, $AR3) {
 	// it's 50. Just strange that the addax is missing in the second loop.
 	
 	// It looks like we're dealing with crappy volume ramping - the delta is computed using
-	// (vol2 - vol1) >> 5! That's why it can only ramp the volume the first 32 (0x20) samples!
+	// (vol2 - vol1) >> 5! That's why it can only ramp the volume the first 64 (0x20 * 2) samples!
 	
 	0cc0 02df      ret         
 }
 
 
-void 0cc1_UnkFilter(_pBuffer(AR3))
+// What a strange filter .. ORR?
+void 0cc1_StrangeORRFilter(_pBuffer(AR3))
 {
 	0cc1 8f00      set40       
-	0cc2 8d00      set15       
+	0cc2 8d00      set15         // X multiplications unsigned
 	0cc3 1c03      mrr         $AR0, $AR3
 	0cc4 00d9 038e lr          $AX1.L, @0x038e
 	0cc6 0b04      lris        $AX1.H, #0x04
+	
+	// pipeline starts here.	
 	0cc7 197a      lrri        $AX0.H, @$AR3
 	0cc8 b053      mulx'l      $AX0.H, $AX1.L : $AX0.H, @$AR3
 	0cc9 b600      mulxmv      $AX0.H, $AX1.L, $ACC0
 	0cca 1128 0ccf bloopi      #0x28, 0x0ccf
-	0ccc 3ad3      orr'ld      $AC0.M, $AX1.H : $AX0.L, $AX1.H, @$AR3
-	0ccd b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
-	0cce 3ad3      orr'ld      $AC0.M, $AX1.H : $AX0.L, $AX1.H, @$AR3
-	0ccf b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
+		0ccc 3ad3      orr'ld      $AC0.M, $AX1.H : $AX0.L, $AX1.H, @$AR3
+		0ccd b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
+		0cce 3ad3      orr'ld      $AC0.M, $AX1.H : $AX0.L, $AX1.H, @$AR3
+		0ccf b630      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC0.M
 	0cd0 8c00      clr15       
 	0cd1 8e00      set16       
 	
@@ -4354,7 +4477,7 @@ void 0cd3_VolumeMixer1()
 	// 0d14 0081 0b04 lri         $AR1, #0x0b04
 	// 0d16 00da 042a lr          $AX0.H, @0x042a
 	// 0d18 02bf 0d62 call        0x0d62  // some tricky multiplication
-	0d62_TrickyMul(0x0b00, 0x0b04, *(0x042a));
+	0d62_Mul4ByAX0H(0x0b00, 0x0b04, *(0x042a));
 	
 	// 0d1a 0081 0b08 lri         $AR1, #0x0b08
 	// 0d1c 0080 0b04 lri         $AR0, #0x0b04
@@ -4365,7 +4488,7 @@ void 0cd3_VolumeMixer1()
 	// 0d24 1481      asl         $ACC0, #1
 	// 0d25 1f5e      mrr         $AX0.H, $AC0.M
 
-	0d62_TrickyMul(0x0b00, 0x0b04, (*(0x042a) * *(0x0429) << 1) >> 16);
+	0d62_Mul4ByAX0H(0x0b00, 0x0b04, (*(0x042a) * *(0x0429) << 1) >> 16);
 	// 0d26 02bf 0d62 call        0x0d62  // some tricky multiplication
 	
 	// 0d28 0080 0b00 lri         $AR0, #0x0b00
@@ -4380,26 +4503,31 @@ void 0cd3_VolumeMixer1()
 	// 0d34 5c00      sub         $ACC0, $ACC1
 	// 0d35 1f5e      mrr         $AX0.H, $AC0.M
 	// 0d36 02bf 0d6b call        0x0d6b  // some other tricky multiplication
-	0d6b_TrickierMul(0xb00, 0x0b0c, (*(0x042a) - *(0x042b)))
+	0d6b_Mul4ByAC0M_Unsigned(0xb00, 0x0b0c, $AC0.M(*(0x042a) - *(0x042b)))   // does not touch AX0.H
 	
 	// 0d38 0080 0b0c lri         $AR0, #0x0b0c
 	// 0d3a 0081 0b10 lri         $AR1, #0x0b10
 	// 0d3c 00da 0429 lr          $AX0.H, @0x0429   // interesting
 	0d3e 02bf 0d62 call        0x0d62  // some tricky multiplication
-	0d62_TrickyMul(0x0b0c, 0x0b10, *(0x0429));
+	0d62_Mul4ByAX0H(0x0b0c, 0x0b10, *(0x0429));
+
+	// 0d40 0081 0b04 lri         $AR1, #0x0b04
+	// 0d42 0082 0b0c lri         $AR2, #0x0b0c
+	// 0d44 0083 0d77 lri         $AR3, #0x0d77
 	
-	
-	0d40 0081 0b04 lri         $AR1, #0x0b04
-	0d42 0082 0b0c lri         $AR2, #0x0b0c
-	0d44 0083 0d77 lri         $AR3, #0x0d77
-	
+	// So basically the below loop is:
+	// For i in 0 to 8:
+	//    Call 0ca9_RampedMultiplyAddBuffer($AR0 = *0x038f, $AR3=0x0d77[i], AX0=0xb0c[i]<<11, AC1.M=0x0b04[i])
+		
 	// 0d46 1108 0d5f bloopi      #0x08, 0x0d5f
 	for (int i = 0; i < 8; i++) {
 		// 0d48 195f      lrri        $AC1.M, @$AR2
 		// 0d49 15fb      asr         $ACC1, #-5
 		// 0d4a 1f1d      mrr         $AX0.L, $AC1.L
 		// 0d4b 1f5f      mrr         $AX0.H, $AC1.M
+		// Compute volume delta
 		AX0 = *AR2++ << 11;
+		
 		// 0d4c 193f      lrri        $AC1.M, @$AR1
 		AC1.M = *AR1++;
 
@@ -4407,52 +4535,56 @@ void 0cd3_VolumeMixer1()
 		// 0d4f 00e2 0b25 sr          @0x0b25, $AR2
 		// 0d51 021b      ilrri       $AC0.M, @$AR3   // Buffer address table lookup (see above)
 		// 0d52 00e3 0b26 sr          @0x0b26, $AR3
-		(stash AR1, AR2, AR3)
+		(Stash AR1, AR2, AR3)
 		// 0d54 1c7e      mrr         $AR3, $AC0.M
 		// 0d55 00c0 038f lr          $AR0, @0x038f
 		// 0d57 02bf 0ca9 call        0x0ca9
-		0ca9_RampedMultiplyBuffer(...  $AR3)
+		0ca9_RampedMultiplyAddBuffer(Volume($ACC1), Delta($AX0), InBuffer($AR0), Buffer($AR3))
 		
-		// Restore AR1, AR2, AR3.
-		0d59 00c1 0b24 lr          $AR1, @0x0b24
-		0d5b 00c2 0b25 lr          $AR2, @0x0b25
-		0d5d 00c3 0b26 lr          $AR3, @0x0b26
+		// 0d59 00c1 0b24 lr          $AR1, @0x0b24
+		// 0d5b 00c2 0b25 lr          $AR2, @0x0b25
+		// 0d5d 00c3 0b26 lr          $AR3, @0x0b26
+		(Restore AR1, AR2, AR3)
 		0d5f 0000      nop       
 	}
 	
-	// So basically the above loop is:
-	// For i in 0 to 8:
-	//    Call 0x0ca9_RampedMultiplyBuffer($AR0 = *0x038f, $AR3=0x0d77[i], AX0=0xb0c[i]<<11, AC1.M=0x0b04[i])
-		
-	0d60 8e00      set16       
+	// 0d60 8e00      set16       
 	// 0d61 02df      ret         
 }
 
-void 0d62_TrickyMul(in_buffer($AR0), out_buffer($AR1), multiplicand($AX0.H)) {
-	0d62 191f      lrri        $AC1.M, @$AR0
-	0d63 d078      mulc'l      $AC1.M, $AX0.H : $AC1.M, @$AR0
-	0d64 d678      mulcmv'l    $AC1.M, $AX0.H, $ACC0 : $AC1.M, @$AR0
-	0d65 d631      mulcmv's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
-	0d66 191f      lrri        $AC1.M, @$AR0
-	0d67 d631      mulcmv's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
-	0d68 6e31      movp's      $ACC0 : @$AR1, $AC0.M
-	0d69 1b3e      srri        @$AR1, $AC0.M
-	// 0d6a 02df      ret         
+void 0d62_Mul4ByAX0H(in_buffer($AR0), out_buffer($AR1), multiplicand($AX0.H)) {
+	// 0d62 191f      lrri        $AC1.M, @$AR0
+	// 0d63 d078      mulc'l      $AC1.M, $AX0.H : $AC1.M, @$AR0
+	// 0d64 d678      mulcmv'l    $AC1.M, $AX0.H, $ACC0 : $AC1.M, @$AR0
+	// 0d65 d631      mulcmv's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+	// 0d66 191f      lrri        $AC1.M, @$AR0
+	// 0d67 d631      mulcmv's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+	// 0d68 6e31      movp's      $ACC0 : @$AR1, $AC0.M
+	// 0d69 1b3e      srri        @$AR1, $AC0.M
+	// 0d6a 02df      ret
+	// The above is a crazy sw-pipelined way to write:
+	for (int i = 0; i < 4; i++) {
+		out_buffer[i] = (s16)in_buffer[i] * (s16)multiplicand >> 16;
+	}	
 }
 
-void 0d6b_TrickierMul(in_buffer($AR0), out_buffer($AR1)) {
-	0d6b 8d00      set15       
-	0d6c 1f7e      mrr         $AX1.H, $AC0.M
-	0d6d 1918      lrri        $AX0.L, @$AR0
-	0d6e a840      mulx'l      $AX0.L, $AX1.H : $AX0.L, @$AR0
-	0d6f ae40      mulxmv'l    $AX0.L, $AX1.H, $ACC0 : $AX0.L, @$AR0
-	0d70 ae31      mulxmv's    $AX0.L, $AX1.H, $ACC0 : @$AR1, $AC0.M
-	0d71 1918      lrri        $AX0.L, @$AR0
-	0d72 ae31      mulxmv's    $AX0.L, $AX1.H, $ACC0 : @$AR1, $AC0.M
-	0d73 6e31      movp's      $ACC0 : @$AR1, $AC0.M
-	0d74 1b3e      srri        @$AR1, $AC0.M
-	0d75 8c00      clr15       
+void 0d6b_Mul4ByAC0M_Unsigned(in_buffer($AR0), out_buffer($AR1), multiplicand($AX1.H)) {
+	// 0d6b 8d00      set15       
+	// 0d6c 1f7e      mrr         $AX1.H, $AC0.M
+	// 0d6d 1918      lrri        $AX0.L, @$AR0
+	// 0d6e a840      mulx'l      $AX0.L, $AX1.H : $AX0.L, @$AR0
+	// 0d6f ae40      mulxmv'l    $AX0.L, $AX1.H, $ACC0 : $AX0.L, @$AR0
+	// 0d70 ae31      mulxmv's    $AX0.L, $AX1.H, $ACC0 : @$AR1, $AC0.M
+	// 0d71 1918      lrri        $AX0.L, @$AR0
+	// 0d72 ae31      mulxmv's    $AX0.L, $AX1.H, $ACC0 : @$AR1, $AC0.M
+	// 0d73 6e31      movp's      $ACC0 : @$AR1, $AC0.M
+	// 0d74 1b3e      srri        @$AR1, $AC0.M
+	// 0d75 8c00      clr15       
 	// 0d76 02df      ret    
+	// The above is a crazy sw-pipelined way to write:
+	for (int i = 0; i < 4; i++) {
+		out_buffer[i] = in_buffer[i] * multiplicand >> 16;  //(unsigned multiplication)
+	}	
 } 
  
 // table for 0cd3_Unk
@@ -4499,8 +4631,11 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	
 	0d9e 1fdd      mrr         $AC0.M, $AC1.L
 	0d9f 0082 02b0 lri         $AR2, #0x02b0
+	
+	// Store a ramp?
 	0da1 1050      loopi       #0x50
-		0da2 4b2a      addax's     $ACC1, $AX1.L : @$AR2, $AC1.L
+		0da2 4b2a      addax's     $ACC1, $AX1 : @$AR2, $AC1.L
+
 	0da3 1fbe      mrr         $AC1.L, $AC0.M
 	0da4 00fe 0360 sr          @0x0360, $AC0.M
 	0da6 8900      clr         $ACC1
@@ -4532,7 +4667,7 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0dc5 1f3c      mrr         $AX1.L, $AC0.L
 	0dc6 8f00      set40       
 	0dc7 1943      lrri        $AR3, @$AR2
-	0dc8 4bc3      addax'ld    $ACC1, $AX1.L : $AX0.L, $AX1.L, @$AR3
+	0dc8 4bc3      addax'ld    $ACC1, $AX1 : $AX0.L, $AX1.L, @$AR3
 	0dc9 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
 	0dca f2c3      madd'ld     $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
 	0dcb f2c3      madd'ld     $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
@@ -4540,7 +4675,7 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0dcd fe00      movpz       $ACC0
 	0dce 1c1f      mrr         $AR0, $AC1.M
 	0dcf 1943      lrri        $AR3, @$AR2
-	0dd0 4bc3      addax'ld    $ACC1, $AX1.L : $AX0.L, $AX1.L, @$AR3
+	0dd0 4bc3      addax'ld    $ACC1, $AX1 : $AX0.L, $AX1.L, @$AR3
 	0dd1 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
 	// 0dd2 114e 0dda bloopi      #0x4e, 0x0dda
 	for (int i = 0; i < 0x4e; i++) {
@@ -4549,7 +4684,7 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 		0dd6 f231      madd's      $AX0.L, $AX0.H : @$AR1, $AC0.M
 		0dd7 1c1f      mrr         $AR0, $AC1.M
 		0dd8 1943      lrri        $AR3, @$AR2
-		0dd9 4bc3      addax'ld    $ACC1, $AX1.L : $AX0.L, $AX1.L, @$AR3
+		0dd9 4bc3      addax'ld    $ACC1, $AX1 : $AX0.L, $AX1.L, @$AR3
 		0dda 92c3      mulmvz'ld   $AX0.L, $AX0.H, $ACC0 : $AX0.L, $AX1.L, @$AR3
 	}
 	0ddb f2c3      madd'ld     $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
@@ -4582,10 +4717,10 @@ subroutine:
 
 	// add two buffers?
 	0df5 1128 0dfc bloopi      #0x28, 0x0dfc
-		0df7 4b70      addax'l     $ACC1, $AX1.L : $AC0.M, @$AR0
+		0df7 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
 		0df8 1b3e      srri        @$AR1, $AC0.M
 		0df9 1c1f      mrr         $AR0, $AC1.M
-		0dfa 4b70      addax'l     $ACC1, $AX1.L : $AC0.M, @$AR0
+		0dfa 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
 		0dfb 1b3e      srri        @$AR1, $AC0.M
 		0dfc 1c1f      mrr         $AR0, $AC1.M
 	
@@ -4595,7 +4730,7 @@ subroutine:
  
 // Small utility jumped to from SyncFrame.
 // sets 50 shorts from 0x520 to zero.
-void Zero520_50() {
+void 0dff_Zero520_50() {
 	0dff 0083 0520 lri         $AR3, #0x0520
 	0e01 00de 0433 lr          $AC0.M, @0x0433
 	0e03 1050      loopi       #0x50
@@ -4620,9 +4755,9 @@ void 0e07_UnUsed() {
 	// 0e13 02df      ret         
 }
  
-void 0e14_UnknownInit() 
+void 0e14_DolbyInit() 
 {
-	// init some stuff
+	// Init parameters/coefficients for UnknownFilter
 	0e14 0098 8240 lri         $AX0.L, #0x8240
 	0e16 00f8 04e8 sr          @0x04e8, $AX0.L
 	0e18 0098 7fff lri         $AX0.L, #0x7fff
@@ -4640,7 +4775,7 @@ void 0e14_UnknownInit()
 	0e30 0098 d808 lri         $AX0.L, #0xd808
 	0e32 00f8 04f3 sr          @0x04f3, $AX0.L
 	
-	// two small zeromemory
+	// Zero the UnknownFilter states.
 	0e34 0098 0000 lri         $AX0.L, #0x0000
 	0e36 0080 04ec lri         $AR0, #0x04ec
 	0e38 1004      loopi       #0x04
@@ -4651,8 +4786,8 @@ void 0e14_UnknownInit()
 	// 0e3e 02df      ret     
 }
 
-// dolby?
-void 0e3f_UnknownProcess()
+// I'm going to guess that this is Dolby mixing.
+void 0e3f_DolbyMixdown()
 {
 	0e3f 0080 0f40 lri         $AR0, #0x0f40
 	0e41 0083 0b00 lri         $AR3, #0x0b00
@@ -4660,20 +4795,21 @@ void 0e3f_UnknownProcess()
 	0e44 0f50      lris        $AC1.M, #0x50
 	0e45 0098 6784 lri         $AX0.L, #0x6784
 	//0e47 02bf 00fa call        0x00fa   // XorBuffer
-	00fa_Unk()
+	00fa_BufferMultiply(src($AR0), dst($AR3), count($AC1.M), $mult($AX0.L))
 	
 	0e49 0080 04e8 lri         $AR0, #0x04e8
 	0e4b 0082 04ec lri         $AR2, #0x04ec
 	0e4d 0081 0b00 lri         $AR1, #0x0b00
 	0e4f 02bf 0ba4 call        0x0ba4   // 0ba4_UnknownFilter
-	
+	0ba4_UnknownFilter(params($AR0), buffer($AR1), filter_state($AR2))
+
 	0e51 8900      clr         $ACC1
 	0e52 0f50      lris        $AC1.M, #0x50
 	0e53 0080 0b00 lri         $AR0, #0x0b00
 	0e55 0083 0d00 lri         $AR3, #0x0d00
 	0e57 0098 7fff lri         $AX0.L, #0x7fff
 	// 0e59 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 	
 	0e5b 8900      clr         $ACC1
 	0e5c 0f50      lris        $AC1.M, #0x50
@@ -4681,7 +4817,7 @@ void 0e3f_UnknownProcess()
 	0e5f 0083 0d60 lri         $AR3, #0x0d60
 	0e61 0098 b820 lri         $AX0.L, #0xb820
 	// 0e63 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 	
 	0e65 0080 0ca0 lri         $AR0, #0x0ca0
 	0e67 0083 0b00 lri         $AR3, #0x0b00
@@ -4689,20 +4825,21 @@ void 0e3f_UnknownProcess()
 	0e6a 0f50      lris        $AC1.M, #0x50
 	0e6b 0098 6784 lri         $AX0.L, #0x6784
 	// 0e6d 02bf 00fa call        0x00fa              // XorBuffer
-	00fa_Unk()
+	00fa_BufferMultiply(src($AR0), dst($AR3), count($AC1.M), $mult($AX0.L))
 	
 	0e6f 0080 04e8 lri         $AR0, #0x04e8
 	0e71 0082 04f4 lri         $AR2, #0x04f4
 	0e73 0081 0b00 lri         $AR1, #0x0b00
 	// 0e75 02bf 0ba4 call        0x0ba4   // 0ba4_UnknownFilter
-	
+	0ba4_UnknownFilter(params($AR0), buffer($AR1), filter_state($AR2))	
+
 	0e77 8900      clr         $ACC1
 	0e78 0f50      lris        $AC1.M, #0x50
 	0e79 0080 0b00 lri         $AR0, #0x0b00
 	0e7b 0083 0d00 lri         $AR3, #0x0d00
 	0e7d 0098 47e0 lri         $AX0.L, #0x47e0
 	// 0e7f 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 	
 	0e81 8900      clr         $ACC1
 	0e82 0f50      lris        $AC1.M, #0x50
@@ -4710,7 +4847,7 @@ void 0e3f_UnknownProcess()
 	0e85 0083 0d60 lri         $AR3, #0x0d60
 	0e87 0098 8001 lri         $AX0.L, #0x8001
 	// 0e89 02bf 00eb call        0x00eb
-	00eb_Unk_BufferMultWithDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
+	00eb_Unk_BufferMultAddToDest(_Src=($AR0), _Dest($AR3), _size($AC1.M), _factor($AX0.L))
 	
 	// 0e8b 02df      ret         
 }	 
