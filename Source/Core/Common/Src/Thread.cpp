@@ -31,6 +31,11 @@
 
 namespace Common
 {
+#ifndef _WIN32
+// TODO see thread.h
+void MemFence(){;}
+#endif
+
 #ifdef _WIN32
 
 void InitThreading()

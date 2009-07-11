@@ -80,7 +80,8 @@ __forceinline void MemFence()
 	MemoryBarrier();
 }
 #else
-	// TODO: UNIX experts, please implement the memory fence.
+// TODO: UNIX experts, please implement the memory fence.
+void MemFence();
 #endif
 
 class CriticalSection
