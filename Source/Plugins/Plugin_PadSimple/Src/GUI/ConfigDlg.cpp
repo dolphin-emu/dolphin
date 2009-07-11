@@ -31,7 +31,6 @@ BEGIN_EVENT_TABLE(PADConfigDialogSimple,wxDialog)
 	EVT_BUTTON(ID_CLOSE,PADConfigDialogSimple::OnCloseClick)
 	EVT_BUTTON(ID_PAD_ABOUT,PADConfigDialogSimple::DllAbout)
 
-	EVT_CHECKBOX(ID_ATTACHED,PADConfigDialogSimple::ControllerSettingsChanged)	
 	EVT_CHECKBOX(ID_X360PAD,PADConfigDialogSimple::ControllerSettingsChanged)
 	EVT_CHOICE(ID_X360PAD_CHOICE,PADConfigDialogSimple::ControllerSettingsChanged)
 	EVT_CHECKBOX(ID_RUMBLE,PADConfigDialogSimple::ControllerSettingsChanged)
@@ -175,13 +174,11 @@ void PADConfigDialogSimple::CreateGUIControls()
 		sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
 
 		sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
-		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		sbDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 		sbDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
 
 #ifdef _WIN32
-		m_SizeXInput[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("XInput Pad"));
+		m_SizeXInput[i] = new wxStaticBoxSizer(wxHORIZONTAL, m_Controller[i], wxT("XInput Pad"));
 		m_X360Pad[i] = new wxCheckBox(m_Controller[i], ID_X360PAD, wxT("Enable X360Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_X360PadC[i] = new wxChoice(m_Controller[i], ID_X360PAD_CHOICE, wxDefaultPosition, wxDefaultSize, arrayStringFor_X360Pad, 0, wxDefaultValidator);
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], ID_RUMBLE, wxT("Enable rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -191,7 +188,6 @@ void PADConfigDialogSimple::CreateGUIControls()
 		m_SizeXInput[i]->Add(m_Rumble[i], 0, wxEXPAND | wxALL, 1);
 #endif
 		// Set values
-		m_Attached[i]->SetValue(pad[i].bAttached);
 		m_Disable[i]->SetValue(pad[i].bDisable);
 
 #ifdef _WIN32
@@ -398,9 +394,6 @@ void PADConfigDialogSimple::ControllerSettingsChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	// General settings
-	case ID_ATTACHED:
-		pad[page].bAttached = m_Attached[page]->GetValue();
-		break;
 	case ID_DISABLE:
 		pad[page].bDisable = m_Disable[page]->GetValue();
 		break;

@@ -311,7 +311,7 @@ void Shutdown()
 	   vector elements or any bad devices */
 	for (int i = 0; i < 4; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 				if(SDL_JoystickOpened(PadMapping[i].ID))
 				{
@@ -376,25 +376,6 @@ void DoState(unsigned char **ptr, int mode)
 #endif
 }
 
- 
-// Set PAD attached pads
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-unsigned int PAD_GetAttachedPads()
-{
-	unsigned int connected = 0;
-
-	g_Config.Load();
-
-	if (PadMapping[0].enabled) connected |= 1;		
-	if (PadMapping[1].enabled) connected |= 2;
-	if (PadMapping[2].enabled) connected |= 4;
-	if (PadMapping[3].enabled) connected |= 8;
-
-	//INFO_LOG(CONSOLE, "PAD_GetAttachedPads: %i %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
-
-	return connected;
-}
-
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -404,9 +385,9 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	//INFO_LOG(CONSOLE, "PAD_GetStatus(): %i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
 
-	/* Check if the pad is enabled and avaliable, currently we don't disable pads just because they are
+	/* Check if the pad is avaliable, currently we don't disable pads just because they are
 	   disconnected */
-	if (!PadMapping[_numPAD].enabled || !PadState[_numPAD].joy) return;
+	if (!PadState[_numPAD].joy) return;
 
 	// -------------------------------------------
 	// Play back input instead of accepting any user input
@@ -629,7 +610,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 4; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
 			if(joyinfo.at(PadMapping[i].ID).Good)
 				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}
@@ -644,10 +625,10 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool ReloadDLL()
 {
-	if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
-		|| (PadMapping[1].enabled && PadState[1].joy == NULL)
-		|| (PadMapping[2].enabled && PadState[2].joy == NULL)
-		|| (PadMapping[3].enabled && PadState[3].joy == NULL))
+	if (   (PadState[0].joy == NULL)
+		|| (PadState[1].joy == NULL)
+		|| (PadState[2].joy == NULL)
+		|| (PadState[3].joy == NULL))
 	{
 		// Check if it was an error and not just no pads connected
 		std::string StrError = SDL_GetError();

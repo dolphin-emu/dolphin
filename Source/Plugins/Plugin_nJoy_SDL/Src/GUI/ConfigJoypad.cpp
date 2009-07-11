@@ -53,9 +53,6 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 	// Update selected gamepad
 	m_Joyname[controller]->SetSelection(PadMapping[controller].ID);
 
-	// Update the enabled checkbox
-	m_Joyattach[controller]->SetValue(PadMapping[controller].enabled == 1 ? true : false);
-
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
 
@@ -110,8 +107,7 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
-   selected joystick, enabled or disabled status and so on) */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+   selected joystick and so on) */
 void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
 {
 	// Temporary storage
@@ -124,9 +120,8 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 	// Replace "" with "-1" in the GUI controls
 	ToBlank(false);
 
-	// Set enabled or disable status and other settings
+	// Set other settings
 	if(!DontChangeId) PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
-	if(FromSlot == controller) PadMapping[controller].enabled = m_Joyattach[FromSlot]->GetValue(); // Only enable one
 	PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();

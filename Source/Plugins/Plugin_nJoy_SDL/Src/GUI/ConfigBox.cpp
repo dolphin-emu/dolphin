@@ -56,9 +56,8 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_BUTTON(ID_CANCEL, PADConfigDialognJoy::CancelClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, PADConfigDialognJoy::NotebookPageChanged)
 
-	// Change and enable or disable gamepad
+	// Change gamepad
 	EVT_COMBOBOX(IDC_JOYNAME, PADConfigDialognJoy::ChangeSettings)
-	EVT_CHECKBOX(IDC_JOYATTACH, PADConfigDialognJoy::ChangeSettings)
 
 	 // Other settings
 	EVT_CHECKBOX(IDC_SAVEBYID, PADConfigDialognJoy::ChangeSettings)
@@ -298,18 +297,12 @@ void PADConfigDialognJoy::OnSaveById()
    the plugin. Joyinfo[].joy is only used the first time the pads are checked. */
 void PADConfigDialognJoy::DoChangeJoystick()
 {
-	// Close the current pad, unless it's used by another slot
-	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
-
 	// Before changing the pad we save potential changes to the current pad (to support SaveByID)
 	DoSave(true);
 	
 	// Load the settings for the new Id
 	g_Config.Load(true);
 	UpdateGUI(notebookpage); // Update the GUI
-
-	// Open the new pad
-	if (PadMapping[notebookpage].enabled) PadOpen(notebookpage);
 }
 void PADConfigDialognJoy::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 {
@@ -481,15 +474,6 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 		case IDC_JOYNAME: 
 			DoChangeJoystick();
 			break;
-
-		case IDC_JOYATTACH:
-			// We will enable this device
-			int Enable = PadMapping[notebookpage].enabled = !PadMapping[notebookpage].enabled;
-			// Close or open pad handle			
-			if(Enable) PadOpen(notebookpage); else PadClose(notebookpage);
-			// Update the GUI
-			UpdateGUI(notebookpage);
-			return; // Don't save this for all slots
 	}
 
 	// Update all slots that use this device
@@ -550,25 +534,6 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 	m_CheckPlayback[_notebookpage]->SetValue(g_Config.bPlayback);
 #endif
 
-	// There is no FindItem in linux so this doesn't work
-	#ifdef _WIN32
-		// Disabled pages
-		bool Enabled = PadMapping[_notebookpage].enabled  == 1 ? true : false;
-
-		// Enable or disable all buttons
-		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
-			m_Controller[_notebookpage]->FindItem(i)->Enable(Enabled);
-		// Controller type settings
-		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_RADIUS)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_CB_RADIUS)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDCB_FILTER_SETTINGS)->Enable(Enabled);
-	#endif
-
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
 	ToBlank();
 
@@ -597,10 +562,7 @@ void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 
 	wxPaintDC dcWin(m_pKeys[notebookpage]);
 	PrepareDC( dcWin );
-	if(PadMapping[notebookpage].enabled)
-		dcWin.DrawBitmap( WxStaticBitmap1_BITMAP, 94, 0, true );
-	else
-		dcWin.DrawBitmap( WxStaticBitmap1_BITMAPGray, 94, 0, true );
+	dcWin.DrawBitmap( WxStaticBitmap1_BITMAP, 94, 0, true );
 }
 
 // Populate the config window
@@ -649,11 +611,6 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 	// Define bitmap for EVT_PAINT
 	WxStaticBitmap1_BITMAP = wxBitmap(ConfigBox_WxStaticBitmap1_XPM);
-
-	// Gray version
-	wxImage WxImageGray = WxStaticBitmap1_BITMAP.ConvertToImage();
-	WxImageGray = WxImageGray.ConvertToGreyscale();
-	WxStaticBitmap1_BITMAPGray = wxBitmap(WxImageGray);
 
 	// Search for devices and add them to the device list
 	wxArrayString arrayStringFor_Joyname; // The string array
@@ -808,16 +765,12 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Groups
 		#ifdef _WIN32
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(476, 21), arrayStringFor_Joyname, wxCB_READONLY);
-		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxDefaultPosition, wxSize(109, 25));
 		#else
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
-		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxDefaultPosition, wxSize(140, 25), 0, wxDefaultValidator, wxT("Controller attached"));
 		#endif
-		m_Joyattach[i]->SetToolTip(wxString::Format(wxT("Decide if Controller %i shall be detected by the game."), i + 1));
 
 		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller"));
 		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
-		m_gJoyname[i]->Add(m_Joyattach[i], 0, (wxRIGHT | wxLEFT | wxBOTTOM), 1);
 
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 
@@ -1041,14 +994,6 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 		// Show or hide it. We have to do this after we add it to its sizer
 		m_sMainRight[i]->Show(g_Config.bShowAdvanced);
-
-		// Don't allow these changes when running
-		if(g_EmulatorRunning)
-		{
-			//m_Joyname[i]->Enable(false);
-			m_Joyattach[i]->Enable(false);
-			//m_ControlType[i]->Enable(false);			
-		}
 
 		// Update GUI
 		UpdateGUI(i);

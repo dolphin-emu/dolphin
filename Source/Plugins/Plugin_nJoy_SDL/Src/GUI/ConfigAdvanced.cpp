@@ -58,15 +58,6 @@ void PADConfigDialognJoy::PadGetStatus()
 		return;
 	}
 
-	// Return if it's not enabled
-	if (!PadMapping[notebookpage].enabled)
-	{
-		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled")); m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
-		m_TStatusInC[notebookpage]->SetLabel(wxT("Not enabled")); m_TStatusOutC[notebookpage]->SetLabel(wxT("Not enabled"));
-		m_TStatusTriggers[notebookpage]->SetLabel(wxT("Not enabled"));
-		return;
-	}
-
 	// Get physical device status
 	int PhysicalDevice = PadMapping[notebookpage].ID;
 	int TriggerType = PadMapping[notebookpage].triggertype;
@@ -171,9 +162,6 @@ void PADConfigDialognJoy::PadGetStatus()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 std::string ShowStatus(int VirtualController)
 {
-	// Check if it's enabled
-	if (!PadMapping[VirtualController].enabled) return StringFromFormat("%i disabled", VirtualController);
-
 	// Save the physical device
 	int PhysicalDevice = PadMapping[VirtualController].ID;
 
@@ -221,9 +209,7 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		//"Version: %i.%i.%i\n"
 		"All pads:\n"
-		"Enabled: %i %i %i %i\n"
 		"ID: %i %i %i %i\n"
 		"Controllertype: %i %i %i %i\n"
 		"SquareToCircle: %i %i %i %i\n\n"	
@@ -237,8 +223,6 @@ std::string ShowStatus(int VirtualController)
 		"Hats: %s\n"
 		"But: %s\n"
 		"Device: Ax: %i Balls:%i Hats:%i But:%i",
-		//Version.major, Version.minor, Version.patch,
-		PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled,
 		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
 		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
 		PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,

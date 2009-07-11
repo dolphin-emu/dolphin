@@ -90,7 +90,7 @@ class PADConfigDialognJoy : public wxDialog
 		wxBoxSizer * m_MainSizer;
 
 		wxPanel *m_pKeys[4], *m_pInStatus[4], *m_pOutStatus[4], *m_pInStatusC[4], *m_pOutStatusC[4];
-		wxBitmap WxStaticBitmap1_BITMAP, WxStaticBitmap1_BITMAPGray;
+		wxBitmap WxStaticBitmap1_BITMAP;
 		wxStaticBoxSizer * m_sKeys[4];
 		wxBoxSizer *m_sMain[4], *m_sMainLeft[4], *m_sMainRight[4];
 
@@ -101,8 +101,7 @@ class PADConfigDialognJoy : public wxDialog
 		wxComboBox *m_Joyname[4];
 		wxComboBox *m_ControlType[4], *m_TriggerType[4];
 		wxComboBox *m_Deadzone[4];
-		
-		wxCheckBox *m_Joyattach[4]; // Attached pad
+
 		wxStaticBoxSizer *m_gJoyname[4];
 
 		wxStaticBoxSizer *m_gExtrasettings[4];  // Extra settings
@@ -218,7 +217,7 @@ class PADConfigDialognJoy : public wxDialog
 
 			ID_KEYSPANEL1, ID_KEYSPANEL2, ID_KEYSPANEL3, ID_KEYSPANEL4,
 
-			IDG_JOYSTICK, IDC_JOYNAME, IDC_JOYATTACH, // Controller attached
+			IDG_JOYSTICK, IDC_JOYNAME,
 
 			IDG_EXTRASETTINGS, IDC_DEADZONE, // Extra settings
 

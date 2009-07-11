@@ -85,7 +85,6 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int dpad2[4];			// (See above)
 	int axis[6];			// (See above)
 	int halfpress;			// (See above)
-	int enabled;			// Pad attached?
 	int deadzone;			// Deadzone... what else?
 	int ID;					// SDL joystick device ID
 	int controllertype;		// Hat: Hat or custom buttons

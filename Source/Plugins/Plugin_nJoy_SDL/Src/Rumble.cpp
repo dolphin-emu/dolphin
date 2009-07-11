@@ -343,10 +343,8 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 		{
 			// a DInput device is created even if rumble is disabled on startup
 			// this way, you can toggle the rumble setting while in game
-			if (PadMapping[i].enabled) // && PadMapping[i].rumble
-			{
+			//if (PadMapping[i].enabled) // && PadMapping[i].rumble
 				pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
-			}
 		}
 	}
 

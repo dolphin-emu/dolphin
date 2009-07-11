@@ -80,13 +80,5 @@ EXPORT void CALL PAD_Input(u16 _Key, u8 _UpDown);
 //
 EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
 
-// __________________________________________________________________________________________________
-// Function: PAD_GetAttachedPads
-// Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
-// input:	 none
-// output:   number of pads
-//
-EXPORT unsigned int CALL PAD_GetAttachedPads();
-
 #include "ExportEpilog.h"
 #endif

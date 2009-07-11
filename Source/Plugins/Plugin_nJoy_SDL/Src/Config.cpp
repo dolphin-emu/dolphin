@@ -127,7 +127,6 @@ void Config::Save(int Slot)
 		// Slot specific settings only
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
-		file.Set(SectionName.c_str(), "enabled", PadMapping[i].enabled);
 
 		// Save the physical device ID
 		file.Set(SectionName.c_str(), "joy_id", PadMapping[i].ID);
@@ -228,10 +227,9 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
 
 		// Don't update this when we are loading settings from the PADConfigDialognJoy
-		if(!ChangePad)
+		if (!ChangePad)
 		{
 			file.Get(SectionName.c_str(), "joy_id", &PadMapping[i].ID, 0);
-			file.Get(SectionName.c_str(), "enabled", &PadMapping[i].enabled, 1);
 		}
 
 		// ==================================================================

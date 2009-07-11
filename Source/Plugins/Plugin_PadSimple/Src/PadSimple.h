@@ -78,7 +78,6 @@ static const char* controlNames[] =
 struct SPads
 {
 	bool bEnableXPad;							// Use an XPad in addition to the keyboard?
-	bool bAttached;								// Pad is "attached" to the gamecube/wii
 	bool bDisable;								// Disabled when dolphin isn't in focus
 	bool bRumble;								// Rumble for xpad
 	unsigned int RumbleStrength;				// Rumble strength

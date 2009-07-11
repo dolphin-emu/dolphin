@@ -63,7 +63,6 @@ class PADConfigDialogSimple : public wxDialog
 		wxArrayString arrayStringFor_X360Pad;
 		wxCheckBox *m_X360Pad[4];
 		wxChoice *m_X360PadC[4];
-		wxCheckBox *m_Attached[4];
 		wxCheckBox *m_Disable[4];
 		wxCheckBox *m_Rumble[4];
 
@@ -115,7 +114,6 @@ class PADConfigDialogSimple : public wxDialog
 			ID_SAVE_RECORDING,
 
 			// General settings
-			ID_ATTACHED,
 			ID_DISABLE,
 			ID_PAD_ABOUT
 		};

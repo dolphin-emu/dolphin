@@ -823,24 +823,6 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 #endif
 }
 
-unsigned int PAD_GetAttachedPads()
-{
-	unsigned int connected = 0;
-
-	LoadConfig();
-
-	if(pad[0].bAttached)
-		connected |= 1;		
-	if(pad[1].bAttached)
-		connected |= 2;
-	if(pad[2].bAttached)
-		connected |= 4;
-	if(pad[3].bAttached)
-		connected |= 8;
-
-	return connected;
-}
-
 //******************************************************************************
 // Load and save the configuration
 //******************************************************************************
@@ -936,7 +918,6 @@ void LoadConfig()
 		sprintf(SectionName, "PAD%i", i+1);
 
 		file.Get(SectionName, "UseXPad", &pad[i].bEnableXPad, i==0);
-		file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
 		file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
 		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
 		file.Get(SectionName, "RumbleStrength", &pad[i].RumbleStrength, 8000);
@@ -972,7 +953,6 @@ void SaveConfig()
 		sprintf(SectionName, "PAD%i", i+1);
 
 		file.Set(SectionName, "UseXPad", pad[i].bEnableXPad);
-		file.Set(SectionName, "Attached", pad[i].bAttached);
 		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
 		file.Set(SectionName, "RumbleStrength", pad[i].RumbleStrength);
