@@ -423,8 +423,9 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			break;
                         
       	// These are more "synth" formats - square wave, saw wave etc.
-		case 0x0002:          
-		case 0x000c: // Appears in yellow force-field in Temple of the Gods, ZWW
+		case 0x0002:
+		case 0x0006: // Example: Second time in "Hyrule", in the king's room, when fighting the two knights (in ZWW, of course)          
+		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
 			WARN_LOG(DSPHLE, "Synthesizing 0x%04x", PB.Format);
 			break;
 
