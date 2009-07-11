@@ -56,10 +56,10 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (((PB.RatioInt * 80) + PB.CurSampleFrac) << 4) & 0xFFFF0000;
-	u64 ratio = (u64)(((_ratio / 80) << 16) * ratioFactor);
+	u32 _ratio = (PB.RatioInt << 16);
+	s64 ratio = (_ratio * ratioFactor) * 16;
 
-	u32 inpos[2] = {0, 0};
+	u32 inpos[2] = {PB.CurSampleFrac << 16, 0};
 	int outpos = 0;
 
 	if (PB.KeyOff != 0)
@@ -101,9 +101,12 @@ _lRestart:
 
 	for (; outpos < _Size;)
 	{
-		s16 sample = Common::swap16(source[inpos[1]]);
-
-		_Buffer[outpos++] = (s32)sample;
+		// Simple linear interpolation.
+		float sample1 = (s16)Common::swap16(source[inpos[1]]);
+		float sample2 = (s16)Common::swap16(source[inpos[1]]);
+		float frac = float(inpos[0] >> 16) / 65536.0f;
+		
+		_Buffer[outpos++] = sample1 * (1-frac) + sample2 * frac;
 
 		(*(u64*)&inpos) += ratio;
 		if ((inpos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
@@ -122,6 +125,7 @@ _lRestart:
 		PB.RemLength -= inpos[1];
 
 	PB.CurAddr += inpos[1] << 1;
+	PB.CurSampleFrac = inpos[0]>>16;
 	// There should be a position fraction as well.
 }
 
@@ -426,7 +430,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		case 0x0021:   // Probably raw sound. Important for Zelda WW. Really need to implement - missing it causes hangs.
 			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 
-#if 0    // To hear something weird in ZWW, turn this on.
+#if 1    // To hear something weird in ZWW, turn this on.
 			RenderVoice_Raw(PB, m_TempBuffer, _Size);
 #else
 			// This is what 0x20 and 0x21 do on end of voice
