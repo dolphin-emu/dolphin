@@ -553,8 +553,6 @@ void VideoFifo_CheckEFBAccess()
 			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
 			s_AccessEFBResult = z / 0x100;
 
-			Common::MemFence();
-
 			// We should probably re-bind the old fbo here.
 			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
 				Renderer::SetFramebuffer(0);
@@ -569,7 +567,6 @@ void VideoFifo_CheckEFBAccess()
 	case PEEK_COLOR:
 		// TODO: Implement
 		s_AccessEFBResult = 0;
-		Common::MemFence();
 		break;
 
 	case POKE_COLOR:
@@ -578,9 +575,6 @@ void VideoFifo_CheckEFBAccess()
 		// and perhaps blending.
 		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
-
-	default:
-		break;
 	}
 
 	s_efbResponseEvent.Set();
@@ -588,21 +582,24 @@ void VideoFifo_CheckEFBAccess()
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
-	s_accessEFBArgs.type = type;
-	s_accessEFBArgs.x = x;
-	s_accessEFBArgs.y = y;
+	if (s_PluginInitialized)
+	{
+		s_accessEFBArgs.type = type;
+		s_accessEFBArgs.x = x;
+		s_accessEFBArgs.y = y;
 
-	Common::MemFence();
+		Common::MemFence();
 
-	s_efbAccessRequested = true;
+		s_efbAccessRequested = true;
 
-	if (g_VideoInitialize.bUseDualCore)
-		s_efbResponseEvent.MsgWait();
-	else
-		VideoFifo_CheckEFBAccess();
+		if (g_VideoInitialize.bUseDualCore)
+			s_efbResponseEvent.MsgWait();
+		else
+			VideoFifo_CheckEFBAccess();
 
-	Common::MemFence();
+		return s_AccessEFBResult;
+	}
 
-	return s_AccessEFBResult;
+	return 0;
 }
 
