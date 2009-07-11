@@ -8,7 +8,7 @@ name = "Plugin_DSP_HLE"
 files = [
 	'DSPHandler.cpp',
 	'MailHandler.cpp',
-        'HLEMixer.cpp',
+	'HLEMixer.cpp',
 	'main.cpp',
 	'Config.cpp',
 	'Globals.cpp',
@@ -17,7 +17,6 @@ files = [
 	'UCodes/UCode_AXWii.cpp',
 	'UCodes/UCode_CARD.cpp',
 	'UCodes/UCode_InitAudioSystem.cpp',
-	'UCodes/UCode_Jac.cpp',
 	'UCodes/UCode_ROM.cpp',
 	'UCodes/UCodes.cpp',
 	'UCodes/UCode_Zelda.cpp',

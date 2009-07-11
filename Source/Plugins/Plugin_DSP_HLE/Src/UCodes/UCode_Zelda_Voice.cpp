@@ -444,27 +444,182 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		PB.NeedsReset = 0;
 	}
 
+// ContinueWithBlock:
+	
+	if (PB.FilterEnable)
+	{  // 0x04a8
+		for (int i = 0; i < _Size; i++)
+		{
+			// TODO: Apply filter from ZWW: 0c84_FilterBufferInPlace
+		}
+	}
+
 	for (int i = 0; i < _Size; i++)
 	{
-		/*if(PB.volumeLeft2)
-			lastLeft = PB.volumeLeft2;
-		if(PB.volumeRight2)
-			lastRight = PB.volumeRight2;*/
+		
+	}
+	
+	if (PB.VolumeMode != 0)
+	{
+		// Complex volume mode. Let's see what we can do.
+		if (PB.StopOnSilence) {
+			PB.raw[0x2b] = PB.raw[0x2a] >> 1;
+			if (PB.raw[0x2b] == 0)
+			{
+				PB.KeyOff = 1;
+			}
+		}
 
-		// TODO: Some noises in Zelda WW (birds, etc) have a volume of 0
-		// Really not sure about the masking here, but it seems to kill off some overly loud
-		// sounds in Zelda TP. Needs investigation.
-		s32 left = _LeftBuffer[i] + (m_TempBuffer[i] * (float)(
-			(PB.volumeLeft1 & 0x1FFF) + (PB.volumeLeft2 & 0x1FFF)) * 0.00005);
-		s32 right = _RightBuffer[i] + (m_TempBuffer[i] * (float)(
-			(PB.volumeRight1 & 0x1FFF) + (PB.volumeRight2 & 0x1FFF)) * 0.00005);
+		short AX0L = PB.raw[0x28] >> 8;
+		short AX0H = PB.raw[0x28] & 0x7F;
+		short AX1L = AX0L ^ 0x7F;
+		short AX1H = AX1L ^ 0x7F;
+		AX0L = m_MiscTable[0x200 + AX0L];
+		AX0H = m_MiscTable[0x200 + AX0H];
+		AX1L = m_MiscTable[0x200 + AX1L];
+		AX1H = m_MiscTable[0x200 + AX1H];
 
-		if (left < -32768) left = -32768;
-		if (left > 32767)  left = 32767;
-		_LeftBuffer[i] = left; //(s32)(((float)left * (float)PB.volumeLeft) / 1000.f);
+		short b00[16];
+		b00[0] = AX1L * AX1H >> 16;
+		b00[1] = AX0L * AX1H >> 16;
+		b00[2] = AX0H * AX1L >> 16;
+		b00[3] = AX0L * AX0H >> 16;
+		for (int i = 0; i < 4; i++) {
+			b00[i + 4] = b00[i] * PB.raw[0x2a] >> 16;
+		}
 
-		if (right < -32768) right = -32768;
-		if (right > 32767)  right = 32767;
-		_RightBuffer[i] = right; //(s32)(((float)right * (float)PB.volumeRight) / 1000.0f);
+		// ... not done yet...
+
+		for (int count = 0; count < 8; count++)
+		{
+			// The 8 buffers to mix to: 0d00, 0d60, 0f40 0ca0 0e80 0ee0 0c00 0c50
+			
+		}
+
+		// this should be scrapped
+		for (int i = 0; i < _Size; i++)
+		{
+			// arbitrary
+			s32 left = m_TempBuffer[i] >> 3;
+			s32 right = m_TempBuffer[i] >> 3;
+
+			_LeftBuffer[i] += left; //(s32)(((float)left * (float)PB.volumeLeft) / 1000.f);
+			_RightBuffer[i] += right; //(s32)(((float)right * (float)PB.volumeRight) / 1000.0f);
+		}
+	}
+	else
+	{
+		// ZWW 0355
+		if (PB.StopOnSilence)
+		{
+			int sum = 0;
+			int addr = 0x0a;
+			for (int i = 0; i < 6; i++)
+			{
+				u16 value = PB.raw[addr];
+				addr--;
+				value >>= 1;
+				PB.raw[addr] = value;
+				sum += value;
+				addr += 5;
+			}
+			if (sum == 0) {
+				PB.KeyOff = 1;
+			}
+		}
+
+		// Seems there are 6 temporary output buffers.
+		for (int count = 0; count < 6; count++)
+		{
+			int addr = 0x08;
+
+			// we'll have to keep a map of buffers I guess...
+			u16 dest_buffer_address = PB.raw[addr++];
+
+			bool mix = dest_buffer_address ? true : false;
+
+			u16 vol2 = PB.raw[addr++];
+			u16 vol1 = PB.raw[addr++];
+
+			int delta = (vol2 - vol1) << 11;
+
+			addr--;
+
+			u32 ramp = vol1 << 16;
+			if (mix) {
+				// 0ca9_RampedMultiplyAddBuffer
+				for (int i = 0; i < _Size; i++)
+				{
+					int value = m_TempBuffer[i];
+
+					// TODO - add to buffer specified by dest_buffer_address
+					switch (count)
+					{
+						// These really should be 32.
+						case 0: _LeftBuffer[i] += (u64)value * ramp >> 29; break;
+						case 1: _RightBuffer[i] += (u64)value * ramp >> 29; break;
+					}
+					if ((i & 1) == 0 && i < 64) {
+						ramp += delta;
+					}
+				}
+				if (_Size < 32)
+				{
+					ramp += delta * (_Size - 32);
+				}
+			}
+			// Update the PB with the volume actually reached.
+			PB.raw[addr++] = ramp >> 16;
+	
+			addr++;
+		}
+	}
+}
+
+
+// size is in stereo samples.
+void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
+{
+	if (_Size > 256 * 1024)
+		_Size = 256 * 1024;
+
+	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
+	memset(m_RightBuffer, 0, _Size * sizeof(s32));
+
+	for (u32 i = 0; i < m_NumVoices; i++)
+	{
+		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
+		if (!(flags & 1 << (15 - (i & 0xF))))
+			continue;
+
+		ZeldaVoicePB pb;
+		ReadVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
+
+		if (pb.Status == 0)
+			continue;
+		if (pb.KeyOff != 0)
+			continue;
+
+		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
+		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
+	}
+
+	if (_Buffer)
+	{
+		for (u32 i = 0; i < _Size; i++)
+		{
+			s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
+			s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
+
+			if (left < -32768) left = -32768;
+			if (left > 32767)  left = 32767;
+			_Buffer[0] = (short)left;
+
+			if (right < -32768) right = -32768;
+			if (right > 32767)  right = 32767;
+			_Buffer[1] = (short)right;
+
+			_Buffer += 2;
+		}
 	}
 }

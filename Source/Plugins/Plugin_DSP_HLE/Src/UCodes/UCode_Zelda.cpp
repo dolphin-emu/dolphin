@@ -34,12 +34,12 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	IUCode(_rMailHandler),
 	m_CRC(_CRC),
 
-	m_bSyncInProgress(0),
+	m_bSyncInProgress(false),
 	m_MaxVoice(0),
 
 	m_NumVoices(0),
 
-	m_bSyncCmdPending(0),
+	m_bSyncCmdPending(false),
 	m_CurVoice(0),
 	m_CurBuffer(0),
 	m_NumBuffers(0),
@@ -55,7 +55,7 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	m_DMABaseAddr(0),
 
 	m_numSteps(0),
-	m_bListInProgress(0),
+	m_bListInProgress(false),
 	m_step(0),
 
 	m_readOffset(0),
@@ -67,9 +67,19 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	m_PBAddress2(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
+	if (LuigiStyle())
+		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
+
 	m_rMailHandler.PushMail(DSP_INIT);
-	g_dspInitialize.pGenerateDSPInterrupt();
-	m_rMailHandler.PushMail(0xF3551111); // handshake
+	if (LuigiStyle())
+	{
+		m_rMailHandler.PushMail(0x80000000);	
+	}
+	else
+	{
+		g_dspInitialize.pGenerateDSPInterrupt();
+		m_rMailHandler.PushMail(0xF3551111); // handshake
+	}
 
 	m_TempBuffer = new s32[256 * 1024];
 	m_LeftBuffer = new s32[256 * 1024];
@@ -90,10 +100,29 @@ CUCode_Zelda::~CUCode_Zelda()
 	delete [] m_RightBuffer;
 }
 
+bool CUCode_Zelda::LuigiStyle() const
+{
+	switch (m_CRC)
+	{
+		case 0x42f64ac4: // Luigi
+		case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
+		case 0x4be6a5cb: // AC, Pikmin
+		case 0x088e38a5: // IPL - JAP
+		case 0xd73338cf: // IPL
+			return true;
+		default:
+			return false;
+	}
+}
+
 void CUCode_Zelda::Update(int cycles)
 {
-	if (!m_rMailHandler.IsEmpty())
-		g_dspInitialize.pGenerateDSPInterrupt();
+	// if (!m_rMailHandler.IsEmpty())
+
+	if (!LuigiStyle()) {
+		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
+			g_dspInitialize.pGenerateDSPInterrupt();
+	}
 /*	if (m_bSyncCmdPending && (m_CurBuffer == m_NumBuffers) && (m_rMailHandler.IsEmpty()))
 	{
 		m_rMailHandler.PushMail(DSP_FRAME_END);
@@ -110,7 +139,6 @@ void CUCode_Zelda::Update(int cycles)
 void CUCode_Zelda::HandleMail(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
-
 	if (m_bSyncInProgress)
 	{
 		if (m_bSyncCmdPending)
@@ -171,12 +199,12 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		}
 
 		return;
-
     }
 
+reread:
 	if (m_bListInProgress)
 	{
-		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
+		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
 		((u32*)m_Buffer)[m_step] = _uMail;
@@ -191,11 +219,19 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		return;
 	}
 
+	// Here holds: m_bSyncInProgress == false && m_bListInProgress == false
+
 	if (_uMail == 0) 
 	{
-		m_bSyncInProgress = true;
+		if (!LuigiStyle())
+			m_bSyncInProgress = true;
+		else {
+			soundStream->GetMixer()->SetHLEReady(true);
+			soundStream->Update(); //do it in this thread to avoid sync problems
+			g_dspInitialize.pGenerateDSPInterrupt();
+		}
 	} 
-	else if ((_uMail >> 16) == 0) 
+	else if (!LuigiStyle() && (_uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
 		m_numSteps = _uMail;
@@ -220,7 +256,35 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 			return;
 		}
 	}
-	else 
+	else if (LuigiStyle() && (_uMail >> 28) == 0x8)
+	{
+		m_bListInProgress = true;
+		m_step = 0;
+		m_numSteps = 0;
+		// We have to guess the message size.
+		int command = (_uMail & 0xFFFF);
+		switch (command)
+		{
+		case 0x0000:
+			g_dspInitialize.pGenerateDSPInterrupt();
+			break;
+		case 0x0040:
+			m_numSteps = 5;
+			ERROR_LOG(DSPHLE, "WE GUESS STEPS: %i", m_numSteps);
+			break;
+		case 0x2000:
+		case 0x4000:
+			m_numSteps = 3;
+			ERROR_LOG(DSPHLE, "WE GUESS STEPS: %i", m_numSteps);
+			break;
+		default:
+			ERROR_LOG(DSPHLE, "LUIGI UNKNOWN: %i", command);
+			break;
+		}
+		// UGLY
+		goto reread;
+	}
+	else
 	{
 		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
 	}
@@ -237,8 +301,27 @@ void CUCode_Zelda::ExecuteList()
 	u32 Sync = CmdMail >> 16;
 	u32 ExtraData = CmdMail & 0xFFFF;
 
-	DEBUG_LOG(DSPHLE, "==============================================================================");
-	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
+	if (!LuigiStyle()) {
+		DEBUG_LOG(DSPHLE, "==============================================================================");
+		DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
+	}
+	else
+	{
+		Command = CmdMail & 0xFFFF;
+		DEBUG_LOG(DSPHLE, "==============================================================================");
+		DEBUG_LOG(DSPHLE, "Zelda UCode L-mode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
+
+		// Translate Luigi commands
+		switch (Command) {
+			case 0x0040: Command = 0x01; break;
+			case 0x2000:
+			case 0x4000: Command = 2; break;
+			default:
+				DEBUG_LOG(DSPHLE, "Luigi translate: FAIL %04x", Command);
+				break;
+		}
+	}
+
 
 	switch (Command)
 	{
@@ -251,8 +334,13 @@ void CUCode_Zelda::ExecuteList()
 			m_AFCCoefTableAddr = Read32() & 0x7FFFFFFF;
 			m_ReverbPBsAddr = Read32() & 0x7FFFFFFF;  // WARNING: reverb PBs are very different from voice PBs!
 
+			// Read the other table
+			u16 *TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_UnkTableAddr);
+			for (int i = 0; i < 0x280; i++)
+				m_MiscTable[i] = (s16)Common::swap16(TempPtr[i]);
+
 			// Read AFC coef table
-			u16 *TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
+			TempPtr = (u16*) g_dspInitialize.pGetMemoryPointer(m_AFCCoefTableAddr);
 			for (int i = 0; i < 32; i++)
 				m_AFCCoefTable[i] = (s16)Common::swap16(TempPtr[i]);
 
@@ -274,11 +362,13 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-                    //soundStream->GetMixer()->SetHLEReady(true);
+            //soundStream->GetMixer()->SetHLEReady(true);
 			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			//soundStream->Update(); //do it in this thread to avoid sync problems
 
-			m_bSyncCmdPending = true;
+			if (!LuigiStyle())
+				m_bSyncCmdPending = true;
+
 			m_CurBuffer = 0;
 			m_NumBuffers = (CmdMail >> 16) & 0xFF;
 
@@ -294,8 +384,11 @@ void CUCode_Zelda::ExecuteList()
 		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
 		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
 
-	    }
-		return;
+			if (LuigiStyle())
+				break;
+			else
+				return;
+		}
 
 
 		// Simply sends the sync messages
@@ -309,7 +402,7 @@ void CUCode_Zelda::ExecuteList()
 		case 0x09: break;   // dunno ... zelda ww jmps to 0x044d
  */
 
-		    // DsetDolbyDelay ... zelda ww jumps to 0x00b2
+		// DsetDolbyDelay ... zelda ww jumps to 0x00b2
 	    case 0x0d:
 	    {
 		    u32 tmp = Read32();
@@ -336,56 +429,11 @@ void CUCode_Zelda::ExecuteList()
 
 	// sync, we are ready
 	m_rMailHandler.PushMail(DSP_SYNC);
-	g_dspInitialize.pGenerateDSPInterrupt();
+	if (!LuigiStyle())
+		g_dspInitialize.pGenerateDSPInterrupt();
 	m_rMailHandler.PushMail(0xF3550000 | Sync);
 }
 
-// size is in stereo samples.
-void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
-{
-	if (_Size > 256 * 1024)
-		_Size = 256 * 1024;
-
-	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
-	memset(m_RightBuffer, 0, _Size * sizeof(s32));
-
-	for (u32 i = 0; i < m_NumVoices; i++)
-	{
-		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
-		if (!(flags & 1 << (15 - (i & 0xF))))
-			continue;
-
-		ZeldaVoicePB pb;
-		ReadVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
-
-		if (pb.Status == 0)
-			continue;
-		if (pb.KeyOff != 0)
-			continue;
-
-		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
-		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
-	}
-
-	if (_Buffer)
-	{
-		for (u32 i = 0; i < _Size; i++)
-		{
-			s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
-			s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
-
-			if (left < -32768) left = -32768;
-			if (left > 32767)  left = 32767;
-			_Buffer[0] = (short)left;
-
-			if (right < -32768) right = -32768;
-			if (right > 32767)  right = 32767;
-			_Buffer[1] = (short)right;
-
-			_Buffer += 2;
-		}
-	}
-}
 
 void CUCode_Zelda::DoState(PointerWrap &p) {
 	p.Do(m_CRC);

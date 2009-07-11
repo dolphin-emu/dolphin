@@ -22,7 +22,6 @@
 #include "UCode_AX.h"
 #include "UCode_AXWii.h"
 #include "UCode_Zelda.h"
-#include "UCode_Jac.h"
 #include "UCode_ROM.h"
 #include "UCode_CARD.h"
 #include "UCode_InitAudioSystem.h"
@@ -61,8 +60,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
 	case 0x4be6a5cb: // AC, Pikmin
 		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", _CRC);
-		return new CUCode_Jac(_rMailHandler);
-//		return new CUCode_Zelda(_rMailHandler, _CRC);
+		return new CUCode_Zelda(_rMailHandler, _CRC);
 
 	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // Zelda WW - US

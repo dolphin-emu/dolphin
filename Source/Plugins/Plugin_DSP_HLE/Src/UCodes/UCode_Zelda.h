@@ -26,84 +26,96 @@
 //   * L/R Pan
 //   * (probably) choice of resampling algorithm (point, linear, cubic)
 
-struct ZeldaVoicePB
+union ZeldaVoicePB
 {
-	// Read-Write part
-	u16 Status;						// 0x00 | 1 = play, 0 = stop
-	u16 KeyOff;						// 0x01 | writing 1 stops voice? 
-	u16 RatioInt;					// 0x02 | Position delta (playback speed)
-	u16 Unk03;						// 0x03 | unknown
-	u16 NeedsReset;					// 0x04 | indicates if some values in PB need to be reset
-	u16 ReachedEnd;					// 0x05 | set to 1 when end reached
-	u16 IsBlank;					// 0x06 | 0 = normal sound, 1 = samples are always the same
-	u16 Unk07;						// 0x07 | unknown, in zelda always 0x0010
-	u16 SoundType;					// 0x08 | Sound type: so far in zww: 0x0d00 for music, 0x4861 for sfx
-	u16 volumeLeft1;				// 0x09 | Left Volume 1   // There's probably two of each because they should be ramped within each frame.
-	u16 volumeLeft2;				// 0x0A | Left Volume 2
-	u16 Unk0B[2];					// 0x0B | unknown
-	u16 volumeRight1;				// 0x0D | Right Volume 1
-	u16 volumeRight2;				// 0x0E | Right Volume 2
-	u16 Unk0F[2];					// 0x0F | unknown // Buffer / something, see 036e/ZWW. there's a pattern here
-	u16 volumeUnknown1_1;			// 0x11 | Unknown Volume 1
-	u16 volumeUnknown1_2;			// 0x12 | Unknown Volume 1
-	u16 Unk13[2];                   // 0x13 | unknown
-	u16 volumeUnknown2_1;			// 0x15 | Unknown Volume 2
-	u16 volumeUnknown2_2;			// 0x16 | Unknown Volume 2
-	u16 Unk17;                      // 0x17 | unknown
-	u16 Unk18[0x10];                // 0x18 | unknown
-	u16 Unk28;      				// 0x28 | unknown  
-	u16 Unk29;      				// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
-	u16 Unk2a;      				// 0x2A | unknown  // loaded at 0d2e/ZWW
-	u16 Unk2b;      				// 0x2B | unknown  
-	u16 Unk2C;      				// 0x2C | unknown  // See 0337/ZWW
-	u16 Unk2D;      				// 0x2D | unknown
-	u16 Unk2E;      				// 0x2E | unknown
-	u16 Unk2F;      				// 0x2F | unknown
-	u16 CurSampleFrac;				// 0x30 | Fractional part of the current sample position
-	u16 Unk31;						// 0x31 | unknown / unused
-	u16 CurBlock;					// 0x32 | current block?
-	u16 FixedSample;				// 0x33 | sample value for "blank" voices
-	u32 RestartPos;					// 0x34 | restart pos
-	u16 Unk36[2];					// 0x36 | unknown   // loaded at 0adc/ZWW in 0x21 decoder
-	u32 CurAddr;					// 0x38 | current address
-	u32 RemLength;					// 0x3A | remaining length
-	u16 Unk3C;						// 0x3C | something to do with the resampler - a DRAM address?
-	u16 Unk3D;						// 0x3D | unknown
-	u16 Unk3E;						// 0x3E | unknown
-	u16 Unk3F;						// 0x3F | unknown
-	u16 Unk40[0x10];				// 0x40 | Used as some sort of buffer by IIR
-	u16 Unk50[0x8];	 				// 0x50 | Used as some sort of buffer by 06ff/ZWW
-	u16 Unk58[0x8];	 				// 0x58 |
-	u16 Unk60[0x6];	 				// 0x60 |
-	u16 YN2;						// 0x66 | YN2
-	u16 YN1;						// 0x67 | YN1
-	u16 Unk68[0x8];					// 0x68 | unknown
-	u16 Unk70[0x8];					// 0x70 | unknown  // 034b/ZWW - weird
-	u16 Unk78;      				// 0x78 | unknown  // ZWW: ModifySample loads and stores. Ramped volume?
-	u16 Unk79;      				// 0x79 | unknown  // ZWW: ModifySample loads and stores. Ramped volume?
-	u16 Unk7A;      				// 0x7A | unknown
-	u16 Unk7B;      				// 0x7B | unknown  
-	u16 Unk7C;      				// 0x7C | unknown
-	u16 Unk7D;      				// 0x7D | unknown
-	u16 Unk7E;      				// 0x7E | unknown
-	u16 Unk7F;      				// 0x7F | unknown
+	struct {
+		// Read-Write part
+		u16 Status;						// 0x00 | 1 = play, 0 = stop
+		u16 KeyOff;						// 0x01 | writing 1 stops voice? 
+		u16 RatioInt;					// 0x02 | Position delta (playback speed)
+		u16 Unk03;						// 0x03 | unknown
+		u16 NeedsReset;					// 0x04 | indicates if some values in PB need to be reset
+		u16 ReachedEnd;					// 0x05 | set to 1 when end reached
+		u16 IsBlank;					// 0x06 | 0 = normal sound, 1 = samples are always the same
+		u16 Unk07;						// 0x07 | unknown, in zelda always 0x0010. Something to do with number of saved samples (0x68)?
 
-	// Read-only part
-	u16 Format;						// 0x80 | audio format
-	u16 RepeatMode;					// 0x81 | 0 = one-shot, non zero = loop
-	u16 Unk82;						// 0x82 | unknown
-	u16 Unk83;						// 0x83 | unknown
-	u16 Unk84;						// 0x84 | IIR Filter # coefs?
-	u16 Unk85;						// 0x85 | Decides the weird stuff at 035a/ZWW, alco 0cd3
-	u16 Unk86;						// 0x86 | unknown
-	u16 Unk87;						// 0x87 | unknown
-	u32 LoopStartPos;				// 0x88 | loopstart pos
-	u32 Length;						// 0x8A | sound length
-	u32 StartAddr;					// 0x8C | sound start address
-	u32 UnkAddr;					// 0x8E | ???
-	u16 Padding[0x10];				// 0x90 | padding
-	u16 Padding2[0x10];				// 0xa0 | FIR filter coefs of some sort
-	u16 Padding3[0x10];				// 0xb0 | padding
+		u16 SoundType;					// 0x08 | "Sound type": so far in zww: 0x0d00 for music (volume mode 0), 0x4861 for sfx (volume mode 1)
+		u16 volumeLeft1;				// 0x09 | Left Volume 1   // There's probably two of each because they should be ramped within each frame.
+		u16 volumeLeft2;				// 0x0A | Left Volume 2
+		u16 Unk0B;						// 0x0B | unknown
+
+		u16 SoundType2;                 // 0x0C | "Sound type" 2   (not really sound type)
+		u16 volumeRight1;				// 0x0D | Right Volume 1
+		u16 volumeRight2;				// 0x0E | Right Volume 2
+		u16 Unk0F;						// 0x0F | unknown
+
+		u16 SoundType3;                 // 0x10 | "Sound type" 3   (not really sound type)
+		u16 volumeUnknown1_1;			// 0x11 | Unknown Volume 1
+		u16 volumeUnknown1_2;			// 0x12 | Unknown Volume 1
+		u16 Unk13;						// 0x13 | unknown
+
+		u16 SoundType4;                 // 0x14 | "Sound type" 4   (not really sound type)
+		u16 volumeUnknown2_1;			// 0x15 | Unknown Volume 2
+		u16 volumeUnknown2_2;			// 0x16 | Unknown Volume 2
+		u16 Unk17;                      // 0x17 | unknown
+
+		u16 Unk18[0x10];                // 0x18 | unknown
+		u16 Unk28;      				// 0x28 | unknown  
+		u16 Unk29;      				// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
+		u16 Unk2a;      				// 0x2A | unknown  // loaded at 0d2e/ZWW
+		u16 Unk2b;      				// 0x2B | unknown  
+		u16 VolumeMode;      			// 0x2C | unknown  // See 0337/ZWW
+		u16 Unk2D;      				// 0x2D | unknown
+		u16 Unk2E;      				// 0x2E | unknown
+		u16 Unk2F;      				// 0x2F | unknown
+		u16 CurSampleFrac;				// 0x30 | Fractional part of the current sample position
+		u16 Unk31;						// 0x31 | unknown / unused
+		u16 CurBlock;					// 0x32 | current block?
+		u16 FixedSample;				// 0x33 | sample value for "blank" voices
+		u32 RestartPos;					// 0x34 | restart pos
+		u16 Unk36[2];					// 0x36 | unknown   // loaded at 0adc/ZWW in 0x21 decoder
+		u32 CurAddr;					// 0x38 | current address
+		u32 RemLength;					// 0x3A | remaining length
+		u16 Unk3C;						// 0x3C | something to do with the resampler - a DRAM address?
+		u16 Unk3D;						// 0x3D | unknown
+		u16 Unk3E;						// 0x3E | unknown
+		u16 Unk3F;						// 0x3F | unknown
+		u16 Unk40[0x10];				// 0x40 | Used as some sort of buffer by IIR
+		u16 Unk50[0x8];	 				// 0x50 | Used as some sort of buffer by 06ff/ZWW
+		u16 Unk58[0x8];	 				// 0x58 |
+		u16 Unk60[0x6];	 				// 0x60 |
+		u16 YN2;						// 0x66 | YN2
+		u16 YN1;						// 0x67 | YN1
+		u16 Unk68[0x10];				// 0x68 | Saved samples from last decode?
+		u16 FilterState1;  				// 0x78 | unknown  // ZWW: 0c84_FilterBufferInPlace loads and stores. Simply, the filter state.
+		u16 FilterState2; 				// 0x79 | unknown  // ZWW: same as above.  these two are active if 0x04a8 != 0.
+		u16 Unk7A;      				// 0x7A | unknown
+		u16 Unk7B;      				// 0x7B | unknown  
+		u16 Unk7C;      				// 0x7C | unknown
+		u16 Unk7D;      				// 0x7D | unknown
+		u16 Unk7E;      				// 0x7E | unknown
+		u16 Unk7F;      				// 0x7F | unknown
+
+		// Read-only part
+		u16 Format;						// 0x80 | audio format
+		u16 RepeatMode;					// 0x81 | 0 = one-shot, non zero = loop
+		u16 Unk82;						// 0x82 | unknown
+		u16 Unk83;						// 0x83 | unknown
+		u16 Unk84;						// 0x84 | IIR Filter # coefs?
+		u16 StopOnSilence;				// 0x85 | Stop on silence? (Flag for something volume related. Decides the weird stuff at 035a/ZWW, alco 0cd3)
+		u16 Unk86;						// 0x86 | unknown
+		u16 Unk87;						// 0x87 | unknown
+		u32 LoopStartPos;				// 0x88 | loopstart pos
+		u32 Length;						// 0x8A | sound length
+		u32 StartAddr;					// 0x8C | sound start address
+		u32 UnkAddr;					// 0x8E | ???
+		u16 Padding[0x10];				// 0x90 | padding
+		u16 Padding2[0x8];				// 0xa0 | FIR filter coefs of some sort
+		u16 FilterEnable;               // 0xa8 | FilterBufferInPlace enable.
+		u16 Padding3[0x7];              // 0xa9 | padding
+		u16 Padding4[0x10];				// 0xb0 | padding
+	};
+	u16 raw[0xc0];
 };
 
 namespace {
@@ -129,7 +141,7 @@ public:
     int *templbuffer;
     int *temprbuffer;
 
-    // simple dump ...
+    // Simple dump ...
     int DumpAFC(u8* pIn, const int size, const int srate);
 
 	u32 Read32()
@@ -150,6 +162,9 @@ private:
 		DSP_FRAME_END   = 0xDCD10005,
 	};
 
+	// These map CRC to behaviour.
+	bool LuigiStyle() const;
+
 	u32 m_CRC;
 
 	// These are the only dynamically allocated things allowed in the ucode.
@@ -161,6 +176,7 @@ private:
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
 	s16 m_AFCCoefTable[32];
+	s16 m_MiscTable[0x280];
 
 	bool m_bSyncInProgress;
 	u32 m_MaxVoice;
