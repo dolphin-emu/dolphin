@@ -59,6 +59,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 
 		return true;
 	}
+	PanicAlert("Failed to load DSP Rom : %s",fname);
 	// Always keep ROMs write protected.
 	WriteProtectMemory(g_dsp.irom, size_in_bytes, false);
 	return false;

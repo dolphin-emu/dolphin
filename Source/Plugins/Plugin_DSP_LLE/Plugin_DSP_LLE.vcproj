@@ -611,7 +611,7 @@
 			Name="Docs"
 			>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\AX.c"
+				RelativePath="..\..\..\docs\DSP\AX.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -663,71 +663,19 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\Crazy Taxi.txt"
+				RelativePath="..\..\..\docs\DSP\Crazy Taxi.txt"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\dsp_rom.txt"
+				RelativePath="..\..\..\docs\DSP\dsp_rom.txt"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\DSP_UC_Zelda.txt"
+				RelativePath="..\..\..\docs\DSP\DSP_UC_Zelda.txt"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\SrcSelect_.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\..\docs\DSP\wwdsp.c"
+				RelativePath="..\..\..\docs\DSP\SrcSelect_.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -779,11 +727,63 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\Zelda.txt"
+				RelativePath="..\..\..\docs\DSP\wwdsp.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugFast|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugFast|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\docs\DSP\Zelda.txt"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\docs\DSP\zeldaNotes.txt"
+				RelativePath="..\..\..\docs\DSP\zeldaNotes.txt"
 				>
 			</File>
 		</Filter>
