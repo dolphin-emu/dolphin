@@ -296,7 +296,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 
 	    case IDM_JITRESULTS:
-			// CJitWindow::ViewAddr(selection);
+			debugger->showJitResults(selection);
 		    break;
 			
 		case IDM_FOLLOWBRANCH:

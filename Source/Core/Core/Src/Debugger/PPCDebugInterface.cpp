@@ -19,6 +19,7 @@
 #include "DebugInterface.h"
 #include "PPCDebugInterface.h"
 #include "PowerPCDisasm.h"
+#include "../Host.h"
 #include "../Core.h"
 #include "../HW/CPU.h"
 #include "../HW/DSP.h"
@@ -181,7 +182,12 @@ void PPCDebugInterface::setPC(unsigned int address)
 	PowerPC::ppcState.pc = address;
 }
 
-void PPCDebugInterface::runToBreakpoint() 
+void PPCDebugInterface::showJitResults(unsigned int address) 
+{
+	Host_ShowJitResults(address);
+}
+
+void PPCDebugInterface::runToBreakpoint()
 {
 
 }

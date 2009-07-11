@@ -20,8 +20,8 @@ public:
 	virtual void clearAllBreakpoints() {}
 	virtual void toggleBreakpoint(unsigned int /*address*/){}
 	virtual unsigned int readMemory(unsigned int /*address*/){return 0;}
-	virtual void writeExtraMemory(int memory, unsigned int value, unsigned int /*address*/) {}
-	virtual unsigned int readExtraMemory(int memory, unsigned int address){return 0;}
+	virtual void writeExtraMemory(int /*memory*/, unsigned int /*value*/, unsigned int /*address*/) {}
+	virtual unsigned int readExtraMemory(int /*memory*/, unsigned int /*address*/){return 0;}
 	virtual unsigned int readInstruction(unsigned int /*address*/){return 0;}
 	virtual unsigned int getPC() {return 0;}
 	virtual void setPC(unsigned int /*address*/) {}
@@ -29,6 +29,7 @@ public:
 	virtual void runToBreakpoint() {}
 	virtual void breakNow() {}
 	virtual void insertBLR(unsigned int /*address*/, unsigned int) {}
+	virtual void showJitResults(unsigned int /*address*/) {};
 	virtual int getColor(unsigned int /*address*/){return 0xFFFFFFFF;}
 	virtual std::string getDescription(unsigned int /*address*/) = 0;
 };

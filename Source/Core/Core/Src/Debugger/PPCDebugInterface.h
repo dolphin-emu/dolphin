@@ -35,6 +35,7 @@ public:
 	virtual void insertBLR(unsigned int address, unsigned int);
 	virtual int getColor(unsigned int address);
 	virtual std::string getDescription(unsigned int address);
+	virtual void showJitResults(u32 address);
 };
 
 #endif

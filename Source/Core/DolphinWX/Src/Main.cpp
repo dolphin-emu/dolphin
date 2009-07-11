@@ -45,6 +45,7 @@
 #include "ConfigManager.h"
 #include "CodeWindow.h"
 #include "LogWindow.h"
+#include "JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
 ////////////////////////////////////
@@ -354,6 +355,12 @@ void Host_UpdateDisasmDialog()
 	{
 		wxPostEvent(g_pCodeWindow, event);
 	}
+}
+
+
+void Host_ShowJitResults(unsigned int address)
+{
+	CJitWindow::ViewAddr(address);
 }
 
 
