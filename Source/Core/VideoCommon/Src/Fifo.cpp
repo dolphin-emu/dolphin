@@ -143,13 +143,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		video_initialize.pPeekMessages();
 #endif
 
-		// Draw XFB if CP/GPfifo isn't used
 		VideoFifo_CheckSwapRequest();
-
-		if (g_EFBAccessRequested)
-		{
-			Video_OnThreadAccessEFB();
-		}
+		VideoFifo_CheckEFBAccess();
 
 		s_criticalFifo.Enter();
 

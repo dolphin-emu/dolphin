@@ -262,6 +262,10 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 }
 
+void VideoFifo_CheckEFBAccess()
+{
+}
+
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	/*

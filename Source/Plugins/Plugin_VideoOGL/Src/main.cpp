@@ -99,13 +99,11 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
-static bool s_swapRequested = false;
+static volatile bool s_swapRequested = false;
 static Common::Event s_swapResponseEvent;
 
-static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
-static volatile EFBAccessType s_AccessEFBType;
-static Common::Event s_AccessEFBDone;
-static Common::CriticalSection s_criticalEFB;
+static volatile bool s_efbAccessRequested = false;
+static Common::Event s_efbResponseEvent;
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -379,6 +377,9 @@ void Video_Prepare(void)
 	s_swapResponseEvent.Init();
 	s_swapResponseEvent.Set();
 
+	s_efbAccessRequested = false;
+	s_efbResponseEvent.Init();
+
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 }
@@ -386,6 +387,9 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	s_PluginInitialized = false;
+
+	s_efbAccessRequested = false;
+	s_efbResponseEvent.Shutdown();
 
 	s_swapRequested = false;
 	s_swapResponseEvent.Shutdown();
@@ -439,7 +443,7 @@ static volatile struct
 	FieldType field;
 	u32 fbWidth;
 	u32 fbHeight;
-} s_beginFieldArgs = { 0 };
+} s_beginFieldArgs;
 
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequest()
@@ -492,7 +496,10 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized)
 	{
-		s_swapResponseEvent.MsgWait();
+		if (g_VideoInitialize.bUseDualCore)
+			s_swapResponseEvent.MsgWait();
+		else
+			VideoFifo_CheckSwapRequest();
 
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
@@ -505,12 +512,22 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 }
 
-void Video_OnThreadAccessEFB()
+static volatile struct
 {
-	s_criticalEFB.Enter();
-	s_AccessEFBResult = 0;
+	EFBAccessType type;
+	u32 x;
+	u32 y;
+} s_accessEFBArgs;
 
-	switch (s_AccessEFBType)
+static volatile u32 s_AccessEFBResult = 0;
+
+void VideoFifo_CheckEFBAccess()
+{
+	s_efbAccessRequested = false;
+
+	Common::MemFence();
+
+	switch (s_accessEFBArgs.type)
 	{
 	case PEEK_Z:
 		{
@@ -530,11 +547,13 @@ void Video_OnThreadAccessEFB()
 
 			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
 			// Plus we need to flip the y value as the OGL image is upside down
-			glReadPixels(s_EFBx*xScale, Renderer::GetTargetHeight() - s_EFBy*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+			glReadPixels(s_accessEFBArgs.x*xScale, Renderer::GetTargetHeight() - s_accessEFBArgs.y*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 			GL_REPORT_ERRORD();
 
 			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
 			s_AccessEFBResult = z / 0x100;
+
+			Common::MemFence();
 
 			// We should probably re-bind the old fbo here.
 			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
@@ -544,12 +563,19 @@ void Video_OnThreadAccessEFB()
 		break;
 
 	case POKE_Z:
+		// TODO: Implement
 		break;
 
 	case PEEK_COLOR:
+		// TODO: Implement
+		s_AccessEFBResult = 0;
+		Common::MemFence();
 		break;
 
 	case POKE_COLOR:
+		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
+		// the exact location. Note: EFB pokes are susceptible to Z-buffering
+		// and perhaps blending.
 		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
 
@@ -557,44 +583,26 @@ void Video_OnThreadAccessEFB()
 		break;
 	}
 
-	g_EFBAccessRequested = false;
-	s_AccessEFBDone.Set();
-
-	s_criticalEFB.Leave();
+	s_efbResponseEvent.Set();
 }
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
-	u32 result;
+	s_accessEFBArgs.type = type;
+	s_accessEFBArgs.x = x;
+	s_accessEFBArgs.y = y;
 
-	s_criticalEFB.Enter();
+	Common::MemFence();
 
-	s_AccessEFBType = type;
-	s_EFBx = x;
-	s_EFBy = y;
-
-	if (g_VideoInitialize.bUseDualCore)
-	{
-		s_AccessEFBDone.Init();
-		g_EFBAccessRequested = true;
-	}
-
-	s_criticalEFB.Leave();
+	s_efbAccessRequested = true;
 
 	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Wait();
+		s_efbResponseEvent.MsgWait();
 	else
-		Video_OnThreadAccessEFB();
+		VideoFifo_CheckEFBAccess();
 
-	s_criticalEFB.Enter();
+	Common::MemFence();
 
-	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Shutdown();
-
-	result = s_AccessEFBResult;
-
-	s_criticalEFB.Leave();
-
-	return result;
+	return s_AccessEFBResult;
 }
 
