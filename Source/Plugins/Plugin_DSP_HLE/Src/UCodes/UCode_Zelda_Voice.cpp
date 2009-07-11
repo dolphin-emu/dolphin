@@ -271,6 +271,8 @@ restart:
 
     // end of block (Zelda 03b2)
 }
+
+
 //u32 last_remlength = 0;
 // Researching what's actually inside the mysterious 0x21 case
 void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
@@ -295,22 +297,15 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	if (PB.KeyOff != 0)
 		return;
 
-	u8 *source;
-	u32 ram_mask = 1024 * 1024 * 16 - 1;
-	if (m_CRC == 0xD643001F) {
-		source = g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr);
-		ram_mask = 1024 * 1024 * 64 - 1;
-	}
-	else
-		source = g_dspInitialize.pGetARAMPointer();
-
-//restart:
+	u8 *source = g_dspInitialize.pGetMemoryPointer(0x80000000);
+	u32 ram_mask = 0x1ffffff;
+restart:
 	if (PB.ReachedEnd)
 	{
 		PB.ReachedEnd = 0;
 
 		// HACK: Looping doesn't work.
-		if (true || PB.RepeatMode == 0)
+		if (PB.RepeatMode == 0)
 		{
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
@@ -319,22 +314,17 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 		}
 		else
 		{
-			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
-			// We should also probably reinitialize YN1 and YN2 with something - but with what?
+			// This needs adjustment. It was just copied from PCM16.
 			PB.RestartPos = PB.LoopStartPos;
 			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
 		}
 	}
 
-	
-
 	u32 prev_addr = PB.CurAddr;
+	// PanicAlert("%08x DMA", PB.CurAddr);
 
-	// Prefill the decode buffer.
-	//AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
-	const char *src = (char *)(source + (PB.CurAddr & ram_mask));
-	PB.CurAddr += 9;
+	const u16 *src = (u16 *)(source + (PB.CurAddr & ram_mask));
 
 	s64 TrueSamplePosition = (s64)(PB.Length - PB.RemLength) << 16;
 	TrueSamplePosition += PB.CurSampleFrac;
@@ -342,14 +332,25 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	int sampleCount = 0, realSample = 0;
 	while (sampleCount < _Size)
 	{
-		_Buffer[sampleCount] = src[realSample] | (src[realSample + 1] << 8) | (src[realSample + 2] << 16)
-								| (src[realSample + 3] << 24);
-		
-		//WARN_LOG(DSPHLE, "The sample: %02x", src[sampleCount]);
-		
+		_Buffer[sampleCount] = realSample >> 2;
+
 		sampleCount++;
-		realSample += 4;
+		int SamplePosition = TrueSamplePosition >> 16;
 		TrueSamplePosition += delta;
+		int TargetPosition = TrueSamplePosition >> 16;
+		// Decode forwards...
+		while (SamplePosition < TargetPosition)
+		{
+			SamplePosition++;
+			realSample = Common::swap16(*src++);
+			PB.CurAddr += 2;
+		    PB.RemLength--;
+			if (PB.RemLength == 0)
+			{
+				PB.ReachedEnd = 1;
+				goto restart;
+			}
+		}
 	}
 
 	PB.NeedsReset = 0;
@@ -404,14 +405,11 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		case 0x0002:          
 			WARN_LOG(DSPHLE, "Synthesizing 0x0002");
 			break;
-
                     
 		// AFC formats
 		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
 			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
 		case 0x0009:		// AFC with normal bitrate (32:9 compression).
-			
-		
 			RenderVoice_AFC(PB, m_TempBuffer, _Size);
 			break;
 
@@ -420,18 +418,22 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			//last_remlength = PB.RemLength;
 			break;
 
-
 		case 0x0008:   // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
+			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+			break;
+
 		case 0x0020:
 		case 0x0021:   // Probably raw sound. Important for Zelda WW. Really need to implement - missing it causes hangs.
 			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 
+#if 0    // To hear something weird in ZWW, turn this on.
+			RenderVoice_Raw(PB, m_TempBuffer, _Size);
+#else
 			// This is what 0x20 and 0x21 do on end of voice
 			PB.RemLength = 0;
 			PB.KeyOff = 1;
-
+#endif
 			// Caution: Use at your own risk. Sounds awful :)
-			//RenderVoice_Raw(PB, m_TempBuffer, _Size);
 			break;
 
 		default:
