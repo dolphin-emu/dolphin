@@ -74,14 +74,14 @@ namespace Common
 
 // MemFence: Neither the compiler nor the CPU can reorder memory accesses
 // beyond this barrier.
+#ifdef _WIN32
 __forceinline void MemFence()
 {
-#ifdef _WIN32
 	MemoryBarrier();
+}
 #else
 	// TODO: UNIX experts, please implement the memory fence.
 #endif
-}
 
 class CriticalSection
 {
