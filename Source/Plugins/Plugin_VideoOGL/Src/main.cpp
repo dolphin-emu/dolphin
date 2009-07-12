@@ -525,61 +525,64 @@ static volatile u32 s_AccessEFBResult = 0;
 
 void VideoFifo_CheckEFBAccess()
 {
-	s_efbAccessRequested = false;
-
-	Common::MemFence();
-
-	switch (s_accessEFBArgs.type)
+	if (s_efbAccessRequested)
 	{
-	case PEEK_Z:
+		s_efbAccessRequested = false;
+
+		Common::MemFence();
+
+		switch (s_accessEFBArgs.type)
 		{
-			u32 z = 0;
-			float xScale = Renderer::GetTargetScaleX();
-			float yScale = Renderer::GetTargetScaleY();
-
-			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
+		case PEEK_Z:
 			{
-				// Find the proper dimensions
-				TRectangle source, scaledTargetSource;
-				ComputeBackbufferRectangle(&source);
-				source.Scale(xScale, yScale, &scaledTargetSource);
-				// This will resolve and bind to the depth buffer
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
+				u32 z = 0;
+				float xScale = Renderer::GetTargetScaleX();
+				float yScale = Renderer::GetTargetScaleY();
+
+				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
+				{
+					// Find the proper dimensions
+					TRectangle source, scaledTargetSource;
+					ComputeBackbufferRectangle(&source);
+					source.Scale(xScale, yScale, &scaledTargetSource);
+					// This will resolve and bind to the depth buffer
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
+				}
+
+				// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
+				// Plus we need to flip the y value as the OGL image is upside down
+				glReadPixels(s_accessEFBArgs.x*xScale, Renderer::GetTargetHeight() - s_accessEFBArgs.y*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+				GL_REPORT_ERRORD();
+
+				// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
+				s_AccessEFBResult = z / 0x100;
+
+				// We should probably re-bind the old fbo here.
+				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
+					Renderer::SetFramebuffer(0);
+				}
 			}
+			break;
 
-			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
-			// Plus we need to flip the y value as the OGL image is upside down
-			glReadPixels(s_accessEFBArgs.x*xScale, Renderer::GetTargetHeight() - s_accessEFBArgs.y*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
-			GL_REPORT_ERRORD();
+		case POKE_Z:
+			// TODO: Implement
+			break;
 
-			// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
-			s_AccessEFBResult = z / 0x100;
+		case PEEK_COLOR:
+			// TODO: Implement
+			s_AccessEFBResult = 0;
+			break;
 
-			// We should probably re-bind the old fbo here.
-			if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
-				Renderer::SetFramebuffer(0);
-			}
+		case POKE_COLOR:
+			// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
+			// the exact location. Note: EFB pokes are susceptible to Z-buffering
+			// and perhaps blending.
+			//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
+			break;
 		}
-		break;
 
-	case POKE_Z:
-		// TODO: Implement
-		break;
-
-	case PEEK_COLOR:
-		// TODO: Implement
-		s_AccessEFBResult = 0;
-		break;
-
-	case POKE_COLOR:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
-		break;
+		s_efbResponseEvent.Set();
 	}
-
-	s_efbResponseEvent.Set();
 }
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
