@@ -102,6 +102,14 @@ CUCode_Zelda::~CUCode_Zelda()
 	delete [] m_RightBuffer;
 }
 
+u8 *CUCode_Zelda::GetARAMPointer(u32 address)
+{
+	if (m_CRC == 0xD643001F)  // SMG
+		return (u8 *)(g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr)) + address;
+	else
+		return (u8 *)(g_dspInitialize.pGetARAMPointer()) + address;
+}
+
 bool CUCode_Zelda::LuigiStyle() const
 {
 	switch (m_CRC)

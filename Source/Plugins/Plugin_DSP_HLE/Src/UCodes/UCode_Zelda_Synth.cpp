@@ -98,9 +98,8 @@ void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size
 	s32 ratio = PB.RatioInt * 2;
 	s64 pos = PB.CurSampleFrac;
 
-	for(int i = 0; i < 0x50; i++) {
+	for (int i = 0; i < 0x50; i++) {
 		pos += ratio;
-
 		_Buffer[i] = pos & 0xFFFF;
 	}
 

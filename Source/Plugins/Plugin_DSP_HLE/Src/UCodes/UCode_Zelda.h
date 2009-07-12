@@ -70,9 +70,9 @@ union ZeldaVoicePB
 		u16 Unk2F;      				// 0x2F | unknown
 		u16 CurSampleFrac;				// 0x30 | Fractional part of the current sample position
 		u16 Unk31;						// 0x31 | unknown / unused
-		u16 CurBlock;					// 0x32 | current block?
+		u16 CurBlock;					// 0x32 | current block? used by zelda's AFC decoder. we don't need it.
 		u16 FixedSample;				// 0x33 | sample value for "blank" voices
-		u32 RestartPos;					// 0x34 | restart pos
+		u32 RestartPos;					// 0x34 | restart pos  / "loop start offset"
 		u16 Unk36[2];					// 0x36 | unknown   // loaded at 0adc/ZWW in 0x21 decoder
 		u32 CurAddr;					// 0x38 | current address
 		u32 RemLength;					// 0x3A | remaining length
@@ -96,8 +96,8 @@ union ZeldaVoicePB
 		// Read-only part
 		u16 Format;						// 0x80 | audio format
 		u16 RepeatMode;					// 0x81 | 0 = one-shot, non zero = loop
-		u16 Unk82;						// 0x82 | unknown
-		u16 Unk83;						// 0x83 | unknown
+		u16 LoopYN1;					// 0x82 | YN1 reload (when AFC loops)
+		u16 LoopYN2;					// 0x83 | YN2 reload (when AFC loops)
 		u16 Unk84;						// 0x84 | IIR Filter # coefs?
 		u16 StopOnSilence;				// 0x85 | Stop on silence? (Flag for something volume related. Decides the weird stuff at 035a/ZWW, alco 0cd3)
 		u16 Unk86;						// 0x86 | unknown
@@ -112,7 +112,7 @@ union ZeldaVoicePB
 		u16 Padding3[0x7];              // 0xa9 | padding
 		u16 Padding4[0x10];				// 0xb0 | padding
 	};
-	u16 raw[0xc0];
+	u16 raw[0xc0]; // WARNING-do not use on parts of the 32-bit values - they are swapped!
 };
 
 namespace {
@@ -227,6 +227,8 @@ private:
 
 	void ExecuteList();
 
+	u8 *GetARAMPointer(u32 address);
+
 	// AFC decoder
 	static void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type);
 
@@ -237,9 +239,10 @@ private:
 	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 	void RenderVoice_AFC(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
-	void RenderVoice_Raw(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderVoice_Raw(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 
 	void Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample = false);
 

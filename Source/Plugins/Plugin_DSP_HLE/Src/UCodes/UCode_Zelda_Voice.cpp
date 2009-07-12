@@ -104,54 +104,53 @@ void CUCode_Zelda::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool 
 	PB.CurSampleFrac = position & 0xFFFF;
 }
 
+void UpdateSampleCounters10(ZeldaVoicePB &PB)
+{
+	PB.RemLength = PB.Length - PB.RestartPos;
+	PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1);
+	PB.ReachedEnd = 0;
+}
 
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
-
 	if (PB.KeyOff != 0)
 		return;
-
 	if (PB.NeedsReset)
 	{
 		// 0a7f_UpdateSampleCounters10
-		PB.RemLength = PB.Length - PB.RestartPos;
-		PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
-		PB.ReachedEnd = 0;
+		UpdateSampleCounters10(PB);
 		for (int i = 0; i < 4; i++) 
-			PB.ResamplerOldData[i] = 0;
+			PB.ResamplerOldData[i] = 0;  // Doesn't belong here, but dunno where to do it.
 	}
 
 	int inpos = 0;
 	int outpos = 0;   // Must be before _lRestart
 
-_lRestart:
 	if (PB.ReachedEnd)
 	{
+_lRestart:  // retry_0a30
 		PB.ReachedEnd = 0;
 		if (PB.RepeatMode == 0)
 		{
+			while (outpos < _RealSize)    // 0a37
+				_Buffer[outpos++] = 0;
 			PB.KeyOff = 1;
+
+			// I can't find the following two lines in the ucode:
 			PB.RemLength = 0;
 			PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1) + PB.Length;
-			while (outpos < _RealSize)
-				_Buffer[outpos++] = 0;
 			return;
 		}
 		else
 		{
 			PB.RestartPos = PB.LoopStartPos;
-			PB.RemLength = PB.Length - PB.RestartPos;
-			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+			UpdateSampleCounters10(PB);
 			inpos = 0;
 		}
 	}
 
-	s16 *source;
-	if (m_CRC == 0xD643001F)  // SMG
-		source = (s16*)(g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr) + PB.CurAddr);
-	else
-		source = (s16*)(g_dspInitialize.pGetARAMPointer() + PB.CurAddr);
+	const s16 *source = (const s16*)GetARAMPointer(PB.CurAddr);
 
 	for (; outpos < _RealSize;)
 	{
@@ -237,10 +236,12 @@ restart:
 		else
 		{
 			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
-			// We should also probably reinitialize YN1 and YN2 with something - but with what?
 			PB.RestartPos = PB.LoopStartPos;
  			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+
+			PB.YN1 = PB.LoopYN1;
+			PB.YN2 = PB.LoopYN2;
 		}
 	}
 
@@ -295,105 +296,102 @@ restart:
     // end of block (Zelda 03b2)
 }
 
+void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer);
 
 // Researching what's actually inside the mysterious 0x21 case
 // 0x21 seems to really just be reading raw 16-bit audio from RAM (not ARAM).
-void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+// The rules seem to be quite different, though.
+// It's used for streaming, not for one-shot or looped sample playback.
+void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
-	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (PB.RatioInt << 16);
-	s64 ratio = (_ratio * ratioFactor) * 16;
+	// Decoder0x21 starts here.
+	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 
-	s64 samples_to_read;
-	
-	// TODO: De-Ugly
-	if (PB.Format == 0x21)       // Resampled
-		samples_to_read = (((PB.CurSampleFrac + (PB.RatioInt * 0x50)) << 4) & 0xFFFF0000) >> 8;
-	else if (PB.Format == 0x20)  // Unsampled
-		samples_to_read = 0x50;
-	
-	// End of sound
-	if (((PB.raw[0x3a] << 16) | PB.raw[0x3b]) <= samples_to_read)
+	// Decoder0x21Core starts here.
+	u32 AX0 = _RealSize;
+
+	if (PB.RemLength < _RealSize)
 	{
-		PB.KeyOff = 1;
+		WARN_LOG(VIDEO, "Raw: END");
+		// Let's ignore this entire case since it doesn't seem to happen
+		// in Zelda, since Length is set to 0xF0000000
+		// blah
+		// blah
+		// readaudio
+		// blah
 		PB.RemLength = 0;
+		PB.KeyOff = 1;
+	}
+
+	PB.RemLength -= _RealSize;
+
+	u64 ACC0 = (u32)(PB.raw[0x8a ^ 1] << 16);  // 0x8a    0ad5, yes it loads a, not b
+	u64 ACC1 = (u32)(PB.raw[0x34 ^ 1] << 16);  // 0x34
+
+	// ERROR_LOG(DSPHLE, "%08x %08x", (u32)ACC0, (u32)ACC1);
+	
+	ACC0 -= ACC1;
+
+	PB.Unk36[0] = ACC0 >> 16;
+
+	// This subtract does really not make much sense at all. 
+	ACC0 -= AX0 << 16;
+
+	if ((s64)ACC0 < 0)
+	{
+		// There's something wrong with this looping code.
+
+		// ERROR_LOG(DSPHLE, "Raw loop: ReadAudio size = %04x 34:%04x %08x", PB.Unk36[0], PB.raw[0x34 ^ 1], (int)ACC0);
+		Decoder21_ReadAudio(PB, PB.Unk36[0], _Buffer);
+
+		u32 ACC0 = _Size << 16;
+		ACC0 -= PB.Unk36[0] << 16;
+
+		PB.raw[0x34 ^ 1] = 0;
+
+		PB.StartAddr = PB.LoopStartPos;
+
+		Decoder21_ReadAudio(PB, ACC0 >> 16, _Buffer);
 		return;
 	}
 
-	if (PB.NeedsReset != 0)
-	{
-		PB.CurBlock = 0x00;
-
-		// Length in samples.
-		PB.RemLength = PB.Length;
-
-		// Copy ARAM addr from r to rw area.
-		PB.CurAddr = PB.StartAddr;
-		PB.ReachedEnd = 0;
-		PB.CurSampleFrac = 0;
-	}
-
-	if (PB.KeyOff != 0)
-		return;
-
-	u8 *source = g_dspInitialize.pGetMemoryPointer(0x80000000);
-	u32 ram_mask = 0x1ffffff;
-restart:
-	if (PB.ReachedEnd)
-	{
-		PB.ReachedEnd = 0;
-
-		// HACK: Looping doesn't work.
-		if (PB.RepeatMode == 0)
-		{
-			PB.KeyOff = 1;
-			PB.RemLength = 0;
-			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
-			return;
-		}
-		else
-		{
-			// This needs adjustment. It was just copied from PCM16.
-			PB.RestartPos = PB.LoopStartPos;
-			PB.RemLength = PB.Length - PB.RestartPos;
-			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
-		}
-	}
-
-	u32 prev_addr = PB.CurAddr;
-
-	const u16 *src = (u16 *)(source + (PB.CurAddr & ram_mask));
-
-	s64 TrueSamplePosition = PB.CurSampleFrac; //(s64)(PB.Length - PB.RemLength) << 16;
-	//TrueSamplePosition += PB.CurSampleFrac;
-	s64 delta = ratio >> 16;  // 0x100000000ULL;
-	int sampleCount = 0, realSample = 0;
-	while (sampleCount < _Size)
-	{
-		_Buffer[sampleCount] = realSample >> 3;
-
-		sampleCount++;
-		int SamplePosition = TrueSamplePosition >> 16;
-		TrueSamplePosition += delta;
-		int TargetPosition = TrueSamplePosition >> 16;
-		// Decode forwards...
-		while (SamplePosition < TargetPosition)
-		{
-			SamplePosition++;
-			realSample = Common::swap16(*src++);
-			PB.CurAddr += 2;
-		    PB.RemLength--;
-			if (PB.RemLength == 0)
-			{
-				PB.ReachedEnd = 1;
-				goto restart;
-			}
-		}
-	}
-
-	PB.NeedsReset = 0;
-	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
+	Decoder21_ReadAudio(PB, _RealSize, _Buffer);
 }
+
+void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
+{
+	// 0af6
+	if (!size)
+		return;
+
+#if 0
+	// 0afa
+	u32 AX1 = (PB.RestartPos >> 16) & 1;  // PB.raw[0x34], except that it's part of a dword
+	// 0b00 - Eh, WTF.
+	u32 ACC0 = PB.StartAddr + ((PB.RestartPos >> 16) << 1) - 2*AX1;
+	u32 ACC1 = (size << 16) + 0x20000;
+	// All this trickery, and more, seems to be to align the DMA, which
+	// we really don't care about. So let's skip it. See the #else.
+
+#else
+	// ERROR_LOG(DSPHLE, "ReadAudio: %08x %08x", PB.StartAddr, PB.raw[0x34 ^ 1]);
+	u32 ACC0 = PB.StartAddr + (PB.raw[0x34 ^ 1] << 1);
+	u32 ACC1 = (size << 16);
+#endif
+	// ACC0 is the address
+	// ACC1 is the read size
+	
+	const u32 ram_mask = 0x1FFFFFF;
+	const u8 *source = g_dspInitialize.pGetMemoryPointer(0x80000000);
+	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
+
+	for (int i = 0; i < (ACC1 >> 16); i++) {
+		_Buffer[i] = Common::swap16(src[i]);
+	}
+
+	PB.raw[0x34 ^ 1] += size;
+}
+
 
 void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
@@ -428,7 +426,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
-	case 0x0008:        // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
+	case 0x0008:        // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
 		WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 		memset(m_ResampleBuffer + 4, 0, _Size * sizeof(s32));
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer);
@@ -444,28 +442,16 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		// to the output buffer. However, (if we ever see this sound type), we'll
 		// have to resample anyway since we're running at a different sample rate.
 
-#if 0   // To hear something weird in ZWW, turn this on.
 		// Caution: Use at your own risk. Sounds awful :)
 		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
-#else
-		// This is what 0x20 and 0x21 do on end of voice
-		PB.RemLength = 0;
-		PB.KeyOff = 1;
-#endif
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer);
+		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
 	case 0x0021:
 		// Raw sound from RAM. Important for Zelda WW. Really need to implement - missing it causes hangs.
-#if 0   // To hear something weird in ZWW, turn this on.
 		// Caution: Use at your own risk. Sounds awful :)
 		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
-#else
-		// This is what 0x20 and 0x21 do on end of voice
-		PB.RemLength = 0;
-		PB.KeyOff = 1;
-#endif
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer);
+		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 	
 	default:
