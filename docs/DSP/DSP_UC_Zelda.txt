@@ -3470,8 +3470,8 @@ void Decoder0x10() {
 	// 0a1f 8c00      clr15       
 
 	// Compute how much data we need to read, to get 0x50 samples after resampling.
-	// AC0.L is cursamplefrace, AX0.L is ratio.
-	$ACC0 = PB.CurrentSampleFrac + 0x50 * PB.Ratio;
+	// AC0.L is cursamplefrac, AX0.L is ratio.
+	$ACC0 = (PB.CurrentSampleFrac + 0x50 * PB.Ratio) << 4;
 	
 	0a20 1ffe      mrr         $AC1.M, $AC0.M
 	0a21 0083 0580 lri         $AR3, #0x0580
@@ -4661,8 +4661,7 @@ void 0d7f_ResampleAudioData(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	$AR0 = $AR0 - 4;
 	$AR2 = $AR0;
 	
-	// 0x043c in the PBs apparently is a pointer, INTO the PB itself - where it
-	// has stored the data from the last frame.
+	// 0x043c to 0x043f is storage for old sample data.
 	0d86 0083 043c lri         $AR3, #0x043c
 	
 	// Pipelined tiny memcpy - first four are loads, last four are stores. middle two overlap.
@@ -4795,8 +4794,8 @@ back_from_JustCopyWithoutResampling:
 	0dec 191e      lrri        $AC0.M, @$AR0
 	0ded 191f      lrri        $AC1.M, @$AR0
 	0dee 80a0      nx'ls       : $AX0.H, $AC0.M
-	0def 64a1      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC1.M
-	0df0 6533      movr's      $ACC1, $AX0.H : @$AR3, $AC0.M
+	0def 64a1      movr'ls     $AC0.M, $AX0.H : $AX0.H, $AC1.M
+	0df0 6533      movr's      $AC1.M, $AX0.H : @$AR3, $AC0.M
 	0df1 1b7f      srri        @$AR3, $AC1.M
 	// 0df2 02df      ret         
 	return;

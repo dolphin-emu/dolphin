@@ -803,19 +803,19 @@
 			Name="Debugger"
 			>
 			<File
-				RelativePath=".\Src\debugger\Debugger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\debugger\Debugger.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\DSPDebugInterface.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\DSPDebugInterface.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\DSPDebugWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\DSPDebugWindow.h"
 				>
 			</File>
 			<File

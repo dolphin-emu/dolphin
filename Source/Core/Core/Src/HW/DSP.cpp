@@ -231,49 +231,44 @@ void Shutdown()
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	// WTF is this check about? DSP is at 5000    TODO remove
-	if ((_iAddress & 0x6C00) !=  0x6c00)
+	if ((_iAddress & 0x6C00) != 0x6c00)
 	{
-		if (_iAddress != 0xCC005004)
-		{
-			DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x", _iAddress);
-		}
 		switch (_iAddress & 0xFFFF)
 		{
-
 		// AI_REGS 0x5000+
 		case DSP_MAIL_TO_DSP_HI:
 			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
-			return;
+			break;
 
 		case DSP_MAIL_TO_DSP_LO:
 			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(true);
-			return;
+			break;
 
 		case DSP_MAIL_FROM_DSP_HI:
 			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
-			return;
+			break;
 
 		case DSP_MAIL_FROM_DSP_LO:
 			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(false);
-			return;
+			break;
 
 		case DSP_CONTROL:
 			_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
 							(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
-			return;
+			break;
 
 		// AR_REGS 0x501x+
 		case 0x5012:
 			_uReturnValue = g_AR_MODE;
-			return;
+			break;
 
 		case 0x5016:		// ready flag?
 			_uReturnValue = g_AR_READY_FLAG;			
-			return;
+			break;
 
 		case 0x501a:
 			_uReturnValue = 0x000;
-			return;
+			break;
 
 		case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr >> 16; return;
 		case AR_DMA_MMADDR_L: _uReturnValue = g_arDMA.MMAddr & 0xFFFF; return;
@@ -287,24 +282,29 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			// Hmm. Would be stupid to ask for bytes left. Assume it wants
 			// blocks left.
 			_uReturnValue = g_audioDMA.BlocksLeft;
-			return;
+			break;
 
 		case AUDIO_DMA_START_LO:
 			_uReturnValue = g_audioDMA.SourceAddress & 0xFFFF;
-			return;
+			break;
 
 		case AUDIO_DMA_START_HI:
 			_uReturnValue = g_audioDMA.SourceAddress >> 16;
-			return;
+			break;
 
 		case AUDIO_DMA_CONTROL_LEN:
 			_uReturnValue = g_audioDMA.AudioDMAControl.Hex;
-			return;
+			break;
 
 		default:
 			_dbg_assert_(DSPINTERFACE,0);
 			break;
 		}
+		if (_iAddress != 0xCC005004)
+		{
+			DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x (%02x)  (%08x)", _iAddress, _uReturnValue, PowerPC::ppcState.pc);
+		}
+		return;
 	}
 	else
 	{
@@ -317,9 +317,8 @@ void Write16(const u16 _Value, const u32 _Address)
 {
 	DEBUG_LOG(DSPINTERFACE, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
 
-	switch(_Address & 0xFFFF)
+	switch (_Address & 0xFFFF)
 	{
-
 	// DSP Regs 0x5000+
 	case DSP_MAIL_TO_DSP_HI:
 		dsp_plugin->DSP_WriteMailboxHigh(true, _Value);

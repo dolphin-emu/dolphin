@@ -76,10 +76,7 @@ union ZeldaVoicePB
 		u16 Unk36[2];					// 0x36 | unknown   // loaded at 0adc/ZWW in 0x21 decoder
 		u32 CurAddr;					// 0x38 | current address
 		u32 RemLength;					// 0x3A | remaining length
-		u16 Unk3C;						// 0x3C | something to do with the resampler - a DRAM address?
-		u16 Unk3D;						// 0x3D | unknown
-		u16 Unk3E;						// 0x3E | unknown
-		u16 Unk3F;						// 0x3F | unknown
+		u16 ResamplerOldData[4];		// 0x3C | The resampler stores the last 4 decoded samples here from the previous frame, so that the filter kernel has something to read before the start of the buffer.
 		u16 Unk40[0x10];				// 0x40 | Used as some sort of buffer by IIR
 		u16 Unk50[0x8];	 				// 0x50 | Used as some sort of buffer by 06ff/ZWW
 		u16 Unk58[0x8];	 				// 0x58 |
@@ -168,7 +165,8 @@ private:
 	u32 m_CRC;
 
 	// These are the only dynamically allocated things allowed in the ucode.
-	s32* m_TempBuffer;
+	s32* m_VoiceBuffer;
+	s32* m_ResampleBuffer;
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
@@ -242,6 +240,8 @@ private:
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void RenderVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 	void RenderVoice_Raw(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+
+	void Resample(ZeldaVoicePB &PB, int size, s32 *in, s32 *out);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);

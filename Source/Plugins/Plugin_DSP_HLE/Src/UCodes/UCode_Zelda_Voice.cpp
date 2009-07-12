@@ -30,9 +30,11 @@ void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 	for (int i = 0; i < (0x180 / 2); i++)
 		((u16*)&PB)[i] = Common::swap16(memory[i]);
 
+	// Word swap all 32-bit variables.
 	PB.RestartPos = (PB.RestartPos << 16) | (PB.RestartPos >> 16);
 	PB.CurAddr = (PB.CurAddr << 16) | (PB.CurAddr >> 16);
 	PB.RemLength = (PB.RemLength << 16) | (PB.RemLength >> 16);
+	// Read only part
 	PB.LoopStartPos = (PB.LoopStartPos << 16) | (PB.LoopStartPos >> 16);
 	PB.Length = (PB.Length << 16) | (PB.Length >> 16);
 	PB.StartAddr = (PB.StartAddr << 16) | (PB.StartAddr >> 16);
@@ -43,6 +45,7 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)g_dspInitialize.pGetMemoryPointer(_Addr);
 
+	// Word swap all 32-bit variables.
 	PB.RestartPos = (PB.RestartPos << 16) | (PB.RestartPos >> 16);
 	PB.CurAddr = (PB.CurAddr << 16) | (PB.CurAddr >> 16);
 	PB.RemLength = (PB.RemLength << 16) | (PB.RemLength >> 16);
@@ -53,9 +56,11 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 		memory[i] = Common::swap16(((u16*)&PB)[i]);
 }
 
+
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+
 	u32 _ratio = (PB.RatioInt << 16);
 	s64 ratio = (_ratio * ratioFactor) * 16;
 
@@ -67,6 +72,7 @@ void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 
 	if (PB.NeedsReset)
 	{
+		// 0a7f_UpdateSampleCounters10
 		PB.RemLength = PB.Length - PB.RestartPos;
 		PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
 		PB.ReachedEnd = 0;
@@ -94,7 +100,7 @@ _lRestart:
 	}
 
 	s16 *source;
-	if (m_CRC == 0xD643001F)
+	if (m_CRC == 0xD643001F)  // SMG
 		source = (s16*)(g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr) + PB.CurAddr);
 	else
 		source = (s16*)(g_dspInitialize.pGetARAMPointer() + PB.CurAddr);
@@ -102,11 +108,8 @@ _lRestart:
 	for (; outpos < _Size;)
 	{
 		// Simple linear interpolation.
-		float sample1 = (s16)Common::swap16(source[inpos[1]]);
-		float sample2 = (s16)Common::swap16(source[inpos[1]]);
-		float frac = float(inpos[0] >> 16) / 65536.0f;
-		
-		_Buffer[outpos++] = sample1 * (1-frac) + sample2 * frac;
+		const s16 sample = (s16)Common::swap16(source[inpos[1]]);
+		_Buffer[outpos++] = sample;
 
 		(*(u64*)&inpos) += ratio;
 		if ((inpos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
@@ -132,16 +135,14 @@ _lRestart:
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (PB.RatioInt << 16);//  + PB.RatioFrac;
-	s64 ratio = (_ratio * ratioFactor) * 16; // (s64)(((_ratio / 80) << 16) * ratioFactor);
+	u32 _ratio = (PB.RatioInt << 16);
+	s64 ratio = (_ratio * ratioFactor) * 16;
 
 	// initialize "decoder" if the sample is played the first time
     if (PB.NeedsReset != 0)
     {
 		// This is 0717_ReadOutPBStuff
-
 		// increment 4fb
-
         // zelda: 
         // perhaps init or "has played before"
         PB.CurBlock = 0x00;
@@ -150,23 +151,10 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 
 		// Length in samples.
         PB.RemLength = PB.Length;
-
         // Copy ARAM addr from r to rw area.
         PB.CurAddr = PB.StartAddr;
 		PB.ReachedEnd = 0;
 		PB.CurSampleFrac = 0;
-		// Looking at Zelda Four Swords
-		// WARN_LOG(DSPHLE, "PB -----: %04x", PB.Unk03);
-		// WARN_LOG(DSPHLE, "PB Unk03: %04x", PB.Unk03);      0
-		// WARN_LOG(DSPHLE, "PB Unk07: %04x", PB.Unk07[0]);   0
-
-		/// WARN_LOG(DSPHLE, "PB Unk78: %04x", PB.Unk78);
-		// WARN_LOG(DSPHLE, "PB Unk79: %04x", PB.Unk79);
-		// WARN_LOG(DSPHLE, "PB Unk31: %04x", PB.Unk31);
-		// WARN_LOG(DSPHLE, "PB Unk36: %04x", PB.Unk36[0]);
-		// WARN_LOG(DSPHLE, "PB Unk37: %04x", PB.Unk36[1]);
-		// WARN_LOG(DSPHLE, "PB Unk3c: %04x", PB.Unk3C[0]);
-		// WARN_LOG(DSPHLE, "PB Unk3d: %04x", PB.Unk3C[1]);
     }
 
     if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
@@ -176,7 +164,7 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
     // u32 frac = NumberOfSamples & 0xF;
     // NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
 
-	u8 *source;
+	const u8 *source;
 	u32 ram_mask = 1024 * 1024 * 16 - 1;
 	if (m_CRC == 0xD643001F) {
 		source = g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr);
@@ -205,12 +193,10 @@ restart:
 			PB.RestartPos = PB.LoopStartPos;
  			PB.RemLength = PB.Length - PB.RestartPos;
 			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
-//			pos[1] = 0; pos[0] = 0;
 		}
 	}
 
 	short outbuf[16] = {0};
-
 	u16 prev_yn1 = PB.YN1;
 	u16 prev_yn2 = PB.YN2;
 	u32 prev_addr = PB.CurAddr;
@@ -277,30 +263,29 @@ restart:
 }
 
 
-//u32 last_remlength = 0;
 // Researching what's actually inside the mysterious 0x21 case
+// 0x21 seems to really just be reading raw 16-bit audio from RAM (not ARAM).
 void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt << 16);//  + PB.RatioFrac;
 	s64 ratio = (_ratio * ratioFactor) * 16; // (s64)(((_ratio / 80) << 16) * ratioFactor);
 
-	s64 value1;
+	s64 samples_to_read;
 	
 	// TODO: De-Ugly
-	if(PB.Format == 0x21)       // Resampled
-		value1 = (((PB.raw[0x30] + (PB.raw[2] * 0x50)) << 4) & 0xFFFF0000) >> 8;
-	else if(PB.Format == 0x20)  // Unsampled
-		value1 = 0x50;
+	if (PB.Format == 0x21)       // Resampled
+		samples_to_read = (((PB.CurSampleFrac + (PB.RatioInt * 0x50)) << 4) & 0xFFFF0000) >> 8;
+	else if (PB.Format == 0x20)  // Unsampled
+		samples_to_read = 0x50;
 	
 	// End of sound
-	if(((PB.raw[0x3a] << 16) | PB.raw[0x3b]) <= value1)
+	if (((PB.raw[0x3a] << 16) | PB.raw[0x3b]) <= samples_to_read)
 	{
 		PB.KeyOff = 1;
 		PB.RemLength = 0;
 		return;
 	}
-
 
 	if (PB.NeedsReset != 0)
 	{
@@ -343,7 +328,6 @@ restart:
 	}
 
 	u32 prev_addr = PB.CurAddr;
-	//ERROR_LOG(DSPHLE,  "%08x %08x DMA", PB.StartAddr, PB.CurAddr);
 
 	const u16 *src = (u16 *)(source + (PB.CurAddr & ram_mask));
 
@@ -381,97 +365,116 @@ restart:
 void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
 	//static u16 lastLeft = 0x1FF, lastRight = 0x1FF;
-	memset(m_TempBuffer, 0, _Size * sizeof(s32));
 
 	if (PB.IsBlank)
 	{
 		s32 sample = (s32)(s16)PB.FixedSample;
 		for (int i = 0; i < _Size; i++)
-			m_TempBuffer[i] = sample;
-	}
-	else
-	{
-		// XK: Use this to disable music (GREAT for testing)
-		//if(PB.SoundType == 0x0d00) {
-		//	PB.NeedsReset = 0;
-		//	return;
-		//}
-		//WARN_LOG(DSPHLE, "Fmt %04x, %04x: %04x %04x", 
-		//	PB.Format, PB.SoundType, PB.Unk29, PB.Unk2a);
-		/*WARN_LOG(DSPHLE, "Fmt %04x, %04x: %04x %04x %04x %04x %04x %04x %04x %04x", 
-			PB.Format, PB.SoundType,
-			PB.volumeLeft1, PB.volumeLeft2, PB.volumeRight1, PB.volumeRight2,
-			PB.volumeUnknown1_1, PB.volumeUnknown1_2, PB.volumeUnknown2_1,
-			PB.volumeUnknown2_2);*/
+			m_VoiceBuffer[i] = sample;
 
+		goto ContinueWithBlock;  // Yes, a goto. Yes, it's evil, but it makes the flow look much more like the DSP code.
+	}
+
+	// XK: Use this to disable MIDI music (GREAT for testing). Also kills some sound FX.
+	//if(PB.SoundType == 0x0d00) {
+	//	PB.NeedsReset = 0;
+	//	return;
+	//}
+
+	// The Resample calls actually don't resample yet.
+
+	// ResampleBuffer corresponds to 0x0580 in ZWW ucode.
+	// VoiceBuffer corresponds to 0x0520.
+
+	// First jump table at ZWW: 2a6
+	switch (PB.Format)
+	{
+	case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
+		WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
+
+	case 0x0009:		// AFC with normal bitrate (32:9 compression).
+		RenderVoice_AFC(PB, m_ResampleBuffer, _Size);
+		Resample(PB, _Size, m_ResampleBuffer, m_VoiceBuffer);
+		break;
+
+	case 0x0008:        // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
+		WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+		memset(m_ResampleBuffer, 0, _Size * sizeof(s32));
+		Resample(PB, _Size, m_ResampleBuffer, m_VoiceBuffer);
+		break;
+
+	case 0x0010:		// PCM16 - normal PCM 16-bit audio.
+		RenderVoice_PCM16(PB, m_ResampleBuffer, _Size);
+		Resample(PB, _Size, m_ResampleBuffer, m_VoiceBuffer);
+		break;
+
+	case 0x0020:
+		// Normally, this shouldn't resample, it should just decode directly
+		// to the output buffer. However, (if we ever see this sound type), we'll
+		// have to resample anyway since we're running at a different sample rate.
+
+#if 0   // To hear something weird in ZWW, turn this on.
+		// Caution: Use at your own risk. Sounds awful :)
+		RenderVoice_Raw(PB, m_ResampleBuffer, _Size);
+#else
+		// This is what 0x20 and 0x21 do on end of voice
+		PB.RemLength = 0;
+		PB.KeyOff = 1;
+#endif
+		Resample(PB, _Size, m_ResampleBuffer, m_VoiceBuffer);
+		break;
+
+	case 0x0021:
+		// Raw sound from RAM. Important for Zelda WW. Really need to implement - missing it causes hangs.
+#if 0   // To hear something weird in ZWW, turn this on.
+		// Caution: Use at your own risk. Sounds awful :)
+		RenderVoice_Raw(PB, m_ResampleBuffer, _Size);
+#else
+		// This is what 0x20 and 0x21 do on end of voice
+		PB.RemLength = 0;
+		PB.KeyOff = 1;
+#endif
+		Resample(PB, _Size, m_ResampleBuffer, m_VoiceBuffer);
+		break;
+	
+	default:
+		// Second jump table
 		switch (PB.Format)
 		{
 		// Synthesized sounds
 		case 0x0000: // Example: Magic meter filling up in ZWW
 		case 0x0003: 
-			RenderSynth_RectWave(PB, m_TempBuffer, _Size);
+			RenderSynth_RectWave(PB, m_VoiceBuffer, _Size);
 			break;
 
 		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
 					 // indoors in ZWW
-			RenderSynth_SawWave(PB, m_TempBuffer, _Size);
+			RenderSynth_SawWave(PB, m_VoiceBuffer, _Size);
 			break;
 
 		case 0x0006:
 			WARN_LOG(DSPHLE, "Synthesizing 0x0006 (constant sound)");
-			RenderSynth_Constant(PB, m_TempBuffer, _Size);
+			RenderSynth_Constant(PB, m_VoiceBuffer, _Size);
 			break;
                         
-      	// These are more "synth" formats - square wave, saw wave etc.
+  		// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
 			WARN_LOG(DSPHLE, "Synthesizing 0x%04x", PB.Format);
 			break;
 
-                    
-		// AFC formats
-		case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
-			WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
-		case 0x0009:		// AFC with normal bitrate (32:9 compression).
-			RenderVoice_AFC(PB, m_TempBuffer, _Size);
-			break;
-
-		case 0x0010:		// PCM16 - normal PCM 16-bit audio.
-			RenderVoice_PCM16(PB, m_TempBuffer, _Size);
-			//last_remlength = PB.RemLength;
-			break;
-
-		case 0x0008:   // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD.
-			// Example: Second time in "Hyrule", in the king's 
-			// room, when fighting the two knights (in ZWW, of course)
-			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
-			break;
-
-		case 0x0020:
-		case 0x0021:   // Probably raw sound. Important for Zelda WW. Really need to implement - missing it causes hangs.
-			WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
-
-#if 1    // To hear something weird in ZWW, turn this on.
-			RenderVoice_Raw(PB, m_TempBuffer, _Size);
-#else
-			// This is what 0x20 and 0x21 do on end of voice
-			PB.RemLength = 0;
-			PB.KeyOff = 1;
-#endif
-			// Caution: Use at your own risk. Sounds awful :)
-			break;
-
 		default:
 			// TODO: Implement general decoder here
+			memset(m_VoiceBuffer, 0, _Size * sizeof(s32));
 			ERROR_LOG(DSPHLE, "Unknown MixAddVoice format in zelda %04x", PB.Format);
 			break;
 		}
-
-		// Necessary for SMG, not for Zelda. Weird.
-		PB.NeedsReset = 0;
 	}
+                    
+	// Necessary for SMG, not for Zelda. Weird. Where's it from?
+	PB.NeedsReset = 0;
 
-// ContinueWithBlock:
+ContinueWithBlock:
 	
 	if (PB.FilterEnable)
 	{  // 0x04a8
@@ -486,6 +489,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		
 	}
 	
+	// Apply volume. There are two different modes.
 	if (PB.VolumeMode != 0)
 	{
 		// Complex volume mode. Let's see what we can do.
@@ -496,7 +500,6 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 				PB.KeyOff = 1;
 			}
 		}
-
 		short AX0L = PB.raw[0x28] >> 8;
 		short AX0H = PB.raw[0x28] & 0x7F;
 		short AX1L = AX0L ^ 0x7F;
@@ -544,7 +547,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			int ramp = value << 16;
 			for (int i = 0; i < _Size; i++)
 			{
-				int unmixed_audio = m_TempBuffer[i];
+				int unmixed_audio = m_VoiceBuffer[i];
 				switch (count) {
 				case 0: _LeftBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
 				case 1: _RightBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
@@ -592,11 +595,12 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			addr--;
 
 			u32 ramp = vol1 << 16;
-			if (mix) {
+			if (mix)
+			{
 				// 0ca9_RampedMultiplyAddBuffer
 				for (int i = 0; i < _Size; i++)
 				{
-					int value = m_TempBuffer[i];
+					int value = m_VoiceBuffer[i];
 
 					// TODO - add to buffer specified by dest_buffer_address
 					switch (count)
@@ -622,16 +626,25 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	}
 }
 
+void CUCode_Zelda::Resample(ZeldaVoicePB &PB, int size, s32 *in, s32 *out)
+{
+	// TODO
+	memcpy(out, in, size * sizeof(int));
+}
+
 
 // size is in stereo samples.
-void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
+void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 {
+	// Safety check
 	if (_Size > 256 * 1024)
 		_Size = 256 * 1024;
 
+	// Final mix buffers
 	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
 	memset(m_RightBuffer, 0, _Size * sizeof(s32));
 
+	// For each PB...
 	for (u32 i = 0; i < m_NumVoices; i++)
 	{
 		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
@@ -650,22 +663,20 @@ void CUCode_Zelda::MixAdd(short* _Buffer, int _Size)
 		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
 	}
 
-	if (_Buffer)
+	// Post processing, final conversion.
+	for (int i = 0; i < _Size; i++)
 	{
-		for (u32 i = 0; i < _Size; i++)
-		{
-			s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
-			s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
+		s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
+		s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
 
-			if (left < -32768) left = -32768;
-			if (left > 32767)  left = 32767;
-			_Buffer[0] = (short)left;
+		if (left < -32768) left = -32768;
+		if (left > 32767)  left = 32767;
+		_Buffer[0] = (short)left;
 
-			if (right < -32768) right = -32768;
-			if (right > 32767)  right = 32767;
-			_Buffer[1] = (short)right;
+		if (right < -32768) right = -32768;
+		if (right > 32767)  right = 32767;
+		_Buffer[1] = (short)right;
 
-			_Buffer += 2;
-		}
+		_Buffer += 2;
 	}
 }

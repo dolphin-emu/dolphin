@@ -20,7 +20,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "Debugger.h"
+#include "DSPDebugWindow.h"
 #include "DSPRegisterView.h"
 #include "CodeView.h"
 #include "../DSPSymbols.h"

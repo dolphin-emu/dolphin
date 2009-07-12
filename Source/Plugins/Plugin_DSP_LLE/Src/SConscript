@@ -26,7 +26,7 @@ files = [
 if env['HAVE_WX']:
         files += [
 	"DSPConfigDlgLLE.cpp",
-	"Debugger/Debugger.cpp",
+	"Debugger/DSPDebugWindow.cpp",
 	"Debugger/DSPRegisterView.cpp",
 	]
 

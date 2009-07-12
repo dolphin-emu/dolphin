@@ -81,7 +81,8 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 		m_rMailHandler.PushMail(0xF3551111); // handshake
 	}
 
-	m_TempBuffer = new s32[256 * 1024];
+	m_VoiceBuffer = new s32[256 * 1024];
+	m_ResampleBuffer = new s32[256 * 1024];
 	m_LeftBuffer = new s32[256 * 1024];
 	m_RightBuffer = new s32[256 * 1024];
 
@@ -95,7 +96,8 @@ CUCode_Zelda::~CUCode_Zelda()
 {
 	m_rMailHandler.Clear();
 
-	delete [] m_TempBuffer;
+	delete [] m_VoiceBuffer;
+	delete [] m_ResampleBuffer;
 	delete [] m_LeftBuffer;
 	delete [] m_RightBuffer;
 }
@@ -474,4 +476,3 @@ void CUCode_Zelda::DoState(PointerWrap &p) {
 	p.Do(m_PBAddress);
 	p.Do(m_PBAddress2);
 }
-
