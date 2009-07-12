@@ -127,6 +127,9 @@ public:
 	virtual ~CUCode_Zelda();
 
 	void HandleMail(u32 _uMail);
+	void HandleMail_LightVersion(u32 _uMail);
+	void HandleMail_NormalVersion(u32 _uMail);
+
 	void Update(int cycles);
 	void MixAdd(short* buffer, int size);
 
@@ -160,7 +163,37 @@ private:
 	};
 
 	// These map CRC to behaviour.
-	bool LuigiStyle() const;
+
+	// DMA version
+	// - sound data transferred using DMA instead of accelerator
+	bool IsDMAVersion() const
+	{
+		switch (m_CRC)
+		{
+			case 0xD643001F: // Super Mario Galaxy
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	// Light version
+	// - slightly different communication protocol (no list begin mail)
+	// - exceptions and interrupts not used
+	bool IsLightVersion() const
+	{
+		switch (m_CRC)
+		{
+			case 0x42f64ac4: // Luigi
+			case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
+			case 0x4be6a5cb: // AC, Pikmin
+			case 0x088e38a5: // IPL - JAP
+			case 0xd73338cf: // IPL
+				return true;
+			default:
+				return false;
+		}
+	}
 
 	u32 m_CRC;
 

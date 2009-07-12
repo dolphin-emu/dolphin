@@ -67,16 +67,16 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	m_PBAddress2(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
-	if (LuigiStyle())
-		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
 
-	m_rMailHandler.PushMail(DSP_INIT);
-	if (LuigiStyle())
+	if (IsLightVersion())
 	{
-		m_rMailHandler.PushMail(0x80000000);	
+		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
+		// Is it correct? seen in DSP_UC_Luigi.txt reset vector
+		m_rMailHandler.PushMail(0x80001111);	
 	}
 	else
 	{
+		m_rMailHandler.PushMail(DSP_INIT);
 		g_dspInitialize.pGenerateDSPInterrupt();
 		m_rMailHandler.PushMail(0xF3551111); // handshake
 	}
@@ -104,49 +104,64 @@ CUCode_Zelda::~CUCode_Zelda()
 
 u8 *CUCode_Zelda::GetARAMPointer(u32 address)
 {
-	if (m_CRC == 0xD643001F)  // SMG
+	if (IsDMAVersion())
 		return (u8 *)(g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr)) + address;
 	else
 		return (u8 *)(g_dspInitialize.pGetARAMPointer()) + address;
 }
 
-bool CUCode_Zelda::LuigiStyle() const
-{
-	switch (m_CRC)
-	{
-		case 0x42f64ac4: // Luigi
-		case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
-		case 0x4be6a5cb: // AC, Pikmin
-		case 0x088e38a5: // IPL - JAP
-		case 0xd73338cf: // IPL
-			return true;
-		default:
-			return false;
-	}
-}
-
 void CUCode_Zelda::Update(int cycles)
 {
-	// if (!m_rMailHandler.IsEmpty())
-
-	if (!LuigiStyle()) {
+	if (!IsLightVersion()) 
+	{
 		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
 			g_dspInitialize.pGenerateDSPInterrupt();
 	}
-/*	if (m_bSyncCmdPending && (m_CurBuffer == m_NumBuffers) && (m_rMailHandler.IsEmpty()))
-	{
-		m_rMailHandler.PushMail(DSP_FRAME_END);
-		g_dspInitialize.pGenerateDSPInterrupt();
-
-		soundStream->GetMixer()->SetHLEReady(true);
-		DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-		soundStream->Update(); //do it in this thread to avoid sync problems
-
-		m_bSyncCmdPending = false;
-	}*/
 }
 
 void CUCode_Zelda::HandleMail(u32 _uMail)
+{
+	if (IsLightVersion())
+		HandleMail_LightVersion(_uMail);
+	else
+		HandleMail_NormalVersion(_uMail);
+}
+
+void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
+{
+	if (!m_bListInProgress)
+	{
+		switch ((_uMail >> 24) & 0x7F)
+		{
+		case 0x01: m_numSteps = 5; break; // DsetupTable
+		case 0x02: m_numSteps = 3; break; // DsyncFrame
+
+		default:
+			{
+				m_numSteps = 0;
+				PanicAlert("Zelda uCode (light version): unknown/unsupported command %02X", (_uMail >> 24) & 0x7F);
+			}
+			return;
+		}
+
+		m_bListInProgress = true;
+		m_step = 0;
+	}
+
+	if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
+		PanicAlert("m_step out of range");
+
+	((u32*)m_Buffer)[m_step] = _uMail;
+	m_step++;
+
+	if (m_step >= m_numSteps)
+	{
+		ExecuteList();
+		m_bListInProgress = false;
+	}
+}
+
+void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
 	if (m_bSyncInProgress)
@@ -211,7 +226,6 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		return;
     }
 
-reread:
 	if (m_bListInProgress)
 	{
 		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
@@ -231,17 +245,16 @@ reread:
 
 	// Here holds: m_bSyncInProgress == false && m_bListInProgress == false
 
+	// Zelda-only mails:
+	// - 0000XXXX - Begin list
+	// - 00000000, 000X0000 - Sync mails
+	// - CDD1XXXX - comes after DsyncFrame completed, seems to be debugging stuff
+
 	if (_uMail == 0) 
 	{
-		if (!LuigiStyle())
-			m_bSyncInProgress = true;
-		else {
-			soundStream->GetMixer()->SetHLEReady(true);
-			soundStream->Update(); //do it in this thread to avoid sync problems
-			g_dspInitialize.pGenerateDSPInterrupt();
-		}
+		m_bSyncInProgress = true;
 	} 
-	else if (!LuigiStyle() && (_uMail >> 16) == 0)
+	else if ((_uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
 		m_numSteps = _uMail;
@@ -250,6 +263,8 @@ reread:
 	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
 	{
 		// The low part of the mail tells the operation to perform
+		// Seeing as every possible operation number halts the uCode,
+		// except 3, that thing seems to be intended for debugging
 		switch (_uMail & 0xFFFF)
 		{
 		case 0x0003:		// Do nothing
@@ -265,34 +280,6 @@ reread:
 			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", _uMail & 0xFFFF);
 			return;
 		}
-	}
-	else if (LuigiStyle() && (_uMail >> 28) == 0x8)
-	{
-		m_bListInProgress = true;
-		m_step = 0;
-		m_numSteps = 0;
-		// We have to guess the message size.
-		int command = (_uMail & 0xFFFF);
-		switch (command)
-		{
-		case 0x0000:
-			g_dspInitialize.pGenerateDSPInterrupt();
-			break;
-		case 0x0040:
-			m_numSteps = 5;
-			ERROR_LOG(DSPHLE, "WE GUESS STEPS: %i", m_numSteps);
-			break;
-		case 0x2000:
-		case 0x4000:
-			m_numSteps = 3;
-			ERROR_LOG(DSPHLE, "WE GUESS STEPS: %i", m_numSteps);
-			break;
-		default:
-			ERROR_LOG(DSPHLE, "LUIGI UNKNOWN: %i", command);
-			break;
-		}
-		// UGLY
-		goto reread;
 	}
 	else
 	{
@@ -311,27 +298,8 @@ void CUCode_Zelda::ExecuteList()
 	u32 Sync = CmdMail >> 16;
 	u32 ExtraData = CmdMail & 0xFFFF;
 
-	if (!LuigiStyle()) {
-		DEBUG_LOG(DSPHLE, "==============================================================================");
-		DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
-	}
-	else
-	{
-		Command = CmdMail & 0xFFFF;
-		DEBUG_LOG(DSPHLE, "==============================================================================");
-		DEBUG_LOG(DSPHLE, "Zelda UCode L-mode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
-
-		// Translate Luigi commands
-		switch (Command) {
-			case 0x0040: Command = 0x01; break;
-			case 0x2000:
-			case 0x4000: Command = 2; break;
-			default:
-				DEBUG_LOG(DSPHLE, "Luigi translate: FAIL %04x", Command);
-				break;
-		}
-	}
-
+	DEBUG_LOG(DSPHLE, "==============================================================================");
+	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
 
 	switch (Command)
 	{
@@ -376,7 +344,7 @@ void CUCode_Zelda::ExecuteList()
 			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 			//soundStream->Update(); //do it in this thread to avoid sync problems
 
-			if (!LuigiStyle())
+			if (!IsLightVersion())
 				m_bSyncCmdPending = true;
 
 			m_CurBuffer = 0;
@@ -394,7 +362,7 @@ void CUCode_Zelda::ExecuteList()
 		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
 		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
 
-			if (LuigiStyle())
+			if (IsLightVersion())
 				break;
 			else
 				return;
@@ -438,10 +406,16 @@ void CUCode_Zelda::ExecuteList()
 	}
 
 	// sync, we are ready
-	m_rMailHandler.PushMail(DSP_SYNC);
-	if (!LuigiStyle())
+	if (IsLightVersion())
+	{
+		m_rMailHandler.PushMail(0x80000000 | Sync);
+	}
+	else
+	{
+		m_rMailHandler.PushMail(DSP_SYNC);
 		g_dspInitialize.pGenerateDSPInterrupt();
-	m_rMailHandler.PushMail(0xF3550000 | Sync);
+		m_rMailHandler.PushMail(0xF3550000 | Sync);
+	}
 }
 
 
