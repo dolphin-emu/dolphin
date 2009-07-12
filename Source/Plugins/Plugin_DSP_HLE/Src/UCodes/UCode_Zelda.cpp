@@ -340,12 +340,16 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-            //soundStream->GetMixer()->SetHLEReady(true);
-			//	DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-			//soundStream->Update(); //do it in this thread to avoid sync problems
-
 			if (!IsLightVersion())
+			{
 				m_bSyncCmdPending = true;
+			}
+			else
+			{
+				soundStream->GetMixer()->SetHLEReady(true);
+				DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+				soundStream->Update(); //do it in this thread to avoid sync problems
+			}
 
 			m_CurBuffer = 0;
 			m_NumBuffers = (CmdMail >> 16) & 0xFF;
