@@ -85,16 +85,16 @@
 	#define HAVE_SFML 1
 	#define HAVE_OPENAL 1
 
-namespace
-{
 // it is VERY DANGEROUS to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries.
 // You will get bizarre crash bugs whenever you use STL.
-	#ifndef _SECURE_SCL
-		#error Please define _SECURE_SCL=0 in the project settings
-	#else
-		CompileTimeAssert<_SECURE_SCL==0> x;
-	#endif
-}
+	namespace
+	{
+		#ifndef _SECURE_SCL
+			#error Please define _SECURE_SCL=0 in the project settings
+		#else
+			CompileTimeAssert<_SECURE_SCL==0> x;
+		#endif
+	}
 
 // Debug definions
 	#if defined(_DEBUG)
@@ -111,7 +111,7 @@ namespace
 	#define MAX_PATH 260
 
 // Windows compatibility
-	#define __forceinline inline
+	#define __forceinline inline __attribute__((always_inline))
 
 	#ifdef _LP64
 		#define _M_X64 1
@@ -119,11 +119,12 @@ namespace
 		#define _M_IX86 1
 	#endif
 // Alignment
-	#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
-	#define GC_ALIGNED32(x)  __attribute((aligned(16))) x
-	#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
-	#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
-	#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
+	#define GC_ALIGNED16(x)  __attribute__((aligned(16))) x
+	#define GC_ALIGNED32(x)  __attribute__((aligned(16))) x
+	#define GC_ALIGNED64(x)  __attribute__((aligned(64))) x
+	#define GC_ALIGNED16_DECL(x) __attribute__((aligned(16))) x
+	#define GC_ALIGNED64_DECL(x) __attribute__((aligned(64))) x
+
 #endif // WIN32
 
 // A macro to disallow the copy constructor and operator= functions

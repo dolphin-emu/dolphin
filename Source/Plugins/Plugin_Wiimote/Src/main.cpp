@@ -33,6 +33,7 @@ and Wiimote functions worked.
 */
 
 #include "Common.h" // Common
+#include "LogManager.h"
 #include "StringUtil.h"
 #include "Timer.h"
 

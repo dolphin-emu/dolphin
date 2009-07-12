@@ -22,6 +22,7 @@
 #include <math.h>
 
 #include "Common.h"
+#include "LogManager.h"
 #include "pluginspecs_pad.h"
 #include "PadSimple.h"
 #include "IniFile.h"

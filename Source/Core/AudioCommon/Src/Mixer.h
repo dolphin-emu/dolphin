@@ -19,6 +19,7 @@
 #define _MIXER_H_
 
 #include "FixedSizeQueue.h"
+#include "Thread.h"
 
 // On real hardware, this fifo is much, much smaller. But timing is also
 // tighter than under Windows, so...

@@ -52,6 +52,8 @@ Make AA apply instantly during gameplay if possible
 
 
 #include "Globals.h"
+#include "LogManager.h"
+#include "Thread.h"
 
 #include <cstdarg>
 

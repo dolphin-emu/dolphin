@@ -137,7 +137,7 @@ public:
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-			 const char *fmt, ...);
+			 const char *fmt, va_list args);
 
 	void setLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) {
 		m_Log[type]->setLevel(level);

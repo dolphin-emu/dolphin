@@ -26,12 +26,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Common.h"
 #include "FileUtil.h"
 #include "disassemble.h"
 #include "DSPTables.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
+#endif
+
+#ifndef MAX_PATH
+#include <Windows.h> // For MAX_PATH
 #endif
 
 extern void nop(const UDSPInstruction& opc);

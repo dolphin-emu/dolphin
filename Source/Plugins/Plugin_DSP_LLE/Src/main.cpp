@@ -18,7 +18,9 @@
 
 #include "Common.h" // Common
 #include "CommonTypes.h"
-#include "Mixer.h"
+#include "LogManager.h"
+#include "Thread.h"
+#include "ChunkFile.h"
 
 #include "Globals.h" // Local
 #include "DSPInterpreter.h"
@@ -28,10 +30,8 @@
 #include "Config.h"
 
 #include "AudioCommon.h"
+#include "Mixer.h"
 #include "Logging/Logging.h" // For Logging
-
-#include "Thread.h"
-#include "ChunkFile.h"
 
 #include "DSPTables.h"
 #include "DSPCore.h"

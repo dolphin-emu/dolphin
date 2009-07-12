@@ -34,6 +34,7 @@ DSPDebuggerHLE* m_DebuggerFrame = NULL;
 #include "Setup.h"
 #include "StringUtil.h"
 #include "AudioCommon.h"
+#include "LogManager.h"
 
 
 // Declarations and definitions

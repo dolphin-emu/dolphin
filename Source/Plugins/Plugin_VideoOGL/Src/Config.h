@@ -20,6 +20,8 @@
 
 #include "Common.h"
 
+#include <string>
+
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG			1
 #define CONF_PRIMLOG		2

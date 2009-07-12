@@ -37,6 +37,11 @@
 	#include <wx/wx.h>
 #endif
 
+#ifdef _WIN32
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 #include "SDL.h" // Local
 ////////////////////////////////////
 

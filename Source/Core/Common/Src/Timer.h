@@ -21,6 +21,7 @@
 #include "Common.h"
 #include <string>
 #ifdef _WIN32
+#include <Windows.h>
 #include <mmsystem.h>
 #endif
 namespace Common

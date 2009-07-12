@@ -20,6 +20,7 @@
 #include "State.h"
 #include "Core.h"
 #include "StringUtil.h"
+#include "Thread.h"
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"

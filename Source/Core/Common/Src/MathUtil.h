@@ -18,9 +18,10 @@
 #ifndef _MATH_UTIL_H_
 #define _MATH_UTIL_H_
 
-#include <xmmintrin.h>
-
 #include "Common.h"
+
+#include <xmmintrin.h>
+#include <vector>
 
 namespace MathUtil
 {

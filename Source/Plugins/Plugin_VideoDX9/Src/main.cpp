@@ -20,6 +20,8 @@
 #include <d3dx9.h>
 
 #include "Common.h"
+#include "Thread.h"
+#include "LogManager.h"
 
 #include "svnrev.h"
 #include "resource.h"

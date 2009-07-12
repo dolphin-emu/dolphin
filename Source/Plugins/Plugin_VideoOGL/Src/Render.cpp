@@ -17,6 +17,7 @@
 
 
 #include "Globals.h"
+#include "Thread.h"
 
 #include <vector>
 #include <cmath>

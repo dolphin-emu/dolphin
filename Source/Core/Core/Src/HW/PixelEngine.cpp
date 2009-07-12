@@ -22,6 +22,7 @@
 
 #include "Common.h"
 #include "ChunkFile.h"
+#include "Thread.h"
 
 #include "PixelEngine.h"
 

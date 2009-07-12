@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+#include "StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>

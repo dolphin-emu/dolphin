@@ -18,6 +18,8 @@
 #ifndef _EXI_DEVICEMEMORYCARD_H
 #define _EXI_DEVICEMEMORYCARD_H
 
+#include "Thread.h"
+
 // Data structure to be passed to the flushing thread.
 typedef struct 
 {

@@ -69,6 +69,7 @@
 // Include
 // ¯¯¯¯¯¯¯¯¯
 #include "nJoy.h"
+#include "LogManager.h"
 
 // Declare config window so that we can write debugging info to it from functions in this file
 #if defined(HAVE_WX) && HAVE_WX

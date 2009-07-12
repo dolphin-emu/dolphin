@@ -18,6 +18,14 @@
 #include "LogManager.h"
 #include "Timer.h"
 
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	LogManager::GetInstance()->Log(level, type, fmt, args);
+	va_end(args);
+}
+
 LogManager *LogManager::m_logManager = NULL;
 
 LogManager::LogManager()\
@@ -85,8 +93,7 @@ LogManager::~LogManager() {
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-					 const char *format, ...) {
-	va_list args;
+					 const char *format, va_list args) {
 
 	char temp[MAX_MSGLEN];
 	char msg[MAX_MSGLEN + 512];
@@ -94,10 +101,8 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 	if (! log->isEnable() || level > log->getLevel())
 		return;
-	
-	va_start(args, format);
+
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
-	va_end(args);
 
 	static const char level_to_char[7] = "-NEWID";
 	sprintf(msg, "%s %c[%s]: %s\n",
