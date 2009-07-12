@@ -39,7 +39,7 @@
 #if defined(HAVE_WX) && HAVE_WX
 #include "DSPConfigDlgLLE.h"
 DSPConfigDialogLLE* m_ConfigFrame = NULL;
-#include "Debugger/Debugger.h"
+#include "Debugger/DSPDebugWindow.h"
 DSPDebuggerLLE* m_DebuggerFrame = NULL;
 #endif
 

@@ -26,7 +26,7 @@ extern DSPInitialize g_dspInitialize;
 #if defined(HAVE_WX) && HAVE_WX
 
 #include "DSPConfigDlgLLE.h"
-#include "Debugger/Debugger.h" // For the DSPDebuggerLLE class
+#include "Debugger/DSPDebugWindow.h" // For the DSPDebuggerLLE class
 extern DSPDebuggerLLE* m_DebuggerFrame;
 
 #endif
