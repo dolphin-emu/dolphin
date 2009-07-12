@@ -18,7 +18,7 @@
 #ifndef MEMORYVIEW_H_
 #define MEMORYVIEW_H_
 
-#include "Debugger.h"
+#include "DebuggerUIUtil.h"
 #include "Common.h"
 #include "DebugInterface.h"
 

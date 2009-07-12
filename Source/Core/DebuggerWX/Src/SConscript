@@ -12,7 +12,6 @@ files = [
     "CodeWindow.cpp",
     "CodeWindowSJP.cpp",
     "MemoryCheckDlg.cpp",
-    "MemoryView.cpp",
     "MemoryWindow.cpp",
     "RegisterWindow.cpp",
     "RegisterView.cpp",

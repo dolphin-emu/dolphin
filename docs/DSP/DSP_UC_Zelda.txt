@@ -143,6 +143,8 @@ There's definitely a bunch of sample data stored in each PB but I don't know exa
 							// It is like this:
 							// (0x04fc + lastRenderedFrame) must be "something" :)
 
+0x0580..   Unresampled audio data is decoded to here
+
 ///////////////////////////////////////////
 // Initialized at 04c0_Unk()... used by SyncFrame
 0x0B00 to 0x0C00          
@@ -1093,7 +1095,8 @@ void 0243_COMMAND_02()  // sync frame
 				default:   GOTO 087C:
 				}
 				 
-				
+				// This is the common decoding prep for 0x05 and 0x09.
+
 				// 02bd 00d8 0402 lr          $AX0.L, @0x0402     // delta?
 				// 02bf 8100      clr         $ACC0
 				// 02c0 8900      clr         $ACC1
@@ -1105,7 +1108,8 @@ void 0243_COMMAND_02()  // sync frame
 				// 02c7 1404      lsl         $ACC0, #4
 				// 02c8 8c00      clr15
 
-				// Might 0402 be the delta, and if so, is this a computation of the starting point for decoding?
+				// 0x0402 is delta ("Ratio").
+				// Is this a computation of the starting point for decoding?
 				// If so 0x430 is the current sample position fraction and 
 				AX0.L = *0x0402
 				ACC0 = *0x430 + (AX0.L * 0x50)
@@ -1121,12 +1125,12 @@ void 0243_COMMAND_02()  // sync frame
 				// NOP jump here.
 				// 02ce 029f 02d0 jmp         0x02d0 
 				 
-			MixFrom_0580_to_0520:
+			Resample_From0580To0520:
 				// 02d0 0080 0580 lri         $AR0, #0x0580
 				// 02d2 0081 0520 lri         $AR1, #0x0520
 				// 02d4 0099 0000 lri         $AX1.L, #0x0000
 				// 02d6 02bf 0d7f call        0x0d7f
-				0d7f_Unk_MaybeResample(0x0580, 0x0520, 0x0000);
+				0d7f_ResampleAudioData(0x0580, 0x0520, 0x0000);
 			}
 			
 			// A block of audio is now present at 0x520.
@@ -3036,7 +3040,7 @@ void 087c_DefaultDecoder()
 08a3 029f 08b1 jmp         0x08b1 // case 0x9 (can never happen)
 08a5 029f 093a jmp         0x093a // case 0xa
 08a7 029f 08f3 jmp         0x08f3 // case 0xb
-08a9 029f 08f7 jmp         0x08f7 // case 0xc
+08a9 029f 08f7 jmp         0x08f7 // case 0xc (Zelda force field in temple of gods)
 08ab 029f 08b1 jmp         0x08b1 // case 0xd (unused)
 08ad 029f 08b1 jmp         0x08b1 // case 0xe (unused)
 08af 029f 08b1 jmp         0x08b1 // case 0xf (unused)
@@ -3289,31 +3293,43 @@ void 0983_WriteRamp(ACC0, ACC1, Dest($AR3)) {
 } 
  
 //////////////////////////////////////////// 0x08 DECODER 
+// Hardcoded destination 0x0580.
 void Decoder0x08() { 
 	098f 0092 0004 lri         $CR, #0x0004
 	0991 2002      lrs         $AX0.L, @0x0002
 	0992 8100      clr         $ACC0
 	0993 8900      clr         $ACC1
 	0994 2430      lrs         $AC0.L, @0x0030   // CurSampleFrac
-	0995 8d00      set15       
-	0996 0950      lris        $AX1.L, #0x50
-	0997 a000      mulx        $AX0.L, $AX1.L
-	0998 a400      mulxac      $AX0.L, $AX1.L, $ACC0
-	0999 1404      lsl         $ACC0, #4
-	099a 8c00      clr15       
+
+	// 0995 8d00      set15       
+	// 0996 0950      lris        $AX1.L, #0x50
+	// 0997 a000      mulx        $AX0.L, $AX1.L
+	// 0998 a400      mulxac      $AX0.L, $AX1.L, $ACC0
+	// 0999 1404      lsl         $ACC0, #4
+	// 099a 8c00      clr15       
+	// Compute how much data we need to read, to get 0x50 samples after resampling.
+	// AC0.L is cursamplefrace, AX0.L is ratio.
+	$ACC0 = PB.CurrentSampleFrac + 0x50 * PB.Ratio;
+
 	099b 1ffe      mrr         $AC1.M, $AC0.M
 	099c 0083 0580 lri         $AR3, #0x0580
 	099e 2201      lrs         $AX0.H, @0x0001
 	099f 8600      tstaxh      $AX0.H
 	09a0 0294 09b1 jnz         0x09b1
-	09a2 2204      lrs         $AX0.H, @0x0004
-	09a3 8600      tstaxh      $AX0.H
-	09a4 02b4 09f9 callne      0x09f9
+	
+	// 09a2 2204      lrs         $AX0.H, @0x0004
+	// 09a3 8600      tstaxh      $AX0.H
+	// 09a4 02b4 09f9 callne      0x09f9
+	if (*0x0404) { // NeedsReset
+		09f9_UpdateSampleCounters8();
+	}
+
 	09a6 8100      clr         $ACC0
 	09a7 2605      lrs         $AC0.M, @0x0005
 	09a8 b100      tst         $ACC0
 	09a9 0295 09be jz          0x09be
-	
+
+label09ab:	
 	09ab 8100      clr         $ACC0
 	09ac 2e05      srs         @0x0005, $AC0.M
 	09ad 2281      lrs         $AX0.H, @0xff81
@@ -3329,35 +3345,44 @@ void Decoder0x08() {
 	09b9 2489      lrs         $AC0.L, @0xff89
 	09ba 2e34      srs         @0x0034, $AC0.M
 	09bb 2c35      srs         @0x0035, $AC0.L
-	09bc 02bf 09f9 call        0x09f9
+	// 09bc 02bf 09f9 call        0x09f9
+	09f9_UpdateSampleCounters8();
+	
 	09be 00ff 0360 sr          @0x0360, $AC1.M
 
 	09c0 2638      lrs         $AC0.M, @0x0038
 	09c1 2439      lrs         $AC0.L, @0x0039
-	09c2 0f05      lris        $AC1.M, #0x05
-	09c3 02bf 05ad call        0x05ad
-	05ad_SetupAccelerator(AC0.M, AC0.L, AC1.M)
+	09c2 0f05      lris        $AC1.M, #0x05   // Sample format 5
+	// 09c3 02bf 05ad call        0x05ad
+	05ad_SetupAccelerator(AC0.M, AC0.L, AC1.M)  
 
 	09c5 00df 0360 lr          $AC1.M, @0x0360
 	09c7 8100      clr         $ACC0
-	09c8 263a      lrs         $AC0.M, @0x003a
-	09c9 b100      tst         $ACC0
-	09ca 0294 09d9 jnz         0x09d9
-	09cc 263b      lrs         $AC0.M, @0x003b
-	09cd 5c00      sub         $ACC0, $ACC1
-	09ce 0290 09d9 jns         0x09d9
-	09d0 223b      lrs         $AX0.H, @0x003b
-	
-	09d1 02bf 0a0a call        0x0a0a   // Load more samples.
-	09d3 5500      subr        $ACC1, $AX0.H
-	09d4 0a01      lris        $AX0.H, #0x01
-	09d5 00fa 0405 sr          @0x0405, $AX0.H
-	09d7 029f 09ab jmp         0x09ab
-	
+	// 09c8 263a      lrs         $AC0.M, @0x003a
+	// 09c9 b100      tst         $ACC0
+	// 09ca 0294 09d9 jnz         0x09d9
+	if (*(0x043a)) {
+		09cc 263b      lrs         $AC0.M, @0x003b
+		09cd 5c00      sub         $ACC0, $ACC1
+		09ce 0290 09d9 jns         0x09d9
+		
+		09d0 223b      lrs         $AX0.H, @0x003b
+		// 09d1 02bf 0a0a call        0x0a0a   // Load more samples.
+		0a0a_ReadFromAccelerator8To16(OutBuffer($AR3), Count($AX0.H))
+
+		09d3 5500      subr        $ACC1, $AX0.H
+		09d4 0a01      lris        $AX0.H, #0x01
+		09d5 00fa 0405 sr          @0x0405, $AX0.H
+		09d7 029f 09ab jmp         0x09ab
+	}
+
 	09d9 1f5f      mrr         $AX0.H, $AC1.M
-	09da 02bf 0a0a call        0x0a0a   // Load more samples.
+	// 09da 02bf 0a0a call        0x0a0a   // Load more samples.
+	0a0a_ReadFromAccelerator8To16(OutBuffer($AR3), Count($AX0.H));
 	
+	// Stash AX0.H away, it gets read again at 09ef.
 	09dc 00fa 0362 sr          @0x0362, $AX0.H
+
 	09de 8100      clr         $ACC0
 	09df 263a      lrs         $AC0.M, @0x003a
 	09e0 243b      lrs         $AC0.L, @0x003b
@@ -3376,10 +3401,10 @@ void Decoder0x08() {
 	09ef 7000      addaxl      $ACC0, $AX0.L
 	09f0 2c39      srs         @0x0039, $AC0.L
 	09f1 2e38      srs         @0x0038, $AC0.M
-	09f2 0092 00ff lri         $CR, #0x00ff
-	
+
+	// 09f2 0092 00ff lri         $CR, #0x00ff
 	// 09f4 029f 02d0 jmp         0x02d0
-	GOTO MixFrom_0580_to_0520:
+	GOTO Resample_From0580To0520:
 }	 
  
  
@@ -3390,7 +3415,7 @@ void Unreachable() {
 	09f8 2e35      srs         @0x0035, $AC0.M
 }
  
-void 09f9_UsedBy08Decoder() {
+void 09f9_UpdateSampleCounters8() {
 	09f9 2334      lrs         $AX1.H, @0x0034
 	09fa 2135      lrs         $AX1.L, @0x0035
 	09fb 268a      lrs         $AC0.M, @0xff8a
@@ -3410,43 +3435,55 @@ void 09f9_UsedBy08Decoder() {
 	// 0a09 02df      ret
 }
  
-void 0a0a_UsedBy08Decoder() {
+void 0a0a_ReadFromAccelerator8To16(OutBuffer($AR3), Count($AX0.H)) {
 	// Read from ARAM. Convert 8-bit samples to 16-bit.
-	0a0a 0080 ffd3 lri         $AR0, #0xffd3
-	0a0c 0084 0000 lri         $IX0, #0x0000
-	0a0e 007a 0a12 bloop       $AX0.H, 0x0a12
-		0a10 199e      lrrn        $AC0.M, @$AR0
-		0a11 1488      asl         $ACC0, #8
-		0a12 1b7e      srri        @$AR3, $AC0.M
+	// 0a0a 0080 ffd3 lri         $AR0, #0xffd3
+	// 0a0c 0084 0000 lri         $IX0, #0x0000
+	// 0a0e 007a 0a12 bloop       $AX0.H, 0x0a12
+	//	0a10 199e      lrrn        $AC0.M, @$AR0
+	//	0a11 1488      asl         $ACC0, #8
+	//	0a12 1b7e      srri        @$AR3, $AC0.M
 	// 0a13 02df      ret         
+	for (int i = 0; i < $AX0.H; i++) {
+		*($AR3++) = (*0xffd3) << 8;   // ffd3 is the non-adpcm alternative read address for the accelerator.
+	}
 }
 
  
 //////////////////////////////////////////// 0x10 DECODER 
+// Hardcoded destination 0x0580.
 // This should be the easiest decoder to decipher in full -- except the really
 // trivial ones like the synths.
-void Decoder_0x10() {
-	0a14 0092 0004 lri         $CR, #0x0004
+// It's almost identical to Decoder0x08
+void Decoder0x10() {
+	// 0a14 0092 0004 lri         $CR, #0x0004
 	0a16 2002      lrs         $AX0.L, @0x0002
 	0a17 8100      clr         $ACC0
 	0a18 8900      clr         $ACC1
-	0a19 2430      lrs         $AC0.L, @0x0030
+	// 0a19 2430      lrs         $AC0.L, @0x0030
 	0a1a 8d00      set15       
-	0a1b 0950      lris        $AX1.L, #0x50
-	0a1c a000      mulx        $AX0.L, $AX1.L
-	0a1d a400      mulxac      $AX0.L, $AX1.L, $ACC0
-	0a1e 1404      lsl         $ACC0, #4
-	0a1f 8c00      clr15       
+	
+	// 0a1b 0950      lris        $AX1.L, #0x50
+	// 0a1c a000      mulx        $AX0.L, $AX1.L
+	// 0a1d a400      mulxac      $AX0.L, $AX1.L, $ACC0
+	// 0a1e 1404      lsl         $ACC0, #4
+	// 0a1f 8c00      clr15       
+
+	// Compute how much data we need to read, to get 0x50 samples after resampling.
+	// AC0.L is cursamplefrace, AX0.L is ratio.
+	$ACC0 = PB.CurrentSampleFrac + 0x50 * PB.Ratio;
+	
 	0a20 1ffe      mrr         $AC1.M, $AC0.M
 	0a21 0083 0580 lri         $AR3, #0x0580
 	0a23 2201      lrs         $AX0.H, @0x0001
 	0a24 8600      tstaxh      $AX0.H
-	0a25 0294 0a36 jnz         0x0a36
+	0a25 0294 0a36 jnz         0x0a36       /// Jump! See jump destination below.
 	
 	0a27 2204      lrs         $AX0.H, @0x0004
 	0a28 8600      tstaxh      $AX0.H
 	0a29 02b4 0a7f callne      0x0a7f  
-	if (*0x0404) {
+	if (*0x0404)  // "NeedsReset"
+	{
 		0a7f_UpdateSampleCounters10()
 	}
 	
@@ -3463,13 +3500,13 @@ void Decoder_0x10() {
 		0a32 2281      lrs         $AX0.H, @0xff81
 		0a33 8600      tstaxh      $AX0.H
 		0a34 0294 0a3d jnz         0x0a3d
-		if (!*401) {
+		if (!*401) {             //// <<<<<<<<<<<< Jump destination
 			0a36 8100      clr         $ACC0
 			0a37 005f      loop        $AC1.M
 			0a38 1b7e      srri        @$AR3, $AC0.M
 			0a39 7400      incm        $AC0.M
 			0a3a 2e01      srs         @0x0001, $AC0.M
-			0a3b 029f 0a78 jmp         0x0a78
+			0a3b 029f 0a78 jmp         0x0a78   // quit
 		} else {
 			// Copy [88,89] to [34,35]
 			0a3d 2688      lrs         $AC0.M, @0xff88
@@ -3485,8 +3522,8 @@ void Decoder_0x10() {
 	0a43 00ff 0360 sr          @0x0360, $AC1.M
 	0a45 2638      lrs         $AC0.M, @0x0038
 	0a46 2439      lrs         $AC0.L, @0x0039
-	0a47 0f06      lris        $AC1.M, #0x06
-	0a48 02bf 05ad call        0x05ad
+	0a47 0f06      lris        $AC1.M, #0x06    // Sample format 6
+	// 0a48 02bf 05ad call        0x05ad
 	05ad_SetupAccelerator(AC0.M, AC0.L, AC1.M)
 
 	0a4a 00df 0360 lr          $AC1.M, @0x0360
@@ -3500,7 +3537,8 @@ void Decoder_0x10() {
 		0a53 0290 0a5e jns         0x0a5e
 		if (0x43b <= ACC1) {   // not sure, but ..  not enough samples?
 			0a55 223b      lrs         $AX0.H, @0x003b
-			0a56 02bf 0a91 call        0x0a91              // Read more samples
+			// 0a56 02bf 0a91 call        0x0a91              // Read more samples
+			0a91_ReadFromAccelerator(OutBuffer($AR3), Count($AX0.H));
 			0a58 5500      subr        $ACC1, $AX0.H
 			0a59 0a01      lris        $AX0.H, #0x01
 			0a5a 00fa 0405 sr          @0x0405, $AX0.H
@@ -3509,8 +3547,12 @@ void Decoder_0x10() {
 	} 
 	
 	0a5e 1f5f      mrr         $AX0.H, $AC1.M
-	0a5f 02bf 0a91 call        0x0a91                // Read even more samples?
+	// 0a5f 02bf 0a91 call        0x0a91                // Read more samples
+	0a91_ReadFromAccelerator(OutBuffer($AR3), Count($AX0.H))
+
+	// Stash AX0.H away, it gets read again at 0a72.
 	0a61 00fa 0362 sr          @0x0362, $AX0.H
+
 	0a63 8100      clr         $ACC0
 	0a64 263a      lrs         $AC0.M, @0x003a
 	0a65 243b      lrs         $AC0.L, @0x003b
@@ -3530,18 +3572,19 @@ void Decoder_0x10() {
 	0a75 7000      addaxl      $ACC0, $AX0.L
 	0a76 2c39      srs         @0x0039, $AC0.L
 	0a77 2e38      srs         @0x0038, $AC0.M
-	0a78 0092 00ff lri         $CR, #0x00ff
+	
+	// 0a78 0092 00ff lri         $CR, #0x00ff
 	// 0a7a 029f 02d0 jmp         0x02d0
-	GOTO MixFrom_0580_to_0520:
+	GOTO Resample_From0580To0520:
 }
 
-void 0a7c_Unk() {
+void 0a7c_UnkUnused() {
 	0a7c 8100      clr         $ACC0
 	0a7d 2e34      srs         @0x0034, $AC0.M
 	0a7e 2e35      srs         @0x0035, $AC0.M
 
 // used by 0x10 decoder
-void 0a7f_UpdateSampleCounters() {
+void 0a7f_UpdateSampleCounters10() {
 	0a7f 2334      lrs         $AX1.H, @0x0034
 	0a80 2135      lrs         $AX1.L, @0x0035
 	0a81 268a      lrs         $AC0.M, @0xff8a
@@ -3551,7 +3594,7 @@ void 0a7f_UpdateSampleCounters() {
 	0a85 2c3b      srs         @0x003b, $AC0.L
 	0a86 2634      lrs         $AC0.M, @0x0034
 	0a87 2435      lrs         $AC0.L, @0x0035
-	0a88 1401      lsl         $ACC0, #1
+	0a88 1401      lsl         $ACC0, #1       // This shift is not done in UpdateSampleCounters8.
 	0a89 238c      lrs         $AX1.H, @0xff8c
 	0a8a 218d      lrs         $AX1.L, @0xff8d
 	0a8b 4a00      addax       $ACC0, $AX1     // Add [34,35]<<1 to [8c, 8d]
@@ -3563,17 +3606,22 @@ void 0a7f_UpdateSampleCounters() {
 }
 
 
-// Could this be the thing that pulls samples from the accelerator?
-void 0a91_Unk() {
-	0a91 0080 ffd3 lri         $AR0, #0xffd3
-	0a93 0084 0000 lri         $IX0, #0x0000
-	0a95 007a 0a98 bloop       $AX0.H, 0x0a98
-		0a97 199e      lrrn        $AC0.M, @$AR0
-		0a98 1b7e      srri        @$AR3, $AC0.M
-	0a99 02df      ret         
+// Read AX0.H samples from the accelerator.
+void 0a91_ReadFromAccelerator(OutBuffer($AR3), Count($AX0.H)) {
+	// 0a91 0080 ffd3 lri         $AR0, #0xffd3
+	// 0a93 0084 0000 lri         $IX0, #0x0000
+	// 0a95 007a 0a98 bloop       $AX0.H, 0x0a98
+	//	0a97 199e      lrrn        $AC0.M, @$AR0
+	//	0a98 1b7e      srri        @$AR3, $AC0.M
+	// 0a99 02df      ret         
+
+	for (int i = 0; i < $AX0.H; i++) {
+		*($AR3++) = *0xffd3;   // ffd3 is the non-adpcm alternative read address for the accelerator.
+	}
 }
 
 //////////////////////////////////////////// 0x20 DECODER 
+// Same as 0x21 but with no resampling.
 {
 	// 0a9a 8900      clr         $ACC1
 	// 0a9b 0f50      lris        $AC1.M, #0x50
@@ -3611,13 +3659,14 @@ void 0aa2_Decoder0x21() {
 	// 0aad 0083 0580 lri         $AR3, #0x0580
 	// 0aaf 02bf 0ab3 call        0x0ab3   // 0ab3_Decoder0x21Core
 	0ab3_Decoder0x21Core(AC1.M, AR3=#0x0580);
+
 	// 0ab1 029f 02d0 jmp         0x02d0
-	GOTO MixFrom_0580_to_0520:
+	GOTO Resample_From0580To0520:
 }
 
 // 0x21 Decoder Core
-// I get the feeling that decoder 0x21 simply streams raw audio
-// by using DMA. Lots of buffer wrap trickery etc but no actual decoding.
+// Decoder 0x21 simply streams raw audio from RAM (not ARAM!) by using DMA.
+// Lots of buffer wrap trickery etc but no actual decoding.
 void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	// 0ab3 0092 0004 lri         $CR, #0x0004
 	// 0ab5 8100      clr         $ACC0
@@ -3729,7 +3778,6 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 		AR0 = (ACC0 & 0xFFFF0000) >> 16;
 		ACC0 = 0;
 		*0x0434 = 0;
-
 		
 		// 0ae7 2688      lrs         $AC0.M, @0xff88   // 0x0488
 		// 0ae8 2489      lrs         $AC0.L, @0xff89   // 0x0489
@@ -3753,10 +3801,10 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	AR0 = AX0.L;
 	0af6_Decoder0x21_MoreStuff(AR0=AX0.L, AR3);
 
-
 	0af3 0092 00ff lri         $CR, #0x00ff
 	// 0af5 02df      ret         
 }
+
 
 
 // CR = 0x4
@@ -4533,7 +4581,7 @@ void 0cd3_VolumeMixer1()
 
 		// 0d4d 00e1 0b24 sr          @0x0b24, $AR1
 		// 0d4f 00e2 0b25 sr          @0x0b25, $AR2
-		// 0d51 021b      ilrri       $AC0.M, @$AR3   // Buffer address table lookup (see above)
+		// 0d51 021b      ilrri       $AC0.M, @$AR3   // Buffer address table lookup (see below)
 		// 0d52 00e3 0b26 sr          @0x0b26, $AR3
 		(Stash AR1, AR2, AR3)
 		// 0d54 1c7e      mrr         $AR3, $AC0.M
@@ -4600,39 +4648,60 @@ short table = {0x0d00, 0x0d60, 0x0f40, 0x0ca0, 0x0e80, 0x0ee0, 0x0c00, 0x0c50};
 0d7d 0c00
 0d7e 0c50
 
-void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??) 
+void 0d7f_ResampleAudioData(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??) 
 {
 	0d7f 00f9 0361 sr          @0x0361, $AX1.L   // always 0
 	
-	0d81 1fc0      mrr         $AC0.M, $AR0
-	0d82 0200 fffc addi        $AC0.M, #0xfffc
-	0d84 1c1e      mrr         $AR0, $AC0.M
-	0d85 1c5e      mrr         $AR2, $AC0.M
+	// 0d81 1fc0      mrr         $AC0.M, $AR0
+	// 0d82 0200 fffc addi        $AC0.M, #0xfffc
+	// 0d84 1c1e      mrr         $AR0, $AC0.M
+	// 0d85 1c5e      mrr         $AR2, $AC0.M
+	
+	// We read a little bit BEFORE the input. The next piece of code takes care of that...
+	$AR0 = $AR0 - 4;
+	$AR2 = $AR0;
+	
+	// 0x043c in the PBs apparently is a pointer, INTO the PB itself - where it
+	// has stored the data from the last frame.
 	0d86 0083 043c lri         $AR3, #0x043c
-	0d88 197e      lrri        $AC0.M, @$AR3
-	0d89 197f      lrri        $AC1.M, @$AR3
-	0d8a 80a2      nx'sl       : $AC0.M, $AX0.H
-	0d8b 64a3      movr'sl     $ACC0, $AX0.H : $AC1.M, $AX0.H
-	0d8c 6530      movr's      $ACC1, $AX0.H : @$AR0, $AC0.M
-	0d8d 1b1f      srri        @$AR0, $AC1.M
-	0d8e 1c02      mrr         $AR0, $AR2
+	
+	// Pipelined tiny memcpy - first four are loads, last four are stores. middle two overlap.
+	// 0d88 197e      lrri        $AC0.M, @$AR3
+	// 0d89 197f      lrri        $AC1.M, @$AR3
+	// 0d8a 80a2      nx'sl       : $AC0.M, $AX0.H
+	// 0d8b 64a3      movr'sl     $ACC0, $AX0.H : $AC1.M, $AX0.H
+	// 0d8c 6530      movr's      $ACC1, $AX0.H : @$AR0, $AC0.M
+	// 0d8d 1b1f      srri        @$AR0, $AC1.M
+	for (int i = 0; i < 4; i++)
+		*($AR0++) = *($AR3++);
+	
+	// Point $AR0 back at 4 words before the start of the in buffer.
+	// 0d8e 1c02      mrr         $AR0, $AR2
+	
 	0d8f 8100      clr         $ACC0
-	0d90 00de 0402 lr          $AC0.M, @0x0402   // Ratio int
-	0d92 00fe 0362 sr          @0x0362, $AC0.M
-	0d94 1474      lsr         $ACC0, #-12
-	0d95 1f7e      mrr         $AX1.H, $AC0.M
-	0d96 1f3c      mrr         $AX1.L, $AC0.L
+	// 0d90 00de 0402 lr          $AC0.M, @0x0402   // Ratio int
+	// 0d92 00fe 0362 sr          @0x0362, $AC0.M
+	// 0d94 1474      lsr         $ACC0, #-12
+	// 0d95 1f7e      mrr         $AX1.H, $AC0.M
+	// 0d96 1f3c      mrr         $AX1.L, $AC0.L
+	*0x0362 = PB.Ratio;
+	$AX1 = PB.Ratio << 4;
+
 	0d97 8900      clr         $ACC1
-	0d98 00dd 0430 lr          $AC1.L, @0x0430   // Ratio frac
+	0d98 00dd 0430 lr          $AC1.L, @0x0430   // Sample position frac
 	0d9a 1504      lsl         $ACC1, #4
+	
+	// $ACC0 here still contains ratio << 12;
 	0d9b 0604      cmpis       $ACC0, #0x04
 	// 0d9c 0290 0df3 jns         0x0df3   // subroutine
-	GOTONS subroutine;
+	
+	// If ratio too low, don't bother resampling?
+	GOTONS JustCopyWithoutResampling;
 	
 	0d9e 1fdd      mrr         $AC0.M, $AC1.L
 	0d9f 0082 02b0 lri         $AR2, #0x02b0
 	
-	// Store a ramp?
+	// Store a ramp at 0x2b0? Lookup table for read addresses?
 	0da1 1050      loopi       #0x50
 		0da2 4b2a      addax's     $ACC1, $AX1 : @$AR2, $AC1.L
 
@@ -4640,13 +4709,17 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0da4 00fe 0360 sr          @0x0360, $AC0.M
 	0da6 8900      clr         $ACC1
 	0da7 1fbe      mrr         $AC1.L, $AC0.M
+	
 	0da8 0af8      lris        $AX0.H, #0xf8
 	0da9 009b 00fc lri         $AX1.H, #0x00fc
 	0dab 00d8 0361 lr          $AX0.L, @0x0361  // parameter was stashed here.
-	
+
+	// 0x02b0 is where the ramp from above is stored.
 	0dad 0082 02b0 lri         $AR2, #0x02b0
 	0daf 0083 02b0 lri         $AR3, #0x02b0
 	0db1 195e      lrri        $AC0.M, @$AR2
+	
+	// I really don't understand what the purpose of this loop is.
 	0db2 3480      andr'ls     $AC0.M, $AX0.H : $AX0.L, $AC0.M
 	// 0db3 1128 0db8 bloopi      #0x28, 0x0db8
 	for (int i = 0; i < 0x50; i += 2) {
@@ -4655,8 +4728,12 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 		0db7 3772      andr'l      $AC1.M, $AX1.H : $AC0.M, @$AR2
 		0db8 34bb      andr'slm    $AC0.M, $AX0.H : $AC1.M, $AX1.H
 	}
-	0db9 8a00      m2          
+	
+	0db9 8a00      m2          // All muls doubled.
+
+	// 0x02b0 is where the ramp from above is stored.
 	0dba 0082 02b0 lri         $AR2, #0x02b0
+
 	0dbc 00dd 0430 lr          $AC1.L, @0x0430
 	0dbe 1504      lsl         $ACC1, #4
 	0dbf 1fe0      mrr         $AC1.M, $AR0
@@ -4665,7 +4742,13 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0dc3 1474      lsr         $ACC0, #-12
 	0dc4 1f7e      mrr         $AX1.H, $AC0.M
 	0dc5 1f3c      mrr         $AX1.L, $AC0.L
-	0dc6 8f00      set40       
+	
+	// Resample with some nice filter of some sort, using unreadable
+	// pipelined DSP code... gah.
+	
+	0dc6 8f00      set40       // Loaded ACx.M values extend to the entire ACC. Don't see any actual use though.
+
+	// Yep, this pretty much confirms that 0x02b0 is precomputed read addresses.
 	0dc7 1943      lrri        $AR3, @$AR2
 	0dc8 4bc3      addax'ld    $ACC1, $AX1 : $AX0.L, $AX1.L, @$AR3
 	0dc9 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
@@ -4678,6 +4761,8 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0dd0 4bc3      addax'ld    $ACC1, $AX1 : $AX0.L, $AX1.L, @$AR3
 	0dd1 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
 	// 0dd2 114e 0dda bloopi      #0x4e, 0x0dda
+	// Count the stores - 0x4e stores in the main loop, two more afterwards.
+	// Deeply pipelined.
 	for (int i = 0; i < 0x4e; i++) {
 		0dd4 f2c3      madd'ld     $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
 		0dd5 f2c3      madd'ld     $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
@@ -4692,15 +4777,20 @@ void 0d7f_Unk_MaybeResample(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	0ddd f231      madd's      $AX0.L, $AX0.H : @$AR1, $AC0.M
 	0dde fe00      movpz       $ACC0
 	0ddf 1b3e      srri        @$AR1, $AC0.M
-	0de0 8b00      m0          
-	0de1 8e00      set16       
 	
-back_from_subroutine:
+	// Things back to normal.
+	// 0de0 8b00      m0          
+	// 0de1 8e00      set16       
+	
+back_from_JustCopyWithoutResampling:
 	0de2 00fe 0433 sr          @0x0433, $AC0.M
 	0de4 1c1f      mrr         $AR0, $AC1.M
 	0de5 150c      lsl         $ACC1, #12
 	0de6 0340 0fff andi        $AC1.M, #0x0fff
 	0de8 00ff 0430 sr          @0x0430, $AC1.M
+	
+	// Store the last 4 samples or something undecoded
+	// back into the PB.
 	0dea 0083 043c lri         $AR3, #0x043c
 	0dec 191e      lrri        $AC0.M, @$AR0
 	0ded 191f      lrri        $AC1.M, @$AR0
@@ -4711,19 +4801,25 @@ back_from_subroutine:
 	// 0df2 02df      ret         
 	return;
 	
-subroutine:
-	0df3 1fe0      mrr         $AC1.M, $AR0
-	0df4 1c1f      mrr         $AR0, $AC1.M
+JustCopyWithoutResampling:
+	// 0df3 1fe0      mrr         $AC1.M, $AR0
+	// 0df4 1c1f      mrr         $AR0, $AC1.M    // This instruction looks very pointless.
 
-	// add two buffers?
-	0df5 1128 0dfc bloopi      #0x28, 0x0dfc
-		0df7 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
-		0df8 1b3e      srri        @$AR1, $AC0.M
-		0df9 1c1f      mrr         $AR0, $AC1.M
-		0dfa 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
-		0dfb 1b3e      srri        @$AR1, $AC0.M
-		0dfc 1c1f      mrr         $AR0, $AC1.M
-	
+	// 0df5 1128 0dfc bloopi      #0x28, 0x0dfc
+	//	0df7 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
+	//	0df8 1b3e      srri        @$AR1, $AC0.M
+	//	0df9 1c1f      mrr         $AR0, $AC1.M	
+	//	0dfa 4b70      addax'l     $ACC1, $AX1 : $AC0.M, @$AR0
+	//	0dfb 1b3e      srri        @$AR1, $AC0.M
+	//	0dfc 1c1f      mrr         $AR0, $AC1.M
+	for (int i = 0; i < 0x50; i++) {
+		$ACC1 += $AX1;     // This is to still advance the playback position.
+		$AC0.M = *($AR0++);
+		*($AR1++) = $AC0.M;
+		$AR0 = $AC1.M;  // Undo the increment
+	}
+
+	// Looks like $AR0 stays unchanged, while $AR1 gets incremented by 0x50.
 	0dfd 029f 0de2 jmp         0x0de2
 } 
  

@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Debugger.h"
+#include "DebuggerUIUtil.h"
 #include "Common.h"
 
 #include "MemoryView.h"

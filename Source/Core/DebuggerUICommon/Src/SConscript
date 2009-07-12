@@ -4,6 +4,7 @@ Import('env')
 
 files = [
     'CodeView.cpp',
+    'MemoryView.cpp',
     'DebuggerUIUtil.cpp',
     ]
 

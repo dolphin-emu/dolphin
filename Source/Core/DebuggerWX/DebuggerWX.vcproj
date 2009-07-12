@@ -427,14 +427,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\MemoryView.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\MemoryView.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\RegisterView.cpp"
 				>
 			</File>

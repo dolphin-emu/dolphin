@@ -420,6 +420,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\MemoryView.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\MemoryView.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>
