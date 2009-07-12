@@ -134,6 +134,8 @@ _lRestart:
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
 			PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1) + PB.Length;
+			while (outpos < _RealSize)
+				_Buffer[outpos++] = 0;
 			return;
 		}
 		else
@@ -228,6 +230,8 @@ restart:
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
 			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
+			while (sampleCount < _RealSize)
+				_Buffer[sampleCount++] = 0;
 			return;
 		}
 		else
