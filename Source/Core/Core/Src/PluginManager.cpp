@@ -111,7 +111,7 @@ CPluginManager::~CPluginManager()
 
 	for (int i = 0; i < MAXPADS; i++)
 	{
-		if (m_pad[i] && (OkayToInitPlugin(i) != -1))
+		if (m_pad[i] && (OkayToInitPlugin(i) == -1))
 		{
 			INFO_LOG(CONSOLE, "Delete: %i\n", i);
 			delete m_pad[i];
@@ -555,4 +555,4 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename); 
 	}
 }
-///////////////////////////////////////////
+
