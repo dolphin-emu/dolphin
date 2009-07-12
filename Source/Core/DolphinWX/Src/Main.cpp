@@ -164,15 +164,19 @@ bool DolphinApp::OnInit()
 		}
 		else
 		{
-			char tmpChar[256];
-			fread(tmpChar, 1, 255, workingDir);
+			char *tmpChar;
+			long len;
+			fseek(workingDir,0,SEEK_END);
+			len=ftell(workingDir);
+			fseek(workingDir,0,SEEK_SET);
+			tmpChar = new char[len];
+			fread(tmpChar, len, 1, workingDir);
 			fclose(workingDir);
-			wxSetWorkingDirectory(wxString::FromAscii(tmpChar));
-			//PanicAlert("%s\n%s",tmpChar, (const char*)wxGetCwd().mb_str(/*wxConvUTF8*/));
-			if (strcmp(tmpChar, wxGetCwd().mb_str()) != 0)
+			if (!wxSetWorkingDirectory(wxString::FromAscii(tmpChar)))
 			{
 				PanicAlert("set working directory failed");
 			}
+			delete [] tmpChar;
 		}
 	}
 #endif
