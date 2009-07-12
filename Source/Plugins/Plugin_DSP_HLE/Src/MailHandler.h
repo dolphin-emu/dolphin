@@ -43,7 +43,7 @@ public:
 			return m_Mails.front();
 		else
 		{
-			WARN_LOG(DSPHLE, "GetNextMail: No mails");
+			// WARN_LOG(DSPHLE, "GetNextMail: No mails");
 			return 0;  // 
 		}
 	}
