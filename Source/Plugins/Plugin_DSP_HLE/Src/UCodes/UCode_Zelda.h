@@ -166,7 +166,7 @@ private:
 
 	// These are the only dynamically allocated things allowed in the ucode.
 	s32* m_VoiceBuffer;
-	s32* m_ResampleBuffer;
+	s16* m_ResampleBuffer;
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
@@ -237,11 +237,14 @@ private:
 	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderVoice_PCM16(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
-	void RenderVoice_AFC(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
+	void RenderVoice_AFC(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 	void RenderVoice_Raw(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 
-	void Resample(ZeldaVoicePB &PB, int size, s32 *in, s32 *out);
+	void Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample = false);
+
+	int ConvertRatio(int pb_ratio);
+	int SizeForResampling(ZeldaVoicePB &PB, int size, int ratio);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);

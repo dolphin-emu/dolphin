@@ -1260,16 +1260,16 @@ void 04eb_COMMAND_02()  // sync frame
 					05b4 18fa      lrrd        $AX0.H, @$AR3
 					05b5 8600      tstaxh      $AX0.H
 					05b6 0294 05c6 jnz         0x05c6
-					05b8 18fa      lrrd        $AX0.H, @$AR3
-					05b9 8600      tstaxh      $AX0.H
-					05ba 0294 05c6 jnz         0x05c6
-					05bc 18fa      lrrd        $AX0.H, @$AR3
-					05bd 8600      tstaxh      $AX0.H
-					05be 0294 05c6 jnz         0x05c6
-					05c0 8100      clr         $ACC0
-					05c1 18fe      lrrd        $AC0.M, @$AR3
-					05c2 0280 7fff cmpi        $AC0.M, #0x7fff
-					05c4 0295 05c8 jz          0x05c8
+						05b8 18fa      lrrd        $AX0.H, @$AR3
+						05b9 8600      tstaxh      $AX0.H
+						05ba 0294 05c6 jnz         0x05c6
+							05bc 18fa      lrrd        $AX0.H, @$AR3
+							05bd 8600      tstaxh      $AX0.H
+							05be 0294 05c6 jnz         0x05c6
+								05c0 8100      clr         $ACC0
+								05c1 18fe      lrrd        $AC0.M, @$AR3
+								05c2 0280 7fff cmpi        $AC0.M, #0x7fff
+								05c4 0295 05c8 jz          0x05c8
 					05c6 02bf 01fc call        0x01fc
 				05c8 8100      clr         $ACC0
 				05c9 1c9e      mrr         $IX0, $AC0.M
@@ -1288,7 +1288,7 @@ void 04eb_COMMAND_02()  // sync frame
 					05dc 199a      lrrn        $AX0.H, @$AR0
 					05dd 6554      movr'ln     $ACC1, $AX0.H : $AX0.H, @$AR0
 					05de 005e      loop        $AC0.M
-					05df 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M
+						05df 65ad      movr'lsnm   $ACC1, $AX0.H : $AX0.H, $AC1.M
 				05e0 00da 0485 lr          $AX0.H, @0x0485
 				05e2 8600      tstaxh      $AX0.H
 				05e3 0295 05f6 jz          0x05f6

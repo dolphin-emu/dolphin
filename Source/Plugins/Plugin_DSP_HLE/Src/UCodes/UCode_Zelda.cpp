@@ -82,7 +82,7 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	}
 
 	m_VoiceBuffer = new s32[256 * 1024];
-	m_ResampleBuffer = new s32[256 * 1024];
+	m_ResampleBuffer = new s16[256 * 1024];
 	m_LeftBuffer = new s32[256 * 1024];
 	m_RightBuffer = new s32[256 * 1024];
 
