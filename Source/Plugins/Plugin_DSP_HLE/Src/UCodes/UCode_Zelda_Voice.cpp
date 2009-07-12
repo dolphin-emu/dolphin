@@ -312,7 +312,7 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 
 	if (PB.RemLength < _RealSize)
 	{
-		WARN_LOG(VIDEO, "Raw: END");
+		WARN_LOG(DSPHLE, "Raw: END");
 		// Let's ignore this entire case since it doesn't seem to happen
 		// in Zelda, since Length is set to 0xF0000000
 		// blah
@@ -526,7 +526,7 @@ ContinueWithBlock:
 		AX1L = m_MiscTable[0x200 + AX1L];
 		AX1H = m_MiscTable[0x200 + AX1H];
 
-		short b00[16];
+		short b00[20];
 		b00[0] = AX1L * AX1H >> 16;
 		b00[1] = AX0L * AX1H >> 16;
 		b00[2] = AX0H * AX1L >> 16;
@@ -646,9 +646,10 @@ ContinueWithBlock:
 // size is in stereo samples.
 void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 {
+	// PanicAlert("mixadd");
 	// Safety check
-	if (_Size > 256 * 1024)
-		_Size = 256 * 1024;
+	if (_Size > 256 * 1024 - 8)
+		_Size = 256 * 1024 - 8;
 
 	// Final mix buffers
 	memset(m_LeftBuffer, 0, _Size * sizeof(s32));

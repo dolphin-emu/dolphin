@@ -37,7 +37,16 @@ public:
 	u16 ReadDSPMailboxLow();
 	void Update();
 
-	u32 GetNextMail() { return m_Mails.front(); }
+	u32 GetNextMail()
+	{ 
+		if (m_Mails.size())
+			return m_Mails.front();
+		else
+		{
+			WARN_LOG(DSPHLE, "GetNextMail: No mails");
+			return 0;  // 
+		}
+	}
 
 private:
 	// mail handler
