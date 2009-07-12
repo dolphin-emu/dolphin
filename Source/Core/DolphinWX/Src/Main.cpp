@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 #include "svnrev.h"
@@ -48,15 +44,12 @@
 #include "JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
-////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
+	#include <wx/stdpaths.h>
 	bool wxMsgAlert(const char*, const char*, bool, int);
 #endif
 
@@ -91,21 +84,18 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
-///////////////////////////////////
 
+// The `main program' equivalent that creates the main window and return the main frame 
 
-/////////////////////////////////////////////////////////////
-/* The `main program' equivalent that creates the main window and return the main frame */
-// ¯¯¯¯¯¯¯¯¯
 bool DolphinApp::OnInit()
 {
-	//Console::Open();
 
 	NOTICE_LOG(BOOT, "Starting application");
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
-	bool LoadElf = false; wxString ElfFile;
+	bool LoadElf = false;
+	wxString ElfFile;
 
 	// Detect CPU info and write it to the cpu_info struct
 	cpu_info.Detect();
@@ -122,9 +112,7 @@ bool DolphinApp::OnInit()
 #endif
 
 
-	// ------------------------------------------
 	// Show CPU message
-	// ---------------
 	#ifdef _WIN32
 		EXTENDEDTRACEINITIALIZE(".");
 		SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
@@ -138,6 +126,56 @@ bool DolphinApp::OnInit()
 							 "Sayonara!\n");
 			return false;
 		}
+#ifndef __APPLE__
+	// Keep the user config dir free unless user wants to save the working dir
+	FILE* noCheckForInstallDir = fopen(FULL_CONFIG_DIR "portable", "r");
+	if (!noCheckForInstallDir)
+	{
+		char tmp[1024];
+		sprintf(tmp, "%s/.dolphinwd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(wxConvUTF8));
+		FILE* workingDir = fopen(tmp, "r");
+		if (!workingDir)
+		{
+			if (PanicYesNo("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
+			{
+				FILE* portable = fopen(FULL_CONFIG_DIR "portable", "w");
+				if (!portable)
+				{
+					PanicAlert("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
+				}
+			}
+			else
+			{
+				char CWD[1024];
+				sprintf(CWD, "%s", (const char*)wxGetCwd().mb_str(wxConvUTF8));
+				if (PanicYesNo("Set install location to:\n %s ?", CWD))
+				{
+					FILE* workingDirF = fopen(tmp, "w");
+					if (!workingDirF) PanicAlert("Install directory could not be saved");
+					else
+					{
+						fwrite(CWD, ((std::string)CWD).size()+1, 1, workingDirF);
+						fwrite("", 1, 1, workingDirF); //seems to be needed on linux
+						fclose(workingDirF);
+					}
+				}
+				else PanicAlert("Relaunch Dolphin from the install directory and save from there");
+			}
+		}
+		else
+		{
+			char tmpChar[256];
+			fread(tmpChar, 1, 255, workingDir);
+			fclose(workingDir);
+			wxSetWorkingDirectory(wxString::FromAscii(tmpChar));
+			//PanicAlert("%s\n%s",tmpChar, (const char*)wxGetCwd().mb_str(/*wxConvUTF8*/));
+			if (strcmp(tmpChar, wxGetCwd().mb_str()) != 0)
+			{
+				PanicAlert("set working directory failed");
+			}
+		}
+	}
+#endif
 
 	// Parse command lines
 	#if wxUSE_CMDLINE_PARSER
