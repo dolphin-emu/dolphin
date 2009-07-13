@@ -3,8 +3,9 @@
 #include <stdarg.h>
 
 #ifndef _WIN32
-//#include <curses.h>
+#include <sys/param.h>
 #else
+
 #endif
 
 #include "Common.h"
@@ -208,7 +209,7 @@ int main(int argc, char* argv[])
 			if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
 				PanicAlert("Could not open ~/Library/Application Support");
 
-			strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
+			strncat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
 			
 			if (!File::Exists(AppSupportDir))
 				File::CreateDir(AppSupportDir);

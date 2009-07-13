@@ -63,21 +63,13 @@ static GekkoOPTemplate primarytable[] =
 	{28, Interpreter::andi_rc,         {"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, Interpreter::andis_rc,        {"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-#if JITTEST
 	{32, Interpreter::lwz,             {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{33, Interpreter::lwzu,            {"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{34, Interpreter::lbz,             {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{35, Interpreter::lbzu,            {"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, Interpreter::lhz,             {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, Interpreter::lhzu,            {"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#else
-	{32, Interpreter::lwz,             {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, Interpreter::lwzu,        {"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, Interpreter::lbz,             {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, Interpreter::lbzu,        {"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, Interpreter::lhz,             {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, Interpreter::lhzu,        {"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#endif
+
 	{42, Interpreter::lha,             {"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, Interpreter::lhau,        {"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
@@ -213,7 +205,7 @@ static GekkoOPTemplate table31[] =
 	{470,  Interpreter::dcbi,     {"dcbi",   OPTYPE_DCACHE, 0, 4}},
 	{758,  Interpreter::dcba,     {"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, Interpreter::dcbz,        {"dcbz",   OPTYPE_DCACHE, 0, 4}},
-#if JITTEST
+	
 	//load word
 	{23,  Interpreter::lwzx,         {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{55,  Interpreter::lwzux,        {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
@@ -229,23 +221,7 @@ static GekkoOPTemplate table31[] =
 	//load byte
 	{87,  Interpreter::lbzx,         {"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{119, Interpreter::lbzux,        {"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-#else
-	//load word
-	{23,  Interpreter::lwzx,        {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  Interpreter::lwzux,      {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
-	//load halfword
-	{279, Interpreter::lhzx,     {"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, Interpreter::lhzux,    {"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
-	//load halfword signextend
-	{343, Interpreter::lhax,        {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, Interpreter::lhaux,    {"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
-	//load byte
-	{87,  Interpreter::lbzx,        {"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, Interpreter::lbzux,    {"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-#endif
+	
 	//load byte reverse
 	{534, Interpreter::lwbrx,   {"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{790, Interpreter::lhbrx,   {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
@@ -321,11 +297,7 @@ static GekkoOPTemplate table31_2[] =
 	{10,  Interpreter::addcx,         {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{138, Interpreter::addex,           {"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{234, Interpreter::addmex,        {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#if JITTEST
 	{202, Interpreter::addzex,         {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#else
-	{202, Interpreter::addzex,        {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#endif
 	{491, Interpreter::divwx,         {"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{459, Interpreter::divwux,         {"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{75,  Interpreter::mulhwx,        {"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},

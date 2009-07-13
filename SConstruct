@@ -109,6 +109,7 @@ vars.AddVariables(
     BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
     BoolVariable('gltest', 'temp don\'t use (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
+	BoolVariable('nojit', 'Remove entire jit cores', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
                  ignorecase = 2
@@ -310,8 +311,13 @@ conf.Define('GLTEST', env['GLTEST'])
 env['JITTEST'] = 0
 if env['jittest']:
     env['JITTEST'] = 1
+	
+env['NOJIT'] = 0
+if env['nojit']:
+	env['NOJIT'] = 1
 
 conf.Define('JITTEST', env['JITTEST'])
+conf.Define('NOJIT', env['NOJIT'])
 
 # Creating config.h defines
 conf.Define('HAVE_SDL', env['HAVE_SDL'])

@@ -36,10 +36,6 @@
 #include "../JitCommon/JitCache.h"
 #include "../JitCommon/Jit_Tables.h"
 
-#if  !defined JITTEST || ! JITTEST
-#error JitIL needs JITTEST define
-#endif
-
 using namespace Gen;
 using namespace PowerPC;
 

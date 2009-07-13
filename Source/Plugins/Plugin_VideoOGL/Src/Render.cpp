@@ -1237,7 +1237,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	OSD::AddMessage(StringFromFormat("Saved %i x %i %s\n", W, H, s_sScreenshotName.c_str()).c_str(), 2000);
 
 #else
-	bool result = SaveTGA(filename, w, h, data);
+	bool result = SaveTGA(filename, W, H, data);
 	free(data);
 #endif
 	return result;

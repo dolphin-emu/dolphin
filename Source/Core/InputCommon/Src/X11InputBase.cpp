@@ -1,7 +1,12 @@
 
 #include "X11InputBase.h"
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
 namespace InputCommon
 {
+#ifdef HAVE_WX
+#include <wx/wx.h>
 // Taken from wxw source code
 KeySym wxCharCodeWXToX(int id)
 {
@@ -84,7 +89,7 @@ KeySym wxCharCodeWXToX(int id)
 
     return keySym;
 }
-
+#endif
 void XKeyToString(unsigned int keycode, char *keyStr) {
   switch (keycode) {
     

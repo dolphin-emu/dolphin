@@ -23,12 +23,14 @@
 #include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
+#ifndef NOJIT
 #include "JitCommon/Jit_Tables.h"
 
 #if defined(_M_IX86) || defined(_M_X64)
 #include "Jit64/Jit.h"
 #else
 #error Unknown architecture!
+#endif
 #endif
 
 struct op_inf
@@ -158,7 +160,10 @@ void InitTables()
 {
 	// Interpreter ALWAYS needs to be initialized
 	InterpreterTables::InitTables();
+	#ifndef NOJIT
+	// Should be able to do this a better way than defines in this function
 	JitTables::InitTables();
+	#endif
 }
 
 #define OPLOG

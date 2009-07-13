@@ -90,36 +90,36 @@ files = ["ActionReplay.cpp",
          "HLE/HLE_Misc.cpp",
          "HLE/HLE_OS.cpp",
         ]
-
-if env['JITTEST']:
-    files += ["PowerPC/Jit64IL/Jit.cpp",
-              "PowerPC/Jit64IL/JitAsm.cpp",
-              "PowerPC/Jit64IL/Jit_Branch.cpp",
-              "PowerPC/Jit64IL/Jit_Integer.cpp",
-              "PowerPC/Jit64IL/Jit_FloatingPoint.cpp",
-              "PowerPC/Jit64IL/Jit_LoadStorePaired.cpp",
-              "PowerPC/Jit64IL/Jit_Paired.cpp",
-              "PowerPC/Jit64IL/Jit_LoadStore.cpp",
-              "PowerPC/Jit64IL/Jit_LoadStoreFloating.cpp",
-              "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
-              "PowerPC/Jit64IL/IR.cpp",
-              "PowerPC/Jit64IL/IR_X86.cpp",
-			  "PowerPC/JitCommon//Jit_Tables.cpp",
-             ]
-else:
-    files += ["PowerPC/Jit64/Jit.cpp",
-              "PowerPC/Jit64/JitRegCache.cpp",
-              "PowerPC/Jit64/JitAsm.cpp",
-              "PowerPC/Jit64/Jit_Branch.cpp",
-              "PowerPC/Jit64/Jit_Integer.cpp",
-              "PowerPC/Jit64/Jit_FloatingPoint.cpp",
-              "PowerPC/Jit64/Jit_LoadStorePaired.cpp",
-              "PowerPC/Jit64/Jit_Paired.cpp",
-              "PowerPC/Jit64/Jit_LoadStore.cpp",
-              "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
-              "PowerPC/Jit64/Jit_SystemRegisters.cpp",
-			  "PowerPC/JitCommon/Jit_Tables.cpp",
-             ]
+if not env['NOJIT']:
+	if env['JITTEST']:
+		files += ["PowerPC/Jit64IL/Jit.cpp",
+				  "PowerPC/Jit64IL/JitAsm.cpp",
+				  "PowerPC/Jit64IL/Jit_Branch.cpp",
+				  "PowerPC/Jit64IL/Jit_Integer.cpp",
+				  "PowerPC/Jit64IL/Jit_FloatingPoint.cpp",
+				  "PowerPC/Jit64IL/Jit_LoadStorePaired.cpp",
+				  "PowerPC/Jit64IL/Jit_Paired.cpp",
+				  "PowerPC/Jit64IL/Jit_LoadStore.cpp",
+				  "PowerPC/Jit64IL/Jit_LoadStoreFloating.cpp",
+				  "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
+				  "PowerPC/Jit64IL/IR.cpp",
+				  "PowerPC/Jit64IL/IR_X86.cpp",
+				  "PowerPC/JitCommon//Jit_Tables.cpp",
+				 ]
+	else:
+		files += ["PowerPC/Jit64/Jit.cpp",
+				  "PowerPC/Jit64/JitRegCache.cpp",
+				  "PowerPC/Jit64/JitAsm.cpp",
+				  "PowerPC/Jit64/Jit_Branch.cpp",
+				  "PowerPC/Jit64/Jit_Integer.cpp",
+				  "PowerPC/Jit64/Jit_FloatingPoint.cpp",
+				  "PowerPC/Jit64/Jit_LoadStorePaired.cpp",
+				  "PowerPC/Jit64/Jit_Paired.cpp",
+				  "PowerPC/Jit64/Jit_LoadStore.cpp",
+				  "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
+				  "PowerPC/Jit64/Jit_SystemRegisters.cpp",
+				  "PowerPC/JitCommon/Jit_Tables.cpp",
+				 ]
 
 if sys.platform == 'win32':
     files += [ "stdafx.cpp",
