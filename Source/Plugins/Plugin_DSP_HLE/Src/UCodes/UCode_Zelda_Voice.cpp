@@ -223,7 +223,7 @@ restart:
 	{
 		PB.ReachedEnd = 0;
 
-		// HACK: Looping doesn't work.
+		// HACK: AFC looping doesn't work.
 		if (true || PB.RepeatMode == 0)
 		{
 			PB.KeyOff = 1;
@@ -252,7 +252,7 @@ restart:
 
 	// Prefill the decode buffer.
     AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
-	PB.CurAddr += 9;
+	PB.CurAddr += PB.Format;  // 9 or 5
 
 	u32 SamplePosition = PB.Length - PB.RemLength;
     while (sampleCount < _RealSize)
@@ -275,7 +275,7 @@ restart:
 			prev_addr = PB.CurAddr;
 
 			AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
-			PB.CurAddr += 9;
+			PB.CurAddr += PB.Format;  // 9 or 5
 		}
     }
 
@@ -310,6 +310,8 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	// Decoder0x21Core starts here.
 	u32 AX0 = _RealSize;
 
+	// ERROR_LOG(DSPHLE, "0x21 volume mode: %i , stop: %i ", PB.VolumeMode, PB.StopOnSilence);
+
 	// The PB.StopOnSilence check is a hack, we should check the buffers and enter this
 	// only when the buffer is completely 0 (i.e. when the music has finished fading out)
 	if (PB.StopOnSilence || PB.RemLength < _RealSize)
@@ -343,7 +345,7 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	{
 		// There's something wrong with this looping code.
 
-		// ERROR_LOG(DSPHLE, "Raw loop: ReadAudio size = %04x 34:%04x %08x", PB.Unk36[0], PB.raw[0x34 ^ 1], (int)ACC0);
+		ERROR_LOG(DSPHLE, "Raw loop: ReadAudio size = %04x 34:%04x %08x", PB.Unk36[0], PB.raw[0x34 ^ 1], (int)ACC0);
 		Decoder21_ReadAudio(PB, PB.Unk36[0], _Buffer);
 
 		u32 ACC0 = _Size << 16;
@@ -478,8 +480,9 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
                         
   		// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:
+		case 0x0007: // Example: Pikmin 2 in a cave, not sure what sound it is.
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
-			WARN_LOG(DSPHLE, "Synthesizing 0x%04x", PB.Format);
+			WARN_LOG(DSPHLE, "Not synthesizing unreversed-engineerd format 0x%04x", PB.Format);
 			break;
 
 		default:
@@ -559,7 +562,7 @@ ContinueWithBlock:
 		for (int count = 0; count < 8; count++)
 		{
 			// The 8 buffers to mix to: 0d00, 0d60, 0f40 0ca0 0e80 0ee0 0c00 0c50
-			// We just mix to the first to and call it stereo :p
+			// We just mix to the first two and call it stereo :p
 			int value = b00[0x4 + count];
 			int delta = b00[0xC + count] << 11;
 			
@@ -648,7 +651,7 @@ ContinueWithBlock:
 // size is in stereo samples.
 void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 {
-	// PanicAlert("mixadd");
+	m_csMix.Enter();
 	// Safety check
 	if (_Size > 256 * 1024 - 8)
 		_Size = 256 * 1024 - 8;
@@ -695,4 +698,5 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 
 		_Buffer += 2;
 	}
+	m_csMix.Leave();
 }

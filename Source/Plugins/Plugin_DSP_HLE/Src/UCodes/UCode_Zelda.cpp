@@ -445,8 +445,15 @@ void CUCode_Zelda::ExecuteList()
 }
 
 
-void CUCode_Zelda::DoState(PointerWrap &p) {
+void CUCode_Zelda::DoState(PointerWrap &p)
+{
+	// It's bad if we try to save during Mix()
+	m_csMix.Enter();
+
 	p.Do(m_CRC);
+
+	p.Do(m_AFCCoefTable);
+	p.Do(m_MiscTable);
 
 	p.Do(m_bSyncInProgress);
 	p.Do(m_MaxVoice);
@@ -483,4 +490,8 @@ void CUCode_Zelda::DoState(PointerWrap &p) {
 	p.Do(m_NumPBs);
 	p.Do(m_PBAddress);
 	p.Do(m_PBAddress2);
+
+	m_rMailHandler.DoState(p);
+
+	m_csMix.Leave();
 }

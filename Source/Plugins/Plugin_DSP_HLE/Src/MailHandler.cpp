@@ -93,4 +93,41 @@ void CMailHandler::Update()
 	}
 }
 
+void CMailHandler::DoState(PointerWrap &p)
+{
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Clear();
+		int sz;
+		p.Do(sz);
+		for (int i = 0; i < sz; i++)
+		{
+			u32 mail;
+			p.Do(mail);
+			m_Mails.push(mail);
+		}
+	}
+	else  // WRITE and MEASURE
+	{
+		std::queue<u32> temp;
+		int sz = m_Mails.size();
+		p.Do(sz);
+		for (int i = 0; i < sz; i++)
+		{
+			u32 value = m_Mails.front();
+			m_Mails.pop();
+			p.Do(value);
+			temp.push(value);
+		}
+		if (!m_Mails.empty())
+			PanicAlert("CMailHandler::DoState - WTF?");
 
+		// Restore queue.
+		for (int i = 0; i < sz; i++)
+		{
+			u32 value = temp.front();
+			temp.pop();
+			m_Mails.push(value);
+		}
+	}
+}

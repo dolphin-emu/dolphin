@@ -23,7 +23,7 @@
 void HLEMixer::MixUCode(short *samples, int numSamples) {
 	// if this was called directly from the HLE, and not by timeout
 	if (g_Config.m_EnableHLEAudio && IsHLEReady()) {
-		IUCode* pUCode = CDSPHandler::GetInstance().GetUCode();
+		IUCode *pUCode = CDSPHandler::GetInstance().GetUCode();
 		if (pUCode && samples)
 			pUCode->MixAdd(samples, numSamples);
 	}

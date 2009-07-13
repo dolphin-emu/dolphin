@@ -21,6 +21,7 @@
 #include <queue>
 
 #include "Common.h"
+#include "ChunkFile.h"
 
 class CMailHandler
 {
@@ -31,6 +32,7 @@ public:
 	void PushMail(u32 _Mail);
 	void Clear();
 	void Halt(bool _Halt);
+	void DoState(PointerWrap &p);
 	bool IsEmpty();
 
 	u16 ReadDSPMailboxHigh();

@@ -82,6 +82,7 @@ IUCode* CDSPHandler::GetUCode()
 void CDSPHandler::SetUCode(u32 _crc)
 {
 	delete m_pUCode;
+
 	m_pUCode = NULL;
 	m_MailHandler.Clear();
 	m_pUCode = UCodeFactory(_crc, m_MailHandler);

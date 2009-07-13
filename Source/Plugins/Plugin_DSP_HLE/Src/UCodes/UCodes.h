@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "ChunkFile.h"
+#include "Thread.h"
 
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
@@ -46,6 +47,7 @@ public:
 
 protected:
 	CMailHandler& m_rMailHandler;
+	Common::CriticalSection m_csMix;
 };
 
 extern IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler);
