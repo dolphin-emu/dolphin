@@ -129,6 +129,28 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 
 void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 {
+	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i", 
+	//	_uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
+
+	if (m_bSyncCmdPending)
+	{
+		g_dspInitialize.pGenerateDSPInterrupt();
+		m_CurBuffer++;
+
+		if (m_CurBuffer == m_NumBuffers)
+		{
+			m_rMailHandler.PushMail(0x80000066); // seen in DSP_UC_Luigi.txt
+
+			soundStream->GetMixer()->SetHLEReady(true);
+			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+			soundStream->Update(); //do it in this thread to avoid sync problems
+
+			m_bSyncCmdPending = false;
+		}
+
+		return;
+	}
+
 	if (!m_bListInProgress)
 	{
 		switch ((_uMail >> 24) & 0x7F)
@@ -296,8 +318,13 @@ void CUCode_Zelda::ExecuteList()
 
 	u32 CmdMail = Read32();
 	u32 Command = (CmdMail >> 24) & 0x7f;
-	u32 Sync = CmdMail >> 16;
+	u32 Sync;
 	u32 ExtraData = CmdMail & 0xFFFF;
+
+	if (IsLightVersion())
+		Sync = 0x62 + (Command << 1); // seen in DSP_UC_Luigi.txt
+	else
+		Sync = CmdMail >> 16;
 
 	DEBUG_LOG(DSPHLE, "==============================================================================");
 	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
@@ -344,16 +371,7 @@ void CUCode_Zelda::ExecuteList()
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
 		{
-			if (!IsLightVersion())
-			{
-				m_bSyncCmdPending = true;
-			}
-			else
-			{
-				soundStream->GetMixer()->SetHLEReady(true);
-				DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-				soundStream->Update(); //do it in this thread to avoid sync problems
-			}
+			m_bSyncCmdPending = true;
 
 			m_CurBuffer = 0;
 			m_NumBuffers = (CmdMail >> 16) & 0xFF;

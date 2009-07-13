@@ -660,9 +660,12 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 	// For each PB...
 	for (u32 i = 0; i < m_NumVoices; i++)
 	{
-		u32 flags = m_SyncFlags[(i >> 4) & 0xF];
-		if (!(flags & 1 << (15 - (i & 0xF))))
-			continue;
+		if (!IsLightVersion())
+		{
+			u32 flags = m_SyncFlags[(i >> 4) & 0xF];
+			if (!(flags & 1 << (15 - (i & 0xF))))
+				continue;
+		}
 
 		ZeldaVoicePB pb;
 		ReadVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
