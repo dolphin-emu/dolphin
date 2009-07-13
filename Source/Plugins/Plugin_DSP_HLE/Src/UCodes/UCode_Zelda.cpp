@@ -133,6 +133,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	{
 		switch ((_uMail >> 24) & 0x7F)
 		{
+		case 0x00: m_numSteps = 1; break; // dummy
 		case 0x01: m_numSteps = 5; break; // DsetupTable
 		case 0x02: m_numSteps = 3; break; // DsyncFrame
 
@@ -303,6 +304,9 @@ void CUCode_Zelda::ExecuteList()
 
 	switch (Command)
 	{
+		// dummy
+		case 0x00: break;
+
 		// DsetupTable ... zelda ww jumps to 0x0095
 	    case 0x01:
 	    {
