@@ -31,10 +31,6 @@
 
 namespace Common
 {
-#ifndef _WIN32
-// TODO see thread.h
-void MemFence(){;}
-#endif
 
 #ifdef _WIN32
 
@@ -325,21 +321,6 @@ void SetCurrentThreadName(const TCHAR* szThreadName)
 	__except(EXCEPTION_CONTINUE_EXECUTION)
 	{}
 }
-// TODO: check if ever inline
-LONG SyncInterlockedIncrement(LONG *Dest)
-{
-    return InterlockedIncrement(Dest);
-}
-
-LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val)
-{
-	return InterlockedExchangeAdd(Dest, Val);
-}
-
-LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
-{
-	return InterlockedExchange(Dest, Val);
-}
 
 #else // !WIN32, so must be POSIX threads
 
@@ -514,48 +495,6 @@ void Event::Wait()
 
 	is_set_ = false;
 	pthread_mutex_unlock(&mutex_);
-}
-
-LONG SyncInterlockedIncrement(LONG *Dest)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Dest, 1);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xadd %0,%1"
-                       : "=r" (result), "=m" (*Dest)
-                       : "0" (1), "m" (*Dest)
-                       : "memory");
-  return result;
-#endif
-}
-
-LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Dest, Val);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xadd %0,%1"
-                       : "=r" (result), "=m" (*Dest)
-                       : "0" (Val), "m" (*Dest)
-                       : "memory");
-  return result;
-#endif
-}
-
-LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_lock_test_and_set(Dest, Val);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xchg %0,%1"
-                       : "=r" (result), "=m" (*Dest)
-                       : "0" (Val), "m" (*Dest)
-                       : "memory");
-  return result;
-#endif
 }
 
 #endif

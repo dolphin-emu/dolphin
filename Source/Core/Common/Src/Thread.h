@@ -72,18 +72,6 @@
 namespace Common
 {
 
-// MemFence: Neither the compiler nor the CPU can reorder memory accesses
-// beyond this barrier.
-#ifdef _WIN32
-__forceinline void MemFence()
-{
-	MemoryBarrier();
-}
-#else
-// TODO: UNIX experts, please implement the memory fence.
-void MemFence();
-#endif
-
 class CriticalSection
 {
 #ifdef _WIN32
@@ -205,10 +193,6 @@ void InitThreading();
 void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char *name);
-
-LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val);
-LONG SyncInterlockedExchange(LONG *Dest, LONG Val);
-LONG SyncInterlockedIncrement(LONG *Dest);
 
 } // namespace Common
 

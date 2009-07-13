@@ -54,6 +54,7 @@ Make AA apply instantly during gameplay if possible
 #include "Globals.h"
 #include "LogManager.h"
 #include "Thread.h"
+#include "Atomic.h"
 
 #include <cstdarg>
 
@@ -101,10 +102,10 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
-static volatile bool s_swapRequested = false;
+static volatile u32 s_swapRequested = false;
 static Common::Event s_swapResponseEvent;
 
-static volatile bool s_efbAccessRequested = false;
+static volatile u32 s_efbAccessRequested = false;
 static Common::Event s_efbResponseEvent;
 
 
@@ -390,10 +391,10 @@ void Shutdown(void)
 {
 	s_PluginInitialized = false;
 
-	s_efbAccessRequested = false;
+	s_efbAccessRequested = FALSE;
 	s_efbResponseEvent.Shutdown();
 
-	s_swapRequested = false;
+	s_swapRequested = FALSE;
 	s_swapResponseEvent.Shutdown();
 
 	Fifo_Shutdown();
@@ -450,11 +451,9 @@ static volatile struct
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequest()
 {
-	if (s_swapRequested)
+	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
-		s_swapRequested = false;
-
-		Common::MemFence();
+		s_swapRequested = FALSE;
 
 		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 
@@ -478,13 +477,10 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	if (s_swapRequested)
+	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
 		u32 aLower = xfbAddr;
 		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
-
-		Common::MemFence();
-
 		u32 bLower = s_beginFieldArgs.xfbAddr;
 		u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
 
@@ -508,9 +504,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_beginFieldArgs.fbWidth = fbWidth;
 		s_beginFieldArgs.fbHeight = fbHeight;
 
-		Common::MemFence();
-
-		s_swapRequested = true;
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 	}
 }
 
@@ -525,11 +519,9 @@ static volatile u32 s_AccessEFBResult = 0;
 
 void VideoFifo_CheckEFBAccess()
 {
-	if (s_efbAccessRequested)
+	if (Common::AtomicLoadAcquire(s_efbAccessRequested))
 	{
-		s_efbAccessRequested = false;
-
-		Common::MemFence();
+		s_efbAccessRequested = FALSE;
 
 		switch (s_accessEFBArgs.type)
 		{
@@ -593,9 +585,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		s_accessEFBArgs.x = x;
 		s_accessEFBArgs.y = y;
 
-		Common::MemFence();
-
-		s_efbAccessRequested = true;
+		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
 		if (g_VideoInitialize.bUseDualCore)
 			s_efbResponseEvent.MsgWait();

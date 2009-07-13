@@ -23,6 +23,7 @@
 #endif
 #include "MemoryUtil.h"
 #include "Thread.h"
+#include "Atomic.h"
 #include "OpcodeDecoding.h"
 
 #include "Fifo.h"
@@ -151,7 +152,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
-			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 0);
+			Common::AtomicStore(_fifo.CPReadIdle, 0);
 			//video_initialize.pLog("RUN...........................",FALSE);
 			int peek_counter = 0;
             while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
@@ -175,7 +176,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					if (readPtr == _fifo.CPBreakpoint)
                     {
 						video_initialize.pLog("!!! BP irq raised",FALSE);
-						Common::SyncInterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, 1);
+						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
 
                         video_initialize.pUpdateInterrupts();
                         break;
@@ -210,11 +211,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				}
 				// Execute new instructions found in uData
 				Video_SendFifoData(uData, distToSend);
-                Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
+                Common::AtomicStore(_fifo.CPReadPointer, readPtr);
+                Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
 			}
 			//video_initialize.pLog("..........................IDLE",FALSE);
-			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
+			Common::AtomicStore(_fifo.CPReadIdle, 1);
         }
 		s_criticalFifo.Leave();
     }

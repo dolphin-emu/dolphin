@@ -22,7 +22,7 @@
 
 #include "Common.h"
 #include "ChunkFile.h"
-#include "Thread.h"
+#include "Atomic.h"
 
 #include "PixelEngine.h"
 
@@ -360,7 +360,10 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
 		// we do it directly from videoThread because of
 		// Super Monkey Ball
-        Common::SyncInterlockedExchange((LONG*)&CommandProcessor::fifo.PEToken, _token);
+		// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
+		// That's what we've always done. We're counting on fifo.PEToken to be
+		// 4-byte padded.
+        Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 	}
 }
 

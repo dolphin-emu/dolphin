@@ -557,6 +557,18 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Atomic.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Atomic_GCC.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Atomic_Win32.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\BreakPoints.cpp"
 			>
 		</File>
