@@ -36,6 +36,10 @@
 #include <string.h>
 #include <errno.h>
 
+#ifndef _WIN32
+#include <unistd.h> // for unlink()
+#endif
+
 /* believe me, you *don't* want to change these constants !! */
 #define BYTES_PER_SECTOR	512
 #define RESERVED_SECTORS	32
