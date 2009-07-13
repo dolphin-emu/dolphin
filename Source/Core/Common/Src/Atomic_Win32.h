@@ -43,7 +43,7 @@ namespace Common
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value) {
-	InterlockedAdd((volatile LONG*)&target, (LONG)value);
+	InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicIncrement(volatile u32& target) {
