@@ -23,7 +23,7 @@
 #include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
-#ifndef NOJIT
+#if !(defined(NOJIT) && NOJIT)
 #include "JitCommon/Jit_Tables.h"
 
 #if defined(_M_IX86) || defined(_M_X64)
@@ -160,7 +160,7 @@ void InitTables()
 {
 	// Interpreter ALWAYS needs to be initialized
 	InterpreterTables::InitTables();
-	#ifndef NOJIT
+	#if !(defined(NOJIT) && NOJIT)
 	// Should be able to do this a better way than defines in this function
 	JitTables::InitTables();
 	#endif

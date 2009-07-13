@@ -38,11 +38,11 @@ namespace Common
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value) {
-	__sync_add_and_fetch(target, value);
+	__sync_add_and_fetch(&target, value);
 }
 
 inline void AtomicIncrement(volatile u32& target) {
-	__sync_add_and_fetch(target, 1);
+	__sync_add_and_fetch(&target, 1);
 }
 
 inline u32 AtomicLoad(volatile u32& src) {
@@ -57,7 +57,7 @@ inline void AtomicStore(volatile u32& dest, u32 value) {
 	dest = value; // 32-bit writes are always atomic.
 }
 inline void AtomicStoreRelease(volatile u32& dest, u32 value) {
-	__sync_lock_test_and_set(dest, value);
+	__sync_lock_test_and_set(&dest, value);
 }
 
 }
