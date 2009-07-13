@@ -310,7 +310,9 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	// Decoder0x21Core starts here.
 	u32 AX0 = _RealSize;
 
-	if (PB.RemLength < _RealSize)
+	// The PB.StopOnSilence check is a hack, we should check the buffers and enter this
+	// only when the buffer is completely 0 (i.e. when the music has finished fading out)
+	if (PB.StopOnSilence || PB.RemLength < _RealSize)
 	{
 		WARN_LOG(DSPHLE, "Raw: END");
 		// Let's ignore this entire case since it doesn't seem to happen
