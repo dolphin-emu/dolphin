@@ -3680,16 +3680,16 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 
 	
 	// 0abb 0292 0ad1 jg          0x0ad1
-	if ([0x043a,0x043b] > AC1.M) {
+	if ([0x043a,0x043b] <= AC1.M) {
 		// Happens when sound has finished playing?
 
 		// 0abd 8900      clr         $ACC1
 		// 0abe 00c0 043b lr          $AR0, @0x043b
 		ACC1 = 0;
-		AR0  = 0x043b;
+		AR0  = *0x043b;
 		
 		// 0ac0 02bf 0af6 call        0x0af6  // 0af6_Decoder0x21_MoreStuff()
-		0af6_Decoder0x21_MoreStuff(AR0=0x043b, AR3);
+		0af6_Decoder0x21_MoreStuff(AR0=*0x043b, AR3);
 		
 		// 0ac2 8100      clr         $ACC0
 		// 0ac3 1fd8      mrr         $AC0.M, $AX0.L

@@ -113,6 +113,11 @@ void DSPConfigDialogHLE::AddBackend(const char* backend)
 #endif
 }
 
+void DSPConfigDialogHLE::ClearBackends()
+{
+	m_BackendSelection->Clear();
+}
+
 DSPConfigDialogHLE::~DSPConfigDialogHLE()
 {
 }
