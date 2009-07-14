@@ -114,65 +114,116 @@ void UpdateSampleCounters10(ZeldaVoicePB &PB)
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
-	if (PB.KeyOff != 0)
-		return;
+	int rem_samples = _RealSize;
+	// KeyOff doesn't seem to work the way it's done in PCM16, so let's try the way
+	// it really works in the ucode here...
+	if (PB.KeyOff)
+		goto clear_buffer;
 	if (PB.NeedsReset)
 	{
-		// 0a7f_UpdateSampleCounters10
 		UpdateSampleCounters10(PB);
 		for (int i = 0; i < 4; i++) 
 			PB.ResamplerOldData[i] = 0;  // Doesn't belong here, but dunno where to do it.
 	}
-
-	int inpos = 0;
-	int outpos = 0;   // Must be before _lRestart
-
 	if (PB.ReachedEnd)
 	{
-_lRestart:  // retry_0a30
 		PB.ReachedEnd = 0;
-		if (PB.RepeatMode == 0)
-		{
-			while (outpos < _RealSize)    // 0a37
-				_Buffer[outpos++] = 0;
+reached_end:
+		if (!PB.RepeatMode) {
+			// One shot - play zeros the rest of the buffer.
+clear_buffer:
+			for (int i = 0; i < rem_samples; i++)
+				*_Buffer++ = 0;
 			PB.KeyOff = 1;
-
-			// I can't find the following two lines in the ucode:
-			PB.RemLength = 0;
-			PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1) + PB.Length;
 			return;
 		}
 		else
 		{
 			PB.RestartPos = PB.LoopStartPos;
 			UpdateSampleCounters10(PB);
-			inpos = 0;
 		}
 	}
-
-	const s16 *source = (const s16*)GetARAMPointer(PB.CurAddr);
-
-	for (; outpos < _RealSize;)
+	// SetupAccelerator
+	const s16 *read_ptr = (s16*)GetARAMPointer(PB.CurAddr);
+	if (PB.RemLength < rem_samples)
 	{
-		_Buffer[outpos++] = (s16)Common::swap16(source[inpos]);
-		inpos++;  // hm, above or below the if...
-		if ((inpos + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
-		{
-			PB.ReachedEnd = 1;
-			goto _lRestart;
-		}
+		// finish-up loop
+		for (int i = 0; i < PB.RemLength; i++)
+			*_Buffer++ = Common::swap16(*read_ptr++);
+		rem_samples -= PB.RemLength;
+		goto reached_end;
 	}
+	// main render loop
+	for (int i = 0; i < rem_samples; i++)
+		*_Buffer++ = Common::swap16(*read_ptr++);
 
-	if (PB.RemLength < inpos)
-	{
-		PB.RemLength = 0;
+	PB.RemLength -= rem_samples;
+	if (PB.RemLength == 0)
 		PB.ReachedEnd = 1;
-	}
-	else
-		PB.RemLength -= inpos;
-
-	PB.CurAddr += inpos << 1;
+	PB.CurAddr += rem_samples << 1;
 }
+
+void UpdateSampleCounters8(ZeldaVoicePB &PB)
+{
+	PB.RemLength = PB.Length - PB.RestartPos;
+	PB.CurAddr = PB.StartAddr + PB.RestartPos;
+	PB.ReachedEnd = 0;
+}
+
+void CUCode_Zelda::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+{
+	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
+	int rem_samples = _RealSize;
+	// KeyOff doesn't seem to work the way it's done in PCM16, so let's try the way
+	// it really works in the ucode here...
+	if (PB.KeyOff)
+		goto clear_buffer;
+	if (PB.NeedsReset)
+	{
+		UpdateSampleCounters8(PB);
+		for (int i = 0; i < 4; i++) 
+			PB.ResamplerOldData[i] = 0;  // Doesn't belong here, but dunno where to do it.
+	}
+	if (PB.ReachedEnd)
+	{
+reached_end:
+		PB.ReachedEnd = 0;
+		if (!PB.RepeatMode)
+		{
+			// One shot - play zeros the rest of the buffer.
+clear_buffer:
+			for (int i = 0; i < rem_samples; i++)
+				*_Buffer++ = 0;
+			PB.KeyOff = 1;
+			return;
+		}
+		else
+		{
+			PB.RestartPos = PB.LoopStartPos;
+			UpdateSampleCounters8(PB);
+		}
+	}
+
+	// SetupAccelerator
+	const s8 *read_ptr = (s8*)GetARAMPointer(PB.CurAddr);
+	if (PB.RemLength < rem_samples)
+	{
+		// finish-up loop
+		for (int i = 0; i < PB.RemLength; i++)
+			*_Buffer++ = (s8)(*read_ptr++) << 8;
+		rem_samples -= PB.RemLength;
+		goto reached_end;
+	}
+	// main render loop
+	for (int i = 0; i < rem_samples; i++)
+		*_Buffer++ = (s8)(*read_ptr++) << 8;
+
+	PB.RemLength -= rem_samples;
+	if (PB.RemLength == 0)
+		PB.ReachedEnd = 1;
+	PB.CurAddr += rem_samples;
+}
+
 
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
@@ -431,9 +482,8 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		break;
 
 	case 0x0008:        // PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
-		//WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
-		memset(m_ResampleBuffer + 4, 0, _Size * sizeof(s32));
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer);
+		RenderVoice_PCM8(PB, m_ResampleBuffer + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
 	case 0x0010:		// PCM16 - normal PCM 16-bit audio.
