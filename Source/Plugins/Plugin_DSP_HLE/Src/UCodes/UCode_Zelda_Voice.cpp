@@ -430,8 +430,8 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
-	case 0x0008:        // Likely PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
-		WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
+	case 0x0008:        // PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
+		//WARN_LOG(DSPHLE, "Unimplemented MixAddVoice format in zelda %04x", PB.Format);
 		memset(m_ResampleBuffer + 4, 0, _Size * sizeof(s32));
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer);
 		break;
@@ -446,14 +446,13 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		// to the output buffer. However, (if we ever see this sound type), we'll
 		// have to resample anyway since we're running at a different sample rate.
 
-		// Caution: Use at your own risk. Sounds awful :)
 		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
 	case 0x0021:
-		// Raw sound from RAM. Important for Zelda WW. Really need to implement - missing it causes hangs.
-		// Caution: Use at your own risk. Sounds awful :)
+		// Raw sound from RAM. Important for Zelda WW. Cutscenes use the music 
+		// to let the game know they ended
 		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
@@ -480,7 +479,9 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
                         
   		// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:
-		case 0x0007: // Example: Pikmin 2 in a cave, not sure what sound it is.
+		case 0x0004: // Example: Big Pikmin onion mothership landing/building a bridge in Pikmin
+		case 0x0007: // Example: "success" SFX in Pikmin 1, Pikmin 2 in a cave, not sure what sound it is.
+		case 0x000b: // Example: SFX in area selection menu in Pikmin
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
 			WARN_LOG(DSPHLE, "Not synthesizing unreversed-engineerd format 0x%04x", PB.Format);
 			break;
