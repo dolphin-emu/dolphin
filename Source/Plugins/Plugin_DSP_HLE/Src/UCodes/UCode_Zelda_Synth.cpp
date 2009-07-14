@@ -108,7 +108,7 @@ void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size
 
 void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
-	// TODO: Header, footer and cases this synth actually happens
+	// TODO: Header, footer
 	for (int i = 0; i < _Size; i++)
 		_Buffer[i++] = (s32)PB.RatioInt;
 }

@@ -3028,32 +3028,33 @@ void 087c_DefaultDecoder()
  
 // Jump table
 // switch(PB.Format)
-0891 029f 08b2 jmp         0x08b2 // case 0x0  // 08b2_Decoder0x0_SquareWave
-0893 029f 08ed jmp         0x08ed // case 0x1  // 08ed_Decoder0x1_SawWave
-0895 029f 08d5 jmp         0x08d5 // case 0x2  // 08d5_Decoder0x2_SquareSaw
-0897 029f 08c2 jmp         0x08c2 // case 0x3  // 08c2_Decoder0x3_RectangleWave
-0899 029f 08fb jmp         0x08fb // case 0x4  
-089b 029f 08b1 jmp         0x08b1 // case 0x5 (can never happen)
-089d 029f 0919 jmp         0x0919 // case 0x6
-089f 029f 091c jmp         0x091c // case 0x7  // 091c_Decoder0x7_WaveTable
-08a1 029f 08b1 jmp         0x08b1 // case 0x8 (can never happen)
-08a3 029f 08b1 jmp         0x08b1 // case 0x9 (can never happen)
-08a5 029f 093a jmp         0x093a // case 0xa
-08a7 029f 08f3 jmp         0x08f3 // case 0xb
-08a9 029f 08f7 jmp         0x08f7 // case 0xc (Zelda force field in temple of gods)
-08ab 029f 08b1 jmp         0x08b1 // case 0xd (unused)
-08ad 029f 08b1 jmp         0x08b1 // case 0xe (unused)
-08af 029f 08b1 jmp         0x08b1 // case 0xf (unused)
+0891 029f 08b2 jmp         0x08b2 // case 0x0  // 08b2_Decoder0x0_SquareWave (used in ZWW)
+0893 029f 08ed jmp         0x08ed // case 0x1  // 08ed_Decoder0x1_SawWave (used in ZWW)
+0895 029f 08d5 jmp         0x08d5 // case 0x2  // 08d5_Decoder0x2_SquareSaw (hasn't been spotted)
+0897 029f 08c2 jmp         0x08c2 // case 0x3  // 08c2_Decoder0x3_RectangleWave (hasn't been spotted)
+0899 029f 08fb jmp         0x08fb // case 0x4  (used in Pikmin)
+089b 029f 08b1 jmp         0x08b1 // case 0x5  (can never happen)
+089d 029f 0919 jmp         0x0919 // case 0x6  // 0919_Decoder0x6_Constant (hasn't been spotted)
+089f 029f 091c jmp         0x091c // case 0x7  // 091c_Decoder0x7_WaveTable (used in Pikmin)
+08a1 029f 08b1 jmp         0x08b1 // case 0x8  (can never happen)
+08a3 029f 08b1 jmp         0x08b1 // case 0x9  (can never happen)
+08a5 029f 093a jmp         0x093a // case 0xa  (hasn't been spotted)
+08a7 029f 08f3 jmp         0x08f3 // case 0xb  (used in Pikmin)
+08a9 029f 08f7 jmp         0x08f7 // case 0xc  (Zelda force field in temple of gods)
+08ab 029f 08b1 jmp         0x08b1 // case 0xd  (unused)
+08ad 029f 08b1 jmp         0x08b1 // case 0xe  (unused)
+08af 029f 08b1 jmp         0x08b1 // case 0xf  (unused)
 08b1 02df      ret         
 
 void 08b2_Decoder0x0_SquareWave(ACC0, AR0, AX0.L) { 
-	08b2 1401      lsl         $ACC0, #1       // t = samplePosition * 2
+	// 08b2 1401      lsl         $ACC0, #1       
+	t = samplePosition * 2;
 
 	// Set up sound buffers
-	//08b3 009b c000 lri         $AX1.H, #0xc000
-	//08b5 0099 4000 lri         $AX1.L, #0x4000
+	// 08b3 009b c000 lri         $AX1.H, #0xc000
+	// 08b5 0099 4000 lri         $AX1.L, #0x4000
 
-	//08b7 1150 08bf bloopi      #0x50, 0x08bf
+	// 08b7 1150 08bf bloopi      #0x50, 0x08bf
 	for(int i = 0; i < 80; i++) {
 		//08b9 02c0 0001 andcf       $AC0.M, #0x0001
 		//08bb 027c      iflnz       
@@ -3065,9 +3066,11 @@ void 08b2_Decoder0x0_SquareWave(ACC0, AR0, AX0.L) {
 		else
 			*$AR0++ = 0xc000;
 		
-		08bf 4800      addax       $ACC0, $AX0 // t += PB.Ratio
+		// 08bf 4800      addax       $ACC0, $AX0 
+		t += PB.Ratio;
 	}
-	08c0 147f      lsr         $ACC0, #-1 // t /= 2
+	// 08c0 147f      lsr         $ACC0, #-1 
+	t /= 2;
 	
 	// 08c1 02df      ret
 }
@@ -3079,14 +3082,14 @@ void 08c2_Decoder0x3_RectangleWave(ACC0, AR0, AX0.L) {
 	08c5 1501      lsl         $ACC1, #1       // ACC1 *= 2
 	08c6 009b c000 lri         $AX1.H, #0xc000
 	08c8 0099 4000 lri         $AX1.L, #0x4000
-	//08ca 1150 08d2 bloopi      #0x50, 0x08d2
+	// 08ca 1150 08d2 bloopi      #0x50, 0x08d2
 	for(int i = 0; i < 80; i++) {
-		//08cc 02c0 0003 andcf       $AC0.M, #0x0003
-		//08ce 027c      iflnz       
-		//	08cf 1b1b      srri        @$AR0, $AX1.H
-		//08d0 027d      iflz        
-		//	08d1 1b19      srri        @$AR0, $AX1.L
-		//08d2 4c00      add         $ACC0, $ACC1
+		// 08cc 02c0 0003 andcf       $AC0.M, #0x0003
+		// 08ce 027c      iflnz       
+		// 	08cf 1b1b      srri        @$AR0, $AX1.H
+		// 08d0 027d      iflz        
+		// 	08d1 1b19      srri        @$AR0, $AX1.L
+		// 08d2 4c00      add         $ACC0, $ACC1
 		
 		if (($AC0.M & 3) == 3)
 			*$AR0++ = 0x4000;
@@ -3095,7 +3098,9 @@ void 08c2_Decoder0x3_RectangleWave(ACC0, AR0, AX0.L) {
 			
 		t += (PB.RatioInt * 2);
 	}
-	08d3 147e      lsr         $ACC0, #-2 // t /= 4
+	// 08d3 147e      lsr         $ACC0, #-2 
+	t /= 4;
+	
 	// 08d4 02df      ret         
 }
 
@@ -3171,12 +3176,16 @@ void 08f3_Unk() {
 	// 0918 02df      ret         
 }
 
-void 0919_Decoder0x6(AR0, AX0.L) {
+void 0919_Decoder0x6_Constant(AR0, AX0.L) {
 	// case 0x6: Fills the buffer with PB.RatioInt (zero?)
 
-	0919 1050      loopi       #0x50
-	091a 1b18          srri        @$AR0, $AX0.L
-	091b 02df      ret         
+	// 0919 1050      loopi       #0x50
+	// 091a 1b18          srri        @$AR0, $AX0.L
+	
+	for(int i = 0; i < 0x50; i++)
+		*AR0++ = AX0.L; // PB.RatioInt
+	
+	// 091b 02df      ret         
 }
 
 void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
