@@ -75,9 +75,9 @@ void Step()
 {
 	DSPCore_CheckExceptions();
 
+#if PROFILE
 	g_dsp.step_counter++;
 
-#if PROFILE
 	g_dsp.err_pc = g_dsp.pc;
 
 	ProfilerAddDelta(g_dsp.err_pc, 1);

@@ -236,7 +236,6 @@ u16 gdsp_ifx_read(u16 addr)
 
 void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-	static bool reset = true;
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	u8* dst = ((u8*)g_dsp.iram);
@@ -246,17 +245,12 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+
+	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	
 	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
-	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
-	DSPAnalyzer::Analyze();
 
-	if (reset) {
-		// This calls the reset functions, but it get some games stuck
-		// uncomment it to help with debugging
-		//		DSPCore_SetException(EXP_RESET);
-		reset = false;
-	}
+	DSPAnalyzer::Analyze();
 }
 
 
@@ -321,7 +315,9 @@ void gdsp_do_dma()
 		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
-
+#ifdef DEBUG_EXP
+	NOTICE_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+#endif
 	switch (ctl & 0x3)
 	{
 	    case (DSP_CR_DMEM | DSP_CR_TO_CPU):

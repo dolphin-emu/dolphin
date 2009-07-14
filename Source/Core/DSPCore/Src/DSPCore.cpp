@@ -121,7 +121,6 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 
 	g_dsp.cr = 0x804;
 	gdsp_ifx_init();
-
 	// Mostly keep IRAM write protected. We unprotect only when DMA-ing
 	// in new ucodes.
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
