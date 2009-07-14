@@ -115,8 +115,6 @@ void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 	int rem_samples = _RealSize;
-	// KeyOff doesn't seem to work the way it's done in PCM16, so let's try the way
-	// it really works in the ucode here...
 	if (PB.KeyOff)
 		goto clear_buffer;
 	if (PB.NeedsReset)
@@ -174,8 +172,6 @@ void CUCode_Zelda::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 	int rem_samples = _RealSize;
-	// KeyOff doesn't seem to work the way it's done in PCM16, so let's try the way
-	// it really works in the ucode here...
 	if (PB.KeyOff)
 		goto clear_buffer;
 	if (PB.NeedsReset)
@@ -252,7 +248,11 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
     }
 
     if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
+	{
+		for (int i = 0; i < _RealSize; i++)
+			*_Buffer++ = 0;
         return;
+	}
 
 	// Round upwards how many samples we need to copy, 0759
     // u32 frac = NumberOfSamples & 0xF;
