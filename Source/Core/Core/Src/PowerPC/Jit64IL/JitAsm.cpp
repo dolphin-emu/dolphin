@@ -109,7 +109,7 @@ void AsmRoutineManager::Generate()
 				}
 				//grab from list and jump to it
 #ifdef _M_IX86
-				MOV(32, R(EDX), ImmPtr(jit.GetBlockCache()->GetCodePointers()));
+				MOV(32, R(EDX), ImmPtr(jit->GetBlockCache()->GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 #else
 				JMPptr(MComplex(R15, RAX, 8, 0));

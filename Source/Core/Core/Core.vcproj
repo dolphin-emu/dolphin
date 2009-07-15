@@ -944,6 +944,14 @@
 			Name="PowerPC"
 			>
 			<File
+				RelativePath=".\Src\PowerPC\CoreGeneralize.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\CoreGeneralize.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PowerPC\Gekko.h"
 				>
 			</File>
@@ -1140,6 +1148,26 @@
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Jit64\Jit_FloatingPoint.cpp"
+					>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\Jit64\Jit_Util.cpp"
 					>
 					<FileConfiguration
 						Name="Release_JITIL|Win32"
@@ -1863,6 +1891,58 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Jit64IL\Jit_Util.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Jit64IL\JitAsm.cpp"
 					>
 					<FileConfiguration
@@ -1928,10 +2008,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\JitCommon\Jit_Tables.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\JitCommon\Jit_Util.cpp"
 					>
 				</File>
 				<File
