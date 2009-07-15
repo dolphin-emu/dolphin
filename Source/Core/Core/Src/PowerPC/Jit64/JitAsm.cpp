@@ -76,7 +76,7 @@ void AsmRoutineManager::Generate()
 	const u8 *outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
-	
+	 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
@@ -107,7 +107,7 @@ void AsmRoutineManager::Generate()
 				}
 				//grab from list and jump to it
 #ifdef _M_IX86
-				MOV(32, R(EDX), ImmPtr(jit->GetBlockCache()->GetCodePointers()));
+				MOV(32, R(EDX), ImmPtr(jit.GetBlockCache()->GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 #else
 				JMPptr(MComplex(R15, RAX, 8, 0));
@@ -245,7 +245,7 @@ void AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(32);
 	fifoDirectWriteFloat = AlignCode4();
 	GenFifoFloatWrite();
-	fifoDirectWriteXmm64 = AlignCode4();
+	fifoDirectWriteXmm64 = AlignCode4(); 
 	GenFifoXmm64Write();
 
 	computeRcFp = AlignCode16();
