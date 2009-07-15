@@ -21,7 +21,7 @@
 // It's very unpolished though
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
-
+ 
 #include <gccore.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -43,7 +43,7 @@
 #include "ConsoleHelper.h"
 
 // Pull in some constants etc from DSPCore.
-#include "../Core/DSPCore/Src/gdsp_registers.h"
+#include "../Core/DSPCore/Src/DSPCore.h"
 
 // This is where the DSP binary is.
 #include "dsp_code.h"
