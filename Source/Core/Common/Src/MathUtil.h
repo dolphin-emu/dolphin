@@ -47,7 +47,6 @@ union IntFloat {
 
 inline bool IsNAN(double d)
 {
-	return d !=d;
 	IntDouble x; x.d = d;
 	return ( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
 			 ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) );
