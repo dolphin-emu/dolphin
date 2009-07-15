@@ -117,13 +117,22 @@ EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 
 // __________________________________________________________________________________________________
 // Function: Video_BeginField
-// Purpose:  When a vertical blank occurs in the VI emulator, this function tells the video plugin
-//           what the parameters of the upcoming field are. The video plugin should make sure the
-//           previous field is on the player's display before returning.
-// input:    vi parameters of the next field
+// Purpose:  When a field begins in the VI emulator, this function tells the video plugin what the
+//           parameters of the upcoming field are. The video plugin should make sure the previous
+//           field is on the player's display before returning.
+// input:    vi parameters of the upcoming field
 // output:   none
 //
 EXPORT void CALL Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
+
+// __________________________________________________________________________________________________
+// Function: Video_EndField
+// Purpose:  When a field ends in the VI emulator, this function notifies the video plugin. The video
+//           has permission to swap the field to the player's display.
+// input:    none
+// output:   none
+//
+EXPORT void CALL Video_EndField();
 
 // __________________________________________________________________________________________________
 // Function: Video_AccessEFB

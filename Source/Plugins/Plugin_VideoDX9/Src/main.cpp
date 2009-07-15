@@ -285,6 +285,10 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::BeginFrame();*/
 }
 
+void Video_EndField()
+{
+}
+
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	Renderer::AddMessage(pstr,milliseconds);

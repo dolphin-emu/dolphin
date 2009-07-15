@@ -25,6 +25,7 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 	Video_Prepare = 0;
 	Video_SendFifoData = 0;
 	Video_BeginField = 0;
+	Video_EndField = 0;
 	Video_EnterLoop = 0;
 	Video_ExitLoop = 0;
 	Video_Screenshot = 0;
@@ -37,6 +38,8 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 		(LoadSymbol("Video_SendFifoData"));
 	Video_BeginField = reinterpret_cast<TVideo_BeginField>
 		(LoadSymbol("Video_BeginField"));
+	Video_EndField = reinterpret_cast<TVideo_EndField>
+		(LoadSymbol("Video_EndField"));
 	Video_Screenshot = reinterpret_cast<TVideo_Screenshot>
 		(LoadSymbol("Video_Screenshot"));
 	Video_EnterLoop = reinterpret_cast<TVideo_EnterLoop>
@@ -50,7 +53,8 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 
 	if ((Video_Prepare      != 0) &&
 		(Video_SendFifoData != 0) &&
-		(Video_BeginField    != 0) &&
+		(Video_BeginField   != 0) &&
+		(Video_EndField     != 0) &&
 		(Video_EnterLoop    != 0) &&
 		(Video_ExitLoop     != 0) &&
 		(Video_Screenshot   != 0) &&

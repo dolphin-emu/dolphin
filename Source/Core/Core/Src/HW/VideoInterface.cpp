@@ -334,12 +334,15 @@ static UVIBorderBlankRegister		m_BorderHBlank;
 
 
 static u32 TicksPerFrame = 0;
-static u32 LineCount = 0;
-static u32 LinesPerField = 0;
-static u32 NextXFBRender = 0;
-int TargetRefreshRate = 0;
+static u32 s_lineCount = 0;
+static u32 s_upperFieldBegin = 0;
+static u32 s_upperFieldEnd = 0;
+static u32 s_lowerFieldBegin = 0;
+static u32 s_lowerFieldEnd = 0;
+
+double TargetRefreshRate = 0.0;
+double ActualRefreshRate = 0.0;
 s64 SyncTicksProgress = 0;
-float ActualRefreshRate = 0.0;
 
 void DoState(PointerWrap &p)
 {
@@ -369,15 +372,21 @@ void DoState(PointerWrap &p)
 	p.Do(m_BorderHBlank);
 
 	p.Do(TicksPerFrame);
-	p.Do(LineCount);
-	p.Do(LinesPerField);
-	p.Do(NextXFBRender);
+	p.Do(s_lineCount);
+	p.Do(s_upperFieldBegin);
+	p.Do(s_upperFieldEnd);
+	p.Do(s_lowerFieldBegin);
+	p.Do(s_lowerFieldEnd);
 }
 
 void PreInit(bool _bNTSC)
 {
 	TicksPerFrame = 0;
-	LineCount = 0;
+	s_lineCount = 0;
+	s_upperFieldBegin = 0;
+	s_upperFieldEnd = 0;
+	s_lowerFieldBegin = 0;
+	s_lowerFieldEnd = 0;
 
 	m_VerticalTimingRegister.EQU = 6;
 
@@ -437,7 +446,11 @@ void Init()
 
 	m_DisplayControlRegister.Hex = 0;
 
-	NextXFBRender = 1;
+	s_lineCount = 0;
+	s_upperFieldBegin = 0;
+	s_upperFieldEnd = 0;
+	s_lowerFieldBegin = 0;
+	s_lowerFieldEnd = 0;
 }
 
 void Read8(u8& _uReturnValue, const u32 _iAddress)
@@ -1005,23 +1018,62 @@ u32 GetXFBAddressBottom()
 }
 
 
+// NTSC is 60 FPS, right?
+// Wrong, it's about 59.94 FPS. The NTSC engineers had to slightly lower
+// the field rate from 60 FPS when they added color to the standard.
+// This was done to prevent analog interference between the video and
+// audio signals. PAL has no similar reduction; it is exactly 50 FPS.
+
+const double NTSC_FIELD_RATE = 60.0 / 1.001;
+const u32 NTSC_LINE_COUNT = 525;
+
+// An NTSC frame has the lower field first followed by the upper field.
+// TODO: Is this true for PAL-M? Is this true for EURGB60?
+
+const u32 NTSC_LOWER_BEGIN = 21;
+const u32 NTSC_LOWER_END = 263;
+const u32 NTSC_UPPER_BEGIN = 283;
+const u32 NTSC_UPPER_END = 525;
+
+const double PAL_FIELD_RATE = 50.0;
+const u32 PAL_LINE_COUNT = 625;
+
+// A PAL frame has the upper field first followed by the lower field.
+
+const u32 PAL_UPPER_BEGIN = 23; // TODO: Actually 23.5!
+const u32 PAL_UPPER_END = 310;
+const u32 PAL_LOWER_BEGIN = 336;
+const u32 PAL_LOWER_END = 623; // TODO: Actually 623.5!
 
 // Screenshot and screen message
 void UpdateTiming()
 {
     switch (m_DisplayControlRegister.FMT)
     {
+
     case 0: // NTSC
-    case 2: // MPAL
-        TicksPerFrame = SystemTimers::GetTicksPerSecond() / 30;
-        LineCount = m_DisplayControlRegister.NIN ? 263 : 525;
-		LinesPerField = 263;
+    case 2: // PAL-M
+
+        TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2.0));
+		s_lineCount = m_DisplayControlRegister.NIN ? (NTSC_LINE_COUNT+1)/2 : NTSC_LINE_COUNT;
+
+		// TODO: The game may have some control over these parameters (not that it's useful).
+
+		s_upperFieldBegin = NTSC_UPPER_BEGIN;
+		s_upperFieldEnd = NTSC_UPPER_END;
+		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
+		s_lowerFieldEnd = NTSC_LOWER_END;
         break;
 
     case 1: // PAL
-        TicksPerFrame = SystemTimers::GetTicksPerSecond() / 25;
-        LineCount = m_DisplayControlRegister.NIN ? 313 : 625;
-		LinesPerField = 313;
+
+        TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2.0));
+		s_lineCount = m_DisplayControlRegister.NIN ? (PAL_LINE_COUNT+1)/2 : PAL_LINE_COUNT;
+
+		s_upperFieldBegin = PAL_UPPER_BEGIN;
+		s_upperFieldEnd = PAL_UPPER_END;
+		s_lowerFieldBegin = PAL_LOWER_BEGIN;
+		s_lowerFieldEnd = PAL_LOWER_END;
         break;
 
 	case 3: // Debug
@@ -1031,17 +1083,18 @@ void UpdateTiming()
     default:
         PanicAlert("Unknown Video Format - CVideoInterface");
         break;
+
     }
 }
 
 int getTicksPerLine() {
-	if (LineCount == 0)
+	if (s_lineCount == 0)
 		return 100000;
-	return TicksPerFrame / LineCount;
+	return TicksPerFrame / s_lineCount;
 }
 
 
-static void BeginField(u32 xfbAddr, FieldType field)
+static void BeginField(FieldType field)
 {
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
@@ -1052,10 +1105,25 @@ static void BeginField(u32 xfbAddr, FieldType field)
 	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
 	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
 
+	// TODO: Are the "Bottom Field" and "Top Field" registers actually more
+	// like "First Field" and "Second Field" registers? There's an important
+	// difference because NTSC and PAL have opposite field orders.
+
+	u32 xfbAddr = (field == FIELD_LOWER) ? GetXFBAddressBottom() : GetXFBAddressTop();
+
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (xfbAddr && video->IsValid())
 	{
 		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
+	}
+}
+
+static void EndField()
+{
+	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+	if (video->IsValid())
+	{
+		video->Video_EndField();
 	}
 }
 
@@ -1067,7 +1135,7 @@ void Update()
 {
 	// Update the target refresh rate
 	TargetRefreshRate = (m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
-		? 60 : 50;
+		? NTSC_FIELD_RATE : PAL_FIELD_RATE;
 
 	// Calculate actual refresh rate
 	static u64 LastTick = 0;
@@ -1083,36 +1151,12 @@ void Update()
 		// rather than 50 and 60)
 
 		// TODO : Feed the FPS estimate into Iulius' framelimiter.
-		ActualRefreshRate = ((float)SyncTicksProgress / (float)TicksPerFrame) * 2.0;		
+		ActualRefreshRate = ((double)SyncTicksProgress / (double)TicksPerFrame) * 2.0;		
 		LastTick = CoreTiming::GetTicks();
 		SyncTicksProgress = 0;
 	}
-	
-    m_VBeamPos++;
-    if (m_VBeamPos > LineCount)
-    {
-        m_VBeamPos = 1;
-    }
 
-	if (m_VBeamPos == NextXFBRender)
-	{
-		if (NextXFBRender == 1)
-		{
-			NextXFBRender = LinesPerField;
-			// TODO: proper VI regs typedef and logic for XFB to work.
-			// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
-			// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
-			u32 xfbAddr = GetXFBAddressTop();
-			BeginField(xfbAddr, m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
-		}
-		else
-		{
-			NextXFBRender = 1;
-			// Previously checked m_XFBInfoTop.POFF then used m_XFBInfoBottom.FBB, try reverting if there are problems
-			u32 xfbAddr = GetXFBAddressBottom();
-			BeginField(xfbAddr, m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
-		}
-	}
+	// TODO: What's the correct behavior for progressive mode?
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -1122,6 +1166,22 @@ void Update()
 			UpdateInterrupts();
 		}
 	}
+
+	if (m_VBeamPos == s_upperFieldBegin)
+		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
+
+	if (m_VBeamPos == s_upperFieldEnd)
+		EndField();
+
+	if (m_VBeamPos == s_lowerFieldBegin)
+		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
+
+	if (m_VBeamPos == s_lowerFieldEnd)
+		EndField();
+
+    m_VBeamPos++;
+    if (m_VBeamPos > s_lineCount)
+        m_VBeamPos = 1;
 }
 
 } // namespace

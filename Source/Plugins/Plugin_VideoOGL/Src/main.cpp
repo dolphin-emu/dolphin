@@ -496,18 +496,25 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized)
 	{
-		if (g_VideoInitialize.bUseDualCore)
-			s_swapResponseEvent.MsgWait();
-		else
-			VideoFifo_CheckSwapRequest();
+		if (s_swapRequested)
+		{
+			if (g_VideoInitialize.bUseDualCore)
+				s_swapResponseEvent.MsgWait();
+			else
+				VideoFifo_CheckSwapRequest();
+		}
 
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
 		s_beginFieldArgs.fbHeight = fbHeight;
-
-		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 	}
+}
+
+// Run from the CPU thread (from VideoInterface.cpp)
+void Video_EndField()
+{
+	Common::AtomicStoreRelease(s_swapRequested, TRUE);
 }
 
 static volatile struct
