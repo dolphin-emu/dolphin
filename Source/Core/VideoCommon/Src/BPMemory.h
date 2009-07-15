@@ -62,13 +62,13 @@
 #define BPMEM_COPYFILTER1      0x54
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
-// what about 0x57?
+#define BPMEM_UNKOWN_57        0x57
 #define BPMEM_UNKNOWN          0x58
 #define BPMEM_SCISSOROFFSET    0x59
-#define BPMEM_UNKNOWN1         0x60
-#define BPMEM_UNKNOWN2         0x61
-#define BPMEM_UNKNOWN3         0x62
-#define BPMEM_UNKNOWN4         0x63
+#define BPMEM_UNKNOWN_60       0x60
+#define BPMEM_UNKNOWN_61       0x61
+#define BPMEM_UNKNOWN_62       0x62
+#define BPMEM_UNKNOWN_63       0x63
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
 #define BPMEM_TEXINVALIDATE    0x66

@@ -257,6 +257,7 @@ static void Decode()
         break;
 
     case 0x44:
+		DEBUG_LOG(VIDEO, "GX 0x44: %08x", Cmd);
         // zelda 4 swords calls it and checks the metrics registers after that
         break;
 

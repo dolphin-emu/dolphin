@@ -379,10 +379,13 @@ void BPWritten(const Bypass& bp)
 			PanicAlert("Unknown is not 0xF! val = 0x%08x", bp.newvalue);
 		break;
 
-	case BPMEM_UNKNOWN1:
-	case BPMEM_UNKNOWN2:
-	case BPMEM_UNKNOWN3:
-	case BPMEM_UNKNOWN4:
+	case BPMEM_UNKOWN_57: // Sunshine uses this: 0xAAA, 0x000, over and over, copy filter related?
+		break;
+
+	case BPMEM_UNKNOWN_60:
+	case BPMEM_UNKNOWN_61:
+	case BPMEM_UNKNOWN_62:
+	case BPMEM_UNKNOWN_63:
 		// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
 		// Are these related to BBox?
 		break;
@@ -588,7 +591,7 @@ void BPWritten(const Bypass& bp)
 			case BPMEM_TEV_ALPHA_ENV+32:
 				break;
 			default:
-				WARN_LOG(VIDEO, "Unknown Bypass opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
+				WARN_LOG(VIDEO, "Unknown BP opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
 				break;
 			}
 			

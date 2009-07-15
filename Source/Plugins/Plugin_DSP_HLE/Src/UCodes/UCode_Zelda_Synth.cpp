@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <math.h>
+
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
@@ -95,10 +97,11 @@ _lRestart:
 
 void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size) 
 {
-	s32 ratio = PB.RatioInt * 2;
+	s32 ratio = (s32)ceil((float)PB.RatioInt / 3);
 	s64 pos = PB.CurSampleFrac;
 
-	for (int i = 0; i < 0x50; i++) {
+	for (int i = 0; i < _Size; i++) 
+	{
 		pos += ratio;
 		_Buffer[i] = pos & 0xFFFF;
 	}
