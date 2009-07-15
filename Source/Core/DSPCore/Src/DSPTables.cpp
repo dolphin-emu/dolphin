@@ -162,8 +162,10 @@ const DSPOPCTemplate opcodes[] =
 	// discovered by ector!
 	{"LSRN",	0x02ca, 0xffff, DSPInterpreter::lsrn, nop, 1, 0, {}, NULL, NULL},
 	{"ASRN",	0x02cb, 0xffff, DSPInterpreter::asrn, nop, 1, 0, {}, NULL, NULL},
-	{"LSRNR",	0x3c80,  0xfeff, DSPInterpreter::lsrnr, nop, 1, 1, {{P_ACC, 1, 0, 8, 0x0100}}, NULL, NULL},
-	
+
+	// This one was believed to be andc'ls. Weird.
+	{"LSRNR",	0x3d80,  0xfeff, DSPInterpreter::lsrnr, nop, 1, 1, {{P_ACC, 1, 0, 8, 0x0100}}, NULL, NULL},
+
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"LR",      0x00c0, 0xffe0, DSPInterpreter::lr, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_MEM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"SR",      0x00e0, 0xffe0, DSPInterpreter::sr, nop, 2, 2, {{P_MEM, 2, 1, 0, 0xffff}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
