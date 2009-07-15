@@ -50,6 +50,7 @@
 #include "JitRegCache.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
+#include "../CoreGeneralize.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -63,23 +64,6 @@
 
 void Jit(u32 em_address);
 
-#ifndef _WIN32
-
-	// A bit of a hack to get things building under linux. We manually fill in this structure as needed
-	// from the real context.
-	struct CONTEXT
-	{
-	#ifdef _M_X64
-		u64 Rip;
-		u64 Rax;
-	#else
-		u32 Eip;
-		u32 Eax;
-	#endif 
-	};
-
-#endif
-
 // Use these to control the instruction selection
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
@@ -87,18 +71,7 @@ void Jit(u32 em_address);
 ///////////////////////////////////
 
 
-class TrampolineCache : public Gen::XCodeBlock
-{
-public:
-	void Init();
-	void Shutdown();
-
-	const u8 *GetReadTrampoline(const InstructionInfo &info);
-	const u8 *GetWriteTrampoline(const InstructionInfo &info);
-};
-
-
-class Jit64 : public Gen::XCodeBlock
+class Jit64 : public cCore
 {
 private:
 	struct JitState
@@ -230,6 +203,7 @@ public:
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
+	void addzex(UGeckoInstruction inst);
 
 	void extsbx(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);
@@ -302,14 +276,13 @@ public:
 	void lhax(UGeckoInstruction inst);
 	
 	void lwzux(UGeckoInstruction inst);
+	void lXzx(UGeckoInstruction inst);
 
 	void stXx(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
 };
-
-extern Jit64 jit;
 
 #endif // _JIT_H
 #endif // JITTEST

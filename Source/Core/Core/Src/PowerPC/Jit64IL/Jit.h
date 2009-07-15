@@ -34,6 +34,7 @@
 #include "../JitCommon/JitCache.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
+#include "../CoreGeneralize.h"
 #include "IR.h"
 
 #ifdef _WIN32
@@ -41,20 +42,6 @@
 #include <windows.h>
 
 #else
-
-// A bit of a hack to get things building under linux. We manually fill in this structure as needed
-// from the real context.
-struct CONTEXT
-{
-#ifdef _M_X64
-	u64 Rip;
-	u64 Rax;
-#else
-	u32 Eip;
-	u32 Eax;
-#endif 
-};
-
 #endif
 
 // #define INSTRUCTION_START Default(inst); return;
@@ -73,19 +60,7 @@ struct CONTEXT
 #define DISABLE64
 #endif
 
-
-class TrampolineCache : public Gen::XCodeBlock
-{
-public:
-	void Init();
-	void Shutdown();
-
-	const u8 *GetReadTrampoline(const InstructionInfo &info);
-	const u8 *GetWriteTrampoline(const InstructionInfo &info);
-};
-
-
-class Jit64 : public Gen::XCodeBlock
+class Jit64IL : public cCore
 {
 private:
 	struct JitState
@@ -134,8 +109,8 @@ private:
 	PPCAnalyst::CodeBuffer code_buffer;
 
 public:
-	Jit64() : code_buffer(32000) {}
-	~Jit64() {}
+	Jit64IL() : code_buffer(32000) {}
+	~Jit64IL() {}
 
 	JitState js;
 	JitOptions jo;
@@ -163,6 +138,7 @@ public:
 	void SingleStep();
 
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, CONTEXT *ctx);
+	void ProfiledReJit();
 
 #define JIT_OPCODE 0
 
@@ -295,7 +271,6 @@ public:
 	void stmw(UGeckoInstruction inst);
 };
 
-extern Jit64 jit;
 
 void Jit(u32 em_address);
 

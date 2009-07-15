@@ -35,7 +35,7 @@
 #include "../../Core.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
-#ifndef _mm_cvttsd_si32 // No SSE2 support
+#if !defined(_mm_cvttsd_si32) // No SSE2 support
 #define _mm_set_sd
 #define _mm_cvttsd_si32 truncl
 #define _mm_cvtsd_si32 lrint

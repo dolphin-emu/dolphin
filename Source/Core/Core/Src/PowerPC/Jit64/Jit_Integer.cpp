@@ -246,7 +246,11 @@
 
 		gpr.UnlockAll();
 	}
-
+	void Jit64::addzex(UGeckoInstruction inst)
+	{
+		Default(inst);
+		return;
+	}
 	void Jit64::orx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)

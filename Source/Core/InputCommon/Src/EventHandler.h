@@ -2,6 +2,7 @@
 #define EVENTHANDER_H 1
 #include "Common.h"
 #include <queue>
+#include <ctype.h>
 #include "Event.hpp"
 
 #define NUMKEYS 300

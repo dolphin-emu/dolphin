@@ -68,6 +68,7 @@ files = ["ActionReplay.cpp",
          "IPC_HLE/WII_IPC_HLE_Device_usb.cpp",
          "IPC_HLE/WII_IPC_HLE_Usb_Kbd.cpp",
          "IPC_HLE/WiiMote_HID_Attr.cpp",
+		 "PowerPC/CoreGeneralize.cpp",
          "PowerPC/PowerPC.cpp",
          "PowerPC/PPCAnalyst.cpp",
          "PowerPC/PPCTables.cpp",
@@ -85,7 +86,6 @@ files = ["ActionReplay.cpp",
 		 "PowerPC/Interpreter/Interpreter_Tables.cpp",
          "PowerPC/JitCommon/JitCache.cpp",
          "PowerPC/JitCommon/JitBackpatch.cpp",
-         "PowerPC/JitCommon/Jit_Util.cpp",
          "HLE/HLE.cpp",
          "HLE/HLE_Misc.cpp",
          "HLE/HLE_OS.cpp",
@@ -104,6 +104,7 @@ if not env['NOJIT']:
 				  "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
 				  "PowerPC/Jit64IL/IR.cpp",
 				  "PowerPC/Jit64IL/IR_X86.cpp",
+				  "PowerPC/Jit64IL/Jit_Util.cpp",
 				  "PowerPC/JitCommon//Jit_Tables.cpp",
 				 ]
 	else:
@@ -118,6 +119,7 @@ if not env['NOJIT']:
 				  "PowerPC/Jit64/Jit_LoadStore.cpp",
 				  "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
 				  "PowerPC/Jit64/Jit_SystemRegisters.cpp",
+				  "PowerPC/Jit64/Jit_Util.cpp",
 				  "PowerPC/JitCommon/Jit_Tables.cpp",
 				 ]
 

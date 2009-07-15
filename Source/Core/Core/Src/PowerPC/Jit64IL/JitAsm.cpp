@@ -70,7 +70,7 @@ void AsmRoutineManager::Generate()
 #ifndef _M_IX86
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	MOV(64, R(R15), Imm64((u64)jit.GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
 //	INT3();
 

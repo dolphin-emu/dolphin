@@ -44,6 +44,7 @@
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 #include "PluginManager.h"
+#include "LogManager.h"
 
 
 #include "BootManager.h"
@@ -60,6 +61,7 @@ void Host_UpdateLogDisplay(){}
 
 
 void Host_UpdateDisasmDialog(){}
+void Host_ShowJitResults(unsigned int){}
 
 
 Common::Event updateMainFrameEvent;

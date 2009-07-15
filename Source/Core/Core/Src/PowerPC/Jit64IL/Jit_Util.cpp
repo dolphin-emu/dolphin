@@ -28,30 +28,45 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#ifdef JITTEST
+#if !(defined JITTEST && JITTEST)
 #include "../Jit64IL/Jit.h"
-#include "JitCache.h"
+#include "../JitCommon/JitCache.h"
 #include "../Jit64IL/JitAsm.h"
 #else
 #include "../Jit64/Jit.h"
-#include "JitCache.h"
+#include "../JitCommon/JitCache.h"
 #include "../Jit64/JitAsm.h"
 #include "../Jit64/JitRegCache.h"
 #endif
+#include "../CoreGeneralize.h"
 
 using namespace Gen;
-
-void Jit64::JitClearCA()
+void Jit64IL::JitClearCA()
 {
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }
 
-void Jit64::JitSetCA()
+void Jit64IL::JitSetCA()
 {
 	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }
-
-void Jit64::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
+ void Jit64IL::GenerateCarry(Gen::X64Reg temp_reg)
+ {
+ 	// Not needed
+ }
+ void Jit64IL::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
+{
+	//Not Needed
+}
+void Jit64IL::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
+{
+	// Not Needed
+}
+void Jit64IL::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
+{
+	// Not Needed
+}
+void Jit64IL::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 #ifdef _M_IX86
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -76,7 +91,7 @@ void Jit64::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize
 	}
 }
 
-void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
+void Jit64IL::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 {
 	if (offset)
 		ADD(32, R(reg), Imm32((u32)offset));
@@ -98,7 +113,7 @@ void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signEx
 	SetJumpTarget(arg2);
 }
 
-void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void Jit64IL::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
 {
 	if (accessSize == 8 && reg_value >= 4) {
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
@@ -113,7 +128,7 @@ void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSiz
 }
 
 // Destroys both arg registers
-void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void Jit64IL::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
 {
 	if (offset)
 		ADD(32, R(reg_addr), Imm32(offset));
@@ -131,7 +146,7 @@ void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
 	SetJumpTarget(arg2);
 }
 
-void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
+void Jit64IL::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
 #ifdef _M_X64
  	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
@@ -140,7 +155,7 @@ void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 ad
 #endif
 }
 
-void Jit64::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
+void Jit64IL::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 {
 #ifdef _M_X64
 	MOV(32, R(RAX), Imm32(address));
@@ -150,7 +165,7 @@ void Jit64::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 #endif
 }
 
-void Jit64::ForceSinglePrecisionS(X64Reg xmm) {
+void Jit64IL::ForceSinglePrecisionS(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jo.accurateSinglePrecision)
 	{
@@ -159,7 +174,7 @@ void Jit64::ForceSinglePrecisionS(X64Reg xmm) {
 	}
 }
 
-void Jit64::ForceSinglePrecisionP(X64Reg xmm) {
+void Jit64IL::ForceSinglePrecisionP(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jo.accurateSinglePrecision)
 	{

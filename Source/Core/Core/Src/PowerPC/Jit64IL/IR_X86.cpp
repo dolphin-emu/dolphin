@@ -52,7 +52,7 @@ using namespace IREmitter;
 using namespace Gen;
 
 struct RegInfo {
-	Jit64* Jit;
+	Jit64IL* Jit;
 	IRBuilder* Build;
 	InstLoc FirstI;
 	std::vector<unsigned> IInfo;
@@ -65,7 +65,7 @@ struct RegInfo {
 	unsigned numProfiledLoads;
 	unsigned exitNumber;
 
-	RegInfo(Jit64* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts) {
+	RegInfo(Jit64IL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts) {
 		for (unsigned i = 0; i < 16; i++) {
 			regs[i] = 0;
 			fregs[i] = 0;
@@ -296,7 +296,7 @@ static void fregNormalRegClear(RegInfo& RI, InstLoc I) {
 }
 
 static void regEmitBinInst(RegInfo& RI, InstLoc I,
-			   void (Jit64::*op)(int, const OpArg&,
+			   void (Jit64IL::*op)(int, const OpArg&,
 			                     const OpArg&),
 			   bool commutable = false) {
 	X64Reg reg;
@@ -327,7 +327,7 @@ static void regEmitBinInst(RegInfo& RI, InstLoc I,
 }
 
 static void fregEmitBinInst(RegInfo& RI, InstLoc I,
-			    void (Jit64::*op)(X64Reg, OpArg)) {
+			    void (Jit64IL::*op)(X64Reg, OpArg)) {
 	X64Reg reg;
 	if (RI.IInfo[I - RI.FirstI] & 4) {
 		reg = fregEnsureInReg(RI, getOp1(I));
@@ -561,7 +561,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
 		regClearInst(RI, getOp1(I));
 }
 
-static void regEmitShiftInst(RegInfo& RI, InstLoc I, void (Jit64::*op)(int, OpArg, OpArg))
+static void regEmitShiftInst(RegInfo& RI, InstLoc I, void (Jit64IL::*op)(int, OpArg, OpArg))
 {
 	X64Reg reg = regBinLHSReg(RI, I);
 	if (isImm(*getOp2(I))) {
@@ -630,7 +630,7 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	}
 }
 
-static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool MakeProfile) {
+static void DoWriteCode(IRBuilder* ibuild, Jit64IL* Jit, bool UseProfile, bool MakeProfile) {
 	//printf("Writing block: %x\n", js.blockStart);
 	RegInfo RI(Jit, ibuild->getFirstInst(), ibuild->getNumInsts());
 	RI.Build = ibuild;
@@ -977,27 +977,27 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		}
 		case And: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::AND, true);
+			regEmitBinInst(RI, I, &Jit64IL::AND, true);
 			break;
 		}
 		case Xor: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::XOR, true);
+			regEmitBinInst(RI, I, &Jit64IL::XOR, true);
 			break;
 		}
 		case Sub: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::SUB);
+			regEmitBinInst(RI, I, &Jit64IL::SUB);
 			break;
 		}
 		case Or: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::OR, true);
+			regEmitBinInst(RI, I, &Jit64IL::OR, true);
 			break;
 		}
 		case Add: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::ADD, true);
+			regEmitBinInst(RI, I, &Jit64IL::ADD, true);
 			break;
 		}
 		case Mul: {
@@ -1020,22 +1020,22 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		}
 		case Rol: {
 			if (!thisUsed) break;
-			regEmitShiftInst(RI, I, &Jit64::ROL);
+			regEmitShiftInst(RI, I, &Jit64IL::ROL);
 			break;
 		}
 		case Shl: {
 			if (!thisUsed) break;
-			regEmitShiftInst(RI, I, &Jit64::SHL);
+			regEmitShiftInst(RI, I, &Jit64IL::SHL);
 			break;
 		}
 		case Shrl: {
 			if (!thisUsed) break;
-			regEmitShiftInst(RI, I, &Jit64::SHR);
+			regEmitShiftInst(RI, I, &Jit64IL::SHR);
 			break;
 		}
 		case Sarl: {
 			if (!thisUsed) break;
-			regEmitShiftInst(RI, I, &Jit64::SAR);
+			regEmitShiftInst(RI, I, &Jit64IL::SAR);
 			break;
 		}
 		case ICmpEq: {
@@ -1359,17 +1359,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		}
 		case FSMul: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::MULSS);
+			fregEmitBinInst(RI, I, &Jit64IL::MULSS);
 			break;
 		}
 		case FSAdd: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::ADDSS);
+			fregEmitBinInst(RI, I, &Jit64IL::ADDSS);
 			break;
 		}
 		case FSSub: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::SUBSS);
+			fregEmitBinInst(RI, I, &Jit64IL::SUBSS);
 			break;
 		}
 		case FSRSqrt: {
@@ -1382,17 +1382,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		}
 		case FDMul: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::MULSD);
+			fregEmitBinInst(RI, I, &Jit64IL::MULSD);
 			break;
 		}
 		case FDAdd: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::ADDSD);
+			fregEmitBinInst(RI, I, &Jit64IL::ADDSD);
 			break;
 		}
 		case FDSub: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::SUBSD);
+			fregEmitBinInst(RI, I, &Jit64IL::SUBSD);
 			break;
 		}
 		case FDCmpCR: {
@@ -1426,17 +1426,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		}
 		case FPAdd: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::ADDPS);
+			fregEmitBinInst(RI, I, &Jit64IL::ADDPS);
 			break;
 		}
 		case FPMul: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::MULPS);
+			fregEmitBinInst(RI, I, &Jit64IL::MULPS);
 			break;
 		}
 		case FPSub: {
 			if (!thisUsed) break;
-			fregEmitBinInst(RI, I, &Jit64::SUBPS);
+			fregEmitBinInst(RI, I, &Jit64IL::SUBPS);
 			break;
 		}
 		case FPMerge00: {
@@ -1614,13 +1614,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 	Jit->UD2();
 }
 
-void Jit64::WriteCode() {
+void Jit64IL::WriteCode() {
 	DoWriteCode(&ibuild, this, false, Core::GetStartupParameter().bJITProfiledReJIT);
 }
-
 void ProfiledReJit() {
-	jit.SetCodePtr(jit.js.rewriteStart);
-	DoWriteCode(&jit.ibuild, &jit, true, false);
-	jit.js.curBlock->codeSize = (int)(jit.GetCodePtr() - jit.js.rewriteStart);
-	jit.GetBlockCache()->FinalizeBlock(jit.js.curBlock->blockNum, jit.jo.enableBlocklink, jit.js.curBlock->normalEntry);
+	Jit64IL *jitil = dynamic_cast<Jit64IL *>(jit);
+	if(jitil)
+		jitil->ProfiledReJit();
+}
+void Jit64IL::ProfiledReJit() {
+	jit->SetCodePtr(jit->js.rewriteStart);
+	DoWriteCode(&jit->ibuild, this, true, false);
+	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
+	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
 }

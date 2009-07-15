@@ -65,7 +65,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
 			unsigned char *codePtr = (unsigned char*)codeAddr;
 			
-			if (!jit.IsInCodeSpace(codePtr)) {
+			if (!jit->IsInCodeSpace(codePtr)) {
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -95,7 +95,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			const u8 *new_rip = jit.BackPatch(codePtr, accessType, emAddress, ctx);
+			const u8 *new_rip = jit->BackPatch(codePtr, accessType, emAddress, ctx);
 
 			// Rip/Eip needs to be updated.
 			if (new_rip)
@@ -190,7 +190,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 #else
 	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
 #endif
-	if (!jit.IsInCodeSpace(fault_instruction_ptr)) {
+	if (!jit->IsInCodeSpace(fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;
 	}
@@ -217,7 +217,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	fake_ctx.Eax = CREG_EAX(ctx);
 	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
-	const u8 *new_rip = jit.BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
+	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
 	if (new_rip) {
 #ifdef _M_X64
 		CREG_RAX(ctx) = fake_ctx.Rax;
