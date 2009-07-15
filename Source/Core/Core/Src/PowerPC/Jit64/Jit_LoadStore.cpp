@@ -35,76 +35,31 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-	void Jit64::lXzx(UGeckoInstruction inst)
+	void Jit64::lbzx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
 			|| Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
 			{Default(inst); return;} // turn off from debugger	
 		INSTRUCTION_START;
-		
+
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		switch(inst.OPCD)
-		{
-			case 23: //lwzx
-				gpr.Lock(a, b, d);
-				gpr.FlushLockX(ABI_PARAM1);
-				if (b == d || a == d)
-					gpr.LoadToX64(d, true, true);
-				else 
-					gpr.LoadToX64(d, false, true);
-				MOV(32, R(ABI_PARAM1), gpr.R(b));
-				if (a)
-					ADD(32, R(ABI_PARAM1), gpr.R(a));
-		#if 1
-				SafeLoadRegToEAX(ABI_PARAM1, 32, 0);
-				MOV(32, gpr.R(d), R(EAX));
-		#else
-				UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 32, 0, false);
-		#endif
-				gpr.UnlockAll();
-				gpr.UnlockAllX();
-			break;
-			case 55: //lwzux
-				if (!a || a == d || a == b)
-				{
-					Default(inst);
-					return;
-				}
-				gpr.Lock(a, b, d);
-
-				gpr.LoadToX64(d, b == d, true);
-				gpr.LoadToX64(a, true, true);
-				ADD(32, gpr.R(a), gpr.R(b));
-				MOV(32, R(EAX), gpr.R(a));
-				SafeLoadRegToEAX(EAX, 32, 0, false);
-				MOV(32, gpr.R(d), R(EAX));
-
-				gpr.UnlockAll();
-			break;
-			case 87: //lbzx
-				gpr.Lock(a, b, d);
-				gpr.FlushLockX(ABI_PARAM1);
-				if (b == d || a == d)
-					gpr.LoadToX64(d, true, true);
-				else 
-					gpr.LoadToX64(d, false, true);
-				MOV(32, R(ABI_PARAM1), gpr.R(b));
-				if (a)
-					ADD(32, R(ABI_PARAM1), gpr.R(a));
-		#if 0
-				SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
-				MOV(32, gpr.R(d), R(EAX));
-		#else
-				UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 8, 0, false);
-		#endif
-				gpr.UnlockAll();
-				gpr.UnlockAllX();
-			break;
-			default:
-				Default(inst);
-				return;
-			break;
-		}
+		gpr.Lock(a, b, d);
+		gpr.FlushLockX(ABI_PARAM1);
+		if (b == d || a == d)
+			gpr.LoadToX64(d, true, true);
+		else 
+			gpr.LoadToX64(d, false, true);
+		MOV(32, R(ABI_PARAM1), gpr.R(b));
+		if (a)
+			ADD(32, R(ABI_PARAM1), gpr.R(a));
+#if 0
+		SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
+		MOV(32, gpr.R(d), R(EAX));
+#else
+		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 8, 0, false);
+#endif
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
 	}
 
 	void Jit64::lwzx(UGeckoInstruction inst)
@@ -164,15 +119,7 @@
 			|| Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
 			{Default(inst); return;} // turn off from debugger	
 		INSTRUCTION_START;
-		switch(inst.OPCD)
-		{
-			case 33: // lwzu
-			case 35: // lbzu
-			case 41: // lhzu
-				Default(inst);
-				return;
-			break;
-		}
+		
 		int d = inst.RD;
 		int a = inst.RA;
 
@@ -303,6 +250,31 @@
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
+		return;
+	}
+
+	void Jit64::lwzux(UGeckoInstruction inst)
+	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+		INSTRUCTION_START;
+
+		int a = inst.RA, b = inst.RB, d = inst.RD;
+		if (!a || a == d || a == b)
+		{
+			Default(inst);
+			return;
+		}
+		gpr.Lock(a, b, d);
+
+		gpr.LoadToX64(d, b == d, true);
+		gpr.LoadToX64(a, true, true);
+		ADD(32, gpr.R(a), gpr.R(b));
+		MOV(32, R(EAX), gpr.R(a));
+		SafeLoadRegToEAX(EAX, 32, 0, false);
+		MOV(32, gpr.R(d), R(EAX));
+
+		gpr.UnlockAll();
 		return;
 	}
 

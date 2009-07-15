@@ -337,7 +337,7 @@ void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> 
 
 	void JitBlockCache::InvalidateCodeRange(u32 address, u32 length)
 	{
-		if (!jit->jo.enableBlocklink)
+		if (!jit.jo.enableBlocklink)
 			return;
 		return;
 		//This is slow but should be safe (zelda needs it for block linking)

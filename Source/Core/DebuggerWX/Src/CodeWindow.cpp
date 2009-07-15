@@ -639,7 +639,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	}
 
 	// Clear the JIT cache to enable these changes
-	jit->ClearCache();
+	jit.ClearCache();
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
@@ -650,7 +650,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 			PPCTables::LogCompiledInstructions(); break;
 
 		case IDM_CLEARCODECACHE:
-			jit->ClearCache(); break;
+			jit.ClearCache(); break;
 
 		case IDM_SEARCHINSTRUCTION:
 		{

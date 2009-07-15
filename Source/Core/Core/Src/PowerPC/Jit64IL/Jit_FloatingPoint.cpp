@@ -27,7 +27,7 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64IL::fp_arith_s(UGeckoInstruction inst)
+void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -66,7 +66,7 @@ void Jit64IL::fp_arith_s(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64IL::fmaddXX(UGeckoInstruction inst)
+void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -91,7 +91,7 @@ void Jit64IL::fmaddXX(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64IL::fmrx(UGeckoInstruction inst)
+void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -103,7 +103,7 @@ void Jit64IL::fmrx(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64IL::fcmpx(UGeckoInstruction inst)
+void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)

@@ -179,6 +179,8 @@ static void CheckForNans()
 	}
 }
 
+Jit64 jit;
+
 int CODE_SIZE = 1024*1024*16;
 
 namespace CPUCompare
@@ -188,7 +190,7 @@ namespace CPUCompare
 
 void Jit(u32 em_address)
 {
-	jit->Jit(em_address);
+	jit.Jit(em_address);
 }
 
 void Jit64::Init()

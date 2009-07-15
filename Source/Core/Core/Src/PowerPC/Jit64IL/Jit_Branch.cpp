@@ -44,17 +44,17 @@
 
 using namespace Gen;
 
-void Jit64IL::sc(UGeckoInstruction inst)
+void Jit64::sc(UGeckoInstruction inst)
 {
 	ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
 }
 
-void Jit64IL::rfi(UGeckoInstruction inst)
+void Jit64::rfi(UGeckoInstruction inst)
 {
 	ibuild.EmitRFIExit();
 }
 
-void Jit64IL::bx(UGeckoInstruction inst)
+void Jit64::bx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	INSTRUCTION_START;
@@ -113,7 +113,7 @@ static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 	return Test;
 }
 
-void Jit64IL::bcx(UGeckoInstruction inst)
+void Jit64::bcx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if (inst.LK)
@@ -144,7 +144,7 @@ void Jit64IL::bcx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 
-void Jit64IL::bcctrx(UGeckoInstruction inst)
+void Jit64::bcctrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if ((inst.BO & 4) == 0) {
@@ -173,7 +173,7 @@ void Jit64IL::bcctrx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(destination);
 }
 
-void Jit64IL::bclrx(UGeckoInstruction inst)
+void Jit64::bclrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if (inst.hex == 0x4e800020) {

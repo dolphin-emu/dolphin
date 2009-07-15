@@ -149,10 +149,10 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-const u8 *cCore::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
+const u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 {
 #ifdef _M_X64
-	if (!jit->IsInCodeSpace(codePtr))
+	if (!jit.IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 	
 	InstructionInfo info;

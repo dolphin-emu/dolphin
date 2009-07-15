@@ -36,13 +36,6 @@
 #include "Interpreter.h"
 #include "MathUtil.h"
 
-// F-ZERO IS BEING A ROYAL PAIN
-// POSSIBLE APPROACHES:
-// * Full SW FPU. Urgh.
-// * Partial SW FPU, emulate just as much as necessary for f-zero. Feasible, I guess.
-// * HLE hacking. Figure out what all the evil functions really do and fake them.
-//   This worked well for Monkey Ball, not so much for F-Zero.
-
 using namespace MathUtil;
 
 namespace Interpreter

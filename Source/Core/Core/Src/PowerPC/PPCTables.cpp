@@ -32,8 +32,6 @@
 #error Unknown architecture!
 #endif
 #endif
-#include "CoreGeneralize.h"
-cCore *jit = NULL; // Should be put elsewhere
 
 struct op_inf
 {

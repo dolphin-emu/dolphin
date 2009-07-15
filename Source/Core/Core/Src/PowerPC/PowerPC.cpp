@@ -119,16 +119,11 @@ void Init()
 #endif
 
 	ResetRegisters();
-	#if defined JITTEST && JITTEST
-	jit = new Jit64IL();
-	#else
-	jit = new Jit64();
-	#endif
 	PPCTables::InitTables();
 
 	// Initialize both execution engines ... 
 	Interpreter::Init();
-	jit->Init();
+	jit.Init();
 	// ... but start as interpreter by default.
 	mode = MODE_INTERPRETER;
 	state = CPU_STEPPING;
@@ -137,7 +132,7 @@ void Init()
 void Shutdown()
 {
 	// Shutdown both execution engines. Doesn't matter which one is active.
-	jit->Shutdown();
+	jit.Shutdown();
 	Interpreter::Shutdown();
 }
 
@@ -150,7 +145,7 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit->ClearCache();  // Remove all those nasty JIT patches.
+		jit.ClearCache();  // Remove all those nasty JIT patches.
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
@@ -167,7 +162,7 @@ void SingleStep()
 		Interpreter::SingleStep();
 		break;
 	case MODE_JIT:
-		jit->SingleStep();
+		jit.SingleStep();
 		break;
 	}
 }
@@ -181,7 +176,7 @@ void RunLoop()
 		Interpreter::Run();
 		break;
 	case MODE_JIT:
-		jit->Run();
+		jit.Run();
 		break;
 	}
 	Host_UpdateDisasmDialog();

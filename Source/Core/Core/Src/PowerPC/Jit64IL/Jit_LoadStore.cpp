@@ -37,7 +37,7 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64IL::lhax(UGeckoInstruction inst)
+void Jit64::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -49,7 +49,7 @@ void Jit64IL::lhax(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64IL::lXz(UGeckoInstruction inst)
+void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)	
@@ -69,7 +69,7 @@ void Jit64IL::lXz(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64IL::lha(UGeckoInstruction inst)
+void Jit64::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -82,7 +82,7 @@ void Jit64IL::lha(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64IL::lXzx(UGeckoInstruction inst)
+void Jit64::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -104,7 +104,7 @@ void Jit64IL::lXzx(UGeckoInstruction inst)
 }
 
 // Zero cache line.
-void Jit64IL::dcbz(UGeckoInstruction inst)
+void Jit64::dcbz(UGeckoInstruction inst)
 {
 	Default(inst); return;
 
@@ -129,7 +129,7 @@ void Jit64IL::dcbz(UGeckoInstruction inst)
 #endif
 }
 
-void Jit64IL::stX(UGeckoInstruction inst)
+void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -148,7 +148,7 @@ void Jit64IL::stX(UGeckoInstruction inst)
 	}
 }
 
-void Jit64IL::stXx(UGeckoInstruction inst)
+void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -167,7 +167,7 @@ void Jit64IL::stXx(UGeckoInstruction inst)
 }
 
 // A few games use these heavily in video codecs.
-void Jit64IL::lmw(UGeckoInstruction inst)
+void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -182,7 +182,7 @@ void Jit64IL::lmw(UGeckoInstruction inst)
 	}
 }
 
-void Jit64IL::stmw(UGeckoInstruction inst)
+void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)

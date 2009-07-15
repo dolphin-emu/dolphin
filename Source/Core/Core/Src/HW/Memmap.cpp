@@ -538,7 +538,7 @@ u32 Read_Instruction(const u32 em_address)
 {
 	UGeckoInstruction inst = ReadUnchecked_U32(em_address);
 	if (inst.OPCD == 0)
-		inst.hex = jit->GetBlockCache()->GetOriginalCode(em_address);
+		inst.hex = jit.GetBlockCache()->GetOriginalCode(em_address);
 	if (inst.OPCD == 1)
 		return HLE::GetOrigInstruction(em_address);
 	else

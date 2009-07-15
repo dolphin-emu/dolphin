@@ -96,7 +96,7 @@ void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 		return;
 	}
 
-	jit->ClearCache();
+	jit.ClearCache();
 
 	u8 *ptr = *cur_buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
@@ -116,7 +116,7 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 		return;
 	}
 
-	jit->ClearCache();
+	jit.ClearCache();
 
 	u8 *ptr = NULL;
 
@@ -211,7 +211,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 		saveThread = NULL;
 	}
 
-	jit->ClearCache();
+	jit.ClearCache();
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
@@ -315,7 +315,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	fclose(f);
 
-	jit->ClearCache();
+	jit.ClearCache();
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);

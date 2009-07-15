@@ -38,7 +38,7 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64IL::psq_st(UGeckoInstruction inst)
+void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	DISABLE64
@@ -54,7 +54,7 @@ void Jit64IL::psq_st(UGeckoInstruction inst)
 	ibuild.EmitStorePaired(val, addr, inst.I);
 }
 
-void Jit64IL::psq_l(UGeckoInstruction inst)
+void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	DISABLE64

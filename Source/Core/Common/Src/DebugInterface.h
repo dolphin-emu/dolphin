@@ -11,7 +11,7 @@ protected:
 
 public:
 	virtual void disasm(unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
-	virtual void getRawMemoryString(int memory, unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
+	virtual void getRawMemoryString(int /*memory*/, unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
 	virtual int getInstructionSize(int /*instruction*/) {return 1;}
 	virtual bool isAlive() {return true;}
 	virtual bool isBreakpoint(unsigned int /*address*/) {return false;}

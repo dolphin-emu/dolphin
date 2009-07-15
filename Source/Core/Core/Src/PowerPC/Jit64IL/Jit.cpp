@@ -156,6 +156,8 @@ ps_adds1
 
 */
 
+Jit64 jit;
+
 int CODE_SIZE = 1024*1024*16;
 
 namespace CPUCompare
@@ -165,10 +167,10 @@ namespace CPUCompare
 
 void Jit(u32 em_address)
 {
-	jit->Jit(em_address);
+	jit.Jit(em_address);
 }
 
-void Jit64IL::Init()
+void Jit64::Init()
 {
 	asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 	if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
@@ -198,14 +200,14 @@ void Jit64IL::Init()
 	asm_routines.Init();
 }
 
-void Jit64IL::ClearCache()
+void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
 	ClearCodeSpace();
 }
 
-void Jit64IL::Shutdown()
+void Jit64::Shutdown()
 {
 	FreeCodeSpace();
 
@@ -215,7 +217,7 @@ void Jit64IL::Shutdown()
 }
 
 
-void Jit64IL::WriteCallInterpreter(UGeckoInstruction inst)
+void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	if (js.isLastInstruction)
 	{
@@ -231,32 +233,32 @@ void Jit64IL::WriteCallInterpreter(UGeckoInstruction inst)
 	}
 }
 
-void Jit64IL::unknown_instruction(UGeckoInstruction inst)
+void Jit64::unknown_instruction(UGeckoInstruction inst)
 {
 	//	CCPU::Break();
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void Jit64IL::Default(UGeckoInstruction _inst)
+void Jit64::Default(UGeckoInstruction _inst)
 {
 	ibuild.EmitInterpreterFallback(
 		ibuild.EmitIntConst(_inst.hex),
 		ibuild.EmitIntConst(js.compilerPC));
 }
 
-void Jit64IL::HLEFunction(UGeckoInstruction _inst)
+void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	MOV(32, R(EAX), M(&NPC));
 	WriteExitDestInEAX(0);
 }
 
-void Jit64IL::DoNothing(UGeckoInstruction _inst)
+void Jit64::DoNothing(UGeckoInstruction _inst)
 {
 	// Yup, just don't do anything.
 }
 
-void Jit64IL::NotifyBreakpoint(u32 em_address, bool set)
+void Jit64::NotifyBreakpoint(u32 em_address, bool set)
 {
 	int block_num = blocks.GetBlockNumberFromStartAddress(em_address);
 	if (block_num >= 0)
@@ -294,13 +296,13 @@ void ImHere()
 	been_here[PC] = 1;
 }
 
-void Jit64IL::Cleanup()
+void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 }
 
-void Jit64IL::WriteExit(u32 destination, int exit_num)
+void Jit64::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
@@ -325,7 +327,7 @@ void Jit64IL::WriteExit(u32 destination, int exit_num)
 	}
 }
 
-void Jit64IL::WriteExitDestInEAX(int exit_num) 
+void Jit64::WriteExitDestInEAX(int exit_num) 
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
@@ -333,7 +335,7 @@ void Jit64IL::WriteExitDestInEAX(int exit_num)
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64IL::WriteRfiExitDestInEAX() 
+void Jit64::WriteRfiExitDestInEAX() 
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
@@ -341,7 +343,7 @@ void Jit64IL::WriteRfiExitDestInEAX()
 	JMP(asm_routines.testExceptions, true);
 }
 
-void Jit64IL::WriteExceptionExit(u32 exception)
+void Jit64::WriteExceptionExit(u32 exception)
 {
 	Cleanup();
 	OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
@@ -349,14 +351,14 @@ void Jit64IL::WriteExceptionExit(u32 exception)
 	JMP(asm_routines.testExceptions, true);
 }
 
-void STACKALIGN Jit64IL::Run()
+void STACKALIGN Jit64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
 	//Will return when PowerPC::state changes
 }
 
-void Jit64IL::SingleStep()
+void Jit64::SingleStep()
 {
 	// NOT USED, NOT TESTED, PROBABLY NOT WORKING YET
 	// PanicAlert("Single");
@@ -368,7 +370,7 @@ void Jit64IL::SingleStep()
 	pExecAddr();*/
 }
 
-void STACKALIGN Jit64IL::Jit(u32 em_address)
+void STACKALIGN Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
 	{
@@ -385,7 +387,7 @@ void STACKALIGN Jit64IL::Jit(u32 em_address)
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
 }
 
-const u8* Jit64IL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
 {
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);

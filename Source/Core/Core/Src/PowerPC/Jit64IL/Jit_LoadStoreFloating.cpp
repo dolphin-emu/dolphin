@@ -41,7 +41,7 @@
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
 
-void Jit64IL::lfs(UGeckoInstruction inst)
+void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -54,7 +54,7 @@ void Jit64IL::lfs(UGeckoInstruction inst)
 }
 
 
-void Jit64IL::lfd(UGeckoInstruction inst)
+void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -68,7 +68,7 @@ void Jit64IL::lfd(UGeckoInstruction inst)
 }
 
 
-void Jit64IL::stfd(UGeckoInstruction inst)
+void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -83,7 +83,7 @@ void Jit64IL::stfd(UGeckoInstruction inst)
 }
 
 
-void Jit64IL::stfs(UGeckoInstruction inst)
+void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -99,7 +99,7 @@ void Jit64IL::stfs(UGeckoInstruction inst)
 }
 
 
-void Jit64IL::stfsx(UGeckoInstruction inst)
+void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -113,7 +113,7 @@ void Jit64IL::stfsx(UGeckoInstruction inst)
 }
 
 
-void Jit64IL::lfsx(UGeckoInstruction inst)
+void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
