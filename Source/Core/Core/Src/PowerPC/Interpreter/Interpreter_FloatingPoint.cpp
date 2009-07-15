@@ -35,11 +35,7 @@
 #include "../../Core.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
-#if !defined(_mm_cvttsd_si32) // No SSE2 support
-#define _mm_set_sd
-#define _mm_cvttsd_si32 truncl
-#define _mm_cvtsd_si32 lrint
-#endif
+
 // F-ZERO IS BEING A ROYAL PAIN
 // POSSIBLE APPROACHES:
 // * Full SW FPU. Urgh.
