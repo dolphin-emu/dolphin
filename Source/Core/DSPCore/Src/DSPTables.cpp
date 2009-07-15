@@ -162,7 +162,8 @@ const DSPOPCTemplate opcodes[] =
 	// discovered by ector!
 	{"LSRN",	0x02ca, 0xffff, DSPInterpreter::lsrn, nop, 1, 0, {}, NULL, NULL},
 	{"ASRN",	0x02cb, 0xffff, DSPInterpreter::asrn, nop, 1, 0, {}, NULL, NULL},
-
+	{"LSRNR",	0x3c80,  0xfeff, DSPInterpreter::lsrnr, nop, 1, 1, {{P_ACC, 1, 0, 8, 0x0100}}, NULL, NULL},
+	
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"LR",      0x00c0, 0xffe0, DSPInterpreter::lr, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_MEM, 2, 1, 0, 0xffff}}, NULL, NULL},
 	{"SR",      0x00e0, 0xffe0, DSPInterpreter::sr, nop, 2, 2, {{P_MEM, 2, 1, 0, 0xffff}, {P_REG, 1, 0, 0, 0x001f}}, NULL, NULL},
@@ -269,8 +270,6 @@ const DSPOPCTemplate opcodes[] =
 	{"XORR",    0x3000, 0xfcff, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ANDR",    0x3400, 0xfcff, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"ORR",		0x3800, 0xfcff, DSPInterpreter::orr,  nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
-	{"ANDC",    0x3C00, 0xfeff, DSPInterpreter::andc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // Hermes doesn't list this
-	{"ORC",		0x3E00, 0xfeff, DSPInterpreter::orc,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi}, // Hermes doesn't list this
 
 	{"MULX",    0xa000, 0xe7ff, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},
 	{"MULXMVZ", 0xa200, 0xe6ff, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, dsp_op_ext_ops_pro, dsp_op_ext_ops_epi},

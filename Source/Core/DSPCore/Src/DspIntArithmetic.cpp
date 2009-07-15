@@ -176,6 +176,7 @@ void orr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+	/*
 // ANDC $acD.m, $ac(1-D).m
 // 0011 110d xxxx xxxx
 // Logic AND middle part of accumulator $acD.m with middle part of
@@ -207,7 +208,7 @@ void orc(const UDSPInstruction& opc)
 
 	Update_SR_Register64(dsp_get_long_acc(D));
 }
-
+*/
 void orf(const UDSPInstruction& opc)
 {
 	ERROR_LOG(DSPLLE, "orf not implemented");
@@ -659,7 +660,7 @@ void asr(const UDSPInstruction& opc)
 // (if value negative, becomes left shift).
 void lsrn(const UDSPInstruction& opc)
 {
-	s16 shift = (s16)g_dsp.r[DSP_REG_ACM1];
+	s16 shift = dsp_get_acc_m(1);
 	u64 acc = dsp_get_long_acc(0);
 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 	acc &= 0x000000FFFFFFFFFFULL;
@@ -679,7 +680,7 @@ void lsrn(const UDSPInstruction& opc)
 // (if value negative, becomes left shift).
 void asrn(const UDSPInstruction& opc)
 {
-	s16 shift = (s16)g_dsp.r[DSP_REG_ACM1];
+	s16 shift = dsp_get_acc_m(1);
 	s64 acc = dsp_get_long_acc(0);
 	if (shift > 0) {
 		acc >>= shift;
@@ -690,6 +691,24 @@ void asrn(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// LSRNR  $acR
+// 0011 110d 1100 0000
+// Logically shifts right accumulator $ACC0 by signed 16-bit value $AC0.M
+// Not described by Duddie's doc - at least not as a separate instruction.
+void lsrnr(const UDSPInstruction& opc)
+{
+  u8 sreg = 1;//Check if it should be (opc.hex >> 8) & 0x1;
+  s16 shift = dsp_get_acc_m(0);
+  u64 acc = dsp_get_long_acc(sreg);
+  acc &= 0x000000FFFFFFFFFFULL;
+  if (shift > 0) {
+    acc <<= shift;
+  } else if (shift < 0) {
+    acc >>= -shift;
+  }
+  dsp_set_long_acc(sreg, acc);
+  Update_SR_Register64(acc);
+}
 
 // CMPAR $acS axR.h
 // 1100 0001 xxxx xxxx
@@ -709,6 +728,7 @@ void cmpar(const UDSPInstruction& opc)
 	Update_SR_Register64(sr - rr);
 }
 
+	
 // CMP
 // 1000 0010 xxxx xxxx
 // Compares accumulator $ac0 with accumulator $ac1.

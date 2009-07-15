@@ -59,15 +59,14 @@ s16 ADPCM_Step(u32& _rSamplePos)
 
 	_rSamplePos++;
 
-    // The advanced interpolation (linear, polyphase,...) is done by the UCode, so we don't
-	// need to bother with it here.
+    // The advanced interpolation (linear, polyphase,...) is done by the UCode,
+	// so we don't need to bother with it here.
 	return val;
 }
 
 u16 dsp_read_aram_d3()
 {
 	// Zelda ucode reads ARAM through 0xffd3.
-
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
 	u8 value = 0;
 	switch (gdsp_ifx_regs[DSP_FORMAT]) {
@@ -75,7 +74,7 @@ u16 dsp_read_aram_d3()
 			value = DSPHost_ReadHostMemory(Address);
 			break;
 		default:
-			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
+			ERROR_LOG(DSPLLE, "dsp_read_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 			break;
 	}
 	return value;
@@ -83,9 +82,8 @@ u16 dsp_read_aram_d3()
 
 void dsp_write_aram_d3(u16 value)
 {
-	// Zelda ucode writes a bunch of zeros to ARAM through d3 during initialization.
-	// Don't know if it ever does it later, too.
-
+	// Zelda ucode writes a bunch of zeros to ARAM through d3 during
+	// initialization.  Don't know if it ever does it later, too.
 	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
 	switch (gdsp_ifx_regs[DSP_FORMAT]) {
