@@ -523,55 +523,7 @@ void VideoFifo_CheckEFBAccess()
 	{
 		s_efbAccessRequested = FALSE;
 
-		switch (s_accessEFBArgs.type)
-		{
-		case PEEK_Z:
-			{
-				u32 z = 0;
-				float xScale = Renderer::GetTargetScaleX();
-				float yScale = Renderer::GetTargetScaleY();
-
-				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF)
-				{
-					// Find the proper dimensions
-					TRectangle source, scaledTargetSource;
-					ComputeBackbufferRectangle(&source);
-					source.Scale(xScale, yScale, &scaledTargetSource);
-					// This will resolve and bind to the depth buffer
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Renderer::ResolveAndGetDepthTarget(scaledTargetSource));
-				}
-
-				// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
-				// Plus we need to flip the y value as the OGL image is upside down
-				glReadPixels(s_accessEFBArgs.x*xScale, Renderer::GetTargetHeight() - s_accessEFBArgs.y*yScale, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
-				GL_REPORT_ERRORD();
-
-				// Clamp the 32bits value returned by glReadPixels to a 24bits value (GC uses a 24bits Z-Buffer)
-				s_AccessEFBResult = z / 0x100;
-
-				// We should probably re-bind the old fbo here.
-				if (g_Config.iMultisampleMode != MULTISAMPLE_OFF) {
-					Renderer::SetFramebuffer(0);
-				}
-			}
-			break;
-
-		case POKE_Z:
-			// TODO: Implement
-			break;
-
-		case PEEK_COLOR:
-			// TODO: Implement
-			s_AccessEFBResult = 0;
-			break;
-
-		case POKE_COLOR:
-			// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-			// the exact location. Note: EFB pokes are susceptible to Z-buffering
-			// and perhaps blending.
-			//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
-			break;
-		}
+		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y);
 
 		s_efbResponseEvent.Set();
 	}

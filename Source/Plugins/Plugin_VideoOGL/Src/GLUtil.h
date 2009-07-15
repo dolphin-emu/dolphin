@@ -22,6 +22,7 @@
 #include "nGLUtil.h"
 #else
 #include "Config.h"
+#include "MathUtil.h"
 #include "pluginspecs_video.h"
 
 #ifdef _WIN32
@@ -111,6 +112,13 @@ extern GLWindow GLWin;
 #endif
 
 // Public OpenGL util
+
+// This structure should only be used to represent a rectangle in OpenGL target
+// coordinates, where the origin is at the lower left and the frame dimensions
+// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
+// convert an EFBRectangle to a TargetRectangle.
+struct TargetRectangle : public MathUtil::Rectangle<int>
+{};
 
 // Initialization / upkeep
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);

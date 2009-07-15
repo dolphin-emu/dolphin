@@ -374,7 +374,6 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 	if (g_VideoInitialize.bUseDualCore)
 	{
-		g_EFBAccessRequested = true;
 		s_AccessEFBDone.Init();
 	}
 

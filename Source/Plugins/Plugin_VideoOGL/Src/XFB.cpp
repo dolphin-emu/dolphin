@@ -29,13 +29,8 @@
 #include "Render.h"
 #include "TextureConverter.h"
 
-void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
+void XFB_Write(u8 *xfb_in_ram, const EFBRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
-	TRectangle renderSrcRc;
-	renderSrcRc.left = sourceRc.left;
-	renderSrcRc.right = sourceRc.right;
-	// OpenGL upside down as usual...
-	renderSrcRc.top = Renderer::GetTargetHeight() - sourceRc.top;
-	renderSrcRc.bottom = Renderer::GetTargetHeight() - sourceRc.bottom; 
-	TextureConverter::EncodeToRamYUYV(Renderer::ResolveAndGetRenderTarget(sourceRc), renderSrcRc, xfb_in_ram, dstWd, dstHt);
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+	TextureConverter::EncodeToRamYUYV(Renderer::ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, dstWd, dstHt);
 }

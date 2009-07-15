@@ -74,7 +74,7 @@ struct XFBSource
 	int texWidth;
 	int texHeight;
 
-	TRectangle sourceRc;
+	TargetRectangle sourceRc;
 };
 
 class FramebufferManager
@@ -95,18 +95,18 @@ public:
 	void Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
 	void Shutdown();
 
-	// sourceRc is in GL target coordinates, not GameCube EFB coordinates!
-	// TODO: Clean that up.
-	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
+	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
 	const XFBSource* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
-	GLuint GetEFBColorTexture(const TRectangle& sourceRc) const;
-	GLuint GetEFBDepthTexture(const TRectangle& sourceRc) const;
+	GLuint GetEFBColorTexture(const EFBRectangle& sourceRc) const;
+	GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc) const;
 
 	GLuint GetEFBFramebuffer() const { return m_efbFramebuffer; }
+
+	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) const;
 
 private:
 
@@ -124,8 +124,8 @@ private:
 
 	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 
-	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
-	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
+	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
+	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 	const XFBSource* getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	const XFBSource* getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 

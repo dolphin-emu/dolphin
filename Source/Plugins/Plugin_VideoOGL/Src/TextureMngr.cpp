@@ -488,7 +488,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 }
 
 
-void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle &source_rect)
+void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
 {
     DVSTARTPROFILE();
     GL_REPORT_ERRORD();
@@ -682,24 +682,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         }
     }
 
-//    if (bCopyToTarget) {
-//        _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
-//        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-//        GL_REPORT_ERRORD();
-//        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, source->left, source->top, source->right-source->left, source->bottom-source->top);
-//        entry.isUpsideDown = true; // note that the copy is upside down!!
-//        GL_REPORT_ERRORD(); 
-//        return;
-//    }
-
-	TRectangle scaled_rect;
-	source_rect.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaled_rect);
-	TRectangle flipped_rect;
-	scaled_rect.FlipY(Renderer::GetTargetHeight(), &flipped_rect);
-
 	// Make sure to resolve anything we need to read from.
 	// TODO - it seems that it sometimes doesn't resolve the entire area we are interested in. See shadows in Burnout 2.
-	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(scaled_rect) : Renderer::ResolveAndGetRenderTarget(scaled_rect);
+	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect);
 
     GL_REPORT_ERRORD();
 
@@ -727,11 +712,13 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
 
+	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+
     glBegin(GL_QUADS);
-	glTexCoord2f((GLfloat)flipped_rect.left,  (GLfloat)flipped_rect.bottom); glVertex2f(-1,  1);
-    glTexCoord2f((GLfloat)flipped_rect.left,  (GLfloat)flipped_rect.top   ); glVertex2f(-1, -1);
-    glTexCoord2f((GLfloat)flipped_rect.right, (GLfloat)flipped_rect.top   ); glVertex2f( 1, -1);
-    glTexCoord2f((GLfloat)flipped_rect.right, (GLfloat)flipped_rect.bottom); glVertex2f( 1,  1);
+	glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);
+    glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.top   ); glVertex2f(-1, -1);
+    glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.top   ); glVertex2f( 1, -1);
+    glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.bottom); glVertex2f( 1,  1);
     glEnd();
 
     GL_REPORT_ERRORD();
@@ -751,10 +738,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%s/efb_frame_%i.tga", FULL_DUMP_TEXTURES_DIR, count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
-		//TODO: Fix this
-		//SaveTexture(StringFromFormat("%s/efb_tex_%i.tga", FULL_DUMP_TEXTURES_DIR, --count).c_str(), GL_TEXTURE_RECTANGLE_ARB, 
-		//	bFromZBuffer ? Renderer::ResolveAndGetFakeZTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect), 
-		//	Renderer::GetTargetWidth() * 2, Renderer::GetTargetHeight() * 2);
 	}
 }
 

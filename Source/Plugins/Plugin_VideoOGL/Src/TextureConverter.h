@@ -30,9 +30,9 @@ void Init();
 void Shutdown();
 
 void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
-				 u32 copyfmt, bool bScaleByHalf, const TRectangle& source);
+				 u32 copyfmt, bool bScaleByHalf, const EFBRectangle& source);
 
-void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
+void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 					 u8* destAddr, int dstWidth, int dstHeight);
 
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture);

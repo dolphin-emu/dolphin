@@ -183,7 +183,7 @@ void FramebufferManager::Shutdown()
 	m_virtualXFBList.clear();
 }
 
-void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
+void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	if (g_Config.bUseXFB)
 		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
@@ -199,7 +199,7 @@ const XFBSource* FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 
 		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight);
 }
 
-GLuint FramebufferManager::GetEFBColorTexture(const TRectangle& sourceRc) const
+GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) const
 {
 	if (m_msaaSamples <= 1)
 	{
@@ -210,17 +210,15 @@ GLuint FramebufferManager::GetEFBColorTexture(const TRectangle& sourceRc) const
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		// Flip source rectangle upside-down for OpenGL.
-		TRectangle glRect;
-		sourceRc.FlipYPosition(m_targetHeight, &glRect);
-		glRect.Clamp(0, 0, m_targetWidth, m_targetHeight);
+		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
+		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, m_efbFramebuffer);
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_resolvedFramebuffer);
 		glBlitFramebufferEXT(
-			glRect.left, glRect.top, glRect.right, glRect.bottom,
-			glRect.left, glRect.top, glRect.right, glRect.bottom,
+			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
 			GL_COLOR_BUFFER_BIT, GL_NEAREST
 			);
 
@@ -231,7 +229,7 @@ GLuint FramebufferManager::GetEFBColorTexture(const TRectangle& sourceRc) const
 	}
 }
 
-GLuint FramebufferManager::GetEFBDepthTexture(const TRectangle& sourceRc) const
+GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) const
 {
 	if (m_msaaSamples <= 1)
 	{
@@ -242,17 +240,15 @@ GLuint FramebufferManager::GetEFBDepthTexture(const TRectangle& sourceRc) const
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		// Flip source rectangle upside-down for OpenGL.
-		TRectangle glRect;
-		sourceRc.FlipYPosition(m_targetHeight, &glRect);
-		glRect.Clamp(0, 0, m_targetWidth, m_targetHeight);
+		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
+		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, m_efbFramebuffer);
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_resolvedFramebuffer);
 		glBlitFramebufferEXT(
-			glRect.left, glRect.top, glRect.right, glRect.bottom,
-			glRect.left, glRect.top, glRect.right, glRect.bottom,
+			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
 			GL_DEPTH_BUFFER_BIT, GL_NEAREST
 			);
 
@@ -261,6 +257,16 @@ GLuint FramebufferManager::GetEFBDepthTexture(const TRectangle& sourceRc) const
 
 		return m_resolvedDepthTexture;
 	}
+}
+
+TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) const
+{
+	TargetRectangle result;
+	result.left = rc.left * m_targetWidth / EFB_WIDTH;
+	result.top = m_targetHeight - (rc.top * m_targetHeight / EFB_HEIGHT);
+	result.right = rc.right * m_targetWidth / EFB_WIDTH;
+	result.bottom = m_targetHeight - (rc.bottom * m_targetHeight / EFB_HEIGHT);
+	return result;
 }
 
 FramebufferManager::VirtualXFBListType::iterator
@@ -283,7 +289,7 @@ FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 	return m_virtualXFBList.end();
 }
 
-void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
+void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	u8* pXFB = Memory_GetPtr(xfbAddr);
 	if (!pXFB)
@@ -295,7 +301,7 @@ void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 	XFB_Write(pXFB, sourceRc, fbWidth, fbHeight);
 }
 
-void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
+void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	GLuint xfbTexture;
 
@@ -311,7 +317,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 		it->xfbSource.texWidth = m_targetWidth;
 		it->xfbSource.texHeight = m_targetHeight;
-		it->xfbSource.sourceRc = sourceRc;
+		it->xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
 
 		xfbTexture = it->xfbSource.texture;
 
@@ -348,7 +354,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		newVirt.xfbSource.texture = xfbTexture;
 		newVirt.xfbSource.texWidth = m_targetWidth;
 		newVirt.xfbSource.texHeight = m_targetHeight;
-		newVirt.xfbSource.sourceRc = sourceRc;
+		newVirt.xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
 
 		// Add the new Virtual XFB to the list
 
@@ -407,20 +413,22 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	m_realXFBSource.texWidth = XFB_WIDTH;
-	m_realXFBSource.texHeight = XFB_HEIGHT;
+	m_realXFBSource.texWidth = MAX_XFB_WIDTH;
+	m_realXFBSource.texHeight = MAX_XFB_HEIGHT;
 
+	// OpenGL texture coordinates originate at the lower left, which is why
+	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
 	m_realXFBSource.sourceRc.left = 0;
-	m_realXFBSource.sourceRc.top = 0;
+	m_realXFBSource.sourceRc.top = fbHeight;
 	m_realXFBSource.sourceRc.right = fbWidth;
-	m_realXFBSource.sourceRc.bottom = fbHeight;
+	m_realXFBSource.sourceRc.bottom = 0;
 
 	if (!m_realXFBSource.texture)
 	{
 		glGenTextures(1, &m_realXFBSource.texture);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_realXFBSource.texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	}

@@ -442,6 +442,11 @@ float Renderer::GetTargetScaleY()
     return (float)GetTargetHeight() / (float)EFB_HEIGHT;
 }
 
+TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
+{
+	return s_framebufferManager.ConvertEFBRectangle(rc);
+}
+
 void Renderer::SetFramebuffer(GLuint fb)
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_framebufferManager.GetEFBFramebuffer());
@@ -451,15 +456,15 @@ void Renderer::ResetGLState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
+    glDisable(GL_VERTEX_PROGRAM_ARB);
+    glDisable(GL_FRAGMENT_PROGRAM_ARB);
+
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glDepthMask(GL_FALSE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    glDisable(GL_VERTEX_PROGRAM_ARB);
-    glDisable(GL_FRAGMENT_PROGRAM_ARB);
 }
 
 void UpdateViewport();
@@ -533,13 +538,76 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
+u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
+{
+	// Get the rectangular target region covered by the EFB pixel.
+	EFBRectangle efbPixelRc;
+	efbPixelRc.left = x;
+	efbPixelRc.top = y;
+	efbPixelRc.right = x + 1;
+	efbPixelRc.bottom = y + 1;
+
+	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
+
+	switch (type)
+	{
+
+	case PEEK_Z:
+	{
+		if (s_MSAASamples > 1)
+		{
+			// XXX: What is this? Binding a texture to a framebuffer slot?
+			// It's not documented in the OpenGL spec, but it seems to work!
+			// (ATI Radeon HD 3870, CATALYST 9.6 drivers, Windows Vista 64-bit...)
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, ResolveAndGetDepthTarget(efbPixelRc));
+		}
+
+		// Sample from the center of the target region.
+		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
+		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+
+		u32 z;
+		glReadPixels(srcX, srcY, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+		GL_REPORT_ERRORD();
+
+		if (s_MSAASamples > 1)
+		{
+			// Return to the EFB (this may not be necessary).
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
+		}
+
+		// Scale the 32-bit value returned by glReadPixels to a 24-bit
+		// value (GC uses a 24-bit Z-buffer).
+		return z >> 8;
+	}
+
+	case POKE_Z:
+		// TODO: Implement
+		break;
+
+	case PEEK_COLOR:
+		// TODO: Implement
+		break;
+
+	case POKE_COLOR:
+		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
+		// the exact location. Note: EFB pokes are susceptible to Z-buffering
+		// and perhaps blending.
+		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
+		break;
+
+	}
+
+	return 0;
+}
+
 // Apply AA if enabled
-GLuint Renderer::ResolveAndGetRenderTarget(const TRectangle &source_rect)
+GLuint Renderer::ResolveAndGetRenderTarget(const EFBRectangle &source_rect)
 {
 	return s_framebufferManager.GetEFBColorTexture(source_rect);
 }
 
-GLuint Renderer::ResolveAndGetDepthTarget(const TRectangle &source_rect)
+GLuint Renderer::ResolveAndGetDepthTarget(const EFBRectangle &source_rect)
 {
 	return s_framebufferManager.GetEFBDepthTexture(source_rect);
 }
@@ -600,7 +668,7 @@ bool Renderer::SetScissorRect()
 }
 
 // Aspect ratio functions
-void ComputeBackbufferRectangle(TRectangle *rc)
+static void ComputeBackbufferRectangle(TargetRectangle *rc)
 {
 	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
 	float FloatGLHeight = (float)OpenGL_GetBackbufferHeight();
@@ -657,12 +725,45 @@ void ComputeBackbufferRectangle(TRectangle *rc)
 	int XOffset = floor(FloatXOffset + 0.5);
 	int YOffset = floor(FloatYOffset + 0.5);
 	rc->left = XOffset;
-	rc->top = YOffset;
+	rc->top = YOffset + ceil(FloatGLHeight);
 	rc->right = XOffset + ceil(FloatGLWidth);
-	rc->bottom = YOffset + ceil(FloatGLHeight);
+	rc->bottom = YOffset;
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc)
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+{
+	// Update the view port for clearing the picture
+	glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+
+    // Always set the scissor in case it was set by the game and has not been reset
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+
+    VertexShaderManager::SetViewportChanged();
+
+	GLbitfield bits = 0;
+	if (colorEnable)
+	{
+		bits |= GL_COLOR_BUFFER_BIT;
+		glClearColor(
+			((color >> 16) & 0xFF) / 255.0f,
+			((color >> 8) & 0xFF) / 255.0f,
+			(color & 0xFF) / 255.0f,
+			(alphaEnable ? ((color >> 24) & 0xFF) / 255.0f : 1.0f)
+			);
+	}
+	if (zEnable)
+	{
+		bits |= GL_DEPTH_BUFFER_BIT;
+		glClearDepth((z & 0xFFFFFF) / float(0xFFFFFF));
+	}
+
+	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	glClear(bits);
+}
+
+void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
@@ -686,29 +787,26 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
     ResetGLState();
 
-	TRectangle back_rc;
+	TargetRectangle back_rc;
 	ComputeBackbufferRectangle(&back_rc);
 
-	float u_max;
-	float v_min;
-	float v_max;
+	TargetRectangle sourceRc;
 
-	if (g_Config.bAutoScale)
+	if (g_Config.bAutoScale || g_Config.bUseXFB)
 	{
-		u_max = (xfbSource->sourceRc.right - xfbSource->sourceRc.left);
-		v_min = (float)xfbSource->texHeight - (xfbSource->sourceRc.bottom - xfbSource->sourceRc.top);
-		v_max = (float)xfbSource->texHeight;
+		sourceRc = xfbSource->sourceRc;
 	}
 	else
 	{
-		u_max = (float)xfbSource->texWidth;
-		v_min = 0.f;
-		v_max = (float)xfbSource->texHeight;
+		sourceRc.left = 0;
+		sourceRc.top = xfbSource->texHeight;
+		sourceRc.right = xfbSource->texWidth;
+		sourceRc.bottom = 0;
 	}
 
 	int yOffset = (g_Config.bUseXFB && field == FIELD_LOWER) ? -1 : 0;
-	v_min -= yOffset;
-	v_max -= yOffset;
+	sourceRc.top -= yOffset;
+	sourceRc.bottom -= yOffset;
 
 	// Tell the OSD Menu about the current internal resolution
 	OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
@@ -723,8 +821,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		TextureMngr::DisableStage(i);
 
 	// Update GLViewPort
-	glViewport(back_rc.left, back_rc.top,
-			   back_rc.right - back_rc.left, back_rc.bottom - back_rc.top);
+	glViewport(back_rc.left, back_rc.bottom, back_rc.GetWidth(), back_rc.GetHeight());
 
 	GL_REPORT_ERRORD();
 
@@ -743,25 +840,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// We must call ApplyShader here even if no post proc is selected - it takes 
 	// care of disabling it in that case. It returns false in case of no post processing.
-	if (PostProcessing::ApplyShader()) 
+	if (PostProcessing::ApplyShader())
 	{
 		glBegin(GL_QUADS);
-			glTexCoord2f(0,     v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
-			glTexCoord2f(0,     v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
-			glTexCoord2f(u_max, v_max); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
-			glTexCoord2f(u_max, v_min); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
+			glTexCoord2f(sourceRc.left, sourceRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
+			glTexCoord2f(sourceRc.left, sourceRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
+			glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
+			glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
 		glEnd();
 
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 	}
-	else 
+	else
 	{
 		glBegin(GL_QUADS);
-			glTexCoord2f(0,     v_min); glVertex2f(-1, -1);
-			glTexCoord2f(0,     v_max); glVertex2f(-1,  1);
-			glTexCoord2f(u_max, v_max); glVertex2f( 1,  1);
-			glTexCoord2f(u_max, v_min); glVertex2f( 1, -1);
+			glTexCoord2f(sourceRc.left, sourceRc.bottom);  glVertex2f(-1, -1);
+			glTexCoord2f(sourceRc.left, sourceRc.top);     glVertex2f(-1,  1);
+			glTexCoord2f(sourceRc.right, sourceRc.top);    glVertex2f( 1,  1);
+			glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f( 1, -1);
 		glEnd();
 	}
 
@@ -783,7 +880,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 		s_criticalScreenshot.Enter();
 		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.GetWidth(), xfbSource->sourceRc.GetHeight(), (int)(v_min));
+		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.GetWidth(), xfbSource->sourceRc.GetHeight(), yOffset);
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
@@ -806,7 +903,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_criticalScreenshot.Enter();
 		int w = xfbSource->sourceRc.GetWidth();
 		int h = xfbSource->sourceRc.GetHeight();
-		int t = (int)(v_min);
+		int t = yOffset;
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, t, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
@@ -1005,8 +1102,10 @@ void Renderer::DrawDebugText()
 		glBegin(GL_LINES);
 
 		// Draw EFB copy regions rectangles
-		for (std::vector<TRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
+		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
 		{
+			// TODO: Scale EFBRectangles correctly
+
 			GLfloat halfWidth = Renderer::GetTargetWidth() / 2.0f;
             GLfloat halfHeight = Renderer::GetTargetHeight() / 2.0f;
             GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
@@ -1257,13 +1356,9 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 		}
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Function: This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
+// This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
 // Call schedule: Called from VertexShaderManager
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void UpdateViewport()
 {
 	// ---------

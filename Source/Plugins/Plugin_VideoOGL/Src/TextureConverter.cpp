@@ -166,7 +166,7 @@ void Shutdown()
 	s_texConvFrameBuffer = 0;
 }
 
-void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRectangle& sourceRc,
+void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, bool linearFilter)
 {
 	Renderer::ResetGLState();
@@ -228,7 +228,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TRe
     GL_REPORT_ERRORD();
 }
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle& source)
+void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -250,10 +250,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	TRectangle scaledTargetSource;
-	source.Scale(Renderer::GetTargetScaleX(), Renderer::GetTargetScaleY(), &scaledTargetSource);
-
-	u32 source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(scaledTargetSource) : Renderer::ResolveAndGetRenderTarget(scaledTargetSource);
+	GLuint source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
 	int width = source.right - source.left;
 	int height = source.bottom - source.top;
 
@@ -291,7 +288,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	TextureConversionShader::SetShaderParameters((float)expandedWidth, expandedHeight * MValueY, source.left * MValueX, top, sampleStride * MValueX, sampleStride * MValueY);
 
-	TRectangle scaledSource;
+	TargetRectangle scaledSource;
 	scaledSource.top = 0;
 	scaledSource.bottom = expandedHeight;
 	scaledSource.left = 0;
@@ -300,7 +297,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
 }
 
-void EncodeToRamYUYV(GLuint srcTexture, const TRectangle& sourceRc,
+void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 				     u8* destAddr, int dstWidth, int dstHeight)
 {
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, false);

@@ -19,6 +19,7 @@
 #define _VIDEOCOMMON_H
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "pluginspecs_video.h"
 
 #if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
@@ -40,9 +41,14 @@ enum
 
 enum
 {
-	XFB_WIDTH = 640,
-	XFB_HEIGHT = 480, // 574 can be used with tricks (multi pass render and dual xfb copies, etc).
-	// TODO: figure out what to do with PAL
+	// XFB width is decided by EFB copy operation. The VI can do horizontal
+	// scaling (TODO: emulate).
+	MAX_XFB_WIDTH = EFB_WIDTH,
+
+	// Although EFB height is 528, 574-line XFB's can be created either with
+	// vertical scaling by the EFB copy operation or copying to multiple XFB's
+	// that are next to each other in memory (TODO: handle that situation).
+	MAX_XFB_HEIGHT = 574
 };
 
 // If this is enabled, bounding boxes will be computed for everything drawn.
@@ -53,11 +59,6 @@ enum
 // #define BBOX_SUPPORT
 
 extern SVideoInitialize g_VideoInitialize;
-
-// (mb2) for XFB update hack. TODO: find a static better place
-extern volatile u32 g_XFBUpdateRequested;
-
-extern volatile bool g_EFBAccessRequested;
 
 //////////////////////////////////////////////////////////////////////////
 inline u8 *Memory_GetPtr(u32 _uAddress)
@@ -103,48 +104,11 @@ inline float Memory_Read_Float(u32 _uAddress)
 	return temp.f;
 }
 
-struct TRectangle
-{ 
-	int left;
-	int top;
-	int right;
-	int bottom;
-
-	int GetWidth()  const { return right - left; }
-	int GetHeight() const { return bottom - top; }
-
-	void FlipYPosition(int y_height, TRectangle *dest) const
-	{
-		int offset = y_height - (bottom - top);
-		dest->left = left;
-		dest->top = top + offset;
-		dest->right = right;
-		dest->bottom = bottom + offset;
-	}
-
-	void FlipY(int y_height, TRectangle *dest) const {
-		dest->left = left;
-		dest->right = right;
-		dest->bottom = y_height - bottom;
-		dest->top = y_height - top;
-	}
-
-	void Scale(float factor_x, float factor_y, TRectangle *dest) const
-	{
-		dest->left   = (int)(factor_x * left);
-		dest->right  = (int)(factor_x * right);
-		dest->top    = (int)(factor_y * top);
-		dest->bottom = (int)(factor_y * bottom);
-	}
-
-	void Clamp(int x1, int y1, int x2, int y2) 
-	{
-		if (left < x1) left = x1;
-		if (right > x2) right = x2;
-		if (top < y1) top = y1;
-		if (bottom > y2) bottom = y2;
-	}
-};
+// This structure should only be used to represent a rectangle in EFB
+// coordinates, where the origin is at the upper left and the frame dimensions
+// are 640 x 528.
+struct EFBRectangle : public MathUtil::Rectangle<int>
+{};
 
 // Logging
 // ¯¯¯¯¯¯¯¯¯¯

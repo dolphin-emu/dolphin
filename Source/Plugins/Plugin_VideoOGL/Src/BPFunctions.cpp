@@ -110,19 +110,13 @@ void SetLogicOpMode(const Bypass &bp)
 	else 
 		glDisable(GL_COLOR_LOGIC_OP);
 }
+
 void SetColorMask(const Bypass &bp)
 {
     Renderer::SetColorMask();
 }
-float GetRendererTargetScaleX()
-{
-	return Renderer::GetTargetScaleX();
-}
-float GetRendererTargetScaleY()
-{
-	return Renderer::GetTargetScaleY();
-}
-void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+
+void CopyEFB(const Bypass &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_Config.bEFBCopyDisable)
@@ -132,49 +126,24 @@ void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const b
 			TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 }
 
-void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
 {
-	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, multirc);
+	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc);
 }
-void ClearScreen(const Bypass &bp, const TRectangle &multirc)
+
+void ClearScreen(const Bypass &bp, const EFBRectangle &rc)
 {
-	// Update the view port for clearing the picture
-	glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+	bool colorEnable = bpmem.blendmode.colorupdate;
+	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
+	bool zEnable = bpmem.zmode.updateenable;
 
-    // Always set the scissor in case it was set by the game and has not been reset
-	glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-		(multirc.right - multirc.left), (multirc.bottom - multirc.top));
-	// ---------------------------
+	if (colorEnable || alphaEnable || zEnable)
+	{
+		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+		u32 z = bpmem.clearZValue;
 
-    VertexShaderManager::SetViewportChanged();
-
-    // Since clear operations use the source rectangle, we have to do
-	// regular renders (glClear clears the entire buffer)
-    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
-	{                    
-        GLbitfield bits = 0;
-        if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
-		{
-            u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-
-			// Alpha may or may not be present depending on the EFB pixel format.
-			GLclampf clearAlpha = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24) ?
-				((clearColor>>24) & 0xff)*(1/255.0f) : 1.0f;
-
-			glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
-						 ((clearColor>>8 ) & 0xff)*(1/255.0f),
-						 ((clearColor>>0 ) & 0xff)*(1/255.0f),
-						 clearAlpha);
-            bits |= GL_COLOR_BUFFER_BIT;
-        }
-        if (bpmem.zmode.updateenable)
-		{
-            glClearDepth((float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF));
-            bits |= GL_DEPTH_BUFFER_BIT;
-        }
-        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-        glClear(bits);
-    }
+		Renderer::ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+	}
 }
 
 void RestoreRenderState(const Bypass &bp)

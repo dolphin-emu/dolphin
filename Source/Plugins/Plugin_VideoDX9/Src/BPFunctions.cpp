@@ -214,28 +214,25 @@ void SetColorMask(const Bypass &bp)
 
 	Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
-float GetRendererTargetScaleX()
+
+void CopyEFB(const Bypass &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
-	return Renderer::GetXScale();
-}
-float GetRendererTargetScaleY()
-{
-	return Renderer::GetYScale();
-}
-void CopyEFB(const Bypass &bp, const TRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
-{
+	// TODO: Scale EFBRectangle correctly
+
 	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
 	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const Bypass &bp, const TRectangle &multirc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const Bypass &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const Bypass &bp, const TRectangle &multirc)
+void ClearScreen(const Bypass &bp, const EFBRectangle &rc)
 {
+	// TODO: Scale EFBRectangle correctly
+
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
 

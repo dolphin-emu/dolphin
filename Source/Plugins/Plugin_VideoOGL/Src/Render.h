@@ -68,17 +68,21 @@ public:
 	static float GetTargetScaleX();
     static float GetTargetScaleY();
 
+	static TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
+
     static void SetFramebuffer(GLuint fb);
+
+	static u32 AccessEFB(EFBAccessType type, int x, int y);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
 	// If not in MSAA mode, will just return the render target texture ID.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-	static GLuint ResolveAndGetRenderTarget(const TRectangle &rect);
+	static GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
 
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-    static GLuint ResolveAndGetDepthTarget(const TRectangle &rect);
+    static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);
@@ -87,12 +91,11 @@ public:
 	static void FlipImageData(u8 *data, int w, int h);
 	static bool SaveRenderTarget(const char *filename, int w, int h, int YOffset = 0);
 
-	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const TRectangle& sourceRc);
+	static void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
+	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
     // Finish up the current frame, print some stats
     static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
 };
-
-void ComputeBackbufferRectangle(TRectangle *rc);
 
 #endif // _GCOGL_RENDER_H_

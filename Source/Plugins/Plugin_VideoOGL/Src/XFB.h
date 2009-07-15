@@ -18,7 +18,9 @@
 #ifndef _XFB_H_
 #define _XFB_H_
 
+#include "GLUtil.h"
+
 // write the EFB to the XFB
-void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt);
+void XFB_Write(u8 *xfb_in_ram, const EFBRectangle& sourceRc, u32 dstWd, u32 dstHt);
 
 #endif // _XFB_H_

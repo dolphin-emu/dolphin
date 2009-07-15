@@ -103,6 +103,38 @@ int ClassifyDouble(double dvalue);
 // More efficient float version.
 int ClassifyFloat(float fvalue);
 
+template<class T>
+struct Rectangle
+{
+	T left;
+	T top;
+	T right;
+	T bottom;
+
+	T GetWidth() const { return abs(right - left); }
+	T GetHeight() const { return abs(bottom - top); }
+
+	// If the rectangle is in a coordinate system with a lower-left origin, use
+	// this Clamp.
+	void ClampLL(T x1, T y1, T x2, T y2)
+	{
+		if (left < x1) left = x1;
+		if (right > x2) right = x2;
+		if (top > y1) top = y1;
+		if (bottom < y2) bottom = y2;
+	}
+
+	// If the rectangle is in an coordinate system with an upper-left origin,
+	// use this Clamp.
+	void ClampUL(T x1, T y1, T x2, T y2) 
+	{
+		if (left < x1) left = x1;
+		if (right > x2) right = x2;
+		if (top < y1) top = y1;
+		if (bottom > y2) bottom = y2;
+	}
+};
+
 }  // namespace MathUtil
 
 inline float pow2f(float x) {return x * x;}
@@ -157,6 +189,5 @@ public:
 
     float data[16];
 };
-
 
 #endif // _MATH_UTIL_H_

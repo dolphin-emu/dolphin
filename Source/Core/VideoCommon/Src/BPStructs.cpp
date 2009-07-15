@@ -176,24 +176,13 @@ void BPWritten(const Bypass& bp)
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
 			// The bottom right is within the rectangle
 			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
-			TRectangle rc = {
-				(int)(bpmem.copyTexSrcXY.x),
-				(int)(bpmem.copyTexSrcXY.y),
-				(int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
-				(int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
-			};
 
-			float MValueX = GetRendererTargetScaleX();
-			float MValueY = GetRendererTargetScaleY();
+			EFBRectangle rc;
+			rc.left = (int)bpmem.copyTexSrcXY.x;
+			rc.top = (int)bpmem.copyTexSrcXY.y;
+			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
-			// Need another rc here to get it to scale.
-			// Here the bottom right is the out of the rectangle.
-			TRectangle multirc = {
-				(int)(bpmem.copyTexSrcXY.x * MValueX),
-				(int)(bpmem.copyTexSrcXY.y * MValueY),
-				(int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
-				(int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
-			};
 			UPE_Copy PE_copy;
 			PE_copy.Hex = bpmem.triggerEFBCopy;
 
@@ -219,7 +208,7 @@ void BPWritten(const Bypass& bp)
 #endif
 				const float yScale = bpmem.dispcopyyscale / 256.0f;
 				const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
-				RenderToXFB(bp, multirc, yScale, xfbLines, 
+				RenderToXFB(bp, rc, yScale, xfbLines, 
 									 bpmem.copyTexDest << 5, 
 									 bpmem.copyMipMapStrideChannels << 4, 
 									 (u32)ceil(xfbLines));
@@ -227,7 +216,7 @@ void BPWritten(const Bypass& bp)
 
 			// Clear the picture after it's done and submitted, to prepare for the next picture
 			if (PE_copy.clear)
-				ClearScreen(bp, multirc);
+				ClearScreen(bp, rc);
 
 			RestoreRenderState(bp);
 		        
