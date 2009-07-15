@@ -1,0 +1,23 @@
+incdir "tests"
+include "dsp_base.inc"
+
+;    Test for andc'ls
+;    
+;    3d80      andc'ls     $AC1.M : $AX0.L, $AC0.M
+
+
+	clr $ACC0
+	clr $ACC1
+	lri $AX0.L, #0x0000
+	lri $AR0, #0x0FF0
+	lri $AR3, #0x0FF0
+
+	lri $AC0.M, #0x0004
+	lri $AC1.M, #0x1234
+	andc'ls $AC1.M : $AX0.L, $AC0.M
+
+	call send_back
+
+
+; We're done, DO NOT DELETE THIS LINE
+	jmp end_of_test
