@@ -23,12 +23,6 @@
 #include <process.h>
 #endif
 
-#ifdef SETUP_TIMER_WAITING
-	#include <windows.h>
-	#include "ConsoleWindow.h"
-	EventCallBack FunctionPointer[10];
-#endif
-
 namespace Common
 {
 
@@ -110,12 +104,6 @@ void Thread::SetCurrentThreadAffinity(int mask)
 Event::Event()
 {
 	m_hEvent = 0;
-	#ifdef SETUP_TIMER_WAITING
-		DoneWaiting = false;
-		StartWait = false;
-		hTimer = NULL;
-		hTimerQueue = NULL;
-	#endif
 }
 
 void Event::Init()
@@ -182,96 +170,6 @@ void Event::MsgWait()
 		}
 	}
 }
-
-/* Separate thread timer based waiting, instead of same thread loop waiting. The downside with this
-   is that it's less convenient to use because we can't stall any threads with a loop. The positive
-   is that we don't cause these incredibly annoying WaitForEternity() hangings. */
-#ifdef SETUP_TIMER_WAITING
-/* I could not figure out how to place this in the class to, CreateTimerQueueTimer() would complain
-   about some kind of type casting, anyone have any ideas about how to do it? */
-VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
-{
-    if (lpParam == NULL)
-    {
-        DEBUG_LOG(CONSOLE, "TimerRoutine lpParam is NULL\n");
-    }
-    else
-    {
-        // lpParam points to the argument; in this case it is an int
-
-        //DEBUG_LOG(CONSOLE, "Timer[%i] will call back\n", *(int*)lpParam);
-    }
-
-	// Call back
-	int Id = *(int*)lpParam;
-	if (FunctionPointer[Id]) FunctionPointer[Id]();
-}
-
-// Create a timer that will call back to the calling function
-bool Event::TimerWait(EventCallBack WaitCB, int _Id, bool OptCondition)
-{
-	Id = _Id;
-
-	//DEBUG_LOG(CONSOLE, "TimerWait[%i]: %i %i %i\n", Id, StartWait, DoneWaiting, OptCondition);
-
-	FunctionPointer[Id] = WaitCB;
-	
-	// This means we are done waiting, so we wont call back again, and we also reset the variables for this Event
-	if (DoneWaiting && OptCondition)
-	{
-		StartWait = false;
-		DoneWaiting = false;
-		FunctionPointer[Id] = NULL;
-
-		// Delete all timers in the timer queue.
-		if (!DeleteTimerQueue(hTimerQueue))
-			DEBUG_LOG(CONSOLE, "DeleteTimerQueue failed (%d)\n", GetLastError());
-
-		hTimer = NULL;
-		hTimerQueue = NULL;
-
-		return true;
-	}
-
-	// Else start a new callback timer
-	StartWait = true;
-
-	// Create the timer queue if needed
-	if (!hTimerQueue)
-	{
-		hTimerQueue = CreateTimerQueue();
-		if (NULL == hTimerQueue)
-		{
-			DEBUG_LOG(CONSOLE, "CreateTimerQueue failed (%d)\n", GetLastError());
-			return false;
-		}
-	}
-
-    // Set a timer to call the timer routine in 10 seconds.
-    if (!CreateTimerQueueTimer( &hTimer, hTimerQueue, 
-            (WAITORTIMERCALLBACK)TimerRoutine, &Id , 10, 0, 0))
-    {
-        DEBUG_LOG(CONSOLE, "CreateTimerQueueTimer failed (%d)\n", GetLastError());
-        return false;
-    }
-
-	return false;
-}
-// Check if we are done or not
-bool Event::DoneWait()
-{
-	if (StartWait && DoneWaiting)
-		return true;
-	else
-		return false;
-}
-// Tells the timer that we are done waiting
-void Event::SetTimer()
-{
-	// We can not be done before we have started waiting
-	if (StartWait) DoneWaiting = true;
-}
-#endif
 
 // Supporting functions
 void SleepCurrentThread(int ms)

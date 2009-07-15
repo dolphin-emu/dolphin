@@ -100,21 +100,7 @@ SCoreStartupParameter g_CoreStartupParameter;
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
-
-
-#ifdef SETUP_TIMER_WAITING
-
-	bool VideoThreadRunning = false;
-	bool StopUpToVideoDone = false;
-	bool EmuThreadReachedEnd = false;
-	bool StopReachedEnd = false;
-	static Common::Event VideoThreadEvent;
-	static Common::Event VideoThreadEvent2;
-	void EmuThreadEnd();
-#endif
-
-
- 
+Common::Event gpuShutdownCall;
  
 
 // Display messages and return values
@@ -171,19 +157,6 @@ void ReconnectWiimote()
 	INFO_LOG(CONSOLE, "ReconnectWiimote()\n");
 }
 
-
-#ifdef SETUP_TIMER_WAITING
-
-	void VideoThreadEnd()
-	{
-		VideoThreadRunning = false;
-		VideoThreadEvent.SetTimer();
-		VideoThreadEvent2.SetTimer();
-		//INFO_LOG(CONSOLE, "VideoThreadEnd\n");
-	}
-#endif
-
-
 bool isRunning()
 {
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
@@ -222,9 +195,6 @@ bool Init()
 	g_EmuThread = new Common::Thread(EmuThread, NULL);
 	emuThreadGoing.MsgWait();
 	emuThreadGoing.Shutdown();
-	#ifdef SETUP_TIMER_WAITING
-		VideoThreadRunning = true;
-	#endif
 
 	// All right, the event is set and killed. We are now running.
 	Host_SetWaitCursor(false);
@@ -236,14 +206,6 @@ void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-#ifdef SETUP_TIMER_WAITING
-	if (!StopUpToVideoDone)
-	{
-	INFO_LOG(CONSOLE, "Stop [Main Thread]:    Shutting down...\n");
-	// Reset variables
-	StopReachedEnd = false;
-	EmuThreadReachedEnd = false;
-#endif
 	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
@@ -266,16 +228,6 @@ void Stop()  // - Hammertime!
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
 
-#ifdef SETUP_TIMER_WAITING
-	StopUpToVideoDone = true;
-	}
-	// Call this back
-	//if (!VideoThreadEvent.TimerWait(Stop, 1, EmuThreadReachedEnd) || !EmuThreadReachedEnd) return;
-	if (!VideoThreadEvent.TimerWait(Stop, 1)) return;
-
-	//INFO_LOG(CONSOLE, "Stop() will continue\n");
-#endif
-
 	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
 	// of the commands in this function. We no longer rely on Postmessage. */
 
@@ -285,12 +237,7 @@ void Stop()  // - Hammertime!
 
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
-	#ifdef SETUP_AVOID_CHILD_WINDOW_RENDERING_HANG
-		/* This may hang when we are rendering to a child window, but currently it doesn't, at least
-		   not on my system, but I'll leave this option for a while anyway */
-		if (GetParent((HWND)g_pWindowHandle) == NULL)
-	#endif
-#ifndef SETUP_TIMER_WAITING // This is moved
+
 #ifdef _WIN32
 	g_EmuThread->WaitForDeath(5000);
 #else
@@ -298,26 +245,25 @@ void Stop()  // - Hammertime!
 #endif
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
-#else
-	Host_UpdateGUI();
-	StopUpToVideoDone = false;
-	StopReachedEnd = true;
-#endif
 }
 
  
 
-// Create the CPU thread. For use with Single Core mode only.
+// Create the CPU thread. which would be a CPU + Video thread in Single Core mode.
 
 THREAD_RETURN CpuThread(void *pArg)
 {
-	Common::SetCurrentThreadName("CPU thread");
- 
+	CPluginManager &Plugins = CPluginManager::GetInstance();
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	if (!_CoreParameter.bUseDualCore)
+
+	if (_CoreParameter.bUseDualCore)
 	{
-		//wglMakeCurrent
-		CPluginManager::GetInstance().GetVideo()->Video_Prepare(); 
+		Common::SetCurrentThreadName("CPU thread");
+	}
+	else
+	{
+		CPluginManager::GetInstance().GetVideo()->Video_Prepare();
+		Common::SetCurrentThreadName("CPU-GPU thread");
 	}
  
 	if (_CoreParameter.bLockThreads)
@@ -338,6 +284,16 @@ THREAD_RETURN CpuThread(void *pArg)
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 	cpuRunloopQuit.Set();
+
+	// Call video shutdown from the video thread in single core mode, which is the cpuThread
+	if (!_CoreParameter.bUseDualCore)
+	{
+		gpuShutdownCall.Wait();
+		Plugins.ShutdownVideoPlugin();
+	}
+
+	gpuShutdownCall.Shutdown();
+
  	return 0;
 }
 
@@ -347,6 +303,7 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	cpuRunloopQuit.Init();
+	gpuShutdownCall.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -384,10 +341,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pBBox               = &PixelEngine::bbox[0];
 	VideoInitialize.pBBoxActive         = &PixelEngine::bbox_active;
 
-	// May be needed for Stop and Start
-	#ifdef SETUP_FREE_VIDEO_PLUGIN_ON_BOOT
-		Plugins.FreeVideo();
-	#endif
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
@@ -411,10 +364,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.bWii = _CoreParameter.bWii;
 	dspInit.bOnThread = _CoreParameter.bDSPThread;
 
-	// May be needed for Stop and Start
-	#ifdef SETUP_FREE_DSP_PLUGIN_ON_BOOT
-		Plugins.FreeDSP();
-	#endif
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin
@@ -476,21 +425,30 @@ THREAD_RETURN EmuThread(void *pArg)
 	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();
 	Host_UpdateMainFrame();
- 
-	// This thread, after creating the EmuWindow, spawns a CPU thread,
-	// then takes over and becomes the graphics thread
- 
-	// In single core mode, this thread is the CPU thread and also does the graphics.
- 
+
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
  
 	// ENTER THE VIDEO THREAD LOOP
-	if (!_CoreParameter.bUseDualCore)
+	if (_CoreParameter.bUseDualCore) // DualCore mode
 	{
+		// This thread, after creating the EmuWindow, spawns a CPU thread,
+		// and then takes over and becomes the video thread
+
+		Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
+		cpuThread = new Common::Thread(CpuThread, pArg);
+		Common::SetCurrentThreadName("Video thread");
+
+		Plugins.GetVideo()->Video_EnterLoop();
+	}
+	else // SingleCore mode
+	{
+		// the spawned CPU Thread is the... CPU thread but it also does the graphics.
+		// the EmuThread is thus an idle thread, which sleeps and wait for the emu to terminate.
+
 #ifdef _WIN32
 		cpuThread = new Common::Thread(CpuThread, pArg);
-		// Common::SetCurrentThreadName("Idle thread");
+		Common::SetCurrentThreadName("Emuthread - Idle");
 
 		// TODO(ector) : investigate using GetMessage instead .. although
 		// then we lose the powerdown check. ... unless powerdown sends a message :P
@@ -505,40 +463,6 @@ THREAD_RETURN EmuThread(void *pArg)
 		CpuThread(pArg);
 #endif
 	}
-	else
-	{
-		Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
-		cpuThread = new Common::Thread(CpuThread, pArg);
-		Common::SetCurrentThreadName("Video thread");
-
-		Plugins.GetVideo()->Video_EnterLoop();
-	}
-#ifdef SETUP_TIMER_WAITING
-
-	VideoThreadEvent2.TimerWait(EmuThreadEnd, 2);
-	//INFO_LOG(CONSOLE, "Video loop [Video Thread]:   Stopped\n");
-	return 0;
-}
-
-void EmuThreadEnd()
-{
-	CPluginManager &Plugins = CPluginManager::GetInstance();
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-	//INFO_LOG(CONSOLE, "Video loop [Video Thread]:   EmuThreadEnd [StopEnd:%i]\n", StopReachedEnd);
-
-	//if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2)) return;
-	if (!VideoThreadEvent2.TimerWait(EmuThreadEnd, 2, StopReachedEnd) || !StopReachedEnd)
-	{
-		INFO_LOG(CONSOLE, "Stop [Video Thread]:   Waiting for Stop() and Video Loop to end...\n");
-		return;
-	}
-
-	//INFO_LOG(CONSOLE, "EmuThreadEnd() will continue\n");
-
-	/* There will be a few problems with the OpenGL ShutDown() after this, for example the "Release
-	   Device Context Failed" error message */
-#endif
 
 	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Stop() and Video Loop Ended\n");
 	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Shutting down HW and Plugins\n");
@@ -549,12 +473,21 @@ void EmuThreadEnd()
 	if (g_pUpdateFPSDisplay != NULL)
 		g_pUpdateFPSDisplay("Stopping...");
 
-#ifndef SETUP_TIMER_WAITING
+	HW::Shutdown();
+	Plugins.ShutdownPlugins();
+
+	// Call video shutdown from the video thread in dual core mode (EmuThread)
+	// Or set an event in Single Core mode, to call the shutdown from the cpuThread
+	if (_CoreParameter.bUseDualCore)
+		Plugins.ShutdownVideoPlugin();
+	else
+		gpuShutdownCall.Set();
+
 	if (cpuThread)
 	{
 		// There is a CPU thread - join it.
 #ifdef _WIN32
-		cpuThread->WaitForDeath(5000);
+		cpuThread->WaitForDeath(3000);
 #else
 		cpuThread->WaitForDeath();
 #endif
@@ -562,10 +495,6 @@ void EmuThreadEnd()
 		// Returns after game exited
 		cpuThread = NULL;
 	}
-#endif
-
-	HW::Shutdown();
-	Plugins.ShutdownPlugins();
 
 	// The hardware is uninitialized
 	g_bHwInit = false;
@@ -574,15 +503,7 @@ void EmuThreadEnd()
 
 	Host_UpdateMainFrame();
 
-#ifdef SETUP_TIMER_WAITING
-	EmuThreadReachedEnd = true;
-	Host_UpdateGUI();
-	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Done\n");
-	delete g_EmuThread;  // Wait for emuthread to close.
-	g_EmuThread = 0;
-#else
 	return 0;
-#endif
 }
  
  

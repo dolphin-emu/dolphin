@@ -173,9 +173,9 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	toolsMenu->Append(IDM_INFO, _T("System Information"));
 
+#if defined(HAVE_SFML) && HAVE_SFML
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
-
-	// toolsMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
+#endif
 
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
 	{
@@ -524,15 +524,6 @@ void CFrame::DoStop()
 				return;
 	
 		Core::Stop();
-
-#ifdef SETUP_TIMER_WAITING
-		// Idle-wait for core to completely shut down (without this wait the 
-		// GameCtrlPanel is restored to a state where we can open another game
-		// and effectively crash Dolphin)
-		while(Core::isRunning()) 
-			SLEEP(10);
-#endif
-		
 		UpdateGUI();
 	}
 }

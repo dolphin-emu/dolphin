@@ -393,6 +393,7 @@ void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
 	wxPostEvent(main_frame, event);
+
 	if (g_pCodeWindow)
 	{
 		wxPostEvent(g_pCodeWindow, event);
@@ -502,13 +503,6 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// DISABLED - this has been found to cause random hangs.
 	// wxPostEvent(main_frame, event);
 }
-
-#ifdef SETUP_TIMER_WAITING
-void Host_UpdateGUI()
-{
-	main_frame->UpdateGUI();
-}
-#endif
 
 // g_VideoInitialize.pSysMessage() goes here
 void Host_SysMessage(const char *fmt, ...) 

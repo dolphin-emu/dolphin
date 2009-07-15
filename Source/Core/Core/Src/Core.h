@@ -72,14 +72,6 @@ namespace Core
     void SetBlockStart(u32 addr);
     void StopTrace();
 
-    // -----------------------------------------
-	#ifdef SETUP_TIMER_WAITING
-	// -----------------
-		// Thread shutdown
-		void VideoThreadEnd();
-	#endif
-	// ---------------------------
-
 	// -----------------------------------------
 	#ifdef RERECORDING
 	// -----------------

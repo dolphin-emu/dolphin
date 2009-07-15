@@ -399,6 +399,9 @@ void Shutdown(void)
 
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
+
+	// The following calls are NOT Thread Safe
+	// And need to be called from the video thread
 	TextureConverter::Shutdown();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
@@ -424,7 +427,6 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
-
 
 
 

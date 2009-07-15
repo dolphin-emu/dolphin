@@ -711,9 +711,7 @@ void OpenGL_Shutdown()
 
 	if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
 	{
-#ifndef SETUP_TIMER_WAITING // This fails
 		ERROR_LOG(VIDEO, "Release Device Context Failed.");
-#endif
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11

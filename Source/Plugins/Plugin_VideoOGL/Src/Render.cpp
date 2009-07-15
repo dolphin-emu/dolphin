@@ -566,15 +566,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
 		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
-		u32 z;
+		u32 z = 0;
 		glReadPixels(srcX, srcY, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 		GL_REPORT_ERRORD();
 
 		if (s_MSAASamples > 1)
-		{
 			// Return to the EFB (this may not be necessary).
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
-		}
+			SetFramebuffer(0);
 
 		// Scale the 32-bit value returned by glReadPixels to a 24-bit
 		// value (GC uses a 24-bit Z-buffer).
@@ -586,7 +584,25 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		break;
 
 	case PEEK_COLOR:
-		// TODO: Implement
+		/*{
+			u32 z = 0;
+			int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
+			int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+
+			if (s_MSAASamples > 1)
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ResolveAndGetRenderTarget(efbPixelRc));
+
+			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
+			// Plus we need to flip the y value as the OGL image is upside down
+			glReadPixels(srcX, srcY, 1, 1, GL_RGB, GL_UNSIGNED_INT, &z);
+			GL_REPORT_ERRORD();
+
+			// We should probably re-bind the old fbo here.
+			if (s_MSAASamples > 1)
+				SetFramebuffer(0);
+
+			return z;
+		}*/
 		break;
 
 	case POKE_COLOR:

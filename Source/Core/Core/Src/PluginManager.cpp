@@ -24,36 +24,7 @@
    plugins when Dolphin is booted, and open the debugging and config windows. The PluginManager is
    created once when Dolphin starts and is closed when Dolphin is closed.
 
-   When plugins are freed and loaded:
-
-   In an attempt to avoid the crash that occurs when the use LoadLibrary() and FreeLibrary() often
-   (every time a game is stopped and started) these functions will only be used when
-		1. Dolphin is started
-		2. A plugin is changed
-		3. Dolphin is closed
-   it will not be used when we Start and Stop games. With these exceptions:
-		1. Video plugin: If FreeLibrary() is not called between Stop and Start it will fail for
-		several games on the next Start, but not for all games.
-		2. Sound plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
-		"get pointer for unknown address ffffffff" message for all games I tried.
-
-	Currently this holds if the 'SETUP_FREE_PLUGIN_ON_BOOT' option is used
-
-	For some reason the time when the FreeLibrary() is placed produce different results. If it's placed
-	after ShutDown() I don't get a black screen when I start SSBM (PAL) again, if I have stopped the game
-	before the first 3D appears (on the start screen), if I show the start screen and then Stop and Start
-	I get the same error again (a black screen) (with the default OpenGL settings, copy EFB to texture, no
-	hack). I also get the "Tried to get pointer ..." error then to (if DSP HLE sound has been enabled, if
-	"Enable HLE Audio" has been disabled I don't get that error message). For this reason I have to place
-	FreeVideo() and FreeDSP() before it's initialized on the next Start instead, then it works.
-
-	If it was not for the crash I always got earlier after several (perhaps as many as twenty) Stop and Start
-	I would be indifferent about how often FreeLibrary() i used, but since it seems like it can fail
-	infrequently, at least for nJoy, I'd rather use FreeLibrary() more sparingly. However, I could not
-	reproduce any crash now after several Stop and Start so maybe it has gone away or I was lucky. In any case
-	if it works I'd rather be without FreeLibrary() between Start and Stop.
-
-//////////////////////////////////////*/
+*/
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯
@@ -212,23 +183,21 @@ void CPluginManager::ShutdownPlugins()
 	{
 		m_dsp->Shutdown();
 		// With this option, this is done on boot instead
-		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
-			delete m_dsp;
-			m_dsp = NULL;
-		#endif
+		delete m_dsp;
+		m_dsp = NULL;
 	}
+}
 
+void CPluginManager::ShutdownVideoPlugin()
+{
 	if (m_video)
 	{
 		m_video->Shutdown();
 		// With this option, this is done on boot instead
-		#ifndef SETUP_DONT_FREE_PLUGIN_ON_STOP
-			delete m_video;
-			m_video = NULL;
-		#endif
+		delete m_video;
+		m_video = NULL;
 	}
 }
-//////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////

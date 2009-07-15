@@ -16,11 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <string.h>
-
 #include "Setup.h"
-#ifdef SETUP_TIMER_WAITING
-	#include "../../../Plugins/Plugin_VideoOGL/Src/OS/Win32.h"
-#endif
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
@@ -89,18 +85,9 @@ u8* FAKE_GetFifoEndPtr()
 void Fifo_ExitLoop()
 {
     fifoStateRun = false;
-	#ifndef SETUP_TIMER_WAITING
-		fifo_exit_event.MsgWait();
-		fifo_exit_event.Shutdown();
-	#else
-	//Console::Print("Video: Fifo_ExitLoop: Done:%i\n", fifo_exit_event.DoneWait());
-		if (fifo_exit_event.TimerWait(Fifo_ExitLoop))
-		{
-			//Console::Print("Video: Fifo_Shutdown: Done:%i\n\n", fifo_exit_event.DoneWait());
-			fifo_exit_event.Shutdown();
-			PostMessage(EmuWindow::GetParentWnd(), WM_USER, OPENGL_VIDEO_STOP, 0);
-		}
-	#endif
+
+	fifo_exit_event.MsgWait();
+	fifo_exit_event.Shutdown();
 }
 
 // May be executed from any thread, even the graphics thread.
@@ -140,7 +127,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
     while (fifoStateRun)
     {
-#if defined(_WIN32) && !defined(SETUP_AVOID_OPENGL_SCREEN_MESSAGE_HANG)
+#if defined(_WIN32)
 		video_initialize.pPeekMessages();
 #endif
 
@@ -220,8 +207,5 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		s_criticalFifo.Leave();
     }
 	fifo_exit_event.Set();
-	#ifdef SETUP_TIMER_WAITING
-		fifo_exit_event.SetTimer();
-	#endif
 }
 

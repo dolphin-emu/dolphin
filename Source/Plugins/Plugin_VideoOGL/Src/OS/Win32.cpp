@@ -338,8 +338,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		}
 
 	case WM_DESTROY:
-		//Shutdown();
-		//PostQuitMessage( 0 ); // Call WM_QUIT
+		Shutdown();
 		break;
 
 	// Called when a screensaver wants to show up while this window is active

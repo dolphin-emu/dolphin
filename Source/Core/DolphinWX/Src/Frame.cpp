@@ -203,17 +203,6 @@ int abc = 0;
 					return 0;
 			#endif
 			// -----------------------------
-
-			// -----------------------------------------
-			#ifdef SETUP_TIMER_WAITING
-			// -----------------
-				case OPENGL_VIDEO_STOP:
-					// The Video thread has been shut down
-					Core::VideoThreadEnd();
-					//INFO_LOG(CONSOLE, "OPENGL_VIDEO_STOP\n");
-					return 0;	
-			#endif
-			// -----------------------------
 			}
 			break;
 
