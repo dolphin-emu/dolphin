@@ -376,11 +376,11 @@ void Video_Prepare(void)
     VertexLoaderManager::Init();
     TextureConverter::Init();
 
-	s_swapRequested = false;
+	s_swapRequested = FALSE;
 	s_swapResponseEvent.Init();
 	s_swapResponseEvent.Set();
 
-	s_efbAccessRequested = false;
+	s_efbAccessRequested = FALSE;
 	s_efbResponseEvent.Init();
 
 	s_PluginInitialized = true;
@@ -455,13 +455,12 @@ void VideoFifo_CheckSwapRequest()
 {
 	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
-		s_swapRequested = FALSE;
-
 		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 
 		// TODO: Find better name for this because I don't know if it means what it says.
 		g_VideoInitialize.pCopiedToXFB();
 
+		s_swapRequested = FALSE;
 		s_swapResponseEvent.Set();
 	}
 }
@@ -514,7 +513,10 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_EndField()
 {
-	Common::AtomicStoreRelease(s_swapRequested, TRUE);
+	if (s_PluginInitialized)
+	{
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
+	}
 }
 
 static volatile struct
@@ -530,10 +532,9 @@ void VideoFifo_CheckEFBAccess()
 {
 	if (Common::AtomicLoadAcquire(s_efbAccessRequested))
 	{
-		s_efbAccessRequested = FALSE;
-
 		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y);
 
+		s_efbAccessRequested = FALSE;
 		s_efbResponseEvent.Set();
 	}
 }

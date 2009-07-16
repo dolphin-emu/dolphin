@@ -580,6 +580,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	case PEEK_COLOR:
 	{
+		// TODO: Find some way to test PEEK_COLOR. Wind Waker may be using it
+		// for pictograph quests.
+
 		if (s_MSAASamples > 1)
 		{
 			// Resolve our rectangle.
@@ -591,12 +594,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
 		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
+		// Read back pixel in BGRA format, then byteswap to get GameCube's
+		// ARGB format.
 		u32 color = 0;
-		glReadPixels(srcX, srcY, 1, 1, GL_RGBA, GL_UNSIGNED_INT, &color);
+		glReadPixels(srcX, srcY, 1, 1, GL_BGRA, GL_UNSIGNED_BYTE, &color);
 		GL_REPORT_ERRORD();
 
-		// TODO: Find some way to test PEEK_COLOR.
-		return color;
+		return Common::swap32(color);
 	}
 
 	case POKE_COLOR:

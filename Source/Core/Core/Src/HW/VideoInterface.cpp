@@ -1159,14 +1159,9 @@ void Update()
 
 	// TODO: What's the correct behavior for progressive mode?
 
-	for (int i = 0; i < 4; ++i)
-	{
-		if (m_InterruptRegister[i].VCT == m_VBeamPos)
-		{
-			m_InterruptRegister[i].IR_INT = 1;
-			UpdateInterrupts();
-		}
-	}
+    m_VBeamPos++;
+    if (m_VBeamPos > s_lineCount)
+        m_VBeamPos = 1;
 
 	if (m_VBeamPos == s_upperFieldBegin)
 		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
@@ -1180,9 +1175,14 @@ void Update()
 	if (m_VBeamPos == s_lowerFieldEnd)
 		EndField();
 
-    m_VBeamPos++;
-    if (m_VBeamPos > s_lineCount)
-        m_VBeamPos = 1;
+	for (int i = 0; i < 4; ++i)
+	{
+		if (m_InterruptRegister[i].VCT == m_VBeamPos)
+		{
+			m_InterruptRegister[i].IR_INT = 1;
+			UpdateInterrupts();
+		}
+	}
 }
 
 } // namespace
