@@ -1096,12 +1096,6 @@ int getTicksPerLine() {
 
 static void BeginField(FieldType field)
 {
-	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
-	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
-		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
-		fieldTypeNames[field]
-		);
-
 	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
 	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
 
@@ -1110,6 +1104,13 @@ static void BeginField(FieldType field)
 	// difference because NTSC and PAL have opposite field orders.
 
 	u32 xfbAddr = (field == FIELD_LOWER) ? GetXFBAddressBottom() : GetXFBAddressTop();
+
+	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
+
+	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
+		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
+		fieldTypeNames[field]
+	);
 
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (xfbAddr && video->IsValid())
