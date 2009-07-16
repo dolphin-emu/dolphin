@@ -180,7 +180,7 @@ void orr(const UDSPInstruction& opc)
 // ANDC $acD.m, $ac(1-D).m
 // 0011 110d xxxx xxxx
 // Logic AND middle part of accumulator $acD.m with middle part of
-// accumulator $ax(1-D).m.s
+// accumulator $ac(1-D).m
 void andc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
@@ -239,9 +239,9 @@ void andcf(const UDSPInstruction& opc)
 // immediate value 0.
 void andf(const UDSPInstruction& opc)
 {
-	u8 reg = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
+	u8 reg  = (opc.hex >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
-	u16 val = g_dsp.r[reg];
+	u16 val = dsp_get_acc_m(reg);
 
 	Update_SR_LZ(((val & imm) == 0) ? 0 : 1);
 }

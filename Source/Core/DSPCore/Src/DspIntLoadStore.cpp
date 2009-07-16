@@ -26,9 +26,9 @@ namespace DSPInterpreter {
 
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
-// Move value from register $(0x18+D) to data memory pointed by address CR[0-7] | M. 
-// That is, the upper 8 bits of the address are the bottom 8 bits from CR, and the
-// lower 8 bits are from the 8-bit immediate.
+// Move value from register $(0x18+D) to data memory pointed by address 
+// CR[0-7] | M. That is, the upper 8 bits of the address are the 
+// bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.  
 // Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction& opc)
 {
@@ -39,9 +39,9 @@ void srs(const UDSPInstruction& opc)
   
 // LRS $(0x18+D), @M
 // 0010 0ddd mmmm mmmm
-// Move value from data memory pointed by address CR[0-7] | M to register $(0x18+D). 
-// That is, the upper 8 bits of the address are the bottom 8 bits from CR, and the
-// lower 8 bits are from the 8-bit immediate.
+// Move value from data memory pointed by address CR[0-7] | M to register
+// $(0x18+D).  That is, the upper 8 bits of the address are the bottom 8 bits
+// from CR, and the lower 8 bits are from the 8-bit immediate.
 void lrs(const UDSPInstruction& opc)
 {
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
@@ -97,8 +97,9 @@ void lrr(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 5) & 0x3;
 	u8 dreg = opc.hex & 0x1f;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
+	dsp_conditional_extend_accum(dreg);
 }
 
 // LRRD $D, @$S
@@ -111,8 +112,9 @@ void lrrd(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 5) & 0x3;
 	u8 dreg = opc.hex & 0x1f;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
+	dsp_conditional_extend_accum(dreg);
 	dsp_decrement_addr_reg(sreg);
 }
 
@@ -126,8 +128,9 @@ void lrri(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 5) & 0x3;
 	u8 dreg = opc.hex & 0x1f;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]); 
+	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
+	dsp_conditional_extend_accum(dreg);
 	dsp_increment_addr_reg(sreg);
 }
 
@@ -141,9 +144,9 @@ void lrrn(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 5) & 0x3;
 	u8 dreg = opc.hex & 0x1f;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
-	//	g_dsp.r[sreg] += g_dsp.r[DSP_REG_IX0 + sreg];
+	dsp_conditional_extend_accum(dreg);
 	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
@@ -203,7 +206,6 @@ void srrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	//	g_dsp.r[dreg] += g_dsp.r[DSP_REG_IX0 + dreg];
 	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
@@ -217,6 +219,7 @@ void ilrr(const UDSPInstruction& opc)
 	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
+	dsp_conditional_extend_accum(dreg);
 }
 
 // ILRRD $acD.m, @$arS
@@ -230,6 +233,7 @@ void ilrrd(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
+	dsp_conditional_extend_accum(dreg);
 	dsp_decrement_addr_reg(reg);
 }
 
@@ -258,8 +262,7 @@ void ilrrn(const UDSPInstruction& opc)
 	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-
-	//	g_dsp.r[reg] += g_dsp.r[DSP_REG_IX0 + reg];
+	dsp_conditional_extend_accum(dreg);
 	dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 }
 
