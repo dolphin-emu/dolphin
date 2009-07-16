@@ -556,10 +556,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	{
 		if (s_MSAASamples > 1)
 		{
-			// XXX: What is this? Binding a texture to a framebuffer slot?
-			// It's not documented in the OpenGL spec, but it seems to work!
-			// (ATI Radeon HD 3870, CATALYST 9.6 drivers, Windows Vista 64-bit...)
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, ResolveAndGetDepthTarget(efbPixelRc));
+			// Resolve our rectangle.
+			s_framebufferManager.GetEFBDepthTexture(efbPixelRc);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetResolvedFramebuffer());
 		}
 
 		// Sample from the center of the target region.
@@ -569,10 +568,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		u32 z = 0;
 		glReadPixels(srcX, srcY, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
 		GL_REPORT_ERRORD();
-
-		if (s_MSAASamples > 1)
-			// Return to the EFB (this may not be necessary).
-			SetFramebuffer(0);
 
 		// Scale the 32-bit value returned by glReadPixels to a 24-bit
 		// value (GC uses a 24-bit Z-buffer).
@@ -584,26 +579,25 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		break;
 
 	case PEEK_COLOR:
-		/*{
-			u32 z = 0;
-			int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-			int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+	{
+		if (s_MSAASamples > 1)
+		{
+			// Resolve our rectangle.
+			s_framebufferManager.GetEFBColorTexture(efbPixelRc);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetResolvedFramebuffer());
+		}
 
-			if (s_MSAASamples > 1)
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ResolveAndGetRenderTarget(efbPixelRc));
+		// Sample from the center of the target region.
+		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
+		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
-			// Read the z value! Also adjust the pixel to read to the upscaled EFB resolution
-			// Plus we need to flip the y value as the OGL image is upside down
-			glReadPixels(srcX, srcY, 1, 1, GL_RGB, GL_UNSIGNED_INT, &z);
-			GL_REPORT_ERRORD();
+		u32 color = 0;
+		glReadPixels(srcX, srcY, 1, 1, GL_RGBA, GL_UNSIGNED_INT, &color);
+		GL_REPORT_ERRORD();
 
-			// We should probably re-bind the old fbo here.
-			if (s_MSAASamples > 1)
-				SetFramebuffer(0);
-
-			return z;
-		}*/
-		break;
+		// TODO: Find some way to test PEEK_COLOR.
+		return color;
+	}
 
 	case POKE_COLOR:
 		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at

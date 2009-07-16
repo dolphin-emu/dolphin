@@ -106,6 +106,9 @@ public:
 
 	GLuint GetEFBFramebuffer() const { return m_efbFramebuffer; }
 
+	// Resolved framebuffer is only used in MSAA mode.
+	GLuint GetResolvedFramebuffer() const { return m_resolvedFramebuffer; }
+
 	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) const;
 
 private:
