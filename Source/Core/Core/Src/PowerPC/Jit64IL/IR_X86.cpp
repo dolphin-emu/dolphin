@@ -390,8 +390,10 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 			return M((void*)addr);
 #else
 			// 64-bit
-			if (Profiled) 
-				return MDisp(RBX, addr);
+			if (Profiled) {
+				RI.Jit->LEA(32, EAX, M((void*)addr));
+				return MComplex(RBX, EAX, SCALE_1, 0);
+			}
 			return M((void*)addr);
 #endif
 		}
@@ -430,8 +432,8 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #ifdef _M_IX86
 		return MDisp(baseReg, (u32)Memory::base + offset + ProfileOffset);
 #else
-		RI.Jit->LEA(32, EAX, MDisp(baseReg, offset + ProfileOffset));
-		return MComplex(RBX, EAX, 1, 0);
+		RI.Jit->LEA(32, EAX, MDisp(baseReg, offset));
+		return MComplex(RBX, EAX, SCALE_1, 0);
 #endif
 	}
 	return MDisp(baseReg, offset);
