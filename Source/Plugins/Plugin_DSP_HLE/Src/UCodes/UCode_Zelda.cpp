@@ -254,7 +254,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 		m_bSyncInProgress = true;
 		m_NumSyncMail = 0;
 	}
-	if ((_uMail >> 16) == 0)
+	else if ((_uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
 		m_numSteps = _uMail;
