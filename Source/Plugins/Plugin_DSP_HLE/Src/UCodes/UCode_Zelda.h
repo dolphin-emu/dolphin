@@ -28,7 +28,8 @@
 
 union ZeldaVoicePB
 {
-	struct {
+	struct 
+	{
 		// Read-Write part
 		u16 Status;						// 0x00 | 1 = play, 0 = stop
 		u16 KeyOff;						// 0x01 | writing 1 stops voice? 
@@ -115,6 +116,18 @@ union ZeldaVoicePB
 	u16 raw[0xc0]; // WARNING-do not use on parts of the 32-bit values - they are swapped!
 };
 
+union ZeldaUnkPB
+{
+	struct
+	{
+		u16 Control;					// 0x00 | control
+		u16 Unk01;						// 0x01 | unknown
+		u32 SrcAddr;					// 0x02 | some address
+		u16 Unk04[0xC];					// 0x04 | unknown
+	};
+	u16 raw[16];
+};
+
 namespace {
     // If this miscompiles, adjust the size of ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
     CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
@@ -128,6 +141,7 @@ public:
 
 	void HandleMail(u32 _uMail);
 	void HandleMail_LightVersion(u32 _uMail);
+	void HandleMail_SMSVersion(u32 _uMail);
 	void HandleMail_NormalVersion(u32 _uMail);
 
 	void Update(int cycles);
@@ -189,6 +203,21 @@ private:
 			case 0x4be6a5cb: // AC, Pikmin
 			case 0x088e38a5: // IPL - JAP
 			case 0xd73338cf: // IPL
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	// SMS version
+	// - sync mails are sent every frame, not every 16 PBs
+	// (named SMS because it's used by Super Mario Sunshine
+	// and I couldn't find a better name)
+	bool IsSMSVersion() const
+	{
+		switch (m_CRC)
+		{
+			case 0x56d36052:
 				return true;
 			default:
 				return false;

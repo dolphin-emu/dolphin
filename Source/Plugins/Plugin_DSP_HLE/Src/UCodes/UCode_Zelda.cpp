@@ -123,6 +123,8 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 {
 	if (IsLightVersion())
 		HandleMail_LightVersion(_uMail);
+	else if (IsSMSVersion())
+		HandleMail_SMSVersion(_uMail);
 	else
 		HandleMail_NormalVersion(_uMail);
 }
@@ -181,6 +183,98 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	{
 		ExecuteList();
 		m_bListInProgress = false;
+	}
+}
+
+void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
+{
+	if (m_bSyncCmdPending)
+	{
+		if (m_bSyncInProgress)
+		{
+			m_bSyncInProgress = false;
+
+			m_SyncFlags[2] = _uMail >> 16;
+			m_SyncFlags[3] = _uMail & 0xFFFF;
+
+			m_CurBuffer++;
+
+			m_rMailHandler.PushMail(DSP_SYNC);
+			g_dspInitialize.pGenerateDSPInterrupt();
+			m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
+
+			if (m_CurBuffer == m_NumBuffers)
+			{
+				m_rMailHandler.PushMail(DSP_FRAME_END);
+				//g_dspInitialize.pGenerateDSPInterrupt();
+
+				soundStream->GetMixer()->SetHLEReady(true);
+				DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+				soundStream->Update(); //do it in this thread to avoid sync problems
+
+				m_bSyncCmdPending = false;
+			}
+		}
+		else
+		{
+			m_bSyncInProgress = true;
+
+			m_SyncFlags[0] = _uMail >> 16;
+			m_SyncFlags[1] = _uMail & 0xFFFF;
+		}
+
+		return;
+    }
+
+	if (m_bListInProgress)
+	{
+		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
+			PanicAlert("m_step out of range");
+
+		((u32*)m_Buffer)[m_step] = _uMail;
+		m_step++;
+
+		if (m_step >= m_numSteps)
+		{
+			ExecuteList();
+			m_bListInProgress = false;
+		}
+
+		return;
+	}
+
+	// Here holds: m_bSyncInProgress == false && m_bListInProgress == false
+
+	if ((_uMail >> 16) == 0)
+	{
+		m_bListInProgress = true;
+		m_numSteps = _uMail;
+		m_step = 0;
+	}
+	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
+	{
+		// The low part of the mail tells the operation to perform
+		// Seeing as every possible operation number halts the uCode,
+		// except 3, that thing seems to be intended for debugging
+		switch (_uMail & 0xFFFF)
+		{
+		case 0x0003:		// Do nothing
+			return;
+
+		case 0x0000:		// Halt
+		case 0x0001:		// Dump memory? and halt
+		case 0x0002:		// Do something and halt
+			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received halting operation %04X", _uMail & 0xFFFF);
+			return;
+
+		default:			// Invalid (the real ucode would likely crash)
+			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received invalid operation %04X", _uMail & 0xFFFF);
+			return;
+		}
+	}
+	else
+	{
+		WARN_LOG(DSPHLE, "Zelda uCode (SMS version): unknown mail %08X", _uMail);
 	}
 }
 
