@@ -97,8 +97,7 @@ void Fifo_ExitLoopNonBlocking() {
 }
 
 // Description: Fifo_EnterLoop() sends data through this function.
-// TODO: Possibly inline it? This one is exported so it will likely not be inlined at all.
-void Video_SendFifoData(u8* _uData, u32 len)
+void Fifo_SendFifoData(u8* _uData, u32 len)
 {
     if (size + len >= FIFO_SIZE)
     {
@@ -127,12 +126,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
     while (fifoStateRun)
     {
-#if defined(_WIN32)
 		video_initialize.pPeekMessages();
-#endif
+
+		VideoFifo_CheckEFBAccess();
 
 		VideoFifo_CheckSwapRequest();
-		VideoFifo_CheckEFBAccess();
 
 		s_criticalFifo.Enter();
 
@@ -140,18 +138,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
 			Common::AtomicStore(_fifo.CPReadIdle, 0);
-			//video_initialize.pLog("RUN...........................",FALSE);
-			int peek_counter = 0;
+
             while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 			{
 				if(!fifoStateRun)
 					break;
 
-				peek_counter++;
-				if (peek_counter == 1000) {
-					video_initialize.pPeekMessages();
-					peek_counter = 0;
-				}
                 // Create pointer to video data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
@@ -162,9 +154,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 {
 					if (readPtr == _fifo.CPBreakpoint)
                     {
-						video_initialize.pLog("!!! BP irq raised",FALSE);
 						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-
                         video_initialize.pUpdateInterrupts();
                         break;
                     }
@@ -175,15 +165,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 }
 				else
 				{
-#if 0 // ugly random GP slowdown for testing DC robustness... TODO: remove when completly sure DC is ok
-					int r = rand();
-					if ((r & 0xF) == r)
-						Common::SleepCurrentThread(r);
-					distToSend = 32;
-					readPtr += 32;
-					if (readPtr >= _fifo.CPEnd) 
-						readPtr = _fifo.CPBase;
-#else
 					distToSend = _fifo.CPReadWriteDistance;
 					// send 1024B chunk max length to have better control over PeekMessages' period
 					distToSend = distToSend > 1024 ? 1024 : distToSend;
@@ -193,17 +174,29 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 						readPtr = _fifo.CPBase;
 					}
 					else
-						readPtr += distToSend; 
-#endif
+						readPtr += distToSend;
 				}
+
 				// Execute new instructions found in uData
-				Video_SendFifoData(uData, distToSend);
+				Fifo_SendFifoData(uData, distToSend);
+
                 Common::AtomicStore(_fifo.CPReadPointer, readPtr);
                 Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+
+				video_initialize.pPeekMessages();
+
+				VideoFifo_CheckEFBAccess();
+
+				VideoFifo_CheckSwapRequest();
 			}
-			//video_initialize.pLog("..........................IDLE",FALSE);
+
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
         }
+		else
+		{
+			Common::YieldCPU();
+		}
+
 		s_criticalFifo.Leave();
     }
 	fifo_exit_event.Set();

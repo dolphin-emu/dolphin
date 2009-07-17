@@ -256,6 +256,11 @@ void Shutdown(void)
 	DeInit();
 }
 
+void Video_SendFifoData(u8* _uData, u32 len)
+{
+	Fifo_SendFifoData(_uData, len);
+}
+
 void VideoFifo_CheckSwapRequest()
 {
 }

@@ -416,6 +416,10 @@ void Shutdown(void)
 }
 
 
+void Video_SendFifoData(u8* _uData, u32 len)
+{
+	Fifo_SendFifoData(_uData, len);
+}
 
 // Enter and exit the video loop
 void Video_EnterLoop()

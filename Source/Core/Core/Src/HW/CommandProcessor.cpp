@@ -152,13 +152,6 @@ u16 m_tokenReg;
 
 SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
 static u32 fake_GPWatchdogLastToken = 0;
-static bool fake_CommandProcessorNotUsed = true; // This is used by VI when homebrews use directly XFB without FIFO and CP
-
-// hack: This is used by VI when homebrews use directly XFB without FIFO and CP
-bool IsCommandProcessorNotUsed()
-{
-	return fake_CommandProcessorNotUsed;
-}
 
 void DoState(PointerWrap &p)
 {
@@ -198,7 +191,7 @@ void IncrementGPWDToken()
 void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-		Common::SleepCurrentThread(1);
+		Common::YieldCPU();
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
 
@@ -229,7 +222,6 @@ void Init()
 	fifo.CPReadIdle = 1;
 
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
-	fake_CommandProcessorNotUsed = true;
 }
 
 void Shutdown()
@@ -384,12 +376,10 @@ void Write16(const u16 _Value, const u32 _Address)
 				" - We aren't betting on that :)", fifo.CPReadWriteDistance);
                         */
 			DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
-			u32 ct=0;
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 )
-				ct++;
-			if (ct) {INFO_LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
+				Common::YieldCPU();
 		}
 	}
 
@@ -424,7 +414,6 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case CTRL_REGISTER:
 		{
-			fake_CommandProcessorNotUsed = false;
 			UCPCtrlReg tmpCtrl(_Value);
 
 			Common::AtomicStore(fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);
@@ -604,7 +593,6 @@ void STACKALIGN GatherPipeBursted()
         Common::AtomicAdd(fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 
 		// High watermark overflow handling (hacked way)
-		u32 ct = 0;
 		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
 		{
 			// we should raise an Ov interrupt for an accurate fifo emulation and let PPC deal with it.
@@ -626,15 +614,7 @@ void STACKALIGN GatherPipeBursted()
 			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
 			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
-			{
-				ct++;
-				Common::SleepCurrentThread(1);
-			}
-			if (ct) {
-				// This is actually kind of fine. See big comment above.
-				DEBUG_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): waited %lu ms. ", ct);
-			}
-			/**/
+				Common::YieldCPU();
 		}
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");

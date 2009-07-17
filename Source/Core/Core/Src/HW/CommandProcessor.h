@@ -88,9 +88,6 @@ bool AllowIdleSkipping();
 void IncrementGPWDToken();
 void WaitForFrameFinish();
 
-// hack: This is used by VI when homebrews use directly XFB without FIFO and CP
-bool IsCommandProcessorNotUsed();
-
 } // end of namespace CommandProcessor
 
 #endif

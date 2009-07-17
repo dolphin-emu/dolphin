@@ -28,7 +28,7 @@
 void Fifo_Init();
 void Fifo_Shutdown();
 
-/* void Video_SendFifoData(); */  // defined in plugin spec - implemented in Fifo.cpp
+void Fifo_SendFifoData(u8* _uData, u32 len);
 
 // These two are for dual core mode only.
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);

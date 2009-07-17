@@ -174,6 +174,19 @@ private:
 void InitThreading();
 void SleepCurrentThread(int ms);
 
+// YieldCPU: Use this function during a spin-wait to make the current thread
+// relax while another thread is working.
+// If you find yourself calling this function, please consider using an event-
+// based design instead.
+inline void YieldCPU()
+{
+#ifdef _WIN32
+	YieldProcessor();
+#else
+	// TODO: Implement for other platforms.
+#endif
+}
+
 void SetCurrentThreadName(const char *name);
 
 } // namespace Common
