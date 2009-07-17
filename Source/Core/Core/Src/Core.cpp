@@ -18,7 +18,6 @@
  
 #ifdef _WIN32
 	#include <windows.h>
-#else
 #endif
 
 #include "Setup.h" // Common
@@ -285,12 +284,13 @@ THREAD_RETURN CpuThread(void *pArg)
 	CCPU::Run();
 	cpuRunloopQuit.Set();
 
+#ifdef _WIN32
+	gpuShutdownCall.Wait();
+
 	// Call video shutdown from the video thread in single core mode, which is the cpuThread
 	if (!_CoreParameter.bUseDualCore)
-	{
-		gpuShutdownCall.Wait();
 		Plugins.ShutdownVideoPlugin();
-	}
+#endif
 
 	gpuShutdownCall.Shutdown();
 
@@ -443,10 +443,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 	else // SingleCore mode
 	{
+#ifdef _WIN32
 		// the spawned CPU Thread is the... CPU thread but it also does the graphics.
 		// the EmuThread is thus an idle thread, which sleeps and wait for the emu to terminate.
 
-#ifdef _WIN32
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Emuthread - Idle");
 
@@ -459,7 +459,8 @@ THREAD_RETURN EmuThread(void *pArg)
 			Common::SleepCurrentThread(20);
 		}
 #else
-		// In single-core mode, the Emulation main thread is also the CPU thread
+		// On unix platforms, the Emulation main thread IS the CPU & video thread
+		// So there's only one thread, imho, that's much better than on windows :P
 		CpuThread(pArg);
 #endif
 	}
@@ -476,12 +477,17 @@ THREAD_RETURN EmuThread(void *pArg)
 	HW::Shutdown();
 	Plugins.ShutdownPlugins();
 
-	// Call video shutdown from the video thread in dual core mode (EmuThread)
+#ifdef _WIN32
+	gpuShutdownCall.Set();
+
+	// Call video shutdown from the video thread, in dual core mode it's the EmuThread
 	// Or set an event in Single Core mode, to call the shutdown from the cpuThread
 	if (_CoreParameter.bUseDualCore)
 		Plugins.ShutdownVideoPlugin();
-	else
-		gpuShutdownCall.Set();
+#else
+	// On unix platforms, the EmuThread is ALWAYS the video thread
+	Plugins.ShutdownVideoPlugin();
+#endif
 
 	if (cpuThread)
 	{

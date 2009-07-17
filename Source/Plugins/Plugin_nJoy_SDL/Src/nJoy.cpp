@@ -302,12 +302,20 @@ void Shutdown()
 	#ifdef _DEBUG
 		DEBUG_QUIT();
 	#endif
+	
+	#ifdef _WIN32
+		// Free DInput before closing SDL, or get a crash !
+		FreeDirectInput();
+	#elif defined(__linux__)
+		close(fd);
+	#endif
 
 	// Don't shutdown the gamepad if the configuration window is still showing
 	// Todo: Coordinate with the Wiimote plugin, SDL_Quit() will remove the pad for it to
 #if defined(HAVE_WX) && HAVE_WX
 	if (m_ConfigFrame) return;
 #endif
+
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
 	for (int i = 0; i < 4; i++)
@@ -331,12 +339,6 @@ void Shutdown()
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;
-
-	#ifdef _WIN32
-		FreeDirectInput();
-	#elif defined(__linux__)
-		close(fd);
-	#endif
 }
 
 

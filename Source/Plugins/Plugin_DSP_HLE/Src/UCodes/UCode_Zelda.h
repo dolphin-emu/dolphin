@@ -185,7 +185,7 @@ private:
 		switch (m_CRC)
 		{
 			case 0x42f64ac4: // Luigi
-			case 0x0267d05a: // http://forums.dolphin-emu.com/thread-2134.html Pikmin PAL
+			case 0x267fd05a: // Pikmin PAL
 			case 0x4be6a5cb: // AC, Pikmin
 			case 0x088e38a5: // IPL - JAP
 			case 0xd73338cf: // IPL

@@ -114,7 +114,7 @@ void UpdateSampleCounters10(ZeldaVoicePB &PB)
 void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
-	int rem_samples = _RealSize;
+	u32 rem_samples = _RealSize;
 	if (PB.KeyOff)
 		goto clear_buffer;
 	if (PB.NeedsReset)
@@ -130,7 +130,7 @@ reached_end:
 		if (!PB.RepeatMode) {
 			// One shot - play zeros the rest of the buffer.
 clear_buffer:
-			for (int i = 0; i < rem_samples; i++)
+			for (u32 i = 0; i < rem_samples; i++)
 				*_Buffer++ = 0;
 			PB.KeyOff = 1;
 			return;
@@ -146,13 +146,13 @@ clear_buffer:
 	if (PB.RemLength < rem_samples)
 	{
 		// finish-up loop
-		for (int i = 0; i < PB.RemLength; i++)
+		for (u32 i = 0; i < PB.RemLength; i++)
 			*_Buffer++ = Common::swap16(*read_ptr++);
 		rem_samples -= PB.RemLength;
 		goto reached_end;
 	}
 	// main render loop
-	for (int i = 0; i < rem_samples; i++)
+	for (u32 i = 0; i < rem_samples; i++)
 		*_Buffer++ = Common::swap16(*read_ptr++);
 
 	PB.RemLength -= rem_samples;
@@ -171,7 +171,7 @@ void UpdateSampleCounters8(ZeldaVoicePB &PB)
 void CUCode_Zelda::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
-	int rem_samples = _RealSize;
+	u32 rem_samples = _RealSize;
 	if (PB.KeyOff)
 		goto clear_buffer;
 	if (PB.NeedsReset)
@@ -188,7 +188,7 @@ reached_end:
 		{
 			// One shot - play zeros the rest of the buffer.
 clear_buffer:
-			for (int i = 0; i < rem_samples; i++)
+			for (u32 i = 0; i < rem_samples; i++)
 				*_Buffer++ = 0;
 			PB.KeyOff = 1;
 			return;
@@ -205,13 +205,13 @@ clear_buffer:
 	if (PB.RemLength < rem_samples)
 	{
 		// finish-up loop
-		for (int i = 0; i < PB.RemLength; i++)
+		for (u32 i = 0; i < PB.RemLength; i++)
 			*_Buffer++ = (s8)(*read_ptr++) << 8;
 		rem_samples -= PB.RemLength;
 		goto reached_end;
 	}
 	// main render loop
-	for (int i = 0; i < rem_samples; i++)
+	for (u32 i = 0; i < rem_samples; i++)
 		*_Buffer++ = (s8)(*read_ptr++) << 8;
 
 	PB.RemLength -= rem_samples;
@@ -356,7 +356,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer);
 void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	// Decoder0x21 starts here.
-	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
+	u32 _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 
 	// Decoder0x21Core starts here.
 	u32 AX0 = _RealSize;
@@ -440,7 +440,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 	const u8 *source = g_dspInitialize.pGetMemoryPointer(0x80000000);
 	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
 
-	for (int i = 0; i < (ACC1 >> 16); i++) {
+	for (u32 i = 0; i < (ACC1 >> 16); i++) {
 		_Buffer[i] = Common::swap16(src[i]);
 	}
 
