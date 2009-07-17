@@ -242,6 +242,9 @@ private:
 	u32 m_MaxVoice;
 	u32 m_SyncFlags[16];
 
+	// Used by SMS version
+	u32 m_NumSyncMail;
+
 	u32 m_NumVoices;
 
 	bool m_bSyncCmdPending;

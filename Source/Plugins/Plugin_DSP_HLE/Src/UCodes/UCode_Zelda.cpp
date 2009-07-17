@@ -34,6 +34,8 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	IUCode(_rMailHandler),
 	m_CRC(_CRC),
 
+	m_NumSyncMail(0),
+
 	m_bSyncInProgress(false),
 	m_MaxVoice(0),
 
@@ -188,39 +190,41 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 
 void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 {
-	if (m_bSyncCmdPending)
+	if (m_bSyncInProgress)
 	{
-		if (m_bSyncInProgress)
+		if (m_bSyncCmdPending)
 		{
-			m_bSyncInProgress = false;
+			m_SyncFlags[(m_NumSyncMail << 1)    ] = _uMail >> 16;
+			m_SyncFlags[(m_NumSyncMail << 1) + 1] = _uMail & 0xFFFF;
 
-			m_SyncFlags[2] = _uMail >> 16;
-			m_SyncFlags[3] = _uMail & 0xFFFF;
-
-			m_CurBuffer++;
-
-			m_rMailHandler.PushMail(DSP_SYNC);
-			g_dspInitialize.pGenerateDSPInterrupt();
-			m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
-
-			if (m_CurBuffer == m_NumBuffers)
+			m_NumSyncMail++;
+			if (m_NumSyncMail == 2)
 			{
-				m_rMailHandler.PushMail(DSP_FRAME_END);
-				//g_dspInitialize.pGenerateDSPInterrupt();
+				m_NumSyncMail = 0;
+				m_bSyncInProgress = false;
 
-				soundStream->GetMixer()->SetHLEReady(true);
-				DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-				soundStream->Update(); //do it in this thread to avoid sync problems
+				m_CurBuffer++;
 
-				m_bSyncCmdPending = false;
+				m_rMailHandler.PushMail(DSP_SYNC);
+				g_dspInitialize.pGenerateDSPInterrupt();
+				m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
+
+				if (m_CurBuffer == m_NumBuffers)
+				{
+					m_rMailHandler.PushMail(DSP_FRAME_END);
+					//g_dspInitialize.pGenerateDSPInterrupt();
+
+					soundStream->GetMixer()->SetHLEReady(true);
+					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
+					soundStream->Update(); //do it in this thread to avoid sync problems
+
+					m_bSyncCmdPending = false;
+				}
 			}
 		}
 		else
 		{
-			m_bSyncInProgress = true;
-
-			m_SyncFlags[0] = _uMail >> 16;
-			m_SyncFlags[1] = _uMail & 0xFFFF;
+			m_bSyncInProgress = false;
 		}
 
 		return;
@@ -245,6 +249,11 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 
 	// Here holds: m_bSyncInProgress == false && m_bListInProgress == false
 
+	if (_uMail == 0)
+	{
+		m_bSyncInProgress = true;
+		m_NumSyncMail = 0;
+	}
 	if ((_uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
@@ -552,6 +561,8 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	p.Do(m_bSyncInProgress);
 	p.Do(m_MaxVoice);
 	p.Do(m_SyncFlags);
+
+	p.Do(m_NumSyncMail);
 
 	p.Do(m_NumVoices);
 
