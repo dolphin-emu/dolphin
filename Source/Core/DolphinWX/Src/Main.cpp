@@ -132,7 +132,12 @@ bool DolphinApp::OnInit()
 	if (!noCheckForInstallDir)
 	{
 		char tmp[1024];
-		sprintf(tmp, "%s/.dolphinwd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(wxConvUTF8));
+		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(wxConvUTF8),
+#ifdef _M_IX86
+			"x32");
+#else
+			"x64");
+#endif
 		FILE* workingDir = fopen(tmp, "r");
 		if (!workingDir)
 		{
@@ -174,7 +179,7 @@ bool DolphinApp::OnInit()
 			fclose(workingDir);
 			if (!wxSetWorkingDirectory(wxString::FromAscii(tmpChar)))
 			{
-				PanicAlert("set working directory failed");
+				INFO_LOG(CONSOLE, "set working directory failed");
 			}
 			delete [] tmpChar;
 		}

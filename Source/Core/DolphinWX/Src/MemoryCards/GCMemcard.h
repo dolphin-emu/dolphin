@@ -26,11 +26,11 @@
 #define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
 #define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
-#define SLOT_A 0
-#define SLOT_B 1
 
 enum
 {
+	SLOT_A = 0,
+	SLOT_B = 1,
 	GCI = 0,
 	SUCCESS,
 	NOMEMCARD,
@@ -47,13 +47,23 @@ enum
 	GCSFAIL,	
 	FAIL,
 	WRITEFAIL,
-};
 
-enum
-{
+	MC_FST_BLOCKS  = 0x05,
+	MBIT_TO_BLOCKS = 0x10,
+	DENTRY_STRLEN  = 0x20,
+	DENTRY_SIZE    = 0x40,
+	BLOCK_SIZE     = 0x2000,
+
+	MemCard59Mb   = 0x04,
+	MemCard123Mb  = 0x08,
+	MemCard251Mb  = 0x10,
+	Memcard507Mb  = 0x20,
+	MemCard1019Mb = 0x40,
+	MemCard2043Mb = 0x80,
+
 	CI8SHARED = 1,
 	RGB5A3,
-	CI8
+	CI8,
 };
 
 class GCMemcard 
@@ -81,7 +91,7 @@ private:
 		u8 Unk2[4];			//0x001c	4	 	? almost always 0
 		// end Serial in libogc
 		u8 deviceID[2];		//0x0020	2		0 if formated in slot A 1 if formated in slot B
-		u8 Size[2];			//0x0022	2		size of memcard in Mbits
+		u8 SizeMb[2];		//0x0022	2		size of memcard in Mbits
 		u8 Encoding[2];		//0x0024	2		encoding (ASCII or japanese)
 		u8 Unused1[468];	//0x0026	468		unused (0xff)
 		u8 UpdateCounter[2];//0x01fa	2		update Counter (?, probably unused)
@@ -105,7 +115,7 @@ private:
 							//		01 RGB5A3 banner
 							//		11 ? maybe ==01? haven't seen it
 							// 	 	
-		u8 Filename[32];	//0x08		0x20	filename
+		u8 Filename[DENTRY_STRLEN];	//0x08		0x20	filename
 		u8 ModTime[4];		//0x28		0x04	Time of file's last modification in seconds since 12am, January 1st, 2000
 		u8 ImageOffset[4];	//0x2c		0x04	image data offset
 		u8 IconFmt[2];		//0x30		0x02	icon gfx format (2bits per icon)
@@ -164,7 +174,7 @@ public:
 
 	bool IsOpen();
 	bool Save();
-	bool Format(bool New = true, int slot = 0, bool sjis = false, bool hdrOnly = false);
+	bool Format(bool New = true, int slot = 0, u16 SizeMb = MemCard2043Mb, bool sjis = false, bool hdrOnly = false);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();
@@ -179,7 +189,7 @@ public:
 	// If title already on memcard returns index, otherwise returns -1
 	u8 TitlePresent(DEntry d);
 	
-	// DEntry functions, all take u8 index < 127
+	// DEntry functions, all take u8 index < DIRLEN (127)
 	// Functions that have ascii output take a char *buffer
 
 	// buffer needs to be a char[5] or bigger

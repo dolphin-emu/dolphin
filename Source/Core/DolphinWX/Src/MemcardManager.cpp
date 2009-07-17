@@ -586,7 +586,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_SAVEEXPORT_B:
 		if (index != wxNOT_FOUND)
 		{
-			char tempC[36], tempC2[32];
+			char tempC[10 + DENTRY_STRLEN],
+				 tempC2[DENTRY_STRLEN];
 			memoryCard[slot]->DEntry_GameCode(index,tempC);
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
@@ -734,10 +735,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	}
 	int pagesMax = 128;
 	if (m_MemcardList[card]->usePages) pagesMax = (page[card] + 1) * itemsPerPage;
-	for (j = page[card] * itemsPerPage;(j < nFiles) && (j < pagesMax);j++)
+	for (j = page[card] * itemsPerPage;(j < nFiles) && (j < pagesMax); j++)
 	{
-		char title[32];
-		char comment[32];
+		char title[DENTRY_STRLEN];
+		char comment[DENTRY_STRLEN];
 		u16 blocks;
 		u16 firstblock;
 
@@ -807,7 +808,12 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	if (m_MemcardList[card]->usePages)
 	{
-		if ((j == nFiles))
+		if (nFiles <= itemsPerPage)
+		{
+			m_PrevPage[card]->Disable();
+			m_MemcardList[card]->prevPage = false;
+		}
+		if (j == nFiles)
 		{
 			m_NextPage[card]->Disable();
 			m_MemcardList[card]->nextPage = false;
