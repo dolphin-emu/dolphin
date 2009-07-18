@@ -40,6 +40,7 @@
 #include <unistd.h>
 #ifdef _POSIX_THREADS
 #include <pthread.h>
+#include <sched.h>
 #elif GEKKO
 #include <ogc/lwp_threads.h>
 #else
@@ -183,7 +184,7 @@ inline void YieldCPU()
 #ifdef _WIN32
 	YieldProcessor();
 #else
-	// TODO: Implement for other platforms.
+	sched_yield();
 #endif
 }
 
