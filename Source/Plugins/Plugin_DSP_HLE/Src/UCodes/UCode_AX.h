@@ -71,8 +71,4 @@ private:
 	void SendMail(u32 _uMail);
 };
 
-int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
-void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
-
-
 #endif  // _UCODE_AX

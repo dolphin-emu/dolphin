@@ -923,10 +923,10 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		AXParamBlock PBs[NUMBER_OF_PBS];
 		AXParamBlockWii PBw[NUMBER_OF_PBS];
 		AXParamBlockWii_ PBw_[NUMBER_OF_PBS];
-		if(_CRC == 0xfa450138) version = 0; else version = 1;
+		if (_CRC == 0xfa450138) version = 0; else version = 1;
 		
 		// Read out structs and number of PBs that have data
-		if(Wii)
+		if (Wii)
 		{
 			if(version == 0)
 			{
@@ -941,8 +941,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		}
 		else
 		{
-			numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
-			Logging_(_pBuffer, _iSize, a, Wii, PBs, numberOfPBs, m_addressPBs);
+			// numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
+			// Logging_(_pBuffer, _iSize, a, Wii, PBs, numberOfPBs, m_addressPBs);
 		}	
 	}	
 }

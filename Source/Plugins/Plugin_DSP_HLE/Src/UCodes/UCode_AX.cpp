@@ -249,70 +249,70 @@ if(m_DebuggerFrame->ScanMails)
 }
 // ----------------
 
-
-int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
+void ReadOutPB(u32 pb_address, AXParamBlock &PB)
 {
-	int count = 0;
-	u32 blockAddr = pbs_address;
-
-	// reading and 'halfword' swap
-	for (int i = 0; i < _num; i++)
+	const u16 *pSrc = (const u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
+	u16 *pDest = (u16 *)&PB;
+	for (int p = 0; p < (int)sizeof(AXParamBlock) / 2; p++)
 	{
-		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		if (pSrc != NULL)
-		{
-			short *pDest = (short *)&_pPBs[i];
-			for (int p = 0; p < (int)sizeof(AXParamBlock) / 2; p++)
-			{
-				pDest[p] = Common::swap16(pSrc[p]);
-
-#if defined(HAVE_WX) && HAVE_WX                               
-				#if defined(_DEBUG) || defined(DEBUGFAST)
-					if(m_DebuggerFrame) m_DebuggerFrame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
-				#endif
-#endif
-			}
-			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;	
-
-			// Detect the last mail by checking when next_pb = 0
-			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
-			if(next_pb == 0) break;
-		}
-		else
-			break;
-	}
-
-	// return the number of read PBs
-	return count;
-}
-
-void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
-{
-	u32 blockAddr = pbs_address;
-
-	// write back and 'halfword'swap
-	for (int i = 0; i < _num; i++)
-	{
-		short* pSrc  = (short*)&_pPBs[i];
-		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
-		{
-			pDest[p] = Common::swap16(pSrc[p]);
-		}
-
-		// next block
-		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
+		pDest[p] = Common::swap16(pSrc[p]);
 	}
 }
+
+void WriteBackPB(u32 pb_address, AXParamBlock &PB)
+{
+	const u16 *pSrc  = (const u16*)&PB;
+	u16 *pDest = (u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
+	for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
+	{
+		pDest[p] = Common::swap16(pSrc[p]);
+	}
+}
+
+void ProcessUpdates(AXParamBlock &PB)
+{
+	// ---------------------------------------------------------------------------------------
+	/* Make the updates we are told to do. When there are multiple updates for a block they
+	   are placed in memory directly following updaddr. They are mostly for initial time
+	   delays, sometimes for the FIR filter or channel volumes. We do all of them at once here.
+	   If we get both an on and an off update we chose on. Perhaps that makes the RE1 music
+	   work better. */
+	u16 *pDest = (u16 *)&PB;
+	u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
+	u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
+	u16 upd_hi = pDest[39]; // update addr
+	u16	upd_lo = pDest[40];
+	int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
+	if (numupd > 64) numupd = 64; // prevent crazy values
+	const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
+	int on = false, off = false;
+	for (int j = 0; j < numupd; j++)
+	{
+		int k = g_Config.m_EnableRE0Fix ? 0 : j;
+
+		const u16 updpar   = Memory_Read_U16(updaddr + k);
+		const u16 upddata   = Memory_Read_U16(updaddr + k + 2);
+		// some safety checks, I hope it's enough
+		if(updaddr > 0x80000000 && updaddr < 0x817fffff
+			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+			// 0-3, those are important
+			//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+			// but I don't know how or when
+			&& gSequenced) // on and off option
+		{
+			pDest[updpar] = upddata;
+		}
+		if (updpar == 7 && upddata == 1) on++;
+		if (updpar == 7 && upddata == 1) off++;
+	
+		// hack: if we get both an on and an off select on rather than off
+		if (on > 0 && off > 0) pDest[7] = 1;
+	}
+}
+
 
 void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 {
-	AXParamBlock PBs[NUMBER_OF_PBS];
-
-	// read out pbs
-	int numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
-
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
 
@@ -327,72 +327,32 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	}
 	
 #endif
-	// ---------------------------------------------------------------------------------------
-	/* Make the updates we are told to do. When there are multiple updates for a block they
-	   are placed in memory directly following updaddr. They are mostly for initial time
-	   delays, sometimes for the FIR filter or channel volumes. We do all of them at once here.
-	   If we get both an on and an off update we chose on. Perhaps that makes the RE1 music
-	   work better. */
+
+	AXParamBlock PB;
+	u32 blockAddr = m_addressPBs;
+
 	// ------------
-	for (int i = 0; i < numberOfPBs; i++)
+	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{
-		u16 *pDest = (u16 *)&PBs[i];
-		u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
-		u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
-		u16 upd_hi = pDest[39]; // update addr
-		u16	upd_lo = pDest[40];
-		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
-		if(numupd > 64) numupd = 64; // prevent crazy values
-		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-		int on = false, off = false;
+		ReadOutPB(blockAddr, PB);
+		ProcessUpdates(PB);
+		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, false);
+		WriteBackPB(blockAddr, PB);
 
-		for (int j = 0; j < numupd; j++)
-		{
-			int k = 0;
-
-			if(g_Config.m_EnableRE0Fix)
-			{
-				k=0;
-			}
-			else
-			{
-				k=j;
-			}
-
-			const u16 updpar   = Memory_Read_U16(updaddr + k);
-			const u16 upddata   = Memory_Read_U16(updaddr + k + 2);
-
-			// some safety checks, I hope it's enough
-			if(updaddr > 0x80000000 && updaddr < 0x817fffff
-				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-				// 0-3, those are important
-				//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
-				// but I don't know how or when
-				&& gSequenced) // on and off option
-			{
-				pDest[updpar] = upddata;
-			}
-			if (updpar == 7 && upddata == 1) on++;
-			if (updpar == 7 && upddata == 1) off++;
-		
-			// hack: if we get both an on and an off select on rather than off
-			if (on > 0 && off > 0) pDest[7] = 1;
+		#if defined(HAVE_WX) && HAVE_WX                               
+		#if defined(_DEBUG) || defined(DEBUGFAST)
+			if(m_DebuggerFrame) m_DebuggerFrame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
+		#endif
+		#endif
+		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
+		if (!blockAddr) {
+			// Guess we're out of blocks
+			break;
 		}
 	}
 
-	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
-	// ------------
-
-	for (int i = 0; i < numberOfPBs; i++)
+	if (_pBuffer)
 	{
-		AXParamBlock& pb = PBs[i];
-		MixAddVoice(pb, templbuffer, temprbuffer, _iSize, false);
-	}
-
-	// write back out pbs
-	WriteBackPBs(m_addressPBs, PBs, numberOfPBs);
-
-	if(_pBuffer) {
 		for (int i = 0; i < _iSize; i++)
 		{
 			// Clamp into 16-bit. Maybe we should add a volume compressor here.
