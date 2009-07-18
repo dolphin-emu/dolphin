@@ -67,7 +67,7 @@ void PixelShaderCache::SetShader()
 	DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
-	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), false);
+	GetPixelShaderId(uid, false);
 
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
@@ -85,7 +85,7 @@ void PixelShaderCache::SetShader()
 	}
 
 	bool HLSL = false;
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, HLSL);
+	const char *code = GeneratePixelShader(false, HLSL);
 	LPDIRECT3DPIXELSHADER9 shader = HLSL ? D3D::CompilePixelShader(code, (int)strlen(code), false) : CompileCgShader(code);
 	if (shader)
 	{

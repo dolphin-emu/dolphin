@@ -207,7 +207,6 @@ void Flush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
-	u32 nonpow2tex = 0;
 	for (int i = 0; i < 8; i++) 
 	{
 		if (usedtextures & (1 << i)) 
@@ -221,21 +220,9 @@ void Flush()
 
 			if (tentry != NULL) 
 			{
-				// texture loaded fine, set dims for pixel shader
-				if (tentry->isNonPow2) 
-				{
-					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
-					nonpow2tex |= 1 << i;
-					if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
-					if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
-				}
-				// if texture is power of two, set to ones (since don't need scaling)
-				// (the above seems to have changed - we set the width and height here too.
-				else 
-				{
-					// 0s are probably for no manual wrapping needed.
-					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
-				}
+				// 0s are probably for no manual wrapping needed.
+				PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
+
 				// texture is hires - pass the scaling size
 				if (tentry->scaleX != 1.0f || tentry->scaleY != 1.0f)
 					PixelShaderManager::SetCustomTexScale(i, tentry->scaleX, tentry->scaleY);
@@ -244,15 +231,13 @@ void Flush()
 					// save the textures
 					char strfile[255];
 					sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
-					SaveTexture(strfile, tentry->isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
+					SaveTexture(strfile, GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 				}
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading tex\n");
 		}
 	}
-
-	PixelShaderManager::SetTexturesUsed(nonpow2tex);
 
 	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);

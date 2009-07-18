@@ -107,37 +107,20 @@ bool TextureMngr::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 rang
 void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 {
     mode = newmode;
-    if (isNonPow2) 
-	{
-        // very limited!
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER,
-			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER,
-			            (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) 
-            DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode");
-
-		if (newmode.wrap_s == 1 || newmode.wrap_t == 1)
-            DEBUG_LOG(VIDEO, "cannot support repeat mode");
+    if (bHaveMipMaps) {
+        int filt = newmode.min_filter;
+        if (g_Config.bForceFiltering && newmode.min_filter < 4)
+            newmode.min_filter += 4; // take equivalent forced linear
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
     }
-    else 
-	{
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-
-        if (bHaveMipMaps) {
-            int filt = newmode.min_filter;
-            if (g_Config.bForceFiltering && newmode.min_filter < 4)
-                newmode.min_filter += 4; // take equivalent forced linear
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
-        }
-        else
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			                (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
-    }
+    else
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		                (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
     
     if (g_Config.iMaxAnisotropy >= 1)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_Config.iMaxAnisotropy));
@@ -301,9 +284,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
             entry.frameCount = frameCount;
-			glEnable(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
-//			entry.isNonPow2 ? TextureMngr::EnableTex2D(texstage) : TextureMngr::EnableTexRECT(texstage);
-            glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+			glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
 			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
@@ -317,7 +299,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// Might speed up movie playback very, very slightly.
 			if (width == entry.w && height == entry.h && tex_format == entry.fmt)
             {
-				glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+				glBindTexture(GL_TEXTURE_2D, entry.texture);
 				if (entry.mode.hex != tm0.hex)
 					entry.SetTextureParameters(tm0);
 				skip_texture_create = true;
@@ -370,16 +352,13 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
  	//		, address, tex_format, entry.hash, width, height);
 	
-
     entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
     entry.isRenderTarget = false;
-    entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
 
-	GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
 	if (!skip_texture_create) {
 		glGenTextures(1, (GLuint *)&entry.texture);
-		glBindTexture(target, entry.texture);
+		glBindTexture(GL_TEXTURE_2D, entry.texture);
 	}
 
 	if (dfmt != PC_TEX_FMT_DXT1)
@@ -432,7 +411,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			break;
 		}
 
-		if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) 
+		if ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2) 
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 			glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
@@ -441,14 +420,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			entry.bHaveMipMaps = true;
 		}
 		else
-			glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 
 		if (expandedWidth != width) // reset
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 	else
 	{
-		glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
 			expandedWidth, expandedHeight, 0, expandedWidth*expandedHeight/2, temp);
 	}
 
@@ -465,7 +444,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		char szDir[MAX_PATH];
 		bool bCheckedDumpDir = false;
 
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+		sprintf(szDir, "%s/%s", FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
 
 		if(!bCheckedDumpDir)
 		{
@@ -475,10 +454,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			bCheckedDumpDir = true;
 		}
 
-		sprintf(szTemp, "%s/%s_%08x_%i.tga",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		sprintf(szTemp, "%s/%s_%08x_%i.tga", szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
 		if (!File::Exists(szTemp))
 		{
-			SaveTexture(szTemp, target, entry.texture, expandedWidth, expandedHeight);
+			SaveTexture(szTemp, GL_TEXTURE_2D, entry.texture, expandedWidth, expandedHeight);
 		}
     }
 
@@ -507,7 +486,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
 
     TCacheEntry& entry = textures[address];
-    entry.isNonPow2 = true;
     entry.hash = 0;
     entry.hashoffset = 0;
     entry.frameCount = frameCount;
@@ -521,8 +499,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     if (!bIsInit) 
 	{
         glGenTextures(1, (GLuint *)&entry.texture);
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glBindTexture(GL_TEXTURE_2D, entry.texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         GL_REPORT_ERRORD();
     }
     else 
@@ -532,7 +510,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		GL_REPORT_ERROR();
         if (entry.w == w && entry.h == h) 
 		{
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+            glBindTexture(GL_TEXTURE_2D, entry.texture);
             // for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
             GLenum err = GL_REPORT_ERROR();
@@ -545,22 +523,22 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
             // necessary, for some reason opengl gives errors when texture isn't deleted
             glDeleteTextures(1,(GLuint *)&entry.texture);
             glGenTextures(1, (GLuint *)&entry.texture);
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-            glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glBindTexture(GL_TEXTURE_2D, entry.texture);
+            glTexImage2D(GL_TEXTURE_2D, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
             GL_REPORT_ERRORD();
         }
     }
 
     if (!bIsInit || !entry.isRenderTarget) 
 	{
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if (glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERRORD();
         }
     }
@@ -624,6 +602,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
                 if (copyfmt < 2) 
 				{
+					// ????
                     fConstAdd[3] = 16.0f / 255.0f;
                     colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
                 }
@@ -696,7 +675,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     Renderer::SetFramebuffer(s_TempFramebuffer);
 	// Bind texture to temporary framebuffer
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, entry.texture, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, entry.texture, 0);
 	GL_REPORT_FBO_ERROR();
     GL_REPORT_ERRORD();
     

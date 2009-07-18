@@ -28,7 +28,7 @@
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID &uid, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
@@ -51,7 +51,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	uid.values[2] = s_texturemask;
+	uid.values[2] = 0;
 
     uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
                    ((u32)bpmem.fog.c_proj_fsel.proj << 3);
@@ -130,8 +130,8 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, u32 texture_mask);
-static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask);
+static void WriteStage(char *&p, int n);
+static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap);
 static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, bool HLSL);
 static void WriteFog(char *&p);
@@ -368,7 +368,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL)
+const char *GeneratePixelShader(bool dstAlphaEnable, bool HLSL)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
@@ -391,30 +391,13 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
         }
     }
 
-    // Declare samplers
-    if (texture_mask) {
-        WRITE(p, "uniform samplerRECT ");
-        bool bfirst = true;
-        for (int i = 0; i < 8; ++i) {
-            if (texture_mask & (1<<i)) {
-                WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
-                bfirst = false;
-            }
-        }
-        WRITE(p, ";\n");
+    WRITE(p, "uniform sampler2D ");
+    bool bfirst = true;
+    for (int i = 0; i < 8; ++i) {
+        WRITE(p, "%s samp%d : register(s%d)", bfirst ? "" : ",",i, i);
+        bfirst = false;
     }
-
-    if (texture_mask != 0xff) {
-        WRITE(p, "uniform sampler2D ");
-        bool bfirst = true;
-        for (int i = 0; i < 8; ++i) {
-            if (!(texture_mask & (1<<i))) {
-                WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",",i, i);
-                bfirst = false;
-            }
-        }
-        WRITE(p, ";\n");
-    }
+    WRITE(p, ";\n");
 
     WRITE(p, "\n");
 
@@ -476,7 +459,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 
             char buffer[32];
             sprintf(buffer, "float3 indtex%d", i);
-            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask);
+            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i));
         }
     }
 
@@ -486,7 +469,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     }
 
     for (int i = 0; i < numStages; i++)
-        WriteStage(p, i, texture_mask); //build the equation for this stage
+        WriteStage(p, i); //build the equation for this stage
 
 	if (numTexgen >= 7) {
 		WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
@@ -529,7 +512,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     return text;
 }
 
-static void WriteStage(char *&p, int n, u32 texture_mask)
+static void WriteStage(char *&p, int n)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -629,7 +612,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         }
     }
 
-    WRITE(p, "rastemp=%s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)],rasswap);
+    WRITE(p, "rastemp=%s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 
     if (bpmem.tevorders[n/2].getEnable(n&1)) {
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
@@ -642,7 +625,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
             }
         }
 
-        SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask);
+        SampleTexture(p, "textemp", "tevcoord", texswap, texmap);
     }
     else
         WRITE(p, "textemp=float4(1,1,1,1);\n");
@@ -749,37 +732,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
     WRITE(p, "\n");
 }
 
-void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask)
+void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap)
 {
-    if (texture_mask & (1<<texmap)) {
-        // non pow 2
-         bool bwraps = (texture_mask & (0x100<<texmap)) ? true : false;
-         bool bwrapt = (texture_mask & (0x10000<<texmap)) ? true : false;
-
-         if (bwraps || bwrapt) {
-             if (bwraps) {
-                 WRITE(p, "tempcoord.x = fmod(%s.x, "I_TEXDIMS"[%d].x);\n", texcoords, texmap);
-             }
-             else {
-                 WRITE(p, "tempcoord.x = %s.x;\n", texcoords);
-             }
-
-             if (bwrapt) {
-                 WRITE(p, "tempcoord.y = fmod(%s.y, "I_TEXDIMS"[%d].y);\n", texcoords, texmap);
-             }
-             else {
-                 WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
-             }
-
-             WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
-         }
-         else {
-             WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
-         }
-    }
-    else {
-        WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
-    }
+    WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
 }
 
 static void WriteAlphaCompare(char *&p, int num, int comp)
