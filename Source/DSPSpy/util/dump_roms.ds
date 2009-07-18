@@ -29,7 +29,7 @@ CR_DRAM:	equ	0
 
 IROM_BASE:	equ 0x8000
 COEF_BASE:	equ 0x1000
-DUMP_SIZE:	equ 0x2000 ; in bytes!
+DUMP_SIZE:	equ 0x1000 ; in words!
 
 
 /**************************************************************/
