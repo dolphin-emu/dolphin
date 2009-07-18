@@ -336,6 +336,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
 	VideoInitialize.pMemoryBase         = Memory::base;
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
+	VideoInitialize.pSetFifoIdle        = &(CommandProcessor::SetFifoIdleFromVideoPlugin);
 	VideoInitialize.bWii                = _CoreParameter.bWii;
 	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
 	VideoInitialize.pBBox               = &PixelEngine::bbox[0];

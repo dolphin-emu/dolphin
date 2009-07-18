@@ -21,6 +21,7 @@ typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
+typedef void            (*TSetFifoIdle)();
 
 enum FieldType
 {
@@ -81,6 +82,8 @@ typedef struct
 	TUpdateInterrupts               pUpdateInterrupts;
     TUpdateFPSDisplay               pUpdateFPSDisplay;
 	TKeyPressed                     pKeyPress;
+
+	TSetFifoIdle                    pSetFifoIdle;
 
 	SCPFifoStruct                   *pCPFifo;
 	void *pMemoryBase;

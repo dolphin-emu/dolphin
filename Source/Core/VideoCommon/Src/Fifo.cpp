@@ -191,6 +191,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			}
 
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
+			video_initialize.pSetFifoIdle();
         }
 		else
 		{
