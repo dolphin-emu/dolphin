@@ -249,7 +249,7 @@ if(m_DebuggerFrame->ScanMails)
 }
 // ----------------
 
-void ReadOutPB(u32 pb_address, AXParamBlock &PB)
+static void ReadOutPB(u32 pb_address, AXParamBlock &PB)
 {
 	const u16 *pSrc = (const u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
 	u16 *pDest = (u16 *)&PB;
@@ -259,7 +259,7 @@ void ReadOutPB(u32 pb_address, AXParamBlock &PB)
 	}
 }
 
-void WriteBackPB(u32 pb_address, AXParamBlock &PB)
+static void WriteBackPB(u32 pb_address, AXParamBlock &PB)
 {
 	const u16 *pSrc  = (const u16*)&PB;
 	u16 *pDest = (u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
@@ -269,7 +269,7 @@ void WriteBackPB(u32 pb_address, AXParamBlock &PB)
 	}
 }
 
-void ProcessUpdates(AXParamBlock &PB)
+static void ProcessUpdates(AXParamBlock &PB)
 {
 	// ---------------------------------------------------------------------------------------
 	/* Make the updates we are told to do. When there are multiple updates for a block they
@@ -330,7 +330,6 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 	AXParamBlock PB;
 	u32 blockAddr = m_addressPBs;
-
 	// ------------
 	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{

@@ -76,30 +76,46 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 	}
 }
 
-
-void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
+template<class ParamBlockType> void ProcessUpdates(ParamBlockType &PB)
 {
-	if(_CRC == 0xfa450138)
-	{
-		AXParamBlockWii PBs[NUMBER_OF_PBS];
-		MixAdd_( _pBuffer, _iSize, PBs);
+	// ---------------------------------------------------------------------------------------
+	/* Make the updates we are told to do. See comments to the GC version in UCode_AX.cpp */
+	// ------------
+	u16 *pDest = (u16 *)&PB;
+	u16 upd0 = pDest[41]; u16 upd1 = pDest[42]; u16 upd2 = pDest[43]; // num_updates
+	u16 upd_hi = pDest[44]; // update addr
+	u16	upd_lo = pDest[45];
+	int numupd = upd0 + upd1 + upd2;
+	if(numupd > 64) numupd = 64; // prevent to high values
+	const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;		
+	int on = false, off = false;
+	for (int j = 0; j < numupd; j++) // make alll updates
+	{	
+		const u16 updpar   = Memory_Read_U16(updaddr);
+		const u16 upddata   = Memory_Read_U16(updaddr + 2);
+		// some safety checks, I hope it's enough
+		if( (  (updaddr > 0x80000000 && updaddr < 0x817fffff)
+			|| (updaddr > 0x90000000 && updaddr < 0x93ffffff) )
+			&& updpar < 127 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+			// 0-3, those are important
+			//&& (upd0 || upd1 || upd2) // We should use these in some way to I think
+			// but I don't know how or when
+			&& gSequenced) // on and off option
+		{
+			//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
+			//DEBUG_LOG(DSPHLE, "Update: %i = %04x", updpar, upddata);
+			pDest[updpar] = upddata;
+		}
+		if (updpar == 7 && upddata == 1) on++;
+		if (updpar == 7 && upddata == 1) off++;
 	}
-	else
-	{
-		AXParamBlockWii_ PBs[NUMBER_OF_PBS];
-		MixAdd_(_pBuffer, _iSize, PBs);
-	}
+	// hack: if we get both an on and an off select on rather than off
+	if (on > 0 && off > 0) pDest[7] = 1;
 }
 
-
 template<class ParamBlockType>
-void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
+void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PB)
 {
-	//AXParamBlockWii PBs[NUMBER_OF_PBS];
-
-	// read out pbs
-	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
-	
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
 
@@ -110,6 +126,8 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	// -------------------------------------------
 	// write logging data to debugger
 #if defined(HAVE_WX) && HAVE_WX
+	/*
+	If this is to be resurrected, it has to be moved into the main PB loop below.
 	if (m_DebuggerFrame && _pBuffer)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
@@ -147,59 +165,27 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 				m_DebuggerFrame->upd95 = true;
 			}	
 		}
-	}
+	}*/
 	// -----------------
 #endif
 
-	// ---------------------------------------------------------------------------------------
-	/* Make the updates we are told to do. See comments to the GC version in UCode_AX.cpp */
-	// ------------
-	for (int i = 0; i < numberOfPBs; i++)
+	u32 blockAddr = m_addressPBs;
+
+	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{
-		u16 *pDest = (u16 *)&PBs[i];
-		u16 upd0 = pDest[41]; u16 upd1 = pDest[42]; u16 upd2 = pDest[43]; // num_updates
-		u16 upd_hi = pDest[44]; // update addr
-		u16	upd_lo = pDest[45];
-		int numupd = upd0 + upd1 + upd2;
-		if(numupd > 64) numupd = 64; // prevent to high values
-		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;		
-		int on = false, off = false;
-		for (int j = 0; j < numupd; j++) // make alll updates
-		{	
-			const u16 updpar   = Memory_Read_U16(updaddr);
-			const u16 upddata   = Memory_Read_U16(updaddr + 2);
-			// some safety checks, I hope it's enough
-			if( (  (updaddr > 0x80000000 && updaddr < 0x817fffff)
-				|| (updaddr > 0x90000000 && updaddr < 0x93ffffff) )
-				&& updpar < 127 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-				// 0-3, those are important
-				//&& (upd0 || upd1 || upd2) // We should use these in some way to I think
-				// but I don't know how or when
-				&& gSequenced) // on and off option
-			{
-				//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
-				//DEBUG_LOG(DSPHLE, "Update: %i = %04x", updpar, upddata);
-				pDest[updpar] = upddata;
-			}
-			if (updpar == 7 && upddata == 1) on++;
-			if (updpar == 7 && upddata == 1) off++;
-		}
-		// hack: if we get both an on and an off select on rather than off
-		if (on > 0 && off > 0) pDest[7] = 1;
-	}
-
-	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
-	// ------------
-
-
-	for (int i = 0; i < numberOfPBs; i++)
-	{		
-		MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize, true);
+		// read out pbs
+		ReadOutPBWii(blockAddr, PB);
+		ProcessUpdates(PB);
+		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, true);
+		WriteBackPBWii(blockAddr, PB);
+		
+		// next block		
+		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
+		if (blockAddr == 0) break;
 	}		
 
-	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
 	// We write the sound to _pBuffer
-	if(_pBuffer)
+	if (_pBuffer)
 	{
 		for (int i = 0; i < _iSize; i++)
 		{
@@ -438,4 +424,19 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	// i hope resume is okay AX
 	m_rMailHandler.PushMail(0xDCD10001);
 	return true;
+}
+
+
+void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
+{
+	if(_CRC == 0xfa450138)
+	{
+		AXParamBlockWii PB;
+		MixAdd_( _pBuffer, _iSize, PB);
+	}
+	else
+	{
+		AXParamBlockWii_ PB;
+		MixAdd_(_pBuffer, _iSize, PB);
+	}
 }

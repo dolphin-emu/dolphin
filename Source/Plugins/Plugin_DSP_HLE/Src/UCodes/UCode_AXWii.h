@@ -58,7 +58,4 @@ private:
 	void SendMail(u32 _uMail);
 };
 
-//int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
-//void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
-
 #endif  // _UCODE_AXWII

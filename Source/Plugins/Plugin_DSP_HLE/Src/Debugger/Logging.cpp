@@ -914,6 +914,10 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 {
 	/* Doing all this may have a noticable CPU effect, so we can disable it completely
 	   this way. But remember that "Save to file" will not write anything then either. */
+	/* 
+		This is all broken right now since ReadOutPBs is gone.
+	*/
+	/*
 	if (m_DebuggerFrame->gUpdFreq > 0)
 	{
 		int version; // AX version
@@ -930,13 +934,13 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		{
 			if(version == 0)
 			{
-				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS);
-				Logging_(_pBuffer, _iSize, a, Wii, PBw, numberOfPBs, m_addressPBs);
+				// numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS);
+				// Logging_(_pBuffer, _iSize, a, Wii, PBw, numberOfPBs, m_addressPBs);
 			}
 			else
 			{
-				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS);
-				Logging_(_pBuffer, _iSize, a, Wii, PBw_, numberOfPBs, m_addressPBs);
+				// numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS);
+				// Logging_(_pBuffer, _iSize, a, Wii, PBw_, numberOfPBs, m_addressPBs);
 			}
 		}
 		else
@@ -944,5 +948,5 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 			// numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
 			// Logging_(_pBuffer, _iSize, a, Wii, PBs, numberOfPBs, m_addressPBs);
 		}	
-	}	
+	}	*/
 }
