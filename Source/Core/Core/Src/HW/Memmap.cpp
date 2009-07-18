@@ -60,14 +60,6 @@ namespace Memory
 // LOCAL SETTINGS
 // ----------------
 
-// Disable Memory Checks
-// #define NOCHECK
-
-// Always disable memory checks if the Release build
-#if MAX_LOGLEVEL < 4
-	#define NOCHECK
-#endif
-
 /* Enable the Translation Lookaside Buffer functions. TLBHack = 1 in Dolphin.ini or a
    <GameID>.ini file will set this to true */
 bool bFakeVMEM = false;
@@ -526,7 +518,7 @@ void Clear()
 
 bool AreMemoryBreakpointsActivated()
 {
-#ifdef NOCHECK
+#ifndef ENABLE_MEM_CHECK
 	return false;
 #else
 	return true;
