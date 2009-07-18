@@ -1,7 +1,7 @@
 ; This is the trojan program we send to the DSP from DSPSpy to figure it out.
-REGS_BASE:      equ             0x0f80
-MEM_HI:                 equ             0x0f7E
-MEM_LO:                 equ             0x0f7F
+REGS_BASE:	equ	0x0f80
+MEM_HI:		equ	0x0f7E
+MEM_LO:		equ	0x0f7F
 
 ;
 ; CODE STARTS HERE.
@@ -18,20 +18,19 @@ MEM_LO:                 equ             0x0f7F
 	jmp		irq7
 	
 ; Main code at 0x10
-	sbset       #0x02
-	sbset       #0x03
-	sbclr       #0x04
-	sbset       #0x05
-	sbset       #0x06
+	sbset	#0x02
+	sbset	#0x03
+	sbclr	#0x04
+	sbset	#0x05
+	sbset	#0x06
 
 	s16
 	lri		$CR, #0x00ff
 
 ; Why do we have a main label here?	
 main:
-
-	clr         $ACC1
-	clr         $ACC0
+	clr		$ACC1
+	clr		$ACC0
 
 ; get address of memory dump and copy it to DRAM
 
@@ -112,11 +111,10 @@ main:
 	lrri	$ac1.m, @$ar0
 	lr		$ar0, @REGS_BASE
 
-       jmp start_of_test
+	jmp		start_of_test
 
 ; This is where we jump when we're done testing, see above.
 end_of_test:
-
 	nop
 	nop
 	nop
@@ -320,7 +318,7 @@ dma_copy:
 	lrri	$ac1.m, @$ar0
 	lr		$ar0, @REGS_BASE
 	
-	ret   ; from send_back
+	ret		; from send_back
 	
 ; If you are in set40 mode, use this instead of send_back if you want to stay
 ; in set40 mode.
@@ -339,20 +337,20 @@ dump_memory:
 	lri		$ar1, #0x1000		
 	bloop	$ar1, _fill_loop2			
 	
-	mrr $ar3, $ac0.m
+	mrr		$ar3, $ac0.m
 	nx'ld   : $AX0.H, $AX1.H, @$AR0
 	
-	mrr $ac1.m, $ar0
-	mrr $ar0, $ar2
-	srri @$ar0, $ax1.h
-	mrr $ar2, $ar0
-	mrr $ar0, $ac1.m
+	mrr		$ac1.m, $ar0
+	mrr		$ar0, $ar2
+	srri	@$ar0, $ax1.h
+	mrr		$ar2, $ar0
+	mrr		$ar0, $ac1.m
 	
-	addis $acc0, #0x1
+	addis	$acc0, #0x1
 
 _fill_loop2:
 	nop
-	ret   ; from dump_memory
+	ret		; from dump_memory
 
-        
+; Obviously this must be included directly before your test code
 start_of_test:

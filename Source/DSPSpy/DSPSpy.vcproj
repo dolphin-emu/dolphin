@@ -114,6 +114,102 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="tests"
+			>
+			<File
+				RelativePath=".\tests\arith_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\dr_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\dsp_base.inc"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\dsp_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\ir_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\mul_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\neg_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\op_test.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\unk_regs_test.ds"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="util"
+			>
+			<File
+				RelativePath=".\util\createtest.pl"
+				>
+			</File>
+			<File
+				RelativePath=".\util\dump_roms.ds"
+				>
+			</File>
+			<File
+				RelativePath=".\util\printresult.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="templates"
+			>
+			<File
+				RelativePath=".\templates\if_test.tpl"
+				>
+			</File>
+			<File
+				RelativePath=".\templates\tst_test.tpl"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="DSP Interface"
+			>
+			<File
+				RelativePath=".\dsp_interface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\dsp_interface.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mem_dump.h"
+				>
+			</File>
+			<File
+				RelativePath=".\real_dsp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\real_dsp.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\build.sh"
+			>
+		</File>
 		<File
 			RelativePath=".\Config.h"
 			>
@@ -123,15 +219,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\tests\dsp_base.inc"
-			>
-		</File>
-		<File
-			RelativePath=".\dsp_interface.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\dsp_interface.h"
+			RelativePath="..\..\docs\DSP\dsp_rom.txt"
 			>
 		</File>
 		<File
@@ -143,15 +231,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\mem_dump.h"
-			>
-		</File>
-		<File
-			RelativePath=".\real_dsp.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\real_dsp.h"
+			RelativePath=".\sbuild.sh"
 			>
 		</File>
 		<File

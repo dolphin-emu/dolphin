@@ -39,7 +39,6 @@ void RealDSP::Init()
 	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT)) | DSPCR_DSPRESET;
 	_dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT|DSPCR_AIINT|DSPCR_ARINT|DSPCR_DSPINT));
 
-	// This code looks odd - shouldn't we initialize level?
 	u32 level;
 	_CPU_ISR_Disable(level);
 	IRQ_Request(IRQ_DSP_DSP, dsp_irq_handler, NULL);

@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <iostream>
 
 #define CON_BLACK 		0
 #define CON_RED			1
@@ -41,7 +42,7 @@
 #define	CON_BRIGHT_WHITE		CON_WHITE	| CON_BRIGHT
 
 
-void CON_Printf(int x, int y, const char* fmt, ...)
+inline void CON_Printf(const int x, const int y, const char* fmt, ...)
 {
 	char tmpbuf[255];
 
@@ -53,7 +54,7 @@ void CON_Printf(int x, int y, const char* fmt, ...)
 	printf("\x1b[%d;%dH%s", y, x, tmpbuf);
 }
 
-void CON_SetColor(u8 foreground, u8 background = CON_BLACK)
+inline void CON_SetColor(u8 foreground, u8 background = CON_BLACK)
 {
 	u8 bright = foreground & CON_BRIGHT ? 1 : 0;
 
@@ -63,10 +64,27 @@ void CON_SetColor(u8 foreground, u8 background = CON_BLACK)
 	printf("\x1b[%d;%d;%dm", 30+foreground, bright, 40+background);
 }
 
-void CON_Clear()
+inline void CON_Clear()
 {
 	// Escape code to clear the whole screen.
 	printf("\x1b[2J");
+}
+
+// libogc's clear escape codes are crappy
+inline void CON_BlankRow(const int y)
+{
+	int columns = 0, rows = 0;
+	CON_GetMetrics(&columns, &rows);
+	char* blank = new char[columns];
+	std::fill(blank, &blank[columns], ' ');
+	CON_Printf(0, y, "%s", blank);
+	delete blank;
+}
+
+#define CON_PrintRow(x, y, ...) \
+{ \
+	CON_BlankRow(y); \
+	CON_Printf(x, y, __VA_ARGS__); \
 }
 
 #endif

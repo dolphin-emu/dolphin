@@ -488,6 +488,26 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="TestData"
+			>
+			<File
+				RelativePath=".\Testdata\dsp_test.bin"
+				>
+			</File>
+			<File
+				RelativePath=".\Testdata\dsp_test.S"
+				>
+			</File>
+			<File
+				RelativePath=".\Testdata\hermes.bin"
+				>
+			</File>
+			<File
+				RelativePath=".\Testdata\hermes.s"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
 			>

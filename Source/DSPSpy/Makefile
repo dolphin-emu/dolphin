@@ -9,6 +9,7 @@ endif
 
 #---------------------------------------------------------------------------------
 # build for wii by default, make HW_TYPE=gamecube will do what it sounds like
+# NOTE: gamecube build may require use of dollz3 before running, if sending over BBA
 #---------------------------------------------------------------------------------
 HW_TYPE = wii
 
@@ -40,7 +41,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 ifeq ($(HW_TYPE), gamecube)
-LIBS	:=	-lfat -lasnd -lmodplay -lz -logc -lm
+LIBS	:=	-lfat -lasnd -lmodplay -lz -ldb -logc -lm
 else
 LIBS	:=	-lfat -lasnd -lmodplay -lwiiuse -lbte -lz -logc -lm
 endif
