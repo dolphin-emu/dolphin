@@ -1272,13 +1272,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 
 void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 {
-	//_ext.SX   : 6;
-	//_ext.SY   : 6;
 	//	u8 TB   : 5; // not used in GH3
 	//	u8 WB   : 5;
 	u8 SX = g_GH3Calibration.Lx.center,
 		SY = g_GH3Calibration.Ly.center;
-
 
 	_ext.pad1 = 3;
 	_ext.pad2 = 3;
@@ -1294,35 +1291,21 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.Minus = 1;
 	_ext.StrumDown = 1;
 	_ext.StrumUp = 1;
-	_ext.Yellow = 0;
-	_ext.Green = 0;
-	_ext.Blue = 0;
-	_ext.Red = 0;
-	_ext.Orange = 0;
+	_ext.Yellow = 1;
+	_ext.Green = 1;
+	_ext.Blue = 1;
+	_ext.Red = 1;
+	_ext.Orange = 1;
 
 
 	// Check that Dolphin is in focus
 	if (IsFocus())
 	{
-		/* Left and right analog sticks and analog triggers
-
-			u8 Lx : 6; // byte 0
-			u8 Rx : 2;
-			u8 Ly : 6; // byte 1
-			u8 Rx2 : 2;
-			u8 Ry : 5; // byte 2
-			u8 lT : 2;
-			u8 Rx3 : 1;
-			u8 rT : 5; // byte 3
-			u8 lT2 : 3;
-
-		   We use a 200 range (28 to 228) for the left analog stick and a 176 range
-		   (40 to 216) for the right analog stick to match our calibration values
-		   in classic_calibration
-		*/
 
 		// Update the left analog stick
-		if (g_Config.GH3Controller.LType == g_Config.GH3Controller.KEYBOARD)
+		// TODO: Fix using the keyboard for the joystick
+		// only seems to work if there is a PanicAlert after setting the value
+/*		if (g_Config.GH3Controller.AType == g_Config.GH3Controller.KEYBOARD)
 		{
 			if(IsKey(g_GH3Ext.Al)) // Left analog left
 				_ext.SX = g_GH3Calibration.Lx.min;
@@ -1335,73 +1318,51 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 
 		}
 		else
-		{
+*/		{
 			// Get adjusted pad state values
-			int _Sx, _Sy,
-				_Rx, _Ry, _Tl, _Tr; // Not Yet used
-			PadStateAdjustments(_Sx, _Sy, _Rx, _Ry, _Tl, _Tr);
+			int _Lx, _Ly, _Rx, _Ry,
+				_Tl, _Tr; // Not used
+			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
 			// The Y-axis is inverted
-			_Sy = 0xff - _Sy;
-			//_Ry = 0xff - _Ry;
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
 
-			/* This is if we are also using a real Classic Controller that we are sharing the calibration with.
-			   It's not needed if we are using our default values. We adjust the values to the configured range.
-			   
-			   Status: Not added, we are not currently sharing the calibration with the real Classic Controller
-			   */
 
-			if (g_Config.GH3Controller.LType == g_Config.GH3Controller.ANALOG1)
+			if (g_Config.GH3Controller.AType == g_Config.GH3Controller.ANALOG1)
 			{
-				SX = _Sx;
-				SY = _Sy;
+				SX = _Lx;
+				SY = _Ly;
 			}
 			else // ANALOG2
 			{
-		//		Lx = _Rx;
-		//		Ly = _Ry;
+				SX = _Rx;
+				SX = _Ry;
 			}
 		}
 
-		if(IsKey(g_GH3Ext.StrumUp)) _ext.StrumUp = 0x00; // Strum Up
-		if(IsKey(g_GH3Ext.StrumDown)) _ext.StrumDown= 0x00; // Strum Down
+		if(IsKey(g_GH3Ext.StrumUp)) _ext.StrumUp = 0; // Strum Up
+		if(IsKey(g_GH3Ext.StrumDown)) _ext.StrumDown= 0; // Strum Down
 
 		if(IsKey(g_GH3Ext.Plus))
-			_ext.Plus = 0x00;
+			_ext.Plus = 0;
 		if(IsKey(g_GH3Ext.Minus))
-			_ext.Minus = 0x00;
+			_ext.Minus = 0;
 
 		if(IsKey(g_GH3Ext.Yellow))
-			_ext.Yellow = 0x01;
+			_ext.Yellow = 0;
 		if(IsKey(g_GH3Ext.Green))
-			_ext.Green = 0x01;
+			_ext.Green = 0;
 		if(IsKey(g_GH3Ext.Blue))
-			_ext.Blue = 0x01;
+			_ext.Blue = 0;
 		if(IsKey(g_GH3Ext.Red))
-			_ext.Red = 0x01;
+			_ext.Red = 0;
 		if(IsKey(g_GH3Ext.Orange))
-			_ext.Orange = 0x01;
+			_ext.Orange = 0;
 	}
 
 	// Convert data for reporting
 	_ext.SX = (SX >> 2);
 	_ext.SY = (SY >> 2);
-
-
-
-/*	// 5 bit to 1 bit
-	_ext.Rx = (Rx >> 3) & 0x01;
-	// 5 bit to the next 2 bit
-	_ext.Rx2 = ((Rx >> 3) >> 1) & 0x03;
-	// 5 bit to the next 2 bit
-	_ext.Rx3 = ((Rx >> 3) >> 3) & 0x03;
-	_ext.Ry = (Ry >> 3);
-
-	// 5 bit to 3 bit
-	_ext.lT = (lT >> 3) & 0x07;
-	// 5 bit to the highest two bits
-	_ext.lT2 = (lT >> 3) >> 3;
-	_ext.rT = (rT >> 3);
-*/
 
 	/* Here we encrypt the report */
 

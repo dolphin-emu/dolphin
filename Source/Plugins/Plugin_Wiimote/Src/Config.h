@@ -89,12 +89,11 @@ struct Config
 	{
 		enum EGH3Stick
 		{
-			KEYBOARD,
+	//		KEYBOARD,
 			ANALOG1,
 			ANALOG2
 		};
-		int LType; // Analog Stick
-		int RType;
+		int AType; // Analog Stick
 		int TType; // Whammy bar
 	};
 

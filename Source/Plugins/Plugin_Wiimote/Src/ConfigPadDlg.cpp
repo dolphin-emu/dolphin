@@ -82,7 +82,7 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_GH3_PLUS, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_GH3_MINUS, WiimotePadConfigDialog::OnButtonClick)
 //	EVT_COMBOBOX(IDB_GH3_WHAMMY, WiimotePadConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(IDCB_GH3_ANALOG_STICK, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDCB_GH3_ANALOG, WiimotePadConfigDialog::GeneralSettingsChanged)
 	EVT_BUTTON(IDB_GH3_ANALOG_LEFT, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_GH3_ANALOG_RIGHT, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_GH3_ANALOG_UP, WiimotePadConfigDialog::OnButtonClick)
@@ -844,9 +844,15 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		}
 		else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
 		{
+			// TODO: fix keyboard input for joystick use the nunchuck array str	
+			wxArrayString tempArraySTR;
+			tempArraySTR.Add(wxString::FromAscii("Analog 1"));
+			tempArraySTR.Add(wxString::FromAscii("Analog 2"));
+			
 			// Stick controls
 			m_tGH3_Analog[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Analog joystick"));
-			m_GH3ComboAnalog[i] = new wxComboBox(m_Controller[i], IDCB_GH3_ANALOG_STICK, StrNunchuck[0], wxDefaultPosition, wxSize(100, -1), StrNunchuck, wxCB_READONLY);
+			m_GH3ComboAnalog[i] = new wxComboBox(m_Controller[i], IDCB_GH3_ANALOG, tempArraySTR[0], wxDefaultPosition, wxSize(100, -1), tempArraySTR, wxCB_READONLY);
+			m_GH3ComboAnalog[i]->SetSelection(g_Config.GH3Controller.AType);
 
 			static const wxChar* gh3Text[] =
 			{
@@ -875,7 +881,6 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 				if (IDB_GH3_WHAMMY <= x && x <= IDB_GH3_ANALOG_DOWN)
 					m_Button_GH3[x - IDB_GH3_GREEN][i]->Disable();
 			}
-			m_GH3ComboAnalog[i]->Disable();
 
 			// Sizers
 			m_sGH3_Analog[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -1014,6 +1019,9 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case IDCB_CC_TRIGGERS:
 		g_Config.ClassicController.TType = m_CcComboTriggers[Page]->GetSelection();
+		break;
+	case IDCB_GH3_ANALOG:
+		g_Config.GH3Controller.AType = m_GH3ComboAnalog[Page]->GetSelection();
 		break;
 
 	// These are defined in PadMapping and we can run the same function to update all of them

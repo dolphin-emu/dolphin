@@ -257,6 +257,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName, "CcTriggers", &ClassicController.TType, ClassicController.KEYBOARD);
 		for (int x = 0; x < 23; x++)
 			iniFile.Get(SectionName, ccControlNames[x], &WiiMoteEmu::PadMapping[i].Cc.keyForControls[x], ccDefaultControls[x]);
+		iniFile.Get(SectionName, "GH3Analog", &GH3Controller.AType, GH3Controller.ANALOG1);
 		for (int x = 0; x < 14; x++)
 			iniFile.Get(SectionName, gh3ControlNames[x], &WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x], GH3DefaultControls[x]);
 
@@ -359,6 +360,7 @@ void Config::Save(int Slot)
 		for (int x = 0; x < 23; x++)
 			iniFile.Set(SectionName, ccControlNames[x], WiiMoteEmu::PadMapping[i].Cc.keyForControls[x]);
 		// GH3
+		iniFile.Set(SectionName, "GH3Analog", GH3Controller.AType);
 		for (int x = 0; x < 14; x++)
 			iniFile.Set(SectionName, gh3ControlNames[x], WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x]);
 

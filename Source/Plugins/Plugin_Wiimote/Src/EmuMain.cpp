@@ -344,7 +344,16 @@ void UpdateEeprom()
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
-
+else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	{
+		// TODO get the correct values here
+		g_GH3Calibration.Lx.max = g_RegExt[0x20];
+		g_GH3Calibration.Lx.min = g_RegExt[0x21];
+		g_GH3Calibration.Lx.center = g_RegExt[0x22];
+		g_GH3Calibration.Ly.max = g_RegExt[0x23];
+		g_GH3Calibration.Ly.min = g_RegExt[0x24];
+		g_GH3Calibration.Ly.center = g_RegExt[0x25];
+	}
 
 }
 
@@ -405,8 +414,9 @@ void SetDefaultExtensionRegistry()
 	}
 	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
 	{
-	//	memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
-	//	memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
+		// TODO get the correct values here
+		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0xfa, gh3glp_id, sizeof(gh3glp_id));
 	}
 

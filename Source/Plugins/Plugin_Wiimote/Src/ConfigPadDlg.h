@@ -197,8 +197,6 @@ class WiimotePadConfigDialog : public wxDialog
 			ID_ANALOG_RIGHT_X, ID_ANALOG_RIGHT_Y,
 			ID_TRIGGER_L, ID_TRIGGER_R,
 
-			IDCB_GH3_ANALOG_STICK,
-
 			// Wiimote
 			IDS_WIDTH, IDS_HEIGHT, IDS_LEFT, IDS_TOP,
 			IDB_WM_A, IDB_WM_B,
@@ -235,7 +233,7 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_GH3_MINUS,
 			IDB_GH3_WHAMMY,
 			IDB_GH3_ANALOG_LEFT,
-			IDB_GH3_ANALOG_UP,			
+			IDB_GH3_ANALOG_UP,
 			IDB_GH3_ANALOG_RIGHT,
 			IDB_GH3_ANALOG_DOWN,
 			IDB_GH3_STRUM_UP,

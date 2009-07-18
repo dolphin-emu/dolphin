@@ -178,7 +178,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		arrayStringFor_extension.Add(wxT("None"));
 		arrayStringFor_extension.Add(wxT("Nunchuck"));
 		arrayStringFor_extension.Add(wxT("Classic Controller"));
-		//arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
+		arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
 		//arrayStringFor_extension.Add(wxT("Guitar Hero World Tour Drums Connected"));
 		// Prolly needs to be a separate plugin
 		//arrayStringFor_extension.Add(wxT("Balance Board"));
