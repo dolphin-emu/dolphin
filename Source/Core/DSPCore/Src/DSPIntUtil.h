@@ -96,7 +96,7 @@ inline void dsp_increase_addr_reg(int reg, s16 value)
 // --- reg
 // ---------------------------------------------------------------------------------------
 
-inline u16 dsp_op_read_reg(u8 reg)
+inline u16 dsp_op_read_reg(int reg)
 {
 	switch (reg & 0x1f) {
 	case DSP_REG_ST0:
@@ -109,7 +109,7 @@ inline u16 dsp_op_read_reg(u8 reg)
 	}
 }
 
-inline void dsp_op_write_reg(u8 reg, u16 val)
+inline void dsp_op_write_reg(int reg, u16 val)
 {
 	switch (reg & 0x1f) {
 	// 8-bit sign extended registers. Should look at prod.h too...
@@ -133,7 +133,7 @@ inline void dsp_op_write_reg(u8 reg, u16 val)
 	}
 }
 
-inline void dsp_conditional_extend_accum(u8 reg) 
+inline void dsp_conditional_extend_accum(int reg) 
 {
 	switch (reg) 
 	{

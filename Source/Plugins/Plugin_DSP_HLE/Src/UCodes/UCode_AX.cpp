@@ -338,11 +338,6 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, false);
 		WriteBackPB(blockAddr, PB);
 
-		#if defined(HAVE_WX) && HAVE_WX                               
-		#if defined(_DEBUG) || defined(DEBUGFAST)
-			if(m_DebuggerFrame) m_DebuggerFrame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
-		#endif
-		#endif
 		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
 		if (!blockAddr) {
 			// Guess we're out of blocks
