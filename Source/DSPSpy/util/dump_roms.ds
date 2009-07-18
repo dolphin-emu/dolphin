@@ -29,7 +29,7 @@ CR_DRAM:	equ	0
 
 IROM_BASE:	equ 0x8000
 COEF_BASE:	equ 0x1000
-DUMP_SIZE:	equ 0x1000 ; in words!
+DUMP_SIZE:	equ 0x2000 ; in bytes!
 
 
 /**************************************************************/
@@ -100,7 +100,7 @@ do_halt:
 copy_irom_to_dram:
 	lri		$ar0, #IROM_BASE
 	lri		$ar1, #DRAM_BASE
-	lri		$ar2, #DUMP_SIZE
+	lri		$ar2, #DUMP_SIZE/2	; each iteration copies a word
 	bloop	$ar2, copy_irom_to_dram_end
 	ilrri	$ac0.m, @$ar0
 	; Now ac0.m is 16bits of irom!
@@ -113,7 +113,7 @@ copy_irom_to_dram_end:
 copy_coef_to_dram:
 	lri		$ar0, #COEF_BASE
 	lri		$ar1, #DRAM_BASE
-	lri		$ar2, #DUMP_SIZE
+	lri		$ar2, #DUMP_SIZE/2	; each iteration copies a word
 	bloop	$ar2, copy_coef_to_dram_end
 	lrri	$ac0.m, @$ar0
 	; Now ac0.m is 16bits of coef!
