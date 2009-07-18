@@ -206,12 +206,26 @@ void BPWritten(const Bypass& bp)
 #ifdef BBOX_SUPPORT
 				*g_VideoInitialize.pBBoxActive = false;
 #endif
-				const float yScale = bpmem.dispcopyyscale / 256.0f;
-				const float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+
+				float yScale;
+				// PE_copy.scale_something may indicate that yScale is inverted.
+				// Not 100% sure if that's true, but this seems to fix SMG in PAL50 mode.
+				if (PE_copy.scale_something)
+					yScale = 256.0f / (float)bpmem.dispcopyyscale;
+				else
+					yScale = (float)bpmem.dispcopyyscale / 256.0f;
+
+				float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+				if (xfbLines > MAX_XFB_HEIGHT)
+				{
+					WARN_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%u)", (u32)xfbLines);
+					xfbLines = MAX_XFB_HEIGHT;
+				}
+
 				RenderToXFB(bp, rc, yScale, xfbLines, 
 									 bpmem.copyTexDest << 5, 
-									 bpmem.copyMipMapStrideChannels << 4, 
-									 (u32)ceil(xfbLines));
+									 bpmem.copyMipMapStrideChannels << 4,
+									 (u32)xfbLines);
 			}
 
 			// Clear the picture after it's done and submitted, to prepare for the next picture
