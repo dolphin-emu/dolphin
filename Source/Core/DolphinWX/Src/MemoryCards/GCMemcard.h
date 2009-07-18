@@ -242,6 +242,10 @@ public:
 	// writes a .gci file to disk containing index
 	u32 ExportGci(u8 index, const char* fileName, std::string* fileName2);
 
+	// GCI files are untouched, SAV files are byteswapped
+	// GCS files have the block count set, default is 1 (For export as GCS)
+	void Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length = BLOCK_SIZE);
+
 	// reads the banner image
 	bool ReadBannerRGBA8(u8 index, u32* buffer);
 

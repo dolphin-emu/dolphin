@@ -53,7 +53,7 @@ LogManager::LogManager()\
 	m_Log[LogTypes::HLE]				= new LogContainer("HLE",			"HLE");
 	m_Log[LogTypes::DSPHLE]			    = new LogContainer("DSPHLE",		"DSP HLE");
 	m_Log[LogTypes::DSPLLE]			    = new LogContainer("DSPLLE",		"DSP LLE");
-       	m_Log[LogTypes::DSP_MAIL]		    = new LogContainer("DSPMails",		"DSP Mails");
+	m_Log[LogTypes::DSP_MAIL]		    = new LogContainer("DSPMails",		"DSP Mails");
 	m_Log[LogTypes::VIDEO]			    = new LogContainer("Video",			"Video Plugin");
 	m_Log[LogTypes::AUDIO]			    = new LogContainer("Audio",			"Audio Plugin");
 	m_Log[LogTypes::DYNA_REC]			= new LogContainer("JIT",			"Dynamic Recompiler");
@@ -69,8 +69,9 @@ LogManager::LogManager()\
 	m_Log[LogTypes::WII_IPC_SD]			= new LogContainer("WII_IPC_SD",	"WII IPC SD");
 	m_Log[LogTypes::WII_IPC_STM]		= new LogContainer("WII_IPC_STM",	"WII IPC STM");
 	m_Log[LogTypes::WII_IPC_NET]		= new LogContainer("WII_IPC_NET",	"WII IPC NET");
-	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
-	m_Log[LogTypes::ACTIONREPLAY]       = new LogContainer("ActionReplay",	"ActionReplay");
+	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
+	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");	
+	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manger", "MemCard Manger");
 
 	m_fileLog = new FileLogListener(MAIN_LOG_FILE);
 	m_consoleLog = new ConsoleListener();

@@ -665,6 +665,16 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
 	if (!mcdFile) return NOMEMCARD;
 
+
+	//error checking
+	u16 startingblock = 0;
+	for (int i = 0; i < DIRLEN; i++)
+	{
+		if (startingblock > BE16(dir.Dir[i].FirstBlock))
+			return FAIL;
+		startingblock = BE16(dir.Dir[i].FirstBlock);
+	}
+
 	//backup the directory and bat (not really needed here but meh :P
 	dir_backup = dir;
 	bat_backup = bat;
@@ -812,39 +822,8 @@ u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	int length = (int) ftell(gci) - fStart;
 	fseek(gci, offset + DENTRY_SIZE, SEEK_SET);
 
-	switch(offset){
-		case GCS:
-		{	// field containing the Block count as displayed within
-			// the GameSaves software is not stored in the GCS file.
-			// It is stored only within the corresponding GSV file.
-			// If the GCS file is added without using the GameSaves software,
-			// the value stored is always "1"
-			int blockCount = length / BLOCK_SIZE;
-			tempDEntry->BlockCount[0] = u8(blockCount >> 8);
-			tempDEntry->BlockCount[1] = u8(blockCount);
-		}
-			break;
-		case SAV:
-			// swap byte pairs
-			// 0x2C and 0x2D, 0x2E and 0x2F, 0x30 and 0x31, 0x32 and 0x33,
-			// 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
-			// 0x3C and 0x3D,0x3E and 0x3F.
-			// It seems that sav files also swap the BIFlags...
-			ByteSwap(&tempDEntry->Unused1, &tempDEntry->BIFlags);
-			ArrayByteSwap((tempDEntry->ImageOffset));
-			ArrayByteSwap(&(tempDEntry->ImageOffset[2]));
-			ArrayByteSwap((tempDEntry->IconFmt));
-			ArrayByteSwap((tempDEntry->AnimSpeed));
-			ByteSwap(&tempDEntry->Permissions, &tempDEntry->CopyCounter);
-			ArrayByteSwap((tempDEntry->FirstBlock));
-			ArrayByteSwap((tempDEntry->BlockCount));
-			ArrayByteSwap((tempDEntry->Unused2));
-			ArrayByteSwap((tempDEntry->CommentsAddr));
-			ArrayByteSwap(&(tempDEntry->CommentsAddr[2]));
-			break;
-		default:
-			break;
-	}
+	Gcs_SavConvert(tempDEntry, offset, length);
+
 	if (length != BE16(tempDEntry->BlockCount) * BLOCK_SIZE)
 	{
 		return LENGTHFAIL;
@@ -885,6 +864,7 @@ u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 {
 	FILE *gci;
+	int offset = GCI;
 	if (!strcasecmp(fileName,"."))
 	{
 		if (BE32(dir.Dir[index].Gamecode) == 0xFFFFFFFF) return SUCCESS;
@@ -901,15 +881,51 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	else
 	{
 		gci = fopen(fileName, "wb");
+
+		std::string fileType;
+		SplitPath(fileName, NULL, NULL, &fileType);
+		if (!strcasecmp(fileType.c_str(), ".gcs"))
+		{
+			offset = GCS;
+		}
+		else if (!strcasecmp(fileType.c_str(), ".sav"))
+		{
+			offset = SAV;
+		}
 	}
 
 	if (!gci) return OPENFAIL;
 	bool completeWrite = true;
 
 	fseek(gci, 0, SEEK_SET);
+	
+	switch(offset)
+	{
+	case GCS:
+	{
+		u8 gcsHDR[GCS];
+		memset(gcsHDR, 0, GCS);
+		memcpy(gcsHDR, "GCSAVE", 6);
+		if (fwrite(gcsHDR, 1, GCS, gci) != GCS)	completeWrite = false;
+		break;
+	}
+	case SAV:
+	{
+		u8 savHDR[SAV];
+		memset(savHDR, 0, SAV);
+		memcpy(savHDR, "DATELGC_SAVE", 0xC);
+		if (fwrite(savHDR, 1, SAV, gci) != SAV)	completeWrite = false;
+	}
+		break;
+	default:
+		break;
+	}
 
 	DEntry tempDEntry;
 	if (!DEntry_Copy(index, tempDEntry)) return NOMEMCARD;
+
+
+	Gcs_SavConvert(&tempDEntry, offset);
 	if (fwrite(&tempDEntry, 1, DENTRY_SIZE, gci) != DENTRY_SIZE) completeWrite = false;
 
 	u32 size = DEntry_BlockCount(index);
@@ -930,7 +946,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	default:
 		break;
 	}
-	fseek(gci, DENTRY_SIZE, SEEK_SET);
+	fseek(gci, DENTRY_SIZE + offset, SEEK_SET);
 	if (fwrite(tempSaveData, 1, size, gci) != size)
 		completeWrite = false;
 	fclose(gci);
@@ -938,6 +954,44 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	if (completeWrite) return SUCCESS;
 	else return WRITEFAIL;
 	
+}
+
+void  GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
+{
+	switch(saveType)
+	{
+	case GCS:
+	{	// field containing the Block count as displayed within
+		// the GameSaves software is not stored in the GCS file.
+		// It is stored only within the corresponding GSV file.
+		// If the GCS file is added without using the GameSaves software,
+		// the value stored is always "1"
+		int blockCount = length / BLOCK_SIZE;
+		tempDEntry->BlockCount[0] = u8(blockCount >> 8);
+		tempDEntry->BlockCount[1] = u8(blockCount);
+	}
+		break;
+	case SAV:
+		// swap byte pairs
+		// 0x2C and 0x2D, 0x2E and 0x2F, 0x30 and 0x31, 0x32 and 0x33,
+		// 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
+		// 0x3C and 0x3D,0x3E and 0x3F.
+		// It seems that sav files also swap the BIFlags...
+		ByteSwap(&tempDEntry->Unused1, &tempDEntry->BIFlags);
+		ArrayByteSwap((tempDEntry->ImageOffset));
+		ArrayByteSwap(&(tempDEntry->ImageOffset[2]));
+		ArrayByteSwap((tempDEntry->IconFmt));
+		ArrayByteSwap((tempDEntry->AnimSpeed));
+		ByteSwap(&tempDEntry->Permissions, &tempDEntry->CopyCounter);
+		ArrayByteSwap((tempDEntry->FirstBlock));
+		ArrayByteSwap((tempDEntry->BlockCount));
+		ArrayByteSwap((tempDEntry->Unused2));
+		ArrayByteSwap((tempDEntry->CommentsAddr));
+		ArrayByteSwap(&(tempDEntry->CommentsAddr[2]));
+		break;
+	default:
+		break;
+	}
 }
 
 bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)

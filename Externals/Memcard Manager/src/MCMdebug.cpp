@@ -189,7 +189,7 @@ void CMemcardManagerDebug::updateHDRtab(int card)
 		memoryCard[card]->hdr.deviceID[0],memoryCard[card]->hdr.deviceID[1]);
 
 	wx_Size.Printf(wxT("%02X, %02X"),
-		memoryCard[card]->hdr.Size[0],memoryCard[card]->hdr.Size[1]);
+		memoryCard[card]->hdr.SizeMb[0],memoryCard[card]->hdr.SizeMb[1]);
 
 	wx_Encoding.Printf(	wxT("%02X, %02X"),
 		memoryCard[card]->hdr.Encoding[0],memoryCard[card]->hdr.Encoding[1]);

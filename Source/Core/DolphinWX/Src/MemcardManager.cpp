@@ -591,10 +591,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			memoryCard[slot]->DEntry_GameCode(index,tempC);
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
-			wxString temp = wxFileSelector(_T("Save GCI as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
+			wxString temp = wxFileSelector(_T("Export save as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
 				wxString::FromAscii(tempC), _T(".gci"), wxString::Format
 				(
-					_T("GCI File(*.gci)|*.gci"),
+					_T("Native GCI files (*.gci)|*.gci|"
+					"MadCatz Gameshark files(*.gcs)|*.gcs|"
+					"Datel MaxDrive/Pro files(*.sav)|*.sav"),
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 				),
