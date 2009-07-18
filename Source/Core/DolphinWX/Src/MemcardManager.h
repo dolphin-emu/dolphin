@@ -33,17 +33,7 @@
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 #define MEMCARDMAN_TITLE "Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"
-#define E_ALREADYOPENED "Memcard already opened"
-#define E_INVALID "Invalid bat.map or dir entry"
-#define E_NOMEMCARD "File is not recognized as a memcard"
-#define E_TITLEPRESENT "Memcard already has a save for this title"
-#define E_INVALIDFILESIZE "The save you are trying to copy has an invalid file size"
-#define E_OUTOFBLOCKS "Only %d blocks available"
-#define E_OUTOFDIRENTRIES "No free dir index entries"
-#define E_LENGTHFAIL "Imported file has invalid length"
-#define E_GCSFAIL "Imported file has gsc extension\nbut does not have a correct header"
-#define E_SAVFAIL "Imported file has sav extension\nbut does not have a correct header"
-#define E_OPENFAIL "File could not be opened\nor does not have a valid extension"
+
 #define E_SAVEFAILED "File write failed"
 #define E_UNK "Unknown error"
 #define FIRSTPAGE 0

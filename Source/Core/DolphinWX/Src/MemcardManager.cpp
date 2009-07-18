@@ -326,7 +326,7 @@ void CMemcardManager::ChangePath(int id)
 		if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
 		{
 			if(!m_MemcardPath[slot]->GetPath().IsEmpty())
-			PanicAlert(E_ALREADYOPENED);
+			PanicAlert("Memcard already opened");
 		}
 		else if (ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
@@ -460,10 +460,10 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		}
 		break;
 	case NOMEMCARD:
-		PanicAlert(E_NOMEMCARD);
+		PanicAlert("File is not recognized as a memcard");
 		break;
 	case OPENFAIL:
-		PanicAlert(E_OPENFAIL);
+		PanicAlert("File could not be opened\nor does not have a valid extension");
 		break;
 	case OUTOFBLOCKS:
 		if (slot == -1)
@@ -471,25 +471,25 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			PanicAlert(E_UNK);
 			break;
 		}
-		PanicAlert(E_OUTOFBLOCKS, memoryCard[slot]->GetFreeBlocks());
+		PanicAlert("Only %d blocks available", memoryCard[slot]->GetFreeBlocks());
 		break;
 	case OUTOFDIRENTRIES:
-		PanicAlert(E_OUTOFDIRENTRIES);
+		PanicAlert("No free dir index entries");
 		break;
 	case LENGTHFAIL:
-		PanicAlert(E_LENGTHFAIL);
+		PanicAlert("Imported file has invalid length");
 		break;
 	case INVALIDFILESIZE:
-		PanicAlert(E_INVALIDFILESIZE);
+		PanicAlert("The save you are trying to copy has an invalid file size");
 		break;
 	case TITLEPRESENT:
-		PanicAlert(E_TITLEPRESENT);
+		PanicAlert("Memcard already has a save for this title");
 		break;
 	case SAVFAIL:
-		PanicAlert(E_SAVFAIL);
+		PanicAlert("Imported file has sav extension\nbut does not have a correct header");
 		break;
 	case GCSFAIL:
-		PanicAlert(E_GCSFAIL);
+		PanicAlert("Imported file has gsc extension\nbut does not have a correct header");
 		break;
 	case FAIL:
 		if (slot == -1)
@@ -497,10 +497,14 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			PanicAlert("Export Failed");
 			return false;
 		}
-		PanicAlert(E_INVALID);
+		PanicAlert("Invalid bat.map or dir entry");
 		break;
 	case WRITEFAIL:
 		PanicAlert(E_SAVEFAILED);
+		break;
+	case DELETE_FAIL:
+		PanicAlert("Order of files in the File Directory do not match the block order\n"
+				"Right click and export all of the saves,\nand import the the saves to a new memcard\n");
 		break;
 	default:
 		PanicAlert(E_UNK);

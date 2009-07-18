@@ -671,7 +671,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 	for (int i = 0; i < DIRLEN; i++)
 	{
 		if (startingblock > BE16(dir.Dir[i].FirstBlock))
-			return FAIL;
+			return DELETE_FAIL;
 		startingblock = BE16(dir.Dir[i].FirstBlock);
 	}
 
