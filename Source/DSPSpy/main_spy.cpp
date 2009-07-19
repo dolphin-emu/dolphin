@@ -450,7 +450,7 @@ void InitGeneral()
 #endif
 
 	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the WiUCodeToDump menu
+	// This will correspond to the settings in the Wii menu
 	rmode = VIDEO_GetPreferredMode(NULL);
 
 	// Allocate memory for the display in the uncached region
