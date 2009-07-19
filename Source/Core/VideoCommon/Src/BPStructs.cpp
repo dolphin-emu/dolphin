@@ -214,9 +214,9 @@ void BPWritten(const Bypass& bp)
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
 				float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
-				if (xfbLines > MAX_XFB_HEIGHT)
+				if ((u32)xfbLines > MAX_XFB_HEIGHT)
 				{
-					WARN_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%u)", (u32)xfbLines);
+					WARN_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
