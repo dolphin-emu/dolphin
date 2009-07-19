@@ -188,7 +188,7 @@ void Jit64::Init()
 	jo.enableFastMem = false;
 #endif
 	jo.assumeFPLoadFromMem = true;
-	jo.fpAccurateFlags = true;
+	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;

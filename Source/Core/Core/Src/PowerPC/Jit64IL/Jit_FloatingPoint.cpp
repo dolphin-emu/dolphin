@@ -114,3 +114,24 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	ibuild.EmitStoreFPRF(res);
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }
+
+void Jit64::fsign(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	Default(inst);
+	return;
+
+	// TODO
+	switch (inst.SUBOP10) {
+	case 40:  // fnegx
+		break;
+	case 264: // fabsx
+		break;
+	case 136: // fnabs
+		break;
+	default:
+		PanicAlert("fsign bleh");
+		break;
+	}
+}
