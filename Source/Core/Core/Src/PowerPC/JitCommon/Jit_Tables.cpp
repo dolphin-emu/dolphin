@@ -370,14 +370,14 @@ static GekkoOPTemplate table59[] =
 
 static GekkoOPTemplate table63[] = 
 {
-	{264, &Jit64::Default}, //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{32,  &Jit64::fcmpx}, //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{0,   &Jit64::fcmpx}, //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{264, &Jit64::fsign},   //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{32,  &Jit64::fcmpx},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{0,   &Jit64::fcmpx},   //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{14,  &Jit64::Default}, //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{15,  &Jit64::Default}, //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
-	{72,  &Jit64::fmrx}, //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{136, &Jit64::Default}, //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{40,  &Jit64::Default}, //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{72,  &Jit64::fmrx},    //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{136, &Jit64::fsign},   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{40,  &Jit64::fsign},   //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{12,  &Jit64::Default}, //"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},
 
 	{64,  &Jit64::Default}, //"mcrfs",   OPTYPE_SYSTEMFP, 0}},

@@ -280,6 +280,7 @@ public:
 	void psq_st(UGeckoInstruction inst);
 
 	void fmaddXX(UGeckoInstruction inst);
+	void fsign(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst); //stw sth stb
 	void lXz(UGeckoInstruction inst);
 	void lha(UGeckoInstruction inst);

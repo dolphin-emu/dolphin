@@ -160,6 +160,38 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+void Jit64::fsign(UGeckoInstruction inst)
+{
+	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
+		{Default(inst); return;} // turn off from debugger
+	INSTRUCTION_START;
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+
+	int d = inst.FD;
+	int b = inst.FB;
+	fpr.Lock(b, d);
+	fpr.LoadToX64(d, true, true);
+	MOVSD(XMM0, fpr.R(b));
+	switch (inst.SUBOP10) {
+	case 40:  // fnegx
+		XORPD(XMM0, M((void*)&psSignBits2));
+		break;
+	case 264: // fabsx
+		ANDPD(XMM0, M((void*)&psAbsMask2));
+		break;
+	case 136: // fnabs
+		ORPD(XMM0, M((void*)&psSignBits2));
+		break;
+	default:
+		PanicAlert("fsign bleh");
+		break;
+	}
+	MOVSD(fpr.R(d), XMM0);
+	fpr.UnlockAll();
+}
+
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
