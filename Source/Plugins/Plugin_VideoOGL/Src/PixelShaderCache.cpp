@@ -145,7 +145,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
     u32 dstAlpha = dstAlphaEnable ? 1 : 0;
-	GetPixelShaderId(uid, dstAlpha);
+	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
 
 	PSCache::iterator iter = pshaders.find(uid);
 
@@ -160,7 +160,8 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	}
 
 	PSCacheEntry& newentry = pshaders[uid];
-	const char *code = GeneratePixelShader(dstAlphaEnable, false);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
+                                           dstAlphaEnable);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {	

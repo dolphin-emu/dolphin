@@ -40,6 +40,11 @@ static u32 lastAlpha = 0;
 static u32 lastTexDims[8]={0}; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias = 0;
 
+// lower byte describes if a texture is nonpow2 or pow2
+// next byte describes whether the repeat wrap mode is enabled for the s channel
+// next byte is for t channel
+static u32 s_texturemask = 0;
+
 void PixelShaderManager::Init()
 {
     s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
@@ -203,15 +208,26 @@ void PixelShaderManager::SetConstants()
 
 void PixelShaderManager::SetPSTextureDims(int texid)
 {
-    // texdims.xy are reciprocals of the real texture dimensions
-    // texdims.zw are the scaled dimensions
+	// non pow 2 textures - texdims.xy are the real texture dimensions used for wrapping
+    // pow 2 textures - texdims.xy are reciprocals of the real texture dimensions
+    // both - texdims.zw are the scaled dimensions
     float fdims[4];
-
-    TCoordInfo& tc = bpmem.texcoords[texid];
-	fdims[0] = 1.0f / (float)(lastTexDims[texid] & 0xffff);
-	fdims[1] = 1.0f / (float)((lastTexDims[texid] >> 16) & 0xfff);
-	fdims[2] = (float)(tc.s.scale_minus_1 + 1) * lastCustomTexScale[texid][0];
-	fdims[3] = (float)(tc.t.scale_minus_1 + 1) * lastCustomTexScale[texid][1];
+	if (s_texturemask & (1 << texid))
+	{
+		TCoordInfo& tc = bpmem.texcoords[texid];
+		fdims[0] = (float)(lastTexDims[texid] & 0xffff);
+		fdims[1] = (float)((lastTexDims[texid] >> 16) & 0xfff);
+        fdims[2] = (float)(tc.s.scale_minus_1 + 1)*lastCustomTexScale[texid][0];
+		fdims[3] = (float)(tc.t.scale_minus_1 + 1)*lastCustomTexScale[texid][1];
+	}
+	else 
+	{
+        TCoordInfo& tc = bpmem.texcoords[texid];
+		fdims[0] = 1.0f / (float)(lastTexDims[texid] & 0xffff);
+		fdims[1] = 1.0f / (float)((lastTexDims[texid] >> 16) & 0xfff);
+		fdims[2] = (float)(tc.s.scale_minus_1 + 1) * lastCustomTexScale[texid][0];
+		fdims[3] = (float)(tc.t.scale_minus_1 + 1) * lastCustomTexScale[texid][1];
+	}
 
 	PRIM_LOG("texdims%d: %f %f %f %f\n", texid, fdims[0], fdims[1], fdims[2], fdims[3]);
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
@@ -312,6 +328,23 @@ void PixelShaderManager::SetZTextureTypeChanged()
 	s_bZTextureTypeChanged = true;
 }
 
+void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
+{
+    if (s_texturemask != nonpow2tex)
+	{
+        for (int i = 0; i < 8; ++i)
+		{
+            if (nonpow2tex & (0x10101 << i))
+			{
+				// this check was previously implicit, but should it be here?
+				if (s_nTexDimsChanged )
+					s_nTexDimsChanged |= 1 << i;
+            }
+        }
+        s_texturemask = nonpow2tex;
+    }
+}
+
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
     s_nTexDimsChanged |= 1 << texmapid;
@@ -334,4 +367,9 @@ void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfCon
     SetPSConstant4fv(C_COLORMATRIX+2, pmatrix+8);
     SetPSConstant4fv(C_COLORMATRIX+3, pmatrix+12);
     SetPSConstant4fv(C_COLORMATRIX+4, pfConstAdd);
+}
+
+u32 PixelShaderManager::GetTextureMask()
+{
+	return s_texturemask;
 }

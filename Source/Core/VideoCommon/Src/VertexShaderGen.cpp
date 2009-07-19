@@ -410,7 +410,7 @@ const char *GenerateVertexShader(u32 components)
                 break;
         }
 
-        if (xfregs.bEnableDualTexTransform && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
+        if(xfregs.bEnableDualTexTransform && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
             if (xfregs.texcoords[i].postmtxinfo.normalize)
                 WRITE(p, "o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 
@@ -470,8 +470,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
     if (coloralpha == 1 ) swizzle = "xyz";
     else if (coloralpha == 2 ) swizzle = "w";
 
-    if (!(chan.attnfunc & 1))
-	{
+    if (!(chan.attnfunc & 1)) {
         // atten disabled
         switch (chan.diffusefunc) {
             case LIGHTDIF_NONE:
@@ -486,9 +485,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
             default: _assert_(0);
         }
     }
-    else
-	{
-		// spec and spot
+    else { // spec and spot
         WRITE(p, "ldir = "I_LIGHTS".lights[%d].pos.xyz - pos.xyz;\n", index);
 
         if (chan.attnfunc == 3) { // spot
