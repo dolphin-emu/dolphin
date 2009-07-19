@@ -64,7 +64,7 @@
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -73,7 +73,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -180,7 +180,7 @@
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -189,7 +189,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -289,7 +289,7 @@
 				FloatingPointModel="0"
 				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -298,7 +298,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -399,7 +399,7 @@
 				FloatingPointModel="0"
 				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -408,7 +408,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -512,7 +512,7 @@
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -521,7 +521,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -624,7 +624,7 @@
 				EnableFunctionLevelLinking="true"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -633,7 +633,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -736,7 +736,7 @@
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -745,7 +745,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -851,7 +851,7 @@
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="0"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -860,7 +860,7 @@
 				WarnAsError="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				ForcedIncludeFiles=""
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -1174,18 +1174,314 @@
 				<File
 					RelativePath=".\Src\NetEvent.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Src\NetFunctions.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Src\NetSockets.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Src\NetSockets.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\NetStructs.h"
 					>
 				</File>
 				<File
 					RelativePath=".\Src\NetWindow.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+							ForcedIncludeFiles="$(NOINHERIT)"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Src\NetWindow.h"
@@ -1309,7 +1605,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1317,7 +1613,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1325,7 +1621,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1333,7 +1629,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1341,7 +1637,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1349,7 +1645,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1357,7 +1653,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -1365,7 +1661,7 @@
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 		</File>

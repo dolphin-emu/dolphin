@@ -26,6 +26,7 @@
 #define _WIN32_IE       0x0500
 #define _RICHEDIT_VER   0x0100
 
+#include <wx/wx.h> // wxWidgets
 
 #if defined _M_IX86
 

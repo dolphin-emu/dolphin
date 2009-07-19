@@ -19,9 +19,6 @@
 #define _RASTERFONT_H_
 
 class RasterFont {
-protected:
-    int	fontOffset;
-    
 public:
     RasterFont();
     ~RasterFont(void);
@@ -36,6 +33,10 @@ public:
     void printCenteredString(const char *s, double y, int screen_width, double z=0.0);
 
 	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight);
+private:
+	int	fontOffset;
+    char *temp_buffer;
+	enum {TEMP_BUFFER_SIZE = 64 * 1024};
 };
 
 #endif // _RASTERFONT_H_

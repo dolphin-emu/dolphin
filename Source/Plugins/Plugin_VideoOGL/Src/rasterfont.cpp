@@ -132,11 +132,14 @@ RasterFont::RasterFont()
 		glBitmap(8, 13, 0.0f, 2.0f, 10.0f, 0.0f, rasters[i - 32]);
 		glEndList();
 	}
+
+	temp_buffer = new char[TEMP_BUFFER_SIZE];
 }
 
 RasterFont::~RasterFont()
 {
 	glDeleteLists(fontOffset, 128);
+	delete [] temp_buffer;
 }
 
 void RasterFont::printString(const char *s, double x, double y, double z)
@@ -144,10 +147,13 @@ void RasterFont::printString(const char *s, double x, double y, double z)
 	int length = (int)strlen(s);
 	if (!length)
 		return;
+	if (length >= TEMP_BUFFER_SIZE)
+		length = TEMP_BUFFER_SIZE - 1;
 
 	// Sanitize string to avoid GL errors.
-	char *s2 = new char[length + 1];
-	strcpy(s2, s);
+	char *s2 = temp_buffer;
+	memcpy(s2, s, length);
+	s2[length] = 0;
 	for (int i = 0; i < length; i++) {
 		if (s2[i] < 32 || s2[i] > 126)
 			s2[i] = '!';

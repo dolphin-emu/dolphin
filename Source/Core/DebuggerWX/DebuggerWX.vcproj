@@ -51,9 +51,10 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -118,9 +119,10 @@
 				ExceptionHandling="2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -182,9 +184,10 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -246,9 +249,10 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -313,9 +317,10 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -378,9 +383,10 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="0"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -645,6 +651,62 @@
 		</File>
 		<File
 			RelativePath=".\src\SConscript"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\stdafx.cpp"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
 	</Files>
