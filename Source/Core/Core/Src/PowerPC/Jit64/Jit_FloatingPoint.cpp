@@ -211,7 +211,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 		{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
-	if (jo.fpAccurateFlags)
+	if (jo.fpAccurateFcmp)
 	{
 		Default(inst);
 		return;

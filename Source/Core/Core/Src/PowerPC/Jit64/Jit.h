@@ -131,7 +131,7 @@ private:
 		bool optimizeStack;
 		bool assumeFPLoadFromMem;
 		bool enableBlocklink;
-		bool fpAccurateFlags;
+		bool fpAccurateFcmp;
 		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool fastInterrupts;
