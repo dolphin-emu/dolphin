@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+#include "StringUtil.h"
 #include "DSPCodeUtil.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
@@ -202,23 +203,25 @@ void RunAsmTests()
 // Disassemble a file, output to standard output:
 //   dsptool -d asdf.bin
 // Assemble a file:
-//   dsptool -o asdf.bin asdf.txt
+//   dsptool [-f] -o asdf.bin asdf.txt
 // Assemble a file, output header:
-//   dsptool -h asdf.h asdf.txt
-//   dsptool -f errors are not critical
+//   dsptool [-f] -h asdf.h asdf.txt
+// Print results from DSPSpy register dump
+//   dsptool -p dsp_dump0.bin
 // So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char *argv[])
 {
 	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{
-		printf("USAGE: DSPTool [-?] [--help] [-d] [-m] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
+		printf("USAGE: DSPTool [-?] [--help] [-f] [-d] [-m] [-p <FILE>] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
 		printf("-? / --help: Prints this message\n");
 		printf("-d: Disassemble\n");
 		printf("-m: Input file contains a list of files (Header assembly only)\n");
 		printf("-s: Print the final size in bytes (only)\n");
+		printf("-f: Force assembly (errors are not critical)\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
-		printf("-f: Errors are not critical\n"); 
+		printf("-p <DUMP FILE>: Print results of DSPSpy register dump\n");
 		return 0;
 	}
 
@@ -232,7 +235,7 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false, compare = false, multiple = false, outputSize = false, force = false;
+	bool disassemble = false, compare = false, multiple = false, outputSize = false, force = false, print_results = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -249,6 +252,8 @@ int main(int argc, const char *argv[])
 			multiple = true;
 		else if (!strcmp(argv[i], "-f"))
 			force = true;
+		else if (!strcmp(argv[i], "-p"))
+			print_results = true;
 		else 
 		{
 			if (!input_name.empty())
@@ -282,6 +287,50 @@ int main(int argc, const char *argv[])
 		File::ReadFileToString(false, output_name.c_str(), binary_code);
 		BinaryStringBEToCode(binary_code, code2);
 		Compare(code1, code2);
+		return 0;
+	}
+
+	if (print_results)
+	{
+		std::string dumpfile, results;
+		std::vector<u16> reg_vector;
+
+		File::ReadFileToString(false, input_name.c_str(), dumpfile);
+		BinaryStringBEToCode(dumpfile, reg_vector);
+
+		results.append("Start:\n");
+		for (int initial_reg = 0; initial_reg < 32; initial_reg++)
+		{
+			results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
+			if ((initial_reg + 1) % 8 == 0)
+				results.append("\n");
+		}
+		results.append("\n");
+		results.append("Step [number]:\n[Reg] [last value] [current value]\n\n");
+		for (int step = 1; step < reg_vector.size()/32; step++)
+		{
+			bool changed = false;
+			results.append(StringFromFormat("Step %3d:\n", step));
+			for (int reg = 0; reg < 32; reg++)
+			{
+				u16 last_reg = reg_vector.at((step*32-32)+reg);
+				u16 current_reg = reg_vector.at(step*32+reg);
+				if (last_reg != current_reg)
+				{
+					results.append(StringFromFormat("%02x %04x %04x\n", reg, last_reg, current_reg));
+					changed = true;
+				}
+			}
+			if (!changed)
+				results.append("No Change\n\n");
+			else
+				results.append("\n");
+		}
+
+		if (!output_name.empty())
+			File::WriteStringToFile(true, results, output_name.c_str());
+		else
+			printf(results.c_str());
 		return 0;
 	}
 

@@ -29,8 +29,8 @@ MEM_LO:		equ	0x0f7F
 
 ; Why do we have a main label here?	
 main:
-	clr		$ACC1
-	clr		$ACC0
+	clr		$acc1
+	clr		$acc0
 
 ; get address of memory dump and copy it to DRAM
 
@@ -40,11 +40,11 @@ main:
 	si		@DIRQ, #0x0001
 
 	call	wait_for_cpu_mbox
-	lrs		$AC0.M, @CMBL
+	lrs		$ac0.m, @CMBL
 	andi	$ac1.m, #0x7fff
 
-	sr		@MEM_HI, $AC1.M
-	sr		@MEM_LO, $AC0.M
+	sr		@MEM_HI, $ac1.m
+	sr		@MEM_LO, $ac0.m
 
 	lri		$ax0.l, #0
 	lri		$ax1.l, #0		;(DSP_CR_IMEM | DSP_CR_TO_CPU)
@@ -62,11 +62,11 @@ main:
 	si		@DIRQ, #0x0001
 
 	call	wait_for_cpu_mbox
-	lrs		$AC0.M, @CMBL
+	lrs		$ac0.m, @CMBL
 	andi	$ac1.m, #0x7fff
 
-	sr		@MEM_HI, $AC1.M
-	sr		@MEM_LO, $AC0.M
+	sr		@MEM_HI, $ac1.m
+	sr		@MEM_LO, $ac0.m
 
 	lri		$ax0.l, #REGS_BASE
 	lri		$ax1.l, #0		;(DSP_CR_IMEM | DSP_CR_TO_CPU)
@@ -129,7 +129,7 @@ dead_loop:
 
 ; Utility function to do DMA.
 ; ac0.l:ac0.m - external address.
-; ax0.l     - address in DSP
+; ax0.l       - address in DSP
 do_dma:
 	sr		@DSMAH, $ac0.l
 	sr		@DSMAL, $ac0.m
@@ -139,21 +139,21 @@ do_dma:
 
 ; Waits for said DMA to complete by watching a bit in DSCR.
 wait_dma:
-	LRS		$AC1.M, @DSCR
+	lrs		$ac1.m, @DSCR
 	andcf	$ac1.m, #0x0004
-	JLZ		wait_dma
-	RET
+	jlz		wait_dma
+	ret
 
 ; This waits for a mail to arrive in the DSP in-mailbox.
 wait_for_dsp_mbox:
-	lrs		$AC1.M, @DMBH
+	lrs		$ac1.m, @DMBH
 	andcf	$ac1.m, #0x8000
 	jlz		wait_for_dsp_mbox
 	ret
 
 ; This waits for the CPU to grab a mail that we just sent from the DSP.
 wait_for_cpu_mbox:
-	lrs		$AC1.M, @cmbh
+	lrs		$ac1.m, @CMBH
 	andcf	$ac1.m, #0x8000
 	jlnz	wait_for_cpu_mbox
 	ret
@@ -200,18 +200,18 @@ irq7:
 	jmp		irq
 
 irq:
-	lrs		$AC1.M, @DMBH
+	lrs		$ac1.m, @DMBH
 	andcf	$ac1.m, #0x8000
 	jlz		irq
-	si		@DMBH, #0x8BAD
-	sr		@DMBL, $wr3     ; ???
-	;sr		@DMBL, $ac0.m	
+	si		@DMBH, #0x8bad
+	;sr		@DMBL, $wr3     ; ???
+	sr		@DMBL, $ac0.m	; Exception number
 	si		@DIRQ, #0x0001
 	halt
 	
 ; DMA:s the current state of the registers back to the PowerPC. To do this,
 ; it must write the contents of all regs to DRAM.
-; Unfortunately, this loop uses AR0 so it's best to use AR1 and friends for testing
+; Unfortunately, this loop uses ar0 so it's best to use AR1 and friends for testing
 ; when messing with indexing.
 send_back:
 	; make state safe.
@@ -280,7 +280,7 @@ dma_copy:
 	
 ; wait for the CPU to recieve our response before we execute the next op	
 	call	wait_for_cpu_mbox
-	lrs		$AC0.M, @CMBL
+	lrs		$ac0.m, @CMBL
 	andi	$ac1.m, #0x7fff
 
 ; Restore all regs again so we're ready to execute another op.
@@ -338,7 +338,7 @@ dump_memory:
 	bloop	$ar1, _fill_loop2			
 	
 	mrr		$ar3, $ac0.m
-	nx'ld   : $AX0.H, $AX1.H, @$AR0
+	nx'ld   : $ax0.h, $ax1.h, @$ar0
 	
 	mrr		$ac1.m, $ar0
 	mrr		$ar0, $ar2

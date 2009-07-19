@@ -327,12 +327,22 @@ void handle_dsp_mail(void)
 			DCFlushRange(dspbufC, 0x2000);
 			// Then send the code.
 			DCFlushRange((void *)dsp_code[curUcode], 0x2000);
+			// Fill whole iram with code, entry point is just after exception vectors...0x10
 			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, 4000, 0x10);
 
 			runningUcode = curUcode + 1;
 		}
+		else if ((mail & 0xffff0000) == 0x8bad0000)
+		{
+			// dsp_base.inc is reporting an exception happened
+			char temp[100];
+			sprintf(temp, "Exception %x", mail & 0xff);
+			UpdateLastMessage(temp);
+		}
 		else if (mail == 0x8888dead)
 		{
+			// Send memory dump (dsp dram from someone's cube?)
+			// not really sure why this is important - I guess just to try to keep tests predictable
 			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
 			while (real_dsp.CheckMailTo());
@@ -341,6 +351,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888beef)
 		{
+			// Provide register base to dsp (if using dsp_base.inc, it will dma them to the correct place)
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
@@ -376,44 +387,47 @@ void handle_dsp_mail(void)
 			DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
 		}
 
-		CON_Printf(2, 1, "UCode: %d/%d %s, Last mail: %08x", runningUcode, NUM_UCODES, UCODE_NAMES[runningUcode - 1], mail);
+		CON_Printf(2, 1, "UCode: %d/%d %s, Last mail: %08x",
+			curUcode + 1, NUM_UCODES, UCODE_NAMES[curUcode], mail);
 	}
 }
 
 void dump_all_ucodes(void)
 {
 	char filename[260] = {0};
-	for (int i = 0; i < NUM_UCODES; i++)
+	for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++)
 	{
 		// First, change the microcode
 		dsp_steps = 0;
-		curUcode = i;
+		curUcode = UCodeToDump;
 		runningUcode = 0;
 
 		DCInvalidateRange(dspbufC, 0x2000);
 		DCFlushRange(dspbufC, 0x2000);
 
 		real_dsp.Reset();
+
+		VIDEO_WaitVSync();
+		// Loop over handling mail until we've stopped stepping
+		// dsp_steps-3 compensates for mails to setup the ucode
+		for (int steps_cache = dsp_steps-3; steps_cache <= dsp_steps; steps_cache++)
+			handle_dsp_mail();
 		VIDEO_WaitVSync();
 
-		while (runningUcode != (curUcode + 1))
-		{
-			handle_dsp_mail();
-			VIDEO_WaitVSync();
-		}
-
 		// Then write microcode dump to file
-		sprintf(filename, "sd:/dsp_dump%d.bin", i + 1);
+		sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
 		FILE *f = fopen(filename, "wb");
 		if (f) 
 		{
 			// First write initial regs
-			fwrite(dspreg_in, 1, 32 * 2, f);
+			u32 written = fwrite(dspreg_in, 1, 32 * 2, f);
 
 			// Then write all the dumps.
-			fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
+			written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
 			fclose(f);
-			UpdateLastMessage("Dump Successful.");
+			char temp[100];
+			sprintf(temp, "Dump Successful. Wrote %d bytes, steps: %d", written, dsp_steps);
+			UpdateLastMessage(temp);
 		}
 		else
 		{
@@ -436,7 +450,7 @@ void InitGeneral()
 #endif
 
 	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
+	// This will correspond to the settings in the WiUCodeToDump menu
 	rmode = VIDEO_GetPreferredMode(NULL);
 
 	// Allocate memory for the display in the uncached region
@@ -568,7 +582,7 @@ int main()
 #endif
 		{
 			show_step++;
-			if (show_step >= dsp_steps) 
+			if (show_step >= dsp_steps)
 				show_step = 0;
 			UpdateLastMessage("OK");
 		}
@@ -579,7 +593,7 @@ int main()
 #endif
 		{
 			show_step--;
-			if (show_step < 0) 
+			if (show_step < 0)
 				show_step = dsp_steps - 1;
 			UpdateLastMessage("OK");
 		}

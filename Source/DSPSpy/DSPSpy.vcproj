@@ -165,10 +165,6 @@
 				RelativePath=".\util\dump_roms.ds"
 				>
 			</File>
-			<File
-				RelativePath=".\util\printresult.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="templates"
