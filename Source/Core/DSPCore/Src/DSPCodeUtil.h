@@ -23,7 +23,7 @@
 
 #include "Common.h"
 
-bool Assemble(const char *text, std::vector<u16> &code);
+bool Assemble(const char *text, std::vector<u16> &code, bool force = false);
 bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text);
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
 void GenRandomCode(int size, std::vector<u16> &code);

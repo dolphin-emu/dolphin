@@ -205,7 +205,7 @@ void RunAsmTests()
 //   dsptool -o asdf.bin asdf.txt
 // Assemble a file, output header:
 //   dsptool -h asdf.h asdf.txt
-
+//   dsptool -f errors are not critical
 // So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char *argv[])
 {
@@ -218,6 +218,7 @@ int main(int argc, const char *argv[])
 		printf("-s: Print the final size in bytes (only)\n");
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
+		printf("-f: Errors are not critical\n"); 
 		return 0;
 	}
 
@@ -231,7 +232,7 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false, compare = false, multiple = false, outputSize = false;
+	bool disassemble = false, compare = false, multiple = false, outputSize = false, force = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -246,6 +247,8 @@ int main(int argc, const char *argv[])
 			outputSize = true;
 		else if (!strcmp(argv[i], "-m"))
 			multiple = true;
+		else if (!strcmp(argv[i], "-f"))
+			force = true;
 		else 
 		{
 			if (!input_name.empty())
@@ -371,7 +374,7 @@ int main(int argc, const char *argv[])
 			{
 				std::vector<u16> code;
 
-				if(!Assemble(source.c_str(), code)) {
+				if(!Assemble(source.c_str(), code, force)) {
 					printf("Assemble: Assembly failed due to errors\n");
 					return 1;
 				}

@@ -79,11 +79,12 @@ static const char *err_string[] =
 };
 
 DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :	
+	gdg_buffer(NULL),
 	m_cur_addr(0),
 	m_cur_pass(0),
 	m_current_param(0),
-	settings_(settings),
-	gdg_buffer(NULL)
+	settings_(settings)
+
 {
 }
 
@@ -137,7 +138,10 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 
 void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 {
-	failed = true;
+
+	if (!settings_.force)
+		failed = true;
+
 	char error_buffer[1024];
 	char *buf_ptr = error_buffer;
 	buf_ptr += sprintf(buf_ptr, "%i : %s ", code_line, cur_line.c_str());

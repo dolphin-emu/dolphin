@@ -38,6 +38,7 @@ struct AssemblerSettings
 		: print_tabs(false),
 		  show_hex(false),
 		  show_pc(false),
+		  force(false),
 		  decode_names(true),
 		  decode_registers(true),
 		  ext_separator('\''),
@@ -49,6 +50,7 @@ struct AssemblerSettings
 	bool print_tabs;
 	bool show_hex;
 	bool show_pc;
+	bool force;
 	bool decode_names;
 	bool decode_registers;
 	char ext_separator;
