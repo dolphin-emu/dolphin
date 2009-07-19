@@ -1,0 +1,26 @@
+; This test verifies LD
+incdir  "tests"
+include "dsp_base.inc"
+
+
+lri $AR3, #0x0050
+si @0x0050, #0x44	
+lri $AX0.L, #0x77
+lri $AX1.L, #0x22
+nx'ld  : $AX0.L, $AX1.L, @$AR3
+call send_back  ; 1
+
+lri $AR2, #0x0040
+si @0x0040, #0x66	
+lri $AX0.L, #0x23
+lri $AX1.L, #0x64
+nx'ld  : $AX0.L, $AX1.L, @$AR2
+call send_back  ; 2
+
+lri $AR3, 
+si @0x7fe0, #0x11	
+lri $AX0.L, #0x43
+lri $AX1.L, #0x53
+nx'ld  : $AX0.L, $AX1.L, @$AR3
+call send_back  ; 3
+
