@@ -17,7 +17,7 @@ lri $AX1.L, #0x64
 nx'ld  : $AX0.L, $AX1.L, @$AR2
 call send_back  ; 2
 
-lri $AR3, 
+lri $AR3, #0x0030
 si @0x7fe0, #0x11	
 lri $AX0.L, #0x43
 lri $AX1.L, #0x53

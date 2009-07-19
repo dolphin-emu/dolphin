@@ -183,7 +183,7 @@ inline void YieldCPU()
 {
 #ifdef _WIN32
 	YieldProcessor();
-#else
+#elif defined _POSIX_THREADS
 	sched_yield();
 #endif
 }
