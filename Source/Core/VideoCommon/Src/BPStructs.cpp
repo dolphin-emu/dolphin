@@ -208,9 +208,7 @@ void BPWritten(const Bypass& bp)
 #endif
 
 				float yScale;
-				// PE_copy.scale_something may indicate that yScale is inverted.
-				// Not 100% sure if that's true, but this seems to fix SMG in PAL50 mode.
-				if (PE_copy.scale_something)
+				if (PE_copy.scale_invert)
 					yScale = 256.0f / (float)bpmem.dispcopyyscale;
 				else
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;

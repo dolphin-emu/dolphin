@@ -182,7 +182,7 @@ void SleepCurrentThread(int ms);
 inline void YieldCPU()
 {
 #ifdef _WIN32
-	YieldProcessor();
+	SwitchToThread();
 #elif defined _POSIX_THREADS
 	sched_yield();
 #endif
