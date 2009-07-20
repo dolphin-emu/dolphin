@@ -377,9 +377,9 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	}
 	else
 	{
-		// Hmm
-		// if (sreg != 0x3)
-		dsp_increment_addr_reg(0x03);
+		// Tested to increase 0x3 only by one
+		if (sreg != 0x3)
+			dsp_increment_addr_reg(0x03);
 	}
 }
 
