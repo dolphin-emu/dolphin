@@ -422,6 +422,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			Common::AtomicStore(fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
 			Common::AtomicStore(fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
 
+			if (m_CPCtrlReg.BPEnable && !tmpCtrl.BPEnable)
+			{
+				fifo.bFF_Breakpoint = 0;
+			}
+
 			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
 			// the game is of course faster but looks stable too.

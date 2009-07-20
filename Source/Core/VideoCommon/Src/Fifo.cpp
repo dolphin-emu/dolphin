@@ -122,15 +122,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     fifoStateRun = true;
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
-	s32 distToSend;
 
     while (fifoStateRun)
     {
-		video_initialize.pPeekMessages();
-
-		VideoFifo_CheckEFBAccess();
-
-		VideoFifo_CheckSwapRequest();
 
 		s_criticalFifo.Enter();
 
@@ -139,56 +133,35 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         {
 			Common::AtomicStore(_fifo.CPReadIdle, 0);
 
-            while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
+            do
 			{
 				if(!fifoStateRun)
 					break;
 
-                // Create pointer to video data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
+
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
-
-				// if we are on BP mode we must send 32B chunks to Video plugin for BP checking
-				// TODO (mb2): test & check if MP1/MP2 realy need this now.
-				if (_fifo.bFF_BPEnable)
-                {
-					if (readPtr == _fifo.CPBreakpoint)
-                    {
-						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-                        video_initialize.pUpdateInterrupts();
-                        break;
-                    }
-					distToSend = 32;
-					readPtr += 32;
-					if ( readPtr >= _fifo.CPEnd) 
-						readPtr = _fifo.CPBase;
-                }
-				else
-				{
-					distToSend = _fifo.CPReadWriteDistance;
-					// send 1024B chunk max length to have better control over PeekMessages' period
-					distToSend = distToSend > 1024 ? 1024 : distToSend;
-					if ((distToSend + readPtr) >= _fifo.CPEnd) // TODO: better?
-					{
-						distToSend =_fifo.CPEnd - readPtr;
-						readPtr = _fifo.CPBase;
-					}
-					else
-						readPtr += distToSend;
-				}
-
 				// Execute new instructions found in uData
-				Fifo_SendFifoData(uData, distToSend);
+				Fifo_SendFifoData(uData, 32);
+
+				readPtr += 32;
+				if (readPtr >= _fifo.CPEnd)
+					readPtr = _fifo.CPBase;
 
                 Common::AtomicStore(_fifo.CPReadPointer, readPtr);
-                Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+                Common::AtomicAdd(_fifo.CPReadWriteDistance, -32);
+
+				if (_fifo.bFF_BPEnable && (readPtr == _fifo.CPBreakpoint))
+				{
+					_fifo.bFF_Breakpoint = 1;
+					video_initialize.pUpdateInterrupts();
+				}
 
 				video_initialize.pPeekMessages();
-
 				VideoFifo_CheckEFBAccess();
-
 				VideoFifo_CheckSwapRequest();
-			}
+
+			} while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint));
 
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
 			video_initialize.pSetFifoIdle();
@@ -196,6 +169,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		else
 		{
 			Common::YieldCPU();
+			video_initialize.pPeekMessages();
+			VideoFifo_CheckEFBAccess();
+			VideoFifo_CheckSwapRequest();
 		}
 
 		s_criticalFifo.Leave();
