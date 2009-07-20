@@ -422,33 +422,24 @@ void Write16(const u16 _Value, const u32 _Address)
 			Common::AtomicStore(fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
 			Common::AtomicStore(fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
 
-			if (m_CPCtrlReg.BPEnable && !tmpCtrl.BPEnable)
-			{
-				fifo.bFF_Breakpoint = 0;
-			}
-
 			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
 			// the game is of course faster but looks stable too.
 			// Well, the hack is more stable than the "proper" way actualy :p ... it breaks MP2 when ship lands
 			// So I let the hack for now.
+			// Checkmate re-enabled it, so please test
 			// TODO (mb2): fix this!
 			
 			// BP interrupt is cleared here
-			/*
+
 			//if (tmpCtrl.CPIntEnable)
-			//if (!m_CPCtrlReg.CPIntEnable && tmpCtrl.Hex) // raising edge
+			if (!m_CPCtrlReg.CPIntEnable && tmpCtrl.CPIntEnable) // raising edge
 			//if (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex) // falling edge
 			{
-				LOG(COMMANDPROCESSOR,"\t ClearBreakpoint interrupt");
-				// yes an SC hack, single core mode isn't very gc spec compliant :D
-				// TODO / FIXME : fix SC BPs. Only because it's pretty ugly to have a if{} here just for that.
-				if (Core::g_CoreStartupParameter.bUseDualCore)
-				{
-					m_CPStatusReg.Breakpoint = 0;
-					InterlockedExchange((LONG*)&fifo.bFF_Breakpoint,	0);
-				}
-			}*/
+				m_CPStatusReg.Breakpoint = 0;
+				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
+			}
+
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 			UpdateInterrupts();
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
