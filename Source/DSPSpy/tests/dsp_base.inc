@@ -207,7 +207,8 @@ irq:
 	;sr		@DMBL, $wr3     ; ???
 	sr		@DMBL, $ac0.m	; Exception number
 	si		@DIRQ, #0x0001
-	halt
+	halt		; Through some magic this allows us to properly ack the exception in dspspy
+	;rti		; allow dumping of ucodes which cause exceptions...probably not safe at all
 	
 ; DMA:s the current state of the registers back to the PowerPC. To do this,
 ; it must write the contents of all regs to DRAM.

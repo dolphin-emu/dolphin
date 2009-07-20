@@ -331,13 +331,14 @@ void handle_dsp_mail(void)
 			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, 4000, 0x10);
 
 			runningUcode = curUcode + 1;
+
+			// Clear exception status since we've loaded a new ucode
+			CON_BlankRow(25);
 		}
 		else if ((mail & 0xffff0000) == 0x8bad0000)
 		{
 			// dsp_base.inc is reporting an exception happened
-			char temp[100];
-			sprintf(temp, "Exception %x", mail & 0xff);
-			UpdateLastMessage(temp);
+			CON_PrintRow(4, 25, "%s caused exception %x", UCODE_NAMES[curUcode], mail & 0xff);
 		}
 		else if (mail == 0x8888dead)
 		{
@@ -387,7 +388,7 @@ void handle_dsp_mail(void)
 			DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
 		}
 
-		CON_Printf(2, 1, "UCode: %d/%d %s, Last mail: %08x",
+		CON_PrintRow(2, 1, "UCode: %d/%d %s, Last mail: %08x",
 			curUcode + 1, NUM_UCODES, UCODE_NAMES[curUcode], mail);
 	}
 }

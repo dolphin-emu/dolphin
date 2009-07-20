@@ -402,7 +402,7 @@ int main(int argc, const char *argv[])
 					}
 					else 
 					{
-						if(!Assemble(currentSource.c_str(), codes[i])) 
+						if(!Assemble(currentSource.c_str(), codes[i], force)) 
 						{
 							printf("Assemble: Assembly of %s failed due to errors\n", 
 									files[i].c_str());

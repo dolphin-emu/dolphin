@@ -138,6 +138,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tests\ld_test.ds"
+				>
+			</File>
+			<File
 				RelativePath=".\tests\mul_test.ds"
 				>
 			</File>
