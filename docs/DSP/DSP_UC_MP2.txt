@@ -1,0 +1,2875 @@
+// A common version of AX, especially in early games.  CR is set to #FF all the
+// time in this ucode, so srs/lrs always operate on hw registers.
+
+ 0000 0000      nop         
+ 0001 0000      nop         
+ 0002 029f 0e71 jmp         0x0e71
+ 0004 029f 0e80 jmp         0x0e80
+ 0006 029f 0e9c jmp         0x0e9c
+ 0008 029f 0ebc jmp         0x0ebc
+ 000a 029f 0ec2 jmp         0x0ec2
+ 000c 029f 0ef4 jmp         0x0ef4
+ 000e 029f 0efa jmp         0x0efa
+ 
+void 0010_Entry() {
+	0010 1302      sbset       #0x02
+	0011 1303      sbset       #0x03
+	0012 1204      sbclr       #0x04
+	0013 1305      sbset       #0x05
+	0014 1306      sbset       #0x06
+	0015 8e00      set16       
+	0016 8c00      clr15       
+	0017 8b00      m0          
+	0018 0092 00ff lri         $CR, #0x00ff
+	001a 8100      clr         $ACC0
+	001b 8900      clr         $ACC1
+	001c 009e 0e80 lri         $AC0.M, #0x0e80
+	001e 00fe 0e1b sr          @0x0e1b, $AC0.M
+	0020 8100      clr         $ACC0
+	0021 00fe 0e31 sr          @0x0e31, $AC0.M
+	0023 16fc dcd1 si          @DMBH, #0xdcd1
+	0025 16fd 0000 si          @DMBL, #0x0000
+	0027 16fb 0001 si          @DIRQ, #0x0001
+	0029 26fc      lrs         $AC0.M, @DMBH
+	002a 02a0 8000 andf        $AC0.M, #0x8000
+	002c 029c 0029 jlnz        0x0029
+	002e 029f 0045 jmp         0x0045
+}
+
+void 0030_Unk_Restart() {
+	0030 1302      sbset       #0x02
+	0031 1303      sbset       #0x03
+	0032 1204      sbclr       #0x04
+	0033 1305      sbset       #0x05
+	0034 1306      sbset       #0x06
+	0035 8e00      set16       
+	0036 8c00      clr15       
+	0037 8b00      m0          
+	0038 0092 00ff lri         $CR, #0x00ff
+	003a 16fc dcd1 si          @DMBH, #0xdcd1
+	003c 16fd 0001 si          @DMBL, #0x0001
+	003e 16fb 0001 si          @DIRQ, #0x0001
+
+	do {
+		// 0040 26fc      lrs         $AC0.M, @DMBH
+		// 0041 02a0 8000 andf        $AC0.M, #0x8000
+		// 0043 029c 0040 jlnz        0x0040
+	} while (DMBH & 0x8000);
+
+	0045 8e00      set16       
+	0046 8100      clr         $ACC0
+	0047 8900      clr         $ACC1
+	0048 009f babe lri         $AC1.M, #0xbabe
+
+	do {
+		// 004a 26fe      lrs         $AC0.M, @CMBH
+		// 004b 02c0 8000 andcf       $AC0.M, #0x8000
+		// 004d 029c 004a jlnz        0x004a
+		// 004f 8200      cmp         
+		// 0050 0294 004a jnz         0x004a
+	} while (CMBH & 0x8000 && CMBH == 0xbabe);
+
+	0052 23ff      lrs         $AX1.H, @CMBL
+	0053 8100      clr         $ACC0
+	do {
+	// 0054 26fe      lrs         $AC0.M, @CMBH
+	// 0055 02c0 8000 andcf       $AC0.M, #0x8000
+	// 0057 029c 0054 jlnz        0x0054
+	} while (CMBH & 0x8000)
+
+	0059 27ff      lrs         $AC1.M, @CMBL
+	005a 0240 7fff andi        $AC0.M, #0x7fff
+	005c 2ece      srs         @DSMAH, $AC0.M
+	005d 2fcf      srs         @DSMAL, $AC1.M
+	005e 16cd 0c00 si          @DSPA, #0x0c00
+	0060 8100      clr         $ACC0
+	0061 2ec9      srs         @DSCR, $AC0.M
+	0062 1ffb      mrr         $AC1.M, $AX1.H
+	0063 2fcb      srs         @DSBL, $AC1.M
+	0064 02bf 0652 call        0652_WaitDMA
+
+	0066 0080 0c00 lri         $AR0, #0x0c00
+	0068 8e00      set16       
+	0069 8100      clr         $ACC0
+	006a 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	006b b100      tst         $ACC0
+	006c 0291 007e jl          0x007e
+	006e 0a13      lris        $AX0.H, #0x13
+	006f c100      cmpar       $ACC0, $AX0.H
+	0070 0292 007e jg          0x007e
+	0072 009f 0c86 lri         $AC1.M, #0x0c86
+	0074 4c00      add         $ACC0, $ACC1
+	0075 1c7e      mrr         $AR3, $AC0.M
+	0076 0213      ilrr        $AC0.M, @$AR3
+	0077 1c7e      mrr         $AR3, $AC0.M
+	0078 176f      jmpr        $AR3
+
+	// Check for bad ucode mail
+	0079 16fc fbad si          @DMBH, #0xfbad
+	007b 16fd 8080 si          @DMBL, #0x8080
+	007d 0021      halt        
+
+	// Check for bad ucode mail
+	007e 16fc baad si          @DMBH, #0xbaad
+	0080 2efd      srs         @DMBL, $AC0.M
+
+	0082 8d00      set15       
+	0083 8f00      set40       
+	0084 8a00      m2          
+	0085 8900      clr         $ACC1
+	0086 8168      clr'l       $ACC0 : $AC1.L, @$AR0
+ 	0087 0098 0000 lri         $AX0.L, #0x0000
+ 	0089 0099 0001 lri         $AX1.L, #0x0001
+	008b 0081 0000 lri         $AR1, #0x0000
+ 	008d 193e      lrri        $AC0.M, @$AR1
+ 	008e 193c      lrri        $AC0.L, @$AR1
+
+ 	// 008f 11a0 009a bloopi      #0xa0, 0x009a
+	for (int i = 0; i < 0x140; i+=2) {
+ 		 0091 a100      tstaxl      $ACC0
+ 		 0092 8271      cmp'l       : $AC0.M, @$AR1
+		 0093 0277      ifc         
+		 0094 1f19      mrr         $AX0.L, $AX1.L
+		 0095 193c      lrri        $AC0.L, @$AR1
+		 0096 a100      tstaxl      $ACC0
+		 0097 8271      cmp'l       : $AC0.M, @$AR1
+		 0098 0277      ifc         
+ 		 0099 1f19      mrr         $AX0.L, $AX1.L
+ 		 009a 193c      lrri        $AC0.L, @$AR1
+	}
+
+	009b 1fd8      mrr         $AC0.M, $AX0.L
+	009c b100      tst         $ACC0   
+	009d 0294 00cb jnz         0x00cb
+	009f 00de 0e44 lr          $AC0.M, @0x0e44
+	00a1 b100      tst         $ACC0
+	00a2 0294 00ab jnz         0x00ab
+	00a4 191c      lrri        $AC0.L, @$AR0
+	00a5 191c      lrri        $AC0.L, @$AR0
+	00a6 191c      lrri        $AC0.L, @$AR0
+	00a7 00e0 0e45 sr          @0x0e45, $AR0
+	00a9 029f 0114 jmp         0x0114
+	00ab 8b00      m0          
+	00ac 7a00      dec         $ACC0
+	00ad 00fe 0e44 sr          @0x0e44, $AC0.M
+	00af 8400      clrp        
+	00b0 0099 0140 lri         $AX1.L, #0x0140
+	00b2 1f1e      mrr         $AX0.L, $AC0.M
+	00b3 a000      mulx        $AX0.L, $AX1.L
+	00b4 191e      lrri        $AC0.M, @$AR0
+	00b5 191e      lrri        $AC0.M, @$AR0
+	00b6 191c      lrri        $AC0.L, @$AR0
+	00b7 00e0 0e45 sr          @0x0e45, $AR0
+	00b9 009a 0000 lri         $AX0.H, #0x0000
+	00bb 0098 0dc0 lri         $AX0.L, #0x0dc0
+	00bd 4e00      addp        $ACC0
+	00be 4800      addax       $ACC0, $AX0.L
+	00bf 2ece      srs         @DSMAH, $AC0.M
+	00c0 2ccf      srs         @DSMAL, $AC0.L
+	00c1 009e 0e48 lri         $AC0.M, #0x0e48
+	00c3 2ecd      srs         @DSPA, $AC0.M
+	00c4 0e00      lris        $AC0.M, #0x00
+	00c5 2ec9      srs         @DSCR, $AC0.M
+	00c6 009e 0140 lri         $AC0.M, #0x0140
+	00c8 2ecb      srs         @DSBL, $AC0.M
+	00c9 029f 00e3 jmp         0x00e3
+
+	00cb 8b00      m0          
+	00cc 00d8 0e44 lr          $AX0.L, @0x0e44
+	00ce 0099 0140 lri         $AX1.L, #0x0140
+	00d0 a000      mulx        $AX0.L, $AX1.L
+	00d1 191e      lrri        $AC0.M, @$AR0
+	00d2 00fe 0e44 sr          @0x0e44, $AC0.M
+	00d4 191e      lrri        $AC0.M, @$AR0
+	00d5 191c      lrri        $AC0.L, @$AR0
+	00d6 00e0 0e45 sr          @0x0e45, $AR0
+	00d8 4e00      addp        $ACC0
+	00d9 2ece      srs         @DSMAH, $AC0.M
+	00da 2ccf      srs         @DSMAL, $AC0.L
+	00db 009e 0e48 lri         $AC0.M, #0x0e48
+	00dd 2ecd      srs         @DSPA, $AC0.M
+	00de 0e00      lris        $AC0.M, #0x00
+	00df 2ec9      srs         @DSCR, $AC0.M
+	00e0 009e 0140 lri         $AC0.M, #0x0140
+	00e2 2ecb      srs         @DSBL, $AC0.M
+	00e3 02bf 0652 call        0652_WaitDMA
+	00e5 8a48      m2'l        : $AX1.L, @$AR0
+	00e6 0083 0e48 lri         $AR3, #0x0e48
+	00e8 0080 0000 lri         $AR0, #0x0000
+	00ea 0081 0000 lri         $AR1, #0x0000
+	00ec 1979      lrri        $AX1.L, @$AR3
+	00ed 193a      lrri        $AX0.H, @$AR1
+	00ee b041      mulx'l      $AX0.H, $AX1.L : $AX0.L, @$AR1
+	00ef a64b      mulxmv'l    $AX0.L, $AX1.L, $ACC0 : $AX1.L, @$AR3
+	00f0 f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+	00f1 b441      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AX0.L, @$AR1
+	00f2 9100      asr16       $ACC0
+	00f3 1150 00fc bloopi      #0x50, 0x00fc
+	00f5 a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+	00f6 f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
+	00f7 b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
+	00f8 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+	00f9 a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+	00fa f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+	00fb b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
+	00fc 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+	00fd 0083 0e48 lri         $AR3, #0x0e48
+	00ff 0080 0140 lri         $AR0, #0x0140
+	0101 0081 0140 lri         $AR1, #0x0140
+	0103 1979      lrri        $AX1.L, @$AR3
+	0104 193a      lrri        $AX0.H, @$AR1
+	0105 b041      mulx'l      $AX0.H, $AX1.L : $AX0.L, @$AR1
+	0106 a64b      mulxmv'l    $AX0.L, $AX1.L, $ACC0 : $AX1.L, @$AR3
+	0107 f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+	0108 b441      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AX0.L, @$AR1
+	0109 9100      asr16       $ACC0
+	010a 1150 0113 bloopi      #0x50, 0x0113
+	010c a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+	010d f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
+	010e b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
+	010f 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+	0110 a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+	0111 f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+	0112 b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
+	0113 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+	0114 00c0 0e45 lr          $AR0, @0x0e45
+	0116 029f 0068 jmp         0x0068
+	0118 8100      clr         $ACC0
+	0119 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	011a 8e78      set16'l     : $AC1.M, @$AR0
+	011b 2ece      srs         @DSMAH, $AC0.M
+	011c 2fcf      srs         @DSMAL, $AC1.M
+	011d 009e 0e48 lri         $AC0.M, #0x0e48
+	011f 2ecd      srs         @DSPA, $AC0.M
+	0120 0e00      lris        $AC0.M, #0x00
+	0121 2ec9      srs         @DSCR, $AC0.M
+	0122 009e 0040 lri         $AC0.M, #0x0040
+	0124 2ecb      srs         @DSBL, $AC0.M
+	0125 0081 0e48 lri         $AR1, #0x0e48
+	0127 0082 0000 lri         $AR2, #0x0000
+	0129 009b 009f lri         $AX1.H, #0x009f
+	012b 009a 0140 lri         $AX0.H, #0x0140
+	012d 8100      clr         $ACC0
+	012e 8900      clr         $ACC1
+	012f 8f00      set40       
+	0130 02bf 0652 call        0652_WaitDMA
+	0132 193e      lrri        $AC0.M, @$AR1
+	0133 193c      lrri        $AC0.L, @$AR1
+	0134 b100      tst         $ACC0
+	0135 193f      lrri        $AC1.M, @$AR1
+	0136 0294 013c jnz         0x013c
+	0138 005a      loop        $AX0.H
+	0139 1b5e      srri        @$AR2, $AC0.M
+	013a 029f 0144 jmp         0x0144
+	013c 9900      asr16       $ACC1
+	013d 1b5e      srri        @$AR2, $AC0.M
+	013e 1b5c      srri        @$AR2, $AC0.L
+	013f 007b 0143 bloop       $AX1.H, 0x0143
+	0141 4c00      add         $ACC0, $ACC1
+	0142 1b5e      srri        @$AR2, $AC0.M
+	0143 1b5c      srri        @$AR2, $AC0.L
+	0144 193e      lrri        $AC0.M, @$AR1
+	0145 193c      lrri        $AC0.L, @$AR1
+	0146 b100      tst         $ACC0
+	0147 193f      lrri        $AC1.M, @$AR1
+	0148 0294 014e jnz         0x014e
+	014a 005a      loop        $AX0.H
+	014b 1b5e      srri        @$AR2, $AC0.M
+	014c 029f 0156 jmp         0x0156
+	014e 9900      asr16       $ACC1
+	014f 1b5e      srri        @$AR2, $AC0.M
+	0150 1b5c      srri        @$AR2, $AC0.L
+	0151 007b 0155 bloop       $AX1.H, 0x0155
+	0153 4c00      add         $ACC0, $ACC1
+	0154 1b5e      srri        @$AR2, $AC0.M
+	0155 1b5c      srri        @$AR2, $AC0.L
+	0156 193e      lrri        $AC0.M, @$AR1
+	0157 193c      lrri        $AC0.L, @$AR1
+	0158 b100      tst         $ACC0
+	0159 193f      lrri        $AC1.M, @$AR1
+	015a 0294 0160 jnz         0x0160
+	015c 005a      loop        $AX0.H
+	015d 1b5e      srri        @$AR2, $AC0.M
+	015e 029f 0168 jmp         0x0168
+	0160 9900      asr16       $ACC1
+	0161 1b5e      srri        @$AR2, $AC0.M
+	0162 1b5c      srri        @$AR2, $AC0.L
+	0163 007b 0167 bloop       $AX1.H, 0x0167
+	0165 4c00      add         $ACC0, $ACC1
+	0166 1b5e      srri        @$AR2, $AC0.M
+	0167 1b5c      srri        @$AR2, $AC0.L
+	0168 0082 0400 lri         $AR2, #0x0400
+	016a 193e      lrri        $AC0.M, @$AR1
+	016b 193c      lrri        $AC0.L, @$AR1
+	016c b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	016d 0294 0173 jnz         0x0173
+	016f 005a      loop        $AX0.H
+	0170 1b5e      srri        @$AR2, $AC0.M
+	0171 029f 017b jmp         0x017b
+	0173 9900      asr16       $ACC1
+	0174 1b5e      srri        @$AR2, $AC0.M
+	0175 1b5c      srri        @$AR2, $AC0.L
+	0176 007b 017a bloop       $AX1.H, 0x017a
+	0178 4c00      add         $ACC0, $ACC1
+	0179 1b5e      srri        @$AR2, $AC0.M
+	017a 1b5c      srri        @$AR2, $AC0.L
+	017b 193e      lrri        $AC0.M, @$AR1
+	017c 193c      lrri        $AC0.L, @$AR1
+	017d b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	017e 0294 0184 jnz         0x0184
+	0180 005a      loop        $AX0.H
+	0181 1b5e      srri        @$AR2, $AC0.M
+	0182 029f 018c jmp         0x018c
+	0184 9900      asr16       $ACC1
+	0185 1b5e      srri        @$AR2, $AC0.M
+	0186 1b5c      srri        @$AR2, $AC0.L
+	0187 007b 018b bloop       $AX1.H, 0x018b
+	0189 4c00      add         $ACC0, $ACC1
+	018a 1b5e      srri        @$AR2, $AC0.M
+	018b 1b5c      srri        @$AR2, $AC0.L
+	018c 193e      lrri        $AC0.M, @$AR1
+	018d 193c      lrri        $AC0.L, @$AR1
+	018e b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	018f 0294 0195 jnz         0x0195
+	0191 005a      loop        $AX0.H
+	0192 1b5e      srri        @$AR2, $AC0.M
+	0193 029f 019d jmp         0x019d
+	0195 9900      asr16       $ACC1
+	0196 1b5e      srri        @$AR2, $AC0.M
+	0197 1b5c      srri        @$AR2, $AC0.L
+	0198 007b 019c bloop       $AX1.H, 0x019c
+	019a 4c00      add         $ACC0, $ACC1
+	019b 1b5e      srri        @$AR2, $AC0.M
+	019c 1b5c      srri        @$AR2, $AC0.L
+	019d 0082 07c0 lri         $AR2, #0x07c0
+	019f 193e      lrri        $AC0.M, @$AR1
+	01a0 193c      lrri        $AC0.L, @$AR1
+	01a1 b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	01a2 0294 01a8 jnz         0x01a8
+	01a4 005a      loop        $AX0.H
+	01a5 1b5e      srri        @$AR2, $AC0.M
+	01a6 029f 01b0 jmp         0x01b0
+	01a8 9900      asr16       $ACC1
+	01a9 1b5e      srri        @$AR2, $AC0.M
+	01aa 1b5c      srri        @$AR2, $AC0.L
+	01ab 007b 01af bloop       $AX1.H, 0x01af
+	01ad 4c00      add         $ACC0, $ACC1
+	01ae 1b5e      srri        @$AR2, $AC0.M
+	01af 1b5c      srri        @$AR2, $AC0.L
+	01b0 193e      lrri        $AC0.M, @$AR1
+	01b1 193c      lrri        $AC0.L, @$AR1
+	01b2 b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	01b3 0294 01b9 jnz         0x01b9
+	01b5 005a      loop        $AX0.H
+	01b6 1b5e      srri        @$AR2, $AC0.M
+	01b7 029f 01c1 jmp         0x01c1
+	01b9 9900      asr16       $ACC1
+	01ba 1b5e      srri        @$AR2, $AC0.M
+	01bb 1b5c      srri        @$AR2, $AC0.L
+	01bc 007b 01c0 bloop       $AX1.H, 0x01c0
+	01be 4c00      add         $ACC0, $ACC1
+	01bf 1b5e      srri        @$AR2, $AC0.M
+	01c0 1b5c      srri        @$AR2, $AC0.L
+	01c1 193e      lrri        $AC0.M, @$AR1
+	01c2 193c      lrri        $AC0.L, @$AR1
+	01c3 b179      tst'l       $ACC0 : $AC1.M, @$AR1
+	01c4 0294 01ca jnz         0x01ca
+	01c6 005a      loop        $AX0.H
+	01c7 1b5e      srri        @$AR2, $AC0.M
+	01c8 029f 01d2 jmp         0x01d2
+	01ca 9900      asr16       $ACC1
+	01cb 1b5e      srri        @$AR2, $AC0.M
+	01cc 1b5c      srri        @$AR2, $AC0.L
+	01cd 007b 01d1 bloop       $AX1.H, 0x01d1
+	01cf 4c00      add         $ACC0, $ACC1
+	01d0 1b5e      srri        @$AR2, $AC0.M
+	01d1 1b5c      srri        @$AR2, $AC0.L
+	01d2 029f 0068 jmp         0x0068
+	01d4 0085 ffff lri         $IX1, #0xffff
+	01d6 8150      clr'l       $ACC0 : $AX0.H, @$AR0
+	01d7 8940      clr'l       $ACC1 : $AX0.L, @$AR0
+	01d8 8e48      set16'l     : $AX1.L, @$AR0
+	01d9 00fa 0e17 sr          @0x0e17, $AX0.H
+	01db 00f8 0e18 sr          @0x0e18, $AX0.L
+	01dd 0081 0000 lri         $AR1, #0x0000
+	01df 02bf 05e7 call        0x05e7
+	01e1 00da 0e17 lr          $AX0.H, @0x0e17
+	01e3 00d8 0e18 lr          $AX0.L, @0x0e18
+	01e5 8948      clr'l       $ACC1 : $AX1.L, @$AR0
+	01e6 0081 0400 lri         $AR1, #0x0400
+	01e8 02bf 05e7 call        0x05e7
+	01ea 00da 0e17 lr          $AX0.H, @0x0e17
+	01ec 00d8 0e18 lr          $AX0.L, @0x0e18
+	01ee 8948      clr'l       $ACC1 : $AX1.L, @$AR0
+	01ef 0081 07c0 lri         $AR1, #0x07c0
+	01f1 02bf 05e7 call        0x05e7
+	01f3 029f 0068 jmp         0x0068
+	01f5 0086 07c0 lri         $IX2, #0x07c0
+	01f7 02bf 057a call        0x057a
+	01f9 029f 0068 jmp         0x0068
+	01fb 8100      clr         $ACC0
+	01fc 8e00      set16       
+	01fd 191e      lrri        $AC0.M, @$AR0
+	01fe 191c      lrri        $AC0.L, @$AR0
+	01ff 2ece      srs         @DSMAH, $AC0.M
+	0200 2ccf      srs         @DSMAL, $AC0.L
+	0201 16cd 0000 si          @DSPA, #0x0000
+	0203 16c9 0001 si          @DSCR, #0x0001
+	0205 16cb 0780 si          @DSBL, #0x0780
+	0207 02bf 0652 call        0652_WaitDMA
+	0209 029f 0068 jmp         0x0068
+	020b 8100      clr         $ACC0
+	020c 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	020d 8e60      set16'l     : $AC0.L, @$AR0
+	020e 2ece      srs         @DSMAH, $AC0.M
+	020f 2ccf      srs         @DSMAL, $AC0.L
+	0210 16cd 0e48 si          @DSPA, #0x0e48
+	0212 16c9 0000 si          @DSCR, #0x0000
+	0214 8900      clr         $ACC1
+	0215 0d20      lris        $AC1.L, #0x20
+	0216 2dcb      srs         @DSBL, $AC1.L
+	0217 4c00      add         $ACC0, $ACC1
+	0218 1c80      mrr         $IX0, $AR0
+	0219 0080 0280 lri         $AR0, #0x0280
+	021b 0081 0000 lri         $AR1, #0x0000
+	021d 0082 0140 lri         $AR2, #0x0140
+	021f 0083 0e48 lri         $AR3, #0x0e48
+	0221 0a00      lris        $AX0.H, #0x00
+	0222 27c9      lrs         $AC1.M, @DSCR
+	0223 03a0 0004 andf        $AC1.M, #0x0004
+	0225 029c 0222 jlnz        0x0222
+	0227 2ece      srs         @DSMAH, $AC0.M
+	0228 2ccf      srs         @DSMAL, $AC0.L
+	0229 16cd 0e58 si          @DSPA, #0x0e58
+	022b 16c9 0000 si          @DSCR, #0x0000
+	022d 16cb 0260 si          @DSBL, #0x0260
+	022f 009f 00a0 lri         $AC1.M, #0x00a0
+	0231 8f00      set40       
+	0232 007f 023b bloop       $AC1.M, 0x023b
+	0234 197e      lrri        $AC0.M, @$AR3
+	0235 1b1a      srri        @$AR0, $AX0.H
+	0236 197c      lrri        $AC0.L, @$AR3
+	0237 1b1a      srri        @$AR0, $AX0.H
+	0238 1b5e      srri        @$AR2, $AC0.M
+	0239 7c22      neg's       $ACC0 : @$AR2, $AC0.L
+	023a 1b3e      srri        @$AR1, $AC0.M
+	023b 1b3c      srri        @$AR1, $AC0.L
+	023c 1c04      mrr         $AR0, $IX0
+	023d 029f 0068 jmp         0x0068
+	023f 8e70      set16'l     : $AC0.M, @$AR0
+	0240 8960      clr'l       $ACC1 : $AC0.L, @$AR0
+	0241 191f      lrri        $AC1.M, @$AR0
+	0242 2ece      srs         @DSMAH, $AC0.M
+	0243 2ccf      srs         @DSMAL, $AC0.L
+	0244 16cd 0c00 si          @DSPA, #0x0c00
+	0246 16c9 0000 si          @DSCR, #0x0000
+	0248 0503      addis       $ACC1, #0x03
+	0249 0340 fff0 andi        $AC1.M, #0xfff0
+	024b 2fcb      srs         @DSBL, $AC1.M
+	024c 02bf 0652 call        0652_WaitDMA
+	024e 0080 0c00 lri         $AR0, #0x0c00
+	0250 029f 0068 jmp         0x0068
+	0252 8100      clr         $ACC0
+	0253 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0254 8e78      set16'l     : $AC1.M, @$AR0
+	0255 2ece      srs         @DSMAH, $AC0.M
+	0256 2fcf      srs         @DSMAL, $AC1.M
+	0257 16cd 0b80 si          @DSPA, #0x0b80
+	0259 16c9 0000 si          @DSCR, #0x0000
+	025b 16cb 00c4 si          @DSBL, #0x00c4
+	025d 0082 0e08 lri         $AR2, #0x0e08
+	025f 009f 0000 lri         $AC1.M, #0x0000
+	0261 1b5f      srri        @$AR2, $AC1.M
+	0262 009f 0140 lri         $AC1.M, #0x0140
+	0264 1b5f      srri        @$AR2, $AC1.M
+	0265 009f 0280 lri         $AC1.M, #0x0280
+	0267 1b5f      srri        @$AR2, $AC1.M
+	0268 009f 0400 lri         $AC1.M, #0x0400
+	026a 1b5f      srri        @$AR2, $AC1.M
+	026b 009f 0540 lri         $AC1.M, #0x0540
+	026d 1b5f      srri        @$AR2, $AC1.M
+	026e 009f 0680 lri         $AC1.M, #0x0680
+	0270 1b5f      srri        @$AR2, $AC1.M
+	0271 009f 07c0 lri         $AC1.M, #0x07c0
+	0273 1b5f      srri        @$AR2, $AC1.M
+	0274 009f 0900 lri         $AC1.M, #0x0900
+	0276 1b5f      srri        @$AR2, $AC1.M
+	0277 009f 0a40 lri         $AC1.M, #0x0a40
+	0279 1b5f      srri        @$AR2, $AC1.M
+	027a 02bf 0652 call        0652_WaitDMA
+	027c 00de 0ba7 lr          $AC0.M, @0x0ba7
+	027e 00df 0ba8 lr          $AC1.M, @0x0ba8
+	0280 2ece      srs         @DSMAH, $AC0.M
+	0281 2fcf      srs         @DSMAL, $AC1.M
+	0282 16cd 03c0 si          @DSPA, #0x03c0
+	0284 16c9 0000 si          @DSCR, #0x0000
+	0286 16cb 0080 si          @DSBL, #0x0080
+	0288 8100      clr         $ACC0
+	0289 8900      clr         $ACC1
+	028a 00de 0b84 lr          $AC0.M, @0x0b84
+	028c 009f 0d0a lri         $AC1.M, #0x0d0a
+	028e 4c00      add         $ACC0, $ACC1
+	028f 1c7e      mrr         $AR3, $AC0.M
+	0290 0213      ilrr        $AC0.M, @$AR3
+	0291 00fe 0e15 sr          @0x0e15, $AC0.M
+	0293 00de 0b85 lr          $AC0.M, @0x0b85
+	0295 009f 0d0d lri         $AC1.M, #0x0d0d
+	0297 4c00      add         $ACC0, $ACC1
+	0298 1c7e      mrr         $AR3, $AC0.M
+	0299 0213      ilrr        $AC0.M, @$AR3
+	029a 00fe 0e16 sr          @0x0e16, $AC0.M
+	029c 00de 0b86 lr          $AC0.M, @0x0b86
+	029e 009a 000f lri         $AX0.H, #0x000f
+	02a0 009f 0c9a lri         $AC1.M, #0x0c9a
+	02a2 3400      andr        $AC0.M, $AX0.H
+	02a3 4c00      add         $ACC0, $ACC1
+	02a4 1c7e      mrr         $AR3, $AC0.M
+	02a5 0213      ilrr        $AC0.M, @$AR3
+	02a6 00fe 0e14 sr          @0x0e14, $AC0.M
+	02a8 00de 0b86 lr          $AC0.M, @0x0b86
+	02aa 009a 001f lri         $AX0.H, #0x001f
+	02ac 009f 0caa lri         $AC1.M, #0x0caa
+	02ae 14fc      asr         $ACC0, #-4
+	02af 3400      andr        $AC0.M, $AX0.H
+	02b0 4c00      add         $ACC0, $ACC1
+	02b1 1c7e      mrr         $AR3, $AC0.M
+	02b2 0213      ilrr        $AC0.M, @$AR3
+	02b3 00fe 0e46 sr          @0x0e46, $AC0.M
+	02b5 00de 0b86 lr          $AC0.M, @0x0b86
+	02b7 009f 0cca lri         $AC1.M, #0x0cca
+	02b9 14f7      asr         $ACC0, #-9
+	02ba 4c00      add         $ACC0, $ACC1
+	02bb 1c7e      mrr         $AR3, $AC0.M
+	02bc 0213      ilrr        $AC0.M, @$AR3
+	02bd 00fe 0e47 sr          @0x0e47, $AC0.M
+	02bf 8100      clr         $ACC0
+	02c0 00de 0b9b lr          $AC0.M, @0x0b9b
+	02c2 b100      tst         $ACC0
+	02c3 0295 02ea jz          0x02ea
+	02c5 8900      clr         $ACC1
+	02c6 00df 0b9e lr          $AC1.M, @0x0b9e
+	02c8 0300 0cc0 addi        $AC1.M, #0x0cc0
+	02ca 00ff 0e40 sr          @0x0e40, $AC1.M
+	02cc 00df 0b9f lr          $AC1.M, @0x0b9f
+	02ce 0300 0cc0 addi        $AC1.M, #0x0cc0
+	02d0 00ff 0e41 sr          @0x0e41, $AC1.M
+	02d2 009f 0ce0 lri         $AC1.M, #0x0ce0
+	02d4 00ff 0e42 sr          @0x0e42, $AC1.M
+	02d6 00ff 0e43 sr          @0x0e43, $AC1.M
+	02d8 02bf 0652 call        0652_WaitDMA
+	02da 00de 0b9c lr          $AC0.M, @0x0b9c
+	02dc 2ece      srs         @DSMAH, $AC0.M
+	02dd 00de 0b9d lr          $AC0.M, @0x0b9d
+	02df 2ecf      srs         @DSMAL, $AC0.M
+	02e0 16cd 0cc0 si          @DSPA, #0x0cc0
+	02e2 16c9 0000 si          @DSCR, #0x0000
+	02e4 16cb 0040 si          @DSBL, #0x0040
+	02e6 02bf 0652 call        0652_WaitDMA
+	02e8 029f 0068 jmp         0x0068
+	02ea 009f 0ce0 lri         $AC1.M, #0x0ce0
+	02ec 00ff 0e42 sr          @0x0e42, $AC1.M
+	02ee 00ff 0e40 sr          @0x0e40, $AC1.M
+	02f0 00ff 0e41 sr          @0x0e41, $AC1.M
+	02f2 00ff 0e43 sr          @0x0e43, $AC1.M
+	02f4 02bf 0652 call        0652_WaitDMA
+	02f6 029f 0068 jmp         0x0068
+	02f8 8e00      set16       
+	02f9 00e0 0e07 sr          @0x0e07, $AR0
+	02fb 0080 0ba2 lri         $AR0, #0x0ba2
+	02fd 0081 03c0 lri         $AR1, #0x03c0
+	02ff 0e05      lris        $AC0.M, #0x05
+	0300 00fe 0e04 sr          @0x0e04, $AC0.M
+	0302 8900      clr         $ACC1
+	0303 8150      clr'l       $ACC0 : $AX0.H, @$AR0
+	0304 009f 0b80 lri         $AC1.M, #0x0b80
+	0306 007a 030b bloop       $AX0.H, 0x030b
+	0308 193e      lrri        $AC0.M, @$AR1
+	0309 4c49      add'l       $ACC0, $ACC1 : $AX1.L, @$AR1
+	030a 1c5e      mrr         $AR2, $AC0.M
+	030b 1a59      srr         @$AR2, $AX1.L
+	030c 0083 0e05 lri         $AR3, #0x0e05
+	030e 1b61      srri        @$AR3, $AR1
+	030f 1b60      srri        @$AR3, $AR0
+	0310 00de 0b87 lr          $AC0.M, @0x0b87
+	0312 0601      cmpis       $ACC0, #0x01
+	0313 0295 0317 jz          0x0317
+	0315 029f 040e jmp         0x040e
+	0317 00de 0e42 lr          $AC0.M, @0x0e42
+	0319 00fe 0e1c sr          @0x0e1c, $AC0.M
+	031b 00c3 0e15 lr          $AR3, @0x0e15
+	031d 177f      callr       $AR3
+	031e 8e00      set16       
+	031f 8a00      m2          
+	0320 8100      clr         $ACC0
+	0321 8900      clr         $ACC1
+	0322 00de 0bb3 lr          $AC0.M, @0x0bb3
+	0324 00df 0bb2 lr          $AC1.M, @0x0bb2
+	0326 1f1f      mrr         $AX0.L, $AC1.M
+	0327 4d00      add         $ACC1, $ACC0
+	0328 1481      asl         $ACC0, #1
+	0329 8d1e      set15'mv    : $AX1.H, $AC0.M
+	032a 1fd8      mrr         $AC0.M, $AX0.L
+	032b 0098 8000 lri         $AX0.L, #0x8000
+	032d 0080 0e48 lri         $AR0, #0x0e48
+	032f a830      mulx's      $AX0.L, $AX1.H : @$AR0, $AC0.M
+	0330 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0331 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0332 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0333 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0334 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0335 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0336 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0337 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0338 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0339 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	033a ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	033b ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	033c ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	033d ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	033e ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	033f ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0340 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0341 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0342 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0343 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0344 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0345 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0346 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0347 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	0348 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	0349 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	034a ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	034b ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	034c ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	034d ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	034e ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	034f 00fe 0bb2 sr          @0x0bb2, $AC0.M
+	0351 8f00      set40       
+	0352 0080 0e48 lri         $AR0, #0x0e48
+	0354 00c1 0e43 lr          $AR1, @0x0e43
+	0356 1c61      mrr         $AR3, $AR1
+	0357 193a      lrri        $AX0.H, @$AR1
+	0358 1918      lrri        $AX0.L, @$AR0
+	0359 9059      mul'l       $AX0.L, $AX0.H : $AX1.H, @$AR1
+	035a 1919      lrri        $AX1.L, @$AR0
+	035b 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	035c 8080      nx'ls       : $AX0.L, $AC0.M
+	035d 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	035e 8091      nx'ls       : $AX1.L, $AC1.M
+	035f 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0360 8080      nx'ls       : $AX0.L, $AC0.M
+	0361 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0362 8091      nx'ls       : $AX1.L, $AC1.M
+	0363 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0364 8080      nx'ls       : $AX0.L, $AC0.M
+	0365 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0366 8091      nx'ls       : $AX1.L, $AC1.M
+	0367 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0368 8080      nx'ls       : $AX0.L, $AC0.M
+	0369 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	036a 8091      nx'ls       : $AX1.L, $AC1.M
+	036b 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	036c 8080      nx'ls       : $AX0.L, $AC0.M
+	036d 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	036e 8091      nx'ls       : $AX1.L, $AC1.M
+	036f 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0370 8080      nx'ls       : $AX0.L, $AC0.M
+	0371 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0372 8091      nx'ls       : $AX1.L, $AC1.M
+	0373 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0374 8080      nx'ls       : $AX0.L, $AC0.M
+	0375 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0376 8091      nx'ls       : $AX1.L, $AC1.M
+	0377 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0378 8080      nx'ls       : $AX0.L, $AC0.M
+	0379 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	037a 8091      nx'ls       : $AX1.L, $AC1.M
+	037b 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	037c 8080      nx'ls       : $AX0.L, $AC0.M
+	037d 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	037e 8091      nx'ls       : $AX1.L, $AC1.M
+	037f 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0380 8080      nx'ls       : $AX0.L, $AC0.M
+	0381 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0382 8091      nx'ls       : $AX1.L, $AC1.M
+	0383 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0384 8080      nx'ls       : $AX0.L, $AC0.M
+	0385 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0386 8091      nx'ls       : $AX1.L, $AC1.M
+	0387 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0388 8080      nx'ls       : $AX0.L, $AC0.M
+	0389 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	038a 8091      nx'ls       : $AX1.L, $AC1.M
+	038b 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	038c 8080      nx'ls       : $AX0.L, $AC0.M
+	038d 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	038e 8091      nx'ls       : $AX1.L, $AC1.M
+	038f 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0390 8080      nx'ls       : $AX0.L, $AC0.M
+	0391 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0392 8091      nx'ls       : $AX1.L, $AC1.M
+	0393 9e51      mulmv'l     $AX1.L, $AX1.H, $ACC0 : $AX0.H, @$AR1
+	0394 8080      nx'ls       : $AX0.L, $AC0.M
+	0395 9759      mulmv'l     $AX0.L, $AX0.H, $ACC1 : $AX1.H, @$AR1
+	0396 8091      nx'ls       : $AX1.L, $AC1.M
+	0397 9e00      mulmv       $AX1.L, $AX1.H, $ACC0
+	0398 6f33      movp's      $ACC1 : @$AR3, $AC0.M
+	0399 1b7f      srri        @$AR3, $AC1.M
+	039a 8100      clr         $ACC0
+	039b 00de 0bdd lr          $AC0.M, @0x0bdd
+	039d b100      tst         $ACC0
+	039e 0295 03c0 jz          0x03c0
+	03a0 8d00      set15       
+	03a1 8f00      set40       
+	03a2 8a00      m2          
+	03a3 00c0 0e43 lr          $AR0, @0x0e43
+	03a5 00c1 0e43 lr          $AR1, @0x0e43
+	03a7 0083 0bdf lri         $AR3, #0x0bdf
+	03a9 0087 ffff lri         $IX3, #0xffff
+	03ab 00de 0bde lr          $AC0.M, @0x0bde
+	03ad 80e1      nx'ld       : $AX0.H, $AX1.L, @$AR1
+	03ae b04f      mulx'ln     $AX0.H, $AX1.L : $AX1.L, @$AR3
+	03af 1f5e      mrr         $AX0.H, $AC0.M
+	03b0 e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+	03b1 b64f      mulxmv'ln   $AX0.H, $AX1.L, $ACC0 : $AX1.L, @$AR3
+	03b2 1f5e      mrr         $AX0.H, $AC0.M
+	03b3 e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+	03b4 110f 03bb bloopi      #0x0f, 0x03bb
+	03b6 b79a      mulxmv'slm  $AX0.H, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+	03b7 1f5f      mrr         $AX0.H, $AC1.M
+	03b8 e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+	03b9 b69b      mulxmv'slm  $AX0.H, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+	03ba 1f5e      mrr         $AX0.H, $AC0.M
+	03bb e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+	03bc b79a      mulxmv'slm  $AX0.H, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+	03bd 1b1f      srri        @$AR0, $AC1.M
+	03be 00ff 0bde sr          @0x0bde, $AC1.M
+	03c0 00c3 0e14 lr          $AR3, @0x0e14
+	03c2 8a00      m2          
+	03c3 177f      callr       $AR3
+	03c4 00c3 0e46 lr          $AR3, @0x0e46
+	03c6 8a00      m2          
+	03c7 177f      callr       $AR3
+	03c8 00c3 0e47 lr          $AR3, @0x0e47
+	03ca 8a00      m2          
+	03cb 177f      callr       $AR3
+	03cc 8100      clr         $ACC0
+	03cd 00de 0b9b lr          $AC0.M, @0x0b9b
+	03cf b100      tst         $ACC0
+	03d0 0295 0406 jz          0x0406
+	03d2 00de 0e42 lr          $AC0.M, @0x0e42
+	03d4 00fe 0e43 sr          @0x0e43, $AC0.M
+	03d6 8100      clr         $ACC0
+	03d7 8900      clr         $ACC1
+	03d8 00de 0b9e lr          $AC0.M, @0x0b9e
+	03da 00df 0ba0 lr          $AC1.M, @0x0ba0
+	03dc 8200      cmp         
+	03dd 0293 03e2 jle         0x03e2
+	03df 7800      decm        $AC0.M
+	03e0 029f 03e5 jmp         0x03e5
+	03e2 0295 03e5 jz          0x03e5
+	03e4 7400      incm        $AC0.M
+	03e5 00fe 0b9e sr          @0x0b9e, $AC0.M
+	03e7 00df 0e43 lr          $AC1.M, @0x0e43
+	03e9 05e0      addis       $ACC1, #0xe0
+	03ea 4c00      add         $ACC0, $ACC1
+	03eb 00fe 0e40 sr          @0x0e40, $AC0.M
+	03ed 8100      clr         $ACC0
+	03ee 8900      clr         $ACC1
+	03ef 00de 0b9f lr          $AC0.M, @0x0b9f
+	03f1 00df 0ba1 lr          $AC1.M, @0x0ba1
+	03f3 8200      cmp         
+	03f4 0293 03f9 jle         0x03f9
+	03f6 7800      decm        $AC0.M
+	03f7 029f 03fc jmp         0x03fc
+	03f9 0295 03fc jz          0x03fc
+	03fb 7400      incm        $AC0.M
+	03fc 00fe 0b9f sr          @0x0b9f, $AC0.M
+	03fe 00df 0e43 lr          $AC1.M, @0x0e43
+	0400 05e0      addis       $ACC1, #0xe0
+	0401 4c00      add         $ACC0, $ACC1
+	0402 00fe 0e41 sr          @0x0e41, $AC0.M
+	0404 029f 040e jmp         0x040e
+	0406 00de 0e42 lr          $AC0.M, @0x0e42
+	0408 00fe 0e40 sr          @0x0e40, $AC0.M
+	040a 00fe 0e41 sr          @0x0e41, $AC0.M
+	040c 00fe 0e43 sr          @0x0e43, $AC0.M
+	040e 8100      clr         $ACC0
+	040f 8e00      set16       
+	0410 8400      clrp        
+	0411 8900      clr         $ACC1
+	0412 1efe      mrr         $PROD.M2, $AC0.M
+	0413 0e40      lris        $AC0.M, #0x40
+	0414 1ebe      mrr         $PROD.M1, $AC0.M
+	0415 0083 0e08 lri         $AR3, #0x0e08
+	0417 1c03      mrr         $AR0, $AR3
+	0418 1ff5      mrr         $AC1.M, $PROD.M1
+	0419 191a      lrri        $AX0.H, @$AR0
+	041a f858      addpaxz'l   $ACC0, $AX0.H : $AX1.H, @$AR0
+	041b fba0      addpaxz'ls  $ACC1, $AX1.H : $AX0.H, $AC0.M
+	041c f8b1      addpaxz'ls  $ACC0, $AX0.H : $AX1.H, $AC1.M
+	041d fba0      addpaxz'ls  $ACC1, $AX1.H : $AX0.H, $AC0.M
+	041e f8b1      addpaxz'ls  $ACC0, $AX0.H : $AX1.H, $AC1.M
+	041f fba0      addpaxz'ls  $ACC1, $AX1.H : $AX0.H, $AC0.M
+	0420 f8b1      addpaxz'ls  $ACC0, $AX0.H : $AX1.H, $AC1.M
+	0421 fba0      addpaxz'ls  $ACC1, $AX1.H : $AX0.H, $AC0.M
+	0422 f83b      addpaxz's   $ACC0, $AX0.H : @$AR3, $AC1.M
+	0423 1b7e      srri        @$AR3, $AC0.M
+	0424 0083 0e04 lri         $AR3, #0x0e04
+	0426 8100      clr         $ACC0
+	0427 8973      clr'l       $ACC1 : $AC0.M, @$AR3
+	0428 1961      lrri        $AR1, @$AR3
+	0429 1960      lrri        $AR0, @$AR3
+	042a 7800      decm        $AC0.M
+	042b 00fe 0e04 sr          @0x0e04, $AC0.M
+	042d 0294 0303 jnz         0x0303
+	042f 8e00      set16       
+	0430 8100      clr         $ACC0
+	0431 00de 0b9b lr          $AC0.M, @0x0b9b
+	0433 b100      tst         $ACC0
+	0434 0295 0446 jz          0x0446
+	0436 00de 0b9c lr          $AC0.M, @0x0b9c
+	0438 00dc 0b9d lr          $AC0.L, @0x0b9d
+	043a 2ece      srs         @DSMAH, $AC0.M
+	043b 2ccf      srs         @DSMAL, $AC0.L
+	043c 8100      clr         $ACC0
+	043d 00de 0e1c lr          $AC0.M, @0x0e1c
+	043f 2ecd      srs         @DSPA, $AC0.M
+	0440 16c9 0001 si          @DSCR, #0x0001
+	0442 16cb 0040 si          @DSBL, #0x0040
+	0444 02bf 0652 call        0652_WaitDMA
+	0446 8100      clr         $ACC0
+	0447 8900      clr         $ACC1
+	0448 00de 0b82 lr          $AC0.M, @0x0b82
+	044a 00df 0b83 lr          $AC1.M, @0x0b83
+	044c 2ece      srs         @DSMAH, $AC0.M
+	044d 2fcf      srs         @DSMAL, $AC1.M
+	044e 16cd 0b80 si          @DSPA, #0x0b80
+	0450 16c9 0001 si          @DSCR, #0x0001
+	0452 16cb 00c4 si          @DSBL, #0x00c4
+	0454 02bf 0652 call        0652_WaitDMA
+	0456 8100      clr         $ACC0
+	0457 00de 0b80 lr          $AC0.M, @0x0b80
+	0459 00dc 0b81 lr          $AC0.L, @0x0b81
+	045b b100      tst         $ACC0
+	045c 0294 0462 jnz         0x0462
+	045e 00c0 0e07 lr          $AR0, @0x0e07
+	0460 029f 0068 jmp         0x0068
+	0462 2ece      srs         @DSMAH, $AC0.M
+	0463 2ccf      srs         @DSMAL, $AC0.L
+	0464 16cd 0b80 si          @DSPA, #0x0b80
+	0466 16c9 0000 si          @DSCR, #0x0000
+	0468 16cb 00c4 si          @DSBL, #0x00c4
+	046a 0082 0e08 lri         $AR2, #0x0e08
+	046c 009f 0000 lri         $AC1.M, #0x0000
+	046e 1b5f      srri        @$AR2, $AC1.M
+	046f 009f 0140 lri         $AC1.M, #0x0140
+	0471 1b5f      srri        @$AR2, $AC1.M
+	0472 009f 0280 lri         $AC1.M, #0x0280
+	0474 1b5f      srri        @$AR2, $AC1.M
+	0475 009f 0400 lri         $AC1.M, #0x0400
+	0477 1b5f      srri        @$AR2, $AC1.M
+	0478 009f 0540 lri         $AC1.M, #0x0540
+	047a 1b5f      srri        @$AR2, $AC1.M
+	047b 009f 0680 lri         $AC1.M, #0x0680
+	047d 1b5f      srri        @$AR2, $AC1.M
+	047e 009f 07c0 lri         $AC1.M, #0x07c0
+	0480 1b5f      srri        @$AR2, $AC1.M
+	0481 009f 0900 lri         $AC1.M, #0x0900
+	0483 1b5f      srri        @$AR2, $AC1.M
+	0484 009f 0a40 lri         $AC1.M, #0x0a40
+	0486 1b5f      srri        @$AR2, $AC1.M
+	0487 02bf 0652 call        0652_WaitDMA
+	0489 00de 0ba7 lr          $AC0.M, @0x0ba7
+	048b 00df 0ba8 lr          $AC1.M, @0x0ba8
+	048d 2ece      srs         @DSMAH, $AC0.M
+	048e 2fcf      srs         @DSMAL, $AC1.M
+	048f 16cd 03c0 si          @DSPA, #0x03c0
+	0491 16c9 0000 si          @DSCR, #0x0000
+	0493 16cb 0080 si          @DSBL, #0x0080
+	0495 8100      clr         $ACC0
+	0496 8900      clr         $ACC1
+	0497 00de 0b84 lr          $AC0.M, @0x0b84
+	0499 009f 0d0a lri         $AC1.M, #0x0d0a
+	049b 4c00      add         $ACC0, $ACC1
+	049c 1c7e      mrr         $AR3, $AC0.M
+	049d 0213      ilrr        $AC0.M, @$AR3
+	049e 00fe 0e15 sr          @0x0e15, $AC0.M
+	04a0 00de 0b85 lr          $AC0.M, @0x0b85
+	04a2 009f 0d0d lri         $AC1.M, #0x0d0d
+	04a4 4c00      add         $ACC0, $ACC1
+	04a5 1c7e      mrr         $AR3, $AC0.M
+	04a6 0213      ilrr        $AC0.M, @$AR3
+	04a7 00fe 0e16 sr          @0x0e16, $AC0.M
+	04a9 00de 0b86 lr          $AC0.M, @0x0b86
+	04ab 009a 000f lri         $AX0.H, #0x000f
+	04ad 009f 0c9a lri         $AC1.M, #0x0c9a
+	04af 3400      andr        $AC0.M, $AX0.H
+	04b0 4c00      add         $ACC0, $ACC1
+	04b1 1c7e      mrr         $AR3, $AC0.M
+	04b2 0213      ilrr        $AC0.M, @$AR3
+	04b3 00fe 0e14 sr          @0x0e14, $AC0.M
+	04b5 00de 0b86 lr          $AC0.M, @0x0b86
+	04b7 009a 001f lri         $AX0.H, #0x001f
+	04b9 009f 0caa lri         $AC1.M, #0x0caa
+	04bb 14fc      asr         $ACC0, #-4
+	04bc 3400      andr        $AC0.M, $AX0.H
+	04bd 4c00      add         $ACC0, $ACC1
+	04be 1c7e      mrr         $AR3, $AC0.M
+	04bf 0213      ilrr        $AC0.M, @$AR3
+	04c0 00fe 0e46 sr          @0x0e46, $AC0.M
+	04c2 00de 0b86 lr          $AC0.M, @0x0b86
+	04c4 009f 0cca lri         $AC1.M, #0x0cca
+	04c6 14f7      asr         $ACC0, #-9
+	04c7 4c00      add         $ACC0, $ACC1
+	04c8 1c7e      mrr         $AR3, $AC0.M
+	04c9 0213      ilrr        $AC0.M, @$AR3
+	04ca 00fe 0e47 sr          @0x0e47, $AC0.M
+	04cc 8100      clr         $ACC0
+	04cd 00de 0b9b lr          $AC0.M, @0x0b9b
+	04cf b100      tst         $ACC0
+	04d0 0295 04f9 jz          0x04f9
+	04d2 8900      clr         $ACC1
+	04d3 00df 0b9e lr          $AC1.M, @0x0b9e
+	04d5 0300 0cc0 addi        $AC1.M, #0x0cc0
+	04d7 00ff 0e40 sr          @0x0e40, $AC1.M
+	04d9 00df 0b9f lr          $AC1.M, @0x0b9f
+	04db 0300 0cc0 addi        $AC1.M, #0x0cc0
+	04dd 00ff 0e41 sr          @0x0e41, $AC1.M
+	04df 009f 0ce0 lri         $AC1.M, #0x0ce0
+	04e1 00ff 0e42 sr          @0x0e42, $AC1.M
+	04e3 00ff 0e43 sr          @0x0e43, $AC1.M
+	04e5 02bf 0652 call        0652_WaitDMA
+	04e7 00de 0b9c lr          $AC0.M, @0x0b9c
+	04e9 2ece      srs         @DSMAH, $AC0.M
+	04ea 00de 0b9d lr          $AC0.M, @0x0b9d
+	04ec 2ecf      srs         @DSMAL, $AC0.M
+	04ed 16cd 0cc0 si          @DSPA, #0x0cc0
+	04ef 16c9 0000 si          @DSCR, #0x0000
+	04f1 16cb 0040 si          @DSBL, #0x0040
+	04f3 02bf 0652 call        0652_WaitDMA
+	04f5 00c0 0e07 lr          $AR0, @0x0e07
+	04f7 029f 02f8 jmp         0x02f8
+	04f9 009f 0ce0 lri         $AC1.M, #0x0ce0
+	04fb 00ff 0e42 sr          @0x0e42, $AC1.M
+	04fd 00ff 0e40 sr          @0x0e40, $AC1.M
+	04ff 00ff 0e41 sr          @0x0e41, $AC1.M
+	0501 00ff 0e43 sr          @0x0e43, $AC1.M
+	0503 02bf 0652 call        0652_WaitDMA
+	0505 00c0 0e07 lr          $AR0, @0x0e07
+	0507 029f 02f8 jmp         0x02f8
+	0509 8e00      set16       
+	050a 0086 0400 lri         $IX2, #0x0400
+	050c 8100      clr         $ACC0
+	050d 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	050e 191c      lrri        $AC0.L, @$AR0
+	050f 2ece      srs         @DSMAH, $AC0.M
+	0510 2ccf      srs         @DSMAL, $AC0.L
+	0511 1fc6      mrr         $AC0.M, $IX2
+	0512 2ecd      srs         @DSPA, $AC0.M
+	0513 16c9 0001 si          @DSCR, #0x0001
+	0515 16cb 0780 si          @DSBL, #0x0780
+	0517 02bf 0652 call        0652_WaitDMA
+	0519 02bf 057a call        0x057a
+	051b 029f 0068 jmp         0x0068
+	051d 8e00      set16       
+	051e 0086 07c0 lri         $IX2, #0x07c0
+	0520 8100      clr         $ACC0
+	0521 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0522 191c      lrri        $AC0.L, @$AR0
+	0523 2ece      srs         @DSMAH, $AC0.M
+	0524 2ccf      srs         @DSMAL, $AC0.L
+	0525 1fc6      mrr         $AC0.M, $IX2
+	0526 2ecd      srs         @DSPA, $AC0.M
+	0527 16c9 0001 si          @DSCR, #0x0001
+	0529 16cb 0780 si          @DSBL, #0x0780
+	052b 02bf 0652 call        0652_WaitDMA
+	052d 02bf 057a call        0x057a
+	052f 029f 0068 jmp         0x0068
+	0531 8c00      clr15       
+	0532 8a00      m2          
+	0533 8100      clr         $ACC0
+	0534 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0535 191f      lrri        $AC1.M, @$AR0
+	0536 2ece      srs         @DSMAH, $AC0.M
+	0537 2fcf      srs         @DSMAL, $AC1.M
+	0538 16cd 0280 si          @DSPA, #0x0280
+	053a 16c9 0001 si          @DSCR, #0x0001
+	053c 16cb 0280 si          @DSBL, #0x0280
+	053e 8f50      set40'l     : $AX0.H, @$AR0
+	053f 8140      clr'l       $ACC0 : $AX0.L, @$AR0
+	0540 0081 0400 lri         $AR1, #0x0400
+	0542 0083 0000 lri         $AR3, #0x0000
+	0544 0082 0140 lri         $AR2, #0x0140
+	0546 0099 0080 lri         $AX1.L, #0x0080
+	0548 02bf 0652 call        0652_WaitDMA
+	054a 1105 0562 bloopi      #0x05, 0x0562
+	054c 1f61      mrr         $AX1.H, $AR1
+	054d 1120 0554 bloopi      #0x20, 0x0554
+	054f 8972      clr'l       $ACC1 : $AC0.M, @$AR2
+	0550 195c      lrri        $AC0.L, @$AR2
+	0551 f07b      lsl16'l     $ACC0 : $AC1.M, @$AR3
+	0552 197d      lrri        $AC1.L, @$AR3
+	0553 f131      lsl16's     $ACC1 : @$AR1, $AC0.M
+	0554 8139      clr's       $ACC0 : @$AR1, $AC1.M
+	0555 8900      clr         $ACC1
+	0556 6800      movax       $ACC0, $AX0.L
+	0557 2ece      srs         @DSMAH, $AC0.M
+	0558 2ccf      srs         @DSMAL, $AC0.L
+	0559 1ffb      mrr         $AC1.M, $AX1.H
+	055a 2fcd      srs         @DSPA, $AC1.M
+	055b 0f01      lris        $AC1.M, #0x01
+	055c 2fc9      srs         @DSCR, $AC1.M
+	055d 1ff9      mrr         $AC1.M, $AX1.L
+	055e 2fcb      srs         @DSBL, $AC1.M
+	055f 7200      addaxl      $ACC0, $AX1.L
+	0560 1f5e      mrr         $AX0.H, $AC0.M
+	0561 1f1c      mrr         $AX0.L, $AC0.L
+	0562 8100      clr         $ACC0
+	0563 26c9      lrs         $AC0.M, @DSCR
+	0564 02a0 0004 andf        $AC0.M, #0x0004
+	0566 029c 0563 jlnz        0x0563
+	0568 029f 0068 jmp         0x0068
+	056a 029f 0068 jmp         0x0068
+	056c 029f 0068 jmp         0x0068
+	056e 029f 0068 jmp         0x0068
+	0570 16fc dcd1 si          @DMBH, #0xdcd1
+	0572 16fd 0002 si          @DMBL, #0x0002
+	0574 16fb 0001 si          @DIRQ, #0x0001
+	0576 029f 0f03 jmp         0x0f03
+	0578 029f 0045 jmp         0x0045
+	057a 8e00      set16       
+	057b 191f      lrri        $AC1.M, @$AR0
+	057c 191d      lrri        $AC1.L, @$AR0
+	057d 1f5f      mrr         $AX0.H, $AC1.M
+	057e 1f1d      mrr         $AX0.L, $AC1.L
+	057f 2fce      srs         @DSMAH, $AC1.M
+	0580 2dcf      srs         @DSMAL, $AC1.L
+	0581 8900      clr         $ACC1
+	0582 1fa6      mrr         $AC1.L, $IX2
+	0583 2dcd      srs         @DSPA, $AC1.L
+	0584 0e00      lris        $AC0.M, #0x00
+	0585 2ec9      srs         @DSCR, $AC0.M
+	0586 8100      clr         $ACC0
+	0587 009c 00c0 lri         $AC0.L, #0x00c0
+	0589 2ccb      srs         @DSBL, $AC0.L
+	058a 1ca0      mrr         $IX1, $AR0
+	058b 0081 0e48 lri         $AR1, #0x0e48
+	058d 4800      addax       $ACC0, $AX0.L
+	058e 1b3e      srri        @$AR1, $AC0.M
+	058f 1b3c      srri        @$AR1, $AC0.L
+	0590 0b00      lris        $AX1.H, #0x00
+	0591 0099 0060 lri         $AX1.L, #0x0060
+	0593 4b00      addax       $ACC1, $AX1.L
+	0594 1b3d      srri        @$AR1, $AC1.L
+	0595 0081 0e48 lri         $AR1, #0x0e48
+	0597 1c06      mrr         $AR0, $IX2
+	0598 0083 0000 lri         $AR3, #0x0000
+	059a 1c43      mrr         $AR2, $AR3
+	059b 27c9      lrs         $AC1.M, @DSCR
+	059c 03a0 0004 andf        $AC1.M, #0x0004
+	059e 029c 059b jlnz        0x059b
+	05a0 1109 05d0 bloopi      #0x09, 0x05d0
+	05a2 8e00      set16       
+	05a3 193a      lrri        $AX0.H, @$AR1
+	05a4 1938      lrri        $AX0.L, @$AR1
+	05a5 6900      movax       $ACC1, $AX0.L
+	05a6 2fce      srs         @DSMAH, $AC1.M
+	05a7 2dcf      srs         @DSMAL, $AC1.L
+	05a8 8900      clr         $ACC1
+	05a9 193d      lrri        $AC1.L, @$AR1
+	05aa 2dcd      srs         @DSPA, $AC1.L
+	05ab 16c9 0000 si          @DSCR, #0x0000
+	05ad 8100      clr         $ACC0
+	05ae 009c 00c0 lri         $AC0.L, #0x00c0
+	05b0 2ccb      srs         @DSBL, $AC0.L
+	05b1 0081 0e48 lri         $AR1, #0x0e48
+	05b3 4800      addax       $ACC0, $AX0.L
+	05b4 1b3e      srri        @$AR1, $AC0.M
+	05b5 1b3c      srri        @$AR1, $AC0.L
+	05b6 0b00      lris        $AX1.H, #0x00
+	05b7 0960      lris        $AX1.L, #0x60
+	05b8 4b00      addax       $ACC1, $AX1.L
+	05b9 1b3d      srri        @$AR1, $AC1.L
+	05ba 0081 0e48 lri         $AR1, #0x0e48
+	05bc 8f00      set40       
+	05bd 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05be 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05bf 6a00      movax       $ACC0, $AX1.L
+	05c0 4800      addax       $ACC0, $AX0.L
+	05c1 1117 05ca bloopi      #0x17, 0x05ca
+	05c3 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05c4 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05c5 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	05c6 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	05c7 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05c8 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05c9 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
+	05ca 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+	05cb 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05cc 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05cd 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	05ce 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	05cf 1b5f      srri        @$AR2, $AC1.M
+	05d0 1b5d      srri        @$AR2, $AC1.L
+	05d1 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05d2 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05d3 6a00      movax       $ACC0, $AX1.L
+	05d4 4800      addax       $ACC0, $AX0.L
+	05d5 1117 05de bloopi      #0x17, 0x05de
+	05d7 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05d8 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05d9 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	05da 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	05db 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05dc 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05dd 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
+	05de 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+	05df 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	05e0 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	05e1 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	05e2 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	05e3 1b5f      srri        @$AR2, $AC1.M
+	05e4 1b5d      srri        @$AR2, $AC1.L
+	05e5 1c05      mrr         $AR0, $IX1
+	05e6 02df      ret         
+	05e7 8e00      set16       
+	05e8 009b 0e48 lri         $AX1.H, #0x0e48
+	05ea 009d 00c0 lri         $AC1.L, #0x00c0
+	05ec 02bf 0637 call        0x0637
+	05ee 4900      addax       $ACC1, $AX0.L
+	05ef 00ff 0e1d sr          @0x0e1d, $AC1.M
+	05f1 00fd 0e1e sr          @0x0e1e, $AC1.L
+	05f3 8900      clr         $ACC1
+	05f4 02bf 0652 call        0652_WaitDMA
+	05f6 1104 0622 bloopi      #0x04, 0x0622
+	05f8 00da 0e1d lr          $AX0.H, @0x0e1d
+	05fa 00d8 0e1e lr          $AX0.L, @0x0e1e
+	05fc 009b 0ea8 lri         $AX1.H, #0x0ea8
+	05fe 009d 00c0 lri         $AC1.L, #0x00c0
+	0600 02bf 0637 call        0x0637
+	0602 4900      addax       $ACC1, $AX0.L
+	0603 00ff 0e1d sr          @0x0e1d, $AC1.M
+	0605 00fd 0e1e sr          @0x0e1e, $AC1.L
+	0607 0083 0e48 lri         $AR3, #0x0e48
+	0609 02bf 0642 call        0x0642
+	060b 8900      clr         $ACC1
+	060c 00da 0e1d lr          $AX0.H, @0x0e1d
+	060e 00d8 0e1e lr          $AX0.L, @0x0e1e
+	0610 009b 0e48 lri         $AX1.H, #0x0e48
+	0612 009d 00c0 lri         $AC1.L, #0x00c0
+	0614 02bf 0637 call        0x0637
+	0616 4900      addax       $ACC1, $AX0.L
+	0617 00ff 0e1d sr          @0x0e1d, $AC1.M
+	0619 00fd 0e1e sr          @0x0e1e, $AC1.L
+	061b 0083 0ea8 lri         $AR3, #0x0ea8
+	061d 02bf 0642 call        0x0642
+	061f 0000      nop         
+	0620 0000      nop         
+	0621 8e00      set16       
+	0622 8900      clr         $ACC1
+	0623 00da 0e1d lr          $AX0.H, @0x0e1d
+	0625 00d8 0e1e lr          $AX0.L, @0x0e1e
+	0627 009b 0ea8 lri         $AX1.H, #0x0ea8
+	0629 009d 00c0 lri         $AC1.L, #0x00c0
+	062b 02bf 0637 call        0x0637
+	062d 4900      addax       $ACC1, $AX0.L
+	062e 0083 0e48 lri         $AR3, #0x0e48
+	0630 02bf 0642 call        0x0642
+	0632 0083 0ea8 lri         $AR3, #0x0ea8
+	0634 02bf 0642 call        0x0642
+	0636 02df      ret         
+	0637 8e00      set16       
+	0638 00fa ffce sr          @DSMAH, $AX0.H
+	063a 00f8 ffcf sr          @DSMAL, $AX0.L
+	063c 00fb ffcd sr          @DSPA, $AX1.H
+	063e 16c9 0000 si          @DSCR, #0x0000
+	0640 2dcb      srs         @DSBL, $AC1.L
+	0641 02df      ret         
+	0642 8f00      set40       
+	0643 8d00      set15       
+	0644 8a00      m2          
+	0645 197a      lrri        $AX0.H, @$AR3
+	0646 1978      lrri        $AX0.L, @$AR3
+	0647 a000      mulx        $AX0.L, $AX1.L
+	0648 b600      mulxmv      $AX0.H, $AX1.L, $ACC0
+	0649 1130 0650 bloopi      #0x30, 0x0650
+	064b 9179      asr16'l     $ACC0 : $AC1.M, @$AR1
+	064c 4e6d      addp'ln     $ACC0 : $AC1.L, @$AR1
+	064d 197a      lrri        $AX0.H, @$AR3
+	064e 4d43      add'l       $ACC1, $ACC0 : $AX0.L, @$AR3
+	064f a039      mulx's      $AX0.L, $AX1.L : @$AR1, $AC1.M
+	0650 b629      mulxmv's    $AX0.H, $AX1.L, $ACC0 : @$AR1, $AC1.L
+	0651 02df      ret         
+
+void 0652_WaitDMA() {
+	 do {
+	 // 0652 26c9      lrs         $AC0.M, @DSCR
+	 // 0653 02a0 0004 andf        $AC0.M, #0x0004
+	 // 0655 029c 0652 jlnz        0x0652
+	 } while (DSCR & 0x0004);
+
+	 0657 02df      ret         
+}
+
+void 0658_WaitForCPUMail() { 
+	 do {
+	 // 0658 26fe      lrs         $AC0.M, @CMBH
+	 // 0659 02c0 8000 andcf       $AC0.M, #0x8000
+	 // 065b 029c 0658 jlnz        0x0658
+	 } while (CMBH & 0x8000);
+
+	 065d 02df      ret
+}
+
+void 065e_WaitForDSPMail1() {
+	 do {         
+	 // 065e 26fc      lrs         $AC0.M, @DMBH
+	 // 065f 02a0 8000 andf        $AC0.M, #0x8000
+	 // 0661 029c 065e jlnz        0x065e
+	 } while (DMBH & 0x8000);
+	 0663 02df      ret         
+}
+
+void 0644_WaitForDSPMail2() {
+	 do {					
+	 // 0664 26fc      lrs         $AC0.M, @DMBH
+	 // 0665 02a0 8000 andf        $AC0.M, #0x8000
+	 // 0667 029c 0664 jlnz        0x0664
+	 } while (DMBH & 0x8000);	 
+	 0669 02df      ret         
+}
+
+	066a 8100      clr         $ACC0
+	066b 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	066c 8e60      set16'l     : $AC0.L, @$AR0
+	066d 2ece      srs         @DSMAH, $AC0.M
+	066e 2ccf      srs         @DSMAL, $AC0.L
+	066f 16cd 0e48 si          @DSPA, #0x0e48
+	0671 16c9 0000 si          @DSCR, #0x0000
+	0673 8900      clr         $ACC1
+	0674 0d20      lris        $AC1.L, #0x20
+	0675 2dcb      srs         @DSBL, $AC1.L
+	0676 4c00      add         $ACC0, $ACC1
+	0677 1c80      mrr         $IX0, $AR0
+	0678 0080 0280 lri         $AR0, #0x0280
+	067a 0081 0000 lri         $AR1, #0x0000
+	067c 0082 0140 lri         $AR2, #0x0140
+	067e 0083 0e48 lri         $AR3, #0x0e48
+	0680 0a00      lris        $AX0.H, #0x00
+	0681 27c9      lrs         $AC1.M, @DSCR
+	0682 03a0 0004 andf        $AC1.M, #0x0004
+	0684 029c 0681 jlnz        0x0681
+	0686 2ece      srs         @DSMAH, $AC0.M
+	0687 2ccf      srs         @DSMAL, $AC0.L
+	0688 16cd 0e58 si          @DSPA, #0x0e58
+	068a 16c9 0000 si          @DSCR, #0x0000
+	068c 16cb 0260 si          @DSBL, #0x0260
+	068e 009f 00a0 lri         $AC1.M, #0x00a0
+	0690 8f00      set40       
+	0691 007f 069a bloop       $AC1.M, 0x069a
+	0693 197e      lrri        $AC0.M, @$AR3
+	0694 1b1a      srri        @$AR0, $AX0.H
+	0695 197c      lrri        $AC0.L, @$AR3
+	0696 1b1a      srri        @$AR0, $AX0.H
+	0697 1b5e      srri        @$AR2, $AC0.M
+	0698 1b5c      srri        @$AR2, $AC0.L
+	0699 1b3e      srri        @$AR1, $AC0.M
+	069a 1b3c      srri        @$AR1, $AC0.L
+	069b 1c04      mrr         $AR0, $IX0
+	069c 029f 0068 jmp         0x0068
+	069e 0082 0bb8 lri         $AR2, #0x0bb8
+	06a0 195e      lrri        $AC0.M, @$AR2
+	06a1 2ed1      srs         @SampleFormat, $AC0.M
+	06a2 195e      lrri        $AC0.M, @$AR2
+	06a3 2ed4      srs         @ACSAH, $AC0.M
+	06a4 195e      lrri        $AC0.M, @$AR2
+	06a5 2ed5      srs         @ACSAL, $AC0.M
+	06a6 195e      lrri        $AC0.M, @$AR2
+	06a7 2ed6      srs         @ACEAH, $AC0.M
+	06a8 195e      lrri        $AC0.M, @$AR2
+	06a9 2ed7      srs         @ACEAL, $AC0.M
+	06aa 195e      lrri        $AC0.M, @$AR2
+	06ab 2ed8      srs         @ACCAH, $AC0.M
+	06ac 195e      lrri        $AC0.M, @$AR2
+	06ad 2ed9      srs         @ACCAL, $AC0.M
+	06ae 195e      lrri        $AC0.M, @$AR2
+	06af 2ea0      srs         @COEF_A1_0, $AC0.M
+	06b0 195e      lrri        $AC0.M, @$AR2
+	06b1 2ea1      srs         @COEF_A2_0, $AC0.M
+	06b2 195e      lrri        $AC0.M, @$AR2
+	06b3 2ea2      srs         @COEF_A1_1, $AC0.M
+	06b4 195e      lrri        $AC0.M, @$AR2
+	06b5 2ea3      srs         @COEF_A2_1, $AC0.M
+	06b6 195e      lrri        $AC0.M, @$AR2
+	06b7 2ea4      srs         @COEF_A1_2, $AC0.M
+	06b8 195e      lrri        $AC0.M, @$AR2
+	06b9 2ea5      srs         @COEF_A2_2, $AC0.M
+	06ba 195e      lrri        $AC0.M, @$AR2
+	06bb 2ea6      srs         @COEF_A1_3, $AC0.M
+	06bc 195e      lrri        $AC0.M, @$AR2
+	06bd 2ea7      srs         @COEF_A2_3, $AC0.M
+	06be 195e      lrri        $AC0.M, @$AR2
+	06bf 2ea8      srs         @COEF_A1_4, $AC0.M
+	06c0 195e      lrri        $AC0.M, @$AR2
+	06c1 2ea9      srs         @COEF_A2_4, $AC0.M
+	06c2 195e      lrri        $AC0.M, @$AR2
+	06c3 2eaa      srs         @COEF_A1_5, $AC0.M
+	06c4 195e      lrri        $AC0.M, @$AR2
+	06c5 2eab      srs         @COEF_A2_5, $AC0.M
+	06c6 195e      lrri        $AC0.M, @$AR2
+	06c7 2eac      srs         @COEF_A1_6, $AC0.M
+	06c8 195e      lrri        $AC0.M, @$AR2
+	06c9 2ead      srs         @COEF_A2_6, $AC0.M
+	06ca 195e      lrri        $AC0.M, @$AR2
+	06cb 2eae      srs         @COEF_A1_7, $AC0.M
+	06cc 195e      lrri        $AC0.M, @$AR2
+	06cd 2eaf      srs         @COEF_A2_7, $AC0.M
+	06ce 195e      lrri        $AC0.M, @$AR2
+	06cf 2ede      srs         @GAIN, $AC0.M
+	06d0 195e      lrri        $AC0.M, @$AR2
+	06d1 2eda      srs         @pred_scale, $AC0.M
+	06d2 195e      lrri        $AC0.M, @$AR2
+	06d3 2edb      srs         @yn1, $AC0.M
+	06d4 195e      lrri        $AC0.M, @$AR2
+	06d5 2edc      srs         @yn2, $AC0.M
+	06d6 8c00      clr15       
+	06d7 8a00      m2          
+	06d8 8e00      set16       
+	06d9 00d8 0e16 lr          $AX0.L, @0x0e16
+	06db 195b      lrri        $AX1.H, @$AR2
+	06dc 1959      lrri        $AX1.L, @$AR2
+	06dd 8100      clr         $ACC0
+	06de 195c      lrri        $AC0.L, @$AR2
+	06df 0080 0e48 lri         $AR0, #0x0e48
+	06e1 195f      lrri        $AC1.M, @$AR2
+	06e2 1b1f      srri        @$AR0, $AC1.M
+	06e3 195f      lrri        $AC1.M, @$AR2
+	06e4 1b1f      srri        @$AR0, $AC1.M
+	06e5 195f      lrri        $AC1.M, @$AR2
+	06e6 1b1f      srri        @$AR0, $AC1.M
+	06e7 185f      lrr         $AC1.M, @$AR2
+	06e8 1b1f      srri        @$AR0, $AC1.M
+	06e9 6b00      movax       $ACC1, $AX1.L
+	06ea 1505      lsl         $ACC1, #5
+	06eb 4d00      add         $ACC1, $ACC0
+	06ec 157e      lsr         $ACC1, #-2
+	06ed 1c9f      mrr         $IX0, $AC1.M
+	06ee 1cbd      mrr         $IX1, $AC1.L
+	06ef 05e0      addis       $ACC1, #0xe0
+	06f0 9900      asr16       $ACC1
+	06f1 7d00      neg         $ACC1
+	06f2 1cdd      mrr         $IX2, $AC1.L
+	06f3 8900      clr         $ACC1
+	06f4 1fa5      mrr         $AC1.L, $IX1
+	06f5 1502      lsl         $ACC1, #2
+	06f6 1cbf      mrr         $IX1, $AC1.M
+	06f7 009a 01fc lri         $AX0.H, #0x01fc
+	06f9 009e 0e48 lri         $AC0.M, #0x0e48
+	06fb 0081 ffdd lri         $AR1, #0xffdd
+	06fd 0083 0d80 lri         $AR3, #0x0d80
+	06ff 0064 0710 bloop       $IX0, 0x0710
+	0701 1827      lrr         $IX3, @$AR1
+	0702 1b07      srri        @$AR0, $IX3
+	0703 4a00      addax       $ACC0, $AX1.L
+	0704 1ffc      mrr         $AC1.M, $AC0.L
+	0705 1827      lrr         $IX3, @$AR1
+	0706 1b07      srri        @$AR0, $IX3
+	0707 1579      lsr         $ACC1, #-7
+	0708 3500      andr        $AC1.M, $AX0.H
+	0709 1827      lrr         $IX3, @$AR1
+	070a 1b07      srri        @$AR0, $IX3
+	070b 4100      addr        $ACC1, $AX0.L
+	070c 1b7e      srri        @$AR3, $AC0.M
+	070d 1827      lrr         $IX3, @$AR1
+	070e 1b07      srri        @$AR0, $IX3
+	070f 1b7f      srri        @$AR3, $AC1.M
+	0710 0000      nop         
+	0711 0065 0716 bloop       $IX1, 0x0716
+	0713 1827      lrr         $IX3, @$AR1
+	0714 1b07      srri        @$AR0, $IX3
+	0715 0000      nop         
+	0716 0000      nop         
+	0717 0007      dar         $AR3
+	0718 187f      lrr         $AC1.M, @$AR3
+	0719 0066 071f bloop       $IX2, 0x071f
+	071b 4a3b      addax's     $ACC0, $AX1.L : @$AR3, $AC1.M
+	071c 1ffc      mrr         $AC1.M, $AC0.L
+	071d 1579      lsr         $ACC1, #-7
+	071e 3533      andr's      $AC1.M, $AX0.H : @$AR3, $AC0.M
+	071f 4100      addr        $ACC1, $AX0.L
+	0720 1b7f      srri        @$AR3, $AC1.M
+	0721 0004      dar         $AR0
+	0722 189f      lrrd        $AC1.M, @$AR0
+	0723 1adf      srrd        @$AR2, $AC1.M
+	0724 189f      lrrd        $AC1.M, @$AR0
+	0725 1adf      srrd        @$AR2, $AC1.M
+	0726 189f      lrrd        $AC1.M, @$AR0
+	0727 1adf      srrd        @$AR2, $AC1.M
+	0728 189f      lrrd        $AC1.M, @$AR0
+	0729 1adf      srrd        @$AR2, $AC1.M
+	072a 1adc      srrd        @$AR2, $AC0.L
+	072b 0082 0bd2 lri         $AR2, #0x0bd2
+	072d 27dc      lrs         $AC1.M, @yn2
+	072e 1adf      srrd        @$AR2, $AC1.M
+	072f 27db      lrs         $AC1.M, @yn1
+	0730 1adf      srrd        @$AR2, $AC1.M
+	0731 27da      lrs         $AC1.M, @pred_scale
+	0732 1adf      srrd        @$AR2, $AC1.M
+	0733 0082 0bbe lri         $AR2, #0x0bbe
+	0735 27d9      lrs         $AC1.M, @ACCAL
+	0736 1adf      srrd        @$AR2, $AC1.M
+	0737 27d8      lrs         $AC1.M, @ACCAH
+	0738 1adf      srrd        @$AR2, $AC1.M
+	0739 8f00      set40       
+	073a 00c1 0e42 lr          $AR1, @0x0e42
+	073c 0082 0d80 lri         $AR2, #0x0d80
+	073e 1940      lrri        $AR0, @$AR2
+	073f 1943      lrri        $AR3, @$AR2
+	0740 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0741 b8c0      mulx'ld     $AX0.H, $AX1.H : $AX0.L, $AX1.L, @$AR0
+	0742 111f 074a bloopi      #0x1f, 0x074a
+	0744 a6f0      mulxmv'ld   $AX0.L, $AX1.L, $ACC0 : $AX0.H, $AX1.H, @$AR0
+	0745 bcf0      mulxac'ld   $AX0.H, $AX1.H, $ACC0 : $AX0.H, $AX1.H, @$AR0
+	0746 1940      lrri        $AR0, @$AR2
+	0747 1943      lrri        $AR3, @$AR2
+	0748 bcf0      mulxac'ld   $AX0.H, $AX1.H, $ACC0 : $AX0.H, $AX1.H, @$AR0
+	0749 4ec0      addp'ld     $ACC0 : $AX0.L, $AX1.L, @$AR0
+	074a b831      mulx's      $AX0.H, $AX1.H : @$AR1, $AC0.M
+	074b a6f0      mulxmv'ld   $AX0.L, $AX1.L, $ACC0 : $AX0.H, $AX1.H, @$AR0
+	074c bcf0      mulxac'ld   $AX0.H, $AX1.H, $ACC0 : $AX0.H, $AX1.H, @$AR0
+	074d bc00      mulxac      $AX0.H, $AX1.H, $ACC0
+	074e 4e00      addp        $ACC0
+	074f 1b3e      srri        @$AR1, $AC0.M
+	0750 00e1 0e42 sr          @0x0e42, $AR1
+	0752 02df      ret         
+	0753 0082 0bb8 lri         $AR2, #0x0bb8
+	0755 195e      lrri        $AC0.M, @$AR2
+	0756 2ed1      srs         @SampleFormat, $AC0.M
+	0757 195e      lrri        $AC0.M, @$AR2
+	0758 2ed4      srs         @ACSAH, $AC0.M
+	0759 195e      lrri        $AC0.M, @$AR2
+	075a 2ed5      srs         @ACSAL, $AC0.M
+	075b 195e      lrri        $AC0.M, @$AR2
+	075c 2ed6      srs         @ACEAH, $AC0.M
+	075d 195e      lrri        $AC0.M, @$AR2
+	075e 2ed7      srs         @ACEAL, $AC0.M
+	075f 195e      lrri        $AC0.M, @$AR2
+	0760 2ed8      srs         @ACCAH, $AC0.M
+	0761 195e      lrri        $AC0.M, @$AR2
+	0762 2ed9      srs         @ACCAL, $AC0.M
+	0763 195e      lrri        $AC0.M, @$AR2
+	0764 2ea0      srs         @COEF_A1_0, $AC0.M
+	0765 195e      lrri        $AC0.M, @$AR2
+	0766 2ea1      srs         @COEF_A2_0, $AC0.M
+	0767 195e      lrri        $AC0.M, @$AR2
+	0768 2ea2      srs         @COEF_A1_1, $AC0.M
+	0769 195e      lrri        $AC0.M, @$AR2
+	076a 2ea3      srs         @COEF_A2_1, $AC0.M
+	076b 195e      lrri        $AC0.M, @$AR2
+	076c 2ea4      srs         @COEF_A1_2, $AC0.M
+	076d 195e      lrri        $AC0.M, @$AR2
+	076e 2ea5      srs         @COEF_A2_2, $AC0.M
+	076f 195e      lrri        $AC0.M, @$AR2
+	0770 2ea6      srs         @COEF_A1_3, $AC0.M
+	0771 195e      lrri        $AC0.M, @$AR2
+	0772 2ea7      srs         @COEF_A2_3, $AC0.M
+	0773 195e      lrri        $AC0.M, @$AR2
+	0774 2ea8      srs         @COEF_A1_4, $AC0.M
+	0775 195e      lrri        $AC0.M, @$AR2
+	0776 2ea9      srs         @COEF_A2_4, $AC0.M
+	0777 195e      lrri        $AC0.M, @$AR2
+	0778 2eaa      srs         @COEF_A1_5, $AC0.M
+	0779 195e      lrri        $AC0.M, @$AR2
+	077a 2eab      srs         @COEF_A2_5, $AC0.M
+	077b 195e      lrri        $AC0.M, @$AR2
+	077c 2eac      srs         @COEF_A1_6, $AC0.M
+	077d 195e      lrri        $AC0.M, @$AR2
+	077e 2ead      srs         @COEF_A2_6, $AC0.M
+	077f 195e      lrri        $AC0.M, @$AR2
+	0780 2eae      srs         @COEF_A1_7, $AC0.M
+	0781 195e      lrri        $AC0.M, @$AR2
+	0782 2eaf      srs         @COEF_A2_7, $AC0.M
+	0783 195e      lrri        $AC0.M, @$AR2
+	0784 2ede      srs         @GAIN, $AC0.M
+	0785 195e      lrri        $AC0.M, @$AR2
+	0786 2eda      srs         @pred_scale, $AC0.M
+	0787 195e      lrri        $AC0.M, @$AR2
+	0788 2edb      srs         @yn1, $AC0.M
+	0789 195e      lrri        $AC0.M, @$AR2
+	078a 2edc      srs         @yn2, $AC0.M
+	078b 8c00      clr15       
+	078c 8a00      m2          
+	078d 8e00      set16       
+	078e 195b      lrri        $AX1.H, @$AR2
+	078f 1959      lrri        $AX1.L, @$AR2
+	0790 8100      clr         $ACC0
+	0791 195c      lrri        $AC0.L, @$AR2
+	0792 0080 0e48 lri         $AR0, #0x0e48
+	0794 195f      lrri        $AC1.M, @$AR2
+	0795 195f      lrri        $AC1.M, @$AR2
+	0796 195f      lrri        $AC1.M, @$AR2
+	0797 1b1f      srri        @$AR0, $AC1.M
+	0798 185f      lrr         $AC1.M, @$AR2
+	0799 1b1f      srri        @$AR0, $AC1.M
+	079a 6b00      movax       $ACC1, $AX1.L
+	079b 1505      lsl         $ACC1, #5
+	079c 4d00      add         $ACC1, $ACC0
+	079d 157e      lsr         $ACC1, #-2
+	079e 1c9f      mrr         $IX0, $AC1.M
+	079f 1cbd      mrr         $IX1, $AC1.L
+	07a0 05e0      addis       $ACC1, #0xe0
+	07a1 9900      asr16       $ACC1
+	07a2 7d00      neg         $ACC1
+	07a3 1cdd      mrr         $IX2, $AC1.L
+	07a4 8900      clr         $ACC1
+	07a5 1fa5      mrr         $AC1.L, $IX1
+	07a6 1502      lsl         $ACC1, #2
+	07a7 1cbf      mrr         $IX1, $AC1.M
+	07a8 009a 01fc lri         $AX0.H, #0x01fc
+	07aa 009e 0e49 lri         $AC0.M, #0x0e49
+	07ac 0081 ffdd lri         $AR1, #0xffdd
+	07ae 0083 0d80 lri         $AR3, #0x0d80
+	07b0 0064 07c1 bloop       $IX0, 0x07c1
+	07b2 1827      lrr         $IX3, @$AR1
+	07b3 1b07      srri        @$AR0, $IX3
+	07b4 4a00      addax       $ACC0, $AX1.L
+	07b5 1b7e      srri        @$AR3, $AC0.M
+	07b6 1827      lrr         $IX3, @$AR1
+	07b7 1b07      srri        @$AR0, $IX3
+	07b8 1b7c      srri        @$AR3, $AC0.L
+	07b9 0000      nop         
+	07ba 1827      lrr         $IX3, @$AR1
+	07bb 1b07      srri        @$AR0, $IX3
+	07bc 0000      nop         
+	07bd 0000      nop         
+	07be 1827      lrr         $IX3, @$AR1
+	07bf 1b07      srri        @$AR0, $IX3
+	07c0 0000      nop         
+	07c1 0000      nop         
+	07c2 0065 07c7 bloop       $IX1, 0x07c7
+	07c4 1827      lrr         $IX3, @$AR1
+	07c5 1b07      srri        @$AR0, $IX3
+	07c6 0000      nop         
+	07c7 0000      nop         
+	07c8 0066 07cc bloop       $IX2, 0x07cc
+	07ca 4a00      addax       $ACC0, $AX1.L
+	07cb 1b7e      srri        @$AR3, $AC0.M
+	07cc 1b7c      srri        @$AR3, $AC0.L
+	07cd 0004      dar         $AR0
+	07ce 189f      lrrd        $AC1.M, @$AR0
+	07cf 1adf      srrd        @$AR2, $AC1.M
+	07d0 189f      lrrd        $AC1.M, @$AR0
+	07d1 1adf      srrd        @$AR2, $AC1.M
+	07d2 189f      lrrd        $AC1.M, @$AR0
+	07d3 1adf      srrd        @$AR2, $AC1.M
+	07d4 189f      lrrd        $AC1.M, @$AR0
+	07d5 1adf      srrd        @$AR2, $AC1.M
+	07d6 1adc      srrd        @$AR2, $AC0.L
+	07d7 0082 0bd2 lri         $AR2, #0x0bd2
+	07d9 27dc      lrs         $AC1.M, @yn2
+	07da 1adf      srrd        @$AR2, $AC1.M
+	07db 27db      lrs         $AC1.M, @yn1
+	07dc 1adf      srrd        @$AR2, $AC1.M
+	07dd 27da      lrs         $AC1.M, @pred_scale
+	07de 1adf      srrd        @$AR2, $AC1.M
+	07df 0082 0bbe lri         $AR2, #0x0bbe
+	07e1 27d9      lrs         $AC1.M, @ACCAL
+	07e2 1adf      srrd        @$AR2, $AC1.M
+	07e3 27d8      lrs         $AC1.M, @ACCAH
+	07e4 1adf      srrd        @$AR2, $AC1.M
+	07e5 8d00      set15       
+	07e6 8b00      m0          
+	07e7 8f00      set40       
+	07e8 00c1 0e42 lr          $AR1, @0x0e42
+	07ea 0082 0d80 lri         $AR2, #0x0d80
+	07ec 8100      clr         $ACC0
+	07ed 1120 07f9 bloopi      #0x20, 0x07f9
+	07ef 8900      clr         $ACC1
+	07f0 1940      lrri        $AR0, @$AR2
+	07f1 189e      lrrd        $AC0.M, @$AR0
+	07f2 181b      lrr         $AX1.H, @$AR0
+	07f3 199a      lrrn        $AX0.H, @$AR0
+	07f4 5400      subr        $ACC0, $AX0.H
+	07f5 1f5e      mrr         $AX0.H, $AC0.M
+	07f6 1959      lrri        $AX1.L, @$AR2
+	07f7 b000      mulx        $AX0.H, $AX1.L
+	07f8 fb00      addpaxz     $ACC1, $AX1.H
+	07f9 8139      clr's       $ACC0 : @$AR1, $AC1.M
+	07fa 00e1 0e42 sr          @0x0e42, $AR1
+	07fc 02df      ret         
+	07fd 0082 0bb8 lri         $AR2, #0x0bb8
+	07ff 195e      lrri        $AC0.M, @$AR2
+	0800 2ed1      srs         @SampleFormat, $AC0.M
+	0801 195e      lrri        $AC0.M, @$AR2
+	0802 2ed4      srs         @ACSAH, $AC0.M
+	0803 195e      lrri        $AC0.M, @$AR2
+	0804 2ed5      srs         @ACSAL, $AC0.M
+	0805 195e      lrri        $AC0.M, @$AR2
+	0806 2ed6      srs         @ACEAH, $AC0.M
+	0807 195e      lrri        $AC0.M, @$AR2
+	0808 2ed7      srs         @ACEAL, $AC0.M
+	0809 195e      lrri        $AC0.M, @$AR2
+	080a 2ed8      srs         @ACCAH, $AC0.M
+	080b 195e      lrri        $AC0.M, @$AR2
+	080c 2ed9      srs         @ACCAL, $AC0.M
+	080d 195e      lrri        $AC0.M, @$AR2
+	080e 2ea0      srs         @COEF_A1_0, $AC0.M
+	080f 195e      lrri        $AC0.M, @$AR2
+	0810 2ea1      srs         @COEF_A2_0, $AC0.M
+	0811 195e      lrri        $AC0.M, @$AR2
+	0812 2ea2      srs         @COEF_A1_1, $AC0.M
+	0813 195e      lrri        $AC0.M, @$AR2
+	0814 2ea3      srs         @COEF_A2_1, $AC0.M
+	0815 195e      lrri        $AC0.M, @$AR2
+	0816 2ea4      srs         @COEF_A1_2, $AC0.M
+	0817 195e      lrri        $AC0.M, @$AR2
+	0818 2ea5      srs         @COEF_A2_2, $AC0.M
+	0819 195e      lrri        $AC0.M, @$AR2
+	081a 2ea6      srs         @COEF_A1_3, $AC0.M
+	081b 195e      lrri        $AC0.M, @$AR2
+	081c 2ea7      srs         @COEF_A2_3, $AC0.M
+	081d 195e      lrri        $AC0.M, @$AR2
+	081e 2ea8      srs         @COEF_A1_4, $AC0.M
+	081f 195e      lrri        $AC0.M, @$AR2
+	0820 2ea9      srs         @COEF_A2_4, $AC0.M
+	0821 195e      lrri        $AC0.M, @$AR2
+	0822 2eaa      srs         @COEF_A1_5, $AC0.M
+	0823 195e      lrri        $AC0.M, @$AR2
+	0824 2eab      srs         @COEF_A2_5, $AC0.M
+	0825 195e      lrri        $AC0.M, @$AR2
+	0826 2eac      srs         @COEF_A1_6, $AC0.M
+	0827 195e      lrri        $AC0.M, @$AR2
+	0828 2ead      srs         @COEF_A2_6, $AC0.M
+	0829 195e      lrri        $AC0.M, @$AR2
+	082a 2eae      srs         @COEF_A1_7, $AC0.M
+	082b 195e      lrri        $AC0.M, @$AR2
+	082c 2eaf      srs         @COEF_A2_7, $AC0.M
+	082d 195e      lrri        $AC0.M, @$AR2
+	082e 2ede      srs         @GAIN, $AC0.M
+	082f 195e      lrri        $AC0.M, @$AR2
+	0830 2eda      srs         @pred_scale, $AC0.M
+	0831 195e      lrri        $AC0.M, @$AR2
+	0832 2edb      srs         @yn1, $AC0.M
+	0833 195e      lrri        $AC0.M, @$AR2
+	0834 2edc      srs         @yn2, $AC0.M
+	0835 00c0 0e42 lr          $AR0, @0x0e42
+	0837 0081 ffdd lri         $AR1, #0xffdd
+	0839 1120 083e bloopi      #0x20, 0x083e
+	083b 1824      lrr         $IX0, @$AR1
+	083c 1b04      srri        @$AR0, $IX0
+	083d 0000      nop         
+	083e 0000      nop         
+	083f 00e0 0e42 sr          @0x0e42, $AR0
+	0841 0082 0bd9 lri         $AR2, #0x0bd9
+	0843 0004      dar         $AR0
+	0844 189f      lrrd        $AC1.M, @$AR0
+	0845 1adf      srrd        @$AR2, $AC1.M
+	0846 189f      lrrd        $AC1.M, @$AR0
+	0847 1adf      srrd        @$AR2, $AC1.M
+	0848 189f      lrrd        $AC1.M, @$AR0
+	0849 1adf      srrd        @$AR2, $AC1.M
+	084a 189f      lrrd        $AC1.M, @$AR0
+	084b 1adf      srrd        @$AR2, $AC1.M
+	084c 8900      clr         $ACC1
+	084d 1adc      srrd        @$AR2, $AC0.L
+	084e 27dc      lrs         $AC1.M, @yn2
+	084f 00ff 0bd2 sr          @0x0bd2, $AC1.M
+	0851 27db      lrs         $AC1.M, @yn1
+	0852 00ff 0bd1 sr          @0x0bd1, $AC1.M
+	0854 27da      lrs         $AC1.M, @pred_scale
+	0855 00ff 0bd0 sr          @0x0bd0, $AC1.M
+	0857 27d9      lrs         $AC1.M, @ACCAL
+	0858 00ff 0bbe sr          @0x0bbe, $AC1.M
+	085a 27d8      lrs         $AC1.M, @ACCAH
+	085b 00ff 0bbd sr          @0x0bbd, $AC1.M
+	085d 02df      ret         
+	085e 02df      ret         
+	085f 00c0 0e40 lr          $AR0, @0x0e40
+	0861 0081 0b89 lri         $AR1, #0x0b89
+	0863 00c2 0e08 lr          $AR2, @0x0e08
+	0865 1c62      mrr         $AR3, $AR2
+	0866 02bf 81f9 call        0x81f9
+	0868 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	086a 02df      ret         
+	086b 00c0 0e41 lr          $AR0, @0x0e41
+	086d 0081 0b8b lri         $AR1, #0x0b8b
+	086f 00c2 0e09 lr          $AR2, @0x0e09
+	0871 1c62      mrr         $AR3, $AR2
+	0872 02bf 81f9 call        0x81f9
+	0874 00f8 0bac sr          @0x0bac, $AX0.L
+	0876 02df      ret         
+	0877 00c0 0e40 lr          $AR0, @0x0e40
+	0879 0081 0b89 lri         $AR1, #0x0b89
+	087b 00c2 0e08 lr          $AR2, @0x0e08
+	087d 1c62      mrr         $AR3, $AR2
+	087e 00c4 0e41 lr          $IX0, @0x0e41
+	0880 00c5 0e09 lr          $IX1, @0x0e09
+	0882 02bf 80e7 call        0x80e7
+	0884 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	0886 00fb 0bac sr          @0x0bac, $AX1.H
+	0888 02df      ret         
+	0889 00c0 0e43 lr          $AR0, @0x0e43
+	088b 0081 0b97 lri         $AR1, #0x0b97
+	088d 00c2 0e0a lr          $AR2, @0x0e0a
+	088f 1c62      mrr         $AR3, $AR2
+	0890 02bf 81f9 call        0x81f9
+	0892 00f8 0baf sr          @0x0baf, $AX0.L
+	0894 02df      ret         
+	0895 00c0 0e40 lr          $AR0, @0x0e40
+	0897 0081 0b89 lri         $AR1, #0x0b89
+	0899 00c2 0e08 lr          $AR2, @0x0e08
+	089b 1c62      mrr         $AR3, $AR2
+	089c 02bf 81f9 call        0x81f9
+	089e 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	08a0 00c0 0e43 lr          $AR0, @0x0e43
+	08a2 0081 0b97 lri         $AR1, #0x0b97
+	08a4 00c2 0e0a lr          $AR2, @0x0e0a
+	08a6 1c62      mrr         $AR3, $AR2
+	08a7 02bf 81f9 call        0x81f9
+	08a9 00f8 0baf sr          @0x0baf, $AX0.L
+	08ab 02df      ret         
+	08ac 00c0 0e41 lr          $AR0, @0x0e41
+	08ae 0081 0b8b lri         $AR1, #0x0b8b
+	08b0 00c2 0e09 lr          $AR2, @0x0e09
+	08b2 1c62      mrr         $AR3, $AR2
+	08b3 02bf 81f9 call        0x81f9
+	08b5 00f8 0bac sr          @0x0bac, $AX0.L
+	08b7 00c0 0e43 lr          $AR0, @0x0e43
+	08b9 0081 0b97 lri         $AR1, #0x0b97
+	08bb 00c2 0e0a lr          $AR2, @0x0e0a
+	08bd 1c62      mrr         $AR3, $AR2
+	08be 02bf 81f9 call        0x81f9
+	08c0 00f8 0baf sr          @0x0baf, $AX0.L
+	08c2 02df      ret         
+	08c3 00c0 0e40 lr          $AR0, @0x0e40
+	08c5 0081 0b89 lri         $AR1, #0x0b89
+	08c7 00c2 0e08 lr          $AR2, @0x0e08
+	08c9 1c62      mrr         $AR3, $AR2
+	08ca 00c4 0e41 lr          $IX0, @0x0e41
+	08cc 00c5 0e09 lr          $IX1, @0x0e09
+	08ce 02bf 80e7 call        0x80e7
+	08d0 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	08d2 00fb 0bac sr          @0x0bac, $AX1.H
+	08d4 00c0 0e43 lr          $AR0, @0x0e43
+	08d6 0081 0b97 lri         $AR1, #0x0b97
+	08d8 00c2 0e0a lr          $AR2, @0x0e0a
+	08da 1c62      mrr         $AR3, $AR2
+	08db 02bf 81f9 call        0x81f9
+	08dd 00f8 0baf sr          @0x0baf, $AX0.L
+	08df 02df      ret         
+	08e0 00c0 0e40 lr          $AR0, @0x0e40
+	08e2 0081 0b89 lri         $AR1, #0x0b89
+	08e4 00c2 0e08 lr          $AR2, @0x0e08
+	08e6 0083 0e48 lri         $AR3, #0x0e48
+	08e8 02bf 845d call        0x845d
+	08ea 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	08ec 02df      ret         
+	08ed 00c0 0e41 lr          $AR0, @0x0e41
+	08ef 0081 0b8b lri         $AR1, #0x0b8b
+	08f1 00c2 0e09 lr          $AR2, @0x0e09
+	08f3 0083 0e48 lri         $AR3, #0x0e48
+	08f5 02bf 845d call        0x845d
+	08f7 00f8 0bac sr          @0x0bac, $AX0.L
+	08f9 02df      ret         
+	08fa 00c0 0e40 lr          $AR0, @0x0e40
+	08fc 0081 0b89 lri         $AR1, #0x0b89
+	08fe 00c2 0e08 lr          $AR2, @0x0e08
+	0900 0083 0e48 lri         $AR3, #0x0e48
+	0902 00c4 0e41 lr          $IX0, @0x0e41
+	0904 00c5 0e09 lr          $IX1, @0x0e09
+	0906 02bf 8282 call        0x8282
+	0908 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	090a 00fb 0bac sr          @0x0bac, $AX1.H
+	090c 02df      ret         
+	090d 00c0 0e43 lr          $AR0, @0x0e43
+	090f 0081 0b97 lri         $AR1, #0x0b97
+	0911 00c2 0e0a lr          $AR2, @0x0e0a
+	0913 0083 0e48 lri         $AR3, #0x0e48
+	0915 02bf 845d call        0x845d
+	0917 00f8 0baf sr          @0x0baf, $AX0.L
+	0919 02df      ret         
+	091a 00c0 0e40 lr          $AR0, @0x0e40
+	091c 0081 0b89 lri         $AR1, #0x0b89
+	091e 00c2 0e08 lr          $AR2, @0x0e08
+	0920 0083 0e48 lri         $AR3, #0x0e48
+	0922 02bf 845d call        0x845d
+	0924 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	0926 00c0 0e43 lr          $AR0, @0x0e43
+	0928 0081 0b97 lri         $AR1, #0x0b97
+	092a 00c2 0e0a lr          $AR2, @0x0e0a
+	092c 0083 0e48 lri         $AR3, #0x0e48
+	092e 02bf 845d call        0x845d
+	0930 00f8 0baf sr          @0x0baf, $AX0.L
+	0932 02df      ret         
+	0933 00c0 0e41 lr          $AR0, @0x0e41
+	0935 0081 0b8b lri         $AR1, #0x0b8b
+	0937 00c2 0e09 lr          $AR2, @0x0e09
+	0939 0083 0e48 lri         $AR3, #0x0e48
+	093b 02bf 845d call        0x845d
+	093d 00f8 0bac sr          @0x0bac, $AX0.L
+	093f 00c0 0e43 lr          $AR0, @0x0e43
+	0941 0081 0b97 lri         $AR1, #0x0b97
+	0943 00c2 0e0a lr          $AR2, @0x0e0a
+	0945 0083 0e48 lri         $AR3, #0x0e48
+	0947 02bf 845d call        0x845d
+	0949 00f8 0baf sr          @0x0baf, $AX0.L
+	094b 02df      ret         
+	094c 00c0 0e40 lr          $AR0, @0x0e40
+	094e 0081 0b89 lri         $AR1, #0x0b89
+	0950 00c2 0e08 lr          $AR2, @0x0e08
+	0952 0083 0e48 lri         $AR3, #0x0e48
+	0954 00c4 0e41 lr          $IX0, @0x0e41
+	0956 00c5 0e09 lr          $IX1, @0x0e09
+	0958 02bf 8282 call        0x8282
+	095a 00f8 0ba9 sr          @0x0ba9, $AX0.L
+	095c 00fb 0bac sr          @0x0bac, $AX1.H
+	095e 00c0 0e43 lr          $AR0, @0x0e43
+	0960 0081 0b97 lri         $AR1, #0x0b97
+	0962 00c2 0e0a lr          $AR2, @0x0e0a
+	0964 0083 0e48 lri         $AR3, #0x0e48
+	0966 02bf 845d call        0x845d
+	0968 00f8 0baf sr          @0x0baf, $AX0.L
+	096a 02df      ret         
+	096b 00c0 0e40 lr          $AR0, @0x0e40
+	096d 0081 0b8d lri         $AR1, #0x0b8d
+	096f 00c2 0e0b lr          $AR2, @0x0e0b
+	0971 1c62      mrr         $AR3, $AR2
+	0972 02bf 81f9 call        0x81f9
+	0974 00f8 0baa sr          @0x0baa, $AX0.L
+	0976 02df      ret         
+	0977 00c0 0e41 lr          $AR0, @0x0e41
+	0979 0081 0b8f lri         $AR1, #0x0b8f
+	097b 00c2 0e0c lr          $AR2, @0x0e0c
+	097d 1c62      mrr         $AR3, $AR2
+	097e 02bf 81f9 call        0x81f9
+	0980 00f8 0bad sr          @0x0bad, $AX0.L
+	0982 02df      ret         
+	0983 00c0 0e40 lr          $AR0, @0x0e40
+	0985 0081 0b8d lri         $AR1, #0x0b8d
+	0987 00c2 0e0b lr          $AR2, @0x0e0b
+	0989 1c62      mrr         $AR3, $AR2
+	098a 00c4 0e41 lr          $IX0, @0x0e41
+	098c 00c5 0e0c lr          $IX1, @0x0e0c
+	098e 02bf 80e7 call        0x80e7
+	0990 00f8 0baa sr          @0x0baa, $AX0.L
+	0992 00fb 0bad sr          @0x0bad, $AX1.H
+	0994 02df      ret         
+	0995 00c0 0e40 lr          $AR0, @0x0e40
+	0997 0081 0b8d lri         $AR1, #0x0b8d
+	0999 00c2 0e0b lr          $AR2, @0x0e0b
+	099b 0083 0e48 lri         $AR3, #0x0e48
+	099d 02bf 845d call        0x845d
+	099f 00f8 0baa sr          @0x0baa, $AX0.L
+	09a1 02df      ret         
+	09a2 00c0 0e41 lr          $AR0, @0x0e41
+	09a4 0081 0b8f lri         $AR1, #0x0b8f
+	09a6 00c2 0e0c lr          $AR2, @0x0e0c
+	09a8 0083 0e48 lri         $AR3, #0x0e48
+	09aa 02bf 845d call        0x845d
+	09ac 00f8 0bad sr          @0x0bad, $AX0.L
+	09ae 02df      ret         
+	09af 00c0 0e40 lr          $AR0, @0x0e40
+	09b1 0081 0b8d lri         $AR1, #0x0b8d
+	09b3 00c2 0e0b lr          $AR2, @0x0e0b
+	09b5 0083 0e48 lri         $AR3, #0x0e48
+	09b7 00c4 0e41 lr          $IX0, @0x0e41
+	09b9 00c5 0e0c lr          $IX1, @0x0e0c
+	09bb 02bf 8282 call        0x8282
+	09bd 00f8 0baa sr          @0x0baa, $AX0.L
+	09bf 00fb 0bad sr          @0x0bad, $AX1.H
+	09c1 02df      ret         
+	09c2 00c0 0e43 lr          $AR0, @0x0e43
+	09c4 0081 0b99 lri         $AR1, #0x0b99
+	09c6 00c2 0e0d lr          $AR2, @0x0e0d
+	09c8 1c62      mrr         $AR3, $AR2
+	09c9 02bf 81f9 call        0x81f9
+	09cb 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	09cd 02df      ret         
+	09ce 00c0 0e43 lr          $AR0, @0x0e43
+	09d0 0081 0b99 lri         $AR1, #0x0b99
+	09d2 00c2 0e0d lr          $AR2, @0x0e0d
+	09d4 1c62      mrr         $AR3, $AR2
+	09d5 02bf 81f9 call        0x81f9
+	09d7 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	09d9 029f 096b jmp         0x096b
+	09db 00c0 0e43 lr          $AR0, @0x0e43
+	09dd 0081 0b99 lri         $AR1, #0x0b99
+	09df 00c2 0e0d lr          $AR2, @0x0e0d
+	09e1 1c62      mrr         $AR3, $AR2
+	09e2 02bf 81f9 call        0x81f9
+	09e4 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	09e6 029f 0977 jmp         0x0977
+	09e8 00c0 0e43 lr          $AR0, @0x0e43
+	09ea 0081 0b99 lri         $AR1, #0x0b99
+	09ec 00c2 0e0d lr          $AR2, @0x0e0d
+	09ee 1c62      mrr         $AR3, $AR2
+	09ef 02bf 81f9 call        0x81f9
+	09f1 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	09f3 029f 0983 jmp         0x0983
+	09f5 00c0 0e43 lr          $AR0, @0x0e43
+	09f7 0081 0b99 lri         $AR1, #0x0b99
+	09f9 00c2 0e0d lr          $AR2, @0x0e0d
+	09fb 1c62      mrr         $AR3, $AR2
+	09fc 02bf 81f9 call        0x81f9
+	09fe 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a00 029f 0995 jmp         0x0995
+	0a02 00c0 0e43 lr          $AR0, @0x0e43
+	0a04 0081 0b99 lri         $AR1, #0x0b99
+	0a06 00c2 0e0d lr          $AR2, @0x0e0d
+	0a08 1c62      mrr         $AR3, $AR2
+	0a09 02bf 81f9 call        0x81f9
+	0a0b 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a0d 029f 09a2 jmp         0x09a2
+	0a0f 00c0 0e43 lr          $AR0, @0x0e43
+	0a11 0081 0b99 lri         $AR1, #0x0b99
+	0a13 00c2 0e0d lr          $AR2, @0x0e0d
+	0a15 1c62      mrr         $AR3, $AR2
+	0a16 02bf 81f9 call        0x81f9
+	0a18 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a1a 029f 09af jmp         0x09af
+	0a1c 00c0 0e43 lr          $AR0, @0x0e43
+	0a1e 0081 0b99 lri         $AR1, #0x0b99
+	0a20 00c2 0e0d lr          $AR2, @0x0e0d
+	0a22 0083 0e48 lri         $AR3, #0x0e48
+	0a24 02bf 845d call        0x845d
+	0a26 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a28 02df      ret         
+	0a29 00c0 0e43 lr          $AR0, @0x0e43
+	0a2b 0081 0b99 lri         $AR1, #0x0b99
+	0a2d 00c2 0e0d lr          $AR2, @0x0e0d
+	0a2f 0083 0e48 lri         $AR3, #0x0e48
+	0a31 02bf 845d call        0x845d
+	0a33 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a35 029f 096b jmp         0x096b
+	0a37 00c0 0e43 lr          $AR0, @0x0e43
+	0a39 0081 0b99 lri         $AR1, #0x0b99
+	0a3b 00c2 0e0d lr          $AR2, @0x0e0d
+	0a3d 0083 0e48 lri         $AR3, #0x0e48
+	0a3f 02bf 845d call        0x845d
+	0a41 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a43 029f 0977 jmp         0x0977
+	0a45 00c0 0e43 lr          $AR0, @0x0e43
+	0a47 0081 0b99 lri         $AR1, #0x0b99
+	0a49 00c2 0e0d lr          $AR2, @0x0e0d
+	0a4b 0083 0e48 lri         $AR3, #0x0e48
+	0a4d 02bf 845d call        0x845d
+	0a4f 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a51 029f 0983 jmp         0x0983
+	0a53 00c0 0e43 lr          $AR0, @0x0e43
+	0a55 0081 0b99 lri         $AR1, #0x0b99
+	0a57 00c2 0e0d lr          $AR2, @0x0e0d
+	0a59 0083 0e48 lri         $AR3, #0x0e48
+	0a5b 02bf 845d call        0x845d
+	0a5d 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a5f 029f 0995 jmp         0x0995
+	0a61 00c0 0e43 lr          $AR0, @0x0e43
+	0a63 0081 0b99 lri         $AR1, #0x0b99
+	0a65 00c2 0e0d lr          $AR2, @0x0e0d
+	0a67 0083 0e48 lri         $AR3, #0x0e48
+	0a69 02bf 845d call        0x845d
+	0a6b 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a6d 029f 09a2 jmp         0x09a2
+	0a6f 00c0 0e43 lr          $AR0, @0x0e43
+	0a71 0081 0b99 lri         $AR1, #0x0b99
+	0a73 00c2 0e0d lr          $AR2, @0x0e0d
+	0a75 0083 0e48 lri         $AR3, #0x0e48
+	0a77 02bf 845d call        0x845d
+	0a79 00f8 0bb0 sr          @0x0bb0, $AX0.L
+	0a7b 029f 09af jmp         0x09af
+	0a7d 00c0 0e40 lr          $AR0, @0x0e40
+	0a7f 0081 0b91 lri         $AR1, #0x0b91
+	0a81 00c2 0e0e lr          $AR2, @0x0e0e
+	0a83 1c62      mrr         $AR3, $AR2
+	0a84 02bf 81f9 call        0x81f9
+	0a86 00f8 0bab sr          @0x0bab, $AX0.L
+	0a88 02df      ret         
+	0a89 00c0 0e41 lr          $AR0, @0x0e41
+	0a8b 0081 0b93 lri         $AR1, #0x0b93
+	0a8d 00c2 0e0f lr          $AR2, @0x0e0f
+	0a8f 1c62      mrr         $AR3, $AR2
+	0a90 02bf 81f9 call        0x81f9
+	0a92 00f8 0bae sr          @0x0bae, $AX0.L
+	0a94 02df      ret         
+	0a95 00c0 0e40 lr          $AR0, @0x0e40
+	0a97 0081 0b91 lri         $AR1, #0x0b91
+	0a99 00c2 0e0e lr          $AR2, @0x0e0e
+	0a9b 1c62      mrr         $AR3, $AR2
+	0a9c 00c4 0e41 lr          $IX0, @0x0e41
+	0a9e 00c5 0e0f lr          $IX1, @0x0e0f
+	0aa0 02bf 80e7 call        0x80e7
+	0aa2 00f8 0bab sr          @0x0bab, $AX0.L
+	0aa4 00fb 0bae sr          @0x0bae, $AX1.H
+	0aa6 02df      ret         
+	0aa7 00c0 0e40 lr          $AR0, @0x0e40
+	0aa9 0081 0b91 lri         $AR1, #0x0b91
+	0aab 00c2 0e0e lr          $AR2, @0x0e0e
+	0aad 0083 0e48 lri         $AR3, #0x0e48
+	0aaf 02bf 845d call        0x845d
+	0ab1 00f8 0bab sr          @0x0bab, $AX0.L
+	0ab3 02df      ret         
+	0ab4 00c0 0e41 lr          $AR0, @0x0e41
+	0ab6 0081 0b93 lri         $AR1, #0x0b93
+	0ab8 00c2 0e0f lr          $AR2, @0x0e0f
+	0aba 0083 0e48 lri         $AR3, #0x0e48
+	0abc 02bf 845d call        0x845d
+	0abe 00f8 0bae sr          @0x0bae, $AX0.L
+	0ac0 02df      ret         
+	0ac1 00c0 0e40 lr          $AR0, @0x0e40
+	0ac3 0081 0b91 lri         $AR1, #0x0b91
+	0ac5 00c2 0e0e lr          $AR2, @0x0e0e
+	0ac7 0083 0e48 lri         $AR3, #0x0e48
+	0ac9 00c4 0e41 lr          $IX0, @0x0e41
+	0acb 00c5 0e0f lr          $IX1, @0x0e0f
+	0acd 02bf 8282 call        0x8282
+	0acf 00f8 0bab sr          @0x0bab, $AX0.L
+	0ad1 00fb 0bae sr          @0x0bae, $AX1.H
+	0ad3 02df      ret         
+	0ad4 00c0 0e43 lr          $AR0, @0x0e43
+	0ad6 0081 0b95 lri         $AR1, #0x0b95
+	0ad8 00c2 0e10 lr          $AR2, @0x0e10
+	0ada 1c62      mrr         $AR3, $AR2
+	0adb 02bf 81f9 call        0x81f9
+	0add 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0adf 02df      ret         
+	0ae0 00c0 0e43 lr          $AR0, @0x0e43
+	0ae2 0081 0b95 lri         $AR1, #0x0b95
+	0ae4 00c2 0e10 lr          $AR2, @0x0e10
+	0ae6 1c62      mrr         $AR3, $AR2
+	0ae7 02bf 81f9 call        0x81f9
+	0ae9 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0aeb 029f 0a7d jmp         0x0a7d
+	0aed 00c0 0e43 lr          $AR0, @0x0e43
+	0aef 0081 0b95 lri         $AR1, #0x0b95
+	0af1 00c2 0e10 lr          $AR2, @0x0e10
+	0af3 1c62      mrr         $AR3, $AR2
+	0af4 02bf 81f9 call        0x81f9
+	0af6 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0af8 029f 0a89 jmp         0x0a89
+	0afa 00c0 0e43 lr          $AR0, @0x0e43
+	0afc 0081 0b95 lri         $AR1, #0x0b95
+	0afe 00c2 0e10 lr          $AR2, @0x0e10
+	0b00 1c62      mrr         $AR3, $AR2
+	0b01 02bf 81f9 call        0x81f9
+	0b03 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b05 029f 0a95 jmp         0x0a95
+	0b07 00c0 0e43 lr          $AR0, @0x0e43
+	0b09 0081 0b95 lri         $AR1, #0x0b95
+	0b0b 00c2 0e10 lr          $AR2, @0x0e10
+	0b0d 1c62      mrr         $AR3, $AR2
+	0b0e 02bf 81f9 call        0x81f9
+	0b10 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b12 029f 0aa7 jmp         0x0aa7
+	0b14 00c0 0e43 lr          $AR0, @0x0e43
+	0b16 0081 0b95 lri         $AR1, #0x0b95
+	0b18 00c2 0e10 lr          $AR2, @0x0e10
+	0b1a 1c62      mrr         $AR3, $AR2
+	0b1b 02bf 81f9 call        0x81f9
+	0b1d 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b1f 029f 0ab4 jmp         0x0ab4
+	0b21 00c0 0e43 lr          $AR0, @0x0e43
+	0b23 0081 0b95 lri         $AR1, #0x0b95
+	0b25 00c2 0e10 lr          $AR2, @0x0e10
+	0b27 1c62      mrr         $AR3, $AR2
+	0b28 02bf 81f9 call        0x81f9
+	0b2a 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b2c 029f 0ac1 jmp         0x0ac1
+	0b2e 00c0 0e43 lr          $AR0, @0x0e43
+	0b30 0081 0b95 lri         $AR1, #0x0b95
+	0b32 00c2 0e10 lr          $AR2, @0x0e10
+	0b34 0083 0e48 lri         $AR3, #0x0e48
+	0b36 02bf 845d call        0x845d
+	0b38 02df      ret         
+	0b39 00c0 0e43 lr          $AR0, @0x0e43
+	0b3b 0081 0b95 lri         $AR1, #0x0b95
+	0b3d 00c2 0e10 lr          $AR2, @0x0e10
+	0b3f 0083 0e48 lri         $AR3, #0x0e48
+	0b41 02bf 845d call        0x845d
+	0b43 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b45 029f 0a7d jmp         0x0a7d
+	0b47 00c0 0e43 lr          $AR0, @0x0e43
+	0b49 0081 0b95 lri         $AR1, #0x0b95
+	0b4b 00c2 0e10 lr          $AR2, @0x0e10
+	0b4d 0083 0e48 lri         $AR3, #0x0e48
+	0b4f 02bf 845d call        0x845d
+	0b51 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b53 029f 0a89 jmp         0x0a89
+	0b55 00c0 0e43 lr          $AR0, @0x0e43
+	0b57 0081 0b95 lri         $AR1, #0x0b95
+	0b59 00c2 0e10 lr          $AR2, @0x0e10
+	0b5b 0083 0e48 lri         $AR3, #0x0e48
+	0b5d 02bf 845d call        0x845d
+	0b5f 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b61 029f 0a95 jmp         0x0a95
+	0b63 00c0 0e43 lr          $AR0, @0x0e43
+	0b65 0081 0b95 lri         $AR1, #0x0b95
+	0b67 00c2 0e10 lr          $AR2, @0x0e10
+	0b69 0083 0e48 lri         $AR3, #0x0e48
+	0b6b 02bf 845d call        0x845d
+	0b6d 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b6f 029f 0aa7 jmp         0x0aa7
+	0b71 00c0 0e43 lr          $AR0, @0x0e43
+	0b73 0081 0b95 lri         $AR1, #0x0b95
+	0b75 00c2 0e10 lr          $AR2, @0x0e10
+	0b77 0083 0e48 lri         $AR3, #0x0e48
+	0b79 02bf 845d call        0x845d
+	0b7b 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b7d 029f 0ab4 jmp         0x0ab4
+	0b7f 00c0 0e43 lr          $AR0, @0x0e43
+	0b81 0081 0b95 lri         $AR1, #0x0b95
+	0b83 00c2 0e10 lr          $AR2, @0x0e10
+	0b85 0083 0e48 lri         $AR3, #0x0e48
+	0b87 02bf 845d call        0x845d
+	0b89 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0b8b 029f 0ac1 jmp         0x0ac1
+	0b8d 00c0 0e43 lr          $AR0, @0x0e43
+	0b8f 0081 0b91 lri         $AR1, #0x0b91
+	0b91 00c2 0e0e lr          $AR2, @0x0e0e
+	0b93 1c62      mrr         $AR3, $AR2
+	0b94 02bf 81f9 call        0x81f9
+	0b96 00f8 0bab sr          @0x0bab, $AX0.L
+	0b98 02df      ret         
+	0b99 00c0 0e43 lr          $AR0, @0x0e43
+	0b9b 0081 0b93 lri         $AR1, #0x0b93
+	0b9d 00c2 0e0f lr          $AR2, @0x0e0f
+	0b9f 1c62      mrr         $AR3, $AR2
+	0ba0 02bf 81f9 call        0x81f9
+	0ba2 00f8 0bae sr          @0x0bae, $AX0.L
+	0ba4 02df      ret         
+	0ba5 00c0 0e43 lr          $AR0, @0x0e43
+	0ba7 0081 0b91 lri         $AR1, #0x0b91
+	0ba9 00c2 0e0e lr          $AR2, @0x0e0e
+	0bab 1c62      mrr         $AR3, $AR2
+	0bac 00c4 0e43 lr          $IX0, @0x0e43
+	0bae 00c5 0e0f lr          $IX1, @0x0e0f
+	0bb0 02bf 80e7 call        0x80e7
+	0bb2 00f8 0bab sr          @0x0bab, $AX0.L
+	0bb4 00fb 0bae sr          @0x0bae, $AX1.H
+	0bb6 02df      ret         
+	0bb7 00c0 0e43 lr          $AR0, @0x0e43
+	0bb9 0081 0b91 lri         $AR1, #0x0b91
+	0bbb 00c2 0e0e lr          $AR2, @0x0e0e
+	0bbd 0083 0e48 lri         $AR3, #0x0e48
+	0bbf 02bf 845d call        0x845d
+	0bc1 00f8 0bab sr          @0x0bab, $AX0.L
+	0bc3 02df      ret         
+	0bc4 00c0 0e43 lr          $AR0, @0x0e43
+	0bc6 0081 0b93 lri         $AR1, #0x0b93
+	0bc8 00c2 0e0f lr          $AR2, @0x0e0f
+	0bca 0083 0e48 lri         $AR3, #0x0e48
+	0bcc 02bf 845d call        0x845d
+	0bce 00f8 0bae sr          @0x0bae, $AX0.L
+	0bd0 02df      ret         
+	0bd1 00c0 0e43 lr          $AR0, @0x0e43
+	0bd3 0081 0b91 lri         $AR1, #0x0b91
+	0bd5 00c2 0e0e lr          $AR2, @0x0e0e
+	0bd7 0083 0e48 lri         $AR3, #0x0e48
+	0bd9 00c4 0e43 lr          $IX0, @0x0e43
+	0bdb 00c5 0e0f lr          $IX1, @0x0e0f
+	0bdd 02bf 8282 call        0x8282
+	0bdf 00f8 0bab sr          @0x0bab, $AX0.L
+	0be1 00fb 0bae sr          @0x0bae, $AX1.H
+	0be3 02df      ret         
+	0be4 00c0 0e43 lr          $AR0, @0x0e43
+	0be6 0081 0b95 lri         $AR1, #0x0b95
+	0be8 00c2 0e10 lr          $AR2, @0x0e10
+	0bea 1c62      mrr         $AR3, $AR2
+	0beb 02bf 81f9 call        0x81f9
+	0bed 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0bef 029f 0b8d jmp         0x0b8d
+	0bf1 00c0 0e43 lr          $AR0, @0x0e43
+	0bf3 0081 0b95 lri         $AR1, #0x0b95
+	0bf5 00c2 0e10 lr          $AR2, @0x0e10
+	0bf7 1c62      mrr         $AR3, $AR2
+	0bf8 02bf 81f9 call        0x81f9
+	0bfa 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0bfc 029f 0b99 jmp         0x0b99
+	0bfe 00c0 0e43 lr          $AR0, @0x0e43
+	0c00 0081 0b95 lri         $AR1, #0x0b95
+	0c02 00c2 0e10 lr          $AR2, @0x0e10
+	0c04 1c62      mrr         $AR3, $AR2
+	0c05 02bf 81f9 call        0x81f9
+	0c07 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c09 029f 0ba5 jmp         0x0ba5
+	0c0b 00c0 0e43 lr          $AR0, @0x0e43
+	0c0d 0081 0b95 lri         $AR1, #0x0b95
+	0c0f 00c2 0e10 lr          $AR2, @0x0e10
+	0c11 1c62      mrr         $AR3, $AR2
+	0c12 02bf 81f9 call        0x81f9
+	0c14 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c16 029f 0bb7 jmp         0x0bb7
+	0c18 00c0 0e43 lr          $AR0, @0x0e43
+	0c1a 0081 0b95 lri         $AR1, #0x0b95
+	0c1c 00c2 0e10 lr          $AR2, @0x0e10
+	0c1e 1c62      mrr         $AR3, $AR2
+	0c1f 02bf 81f9 call        0x81f9
+	0c21 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c23 029f 0bc4 jmp         0x0bc4
+	0c25 00c0 0e43 lr          $AR0, @0x0e43
+	0c27 0081 0b95 lri         $AR1, #0x0b95
+	0c29 00c2 0e10 lr          $AR2, @0x0e10
+	0c2b 1c62      mrr         $AR3, $AR2
+	0c2c 02bf 81f9 call        0x81f9
+	0c2e 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c30 029f 0bd1 jmp         0x0bd1
+	0c32 00c0 0e43 lr          $AR0, @0x0e43
+	0c34 0081 0b95 lri         $AR1, #0x0b95
+	0c36 00c2 0e10 lr          $AR2, @0x0e10
+	0c38 0083 0e48 lri         $AR3, #0x0e48
+	0c3a 02bf 845d call        0x845d
+	0c3c 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c3e 029f 0b8d jmp         0x0b8d
+	0c40 00c0 0e43 lr          $AR0, @0x0e43
+	0c42 0081 0b95 lri         $AR1, #0x0b95
+	0c44 00c2 0e10 lr          $AR2, @0x0e10
+	0c46 0083 0e48 lri         $AR3, #0x0e48
+	0c48 02bf 845d call        0x845d
+	0c4a 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c4c 029f 0b99 jmp         0x0b99
+	0c4e 00c0 0e43 lr          $AR0, @0x0e43
+	0c50 0081 0b95 lri         $AR1, #0x0b95
+	0c52 00c2 0e10 lr          $AR2, @0x0e10
+	0c54 0083 0e48 lri         $AR3, #0x0e48
+	0c56 02bf 845d call        0x845d
+	0c58 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c5a 029f 0ba5 jmp         0x0ba5
+	0c5c 00c0 0e43 lr          $AR0, @0x0e43
+	0c5e 0081 0b95 lri         $AR1, #0x0b95
+	0c60 00c2 0e10 lr          $AR2, @0x0e10
+	0c62 0083 0e48 lri         $AR3, #0x0e48
+	0c64 02bf 845d call        0x845d
+	0c66 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c68 029f 0bb7 jmp         0x0bb7
+	0c6a 00c0 0e43 lr          $AR0, @0x0e43
+	0c6c 0081 0b95 lri         $AR1, #0x0b95
+	0c6e 00c2 0e10 lr          $AR2, @0x0e10
+	0c70 0083 0e48 lri         $AR3, #0x0e48
+	0c72 02bf 845d call        0x845d
+	0c74 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c76 029f 0bc4 jmp         0x0bc4
+	0c78 00c0 0e43 lr          $AR0, @0x0e43
+	0c7a 0081 0b95 lri         $AR1, #0x0b95
+	0c7c 00c2 0e10 lr          $AR2, @0x0e10
+	0c7e 0083 0e48 lri         $AR3, #0x0e48
+	0c80 02bf 845d call        0x845d
+	0c82 00f8 0bb1 sr          @0x0bb1, $AX0.L
+	0c84 029f 0bd1 jmp         0x0bd1
+
+// Is this a jump table??
+	0c86 0118      cw          0x0118		; *** UNKNOWN OPCODE ***
+	0c87 01d4      cw          0x01d4		; *** UNKNOWN OPCODE ***
+	0c88 0252      cw          0x0252		; *** UNKNOWN OPCODE ***
+	0c89 02f8      cw          0x02f8		; *** UNKNOWN OPCODE ***
+	0c8a 0509      addis       $ACC1, #0x09
+	0c8b 051d      addis       $ACC1, #0x1d
+	0c8c 01fb      cw          0x01fb		; *** UNKNOWN OPCODE ***
+	0c8d 066a      cmpis       $ACC0, #0x6a
+	0c8e 0d10      lris        $AC1.L, #0x10
+	0c8f 01f5      cw          0x01f5		; *** UNKNOWN OPCODE ***
+	0c90 056e      addis       $ACC1, #0x6e
+	0c91 056a      addis       $ACC1, #0x6a
+	0c92 056c      addis       $ACC1, #0x6c
+	0c93 023f      cw          0x023f		; *** UNKNOWN OPCODE ***
+	0c94 0531      addis       $ACC1, #0x31
+	0c95 0570      addis       $ACC1, #0x70
+	0c96 0d8a      lris        $AC1.L, #0x8a
+	0c97 020b      cw          0x020b		; *** UNKNOWN OPCODE ***
+
+	0c98 0082 0e00 lri         $AR2, #0x0e00
+	0c9a 085e      lris        $AX0.L, #0x5e
+	0c9b 085f      lris        $AX0.L, #0x5f
+	0c9c 086b      lris        $AX0.L, #0x6b
+	0c9d 0877      lris        $AX0.L, #0x77
+	0c9e 0889      lris        $AX0.L, #0x89
+	0c9f 0895      lris        $AX0.L, #0x95
+	0ca0 08ac      lris        $AX0.L, #0xac
+	0ca1 08c3      lris        $AX0.L, #0xc3
+	0ca2 085e      lris        $AX0.L, #0x5e
+	0ca3 08e0      lris        $AX0.L, #0xe0
+	0ca4 08ed      lris        $AX0.L, #0xed
+	0ca5 08fa      lris        $AX0.L, #0xfa
+	0ca6 090d      lris        $AX1.L, #0x0d
+	0ca7 091a      lris        $AX1.L, #0x1a
+	0ca8 0933      lris        $AX1.L, #0x33
+	0ca9 094c      lris        $AX1.L, #0x4c
+	0caa 085e      lris        $AX0.L, #0x5e
+	0cab 096b      lris        $AX1.L, #0x6b
+	0cac 0977      lris        $AX1.L, #0x77
+	0cad 0983      lris        $AX1.L, #0x83
+	0cae 085e      lris        $AX0.L, #0x5e
+	0caf 0995      lris        $AX1.L, #0x95
+	0cb0 09a2      lris        $AX1.L, #0xa2
+	0cb1 09af      lris        $AX1.L, #0xaf
+	0cb2 09c2      lris        $AX1.L, #0xc2
+	0cb3 09ce      lris        $AX1.L, #0xce
+	0cb4 09db      lris        $AX1.L, #0xdb
+	0cb5 09e8      lris        $AX1.L, #0xe8
+	0cb6 09c2      lris        $AX1.L, #0xc2
+	0cb7 09f5      lris        $AX1.L, #0xf5
+	0cb8 0a02      lris        $AX0.H, #0x02
+	0cb9 0a0f      lris        $AX0.H, #0x0f
+	0cba 085e      lris        $AX0.L, #0x5e
+	0cbb 096b      lris        $AX1.L, #0x6b
+	0cbc 0977      lris        $AX1.L, #0x77
+	0cbd 0983      lris        $AX1.L, #0x83
+	0cbe 085e      lris        $AX0.L, #0x5e
+	0cbf 0995      lris        $AX1.L, #0x95
+	0cc0 09a2      lris        $AX1.L, #0xa2
+	0cc1 09af      lris        $AX1.L, #0xaf
+	0cc2 0a1c      lris        $AX0.H, #0x1c
+	0cc3 0a29      lris        $AX0.H, #0x29
+	0cc4 0a37      lris        $AX0.H, #0x37
+	0cc5 0a45      lris        $AX0.H, #0x45
+	0cc6 0a1c      lris        $AX0.H, #0x1c
+	0cc7 0a53      lris        $AX0.H, #0x53
+	0cc8 0a61      lris        $AX0.H, #0x61
+	0cc9 0a6f      lris        $AX0.H, #0x6f
+	0cca 085e      lris        $AX0.L, #0x5e
+	0ccb 0a7d      lris        $AX0.H, #0x7d
+	0ccc 0a89      lris        $AX0.H, #0x89
+	0ccd 0a95      lris        $AX0.H, #0x95
+	0cce 085e      lris        $AX0.L, #0x5e
+	0ccf 0aa7      lris        $AX0.H, #0xa7
+	0cd0 0ab4      lris        $AX0.H, #0xb4
+	0cd1 0ac1      lris        $AX0.H, #0xc1
+	0cd2 0ad4      lris        $AX0.H, #0xd4
+	0cd3 0ae0      lris        $AX0.H, #0xe0
+	0cd4 0aed      lris        $AX0.H, #0xed
+	0cd5 0afa      lris        $AX0.H, #0xfa
+	0cd6 0ad4      lris        $AX0.H, #0xd4
+	0cd7 0b07      lris        $AX1.H, #0x07
+	0cd8 0b14      lris        $AX1.H, #0x14
+	0cd9 0b21      lris        $AX1.H, #0x21
+	0cda 085e      lris        $AX0.L, #0x5e
+	0cdb 0a7d      lris        $AX0.H, #0x7d
+	0cdc 0a89      lris        $AX0.H, #0x89
+	0cdd 0a95      lris        $AX0.H, #0x95
+	0cde 085e      lris        $AX0.L, #0x5e
+	0cdf 0aa7      lris        $AX0.H, #0xa7
+	0ce0 0ab4      lris        $AX0.H, #0xb4
+	0ce1 0ac1      lris        $AX0.H, #0xc1
+	0ce2 0b2e      lris        $AX1.H, #0x2e
+	0ce3 0b39      lris        $AX1.H, #0x39
+	0ce4 0b47      lris        $AX1.H, #0x47
+	0ce5 0b55      lris        $AX1.H, #0x55
+	0ce6 0b2e      lris        $AX1.H, #0x2e
+	0ce7 0b63      lris        $AX1.H, #0x63
+	0ce8 0b71      lris        $AX1.H, #0x71
+	0ce9 0b7f      lris        $AX1.H, #0x7f
+	0cea 085e      lris        $AX0.L, #0x5e
+	0ceb 0b8d      lris        $AX1.H, #0x8d
+	0cec 0b99      lris        $AX1.H, #0x99
+	0ced 0ba5      lris        $AX1.H, #0xa5
+	0cee 085e      lris        $AX0.L, #0x5e
+	0cef 0bb7      lris        $AX1.H, #0xb7
+	0cf0 0bc4      lris        $AX1.H, #0xc4
+	0cf1 0bd1      lris        $AX1.H, #0xd1
+	0cf2 0ad4      lris        $AX0.H, #0xd4
+	0cf3 0be4      lris        $AX1.H, #0xe4
+	0cf4 0bf1      lris        $AX1.H, #0xf1
+	0cf5 0bfe      lris        $AX1.H, #0xfe
+	0cf6 0ad4      lris        $AX0.H, #0xd4
+	0cf7 0c0b      lris        $AC0.L, #0x0b
+	0cf8 0c18      lris        $AC0.L, #0x18
+	0cf9 0c25      lris        $AC0.L, #0x25
+	0cfa 085e      lris        $AX0.L, #0x5e
+	0cfb 0b8d      lris        $AX1.H, #0x8d
+	0cfc 0b99      lris        $AX1.H, #0x99
+	0cfd 0ba5      lris        $AX1.H, #0xa5
+	0cfe 085e      lris        $AX0.L, #0x5e
+	0cff 0bb7      lris        $AX1.H, #0xb7
+	0d00 0bc4      lris        $AX1.H, #0xc4
+	0d01 0bd1      lris        $AX1.H, #0xd1
+	0d02 0b2e      lris        $AX1.H, #0x2e
+	0d03 0c32      lris        $AC0.L, #0x32
+	0d04 0c40      lris        $AC0.L, #0x40
+	0d05 0c4e      lris        $AC0.L, #0x4e
+	0d06 0b2e      lris        $AX1.H, #0x2e
+	0d07 0c5c      lris        $AC0.L, #0x5c
+	0d08 0c6a      lris        $AC0.L, #0x6a
+	0d09 0c78      lris        $AC0.L, #0x78
+	0d0a 069e      cmpis       $ACC0, #0x9e
+	0d0b 0753      cmpis       $ACC1, #0x53
+	0d0c 07fd      cmpis       $ACC1, #0xfd
+	0d0d 1000      loopi       #0x00
+	0d0e 1200      sbclr       #0x00
+	0d0f 1400      lsl         $ACC0, #0
+	0d10 8e00      set16       
+	0d11 8100      clr         $ACC0
+	0d12 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0d13 191c      lrri        $AC0.L, @$AR0
+	0d14 2ece      srs         @DSMAH, $AC0.M
+	0d15 2ccf      srs         @DSMAL, $AC0.L
+	0d16 16cd 0e80 si          @DSPA, #0x0e80
+	0d18 16c9 0000 si          @DSCR, #0x0000
+	0d1a 16cb 0100 si          @DSBL, #0x0100
+	0d1c 1f7e      mrr         $AX1.H, $AC0.M
+	0d1d 1f3c      mrr         $AX1.L, $AC0.L
+	0d1e 8100      clr         $ACC0
+	0d1f 26c9      lrs         $AC0.M, @DSCR
+	0d20 02a0 0004 andf        $AC0.M, #0x0004
+	0d22 029c 0d1f jlnz        0x0d1f
+	0d24 191e      lrri        $AC0.M, @$AR0
+	0d25 191c      lrri        $AC0.L, @$AR0
+	0d26 2ece      srs         @DSMAH, $AC0.M
+	0d27 2ccf      srs         @DSMAL, $AC0.L
+	0d28 16cd 0280 si          @DSPA, #0x0280
+	0d2a 16c9 0000 si          @DSCR, #0x0000
+	0d2c 16cb 0280 si          @DSBL, #0x0280
+	0d2e 1c80      mrr         $IX0, $AR0
+	0d2f 0080 0280 lri         $AR0, #0x0280
+	0d31 00c1 0e1b lr          $AR1, @0x0e1b
+	0d33 0085 0000 lri         $IX1, #0x0000
+	0d35 0089 007f lri         $WR1, #0x007f
+	0d37 0082 0f00 lri         $AR2, #0x0f00
+	0d39 0083 16b4 lri         $AR3, #0x16b4
+	0d3b 1ce3      mrr         $IX3, $AR3
+	0d3c 8100      clr         $ACC0
+	0d3d 26c9      lrs         $AC0.M, @DSCR
+	0d3e 02a0 0004 andf        $AC0.M, #0x0004
+	0d40 029c 0d3d jlnz        0x0d3d
+	0d42 8f00      set40       
+	0d43 8a78      m2'l        : $AC1.M, @$AR0
+	0d44 8c68      clr15'l     : $AC1.L, @$AR0
+	0d45 f100      lsl16       $ACC1
+	0d46 1a3f      srr         @$AR1, $AC1.M
+	0d47 84e3      clrp'ld     : $AX0.H, $AX1.L, @$AR3
+	0d48 107e      loopi       #0x7e
+	0d49 f2e3      madd'ld     $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d4a f2e7      madd'ldn    $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d4b f278      madd'l      $AX0.L, $AX0.H : $AC1.M, @$AR0
+	0d4c 6e68      movp'l      $ACC0 : $AC1.L, @$AR0
+	0d4d f132      lsl16's     $ACC1 : @$AR2, $AC0.M
+	0d4e 1a3f      srr         @$AR1, $AC1.M
+	0d4f 119e 0d59 bloopi      #0x9e, 0x0d59
+	0d51 1c67      mrr         $AR3, $IX3
+	0d52 84e3      clrp'ld     : $AX0.H, $AX1.L, @$AR3
+	0d53 107e      loopi       #0x7e
+	0d54 f2e3      madd'ld     $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d55 f2e7      madd'ldn    $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d56 f278      madd'l      $AX0.L, $AX0.H : $AC1.M, @$AR0
+	0d57 6e68      movp'l      $ACC0 : $AC1.L, @$AR0
+	0d58 f132      lsl16's     $ACC1 : @$AR2, $AC0.M
+	0d59 1a3f      srr         @$AR1, $AC1.M
+	0d5a 1c67      mrr         $AR3, $IX3
+	0d5b 84e3      clrp'ld     : $AX0.H, $AX1.L, @$AR3
+	0d5c 107e      loopi       #0x7e
+	0d5d f2e3      madd'ld     $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d5e f2e7      madd'ldn    $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+	0d5f f200      madd        $AX0.L, $AX0.H
+	0d60 6e00      movp        $ACC0
+	0d61 1b5e      srri        @$AR2, $AC0.M
+	0d62 00e1 0e1b sr          @0x0e1b, $AR1
+	0d64 0080 0280 lri         $AR0, #0x0280
+	0d66 0083 0f00 lri         $AR3, #0x0f00
+	0d68 0081 0000 lri         $AR1, #0x0000
+	0d6a 0082 0140 lri         $AR2, #0x0140
+	0d6c 0089 ffff lri         $WR1, #0xffff
+	0d6e 8900      clr         $ACC1
+	0d6f 8100      clr         $ACC0
+	0d70 8f00      set40       
+	0d71 11a0 0d79 bloopi      #0xa0, 0x0d79
+	0d73 197f      lrri        $AC1.M, @$AR3
+	0d74 9930      asr16's     $ACC1 : @$AR0, $AC0.M
+	0d75 1b1e      srri        @$AR0, $AC0.M
+	0d76 1b3f      srri        @$AR1, $AC1.M
+	0d77 7d29      neg's       $ACC1 : @$AR1, $AC1.L
+	0d78 1b5f      srri        @$AR2, $AC1.M
+	0d79 1b5d      srri        @$AR2, $AC1.L
+	0d7a 8e00      set16       
+	0d7b 1fdb      mrr         $AC0.M, $AX1.H
+	0d7c 1f99      mrr         $AC0.L, $AX1.L
+	0d7d 2ece      srs         @DSMAH, $AC0.M
+	0d7e 2ccf      srs         @DSMAL, $AC0.L
+	0d7f 16cd 0e80 si          @DSPA, #0x0e80
+	0d81 16c9 0001 si          @DSCR, #0x0001
+	0d83 16cb 0100 si          @DSBL, #0x0100
+	0d85 02bf 0652 call        0652_WaitDMA
+	0d87 1c04      mrr         $AR0, $IX0
+	0d88 029f 0068 jmp         0x0068
+	0d8a 8e00      set16       
+	0d8b 8100      clr         $ACC0
+	0d8c 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0d8d 191c      lrri        $AC0.L, @$AR0
+	0d8e 2ece      srs         @DSMAH, $AC0.M
+	0d8f 2ccf      srs         @DSMAL, $AC0.L
+	0d90 16cd 07c0 si          @DSPA, #0x07c0
+	0d92 16c9 0001 si          @DSCR, #0x0001
+	0d94 16cb 0500 si          @DSBL, #0x0500
+	0d96 02bf 0652 call        0652_WaitDMA
+	0d98 8100      clr         $ACC0
+	0d99 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0d9a 191c      lrri        $AC0.L, @$AR0
+	0d9b 2ece      srs         @DSMAH, $AC0.M
+	0d9c 2ccf      srs         @DSMAL, $AC0.L
+	0d9d 16cd 07c0 si          @DSPA, #0x07c0
+	0d9f 16c9 0000 si          @DSCR, #0x0000
+	0da1 8900      clr         $ACC1
+	0da2 0d20      lris        $AC1.L, #0x20
+	0da3 2dcb      srs         @DSBL, $AC1.L
+	0da4 4c00      add         $ACC0, $ACC1
+	0da5 1c80      mrr         $IX0, $AR0
+	0da6 0080 07c0 lri         $AR0, #0x07c0
+	0da8 0083 0000 lri         $AR3, #0x0000
+	0daa 1c43      mrr         $AR2, $AR3
+	0dab 0a00      lris        $AX0.H, #0x00
+	0dac 27c9      lrs         $AC1.M, @DSCR
+	0dad 03a0 0004 andf        $AC1.M, #0x0004
+	0daf 029c 0dac jlnz        0x0dac
+	0db1 2ece      srs         @DSMAH, $AC0.M
+	0db2 2ccf      srs         @DSMAL, $AC0.L
+	0db3 16cd 07d0 si          @DSPA, #0x07d0
+	0db5 16c9 0000 si          @DSCR, #0x0000
+	0db7 16cb 04e0 si          @DSBL, #0x04e0
+	0db9 8f00      set40       
+	0dba 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dbb 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dbc 6a00      movax       $ACC0, $AX1.L
+	0dbd 4800      addax       $ACC0, $AX0.L
+	0dbe 114f 0dc7 bloopi      #0x4f, 0x0dc7
+	0dc0 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dc1 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dc2 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	0dc3 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	0dc4 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dc5 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dc6 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
+	0dc7 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+	0dc8 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dc9 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dca 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	0dcb 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	0dcc 1b5f      srri        @$AR2, $AC1.M
+	0dcd 1b5d      srri        @$AR2, $AC1.L
+	0dce 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dcf 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dd0 6800      movax       $ACC0, $AX0.L
+	0dd1 7c00      neg         $ACC0
+	0dd2 4a00      addax       $ACC0, $AX1.L
+	0dd3 114f 0dde bloopi      #0x4f, 0x0dde
+	0dd5 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0dd6 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0dd7 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
+	0dd8 7d00      neg         $ACC1
+	0dd9 4b22      addax's     $ACC1, $AX1.L : @$AR2, $AC0.L
+	0dda 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0ddb 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0ddc 683a      movax's     $ACC0, $AX0.L : @$AR2, $AC1.M
+	0ddd 7c00      neg         $ACC0
+	0dde 4a2a      addax's     $ACC0, $AX1.L : @$AR2, $AC1.L
+	0ddf 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+	0de0 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+	0de1 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
+	0de2 7d00      neg         $ACC1
+	0de3 4b22      addax's     $ACC1, $AX1.L : @$AR2, $AC0.L
+	0de4 1b5f      srri        @$AR2, $AC1.M
+	0de5 1b5d      srri        @$AR2, $AC1.L
+	0de6 1c04      mrr         $AR0, $IX0
+	0de7 029f 0068 jmp         0x0068
+	0de9 8f00      set40       
+	0dea 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+	0deb 80c1      nx'ld       : $AX0.L, $AX1.L, @$AR1
+	0dec 6a00      movax       $ACC0, $AX1.L
+	0ded 4800      addax       $ACC0, $AX0.L
+	0dee 114f 0df7 bloopi      #0x4f, 0x0df7
+	0df0 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+	0df1 80c1      nx'ld       : $AX0.L, $AX1.L, @$AR1
+	0df2 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	0df3 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	0df4 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+	0df5 80c1      nx'ld       : $AX0.L, $AX1.L, @$AR1
+	0df6 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
+	0df7 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+	0df8 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+	0df9 80c1      nx'ld       : $AX0.L, $AX1.L, @$AR1
+	0dfa 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+	0dfb 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+	0dfc 1b5f      srri        @$AR2, $AC1.M
+	0dfd 1b5d      srri        @$AR2, $AC1.L
+	0dfe 8e00      set16       
+	0dff 02df      ret         
+	0e00 8e00      set16       
+	0e01 8100      clr         $ACC0
+	0e02 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e03 191c      lrri        $AC0.L, @$AR0
+	0e04 2ece      srs         @DSMAH, $AC0.M
+	0e05 2ccf      srs         @DSMAL, $AC0.L
+	0e06 16cd 0400 si          @DSPA, #0x0400
+	0e08 16c9 0001 si          @DSCR, #0x0001
+	0e0a 16cb 0780 si          @DSBL, #0x0780
+	0e0c 02bf 0652 call        0652_WaitDMA
+	0e0e 8100      clr         $ACC0
+	0e0f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e10 191c      lrri        $AC0.L, @$AR0
+	0e11 2ece      srs         @DSMAH, $AC0.M
+	0e12 2ccf      srs         @DSMAL, $AC0.L
+	0e13 16cd 0a40 si          @DSPA, #0x0a40
+	0e15 16c9 0001 si          @DSCR, #0x0001
+	0e17 16cb 0280 si          @DSBL, #0x0280
+	0e19 02bf 0652 call        0652_WaitDMA
+	0e1b 8100      clr         $ACC0
+	0e1c 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e1d 191c      lrri        $AC0.L, @$AR0
+	0e1e 2ece      srs         @DSMAH, $AC0.M
+	0e1f 2ccf      srs         @DSMAL, $AC0.L
+	0e20 16cd 0e48 si          @DSPA, #0x0e48
+	0e22 16c9 0000 si          @DSCR, #0x0000
+	0e24 16cb 0280 si          @DSBL, #0x0280
+	0e26 0081 0e48 lri         $AR1, #0x0e48
+	0e28 0082 0000 lri         $AR2, #0x0000
+	0e2a 0083 0000 lri         $AR3, #0x0000
+	0e2c 02bf 0652 call        0652_WaitDMA
+	0e2e 02bf 0de9 call        0x0de9
+	0e30 8100      clr         $ACC0
+	0e31 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e32 191c      lrri        $AC0.L, @$AR0
+	0e33 2ece      srs         @DSMAH, $AC0.M
+	0e34 2ccf      srs         @DSMAL, $AC0.L
+	0e35 16cd 0e48 si          @DSPA, #0x0e48
+	0e37 16c9 0000 si          @DSCR, #0x0000
+	0e39 16cb 0280 si          @DSBL, #0x0280
+	0e3b 0081 0e48 lri         $AR1, #0x0e48
+	0e3d 0082 0140 lri         $AR2, #0x0140
+	0e3f 0083 0140 lri         $AR3, #0x0140
+	0e41 02bf 0652 call        0652_WaitDMA
+	0e43 02bf 0de9 call        0x0de9
+	0e45 8100      clr         $ACC0
+	0e46 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e47 191c      lrri        $AC0.L, @$AR0
+	0e48 2ece      srs         @DSMAH, $AC0.M
+	0e49 2ccf      srs         @DSMAL, $AC0.L
+	0e4a 16cd 0e48 si          @DSPA, #0x0e48
+	0e4c 16c9 0000 si          @DSCR, #0x0000
+	0e4e 16cb 0280 si          @DSBL, #0x0280
+	0e50 0081 0e48 lri         $AR1, #0x0e48
+	0e52 0082 07c0 lri         $AR2, #0x07c0
+	0e54 0083 07c0 lri         $AR3, #0x07c0
+	0e56 02bf 0652 call        0652_WaitDMA
+	0e58 02bf 0de9 call        0x0de9
+	0e5a 8100      clr         $ACC0
+	0e5b 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	0e5c 191c      lrri        $AC0.L, @$AR0
+	0e5d 2ece      srs         @DSMAH, $AC0.M
+	0e5e 2ccf      srs         @DSMAL, $AC0.L
+	0e5f 16cd 0e48 si          @DSPA, #0x0e48
+	0e61 16c9 0000 si          @DSCR, #0x0000
+	0e63 16cb 0280 si          @DSBL, #0x0280
+	0e65 0081 0e48 lri         $AR1, #0x0e48
+	0e67 0082 0900 lri         $AR2, #0x0900
+	0e69 0083 0900 lri         $AR3, #0x0900
+	0e6b 02bf 0652 call        0652_WaitDMA
+	0e6d 02bf 0de9 call        0x0de9
+	0e6f 029f 0068 jmp         0x0068
+	
+void 0e71_Int1_Handler() {
+	 0e71 8e00      set16       
+	 0e72 16fc ecc0 si          @DMBH, #0xecc0
+	 0e74 1fcc      mrr         $AC0.M, $ST0
+	 0e75 1d9e      mrr         $ST0, $AC0.M
+	 0e76 2efd      srs         @DMBL, $AC0.M
+	 do {
+	 // 0e77 26fc      lrs         $AC0.M, @DMBH
+	 // 0e78 02a0 8000 andf        $AC0.M, #0x8000
+	 // 0e7a 029c 0e77 jlnz        0x0e77
+	 } while(DMBH & 0x8000);
+
+	 0e7c 0000      nop         
+	 0e7d 0000      nop         
+	 0e7e 0000      nop         
+	 0e7f 02ff      rti   
+}
+
+void 0e80_Int2_Handler() {	     
+	0e80 8e00      set16       
+	0e81 00f0 0e17 sr          @0x0e17, $AC0.H
+	0e83 00fe 0e18 sr          @0x0e18, $AC0.M
+	0e85 00fc 0e19 sr          @0x0e19, $AC0.L
+	0e87 1fcc      mrr         $AC0.M, $ST0
+	0e88 1d9e      mrr         $ST0, $AC0.M
+	0e89 16fc feed si          @DMBH, #0xfeed
+	0e8b 2efd      srs         @DMBL, $AC0.M
+	0e8c 26fc      lrs         $AC0.M, @DMBH
+	0e8d 02a0 8000 andf        $AC0.M, #0x8000
+	0e8f 029c 0e8c jlnz        0x0e8c
+	0e91 00d0 0e17 lr          $AC0.H, @0x0e17
+	0e93 00de 0e18 lr          $AC0.M, @0x0e18
+	0e95 00dc 0e19 lr          $AC0.L, @0x0e19
+	0e97 0000      nop         
+	0e98 0000      nop         
+	0e99 0000      nop         
+	0e9a 0000      nop         
+	0e9b 02ff      rti         
+}
+
+void 0e9c_Int3_Handler() {
+	0e9c 8e00      set16       
+	0e9d 1dbc      mrr         $ST1, $AC0.L
+	0e9e 1dbe      mrr         $ST1, $AC0.M
+	0e9f 8100      clr         $ACC0
+	0ea0 00de 0bb7 lr          $AC0.M, @0x0bb7
+	0ea2 0601      cmpis       $ACC0, #0x01
+	0ea3 0295 0ea8 jz          0x0ea8
+	0ea5 0e00      lris        $AC0.M, #0x00
+	0ea6 00fe 0b87 sr          @0x0b87, $AC0.M
+	0ea8 8100      clr         $ACC0
+	0ea9 00de 0b88 lr          $AC0.M, @0x0b88
+	0eab 0601      cmpis       $ACC0, #0x01
+	0eac 0295 0eb2 jz          0x0eb2
+	0eae 8100      clr         $ACC0
+	0eaf 1fcd      mrr         $AC0.M, $ST1
+	0eb0 1f8d      mrr         $AC0.L, $ST1
+	0eb1 02ff      rti 
+	0eb2 8100      clr         $ACC0
+	0eb3 00dc 0be1 lr          $AC0.L, @0x0be1
+	0eb5 7600      inc         $ACC0
+	0eb6 00fc 0be1 sr          @0x0be1, $AC0.L
+	0eb8 8100      clr         $ACC0
+	0eb9 1fcd      mrr         $AC0.M, $ST1
+	0eba 1f8d      mrr         $AC0.L, $ST1
+	0ebb 02ff      rti         
+}
+
+void 0ebc_Int4_Handler() {
+	0ebc 0000      nop         
+	0ebd 0000      nop         
+	0ebe 0000      nop         
+	0ebf 0000      nop         
+	0ec0 0000      nop         
+	0ec1 02ff      rti
+}
+
+void 0ec2_Int5_Handler() {
+	0ec2 8e00      set16       
+	0ec3 1dbc      mrr         $ST1, $AC0.L
+	0ec4 1dbe      mrr         $ST1, $AC0.M
+	0ec5 8100      clr         $ACC0
+	0ec6 00de 0bb7 lr          $AC0.M, @0x0bb7
+	0ec8 0601      cmpis       $ACC0, #0x01
+	0ec9 0295 0ed1 jz          0x0ed1
+	0ecb 0e00      lris        $AC0.M, #0x00
+	0ecc 00fe 0b87 sr          @0x0b87, $AC0.M
+	0ece 1fcd      mrr         $AC0.M, $ST1
+	0ecf 1f8d      mrr         $AC0.L, $ST1
+	0ed0 02ff      rti        
+	0ed1 8100      clr         $ACC0
+	0ed2 00de 0b88 lr          $AC0.M, @0x0b88
+	0ed4 0601      cmpis       $ACC0, #0x01
+	0ed5 0295 0ee3 jz          0x0ee3
+	0ed7 00de 0bda lr          $AC0.M, @0x0bda
+	0ed9 2eda      srs         @pred_scale, $AC0.M
+	0eda 00de 0bdb lr          $AC0.M, @0x0bdb
+	0edc 2edb      srs         @yn1, $AC0.M
+	0edd 00de 0bdc lr          $AC0.M, @0x0bdc
+	0edf 2edc      srs         @yn2, $AC0.M
+	0ee0 1fcd      mrr         $AC0.M, $ST1
+	0ee1 1f8d      mrr         $AC0.L, $ST1
+	0ee2 02ff      rti  
+	0ee3 00de 0bda lr          $AC0.M, @0x0bda
+	0ee5 2eda      srs         @pred_scale, $AC0.M
+	0ee6 26db      lrs         $AC0.M, @yn1
+	0ee7 2edb      srs         @yn1, $AC0.M
+	0ee8 26dc      lrs         $AC0.M, @yn2
+	0ee9 2edc      srs         @yn2, $AC0.M
+	0eea 8100      clr         $ACC0
+	0eeb 00dc 0be1 lr          $AC0.L, @0x0be1
+	0eed 7600      inc         $ACC0
+	0eee 00fc 0be1 sr          @0x0be1, $AC0.L
+	0ef0 8100      clr         $ACC0
+	0ef1 1fcd      mrr         $AC0.M, $ST1
+	0ef2 1f8d      mrr         $AC0.L, $ST1
+	0ef3 02ff      rti 
+}
+void 0ef4_Int6_Handler() {
+	0ef4 0000      nop         
+	0ef5 0000      nop         
+	0ef6 0000      nop         
+	0ef7 0000      nop         
+	0ef8 0000      nop         
+	0ef9 02ff      rti 
+}
+
+void 0e71_Int7_Handler() {        
+	0efa 0000      nop         
+	0efb 0000      nop         
+	0efc 0000      nop         
+	0efd 0000      nop         
+	0efe 02ff      rti 
+}
+
+// Jump Table        
+0eff 0f11
+0f00 0f14
+0f01 0f4c
+0f02 0f4f
+
+	0f03 8e00      set16       
+	0f04 8100      clr         $ACC0
+	0f05 8900      clr         $ACC1
+	0f06 02bf 0f52 call        0x0f52
+	0f08 27ff      lrs         $AC1.M, @CMBL
+	0f09 009e 0eff lri         $AC0.M, #0x0eff
+	0f0b 4c00      add         $ACC0, $ACC1
+	0f0c 1c7e      mrr         $AR3, $AC0.M
+	0f0d 0313      ilrr        $AC1.M, @$AR3
+	0f0e 1c7f      mrr         $AR3, $AC1.M
+	0f0f 176f      jmpr        $AR3
+	0f10 0021      halt        
+	0f11 029f 0030 jmp         0x0030
+
+	0f13 0021      halt        
+	0f14 8100      clr         $ACC0
+	0f15 8900      clr         $ACC1
+	0f16 02bf 0f52 call        0x0f52
+	0f18 24ff      lrs         $AC0.L, @CMBL
+	0f19 02bf 0f58 call        0x0f58
+	0f1b 25ff      lrs         $AC1.L, @CMBL
+	0f1c 02bf 0f58 call        0x0f58
+	0f1e 27ff      lrs         $AC1.M, @CMBL
+	0f1f 2ece      srs         @DSMAH, $AC0.M
+	0f20 2ccf      srs         @DSMAL, $AC0.L
+	0f21 16c9 0001 si          @DSCR, #0x0001
+	0f23 2fcd      srs         @DSPA, $AC1.M
+	0f24 2dcb      srs         @DSBL, $AC1.L
+	0f25 8100      clr         $ACC0
+	0f26 8900      clr         $ACC1
+	0f27 02bf 0f52 call        0x0f52
+	0f29 24ff      lrs         $AC0.L, @CMBL
+	0f2a 1c9e      mrr         $IX0, $AC0.M
+	0f2b 1cbc      mrr         $IX1, $AC0.L
+	0f2c 02bf 0f58 call        0x0f58
+	0f2e 25ff      lrs         $AC1.L, @CMBL
+	0f2f 02bf 0f58 call        0x0f58
+	0f31 27ff      lrs         $AC1.M, @CMBL
+	0f32 1cdf      mrr         $IX2, $AC1.M
+	0f33 1cfd      mrr         $IX3, $AC1.L
+	0f34 8100      clr         $ACC0
+	0f35 02bf 0f52 call        0x0f52
+	0f37 26ff      lrs         $AC0.M, @CMBL
+	0f38 1c1e      mrr         $AR0, $AC0.M
+	0f39 8900      clr         $ACC1
+	0f3a 02bf 0f58 call        0x0f58
+	0f3c 20ff      lrs         $AX0.L, @CMBL
+	0f3d 1f5f      mrr         $AX0.H, $AC1.M
+	0f3e 02bf 0f52 call        0x0f52
+	0f40 21ff      lrs         $AX1.L, @CMBL
+	0f41 02bf 0f52 call        0x0f52
+	0f43 23ff      lrs         $AX1.H, @CMBL
+	0f44 26c9      lrs         $AC0.M, @DSCR
+	0f45 02a0 0004 andf        $AC0.M, #0x0004
+	0f47 029c 0f44 jlnz        0x0f44
+	0f49 029f 80b5 jmp         0x80b5
+	0f4b 0021      halt        
+	0f4c 029f 8000 jmp         0x8000
+	0f4e 0021      halt        
+	0f4f 029f 0045 jmp         0x0045
+	0f51 0021      halt        
+	0f52 26fe      lrs         $AC0.M, @CMBH
+	0f53 02c0 8000 andcf       $AC0.M, #0x8000
+	0f55 029c 0f52 jlnz        0x0f52
+	0f57 02df      ret         
+	0f58 27fe      lrs         $AC1.M, @CMBH
+	0f59 03c0 8000 andcf       $AC1.M, #0x8000
+	0f5b 029c 0f58 jlnz        0x0f58
+	0f5d 02df      ret         
+	0f5e 0000      nop         
+	0f5f 0000      nop         
