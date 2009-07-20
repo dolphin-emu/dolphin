@@ -950,13 +950,13 @@
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
-		if (gpr.R(a).IsImm() || gpr.R(s).IsImm() || s == a)
+		if (gpr.R(a).IsImm() || gpr.R(s).IsImm())
 		{
 			Default(inst);
 			return;
 		}
-		gpr.Lock(a,s);
-		gpr.LoadToX64(a,false);
+		gpr.Lock(a, s);
+		gpr.LoadToX64(a, true, true);
 		BSR(32, gpr.R(a).GetSimpleReg(), gpr.R(s));
 		FixupBranch gotone = J_CC(CC_NZ);
 		MOV(32, gpr.R(a), Imm32(63));
