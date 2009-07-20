@@ -263,15 +263,15 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 void Jit64::bclrx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 		{Default(inst); return;} // turn off from debugger
 
 	INSTRUCTION_START;
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-	//Special case BLR
-	if (inst.hex == 0x4e800020)
+	//Special case BLR & BLRL
+	if ((inst.hex & ~1) == 0x4e800020)
 	{
 		//CDynaRegCache::Flush();
 		// This below line can be used to prove that blr "eats flags" in practice.
@@ -281,7 +281,34 @@ void Jit64::bclrx(UGeckoInstruction inst)
 #endif
 		MOV(32, R(EAX), M(&LR));
 		MOV(32, M(&PC), R(EAX));
+		if (inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		WriteExitDestInEAX(0);
+		return;
+	} else if ((inst.BO & 4) == 0) {
+		// Decrement CTR?? in bclrx?? this goes to fallback.
+	} else if ((inst.BO & 16) == 0) {
+		// Test a CR bit. Not too hard.
+		// beqlr- 4d820020
+		// blelr- 4c810020
+		// blrl   4e800021
+		// bnelr  4c820020
+		// etc...
+		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
+		Gen::CCFlags branch;
+		if (inst.BO & 8)
+			branch = CC_Z;
+		else
+			branch = CC_NZ; 
+		MOV(32, R(EAX), Imm32(js.compilerPC + 4));
+		FixupBranch b = J_CC(branch, false);
+		MOV(32, R(EAX), M(&LR));
+		MOV(32, M(&PC), R(EAX));
+		if (inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+		// Would really like to continue the block here, but it ends. TODO.
+		SetJumpTarget(b);
+		WriteExitDestInEAX(0);	
 		return;
 	}
 	// Call interpreter
