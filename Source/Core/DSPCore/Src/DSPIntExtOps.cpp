@@ -357,13 +357,18 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + 0x18;
 	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + 0x19;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);
+	
+	// TODO: test the 0x00 in the else
+	if (sreg != 0x3) {
+		g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
+		g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);
+	} else {
+		g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[0x00]);
+	}
 
    	if (opc.hex & 0x04) // N
 	{
 		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-		//g_dsp.r[sreg] += g_dsp.r[sreg + 0x04];
 	}
 	else
 	{
@@ -372,14 +377,19 @@ void dsp_op_ext_ld(const UDSPInstruction& opc)
 	
 	if (opc.hex & 0x08) // M
 	{
-		dsp_increase_addr_reg(0x03, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
-		//		g_dsp.r[0x03] += g_dsp.r[0x07];
+		// TODO test
+		if (sreg != 0x3)
+			dsp_increase_addr_reg(0x03, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
+		else
+			dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
 	}
 	else
 	{
-		// Tested to increase 0x3 only by one
+		// Tested 
 		if (sreg != 0x3)
 			dsp_increment_addr_reg(0x03);
+		else
+			dsp_increment_addr_reg(0x00);
 	}
 }
 
