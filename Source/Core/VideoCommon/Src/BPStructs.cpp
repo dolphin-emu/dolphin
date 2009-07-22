@@ -27,14 +27,19 @@
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
+#include "Thread.h"
 
 using namespace BPFunctions;
+
+// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
+//Common::CriticalSection s_bpCritical;
 
 void BPInit()
 {
     memset(&bpmem, 0, sizeof(bpmem));
     bpmem.bpMask = 0xFFFFFF;
 }
+
 
 // ----------------------------------------------------------------------------------------------------------
 // Write to the Bypass Memory (Bypass Raster State Registers)
@@ -72,6 +77,9 @@ void BPWritten(const Bypass& bp)
 	//	}
 	//default: break;
 	//}
+
+	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
+	//s_bpCritical.Enter();
 
 	FlushPipeline();
     ((u32*)&bpmem)[bp.address] = bp.newvalue;
@@ -605,10 +613,11 @@ void BPWritten(const Bypass& bp)
 			default:
 				WARN_LOG(VIDEO, "Unknown BP opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
 				break;
-			}
-			
-		}
-
+			}		
 	}
+
+	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
+	//s_bpCritical.Leave();
+}
 }
 

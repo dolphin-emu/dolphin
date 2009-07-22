@@ -84,6 +84,8 @@ void DoState(PointerWrap &p)
         pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
         pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
 		pm.GetPad(0)->DoState(p.GetPPtr(), p.GetMode());
+		if(Core::g_CoreStartupParameter.bWii)
+			pm.GetWiimote(0)->DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
@@ -124,6 +126,9 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	DoState(p);
 	sz = (size_t)ptr;
 
+	if(*cur_buffer)
+		delete[] (*cur_buffer);
+
 	*cur_buffer = new u8[sz];
 	ptr = *cur_buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
@@ -155,6 +160,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	FILE *f = fopen(filename.c_str(), "wb");
 	if(f == NULL) {
 		Core::DisplayMessage("Could not save state", 2000);
+		delete [] buffer;
 		return 0;
 	}
 
@@ -165,30 +171,27 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	fwrite(&header, sizeof(state_header), 1, f);
 
 	if (bCompressed) {
-		if (lzo_init() != LZO_E_OK)
-			PanicAlert("Internal LZO Error - lzo_init() failed");
-		else {
-			lzo_uint cur_len;
-			lzo_uint i = 0;
+		lzo_uint cur_len;
+		lzo_uint i = 0;
 
-			for(;;) {
-				if((i + IN_LEN) >= sz)
-					cur_len = sz - i;
-				else
-					cur_len = IN_LEN;
+		for(;;) {
+			if((i + IN_LEN) >= sz)
+				cur_len = sz - i;
+			else
+				cur_len = IN_LEN;
 
-				if(lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
-					PanicAlert("Internal LZO Error - compression failed");
+			if(lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
+				PanicAlert("Internal LZO Error - compression failed");
 
-				// The size of the data to write is 'out_len'
-				fwrite(&out_len, sizeof(int), 1, f);
-				fwrite(out, out_len, 1, f);
+			// The size of the data to write is 'out_len'
+			fwrite(&out_len, sizeof(int), 1, f);
+			fwrite(out, out_len, 1, f);
 
-				if(cur_len != IN_LEN)
-					break;
-				i += cur_len;
-			}
+			if(cur_len != IN_LEN)
+				break;
+			i += cur_len;
 		}
+
 	} else
 		fwrite(buffer, sz, 1, f);
 
@@ -278,28 +281,31 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	if (bCompressedState) {
 		Core::DisplayMessage("Decompressing State...", 500);
 
-		if (lzo_init() != LZO_E_OK)
-			PanicAlert("Internal LZO Error - lzo_init() failed");
-		else {
-			lzo_uint i = 0;
-			buffer = new u8[sz];
-			
-			for (;;) {
-				if (fread(&cur_len, 1, sizeof(int), f) == 0)
-					break;
-				fread(out, 1, cur_len, f);
+		lzo_uint i = 0;
+		buffer = new u8[sz];
+		if(!buffer) {
+			PanicAlert("Error allocating buffer");
+			return;
+		}
 
-				int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
-				if(res != LZO_E_OK) {
-					PanicAlert("Internal LZO Error - decompression failed (%d)\n"
-						"Try loading the state again", res);
-					fclose(f);
-					return;
-				}
 		
-				// The size of the data to read to our buffer is 'new_len'
-				i += new_len;
+		for (;;) {
+			if (fread(&cur_len, 1, sizeof(int), f) == 0)
+				break;
+			fread(out, 1, cur_len, f);
+
+			int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
+			if(res != LZO_E_OK) {
+				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
+					"Try loading the state again", res, i, new_len);
+				fclose(f);
+
+				delete[] buffer;
+				return;
 			}
+	
+			// The size of the data to read to our buffer is 'new_len'
+			i += new_len;
 		}
 	} else {
 		fseek(f, 0, SEEK_END);
@@ -331,6 +337,9 @@ void State_Init()
 	ev_Save = CoreTiming::RegisterEvent("SaveState", &SaveStateCallback);
 	ev_BufferLoad = CoreTiming::RegisterEvent("LoadBufferState", &LoadBufferStateCallback);
 	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
+
+	if (lzo_init() != LZO_E_OK)
+		PanicAlert("Internal LZO Error - lzo_init() failed");
 }
 
 void State_Shutdown()

@@ -53,7 +53,8 @@ u16 CMailHandler::ReadDSPMailboxLow()
 	if (!m_Mails.empty())
 	{
 		u16 result = m_Mails.front() & 0xFFFF;
-                m_Mails.pop();
+
+        m_Mails.pop();
 
 		Update();
 
