@@ -2,25 +2,246 @@
 incdir  "tests"
 include "dsp_base.inc"
 
-
-lri $AR3, #0x0050
-si @0x0050, #0x44	
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
 lri $AX0.L, #0x77
 lri $AX1.L, #0x22
+
 nx'ld  : $AX0.L, $AX1.L, @$AR3
 call send_back  ; 1
 
-lri $AR2, #0x0040
-si @0x0040, #0x66	
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
 lri $AX0.L, #0x23
 lri $AX1.L, #0x64
+
 nx'ld  : $AX0.L, $AX1.L, @$AR2
 call send_back  ; 2
 
-lri $AR3, #0x0030
-si @0x7fe0, #0x11	
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
 lri $AX0.L, #0x43
 lri $AX1.L, #0x53
-nx'ld  : $AX0.L, $AX1.L, @$AR3
+
+nx'ld  : $AX0.L, $AX1.L, @$AR1
 call send_back  ; 3
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0xd3
+lri $AX1.L, #0x13
+
+nx'ld  : $AX0.L, $AX1.L, @$AR0
+call send_back  ; 4
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x77
+lri $AX1.L, #0x22
+
+
+nx'ld  : $AX1.L, $AX1.H, @$AR3
+call send_back  ; 5
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x23
+lri $AX1.L, #0x64
+
+nx'ld  : $AX1.L, $AX1.H, @$AR2
+call send_back  ; 6
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x43
+lri $AX1.L, #0x53
+
+nx'ld  : $AX1.L, $AX1.H, @$AR1
+call send_back  ; 7
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0xd3
+lri $AX1.L, #0x13
+
+nx'ld  : $AX1.L, $AX1.H, @$AR0
+call send_back  ; 8
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x77
+lri $AX1.L, #0x22
+
+nx'ldn  : $AX0.L, $AX1.L, @$AR3
+call send_back  ; 9
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x23
+lri $AX1.L, #0x64
+
+nx'ldn  : $AX0.L, $AX1.L, @$AR2
+call send_back  ; 10
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x43
+lri $AX1.L, #0x53
+
+nx'ldn  : $AX0.L, $AX1.L, @$AR1
+call send_back  ; 11
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0xd3
+lri $AX1.L, #0x13
+
+nx'ldn  : $AX0.L, $AX1.L, @$AR0
+call send_back  ; 12
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x77
+lri $AX1.L, #0x22
+
+nx'ldm  : $AX0.L, $AX1.L, @$AR3
+call send_back  ; 13
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x23
+lri $AX1.L, #0x64
+
+nx'ldm  : $AX0.L, $AX1.L, @$AR2
+call send_back  ; 14
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x43
+lri $AX1.L, #0x53
+
+nx'ldm  : $AX0.L, $AX1.L, @$AR1
+call send_back  ; 15
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0xd3
+lri $AX1.L, #0x13
+
+nx'ldm  : $AX0.L, $AX1.L, @$AR0
+call send_back  ; 16
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x77
+lri $AX1.L, #0x22
+
+nx'ldnm  : $AX0.L, $AX1.L, @$AR3
+call send_back  ; 17
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x23
+lri $AX1.L, #0x64
+
+nx'ldnm  : $AX0.L, $AX1.L, @$AR2
+call send_back  ; 18
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0x43
+lri $AX1.L, #0x53
+
+nx'ldnm  : $AX0.L, $AX1.L, @$AR1
+call send_back  ; 19
+
+lri $AR0, #0x001c
+lri $AR1, #0x001d
+lri $AR2, #0x001e
+lri $AR3, #0x001f
+lri $AX0.H, #0x111
+lri $AX1.H, #0x111
+lri $AX0.L, #0xd3
+lri $AX1.L, #0x13
+
+nx'ldnm  : $AX0.L, $AX1.L, @$AR0
+call send_back  ; 20
+
+
 

@@ -330,7 +330,8 @@ send_back_40:
 	ret
 
 ; This one's odd. Doesn't look like it should work since it uses ac0.m but 
-; increments acm0... (acc0)	
+; increments acm0... (acc0) 
+; -- It's ok as addis adds short immediate to mid accumulator $acD.hm	
 dump_memory:
 	lri		$ar2, #0x0000
 	lri		$ac0.m, #0x1000
