@@ -81,7 +81,6 @@ void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateInterrupts();
 void UpdateInterruptsFromVideoPlugin();
-void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();
 

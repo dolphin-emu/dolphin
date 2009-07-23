@@ -40,7 +40,6 @@
 #include <unistd.h>
 #ifdef _POSIX_THREADS
 #include <pthread.h>
-#include <sched.h>
 #elif GEKKO
 #include <ogc/lwp_threads.h>
 #else
@@ -176,15 +175,14 @@ void InitThreading();
 void SleepCurrentThread(int ms);
 
 // YieldCPU: Use this function during a spin-wait to make the current thread
-// relax while another thread is working.
-// If you find yourself calling this function, please consider using an event-
-// based design instead.
+// relax while another thread is working. This may be more efficient than using
+// events because event functions use kernel calls.
 inline void YieldCPU()
 {
 #ifdef _WIN32
-	SwitchToThread();
-#elif defined _POSIX_THREADS
-	sched_yield();
+	YieldProcessor();
+#elif defined(_M_IX86) || defined(_M_X64)
+	_mm_pause();
 #endif
 }
 

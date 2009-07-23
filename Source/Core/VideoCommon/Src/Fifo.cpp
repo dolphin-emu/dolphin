@@ -125,6 +125,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
     while (fifoStateRun)
     {
+		video_initialize.pPeekMessages();
+		VideoFifo_CheckEFBAccess();
+		VideoFifo_CheckSwapRequest();
 
 		s_criticalFifo.Enter();
 
@@ -133,27 +136,38 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         {
 			Common::AtomicStore(_fifo.CPReadIdle, 0);
 
-            do
+			while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 			{
 				if(!fifoStateRun)
 					break;
 
 				u32 readPtr = _fifo.CPReadPointer;
 
+				s32 distToSend;
+				// Only send 32 bytes at a time if breakpoint is enabled.
+				if (_fifo.bFF_BPEnable)
+					distToSend = 32;
+				else
+				{
+					distToSend = _fifo.CPReadWriteDistance;
+					if ((distToSend + readPtr) >= _fifo.CPEnd)
+						distToSend = _fifo.CPEnd - readPtr;
+				}
+
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
 				// Execute new instructions found in uData
-				Fifo_SendFifoData(uData, 32);
+				Fifo_SendFifoData(uData, distToSend);
 
-				readPtr += 32;
+				readPtr += distToSend;
 				if (readPtr >= _fifo.CPEnd)
 					readPtr = _fifo.CPBase;
 
                 Common::AtomicStore(_fifo.CPReadPointer, readPtr);
-                Common::AtomicAdd(_fifo.CPReadWriteDistance, -32);
+                Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
 
 				if (_fifo.bFF_BPEnable && (readPtr == _fifo.CPBreakpoint))
 				{
-					_fifo.bFF_Breakpoint = 1;
+					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
 					video_initialize.pUpdateInterrupts();
 				}
 
@@ -161,18 +175,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				VideoFifo_CheckEFBAccess();
 				VideoFifo_CheckSwapRequest();
 
-			} while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint));
+			}
 
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
-			video_initialize.pSetFifoIdle();
         }
 		else
-		{
 			Common::YieldCPU();
-			video_initialize.pPeekMessages();
-			VideoFifo_CheckEFBAccess();
-			VideoFifo_CheckSwapRequest();
-		}
 
 		s_criticalFifo.Leave();
     }
