@@ -716,7 +716,8 @@ void UpdateFifoRegister()
 
 void UpdateInterrupts()
 {
-	if (fifo.bFF_BPEnable && fifo.bFF_Breakpoint)
+	if (m_CPCtrlReg.CPIntEnable &&
+		(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 	{
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_CP, true);
 	}

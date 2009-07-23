@@ -36,6 +36,7 @@
 
 #else
 
+#include <xmmintrin.h>
 #define THREAD_RETURN void*
 #include <unistd.h>
 #ifdef _POSIX_THREADS

@@ -136,7 +136,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         {
 			Common::AtomicStore(_fifo.CPReadIdle, 0);
 
-			while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
+			while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
 			{
 				if(!fifoStateRun)
 					break;
@@ -144,6 +144,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				u32 readPtr = _fifo.CPReadPointer;
 
 				s32 distToSend;
+#if 1 // XXX: Put "0" here to always send 32 bytes at a time.
 				// Only send 32 bytes at a time if breakpoint is enabled.
 				if (_fifo.bFF_BPEnable)
 					distToSend = 32;
@@ -153,6 +154,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					if ((distToSend + readPtr) >= _fifo.CPEnd)
 						distToSend = _fifo.CPEnd - readPtr;
 				}
+#else
+				distToSend = 32;
+#endif
 
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
 				// Execute new instructions found in uData
