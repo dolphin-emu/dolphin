@@ -107,7 +107,10 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 
 	case ID_STEPTOOL:
 		if (DSPCore_GetState() == DSPCORE_STEPPING)
+		{
 			DSPCore_Step();
+			Refresh();
+		}
 		break;
 
 	case ID_SHOWPCTOOL:
@@ -120,8 +123,8 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 
 void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
 {
+	// UpdateDisAsmListView will focus on PC
 	Refresh();
-	FocusOnPC();
 }
 
 void DSPDebuggerLLE::Refresh()

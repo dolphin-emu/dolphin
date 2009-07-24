@@ -4,14 +4,22 @@
 IROM_BASE:	equ	0x8000
 
 ; Exception vectors
-	nop		nop
-	nop		nop
-	nop		nop
-	nop		nop
-	nop		nop
-	nop		nop
-	nop		halt
-	rti		halt
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	halt	; Exception 0-6 nop slide to here
+	rti		; Exception 7
+	halt
 
 ; Entry point
 ; Standard init stuff
@@ -123,20 +131,20 @@ wait_dma:
 	jlz		wait_dma
 	ret
 
-; Trailing nops...
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
+; Trailing nops...pad to 32bytes
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 
 ; uCode is 0xb0 words
