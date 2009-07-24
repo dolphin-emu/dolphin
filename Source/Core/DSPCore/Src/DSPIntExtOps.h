@@ -34,9 +34,6 @@
 // is handled as a prologue, the ones that must be executed afterwards
 // is handled as an epilogue.
 
-void dsp_op_ext_ops_pro(const UDSPInstruction& opc);  // run any prologs
-void dsp_op_ext_ops_epi(const UDSPInstruction& opc);  // run any epilogs
-
 namespace DSPInterpreter
 {
 namespace Ext
@@ -51,12 +48,16 @@ void sl(const UDSPInstruction& opc);
 void sln(const UDSPInstruction& opc);
 void slm(const UDSPInstruction& opc);
 void slnm(const UDSPInstruction& opc);
+void ls_epi(const UDSPInstruction& opc);
+void lsn_epi(const UDSPInstruction& opc);
+void lsm_epi(const UDSPInstruction& opc);
+void lsnm_epi(const UDSPInstruction& opc);
+void sl_epi(const UDSPInstruction& opc);
+void sln_epi(const UDSPInstruction& opc);
+void slm_epi(const UDSPInstruction& opc);
+void slnm_epi(const UDSPInstruction& opc);
 void s(const UDSPInstruction& opc);
 void sn(const UDSPInstruction& opc);
-void ldx(const UDSPInstruction& opc);
-void ldxn(const UDSPInstruction& opc);
-void ldxm(const UDSPInstruction& opc);
-void ldxnm(const UDSPInstruction& opc);
 void ld(const UDSPInstruction& opc);
 void ldn(const UDSPInstruction& opc);
 void ldm(const UDSPInstruction& opc);
@@ -65,6 +66,7 @@ void mv(const UDSPInstruction& opc);
 void dr(const UDSPInstruction& opc);
 void ir(const UDSPInstruction& opc);
 void nr(const UDSPInstruction& opc);
+void nop(const UDSPInstruction& opc);
  
 } // end namespace Ext
 } // end namespace DSPinterpeter

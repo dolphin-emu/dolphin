@@ -25,6 +25,7 @@
 
 #include "DSPIntUtil.h"
 #include "DSPMemoryMap.h"
+#include "DSPIntExtOps.h"
 
 // Extended opcodes do not exist on their own. These opcodes can only be
 // attached to opcodes that allow extending (8 lower bits of opcode not used by
@@ -41,7 +42,6 @@
 // It's gotta be fairly simple though. See R3123, R3125 in Google Code.
 // (May have something to do with (ar[i] ^ wp[i]) == 0)
 
-/*
 
 namespace DSPInterpreter
 {
@@ -69,7 +69,6 @@ void ir(const UDSPInstruction& opc) {
 void nr(const UDSPInstruction& opc) {
 	u8 reg = opc.hex & 0x3;	
  
-	//	g_dsp.r[reg] += g_dsp.r[reg + DSP_REG_IX0];
 	dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 }
 
@@ -109,7 +108,6 @@ void sn(const UDSPInstruction& opc)
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
-	//	g_dsp.r[dreg] += g_dsp.r[dreg + DSP_REG_IX0];
 	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
@@ -140,7 +138,208 @@ void ln(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	g_dsp.r[dreg] = val;
 
-	//	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+}
+
+// LS $(0x18+D), $acS.m
+// xxxx xxxx 10dd 000s
+// Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Store value from register $acS.m to memory location pointed by
+// register $ar3. Increment both $ar0 and $ar3.
+void ls(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	u8 sreg = 0x03;
+	dsp_dmem_write(g_dsp.r[sreg], g_dsp.r[areg]);
+
+	dsp_increment_addr_reg(sreg);
+	currentEpilogeFunc = ls_epi;
+}
+
+void ls_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
+	dsp_op_write_reg(dreg, val);
+	
+	dsp_increment_addr_reg(0x00); 
+}
+
+// LSN $(0x18+D), $acS.m
+// xxxx xxxx 10dd 010s
+// Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Store value from register $acS.m to memory location pointed by
+// register $ar3. Add corresponding indexing register $ix0 to addressing
+// register $ar0 and increment $ar3.
+void lsn(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	u8 sreg = 0x03;
+	
+	dsp_dmem_write(g_dsp.r[sreg], g_dsp.r[areg]);
+	dsp_increment_addr_reg(sreg);
+	currentEpilogeFunc = lsn_epi;
+}
+
+void lsn_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
+	dsp_op_write_reg(dreg, val);
+	
+	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
+}
+
+// LSM $(0x18+D), $acS.m
+// xxxx xxxx 10dd 100s
+// Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Store value from register $acS.m to memory location pointed by
+// register $ar3. Add corresponding indexing register $ix3 to addressing
+// register $ar3 and increment $ar0.
+void lsm(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	u8 sreg = 0x03;
+
+	dsp_dmem_write(g_dsp.r[sreg], g_dsp.r[areg]);
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	currentEpilogeFunc = lsm_epi;
+
+}
+
+void lsm_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
+	dsp_op_write_reg(dreg, val);
+
+	dsp_increment_addr_reg(0x00); 
+}
+
+// LSMN $(0x18+D), $acS.m
+// xxxx xxxx 10dd 110s
+// Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Store value from register $acS.m to memory location pointed by
+// register $ar3. Add corresponding indexing register $ix0 to addressing
+// register $ar0 and add corresponding indexing register $ix3 to addressing
+// register $ar3.
+void lsnm(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	u8 sreg = 0x03;
+
+	dsp_dmem_write(g_dsp.r[sreg], g_dsp.r[areg]);
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	currentEpilogeFunc = lsnm_epi;
+	
+}
+
+void lsnm_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
+
+	dsp_op_write_reg(dreg, val);	
+	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);	
+}
+
+// SL $acS.m, $(0x18+D)
+// xxxx xxxx 10dd 001s
+// Store value from register $acS.m to memory location pointed by register
+// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar3. Increment both $ar0 and $ar3.
+void sl(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	
+	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
+	dsp_increment_addr_reg(0x00);
+	currentEpilogeFunc = sl_epi;
+}
+
+void sl_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
+	const u8 sreg = 0x03;
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+
+	dsp_op_write_reg(dreg, val);
+	dsp_increment_addr_reg(sreg);
+}
+
+// SLN $acS.m, $(0x18+D)
+// xxxx xxxx 10dd 011s
+// Store value from register $acS.m to memory location pointed by register
+// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
+// and increment $ar3.
+void sln(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+	
+	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
+	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
+	currentEpilogeFunc = sln_epi;
+}
+
+void sln_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
+	const u8 sreg = 0x03;
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+
+	dsp_op_write_reg(dreg, val);
+	dsp_increment_addr_reg(sreg);	
+}
+
+// SLM $acS.m, $(0x18+D)
+// xxxx xxxx 10dd 101s
+// Store value from register $acS.m to memory location pointed by register
+// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar3. Add corresponding indexing register $ix3 to addressing register $ar3
+// and increment $ar0.
+void slm(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+
+	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
+	dsp_increment_addr_reg(0x00);
+	currentEpilogeFunc = slm_epi;
+}
+
+void slm_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
+	const u8 sreg = 0x03;
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+
+	dsp_op_write_reg(dreg, val);
+	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+}
+
+// SLMN $acS.m, $(0x18+D)
+// xxxx xxxx 10dd 111s
+// Store value from register $acS.m to memory location pointed by register
+// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
+// and add corresponding indexing register $ix3 to addressing register $ar3.
+void slnm(const UDSPInstruction& opc)
+{
+	u8 areg = (opc.hex & 0x1) + DSP_REG_ACM0;
+
+	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
+	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);	
+	currentEpilogeFunc = slnm_epi;
+
+}
+
+void slnm_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
+	const u8 sreg = 0x03;
+	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+
+	dsp_op_write_reg(dreg, val);
 	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
@@ -204,269 +403,11 @@ void ldnm(const UDSPInstruction& opc)
 	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];
 }
 
+void nop(const UDSPInstruction& opc)
+{
+}
+
 } // end namespace ext
 } // end namespace DSPInterpeter
-*/ 
 
 
-void dsp_op_ext_r_epi(const UDSPInstruction& opc)
-{
-	u8 op  = (opc.hex >> 2) & 0x3;
-	u8 reg = opc.hex & 0x3;
-	switch (op) {
-	case 0x00: // 
-		g_dsp.r[reg] = 0;
-		break;
-		
-	case 0x01: // DR
-		dsp_decrement_addr_reg(reg);
-		break;
-		
-	case 0x02: // IR
-		dsp_increment_addr_reg(reg);
-		break;
-
-	case 0x03: // NR
-		//		g_dsp.r[reg] += g_dsp.r[reg + 4];
-		dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
-		break;
-	}
-}
-
-
-void dsp_op_ext_mv(const UDSPInstruction& opc)
-{
-	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 2) & 0x3);
-
-	g_dsp.r[dreg + 0x18] = g_dsp.r[sreg + 0x1c];
-}
-
-
-void dsp_op_ext_s(const UDSPInstruction& opc)
-{
-	u8 dreg = opc.hex & 0x3;
-	u8 sreg = ((opc.hex >> 3) & 0x3) + 0x1c;
-
-	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
-
-	if (opc.hex & 0x04) // SN
-	{
-		//		g_dsp.r[dreg] += g_dsp.r[dreg + 4];
-		dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
-	}
-	else
-	{
-		dsp_increment_addr_reg(dreg); // S
-	}
-}
-
-
-void dsp_op_ext_l(const UDSPInstruction& opc)
-{
-	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
-
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg] = val;
-
-	if (opc.hex & 0x04) // LN/LSMN
-	{
-		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-		//		g_dsp.r[sreg] += g_dsp.r[sreg + 4];
-	}
-	else
-	{
-		dsp_increment_addr_reg(sreg); // LS
-	}
-}
-
-
-void dsp_op_ext_ls_pro(const UDSPInstruction& opc)
-{
-	u8 areg = (opc.hex & 0x1) + 0x1e;
-	dsp_dmem_write(g_dsp.r[0x03], g_dsp.r[areg]);
-	u8 sreg = 0x03;
-
-	if (opc.hex & 0x8) // LSM/LSMN
-	{
-		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-		//		g_dsp.r[0x03] += g_dsp.r[0x07];
-	} 
-	else // LS
-	{
-		dsp_increment_addr_reg(sreg);
-	}
-}
-
-
-void dsp_op_ext_ls_epi(const UDSPInstruction& opc)
-{
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
-	u16 val = dsp_dmem_read(g_dsp.r[0x00]);
-	dsp_op_write_reg(dreg, val);
-
-	if (opc.hex & 0x4) // LSN/LSMN
-	{
-		//g_dsp.r[0x00] += g_dsp.r[0x04];
-		dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
-	}
-	else // LS
-	{
-		dsp_increment_addr_reg(0x00); 
-	}
-}
-
-void dsp_op_ext_sl_pro(const UDSPInstruction& opc)
-{
-	u8 areg = (opc.hex & 0x1) + 0x1e;
-	dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
-
-	if (opc.hex & 0x4) // SLN/SLNM
-	{
-		dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
-		//		g_dsp.r[0x00] += g_dsp.r[0x04];
-	}
-	else // SL 
-	{
-		dsp_increment_addr_reg(0x00);
-	}
-}
-
-void dsp_op_ext_sl_epi(const UDSPInstruction& opc)
-{
-	u8 dreg = ((opc.hex >> 4) & 0x3) + 0x18;
-	const u8 sreg = 0x03;
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
-	dsp_op_write_reg(dreg, val);
-
-	if (opc.hex & 0x8) // SLM/SLMN
-	{
-		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-		//		g_dsp.r[0x03] += g_dsp.r[0x07];
-	}
-	else // SL
-	{
-		dsp_increment_addr_reg(sreg);
-	}
-}
-
-
-void dsp_op_ext_ld(const UDSPInstruction& opc)
-{
-	u8 dreg1 = (((opc.hex >> 5) & 0x1) << 1) + 0x18;
-	u8 dreg2 = (((opc.hex >> 4) & 0x1) << 1) + 0x19;
-	u8 sreg = opc.hex & 0x3;
-	
-	// TODO: test the 0x00 in the else
-	if (sreg != 0x3) {
-		g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
-		g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);
-	} else {
-		g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[0x00]);
-	}
-
-   	if (opc.hex & 0x04) // N
-	{
-		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-	}
-	else
-	{
-		dsp_increment_addr_reg(sreg);
-	}
-	
-	if (opc.hex & 0x08) // M
-	{
-		// TODO test
-		if (sreg != 0x3)
-			dsp_increase_addr_reg(0x03, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
-		else
-			dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0 + 0x03]);
-	}
-	else
-	{
-		// Tested 
-		if (sreg != 0x3)
-			dsp_increment_addr_reg(0x03);
-		else
-			dsp_increment_addr_reg(0x00);
-	}
-}
-
-
-// ================================================================================
-//
-//
-//
-// ================================================================================
-void dsp_op_ext_ops_pro(const UDSPInstruction& opc)
-{
-	if ((opc.hex & 0xFF) == 0){return;}
-
-	switch ((opc.hex >> 4) & 0xf)
-	{
-	case 0x00:
-		dsp_op_ext_r_epi(opc.hex);
-		break;
-
-	case 0x01:
-		dsp_op_ext_mv(opc.hex);
-		break;
-
-	case 0x02:
-	case 0x03:
-		dsp_op_ext_s(opc.hex);
-		break;
-
-	case 0x04:
-	case 0x05:
-	case 0x06:
-	case 0x07:
-		dsp_op_ext_l(opc.hex);
-		break;
-
-	case 0x08:
-	case 0x09:
-	case 0x0a:
-	case 0x0b:
-		if (opc.hex & 0x2)
-			dsp_op_ext_sl_pro(opc.hex);
-		else
-			dsp_op_ext_ls_pro(opc.hex);
-
-		break;
-
-	case 0x0c:
-	case 0x0d:
-	case 0x0e:
-	case 0x0f:
-		dsp_op_ext_ld(opc.hex);
-		break;
-	}
-}
-
-
-void dsp_op_ext_ops_epi(const UDSPInstruction& opc)
-{
-	if ((opc.hex & 0xFF) == 0)
-		return;
-
-	switch ((opc.hex >> 4) & 0xf)
-	{
-	case 0x08:
-	case 0x09:
-	case 0x0a:
-	case 0x0b:
-		if (opc.hex & 0x2)
-		{
-			dsp_op_ext_sl_epi(opc.hex);
-		}
-		else
-		{
-			dsp_op_ext_ls_epi(opc.hex);
-		}
-		break;
-
-		return;
-	}
-}

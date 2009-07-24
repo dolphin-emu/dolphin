@@ -67,6 +67,7 @@ enum partype_t
 #define P_EXT   0x80
 
 #define OPTABLE_SIZE 65536
+#define EXT_OPTABLE_SIZE 0xff
 
 union UDSPInstruction
 {
@@ -114,8 +115,7 @@ typedef struct
 	u8 size;
 	u8 param_count;
 	param2_t params[8];
-	dspInstFunc prologue;
-	dspInstFunc epilogue;
+	bool extended;
 } DSPOPCTemplate;
 
 typedef DSPOPCTemplate opc_t;
@@ -129,8 +129,10 @@ extern u8 opSize[OPTABLE_SIZE];
 extern const DSPOPCTemplate cw;
 
 extern dspInstFunc opTable[];
-extern dspInstFunc prologueTable[OPTABLE_SIZE];
-extern dspInstFunc epilogueTable[OPTABLE_SIZE];
+extern bool opTableUseExt[OPTABLE_SIZE];
+extern dspInstFunc extOpTable[EXT_OPTABLE_SIZE];
+extern dspInstFunc currentEpilogeFunc;
+
 
 // Predefined labels
 struct pdlabel_t
@@ -152,13 +154,11 @@ void InitInstructionTable();
 
 inline void ExecuteInstruction(const UDSPInstruction& inst)
 {
-	// TODO: Move the prologuetable calls into the relevant instructions themselves.
-	// Better not do things like this until things work correctly though.
-	if (prologueTable[inst.hex])
-		prologueTable[inst.hex](inst);
+	if (opTableUseExt[inst.hex])
+		extOpTable[inst.hex & 0xFF](inst);
 	opTable[inst.hex](inst);
-	if (epilogueTable[inst.hex])
-		epilogueTable[inst.hex](inst);
+	if (currentEpilogeFunc)
+		currentEpilogeFunc(inst);
 }
 
 // This one's pretty slow, try to use it only at init or seldomly.
