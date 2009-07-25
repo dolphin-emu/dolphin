@@ -157,8 +157,10 @@ inline void ExecuteInstruction(const UDSPInstruction& inst)
 	if (opTableUseExt[inst.hex])
 		extOpTable[inst.hex & 0xFF](inst);
 	opTable[inst.hex](inst);
-	if (currentEpilogeFunc)
+	if (currentEpilogeFunc) {
 		currentEpilogeFunc(inst);
+		currentEpilogeFunc = NULL;
+	}
 }
 
 // This one's pretty slow, try to use it only at init or seldomly.
