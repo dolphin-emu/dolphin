@@ -5,7 +5,7 @@
 // Description: Common SDL Input Functions
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com, www.multigesture.net), JPeterson etc
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 //
