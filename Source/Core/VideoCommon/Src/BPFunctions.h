@@ -17,11 +17,11 @@
 
 
 // ------------------------------------------
-// The plugins has to define these functions
+// Video plugin must define these functions
 // ------------------------------------------
 
-#ifndef _BPFUNCTIONS_H_
-#define _BPFUNCTIONS_H_
+#ifndef _BPFUNCTIONS_H
+#define _BPFUNCTIONS_H
 
 #include "BPMemory.h"
 #include "VideoCommon.h"
@@ -37,22 +37,22 @@ enum
 };
 
 void FlushPipeline();
-void SetGenerationMode(const Bypass &bp);
-void SetScissor(const Bypass &bp);
-void SetLineWidth(const Bypass &bp);
-void SetDepthMode(const Bypass &bp);
-void SetBlendMode(const Bypass &bp);
-void SetDitherMode(const Bypass &bp);
-void SetLogicOpMode(const Bypass &bp);
-void SetColorMask(const Bypass &bp);
-void CopyEFB(const Bypass &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
-void RenderToXFB(const Bypass &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight);
-void ClearScreen(const Bypass &bp, const EFBRectangle &rc);
-void RestoreRenderState(const Bypass &bp);
+void SetGenerationMode(const BPCmd &bp);
+void SetScissor(const BPCmd &bp);
+void SetLineWidth(const BPCmd &bp);
+void SetDepthMode(const BPCmd &bp);
+void SetBlendMode(const BPCmd &bp);
+void SetDitherMode(const BPCmd &bp);
+void SetLogicOpMode(const BPCmd &bp);
+void SetColorMask(const BPCmd &bp);
+void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf);
+void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight);
+void ClearScreen(const BPCmd &bp, const EFBRectangle &rc);
+void RestoreRenderState(const BPCmd &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
-void SetSamplerState(const Bypass &bp);
-void SetInterlacingMode(const Bypass &bp);
+void SetSamplerState(const BPCmd &bp);
+void SetInterlacingMode(const BPCmd &bp);
 };
 
-#endif // _BPFUNCTIONS_H_
+#endif // _BPFUNCTIONS_H

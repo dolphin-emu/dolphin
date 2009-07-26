@@ -100,7 +100,7 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode(const Bypass &bp)
+void SetGenerationMode(const BPCmd &bp)
 {
 	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
@@ -123,17 +123,17 @@ void SetGenerationMode(const Bypass &bp)
 	}
 }
 
-void SetScissor(const Bypass &bp)
+void SetScissor(const BPCmd &bp)
 {
 	Renderer::SetScissorRect();
 }
-void SetLineWidth(const Bypass &bp)
+void SetLineWidth(const BPCmd &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
-void SetDepthMode(const Bypass &bp)
+void SetDepthMode(const BPCmd &bp)
 {
 	if (bpmem.zmode.testenable)
 	{
@@ -159,7 +159,7 @@ void SetDepthMode(const Bypass &bp)
 	//    Renderer::SetRenderMode(Renderer::RM_Normal);
 	
 }
-void SetBlendMode(const Bypass &bp)
+void SetBlendMode(const BPCmd &bp)
 {
 	if (bp.changes & 1)
 		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
@@ -196,15 +196,15 @@ void SetBlendMode(const Bypass &bp)
 		Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 	}
 }
-void SetDitherMode(const Bypass &bp)
+void SetDitherMode(const BPCmd &bp)
 {
 	Renderer::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
-void SetLogicOpMode(const Bypass &bp)
+void SetLogicOpMode(const BPCmd &bp)
 {
 	// Logic op blending. D3D can't do this but can fake some modes.
 }
-void SetColorMask(const Bypass &bp)
+void SetColorMask(const BPCmd &bp)
 {
 	DWORD write = 0;
 	if (bpmem.blendmode.alphaupdate) 
@@ -215,7 +215,7 @@ void SetColorMask(const Bypass &bp)
 	Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
 
-void CopyEFB(const Bypass &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
+void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	// TODO: Scale EFBRectangle correctly
 
@@ -223,13 +223,13 @@ void CopyEFB(const Bypass &bp, const EFBRectangle &rc, const u32 &address, const
 	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
 }
 
-void RenderToXFB(const Bypass &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
+void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB();
 }
-void ClearScreen(const Bypass &bp, const EFBRectangle &rc)
+void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	// TODO: Scale EFBRectangle correctly
 
@@ -263,7 +263,7 @@ void ClearScreen(const Bypass &bp, const EFBRectangle &rc)
 	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
 }
 
-void RestoreRenderState(const Bypass &bp)
+void RestoreRenderState(const BPCmd &bp)
 {
 	//Renderer::SetRenderMode(Renderer::RM_Normal);
 }
@@ -287,7 +287,7 @@ u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
-void SetSamplerState(const Bypass &bp)
+void SetSamplerState(const BPCmd &bp)
 {
 	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
 	int stage = (bp.address & 3);//(addr>>4)&2;
@@ -326,7 +326,7 @@ void SetSamplerState(const Bypass &bp)
 	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
 	//g_VideoInitialize.pLog(temp);
 }
-void SetInterlacingMode(const Bypass &bp)
+void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO
 }

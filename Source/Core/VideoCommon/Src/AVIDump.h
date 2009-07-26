@@ -34,4 +34,4 @@ public:
 	static void AddFrame(char *data);
 };
 
-#endif
+#endif // _AVIDUMP_H

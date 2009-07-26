@@ -56,7 +56,6 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_WIREFRAME, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWFPS, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_STATISTICS, GFXConfigDialogOGL::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_BLENDSTATS, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJSTATS, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWEFBCOPYREGIONS, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHADERERRORS, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -100,9 +99,7 @@ GFXConfigDialogOGL::~GFXConfigDialogOGL()
 }
 void GFXConfigDialogOGL::OnClose(wxCloseEvent& event)
 {
-	g_Config.Save();
-
-	INFO_LOG(CONSOLE, "OnClose");
+	//INFO_LOG(CONSOLE, "OnClose");
 
 	// notice that we don't run wxEntryCleanup(); here so the dll will still be loaded
 	/* JP: Yes, it seems like Close() does not do that. It only runs EndModal() or something
@@ -113,18 +110,20 @@ void GFXConfigDialogOGL::OnClose(wxCloseEvent& event)
 	//EndModal(0);
 
 	// Allow wxWidgets to close and unload the window
-	event.Skip();
+	//event.Skip();
+	CloseWindow();
 }
 
 void GFXConfigDialogOGL::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
-	INFO_LOG(CONSOLE, "CloseClick");
+	//INFO_LOG(CONSOLE, "CloseClick");
 
 	// If we run wxEntryCleanup() the class will be entirely deleted, and the destructor will be run
 	//g_Config.Save();
 	//wxEntryCleanup();
 
-	Close();
+	//Close();
+	CloseWindow();
 }
 ///////////////////////////////
 
@@ -354,8 +353,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_ShowFPS->SetValue(g_Config.bShowFPS);
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
-	m_BlendStats = new wxCheckBox(m_PageAdvanced, ID_BLENDSTATS, wxT("Overlay Blend Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_BlendStats->SetValue(g_Config.bOverlayBlendStats);
 	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
 	m_ShowEFBCopyRegions = new wxCheckBox(m_PageAdvanced, ID_SHOWEFBCOPYREGIONS, wxT("Show EFB Copy Regions"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -463,11 +460,10 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sInfo->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sInfo->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_BlendStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_ProjStats, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_ShowEFBCopyRegions, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
-	sInfo->Add(m_TexFmtOverlay, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
-	sInfo->Add(m_TexFmtCenter, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_ProjStats, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_ShowEFBCopyRegions, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sInfo->Add(m_TexFmtOverlay, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sInfo->Add(m_TexFmtCenter, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbInfo->Add(sInfo);
 	
 	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
@@ -711,9 +707,6 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = false;
 		break;
-	case ID_BLENDSTATS:
-		g_Config.bOverlayBlendStats = m_BlendStats->IsChecked();
-		break;
 	case ID_PROJSTATS:
 		g_Config.bOverlayProjStats = m_ProjStats->IsChecked();
 		break;
@@ -725,6 +718,13 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	UpdateGUI();
 }
 
+void GFXConfigDialogOGL::CloseWindow()
+{
+	// Save the config to INI
+	g_Config.Save();
+
+	EndModal(1);
+}
 
 void GFXConfigDialogOGL::UpdateGUI()
 {

@@ -32,8 +32,8 @@
 #define BPMEM_SCISSORTL        0x20
 #define BPMEM_SCISSORBR        0x21
 #define BPMEM_LINEPTWIDTH      0x22
-#define BPMEM_SU_COUNTER       0x23
-#define BPMEM_RAS_COUNTER      0x24
+#define BPMEM_PERF0_TRI        0x23
+#define BPMEM_PERF0_QUAD       0x24
 #define BPMEM_RAS1_SS0         0x25 
 #define BPMEM_RAS1_SS1         0x26
 #define BPMEM_IREF             0x27
@@ -46,7 +46,7 @@
 #define BPMEM_ZCOMPARE         0x43
 #define BPMEM_FIELDMASK        0x44
 #define BPMEM_SETDRAWDONE      0x45
-#define BPMEM_CLOCK0           0x46
+#define BPMEM_BUSCLOCK0        0x46
 #define BPMEM_PE_TOKEN_ID	   0x47
 #define BPMEM_PE_TOKEN_INT_ID  0x48
 #define BPMEM_EFB_TL           0x49
@@ -63,18 +63,18 @@
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
 #define BPMEM_UNKOWN_57        0x57
-#define BPMEM_UNKNOWN          0x58
+#define BPMEM_REVBITS          0x58
 #define BPMEM_SCISSOROFFSET    0x59
 #define BPMEM_UNKNOWN_60       0x60
 #define BPMEM_UNKNOWN_61       0x61
 #define BPMEM_UNKNOWN_62       0x62
-#define BPMEM_UNKNOWN_63       0x63
+#define BPMEM_TEXMODESYNC      0x63
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
 #define BPMEM_TEXINVALIDATE    0x66
-#define BPMEM_SETGPMETRIC      0x67
+#define BPMEM_PERF1            0x67
 #define BPMEM_FIELDMODE        0x68
-#define BPMEM_CLOCK1           0x69
+#define BPMEM_BUSCLOCK1        0x69
 #define BPMEM_TX_SETMODE0      0x80 // 0x80 + 4
 #define BPMEM_TX_SETMODE1      0x84 // 0x84 + 4
 #define BPMEM_TX_SETIMAGE0     0x88 // 0x88 + 4
@@ -827,7 +827,7 @@ union UPE_Copy
 // All of BP memory
 //////////////////////////////////////////////////////////////////////////
 
-struct Bypass
+struct BPCmd
 {
 	int address;
 	int changes;
@@ -911,4 +911,4 @@ extern BPMemory bpmem;
 
 void LoadBPReg(u32 value0);
 
-#endif
+#endif // _BPMEMORY_H

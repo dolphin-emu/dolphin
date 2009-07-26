@@ -406,7 +406,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="ShaderGenerators"
+			Name="Shader Generators"
 			>
 			<File
 				RelativePath=".\Src\PixelShaderGen.cpp"
@@ -426,14 +426,26 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Sections"
+			Name="Register Sections"
 			>
+			<File
+				RelativePath=".\Src\BPFunctions.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\BPMemory.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\BPMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\BPStructs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\BPStructs.h"
 				>
 			</File>
 			<File
@@ -462,7 +474,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="ShaderManagers"
+			Name="Shader Managers"
 			>
 			<File
 				RelativePath=".\Src\PixelShaderManager.cpp"
@@ -493,6 +505,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\HiresTextures.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\HiresTextures.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\ImageWrite.cpp"
 				>
 			</File>
@@ -514,6 +534,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\LookUpTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NativeVertexWriter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NativeVertexWriter.h"
 				>
 			</File>
 			<File
@@ -566,8 +594,12 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="VertexLoading"
+			Name="Vertex Loading"
 			>
+			<File
+				RelativePath=".\Src\DataReader.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\VertexLoader.cpp"
 				>
@@ -608,39 +640,43 @@
 				RelativePath=".\Src\VertexLoader_TextCoord.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\VertexLoaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoaderManager.h"
+				>
+			</File>
 		</Filter>
-		<File
-			RelativePath=".\Src\BPFunctions.h"
+		<Filter
+			Name="Decoding"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\BPStructs.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\BPStructs.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DataReader.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Fifo.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Fifo.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\HiresTextures.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\HiresTextures.h"
-			>
-		</File>
+			<File
+				RelativePath=".\Src\Fifo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Fifo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OpcodeDecoding.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OpcodeDecoding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureDecoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureDecoder.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\memcpy_amd.cpp"
 			>
@@ -650,39 +686,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\NativeVertexWriter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\NativeVertexWriter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OpcodeDecoding.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OpcodeDecoding.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureDecoder.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureDecoder.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VertexLoaderManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VertexLoaderManager.h"
 			>
 		</File>
 		<File

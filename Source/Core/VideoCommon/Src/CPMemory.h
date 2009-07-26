@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -262,4 +262,4 @@ extern VAT g_VtxAttr[8];
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value);
 
-#endif
+#endif // _CPMEMORY_H

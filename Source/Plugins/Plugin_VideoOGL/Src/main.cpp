@@ -67,7 +67,7 @@ Make AA apply instantly during gameplay if possible
 GFXConfigDialogOGL *m_ConfigFrame = NULL;
 #include "Debugger/Debugger.h"
 GFXDebuggerOGL *m_DebuggerFrame = NULL;
-#endif
+#endif // HAVE_WX
 
 #include "Config.h"
 #include "LookUpTables.h"
@@ -97,6 +97,8 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
+bool allowConfigShow = true;
+
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
@@ -107,6 +109,10 @@ static Common::Event s_swapResponseEvent;
 
 static volatile u32 s_efbAccessRequested = false;
 static Common::Event s_efbResponseEvent;
+
+#if defined(HAVE_WX) && HAVE_WX
+
+#endif // HAVE_WX
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -169,12 +175,16 @@ void DllDebugger(HWND _hParent, bool Show) { }
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_ConfigFrame)
-		m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
-	else if (!m_ConfigFrame->GetParent()->IsShown())
-		m_ConfigFrame->Close(true);
+	//if (!m_ConfigFrame)
+if (allowConfigShow) // Prevent user to show more than 1 config window at same time
+{
+	m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
+
+	//else if (!m_ConfigFrame->GetParent()->IsShown())
+	//	m_ConfigFrame->Close(true);
 
 #if defined(_WIN32)
+
 
 	// Search for avaliable resolutions
 	
@@ -294,13 +304,16 @@ void DllConfig(HWND _hParent)
 	}
 
 	// Only allow one open at a time
-	if (!m_ConfigFrame->IsShown())
-	{
+	//if (!m_ConfigFrame->IsShown())
+	//{
+
+		allowConfigShow = false;
 		m_ConfigFrame->CreateGUIControls();
-		m_ConfigFrame->ShowModal();
-	}
-	else
-		m_ConfigFrame->Hide();
+		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
+}
+	//}
+	//else
+	//	m_ConfigFrame->Hide();
 #endif
 }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __VIDEOSTATE_H
-#define __VIDEOSTATE_H
+#ifndef _VIDEOSTATE_H
+#define _VIDEOSTATE_H
 
 #include "Common.h"
 #include "ChunkFile.h"
 
 void VideoCommon_DoState(PointerWrap &p);
 
-#endif
+#endif // _VIDEOSTATE_H

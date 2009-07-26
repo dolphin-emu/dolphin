@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,30 +21,30 @@
 #include "XFMemory.h"
 
 #define SHADER_POSMTX_ATTRIB 1
-#define SHADER_NORM1_ATTRIB 6
-#define SHADER_NORM2_ATTRIB 7
+#define SHADER_NORM1_ATTRIB  6
+#define SHADER_NORM2_ATTRIB  7
 
 
 // shader variables
-#define I_POSNORMALMATRIX "cpnmtx"
-#define I_PROJECTION "cproj"
-#define I_MATERIALS "cmtrl"
-#define I_LIGHTS "clights"
-#define I_TEXMATRICES "ctexmtx"
-#define I_TRANSFORMMATRICES "ctrmtx"
-#define I_NORMALMATRICES "cnmtx"
+#define I_POSNORMALMATRIX       "cpnmtx"
+#define I_PROJECTION            "cproj"
+#define I_MATERIALS             "cmtrl"
+#define I_LIGHTS                "clights"
+#define I_TEXMATRICES           "ctexmtx"
+#define I_TRANSFORMMATRICES     "ctrmtx"
+#define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_FOGPARAMS "cfog"
+#define I_FOGPARAMS             "cfog"
 
-#define C_POSNORMALMATRIX 0
-#define C_PROJECTION (C_POSNORMALMATRIX+6)
-#define C_MATERIALS (C_PROJECTION+4)
-#define C_LIGHTS (C_MATERIALS+4)
-#define C_TEXMATRICES (C_LIGHTS+40)
-#define C_TRANSFORMMATRICES (C_TEXMATRICES+24)
-#define C_NORMALMATRICES (C_TRANSFORMMATRICES+64)
-#define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES+32)
-#define C_FOGPARAMS (C_POSTTRANSFORMMATRICES+64)
+#define C_POSNORMALMATRIX        0
+#define C_PROJECTION            (C_POSNORMALMATRIX + 6)
+#define C_MATERIALS             (C_PROJECTION + 4)
+#define C_LIGHTS                (C_MATERIALS + 4)
+#define C_TEXMATRICES           (C_LIGHTS + 40)
+#define C_TRANSFORMMATRICES     (C_TEXMATRICES + 24)
+#define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
+#define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
+#define C_FOGPARAMS             (C_POSTTRANSFORMMATRICES + 64)
 
 
 class VERTEXSHADERUID
@@ -52,17 +52,20 @@ class VERTEXSHADERUID
 public:
 	u32 values[9];
 
-	VERTEXSHADERUID() {
+	VERTEXSHADERUID()
+	{
 		memset(values, 0, sizeof(values));		
 	}
 
-	VERTEXSHADERUID(const VERTEXSHADERUID& r) {
+	VERTEXSHADERUID(const VERTEXSHADERUID& r)
+	{
 		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
 			values[i] = r.values[i]; 
 	}
 
-	int GetNumValues() const {
-		return (((values[0] >> 23) & 0xf)*3 + 3)/4 + 3; // numTexGens*3/4+1
+	int GetNumValues() const 
+	{
+		return (((values[0] >> 23) & 0xf) * 3 + 3) / 4 + 3; // numTexGens*3/4+1
 	}
 
 	bool operator <(const VERTEXSHADERUID& _Right) const
@@ -72,7 +75,8 @@ public:
 		else if (values[0] > _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) {
+		for (int i = 1; i < N; ++i) 
+		{
 			if (values[i] < _Right.values[i])
 				return true;
 			else if (values[i] > _Right.values[i])
@@ -86,7 +90,8 @@ public:
 		if (values[0] != _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) {
+		for (int i = 1; i < N; ++i)
+		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
@@ -97,4 +102,4 @@ public:
 const char *GenerateVertexShader(u32 components);
 void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components);
 
-#endif
+#endif // GCOGL_VERTEXSHADER_H

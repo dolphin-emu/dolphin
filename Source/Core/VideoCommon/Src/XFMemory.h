@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,50 +30,27 @@
 #define XF_TEXINPUT_AB11 0
 #define XF_TEXINPUT_ABC1 1
 
-#define XF_TEXGEN_REGULAR 0
-#define XF_TEXGEN_EMBOSS_MAP 1 // used when bump mapping
+#define XF_TEXGEN_REGULAR       0
+#define XF_TEXGEN_EMBOSS_MAP    1 // used when bump mapping
 #define XF_TEXGEN_COLOR_STRGBC0 2
 #define XF_TEXGEN_COLOR_STRGBC1 3
 
-#define XF_SRCGEOM_INROW 0 // input is abc
-#define XF_SRCNORMAL_INROW 1 // input is abc
-#define XF_SRCCOLORS_INROW 2
+#define XF_SRCGEOM_INROW       0 // input is abc
+#define XF_SRCNORMAL_INROW     1 // input is abc
+#define XF_SRCCOLORS_INROW     2
 #define XF_SRCBINORMAL_T_INROW 3 // input is abc
 #define XF_SRCBINORMAL_B_INROW 4 // input is abc
-#define XF_SRCTEX0_INROW   5
-#define XF_SRCTEX1_INROW   6
-#define XF_SRCTEX2_INROW   7
-#define XF_SRCTEX3_INROW   8
-#define XF_SRCTEX4_INROW   9
-#define XF_SRCTEX5_INROW   10
-#define XF_SRCTEX6_INROW   11
-#define XF_SRCTEX7_INROW   12
+#define XF_SRCTEX0_INROW       5
+#define XF_SRCTEX1_INROW       6
+#define XF_SRCTEX2_INROW       7
+#define XF_SRCTEX3_INROW       8
+#define XF_SRCTEX4_INROW       9
+#define XF_SRCTEX5_INROW       10
+#define XF_SRCTEX6_INROW       11
+#define XF_SRCTEX7_INROW       12
 
 #define GX_SRC_REG 0
 #define GX_SRC_VTX 1
-
-struct Light
-{
-    u32 useless[3]; 
-    u32 color;    //rgba
-    float a0;  //attenuation
-    float a1; 
-    float a2; 
-    float k0;  //k stuff
-    float k1; 
-    float k2; 
-    union
-    {
-        struct {
-			float dpos[3];
-            float ddir[3]; // specular lights only
-        };
-        struct {
-            float sdir[3];
-            float shalfangle[3]; // specular lights only
-        };
-    };
-};
 
 #define LIGHTDIF_NONE  0
 #define LIGHTDIF_SIGN  1
@@ -82,7 +59,42 @@ struct Light
 #define LIGHTATTN_SPEC 0 // specular attenuation
 #define LIGHTATTN_SPOT 1 // distance/spotlight attenuation
 #define LIGHTATTN_NONE 2
-#define LIGHTATTN_DIR 3
+#define LIGHTATTN_DIR  3
+
+#define XFMEM_SIZE               0x8000
+#define XFMEM_POSMATRICES        0x000
+#define XFMEM_POSMATRICES_END    0x100
+#define XFMEM_NORMALMATRICES     0x400
+#define XFMEM_NORMALMATRICES_END 0x460
+#define XFMEM_POSTMATRICES       0x500
+#define XFMEM_POSTMATRICES_END   0x600
+#define XFMEM_LIGHTS             0x600
+#define XFMEM_LIGHTS_END         0x680
+#define XFMEM_ERROR              0x1000
+#define XFMEM_DIAG               0x1001
+#define XFMEM_STATE0             0x1002
+#define XFMEM_STATE1             0x1003
+#define XFMEM_CLOCK              0x1004
+#define XFMEM_CLIPDISABLE        0x1005
+#define XFMEM_SETGPMETRIC        0x1006
+#define XFMEM_VTXSPECS           0x1008
+#define XFMEM_SETNUMCHAN         0x1009
+#define XFMEM_SETCHAN0_AMBCOLOR  0x100a
+#define XFMEM_SETCHAN1_AMBCOLOR  0x100b
+#define XFMEM_SETCHAN0_MATCOLOR  0x100c
+#define XFMEM_SETCHAN1_MATCOLOR  0x100d
+#define XFMEM_SETCHAN0_COLOR     0x100e
+#define XFMEM_SETCHAN1_COLOR     0x100f
+#define XFMEM_SETCHAN0_ALPHA     0x1010
+#define XFMEM_SETCHAN1_ALPHA     0x1011
+#define XFMEM_DUALTEX            0x1012
+#define XFMEM_SETMATRIXINDA      0x1018
+#define XFMEM_SETMATRIXINDB      0x1019
+#define XFMEM_SETVIEWPORT        0x101a
+#define XFMEM_SETPROJECTION      0x1020
+#define XFMEM_SETNUMTEXGENS      0x103f
+#define XFMEM_SETTEXMTXINFO      0x1040
+#define XFMEM_SETPOSMTXINFO      0x1050
 
 union LitChannel
 {
@@ -113,13 +125,6 @@ union LitChannel
     }
 };
 
-struct ColorChannel
-{
-    u32 ambColor;
-    u32 matColor;
-    LitChannel color;
-    LitChannel alpha;
-};
 
 union INVTXSPEC
 {
@@ -159,6 +164,52 @@ union PostMtxInfo
     u32 hex;
 };
 
+
+
+
+struct Light
+{
+    u32 useless[3]; 
+    u32 color;    //rgba
+    float a0;  //attenuation
+    float a1; 
+    float a2; 
+    float k0;  //k stuff
+    float k1; 
+    float k2; 
+    union
+    {
+        struct {
+			float dpos[3];
+            float ddir[3]; // specular lights only
+        };
+        struct {
+            float sdir[3];
+            float shalfangle[3]; // specular lights only
+        };
+    };
+};
+
+
+
+struct ColorChannel
+{
+    u32 ambColor;
+    u32 matColor;
+    LitChannel color;
+    LitChannel alpha;
+};
+
+struct Viewport
+{
+	float wd;
+	float ht;
+	float nearZ;
+	float xOrig;
+	float yOrig;
+	float farZ;
+};
+
 struct TexCoordInfo
 {
     TexMtxInfo texmtxinfo;
@@ -177,25 +228,9 @@ struct XFRegisters
 	float rawProjection[7];
 };
 
-#define XFMEM_SIZE               0x8000
-#define XFMEM_POSMATRICES        0x000
-#define XFMEM_POSMATRICES_END    0x100
-#define XFMEM_NORMALMATRICES     0x400
-#define XFMEM_NORMALMATRICES_END 0x460
-#define XFMEM_POSTMATRICES       0x500
-#define XFMEM_POSTMATRICES_END   0x600
-#define XFMEM_LIGHTS             0x600
-#define XFMEM_LIGHTS_END         0x680
 
-struct Viewport
-{
-	float wd;
-	float ht;
-	float nearZ;
-	float xOrig;
-	float yOrig;
-	float farZ;
-};
+
+
 
 extern XFRegisters xfregs;
 extern u32 xfmem[XFMEM_SIZE];
@@ -203,4 +238,4 @@ extern u32 xfmem[XFMEM_SIZE];
 void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
 void LoadIndexedXF(u32 val, int array);
 
-#endif
+#endif // _XFMEMORY_H

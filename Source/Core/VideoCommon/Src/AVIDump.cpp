@@ -73,7 +73,8 @@ bool AVIDump::CreateFile()
 	NOTICE_LOG(VIDEO, "Opening AVI file (%s) for dumping", movie_file_name);
 	// TODO: Make this work with AVIFileOpenW without it throwing REGDB_E_CLASSNOTREG
 	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, NULL);
-	if (FAILED(hr)) {
+	if (FAILED(hr))
+	{
 		if (hr == AVIERR_BADFORMAT) NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format."); 
 		if (hr == AVIERR_MEMORY)  NOTICE_LOG(VIDEO, "The file could not be opened because of insufficient memory."); 
 		if (hr == AVIERR_FILEREAD) NOTICE_LOG(VIDEO, "A disk error occurred while reading the file."); 
@@ -82,13 +83,16 @@ bool AVIDump::CreateFile()
 		Stop();
 		return false;
 	}
+
 	SetBitmapFormat();
 	NOTICE_LOG(VIDEO, "Setting video format...");
-	if (!SetVideoFormat()) {
+	if (!SetVideoFormat())
+	{
 		NOTICE_LOG(VIDEO, "Setting video format failed");
 		Stop();
 		return false;
 	}
+
 	if (!m_fileCount) {
 		if (!SetCompressionOptions()) {
 			NOTICE_LOG(VIDEO, "SetCompressionOptions failed");
@@ -96,12 +100,16 @@ bool AVIDump::CreateFile()
 			return false;
 		}
 	}
-	if (FAILED(AVIMakeCompressedStream(&m_streamCompressed, m_stream, &m_options, NULL))) {
+
+	if (FAILED(AVIMakeCompressedStream(&m_streamCompressed, m_stream, &m_options, NULL)))
+	{
 		NOTICE_LOG(VIDEO, "AVIMakeCompressedStream failed");
 		Stop();
 		return false;
 	}
-	if (FAILED(AVIStreamSetFormat(m_streamCompressed, 0, &m_bitmap, m_bitmap.biSize))) {
+
+	if (FAILED(AVIStreamSetFormat(m_streamCompressed, 0, &m_bitmap, m_bitmap.biSize)))
+	{
 		NOTICE_LOG(VIDEO, "AVIStreamSetFormat failed");
 		Stop();
 		return false;
@@ -112,18 +120,24 @@ bool AVIDump::CreateFile()
 
 void AVIDump::CloseFile()
 {
-	if (m_streamCompressed) {
+	if (m_streamCompressed)
+	{
 		AVIStreamClose(m_streamCompressed);
 		m_streamCompressed = NULL;
 	}
-	if (m_stream) {
+
+	if (m_stream)
+	{
 		AVIStreamClose(m_stream);
 		m_stream = NULL;
 	}
-	if (m_file) {
+
+	if (m_file)
+	{
 		AVIFileRelease(m_file);
 		m_file = NULL;
 	}
+
 	AVIFileExit();
 }
 
@@ -140,7 +154,8 @@ void AVIDump::AddFrame(char *data)
 	m_totalBytes += m_byteBuffer;
 	// Close the recording if the file is more than 2gb
 	// VfW can't properly save files over 2gb in size, but can keep writing to them up to 4gb.
-	if (m_totalBytes >= 2000000000) {
+	if (m_totalBytes >= 2000000000)
+	{
 		CloseFile();
 		m_fileCount++;
 		CreateFile();

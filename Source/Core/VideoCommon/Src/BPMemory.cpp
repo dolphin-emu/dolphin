@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,15 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-
 #include "BPMemory.h"
 
-//BP state
+// BP state
 // STATE_TO_SAVE
 BPMemory bpmem;
 
 // The plugin must implement this.
-void BPWritten(const Bypass& bp);
+void BPWritten(const BPCmd& bp);
 
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 void LoadBPReg(u32 value0)
@@ -35,7 +34,7 @@ void LoadBPReg(u32 value0)
 	int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
 	int changes = (oldval ^ newval) & 0xFFFFFF;
 
-	Bypass bp = {opcode, changes, newval};
+	BPCmd bp = {opcode, changes, newval};
 
 	//reset the mask register
 	if (opcode != 0xFE)
@@ -50,18 +49,19 @@ void BPReload()
 {
 	for (int i = 0; i < 254; i++)
 	{
-		switch (i) {
-		case 0x41:
-		case 0x45: //GXSetDrawDone
-		case 0x52:
-		case 0x65:
-		case 0x67: // set gp metric?
+		switch (i) 
+		{
+		case BPMEM_BLENDMODE:
+		case BPMEM_SETDRAWDONE:
+		case BPMEM_TRIGGER_EFB_COPY:
+		case BPMEM_LOADTLUT1:
+		case BPMEM_PERF1:
 		case BPMEM_PE_TOKEN_ID:
 		case BPMEM_PE_TOKEN_INT_ID:
 			// Cases in which we DON'T want to reload the BP
 			continue;
 		default:
-			Bypass bp = {i, 0xFFFFFF, ((u32*)&bpmem)[i]};
+			BPCmd bp = {i, 0xFFFFFF, ((u32*)&bpmem)[i]};
 			BPWritten(bp);
 		}
 	}

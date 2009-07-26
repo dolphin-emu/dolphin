@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -45,7 +45,8 @@ static void DoState(PointerWrap &p)
     Fifo_DoState(p);
 }
 
-void VideoCommon_DoState(PointerWrap &p) {
+void VideoCommon_DoState(PointerWrap &p)
+{
     DoState(p);
 	//TODO: search for more data that should be saved and add it here
 }

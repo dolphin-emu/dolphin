@@ -29,4 +29,4 @@ void Shutdown();
 PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int texformat, u8 *data);
 };
 
-#endif
+#endif // _HIRESTEXTURES_H

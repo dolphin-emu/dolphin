@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -46,4 +46,4 @@ public:
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
 void SetVSConstant4fv(int const_number, const float *f);
 
-#endif
+#endif // _VERTEXSHADERMANAGER_H

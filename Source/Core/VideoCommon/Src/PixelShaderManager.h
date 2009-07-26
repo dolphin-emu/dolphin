@@ -55,4 +55,4 @@ public:
 };
 
 
-#endif
+#endif // _PIXELSHADERMANAGER_H

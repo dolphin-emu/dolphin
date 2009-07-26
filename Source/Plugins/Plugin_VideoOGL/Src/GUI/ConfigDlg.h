@@ -113,7 +113,6 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Statistics;
-		wxCheckBox *m_BlendStats;
 		wxCheckBox *m_ProjStats;
 		wxCheckBox *m_ShowEFBCopyRegions;
 		wxCheckBox *m_TexFmtOverlay;
@@ -171,7 +170,6 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_SHOWFPS,
 			ID_SHADERERRORS,
 			ID_STATISTICS,
-			ID_BLENDSTATS,
 			ID_PROJSTATS,
 			ID_SHOWEFBCOPYREGIONS,
 			ID_TEXFMTOVERLAY,
@@ -213,7 +211,8 @@ class GFXConfigDialogOGL : public wxDialog
 		void ReloadShaderClick(wxCommandEvent& event);
 		void EditShaderClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
-		void AdvancedSettingsChanged(wxCommandEvent& event); 
+		void AdvancedSettingsChanged(wxCommandEvent& event);
+		void CloseWindow();
 };
 
 #endif // _OGL_CONFIGDIALOG_H_

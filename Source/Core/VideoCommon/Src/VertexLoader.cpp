@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -124,10 +124,10 @@ void LOADERDECL UpdateBoundingBox()
 	o[0] = (o[0] + 1.0f) * 320.0f;
 	o[1] = (o[1] + 1.0f) * 240.0f;
 	
-	if (o[0] < g_VideoInitialize.pBBox[0]) g_VideoInitialize.pBBox[0] = std::max(0.0f, o[0]);
-	if (o[0] > g_VideoInitialize.pBBox[1]) g_VideoInitialize.pBBox[1] = std::min(640.0f, o[0]);
-	if (o[1] < g_VideoInitialize.pBBox[2]) g_VideoInitialize.pBBox[2] = std::max(0.0f, o[1]);
-	if (o[1] > g_VideoInitialize.pBBox[3]) g_VideoInitialize.pBBox[3] = std::min(480.0f, o[1]);
+	if (o[0] < g_VideoInitialize.pBBox[0]) g_VideoInitialize.pBBox[0] = (u16)std::max(0.0f, o[0]);
+	if (o[0] > g_VideoInitialize.pBBox[1]) g_VideoInitialize.pBBox[1] = (u16)std::min(640.0f, o[0]);
+	if (o[1] < g_VideoInitialize.pBBox[2]) g_VideoInitialize.pBBox[2] = (u16)std::max(0.0f, o[1]);
+	if (o[1] > g_VideoInitialize.pBBox[3]) g_VideoInitialize.pBBox[3] = (u16)std::min(480.0f, o[1]);
 	/*
 	if (GetAsyncKeyState(VK_LSHIFT)) {
 		ERROR_LOG(VIDEO, "XForm: %f %f %f to %f %f", p[0], p[1], p[2], o[0], o[1]);

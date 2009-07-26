@@ -110,13 +110,15 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int te
 
 	u8 *temp = SOIL_load_image(textureMap[key].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
 
-	if (temp == NULL) {
+	if (temp == NULL)
+	{
 		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str(), width, height);
 		SOIL_free_image_data(temp);
 		return PC_TEX_FMT_NONE;
 	}
 
-	if (width > 1024 || height > 1024) {
+	if (width > 1024 || height > 1024)
+	{
 		ERROR_LOG(VIDEO, "Custom texture %s is too large (%ix%i); textures can only be 1024 pixels tall and wide", textureMap[key].c_str(), width, height);
 		SOIL_free_image_data(temp);
 		return PC_TEX_FMT_NONE;

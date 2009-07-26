@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -77,7 +77,8 @@ struct DVPROFSTRUCT
 
     ~DVPROFSTRUCT() {
         std::list<DVPROFSTRUCT *>::iterator it = listpChild.begin();
-        while (it != listpChild.end()) {
+        while (it != listpChild.end())
+		{
             delete *it;
 			*it = NULL;
             ++it;
@@ -150,12 +151,14 @@ void DVProfRegister(const char *pname)
     // else add in a new profiler to the appropriate parent profiler
     DVPROFSTRUCT* pprof = NULL;
     
-    if (g_listCurTracking.size() > 0) {
+    if (g_listCurTracking.size() > 0)
+	{
         _assert_( g_listCurTracking.back().pprof != NULL );
         g_listCurTracking.back().pprof->listpChild.push_back(new DVPROFSTRUCT());
         pprof = g_listCurTracking.back().pprof->listpChild.back();
     }
-    else {
+    else
+	{
         g_listProfilers.push_back(DVPROFSTRUCT());
         pprof = &g_listProfilers.back();
     }
@@ -206,7 +209,9 @@ u64 DVProfWriteStruct(FILE* f, const DVPROFSTRUCT* p, int ident)
     fprintf(f, "%*s%s - ", ident, "", p->pname);
     std::list<DVPROFSTRUCT::DATA>::const_iterator ittime = p->listTimes.begin();
     u64 utime = 0;
-    while (ittime != p->listTimes.end()) {
+
+    while (ittime != p->listTimes.end())
+	{
         utime += ittime->dwTime;
         if (ittime->dwUserData) 
             fprintf(f, "time: %d, user: 0x%8.8x", (u32)ittime->dwTime, ittime->dwUserData);
@@ -217,7 +222,8 @@ u64 DVProfWriteStruct(FILE* f, const DVPROFSTRUCT* p, int ident)
 
     // yes this is necessary, maps have problems with constructors on their type
     std::map<std::string, DVTIMEINFO>::iterator ittimes = mapAggregateTimes.find(p->pname);
-    if (ittimes == mapAggregateTimes.end()) {
+    if (ittimes == mapAggregateTimes.end())
+	{
         ittimes = mapAggregateTimes.insert(std::map<std::string, DVTIMEINFO>::value_type(p->pname, DVTIMEINFO())).first;
         ittimes->second.uExclusive = 0;
         ittimes->second.uInclusive = 0;
@@ -230,14 +236,14 @@ u64 DVProfWriteStruct(FILE* f, const DVPROFSTRUCT* p, int ident)
     std::list<DVPROFSTRUCT*>::const_iterator itprof = p->listpChild.begin();
 
     u64 uex = utime;
-    while (itprof != p->listpChild.end()) {
+    while (itprof != p->listpChild.end())
+	{
         uex -= DVProfWriteStruct(f, *itprof, ident+4);
         ++itprof;
     }
 
-    if (uex > utime) {
+    if (uex > utime)
         uex = 0;
-    }
 
     ittimes->second.uExclusive += uex;
     return utime;
@@ -252,7 +258,8 @@ void DVProfWrite(const char* pfilename, u32 frames)
     mapAggregateTimes.clear();
     std::list<DVPROFSTRUCT>::iterator it = g_listProfilers.begin();
 
-    while (it != g_listProfilers.end() ) {
+    while (it != g_listProfilers.end() )
+	{
         DVProfWriteStruct(f, &(*it), 0);
         ++it;
     }
@@ -263,7 +270,8 @@ void DVProfWrite(const char* pfilename, u32 frames)
     u64 uTotal[2] = {0};
     double fiTotalTime[2];
 
-    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter)
+	{
         uTotal[0] += iter->second.uExclusive;
         uTotal[1] += iter->second.uInclusive;
     }
@@ -275,10 +283,9 @@ void DVProfWrite(const char* pfilename, u32 frames)
     fiTotalTime[1] = 1.0 / (double)uTotal[1];
 
     // output the combined times
-    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter)
         fprintf(f, "%s - ex: %f inc: %f\n", iter->first.c_str(), (float)((double)iter->second.uExclusive * fiTotalTime[0]),
             (float)((double)iter->second.uInclusive * fiTotalTime[1]));
-    }
 
     fclose(f);
 }

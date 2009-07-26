@@ -143,7 +143,7 @@ clear_buffer:
 	}
 	// SetupAccelerator
 	const s16 *read_ptr = (s16*)GetARAMPointer(PB.CurAddr);
-	if (PB.RemLength < rem_samples)
+	if (PB.RemLength < (u32)rem_samples)
 	{
 		// finish-up loop
 		for (u32 i = 0; i < PB.RemLength; i++)
@@ -202,7 +202,7 @@ clear_buffer:
 
 	// SetupAccelerator
 	const s8 *read_ptr = (s8*)GetARAMPointer(PB.CurAddr);
-	if (PB.RemLength < rem_samples)
+	if (PB.RemLength < (u32)rem_samples)
 	{
 		// finish-up loop
 		for (u32 i = 0; i < PB.RemLength; i++)
@@ -365,7 +365,7 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 
 	// The PB.StopOnSilence check is a hack, we should check the buffers and enter this
 	// only when the buffer is completely 0 (i.e. when the music has finished fading out)
-	if (PB.StopOnSilence || PB.RemLength < _RealSize)
+	if (PB.StopOnSilence || PB.RemLength < (u32)_RealSize)
 	{
 		WARN_LOG(DSPHLE, "Raw: END");
 		// Let's ignore this entire case since it doesn't seem to happen
@@ -517,8 +517,8 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		switch (PB.Format)
 		{
 		// Synthesized sounds
+		case 0x0003: WARN_LOG(DSPHLE, "PB Format 0x03 used!");
 		case 0x0000: // Example: Magic meter filling up in ZWW
-		case 0x0003: 
 			RenderSynth_RectWave(PB, m_VoiceBuffer, _Size);
 			break;
 
@@ -533,7 +533,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			break;
                         
   		// These are more "synth" formats - square wave, saw wave etc.
-		case 0x0002:
+		case 0x0002: WARN_LOG(DSPHLE, "PB Format 0x02 used!");
 		case 0x0004: // Example: Big Pikmin onion mothership landing/building a bridge in Pikmin
 		case 0x0007: // Example: "success" SFX in Pikmin 1, Pikmin 2 in a cave, not sure what sound it is.
 		case 0x000b: // Example: SFX in area selection menu in Pikmin

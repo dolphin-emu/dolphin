@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,8 +34,10 @@ void InitLUTs()
 {
 	for (int i = 0; i < 32; i++)
 		shiftLookup[i] = 1.0f / float(1 << i);
+
 	for (int i = 0; i < 64; i++)
 		lut6to8[i] = (i*255) / 63;
+
 	for (int i = 0; i < 256; i++)
 	{
 		lutu8tosfloat[i] = (float)(i - 128) / 127.0f;

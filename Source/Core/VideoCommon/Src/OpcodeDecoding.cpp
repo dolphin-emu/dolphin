@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	u8* startAddress = Memory_GetPtr(address);
 
 	//Avoid the crash if Memory_GetPtr failed ..
-	if (startAddress!=0)
+	if (startAddress != 0)
 	{
 		g_pVideoData = startAddress;
 
@@ -87,8 +87,9 @@ bool FifoCommandRunnable()
 
     switch (Cmd)
     {
-    case GX_NOP:
-        // Hm, this means that we scan over nop streams pretty slowly...
+    case GX_NOP: // Hm, this means that we scan over nop streams pretty slowly...
+	case GX_CMD_INVL_VC: // Invalidate Vertex Cache - no parameters
+	case 0x44: // zelda 4 swords calls it and checks the metrics registers after that
         iCommandSize = 1;
         break;
 
@@ -100,24 +101,12 @@ bool FifoCommandRunnable()
     case GX_LOAD_INDX_B:
     case GX_LOAD_INDX_C:
     case GX_LOAD_INDX_D:
+	case GX_LOAD_BP_REG:
         iCommandSize = 5;
         break;
 
     case GX_CMD_CALL_DL:	
         iCommandSize = 9;
-        break;
-
-    case 0x44:
-        iCommandSize = 1;
-        // zelda 4 swords calls it and checks the metrics registers after that
-        break;
-
-    case GX_CMD_INVL_VC: // invalid vertex cache - no parameter?
-        iCommandSize = 1;
-        break;
-
-    case GX_LOAD_BP_REG:	
-        iCommandSize = 5;
         break;
 
     case GX_LOAD_XF_REG:
@@ -154,8 +143,9 @@ bool FifoCommandRunnable()
         }
 		else
 		{
+			// TODO(Omega): Maybe dump FIFO to file on this error
             char szTemp[1024];
-            sprintf(szTemp, "GFX: Unknown Opcode (0x%x).\n"
+            sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
@@ -256,13 +246,12 @@ static void Decode()
         }			
         break;
 
-    case 0x44:
+    case 0x44: // zelda 4 swords calls it and checks the metrics registers after that
 		DEBUG_LOG(VIDEO, "GX 0x44: %08x", Cmd);
-        // zelda 4 swords calls it and checks the metrics registers after that
         break;
 
-    case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
-        DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
+    case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+        DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
         break;
 
     case GX_LOAD_BP_REG: //0x61

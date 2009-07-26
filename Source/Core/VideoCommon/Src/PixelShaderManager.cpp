@@ -202,6 +202,7 @@ void PixelShaderManager::SetConstants()
         SetPSConstant4f(C_FOG + 1, a, b, bpmem.fog.c_proj_fsel.GetC(), 0);
         s_bFogParamChanged = false;
     }
+
 	for (int i = 0; i < 8; i++)
 		lastCustomTexScale[i][0] = lastCustomTexScale[i][1] = 1.0f;
 }

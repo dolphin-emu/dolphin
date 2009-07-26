@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,161 +32,145 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
         address = baseAddress + i;
 
         // Setup a Matrix
-        if (address < 0x1000)
+        if (address < XFMEM_ERROR)
         {
             VertexManager::Flush();
 			VertexShaderManager::InvalidateXFRange(address, address + transferSize);
             //PRIM_LOG("xfmem write: 0x%x-0x%x\n", address, address+transferSize);
 
-            u32* p1 = &xfmem[address];
-            memcpy_gc(p1, &pData[i], transferSize*4);
+            memcpy_gc((u32*)&xfmem[address], &pData[i], transferSize*4);
             i += transferSize;
         }
+		else if (address >= XFMEM_SETTEXMTXINFO && address <= XFMEM_SETTEXMTXINFO+7)
+		{
+			xfregs.texcoords[address - XFMEM_SETTEXMTXINFO].texmtxinfo.hex = pData[i];
+		}
+		else if (address >= XFMEM_SETPOSMTXINFO && address <= XFMEM_SETPOSMTXINFO+7)
+		{
+			xfregs.texcoords[address - XFMEM_SETPOSMTXINFO].postmtxinfo.hex = pData[i];
+		}
         else if (address < 0x2000)
         {
             u32 data = pData[i];
             switch (address)
             {
-            case 0x1000: // error
+            case XFMEM_ERROR:
+            case XFMEM_DIAG:
+            case XFMEM_STATE0: // internal state 0
+            case XFMEM_STATE1: // internal state 1
+            case XFMEM_CLOCK:
+			case XFMEM_SETGPMETRIC:
                 break;
-            case 0x1001: // diagnostics
+
+            case XFMEM_CLIPDISABLE:
+				//if (data & 1) {} // disable clipping detection
+				//if (data & 2) {} // disable trivial rejection
+				//if (data & 4) {} // disable cpoly clipping acceleration
                 break;
-            case 0x1002: // internal state 0
-                break;
-            case 0x1003: // internal state 1
-                break;
-            case 0x1004: // xf_clock
-                break;
-            case 0x1005: // clipdisable
-                if (data & 1) { // disable clipping detection
-                }
-                if (data & 2) { // disable trivial rejection
-                }
-                if (data & 4) { // disable cpoly clipping acceleration
-                }
-                break;
-            case 0x1006: //SetGPMetric
-                break;
-            case 0x1008: //__GXXfVtxSpecs, wrote 0004
+
+            case XFMEM_VTXSPECS: //__GXXfVtxSpecs, wrote 0004
                 xfregs.hostinfo = *(INVTXSPEC*)&data;
                 break;
-            case 0x1009: //GXSetNumChans (no)
-				if ((u32)xfregs.nNumChans != (data & 3)) {
+
+            case XFMEM_SETNUMCHAN:
+				if ((u32)xfregs.nNumChans != (data & 3))
+				{
                     VertexManager::Flush();
                     xfregs.nNumChans = data & 3;
                 }
                 break;
-            case 0x100a: //GXSetChanAmbientcolor
-                if (xfregs.colChans[0].ambColor != data) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].ambColor = data;
-					VertexShaderManager::SetMaterialColor(0, data);
-                }
-                break;
-            case 0x100b: //GXSetChanAmbientcolor
-                if (xfregs.colChans[1].ambColor != data) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].ambColor = data;
-					VertexShaderManager::SetMaterialColor(1, data);
-                }
-                break;
-            case 0x100c: //GXSetChanMatcolor (rgba)
-                if (xfregs.colChans[0].matColor != data) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].matColor = data;
-					VertexShaderManager::SetMaterialColor(2, data);
-                }
-                break;
-            case 0x100d: //GXSetChanMatcolor (rgba)
-                if (xfregs.colChans[1].matColor != data) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].matColor = data;
-					VertexShaderManager::SetMaterialColor(3, data);
-                }
-                break;
 
-            case 0x100e: // color0
-                if (xfregs.colChans[0].color.hex != (data & 0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].color.hex = data;
-                }
-                break;
-            case 0x100f: // color1
-                if (xfregs.colChans[1].color.hex != (data & 0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].color.hex = data;
-                }
-                break;
-            case 0x1010: // alpha0
-                if (xfregs.colChans[0].alpha.hex != (data & 0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].alpha.hex = data;
-                }
-                break;
-            case 0x1011: // alpha1
-                if (xfregs.colChans[1].alpha.hex != (data & 0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].alpha.hex = data;
-                }
-                break;
-            case 0x1012: // dual tex transform
-                if (xfregs.bEnableDualTexTransform != (data & 1)) {
+            case XFMEM_SETCHAN0_AMBCOLOR: // Channel Ambient Color
+			case XFMEM_SETCHAN1_AMBCOLOR:
+				{
+					u8 chan = address - XFMEM_SETCHAN0_AMBCOLOR;
+					if (xfregs.colChans[chan].ambColor != data) 
+					{
+						VertexManager::Flush();
+						xfregs.colChans[chan].ambColor = data;
+						VertexShaderManager::SetMaterialColor(chan, data);
+					}
+					break;
+				}
+
+            case XFMEM_SETCHAN0_MATCOLOR: // Channel Material Color
+			case XFMEM_SETCHAN1_MATCOLOR:
+				{
+					u8 chan = address - XFMEM_SETCHAN0_MATCOLOR;
+					if (xfregs.colChans[chan].matColor != data)
+					{
+						VertexManager::Flush();
+						xfregs.colChans[chan].matColor = data;
+						VertexShaderManager::SetMaterialColor(address - XFMEM_SETCHAN0_AMBCOLOR, data);
+					}
+					break;
+				}
+
+            case XFMEM_SETCHAN0_COLOR: // Channel Color
+			case XFMEM_SETCHAN1_COLOR:
+				{
+					u8 chan = address - XFMEM_SETCHAN0_COLOR;
+					if (xfregs.colChans[chan].color.hex != (data & 0x7fff))
+					{
+						VertexManager::Flush();
+						xfregs.colChans[chan].color.hex = data;
+					}
+					break;
+				}
+
+            case XFMEM_SETCHAN0_ALPHA: // Channel Alpha
+			case XFMEM_SETCHAN1_ALPHA:
+				{
+					u8 chan = address - XFMEM_SETCHAN0_ALPHA;
+					if (xfregs.colChans[chan].alpha.hex != (data & 0x7fff))
+					{
+						VertexManager::Flush();
+						xfregs.colChans[chan].alpha.hex = data;
+					}
+					break;
+				}
+
+            case XFMEM_DUALTEX:
+                if (xfregs.bEnableDualTexTransform != (data & 1)) 
+				{
                     VertexManager::Flush();
                     xfregs.bEnableDualTexTransform = data & 1;
                 }
                 break;
 
-            case 0x1013:
-            case 0x1014:
-            case 0x1015:
-            case 0x1016:
-            case 0x1017:
-                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
-                break;
-            case 0x1018:
+
+            case XFMEM_SETMATRIXINDA:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex0");
-				VertexShaderManager::SetTexMatrixChangedA(data); //?
+				VertexShaderManager::SetTexMatrixChangedA(data); // ?
                 break;
-            case 0x1019:
+            case XFMEM_SETMATRIXINDB:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-                VertexShaderManager::SetTexMatrixChangedB(data); //?
+                VertexShaderManager::SetTexMatrixChangedB(data); // ?
                 break;
 
-            case 0x101a:
+            case XFMEM_SETVIEWPORT:
                 VertexManager::Flush();
                 VertexShaderManager::SetViewport((float*)&pData[i]);
 				PixelShaderManager::SetViewport((float*)&pData[i]);
                 i += 6;
                 break;
 
-            case 0x101c: // paper mario writes 16777216.0f, 1677721.75
-                break;
-            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f
-                break;
-
-            case 0x1020:
+            case XFMEM_SETPROJECTION:
                 VertexManager::Flush();
                 VertexShaderManager::SetProjection((float*)&pData[i]);
                 i += 7;
-                return;
+                break;
 
-            case 0x103f: // GXSetNumTexGens
-                if ((u32)xfregs.numTexGens != data) {
+            case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
+                if ((u32)xfregs.numTexGens != data)
+				{
                     VertexManager::Flush();
                     xfregs.numTexGens = data;
                 }
                 break;
 
-            case 0x1040: xfregs.texcoords[0].texmtxinfo.hex = data; break;
-            case 0x1041: xfregs.texcoords[1].texmtxinfo.hex = data; break;
-            case 0x1042: xfregs.texcoords[2].texmtxinfo.hex = data; break;
-            case 0x1043: xfregs.texcoords[3].texmtxinfo.hex = data; break;
-            case 0x1044: xfregs.texcoords[4].texmtxinfo.hex = data; break;
-            case 0x1045: xfregs.texcoords[5].texmtxinfo.hex = data; break;
-            case 0x1046: xfregs.texcoords[6].texmtxinfo.hex = data; break;
-            case 0x1047: xfregs.texcoords[7].texmtxinfo.hex = data; break;
-
-            case 0x1048:
+			// Maybe these are for Normals?
+			case 0x1048: //xfregs.texcoords[0].nrmmtxinfo.hex = data; break; ??
             case 0x1049:
             case 0x104a:
             case 0x104b:
@@ -194,26 +178,24 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x104d:
             case 0x104e:
             case 0x104f:
-                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
-                break;
-            case 0x1050: xfregs.texcoords[0].postmtxinfo.hex = data; break;
-            case 0x1051: xfregs.texcoords[1].postmtxinfo.hex = data; break;
-            case 0x1052: xfregs.texcoords[2].postmtxinfo.hex = data; break;
-            case 0x1053: xfregs.texcoords[3].postmtxinfo.hex = data; break;
-            case 0x1054: xfregs.texcoords[4].postmtxinfo.hex = data; break;
-            case 0x1055: xfregs.texcoords[5].postmtxinfo.hex = data; break;
-            case 0x1056: xfregs.texcoords[6].postmtxinfo.hex = data; break;
-            case 0x1057: xfregs.texcoords[7].postmtxinfo.hex = data; break;
+				DEBUG_LOG(VIDEO, "Possible Normal Mtx XF reg?: %x=%x\n", address, data);
+				break;
 
+			// --------------
+			// Unknown Regs
+			// --------------
+			case 0x1013:
+            case 0x1014:
+            case 0x1015:
+            case 0x1016:
+            case 0x1017:
+
+			case 0x101c: // paper mario writes 16777216.0f, 1677721.75
+            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f
             default:
-                DEBUG_LOG(VIDEO, "xf addr: %x=%x\n", address, data);
+                WARN_LOG(VIDEO, "Unknown XF Reg: %x=%x\n", address, data);
                 break;
             }
-        }
-        else if (address >= 0x4000)
-        {
-            // MessageBox(NULL, "1", "1", MB_OK);
-            //4010 __GXSetGenMode
         }
     }
 }
@@ -222,7 +204,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 void LoadIndexedXF(u32 val, int array)
 {
     int index = val >> 16;
-    int address = val & 0xFFF; //check mask
+    int address = val & 0xFFF; // check mask
     int size = ((val >> 12) & 0xF) + 1;
     //load stuff from array to address in xf mem
 
@@ -231,5 +213,5 @@ void LoadIndexedXF(u32 val, int array)
     //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
 
     for (int i = 0; i < size; i++)
-        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array]*index + i*4);
+        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array] * index + i * 4);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,32 +15,32 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef GCOGL_PIXELSHADER
-#define GCOGL_PIXELSHADER
+#ifndef GCOGL_PIXELSHADER_H
+#define GCOGL_PIXELSHADER_H
 
 #include "Common.h"
 
-#define I_COLORS "color"
-#define I_KCOLORS "k"
-#define I_ALPHA "alphaRef"
-#define I_TEXDIMS "texdim"
-#define I_ZBIAS "czbias"
+#define I_COLORS      "color"
+#define I_KCOLORS     "k"
+#define I_ALPHA       "alphaRef"
+#define I_TEXDIMS     "texdim"
+#define I_ZBIAS       "czbias"
 #define I_INDTEXSCALE "cindscale"
-#define I_INDTEXMTX "cindmtx"
-#define I_FOG "cfog"
+#define I_INDTEXMTX   "cindmtx"
+#define I_FOG         "cfog"
 
-#define C_COLORS 0
-#define C_KCOLORS (C_COLORS+4)
-#define C_ALPHA (C_KCOLORS+4)
-#define C_TEXDIMS (C_ALPHA+1)
-#define C_ZBIAS (C_TEXDIMS+8)
-#define C_INDTEXSCALE (C_ZBIAS+2)
-#define C_INDTEXMTX (C_INDTEXSCALE+2)
-#define C_FOG (C_INDTEXMTX+6)
-#define C_ENVCONST_END (C_FOG+2)
+#define C_COLORS       0
+#define C_KCOLORS      (C_COLORS + 4)
+#define C_ALPHA        (C_KCOLORS + 4)
+#define C_TEXDIMS      (C_ALPHA + 1)
+#define C_ZBIAS        (C_TEXDIMS + 8)
+#define C_INDTEXSCALE  (C_ZBIAS + 2)
+#define C_INDTEXMTX    (C_INDTEXSCALE + 2)
+#define C_FOG          (C_INDTEXMTX + 6)
+#define C_ENVCONST_END (C_FOG + 2)
 
-#define C_COLORMATRIX (C_FOG+2)
-#define PIXELSHADERUID_MAX_VALUES (5+32+6+11)
+#define C_COLORMATRIX  (C_FOG + 2)
+#define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11)
 
 class PIXELSHADERUID
 {
@@ -48,10 +48,12 @@ public:
 	u32 values[PIXELSHADERUID_MAX_VALUES];
 	u16 tevstages, indstages;
 
-	PIXELSHADERUID() {
+	PIXELSHADERUID() 
+	{
 		memset(values, 0, PIXELSHADERUID_MAX_VALUES * 4);
 		tevstages = indstages = 0;
 	}
+
 	PIXELSHADERUID(const PIXELSHADERUID& r)
 	{
 		tevstages = r.tevstages;
@@ -61,9 +63,12 @@ public:
 		for (int i = 0; i < N; ++i) 
 			values[i] = r.values[i];
 	}
-	int GetNumValues() const {
+
+	int GetNumValues() const 
+	{
 		return tevstages + indstages + 4;
 	}
+
 	bool operator <(const PIXELSHADERUID& _Right) const
 	{
 		if (values[0] < _Right.values[0])
@@ -71,7 +76,8 @@ public:
 		else if (values[0] > _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) {
+		for (int i = 1; i < N; ++i) 
+		{
 			if (values[i] < _Right.values[i])
 				return true;
 			else if (values[i] > _Right.values[i])
@@ -79,12 +85,14 @@ public:
 		}
 		return false;
 	}
+
 	bool operator ==(const PIXELSHADERUID& _Right) const
 	{
 		if (values[0] != _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) {
+		for (int i = 1; i < N; ++i) 
+		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
@@ -95,4 +103,4 @@ public:
 const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL = false);
 void GetPixelShaderId(PIXELSHADERUID &, u32 s_texturemask, u32 dstAlphaEnable);
 
-#endif
+#endif // GCOGL_PIXELSHADER_H

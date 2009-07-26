@@ -40,27 +40,24 @@ void BPInit()
     bpmem.bpMask = 0xFFFFFF;
 }
 
-
-// ----------------------------------------------------------------------------------------------------------
-// Write to the Bypass Memory (Bypass Raster State Registers)
-/* ------------------
-   Called:
-		At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
-   TODO:
-		Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
-		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
-		just stuff geometry in them and don't put state changes there. */
-// ----------------------------------------------------------------------------------------------------------
-void BPWritten(const Bypass& bp)
+void BPWritten(const BPCmd& bp)
 {
-	// --------------------------------------------------------------------------------------------------------
-	// First the pipeline is flushed then update the bpmem with the new value.
-	// Some of the BP cases have to call certain functions while others just update the bpmem.
-	// some bp cases check the changes variable, because they might not have to be updated all the time
-	// NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
-	//       had to be ditched and the games seem to work fine with out it.
-	// NOTE2: Yet Another Gamecube Documentation calls them Bypass Registers
-	// --------------------------------------------------------------------------------------------------------
+   /*
+   ----------------------------------------------------------------------------------------------------------------
+   Purpose: Writes to the BP registers
+   Called: At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
+   How It Works: First the pipeline is flushed then update the bpmem with the new value.
+	             Some of the BP cases have to call certain functions while others just update the bpmem.
+	             some bp cases check the changes variable, because they might not have to be updated all the time
+   NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
+	     had to be ditched and the games seem to work fine with out it.
+   NOTE2: Yet Another Gamecube Documentation calls them Bypass Registers but possibly completely wrong
+   NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
+   TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
+		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
+		just stuff geometry in them and don't put state changes there.
+   ----------------------------------------------------------------------------------------------------------------
+   */
 
 	// Debugging only, this lets you skip a bp update
 	//static int times = 0;
@@ -111,6 +108,9 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_RAS1_SS1: // Index Texture Coordinate Scale 1
         PixelShaderManager::SetIndTexScaleChanged(0x0c);
 		break;
+	// ----------------
+	// Scissor Control
+	// ----------------
 	case BPMEM_SCISSORTL: // Scissor Rectable Top, Left
 	case BPMEM_SCISSORBR: // Scissor Rectable Bottom, Right
 	case BPMEM_SCISSOROFFSET: // Scissor Offset
@@ -299,29 +299,32 @@ void BPWritten(const Bypass& bp)
 			break;
 		}
 	// ----------------------------------
-	// Display Copy Filtering Control
+	// Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8 sample_pattern[12][2],u8 vf,u8 vfilter[7])
 	// Fields: Destination, Frame2Field, Gamma, Source
 	// TODO: We might have to implement the gamma one, some games might need this, if they are too dark to see.
 	// ----------------------------------
-	case BPMEM_DISPLAYCOPYFILER: 
-	case BPMEM_DISPLAYCOPYFILER+1:
-	case BPMEM_DISPLAYCOPYFILER+2:
-	case BPMEM_DISPLAYCOPYFILER+3:
-	case BPMEM_COPYFILTER0: //GXSetCopyFilter
-	case BPMEM_COPYFILTER1: 
+	case BPMEM_DISPLAYCOPYFILER:   // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILER+1: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILER+2: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILER+3: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_COPYFILTER0:        // if (vf) { use vfilter } else { use 595000 }
+	case BPMEM_COPYFILTER1:        // if (vf) { use vfilter } else { use 000015 }
 		break;
-	case BPMEM_FIELDMASK: // Interlacing Control
-	case BPMEM_FIELDMODE:
+	// -----------------------------------
+	// Interlacing Control
+	// -----------------------------------
+	case BPMEM_FIELDMASK: // GX_SetFieldMask(u8 even_mask,u8 odd_mask)
+	case BPMEM_FIELDMODE: // GX_SetFieldMode(u8 field_mode,u8 half_aspect_ratio)
 		SetInterlacingMode(bp);
 		break;
-	// ---------------------------------------------------
-	// Debugging/Profiling info, we don't care about them
-	// ---------------------------------------------------
-	case BPMEM_CLOCK0: // Some Clock
-	case BPMEM_CLOCK1: // Some Clock
-	case BPMEM_SU_COUNTER: // Pixel or Poly Count
-	case BPMEM_RAS_COUNTER: // Sound Count of something in the Texture Units
-	case BPMEM_SETGPMETRIC: // Set the Graphic Processor Metric
+	// ----------------------------------------
+	// Unimportant regs (Clock, Perf, ...)
+	// ----------------------------------------
+	case BPMEM_BUSCLOCK0:      // TB Bus Clock ?
+	case BPMEM_BUSCLOCK1:      // TB Bus Clock ?
+	case BPMEM_PERF0_TRI:      // Perf: Triangles
+	case BPMEM_PERF0_QUAD:     // Perf: Quads
+	case BPMEM_PERF1:          // Perf: Some Clock, Texels, TX, TC
 		break;
 	// ----------------
 	// EFB Copy config
@@ -338,7 +341,7 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_CLEAR_Z:  // Z Components (24-bit Zbuffer)
 		break;
 	// -------------------------
-	// Bounding Box support
+	// Bounding Box Control
 	// -------------------------
 	case BPMEM_CLEARBBOX1:
 	case BPMEM_CLEARBBOX2: {
@@ -367,8 +370,9 @@ void BPWritten(const Bypass& bp)
 #endif
 		break;
 						   }
+    case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
+		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
-	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale
 	case BPMEM_IREF:          /* 24 RID
@@ -379,8 +383,7 @@ void BPWritten(const Bypass& bp)
 								 9 BC1 - Ind. Tex Stage 1 NTexCoord
 								 6 BI1 - Ind. Tex Stage 1 NTexMap
 								 3 BC0 - Ind. Tex Stage 0 NTexCoord
-								 0 BI0 - Ind. Tex Stage 0 NTexMap */
-		break;
+								 0 BI0 - Ind. Tex Stage 0 NTexMap  */
 	case BPMEM_TEV_KSEL:  // Texture Environment Swap Mode Table 0
 	case BPMEM_TEV_KSEL+1:// Texture Environment Swap Mode Table 1
 	case BPMEM_TEV_KSEL+2:// Texture Environment Swap Mode Table 2
@@ -389,25 +392,24 @@ void BPWritten(const Bypass& bp)
 	case BPMEM_TEV_KSEL+5:// Texture Environment Swap Mode Table 5
 	case BPMEM_TEV_KSEL+6:// Texture Environment Swap Mode Table 6
 	case BPMEM_TEV_KSEL+7:// Texture Environment Swap Mode Table 7
-		break;
 	case BPMEM_BP_MASK:   // This Register can be used to limit to which bits of BP registers is actually written to. the mask is
 		                  // only valid for the next BP command, and will reset itself.
 	case BPMEM_IND_IMASK: // Index Mask ?
-		break;
-	case BPMEM_UNKNOWN: // This is always set to 0xF at boot of any game, so this sounds like a useless reg
-		if (bp.newvalue != 0x0F)
-			PanicAlert("Unknown is not 0xF! val = 0x%08x", bp.newvalue);
+	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
 
-	case BPMEM_UNKOWN_57: // Sunshine uses this: 0xAAA, 0x000, over and over, copy filter related?
+	case BPMEM_UNKOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
+		DEBUG_LOG(VIDEO, "Uknown BP Reg 0x57: %08x", bp.newvalue);
 		break;
 
 	case BPMEM_UNKNOWN_60:
 	case BPMEM_UNKNOWN_61:
 	case BPMEM_UNKNOWN_62:
-	case BPMEM_UNKNOWN_63:
 		// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
 		// Are these related to BBox?
+		break;
+
+	case BPMEM_TEXMODESYNC: // Always set to 0 when GX_TexModeSync() is called.
 		break;
 
 		// ------------------------------------------------
