@@ -914,7 +914,9 @@ static void WriteFog(char *&p)
     }
 
     switch (bpmem.fog.c_proj_fsel.fsel) 
-	{       
+	{
+		case 0: // TODO - No fog?
+			break;
         case 2: // linear
             // empty
             break;
@@ -932,7 +934,7 @@ static void WriteFog(char *&p)
             WRITE(p, "  fog = 1.0f - fog;\n");
             WRITE(p, "  fog = pow(2, -8.0f * fog * fog);\n");
             break;
-		default: PanicAlert("Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
+		default: WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
     }
 
     if (enabled)

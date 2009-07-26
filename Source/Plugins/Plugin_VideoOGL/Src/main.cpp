@@ -110,11 +110,6 @@ static Common::Event s_swapResponseEvent;
 static volatile u32 s_efbAccessRequested = false;
 static Common::Event s_efbResponseEvent;
 
-#if defined(HAVE_WX) && HAVE_WX
-
-#endif // HAVE_WX
-
-
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
     _PluginInfo->Version = 0x0100;
