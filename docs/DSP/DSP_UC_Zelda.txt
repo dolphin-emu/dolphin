@@ -1013,7 +1013,9 @@ void 0243_COMMAND_02()  // sync frame
 				0278 181f      lrr         $AC1.M, @$AR0
 				0279 00de 0354 lr          $AC0.M, @0x0354
 				027b 0240 000f andi        $AC0.M, #0x000f
-				027d 3d80      andc'ls     $AC1.M : $AX0.L, $AC0.M
+				// 027d 3d80   lsrnr
+				ACC1 <<= ACC0
+
 				027e 03c0 8000 andcf       $AC1.M, #0x8000
 				// 0280 029c 03bc jlnz        0x03bc
 				GOTO NEXT_BLOCK:

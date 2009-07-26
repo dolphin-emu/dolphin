@@ -348,13 +348,22 @@ void slnm_epi(const UDSPInstruction& opc)
 // xxxx xxxx 11dr 00ss
 void ld(const UDSPInstruction& opc)
 {
-	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (opc.hex >> 5) & 0x1;
+	u8 rreg = (opc.hex >> 4) & 0x1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	dsp_increment_addr_reg(sreg);
+	if (sreg != 0x03) {
+		g_dsp.r[(dreg << 1) + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[sreg]);
+		g_dsp.r[(rreg << 1) + DSP_REG_AXL1] = dsp_dmem_read(g_dsp.r[sreg]);
+		
+		dsp_increment_addr_reg(sreg);
+	} else {
+		g_dsp.r[rreg + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[dreg]);
+		g_dsp.r[rreg + DSP_REG_AXH0] = dsp_dmem_read(g_dsp.r[dreg]);
+		
+		dsp_increment_addr_reg(dreg);
+	}
+	
 	dsp_increment_addr_reg(DSP_REG_AR3);
 }
 
@@ -363,29 +372,48 @@ void ld(const UDSPInstruction& opc)
 // xxxx xxxx 11dr 01ss
 void ldn(const UDSPInstruction& opc)
 {
-	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (opc.hex >> 5) & 0x1;
+	u8 rreg = (opc.hex >> 4) & 0x1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
-	dsp_increment_addr_reg(DSP_REG_AR3);
+	if (sreg != 0x03) {
+		g_dsp.r[(dreg << 1) + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[sreg]);
+		g_dsp.r[(rreg << 1) + DSP_REG_AXL1] = dsp_dmem_read(g_dsp.r[sreg]);
+		
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	} else {
+		g_dsp.r[rreg + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[dreg]);
+		g_dsp.r[rreg + DSP_REG_AXH0] = dsp_dmem_read(g_dsp.r[dreg]);
+
+		dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
+	}
+	
+	dsp_increment_addr_reg(DSP_REG_AR3);	
 }
+
 
 // Not in duddie's doc
 // LDM $ax0.d $ax1.r @$arS
 // xxxx xxxx 11dr 10ss
 void ldm(const UDSPInstruction& opc)
 {
-	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+	u8 dreg = (opc.hex >> 5) & 0x1;
+	u8 rreg = (opc.hex >> 4) & 0x1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	dsp_increment_addr_reg(sreg);
-	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];
+	if (sreg != 0x03) {
+		g_dsp.r[(dreg << 1) + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[sreg]);
+		g_dsp.r[(rreg << 1) + DSP_REG_AXL1] = dsp_dmem_read(g_dsp.r[sreg]);
+		
+		dsp_increment_addr_reg(sreg);
+	} else {
+		g_dsp.r[rreg + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[dreg]);
+		g_dsp.r[rreg + DSP_REG_AXH0] = dsp_dmem_read(g_dsp.r[dreg]);
+		
+		dsp_increment_addr_reg(dreg);
+	}
+
+	dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]);
 }
 
 // Not in duddie's doc
@@ -393,14 +421,23 @@ void ldm(const UDSPInstruction& opc)
 // xxxx xxxx 11dr 11ss
 void ldnm(const UDSPInstruction& opc)
 {
-	u8 dreg = (((opc.hex >> 5) & 0x1) << 1) + DSP_REG_AXL0;
-	u8 rreg = (((opc.hex >> 4) & 0x1) << 1) + DSP_REG_AXL1;
+		u8 dreg = (opc.hex >> 5) & 0x1;
+	u8 rreg = (opc.hex >> 4) & 0x1;
 	u8 sreg = opc.hex & 0x3;
-	g_dsp.r[dreg] = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[rreg] = dsp_dmem_read(g_dsp.r[DSP_REG_AR3]);
 
-	g_dsp.r[sreg] += g_dsp.r[sreg + DSP_REG_IX0];
-	g_dsp.r[DSP_REG_AR3] += g_dsp.r[DSP_REG_IX3];
+	if (sreg != 0x03) {
+		g_dsp.r[(dreg << 1) + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[sreg]);
+		g_dsp.r[(rreg << 1) + DSP_REG_AXL1] = dsp_dmem_read(g_dsp.r[sreg]);
+
+		dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	} else {
+		g_dsp.r[rreg + DSP_REG_AXL0] = dsp_dmem_read(g_dsp.r[dreg]);
+		g_dsp.r[rreg + DSP_REG_AXH0] = dsp_dmem_read(g_dsp.r[dreg]);
+
+		dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
+	}
+
+	dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]);
 }
 
 void nop(const UDSPInstruction& opc)
