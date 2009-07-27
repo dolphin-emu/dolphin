@@ -66,7 +66,7 @@ private:
 
 	int last_column;
 	int last_sort;
-
+	wxSize lastpos;
 	void InitBitmaps();
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();

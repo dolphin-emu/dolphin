@@ -1023,6 +1023,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)
 {
+	if (lastpos == event.GetSize()) return;
+	lastpos = event.GetSize();
 	AutomaticColumnWidth();
 
 	event.Skip();
