@@ -104,11 +104,8 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
-static volatile u32 s_swapRequested = false;
-static Common::Event s_swapResponseEvent;
-
-static volatile u32 s_efbAccessRequested = false;
-static Common::Event s_efbResponseEvent;
+static u32 s_swapRequested = FALSE;
+static u32 s_efbAccessRequested = FALSE;
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
@@ -385,11 +382,7 @@ void Video_Prepare(void)
     TextureConverter::Init();
 
 	s_swapRequested = FALSE;
-	s_swapResponseEvent.Init();
-	s_swapResponseEvent.Set();
-
 	s_efbAccessRequested = FALSE;
-	s_efbResponseEvent.Init();
 
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
@@ -400,10 +393,7 @@ void Shutdown(void)
 	s_PluginInitialized = false;
 
 	s_efbAccessRequested = FALSE;
-	s_efbResponseEvent.Shutdown();
-
 	s_swapRequested = FALSE;
-	s_swapResponseEvent.Shutdown();
 
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
@@ -472,8 +462,7 @@ void VideoFifo_CheckSwapRequest()
 		// TODO: Find better name for this because I don't know if it means what it says.
 		g_VideoInitialize.pCopiedToXFB();
 
-		s_swapRequested = FALSE;
-		s_swapResponseEvent.Set();
+		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
 
@@ -507,13 +496,14 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized)
 	{
-		if (s_swapRequested)
+		// Make sure previous swap request has made it to the screen
+		if (g_VideoInitialize.bUseDualCore)
 		{
-			if (g_VideoInitialize.bUseDualCore)
-				s_swapResponseEvent.MsgWait();
-			else
-				VideoFifo_CheckSwapRequest();
+			while (Common::AtomicLoadAcquire(s_swapRequested))
+				Common::YieldCPU();
 		}
+		else
+			VideoFifo_CheckSwapRequest();
 
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
@@ -531,14 +521,14 @@ void Video_EndField()
 	}
 }
 
-static volatile struct
+static struct
 {
 	EFBAccessType type;
 	u32 x;
 	u32 y;
 } s_accessEFBArgs;
 
-static volatile u32 s_AccessEFBResult = 0;
+static u32 s_AccessEFBResult = 0;
 
 void VideoFifo_CheckEFBAccess()
 {
@@ -546,8 +536,7 @@ void VideoFifo_CheckEFBAccess()
 	{
 		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y);
 
-		s_efbAccessRequested = FALSE;
-		s_efbResponseEvent.Set();
+		Common::AtomicStoreRelease(s_efbAccessRequested, FALSE);
 	}
 }
 
@@ -562,7 +551,10 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
 		if (g_VideoInitialize.bUseDualCore)
-			s_efbResponseEvent.MsgWait();
+		{
+			while (Common::AtomicLoadAcquire(s_efbAccessRequested))
+				Common::YieldCPU();
+		}
 		else
 			VideoFifo_CheckEFBAccess();
 

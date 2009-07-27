@@ -55,7 +55,7 @@ inline u32 AtomicLoad(volatile u32& src) {
 }
 inline u32 AtomicLoadAcquire(volatile u32& src) {
 	MemoryBarrier();
-	return src;
+	return src; // 32-bit reads are always atomic.
 }
 
 inline void AtomicStore(volatile u32& dest, u32 value) {
