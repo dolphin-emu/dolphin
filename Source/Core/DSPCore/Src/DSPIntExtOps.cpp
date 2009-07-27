@@ -421,7 +421,7 @@ void ldm(const UDSPInstruction& opc)
 // xxxx xxxx 11dr 11ss
 void ldnm(const UDSPInstruction& opc)
 {
-		u8 dreg = (opc.hex >> 5) & 0x1;
+	u8 dreg = (opc.hex >> 5) & 0x1;
 	u8 rreg = (opc.hex >> 4) & 0x1;
 	u8 sreg = opc.hex & 0x3;
 

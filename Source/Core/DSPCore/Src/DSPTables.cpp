@@ -196,7 +196,7 @@ const DSPOPCTemplate opcodes[] =
 	{"ILRR",    0x0210, 0xfefc, DSPInterpreter::ilrr,  nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false},
 	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false}, // Hermes doesn't list this
 	{"ILRRI",   0x0218, 0xfefc, DSPInterpreter::ilrri, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false},
-	{"ILRRN",   0x022c, 0xfefc, DSPInterpreter::ilrrn, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false},
+	{"ILRRN",   0x021c, 0xfefc, DSPInterpreter::ilrrn, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
 	{"LRR",		0x1800, 0xff80, DSPInterpreter::lrr,  nop, 1, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_PRG, 1, 0, 5, 0x0060}}, false},
