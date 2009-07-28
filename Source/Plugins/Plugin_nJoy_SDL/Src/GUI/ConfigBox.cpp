@@ -5,7 +5,7 @@
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
 // Site: www.multigesture.net
-// Copyright (C) 2003-2009 Dolphin Project.
+// Copyright (C) 2003 Dolphin Project.
 //
 // Licensetype: GNU General Public License (GPL)
 //

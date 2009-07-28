@@ -1,6 +1,6 @@
 nJoy v0.3 by Falcon4ever 2008
 A Dolphin Compatible Input Plugin
-Copyright (C) 2003-2008 Dolphin Project.
+Copyright (C) 2003 Dolphin Project.
 
 Changelog
 ==========================================================================
