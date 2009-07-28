@@ -1118,10 +1118,8 @@ void Renderer::DrawDebugText()
 		// Draw EFB copy regions rectangles
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
 		{
-			// TODO: Scale EFBRectangles correctly
-
-			GLfloat halfWidth = Renderer::GetTargetWidth() / 2.0f;
-            GLfloat halfHeight = Renderer::GetTargetHeight() / 2.0f;
+			GLfloat halfWidth = EFB_WIDTH / 2.0f;
+            GLfloat halfHeight = EFB_HEIGHT / 2.0f;
             GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
 			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)it->top / halfHeight);
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
