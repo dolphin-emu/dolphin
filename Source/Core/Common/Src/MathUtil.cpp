@@ -19,6 +19,7 @@
 #include "MathUtil.h"
 
 #include <cmath>
+#include <numeric>
 
 namespace {
 
@@ -160,14 +161,9 @@ inline void MatrixMul(int n, const float *a, const float *b, float *result)
 }
 
 // Calculate sum of a float list
-float MathFloatVectorSum(std::vector<float> Vec)
+float MathFloatVectorSum(const std::vector<float>& Vec)
 {
-	float Sum = 0.0;
-	for(unsigned i = 0; i < Vec.size(); i++)
-	{
-		Sum += Vec.at(i);
-	}
-	return Sum;
+	return std::accumulate(Vec.begin(), Vec.end(), 0.0f);
 }
 
 void Matrix33::LoadIdentity(Matrix33 &mtx)
