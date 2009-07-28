@@ -102,7 +102,7 @@ void Config::Save(int Slot)
 
 	// Load ini file
 	IniFile file;
-	file.Load(NJOY_CONFIG_FILE);
+	file.Load(FULL_CONFIG_DIR "nJoy.ini");
 
 	// ==================================================================
 	// Global settings
@@ -189,7 +189,7 @@ void Config::Save(int Slot)
 
 	INFO_LOG(CONSOLE, "%i: Save: %i\n", 0, PadMapping[0].halfpress);
 
-	file.Save(NJOY_CONFIG_FILE);
+	file.Save(FULL_CONFIG_DIR "nJoy.ini");
 }
 
 // Load settings from file
@@ -201,7 +201,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 	// Load file
 	IniFile file;
-	file.Load(NJOY_CONFIG_FILE);
+	file.Load(FULL_CONFIG_DIR "nJoy.ini");
 	bool Tmp; // Tmp storage
 
 	// ==================================================================

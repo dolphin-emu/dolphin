@@ -31,7 +31,7 @@ void Config::Load()
 {
     std::string temp;
     IniFile iniFile;
-    iniFile.Load(OPENGL_CONFIG_FILE);
+    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
@@ -129,7 +129,7 @@ void Config::GameIniLoad()
 void Config::Save()
 {
     IniFile iniFile;
-    iniFile.Load(OPENGL_CONFIG_FILE);
+    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
     iniFile.Set("Hardware", "WindowedRes", iInternalRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
@@ -175,5 +175,5 @@ void Config::Save()
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
 
-    iniFile.Save(OPENGL_CONFIG_FILE);
+    iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

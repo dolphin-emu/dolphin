@@ -216,7 +216,7 @@ void Config::Load(bool ChangePad)
 {
 	std::string temp;
 	IniFile iniFile;
-	iniFile.Load(WM_CONFIG_FILE);
+	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// General
 	iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
@@ -296,7 +296,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(joySectionName.c_str(), "PitchInvert", &WiiMoteEmu::PadMapping[i].bPitchInvert, false);
 	}
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
-	iniFile.Load(WM_IR_CONFIG_FILE);
+	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
 	char TmpSection[32];
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, LEFT);
@@ -307,7 +307,7 @@ void Config::Load(bool ChangePad)
 	// Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	// better to place them in the main Dolphin.ini file
 
-	iniFile.Load(OPENGL_CONFIG_FILE);
+	iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
@@ -318,7 +318,7 @@ void Config::Load(bool ChangePad)
 void Config::Save(int Slot)
 {
 	IniFile iniFile;
-	iniFile.Load(WM_CONFIG_FILE);
+	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 	iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
 	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
 
@@ -395,17 +395,17 @@ void Config::Save(int Slot)
 		iniFile.Set(joySectionName.c_str(), "PitchInvert", WiiMoteEmu::PadMapping[i].bPitchInvert);
 	}
 
-	iniFile.Save(WM_CONFIG_FILE);
+	iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// Save the IR cursor settings if it's avaliable for the GameId, if not save the default settings
-	iniFile.Load(WM_IR_CONFIG_FILE);
+	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
 	char TmpSection[32];
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Set(TmpSection, "IRLeft", iIRLeft);
 	iniFile.Set(TmpSection, "IRTop", iIRTop);
 	iniFile.Set(TmpSection, "IRWidth", iIRWidth);
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
-	iniFile.Save(WM_IR_CONFIG_FILE);
+	iniFile.Save(FULL_CONFIG_DIR "IR Pointer.ini");
 
 	//INFO_LOG(CONSOLE, "Save()\n");
 }
