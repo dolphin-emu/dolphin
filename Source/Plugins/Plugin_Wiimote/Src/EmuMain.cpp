@@ -186,7 +186,7 @@ void LoadRecordedMovements()
 	INFO_LOG(WII_IPC_WIIMOTE, "LoadRecordedMovements()\n");
 
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Load(WM_MOVEMENT_CONFIG_FILE);
 
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{

@@ -32,7 +32,7 @@ void WiimoteRecordingConfigDialog::LoadFile()
 	INFO_LOG(CONSOLE, "LoadFile()\n");
 
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Load(WM_MOVEMENT_CONFIG_FILE);
 
 	for (int i = 1; i < (RECORDING_ROWS + 1); i++)
 	{
@@ -75,7 +75,7 @@ void WiimoteRecordingConfigDialog::SaveFile()
 	INFO_LOG(CONSOLE, "SaveFile\n");
 
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Load(WM_MOVEMENT_CONFIG_FILE);
 
 	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
 	{
@@ -107,7 +107,7 @@ void WiimoteRecordingConfigDialog::SaveFile()
 		file.Set(SaveName.c_str(), "PlaybackSpeed", m_RecordPlayBackSpeed[i]->GetSelection());
 	}
 
-	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Save(WM_MOVEMENT_CONFIG_FILE);
 	INFO_LOG(CONSOLE, "SaveFile()\n");
 }
 
@@ -338,7 +338,7 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 void WiimoteRecordingConfigDialog::ConvertToString()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Load(WM_MOVEMENT_CONFIG_FILE);
 	std::string TmpStr = "", TmpIR = "", TmpTime = "";
 
 	for (int i = 0; i < (int)m_vRecording.size(); i++)
@@ -402,7 +402,7 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 		m_RecordPlayBackSpeed[m_iRecordTo]->SetSelection(3);
 	}	
 
-	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Save(WM_MOVEMENT_CONFIG_FILE);
 
 	INFO_LOG(CONSOLE, "Save recording to WiimoteMovement.ini\n");
 }

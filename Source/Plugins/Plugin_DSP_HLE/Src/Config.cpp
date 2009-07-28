@@ -31,10 +31,8 @@ CConfig::CConfig()
 void CConfig::Load()
 {
 	// first load defaults
-        std::string temp;
-        
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
+	file.Load(DSPHLE_CONFIG_FILE);
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 	ac_Config.Load(file);
@@ -43,12 +41,12 @@ void CConfig::Load()
 void CConfig::Save()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
+	file.Load(DSPHLE_CONFIG_FILE);
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableRE0AudioFix", m_EnableRE0Fix); // RE0 Hack
 	ac_Config.Set(file);
 
-	file.Save(FULL_CONFIG_DIR "DSP.ini");
+	file.Save(DSPHLE_CONFIG_FILE);
 }
 
 void CConfig::GameIniLoad() {

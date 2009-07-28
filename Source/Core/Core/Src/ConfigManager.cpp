@@ -258,7 +258,7 @@ void SConfig::LoadSettingsHLE()
 {
 	IniFile ini;
 	//
-	ini.Load(FULL_CONFIG_DIR "DSP.ini");
+	ini.Load(DSPHLE_CONFIG_FILE);
 	ini.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 }
 

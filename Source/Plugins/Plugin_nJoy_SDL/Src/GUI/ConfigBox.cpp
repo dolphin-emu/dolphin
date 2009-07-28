@@ -232,7 +232,7 @@ void PADConfigDialognJoy::LogMsg(const char* format, ...)
 		std::string StrTmp = buffer;
 		//StrTmp += Common::Timer::GetTimeFormatted();
 
-		if(m_TCDebugging) m_TCDebugging->AppendText(StrTmp.c_str());
+		if(m_TCDebugging) m_TCDebugging->AppendText(wxString::FromAscii(StrTmp.c_str()));
 	}	
 	#endif
 }
@@ -347,7 +347,7 @@ void PADConfigDialognJoy::ToBlank(bool ToBlank)
 				#ifndef _WIN32
 					if(!strcmp(GetButtonText(i, j).ToAscii(), "-1")) SetButtonText(i, "", j);
 				#else
-					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
+					if(GetButtonText(i, j) == wxT("-1")) SetButtonText(i, "", j);
 				#endif
 		}
 		else
@@ -571,9 +571,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 	INFO_LOG(CONSOLE, "CreateGUIControls()\n");
 
 	#ifndef _DEBUG		
-		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" Input Plugin"));
+		SetTitle(wxT("Configure: nJoy v")wxT(INPUT_VERSION)wxT(" Input Plugin"));
 	#else			
-		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" (Debug) Input Plugin"));
+		SetTitle(wxT("Configure: nJoy v")wxT(INPUT_VERSION)wxT(" (Debug) Input Plugin"));
 	#endif
 
 	SetIcon(wxNullIcon);
@@ -844,10 +844,10 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_TriggerType[i]->SetToolTip(wxT(
 			"Select XInput if you want the triggers to work with the XBox 360 pad."
 			));
-		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
-			"Map these settings to the selected controller device instead of to the"
-			"\nselected slot (1, 2, 3 or 4). This may be a more convenient way"
-			"\nto save your settings if you have multiple controllers.")
+		m_CBSaveByID[i]->SetToolTip(wxString::Format(
+			wxT("Map these settings to the selected controller device instead of to the")
+			wxT("\nselected slot (1, 2, 3 or 4). This may be a more convenient way")
+			wxT("\nto save your settings if you have multiple controllers.")
 			, i+1
 			));	
 
@@ -923,9 +923,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Diagonal"));
 		m_CBS_to_CC[i] = new wxCheckBox(m_Controller[i], IDCB_CSTICK_S_TO_C, wxT("Diagonal"));
 		wxString CBS_to_CToolTip = 
-			wxT("This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce."
-			" To produce a smooth circle in the 'Out' window you have to manually set"
-				" your diagonal values from the 'In' window in the drop down menu.");
+			wxT("This will convert a square stick radius to a circle stick radius similar to the octagonal area that the original GameCube pad produce.")
+			wxT(" To produce a smooth circle in the 'Out' window you have to manually set")
+			wxT(" your diagonal values from the 'In' window in the drop down menu.");
 		m_CBS_to_C[i]->SetToolTip(CBS_to_CToolTip);
 		m_CBS_to_CC[i]->SetToolTip(CBS_to_CToolTip);
 
@@ -960,10 +960,10 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Tool tips
 		m_CBCheckFocus[i]->SetToolTip(wxT(
 			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));
-		m_AdvancedMapFilter[i]->SetToolTip(wxT(
-			"This will allow you to map a digital axis to the main stick or the C-stick. If you don't have"
-			" any analog triggers that will be automatically set when the trigger filter is off."
-			));
+		m_AdvancedMapFilter[i]->SetToolTip(
+			wxT("This will allow you to map a digital axis to the main stick or the C-stick. If you don't have")
+			wxT(" any analog triggers that will be automatically set when the trigger filter is off.")
+			);
 		
 
 		// Populate sizers

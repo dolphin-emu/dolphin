@@ -83,12 +83,12 @@
 // ¯¯¯¯¯¯¯¯¯¯
 
 #define INPUT_VERSION	"0.3"
-#define INPUT_STATE		"PUBLIC RELEASE"
-#define RELDAY			"21"
-#define RELMONTH		"07"
-#define RELYEAR			"2008"
-#define THANKYOU		"`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu."
-
+#define INPUT_STATE		wxT("PUBLIC RELEASE")
+#define RELDAY			wxT("21")
+#define RELMONTH		wxT("07")
+#define RELYEAR			wxT("2008")
+#define THANKYOU		wxT("`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu.")
+#define PLUGIN_VER_STR	wxT("nJoy v")wxT(INPUT_VERSION)wxT(" by Falcon4ever\nRelease: ") RELDAY wxT("/") RELMONTH wxT("/") RELYEAR wxT("\nwww.multigesture.net")
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Input vector. Todo: Save the configured keys here instead of in joystick

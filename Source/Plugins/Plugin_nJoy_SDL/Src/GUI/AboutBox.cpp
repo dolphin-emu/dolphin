@@ -63,12 +63,12 @@ void AboutBox::CreateGUIControls()
 	SetFont(f);
 #endif
 
-	m_thankyoutext = new wxStaticText(this, ID_THANKYOU, wxT(THANKYOU), wxPoint(18,196), wxDefaultSize, 0, wxT(THANKYOU));
+	m_thankyoutext = new wxStaticText(this, ID_THANKYOU, THANKYOU, wxPoint(18,196), wxDefaultSize, 0, wxEmptyString);
 	m_thankyoutext->Wrap(167);
-	m_specialthanks = new wxStaticText(this, ID_SPECIALTHANKS, wxT("F|RES and ector."), wxPoint(18,153), wxDefaultSize, 0, wxT("F|RES and ector."));
-	m_pluginversion = new wxStaticText(this, ID_PLUGINVERSION, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"), wxPoint(18,80), wxDefaultSize, 0, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"));
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(116,343), wxSize(75,25), 0, wxDefaultValidator, wxT("OK"));
-	m_version = new wxStaticText(this, ID_STATUSV, wxT("PUBLIC RELEASE"), wxPoint(14,349), wxDefaultSize, 0, wxT("PUBLIC RELEASE"));
+	m_specialthanks = new wxStaticText(this, ID_SPECIALTHANKS, wxT("F|RES and ector."), wxPoint(18,153), wxDefaultSize, 0, wxEmptyString);
+	m_pluginversion = new wxStaticText(this, ID_PLUGINVERSION, PLUGIN_VER_STR, wxPoint(18,80), wxDefaultSize, 0, wxEmptyString);
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(116,343), wxSize(75,25), 0, wxDefaultValidator, wxEmptyString);
+	m_version = new wxStaticText(this, ID_STATUSV, wxT("PUBLIC RELEASE"), wxPoint(14,349), wxDefaultSize, 0, wxEmptyString);
 	m_thankyougroup = new wxStaticBox(this, IDG_THANKYOU, wxT("Greetings to:"), wxPoint(10,180), wxSize(180,160));
 	m_specialthanksgroup = new wxStaticBox(this, IDG_SPECIALTHANKS, wxT("Special thanks to:"), wxPoint(10,135), wxSize(180,39));
 	m_pluginversiongroup = new wxStaticBox(this, IDG_PLUGINVERSION, wxT("Plugin info:"), wxPoint(10,61), wxSize(180,68));

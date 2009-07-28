@@ -425,9 +425,9 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 		if(g_Config.bSaveByID) SetButtonTextAll(GetId, "-1"); else SetButtonText(GetId, "-1");
 		
 		// Notify the user
-		wxMessageBox(wxString::Format(wxT(
-			"You selected a key with a to low key code (%i), please"
-			" select another key with a higher key code."), pressed)
+		wxMessageBox(wxString::Format(
+			wxT("You selected a key with a to low key code (%i), please")
+			wxT(" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
 	// ======================== Process results
@@ -439,4 +439,3 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
 		);*/
 }
-/////////////////////////////////////////////////////////// Configure button mapping
