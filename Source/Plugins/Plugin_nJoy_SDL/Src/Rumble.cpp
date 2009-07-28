@@ -258,10 +258,10 @@ HRESULT InitRumble(HWND hWnd)
 
 			// Create the prepared effect
 			if (FAILED(hr = pRumble[i].g_pDevice->CreateEffect(GUID_ConstantForce, &pRumble[i].eff, &pRumble[i].g_pEffect, NULL)))
-				return hr;
+				continue;
 					
 			if (pRumble[i].g_pEffect == NULL)
-				return E_FAIL;
+				continue;
 		}
 	}
 
@@ -367,10 +367,8 @@ VOID FreeDirectInput()
 
 	for (int i=0; i<4; i++)		// Free all pads
 	{
-		if (pRumble[i].g_pDevice)	{
-			pRumble[i].g_pEffect->Stop();
+		if (pRumble[i].g_pDevice)
 			pRumble[i].g_pDevice->Unacquire();
-		}
 
 		SAFE_RELEASE(pRumble[i].g_pEffect);
 		SAFE_RELEASE(pRumble[i].g_pDevice);

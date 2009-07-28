@@ -1282,18 +1282,10 @@ void Renderer::SetScreenshot(const char *filename)
 
 bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
-	// The height seemed to often be one less than the setting (but sometimes not),
-	// perhaps the source is the (bpmem.copyTexSrcWH.y + 1) in BPStructs.cpp that I'm guessing
-	// is there because of how some GL function works. But the buffer we are reading from here
-	// seems to have the necessary pixels for a complete height so we use the complete height
-	// from the settings.
-	if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
-		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
-
-
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+	glReadPixels(0, Renderer::GetTargetHeight() - H + YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 	// Show failure message
 	if (glGetError() != GL_NO_ERROR)
@@ -1306,51 +1298,45 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	FlipImageData(data, W, H);
 
 #if defined(HAVE_WX) && HAVE_WX
+	//Enable support for PNG file type.
+	wxImage::AddHandler( new wxPNGHandler );
+
 	// Create wxImage
 	wxImage a(W, H, data);
 
-	// ---------------------------------------------------------------------
-	// To get past the problem of non-4:3 and non-16:9 native resolution pictures (for example
-	// in RE1 some pictures have non-4:3 resolutions like 640 x 448 and 512 x 448 and such that
-	// are meant to be rescaled to 4:3, and most Wii games use 640 x 480 even for the 16:9 mode)
-	// we let the user use the keep aspect ratio functions to control the resulting aspect ratio.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	// We don't adjust non-native resolutions to avoid blurring the picture.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-	float Ratio = (float)W / (float)(H), TargetRatio;
-	if ((g_Config.bNativeResolution || g_Config.b2xResolution) && (g_Config.bKeepAR169 || g_Config.bKeepAR43)
-		&& Ratio != 4.0/3.0 && Ratio != 16.0/9.0)
-	{		
-		if (g_Config.bKeepAR43)
-			TargetRatio = 4.0/3.0;
-		else
-			TargetRatio = 16.0/9.0;
-		// Check if the height or width should be changed (we only increase the picture size, not
-		// the other way around)
-		if (Ratio < TargetRatio)
-		{
-			 float fW = (float)H * TargetRatio;
-			 W = (int)fW;
-		}
-		else
-		{
-			 float fH = (float)W * (1 /	TargetRatio);
-			 H = (int)fH;
-		}
-		a.Rescale(W, H, wxIMAGE_QUALITY_HIGH);
-	}
-	// ---------------------------------------------------------------------
+	// These will contain the final image size
+	float FloatW = (float)W;
+	float FloatH = (float)H;
 
-	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_BMP);
+	// Handle aspect ratio for the final screenshot to look exactly like what's on screen.
+	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
+	{
+		float Ratio = (FloatW / FloatH) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		
+		// If ratio > 1 the picture is too wide and we have to limit the width.
+		if (Ratio > 1)
+			FloatW /= Ratio;
+		// ratio == 1 or the image is too high, we have to limit the height.
+		else
+			FloatH *= Ratio;
+
+		a.Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
+	}
+
+	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_PNG);
 	bool result = true;
 
 	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s\n", W, H, s_sScreenshotName.c_str()).c_str(), 2000);
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s\n", (int)FloatW, (int)FloatH, s_sScreenshotName.c_str()).c_str(), 2000);
 
+	// Finally kill the wxImage object
+	a.Destroy();
 #else
 	bool result = SaveTGA(filename, W, H, data);
-	free(data);
 #endif
+	// Do not forget to release the data...
+	free(data);
+
 	return result;
 }
 

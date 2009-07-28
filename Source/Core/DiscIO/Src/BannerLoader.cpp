@@ -30,14 +30,14 @@
 
 namespace DiscIO
 {
-bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char* _src)
+void IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char* _src)
 {
 	static bool bValidChars[256];
 	static bool bInitialized = false;
 
 	if (!bInitialized)
 	{
-		for (int i = 0; i < 256; i++)
+		for (int i = 0; i < 0x20; i++)
 		{
 			bValidChars[i] = false;
 		}
@@ -55,7 +55,6 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 		bInitialized = true;
 	}
 
-	bool bResult = true;
 	char destBuffer[2048] = {0};
 	char* dest = destBuffer;
 	const char* src = _src;
@@ -69,8 +68,8 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 
 		if (bValidChars[c] == false)
 		{
-			bResult = false;
-			break;
+			src++;
+			continue;
 		}
 
 		*dest = c;
@@ -79,19 +78,9 @@ bool IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char*
 	}
 
 	// finalize the string
-	if (bResult)
-	{
-		*dest = 0x00;
-	}
-	else
-	{
-		dest[0] = ' ';
-		dest[1] = 0x00;
-	}
+	*dest = 0x00;
 
 	_rDestination = destBuffer;
-
-	return(bResult);
 }
 
 bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16* _src, int length )

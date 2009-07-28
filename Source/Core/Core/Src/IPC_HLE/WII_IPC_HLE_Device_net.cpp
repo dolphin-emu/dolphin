@@ -330,7 +330,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		struct sockaddr_in address;
 		int Return = accept(S, (struct sockaddr *)&address, &addrlen);
 		GC_sockaddr_in *addr = (GC_sockaddr_in*)Memory::GetPointer(BufferOut);
-		addr->sin_family = address.sin_family;
+		addr->sin_family = (u8)address.sin_family;
 		addr->sin_addr.s_addr_ = address.sin_addr.s_addr;
 		addr->sin_port = address.sin_port;
 		socklen_t *Len = (socklen_t *)Memory::GetPointer(BufferOut + 0x04);

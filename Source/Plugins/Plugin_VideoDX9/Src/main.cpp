@@ -320,7 +320,7 @@ HRESULT ScreenShot(const char *File)
 
 	RECT rect;
     ::GetWindowRect(EmuWindow::GetWnd(), &rect);
-	if (FAILED(D3DXSaveSurfaceToFile(File, D3DXIFF_JPG, surf, NULL, &rect)))
+	if (FAILED(D3DXSaveSurfaceToFile(File, D3DXIFF_PNG, surf, NULL, &rect)))
 	{
 		surf->Release();
 		return S_FALSE;

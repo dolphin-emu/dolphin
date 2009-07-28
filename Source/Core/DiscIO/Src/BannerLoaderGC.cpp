@@ -57,7 +57,7 @@ CBannerLoaderGC::~CBannerLoaderGC()
 bool
 CBannerLoaderGC::IsValid()
 {
-	return(m_IsValid);
+	return m_IsValid;
 }
 
 
@@ -66,13 +66,13 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 {
 	if (!IsValid())
 	{
-		return(false);
+		return false;
 	}
 
 	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 	decode5A3image(_pBannerImage, pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
 
-	return(true);
+	return true;
 }
 
 
@@ -83,7 +83,7 @@ CBannerLoaderGC::GetName(std::string _rName[])
 
 	if (!IsValid())
 	{
-		return(false);
+		return false;
 	}
 
 	// find Banner type
@@ -151,12 +151,9 @@ CBannerLoaderGC::GetCompany(std::string& _rCompany)
 
 	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-	if (!CopyToStringAndCheck(_rCompany, pBanner->comment[0].shortMaker))
-	{
-		return(false);
-	}
+	CopyToStringAndCheck(_rCompany, pBanner->comment[0].shortMaker);
 
-	return(true);
+	return true;
 }
 
 
@@ -167,7 +164,7 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 
 	if (!IsValid())
 	{
-		return(false);
+		return false;
 	}
 
 	// find Banner type

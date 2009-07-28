@@ -553,10 +553,10 @@ static inline std::string GenerateScreenshotName()
 	std::string tempname, name;
 	tempname = FULL_SCREENSHOTS_DIR + GetStartupParameter().GetUniqueID();
 
-	name = StringFromFormat("%s-%d.bmp", tempname.c_str(), index);
+	name = StringFromFormat("%s-%d.png", tempname.c_str(), index);
 
 	while(File::Exists(name.c_str()))
-		name = StringFromFormat("%s-%d.bmp", tempname.c_str(), ++index);
+		name = StringFromFormat("%s-%d.png", tempname.c_str(), ++index);
 
 	return name;
 }

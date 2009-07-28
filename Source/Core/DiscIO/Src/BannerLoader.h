@@ -47,7 +47,7 @@ class IBannerLoader
 
 	protected:
 
-		bool CopyToStringAndCheck(std::string& _rDestination, const char* _src);
+		void CopyToStringAndCheck(std::string& _rDestination, const char* _src);
 		
 		bool CopyBeUnicodeToString(std::string& _rDestination, const u16* _src, int length);
 	private:

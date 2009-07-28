@@ -58,7 +58,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
 		Update();
 
-		return(result);
+		return result;
 	}
 
 	return 0x00;
