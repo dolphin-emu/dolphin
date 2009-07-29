@@ -56,12 +56,7 @@ const int MAX_VIRTUAL_XFB = 4;
 
 inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
-	return (
-		(aLower >= bLower && aLower < bUpper) ||
-		(aUpper >= bLower && aUpper < bUpper) ||
-		(bLower >= aLower && bLower < aUpper) ||
-		(bUpper >= aLower && bUpper < aUpper)
-		);
+	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
 struct XFBSource

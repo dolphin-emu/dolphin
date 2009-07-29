@@ -468,12 +468,7 @@ void VideoFifo_CheckSwapRequest()
 
 inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
-	return (
-		(aLower >= bLower && aLower < bUpper) ||
-		(aUpper >= bLower && aUpper < bUpper) ||
-		(bLower >= aLower && bLower < aUpper) ||
-		(bUpper >= aLower && bUpper < aUpper)
-		);
+	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
 // Run from the graphics thread (from Fifo.cpp)
