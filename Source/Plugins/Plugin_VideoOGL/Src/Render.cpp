@@ -80,6 +80,8 @@ CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 
+Common::Thread *scrshotThread = NULL;
+
 RasterFont* s_pfont = NULL;
 
 static bool s_bFullscreen = false;
@@ -120,6 +122,14 @@ int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 #endif
 
 namespace {
+
+// Screenshot thread struct
+typedef struct
+{
+	int W, H;
+	std::string filename;
+	wxImage *img;
+} ScrStrct;
 
 static const GLenum glSrcFactors[8] =
 {
@@ -1270,7 +1280,6 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 	GL_REPORT_ERRORD();
 }
 
-
 // Save screenshot
 void Renderer::SetScreenshot(const char *filename)
 {
@@ -1278,6 +1287,39 @@ void Renderer::SetScreenshot(const char *filename)
 	s_sScreenshotName = filename;
 	s_bScreenshot = true;
 	s_criticalScreenshot.Leave();
+}
+
+THREAD_RETURN TakeScreenshot(void *pArgs)
+{
+	ScrStrct *threadStruct = (ScrStrct *)pArgs;
+	
+	// These will contain the final image size
+	float FloatW = (float)threadStruct->W;
+	float FloatH = (float)threadStruct->H;
+
+	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
+	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
+	{
+		float Ratio = (FloatW / FloatH) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		
+		// If ratio > 1 the picture is too wide and we have to limit the width.
+		if (Ratio > 1)
+			FloatW /= Ratio;
+		// ratio == 1 or the image is too high, we have to limit the height.
+		else
+			FloatH *= Ratio;
+
+		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
+	}
+
+	// Save the screenshot and finally kill the wxImage object
+	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()), wxBITMAP_TYPE_PNG);
+	threadStruct->img->Destroy();
+	
+	// Show success messages
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH, threadStruct->filename.c_str()).c_str(), 2000);
+
+	return 0;
 }
 
 bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
@@ -1302,35 +1344,24 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	wxImage::AddHandler( new wxPNGHandler );
 
 	// Create wxImage
-	wxImage a(W, H, data);
+	wxImage *a = new wxImage(W, H, data);
 
-	// These will contain the final image size
-	float FloatW = (float)W;
-	float FloatH = (float)H;
-
-	// Handle aspect ratio for the final screenshot to look exactly like what's on screen.
-	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
+	if (scrshotThread)
 	{
-		float Ratio = (FloatW / FloatH) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-		
-		// If ratio > 1 the picture is too wide and we have to limit the width.
-		if (Ratio > 1)
-			FloatW /= Ratio;
-		// ratio == 1 or the image is too high, we have to limit the height.
-		else
-			FloatH *= Ratio;
-
-		a.Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
+		delete scrshotThread;
+		scrshotThread = NULL;
 	}
 
-	a.SaveFile(wxString::FromAscii(filename), wxBITMAP_TYPE_PNG);
+	ScrStrct *threadStruct = new ScrStrct;
+	threadStruct->filename = std::string(filename);
+	threadStruct->img = a;
+	threadStruct->H = H; threadStruct->W = W;
+
+	scrshotThread = new Common::Thread(TakeScreenshot, threadStruct);
 	bool result = true;
 
-	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s\n", (int)FloatW, (int)FloatH, s_sScreenshotName.c_str()).c_str(), 2000);
+	OSD::AddMessage("Saving Screenshot... ", 2000);
 
-	// Finally kill the wxImage object
-	a.Destroy();
 #else
 	bool result = SaveTGA(filename, W, H, data);
 	free(data);
