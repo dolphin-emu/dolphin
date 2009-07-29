@@ -22,14 +22,6 @@ class PointerWrap;
 
 namespace VideoInterface
 {
-	enum VIInterruptType
-	{
-		INT_PRERETRACE		= 0,
-		INT_POSTRETRACE		= 1,
-		INT_REG_2,
-		INT_REG_3,
-	};
-
 	// For BIOS HLE
 	void PreInit(bool _bNTSC);
 	void SetRegionReg(char _region);
@@ -43,8 +35,6 @@ namespace VideoInterface
 				
 	void Write16(const u16 _uValue, const u32 _uAddress);
 	void Write32(const u32 _uValue, const u32 _uAddress);	
-				
-	void GenerateVIInterrupt(VIInterruptType _VIInterrupt);	
 
 	// returns a pointer to the current visible xfb
 	u8* GetXFBPointerTop();
@@ -68,5 +58,3 @@ namespace VideoInterface
 };
 
 #endif // _VIDEOINTERFACE_H
-
-

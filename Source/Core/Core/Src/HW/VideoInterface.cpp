@@ -104,7 +104,7 @@ union UVIVerticalTimingRegister
 	struct
 	{
 		unsigned EQU	:	 4; // Equalization pulse in half lines
-		unsigned ACV	:	10; // Active Video (in full lines) ? other source says half lines
+		unsigned ACV	:	10; // Active video in lines per field (TODO: Does it indicate half-lines in progressive mode or 54 MHz mode?)
 		unsigned		:	 2;
 	};
 	UVIVerticalTimingRegister(u16 _hex) { Hex = _hex;}
@@ -336,9 +336,7 @@ static UVIBorderBlankRegister		m_BorderHBlank;
 static u32 TicksPerFrame = 0;
 static u32 s_lineCount = 0;
 static u32 s_upperFieldBegin = 0;
-static u32 s_upperFieldEnd = 0;
 static u32 s_lowerFieldBegin = 0;
-static u32 s_lowerFieldEnd = 0;
 
 double TargetRefreshRate = 0.0;
 double ActualRefreshRate = 0.0;
@@ -374,9 +372,7 @@ void DoState(PointerWrap &p)
 	p.Do(TicksPerFrame);
 	p.Do(s_lineCount);
 	p.Do(s_upperFieldBegin);
-	p.Do(s_upperFieldEnd);
 	p.Do(s_lowerFieldBegin);
-	p.Do(s_lowerFieldEnd);
 }
 
 void PreInit(bool _bNTSC)
@@ -384,9 +380,7 @@ void PreInit(bool _bNTSC)
 	TicksPerFrame = 0;
 	s_lineCount = 0;
 	s_upperFieldBegin = 0;
-	s_upperFieldEnd = 0;
 	s_lowerFieldBegin = 0;
-	s_lowerFieldEnd = 0;
 
 	m_VerticalTimingRegister.EQU = 6;
 
@@ -448,9 +442,7 @@ void Init()
 
 	s_lineCount = 0;
 	s_upperFieldBegin = 0;
-	s_upperFieldEnd = 0;
 	s_lowerFieldBegin = 0;
-	s_lowerFieldEnd = 0;
 }
 
 void Read8(u8& _uReturnValue, const u32 _iAddress)
@@ -966,37 +958,16 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 void UpdateInterrupts()
 {
-	if ((m_InterruptRegister[0].IR_INT & m_InterruptRegister[0].IR_MASK) ||
-		(m_InterruptRegister[1].IR_INT & m_InterruptRegister[1].IR_MASK) ||
-		(m_InterruptRegister[2].IR_INT & m_InterruptRegister[2].IR_MASK) ||
-		(m_InterruptRegister[3].IR_INT & m_InterruptRegister[3].IR_MASK))
+	if ((m_InterruptRegister[0].IR_INT && m_InterruptRegister[0].IR_MASK) ||
+		(m_InterruptRegister[1].IR_INT && m_InterruptRegister[1].IR_MASK) ||
+		(m_InterruptRegister[2].IR_INT && m_InterruptRegister[2].IR_MASK) ||
+		(m_InterruptRegister[3].IR_INT && m_InterruptRegister[3].IR_MASK))
 	{
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_VI, true);
 	}
 	else
 	{
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_VI, false);
-	}
-}
-
-// This function is unused
-void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
-{
-	switch(_VIInterrupt)
-	{
-	case INT_PRERETRACE:	m_InterruptRegister[0].IR_INT = 1; break;
-	case INT_POSTRETRACE:	m_InterruptRegister[1].IR_INT = 1; break;
-	case INT_REG_2:			m_InterruptRegister[2].IR_INT = 1; break;
-	case INT_REG_3:			m_InterruptRegister[3].IR_INT = 1; break;
-	}
-
-	UpdateInterrupts();
-
-	// debug check
-	if ((m_InterruptRegister[2].IR_MASK == 1) ||
-		(m_InterruptRegister[3].IR_MASK == 1))
-	{
-		PanicAlert("m_InterruptRegister[2 and 3] activated - Tell F|RES :)");
 	}
 }
 
@@ -1023,27 +994,20 @@ u32 GetXFBAddressBottom()
 // the field rate from 60 FPS when they added color to the standard.
 // This was done to prevent analog interference between the video and
 // audio signals. PAL has no similar reduction; it is exactly 50 FPS.
-
 const double NTSC_FIELD_RATE = 60.0 / 1.001;
 const u32 NTSC_LINE_COUNT = 525;
-
+// These line numbers indicate the beginning of the "active video" in a frame.
 // An NTSC frame has the lower field first followed by the upper field.
 // TODO: Is this true for PAL-M? Is this true for EURGB60?
-
 const u32 NTSC_LOWER_BEGIN = 21;
-const u32 NTSC_LOWER_END = 263;
 const u32 NTSC_UPPER_BEGIN = 283;
-const u32 NTSC_UPPER_END = 525;
 
 const double PAL_FIELD_RATE = 50.0;
 const u32 PAL_LINE_COUNT = 625;
-
+// These line numbers indicate the beginning of the "active video" in a frame.
 // A PAL frame has the upper field first followed by the lower field.
-
 const u32 PAL_UPPER_BEGIN = 23; // TODO: Actually 23.5!
-const u32 PAL_UPPER_END = 310;
 const u32 PAL_LOWER_BEGIN = 336;
-const u32 PAL_LOWER_END = 623; // TODO: Actually 623.5!
 
 // Screenshot and screen message
 void UpdateTiming()
@@ -1056,24 +1020,17 @@ void UpdateTiming()
 
         TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2.0));
 		s_lineCount = m_DisplayControlRegister.NIN ? (NTSC_LINE_COUNT+1)/2 : NTSC_LINE_COUNT;
-
 		// TODO: The game may have some control over these parameters (not that it's useful).
-
 		s_upperFieldBegin = NTSC_UPPER_BEGIN;
-		s_upperFieldEnd = NTSC_UPPER_END;
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
-		s_lowerFieldEnd = NTSC_LOWER_END;
         break;
 
     case 1: // PAL
 
         TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2.0));
 		s_lineCount = m_DisplayControlRegister.NIN ? (PAL_LINE_COUNT+1)/2 : PAL_LINE_COUNT;
-
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
-		s_upperFieldEnd = PAL_UPPER_END;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-		s_lowerFieldEnd = PAL_LOWER_END;
         break;
 
 	case 3: // Debug
@@ -1114,18 +1071,14 @@ static void BeginField(FieldType field)
 
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (xfbAddr && video->IsValid())
-	{
 		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
-	}
 }
 
 static void EndField()
 {
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (video->IsValid())
-	{
 		video->Video_EndField();
-	}
 }
 
 
@@ -1159,30 +1112,28 @@ void Update()
 
 	// TODO: What's the correct behavior for progressive mode?
 
+	if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
+		EndField();
+
+	if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
+		EndField();
+
     m_VBeamPos++;
     if (m_VBeamPos > s_lineCount)
         m_VBeamPos = 1;
 
-	if (m_VBeamPos == s_upperFieldBegin)
-		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
-
-	if (m_VBeamPos == s_upperFieldEnd)
-		EndField();
-
-	if (m_VBeamPos == s_lowerFieldBegin)
-		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
-
-	if (m_VBeamPos == s_lowerFieldEnd)
-		EndField();
-
 	for (int i = 0; i < 4; ++i)
 	{
 		if (m_InterruptRegister[i].VCT == m_VBeamPos)
-		{
 			m_InterruptRegister[i].IR_INT = 1;
-			UpdateInterrupts();
-		}
 	}
+	UpdateInterrupts();
+
+	if (m_VBeamPos == s_upperFieldBegin)
+		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
+
+	if (m_VBeamPos == s_lowerFieldBegin)
+		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
 }
 
 } // namespace
