@@ -917,10 +917,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_criticalScreenshot.Enter();
 		int w = xfbSource->sourceRc.GetWidth();
 		int h = xfbSource->sourceRc.GetHeight();
-		int t = yOffset;
+
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, t, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(0, Renderer::GetTargetHeight() - h + yOffset, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (glGetError() == GL_NO_ERROR) 
 		{
 			if (!s_bLastFrameDumped) 
@@ -967,7 +967,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		int h = OpenGL_GetBackbufferHeight();
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glReadPixels(0, Renderer::GetTargetHeight() - h, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 		if (glGetError() == GL_NO_ERROR) {
 			if (!s_bLastFrameDumped) {
 				sprintf(movie_file_name, "%s/framedump.raw", FULL_FRAMES_DIR);
@@ -1333,9 +1333,8 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	a.Destroy();
 #else
 	bool result = SaveTGA(filename, W, H, data);
-#endif
-	// Do not forget to release the data...
 	free(data);
+#endif
 
 	return result;
 }
