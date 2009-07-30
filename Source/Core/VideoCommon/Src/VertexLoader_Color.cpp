@@ -42,28 +42,28 @@ inline void _SetCol(u32 val)
 
 void _SetCol4444(u16 val)
 {
-	u32 col = lut4to8[(val>>0)&0xF]<<ASHIFT;
-	col    |= lut4to8[(val>>12)&0xF]   <<RSHIFT;
-	col    |= lut4to8[(val>>8)&0xF]    <<GSHIFT;
-	col    |= lut4to8[(val>>4)&0xF]    <<BSHIFT;
+	u32 col = Convert4To8(val & 0xF) << ASHIFT;
+	col |= Convert4To8((val >> 12) & 0xF) << RSHIFT;
+	col |= Convert4To8((val >> 8) & 0xF) << GSHIFT;
+	col |= Convert4To8((val >> 4) & 0xF) << BSHIFT;
 	_SetCol(col);
 }
 
 void _SetCol6666(u32 val)
 {
-	u32 col = lut6to8[(val>>18)&0x3F] << RSHIFT;
-	col    |= lut6to8[(val>>12)&0x3F] << GSHIFT;
-	col    |= lut6to8[(val>>6)&0x3F]  << BSHIFT;
-	col    |= lut6to8[(val>>0)&0x3F]  << ASHIFT;
+	u32 col = Convert6To8((val >> 18) & 0x3F) << RSHIFT;
+	col |= Convert6To8((val >> 12) & 0x3F) << GSHIFT;
+	col |= Convert6To8((val >> 6) & 0x3F) << BSHIFT;
+	col |= Convert6To8(val & 0x3F) << ASHIFT;
 	_SetCol(col);
 }
 
 void _SetCol565(u16 val)
 {
-	u32 col = lut5to8[(val>>11)&0x1f] << RSHIFT;
-	col     |= lut6to8[(val>>5 )&0x3f] << GSHIFT;
-	col     |= lut5to8[(val    )&0x1f] << BSHIFT;
-	_SetCol(col | (0xFF<<ASHIFT));
+	u32 col = Convert5To8((val >> 11) & 0x1F) << RSHIFT;
+	col |= Convert6To8((val >> 5) & 0x3F) << GSHIFT;
+	col |= Convert5To8(val & 0x1F) << BSHIFT;
+	_SetCol(col | (0xFF << ASHIFT));
 }
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

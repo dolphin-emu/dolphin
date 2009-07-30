@@ -150,16 +150,6 @@ int TexDecoder_GetPaletteSize(int format)
     }
 }
 
-inline u32 decode565(u16 val)
-{
-    int r,g,b,a;
-    r=lut5to8[(val>>11) & 0x1f];
-    g=lut6to8[(val>>5 ) & 0x3f];
-    b=lut5to8[(val    ) & 0x1f];
-    a=0xFF;
-    return (a << 24) | (r << 16) | (g << 8) | b;
-}
-
 inline u32 decodeIA8(u16 val)
 {
     int a = val >> 8;
@@ -172,17 +162,17 @@ inline u32 decode5A3(u16 val)
     int r,g,b,a;
     if ((val & 0x8000))
     {
-        r=lut5to8[(val >> 10) & 0x1f];
-        g=lut5to8[(val >> 5 ) & 0x1f];
-        b=lut5to8[(val      ) & 0x1f];
-        a=0xFF;
+        a = 0xFF;
+		r = Convert5To8((val >> 10) & 0x1F);
+		g = Convert5To8((val >> 5) & 0x1F);
+		b = Convert5To8(val & 0x1F);
 	}
     else
     {
-        a=lut3to8[(val >> 12) & 0x7];
-        r=lut4to8[(val >> 8 ) & 0xf];
-        g=lut4to8[(val >> 4 ) & 0xf];
-        b=lut4to8[(val      ) & 0xf];
+		a = Convert3To8((val >> 12) & 0x7);
+		r = Convert4To8((val >> 8) & 0xF);
+		g = Convert4To8((val >> 4) & 0xF);
+		b = Convert4To8(val & 0xF);
     }
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
@@ -263,13 +253,13 @@ inline void decodebytesC14X2_To_Raw16(u16* dst, const u16* src, int tlutaddr)
 //inline void decodebytesIA4(u16 *dst, const u8 *src, int numbytes)
 inline void decodebytesIA4(u16 *dst, const u8 *src)
 {
-    for (int x = 0; x < 8; x++)
-    {
+	for (int x = 0; x < 8; x++)
+	{
 		const u8 val = src[x];
-        const u8 a = lut4to8[val >> 4];
-        const u8 l = lut4to8[val & 0xF];
-        dst[x] = (a << 8) | l;
-    }
+		u8 a = Convert4To8(val >> 4);
+		u8 l = Convert4To8(val & 0xF);
+		dst[x] = (a << 8) | l;
+	}
 }
 
 //inline void decodebytesRGB5A3(u32 *dst, const u16 *src, int numpixels)
@@ -305,12 +295,12 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	// S3TC Decoder (Note: GCN decodes differently from PC)
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
-    int blue1 = lut5to8[c1 & 0x1F];
-    int blue2 = lut5to8[c2 & 0x1F];
-    int green1 = lut6to8[(c1 >> 5) & 0x3F];
-    int green2 = lut6to8[(c2 >> 5) & 0x3F];
-    int red1 = lut5to8[(c1 >> 11) & 0x1F];
-    int red2 = lut5to8[(c2 >> 11) & 0x1F];
+	u8 blue1 = Convert5To8(c1 & 0x1F);
+	u8 blue2 = Convert5To8(c2 & 0x1F);
+	u8 green1 = Convert6To8((c1 >> 5) & 0x3F);
+	u8 green2 = Convert6To8((c2 >> 5) & 0x3F);
+	u8 red1 = Convert5To8((c1 >> 11) & 0x1F);
+	u8 red2 = Convert5To8((c2 >> 11) & 0x1F);
     
     int colors[4];
 
@@ -402,8 +392,8 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 						for (int ix = 0; ix < 4; ix++)
 						{
 							int val = src[ix];
-							dst[(y + iy) * width + x + ix * 2] = lut4to8[val >> 4];
-							dst[(y + iy) * width + x + ix * 2 + 1] = lut4to8[val & 15];
+							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
+							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
 						}
         }
        return PC_TEX_FMT_I4_AS_I8;

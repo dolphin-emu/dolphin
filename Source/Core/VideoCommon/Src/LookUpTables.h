@@ -20,15 +20,28 @@
 
 #include "Common.h"
 
-extern const int lut3to8[8];
-extern const int lut4to8[16];
-extern const int lut5to8[32];
-extern int lut6to8[64];
-extern float lutu8tosfloat[256];
-extern float lutu8toufloat[256];
-extern float luts8tosfloat[256];
-extern float shiftLookup[32];
+inline u8 Convert3To8(u8 v)
+{
+	// Swizzle bits: 00000123 -> 12312312
+	return (v << 5) | (v << 2) | (v >> 1);
+}
 
-void InitLUTs();
+inline u8 Convert4To8(u8 v)
+{
+	// Swizzle bits: 00001234 -> 12341234
+	return (v << 4) | v;
+}
+
+inline u8 Convert5To8(u8 v)
+{
+	// Swizzle bits: 00012345 -> 12345123
+	return (v << 3) | (v >> 2);
+}
+
+inline u8 Convert6To8(u8 v)
+{
+	// Swizzle bits: 00123456 -> 12345612
+	return (v << 2) | (v >> 4);
+}
 
 #endif // _LOOKUPTABLES_H

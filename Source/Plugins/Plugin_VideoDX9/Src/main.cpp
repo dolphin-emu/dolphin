@@ -137,7 +137,6 @@ bool Init()
 			MessageBox(GetActiveWindow(), "Unable to initialize Direct3D. Please make sure that you have DirectX 9.0c correctly installed.", "Fatal Error", MB_OK);
 			return false;
 		}
-		InitLUTs();
 		InitXFBConvTables();
 	}
 	initCount++;

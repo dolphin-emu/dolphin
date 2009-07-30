@@ -619,10 +619,10 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
 	pVtxAttr = &m_VtxAttr;
-	posScale = shiftLookup[m_VtxAttr.PosFrac];
+	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
-			tcScale[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
+			tcScale[i] = 1.0f / float(1 << m_VtxAttr.texCoord[i].Frac);
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 

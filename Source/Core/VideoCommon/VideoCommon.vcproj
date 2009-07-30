@@ -529,10 +529,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\LookUpTables.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\LookUpTables.h"
 				>
 			</File>

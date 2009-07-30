@@ -314,7 +314,6 @@ void Initialize(void *init)
     frameCount = 0;
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
-    InitLUTs();
 	InitXFBConvTables();
     g_Config.Load();
     
