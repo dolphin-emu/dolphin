@@ -354,7 +354,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 	}
 	else
 	{
-		wxMessageBox(_T("You have no " FULL_GAMECONFIG_DIR "MemoryChecks.ini file"));
+		wxMessageBox(_T("You have no ") T_FULL_GAMECONFIG_DIR _T("MemoryChecks.ini file"));
 	}
 }
 // =================

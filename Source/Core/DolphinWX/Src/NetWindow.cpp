@@ -143,8 +143,8 @@ void NetPlay::OnHost(wxCommandEvent& WXUNUSED(event))
 		// Create the GUI
 		m_isHosting = true;
 		DrawNetWindow();
-		m_Logging->AppendText(wxString::Format(wxT("WARNING : Hosting requires port to be forwarded in firewall!\n"
-					"*Creation Successful on port %d : Waiting for peers...\n"), m_port));
+		m_Logging->AppendText(wxString::Format(wxT("WARNING : Hosting requires port to be forwarded in firewall!\n")
+					wxT("*Creation Successful on port %d : Waiting for peers...\n"), m_port));
 	}
 	else
 	{

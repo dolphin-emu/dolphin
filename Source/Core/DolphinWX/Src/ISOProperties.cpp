@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "PatchAddEdit.h"
 #include "ARCodeAddEdit.h"
 #include "ConfigManager.h"
+#include "StringUtil.h"
 
 struct WiiPartition
 {
@@ -190,7 +191,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	wxString name;
 	CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
 
-	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str(), name.c_str()));
+	SetTitle(wxString::Format(wxT("%s%s"),
+		wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()),
+		name.c_str()).c_str());
 }
 
 CISOProperties::~CISOProperties()
@@ -792,7 +795,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 
-	GameIni.Set("EmuState", "EmulationIssues", EmuIssues->GetValue());
+	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(wxConvUTF8));
 
 	PatchList_Save();
 	ActionReplayList_Save();
@@ -1032,6 +1035,10 @@ bool CISOProperties::CopySJISToString( wxString& _rDestination, const char* _src
 				_src, (int)strlen(_src),
 				(LPWSTR)pUnicodeStrBuffer, unicodeNameSize))
 			{
+#ifdef _UNICODE
+				_rDestination = (LPWSTR)pUnicodeStrBuffer;
+				returnCode = true;
+#else
 				u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
 					(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
 					NULL, NULL, NULL, NULL);
@@ -1051,6 +1058,7 @@ bool CISOProperties::CopySJISToString( wxString& _rDestination, const char* _src
 						delete pAnsiStrBuffer;
 					}
 				}
+#endif
 			}
 			delete pUnicodeStrBuffer;
 		}		

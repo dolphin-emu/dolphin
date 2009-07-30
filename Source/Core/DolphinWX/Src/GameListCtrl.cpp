@@ -330,18 +330,17 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			SetItem(_Index, COLUMN_TITLE, name, -1);
 		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
 			SetItem(_Index, COLUMN_NOTES, description, -1);
-		m_gameList.append(std::string(name.mb_str()) + " (J)\n");
+		m_gameList.append(StringFromFormat("%s (J)\n", (const char*)name.mb_str(wxConvUTF8)));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
 			SetItem(_Index, COLUMN_TITLE, name, -1);
 		if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
 			SetItem(_Index, COLUMN_NOTES, description, -1);
-		m_gameList.append(std::string(name.mb_str()) + " (U)\n");
+		m_gameList.append(StringFromFormat("%s (U)\n", (const char*)name.mb_str(wxConvUTF8)));
 		break;
 	default:
-		m_gameList.append(std::string(
-			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()).mb_str()) + " (E)\n");
+		m_gameList.append(StringFromFormat("%s (E)\n", rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()));
 		SetItem(_Index, COLUMN_TITLE, 
 			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, 
@@ -1081,6 +1080,11 @@ bool CGameListCtrl::CopySJISToString( wxString& _rDestination, const char* _src 
 				_src, (int)strlen(_src),
 				(LPWSTR)pUnicodeStrBuffer, unicodeNameSize))
 			{
+
+#ifdef _UNICODE
+				_rDestination = (LPWSTR)pUnicodeStrBuffer;
+				returnCode = true;
+#else
 				u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
 					(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
 					NULL, NULL, NULL, NULL);
@@ -1100,6 +1104,7 @@ bool CGameListCtrl::CopySJISToString( wxString& _rDestination, const char* _src 
 						delete pAnsiStrBuffer;
 					}
 				}
+#endif
 			}
 			delete pUnicodeStrBuffer;
 		}		

@@ -351,6 +351,18 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 			ResumeThread( hThread );
 }
 
+void StackTrace( HANDLE hThread,  wchar_t const*lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
+{
+	// TODO: remove when Common builds as unicode
+	size_t origsize = wcslen(lpszMessage) + 1;
+	const size_t newsize = 100;
+	size_t convertedChars = 0;
+	char nstring[newsize];
+	wcstombs_s(&convertedChars, nstring, origsize, lpszMessage, _TRUNCATE);
+
+	StackTrace(hThread, nstring, file, eip, esp, ebp );
+}
+
 void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
 {
 	STACKFRAME     callStack;

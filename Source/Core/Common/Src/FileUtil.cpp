@@ -488,7 +488,7 @@ bool DeleteDirRecursively(const char *directory)
 }
 
 // Returns the current directory, caller should free
-const char *GetCurrentDirectory()
+const char *GetCurrentDir()
 {
 	const char *dir;
 	// Get the current working directory (getcwd uses malloc) 
@@ -502,7 +502,7 @@ const char *GetCurrentDirectory()
 }
 
 // Sets the current directory to the given directory
-bool SetCurrentDirectory(const char *_rDirectory)
+bool SetCurrentDir(const char *_rDirectory)
 {
 	return __chdir(_rDirectory) == 0;
 }

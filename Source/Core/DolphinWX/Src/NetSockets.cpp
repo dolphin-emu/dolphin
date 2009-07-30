@@ -414,8 +414,7 @@ void *ClientSide::Entry()
 		}
 		else
 		{
-			Event->AppendText(_("UDP Connection FAILED !\n"
-				"ERROR : Unable to establish UDP Connection, please Check UDP Port forwarding !"));
+			Event->AppendText(_("UDP Connection FAILED !\nERROR : Unable to establish UDP Connection, please Check UDP Port forwarding !"));
 			m_socket.Close();
 			Event->SendEvent(HOST_ERROR);
 			return NULL;

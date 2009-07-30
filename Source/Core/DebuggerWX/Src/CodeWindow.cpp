@@ -460,9 +460,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 			), wxITEM_CHECK);
 
 		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
-			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing."
-			" [This option must be selected before a game is started.]"
-			), wxITEM_CHECK);
+			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
+			_T(" [This option must be selected before a game is started.]"),
+			wxITEM_CHECK);
 		
 
 	#ifdef JIT_OFF_OPTIONS

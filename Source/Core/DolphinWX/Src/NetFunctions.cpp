@@ -55,8 +55,8 @@ void NetPlay::OnNetEvent(wxCommandEvent& event)
 			else
 			{
 				m_numClients--;
-				AppendText( wxString::Format(wxT("ERROR : Network Error !\n"
-					"*Player : %s has been dropped from the game.\n\n"),
+				AppendText( wxString::Format(wxT("ERROR : Network Error !\n")
+					wxT("*Player : %s has been dropped from the game.\n\n"),
 			   		 (const char *)event.GetString().mb_str()) );
 			}
 		}
@@ -154,8 +154,8 @@ void NetPlay::LoadGame()
 		// Sleep a bit to start the game at more or less the same time than the peer
 		wxMilliSleep(fping/2);
 		
-		m_Logging->AppendText(wxString::Format(wxT("** Everyone is ready... Loading Game ! **\n"
-			"** Ping to client(s) is : %f ms\n"), fping));
+		m_Logging->AppendText(wxString::Format(wxT("** Everyone is ready... Loading Game ! **\n")
+			wxT("** Ping to client(s) is : %f ms\n"), fping));
 	}
 	else
 		m_Logging->AppendText(_("** Everyone is ready... Loading Game ! **\n"));
@@ -200,9 +200,7 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 {
 	if (m_numClients < 1)
 	{
-		m_Logging->AppendText(_("** WARNING : "
-							"Ping too high (>2000ms) or connection lost ! \n"
-							"** WARNING : Stopping Netplay... \n"));
+		m_Logging->AppendText(_("** WARNING : Ping too high (>2000ms) or connection lost ! \n** WARNING : Stopping Netplay... \n"));
 		NetClass_ptr = NULL;
 		return false;
 	}
@@ -302,9 +300,7 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 				else {
 					if (m_loopframe > 126)
 					{
-						m_Logging->AppendText(_("** WARNING : "
-							"Ping too high (>2000ms) or connection lost ! \n"
-							"** WARNING : Stopping Netplay... \n"));
+						m_Logging->AppendText(_("** WARNING : Ping too high (>2000ms) or connection lost ! \n** WARNING : Stopping Netplay... \n"));
 						NetClass_ptr = NULL;
 					}
 

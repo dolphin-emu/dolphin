@@ -272,25 +272,24 @@ void CConfigMain::CreateGUIControls()
 	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
 
 	// ToolTips
-	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,"
-		"\nwhich can be more accurate, but is MUCH slower"));
+	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,")
+		wxT("\nwhich can be more accurate, but is MUCH slower"));
 	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured."
-		" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin"
-		" suddenly crashes without any explanation at all."
-		));
+	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured.")
+		wxT(" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin")
+		wxT(" suddenly crashes without any explanation at all."));
 	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
-	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window."
-		"\nIt can be convenient in a Wii game that already has a cursor."));
+	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window.")
+		wxT("\nIt can be convenient in a Wii game that already has a cursor."));
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 	DSPThread->SetToolTip(wxT("This should be on when using HLE and off when using LLE."));
-	UseDualCore->SetToolTip(wxT("This splits the Video and CPU threads, so they can be run on separate cores."
-		"\nCauses major speed improvements on PCs with more than one core,"
-		"\nbut can also cause occasional crashes/glitches."));
+	UseDualCore->SetToolTip(wxT("This splits the Video and CPU threads, so they can be run on separate cores.")
+		wxT("\nCauses major speed improvements on PCs with more than one core,")
+		wxT("\nbut can also cause occasional crashes/glitches."));
 
-	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in"
-		"\nthe game list of PAL GC games."));
+	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in")
+		wxT("\nthe game list of PAL GC games."));
 	// Copyright notice
 	Theme->SetItemToolTip(0, wxT("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
 	Theme->SetItemToolTip(1, wxT("Created by VistaIcons.com"));
@@ -728,7 +727,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
 	std::string filename = std::string(wxFileSelector(
 		wxT("Choose a file to open"),
-		wxT(FULL_GC_USER_DIR),
+		T_FULL_GC_USER_DIR,
 		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB), 
 		wxEmptyString,
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());

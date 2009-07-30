@@ -76,10 +76,10 @@ u32 ScanDirectoryTree(const char *directory, FSTEntry& parentEntry);
 bool DeleteDirRecursively(const char *directory);
  
 // Returns the current directory, caller should free
-const char *GetCurrentDirectory();
+const char *GetCurrentDir();
  
 // Set the current directory to given directory
-bool SetCurrentDirectory(const char *directory);
+bool SetCurrentDir(const char *directory);
  
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
