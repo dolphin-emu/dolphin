@@ -41,6 +41,10 @@ inline void AtomicAdd(volatile u32& target, u32 value) {
 	__sync_add_and_fetch(&target, value);
 }
 
+inline void AtomicAnd(volatile u32& target, u32 value) {
+	__sync_and_and_fetch(&target, value);
+}
+
 inline void AtomicIncrement(volatile u32& target) {
 	__sync_add_and_fetch(&target, 1);
 }
@@ -49,15 +53,19 @@ inline u32 AtomicLoad(volatile u32& src) {
 	return src; // 32-bit reads are always atomic.
 }
 inline u32 AtomicLoadAcquire(volatile u32& src) {
-	__sync_synchronize();
+	__sync_synchronize(); // TODO: May not be necessary.
 	return src;
+}
+
+inline void AtomicOr(volatile u32& target, u32 value) {
+	__sync_or_and_fetch(&target, value);
 }
 
 inline void AtomicStore(volatile u32& dest, u32 value) {
 	dest = value; // 32-bit writes are always atomic.
 }
 inline void AtomicStoreRelease(volatile u32& dest, u32 value) {
-	__sync_lock_test_and_set(&dest, value);
+	__sync_lock_test_and_set(&dest, value); // TODO: Wrong! This function is has acquire semantics.
 }
 
 }

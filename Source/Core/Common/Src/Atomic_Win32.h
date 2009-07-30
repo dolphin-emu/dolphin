@@ -19,6 +19,7 @@
 #define _ATOMIC_WIN32_H_
 
 #include "Common.h"
+#include <intrin.h>
 #include <Windows.h>
 
 // Atomic operations are performed in a single step by the CPU. It is
@@ -46,6 +47,10 @@ inline void AtomicAdd(volatile u32& target, u32 value) {
 	InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
 }
 
+inline void AtomicAnd(volatile u32& target, u32 value) {
+	InterlockedAnd((volatile LONG*)&target, (LONG)value);
+}
+
 inline void AtomicIncrement(volatile u32& target) {
 	InterlockedIncrement((volatile LONG*)&target);
 }
@@ -54,16 +59,21 @@ inline u32 AtomicLoad(volatile u32& src) {
 	return src; // 32-bit reads are always atomic.
 }
 inline u32 AtomicLoadAcquire(volatile u32& src) {
-	MemoryBarrier();
-	return src; // 32-bit reads are always atomic.
+	u32 result = src; // 32-bit reads are always atomic.
+	_ReadBarrier(); // Compiler instruction only. x86 loads always have acquire semantics.
+	return result;
+}
+
+inline void AtomicOr(volatile u32& target, u32 value) {
+	InterlockedOr((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicStore(volatile u32& dest, u32 value) {
 	dest = value; // 32-bit writes are always atomic.
 }
 inline void AtomicStoreRelease(volatile u32& dest, u32 value) {
-	// InterlockedExchange includes a memory barrier as a bonus.
-	InterlockedExchange((volatile LONG*)&dest, (LONG)value);
+	_WriteBarrier(); // Compiler instruction only. x86 stores always have release semantics.
+	dest = value; // 32-bit writes are always atomic.
 }
 
 }
