@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DiscIO"
 	ProjectGUID="{B7F1A9FB-BEA8-416E-9460-AE35A6A5165C}"
 	RootNamespace="DiscIO"

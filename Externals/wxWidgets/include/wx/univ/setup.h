@@ -144,7 +144,7 @@
 //
 // Recommended setting: 0 (unless you only plan to use Windows NT/2000/XP)
 #ifndef wxUSE_UNICODE
-    #define wxUSE_UNICODE 0
+    #define wxUSE_UNICODE 1
 #endif
 
 // Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWidgets in Unicode mode
