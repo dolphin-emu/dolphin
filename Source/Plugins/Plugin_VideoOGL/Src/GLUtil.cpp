@@ -83,7 +83,8 @@ void OpenGL_SetWindowText(const char *text)
 #elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLSetTitle(GLWin.cocoaWin, text);
 #elif defined(_WIN32)
-    SetWindowText(EmuWindow::GetWnd(), text);
+	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
+    SetWindowTextA(EmuWindow::GetWnd(), text);
 #elif defined(USE_WX) && USE_WX
     GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(HAVE_X11) && HAVE_X11 // GLX
@@ -233,10 +234,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
     // Create a separate window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
-		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
+		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Please wait..."));
 	// Create a child window
     else
-        g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
+        g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
 
 	// Show the window
 	EmuWindow::Show();
@@ -269,7 +270,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
         if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
         {
-            if (MessageBox(NULL,"The Requested Fullscreen Mode Is Not Supported By\nYour Video Card. Use Windowed Mode Instead?","NeHe GL",MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
+            if (MessageBox(NULL, _T("The Requested Fullscreen Mode Is Not Supported By\nYour Video Card. Use Windowed Mode Instead?"), _T("NeHe GL"),MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
                 g_Config.bFullscreen = false;
             else
                 return false;

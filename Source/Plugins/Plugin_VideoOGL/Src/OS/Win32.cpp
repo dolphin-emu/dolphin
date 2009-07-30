@@ -144,7 +144,7 @@ HWND m_hMain = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
-const TCHAR m_szClassName[] = "DolphinEmuWnd";
+const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 
 // ---------------------------------------------------------------------

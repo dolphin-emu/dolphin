@@ -285,7 +285,7 @@ void WiimotePadConfigDialog::ToBlank(bool _ToBlank)
 					if(GetButtonText(i, j).ToAscii() == "-1")
 						SetButtonText(i, (char *)"", j);
 				#else
-					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
+					if(GetButtonText(i, j) == wxT("-1")) SetButtonText(i, "", j);
 				#endif
 		}
 		else
@@ -515,9 +515,9 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 		SetButtonTextAll(_GetId, (char *)"-1");
 		
 		// Notify the user
-		wxMessageBox(wxString::Format(wxT(
-			"You selected a key with a to low key code (%i), please"
-			" select another key with a higher key code."), pressed)
+		wxMessageBox(wxString::Format(
+			wxT("You selected a key with a to low key code (%i), please")
+			wxT(" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
 	

@@ -164,8 +164,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
 
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
-		m_UseRealWiimote[i]->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
-			" when a recording is to be done. No status in this window will be updated when this is checked."));
+		m_UseRealWiimote[i]->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected")
+			wxT(" when a recording is to be done. No status in this window will be updated when this is checked."));
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);

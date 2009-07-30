@@ -413,14 +413,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
-		m_CheckC2S[i]->SetToolTip(wxT(
-			"This will convert a circular stick radius to a square stick radius."
-			" This can be useful for the pitch and roll emulation."
-			));
-		m_CheckC2SLabel[i]->SetToolTip(wxT(
-			"To produce a perfect square circle in the 'Out' window you have to manually set"
-			"\nyour diagonal values here from what is shown in the 'In' window."
-			));
+		m_CheckC2S[i]->SetToolTip(wxT("This will convert a circular stick radius to a square stick radius.")
+			wxT(" This can be useful for the pitch and roll emulation."));
+		m_CheckC2SLabel[i]->SetToolTip(
+			wxT("To produce a perfect square circle in the 'Out' window you have to manually set")
+			wxT("\nyour diagonal values here from what is shown in the 'In' window."));
 
 		// Sizers
 		m_gDeadZone[i] = new wxBoxSizer(wxVERTICAL);

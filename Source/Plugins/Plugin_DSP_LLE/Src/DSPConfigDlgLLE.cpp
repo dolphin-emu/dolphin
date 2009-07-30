@@ -52,9 +52,9 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 
 	// Add tooltips
 	m_buttonEnableDTKMusic->SetToolTip(wxT("This is sometimes used to play music tracks from the disc"));
-	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n"
-		"Disabling this also disables the speed throttle which this causes,\n"
-		"meaning that there will be no upper limit on your FPS."));
+	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n")
+		wxT("Disabling this also disables the speed throttle which this causes,\n")
+		wxT("meaning that there will be no upper limit on your FPS."));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog

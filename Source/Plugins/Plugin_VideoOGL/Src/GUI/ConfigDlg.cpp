@@ -231,27 +231,26 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
 	// Tool tips
-	m_Fullscreen->SetToolTip(wxT(
-		"This will create a Fullscreen window using the chosen Fullscreen resolution."
-		"\nPress Alt+Enter to switch between Fullscreen and Windowed mode."
-		"\n\nApplies instanty during gameplay: <No>"));
-	m_NativeResolution->SetToolTip(wxT(
-		"This will use the game's native resolution and stretch it to fill the"
-		"\nwindow instead of changing the internal display resolution. It"
-		"\nmay result in a blurrier image, but it may also give a higher"
-		"\nFPS if you have a slow graphics card."
-		"\n\nApplies instanty during gameplay: <Yes>"));
+	m_Fullscreen->SetToolTip(
+		wxT("This will create a Fullscreen window using the chosen Fullscreen resolution.")
+		wxT("\nPress Alt+Enter to switch between Fullscreen and Windowed mode.")
+		wxT("\n\nApplies instanty during gameplay: <No>"));
+	m_NativeResolution->SetToolTip(
+		wxT("This will use the game's native resolution and stretch it to fill the")
+		wxT("\nwindow instead of changing the internal display resolution. It")
+		wxT("\nmay result in a blurrier image, but it may also give a higher")
+		wxT("\nFPS if you have a slow graphics card.")
+		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_2xResolution->SetToolTip(wxT(
 		"Applies instanty during gameplay: <Yes>"));
-	m_Crop->SetToolTip(wxT(
-		"Crop the picture instead of creating a letterbox. It will assume that your screen"
-		"\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume"
-		"\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio."
-		"\n\nApplies instanty during gameplay: <Yes>"));
-	m_WindowResolutionCB->SetToolTip(wxT(
-		"Select internal resolution for the separate rendering window. This resolution also applies"
-		" to the fullscreen mode"
-		"\n\nApplies instanty during gameplay: <No>"));
+	m_Crop->SetToolTip(
+		wxT("Crop the picture instead of creating a letterbox. It will assume that your screen")
+		wxT("\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume")
+		wxT("\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio.")
+		wxT("\n\nApplies instanty during gameplay: <Yes>"));
+	m_WindowResolutionCB->SetToolTip(
+		wxT("Select internal resolution for the separate rendering window. This resolution also applies")
+		wxT(" to the fullscreen mode\n\nApplies instanty during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
 		"Applies instanty during gameplay: <No>"));
 	m_EFBCopyDisableHotKey->SetToolTip(wxT(
@@ -386,8 +385,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
 	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
-	m_CheckBox_DisableCopyEFB->SetToolTip(wxT("This may lead to a higher FPS in for example Zelda - TP."
-		" But it may also cause graphical errors and missing graphics."));
+	m_CheckBox_DisableCopyEFB->SetToolTip(wxT("This may lead to a higher FPS in for example Zelda - TP.")
+		wxT(" But it may also cause graphical errors and missing graphics."));
 
 	m_Radio_CopyEFBToRAM = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTORAM, wxT("Copy EFB to system RAM (real)"));
 	m_Radio_CopyEFBToRAM->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
@@ -405,9 +404,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
 	m_DumpFrames = new wxCheckBox(m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Rendered Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 #ifdef _WIN32
-	m_DumpFrames->SetToolTip(wxT(
-		"When dumping begins, you will be prompted to choose a video codec to"
-		" encode the video in."));
+	m_DumpFrames->SetToolTip(
+		wxT("When dumping begins, you will be prompted to choose a video codec to")
+		wxT(" encode the video in."));
 #else
 	m_DumpFrames->SetToolTip(wxT(
 		"!!WARNING!! This option dumps raw bitmaps of each frame, and will fill up"
@@ -438,12 +437,12 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
 
 	// Tool tips
-	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."
-		"\n[This option will apply immediately and does not require a restart. However it may not"
-		" be entirely safe to change it midgames.]"));
+	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games.")
+		wxT("\n[This option will apply immediately and does not require a restart. However it may not")
+		wxT(" be entirely safe to change it midgames.]"));
 
-	m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,"
-		"\nDisabling it may speed up some games, but could also cause glitches."));
+	m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,")
+		wxT("\nDisabling it may speed up some games, but could also cause glitches."));
 	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
 
 	// Sizers
@@ -509,10 +508,10 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 void GFXConfigDialogOGL::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
-	wxMessageBox(_T("Dolphin OpenGL Plugin\nBy zerofrog(@gmail.com)\n\n"
-		"A card supporting Vertex/Pixel Shader 2.0 or higher, framebuffer objects, "
-		"and multiple render targets is required in order to use this plugin."),
-		_T("Dolphin OGL"), wxOK, this);
+	wxMessageBox(wxT("Dolphin OpenGL Plugin\nBy zerofrog(@gmail.com)\n\n")
+		wxT("A card supporting Vertex/Pixel Shader 2.0 or higher, framebuffer objects, ")
+		wxT("and multiple render targets is required in order to use this plugin."),
+		wxT("Dolphin OGL"), wxOK, this);
 }
 
 void GFXConfigDialogOGL::ReloadShaderClick(wxCommandEvent& WXUNUSED (event))
@@ -819,4 +818,3 @@ void Config::UpdateProjectionHack()
 	}
 }
 
-		

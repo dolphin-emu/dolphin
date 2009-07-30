@@ -160,7 +160,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 
 		if (xresult == ERROR_SUCCESS)
 		{
-			arrayStringFor_X360Pad.Add(wxString::Format("%i", x+1));
+			arrayStringFor_X360Pad.Add(wxString::Format(wxT("%i"), x+1));
 		}
 	}
 #endif

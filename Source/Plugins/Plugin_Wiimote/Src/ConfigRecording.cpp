@@ -89,10 +89,10 @@ void WiimoteRecordingConfigDialog::SaveFile()
 		file.Set(SaveName.c_str(), "HotKeyIR", m_RecordHotKeyIR[i]->GetSelection());
 
 		// Movement name
-		file.Set(SaveName.c_str(), "MovementName", m_RecordText[i]->GetValue().c_str());
+		file.Set(SaveName.c_str(), "MovementName", (const char*)m_RecordText[i]->GetValue().mb_str(wxConvUTF8));
 
 		// Game name
-		file.Set(SaveName.c_str(), "GameName", m_RecordGameText[i]->GetValue().c_str());
+		file.Set(SaveName.c_str(), "GameName", (const char*)m_RecordGameText[i]->GetValue().mb_str(wxConvUTF8));
 
 		// Recording speed (currently always saved directly after a recording)
 		/*
@@ -120,10 +120,9 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 
 	m_UpdateMeters->SetValue(g_Config.bUpdateRealWiimote);
 
-	m_UpdateMeters->SetToolTip(wxT(
-		"You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n"
-		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
-		));
+	m_UpdateMeters->SetToolTip(
+		wxT("You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n")
+		wxT("configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."));
 
 	// Width and height of the gauges
 	static const int Gw = 35, Gh = 110; //ugly
@@ -234,27 +233,25 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, -1), wxALIGN_CENTRE);
 	
 	// Tool tips
-	m_TextRec->SetToolTip(wxT(
-		"To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n"
-		"by letting go of 'A'"));
-	m_TextHotKeyWm->SetToolTip(wxT(
-		"Select a hotkey for playback of Wiimote movements. You can combine it with an"
-		" optional Shift, Ctrl, or Alt switch."
-		));
+	m_TextRec->SetToolTip(
+		wxT("To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n")
+		wxT("by letting go of 'A'"));
+	m_TextHotKeyWm->SetToolTip(
+		wxT("Select a hotkey for playback of Wiimote movements. You can combine it with an")
+		wxT(" optional Shift, Ctrl, or Alt switch."));
 	m_TextHotKeyNc->SetToolTip(wxT(
 		"Select a hotkey for playback of Nunchuck movements"));
 	m_TextHotKeyIR->SetToolTip(wxT(
 		"Select a hotkey for playback of Nunchuck movements"));
 	m_TextRecSpeed->SetToolTip(wxT(
 		"Recording speed in average measurements per second"));
-	m_TextPlaySpeed->SetToolTip(wxT(
-		"Playback speed: A playback speed of 100 means that the playback occurs at the same rate as it was recorded. (You can see the\n"
-		"current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n"
-		"you may want to select a playback rate of 50, because then the game might perceive the playback as a full speed playback. (This\n"
-		"holds if Wiimote_Update() is tied to the framerate, I'm not sure that this is the case. It seemed to vary somewhat with different\n"
-		"framerates but perhaps not enough to say that it was exactly tied to the framerate.) So until this is better understood you'll have\n"
-		"to try different playback rates and see which one that works."
-		));
+	m_TextPlaySpeed->SetToolTip(
+		wxT("Playback speed: A playback speed of 100 means that the playback occurs at the same rate as it was recorded. (You can see the\n")
+		wxT("current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n")
+		wxT("you may want to select a playback rate of 50, because then the game might perceive the playback as a full speed playback. (This\n")
+		wxT("holds if Wiimote_Update() is tied to the framerate, I'm not sure that this is the case. It seemed to vary somewhat with different\n")
+		wxT("framerates but perhaps not enough to say that it was exactly tied to the framerate.) So until this is better understood you'll have\n")
+		wxT("to try different playback rates and see which one that works."));
 
 	sRealRecord[0] = new wxBoxSizer(wxHORIZONTAL);
 	sRealRecord[0]->Add(m_TextRec, 0, wxEXPAND | (wxLEFT), 5);

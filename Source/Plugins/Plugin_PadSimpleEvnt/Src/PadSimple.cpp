@@ -211,7 +211,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager *)globals->logManager);
+//	LogManager::SetInstance((LogManager *)globals->logManager);
 
 }
 
