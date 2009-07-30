@@ -32,9 +32,7 @@ namespace DiscIO
 PlainFileReader::PlainFileReader(HANDLE hFile_)
 {
 	hFile = hFile_;
-	DWORD size_low, size_high;
-	size_low = GetFileSize(hFile, &size_high);
-	size = ((u64)size_low) | ((u64)size_high << 32);
+	GetFileSizeEx(hFile, (PLARGE_INTEGER)&size);
 }
 
 PlainFileReader* PlainFileReader::Create(const char* filename)
@@ -55,17 +53,16 @@ PlainFileReader::~PlainFileReader()
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-	LONG offset_high = (LONG)(offset >> 32);
-	SetFilePointer(hFile, (DWORD)(offset & 0xFFFFFFFF), &offset_high, FILE_BEGIN);
-
-	if (nbytes >= 0x100000000ULL)
-		return false; // WTF, does windows really have this limitation?
-
-	DWORD unused = 0;
-	if (!ReadFile(hFile, out_ptr, DWORD(nbytes & 0xFFFFFFFF), &unused, NULL))
+	if (!SetFilePointerEx(hFile, *(LARGE_INTEGER*)&offset, NULL, FILE_BEGIN))
 		return false;
-	else
-		return true;
+
+	DWORD bytesRead = 0;
+	if (!ReadFile(hFile, out_ptr, (DWORD)nbytes, &bytesRead, NULL))
+		return false;
+	if (bytesRead != nbytes)
+		return false;
+
+	return true;
 }
 
 #else // POSIX
