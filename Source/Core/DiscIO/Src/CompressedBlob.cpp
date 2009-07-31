@@ -320,7 +320,7 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 #ifdef _WIN32
 	// ector: _chsize sucks, not 64-bit safe
 	// F|RES: changed to _chsize_s. i think it is 64-bit safe
-	_chsize_s(_fileno(f), (long)header.data_size);
+	_chsize_s(_fileno(f), header.data_size);
 #else
 	ftruncate(fileno(f), header.data_size);
 #endif
