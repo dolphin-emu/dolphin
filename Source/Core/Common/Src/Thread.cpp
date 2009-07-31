@@ -95,6 +95,11 @@ void Thread::SetAffinity(int mask)
 	SetThreadAffinityMask(m_hThread, mask);
 }
 
+void Thread::SetPriority(int priority)
+{
+	SetThreadPriority(m_hThread, priority);
+}
+
 void Thread::SetCurrentThreadAffinity(int mask)
 {
 	SetThreadAffinityMask(GetCurrentThread(), mask);
@@ -307,7 +312,6 @@ void Thread::SetAffinity(int mask)
 	pthread_setaffinity_np(thread_id, sizeof(cpu_set), &cpu_set);
 #endif
 }
-
 
 void Thread::SetCurrentThreadAffinity(int mask)
 {

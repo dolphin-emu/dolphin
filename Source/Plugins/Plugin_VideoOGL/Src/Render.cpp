@@ -80,8 +80,6 @@ CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 
-Common::Thread *scrshotThread = NULL;
-
 RasterFont* s_pfont = NULL;
 
 static bool s_bFullscreen = false;
@@ -103,6 +101,7 @@ static u32 s_blendMode;
 static bool s_bNativeResolution = false;
 
 static volatile bool s_bScreenshot = false;
+static Common::Thread *scrshotThread = 0;
 static Common::CriticalSection s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
@@ -123,6 +122,7 @@ int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
 namespace {
 
+#if defined(HAVE_WX) && HAVE_WX
 // Screenshot thread struct
 typedef struct
 {
@@ -130,6 +130,7 @@ typedef struct
 	std::string filename;
 	wxImage *img;
 } ScrStrct;
+#endif
 
 static const GLenum glSrcFactors[8] =
 {
@@ -210,6 +211,7 @@ bool Renderer::Init()
 					);
 		return false;
 	}
+
     INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
     INFO_LOG(VIDEO, ptoken);  // write to the log file
     INFO_LOG(VIDEO, "");
@@ -1289,6 +1291,7 @@ void Renderer::SetScreenshot(const char *filename)
 	s_criticalScreenshot.Leave();
 }
 
+#if defined(HAVE_WX) && HAVE_WX
 THREAD_RETURN TakeScreenshot(void *pArgs)
 {
 	ScrStrct *threadStruct = (ScrStrct *)pArgs;
@@ -1309,18 +1312,22 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 		else
 			FloatH *= Ratio;
 
+		// This is a bit expensive on high resolutions
 		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
 	}
 
 	// Save the screenshot and finally kill the wxImage object
+	// This is really expensive when saving to PNG, but not at all when using BMP
 	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()), wxBITMAP_TYPE_PNG);
 	threadStruct->img->Destroy();
 	
 	// Show success messages
 	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH, threadStruct->filename.c_str()).c_str(), 2000);
+	delete threadStruct;
 
 	return 0;
 }
+#endif
 
 bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
@@ -1340,9 +1347,6 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	FlipImageData(data, W, H);
 
 #if defined(HAVE_WX) && HAVE_WX
-	//Enable support for PNG file type.
-	wxImage::AddHandler( new wxPNGHandler );
-
 	// Create wxImage
 	wxImage *a = new wxImage(W, H, data);
 
@@ -1358,6 +1362,9 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 	threadStruct->H = H; threadStruct->W = W;
 
 	scrshotThread = new Common::Thread(TakeScreenshot, threadStruct);
+#ifdef _WIN32
+	scrshotThread->SetPriority(THREAD_PRIORITY_BELOW_NORMAL);
+#endif
 	bool result = true;
 
 	OSD::AddMessage("Saving Screenshot... ", 2000);

@@ -140,7 +140,6 @@ EXPORT void CALL Video_EndField();
 // output:   response to the access request (ex: peek z data at specified coord)
 //
 EXPORT u32 CALL Video_AccessEFB(EFBAccessType type, u32 x, u32 y);
-void Video_OnThreadAccessEFB(); // TODO: Find a more sympathetic place to place this
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot

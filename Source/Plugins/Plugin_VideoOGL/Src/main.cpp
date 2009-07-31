@@ -320,6 +320,11 @@ void Initialize(void *init)
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 
+#if defined(HAVE_WX) && HAVE_WX
+	//Enable support for PNG screenshots.
+	wxImage::AddHandler( new wxPNGHandler );
+#endif
+
     if (!OpenGL_Create(g_VideoInitialize, 640, 480)) // 640x480 will be the default if all else fails
 	{
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
