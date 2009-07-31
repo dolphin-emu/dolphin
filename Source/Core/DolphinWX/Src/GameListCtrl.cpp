@@ -319,6 +319,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	switch (rISOFile.GetCountry())
 	{
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		// keep these codes, when we move to wx unicode...
 		//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
