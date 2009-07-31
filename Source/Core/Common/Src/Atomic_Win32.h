@@ -48,7 +48,7 @@ inline void AtomicAdd(volatile u32& target, u32 value) {
 }
 
 inline void AtomicAnd(volatile u32& target, u32 value) {
-	InterlockedAnd((volatile LONG*)&target, (LONG)value);
+	_InterlockedAnd((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicIncrement(volatile u32& target) {
@@ -65,7 +65,7 @@ inline u32 AtomicLoadAcquire(volatile u32& src) {
 }
 
 inline void AtomicOr(volatile u32& target, u32 value) {
-	InterlockedOr((volatile LONG*)&target, (LONG)value);
+	_InterlockedOr((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicStore(volatile u32& dest, u32 value) {
