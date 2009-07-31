@@ -94,6 +94,13 @@ void s(const UDSPInstruction& opc)
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
+	currentEpilogeFunc = s_epi;
+}
+
+void s_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = opc.hex & 0x3;
+
 	dsp_increment_addr_reg(dreg);
 }
 
@@ -107,6 +114,14 @@ void sn(const UDSPInstruction& opc)
 	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACC0;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
+
+	currentEpilogeFunc = sn_epi;
+}
+
+void sn_epi(const UDSPInstruction& opc)
+{
+	u8 dreg = opc.hex & 0x3;
+
 
 	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
@@ -141,9 +156,9 @@ void ln(const UDSPInstruction& opc)
 	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
-// LS $(0x18+D), $acS.m
+// LS $axD.l, $acS.m
 // xxxx xxxx 10dd 000s
-// Load register $(0x18+D) with value from memory pointed by register
+// Load register $axD.l with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Increment both $ar0 and $ar3.
 void ls(const UDSPInstruction& opc)
@@ -165,9 +180,9 @@ void ls_epi(const UDSPInstruction& opc)
 	dsp_increment_addr_reg(0x00); 
 }
 
-// LSN $(0x18+D), $acS.m
+// LSN $acD.l, $acS.m
 // xxxx xxxx 10dd 010s
-// Load register $(0x18+D) with value from memory pointed by register
+// Load register $acD.l with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Add corresponding indexing register $ix0 to addressing
 // register $ar0 and increment $ar3.
@@ -190,9 +205,9 @@ void lsn_epi(const UDSPInstruction& opc)
 	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);
 }
 
-// LSM $(0x18+D), $acS.m
+// LSM $acD.l, $acS.m
 // xxxx xxxx 10dd 100s
-// Load register $(0x18+D) with value from memory pointed by register
+// Load register $acD.l with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Add corresponding indexing register $ix3 to addressing
 // register $ar3 and increment $ar0.
@@ -216,9 +231,9 @@ void lsm_epi(const UDSPInstruction& opc)
 	dsp_increment_addr_reg(0x00); 
 }
 
-// LSMN $(0x18+D), $acS.m
+// LSMN $acD.l, $acS.m
 // xxxx xxxx 10dd 110s
-// Load register $(0x18+D) with value from memory pointed by register
+// Load register $acD.l with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Add corresponding indexing register $ix0 to addressing
 // register $ar0 and add corresponding indexing register $ix3 to addressing
@@ -243,10 +258,10 @@ void lsnm_epi(const UDSPInstruction& opc)
 	dsp_increase_addr_reg(0x00, (s16)g_dsp.r[DSP_REG_IX0]);	
 }
 
-// SL $acS.m, $(0x18+D)
+// SL $acS.m, $acD.l
 // xxxx xxxx 10dd 001s
 // Store value from register $acS.m to memory location pointed by register
-// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Load register $acD.l with value from memory pointed by register
 // $ar3. Increment both $ar0 and $ar3.
 void sl(const UDSPInstruction& opc)
 {
@@ -267,10 +282,10 @@ void sl_epi(const UDSPInstruction& opc)
 	dsp_increment_addr_reg(sreg);
 }
 
-// SLN $acS.m, $(0x18+D)
+// SLN $acS.m, $acD.l
 // xxxx xxxx 10dd 011s
 // Store value from register $acS.m to memory location pointed by register
-// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Load register $acD.l with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
 // and increment $ar3.
 void sln(const UDSPInstruction& opc)
@@ -292,10 +307,10 @@ void sln_epi(const UDSPInstruction& opc)
 	dsp_increment_addr_reg(sreg);	
 }
 
-// SLM $acS.m, $(0x18+D)
+// SLM $acS.m, $acD.l
 // xxxx xxxx 10dd 101s
 // Store value from register $acS.m to memory location pointed by register
-// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Load register $acD.l with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix3 to addressing register $ar3
 // and increment $ar0.
 void slm(const UDSPInstruction& opc)
@@ -317,10 +332,10 @@ void slm_epi(const UDSPInstruction& opc)
 	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
-// SLMN $acS.m, $(0x18+D)
+// SLMN $acS.m, $acD.l
 // xxxx xxxx 10dd 111s
 // Store value from register $acS.m to memory location pointed by register
-// $ar0. Load register $(0x18+D) with value from memory pointed by register
+// $ar0. Load register $acD.l with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
 // and add corresponding indexing register $ix3 to addressing register $ar3.
 void slnm(const UDSPInstruction& opc)

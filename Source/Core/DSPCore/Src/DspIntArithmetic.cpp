@@ -176,7 +176,7 @@ void orr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
-	/*
+// FIXME: How does it fit what we know about andc'ls 
 // ANDC $acD.m, $ac(1-D).m
 // 0011 110d xxxx xxxx
 // Logic AND middle part of accumulator $acD.m with middle part of
@@ -184,31 +184,24 @@ void orr(const UDSPInstruction& opc)
 void andc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
+	g_dsp.r[DSP_REG_ACM0+D] &= dsp_get_acc_m(1-D);
 
-	u16 ac1 = dsp_get_acc_m(D);
-	u16 ac2 = dsp_get_acc_m(1 - D);
-
-	dsp_set_long_acc(D, ac1 & ac2);
-
-	Update_SR_Register64(dsp_get_long_acc(D));
+	Update_SR_Register16(dsp_get_acc_m(D));
 }
 
+// FIXME: How does it fit what we know about orc'ls 
 // ORC $acD.m, $ac(1-D).m
 // 0011 111d xxxx xxxx
 // Logic OR middle part of accumulator $acD.m with middle part of
-// accumulator $ax(1-D).m.
+// accumulator $ac(1-D).m.
 void orc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
+	g_dsp.r[DSP_REG_ACM0+D] |= dsp_get_acc_m(1-D);
 
-	u16 ac1 = dsp_get_acc_m(D);
-	u16 ac2 = dsp_get_acc_m(1 - D);
-
-	dsp_set_long_acc(D, ac1 | ac2);
-
-	Update_SR_Register64(dsp_get_long_acc(D));
+	Update_SR_Register16(dsp_get_acc_m(D));
 }
-*/
+
 void orf(const UDSPInstruction& opc)
 {
 	ERROR_LOG(DSPLLE, "orf not implemented");
