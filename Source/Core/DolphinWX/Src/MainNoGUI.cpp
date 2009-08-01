@@ -54,6 +54,8 @@ void* main_frame = NULL;
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded(){}
 
+void Host_ShowJitResults(unsigned int address){}
+
 
 void Host_UpdateLogDisplay(){}
 
