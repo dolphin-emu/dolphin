@@ -890,7 +890,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 	SConfig::GetInstance().m_ISOFolder.clear();
 
 	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
-		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].ToAscii()));
+		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].mb_str(wxConvUTF8)));
 }
 
 void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))

@@ -159,7 +159,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		std::string sPath(dialog.GetPath().ToAscii());
+		std::string sPath(dialog.GetPath().mb_str(wxConvUTF8));
 		std::vector<std::string>::iterator itResult = std::find(
 			SConfig::GetInstance().m_ISOFolder.begin(), SConfig::GetInstance().m_ISOFolder.end(), sPath
 			);
