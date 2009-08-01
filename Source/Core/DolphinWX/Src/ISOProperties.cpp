@@ -199,7 +199,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 CISOProperties::~CISOProperties()
 {
 	if (IsVolumeWiiDisc(OpenISO))
-		WiiDisc.clear();
+	{
+		for (std::vector<WiiPartition>::const_iterator PartIter = WiiDisc.begin(); PartIter != WiiDisc.end(); ++PartIter)
+		{
+			delete PartIter->FileSystem;
+			delete PartIter->Partition;
+			for (std::vector<const DiscIO::SFileInfo *>::const_iterator FileIter = PartIter->Files.begin(); FileIter != PartIter->Files.end(); ++FileIter)
+				delete *FileIter;
+		}
+	}
 	else
 		if (!IsVolumeWadFile(OpenISO))
 			delete pFileSystem;

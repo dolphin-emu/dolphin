@@ -127,7 +127,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized wii m_Disc! (%x blocks)", filename, numClusters);
+		WARN_LOG(DISCIO, "%s is not a standard sized wii disc! (%x blocks)", filename, numClusters);
 
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];

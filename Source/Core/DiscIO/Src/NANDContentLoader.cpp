@@ -72,6 +72,7 @@ CSharedContent::CSharedContent()
 				m_Elements.push_back(Element);
 			}
 		}
+		fclose(pFile);
 	}
 }
 
