@@ -157,7 +157,7 @@
 //
 // Recommended setting: 0 (unless you only plan to use Windows NT/2000/XP)
 #ifndef wxUSE_UNICODE
-    #define wxUSE_UNICODE 0
+    #define wxUSE_UNICODE 1
 #endif
 
 // Setting wxUSE_WCHAR_T to 1 gives you some degree of Unicode support without

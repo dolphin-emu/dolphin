@@ -240,7 +240,8 @@ std::string VKToString(int keycode)
 #ifdef _WIN32
 	// Default value
 	char KeyStr[64] = {0};
-	GetKeyNameText(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
+	// TODO: Switch to unicode GetKeyNameText?
+	GetKeyNameTextA(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
 	std::string KeyString = KeyStr;
 
 	switch(keycode)

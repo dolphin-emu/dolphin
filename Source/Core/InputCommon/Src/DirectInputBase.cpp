@@ -104,7 +104,8 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 			strcpy(keyStr, "Num /");
 			break;
 		default:
-			GetKeyNameText(keycode << 16, keyStr, 64);
+			// TODO: Switch to unicode GetKeyNameText?
+			GetKeyNameTextA(keycode << 16, keyStr, 64);
 			break;
 	}
 }
@@ -119,13 +120,13 @@ HRESULT DInput::Init(HWND hWnd)
 	if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
 					    IID_IDirectInput8, (VOID* *)&g_pDI, NULL)))
 	{
-		MessageBox(0, "Direct Input Create Failed", 0, MB_ICONERROR);
+		MessageBox(0, L"Direct Input Create Failed", 0, MB_ICONERROR);
 		return(hr);
 	}
 
 	if (FAILED(hr = g_pDI->CreateDevice(GUID_SysKeyboard, &g_pKeyboard, NULL)))
 	{
-		MessageBox(0, "Couldn't access keyboard", 0, MB_ICONERROR);
+		MessageBox(0, L"Couldn't access keyboard", 0, MB_ICONERROR);
 		Free();
 		return(hr);
 	}
