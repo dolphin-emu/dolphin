@@ -113,6 +113,12 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 - (void) l2capChannelClosed:(IOBluetoothL2CAPChannel*) l2capChannel
 {
         //channel closed
+        printf("Bt channel closed\n");
+        if (l2capChannel == _cchan)
+                _cchan = nil;
+
+        if (l2capChannel == _ichan)
+                _ichan = nil;
 }
 
 #pragma mark -
@@ -348,20 +354,37 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 }
 
 int wiiuse_io_read(struct wiimote_t* wm) {
+        
+	if (!WIIMOTE_IS_SET(wm, WIIMOTE_STATE_CONNECTED))
+                return 0;
+
+
+        /* if this wiimote is not connected, skip it */
+        if (!WIIMOTE_IS_CONNECTED(wm))
+                return 0;
 
         //run the main loop to get bt data
         CFRunLoopRun();
 
-	for (int len=0; len<MAX_PAYLOAD; len++)
-	{
-		wm->event_buf[len] = DataFromWiimote[len]; 
-	}
+        memcpy(wm->event_buf,DataFromWiimote,sizeof(wm->event_buf));
+        memcpy(wm->event_buf, &wm->event_buf[1], sizeof(wm->event_buf) - 1);
+        return 1;
 
-	return 1;
 }
 
 
 int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
+
+
+        if(buf[0] != (WM_SET_REPORT | WM_BT_OUTPUT))
+        {
+                // Linux and OSX need this, Windows strips it out
+                // Only packets from Dolphin don't have the start
+                // Wiiuse uses ifdefs to add the first byte without you ever knowing it
+                // Should find out a nice way of doing this, getting windows to stop stripping the packets would be nice
+                memcpy(buf + 1, buf, len - 1);
+                buf[0] = (WM_SET_REPORT | WM_BT_OUTPUT);
+        }
 
 	[cbt writeToWiimote:buf length:len];
 	return 1;
