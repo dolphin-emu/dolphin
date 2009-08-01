@@ -16,7 +16,7 @@ typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
 typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, bool _bFullscreen);
-typedef void			(*TCopiedToXFB)(void);
+typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title

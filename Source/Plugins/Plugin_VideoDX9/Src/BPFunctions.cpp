@@ -227,7 +227,7 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, c
 {
     Renderer::SwapBuffers();
 	PRIM_LOG("Renderer::SwapBuffers()");
-	g_VideoInitialize.pCopiedToXFB();
+	g_VideoInitialize.pCopiedToXFB(false);
 }
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {

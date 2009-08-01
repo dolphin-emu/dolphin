@@ -505,8 +505,8 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message
-	// DISABLED - this has been found to cause random hangs.
-	// wxPostEvent(main_frame, event);
+	// TODO : this has been said to cause hang (??) how is that even possible ? :d
+	wxPostEvent(main_frame, event);
 }
 
 // g_VideoInitialize.pSysMessage() goes here
