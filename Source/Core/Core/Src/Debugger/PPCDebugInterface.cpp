@@ -184,7 +184,9 @@ void PPCDebugInterface::setPC(unsigned int address)
 
 void PPCDebugInterface::showJitResults(unsigned int address) 
 {
+#if !defined(HAVE_WX) && !HAVE_WX
 	Host_ShowJitResults(address);
+#endif
 }
 
 void PPCDebugInterface::runToBreakpoint()

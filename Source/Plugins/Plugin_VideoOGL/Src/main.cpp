@@ -318,9 +318,9 @@ void Initialize(void *init)
     g_Config.Load();
     
 	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
 
 #if defined(HAVE_WX) && HAVE_WX
+	g_Config.UpdateProjectionHack();
 	//Enable support for PNG screenshots.
 	wxImage::AddHandler( new wxPNGHandler );
 #endif

@@ -49,7 +49,6 @@
 #include "BootManager.h"
 void* g_pCodeWindow = NULL;
 void* main_frame = NULL;
-LogManager *logManager = NULL;
 
 // OK, this thread boundary is DANGEROUS on linux
 // wxPostEvent / wxAddPendingEvent is the solution.
@@ -214,7 +213,6 @@ int main(int argc, char* argv[])
 		return(1);
 	}
 	std::string bootFile(args_info.inputs[0]);
-	logManager = (LogManager *)CPluginManager::GetInstance().GetGlobals()->logManager;
 
 	updateMainFrameEvent.Init();
 	cpu_info.Detect();

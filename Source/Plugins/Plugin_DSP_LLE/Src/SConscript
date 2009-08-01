@@ -31,9 +31,15 @@ if env['HAVE_WX']:
 	]
 
 lleenv = env.Clone()
-lleenv.Append(
-	CXXFLAGS = [ '-fPIC' ],
-	LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util'  ],
-	)
+if env['HAVE_WX']:
+	lleenv.Append(
+		CXXFLAGS = [ '-fPIC' ],
+		LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util'  ],
+		)
+else:
+	lleenv.Append(
+		CXXFLAGS = [ '-fPIC' ],
+		LIBS = [ 'dspcore', 'audiocommon', 'common' ],
+		)
 
 lleenv.SharedLibrary(env['plugin_dir']+name, files)

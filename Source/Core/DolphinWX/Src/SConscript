@@ -10,10 +10,16 @@ files = [
 	'cmdline.c',
 	]
 
-libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
-	'common', 'z', 'debugger_ui_util'
-	]
+if wxenv['HAVE_WX']:
+	libs = [
+		'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
+		'common', 'z', 'debugger_ui_util'
+		]
+else:
+	libs = [
+		'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
+		'common', 'z'
+		]
 
 if wxenv['HAVE_WX']:
 	files += [

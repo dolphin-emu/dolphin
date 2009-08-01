@@ -1,13 +1,14 @@
 # -*- python -*-
 
 Import('env')
-files = [] #So it's declared outside the if
-if env['HAVE_WX']:
-	files += [
-		'CodeView.cpp',
-		'DebuggerUIUtil.cpp',
-		'MemoryView.cpp',
-		]
+
+if not env['HAVE_WX']:
+	Return()
+files += [
+	'CodeView.cpp',
+	'DebuggerUIUtil.cpp',
+	'MemoryView.cpp',
+	]
 
 acenv = env.Clone()
 acenv.Append(CXXFLAGS = [ '-fPIC' ])

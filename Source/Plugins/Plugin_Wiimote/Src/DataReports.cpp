@@ -261,7 +261,9 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	}
 	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
 	{
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportGuitarHero3Extension(_GH3_ext);
+#endif
 		memcpy(&pReport->ext, &_GH3_ext, sizeof(_GH3_ext));
 	}
 
