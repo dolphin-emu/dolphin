@@ -159,7 +159,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		std::string sPath(dialog.GetPath().mb_str(wxConvUTF8));
+		std::string sPath(dialog.GetPath().mb_str());
 		std::vector<std::string>::iterator itResult = std::find(
 			SConfig::GetInstance().m_ISOFolder.begin(), SConfig::GetInstance().m_ISOFolder.end(), sPath
 			);
@@ -239,7 +239,7 @@ void CGameListCtrl::Update()
 	}
 	else
 	{
-		std::string errorString;
+		wxString errorString;
 		if ((SConfig::GetInstance().m_ListGC  ||
 			SConfig::GetInstance().m_ListWii  ||
 			SConfig::GetInstance().m_ListWad) &&
@@ -247,15 +247,15 @@ void CGameListCtrl::Update()
 			SConfig::GetInstance().m_ListUsa  ||
 			SConfig::GetInstance().m_ListPal))
 		{
-			errorString = "Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files...";
+			errorString = _("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files...");
 		}
 		else
 		{
-			errorString = "Dolphin is currently set to hide all games. Doubleclick here to show all games...";
+			errorString = _("Dolphin is currently set to hide all games. Doubleclick here to show all games...");
 		}
 		InsertColumn(COLUMN_BANNER, _("No ISOs or WADS found"));
 		long index = InsertItem(0, wxString::FromAscii("msgRow"));
-		SetItem(index, COLUMN_BANNER, wxString::FromAscii(errorString.c_str()));
+		SetItem(index, COLUMN_BANNER, errorString);
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(COLUMN_BANNER, wxLIST_AUTOSIZE);
 	}

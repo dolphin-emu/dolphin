@@ -291,7 +291,7 @@ void CMemcardManager::CreateGUIControls()
 		m_Delete[i]->Disable();
 		if (strcmp(DefaultMemcard[i].c_str(), "."))
 		{
-		    m_MemcardPath[i]->SetPath(wxString::FromAscii(DefaultMemcard[i].c_str()));
+			m_MemcardPath[i]->SetPath(wxString::FromAscii(DefaultMemcard[i].c_str()));
 			ChangePath(ID_MEMCARDPATH_A + i);
 		}
 	}
@@ -564,7 +564,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxFileSelectorDefaultWildcardStr
 			),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		const char * fileName = temp.ToAscii();
+		const char * fileName = temp.mb_str();
 		if (!temp.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(wxT("Save GCI as.."),
@@ -608,10 +608,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			if (temp.length() > 0)
 			{
-				const char * fileName = temp.ToAscii();
+				const char * fileName = temp.mb_str();
 				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName, NULL), -1))
 				{
-					File::Delete(temp.ToAscii());
+					File::Delete(temp.mb_str());
 				}
 			}
 		}

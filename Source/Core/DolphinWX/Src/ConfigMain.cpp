@@ -118,7 +118,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	// Update selected ISO paths
 	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
 	{
-		ISOPaths->Append(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
+		ISOPaths->Append(wxString::FromAscii(SConfig::GetInstance().m_ISOFolder[i].c_str()));
 	}
 }
 
@@ -890,7 +890,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 	SConfig::GetInstance().m_ISOFolder.clear();
 
 	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
-		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].mb_str(wxConvUTF8)));
+		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].mb_str()));
 }
 
 void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
@@ -901,12 +901,12 @@ void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = DefaultISO->GetPath().ToAscii();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = DefaultISO->GetPath().mb_str();
 }
 
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().ToAscii();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().mb_str();
 }
 
 //////////////////////////////////////////////////////////////////////////

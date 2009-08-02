@@ -240,8 +240,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (path) {
 				SignatureDB db;
 				db.Initialize(&g_symbolDB, prefix.c_str());
-				std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
-				db.Save(path.ToAscii());
+				std::string filename(path.mb_str());		// PPCAnalyst::SaveSignatureDB(
+				db.Save(path.mb_str());
 			}
 		}
 		}
@@ -254,7 +254,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				this);
 		if (path) {
 			SignatureDB db;
-			db.Load(path.ToAscii());
+			db.Load(path.mb_str());
 			db.Apply(&g_symbolDB);
 		}
 		}

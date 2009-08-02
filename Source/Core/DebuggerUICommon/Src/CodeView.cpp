@@ -365,7 +365,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_ADDFUNCTION, _T("&Add function"));
 	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
 	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
-	menu.Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));	
+	menu.Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));
 	menu.Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
 	PopupMenu(&menu);
 	event.Skip(true);

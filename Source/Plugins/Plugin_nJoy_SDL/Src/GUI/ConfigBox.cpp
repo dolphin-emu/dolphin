@@ -345,7 +345,7 @@ void PADConfigDialognJoy::ToBlank(bool ToBlank)
 		{
 			for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
 				#ifndef _WIN32
-					if(!strcmp(GetButtonText(i, j).ToAscii(), "-1")) SetButtonText(i, "", j);
+					if(!strcmp(GetButtonText(i, j).mb_str(), "-1")) SetButtonText(i, "", j);
 				#else
 					if(GetButtonText(i, j) == wxT("-1")) SetButtonText(i, "", j);
 				#endif

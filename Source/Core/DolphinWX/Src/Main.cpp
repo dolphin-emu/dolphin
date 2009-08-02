@@ -132,7 +132,7 @@ bool DolphinApp::OnInit()
 	if (!noCheckForInstallDir)
 	{
 		char tmp[1024];
-		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(wxConvUTF8),
+		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),
 #ifdef _M_IX86
 			"x32");
 #else
@@ -152,7 +152,7 @@ bool DolphinApp::OnInit()
 			else
 			{
 				char CWD[1024];
-				sprintf(CWD, "%s", (const char*)wxGetCwd().mb_str(wxConvUTF8));
+				sprintf(CWD, "%s", (const char*)wxGetCwd().mb_str());
 				if (PanicYesNo("Set install location to:\n %s ?", CWD))
 				{
 					FILE* workingDirF = fopen(tmp, "w");
@@ -320,7 +320,7 @@ bool DolphinApp::OnInit()
 	// First check if we have a elf command line. Todo: Should we place this under #if wxUSE_CMDLINE_PARSER?
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
-		BootManager::BootCore(std::string(ElfFile.ToAscii()));
+		BootManager::BootCore(std::string(ElfFile.mb_str()));
 	}
 	/* If we have selected Automatic Start, start the default ISO, or if no default
 	   ISO exists, start the last loaded ISO */

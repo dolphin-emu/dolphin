@@ -140,7 +140,7 @@ void DSPDebuggerHLE::ReadDir()
 				if (pieces[3] == "GC")
 				{
 					gc_files.push_back(pieces[0]);
-					m_gc->Append(wxString::FromAscii(cut.c_str()));			
+					m_gc->Append(wxString::FromAscii(cut.c_str()));
 				}
 				else
 				{
@@ -294,6 +294,4 @@ void DSPDebuggerHLE::MailSettings(wxCommandEvent& event)
 	ScanMails = m_gcwiiset->IsChecked(0);
 	StoreMails = m_gcwiiset->IsChecked(1);
 }
-
-
 

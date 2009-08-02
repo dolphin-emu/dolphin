@@ -461,7 +461,7 @@ void CFrame::DoOpen(bool Boot)
 	{
 		if (!fileChosen)
 			return;
-		BootManager::BootCore(std::string(path.ToAscii()));
+		BootManager::BootCore(std::string(path.mb_str()));
 	}
 	else
 	{
@@ -662,7 +662,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if(path)
-		State_LoadAs((const char *)path.ToAscii());
+		State_LoadAs((const char*)path.mb_str());
 }
 
 void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
@@ -680,7 +680,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if(path)
-		State_SaveAs((const char *)path.ToAscii());
+		State_SaveAs((const char*)path.mb_str());
 }
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
