@@ -4,7 +4,8 @@ Import('env')
 
 if not env['HAVE_WX']:
 	Return()
-files += [
+
+files = [
 	'CodeView.cpp',
 	'DebuggerUIUtil.cpp',
 	'MemoryView.cpp',
