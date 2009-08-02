@@ -219,7 +219,7 @@ struct KeyboardWiimote
 	// Raw X and Y coordinate and processed X and Y coordinates
 	SIR IR;
 };
-extern KeyboardWiimote g_Wiimote_kbd;
+	extern KeyboardWiimote g_Wiimote_kbd;
 struct KeyboardNunchuck
 {
 	enum EKeyboardNunchuck
@@ -274,11 +274,13 @@ struct KeyboardGH3GLP
 		Whammy,
 		Al, Ar, Au, Ad,
 		StrumUp, StrumDown,
-		SHAKE
+		SHAKE,
+		LAST_CONSTANT
 	};
 };
 extern KeyboardGH3GLP g_GH3Ext;
 
+extern bool KeyStatus[64];
 } // namespace
 
 #endif	//_EMU_DEFINITIONS_

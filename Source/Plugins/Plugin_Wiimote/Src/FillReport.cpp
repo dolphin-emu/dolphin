@@ -334,7 +334,7 @@ int IsKey(int Key)
 	}
 
 #else
-	return false;
+	return KeyStatus[Key];
 #endif
 }
 

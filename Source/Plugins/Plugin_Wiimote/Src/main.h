@@ -22,7 +22,13 @@
 #include <vector>
 
 #include "CommonTypes.h"
-
+#if defined(HAVE_X11) && HAVE_X11
+	#include <X11/Xlib.h>
+	#include <X11/Xutil.h>
+	#include <X11/keysym.h>
+	#include <X11/XKBlib.h>
+	extern Display* WMdisplay;
+#endif
 // Definitions and declarations
 void DoInitialize();
 double GetDoubleTime();

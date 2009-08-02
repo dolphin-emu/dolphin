@@ -43,7 +43,7 @@ namespace WiiMoteEmu
 // Fill joyinfo with the current connected devices
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
+	bool WasGotten = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	// Warn the user if no gamepads are detected
 	if (_NumGoodPads == 0 && g_EmulatorRunning)

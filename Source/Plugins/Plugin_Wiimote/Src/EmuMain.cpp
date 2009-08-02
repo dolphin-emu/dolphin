@@ -37,7 +37,6 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
-
 /* Bit shift conversions */
 u32 convert24bit(const u8* src) {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
@@ -698,6 +697,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
    of times per second. */
 void Update() 
 {
+	readKeyboard();
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
 	//INFO_LOG(WII_IPC_WIIMOTE, "Emu Update: %i\n", g_ReportingMode);
 
@@ -727,5 +727,115 @@ void Update()
 	CheckAckDelay();
 }
 
+void readKeyboard()
+{
+#if defined(HAVE_X11) && HAVE_X11
+	XEvent E;
+	KeySym key;
+
+	// keyboard input
+	int num_events;
+	for (num_events = XPending(WMdisplay); num_events > 0; num_events--)
+	{
+		XNextEvent(WMdisplay, &E);
+		switch (E.type)
+		{
+		case KeyPress:
+		{
+			key = XLookupKeysym((XKeyEvent*)&E, 0);
+			
+			if((key >= XK_F1 && key <= XK_F9) ||
+			   key == XK_Shift_L || key == XK_Shift_R ||
+			   key == XK_Control_L || key == XK_Control_R) {
+				XPutBackEvent(WMdisplay, &E);
+				break;
+			}
+
+			int i;
+			for (i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			{
+				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
+					KeyStatus[i] = true;
+			}
+			switch (g_Config.iExtensionConnected)
+			{
+			case EXT_NUNCHUCK:
+				for (i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
+						 KeyStatus[i] = true;
+				}
+				break;
+			case EXT_CLASSIC_CONTROLLER:
+				for (i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
+						 KeyStatus[i] = true;
+				}
+				break;
+			case EXT_GUITARHERO3_CONTROLLER:
+				for (i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
+						 KeyStatus[i] = true;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		}
+		case KeyRelease:
+		{
+			key = XLookupKeysym((XKeyEvent*)&E, 0);
+			
+			if((key >= XK_F1 && key <= XK_F9) ||
+			   key == XK_Shift_L || key == XK_Shift_R ||
+			   key == XK_Control_L || key == XK_Control_R) {
+				XPutBackEvent(WMdisplay, &E);
+				break;
+			}
+
+			 int i;
+			for (i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			{
+				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
+					KeyStatus[i] = false;
+			}
+			switch (g_Config.iExtensionConnected)
+			{
+			case EXT_NUNCHUCK:
+				for (i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
+						 KeyStatus[i] = false;
+				}
+				break;
+			case EXT_CLASSIC_CONTROLLER:
+				for (i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
+						 KeyStatus[i] = false;
+				}
+				break;
+			case EXT_GUITARHERO3_CONTROLLER:
+				for (i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
+				{
+					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
+						 KeyStatus[i] = false;
+				}
+				break;
+			default:
+				break;
+			}
+  
+			break;
+		}
+		default:
+			break;
+		}
+	}
+#endif
+}
 
 } // end of namespace

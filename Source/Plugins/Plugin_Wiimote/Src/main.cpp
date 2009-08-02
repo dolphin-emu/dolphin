@@ -57,6 +57,9 @@ and Wiimote functions worked.
 	#include "wiimote_real.h"
 #endif
 
+#if defined(HAVE_X11) && HAVE_X11
+	Display* WMdisplay;
+#endif
 SWiimoteInitialize g_WiimoteInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
@@ -219,6 +222,9 @@ void Initialize(void *init)
 		g_Config.Load();
 		if(m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 	}
+	#endif
+	#if defined(HAVE_X11) && HAVE_X11
+		WMdisplay = (Display*)_WiimoteInitialize.hWnd;
 	#endif
 
 	// Save the ISO Id, again if we had a window open

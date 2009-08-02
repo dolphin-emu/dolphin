@@ -66,7 +66,7 @@ KeyboardWiimote g_Wiimote_kbd;
 KeyboardNunchuck g_NunchuckExt;
 KeyboardClassicController g_ClassicContExt;
 KeyboardGH3GLP g_GH3Ext;
-
+bool KeyStatus[64];
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

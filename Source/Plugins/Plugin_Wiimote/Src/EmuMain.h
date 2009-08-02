@@ -41,6 +41,7 @@ void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
+void readKeyboard();
 
 // Recordings
 void LoadRecordedMovements();
