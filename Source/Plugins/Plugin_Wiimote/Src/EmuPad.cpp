@@ -63,7 +63,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}
 
-	return Success;
+	return WasGotten;
 }
 
 // Return adjusted input values
