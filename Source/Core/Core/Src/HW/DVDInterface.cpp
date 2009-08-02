@@ -275,7 +275,11 @@ void Shutdown()
 	{
 		g_dvdQuitSignal = true;
 		g_dvdAlert.Set();
+#ifdef _WIN32
 		g_dvdThread->WaitForDeath(3000);
+#else
+		g_dvdThread->WaitForDeath();
+#endif
 
 		delete g_dvdThread;
 		g_dvdThread = NULL;
