@@ -199,6 +199,10 @@ bool g_bDiscInside = false;
 
 Common::CriticalSection dvdread_section;
 
+static bool g_dvdQuitSignal = false;
+static Common::Event g_dvdAlert;
+static Common::Thread* g_dvdThread = NULL;
+
 static int changeDisc;
 void ChangeDiscCallback(u64 userdata, int cyclesLate);
 
@@ -212,6 +216,34 @@ void DoState(PointerWrap &p)
 void UpdateInterrupts();
 void GenerateDVDInterrupt(DVDInterruptType _DVDInterrupt);
 void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg);
+
+static int et_GenerateDVDInterrupt;
+
+static void GenerateDVDInterrupt_Wrapper(u64 userdata, int cyclesLate)
+{
+	GenerateDVDInterrupt((DVDInterruptType)userdata);
+}
+
+static void GenerateDVDInterruptFromDVDThread(DVDInterruptType type)
+{
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDVDInterrupt, type);
+}
+
+static THREAD_RETURN DVDThreadFunc(void* arg)
+{
+	for (;;)
+	{
+		g_dvdAlert.Wait();
+
+		if (g_dvdQuitSignal)
+			break;
+
+		if (dvdMem.DMAControlReg.TSTART)
+			ExecuteCommand(dvdMem.DMAControlReg);
+	}
+
+	return 0;
+}
 
 void Init()
 {
@@ -229,12 +261,28 @@ void Init()
 	dvdMem.AudioPos           = 0;
 	dvdMem.AudioLength        = 0;
 
+	et_GenerateDVDInterrupt = CoreTiming::RegisterEvent("DVDint", GenerateDVDInterrupt_Wrapper);
+
+	g_dvdAlert.Init();
+	g_dvdThread = new Common::Thread(DVDThreadFunc, NULL);
+
 	changeDisc = CoreTiming::RegisterEvent("ChangeDisc", ChangeDiscCallback);
 }
 
 void Shutdown()
 {
+	if (g_dvdThread)
+	{
+		g_dvdQuitSignal = true;
+		g_dvdAlert.Set();
+		g_dvdThread->WaitForDeath(3000);
 
+		delete g_dvdThread;
+		g_dvdThread = NULL;
+
+		g_dvdAlert.Shutdown();
+		g_dvdQuitSignal = false;
+	}
 }
 
 void SetDiscInside(bool _DiscInside)
@@ -423,10 +471,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case DI_DMA_CONTROL_REGISTER:	
 		{
 			dvdMem.DMAControlReg.Hex = _iValue;
-			if (dvdMem.DMAControlReg.TSTART)
-			{
-				ExecuteCommand(dvdMem.DMAControlReg);
-			}
+			g_dvdAlert.Set();
 		}
 		break;
 
@@ -562,7 +607,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 				// there is no disc to read
 				_DMAControlReg.TSTART = 0;
 				dvdMem.DMALength.Length = 0;
-				GenerateDVDInterrupt(INT_DEINT);
+				GenerateDVDInterruptFromDVDThread(INT_DEINT);
 				g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
 				return;
 			}
@@ -761,7 +806,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	// transfer is done
 	_DMAControlReg.TSTART = 0;
 	dvdMem.DMALength.Length = 0;
-	GenerateDVDInterrupt(INT_TCINT);
+	GenerateDVDInterruptFromDVDThread(INT_TCINT);
 	g_ErrorCode = 0x00;
 }
 
