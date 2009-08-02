@@ -602,29 +602,31 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	static Common::Timer Timer;
 	static u32 frames = 0;
 	static u32 videoupd = 0;
+	static u64 old_frametime=0;
 
 	if (video_update)
 		videoupd++;
 	else
+	{
 		frames++;
-	
-	// Custom frame limiter
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-	u32 targetfps = (SConfig::GetInstance().m_Framelimit)*5;
-	static u64 old_frametime=0;
-	u64 new_frametime;
-	s16 wait_frametime;
+		// Custom frame limiter
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-	if (targetfps > 0)
-	{	
-		new_frametime = Timer.GetTimeDifference() - old_frametime;
-		old_frametime = Timer.GetTimeDifference();
-		wait_frametime = (1000/targetfps) - (u16)new_frametime;
-		if (targetfps < 35)
-			wait_frametime--;
-		if (wait_frametime > 0)
-			Common::SleepCurrentThread(wait_frametime*2);
+		u32 targetfps = (SConfig::GetInstance().m_Framelimit)*5;
+		u64 new_frametime;
+		s16 wait_frametime;
+
+		if (targetfps > 0)
+		{	
+			new_frametime = Timer.GetTimeDifference() - old_frametime;
+			old_frametime = Timer.GetTimeDifference();
+			wait_frametime = (1000/targetfps) - (u16)new_frametime;
+			if (targetfps < 35)
+				wait_frametime--;
+			if (wait_frametime > 0)
+				Common::SleepCurrentThread(wait_frametime*2);
+		}
 	}
 
 	if (Timer.GetTimeDifference() >= 1000)
