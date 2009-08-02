@@ -19,6 +19,7 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DSPCodeUtil.h"
+#include "DSPTables.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
@@ -301,7 +302,7 @@ int main(int argc, const char *argv[])
 		results.append("Start:\n");
 		for (int initial_reg = 0; initial_reg < 32; initial_reg++)
 		{
-			results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
+			results.append(StringFromFormat("%s: %04x ", pdregname(initial_reg), reg_vector.at(initial_reg)));
 			if ((initial_reg + 1) % 8 == 0)
 				results.append("\n");
 		}
@@ -317,7 +318,7 @@ int main(int argc, const char *argv[])
 				u16 current_reg = reg_vector.at(step*32+reg);
 				if (last_reg != current_reg)
 				{
-					results.append(StringFromFormat("%02x %04x %04x\n", reg, last_reg, current_reg));
+					results.append(StringFromFormat("%s: %04x %04x\n", pdregname(reg), last_reg, current_reg));
 					changed = true;
 				}
 			}
