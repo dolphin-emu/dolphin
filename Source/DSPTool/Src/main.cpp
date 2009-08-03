@@ -302,7 +302,7 @@ int main(int argc, const char *argv[])
 		results.append("Start:\n");
 		for (int initial_reg = 0; initial_reg < 32; initial_reg++)
 		{
-			results.append(StringFromFormat("%s: %04x ", pdregname(initial_reg), reg_vector.at(initial_reg)));
+			results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
 			if ((initial_reg + 1) % 8 == 0)
 				results.append("\n");
 		}
@@ -314,11 +314,12 @@ int main(int argc, const char *argv[])
 			results.append(StringFromFormat("Step %3d:\n", step));
 			for (int reg = 0; reg < 32; reg++)
 			{
+				if ((reg >= 0x0c) && (reg <= 0x0f)) continue;
 				u16 last_reg = reg_vector.at((step*32-32)+reg);
 				u16 current_reg = reg_vector.at(step*32+reg);
 				if (last_reg != current_reg)
 				{
-					results.append(StringFromFormat("%s: %04x %04x\n", pdregname(reg), last_reg, current_reg));
+					results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, pdregname(reg), last_reg, current_reg));
 					changed = true;
 				}
 			}
