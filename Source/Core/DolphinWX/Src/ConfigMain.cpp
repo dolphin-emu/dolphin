@@ -174,8 +174,8 @@ void CConfigMain::CreateGUIControls()
 	// GUI
 	arrayStringFor_InterfaceLang = arrayStringFor_GCSystemLang;
 	// Framelimit
+	arrayStringFor_Framelimit.Add(wxT("auto"));
 	arrayStringFor_Framelimit.Add(wxT("off"));
-	arrayStringFor_Framelimit.Add(wxT("5"));
 	arrayStringFor_Framelimit.Add(wxT("10"));
 	arrayStringFor_Framelimit.Add(wxT("15"));
 	arrayStringFor_Framelimit.Add(wxT("20"));
@@ -213,6 +213,12 @@ void CConfigMain::CreateGUIControls()
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+	
+	// Framelimit
+	wxStaticText *FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, wxT("Framelimit :"), wxDefaultPosition, wxDefaultSize);
+	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
+	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
+
 	// Core Settings - Advanced
 	AlwaysUseHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AlwaysUseHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
@@ -256,12 +262,7 @@ void CConfigMain::CreateGUIControls()
 	// need redesign
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
 
-	// Choose Framelimit
-	wxStaticText *FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, wxT("Framelimit (experimental):"), wxDefaultPosition, wxDefaultSize);
-	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
-	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
-
-	// Themes
+	// Themes - this should really be a wxChoice...
 	wxArrayString ThemeChoices;
 	ThemeChoices.Add(wxT("Boomy"));
 	ThemeChoices.Add(wxT("Vista"));
@@ -290,6 +291,7 @@ void CConfigMain::CreateGUIControls()
 
 	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in")
 		wxT("\nthe game list of PAL GC games."));
+
 	// Copyright notice
 	Theme->SetItemToolTip(0, wxT("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
 	Theme->SetItemToolTip(1, wxT("Created by VistaIcons.com"));
@@ -302,6 +304,11 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
+	wxBoxSizer *sFramelimit = new wxBoxSizer(wxHORIZONTAL);
+	sFramelimit->Add(FramelimitText, 0, wxALL | wxALIGN_CENTER, 1);
+	sFramelimit->Add(Framelimit, 0, wxALL | wxEXPAND, 5);
+	sbBasic->Add(sFramelimit, 0, wxALL | wxEXPAND, 5);
+
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	sbAdvanced->Add(AlwaysUseHLEBIOS, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
@@ -330,10 +337,6 @@ void CConfigMain::CreateGUIControls()
 	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterfaceLanguage->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterfaceLanguage, 0, wxEXPAND | wxALL, 5);
-	wxBoxSizer *sFramelimit = new wxBoxSizer(wxHORIZONTAL);
-	sFramelimit->Add(FramelimitText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sFramelimit->Add(Framelimit, 0, wxEXPAND | wxALL, 5);
-	sbInterface->Add(sFramelimit, 0, wxEXPAND | wxALL, 5);
 
 	// Populate the entire page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);

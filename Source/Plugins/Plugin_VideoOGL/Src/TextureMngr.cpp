@@ -681,7 +681,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     }
 
 	// Make sure to resolve anything we need to read from.
-	// TODO - it seems that it sometimes doesn't resolve the entire area we are interested in. See shadows in Burnout 2.
 	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect);
 
     GL_REPORT_ERRORD();

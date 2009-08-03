@@ -602,38 +602,33 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	static Common::Timer Timer;
 	static u32 frames = 0;
 	static u32 videoupd = 0;
-	static u64 old_frametime=0;
 
 	if (video_update)
 		videoupd++;
 	else
-	{
 		frames++;
 
-		// Custom frame limiter
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// Custom frame limiter
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	u32 targetfps = SConfig::GetInstance().m_Framelimit * 5;
 
-		u32 targetfps = (SConfig::GetInstance().m_Framelimit)*5;
-		u64 new_frametime;
-		s16 wait_frametime;
+	if (targetfps > 5)
+	{
+		double wait_frametime = (1000.0 / targetfps);
 
-		if (targetfps > 0)
-		{	
-			new_frametime = Timer.GetTimeDifference() - old_frametime;
-			old_frametime = Timer.GetTimeDifference();
-			wait_frametime = (1000/targetfps) - (u16)new_frametime;
-			if (targetfps < 35)
-				wait_frametime--;
-			if (wait_frametime > 0)
-				Common::SleepCurrentThread(wait_frametime*2);
-		}
+		while (Timer.GetTimeDifference() < wait_frametime * frames)
+			Common::SleepCurrentThread(1);
+	}
+	else if (targetfps < 5)
+	{
+		double wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
+
+		while (Timer.GetTimeDifference() < wait_frametime * videoupd)
+			Common::SleepCurrentThread(1);
 	}
 
 	if (Timer.GetTimeDifference() >= 1000)
 	{
-		// reset timer for framelimiter, placed here so no additional check for 1000ms is required -> don't delete please :)
-		old_frametime = 0;
-
 		// Time passed
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
 
@@ -656,7 +651,8 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		float FPS = (float)frames / t;
 		// for some reasons "VideoInterface::ActualRefreshRate" gives some odd results :(
 		float VPS = (float)videoupd / t;
-		int TargetVPS = (int)VideoInterface::TargetRefreshRate;
+
+		int TargetVPS = (int)(VideoInterface::TargetRefreshRate + 0.5);
 
 		float Speed = (VPS / TargetVPS) * 100.0f;
 		
