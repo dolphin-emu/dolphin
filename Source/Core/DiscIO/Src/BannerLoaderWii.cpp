@@ -122,7 +122,7 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	{
 		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-		u32 Buffer[192 * 64];
+		u32* Buffer = new u32[192 * 64];
 		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
 
 		// ugly scaling :) TODO: at least a 2x2 box filter, preferably a 3x3 gaussian :)
@@ -132,7 +132,9 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 			{
 				_pBannerImage[y*96+x] = Buffer[(y*192*2) + (x*2)];
 			}
-		}	
+		}
+		delete pBanner;
+		delete[] Buffer;
 	}
 	return true;
 }

@@ -114,10 +114,10 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 						_rDestination = pAnsiStrBuffer;
 						returnCode = true;
 					}
-					delete pAnsiStrBuffer;
+					delete[] pAnsiStrBuffer;
 				}
 			}	
-			delete buffer;
+			delete[] buffer;
 		}
 	}
 #else

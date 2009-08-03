@@ -114,7 +114,7 @@ namespace DiscIO
 		fread(lpSector, 1, m_blocksize, file_);
 #endif
 		memcpy(out_ptr, lpSector, m_blocksize);
-		delete lpSector;
+		delete[] lpSector;
 	}
 
 	bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)

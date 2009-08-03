@@ -202,10 +202,8 @@ CISOProperties::~CISOProperties()
 	{
 		for (std::vector<WiiPartition>::const_iterator PartIter = WiiDisc.begin(); PartIter != WiiDisc.end(); ++PartIter)
 		{
-			delete PartIter->FileSystem;
+			delete PartIter->FileSystem; // Also deletes the corresponding PartIter->Files
 			delete PartIter->Partition;
-			for (std::vector<const DiscIO::SFileInfo *>::const_iterator FileIter = PartIter->Files.begin(); FileIter != PartIter->Files.end(); ++FileIter)
-				delete *FileIter;
 		}
 	}
 	else
@@ -1068,7 +1066,7 @@ bool CISOProperties::CopySJISToString( wxString& _rDestination, const char* _src
 				}
 #endif
 			}
-			delete pUnicodeStrBuffer;
+			delete[] pUnicodeStrBuffer;
 		}		
 	}
 #else

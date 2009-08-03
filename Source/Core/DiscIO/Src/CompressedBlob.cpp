@@ -227,7 +227,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		offsets[i] = position;
 		// u64 start = i * header.block_size;
 		// u64 size = header.block_size;
-		memset(in_buf, 0, header.block_size);
+		std::fill(in_buf, in_buf + header.block_size, 0);
 		fread(in_buf, header.block_size, 1, inf);
 		z_stream z;
 		memset(&z, 0, sizeof(z));

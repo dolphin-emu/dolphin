@@ -123,7 +123,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	m_Disc = CreateVolumeFromFilename(filename);
 	m_FileSize = m_Disc->GetSize();
 
-	u64 numClusters = m_FileSize / CLUSTER_SIZE;
+	u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
@@ -158,7 +158,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 
 	// Modify file, obeying the table of free blocks
 	NOTICE_LOG(DISCIO, "Removing garbage data...go get some coffee :)");
-	for (u64 i = 0;	i < numClusters; i++)
+	for (u32 i = 0;	i < numClusters; i++)
 	{
 		u64 CurrentOffset = i * CLUSTER_SIZE;
 
@@ -184,7 +184,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 		if (i % (numClusters / 1000) == 0)
 		{
 			char temp[512];
-			sprintf(temp, "DiscScrubber: %llu/%llu (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
+			sprintf(temp, "DiscScrubber: %lu/%lu (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
 			callback(temp, (float)i / (float)numClusters, arg);
 		}
 	}
@@ -196,8 +196,8 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 
 cleanup:
 	if (pFile) fclose(pFile);
-	delete m_Sector1;
-	delete m_FreeTable;
+	delete[] m_Sector1;
+	delete[] m_FreeTable;
 
 	return success;
 }
@@ -241,10 +241,9 @@ bool MarkAsScrubbed(const char* filename)
 	if (!f)
 		return false;
 
-	bool success;
 	u8 ScrubbedFlag[1] = {SCRUBBER_VERSION};
 	fseek(f, 0x80, SEEK_SET);
-	success |= fwrite(ScrubbedFlag, 1, 1, f) == 1;
+	bool success = fwrite(ScrubbedFlag, 1, 1, f) == 1;
 	fclose(f);
 	return success;
 }
