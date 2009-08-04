@@ -113,34 +113,25 @@ std::string CVolumeWAD::GetName() const
 		return "Unknown";
 
 	// Offset to the english title
-	char temp[85];
+	char temp[84];
 	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1)
 		return "Unknown";
 
-	char out_temp[43];
-	int j = 0;
-
-	for (int i=0; i < 84; i++)
+	// Remove the null bytes due to 16bit char length
+	std::string out_temp;
+	for (int i = 0; i < sizeof(temp); i+=2)
 	{
-		if (!(i & 1))
-		{
-			if (temp[i] != 0)
-				out_temp[j] = temp[i];
-			else
-			{
-				// Some wads have a few consecutive Null chars followed by text
-				// as i don't know what to do there: replace the frst one with space
-				if (out_temp[j-1] != 32)
-					out_temp[j] = 32;
-				else
-					continue;
-			}
-
-			j++;
+		// Replace null chars with a single space per null section
+ 		if (temp[i] == '\0' && i > 0)
+		{ 		
+			if (out_temp.at(out_temp.size()-1) != ' ')
+ 				out_temp.push_back(' ');
 		}
+		else
+			out_temp.push_back(temp[i]);
 	}
-
-	out_temp[j] = 0;
+	// Make it a null terminated string
+	out_temp.replace(out_temp.end()-1, out_temp.end(), 1, '\0');
 
 	return out_temp;
 }
