@@ -133,7 +133,6 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 				_pBannerImage[y*96+x] = Buffer[(y*192*2) + (x*2)];
 			}
 		}
-		delete pBanner;
 		delete[] Buffer;
 	}
 	return true;
