@@ -202,9 +202,10 @@ CISOProperties::~CISOProperties()
 	{
 		for (std::vector<WiiPartition>::const_iterator PartIter = WiiDisc.begin(); PartIter != WiiDisc.end(); ++PartIter)
 		{
-			delete PartIter->FileSystem; // Also deletes the corresponding PartIter->Files
+			delete PartIter->FileSystem; // Remember the FileList is a member of DiscIO::IFileSystem
 			delete PartIter->Partition;
 		}
+		WiiDisc.clear();
 	}
 	else
 		if (!IsVolumeWadFile(OpenISO))
