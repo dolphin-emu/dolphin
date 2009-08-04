@@ -461,10 +461,12 @@ void VideoFifo_CheckSwapRequest()
 {
 	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
+#ifdef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
 		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 		
 		// TODO: Find better name for this because I don't know if it means what it says.
 		g_VideoInitialize.pCopiedToXFB(true);
+#endif
 
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
@@ -478,8 +480,6 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	g_VideoInitialize.pCopiedToXFB(false);
-
 	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
 		u32 aLower = xfbAddr;

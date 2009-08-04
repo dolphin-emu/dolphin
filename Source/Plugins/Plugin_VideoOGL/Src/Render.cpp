@@ -791,11 +791,24 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
+	g_VideoInitialize.pCopiedToXFB(false);
+
+#ifdef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 
 	s_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+#else
+	s_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+
+	// XXX: Without the VI, how would we know what kind of field this is? So
+	// just use progressive.
+	Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+
+	// TODO: Find better name for this because I don't know if it means what it says.
+	g_VideoInitialize.pCopiedToXFB(true);
+#endif
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
