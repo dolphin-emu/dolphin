@@ -1,0 +1,29 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba;
+  float grey = ((0.2 * c0.r) + (0.7 * c0.g) + (0.1 * c0.b))*0.7;
+  if (grey > 0.7){
+    ;
+  }
+  else if (grey > 0.55){
+    grey = grey*1.5;
+  }
+  else if (grey > 0.4){
+    grey = grey*2;
+  }
+  else if (grey > 0.3){
+    grey = grey*2.5;
+  }
+  else if (grey > 0.2){
+    grey = grey*3;
+  }
+  else if (grey > 0.1){
+    grey = grey*3.5;
+  }
+  else{
+    grey = grey*4;
+  }
+  ocol0 = float4(0, grey, 0, 1.0);
+}
