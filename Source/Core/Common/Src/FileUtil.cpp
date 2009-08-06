@@ -579,15 +579,14 @@ std::string GetSysDirectory()
 	sysDir = GetBundleDirectory();
 	sysDir += DIR_SEP;
 	sysDir += SYSDATA_DIR;
-	sysDir += DIR_SEP;
 #elif defined __linux__
 	sysDir = SYSDATA_DIR;
-	sysDir += DIR_SEP;
 	// FIXME global install
 #else
-	sysDir = FULL_SYSDATA_DIR;	
+	sysDir = SYSDATA_DIR;	
 #endif
 
+	sysDir += DIR_SEP;
 	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
 	return sysDir;
 }
