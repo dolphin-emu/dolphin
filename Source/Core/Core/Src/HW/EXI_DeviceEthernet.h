@@ -17,6 +17,7 @@
 
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
+
 #include "Thread.h"
 
 inline u8 makemaskb(int start, int end) {
@@ -41,7 +42,8 @@ inline u32 getbitsw(u32 dword, int start, int end) {
 // Container Class Stolen from Whinecube
 template<class T> class SubContainer;
 
-template<class T> class Container {
+template<class T> class Container
+{
 public:
 	Container(size_t _size) {
 		b = 0;
@@ -53,10 +55,10 @@ public:
 		memcpy(a, data, _size);
 	}
 	~Container() {
-		if(a) /*if(_msize(a))*/ free(a);
+		if (a) /*if(_msize(a))*/ free(a);
 	}
 	void resize(size_t _size) {
-		if(b == _size)
+		if (b == _size)
 			return;
 		free(a);
 		allocate(_size);
@@ -103,17 +105,20 @@ public:
 		a = other.a; b = other.b;
 		other.a = ta; other.b = tb;
 	}
+
 protected:
 	void *a;
 	size_t b;
+
 private:
 	Container(const Container&);
 	Container &operator=(const Container&);
 	Container(void* ptr, size_t _size) : a(ptr), b(_size) {}
 	friend class SubContainer;
 
-	void allocate(size_t _size) {
-		if(_size > (100*1024*1024)) // 100 MB cap
+	void allocate(size_t _size)
+	{
+		if (_size > (100*1024*1024)) // 100 MB cap
 			exit(0);
 
 		//DEGUB("Resize: %i -> %i = %i\n", b, size, g_con_total);
@@ -122,9 +127,10 @@ private:
 		//}
 
 		b = _size;
-		if(_size == 0)
+		if (_size == 0)
 			a = NULL;
-		else {
+		else
+		{
 			a = malloc(_size);
 			//if(!_CrtIsValidHeapPointer(a))
 				//throw generic_fatal_exception("malloc failed in Container");
@@ -133,14 +139,21 @@ private:
 };
 
 void DEBUGPRINT (const char * format, ...);
-class WriteBuffer {
+
+class WriteBuffer
+{
 public:
-	WriteBuffer(u32 s) :_size(0) { _buffer = (u8*)malloc(s*sizeof(u8)); ucapacity = s;}
+	WriteBuffer(u32 s) :_size(0)
+	{
+		_buffer = (u8*)malloc(s*sizeof(u8));
+		ucapacity = s;
+	}
 	~WriteBuffer() { free(_buffer);}
 	u32 size() const { return _size; }
 	u32 capacity() const { return ucapacity; }
-	void write(u32 s, const void *src) {
-		if(_size + s >= ucapacity)
+	void write(u32 s, const void *src)
+	{
+		if (_size + s >= ucapacity)
 		{
 			printf("Write too large!");
 			exit(0);
@@ -149,10 +162,9 @@ public:
 		memcpy(_buffer + _size, src, s);
 		_size = _size + s;
 	}
-	void clear() {
-		_size = 0;
-	}
+	void clear() { _size = 0; }
 	u8* const p() { return _buffer; }
+
 private:
 	u8* _buffer;
 	u32 ucapacity;
@@ -162,21 +174,22 @@ private:
 //Doesn't contain error checks for wraparound writes
 class CyclicBufferWriter 
 {
-	public:
-		CyclicBufferWriter(u8 *buffer, size_t cap) 
-		{
-			_buffer = buffer; _cap = cap; _write = 0;
-		}
+public:
+	CyclicBufferWriter(u8 *buffer, size_t cap) 
+	{
+		_buffer = buffer; _cap = cap; _write = 0;
+	}
 
-		size_t p_write() const { return _write; }
-		void reset() { _write = 0; }
+	size_t p_write() const { return _write; }
+	void reset() { _write = 0; }
 
-		void write(void *src, size_t size);
-		void align();	//aligns the write pointer to steps of 0x100, like the real BBA
-	private:
-		size_t _write;
-		size_t _cap;	//capacity
-		u8 *_buffer;
+	void write(void *src, size_t size);
+	void align();	//aligns the write pointer to steps of 0x100, like the real BBA
+
+private:
+	size_t _write;
+	size_t _cap;	//capacity
+	u8 *_buffer;
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -197,29 +210,30 @@ public:
 	// STATE_TO_SAVE
 	u32 m_uPosition;
 	u32 m_uCommand;
-	
+
 	bool m_bInterruptSet;
 	u32 mWriteP, mReadP;
 	#define INVALID_P 0xFFFF
-	
+
 	bool mExpectSpecialImmRead;	//reset to false on deselect
 	u32 mSpecialImmData;
 	bool Activated;
-	
+
 	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
 	bool mRBEmpty;
-	
+
 	#define BBAMEM_SIZE 0x1000
 	u8 mBbaMem[BBAMEM_SIZE];
-	
+
 	WriteBuffer mWriteBuffer;
 	CyclicBufferWriter mCbw;
-	
+
 	bool mExpectVariableLengthImmWrite;
 	bool mReadyToSend;
 	unsigned int ID;
 	u8 RegisterBlock[0x1000];
-	enum {
+	enum
+	{
 		CMD_ID = 0x00,
 		CMD_READ_REG = 0x01,
 	};
@@ -228,7 +242,7 @@ public:
 	bool sendPacket(u8 *etherpckt, int size);
 	bool checkRecvBuffer();
 	bool handleRecvdPacket();
-	
+
 	//TAP interface
 	bool activate();
 	bool CheckRecieved();
@@ -238,7 +252,7 @@ public:
 	bool startRecv();
 	bool cbwriteDescriptor(u32 size);
 
-	
+
 	volatile bool mWaiting;
 	Container<u8> mRecvBuffer;
 #ifdef _WIN32
@@ -250,73 +264,81 @@ public:
 #else
 	u32 mRecvBufferLength;
 #endif
+};
 
-};
-enum {
+enum
+{
 	EXPECT_NONE = 0,
-	EXPECT_ID,
+	EXPECT_ID
 };
-enum{
-	CB_OFFSET = 0x100,
-	CB_SIZE = (BBAMEM_SIZE - CB_OFFSET),
+
+// TODO: convert into unions
+enum
+{
+	CB_OFFSET	= 0x100,
+	CB_SIZE		= (BBAMEM_SIZE - CB_OFFSET),
 	SIZEOF_RECV_DESCRIPTOR = 4,
 
-	EXI_DEVTYPE_ETHER =		0x04020200,
-	BBA_NCRA		  =		0x00,		/* Network Control Register A, RW */
-	BBA_NCRA_RESET	  =		(1<<0),	/* RESET */
-	BBA_NCRA_ST0	  =		(1<<1),	/* ST0, Start transmit command/status */
-	BBA_NCRA_ST1	  =		(1<<2),	/* ST1,  " */
-	BBA_NCRA_SR		  =		(1<<3),	/* SR, Start Receive */
+	EXI_DEVTYPE_ETHER	= 0x04020200,
+
+	BBA_NCRA			= 0x00, // Network Control Register A, RW
+	BBA_NCRA_RESET		= 0x01, // RESET
+	BBA_NCRA_ST0		= 0x02, // ST0, Start transmit command/status
+	BBA_NCRA_ST1		= 0x04, // ST1,  "
+	BBA_NCRA_SR			= 0x08, // SR, Start Receive
 	
-	BBA_NCRB		  =		0x01,		/* Network Control Register B, RW */
-	BBA_NCRB_PR		  =		(1<<0),	/* PR, Promiscuous Mode */
-	BBA_NCRB_CA		  =		(1<<1),	/* CA, Capture Effect Mode */
-	BBA_NCRB_PM		  =		(1<<2),	/* PM, Pass Multicast */
-	BBA_NCRB_PB		  =		(1<<3),	/* PB, Pass Bad Frame */
-	BBA_NCRB_AB		  =		(1<<4),	/* AB, Accept Broadcast */
-	BBA_NCRB_HBD	  =		(1<<5),	/* HBD, reserved */
-	BBA_NCRB_RXINTC0  =		(1<<6),	/* RXINTC, Receive Interrupt Counter */
-	BBA_NCRB_RXINTC1  =		(1<<7),	/*  " */
-	BBA_NCRB_1_PACKET_PER_INT  = (0<<6),	/* 0 0 */
-	BBA_NCRB_2_PACKETS_PER_INT = (1<<6),	/* 0 1 */
-	BBA_NCRB_4_PACKETS_PER_INT = (2<<6),	/* 1 0 */
-	BBA_NCRB_8_PACKETS_PER_INT = (3<<6),	/* 1 1 */
+	BBA_NCRB					= 0x01, // Network Control Register B, RW
+	BBA_NCRB_PR					= 0x01, // PR, Promiscuous Mode
+	BBA_NCRB_CA					= 0x02, // CA, Capture Effect Mode
+	BBA_NCRB_PM					= 0x04, // PM, Pass Multicast
+	BBA_NCRB_PB					= 0x08, // PB, Pass Bad Frame
+	BBA_NCRB_AB					= 0x10, // AB, Accept Broadcast
+	BBA_NCRB_HBD				= 0x20, // HBD, reserved
+	BBA_NCRB_RXINTC0			= 0x40, // RXINTC, Receive Interrupt Counter
+	BBA_NCRB_RXINTC1			= 0x80, //  "
+	BBA_NCRB_1_PACKET_PER_INT	= 0x00, // 0 0
+	BBA_NCRB_2_PACKETS_PER_INT	= 0x40, // 0 1
+	BBA_NCRB_4_PACKETS_PER_INT	= 0x80, // 1 0
+	BBA_NCRB_8_PACKETS_PER_INT	= 0xC0, // 1 1
 	
-	BBA_IMR 				   = 0x08, /* Interrupt Mask Register, RW, 00h */
+	BBA_IMR			= 0x08, // Interrupt Mask Register, RW, 00h
 
-	BBA_IR					    = 	0x09,		/* Interrupt Register, RW, 00h */
-	BBA_IR_FRAGI       			=	(1<<0),	/* FRAGI, Fragment Counter Interrupt */
-	BBA_IR_RI          			=	(1<<1),	/* RI, Receive Interrupt */
-	BBA_IR_TI          			=	(1<<2),	/* TI, Transmit Interrupt */
-	BBA_IR_REI         			=	(1<<3),	/* REI, Receive Error Interrupt */
-	BBA_IR_TEI         			=	(1<<4),	/* TEI, Transmit Error Interrupt */
-	BBA_IR_FIFOEI      			=	(1<<5),	/* FIFOEI, FIFO Error Interrupt */
-	BBA_IR_BUSEI       			=	(1<<6),	/* BUSEI, BUS Error Interrupt */
-	BBA_IR_RBFI        			=	(1<<7),	/* RBFI, RX Buffer Full Interrupt */
+	BBA_IR			= 0x09, // Interrupt Register, RW, 00h
+	BBA_IR_FRAGI	= 0x01, // FRAGI, Fragment Counter Interrupt
+	BBA_IR_RI		= 0x02, // RI, Receive Interrupt
+	BBA_IR_TI		= 0x04, // TI, Transmit Interrupt
+	BBA_IR_REI		= 0x08, // REI, Receive Error Interrupt
+	BBA_IR_TEI		= 0x10, // TEI, Transmit Error Interrupt
+	BBA_IR_FIFOEI	= 0x20, // FIFOEI, FIFO Error Interrupt
+	BBA_IR_BUSEI	= 0x40, // BUSEI, BUS Error Interrupt
+	BBA_IR_RBFI		= 0x80, // RBFI, RX Buffer Full Interrupt
 
-	BBA_NWAYC		 = 0x30,		/* NWAY Configuration Register, RW, 84h */
-	BBA_NWAYC_FD	 = (1<<0),	/* FD, Full Duplex Mode */
-	BBA_NWAYC_PS100  = (1<<1),	/* PS100/10, Port Select 100/10 */
-	BBA_NWAYC_ANE    = (1<<2),	/* ANE, Autonegotiation Enable */
-	BBA_NWAYC_ANS_RA = (1<<3),	/* ANS, Restart Autonegotiation */
-	BBA_NWAYC_LTE    = (1<<7),	/* LTE, Link Test Enable */
+	BBA_NWAYC			= 0x30, // NWAY Configuration Register, RW, 84h
+	BBA_NWAYC_FD		= 0x01, // FD, Full Duplex Mode
+	BBA_NWAYC_PS100		= 0x02, // PS100/10, Port Select 100/10
+	BBA_NWAYC_ANE		= 0x04, // ANE, Autonegotiation Enable
+	BBA_NWAYC_ANS_RA	= 0x08, // ANS, Restart Autonegotiation
+	BBA_NWAYC_LTE		= 0x80, // LTE, Link Test Enable
 
-	BBA_NWAYS        =	 0x31,
-	BBA_NWAYS_LS10   =	 (1<<0),
-	BBA_NWAYS_LS100  =	 (1<<1),
-	BBA_NWAYS_LPNWAY =   (1<<2),
-	BBA_NWAYS_ANCLPT =	 (1<<3),
-	BBA_NWAYS_100TXF =	 (1<<4),
-	BBA_NWAYS_100TXH =	 (1<<5),
-	BBA_NWAYS_10TXF  =	 (1<<6),
-	BBA_NWAYS_10TXH  =	 (1<<7),
-    BBA_INTERRUPT_RECV = 0x02,
-	BBA_INTERRUPT_SENT = 0x04,
-	BBA_INTERRUPT_RECV_ERROR = 0x08,
-	BBA_INTERRUPT_SEND_ERROR = 0x10,
-	BBA_RWP					 = 0x16,	/* Receive Buffer Write Page Pointer Register */
-	BBA_RRP					 = 0x18, 	/* Receive Buffer Read Page Pointer Register */
-	BBA_SI_ACTRL2			 = 0x60,
+	BBA_NWAYS			= 0x31,
+	BBA_NWAYS_LS10		= 0x01,
+	BBA_NWAYS_LS100		= 0x02,
+	BBA_NWAYS_LPNWAY	= 0x04,
+	BBA_NWAYS_ANCLPT	= 0x08,
+	BBA_NWAYS_100TXF	= 0x10,
+	BBA_NWAYS_100TXH	= 0x20,
+	BBA_NWAYS_10TXF		= 0x40,
+	BBA_NWAYS_10TXH		= 0x80,
+
+    BBA_INTERRUPT_RECV			= 0x02,
+	BBA_INTERRUPT_SENT			= 0x04,
+	BBA_INTERRUPT_RECV_ERROR	= 0x08,
+	BBA_INTERRUPT_SEND_ERROR	= 0x10,
+
+	BBA_RWP					 = 0x16, // Receive Buffer Write Page Pointer Register
+	BBA_RRP					 = 0x18, // Receive Buffer Read Page Pointer Register
+
+	BBA_SI_ACTRL2			 = 0x60
 };
 
 #endif
