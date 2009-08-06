@@ -206,7 +206,10 @@ bool SDCardCreate(u32 disk_size /*in MB*/, char* filename)
 
 	f = fopen(filename, "wb");
 	if (!f)
+	{
 		ERROR_LOG(COMMON, "could not create file '%s', aborting...\n", filename);
+		return false;
+	}
 
 	/* here's the layout:
 	*
@@ -246,7 +249,8 @@ bool SDCardCreate(u32 disk_size /*in MB*/, char* filename)
 
 FailWrite:
 	ERROR_LOG(COMMON, "could not write to '%s', aborting...\n", filename);
-	unlink(filename);
+	if (unlink(filename) < 0)
+		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename, GetLastErrorMsg());
 	fclose(f);
 	return false;
 }

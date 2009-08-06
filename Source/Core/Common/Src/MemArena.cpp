@@ -40,7 +40,7 @@ static const char* ram_temp_file = "/tmp/gc_mem.tmp";
 void MemArena::GrabLowMemSpace(size_t size)
 {
 #ifdef _WIN32
-	hMemoryMapping = CreateFileMapping(NULL, NULL, PAGE_READWRITE, 0, (DWORD)(size), _T("All GC Memory"));
+	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD)(size), _T("All GC Memory"));
 #else
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);

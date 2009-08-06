@@ -19,10 +19,6 @@
 #include <string>
 #include "svnrev.h"
 
-#ifdef WIN32
-#include <crtdbg.h>
-#endif
-
 #ifdef __APPLE__
 #include <sys/param.h>
 #endif

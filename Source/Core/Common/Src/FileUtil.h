@@ -26,7 +26,7 @@
 
 namespace File
 {
-	
+
 // FileSystem tree node/ 
 struct FSTEntry
 {
@@ -36,10 +36,10 @@ struct FSTEntry
 	std::string virtualName;		// name in FST names table
 	std::vector<FSTEntry> children;
 };
-	
+
 // Returns true if file filename exists
 bool Exists(const char *filename);
- 
+
 // Returns true if filename is a directory
 bool IsDirectory(const char *filename);
 
@@ -64,31 +64,31 @@ bool Rename(const char *srcFilename, const char *destFilename);
 
 // copies file srcFilename to destFilename, returns true on success 
 bool Copy(const char *srcFilename, const char *destFilename);
- 
+
 // creates an empty file filename, returns true on success 
 bool CreateEmptyFile(const char *filename);
 
 // Scans the directory tree gets, starting from _Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
 u32 ScanDirectoryTree(const char *directory, FSTEntry& parentEntry);
- 
+
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const char *directory);
- 
-// Returns the current directory, caller should free
-const char *GetCurrentDir();
- 
+
+// Returns the current directory
+std::string GetCurrentDir();
+
 // Set the current directory to given directory
 bool SetCurrentDir(const char *directory);
- 
+
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
 const char *GetUserDirectory();
- 
+
 // Returns the path to where the plugins are
 std::string GetPluginsDirectory();
- 
+
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 

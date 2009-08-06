@@ -92,7 +92,7 @@
 		#ifndef _SECURE_SCL
 			#error Please define _SECURE_SCL=0 in the project settings
 		#else
-			CompileTimeAssert<_SECURE_SCL==0> x;
+			CompileTimeAssert<_SECURE_SCL==0> EnsureNoSecureSCL;
 		#endif
 	}
 

@@ -17,7 +17,7 @@
 
 #include "Setup.h"
 #include "Thread.h"
-#include "Log.h"
+#include "Common.h"
 
 #ifdef USE_BEGINTHREADEX
 #include <process.h>
@@ -37,7 +37,8 @@ CriticalSection::CriticalSection(int spincount)
 {
 	if (spincount)
 	{
-		InitializeCriticalSectionAndSpinCount(&section, spincount);
+		if (!InitializeCriticalSectionAndSpinCount(&section, spincount))
+			ERROR_LOG(COMMON, "CriticalSection could not be initialized!\n%s", GetLastErrorMsg());
 	}
 	else
 	{
@@ -195,6 +196,8 @@ typedef struct tagTHREADNAME_INFO
 // Uses undocumented (actually, it is now documented) trick.
 // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
 
+// This is implemented much nicer in upcoming msvc++, see:
+// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
 void SetCurrentThreadName(const TCHAR* szThreadName)
 {
 	THREADNAME_INFO info;

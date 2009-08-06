@@ -35,7 +35,7 @@
 #define MAP_VARIABLE 0
 #endif
 
-// This is purposedely not a full wrapper for virtualalloc/mmap, but it
+// This is purposely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
 void* AllocateExecutableMemory(size_t size, bool low)
@@ -49,7 +49,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 		// If this happens, we have to implement a free ram search scheme. ector knows how.
 	}
 
-	return(ptr);
+	return ptr;
 
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -65,11 +65,10 @@ void* AllocateExecutableMemory(size_t size, bool low)
 		PanicAlert("Failed to allocate executable memory, errno=%i", errno);
 	}
 
-	return(retval);
+	return retval;
 #endif
 
 }
-
 
 void* AllocateMemoryPages(size_t size)
 {
@@ -81,7 +80,7 @@ void* AllocateMemoryPages(size_t size)
 		PanicAlert("Failed to allocate raw memory");
 	}
 
-	return(ptr);
+	return ptr;
 
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE,
@@ -93,43 +92,43 @@ void* AllocateMemoryPages(size_t size)
 		PanicAlert("Failed to allocate raw memory, errno=%i", errno);
 	}
 
-	return(retval);
+	return retval;
 #endif
 
 }
-
 
 void FreeMemoryPages(void* ptr, size_t size)
 {
 #ifdef _WIN32
 	if (ptr)
 	{
-		VirtualFree(ptr, 0, MEM_RELEASE);
-		ptr = NULL;
+		if (!VirtualFree(ptr, 0, MEM_RELEASE))
+			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg());
+		ptr = NULL; // Is this our responsibility?
 	}
 #else
 	munmap(ptr, size);
 #endif
 }
 
-
 void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 #ifdef _WIN32
-	VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, 0);
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
+		PanicAlert("WriteProtectMemory failed!\n%s", GetLastErrorMsg());
 #else
 	mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ);
 #endif
 }
 
-
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 #ifdef _WIN32
-	VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READONLY, 0);
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
+		PanicAlert("UnWriteProtectMemory failed!\n%s", GetLastErrorMsg());
 #else
 	mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ);
 #endif
 }
-
-

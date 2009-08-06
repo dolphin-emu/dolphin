@@ -93,7 +93,8 @@ void CPUInfo::Detect()
 #ifdef _WIN32
 #ifdef _M_IX86
 	BOOL f64 = false;
-	OS64bit = IsWow64Process(GetCurrentProcess(), &f64);
+	IsWow64Process(GetCurrentProcess(), &f64);
+	OS64bit = (f64 == TRUE) ? true : false;
 #endif
 #endif
 	

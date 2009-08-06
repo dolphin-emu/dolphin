@@ -487,18 +487,20 @@ bool DeleteDirRecursively(const char *directory)
 	return true;
 }
 
-// Returns the current directory, caller should free
-const char *GetCurrentDir()
+// Returns the current directory
+std::string GetCurrentDir()
 {
-	const char *dir;
+	char *dir;
 	// Get the current working directory (getcwd uses malloc) 
 	if (!(dir = __getcwd(NULL, 0))) {
 
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
 				  GetLastErrorMsg());
-		return NULL;	
+		return NULL;
 	}
-	return dir;
+	std::string strDir = dir;
+	free(dir);
+	return strDir;
 }
 
 // Sets the current directory to the given directory
@@ -577,14 +579,15 @@ std::string GetSysDirectory()
 	sysDir = GetBundleDirectory();
 	sysDir += DIR_SEP;
 	sysDir += SYSDATA_DIR;
+	sysDir += DIR_SEP;
 #elif defined __linux__
 	sysDir = SYSDATA_DIR;
+	sysDir += DIR_SEP;
 	// FIXME global install
 #else
-	sysDir = SYSDATA_DIR;	
+	sysDir = FULL_SYSDATA_DIR;	
 #endif
 
-	sysDir += DIR_SEP;
 	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
 	return sysDir;
 }
