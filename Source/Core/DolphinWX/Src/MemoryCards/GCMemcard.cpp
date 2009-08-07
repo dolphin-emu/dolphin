@@ -71,7 +71,7 @@ GCMemcard::GCMemcard(const char *filename)
 	fail = false;
 	if (!mcd)
 	{
-		if (!PanicYesNo("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
+		if (!AskYesNo("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
 		{
 			fail = true;
 			return;
@@ -83,7 +83,7 @@ GCMemcard::GCMemcard(const char *filename)
 			return;
 		}
 		mcdFile = mcd;
-		Format();
+		Format(!AskYesNo("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)", filename));
 		fclose(mcd);
 		mcd = fopen(filename, "r+b");
 	}
@@ -230,6 +230,11 @@ GCMemcard::~GCMemcard()
 bool GCMemcard::IsOpen()
 {
 	return (mcdFile!=NULL);
+}
+
+bool GCMemcard::IsAsciiEncoding()
+{
+	return hdr.Encoding[1] == 0;
 }
 
 bool GCMemcard::Save()
@@ -769,17 +774,17 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 	}
 }
 
-u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
+u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 {
-	if (fileName2.empty() && !mcdFile) return OPENFAIL;
+	if (outputFile.empty() && !mcdFile) return OPENFAIL;
 
-	FILE *gci = fopen(fileName, "rb");
+	FILE *gci = fopen(inputFile, "rb");
 	if (!gci) return OPENFAIL;
 
 	int offset;
 	char * tmp = new char[0xD];
 	std::string fileType;
-	SplitPath(fileName, NULL, NULL, &fileType);
+	SplitPath(inputFile, NULL, NULL, &fileType);
 
 	if( !strcasecmp(fileType.c_str(), ".gci"))
 		offset = GCI;
@@ -837,9 +842,9 @@ u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	fread(tempSaveData, 1, size, gci);
 	fclose(gci);
 	u32 ret;
-	if(!fileName2.empty())
+	if(!outputFile.empty())
 	{
-		FILE * gci2 = fopen(fileName2.c_str(), "wb");
+		FILE * gci2 = fopen(outputFile.c_str(), "wb");
 		bool completeWrite = true;
 		if (!gci2) return OPENFAIL;
 		fseek(gci2, 0, SEEK_SET);
@@ -1132,7 +1137,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
-bool GCMemcard::Format(bool New, int slot, u16 SizeMb, bool sjis, bool hdrOnly)
+bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 {
 	//Currently only formats cards for slot A
 	u32 data_size = BLOCK_SIZE * (SizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);

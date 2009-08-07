@@ -174,8 +174,9 @@ public:
 	~GCMemcard();
 
 	bool IsOpen();
+	bool IsAsciiEncoding();
 	bool Save();
-	bool Format(bool New = true, int slot = 0, u16 SizeMb = MemCard2043Mb, bool sjis = false, bool hdrOnly = false);
+	bool Format(bool sjis = false, bool New = true, int slot = 0, u16 SizeMb = MemCard2043Mb, bool hdrOnly = false);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();
@@ -238,7 +239,7 @@ public:
 	u32 CopyFrom(GCMemcard& source, u8 index);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	u32 ImportGci(const char* fileName, std::string fileName2);
+	u32 ImportGci(const char* inputFile, std::string outputFile);
 
 	// writes a .gci file to disk containing index
 	u32 ExportGci(u8 index, const char* fileName, std::string* fileName2);

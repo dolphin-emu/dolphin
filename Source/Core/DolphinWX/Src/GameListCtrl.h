@@ -98,9 +98,6 @@ private:
 	static size_t m_numberItem;
 	static void CompressCB(const char* text, float percent, void* arg);
 	static void MultiCompressCB(const char* text, float percent, void* arg);
-
-	// hyperiris: put it here will be nice, if we moce to wx unicode, it simple to fix
-	bool CopySJISToString(wxString& _rDestination, const char* _src);
 };
 
 

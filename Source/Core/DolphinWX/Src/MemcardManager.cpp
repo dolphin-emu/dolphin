@@ -18,6 +18,7 @@
 #include "MemcardManager.h"
 #include "Common.h"
 #include "wx/mstream.h"
+#include "WxUtils.h"
 
 #define DEFAULTS wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator
 #define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
@@ -116,7 +117,7 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	}
 	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
-#ifdef DEBUG_MCM
+#ifdef MCM_DEBUG_FRAME
 	MemcardManagerDebug = NULL;
 #endif
 	CreateGUIControls();
@@ -134,7 +135,7 @@ CMemcardManager::~CMemcardManager()
 		delete memoryCard[SLOT_B];
 		memoryCard[SLOT_B] = NULL;
 	}
-#ifdef DEBUG_MCM
+#ifdef MCM_DEBUG_FRAME
 	if (MemcardManagerDebug)
 	{
 		MemcardManagerDebug->Destroy();
@@ -553,7 +554,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot = SLOT_A;
 	case ID_SAVEIMPORT_B:
 	{
-		wxString temp = wxFileSelector(wxT("Select a save file to import"),
+		wxString fileName = wxFileSelector(wxT("Select a save file to import"),
 									   (strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ?  wxString::FromAscii(""): wxString::FromAscii(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
 			(
 				wxT("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|")
@@ -564,8 +565,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxFileSelectorDefaultWildcardStr
 			),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		const char * fileName = temp.mb_str();
-		if (!temp.empty() && !fileName2.empty())
+		if (!fileName.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(wxT("Save GCI as.."),
 				wxEmptyString, wxEmptyString, wxT(".gci"), wxString::Format
@@ -578,9 +578,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			if (temp2.empty()) break;
 			fileName2 = temp2.mb_str();
 		}
-		if (temp.length() > 0)
+		if (fileName.length() > 0)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ImportGci(fileName, fileName2), slot);
+			CopyDeleteSwitch(memoryCard[slot]->ImportGci(fileName.mb_str(), fileName2), slot);
 		}
 	}
 	break;
@@ -647,20 +647,24 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 }
 
 bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
-{	
-	wxString wxBlock;
-	wxString wxFirstBlock;
-	wxString wxLabel;
-	wxString tString;
-
-	int j;
-
+{
 	if (memoryCard[card]) delete memoryCard[card];
 
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
 	if (memoryCard[card]->fail) return false;
+
+	int j;
+	bool ascii = memoryCard[card]->IsAsciiEncoding();
+
+	wxString wxTitle,
+			 wxComment,
+			 wxBlock,
+			 wxFirstBlock,
+			 wxLabel,
+			 tString;
+
 
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();
@@ -751,10 +755,23 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		int index = m_MemcardList[card]->InsertItem(j, wxEmptyString);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
+
 		if (!memoryCard[card]->DEntry_Comment1(j, title)) title[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
 		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
+
+		if (ascii)
+		{
+			wxTitle = wxString::FromAscii(title);
+			wxComment = wxString::FromAscii(comment);
+		}
+		else
+		{
+			WxUtils::CopySJISToString(wxTitle, title);
+			WxUtils::CopySJISToString(wxComment, comment);	
+		}
+		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
+		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
+
 		blocks = memoryCard[card]->DEntry_BlockCount(j);
 		if (blocks == 0xFFFF) blocks = 0;
 		wxBlock.Printf(wxT("%10d"), blocks);
@@ -847,7 +864,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	t_Status[card]->SetLabel(wxLabel);
 
 
-#ifdef DEBUG_MCM
+#ifdef MCM_DEBUG_FRAME
 	if(MemcardManagerDebug == NULL)
 	{
 		MemcardManagerDebug = new CMemcardManagerDebug((wxFrame *)NULL, wxDefaultPosition, wxSize(950, 400));

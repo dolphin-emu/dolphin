@@ -42,6 +42,7 @@
 #undef	CONFIG_FILE
 #define CONFIG_FILE "./MemcardManager.ini"
 #define DEBUG_MCM
+#define MCM_DEBUG_FRAME
 #include "MCMdebug.h"
 #endif
 
@@ -64,7 +65,7 @@ class CMemcardManager
 		std::string DefaultMemcard[2],
 					DefaultIOPath;
 		IniFile MemcardManagerIni;
-#ifdef DEBUG_MCM
+#ifdef MCM_DEBUG_FRAME
 		CMemcardManagerDebug * MemcardManagerDebug;
 #endif
 

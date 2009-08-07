@@ -189,7 +189,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// hyperiris: temp fix, need real work
 	wxString name;
-	CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
+	WxUtils::CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
 
 	SetTitle(wxString::Format(wxT("%s%s"),
 		wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()),
@@ -1014,65 +1014,13 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	wxString name;
-	CopySJISToString(name, OpenGameListItem->GetName(lang).c_str());
-	wxString description;
-	CopySJISToString(description, OpenGameListItem->GetDescription(lang).c_str());
+	wxString name,
+			 description;
+
+	WxUtils::CopySJISToString(name, OpenGameListItem->GetName(lang).c_str());
+	WxUtils::CopySJISToString(description, OpenGameListItem->GetDescription(lang).c_str());
 
 	m_ShortName->SetValue(name);
 	m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
 	m_Comment->SetValue(description);
-}
-
-bool CISOProperties::CopySJISToString( wxString& _rDestination, const char* _src )
-{
-	bool returnCode = false;
-#ifdef WIN32
-	// HyperIris: because dolphin using "Use Multi-Byte Character Set",
-	// we must convert the SJIS chars to unicode then to our windows local by hand
-	u32 unicodeNameSize = MultiByteToWideChar(932, MB_PRECOMPOSED, 
-		_src, (int)strlen(_src),	NULL, NULL);
-	if (unicodeNameSize > 0)
-	{
-		u16* pUnicodeStrBuffer = new u16[unicodeNameSize + 1];
-		if (pUnicodeStrBuffer)
-		{
-			memset(pUnicodeStrBuffer, 0, (unicodeNameSize + 1) * sizeof(u16));
-			if (MultiByteToWideChar(932, MB_PRECOMPOSED, 
-				_src, (int)strlen(_src),
-				(LPWSTR)pUnicodeStrBuffer, unicodeNameSize))
-			{
-#ifdef _UNICODE
-				_rDestination = (LPWSTR)pUnicodeStrBuffer;
-				returnCode = true;
-#else
-				u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
-					(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
-					NULL, NULL, NULL, NULL);
-				if (ansiNameSize > 0)
-				{
-					char* pAnsiStrBuffer = new char[ansiNameSize + 1];
-					if (pAnsiStrBuffer)
-					{
-						memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
-						if (WideCharToMultiByte(CP_ACP, 0, 
-							(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
-							pAnsiStrBuffer, ansiNameSize, NULL, NULL))
-						{
-							_rDestination = pAnsiStrBuffer;
-							returnCode = true;
-						}
-						delete pAnsiStrBuffer;
-					}
-				}
-#endif
-			}
-			delete[] pUnicodeStrBuffer;
-		}		
-	}
-#else
-	_rDestination = wxString(wxString(_src,wxConvLibc),wxConvUTF8);
-	returnCode = true;
-#endif
-	return returnCode;
 }
