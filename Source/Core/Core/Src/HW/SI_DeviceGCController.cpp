@@ -25,6 +25,8 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
+#include "../Frame.h"
+
 //////////////////////////////////////////////////////////////////////////
 // --- standard gamecube controller ---
 //////////////////////////////////////////////////////////////////////////
@@ -145,6 +147,9 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		return true;
 	}
 #endif
+
+	if(Frame::IsAutoFiring())
+		Frame::ModifyController(&PadStatus);
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);

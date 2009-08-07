@@ -2245,6 +2245,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Frame.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Frame.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Host.h"
 			>
 		</File>

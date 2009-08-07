@@ -56,6 +56,7 @@
 #include "LogManager.h"
  
 #include "State.h"
+#include "Frame.h"
  
 #ifndef _WIN32
 #define WINAPI
@@ -592,9 +593,8 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 // We do not write to anything outside this function here
 void Callback_VideoCopiedToXFB(bool video_update)
 { 
-	#ifdef RERECORDING
-		FrameUpdate();
-	#endif
+	if(!video_update)
+		Frame::FrameUpdate();
 
     SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	
