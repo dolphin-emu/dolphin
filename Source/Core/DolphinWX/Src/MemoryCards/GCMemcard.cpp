@@ -83,7 +83,7 @@ GCMemcard::GCMemcard(const char *filename)
 			return;
 		}
 		mcdFile = mcd;
-		Format(!AskYesNo("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)", filename));
+		Format(!AskYesNo("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
 		fclose(mcd);
 		mcd = fopen(filename, "r+b");
 	}
