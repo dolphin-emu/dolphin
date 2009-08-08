@@ -20,6 +20,8 @@
 #include <fstream>
 #include <vector>
 
+#include "Fifo.h"
+
 #include "Config.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
@@ -184,6 +186,11 @@ void Flush()
 	DVSTARTPROFILE();
 
 	GL_REPORT_ERRORD(); 
+
+	if(g_bSkipCurrentFrame) {
+		ResetBuffer();
+		return;
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
 	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);

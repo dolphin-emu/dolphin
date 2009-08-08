@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "OnFrame.h"
+
 #include "Core.h"
 #include "PluginManager.h"
 
@@ -25,12 +27,27 @@ bool g_bAutoFire = false;
 u32 g_autoFirstKey = 0, g_autoSecondKey = 0;
 bool g_bFirstKey = true;
 
+int g_framesToSkip = 1, g_frameSkipCounter = 0;
+
 void FrameUpdate() {
 	if(g_bFrameStep)
 		Core::SetState(Core::CORE_PAUSE);
 
 	if(g_bAutoFire)
 		g_bFirstKey = !g_bFirstKey;
+
+	if(g_framesToSkip)
+		FrameSkipping();
+	
+}
+
+void SetFrameSkipping(unsigned int framesToSkip) {
+	g_framesToSkip = (int)framesToSkip;
+	g_frameSkipCounter = 0;
+}
+
+int FrameSkippingFactor() {
+	return g_framesToSkip;
 }
 
 void SetAutoHold(bool bEnabled, u32 keyToHold) {
@@ -60,7 +77,6 @@ void SetFrameStepping(bool bEnabled) {
 	g_bFrameStep = bEnabled;
 }
 
-
 void ModifyController(SPADStatus *PadStatus) {
 	u32 keyToPress = (g_bFirstKey) ? g_autoFirstKey : g_autoSecondKey;
 	
@@ -88,6 +104,14 @@ void ModifyController(SPADStatus *PadStatus) {
 			break;
 	}
 
+}
+
+void FrameSkipping() {
+	g_frameSkipCounter++;
+	if(g_frameSkipCounter > g_framesToSkip)
+		g_frameSkipCounter = 0;
+
+	CPluginManager::GetInstance().GetVideo()->Video_SetRendering(!g_frameSkipCounter);
 }
 
 };

@@ -25,7 +25,7 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
-#include "../Frame.h"
+#include "../OnFrame.h"
 
 //////////////////////////////////////////////////////////////////////////
 // --- standard gamecube controller ---

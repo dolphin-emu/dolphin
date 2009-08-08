@@ -59,6 +59,7 @@ Core::GetWindowHandle().
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
+#include "OnFrame.h"
 #include "HW/DVDInterface.h"
 #include "State.h"
 #include "VolumeHandler.h"
@@ -130,6 +131,12 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
 	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	
+	wxMenu *skippingMenu = new wxMenu;
+	m_pSubMenuFrameSkipping = emulationMenu->AppendSubMenu(skippingMenu, _T("&Frame Skipping"));
+	for(int i = 0; i < 10; i++)
+		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(_T("%i"), i), wxEmptyString, wxITEM_RADIO);
+
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_SCREENSHOT, _T("Take S&creenshot\tF9"));
 	emulationMenu->AppendSeparator();
@@ -713,6 +720,13 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 	State_Save(slot);
 }
 
+void CFrame::OnFrameSkip(wxCommandEvent& event)
+{
+	int amount = event.GetId() - IDM_FRAMESKIP0;
+
+	Frame::SetFrameSkipping((unsigned int)amount);
+}
+
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	FitInside();
@@ -817,6 +831,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);
+	m_pSubMenuFrameSkipping->Enable(initialized);
 
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(initialized);

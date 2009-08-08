@@ -115,6 +115,7 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
+
 	RefreshLoader(vtx_attr_group);
 	g_VertexLoaders[vtx_attr_group]->RunVertices(vtx_attr_group, primitive, count);
 }

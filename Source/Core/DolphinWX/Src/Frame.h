@@ -170,6 +170,8 @@ class CFrame : public wxFrame
 		void OnUndoLoadState(wxCommandEvent& event);
 		void OnUndoSaveState(wxCommandEvent& event);
 		
+		void OnFrameSkip(wxCommandEvent& event);
+		
 		void OnConfigMain(wxCommandEvent& event); // Options
 		void OnPluginGFX(wxCommandEvent& event);
 		void OnPluginDSP(wxCommandEvent& event);
@@ -210,6 +212,7 @@ class CFrame : public wxFrame
 		// Emulation
 		wxMenuItem* m_pSubMenuLoad;
 		wxMenuItem* m_pSubMenuSave;
+		wxMenuItem* m_pSubMenuFrameSkipping;
 
 		void BootGame();
 

@@ -2245,14 +2245,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Frame.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Frame.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Host.h"
 			>
 		</File>
@@ -2262,6 +2254,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\MemTools.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\OnFrame.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\OnFrame.h"
 			>
 		</File>
 		<File

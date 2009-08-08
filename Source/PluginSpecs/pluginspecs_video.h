@@ -165,6 +165,14 @@ EXPORT void CALL Video_EnterLoop(void);
 EXPORT void CALL Video_ExitLoop(void);
 
 // __________________________________________________________________________________________________
+// Function: Video_SetRendering
+// Purpose:  Sets video rendering on and off. Currently used for frame skipping
+// input:    Enabled toggle
+// output:   none
+//
+EXPORT void CALL Video_SetRendering(bool bEnabled);
+
+// __________________________________________________________________________________________________
 // Function: Video_AddMessage
 // Purpose:  Adds a message to the display queue, to be shown forthe specified time
 // input:    pointer to the null-terminated string, time in milliseconds

@@ -56,7 +56,7 @@
 #include "LogManager.h"
  
 #include "State.h"
-#include "Frame.h"
+#include "OnFrame.h"
  
 #ifndef _WIN32
 #define WINAPI
@@ -604,9 +604,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	static u32 videoupd = 0;
 
 	if (video_update)
-		videoupd++;
+		videoupd += Frame::FrameSkippingFactor() + 1;
 	else
-		frames++;
+		frames += Frame::FrameSkippingFactor() + 1;
 
 	// Custom frame limiter
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

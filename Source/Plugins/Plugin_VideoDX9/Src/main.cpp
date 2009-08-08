@@ -222,6 +222,9 @@ void Video_ExitLoop()
 	Fifo_ExitLoop();
 }
 
+void Video_SetRendering(bool bEnabled) {
+	Fifo_SetRendering(bEnabled);
+}
 
 void Video_Prepare(void)
 {

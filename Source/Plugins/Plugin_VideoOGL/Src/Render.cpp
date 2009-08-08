@@ -116,6 +116,8 @@ static int s_targetheight;
 static FramebufferManager s_framebufferManager;
 static GLuint s_tempScreenshotFramebuffer = 0;
 
+static bool s_skipSwap = false;
+
 #ifndef _WIN32
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 #endif
@@ -791,6 +793,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
+	s_skipSwap = g_bSkipCurrentFrame;
+
 	g_VideoInitialize.pCopiedToXFB(false);
 
 #ifdef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
@@ -814,6 +818,9 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
+	if(s_skipSwap)
+		return;
+
 	const XFBSource* xfbSource = s_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
 	if (!xfbSource)
 	{
@@ -1088,18 +1095,18 @@ void Renderer::SwapBuffers()
         }
     }
 #endif
-    // Copy the rendered frame to the real window
+   	// Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
-    
+	    
 	GL_REPORT_ERRORD();
-	
+
 	// Clear framebuffer
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 
-    // Clean out old stuff from caches
+	// Clean out old stuff from caches
     VertexShaderCache::ProgressiveCleanup();
     PixelShaderCache::ProgressiveCleanup();
     TextureMngr::ProgressiveCleanup();

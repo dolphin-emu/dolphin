@@ -448,6 +448,10 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 	OSD::AddMessage(pstr, milliseconds);
 }
 
+void Video_SetRendering(bool bEnabled) {
+	Fifo_SetRendering(bEnabled);
+}
+
 static volatile struct
 {
 	u32 xfbAddr;

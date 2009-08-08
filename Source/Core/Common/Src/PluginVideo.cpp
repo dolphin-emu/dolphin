@@ -50,6 +50,8 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 		(LoadSymbol("Video_AddMessage"));
 	Video_AccessEFB = reinterpret_cast<TVideo_AccessEFB>
 		(LoadSymbol("Video_AccessEFB"));
+		Video_SetRendering = reinterpret_cast<TVideo_SetRendering>
+		(LoadSymbol("Video_SetRendering"));
 
 	if ((Video_Prepare      != 0) &&
 		(Video_SendFifoData != 0) &&
@@ -59,6 +61,7 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 		(Video_ExitLoop     != 0) &&
 		(Video_Screenshot   != 0) &&
 		(Video_AddMessage   != 0) &&
+		(Video_SetRendering != 0) &&
 		(Video_AccessEFB	!= 0))
 		validVideo = true;
 }

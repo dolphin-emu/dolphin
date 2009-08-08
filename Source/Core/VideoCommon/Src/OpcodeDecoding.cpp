@@ -197,6 +197,7 @@ bool FifoCommandRunnable()
 static void Decode()
 {
     int Cmd = DataReadU8();
+
     switch(Cmd)
     {
     case GX_NOP:
@@ -268,6 +269,7 @@ static void Decode()
         {
             // load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
+
 			VertexLoaderManager::RunVertices(
 				Cmd & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 				(Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,

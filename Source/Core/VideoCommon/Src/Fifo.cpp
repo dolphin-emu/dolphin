@@ -24,6 +24,7 @@
 
 #include "Fifo.h"
 
+volatile bool g_bSkipCurrentFrame = false;
 
 extern u8* g_pVideoData;
 
@@ -75,6 +76,10 @@ u8* FAKE_GetFifoStartPtr()
 u8* FAKE_GetFifoEndPtr()
 {
 	return &videoBuffer[size];
+}
+
+void Fifo_SetRendering(bool bEnabled) {
+	g_bSkipCurrentFrame = !bEnabled;
 }
 
 // Executed from another thread, no the graphics thread!

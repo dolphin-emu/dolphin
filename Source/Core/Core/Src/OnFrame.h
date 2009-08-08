@@ -18,6 +18,9 @@
 #ifndef __FRAME_H
 #define __FRAME_H
 
+#include "Common.h"
+#include "pluginspecs_pad.h"
+
 // Per-(video )Frame actions
 
 namespace Frame {
@@ -32,6 +35,10 @@ void SetAutoFire(bool bEnabled, u32 keyOne = 0, u32 keyTwo = 0);
 void SetFrameStepping(bool bEnabled);
 
 void ModifyController(SPADStatus *PadStatus);
+
+void SetFrameSkipping(unsigned int framesToSkip);
+int FrameSkippingFactor();
+void FrameSkipping();
 
 };
 

@@ -25,6 +25,8 @@
 
 #define FIFO_SIZE (1024*1024)
 
+extern volatile bool g_bSkipCurrentFrame;
+
 void Fifo_Init();
 void Fifo_Shutdown();
 
@@ -36,6 +38,8 @@ void Fifo_ExitLoop();
 void Fifo_ExitLoopNonBlocking();
 
 void Fifo_DoState(PointerWrap &f);
+
+void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Plugin
 void VideoFifo_CheckSwapRequest();
