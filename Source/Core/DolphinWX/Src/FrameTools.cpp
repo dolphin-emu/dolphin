@@ -831,7 +831,9 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);
-	m_pSubMenuFrameSkipping->Enable(initialized);
+
+	// Let's enable it by default.
+	//m_pSubMenuFrameSkipping->Enable(initialized);
 
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(initialized);

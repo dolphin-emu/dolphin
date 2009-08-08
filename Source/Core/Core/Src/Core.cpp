@@ -604,9 +604,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	static u32 videoupd = 0;
 
 	if (video_update)
-		videoupd += Frame::FrameSkippingFactor() + 1;
+		videoupd++;
 	else
-		frames += Frame::FrameSkippingFactor() + 1;
+		frames++;
 
 	// Custom frame limiter
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

@@ -49,9 +49,9 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *input, signed sh
     }
     else
     {
-        // untested !!! i havnt seen such a sample yet :)
-
-        ERROR_LOG(DSPHLE, "Untested AFC sample");
+		// In Pikmin, Dolphin's engine sound is using AFC 5bits, even though such a sound is hard
+		// to compare, it seems like to sound exactly like a real GC
+		DEBUG_LOG(DSPHLE, "5 bits AFC sample");
         
         for (int i = 0; i < 16; i += 4)
         {

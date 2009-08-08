@@ -473,9 +473,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	// First jump table at ZWW: 2a6
 	switch (PB.Format)
 	{
-	case 0x0005:		// AFC with extra low bitrate (32:5 compression). Not yet seen.
-		WARN_LOG(DSPHLE, "5 byte AFC - does it work?");
-
+	case 0x0005:		// AFC with extra low bitrate (32:5 compression).
 	case 0x0009:		// AFC with normal bitrate (32:9 compression).
 		RenderVoice_AFC(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
