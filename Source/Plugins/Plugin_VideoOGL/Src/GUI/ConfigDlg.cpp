@@ -414,8 +414,11 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		" set up for the dump or several gigabytes of space available."));
 #endif
 	m_DumpFrames->SetValue(g_Config.bDumpFrames);
-    m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-    m_FreeLook->SetValue(g_Config.bFreeLook);
+	m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_FreeLook->SetToolTip(
+		wxT("Use WASD to move around, 0 and 9 to move faster or slower, and the")
+		wxT(" left mouse button to pan the view."));
+	m_FreeLook->SetValue(g_Config.bFreeLook);
 
 	// Hacks controls
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
