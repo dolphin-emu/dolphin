@@ -234,6 +234,7 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
 
+// This one is high in profiles (0.5%)
 void PixelShaderManager::SetColorChanged(int type, int num)
 {
     int r = bpmem.tevregs[num].low.a;
@@ -241,10 +242,10 @@ void PixelShaderManager::SetColorChanged(int type, int num)
     int b = bpmem.tevregs[num].high.a;
 	int g = bpmem.tevregs[num].high.b;
     float *pf = &lastRGBAfull[type][num][0];
-    pf[0] = (float)r / 255.0f;
-    pf[1] = (float)g / 255.0f;
-    pf[2] = (float)b / 255.0f;
-    pf[3] = (float)a / 255.0f;
+    pf[0] = (float)r * (1.0f / 255.0f);
+    pf[1] = (float)g * (1.0f / 255.0f);
+    pf[2] = (float)b * (1.0f / 255.0f);
+    pf[3] = (float)a * (1.0f / 255.0f);
     s_nColorsChanged[type] |= 1 << num;
     PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }

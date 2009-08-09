@@ -29,6 +29,7 @@
 #define GX_LOAD_INDX_D              0x38
 
 #define GX_CMD_CALL_DL              0x40
+#define GX_CMD_UNKNOWN_METRICS      0x44
 #define GX_CMD_INVL_VC              0x48
 
 #define GX_PRIMITIVE_MASK           0x78
@@ -46,6 +47,6 @@
 
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
-void OpcodeDecoder_Run();
+void OpcodeDecoder_Run(bool skipped_frame);
 
 #endif // _OPCODE_DECODING_H

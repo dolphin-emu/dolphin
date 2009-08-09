@@ -43,6 +43,7 @@
 #include "TextureMngr.h"
 #include "rasterfont.h"
 #include "VertexShaderGen.h"
+#include "DLCache.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
@@ -1102,6 +1103,7 @@ void Renderer::SwapBuffers()
 	GL_REPORT_ERRORD();
 
 	// Clean out old stuff from caches
+	DLCache::ProgressiveCleanup();
     VertexShaderCache::ProgressiveCleanup();
     PixelShaderCache::ProgressiveCleanup();
     TextureMngr::ProgressiveCleanup();
@@ -1186,6 +1188,7 @@ void Renderer::DrawDebugText()
         p+=sprintf(p,"vshaders alive:   %i\n",stats.numVertexShadersAlive);
         p+=sprintf(p,"dlists called:    %i\n",stats.numDListsCalled);
         p+=sprintf(p,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
+		p+=sprintf(p,"dlists alive:     %i\n",stats.numDListsAlive);
 		// not used.
         //p+=sprintf(p,"dlists created:  %i\n",stats.numDListsCreated);
         //p+=sprintf(p,"dlists alive:    %i\n",stats.numDListsAlive);

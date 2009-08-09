@@ -187,10 +187,6 @@ void Flush()
 
 	GL_REPORT_ERRORD(); 
 
-	if(g_bSkipCurrentFrame) {
-		ResetBuffer();
-		return;
-	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
 	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
@@ -226,7 +222,7 @@ void Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
 
-			if (tentry != NULL) 
+			if (tentry) 
 			{
 				// texture loaded fine, set dims for pixel shader
 				if (tentry->isRectangle) 

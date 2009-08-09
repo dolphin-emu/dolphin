@@ -721,6 +721,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\DLCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DLCache.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\NativeVertexFormat.cpp"
 				>
 			</File>

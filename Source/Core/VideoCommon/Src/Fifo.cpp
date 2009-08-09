@@ -97,7 +97,8 @@ void Fifo_ExitLoop()
 
 // May be executed from any thread, even the graphics thread.
 // Created to allow for self shutdown.
-void Fifo_ExitLoopNonBlocking() {
+void Fifo_ExitLoopNonBlocking()
+{
 	fifoStateRun = false;
 }
 
@@ -118,7 +119,7 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
 	// Copy new video instructions to videoBuffer for future use in rendering the new picture
     memcpy(videoBuffer + size, _uData, len);
     size += len;
-    OpcodeDecoder_Run();
+    OpcodeDecoder_Run(g_bSkipCurrentFrame);
 }
 
 // Description: Main FIFO update loop
@@ -146,7 +147,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
             while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 			{
-				if(!fifoStateRun)
+				if (!fifoStateRun)
 					break;
 
                 // Create pointer to video data and send it to the VideoPlugin

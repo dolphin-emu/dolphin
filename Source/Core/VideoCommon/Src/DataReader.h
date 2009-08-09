@@ -20,17 +20,22 @@
 
 extern u8* g_pVideoData;
 
-inline u8 DataPeek8(u32 _uOffset)
+inline void DataSkip(u32 skip)
+{
+	g_pVideoData += skip;
+}
+
+inline u8 DataPeek8(int _uOffset)
 {
 	return g_pVideoData[_uOffset];
 }
 
-inline u16 DataPeek16(u32 _uOffset)
+inline u16 DataPeek16(int _uOffset)
 {
     return Common::swap16(*(u16*)&g_pVideoData[_uOffset]);
 }
 
-inline u32 DataPeek32(u32 _uOffset)	
+inline u32 DataPeek32(int _uOffset)	
 {
     return Common::swap32(*(u32*)&g_pVideoData[_uOffset]);
 }
@@ -116,11 +121,6 @@ inline float DataReadF32()
 inline u8* DataGetPosition()
 {
 	return g_pVideoData;
-}
-
-inline void DataSkip(u32 skip)
-{
-	g_pVideoData += skip;
 }
 
 #endif

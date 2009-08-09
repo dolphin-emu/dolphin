@@ -19,10 +19,11 @@
 //	Ikaruga uses (nearly) NO display lists!
 //  Zelda WW uses TONS of display lists
 //  Zelda TP uses almost 100% display lists except menus (we like this!)
+//  Super Mario Galaxy has nearly all geometry and more than half of the state in DLs (great!)
 
 // Note that it IS NOT GENERALLY POSSIBLE to precompile display lists! You can compile them as they are
-// and hope that the vertex format doesn't change, though, if you do it just when they are 
-// called. The reason is that the vertex format affects the sizes of the vertices.
+// while interpreting them, and hope that the vertex format doesn't change, though, if you do it right
+// when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
 #include "Common.h"
 #include "VideoCommon.h"
@@ -47,13 +48,12 @@ extern u8* FAKE_GetFifoEndPtr();
 
 static void Decode();
 
-static void ExecuteDisplayList(u32 address, u32 size)
+void InterpretDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
-
 	u8* startAddress = Memory_GetPtr(address);
 
-	//Avoid the crash if Memory_GetPtr failed ..
+	// Avoid the crash if Memory_GetPtr failed ..
 	if (startAddress != 0)
 	{
 		g_pVideoData = startAddress;
@@ -61,7 +61,8 @@ static void ExecuteDisplayList(u32 address, u32 size)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		while ((u32)(g_pVideoData - startAddress) < size)
+		u8 *end = g_pVideoData + size;
+		while (g_pVideoData < end)
 		{
 			Decode();
 		}
@@ -76,48 +77,60 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
+// Defer to plugin-specific DL cache.
+extern bool HandleDisplayList(u32 address, u32 size);
+
+void ExecuteDisplayList(u32 address, u32 size)
+{
+	if (!HandleDisplayList(address, size))
+		InterpretDisplayList(address, size);
+}
+
 bool FifoCommandRunnable()
 {
-	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
-    if (iBufferSize == 0)
+	u32 buffer_size = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
+    if (buffer_size == 0)
 		return false;  // can't peek
 
-	u8 Cmd = DataPeek8(0);	
-    u32 iCommandSize = 0;
+	u8 cmd_byte = DataPeek8(0);	
+    u32 command_size = 0;
 
-    switch (Cmd)
+    switch (cmd_byte)
     {
     case GX_NOP: // Hm, this means that we scan over nop streams pretty slowly...
 	case GX_CMD_INVL_VC: // Invalidate Vertex Cache - no parameters
-	case 0x44: // zelda 4 swords calls it and checks the metrics registers after that
-        iCommandSize = 1;
+    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+        command_size = 1;
+        break;
+
+	case GX_LOAD_BP_REG:	
+        command_size = 5;
         break;
 
     case GX_LOAD_CP_REG:
-        iCommandSize = 6;
+        command_size = 6;
         break;
 
     case GX_LOAD_INDX_A:
     case GX_LOAD_INDX_B:
     case GX_LOAD_INDX_C:
     case GX_LOAD_INDX_D:
-	case GX_LOAD_BP_REG:
-        iCommandSize = 5;
+        command_size = 5;
         break;
 
     case GX_CMD_CALL_DL:	
-        iCommandSize = 9;
+        command_size = 9;
         break;
 
     case GX_LOAD_XF_REG:
         {
             // check if we can read the header
-            if (iBufferSize >= 5)
+            if (buffer_size >= 5)
 			{				
-                iCommandSize = 1 + 4;
+                command_size = 1 + 4;
                 u32 Cmd2 = DataPeek32(1);
-                int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
-                iCommandSize += dwTransferSize * 4;				
+                int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+                command_size += transfer_size * 4;				
             }
             else
 			{
@@ -127,14 +140,14 @@ bool FifoCommandRunnable()
         break;
 
     default:
-        if (Cmd & 0x80)
+        if (cmd_byte & 0x80)
         {				
             // check if we can read the header
-            if (iBufferSize >= 3)
+            if (buffer_size >= 3)
 			{
-                iCommandSize = 1 + 2;
+                command_size = 1 + 2;
                 u16 numVertices = DataPeek16(1);
-				iCommandSize += numVertices * VertexLoaderManager::GetVertexSize(Cmd & GX_VAT_MASK);
+				command_size += numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
             }
 			else
 			{				
@@ -151,14 +164,14 @@ bool FifoCommandRunnable()
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
-				"Dolphin will now likely crash or hang. Enjoy." , Cmd);
+				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
             g_VideoInitialize.pSysMessage(szTemp);
             g_VideoInitialize.pLog(szTemp, TRUE);
 			{
 				SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
 
 				char szTmp[256];
-				// sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
+				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
 				sprintf(szTmp, "Illegal command %02x\n"
 					"CPBase: 0x%08x\n"
 					"CPEnd: 0x%08x\n"
@@ -172,42 +185,39 @@ bool FifoCommandRunnable()
 					"bFF_BPEnable: %s\n"
 					"bFF_GPLinkEnable: %s\n"
 					"bFF_Breakpoint: %s\n"
-					,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
+					,cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
 					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
 				g_VideoInitialize.pSysMessage(szTmp);
 				g_VideoInitialize.pLog(szTmp, TRUE);
-				// _assert_msg_(0,szTmp,"");
-			
 			}
         }
         break;
     }
     
-    if (iCommandSize > iBufferSize)
+    if (command_size > buffer_size)
         return false;
 
-    // INFO_LOG("OP detected: Cmd 0x%x  size %i  buffer %i",Cmd, iCommandSize, iBufferSize);
+    // INFO_LOG("OP detected: cmd_byte 0x%x  size %i  buffer %i",cmd_byte, command_size, buffer_size);
 
     return true;
 }
 
 static void Decode()
 {
-    int Cmd = DataReadU8();
-
-    switch(Cmd)
+    int cmd_byte = DataReadU8();
+    switch (cmd_byte)
     {
     case GX_NOP:
         break;
 
     case GX_LOAD_CP_REG: //0x08
         {
-            u32 SubCmd = DataReadU8();
-            u32 Value = DataReadU32();
-            LoadCPReg(SubCmd, Value);
+            u8 sub_cmd = DataReadU8();
+            u32 value = DataReadU32();
+            LoadCPReg(sub_cmd, value);
 			INCSTAT(stats.thisFrame.numCPLoads);
         }
         break;
@@ -215,13 +225,13 @@ static void Decode()
     case GX_LOAD_XF_REG:
         {
             u32 Cmd2 = DataReadU32();
-            int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
-            u32 dwAddress = Cmd2 & 0xFFFF;
+            int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+            u32 address = Cmd2 & 0xFFFF;
 			// TODO - speed this up. pshufb?
-            static u32 pData[16];
-            for (int i = 0; i < dwTransferSize; i++)
-                pData[i] = DataReadU32();
-            LoadXFReg(dwTransferSize, dwAddress, pData);
+            u32 data_buffer[16];
+            for (int i = 0; i < transfer_size; i++)
+                data_buffer[i] = DataReadU32();
+            LoadXFReg(transfer_size, address, data_buffer);
 			INCSTAT(stats.thisFrame.numXFLoads);
         }
         break;
@@ -241,13 +251,13 @@ static void Decode()
 
     case GX_CMD_CALL_DL:
         {
-            u32 dwAddr  = DataReadU32();
-            u32 dwCount = DataReadU32();
-            ExecuteDisplayList(dwAddr, dwCount);
+            u32 address = DataReadU32();
+            u32 count = DataReadU32();
+            ExecuteDisplayList(address, count);
         }			
         break;
 
-    case 0x44: // zelda 4 swords calls it and checks the metrics registers after that
+    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
 		DEBUG_LOG(VIDEO, "GX 0x44: %08x", Cmd);
         break;
 
@@ -257,31 +267,107 @@ static void Decode()
 
     case GX_LOAD_BP_REG: //0x61
         {
-			u32 cmd = DataReadU32();
-            LoadBPReg(cmd);
+			u32 bp_cmd = DataReadU32();
+            LoadBPReg(bp_cmd);
 			INCSTAT(stats.thisFrame.numBPLoads);
         }
         break;
 
     // draw primitives 
     default:
-        if (Cmd & 0x80)
+        if (cmd_byte & 0x80)
         {
             // load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
 
 			VertexLoaderManager::RunVertices(
-				Cmd & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-				(Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+				cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+				(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 				numVertices);
         }
         else
         {
-            // char szTmp[256];
-            //sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
-            //g_VideoInitialize.pLog(szTmp);
-            //MessageBox(0,szTmp,"GFX ERROR",0);
-            // _assert_msg_(0,szTmp,"");
+			ERROR_LOG(VIDEO, "OpcodeDecoding::Decode: Illegal command %02x", cmd_byte);
+            break;
+        }
+        break;
+    }
+}
+
+static void DecodeSemiNop()
+{
+    int cmd_byte = DataReadU8();
+    switch (cmd_byte)
+    {
+    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+    case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+    case GX_NOP:
+		break;
+
+	case GX_LOAD_CP_REG: //0x08
+		// We have to let CP writes through because they determine the size of vertices.
+        {
+            u8 sub_cmd = DataReadU8();
+            u32 value = DataReadU32();
+            LoadCPReg(sub_cmd, value);
+			INCSTAT(stats.thisFrame.numCPLoads);
+        }
+        break;
+
+    case GX_LOAD_XF_REG:
+        {
+            u32 Cmd2 = DataReadU32();
+            int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+            u32 address = Cmd2 & 0xFFFF;
+			// TODO - speed this up. pshufb?
+            u32 data_buffer[16];
+            for (int i = 0; i < transfer_size; i++)
+                data_buffer[i] = DataReadU32();
+            LoadXFReg(transfer_size, address, data_buffer);
+			INCSTAT(stats.thisFrame.numXFLoads);
+        }
+        break;
+
+    case GX_LOAD_INDX_A: //used for position matrices
+        LoadIndexedXF(DataReadU32(), 0xC);
+        break;
+    case GX_LOAD_INDX_B: //used for normal matrices
+        LoadIndexedXF(DataReadU32(), 0xD);
+        break;
+    case GX_LOAD_INDX_C: //used for postmatrices
+        LoadIndexedXF(DataReadU32(), 0xE);
+        break;
+    case GX_LOAD_INDX_D: //used for lights
+        LoadIndexedXF(DataReadU32(), 0xF);
+        break;
+
+    case GX_CMD_CALL_DL:
+		// Hm, wonder if any games put tokens in display lists - in that case, 
+		// we'll have to parse them too.
+        DataSkip(8);
+        break;
+
+    case GX_LOAD_BP_REG: //0x61
+		// We have to let BP writes through because they set tokens and stuff.
+		// TODO: Call a much simplified LoadBPReg instead.
+        {
+			u32 bp_cmd = DataReadU32();
+            LoadBPReg(bp_cmd);
+			INCSTAT(stats.thisFrame.numBPLoads);
+        }
+        break;
+
+    // draw primitives 
+    default:
+        if (cmd_byte & 0x80)
+        {
+            // load vertices (use computed vertex size from FifoCommandRunnable above)
+			u16 numVertices = DataReadU16();
+			DataSkip(numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK));
+        }
+        else
+        {
+			ERROR_LOG(VIDEO, "OpcodeDecoding::Decode: Illegal command %02x", cmd_byte);
             break;
         }
         break;
@@ -298,13 +384,17 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-void OpcodeDecoder_Run()
+void OpcodeDecoder_Run(bool skipped_frame)
 {
-    DVSTARTPROFILE();
-    while (FifoCommandRunnable())
-    {
-		//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 0);"
-        Decode();
-    }
-	//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 1);"
+	DVSTARTPROFILE();
+	if (!skipped_frame)
+	{
+		while (FifoCommandRunnable())
+			Decode();
+	}
+	else
+	{
+		while (FifoCommandRunnable())
+			DecodeSemiNop();
+	}
 }

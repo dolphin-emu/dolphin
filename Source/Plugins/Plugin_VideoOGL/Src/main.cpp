@@ -91,6 +91,7 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #include "PostProcessing.h"
 #include "OnScreenDisplay.h"
 #include "Setup.h"
+#include "DLCache.h"
 
 #include "VideoState.h"
 
@@ -385,7 +386,7 @@ void Video_Prepare(void)
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
     TextureConverter::Init();
-
+	DLCache::Init();
 	s_swapRequested = FALSE;
 	s_efbAccessRequested = FALSE;
 
@@ -400,6 +401,7 @@ void Shutdown(void)
 	s_efbAccessRequested = FALSE;
 	s_swapRequested = FALSE;
 
+	DLCache::Shutdown();
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
 
@@ -418,7 +420,6 @@ void Shutdown(void)
 	OpenGL_Shutdown();
 }
 
-
 void Video_SendFifoData(u8* _uData, u32 len)
 {
 	Fifo_SendFifoData(_uData, len);
@@ -434,8 +435,6 @@ void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
-
-
 
 // Screenshot and screen message
 

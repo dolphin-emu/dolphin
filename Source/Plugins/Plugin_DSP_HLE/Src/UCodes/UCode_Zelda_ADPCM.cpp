@@ -18,33 +18,26 @@
 #include "Common.h"
 #include "UCode_Zelda.h"
 
-void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type)
+void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed short *out, short *histp, short *hist2p, int type)
 {
-    short nibbles[16];
-    short hist = *histp;
-    short hist2 = *hist2p;
-
-    const char *src = input;
-	char *dst = (char*)out;
-
 	// First 2 nibbles are ADPCM scale etc.
     short delta = 1 << (((*src) >> 4) & 0xf);
     short idx = (*src) & 0xf;
     src++;
 
+	short nibbles[16];
     if (type == 9)
     {
-        for (int i = 0; i < 16; i = i + 2) {
-            int j = (*src & 255) >> 4;
-            nibbles[i] = j;
-            j = *src & 255 & 15;
-            nibbles[i+1] = j;
+        for (int i = 0; i < 16; i += 2)
+		{
+            nibbles[i + 0] = *src >> 4;
+            nibbles[i + 1] = *src & 15;
             src++;
         }
-
-        for (int i = 0; i < 16; i = i + 1) {
+        for (int i = 0; i < 16; i++) {
             if (nibbles[i] >= 8) 
                 nibbles[i] = nibbles[i] - 16;
+			nibbles[i] <<= 11;
         }
     }
     else
@@ -52,45 +45,33 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *input, signed sh
 		// In Pikmin, Dolphin's engine sound is using AFC 5bits, even though such a sound is hard
 		// to compare, it seems like to sound exactly like a real GC
 		DEBUG_LOG(DSPHLE, "5 bits AFC sample");
-        
         for (int i = 0; i < 16; i += 4)
         {
-            int j = (*src >> 0) & 0x02;
-            nibbles[i] = j;
- 
-			j = (*src >> 2) & 0x02;
-            nibbles[i+1] = j;
-
-            j = (*src >> 4) & 0x02;
-            nibbles[i+2] = j;
-
-            j = (*src >> 6) & 0x02;
-            nibbles[i+3] = j;
-
+            nibbles[i + 0] = (*src >> 6) & 0x02;
+            nibbles[i + 1] = (*src >> 4) & 0x02;
+            nibbles[i + 2] = (*src >> 2) & 0x02;
+            nibbles[i + 3] = (*src >> 0) & 0x02;
             src++;
         }
-
         for (int i = 0; i < 16; i++) 
         {
             if (nibbles[i] >= 2) 
                 nibbles[i] = nibbles[i] - 4;
+			nibbles[i] <<= 13;
         }
     }
 
+	short hist = *histp;
+    short hist2 = *hist2p;
     for (int i = 0; i < 16; i++)
 	{
-        int sample = (delta * nibbles[i]) << 11;
-        sample += ((long)hist * coef[idx * 2]) + ((long)hist2 * coef[idx * 2 + 1]);
-        sample = sample >> 11;
-
-        if (sample > 32767) {
+        int sample = delta * nibbles[i] + ((long)hist * coef[idx * 2]) + ((long)hist2 * coef[idx * 2 + 1]);
+        sample >>= 11;
+        if (sample > 32767)
             sample = 32767;
-        }
-        if (sample < -32768) {
+        if (sample < -32768)
             sample = -32768;
-        }
-        *(short*)dst = (short)sample;
-        dst = dst + 2;
+        out[i] = sample;
         hist2 = hist;
         hist = (short)sample;
     }

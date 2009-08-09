@@ -289,6 +289,7 @@ void LOADERDECL TexCoord_ReadIndex16_Short1()
 }
 void LOADERDECL TexCoord_ReadIndex16_Short2()	
 {
+	// Heavy in ZWW
 	u16 Index = DataReadU16(); 
 	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)Common::swap16(pData[0]) * tcScale[tcIndex];
