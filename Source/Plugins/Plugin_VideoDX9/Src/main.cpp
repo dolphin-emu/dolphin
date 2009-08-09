@@ -58,7 +58,10 @@ static volatile EFBAccessType s_AccessEFBType;
 static Common::Event s_AccessEFBDone;
 static Common::CriticalSection s_criticalEFB;
 
-
+bool HandleDisplayList(u32 address, u32 size)
+{
+	return false;
+}
 void DllDebugger(HWND _hParent, bool Show)
 {
     // TODO: implement
