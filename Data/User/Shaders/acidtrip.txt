@@ -1,6 +1,0 @@
-uniform samplerRECT samp0 : register(s0);
-
-void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
-{
-  ocol0 = (texRECT(samp0, uv0+1).rgba - texRECT(samp0, uv0-1).rgba)*8;
-}
