@@ -19,6 +19,7 @@
 #define _VERTEXLOADERMANAGER_H
 
 #include "Common.h"
+#include <string>
 
 namespace VertexLoaderManager
 {

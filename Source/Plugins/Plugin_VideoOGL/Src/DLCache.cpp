@@ -302,7 +302,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				INCSTAT(stats.thisFrame.numCPLoads);
 
 				// Compile
-				emitter.ABI_CallFunctionCC(&LoadCPReg, sub_cmd, value);
+				emitter.ABI_CallFunctionCC((void *)&LoadCPReg, sub_cmd, value);
 			}
 			break;
 
@@ -321,7 +321,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				INCSTAT(stats.thisFrame.numXFLoads);
 
 				// Compile
-				emitter.ABI_CallFunctionCCP(&LoadXFReg, transfer_size, address, data_buffer);
+				emitter.ABI_CallFunctionCCP((void *)&LoadXFReg, transfer_size, address, data_buffer);
 			}
 			break;
 
@@ -331,7 +331,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				// Execute
 				LoadIndexedXF(value, 0xC);
 				// Compile
-				emitter.ABI_CallFunctionCC(&LoadIndexedXF, value, 0xC);
+				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xC);
 			}
 			break;
 		case GX_LOAD_INDX_B: //used for normal matrices
@@ -340,7 +340,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				// Execute
 				LoadIndexedXF(value, 0xD);
 				// Compile
-				emitter.ABI_CallFunctionCC(&LoadIndexedXF, value, 0xD);
+				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xD);
 			}
 			break;
 		case GX_LOAD_INDX_C: //used for postmatrices
@@ -349,7 +349,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				// Execute
 				LoadIndexedXF(value, 0xE);
 				// Compile
-				emitter.ABI_CallFunctionCC(&LoadIndexedXF, value, 0xE);
+				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xE);
 			}
 			break;
 		case GX_LOAD_INDX_D: //used for lights
@@ -358,7 +358,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				// Execute
 				LoadIndexedXF(value, 0xF);
 				// Compile
-				emitter.ABI_CallFunctionCC(&LoadIndexedXF, value, 0xF);
+				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xF);
 			}
 			break;
 
@@ -381,7 +381,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				LoadBPReg(bp_cmd);
 				INCSTAT(stats.thisFrame.numBPLoads);
 				// Compile
-				emitter.ABI_CallFunctionC(&LoadBPReg, bp_cmd);
+				emitter.ABI_CallFunctionC((void *)&LoadBPReg, bp_cmd);
 			}
 			break;
 
@@ -410,7 +410,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				emitter.MOV(32, M(&g_pVideoData), R(EAX));
 #endif
 				emitter.ABI_CallFunctionCCC(
-					&VertexLoaderManager::RunVertices,
+					(void *)&VertexLoaderManager::RunVertices,
 					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 					numVertices);

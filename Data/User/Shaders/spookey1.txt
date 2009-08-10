@@ -1,0 +1,20 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba;
+  float red   = 0.0;
+  float blue  = 0.0;
+
+  if (c0.r < 0.35 || c0.b > 0.5)
+  {
+	red = c0.g + c0.b;
+  }
+  else
+  {
+    red = c0.g + c0.b;
+	blue = c0.r + c0.b;
+  }
+  
+  ocol0 = float4(red, 0.0, blue, 1.0);
+}
