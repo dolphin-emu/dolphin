@@ -3,7 +3,7 @@ uniform samplerRECT samp0 : register(s0);
 void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
 {
   //variables
-  int internalresolution = 1282;
+  int internalresolution = 1278;
   float4 c0 = texRECT(samp0, uv0).rgba;
   //blur
   float4 blurtotal = float4(0, 0, 0, 0);
