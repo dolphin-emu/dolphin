@@ -39,7 +39,9 @@ namespace DSPInterpreter
 namespace Ext
 { 
 void l(const UDSPInstruction& opc);
+void l_epi(const UDSPInstruction& opc);
 void ln(const UDSPInstruction& opc);
+void ln_epi(const UDSPInstruction& opc);
 void ls(const UDSPInstruction& opc);
 void lsn(const UDSPInstruction& opc);
 void lsm(const UDSPInstruction& opc);
@@ -65,6 +67,7 @@ void ldn(const UDSPInstruction& opc);
 void ldm(const UDSPInstruction& opc);
 void ldnm(const UDSPInstruction& opc);
 void mv(const UDSPInstruction& opc);
+void mv_epi(const UDSPInstruction& opc);
 void dr(const UDSPInstruction& opc);
 void ir(const UDSPInstruction& opc);
 void nr(const UDSPInstruction& opc);

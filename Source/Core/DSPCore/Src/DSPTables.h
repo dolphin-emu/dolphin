@@ -66,8 +66,8 @@ enum partype_t
 
 #define P_EXT   0x80
 
-#define OPTABLE_SIZE 65536
-#define EXT_OPTABLE_SIZE 0xff
+#define OPTABLE_SIZE 0xffff + 1
+#define EXT_OPTABLE_SIZE 0xff + 1
 
 union UDSPInstruction
 {

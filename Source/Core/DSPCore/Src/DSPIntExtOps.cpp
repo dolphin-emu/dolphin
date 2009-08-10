@@ -49,6 +49,8 @@ namespace DSPInterpreter
 namespace Ext 
 {
 
+u16 cache1;
+
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
@@ -77,12 +79,20 @@ void nr(const UDSPInstruction& opc) {
 // Move value of $acS.l to the $axD.l.
 void mv(const UDSPInstruction& opc)
 {
-	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 2) & 0x3);
-	
-	g_dsp.r[dreg + DSP_REG_AXL0] = g_dsp.r[sreg + DSP_REG_ACC0];
+ 	u8 sreg = opc.hex & 0x3;
+
+	cache1 = g_dsp.r[sreg + DSP_REG_ACC0];
+
+	currentEpilogeFunc = mv_epi;
 }
 
+void mv_epi(const UDSPInstruction& opc)
+{
+ 	u8 dreg = ((opc.hex >> 2) & 0x3);
+
+	g_dsp.r[dreg + DSP_REG_AXL0] = cache1;
+}
+ 
 // S @$D, $acD.l
 // xxxx xxxx 001s s0dd
 // Store value of $(acS.l) in the memory pointed by register $D.
@@ -122,7 +132,6 @@ void sn_epi(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
 
-
 	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
@@ -133,11 +142,17 @@ void sn_epi(const UDSPInstruction& opc)
 void l(const UDSPInstruction& opc)
 {
 	u8 sreg = opc.hex & 0x3;
+
+	cache1 = dsp_dmem_read(g_dsp.r[sreg]);
+
+	currentEpilogeFunc = l_epi;
+}
+
+void l_epi(const UDSPInstruction& opc) {
+	u8 sreg = opc.hex & 0x3;
 	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg] = val;
-
+	g_dsp.r[dreg] = cache1;
 	dsp_increment_addr_reg(sreg);
 }
 
@@ -150,9 +165,16 @@ void ln(const UDSPInstruction& opc)
 	u8 sreg = opc.hex & 0x3;
 	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
 
-	u16 val = dsp_dmem_read(g_dsp.r[sreg]);
-	g_dsp.r[dreg] = val;
+	cache1 = dsp_dmem_read(g_dsp.r[sreg]);
 
+	currentEpilogeFunc = ln_epi;
+}
+void ln_epi(const UDSPInstruction& opc)
+{
+	u8 sreg = opc.hex & 0x3;
+	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
+
+	g_dsp.r[dreg] = cache1;
 	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 

@@ -459,9 +459,9 @@ void addax(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
-// ADDR $acD, $(DSP_REG_AXL0+S)
+// ADDR $acD.M, $axS.L
 // 0100 0ssd xxxx xxxx
-// Adds register $(DSP_REG_AXL0+S) to accumulator $acD register.
+// Adds register $axS.L to accumulator $acD register.
 void addr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
@@ -477,9 +477,9 @@ void addr(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
-// SUBR $acD, $(DSP_REG_AXL0+S)
+// SUBR $acD.M, $axS.L
 // 0101 0ssd xxxx xxxx
-// Subtracts register $(DSP_REG_AXL0+S) from accumulator $acD register.
+// Subtracts register $axS.L from accumulator $acD.M register.
 void subr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
