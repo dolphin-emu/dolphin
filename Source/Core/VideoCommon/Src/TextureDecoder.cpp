@@ -108,33 +108,31 @@ int TexDecoder_GetBlockWidthInTexels(int format)
     case GX_TF_C8: return 8;
     case GX_TF_C14X2: return 4;
     case GX_TF_CMPR: return 8;
-    default: return 8;
+    default:
+		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
+		return 8;
     }
 }
 
-// FIXME: Use reasonable values for block height
 int TexDecoder_GetBlockHeightInTexels(int format)
 {
-    /*switch (format)
+    switch (format)
 	{
-    case GX_TF_I4: return 1;   
-    case GX_TF_I8: return 1;
-    case GX_TF_IA4: return 1;
-    case GX_TF_IA8: return 1;
-    case GX_TF_RGB565: return 1;
-    case GX_TF_RGB5A3: return 1;
-    case GX_TF_RGBA8: return  1;
-    case GX_TF_C4: return 1;
-    case GX_TF_C8: return 1;
-    case GX_TF_C14X2: return 1;
-    case GX_TF_CMPR: return 8;
-    default: return 1;
-    }*/
-
-	// Omega: I asssume the height would be the same as the width since it says 'block'
-	//        width values look better than 1 anyways
-	// TODO: Confirm this
-	return TexDecoder_GetBlockWidthInTexels(format);
+    case GX_TF_I4: return 8;   
+    case GX_TF_I8: return 4;
+    case GX_TF_IA4: return 4;
+    case GX_TF_IA8: return 4;
+    case GX_TF_RGB565: return 4;
+    case GX_TF_RGB5A3: return 4;
+    case GX_TF_RGBA8: return  4;
+    case GX_TF_C4: return 8;
+    case GX_TF_C8: return 4;
+    case GX_TF_C14X2: return 4;
+    case GX_TF_CMPR: return 4;
+    default:
+		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
+		return 4;
+    }
 }
 
 //returns bytes
@@ -574,15 +572,16 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 		
 		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
 
-		for(int x = 0; x < 9;x++)
+		for (int x = 0; x < 9;x++)
 		{
 			if (ptr[x] == 0x78)
 				break;
 			xcnt++;
 		}
-		for(int y=0; y < 10; y++)
+
+		for (int y=0; y < 10; y++)
 		{
-			for(int x=0; x < xcnt; x++)
+			for (int x=0; x < xcnt; x++)
 			{
 				switch(retval)
 				{
@@ -590,14 +589,14 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 					{
 						// TODO: Is this an acceptable way to draw in I8?
 						u8  *dtp = (u8*)dst;
-						dtp[(y + yoff)*width + x + xoff] = ptr[x] ? 0xFF : 0x88;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFF : 0x88;
 						break;
 					}
 				case PC_TEX_FMT_IA8:
 				case PC_TEX_FMT_IA4_AS_IA8:
 					{
 						u16  *dtp = (u16*)dst;
-						dtp[(y + yoff)*width + x + xoff] = ptr[x] ? 0xFFFF : 0xFF00;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFF : 0xFF00;
 						break;
 					}
 				case PC_TEX_FMT_RGB565:
@@ -610,7 +609,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 				case PC_TEX_FMT_BGRA32:
 					{
 						int  *dtp = (int*)dst;
-						dtp[(y + yoff)*width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
 						break;
 					}
 				}
