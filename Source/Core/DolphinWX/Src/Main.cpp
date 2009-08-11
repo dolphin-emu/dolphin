@@ -108,24 +108,23 @@ bool DolphinApp::OnInit()
 #endif
 
 
-	// Show CPU message
+	// "ExtendedTrace" looks freakin dangerous!!!
 	#ifdef _WIN32
 		EXTENDEDTRACEINITIALIZE(".");
 		SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
 	#endif
 		
-		// TODO: if First Boot
-		if (!cpu_info.bSSE2) 
-		{
-			PanicAlert("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-							 "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-							 "Sayonara!\n");
-			return false;
-		}
+	// TODO: if First Boot
+	if (!cpu_info.bSSE2) 
+	{
+		PanicAlert("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+						 "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+						 "Sayonara!\n");
+		return false;
+	}
 #ifndef __APPLE__
 	// Keep the user config dir free unless user wants to save the working dir
-	FILE* noCheckForInstallDir = fopen(FULL_CONFIG_DIR "portable", "r");
-	if (!noCheckForInstallDir)
+	if (File::Exists(FULL_CONFIG_DIR "portable"))
 	{
 		char tmp[1024];
 		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),

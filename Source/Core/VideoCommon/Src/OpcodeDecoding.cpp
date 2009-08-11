@@ -258,7 +258,7 @@ static void Decode()
         break;
 
     case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
-		DEBUG_LOG(VIDEO, "GX 0x44: %08x", Cmd);
+		DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
         break;
 
     case GX_CMD_INVL_VC: // Invalidate Vertex Cache	

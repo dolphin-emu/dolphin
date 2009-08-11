@@ -631,7 +631,7 @@ int main()
 #ifdef HW_RVL
 		// Probably could offer to save to sd gecko or something on gc...
 		// The future is web-based reporting ;)
-		if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_2) || (PAD_ButtonsDown(0) & PAD_BUTTON_X))
 		{
 			dump_all_ucodes();
 		}
