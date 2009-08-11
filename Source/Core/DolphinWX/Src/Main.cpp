@@ -124,7 +124,7 @@ bool DolphinApp::OnInit()
 	}
 #ifndef __APPLE__
 	// Keep the user config dir free unless user wants to save the working dir
-	if (File::Exists(FULL_CONFIG_DIR "portable"))
+	if (!File::Exists(FULL_CONFIG_DIR "portable"))
 	{
 		char tmp[1024];
 		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),
@@ -143,6 +143,7 @@ bool DolphinApp::OnInit()
 				{
 					PanicAlert("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
 				}
+				fclose(portable);
 			}
 			else
 			{
@@ -151,7 +152,8 @@ bool DolphinApp::OnInit()
 				if (PanicYesNo("Set install location to:\n %s ?", CWD))
 				{
 					FILE* workingDirF = fopen(tmp, "w");
-					if (!workingDirF) PanicAlert("Install directory could not be saved");
+					if (!workingDirF)
+						PanicAlert("Install directory could not be saved");
 					else
 					{
 						fwrite(CWD, ((std::string)CWD).size()+1, 1, workingDirF);
@@ -159,16 +161,17 @@ bool DolphinApp::OnInit()
 						fclose(workingDirF);
 					}
 				}
-				else PanicAlert("Relaunch Dolphin from the install directory and save from there");
+				else
+					PanicAlert("Relaunch Dolphin from the install directory and save from there");
 			}
 		}
 		else
 		{
 			char *tmpChar;
 			long len;
-			fseek(workingDir,0,SEEK_END);
-			len=ftell(workingDir);
-			fseek(workingDir,0,SEEK_SET);
+			fseek(workingDir, 0, SEEK_END);
+			len = ftell(workingDir);
+			fseek(workingDir, 0, SEEK_SET);
 			tmpChar = new char[len];
 			fread(tmpChar, len, 1, workingDir);
 			fclose(workingDir);
