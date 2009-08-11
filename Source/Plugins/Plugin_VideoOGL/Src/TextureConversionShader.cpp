@@ -33,65 +33,6 @@ static char text[16384];
 namespace TextureConversionShader
 {
 
-u16 GetBlockWidthInTexels(u32 format)
-{
-    switch (format) {
-    case GX_TF_I4: return 8;   
-    case GX_TF_I8: return 8;
-    case GX_TF_IA4: return 8;
-    case GX_TF_IA8: return 4;
-    case GX_TF_RGB565: return 4;
-    case GX_TF_RGB5A3: return 4;
-    case GX_TF_RGBA8: return 4;
-	case GX_CTF_R4: return 8;
-    case GX_CTF_RA4: return 8;
-    case GX_CTF_RA8: return 4;
-    case GX_CTF_A8: return 8;
-    case GX_CTF_R8: return 8;
-    case GX_CTF_G8: return 8;
-    case GX_CTF_B8: return 8;
-    case GX_CTF_RG8: return 4;
-    case GX_CTF_GB8: return 4;
-	case GX_TF_Z8: return 8;
-	case GX_TF_Z16: return 4;
-	case GX_TF_Z24X8: return 4;
-	case GX_CTF_Z4: return 8;
-	case GX_CTF_Z8M: return 8;
-	case GX_CTF_Z8L: return 8;
-	case GX_CTF_Z16L: return 4;
-    default: return 8;
-    }
-}
-
-u16 GetBlockHeightInTexels(u32 format)
-{
-    switch (format) {    
-	case GX_TF_I4: return 8; 
-    case GX_TF_I8: return 4;
-	case GX_TF_IA4: return 4; 
-    case GX_TF_IA8: return 4;
-	case GX_TF_RGB565: return 4;
-	case GX_TF_RGB5A3: return 4;
-	case GX_TF_RGBA8: return 4;
-	case GX_CTF_R4: return 8;
-    case GX_CTF_RA4: return 4;
-    case GX_CTF_RA8: return 4;
-    case GX_CTF_A8: return 4;
-    case GX_CTF_R8: return 4;
-    case GX_CTF_G8: return 4;
-    case GX_CTF_B8: return 4;
-    case GX_CTF_RG8: return 4;
-    case GX_CTF_GB8: return 4;
-	case GX_TF_Z8: return 4;
-	case GX_TF_Z16: return 4;
-	case GX_TF_Z24X8: return 4;
-	case GX_CTF_Z4: return 8;
-	case GX_CTF_Z8M: return 4;
-	case GX_CTF_Z8L: return 4;
-	case GX_CTF_Z16L: return 4;
-    default: return 8;
-    }
-}
 
 u16 GetEncodedSampleCount(u32 format)
 {
@@ -130,8 +71,8 @@ void WriteSwizzler(char*& p, u32 format)
 	WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
 
-    float blkW = (float)GetBlockWidthInTexels(format);
-	float blkH = (float)GetBlockHeightInTexels(format);
+    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
+	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 	float samples = (float)GetEncodedSampleCount(format);
 
 	WRITE(p, 
@@ -172,8 +113,8 @@ void Write32BitSwizzler(char*& p, u32 format)
     WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
 
-    float blkW = (float)GetBlockWidthInTexels(format);
-	float blkH = (float)GetBlockHeightInTexels(format);
+    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
+	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 

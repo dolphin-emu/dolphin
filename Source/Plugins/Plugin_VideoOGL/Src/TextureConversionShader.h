@@ -24,9 +24,6 @@
 
 namespace TextureConversionShader
 {
-
-u16 GetBlockWidthInTexels(u32 format);
-u16 GetBlockHeightInTexels(u32 format);
 u16 GetEncodedSampleCount(u32 format);
 
 const char *GenerateEncodingShader(u32 format);

@@ -270,8 +270,8 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 		height /= 2;
 	}
 	
-	u16 blkW = TextureConversionShader::GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TextureConversionShader::GetBlockHeightInTexels(format) - 1;	
+	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
 
 	// only copy on cache line boundaries

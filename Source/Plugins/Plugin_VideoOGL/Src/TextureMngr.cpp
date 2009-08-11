@@ -226,7 +226,7 @@ void TextureMngr::InvalidateRange(u32 start_address, u32 size) {
 	}
 }
 
-TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt)
+TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, u32 tex_format, int tlutaddr, int tlutfmt)
 {
 	// notes (about "UNsafe texture cache"):
 	//	Have to be removed soon.
