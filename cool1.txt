@@ -9,13 +9,13 @@ void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
 
   if (c0.r < 0.50 || c0.b > 0.5)
   {
-	blue = c0.r + (c0.b / 2);
-	red = c0.g + (c0.b / 2);
+	blue = c0.r;
+	red = c0.g;
   }
   else
   {
-	blue = c0.r + (c0.b / 2);
-	green = c0.r + (c0.b / 2);
+	blue = c0.r;
+	green = c0.r;
   }
   
   ocol0 = float4(red, green, blue, 1.0);
