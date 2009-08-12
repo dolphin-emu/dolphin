@@ -287,9 +287,9 @@ void fdivx(UGeckoInstruction _inst)
 }
 void fdivsx(UGeckoInstruction _inst)
 {
-	float a = (float)rPS0(_inst.FA);
-	float b = (float)rPS0(_inst.FB);
-	rPS0(_inst.FD) = rPS1(_inst.FD) = a / b;
+	double a = rPS0(_inst.FA);
+	double b = rPS0(_inst.FB);
+	rPS0(_inst.FD) = rPS1(_inst.FD) = (float)(a / b);
 	if (b == 0.0)
 	{
 		if (!FPSCR.ZX)

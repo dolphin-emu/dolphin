@@ -1084,7 +1084,7 @@ static void EndField()
 
 // Purpose 1: Send VI interrupt for every screen refresh
 // Purpose 2: Execute XFB copy in homebrew games
-// Run when: This is run 7200 times per second on full speed
+// Run when: This is run 15700 times per second on full speed
 void Update()
 {
 	// Update the target refresh rate
@@ -1104,7 +1104,6 @@ void Update()
 		// Multipled by two because of the way TicksPerFrame is calculated (divided by 25 and 30
 		// rather than 50 and 60)
 
-		// TODO : Feed the FPS estimate into Iulius' framelimiter.
 		ActualRefreshRate = ((double)SyncTicksProgress / (double)TicksPerFrame) * 2.0;		
 		LastTick = CoreTiming::GetTicks();
 		SyncTicksProgress = 0;
