@@ -54,8 +54,7 @@ struct DSPState
 	u32 DSPMailbox;
 	bool DSPMailbox_Read[2];
 
-	DSPState()
-	{
+	void Reset() {
 		CPUMailbox = 0x00000000;
 		CPUMailbox_Written[0] = false;
 		CPUMailbox_Written[1] = false;
@@ -63,6 +62,11 @@ struct DSPState
 		DSPMailbox = 0x00000000;
 		DSPMailbox_Read[0] = true;
 		DSPMailbox_Read[1] = true;
+	}
+
+	DSPState()
+	{
+		Reset();
 	}
 };
 DSPState g_dspState;
@@ -202,6 +206,8 @@ void Initialize(void *init)
 
 	g_Config.Load();
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
+
+	g_dspState.Reset();
 
 	CDSPHandler::CreateInstance();
 
