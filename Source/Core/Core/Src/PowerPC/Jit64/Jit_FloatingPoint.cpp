@@ -208,57 +208,47 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
-		{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
-	if (jo.fpAccurateFcmp)
-	{
-		Default(inst);
-		return;
+	if(Core::g_CoreStartupParameter.bJITOff || jo.fpAccurateFcmp
+	|| Core::g_CoreStartupParameter.bJITFloatingPointOff) {
+		Default(inst); return; // turn off from debugger
 	}
-	bool ordered = inst.SUBOP10 == 32;
-/*
-double fa =	rPS0(_inst.FA);
-double fb =	rPS0(_inst.FB);
-u32 compareResult;
 
-if(IsNAN(fa) ||	IsNAN(fb))	compareResult = 1; 
-else if(fa < fb)			compareResult = 8;	
-else if(fa > fb)			compareResult = 4;
-else						compareResult = 2;
-
-FPSCR.FPRF = compareResult;
-CR = (CR & (~(0xf0000000 >> (_inst.CRFD * 4)))) | (compareResult <<	((7	- _inst.CRFD) *	4));
-*/
-	int a = inst.FA;
-	int b = inst.FB;
-	int crf = inst.CRFD;
-	int shift = crf * 4;
-	//FPSCR
-	//XOR(32,R(EAX),R(EAX));
+	//bool ordered = inst.SUBOP10 == 32;
+	int a	= inst.FA;
+	int b	= inst.FB;
+	int crf	= inst.CRFD;
 
 	fpr.Lock(a,b);
-	if (a != b)
-		fpr.LoadToX64(a, true);
+	if (a != b) fpr.LoadToX64(a, true);
 
-	// USES_CR
-	if (ordered)
-		COMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
-	else
-		UCOMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
+	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
+	UCOMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
+
+	FixupBranch pNaN	 = J_CC(CC_P);
 	FixupBranch pLesser  = J_CC(CC_B);
 	FixupBranch pGreater = J_CC(CC_A);
-	// _x86Reg == 0
+
+	// Equal
 	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));
 	FixupBranch continue1 = J();
-	// _x86Reg > 0
+	
+	// Greater Than
 	SetJumpTarget(pGreater);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
 	FixupBranch continue2 = J();
-	// _x86Reg < 0
+	
+	// Less Than
 	SetJumpTarget(pLesser);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
+	FixupBranch continue3 = J();
+	
+	// NAN
+	SetJumpTarget(pNaN);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x1));
+	
 	SetJumpTarget(continue1);
 	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
 	fpr.UnlockAll();
 }
