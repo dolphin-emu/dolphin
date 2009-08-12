@@ -43,7 +43,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bDSPThread = true;
 	bLockThreads = true;
-	bEnableFPRF = false;
+	bEnableFPRF = true;
 	bWii = false;
 	SelectedLanguage = 0;
 	iTLBHack = 0;
