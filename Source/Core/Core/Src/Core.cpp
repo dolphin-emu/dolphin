@@ -67,6 +67,8 @@ namespace Core
  
 
 // Declarations and definitions
+Common::Timer Timer;
+u32 frames = 0;
 
  
 // Function forwarding
@@ -587,6 +589,30 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 	INFO_LOG(VIDEO, _szMessage);
 }
  
+// reports if a frame should be skipped or not
+// depending on the framelimit set
+bool report_slow(int skipped)
+{
+	u32 targetfps = SConfig::GetInstance().m_Framelimit * 5;
+	double wait_frametime;
+
+	if (targetfps < 5)
+		wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
+	else
+		wait_frametime = (1000.0 / targetfps);
+
+	bool fps_slow;
+
+	if (Timer.GetTimeDifference() < wait_frametime * (frames + skipped - 1))
+		fps_slow=false;
+	else
+		fps_slow=true;
+
+	if (targetfps == 5)
+		fps_slow=true;
+
+	return fps_slow;
+}
 
 // Callback_VideoCopiedToXFB
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
@@ -599,14 +625,17 @@ void Callback_VideoCopiedToXFB(bool video_update)
     SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	
 	//count FPS and VPS
-	static Common::Timer Timer;
-	static u32 frames = 0;
 	static u32 videoupd = 0;
+	static u32 no_framelimit = 0;
+	
 
 	if (video_update)
 		videoupd++;
 	else
 		frames++;
+
+	if (no_framelimit>0)
+		no_framelimit--;
 
 	// Custom frame limiter
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -616,18 +645,28 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	{
 		double wait_frametime = (1000.0 / targetfps);
 
+		if (Timer.GetTimeDifference() >= wait_frametime * frames)
+			no_framelimit=Timer.GetTimeDifference();
+
 		while (Timer.GetTimeDifference() < wait_frametime * frames)
-			Common::SleepCurrentThread(1);
+		{
+			if (no_framelimit==0)
+				Common::SleepCurrentThread(1);
+		}
 	}
 	else if (targetfps < 5)
 	{
 		double wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
 
+		if (Timer.GetTimeDifference() >= wait_frametime * frames)
+			no_framelimit=Timer.GetTimeDifference();
+
 		while (Timer.GetTimeDifference() < wait_frametime * videoupd)
 		{
 			// TODO : This is wrong, the sleep shouldn't be there but rather in cputhread
 			// as it's not based on the fps but on the refresh rate...
-			Common::SleepCurrentThread(1);
+			if (no_framelimit==0)
+				Common::SleepCurrentThread(1);
 		}
 	}
 

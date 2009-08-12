@@ -72,6 +72,8 @@ namespace Core
     void SetBlockStart(u32 addr);
     void StopTrace();
 
+	bool report_slow(int skipped);
+
 	// -----------------------------------------
 	#ifdef RERECORDING
 	// -----------------

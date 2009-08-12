@@ -33,16 +33,15 @@ bool g_bFirstKey = true;
 int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 void FrameUpdate() {
+
+
 	if (g_bFrameStep)
 		Core::SetState(Core::CORE_PAUSE);
 
+	FrameSkipping();
+
 	if (g_bAutoFire)
 		g_bFirstKey = !g_bFirstKey;
-
-	if (g_framesToSkip)
-		FrameSkipping();
-	else
-		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(true);
 	
 }
 
@@ -123,7 +122,7 @@ void FrameSkipping()
 	cs_frameSkip.Enter();
 
 	g_frameSkipCounter++;
-	if (g_frameSkipCounter > g_framesToSkip)
+	if (g_frameSkipCounter > g_framesToSkip || Core::report_slow(g_frameSkipCounter) == false)
 		g_frameSkipCounter = 0;
 
 	CPluginManager::GetInstance().GetVideo()->Video_SetRendering(!g_frameSkipCounter);
