@@ -474,7 +474,10 @@ void CFrame::DoOpen(bool Boot)
 	{
 		if (!fileChosen)
 			path = wxT("");
-		DVDInterface::ChangeDisc((const char *)path.mb_str());
+		// temp is deleted by changediscCallback
+		char * temp = new char[strlen(path.mb_str())];
+		strncpy(temp, path.mb_str(), strlen(path.mb_str()));
+		DVDInterface::ChangeDisc(temp);
 	}
 }
 
@@ -631,7 +634,7 @@ void CFrame::OnShow_InfoWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
-    BootManager::BootCore(FULL_WII_MENU_DIR);
+	BootManager::BootCore(FULL_WII_MENU_DIR);
 }
 
 // Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover

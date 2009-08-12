@@ -301,6 +301,8 @@ bool IsDiscInside()
 
 // Take care of all logic of "swapping discs"
 // We want this in the "backend", NOT the gui
+// any !empty string will be deleted to ensure
+// that the userdata string exists when called
 void ChangeDiscCallback(u64 userdata, int cyclesLate)
 {
 	std::string FileName((const char*)userdata);
@@ -314,17 +316,21 @@ void ChangeDiscCallback(u64 userdata, int cyclesLate)
 		// Empty the drive
 		VolumeHandler::EjectVolume();
 	}
-	else if (VolumeHandler::SetVolumeName(FileName))
-	{
-		// Save the new ISO file name
-		SavedFileName = FileName;
-	}
 	else
 	{
-		PanicAlert("Invalid file");
+		delete [] (char *) userdata;
+		if (VolumeHandler::SetVolumeName(FileName))
+		{
+			// Save the new ISO file name
+			SavedFileName = FileName;
+		}
+		else
+		{
+			PanicAlert("Invalid file \n %s", FileName.c_str());
 
-		// Put back the old one
-		VolumeHandler::SetVolumeName(SavedFileName);
+			// Put back the old one
+			VolumeHandler::SetVolumeName(SavedFileName);
+		}
 	}
 
 	SetLidOpen(false);
