@@ -210,7 +210,7 @@ void Jit64::Init()
 	jo.enableFastMem = false;
 #endif
 	jo.assumeFPLoadFromMem = true;
-	jo.fpAccurateFcmp = Core::GetStartupParameter().bEnableFPRF;
+	jo.fpAccurateFcmp = true;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
