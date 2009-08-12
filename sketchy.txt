@@ -1,0 +1,17 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba;
+  float4 tmp = float4(0, 0, 0, 0);
+  tmp += c0 - texRECT(samp0, uv0 + float2(2, 2)).rgba;
+  tmp += c0 - texRECT(samp0, uv0 - float2(2, 2)).rgba;
+  tmp += c0 - texRECT(samp0, uv0 + float2(2, -2)).rgba;
+  tmp += c0 - texRECT(samp0, uv0 - float2(2, -2)).rgba;
+  float grey = ((0.222 * tmp.r) + (0.707 * tmp.g) + (0.071 * tmp.b));
+  // get rid of the bottom line, as it is incorrect.
+  if (uv0[1] < 163)
+    tmp = 1;
+  c0 = c0+1-grey*7;
+  ocol0 = float4(c0.r, c0.g, c0.b, 1);
+}
