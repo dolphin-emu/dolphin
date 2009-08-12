@@ -45,6 +45,8 @@ private:
 
     DiscIO::IFileSystem* m_pFileSystem;
 	u32 m_ErrorStatus;
+	// This flag seems to only be reset with poweron/off, not sure
+	u32 m_CoverStatus;
 };
 
 #endif

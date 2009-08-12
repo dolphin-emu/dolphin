@@ -32,13 +32,21 @@
 using namespace DVDInterface;
 
 
+#define DI_COVER_REG_INITIALIZED	0x40
+#define DI_COVER_REG_NO_DISC		0x01
+
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pFileSystem(NULL)
 	, m_ErrorStatus(0)
+	, m_CoverStatus(DI_COVER_REG_NO_DISC)
 {
 	if (VolumeHandler::IsValid())
+	{
         m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
+		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
+		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
+	}
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
@@ -138,43 +146,30 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	// Initializing a filesystem if it was just loaded
 	if(!m_pFileSystem && VolumeHandler::IsValid())
+	{
 		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
+		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
+		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
+	}
 
 	// De-initializing a filesystem if the volume was unmounted
 	if(m_pFileSystem && !VolumeHandler::IsValid())
 	{
 		delete m_pFileSystem;
 		m_pFileSystem = NULL;
+		m_CoverStatus |= DI_COVER_REG_NO_DISC;
 	}
 
 	switch (Command)
 	{
 	case DVDLowInquiry:
 		{
-			u8* buffer = Memory::GetPointer(_BufferOut);
-			
-			/* In theory this gives a game the option to use different read / write behaviors
-			   depending on which hardware revision that is used, if there have been more than
-			   one. But it's probably not used at all by any game, in any case it would be strange
-			   if it refused a certain value here if it's possible that that would make it
-			   incompatible with new DVD drives for example. From an actual Wii the code was
-			   0x0000, 0x0002, 0x20060526, I tried it in Balls of Fury that gives a DVD error
-			   message after the DVDLowInquiry, but that did't change anything, it must be
-			   something else. */
-// 			buffer[0] = 0x01; // rev
-// 			buffer[1] = 0x02;
-// 			buffer[2] = 0x03; // dev code
-// 			buffer[3] = 0x04;
-// 			buffer[4] = 0x20; // firmware date
-// 			buffer[5] = 0x08;
-// 			buffer[6] = 0x08;
-// 			buffer[7] = 0x29;
-
-			buffer[4] = 0x20; // firmware date
-			buffer[5] = 0x02;
-			buffer[6] = 0x04;
-			buffer[7] = 0x02;
-			buffer[8] = 0x61; // version
+			// (shuffle2) Taken from my wii
+			Memory::Write_U32(0x00000002, _BufferOut);
+			Memory::Write_U32(0x20060526, _BufferOut);
+			// This was in the oubuf even though this cmd is only supposed to reply with 64bits
+			// However, this and other tests strongly suggest that the buffer is static, and it's never - or rarely cleared.
+			Memory::Write_U32(0x41000000, _BufferOut);
 
 			INFO_LOG(WII_IPC_DVD, "DVDLowInquiry (Buffer 0x%08x, 0x%x)",
 				_BufferOut, _BufferOutSize);
@@ -233,26 +228,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
         }
         break;
 
-    case DVDLowGetCoverReg:
-		// DVD Cover Register States:
-		// 0x00: Unknown state (keeps checking for DVD)
-		// 0x01: No Disc inside
-		// 0xFE: Read Disc
-
-		// TODO: Make user-generated ejection mechanism recognized.
-		// (Currently eject only works if DVDLowReset is called)
-
-		// Test cases for this command: Legend of Spyro, MP3, WiiMenu
-		// WiiMenu currently will stop polling /dev/di if no disc is inserted on boot
-		// This makes me think it is wanting some interrupt when a disc is inserted
-		// However, DVDInterface::ChangeDisc does not accomplish this...needs investigation!
-
-		if (IsDiscInside())
-			Memory::Write_U32(0xfe, _BufferOut);
-		else if (IsLidOpen())
-			Memory::Write_U32(0x00, _BufferOut);
-		else
-			Memory::Write_U32(0x01, _BufferOut);
+	case DVDLowGetCoverReg:
+		Memory::Write_U32(m_CoverStatus, _BufferOut);
 
 		INFO_LOG(WII_IPC_DVD, "DVDLowGetCoverReg 0x%08x", Memory::Read_U32(_BufferOut));
 		break;
@@ -280,9 +257,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		break;
 
 	case DVDLowGetCoverStatus:
-		// TODO: check (haven't tested yet)
-		Memory::Write_U32(IsDiscInside() ? 2 : 0, _BufferOut);
-		INFO_LOG(WII_IPC_DVD, "DVDLowGetCoverStatus %i", IsDiscInside() ? 2 : 0);
+		Memory::Write_U32(IsDiscInside() ? 2 : 1, _BufferOut);
+		INFO_LOG(WII_IPC_DVD, "DVDLowGetCoverStatus: Disc %sInserted", IsDiscInside() ? "" : "Not ");
 		break;
 
 	case DVDLowReset:
