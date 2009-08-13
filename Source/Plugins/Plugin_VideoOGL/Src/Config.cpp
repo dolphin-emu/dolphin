@@ -36,7 +36,7 @@ void Config::Load()
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
     strncpy(iInternalRes, temp.c_str(), 16);
-	// apply this to the fullscreen resolution too
+	iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
     strncpy(iFSResolution, temp.c_str(), 16);
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
