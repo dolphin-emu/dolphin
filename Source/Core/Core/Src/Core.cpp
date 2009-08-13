@@ -603,7 +603,7 @@ bool report_slow(int skipped)
 
 	bool fps_slow;
 
-	if (Timer.GetTimeDifference() < wait_frametime * (frames + skipped - 1))
+	if (Timer.GetTimeDifference() < wait_frametime * (frames + skipped))
 		fps_slow=false;
 	else
 		fps_slow=true;
