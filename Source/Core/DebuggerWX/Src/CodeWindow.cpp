@@ -285,7 +285,7 @@ void CCodeWindow::Load_( IniFile &ini )
 	std::string fontDesc;
 	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
-		DebuggerFont.SetNativeFontInfoUserDesc(wxString(fontDesc.c_str(), wxConvUTF8));
+		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
 
 	// Decide what windows to use
 	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
@@ -809,7 +809,7 @@ void CCodeWindow::UpdateLists()
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol) {
-			int idx = callers->Append(wxString::Format( wxT("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
+			int idx = callers->Append(wxString::FromAscii(StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str()));
 			callers->SetClientData(idx, (void*)caller_addr);
 		}
 	}
@@ -820,7 +820,7 @@ void CCodeWindow::UpdateLists()
 		u32 call_addr = symbol->calls[i].function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol) {
-			int idx = calls->Append(wxString::Format(_T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
+			int idx = calls->Append(wxString::FromAscii(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str()));
 			calls->SetClientData(idx, (void*)call_addr);
 		}
 	}
