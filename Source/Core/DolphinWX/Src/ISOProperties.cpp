@@ -192,7 +192,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	WxUtils::CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
 
 	SetTitle(wxString::Format(wxT("%s%s"),
-		wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()),
+		wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
 		name.c_str()).c_str());
 }
 
