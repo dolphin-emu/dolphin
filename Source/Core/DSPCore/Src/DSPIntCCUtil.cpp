@@ -28,7 +28,7 @@ namespace DSPInterpreter {
 
 void Update_SR_Register64(s64 _Value)
 {
-	// TODO: Should also set 0x10 and 0x01
+	// TODO: Should also set 0x10 and 0x01 (also 0x02?)
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	if (_Value < 0)
@@ -42,7 +42,7 @@ void Update_SR_Register64(s64 _Value)
 	}
 
 	// Checks if top bits are equal, what is it good for?
-	if ((_Value >> 62) == 0 || _Value >> 62 == 3)
+	if (((_Value >> 62) == 0) || (_Value >> 62 == 3))
 	{	
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
@@ -66,7 +66,7 @@ void Update_SR_Register16(s16 _Value)
 	}
 
 	// Checks if top bits are equal, what is it good for?
-	if ((_Value >> 14) == 0 || _Value >> 14 == 3)
+	if (((_Value >> 14) == 0) || ((_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
@@ -85,12 +85,9 @@ void Update_SR_LZ(s64 value) {
 
 }
 
-int GetMultiplyModifier()
+inline int GetMultiplyModifier()
 {
-	if (g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY)
-		return 1;
-	else	
-		return 2;
+	return (g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY)?1:2;
 }
 
 inline bool isCarry() {
