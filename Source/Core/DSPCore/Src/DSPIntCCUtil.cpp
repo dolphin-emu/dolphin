@@ -28,6 +28,7 @@ namespace DSPInterpreter {
 
 void Update_SR_Register64(s64 _Value)
 {
+	// TODO: Should also set 0x10 and 0x01
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	if (_Value < 0)
@@ -40,17 +41,20 @@ void Update_SR_Register64(s64 _Value)
 		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
 	}
 
-	// weird
-	if ((_Value >> 62) == 0)
+	// Checks if top bits are equal, what is it good for?
+	if ((_Value >> 62) == 0 || _Value >> 62 == 3)
 	{	
-		g_dsp.r[DSP_REG_SR] |= 0x20;
+		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
 }
+
 
 void Update_SR_Register16(s16 _Value)
 {
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
+	// Only sets those 3 bits
+
 	if (_Value < 0)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
@@ -61,10 +65,10 @@ void Update_SR_Register16(s16 _Value)
 		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
 	}
 
-	// weird
-	if ((_Value >> 14) == 0)
+	// Checks if top bits are equal, what is it good for?
+	if ((_Value >> 14) == 0 || _Value >> 14 == 3)
 	{
-		g_dsp.r[DSP_REG_SR] |= 0x20;
+		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
 }
 

@@ -150,7 +150,7 @@
 #define SR_ARITH_ZERO   0x0004
 #define SR_SIGN         0x0008
 #define SR_10           0x0010   // seem to be set by tst
-#define SR_TOP2BITS     0x0020   // this is an odd one. (set by tst)
+#define SR_TOP2BITS     0x0020   // if the upper 2 bits are equal
 #define SR_LOGIC_ZERO   0x0040
 #define SR_INT_ENABLE   0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_EXT_INT_ENABLE 0x0800   // Appears in zelda - seems to disable external interupts

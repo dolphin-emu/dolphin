@@ -461,7 +461,7 @@ void addax(const UDSPInstruction& opc)
 
 // ADDR $acD.M, $axS.L
 // 0100 0ssd xxxx xxxx
-// Adds register $axS.L to accumulator $acD register.
+// Adds register $axS.L to accumulator $acD.M register.
 void addr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;
