@@ -149,9 +149,8 @@ def GenerateRevFile(flavour, template, output):
     except:
         svnrev = ""
         
-    revstr = svnrev + "-" + flavour 
-    tmpstr = open(template, "r").read().replace("$WCREV$",revstr)
-
+    revstr = '"' + svnrev + "-" + flavour + '"'
+    tmpstr = open(template, "r").read().replace("$WCMODS?\"$WCREV$M\":\"$WCREV$\"$",revstr)
     outfile = open(output, 'w') 
     outfile.write(tmpstr +"\n")
     outfile.close()
