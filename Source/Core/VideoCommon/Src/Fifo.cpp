@@ -25,20 +25,17 @@
 #include "Fifo.h"
 
 volatile bool g_bSkipCurrentFrame = false;
-
+volatile bool g_EFBAccessRequested = false;
 extern u8* g_pVideoData;
 
-volatile bool g_EFBAccessRequested = false;
-
-namespace {
-
+namespace
+{
 static volatile bool fifoStateRun = false;
 static u8 *videoBuffer;
 static Common::Event fifo_exit_event;
 static Common::CriticalSection s_criticalFifo;
 // STATE_TO_SAVE
 static int size = 0;
-
 }  // namespace
 
 void Fifo_DoState(PointerWrap &p) 
@@ -78,8 +75,9 @@ u8* FAKE_GetFifoEndPtr()
 	return &videoBuffer[size];
 }
 
-void Fifo_SetRendering(bool bEnabled) {
-	g_bSkipCurrentFrame = !bEnabled;
+void Fifo_SetRendering(bool enabled)
+{
+	g_bSkipCurrentFrame = !enabled;
 }
 
 // Executed from another thread, no the graphics thread!
@@ -133,9 +131,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     while (fifoStateRun)
     {
 		video_initialize.pPeekMessages();
-
 		VideoFifo_CheckEFBAccess();
-
 		VideoFifo_CheckSwapRequest();
 
 		s_criticalFifo.Enter();
@@ -145,58 +141,52 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         {
 			Common::AtomicStore(_fifo.CPReadIdle, 0);
 
-            while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
+            do
 			{
 				if (!fifoStateRun)
 					break;
 
+				// Get the Read Pointer
                 // Create pointer to video data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
-                u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
 
+				// Set distance
 				// if we are on BP mode we must send 32B chunks to Video plugin for BP checking
-				// TODO (mb2): test & check if MP1/MP2 realy need this now.
-				if (_fifo.bFF_BPEnable)
-                {
-					if (readPtr == _fifo.CPBreakpoint)
-                    {
-						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-                        video_initialize.pUpdateInterrupts();
-                        break;
-                    }
-					distToSend = 32;
-					readPtr += 32;
-					if ( readPtr >= _fifo.CPEnd) 
-						readPtr = _fifo.CPBase;
-                }
-				else
+				distToSend  = _fifo.bFF_BPEnable ? 32 : _fifo.CPReadWriteDistance;
+				// send 1024B chunk max length to have better control over PeekMessages' period
+				//distToSend = distToSend > 1024 ? 1024 : distToSend;
+
+				// Get Data based on pointer
+				u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
+
+				// Check Pointer and move pointer
+				if ((distToSend + readPtr) >= _fifo.CPEnd)
 				{
-					distToSend = _fifo.CPReadWriteDistance;
-					// send 1024B chunk max length to have better control over PeekMessages' period
-					distToSend = distToSend > 1024 ? 1024 : distToSend;
-					if ((distToSend + readPtr) >= _fifo.CPEnd) // TODO: better?
-					{
-						distToSend =_fifo.CPEnd - readPtr;
-						readPtr = _fifo.CPBase;
-					}
-					else
-						readPtr += distToSend;
+					distToSend =_fifo.CPEnd - readPtr;
+					readPtr = _fifo.CPBase;
 				}
+				else
+					readPtr += distToSend;
 
 				// Execute new instructions found in uData
 				Fifo_SendFifoData(uData, distToSend);
 
+				//Check BP Mode - Pokemon XD wants this to be called after the pointer move
+				if (_fifo.bFF_BPEnable && (readPtr == _fifo.CPBreakpoint))
+                {
+						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
+                        video_initialize.pUpdateInterrupts();
+                }
+
+				// Update CPReadPointer and RWDistance
                 Common::AtomicStore(_fifo.CPReadPointer, readPtr);
                 Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
 
-				video_initialize.pPeekMessages();
 
-				VideoFifo_CheckEFBAccess();
-
-				VideoFifo_CheckSwapRequest();
-			}
+			} while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance  && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint));
 
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
+			video_initialize.pSetFifoIdle();
         }
 		else
 		{

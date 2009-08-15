@@ -152,6 +152,7 @@ u16 m_tokenReg;
 
 SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
 static u32 fake_GPWatchdogLastToken = 0;
+static Common::Event s_fifoIdleEvent;
 
 void DoState(PointerWrap &p)
 {
@@ -191,7 +192,8 @@ void IncrementGPWDToken()
 void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-		Common::YieldCPU();
+		s_fifoIdleEvent.MsgWait();
+	
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
 
@@ -222,11 +224,14 @@ void Init()
 	fifo.CPCmdIdle  = 1 ;
 	fifo.CPReadIdle = 1;
 
+	s_fifoIdleEvent.Init();
+
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
 
 void Shutdown()
 {
+	s_fifoIdleEvent.Shutdown();
 }
 
 void Read16(u16& _rReturnValue, const u32 _Address)
@@ -377,7 +382,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) )
-				Common::YieldCPU();
+				s_fifoIdleEvent.MsgWait();
 		}
 	}
 
@@ -428,9 +433,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			
 			// BP interrupt is cleared here
 
-			//if (tmpCtrl.CPIntEnable)
-			if (!m_CPCtrlReg.CPIntEnable && tmpCtrl.CPIntEnable) // raising edge
 			//if (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex) // falling edge
+			// raising edge or falling egde
+			if ((!m_CPCtrlReg.CPIntEnable && tmpCtrl.CPIntEnable) || (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex)) 
 			{
 				m_CPStatusReg.Breakpoint = 0;
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
@@ -608,7 +613,7 @@ void STACKALIGN GatherPipeBursted()
 			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
 			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
-				Common::YieldCPU();
+				s_fifoIdleEvent.MsgWait();
 		}
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
@@ -677,7 +682,6 @@ void CatchUpGPU()
 				// adjust, take care
 				ptr = Memory::GetPointer(fifo.CPReadPointer);
 				INFO_LOG(COMMANDPROCESSOR, "BUFFER LOOP");
-				// PanicAlert("loop now");
 			}
 		}
 	}
@@ -732,6 +736,11 @@ void UpdateInterruptsFromVideoPlugin()
 	if (fifo.bFF_Breakpoint) // implicit since only BP trigger (see fifo.cpp) can call this
 		m_CPStatusReg.Breakpoint = 1;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts);
+}
+
+void SetFifoIdleFromVideoPlugin()
+{
+	s_fifoIdleEvent.Set();
 }
 
 } // end of namespace CommandProcessor

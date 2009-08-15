@@ -81,6 +81,7 @@ void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateInterrupts();
 void UpdateInterruptsFromVideoPlugin();
+void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();
 
@@ -88,8 +89,8 @@ bool AllowIdleSkipping();
 void IncrementGPWDToken();
 void WaitForFrameFinish();
 
-} // end of namespace CommandProcessor
+} // namespace CommandProcessor
 
-#endif
+#endif // _COMMANDPROCESSOR_H
 
 
