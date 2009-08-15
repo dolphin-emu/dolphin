@@ -127,7 +127,6 @@ void NetPlay::OnHost(wxCommandEvent& WXUNUSED(event))
 		m_nick = m_nick.substr(0 , 255);
 
 	m_NetModel = m_NetMode->GetSelection();
-	//Note By DacoTaco : selection starts with 0 instead of 1 ? ( the +1 is needed)
 	m_selectedGame = std::string(m_GameList_str[m_GameList->GetSelection()].mb_str());
 	NOTICE_LOG(NETPLAY,"Game has been set to : %s \n",m_selectedGame.c_str());
 
