@@ -29,6 +29,7 @@
 #include "CPMemory.h"
 #include "XFMemory.h"
 #include "VideoCommon.h"
+#include "GlobalControl.h"
 
 // Temporary ugly declaration.
 namespace VertexManager
@@ -75,7 +76,7 @@ void VertexShaderManager::Shutdown()
 }
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matricies without making a mess in the parameters field
-void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Hack_value1 ,bool Hack_hack2 ,float Hack_value2 ,bool freeLook)
+void VertexShaderManager::SetConstants()
 {
 
 	// TODO: Is this still needed?
@@ -268,6 +269,11 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Ha
         }
         else 
 		{ 
+			// Get the hacks
+			ProjectionHack hack1 = Projection_GetHack1();
+			ProjectionHack hack2 = Projection_GetHack2();
+			bool hack0 = Projection_GetHack0();
+
 			// Orthographic Projection
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
@@ -281,8 +287,8 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Ha
 
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = (Hack_hack1 ? -(Hack_value1 + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
-            g_fProjectionMatrix[11] = (Hack_hack2 ? -(Hack_value2 + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (proj_hax_1 ? 0.1f : 0.0f);
+            g_fProjectionMatrix[10] = (hack1.enabled ? -(hack1.value + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
+            g_fProjectionMatrix[11] = (hack2.enabled ? -(hack2.value + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (hack0 ? 0.1f : 0.0f);
             
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -316,7 +322,7 @@ void VertexShaderManager::SetConstants(bool proj_hax_1,bool Hack_hack1 ,float Ha
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
 
-        if (freeLook) 
+        if (Projection_GetFreeLook()) 
 		{
             Matrix44 mtxA;
             Matrix44 mtxB;

@@ -30,6 +30,7 @@
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"
+#include "GlobalControl.h"
 
 BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CLOSE(GFXConfigDialogOGL::OnClose)
@@ -700,6 +701,7 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
     case ID_FREELOOK:
 		g_Config.bFreeLook = m_FreeLook->IsChecked();
+		Projection_SetFreeLook(g_Config.bFreeLook);
 		break;
 	case ID_TEXTUREPATH:
 		break;
@@ -835,5 +837,10 @@ void Config::UpdateProjectionHack()
 		g_Config.bProjHack1 = 0;
 		break;
 	}
+
+	// Set the projections hacks
+	Projection_SetHack0(g_Config.bProjHack1);
+	Projection_SetHack1(ProjectionHack(g_Config.bPhackvalue1 == 0 ? false : true, g_Config.fhackvalue1));
+	Projection_SetHack2(ProjectionHack(g_Config.bPhackvalue2 == 0 ? false : true, g_Config.fhackvalue2));
 }
 

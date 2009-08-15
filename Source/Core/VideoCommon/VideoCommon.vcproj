@@ -674,6 +674,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Src\GlobalControl.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\GlobalControl.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\memcpy_amd.cpp"
 			>
 		</File>

@@ -261,7 +261,7 @@ void Flush()
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	// set global constants
-    VertexShaderManager::SetConstants(g_Config.bProjHack1,g_Config.bPhackvalue1, g_Config.fhackvalue1, g_Config.bPhackvalue2, g_Config.fhackvalue2, g_Config.bFreeLook);
+    VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
 	// finally bind
