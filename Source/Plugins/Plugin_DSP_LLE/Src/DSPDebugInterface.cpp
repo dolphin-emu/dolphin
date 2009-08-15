@@ -87,7 +87,7 @@ void DSPDebugInterface::setBreakpoint(unsigned int address)
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0) {
 		if (dsp_breakpoints.Add(real_addr))
-			;
+		{}
 	}
 }
 
@@ -96,7 +96,7 @@ void DSPDebugInterface::clearBreakpoint(unsigned int address)
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0) {
 		if (dsp_breakpoints.Remove(real_addr))
-			;
+		{}
 	}
 }
 

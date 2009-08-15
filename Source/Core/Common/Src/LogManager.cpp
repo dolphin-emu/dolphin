@@ -72,6 +72,7 @@ LogManager::LogManager()\
 	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");	
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manger", "MemCard Manger");
+	m_Log[LogTypes::NETPLAY]			= new LogContainer("NETPLAY"	,	"Netplay");
 
 	m_fileLog = new FileLogListener(MAIN_LOG_FILE);
 	m_consoleLog = new ConsoleListener();

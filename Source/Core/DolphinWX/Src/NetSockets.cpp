@@ -405,7 +405,7 @@ void *ClientSide::Entry()
 		unsigned char value;
 		size_t val_sz;
 		m_socket.Receive((char *)&value, 1, val_sz);
-		
+		// TODO : fix it. for some odd reason value is 1 instead of 16 making the connection "not successfull"
 		if (value == 0x16)	// UDP connection successful
 		{
 			Event->AppendText(_("Connection successful !\n"));
@@ -414,7 +414,7 @@ void *ClientSide::Entry()
 		}
 		else
 		{
-			Event->AppendText(_("UDP Connection FAILED !\nERROR : Unable to establish UDP Connection, please Check UDP Port forwarding !"));
+			Event->AppendText(_("UDP Connection FAILED !\nERROR : Unable to establish UDP Connection, please Check UDP Port forwarding !\n"));
 			m_socket.Close();
 			Event->SendEvent(HOST_ERROR);
 			return NULL;
@@ -553,7 +553,11 @@ void ClientSide::CheckGameFound()
 		m_socket.Send((const char *)&send_value, 1);
 
 		for (int i = 0; i < 2; i++)
+		{
 			Event->AppendText(_("WARNING : You do not have the Selected Game !\n"));
+			NOTICE_LOG(NETPLAY,"Game '%s' not found!",m_selectedgame);
+			
+		}			
 	}
 }
 

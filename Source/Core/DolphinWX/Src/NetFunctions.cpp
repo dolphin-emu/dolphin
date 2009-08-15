@@ -415,6 +415,7 @@ void NetPlay::ChangeSelectedGame(std::string game)
 		m_selectedGame = game;
 		UpdateNetWindow(false);
 		m_Logging->AppendText(wxString::Format(wxT("*Game has been changed to : %s\n"), game.c_str()));
+		NOTICE_LOG(NETPLAY,"Game has been changed to : %s \n",game.c_str());
 	}
 }
 

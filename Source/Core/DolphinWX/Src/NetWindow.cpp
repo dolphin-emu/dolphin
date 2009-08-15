@@ -127,7 +127,9 @@ void NetPlay::OnHost(wxCommandEvent& WXUNUSED(event))
 		m_nick = m_nick.substr(0 , 255);
 
 	m_NetModel = m_NetMode->GetSelection();
+	//Note By DacoTaco : selection starts with 0 instead of 1 ? ( the +1 is needed)
 	m_selectedGame = std::string(m_GameList_str[m_GameList->GetSelection()].mb_str());
+	NOTICE_LOG(NETPLAY,"Game has been set to : %s \n",m_selectedGame.c_str());
 
 	// Create the listening socket
 	sf::SocketTCP sock_server;
@@ -358,7 +360,10 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 	else
 	{
 		m_critical.Enter();
-		m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
+		//m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
+		//Note By Daco : i'd hate to make another variable... (they take up space :( )
+		std::string temp = " Game : " + m_selectedGame;
+		m_Game_str->SetLabel(wxString::FromAscii( temp.c_str() ));
 		m_critical.Leave();
 	}
 }
@@ -544,7 +549,7 @@ void GameListPopup::OnButtons(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case wxID_OK:
-		if (m_GameList->GetSelection() != wxNOT_FOUND)
+		if (m_GameList->GetSelection()-1 != wxNOT_FOUND)
 			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()].mb_str()));
 		Destroy();
 		break;
