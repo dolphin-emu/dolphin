@@ -1,0 +1,10 @@
+#!/bin/sh
+# lazy way to clean linux memcard manager
+mv ../../SConstruct ../../dolphin_SConstruct
+cp SConstruct ../../SConstruct 
+cp SConscript ../../SConscript
+cd ../../
+scons -c
+rm SConstruct 
+rm SConscript
+mv dolphin_SConstruct SConstruct

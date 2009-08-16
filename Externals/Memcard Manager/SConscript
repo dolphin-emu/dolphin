@@ -1,0 +1,55 @@
+# -*- python -*-
+
+Import('env')
+import sys
+wxenv = env.Clone()
+
+files = [
+	]
+
+libs = [
+	'common',
+	]
+
+if wxenv['HAVE_WX']:
+	files += [
+	    'Externals/Memcard Manager/src/mcmMain.cpp',
+		'Externals/Memcard Manager/src/MCMdebug.cpp',
+		'Source/Core/DolphinWX/Src/MemcardManager.cpp',
+		'Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp',
+		'Source/Core/DolphinWX/Src/WxUtils.cpp',		
+		]
+
+
+if wxenv['HAVE_COCOA']:
+    files += [ 'cocoaApp.m', ]
+    compileFlags = [
+            '-x',
+            'objective-c++',
+            ]
+    wxenv.Append(
+	CXXFLAGS = compileFlags,
+       	LINKFLAGS = [
+               	'-pthread',
+               	],
+       	LIBS = libs
+       	)
+    if not wxenv['HAVE_WX']:
+	wxenv.Append(
+	    LINKFLAGS = ['-framework', 'IOKit'])
+else:
+    wxenv.Append(
+       	LINKFLAGS = [
+               	'-pthread',
+               	],
+       	LIBS = libs
+       	)
+
+
+
+
+exeGUI = env['binary_dir'] + 'Memcard Manager'
+
+#objects = [ wxenv.Object(srcFile) for srcFile in files ]
+
+wxenv.Program(exeGUI, files)
