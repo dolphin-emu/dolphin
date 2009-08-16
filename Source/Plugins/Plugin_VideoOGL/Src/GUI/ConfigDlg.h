@@ -104,7 +104,7 @@ class GFXConfigDialogOGL : public wxDialog
 		#endif
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
-		wxComboBox *m_WindowFullScreenResolutionCB;
+		wxComboBox *m_WindowFSResolutionCB;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxChoice *m_MaxAnisotropyCB;
 		wxArrayString arrayStringFor_MSAAModeCB, arrayStringFor_PhackvalueCB;
@@ -164,7 +164,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_IRTEXT,
 			ID_RTEXT,
 			ID_WINDOWRESOLUTIONCB,
-			ID_WINDOWFULLSCREENRESOLUTIONCB,
+			ID_WINDOWFSRESOLUTIONCB,
 			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
 			ID_MAXANISOTROPYTEXT,
