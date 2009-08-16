@@ -411,11 +411,8 @@ void *ClientSide::Entry()
 		if (value == 0x16)	// UDP connection successful
 		{
 			Event->AppendText(_("Connection successful !\n"));
-			// note by DacoTaco : i hate to do this...
-			// TODO : make it better. old wxString::Format method crashed for some odd reason
-			std::string temp = "*Connection established to " + m_hostnick + "(" + m_addr + ")\n*Game is : " + 
-				m_selectedgame + "\n ";
-			Event->AppendText(  wxString::FromAscii( temp.c_str() )  );
+			Event->AppendText( wxString::Format( wxT("*Connection established to %s (%s)\n*Game is : %s\n "),
+				wxString(m_hostnick.c_str(),wxConvUTF8 ) , wxString(m_addr.c_str(),wxConvUTF8 ) , wxString(m_selectedgame.c_str() , wxConvUTF8) ));
 		}
 		else
 		{
