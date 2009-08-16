@@ -460,7 +460,8 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
 			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
 			int chat_size = (int)chat_str.size(); 
-
+			m_Chat->Clear();
+			
 			// If there's no distant connection, we write but we don't send
 			if (m_numClients == 0) {
 				m_Logging->AppendText(chat_str);
@@ -489,8 +490,6 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 				m_sock_client->Write((const char*)&chat_size, 4);
 				m_sock_client->Write(chat_str.mb_str(), chat_size + 1);
 			}
-
-			m_Chat->Clear();
 
 			// Do not wait for the server, just write as soon as sent
 			m_Logging->AppendText(chat_str);

@@ -41,7 +41,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_WINDOWFULLSCREENRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_WINDOWFSRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -185,8 +185,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	wxStaticText *FMText = new wxStaticText(m_PageGeneral, ID_FMTEXT, wxT("Fullscreen mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iInternalRes));
-	m_WindowFullScreenResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFULLSCREENRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowFullScreenResolutionCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
+	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
+	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -257,7 +257,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_WindowResolutionCB->SetToolTip(
 		wxT("Select internal resolution for the separate rendering window for windowed mode")
 		wxT("\n\nApplies instanty during gameplay: <No>"));
-	m_WindowFullScreenResolutionCB->SetToolTip(
+	m_WindowFSResolutionCB->SetToolTip(
 		wxT("Select internal resolution for the separate rendering window for fullscreen mode")
 		wxT("\n\nApplies instanty during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
@@ -318,7 +318,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(WMText, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(FMText, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowFullScreenResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
 
 	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR43,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -620,8 +620,8 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_WINDOWRESOLUTIONCB:
 		strcpy(g_Config.iInternalRes, m_WindowResolutionCB->GetValue().mb_str() );
 		break;
-	case ID_WINDOWFULLSCREENRESOLUTIONCB:
-		strcpy(g_Config.iFSResolution, m_WindowFullScreenResolutionCB->GetValue().mb_str() );
+	case ID_WINDOWFSRESOLUTIONCB:
+		strcpy(g_Config.iFSResolution, m_WindowFSResolutionCB->GetValue().mb_str() );
 		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
@@ -763,7 +763,7 @@ void GFXConfigDialogOGL::UpdateGUI()
 
 	// Disable the internal resolution option if it's set to native
 	m_WindowResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
-	m_WindowFullScreenResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
+	m_WindowFSResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
 }
 
 
