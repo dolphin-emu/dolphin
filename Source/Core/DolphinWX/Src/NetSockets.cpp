@@ -103,9 +103,7 @@ void *ServerSide::Entry()
 		for (char i = 0; i < nbSocketReady; ++i)
 		{
 			m_CriticalSection.Enter();
-
 			sf::SocketTCP Socket = m_selector.GetSocketReady(i);
-
 			if (Socket == m_socket)
 			{
 				// Incoming connection
@@ -134,7 +132,6 @@ void *ServerSide::Entry()
 						// Add it to the selector
 						m_selector.Add(Incoming);
 						Event->SendEvent(HOST_NEWPLAYER);
-
 						m_numplayers++;
 					}
 					else
@@ -264,10 +261,16 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	{
 		// Test UDP Socket Receive, 2s timeout
 		if (!RecvT(m_socketUDP, (char*)&init_number, 1, received, 2))
+		{
+			ERROR_LOG(NETPLAY,"Connection to client timed out or closed");
 			errorUDP = true;
+		}
 	}
 	else
+	{
+		ERROR_LOG(NETPLAY,"Failed to send info! closing connection!");
 		errorUDP = true;
+	}
 
 	// Check if the client has the game
 	Socket.Receive((char *)&init_number, 1, received);
@@ -293,12 +296,12 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 				m_client[i].socket.Send(m_client[socketnb].nick.c_str(), buffer_size + 1);
 			}
 		}
-
-		Event->AppendText(  wxString::Format(wxT("*Connection established to %s (%s:%d)\n"),
-			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port)  );
+		Event->AppendText(  wxString::FromAscii((wxT("*Connection established to %s (%s:%d)\n"),
+			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port))  );
 
 		if (init_number != 0x1F) // Not Found
-			for (int i = 0; i < 4; i++)
+			//for (int i = 0; i < 4; i++)
+			//note for sl1nk3 : what is that for doing there?
 				Event->AppendText(_("WARNING : Game Not Found on Client Side !\n"));
 
 		// UDP connecton successful
@@ -405,12 +408,14 @@ void *ClientSide::Entry()
 		unsigned char value;
 		size_t val_sz;
 		m_socket.Receive((char *)&value, 1, val_sz);
-		// TODO : fix it. for some odd reason value is 1 instead of 16 making the connection "not successfull"
 		if (value == 0x16)	// UDP connection successful
 		{
 			Event->AppendText(_("Connection successful !\n"));
-			Event->AppendText( wxString::Format(wxT("*Connection established to %s (%s)\n*Game is : %s\n"), 
-				m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str() ) );
+			// note by DacoTaco : i hate to do this...
+			// TODO : make it better. old wxString::Format method crashed for some odd reason
+			std::string temp = "*Connection established to " + m_hostnick + "(" + m_addr + ")\n*Game is : " + 
+				m_selectedgame + "\n ";
+			Event->AppendText(  wxString::FromAscii( temp.c_str() )  );
 		}
 		else
 		{
@@ -503,6 +508,8 @@ bool ClientSide::SyncValues()
 	m_socket.Receive((char *)&m_netmodel, 4, recv_size);
 
 	// Send client's UDP Port
+	// TODO : fix port sending. it sends the set port in the main window. not the actual using port
+	// when checked to use random this will , ofcourse , send wrong port
 	m_socket.Send((const char *)&m_port, sizeof(short));
 
 	// Send client's nickname
@@ -528,7 +535,10 @@ bool ClientSide::SyncValues()
 	{
 		// Test UDP Socket Receive, 2s timeout
 		if (!RecvT(m_socketUDP, (char*)&byterecv, 1, recv_size, 2))
+		{
 			errorUDP = true;
+			ERROR_LOG(NETPLAY,"Connection Timed Out or closed");
+		}
 	}
 	else
 		errorUDP = true;

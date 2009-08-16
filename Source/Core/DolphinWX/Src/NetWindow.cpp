@@ -360,9 +360,7 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 	{
 		m_critical.Enter();
 		//m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
-		//Note By Daco : i'd hate to make another variable... (they take up space :( )
-		std::string temp = " Game : " + m_selectedGame;
-		m_Game_str->SetLabel(wxString::FromAscii( temp.c_str() ));
+		m_Game_str->SetLabel(wxString::FromAscii( ( wxT( "Game %s"), m_selectedGame.c_str() )));
 		m_critical.Leave();
 	}
 }
@@ -459,7 +457,8 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 	case ID_CHAT:
 		{
 			value = 0x30;
-			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), m_nick.c_str(), m_Chat->GetValue().c_str());
+			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
+			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
 			int chat_size = (int)chat_str.size(); 
 
 			// If there's no distant connection, we write but we don't send
