@@ -70,6 +70,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		return new CUCode_Zelda(_rMailHandler, _CRC);
 
       // WII CRCs
+	case 0x2ea36ce6: // Wii THP demo
 	case 0xb7eb9a9c: // Wii Pikmin - PAL
 	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
 	case 0x6c3f6f94: // zelda - PAL

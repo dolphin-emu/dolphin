@@ -96,7 +96,7 @@
 		#endif
 	}
 
-// Debug definions
+// Debug definitions
 	#if defined(_DEBUG)
 		#include <crtdbg.h>
 		#undef CHECK_HEAP_INTEGRITY
@@ -120,7 +120,7 @@
 	#endif
 // Alignment
 	#define GC_ALIGNED16(x)  __attribute__((aligned(16))) x
-	#define GC_ALIGNED32(x)  __attribute__((aligned(16))) x
+	#define GC_ALIGNED32(x)  __attribute__((aligned(32))) x
 	#define GC_ALIGNED64(x)  __attribute__((aligned(64))) x
 	#define GC_ALIGNED16_DECL(x) __attribute__((aligned(16))) x
 	#define GC_ALIGNED64_DECL(x) __attribute__((aligned(64))) x

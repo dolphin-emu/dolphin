@@ -94,6 +94,7 @@ for(my $i = 0;$i < scalar(@cmdList);$i++) {
 		open(OUTPUT, ">$name$j.tst");
 		print OUTPUT generateSRFull($header, $body, $j*$ucodes, 
 									($j+1)*$ucodes-1);
+		print OUTPUT "jmp end_of_test";
 		close(OUTPUT);	 
 		print NAMES "$name$j.tst";
 		

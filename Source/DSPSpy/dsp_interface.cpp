@@ -19,6 +19,10 @@
 
 void IDSP::SendTask(void *addr, u16 iram_addr, u16 len, u16 start)
 {
+	// addr			main ram addr			4byte aligned (1 Gekko word)
+	// iram_addr	dsp addr				4byte aligned (2 DSP words)
+	// len			block length in bytes	multiple of 4
+	// start		dsp iram entry point	
 	while (CheckMailTo());
 	SendMailTo(0x80F3A001);
 	while (CheckMailTo());

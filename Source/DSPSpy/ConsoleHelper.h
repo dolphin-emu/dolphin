@@ -76,7 +76,8 @@ inline void CON_BlankRow(const int y)
 	int columns = 0, rows = 0;
 	CON_GetMetrics(&columns, &rows);
 	char* blank = new char[columns];
-	std::fill(blank, &blank[columns], ' ');
+	std::fill(blank, blank + columns, ' ');
+	blank[columns] = '\0';
 	CON_Printf(0, y, "%s", blank);
 	delete blank;
 }

@@ -116,29 +116,26 @@ void GenRandomCode(int size, std::vector<u16> &code)
 void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 				  const char *name, std::string &header)
 {
-	std::vector<u16> code_copy = code;
-	// Add some nops at the end to align the size a bit.
-	while (code_copy.size() & 7)
-		code_copy.push_back(0);
+	std::vector<u16> code_padded = code;
+	// Pad with nops to 32byte boundary
+	while (code_padded.size() & 0x7f)
+		code_padded.push_back(0);
+
 	char buffer[1024];
 	header.clear();
-	header.reserve(code.size() * 4);
+	header.reserve(code_padded.size() * 4);
 	header.append("#define NUM_UCODES 1\n\n");
 	std::string filename;
 	SplitPath(_filename, NULL, &filename, NULL);
 	header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str()));
-	header.append("#ifndef _MSCVER\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
-	header.append("#else\n");
-	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n");
-	header.append("#endif\n\n");
-	
+
 	header.append("\t{\n\t\t");
-	for (u32 j = 0; j < code.size(); j++)
+	for (u32 j = 0; j < code_padded.size(); j++)
 	{
 		if (j && ((j & 15) == 0))
 			header.append("\n\t\t");
-		sprintf(buffer, "0x%04x, ", code[j]);
+		sprintf(buffer, "0x%04x, ", code_padded[j]);
 		header.append(buffer);
 	}
 	header.append("\n\t},\n");
@@ -149,10 +146,18 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
 				   int numCodes, const char *name, std::string &header)
 {
+	std::vector<std::vector<u16> > codes_padded;
 	char buffer[1024];
 	int reserveSize = 0;
 	for(int i = 0; i < numCodes; i++)
-		reserveSize += (int)codes[i].size();
+	{
+		codes_padded.push_back(codes[i]);
+		// Pad with nops to 32byte boundary
+		while (codes_padded.at(i).size() & 0x7f)
+			codes_padded.at(i).push_back(0);
+
+		reserveSize += (int)codes_padded.at(i).size();
+	}
 
 	
 	header.clear();
@@ -169,27 +174,19 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 		header.append(buffer);
 	}
 	header.append("};\n\n");
-	header.append("#ifndef _MSCVER\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
-	header.append("#else\n");
-	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] __attribute__ ((aligned (64))) = {\n");
-	header.append("#endif\n\n");
 
-	for(int i = 0; i < numCodes; i++) {
+	for(int i = 0; i < numCodes; i++)
+	{
 		if(codes[i].size() == 0)
 			continue;
 
-		std::vector<u16> code_copy = codes[i];
-		// Add some nops at the end to align the size a bit.
-		while (code_copy.size() & 7)
-			code_copy.push_back(0);
-
 		header.append("\t{\n\t\t");
-		for (u32 j = 0; j < codes[i].size(); j++) 
+		for (u32 j = 0; j < codes_padded.at(i).size(); j++) 
 		{
 			if (j && ((j & 15) == 0))
 				header.append("\n\t\t");
-			sprintf(buffer, "0x%04x, ", codes[i][j]);
+			sprintf(buffer, "0x%04x, ", codes_padded.at(i).at(j));
 			header.append(buffer);
 		}
 		header.append("\n\t},\n");

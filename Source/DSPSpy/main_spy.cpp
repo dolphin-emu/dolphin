@@ -62,7 +62,7 @@
 // #include "virtual_dsp.h"
 
 // Used for communications with the DSP, such as dumping registers etc.
-u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
+u16 dspbuffer[16 * 1024];
 
 static void *xfb = NULL;
 void (*reboot)() = (void(*)())0x80001800;
@@ -327,8 +327,11 @@ void handle_dsp_mail(void)
 			DCFlushRange(dspbufC, 0x2000);
 			// Then send the code.
 			DCFlushRange((void *)dsp_code[curUcode], 0x2000);
-			// Fill whole iram with code, entry point is just after exception vectors...0x10
-			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, 4000, 0x10);
+			// DMA ucode to iram base, entry point is just after exception vectors...0x10
+			// (shuffle2) 5256 is the highest I could get the dma block length to on my wii - still needs to be looked into
+			// for the tstaxh test, 5256 only yields up to step 325. There are 532 send_backs in the ucode, and it takes up
+			// almost all of the iram.
+			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, 5256, 0x10);
 
 			runningUcode = curUcode + 1;
 
@@ -338,7 +341,7 @@ void handle_dsp_mail(void)
 		else if ((mail & 0xffff0000) == 0x8bad0000)
 		{
 			// dsp_base.inc is reporting an exception happened
-			CON_PrintRow(4, 25, "%s caused exception %x", UCODE_NAMES[curUcode], mail & 0xff);
+			CON_PrintRow(4, 25, "%s caused exception %x at step %i", UCODE_NAMES[curUcode], mail & 0xff, dsp_steps);
 		}
 		else if (mail == 0x8888dead)
 		{
@@ -426,13 +429,11 @@ void dump_all_ucodes(void)
 			// Then write all the dumps.
 			written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
 			fclose(f);
-			char temp[100];
-			sprintf(temp, "Dump Successful. Wrote %d bytes, steps: %d", written, dsp_steps);
-			UpdateLastMessage(temp);
+			CON_PrintRow(4, 24, "Dump %i Successful. Wrote %d bytes, steps: %d", UCodeToDump, written, dsp_steps);
 		}
 		else
 		{
-			UpdateLastMessage("SD Write Error");
+			CON_PrintRow(4, 24, "Dump %i Failed", UCodeToDump);
 			break;
 		}
 	}
