@@ -218,12 +218,12 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 	FILE *fROM = fopen(filename, "wb");
 	sprintf(filename, "sd:/dsp_coef.bin");
 	FILE *fCOEF = fopen(filename, "wb");
-	if (fROM && fCOEF) 
+	if (fROM && fCOEF)
 	{
-		fwrite(rom, 0x2000, 1, fROM);
+		fwrite(MEM_PHYSICAL_TO_K0(rom), 0x2000, 1, fROM);
 		fclose(fROM);
 
- 		fwrite(coef, 0x2000, 1, fCOEF);
+ 		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
  		fclose(fCOEF);
 		UpdateLastMessage("DSP ROMs dumped to SD");
 	}
