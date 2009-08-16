@@ -360,7 +360,7 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 	{
 		m_critical.Enter();
 		//m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
-		m_Game_str->SetLabel(wxString::FromAscii( ( wxT( "Game %s"), m_selectedGame.c_str() )));
+		m_Game_str->SetLabel(wxString::FromUTF8( ( wxT( "Game %s"), m_selectedGame.c_str() )));
 		m_critical.Leave();
 	}
 }
@@ -547,7 +547,7 @@ void GameListPopup::OnButtons(wxCommandEvent& event)
 	{
 	case wxID_OK:
 		if (m_GameList->GetSelection()-1 != wxNOT_FOUND)
-			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()].mb_str()));
+			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()-1].mb_str()));
 		Destroy();
 		break;
 	case wxID_CANCEL:
