@@ -28,7 +28,8 @@ public:
 	virtual ~CEXIIPL();
 	virtual void SetCS(int _iCS);
 	bool IsPresent();
-    static u32 GetGCTime();
+	static u32 GetGCTime();
+	void DoState(PointerWrap &p);
 
 private:
 

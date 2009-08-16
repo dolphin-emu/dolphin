@@ -38,6 +38,7 @@ public:
 	void Update();
 	bool IsInterruptSet();
 	bool IsPresent();
+	void DoState(PointerWrap &p);
 
 	inline const std::string &GetFileName() const { return m_strFilename; };
 

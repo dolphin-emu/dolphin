@@ -21,6 +21,8 @@
 #include "../Core.h"
 #include "../CoreTiming.h"
 
+#include "../ConfigManager.h"
+#include "EXI.h"
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
 
@@ -179,7 +181,6 @@ CEXIMemoryCard::~CEXIMemoryCard()
 
 bool CEXIMemoryCard::IsPresent() 
 {
-	//return false;
 	return true;
 }
 
@@ -418,4 +419,12 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	}
 	m_uPosition++;
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
+}
+
+void CEXIMemoryCard::DoState(PointerWrap &p)
+{
+	int slot = 0;
+	if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
+		slot = 1;
+	ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
 }

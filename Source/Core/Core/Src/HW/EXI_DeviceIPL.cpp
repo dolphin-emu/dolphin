@@ -120,6 +120,12 @@ CEXIIPL::~CEXIIPL()
         fclose(file);
     }
 }
+void CEXIIPL::DoState(PointerWrap &p)
+{
+	// commented out to not break current savestates
+	// TODO: uncomment when adding the next savestate change
+	//p.DoArray(m_RTC, 4);
+}
 
 void CEXIIPL::LoadFileToIPL(const char* filename, u32 offset)
 {
@@ -164,7 +170,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 	if (m_uPosition < 4)
 	{
 		m_uAddress <<= 8;
-		m_uAddress |= _uByte;			
+		m_uAddress |= _uByte;
 		m_uRWOffset = 0;
 		_uByte = 0xFF;
 
@@ -296,7 +302,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
         }
 		m_uRWOffset++;
 	}
-	m_uPosition++;		
+	m_uPosition++;
 }
 
 u32 CEXIIPL::GetGCTime()
@@ -307,7 +313,7 @@ u32 CEXIIPL::GetGCTime()
 	// (mb2): I think we can get rid of the IPL bias.
 	// I know, it's another hack so I let the previous code for a while.
 #if 0
-    // Get SRAM bias	
+    // Get SRAM bias
     u32 Bias;
 
     for (int i=0; i<4; i++)
@@ -315,7 +321,7 @@ u32 CEXIIPL::GetGCTime()
         ((u8*)&Bias)[i] = sram_dump[0xc + (i^3)];
     }
 
-    // Get the time ... 
+    // Get the time ...
     u64 ltime = Common::Timer::GetTimeSinceJan1970();
     return ((u32)ltime - cJanuary2000 - Bias);
 #else

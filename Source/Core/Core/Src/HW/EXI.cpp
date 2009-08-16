@@ -64,7 +64,12 @@ void Shutdown()
 
 void DoState(PointerWrap &p)
 {
-	// TODO: descend all the devices recursively.
+	// TODO: Complete DoState for each IEXIDevice
+	g_Channels[0].GetDevice(1)->DoState(p);
+	g_Channels[0].GetDevice(2)->DoState(p);
+	g_Channels[0].GetDevice(4)->DoState(p);
+	g_Channels[1].GetDevice(1)->DoState(p);	
+	g_Channels[2].GetDevice(1)->DoState(p);
 }
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)

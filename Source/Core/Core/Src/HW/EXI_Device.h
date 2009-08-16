@@ -19,12 +19,13 @@
 #define _EXIDEVICE_H
 
 #include "Common.h"
+#include "ChunkFile.h"
 
 class IEXIDevice
 {
 private:
 	// Byte transfer function for this device
-	virtual void TransferByte(u8&) {};
+	virtual void TransferByte(u8&) {}
 
 public:
 	// Immediate copy functions
@@ -35,16 +36,16 @@ public:
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
-	virtual bool IsPresent();
-	virtual void SetCS(int _iCS);
+	virtual bool IsPresent() {return false;}
+	virtual void SetCS(int) {}
+	virtual void DoState(PointerWrap&) {}
 
 	// Update
-	virtual void Update();
+	virtual void Update() {}
 
 	// Is generating interrupt ?
-	virtual bool IsInterruptSet();
+	virtual bool IsInterruptSet() {return false;}
 
-	virtual ~IEXIDevice() {};
 };
 
 enum TEXIDevices

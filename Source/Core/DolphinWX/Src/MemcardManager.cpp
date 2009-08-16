@@ -595,7 +595,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			memoryCard[slot]->DEntry_GameCode(index,tempC);
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
-			wxString temp = wxFileSelector(wxT("Export save as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
+			wxString fileName = wxFileSelector(wxT("Export save as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
 				wxString::FromAscii(tempC), wxT(".gci"), wxString::Format
 				(
 					wxT("Native GCI files (*.gci)|*.gci|")
@@ -606,12 +606,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
 
-			if (temp.length() > 0)
+			if (fileName.length() > 0)
 			{
-				const char * fileName = temp.mb_str();
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName, NULL), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), NULL), -1))
 				{
-					File::Delete(temp.mb_str());
+					File::Delete(fileName.mb_str());
 				}
 			}
 		}

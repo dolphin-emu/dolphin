@@ -74,24 +74,6 @@ void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 	}
 };
 
-bool IEXIDevice::IsPresent()
-{
-	return false;
-}
-
-void IEXIDevice::Update()
-{
-}
-
-bool IEXIDevice::IsInterruptSet()
-{
-	return false;
-}
-
-void IEXIDevice::SetCS(int _iCS)
-{
-}
-
 //////////////////////////////////////////////////////////////////////////
 // --- class CEXIDummy ---
 //////////////////////////////////////////////////////////////////////////

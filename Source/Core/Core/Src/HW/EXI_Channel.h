@@ -82,9 +82,6 @@ private:
 	u32				m_DMALength;
 	u32				m_ImmData;
 
-	// get device
-	IEXIDevice* GetDevice(u8 _CHIP_SELECT);
-
 	// Devices
 	enum
 	{
@@ -94,6 +91,8 @@ private:
 	IEXIDevice* m_pDevices[NUM_DEVICES];
 
 public:
+	// get device
+	IEXIDevice* GetDevice(u8 _CHIP_SELECT);
 	// channelId for debugging
 	u32 m_ChannelId;
 
