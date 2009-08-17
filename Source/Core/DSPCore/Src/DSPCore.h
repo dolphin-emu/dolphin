@@ -40,9 +40,9 @@
 #define DSP_DRAM_SIZE        0x1000
 #define DSP_DRAM_MASK        0x0fff
 
-#define DSP_COEF_BYTE_SIZE   0x2000
-#define DSP_COEF_SIZE        0x1000
-#define DSP_COEF_MASK        0x0fff
+#define DSP_COEF_BYTE_SIZE   0x1000
+#define DSP_COEF_SIZE        0x800
+#define DSP_COEF_MASK        0x7ff
 
 #define DSP_RESET_VECTOR     0x8000
 

@@ -328,10 +328,8 @@ void handle_dsp_mail(void)
 			// Then send the code.
 			DCFlushRange((void *)dsp_code[curUcode], 0x2000);
 			// DMA ucode to iram base, entry point is just after exception vectors...0x10
-			// (shuffle2) 5256 is the highest I could get the dma block length to on my wii - still needs to be looked into
-			// for the tstaxh test, 5256 only yields up to step 325. There are 532 send_backs in the ucode, and it takes up
-			// almost all of the iram.
-			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, 5256, 0x10);
+			// NOTE: for any ucode made by dsptool, the block length will be 8191
+			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, sizeof(dsp_code[curUcode])-1, 0x10);
 
 			runningUcode = curUcode + 1;
 

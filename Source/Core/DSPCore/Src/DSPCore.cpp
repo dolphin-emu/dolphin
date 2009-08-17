@@ -54,7 +54,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 		fclose(pFile);
 	
 		// Byteswap the rom.
-		for (int i = 0; i < DSP_IROM_SIZE; i++)
+		for (int i = 0; i < size_in_words; i++)
 			rom[i] = Common::swap16(rom[i]);
 
 		return true;
