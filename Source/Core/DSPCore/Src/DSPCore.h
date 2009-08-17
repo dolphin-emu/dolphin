@@ -152,6 +152,7 @@
 #define SR_10           0x0010   // seem to be set by tst
 #define SR_TOP2BITS     0x0020   // if the upper 2 bits are equal
 #define SR_LOGIC_ZERO   0x0040
+#define SR_80           0x0080   // Unknown, set by add
 #define SR_INT_ENABLE   0x0200   // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_EXT_INT_ENABLE 0x0800   // Appears in zelda - seems to disable external interupts
 #define SR_MUL_MODIFY   0x2000   // 1 = normal. 0 = x2   (M0, M2)
@@ -162,7 +163,6 @@
 #define SR_CMP_MASK     0x3f
 
 // exceptions vector
-#define EXP_RESET 0 // 0x0000
 #define EXP_STOVF 1 // 0x0002 stack under/over flow
 #define EXP_2     2 // 0x0004
 #define EXP_3     3 // 0x0006
