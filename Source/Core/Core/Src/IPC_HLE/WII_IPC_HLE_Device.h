@@ -86,10 +86,8 @@ protected:
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
 
-				/* Restore cached address, mauled by emulatee's ioctl functions. Why?
-				   What is the purpose of this? After we have read the values, why would
-				   anyone ned it */
-				//Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+				// Restore cached address, mauled by emulator's ioctl functions.
+				Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
 				BufferVectorOffset += 4;
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
@@ -105,7 +103,7 @@ protected:
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
 
-				//Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+				Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
 				BufferVectorOffset += 4;
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);

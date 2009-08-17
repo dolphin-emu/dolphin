@@ -103,8 +103,6 @@ u16 dspreg_in[32] = {
 
 u16 dspreg_out[1000][32];
 
-u32 padding[1024];
-
 // UI (interactive register editing)
 u32 ui_mode;
 
@@ -223,7 +221,7 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 		fwrite(MEM_PHYSICAL_TO_K0(rom), 0x2000, 1, fROM);
 		fclose(fROM);
 
- 		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
+ 		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x2000, 1, fCOEF);
  		fclose(fCOEF);
 		UpdateLastMessage("DSP ROMs dumped to SD");
 	}
