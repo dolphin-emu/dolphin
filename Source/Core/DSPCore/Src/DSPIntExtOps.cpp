@@ -1,28 +1,19 @@
-/*====================================================================
+// Copyright (C) 2003 Dolphin Project.
 
-   filename:     opcodes.h
-   project:      GameCube DSP Tool (gcdsp)
-   created:      2005.03.04
-   mail:		  duddie@walla.com
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
 
-   Copyright (c) 2005 Duddie
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-   ====================================================================*/
-
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
 #include "DSPIntUtil.h"
 #include "DSPMemoryMap.h"
 #include "DSPIntExtOps.h"

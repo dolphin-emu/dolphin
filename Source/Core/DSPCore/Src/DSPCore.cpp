@@ -161,7 +161,7 @@ void DSPCore_SetException(u8 level)
 void DSPCore_CheckExternalInterrupt()
 {
 	// check if there is an external interrupt
-	if (! g_dsp.cr & CR_EXTERNAL_INT) 
+	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
 		return;
 
 	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
