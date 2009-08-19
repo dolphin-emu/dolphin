@@ -39,9 +39,7 @@ namespace DSPInterpreter
 namespace Ext
 { 
 void l(const UDSPInstruction& opc);
-void l_epi(const UDSPInstruction& opc);
 void ln(const UDSPInstruction& opc);
-void ln_epi(const UDSPInstruction& opc);
 void ls(const UDSPInstruction& opc);
 void lsn(const UDSPInstruction& opc);
 void lsm(const UDSPInstruction& opc);
@@ -52,22 +50,11 @@ void slm(const UDSPInstruction& opc);
 void slnm(const UDSPInstruction& opc);
 void s(const UDSPInstruction& opc);
 void sn(const UDSPInstruction& opc);
-void ls_epi(const UDSPInstruction& opc);
-void lsn_epi(const UDSPInstruction& opc);
-void lsm_epi(const UDSPInstruction& opc);
-void lsnm_epi(const UDSPInstruction& opc);
-void sl_epi(const UDSPInstruction& opc);
-void sln_epi(const UDSPInstruction& opc);
-void slm_epi(const UDSPInstruction& opc);
-void slnm_epi(const UDSPInstruction& opc);
-void s_epi(const UDSPInstruction& opc);
-void sn_epi(const UDSPInstruction& opc);
 void ld(const UDSPInstruction& opc);
 void ldn(const UDSPInstruction& opc);
 void ldm(const UDSPInstruction& opc);
 void ldnm(const UDSPInstruction& opc);
 void mv(const UDSPInstruction& opc);
-void mv_epi(const UDSPInstruction& opc);
 void dr(const UDSPInstruction& opc);
 void ir(const UDSPInstruction& opc);
 void nr(const UDSPInstruction& opc);
@@ -75,5 +62,11 @@ void nop(const UDSPInstruction& opc);
  
 } // end namespace Ext
 } // end namespace DSPinterpeter
+
+inline void writeToBackLog(int i, int idx, u16 value)
+{
+	writeBackLog[i] = value;
+	writeBackLogIdx[i] = idx;
+}
 
 #endif

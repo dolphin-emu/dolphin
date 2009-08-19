@@ -128,11 +128,13 @@ extern const int opcodes_ext_size;
 extern u8 opSize[OPTABLE_SIZE];
 extern const DSPOPCTemplate cw;
 
+#define WRITEBACKLOGSIZE 7
+
 extern dspInstFunc opTable[];
 extern bool opTableUseExt[OPTABLE_SIZE];
 extern dspInstFunc extOpTable[EXT_OPTABLE_SIZE];
-extern dspInstFunc currentEpilogeFunc;
-
+extern u16 writeBackLog[WRITEBACKLOGSIZE];
+extern int writeBackLogIdx[WRITEBACKLOGSIZE];
 
 // Predefined labels
 struct pdlabel_t
@@ -151,15 +153,16 @@ const char *pdregname(int val);
 const char *pdregnamelong(int val);
 
 void InitInstructionTable();
+void applyWriteBackLog();
+void zeroWriteBackLog();
 
 inline void ExecuteInstruction(const UDSPInstruction& inst)
 {
 	if (opTableUseExt[inst.hex])
 		extOpTable[inst.hex & 0xFF](inst);
 	opTable[inst.hex](inst);
-	if (currentEpilogeFunc) {
-		currentEpilogeFunc(inst);
-		currentEpilogeFunc = NULL;
+	if (opTableUseExt[inst.hex]) {
+		applyWriteBackLog();
 	}
 }
 

@@ -103,6 +103,7 @@ void clrp(const UDSPInstruction& opc)
 {
 	// Magic numbers taken from duddie's doc
 	// These are probably a bad idea to put here.
+	zeroWriteBackLog();
 	g_dsp.r[0x14] = 0x0000;
 	g_dsp.r[0x15] = 0xfff0;
 	g_dsp.r[0x16] = 0x00ff;
@@ -117,6 +118,7 @@ void movp(const UDSPInstruction& opc)
 	u8 dreg = (opc.hex >> 8) & 0x1;
 
 	s64 prod = dsp_get_long_prod();
+	zeroWriteBackLog();
 	dsp_set_long_acc(dreg, prod);
 
 	Update_SR_Register64(prod);
@@ -132,6 +134,7 @@ void movnp(const UDSPInstruction& opc)
 
 	s64 prod = dsp_get_long_prod();
 	s64 acc = -prod;
+	zeroWriteBackLog();
 	dsp_set_long_acc(dreg, acc);
 	
 	Update_SR_Register64(acc);
@@ -150,6 +153,7 @@ void addpaxz(const UDSPInstruction& opc)
 	s64 ax = dsp_get_long_acx(sreg);
 	s64 acc = (prod + ax) & ~0xffff;
 
+	zeroWriteBackLog();
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register64(acc);
@@ -166,6 +170,8 @@ void movpz(const UDSPInstruction& opc)
 	// overwrite acc and clear low part
 	s64 prod = dsp_get_long_prod();
 	s64 acc = prod & ~0xffff;
+
+	zeroWriteBackLog();
 	dsp_set_long_acc(dreg, acc);
 
 	Update_SR_Register64(acc);
@@ -180,7 +186,12 @@ void mulc(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 11) & 0x1;
 	u8 treg = (opc.hex >> 12) & 0x1;
-	s64 prod = dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+												
+	zeroWriteBackLog();
+
+	s64 prod = dsp_multiply(accm, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -198,8 +209,13 @@ void mulcmvz(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
 
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+												
+	zeroWriteBackLog();
+
+	dsp_multiply(accm, axh);
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	s64 acc = TempProd & ~0xffff; // clear lower 4 bytes
@@ -221,7 +237,12 @@ void mulcmv(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+												
+	zeroWriteBackLog();
+
+	dsp_multiply(accm, axh);
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
@@ -242,7 +263,12 @@ void mulcac(const UDSPInstruction& opc)
 	// update prod
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 	u8 treg  = (opc.hex >> 11) & 0x1;
-	dsp_multiply(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+												
+	zeroWriteBackLog();
+
+	dsp_multiply(accm, axh);
 
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
@@ -260,7 +286,12 @@ void mulcac(const UDSPInstruction& opc)
 void mul(const UDSPInstruction& opc)
 {
 	u8 sreg  = (opc.hex >> 11) & 0x1;
-	s64 prod = dsp_multiply(dsp_get_ax_h(sreg), dsp_get_ax_l(sreg));
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
+
+	s64 prod = dsp_multiply(axh, axl);
 	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
 }
@@ -274,12 +305,19 @@ void mulac(const UDSPInstruction& opc)
 {
 	// add old prod to acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc.hex >> 11) & 0x1;
+
 	s64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
+
+
 	dsp_set_long_acc(rreg, acR);
 
 	// calculate new prod
-	u8 sreg = (opc.hex >> 11) & 0x1;
-	s64 prod = dsp_multiply(dsp_get_ax_l(sreg), dsp_get_ax_h(sreg));
+	s64 prod = dsp_multiply(axl, axh);
 
 	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
@@ -296,9 +334,13 @@ void mulmv(const UDSPInstruction& opc)
 	u8 sreg  = ((opc.hex >> 11) & 0x1);
 	s64 prod = dsp_get_long_prod();
 	s64 acc = prod;
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
 	dsp_set_long_acc(rreg, acc);
 
-	prod = dsp_multiply(dsp_get_ax_l(sreg), dsp_get_ax_h(sreg));
+	prod = dsp_multiply(axl, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -316,10 +358,15 @@ void mulmvz(const UDSPInstruction& opc)
 	// overwrite acc and clear low part
 	s64 prod = dsp_get_long_prod();
 	s64 acc = prod & ~0xffff;
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
+
 	dsp_set_long_acc(rreg, acc);
 
 	// math prod
-	prod = dsp_multiply(dsp_get_ax_l(sreg), dsp_get_ax_h(sreg));
+	prod = dsp_multiply(axl, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -335,6 +382,7 @@ void mulx(const UDSPInstruction& opc)
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 
+	zeroWriteBackLog();
 	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -357,7 +405,8 @@ void mulxac(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	zeroWriteBackLog();
+	
 	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -380,7 +429,7 @@ void mulxmv(const UDSPInstruction& opc)
 
 	s16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	s16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	zeroWriteBackLog();
 	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -405,7 +454,7 @@ void mulxmvz(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	zeroWriteBackLog();
 	prod = dsp_multiply_conditional_unsigned(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -422,7 +471,7 @@ void maddx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	zeroWriteBackLog();
 	s64 prod = dsp_multiply_add(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -439,7 +488,7 @@ void msubx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	zeroWriteBackLog();
 	s64 prod = dsp_multiply_sub(val1, val2);
 	Update_SR_Register64(prod);
 }
@@ -453,8 +502,10 @@ void maddc(const UDSPInstruction& opc)
 {
 	u32 sreg = (opc.hex >> 9) & 0x1;
 	u32 treg = (opc.hex >> 8) & 0x1;
-
-	s64 prod = dsp_multiply_add(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+	zeroWriteBackLog();
+	s64 prod = dsp_multiply_add(accm, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -467,8 +518,10 @@ void msubc(const UDSPInstruction& opc)
 {
 	u32 sreg = (opc.hex >> 9) & 0x1;
 	u32 treg = (opc.hex >> 8) & 0x1;
-
-	s64 prod = dsp_multiply_sub(dsp_get_acc_m(sreg), dsp_get_ax_h(treg));
+	u16 accm = dsp_get_acc_m(sreg);
+	u16 axh = dsp_get_ax_h(treg);
+	zeroWriteBackLog();
+	s64 prod = dsp_multiply_sub(accm, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -480,8 +533,12 @@ void msubc(const UDSPInstruction& opc)
 void madd(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 8) & 0x1;
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
 
-	s64 prod = dsp_multiply_add(dsp_get_ax_l(sreg), dsp_get_ax_h(sreg));
+	s64 prod = dsp_multiply_add(axl, axh);
 	Update_SR_Register64(prod);
 }
 
@@ -493,8 +550,12 @@ void madd(const UDSPInstruction& opc)
 void msub(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 8) & 0x1;
+	u16 axl = dsp_get_ax_l(sreg);
+	u16 axh = dsp_get_ax_h(sreg);
+												
+	zeroWriteBackLog();
 
-	s64 prod = dsp_multiply_sub(dsp_get_ax_l(sreg), dsp_get_ax_h(sreg));
+	s64 prod = dsp_multiply_sub(axl, axh);
 	Update_SR_Register64(prod);
 }
 

@@ -58,37 +58,57 @@ inline u16 ToMask(u16 a)
 	return a | (a >> 1);
 }
 
-inline void dsp_increment_addr_reg(int reg)
+inline u16 dsp_increment_addr_reg(int reg, int value = -1)
 {
 	u16 tmb = ToMask(g_dsp.r[DSP_REG_WR0 + reg]);
-	if ((g_dsp.r[reg] & tmb) == tmb)
-		g_dsp.r[reg] ^= g_dsp.r[DSP_REG_WR0 + reg];
+	u16 tmp;
+	if (value == -1)
+		tmp = g_dsp.r[reg];
 	else
-		g_dsp.r[reg]++;
+		tmp = value;
+
+	if ((tmp & tmb) == tmb)
+		tmp ^= g_dsp.r[DSP_REG_WR0 + reg];
+	else
+		tmp++;
+	
+	return tmp;
 }
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-inline void dsp_decrement_addr_reg(int reg)
+inline u16 dsp_decrement_addr_reg(int reg, int value = -1)
 {
-	// This one is easy. Looks like a hw implementation. Increment is worse...
-	if ((g_dsp.r[reg] & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
-		g_dsp.r[reg] |= g_dsp.r[DSP_REG_WR0 + reg];
+	u16 tmp;
+	if (value == -1)
+		tmp = g_dsp.r[reg];
 	else
-		g_dsp.r[reg]--;
+		tmp = value;
+	
+	// This one is easy. Looks like a hw implementation. Increment is worse...
+	if ((tmp & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
+		tmp |= g_dsp.r[DSP_REG_WR0 + reg];
+	else
+		tmp--;
+
+	return tmp;
 }
 
-inline void dsp_increase_addr_reg(int reg, s16 value)
+inline u16 dsp_increase_addr_reg(int reg, s16 value)
 {
+	u16 tmp = - 1;
+
 	// TODO: DO RIGHT!
 	if (value > 0) {
 		for (int i = 0; i < value; i++) {
-			dsp_increment_addr_reg(reg);
+			tmp = dsp_increment_addr_reg(reg, tmp);
 		}
 	} else if (value < 0) {
 		for (int i = 0; i < (int)(-value); i++) {
-			dsp_decrement_addr_reg(reg);
+			tmp = dsp_decrement_addr_reg(reg, tmp);
 		}
 	}
+
+	return tmp;
 }
 
 

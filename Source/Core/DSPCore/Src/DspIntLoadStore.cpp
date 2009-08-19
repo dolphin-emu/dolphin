@@ -115,7 +115,7 @@ void lrrd(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
 	dsp_conditional_extend_accum(dreg);
-	dsp_decrement_addr_reg(sreg);
+	g_dsp.r[sreg] = dsp_decrement_addr_reg(sreg);
 }
 
 // LRRI $D, @$S
@@ -131,7 +131,7 @@ void lrri(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
 	dsp_conditional_extend_accum(dreg);
-	dsp_increment_addr_reg(sreg);
+	g_dsp.r[sreg] = dsp_increment_addr_reg(sreg);
 }
 
 // LRRN $D, @$S
@@ -147,7 +147,7 @@ void lrrn(const UDSPInstruction& opc)
 	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
 	dsp_op_write_reg(dreg, val);
 	dsp_conditional_extend_accum(dreg);
-	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	g_dsp.r[sreg] = dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 }
 
 // SRR @$D, $S
@@ -176,7 +176,7 @@ void srrd(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	dsp_decrement_addr_reg(dreg);
+	g_dsp.r[sreg] = dsp_decrement_addr_reg(dreg);
 }
 
 // SRRI @$D, $S
@@ -191,7 +191,7 @@ void srri(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	dsp_increment_addr_reg(dreg);
+	g_dsp.r[dreg] = dsp_increment_addr_reg(dreg);
 }
 
 // SRRN @$D, $S
@@ -206,7 +206,7 @@ void srrn(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
+	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
 }
 
 // ILRR $acD.m, @$arS
@@ -234,7 +234,7 @@ void ilrrd(const UDSPInstruction& opc)
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
 	dsp_conditional_extend_accum(dreg);
-	dsp_decrement_addr_reg(reg);
+	g_dsp.r[reg] = dsp_decrement_addr_reg(reg);
 }
 
 // ILRRI $acD.m, @$S
@@ -248,7 +248,7 @@ void ilrri(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 
-	dsp_increment_addr_reg(reg);
+	g_dsp.r[reg] = dsp_increment_addr_reg(reg);
 }
 
 // ILRRN $acD.m, @$arS
@@ -263,7 +263,7 @@ void ilrrn(const UDSPInstruction& opc)
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
 	dsp_conditional_extend_accum(dreg);
-	dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
+	g_dsp.r[reg] = dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
 }
 
 }  // namespace

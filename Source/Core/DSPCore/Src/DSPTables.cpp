@@ -498,8 +498,8 @@ u8 opSize[OPTABLE_SIZE];
 dspInstFunc opTable[OPTABLE_SIZE];
 dspInstFunc extOpTable[EXT_OPTABLE_SIZE];
 bool opTableUseExt[OPTABLE_SIZE];
-
-dspInstFunc currentEpilogeFunc = NULL;
+u16 writeBackLog[WRITEBACKLOGSIZE];
+int writeBackLogIdx[WRITEBACKLOGSIZE];
 
 const char* pdname(u16 val)
 {
@@ -577,10 +577,6 @@ void InitInstructionTable()
 		for (int j = 0; j < opcodes_size; j++)
 		{
 			u16 mask = opcodes[j].opcode_mask;
-			//			if (opcodes[j].size & P_EXT) {
-				// Ignore extension bits.
-			//				mask &= 0xFF00;
-			//			}
 			if ((mask & i) == opcodes[j].opcode)
 			{
 				if (opTable[i] == DSPInterpreter::unknown)
@@ -596,4 +592,7 @@ void InitInstructionTable()
 			}
 		}
 	}
+
+	for (int i=0; i < WRITEBACKLOGSIZE; i++)
+		writeBackLogIdx[i] = -1;
 }	

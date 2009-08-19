@@ -97,7 +97,7 @@ void addarn(const UDSPInstruction& opc)
 	u8 dreg = opc.hex & 0x3;
 	u8 sreg = (opc.hex >> 2) & 0x3;
 
-	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 
 	// It is critical for the Zelda ucode that this one wraps correctly.
 }
@@ -107,6 +107,7 @@ void addarn(const UDSPInstruction& opc)
 // No operation, but can be extended with extended opcode.
 void nx(const UDSPInstruction& opc)
 {
+	zeroWriteBackLog();
 	// This opcode is supposed to do nothing - it's used if you want to use
 	// an opcode extension but not do anything. At least according to duddie.
 }
@@ -117,7 +118,7 @@ void nx(const UDSPInstruction& opc)
 // Decrement address register $arD.
 void dar(const UDSPInstruction& opc)
 {
-	dsp_decrement_addr_reg(opc.hex & 0x3);
+	g_dsp.r[opc.hex & 0x3] = dsp_decrement_addr_reg(opc.hex & 0x3);
 }
 
 // IAR $arD  ?
@@ -125,7 +126,7 @@ void dar(const UDSPInstruction& opc)
 // Increment address register $arD.
 void iar(const UDSPInstruction& opc)
 {
-	dsp_increment_addr_reg(opc.hex & 0x3);
+	g_dsp.r[opc.hex & 0x3] = dsp_increment_addr_reg(opc.hex & 0x3);
 }
 
 // SBCLR #I
@@ -153,6 +154,7 @@ void sbset(const UDSPInstruction& opc)
 // but it's harder to know exactly what effect they have.
 void srbith(const UDSPInstruction& opc)
 {
+	zeroWriteBackLog();
 	switch ((opc.hex >> 8) & 0xf)
 	{
 	// M0/M2 change the multiplier mode (it can multiply by 2 for free).
