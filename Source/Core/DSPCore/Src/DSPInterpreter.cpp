@@ -106,13 +106,11 @@ void Run()
 	while (!(g_dsp.cr & CR_HALT))
 	{
 		// Are we running?
-		if (DSPHost_Running())
+		if (DSPHost_Running() && !DSPHost_OnThread())
 			break;
 
-		DSPCore_CheckExternalInterrupt();
 		// This number (500) is completely arbitrary. TODO: tweak.
-		for (int i = 0; i < 500 && !(g_dsp.cr & CR_HALT); i++)
-			Step();
+		RunCyclesDebug(500);
 
 		if (!gdsp_running)
 			break;
