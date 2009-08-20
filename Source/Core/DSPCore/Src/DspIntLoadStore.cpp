@@ -176,7 +176,7 @@ void srrd(const UDSPInstruction& opc)
 
 	u16 val = dsp_op_read_reg(sreg);
 	dsp_dmem_write(g_dsp.r[dreg], val);
-	g_dsp.r[sreg] = dsp_decrement_addr_reg(dreg);
+	g_dsp.r[dreg] = dsp_decrement_addr_reg(dreg);
 }
 
 // SRRI @$D, $S

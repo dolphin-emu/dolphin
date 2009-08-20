@@ -144,10 +144,11 @@ void xorr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-
+	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] ^= g_dsp.r[DSP_REG_AXH0 + sreg];
+	g_dsp.r[DSP_REG_ACM0 + dreg] ^= axh;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	Update_SR_Register64(acc);
@@ -161,10 +162,11 @@ void andr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-
+	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] &= g_dsp.r[DSP_REG_AXH0 + sreg];
+	g_dsp.r[DSP_REG_ACM0 + dreg] &= axh;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	Update_SR_Register64(acc);
@@ -178,10 +180,11 @@ void orr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-
+	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] |= g_dsp.r[DSP_REG_AXH0 + sreg];
+	g_dsp.r[DSP_REG_ACM0 + dreg] |= axh;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	Update_SR_Register64(acc);
@@ -195,10 +198,11 @@ void orr(const UDSPInstruction& opc)
 void andc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
-
+	u16 accm = dsp_get_acc_m(1-D);
+	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0+D] &= dsp_get_acc_m(1-D);
+	g_dsp.r[DSP_REG_ACM0+D] &= accm;
 
 	Update_SR_Register16(dsp_get_acc_m(D));
 }
@@ -211,10 +215,11 @@ void andc(const UDSPInstruction& opc)
 void orc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
-
+	u16 accm = dsp_get_acc_m(1-D);
+	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0+D] |= dsp_get_acc_m(1-D);
+	g_dsp.r[DSP_REG_ACM0+D] |= accm;
 
 	Update_SR_Register16(dsp_get_acc_m(D));
 }
