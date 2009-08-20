@@ -378,21 +378,22 @@ void nop(const UDSPInstruction& opc)
 } // end namespace ext
 } // end namespace DSPInterpeter
 
-void applyWriteBackLog() 
+void applyWriteBackLog()
 {
-	for (int i=0;i < WRITEBACKLOGSIZE;i++) {
-		
-		if (writeBackLogIdx[i] != -1) {
-			dsp_op_write_reg(writeBackLogIdx[i], g_dsp.r[writeBackLogIdx[i]] | writeBackLog[i]);
-			// Clear back log
-			writeBackLogIdx[i] = -1;
-		}
+	//always make sure to have an extra entry at the end w/ -1 to avoid
+	//infinitive loops
+	for (int i=0;writeBackLogIdx[i]!=-1;i++) {
+		dsp_op_write_reg(writeBackLogIdx[i], g_dsp.r[writeBackLogIdx[i]] | writeBackLog[i]);
+		// Clear back log
+		writeBackLogIdx[i] = -1;
 	}
-}	
+}
 
 void zeroWriteBackLog() 
 {
-	for (int i=0;i < WRITEBACKLOGSIZE;i++) 
-		if (writeBackLogIdx[i] != -1) 
-			dsp_op_write_reg(writeBackLogIdx[i], 0);
+	//always make sure to have an extra entry at the end w/ -1 to avoid
+	//infinitive loops
+	for (int i=0;writeBackLogIdx[i]!=-1;i++) 
+		dsp_op_write_reg(writeBackLogIdx[i], 0);
 }
+
