@@ -58,10 +58,10 @@ inline u16 ToMask(u16 a)
 	return a | (a >> 1);
 }
 
-inline u16 dsp_increment_addr_reg(int reg, int value = -1)
+inline s16 dsp_increment_addr_reg(int reg, s32 value = -1)
 {
 	u16 tmb = ToMask(g_dsp.r[DSP_REG_WR0 + reg]);
-	u16 tmp;
+	s16 tmp;
 	if (value == -1)
 		tmp = g_dsp.r[reg];
 	else
@@ -76,9 +76,9 @@ inline u16 dsp_increment_addr_reg(int reg, int value = -1)
 }
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-inline u16 dsp_decrement_addr_reg(int reg, int value = -1)
+inline s16 dsp_decrement_addr_reg(int reg, s32 value = -1)
 {
-	u16 tmp;
+	s16 tmp;
 	if (value == -1)
 		tmp = g_dsp.r[reg];
 	else
@@ -93,9 +93,9 @@ inline u16 dsp_decrement_addr_reg(int reg, int value = -1)
 	return tmp;
 }
 
-inline u16 dsp_increase_addr_reg(int reg, s16 value)
+inline s16 dsp_increase_addr_reg(int reg, s16 value)
 {
-	u16 tmp = - 1;
+	s16 tmp = - 1;
 
 	// TODO: DO RIGHT!
 	if (value > 0) {
@@ -106,7 +106,8 @@ inline u16 dsp_increase_addr_reg(int reg, s16 value)
 		for (int i = 0; i < (int)(-value); i++) {
 			tmp = dsp_decrement_addr_reg(reg, tmp);
 		}
-	}
+	} else
+		tmp = g_dsp.r[reg];
 
 	return tmp;
 }
