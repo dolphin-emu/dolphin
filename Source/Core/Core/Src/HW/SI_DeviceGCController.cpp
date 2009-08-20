@@ -148,8 +148,17 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	}
 #endif
 
-	if(Frame::IsAutoFiring())
-		Frame::ModifyController(&PadStatus);
+	if(Frame::IsPlayingInput())
+		Frame::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
+	else 
+	{
+		// Only pad 0 is allowed to autofire right now
+		if(Frame::IsAutoFiring() && ISIDevice::m_iDeviceNumber == 0)
+			Frame::ModifyController(&PadStatus, 0);
+
+		if(Frame::IsRecordingInput())
+			Frame::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
+	}
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
