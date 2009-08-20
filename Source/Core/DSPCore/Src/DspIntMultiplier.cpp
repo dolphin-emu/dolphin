@@ -27,13 +27,12 @@
 
 namespace DSPInterpreter {
 
-// Sets prod as a side effect.
 // Only MULX family instructions have unsigned support.
-s64 dsp_multiply_conditional_unsigned(u16 a, u16 b)
+inline s64 dsp_get_multiply_prod(u16 a, u16 b, bool sign)
 {
 	s64 prod;
-	// FIXME: Makes AX games sound horrible. Verified through DSPSpy :/
-	if (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)
+
+	if (sign && g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)
 		prod = (u64)a * (u64)b;  // won't overflow 32-bits
 	else
 		prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
@@ -42,55 +41,34 @@ s64 dsp_multiply_conditional_unsigned(u16 a, u16 b)
 	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
 		prod <<= 1;
 
-	// Store the product, and return it, in case the caller wants to read it.
-	dsp_set_long_prod(prod);
 	return prod;
 }
-
+	
 // Sets prod as a side effect.
-s64 dsp_multiply(u16 a, u16 b)
+s64 dsp_multiply(u16 a, u16 b, bool sign = false)
 {
-	s64 prod;
-	prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
-
-	// Conditionally multiply by 2.
-	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
-		prod <<= 1;
-
+	s64 prod = dsp_get_multiply_prod(a, b, sign);
+	
 	// Store the product, and return it, in case the caller wants to read it.
-	dsp_set_long_prod(prod);
+	//	dsp_set_long_prod(prod);
 	return prod;
 }
 
-s64 dsp_multiply_add(u16 a, u16 b)
+s64 dsp_multiply_add(u16 a, u16 b, bool sign = false)
 {
-	s64 prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
-
-	// Conditionally multiply by 2.
-	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
-		prod <<= 1;
-
-	// Add the original prod value.
-	prod += dsp_get_long_prod();
+	s64 prod = dsp_get_multiply_prod(a, b, sign) + dsp_get_long_prod();
 
 	// Store the product, and return it, in case the caller wants to read it.
-	dsp_set_long_prod(prod);
+	//	dsp_set_long_prod(prod);
 	return prod;
 }
 
-s64 dsp_multiply_sub(u16 a, u16 b)
+s64 dsp_multiply_sub(u16 a, u16 b, bool sign = false)
 {
-	s64 prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
-
-	// Conditionally multiply by 2.
-	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
-		prod <<= 1;
-
-	// Subtract from the original prod value.
-	prod = dsp_get_long_prod() - prod;
+	s64 prod = dsp_get_long_prod() -  dsp_get_multiply_prod(a, b, sign);
 
 	// Store the product, and return it, in case the caller wants to read it.
-	dsp_set_long_prod(prod);
+	//	dsp_set_long_prod(prod);
 	return prod;
 }
 
@@ -188,10 +166,11 @@ void mulc(const UDSPInstruction& opc)
 	u8 treg = (opc.hex >> 12) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
+	s64 prod = dsp_multiply(accm, axh);
 												
 	zeroWriteBackLog();
 
-	s64 prod = dsp_multiply(accm, axh);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -212,10 +191,11 @@ void mulcmvz(const UDSPInstruction& opc)
 
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
-												
+	s64 prod = dsp_multiply(accm, axh);
+											
 	zeroWriteBackLog();
+	dsp_set_long_prod(prod);
 
-	dsp_multiply(accm, axh);
 	// update acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	s64 acc = TempProd & ~0xffff; // clear lower 4 bytes
@@ -239,13 +219,13 @@ void mulcmv(const UDSPInstruction& opc)
 	u8 treg  = (opc.hex >> 11) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
-												
+	u8 rreg = (opc.hex >> 8) & 0x1;
+	s64 prod = dsp_multiply(accm, axh);
+	
 	zeroWriteBackLog();
 
-	dsp_multiply(accm, axh);
-
+	dsp_set_long_prod(prod);
 	// update acc
-	u8 rreg = (opc.hex >> 8) & 0x1;
 	dsp_set_long_acc(rreg, old_prod);
 
 	Update_SR_Register64(old_prod);
@@ -265,14 +245,13 @@ void mulcac(const UDSPInstruction& opc)
 	u8 treg  = (opc.hex >> 11) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
-												
-	zeroWriteBackLog();
-
-	dsp_multiply(accm, axh);
-
-	// update acc
+	s64 prod = dsp_multiply(accm, axh);
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	s64 acc = old_prod + dsp_get_long_acc(rreg);
+	
+	zeroWriteBackLog();
+	dsp_set_long_prod(prod);
+	// update acc
 	dsp_set_long_acc(rreg, acc);
 
 	Update_SR_Register64(acc);
@@ -288,10 +267,11 @@ void mul(const UDSPInstruction& opc)
 	u8 sreg  = (opc.hex >> 11) & 0x1;
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
-												
-	zeroWriteBackLog();
-
 	s64 prod = dsp_multiply(axh, axl);
+	
+	zeroWriteBackLog();
+	
+	dsp_set_long_prod(prod);
 	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
 }
@@ -310,14 +290,12 @@ void mulac(const UDSPInstruction& opc)
 	s64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
+	s64 prod = dsp_multiply(axl, axh);
 												
 	zeroWriteBackLog();
 
-
 	dsp_set_long_acc(rreg, acR);
-
-	// calculate new prod
-	s64 prod = dsp_multiply(axl, axh);
+	dsp_set_long_prod(prod);
 
 	// FIXME: no update in duddie's docs
 	Update_SR_Register64(prod);
@@ -332,15 +310,14 @@ void mulmv(const UDSPInstruction& opc)
 {
 	u8 rreg  = (opc.hex >> 8) & 0x1;
 	u8 sreg  = ((opc.hex >> 11) & 0x1);
-	s64 prod = dsp_get_long_prod();
-	s64 acc = prod;
+	s64 acc = dsp_get_long_prod();
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
+	s64 prod = dsp_multiply(axl, axh);
 												
 	zeroWriteBackLog();
 	dsp_set_long_acc(rreg, acc);
-
-	prod = dsp_multiply(axl, axh);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -356,17 +333,15 @@ void mulmvz(const UDSPInstruction& opc)
 	u8 rreg = (opc.hex >> 8) & 0x1;
 
 	// overwrite acc and clear low part
-	s64 prod = dsp_get_long_prod();
-	s64 acc = prod & ~0xffff;
+	s64 acc = dsp_get_long_prod() & ~0xffff;
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
-												
+	s64 prod = dsp_multiply(axl, axh);
+	
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(rreg, acc);
-
-	// math prod
-	prod = dsp_multiply(axl, axh);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -381,9 +356,10 @@ void mulx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-
+	s64 prod = dsp_multiply(val1, val2, true);
+	
 	zeroWriteBackLog();
-	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -397,7 +373,6 @@ void mulxac(const UDSPInstruction& opc)
 	// add old prod to acc
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	s64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
-	dsp_set_long_acc(rreg, acR);
 
 	// math new prod
 	u8 sreg = (opc.hex >> 12) & 0x1;
@@ -405,9 +380,12 @@ void mulxac(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	zeroWriteBackLog();
+		
+	s64 prod = dsp_multiply(val1, val2, true);
 	
-	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
+	zeroWriteBackLog();
+	dsp_set_long_acc(rreg, acR);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -421,7 +399,6 @@ void mulxmv(const UDSPInstruction& opc)
 	// add old prod to acc
 	u8 rreg = ((opc.hex >> 8) & 0x1);
 	s64 acR = dsp_get_long_prod();
-	dsp_set_long_acc(rreg, acR);
 
 	// math new prod
 	u8 sreg = (opc.hex >> 12) & 0x1;
@@ -429,8 +406,11 @@ void mulxmv(const UDSPInstruction& opc)
 
 	s16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	s16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 prod = dsp_multiply(val1, val2, true);
+
 	zeroWriteBackLog();
-	s64 prod = dsp_multiply_conditional_unsigned(val1, val2);
+	dsp_set_long_acc(rreg, acR);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -444,9 +424,7 @@ void mulxmvz(const UDSPInstruction& opc)
 {
 	// overwrite acc and clear low part
 	u8 rreg  = (opc.hex >> 8) & 0x1;
-	s64 prod = dsp_get_long_prod();
-	s64 acc = prod & ~0xffff;
-	dsp_set_long_acc(rreg, acc);
+	s64 acc = dsp_get_long_prod() & ~0xffff;
 
 	// math prod
 	u8 sreg = (opc.hex >> 12) & 0x1;
@@ -454,8 +432,12 @@ void mulxmvz(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 prod = dsp_multiply(val1, val2, true);
+
 	zeroWriteBackLog();
-	prod = dsp_multiply_conditional_unsigned(val1, val2);
+
+	dsp_set_long_acc(rreg, acc);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -471,8 +453,10 @@ void maddx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 prod = dsp_multiply_add(val1, val2, true);
+	
 	zeroWriteBackLog();
-	s64 prod = dsp_multiply_add(val1, val2);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -488,8 +472,10 @@ void msubx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 prod = dsp_multiply_sub(val1, val2, true);
+
 	zeroWriteBackLog();
-	s64 prod = dsp_multiply_sub(val1, val2);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -504,8 +490,11 @@ void maddc(const UDSPInstruction& opc)
 	u32 treg = (opc.hex >> 8) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
-	zeroWriteBackLog();
 	s64 prod = dsp_multiply_add(accm, axh);
+
+	zeroWriteBackLog();
+
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -520,8 +509,10 @@ void msubc(const UDSPInstruction& opc)
 	u32 treg = (opc.hex >> 8) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
-	zeroWriteBackLog();
 	s64 prod = dsp_multiply_sub(accm, axh);
+
+	zeroWriteBackLog();
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -535,10 +526,10 @@ void madd(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 8) & 0x1;
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
+	s64 prod = dsp_multiply_add(axl, axh);
 												
 	zeroWriteBackLog();
-
-	s64 prod = dsp_multiply_add(axl, axh);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
@@ -552,10 +543,10 @@ void msub(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 8) & 0x1;
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
+	s64 prod = dsp_multiply_sub(axl, axh);
 												
 	zeroWriteBackLog();
-
-	s64 prod = dsp_multiply_sub(axl, axh);
+	dsp_set_long_prod(prod);
 	Update_SR_Register64(prod);
 }
 
