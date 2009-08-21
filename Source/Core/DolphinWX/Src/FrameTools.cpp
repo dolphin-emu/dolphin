@@ -129,6 +129,7 @@ void CFrame::CreateMenu()
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
+	emulationMenu->Append(IDM_RECORD, _T("&Start Recording"));
 	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	
@@ -486,6 +487,28 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 	DoOpen(false);
 }
 
+void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
+{
+	wxString path = wxFileSelector(
+			_T("Select The Recording File"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_SAVE | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			this);
+
+	if(path.IsEmpty())
+		return;
+
+	// TODO: Take controller settings from Gamecube Configuration menu
+	Frame::BeginRecordingInput(path.mb_str(), 1);
+	BootGame();
+}
+
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	BootGame();
@@ -532,6 +555,10 @@ void CFrame::DoStop()
 		if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 			if(!AskYesNo("Are you sure you want to stop the current emulation?", "Confirm", wxYES_NO))
 				return;
+
+		// TODO: Show the author/description dialog here
+		if(Frame::IsRecordingInput())
+			Frame::EndRecordingInput();
 	
 		Core::Stop();
 		UpdateGUI();
@@ -831,6 +858,7 @@ void CFrame::UpdateGUI()
 
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
+	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!running && !paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);

@@ -84,7 +84,7 @@ void FrameSkipping();
 
 void ModifyController(SPADStatus *PadStatus, int controllerID);
 
-void BeginRecordingInput(const char *filename);
+void BeginRecordingInput(const char *filename, int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
 void EndRecordingInput();
 
