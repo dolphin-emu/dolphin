@@ -584,6 +584,8 @@ void CFrame::DoStop()
 		// TODO: Show the author/description dialog here
 		if(Frame::IsRecordingInput())
 			Frame::EndRecordingInput();
+		if(Frame::IsPlayingInput())
+			Frame::EndPlayInput();
 	
 		Core::Stop();
 		UpdateGUI();

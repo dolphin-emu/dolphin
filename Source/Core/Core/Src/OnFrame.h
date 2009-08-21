@@ -92,6 +92,7 @@ void EndRecordingInput();
 
 bool PlayInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
+void EndPlayInput();
 
 };
 

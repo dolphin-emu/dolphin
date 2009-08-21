@@ -64,13 +64,8 @@ void FrameUpdate() {
 			fread(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 	
 			
 			// End of recording
-			if(feof(g_recordfd)) {
-				fclose(g_recordfd);
-				g_recordfd = NULL;
-				g_numPads = 0;
-				delete[] g_padStates;
-				g_playMode = MODE_NONE;
-			}
+			if(feof(g_recordfd))
+				EndPlayInput();
 		}
 	}
 
@@ -269,6 +264,8 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 
 	g_padStates[controllerID].CStickX = PadStatus->substickX;
 	g_padStates[controllerID].CStickY = PadStatus->substickY;
+
+	PlayController(PadStatus, controllerID);
 }
 
 bool PlayInput(const char *filename)
@@ -365,6 +362,14 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	PadStatus->substickX = g_padStates[controllerID].CStickX;
 	PadStatus->substickY = g_padStates[controllerID].CStickY;
+}
+
+void EndPlayInput() {
+	fclose(g_recordfd);
+	g_recordfd = NULL;
+	g_numPads = 0;
+	delete[] g_padStates;
+	g_playMode = MODE_NONE;
 }
 
 };
