@@ -38,28 +38,43 @@ int g_numPads = 0;
 ControllerState *g_padStates;
 FILE *g_recordfd = NULL;
 
-u64 g_frameCounter = 0;
+u64 g_frameCounter = 0, g_lagCounter = 0;
+bool g_bPolled = false;
 
 void FrameUpdate() {
-
 	g_frameCounter++;
+
+	if(!g_bPolled) 
+		g_lagCounter++;
 
 	if (g_bFrameStep)
 		Core::SetState(Core::CORE_PAUSE);
 
-	FrameSkipping();
+	if(g_framesToSkip)
+		FrameSkipping();
 
 	if (g_bAutoFire)
 		g_bFirstKey = !g_bFirstKey;
 	
-	if(IsRecordingInput()) {
-		
-		// Dump all controllers' states for this frame
-		fwrite(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 
-
-	} else if(IsPlayingInput()) {
-		// TODO
+	// Dump/Read all controllers' states for this frame
+	if(g_bPolled) {
+		if(IsRecordingInput())
+			fwrite(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 
+		else if(IsPlayingInput()) {
+			fread(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 	
+			
+			// End of recording
+			if(feof(g_recordfd)) {
+				fclose(g_recordfd);
+				g_recordfd = NULL;
+				g_numPads = 0;
+				delete[] g_padStates;
+				g_playMode = MODE_NONE;
+			}
+		}
 	}
+
+	g_bPolled = false;
 }
 
 void SetFrameSkipping(unsigned int framesToSkip) {
@@ -73,6 +88,10 @@ void SetFrameSkipping(unsigned int framesToSkip) {
 
 int FrameSkippingFactor() {
 	return g_framesToSkip;
+}
+
+void SetPolledDevice() {
+	g_bPolled = true;
 }
 
 void SetAutoHold(bool bEnabled, u32 keyToHold)
@@ -161,18 +180,18 @@ bool IsPlayingInput()
 }
 
 // TODO: Add BeginRecordingFromSavestate
-void BeginRecordingInput(const char *filename, int controllers)
+bool BeginRecordingInput(const char *filename, int controllers)
 {
 	if(!filename || g_playMode != MODE_NONE || g_recordfd)
-		return;
+		return false;
 
 	if(File::Exists(filename))
 		File::Delete(filename);
 
-	g_recordfd = fopen(filename, "wb+");
+	g_recordfd = fopen(filename, "wb");
 	if(!g_recordfd) {
 		PanicAlert("Error opening file %s for recording", filename);
-		return;
+		return false;
 	}
 
 	// Write initial empty header
@@ -183,8 +202,11 @@ void BeginRecordingInput(const char *filename, int controllers)
 	g_padStates = new ControllerState[controllers];
 
 	g_frameCounter = 0;
+	g_lagCounter = 0;
 
 	g_playMode = MODE_RECORDING;
+
+	return true;
 }
 
 void EndRecordingInput()
@@ -201,9 +223,9 @@ void EndRecordingInput()
 
     header.bFromSaveState = false; // TODO: add the case where it's true
 	header.frameCount = g_frameCounter;
+	header.lagCount = g_lagCounter; 
 
     // TODO
-	header.lagCount = 0; 
     header.uniqueID = 0; 
     header.numRerecords = 0;
     header.author;
@@ -249,18 +271,100 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padStates[controllerID].CStickY = PadStatus->substickY;
 }
 
-void PlayInput(const char *filename)
+bool PlayInput(const char *filename)
 {
-	// TODO: Implement
-	// TODO: Add the play from savestate case
+	if(!filename || g_playMode != MODE_NONE || g_recordfd)
+		return false;
+
+	if(!File::Exists(filename))
+		return false;
+
+	DTMHeader header;
+
+	g_recordfd = fopen(filename, "rb");
+	if(!g_recordfd)
+		return false;
+
+	fread(&header, sizeof(DTMHeader), 1, g_recordfd);
+
+	// Load savestate (and skip to frame data)
+	if(header.bFromSaveState) {
+		// TODO
+	}
+	
+	/* TODO: Put this verification somewhere we have the gameID of the played game
+	// TODO: Replace with Unique ID
+	if(header.uniqueID != 0) {
+		PanicAlert("Recording Unique ID Verification Failed");
+		goto cleanup;
+	}
+
+	if(strncmp((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
+		PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
+		goto cleanup;
+	}
+	*/
+
+	g_numPads = header.numControllers;
+	g_padStates = new ControllerState[g_numPads];
+
+	g_playMode = MODE_PLAYING;
+
+	return true;
+
+cleanup:
+	fclose(g_recordfd);
+	g_recordfd = NULL;
+	return false;
 }
 
 void PlayController(SPADStatus *PadStatus, int controllerID)
 {
-	// TODO: Implement
 	if(!IsPlayingInput() || controllerID >= g_numPads || controllerID < 0)
 		return;
 
+	memset(PadStatus, 0, sizeof(SPADStatus));
+
+	PadStatus->button |= PAD_USE_ORIGIN;
+
+	if(g_padStates[controllerID].A) {
+		PadStatus->button |= PAD_BUTTON_A;
+		PadStatus->analogA = 0xFF;
+	}
+	if(g_padStates[controllerID].B) {
+		PadStatus->button |= PAD_BUTTON_B;
+		PadStatus->analogB = 0xFF;
+	}
+	if(g_padStates[controllerID].X)
+		PadStatus->button |= PAD_BUTTON_X;
+	if(g_padStates[controllerID].Y)
+		PadStatus->button |= PAD_BUTTON_Y;
+	if(g_padStates[controllerID].Z)
+		PadStatus->button |= PAD_TRIGGER_Z;
+	if(g_padStates[controllerID].Start)
+		PadStatus->button |= PAD_BUTTON_START;
+
+	if(g_padStates[controllerID].DPadUp)
+		PadStatus->button |= PAD_BUTTON_UP;
+	if(g_padStates[controllerID].DPadDown)
+		PadStatus->button |= PAD_BUTTON_DOWN;
+	if(g_padStates[controllerID].DPadLeft)
+		PadStatus->button |= PAD_BUTTON_LEFT;
+	if(g_padStates[controllerID].DPadRight)
+		PadStatus->button |= PAD_BUTTON_RIGHT;
+
+	PadStatus->triggerLeft = g_padStates[controllerID].L;
+	if(PadStatus->triggerLeft > 230)
+		PadStatus->button |= PAD_TRIGGER_L;
+	PadStatus->triggerRight = g_padStates[controllerID].R;
+	if(PadStatus->triggerRight > 230)
+		PadStatus->button |= PAD_TRIGGER_R;
+
+	PadStatus->stickX = g_padStates[controllerID].AnalogStickX;
+	PadStatus->stickY = g_padStates[controllerID].AnalogStickY;
+
+	PadStatus->substickX = g_padStates[controllerID].CStickX;
+	PadStatus->substickY = g_padStates[controllerID].CStickY;
 }
 
 };

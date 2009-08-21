@@ -129,9 +129,13 @@ void CFrame::CreateMenu()
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
-	emulationMenu->Append(IDM_RECORD, _T("&Start Recording"));
-	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	emulationMenu->AppendSeparator();
+	emulationMenu->Append(IDM_RECORD, _T("Start &Recording..."));
+	emulationMenu->Append(IDM_PLAYRECORD, _T("P&lay Recording..."));
+	emulationMenu->AppendSeparator();
+	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
+	
 	
 	wxMenu *skippingMenu = new wxMenu;
 	m_pSubMenuFrameSkipping = emulationMenu->AppendSubMenu(skippingMenu, _T("&Frame Skipping"));
@@ -505,8 +509,29 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 		return;
 
 	// TODO: Take controller settings from Gamecube Configuration menu
-	Frame::BeginRecordingInput(path.mb_str(), 1);
-	BootGame();
+	if(Frame::BeginRecordingInput(path.mb_str(), 1))
+		BootGame();
+}
+
+void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
+{
+	wxString path = wxFileSelector(
+			_T("Select The Recording File"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			this);
+
+	if(path.IsEmpty())
+		return;
+
+	if(Frame::PlayInput(path.mb_str()))
+		BootGame();
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
@@ -858,7 +883,8 @@ void CFrame::UpdateGUI()
 
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
-	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!running && !paused);
+	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!initialized);
+	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!initialized);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);

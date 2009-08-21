@@ -69,6 +69,8 @@ typedef struct {
 
 void FrameUpdate();
 
+void SetPolledDevice();
+
 bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsPlayingInput();
@@ -84,11 +86,11 @@ void FrameSkipping();
 
 void ModifyController(SPADStatus *PadStatus, int controllerID);
 
-void BeginRecordingInput(const char *filename, int controllers);
+bool BeginRecordingInput(const char *filename, int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
 void EndRecordingInput();
 
-void PlayInput(const char *filename);
+bool PlayInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
 
 };

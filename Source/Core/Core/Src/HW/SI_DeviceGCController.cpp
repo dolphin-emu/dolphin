@@ -148,6 +148,8 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	}
 #endif
 
+	Frame::SetPolledDevice();
+
 	if(Frame::IsPlayingInput())
 		Frame::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 	else 

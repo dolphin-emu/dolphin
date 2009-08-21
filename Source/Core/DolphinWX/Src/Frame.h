@@ -159,6 +159,7 @@ class CFrame : public wxFrame
 
 		void OnPlay(wxCommandEvent& event); // Emulation
 		void OnRecord(wxCommandEvent& event);
+		void OnPlayRecording(wxCommandEvent& event);
 		void OnChangeDisc(wxCommandEvent& event);
 		void OnStop(wxCommandEvent& event);
 		void OnScreenshot(wxCommandEvent& event);
