@@ -40,8 +40,8 @@ typedef struct {
 	u8   AnalogStickX, AnalogStickY;            // Main Stick, 16 bits
 	u8   CStickX, CStickY;                      // Sub-Stick, 16 bits
 	
-	bool reserved1, reserved2;                  // Reserved bits, 2 bits
-} ControllerState; // Total: 58 + 2 = 60 bits per frame
+	bool reserved[6];							// Reserved bits, 6 bits
+} ControllerState; // Total: 58 + 6 = 64 bits per frame
 
 typedef struct {
 	u8 filetype[4];			// Unique Identifier (always "DTM"0x1A)
