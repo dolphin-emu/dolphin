@@ -564,6 +564,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
+	// TODO (FIX) : currently, AA path is broken/offset and doesn't return the correct pixel
 	switch (type)
 	{
 
@@ -593,10 +594,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		// TODO: Implement
 		break;
 
-	case PEEK_COLOR:
+	case PEEK_COLOR: // GXPeekARGB
 	{
-		// TODO: Find some way to test PEEK_COLOR. Wind Waker may be using it
-		// for pictograph quests.
+		// Although it may sound strange, this really is A8R8G8B8 and not RGBA or 24-bit...
+
+		// Tested in Killer 7, the first 8bits represent the alpha value which is used to
+		// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70) 
+		// Wind Waker is also using it for the pictograph to determine the color of each pixel
 
 		if (s_MSAASamples > 1)
 		{
@@ -609,13 +613,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
 		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
-		// Read back pixel in BGRA format, then byteswap to get GameCube's
-		// ARGB format.
+		// Read back pixel in BGRA format, then byteswap to get GameCube's ARGB Format.
 		u32 color = 0;
-		glReadPixels(srcX, srcY, 1, 1, GL_BGRA, GL_UNSIGNED_BYTE, &color);
+		glReadPixels(srcX, srcY, 1, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, &color);
 		GL_REPORT_ERRORD();
 
-		return Common::swap32(color);
+		return color;
 	}
 
 	case POKE_COLOR:

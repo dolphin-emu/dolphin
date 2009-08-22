@@ -18,16 +18,14 @@
 #ifndef _MEMMAP_H
 #define _MEMMAP_H
 
-// Enable memory checks in the Debug/DebugFast builds, but NOT in release
-#if MAX_LOGLEVEL >= 4
-#if _DEBUG
-	#define ENABLE_MEM_CHECK
-#endif
-#endif
-
 // Includes
 #include <string>
 #include "Common.h"
+
+// Enable memory checks in the Debug/DebugFast builds, but NOT in release
+#if _DEBUG || DEBUGFAST
+	#define ENABLE_MEM_CHECK
+#endif
 
 // Global declarations
 class PointerWrap;

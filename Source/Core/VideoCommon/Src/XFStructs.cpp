@@ -190,8 +190,12 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
             case 0x1016:
             case 0x1017:
 
-			case 0x101c: // paper mario writes 16777216.0f, 1677721.75
-            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f
+			case 0x101c:
+				// paper mario writes 16777216.0f, 1677721.75
+				// Killer 7 writes 0x4b800000 here on 3D rendering only
+            case 0x101f:
+				// paper mario writes 16777216.0f, 5033165.0f
+				// Killer 7 alterns this between 0x4b800000 and 0x4b7ef9db on 3D rendering
             default:
                 WARN_LOG(VIDEO, "Unknown XF Reg: %x=%x\n", address, data);
                 break;
