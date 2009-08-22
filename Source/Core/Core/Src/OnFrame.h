@@ -44,8 +44,10 @@ typedef struct {
 } ControllerState; // Total: 58 + 2 = 60 bits per frame
 
 typedef struct {
-    bool bWii;              // Wii game
-    u8 gameID[6];           // The Game ID
+	u8 filetype[4];			// Unique Identifier (always "DTM"0x1A)
+
+	u8 gameID[6];           // The Game ID
+	bool bWii;              // Wii game
 
     u8  numControllers;     // The number of connected controllers (1-4)
 

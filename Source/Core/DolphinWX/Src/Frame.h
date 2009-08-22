@@ -173,6 +173,7 @@ class CFrame : public wxFrame
 		void OnUndoSaveState(wxCommandEvent& event);
 		
 		void OnFrameSkip(wxCommandEvent& event);
+		void OnFrameStep(wxCommandEvent& event);
 		
 		void OnConfigMain(wxCommandEvent& event); // Options
 		void OnPluginGFX(wxCommandEvent& event);

@@ -136,9 +136,10 @@ void CFrame::CreateMenu()
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	
-	
+	emulationMenu->Append(IDM_FRAMESTEP, _T("&Frame Stepping"), wxEmptyString, wxITEM_CHECK);
+
 	wxMenu *skippingMenu = new wxMenu;
-	m_pSubMenuFrameSkipping = emulationMenu->AppendSubMenu(skippingMenu, _T("&Frame Skipping"));
+	m_pSubMenuFrameSkipping = emulationMenu->AppendSubMenu(skippingMenu, _T("Frame S&kipping"));
 	for(int i = 0; i < 10; i++)
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(_T("%i"), i), wxEmptyString, wxITEM_RADIO);
 
@@ -484,6 +485,11 @@ void CFrame::DoOpen(bool Boot)
 		strncpy(temp, path.mb_str(), strlen(path.mb_str()));
 		DVDInterface::ChangeDisc(temp);
 	}
+}
+
+void CFrame::OnFrameStep(wxCommandEvent& event)
+{
+	Frame::SetFrameStepping(event.IsChecked());
 }
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
@@ -887,6 +893,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
 	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!initialized);
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!initialized);
+	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(running || paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
 	m_pSubMenuLoad->Enable(initialized);
 	m_pSubMenuSave->Enable(initialized);

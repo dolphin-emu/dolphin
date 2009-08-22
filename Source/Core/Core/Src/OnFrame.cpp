@@ -57,17 +57,16 @@ void FrameUpdate() {
 		g_bFirstKey = !g_bFirstKey;
 	
 	// Dump/Read all controllers' states for this frame
-	if(g_bPolled) {
-		if(IsRecordingInput())
-			fwrite(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 
-		else if(IsPlayingInput()) {
-			fread(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 	
+	if(IsRecordingInput())
+		fwrite(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 
+	else if(IsPlayingInput()) {
+		fread(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 	
 			
-			// End of recording
-			if(feof(g_recordfd))
-				EndPlayInput();
-		}
+		// End of recording
+		if(feof(g_recordfd))
+			EndPlayInput();
 	}
+
 
 	g_bPolled = false;
 }
@@ -212,8 +211,9 @@ void EndRecordingInput()
 	DTMHeader header;
 	memset(&header, 0, sizeof(DTMHeader));
 
-	header.bWii = Core::g_CoreStartupParameter.bWii;
+	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
 	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
+	header.bWii = Core::g_CoreStartupParameter.bWii;
     header.numControllers = g_numPads;
 
     header.bFromSaveState = false; // TODO: add the case where it's true
@@ -283,6 +283,11 @@ bool PlayInput(const char *filename)
 		return false;
 
 	fread(&header, sizeof(DTMHeader), 1, g_recordfd);
+
+	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
+		PanicAlert("Invalid recording file");
+		goto cleanup;
+	}
 
 	// Load savestate (and skip to frame data)
 	if(header.bFromSaveState) {
