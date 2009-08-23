@@ -323,8 +323,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Hack.Add(_("None"));
 	arrayStringFor_Hack.Add(_("Zelda Twilight Princess Bloom hack"));
-	arrayStringFor_Hack.Add(_("Super Mario Galaxy"));
-	arrayStringFor_Hack.Add(_("Mario Kart Wii"));
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
 	arrayStringFor_Hack.Add(_("Final Fantasy CC Echo of Time"));

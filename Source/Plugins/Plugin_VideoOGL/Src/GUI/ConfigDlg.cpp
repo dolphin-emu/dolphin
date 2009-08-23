@@ -182,6 +182,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Internal resolution Settings:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Resolution Settings:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
+	wxStaticText *WM2Text = new wxStaticText(m_PageGeneral, ID_WM2TEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	wxStaticText *FMText = new wxStaticText(m_PageGeneral, ID_FMTEXT, wxT("Fullscreen mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iInternalRes));
@@ -325,7 +326,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_KeepAR169,		wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Crop,				wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
 
-	sBasic->Add(WMText,				wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(WM2Text,				wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Fullscreen,		wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
@@ -440,8 +441,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
 	m_PhackvalueCB->Append(wxT("None"));
 	m_PhackvalueCB->Append(wxT("Zelda Twilight Princess Bloom hack"));
-	m_PhackvalueCB->Append(wxT("Super Mario Galaxy"));
-	m_PhackvalueCB->Append(wxT("Mario Kart Wii"));
 	m_PhackvalueCB->Append(wxT("Sonic and the Black Knight"));
 	m_PhackvalueCB->Append(wxT("Bleach Versus Crusade"));
 	m_PhackvalueCB->Append(wxT("Final Fantasy CC Echo of Time"));
@@ -764,6 +763,11 @@ void GFXConfigDialogOGL::UpdateGUI()
 	// Disable the internal resolution option if it's set to native
 	m_WindowResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
 	m_WindowFSResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));
+
+	//Disable the Copy to options when EFBCopy is disabled
+	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));
+	m_Radio_CopyEFBToGL->Enable(!(g_Config.bEFBCopyDisable));
+	
 }
 
 
@@ -779,18 +783,6 @@ void Config::UpdateProjectionHack()
 	case OGL_HACK_ZELDA_TP_BLOOM_HACK:
 		g_Config.bPhackvalue1 = 1;
 		g_Config.bProjHack1 = 1;
-		break;
-	case OGL_HACK_SUPER_MARIO_GALAXY:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.00006f;
-		g_Config.bPhackvalue2 = 0;
-		g_Config.bProjHack1 = 0;
-		break;
-	case OGL_HACK_MARIO_KART_WII:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.0006f;
-		g_Config.bPhackvalue2 = 0;
-		g_Config.bProjHack1 = 0;
 		break;
 	case OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT:
 		g_Config.bPhackvalue1 = 1;
