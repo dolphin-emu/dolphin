@@ -196,6 +196,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DebuggerUICommon", "Core\De
 		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcproj", "{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -656,6 +658,19 @@ Global
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|Win32.Build.0 = Release|Win32
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|x64.ActiveCfg = Release|x64
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|x64.Build.0 = Release|x64
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.Build.0 = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.ActiveCfg = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.ActiveCfg = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.Build.0 = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|x64.ActiveCfg = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|Win32.ActiveCfg = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|Win32.Build.0 = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|x64.ActiveCfg = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.ActiveCfg = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.Build.0 = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|x64.ActiveCfg = Release|x64
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
