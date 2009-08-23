@@ -265,7 +265,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -290,7 +290,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\Lua\$(OutDir)\Lua.lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -2199,6 +2199,18 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="Lua Interface"
+			>
+			<File
+				RelativePath=".\Src\LuaInterface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LuaInterface.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\ConfigManager.cpp"
