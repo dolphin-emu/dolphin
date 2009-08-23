@@ -113,7 +113,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
-			wxMessageBox(wxString::Format(_("Could not create %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+			wxMessageBox(wxString::Format(_("Could not create %s"), wxString::FromAscii(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	}
 
 	// Disk header and apploader
@@ -122,37 +122,37 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		m_Country->SetValue(wxString::FromAscii("EUROPE"));
+		m_Country->SetValue(wxT("EUROPE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
-		m_Country->SetValue(wxString::FromAscii("FRANCE"));
+		m_Country->SetValue(wxT("FRANCE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
-		m_Country->SetValue(wxString::FromAscii("ITALY"));
+		m_Country->SetValue(wxT("ITALY"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(wxString::FromAscii("USA"));
+		m_Country->SetValue(wxT("USA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		m_Country->SetValue(wxString::FromAscii("JAPAN"));
+		m_Country->SetValue(wxT("JAPAN"));
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
-		m_Country->SetValue(wxString::FromAscii("KOREA"));
+		m_Country->SetValue(wxT("KOREA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
-		m_Country->SetValue(wxString::FromAscii("TAIWAN"));
+		m_Country->SetValue(wxT("TAIWAN"));
 		break;
 	case DiscIO::IVolume::COUNTRY_SDK:
-		m_Country->SetValue(wxString::FromAscii("No Country (SDK)"));
+		m_Country->SetValue(wxT("No Country (SDK)"));
 		break;
 	default:
-		m_Country->SetValue(wxString::FromAscii("UNKNOWN"));
+		m_Country->SetValue(wxT("UNKNOWN"));
 		break;
 	}
 	wxString temp;
 	temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
 	m_MakerID->SetValue(temp);
-	m_Date->SetValue(wxString(OpenISO->GetApploaderDate().c_str(), wxConvUTF8));
+	m_Date->SetValue(wxString::FromAscii(OpenISO->GetApploaderDate().c_str()));
 	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
 	// Banner
@@ -526,7 +526,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
-		wxMessageBox(wxString::Format(_("Could not save %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+		wxMessageBox(wxString::Format(_("Could not save %s"), wxString::FromAscii(GameIniFile.c_str())), _("Error"), wxOK|wxICON_ERROR, this);
 
 	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
 }

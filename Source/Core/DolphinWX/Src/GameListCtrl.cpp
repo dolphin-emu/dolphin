@@ -866,7 +866,7 @@ void CGameListCtrl::OnInstallWAD(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
-    wxString textString(wxString::Format(wxT("%s (%i/%i) - %s"), m_currentFilename.c_str(), (int)m_currentItem+1, (int)m_numberItem, text));
+	wxString textString(wxString::FromAscii(StringFromFormat("%s (%i/%i) - %s", m_currentFilename.c_str(), (int)m_currentItem+1, (int)m_numberItem, text).c_str()));
 
     percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
     wxProgressDialog* pDialog = (wxProgressDialog*)arg;
