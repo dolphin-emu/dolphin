@@ -1094,9 +1094,10 @@ void Update()
 	// Calculate actual refresh rate
 	static u64 LastTick = 0;
 	static s64 UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
-	if (UpdateCheck < (int)timeGetTime())
+	s64 curTime = timeGetTime();
+	if (UpdateCheck < (int)curTime)
 	{
-		UpdateCheck = timeGetTime() + 1000;
+		UpdateCheck = curTime + 1000;
 		TickProgress = CoreTiming::GetTicks() - LastTick;
 		// Calculated CPU-GPU synced ticks for the dual core mode too
 		// NOTICE_LOG(VIDEO, "Removed: %s Mhz", ThS(SyncTicksProgress / 1000000, false).c_str());
