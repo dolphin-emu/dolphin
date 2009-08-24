@@ -805,18 +805,11 @@ void Callback_KeyPress(int key, bool shift, bool control)
 	if (key == 0x78)
 		ScreenShot();
 
-	// 0x79 == VK_F10
-	if (key == 0x79) {
-		SetState((GetState() == CORE_RUN) ? CORE_PAUSE : CORE_RUN);
-		Host_UpdateMainFrame();
-	}
-		
-
 	// 0x7a == VK_F11
 	if (key == 0x7a)
 		State_LoadLastSaved();
 
-	// 0x7b == VK_F12
+	// 0x7a == VK_F12
 	if (key == 0x7b) 
 	{
 		if(shift)
