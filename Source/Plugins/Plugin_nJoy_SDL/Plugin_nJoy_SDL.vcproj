@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_nJoy_SDL"
 	ProjectGUID="{521498BE-6089-4780-8223-E67C22F4E068}"
 	RootNamespace="Plugin_nJoy_SDL"
@@ -65,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib"
+				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib  wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -149,7 +149,7 @@
 				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -225,10 +225,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib"
+				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -306,10 +306,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib"
+				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -387,10 +387,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib"
+				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)DF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
