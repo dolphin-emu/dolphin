@@ -181,8 +181,8 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 // Init functions
 bool Renderer::Init()
 {
-	xfregs.depthRangeConst[0] = 16777216.0f;
-	xfregs.depthRangeConst[1] = 16777216.0f;
+	xfregs.depthRangeConst[0] = 16777215.0f;
+	xfregs.depthRangeConst[1] = 16777215.0f;
     bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
