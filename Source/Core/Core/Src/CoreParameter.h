@@ -57,6 +57,9 @@ struct SCoreStartupParameter
 	bool bJITBranchOff;
 	bool bJITProfiledReJIT;
 
+	bool bEnableFPRF;
+	bool bAccurateFCMP;
+
 	bool bUseDualCore;
 	bool bDSPThread;
 	bool bSkipIdle;
@@ -65,7 +68,6 @@ struct SCoreStartupParameter
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;
-	bool bEnableFPRF;
 	bool bEnableCheats;
 	bool bEnableIsoCache;
 

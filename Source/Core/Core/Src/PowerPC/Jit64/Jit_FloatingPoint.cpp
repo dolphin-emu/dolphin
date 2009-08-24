@@ -205,9 +205,10 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	fpr.LoadToX64(d, true);  // we don't want to destroy the high bit
 	MOVSD(fpr.RX(d), fpr.R(b));
 }
-
+ 
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
+	// TODO : this causes crashes in Nights, and broken graphics in Paper Mario, Super Paper Mario
 	INSTRUCTION_START;
 	if(Core::g_CoreStartupParameter.bJITOff || jo.fpAccurateFcmp
 	|| Core::g_CoreStartupParameter.bJITFloatingPointOff) {

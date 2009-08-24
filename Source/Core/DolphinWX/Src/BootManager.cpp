@@ -132,6 +132,7 @@ bool BootCore(const std::string& _rFilename)
 		ini->Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini->Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 		ini->Get("Core", "EnableFPRF", &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		ini->Get("Core", "AccurateFCMP", &StartUp.bAccurateFCMP, StartUp.bAccurateFCMP);
 		ini->Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
 
 		// ------------------------------------------------

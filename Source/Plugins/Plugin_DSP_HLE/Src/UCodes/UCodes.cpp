@@ -57,7 +57,6 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x088e38a5: // IPL - JAP
 	case 0xd73338cf: // IPL
 	case 0x42f64ac4: // Luigi
-	case 0x267fd05a: // Pikmin PAL
 	case 0x4be6a5cb: // AC, Pikmin
 		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", _CRC);
 		return new CUCode_Zelda(_rMailHandler, _CRC);
@@ -66,6 +65,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0x86840740: // Zelda WW - US
 	case 0x56d36052: // Mario Sunshine
 	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
+	case 0x267fd05a: // Pikmin PAL
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", _CRC);
 		return new CUCode_Zelda(_rMailHandler, _CRC);
 
@@ -83,7 +83,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	case 0xfa450138: // wii sports - PAL
 	case 0xadbc06bd: // Elebits
 	case 0x4cc52064: // Bleach: Versus Crusade    
-    case 0xd9c4bf34: // WiiMenu ... pray 
+    case 0xd9c4bf34: // WiiMenu
 		INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", _CRC);
 		return new CUCode_AXWii(_rMailHandler, _CRC);
 

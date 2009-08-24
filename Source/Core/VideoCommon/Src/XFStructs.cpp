@@ -169,6 +169,24 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 }
                 break;
 
+			// GXSetZScaleOffset ?
+			// Actually everything i tried didn't seem to change anything x)
+			case XFMEM_SETZSCALE:
+				// paper mario writes 16777216.0f, 1677721.75
+				// Killer 7 writes 16777216.0f here
+				WARN_LOG(VIDEO, "Set ZScale : %x=%x\n", address, data);
+				break;
+
+            case XFMEM_SETZOFFSET:
+				// paper mario writes 16777216.0f, 5033165.0f
+				// Killer 7 alterns this between 16777216.0f and 16710107.0f
+				WARN_LOG(VIDEO, "Set ZOffset : %x=%x\n", address, data);
+				break;
+
+			// --------------
+			// Unknown Regs
+			// --------------
+
 			// Maybe these are for Normals?
 			case 0x1048: //xfregs.texcoords[0].nrmmtxinfo.hex = data; break; ??
             case 0x1049:
@@ -181,21 +199,12 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 				DEBUG_LOG(VIDEO, "Possible Normal Mtx XF reg?: %x=%x\n", address, data);
 				break;
 
-			// --------------
-			// Unknown Regs
-			// --------------
 			case 0x1013:
             case 0x1014:
             case 0x1015:
             case 0x1016:
             case 0x1017:
 
-			case 0x101c:
-				// paper mario writes 16777216.0f, 1677721.75
-				// Killer 7 writes 0x4b800000 here on 3D rendering only
-            case 0x101f:
-				// paper mario writes 16777216.0f, 5033165.0f
-				// Killer 7 alterns this between 0x4b800000 and 0x4b7ef9db on 3D rendering
             default:
                 WARN_LOG(VIDEO, "Unknown XF Reg: %x=%x\n", address, data);
                 break;

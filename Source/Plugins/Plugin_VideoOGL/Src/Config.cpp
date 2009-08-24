@@ -110,6 +110,8 @@ void Config::GameIniLoad()
 	if (iniFile->Exists("Video", "EFBToTextureEnable"))
 		iniFile->Get("Video", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 
+	bCopyEFBToRAM = !bCopyEFBToRAM;
+
 	if (iniFile->Exists("Video", "SafeTextureCache"))
 		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
 

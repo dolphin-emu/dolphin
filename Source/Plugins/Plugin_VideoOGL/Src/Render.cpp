@@ -1451,6 +1451,7 @@ void UpdateViewport()
 	glViewport(GLx, GLy, GLWidth, GLHeight);
 
 	// GLDepthRange - this could be a source of trouble - see the viewport hacks.
+	// TODO : Should this use 16777216.0f or 16777215.0f ? 
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777215.0f;
 	glDepthRange(GLNear, GLFar);

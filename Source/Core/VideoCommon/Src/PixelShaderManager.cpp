@@ -122,7 +122,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bZBiasChanged || s_bDepthRangeChanged) 
 	{
-        //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);        
+        //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
+		// TODO : Should this use 16777216.0f or 16777215.0f ? 
         SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
