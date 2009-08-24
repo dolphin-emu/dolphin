@@ -171,16 +171,18 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 
 			// GXSetZScaleOffset ?
 			// Actually everything i tried didn't seem to change anything x)
-			case XFMEM_SETZSCALE:
-				// paper mario writes 16777216.0f, 1677721.75
-				// Killer 7 writes 16777216.0f here
-				WARN_LOG(VIDEO, "Set ZScale : %x=%x\n", address, data);
-				break;
+			// paper mario writes 16777216.0f, 1677721.75
+			// Killer 7 writes 16777216.0f here
+			// WARN_LOG(VIDEO, "Set ZScale : %x=%x\n", address, data);
+			// paper mario writes 16777216.0f, 5033165.0f
+			// Killer 7 alterns this between 16777216.0f and 16710107.0f
+			// WARN_LOG(VIDEO, "Set ZOffset : %x=%x\n", address, data);
 
-            case XFMEM_SETZOFFSET:
-				// paper mario writes 16777216.0f, 5033165.0f
-				// Killer 7 alterns this between 16777216.0f and 16710107.0f
-				WARN_LOG(VIDEO, "Set ZOffset : %x=%x\n", address, data);
+			case XFMEM_SETCONST_ZNEAR:
+				xfregs.depthRangeConst[0] = *((float*)&data);
+				break;
+            case XFMEM_SETCONST_ZFAR:
+				xfregs.depthRangeConst[1] = *((float*)&data);
 				break;
 
 			// --------------
