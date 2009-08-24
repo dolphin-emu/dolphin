@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -90,11 +90,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoOGL.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
@@ -199,11 +199,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib rpcrt4.lib glew64s.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib rpcrt4.lib glew64s.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoOGL.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -298,7 +298,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib  wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoOGLD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -396,11 +396,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib rpcrt4.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib rpcrt4.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoOGLD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -504,11 +504,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoOGLDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				GenerateDebugInformation="true"
@@ -614,11 +614,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib rpcrt4.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib rpcrt4.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoOGLDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

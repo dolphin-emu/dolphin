@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote"
@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
@@ -154,7 +154,7 @@
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -235,7 +235,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
@@ -320,10 +320,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -402,10 +402,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -487,7 +487,7 @@
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

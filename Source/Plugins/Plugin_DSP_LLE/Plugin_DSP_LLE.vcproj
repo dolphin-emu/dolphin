@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_LLE"
 	ProjectGUID="{3D8156A9-64D1-4C8E-ADBE-1B319030E4A4}"
 	RootNamespace="Plugin_DSP_LLE"
@@ -155,7 +155,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib OpenAL32.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib rpcrt4.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
@@ -244,10 +244,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -335,10 +335,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib wxbase28u.lib wxmsw28u_core.lib  wxmsw28u_adv.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -425,10 +425,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -516,7 +516,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib winmm.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/Plugins/$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;..\..\AudioCommon\$(PlatformName)\$(ConfigurationName)&quot;;../../../Externals/OpenAL/Win64/;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
