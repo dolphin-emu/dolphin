@@ -181,8 +181,6 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 // Init functions
 bool Renderer::Init()
 {
-	xfregs.depthRangeConst[0] = 16777215.0f;
-	xfregs.depthRangeConst[1] = 16777215.0f;
     bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
@@ -1448,8 +1446,8 @@ void UpdateViewport()
 	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
 	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / xfregs.depthRangeConst[0];
-	double GLFar = xfregs.rawViewport[5] / xfregs.depthRangeConst[1];
+	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
+	double GLFar = xfregs.rawViewport[5] / 16777215.0f;
 
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);

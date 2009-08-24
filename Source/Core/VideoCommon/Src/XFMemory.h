@@ -91,8 +91,8 @@
 #define XFMEM_SETMATRIXINDA      0x1018
 #define XFMEM_SETMATRIXINDB      0x1019
 #define XFMEM_SETVIEWPORT        0x101a
-#define XFMEM_SETCONST_ZNEAR     0x101c
-#define XFMEM_SETCONST_ZFAR      0x101f
+#define XFMEM_SETZSCALE          0x101c
+#define XFMEM_SETZOFFSET         0x101f
 #define XFMEM_SETPROJECTION      0x1020
 #define XFMEM_SETNUMTEXGENS      0x103f
 #define XFMEM_SETTEXMTXINFO      0x1040
@@ -228,7 +228,6 @@ struct XFRegisters
     bool bEnableDualTexTransform;
 	float rawViewport[6];
 	float rawProjection[7];
-	float depthRangeConst[2];
 };
 
 
