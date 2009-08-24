@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_PadSimpleEvnt"
 	ProjectGUID="{58E81545-241B-416E-8088-E62452EB25FA}"
 	RootNamespace="Plugin_PadSimpleEvnt"
@@ -85,10 +85,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleEvnt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
@@ -186,10 +187,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvnt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				LinkTimeCodeGeneration="1"
@@ -283,10 +285,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib "
 				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleEvntD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -380,10 +383,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib "
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvntD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -481,10 +485,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleEvntDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
@@ -581,10 +586,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvntDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"

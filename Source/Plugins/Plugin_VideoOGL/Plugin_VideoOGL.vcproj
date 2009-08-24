@@ -302,7 +302,7 @@
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoOGLD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

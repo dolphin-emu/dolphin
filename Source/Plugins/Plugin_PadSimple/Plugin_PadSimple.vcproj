@@ -290,6 +290,7 @@
 				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -383,10 +384,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -587,10 +589,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib"
+				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories=";..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

@@ -322,7 +322,7 @@
 				OutputFile="../../../Binary/Win32/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\Win32;..\..\..\Externals\LZO\win32\$(ConfigurationName)"
+				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\vc_lib\Win32;..\..\..\Externals\LZO\win32\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -429,7 +429,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib winmm.lib"
+				AdditionalDependencies="comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib"
 				OutputFile="../../../Binary/x64/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -655,7 +655,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib winmm.lib"
+				AdditionalDependencies="comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib"
 				OutputFile="../../../Binary/x64/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -884,7 +884,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib"
 				OutputFile="../../../Binary/x64/DolphinIL.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
