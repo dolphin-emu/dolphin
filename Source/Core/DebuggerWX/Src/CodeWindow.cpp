@@ -161,12 +161,8 @@ END_EVENT_TABLE()
 
 
 // Class, input event handler and host message handler
-/*
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
-		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-	: wxFrame(parent, id, title, pos, size, style)
-*/
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id)
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
+	wxWindowID id)
 	: wxPanel(parent, id)
 
 	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
@@ -175,6 +171,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
+	, m_ToolBar2(NULL)
 {
 	// Load ini settings
 	IniFile file;
@@ -231,13 +228,17 @@ wxMenuBar *CCodeWindow::GetMenuBar()
 {
 	if (GetParentFrame()) return GetParentFrame()->GetMenuBar();
 }
-wxToolBar *CCodeWindow::GetToolBar()
+wxAuiToolBar *CCodeWindow::GetToolBar()
 {
-	if (GetParentFrame()) return GetParentFrame()->GetToolBar();
+	if (GetParentFrame()) return m_ToolBar2;
 }
 bool CCodeWindow::IsActive()
 {
 	if (GetParentFrame()) return GetParentFrame()->IsActive();
+}
+void CCodeWindow::UpdateToolbar(wxAuiToolBar * _ToolBar2)
+{
+	m_ToolBar2 = _ToolBar2;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -771,6 +772,12 @@ void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LNOTICE, StringFromFormat(
+		"GetToolBar():%i\n", GetToolBar()).c_str());
+
+	if (!GetToolBar()) return;
+
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
@@ -900,7 +907,7 @@ void CCodeWindow::UpdateButtonStates()
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Running = (Core::GetState() == Core::CORE_RUN);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-	wxToolBar* toolBar = GetToolBar();
+	wxAuiToolBar* toolBar = GetToolBar();
 
 	if (!toolBar) return;
 
@@ -916,7 +923,7 @@ void CCodeWindow::UpdateButtonStates()
 		if (!CCPU::IsStepping())
 		{
 			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
-			toolBar->SetToolNormalBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
+			toolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
 			toolBar->EnableTool(IDM_DEBUG_GO, true);
 			toolBar->EnableTool(IDM_STEP, false);
 			toolBar->EnableTool(IDM_STEPOVER, false);
@@ -925,7 +932,7 @@ void CCodeWindow::UpdateButtonStates()
 		else
 		{
 			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Play"));
-			toolBar->SetToolNormalBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
+			toolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
 			toolBar->EnableTool(IDM_DEBUG_GO, true);
 			toolBar->EnableTool(IDM_STEP, true);
 			toolBar->EnableTool(IDM_STEPOVER, true);

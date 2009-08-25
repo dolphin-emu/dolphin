@@ -292,6 +292,8 @@ EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 
 // Debugger Menu Entries
 EVT_MENU(wxID_ANY, CFrame::PostEvent)
+EVT_TEXT(wxID_ANY, CFrame::PostEvent)
+
 //EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
 //EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
@@ -313,7 +315,7 @@ CFrame::CFrame(bool showLogWindow,
 	: wxFrame(parent, id, title, pos, size, style)
 	, UseDebugger(_UseDebugger)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
-	, HaveSpeakers(false), m_Panel(NULL)
+	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBar2(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
@@ -402,6 +404,7 @@ CFrame::CFrame(bool showLogWindow,
 	if (!SConfig::GetInstance().m_InterfaceToolbar)
 		{ m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide(); }
 	AuiMode1 = m_Mgr->SavePerspective();
+	if (UseDebugger) g_pCodeWindow->UpdateToolbar(m_ToolBar2);
 
 	// Save perspectives
 	AuiMode2 = m_Mgr->SavePerspective();
@@ -547,16 +550,17 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 }
 
 // Post events
+// Warning: This may cause an endless loop if the event is propagated back to its parent
 void CFrame::PostEvent(wxCommandEvent& event)
-{	
-	// Restrict the post events to the minimum necessary, it seems like these events are
-	// somtimes posted to the parent wxFrame too so that it creates and endless loop
+{
+	event.Skip();
+	event.StopPropagation();
+
 	if (g_pCodeWindow
 		&& event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX
 		&& event.GetId() != IDM_JITUNLIMITED
 		)
 		wxPostEvent(g_pCodeWindow, event);
-	event.Skip();
 }
 void CFrame::PostMenuEvent(wxMenuEvent& event)
 {

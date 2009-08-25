@@ -285,7 +285,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	wxAuiToolBar* m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
+	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
 	PopulateToolbar(m_ToolBar);
@@ -299,7 +299,7 @@ void CFrame::RecreateToolbar()
 
 	if (UseDebugger)
 	{
-		wxAuiToolBar* m_ToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
+		m_ToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
 		g_pCodeWindow->PopulateToolbar(m_ToolBar2);
@@ -919,14 +919,14 @@ void CFrame::UpdateGUI()
 	bool paused = Core::GetState() == Core::CORE_PAUSE;
 
 	// Make sure that we have a toolbar
-	if (GetToolBar() != NULL)
+	if (m_ToolBar != NULL)
 	{
 		// Enable/disable the Config and Stop buttons
 		//GetToolBar()->EnableTool(IDM_CONFIG_MAIN, !initialized);
-		GetToolBar()->EnableTool(wxID_OPEN, !initialized);
-		GetToolBar()->EnableTool(wxID_REFRESH, !initialized); // Don't allow refresh when we don't show the list
-		GetToolBar()->EnableTool(IDM_STOP, running || paused);
-		GetToolBar()->EnableTool(IDM_SCREENSHOT, running || paused);
+		m_ToolBar->EnableTool(wxID_OPEN, !initialized);
+		m_ToolBar->EnableTool(wxID_REFRESH, !initialized); // Don't allow refresh when we don't show the list
+		m_ToolBar->EnableTool(IDM_STOP, running || paused);
+		m_ToolBar->EnableTool(IDM_SCREENSHOT, running || paused);
 	}
 
 	// File
@@ -954,28 +954,28 @@ void CFrame::UpdateGUI()
 
 	if (running)
 	{
-		if (GetToolBar() != NULL)
+		if (m_ToolBar != NULL)
 		{
-			GetToolBar()->FindById(IDM_PLAY)->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
-			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Pause"));
-			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Pause"));
+			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Pause"));
+			m_ToolBar->SetToolLabel(IDM_PLAY, _("Pause"));
 		}
 		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause\tF10"));
 		
 	}
 	else
 	{
-		if (GetToolBar() != NULL)
+		if (m_ToolBar != NULL)
 		{
-			GetToolBar()->FindById(IDM_PLAY)->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
-			GetToolBar()->FindById(IDM_PLAY)->SetShortHelp(_("Play"));
-			GetToolBar()->FindById(IDM_PLAY)->SetLabel(_("Play"));
+			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
+			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
 		}
 		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));
 		
 	}
 	// Commit changes to toolbar
-	if (GetToolBar() != NULL) GetToolBar()->Realize();
+	if (m_ToolBar != NULL) m_ToolBar->Realize();
 
 	if (!initialized)
 	{

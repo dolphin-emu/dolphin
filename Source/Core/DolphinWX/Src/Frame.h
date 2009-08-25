@@ -102,13 +102,13 @@ class CFrame : public wxFrame
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
-		wxToolBar* m_ToolBar;
 		wxToolBarToolBase* m_ToolPlay;
 		bool m_bLogWindow;
 		CLogWindow* m_LogWindow;
 
 		// AUI
 		wxAuiManager *m_Mgr;
+		wxAuiToolBar *m_ToolBar, *m_ToolBar2;
 		// Perspectives
 		wxString AuiFullscreen;
 		wxString AuiMode1;

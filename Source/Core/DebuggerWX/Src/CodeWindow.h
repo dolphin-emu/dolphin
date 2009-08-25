@@ -54,8 +54,10 @@ class CCodeWindow
 		// Function redirection
 		wxFrame *GetParentFrame();
 		wxMenuBar * GetMenuBar();
-		wxToolBar * GetToolBar();
+		wxAuiToolBar * GetToolBar();
+		wxAuiToolBar * m_ToolBar2;
 		bool IsActive();
+		void UpdateToolbar(wxAuiToolBar *);
 
 		void Load_(IniFile &file);
 		void Load(IniFile &file);
