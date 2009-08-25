@@ -587,6 +587,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 		// Scale the 32-bit value returned by glReadPixels to a 24-bit
 		// value (GC uses a 24-bit Z-buffer).
+		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 		return z >> 8;
 	}
 
@@ -807,11 +808,10 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// TODO: Find better name for this because I don't know if it means what it says.
 	g_VideoInitialize.pCopiedToXFB(false);
 
-#ifndef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
-#endif
+	if (!g_Config.bUseXFB)
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
 }
 
 // This function has the final picture. We adjust the aspect ratio here.

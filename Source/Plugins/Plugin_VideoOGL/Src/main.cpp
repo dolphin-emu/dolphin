@@ -465,15 +465,11 @@ void VideoFifo_CheckSwapRequest()
 {
 	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
-#ifdef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
-		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-#else
-		if (ForceSwap)
+		if (ForceSwap || g_Config.bUseXFB)
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 			g_VideoInitialize.pCopiedToXFB(false);
 		}
-#endif
 
 		// TODO : This just updates the frame counter, so we may change this func's name as well
 		g_VideoInitialize.pCopiedToXFB(true);
@@ -490,8 +486,7 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-#ifdef XXX_ENABLE_CPU_CONTROLLED_SWAPPING
-	if (Common::AtomicLoadAcquire(s_swapRequested))
+	if (Common::AtomicLoadAcquire(s_swapRequested) && g_Config.bUseXFB)
 	{
 		u32 aLower = xfbAddr;
 		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
@@ -501,9 +496,8 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 		if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
 			VideoFifo_CheckSwapRequest();
 	}
-#else
+
 	ForceSwap = false;
-#endif
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)

@@ -260,7 +260,7 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 
 	const u8 *source;
 	u32 ram_mask = 1024 * 1024 * 16 - 1;
-	if (m_CRC == 0xD643001F) {
+	if (IsDMAVersion()) {
 		source = g_dspInitialize.pGetMemoryPointer(m_DMABaseAddr);
 		ram_mask = 1024 * 1024 * 64 - 1;
 	}

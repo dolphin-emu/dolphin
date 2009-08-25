@@ -107,10 +107,8 @@ void Config::GameIniLoad()
 	if (iniFile->Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile->Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 
-	if (iniFile->Exists("Video", "EFBToTextureEnable"))
-		iniFile->Get("Video", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
-
-	bCopyEFBToRAM = !bCopyEFBToRAM;
+	if (iniFile->Exists("Video", "EFBToRAMEnable"))
+		iniFile->Get("Video", "EFBToRAMEnable", &bCopyEFBToRAM, 0);
 
 	if (iniFile->Exists("Video", "SafeTextureCache"))
 		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
