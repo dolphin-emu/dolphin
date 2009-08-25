@@ -44,6 +44,7 @@ public:
 	static void RestoreResolution();
 	static u64 GetTimeSinceJan1970();
 	static u64 GetLocalTimeSinceJan1970();
+	static double GetDoubleTime();
 
 	static std::string GetTimeFormatted();
 	std::string GetTimeElapsedFormatted() const;

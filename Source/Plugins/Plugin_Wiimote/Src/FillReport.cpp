@@ -21,6 +21,7 @@
 #include <string>
 
 #include "Common.h" // Common
+#include "Timer.h"
 #include "pluginspecs_wiimote.h"
 #include "StringUtil.h" // For ArrayToString
 
@@ -147,11 +148,11 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	if(g_RecordingCounter[Wm] == 0)
 	{
 		INFO_LOG(CONSOLE, "\n\nBegin: %i\n", Wm);
-		g_RecordingStart[Wm] = GetDoubleTime();
+		g_RecordingStart[Wm] = Common::Timer::GetDoubleTime();
 	}
 
 	// Get current time
-	g_RecordingCurrentTime[Wm] = GetDoubleTime() - g_RecordingStart[Wm];
+	g_RecordingCurrentTime[Wm] = Common::Timer::GetDoubleTime() - g_RecordingStart[Wm];
 
 	// Modify the current time
 	g_RecordingCurrentTime[Wm] *= ((25.0 + (double)VRecording.at(g_RecordingPlaying[Wm]).PlaybackSpeed * 25.0) / 100.0);

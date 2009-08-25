@@ -280,6 +280,11 @@ void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
+	// Delete toolbar
+	wxToolBarBase* toolBar = GetToolBar();
+	delete toolBar;
+	SetToolBar(NULL);
+
 	wxAuiToolBar* TheToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
@@ -288,7 +293,7 @@ void CFrame::RecreateToolbar()
 	UpdateGUI();
 
 	m_Mgr->AddPane(TheToolBar, wxAuiPaneInfo().
-				Name(wxT("TheToolBar")).Caption(wxT("Big Toolbar")).
+				Name(wxT("TBMain")).Caption(wxT("TBMain")).
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false));
 
@@ -300,7 +305,7 @@ void CFrame::RecreateToolbar()
 		g_pCodeWindow->PopulateToolbar(TheToolBar2);
 
 		m_Mgr->AddPane(TheToolBar2, wxAuiPaneInfo().
-				Name(wxT("TheToolBar2")).Caption(wxT("Big Toolbar")).
+				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false));
 	}
@@ -308,7 +313,6 @@ void CFrame::RecreateToolbar()
 	/*
 	wxToolBarBase* toolBar = GetToolBar();
 	long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
-
 	delete toolBar;
 	SetToolBar(NULL);
 
@@ -729,7 +733,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
-	ShowFullScreen(true);
+	DoFullscreen(true);
 	UpdateGUI();
 }
 
@@ -820,7 +824,9 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 void CFrame::OnResize(wxSizeEvent& event)
 {
-	FitInside();
+	// fit frame content, not needed right now
+	//FitInside();
+
 	DoMoveIcons();  // In FrameWiimote.cpp
 	event.Skip();
 }
@@ -956,9 +962,8 @@ void CFrame::UpdateGUI()
 		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));
 		
 	}
-	if (GetToolBar() != NULL)
-		GetToolBar()->Realize();
-
+	// Commit changes to toolbar
+	if (GetToolBar() != NULL) GetToolBar()->Realize();
 
 	if (!initialized)
 	{
@@ -977,9 +982,6 @@ void CFrame::UpdateGUI()
 			m_GameListCtrl->Hide();
 		}
 	}
-
-	//TheToolBar->Realize();
-	FitInside();
 }
 
 void CFrame::GameListChanged(wxCommandEvent& event)

@@ -82,7 +82,7 @@ extern "C" {
 };
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
    Probably because it's somehow reset from the WndProc() in the child window */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -113,12 +113,11 @@ HWND MSWGetParent_(HWND Parent)
 	return GetParent(Parent);
 }
 #endif
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* The CPanel class to receive MSWWindowProc messages from the video plugin. */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 extern CFrame* main_frame;
@@ -214,10 +213,10 @@ int abc = 0;
 		return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 	}
 #endif
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // event tables
 // ----------------------------
 
@@ -297,10 +296,10 @@ EVT_MENU(wxID_ANY, CFrame::PostEvent)
 //EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
 END_EVENT_TABLE()
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creation and close, quit functions
 // ----------------------------------------
 CFrame::CFrame(bool showLogWindow,
@@ -322,6 +321,8 @@ CFrame::CFrame(bool showLogWindow,
 	#endif
           
 {
+	// Start debugging mazimized
+	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this);
@@ -371,15 +372,15 @@ CFrame::CFrame(bool showLogWindow,
 	if (UseDebugger)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
-					Name(wxT("test8")).Caption(wxT("Tree Pane")).
+					Name(wxT("Pane1")).Caption(wxT("Pane1")).
 					CenterPane().PaneBorder(true));		
 		/**/
 		m_Mgr->AddPane(m_Panel2, wxAuiPaneInfo().
-					Name(wxT("test9")).Caption(wxT("Tree Pane")).
+					Name(wxT("Pane2")).Caption(wxT("Pane2")).
 					CenterPane());
 
 		m_Mgr->AddPane(g_pCodeWindow, wxAuiPaneInfo().
-					Name(wxT("test10")).Caption(wxT("Tree Pane")).
+					Name(wxT("Pane3")).Caption(wxT("Pane3")).
 					CenterPane().Right());		
 	}
 	else
@@ -390,22 +391,20 @@ CFrame::CFrame(bool showLogWindow,
 		this->SetSizer(sizerFrame);
 		*/
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
-			Name(wxT("test8")).Caption(wxT("Tree Pane")).
+			Name(wxT("Pane1")).Caption(wxT("Pane1")).
 			CenterPane().PaneBorder(false));	
 	}
-
 
 	// Open log window
 	m_LogWindow = new CLogWindow(this);
 	if (m_bLogWindow) m_LogWindow->Show();
 
-	// Create the toolbar
+	// Create toolbar
 	RecreateToolbar();
 	if (!SConfig::GetInstance().m_InterfaceToolbar) TheToolBar->Hide();
 
-	FitInside();
-
-	Show(); // Show the window
+	 // Show window
+	Show();
 
 	// Create list of available plugins for the configuration window
 	CPluginManager::GetInstance().ScanForPlugins();
@@ -443,6 +442,7 @@ CFrame::CFrame(bool showLogWindow,
 	#endif
 	// ----------
 
+	// Update controls
 	UpdateGUI();
 	if (UseDebugger) g_pCodeWindow->UpdateButtonStates();
 
@@ -482,10 +482,25 @@ void CFrame::OnClose(wxCloseEvent& event)
 		UpdateGUI();
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+
+void CFrame::DoFullscreen(bool _F)
+{
+	ShowFullScreen(_F);
+	if (_F)
+	{
+		m_Mgr->GetPane(wxT("TBMain")).Hide();
+		m_Mgr->Update();
+	}
+	else
+	{
+		m_Mgr->GetPane(wxT("TBMain")).Show();
+		m_Mgr->Update();
+	}	
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Host messages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
@@ -538,10 +553,10 @@ void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 {
 	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Input
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
@@ -582,29 +597,32 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	// Escape key turn off fullscreen then Stop emulation in windowed mode
 	if (event.GetKeyCode() == WXK_ESCAPE)
 	{
+		// Temporary solution to double esc keydown. When the OpenGL plugin is running all esc keydowns are duplicated
+		// I'm guessing it's coming from the OpenGL plugin but I couldn't find the source of it so I added this until
+		// the source of the problem surfaces.
+		static double Time = 0;
+		if (Common::Timer::GetDoubleTime()-1 < Time) return;
+		Time = Common::Timer::GetDoubleTime();
+
+		DoFullscreen(!IsFullScreen());
 		if (IsFullScreen())
 		{
-			ShowFullScreen(false);
-#ifdef _WIN32
+			#ifdef _WIN32
 			MSWSetCursor(true);
-#endif
-		}
-		else
-			DoStop();
-
-		UpdateGUI();
+			#endif
+		}	
+		//UpdateGUI();
 	}
 	if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
 	{
 		// For some reasons, wxWidget doesn't proccess the Alt+Enter event there on windows.
 		// But still, pressing Alt+Enter make it Fullscreen, So this is for other OS... :P
-		ShowFullScreen(!IsFullScreen());
+		DoFullscreen(!IsFullScreen());
 	}
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'M', '3', '4', '5', '6') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
-		event.Skip(); // Don't block the E key
 	}
 #endif
 
@@ -630,31 +648,12 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// Returns a timestamp with decimals for precise time comparisons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
-double GetDoubleTime()
-{
-	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
-	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
-
-	/* Remove a few years. We only really want enough seconds to make sure that we are
-	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
-	   year of seconds anyway, in case the user's clock is incorrect or something like that */
-	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
-
-	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
-
-	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
-	double ms = datetime.GetMillisecond() / 1000.0;
-	double TmpTime = Seconds + ms;
-	return TmpTime;
-}
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Detect double click. Kind of, for some reason we have to manually create the double click for now.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnDoubleClick(wxMouseEvent& event)
 {
 	 // Don't block the mouse click
@@ -667,13 +666,13 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 	if(Core::GetState() == Core::CORE_UNINITIALIZED || event.GetId() != IDM_MPANEL) return;
 
 	// For first click just save the time
-	if(m_fLastClickTime == 0) { m_fLastClickTime = GetDoubleTime(); return; }
+	if(m_fLastClickTime == 0) { m_fLastClickTime = Common::Timer::GetDoubleTime(); return; }
 
 	// -------------------------------------------
 	/* Manually detect double clicks since both wxEVT_LEFT_DCLICK and WM_LBUTTONDBLCLK stops
 	   working after the child window is created by the plugin */
 	// ----------------------
-	double TmpTime = GetDoubleTime();
+	double TmpTime = Common::Timer::GetDoubleTime();
 	int Elapsed = (TmpTime - m_fLastClickTime) * 1000;
 
 	// Get the double click time, if avaliable
@@ -688,7 +687,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 
 	if (Elapsed < DoubleClickTime)
 	{
-		ShowFullScreen(!IsFullScreen());
+		DoFullscreen(!IsFullScreen());
 		#ifdef _WIN32
 			MSWSetCursor(true); // Show the cursor again, in case it was hidden
 		#endif
@@ -700,7 +699,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 
 
 // Check for mouse motion. Here we process the bHideCursor setting.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnMotion(wxMouseEvent& event)
 {
 	event.Skip();
@@ -723,7 +722,7 @@ void CFrame::OnMotion(wxMouseEvent& event)
 	// Update motion for the auto hide option and return
 	if(IsFullScreen() && SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor)
 	{
-		m_iLastMotionTime = GetDoubleTime();
+		m_iLastMotionTime = Common::Timer::GetDoubleTime();
 		#ifdef _WIN32
 				MSWSetCursor(true);
 		#endif
@@ -755,7 +754,7 @@ void CFrame::OnMotion(wxMouseEvent& event)
 }
 
 // Check for mouse status a couple of times per second for the auto hide option
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯?
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if wxUSE_TIMER
 void CFrame::Update()
 {
@@ -766,7 +765,7 @@ void CFrame::Update()
 	if(IsFullScreen())
 	{
 		int HideDelay = 1; // Wait 1 second to hide the cursor, just like Windows Media Player
-		double TmpSeconds = GetDoubleTime(); // Get timestamp
+		double TmpSeconds = Common::Timer::GetDoubleTime(); // Get timestamp
 		double CompareTime = TmpSeconds - HideDelay; // Compare it
 
 		if(m_iLastMotionTime < CompareTime) // Update cursor
@@ -778,3 +777,4 @@ void CFrame::Update()
 	}
 }
 #endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

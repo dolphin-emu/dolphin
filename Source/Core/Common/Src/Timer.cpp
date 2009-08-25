@@ -191,7 +191,6 @@ std::string Timer::GetTimeFormatted()
 
 	strftime(tmp, 6, "%M:%S", gmTime);
 
-
 	// Now tack on the milliseconds
 	struct timeb tp;
 	(void)::ftime(&tp);
@@ -200,4 +199,29 @@ std::string Timer::GetTimeFormatted()
 	return std::string(formattedTime);
 }
 
+
+// Returns a timestamp with decimals for precise time comparisons
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+double Timer::GetDoubleTime()
+{
+	struct timeb tp;
+	(void)::ftime(&tp);
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
+
+	/* Remove a few years. We only really want enough seconds to make sure that we are
+	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
+	   year of seconds anyway, in case the user's clock is incorrect or something like that */
+	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
+
+	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
+
+	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
+	double ms = tp.millitm / 1000.0;
+	double TmpTime = Seconds + ms;
+	return TmpTime;
+}
+
+
 } // Namespace Common
+
+

@@ -979,25 +979,6 @@ void InterruptDebugging(bool Emu, const void* _pData)
    of the form seconds.milleseconds for example 1234.123. The leding seconds have no particular meaning
    but are just there to enable use to tell if we have entered a new second or now. */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-double GetDoubleTime()
-{
-#if defined(HAVE_WX) && HAVE_WX
-	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
-	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
-
-	/* Remove a few years. We only really want enough seconds to make sure that we are
-	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
-	   year of seconds anyway, in case the user's clock is incorrect or something like that */
-	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
-
-	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
-
-	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
-	double ms = datetime.GetMillisecond() / 1000.0;
-	double TmpTime = Seconds + ms;
-	return TmpTime;
-#endif
-}
 
 /* Calculate the current update frequency. Calculate the time between ten updates, and average
    five such rates. If we assume there are 60 updates per second if the game is running at full
@@ -1013,9 +994,9 @@ int GetUpdateRate()
 		if(g_UpdateTimeList.size() == 5) g_UpdateTimeList.erase(g_UpdateTimeList.begin() + 0);
 
 		// Calculate the time and save it
-		int Time = (int)(10 / (GetDoubleTime() - g_UpdateTime));
+		int Time = (int)(10 / (Common::Timer::GetDoubleTime() - g_UpdateTime));
 		g_UpdateTimeList.push_back(Time);
-		//INFO_LOG(CONSOLE, "Time: %i %f\n", Time, GetDoubleTime());
+		//INFO_LOG(CONSOLE, "Time: %i %f\n", Time, Common::Timer::GetDoubleTime());
 
 		int TotalTime = 0;
 		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)
@@ -1023,7 +1004,7 @@ int GetUpdateRate()
 		g_UpdateRate = TotalTime / 5;
 
 		// Write the new update time
-		g_UpdateTime = GetDoubleTime();
+		g_UpdateTime = Common::Timer::GetDoubleTime();
 
 		g_UpdateCounter = 0;
 	}

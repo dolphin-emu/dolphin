@@ -492,7 +492,7 @@ void WiimoteRecordingConfigDialog::DoRecordMovement(int _x, int _y, int _z, cons
 	Tmp.x = _x;
 	Tmp.y = _y;
 	Tmp.z = _z;
-	Tmp.Time = GetDoubleTime();
+	Tmp.Time = Common::Timer::GetDoubleTime();
 	memcpy(Tmp.IR, _IR, _IRBytes);
 	m_vRecording.push_back(Tmp);
 
