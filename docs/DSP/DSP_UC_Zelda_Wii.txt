@@ -25,7 +25,8 @@
  0020 0e00      lris        $AC0.M, #0x00
  0021 02bf 07d7 call        0x07d7
  0023 009e 1111 lri         $AC0.M, #0x1111
- 0025 02bf 07e1 call        0x07e1
+//    SEND_f355(0x1111)
+ 0025 02bf 07e1 call        0x07e1 
  0027 0e00      lris        $AC0.M, #0x00
  0028 00fe 034e sr          @0x034e, $AC0.M
  002a 1305      sbset       #0x05
@@ -1282,17 +1283,24 @@
  07d2 03c0 8000 andcf       $AC1.M, #0x8000
  07d4 029c 07d1 jlnz        0x07d1
  07d6 02df      ret         
- 07d7 02bf 07ef call        0x07ef
- 07d9 16fc dcd1 si          @DMBH, #0xdcd1
- 07db 2efd      srs         @DMBL, $AC0.M
- 07dc 16fb 0001 si          @DIRQ, #0x0001
- 07de 02bf 07ef call        0x07ef
- 07e0 02df      ret         
- 07e1 02bf 07ef call        0x07ef
- 07e3 16fc f355 si          @DMBH, #0xf355
- 07e5 2efd      srs         @DMBL, $AC0.M
- 07e6 02bf 07ef call        0x07ef
- 07e8 02df      ret         
+
+void SEND_DCD1(AC0.M) {
+	 07d7 02bf 07ef call        0x07ef
+	 07d9 16fc dcd1 si          @DMBH, #0xdcd1
+	 07db 2efd      srs         @DMBL, $AC0.M
+	 07dc 16fb 0001 si          @DIRQ, #0x0001
+	 07de 02bf 07ef call        0x07ef
+	 07e0 02df      ret         
+}
+
+void SEND_F355(AC0.M) {
+	 07e1 02bf 07ef call        0x07ef
+	 07e3 16fc f355 si          @DMBH, #0xf355
+	 07e5 2efd      srs         @DMBL, $AC0.M
+	 07e6 02bf 07ef call        0x07ef
+	 07e8 02df      ret         
+}
+
  07e9 26fc      lrs         $AC0.M, @DMBH
  07ea 02c0 8000 andcf       $AC0.M, #0x8000
  07ec 029d 07e9 jlz         0x07e9
