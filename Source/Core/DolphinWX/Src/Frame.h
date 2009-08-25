@@ -96,8 +96,7 @@ class CFrame : public wxFrame
 		// ---------------
 
 	private:
-
-		wxAuiManager *m_Mgr;
+		
 		bool UseDebugger;
 		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;
@@ -107,6 +106,13 @@ class CFrame : public wxFrame
 		wxToolBarToolBase* m_ToolPlay;
 		bool m_bLogWindow;
 		CLogWindow* m_LogWindow;
+
+		// AUI
+		wxAuiManager *m_Mgr;
+		// Perspectives
+		wxString AuiFullscreen;
+		wxString AuiMode1;
+		wxString AuiMode2;
 
 		char **drives;
 

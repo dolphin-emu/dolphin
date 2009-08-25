@@ -373,26 +373,24 @@ CFrame::CFrame(bool showLogWindow,
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
 					Name(wxT("Pane1")).Caption(wxT("Pane1")).
-					CenterPane().PaneBorder(true));		
-		/**/
+					CenterPane().Layer(0).PaneBorder(false));
+		AuiFullscreen = m_Mgr->SavePerspective();
+		m_Mgr->GetPane(wxT("Pane1")).PaneBorder(true);
+
 		m_Mgr->AddPane(m_Panel2, wxAuiPaneInfo().
 					Name(wxT("Pane2")).Caption(wxT("Pane2")).
-					CenterPane());
+					CenterPane().Layer(1));
 
 		m_Mgr->AddPane(g_pCodeWindow, wxAuiPaneInfo().
 					Name(wxT("Pane3")).Caption(wxT("Pane3")).
-					CenterPane().Right());		
+					CenterPane().Layer(2));
 	}
 	else
 	{
-		/*
-		sizerFrame = new wxBoxSizer(wxHORIZONTAL);
-		sizerFrame->Add(m_Panel, 1, wxEXPAND | wxALL);
-		this->SetSizer(sizerFrame);
-		*/
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
 			Name(wxT("Pane1")).Caption(wxT("Pane1")).
-			CenterPane().PaneBorder(false));	
+			CenterPane().PaneBorder(false));
+		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 
 	// Open log window
@@ -402,6 +400,13 @@ CFrame::CFrame(bool showLogWindow,
 	// Create toolbar
 	RecreateToolbar();
 	if (!SConfig::GetInstance().m_InterfaceToolbar) TheToolBar->Hide();
+	AuiMode1 = m_Mgr->SavePerspective();
+
+	// Save perspectives
+	AuiMode2 = m_Mgr->SavePerspective();
+	m_Mgr->GetPane(wxT("Pane2")).Layer(0);
+	m_Mgr->GetPane(wxT("Pane3")).Layer(0).Right();
+	AuiMode1 = m_Mgr->SavePerspective();
 
 	 // Show window
 	Show();
@@ -487,15 +492,9 @@ void CFrame::DoFullscreen(bool _F)
 {
 	ShowFullScreen(_F);
 	if (_F)
-	{
-		m_Mgr->GetPane(wxT("TBMain")).Hide();
-		m_Mgr->Update();
-	}
+		m_Mgr->LoadPerspective(AuiFullscreen, true);
 	else
-	{
-		m_Mgr->GetPane(wxT("TBMain")).Show();
-		m_Mgr->Update();
-	}	
+		m_Mgr->LoadPerspective(AuiMode1, true);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
