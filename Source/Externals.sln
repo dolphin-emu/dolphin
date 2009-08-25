@@ -145,7 +145,8 @@ Global
 		{05C75041-D67D-4903-A362-8395A7B35C75}.DebugFast|x64.ActiveCfg = Release|Win32
 		{05C75041-D67D-4903-A362-8395A7B35C75}.Release|Win32.ActiveCfg = Release|Win32
 		{05C75041-D67D-4903-A362-8395A7B35C75}.Release|Win32.Build.0 = Release|Win32
-		{05C75041-D67D-4903-A362-8395A7B35C75}.Release|x64.ActiveCfg = Release|Win32
+		{05C75041-D67D-4903-A362-8395A7B35C75}.Release|x64.ActiveCfg = Release|x64
+		{05C75041-D67D-4903-A362-8395A7B35C75}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
