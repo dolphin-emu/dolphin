@@ -290,6 +290,12 @@ EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 #if wxUSE_TIMER
 	EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
+
+// Debugger Menu Entries
+EVT_MENU(wxID_ANY, CFrame::PostEvent)
+//EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
+//EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
+
 END_EVENT_TABLE()
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -303,8 +309,10 @@ CFrame::CFrame(bool showLogWindow,
 		const wxString& title,
 		const wxPoint& pos,
 		const wxSize& size,
+		bool _UseDebugger,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
+	, UseDebugger(_UseDebugger)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
@@ -314,6 +322,10 @@ CFrame::CFrame(bool showLogWindow,
 	#endif
           
 {
+	// Debugger class
+	if (UseDebugger)
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this);
+
 	// Create timer
 	#if wxUSE_TIMER
 		int TimesPerSecond = 10; // We don't need more than this
@@ -341,13 +353,8 @@ CFrame::CFrame(bool showLogWindow,
 	if (SConfig::GetInstance().m_InterfaceConsole)
 		console->Open();
 
-	// This panel is the parent for rendering and it holds the gamelistctrl
-	//m_Panel = new wxPanel(this, IDM_MPANEL);
 	m_Panel = new CPanel(this, IDM_MPANEL);
-
-	m_LogWindow = new CLogWindow(this);
-	if (m_bLogWindow)
-		m_LogWindow->Show();
+	wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
@@ -357,14 +364,44 @@ CFrame::CFrame(bool showLogWindow,
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
 
-	sizerFrame = new wxBoxSizer(wxHORIZONTAL);
-	sizerFrame->Add(m_Panel, 1, wxEXPAND | wxALL);
-	this->SetSizer(sizerFrame);
+	m_Mgr = new wxAuiManager();
+	m_Mgr->SetManagedWindow(this);
+
+	// This panel is the parent for rendering and it holds the gamelistctrl
+	if (UseDebugger)
+	{
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
+					Name(wxT("test8")).Caption(wxT("Tree Pane")).
+					CenterPane().PaneBorder(true));		
+		/**/
+		m_Mgr->AddPane(m_Panel2, wxAuiPaneInfo().
+					Name(wxT("test9")).Caption(wxT("Tree Pane")).
+					CenterPane());
+
+		m_Mgr->AddPane(g_pCodeWindow, wxAuiPaneInfo().
+					Name(wxT("test10")).Caption(wxT("Tree Pane")).
+					CenterPane().Right());		
+	}
+	else
+	{
+		/*
+		sizerFrame = new wxBoxSizer(wxHORIZONTAL);
+		sizerFrame->Add(m_Panel, 1, wxEXPAND | wxALL);
+		this->SetSizer(sizerFrame);
+		*/
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
+			Name(wxT("test8")).Caption(wxT("Tree Pane")).
+			CenterPane().PaneBorder(false));	
+	}
+
+
+	// Open log window
+	m_LogWindow = new CLogWindow(this);
+	if (m_bLogWindow) m_LogWindow->Show();
 
 	// Create the toolbar
 	RecreateToolbar();
-	if (!SConfig::GetInstance().m_InterfaceToolbar)
-		TheToolBar->Hide();
+	if (!SConfig::GetInstance().m_InterfaceToolbar) TheToolBar->Hide();
 
 	FitInside();
 
@@ -377,6 +414,9 @@ CFrame::CFrame(bool showLogWindow,
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
 	m_GameListCtrl->Update();
 	//sizerPanel->SetSizeHints(m_Panel);
+
+	// Commit 
+	m_Mgr->Update();
 
 	// Create cursors
 	#ifdef _WIN32
@@ -404,6 +444,7 @@ CFrame::CFrame(bool showLogWindow,
 	// ----------
 
 	UpdateGUI();
+	if (UseDebugger) g_pCodeWindow->UpdateButtonStates();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
@@ -445,7 +486,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Input and host messages
+// Host messages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -483,7 +524,26 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
+// Post events
+void CFrame::PostEvent(wxCommandEvent& event)
+{
+	// Don't post zero events, that may hang
+	if (g_pCodeWindow && event.GetId()) wxPostEvent(g_pCodeWindow, event);
+}
+void CFrame::PostMenuEvent(wxMenuEvent& event)
+{
+	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
+}
+void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
+{
+	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
+}
+//////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Input
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
 	// Show all platforms and regions if...

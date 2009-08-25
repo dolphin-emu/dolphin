@@ -51,7 +51,7 @@ class CBreakPointWindow
 
 		enum
 		{
-			ID_TOOLBAR = 500,
+			ID_TOOLBAR = 501,
 			ID_BPS = 1002,
 			IDM_DELETE,
 			IDM_CLEAR,

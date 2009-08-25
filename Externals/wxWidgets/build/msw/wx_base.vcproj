@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
-	Name="wxBase28"
+	Version="9,00"
+	Name="base"
 	ProjectGUID="{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
 	RootNamespace="wxBase28"
 	TargetFrameworkVersion="131072"
@@ -20,7 +20,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="wxBase28_$(PlatformName)\..\..\..\lib\vc_lib\Win32"
 			IntermediateDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -75,7 +75,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxBase28.lib"
+				OutputFile="$(OutDir)\wxbase28u.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -98,7 +98,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="wxBase28_$(PlatformName)\..\..\..\lib\vc_lib\x64"
 			IntermediateDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -155,7 +155,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxBase28.lib"
+				OutputFile="$(OutDir)\wxbase28u.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -178,7 +178,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="wxBase28_$(PlatformName)\..\..\..\lib\vc_lib\Win32"
 			IntermediateDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -232,7 +232,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxBase28.lib"
+				OutputFile="$(OutDir)\wxbase28ud.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -255,7 +255,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="wxBase28_$(PlatformName)\..\..\..\lib\vc_lib\x64"
 			IntermediateDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -312,7 +312,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxBase28.lib"
+				OutputFile="$(OutDir)\wxbase28ud.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -412,7 +412,7 @@
 		</Configuration>
 		<Configuration
 			Name="DebugFast|x64"
-			OutputDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="wxBase28_$(PlatformName)\..\..\..\lib\vc_lib\x64"
 			IntermediateDirectory="wxBase28_$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -468,7 +468,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxBase28.lib"
+				OutputFile="$(OutDir)\wxbase28u.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

@@ -23,8 +23,10 @@
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
 #include <wx/listctrl.h>
+#include <wx/aui/aui.h>
 
 #include "CDUtils.h"
+#include "CodeWindow.h"
 #include "LogWindow.h"
 
 // A shortcut to access the bitmaps
@@ -49,6 +51,7 @@ class CFrame : public wxFrame
 			const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
+		bool _UseDebugger = false,
 		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 		void* GetRenderHandle()
@@ -70,9 +73,14 @@ class CFrame : public wxFrame
 		void UpdateGUI();
 		void ToggleLogWindow(bool check);
 		void ToggleConsole(bool check);
+		CCodeWindow* g_pCodeWindow;
+		void PostEvent(wxCommandEvent& event);
+		void PostMenuEvent(wxMenuEvent& event);
+		void PostUpdateUIEvent(wxUpdateUIEvent& event);
 
 		// ---------------------------------------
 		// Wiimote leds
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 		void ModifyStatusBar();
 		void CreateDestroy(int Case);
 		void CreateLeds(); void CreateSpeakers();
@@ -89,6 +97,8 @@ class CFrame : public wxFrame
 
 	private:
 
+		wxAuiManager *m_Mgr;
+		bool UseDebugger;
 		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
@@ -139,7 +149,7 @@ class CFrame : public wxFrame
 		wxBitmap m_Bitmaps[EToolbar_Max];
 		wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-		void PopulateToolbar(wxToolBar* toolBar);
+		void PopulateToolbar(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
 

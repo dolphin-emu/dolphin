@@ -22,6 +22,7 @@
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
+#include <wx/aui/aui.h>
 
 #include "Thread.h"
 #include "CoreParameter.h"
@@ -33,26 +34,32 @@ class CJitWindow;
 class CCodeView;
 
 class CCodeWindow
-	: public wxFrame
+	: public wxPanel
 {
 	public:
 
+		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
+			wxWindowID id = wxID_ANY);
+		/*
 		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = _T("Dolphin-Debugger"),
 		const wxPoint& pos = wxPoint(950, 100),
 		const wxSize& size = wxSize(400, 500),
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		*/
 
 		~CCodeWindow();
 
+		// Function redirection
+		wxFrame *GetParentFrame();
+		wxMenuBar * GetMenuBar();
+		wxToolBar * GetToolBar();
+		bool IsActive();
+
 		void Load_(IniFile &file);
 		void Load(IniFile &file);
-		void Save(IniFile &file) const;
-
-		void Update();
-		void NotifyMapLoaded();
-
+		void Save(IniFile &file);
 
 		bool UseInterpreter();
 		bool BootToPause();
@@ -62,59 +69,20 @@ class CCodeWindow
 		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
+		void Update();
+		void NotifyMapLoaded();
+		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar * pMenuBar);
+		void RecreateToolbar(wxAuiToolBar*);
+		void PopulateToolbar(wxAuiToolBar* toolBar);
+		void CreateSymbolsMenu();
+		void UpdateButtonStates();
+
 	private:
 
 		enum
 		{
-			// ==============================================================
-			// Menu Entries
-			// CPU Mode
-			IDM_INTERPRETER = 2000, // These cannot interfere with enums in Globals.h!
-			//IDM_DUALCORE, // not used
-			IDM_AUTOMATICSTART, IDM_BOOTTOPAUSE,
-			IDM_JITUNLIMITED, IDM_JITBLOCKLINKING,  // JIT
-			IDM_JITOFF,
-			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
-			IDM_JITLSPOFF, IDM_JITLSFOFF,
-			IDM_JITIOFF,
-			IDM_JITFPOFF,
-			IDM_JITPOFF,
-			IDM_JITSROFF,
-
-			// Views
-			IDM_FONTPICKER,
-			IDM_LOGWINDOW,
-			IDM_REGISTERWINDOW,
-			IDM_BREAKPOINTWINDOW,
-			IDM_MEMORYWINDOW,
-			IDM_JITWINDOW,
-			IDM_SOUNDWINDOW,
-			IDM_VIDEOWINDOW,
-
-			// Symbols
-			IDM_CLEARSYMBOLS,
-			IDM_CLEANSYMBOLS, // not used
-			IDM_SCANFUNCTIONS,
-			IDM_LOADMAPFILE,
-			IDM_SAVEMAPFILE, IDM_SAVEMAPFILEWITHCODES,
-			IDM_CREATESIGNATUREFILE,
-            IDM_RENAME_SYMBOLS,
-			IDM_USESIGNATUREFILE,
-			//IDM_USESYMBOLFILE, // not used
-			IDM_PATCHHLEFUNCTIONS,
-
-			// JIT
-			IDM_CLEARCODECACHE,
-			IDM_LOGINSTRUCTIONS,
-			IDM_SEARCHINSTRUCTION,
-
-			// Profiler
-			IDM_PROFILEBLOCKS,
-			IDM_WRITEPROFILE,
-
-			// ==============================================================
 			// Toolbar
-			ID_TOOLBAR,
+			ID_TOOLBAR = 2000,
 			IDM_DEBUG_GO,
 			IDM_STEP,
 			IDM_STEPOVER,
@@ -153,6 +121,39 @@ class CCodeWindow
 		bool bSoundWindow;
 		bool bVideoWindow;
 
+		void OnSymbolListChange(wxCommandEvent& event);
+		void OnSymbolListContextMenu(wxContextMenuEvent& event);
+		void OnCallstackListChange(wxCommandEvent& event);
+		void OnCallersListChange(wxCommandEvent& event);
+		void OnCallsListChange(wxCommandEvent& event);
+		void OnCodeStep(wxCommandEvent& event);
+		void OnCodeViewChange(wxCommandEvent &event);
+		void SingleCPUStep();
+
+		void OnAddrBoxChange(wxCommandEvent& event);
+
+		void OnToggleRegisterWindow(wxCommandEvent& event);
+		void OnToggleBreakPointWindow(wxCommandEvent& event);
+		void OnToggleMemoryWindow(wxCommandEvent& event);
+		void OnToggleJitWindow(wxCommandEvent& event);
+		void OnToggleSoundWindow(wxCommandEvent& event);
+		void OnToggleVideoWindow(wxCommandEvent& event);
+		void OnChangeFont(wxCommandEvent& event);
+	
+		void OnHostMessage(wxCommandEvent& event);
+		void OnSymbolsMenu(wxCommandEvent& event);
+		void OnJitMenu(wxCommandEvent& event);
+		void OnProfilerMenu(wxCommandEvent& event);
+
+		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
+		void OnJITOff(wxCommandEvent& event);
+
+		void UpdateLists();
+		void UpdateCallstack();
+		void OnStatusBar(wxMenuEvent& event); void OnStatusBar_(wxUpdateUIEvent& event);
+		void DoTip(wxString text);
+		void OnKeyDown(wxKeyEvent& event);
+
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
 		CRegisterWindow* m_RegisterWindow;
@@ -179,45 +180,6 @@ class CCodeWindow
 		wxBitmap m_Bitmaps[Bitmaps_max];
 
 		DECLARE_EVENT_TABLE()
-
-		void OnSymbolListChange(wxCommandEvent& event);
-		void OnSymbolListContextMenu(wxContextMenuEvent& event);
-		void OnCallstackListChange(wxCommandEvent& event);
-		void OnCallersListChange(wxCommandEvent& event);
-		void OnCallsListChange(wxCommandEvent& event);
-		void OnCodeStep(wxCommandEvent& event);
-		void OnCodeViewChange(wxCommandEvent &event);
-		void SingleCPUStep();
-
-		void OnAddrBoxChange(wxCommandEvent& event);
-
-		void OnToggleRegisterWindow(wxCommandEvent& event);
-		void OnToggleBreakPointWindow(wxCommandEvent& event);
-		void OnToggleMemoryWindow(wxCommandEvent& event);
-		void OnToggleJitWindow(wxCommandEvent& event);
-		void OnToggleSoundWindow(wxCommandEvent& event);
-		void OnToggleVideoWindow(wxCommandEvent& event);
-		void OnChangeFont(wxCommandEvent& event);
-	
-		void OnHostMessage(wxCommandEvent& event);
-		void OnSymbolsMenu(wxCommandEvent& event);
-		void OnJitMenu(wxCommandEvent& event);
-		void OnProfilerMenu(wxCommandEvent& event);
-
-		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
-		void OnJITOff(wxCommandEvent& event);	
-
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
-		void CreateSymbolsMenu();
-
-		void UpdateButtonStates();
-		void UpdateLists();
-		void UpdateCallstack();
-		void RecreateToolbar();
-		void PopulateToolbar(wxToolBar* toolBar);
-		void OnStatusBar(wxMenuEvent& event); void OnStatusBar_(wxUpdateUIEvent& event);
-		void DoTip(wxString text);
-		void OnKeyDown(wxKeyEvent& event);
 
 		void InitBitmaps();
 		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);		

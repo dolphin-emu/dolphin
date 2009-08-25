@@ -297,19 +297,12 @@ bool DolphinApp::OnInit()
 	if (UseDebugger)
 	{
 		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(x, y), wxSize(w, h));
+				wxPoint(x, y), wxSize(w, h), true);
 	}
 	else
 	{
 		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
 				wxPoint(100, 100), wxSize(800, 600));
-	}
-
-	// Create debugging window
-	if (UseDebugger)
-	{
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
-		g_pCodeWindow->Show(true);
 	}
 
 	// ---------------------------------------------------
@@ -322,20 +315,23 @@ bool DolphinApp::OnInit()
 	}
 	/* If we have selected Automatic Start, start the default ISO, or if no default
 	   ISO exists, start the last loaded ISO */
-	else if (UseDebugger && g_pCodeWindow->AutomaticStart())
+	else if (UseDebugger)
 	{
-		if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-			&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
-				m_strDefaultGCM.c_str()))
+		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
-			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
-				m_strDefaultGCM);
+			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
+				&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
+					m_strDefaultGCM.c_str()))
+			{
+				BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
+					m_strDefaultGCM);
+			}
+			else if(!SConfig::GetInstance().m_LastFilename.empty()
+				&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
+			{
+				BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+			}	
 		}
-		else if(!SConfig::GetInstance().m_LastFilename.empty()
-			&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
-		{
-			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
-		}		
 	}
 	// ---------------------
 

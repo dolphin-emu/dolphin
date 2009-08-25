@@ -88,18 +88,15 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 }
 
 
-BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
+BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
     EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
     EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
     EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
-    EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
 
-	// Menu tooltips
-	EVT_MENU_HIGHLIGHT_ALL(			CCodeWindow::OnStatusBar)
-	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
-	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
-	EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
+    EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+
+	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 
 	// Menu bar
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
@@ -117,8 +114,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
 
 	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow) //views
-    EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
-    EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
+	EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
+	EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
 	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
@@ -132,7 +129,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
-    EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
 
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
@@ -150,15 +147,24 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
 	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
-	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
+	// Menu tooltips
+	//EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
+	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
+	//EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
+
 END_EVENT_TABLE()
 
 
 
 // Class, input event handler and host message handler
+/*
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
+*/
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id)
+	: wxPanel(parent, id)
 
 	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
 	    things may crash */
@@ -177,10 +183,10 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	CreateGUIControls(_LocalCoreStartupParameter);
 
 	// Create the toolbar
-	RecreateToolbar();
+	//RecreateToolbar();
 
 	// Update bitmap buttons
-	UpdateButtonStates();
+	//UpdateButtonStates();
 
 	// Connect keyboard
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
@@ -208,6 +214,30 @@ CCodeWindow::~CCodeWindow()
 
 	file.Save(DEBUGGER_CONFIG_FILE);
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//Redirect old wxFrame calls
+// ------------
+wxFrame *CCodeWindow::GetParentFrame()
+{	
+	wxFrame *Parent = wxDynamicCast(GetParent(), wxFrame);
+	return Parent;
+}
+wxMenuBar *CCodeWindow::GetMenuBar()
+{
+	if (GetParentFrame()) return GetParentFrame()->GetMenuBar();
+}
+wxToolBar *CCodeWindow::GetToolBar()
+{
+	if (GetParentFrame()) return GetParentFrame()->GetToolBar();
+}
+bool CCodeWindow::IsActive()
+{
+	if (GetParentFrame()) return GetParentFrame()->IsActive();
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
@@ -275,8 +305,6 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
 
 
-
-
 // Load these settings before CreateGUIControls()
 
 void CCodeWindow::Load_( IniFile &ini )
@@ -318,8 +346,11 @@ void CCodeWindow::Load( IniFile &ini )
 }
 
 
-void CCodeWindow::Save(IniFile &ini) const
+void CCodeWindow::Save(IniFile &ini)
 {
+	// Crashes on exit, will be fixed
+	return;
+
 	ini.Set("CodeWindow", "x", GetPosition().x);
 	ini.Set("CodeWindow", "y", GetPosition().y);
 	ini.Set("CodeWindow", "w", GetSize().GetWidth());
@@ -346,8 +377,7 @@ void CCodeWindow::Save(IniFile &ini) const
 
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
-	CreateMenu(_LocalCoreStartupParameter);
-
+	//CreateMenu(_LocalCoreStartupParameter);
 	
 	// Configure the code window
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
@@ -421,14 +451,15 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 // Create CPU Mode and Views menus
 
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter)
+void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar * _pMenuBar)
 {
 	// Create menu
-	pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
+	//pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
+	pMenuBar = _pMenuBar;
 
-	
+	// Add separator to mark beginning of debugging menus
+
 	// CPU Mode
-	
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
@@ -451,19 +482,19 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and retry it several times, either with changes to Dolphin or if you are"
 		" developing a homebrew game.]")
 		, wxITEM_CHECK);
-	automaticstart->Check(bAutomaticStart);		
+	automaticstart->Check(bAutomaticStart);	
 
-		pCoreMenu->AppendSeparator();
+	pCoreMenu->AppendSeparator();
 
-		jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking off"),
-			_T("Provide safer execution by not linking the JIT blocks."
-			), wxITEM_CHECK);
+	jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING + 123, _T("&JIT Block Linking off"),
+		_T("Provide safer execution by not linking the JIT blocks."),
+		wxITEM_CHECK);
 
-		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
-			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
-			_T(" [This option must be selected before a game is started.]"),
-			wxITEM_CHECK);
-		
+	jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
+		_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
+		_T(" [This option must be selected before a game is started.]"),
+		wxITEM_CHECK);
+
 
 	#ifdef JIT_OFF_OPTIONS
 		pCoreMenu->AppendSeparator();
@@ -486,7 +517,6 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
 	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
-	
 
 	
 	// Views
@@ -514,12 +544,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pDebugDialogs->AppendSeparator();
 	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
-	pMenuBar->Append(pDebugDialogs, _T("&Views"));
-	
+	pMenuBar->Append(pDebugDialogs, _T("&Views"));	
 
 	CreateSymbolsMenu();
 
-	SetMenuBar(pMenuBar);
+	//SetMenuBar(pMenuBar);
 }
 
 
@@ -546,7 +575,7 @@ void CCodeWindow::InitBitmaps()
 }
 
 
-void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
+void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
 		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
@@ -871,6 +900,8 @@ void CCodeWindow::UpdateButtonStates()
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
 	wxToolBar* toolBar = GetToolBar();
 
+	if (!toolBar) return;
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		toolBar->EnableTool(IDM_DEBUG_GO, false);
@@ -925,19 +956,22 @@ void CCodeWindow::UpdateButtonStates()
 	calls->SetFont(DebuggerFont);
 }
 
-void CCodeWindow::RecreateToolbar()
+void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
 {
+	/*
 	// delete and recreate the toolbar
 	wxToolBarBase* toolBar = GetToolBar();
 	delete toolBar;
 	SetToolBar(NULL);
+	
 
 	long style = TOOLBAR_STYLE;
 	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
+	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR2);
 
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);
+	*/
 }
 
 

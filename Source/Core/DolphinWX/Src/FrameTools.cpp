@@ -238,13 +238,15 @@ void CFrame::CreateMenu()
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
 	menuBar->Append(helpMenu, _T("&Help"));
 
+	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menuBar);
+
 	// Associate the menu bar with the frame
 	SetMenuBar(menuBar);
 }
 
 
 // Create toolbar items
-void CFrame::PopulateToolbar(wxToolBar* toolBar)
+void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
@@ -278,7 +280,32 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
+	wxAuiToolBar* TheToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
+				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
+	PopulateToolbar(TheToolBar);
+
+	UpdateGUI();
+
+	m_Mgr->AddPane(TheToolBar, wxAuiPaneInfo().
+				Name(wxT("TheToolBar")).Caption(wxT("Big Toolbar")).
+				ToolbarPane().Top().
+				LeftDockable(false).RightDockable(false));
+
+	if (UseDebugger)
+	{
+		wxAuiToolBar* TheToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
+					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
+
+		g_pCodeWindow->PopulateToolbar(TheToolBar2);
+
+		m_Mgr->AddPane(TheToolBar2, wxAuiPaneInfo().
+				Name(wxT("TheToolBar2")).Caption(wxT("Big Toolbar")).
+				ToolbarPane().Top().
+				LeftDockable(false).RightDockable(false));
+	}
+
+	/*
 	wxToolBarBase* toolBar = GetToolBar();
 	long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
 
@@ -291,6 +318,7 @@ void CFrame::RecreateToolbar()
 	PopulateToolbar(TheToolBar);
 	SetToolBar(TheToolBar);
 	UpdateGUI();
+	*/
 }
 
 void CFrame::InitBitmaps()
@@ -950,7 +978,7 @@ void CFrame::UpdateGUI()
 		}
 	}
 
-	TheToolBar->Realize();
+	//TheToolBar->Realize();
 	FitInside();
 }
 

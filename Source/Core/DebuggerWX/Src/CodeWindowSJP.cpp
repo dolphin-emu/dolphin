@@ -122,7 +122,6 @@ void CCodeWindow::CreateSymbolsMenu()
 }
 
 
-
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 {
 	if (Core::GetState() == Core::CORE_RUN) {
@@ -311,15 +310,11 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 
 void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 {
-	bool show = GetMenuBar()->IsChecked(event.GetId());
+	bool Show = GetMenuBar()->IsChecked(event.GetId());
 
-	if (show)
+	if (Show)
 	{
-		if (!m_RegisterWindow)
-		{
-			m_RegisterWindow = new CRegisterWindow(this);
-		}
-
+		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(this);
 		m_RegisterWindow->Show(true);
 	}
 	else // hide
@@ -329,11 +324,7 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 		// It should be true just after the menu item was selected,
 		// if there was no modeless dialog yet.
 		wxASSERT(m_RegisterWindow != NULL);
-
-		if (m_RegisterWindow)
-		{
-			m_RegisterWindow->Hide();
-		}
+		if (m_RegisterWindow) m_RegisterWindow->Hide();
 	}
 }
 

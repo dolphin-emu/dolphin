@@ -43,7 +43,7 @@
 
 enum
 {
-	IDM_ADDRBOX = 350,
+	IDM_MEM_ADDRBOX = 350,
 	IDM_SYMBOLLIST,
 	IDM_SETVALBUTTON,
 	IDM_DUMP_MEMORY,
@@ -51,7 +51,7 @@ enum
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
-    EVT_TEXT(IDM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
+    EVT_TEXT(IDM_MEM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
     EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
@@ -74,7 +74,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
+	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, _T("")));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
 	
