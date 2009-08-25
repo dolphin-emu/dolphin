@@ -97,7 +97,9 @@ wxCheatsWindow* CheatsWindow;
 wxInfoWindow* InfoWindow;
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create menu items
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::CreateMenu()
 {
 	if (GetMenuBar())
@@ -243,9 +245,12 @@ void CFrame::CreateMenu()
 	// Associate the menu bar with the frame
 	SetMenuBar(menuBar);
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create toolbar items
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
@@ -280,34 +285,29 @@ void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	// Delete toolbar
-	wxToolBarBase* toolBar = GetToolBar();
-	delete toolBar;
-	SetToolBar(NULL);
-
-	wxAuiToolBar* TheToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
+	wxAuiToolBar* m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
-	PopulateToolbar(TheToolBar);
+	PopulateToolbar(m_ToolBar);
 
 	UpdateGUI();
 
-	m_Mgr->AddPane(TheToolBar, wxAuiPaneInfo().
+	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
 				Name(wxT("TBMain")).Caption(wxT("TBMain")).
 				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false));
+				LeftDockable(false).RightDockable(false).Floatable(false));
 
 	if (UseDebugger)
 	{
-		wxAuiToolBar* TheToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
+		wxAuiToolBar* m_ToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
-		g_pCodeWindow->PopulateToolbar(TheToolBar2);
+		g_pCodeWindow->PopulateToolbar(m_ToolBar2);
 
-		m_Mgr->AddPane(TheToolBar2, wxAuiPaneInfo().
+		m_Mgr->AddPane(m_ToolBar2, wxAuiPaneInfo().
 				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
 				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false));
+				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
 
 	/*
@@ -317,10 +317,10 @@ void CFrame::RecreateToolbar()
 	SetToolBar(NULL);
 
 	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	TheToolBar = CreateToolBar(style, ID_TOOLBAR);
+	m_ToolBar = CreateToolBar(style, ID_TOOLBAR);
 
-	PopulateToolbar(TheToolBar);
-	SetToolBar(TheToolBar);
+	PopulateToolbar(m_ToolBar);
+	SetToolBar(m_ToolBar);
 	UpdateGUI();
 	*/
 }
@@ -425,7 +425,12 @@ void CFrame::InitBitmaps()
 	if (GetToolBar() != NULL)
 		RecreateToolbar();
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Menu items
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // Start the game or change the disc
 void CFrame::BootGame()
@@ -696,7 +701,12 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		break;
 	}
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Miscellaneous menu
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
@@ -705,8 +715,6 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 #endif
 }
 
-
-// Miscellaneous menu
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
@@ -821,7 +829,12 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 	Frame::SetFrameSkipping((unsigned int)amount);
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GUI
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	// fit frame content, not needed right now
@@ -834,19 +847,18 @@ void CFrame::OnResize(wxSizeEvent& event)
 // Enable and disable the toolbar
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
-	wxToolBarBase* toolBar = GetToolBar();
 	SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked();
-	if (SConfig::GetInstance().m_InterfaceToolbar == true)
+
+	if (event.IsChecked())
 	{
-		CFrame::RecreateToolbar();
+		m_Mgr->GetPane(wxT("TBMain")).Show(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Show();
+		m_Mgr->Update();
 	}
 	else
 	{
-		delete toolBar;
-		SetToolBar(NULL);
+		m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide();
+		m_Mgr->Update();
 	}
-
-	this->SendSizeEvent();
 }
 
 // Enable and disable the status bar
@@ -1030,3 +1042,4 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		m_GameListCtrl->Update();
 	}
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

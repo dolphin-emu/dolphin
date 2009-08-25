@@ -396,10 +396,11 @@ CFrame::CFrame(bool showLogWindow,
 	// Open log window
 	m_LogWindow = new CLogWindow(this);
 	if (m_bLogWindow) m_LogWindow->Show();
-
+	
 	// Create toolbar
 	RecreateToolbar();
-	if (!SConfig::GetInstance().m_InterfaceToolbar) TheToolBar->Hide();
+	if (!SConfig::GetInstance().m_InterfaceToolbar)
+		{ m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide(); }
 	AuiMode1 = m_Mgr->SavePerspective();
 
 	// Save perspectives
@@ -492,16 +493,23 @@ void CFrame::DoFullscreen(bool _F)
 {
 	ShowFullScreen(_F);
 	if (_F)
+	{
+		// Save the current mode before going to fullscreen
+		AuiCurrent = m_Mgr->SavePerspective();
 		m_Mgr->LoadPerspective(AuiFullscreen, true);
+	}
 	else
-		m_Mgr->LoadPerspective(AuiMode1, true);
+	{
+		// Restore saved perspective
+		m_Mgr->LoadPerspective(AuiCurrent, true);
+	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Host messages
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {

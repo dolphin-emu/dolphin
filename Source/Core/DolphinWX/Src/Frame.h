@@ -102,7 +102,7 @@ class CFrame : public wxFrame
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
-		wxToolBar* TheToolBar;
+		wxToolBar* m_ToolBar;
 		wxToolBarToolBase* m_ToolPlay;
 		bool m_bLogWindow;
 		CLogWindow* m_LogWindow;
@@ -113,6 +113,7 @@ class CFrame : public wxFrame
 		wxString AuiFullscreen;
 		wxString AuiMode1;
 		wxString AuiMode2;
+		wxString AuiCurrent;
 
 		char **drives;
 
