@@ -153,7 +153,7 @@ enum
 	// --------------------------------------------------------------
 	// Debugger Toolbar
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	ID_TOOLBAR2 = 2000,
+	ID_TOOLBAR2,
 	IDM_DEBUG_GO,
 	IDM_STEP,
 	IDM_STEPOVER,

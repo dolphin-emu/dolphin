@@ -80,18 +80,7 @@ class CCodeWindow
 	private:
 
 		enum
-		{
-			// Toolbar
-			ID_TOOLBAR = 2000,
-			IDM_DEBUG_GO,
-			IDM_STEP,
-			IDM_STEPOVER,
-			IDM_SKIP,
-			IDM_SETPC,
-			IDM_GOTOPC,
-			IDM_ADDRBOX,
-			
-			// ==============================================================
+		{			
 			// Debugger GUI Objects
 			ID_CODEVIEW,
 			ID_CALLSTACKLIST,

@@ -101,6 +101,9 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	// Menu bar
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
 	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
+
+	EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
 		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
@@ -711,7 +714,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	    case IDM_DEBUG_GO:
 	    {
 		    // [F|RES] prolly we should disable the other buttons in go mode too ...
-
 		    if (CCPU::IsStepping())
 		    {
 			    CCPU::EnableStepping(false);

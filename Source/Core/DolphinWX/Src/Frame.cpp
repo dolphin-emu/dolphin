@@ -548,9 +548,15 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 // Post events
 void CFrame::PostEvent(wxCommandEvent& event)
-{
-	// Don't post zero events, that may hang
-	if (g_pCodeWindow && event.GetId()) wxPostEvent(g_pCodeWindow, event);
+{	
+	// Restrict the post events to the minimum necessary, it seems like these events are
+	// somtimes posted to the parent wxFrame too so that it creates and endless loop
+	if (g_pCodeWindow
+		&& event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX
+		&& event.GetId() != IDM_JITUNLIMITED
+		)
+		wxPostEvent(g_pCodeWindow, event);
+	event.Skip();
 }
 void CFrame::PostMenuEvent(wxMenuEvent& event)
 {
