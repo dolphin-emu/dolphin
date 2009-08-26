@@ -158,7 +158,7 @@ void DllDebugger(HWND _hParent, bool Show)
 		m_DebuggerFrame = new GFXDebuggerOGL(GetParentedWxWindow(_hParent));
 
 	if (Show)
-		m_DebuggerFrame->ShowModal();
+		m_DebuggerFrame->Show();
 	else
 		m_DebuggerFrame->Hide();
 }

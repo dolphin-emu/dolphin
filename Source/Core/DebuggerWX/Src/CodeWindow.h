@@ -61,6 +61,11 @@ class CCodeWindow
 		void UpdateToolbar(wxAuiToolBar *);
 		void UpdateNotebook(int, wxAuiNotebook *);
 		wxBitmap page_bmp;
+		#ifdef _WIN32
+		wxWindow * GetWxWindow(wxString);
+		#endif
+		wxWindow * GetNootebookPage(wxString);
+		void DoToggleWindow(int,bool);
 
 		void Load_(IniFile &file);
 		void Load(IniFile &file);
@@ -131,7 +136,7 @@ class CCodeWindow
 		void OnCodeViewChange(wxCommandEvent &event);
 		void SingleCPUStep();
 
-		void OnAddrBoxChange(wxCommandEvent& event);
+		void OnAddrBoxChange(wxCommandEvent& event);		
 		
 		void OnToggleWindow(wxCommandEvent& event);
 		void OnToggleRegisterWindow(bool,wxAuiNotebook*);

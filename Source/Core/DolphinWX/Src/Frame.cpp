@@ -521,13 +521,18 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 }
 void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 {
-	event.Skip();
+	// Don't skip the event, override it
+	//event.Skip();
+	event.Veto();
+
     wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->m_RegisterWindow = NULL; }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->m_BreakpointWindow = NULL; }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->m_JitWindow = NULL; }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->m_MemoryWindow = NULL; }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_REGISTERWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_BREAKPOINTWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_JITWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_MEMORYWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Sound"))) { GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_SOUNDWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Video"))) { GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_VIDEOWINDOW, false); }
 }
 
 void CFrame::DoFullscreen(bool _F)

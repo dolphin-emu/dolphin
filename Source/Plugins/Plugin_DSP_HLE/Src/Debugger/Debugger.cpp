@@ -225,13 +225,12 @@ void DSPDebuggerHLE::Load(IniFile& _IniFile)
 // -------------
 void DSPDebuggerHLE::CreateGUIControls()
 {
-SetTitle(wxT("Sound Debugging"));
+	//SetTitle(wxT("Sound"));
 
 	// Basic settings
-	SetIcon(wxNullIcon);
-	SetSize(8, 8, 200, 100); // These will become the minimin sizes allowed by resizing
-	Center();
-
+	//SetIcon(wxNullIcon);
+	//SetSize(8, 8, 200, 100); // These will become the minimin sizes allowed by resizing
+	//Center();
 
 	// Declarations	
 	wxBoxSizer * m_MainSizer, * sMain, *_sMail, * sBlock;

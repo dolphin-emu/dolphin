@@ -325,11 +325,54 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toogle windows
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
+{
+	if (!m_NB0 || !m_NB1) return NULL;
+
+	for(int i = 0; i <= m_NB0->GetPageCount(); i++)
+	{
+		if (m_NB0->GetPageText(i).IsSameAs(Name)) return m_NB0->GetPage(i);
+	}	
+	for(int i = 0; i <= m_NB1->GetPageCount(); i++)
+	{
+		if (m_NB1->GetPageText(i).IsSameAs(Name)) return m_NB1->GetPage(i);
+	}
+	return NULL;
+}
+#ifdef _WIN32
+wxWindow * CCodeWindow::GetWxWindow(wxString Name)
+{
+	HWND hWnd = ::FindWindow(NULL, Name.c_str());
+	if (hWnd)
+	{
+		wxWindow * Win = new wxWindow();
+		Win->SetHWND((WXHWND)hWnd);
+		Win->AdoptAttributesFromHWND();
+		return Win;
+	}
+	else if (GetParent()->GetParent()->FindWindowByName(Name))
+	{
+		return GetParent()->GetParent()->FindWindowByName(Name);
+	}
+	else if (GetParent()->GetParent()->FindWindowByLabel(Name))
+	{
+		return GetParent()->GetParent()->FindWindowByLabel(Name);
+	}
+	else if (GetNootebookPage(Name))
+	{
+		return GetNootebookPage(Name);
+	}
+	else
+		return NULL;
+}
+#endif
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
-	bool Show = GetMenuBar()->IsChecked(event.GetId());
-
-	switch (event.GetId())
+	DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
+}
+void CCodeWindow::DoToggleWindow(int Id, bool Show)
+{
+	switch (Id)
 	{
 		case IDM_REGISTERWINDOW: OnToggleRegisterWindow(Show, m_NB0); break;
 		case IDM_BREAKPOINTWINDOW: OnToggleBreakPointWindow(Show, m_NB1); break;
@@ -337,9 +380,8 @@ void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 		case IDM_JITWINDOW: OnToggleJitWindow(Show, m_NB0); break;
 		case IDM_SOUNDWINDOW: OnToggleSoundWindow(Show, m_NB1); break;
 		case IDM_VIDEOWINDOW: OnToggleVideoWindow(Show, m_NB1); break;
-	}
+	}	
 }
-
 void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
 {
 	if (Show)
@@ -441,17 +483,40 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
 //Toggle Sound Debugging Window
 void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 {
+	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+
 	if (Show)
 	{
-		// TODO: add some kind of if() check here to?
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP, true // DSP, show
-			);
+		#ifdef _WIN32
+		wxWindow *Win = GetWxWindow(wxT("Sound"));
+		if (Win && _NB->GetPageIndex(Win) != wxNOT_FOUND) return;
+
+		{
+		#endif				
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug\n").c_str());
+			CPluginManager::GetInstance().OpenDebug(
+				GetParent()->GetParent()->GetHandle(),
+				//GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+				PLUGIN_TYPE_DSP, true // DSP, show
+				);
+		#ifdef _WIN32
+		}
+
+		Win = GetWxWindow(wxT("Sound"));
+		if (Win)
+		{			
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
+			_NB->AddPage(Win, wxT("Sound"), true, page_bmp );
+		}
+		#endif
 	}
 	else // hide
 	{
+		#ifdef _WIN32
+		wxWindow *Win = GetWxWindow(wxT("Sound"));
+		if (Win) _NB->RemovePage(_NB->GetPageIndex(Win));
+		#endif
 		// Close the sound dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
@@ -461,7 +526,6 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 	}
 }
 
-
 // Toggle Video Debugging Window
 void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 {
@@ -469,22 +533,31 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 
 	if (Show)
 	{
-		// It works now, but I'll keep this message in case the problem reappears
-		/*if(Core::GetState() == Core::CORE_UNINITIALIZED)
-		{
-			wxMessageBox(_T("Warning, opening this window before a game is started \n\
-may cause a crash when a game is later started. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));
-		}*/
+		#ifdef _WIN32
+		wxWindow *Win = GetWxWindow(wxT("Video"));
+		if (Win && _NB->GetPageIndex(Win) != wxNOT_FOUND) return;
 
-		// TODO: add some kind of if() check here to?
-		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		PLUGIN_TYPE_VIDEO, true // Video, show
-		);
+		{
+		#endif	
+			// Show and/or create the window
+			CPluginManager::GetInstance().OpenDebug(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+			PLUGIN_TYPE_VIDEO, true // Video, show
+			);
+		#ifdef _WIN32
+		}
+
+		Win = GetWxWindow(wxT("Video"));
+		if (Win) _NB->AddPage(Win, wxT("Video"), true, page_bmp );
+		#endif
 	}
 	else // hide
 	{
+		#ifdef _WIN32
+		wxWindow *Win = GetWxWindow(wxT("Video"));
+		if (Win) _NB->RemovePage(_NB->GetPageIndex(Win));
+		#endif
 		// Close the video dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),

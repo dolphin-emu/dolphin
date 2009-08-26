@@ -60,10 +60,10 @@ class DSPDebuggerHLE : public wxDialog
 	public:
 		DSPDebuggerHLE(wxWindow *parent,
 			wxWindowID id = 1,
-			const wxString &title = wxT("Sound Debugger"),
+			const wxString &title = wxT("Sound"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+			long style = wxNO_BORDER);
 
 		virtual ~DSPDebuggerHLE();
 

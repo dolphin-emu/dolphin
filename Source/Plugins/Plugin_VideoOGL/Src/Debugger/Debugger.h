@@ -30,10 +30,10 @@ class GFXDebuggerOGL : public wxDialog
 public:
 	GFXDebuggerOGL(wxWindow *parent,
 		wxWindowID id = 1,
-		const wxString &title = wxT("OGL Debugguer"),
+		const wxString &title = wxT("Video"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		long style = wxNO_BORDER);
 
 	virtual ~GFXDebuggerOGL();
 
