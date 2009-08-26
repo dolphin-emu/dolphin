@@ -23,6 +23,7 @@
 #include <wx/busyinfo.h>
 #include <wx/mstream.h>
 #include <wx/listctrl.h>
+#include <wx/artprov.h>
 #include <wx/aui/aui.h>
 
 #include "CDUtils.h"
@@ -109,11 +110,13 @@ class CFrame : public wxFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBar2;
+		wxAuiNotebook *m_NB0, *m_NB1;
 		// Perspectives
 		wxString AuiFullscreen;
 		wxString AuiMode1;
 		wxString AuiMode2;
 		wxString AuiCurrent;
+		void OnNotebookPageClose(wxAuiNotebookEvent& evt);
 
 		char **drives;
 

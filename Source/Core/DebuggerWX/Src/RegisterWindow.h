@@ -25,12 +25,12 @@ class CRegisterWindow
 	: public wxDialog
 {
 public:
-	CRegisterWindow(wxWindow* parent,
-		wxWindowID id = 1,
+	CRegisterWindow(wxWindow* parent, wxWindowID id = 1,
 		const wxString& title = wxT("Registers"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
+		long style = wxNO_BORDER);
+
 	virtual ~CRegisterWindow();
 
 	void Save(IniFile& _IniFile) const;

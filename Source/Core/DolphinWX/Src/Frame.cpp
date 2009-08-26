@@ -297,6 +297,8 @@ EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 //EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
 //EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
+EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
+
 END_EVENT_TABLE()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -356,8 +358,27 @@ CFrame::CFrame(bool showLogWindow,
 	if (SConfig::GetInstance().m_InterfaceConsole)
 		console->Open();
 
+	// -------------------------------------------------------------------------
+	// Panels
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	m_Panel = new CPanel(this, IDM_MPANEL);
-	wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
+	//wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
+
+	if (UseDebugger)
+	{
+		wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+
+		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200),
+									wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+
+		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200),
+									wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, page_bmp );
+
+		g_pCodeWindow->UpdateNotebook(0, m_NB0);
+		g_pCodeWindow->UpdateNotebook(1, m_NB1);
+	}
+	// -------------------------------------------------------------------------
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
@@ -379,11 +400,11 @@ CFrame::CFrame(bool showLogWindow,
 		AuiFullscreen = m_Mgr->SavePerspective();
 		m_Mgr->GetPane(wxT("Pane1")).PaneBorder(true);
 
-		m_Mgr->AddPane(m_Panel2, wxAuiPaneInfo().
+		m_Mgr->AddPane(m_NB1, wxAuiPaneInfo().
 					Name(wxT("Pane2")).Caption(wxT("Pane2")).
 					CenterPane().Layer(1));
 
-		m_Mgr->AddPane(g_pCodeWindow, wxAuiPaneInfo().
+		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().
 					Name(wxT("Pane3")).Caption(wxT("Pane3")).
 					CenterPane().Layer(2));
 	}
@@ -490,6 +511,17 @@ void CFrame::OnClose(wxCloseEvent& event)
 		Core::Stop();
 		UpdateGUI();
 	}
+}
+
+void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
+{
+	event.Skip();
+    wxAuiNotebook* ctrl = (wxAuiNotebook*)event.GetEventObject();
+
+	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->m_RegisterWindow = NULL; }
+	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->m_BreakpointWindow = NULL; }
+	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->m_JitWindow = NULL; }
+	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->m_MemoryWindow = NULL; }
 }
 
 void CFrame::DoFullscreen(bool _F)

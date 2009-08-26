@@ -26,6 +26,7 @@ BEGIN_EVENT_TABLE(CRegisterWindow, wxDialog)
 	EVT_CLOSE(CRegisterWindow::OnClose)
 END_EVENT_TABLE()
 
+
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 	, m_GPRGridView(NULL)
@@ -57,9 +58,9 @@ void CRegisterWindow::Load(IniFile& _IniFile)
 
 void CRegisterWindow::CreateGUIControls()
 {
-	SetTitle(wxT("Registers"));
-	SetIcon(wxNullIcon);
-	Center();
+	//SetTitle(wxT("Registers"));
+	//SetIcon(wxNullIcon);
+	//Center();
 
 	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
 	m_GPRGridView = new CRegisterView(this, ID_GPR);

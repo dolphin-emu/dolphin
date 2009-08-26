@@ -308,14 +308,45 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 {
 }
 
-void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
+
+// Change the global DebuggerFont
+void CCodeWindow::OnChangeFont(wxCommandEvent& event)
+{
+	wxFontData data;
+	data.SetInitialFont(GetFont());
+
+	wxFontDialog dialog(this, data);
+	if ( dialog.ShowModal() == wxID_OK )
+		DebuggerFont = dialog.GetFontData().GetChosenFont();
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Toogle windows
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
 	bool Show = GetMenuBar()->IsChecked(event.GetId());
 
+	switch (event.GetId())
+	{
+		case IDM_REGISTERWINDOW: OnToggleRegisterWindow(Show, m_NB0); break;
+		case IDM_BREAKPOINTWINDOW: OnToggleBreakPointWindow(Show, m_NB1); break;
+		case IDM_MEMORYWINDOW: OnToggleMemoryWindow(Show, m_NB0); break;
+		case IDM_JITWINDOW: OnToggleJitWindow(Show, m_NB0); break;
+		case IDM_SOUNDWINDOW: OnToggleSoundWindow(Show, m_NB1); break;
+		case IDM_VIDEOWINDOW: OnToggleVideoWindow(Show, m_NB1); break;
+	}
+}
+
+void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
+{
 	if (Show)
 	{
-		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(this);
-		m_RegisterWindow->Show(true);
+		if (m_RegisterWindow && _NB->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
+		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(GetParent()->GetParent());		
+		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, page_bmp );
 	}
 	else // hide
 	{
@@ -324,19 +355,93 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 		// It should be true just after the menu item was selected,
 		// if there was no modeless dialog yet.
 		wxASSERT(m_RegisterWindow != NULL);
-		if (m_RegisterWindow) m_RegisterWindow->Hide();
+		//if (m_RegisterWindow) m_RegisterWindow->Hide();
+		if (m_RegisterWindow)
+		{
+			_NB->RemovePage(_NB->GetPageIndex(m_RegisterWindow));
+			m_RegisterWindow->Hide();
+		}
 	}
 }
 
 
-// =======================================================================================
-// Toggle Sound Debugging Window
-// ------------
-void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
+void CCodeWindow::OnToggleBreakPointWindow(bool Show, wxAuiNotebook * _NB)
 {
-	bool show = GetMenuBar()->IsChecked(event.GetId());
+	if (Show)
+	{
+		if (m_BreakpointWindow && _NB->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
+		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, GetParent()->GetParent());
+		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, page_bmp );
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_BreakpointWindow != NULL);
 
-	if (show)
+		if (m_BreakpointWindow)
+		{
+			_NB->RemovePage(_NB->GetPageIndex(m_BreakpointWindow));
+			m_BreakpointWindow->Hide();
+		}
+	}
+}
+
+void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
+{
+	if (Show)
+	{
+		if (m_JitWindow && _NB->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
+		if (!m_JitWindow) m_JitWindow = new CJitWindow(GetParent()->GetParent());
+		_NB->AddPage(m_JitWindow, wxT("JIT"), true, page_bmp );
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_JitWindow != NULL);
+
+		if (m_JitWindow)
+		{
+			_NB->RemovePage(_NB->GetPageIndex(m_JitWindow));
+			m_JitWindow->Hide();
+		}
+	}
+}
+
+
+void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
+{
+	if (Show)
+	{
+		if (m_MemoryWindow && _NB->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
+		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(GetParent()->GetParent());
+		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, page_bmp );
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_MemoryWindow != NULL);
+
+		if (m_MemoryWindow)
+		{
+			_NB->RemovePage(_NB->GetPageIndex(m_MemoryWindow));
+			m_MemoryWindow->Hide();
+		}
+	}
+}
+
+//Toggle Sound Debugging Window
+void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
+{
+	if (Show)
 	{
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
@@ -355,18 +460,14 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 			);
 	}
 }
-// ===========
 
 
-// =======================================================================================
 // Toggle Video Debugging Window
-// ------------
-void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
+void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 {
-	bool show = GetMenuBar()->IsChecked(event.GetId());
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
 
-	if (show)
+	if (Show)
 	{
 		// It works now, but I'll keep this message in case the problem reappears
 		/*if(Core::GetState() == Core::CORE_UNINITIALIZED)
@@ -392,101 +493,5 @@ may cause a crash when a game is later started. Todo: figure out why and fix it.
 			);
 	}
 }
-// ===========
 
-
-void CCodeWindow::OnToggleJitWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_JitWindow)
-		{
-			m_JitWindow = new CJitWindow(this);
-		}
-
-		m_JitWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_JitWindow != NULL);
-
-		if (m_JitWindow)
-		{
-			m_JitWindow->Hide();
-		}
-	}
-}
-
-
-void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_BreakpointWindow)
-		{
-			m_BreakpointWindow = new CBreakPointWindow(this, this);
-		}
-
-		m_BreakpointWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_BreakpointWindow != NULL);
-
-		if (m_BreakpointWindow)
-		{
-			m_BreakpointWindow->Hide();
-		}
-	}
-}
-
-void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_MemoryWindow)
-		{
-			m_MemoryWindow = new CMemoryWindow(this);
-		}
-
-		m_MemoryWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_MemoryWindow != NULL);
-
-		if (m_MemoryWindow)
-		{
-			m_MemoryWindow->Hide();
-		}
-	}
-}
-//////////////////////////////////////////////////////////////////////////
-// Change the global DebuggerFont
-void CCodeWindow::OnChangeFont(wxCommandEvent& event)
-{
-	wxFontData data;
-	data.SetInitialFont(GetFont());
-
-	wxFontDialog dialog(this, data);
-	if ( dialog.ShowModal() == wxID_OK )
-		DebuggerFont = dialog.GetFontData().GetChosenFont();
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

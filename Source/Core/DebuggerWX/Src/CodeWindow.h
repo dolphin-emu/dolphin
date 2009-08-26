@@ -22,6 +22,7 @@
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
+#include <wx/artprov.h>
 #include <wx/aui/aui.h>
 
 #include "Thread.h"
@@ -54,10 +55,12 @@ class CCodeWindow
 		// Function redirection
 		wxFrame *GetParentFrame();
 		wxMenuBar * GetMenuBar();
-		wxAuiToolBar * GetToolBar();
-		wxAuiToolBar * m_ToolBar2;
+		wxAuiToolBar * GetToolBar(), * m_ToolBar2;
+		wxAuiNotebook *m_NB0, *m_NB1;
 		bool IsActive();
 		void UpdateToolbar(wxAuiToolBar *);
+		void UpdateNotebook(int, wxAuiNotebook *);
+		wxBitmap page_bmp;
 
 		void Load_(IniFile &file);
 		void Load(IniFile &file);
@@ -78,6 +81,13 @@ class CCodeWindow
 		void PopulateToolbar(wxAuiToolBar* toolBar);
 		void CreateSymbolsMenu();
 		void UpdateButtonStates();
+
+		// Sub dialogs
+		wxMenuBar* pMenuBar;
+		CRegisterWindow* m_RegisterWindow;
+		CBreakPointWindow* m_BreakpointWindow;
+		CMemoryWindow* m_MemoryWindow;
+		CJitWindow* m_JitWindow;
 
 	private:
 
@@ -122,13 +132,14 @@ class CCodeWindow
 		void SingleCPUStep();
 
 		void OnAddrBoxChange(wxCommandEvent& event);
-
-		void OnToggleRegisterWindow(wxCommandEvent& event);
-		void OnToggleBreakPointWindow(wxCommandEvent& event);
-		void OnToggleMemoryWindow(wxCommandEvent& event);
-		void OnToggleJitWindow(wxCommandEvent& event);
-		void OnToggleSoundWindow(wxCommandEvent& event);
-		void OnToggleVideoWindow(wxCommandEvent& event);
+		
+		void OnToggleWindow(wxCommandEvent& event);
+		void OnToggleRegisterWindow(bool,wxAuiNotebook*);
+		void OnToggleBreakPointWindow(bool,wxAuiNotebook*);
+		void OnToggleMemoryWindow(bool,wxAuiNotebook*);
+		void OnToggleJitWindow(bool,wxAuiNotebook*);
+		void OnToggleSoundWindow(bool,wxAuiNotebook*);
+		void OnToggleVideoWindow(bool,wxAuiNotebook*);
 		void OnChangeFont(wxCommandEvent& event);
 	
 		void OnHostMessage(wxCommandEvent& event);
@@ -144,13 +155,6 @@ class CCodeWindow
 		void OnStatusBar(wxMenuEvent& event); void OnStatusBar_(wxUpdateUIEvent& event);
 		void DoTip(wxString text);
 		void OnKeyDown(wxKeyEvent& event);
-
-		// Sub dialogs
-		wxMenuBar* pMenuBar;
-		CRegisterWindow* m_RegisterWindow;
-		CBreakPointWindow* m_BreakpointWindow;
-		CMemoryWindow* m_MemoryWindow;
-		CJitWindow* m_JitWindow;
 
 		wxMenuItem* jitblocklinking, *jitunlimited, *jitoff;
 		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;

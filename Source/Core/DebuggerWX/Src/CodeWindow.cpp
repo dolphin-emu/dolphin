@@ -116,12 +116,12 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
 
-	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow) //views
-	EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
-	EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
-	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
-	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
-	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
+	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) //views
+	EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
 	EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
@@ -178,6 +178,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Load_(file);
 
+	page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
@@ -203,6 +204,9 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 CCodeWindow::~CCodeWindow()
 {
+	// Will be fixed. Pointers currently non-NULL while object is deleted on close
+
+	/*
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 
@@ -213,6 +217,7 @@ CCodeWindow::~CCodeWindow()
 	if (m_JitWindow) m_JitWindow->Save(file);
 
 	file.Save(DEBUGGER_CONFIG_FILE);
+	*/
 }
 
 
@@ -220,8 +225,8 @@ CCodeWindow::~CCodeWindow()
 //Redirect old wxFrame calls
 // ------------
 wxFrame *CCodeWindow::GetParentFrame()
-{	
-	wxFrame *Parent = wxDynamicCast(GetParent(), wxFrame);
+{
+	wxFrame *Parent = wxDynamicCast(GetParent()->GetParent(), wxFrame);
 	return Parent;
 }
 wxMenuBar *CCodeWindow::GetMenuBar()
@@ -239,6 +244,13 @@ bool CCodeWindow::IsActive()
 void CCodeWindow::UpdateToolbar(wxAuiToolBar * _ToolBar2)
 {
 	m_ToolBar2 = _ToolBar2;
+}
+void CCodeWindow::UpdateNotebook(int _i, wxAuiNotebook * _NB)
+{
+	if (_i == 0)
+		m_NB0 = _NB;
+	else
+		m_NB1 = _NB;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -407,31 +419,12 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	sync_event.Init();
 
-	if (bRegisterWindow)
-	{
-		m_RegisterWindow = new CRegisterWindow(this);
-		m_RegisterWindow->Show(true);
-	}
-
-	if (bBreakpointWindow)
-	{
-		m_BreakpointWindow = new CBreakPointWindow(this, this);
-		m_BreakpointWindow->Show(true);
-	}
-
-	if (bMemoryWindow)
-	{
-		m_MemoryWindow = new CMemoryWindow(this);
-		m_MemoryWindow->Show(true);
-	}
-
-	if (bJitWindow)
-	{
-		m_JitWindow = new CJitWindow(this);
-		m_JitWindow->Show(true);
-	}
-
-	if (bSoundWindow)
+	if (bRegisterWindow)	OnToggleRegisterWindow(true, m_NB0);
+	if (bBreakpointWindow)	OnToggleBreakPointWindow(true, m_NB1);
+	if (bMemoryWindow)		OnToggleMemoryWindow(true, m_NB0);
+	if (bJitWindow)			OnToggleJitWindow(true, m_NB0);
+	if (bSoundWindow)		OnToggleSoundWindow(true, m_NB1);
+	/*
 	{
 		// Possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
@@ -440,8 +433,10 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 			PLUGIN_TYPE_DSP, true
 		);
 	} // don't have any else, just ignore it
+	*/
 
-	if (bVideoWindow)
+	if (bVideoWindow)		OnToggleVideoWindow(true, m_NB1);
+	/*
 	{
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
@@ -450,6 +445,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 			PLUGIN_TYPE_VIDEO, true
 		);
 	} // don't have any else, just ignore it
+	*/
 }
 
 

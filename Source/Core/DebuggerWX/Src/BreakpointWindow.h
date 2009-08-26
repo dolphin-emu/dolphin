@@ -23,9 +23,6 @@ class CCodeWindow;
 class wxListEvent;
 class IniFile;
 
-#undef BREAKPOINT_WINDOW_STYLE
-#define BREAKPOINT_WINDOW_STYLE wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX | wxRESIZE_BORDER
-
 class CBreakPointWindow
 	: public wxFrame
 {
@@ -37,7 +34,7 @@ class CBreakPointWindow
 
 		CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"), 
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250), 
-			long style = BREAKPOINT_WINDOW_STYLE);
+			long style = wxNO_BORDER);
 
 		virtual ~CBreakPointWindow();
 
