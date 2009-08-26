@@ -180,12 +180,12 @@ inline s64 dsp_get_long_prod()
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	s64 val   = (s8)g_dsp.r[0x16];
+	s64 val   = (s8)g_dsp.r[DSP_REG_PRODH];
 	val <<= 32;
-	s64 low_prod  = g_dsp.r[0x15];
-	low_prod += g_dsp.r[0x17];
+	s64 low_prod  = g_dsp.r[DSP_REG_PRODM];
+	low_prod += g_dsp.r[DSP_REG_PRODM2];
 	low_prod <<= 16;
-	low_prod |= g_dsp.r[0x14];
+	low_prod |= g_dsp.r[DSP_REG_PRODL];
 	val += low_prod;
 	return val;
 }
@@ -198,12 +198,12 @@ inline void dsp_set_long_prod(s64 val)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	g_dsp.r[0x14] = (u16)val;
+	g_dsp.r[DSP_REG_PRODL] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x15] = (u16)val;
+	g_dsp.r[DSP_REG_PRODM] = (u16)val;
 	val >>= 16;
-	g_dsp.r[0x16] = (u16)val;
-	g_dsp.r[0x17] = 0;
+	g_dsp.r[DSP_REG_PRODH] = (u16)val;
+	g_dsp.r[DSP_REG_PRODM2] = 0;
 }
 
 // ---------------------------------------------------------------------------------------

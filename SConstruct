@@ -276,7 +276,7 @@ else:
     env['HAVE_COCOA'] = 0
    
 # handling wx flags CCFLAGS should be created before
-wxmods = ['adv', 'core', 'base']
+wxmods = ['aui', 'adv', 'core', 'base']
 env['USE_WX'] = 0
 if env['wxgl']:
     wxmods.append('gl')

@@ -228,7 +228,7 @@ class CFrame : public wxFrame
 		void GameListChanged(wxCommandEvent& event);
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
-		void CFrame::DoFullscreen(bool _F);
+		void DoFullscreen(bool _F);
 
 		// MenuBar
 		// File - Drive
