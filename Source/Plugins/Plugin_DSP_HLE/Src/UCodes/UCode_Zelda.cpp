@@ -333,7 +333,8 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 				if (m_CurBuffer == m_NumBuffers)
 				{
-					m_rMailHandler.PushMail(DSP_FRAME_END);
+					if (!IsDMAVersion())
+						m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
 					soundStream->GetMixer()->SetHLEReady(true);

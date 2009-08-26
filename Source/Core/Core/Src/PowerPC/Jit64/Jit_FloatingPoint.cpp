@@ -208,7 +208,8 @@ void Jit64::fmrx(UGeckoInstruction inst)
  
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
-	// TODO : this causes crashes in Nights, and broken graphics in Paper Mario, Super Paper Mario
+	// TODO : This still causes crashes in Nights, and broken graphics
+	// in Paper Mario, Super Paper Mario as well as SoulCalibur 2 prolly others too.. :(
 	INSTRUCTION_START;
 	if(Core::g_CoreStartupParameter.bJITOff || jo.fpAccurateFcmp
 	|| Core::g_CoreStartupParameter.bJITFloatingPointOff) {

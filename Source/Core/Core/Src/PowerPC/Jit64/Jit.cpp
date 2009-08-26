@@ -210,7 +210,7 @@ void Jit64::Init()
 	jo.enableFastMem = false;
 #endif
 	jo.assumeFPLoadFromMem = true;
-	jo.fpAccurateFcmp = Core::GetStartupParameter().bEnableFPRF || Core::GetStartupParameter().bAccurateFCMP;
+	jo.fpAccurateFcmp = true; // Fallback to Interpreter
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
@@ -466,7 +466,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
-	
+
 	if (js.fpa.any)
 	{
 		//This block uses FPU - needs to add FP exception bailout

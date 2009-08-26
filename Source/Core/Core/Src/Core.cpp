@@ -809,7 +809,7 @@ void Callback_KeyPress(int key, bool shift, bool control)
 	if (key == 0x7a)
 		State_LoadLastSaved();
 
-	// 0x7a == VK_F12
+	// 0x7b == VK_F12
 	if (key == 0x7b) 
 	{
 		if(shift)

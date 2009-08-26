@@ -58,7 +58,6 @@ struct SCoreStartupParameter
 	bool bJITProfiledReJIT;
 
 	bool bEnableFPRF;
-	bool bAccurateFCMP;
 
 	bool bUseDualCore;
 	bool bDSPThread;

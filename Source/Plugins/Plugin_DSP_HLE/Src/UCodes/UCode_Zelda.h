@@ -186,7 +186,7 @@ private:
 		{
 			case 0xb7eb9a9c: // Wii Pikmin - PAL
 			case 0xeaeb38cc: // Wii Pikmin 2 - PAL
-			case 0x6c3f6f94: // zelda - PAL
+			case 0x6c3f6f94: // Wii Zelda TP - PAL
 			case 0xD643001F: // Super Mario Galaxy
 				return true;
 			default:

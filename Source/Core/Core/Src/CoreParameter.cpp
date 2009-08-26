@@ -44,7 +44,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bLockThreads = true;
 	bEnableFPRF = false;
-	bAccurateFCMP = false;
 	bWii = false;
 	SelectedLanguage = 0;
 	iTLBHack = 0;
