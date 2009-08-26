@@ -298,6 +298,7 @@ EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 //EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
+EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 
 END_EVENT_TABLE()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,11 +369,9 @@ CFrame::CFrame(bool showLogWindow,
 	{
 		wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
-		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200),
-									wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
-
-		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200),
-									wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
+		static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
+		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
 		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, page_bmp );
 
 		g_pCodeWindow->UpdateNotebook(0, m_NB0);
@@ -513,15 +512,22 @@ void CFrame::OnClose(wxCloseEvent& event)
 	}
 }
 
+void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
+{
+	event.Skip();
+    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
+	// If we drag away the last one the tab bar goes away and we can't add any panes to it
+	if (Ctrl->GetPageCount() > 1) event.Allow();
+}
 void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 {
 	event.Skip();
-    wxAuiNotebook* ctrl = (wxAuiNotebook*)event.GetEventObject();
+    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 
-	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->m_RegisterWindow = NULL; }
-	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->m_BreakpointWindow = NULL; }
-	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->m_JitWindow = NULL; }
-	if (ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->m_MemoryWindow = NULL; }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->m_RegisterWindow = NULL; }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->m_BreakpointWindow = NULL; }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->m_JitWindow = NULL; }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->m_MemoryWindow = NULL; }
 }
 
 void CFrame::DoFullscreen(bool _F)

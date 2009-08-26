@@ -116,7 +116,8 @@ class CFrame : public wxFrame
 		wxString AuiMode1;
 		wxString AuiMode2;
 		wxString AuiCurrent;
-		void OnNotebookPageClose(wxAuiNotebookEvent& evt);
+		void OnNotebookPageClose(wxAuiNotebookEvent& event);
+		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 
 		char **drives;
 
