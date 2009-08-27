@@ -327,15 +327,15 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
 {
-	if (!m_NB0 || !m_NB1) return NULL;
+	if (!Parent->m_NB0 || !Parent->m_NB1) return NULL;
 
-	for(u32 i = 0; i <= m_NB0->GetPageCount(); i++)
+	for(u32 i = 0; i <= Parent->m_NB0->GetPageCount(); i++)
 	{
-		if (m_NB0->GetPageText(i).IsSameAs(Name)) return m_NB0->GetPage(i);
+		if (Parent->m_NB0->GetPageText(i).IsSameAs(Name)) return Parent->m_NB0->GetPage(i);
 	}	
-	for(u32 i = 0; i <= m_NB1->GetPageCount(); i++)
+	for(u32 i = 0; i <= Parent->m_NB1->GetPageCount(); i++)
 	{
-		if (m_NB1->GetPageText(i).IsSameAs(Name)) return m_NB1->GetPage(i);
+		if (Parent->m_NB1->GetPageText(i).IsSameAs(Name)) return Parent->m_NB1->GetPage(i);
 	}
 	return NULL;
 }
@@ -350,13 +350,13 @@ wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 		Win->AdoptAttributesFromHWND();
 		return Win;
 	}
-	else if (GetParent()->GetParent()->FindWindowByName(Name))
+	else if (Parent->FindWindowByName(Name))
 	{
-		return GetParent()->GetParent()->FindWindowByName(Name);
+		return Parent->FindWindowByName(Name);
 	}
-	else if (GetParent()->GetParent()->FindWindowByLabel(Name))
+	else if (Parent->FindWindowByLabel(Name))
 	{
-		return GetParent()->GetParent()->FindWindowByLabel(Name);
+		return Parent->FindWindowByLabel(Name);
 	}
 	else if (GetNootebookPage(Name))
 	{
@@ -368,82 +368,39 @@ wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 #endif
 void CCodeWindow::OpenPages()
 {	
-	if (bRegisterWindow)	OnToggleRegisterWindow(true, m_NB0);
-	if (bBreakpointWindow)	OnToggleBreakPointWindow(true, m_NB1);
-	if (bMemoryWindow)		OnToggleMemoryWindow(true, m_NB0);
-	if (bJitWindow)			OnToggleJitWindow(true, m_NB0);
-	if (bSoundWindow)		OnToggleSoundWindow(true, m_NB1);
-	if (bVideoWindow)		OnToggleVideoWindow(true, m_NB1);
+	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, true);
+	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, true);
+	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, true);
+	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, true);
+	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, true);
+	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, true);
 }
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
-	DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
-}
-void CCodeWindow::DoToggleWindow(int Id, bool Show)
-{
-	switch (Id)
-	{
-		case IDM_REGISTERWINDOW: OnToggleRegisterWindow(Show, m_NB0); break;
-		case IDM_BREAKPOINTWINDOW: OnToggleBreakPointWindow(Show, m_NB1); break;
-		case IDM_MEMORYWINDOW: OnToggleMemoryWindow(Show, m_NB0); break;
-		case IDM_JITWINDOW: OnToggleJitWindow(Show, m_NB0); break;
-		case IDM_SOUNDWINDOW: OnToggleSoundWindow(Show, m_NB1); break;
-		case IDM_VIDEOWINDOW: OnToggleVideoWindow(Show, m_NB1); break;
-	}	
+	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
 }
 void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
 {
 	if (Show)
 	{
 		if (m_RegisterWindow && _NB->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
-		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(GetParent()->GetParent());		
-		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, aNormalFile );
+		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);		
+		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, Parent->aNormalFile );
 	}
 	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_RegisterWindow != NULL);
-		//if (m_RegisterWindow) m_RegisterWindow->Hide();
-		if (m_RegisterWindow)
-		{
-			if (m_NB0->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(m_RegisterWindow));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(m_RegisterWindow));
-			m_RegisterWindow->Hide();
-		}
-	}
+		Parent->DoRemovePage (m_RegisterWindow);
 }
-
 
 void CCodeWindow::OnToggleBreakPointWindow(bool Show, wxAuiNotebook * _NB)
 {
 	if (Show)
 	{
 		if (m_BreakpointWindow && _NB->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
-		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, GetParent()->GetParent());
-		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, aNormalFile );
+		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
+		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, Parent->aNormalFile );
 	}
 	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_BreakpointWindow != NULL);
-
-		if (m_BreakpointWindow)
-		{
-			if (m_NB0->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(m_BreakpointWindow));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(m_BreakpointWindow));
-			m_BreakpointWindow->Hide();
-		}
-	}
+		Parent->DoRemovePage(m_BreakpointWindow);
 }
 
 void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
@@ -451,26 +408,11 @@ void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
 	if (Show)
 	{
 		if (m_JitWindow && _NB->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
-		if (!m_JitWindow) m_JitWindow = new CJitWindow(GetParent()->GetParent());
-		_NB->AddPage(m_JitWindow, wxT("JIT"), true, aNormalFile );
+		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
+		_NB->AddPage(m_JitWindow, wxT("JIT"), true, Parent->aNormalFile );
 	}
 	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_JitWindow != NULL);
-
-		if (m_JitWindow)
-		{
-			if (m_NB0->GetPageIndex(m_JitWindow) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(m_JitWindow));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(m_JitWindow));
-			m_JitWindow->Hide();
-		}
-	}
+		Parent->DoRemovePage(m_JitWindow);
 }
 
 
@@ -479,26 +421,11 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
 	if (Show)
 	{
 		if (m_MemoryWindow && _NB->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
-		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(GetParent()->GetParent());
-		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, aNormalFile );
+		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
+		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, Parent->aNormalFile );
 	}
 	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_MemoryWindow != NULL);
-
-		if (m_MemoryWindow)
-		{
-			if (m_NB0->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(m_MemoryWindow));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(m_MemoryWindow));
-			m_MemoryWindow->Hide();
-		}
-	}
+		Parent->DoRemovePage(m_MemoryWindow);
 }
 
 //Toggle Sound Debugging Window
@@ -516,7 +443,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 		#endif				
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug\n").c_str());
 			CPluginManager::GetInstance().OpenDebug(
-				GetParent()->GetParent()->GetHandle(),
+				Parent->GetHandle(),
 				//GetHandle(),
 				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
 				PLUGIN_TYPE_DSP, true // DSP, show
@@ -528,7 +455,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 		if (Win)
 		{			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
-			_NB->AddPage(Win, wxT("Sound"), true, aNormalFile );
+			_NB->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
 		}
 		#endif
 	}
@@ -536,13 +463,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Sound"));
-		if (Win)
-		{
-			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
-		}
+		Parent->DoRemovePage (Win, false);
 		#endif
 		// Close the sound dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
@@ -568,7 +489,7 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 		#endif	
 			// Show and/or create the window
 			CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
+			Parent->GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
 			PLUGIN_TYPE_VIDEO, true // Video, show
 			);
@@ -576,20 +497,14 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 		}
 
 		Win = GetWxWindow(wxT("Video"));
-		if (Win) _NB->AddPage(Win, wxT("Video"), true, aNormalFile );
+		if (Win) _NB->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
 		#endif
 	}
 	else // hide
 	{
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Video"));
-		if (Win)
-		{
-			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND)
-				m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
-			else
-				m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
-		}
+		Parent->DoRemovePage (Win, false);
 		#endif
 		// Close the video dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(

@@ -46,15 +46,6 @@ BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
     EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
 END_EVENT_TABLE()
 
-
-#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
-inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
-{
-	wxMemoryInputStream is(data, length);
-	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
-}
-
-
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxFrame(parent, id, title, position, size, style)
 	, m_BreakPointListView(NULL)

@@ -76,13 +76,14 @@ class CPluginManager;
 
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
-
+/*
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
 inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 {
 	wxMemoryInputStream is(data, length);
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
+*/
 
 
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
@@ -158,22 +159,20 @@ END_EVENT_TABLE()
 
 
 // Class, input event handler and host message handler
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
-	wxWindowID id)
-	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER, wxT("Dolphin-Debugger"))
-
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *ParentObject, wxWindow* Parent,
+	wxWindowID Id)
+	: wxPanel(Parent, Id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER, wxT("Dolphin-Debugger"))
+	, Parent(ParentObject)
 	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
 	    things may crash */
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
-	, m_ToolBarDebug(NULL), m_NB0(NULL), m_NB1(NULL)
 {
 	// Load ini settings
 	this->Load();
 
-	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
@@ -187,7 +186,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 		wxKeyEventHandler(CCodeWindow::OnKeyDown),
 		(wxObject*)0, this);
 }
-
 CCodeWindow::~CCodeWindow()
 {
 
@@ -196,48 +194,24 @@ CCodeWindow::~CCodeWindow()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Redirect old wxFrame calls
-// ------------
-wxFrame *CCodeWindow::GetParentFrame()
-{
-	wxFrame *Parent = wxDynamicCast(GetParent()->GetParent(), wxFrame);
-	return Parent;
-}
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxMenuBar *CCodeWindow::GetMenuBar()
 {
-	if (GetParentFrame()) return GetParentFrame()->GetMenuBar();
+	return Parent->GetMenuBar();
 }
 wxAuiToolBar *CCodeWindow::GetToolBar()
 {
-	if (GetParentFrame()) return m_ToolBarDebug;
-}
-bool CCodeWindow::IsActive()
-{
-	if (GetParentFrame()) return GetParentFrame()->IsActive();
-}
-void CCodeWindow::UpdateToolbar(wxAuiToolBar * _ToolBar2)
-{
-	m_ToolBarDebug = _ToolBar2;
-}
-void CCodeWindow::UpdateNotebook(int _i, wxAuiNotebook * _NB)
-{
-	if (_i == 0)
-		m_NB0 = _NB;
-	else
-		m_NB1 = _NB;
+	return Parent->m_ToolBarDebug;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
-	if ((event.GetKeyCode() == WXK_SPACE) && IsActive())
-	{
+	if ((event.GetKeyCode() == WXK_SPACE) && Parent->IsActive())
 		SingleCPUStep();
-	}
 	else
-	{
 		event.Skip();
-	}
 }
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
@@ -688,7 +662,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
 	UpdateButtonStates();	
 	// Update all toolbars in the aui manager
-	UpdateManager();
+	Parent->UpdateGUI();
 }
 
 
@@ -899,13 +873,6 @@ void CCodeWindow::UpdateButtonStates()
 
 	if (ToolBar) ToolBar->Realize();
 }
-// Update manager
-void CCodeWindow::UpdateManager()
-{	
-	// Caution: This can cause an endless loop if this event comes back to this function
-	wxCommandEvent evnt(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
-	wxPostEvent(GetParentFrame(), evnt);
-}
 
 void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
 {
@@ -926,10 +893,7 @@ void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
 }
 
 
-
-
 // Show Tool Tip for menu items
-
 void CCodeWindow::DoTip(wxString text)
 {
 	// Create a blank tooltip to clear the eventual old one

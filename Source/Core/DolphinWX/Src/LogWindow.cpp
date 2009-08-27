@@ -43,9 +43,9 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, wxT("Log/Console"), 
+	: wxDialog(parent, wxID_ANY, wxT("Log"), 
 			   wxPoint(100, 700), wxSize(800, 270),
-			   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+			   wxNO_BORDER)
     , m_logSection(1)
 {
 	m_logManager = LogManager::GetInstance();

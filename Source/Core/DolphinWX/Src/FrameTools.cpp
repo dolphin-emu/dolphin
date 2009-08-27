@@ -89,13 +89,9 @@ extern "C" {
 #include "../resources/KDE.h"
 };
 
-// Constants
-static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-
 // Other Windows
 wxCheatsWindow* CheatsWindow;
 wxInfoWindow* InfoWindow;
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create menu items
@@ -204,10 +200,10 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
-	viewMenu->AppendCheckItem(IDM_TOGGLE_LOGWINDOW, _T("Show &Logwindow"));
-	viewMenu->Check(IDM_TOGGLE_LOGWINDOW, m_bLogWindow);
-	viewMenu->AppendCheckItem(IDM_TOGGLE_CONSOLE, _T("Show &Console"));
-	viewMenu->Check(IDM_TOGGLE_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
+	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
+	viewMenu->Check(IDM_LOGWINDOW, m_bLogWindow);
+	viewMenu->AppendCheckItem(IDM_CONSOLE, _T("Show &Console"));
+	viewMenu->Check(IDM_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
 
 	viewMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
@@ -327,7 +323,7 @@ void CFrame::RecreateToolbar()
 
 	/*
 	wxToolBarBase* ToolBar = GetToolBar();
-	long style = ToolBar ? ToolBar->GetWindowStyle() : TOOLBAR_STYLE;
+	long style = ToolBar ? ToolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 	delete ToolBar;
 	SetToolBar(NULL);
 
@@ -437,8 +433,9 @@ void CFrame::InitBitmaps()
 	}
 
 	// Update in case the bitmap has been updated
-	if (GetToolBar() != NULL)
-		RecreateToolbar();
+	//if (GetToolBar() != NULL) RecreateToolbar();
+
+	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -861,15 +858,59 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// GUI
+// Notebooks
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void CFrame::OnResize(wxSizeEvent& event)
+void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 {
-	// fit frame content, not needed right now
-	//FitInside();
+	// Override event
+	event.Veto();
 
-	DoMoveIcons();  // In FrameWiimote.cpp
-	event.Skip();
+    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
+
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Log"))) { GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(false); DoToggleWindow(IDM_LOGWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); DoToggleWindow(IDM_REGISTERWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); DoToggleWindow(IDM_BREAKPOINTWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); DoToggleWindow(IDM_JITWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); DoToggleWindow(IDM_MEMORYWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Sound"))) { GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false); DoToggleWindow(IDM_SOUNDWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Video"))) { GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(false); DoToggleWindow(IDM_VIDEOWINDOW, false); }
+}
+
+void CFrame::HidePane()
+{
+	if (m_NB0->GetPageCount() == 0)
+		m_Mgr->GetPane(wxT("Pane1")).Hide();
+	else
+		m_Mgr->GetPane(wxT("Pane1")).Show();
+	 m_Mgr->Update();
+
+	SetSimplePaneSize();
+}
+
+void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
+{
+	// If m_dialog is NULL, then possibly the system
+	// didn't report the checked menu item status correctly.
+	// It should be true just after the menu item was selected,
+	// if there was no modeless dialog yet.
+	wxASSERT(Win != NULL);
+
+	if (Win)
+	{
+		if (m_NB0)
+		{
+			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND) m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
+		}
+		if (m_NB1)
+		{
+			if (m_NB1->GetPageIndex(Win) != wxNOT_FOUND) m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
+		}
+		if (m_NB2)
+		{
+			if (m_NB2->GetPageIndex(Win) != wxNOT_FOUND) m_NB2->RemovePage(m_NB2->GetPageIndex(Win));
+		}
+		if (Hide) Win->Hide();
+	}
 }
 
 // Enable and disable the toolbar
@@ -906,41 +947,76 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 	this->SendSizeEvent();
 }
 
+void CFrame::DoToggleWindow(int Id, bool Show)
+{
+	switch (Id)
+	{
+		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? m_NB1 : m_NB0); break;
+		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, m_NB1); break;
+		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(Show, m_NB0); break;
+		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(Show, m_NB1); break;
+		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(Show, m_NB1); break;
+		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(Show, m_NB0); break;
+		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(Show, m_NB0); break;
+	}
+}
 // Enable and disable the log window
 void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 {
-	ToggleLogWindow(event.IsChecked());
+	DoToggleWindow(event.GetId(), event.IsChecked());
 }
-
-void CFrame::ToggleLogWindow(bool check)
+void CFrame::ToggleLogWindow(bool Show, wxAuiNotebook * _NB)
 {
-	SConfig::GetInstance().m_InterfaceLogWindow = check;
-	if (SConfig::GetInstance().m_InterfaceLogWindow)
-		m_LogWindow->Show();
+	SConfig::GetInstance().m_InterfaceLogWindow = Show;
+	if (Show)
+	{
+		if (!_NB) return;
+
+		if (m_LogWindow && _NB->GetPageIndex(m_LogWindow) != wxNOT_FOUND) return;
+		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
+		_NB->AddPage(m_LogWindow, wxT("Log"), true, aNormalFile);
+	}
 	else
-		m_LogWindow->Hide();
+	{
+		DoRemovePage(m_LogWindow);
+	}
+
+	// Hide pane
+	if (!UseDebugger) HidePane();
 
 	// Make sure the check is updated (if wxw isn't calling this func)
-	GetMenuBar()->FindItem(IDM_TOGGLE_LOGWINDOW)->Check(check);
+	//GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(Show);
 }
-
 // Enable and disable the console
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
 	ToggleConsole(event.IsChecked());
 }
-
-void CFrame::ToggleConsole(bool check)
+void CFrame::ToggleConsole(bool Show, wxAuiNotebook * _NB)
 {
-	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
-	SConfig::GetInstance().m_InterfaceConsole = check;
+	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
+	SConfig::GetInstance().m_InterfaceConsole = Show;
 	if (SConfig::GetInstance().m_InterfaceConsole)
-		console->Open();
+		Console->Open();
 	else
-		console->Close();
+		Console->Close();
 
 	// Make sure the check is updated (if wxw isn't calling this func)
-	GetMenuBar()->FindItem(IDM_TOGGLE_CONSOLE)->Check(check);
+	GetMenuBar()->FindItem(IDM_CONSOLE)->Check(Show);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GUI
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CFrame::OnResize(wxSizeEvent& event)
+{
+	// fit frame content, not needed right now
+	//FitInside();
+
+	DoMoveIcons();  // In FrameWiimote.cpp
+	event.Skip();
 }
 
 // Update the enabled/disabled status

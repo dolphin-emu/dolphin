@@ -68,13 +68,14 @@ class CFrame : public wxFrame
 
 		// These have to be public
 		wxStatusBar* m_pStatusBar;
+		CCodeWindow* g_pCodeWindow;
+		wxBitmap aNormalFile;
 		void InitBitmaps();
 		void DoStop();
 		bool bRenderToMain;
 		void UpdateGUI();
-		void ToggleLogWindow(bool check);
-		void ToggleConsole(bool check);
-		CCodeWindow* g_pCodeWindow;
+		void ToggleLogWindow(bool, wxAuiNotebook * _NB = NULL);
+		void ToggleConsole(bool, wxAuiNotebook * _NB = NULL);		
 		void PostEvent(wxCommandEvent& event);
 		void PostMenuEvent(wxMenuEvent& event);
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
@@ -96,17 +97,6 @@ class CFrame : public wxFrame
 		u8 g_Speakers[3]; u8 g_Speakers_[3];
 		// ---------------
 
-	private:
-		
-		bool UseDebugger;
-		wxBoxSizer* sizerPanel;
-		wxBoxSizer* sizerFrame;
-		CGameListCtrl* m_GameListCtrl;
-		wxPanel* m_Panel;
-		wxToolBarToolBase* m_ToolPlay;
-		bool m_bLogWindow;
-		CLogWindow* m_LogWindow;
-
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
@@ -117,8 +107,24 @@ class CFrame : public wxFrame
 		wxArrayString AuiPerspective;
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+		void DoToggleWindow(int,bool);
+		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoLoadPerspective(int);
+		void HidePane();
+		void SetSimplePaneSize();
+		void SetPaneSize(wxArrayInt,wxArrayInt);
 		void Save();
+
+	private:
+		
+		bool UseDebugger;
+		wxBoxSizer* sizerPanel;
+		wxBoxSizer* sizerFrame;
+		CGameListCtrl* m_GameListCtrl;
+		wxPanel* m_Panel;
+		wxToolBarToolBase* m_ToolPlay;
+		bool m_bLogWindow;
+		CLogWindow* m_LogWindow;
 
 		char **drives;
 

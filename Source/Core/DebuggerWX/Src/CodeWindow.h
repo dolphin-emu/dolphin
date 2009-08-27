@@ -30,7 +30,9 @@
 
 // GUI global
 #include "../../DolphinWX/Src/Globals.h"
+#include "../../DolphinWX/Src/Frame.h"
 
+class CFrame;
 class CRegisterWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
@@ -42,7 +44,7 @@ class CCodeWindow
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
+		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *, wxWindow* parent,
 			wxWindowID id = wxID_ANY);
 		/*
 		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
@@ -57,20 +59,14 @@ class CCodeWindow
 		void Load();
 		void Save();
 
-		// Function redirection and parent interaction
-		wxFrame *GetParentFrame();
+		// Parent interaction
+		CFrame *Parent;
 		wxMenuBar * GetMenuBar();
-		wxAuiToolBar * GetToolBar(), * m_ToolBarDebug;
-		wxAuiNotebook *m_NB0, *m_NB1;
-		bool IsActive();
-		void UpdateToolbar(wxAuiToolBar *);
-		void UpdateNotebook(int, wxAuiNotebook *);
-		wxBitmap aNormalFile;
+		wxAuiToolBar * GetToolBar();
 		#ifdef _WIN32
 		wxWindow * GetWxWindow(wxString);
 		#endif
-		wxWindow * GetNootebookPage(wxString);
-		void DoToggleWindow(int,bool);
+		wxWindow * GetNootebookPage(wxString);		
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 
 		bool UseInterpreter();
@@ -89,6 +85,15 @@ class CCodeWindow
 		void UpdateButtonStates();
 		void OpenPages();
 		void UpdateManager();
+		
+		void OnToggleWindow(wxCommandEvent& event);
+		void OnToggleRegisterWindow(bool,wxAuiNotebook*);
+		void OnToggleBreakPointWindow(bool,wxAuiNotebook*);
+		void OnToggleMemoryWindow(bool,wxAuiNotebook*);
+		void OnToggleJitWindow(bool,wxAuiNotebook*);
+		void OnToggleSoundWindow(bool,wxAuiNotebook*);
+		void OnToggleVideoWindow(bool,wxAuiNotebook*);
+		void OnChangeFont(wxCommandEvent& event);
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
@@ -127,17 +132,7 @@ class CCodeWindow
 		void OnCodeViewChange(wxCommandEvent &event);
 		void SingleCPUStep();
 
-		void OnAddrBoxChange(wxCommandEvent& event);		
-		
-		void OnToggleWindow(wxCommandEvent& event);
-		void OnToggleRegisterWindow(bool,wxAuiNotebook*);
-		void OnToggleBreakPointWindow(bool,wxAuiNotebook*);
-		void OnToggleMemoryWindow(bool,wxAuiNotebook*);
-		void OnToggleJitWindow(bool,wxAuiNotebook*);
-		void OnToggleSoundWindow(bool,wxAuiNotebook*);
-		void OnToggleVideoWindow(bool,wxAuiNotebook*);
-		void OnChangeFont(wxCommandEvent& event);
-	
+		void OnAddrBoxChange(wxCommandEvent& event);			
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
 		void OnJitMenu(wxCommandEvent& event);

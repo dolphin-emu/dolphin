@@ -263,8 +263,8 @@ EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
-EVT_MENU(IDM_TOGGLE_LOGWINDOW, CFrame::OnToggleLogWindow)
-EVT_MENU(IDM_TOGGLE_CONSOLE, CFrame::OnToggleConsole)
+EVT_MENU(IDM_LOGWINDOW, CFrame::OnToggleLogWindow)
+EVT_MENU(IDM_CONSOLE, CFrame::OnToggleConsole)
 
 EVT_MENU(IDM_LISTDRIVES, CFrame::GameListChanged)
 EVT_MENU(IDM_LISTWII,	 CFrame::GameListChanged)
@@ -319,7 +319,8 @@ CFrame::CFrame(bool showLogWindow,
 		bool _UseDebugger,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
-	, UseDebugger(_UseDebugger)
+	, UseDebugger(_UseDebugger), m_LogWindow(NULL)
+	, m_NB0(NULL), m_NB1(NULL), m_NB2(NULL)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
@@ -333,7 +334,7 @@ CFrame::CFrame(bool showLogWindow,
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
 
 	// Create timer
 	#if wxUSE_TIMER
@@ -341,7 +342,7 @@ CFrame::CFrame(bool showLogWindow,
 		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
 
-	// Create toolbar bitmaps
+	// Create toolbar bitmaps	
 	InitBitmaps();
 
 	// Give it an icon
@@ -357,29 +358,25 @@ CFrame::CFrame(bool showLogWindow,
 	// Give it a menu bar
 	CreateMenu();
 
-	// Give it a console
-	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole)
-		console->Open();
-
 	// -------------------------------------------------------------------------
 	// Panels
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	m_Panel = new CPanel(this, IDM_MPANEL);
 	//wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
 
+	static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+
 	if (UseDebugger)
 	{
-		wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
-
-		static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
 		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 		m_NB2 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
 		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
-
-		g_pCodeWindow->UpdateNotebook(0, m_NB0);
-		g_pCodeWindow->UpdateNotebook(1, m_NB1);
+	}
+	else
+	{
+		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 	}
 	// -------------------------------------------------------------------------
 
@@ -394,7 +391,17 @@ CFrame::CFrame(bool showLogWindow,
 	m_Mgr = new wxAuiManager();
 	m_Mgr->SetManagedWindow(this);
 
-	// Window perspectives
+
+	// Normal perspectives
+	/*
+	----------
+	| Pane 0 |
+	----------
+	-------------------
+	| Pane 0 | Pane 1 |
+	-------------------
+	*/
+	// Debug perspectives
 	/*
 	-------------------
 	| Pane 0 |        |
@@ -419,22 +426,20 @@ CFrame::CFrame(bool showLogWindow,
 	else
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
+		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
 	}
-
-	// Open log window
-	m_LogWindow = new CLogWindow(this);
-	if (m_bLogWindow) m_LogWindow->Show();
 	
 	// Create toolbar
 	RecreateToolbar();
 	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
-	if (UseDebugger) g_pCodeWindow->UpdateToolbar(m_ToolBarDebug);
 
-	// Position the panes
+	// Show titles to position the panes
+	/*
 	m_Mgr->GetPane(wxT("Pane0")).CaptionVisible(true);
 	m_Mgr->GetPane(wxT("Pane1")).CaptionVisible(true);
 	m_Mgr->GetPane(wxT("Pane2")).CaptionVisible(true);
 	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
+	*/
 
 	if (UseDebugger)
 	{
@@ -442,15 +447,15 @@ CFrame::CFrame(bool showLogWindow,
 		m_Mgr->GetPane(wxT("Pane0")).CenterPane().PaneBorder(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
 
-		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(true).Layer(0).Center().Position(0);
-		m_Mgr->GetPane(wxT("Pane1")).Show().PaneBorder(true).Layer(0).Center().Position(1);
-		m_Mgr->GetPane(wxT("Pane2")).Show().PaneBorder(true).Layer(0).Right();
+		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(0);
+		m_Mgr->GetPane(wxT("Pane1")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(1);
+		m_Mgr->GetPane(wxT("Pane2")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Right();
 		AuiPerspective.Add(m_Mgr->SavePerspective());
 	
 		m_Mgr->GetPane(wxT("Pane0")).Left();
 		m_Mgr->GetPane(wxT("Pane1")).Left();
 		m_Mgr->GetPane(wxT("Pane2")).Center();
-		m_Mgr->GetPane(wxT("Pane3")).Show().Right();
+		m_Mgr->GetPane(wxT("Pane3")).Show().PaneBorder(true).CaptionVisible(false).Right();
 		AuiPerspective.Add(m_Mgr->SavePerspective());		
 		
 		// Load perspective
@@ -465,8 +470,9 @@ CFrame::CFrame(bool showLogWindow,
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("Pane0")).Layer(0).CenterPane().PaneBorder(false);
+		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		AuiFullscreen = m_Mgr->SavePerspective();
+		m_Mgr->GetPane(wxT("Pane1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
 	}
 
 	 // Show window
@@ -477,6 +483,13 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Open notebook pages
 	if (UseDebugger) g_pCodeWindow->OpenPages();
+	if (m_bLogWindow) ToggleLogWindow(true, UseDebugger ? m_NB1 : m_NB0);
+	if (!UseDebugger) SetSimplePaneSize();
+
+	// Give it a console
+	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
+	if (SConfig::GetInstance().m_InterfaceConsole)
+		console->Open();
 
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
@@ -552,28 +565,12 @@ void CFrame::OnClose(wxCloseEvent& event)
 		UpdateGUI();
 	}
 }
-
 void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
 	event.Skip();
     wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 	// If we drag away the last one the tab bar goes away and we can't add any panes to it
 	if (Ctrl->GetPageCount() > 1) event.Allow();
-}
-void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
-{
-	// Don't skip the event, override it
-	//event.Skip();
-	event.Veto();
-
-    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
-
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_REGISTERWINDOW, false); }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_BREAKPOINTWINDOW, false); }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_JITWINDOW, false); }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Memory"))) { GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_MEMORYWINDOW, false); }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Sound"))) { GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_SOUNDWINDOW, false); }
-	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Video"))) { GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(false); g_pCodeWindow->DoToggleWindow(IDM_VIDEOWINDOW, false); }
 }
 
 void CFrame::DoFullscreen(bool _F)
@@ -591,50 +588,64 @@ void CFrame::DoFullscreen(bool _F)
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
 }
-
-void CFrame::DoLoadPerspective(int i)
+void CFrame::SetSimplePaneSize()
 {
-	//Save();
+	wxArrayInt i, j;
+	i.Add(0); j.Add(50);
+	i.Add(1); j.Add(50);
+	SetPaneSize(i, j);
+}
+void CFrame::SetPaneSize(wxArrayInt Pane, wxArrayInt Size)
+{
+	int iClientSize = this->GetSize().GetX();
 
-	m_Mgr->LoadPerspective(AuiPerspective[i], true);
+	for (int i = 0; i < Pane.size(); i++)
+	{
+		// Check limits
+		if (Size[i] > 95) Size[i] = 95; if (Size[i] < 5) Size[i] = 5;
+		// Produce pixel width from percentage width
+		Size[i] = iClientSize * (float)(Size[i]/100.0);
+		// Update size
+		m_Mgr->GetPane(wxString::Format(wxT("Pane%i"), Pane[i])).BestSize(Size[i], -1).MinSize(Size[i], -1).MaxSize(Size[i], -1);
+	}
+	m_Mgr->Update();
+	for (int i = 0; i < Pane.size(); i++)
+	{
+		// Remove the size limits
+		m_Mgr->GetPane(wxString::Format(wxT("Pane%i"), Pane[i])).MinSize(-1, -1).MaxSize(-1, -1);
+	}
+}
+void CFrame::DoLoadPerspective(int Perspective)
+{
+	Save();
 
-	int _iLeftWidth, _iMidWidth, _iRightWidth, iClientSize = this->GetSize().GetX();
+	m_Mgr->LoadPerspective(AuiPerspective[Perspective], true);
 
-	// Check limits
-	if (iLeftWidth[0] > 95) iLeftWidth[0] = 95; if (iLeftWidth[0] < 5) iLeftWidth[0] = 5;
-	if (iLeftWidth[1] > 95) iLeftWidth[1] = 95; if (iLeftWidth[1] < 5) iLeftWidth[1] = 5;
-	if (iMidWidth[1] > 95) iMidWidth[1] = 95; if (iMidWidth[1] < 5) iMidWidth[1] = 5;
+	int _iRightWidth, iClientSize = this->GetSize().GetX();
+	wxArrayInt i, j;
 
 	// Set the size
-	if (i == 0)
+	if (Perspective == 0)
 	{
-		_iLeftWidth = iClientSize * (float)(iLeftWidth[0]/100.0);
-		_iRightWidth = iClientSize - _iLeftWidth;	
-
-		m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
+		_iRightWidth = 100 - iLeftWidth[0];	
+		i.Add(0); j.Add(iLeftWidth[0]);
+		i.Add(2); j.Add(_iRightWidth);
 		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
-		m_Mgr->GetPane(wxT("Pane2")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane2")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
 	}
 	else
 	{
-		_iLeftWidth = iClientSize * (float)(iLeftWidth[1]/100.0);
-		_iMidWidth = iClientSize * (float)(iMidWidth[1]/100.0);
-		_iRightWidth = iClientSize - _iLeftWidth - _iMidWidth;	
+		_iRightWidth = 100 - iLeftWidth[1] - iMidWidth[1];	
+		i.Add(0); j.Add(iLeftWidth[1]);
+		i.Add(2); j.Add(iMidWidth[1]);
+		i.Add(3); j.Add(_iRightWidth);
 
-		m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
 		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
-		m_Mgr->GetPane(wxT("Pane2")).BestSize(_iMidWidth, -1).MinSize(_iMidWidth, -1).MaxSize(_iMidWidth, -1);
-		m_Mgr->GetPane(wxT("Pane3")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane2")).BestSize(_iMidWidth, -1).MinSize(_iMidWidth, -1).MaxSize(_iMidWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane3")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
 	}
-
-	m_Mgr->Update();
-
-	// Remove the size limits
-	m_Mgr->GetPane(wxT("Pane0")).MinSize(-1, -1).MaxSize(-1, -1);
-	m_Mgr->GetPane(wxT("Pane1")).MinSize(-1, -1).MaxSize(-1, -1);
-	m_Mgr->GetPane(wxT("Pane2")).MinSize(-1, -1).MaxSize(-1, -1);
-	m_Mgr->GetPane(wxT("Pane3")).MinSize(-1, -1).MaxSize(-1, -1);		
-
+	SetPaneSize(i, j);
 }
 void CFrame::Save()
 {
