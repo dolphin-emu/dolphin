@@ -1143,7 +1143,9 @@ void CFrame::ToggleConsole(bool Show, int i)
 		#else
 		Console->Close();
 		#endif
-		if(GetConsoleWindow()) Console->Close();
+		#ifdef _WIN32
+		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
+		#endif
 	}
 
 	// Hide pane
