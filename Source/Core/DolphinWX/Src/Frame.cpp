@@ -442,6 +442,11 @@ CFrame::CFrame(bool showLogWindow,
 		m_Mgr->GetPane(wxT("Pane0")).CenterPane().PaneBorder(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
+	else
+	{
+		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
+		AuiFullscreen = m_Mgr->SavePerspective();
+	}
 
 	// Create toolbar
 	RecreateToolbar();
@@ -473,8 +478,6 @@ CFrame::CFrame(bool showLogWindow,
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
-		AuiFullscreen = m_Mgr->SavePerspective();
 		m_Mgr->GetPane(wxT("Pane1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
 	}
 
