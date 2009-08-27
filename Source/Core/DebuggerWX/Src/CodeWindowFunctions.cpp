@@ -325,46 +325,6 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toogle windows
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
-{
-	for (int i = 0; i < Parent->m_NB.size(); i++)
-	{
-		if (!Parent->m_NB[i]) return NULL;
-		for(u32 j = 0; j <= Parent->m_NB[j]->GetPageCount(); j++)
-		{
-			if (Parent->m_NB[i]->GetPageText(j).IsSameAs(Name)) return Parent->m_NB[i]->GetPage(j);
-		}	
-	}
-	return NULL;
-}
-wxWindow * CCodeWindow::GetWxWindow(wxString Name)
-{
-	#ifdef _WIN32
-	HWND hWnd = ::FindWindow(NULL, Name.c_str());
-	if (hWnd)
-	{
-		wxWindow * Win = new wxWindow();
-		Win->SetHWND((WXHWND)hWnd);
-		Win->AdoptAttributesFromHWND();
-		return Win;
-	}
-	else
-	#endif
-	if (Parent->FindWindowByName(Name))
-	{
-		return Parent->FindWindowByName(Name);
-	}
-	else if (Parent->FindWindowByLabel(Name))
-	{
-		return Parent->FindWindowByLabel(Name);
-	}
-	else if (GetNootebookPage(Name))
-	{
-		return GetNootebookPage(Name);
-	}
-	else
-		return NULL;
-}
 int CCodeWindow::Limit(int i, int Low, int High)
 {	
 	if (i < Low) return Low;
@@ -450,7 +410,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 	{
 		if (i < 0 || i > Parent->m_NB.size()-1) return;
 		#ifdef _WIN32
-		wxWindow *Win = GetWxWindow(wxT("Sound"));
+		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
@@ -465,7 +425,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 		#ifdef _WIN32
 		}
 
-		Win = GetWxWindow(wxT("Sound"));
+		Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win)
 		{			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
@@ -476,7 +436,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 	else // hide
 	{
 		#ifdef _WIN32
-		wxWindow *Win = GetWxWindow(wxT("Sound"));
+		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
 		Parent->DoRemovePage (Win, false);
 		#endif
 		// Close the sound dll that has an open debugger
@@ -497,7 +457,7 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, int i)
 	{
 		if (i < 0 || i > Parent->m_NB.size()-1) return;
 		#ifdef _WIN32
-		wxWindow *Win = GetWxWindow(wxT("Video"));
+		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
 		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
@@ -511,14 +471,14 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, int i)
 		#ifdef _WIN32
 		}
 
-		Win = GetWxWindow(wxT("Video"));
+		Win = Parent->GetWxWindow(wxT("Video"));
 		if (Win) Parent->m_NB[i]->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
 		#endif
 	}
 	else // hide
 	{
 		#ifdef _WIN32
-		wxWindow *Win = GetWxWindow(wxT("Video"));
+		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
 		Parent->DoRemovePage (Win, false);
 		#endif
 		// Close the video dll that has an open debugger

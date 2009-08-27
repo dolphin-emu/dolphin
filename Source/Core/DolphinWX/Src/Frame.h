@@ -105,12 +105,18 @@ class CFrame : public wxFrame
 		// Perspectives
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
+		wxWindow * GetWxWindow(wxString);
+		#ifdef _WIN32
+			wxWindow * GetWxWindowHwnd(HWND);
+		#endif
+		wxWindow * GetNootebookPage(wxString);
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
 		void DoToggleWindow(int,bool);
 		void DoRemovePage(wxWindow *, bool Hide = true);
+		void DoRemovePageString(wxString, bool Hide = true);
 		void DoLoadPerspective(int);
 		void HidePane();
 		void SetSimplePaneSize();

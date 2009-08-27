@@ -63,8 +63,6 @@ class CCodeWindow
 		CFrame *Parent;
 		wxMenuBar * GetMenuBar();
 		wxAuiToolBar * GetToolBar();
-		wxWindow * GetWxWindow(wxString);
-		wxWindow * GetNootebookPage(wxString);
 		int Limit(int,int,int);
 		int GetNootebookAffiliation(wxString);
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
@@ -105,6 +103,7 @@ class CCodeWindow
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;
 		bool bLogWindow; bool iLogWindow;
+		bool bConsoleWindow; bool iConsoleWindow;
 		bool bCodeWindow; int iCodeWindow;
 		bool bRegisterWindow; int iRegisterWindow;
 		bool bBreakpointWindow; int iBreakpointWindow;

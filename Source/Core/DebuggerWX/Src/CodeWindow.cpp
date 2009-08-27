@@ -441,8 +441,9 @@ void CCodeWindow::Load()
 	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
 	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
 	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);	
-
+	// Get notebook affiliation
 	ini.Get("Notebook", "Log", &iLogWindow, 1);
+	ini.Get("Notebook", "Console", &iConsoleWindow, 1);
 	ini.Get("Notebook", "Code", &iCodeWindow, 1);
 	ini.Get("Notebook", "Registers", &iRegisterWindow, 1);
 	ini.Get("Notebook", "Breakpoints", &iBreakpointWindow, 0);
@@ -450,8 +451,9 @@ void CCodeWindow::Load()
 	ini.Get("Notebook", "JIT", &iJitWindow, 1);
 	ini.Get("Notebook", "Sound", &iSoundWindow, 0);
 	ini.Get("Notebook", "Video", &iVideoWindow, 0);
-
 	// Remove bad values
+	iLogWindow = Limit(iLogWindow, 0, Parent->m_NB.size()-1);
+	iConsoleWindow = Limit(iConsoleWindow, 0, Parent->m_NB.size()-1);
 	iCodeWindow = Limit(iCodeWindow, 0, Parent->m_NB.size()-1);
 	iRegisterWindow = Limit(iRegisterWindow, 0, Parent->m_NB.size()-1);
 	iBreakpointWindow = Limit(iBreakpointWindow, 0, Parent->m_NB.size()-1);
@@ -485,6 +487,7 @@ void CCodeWindow::Save()
 	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));	
 
 	ini.Set("Notebook", "Log", iLogWindow);
+	ini.Set("Notebook", "Console", iConsoleWindow);
 	ini.Set("Notebook", "Code", iCodeWindow);
 	ini.Set("Notebook", "Registers", iRegisterWindow);
 	ini.Set("Notebook", "Breakpoints", iBreakpointWindow);

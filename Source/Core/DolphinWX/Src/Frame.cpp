@@ -265,7 +265,7 @@ EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU(IDM_LOGWINDOW, CFrame::OnToggleLogWindow)
-EVT_MENU(IDM_CONSOLE, CFrame::OnToggleConsole)
+EVT_MENU(IDM_CONSOLEWINDOW, CFrame::OnToggleConsole)
 
 EVT_MENU(IDM_LISTDRIVES, CFrame::GameListChanged)
 EVT_MENU(IDM_LISTWII,	 CFrame::GameListChanged)
@@ -490,7 +490,7 @@ CFrame::CFrame(bool showLogWindow,
 	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
 	*/
 
-	 // Show window
+	// Show window
 	Show();
 
 	// Create list of available plugins for the configuration window
@@ -499,6 +499,7 @@ CFrame::CFrame(bool showLogWindow,
 	// Open notebook pages
 	if (UseDebugger) g_pCodeWindow->OpenPages();
 	if (m_bLogWindow) ToggleLogWindow(true, UseDebugger ? 1 : 0);
+	if (SConfig::GetInstance().m_InterfaceConsole) ToggleConsole(true, UseDebugger ? 1 : 0);
 	if (!UseDebugger) SetSimplePaneSize();
 
 	//if we are ever going back to optional iso caching:

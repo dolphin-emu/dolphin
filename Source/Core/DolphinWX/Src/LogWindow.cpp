@@ -81,7 +81,7 @@ void CLogWindow::CreateGUIControls()
 	m_writeConsoleCB = new wxCheckBox(this, IDM_WRITECONSOLE, wxT("Write to Console"), wxDefaultPosition, wxDefaultSize, 0);
 	sbLeftOptions->Add(m_writeConsoleCB);
 
-	m_writeWindowCB = new wxCheckBox(this, IDM_WRITEWINDOW, wxT("Write to window ->"), wxDefaultPosition, wxDefaultSize, 0);
+	m_writeWindowCB = new wxCheckBox(this, IDM_WRITEWINDOW, wxT("Write to Window ->"), wxDefaultPosition, wxDefaultSize, 0);
 	sbLeftOptions->Add(m_writeWindowCB);
 
 	sLeft->Add(sbLeftOptions, 0, wxEXPAND);

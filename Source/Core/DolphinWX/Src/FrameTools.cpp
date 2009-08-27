@@ -202,8 +202,8 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
 	viewMenu->Check(IDM_LOGWINDOW, m_bLogWindow);
-	viewMenu->AppendCheckItem(IDM_CONSOLE, _T("Show &Console"));
-	viewMenu->Check(IDM_CONSOLE, SConfig::GetInstance().m_InterfaceConsole);
+	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
+	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
 
 	viewMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
@@ -880,6 +880,55 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+wxWindow * CFrame::GetNootebookPage(wxString Name)
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (!m_NB[i]) return NULL;
+		for(u32 j = 0; j <= m_NB[j]->GetPageCount(); j++)
+		{
+			if (m_NB[i]->GetPageText(j).IsSameAs(Name)) return m_NB[i]->GetPage(j);
+		}	
+	}
+	return NULL;
+}
+#ifdef _WIN32
+wxWindow * CFrame::GetWxWindowHwnd(HWND hWnd)
+{
+	wxWindow * Win = new wxWindow();
+	Win->SetHWND((WXHWND)hWnd);
+	Win->AdoptAttributesFromHWND();
+	return Win;
+}
+#endif
+wxWindow * CFrame::GetWxWindow(wxString Name)
+{
+	#ifdef _WIN32
+	HWND hWnd = ::FindWindow(NULL, Name.c_str());
+	if (hWnd)
+	{
+		wxWindow * Win = new wxWindow();
+		Win->SetHWND((WXHWND)hWnd);
+		Win->AdoptAttributesFromHWND();
+		return Win;
+	}
+	else
+	#endif
+	if (FindWindowByName(Name))
+	{
+		return FindWindowByName(Name);
+	}
+	else if (FindWindowByLabel(Name))
+	{
+		return FindWindowByLabel(Name);
+	}
+	else if (GetNootebookPage(Name))
+	{
+		return GetNootebookPage(Name);
+	}
+	else
+		return NULL;
+}
 int CFrame::GetNootebookAffiliation(wxString Name)
 {
 	for (int i = 0; i < m_NB.size(); i++)
@@ -897,6 +946,7 @@ void CFrame::DoToggleWindow(int Id, bool Show)
 	switch (Id)
 	{
 		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
+		case IDM_CONSOLEWINDOW: ToggleConsole(Show, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
 		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, g_pCodeWindow->iRegisterWindow); break;
 		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(Show, g_pCodeWindow->iBreakpointWindow); break;
 		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(Show, g_pCodeWindow->iMemoryWindow); break;
@@ -908,8 +958,11 @@ void CFrame::DoToggleWindow(int Id, bool Show)
 void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
 {
 	event.Skip();
+	if (!UseDebugger) return;
+
 	// Update the notebook affiliation
 	if(GetNootebookAffiliation(wxT("Log")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Log"));
+	if(GetNootebookAffiliation(wxT("Console")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Console"));
 	if(GetNootebookAffiliation(wxT("Code")) >= 0) g_pCodeWindow->iCodeWindow = GetNootebookAffiliation(wxT("Code"));
 	if(GetNootebookAffiliation(wxT("Registers")) >= 0) g_pCodeWindow->iRegisterWindow = GetNootebookAffiliation(wxT("Registers"));
 	if(GetNootebookAffiliation(wxT("Breakpoints")) >= 0) g_pCodeWindow->iBreakpointWindow = GetNootebookAffiliation(wxT("Breakpoints"));
@@ -926,6 +979,7 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
     wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Log"))) { GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(false); DoToggleWindow(IDM_LOGWINDOW, false); }
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Console"))) { GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(false); DoToggleWindow(IDM_CONSOLEWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); DoToggleWindow(IDM_REGISTERWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); DoToggleWindow(IDM_BREAKPOINTWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("JIT"))) { GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(false); DoToggleWindow(IDM_JITWINDOW, false); }
@@ -950,7 +1004,21 @@ void CFrame::HidePane()
 
 	SetSimplePaneSize();
 }
-
+void CFrame::DoRemovePageString(wxString Str, bool Hide)
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (m_NB[i])
+		{
+			for (int j = 0; j < m_NB[i]->GetPageCount(); j++)
+			{
+				if (m_NB[i]->GetPageText(j).IsSameAs(Str)) { m_NB[i]->RemovePage(j); break; }	
+				ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+			}
+		}
+	}
+	//if (Hide) Win->Hide();
+}
 void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
 {
 	// If m_dialog is NULL, then possibly the system
@@ -1036,21 +1104,59 @@ void CFrame::ToggleLogWindow(bool Show, int i)
 // Enable and disable the console
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
-	ToggleConsole(event.IsChecked());
+	DoToggleWindow(event.GetId(), event.IsChecked());
+	//ToggleConsole(event.IsChecked());
 }
 void CFrame::ToggleConsole(bool Show, int i)
 {
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	SConfig::GetInstance().m_InterfaceConsole = Show;
-	if (SConfig::GetInstance().m_InterfaceConsole)
+
+	if (Show)
+	{
+		if (i < 0 || i > m_NB.size()-1) return;
+		#ifdef _WIN32
+		wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
+		if (Win && m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
+		{
+		#else
 		Console->Open();
-	else
+		#endif
+
+		if(!GetConsoleWindow()) Console->Open();
+
+		#ifdef _WIN32
+		}
+		Win = GetWxWindowHwnd(GetConsoleWindow());
+		// Can we remove the border?
+		//Win->SetWindowStyleFlag(wxNO_BORDER);
+		//SetWindowLong(GetConsoleWindow(), GWL_STYLE, WS_VISIBLE);
+		if (Win) m_NB[i]->AddPage(Win, wxT("Console"), true, aNormalFile );
+		#endif
+	}
+	else // hide
+	{
+		#ifdef _WIN32
+		//wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
+		//DoRemovePage (Win, true);
+		DoRemovePageString(wxT("Console"), true);
+		#else
 		Console->Close();
+		#endif
+		//if(GetConsoleWindow())
+		Console->Log(LogTypes::LNOTICE, StringFromFormat(
+		"close\n").c_str());
+			Console->Close();
+	}
+
+	// Hide pane
+	if (!UseDebugger) HidePane();
 
 	// Make sure the check is updated (if wxw isn't calling this func)
-	GetMenuBar()->FindItem(IDM_CONSOLE)->Check(Show);
+	//GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(Show);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
