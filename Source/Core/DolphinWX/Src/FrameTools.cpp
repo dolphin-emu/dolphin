@@ -1143,10 +1143,7 @@ void CFrame::ToggleConsole(bool Show, int i)
 		#else
 		Console->Close();
 		#endif
-		//if(GetConsoleWindow())
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"close\n").c_str());
-			Console->Close();
+		if(GetConsoleWindow()) Console->Close();
 	}
 
 	// Hide pane
