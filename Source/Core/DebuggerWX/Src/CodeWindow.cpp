@@ -163,7 +163,7 @@ END_EVENT_TABLE()
 // Class, input event handler and host message handler
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
 	wxWindowID id)
-	: wxPanel(parent, id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER, wxT("Dolphin-Debugger"))
 
 	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
 	    things may crash */
@@ -749,7 +749,9 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 		    break;
 	}
 
-	UpdateButtonStates();
+	UpdateButtonStates();	
+	// Update all toolbars in the aui manager
+	UpdateManager();
 }
 
 
@@ -883,7 +885,6 @@ void CCodeWindow::UpdateCallstack()
 void CCodeWindow::Update()
 {
 	codeview->Refresh();
-
 	UpdateCallstack();
 	UpdateButtonStates();
 
@@ -893,9 +894,6 @@ void CCodeWindow::Update()
 }
 
 
-
-
-
 // Update GUI
 
 void CCodeWindow::UpdateButtonStates()
@@ -903,36 +901,38 @@ void CCodeWindow::UpdateButtonStates()
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Running = (Core::GetState() == Core::CORE_RUN);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-	wxAuiToolBar* toolBar = GetToolBar();
+	wxAuiToolBar* ToolBar = GetToolBar();
 
-	if (!toolBar) return;
+	if (!ToolBar) return;
 
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
-		toolBar->EnableTool(IDM_DEBUG_GO, false);
-		toolBar->EnableTool(IDM_STEP, false);
-		toolBar->EnableTool(IDM_STEPOVER, false);
-		toolBar->EnableTool(IDM_SKIP, false);
+		ToolBar->EnableTool(IDM_DEBUG_GO, false);
+		ToolBar->EnableTool(IDM_STEP, false);
+		ToolBar->EnableTool(IDM_STEPOVER, false);
+		ToolBar->EnableTool(IDM_SKIP, false);
 	}
 	else
 	{
 		if (!CCPU::IsStepping())
 		{
-			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
-			toolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
-			toolBar->EnableTool(IDM_DEBUG_GO, true);
-			toolBar->EnableTool(IDM_STEP, false);
-			toolBar->EnableTool(IDM_STEPOVER, false);
-			toolBar->EnableTool(IDM_SKIP, false);
+			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
+			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Pause"));
+			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
+			ToolBar->EnableTool(IDM_DEBUG_GO, true);
+			ToolBar->EnableTool(IDM_STEP, false);
+			ToolBar->EnableTool(IDM_STEPOVER, false);
+			ToolBar->EnableTool(IDM_SKIP, false);
 		}
 		else
 		{
-			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Play"));
-			toolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
-			toolBar->EnableTool(IDM_DEBUG_GO, true);
-			toolBar->EnableTool(IDM_STEP, true);
-			toolBar->EnableTool(IDM_STEPOVER, true);
-			toolBar->EnableTool(IDM_SKIP, true);
+			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Play"));
+			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Play"));
+			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
+			ToolBar->EnableTool(IDM_DEBUG_GO, true);
+			ToolBar->EnableTool(IDM_STEP, true);
+			ToolBar->EnableTool(IDM_STEPOVER, true);
+			ToolBar->EnableTool(IDM_SKIP, true);
 		}
 	}
 
@@ -959,6 +959,15 @@ void CCodeWindow::UpdateButtonStates()
 	symbols->SetFont(DebuggerFont);
 	callers->SetFont(DebuggerFont);
 	calls->SetFont(DebuggerFont);
+
+	if (ToolBar) ToolBar->Realize();
+}
+// Update manager
+void CCodeWindow::UpdateManager()
+{	
+	// Caution: This can cause an endless loop if this event comes back to this function
+	wxCommandEvent evnt(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+	wxPostEvent(GetParentFrame(), evnt);
 }
 
 void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)

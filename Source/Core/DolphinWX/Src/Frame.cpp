@@ -473,7 +473,6 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Update controls
 	UpdateGUI();
-	if (UseDebugger) g_pCodeWindow->UpdateButtonStates();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
@@ -501,7 +500,6 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
-
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 

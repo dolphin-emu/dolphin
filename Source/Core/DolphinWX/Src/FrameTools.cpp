@@ -261,7 +261,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 	toolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
+	toolBar->AddTool(IDM_PLAY, wxT(""),   m_Bitmaps[Toolbar_Play], _T("Play"));
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
 #ifdef _WIN32
 	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
@@ -969,13 +969,11 @@ void CFrame::UpdateGUI()
 		{
 			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
+			m_ToolBar->SetToolLabel(IDM_PLAY, wxT(" Play "));
 		}
 		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));
 		
 	}
-	// Commit changes to toolbar
-	if (m_ToolBar != NULL) m_ToolBar->Realize();
 
 	if (!initialized)
 	{
@@ -994,6 +992,12 @@ void CFrame::UpdateGUI()
 			m_GameListCtrl->Hide();
 		}
 	}
+
+	// Commit changes to toolbar
+	if (m_ToolBar != NULL) m_ToolBar->Realize();
+	if (UseDebugger) g_pCodeWindow->Update();
+	// Commit changes to manager
+	m_Mgr->Update();
 }
 
 void CFrame::GameListChanged(wxCommandEvent& event)

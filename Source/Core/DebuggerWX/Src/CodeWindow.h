@@ -86,6 +86,7 @@ class CCodeWindow
 		void PopulateToolbar(wxAuiToolBar* toolBar);
 		void CreateSymbolsMenu();
 		void UpdateButtonStates();
+		void CCodeWindow::UpdateManager();
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
