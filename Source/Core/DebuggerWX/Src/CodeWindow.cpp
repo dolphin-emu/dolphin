@@ -171,21 +171,17 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
-	, m_ToolBar2(NULL)
+	, m_ToolBar2(NULL), m_NB0(NULL), m_NB1(NULL)
 {
 	// Load ini settings
-	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
-	this->Load_(file);
+	this->Load();
 
-	page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
-
 	// Create the toolbar
 	//RecreateToolbar();
-
 	// Update bitmap buttons
 	//UpdateButtonStates();
 
@@ -195,34 +191,17 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 		(wxObject*)0, this);
 
 	// Load settings for selectable windows, but only if they have been created
-	this->Load(file);
-	if (m_BreakpointWindow) m_BreakpointWindow->Load(file);
-	if (m_RegisterWindow) m_RegisterWindow->Load(file);
-	if (m_MemoryWindow) m_MemoryWindow->Load(file);
-	if (m_JitWindow) m_JitWindow->Load(file);
+	//this->Load();
 }
 
 CCodeWindow::~CCodeWindow()
 {
-	// Will be fixed. Pointers currently non-NULL while object is deleted on close
 
-	/*
-	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
-
-	this->Save(file);
-	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
-	if (m_RegisterWindow) m_RegisterWindow->Save(file);
-	if (m_MemoryWindow) m_MemoryWindow->Save(file);
-	if (m_JitWindow) m_JitWindow->Save(file);
-
-	file.Save(DEBUGGER_CONFIG_FILE);
-	*/
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-//Redirect old wxFrame calls
+// Redirect old wxFrame calls
 // ------------
 wxFrame *CCodeWindow::GetParentFrame()
 {
@@ -274,39 +253,23 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 	    case IDM_NOTIFYMAPLOADED:
 		    NotifyMapLoaded();
 		    break;
-
-			/*	    case IDM_UPDATELOGDISPLAY:
-
-		    if (m_LogWindow)
-		    {
-			    m_LogWindow->NotifyUpdate();
-		    }
-
-		    break;
-			*/
+		/*
+		case IDM_UPDATELOGDISPLAY:
+			if (m_LogWindow) m_LogWindow->NotifyUpdate();
+			break;
+		*/
 	    case IDM_UPDATEDISASMDIALOG:
 		    Update();
-
-		    if (m_RegisterWindow)
-		    {
-			    m_RegisterWindow->NotifyUpdate();
-		    }
+		    if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
 		    break;
 
 		case IDM_UPDATEBREAKPOINTS:
             Update();
-
-			if (m_BreakpointWindow)
-			{
-				m_BreakpointWindow->NotifyUpdate();
-			}
+			if (m_BreakpointWindow) m_BreakpointWindow->NotifyUpdate();
 			break;
 		case IDM_UPDATESTATUSBAR:
 			//if (main_frame->m_pStatusBar != NULL)
 			{
-				// What is this PanicAlert() for?
-				//PanicAlert("");
-
 				//this->GetParent()->m_p
 				//this->GetParent()->
 				//parent->m_pStatusBar->SetStatusText(wxT("Hi"), 0);
@@ -315,7 +278,6 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 				//main_frame->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 			}
 			break;
-
 	}
 }
 
@@ -323,8 +285,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
 // Load these settings before CreateGUIControls()
 
-void CCodeWindow::Load_( IniFile &ini )
+void CCodeWindow::Load()
 {
+	IniFile ini;
+	ini.Load(DEBUGGER_CONFIG_FILE);
+
 	// The font to override DebuggerFont with
 	std::string fontDesc;
 	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
@@ -337,15 +302,14 @@ void CCodeWindow::Load_( IniFile &ini )
 	ini.Get("ShowOnStart", "MemoryWindow", &bMemoryWindow, true);
 	ini.Get("ShowOnStart", "JitWindow", &bJitWindow, true);
 	ini.Get("ShowOnStart", "SoundWindow", &bSoundWindow, false);
-	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
-	
+	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);	
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
 	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
 }
 
-
+/*
 void CCodeWindow::Load( IniFile &ini )
 {
 	int x,y,w,h;
@@ -360,21 +324,13 @@ void CCodeWindow::Load( IniFile &ini )
 	ini.Get("MainWindow", "h", &h, 600);
 	GetParent()->SetSize(x, y, w, h);
 }
+*/
 
 
-void CCodeWindow::Save(IniFile &ini)
+void CCodeWindow::Save()
 {
-	// Crashes on exit, will be fixed
-	return;
-
-	ini.Set("CodeWindow", "x", GetPosition().x);
-	ini.Set("CodeWindow", "y", GetPosition().y);
-	ini.Set("CodeWindow", "w", GetSize().GetWidth());
-	ini.Set("CodeWindow", "h", GetSize().GetHeight());
-	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
-	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
-	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
-	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
+	IniFile ini;
+	ini.Load(DEBUGGER_CONFIG_FILE);
 
 	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
 
@@ -389,6 +345,25 @@ void CCodeWindow::Save(IniFile &ini)
 	ini.Set("ShowOnStart", "JitWindow", GetMenuBar()->IsChecked(IDM_JITWINDOW));
 	ini.Set("ShowOnStart", "SoundWindow", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
 	ini.Set("ShowOnStart", "VideoWindow", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
+
+	// Save window settings
+	/*
+	ini.Set("CodeWindow", "x", GetPosition().x);
+	ini.Set("CodeWindow", "y", GetPosition().y);
+	ini.Set("CodeWindow", "w", GetSize().GetWidth());
+	ini.Set("CodeWindow", "h", GetSize().GetHeight());
+	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
+	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
+	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
+	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
+
+	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
+	if (m_RegisterWindow) m_RegisterWindow->Save(file);
+	if (m_MemoryWindow) m_MemoryWindow->Save(file);
+	if (m_JitWindow) m_JitWindow->Save(file);
+	*/
+
+	ini.Save(DEBUGGER_CONFIG_FILE);
 }
 
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
@@ -418,34 +393,6 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	sizerBig->Fit(this);
 
 	sync_event.Init();
-
-	if (bRegisterWindow)	OnToggleRegisterWindow(true, m_NB0);
-	if (bBreakpointWindow)	OnToggleBreakPointWindow(true, m_NB1);
-	if (bMemoryWindow)		OnToggleMemoryWindow(true, m_NB0);
-	if (bJitWindow)			OnToggleJitWindow(true, m_NB0);
-	if (bSoundWindow)		OnToggleSoundWindow(true, m_NB1);
-	/*
-	{
-		// Possible todo: add some kind of if here to? can it fail?
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP, true
-		);
-	} // don't have any else, just ignore it
-	*/
-
-	if (bVideoWindow)		OnToggleVideoWindow(true, m_NB1);
-	/*
-	{
-		// possible todo: add some kind of if here to? can it fail?
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			PLUGIN_TYPE_VIDEO, true
-		);
-	} // don't have any else, just ignore it
-	*/
 }
 
 

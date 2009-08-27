@@ -367,12 +367,12 @@ CFrame::CFrame(bool showLogWindow,
 
 	if (UseDebugger)
 	{
-		wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+		wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 		static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
 		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
 		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
-		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, page_bmp );
+		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile );
 
 		g_pCodeWindow->UpdateNotebook(0, m_NB0);
 		g_pCodeWindow->UpdateNotebook(1, m_NB1);
@@ -438,6 +438,9 @@ CFrame::CFrame(bool showLogWindow,
 	// Create list of available plugins for the configuration window
 	CPluginManager::GetInstance().ScanForPlugins();
 
+	// Open notebook pages
+	if (UseDebugger) g_pCodeWindow->OpenPages();
+
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
 	m_GameListCtrl->Update();
@@ -502,6 +505,8 @@ void CFrame::OnClose(wxCloseEvent& event)
 {
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
+	// Save GUI settings
+	if (UseDebugger) g_pCodeWindow->Save();
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{

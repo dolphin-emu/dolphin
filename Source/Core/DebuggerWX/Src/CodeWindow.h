@@ -51,6 +51,8 @@ class CCodeWindow
 		*/
 
 		~CCodeWindow();
+		void Load();
+		void Save();
 
 		// Function redirection
 		wxFrame *GetParentFrame();
@@ -60,16 +62,12 @@ class CCodeWindow
 		bool IsActive();
 		void UpdateToolbar(wxAuiToolBar *);
 		void UpdateNotebook(int, wxAuiNotebook *);
-		wxBitmap page_bmp;
+		wxBitmap aNormalFile;
 		#ifdef _WIN32
 		wxWindow * GetWxWindow(wxString);
 		#endif
 		wxWindow * GetNootebookPage(wxString);
 		void DoToggleWindow(int,bool);
-
-		void Load_(IniFile &file);
-		void Load(IniFile &file);
-		void Save(IniFile &file);
 
 		bool UseInterpreter();
 		bool BootToPause();
@@ -86,7 +84,8 @@ class CCodeWindow
 		void PopulateToolbar(wxAuiToolBar* toolBar);
 		void CreateSymbolsMenu();
 		void UpdateButtonStates();
-		void CCodeWindow::UpdateManager();
+		void OpenPages();
+		void UpdateManager();
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;

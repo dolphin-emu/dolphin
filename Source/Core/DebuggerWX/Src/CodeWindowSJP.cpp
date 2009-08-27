@@ -366,6 +366,16 @@ wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 		return NULL;
 }
 #endif
+void CCodeWindow::OpenPages()
+{	
+	if (bRegisterWindow)	OnToggleRegisterWindow(true, m_NB0);
+	if (bBreakpointWindow)	OnToggleBreakPointWindow(true, m_NB1);
+	if (bMemoryWindow)		OnToggleMemoryWindow(true, m_NB0);
+	if (bJitWindow)			OnToggleJitWindow(true, m_NB0);
+	// Todo, potentially add a safety check here since it will crash if ScanForPlugins() is not run yet
+	if (bSoundWindow)		OnToggleSoundWindow(true, m_NB1);
+	if (bVideoWindow)		OnToggleVideoWindow(true, m_NB1);
+}
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
 	DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
@@ -384,11 +394,13 @@ void CCodeWindow::DoToggleWindow(int Id, bool Show)
 }
 void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
 {
+	if(!_NB) return;
+
 	if (Show)
 	{
 		if (m_RegisterWindow && _NB->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
 		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(GetParent()->GetParent());		
-		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, page_bmp );
+		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, aNormalFile );
 	}
 	else // hide
 	{
@@ -413,7 +425,7 @@ void CCodeWindow::OnToggleBreakPointWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		if (m_BreakpointWindow && _NB->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, GetParent()->GetParent());
-		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, page_bmp );
+		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, aNormalFile );
 	}
 	else // hide
 	{
@@ -437,7 +449,7 @@ void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		if (m_JitWindow && _NB->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(GetParent()->GetParent());
-		_NB->AddPage(m_JitWindow, wxT("JIT"), true, page_bmp );
+		_NB->AddPage(m_JitWindow, wxT("JIT"), true, aNormalFile );
 	}
 	else // hide
 	{
@@ -462,7 +474,7 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		if (m_MemoryWindow && _NB->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(GetParent()->GetParent());
-		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, page_bmp );
+		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, aNormalFile );
 	}
 	else // hide
 	{
@@ -507,7 +519,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 		if (Win)
 		{			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
-			_NB->AddPage(Win, wxT("Sound"), true, page_bmp );
+			_NB->AddPage(Win, wxT("Sound"), true, aNormalFile );
 		}
 		#endif
 	}
@@ -549,7 +561,7 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 		}
 
 		Win = GetWxWindow(wxT("Video"));
-		if (Win) _NB->AddPage(Win, wxT("Video"), true, page_bmp );
+		if (Win) _NB->AddPage(Win, wxT("Video"), true, aNormalFile );
 		#endif
 	}
 	else // hide
