@@ -31,6 +31,18 @@ const unsigned long COLOR_GRAY = 0xDCDCDC;
 
 enum
 {
+	Toolbar_DebugGo,
+	Toolbar_DebugPause,
+	Toolbar_Step,
+	Toolbar_StepOver,
+	Toolbar_Skip,
+	Toolbar_GotoPC,
+	Toolbar_SetPC,
+	ToolbarDebugBitmapMax
+};
+
+enum
+{
 	IDM_LOADSTATE = 200, // File menu
 	IDM_SAVESTATE,
 	IDM_LOADLASTSTATE,
@@ -153,7 +165,7 @@ enum
 	// --------------------------------------------------------------
 	// Debugger Toolbar
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	ID_TOOLBAR2,
+	ID_TOOLBAR_DEBUG,
 	IDM_DEBUG_GO,
 	IDM_STEP,
 	IDM_STEPOVER,
@@ -161,6 +173,10 @@ enum
 	IDM_SETPC,
 	IDM_GOTOPC,
 	IDM_ADDRBOX,
+
+	ID_TOOLBAR_AUI,
+	IDM_PERSPECTIVE_0,
+	IDM_PERSPECTIVE_1,
 	// --------------------------------------------------------------
 
 	IDM_TOGGLE_DUALCORE, // Other

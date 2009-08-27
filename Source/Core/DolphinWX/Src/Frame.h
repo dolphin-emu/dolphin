@@ -109,15 +109,16 @@ class CFrame : public wxFrame
 
 		// AUI
 		wxAuiManager *m_Mgr;
-		wxAuiToolBar *m_ToolBar, *m_ToolBar2;
-		wxAuiNotebook *m_NB0, *m_NB1;
+		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
+		wxAuiNotebook *m_NB0, *m_NB1, *m_NB2;
+		int iLeftWidth[2], iMidWidth[2];
 		// Perspectives
-		wxString AuiFullscreen;
-		wxString AuiMode1;
-		wxString AuiMode2;
-		wxString AuiCurrent;
+		wxString AuiFullscreen, AuiCurrent;
+		wxArrayString AuiPerspective;
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+		void DoLoadPerspective(int);
+		void Save();
 
 		char **drives;
 
@@ -161,6 +162,7 @@ class CFrame : public wxFrame
 		wxBitmap m_BitmapsMenu[EToolbar_Max];
 
 		void PopulateToolbar(wxAuiToolBar* toolBar);
+		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
 
@@ -171,6 +173,7 @@ class CFrame : public wxFrame
 		// Event functions
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
+		void OnToolBar(wxCommandEvent& event);
 
 		void OnOpen(wxCommandEvent& event); // File menu
 		void DoOpen(bool Boot);
@@ -208,6 +211,7 @@ class CFrame : public wxFrame
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
+		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleConsole(wxCommandEvent& event);

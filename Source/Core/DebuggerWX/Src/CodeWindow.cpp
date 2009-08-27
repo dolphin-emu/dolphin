@@ -27,9 +27,6 @@
 #include <wx/mstream.h>
 #include <wx/tipwin.h>
 
-// ugly that this lib included code from the main
-#include "../../DolphinWX/Src/Globals.h"
-
 #include "Host.h"
 
 #include "Debugger.h"
@@ -171,7 +168,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
-	, m_ToolBar2(NULL), m_NB0(NULL), m_NB1(NULL)
+	, m_ToolBarDebug(NULL), m_NB0(NULL), m_NB1(NULL)
 {
 	// Load ini settings
 	this->Load();
@@ -211,7 +208,7 @@ wxMenuBar *CCodeWindow::GetMenuBar()
 }
 wxAuiToolBar *CCodeWindow::GetToolBar()
 {
-	if (GetParentFrame()) return m_ToolBar2;
+	if (GetParentFrame()) return m_ToolBarDebug;
 }
 bool CCodeWindow::IsActive()
 {
@@ -219,7 +216,7 @@ bool CCodeWindow::IsActive()
 }
 void CCodeWindow::UpdateToolbar(wxAuiToolBar * _ToolBar2)
 {
-	m_ToolBar2 = _ToolBar2;
+	m_ToolBarDebug = _ToolBar2;
 }
 void CCodeWindow::UpdateNotebook(int _i, wxAuiNotebook * _NB)
 {
@@ -508,11 +505,10 @@ void CCodeWindow::InitBitmaps()
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_Pause] = wxGetBitmapFromMemory(toolbar_pause_png);
-
+	m_Bitmaps[Toolbar_DebugPause] = wxGetBitmapFromMemory(toolbar_pause_png);
 
 	// scale to 16x16 for toolbar
-	for (size_t n = Toolbar_DebugGo; n < Bitmaps_max; n++)
+	for (size_t n = Toolbar_DebugGo; n < ToolbarDebugBitmapMax; n++)
 	{
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
 	}
@@ -859,7 +855,7 @@ void CCodeWindow::UpdateButtonStates()
 		{
 			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
 			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Pause"));
-			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
+			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugPause]);
 			ToolBar->EnableTool(IDM_DEBUG_GO, true);
 			ToolBar->EnableTool(IDM_STEP, false);
 			ToolBar->EnableTool(IDM_STEPOVER, false);
@@ -922,7 +918,7 @@ void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
 
 	long style = TOOLBAR_STYLE;
 	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR2);
+	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR_DEBUG);
 
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);

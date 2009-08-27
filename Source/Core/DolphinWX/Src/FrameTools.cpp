@@ -251,49 +251,54 @@ void CFrame::CreateMenu()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Create toolbar items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
+void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
+	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
-	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(wxID_OPEN,    _T("Open"),    m_Bitmaps[Toolbar_FileOpen], _T("Open file..."));
-	toolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
-	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
-	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_PLAY, wxT(""),   m_Bitmaps[Toolbar_Play], _T("Play"));
-	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
+	ToolBar->AddTool(wxID_OPEN,    _T("Open"),    m_Bitmaps[Toolbar_FileOpen], _T("Open file..."));
+	ToolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
+	ToolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
+	ToolBar->AddSeparator();
+	ToolBar->AddTool(IDM_PLAY, wxT(""),   m_Bitmaps[Toolbar_Play], _T("Play"));
+	ToolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
 #ifdef _WIN32
-	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
+	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 #endif
-	toolBar->AddTool(IDM_SCREENSHOT, _T("Scr.Shot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
-	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
-	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Gfx"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
-	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
-	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
-	toolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
-	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
+	ToolBar->AddTool(IDM_SCREENSHOT, _T("Scr.Shot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
+	ToolBar->AddSeparator();
+	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
+	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Gfx"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
+	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
+	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
+	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
+	ToolBar->AddSeparator();
+	ToolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
-	toolBar->Realize();
+	ToolBar->Realize();
+}
+void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
+{
+	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
+	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
+	ToolBar->SetToolBitmapSize(wxSize(w, h));
+
+	ToolBar->AddTool(IDM_PERSPECTIVE_0,	wxT("View 1"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 1"));
+	ToolBar->AddTool(IDM_PERSPECTIVE_1,	wxT("View 2"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 2"));
+
+	ToolBar->Realize();
 }
 
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	if (m_ToolBar) {
-		m_Mgr->DetachPane(m_ToolBar);
-		delete m_ToolBar; }
-
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
-
 	PopulateToolbar(m_ToolBar);
-
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
 				Name(wxT("TBMain")).Caption(wxT("TBMain")).
 				ToolbarPane().Top().
@@ -301,26 +306,38 @@ void CFrame::RecreateToolbar()
 
 	if (UseDebugger)
 	{
-		if (m_ToolBar2) {
-			m_Mgr->DetachPane(m_ToolBar2);
-			delete m_ToolBar2; }
-
-		m_ToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
+		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
-
-		g_pCodeWindow->PopulateToolbar(m_ToolBar2);
-
-		m_Mgr->AddPane(m_ToolBar2, wxAuiPaneInfo().
+		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
+		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
 				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
+
+		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize,
+					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
+		PopulateToolbarAui(m_ToolBarAui);
+		m_Mgr->AddPane(m_ToolBarAui, wxAuiPaneInfo().
+				Name(wxT("TBAui")).Caption(wxT("TBAui")).
+				ToolbarPane().Top().
+				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
+	
+	//UpdateGUI();
 
-	// Hide toolbars if disabled
-	if (!SConfig::GetInstance().m_InterfaceToolbar)
-		{ m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide(); }
+	/*
+	wxToolBarBase* ToolBar = GetToolBar();
+	long style = ToolBar ? ToolBar->GetWindowStyle() : TOOLBAR_STYLE;
+	delete ToolBar;
+	SetToolBar(NULL);
 
+	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
+	m_ToolBar = CreateToolBar(style, ID_TOOLBAR);
+
+	PopulateToolbar(m_ToolBar);
+	SetToolBar(m_ToolBar);
 	UpdateGUI();
+	*/
 }
 
 void CFrame::InitBitmaps()
@@ -420,7 +437,7 @@ void CFrame::InitBitmaps()
 	}
 
 	// Update in case the bitmap has been updated
-	if (m_ToolBar != NULL)
+	if (GetToolBar() != NULL)
 		RecreateToolbar();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -699,6 +716,19 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		break;
 	}
 }
+
+void CFrame::OnToolBar(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+		case IDM_PERSPECTIVE_0:
+			DoLoadPerspective(0);
+			break;
+		case IDM_PERSPECTIVE_1:
+			DoLoadPerspective(1);
+			break;
+	}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -846,15 +876,20 @@ void CFrame::OnResize(wxSizeEvent& event)
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked();
-
-	if (event.IsChecked())
+	DoToggleToolbar(event.IsChecked());
+}
+void CFrame::DoToggleToolbar(bool Show)
+{
+	if (Show)
 	{
-		m_Mgr->GetPane(wxT("TBMain")).Show(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Show();
+		m_Mgr->GetPane(wxT("TBMain")).Show();
+		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }
 		m_Mgr->Update();
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide();
+		m_Mgr->GetPane(wxT("TBMain")).Hide();
+		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Hide(); m_Mgr->GetPane(wxT("TBAui")).Hide(); }
 		m_Mgr->Update();
 	}
 }

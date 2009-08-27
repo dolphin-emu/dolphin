@@ -245,6 +245,9 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
+EVT_MENU(IDM_PERSPECTIVE_0, CFrame::OnToolBar)
+EVT_MENU(IDM_PERSPECTIVE_1, CFrame::OnToolBar)
+
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 #endif
@@ -318,7 +321,7 @@ CFrame::CFrame(bool showLogWindow,
 	: wxFrame(parent, id, title, pos, size, style)
 	, UseDebugger(_UseDebugger)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
-	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBar2(NULL)
+	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
@@ -369,12 +372,11 @@ CFrame::CFrame(bool showLogWindow,
 	{
 		wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
-		static int Style =
-			wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_SPLIT |
-			wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
-		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
-		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
-		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile );
+		static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
+		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
+		m_NB2 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
+		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
 
 		g_pCodeWindow->UpdateNotebook(0, m_NB0);
 		g_pCodeWindow->UpdateNotebook(1, m_NB1);
@@ -392,29 +394,31 @@ CFrame::CFrame(bool showLogWindow,
 	m_Mgr = new wxAuiManager();
 	m_Mgr->SetManagedWindow(this);
 
+	// Window perspectives
+	/*
+	-------------------
+	| Pane 0 |        |
+	|--------| Pane 2 |
+	| Pane 1 |        |
+	-------------------
+	----------------------------
+	| Pane 0 |        |        |
+	|--------| Pane 2 | Pane 3 |
+	| Pane 1 |        |        |
+	----------------------------
+	*/
+
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	if (UseDebugger)
 	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
-					Name(wxT("Pane1")).Caption(wxT("Pane1")).
-					CenterPane().Layer(0).PaneBorder(false));
-		AuiFullscreen = m_Mgr->SavePerspective();
-		m_Mgr->GetPane(wxT("Pane1")).PaneBorder(true);
-
-		m_Mgr->AddPane(m_NB1, wxAuiPaneInfo().
-					Name(wxT("Pane2")).Caption(wxT("Pane2")).
-					CenterPane().Layer(1));
-
-		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().
-					Name(wxT("Pane3")).Caption(wxT("Pane3")).
-					CenterPane().Layer(2));
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
+		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
+		m_Mgr->AddPane(m_NB1, wxAuiPaneInfo().Name(wxT("Pane2")).Caption(wxT("Pane2")).Hide());
+		m_Mgr->AddPane(m_NB2, wxAuiPaneInfo().Name(wxT("Pane3")).Caption(wxT("Pane3")).Hide());
 	}
 	else
 	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().
-			Name(wxT("Pane1")).Caption(wxT("Pane1")).
-			CenterPane().PaneBorder(false));
-		AuiFullscreen = m_Mgr->SavePerspective();
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
 	}
 
 	// Open log window
@@ -423,15 +427,47 @@ CFrame::CFrame(bool showLogWindow,
 	
 	// Create toolbar
 	RecreateToolbar();
+	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
+	if (UseDebugger) g_pCodeWindow->UpdateToolbar(m_ToolBarDebug);
 
-	AuiMode1 = m_Mgr->SavePerspective();
-	if (UseDebugger) g_pCodeWindow->UpdateToolbar(m_ToolBar2);
+	// Position the panes
+	m_Mgr->GetPane(wxT("Pane0")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane1")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane2")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
 
-	// Save perspectives
-	AuiMode2 = m_Mgr->SavePerspective();
-	m_Mgr->GetPane(wxT("Pane2")).Layer(0);
-	m_Mgr->GetPane(wxT("Pane3")).Layer(0).Right();
-	AuiMode1 = m_Mgr->SavePerspective();
+	if (UseDebugger)
+	{
+		// Setup perspectives
+		m_Mgr->GetPane(wxT("Pane0")).CenterPane().PaneBorder(false);
+		AuiFullscreen = m_Mgr->SavePerspective();
+
+		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(true).Layer(0).Center().Position(0);
+		m_Mgr->GetPane(wxT("Pane1")).Show().PaneBorder(true).Layer(0).Center().Position(1);
+		m_Mgr->GetPane(wxT("Pane2")).Show().PaneBorder(true).Layer(0).Right();
+		AuiPerspective.Add(m_Mgr->SavePerspective());
+	
+		m_Mgr->GetPane(wxT("Pane0")).Left();
+		m_Mgr->GetPane(wxT("Pane1")).Left();
+		m_Mgr->GetPane(wxT("Pane2")).Center();
+		m_Mgr->GetPane(wxT("Pane3")).Show().Right();
+		AuiPerspective.Add(m_Mgr->SavePerspective());		
+		
+		// Load perspective
+		int iPerspective;		
+		IniFile ini;
+		ini.Load(DEBUGGER_CONFIG_FILE);
+		ini.Get("Perspectives", "Perspective", &iPerspective, 0);
+		ini.Get("Perspective 0", "LeftWidth", &iLeftWidth[0], 50);
+		ini.Get("Perspective 0", "AutomaticStart", &iLeftWidth[1], 33);
+		ini.Get("Perspective 1", "BootToPause", &iMidWidth[1], 33);
+		DoLoadPerspective(iPerspective);
+	}
+	else
+	{
+		m_Mgr->GetPane(wxT("Pane0")).Layer(0).CenterPane().PaneBorder(false);
+		AuiFullscreen = m_Mgr->SavePerspective();
+	}
 
 	 // Show window
 	Show();
@@ -508,6 +544,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	event.Skip();
 	// Save GUI settings
 	if (UseDebugger) g_pCodeWindow->Save();
+	if (UseDebugger) Save();
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -553,6 +590,74 @@ void CFrame::DoFullscreen(bool _F)
 		// Restore saved perspective
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
+}
+
+void CFrame::DoLoadPerspective(int i)
+{
+	//Save();
+
+	m_Mgr->LoadPerspective(AuiPerspective[i], true);
+
+	int _iLeftWidth, _iMidWidth, _iRightWidth, iClientSize = this->GetSize().GetX();
+
+	// Check limits
+	if (iLeftWidth[0] > 95) iLeftWidth[0] = 95; if (iLeftWidth[0] < 5) iLeftWidth[0] = 5;
+	if (iLeftWidth[1] > 95) iLeftWidth[1] = 95; if (iLeftWidth[1] < 5) iLeftWidth[1] = 5;
+	if (iMidWidth[1] > 95) iMidWidth[1] = 95; if (iMidWidth[1] < 5) iMidWidth[1] = 5;
+
+	// Set the size
+	if (i == 0)
+	{
+		_iLeftWidth = iClientSize * (float)(iLeftWidth[0]/100.0);
+		_iRightWidth = iClientSize - _iLeftWidth;	
+
+		m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
+		m_Mgr->GetPane(wxT("Pane2")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
+	}
+	else
+	{
+		_iLeftWidth = iClientSize * (float)(iLeftWidth[1]/100.0);
+		_iMidWidth = iClientSize * (float)(iMidWidth[1]/100.0);
+		_iRightWidth = iClientSize - _iLeftWidth - _iMidWidth;	
+
+		m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
+		m_Mgr->GetPane(wxT("Pane2")).BestSize(_iMidWidth, -1).MinSize(_iMidWidth, -1).MaxSize(_iMidWidth, -1);
+		m_Mgr->GetPane(wxT("Pane3")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
+	}
+
+	m_Mgr->Update();
+
+	// Remove the size limits
+	m_Mgr->GetPane(wxT("Pane0")).MinSize(-1, -1).MaxSize(-1, -1);
+	m_Mgr->GetPane(wxT("Pane1")).MinSize(-1, -1).MaxSize(-1, -1);
+	m_Mgr->GetPane(wxT("Pane2")).MinSize(-1, -1).MaxSize(-1, -1);
+	m_Mgr->GetPane(wxT("Pane3")).MinSize(-1, -1).MaxSize(-1, -1);		
+
+}
+void CFrame::Save()
+{
+	if (!m_Mgr->GetPane(wxT("Pane0")).IsOk() || !m_Mgr->GetPane(wxT("Pane2")).IsOk() ) return;
+
+	// Get client size
+	int _iLeftWidth, _iMidWidth, iClientSize = this->GetSize().GetX();
+	_iLeftWidth = (int)(((float)m_Mgr->GetPane(wxT("Pane0")).window->GetClientSize().GetX() / (float)iClientSize) * 100.0);
+	_iMidWidth = (int)(((float)m_Mgr->GetPane(wxT("Pane2")).window->GetClientSize().GetX() / (float)iClientSize) * 100.0);
+
+	IniFile ini;
+	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Set("Perspectives", "Perspective", m_Mgr->GetPane(wxT("Pane3")).IsShown() ? 1 : 0);
+	if (!m_Mgr->GetPane(wxT("Pane3")).IsShown())
+	{
+		ini.Set("Perspective 0", "LeftWidth", _iLeftWidth);
+	}
+	else
+	{
+		ini.Set("Perspective 1", "LeftWidth", _iLeftWidth);
+		ini.Set("Perspective 1", "MidWidth", _iMidWidth);
+	}
+	ini.Save(DEBUGGER_CONFIG_FILE);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

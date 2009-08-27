@@ -28,6 +28,9 @@
 #include "Thread.h"
 #include "CoreParameter.h"
 
+// GUI global
+#include "../../DolphinWX/Src/Globals.h"
+
 class CRegisterWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
@@ -54,10 +57,10 @@ class CCodeWindow
 		void Load();
 		void Save();
 
-		// Function redirection
+		// Function redirection and parent interaction
 		wxFrame *GetParentFrame();
 		wxMenuBar * GetMenuBar();
-		wxAuiToolBar * GetToolBar(), * m_ToolBar2;
+		wxAuiToolBar * GetToolBar(), * m_ToolBarDebug;
 		wxAuiNotebook *m_NB0, *m_NB1;
 		bool IsActive();
 		void UpdateToolbar(wxAuiToolBar *);
@@ -68,13 +71,13 @@ class CCodeWindow
 		#endif
 		wxWindow * GetNootebookPage(wxString);
 		void DoToggleWindow(int,bool);
+		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 
 		bool UseInterpreter();
 		bool BootToPause();
 		bool AutomaticStart();
 		bool UnlimitedJITCache();
 		bool JITBlockLinking();
-		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
 		void Update();
@@ -104,18 +107,6 @@ class CCodeWindow
 			ID_CALLERSLIST,
 			ID_CALLSLIST,
 			ID_SYMBOLLIST
-		};
-
-		enum
-		{
-			Toolbar_DebugGo,
-			Toolbar_Pause,
-			Toolbar_Step,
-			Toolbar_StepOver,
-			Toolbar_Skip,
-			Toolbar_GotoPC,
-			Toolbar_SetPC,
-			Bitmaps_max
 		};
 
 		// Settings
@@ -161,6 +152,9 @@ class CCodeWindow
 		void DoTip(wxString text);
 		void OnKeyDown(wxKeyEvent& event);
 
+		void InitBitmaps();
+		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);	
+
 		wxMenuItem* jitblocklinking, *jitunlimited, *jitoff;
 		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;
 		wxMenuItem* jitlspoff;
@@ -177,12 +171,7 @@ class CCodeWindow
 		wxListBox* calls;
 		Common::Event sync_event;
 
-		wxBitmap m_Bitmaps[Bitmaps_max];
-
-		DECLARE_EVENT_TABLE()
-
-		void InitBitmaps();
-		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);		
+		DECLARE_EVENT_TABLE()	
 };
 
 #endif /*CODEWINDOW_*/
