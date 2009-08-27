@@ -428,18 +428,6 @@ CFrame::CFrame(bool showLogWindow,
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
 		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
 	}
-	
-	// Create toolbar
-	RecreateToolbar();
-	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
-
-	// Show titles to position the panes
-	/*
-	m_Mgr->GetPane(wxT("Pane0")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane1")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane2")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
-	*/
 
 	if (UseDebugger)
 	{
@@ -474,6 +462,18 @@ CFrame::CFrame(bool showLogWindow,
 		AuiFullscreen = m_Mgr->SavePerspective();
 		m_Mgr->GetPane(wxT("Pane1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
 	}
+	
+	// Create toolbar
+	RecreateToolbar();
+	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
+
+	// Show titles to position the panes
+	/*
+	m_Mgr->GetPane(wxT("Pane0")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane1")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane2")).CaptionVisible(true);
+	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
+	*/
 
 	 // Show window
 	Show();
