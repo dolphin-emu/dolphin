@@ -716,11 +716,11 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\src\BreakPointDlg.cpp"
+			RelativePath=".\Src\BreakpointDlg.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\src\BreakPointDlg.h"
+			RelativePath=".\Src\BreakpointDlg.h"
 			>
 		</File>
 		<File
