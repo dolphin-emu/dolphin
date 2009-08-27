@@ -329,11 +329,11 @@ wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
 {
 	if (!m_NB0 || !m_NB1) return NULL;
 
-	for(int i = 0; i <= m_NB0->GetPageCount(); i++)
+	for(u32 i = 0; i <= m_NB0->GetPageCount(); i++)
 	{
 		if (m_NB0->GetPageText(i).IsSameAs(Name)) return m_NB0->GetPage(i);
 	}	
-	for(int i = 0; i <= m_NB1->GetPageCount(); i++)
+	for(u32 i = 0; i <= m_NB1->GetPageCount(); i++)
 	{
 		if (m_NB1->GetPageText(i).IsSameAs(Name)) return m_NB1->GetPage(i);
 	}
@@ -372,7 +372,6 @@ void CCodeWindow::OpenPages()
 	if (bBreakpointWindow)	OnToggleBreakPointWindow(true, m_NB1);
 	if (bMemoryWindow)		OnToggleMemoryWindow(true, m_NB0);
 	if (bJitWindow)			OnToggleJitWindow(true, m_NB0);
-	// Todo, potentially add a safety check here since it will crash if ScanForPlugins() is not run yet
 	if (bSoundWindow)		OnToggleSoundWindow(true, m_NB1);
 	if (bVideoWindow)		OnToggleVideoWindow(true, m_NB1);
 }
@@ -394,8 +393,6 @@ void CCodeWindow::DoToggleWindow(int Id, bool Show)
 }
 void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
 {
-	if(!_NB) return;
-
 	if (Show)
 	{
 		if (m_RegisterWindow && _NB->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
@@ -412,7 +409,10 @@ void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
 		//if (m_RegisterWindow) m_RegisterWindow->Hide();
 		if (m_RegisterWindow)
 		{
-			_NB->RemovePage(_NB->GetPageIndex(m_RegisterWindow));
+			if (m_NB0->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(m_RegisterWindow));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(m_RegisterWindow));
 			m_RegisterWindow->Hide();
 		}
 	}
@@ -437,7 +437,10 @@ void CCodeWindow::OnToggleBreakPointWindow(bool Show, wxAuiNotebook * _NB)
 
 		if (m_BreakpointWindow)
 		{
-			_NB->RemovePage(_NB->GetPageIndex(m_BreakpointWindow));
+			if (m_NB0->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(m_BreakpointWindow));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(m_BreakpointWindow));
 			m_BreakpointWindow->Hide();
 		}
 	}
@@ -461,7 +464,10 @@ void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
 
 		if (m_JitWindow)
 		{
-			_NB->RemovePage(_NB->GetPageIndex(m_JitWindow));
+			if (m_NB0->GetPageIndex(m_JitWindow) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(m_JitWindow));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(m_JitWindow));
 			m_JitWindow->Hide();
 		}
 	}
@@ -486,7 +492,10 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
 
 		if (m_MemoryWindow)
 		{
-			_NB->RemovePage(_NB->GetPageIndex(m_MemoryWindow));
+			if (m_NB0->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(m_MemoryWindow));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(m_MemoryWindow));
 			m_MemoryWindow->Hide();
 		}
 	}
@@ -527,7 +536,13 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Sound"));
-		if (Win) _NB->RemovePage(_NB->GetPageIndex(Win));
+		if (Win)
+		{
+			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
+		}
 		#endif
 		// Close the sound dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
@@ -568,7 +583,13 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 	{
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Video"));
-		if (Win) _NB->RemovePage(_NB->GetPageIndex(Win));
+		if (Win)
+		{
+			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND)
+				m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
+			else
+				m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
+		}
 		#endif
 		// Close the video dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(

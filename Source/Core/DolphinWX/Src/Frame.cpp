@@ -369,7 +369,9 @@ CFrame::CFrame(bool showLogWindow,
 	{
 		wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
-		static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+		static int Style =
+			wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_SPLIT |
+			wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
 		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
 		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(430,200), Style);
 		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile );
@@ -421,8 +423,7 @@ CFrame::CFrame(bool showLogWindow,
 	
 	// Create toolbar
 	RecreateToolbar();
-	if (!SConfig::GetInstance().m_InterfaceToolbar)
-		{ m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide(); }
+
 	AuiMode1 = m_Mgr->SavePerspective();
 	if (UseDebugger) g_pCodeWindow->UpdateToolbar(m_ToolBar2);
 

@@ -189,9 +189,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 		wxKeyEventHandler(CCodeWindow::OnKeyDown),
 		(wxObject*)0, this);
-
-	// Load settings for selectable windows, but only if they have been created
-	//this->Load();
 }
 
 CCodeWindow::~CCodeWindow()
@@ -641,9 +638,6 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		}
 	}
 }
-
-
-
 
 
 // Events

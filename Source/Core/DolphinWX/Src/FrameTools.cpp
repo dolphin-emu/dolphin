@@ -285,12 +285,14 @@ void CFrame::PopulateToolbar(wxAuiToolBar* toolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
+	if (m_ToolBar) {
+		m_Mgr->DetachPane(m_ToolBar);
+		delete m_ToolBar; }
+
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
 	PopulateToolbar(m_ToolBar);
-
-	UpdateGUI();
 
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
 				Name(wxT("TBMain")).Caption(wxT("TBMain")).
@@ -299,6 +301,10 @@ void CFrame::RecreateToolbar()
 
 	if (UseDebugger)
 	{
+		if (m_ToolBar2) {
+			m_Mgr->DetachPane(m_ToolBar2);
+			delete m_ToolBar2; }
+
 		m_ToolBar2 = new wxAuiToolBar(this, ID_TOOLBAR2, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 
@@ -310,19 +316,11 @@ void CFrame::RecreateToolbar()
 				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
 
-	/*
-	wxToolBarBase* toolBar = GetToolBar();
-	long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
-	delete toolBar;
-	SetToolBar(NULL);
+	// Hide toolbars if disabled
+	if (!SConfig::GetInstance().m_InterfaceToolbar)
+		{ m_Mgr->GetPane(wxT("TBMain")).Hide(); if (UseDebugger) m_Mgr->GetPane(wxT("TBDebug")).Hide(); }
 
-	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	m_ToolBar = CreateToolBar(style, ID_TOOLBAR);
-
-	PopulateToolbar(m_ToolBar);
-	SetToolBar(m_ToolBar);
 	UpdateGUI();
-	*/
 }
 
 void CFrame::InitBitmaps()
@@ -422,7 +420,7 @@ void CFrame::InitBitmaps()
 	}
 
 	// Update in case the bitmap has been updated
-	if (GetToolBar() != NULL)
+	if (m_ToolBar != NULL)
 		RecreateToolbar();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
