@@ -429,12 +429,20 @@ CFrame::CFrame(bool showLogWindow,
 		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
 	}
 
+	// Setup perspectives
 	if (UseDebugger)
-	{
-		// Setup perspectives
+	{		
 		m_Mgr->GetPane(wxT("Pane0")).CenterPane().PaneBorder(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
+	}
 
+	// Create toolbar
+	RecreateToolbar();
+	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
+
+	// Setup perspectives
+	if (UseDebugger)
+	{
 		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(0);
 		m_Mgr->GetPane(wxT("Pane1")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(1);
 		m_Mgr->GetPane(wxT("Pane2")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Right();
@@ -462,10 +470,6 @@ CFrame::CFrame(bool showLogWindow,
 		AuiFullscreen = m_Mgr->SavePerspective();
 		m_Mgr->GetPane(wxT("Pane1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
 	}
-	
-	// Create toolbar
-	RecreateToolbar();
-	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
 
 	// Show titles to position the panes
 	/*
@@ -515,7 +519,7 @@ CFrame::CFrame(bool showLogWindow,
 		(wxObject*)0, this);
 
 	#ifdef _WIN32 // The functions are only tested in Windows so far
-		wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN, // Mouse
+		wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
 			wxMouseEventHandler(CFrame::OnDoubleClick),
 			(wxObject*)0, this);
 		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
@@ -534,16 +538,15 @@ CFrame::CFrame(bool showLogWindow,
 		//Core::WriteStatus();
 	#endif
 }
-
 // Destructor
 CFrame::~CFrame()
 {
 	cdio_free_device_list(drives);
-/* The statbar sample has this so I add this to, but I guess timer will be deleted after
-   this anyway */
-#if wxUSE_TIMER
-    if (m_timer.IsRunning()) m_timer.Stop();
-#endif
+	/* The statbar sample has this so I add this to, but I guess timer will be deleted after
+	   this anyway */
+	#if wxUSE_TIMER
+		if (m_timer.IsRunning()) m_timer.Stop();
+	#endif
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
