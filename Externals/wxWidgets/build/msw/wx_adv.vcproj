@@ -19,82 +19,6 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="DebugFast|Win32"
-			OutputDirectory="wxAdv28_$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="wxAdv28_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Include;..\..\Include\msvc;..\..\..\zlib;..\..\src\png"
-				PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
-				MinimalRebuild="true"
-				RuntimeLibrary="0"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="wx/wxprec.h"
-				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
-				AssemblerListingLocation="$(IntDir)\"
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\vc80.pdb"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/wxAdv28.lib"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\..\..\lib\vc_lib/wx_adv.bsc"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="DebugFast|x64"
 			OutputDirectory="wxAdv28_$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="wxAdv28_$(PlatformName)\$(ConfigurationName)"
@@ -495,15 +419,6 @@
 				RelativePath="..\..\src\common\animatecmn.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -553,15 +468,6 @@
 				RelativePath="..\..\src\common\datavcmn.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -610,16 +516,6 @@
 			<File
 				RelativePath="..\..\src\common\dummy.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -675,15 +571,6 @@
 				RelativePath="..\..\src\common\taskbarcmn.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -737,15 +624,6 @@
 				RelativePath="..\..\src\msw\aboutdlg.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -794,15 +672,6 @@
 			<File
 				RelativePath="..\..\src\msw\datectrl.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -853,15 +722,6 @@
 				RelativePath="..\..\src\msw\joystick.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -910,15 +770,6 @@
 			<File
 				RelativePath="..\..\src\msw\sound.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -969,15 +820,6 @@
 				RelativePath="..\..\src\msw\taskbar.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1026,15 +868,6 @@
 			<File
 				RelativePath="..\..\src\msw\version.rc"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\Emulation\SCMs\dolphin\Externals\wxWidgets\src\msw"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					ExcludedFromBuild="true"
@@ -1089,15 +922,6 @@
 				RelativePath="..\..\src\generic\aboutdlgg.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1146,15 +970,6 @@
 			<File
 				RelativePath="..\..\src\generic\animateg.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1205,15 +1020,6 @@
 				RelativePath="..\..\src\generic\bmpcboxg.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1262,15 +1068,6 @@
 			<File
 				RelativePath="..\..\src\generic\calctrl.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1321,15 +1118,6 @@
 				RelativePath="..\..\src\generic\datavgen.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1378,15 +1166,6 @@
 			<File
 				RelativePath="..\..\src\generic\datectlg.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1437,15 +1216,6 @@
 				RelativePath="..\..\src\generic\grid.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1494,15 +1264,6 @@
 			<File
 				RelativePath="..\..\src\generic\gridctrl.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1553,15 +1314,6 @@
 				RelativePath="..\..\src\generic\gridsel.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1610,15 +1362,6 @@
 			<File
 				RelativePath="..\..\src\generic\helpext.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1669,15 +1412,6 @@
 				RelativePath="..\..\src\generic\hyperlink.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1726,15 +1460,6 @@
 			<File
 				RelativePath="..\..\src\generic\laywin.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1785,15 +1510,6 @@
 				RelativePath="..\..\src\generic\odcombo.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1842,15 +1558,6 @@
 			<File
 				RelativePath="..\..\src\generic\propdlg.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -1901,15 +1608,6 @@
 				RelativePath="..\..\src\generic\sashwin.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -1958,15 +1656,6 @@
 			<File
 				RelativePath="..\..\src\generic\splash.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -2017,15 +1706,6 @@
 				RelativePath="..\..\src\generic\tipdlg.cpp"
 				>
 				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="DebugFast|x64"
 					>
 					<Tool
@@ -2074,15 +1754,6 @@
 			<File
 				RelativePath="..\..\src\generic\wizard.cpp"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -2134,22 +1805,8 @@
 			Name="Setup Headers"
 			>
 			<File
-				RelativePath="..\..\include\wx\univ\setup.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\wx\msw\setup.h"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Creating ..\..\lib\vc_lib\mswd\wx\setup.h"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\lib\vc_lib\mswd\wx\setup.h&#x0D;&#x0A;"
-						Outputs="..\..\lib\vc_lib\mswd\wx\setup.h"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
@@ -2201,6 +1858,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\..\include\wx\univ\setup.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="MSW Headers"
@@ -2212,16 +1873,6 @@
 			<File
 				RelativePath="..\..\include\wx\msw\genrcdefs.h"
 				>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Creating ..\..\lib\vc_lib\mswd\wx\msw\rcdefs.h"
-						CommandLine="cl /EP /nologo &quot;$(InputPath)&quot; &gt; &quot;..\..\lib\vc_lib\mswd\wx\msw\rcdefs.h&quot;&#x0D;&#x0A;"
-						Outputs="..\..\lib\vc_lib\mswd\wx\msw\rcdefs.h"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="DebugFast|x64"
 					>
