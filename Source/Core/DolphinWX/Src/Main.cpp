@@ -405,7 +405,6 @@ void Host_ShowJitResults(unsigned int address)
 	CJitWindow::ViewAddr(address);
 }
 
-
 void Host_UpdateMainFrame()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
@@ -416,7 +415,7 @@ void Host_UpdateMainFrame()
 		wxPostEvent(g_pCodeWindow, event);
 	}
 }
-
+// Remove this?
 void Host_UpdateBreakPointView()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
@@ -430,8 +429,8 @@ void Host_UpdateBreakPointView()
 
 
 /////////////////////////////////////////////////////////////
-/* Update Wiimote status bar */
-// ¯¯¯¯¯¯¯¯¯
+// Update Wiimote status bar
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Host_UpdateLeds(int led_bits)
 {
 	// Convert it to a simpler byte format

@@ -309,7 +309,7 @@ END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creation and close, quit functions
-// ----------------------------------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 CFrame::CFrame(bool showLogWindow,
 		wxFrame* parent,
 		wxWindowID id,
@@ -331,7 +331,7 @@ CFrame::CFrame(bool showLogWindow,
           
 {
 	// Start debugging mazimized
-	if (UseDebugger) this->Maximize(true);
+	//if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
@@ -361,6 +361,7 @@ CFrame::CFrame(bool showLogWindow,
 	// -------------------------------------------------------------------------
 	// Panels
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// This panel is the parent for rendering and it holds the gamelistctrl
 	m_Panel = new CPanel(this, IDM_MPANEL);
 	//wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
 
@@ -372,7 +373,7 @@ CFrame::CFrame(bool showLogWindow,
 		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 		m_NB2 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
-		m_NB0->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
+		m_NB1->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
 	}
 	else
 	{
@@ -415,7 +416,6 @@ CFrame::CFrame(bool showLogWindow,
 	----------------------------
 	*/
 
-	// This panel is the parent for rendering and it holds the gamelistctrl
 	if (UseDebugger)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());

@@ -26,21 +26,20 @@
 #include <wx/textctrl.h>
 #include <wx/statbox.h>
 
-#undef BreakPointDlg_STYLE
-#define BreakPointDlg_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
-
-
 class BreakPointDlg : public wxDialog
 {
 	private:
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		BreakPointDlg(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("BreakPoint"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = BreakPointDlg_STYLE);
+		BreakPointDlg(CBreakPointWindow *, wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("BreakPoint"),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+			long style = wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX);
 		virtual ~BreakPointDlg();
 	
 	private:
 
+		CBreakPointWindow *Parent;
 		wxButton *m_pButtonOK;
 		wxButton *m_pButtonCancel;
 		wxTextCtrl *m_pEditAddress;

@@ -15,13 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "BreakPointDlg.h"
 #include "Common.h"
 #include "Host.h"
 #include "Debugger.h"
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
-
+#include "BreakPointWindow.h"
+#include "BreakPointDlg.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
 	EVT_CLOSE(BreakPointDlg::OnClose)
@@ -29,9 +29,11 @@ BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
 	EVT_BUTTON(ID_CANCEL, BreakPointDlg::OnCancel)
 END_EVENT_TABLE()
 
+class CBreakPointWindow;
 
-BreakPointDlg::BreakPointDlg(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent, wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
+, Parent(_Parent)
 {
 	CreateGUIControls();
 }
@@ -46,8 +48,7 @@ void BreakPointDlg::CreateGUIControls()
 {
 	SetIcon(wxNullIcon);
 	SetSize(8,8,279,121);
-	Center();
-	
+	Center();	
 
 	wxStaticText* WxStaticText1 = new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Address"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
 
@@ -73,7 +74,8 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
 		PowerPC::breakpoints.Add(Address);
-		Host_UpdateBreakPointView();
+		Parent->NotifyUpdate();
+		//Host_UpdateBreakPointView();
 		Close();		
 	}
 }

@@ -33,8 +33,6 @@ extern "C" {
 #include "../resources/toolbar_delete.c"
 }
 
-static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_MENU(IDM_DELETE, CBreakPointWindow::OnDelete)
@@ -57,26 +55,18 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 
 	// Create the toolbar
 	RecreateToolbar();
-
 }
-
-
 CBreakPointWindow::~CBreakPointWindow()
 {}
 
-
-void 
-CBreakPointWindow::Save(IniFile& _IniFile) const
+void CBreakPointWindow::Save(IniFile& _IniFile) const
 {
 	_IniFile.Set("BreakPoint", "x", GetPosition().x);
 	_IniFile.Set("BreakPoint", "y", GetPosition().y);
 	_IniFile.Set("BreakPoint", "w", GetSize().GetWidth());
 	_IniFile.Set("BreakPoint", "h", GetSize().GetHeight());
 }
-
-
-void 
-CBreakPointWindow::Load(IniFile& _IniFile)
+void CBreakPointWindow::Load(IniFile& _IniFile)
 {
 	int x,y,w,h;
 	_IniFile.Get("BreakPoint", "x", &x, GetPosition().x);
@@ -86,9 +76,7 @@ CBreakPointWindow::Load(IniFile& _IniFile)
 	SetSize(x, y, w, h);
 }
 
-
-void 
-CBreakPointWindow::CreateGUIControls()
+void CBreakPointWindow::CreateGUIControls()
 {
 	SetTitle(wxT("Breakpoints"));
 	SetIcon(wxNullIcon);
@@ -101,9 +89,7 @@ CBreakPointWindow::CreateGUIControls()
 	NotifyUpdate();
 }
 
-
-void
-CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
+void CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_Delete].GetWidth(),
 		h = m_Bitmaps[Toolbar_Delete].GetHeight();
@@ -129,13 +115,11 @@ CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->Realize();
 }
 
-
-void
-CBreakPointWindow::RecreateToolbar()
+void CBreakPointWindow::RecreateToolbar()
 {
 	// delete and recreate the toolbar
 	wxToolBarBase* toolBar = GetToolBar();
-	long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
+	long style = toolBar ? toolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
 	delete toolBar;
 	SetToolBar(NULL);
@@ -147,9 +131,7 @@ CBreakPointWindow::RecreateToolbar()
 	SetToolBar(theToolBar);
 }
 
-
-void
-CBreakPointWindow::InitBitmaps()
+void CBreakPointWindow::InitBitmaps()
 {
 	// load orignal size 48x48
 	m_Bitmaps[Toolbar_Delete] = wxGetBitmapFromMemory(toolbar_delete_png);
@@ -163,25 +145,17 @@ CBreakPointWindow::InitBitmaps()
 	}
 }
 
-
-void 
-CBreakPointWindow::OnClose(wxCloseEvent& /*event*/)
+void CBreakPointWindow::OnClose(wxCloseEvent& /*event*/)
 {
 	Hide();
 }
 
-
 void CBreakPointWindow::NotifyUpdate()
 {
-	if (m_BreakPointListView != NULL)
-	{
-		m_BreakPointListView->Update();
-	}
+	if (m_BreakPointListView != NULL) m_BreakPointListView->Update();
 }
 
-
-void 
-CBreakPointWindow::OnDelete(wxCommandEvent& event)
+void CBreakPointWindow::OnDelete(wxCommandEvent& event)
 {
 	if (m_BreakPointListView)
 	{
@@ -189,31 +163,37 @@ CBreakPointWindow::OnDelete(wxCommandEvent& event)
 	}
 }
 
+void CBreakPointWindow::OnActivated(wxListEvent& event)
+{
+    long Index = event.GetIndex();
+    if (Index >= 0)
+    {
+        u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
+        if (m_pCodeWindow != NULL)
+        {
+            m_pCodeWindow->JumpToAddress(Address);
+        }
+    }
+}
 
-// ==========================================================================================
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Breakpoint actions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 // Clear all breakpoints
-// ------------
-void 
-CBreakPointWindow::OnClear(wxCommandEvent& event)
+void CBreakPointWindow::OnClear(wxCommandEvent& event)
 {
 	PowerPC::breakpoints.Clear();
+	NotifyUpdate();
 }
-// ============
-
-
-void 
-CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& event)
+// Add one breakpoint
+void CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& event)
 {
-	BreakPointDlg bpDlg(this);
+	BreakPointDlg bpDlg(this, this);
 	bpDlg.ShowModal();
 }
-
-
-// ==========================================================================================
 // Load breakpoints from file
-// --------------
-void
-CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
+void CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 {
 	// load ini
 	IniFile ini;
@@ -238,8 +218,8 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 				PowerPC::breakpoints.Add(Address);
 			}
 		}
-		// only update after we are done with the loop
-		Host_UpdateBreakPointView();
+		// Only update after we are done with the loop
+		NotifyUpdate();
 	}
 	else
 	{
@@ -247,9 +227,12 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 	}
 
 }
-// =================
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Memory check actions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void 
 CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
 {
@@ -257,12 +240,8 @@ CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
 	memDlg.ShowModal();
 }
 
-
-// ==========================================================================================
 // Load memory checks from file
-// --------------
-void
-CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
+void CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 {
 	// load ini
 	IniFile ini;
@@ -340,28 +319,12 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				PowerPC::memchecks.Add(MemCheck);	
 			}
 		}
-		// update after we are done with the loop
-		Host_UpdateBreakPointView();
+		// Update after we are done with the loop
+		NotifyUpdate();
 	}
 	else
 	{
 		wxMessageBox(_T("You have no ") T_FULL_GAMECONFIG_DIR _T("MemoryChecks.ini file"));
 	}
 }
-// =================
-
-
-void
-CBreakPointWindow::OnActivated(wxListEvent& event)
-{
-    long Index = event.GetIndex();
-    if (Index >= 0)
-    {
-        u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
-        if (m_pCodeWindow != NULL)
-        {
-            m_pCodeWindow->JumpToAddress(Address);
-        }
-    }
-}
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
