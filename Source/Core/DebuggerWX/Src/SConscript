@@ -10,7 +10,7 @@ files = [
     "BreakpointView.cpp",
     "BreakpointWindow.cpp",
     "CodeWindow.cpp",
-    "CodeWindowSJP.cpp",
+    "CodeWindowFunctions.cpp",
     "MemoryCheckDlg.cpp",
     "MemoryWindow.cpp",
     "RegisterWindow.cpp",

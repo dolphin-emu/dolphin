@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Debugger"
 	ProjectGUID="{4D3CD4C5-412B-4B49-9B1B-A68A2A129C77}"
 	RootNamespace="DebuggerWX"
@@ -780,7 +780,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\CodeWindowSJP.cpp"
+			RelativePath=".\Src\CodeWindowFunctions.cpp"
 			>
 		</File>
 		<File
