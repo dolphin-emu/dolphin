@@ -327,15 +327,13 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
 {
-	if (!Parent->m_NB[0] || !Parent->m_NB[1]) return NULL;
-
-	for(u32 i = 0; i <= Parent->m_NB[0]->GetPageCount(); i++)
+	for (int i = 0; i < Parent->m_NB.size(); i++)
 	{
-		if (Parent->m_NB[0]->GetPageText(i).IsSameAs(Name)) return Parent->m_NB[0]->GetPage(i);
-	}	
-	for(u32 i = 0; i <= Parent->m_NB[1]->GetPageCount(); i++)
-	{
-		if (Parent->m_NB[1]->GetPageText(i).IsSameAs(Name)) return Parent->m_NB[1]->GetPage(i);
+		if (!Parent->m_NB[i]) return NULL;
+		for(u32 j = 0; j <= Parent->m_NB[j]->GetPageCount(); j++)
+		{
+			if (Parent->m_NB[i]->GetPageText(j).IsSameAs(Name)) return Parent->m_NB[i]->GetPage(j);
+		}	
 	}
 	return NULL;
 }

@@ -372,7 +372,7 @@ CFrame::CFrame(bool showLogWindow,
 	m_Panel = new CPanel(this, IDM_MPANEL);
 	//wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
 
-	static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	static int Style = wxAUI_NB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (UseDebugger)
