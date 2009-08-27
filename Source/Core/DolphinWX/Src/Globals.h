@@ -179,6 +179,7 @@ enum
 	ID_TOOLBAR_AUI,
 	IDM_PERSPECTIVE_0,
 	IDM_PERSPECTIVE_1,
+	IDM_TAB_SPLIT,
 	// --------------------------------------------------------------
 
 	IDM_TOGGLE_DUALCORE, // Other

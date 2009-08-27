@@ -115,6 +115,7 @@ class CFrame : public wxFrame
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize(wxArrayInt,wxArrayInt);
+		void ToggleNotebookStyle(long);
 		void Save();
 
 	private:

@@ -282,8 +282,9 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
-	ToolBar->AddTool(IDM_PERSPECTIVE_0,	wxT("View 1"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 1"));
-	ToolBar->AddTool(IDM_PERSPECTIVE_1,	wxT("View 2"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 2"));
+	ToolBar->AddTool(IDM_PERSPECTIVE_0,	wxT("View 1"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 1"), wxITEM_CHECK);
+	ToolBar->AddTool(IDM_PERSPECTIVE_1,	wxT("View 2"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("View 2"), wxITEM_CHECK);
+	ToolBar->AddTool(IDM_TAB_SPLIT,	wxT("Split"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Tab Split"), wxITEM_CHECK);
 
 	ToolBar->Realize();
 }
@@ -719,12 +720,31 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 		case IDM_PERSPECTIVE_0:
+			m_ToolBarAui->ToggleTool(IDM_PERSPECTIVE_1, false);
 			DoLoadPerspective(0);
 			break;
 		case IDM_PERSPECTIVE_1:
+			m_ToolBarAui->ToggleTool(IDM_PERSPECTIVE_0, false);
 			DoLoadPerspective(1);
 			break;
+		case IDM_TAB_SPLIT:
+			ToggleNotebookStyle(wxAUI_NB_TAB_SPLIT);
+			break;
 	}
+}
+void CFrame::ToggleNotebookStyle(long Style)
+{
+    wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
+    for (int i = 0, Count = AllPanes.GetCount(); i < Count; ++i)
+    {
+        wxAuiPaneInfo& Pane = AllPanes.Item(i);
+        if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+        {
+            wxAuiNotebook* NB = (wxAuiNotebook*)Pane.window;
+            NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() ^ Style);
+            NB->Refresh();
+        }
+    }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1096,7 +1116,6 @@ void CFrame::UpdateGUI()
 			m_ToolBar->SetToolLabel(IDM_PLAY, _("Pause"));
 		}
 		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause\tF10"));
-		
 	}
 	else
 	{
