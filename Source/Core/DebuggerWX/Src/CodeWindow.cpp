@@ -265,36 +265,36 @@ void CCodeWindow::Load()
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
 
 	// Decide what windows to use
-	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
-	ini.Get("ShowOnStart", "BreakpointWindow", &bBreakpointWindow, true);
-	ini.Get("ShowOnStart", "MemoryWindow", &bMemoryWindow, true);
-	ini.Get("ShowOnStart", "JitWindow", &bJitWindow, true);
-	ini.Get("ShowOnStart", "SoundWindow", &bSoundWindow, false);
-	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);	
+	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
+	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
+	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);
+	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
+	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
+	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
+	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);	
+
+	ini.Get("Notebook", "Log", &iLogWindow, 1);
+	ini.Get("Notebook", "Code", &iCodeWindow, 1);
+	ini.Get("Notebook", "Registers", &iRegisterWindow, 1);
+	ini.Get("Notebook", "Breakpoints", &iBreakpointWindow, 0);
+	ini.Get("Notebook", "Memory", &iMemoryWindow, 1);
+	ini.Get("Notebook", "JIT", &iJitWindow, 1);
+	ini.Get("Notebook", "Sound", &iSoundWindow, 0);
+	ini.Get("Notebook", "Video", &iVideoWindow, 0);
+
+	// Remove bad values
+	iCodeWindow = Limit(iCodeWindow, 0, Parent->m_NB.size()-1);
+	iRegisterWindow = Limit(iRegisterWindow, 0, Parent->m_NB.size()-1);
+	iBreakpointWindow = Limit(iBreakpointWindow, 0, Parent->m_NB.size()-1);
+	iMemoryWindow = Limit(iMemoryWindow, 0, Parent->m_NB.size()-1);
+	iJitWindow = Limit(iJitWindow, 0, Parent->m_NB.size()-1);
+	iSoundWindow = Limit(iSoundWindow, 0, Parent->m_NB.size()-1);
+	iVideoWindow = Limit(iVideoWindow, 0, Parent->m_NB.size()-1);
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
 	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
 }
-
-/*
-void CCodeWindow::Load( IniFile &ini )
-{
-	int x,y,w,h;
-	ini.Get("CodeWindow", "x", &x, GetPosition().x);
-	ini.Get("CodeWindow", "y", &y, GetPosition().y);
-	ini.Get("CodeWindow", "w", &w, GetSize().GetWidth());
-	ini.Get("CodeWindow", "h", &h, GetSize().GetHeight());
-	this->SetSize(x, y, w, h);
-	ini.Get("MainWindow", "x", &x, 100);
-	ini.Get("MainWindow", "y", &y, 100);
-	ini.Get("MainWindow", "w", &w, 800);
-	ini.Get("MainWindow", "h", &h, 600);
-	GetParent()->SetSize(x, y, w, h);
-}
-*/
-
-
 void CCodeWindow::Save()
 {
 	IniFile ini;
@@ -306,13 +306,23 @@ void CCodeWindow::Save()
 	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
 	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
-	// Save windows settings
-	ini.Set("ShowOnStart", "RegisterWindow", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
-	ini.Set("ShowOnStart", "BreakpointWindow", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
-	ini.Set("ShowOnStart", "MemoryWindow", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
-	ini.Set("ShowOnStart", "JitWindow", GetMenuBar()->IsChecked(IDM_JITWINDOW));
-	ini.Set("ShowOnStart", "SoundWindow", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
-	ini.Set("ShowOnStart", "VideoWindow", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
+	// Save windows settings	
+	ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
+	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
+	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
+	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
+	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
+	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
+	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));	
+
+	ini.Set("Notebook", "Log", iLogWindow);
+	ini.Set("Notebook", "Code", iCodeWindow);
+	ini.Set("Notebook", "Registers", iRegisterWindow);
+	ini.Set("Notebook", "Breakpoints", iBreakpointWindow);
+	ini.Set("Notebook", "Memory", iMemoryWindow);
+	ini.Set("Notebook", "JIT", iJitWindow);
+	ini.Set("Notebook", "Sound", iSoundWindow);
+	ini.Set("Notebook", "Video", iVideoWindow);
 
 	// Save window settings
 	/*
@@ -432,30 +442,22 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
 	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
-
 	
-	// Views
-	
+	// Views	
 	wxMenu* pDebugDialogs = new wxMenu;
 
 	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
 	pRegister->Check(bRegisterWindow);
-
 	wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
 	pBreakPoints->Check(bBreakpointWindow);
-
 	wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
 	pMemory->Check(bMemoryWindow);
-
 	wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
 	pJit->Check(bJitWindow);
-
 	wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
 	pSound->Check(bSoundWindow);
-
 	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
 	pVideo->Check(bVideoWindow);
-
 	pDebugDialogs->AppendSeparator();
 	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 

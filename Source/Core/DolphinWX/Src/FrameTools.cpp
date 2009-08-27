@@ -860,6 +860,44 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+int CFrame::GetNootebookAffiliation(wxString Name)
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (!m_NB[i]) continue;
+		for(u32 j = 0; j <= m_NB[i]->GetPageCount(); j++)
+		{
+			if (m_NB[i]->GetPageText(j).IsSameAs(Name)) return i;
+		}	
+	}
+	return -1;
+}
+void CFrame::DoToggleWindow(int Id, bool Show)
+{
+	switch (Id)
+	{
+		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
+		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, g_pCodeWindow->iRegisterWindow); break;
+		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(Show, g_pCodeWindow->iBreakpointWindow); break;
+		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(Show, g_pCodeWindow->iMemoryWindow); break;
+		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(Show, g_pCodeWindow->iJitWindow); break;
+		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(Show, g_pCodeWindow->iSoundWindow); break;
+		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(Show, g_pCodeWindow->iVideoWindow); break;
+	}
+}
+void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
+{
+	event.Skip();
+	// Update the notebook affiliation
+	if(GetNootebookAffiliation(wxT("Log")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Log"));
+	if(GetNootebookAffiliation(wxT("Code")) >= 0) g_pCodeWindow->iCodeWindow = GetNootebookAffiliation(wxT("Code"));
+	if(GetNootebookAffiliation(wxT("Registers")) >= 0) g_pCodeWindow->iRegisterWindow = GetNootebookAffiliation(wxT("Registers"));
+	if(GetNootebookAffiliation(wxT("Breakpoints")) >= 0) g_pCodeWindow->iBreakpointWindow = GetNootebookAffiliation(wxT("Breakpoints"));
+	if(GetNootebookAffiliation(wxT("JIT")) >= 0) g_pCodeWindow->iJitWindow = GetNootebookAffiliation(wxT("JIT"));
+	if(GetNootebookAffiliation(wxT("Memory")) >= 0) g_pCodeWindow->iMemoryWindow = GetNootebookAffiliation(wxT("Memory"));
+	if(GetNootebookAffiliation(wxT("Sound")) >= 0) g_pCodeWindow->iSoundWindow = GetNootebookAffiliation(wxT("Sound"));
+	if(GetNootebookAffiliation(wxT("Video")) >= 0) g_pCodeWindow->iVideoWindow = GetNootebookAffiliation(wxT("Video"));
+}
 void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 {
 	// Override event
@@ -875,10 +913,16 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Sound"))) { GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false); DoToggleWindow(IDM_SOUNDWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Video"))) { GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(false); DoToggleWindow(IDM_VIDEOWINDOW, false); }
 }
-
+void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
+{
+	event.Skip();
+    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
+	// If we drag away the last one the tab bar goes away and we can't add any panes to it
+	if (Ctrl->GetPageCount() > 1) event.Allow();
+}
 void CFrame::HidePane()
 {
-	if (m_NB0->GetPageCount() == 0)
+	if (m_NB[0]->GetPageCount() == 0)
 		m_Mgr->GetPane(wxT("Pane1")).Hide();
 	else
 		m_Mgr->GetPane(wxT("Pane1")).Show();
@@ -897,17 +941,12 @@ void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
 
 	if (Win)
 	{
-		if (m_NB0)
+		for (int i = 0; i < m_NB.size(); i++)
 		{
-			if (m_NB0->GetPageIndex(Win) != wxNOT_FOUND) m_NB0->RemovePage(m_NB0->GetPageIndex(Win));
-		}
-		if (m_NB1)
-		{
-			if (m_NB1->GetPageIndex(Win) != wxNOT_FOUND) m_NB1->RemovePage(m_NB1->GetPageIndex(Win));
-		}
-		if (m_NB2)
-		{
-			if (m_NB2->GetPageIndex(Win) != wxNOT_FOUND) m_NB2->RemovePage(m_NB2->GetPageIndex(Win));
+			if (m_NB[i])
+			{
+				if (m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) m_NB[i]->RemovePage(m_NB[i]->GetPageIndex(Win));
+			}
 		}
 		if (Hide) Win->Hide();
 	}
@@ -947,34 +986,21 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 	this->SendSizeEvent();
 }
 
-void CFrame::DoToggleWindow(int Id, bool Show)
-{
-	switch (Id)
-	{
-		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? m_NB1 : m_NB0); break;
-		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, m_NB1); break;
-		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(Show, m_NB0); break;
-		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(Show, m_NB1); break;
-		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(Show, m_NB1); break;
-		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(Show, m_NB0); break;
-		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(Show, m_NB0); break;
-	}
-}
 // Enable and disable the log window
 void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 {
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
-void CFrame::ToggleLogWindow(bool Show, wxAuiNotebook * _NB)
+void CFrame::ToggleLogWindow(bool Show, int i)
 {
 	SConfig::GetInstance().m_InterfaceLogWindow = Show;
 	if (Show)
 	{
-		if (!_NB) return;
+		if (!m_NB[i]) return;
 
-		if (m_LogWindow && _NB->GetPageIndex(m_LogWindow) != wxNOT_FOUND) return;
+		if (m_LogWindow && m_NB[i]->GetPageIndex(m_LogWindow) != wxNOT_FOUND) return;
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
-		_NB->AddPage(m_LogWindow, wxT("Log"), true, aNormalFile);
+		m_NB[i]->AddPage(m_LogWindow, wxT("Log"), true, aNormalFile);
 	}
 	else
 	{
@@ -992,7 +1018,7 @@ void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
 	ToggleConsole(event.IsChecked());
 }
-void CFrame::ToggleConsole(bool Show, wxAuiNotebook * _NB)
+void CFrame::ToggleConsole(bool Show, int i)
 {
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	SConfig::GetInstance().m_InterfaceConsole = Show;

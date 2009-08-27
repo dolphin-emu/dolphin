@@ -33,7 +33,6 @@
 #include <wx/fontdlg.h>
 
 // ugly that this lib included code from the main
-#include "../../DolphinWX/Src/Globals.h"
 #include "../../DolphinWX/Src/WxUtils.h"
 
 #include "Host.h"
@@ -327,21 +326,21 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxWindow * CCodeWindow::GetNootebookPage(wxString Name)
 {
-	if (!Parent->m_NB0 || !Parent->m_NB1) return NULL;
+	if (!Parent->m_NB[0] || !Parent->m_NB[1]) return NULL;
 
-	for(u32 i = 0; i <= Parent->m_NB0->GetPageCount(); i++)
+	for(u32 i = 0; i <= Parent->m_NB[0]->GetPageCount(); i++)
 	{
-		if (Parent->m_NB0->GetPageText(i).IsSameAs(Name)) return Parent->m_NB0->GetPage(i);
+		if (Parent->m_NB[0]->GetPageText(i).IsSameAs(Name)) return Parent->m_NB[0]->GetPage(i);
 	}	
-	for(u32 i = 0; i <= Parent->m_NB1->GetPageCount(); i++)
+	for(u32 i = 0; i <= Parent->m_NB[1]->GetPageCount(); i++)
 	{
-		if (Parent->m_NB1->GetPageText(i).IsSameAs(Name)) return Parent->m_NB1->GetPage(i);
+		if (Parent->m_NB[1]->GetPageText(i).IsSameAs(Name)) return Parent->m_NB[1]->GetPage(i);
 	}
 	return NULL;
 }
-#ifdef _WIN32
 wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 {
+	#ifdef _WIN32
 	HWND hWnd = ::FindWindow(NULL, Name.c_str());
 	if (hWnd)
 	{
@@ -350,7 +349,9 @@ wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 		Win->AdoptAttributesFromHWND();
 		return Win;
 	}
-	else if (Parent->FindWindowByName(Name))
+	else
+	#endif
+	if (Parent->FindWindowByName(Name))
 	{
 		return Parent->FindWindowByName(Name);
 	}
@@ -365,79 +366,93 @@ wxWindow * CCodeWindow::GetWxWindow(wxString Name)
 	else
 		return NULL;
 }
-#endif
+int CCodeWindow::Limit(int i, int Low, int High)
+{	
+	if (i < Low) return Low;
+	if (i > High) return High;
+	return i;
+}
 void CCodeWindow::OpenPages()
 {	
-	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, true);
-	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, true);
-	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, true);
-	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, true);
-	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, true);
-	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, true);
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LNOTICE, StringFromFormat(
+		"OpenPages:%i %i\n", iRegisterWindow, iBreakpointWindow).c_str());
+
+	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, bRegisterWindow);
+	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, bBreakpointWindow);
+	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, bMemoryWindow);
+	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, bJitWindow);
+	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, bSoundWindow);
+	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, bVideoWindow);
 }
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
 	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
 }
-void CCodeWindow::OnToggleRegisterWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleRegisterWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (m_RegisterWindow && _NB->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (m_RegisterWindow && Parent->m_NB[i]->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
 		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);		
-		_NB->AddPage(m_RegisterWindow, wxT("Registers"), true, Parent->aNormalFile );
+		Parent->m_NB[i]->AddPage(m_RegisterWindow, wxT("Registers"), true, Parent->aNormalFile );
 	}
 	else // hide
 		Parent->DoRemovePage (m_RegisterWindow);
 }
 
-void CCodeWindow::OnToggleBreakPointWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleBreakPointWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (m_BreakpointWindow && _NB->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (m_BreakpointWindow && Parent->m_NB[i]->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
-		_NB->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, Parent->aNormalFile );
+		Parent->m_NB[i]->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, Parent->aNormalFile );
 	}
 	else // hide
 		Parent->DoRemovePage(m_BreakpointWindow);
 }
 
-void CCodeWindow::OnToggleJitWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleJitWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (m_JitWindow && _NB->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (m_JitWindow && Parent->m_NB[i]->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
-		_NB->AddPage(m_JitWindow, wxT("JIT"), true, Parent->aNormalFile );
+		Parent->m_NB[i]->AddPage(m_JitWindow, wxT("JIT"), true, Parent->aNormalFile );
 	}
 	else // hide
 		Parent->DoRemovePage(m_JitWindow);
 }
 
 
-void CCodeWindow::OnToggleMemoryWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleMemoryWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (m_MemoryWindow && _NB->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (m_MemoryWindow && Parent->m_NB[i]->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
-		_NB->AddPage(m_MemoryWindow, wxT("Memory"), true, Parent->aNormalFile );
+		Parent->m_NB[i]->AddPage(m_MemoryWindow, wxT("Memory"), true, Parent->aNormalFile );
 	}
 	else // hide
 		Parent->DoRemovePage(m_MemoryWindow);
 }
 
 //Toggle Sound Debugging Window
-void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 {
 	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 
 	if (Show)
 	{
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Sound"));
-		if (Win && _NB->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif				
@@ -455,7 +470,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 		if (Win)
 		{			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
-			_NB->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
+			Parent->m_NB[i]->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
 		}
 		#endif
 	}
@@ -475,15 +490,16 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, wxAuiNotebook * _NB)
 }
 
 // Toggle Video Debugging Window
-void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
+void CCodeWindow::OnToggleVideoWindow(bool Show, int i)
 {
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
 
 	if (Show)
 	{
+		if (i < 0 || i > Parent->m_NB.size()-1) return;
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindow(wxT("Video"));
-		if (Win && _NB->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif	
@@ -497,7 +513,7 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, wxAuiNotebook * _NB)
 		}
 
 		Win = GetWxWindow(wxT("Video"));
-		if (Win) _NB->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
+		if (Win) Parent->m_NB[i]->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
 		#endif
 	}
 	else // hide

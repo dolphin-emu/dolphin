@@ -63,10 +63,10 @@ class CCodeWindow
 		CFrame *Parent;
 		wxMenuBar * GetMenuBar();
 		wxAuiToolBar * GetToolBar();
-		#ifdef _WIN32
 		wxWindow * GetWxWindow(wxString);
-		#endif
-		wxWindow * GetNootebookPage(wxString);		
+		wxWindow * GetNootebookPage(wxString);
+		int Limit(int,int,int);
+		int GetNootebookAffiliation(wxString);
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 
 		bool UseInterpreter();
@@ -87,12 +87,12 @@ class CCodeWindow
 		void UpdateManager();
 		
 		void OnToggleWindow(wxCommandEvent& event);
-		void OnToggleRegisterWindow(bool,wxAuiNotebook*);
-		void OnToggleBreakPointWindow(bool,wxAuiNotebook*);
-		void OnToggleMemoryWindow(bool,wxAuiNotebook*);
-		void OnToggleJitWindow(bool,wxAuiNotebook*);
-		void OnToggleSoundWindow(bool,wxAuiNotebook*);
-		void OnToggleVideoWindow(bool,wxAuiNotebook*);
+		void OnToggleRegisterWindow(bool,int);
+		void OnToggleBreakPointWindow(bool,int);
+		void OnToggleMemoryWindow(bool,int);
+		void OnToggleJitWindow(bool,int);
+		void OnToggleSoundWindow(bool,int);
+		void OnToggleVideoWindow(bool,int);
 		void OnChangeFont(wxCommandEvent& event);
 
 		// Sub dialogs
@@ -101,6 +101,17 @@ class CCodeWindow
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
 		CJitWindow* m_JitWindow;
+
+		// Settings
+		bool bAutomaticStart; bool bBootToPause;
+		bool bLogWindow; bool iLogWindow;
+		bool bCodeWindow; int iCodeWindow;
+		bool bRegisterWindow; int iRegisterWindow;
+		bool bBreakpointWindow; int iBreakpointWindow;
+		bool bMemoryWindow; int iMemoryWindow;
+		bool bJitWindow; int iJitWindow;
+		bool bSoundWindow; int iSoundWindow;
+		bool bVideoWindow; int iVideoWindow;
 
 	private:
 
@@ -113,15 +124,6 @@ class CCodeWindow
 			ID_CALLSLIST,
 			ID_SYMBOLLIST
 		};
-
-		// Settings
-		bool bAutomaticStart; bool bBootToPause;
-		bool bRegisterWindow;
-		bool bBreakpointWindow;
-		bool bMemoryWindow;
-		bool bJitWindow;
-		bool bSoundWindow;
-		bool bVideoWindow;
 
 		void OnSymbolListChange(wxCommandEvent& event);
 		void OnSymbolListContextMenu(wxContextMenuEvent& event);

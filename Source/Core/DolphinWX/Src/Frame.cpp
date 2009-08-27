@@ -302,6 +302,7 @@ EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
 EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
+EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 
 END_EVENT_TABLE()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,7 +321,6 @@ CFrame::CFrame(bool showLogWindow,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
 	, UseDebugger(_UseDebugger), m_LogWindow(NULL)
-	, m_NB0(NULL), m_NB1(NULL), m_NB2(NULL)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
@@ -330,8 +330,15 @@ CFrame::CFrame(bool showLogWindow,
 	#endif
           
 {
+	// Give it a console
+	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
+	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
+
+	// Default
+	m_NB.resize(3); for (int i = 0; i < m_NB.size(); i++) m_NB[i] = NULL;
+
 	// Start debugging mazimized
-	//if (UseDebugger) this->Maximize(true);
+	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
@@ -370,14 +377,14 @@ CFrame::CFrame(bool showLogWindow,
 
 	if (UseDebugger)
 	{
-		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
-		m_NB1 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
-		m_NB2 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
-		m_NB1->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
+		m_NB[0] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
+		m_NB[1] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
+		m_NB[2] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
+		m_NB[g_pCodeWindow->iCodeWindow]->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
 	}
 	else
 	{
-		m_NB0 = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
+		m_NB[0] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
 	}
 	// -------------------------------------------------------------------------
 
@@ -419,14 +426,14 @@ CFrame::CFrame(bool showLogWindow,
 	if (UseDebugger)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
-		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
-		m_Mgr->AddPane(m_NB1, wxAuiPaneInfo().Name(wxT("Pane2")).Caption(wxT("Pane2")).Hide());
-		m_Mgr->AddPane(m_NB2, wxAuiPaneInfo().Name(wxT("Pane3")).Caption(wxT("Pane3")).Hide());
+		m_Mgr->AddPane(m_NB[0], wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
+		m_Mgr->AddPane(m_NB[1], wxAuiPaneInfo().Name(wxT("Pane2")).Caption(wxT("Pane2")).Hide());
+		m_Mgr->AddPane(m_NB[2], wxAuiPaneInfo().Name(wxT("Pane3")).Caption(wxT("Pane3")).Hide());
 	}
 	else
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
-		m_Mgr->AddPane(m_NB0, wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
+		m_Mgr->AddPane(m_NB[0], wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
 	}
 
 	// Setup perspectives
@@ -487,13 +494,8 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Open notebook pages
 	if (UseDebugger) g_pCodeWindow->OpenPages();
-	if (m_bLogWindow) ToggleLogWindow(true, UseDebugger ? m_NB1 : m_NB0);
+	if (m_bLogWindow) ToggleLogWindow(true, UseDebugger ? 1 : 0);
 	if (!UseDebugger) SetSimplePaneSize();
-
-	// Give it a console
-	ConsoleListener *console = LogManager::GetInstance()->getConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole)
-		console->Open();
 
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
@@ -567,13 +569,6 @@ void CFrame::OnClose(wxCloseEvent& event)
 		Core::Stop();
 		UpdateGUI();
 	}
-}
-void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
-{
-	event.Skip();
-    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
-	// If we drag away the last one the tab bar goes away and we can't add any panes to it
-	if (Ctrl->GetPageCount() > 1) event.Allow();
 }
 
 void CFrame::DoFullscreen(bool _F)

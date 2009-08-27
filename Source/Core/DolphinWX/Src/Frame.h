@@ -74,8 +74,8 @@ class CFrame : public wxFrame
 		void DoStop();
 		bool bRenderToMain;
 		void UpdateGUI();
-		void ToggleLogWindow(bool, wxAuiNotebook * _NB = NULL);
-		void ToggleConsole(bool, wxAuiNotebook * _NB = NULL);		
+		void ToggleLogWindow(bool, int i = -1);
+		void ToggleConsole(bool, int i = -1);		
 		void PostEvent(wxCommandEvent& event);
 		void PostMenuEvent(wxMenuEvent& event);
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
@@ -100,13 +100,15 @@ class CFrame : public wxFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		wxAuiNotebook *m_NB0, *m_NB1, *m_NB2;
+		std::vector<wxAuiNotebook*> m_NB;
 		int iLeftWidth[2], iMidWidth[2];
 		// Perspectives
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+		int GetNootebookAffiliation(wxString Name);
 		void DoToggleWindow(int,bool);
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoLoadPerspective(int);
