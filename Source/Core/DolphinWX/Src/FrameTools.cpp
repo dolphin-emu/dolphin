@@ -746,11 +746,30 @@ void CFrame::ToggleNotebookStyle(long Style)
         }
     }
 }
+void CFrame::ResizeConsole()
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (!m_NB[i]) continue;
+		for(u32 j = 0; j <= m_NB[i]->GetPageCount(); j++)
+		{
+			if (m_NB[i]->GetPageText(j).IsSameAs(wxT("Console")))
+			{
+				// Get the client size
+				int X = m_NB[i]->GetClientSize().GetX() - 35;
+				int Y = m_NB[i]->GetClientSize().GetY() - 70;
+				// Resize buffer
+				ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+				Console->PixelSpace(0,0, X,Y, false);
+			}
+		}	
+	}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Miscellaneous menu
+// Miscellaneous menus
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
@@ -1161,13 +1180,17 @@ void CFrame::ToggleConsole(bool Show, int i)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GUI
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CFrame::OnManagerResize(wxAuiManagerEvent& event)
+{
+	event.Skip();
+	ResizeConsole();
+}
 void CFrame::OnResize(wxSizeEvent& event)
 {
+	event.Skip();
 	// fit frame content, not needed right now
 	//FitInside();
-
 	DoMoveIcons();  // In FrameWiimote.cpp
-	event.Skip();
 }
 
 // Update the enabled/disabled status

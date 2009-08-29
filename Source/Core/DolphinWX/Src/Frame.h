@@ -123,6 +123,7 @@ class CFrame : public wxFrame
 		void SetPaneSize(wxArrayInt,wxArrayInt);
 		void ToggleNotebookStyle(long);
 		void Save();
+		void ResizeConsole();
 
 	private:
 		
@@ -224,6 +225,7 @@ class CFrame : public wxFrame
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleSkipIdle(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
+		void OnManagerResize(wxAuiManagerEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void DoToggleToolbar(bool);

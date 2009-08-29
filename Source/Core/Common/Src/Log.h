@@ -23,6 +23,7 @@
 #define	WARNING_LEVEL 3  // Something is suspicious.
 #define	INFO_LEVEL    4  // General information.
 #define	DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
+#define	CUSTOM_LEVEL  6  // Custom log
 
 namespace LogTypes
 {

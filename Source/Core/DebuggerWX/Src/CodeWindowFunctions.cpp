@@ -333,16 +333,12 @@ int CCodeWindow::Limit(int i, int Low, int High)
 }
 void CCodeWindow::OpenPages()
 {	
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"OpenPages:%i %i\n", iRegisterWindow, iBreakpointWindow).c_str());
-
-	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, bRegisterWindow);
-	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, bBreakpointWindow);
-	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, bMemoryWindow);
-	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, bJitWindow);
-	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, bSoundWindow);
-	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, bVideoWindow);
+	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, true);
+	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, true);
+	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, true);
+	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, true);
+	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, true);
+	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, true);
 }
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {

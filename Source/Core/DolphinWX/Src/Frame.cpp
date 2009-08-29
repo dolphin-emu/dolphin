@@ -525,6 +525,10 @@ CFrame::CFrame(bool showLogWindow,
 		wxKeyEventHandler(CFrame::OnKeyUp),
 		(wxObject*)0, this);
 
+	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
+		wxAuiManagerEventHandler(CFrame::OnManagerResize),
+		(wxObject*)0, this);	
+
 	#ifdef _WIN32 // The functions are only tested in Windows so far
 		wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
 			wxMouseEventHandler(CFrame::OnDoubleClick),

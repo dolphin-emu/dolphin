@@ -77,15 +77,19 @@ public:
 		const char * Name = "Console");
 	void Close();
 	bool IsOpen();
-	void Log(LogTypes::LOG_LEVELS, const char *text);
+	void LetterSpace(int Width, int Height);
+	void PixelSpace(int Left, int Top, int Width, int Height, bool);
+	void Log(LogTypes::LOG_LEVELS, const char *Text);
+	//void Log(LogTypes::LOG_LEVELS, const char *Text, ...);
 	void ClearScreen();
 
-	const char *getName() const { return "console"; }
+	const char *getName() const { return "Console"; }
 
 private:
 #ifdef _WIN32
 	HWND GetHwnd(void);
-	HANDLE m_hStdOut;
+	HANDLE hConsole;
+	static const int MAX_BYTES = 1024 * 30;
 #endif
 };
 
