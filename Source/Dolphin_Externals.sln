@@ -173,15 +173,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DebuggerUICommon", "Core\De
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcproj", "{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wxWidgets", "wxWidgets", "{F69F3B2D-AF09-403D-B427-2B54A02D14B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAdv28", "..\Externals\wxWidgets\build\msw\wx_adv.vcproj", "{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adv", "..\Externals\wxWidgets\build\msw\wx_adv.vcproj", "{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAui", "..\Externals\wxWidgets\build\msw\wx_aui.vcproj", "{05C75041-D67D-4903-A362-8395A7B35C75}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aui", "..\Externals\wxWidgets\build\msw\wx_aui.vcproj", "{05C75041-D67D-4903-A362-8395A7B35C75}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxBase28", "..\Externals\wxWidgets\build\msw\wx_base.vcproj", "{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "..\Externals\wxWidgets\build\msw\wx_base.vcproj", "{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "..\Externals\wxWidgets\build\msw\wx_core.vcproj", "{11F55366-12EC-4C44-A8CB-1D4E315D61ED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxCore28", "..\Externals\wxWidgets\build\msw\wx_core.vcproj", "{11F55366-12EC-4C44-A8CB-1D4E315D61ED}"
 	ProjectSection(ProjectDependencies) = postProject
 		{05C75041-D67D-4903-A362-8395A7B35C75} = {05C75041-D67D-4903-A362-8395A7B35C75}
 		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E} = {0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}
@@ -600,7 +598,8 @@ Global
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|x64.ActiveCfg = Debug|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|Win32.ActiveCfg = Release|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|Win32.Build.0 = Release|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|x64.ActiveCfg = Release|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|x64.ActiveCfg = Release|x64
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release_JITIL|x64.Build.0 = Release|x64
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.ActiveCfg = Release|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.Build.0 = Release|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|x64.ActiveCfg = Release|x64
@@ -672,12 +671,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E} = {F69F3B2D-AF09-403D-B427-2B54A02D14B8}
-		{05C75041-D67D-4903-A362-8395A7B35C75} = {F69F3B2D-AF09-403D-B427-2B54A02D14B8}
-		{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE} = {F69F3B2D-AF09-403D-B427-2B54A02D14B8}
-		{11F55366-12EC-4C44-A8CB-1D4E315D61ED} = {F69F3B2D-AF09-403D-B427-2B54A02D14B8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		AMDCaProjectFile = D:\Dev\Dolphin\trunk\Source\CodeAnalyst\Dolphin.caw
