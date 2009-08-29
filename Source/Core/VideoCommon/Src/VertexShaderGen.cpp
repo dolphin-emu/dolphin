@@ -76,7 +76,7 @@ static char text[16384];
 
 char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
 
-const char *GenerateVertexShader(u32 components)
+const char *GenerateVertexShader(u32 components, bool D3D)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
@@ -436,25 +436,13 @@ const char *GenerateVertexShader(u32 components)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-//    if (bpmem.fog.c_proj_fsel.fsel != 0) {
-//        switch (bpmem.fog.c_proj_fsel.fsel) {
-//            case 1: // linear
-//                break;
-//            case 4: // exp
-//                break;
-//            case 5: // exp2
-//                break;
-//            case 6: // backward exp
-//                break;
-//            case 7: // backward exp2
-//                break;
-//        }
-//
-//        WRITE(p, "o.fog = o.pos.z/o.pos.w;\n");
-//    }
-
-	// scale to gl clip space
-	WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
+	// Why are we adding w to z?
+	if (!D3D) {
+		// scale to gl clip space
+		WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
+	} else {
+		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");
+	}
 
     WRITE(p, "return o;\n}\n");
 

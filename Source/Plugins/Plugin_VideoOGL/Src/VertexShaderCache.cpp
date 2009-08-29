@@ -85,7 +85,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	}
 
 	VSCacheEntry& entry = vshaders[uid];
-	const char *code = GenerateVertexShader(components);
+	const char *code = GenerateVertexShader(components, false);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {
