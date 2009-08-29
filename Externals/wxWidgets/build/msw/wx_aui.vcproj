@@ -20,7 +20,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
-			IntermediateDirectory="vc_mswud\aui\$(PlatformName)"
+			IntermediateDirectory="vc_mswud\$(ProjectName)\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -97,7 +97,7 @@
 		<Configuration
 			Name="Debug|x64"
 			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
-			IntermediateDirectory="vc_mswud\aui\$(PlatformName)"
+			IntermediateDirectory="vc_mswud\$(ProjectName)\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -175,7 +175,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
-			IntermediateDirectory="vc_mswu\aui\$(PlatformName)"
+			IntermediateDirectory="vc_mswu\$(ProjectName)\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -253,7 +253,7 @@
 		<Configuration
 			Name="Release|x64"
 			OutputDirectory=".\..\..\lib\vc_lib\$(PlatformName)"
-			IntermediateDirectory="vc_mswu\aui\$(PlatformName)"
+			IntermediateDirectory="vc_mswu\$(ProjectName)\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -308,7 +308,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\wxmsw28u_aui.lib"
+				OutputFile="$(OutDir)\wxmsw28u_$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
