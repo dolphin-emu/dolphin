@@ -130,7 +130,8 @@ void ConsoleListener::LetterSpace(int Width, int Height)
 void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
 {
 #ifdef _WIN32
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	// Check size
+	if (Width < 8 || Height < 12) return;
 
 	// Get console info
 	CONSOLE_SCREEN_BUFFER_INFO ConInfo;
@@ -140,9 +141,11 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	int LHeight = floor((float)(Height / 12));	
 	int LBufHeight = floor((float)(MAX_BYTES / (LWidth + 1)));
 
-	// Read the current text
-	char Str[MAX_BYTES];
+	// Check size
 	DWORD dwConSize = ConInfo.dwSize.X * ConInfo.dwSize.Y;
+	if (dwConSize > MAX_BYTES) return;
+	// Read the current text
+	char Str[MAX_BYTES];	
 	DWORD cCharsRead = 0;
 	COORD coordScreen = { 0, 0 };
 	ReadConsoleOutputCharacter(hConsole, Str, dwConSize, coordScreen, &cCharsRead);
