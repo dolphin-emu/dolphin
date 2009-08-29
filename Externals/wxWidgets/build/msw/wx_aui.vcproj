@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\..\..\lib\vc_lib\Win32"
-			IntermediateDirectory=".\vc_mswd\aui"
+			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
+			IntermediateDirectory="vc_mswud\aui\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -54,9 +54,9 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="wx/wxprec.h"
 				PrecompiledHeaderFile="vc_mswd\wxprec_auilib.pch"
-				AssemblerListingLocation=".\vc_mswd\aui/"
-				ObjectFile=".\vc_mswd\aui/"
-				ProgramDataBaseFileName="..\..\lib\vc_lib\wxmsw28d_aui.pdb"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\wxmsw28d_aui.pdb"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -96,8 +96,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory=".\..\..\lib\vc_lib\x64"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
+			IntermediateDirectory="vc_mswud\aui\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -132,9 +132,9 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="wx/wxprec.h"
 				PrecompiledHeaderFile="vc_mswd\wxprec_auilib.pch"
-				AssemblerListingLocation=".\vc_mswd\aui/"
-				ObjectFile=".\vc_mswd\aui/"
-				ProgramDataBaseFileName="..\..\lib\vc_lib\wxmsw28d_aui.pdb"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\wxmsw28d_aui.pdb"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -174,8 +174,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\..\..\lib\vc_lib\Win32"
-			IntermediateDirectory=".\vc_msw\aui"
+			OutputDirectory="..\..\lib\vc_lib\$(PlatformName)"
+			IntermediateDirectory="vc_mswu\aui\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -210,10 +210,10 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="wx/wxprec.h"
-				PrecompiledHeaderFile="vc_msw\wxprec_auilib.pch"
-				AssemblerListingLocation=".\vc_msw\aui/"
-				ObjectFile=".\vc_msw\aui/"
-				ProgramDataBaseFileName="..\..\lib\vc_lib\wxmsw28_aui.pdb"
+				PrecompiledHeaderFile="$(IntDir)\wxprec_auilib.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\wxmsw28_aui.pdb"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
 			/>
@@ -252,8 +252,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory=".\..\..\lib\vc_lib\x64"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory=".\..\..\lib\vc_lib\$(PlatformName)"
+			IntermediateDirectory="vc_mswu\aui\$(PlatformName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -290,9 +290,9 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="wx/wxprec.h"
 				PrecompiledHeaderFile="vc_msw\wxprec_auilib.pch"
-				AssemblerListingLocation=".\vc_msw\aui/"
-				ObjectFile=".\vc_msw\aui/"
-				ProgramDataBaseFileName="..\..\lib\vc_lib\wxmsw28_aui.pdb"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\wxmsw28_aui.pdb"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
 			/>
@@ -429,10 +429,6 @@
 			Name="Setup Headers"
 			>
 			<File
-				RelativePath="..\..\include\wx\univ\setup.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\wx\msw\setup.h"
 				>
 				<FileConfiguration
@@ -475,6 +471,10 @@
 						Outputs="..\..\lib\vc_lib\msw\wx\setup.h"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\include\wx\univ\setup.h"
+				>
 			</File>
 		</Filter>
 		<Filter
