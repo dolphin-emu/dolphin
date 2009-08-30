@@ -85,6 +85,7 @@ class CCodeWindow
 		void UpdateManager();
 		
 		void OnToggleWindow(wxCommandEvent& event);
+		void OnToggleCodeWindow(bool,int);
 		void OnToggleRegisterWindow(bool,int);
 		void OnToggleBreakPointWindow(bool,int);
 		void OnToggleMemoryWindow(bool,int);

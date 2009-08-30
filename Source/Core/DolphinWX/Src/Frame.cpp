@@ -245,9 +245,13 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
-EVT_MENU(IDM_PERSPECTIVE_0, CFrame::OnToolBar)
-EVT_MENU(IDM_PERSPECTIVE_1, CFrame::OnToolBar)
+EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_SAVE_PERSPECTIVE, CFrame::OnDropDownToolbarItem)
+EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnToolBar)
+EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnCreatePerspective)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnToolBar)
+EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnToolBar)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnToolBar)
+EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
 
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
@@ -301,6 +305,7 @@ EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 //EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
 //EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
+EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
 EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
@@ -335,14 +340,14 @@ CFrame::CFrame(bool showLogWindow,
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
-	// Default
-	m_NB.resize(3); for (int i = 0; i < m_NB.size(); i++) m_NB[i] = NULL;
-
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
+	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
+		g_pCodeWindow->Hide();
+	}
 
 	// Create timer
 	#if wxUSE_TIMER
@@ -367,27 +372,10 @@ CFrame::CFrame(bool showLogWindow,
 	CreateMenu();
 
 	// -------------------------------------------------------------------------
-	// Panels
+	// Main panel
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	m_Panel = new CPanel(this, IDM_MPANEL);
-	//wxPanel * m_Panel2 = new wxPanel(this, wxID_ANY);
-
-	static int Style = wxAUI_NB_TOP | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
-	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
-
-	if (UseDebugger)
-	{
-		m_NB[0] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
-		m_NB[1] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
-		m_NB[2] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);		
-		m_NB[g_pCodeWindow->iCodeWindow]->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
-	}
-	else
-	{
-		m_NB[0] = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, Style);
-	}
-	// -------------------------------------------------------------------------
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
@@ -396,56 +384,43 @@ CFrame::CFrame(bool showLogWindow,
 	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
+	// -------------------------------------------------------------------------
 
 	m_Mgr = new wxAuiManager();
 	m_Mgr->SetManagedWindow(this);
 
 
-	// Normal perspectives
-	/*
-	----------
-	| Pane 0 |
-	----------
-	-------------------
-	| Pane 0 | Pane 1 |
-	-------------------
-	*/
-	// Debug perspectives
-	/*
-	-------------------
-	| Pane 0 |        |
-	|--------| Pane 2 |
-	| Pane 1 |        |
-	-------------------
-	----------------------------
-	| Pane 0 |        |        |
-	|--------| Pane 2 | Pane 3 |
-	| Pane 1 |        |        |
-	----------------------------
-	*/
+	DefaultNBStyle = wxAUI_NB_TOP | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (UseDebugger)
-	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
-		m_Mgr->AddPane(m_NB[0], wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
-		m_Mgr->AddPane(m_NB[1], wxAuiPaneInfo().Name(wxT("Pane2")).Caption(wxT("Pane2")).Hide());
-		m_Mgr->AddPane(m_NB[2], wxAuiPaneInfo().Name(wxT("Pane3")).Caption(wxT("Pane3")).Hide());
+	{	
+		//m_NB[g_pCodeWindow->iCodeWindow]->AddPage(g_pCodeWindow, wxT("Code"), false, aNormalFile);
 	}
 	else
 	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane0")).Caption(wxT("Pane0")).Hide());
+		m_NB.push_back(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
+	}
+
+	if (UseDebugger)
+	{
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Show());
+	}
+	else
+	{
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Hide());
 		m_Mgr->AddPane(m_NB[0], wxAuiPaneInfo().Name(wxT("Pane1")).Caption(wxT("Pane1")).Hide());
 	}
 
 	// Setup perspectives
 	if (UseDebugger)
 	{		
-		m_Mgr->GetPane(wxT("Pane0")).CenterPane().PaneBorder(false);
+		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(true);
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
+		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 
@@ -455,40 +430,85 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Setup perspectives
 	if (UseDebugger)
-	{
-		m_Mgr->GetPane(wxT("Pane0")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(0);
-		m_Mgr->GetPane(wxT("Pane1")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Center().Position(1);
-		m_Mgr->GetPane(wxT("Pane2")).Show().PaneBorder(true).CaptionVisible(false).Layer(0).Right();
-		AuiPerspective.Add(m_Mgr->SavePerspective());
-	
-		m_Mgr->GetPane(wxT("Pane0")).Left();
-		m_Mgr->GetPane(wxT("Pane1")).Left();
-		m_Mgr->GetPane(wxT("Pane2")).Center();
-		m_Mgr->GetPane(wxT("Pane3")).Show().PaneBorder(true).CaptionVisible(false).Right();
-		AuiPerspective.Add(m_Mgr->SavePerspective());		
-		
+	{		
 		// Load perspective
-		int iPerspective;		
+		std::vector<std::string> VPerspectives;
+		std::string _Perspectives;
+
 		IniFile ini;
 		ini.Load(DEBUGGER_CONFIG_FILE);
-		ini.Get("Perspectives", "Perspective", &iPerspective, 0);
-		ini.Get("Perspective 0", "LeftWidth", &iLeftWidth[0], 50);
-		ini.Get("Perspective 0", "AutomaticStart", &iLeftWidth[1], 33);
-		ini.Get("Perspective 1", "BootToPause", &iMidWidth[1], 33);
-		DoLoadPerspective(iPerspective);
+		ini.Get("Perspectives", "Perspectives", &_Perspectives, "");
+		ini.Get("Perspectives", "Active", &ActivePerspective, 0);
+		SplitString(_Perspectives, ",", VPerspectives);
+
+		//
+		for (int i = 0; i < VPerspectives.size(); i++)
+		{
+			SPerspectives Tmp;		
+			std::string _Section, _Perspective, _Width, _Height;
+			std::vector<std::string> _SWidth, _SHeight;
+			Tmp.Name = VPerspectives.at(i);
+			_Section = StringFromFormat("P - %s", Tmp.Name.c_str());
+			if (!ini.Exists(_Section.c_str(), "Width")) continue;
+			
+			ini.Get(_Section.c_str(), "Perspective", &_Perspective, "");
+			ini.Get(_Section.c_str(), "Width", &_Width, "");
+			ini.Get(_Section.c_str(), "Height", &_Height, "");	
+
+			Tmp.Perspective = wxString::FromAscii(_Perspective.c_str());
+
+			SplitString(_Width, ",", _SWidth);
+			SplitString(_Height, ",", _SHeight);
+			for (int i = 0; i < _SWidth.size(); i++)
+			{
+				int _Tmp;
+				if (TryParseInt(_SWidth.at(0).c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);				
+			}
+			for (int i = 0; i < _SHeight.size(); i++)
+			{
+				int _Tmp;
+				if (TryParseInt(_SHeight.at(0).c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			}
+			Perspectives.push_back(Tmp);
+
+			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Read: %s %s\n", _Width.c_str(), _Height.c_str()).c_str());
+		}
+
+		if (Perspectives.size() > 0)
+		{
+			// Create new panes with notebooks
+			for (int j = 0; j < Perspectives.at(0).Width.size() - 1; j++)
+			{
+				m_NB.push_back(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
+				m_Mgr->AddPane(m_NB.at(m_NB.size()-1));
+
+			}
+			NamePanes();
+
+			std::vector<std::string> FormatNames;
+			SplitString(StringFromFormat("%s", Perspectives.at(0).Perspective.mb_str()), "|", FormatNames);
+			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Perspective: %s\n", Perspectives.at(0).Perspective.mb_str()).c_str());
+			for (int i = 0; i < FormatNames.size(); i++)
+			{
+				Console->Log(LogTypes::LCUSTOM, StringFromFormat("Perspective: %s\n", FormatNames.at(i).c_str()).c_str());
+			}
+
+			if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
+			DoLoadPerspective(Perspectives.at(ActivePerspective).Perspective);
+		}
+		// Create one pane by default
+		else
+		{
+			m_NB.push_back(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
+			m_Mgr->AddPane(m_NB.at(m_NB.size()-1));
+		}
+
+		//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Panes: %i\n", m_Mgr->GetAllPanes().GetCount()).c_str());
 	}
 	else
 	{
 		m_Mgr->GetPane(wxT("Pane1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
 	}
-
-	// Show titles to position the panes
-	/*
-	m_Mgr->GetPane(wxT("Pane0")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane1")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane2")).CaptionVisible(true);
-	m_Mgr->GetPane(wxT("Pane3")).CaptionVisible(true);
-	*/
 
 	// Show window
 	Show();
@@ -496,8 +516,10 @@ CFrame::CFrame(bool showLogWindow,
 	// Create list of available plugins for the configuration window
 	CPluginManager::GetInstance().ScanForPlugins();
 
+	// Load GUI settings
+	if (UseDebugger) g_pCodeWindow->Load();
 	// Open notebook pages
-	//if (UseDebugger) AddBlankPage();
+	if (UseDebugger) AddRemoveBlankPage();
 	if (UseDebugger) g_pCodeWindow->OpenPages();
 	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
@@ -629,10 +651,11 @@ void CFrame::SetPaneSize(wxArrayInt Pane, wxArrayInt Size)
 		m_Mgr->GetPane(wxString::Format(wxT("Pane%i"), Pane[i])).MinSize(-1, -1).MaxSize(-1, -1);
 	}
 }
-void CFrame::DoLoadPerspective(int Perspective)
-{
-	Save();
+void CFrame::DoLoadPerspective(wxString Perspective)
+{	
+	m_Mgr->LoadPerspective(Perspective, true);
 
+	/*
 	m_Mgr->LoadPerspective(AuiPerspective[Perspective], true);
 
 	int _iRightWidth, iClientSize = this->GetSize().GetX();
@@ -654,35 +677,104 @@ void CFrame::DoLoadPerspective(int Perspective)
 		i.Add(2); j.Add(iMidWidth[1]);
 		i.Add(3); j.Add(_iRightWidth);
 
-		//m_Mgr->GetPane(wxT("Pane0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
+		//m_Mgr->GetPane(wxT("Pane 0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
 		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
 		//m_Mgr->GetPane(wxT("Pane2")).BestSize(_iMidWidth, -1).MinSize(_iMidWidth, -1).MaxSize(_iMidWidth, -1);
 		//m_Mgr->GetPane(wxT("Pane3")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
 	}
 	SetPaneSize(i, j);
+	*/
 }
+int CFrame::PixelsToPercentage(int Pixels, int Total)
+{
+	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
+	return Percentage;
+}
+
+void CFrame::NamePanes()
+{
+	for (int i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
+		{
+			m_Mgr->GetAllPanes().Item(i).Name(wxString::Format(wxT("Pane %i"), j));
+			m_Mgr->GetAllPanes().Item(i).Caption(wxString::Format(wxT("Pane %i"), j));
+			j++;
+		}
+	}
+}
+void CFrame::AddPane()
+{
+	m_Mgr->AddPane(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
+	NamePanes();
+	m_Mgr->Update();
+}	
+
+void CFrame::OnPaneClose(wxAuiManagerEvent& event)
+{
+	wxAuiNotebook * nb = (wxAuiNotebook*)event.pane->window;
+	if (!nb->GetPageCount() == 0 && !(nb->GetPageCount() == 1 && nb->GetPageText(0).IsSameAs(wxT("<>"))))
+	{
+		wxMessageBox(wxT("You can't close panes that have pages in them."),
+							   wxT("Notice"),
+							   wxOK,
+							   this);
+		event.Veto();
+		return;
+	}
+
+	event.Skip();
+	m_Mgr->DetachPane(event.pane->window);
+	event.pane->window->Hide();
+}
+
 void CFrame::Save()
 {
-	if (!m_Mgr->GetPane(wxT("Pane0")).IsOk() || !m_Mgr->GetPane(wxT("Pane2")).IsOk() ) return;
+	// Turn off edit before saving
+	TogglePaneStyle(false);
 
+	/**/
 	// Get client size
-	int _iLeftWidth, _iMidWidth, iClientSize = this->GetSize().GetX();
-	_iLeftWidth = (int)(((float)m_Mgr->GetPane(wxT("Pane0")).window->GetClientSize().GetX() / (float)iClientSize) * 100.0);
-	_iMidWidth = (int)(((float)m_Mgr->GetPane(wxT("Pane2")).window->GetClientSize().GetX() / (float)iClientSize) * 100.0);
+	int iClientX = this->GetSize().GetX(), iClientY = this->GetSize().GetY();;
 
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("Perspectives", "Perspective", m_Mgr->GetPane(wxT("Pane3")).IsShown() ? 1 : 0);
-	if (!m_Mgr->GetPane(wxT("Pane3")).IsShown())
+	std::string _Section = StringFromFormat("P - %s", Perspectives.at(ActivePerspective).Name.c_str());
+	ini.Set(_Section.c_str(), "Perspective", m_Mgr->SavePerspective().mb_str());
+
+	std::string SWidth = "", SHeight = "";
+	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
-		ini.Set("Perspective 0", "LeftWidth", _iLeftWidth);
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
+		{
+			SWidth += StringFromFormat("%i", PixelsToPercentage(m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetX(), iClientX));
+			SHeight += StringFromFormat("%i", PixelsToPercentage(m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetY(), iClientY));
+			SWidth += ","; SHeight += ",";
+		}
 	}
-	else
+	// Remove the ending ","
+	SWidth = SWidth.substr(0, SWidth.length()-1); SHeight = SHeight.substr(0, SHeight.length()-1);
+
+	ini.Set(_Section.c_str(), "Width", SWidth.c_str());
+	ini.Set(_Section.c_str(), "Height", SHeight.c_str());
+
+	// Save perspective names
+	std::string STmp = "";
+	for (int i = 0; i < Perspectives.size(); i++)
 	{
-		ini.Set("Perspective 1", "LeftWidth", _iLeftWidth);
-		ini.Set("Perspective 1", "MidWidth", _iMidWidth);
+		STmp += Perspectives.at(i).Name + ",";
 	}
+	STmp = STmp.substr(0, STmp.length()-1);
+	ini.Set("Perspectives", "Perspectives", STmp.c_str());
+
+	ini.Set("Perspectives", "Active", ActivePerspective);
+
 	ini.Save(DEBUGGER_CONFIG_FILE);
+
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat("Saved: %s\n", STmp.c_str()).c_str());
+	
+	TogglePaneStyle(m_ToolBarAui->GetToolToggled(IDM_EDIT_PERSPECTIVES)); 
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

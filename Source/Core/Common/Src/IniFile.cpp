@@ -102,38 +102,29 @@ bool IniFile::DeleteSection(const char* sectionName)
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const
 {
-	// allow many types of commenting
-	// These MUST be signed! Do not change to size_t
-	int firstEquals = (int)line.find("=", 0);
-	int firstCommentChar = (int)line.find(";", 0);
+	//
+	int FirstEquals = (int)line.find("=", 0);
+	int FirstCommentChar = -1;
+	// Comments
+	//if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find(";", FirstEquals > 0 ? FirstEquals : 0);}
+	if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find("#", FirstEquals > 0 ? FirstEquals : 0);}
+	if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find("//", FirstEquals > 0 ? FirstEquals : 0);}
 
-	if (firstCommentChar < 0){firstCommentChar = (int)line.find("#", firstEquals > 0 ? firstEquals : 0);}
-
-	if (firstCommentChar < 0){firstCommentChar = (int)line.find("//", firstEquals > 0 ? firstEquals : 0);}
-
-	// allow preserval of spacing before comment
-	if (firstCommentChar > 0)
+	// Allow preservation of spacing before comment
+	if (FirstCommentChar > 0)
 	{
-		while (line[firstCommentChar - 1] == ' ' || line[firstCommentChar - 1] == 9) // 9 == tab
+		while (line[FirstCommentChar - 1] == ' ' || line[FirstCommentChar - 1] == 9) // 9 == tab
 		{
-			firstCommentChar--;
+			FirstCommentChar--;
 		}
 	}
 
-	if ((firstEquals >= 0) && ((firstCommentChar < 0) || (firstEquals < firstCommentChar)))
+	if ((FirstEquals >= 0) && ((FirstCommentChar < 0) || (FirstEquals < FirstCommentChar)))
 	{
 		// Yes, a valid line!
-		*keyOut = StripSpaces(line.substr(0, firstEquals));
-
-		if (commentOut)
-		{
-			*commentOut = firstCommentChar > 0 ? line.substr(firstCommentChar) : std::string("");
-		}
-
-		if (valueOut)
-		{
-			*valueOut = StripQuotes(StripSpaces(line.substr(firstEquals + 1, firstCommentChar - firstEquals - 1)));
-		}
+		*keyOut = StripSpaces(line.substr(0, FirstEquals));
+		if (commentOut) *commentOut = FirstCommentChar > 0 ? line.substr(FirstCommentChar) : std::string("");
+		if (valueOut) *valueOut = StripQuotes(StripSpaces(line.substr(FirstEquals + 1, FirstCommentChar - FirstEquals - 1)));
 	}
 }
 
@@ -269,7 +260,7 @@ void IniFile::SortSections()
 bool IniFile::Load(const char* filename)
 {
 	// Maximum number of letters in a line
-	static const int MAX_BYTES = 1024*10;
+	static const int MAX_BYTES = 1024*32;
 
 	sections.clear();
 	sections.push_back(Section(""));
@@ -279,10 +270,7 @@ bool IniFile::Load(const char* filename)
 	std::ifstream in;
 	in.open(filename, std::ios::in);
 
-	if (in.fail())
-	{
-		return false;
-	}
+	if (in.fail()) return false;
 
 	while (!in.eof())
 	{
@@ -298,10 +286,7 @@ bool IniFile::Load(const char* filename)
 		}
 #endif
 
-		if (in.eof())
-		{
-			break;
-		}
+		if (in.eof()) break;
 
 		if (line.size() > 0)
 		{
@@ -424,7 +409,6 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 		{
 			*value = defaultValue;
 		}
-
 		return false;
 	}
 
@@ -436,7 +420,6 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 		{
 			*value = defaultValue;
 		}
-
 		return false;
 	}
 

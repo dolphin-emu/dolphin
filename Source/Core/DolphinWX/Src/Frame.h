@@ -101,10 +101,9 @@ class CFrame : public wxFrame
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 		std::vector<wxAuiNotebook*> m_NB;
+		int DefaultNBStyle;
 		int iLeftWidth[2], iMidWidth[2];
 		// Perspectives
-		wxString AuiFullscreen, AuiCurrent;
-		wxArrayString AuiPerspective;
 		wxWindow * GetWxWindow(wxString);
 		#ifdef _WIN32
 			wxWindow * GetWxWindowHwnd(HWND);
@@ -116,15 +115,35 @@ class CFrame : public wxFrame
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
 		void DoToggleWindow(int,bool);
+		void DoAddPage(wxWindow *, int, std::string);
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoRemovePageString(wxString, bool Hide = true);
-		void DoLoadPerspective(int);
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize(wxArrayInt,wxArrayInt);
+		void TogglePaneStyle(bool);
 		void ToggleNotebookStyle(long);
-		void Save();
 		void ResizeConsole();
+		// User perspectives
+		struct SPerspectives
+		{
+			std::string Name;
+			wxString Perspective;
+			std::vector<int> Width, Height;
+		};
+		std::vector<SPerspectives> Perspectives;
+		wxString AuiFullscreen, AuiCurrent;
+		wxArrayString AuiPerspective;
+		int ActivePerspective;	
+		int PixelsToPercentage(int,int);
+		void NamePanes();
+		void AddPane();
+		void Save();
+		void OnPaneClose(wxAuiManagerEvent& evt);
+		void DoLoadPerspective(wxString);
+		void OnCreatePerspective(wxCommandEvent& event);
+		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
+		void OnSelectPerspective(wxCommandEvent& event);		
 
 	private:
 		

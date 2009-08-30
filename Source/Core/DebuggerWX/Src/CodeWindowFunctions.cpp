@@ -333,6 +333,7 @@ int CCodeWindow::Limit(int i, int Low, int High)
 }
 void CCodeWindow::OpenPages()
 {	
+							Parent->DoToggleWindow(IDM_CODEWINDOW, true);
 	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, true);
 	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, true);
 	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, true);
@@ -344,14 +345,21 @@ void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
 	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
 }
+void CCodeWindow::OnToggleCodeWindow(bool Show, int i)
+{
+	if (Show)
+	{
+		Parent->DoAddPage(this, i, "Code");
+	}
+	else // hide
+		Parent->DoRemovePage (this);
+}
 void CCodeWindow::OnToggleRegisterWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
-		if (m_RegisterWindow && Parent->m_NB[i]->GetPageIndex(m_RegisterWindow) != wxNOT_FOUND) return;
-		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);		
-		Parent->m_NB[i]->AddPage(m_RegisterWindow, wxT("Registers"), true, Parent->aNormalFile );
+		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);
+		Parent->DoAddPage(m_RegisterWindow, i, "Registers");
 	}
 	else // hide
 		Parent->DoRemovePage (m_RegisterWindow);
@@ -361,10 +369,8 @@ void CCodeWindow::OnToggleBreakPointWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
-		if (m_BreakpointWindow && Parent->m_NB[i]->GetPageIndex(m_BreakpointWindow) != wxNOT_FOUND) return;
-		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
-		Parent->m_NB[i]->AddPage(m_BreakpointWindow, wxT("Breakpoints"), true, Parent->aNormalFile );
+		if (!m_RegisterWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
+		Parent->DoAddPage(m_BreakpointWindow, i, "Breakpoints");
 	}
 	else // hide
 		Parent->DoRemovePage(m_BreakpointWindow);
@@ -374,10 +380,8 @@ void CCodeWindow::OnToggleJitWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
-		if (m_JitWindow && Parent->m_NB[i]->GetPageIndex(m_JitWindow) != wxNOT_FOUND) return;
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
-		Parent->m_NB[i]->AddPage(m_JitWindow, wxT("JIT"), true, Parent->aNormalFile );
+		Parent->DoAddPage(m_JitWindow, i, "JIT");
 	}
 	else // hide
 		Parent->DoRemovePage(m_JitWindow);
@@ -388,10 +392,8 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
-		if (m_MemoryWindow && Parent->m_NB[i]->GetPageIndex(m_MemoryWindow) != wxNOT_FOUND) return;
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
-		Parent->m_NB[i]->AddPage(m_MemoryWindow, wxT("Memory"), true, Parent->aNormalFile );
+		Parent->DoAddPage(m_MemoryWindow, i, "Memory");
 	}
 	else // hide
 		Parent->DoRemovePage(m_MemoryWindow);
@@ -404,7 +406,8 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (Parent->m_NB.size() == 0) return;
+		if (i < 0 || i > Parent->m_NB.size()-1) i = 0;
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;

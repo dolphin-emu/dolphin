@@ -286,9 +286,7 @@ bool DolphinApp::OnInit()
 	// If we are debugging let use save the main window position and size
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
-
 	int x, y, w, h;
-
 	ini.Get("MainWindow", "x", &x, 100);
 	ini.Get("MainWindow", "y", &y, 100);
 	ini.Get("MainWindow", "w", &w, 800);

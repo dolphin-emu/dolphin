@@ -161,9 +161,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
 {
-	// Load ini settings
-	this->Load();
-
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
@@ -442,25 +439,22 @@ void CCodeWindow::Load()
 	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
 	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);	
 	// Get notebook affiliation
-	ini.Get("Notebook", "Log", &iLogWindow, 1);
-	ini.Get("Notebook", "Console", &iConsoleWindow, 1);
-	ini.Get("Notebook", "Code", &iCodeWindow, 1);
-	ini.Get("Notebook", "Registers", &iRegisterWindow, 1);
-	ini.Get("Notebook", "Breakpoints", &iBreakpointWindow, 0);
-	ini.Get("Notebook", "Memory", &iMemoryWindow, 1);
-	ini.Get("Notebook", "JIT", &iJitWindow, 1);
-	ini.Get("Notebook", "Sound", &iSoundWindow, 0);
-	ini.Get("Notebook", "Video", &iVideoWindow, 0);
-	// Remove bad values
-	iLogWindow = Limit(iLogWindow, 0, Parent->m_NB.size()-1);
-	iConsoleWindow = Limit(iConsoleWindow, 0, Parent->m_NB.size()-1);
-	iCodeWindow = Limit(iCodeWindow, 0, Parent->m_NB.size()-1);
-	iRegisterWindow = Limit(iRegisterWindow, 0, Parent->m_NB.size()-1);
-	iBreakpointWindow = Limit(iBreakpointWindow, 0, Parent->m_NB.size()-1);
-	iMemoryWindow = Limit(iMemoryWindow, 0, Parent->m_NB.size()-1);
-	iJitWindow = Limit(iJitWindow, 0, Parent->m_NB.size()-1);
-	iSoundWindow = Limit(iSoundWindow, 0, Parent->m_NB.size()-1);
-	iVideoWindow = Limit(iVideoWindow, 0, Parent->m_NB.size()-1);
+	std::string _Section = StringFromFormat("P - %s",
+		(Parent->ActivePerspective < Parent->Perspectives.size())
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
+	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
+	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
+	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
+	ini.Get(_Section.c_str(), "Breakpoints", &iBreakpointWindow, 0);
+	ini.Get(_Section.c_str(), "Memory", &iMemoryWindow, 1);
+	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
+	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
+	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
+
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+		"Load: %i\n", iRegisterWindow).c_str());
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
@@ -485,16 +479,18 @@ void CCodeWindow::Save()
 	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
 	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
 	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
-
-	ini.Set("Notebook", "Log", iLogWindow);
-	ini.Set("Notebook", "Console", iConsoleWindow);
-	ini.Set("Notebook", "Code", iCodeWindow);
-	ini.Set("Notebook", "Registers", iRegisterWindow);
-	ini.Set("Notebook", "Breakpoints", iBreakpointWindow);
-	ini.Set("Notebook", "Memory", iMemoryWindow);
-	ini.Set("Notebook", "JIT", iJitWindow);
-	ini.Set("Notebook", "Sound", iSoundWindow);
-	ini.Set("Notebook", "Video", iVideoWindow);
+	std::string _Section = StringFromFormat("P - %s",
+		(Parent->ActivePerspective < Parent->Perspectives.size())
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Set(_Section.c_str(), "Log", iLogWindow);
+	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
+	ini.Set(_Section.c_str(), "Code", iCodeWindow);
+	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);
+	ini.Set(_Section.c_str(), "Breakpoints", iBreakpointWindow);
+	ini.Set(_Section.c_str(), "Memory", iMemoryWindow);
+	ini.Set(_Section.c_str(), "JIT", iJitWindow);
+	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
+	ini.Set(_Section.c_str(), "Video", iVideoWindow);
 
 	// Save window settings
 	/*
