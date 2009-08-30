@@ -110,6 +110,7 @@ class CFrame : public wxFrame
 			wxWindow * GetWxWindowHwnd(HWND);
 		#endif
 		wxWindow * GetNootebookPage(wxString);
+		void AddRemoveBlankPage();
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
@@ -181,6 +182,7 @@ class CFrame : public wxFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
+		wxPanel *CreateEmptyPanel();
 
 #ifdef _WIN32
 		// Override window proc for tricks like screensaver disabling
@@ -276,17 +278,5 @@ class CFrame : public wxFrame
 		DECLARE_EVENT_TABLE();
 };
 
-
-class CEmptyPanel : public wxPanel
-{
-	public:
-		CEmptyPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-};
 
 #endif  // __FRAME_H_

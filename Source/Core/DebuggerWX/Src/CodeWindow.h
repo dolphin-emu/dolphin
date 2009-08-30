@@ -102,8 +102,8 @@ class CCodeWindow
 
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;
-		bool bLogWindow; bool iLogWindow;
-		bool bConsoleWindow; bool iConsoleWindow;
+		bool bLogWindow; int iLogWindow;
+		bool bConsoleWindow; int iConsoleWindow;
 		bool bCodeWindow; int iCodeWindow;
 		bool bRegisterWindow; int iRegisterWindow;
 		bool bBreakpointWindow; int iBreakpointWindow;

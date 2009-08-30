@@ -936,18 +936,6 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-wxWindow * CFrame::GetNootebookPage(wxString Name)
-{
-	for (int i = 0; i < m_NB.size(); i++)
-	{
-		if (!m_NB[i]) return NULL;
-		for(u32 j = 0; j <= m_NB[j]->GetPageCount(); j++)
-		{
-			if (m_NB[i]->GetPageText(j).IsSameAs(Name)) return m_NB[i]->GetPage(j);
-		}	
-	}
-	return NULL;
-}
 #ifdef _WIN32
 wxWindow * CFrame::GetWxWindowHwnd(HWND hWnd)
 {
@@ -985,12 +973,36 @@ wxWindow * CFrame::GetWxWindow(wxString Name)
 	else
 		return NULL;
 }
+wxWindow * CFrame::GetNootebookPage(wxString Name)
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (!m_NB[i]) continue;
+		for(u32 j = 0; j < m_NB[j]->GetPageCount(); j++)
+		{
+			if (m_NB[i]->GetPageText(j).IsSameAs(Name)) return m_NB[i]->GetPage(j);
+		}	
+	}
+	return NULL;
+}
+void CFrame::AddRemoveBlankPage()
+{
+	for (int i = 0; i < m_NB.size(); i++)
+	{
+		if (!m_NB[i]) continue;
+		for(u32 j = 0; j < m_NB[i]->GetPageCount(); j++)
+		{
+			if (m_NB[i]->GetPageText(j).IsSameAs(wxT("<>")) && m_NB[i]->GetPageCount() > 1) m_NB[i]->DeletePage(j);
+		}	
+		if (m_NB[i]->GetPageCount() == 0) m_NB[i]->AddPage(CreateEmptyPanel(), wxT("<>"), true);
+	}
+}
 int CFrame::GetNootebookAffiliation(wxString Name)
 {
 	for (int i = 0; i < m_NB.size(); i++)
 	{
 		if (!m_NB[i]) continue;
-		for(u32 j = 0; j <= m_NB[i]->GetPageCount(); j++)
+		for(u32 j = 0; j < m_NB[i]->GetPageCount(); j++)
 		{
 			if (m_NB[i]->GetPageText(j).IsSameAs(Name)) return i;
 		}	
@@ -999,6 +1011,7 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 }
 void CFrame::DoToggleWindow(int Id, bool Show)
 {
+			
 	switch (Id)
 	{
 		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
@@ -1016,9 +1029,12 @@ void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
 	event.Skip();
 	if (!UseDebugger) return;
 
+	// Remove the blank page if any
+	AddRemoveBlankPage();
+
 	// Update the notebook affiliation
 	if(GetNootebookAffiliation(wxT("Log")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Log"));
-	if(GetNootebookAffiliation(wxT("Console")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Console"));
+	if(GetNootebookAffiliation(wxT("Console")) >= 0) g_pCodeWindow->iConsoleWindow = GetNootebookAffiliation(wxT("Console"));
 	if(GetNootebookAffiliation(wxT("Code")) >= 0) g_pCodeWindow->iCodeWindow = GetNootebookAffiliation(wxT("Code"));
 	if(GetNootebookAffiliation(wxT("Registers")) >= 0) g_pCodeWindow->iRegisterWindow = GetNootebookAffiliation(wxT("Registers"));
 	if(GetNootebookAffiliation(wxT("Breakpoints")) >= 0) g_pCodeWindow->iBreakpointWindow = GetNootebookAffiliation(wxT("Breakpoints"));
@@ -1046,9 +1062,10 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
 	event.Skip();
-    wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
+	event.Allow();
+	wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 	// If we drag away the last one the tab bar goes away and we can't add any panes to it
-	if (Ctrl->GetPageCount() > 1) event.Allow();
+	//if (Ctrl->GetPageCount() == 1) Ctrl->AddPage(CreateEmptyPanel(), wxT("<>"), true);
 }
 void CFrame::HidePane()
 {
@@ -1161,7 +1178,6 @@ void CFrame::ToggleLogWindow(bool Show, int i)
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
 	DoToggleWindow(event.GetId(), event.IsChecked());
-	//ToggleConsole(event.IsChecked());
 }
 void CFrame::ToggleConsole(bool Show, int i)
 {
@@ -1175,20 +1191,19 @@ void CFrame::ToggleConsole(bool Show, int i)
 		wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
 		if (Win && m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
 		{
-		#else
-		Console->Open();
-		#endif
+			#else
+			Console->Open();
+			#endif
 
-		if(!GetConsoleWindow()) Console->Open();
-
-		#ifdef _WIN32
+			#ifdef _WIN32
+			if(!GetConsoleWindow()) Console->Open(); else ShowWindow(GetConsoleWindow(),SW_SHOW);
 		}
 		Win = GetWxWindowHwnd(GetConsoleWindow());
 		// Can we remove the border?
 		//Win->SetWindowStyleFlag(wxNO_BORDER);
 		//SetWindowLong(GetConsoleWindow(), GWL_STYLE, WS_VISIBLE);
 		// Create parent window
-		CEmptyPanel * ConsoleParent = new CEmptyPanel(this);
+		wxPanel * ConsoleParent = CreateEmptyPanel();
 		::SetParent(GetConsoleWindow(), (HWND)ConsoleParent->GetHWND());
 		//Win->SetParent(ConsoleParent);
 		//if (Win) m_NB[i]->AddPage(Win, wxT("Console"), true, aNormalFile );

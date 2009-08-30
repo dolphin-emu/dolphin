@@ -82,22 +82,6 @@ extern "C" {
 };
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Empty wxPanel
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-BEGIN_EVENT_TABLE(CEmptyPanel, wxPanel)
-END_EVENT_TABLE()
-
-CEmptyPanel::CEmptyPanel(
-			wxWindow *parent,
-			wxWindowID id
-			)
-	: wxPanel(parent, id)
-{
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
    Probably because it's somehow reset from the WndProc() in the child window */
@@ -513,9 +497,10 @@ CFrame::CFrame(bool showLogWindow,
 	CPluginManager::GetInstance().ScanForPlugins();
 
 	// Open notebook pages
+	//if (UseDebugger) AddBlankPage();
 	if (UseDebugger) g_pCodeWindow->OpenPages();
-	if (m_bLogWindow) ToggleLogWindow(true, UseDebugger ? 1 : 0);
-	if (SConfig::GetInstance().m_InterfaceConsole) ToggleConsole(true, UseDebugger ? 1 : 0);
+	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
+	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 	if (!UseDebugger) SetSimplePaneSize();
 
 	//if we are ever going back to optional iso caching:
@@ -594,6 +579,12 @@ void CFrame::OnClose(wxCloseEvent& event)
 		Core::Stop();
 		UpdateGUI();
 	}
+}
+
+wxPanel* CFrame::CreateEmptyPanel()
+{	
+   wxPanel* Panel = new wxPanel(this, wxID_ANY);
+   return Panel;
 }
 
 void CFrame::DoFullscreen(bool _F)
