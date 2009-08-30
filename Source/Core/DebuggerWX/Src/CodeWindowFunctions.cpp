@@ -406,11 +406,11 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 
 	if (Show)
 	{
-		if (Parent->m_NB.size() == 0) return;
-		if (i < 0 || i > Parent->m_NB.size()-1) i = 0;
+		if (Parent->GetNotebookCount() == 0) return;
+		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
-		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif				
@@ -428,7 +428,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 		if (Win)
 		{			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
-			Parent->m_NB[i]->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
+			Parent->GetNotebook(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
 		}
 		#endif
 	}
@@ -436,7 +436,7 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 	{
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
-		Parent->DoRemovePage (Win, false);
+		Parent->DoRemovePage(Win, false);
 		#endif
 		// Close the sound dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
@@ -454,10 +454,11 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, int i)
 
 	if (Show)
 	{
-		if (i < 0 || i > Parent->m_NB.size()-1) return;
+		if (Parent->GetNotebookCount() == 0) return;
+		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win && Parent->m_NB[i]->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif	
@@ -471,7 +472,7 @@ void CCodeWindow::OnToggleVideoWindow(bool Show, int i)
 		}
 
 		Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win) Parent->m_NB[i]->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
+		if (Win) Parent->GetNotebook(i)->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
 		#endif
 	}
 	else // hide

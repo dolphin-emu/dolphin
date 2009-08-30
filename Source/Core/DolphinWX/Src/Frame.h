@@ -100,7 +100,6 @@ class CFrame : public wxFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		std::vector<wxAuiNotebook*> m_NB;
 		int DefaultNBStyle;
 		int iLeftWidth[2], iMidWidth[2];
 		// Perspectives
@@ -109,12 +108,14 @@ class CFrame : public wxFrame
 			wxWindow * GetWxWindowHwnd(HWND);
 		#endif
 		wxWindow * GetNootebookPage(wxString);
+		wxAuiNotebook * GetNotebook(int);
 		void AddRemoveBlankPage();
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
 		void DoToggleWindow(int,bool);
+		int GetNotebookCount();
 		void DoAddPage(wxWindow *, int, std::string);
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoRemovePageString(wxString, bool Hide = true);
@@ -202,6 +203,7 @@ class CFrame : public wxFrame
 		void RecreateToolbar();
 		void CreateMenu();
 		wxPanel *CreateEmptyPanel();
+		wxAuiNotebook *CreateEmptyNotebook();
 
 #ifdef _WIN32
 		// Override window proc for tricks like screensaver disabling
