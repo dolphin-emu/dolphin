@@ -791,7 +791,7 @@ void CFrame::ResizeConsole()
 				int WindowHeight = InternalHeight;
 				// Resize buffer
 				ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-				Console->Log(LogTypes::LNOTICE, StringFromFormat("Window WxH:%i %i\n", X, Y).c_str());
+				//Console->Log(LogTypes::LNOTICE, StringFromFormat("Window WxH:%i %i\n", X, Y).c_str());
 				Console->PixelSpace(0,0, InternalWidth,InternalHeight, false);
 				// Move the window to hide the border
 				MoveWindow(GetConsoleWindow(), -Border-wxBorder,-MenuBar-wxBorder, WindowWidth + 100,WindowHeight, true);
