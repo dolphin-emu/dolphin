@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcproj", "{F0B874CB-4476-4199-9315-8343D05AE684}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7E5D50A-2916-464B-86A7-E10B3CC88ADA} = {C7E5D50A-2916-464B-86A7-E10B3CC88ADA}
@@ -556,6 +556,7 @@ Global
 		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release_JITIL|x64.ActiveCfg = Release|x64
 		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release_JITIL|x64.Build.0 = Release|x64
 		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|Win32.ActiveCfg = Release|Win32
+		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|Win32.Build.0 = Release|Win32
 		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|x64.ActiveCfg = Release|x64
 		{823DDC98-42D5-4A38-88CF-9DC06C788AE4}.Release|x64.Build.0 = Release|x64
 		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Debug|Win32.ActiveCfg = Debug|Win32
