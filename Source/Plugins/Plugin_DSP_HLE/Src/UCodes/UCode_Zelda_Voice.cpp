@@ -272,27 +272,27 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 restart:
 	if (PB.ReachedEnd)
 	{
-		PB.ReachedEnd = 0;
-
 		// HACK: AFC looping doesn't work.
-		if (true || PB.RepeatMode == 0)
+		if (PB.RepeatMode == 0) //MKDD excluded (hack) - strange menu sounds
 		{
 			PB.KeyOff = 1;
-			PB.RemLength = 0;
-			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
+			// PB.RemLength = 0;
+			// PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
 			while (sampleCount < _RealSize)
 				_Buffer[sampleCount++] = 0;
 			return;
 		}
 		else
 		{
-			// This needs adjustment. It's not right for AFC, was just copied from PCM16.
-			PB.RestartPos = PB.LoopStartPos;
- 			PB.RemLength = PB.Length - PB.RestartPos;
-			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
-
-			PB.YN1 = PB.LoopYN1;
-			PB.YN2 = PB.LoopYN2;
+			// The loop start pos is incorrect, so samples will loop a bit wrong. However, at least
+			// this fixes the intro music in ZTP, Pikmin2.
+			// PB.RestartPos = PB.LoopStartPos;
+ 			PB.RemLength = PB.Length; // - PB.RestartPos;
+			PB.CurAddr = PB.StartAddr; //+ (PB.LoopStartPos >> 4) * PB.Format + ;
+			PB.ReachedEnd = 0;
+			// Hmm, this shouldn't be reversed .. or should it? Is it different between versions of the ucode?
+			PB.YN1 = PB.LoopYN2;
+			PB.YN2 = PB.LoopYN1;
 		}
 	}
 
