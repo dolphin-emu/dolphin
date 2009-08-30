@@ -78,10 +78,14 @@ public:
 	void Close();
 	bool IsOpen();
 	void LetterSpace(int Width, int Height);
+	void BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst);
 	void PixelSpace(int Left, int Top, int Width, int Height, bool);
+	#ifdef _WIN32
+	COORD GetCoordinates(int BytesRead, int BufferWidth);
+	#endif
 	void Log(LogTypes::LOG_LEVELS, const char *Text);
 	//void Log(LogTypes::LOG_LEVELS, const char *Text, ...);
-	void ClearScreen();
+	void ClearScreen(bool Cursor = true);
 
 	const char *getName() const { return "Console"; }
 
@@ -89,7 +93,6 @@ private:
 #ifdef _WIN32
 	HWND GetHwnd(void);
 	HANDLE hConsole;
-	static const int MAX_BYTES = 1024 * 30;
 #endif
 };
 

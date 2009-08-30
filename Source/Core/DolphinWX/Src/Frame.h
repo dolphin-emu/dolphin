@@ -276,4 +276,17 @@ class CFrame : public wxFrame
 		DECLARE_EVENT_TABLE();
 };
 
+
+class CEmptyPanel : public wxPanel
+{
+	public:
+		CEmptyPanel(
+			wxWindow* parent,
+			wxWindowID id = wxID_ANY
+			);
+
+	private:
+		DECLARE_EVENT_TABLE();
+};
+
 #endif  // __FRAME_H_

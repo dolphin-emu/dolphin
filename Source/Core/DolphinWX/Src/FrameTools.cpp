@@ -755,12 +755,49 @@ void CFrame::ResizeConsole()
 		{
 			if (m_NB[i]->GetPageText(j).IsSameAs(wxT("Console")))
 			{
+				#ifdef _WIN32
+				// ----------------------------------------------------------
+				// Get OS version
+				// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+				int wxBorder, Border, LowerBorder, MenuBar, ScrollBar, WidthReduction;
+				OSVERSIONINFO osvi;
+				ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+				osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+				GetVersionEx(&osvi);
+				if (osvi.dwMajorVersion == 6) // Vista (same as 7?)
+				{
+					wxBorder = 2;
+					Border = 4;
+					LowerBorder = 6;
+					MenuBar = 30; // Including upper border				
+					ScrollBar = 19;
+				}
+				else // XP
+				{
+					wxBorder = 2;
+					Border = 4;
+					LowerBorder = 6;
+					MenuBar = 30;					
+					ScrollBar = 19;
+				}
+				WidthReduction = 30 - Border;
+				// --------------------------------
 				// Get the client size
-				int X = m_NB[i]->GetClientSize().GetX() - 35;
-				int Y = m_NB[i]->GetClientSize().GetY() - 70;
+				int X = m_NB[i]->GetClientSize().GetX();
+				int Y = m_NB[i]->GetClientSize().GetY();
+				int InternalWidth = X - wxBorder*2 - ScrollBar;
+				int InternalHeight = Y - wxBorder*2;
+				int WindowWidth = InternalWidth + Border*2;
+				int WindowHeight = InternalHeight;
 				// Resize buffer
 				ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-				Console->PixelSpace(0,0, X,Y, false);
+				Console->Log(LogTypes::LNOTICE, StringFromFormat("Window WxH:%i %i\n", X, Y).c_str());
+				Console->PixelSpace(0,0, InternalWidth,InternalHeight, false);
+				// Move the window to hide the border
+				MoveWindow(GetConsoleWindow(), -Border-wxBorder,-MenuBar-wxBorder, WindowWidth + 100,WindowHeight, true);
+				// Move it to the bottom of the view order so that it doesn't hide the notebook tabs
+				// ...
+				#endif
 			}
 		}	
 	}
@@ -1150,7 +1187,12 @@ void CFrame::ToggleConsole(bool Show, int i)
 		// Can we remove the border?
 		//Win->SetWindowStyleFlag(wxNO_BORDER);
 		//SetWindowLong(GetConsoleWindow(), GWL_STYLE, WS_VISIBLE);
-		if (Win) m_NB[i]->AddPage(Win, wxT("Console"), true, aNormalFile );
+		// Create parent window
+		CEmptyPanel * ConsoleParent = new CEmptyPanel(this);
+		::SetParent(GetConsoleWindow(), (HWND)ConsoleParent->GetHWND());
+		//Win->SetParent(ConsoleParent);
+		//if (Win) m_NB[i]->AddPage(Win, wxT("Console"), true, aNormalFile );
+		if (Win) m_NB[i]->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile );
 		#endif
 	}
 	else // hide
