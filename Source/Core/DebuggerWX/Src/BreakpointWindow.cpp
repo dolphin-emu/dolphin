@@ -20,7 +20,7 @@
 #include "BreakpointView.h"
 #include "CodeWindow.h"
 #include "HW/Memmap.h"
-#include "BreakPointDlg.h"
+#include "BreakpointDlg.h"
 #include "MemoryCheckDlg.h"
 #include "Host.h"
 #include "PowerPC/PowerPC.h"

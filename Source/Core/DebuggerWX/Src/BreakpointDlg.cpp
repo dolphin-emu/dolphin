@@ -20,8 +20,8 @@
 #include "Debugger.h"
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
-#include "BreakPointWindow.h"
-#include "BreakPointDlg.h"
+#include "BreakpointWindow.h"
+#include "BreakpointDlg.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
 	EVT_CLOSE(BreakPointDlg::OnClose)
