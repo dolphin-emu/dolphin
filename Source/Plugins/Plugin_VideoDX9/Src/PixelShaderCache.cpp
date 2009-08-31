@@ -84,7 +84,7 @@ void PixelShaderCache::SetShader()
 		return;
 	}
 
-	bool HLSL = false;
+	bool HLSL = true;
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, HLSL);
 	LPDIRECT3DPIXELSHADER9 shader = HLSL ? D3D::CompilePixelShader(code, (int)strlen(code), false) : CompileCgShader(code);
 	if (shader)

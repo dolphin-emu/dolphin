@@ -142,7 +142,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	if (_vtx_decl.posmtx_offset != -1)
 	{
-		PanicAlert("Posmtx stream not supported correctly. %i", _vtx_decl.posmtx_offset);
+		//PanicAlert("Posmtx stream not supported correctly. %i", _vtx_decl.posmtx_offset);
 		// glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
 		elems[elem_idx].Offset = _vtx_decl.posmtx_offset;
 		elems[elem_idx].Usage = D3DDECLUSAGE_BLENDINDICES;
