@@ -114,6 +114,8 @@ class CFrame : public wxFrame
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
+		void ListChildren();
+		void ClosePages();
 		void DoToggleWindow(int,bool);
 		int GetNotebookCount();
 		void DoAddPage(wxWindow *, int, std::string);
@@ -121,7 +123,7 @@ class CFrame : public wxFrame
 		void DoRemovePageString(wxString, bool Hide = true);
 		void HidePane();
 		void SetSimplePaneSize();
-		void SetPaneSize(wxArrayInt,wxArrayInt);
+		void SetPaneSize();
 		void TogglePaneStyle(bool);
 		void ToggleNotebookStyle(long);
 		void ResizeConsole();
@@ -136,12 +138,15 @@ class CFrame : public wxFrame
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
 		int ActivePerspective;	
+		int PercentageToPixels(int,int);
 		int PixelsToPercentage(int,int);
 		void NamePanes();
 		void AddPane();
+		int Limit(int,int,int);
 		void Save();
 		void OnPaneClose(wxAuiManagerEvent& evt);
-		void DoLoadPerspective(wxString);
+		void ReloadPanes();
+		void DoLoadPerspective();
 		void OnCreatePerspective(wxCommandEvent& event);
 		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
 		void OnSelectPerspective(wxCommandEvent& event);		

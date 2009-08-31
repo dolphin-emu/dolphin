@@ -62,8 +62,7 @@ class CCodeWindow
 		// Parent interaction
 		CFrame *Parent;
 		wxMenuBar * GetMenuBar();
-		wxAuiToolBar * GetToolBar();
-		int Limit(int,int,int);
+		wxAuiToolBar * GetToolBar();		
 		int GetNootebookAffiliation(wxString);
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 

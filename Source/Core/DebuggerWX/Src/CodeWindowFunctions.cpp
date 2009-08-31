@@ -325,12 +325,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toogle windows
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-int CCodeWindow::Limit(int i, int Low, int High)
-{	
-	if (i < Low) return Low;
-	if (i > High) return High;
-	return i;
-}
+
 void CCodeWindow::OpenPages()
 {	
 							Parent->DoToggleWindow(IDM_CODEWINDOW, true);
@@ -369,7 +364,7 @@ void CCodeWindow::OnToggleBreakPointWindow(bool Show, int i)
 {
 	if (Show)
 	{
-		if (!m_RegisterWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
+		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
 		Parent->DoAddPage(m_BreakpointWindow, i, "Breakpoints");
 	}
 	else // hide

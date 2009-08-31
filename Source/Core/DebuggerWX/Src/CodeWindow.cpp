@@ -452,10 +452,6 @@ void CCodeWindow::Load()
 	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
 	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
 
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
-		"Load: %i\n", iRegisterWindow).c_str());
-
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
 	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
@@ -618,11 +614,6 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
 	pRegister->Check(bRegisterWindow);
-
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
-		"bRegisterWindow: %i\n", bRegisterWindow).c_str());
-
 	wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
 	pBreakPoints->Check(bBreakpointWindow);
 	wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);

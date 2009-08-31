@@ -421,6 +421,9 @@ CFrame::CFrame(bool showLogWindow,
 	RecreateToolbar();
 	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
 
+	// Create list of available plugins for the configuration window
+	CPluginManager::GetInstance().ScanForPlugins();
+
 	// Setup perspectives
 	if (UseDebugger)
 	{		
@@ -463,59 +466,24 @@ CFrame::CFrame(bool showLogWindow,
 				if (TryParseInt(_SHeight.at(0).c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
 			}
 			Perspectives.push_back(Tmp);
-
-			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Read: %s %s\n", _Width.c_str(), _Height.c_str()).c_str());
 		}
 
-		if (Perspectives.size() > 0)
-		{
-			// Create new panes with notebooks
-			for (int j = 0; j < Perspectives.at(0).Width.size() - 1; j++)
-			{
-				m_Mgr->AddPane(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
-
-			}
-			NamePanes();
-
-			std::vector<std::string> FormatNames;
-			SplitString(StringFromFormat("%s", Perspectives.at(0).Perspective.mb_str()), "|", FormatNames);
-			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Perspective: %s\n", Perspectives.at(0).Perspective.mb_str()).c_str());
-			for (int i = 0; i < FormatNames.size(); i++)
-			{
-				Console->Log(LogTypes::LCUSTOM, StringFromFormat("Perspective: %s\n", FormatNames.at(i).c_str()).c_str());
-			}
-
-			if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
-			DoLoadPerspective(Perspectives.at(ActivePerspective).Perspective);
-		}
-		// Create one pane by default
-		else
-		{
-			m_Mgr->AddPane(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
-		}
-
-		//Console->Log(LogTypes::LCUSTOM, StringFromFormat("Panes: %i\n", m_Mgr->GetAllPanes().GetCount()).c_str());
+		DoLoadPerspective();
 	}
 	else
 	{
 		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
-		//if (m_bLogWindow || SConfig::GetInstance().m_InterfaceConsole) m_Mgr->GetPane(wxT("Pane 1")).Show();
 	}
 
 	// Show window
 	Show();
 
-	// Create list of available plugins for the configuration window
-	CPluginManager::GetInstance().ScanForPlugins();
-
-	// Load GUI settings
-	if (UseDebugger) g_pCodeWindow->Load();
-	// Open notebook pages
-	if (UseDebugger) AddRemoveBlankPage();
-	if (UseDebugger) g_pCodeWindow->OpenPages();
-	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
-	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
-	if (!UseDebugger) SetSimplePaneSize();
+	if (!UseDebugger)
+	{
+		SetSimplePaneSize();
+		if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
+		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
+	}
 
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
@@ -622,23 +590,26 @@ void CFrame::DoFullscreen(bool _F)
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
 }
+int CFrame::Limit(int i, int Low, int High)
+{	
+	if (i < Low) return Low;
+	if (i > High) return High;
+	return i;
+}
 void CFrame::SetSimplePaneSize()
 {
-	wxArrayInt i, j;
-	i.Add(0); j.Add(50);
-	i.Add(1); j.Add(50);
-	SetPaneSize(i, j);
-}
-void CFrame::SetPaneSize(wxArrayInt Pane, wxArrayInt Size)
-{
-	int iClientSize = this->GetSize().GetX();
+	wxArrayInt Pane, Size;
+	Pane.Add(0); Size.Add(50);
+	Pane.Add(1); Size.Add(50);
 
+	int iClientSize = this->GetSize().GetX();
+	// Fix the pane sizes
 	for (int i = 0; i < Pane.size(); i++)
 	{
 		// Check limits
-		if (Size[i] > 95) Size[i] = 95; if (Size[i] < 5) Size[i] = 5;
+		Size[i] = Limit(Size[i], 5, 95);
 		// Produce pixel width from percentage width
-		Size[i] = iClientSize * (float)(Size[i]/100.0);
+		Size[i] = PercentageToPixels(Size[i], iClientSize);
 		// Update size
 		m_Mgr->GetPane(wxString::Format(wxT("Pane %i"), Pane[i])).BestSize(Size[i], -1).MinSize(Size[i], -1).MaxSize(Size[i], -1);
 	}
@@ -649,109 +620,127 @@ void CFrame::SetPaneSize(wxArrayInt Pane, wxArrayInt Size)
 		m_Mgr->GetPane(wxString::Format(wxT("Pane %i"), Pane[i])).MinSize(-1, -1).MaxSize(-1, -1);
 	}
 }
-void CFrame::DoLoadPerspective(wxString Perspective)
-{	
-	m_Mgr->LoadPerspective(Perspective, true);
-
-	/*
-	m_Mgr->LoadPerspective(AuiPerspective[Perspective], true);
-
-	int _iRightWidth, iClientSize = this->GetSize().GetX();
-	wxArrayInt i, j;
-
-	// Set the size
-	if (Perspective == 0)
-	{
-		_iRightWidth = 100 - iLeftWidth[0];	
-		i.Add(0); j.Add(iLeftWidth[0]);
-		i.Add(2); j.Add(_iRightWidth);
-		//m_Mgr->GetPane(wxT("Pane 1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
-		//m_Mgr->GetPane(wxT("Pane 2")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
-	}
-	else
-	{
-		_iRightWidth = 100 - iLeftWidth[1] - iMidWidth[1];	
-		i.Add(0); j.Add(iLeftWidth[1]);
-		i.Add(2); j.Add(iMidWidth[1]);
-		i.Add(3); j.Add(_iRightWidth);
-
-		//m_Mgr->GetPane(wxT("Pane 0")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);
-		//m_Mgr->GetPane(wxT("Pane1")).BestSize(_iLeftWidth, -1).MinSize(_iLeftWidth, -1).MaxSize(_iLeftWidth, -1);	
-		//m_Mgr->GetPane(wxT("Pane2")).BestSize(_iMidWidth, -1).MinSize(_iMidWidth, -1).MaxSize(_iMidWidth, -1);
-		//m_Mgr->GetPane(wxT("Pane3")).BestSize(_iRightWidth, -1).MinSize(_iRightWidth, -1).MaxSize(_iRightWidth, -1);
-	}
-	SetPaneSize(i, j);
-	*/
-}
-int CFrame::PixelsToPercentage(int Pixels, int Total)
+void CFrame::SetPaneSize()
 {
-	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
-	return Percentage;
-}
+	if (Perspectives.size() <= ActivePerspective) return;
+	int iClientX = this->GetSize().GetX(), iClientY = this->GetSize().GetY();
 
-void CFrame::NamePanes()
-{
 	for (int i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
-			m_Mgr->GetAllPanes().Item(i).Name(wxString::Format(wxT("Pane %i"), j));
-			m_Mgr->GetAllPanes().Item(i).Caption(wxString::Format(wxT("Pane %i"), j));
+			if (!m_Mgr->GetAllPanes().Item(i).IsOk()) return;
+			if (Perspectives.at(ActivePerspective).Width.size() <= j || Perspectives.at(ActivePerspective).Height.size() <= j) continue;
+			int W = Perspectives.at(ActivePerspective).Width.at(j), H = Perspectives.at(ActivePerspective).Height.at(j);
+			// Check limits
+			W = Limit(W, 5, 95); H = Limit(H, 5, 95);
+			// Produce pixel width from percentage width
+			W = PercentageToPixels(W, iClientX); H = PercentageToPixels(H, iClientY);
+			m_Mgr->GetAllPanes().Item(i).BestSize(W,H).MinSize(W,H).MaxSize(W,H);
+
 			j++;
 		}
 	}
-}
-void CFrame::AddPane()
-{
-	m_Mgr->AddPane(new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle));
-	NamePanes();
 	m_Mgr->Update();
-}	
 
-void CFrame::OnPaneClose(wxAuiManagerEvent& event)
-{
-	event.Veto();
-
-	wxAuiNotebook * nb = (wxAuiNotebook*)event.pane->window;
-	if (!nb) return;
-	if (! (nb->GetPageCount() == 0 || (nb->GetPageCount() == 1 && nb->GetPageText(0).IsSameAs(wxT("<>")))))
+	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
-		wxMessageBox(wxT("You can't close panes that have pages in them."),
-							   wxT("Notice"),
-							   wxOK,
-							   this);
-		
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
+		{
+			m_Mgr->GetAllPanes().Item(i).MinSize(-1,-1).MaxSize(-1,-1);
+		}
 	}
+}
+// Debugging, show loose windows
+void CFrame::ListChildren()
+{	
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	for (int i = 0; i < this->GetChildren().size(); i++)
+	{
+		wxWindow * Win = this->GetChildren().Item(i)->GetData();
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+			"%i: %s (%s) :: % s\n", i,
+			Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+		
+		Win = this->GetChildren().Item(i)->GetData();
+		for (int j = 0; j < Win->GetChildren().size(); j++)
+		{
+			Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+				"     %i.%i: %s (%s) :: % s\n", i, j,
+				Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+		}
+	}	
+}
+void CFrame::ReloadPanes()
+{	
+	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
+
+	if (Perspectives.size() > 0)
+	{
+		// Close all pages
+		ClosePages();
+		// Drop all panes with notebooks
+		for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+		{
+			if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+			{
+				// Todo, delete the window instead of just hiding it
+				m_Mgr->GetAllPanes().Item(i).window->Hide();
+				m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
+			}
+		}
+		// Create new panes with notebooks
+		for (int i = 0; i < Perspectives.at(ActivePerspective).Width.size() - 1; i++)
+			m_Mgr->AddPane(CreateEmptyNotebook());
+		// Names
+		NamePanes();
+		// Perspectives
+		m_Mgr->LoadPerspective(Perspectives.at(ActivePerspective).Perspective, true);
+	}
+	// Create one pane by default
 	else
 	{
-		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-		Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount before: %i\n", GetNotebookCount()).c_str());
-
-		// Detach and delete the empty notebook
-		m_Mgr->DetachPane(event.pane->window);
-		//event.pane->window->Close();
-		event.pane->window->Destroy();
-
-		Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount after: %i\n", GetNotebookCount()).c_str());
+		m_Mgr->AddPane(CreateEmptyNotebook());
 	}
 
-	m_Mgr->Update();
+	// Load GUI settings
+	g_pCodeWindow->Load();
+	// Open notebook pages
+	AddRemoveBlankPage();
+	g_pCodeWindow->OpenPages();
+	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
+	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 }
+void CFrame::DoLoadPerspective()
+{
+	ReloadPanes();
+	// Restore the exact window sizes, which LoadPerspective doesn't always do
+	SetPaneSize();
 
+	/*
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+		"Loaded: %s, NBs: %i, Non-NBs: %i, \n",
+		Perspectives.at(ActivePerspective).Name.c_str(), GetNotebookCount(), m_Mgr->GetAllPanes().GetCount() - GetNotebookCount()).c_str());
+	*/
+}
 void CFrame::Save()
 {
+	if (Perspectives.size() == 0) return;
+	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
+
 	// Turn off edit before saving
 	TogglePaneStyle(false);
 
-	/**/
 	// Get client size
-	int iClientX = this->GetSize().GetX(), iClientY = this->GetSize().GetY();;
+	int iClientX = this->GetSize().GetX(), iClientY = this->GetSize().GetY();
 
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
+
 	std::string _Section = StringFromFormat("P - %s", Perspectives.at(ActivePerspective).Name.c_str());
 	ini.Set(_Section.c_str(), "Perspective", m_Mgr->SavePerspective().mb_str());
-
+	
 	std::string SWidth = "", SHeight = "";
 	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
@@ -776,15 +765,79 @@ void CFrame::Save()
 	}
 	STmp = STmp.substr(0, STmp.length()-1);
 	ini.Set("Perspectives", "Perspectives", STmp.c_str());
-
 	ini.Set("Perspectives", "Active", ActivePerspective);
-
 	ini.Save(DEBUGGER_CONFIG_FILE);
 
+	/*
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LCUSTOM, StringFromFormat("Saved: %s\n", STmp.c_str()).c_str());
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat("Saved: %s\n", Perspectives.at(ActivePerspective).Name.c_str()).c_str());
+	*/
 	
 	TogglePaneStyle(m_ToolBarAui->GetToolToggled(IDM_EDIT_PERSPECTIVES)); 
+}
+
+int CFrame::PercentageToPixels(int Percentage, int Total)
+{
+	int Pixels = (int)((float)Total * ((float)Percentage / 100.0));
+	return Pixels;
+}
+int CFrame::PixelsToPercentage(int Pixels, int Total)
+{
+	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
+	return Percentage;
+}
+
+void CFrame::NamePanes()
+{
+	for (int i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
+		{
+			m_Mgr->GetAllPanes().Item(i).Name(wxString::Format(wxT("Pane %i"), j));
+			m_Mgr->GetAllPanes().Item(i).Caption(wxString::Format(wxT("Pane %i"), j));
+			j++;
+		}
+	}
+}
+void CFrame::AddPane()
+{
+	m_Mgr->AddPane(CreateEmptyNotebook());
+	NamePanes();
+	AddRemoveBlankPage();
+	m_Mgr->Update();
+}	
+
+void CFrame::OnPaneClose(wxAuiManagerEvent& event)
+{
+	event.Veto();
+
+	wxAuiNotebook * nb = (wxAuiNotebook*)event.pane->window;
+	if (!nb) return;
+	if (false)
+	//if (! (nb->GetPageCount() == 0 || (nb->GetPageCount() == 1 && nb->GetPageText(0).IsSameAs(wxT("<>")))))
+	{
+		wxMessageBox(wxT("You can't close panes that have pages in them."),
+							   wxT("Notice"),
+							   wxOK,
+							   this);
+		
+	}
+	else
+	{
+		/*
+		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount before: %i\n", GetNotebookCount()).c_str());
+		*/
+
+		// Detach and delete the empty notebook
+		m_Mgr->DetachPane(event.pane->window);
+		//event.pane->window->Close();
+		event.pane->window->Destroy();
+
+		//Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount after: %i\n", GetNotebookCount()).c_str());
+	}
+
+	m_Mgr->Update();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -890,6 +943,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
+	// Don't block other events
+	event.Skip();
+
 	// Escape key turn off fullscreen then Stop emulation in windowed mode
 	if (event.GetKeyCode() == WXK_ESCAPE)
 	{
@@ -933,9 +989,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	// Send the keyboard status to the Input plugin
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
-
-	// Don't block other events
-	event.Skip();
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)

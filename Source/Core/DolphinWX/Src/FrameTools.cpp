@@ -739,12 +739,9 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 void CFrame::OnSelectPerspective(wxCommandEvent& event)
 {
 	int _Selection = event.GetId() - IDM_PERSPECTIVES_0;
-	if (Perspectives.size() <= _Selection) return;
+	if (Perspectives.size() <= _Selection) _Selection = 0;
 	ActivePerspective = _Selection;
-	DoLoadPerspective(Perspectives.at(ActivePerspective).Perspective);
-
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LCUSTOM, StringFromFormat("OnSelectPerspective: %i %s\n", _Selection, Perspectives.at(ActivePerspective).Name.c_str()).c_str());
+	DoLoadPerspective();
 }
 void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 {
@@ -1094,6 +1091,18 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 	}
 	return -1;
 }
+void CFrame::ClosePages()
+{
+	DoToggleWindow(IDM_LOGWINDOW, false);
+	//DoToggleWindow(IDM_CONSOLEWINDOW, false);
+	DoToggleWindow(IDM_CODEWINDOW, false);
+	DoToggleWindow(IDM_REGISTERWINDOW, false);
+	DoToggleWindow(IDM_BREAKPOINTWINDOW, false);
+	DoToggleWindow(IDM_MEMORYWINDOW, false);
+	DoToggleWindow(IDM_JITWINDOW, false);
+	DoToggleWindow(IDM_SOUNDWINDOW, false);
+	DoToggleWindow(IDM_VIDEOWINDOW, false);
+}
 void CFrame::DoToggleWindow(int Id, bool Show)
 {			
 	switch (Id)
@@ -1210,8 +1219,10 @@ void CFrame::DoAddPage(wxWindow * Win, int i, std::string Name)
 	if (Win && GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 	GetNotebook(i)->AddPage(Win, wxString::FromAscii(Name.c_str()), true, aNormalFile );
 
+	/*
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	Console->Log(LogTypes::LCUSTOM, StringFromFormat("Add: %s\n", Name.c_str()).c_str());
+	*/
 }
 void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
 {
