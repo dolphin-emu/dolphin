@@ -229,11 +229,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_PERF_4H:
 	case PE_PERF_5L:
 	case PE_PERF_5H:
-		WARN_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
+		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
 		break;
 
 	default:
-		WARN_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);
+		INFO_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);
 		_uReturnValue = 1;
 		break;
 	}

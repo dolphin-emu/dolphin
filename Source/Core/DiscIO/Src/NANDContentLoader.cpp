@@ -263,7 +263,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 		} 
 		else 
 		{
-			PanicAlert("NANDContentLoader: error opening %s", szFilename);
+			ERROR_LOG(DISCIO, "NANDContentLoader: error opening %s", szFilename);
 		}
 	}
 

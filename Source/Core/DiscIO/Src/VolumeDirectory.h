@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef _VOLUME_DIRECTORY
+#define _VOLUME_DIRECTORY
 
 #include "Volume.h"
 #include "Common.h"
@@ -30,8 +31,7 @@
 namespace DiscIO
 {
 
-class CVolumeDirectory
-	: public IVolume
+class CVolumeDirectory : public IVolume
 {
 	public:
 
@@ -105,3 +105,5 @@ class CVolumeDirectory
 };
 
 } // namespace
+
+#endif

@@ -455,11 +455,11 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-	// Why are we adding w to z?
 	if (!D3D) {
-		// scale to gl clip space
+		// scale to gl clip space - which is -o.pos.w to o.pos.w, hence the addition.
 		WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
 	} else {
+
 		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");
 	}
 

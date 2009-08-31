@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef _VOLUME_WAD
+#define _VOLUME_WAD
 
 #include "Volume.h"
 #include "Blob.h"
@@ -50,3 +51,5 @@ private:
 };
 
 } // namespace
+
+#endif

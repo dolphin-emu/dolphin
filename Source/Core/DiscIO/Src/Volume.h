@@ -27,42 +27,35 @@ namespace DiscIO
 {
 class IVolume
 {
-	public:
+public:
+	IVolume() {}
+	virtual ~IVolume() {}
 
-		IVolume()
-		{}
+	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
+	virtual bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
+	virtual bool GetTitleID(u8*) const { return false; }
+	virtual std::string GetUniqueID() const = 0;
+	virtual std::string GetMakerID() const = 0;
+	virtual std::string GetName() const = 0;
+	virtual u32 GetFSTSize() const = 0;
+	virtual std::string GetApploaderDate() const = 0;
 
+	enum ECountry
+	{
+		COUNTRY_EUROPE = 0,
+		COUNTRY_FRANCE = 1,
+		COUNTRY_USA = 2,
+		COUNTRY_JAPAN,
+		COUNTRY_KOREA,
+		COUNTRY_ITALY,
+		COUNTRY_TAIWAN,
+		COUNTRY_SDK,
+		COUNTRY_UNKNOWN,
+		NUMBER_OF_COUNTRIES
+	};
 
-		virtual ~IVolume()
-		{}
-
-
-		virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
-		virtual bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
-		virtual bool GetTitleID(u8*) const { return false; }
-		virtual std::string GetUniqueID() const = 0;
-		virtual std::string GetMakerID() const = 0;
-		virtual std::string GetName() const = 0;
-		virtual u32 GetFSTSize() const = 0;
-		virtual std::string GetApploaderDate() const = 0;
-
-
-		enum ECountry
-		{
-			COUNTRY_EUROPE = 0,
-			COUNTRY_FRANCE = 1,
-			COUNTRY_USA = 2,
-			COUNTRY_JAPAN,
-			COUNTRY_KOREA,
-			COUNTRY_ITALY,
-			COUNTRY_TAIWAN,
-			COUNTRY_SDK,
-			COUNTRY_UNKNOWN,
-			NUMBER_OF_COUNTRIES
-		};
-
-		virtual ECountry GetCountry() const = 0;
-		virtual u64 GetSize() const = 0;
+	virtual ECountry GetCountry() const = 0;
+	virtual u64 GetSize() const = 0;
 };
 
 // Generic Switch function for all volumes

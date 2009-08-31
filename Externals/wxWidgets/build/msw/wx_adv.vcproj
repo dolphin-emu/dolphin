@@ -153,7 +153,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\wxmsw28ud_$(ProjectName).lib"
+				OutputFile="$(OutDir)\wxmsw28ud_adv.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -309,7 +309,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\wxmsw28u_$(ProjectName).lib"
+				OutputFile="$(OutDir)\wxmsw28u_adv.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -1474,6 +1474,10 @@
 			Name="Setup Headers"
 			>
 			<File
+				RelativePath="..\..\include\wx\univ\setup.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\wx\msw\setup.h"
 				>
 				<FileConfiguration
@@ -1516,10 +1520,6 @@
 						Outputs="..\..\lib\vc_lib\msw\wx\setup.h"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\include\wx\univ\setup.h"
-				>
 			</File>
 		</Filter>
 		<Filter

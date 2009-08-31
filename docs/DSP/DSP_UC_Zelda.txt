@@ -2545,19 +2545,26 @@ void 0717_InitializeDecoderState()   // 0xff88 to 0xff8B
 	// 071a 00fe 04fb sr          @0x04fb, $AC0.M
 	(*0x4fb)++;
 	
-	071c 8100      clr         $ACC0
-	071d 2e32      srs         @0x0032, $AC0.M
-	071e 2e66      srs         @0x0066, $AC0.M
-	071f 2e67      srs         @0x0067, $AC0.M
-	0720 268a      lrs         $AC0.M, @0xff8a
-	0721 248b      lrs         $AC0.L, @0xff8b
-	0722 2e3a      srs         @0x003a, $AC0.M
-	0723 2c3b      srs         @0x003b, $AC0.L
-	0724 268c      lrs         $AC0.M, @0xff8c
-	0725 248d      lrs         $AC0.L, @0xff8d
-	0726 2e38      srs         @0x0038, $AC0.M
-	0727 2c39      srs         @0x0039, $AC0.L
-	0728 02df      ret     
+	// 071c 8100      clr         $ACC0
+	// 071d 2e32      srs         @0x0032, $AC0.M
+	// 071e 2e66      srs         @0x0066, $AC0.M
+	// 071f 2e67      srs         @0x0067, $AC0.M
+	CurBlock = 0
+	YN1 = 0
+	YN2 = 0
+	
+	// 0720 268a      lrs         $AC0.M, @0xff8a
+	// 0721 248b      lrs         $AC0.L, @0xff8b
+	// 0722 2e3a      srs         @0x003a, $AC0.M
+	// 0723 2c3b      srs         @0x003b, $AC0.L
+	RemLength = Length
+	
+	// 0724 268c      lrs         $AC0.M, @0xff8c
+	// 0725 248d      lrs         $AC0.L, @0xff8d
+	// 0726 2e38      srs         @0x0038, $AC0.M
+	// 0727 2c39      srs         @0x0039, $AC0.L
+	CurAddr = StartAddr
+	// 0728 02df      ret     
 }
 
 void 0729_UpdateDecoderState()
@@ -2567,6 +2574,7 @@ void 0729_UpdateDecoderState()
 	// 072b 0240 000f andi        $AC0.M, #0x000f
 	ACC0 = 0;
 	AC0.M = *0x0489 & 0xF;
+	
 	// 072d 1f5e      mrr         $AX0.H, $AC0.M
 	// 072e 8100      clr         $ACC0
 	// 072f 0e10      lris        $AC0.M, #0x10
@@ -2581,12 +2589,12 @@ void 0729_UpdateDecoderState()
 	// 0734 2288      lrs         $AX0.H, @0xff88
 	// 0735 2089      lrs         $AX0.L, @0xff89
 	// 0736 5800      subax       $ACC0, $AX0
-	ACC0 = [8a,8b] - [88,89];
+	ACC0 = Length[8a,8b] - LoopStartPos[88,89];
 	
 	// 0737 0a00      lris        $AX0.H, #0x00
 	// 0738 2032      lrs         $AX0.L, @0x0032
 	// 0739 5800      subax       $ACC0, $AX0
-	ACC0 -= *0x0432;
+	ACC0 -= CurBlock? (*0x0432);
 	
 	// 073a 2e3a      srs         @0x003a, $AC0.M
 	// 073b 2c3b      srs         @0x003b, $AC0.L
@@ -2727,76 +2735,86 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 	}
 	else
 	{
-		 07ab b100      tst         $ACC0
-		 07ac 0295 07bb jz          0x07bb
-		 07ae 5d00      sub         $ACC1, $ACC0
-		 07af 040f      addis       $ACC0, #0x0f
-		 07b0 147c      lsr         $ACC0, #-4
-		 07b1 0c00      lris        $AC0.L, #0x00
-		 07b2 00e3 0363 sr          @0x0363, $AR3
-		 
-		 // 07b4 02bf 07eb call        0x07eb
-		 07eb_AFCDecoder();
-		 
-		 07b6 00de 0363 lr          $AC0.M, @0x0363
-		 07b8 223b      lrs         $AX0.H, @0x003b
-		 07b9 4400      addr        $ACC0, $AX0.H
-		 07ba 1c7e      mrr         $AR3, $AC0.M
-		 
-		 
-		 07bb 8100      clr         $ACC0
-		 07bc 2681      lrs         $AC0.M, @0xff81
-		 07bd b100      tst         $ACC0
-		 07be 0295 07e3 jz          0x07e3   // stop rendering, see below 7e3
-		 
-		 
-		 07c0 2380      lrs         $AX1.H, @0xff80
-		 07c1 2688      lrs         $AC0.M, @0xff88
-		 07c2 2489      lrs         $AC0.L, @0xff89
-		 07c3 1408      lsl         $ACC0, #8
-		 07c4 14f4      asr         $ACC0, #-12
-		 07c5 2380      lrs         $AX1.H, @0xff80
-		 07c6 8d00      set15       
-		 07c7 c810      mulc'mv     $AC0.M, $AX1.H : $AX0.L, $AC0.L
-		 07c8 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
-		 07c9 8c00      clr15       
-		 07ca f000      lsl16       $ACC0
-		 07cb 4e00      addp        $ACC0
-		 07cc 238c      lrs         $AX1.H, @0xff8c
-		 07cd 218d      lrs         $AX1.L, @0xff8d
-		 07ce 4a00      addax       $ACC0, $AX1
-		 07cf 2e38      srs         @0x0038, $AC0.M
-		 07d0 2c39      srs         @0x0039, $AC0.L
-		 07d1 2682      lrs         $AC0.M, @0xff82
-		 07d2 2e67      srs         @0x0067, $AC0.M
-		 07d3 2683      lrs         $AC0.M, @0xff83
-		 07d4 2e66      srs         @0x0066, $AC0.M
-		 07d5 00e3 0363 sr          @0x0363, $AR3
-		 07d7 0083 0458 lri         $AR3, #0x0458
-		 07d9 8100      clr         $ACC0
-		 07da 0e01      lris        $AC0.M, #0x01
-		 
-		 // 07db 02bf 07eb call        0x07eb
-		 07eb_AFCDecoder();
-		 
-		 07dd 00c3 0363 lr          $AR3, @0x0363
-		 07df 02bf 0729 call        0x0729
-		 07e1 029f 0749 jmp         0x0749
-		 
-		 
-		// stop rendering of this PB (0x401 == 1) and clear the output buffer with zeroes...
-		 07e3 0e01      lris        $AC0.M, #0x01 
-		 07e4 2e01      srs         @0x0001, $AC0.M
+		07ab b100      tst         $ACC0
+		07ac 0295 07bb jz          0x07bb
+		07ae 5d00      sub         $ACC1, $ACC0
+		07af 040f      addis       $ACC0, #0x0f
+		07b0 147c      lsr         $ACC0, #-4
+		07b1 0c00      lris        $AC0.L, #0x00
+		07b2 00e3 0363 sr          @0x0363, $AR3
+		
+		// 07b4 02bf 07eb call        0x07eb
+		07eb_AFCDecoder();
+		
+		07b6 00de 0363 lr          $AC0.M, @0x0363
+		07b8 223b      lrs         $AX0.H, @0x003b
+		07b9 4400      addr        $ACC0, $AX0.H
+		07ba 1c7e      mrr         $AR3, $AC0.M
+		
+		
+		07bb 8100      clr         $ACC0
+		
+		// Check repeat mode.
+		07bc 2681      lrs         $AC0.M, @0xff81
+		07bd b100      tst         $ACC0
+		07be 0295 07e3 jz          0x07e3   // stop rendering, see below 7e3
+		
+		// Repeat.
+		07c0 2380      lrs         $AX1.H, @0xff80
+		// 07c1 2688      lrs         $AC0.M, @0xff88
+		// 07c2 2489      lrs         $AC0.L, @0xff89
+		// 07c3 1408      lsl         $ACC0, #8
+		// 07c4 14f4      asr         $ACC0, #-12
+		$AC0 = PB.LoopStartPos >> 4
+		
+		07c5 2380      lrs         $AX1.H, @0xff80
+		07c6 8d00      set15       
+		07c7 c810      mulc'mv     $AC0.M, $AX1.H : $AX0.L, $AC0.L
+		07c8 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+		07c9 8c00      clr15       
+		07ca f000      lsl16       $ACC0
+		07cb 4e00      addp        $ACC0
+		// The above is a 32 bit mul - loopstart * format
+				
+		// 07cc 238c      lrs         $AX1.H, @0xff8c
+		// 07cd 218d      lrs         $AX1.L, @0xff8d
+		// 07ce 4a00      addax       $ACC0, $AX1
+		// 07cf 2e38      srs         @0x0038, $AC0.M
+		// 07d0 2c39      srs         @0x0039, $AC0.L
+		So, CurAddr = Loopstart * format + Startaddr
+		
+		// 07d1 2682      lrs         $AC0.M, @0xff82
+		// 07d2 2e67      srs         @0x0067, $AC0.M
+		// 07d3 2683      lrs         $AC0.M, @0xff83
+		// 07d4 2e66      srs         @0x0066, $AC0.M
+		Unconditionally (!) copy YN1 and YN2 from loopyn2 and loopyn1
+		
+		07d5 00e3 0363 sr          @0x0363, $AR3
+		07d7 0083 0458 lri         $AR3, #0x0458
+		07d9 8100      clr         $ACC0
+		07da 0e01      lris        $AC0.M, #0x01
+		
+		// 07db 02bf 07eb call        0x07eb
+		07eb_AFCDecoder();
+		
+		07dd 00c3 0363 lr          $AR3, @0x0363
+		07df 02bf 0729 call        0x0729
+		07e1 029f 0749 jmp         0x0749
+		
+		// No repeat
+	 	// stop rendering of this PB (0x401 == 1) and clear the output buffer with zeroes...
+		07e3 0e01      lris        $AC0.M, #0x01 
+		07e4 2e01      srs         @0x0001, $AC0.M
 		 
 	early_out:
 	 // Zero the buffer.
-		 07e5 8100      clr         $ACC0
-		 07e6 005f      loop        $AC1.M
-		 07e7 1b7e      srri        @$AR3, $AC0.M
-		 07e8 0092 00ff lri         $CR, #0x00ff
-		 		 
-		 // 07ea 02df      ret      	
-		 return 
+		07e5 8100      clr         $ACC0
+		07e6 005f      loop        $AC1.M
+		07e7 1b7e      srri        @$AR3, $AC0.M
+		07e8 0092 00ff lri         $CR, #0x00ff
+				 
+		// 07ea 02df      ret      	
+		return 
 	}
 }	 
 
@@ -2823,9 +2841,9 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 	// 07fc 4c00      add         $ACC0, $ACC1
 	// 07fd 2e38      srs         @0x0038, $AC0.M
 	// 07fe 2c39      srs         @0x0039, $AC0.L
-	//inrease sample offset in ARAM
+	// increase sample offset in ARAM
 	AC0 = (*0x0038 << 16) | *0x0039
-	AC1 = _numberOfSample * *0x0480   // bytes per sample
+	AC1 = AC0 + _numberOfSample * *0x0480   // bytes per sample
 	*0x0038 = AC0.M
 	*0x0039 = AC0.L
 		 	 
