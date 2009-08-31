@@ -291,8 +291,8 @@ restart:
 			PB.CurAddr = PB.StartAddr; //+ (PB.LoopStartPos >> 4) * PB.Format + ;
 			PB.ReachedEnd = 0;
 			// Hmm, this shouldn't be reversed .. or should it? Is it different between versions of the ucode?
-			PB.YN1 = PB.LoopYN1;
-			PB.YN2 = PB.LoopYN2;
+			PB.YN1 = PB.LoopYN2;
+			PB.YN2 = PB.LoopYN1;
 		}
 	}
 

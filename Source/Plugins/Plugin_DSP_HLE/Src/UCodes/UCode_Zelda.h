@@ -97,8 +97,8 @@ union ZeldaVoicePB
 		// Read-only part
 		u16 Format;						// 0x80 | audio format
 		u16 RepeatMode;					// 0x81 | 0 = one-shot, non zero = loop
-		u16 LoopYN2;					// 0x82 | YN2 reload (when AFC loops)
-		u16 LoopYN1;					// 0x83 | YN1 reload (when AFC loops)
+		u16 LoopYN1;					// 0x82 | YN1 reload (when AFC loops)
+		u16 LoopYN2;					// 0x83 | YN2 reload (when AFC loops)
 		u16 Unk84;						// 0x84 | IIR Filter # coefs?
 		u16 StopOnSilence;				// 0x85 | Stop on silence? (Flag for something volume related. Decides the weird stuff at 035a/ZWW, alco 0cd3)
 		u16 Unk86;						// 0x86 | unknown

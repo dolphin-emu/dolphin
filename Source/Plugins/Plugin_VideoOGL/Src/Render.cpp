@@ -805,13 +805,15 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	s_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 
-	// TODO: Find better name for this because I don't know if it means what it says.
-	g_VideoInitialize.pCopiedToXFB(false);
-
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
 	if (!g_Config.bUseXFB)
+	{
+		// TODO: Find better name for this because I don't know if it means what it says.
+		g_VideoInitialize.pCopiedToXFB(false);
+
 		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+	}
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
