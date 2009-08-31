@@ -268,14 +268,12 @@ void Video_SendFifoData(u8* _uData, u32 len)
 
 void VideoFifo_CheckSwapRequest()
 {
+	// CPU swap unimplemented
 }
 
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-}
-
-void VideoFifo_CheckEFBAccess()
-{
+	// CPU swap unimplemented
 }
 
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
@@ -346,7 +344,7 @@ void Video_Screenshot(const char *_szFilename)
 	}
 }
 
-void Video_OnThreadAccessEFB()
+void VideoFifo_CheckEFBAccess()
 {
 	s_criticalEFB.Enter();
 	s_AccessEFBResult = 0;
@@ -371,7 +369,8 @@ void Video_OnThreadAccessEFB()
 	}
 	*/
 
-	s_AccessEFBDone.Set();
+	if (g_VideoInitialize.bUseDualCore)
+		s_AccessEFBDone.Set();
 
 	s_criticalEFB.Leave();
 }
@@ -380,30 +379,30 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
 	u32 result;
 
-	s_criticalEFB.Enter();
+s_criticalEFB.Enter();
 
 	s_AccessEFBType = type;
 	s_EFBx = x;
 	s_EFBy = y;
 
 	if (g_VideoInitialize.bUseDualCore)
-	{
 		s_AccessEFBDone.Init();
-	}
 
-	s_criticalEFB.Leave();
+s_criticalEFB.Leave();
 
 	if (g_VideoInitialize.bUseDualCore)
 		s_AccessEFBDone.Wait();
 	else
-		Video_OnThreadAccessEFB();
+		VideoFifo_CheckEFBAccess();
 
-	s_criticalEFB.Enter();
+s_criticalEFB.Enter();
+
 	if (g_VideoInitialize.bUseDualCore)
 		s_AccessEFBDone.Shutdown();
 
 	result = s_AccessEFBResult;
-	s_criticalEFB.Leave();
+
+s_criticalEFB.Leave();
 
 	return result;
 }
