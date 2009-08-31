@@ -317,7 +317,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	SetConsoleTextAttribute(hConsole, Color);
 	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, NULL);
 #else
-	fprintf(stderr, "%s", text);
+	fprintf(stderr, "%s", Text);
 #endif
 }
 
