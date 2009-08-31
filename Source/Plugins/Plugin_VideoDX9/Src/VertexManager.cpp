@@ -58,8 +58,8 @@ static Collection collection;
 static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
 static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
 
-#define MAXVBUFFERSIZE 65536
-#define MAXIBUFFERSIZE 65536*3
+#define MAXVBUFFERSIZE 65536*128
+#define MAXIBUFFERSIZE 65536*4
 
 const Collection collectionTypeLUT[8] =
 {
@@ -79,7 +79,7 @@ void DestroyDeviceObjects();
 bool Init()
 {
 	collection = C_NOTHING;
-	fakeVBuffer = new u8[MAXVBUFFERSIZE * 64];
+	fakeVBuffer = new u8[MAXVBUFFERSIZE];
 	fakeIBuffer = new u16[MAXIBUFFERSIZE];
 	CreateDeviceObjects();
 	VertexManager::s_pCurBufferPointer = fakeVBuffer;
@@ -121,7 +121,7 @@ void AddIndices(int _primitive, int _numVertices)
 
 int GetRemainingSize()
 {
-	return 60000;
+	return fakeVBuffer + MAXVBUFFERSIZE - VertexManager::s_pCurBufferPointer;
 }
 
 void AddVertices(int _primitive, int _numVertices)
@@ -136,15 +136,16 @@ void AddVertices(int _primitive, int _numVertices)
     DVSTARTPROFILE();
 	_assert_msg_(type != C_NOTHING, "type == C_NOTHING!!", "WTF");
 	
-	if (indexGen.GetNumVerts() > 1000) // TODO(ector): Raise?
-		Flush();
-
 	ADDSTAT(stats.thisFrame.numPrims, _numVertices);
 
 	if (collection != type)
 	{
 		//We are NOT collecting the right type.
 		Flush();
+
+		// Copy the extra verts that we lost.
+		memcpy(s_pCurBufferPointer, fakeVBuffer, _numVertices * g_nativeVertexFmt->GetVertexStride());
+
 		collection = type;
 		u16 *ptr = 0;
 		if (type != C_POINTS)
@@ -156,7 +157,7 @@ void AddVertices(int _primitive, int _numVertices)
 		if (_numVertices >= MAXVBUFFERSIZE)
 			MessageBox(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
 	}
-	else //We are collecting the right type, keep going
+	else  // We are collecting the right type, keep going
 	{
 		_assert_msg_(vbufferwrite != 0, "collecting: vbufferwrite == 0!","WTF");
 		INCSTAT(stats.thisFrame.numPrimitiveJoins);
@@ -211,7 +212,8 @@ void Flush()
 
 				if (tentry) {
 					// texture loaded fine, set dims for pixel shader
-					if (tentry->isNonPow2) {
+					if (tentry->isNonPow2)
+					{
 						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
 						nonpow2tex |= 1 << i;
 						if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
@@ -229,7 +231,6 @@ void Flush()
 			}
 		}
 		PixelShaderManager::SetTexturesUsed(nonpow2tex);
-
 
 		int numVertices = indexGen.GetNumVerts();
 		if (numVertices)
