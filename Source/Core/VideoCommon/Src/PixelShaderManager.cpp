@@ -24,21 +24,21 @@
 #include "VideoCommon.h"
 
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
-static int s_nIndTexMtxChanged = 0;
+static int s_nIndTexMtxChanged;
 static bool s_bAlphaChanged;
 static bool s_bZBiasChanged;
 static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
 static bool s_bFogColorChanged;
 static bool s_bFogParamChanged;
-static float lastDepthRange[2] = {0}; // 0 = far z, 1 = far - near
+static float lastDepthRange[2]; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static float lastCustomTexScale[8][2];
 static u8 s_nTexDimsChanged;
 static u8 s_nIndTexScaleChanged;
-static u32 lastAlpha = 0;
-static u32 lastTexDims[8]={0}; // width | height << 16 | wrap_s << 28 | wrap_t << 30
-static u32 lastZBias = 0;
+static u32 lastAlpha;
+static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
+static u32 lastZBias;
 
 // lower byte describes if a texture is nonpow2 or pow2
 // next byte describes whether the repeat wrap mode is enabled for the s channel
@@ -47,15 +47,19 @@ static u32 s_texturemask = 0;
 
 void PixelShaderManager::Init()
 {
-    s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
-    s_nTexDimsChanged = 0;
-    s_nIndTexScaleChanged = 0;
+    s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
+    s_nTexDimsChanged = true;
+    s_nIndTexScaleChanged = true;
     s_nIndTexMtxChanged = 15;
     s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
     s_bFogColorChanged = s_bFogParamChanged = true;
     memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
     for (int i = 0; i < 8; i++)
 		lastCustomTexScale[i][0] = lastCustomTexScale[i][1] = 1.0f;
+	lastAlpha = 0;
+	memset(lastTexDims, 0, sizeof(lastTexDims));
+	lastZBias = 0;
+	s_texturemask = 0;
 }
 
 void PixelShaderManager::Shutdown()
@@ -234,7 +238,8 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
 
-// This one is high in profiles (0.5%)
+// This one is high in profiles (0.5%). TODO: Move conversion out, only store the raw color value
+// and update it when the shader constant is set, only.
 void PixelShaderManager::SetColorChanged(int type, int num)
 {
     int r = bpmem.tevregs[num].low.a;
@@ -307,7 +312,7 @@ void PixelShaderManager::SetViewport(float* viewport)
     // [4] = yorig + height/2 + 342
     // [5] = 16777215 * farz
 
-	if(lastDepthRange[0] != viewport[5] || lastDepthRange[1] != viewport[2])
+	if (lastDepthRange[0] != viewport[5] || lastDepthRange[1] != viewport[2])
 	{
 		lastDepthRange[0] = viewport[5];
 		lastDepthRange[1] = viewport[2];
@@ -325,6 +330,7 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
     s_nIndTexMtxChanged |= 1 << matrixidx;
 }
+
 void PixelShaderManager::SetZTextureTypeChanged()
 {
 	s_bZTextureTypeChanged = true;
@@ -339,7 +345,7 @@ void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
             if (nonpow2tex & (0x10101 << i))
 			{
 				// this check was previously implicit, but should it be here?
-				if (s_nTexDimsChanged )
+				if (s_nTexDimsChanged)
 					s_nTexDimsChanged |= 1 << i;
             }
         }
