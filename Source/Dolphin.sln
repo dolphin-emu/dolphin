@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcproj", "{F0B874CB-4476-4199-9315-8343D05AE684}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7E5D50A-2916-464B-86A7-E10B3CC88ADA} = {C7E5D50A-2916-464B-86A7-E10B3CC88ADA}
@@ -593,7 +593,8 @@ Global
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|x64.Build.0 = Release|x64
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.ActiveCfg = Debug|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.Build.0 = Debug|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.ActiveCfg = Debug|Win32
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.ActiveCfg = Debug|x64
+		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.Build.0 = Debug|x64
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.ActiveCfg = Debug|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.Build.0 = Debug|Win32
 		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|x64.ActiveCfg = Debug|Win32
