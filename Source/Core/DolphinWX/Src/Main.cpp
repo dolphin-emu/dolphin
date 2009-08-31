@@ -142,7 +142,10 @@ bool DolphinApp::OnInit()
 				{
 					PanicAlert("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
 				}
-				fclose(portable);
+				else
+				{
+					fclose(portable);
+				}
 			}
 			else
 			{
