@@ -28,8 +28,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 
 LogManager *LogManager::m_logManager = NULL;
 
-LogManager::LogManager()\
-	: logMutex(1) {
+LogManager::LogManager() : logMutex(1) {
 	// create log files
 	m_Log[LogTypes::MASTER_LOG]			= new LogContainer("*",				"Master Log");
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");

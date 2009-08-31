@@ -84,7 +84,6 @@ public:
 	COORD GetCoordinates(int BytesRead, int BufferWidth);
 	#endif
 	void Log(LogTypes::LOG_LEVELS, const char *Text);
-	//void Log(LogTypes::LOG_LEVELS, const char *Text, ...);
 	void ClearScreen(bool Cursor = true);
 
 	const char *getName() const { return "Console"; }

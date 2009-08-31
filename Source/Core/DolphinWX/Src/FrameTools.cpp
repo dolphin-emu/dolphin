@@ -172,10 +172,8 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
-	#ifdef _WIN32
-		pOptionsMenu->AppendSeparator();
-		pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
-	#endif			
+	pOptionsMenu->AppendSeparator();
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
 	menuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// Tools menu
@@ -218,10 +216,8 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
 	viewMenu->AppendCheckItem(IDM_LISTUSA, _T("Show USA"));
 	viewMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
-#ifdef _WIN32 //TODO test drive loading on linux, I cannot load from drive on my linux system Dolphin just crashes
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _T("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
-#endif
 	viewMenu->AppendSeparator();
 	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
 	menuBar->Append(viewMenu, _T("&View"));	
@@ -259,9 +255,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(IDM_PLAY, wxT(""),   m_Bitmaps[Toolbar_Play], _T("Play"));
 	ToolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
-#ifdef _WIN32
 	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
-#endif
 	ToolBar->AddTool(IDM_SCREENSHOT, _T("Scr.Shot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
@@ -1342,12 +1336,13 @@ void CFrame::ToggleConsole(bool Show, int i)
 		//wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
 		//DoRemovePage (Win, true);
 		DoRemovePageString(wxT("Console"), true);
+		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
+
 		#else
 		Console->Close();
 		#endif
-		#ifdef _WIN32
-		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
-		#endif
+
+
 	}
 
 	// Hide pane

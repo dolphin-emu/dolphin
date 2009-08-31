@@ -509,14 +509,12 @@ CFrame::CFrame(bool showLogWindow,
 		wxAuiManagerEventHandler(CFrame::OnManagerResize),
 		(wxObject*)0, this);	
 
-	#ifdef _WIN32 // The functions are only tested in Windows so far
 		wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
 			wxMouseEventHandler(CFrame::OnDoubleClick),
 			(wxObject*)0, this);
 		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
 			wxMouseEventHandler(CFrame::OnMotion),
 			(wxObject*)0, this);
-	#endif
 	// ----------
 
 	// Update controls
@@ -655,20 +653,21 @@ void CFrame::SetPaneSize()
 // Debugging, show loose windows
 void CFrame::ListChildren()
 {	
+	return;
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	for (int i = 0; i < this->GetChildren().size(); i++)
 	{
 		wxWindow * Win = this->GetChildren().Item(i)->GetData();
-		Console->Log(LogTypes::LCUSTOM, StringFromFormat(
-			"%i: %s (%s) :: % s\n", i,
-			Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+		//		Console->Log(LogTypes::LDEBUG, StringFromFormat(
+		//	"%i: %s (%s) :: % s\n", i,
+		//			Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
 		
 		Win = this->GetChildren().Item(i)->GetData();
 		for (int j = 0; j < Win->GetChildren().size(); j++)
 		{
-			Console->Log(LogTypes::LCUSTOM, StringFromFormat(
-				"     %i.%i: %s (%s) :: % s\n", i, j,
-				Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+			//			Console->Log(LogTypes::LDEBUG, StringFromFormat(
+			//				"     %i.%i: %s (%s) :: % s\n", i, j,
+			//				Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
 		}
 	}	
 }

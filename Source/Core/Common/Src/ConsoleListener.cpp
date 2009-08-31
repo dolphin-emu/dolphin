@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <algorithm>  // min
 #include <string> // System: To be able to add strings with "+"
 #include <stdio.h>
@@ -31,12 +28,7 @@
 
 #include "Common.h"
 #include "LogManager.h" // Common
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Main
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 ConsoleListener::ConsoleListener()
 {
 #ifdef _WIN32
@@ -87,16 +79,10 @@ bool ConsoleListener::IsOpen()
 	return true;
 #endif
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Size
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /*
-Short documentation:
-	LetterSpace: SetConsoleScreenBufferSize and SetConsoleWindowInfo are dependent on each other, that's the
-	reason for the additional checks.
+  LetterSpace: SetConsoleScreenBufferSize and SetConsoleWindowInfo are
+	dependent on each other, that's the reason for the additional checks.  
 */
 void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
@@ -211,12 +197,6 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 		coordScreen = GetCoordinates(BytesRead, ConInfo.dwSize.X);
 		LastAttrRead = cAttrRead;
 	}
-	// ---------------------------------------------------------------------
-
-
-	// ---------------------------------------------------------------------
-	//  Modify the buffer proportions
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Letter space
 	int LWidth = floor((float)Width / 8.0) - 1.0;
 	int LHeight = floor((float)Height / 12.0) - 1.0;	
@@ -224,12 +204,8 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	int LBufHeight = floor((float)BufferSize / (float)LBufWidth);
 	// Change screen buffer size
 	LetterSpace(LBufWidth, LBufHeight);
-	// ---------------------------------------------------------------------
 
 
-	// ---------------------------------------------------------------------
-	//  Redraw the text
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	ClearScreen(true);	
 	coordScreen.Y = 0;
 	coordScreen.X = 0;
@@ -247,16 +223,10 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 		BytesWritten += cAttrWritten;
 		coordScreen = GetCoordinates(BytesWritten, LBufWidth);
 	}	
-	// ---------------------------------------------------------------------
 
-
-	// ---------------------------------------------------------------------
-	//  Update cursor
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	int OldCursor = ConInfo.dwCursorPosition.Y * ConInfo.dwSize.X + ConInfo.dwCursorPosition.X;
 	COORD Coo = GetCoordinates(OldCursor, LBufWidth);
 	SetConsoleCursorPosition(hConsole, Coo);
-	// ---------------------------------------------------------------------
 
 	if (SLog.length() > 0) Log(LogTypes::LNOTICE, SLog.c_str());
 
@@ -264,13 +234,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	if (Resize) MoveWindow(GetConsoleWindow(), Left,Top, (Width + 100),Height, true);
 #endif
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Write
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-//void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text, ...)
 void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 {
 #if defined(_WIN32)
@@ -307,7 +271,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 		Color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		break;
 	}
-	if (Level != CUSTOM_LEVEL && strlen(Text) > 10)
+	if (strlen(Text) > 10)
 	{
 		// First 10 chars white
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -320,7 +284,6 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	fprintf(stderr, "%s", Text);
 #endif
 }
-
 // Clear console screen
 void ConsoleListener::ClearScreen(bool Cursor)
 { 
@@ -342,5 +305,5 @@ void ConsoleListener::ClearScreen(bool Cursor)
 	if (Cursor) SetConsoleCursorPosition(hConsole, coordScreen); 
 #endif
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
