@@ -485,9 +485,6 @@ CFrame::CFrame(bool showLogWindow,
 		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 	}
 
-	//if we are ever going back to optional iso caching:
-	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
-	m_GameListCtrl->Update();
 	//sizerPanel->SetSizeHints(m_Panel);
 
 	// Commit 
@@ -524,6 +521,10 @@ CFrame::CFrame(bool showLogWindow,
 
 	// Update controls
 	UpdateGUI();
+
+	//if we are ever going back to optional iso caching:
+	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
+	m_GameListCtrl->Update();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
