@@ -17,14 +17,22 @@
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Windows
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-CFrame is the main parent window. Inside CFrame there is an m_Panel that is the
-parent for the rendering window (when we render to the main window). In Windows
-the rendering window is created by giving CreateWindow() m_Panel->GetHandle()
-as parent window and creating a new child window to m_Panel. The new child
-window handle that is returned by CreateWindow() can be accessed from
-Core::GetWindowHandle().  */
+CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
+the rendering window (when we render to the main window). In Windows the rendering window is
+created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
+child window to m_Panel. The new child window handle that is returned by CreateWindow() can
+be accessed from Core::GetWindowHandle().
+
+///////////////////////////////////////////////*/
+
+
+// ----------------------------------------------------------------------------
+// includes
+// ----------------------------------------------------------------------------
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -46,8 +54,12 @@ Core::GetWindowHandle().  */
 #include "HW/DVDInterface.h"
 #include "State.h"
 #include "VolumeHandler.h"
-#include "LogManager.h"
+
 #include <wx/datetime.h> // wxWidgets
+
+// ----------------------------------------------------------------------------
+// resources
+// ----------------------------------------------------------------------------
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
@@ -256,6 +268,7 @@ EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
+EVT_MENU(IDM_LOGWINDOW, CFrame::OnToggleLogWindow)
 EVT_MENU(IDM_CONSOLEWINDOW, CFrame::OnToggleConsole)
 
 EVT_MENU(IDM_LISTDRIVES, CFrame::GameListChanged)
@@ -298,8 +311,14 @@ EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 
 END_EVENT_TABLE()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CFrame::CFrame(wxFrame* parent,
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Creation and close, quit functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+CFrame::CFrame(bool showLogWindow,
+		wxFrame* parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos,
@@ -307,15 +326,20 @@ CFrame::CFrame(wxFrame* parent,
 		bool _UseDebugger,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
-	, UseDebugger(_UseDebugger) 
+	, UseDebugger(_UseDebugger), m_LogWindow(NULL)
 	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
+	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
           
 {
+	#ifndef _WIN32
+		m_bLogWindow = false;
+	#endif
+
 	// Give it a console
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
@@ -461,6 +485,7 @@ CFrame::CFrame(wxFrame* parent,
 	if (!UseDebugger)
 	{
 		SetSimplePaneSize();
+		if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 	}
 
@@ -687,6 +712,7 @@ void CFrame::ReloadPanes()
 	// Open notebook pages
 	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
+	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 }
 void CFrame::DoLoadPerspective()

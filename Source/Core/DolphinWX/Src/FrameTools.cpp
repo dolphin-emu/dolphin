@@ -54,8 +54,8 @@ Core::GetWindowHandle().
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
+#include "LogWindow.h"
 #include "WxUtils.h"
-#include "LogManager.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -198,6 +198,11 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
+	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
+	viewMenu->Check(IDM_LOGWINDOW, m_bLogWindow);
+	#ifndef _WIN32
+		viewMenu->Enable(IDM_LOGWINDOW, false);
+	#endif
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
 	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
@@ -1085,6 +1090,7 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 }
 void CFrame::ClosePages()
 {
+	DoToggleWindow(IDM_LOGWINDOW, false);
 	//DoToggleWindow(IDM_CONSOLEWINDOW, false);
 	DoToggleWindow(IDM_CODEWINDOW, false);
 	DoToggleWindow(IDM_REGISTERWINDOW, false);
@@ -1098,6 +1104,7 @@ void CFrame::DoToggleWindow(int Id, bool Show)
 {			
 	switch (Id)
 	{
+		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
 		case IDM_CONSOLEWINDOW: ToggleConsole(Show, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
 		case IDM_CODEWINDOW: g_pCodeWindow->OnToggleCodeWindow(Show, g_pCodeWindow->iCodeWindow); break;
 		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, g_pCodeWindow->iRegisterWindow); break;
@@ -1117,6 +1124,7 @@ void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
 	AddRemoveBlankPage();
 
 	// Update the notebook affiliation
+	if(GetNootebookAffiliation(wxT("Log")) >= 0) g_pCodeWindow->iLogWindow = GetNootebookAffiliation(wxT("Log"));
 	if(GetNootebookAffiliation(wxT("Console")) >= 0) g_pCodeWindow->iConsoleWindow = GetNootebookAffiliation(wxT("Console"));
 	if(GetNootebookAffiliation(wxT("Code")) >= 0) g_pCodeWindow->iCodeWindow = GetNootebookAffiliation(wxT("Code"));
 	if(GetNootebookAffiliation(wxT("Registers")) >= 0) g_pCodeWindow->iRegisterWindow = GetNootebookAffiliation(wxT("Registers"));
@@ -1133,6 +1141,7 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 
     wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 
+	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Log"))) { GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(false); DoToggleWindow(IDM_LOGWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Console"))) { GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(false); DoToggleWindow(IDM_CONSOLEWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Registers"))) { GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(false); DoToggleWindow(IDM_REGISTERWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Breakpoints"))) { GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(false); DoToggleWindow(IDM_BREAKPOINTWINDOW, false); }
@@ -1262,6 +1271,31 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 	this->SendSizeEvent();
 }
 
+// Enable and disable the log window
+void CFrame::OnToggleLogWindow(wxCommandEvent& event)
+{
+	DoToggleWindow(event.GetId(), event.IsChecked());
+}
+void CFrame::ToggleLogWindow(bool Show, int i)
+{
+	SConfig::GetInstance().m_InterfaceLogWindow = Show;
+	if (Show)
+	{
+		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
+		DoAddPage(m_LogWindow, i, "Log");
+	}
+	else
+	{
+		DoRemovePage(m_LogWindow);
+	}
+
+	// Hide pane
+	if (!UseDebugger) HidePane();
+
+	// Make sure the check is updated (if wxw isn't calling this func)
+	//GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(Show);
+}
+// Enable and disable the console
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
 	DoToggleWindow(event.GetId(), event.IsChecked());

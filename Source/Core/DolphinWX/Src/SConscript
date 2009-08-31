@@ -27,6 +27,7 @@ if wxenv['HAVE_WX']:
 		'ARCodeAddEdit.cpp',
 		'ConfigMain.cpp',
 		'Frame.cpp',
+		'LogWindow.cpp',
 		'FrameTools.cpp',
 		'GameListCtrl.cpp',
 		'Globals.cpp',

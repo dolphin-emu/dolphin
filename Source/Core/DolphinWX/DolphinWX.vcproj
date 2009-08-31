@@ -1153,6 +1153,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\LogWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\LogWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\MemcardManager.cpp"
 				>
 			</File>
