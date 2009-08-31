@@ -873,7 +873,7 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 			return true;
         if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER)
 		{
-            WRITE(p, "discard;\n");
+			WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
             return false;
         }
         break;
@@ -882,7 +882,7 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 			return true;
         if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)
 		{
-            WRITE(p, "discard;\n");
+            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
             return false;
         }
         break;
@@ -891,14 +891,14 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 			return true;
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)) 
 		{
-            WRITE(p, "discard;\n");
+            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
             return false;
         }
         break;
     case 3: // XNOR
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS)) 
 		{
-            WRITE(p, "discard;\n");
+            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
             return false;
         }
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
@@ -927,7 +927,12 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 
     WriteAlphaCompare(p, 1, bpmem.alphaFunc.comp1);
 
-    WRITE(p, ");\n");
+	if (HLSL) {
+		// clip works differently than discard - discard takes a bool, clip takes a value that kills the pixel on negative
+		WRITE(p, " ? -1 : 1);\n");
+	} else {
+		WRITE(p, ");\n");
+	}
 
     return true;
 }
