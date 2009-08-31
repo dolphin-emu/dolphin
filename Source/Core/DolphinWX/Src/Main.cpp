@@ -295,7 +295,6 @@ bool DolphinApp::OnInit()
 	ini.Get("MainWindow", "w", &w, 800);
 	ini.Get("MainWindow", "h", &h, 600);
 
-	UseDebugger = true;
 	if (UseDebugger)
 	{
 		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
