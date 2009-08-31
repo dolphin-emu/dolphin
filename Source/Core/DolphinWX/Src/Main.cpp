@@ -36,7 +36,7 @@
 #include "Main.h"
 #include "ConfigManager.h"
 #include "CodeWindow.h"
-#include "LogWindow.h"
+#include "LogManager.h"
 #include "JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
@@ -89,7 +89,6 @@ bool DolphinApp::OnInit()
 	NOTICE_LOG(BOOT, "Starting application");
 	// Declarations and definitions
 	bool UseDebugger = false;
-	bool UseLogger = false;
 	bool LoadElf = false;
 	wxString ElfFile;
 
@@ -259,7 +258,6 @@ bool DolphinApp::OnInit()
 		} 
 
 		UseDebugger = parser.Found(_T("debugger"));
-		UseLogger = parser.Found(_T("logger"));
 		LoadElf = parser.Found(_T("elf"), &ElfFile);
 
 		if( LoadElf && ElfFile == wxEmptyString )
@@ -294,12 +292,12 @@ bool DolphinApp::OnInit()
 
 	if (UseDebugger)
 	{
-		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
 				wxPoint(x, y), wxSize(w, h), true);
 	}
 	else
 	{
-		main_frame = new CFrame(UseLogger, (wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
 				wxPoint(100, 100), wxSize(800, 600));
 	}
 

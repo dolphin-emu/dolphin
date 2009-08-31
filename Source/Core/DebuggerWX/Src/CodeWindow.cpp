@@ -208,11 +208,6 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 	    case IDM_NOTIFYMAPLOADED:
 		    NotifyMapLoaded();
 		    break;
-		/*
-		case IDM_UPDATELOGDISPLAY:
-			if (m_LogWindow) m_LogWindow->NotifyUpdate();
-			break;
-		*/
 	    case IDM_UPDATEDISASMDIALOG:
 		    Update();
 		    if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
@@ -442,7 +437,6 @@ void CCodeWindow::Load()
 	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
 	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
 	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
 	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
@@ -478,7 +472,6 @@ void CCodeWindow::Save()
 	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Set(_Section.c_str(), "Log", iLogWindow);
 	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
 	ini.Set(_Section.c_str(), "Code", iCodeWindow);
 	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);

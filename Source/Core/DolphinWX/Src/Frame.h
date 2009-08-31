@@ -28,7 +28,6 @@
 
 #include "CDUtils.h"
 #include "CodeWindow.h"
-#include "LogWindow.h"
 
 // A shortcut to access the bitmaps
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -40,15 +39,13 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 
 // Class declarations
 class CGameListCtrl;
-class CLogWindow;
 
 class CFrame : public wxFrame
 {
 	public:
 
-		CFrame(bool showLogWindow,
-			wxFrame* parent,
-			wxWindowID id = wxID_ANY,
+		CFrame(wxFrame* parent,
+			   wxWindowID id = wxID_ANY,
 			const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
@@ -74,7 +71,6 @@ class CFrame : public wxFrame
 		void DoStop();
 		bool bRenderToMain;
 		void UpdateGUI();
-		void ToggleLogWindow(bool, int i = -1);
 		void ToggleConsole(bool, int i = -1);		
 		void PostEvent(wxCommandEvent& event);
 		void PostMenuEvent(wxMenuEvent& event);
@@ -159,8 +155,6 @@ class CFrame : public wxFrame
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 		wxToolBarToolBase* m_ToolPlay;
-		bool m_bLogWindow;
-		CLogWindow* m_LogWindow;
 
 		char **drives;
 
@@ -258,7 +252,6 @@ class CFrame : public wxFrame
 		void OnToggleToolbar(wxCommandEvent& event);
 		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);
-		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleConsole(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnKeyUp(wxKeyEvent& event);
