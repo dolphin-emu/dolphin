@@ -166,15 +166,15 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     
     // inputs
     if (components & VB_HAS_NRM0)
-        WRITE(p, "  float3 rawnorm0 : NORMAL,\n");
+        WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
     if (components & VB_HAS_NRM1)
 		if (D3D)
-			WRITE(p, "  float3 rawnorm1 : PSIZE,\n");
+			WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
 		else
 			WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
     if (components & VB_HAS_NRM2)
 		if (D3D)
-			WRITE(p, "  float3 rawnorm2 : BLENDINDICES,\n");
+			WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
 		else
 			WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
     if (components & VB_HAS_COL0)
@@ -188,7 +188,9 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     }
     if (components & VB_HAS_POSMTXIDX)
 		if (D3D)
-			WRITE(p, "  half posmtx : BLENDWEIGHT,\n");
+		{
+			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
+		}
 		else
 			WRITE(p, "  half posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 
@@ -197,6 +199,11 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
     // transforms
     if (components & VB_HAS_POSMTXIDX) {
+		if (D3D)
+		{
+			WRITE(p,"int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n"
+				"int posmtx = indices.x;\n");
+		}
         WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos),1);\n");
         
         if (components & VB_HAS_NRMALL) {
@@ -320,15 +327,18 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
         if (color.enablelighting != alpha.enablelighting) {
             if (color.enablelighting)
-                WRITE(p, "o.colors[%d].xyz = mat.xyz * clamp(lacc.xyz,float3(0.0f,0.0f,0.0f),float3(1.0f,1.0f,1.0f));\n"
+                //WRITE(p, "o.colors[%d].xyz = mat.xyz * clamp(lacc.xyz,float3(0.0f,0.0f,0.0f),float3(1.0f,1.0f,1.0f));\n"
+                WRITE(p, "o.colors[%d].xyz = mat.xyz * saturate(lacc.xyz);\n"
                     "o.colors[%d].w = mat.w;\n", j, j);
             else
                 WRITE(p, "o.colors[%d].xyz = mat.xyz;\n"
-                    "o.colors[%d].w = mat.w  * clamp(lacc.w,0.0f,1.0f);\n", j, j);
+                    //"o.colors[%d].w = mat.w  * clamp(lacc.w,0.0f,1.0f);\n", j, j);
+					"o.colors[%d].w = mat.w  * saturate(lacc.w);\n", j, j);
         }
         else {
             if (alpha.enablelighting)
-                WRITE(p, "o.colors[%d] = mat * clamp(lacc, float4(0.0f,0.0f,0.0f,0.0f), float4(1.0f,1.0f,1.0f,1.0f));\n", j);
+                //WRITE(p, "o.colors[%d] = mat * clamp(lacc, float4(0.0f,0.0f,0.0f,0.0f), float4(1.0f,1.0f,1.0f,1.0f));\n", j);
+				WRITE(p, "o.colors[%d] = mat * saturate(lacc);\n", j);
             else
 				WRITE(p, "o.colors[%d] = mat;\n", j);
         }
