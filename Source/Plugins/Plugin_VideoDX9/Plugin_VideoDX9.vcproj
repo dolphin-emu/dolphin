@@ -1297,6 +1297,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Globals.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\main.cpp"
 			>
 			<FileConfiguration

@@ -17,6 +17,7 @@
 
 #include "Config.h"
 #include "IniFile.h"
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 Config g_Config;
 

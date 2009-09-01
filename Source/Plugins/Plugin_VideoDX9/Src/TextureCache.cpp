@@ -17,9 +17,13 @@
 
 #include <d3dx9.h>
 
-#include "Common.h"
+#include "Globals.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
+#include "Hash.h"
+
+#include "CommonPaths.h"
+#include "FileUtil.h"
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
@@ -29,8 +33,7 @@
 #include "TextureDecoder.h"
 #include "TextureCache.h"
 
-#include "Config.h"
-#include "main.h"
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 u8 *TextureCache::temp = NULL;
 TextureCache::TexCache TextureCache::textures;
@@ -102,6 +105,7 @@ void TextureCache::Cleanup()
 
 TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
+
 	if (address == 0)
 		return NULL;
 	TexCache::iterator iter = textures.find(address);
@@ -218,11 +222,21 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	
 	if (g_Config.bDumpTextures)
 	{ // dump texture to file
-		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format);
-		
-	    D3DXSaveTextureToFile(szTemp,D3DXIFF_BMP,entry.texture,0);
+		char szDir[MAX_PATH];
+		bool bCheckedDumpDir = false;
+		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+		if(!bCheckedDumpDir)
+		{
+			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+				File::CreateDir(szDir);
+
+			bCheckedDumpDir = true;
+		}
+		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), hash_value, format);
+		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
+		if (!File::Exists(szTemp))
+			D3DXSaveTextureToFile(szTemp,D3DXIFF_BMP,entry.texture,0);
 	}
 
 	INCSTAT(stats.numTexturesCreated);
