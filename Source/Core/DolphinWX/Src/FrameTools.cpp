@@ -263,8 +263,11 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
-	ToolBar->AddSeparator();
-	ToolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
+	if (!UseDebugger)
+	{
+		ToolBar->AddSeparator();
+		ToolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
+	}
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
@@ -277,11 +280,10 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,	wxT("Save"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Save current perspective"));
-	ToolBar->AddTool(IDM_PERSPECTIVES_ADD_PANE,	wxT("Add"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Add new pane"));
-	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES,	wxT("Edit"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Edit current perspective"), wxITEM_CHECK);
-	ToolBar->AddTool(IDM_TAB_SPLIT,	wxT("Split"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Tab split"), wxITEM_CHECK);
+	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES,	wxT("Edit"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Edit current perspective"));
 
 	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
+	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);	
 
 	ToolBar->Realize();
 }
@@ -290,8 +292,7 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
-				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
+	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 	PopulateToolbar(m_ToolBar);
 	
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
@@ -301,8 +302,7 @@ void CFrame::RecreateToolbar()
 
 	if (UseDebugger)
 	{
-		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize,
-					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
+		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
 		
 		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
@@ -310,8 +310,7 @@ void CFrame::RecreateToolbar()
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 
-		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize,
-					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
+		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		PopulateToolbarAui(m_ToolBarAui);
 		m_Mgr->AddPane(m_ToolBarAui, wxAuiPaneInfo().
 				Name(wxT("TBAui")).Caption(wxT("TBAui")).
@@ -698,28 +697,9 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	}
 }
 
-void CFrame::OnToolBar(wxCommandEvent& event)
+void CFrame::ClearStatusBar()
 {
-	switch (event.GetId())
-	{
-		case IDM_SAVE_PERSPECTIVE:
-			if (Perspectives.size() == 0)
-			{
-				wxMessageBox(wxT("Please create a perspective before saving"), wxT("Notice"), wxOK, this);
-				return;
-			}
-			Save();
-			break;
-		case IDM_PERSPECTIVES_ADD_PANE:
-			AddPane();
-			break;
-		case IDM_EDIT_PERSPECTIVES:
-			TogglePaneStyle(m_ToolBarAui->GetToolToggled(IDM_EDIT_PERSPECTIVES));
-			break;
-		case IDM_TAB_SPLIT:
-			ToggleNotebookStyle(wxAUI_NB_TAB_SPLIT);
-			break;
-	}
+	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxT(""),0);
 }
 
 
@@ -995,5 +975,39 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	{
 		m_GameListCtrl->Update();
 	}
+}
+
+// Enable and disable the toolbar
+void CFrame::OnToggleToolbar(wxCommandEvent& event)
+{
+	SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked();
+	DoToggleToolbar(event.IsChecked());
+}
+void CFrame::DoToggleToolbar(bool Show)
+{
+	if (Show)
+	{
+		m_Mgr->GetPane(wxT("TBMain")).Show();
+		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }
+		m_Mgr->Update();
+	}
+	else
+	{
+		m_Mgr->GetPane(wxT("TBMain")).Hide();
+		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Hide(); m_Mgr->GetPane(wxT("TBAui")).Hide(); }
+		m_Mgr->Update();
+	}
+}
+
+// Enable and disable the status bar
+void CFrame::OnToggleStatusbar(wxCommandEvent& event)
+{
+	SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked();
+	if (SConfig::GetInstance().m_InterfaceStatusbar == true)
+		m_pStatusBar->Show();
+	else
+		m_pStatusBar->Hide();
+
+	this->SendSizeEvent();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

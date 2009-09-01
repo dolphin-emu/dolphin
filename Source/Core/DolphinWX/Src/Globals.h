@@ -182,6 +182,7 @@ enum
 	IDM_PERSPECTIVES_ADD_PANE,
 	IDM_EDIT_PERSPECTIVES,
 	IDM_TAB_SPLIT,
+	IDM_FLOATABLE_PANES,
 	IDM_PERSPECTIVES_0,
 	IDM_PERSPECTIVES_100 = IDM_PERSPECTIVES_0 + 100,
 	// --------------------------------------------------------------

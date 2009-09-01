@@ -229,13 +229,16 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
-EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_SAVE_PERSPECTIVE, CFrame::OnDropDownToolbarItem)
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnToolBar)
-EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnCreatePerspective)
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnToolBar)
+EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_SAVE_PERSPECTIVE, CFrame::OnDropDownToolbarItem)
 EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnToolBar)
-EVT_MENU(IDM_TAB_SPLIT, CFrame::OnToolBar)
+EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_EDIT_PERSPECTIVES, CFrame::OnDropDownSettingsToolbar)
+// Drop down
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnToolBar)
 EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
+EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
+EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
+EVT_MENU(IDM_FLOATABLE_PANES, CFrame::OnDropDownToolbarSelect)
 
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
@@ -308,10 +311,10 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)	
-	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
-	, HaveSpeakers(false), m_ToolBar(NULL), m_ToolBarDebug(NULL)
-	, UseDebugger(_UseDebugger), m_GameListCtrl(NULL), m_Panel(NULL), m_LogWindow(NULL) 
-	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
+	, m_GameListCtrl(NULL), m_pStatusBar(NULL)
+	, m_LogWindow(NULL), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
+	, m_bEdit(false), m_bTabSplit(false), m_bFloatPane(false), bRenderToMain(true), HaveLeds(false), HaveSpeakers(false)
+	, UseDebugger(_UseDebugger), m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
@@ -321,7 +324,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Give it a console early to show potential messages from this onward
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open(true);
+	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
@@ -369,11 +372,10 @@ CFrame::CFrame(wxFrame* parent,
 	m_Panel->SetSizer(sizerPanel);
 	// ---------------
 
-	m_Mgr = new wxAuiManager();
-	m_Mgr->SetManagedWindow(this);
-
-
-	DefaultNBStyle = wxAUI_NB_TOP | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	// Manager
+	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
+	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
+	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW /*overflow visible*/;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (UseDebugger)
@@ -803,7 +805,7 @@ wxPanel* CFrame::CreateEmptyPanel()
 }
 wxAuiNotebook* CFrame::CreateEmptyNotebook()
 {	
-   wxAuiNotebook* NB = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, DefaultNBStyle);
+   wxAuiNotebook* NB = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, NOTEBOOK_STYLE);
    return NB;
 }
 

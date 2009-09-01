@@ -100,7 +100,7 @@ class CFrame : public wxFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		int DefaultNBStyle;
+		long NOTEBOOK_STYLE, TOOLBAR_STYLE;
 		int iLeftWidth[2], iMidWidth[2];
 		// Perspectives
 		wxWindow * GetWxWindow(wxString);
@@ -127,7 +127,8 @@ class CFrame : public wxFrame
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();
-		void TogglePaneStyle(bool);
+		void ResetToolbarStyle();
+		void TogglePaneStyle(bool,int);
 		void ToggleNotebookStyle(long);
 		void ResizeConsole();
 		// User perspectives
@@ -151,13 +152,17 @@ class CFrame : public wxFrame
 		void OnPaneClose(wxAuiManagerEvent& evt);
 		void ReloadPanes();
 		void DoLoadPerspective();
-		void OnCreatePerspective(wxCommandEvent& event);
+		void OnDropDownToolbarSelect(wxCommandEvent& event);		
+		void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
 		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
 		void OnSelectPerspective(wxCommandEvent& event);		
 
 	private:
 		
 		bool UseDebugger;
+		bool m_bEdit;
+		bool m_bTabSplit;
+		bool m_bFloatPane;
 		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
@@ -210,6 +215,7 @@ class CFrame : public wxFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
+		void ClearStatusBar();
 		wxPanel *CreateEmptyPanel();
 		wxAuiNotebook *CreateEmptyNotebook();
 
@@ -221,6 +227,7 @@ class CFrame : public wxFrame
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 		void OnToolBar(wxCommandEvent& event);
+		void OnAuiToolBar(wxAuiToolBarEvent& event);
 
 		void OnOpen(wxCommandEvent& event); // File menu
 		void DoOpen(bool Boot);
