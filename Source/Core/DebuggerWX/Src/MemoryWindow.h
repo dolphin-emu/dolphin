@@ -41,7 +41,11 @@ class CMemoryWindow
 			const wxString& title = _T("Dolphin-Memory"),
 		const wxPoint& pos = wxPoint(950, 100),
 		const wxSize& size = wxSize(400, 500),
+		#ifdef _WIN32
 		long style = wxNO_BORDER);
+		#else
+		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		#endif
 
         ~CMemoryWindow();
 

@@ -33,7 +33,11 @@ public:
 		const wxString &title = wxT("Video"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
+		#ifdef _WIN32
 		long style = wxNO_BORDER);
+		#else
+		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		#endif
 
 	virtual ~GFXDebuggerOGL();
 

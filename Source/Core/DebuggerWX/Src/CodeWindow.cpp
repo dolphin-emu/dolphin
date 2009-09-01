@@ -149,13 +149,11 @@ END_EVENT_TABLE()
 
 
 
-// Class, input event handler and host message handler
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *ParentObject, wxWindow* Parent,
-	wxWindowID Id)
-	: wxPanel(Parent, Id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER, wxT("Dolphin-Debugger"))
+// Class
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *ParentObject, wxWindow* parent,
+	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
+	: wxPanel(parent, id, position, size, style, name)
 	, Parent(ParentObject)
-	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
-	    things may crash */
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)

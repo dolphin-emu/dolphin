@@ -44,8 +44,14 @@ class CCodeWindow
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *, wxWindow* parent,
-			wxWindowID id = wxID_ANY);
+		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *,
+			wxWindow* parent,
+			wxWindowID id = wxID_ANY,
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxTAB_TRAVERSAL | wxNO_BORDER,
+			const wxString& name = wxT("Dolphin-Debugger")
+			);
 		/*
 		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
 			wxWindowID id = wxID_ANY,

@@ -22,14 +22,16 @@ class CRegisterView;
 class IniFile;
 
 class CRegisterWindow
-	: public wxDialog
+	: public wxPanel
 {
 public:
-	CRegisterWindow(wxWindow* parent, wxWindowID id = 1,
-		const wxString& title = wxT("Registers"),
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxNO_BORDER);
+	CRegisterWindow(wxWindow* parent,
+			wxWindowID id = wxID_ANY,
+			const wxString& name = wxT("Registers"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxTAB_TRAVERSAL | wxNO_BORDER			
+			);
 
 	virtual ~CRegisterWindow();
 

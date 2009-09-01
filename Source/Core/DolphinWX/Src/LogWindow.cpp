@@ -26,7 +26,7 @@
 #include "LogWindow.h"
 #include "Console.h"
 
-// milliseconds between msgQueue flushes to wxTextCtrl
+// Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
@@ -42,10 +42,8 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
 END_EVENT_TABLE()
 
-CLogWindow::CLogWindow(wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, wxT("Log"), 
-			   wxPoint(100, 700), wxSize(800, 270),
-			   wxNO_BORDER)
+CLogWindow::CLogWindow(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+	: wxDialog(parent, id, title, position, size, style)
     , m_logSection(1)
 {
 	m_logManager = LogManager::GetInstance();

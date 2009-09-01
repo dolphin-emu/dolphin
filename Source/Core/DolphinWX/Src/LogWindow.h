@@ -46,7 +46,16 @@ class wxString;
 class CLogWindow : public wxDialog, LogListener
 {
 public:
-	CLogWindow(wxWindow* parent);
+	CLogWindow(wxWindow* parent,
+		wxWindowID id = wxID_ANY,
+		const wxString& title = wxT("Log"),
+		const wxPoint& pos = wxPoint(100, 700),
+		const wxSize& size = wxSize(800, 270),
+		#ifdef _WIN32
+		long style = wxNO_BORDER);
+		#else
+		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		#endif
 	~CLogWindow();
 	void NotifyUpdate();
 

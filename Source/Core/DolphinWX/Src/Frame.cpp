@@ -336,10 +336,6 @@ CFrame::CFrame(bool showLogWindow,
 	#endif
           
 {
-	#ifndef _WIN32
-		m_bLogWindow = false;
-	#endif
-
 	// Give it a console
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
@@ -558,6 +554,8 @@ void CFrame::OnClose(wxCloseEvent& event)
 	// Save GUI settings
 	if (UseDebugger) g_pCodeWindow->Save();
 	if (UseDebugger) Save();
+	// Uninit
+	m_Mgr->UnInit();
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{

@@ -200,9 +200,6 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
 	viewMenu->Check(IDM_LOGWINDOW, m_bLogWindow);
-	#ifndef _WIN32
-		viewMenu->Enable(IDM_LOGWINDOW, false);
-	#endif
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
 	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
@@ -319,22 +316,6 @@ void CFrame::RecreateToolbar()
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
-	
-	//UpdateGUI();
-
-	/*
-	wxToolBarBase* ToolBar = GetToolBar();
-	long style = ToolBar ? ToolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-	delete ToolBar;
-	SetToolBar(NULL);
-
-	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	m_ToolBar = CreateToolBar(style, ID_TOOLBAR);
-
-	PopulateToolbar(m_ToolBar);
-	SetToolBar(m_ToolBar);
-	UpdateGUI();
-	*/
 }
 
 void CFrame::InitBitmaps()
@@ -1225,7 +1206,7 @@ void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
 {
 	// If m_dialog is NULL, then possibly the system didn't report the checked menu item status correctly.
 	// It should be true just after the menu item was selected, if there was no modeless dialog yet.
-	wxASSERT(Win != NULL);
+	//wxASSERT(Win != NULL);
 
 	if (Win)
 	{
@@ -1282,11 +1263,19 @@ void CFrame::ToggleLogWindow(bool Show, int i)
 	if (Show)
 	{
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
+		#ifdef _WIN32
 		DoAddPage(m_LogWindow, i, "Log");
+		#else
+		m_LogWindow->Show();
+		#endif
 	}
 	else
 	{
+		#ifdef _WIN32
 		DoRemovePage(m_LogWindow);
+		#else
+		if (m_LogWindow) m_LogWindow->Show();
+		#endif
 	}
 
 	// Hide pane

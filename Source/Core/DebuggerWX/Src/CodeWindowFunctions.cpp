@@ -365,10 +365,18 @@ void CCodeWindow::OnToggleBreakPointWindow(bool Show, int i)
 	if (Show)
 	{
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
+		#ifdef _WIN32
 		Parent->DoAddPage(m_BreakpointWindow, i, "Breakpoints");
+		#else
+		m_BreakpointWindow->Show();
+		#endif
 	}
 	else // hide
+		#ifdef _WIN32
 		Parent->DoRemovePage(m_BreakpointWindow);
+		#else
+		if (m_BreakpointWindow) m_BreakpointWindow->Hide();
+		#endif
 }
 
 void CCodeWindow::OnToggleJitWindow(bool Show, int i)
@@ -376,10 +384,18 @@ void CCodeWindow::OnToggleJitWindow(bool Show, int i)
 	if (Show)
 	{
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
+		#ifdef _WIN32
 		Parent->DoAddPage(m_JitWindow, i, "JIT");
+		#else
+		m_JitWindow->Show();
+		#endif
 	}
 	else // hide
+		#ifdef _WIN32
 		Parent->DoRemovePage(m_JitWindow);
+			#else
+		if (m_JitWindow) m_JitWindow->Hide();
+		#endif
 }
 
 
@@ -388,10 +404,18 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, int i)
 	if (Show)
 	{
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
+		#ifdef _WIN32
 		Parent->DoAddPage(m_MemoryWindow, i, "Memory");
+		#else
+		m_MemoryWindow->Show();
+		#endif
 	}
 	else // hide
+		#ifdef _WIN32
 		Parent->DoRemovePage(m_MemoryWindow);
+		#else
+		if (m_MemoryWindow) m_MemoryWindow->Hide();
+		#endif
 }
 
 //Toggle Sound Debugging Window

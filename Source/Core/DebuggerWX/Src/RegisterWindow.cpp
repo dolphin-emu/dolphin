@@ -22,13 +22,13 @@
 
 extern const char* GetGRPName(unsigned int index);
 
-BEGIN_EVENT_TABLE(CRegisterWindow, wxDialog)
+BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
 	EVT_CLOSE(CRegisterWindow::OnClose)
 END_EVENT_TABLE()
 
 
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+	: wxPanel(parent, id, position, size, style, title)
 	, m_GPRGridView(NULL)
 {
 	CreateGUIControls();
