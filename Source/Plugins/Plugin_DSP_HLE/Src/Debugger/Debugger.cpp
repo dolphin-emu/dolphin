@@ -31,12 +31,14 @@
 	#include <stdlib.h>
 #endif
 
-#include "Debugger.h"
-#include "PBView.h"
-#include "IniFile.h"
+#include "IniFile.h" // Common
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "FileSearch.h"
+#include "LogManager.h"
+
+#include "Debugger.h"
+#include "PBView.h"
 #include "../Debugger/File.h" // Write to file
 //////////////////////////////
 
@@ -147,6 +149,12 @@ DSPDebuggerHLE::~DSPDebuggerHLE()
 	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
+
+	// Reset
+	m_DebuggerFrame = NULL;
+	// Talk
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound closed\n").c_str());
 } 
 // ====================
 
@@ -241,7 +249,7 @@ void DSPDebuggerHLE::CreateGUIControls()
 
 	wxStaticBoxSizer* sLeft;
 
-	int m_radioBoxNChoices[3];
+	int m_radioBoxNChoices[4];
 
 
 	// Notebook -----------------------------------------------------

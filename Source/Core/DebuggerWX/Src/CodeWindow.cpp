@@ -174,7 +174,9 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 }
 CCodeWindow::~CCodeWindow()
 {
-	Parent->g_pCodeWindow = NULL;
+	//if (Parent) Parent->g_pCodeWindow = NULL;
+	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	//Console->Log(LogTypes::LERROR, StringFromFormat(" >>> CCodeWindow Destroyed\n").c_str());
 }
 // Redirect old wxFrame calls
 wxMenuBar *CCodeWindow::GetMenuBar()

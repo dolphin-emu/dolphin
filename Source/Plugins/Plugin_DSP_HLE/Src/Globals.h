@@ -25,6 +25,12 @@
 #include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 extern DSPInitialize g_dspInitialize;
 
+#if defined(HAVE_WX) && HAVE_WX
+	#include "Debugger/Debugger.h"
+	class DSPDebuggerHLE;
+	extern DSPDebuggerHLE* m_DebuggerFrame;
+#endif
+
 extern bool gSSBM;
 extern bool gSSBMremedy1;
 extern bool gSSBMremedy2;

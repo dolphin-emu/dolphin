@@ -293,6 +293,7 @@ void CFrame::RecreateToolbar()
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 	PopulateToolbar(m_ToolBar);
+	
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
 				Name(wxT("TBMain")).Caption(wxT("TBMain")).
 				ToolbarPane().Top().
@@ -303,12 +304,11 @@ void CFrame::RecreateToolbar()
 		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
-		/*
+		
 		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
 				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
-				*/
 
 		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
@@ -1070,7 +1070,7 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 void CFrame::ClosePages()
 {
 	DoToggleWindow(IDM_LOGWINDOW, false);
-	//DoToggleWindow(IDM_CONSOLEWINDOW, false);
+	DoToggleWindow(IDM_CONSOLEWINDOW, false);
 	DoToggleWindow(IDM_CODEWINDOW, false);
 	DoToggleWindow(IDM_REGISTERWINDOW, false);
 	DoToggleWindow(IDM_BREAKPOINTWINDOW, false);
@@ -1080,11 +1080,17 @@ void CFrame::ClosePages()
 	DoToggleWindow(IDM_VIDEOWINDOW, false);
 }
 void CFrame::DoToggleWindow(int Id, bool Show)
-{			
+{		
 	switch (Id)
 	{
 		case IDM_LOGWINDOW: ToggleLogWindow(Show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
 		case IDM_CONSOLEWINDOW: ToggleConsole(Show, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
+	}
+
+	if (!UseDebugger) return;
+
+	switch (Id)
+	{
 		case IDM_CODEWINDOW: g_pCodeWindow->OnToggleCodeWindow(Show, g_pCodeWindow->iCodeWindow); break;
 		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(Show, g_pCodeWindow->iRegisterWindow); break;
 		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(Show, g_pCodeWindow->iBreakpointWindow); break;
@@ -1154,7 +1160,7 @@ void CFrame::HidePane()
 
 	SetSimplePaneSize();
 }
-void CFrame::DoRemovePageString(wxString Str, bool Hide)
+void CFrame::DoRemovePageString(wxString Str, bool Hide, bool Destroy)
 {
 	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
@@ -1162,10 +1168,25 @@ void CFrame::DoRemovePageString(wxString Str, bool Hide)
 		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
 		for (int j = 0; j < NB->GetPageCount(); j++)
 		{
-			if (NB->GetPageText(j).IsSameAs(Str)) { NB->RemovePage(j); break; }	
+			if (NB->GetPageText(j).IsSameAs(Str))
+			{
+				if (!Destroy)
+				{
+					// Reparent to avoid destruction if the notebook is closed and destroyed
+					wxWindow * Win = NB->GetPage(j);
+					NB->RemovePage(j);
+					Win->Reparent(this);
+				}
+				else
+				{
+					NB->DeletePage(j);
+				}
+				//if (Hide) Win->Hide();
+				break;
+			}	
 		}
 	}
-	//if (Hide) Win->Hide();
+
 }
 wxAuiNotebook * CFrame::GetNotebook(int NBId)
 {
@@ -1178,6 +1199,34 @@ wxAuiNotebook * CFrame::GetNotebook(int NBId)
 	}
 	return NULL;	
 }
+void CFrame::ShowAllNotebooks(bool Window)
+{
+	for (int i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			if (Window)
+				m_Mgr->GetAllPanes().Item(i).Show();
+			else
+				m_Mgr->GetAllPanes().Item(i).window->Hide();
+		}
+	}
+	m_Mgr->Update();
+}
+void CFrame::HideAllNotebooks(bool Window)
+{	
+	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			if (Window)
+				m_Mgr->GetAllPanes().Item(i).Hide();
+			else
+				m_Mgr->GetAllPanes().Item(i).window->Hide();
+		}
+	}
+	m_Mgr->Update();
+}
 // Close all panes with notebooks
 void CFrame::CloseAllNotebooks()
 {		
@@ -1186,10 +1235,10 @@ void CFrame::CloseAllNotebooks()
 	{
 		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 		{
-			//m_Mgr->GetAllPanes().Item(i).DestroyOnClose(true);
-			//m_Mgr->ClosePane(m_Mgr->GetAllPanes().Item(i));
-			m_Mgr->GetAllPanes().Item(i).window->Hide();
-			m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
+			m_Mgr->GetAllPanes().Item(i).DestroyOnClose(true);
+			m_Mgr->ClosePane(m_Mgr->GetAllPanes().Item(i));
+			//m_Mgr->GetAllPanes().Item(i).window->Hide();
+			//m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
 			
 			i = 0;
 			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("    %i Pane\n", i).c_str());
@@ -1236,6 +1285,9 @@ void CFrame::DoRemovePage(wxWindow * Win, bool Hide)
 		{
 			if (GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) GetNotebook(i)->RemovePage(GetNotebook(i)->GetPageIndex(Win));
 		}
+		// Reparent to avoid destruction if the notebook is closed and destroyed
+		Win->Reparent(this);
+
 		if (Hide) Win->Hide();
 	}
 }
@@ -1318,6 +1370,8 @@ void CFrame::ToggleConsole(bool Show, int i)
 
 	if (Show)
 	{
+		//Console->Log(LogTypes::LCUSTOM, StringFromFormat(" >>> Show\n").c_str());
+
 		if (GetNotebookCount() == 0) return;
 		if (i < 0 || i > GetNotebookCount()-1) i = 0;
 
@@ -1346,17 +1400,19 @@ void CFrame::ToggleConsole(bool Show, int i)
 	}
 	else // hide
 	{
+		//Console->Log(LogTypes::LCUSTOM, StringFromFormat(" >>> Show\n").c_str());
+
 		#ifdef _WIN32
-		//wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
-		//DoRemovePage (Win, true);
-		DoRemovePageString(wxT("Console"), true);
+		// Hide
 		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
+		// Release the console to Windows
+		::SetParent(GetConsoleWindow(), NULL);
+		// Destroy the empty parent of the console
+		DoRemovePageString(wxT("Console"), true, true);
 
 		#else
 		Console->Close();
 		#endif
-
-
 	}
 
 	// Hide pane
@@ -1388,6 +1444,8 @@ void CFrame::OnResize(wxSizeEvent& event)
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()
 {
+	return;
+
 	// Save status
 	bool initialized = Core::isRunning();
 	bool running = Core::GetState() == Core::CORE_RUN;
@@ -1451,19 +1509,25 @@ void CFrame::UpdateGUI()
 
 	if (!initialized)
 	{
-		if (m_GameListCtrl && !m_GameListCtrl->IsShown())
+		if (m_GameListCtrl)
 		{
-			m_GameListCtrl->Enable();
-			m_GameListCtrl->Show();
-			sizerPanel->FitInside(m_Panel);
+			if (!m_GameListCtrl->IsShown())
+			{
+				m_GameListCtrl->Enable();
+				m_GameListCtrl->Show();
+				sizerPanel->FitInside(m_Panel);
+			}
 		}
 	}
 	else
 	{
-		if (m_GameListCtrl && m_GameListCtrl->IsShown())
+		if (m_GameListCtrl)
 		{
-			m_GameListCtrl->Disable();
-			m_GameListCtrl->Hide();
+			if (m_GameListCtrl->IsShown())
+			{
+				m_GameListCtrl->Disable();
+				m_GameListCtrl->Hide();
+			}
 		}
 	}
 

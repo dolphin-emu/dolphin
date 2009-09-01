@@ -47,14 +47,29 @@ ConsoleListener::~ConsoleListener()
 void ConsoleListener::Open(int Width, int Height, const char *Title)
 {
 #ifdef _WIN32
-	// Open the console window and create the window handle for GetStdHandle()
-	AllocConsole();
-	// Save the window handle that AllocConsole() created
+	if (!GetConsoleWindow())
+	{
+		// Open the console window and create the window handle for GetStdHandle()
+		AllocConsole();
+		// Save the window handle that AllocConsole() created
+		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		// Set the console window title
+		SetConsoleTitle(Title);
+		// Set letter space
+		LetterSpace(80, 1000);
+		MoveWindow(GetConsoleWindow(), 200,200, 800,800, true);
+	}
+	else
+	{
+		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	}
+#endif
+}
+
+void ConsoleListener::UpdateHandle()
+{
+#ifdef _WIN32
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	// Set the console window title
-	SetConsoleTitle(Title);
-	// Set letter space
-	LetterSpace(80, 4000);
 #endif
 }
 
@@ -271,7 +286,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 		Color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		break;
 	}
-	if (strlen(Text) > 10)
+	if (Level != CUSTOM_LEVEL && strlen(Text) > 10)
 	{
 		// First 10 chars white
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);

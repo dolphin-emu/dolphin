@@ -117,11 +117,13 @@ class CFrame : public wxFrame
 		void ListChildren();
 		void ClosePages();
 		void DoToggleWindow(int,bool);
+		void ShowAllNotebooks(bool Window = false);
+		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
 		int GetNotebookCount();
 		void DoAddPage(wxWindow *, int, std::string);
 		void DoRemovePage(wxWindow *, bool Hide = true);
-		void DoRemovePageString(wxString, bool Hide = true);
+		void DoRemovePageString(wxString, bool Hide = true, bool Destroy = false);
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();

@@ -73,8 +73,8 @@ public:
 	ConsoleListener();
 	~ConsoleListener();
 
-	void Open(int Width = 100, int Height = 100,
-		const char * Name = "Console");
+	void Open(int Width = 100, int Height = 100, const char * Name = "Console");
+	void UpdateHandle();
 	void Close();
 	bool IsOpen();
 	void LetterSpace(int Width, int Height);

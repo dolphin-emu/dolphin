@@ -17,16 +17,22 @@
 
 
 
-/*
+//////////////////////////////////////////////////////////////////////////////////////////
+// Windows
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-CFrame is the main parent window. Inside CFrame there is an m_Panel that is the
-parent for the rendering window (when we render to the main window). In Windows
-the rendering window is created by giving CreateWindow() m_Panel->GetHandle()
-as parent window and creating a new child window to m_Panel. The new child
-window handle that is returned by CreateWindow() can be accessed from
-Core::GetWindowHandle().  
-*/
+CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
+the rendering window (when we render to the main window). In Windows the rendering window is
+created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
+child window to m_Panel. The new child window handle that is returned by CreateWindow() can
+be accessed from Core::GetWindowHandle().
 
+///////////////////////////////////////////////*/
+
+
+// ----------------------------------------------------------------------------
+// includes
+// ----------------------------------------------------------------------------
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -51,6 +57,10 @@ Core::GetWindowHandle().
 
 #include <wx/datetime.h> // wxWidgets
 
+// ----------------------------------------------------------------------------
+// resources
+// ----------------------------------------------------------------------------
+
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
 #include "../resources/toolbar_browse.c"
@@ -72,10 +82,10 @@ extern "C" {
 };
 
 
-/* Windows functions. Setting the cursor with wxSetCursor() did not work in
-   this instance.  Probably because it's somehow reset from the WndProc() in
-   the child window */
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
+   Probably because it's somehow reset from the WndProc() in the child window */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 // Declare a blank icon and one that will be the normal cursor
 HCURSOR hCursor = NULL, hCursorBlank = NULL;
@@ -103,7 +113,13 @@ HWND MSWGetParent_(HWND Parent)
 	return GetParent(Parent);
 }
 #endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* The CPanel class to receive MSWWindowProc messages from the video plugin. */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 extern CFrame* main_frame;
 
 class CPanel : public wxPanel
@@ -177,8 +193,9 @@ int abc = 0;
 				Core::ReconnectWiimote();
 				return 0;
 
+			// -----------------------------------------
 			#ifdef RERECORDING
-
+			// -----------------
 				case INPUT_FRAME_COUNTER:
 					// Wind back the frame counter after a save state has been loaded
 					Core::WindBack((int)lParam);
@@ -196,6 +213,12 @@ int abc = 0;
 		return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 	}
 #endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// event tables
+// ----------------------------
 
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
@@ -288,8 +311,12 @@ EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 
 END_EVENT_TABLE()
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Creation and close, quit functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 CFrame::CFrame(bool showLogWindow,
 		wxFrame* parent,
 		wxWindowID id,
@@ -300,7 +327,7 @@ CFrame::CFrame(bool showLogWindow,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
 	, UseDebugger(_UseDebugger), m_LogWindow(NULL)
-	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
+	, m_GameListCtrl(NULL), m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
 	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
@@ -314,7 +341,7 @@ CFrame::CFrame(bool showLogWindow,
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
 	// Start debugging mazimized
-	//if (UseDebugger) this->Maximize(true);
+	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 	{
@@ -345,6 +372,9 @@ CFrame::CFrame(bool showLogWindow,
 	// Give it a menu bar
 	CreateMenu();
 
+	// -------------------------------------------------------------------------
+	// Main panel
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	m_Panel = new CPanel(this, IDM_MPANEL);
 
@@ -355,6 +385,7 @@ CFrame::CFrame(bool showLogWindow,
 	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
+	// -------------------------------------------------------------------------
 
 	m_Mgr = new wxAuiManager();
 	m_Mgr->SetManagedWindow(this);
@@ -425,6 +456,9 @@ CFrame::CFrame(bool showLogWindow,
 		CreateCursor();
 	#endif
 
+	// -------------------------
+	// Connect event handlers
+	// ----------
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(CFrame::OnKeyDown),
 		(wxObject*)0, this);
@@ -442,14 +476,20 @@ CFrame::CFrame(bool showLogWindow,
 		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
 			wxMouseEventHandler(CFrame::OnMotion),
 			(wxObject*)0, this);
+	// ----------
 
+	// Update controls
 	UpdateGUI();
 
-	m_GameListCtrl->Update();
+	//if we are ever going back to optional iso caching:
+	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
+	if (m_GameListCtrl) m_GameListCtrl->Update();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
 		ModifyStatusBar();
+		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
+		//Core::WriteStatus();
 	#endif
 }
 // Destructor
@@ -461,6 +501,8 @@ CFrame::~CFrame()
 	#if wxUSE_TIMER
 		if (m_timer.IsRunning()) m_timer.Stop();
 	#endif
+
+	ClosePages();
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -579,46 +621,66 @@ void CFrame::ListChildren()
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	wxAuiNotebook * NB = NULL;
 
+	Console->Log(LogTypes::LCUSTOM, "--------------------------------------------------------------------\n");
+
 	for (int i = 0; i < this->GetChildren().size(); i++)
 	{
 		wxWindow * Win = this->GetChildren().Item(i)->GetData();
-		// FIXME: fix POD passing error from uncommenting
-		//		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		//	"%i: %s (%s) :: %s", i,
-		//	Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+			"%i: %s (%s) :: %s", i,
+			Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
 		//if (Win->GetName().IsSameAs(wxT("control")))
 		if (Win->IsKindOf(CLASSINFO(wxAuiNotebook)))
 		{
 			NB = (wxAuiNotebook*)Win;
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("%s", NB->GetName().mb_str()).c_str());
+			Console->Log(LogTypes::LCUSTOM, StringFromFormat(" :: NB", NB->GetName().mb_str()).c_str());
 		}
 		else
 		{
 			NB = NULL;
 		}
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat("\n").c_str());
 
 		Win = this->GetChildren().Item(i)->GetData();
 		for (int j = 0; j < Win->GetChildren().size(); j++)
 		{
-			// FIXME: fix POD passing error from uncommenting
-			//			Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			//				"     %i.%i: %s (%s) :: %s", i, j,
-			//				Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
-			//			if (NB) 
-			//				Console->Log(LogTypes::LNOTICE, StringFromFormat("%s", NB->GetPage(j)->GetName().mb_str()).c_str());
-			//			Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
+			Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+				"     %i.%i: %s (%s) :: %s", i, j,
+				Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+			if (NB)
+			{
+				if (j < NB->GetPageCount())
+					Console->Log(LogTypes::LCUSTOM, StringFromFormat(" :: %s", NB->GetPage(j)->GetName().mb_str()).c_str());
+			}
+			Console->Log(LogTypes::LCUSTOM, StringFromFormat("\n").c_str());
 
+			/*
 			Win = this->GetChildren().Item(j)->GetData();
 			for (int k = 0; k < Win->GetChildren().size(); k++)
 			{
-				// FIXME: fix POD passing error from uncommenting
-				//				Console->Log(LogTypes::LNOTICE, StringFromFormat(
-				//					"          %i.%i.%i: %s (%s) :: %s\n", i, j, k,
-				//					Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+				Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+					"          %i.%i.%i: %s (%s) :: %s\n", i, j, k,
+					Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
 			}
+			*/
 		}
 	}	
+
+	Console->Log(LogTypes::LCUSTOM, "--------------------------------------------------------------------\n");
+
+	for (int i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat("%i: %s\n", i, m_Mgr->GetAllPanes().Item(i).name.mb_str()).c_str());
+
+		for (int j = 0; j < NB->GetPageCount(); j++)
+		{
+			Console->Log(LogTypes::LCUSTOM, StringFromFormat("%i.%i: %s\n", i, j, NB->GetPageText(j).mb_str()).c_str());
+		}
+	}
+
+	Console->Log(LogTypes::LCUSTOM, "--------------------------------------------------------------------\n");
 }
 void CFrame::ReloadPanes()
 {	
@@ -626,8 +688,7 @@ void CFrame::ReloadPanes()
 	bool bConsole = SConfig::GetInstance().m_InterfaceConsole;
 
 	//ListChildren();
-
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes begin: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
 
 	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
@@ -638,35 +699,25 @@ void CFrame::ReloadPanes()
 		// Check that the perspective was saved once before
 		if (Perspectives.at(ActivePerspective).Width.size() == 0) return;
 
+		// Hide to avoid flickering
+		HideAllNotebooks(true);
 		// Close all pages
 		ClosePages();
 
-		/*
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			"Will detached panes, have %i panes (%i NBs)\n", m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-		*/
-
 		CloseAllNotebooks();
-		m_Mgr->Update();
-		/*
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			"Detached panes, have %i panes (%i NBs)\n", m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-		*/
+		//m_Mgr->Update();
 
 		// Create new panes with notebooks
 		for (int i = 0; i < Perspectives.at(ActivePerspective).Width.size() - 1; i++)
 		{
-			m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Show());
+			m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Hide());
 		}
-		/*
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			"Created %i panes, have %i panes (%i NBs)\n",
-			Perspectives.at(ActivePerspective).Width.size() - 1, m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-		*/
+		HideAllNotebooks(true);
+
 		// Names
 		NamePanes();
 		// Perspectives
-		m_Mgr->LoadPerspective(Perspectives.at(ActivePerspective).Perspective, true);
+		m_Mgr->LoadPerspective(Perspectives.at(ActivePerspective).Perspective, false);
 	}
 	// Create one pane by default
 	else
@@ -674,31 +725,33 @@ void CFrame::ReloadPanes()
 		m_Mgr->AddPane(CreateEmptyNotebook());
 	}
 
-	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes end: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
-	//ListChildren();
-
-	// If the code window was closed
-	if (!g_pCodeWindow) g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
+	// Restore settings
+	SConfig::GetInstance().m_InterfaceConsole = bConsole;
 	// Load GUI settings
 	g_pCodeWindow->Load();
 	// Open notebook pages
 	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
 	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
-	//if (bConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);	
+	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);	
+
+	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes end: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
+	//ListChildren();
 }
 void CFrame::DoLoadPerspective()
 {
 	ReloadPanes();
 	// Restore the exact window sizes, which LoadPerspective doesn't always do
 	SetPaneSize();
+	// Show
+	ShowAllNotebooks(true);
 
-	/*
+	/*	*/
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"Loaded: %s, NBs: %i, Non-NBs: %i, \n\n",
-		Perspectives.at(ActivePerspective).Name.c_str(), GetNotebookCount(), m_Mgr->GetAllPanes().GetCount() - GetNotebookCount()).c_str());
-	*/
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+		"Loaded: %s (%i panes, %i NBs)\n",
+		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
+
 }
 // Update the local perspectives array
 void CFrame::SaveLocal()
@@ -799,9 +852,9 @@ void CFrame::Save()
 
 	/**/
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"Saved: %s, NBs: %i, Non-NBs: %i, \n\n",
-		Perspectives.at(ActivePerspective).Name.c_str(), GetNotebookCount(), m_Mgr->GetAllPanes().GetCount() - GetNotebookCount()).c_str());
+	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
+		"Saved: %s (%i panes, %i NBs)\n",
+		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
 	
 	
 	TogglePaneStyle(m_ToolBarAui->GetToolToggled(IDM_EDIT_PERSPECTIVES)); 
@@ -852,18 +905,24 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 	{
 		/*
 		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("GetNotebookCount before: %i\n", GetNotebookCount()).c_str());
+		Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount before: %i\n", GetNotebookCount()).c_str());
 		*/
 
 		// Detach and delete the empty notebook
 		event.pane->DestroyOnClose(true);
 		m_Mgr->ClosePane(*event.pane);
 
-		//Console->Log(LogTypes::LNOTICE, StringFromFormat("GetNotebookCount after: %i\n", GetNotebookCount()).c_str());
+		//Console->Log(LogTypes::LCUSTOM, StringFromFormat("GetNotebookCount after: %i\n", GetNotebookCount()).c_str());
 	}
 
 	m_Mgr->Update();
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Host messages
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -921,8 +980,12 @@ void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 {
 	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Input
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
 	// Show all platforms and regions if...
@@ -1012,7 +1075,12 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Detect double click. Kind of, for some reason we have to manually create the double click for now.
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnDoubleClick(wxMouseEvent& event)
 {
 	 // Don't block the mouse click
@@ -1136,3 +1204,4 @@ void CFrame::Update()
 	}
 }
 #endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

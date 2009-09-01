@@ -418,6 +418,20 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, int i)
 		#endif
 }
 
+
+
+/*
+
+
+
+Notice: This windows docking for plugin windows will produce several wx debugging messages when
+::GetWindowRect and ::DestroyWindow fails in wxApp::CleanUp() for the plugin.
+
+
+
+*/
+
+
 //Toggle Sound Debugging Window
 void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 {
@@ -446,13 +460,10 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 		Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win)
 		{		
-			//Parent->ListChildren();
 			Win->SetName(wxT("Sound"));
 			Win->Reparent(Parent);
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Reparent\n").c_str());
-			//Parent->ListChildren();
 			Parent->GetNotebook(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
 			//Parent->ListChildren();			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win %i\n", FindWindowByName(wxT("Sound"))).c_str());
 		}
@@ -466,7 +477,15 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 	{
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
-		Parent->DoRemovePage(Win, false);
+		if (Win)
+		{
+			Parent->DoRemovePage(Win, false);
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound removed from NB (Win %i)\n", FindWindowByName(wxT("Sound"))).c_str());
+		}
+		else
+		{
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound not found (Win %i)\n", FindWindowByName(wxT("Sound"))).c_str());
+		}
 		#endif
 		// Close the sound dll that has an open debugger
 		CPluginManager::GetInstance().OpenDebug(
