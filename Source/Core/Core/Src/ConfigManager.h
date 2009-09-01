@@ -91,7 +91,10 @@ struct SConfig
 
 	/* Return the permanent and somewhat globally used instance of this struct
 	   there is also a Core::GetStartupParameter() instance of it with almost
-	   the same values */
+	   the same values
+	   
+	   Is this still true or do we only have one now?
+	   */
 	static SConfig& GetInstance() {return(m_Instance);}
 
 	private:

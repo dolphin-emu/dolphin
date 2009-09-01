@@ -299,8 +299,7 @@ END_EVENT_TABLE()
 //---------------
 // Creation and close, quit functions
 
-CFrame::CFrame(bool showLogWindow,
-		wxFrame* parent,
+CFrame::CFrame(wxFrame* parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos,
@@ -311,16 +310,15 @@ CFrame::CFrame(bool showLogWindow,
 	, UseDebugger(_UseDebugger), m_LogWindow(NULL)
 	, m_GameListCtrl(NULL), m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
 	, HaveSpeakers(false), m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
-	, m_bLogWindow(showLogWindow || SConfig::GetInstance().m_InterfaceLogWindow)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
           
 {
-	// Give it a console
+	// Give it a console early to show potential messages from this onward
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
+	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open(true);
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
@@ -423,7 +421,7 @@ CFrame::CFrame(bool showLogWindow,
 	if (!UseDebugger)
 	{
 		SetSimplePaneSize();
-		if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
+		if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 	}
 
@@ -718,7 +716,7 @@ void CFrame::ReloadPanes()
 	// Open notebook pages
 	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
-	if (m_bLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
+	if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);	
 
 	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes end: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
@@ -733,11 +731,12 @@ void CFrame::DoLoadPerspective()
 	// Show
 	ShowAllNotebooks(true);
 
+	/*
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
 		"Loaded: %s (%i panes, %i NBs)\n",
 		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-
+	*/
 }
 
 // Update the local perspectives array
@@ -786,11 +785,7 @@ void CFrame::SaveLocal()
 }
 void CFrame::Save()
 {
-	if (Perspectives.size() == 0)
-	{
-		wxMessageBox(wxT("Please create a perspective before saving"), wxT("Notice"), wxOK, this);
-		return;
-	}
+	if (Perspectives.size() == 0) return;
 	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
 
 	// Turn off edit before saving
@@ -837,12 +832,12 @@ void CFrame::Save()
 	// Update the local vector
 	SaveLocal();
 
-	/**/
+	/*
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
 		"Saved: %s (%i panes, %i NBs)\n",
 		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-	
+	*/
 	
 	TogglePaneStyle(m_ToolBarAui->GetToolToggled(IDM_EDIT_PERSPECTIVES)); 
 }

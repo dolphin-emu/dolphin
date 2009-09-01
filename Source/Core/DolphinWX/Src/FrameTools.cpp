@@ -199,7 +199,7 @@ void CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
-	viewMenu->Check(IDM_LOGWINDOW, m_bLogWindow);
+	viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
 	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
@@ -703,6 +703,11 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 		case IDM_SAVE_PERSPECTIVE:
+			if (Perspectives.size() == 0)
+			{
+				wxMessageBox(wxT("Please create a perspective before saving"), wxT("Notice"), wxOK, this);
+				return;
+			}
 			Save();
 			break;
 		case IDM_PERSPECTIVES_ADD_PANE:
@@ -1329,11 +1334,11 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 // Enable and disable the log window
 void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 {
+	SConfig::GetInstance().m_InterfaceLogWindow = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
 void CFrame::ToggleLogWindow(bool Show, int i)
-{
-	SConfig::GetInstance().m_InterfaceLogWindow = Show;
+{	
 	if (Show)
 	{
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
@@ -1361,12 +1366,12 @@ void CFrame::ToggleLogWindow(bool Show, int i)
 // Enable and disable the console
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
+	SConfig::GetInstance().m_InterfaceConsole = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
 void CFrame::ToggleConsole(bool Show, int i)
 {
-	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
-	SConfig::GetInstance().m_InterfaceConsole = Show;
+	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();	
 
 	if (Show)
 	{

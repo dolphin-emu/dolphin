@@ -46,8 +46,7 @@ class CFrame : public wxFrame
 {
 	public:
 
-		CFrame(bool showLogWindow,
-			wxFrame* parent,
+		CFrame(wxFrame* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
@@ -163,7 +162,6 @@ class CFrame : public wxFrame
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 		wxToolBarToolBase* m_ToolPlay;
-		bool m_bLogWindow;
 		CLogWindow* m_LogWindow;
 
 		char **drives;

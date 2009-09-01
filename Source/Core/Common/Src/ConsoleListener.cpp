@@ -44,20 +44,22 @@ ConsoleListener::~ConsoleListener()
 // 100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void ConsoleListener::Open(int Width, int Height, const char *Title)
+void ConsoleListener::Open(bool Hidden, int Width, int Height, const char *Title)
 {
 #ifdef _WIN32
 	if (!GetConsoleWindow())
 	{
 		// Open the console window and create the window handle for GetStdHandle()
 		AllocConsole();
+		// Hide
+		if (Hidden) ShowWindow(GetConsoleWindow(), SW_HIDE);
 		// Save the window handle that AllocConsole() created
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		// Set the console window title
 		SetConsoleTitle(Title);
 		// Set letter space
 		LetterSpace(80, 1000);
-		MoveWindow(GetConsoleWindow(), 200,200, 800,800, true);
+		//MoveWindow(GetConsoleWindow(), 200,200, 800,800, true);
 	}
 	else
 	{

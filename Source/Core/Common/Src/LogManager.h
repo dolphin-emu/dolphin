@@ -73,7 +73,7 @@ public:
 	ConsoleListener();
 	~ConsoleListener();
 
-	void Open(int Width = 100, int Height = 100, const char * Name = "Console");
+	void Open(bool Hidden = false, int Width = 100, int Height = 100, const char * Name = "Console");
 	void UpdateHandle();
 	void Close();
 	bool IsOpen();
