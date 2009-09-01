@@ -16,23 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
+//the rendering window (when we render to the main window). In Windows the rendering window is
+//created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
+//child window to m_Panel. The new child window handle that is returned by CreateWindow() can
+//be accessed from Core::GetWindowHandle().
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Windows
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
-the rendering window (when we render to the main window). In Windows the rendering window is
-created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
-child window to m_Panel. The new child window handle that is returned by CreateWindow() can
-be accessed from Core::GetWindowHandle().
-
-///////////////////////////////////////////////*/
-
-
-// ----------------------------------------------------------------------------
-// includes
-// ----------------------------------------------------------------------------
+// ----------
+// Includes
+// ----------
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -57,9 +49,9 @@ be accessed from Core::GetWindowHandle().
 
 #include <wx/datetime.h> // wxWidgets
 
-// ----------------------------------------------------------------------------
-// resources
-// ----------------------------------------------------------------------------
+// ----------
+// Resources
+// -----------
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
@@ -82,10 +74,9 @@ extern "C" {
 };
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
-   Probably because it's somehow reset from the WndProc() in the child window */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+//---------------
+// Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
+// Probably because it's somehow reset from the WndProc() in the child window 
 #ifdef _WIN32
 // Declare a blank icon and one that will be the normal cursor
 HCURSOR hCursor = NULL, hCursorBlank = NULL;
@@ -113,13 +104,10 @@ HWND MSWGetParent_(HWND Parent)
 	return GetParent(Parent);
 }
 #endif
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//---------------
+//The CPanel class to receive MSWWindowProc messages from the video plugin.
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* The CPanel class to receive MSWWindowProc messages from the video plugin. */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 extern CFrame* main_frame;
 
 class CPanel : public wxPanel
@@ -213,13 +201,9 @@ int abc = 0;
 		return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 	}
 #endif
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//-----------------
 // event tables
-// ----------------------------
-
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
 
@@ -311,12 +295,10 @@ EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 
 END_EVENT_TABLE()
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------
 // Creation and close, quit functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 CFrame::CFrame(bool showLogWindow,
 		wxFrame* parent,
 		wxWindowID id,
@@ -372,9 +354,8 @@ CFrame::CFrame(bool showLogWindow,
 	// Give it a menu bar
 	CreateMenu();
 
-	// -------------------------------------------------------------------------
+	// ---------------
 	// Main panel
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	m_Panel = new CPanel(this, IDM_MPANEL);
 
@@ -385,7 +366,7 @@ CFrame::CFrame(bool showLogWindow,
 	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
-	// -------------------------------------------------------------------------
+	// ---------------
 
 	m_Mgr = new wxAuiManager();
 	m_Mgr->SetManagedWindow(this);
@@ -554,12 +535,14 @@ void CFrame::DoFullscreen(bool _F)
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
 }
+
 int CFrame::Limit(int i, int Low, int High)
 {	
 	if (i < Low) return Low;
 	if (i > High) return High;
 	return i;
 }
+
 void CFrame::SetSimplePaneSize()
 {
 	wxArrayInt Pane, Size;
@@ -584,6 +567,7 @@ void CFrame::SetSimplePaneSize()
 		m_Mgr->GetPane(wxString::Format(wxT("Pane %i"), Pane[i])).MinSize(-1, -1).MaxSize(-1, -1);
 	}
 }
+
 void CFrame::SetPaneSize()
 {
 	if (Perspectives.size() <= ActivePerspective) return;
@@ -615,6 +599,7 @@ void CFrame::SetPaneSize()
 		}
 	}
 }
+
 // Debugging, show loose windows
 void CFrame::ListChildren()
 {	
@@ -682,6 +667,7 @@ void CFrame::ListChildren()
 
 	Console->Log(LogTypes::LCUSTOM, "--------------------------------------------------------------------\n");
 }
+
 void CFrame::ReloadPanes()
 {	
 	// Keep settings
@@ -738,6 +724,7 @@ void CFrame::ReloadPanes()
 	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes end: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
 	//ListChildren();
 }
+
 void CFrame::DoLoadPerspective()
 {
 	ReloadPanes();
@@ -746,13 +733,13 @@ void CFrame::DoLoadPerspective()
 	// Show
 	ShowAllNotebooks(true);
 
-	/*	*/
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	Console->Log(LogTypes::LCUSTOM, StringFromFormat(
 		"Loaded: %s (%i panes, %i NBs)\n",
 		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
 
 }
+
 // Update the local perspectives array
 void CFrame::SaveLocal()
 {
@@ -917,12 +904,10 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 	m_Mgr->Update();
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------
 // Host messages
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -980,12 +965,10 @@ void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 {
 	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ---------------
 // Input
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
 	// Show all platforms and regions if...
@@ -1075,12 +1058,10 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ---------------
 // Detect double click. Kind of, for some reason we have to manually create the double click for now.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void CFrame::OnDoubleClick(wxMouseEvent& event)
 {
 	 // Don't block the mouse click
@@ -1126,7 +1107,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 
 
 // Check for mouse motion. Here we process the bHideCursor setting.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void CFrame::OnMotion(wxMouseEvent& event)
 {
 	event.Skip();
@@ -1181,7 +1162,6 @@ void CFrame::OnMotion(wxMouseEvent& event)
 }
 
 // Check for mouse status a couple of times per second for the auto hide option
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if wxUSE_TIMER
 void CFrame::Update()
 {
@@ -1204,4 +1184,3 @@ void CFrame::Update()
 	}
 }
 #endif
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
