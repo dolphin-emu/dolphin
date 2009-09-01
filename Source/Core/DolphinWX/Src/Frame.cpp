@@ -308,10 +308,10 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)	
-	, m_GameListCtrl(NULL), m_pStatusBar(NULL)
-	, m_LogWindow(NULL) , m_Panel(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL)
-	, bRenderToMain(true), HaveLeds(false), HaveSpeakers(false)
-	, UseDebugger(_UseDebugger), m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
+	, m_pStatusBar(NULL), bRenderToMain(true), HaveLeds(false)
+	, HaveSpeakers(false), m_ToolBar(NULL), m_ToolBarDebug(NULL)
+	, UseDebugger(_UseDebugger), m_GameListCtrl(NULL), m_Panel(NULL), m_LogWindow(NULL) 
+	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif

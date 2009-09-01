@@ -149,10 +149,10 @@ private:
 
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
-	: m_TitleID(-1)
-	, m_BootIndex(-1)
-	, m_Valid(false)
+	: m_Valid(false)
+	, m_TitleID(-1)
 	, m_IosVersion(0x09)
+	, m_BootIndex(-1)
 {
 	if (File::IsDirectory(_rName.c_str()))
 	{

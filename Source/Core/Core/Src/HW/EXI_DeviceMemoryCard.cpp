@@ -45,8 +45,8 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
 	m_strFilename(_rFilename),
 	card_index(_card_index),
-	flushThread(NULL),
-	m_bDirty(false)
+	m_bDirty(false),
+	flushThread(NULL)	
 {
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
