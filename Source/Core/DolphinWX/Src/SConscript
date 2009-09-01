@@ -27,8 +27,10 @@ if wxenv['HAVE_WX']:
 		'ARCodeAddEdit.cpp',
 		'ConfigMain.cpp',
 		'Frame.cpp',
-		'LogWindow.cpp',
+		'FrameAui.cpp',
 		'FrameTools.cpp',
+		'FrameWiimote.cpp',
+		'LogWindow.cpp',
 		'GameListCtrl.cpp',
 		'Globals.cpp',
 		'ISOFile.cpp',
@@ -39,7 +41,6 @@ if wxenv['HAVE_WX']:
 		'CheatsWindow.cpp',
 		'InfoWindow.cpp',
 		'stdafx.cpp',
-		'FrameWiimote.cpp',
 		'WxUtils.cpp',
 		]
 

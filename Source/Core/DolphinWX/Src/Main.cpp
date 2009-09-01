@@ -89,6 +89,7 @@ bool DolphinApp::OnInit()
 	NOTICE_LOG(BOOT, "Starting application");
 	// Declarations and definitions
 	bool UseDebugger = false;
+	bool UseLogger = false;
 	bool LoadElf = false;
 	wxString ElfFile;
 
@@ -198,6 +199,9 @@ bool DolphinApp::OnInit()
 				wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
 			},
 			{
+				wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _T("Opens The Logger")
+			},
+			{
 				wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
@@ -258,6 +262,7 @@ bool DolphinApp::OnInit()
 		} 
 
 		UseDebugger = parser.Found(_T("debugger"));
+		UseLogger = parser.Found(_T("logger"));
 		LoadElf = parser.Found(_T("elf"), &ElfFile);
 
 		if( LoadElf && ElfFile == wxEmptyString )
@@ -292,13 +297,13 @@ bool DolphinApp::OnInit()
 
 	if (UseDebugger)
 	{
-		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(x, y), wxSize(w, h), true);
+		main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
+				wxPoint(x, y), wxSize(w, h), true, UseLogger);
 	}
 	else
 	{
-		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(100, 100), wxSize(800, 600));
+		main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
+				wxPoint(100, 100), wxSize(800, 600), false, UseLogger);
 	}
 
 	// ---------------------------------------------------

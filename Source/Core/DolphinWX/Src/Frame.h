@@ -52,6 +52,7 @@ class CFrame : public wxFrame
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		bool _UseDebugger = false,
+		bool ShowLogWindow = false,
 		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 		void* GetRenderHandle()

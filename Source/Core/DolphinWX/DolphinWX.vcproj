@@ -1073,6 +1073,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\FrameAui.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\FrameTools.cpp"
 				>
 			</File>
