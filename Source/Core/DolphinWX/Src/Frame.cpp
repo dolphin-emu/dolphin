@@ -829,6 +829,9 @@ void CFrame::Save()
 	ini.Set("Perspectives", "Active", ActivePerspective);
 	ini.Save(DEBUGGER_CONFIG_FILE);
 
+	// Save notebook affiliations
+	g_pCodeWindow->Save();
+
 	// Update the local vector
 	SaveLocal();
 
