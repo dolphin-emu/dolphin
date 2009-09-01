@@ -92,44 +92,17 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
     char *p = text;
     WRITE(p, "//Vertex Shader: comp:%x, \n", components);
-    WRITE(p, "typedef struct {\n"
-        "  float4 T0, T1, T2;\n"
-        "  float4 N0, N1, N2;\n"
-        "} s_"I_POSNORMALMATRIX";\n\n"
-        "typedef struct {\n"
-        "  float4 t;\n"
-        "} FLT4;\n"
-        "typedef struct {\n"
-        "  FLT4 T[24];\n"
-        "} s_"I_TEXMATRICES";\n\n"
-        "typedef struct {\n"
-        "  FLT4 T[64];\n"
-        "} s_"I_TRANSFORMMATRICES";\n\n"
-        "typedef struct {\n"
-        "  FLT4 T[32];\n"
-        "} s_"I_NORMALMATRICES";\n\n"
-        "typedef struct {\n"
-        "  FLT4 T[64];\n"
-        "} s_"I_POSTTRANSFORMMATRICES";\n\n"
-        "typedef struct {\n"
-        "  float4 col;\n"
-        "  float4 cosatt;\n"
-        "  float4 distatt;\n"
-        "  float4 pos;\n"
-        "  float4 dir;\n"
-        "} Light;\n\n"
-        "typedef struct {\n"
-        "  Light lights[8];\n"
-        "} s_"I_LIGHTS";\n\n"
-        "typedef struct {\n"
-        "  float4 C0, C1, C2, C3;\n"
-        "} s_"I_MATERIALS";\n\n"
-        "typedef struct {\n"
-        "  float4 T0,T1,T2,T3;\n"
-        "} s_"I_PROJECTION";\n"
-        "typedef struct {\n"
-        "  float4 params;\n" // a, b, c, b_shift
-        "} s_"I_FOGPARAMS";\n\n");
+    WRITE(p, "typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_"I_POSNORMALMATRIX";\n"
+        "typedef struct { float4 t; } FLT4;\n"
+        "typedef struct { FLT4 T[24]; } s_"I_TEXMATRICES";\n"
+        "typedef struct { FLT4 T[64]; } s_"I_TRANSFORMMATRICES";\n"
+        "typedef struct { FLT4 T[32]; } s_"I_NORMALMATRICES";\n"
+        "typedef struct { FLT4 T[64]; } s_"I_POSTTRANSFORMMATRICES";\n"
+        "typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n"
+        "typedef struct { Light lights[8]; } s_"I_LIGHTS";\n"
+        "typedef struct { float4 C0,C1,C2,C3; } s_"I_MATERIALS";\n"
+        "typedef struct { float4 T0,T1,T2,T3; } s_"I_PROJECTION";\n"
+        "typedef struct { float4 params; } s_"I_FOGPARAMS";\n"); // a, b, c, b_shift
 
     WRITE(p, "struct VS_OUTPUT {\n");
     WRITE(p, "  float4 pos : POSITION;\n");
@@ -143,13 +116,10 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 		// clip position is in w of first 4 texcoords
 		for (int i = 0; i < xfregs.numTexGens; ++i)
 			WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i<4?4:3, i, i);
-	}	
-
+	}
     WRITE(p, "};\n");
-    WRITE(p, "\n");
 
     // uniforms
-    
     // bool bTexMtx = ((components & VB_HAS_TEXMTXIDXALL)<<VB_HAS_UVTEXMTXSHIFT)!=0; unused TODO: keep?
 
     WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
@@ -201,8 +171,8 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     if (components & VB_HAS_POSMTXIDX) {
 		if (D3D)
 		{
-			WRITE(p,"int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n"
-				"int posmtx = indices.x;\n");
+			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n"
+					 "int posmtx = indices.x;\n");
 		}
         WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos),1);\n");
         

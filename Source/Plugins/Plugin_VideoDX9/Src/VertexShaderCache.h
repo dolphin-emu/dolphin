@@ -21,16 +21,21 @@
 #include "D3DBase.h"
 
 #include <map>
+#include <string>
 
 #include "D3DBase.h"
 #include "VertexShaderGen.h"
 
 class VertexShaderCache
 {
+private:
 	struct VSCacheEntry
 	{ 
 		LPDIRECT3DVERTEXSHADER9 shader;
 		int frameCount;
+#ifdef _DEBUG
+		std::string code;
+#endif
 		VSCacheEntry() : shader(NULL), frameCount(0) {}
 		void Destroy()
 		{
@@ -42,12 +47,16 @@ class VertexShaderCache
 	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
+	static const VSCacheEntry *last_entry;
 
 public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
 	static void SetShader(u32 components);
+#ifdef _DEBUG
+	static std::string GetCurrentShaderCode();
+#endif
 	static LPDIRECT3DVERTEXSHADER9 CompileCgShader(const char *pstrprogram);
 };
 

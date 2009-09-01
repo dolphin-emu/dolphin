@@ -215,9 +215,8 @@ namespace D3D
 
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
-		dev->SetVertexDeclaration(0);
+		// dev->SetVertexDeclaration(0);
 		
-		// dev->SetFVF(D3DFVF_FONT2DVERTEX);
 		Renderer::SetFVF(D3DFVF_FONT2DVERTEX);
 
 		for (int i = 0; i < 6; i++) {
@@ -380,9 +379,8 @@ namespace D3D
 			{x2-0.5f, y2-0.5f, 0, 1, color, u2, v2},
 			{x1-0.5f, y2-0.5f, 0, 1, color, u1, v2},
 		};
-		dev->SetPixelShader(0);
-		dev->SetVertexShader(0);
-		dev->SetVertexDeclaration(0);
+		dev->SetPixelShader(NULL);
+		dev->SetVertexShader(NULL);
 		
 		Renderer::SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 		dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));

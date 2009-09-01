@@ -21,7 +21,7 @@
 namespace D3D
 {
 
-LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
+LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt)
 {
 	u32* pBuffer = (u32*)buffer;
 	LPDIRECT3DTEXTURE9 pTexture;
@@ -30,7 +30,7 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	bool isPow2 = !((width&(width-1)) || (height&(height-1)));
 	bool bExpand = false;
 
-	if(fmt == D3DFMT_A8P8) {
+	if (fmt == D3DFMT_A8P8) {
 		fmt = D3DFMT_A8L8;
 		bExpand = true;
 	}
@@ -55,16 +55,16 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	case D3DFMT_L8:
 	case D3DFMT_A8:
 	case D3DFMT_A4L4:
-	{
-		const u8 *pIn = buffer;
-		for (int y = 0; y < height; y++)
 		{
-			u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
-			memcpy(pBits, pIn, width);
-			pIn += pitch;
+			const u8 *pIn = buffer;
+			for (int y = 0; y < height; y++)
+			{
+				u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+				memcpy(pBits, pIn, width);
+				pIn += pitch;
+			}
 		}
-	}
-	break;
+		break;
 	case D3DFMT_R5G6B5:
 		{
 			const u16 *pIn = (u16*)buffer;
@@ -78,9 +78,8 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		break;
 	case D3DFMT_A8L8:
 		{
-			if(bExpand) { // I8
+			if (bExpand) { // I8
 				const u8 *pIn = buffer;
-
 				// TODO(XK): Find a better way that does not involve either unpacking
 				//           or downsampling (i.e. A4L4)
 				for (int y = 0; y < height; y++)
@@ -118,6 +117,8 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	case D3DFMT_DXT1:
 		memcpy(Lock.pBits,buffer,(width/4)*(height/4)*8);
 		break;
+	default:
+		PanicAlert("D3D: Invalid texture format %i", fmt);
 	}
 	pTexture->UnlockRect(level); 
 	return pTexture;
@@ -128,7 +129,7 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 	u32* pBuffer = (u32*)buffer;
 	int level = 0;
 	D3DLOCKED_RECT Lock;
-	pTexture->LockRect(level, &Lock, NULL, 0 );
+	pTexture->LockRect(level, &Lock, NULL, 0);
 	u32* pIn = pBuffer;
 	switch(fmt) 
 	{

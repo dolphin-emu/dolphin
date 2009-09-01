@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "FileUtil.h"
 
 #include "D3DBase.h"
 
@@ -81,6 +82,8 @@ bool Init()
 	collection = C_NOTHING;
 	fakeVBuffer = new u8[MAXVBUFFERSIZE];
 	fakeIBuffer = new u16[MAXIBUFFERSIZE];
+	memset(fakeVBuffer, 0, MAXVBUFFERSIZE);
+	memset(fakeIBuffer, 0, MAXIBUFFERSIZE * 2);
 	CreateDeviceObjects();
 	VertexManager::s_pCurBufferPointer = fakeVBuffer;
 	return true;
@@ -142,9 +145,6 @@ void AddVertices(int _primitive, int _numVertices)
 	{
 		//We are NOT collecting the right type.
 		Flush();
-
-		// Copy the extra verts that we lost.
-		memcpy(s_pCurBufferPointer, fakeVBuffer, _numVertices * g_nativeVertexFmt->GetVertexStride());
 
 		collection = type;
 		u16 *ptr = 0;
@@ -247,14 +247,23 @@ void Flush()
 			if (collection != C_POINTS)
 			{
 				int numPrimitives = indexGen.GetNumPrims();
-				D3D::dev->DrawIndexedPrimitiveUP(pts[(int)collection], 
-												 0, 
-												 numVertices, 
-												 numPrimitives,
-												 fakeIBuffer,
-												 D3DFMT_INDEX16,
-												 fakeVBuffer,
-												 stride);
+				if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+					pts[(int)collection], 
+					0, 
+					numVertices, 
+					numPrimitives,
+					fakeIBuffer,
+					D3DFMT_INDEX16,
+					fakeVBuffer,
+					stride))) {
+#ifdef _DEBUG
+					std::string error_shaders;
+					error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+					error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+					File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+					PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to shaders.txt.");
+#endif
+				}
 			}
 			else
 			{

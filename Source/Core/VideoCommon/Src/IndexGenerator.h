@@ -23,10 +23,6 @@
 
 class IndexGenerator
 {
-	unsigned short *ptr;
-	int numPrims;
-	int index;
-
 public:
 	void Start(unsigned short *startptr);
 	void AddList(int numVerts);
@@ -38,6 +34,10 @@ public:
 	void AddQuads(int numVerts);
 	int GetNumPrims() {return numPrims;} //returns numprimitives
 	int GetNumVerts() {return index;} //returns numprimitives
+private:
+	unsigned short *ptr;
+	int numPrims;
+	int index;
 };
 
 #endif  // _INDEXGENERATOR_H

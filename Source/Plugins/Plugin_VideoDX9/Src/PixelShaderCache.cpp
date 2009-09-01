@@ -32,6 +32,7 @@
 #include <Cg/cgD3D9.h>
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
+const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
@@ -59,10 +60,7 @@ void PixelShaderCache::Shutdown()
 
 void PixelShaderCache::SetShader()
 {
-	if (D3D::GetShaderVersion() < 2)
-		return; // we are screwed
-
-	static LPDIRECT3DPIXELSHADER9 lastShader = NULL;
+	static LPDIRECT3DPIXELSHADER9 last_shader = NULL;
 
 	DVSTARTPROFILE();
 
@@ -75,11 +73,12 @@ void PixelShaderCache::SetShader()
 	if (iter != PixelShaders.end())
 	{
 		iter->second.frameCount = frameCount;
-		PSCacheEntry &entry = iter->second;
-		if (!lastShader || entry.shader != lastShader)
+		const PSCacheEntry &entry = iter->second;
+		last_entry = &entry;
+		if (!last_shader || entry.shader != last_shader)
 		{
 			D3D::dev->SetPixelShader(entry.shader);
-			lastShader = entry.shader;
+			last_shader = entry.shader;
 		}
 		return;
 	}
@@ -93,10 +92,15 @@ void PixelShaderCache::SetShader()
 		PSCacheEntry newentry;
 		newentry.shader = shader;
 		newentry.frameCount = frameCount;
+#ifdef _DEBUG
+		newentry.code = code;
+#endif
 		PixelShaders[uid] = newentry;
+		last_entry = &PixelShaders[uid];
 
 		Renderer::SetFVF(NULL);
 		D3D::dev->SetPixelShader(shader);
+		last_shader = shader;
 
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
@@ -134,7 +138,7 @@ void PixelShaderCache::Cleanup()
 	while (iter != PixelShaders.end())
 	{
 		PSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount-400)
+		if (entry.frameCount < frameCount - 400)
 		{
 			entry.Destroy();
 			iter = PixelShaders.erase(iter);
@@ -146,3 +150,13 @@ void PixelShaderCache::Cleanup()
 	}
 	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 }
+
+#ifdef _DEBUG
+std::string PixelShaderCache::GetCurrentShaderCode()
+{
+	if (last_entry)
+		return last_entry->code;
+	else
+		return "(no shader)\n";
+}
+#endif

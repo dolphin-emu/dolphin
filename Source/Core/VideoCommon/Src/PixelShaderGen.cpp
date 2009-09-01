@@ -398,7 +398,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
         for (int i = 0; i < numStages; ++i) 
 		{
             if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
-                nIndirectStagesUsed |= 1<<bpmem.tevind[i].bt;
+                nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
         }
     }
 
@@ -410,13 +410,14 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 		else
 			WRITE(p, "uniform samplerRECT ");
         bool bfirst = true;
-        for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < 8; ++i)
+		{
             if (texture_mask & (1<<i))
 			{
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
                 bfirst = false;
             }
-
+		}
         WRITE(p, ";\n");
 	}
 

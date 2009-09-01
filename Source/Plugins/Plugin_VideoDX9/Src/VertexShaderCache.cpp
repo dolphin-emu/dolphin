@@ -32,6 +32,7 @@
 #include <Cg/cgD3D9.h>
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
+const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
@@ -49,7 +50,6 @@ void VertexShaderCache::Init()
 
 }
 
-
 void VertexShaderCache::Shutdown()
 {
 	VSCache::iterator iter = vshaders.begin();
@@ -61,10 +61,7 @@ void VertexShaderCache::Shutdown()
 
 void VertexShaderCache::SetShader(u32 components)
 {
-	if (D3D::GetShaderVersion() < 2)
-		return; // we are screwed
-
-	static LPDIRECT3DVERTEXSHADER9 lastShader = NULL;
+	static LPDIRECT3DVERTEXSHADER9 last_shader = NULL;
 
 	DVSTARTPROFILE();
 
@@ -76,11 +73,12 @@ void VertexShaderCache::SetShader(u32 components)
 	if (iter != vshaders.end())
 	{
 		iter->second.frameCount = frameCount;
-		VSCacheEntry &entry = iter->second;
-		if (!lastShader || entry.shader != lastShader)
+		const VSCacheEntry &entry = iter->second;
+		last_entry = &entry;
+		if (!last_shader || entry.shader != last_shader)
 		{
 			D3D::dev->SetVertexShader(entry.shader);
-			lastShader = entry.shader;
+			last_shader = entry.shader;
 		}
 		return;
 	}
@@ -94,7 +92,12 @@ void VertexShaderCache::SetShader(u32 components)
 		VSCacheEntry entry;
 		entry.shader = shader;
 		entry.frameCount = frameCount;
+#ifdef _DEBUG
+		entry.code = code;
+#endif
 		vshaders[uid] = entry;
+		last_entry = &vshaders[uid];
+		last_shader = entry.shader;
 
 		D3D::dev->SetVertexShader(shader);
 
@@ -146,3 +149,13 @@ void VertexShaderCache::Cleanup()
 	}
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 }
+
+#ifdef _DEBUG
+std::string VertexShaderCache::GetCurrentShaderCode()
+{
+	if (last_entry)
+		return last_entry->code;
+	else
+		return "(no shader)\n";
+}
+#endif
