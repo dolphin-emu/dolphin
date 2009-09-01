@@ -80,7 +80,7 @@ static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
 {
 	D3DTEXF_NONE,
 	D3DTEXF_POINT,
-	D3DTEXF_ANISOTROPIC,
+	D3DTEXF_LINEAR,
 	D3DTEXF_LINEAR, //reserved
 };
 
@@ -310,8 +310,8 @@ void SetSamplerState(const BPCmd &bp)
 	if (g_Config.bForceMaxAniso)
 	{
 		mag = D3DTEXF_ANISOTROPIC;
-		mip = D3DTEXF_ANISOTROPIC;
 		min = D3DTEXF_ANISOTROPIC;
+		mip = D3DTEXF_LINEAR;
 	}
 	dev->SetSamplerState(stage, D3DSAMP_MINFILTER, min);
 	dev->SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
