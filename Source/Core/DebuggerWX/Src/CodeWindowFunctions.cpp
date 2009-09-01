@@ -421,7 +421,7 @@ void CCodeWindow::OnToggleMemoryWindow(bool Show, int i)
 //Toggle Sound Debugging Window
 void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 {
-	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 
 	if (Show)
 	{
@@ -445,9 +445,20 @@ void CCodeWindow::OnToggleSoundWindow(bool Show, int i)
 
 		Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win)
-		{			
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
+		{		
+			//Parent->ListChildren();
+			Win->SetName(wxT("Sound"));
+			Win->Reparent(Parent);
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Reparent\n").c_str());
+			//Parent->ListChildren();
 			Parent->GetNotebook(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
+			Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
+			//Parent->ListChildren();			
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win %i\n", FindWindowByName(wxT("Sound"))).c_str());
+		}
+		else
+		{
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win not found\n").c_str());
 		}
 		#endif
 	}

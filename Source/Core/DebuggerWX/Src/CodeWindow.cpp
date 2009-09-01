@@ -174,7 +174,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 }
 CCodeWindow::~CCodeWindow()
 {
-
+	Parent->g_pCodeWindow = NULL;
 }
 // Redirect old wxFrame calls
 wxMenuBar *CCodeWindow::GetMenuBar()
@@ -435,7 +435,7 @@ void CCodeWindow::Load()
 	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
 	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
 	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
-	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);	
+	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);
 	// Get notebook affiliation
 	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())

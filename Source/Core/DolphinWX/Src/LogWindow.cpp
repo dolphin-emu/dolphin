@@ -67,30 +67,20 @@ void CLogWindow::CreateGUIControls()
 	// Left side: buttons (-submit), options, and log type selection
 	wxStaticBoxSizer* sbLeftOptions = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Options"));
 
+	// Verbosity
 	wxArrayString wxLevels;
-	for (int i = 1; i <= MAX_LOGLEVEL; ++i)
-		wxLevels.Add(wxString::Format(wxT("%i"), i));
+	for (int i = 1; i <= MAX_LOGLEVEL; ++i) wxLevels.Add(wxString::Format(wxT("%i"), i));
 	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"), wxDefaultPosition, wxDefaultSize, wxLevels, 0, wxRA_SPECIFY_COLS, wxDefaultValidator);
-	sbLeftOptions->Add(m_verbosity);
-
+	// Options
 	m_writeFileCB = new wxCheckBox(this, IDM_WRITEFILE, wxT("Write to File"), wxDefaultPosition, wxDefaultSize, 0);
-	sbLeftOptions->Add(m_writeFileCB);
-
 	m_writeConsoleCB = new wxCheckBox(this, IDM_WRITECONSOLE, wxT("Write to Console"), wxDefaultPosition, wxDefaultSize, 0);
-	sbLeftOptions->Add(m_writeConsoleCB);
-
 	m_writeWindowCB = new wxCheckBox(this, IDM_WRITEWINDOW, wxT("Write to Window ->"), wxDefaultPosition, wxDefaultSize, 0);
-	sbLeftOptions->Add(m_writeWindowCB);
-
-	sLeft->Add(sbLeftOptions, 0, wxEXPAND);
 
 	wxBoxSizer* sLogCtrl = new wxBoxSizer(wxHORIZONTAL);
 	sLogCtrl->Add(new wxButton(this, IDM_TOGGLEALL, wxT("Toggle all"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
 	sLogCtrl->Add(new wxButton(this, IDM_CLEARLOG, wxT("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
-	sLeft->Add(sLogCtrl, 0, wxEXPAND);
 
 	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxDefaultSize);
-	sLeft->Add(m_checks, 1, wxEXPAND);
 
 	// Right side: Log viewer and submit row
 	m_log = new wxTextCtrl(this, IDM_LOG, wxEmptyString, wxDefaultPosition, wxDefaultSize,
@@ -102,6 +92,16 @@ void CLogWindow::CreateGUIControls()
 	m_cmdline = new wxTextCtrl(this, IDM_SUBMITCMD, wxEmptyString, wxDefaultPosition, wxDefaultSize,
 		wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB);
 	//m_cmdline->SetFont(DebuggerFont);
+
+	// Sizers
+	sbLeftOptions->Add(m_writeFileCB);
+	sbLeftOptions->Add(m_writeConsoleCB);
+	sbLeftOptions->Add(m_writeWindowCB);
+
+	sLeft->Add(m_verbosity, 0, wxEXPAND);
+	sLeft->Add(sbLeftOptions, 0, wxEXPAND);
+	sLeft->Add(sLogCtrl, 0, wxEXPAND);
+	sLeft->Add(m_checks, 1, wxEXPAND);	
 
 	sRightBottom->Add(m_cmdline, 1, wxEXPAND);
 	sRight->Add(m_log, 1, wxEXPAND | wxSHRINK);

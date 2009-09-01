@@ -303,10 +303,12 @@ void CFrame::RecreateToolbar()
 		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
+		/*
 		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
 				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
+				*/
 
 		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize,
 					wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT);
@@ -768,10 +770,6 @@ void CFrame::OnCreatePerspective(wxCommandEvent& event)
 	SPerspectives Tmp;
 	Tmp.Name = dlg.GetValue().mb_str();
 	Perspectives.push_back(Tmp);
-
-    //if (m_perspectives.GetCount() == 0) m_perspectives_menu->AppendSeparator();
-   // m_perspectives_menu->Append(ID_FirstPerspective + m_perspectives.GetCount(), dlg.GetValue());
-    //m_perspectives.Add(m_mgr.SavePerspective());
 }
 
 void CFrame::TogglePaneStyle(bool On)
@@ -1179,6 +1177,30 @@ wxAuiNotebook * CFrame::GetNotebook(int NBId)
 		j++;
 	}
 	return NULL;	
+}
+// Close all panes with notebooks
+void CFrame::CloseAllNotebooks()
+{		
+	int i = 0;
+	while(GetNotebookCount() > 0)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			//m_Mgr->GetAllPanes().Item(i).DestroyOnClose(true);
+			//m_Mgr->ClosePane(m_Mgr->GetAllPanes().Item(i));
+			m_Mgr->GetAllPanes().Item(i).window->Hide();
+			m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
+			
+			i = 0;
+			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("    %i Pane\n", i).c_str());
+		}
+		else
+		{
+			i++;
+			//Console->Log(LogTypes::LCUSTOM, StringFromFormat("    %i No pane\n", i).c_str());
+		}
+		
+	}
 }
 int CFrame::GetNotebookCount()
 {

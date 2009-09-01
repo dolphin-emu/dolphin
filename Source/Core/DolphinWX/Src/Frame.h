@@ -117,6 +117,7 @@ class CFrame : public wxFrame
 		void ListChildren();
 		void ClosePages();
 		void DoToggleWindow(int,bool);
+		void CloseAllNotebooks();
 		int GetNotebookCount();
 		void DoAddPage(wxWindow *, int, std::string);
 		void DoRemovePage(wxWindow *, bool Hide = true);
@@ -144,6 +145,7 @@ class CFrame : public wxFrame
 		void AddPane();
 		int Limit(int,int,int);
 		void Save();
+		void SaveLocal();
 		void OnPaneClose(wxAuiManagerEvent& evt);
 		void ReloadPanes();
 		void DoLoadPerspective();
