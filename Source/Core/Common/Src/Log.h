@@ -23,7 +23,6 @@
 #define	WARNING_LEVEL 3  // Something is suspicious.
 #define	INFO_LEVEL    4  // General information.
 #define	DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
-#define	CUSTOM_LEVEL  6  // Custom level
 
 namespace LogTypes
 {
@@ -82,7 +81,6 @@ enum LOG_LEVELS {
 	LWARNING = WARNING_LEVEL,
 	LINFO = INFO_LEVEL,
 	LDEBUG = DEBUG_LEVEL,
-	LCUSTOM = CUSTOM_LEVEL
 };
 
 }  // namespace
@@ -93,11 +91,11 @@ enum LOG_LEVELS {
    - Debug_run() - run only in debug time
 */
 #if defined LOGGING || defined _DEBUG || defined DEBUGFAST
-	#define MAX_LOGLEVEL DEBUG_LEVEL
+#define MAX_LOGLEVEL DEBUG_LEVEL
 #else
-	#ifndef MAX_LOGLEVEL
-	#define MAX_LOGLEVEL WARNING_LEVEL
-	#endif // loglevel
+#ifndef MAX_LOGLEVEL
+#define MAX_LOGLEVEL WARNING_LEVEL
+#endif // loglevel
 #endif // logging
 
 #define ERROR_LOG(...) {}
