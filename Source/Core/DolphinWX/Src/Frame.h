@@ -66,8 +66,7 @@ class CFrame : public wxFrame
 
 		virtual ~CFrame();
 
-		// These have to be public
-		wxStatusBar* m_pStatusBar;
+		// These have to be public		
 		CCodeWindow* g_pCodeWindow;
 		wxBitmap aNormalFile;
 		void InitBitmaps();
@@ -159,16 +158,17 @@ class CFrame : public wxFrame
 
 	private:
 		
-		bool UseDebugger;
-		bool m_bEdit;
-		bool m_bTabSplit;
-		bool m_bFloatPane;
+		wxStatusBar* m_pStatusBar;
 		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 		wxToolBarToolBase* m_ToolPlay;
 		CLogWindow* m_LogWindow;
+		bool UseDebugger;
+		bool m_bEdit;
+		bool m_bTabSplit;
+		bool m_bFloatPane;
 
 		char **drives;
 
