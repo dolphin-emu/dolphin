@@ -58,7 +58,7 @@ void ConsoleListener::Open(bool Hidden, int Width, int Height, const char *Title
 		// Set the console window title
 		SetConsoleTitle(Title);
 		// Set letter space
-		LetterSpace(80, 1000);
+		LetterSpace(80, 4000);
 		//MoveWindow(GetConsoleWindow(), 200,200, 800,800, true);
 	}
 	else
