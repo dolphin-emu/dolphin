@@ -16,19 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-/*
-1.1 Windows
-
-CFrame is the main parent window. Inside CFrame there is m_Panel which is the
-parent for the rendering window (when we render to the main window). In Windows
-the rendering window is created by giving CreateWindow() m_Panel->GetHandle()
-as parent window and creating a new child window to m_Panel. The new child
-window handle that is returned by CreateWindow() can be accessed from
-Core::GetWindowHandle().
-*/
-
-
-// FIXME: why doesn't it work on windows???
+// Why doesn't it work on windows?
 #ifndef _WIN32
 #include "Common.h"
 #endif

@@ -10,47 +10,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-
-
-// =======================================================
-// A guide to all the setup.h versions
-// -------------
-/* The included setup files are:
-
-   include\msvc\wx\setup.h			+ This file
-   include\wx\msw\wince\setup.h		- Not used in regular builds
-   lib\vc_lib\msw\wx\setup.h		+ Library configuration, Release and DebugFast builds
-   lib\vc_lib\mswd\wx\setup.h		+ Library configuration, Debug builds
-   lib\vc_dll\msw\wx\setup.h		- Not used, dll version only
-   lib\vc_dll\mswd\wx\setup.h		- Not used, dll version only
-
-   These are identical or almost identical and I'm not sure which one that applies
-   in case they are different:
-
-   include\wx\setup.h				?
-   include\wx\msw\setup.h			?
-   include\wx\univ\setup.h			?
-   include\wx\msw\setup0.h			- The original msw file, not used
-   include\wx\univ\setup0.h			- The original univ file, not used
-
-   The configuration consistency check files:
-   
-   include\wx\chkconf.h				?
-   include\wx\msw\chkconf.h			?
-   include\wx\univ\chkconf.h		?
-   include\wx\msw\wince\chkconf.h	- Not used in regular builds
-
-   Issues:
-   
-   The Debug build will break in CFrame::InitBitmaps() at the ConvertToImage() line
-   with a "assert "wxWidgets Debug Alert, bmp.Ok()" error message, the cause is unknown,
-   to me at least.
-*/
-// =============
-
-
-
-
 // VC++ IDE predefines _DEBUG and _UNICODE for the new projects itself, but
 // the other symbols (WXUSINGDLL, __WXUNIVERSAL__, ...) should be defined
 // explicitly!

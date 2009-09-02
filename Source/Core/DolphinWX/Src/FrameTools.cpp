@@ -28,7 +28,7 @@ Core::GetWindowHandle().
 */
 
 
-// FIXME: why doesn't it work on windows???
+// Why doesn't it work on windows?
 #ifndef _WIN32
 #include "Common.h"
 #endif
