@@ -57,10 +57,8 @@ void PixelShaderCache::Shutdown()
 	PixelShaders.clear(); 
 }
 
-void PixelShaderCache::SetShader(bool dstAlpha)
+bool PixelShaderCache::SetShader(bool dstAlpha)
 {
-	static LPDIRECT3DPIXELSHADER9 last_shader = NULL;
-
 	DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
@@ -68,19 +66,14 @@ void PixelShaderCache::SetShader(bool dstAlpha)
 
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
-	
 	if (iter != PixelShaders.end())
 	{
 		iter->second.frameCount = frameCount;
 		const PSCacheEntry &entry = iter->second;
+		D3D::dev->SetPixelShader(entry.shader);
 		last_entry = &entry;
-		if (!last_shader || entry.shader != last_shader)
-		{
-			D3D::dev->SetPixelShader(entry.shader);
-			last_shader = entry.shader;
-			DEBUGGER_PAUSE_COUNT_N(NEXT_PIXEL_SHADER_CHANGE);
-		}
-		return;
+		DEBUGGER_PAUSE_COUNT_N(NEXT_PIXEL_SHADER_CHANGE);
+		return true;
 	}
 
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, true);
@@ -88,26 +81,27 @@ void PixelShaderCache::SetShader(bool dstAlpha)
 
 	if (shader)
 	{
-		//Make an entry in the table
+		// Make an entry in the table
 		PSCacheEntry newentry;
 		newentry.shader = shader;
 		newentry.frameCount = frameCount;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		newentry.code = code;
 #endif
 		PixelShaders[uid] = newentry;
 		last_entry = &PixelShaders[uid];
 
 		D3D::dev->SetPixelShader(shader);
-		last_shader = shader;
 
 		INCSTAT(stats.numPixelShadersCreated);
 		SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
+		return true;
 	}
 	else if (g_Config.bShowShaderErrors)
 	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 	}
+	return false;
 }
 
 
@@ -131,7 +125,7 @@ void PixelShaderCache::Cleanup()
 	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 std::string PixelShaderCache::GetCurrentShaderCode()
 {
 	if (last_entry)

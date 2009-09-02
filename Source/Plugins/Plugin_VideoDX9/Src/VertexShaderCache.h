@@ -33,7 +33,7 @@ private:
 	{ 
 		LPDIRECT3DVERTEXSHADER9 shader;
 		int frameCount;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		std::string code;
 #endif
 		VSCacheEntry() : shader(NULL), frameCount(0) {}
@@ -53,8 +53,8 @@ public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
-	static void SetShader(u32 components);
-#ifdef _DEBUG
+	static bool SetShader(u32 components);
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif
 	static LPDIRECT3DVERTEXSHADER9 CompileCgShader(const char *pstrprogram);

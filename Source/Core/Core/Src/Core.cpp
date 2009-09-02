@@ -660,13 +660,13 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		double wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
 
 		if (Timer.GetTimeDifference() >= wait_frametime * frames)
-			no_framelimit=Timer.GetTimeDifference();
+			no_framelimit = (u32)Timer.GetTimeDifference();
 
 		while (Timer.GetTimeDifference() < wait_frametime * videoupd)
 		{
 			// TODO : This is wrong, the sleep shouldn't be there but rather in cputhread
 			// as it's not based on the fps but on the refresh rate...
-			if (no_framelimit==0)
+			if (no_framelimit == 0)
 				Common::SleepCurrentThread(1);
 		}
 	}

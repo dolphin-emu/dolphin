@@ -57,11 +57,8 @@ void VertexShaderCache::Shutdown()
 	vshaders.clear();
 }
 
-
-void VertexShaderCache::SetShader(u32 components)
+bool VertexShaderCache::SetShader(u32 components)
 {
-	static LPDIRECT3DVERTEXSHADER9 last_shader = NULL;
-
 	DVSTARTPROFILE();
 
 	VERTEXSHADERUID uid;
@@ -73,15 +70,10 @@ void VertexShaderCache::SetShader(u32 components)
 	{
 		iter->second.frameCount = frameCount;
 		const VSCacheEntry &entry = iter->second;
+		D3D::dev->SetVertexShader(entry.shader);
 		last_entry = &entry;
-		if (!last_shader || entry.shader != last_shader)
-		{
-			D3D::dev->SetVertexShader(entry.shader);
-			last_shader = entry.shader;
-
-			DEBUGGER_PAUSE_COUNT_N(NEXT_VERTEX_SHADER_CHANGE);
-		}
-		return;
+		DEBUGGER_PAUSE_COUNT_N(NEXT_VERTEX_SHADER_CHANGE);
+		return true;
 	}
 
 	const char *code = GenerateVertexShader(components, true);
@@ -93,22 +85,23 @@ void VertexShaderCache::SetShader(u32 components)
 		VSCacheEntry entry;
 		entry.shader = shader;
 		entry.frameCount = frameCount;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		entry.code = code;
 #endif
 		vshaders[uid] = entry;
 		last_entry = &vshaders[uid];
-		last_shader = entry.shader;
 
 		D3D::dev->SetVertexShader(shader);
 
 		INCSTAT(stats.numVertexShadersCreated);
 		SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
+		return true;
 	}
 	else if (g_Config.bShowShaderErrors)
 	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}
+	return false;
 }
 
 void VertexShaderCache::Cleanup()
@@ -129,7 +122,7 @@ void VertexShaderCache::Cleanup()
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 std::string VertexShaderCache::GetCurrentShaderCode()
 {
 	if (last_entry)

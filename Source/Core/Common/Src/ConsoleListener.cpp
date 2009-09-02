@@ -110,19 +110,19 @@ void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int S
 	{
 		// Change screen buffer size
 		COORD Co = {BufferWidth, BufferHeight};
-		SB = SetConsoleScreenBufferSize(hConsole, Co);
+		SB = (bool)SetConsoleScreenBufferSize(hConsole, Co);
 		// Change the screen buffer window size
 		SMALL_RECT coo = {0,0,ScreenWidth, ScreenHeight}; // top, left, right, bottom
-		SW = SetConsoleWindowInfo(hConsole, TRUE, &coo);
+		SW = (bool)SetConsoleWindowInfo(hConsole, TRUE, &coo);
 	}
 	else
 	{
 		// Change the screen buffer window size
 		SMALL_RECT coo = {0,0, ScreenWidth, ScreenHeight}; // top, left, right, bottom
-		SW = SetConsoleWindowInfo(hConsole, TRUE, &coo);
+		SW = (bool)SetConsoleWindowInfo(hConsole, TRUE, &coo);
 		// Change screen buffer size
 		COORD Co = {BufferWidth, BufferHeight};
-		SB = SetConsoleScreenBufferSize(hConsole, Co);
+		SB = (bool)SetConsoleScreenBufferSize(hConsole, Co);
 	}
 #endif
 }
@@ -198,7 +198,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	int BytesRead = 0;
 	int i = 0;
 	int LastAttrRead = 0;
-	while(BytesRead < BufferSize)
+	while (BytesRead < BufferSize)
 	{
 		Str.push_back(new char[MAX_BYTES]);
 		if (!ReadConsoleOutputCharacter(hConsole, Str[i], ReadBufferSize, coordScreen, &cCharsRead))
@@ -215,8 +215,8 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 		LastAttrRead = cAttrRead;
 	}
 	// Letter space
-	int LWidth = floor((float)Width / 8.0) - 1.0;
-	int LHeight = floor((float)Height / 12.0) - 1.0;	
+	int LWidth = (int)floor((float)Width / 8.0) - 1.0;
+	int LHeight = (int)floor((float)Height / 12.0) - 1.0;	
 	int LBufWidth = LWidth + 1;
 	int LBufHeight = floor((float)BufferSize / (float)LBufWidth);
 	// Change screen buffer size

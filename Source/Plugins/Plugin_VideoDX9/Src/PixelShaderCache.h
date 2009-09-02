@@ -36,7 +36,7 @@ private:
 	{
 		LPDIRECT3DPIXELSHADER9 shader;
 		int frameCount;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		std::string code;
 #endif
 		PSCacheEntry() : shader(NULL), frameCount(0) {}
@@ -56,8 +56,8 @@ public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
-	static void SetShader(bool dstAlpha);
-#ifdef _DEBUG
+	static bool SetShader(bool dstAlpha);
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif
 	static LPDIRECT3DPIXELSHADER9 CompileCgShader(const char *pstrprogram);

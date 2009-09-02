@@ -185,10 +185,6 @@ void Flush()
 	DVSTARTPROFILE();
 	if (collection != C_NOTHING)
 	{
-		// setup the pointers
-		if (g_nativeVertexFmt)
-			g_nativeVertexFmt->SetupVertexPointers();
-
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
 			if (bpmem.tevorders[i/2].getEnable(i & 1))
@@ -230,8 +226,10 @@ void Flush()
 			VertexShaderManager::SetConstants();
 			PixelShaderManager::SetConstants();
 
-			PixelShaderCache::SetShader(false);
-			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
+			if (!PixelShaderCache::SetShader(false))
+				goto shader_fail;
+			if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
+				goto shader_fail;
 
 			int stride = g_nativeVertexFmt->GetVertexStride();
 			g_nativeVertexFmt->SetupVertexPointers();
@@ -245,12 +243,12 @@ void Flush()
 					D3DFMT_INDEX16,
 					fakeVBuffer,
 					stride))) {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 					std::string error_shaders;
 					error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
 					error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
 					File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-					PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to shaders.txt.");
+					PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
 #endif
 				}
 			}
@@ -263,7 +261,8 @@ void Flush()
 			if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 			{
 				DWORD write = 0;
-				PixelShaderCache::SetShader(true);
+				if (!PixelShaderCache::SetShader(true))
+					goto shader_fail;
 
 				// update alpha only
 				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
@@ -280,12 +279,12 @@ void Flush()
 						D3DFMT_INDEX16,
 						fakeVBuffer,
 						stride))) {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 						std::string error_shaders;
 						error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
 						error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
 						File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-						PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to shaders.txt.");
+						PanicAlert("DrawIndexedPrimitiveUP failed (dstalpha). Shaders written to bad_shader_combo.txt.");
 #endif
 					}
 				}
@@ -309,7 +308,7 @@ void Flush()
 
 			INCSTAT(stats.thisFrame.numDrawCalls);
 		}
-
+shader_fail:
 		collection = C_NOTHING;
 		VertexManager::s_pCurBufferPointer = fakeVBuffer;
 		DEBUGGER_PAUSE_COUNT_N(NEXT_FLUSH);
