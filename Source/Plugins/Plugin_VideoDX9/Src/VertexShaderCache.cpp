@@ -109,8 +109,6 @@ void VertexShaderCache::SetShader(u32 components)
 	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}
-
-	D3D::dev->SetFVF(NULL);
 }
 
 void VertexShaderCache::Cleanup()

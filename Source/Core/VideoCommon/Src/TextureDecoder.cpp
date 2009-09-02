@@ -336,6 +336,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
     {
         colors[0] = makecol(red1, green1, blue1, 255);
         colors[1] = makecol(red2, green2, blue2, 255);
+		// TODO: use 3/8ths and 5/8ths instead of 3rd and 2/3rds. most hw works like that.
         colors[2] = makecol(red1 + (red2 - red1) / 3, green1 + (green2 - green1) / 3, blue1 + (blue2 - blue1) / 3, 255);
         colors[3] = makecol(red2 + (red1 - red2) / 3, green2 + (green1 - green2) / 3, blue2 + (blue1 - blue2) / 3, 255);
     }

@@ -215,26 +215,13 @@ void Flush()
 					tex.texTlut[i&3].tlut_format);
 
 				if (tentry) {
-					// texture loaded fine, set dims for pixel shader
-					if (tentry->isNonPow2)
-					{
-						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
-						nonpow2tex |= 1 << i;
-						if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
-						if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
-					}
-					// if texture is power of two, set to ones (since don't need scaling)
-					// (the above seems to have changed - we set the width and height here too.
-					else 
-					{
-						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
-					}
+					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 				}
 				else
 					ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
-		PixelShaderManager::SetTexturesUsed(nonpow2tex);
+		PixelShaderManager::SetTexturesUsed(0);
 
 		int numVertices = indexGen.GetNumVerts();
 		if (numVertices)

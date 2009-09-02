@@ -28,7 +28,7 @@
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) 
@@ -53,7 +53,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 dstAlphaEnable
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid.values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	uid.values[2] = s_texturemask;
+	uid.values[2] = texturemask;
 
     uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
                    ((u32)bpmem.fog.c_proj_fsel.proj << 3);
@@ -831,13 +831,13 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 			 if (HLSL)
 				 WRITE(p, "%s=tex2D(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
 			 else
-				WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
+				 WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
          }
          else {
 			 if (HLSL)
 				 WRITE(p, "%s=tex2D(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
 			 else
-				WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
+				 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
          }
     }
     else {

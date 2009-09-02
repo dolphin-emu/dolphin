@@ -101,6 +101,6 @@ public:
 };
 
 const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL = false);
-void GetPixelShaderId(PIXELSHADERUID &, u32 s_texturemask, u32 dstAlphaEnable);
+void GetPixelShaderId(PIXELSHADERUID &, u32 texturemask, u32 dstAlphaEnable);
 
 #endif // GCOGL_PIXELSHADER_H
