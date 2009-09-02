@@ -93,7 +93,7 @@ extern "C" {
 wxCheatsWindow* CheatsWindow;
 wxInfoWindow* InfoWindow;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////
 // Create menu items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::CreateMenu()
@@ -237,10 +237,10 @@ void CFrame::CreateMenu()
 	// Associate the menu bar with the frame
 	SetMenuBar(menuBar);
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////
 // Create toolbar items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
@@ -248,6 +248,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
+
 
 	ToolBar->AddTool(wxID_OPEN,    _T("Open"),    m_Bitmaps[Toolbar_FileOpen], _T("Open file..."));
 	ToolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));

@@ -82,7 +82,7 @@ void TextureCache::Cleanup()
 
 	while(iter != textures.end())
 	{
-		if (frameCount> TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
 			if (!iter->second.isRenderTarget)
 			{
@@ -106,8 +106,8 @@ void TextureCache::Cleanup()
 TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
 
-	if (address == 0)
-		return NULL;
+	if (address == 0) return NULL;
+	
 	TexCache::iterator iter = textures.find(address);
 	
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
@@ -116,12 +116,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u32 palhash = 0xc0debabe;
 	if (palSize)
 	{
-		if (palSize>16) 
-			palSize = 16; //let's not do excessive amount of checking
+		// TODO: Share this code with the GL plugin.
+		if (palSize > 32) 
+			palSize = 32; //let's not do excessive amount of checking
 		u8 *pal = g_VideoInitialize.pGetMemoryPointer(tlutaddr);
 		if (pal != 0)
 		{
-			for (int i=0; i<palSize; i++)
+			for (int i = 0; i < palSize; i++)
 			{
 				palhash = _rotl(palhash,13);
 				palhash ^= pal[i];
@@ -174,7 +175,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		}
 	}
 	
-	PC_TexFormat pcfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
+	PC_TexFormat pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
 	case PC_TEX_FMT_BGRA32:
@@ -184,7 +185,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		d3d_fmt = D3DFMT_R5G6B5;
 		break;
 	case PC_TEX_FMT_IA4_AS_IA8:
-		d3d_fmt = D3DFMT_A4L4;
+		d3d_fmt = D3DFMT_A8L8; //D3DFMT_A4L4;
 		break;
 	case PC_TEX_FMT_I8:
 	case PC_TEX_FMT_I4_AS_I8:
