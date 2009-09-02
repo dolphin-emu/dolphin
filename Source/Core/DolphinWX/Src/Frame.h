@@ -168,7 +168,7 @@ class CFrame : public wxFrame
 		bool UseDebugger;
 		bool m_bEdit;
 		bool m_bTabSplit;
-		bool m_bFloatPane;
+		bool m_bNoDocking;
 
 		char **drives;
 

@@ -534,10 +534,10 @@ void CFrame::OnDropDownSettingsToolbar(wxAuiToolBarEvent& event)
 		menuPopup.Append(new wxMenuItem(&menuPopup));
 		Item =  new wxMenuItem(&menuPopup, IDM_TAB_SPLIT, wxT("Tab split"), wxT(""), wxITEM_CHECK);
 		menuPopup.Append(Item);
-		if (m_bTabSplit) Item->Check(true);
-		Item = new wxMenuItem(&menuPopup, IDM_FLOATABLE_PANES, wxT("No docking"), wxT(""), wxITEM_CHECK);
+		Item->Check(m_bTabSplit);
+		Item = new wxMenuItem(&menuPopup, IDM_NO_DOCKING, wxT("No docking"), wxT(""), wxITEM_CHECK);
 		menuPopup.Append(Item);
-		if (m_bFloatPane) Item->Check(true);
+		Item->Check(m_bNoDocking);
 
 		// Line up our menu with the button
 		wxRect rect = Tb->GetToolRect(event.GetId());
@@ -656,9 +656,9 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 			 m_bTabSplit = event.IsChecked();
 			ToggleNotebookStyle(wxAUI_NB_TAB_SPLIT);
 			break;
-		case IDM_FLOATABLE_PANES:
-			m_bFloatPane = event.IsChecked();
-			TogglePaneStyle(m_bFloatPane, IDM_FLOATABLE_PANES);
+		case IDM_NO_DOCKING:
+			m_bNoDocking = event.IsChecked();
+			TogglePaneStyle(m_bNoDocking, IDM_NO_DOCKING);
 			break;
 	}
 }
@@ -712,12 +712,12 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 					Pane.Dockable(On);					
 					break;
 					/*
-				case IDM_FLOATABLE_PANES:				
+				case IDM_NO_DOCKING:				
 					Pane.Dockable(!On);
 					break;
 					*/
 			}
-			Pane.Dockable(!m_bFloatPane);
+			Pane.Dockable(!m_bNoDocking);
 		}
     }
 	m_Mgr->Update();
@@ -964,7 +964,7 @@ void CFrame::ReloadPanes()
 		for (u32 i = 0; i < Perspectives.at(ActivePerspective).Width.size() - 1; i++)
 		{
 			m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Hide()
-			.CaptionVisible(m_bEdit).Floatable(m_bFloatPane));
+			.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking));
 		}
 		HideAllNotebooks(true);
 
@@ -975,7 +975,7 @@ void CFrame::ReloadPanes()
 		// Reset toolbars
 		ResetToolbarStyle();
 		// Restore settings
-		TogglePaneStyle(m_bFloatPane, IDM_FLOATABLE_PANES);
+		TogglePaneStyle(m_bNoDocking, IDM_NO_DOCKING);
 		TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
 	}
 	// Create one pane by default
@@ -1148,7 +1148,8 @@ void CFrame::NamePanes()
 void CFrame::AddPane()
 {
 	m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-		.CaptionVisible(m_bEdit).Floatable(m_bFloatPane));
+		.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking));
+
 	NamePanes();
 	AddRemoveBlankPage();
 	m_Mgr->Update();

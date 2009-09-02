@@ -238,7 +238,7 @@ EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnToolBar)
 EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
 EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
-EVT_MENU(IDM_FLOATABLE_PANES, CFrame::OnDropDownToolbarSelect)
+EVT_MENU(IDM_NO_DOCKING, CFrame::OnDropDownToolbarSelect)
 
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
@@ -313,7 +313,7 @@ CFrame::CFrame(wxFrame* parent,
 	: wxFrame(parent, id, title, pos, size, style)		
 	, m_LogWindow(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
-	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bFloatPane(false), bRenderToMain(true)
+	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false), bRenderToMain(true)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
