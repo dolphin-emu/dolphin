@@ -44,6 +44,7 @@ void Config::Load()
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
+	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
@@ -140,6 +141,7 @@ void Config::Save()
     iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
 	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
 	iniFile.Set("Settings", "Crop", bCrop);
+	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
     iniFile.Set("Settings", "UseXFB", bUseXFB);
     iniFile.Set("Settings", "AutoScale", bAutoScale);

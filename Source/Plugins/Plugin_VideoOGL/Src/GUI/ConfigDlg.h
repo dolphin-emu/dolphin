@@ -93,6 +93,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_VSync;
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_NativeResolution, *m_2xResolution;
+		wxCheckBox *m_WidescreenHack;
 		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
 		wxCheckBox *m_UseXFB;
@@ -150,6 +151,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_VSYNC,
 			ID_RENDERTOMAINWINDOW,
 			ID_NATIVERESOLUTION, ID_2X_RESOLUTION,
+			ID_WIDESCREEN_HACK,
 			ID_KEEPAR_4_3, ID_KEEPAR_16_9, ID_CROP,
 			ID_USEXFB,
 			ID_AUTOSCALE,

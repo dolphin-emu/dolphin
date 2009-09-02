@@ -60,6 +60,7 @@ struct Config
     char iInternalRes[16];
 
     bool bNativeResolution, b2xResolution;  // Should possibly be augmented with 2x, 4x native.
+	bool bWidescreenHack;
     bool bKeepAR43, bKeepAR169, bCrop;   // Aspect ratio controls.
     bool bUseXFB;
     bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.

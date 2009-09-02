@@ -226,8 +226,9 @@ void VertexShaderManager::SetConstants()
 
         if (xfregs.rawProjection[6] == 0) 
 		{   
+			bool bWidescreenHack = Projection_GetWidescreen();
 			// Perspective
-            g_fProjectionMatrix[0] = xfregs.rawProjection[0];
+			g_fProjectionMatrix[0] = (bWidescreenHack ? xfregs.rawProjection[0]*0.75f : xfregs.rawProjection[0]);
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0.0f;

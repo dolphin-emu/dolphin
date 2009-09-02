@@ -46,6 +46,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_WIDESCREEN_HACK, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -179,6 +180,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN_HACK, wxT("Wide Screen Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Internal resolution Settings:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Resolution Settings:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
@@ -202,6 +204,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	// Default values
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
+	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 	m_KeepAR43->SetValue(g_Config.bKeepAR43);
 	m_KeepAR169->SetValue(g_Config.bKeepAR169);
 	m_Crop->SetValue(g_Config.bCrop);
@@ -249,6 +252,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		wxT("\nFPS if you have a slow graphics card.")
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_2xResolution->SetToolTip(wxT(
+		"Applies instanty during gameplay: <Yes>"));
+	m_WidescreenHack->SetToolTip(wxT(
 		"Applies instanty during gameplay: <Yes>"));
 	m_Crop->SetToolTip(
 		wxT("Crop the picture instead of creating a letterbox. It will assume that your screen")
@@ -325,9 +330,10 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_KeepAR43,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_KeepAR169,		wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Crop,				wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_WidescreenHack,	wxGBPosition(4, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	sBasic->Add(WM2Text,				wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Fullscreen,		wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(WM2Text,				wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Fullscreen,		wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
@@ -583,6 +589,10 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.b2xResolution = m_2xResolution->IsChecked();
 		// Don't allow 1x and 2x at the same time
 		if (g_Config.b2xResolution) { g_Config.bNativeResolution = false; m_NativeResolution->SetValue(false); }
+		break;
+	case ID_WIDESCREEN_HACK:
+		g_Config.bWidescreenHack = m_WidescreenHack->IsChecked();
+		Projection_SetWidescreen(g_Config.bWidescreenHack);
 		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();

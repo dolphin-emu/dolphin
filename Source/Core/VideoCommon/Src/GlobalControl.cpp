@@ -24,6 +24,7 @@ static bool g_ProjHack0;
 static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
 static bool g_FreeLook;
+static bool g_Widescreen;
 } // Namespace
 
 
@@ -47,6 +48,11 @@ void Projection_SetFreeLook(bool enabled)
 	g_FreeLook = enabled;
 }
 
+void Projection_SetWidescreen(bool enabled)
+{
+	g_Widescreen = enabled;
+}
+
 bool Projection_GetHack0()
 {
 	return g_ProjHack0;
@@ -65,4 +71,9 @@ ProjectionHack Projection_GetHack2()
 bool Projection_GetFreeLook()
 {
 	return g_FreeLook;
+}
+
+bool Projection_GetWidescreen()
+{
+	return g_Widescreen;
 }

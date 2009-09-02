@@ -44,8 +44,10 @@ void Projection_SetHack0(bool value);
 void Projection_SetHack1(ProjectionHack value);
 void Projection_SetHack2(ProjectionHack value);
 void Projection_SetFreeLook(bool enabled);
+void Projection_SetWidescreen(bool enabled);
 
 bool Projection_GetHack0();
 ProjectionHack Projection_GetHack1();
 ProjectionHack Projection_GetHack2();
 bool Projection_GetFreeLook();
+bool Projection_GetWidescreen();
