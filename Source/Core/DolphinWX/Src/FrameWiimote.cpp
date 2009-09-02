@@ -397,6 +397,8 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 // -------------
 void CFrame::DoMoveIcons()
 {
+	if (!m_pStatusBar) return;
+
 	if(HaveLeds) MoveLeds();
 	if(HaveSpeakers) MoveSpeakers();
 	

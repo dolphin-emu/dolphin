@@ -19,7 +19,10 @@
 #define LOGWINDOW_H_
 #include "Main.h" // for wxGetApp
 #include "LogManager.h"
-#include "IniFile.h"
+#include "Frame.h"
+#include "DebuggerUIUtil.h"
+
+#include "IniFile.h" // Common
 #include "Thread.h"
 #include <queue>
 
@@ -30,23 +33,26 @@ enum
     IDM_LOGCHECKS,
     IDM_OPTIONS,
     IDM_TOGGLEALL,
+	IDM_WRAPLINE,
     IDM_WRITEFILE,
     IDM_WRITECONSOLE,
     IDM_WRITEWINDOW,
 	IDTM_UPDATELOG,
 	IDM_VERBOSITY,
+	IDM_FONT,
     IDM_SUBMITCMD
 };
 
 class wxTextCtrl;
 class wxCheckListBox;
 class wxString;
+class CFrame;
 
 // Uses multiple inheritance - only sane because LogListener is a pure virtual interface.
 class CLogWindow : public wxDialog, LogListener
 {
 public:
-	CLogWindow(wxWindow* parent,
+	CLogWindow(CFrame *parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = wxT("Log"),
 		const wxPoint& pos = wxPoint(100, 700),
@@ -64,22 +70,27 @@ public:
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 
 private:
-	wxTextCtrl *m_log, *m_cmdline;
-	bool m_writeFile, m_writeConsole, m_writeWindow;
+	CFrame *Parent;
+	wxBoxSizer *sUber, *sLeft, *sRight, *sRightBottom;
+	wxTextCtrl *m_Log, *m_cmdline;
+	wxFont DefaultFont;
+	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
 	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
-	wxTimer *m_logTimer;
+	wxTimer *m_LogTimer;
 	wxCheckListBox* m_checks;
 	wxRadioBox *m_verbosity;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;
-	LogManager *m_logManager;
+	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
 
-	Common::CriticalSection m_logSection;
+	Common::CriticalSection m_LogSection;
 
 	DECLARE_EVENT_TABLE()
 
+	wxTextCtrl * CreateTextCtrl(wxDialog* parent, wxWindowID id, long Style);
 	void CreateGUIControls();
+	void PopulateRight(); void UnPopulateRight();
 	void OnClose(wxCloseEvent& event);
 	void OnSubmit(wxCommandEvent& event);
 	void OnOptionsCheck(wxCommandEvent& event);

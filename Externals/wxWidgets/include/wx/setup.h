@@ -1284,7 +1284,7 @@
 //
 // Recommended setting: 1, only set it to 0 if your compiler doesn't have
 //                      or can't compile <richedit.h>
-#define wxUSE_RICHEDIT 0
+#define wxUSE_RICHEDIT 1
 
 // Set this to 1 to use extra features of richedit v2 and later controls
 //
