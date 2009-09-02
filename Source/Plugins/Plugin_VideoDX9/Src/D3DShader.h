@@ -21,6 +21,6 @@
 
 namespace D3D
 {
-	LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len, bool assembly);
-	LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len, bool assembly);
+	LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len);
+	LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len);
 }

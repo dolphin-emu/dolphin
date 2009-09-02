@@ -28,9 +28,6 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgD3D9.h>
-
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
@@ -83,9 +80,9 @@ void VertexShaderCache::SetShader(u32 components)
 		return;
 	}
 
-	bool HLSL = true;
-	const char *code = GenerateVertexShader(components, HLSL);
-	LPDIRECT3DVERTEXSHADER9 shader = HLSL ? D3D::CompileVertexShader(code, (int)strlen(code), false) : CompileCgShader(code);
+	const char *code = GenerateVertexShader(components, true);
+	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVertexShader(code, (int)strlen(code));
+
 	if (shader)
 	{
 		// Make an entry in the table
@@ -108,28 +105,9 @@ void VertexShaderCache::SetShader(u32 components)
 	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}
+
 	Renderer::SetFVF(NULL);
-	D3D::dev->SetVertexShader(shader);
-}
-
-LPDIRECT3DVERTEXSHADER9 VertexShaderCache::CompileCgShader(const char *pstrprogram) 
-{
-	//char stropt[64];
-	//sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-	const char *opts[] = {"-profileopts", "MaxLocalParams=256", "-O2", "-q", NULL};
-	//const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
-	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
-	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
-		ERROR_LOG(VIDEO, "Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
-		ERROR_LOG(VIDEO, pstrprogram);
-		return NULL;
-	}
-	const char *pcompiledprog = cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-
-	LPDIRECT3DVERTEXSHADER9 vertex_shader = D3D::CompileVertexShader(pcompiledprog, (int)strlen(pcompiledprog), true);
-	cgDestroyProgram(tempprog);
-	tempprog = NULL;
-	return vertex_shader;
+	//D3D::dev->SetVertexShader(shader);
 }
 
 void VertexShaderCache::Cleanup()

@@ -39,13 +39,6 @@
 #include "EmuWindow.h"
 #include "AVIDump.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgD3D9.h>
-
-CGcontext g_cgcontext;
-CGprofile g_cgvProf;
-CGprofile g_cgfProf;
-
 float Renderer::m_x;
 float Renderer::m_y;
 float Renderer::m_width;
@@ -78,30 +71,11 @@ struct Message
 
 static std::list<Message> s_listMsgs;
 
-void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
-{
-	if(!g_Config.bShowShaderErrors)
-		return;
-
-	PanicAlert("Cg error: %s\n", cgGetErrorString(err));
-	const char* listing = cgGetLastListing(g_cgcontext);
-	if (listing != NULL) {
-		PanicAlert("last listing: %s\n", listing);
-	}
-}
-
 void Renderer::Init(SVideoInitialize &_VideoInitialize) 
 {
     EmuWindow::SetSize(g_Res[g_Config.iWindowedRes][0], g_Res[g_Config.iWindowedRes][1]);
 
     D3D::Create(g_Config.iAdapter, EmuWindow::GetWnd(), g_Config.bFullscreen, g_Config.iFSResolution, g_Config.iMultisampleMode);
-	g_cgcontext = cgCreateContext();
-
-	cgGetError();
-	cgSetErrorHandler(HandleCgError, NULL);
-	cgD3D9SetDevice(D3D::dev);
-	g_cgvProf = cgGetProfile("vs_2_0"); //cgD3D9GetLatestVertexProfile();
-	g_cgfProf = cgGetProfile("ps_2_0"); //cgD3D9GetLatestPixelProfile();
 
 	float width =  (float)D3D::GetDisplayWidth();
 	float height = (float)D3D::GetDisplayHeight();
@@ -110,8 +84,8 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	m_y = 0;
 	m_width  = width;
 	m_height = height;
-	xScale = width / (float)EFB_WIDTH;
-	yScale = height / (float)EFB_HEIGHT;
+	xScale = m_width / (float)EFB_WIDTH;
+	yScale = m_height / (float)EFB_HEIGHT;
 
 	m_LastFrameDumped = false;
 	m_AVIDumping = false;
@@ -129,10 +103,6 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 
 void Renderer::Shutdown()
 {
-	cgD3D9SetDevice(NULL);
-	cgDestroyContext(g_cgcontext);
-	g_cgcontext = NULL;
-
 	D3D::font.Shutdown();
 	D3D::EndFrame();
 	D3D::Close();
@@ -390,7 +360,7 @@ void Renderer::SwapBuffers()
 //	clearColor |= 0x003F003F;
 //	D3D::BeginFrame(true,clearColor,1.0f);
 	D3D::BeginFrame(false, clearColor, 1.0f);
-	// D3D::EnableAlphaToCoverage();
+	D3D::EnableAlphaToCoverage();
 
 	Postprocess::BeginFrame();
 	VertexManager::BeginFrame();
@@ -437,7 +407,6 @@ void Renderer::SetViewport(float* _Viewport)
 	D3D::dev->SetViewport(&vp);
 }
 */
-
 
 void Renderer::SetScissorRect()
 {
@@ -568,8 +537,8 @@ void Renderer::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Va
 // Called from VertexShaderManager
 void UpdateViewport()
 {
-	// HACK: Update viewport causes overlay to disappear and the games to move to the 
-	// bottom of the screen for some reason.
+	// TODO : remove this HACK: Update viewport is still a bit wrong and causes the
+	// image to be y-offset for some reason though.
 	return;
     // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
     // [0] = width/2
@@ -585,31 +554,19 @@ void UpdateViewport()
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 	
 	D3DVIEWPORT9 vp;
-
-	// Keep aspect ratio at 4:3
-	// rawViewport[0] = 320, rawViewport[1] = -240
+	
 	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
-	float fourThree = 4.0f / 3.0f;
-	// These were commented out to fix "unreferenced local variable" compiler warnings.
-	// float wAdj, hAdj;
-	// float actualRatiow, actualRatioh;
-	// int overfl;
-	// int actualWid, actualHei;
-	int xoffs = 0;
-	int yoffs = 0;
-	int wid, hei;
 
-	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2])/16777215.0f;
-	vp.MaxZ = xfregs.rawViewport[5]/16777215.0f;
-	
-	wid = int(ceil(fabs(2 * xfregs.rawViewport[0])));
-	hei = int(ceil(fabs(2 * xfregs.rawViewport[1])));
+	vp.X = (int)((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * Renderer::GetXScale());
+	vp.Y = (int)(Renderer::GetTargetHeight() - (xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff) * Renderer::GetYScale());
 
-	vp.X = (int)(xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) + xoffs;
-	vp.Y = (int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff) + yoffs;
-	vp.Width = wid;
-	vp.Height = hei;
+	vp.Width = (int)ceil(fabs(2 * xfregs.rawViewport[0]) * Renderer::GetXScale());
+	vp.Height = (int)ceil(fabs(2 * xfregs.rawViewport[1]) * Renderer::GetYScale());
+
+	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f; // NearZ
+	vp.MaxZ = xfregs.rawViewport[5] / 16777215.0f; // FarZ
 
 	D3D::dev->SetViewport(&vp);
 }
+

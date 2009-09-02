@@ -23,19 +23,20 @@
 
 namespace D3D
 {
+	
+extern Shader Ps;
+extern Shader Vs;
 
-LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len, bool assembly)
+LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 {
 	//try to compile
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DVERTEXSHADER9 vShader = 0;
  	HRESULT hr;
+	static char *versions[5] = {"ERROR", "vs_1_4", "vs_2_0", "vs_3_0", "vs_4_0"};
 	
-	if (assembly)
-		hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
-	else
-		hr = D3DXCompileShader(code, len, 0, 0, "main", "vs_2_0", 0, &shaderBuffer, &errorBuffer, 0);
+	hr = D3DXCompileShader(code, len, 0, 0, "main", versions[Vs.Major], 0, &shaderBuffer, &errorBuffer, 0);
 
 	if (FAILED(hr))
 	{
@@ -69,18 +70,17 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len, bool asse
 	return vShader;
 }
 
-LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len, bool assembly)
+LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 {
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DPIXELSHADER9 pShader = 0;
-	static char *versions[6] = {"ERROR", "ps_1_1", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
+	static char *versions[5] = {"ERROR", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
 
-	HRESULT hr;
-	if (assembly)
-		hr = D3DXAssembleShader(code, len, 0, 0, 0, &shaderBuffer, &errorBuffer);
-	else
-		hr = D3DXCompileShader(code, len, 0, 0, "main", "ps_2_0", // Pixel Shader 2.0 is enough for all we do
+	HRESULT hr; 
+	// For some reasons, i had this kind of errors : "Shader uses texture addressing operations
+	// in a dependency chain that is too complex for the target shader model (ps_2_0) to handle."
+	hr = D3DXCompileShader(code, len, 0, 0, "main", versions[Ps.Major], 
 							   0, &shaderBuffer, &errorBuffer, 0);
 
 	if (FAILED(hr))

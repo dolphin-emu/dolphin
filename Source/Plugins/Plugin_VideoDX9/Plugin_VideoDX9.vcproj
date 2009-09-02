@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -92,7 +92,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\release\common.lib&quot;"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -200,11 +200,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
+				AdditionalLibraryDirectories=""
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -299,7 +299,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\debug\common.lib&quot;"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX9D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -397,11 +397,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
+				AdditionalLibraryDirectories=""
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -505,7 +505,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -614,11 +614,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
+				AdditionalLibraryDirectories=""
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

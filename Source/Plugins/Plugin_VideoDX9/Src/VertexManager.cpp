@@ -239,7 +239,7 @@ void Flush()
 			VertexShaderManager::SetConstants();
 			PixelShaderManager::SetConstants();
 
-			PixelShaderCache::SetShader();
+			PixelShaderCache::SetShader(false);
 			VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 
 			int stride = g_nativeVertexFmt->GetVertexStride();
@@ -249,9 +249,7 @@ void Flush()
 				int numPrimitives = indexGen.GetNumPrims();
 				if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 					pts[(int)collection], 
-					0, 
-					numVertices, 
-					numPrimitives,
+					0, numVertices, numPrimitives,
 					fakeIBuffer,
 					D3DFMT_INDEX16,
 					fakeVBuffer,
@@ -270,6 +268,54 @@ void Flush()
 				D3D::dev->SetIndices(0);
 				D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
 			}
+
+			if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+			{
+				DWORD write = 0;
+				PixelShaderCache::SetShader(true);
+
+				// update alpha only
+				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
+				Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+
+				g_nativeVertexFmt->SetupVertexPointers();
+				if (collection != C_POINTS)
+				{
+					int numPrimitives = indexGen.GetNumPrims();
+					if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+						pts[(int)collection], 
+						0, numVertices, numPrimitives,
+						fakeIBuffer,
+						D3DFMT_INDEX16,
+						fakeVBuffer,
+						stride))) {
+#ifdef _DEBUG
+						std::string error_shaders;
+						error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+						error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+						File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+						PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to shaders.txt.");
+#endif
+					}
+				}
+				else
+				{
+					D3D::dev->SetIndices(0);
+					D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
+				}
+
+				if (bpmem.blendmode.alphaupdate) 
+					write = D3DCOLORWRITEENABLE_ALPHA;
+				if (bpmem.blendmode.colorupdate) 
+					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+				if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
+					Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+
+				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+
+				INCSTAT(stats.thisFrame.numDrawCalls);
+			}
+
 			INCSTAT(stats.thisFrame.numDrawCalls);
 		}
 

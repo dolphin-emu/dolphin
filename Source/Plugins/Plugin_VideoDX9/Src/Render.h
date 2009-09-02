@@ -66,9 +66,10 @@ public:
 
 	static float GetXScale() { return xScale; }
 	static float GetYScale() { return yScale; }
+	static float GetTargetWidth() { return m_width; }
+	static float GetTargetHeight() { return m_height; }
 
 	static void SetScissorRect();
-//	static void SetViewport(float* _Viewport);
 //	static void SetProjection(float* _pProjection, int constantIndex = -1);
 
 	// The little status display.

@@ -56,7 +56,7 @@ public:
 	static void Init();
 	static void Cleanup();
 	static void Shutdown();
-	static void SetShader();
+	static void SetShader(bool dstAlpha);
 #ifdef _DEBUG
 	static std::string GetCurrentShaderCode();
 #endif

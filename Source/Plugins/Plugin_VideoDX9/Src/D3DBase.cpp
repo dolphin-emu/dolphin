@@ -31,6 +31,7 @@ namespace D3D
 	int resolution;
 
 #define VENDOR_NVIDIA 4318
+#define VENDOR_ATI    4098
 
 	RECT client;
 	HWND hWnd;
@@ -74,8 +75,10 @@ namespace D3D
 
 	void EnableAlphaToCoverage()
 	{
-		// dev->SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
-		Renderer::SetRenderState( D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C') );
+		if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
+			Renderer::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
+		else
+			Renderer::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
 	}
 
 	void InitPP(int adapter, int resolution, int aa_mode, D3DPRESENT_PARAMETERS *pp)

@@ -28,9 +28,6 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgD3D9.h>
-
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
@@ -58,14 +55,14 @@ void PixelShaderCache::Shutdown()
 	PixelShaders.clear(); 
 }
 
-void PixelShaderCache::SetShader()
+void PixelShaderCache::SetShader(bool dstAlpha)
 {
 	static LPDIRECT3DPIXELSHADER9 last_shader = NULL;
 
 	DVSTARTPROFILE();
 
 	PIXELSHADERUID uid;
-	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), false);
+	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
 
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
@@ -83,9 +80,9 @@ void PixelShaderCache::SetShader()
 		return;
 	}
 
-	bool HLSL = true;
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), false, HLSL);
-	LPDIRECT3DPIXELSHADER9 shader = HLSL ? D3D::CompilePixelShader(code, (int)strlen(code), false) : CompileCgShader(code);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, true);
+	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)strlen(code));
+
 	if (shader)
 	{
 		//Make an entry in the table
@@ -109,25 +106,6 @@ void PixelShaderCache::SetShader()
 	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 	}
-}
-
-LPDIRECT3DPIXELSHADER9 PixelShaderCache::CompileCgShader(const char *pstrprogram) 
-{
-	const char *opts[] = {"-profileopts", "MaxLocalParams=256", "-O2", "-q", NULL};
-	//const char **opts = cgD3D9GetOptimalOptions(g_cgvProf);
-	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
-	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
-		ERROR_LOG(VIDEO, "Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
-		ERROR_LOG(VIDEO, pstrprogram);
-		return false;
-	}
-
-	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-
-	LPDIRECT3DPIXELSHADER9 pixel_shader = D3D::CompilePixelShader(pcompiledprog, (int)strlen(pcompiledprog), true);
-	cgDestroyProgram(tempprog);
-	tempprog = NULL;
-	return pixel_shader;
 }
 
 
