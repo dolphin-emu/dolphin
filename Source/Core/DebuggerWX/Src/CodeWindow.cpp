@@ -625,13 +625,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
 	pVideo->Check(bVideoWindow);
 	pDebugDialogs->AppendSeparator();
-	//	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
 	pMenuBar->Append(pDebugDialogs, _T("&Views"));	
 
 	CreateSymbolsMenu();
-
-	//SetMenuBar(pMenuBar);
 }
 
 

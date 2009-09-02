@@ -248,6 +248,7 @@ EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_INFO, CFrame::OnShow_InfoWindow)
+EVT_MENU(IDM_RESTART, CFrame::OnRestart)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
@@ -496,7 +497,25 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 	Close(true);
 }
 
+void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
+{
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		wxMessageBox(wxT("Please stop the current game before restarting."), wxT("Notice"), wxOK, this);
+		return;
+	}
+	// Get exe name and restart
+	#ifdef _WIN32
+		char Str[MAX_PATH + 1];
+		DWORD Size = sizeof(Str)/sizeof(char);
+		DWORD n = GetModuleFileNameA(NULL, Str, Size);
+		ShellExecuteA(NULL, "open", PathToFilename(*new std::string(Str)).c_str(), UseDebugger ? "" : "-d", NULL, SW_SHOW);
+	#endif
 
+	Close(true);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -794,10 +813,10 @@ void CFrame::Update()
 	}
 }
 #endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 wxPanel* CFrame::CreateEmptyPanel()
@@ -827,4 +846,4 @@ void CFrame::DoFullscreen(bool _F)
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
 }
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

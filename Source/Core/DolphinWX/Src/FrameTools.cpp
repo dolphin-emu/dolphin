@@ -119,7 +119,8 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh List"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-
+	fileMenu->AppendSeparator();
+	fileMenu->Append(IDM_RESTART, UseDebugger ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	menuBar->Append(fileMenu, _T("&File"));

@@ -72,8 +72,10 @@ void SplitString(const std::string& str, const std::string& delim, std::vector<s
 int ChooseStringFrom(const char* str, const char* * items);
 
 
-// filehelper
+// "C:\Windows\winhelp.exe" to "C:\Windows\", "winhelp", "exe"
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
+// "C:\Windows\winhelp.exe" to "winhelp.exe"
+std::string PathToFilename(std::string Path);
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
 void NormalizeDirSep(std::string* str);
 
