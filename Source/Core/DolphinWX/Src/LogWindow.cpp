@@ -387,10 +387,12 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
 			}
 		}
+		/*
 		if (m_writeConsole && !m_console->IsOpen())
 			wxGetApp().GetCFrame()->ToggleConsole(true);
 		else if (!m_writeConsole && m_console->IsOpen())
 			wxGetApp().GetCFrame()->ToggleConsole(false);
+		*/
 		break;
 	}
 	SaveSettings();
