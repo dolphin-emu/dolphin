@@ -325,28 +325,30 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
-	u8 blue1 = Convert5To8(c1 & 0x1F);
-	u8 blue2 = Convert5To8(c2 & 0x1F);
-	u8 green1 = Convert6To8((c1 >> 5) & 0x3F);
-	u8 green2 = Convert6To8((c2 >> 5) & 0x3F);
-	u8 red1 = Convert5To8((c1 >> 11) & 0x1F);
-	u8 red2 = Convert5To8((c2 >> 11) & 0x1F);
+	int blue1 = Convert5To8(c1 & 0x1F);
+	int blue2 = Convert5To8(c2 & 0x1F);
+	int green1 = Convert6To8((c1 >> 5) & 0x3F);
+	int green2 = Convert6To8((c2 >> 5) & 0x3F);
+	int red1 = Convert5To8((c1 >> 11) & 0x1F);
+	int red2 = Convert5To8((c2 >> 11) & 0x1F);
     int colors[4];
     if (c1 > c2)
     {
+        int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+        int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+        int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
         colors[0] = makecol(red1, green1, blue1, 255);
         colors[1] = makecol(red2, green2, blue2, 255);
-		// TODO: use 3/8ths and 5/8ths instead of 3rd and 2/3rds. most hw works like that.
-        colors[2] = makecol(red1 + (red2 - red1) / 3, green1 + (green2 - green1) / 3, blue1 + (blue2 - blue1) / 3, 255);
-        colors[3] = makecol(red2 + (red1 - red2) / 3, green2 + (green1 - green2) / 3, blue2 + (blue1 - blue2) / 3, 255);
+        colors[2] = makecol(red1 + red3, green1 + green3, blue1 + blue3, 255);
+        colors[3] = makecol(red2 - red3, green2 - green3, blue2 - blue3, 255); 
     }
     else
     {
         colors[0] = makecol(red1, green1, blue1, 255); // Color 1
         colors[1] = makecol(red2, green2, blue2, 255); // Color 2
-        colors[2] = makecol((int)ceil((float)(red1 + red2) / 2), // Average
-			                (int)ceil((float)(green1 + green2) / 2), 
-							(int)ceil((float)(blue1 + blue2) / 2), 255);
+        colors[2] = makecol((red1 + red2 + 1) / 2, // Average
+                            (green1 + green2 + 1) / 2,
+                            (blue1 + blue2 + 1) / 2, 255);
         colors[3] = makecol(red2, green2, blue2, 0);  // Color2 but transparent
     }
 
