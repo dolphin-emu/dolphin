@@ -137,16 +137,18 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     // inputs
     if (components & VB_HAS_NRM0)
         WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
-    if (components & VB_HAS_NRM1)
-		if (D3D)
+    if (components & VB_HAS_NRM1) {
+		if (D3D) 
 			WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
 		else
 			WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-    if (components & VB_HAS_NRM2)
-		if (D3D)
+	}
+    if (components & VB_HAS_NRM2) {
+		if (D3D) 
 			WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
 		else
 			WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
+	}
     if (components & VB_HAS_COL0)
         WRITE(p, "  float4 color0 : COLOR0,\n");
     if (components & VB_HAS_COL1)
@@ -156,14 +158,14 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         if ((components & (VB_HAS_UV0<<i)) || hastexmtx )
             WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i,i);
     }
-    if (components & VB_HAS_POSMTXIDX)
+    if (components & VB_HAS_POSMTXIDX) {
 		if (D3D)
 		{
 			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
 		}
 		else
 			WRITE(p, "  half posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-
+	}
     WRITE(p, "  float4 rawpos : POSITION) {\n");
     WRITE(p, "VS_OUTPUT o;\n");
 

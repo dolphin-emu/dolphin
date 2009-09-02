@@ -288,7 +288,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 		Color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		break;
 	}
-	if (Level != CUSTOM_LEVEL && strlen(Text) > 10)
+	if (strlen(Text) > 10)
 	{
 		// First 10 chars white
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);

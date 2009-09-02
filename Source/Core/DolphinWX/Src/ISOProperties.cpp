@@ -526,7 +526,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
-		wxMessageBox(wxString::Format(_("Could not save %s"), wxString::FromAscii(GameIniFile.c_str())), _("Error"), wxOK|wxICON_ERROR, this);
+		PanicYesNo("Could not save %s", GameIniFile.c_str());
 
 	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
 }

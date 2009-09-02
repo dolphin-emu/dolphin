@@ -296,8 +296,8 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 				m_client[i].socket.Send(m_client[socketnb].nick.c_str(), buffer_size + 1);
 			}
 		}
-		Event->AppendText(  wxString::FromAscii((wxT("*Connection established to %s (%s:%d)\n"),
-			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port))  );
+		Event->AppendText(  wxString::Format(wxT("*Connection established to %s (%s:%d)\n"),
+			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port));
 
 		if (init_number != 0x1F) // Not Found
 			//for (int i = 0; i < 4; i++)
@@ -412,7 +412,7 @@ void *ClientSide::Entry()
 		{
 			Event->AppendText(_("Connection successful !\n"));
 			Event->AppendText( wxString::Format( wxT("*Connection established to %s (%s)\n*Game is : %s\n "),
-				wxString(m_hostnick.c_str(),wxConvUTF8 ) , wxString(m_addr.c_str(),wxConvUTF8 ) , wxString(m_selectedgame.c_str() , wxConvUTF8) ));
+												 m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str()));
 		}
 		else
 		{
@@ -561,8 +561,8 @@ void ClientSide::CheckGameFound()
 
 		for (int i = 0; i < 2; i++)
 		{
-			Event->AppendText(_("WARNING : You do not have the Selected Game !\n"));
-			NOTICE_LOG(NETPLAY,"Game '%s' not found!",m_selectedgame);
+			Event->AppendText(wxT("WARNING : You do not have the Selected Game !\n"));
+			NOTICE_LOG(NETPLAY, "Game '%s' not found!", m_selectedgame.c_str());
 			
 		}			
 	}

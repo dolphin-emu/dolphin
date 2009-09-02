@@ -625,7 +625,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
 	pVideo->Check(bVideoWindow);
 	pDebugDialogs->AppendSeparator();
-	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	//	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
 	pMenuBar->Append(pDebugDialogs, _T("&Views"));	
 
@@ -787,7 +787,7 @@ void CCodeWindow::Update()
 void CCodeWindow::UpdateButtonStates()
 {
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
-	bool Running = (Core::GetState() == Core::CORE_RUN);
+	//	bool Running = (Core::GetState() == Core::CORE_RUN);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
 	wxAuiToolBar* ToolBar = GetToolBar();
 

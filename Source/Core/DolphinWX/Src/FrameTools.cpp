@@ -983,9 +983,9 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 	SConfig::GetInstance().m_InterfaceToolbar = event.IsChecked();
 	DoToggleToolbar(event.IsChecked());
 }
-void CFrame::DoToggleToolbar(bool Show)
+void CFrame::DoToggleToolbar(bool _show)
 {
-	if (Show)
+	if (_show)
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Show();
 		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }

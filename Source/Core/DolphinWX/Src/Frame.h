@@ -107,7 +107,7 @@ class CFrame : public wxFrame
 			wxWindow * GetWxWindowHwnd(HWND);
 		#endif
 		wxWindow * GetNootebookPage(wxString);
-		wxAuiNotebook * GetNotebook(int);
+		wxAuiNotebook * GetNotebook(u32);
 		void AddRemoveBlankPage();
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
@@ -140,7 +140,7 @@ class CFrame : public wxFrame
 		std::vector<SPerspectives> Perspectives;
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
-		int ActivePerspective;	
+		u32 ActivePerspective;	
 		int PercentageToPixels(int,int);
 		int PixelsToPercentage(int,int);
 		void NamePanes();
