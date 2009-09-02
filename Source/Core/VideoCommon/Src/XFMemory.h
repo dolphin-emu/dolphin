@@ -20,9 +20,9 @@
 
 #include "Common.h"
 
-/////////////
+
 // Lighting
-/////////////
+
 
 #define XF_TEXPROJ_ST   0
 #define XF_TEXPROJ_STQ  1

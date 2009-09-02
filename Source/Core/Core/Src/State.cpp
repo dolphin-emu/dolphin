@@ -32,9 +32,9 @@
 
 #include "minilzo.h"
 
-///////////
+
 // TODO: Investigate a memory leak on save/load state
-///////////
+
 
 #if defined(__LZO_STRICT_16BIT)
 #define IN_LEN      (8*1024u)

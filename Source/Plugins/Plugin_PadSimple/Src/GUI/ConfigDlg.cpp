@@ -87,7 +87,7 @@ PADConfigDialogSimple::~PADConfigDialogSimple()
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Create input button controls
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
@@ -114,7 +114,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 	hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
 	sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
 }
-////////////////////////////////////
+
 
 
 void PADConfigDialogSimple::CreateGUIControls()
@@ -220,7 +220,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 		// -----------------------------------
 
 
-		/////////////////////////////////////////////////////////////////////////////////////
+		
 		// Rerecording
 		// ¯¯¯¯¯¯¯¯¯
 		#ifdef RERECORDING
@@ -257,7 +257,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 
 		//DEBUG_LOG(CONSOLE, "m_CheckRecording: %i\n", pad[0].bRecording, pad[0].bPlayback);
 		#endif
-		//////////////////////////////////////
+		
 	
 
 		// --------------------------------------------------------------------

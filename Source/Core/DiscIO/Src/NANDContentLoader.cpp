@@ -215,7 +215,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 	memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
 	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
 
-	//////
+	
 	m_TileVersion = Common::swap16(pTMD + 0x01dc);
 	m_numEntries = Common::swap16(pTMD + 0x01de);
 	m_BootIndex = Common::swap16(pTMD + 0x01e0);

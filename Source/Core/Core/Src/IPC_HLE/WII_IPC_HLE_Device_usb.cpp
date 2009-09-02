@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////
+
 // Include
 #include "../Core.h" // Local core functions
 #include "../Debugger/Debugger_SymbolMap.h"
@@ -30,7 +30,7 @@ int g_HCICount = 0;
 int g_GlobalHandle = 0;
 
 
-//////////////////////////////////////////////////////////////////////////
+
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -436,13 +436,13 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Events
 // -----------------
 // This is messages send from the Wiimote to the game, for example RequestConnection()
 // or ConnectionComplete().
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
 {
@@ -588,7 +588,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 }
 
 
-/////////////////////////////////////////////////////////////
+
 /* This is called from Update() after ScanEnable has been enabled. */
 // ØØØØØØØØØ
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
@@ -631,7 +631,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 
 	return true;
 };
-//////////////////////////////
+
 
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
@@ -991,13 +991,13 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHan
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Command dispacther
 // -----------------
 // This is called from the USB_IOCTL_HCI_COMMAND_MESSAGE Ioctlv
 //
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICommandMessage& _rHCICommandMessage)
 {
@@ -1182,13 +1182,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 // --- command helper
 //
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReset(u8* _Input)
 {
@@ -1427,7 +1427,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 }
 
 
-/////////////////////////////////////////////////////////////
+
 /* This will enable ScanEnable so that Update() can start the Wiimote. */
 // ØØØØØØØØØ
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
@@ -1456,7 +1456,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
 }
-/////////////////////////////
+
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
@@ -1907,13 +1907,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 // --- helper
 //
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
@@ -1951,11 +1951,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
 
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // CWII_IPC_HLE_Device_usb_oh0
 //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 CWII_IPC_HLE_Device_usb_oh0::CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName)

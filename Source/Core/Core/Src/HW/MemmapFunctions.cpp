@@ -84,7 +84,7 @@ inline u32 bswap(u32 val) {return Common::swap32(val);}
 inline u64 bswap(u64 val) {return Common::swap64(val);}
 // =================
 
-///////////////////////////////////////////////////////////////////////////////////
+
 // Read and write
 // ----------------
 // The read and write macros that direct us to the right functions
@@ -452,7 +452,7 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 }
 // =====================
 
-//////////////////////////////////////////////////////////
+
 
 
 

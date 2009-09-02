@@ -92,7 +92,7 @@ GFXConfigDialogOGL::GFXConfigDialogOGL(wxWindow *parent, wxWindowID id, const wx
 	g_Config.UpdateProjectionHack();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
+
 // Close and unload the window
 // ---------------
 GFXConfigDialogOGL::~GFXConfigDialogOGL()
@@ -127,9 +127,9 @@ void GFXConfigDialogOGL::CloseClick(wxCommandEvent& WXUNUSED (event))
 	//Close();
 	CloseWindow();
 }
-///////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Add avaliable resolutions and other settings
 // ---------------
 void GFXConfigDialogOGL::AddFSReso(const char *reso)
@@ -142,7 +142,7 @@ void GFXConfigDialogOGL::AddWindowReso(const char *reso)
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }
 
-///////////////////////////////////////
+
 
 
 void GFXConfigDialogOGL::CreateGUIControls()

@@ -290,7 +290,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sButtons->Add(m_Close, 0, wxALL, 5);
 
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// GameConfig editing - Overrides and emulation state
 	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
@@ -380,7 +380,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_GameConfig->SetSizer(sConfigPage);
 	sConfigPage->Layout();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Patches
 	sPatches = new wxBoxSizer(wxVERTICAL);
 	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, wxLB_HSCROLL, wxDefaultValidator);
@@ -403,7 +403,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_PatchPage->SetSizer(sPatchPage);
 	sPatchPage->Layout();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Action Replay Cheats
 	sCheats = new wxBoxSizer(wxVERTICAL);
 	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, wxLB_HSCROLL, wxDefaultValidator);
@@ -426,7 +426,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_CheatPage->SetSizer(sCheatPage);
 	sCheatPage->Layout();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// ISO Details
 	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
 	sISODetails = new wxGridBagSizer(0, 0);
@@ -498,7 +498,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Information->SetSizer(sInfoPage);
 	sInfoPage->Layout();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Filesystem tree
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	RootId = m_Treectrl->AddRoot(wxT("Disc"), -1, -1, 0);
@@ -513,7 +513,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	if (IsWad)
 		m_Notebook->RemovePage(4);
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Add notebook and buttons to the dialog
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);

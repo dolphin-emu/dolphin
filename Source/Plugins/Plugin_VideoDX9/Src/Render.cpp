@@ -330,7 +330,7 @@ void Renderer::SwapBuffers()
 	DEBUGGER_PAUSE_COUNT_N_WITHOUT_UPDATE(NEXT_FRAME);
 
 	//D3D frame is now over
-	//////////////////////////////////////////////////////////////////////////
+	
 	
 	//clean out old stuff from caches
 	frameCount++;
@@ -338,7 +338,7 @@ void Renderer::SwapBuffers()
 	VertexShaderCache::Cleanup();
 	TextureCache::Cleanup();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	//Begin new frame
 	//Set default viewport and scissor, for the clear to work correctly
 	stats.ResetFrame();

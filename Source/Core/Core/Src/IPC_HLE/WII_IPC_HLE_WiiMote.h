@@ -188,7 +188,7 @@ public:
 	virtual ~CWII_IPC_HLE_WiiMote()
 	{}
 
-	//////////////////////////////////////////////////////////////
+	
 	// ugly Host handling....
 	// we really have to clean all this code
 
@@ -292,7 +292,7 @@ private:
 	void CommandConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 
 
-	//////////////////
+	
 	// some new ugly stuff
 	//
 	// should be inside the plugin 

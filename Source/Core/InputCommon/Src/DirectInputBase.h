@@ -19,7 +19,7 @@
 #define _DIRECTINPUTBASE_H
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <windows.h> // System
@@ -29,7 +29,7 @@
 #include <dinput.h>
 
 //#include "ConsoleWindow.h" // Common
-///////////////////////////////
+
 
 
 class DInput

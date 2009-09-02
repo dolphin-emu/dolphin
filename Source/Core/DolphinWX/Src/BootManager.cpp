@@ -38,7 +38,7 @@
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
 // Includes
 // ----------------
 #include <string>
@@ -71,10 +71,10 @@ namespace BootManager
 #ifdef _WIN32
 	extern "C" HINSTANCE wxGetInstance();
 #endif
-/////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
+
 // Boot the ISO or file
 // ----------------
 bool BootCore(const std::string& _rFilename)
@@ -207,7 +207,7 @@ void Stop()
 {
 	Core::Stop();
 }
-/////////////////////////////////
+
 
 
 } // namespace

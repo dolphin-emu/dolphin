@@ -137,7 +137,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Load a GC or Wii BIOS file
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
@@ -150,7 +150,7 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
     return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {

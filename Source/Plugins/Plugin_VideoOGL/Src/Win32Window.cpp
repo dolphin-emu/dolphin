@@ -375,9 +375,9 @@ void Win32Window::Cleanup()
 	}
 }
 
-////////////////////////////////////////////////////////////
+
 /// Process a Win32 Event
-////////////////////////////////////////////////////////////
+
 void Win32Window::ProcessEvent(UINT Message, WPARAM WParam, LPARAM LParam)
 {
 	// Don't process any message until window is created
@@ -628,10 +628,10 @@ void Win32Window::ProcessEvent(UINT Message, WPARAM WParam, LPARAM LParam)
 	}
 }
 
-///////////////////////////////////////////////////////////
+
 /// Check the state of the shift keys on a key sf::Event,
 /// and return the corresponding SF key code
-////////////////////////////////////////////////////////////
+
 sf::Key::Code Win32Window::GetShiftState(bool KeyDown)
 {
 	static bool LShiftPrevDown = false;
@@ -658,9 +658,9 @@ sf::Key::Code Win32Window::GetShiftState(bool KeyDown)
 	return Code;
 }
 
-///////////////////////////////////////////////////////////
+
 /// Convert a Win32 virtual key code to a SFML key code
-////////////////////////////////////////////////////////////
+
 sf::Key::Code Win32Window::VirtualKeyCodeToSF(WPARAM VirtualKey, LPARAM Flags)
 {
 	switch (VirtualKey)
@@ -768,9 +768,9 @@ sf::Key::Code Win32Window::VirtualKeyCodeToSF(WPARAM VirtualKey, LPARAM Flags)
 	return sf::Key::Code(0);
 }
 
-///////////////////////////////////////////////////////////
+
 /// Win32 Callback for the window class
-////////////////////////////////////////////////////////////
+
 LRESULT CALLBACK Win32Window::GlobalOnEvent(HWND Handle, UINT Message, WPARAM WParam, LPARAM LParam)
 {
 	// Associate handle and Window instance when the creation message is received

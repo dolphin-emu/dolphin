@@ -41,7 +41,7 @@ void CEXIMic::TransferByte(u8 &byte){}
 bool CEXIMic::IsInterruptSet(){return false;}
 
 #else
-//////////////////////////////////////////////////////////////////////////
+
 // We use PortAudio for cross-platform audio input.
 // It needs the headers and a lib file for the dll
 #include <portaudio.h>
@@ -95,9 +95,9 @@ int patestCallback( const void *inputBuffer, void *outputBuffer,
 	return paContinue;
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 // EXI Mic Device
-//////////////////////////////////////////////////////////////////////////
+
 CEXIMic::CEXIMic(int _Index)
 {
 	Index = _Index;

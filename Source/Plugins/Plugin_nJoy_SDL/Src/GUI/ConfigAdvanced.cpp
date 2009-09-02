@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: nJoy 
@@ -8,7 +8,7 @@
 // Site: www.multigesture.net
 // Copyright (C) 2003 Dolphin Project.
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -27,10 +27,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Include
 // ¯¯¯¯¯¯¯¯¯
 #include "ConfigBox.h"
@@ -38,7 +38,7 @@
 #include "Images/controller.xpm"
 
 extern bool g_EmulatorRunning;
-////////////////////////
+
 
 /* If we don't use this hack m_MainSizer->GetMinSize().GetWidth() will not change
    when we enable and disable bShowAdvanced */
@@ -62,7 +62,7 @@ void PADConfigDialognJoy::PadGetStatus()
 	int PhysicalDevice = PadMapping[notebookpage].ID;
 	int TriggerType = PadMapping[notebookpage].triggertype;
 
-	//////////////////////////////////////
+	
 	// Analog stick
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Set Deadzones perhaps out of function
@@ -121,7 +121,7 @@ void PADConfigDialognJoy::PadGetStatus()
 	///////////////////// Analog stick
 
 
-	//////////////////////////////////////
+	
 	// Triggers
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	int TriggerValue = 255;
@@ -318,7 +318,7 @@ void PADConfigDialognJoy::CreateAdvancedControls(int i)
 	m_bmpDotOutC[i] = new wxStaticBitmap(m_pOutStatusC[i], wxID_ANY, CreateBitmapDot(),
 		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 
-	/////////////////////////////////////////////////////////////////////////////////////
+	
 	// Rerecording
 	// ¯¯¯¯¯¯¯¯¯
 	#ifdef RERECORDING
@@ -355,7 +355,7 @@ void PADConfigDialognJoy::CreateAdvancedControls(int i)
 
 	//Console::Print("m_CheckRecording: %i\n", g_Config.bRecording, g_Config.bPlayback);
 	#endif
-	//////////////////////////////////////
+	
 }
 
 

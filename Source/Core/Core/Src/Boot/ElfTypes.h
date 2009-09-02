@@ -60,7 +60,7 @@ enum ElfMachine
 #define ELFDATA2MSB 2
 
 
-/////////////////////
+
 // Sections constants
 
 // Section indexes

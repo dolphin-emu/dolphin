@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-/////////////////////////////////////////////////////////////////////////////
+
 // File description: This file controls all system timers
 /* -------------
    "Time" is measured in frames, not time: These update frequencies are determined by the passage
@@ -57,7 +57,7 @@
 //////////////////////////*/
 
 
-/////////////////////////////////////////////////////////////////////////////
+
 // Inlude
 // -------------
 #include "Common.h"
@@ -77,12 +77,12 @@
 #include "Thread.h"
 #include "Timer.h"
 
-/////////////////////////////
+
 
 namespace SystemTimers
 {
 
-/////////////////////////////////////////////////////////////////////////////
+
 // Declarations and definitions
 // -------------
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
@@ -131,7 +131,7 @@ int
 	// TODO: make it VI output frame rate compliant (30/60 and 25/50)
 	// Assuming game's frame-finish-watchdog wait more than 4 emulated frame-period before starting its mess.
 	FAKE_GP_WATCHDOG_PERIOD;
-///////////////////////////////////
+
 
 
 u32 GetTicksPerSecond()

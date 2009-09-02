@@ -126,7 +126,7 @@ CConfigMain::~CConfigMain()
 {
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
@@ -203,7 +203,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
 
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// General page
 
 	// Core Settings - Basic
@@ -347,7 +347,7 @@ void CConfigMain::CreateGUIControls()
 	sGeneralPage->Layout();
 
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Gamecube page
 	// IPL settings
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
@@ -438,7 +438,7 @@ void CConfigMain::CreateGUIControls()
 	sGamecube->Layout();
 
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Wii page
 	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
 	arrayStringFor_WiiSensBarPos.Add(wxT("Bottom")); arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
@@ -483,7 +483,7 @@ void CConfigMain::CreateGUIControls()
 	sWii->Layout();
 
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Paths page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
@@ -524,7 +524,7 @@ void CConfigMain::CreateGUIControls()
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();
 
-	//////////////////////////////////////////////////////////////////////////
+	
 	// Plugins page
 	sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Graphics"));
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
@@ -620,7 +620,7 @@ void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 // Core AND Interface settings
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
@@ -687,7 +687,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
+
 // GC settings
 // -----------------------
 void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
@@ -809,10 +809,10 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 			(deviceNum == 2) ? 2 : 0);	// SP1 is device 2, slots are device 0
 	}
 }
-///////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Wii settings
 // -------------------
 void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
@@ -842,11 +842,11 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	}
 }
-///////////////////////////////////////////
 
 
 
-//////////////////////////////////////////////////////////////////////////
+
+
 // Paths settings
 // -------------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
@@ -912,7 +912,7 @@ void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().mb_str();
 }
 
-//////////////////////////////////////////////////////////////////////////
+
 // Plugin settings
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {

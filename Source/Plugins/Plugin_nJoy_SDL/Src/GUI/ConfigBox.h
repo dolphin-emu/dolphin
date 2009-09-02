@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: nJoy 
@@ -8,7 +8,7 @@
 // Site: www.multigesture.net
 // Copyright (C) 2003 Dolphin Project.
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -27,7 +27,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 #ifndef __CONFIGBOX_h__
@@ -94,7 +94,7 @@ class PADConfigDialognJoy : public wxDialog
 		wxStaticBoxSizer * m_sKeys[4];
 		wxBoxSizer *m_sMain[4], *m_sMainLeft[4], *m_sMainRight[4];
 
-		/////////////////////////////
+		
 		// Settings
 		// ¯¯¯¯¯¯¯¯¯
 
@@ -131,7 +131,7 @@ class PADConfigDialognJoy : public wxDialog
 		wxStaticBoxSizer *m_gStatusTriggers[4]; // Triggers
 		wxStaticText *m_TStatusTriggers[4];
 
-		/////////////////////////////
+		
 		// Keys
 		// ¯¯¯¯¯¯¯¯¯
 		int g_Pressed; // Keyboard input

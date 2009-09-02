@@ -77,7 +77,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	memset(m_LinkKey, 0xA0 + _Number, 16);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -88,7 +88,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 bool CWII_IPC_HLE_WiiMote::Update()
 {
@@ -149,7 +149,7 @@ bool CWII_IPC_HLE_WiiMote::Update()
 	return false;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -160,7 +160,7 @@ bool CWII_IPC_HLE_WiiMote::Update()
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 {
@@ -197,7 +197,7 @@ void CWII_IPC_HLE_WiiMote::EventCommandWriteLinkPolicy()
 	m_HIDInterruptChannel_ConfigWait = false;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -208,7 +208,7 @@ void CWII_IPC_HLE_WiiMote::EventCommandWriteLinkPolicy()
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 // ===================================================
@@ -390,7 +390,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -401,7 +401,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size)
@@ -576,7 +576,7 @@ void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _S
 	SendCommandToACL(_Ident, L2CAP_DISCONN_RSP, sizeof(SL2CAP_CommandDisconnectionResponse), (u8*)&Rsp);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -587,7 +587,7 @@ void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _S
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
@@ -669,7 +669,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 	SendCommandToACL(L2CAP_CONF_REQ, L2CAP_CONF_REQ, Offset, Buffer);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -680,7 +680,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 #define SDP_UINT8  		0x08
 #define SDP_UINT16		0x09
@@ -855,7 +855,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 //
 //
 //
@@ -866,7 +866,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 //
 //
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData)

@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Declarations and definitions
 // -------------
 
@@ -37,5 +37,5 @@ void CloseConsole();
 #ifdef _WIN32
 	HWND GetConsoleHwnd(void);
 #endif
-/////////////////////////////
+
 

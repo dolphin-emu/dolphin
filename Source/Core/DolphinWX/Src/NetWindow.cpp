@@ -18,7 +18,7 @@
 #include "NetSockets.h"
 #include "NetWindow.h"
 
-///////////////////////
+
 // Main Frame window
 
 BEGIN_EVENT_TABLE(NetPlay, wxFrame)
@@ -509,7 +509,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 	}
 }
 
-/////////////////////////
+
 // GameList popup window 
 
 BEGIN_EVENT_TABLE(GameListPopup, wxDialog)

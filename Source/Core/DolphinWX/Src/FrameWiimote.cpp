@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-////////////////////////////////////////////////////////////////////////////////////////
+
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Globals.h"
@@ -39,7 +39,7 @@
 #include "AboutDolphin.h"
 
 #include <wx/statusbr.h>
-/////////////////////////////////////////
+
 
 
 namespace WiimoteLeds

@@ -60,7 +60,7 @@ enum
 
 extern SVideoInitialize g_VideoInitialize;
 
-//////////////////////////////////////////////////////////////////////////
+
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
 	return g_VideoInitialize.pGetMemoryPointer(_uAddress);
@@ -80,7 +80,7 @@ inline u32 Memory_Read_U32(u32 _uAddress)
 {
 	return Common::swap32(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
 }
-//////////////////////////////////////////////////////////////////////////
+
 inline u8* Memory_Read_U8_Ptr(u32 _uAddress)
 {
 	return (u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
@@ -95,7 +95,7 @@ inline u32* Memory_Read_U32_Unswapped_Ptr(u32 _uAddress)
 {
 	return (u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
-//////////////////////////////////////////////////////////////////////////
+
 
 inline float Memory_Read_Float(u32 _uAddress)
 {

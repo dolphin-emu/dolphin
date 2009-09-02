@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -17,10 +17,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Includes
 // -------------
 // includes
@@ -40,7 +40,7 @@
 #include "Debugger.h"
 #include "PBView.h"
 #include "../Debugger/File.h" // Write to file
-//////////////////////////////
+
 
 // =======================================================================================
 // Event table and class
@@ -228,7 +228,7 @@ void DSPDebuggerHLE::Load(IniFile& _IniFile)
 // ===================
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Create GUI controls
 // -------------
 void DSPDebuggerHLE::CreateGUIControls()

@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: nJoy
@@ -8,7 +8,7 @@
 // Site: www.multigesture.net
 // Copyright (C) 2003 Dolphin Project.
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -27,11 +27,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 
  
 
-////////////////////////////////////////////////////////////////////////////////////////
+
 // Issues
 /* ¯¯¯¯¯¯¯¯¯
 
@@ -44,7 +44,7 @@
 
  
 
-////////////////////////////////////////////////////////////////////////////////////////
+
 // Variables guide
 /* ¯¯¯¯¯¯¯¯¯
 
@@ -65,7 +65,7 @@
 
  
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Include
 // ¯¯¯¯¯¯¯¯¯
 #include "nJoy.h"
@@ -75,10 +75,10 @@
 #if defined(HAVE_WX) && HAVE_WX
 	PADConfigDialognJoy* m_ConfigFrame = NULL;
 #endif
-/////////////////////////
+
 
  
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Variables
 // ¯¯¯¯¯¯¯¯¯
 
@@ -165,7 +165,7 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Input Plugin Functions (from spec's)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -416,7 +416,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int TriggerType = PadMapping[_numPAD].triggertype;
 	int TriggerValue = PadState[_numPAD].halfpress ? 100 : 255;
  
-	///////////////////////////////////////////////////
+	
 	// The analog controls
 	// -----------
 
@@ -466,7 +466,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->substickY = sub_stick_y;
 	}
  
-	///////////////////////////////////////////////////
+	
 	// The L and R triggers
 	// -----------
 
@@ -500,7 +500,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (TriggerRight > 0xf0) _pPADStatus->button |= PAD_TRIGGER_R;
 
 
-	///////////////////////////////////////////////////
+	
 	// The digital buttons
 	// -----------	
 	if (PadState[_numPAD].buttons[InputCommon::CTL_A_BUTTON])
@@ -519,7 +519,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (PadState[_numPAD].buttons[InputCommon::CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
 
 
-	///////////////////////////////////////////////////
+	
 	// The D-pad
 	// -----------		
 	if (PadMapping[_numPAD].controllertype == InputCommon::CTL_DPAD_HAT)
@@ -593,7 +593,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 //******************************************************************************
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Search for SDL devices
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
@@ -622,7 +622,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 /* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
    SetDataFormat() DirectX error -2147024809" after exactly four SDL_Init() and SDL_Quit() */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -652,7 +652,7 @@ bool ReloadDLL()
 	return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Check if Dolphin is in focus
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool IsFocus()

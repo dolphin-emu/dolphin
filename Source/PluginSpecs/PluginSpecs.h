@@ -1,23 +1,23 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //________________________________________________________________________________________
 // File description: Common plugin spec, version #1.0 maintained by F|RES
-///////////////////////////
+
 
 #ifndef _PLUGINS_H_INCLUDED__
 #define _PLUGINS_H_INCLUDED__
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Includes
 // ------------
 #ifdef _WIN32
 	#include <windows.h>
 #endif
 #include "CommonTypes.h"
-///////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 /* Plugin communication. I place this here rather in Common.h since these messages are only received
    at one place, by the CPanel in Frame.cpp. That way I don't have to rebuild if any of this is changed */
 // -----------------
@@ -31,10 +31,10 @@ enum PLUGIN_COMM
 	INPUT_FRAME_COUNTER, // Wind back the frame counter for rerecording
 	OPENGL_VIDEO_STOP
 };
-///////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // System specific declarations and definitions
 // ------------
 
@@ -59,10 +59,10 @@ enum PLUGIN_COMM
 #if defined(__cplusplus)
 	extern "C" {
 #endif
-///////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Global values
 // ------------
 
@@ -81,10 +81,10 @@ enum PLUGIN_TYPE {
 #define STATE_MODE_WRITE   2
 #define STATE_MODE_MEASURE 3
 
-///////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Export structs
 // ------------
 typedef struct 
@@ -100,11 +100,11 @@ typedef struct
     void *config;
     void *logManager;
 } PLUGIN_GLOBALS;
-///////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////
-// GLOBAL I N T E R F A C E ///////////////////////////////////////////////////
+
+
+// GLOBAL I N T E R F A C E 
 // ____________________________________________________________________________
 // Function: GetDllInfo
 // Purpose:  This function allows the emulator to gather information
@@ -164,7 +164,7 @@ EXPORT void CALL Shutdown(void);
 // input: mode
 //
 EXPORT void CALL DoState(unsigned char **ptr, int mode);
-///////////////////////////////
+
 
 
 #if defined(__cplusplus)

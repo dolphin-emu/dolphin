@@ -47,9 +47,9 @@
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals;
 
-//////////////////////////////////////////////////////////////////////////
+
 // Nasty stuff which win32 needs for wxw
-//////////////////////////////////////////////////////////////////////////
+
 #if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
 HINSTANCE g_hInstance;
 
@@ -92,7 +92,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 #endif
-//////////////////////////////////////////////////////////////////////////
+
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
    if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to

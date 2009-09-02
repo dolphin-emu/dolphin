@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: nJoy 
@@ -8,7 +8,7 @@
 // Site: www.multigesture.net
 // Copyright (C) 2003 Dolphin Project.
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -27,13 +27,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 #ifndef __NJOY_h__
 #define __NJOY_h__
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯
 #include <vector> // System
@@ -75,10 +75,10 @@
 #ifdef __linux__
 #include <linux/input.h>
 #endif
-//////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Define
 // ¯¯¯¯¯¯¯¯¯¯
 
@@ -90,7 +90,7 @@
 #define THANKYOU		wxT("`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu.")
 #define PLUGIN_VER_STR	wxT("nJoy v")wxT(INPUT_VERSION)wxT(" by Falcon4ever\nRelease: ") RELDAY wxT("/") RELMONTH wxT("/") RELYEAR wxT("\nwww.multigesture.net")
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Input vector. Todo: Save the configured keys here instead of in joystick
 // ¯¯¯¯¯¯¯¯¯
 /*
@@ -101,7 +101,7 @@ extern std::vector<u8> Keys;
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Variables
 // ¯¯¯¯¯¯¯¯¯
 #ifndef _EXCLUDE_MAIN_
@@ -115,10 +115,10 @@ extern std::vector<u8> Keys;
 	#endif
 	extern int NumPads, NumGoodPads, LastPad; // Number of goods pads
 #endif
-////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
@@ -130,10 +130,10 @@ bool ReloadDLL();
 HRESULT InitRumble(HWND hWnd);
 #endif
 
-////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // ReRecording
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef RERECORDING
@@ -148,7 +148,7 @@ namespace Recording
 	void RecordInput(const SPADStatus& _rPADStatus);
 }
 #endif
-////////////////////////////////
+
 
 
 #endif // __NJOY_h__

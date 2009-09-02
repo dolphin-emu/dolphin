@@ -254,9 +254,9 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 	m_client[socketnb].nick = std::string(buffer);
 	m_client[socketnb].ready = false;
 
-	///////////////////
+	
 	// Test UDP Socket 
-	///////////////////
+	
 	if (m_socketUDP.Send((const char*)&m_numplayers, 1, Address, m_client[m_numplayers].port) == sf::Socket::Done)
 	{
 		// Test UDP Socket Receive, 2s timeout
@@ -525,9 +525,9 @@ bool ClientSide::SyncValues()
 	m_socket.Receive(buffer, buffer_size + 1, recv_size);
 		m_hostnick = std::string(buffer);
 
-	///////////////////
+	
 	// Test UDP Socket
-	///////////////////
+	
 	if (m_socketUDP.Send((const char*)&m_numplayers, 1, host.c_str(), server_port) == sf::Socket::Done)
 	{
 		// Test UDP Socket Receive, 2s timeout

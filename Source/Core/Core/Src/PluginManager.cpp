@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // File description
 /* ¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -25,7 +25,7 @@
    created once when Dolphin starts and is closed when Dolphin is closed.
 
 */
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string> // System
@@ -44,10 +44,10 @@
 
 // Create the plugin manager class
 CPluginManager CPluginManager::m_Instance;
-/////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // The Plugin Manager Class
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -96,10 +96,10 @@ CPluginManager::~CPluginManager()
 
 	delete m_video;
 }
-//////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Init and Shutdown Plugins 
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 // Function: Point the m_pad[] and other variables to a certain plugin
@@ -200,7 +200,7 @@ void CPluginManager::ShutdownVideoPlugin()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+
 // The PluginInfo class: Find Valid Plugins
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: This info is used in ScanForPlugins() to check for valid plugins and and in LoadPlugin() to
@@ -229,10 +229,10 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 		WARN_LOG(CONSOLE, "PluginInfo: %s is not a valid Dolphin plugin. Ignoring.", _rFilename);
 	}
 }
-///////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Supporting functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -369,10 +369,10 @@ void CPluginManager::ScanForPlugins()
 		}
 	}
 }
-/////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 /* Create or return the already created plugin pointers. This will be called
    often for the Pad and Wiimote from the SI_.cpp files. And often for the DSP
    from the DSP files.
@@ -469,10 +469,10 @@ void CPluginManager::FreeWiimote(u32 Wiimote)
 		m_wiimote[Wiimote] = NULL;	
 	}
 }
-///////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////
+
+
 // Call DLL functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 

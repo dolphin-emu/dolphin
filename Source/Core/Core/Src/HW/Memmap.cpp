@@ -47,10 +47,10 @@ may be redirected here (for example to Read_U32()).
 #include "WII_IPC.h"
 #include "../ConfigManager.h"
 #include "../Debugger/Debugger_SymbolMap.h"
-/////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
+
 // Declarations and definitions
 // ----------------
 namespace Memory
@@ -122,10 +122,10 @@ readFn32  hwReadWii32[NUMHWMEMFUN];
 readFn64  hwReadWii64[NUMHWMEMFUN];
 // ===============
 
-/////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
+
 // Default read and write functions
 // ----------------
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
@@ -143,10 +143,10 @@ void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illega
 
 template <class T, u8* P> void HW_Read_Memory(T &_Data, const u32 _Address)	{	_Data = *(T*)&P[_Address & PAGE_MASK];	}
 template <class T, u8* P> void HW_Write_Memory(T _Data, const u32 _Address)	{	*(T*)&P[_Address & PAGE_MASK] = _Data;	}
-/////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /* Create shortcuts to the hardware devices' read and write functions. This can be seen
    as an alternative to a switch() or if() table. */
 // ----------------
@@ -327,11 +327,11 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 {
 	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
 }
-/////////////////////////////
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
+
 // Init and Shutdown
 // ----------------
 bool IsInitialized()
@@ -537,7 +537,7 @@ u32 Read_Instruction(const u32 em_address)
 		return inst.hex;
 }
 
-//////////////////////////////////////////////////////////
+
 
 
 
@@ -677,7 +677,7 @@ void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+
 // Other functions
 // ----------------
 void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
@@ -857,7 +857,7 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache)
 		return false;
 	}
 }
-/////////////////////////////
+
 
 
 }  // namespace

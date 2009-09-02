@@ -429,7 +429,7 @@ void Host_UpdateBreakPointView()
 }
 
 
-/////////////////////////////////////////////////////////////
+
 // Update Wiimote status bar
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Host_UpdateLeds(int led_bits)
@@ -466,7 +466,7 @@ void Host_UpdateStatus()
 		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
 	}
 }
-///////////////////////////
+
 
 
 void Host_UpdateMemoryView()

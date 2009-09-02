@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Name: Input Configuration and Calibration
@@ -7,7 +7,7 @@
 // Author: Falcon4ever (nJoy@falcon4ever.com, www.multigesture.net), JPeterson etc
 // Copyright (C) 2003 Dolphin Project.
 //
-//////////////////////////////////////////////////////////////////////////////////////////
+
 //
 // Licensetype: GNU General Public License (GPL)
 //
@@ -26,11 +26,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if defined HAVE_WX && HAVE_WX
@@ -43,14 +43,14 @@
 #endif
 
 #include "SDL.h" // Local
-////////////////////////////////////
+
 
 
 namespace InputCommon
 {
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Degree to radian and back
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 float Deg2Rad(float Deg)
@@ -61,10 +61,10 @@ float Rad2Deg(float Rad)
 {
 	return (Rad * 180.0f) / (float)M_PI;
 }
-/////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Check if the pad is within the dead zone, we assume the range is 0x8000
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 float CoordinatesToRadius(int x, int y)
@@ -85,10 +85,10 @@ bool IsDeadZone(float DeadZone, int x, int y)
 	else
 		return false;
 }
-/////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Scale down stick values from 0x8000 to 0x80
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
    The value returned by SDL_JoystickGetAxis is a signed integer s16
@@ -114,10 +114,10 @@ int Pad_Convert(int _val)
 
 	return _val;
 }
-/////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Adjust the radius
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
@@ -138,10 +138,10 @@ void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
 	// Update values
 	_x = (int)x, _y = (int)y;
 }
-/////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 /* Convert the stick raidus from a square or rounded box to a circular radius. I don't know what
    input values the actual GC controller produce for the GC, it may be a square, a circle or
    something in between. But one thing that is certain is that PC pads differ in their output
@@ -228,10 +228,10 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 	// Debugging
 	//Console::Print("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
 }
-/////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
+
 // Windows Virtual Key Codes Names
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
@@ -271,7 +271,7 @@ std::string VKToString(int keycode)
 #endif
 }
 #endif
-/////////////////////////////////////////////////////////////////////
+
 
 }
 

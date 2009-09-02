@@ -74,7 +74,7 @@
 #else
 #endif
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 CGcontext g_cgcontext;
@@ -646,7 +646,7 @@ GLuint Renderer::ResolveAndGetDepthTarget(const EFBRectangle &source_rect)
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
+
 // Function: This function handles the OpenGL glScissor() function
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
@@ -1049,7 +1049,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Renderer::SwapBuffers()
