@@ -104,7 +104,7 @@ namespace W32Util
 				mojs[4]=0;
 				*(int*)mojs=cookie;
 				sprintf(temp,"W32Util::File: Magic Cookie %s is bad!",mojs);
-				MessageBox(0,temp,"Error reading file",MB_ICONERROR);
+				MessageBoxA(0,temp,"Error reading file",MB_ICONERROR);
 				return false;
 			}
 			else

@@ -82,7 +82,7 @@ namespace W32Util
 	{
 		OpenClipboard(hwnd);
 		EmptyClipboard();
-		HANDLE hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (strlen(text) + 1) * sizeof(TCHAR)); 
+		HANDLE hglbCopy = GlobalAlloc(GMEM_MOVEABLE, (wcslen(text) + 1) * sizeof(TCHAR)); 
 		if (hglbCopy == NULL) 
 		{ 
 			CloseClipboard(); 
@@ -92,8 +92,8 @@ namespace W32Util
 		// Lock the handle and copy the text to the buffer. 
 
 		TCHAR *lptstrCopy = (TCHAR *)GlobalLock(hglbCopy); 
-		strcpy(lptstrCopy, text); 
-		lptstrCopy[strlen(text)] = (TCHAR) 0;    // null character 
+		wcscpy(lptstrCopy, text); 
+		lptstrCopy[wcslen(text)] = (TCHAR) 0;    // null character 
 		GlobalUnlock(hglbCopy); 
 		SetClipboardData(CF_TEXT,hglbCopy);
 		CloseClipboard();

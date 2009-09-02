@@ -83,7 +83,7 @@ namespace D3D
 		HFONT hFont = CreateFont(nHeight, 0, 0, 0, dwBold, 0,
 			FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
 			CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-			VARIABLE_PITCH, "Tahoma");
+			VARIABLE_PITCH, _T("Tahoma"));
 
 		if (NULL == hFont)
 			return E_FAIL;
@@ -106,7 +106,7 @@ namespace D3D
 		for (char c=0; c<127-32; c++)
 		{
 			str[0] = c+32;
-			GetTextExtentPoint32(hDC, str, 1, &size);
+			GetTextExtentPoint32A(hDC, str, 1, &size);
 
 			if ((int)(x+size.cx+1) > m_dwTexWidth)
 			{
@@ -114,7 +114,7 @@ namespace D3D
 				y += size.cy+1;
 			}
 
-			ExtTextOut(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, NULL, str, 1, NULL);
+			ExtTextOutA(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, NULL, str, 1, NULL);
 
 			m_fTexCoords[c][0] = ((float)(x+0))/m_dwTexWidth;
 			m_fTexCoords[c][1] = ((float)(y+0))/m_dwTexHeight;
@@ -215,8 +215,9 @@ namespace D3D
 
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
-		// dev->SetVertexDeclaration(0);
+		dev->SetVertexDeclaration(0);
 		
+		// dev->SetFVF(D3DFVF_FONT2DVERTEX);
 		Renderer::SetFVF(D3DFVF_FONT2DVERTEX);
 
 		for (int i = 0; i < 6; i++) {
@@ -379,8 +380,9 @@ namespace D3D
 			{x2-0.5f, y2-0.5f, 0, 1, color, u2, v2},
 			{x1-0.5f, y2-0.5f, 0, 1, color, u1, v2},
 		};
-		dev->SetPixelShader(NULL);
-		dev->SetVertexShader(NULL);
+		dev->SetPixelShader(0);
+		dev->SetVertexShader(0);
+		dev->SetVertexDeclaration(0);
 		
 		Renderer::SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 		dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));

@@ -8,17 +8,17 @@ namespace W32Util
 {
 	std::string BrowseForFolder(HWND parent, char *title)
 	{
-		BROWSEINFO info;
+		BROWSEINFOA info;
 		memset(&info,0,sizeof(info));
 		info.hwndOwner = parent;
 		info.lpszTitle = title;
 		info.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS;
 
 		//info.pszDisplayName
-		LPCITEMIDLIST idList = SHBrowseForFolder(&info);
+		LPCITEMIDLIST idList = SHBrowseForFolderA(&info);
 
 		char temp[MAX_PATH];
-		SHGetPathFromIDList(idList, temp);
+		SHGetPathFromIDListA(idList, temp);
 		if (strlen(temp))
 		{
 			return temp;
@@ -37,7 +37,7 @@ namespace W32Util
 		char szFile [MAX_PATH+1] = {0};
 		char szFileTitle [MAX_PATH+1] = {0};
 
-		OPENFILENAME ofn;
+		OPENFILENAMEA ofn;
 		ZeroMemory (&ofn,sizeof (ofn));
 		ofn.lStructSize		= sizeof (OPENFILENAME);
 		ofn.lpstrInitialDir = _pInitialFolder;
@@ -53,7 +53,7 @@ namespace W32Util
 		if (_strFileName.size () != 0)
 			ofn.lpstrFile = (char *)_strFileName.c_str();
 
-		if (((_bLoad) ? GetOpenFileName(&ofn) : GetSaveFileName(&ofn)))
+		if (((_bLoad) ? GetOpenFileNameA(&ofn) : GetSaveFileNameA(&ofn)))
 		{
 			_strFileName = ofn.lpstrFile;
 			return true;
@@ -70,7 +70,7 @@ namespace W32Util
 		strcpy (szFile,"");
 		strcpy (szFileTitle,"");
 
-		OPENFILENAME ofn;
+		OPENFILENAMEA ofn;
 
 		ZeroMemory (&ofn,sizeof (ofn));
 
@@ -87,7 +87,7 @@ namespace W32Util
 
 		std::vector<std::string> files;
 
-		if (((_bLoad)?GetOpenFileName (&ofn):GetSaveFileName (&ofn)))
+		if (((_bLoad)?GetOpenFileNameA (&ofn):GetSaveFileNameA (&ofn)))
 		{
 			std::string directory = ofn.lpstrFile;
 			char *temp = ofn.lpstrFile;

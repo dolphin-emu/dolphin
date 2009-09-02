@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -26,7 +26,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -58,7 +58,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -92,11 +92,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\release\common.lib&quot;"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg"
+				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
@@ -134,7 +134,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -160,13 +160,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -200,11 +201,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -243,7 +244,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -269,7 +270,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -299,11 +300,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\debug\common.lib&quot;"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX9D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg"
+				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -397,11 +398,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -440,7 +441,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -472,7 +473,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -505,13 +506,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib cg.lib cgD3D9.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg"
+				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
-				IgnoreDefaultLibraryNames="LIBCMTD.lib"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib wxbase28u.lib"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -548,7 +550,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="0"
 			>
 			<Tool
@@ -574,13 +576,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP4"
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;;DEBUGFAST"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -614,11 +617,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -1285,6 +1288,18 @@
 			</File>
 			<File
 				RelativePath=".\Src\DlgSettings.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Debugger"
+			>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.h"
 				>
 			</File>
 		</Filter>

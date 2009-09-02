@@ -27,7 +27,7 @@ namespace W32Util
 	//
 	HWND TabControl::AddItem (char* _szText,int _iResource,DLGPROC _lpDialogFunc)
 	{
-		TCITEM tcItem;
+		TCITEMA tcItem;
 
 		ZeroMemory (&tcItem,sizeof (tcItem));
 
@@ -40,7 +40,7 @@ namespace W32Util
 		int nResult = TabCtrl_InsertItem (m_hTabCtrl,TabCtrl_GetItemCount (m_hTabCtrl),&tcItem);
 
 
-		HWND hDialog = CreateDialog(m_hInstance,(LPCSTR)_iResource,m_hTabCtrl,_lpDialogFunc);
+		HWND hDialog = CreateDialogA(m_hInstance,(LPCSTR)_iResource,m_hTabCtrl,_lpDialogFunc);
 		RECT rectInnerWindow = {0,0,0,0};
 
 		GetWindowRect (m_hTabCtrl,&rectInnerWindow);

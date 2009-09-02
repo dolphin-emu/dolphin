@@ -43,10 +43,13 @@ struct TabDirect3D : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
+		WCHAR tempwstr[2000];
+
 		for (int i=0; i<D3D::GetNumAdapters(); i++)
 		{
 			const D3D::Adapter &adapter = D3D::GetAdapter(i);
-			ComboBox_AddString(GetDlgItem(hDlg,IDC_ADAPTER),adapter.ident.Description);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, adapter.ident.Description, -1, tempwstr, 2000);
+			ComboBox_AddString(GetDlgItem(hDlg,IDC_ADAPTER),tempwstr);
 		}
 
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
@@ -55,7 +58,8 @@ struct TabDirect3D : public W32Util::Tab
 
 		for (int i = 0; i < (int)adapter.aa_levels.size(); i++)
 		{
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), adapter.aa_levels[i].name);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, adapter.aa_levels[i].name, -1, tempwstr, 2000);
+			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), tempwstr);
 		}
 
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE), g_Config.iMultisampleMode);
@@ -67,7 +71,8 @@ struct TabDirect3D : public W32Util::Tab
 		for (int i = 0; i < (int)adapter.resolutions.size(); i++)
 		{
 			const D3D::Resolution &r = adapter.resolutions[i];
-			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTION), r.name);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, r.name, -1, tempwstr, 2000);
+			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTION), tempwstr);
 		}
 		ComboBox_SetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION), g_Config.iFSResolution);
 
@@ -75,7 +80,8 @@ struct TabDirect3D : public W32Util::Tab
 		{
 			char temp[256];
 			sprintf(temp,"%ix%i",g_Res[i][0],g_Res[i][1]);
-			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),temp);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, temp, -1, tempwstr, 2000);
+			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),tempwstr);
 		}
 		ComboBox_SetCurSel(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),g_Config.iWindowedRes);
 
@@ -173,6 +179,8 @@ struct TabEnhancements : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
+		WCHAR tempwstr[2000];
+
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING),g_Config.bForceFiltering);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.bForceMaxAniso);
 		HWND pp = GetDlgItem(hDlg,IDC_POSTPROCESSEFFECT);
@@ -183,7 +191,8 @@ struct TabEnhancements : public W32Util::Tab
 			if (!names[i])
 				break;
 
-			ComboBox_AddString(pp, names[i]);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, names[i], -1, tempwstr, 2000);
+			ComboBox_AddString(pp, tempwstr);
 			i++;
 		}
 		ComboBox_SetCurSel(pp, g_Config.iPostprocessEffect);
@@ -214,10 +223,10 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 
 	g_Config.Load();
 	W32Util::PropSheet sheet;
-	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,"Direct3D");
-	sheet.Add(new TabEnhancements,(LPCTSTR)IDD_ENHANCEMENTS,"Enhancements");
-	sheet.Add(new TabAdvanced,(LPCTSTR)IDD_ADVANCED,"Advanced");
-	sheet.Show(hInstance,_hParent,"Graphics Plugin");
+	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,_T("Direct3D"));
+	sheet.Add(new TabEnhancements,(LPCTSTR)IDD_ENHANCEMENTS,_T("Enhancements"));
+	sheet.Add(new TabAdvanced,(LPCTSTR)IDD_ADVANCED,_T("Advanced"));
+	sheet.Show(hInstance,_hParent,_T("Graphics Plugin"));
 	g_Config.Save();
 
 	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||

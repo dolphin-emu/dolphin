@@ -13,7 +13,7 @@ HWND m_hWnd = NULL;
 HWND m_hParent = NULL;
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
-const TCHAR m_szClassName[] = "DolphinEmuWnd";
+const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 
 HWND GetWnd()

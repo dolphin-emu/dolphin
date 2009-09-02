@@ -23,6 +23,12 @@
 #include "Thread.h"
 #include "LogManager.h"
 
+
+#if defined(HAVE_WX) && HAVE_WX
+#include "Debugger/Debugger.h"
+GFXDebuggerDX9 *m_DebuggerFrame = NULL;
+#endif // HAVE_WX
+
 #include "svnrev.h"
 #include "resource.h"
 #include "main.h"
@@ -62,10 +68,58 @@ bool HandleDisplayList(u32 address, u32 size)
 {
 	return false;
 }
+
+// This is used for the functions right below here which use wxwidgets
+#if defined(HAVE_WX) && HAVE_WX
+#ifdef _WIN32
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+
+wxWindow* GetParentedWxWindow(HWND Parent)
+{
+#ifdef _WIN32
+	wxSetInstance((HINSTANCE)g_hInstance);
+#endif
+	wxWindow *win = new wxWindow();
+#ifdef _WIN32
+	win->SetHWND((WXHWND)Parent);
+	win->AdoptAttributesFromHWND();
+#endif
+	return win;
+}
+#endif
+
+#if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
-    // TODO: implement
+    //SetWindowTextA(EmuWindow::GetWnd(), "Hello");
+
+	if (!m_DebuggerFrame)
+		m_DebuggerFrame = new GFXDebuggerDX9(GetParentedWxWindow(_hParent));
+
+	if (Show)
+		m_DebuggerFrame->Show();
+	else
+		m_DebuggerFrame->Hide();
 }
+#else
+void DllDebugger(HWND _hParent, bool Show) { }
+#endif
+
+
+
+#if defined(HAVE_WX) && HAVE_WX
+	class wxDLLApp : public wxApp
+	{
+		bool OnInit()
+		{
+			return true;
+		}
+	};
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+
 
 
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
@@ -75,8 +129,24 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
+		{
+			#if defined(HAVE_WX) && HAVE_WX
+			// Use wxInitialize() if you don't want GUI instead of the following 12 lines
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+			if (!wxTheApp || !wxTheApp->CallOnInit())
+				return FALSE;
+			#endif
+		}
 		break;
 	case DLL_PROCESS_DETACH:
+		#if defined(HAVE_WX) && HAVE_WX
+			// This causes a "stop hang", if the gfx config dialog has been opened.
+			// Old comment: "Use wxUninitialize() if you don't want GUI"
+			wxEntryCleanup();
+		#endif
 		break;
 	default:
 		break;
@@ -105,7 +175,7 @@ void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
 	sprintf_s(temp, 512, "SVN R%i: DX9: %s", SVN_REV, text);
-    SetWindowText(EmuWindow::GetWnd(), temp);
+    SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 
 
@@ -118,16 +188,16 @@ bool Init()
         // create the window
         if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
         {
-            g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Loading - Please wait.");
+            g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
         }
 		else
 		{
-			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Loading - Please wait.");
+			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
 		}
 
 		if (g_VideoInitialize.pWindowHandle == NULL)
 		{
-			MessageBox(GetActiveWindow(), "An error has occurred while trying to create the window.", "Fatal Error", MB_OK);
+			MessageBox(GetActiveWindow(), _T("An error has occurred while trying to create the window."), _T("Fatal Error"), MB_OK);
 			return false;
 		}
 
@@ -137,7 +207,7 @@ bool Init()
 
 		if (FAILED(D3D::Init()))
 		{
-			MessageBox(GetActiveWindow(), "Unable to initialize Direct3D. Please make sure that you have DirectX 9.0c correctly installed.", "Fatal Error", MB_OK);
+			MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_OK);
 			return false;
 		}
 		InitXFBConvTables();
@@ -179,7 +249,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 
 void DllAbout(HWND _hParent)
 {
-	DialogBox(g_hInstance,(LPCSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
+	DialogBoxA(g_hInstance,(LPCSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
 void DllConfig(HWND _hParent)
@@ -323,7 +393,7 @@ HRESULT ScreenShot(const char *File)
 
 	RECT rect;
     ::GetWindowRect(EmuWindow::GetWnd(), &rect);
-	if (FAILED(D3DXSaveSurfaceToFile(File, D3DXIFF_PNG, surf, NULL, &rect)))
+	if (FAILED(D3DXSaveSurfaceToFileA(File, D3DXIFF_PNG, surf, NULL, &rect)))
 	{
 		surf->Release();
 		return S_FALSE;

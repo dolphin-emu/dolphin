@@ -75,7 +75,7 @@ namespace W32Util
 		void SetHeader(LPCTSTR _header) {header=_header;}
 		void SetIcon(HICON _icon) {icon = _icon;}
 		void Add(Tab *tab, LPCTSTR resource, LPCTSTR title, LPCTSTR subtitle = 0);
-		void Show(HINSTANCE hInstance, HWND hParent, std::string title, int startpage=0, bool floating = false, bool wizard = false);
+		void Show(HINSTANCE hInstance, HWND hParent, LPCTSTR title, int startpage=0, bool floating = false, bool wizard = false);
 		HFONT GetTitleFont() {return hTitleFont;}
 		HFONT GetFont() {return hDialogFont;}
 		static int CALLBACK Callback(HWND hwndDlg, UINT uMsg, LPARAM lParam);

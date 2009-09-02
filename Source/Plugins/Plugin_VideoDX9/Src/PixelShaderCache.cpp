@@ -28,6 +28,8 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
+#include "debugger/debugger.h"
+
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
@@ -76,6 +78,7 @@ void PixelShaderCache::SetShader(bool dstAlpha)
 		{
 			D3D::dev->SetPixelShader(entry.shader);
 			last_shader = entry.shader;
+			DEBUGGER_PAUSE_COUNT_N(NEXT_PIXEL_SHADER_CHANGE);
 		}
 		return;
 	}

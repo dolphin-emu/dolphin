@@ -39,6 +39,8 @@
 #include "EmuWindow.h"
 #include "AVIDump.h"
 
+#include "debugger/debugger.h"
+
 float Renderer::m_x;
 float Renderer::m_y;
 float Renderer::m_width;
@@ -326,6 +328,9 @@ void Renderer::SwapBuffers()
 #endif
 
 	D3D::EndFrame();
+
+	DEBUGGER_PAUSE_COUNT_N_WITHOUT_UPDATE(NEXT_FRAME);
+
 	//D3D frame is now over
 	//////////////////////////////////////////////////////////////////////////
 	

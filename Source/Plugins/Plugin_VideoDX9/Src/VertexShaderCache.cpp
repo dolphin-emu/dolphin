@@ -28,6 +28,8 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
+#include "debugger/debugger.h"
+
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
@@ -76,6 +78,8 @@ void VertexShaderCache::SetShader(u32 components)
 		{
 			D3D::dev->SetVertexShader(entry.shader);
 			last_shader = entry.shader;
+
+			DEBUGGER_PAUSE_COUNT_N(NEXT_VERTEX_SHADER_CHANGE);
 		}
 		return;
 	}

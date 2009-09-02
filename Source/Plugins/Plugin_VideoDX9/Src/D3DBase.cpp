@@ -228,12 +228,12 @@ namespace D3D
 			adapter, 
 			D3DDEVTYPE_HAL, 
 			wnd,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING,
+			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 			// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
 			//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
 			&d3dpp, &dev ) ) )
 		{
-			MessageBox(wnd,
+			MessageBoxA(wnd,
 				"Sorry, but it looks like your 3D accelerator is too old,\n"
 				"or doesn't support features that Dolphin requires.\n"
 				"Falling back to software vertex processing.\n", 
@@ -242,12 +242,12 @@ namespace D3D
 				adapter, 
 				D3DDEVTYPE_HAL, 
 				wnd,
-				D3DCREATE_SOFTWARE_VERTEXPROCESSING,
+				D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 				// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
 				//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
 				&d3dpp, &dev ) ) )
 			{
-				MessageBox(wnd,
+				MessageBoxA(wnd,
 					"Software VP failed too. Upgrade your graphics card.", 
 					"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
 				return E_FAIL;
@@ -263,7 +263,7 @@ namespace D3D
 
 		if (caps.NumSimultaneousRTs < 2)
 		{
-			MessageBox(0, "Warning - your graphics card does not support multiple render targets.", 0, 0);
+			MessageBoxA(0, "Warning - your graphics card does not support multiple render targets.", 0, 0);
 		}
 
 		// Device state would normally be set here
@@ -309,19 +309,19 @@ namespace D3D
 		switch (err) 
 		{
 		case D3DERR_DEVICELOST:
-			MessageBox(0, "Device Lost", "D3D ERROR", 0);
+			MessageBoxA(0, "Device Lost", "D3D ERROR", 0);
 			break;
 		case D3DERR_INVALIDCALL:
-			MessageBox(0, "Invalid Call", "D3D ERROR", 0);
+			MessageBoxA(0, "Invalid Call", "D3D ERROR", 0);
 			break;
 		case D3DERR_DRIVERINTERNALERROR:
-			MessageBox(0, "Driver Internal Error", "D3D ERROR", 0);
+			MessageBoxA(0, "Driver Internal Error", "D3D ERROR", 0);
 			break;
 		case D3DERR_OUTOFVIDEOMEMORY:
-			MessageBox(0, "Out of vid mem", "D3D ERROR", 0);
+			MessageBoxA(0, "Out of vid mem", "D3D ERROR", 0);
 			break;
 		default:
-			// MessageBox(0,"Other error or success","ERROR",0);
+			// MessageBoxA(0,"Other error or success","ERROR",0);
 			break;
 		}
 	}

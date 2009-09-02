@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "FileUtil.h"
 
 #include "D3DBase.h"
 
@@ -36,6 +35,9 @@
 
 #include "BPStructs.h"
 #include "XFStructs.h"
+
+#include "debugger/debugger.h"
+
 
 using namespace D3D;
 
@@ -82,8 +84,6 @@ bool Init()
 	collection = C_NOTHING;
 	fakeVBuffer = new u8[MAXVBUFFERSIZE];
 	fakeIBuffer = new u16[MAXIBUFFERSIZE];
-	memset(fakeVBuffer, 0, MAXVBUFFERSIZE);
-	memset(fakeIBuffer, 0, MAXIBUFFERSIZE * 2);
 	CreateDeviceObjects();
 	VertexManager::s_pCurBufferPointer = fakeVBuffer;
 	return true;
@@ -146,6 +146,9 @@ void AddVertices(int _primitive, int _numVertices)
 		//We are NOT collecting the right type.
 		Flush();
 
+		// Copy the extra verts that we lost.
+		memcpy(s_pCurBufferPointer, fakeVBuffer, _numVertices * g_nativeVertexFmt->GetVertexStride());
+
 		collection = type;
 		u16 *ptr = 0;
 		if (type != C_POINTS)
@@ -155,7 +158,7 @@ void AddVertices(int _primitive, int _numVertices)
 			AddIndices(_primitive, _numVertices);
 		}
 		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBox(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
+			MessageBoxA(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
 	}
 	else  // We are collecting the right type, keep going
 	{
@@ -165,7 +168,7 @@ void AddVertices(int _primitive, int _numVertices)
 		int last = indexGen.GetNumVerts();
 		AddIndices(_primitive, _numVertices);
 		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBox(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
+			MessageBoxA(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
 	}
 }
 
@@ -321,7 +324,9 @@ void Flush()
 
 		collection = C_NOTHING;
 		VertexManager::s_pCurBufferPointer = fakeVBuffer;
+		DEBUGGER_PAUSE_COUNT_N(NEXT_FLUSH);
 	}
+	//DX9DEBUGGER_PAUSE_IF(NEXT_FLUSH);
 }
 
 }  // namespace

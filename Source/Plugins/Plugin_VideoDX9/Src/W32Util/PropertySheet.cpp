@@ -60,7 +60,7 @@ namespace W32Util
 		return 0;
 	}
 	 
-	void PropSheet::Show(HINSTANCE hInstance, HWND hParent, std::string title, int startpage, bool floating, bool wizard)
+	void PropSheet::Show(HINSTANCE hInstance, HWND hParent, LPCTSTR title, int startpage, bool floating, bool wizard)
 	{	
 		HPROPSHEETPAGE *pages = new HPROPSHEETPAGE[list.size()];
 		PROPSHEETPAGE page;
@@ -118,7 +118,7 @@ namespace W32Util
 		if (icon) 
 			sheet.dwFlags |= PSH_USEHICON;
 
-		sheet.pszCaption = title.c_str();
+		sheet.pszCaption = title;
 		sheet.nPages = (UINT)list.size();
 		sheet.phpage = pages;
 		sheet.nStartPage = startpage;

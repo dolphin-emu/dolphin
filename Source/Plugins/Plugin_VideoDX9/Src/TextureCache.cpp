@@ -82,7 +82,7 @@ void TextureCache::Cleanup()
 
 	while(iter != textures.end())
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
+		if (frameCount> TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
 			if (!iter->second.isRenderTarget)
 			{
@@ -105,20 +105,23 @@ void TextureCache::Cleanup()
 
 TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
-	if (address == 0) return NULL;
+
+	if (address == 0)
+		return NULL;
 	TexCache::iterator iter = textures.find(address);
+	
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
+
 	int palSize = TexDecoder_GetPaletteSize(format);
 	u32 palhash = 0xc0debabe;
 	if (palSize)
 	{
-		// TODO: Share this code with the GL plugin.
-		if (palSize > 32) 
-			palSize = 32;  // let's not do excessive amount of checking
+		if (palSize>16) 
+			palSize = 16; //let's not do excessive amount of checking
 		u8 *pal = g_VideoInitialize.pGetMemoryPointer(tlutaddr);
 		if (pal != 0)
 		{
-			for (int i = 0; i < palSize; i++)
+			for (int i=0; i<palSize; i++)
 			{
 				palhash = _rotl(palhash,13);
 				palhash ^= pal[i];
@@ -132,6 +135,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
 	int expandedWidth = (width+bs) & (~bs);
 	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+
 	if (iter != textures.end())
 	{
 		TCacheEntry &entry = iter->second;
@@ -170,7 +174,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		}
 	}
 	
-	PC_TexFormat pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
+	PC_TexFormat pcfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
 	case PC_TEX_FMT_BGRA32:
@@ -180,7 +184,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		d3d_fmt = D3DFMT_R5G6B5;
 		break;
 	case PC_TEX_FMT_IA4_AS_IA8:
-		d3d_fmt = D3DFMT_A8L8; //D3DFMT_A4L4;
+		d3d_fmt = D3DFMT_A4L4;
 		break;
 	case PC_TEX_FMT_I8:
 	case PC_TEX_FMT_I4_AS_I8:
@@ -232,7 +236,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), hash_value, format);
 		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
 		if (!File::Exists(szTemp))
-			D3DXSaveTextureToFile(szTemp,D3DXIFF_BMP,entry.texture,0);
+			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
 	}
 
 	INCSTAT(stats.numTexturesCreated);
