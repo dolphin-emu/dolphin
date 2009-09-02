@@ -197,7 +197,8 @@ namespace D3D
 
 	void SaveRenderStates()
 	{
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 6; i++)
+		{
 			dev->GetRenderState((_D3DRENDERSTATETYPE)RS[i][0], &(RS_old[i]));
 			dev->GetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), &(TS_old[i]));
 		}
@@ -215,10 +216,8 @@ namespace D3D
 
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
-		dev->SetVertexDeclaration(0);
 		
-		// dev->SetFVF(D3DFVF_FONT2DVERTEX);
-		Renderer::SetFVF(D3DFVF_FONT2DVERTEX);
+		dev->SetFVF(D3DFVF_FONT2DVERTEX);
 
 		for (int i = 0; i < 6; i++) {
 			// dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0],RS[i][1]);
@@ -236,10 +235,8 @@ namespace D3D
 
 		dev->SetPixelShader(ps_old);
 		dev->SetVertexShader(vs_old);
-		dev->SetVertexDeclaration(decl_old);
 
-		// dev->SetFVF(FVF_old);
-		Renderer::SetFVF(FVF_old);
+		dev->SetFVF(FVF_old);
 		
 		for (int i = 0; i < 6; i++)
 		{
@@ -384,7 +381,7 @@ namespace D3D
 		dev->SetVertexShader(0);
 		dev->SetVertexDeclaration(0);
 		
-		Renderer::SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
+		dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 		dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
 		
 		RestoreRenderStates();

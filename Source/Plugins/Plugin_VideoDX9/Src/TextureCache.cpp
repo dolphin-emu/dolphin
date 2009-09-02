@@ -105,8 +105,8 @@ void TextureCache::Cleanup()
 
 TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
-
-	if (address == 0) return NULL;
+	if (address == 0)
+		return NULL;
 	
 	TexCache::iterator iter = textures.find(address);
 	
@@ -185,7 +185,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		d3d_fmt = D3DFMT_R5G6B5;
 		break;
 	case PC_TEX_FMT_IA4_AS_IA8:
-		d3d_fmt = D3DFMT_A8L8; //D3DFMT_A4L4;
+		d3d_fmt = D3DFMT_A8L8;
 		break;
 	case PC_TEX_FMT_I8:
 	case PC_TEX_FMT_I4_AS_I8:
@@ -262,24 +262,25 @@ void TextureCache::CopyEFBToRenderTarget(u32 address, RECT *source)
 	{
 		if (!iter->second.isRenderTarget)
 		{
-			g_VideoInitialize.pLog("Using non-rendertarget texture as render target!!! WTF?", FALSE);
+			ERROR_LOG(VIDEO, "Using non-rendertarget texture as render target!!! WTF?", FALSE);
 			//TODO: remove it and recreate it as a render target
 		}
 		tex = iter->second.texture;
-		iter->second.frameCount=frameCount;
+		iter->second.frameCount = frameCount;
 	}
 	else
 	{
 		TCacheEntry entry;
-		entry.isRenderTarget=true;
+		entry.isRenderTarget = true;
 		entry.hash = 0;
 		entry.hashoffset = 0;
 		entry.frameCount = frameCount;
 		// TODO(ector): infer this size in some sensible way
-		D3D::dev->CreateTexture(512,512,1,D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
+		D3D::dev->CreateTexture(512, 512, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
+
 	LPDIRECT3DSURFACE9 srcSurface,destSurface;
 	tex->GetSurfaceLevel(0,&destSurface);
 	srcSurface = D3D::GetBackBufferSurface();

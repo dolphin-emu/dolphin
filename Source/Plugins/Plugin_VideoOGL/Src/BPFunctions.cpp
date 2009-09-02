@@ -166,16 +166,20 @@ bool GetConfig(const int &type)
 		return false;
 	}
 }
+
 u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
+
 void SetSamplerState(const BPCmd &bp)
 {
 	// TODO
 }
+
 void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO
 }
+
 };

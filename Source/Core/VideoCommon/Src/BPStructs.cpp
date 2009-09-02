@@ -224,7 +224,7 @@ void BPWritten(const BPCmd& bp)
 				float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
 				if ((u32)xfbLines > MAX_XFB_HEIGHT)
 				{
-					WARN_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
+					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
@@ -460,6 +460,7 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_TX_SETMODE0+1:
 		case BPMEM_TX_SETMODE0+2:
 		case BPMEM_TX_SETMODE0+3:
+			SetSamplerState(bp);
 		case BPMEM_TX_SETMODE1:
 		case BPMEM_TX_SETMODE1+1:
 		case BPMEM_TX_SETMODE1+2:
@@ -472,7 +473,6 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_TX_SETMODE1_4+1:
 		case BPMEM_TX_SETMODE1_4+2:
 		case BPMEM_TX_SETMODE1_4+3:
-			SetSamplerState(bp);
 			break;
 		// --------------------------------------------
 		// BPMEM_TX_SETIMAGE0 - Texture width, height, format

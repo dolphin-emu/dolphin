@@ -110,8 +110,7 @@ void VertexShaderCache::SetShader(u32 components)
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}
 
-	Renderer::SetFVF(NULL);
-	//D3D::dev->SetVertexShader(shader);
+	D3D::dev->SetFVF(NULL);
 }
 
 void VertexShaderCache::Cleanup()
@@ -119,7 +118,7 @@ void VertexShaderCache::Cleanup()
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end();)
 	{
 		VSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount - 30)
+		if (entry.frameCount < frameCount - 1400)
 		{
 			entry.Destroy();
 			iter = vshaders.erase(iter);

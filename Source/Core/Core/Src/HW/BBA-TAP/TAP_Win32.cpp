@@ -309,7 +309,7 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 
 bool CEXIETHERNET::handleRecvdPacket() 
 {
-	int rbwpp = mCbw.p_write() + CB_OFFSET;	//read buffer write page pointer
+	int rbwpp = (int)(mCbw.p_write() + CB_OFFSET);  // read buffer write page pointer
 	u32 available_bytes_in_cb;
 	if (rbwpp < mRBRPP)
 		available_bytes_in_cb = mRBRPP - rbwpp;
@@ -328,7 +328,7 @@ bool CEXIETHERNET::handleRecvdPacket()
 	cbwriteDescriptor(mRecvBufferLength);
 	mCbw.write(mRecvBuffer, mRecvBufferLength);
 	mCbw.align();
-	rbwpp = mCbw.p_write() + CB_OFFSET;
+	rbwpp = (int)(mCbw.p_write() + CB_OFFSET);
 	//DUMPWORD(rbwpp);
 
 	//mPacketsRcvd++;
@@ -384,7 +384,7 @@ bool CEXIETHERNET::startRecv()
 		return true;
 	}
 
-	DWORD res = ReadFile(mHAdapter, mRecvBuffer, mRecvBuffer.size(),
+	DWORD res = ReadFile(mHAdapter, mRecvBuffer, (DWORD)mRecvBuffer.size(),
 		&mRecvBufferLength, &mReadOverlapped);
 
 	if (res)
@@ -471,11 +471,11 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 	u32 npp;
 	if (mCbw.p_write() + size < CB_SIZE) 
 	{
-		npp = mCbw.p_write() + size + CB_OFFSET;
+		npp = (u32)(mCbw.p_write() + size + CB_OFFSET);
 	} 
 	else 
 	{
-		npp = mCbw.p_write() + size + CB_OFFSET - CB_SIZE;
+		npp = (u32)(mCbw.p_write() + size + CB_OFFSET - CB_SIZE);
 	}
 
 	npp = (npp + 0xff) & ~0xff;

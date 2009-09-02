@@ -111,7 +111,7 @@ void CMailHandler::DoState(PointerWrap &p)
 	else  // WRITE and MEASURE
 	{
 		std::queue<u32> temp;
-		int sz = m_Mails.size();
+		int sz = (int)m_Mails.size();
 		p.Do(sz);
 		for (int i = 0; i < sz; i++)
 		{

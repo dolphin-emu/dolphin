@@ -98,7 +98,6 @@ void PixelShaderCache::SetShader(bool dstAlpha)
 		PixelShaders[uid] = newentry;
 		last_entry = &PixelShaders[uid];
 
-		Renderer::SetFVF(NULL);
 		D3D::dev->SetPixelShader(shader);
 		last_shader = shader;
 
@@ -119,7 +118,7 @@ void PixelShaderCache::Cleanup()
 	while (iter != PixelShaders.end())
 	{
 		PSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount - 400)
+		if (entry.frameCount < frameCount - 1400)
 		{
 			entry.Destroy();
 			iter = PixelShaders.erase(iter);

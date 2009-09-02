@@ -370,21 +370,23 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 void CFrame::HidePane()
 {
 	// Get the first notebook
-	wxAuiNotebook * NB;
+	wxAuiNotebook * NB = NULL;
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 			NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
 	}
-	if (NB->GetPageCount() == 0)
-		m_Mgr->GetPane(wxT("Pane 1")).Hide();
-	else
-		m_Mgr->GetPane(wxT("Pane 1")).Show();
-	 m_Mgr->Update();
-
+	if (NB) {
+		if (NB->GetPageCount() == 0)
+			m_Mgr->GetPane(wxT("Pane 1")).Hide();
+		else
+			m_Mgr->GetPane(wxT("Pane 1")).Show();
+		m_Mgr->Update();
+	}
 	SetSimplePaneSize();
 }
-void CFrame::DoRemovePageString(wxString Str, bool _hide, bool _destroy)
+
+void CFrame::DoRemovePageString(wxString Str, bool /*_hide*/, bool _destroy)
 {
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
@@ -673,7 +675,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 void CFrame::ResetToolbarStyle()
 {
     wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
-    for (int i = 0, Count = AllPanes.GetCount(); i < Count; ++i)
+    for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
     {
         wxAuiPaneInfo& Pane = AllPanes.Item(i);
         if (Pane.window->IsKindOf(CLASSINFO(wxAuiToolBar)))
@@ -726,7 +728,7 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 void CFrame::ToggleNotebookStyle(long Style)
 {
     wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
-    for (int i = 0, Count = AllPanes.GetCount(); i < Count; ++i)
+    for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
     {
         wxAuiPaneInfo& Pane = AllPanes.Item(i);
         if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))

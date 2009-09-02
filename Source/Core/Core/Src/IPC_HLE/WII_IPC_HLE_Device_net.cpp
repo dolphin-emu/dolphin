@@ -296,7 +296,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		u32 TYPE = Memory::Read_U32(_BufferIn + 0x04);
 		u32 PROT = Memory::Read_U32(_BufferIn + 0x04 * 2);
 		u32 Unk1 = Memory::Read_U32(_BufferIn + 0x04 * 3);
-		u32 Socket = socket(AF, TYPE, PROT);
+		u32 Socket = (u32)socket(AF, TYPE, PROT);
 		return Common::swap32(Socket); // So it doesn't get mangled later on
 	}
 	break;
@@ -322,13 +322,13 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		return Return;
 	}
 	break;
-	case  IOCTL_SO_ACCEPT:
+	case IOCTL_SO_ACCEPT:
 	{
 		//TODO: (Sonic)Check if this is correct
 		u32 S = Memory::Read_U32(_BufferIn);
 		socklen_t addrlen;
 		struct sockaddr_in address;
-		int Return = accept(S, (struct sockaddr *)&address, &addrlen);
+		u32 Return = (u32)accept(S, (struct sockaddr *)&address, &addrlen);
 		GC_sockaddr_in *addr = (GC_sockaddr_in*)Memory::GetPointer(BufferOut);
 		addr->sin_family = (u8)address.sin_family;
 		addr->sin_addr.s_addr_ = address.sin_addr.s_addr;

@@ -322,7 +322,7 @@ inline u32 makecol(int r, int g, int b, int a)
 
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
-	// S3TC Decoder (Note: GCN decodes differently from PC)
+	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
 	u8 blue1 = Convert5To8(c1 & 0x1F);
@@ -331,9 +331,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	u8 green2 = Convert6To8((c2 >> 5) & 0x3F);
 	u8 red1 = Convert5To8((c1 >> 11) & 0x1F);
 	u8 red2 = Convert5To8((c2 >> 11) & 0x1F);
-    
     int colors[4];
-
     if (c1 > c2)
     {
         colors[0] = makecol(red1, green1, blue1, 255);
@@ -457,10 +455,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
 					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-                        //decodebytesIA4((u32*)dst+(y+iy)*width+x, src, 8);
                         decodebytesIA4((u16*)dst + (y + iy) * width + x, src);
-					}
         }
 		return PC_TEX_FMT_IA4_AS_IA8;
     case GX_TF_IA8:

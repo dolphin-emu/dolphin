@@ -56,7 +56,6 @@ std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
 DWORD Renderer::m_RenderStates[MaxRenderStates+46];
 DWORD Renderer::m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 DWORD Renderer::m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
-DWORD Renderer::m_FVF;
 
 bool Renderer::m_LastFrameDumped;
 bool Renderer::m_AVIDumping;
@@ -116,7 +115,6 @@ void Renderer::Shutdown()
 
 void Renderer::Initialize()
 {
-	m_FVF = 0;
 	m_Textures.reserve(MaxTextureStages);
 	for (int i = 0; i < MaxTextureStages; i++)
 		m_Textures.push_back(NULL);
@@ -360,12 +358,17 @@ void Renderer::SwapBuffers()
 	D3D::dev->SetScissorRect(&rc);
 	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
-	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x101010, 0, 0);
+	// We probably shouldn't clear here.
+	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x00000000, 0, 0);
+
 	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 //	clearColor |= 0x003F003F;
 //	D3D::BeginFrame(true,clearColor,1.0f);
 	D3D::BeginFrame(false, clearColor, 1.0f);
-	D3D::EnableAlphaToCoverage();
+	
+	// This probably causes problems, and the visual difference is tiny anyway.
+	// So let's keep it commented out.
+	// D3D::EnableAlphaToCoverage();
 
 	Postprocess::BeginFrame();
 	VertexManager::BeginFrame();
@@ -499,15 +502,6 @@ void Renderer::SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 	{
 		m_Textures[Stage] = pTexture;
 		D3D::dev->SetTexture(Stage, pTexture);
-	}
-}
-
-void Renderer::SetFVF(DWORD FVF)
-{
-	if (m_FVF != FVF)
-	{
-		m_FVF = FVF;
-		D3D::dev->SetFVF(FVF);
 	}
 }
 

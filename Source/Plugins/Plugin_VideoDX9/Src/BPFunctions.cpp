@@ -127,30 +127,24 @@ void SetScissor(const BPCmd &bp)
 {
 	Renderer::SetScissorRect();
 }
+
 void SetLineWidth(const BPCmd &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
 	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
+
 void SetDepthMode(const BPCmd &bp)
 {
 	if (bpmem.zmode.testenable)
 	{
-		// dev->SetRenderState(D3DRS_ZENABLE, TRUE);
-		// dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-		// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
-
 		Renderer::SetRenderState(D3DRS_ZENABLE, TRUE);
 		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
 		Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
 	}
 	else
 	{
-		// if the test is disabled write is disabled too
-		// dev->SetRenderState(D3DRS_ZENABLE,		FALSE);
-		// dev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
 		Renderer::SetRenderState(D3DRS_ZENABLE, FALSE);
 		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	}			
@@ -193,7 +187,8 @@ void SetBlendMode(const BPCmd &bp)
 			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
 		}
 		
-		Renderer::SetRenderState(D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
+		Renderer::SetRenderState(D3DRS_BLENDOP, 
+			bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 	}
 }
 void SetDitherMode(const BPCmd &bp)
@@ -218,9 +213,8 @@ void SetColorMask(const BPCmd &bp)
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
 	// TODO: Scale EFBRectangle correctly
-
 	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
-	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rec);
+	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest << 5, &rec);
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
@@ -229,6 +223,7 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, c
 	PRIM_LOG("Renderer::SwapBuffers()");
 	g_VideoInitialize.pCopiedToXFB(false);
 }
+
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	// TODO: Scale EFBRectangle correctly
@@ -248,7 +243,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	{                    
 		if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 			col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-		// clearflags |= D3DCLEAR_TARGET;   set to break animal crossing :p
+		clearflags |= D3DCLEAR_TARGET;   // set to break animal crossing :p  ??
 	}
 
 	// clear z-buffer
@@ -283,10 +278,12 @@ bool GetConfig(const int &type)
 		return false;
 	}
 }
+
 u8 *GetPointer(const u32 &address)
 {
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
+
 void SetSamplerState(const BPCmd &bp)
 {
 	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];

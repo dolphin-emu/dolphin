@@ -51,7 +51,6 @@ class Renderer
 	static DWORD m_RenderStates[MaxRenderStates+46];
 	static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 	static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
-	static DWORD m_FVF;
 
 public:
 	static void Init(SVideoInitialize &_VideoInitialize);
@@ -79,7 +78,6 @@ public:
 
 	// The following are "filtered" versions of the corresponding D3Ddev-> functions.
 	static void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
-	static void SetFVF(DWORD FVF);
 	static void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 	static void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 	static void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
