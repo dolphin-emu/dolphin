@@ -343,7 +343,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -369,7 +369,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../../Externals;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX9_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -398,11 +398,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="cg.lib cgD3D9.lib dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib vfw32.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX9D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64"
+				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

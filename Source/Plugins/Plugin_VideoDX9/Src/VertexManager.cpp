@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "FileUtil.h"
 
 #include "D3DBase.h"
 
