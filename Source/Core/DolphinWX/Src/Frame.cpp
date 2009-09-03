@@ -311,7 +311,7 @@ CFrame::CFrame(wxFrame* parent,
 		bool _UseDebugger,
 		bool ShowLogWindow,
 		long style)
-	: wxFrame(parent, id, title, pos, size, style)		
+	: wxFrame(parent, id, title, pos, size, style), g_pCodeWindow(NULL)		
 	, m_LogWindow(NULL), m_MenuBar(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false), bRenderToMain(true)
