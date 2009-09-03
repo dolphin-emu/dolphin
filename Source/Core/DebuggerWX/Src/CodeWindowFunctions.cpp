@@ -230,6 +230,8 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
+	Parent->ClearStatusBar();
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		// TODO: disable menu items instead :P
@@ -265,8 +267,12 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			SignatureDB db;
 			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 				db.Apply(&g_symbolDB);
-		} else {
+			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", mapfile.c_str());
+		}
+		else
+		{
 			g_symbolDB.LoadMap(mapfile.c_str());
+			Parent->StatusBarMessage("Loaded symbols from '%s'", mapfile.c_str());
 		}
         HLE::PatchFunctions();
 		NotifyMapLoaded();

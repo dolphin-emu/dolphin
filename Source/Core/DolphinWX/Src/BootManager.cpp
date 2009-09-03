@@ -63,7 +63,6 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 extern CFrame* main_frame;
-extern CCodeWindow* g_pCodeWindow;
 #endif
 
 namespace BootManager
@@ -83,21 +82,21 @@ bool BootCore(const std::string& _rFilename)
 
 	// Use custom settings for debugging mode
 	#if defined(HAVE_WX) && HAVE_WX		
-		if (g_pCodeWindow)
+		if (main_frame->g_pCodeWindow)
 		{
-	//		StartUp.bUseDualCore = code_frame->UseDualCore();
-			StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
-			StartUp.bBootToPause = g_pCodeWindow->BootToPause();
-			StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
-			StartUp.bJITUnlimitedCache = g_pCodeWindow->UnlimitedJITCache();
-			StartUp.bJITBlockLinking = g_pCodeWindow->JITBlockLinking();
+			//StartUp.bUseDualCore = code_frame->UseDualCore();
+			StartUp.bUseJIT = !main_frame->g_pCodeWindow->UseInterpreter();
+			StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
+			StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
+			StartUp.bJITUnlimitedCache = main_frame->g_pCodeWindow->UnlimitedJITCache();
+			StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
 		}
 		else
 		{
-	//		StartUp.bUseDualCore = false;
-	//		StartUp.bUseJIT = true;
+			//StartUp.bUseDualCore = false;
+			//StartUp.bUseJIT = true;
 		}		
-		StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
+		StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 	#endif 
 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
@@ -193,8 +192,7 @@ bool BootCore(const std::string& _rFilename)
 
 #if defined(HAVE_WX) && HAVE_WX
 	// Boot to pause or not
-	Core::SetState((g_pCodeWindow && StartUp.bBootToPause)
-		? Core::CORE_PAUSE : Core::CORE_RUN);
+	Core::SetState((main_frame->g_pCodeWindow && StartUp.bBootToPause) ? Core::CORE_PAUSE : Core::CORE_RUN);
 #else
 	Core::SetState(Core::CORE_RUN);
 #endif

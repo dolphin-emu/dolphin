@@ -50,7 +50,6 @@ IMPLEMENT_APP(DolphinApp)
 #endif
 
 CFrame* main_frame = NULL;
-CCodeWindow* g_pCodeWindow = NULL;
 LogManager *logManager = NULL;
 
 #ifdef WIN32
@@ -348,6 +347,26 @@ void DolphinApp::OnEndSession()
 }
 ///////////////////////////////////////  Main window created
 
+
+// g_VideoInitialize.pSysMessage() goes here
+void Host_SysMessage(const char *fmt, ...) 
+{
+	va_list list;
+	char msg[512];
+
+	va_start(list, fmt);
+	vsprintf(msg, fmt, list);
+	va_end(list);
+
+	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
+	//wxMessageBox(wxString::FromAscii(msg));
+	PanicAlert("%s", msg);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Talk to GUI
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if defined HAVE_WX && HAVE_WX
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
@@ -355,7 +374,6 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 				 wxString::FromAscii(caption),
 				 (yes_no)?wxYES_NO:wxOK);
 }
-#endif
 
 // Accessor for the main window class
 CFrame* DolphinApp::GetCFrame()
@@ -370,9 +388,9 @@ void Host_NotifyMapLoaded()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFYMAPLOADED);
 	wxPostEvent(main_frame, event);
 
-	if (g_pCodeWindow)
+	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(g_pCodeWindow, event);
+		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
 
@@ -382,9 +400,9 @@ void Host_UpdateLogDisplay()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
 	wxPostEvent(main_frame, event);
 
-	if (g_pCodeWindow)
+	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(g_pCodeWindow, event);
+		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
 
@@ -394,9 +412,9 @@ void Host_UpdateDisasmDialog()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
 	wxPostEvent(main_frame, event);
 
-	if (g_pCodeWindow)
+	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(g_pCodeWindow, event);
+		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
 
@@ -411,9 +429,9 @@ void Host_UpdateMainFrame()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
 	wxPostEvent(main_frame, event);
 
-	if (g_pCodeWindow)
+	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(g_pCodeWindow, event);
+		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
 // Remove this?
@@ -422,9 +440,9 @@ void Host_UpdateBreakPointView()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
 	wxPostEvent(main_frame, event);
 
-	if (g_pCodeWindow)
+	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(g_pCodeWindow, event);
+		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
 
@@ -503,21 +521,6 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	wxPostEvent(main_frame, event);
 }
 
-// g_VideoInitialize.pSysMessage() goes here
-void Host_SysMessage(const char *fmt, ...) 
-{
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-
-	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	//wxMessageBox(wxString::FromAscii(msg));
-	PanicAlert("%s", msg);
-}
-
 void Host_SetWiiMoteConnectionState(int _State)
 {
 	static int currentState = -1;
@@ -542,3 +545,5 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	wxPostEvent(main_frame, event);
 }
+#endif // HAVE_WX
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

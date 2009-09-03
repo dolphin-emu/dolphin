@@ -79,6 +79,8 @@ class CFrame : public wxFrame
 		void PostEvent(wxCommandEvent& event);
 		void PostMenuEvent(wxMenuEvent& event);
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
+		void StatusBarMessage(char * Text, ...);
+		void ClearStatusBar();
 
 		// ---------------------------------------
 		// Wiimote leds
@@ -216,7 +218,6 @@ class CFrame : public wxFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
-		void ClearStatusBar();
 		wxPanel *CreateEmptyPanel();
 		wxAuiNotebook *CreateEmptyNotebook();
 
