@@ -44,7 +44,6 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "VertexShaderCache.h"
 #include "PixelShaderCache.h"
 #include "DlgSettings.h"
-#include "D3DPostprocess.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
 #include "W32Util/Misc.h"

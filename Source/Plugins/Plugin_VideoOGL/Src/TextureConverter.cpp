@@ -169,7 +169,7 @@ void Shutdown()
 void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, bool linearFilter)
 {
-	Renderer::ResetGLState();
+	Renderer::ResetAPIState();
 	
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
@@ -218,13 +218,13 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	GL_REPORT_ERRORD();
 
 	Renderer::SetFramebuffer(0);
-    Renderer::RestoreGLState();
+    Renderer::RestoreAPIState();
     VertexShaderManager::SetViewportChanged();
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
 
-	Renderer::RestoreGLState();
+	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();
 }
 
@@ -314,7 +314,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 		return;
 	}
 
-	Renderer::ResetGLState();
+	Renderer::ResetAPIState();
 
 	float srcFormatFactor = 0.5f;
 	float srcFmtWidth = srcWidth * srcFormatFactor;
@@ -362,7 +362,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	Renderer::SetFramebuffer(0);
 
-	Renderer::RestoreGLState();
+	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();
 }
 

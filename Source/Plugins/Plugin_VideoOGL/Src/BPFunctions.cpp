@@ -148,7 +148,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 
 void RestoreRenderState(const BPCmd &bp)
 {
-	Renderer::RestoreGLState();
+	Renderer::RestoreAPIState();
 }
 
 bool GetConfig(const int &type)

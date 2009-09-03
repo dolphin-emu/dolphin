@@ -54,9 +54,16 @@ namespace D3D
 	ShaderVersion GetShaderVersion();
 	LPDIRECT3DSURFACE9 GetBackBufferSurface();
 	const D3DCAPS9 &GetCaps();
-	extern IDirect3DDevice9 *dev;
 	void ShowD3DError(HRESULT err);
 	void EnableAlphaToCoverage();
+
+	extern IDirect3DDevice9 *dev;
+
+	// The following are "filtered" versions of the corresponding D3Ddev-> functions.
+	void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
+	void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
+	void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+	void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 
 	struct Resolution
 	{

@@ -686,7 +686,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
 
     // We have to run a pixel shader, for color conversion.
-    Renderer::ResetGLState(); // reset any game specific settings
+    Renderer::ResetAPIState(); // reset any game specific settings
 
     if (s_TempFramebuffer == 0)
         glGenFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
@@ -725,7 +725,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	// Return to the EFB.
     Renderer::SetFramebuffer(0);
-    Renderer::RestoreGLState();
+    Renderer::RestoreAPIState();
     VertexShaderManager::SetViewportChanged();
     TextureMngr::DisableStage(0);
 

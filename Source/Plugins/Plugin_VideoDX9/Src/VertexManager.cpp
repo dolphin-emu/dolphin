@@ -265,8 +265,8 @@ void Flush()
 					goto shader_fail;
 
 				// update alpha only
-				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
-				Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
+				D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 
 				g_nativeVertexFmt->SetupVertexPointers();
 				if (collection != C_POINTS)
@@ -299,9 +299,9 @@ void Flush()
 				if (bpmem.blendmode.colorupdate) 
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 				if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-					Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+					D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 
-				Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 
 				INCSTAT(stats.thisFrame.numDrawCalls);
 			}

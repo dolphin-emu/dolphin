@@ -362,40 +362,6 @@ bool Renderer::Init()
     cgGLSetDebugMode(GL_FALSE);
 #endif
     
-    if (!InitializeGL())
-        return false;
-
-    return glGetError() == GL_NO_ERROR && bSuccess;
-}
-
-void Renderer::Shutdown(void)
-{    
-    delete s_pfont;
-	s_pfont = 0;
-
-    if (g_cgcontext) {
-        cgDestroyContext(g_cgcontext);
-        g_cgcontext = 0;
-	}
-
-	glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
-	s_tempScreenshotFramebuffer = 0;
-
-	s_framebufferManager.Shutdown();
-
-#ifdef _WIN32
-	if(s_bAVIDumping) {
-		AVIDump::Stop();
-	}
-#else
-	if(f_pFrameDump != NULL) {
-		fclose(f_pFrameDump);
-	}
-#endif
-}
-
-bool Renderer::InitializeGL()
-{
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -432,9 +398,34 @@ bool Renderer::InitializeGL()
     glClientActiveTexture(GL_TEXTURE0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-    return GL_REPORT_ERROR() == GL_NO_ERROR;
+    return glGetError() == GL_NO_ERROR && bSuccess;
 }
 
+void Renderer::Shutdown(void)
+{    
+    delete s_pfont;
+	s_pfont = 0;
+
+    if (g_cgcontext) {
+        cgDestroyContext(g_cgcontext);
+        g_cgcontext = 0;
+	}
+
+	glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
+	s_tempScreenshotFramebuffer = 0;
+
+	s_framebufferManager.Shutdown();
+
+#ifdef _WIN32
+	if(s_bAVIDumping) {
+		AVIDump::Stop();
+	}
+#else
+	if(f_pFrameDump != NULL) {
+		fclose(f_pFrameDump);
+	}
+#endif
+}
 
 // Return the rendering window width and height
 int Renderer::GetTargetWidth()
@@ -467,7 +458,7 @@ void Renderer::SetFramebuffer(GLuint fb)
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_framebufferManager.GetEFBFramebuffer());
 }
 
-void Renderer::ResetGLState()
+void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
@@ -484,7 +475,7 @@ void Renderer::ResetGLState()
 
 void UpdateViewport();
 
-void Renderer::RestoreGLState()
+void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
 
@@ -832,7 +823,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
     OpenGL_Update(); // just updates the render window position and the backbuffer size
     DVSTARTPROFILE();
 
-    ResetGLState();
+    ResetAPIState();
 
 	TargetRectangle back_rc;
 	ComputeBackbufferRectangle(&back_rc);
@@ -1038,7 +1029,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// Why save this as s_bNativeResolution if we updated it every frame?
 	s_bNativeResolution = g_Config.bNativeResolution;
 
-    RestoreGLState();
+    RestoreAPIState();
 
 	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
@@ -1436,16 +1427,16 @@ void UpdateViewport()
 		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 	// --------
 
-	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
-	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
+	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
+	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
 	// -------------------------------------
 
 	float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
 
 	// Stretch picture with increased internal resolution
-	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * MValueX);
-	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff)) * MValueY);
+	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) * MValueX);
+	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - scissorYOff)) * MValueY);
 	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;

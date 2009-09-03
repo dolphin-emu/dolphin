@@ -47,15 +47,12 @@ public:
     static bool Init();
     static void Shutdown();
 
-    // initialize opengl standard values (like viewport)
-    static bool InitializeGL();
-
-    static void ResetGLState();
-    static void RestoreGLState();
+	// What's the real difference between these? Too similar names.
+    static void ResetAPIState();
+    static void RestoreAPIState();
 
 	static void SwapBuffers();
 
-	static bool IsBlack();
     static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();

@@ -16,15 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+#include <stdio.h>
+#include <math.h>
+#include "Common.h"
+
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
 #include "PixelShaderManager.h"
 #include "PixelShaderGen.h"
 #include "BPMemory.h"
-
-#include <stdio.h>
-#include <math.h>
-#include "Common.h"
 
 #define WRITE p+=sprintf
 
@@ -32,7 +32,6 @@ static char text[16384];
 
 namespace TextureConversionShader
 {
-
 
 u16 GetEncodedSampleCount(u32 format)
 {

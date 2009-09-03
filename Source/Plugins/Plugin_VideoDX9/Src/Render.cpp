@@ -28,7 +28,6 @@
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
 #include "XFStructs.h"
-#include "D3DPostprocess.h"
 #include "D3DUtil.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
@@ -50,12 +49,6 @@ float Renderer::yScale;
 
 int Renderer::m_recordWidth;
 int Renderer::m_recordHeight;
-
-std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
-
-DWORD Renderer::m_RenderStates[MaxRenderStates+46];
-DWORD Renderer::m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
-DWORD Renderer::m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 
 bool Renderer::m_LastFrameDumped;
 bool Renderer::m_AVIDumping;
@@ -91,13 +84,12 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	m_LastFrameDumped = false;
 	m_AVIDumping = false;
 
-	// We're not using much fixed function. Let's just set the matrices to identity.
+	// We're not using fixed function, except for some 2D.
+	// Let's just set the matrices to identity to be sure.
 	D3DXMATRIX mtx;
 	D3DXMatrixIdentity(&mtx);
 	D3D::dev->SetTransform(D3DTS_VIEW, &mtx);
 	D3D::dev->SetTransform(D3DTS_WORLD, &mtx);
-
-
 	D3D::font.Init();
 	Initialize();
 }
@@ -115,14 +107,9 @@ void Renderer::Shutdown()
 
 void Renderer::Initialize()
 {
-	m_Textures.reserve(MaxTextureStages);
-	for (int i = 0; i < MaxTextureStages; i++)
-		m_Textures.push_back(NULL);
 	for (int i = 0; i < 8; i++)
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
 
-	Postprocess::Initialize();
-	Postprocess::BeginFrame();
 	D3D::BeginFrame(true, 0);
 	VertexManager::BeginFrame();
 }
@@ -178,12 +165,11 @@ void dumpMatrix(D3DXMATRIX &mtx)
 	}
 }
 
-void formatBufferDump(char *in, char *out, int w, int h, int p)
+void formatBufferDump(const char *in, char *out, int w, int h, int p)
 {
-	for(int i = 0; i < h; i++) {
-		char *line = in + (h - i - 1) * p;
-
-		for (int j = 0; j < w; j++) {
+	for (int y = 0; y < h; y++) {
+		const char *line = in + (h - y - 1) * p;
+		for (int x = 0; x < w; x++) {
 			memcpy(out, line, 3);
 			out += 3;
 			line += 4;
@@ -231,8 +217,8 @@ void Renderer::SwapBuffers()
 						GetWindowRect(EmuWindow::GetWnd(), &windowRect);
 						D3DLOCKED_RECT rect;
 						if (SUCCEEDED(surf->LockRect(&rect, &windowRect, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY))) {
-							char *data = (char *) malloc(3 * m_recordWidth * m_recordHeight);
-							formatBufferDump((char *) rect.pBits, data, m_recordWidth, m_recordHeight, rect.Pitch);
+							char *data = (char *)malloc(3 * m_recordWidth * m_recordHeight);
+							formatBufferDump((const char *)rect.pBits, data, m_recordWidth, m_recordHeight, rect.Pitch);
 							AVIDump::AddFrame(data);
 							free(data);
 							surf->UnlockRect();
@@ -252,8 +238,7 @@ void Renderer::SwapBuffers()
 		m_LastFrameDumped = false;
 	}
 
-	//Finish up the current frame, print some stats
-	Postprocess::FinalizeFrame();
+	// Finish up the current frame, print some stats
 	if (g_Config.bOverlayStats)
 	{
 		char st[2048];
@@ -309,7 +294,6 @@ void Renderer::SwapBuffers()
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
 
-
 	ProcessMessages();
 
 #if defined(DVPROFILE)
@@ -329,16 +313,13 @@ void Renderer::SwapBuffers()
 
 	DEBUGGER_PAUSE_COUNT_N_WITHOUT_UPDATE(NEXT_FRAME);
 
-	//D3D frame is now over
-	
-	
-	//clean out old stuff from caches
+	// D3D frame is now over
+	// Clean out old stuff from caches.
 	frameCount++;
 	PixelShaderCache::Cleanup();
 	VertexShaderCache::Cleanup();
 	TextureCache::Cleanup();
 
-	
 	//Begin new frame
 	//Set default viewport and scissor, for the clear to work correctly
 	stats.ResetFrame();
@@ -362,59 +343,17 @@ void Renderer::SwapBuffers()
 	D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x00000000, 0, 0);
 
 	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-//	clearColor |= 0x003F003F;
-//	D3D::BeginFrame(true,clearColor,1.0f);
 	D3D::BeginFrame(false, clearColor, 1.0f);
 	
 	// This probably causes problems, and the visual difference is tiny anyway.
 	// So let's keep it commented out.
 	// D3D::EnableAlphaToCoverage();
 
-	Postprocess::BeginFrame();
 	VertexManager::BeginFrame();
 
 	if (g_Config.bOldCard)
 		D3D::font.SetRenderStates(); //compatibility with low end cards
 }
-
-/*
-void Renderer::SetViewport(float* _Viewport)
-{
-	Viewport* pViewport = (Viewport*)_Viewport;
-	D3DVIEWPORT9 vp;
-	float x=(pViewport->xOrig-662)*2;
-	float y=(pViewport->yOrig-582)*2; //something is wrong, but what??
-	y-=16;
-
-	float w=pViewport->wd*2;  //multiply up to real size 
-	float h=pViewport->ht*-2; //why is this negative? oh well..
-
-	if (x < 0.0f) x = 0.0f;
-	if (y < 0.0f) y = 0.0f;
-	if (x > 640.0f) x = 639.0f;
-	if (y > 480.0f) y = 479.0f;
-	if (w < 0) w = 0;
-	if (h < 0) h = 0;
-	if (x+w > 640.0f) w=640-x;
-	if (y+h > 480.0f) h=480-y;
-	//x=y=0;
-	//if (w>0.0f) w=0.0f;
-	//if (h<0.0f) h=0.0f;
-
-	vp.X = (DWORD)(x*xScale);
-	vp.Y = (DWORD)(y*yScale);
-	vp.Width = (DWORD)(w*xScale);
-	vp.Height = (DWORD)(h*yScale);
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-
-//	char temp[256];
-//	sprintf(temp,"Viewport: %i %i %i %i %f %f",vp.X,vp.Y,vp.Width,vp.Height,vp.MinZ,vp.MaxZ);
-//	g_VideoInitialize.pLog(temp, FALSE);
-
-	D3D::dev->SetViewport(&vp);
-}
-*/
 
 void Renderer::SetScissorRect()
 {
@@ -436,136 +375,30 @@ void Renderer::SetScissorRect()
 		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);
 }
 
-/*
-void Renderer::SetProjection(float* pMatrix, int constantIndex)
-{
-	D3DXMATRIX mtx;
-	if (pMatrix[6] == 0) // Perspective
-	{
-		mtx.m[0][0] = pMatrix[0];
-		mtx.m[0][1] = 0.0f;
-		mtx.m[0][2] = pMatrix[1];
-		mtx.m[0][3] = 0; // -0.5f/m_height;  <-- fix d3d pixel center?
-			 		
-		mtx.m[1][0] = 0.0f;
-		mtx.m[1][1] = pMatrix[2];
-		mtx.m[1][2] = pMatrix[3];
-		mtx.m[1][3] = 0; // +0.5f/m_height;  <-- fix d3d pixel center?
-			 		
-<<<<<<< .mine
-		mtx.m[0][2] = 0.0f;
-		mtx.m[1][2] = 0.0f;
-		mtx.m[2][2] = -(1 - pMatrix[4]);
-		mtx.m[3][2] = pMatrix[5]; 
-=======
-		mtx.m[2][0] = 0.0f;
-		mtx.m[2][1] = 0.0f;
-		mtx.m[2][2] = -(1.0f - pMatrix[4]);
-		mtx.m[2][3] = pMatrix[5];  // Problematic in OGL
->>>>>>> .r2480
-			 		
-		mtx.m[3][0] = 0.0f;
-		mtx.m[3][1] = 0.0f;
-		// donkopunchstania: GC GPU rounds differently?
-		// -(1 + epsilon) so objects are clipped as they are on the real HW
-		mtx.m[3][2] = -1.00000011921f;
-		mtx.m[3][3] = 0.0f;
-	}
-	else // Orthographic Projection
-	{
-		mtx.m[0][0] = pMatrix[0];
-		mtx.m[0][1] = 0.0f;
-		mtx.m[0][2] = 0.0f;
-		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_width;  <-- fix d3d pixel center?
-
-		mtx.m[1][0] = 0.0f;
-		mtx.m[1][1] = pMatrix[2];
-		mtx.m[1][2] = 0.0f;
-		mtx.m[1][3] = pMatrix[3]; // +0.5f/m_height; <-- fix d3d pixel center?
-
-		mtx.m[2][0] = 0.0f;
-		mtx.m[2][1] = 0.0f;
-		mtx.m[2][2] = pMatrix[4];
-		mtx.m[2][3] = -(-1.0f - pMatrix[5]);
-			 		
-		mtx.m[3][0] = 0;
-		mtx.m[3][1] = 0;
-		mtx.m[3][2] = 0.0f;
-		mtx.m[3][3] = 1.0f;
-	}
-	D3D::dev->SetVertexShaderConstantF(constantIndex, mtx, 4);
-}*/
-
-void Renderer::SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
-{
-	if (m_Textures[Stage] != pTexture)
-	{
-		m_Textures[Stage] = pTexture;
-		D3D::dev->SetTexture(Stage, pTexture);
-	}
-}
-
-void Renderer::SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
-{
-	if (m_RenderStates[State] != Value)
-	{
-		m_RenderStates[State] = Value;
-		D3D::dev->SetRenderState(State, Value);
-	}
-}
-
-void Renderer::SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
-{
-	if (m_TextureStageStates[Stage][Type] != Value)
-	{
-		m_TextureStageStates[Stage][Type] = Value;
-		D3D::dev->SetTextureStageState(Stage, Type, Value);
-	}
-}
-
-void Renderer::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
-{
-	if (m_SamplerStates[Sampler][Type] != Value)
-	{
-		m_SamplerStates[Sampler][Type] = Value;
-		D3D::dev->SetSamplerState(Sampler, Type, Value);
-	}
-}
-
+//		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_width;  <-- fix d3d pixel center?
+//		mtx.m[1][3] = pMatrix[3]; // +0.5f/m_height; <-- fix d3d pixel center?
 
 // Called from VertexShaderManager
 void UpdateViewport()
 {
-	// TODO : remove this HACK: Update viewport is still a bit wrong and causes the
-	// image to be y-offset for some reason though.
-	return;
-    // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-    // [0] = width/2
-    // [1] = height/2
-    // [2] = 16777215 *(farz - nearz)
-    // [3] = xorig + width/2 + 342
-    // [4] = yorig + height/2 + 342
-    // [5] = 16777215 * farz
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
+	// -------------------------------------
 
-	/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
-		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
-		2 * rawViewport[0], 2 * rawViewport[1],
-		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
-	
+	float MValueX = Renderer::GetXScale();
+	float MValueY = Renderer::GetYScale();
+
 	D3DVIEWPORT9 vp;
+
+	// Stretch picture with increased internal resolution
+	vp.X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX);
+	vp.Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
 	
-	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
-	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
-
-	vp.X = (int)((xfregs.rawViewport[3] - xfregs.rawViewport[0] - 342 - scissorXOff) * Renderer::GetXScale());
-	vp.Y = (int)(Renderer::GetTargetHeight() - (xfregs.rawViewport[4] - xfregs.rawViewport[1] - 342 - scissorYOff) * Renderer::GetYScale());
-
-	vp.Width = (int)ceil(fabs(2 * xfregs.rawViewport[0]) * Renderer::GetXScale());
-	vp.Height = (int)ceil(fabs(2 * xfregs.rawViewport[1]) * Renderer::GetYScale());
-
-	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f; // NearZ
-	vp.MaxZ = xfregs.rawViewport[5] / 16777215.0f; // FarZ
-
+	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
+	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+	
+	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
+	vp.MaxZ = xfregs.rawViewport[5] / 16777215.0f;
+	
 	D3D::dev->SetViewport(&vp);
 }
-

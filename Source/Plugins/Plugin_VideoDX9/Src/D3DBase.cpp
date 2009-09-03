@@ -29,6 +29,17 @@ namespace D3D
 	D3DCAPS9 caps;
 	int multisample;
 	int resolution;
+	const int MaxTextureStages = 9;
+	const int MaxRenderStates = 210;
+	const DWORD MaxTextureTypes = 33;
+	const DWORD MaxSamplerSize = 13;
+	const DWORD MaxSamplerTypes = 15;
+	
+	static DWORD m_RenderStates[MaxRenderStates+46];
+	static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
+	static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
+
+	LPDIRECT3DBASETEXTURE9 m_Textures[16];
 
 #define VENDOR_NVIDIA 4318
 #define VENDOR_ATI    4098
@@ -76,9 +87,9 @@ namespace D3D
 	void EnableAlphaToCoverage()
 	{
 		if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
-			Renderer::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
+			D3D::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
 		else
-			Renderer::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
+			D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
 	}
 
 	void InitPP(int adapter, int resolution, int aa_mode, D3DPRESENT_PARAMETERS *pp)
@@ -394,5 +405,41 @@ namespace D3D
 			Reset();
 		}
 	}
+
+void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
+{
+	if (m_Textures[Stage] != pTexture)
+	{
+		m_Textures[Stage] = pTexture;
+		D3D::dev->SetTexture(Stage, pTexture);
+	}
+}
+
+void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
+{
+	if (m_RenderStates[State] != Value)
+	{
+		m_RenderStates[State] = Value;
+		D3D::dev->SetRenderState(State, Value);
+	}
+}
+
+void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
+{
+	if (m_TextureStageStates[Stage][Type] != Value)
+	{
+		m_TextureStageStates[Stage][Type] = Value;
+		D3D::dev->SetTextureStageState(Stage, Type, Value);
+	}
+}
+
+void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
+{
+	if (m_SamplerStates[Sampler][Type] != Value)
+	{
+		m_SamplerStates[Sampler][Type] = Value;
+		D3D::dev->SetSamplerState(Sampler, Type, Value);
+	}
+}
 
 }  // namespace

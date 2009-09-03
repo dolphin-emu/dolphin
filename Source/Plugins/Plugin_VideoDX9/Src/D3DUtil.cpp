@@ -211,27 +211,23 @@ namespace D3D
 
 	void CD3DFont::SetRenderStates()
 	{
-		// dev->SetTexture(0, m_pTexture);
-		Renderer::SetTexture(0, m_pTexture);
+		D3D::SetTexture(0, m_pTexture);
 
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
 		
 		dev->SetFVF(D3DFVF_FONT2DVERTEX);
 
-		for (int i = 0; i < 6; i++) {
-			// dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0],RS[i][1]);
-			// dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
-			
-			Renderer::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS[i][1]);
-			Renderer::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
+		for (int i = 0; i < 6; i++)
+		{
+			D3D::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS[i][1]);
+			D3D::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
 		}
 	}
 
 	void RestoreRenderStates()
 	{
-		// dev->SetTexture(0, texture_old);
-		Renderer::SetTexture(0, texture_old);
+		D3D::SetTexture(0, texture_old);
 
 		dev->SetPixelShader(ps_old);
 		dev->SetVertexShader(vs_old);
@@ -240,11 +236,8 @@ namespace D3D
 		
 		for (int i = 0; i < 6; i++)
 		{
-			// dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
-			// dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
-			
-			Renderer::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
-			Renderer::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
+			D3D::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
+			D3D::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
 		}
 	}
 

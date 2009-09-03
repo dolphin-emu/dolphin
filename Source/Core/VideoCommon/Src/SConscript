@@ -24,6 +24,7 @@ files = [
 	'VertexLoader_Normal.cpp',
 	'VertexLoader_Position.cpp',
 	'VertexLoader_TextCoord.cpp',
+	'TextureConversionShader.cpp',
 	'ImageWrite.cpp',
 	'NativeVertexWriter.cpp',
 	'Statistics.cpp',

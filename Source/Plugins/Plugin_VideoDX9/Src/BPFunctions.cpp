@@ -103,12 +103,12 @@ void FlushPipeline()
 void SetGenerationMode(const BPCmd &bp)
 {
 	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
-	Renderer::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
+	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 
 	if (bpmem.genMode.cullmode == 3)
 	{
 		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-		Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
 	}
 	else
 	{
@@ -119,7 +119,7 @@ void SetGenerationMode(const BPCmd &bp)
 			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 		
 		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
-		Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 	}
 }
 
@@ -132,21 +132,21 @@ void SetLineWidth(const BPCmd &bp)
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
-	Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
 
 void SetDepthMode(const BPCmd &bp)
 {
 	if (bpmem.zmode.testenable)
 	{
-		Renderer::SetRenderState(D3DRS_ZENABLE, TRUE);
-		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-		Renderer::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
+		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
 	}
 	else
 	{
-		Renderer::SetRenderState(D3DRS_ZENABLE, FALSE);
-		Renderer::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	}			
 
 	//if (!bpmem.zmode.updateenable)
@@ -156,44 +156,44 @@ void SetDepthMode(const BPCmd &bp)
 void SetBlendMode(const BPCmd &bp)
 {
 	if (bp.changes & 1)
-		Renderer::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
 
 	D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
 	D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
 
 	if (bp.changes & 0x700)
-		Renderer::SetRenderState(D3DRS_SRCBLEND, src);
+		D3D::SetRenderState(D3DRS_SRCBLEND, src);
 
 	if (bp.changes & 0xE0) {
 		if (!bpmem.blendmode.subtract)
 		{
-			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
+			D3D::SetRenderState(D3DRS_DESTBLEND, dst);
 		}
 		else
 		{
-			Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+			D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 		}
 	}
 	if (bp.changes & 0x800) 
 	{
 		if (bpmem.blendmode.subtract)
 		{
-			Renderer::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-			Renderer::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+			D3D::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+			D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 		}
 		else
 		{
-			Renderer::SetRenderState(D3DRS_SRCBLEND, src);
-			Renderer::SetRenderState(D3DRS_DESTBLEND, dst);
+			D3D::SetRenderState(D3DRS_SRCBLEND, src);
+			D3D::SetRenderState(D3DRS_DESTBLEND, dst);
 		}
 		
-		Renderer::SetRenderState(D3DRS_BLENDOP, 
+		D3D::SetRenderState(D3DRS_BLENDOP, 
 			bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
 	}
 }
 void SetDitherMode(const BPCmd &bp)
 {
-	Renderer::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+	D3D::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
@@ -207,7 +207,7 @@ void SetColorMask(const BPCmd &bp)
 	if (bpmem.blendmode.colorupdate) 
 		write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 
-	Renderer::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)

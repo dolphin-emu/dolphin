@@ -149,10 +149,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 				return &entry;
 			}
 			lastTexture[stage] = entry.texture;
-			
-			// D3D::dev->SetTexture(stage,iter->second.texture);
-			Renderer::SetTexture( stage, entry.texture );
-
+			D3D::SetTexture( stage, entry.texture );
 			return &entry;
 		}
 		else
@@ -244,8 +241,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	SETSTAT(stats.numTexturesAlive, (int)textures.size());
 
 	//Set the texture!
-	// D3D::dev->SetTexture(stage,entry.texture);
-	Renderer::SetTexture( stage, entry.texture );
+	D3D::SetTexture( stage, entry.texture );
 
 	lastTexture[stage] = entry.texture;
 

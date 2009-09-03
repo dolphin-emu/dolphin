@@ -22,7 +22,6 @@
 #include "W32Util/ShellUtil.h"
 
 #include "D3DBase.h"
-#include "D3DPostprocess.h"
 
 #include "Config.h"
 
@@ -179,11 +178,14 @@ struct TabEnhancements : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
-		WCHAR tempwstr[2000];
-
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING),g_Config.bForceFiltering);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.bForceMaxAniso);
-		HWND pp = GetDlgItem(hDlg,IDC_POSTPROCESSEFFECT);
+		/*
+		Temporarily disabled the old postprocessing code since it wasn't working anyway.
+		New postprocessing code will come sooner or later, sharing shaders and framework with
+		the GL postprocessing.
+
+		HWND pp = GetDlgItem(hDlg, IDC_POSTPROCESSEFFECT);
 		const char **names = Postprocess::GetPostprocessingNames();
 		int i = 0;
 		while (true)
@@ -196,6 +198,7 @@ struct TabEnhancements : public W32Util::Tab
 			i++;
 		}
 		ComboBox_SetCurSel(pp, g_Config.iPostprocessEffect);
+		*/
 	}
 	void Command(HWND hDlg,WPARAM wParam)
 	{

@@ -31,27 +31,6 @@ extern CGprofile g_cgvProf, g_cgfProf;
 
 class Renderer
 {
-	// screen offset
-	static float m_x;
-	static float m_y;
-	static float m_width;
-	static float m_height;
-	static float xScale;
-	static float yScale;
-	static bool m_LastFrameDumped;
-	static bool m_AVIDumping;
-	static int m_recordWidth;
-	static int m_recordHeight;
-	const static int MaxTextureStages = 9;
-	const static int MaxRenderStates = 210;
-	const static DWORD MaxTextureTypes = 33;
-	const static DWORD MaxSamplerSize = 13;
-	const static DWORD MaxSamplerTypes = 15;
-	static std::vector<LPDIRECT3DBASETEXTURE9> m_Textures;
-	static DWORD m_RenderStates[MaxRenderStates+46];
-	static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
-	static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
-
 public:
 	static void Init(SVideoInitialize &_VideoInitialize);
 	static void Shutdown();
@@ -70,17 +49,26 @@ public:
 
 	static void SetScissorRect();
 //	static void SetProjection(float* _pProjection, int constantIndex = -1);
+	static u32 AccessEFB(EFBAccessType type, int x, int y);
 
 	// The little status display.
 	static void AddMessage(const std::string &message, unsigned int ms);
 	static void ProcessMessages();
 	static void RenderText(const std::string &text, int left, int top, unsigned int color);
 
-	// The following are "filtered" versions of the corresponding D3Ddev-> functions.
-	static void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
-	static void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
-	static void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
-	static void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+private:
+		// screen offset
+	static float m_x;
+	static float m_y;
+	static float m_width;
+	static float m_height;
+	static float xScale;
+	static float yScale;
+	static bool m_LastFrameDumped;
+	static bool m_AVIDumping;
+	static int m_recordWidth;
+	static int m_recordHeight;
+	static std::vector<LPDIRECT3DBASETEXTURE9> m_Textures;
 };
 
 #endif	// __H_RENDER__

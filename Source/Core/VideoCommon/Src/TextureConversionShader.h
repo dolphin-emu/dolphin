@@ -15,19 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma	once
+#ifndef _TEXTURECONVERSIONSHADER_H_
+#define _TEXTURECONVERSIONSHADER_H_
 
-namespace Postprocess
+#include "Common.h"
+#include "TextureDecoder.h"
+
+namespace TextureConversionShader
 {
+u16 GetEncodedSampleCount(u32 format);
 
-	void Initialize();
-	void Cleanup();
+const char *GenerateEncodingShader(u32 format);
 
-	void BeginFrame();
-	void FinalizeFrame();
+void SetShaderParameters(float width, float height, float offsetX, float offsetY, float widthStride, float heightStride);
 
-	int GetWidth();
-	int GetHeight();
-
-	const char **GetPostprocessingNames();
 }
+
+#endif // _TEXTURECONVERSIONSHADER_H_
+
