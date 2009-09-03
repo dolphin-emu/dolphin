@@ -23,7 +23,6 @@ files = [
 	'VertexManager.cpp',
 	'VertexLoaderManager.cpp',
 	'XFB.cpp',
-	'OnScreenDisplay.cpp',
 	'PostProcessing.cpp',
 	'FramebufferManager.cpp',
 	]

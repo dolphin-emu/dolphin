@@ -104,15 +104,24 @@ inline float Memory_Read_Float(u32 _uAddress)
 	return temp.f;
 }
 
+
+// Logging
+// ¯¯¯¯¯¯¯¯¯¯
+void HandleGLError();
+
+
+// This structure should only be used to represent a rectangle in OpenGL target
+// coordinates, where the origin is at the lower left and the frame dimensions
+// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
+// convert an EFBRectangle to a TargetRectangle.
+struct TargetRectangle : public MathUtil::Rectangle<int>
+{};
+
 // This structure should only be used to represent a rectangle in EFB
 // coordinates, where the origin is at the upper left and the frame dimensions
 // are 640 x 528.
 struct EFBRectangle : public MathUtil::Rectangle<int>
 {};
-
-// Logging
-// ¯¯¯¯¯¯¯¯¯¯
-void HandleGLError();
 
 
 

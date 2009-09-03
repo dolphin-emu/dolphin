@@ -31,6 +31,7 @@ files = [
 	'Fifo.cpp',
 	'VideoState.cpp',
 	'Profiler.cpp',
+	'OnScreenDisplay.cpp',
 	'HiresTextures.cpp',
 	]
 

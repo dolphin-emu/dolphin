@@ -28,9 +28,10 @@
 #include "XFB.h"
 #include "Render.h"
 #include "TextureConverter.h"
+#include "FramebufferManager.h"
 
 void XFB_Write(u8 *xfb_in_ram, const EFBRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
-	TextureConverter::EncodeToRamYUYV(Renderer::ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, dstWd, dstHt);
+	TextureConverter::EncodeToRamYUYV(g_framebufferManager.ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, dstWd, dstHt);
 }

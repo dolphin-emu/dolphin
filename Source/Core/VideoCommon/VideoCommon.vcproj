@@ -549,6 +549,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\OnScreenDisplay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OnScreenDisplay.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Profiler.cpp"
 				>
 			</File>
@@ -695,6 +703,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\NativeVertexFormat.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Render.h"
 			>
 		</File>
 		<File

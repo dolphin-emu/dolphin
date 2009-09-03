@@ -37,35 +37,27 @@
 #include "Utils.h"
 #include "EmuWindow.h"
 #include "AVIDump.h"
+#include "OnScreenDisplay.h"
 
 #include "debugger/debugger.h"
 
-float Renderer::m_x;
-float Renderer::m_y;
-float Renderer::m_width;
-float Renderer::m_height;
-float Renderer::xScale;
-float Renderer::yScale;
+static float m_x;
+static float m_y;
+static float m_width;
+static float m_height;
+static float xScale;
+static float yScale;
 
-int Renderer::m_recordWidth;
-int Renderer::m_recordHeight;
+static int m_recordWidth;
+static int m_recordHeight;
 
-bool Renderer::m_LastFrameDumped;
-bool Renderer::m_AVIDumping;
+static bool m_LastFrameDumped;
+static bool m_AVIDumping;
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
 
-struct Message
-{
-	Message(const std::string &msg, u32 dw) : message(msg), dwTimeStamp(dw) { }
-	std::string message;
-    u32 dwTimeStamp;
-};
-
-static std::list<Message> s_listMsgs;
-
-void Renderer::Init(SVideoInitialize &_VideoInitialize) 
+bool Renderer::Init() 
 {
     EmuWindow::SetSize(g_Res[g_Config.iWindowedRes][0], g_Res[g_Config.iWindowedRes][1]);
 
@@ -91,7 +83,13 @@ void Renderer::Init(SVideoInitialize &_VideoInitialize)
 	D3D::dev->SetTransform(D3DTS_VIEW, &mtx);
 	D3D::dev->SetTransform(D3DTS_WORLD, &mtx);
 	D3D::font.Init();
-	Initialize();
+
+	for (int i = 0; i < 8; i++)
+		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
+
+	D3D::BeginFrame(true, 0);
+	VertexManager::BeginFrame();
+	return true;
 }
 
 void Renderer::Shutdown()
@@ -100,54 +98,20 @@ void Renderer::Shutdown()
 	D3D::EndFrame();
 	D3D::Close();
 
-	if(m_AVIDumping) {
+	if (m_AVIDumping)
+	{
 		AVIDump::Stop();
 	}
 }
 
-void Renderer::Initialize()
+float Renderer::GetTargetScaleX()
 {
-	for (int i = 0; i < 8; i++)
-		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
-
-	D3D::BeginFrame(true, 0);
-	VertexManager::BeginFrame();
+	return xScale;
 }
 
-void Renderer::AddMessage(const std::string &message, u32 ms)
+float Renderer::GetTargetScaleY()
 {
-    s_listMsgs.push_back(Message(message, timeGetTime()+ms));
-}
-
-void Renderer::ProcessMessages()
-{
-	if (s_listMsgs.size() > 0)
-	{
-        int left = 25, top = 15;
-		std::list<Message>::iterator it = s_listMsgs.begin();
-        
-        while (it != s_listMsgs.end()) 
-		{
-			int time_left = (int)(it->dwTimeStamp - timeGetTime());
-			int alpha = 255;
-
-			if (time_left<1024)
-			{
-				alpha=time_left>>2;
-				if (time_left<0) alpha=0;
-			}
-
-			alpha <<= 24;
-
-            RenderText(it->message.c_str(), left+1, top+1, 0x000000|alpha);
-            RenderText(it->message.c_str(), left, top, 0xffff30|alpha);
-            top += 15;
-
-            if (time_left <= 0)
-                it = s_listMsgs.erase(it);
-            else ++it;
-        }
-    }
+	return yScale;
 }
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
@@ -208,7 +172,7 @@ void Renderer::SwapBuffers()
 					} else {
 						char msg [255];
 						sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, m_recordWidth, m_recordHeight);
-						AddMessage(msg, 2000);
+						OSD::AddMessage(msg, 2000);
 					}
 				}
 				if (m_AVIDumping) {
@@ -254,7 +218,7 @@ void Renderer::SwapBuffers()
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
 
-	ProcessMessages();
+	OSD::DrawMessages();
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) {

@@ -17,6 +17,7 @@
 
 #include "CommonTypes.h"
 #include "VideoCommon.h"
+#include "Render.h"  // for EFBRectangle.h, unfortunately.
 #include <vector>
 
 #ifndef _STATISTICS_H

@@ -48,6 +48,7 @@
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+#include "FramebufferManager.h"
 #include "FileUtil.h"
 #include "HiresTextures.h"
 
@@ -681,7 +682,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     }
 
 	// Make sure to resolve anything we need to read from.
-	GLuint read_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source_rect) : Renderer::ResolveAndGetRenderTarget(source_rect);
+	GLuint read_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source_rect) : g_framebufferManager.ResolveAndGetRenderTarget(source_rect);
 
     GL_REPORT_ERRORD();
 
@@ -691,7 +692,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     if (s_TempFramebuffer == 0)
         glGenFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
 
-    Renderer::SetFramebuffer(s_TempFramebuffer);
+    g_framebufferManager.SetFramebuffer(s_TempFramebuffer);
 	// Bind texture to temporary framebuffer
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, entry.texture, 0);
 	GL_REPORT_FBO_ERROR();
@@ -724,7 +725,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
 
 	// Return to the EFB.
-    Renderer::SetFramebuffer(0);
+    g_framebufferManager.SetFramebuffer(0);
     Renderer::RestoreAPIState();
     VertexShaderManager::SetViewportChanged();
     TextureMngr::DisableStage(0);

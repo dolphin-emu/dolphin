@@ -113,13 +113,6 @@ extern GLWindow GLWin;
 
 // Public OpenGL util
 
-// This structure should only be used to represent a rectangle in OpenGL target
-// coordinates, where the origin is at the lower left and the frame dimensions
-// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
-// convert an EFBRectangle to a TargetRectangle.
-struct TargetRectangle : public MathUtil::Rectangle<int>
-{};
-
 // Initialization / upkeep
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 void OpenGL_Shutdown();
@@ -156,5 +149,11 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #endif
 
 #endif  // GLTEST ??
+
+#include <Cg/cg.h>
+#include <Cg/cgGL.h>
+
+extern CGcontext g_cgcontext;
+extern CGprofile g_cgvProf, g_cgfProf;
 
 #endif  // _GLINIT_H_

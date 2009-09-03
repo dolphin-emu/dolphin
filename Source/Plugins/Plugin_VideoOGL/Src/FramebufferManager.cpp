@@ -23,6 +23,8 @@
 
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp
 
+FramebufferManager g_framebufferManager;
+
 void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
 {
 	m_targetWidth = targetWidth;
@@ -457,3 +459,21 @@ const XFBSource* FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWidt
 
 	return &it->xfbSource;
 }
+
+void FramebufferManager::SetFramebuffer(GLuint fb)
+{
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : GetEFBFramebuffer());
+}
+
+// Apply AA if enabled
+GLuint FramebufferManager::ResolveAndGetRenderTarget(const EFBRectangle &source_rect)
+{
+	return GetEFBColorTexture(source_rect);
+}
+
+GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_rect)
+{
+	return GetEFBDepthTexture(source_rect);
+}
+
+

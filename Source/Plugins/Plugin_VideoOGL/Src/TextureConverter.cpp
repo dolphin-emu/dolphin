@@ -20,8 +20,10 @@
 
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
+#include "TextureMngr.h"
 #include "PixelShaderCache.h"
 #include "VertexShaderManager.h"
+#include "FramebufferManager.h"
 #include "Globals.h"
 #include "Config.h"
 #include "ImageWrite.h"
@@ -173,7 +175,8 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
-	Renderer::SetFramebuffer(s_texConvFrameBuffer);
+	g_framebufferManager.SetFramebuffer(s_texConvFrameBuffer);
+
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);	
 	GL_REPORT_ERRORD();
@@ -217,7 +220,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	GL_REPORT_ERRORD();
 
-	Renderer::SetFramebuffer(0);
+	g_framebufferManager.SetFramebuffer(0);
     Renderer::RestoreAPIState();
     VertexShaderManager::SetViewportChanged();
 	
@@ -250,7 +253,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	GLuint source_texture = bFromZBuffer ? Renderer::ResolveAndGetDepthTarget(source) : Renderer::ResolveAndGetRenderTarget(source);
+	GLuint source_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source) : g_framebufferManager.ResolveAndGetRenderTarget(source);
 	int width = source.right - source.left;
 	int height = source.bottom - source.top;
 
@@ -321,7 +324,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// swich to texture converter frame buffer
 	// attach destTexture as color destination
-	Renderer::SetFramebuffer(s_texConvFrameBuffer);
+	g_framebufferManager.SetFramebuffer(s_texConvFrameBuffer);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
 
@@ -360,7 +363,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	VertexShaderManager::SetViewportChanged();
 
-	Renderer::SetFramebuffer(0);
+	g_framebufferManager.SetFramebuffer(0);
 
 	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();

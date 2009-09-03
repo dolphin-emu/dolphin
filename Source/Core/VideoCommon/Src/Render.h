@@ -26,16 +26,12 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
-#ifndef _GCOGL_RENDER_H_
-#define _GCOGL_RENDER_H_
+#ifndef _COMMON_RENDER_H_
+#define _COMMON_RENDER_H_
 
-#include "TextureMngr.h"
-
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
-extern CGcontext g_cgcontext;
-extern CGprofile g_cgvProf, g_cgfProf;
+#include "VideoCommon.h"
+#include "MathUtil.h"
+#include "pluginspecs_video.h"
 
 extern int frameCount;
 extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
@@ -49,6 +45,8 @@ public:
 	// What's the real difference between these? Too similar names.
     static void ResetAPIState();
     static void RestoreAPIState();
+
+    static void ReinitView();
 
 	static void SwapBuffers();
 
@@ -66,19 +64,7 @@ public:
 
 	static TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
 
-    static void SetFramebuffer(GLuint fb);
-
 	static u32 AccessEFB(EFBAccessType type, int x, int y);
-
-	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
-	// Thus, this call may be expensive. Don't repeat it unnecessarily.
-	// If not in MSAA mode, will just return the render target texture ID.
-	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-	static GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
-
-	// Same as above but for the depth Target.
-	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-    static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 	// Random utilities
     static void RenderText(const char* pstr, int left, int top, u32 color);
@@ -94,4 +80,4 @@ public:
     static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
 };
 
-#endif // _GCOGL_RENDER_H_
+#endif // _COMMON_RENDER_H_

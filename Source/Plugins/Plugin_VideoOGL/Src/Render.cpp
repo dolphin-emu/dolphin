@@ -114,7 +114,6 @@ static int s_fps = 0;
 static int s_targetwidth;   // Size of render buffer FBO.
 static int s_targetheight;
 
-static FramebufferManager s_framebufferManager;
 static GLuint s_tempScreenshotFramebuffer = 0;
 
 static bool s_skipSwap = false;
@@ -321,7 +320,7 @@ bool Renderer::Init()
 		bSuccess = false;
 
 	// Initialize the FramebufferManager
-	s_framebufferManager.Init(s_targetwidth, s_targetheight, s_MSAASamples, s_MSAACoverageSamples);
+	g_framebufferManager.Init(s_targetwidth, s_targetheight, s_MSAASamples, s_MSAACoverageSamples);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
@@ -414,7 +413,7 @@ void Renderer::Shutdown(void)
 	glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
 	s_tempScreenshotFramebuffer = 0;
 
-	s_framebufferManager.Shutdown();
+	g_framebufferManager.Shutdown();
 
 #ifdef _WIN32
 	if(s_bAVIDumping) {
@@ -450,12 +449,7 @@ float Renderer::GetTargetScaleY()
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
-	return s_framebufferManager.ConvertEFBRectangle(rc);
-}
-
-void Renderer::SetFramebuffer(GLuint fb)
-{
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_framebufferManager.GetEFBFramebuffer());
+	return g_framebufferManager.ConvertEFBRectangle(rc);
 }
 
 void Renderer::ResetAPIState()
@@ -474,6 +468,11 @@ void Renderer::ResetAPIState()
 }
 
 void UpdateViewport();
+
+void Renderer::ReinitView()
+{
+
+}
 
 void Renderer::RestoreAPIState()
 {
@@ -564,8 +563,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		if (s_MSAASamples > 1)
 		{
 			// Resolve our rectangle.
-			s_framebufferManager.GetEFBDepthTexture(efbPixelRc);
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetResolvedFramebuffer());
+			g_framebufferManager.GetEFBDepthTexture(efbPixelRc);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
 		}
 
 		// Sample from the center of the target region.
@@ -597,8 +596,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		if (s_MSAASamples > 1)
 		{
 			// Resolve our rectangle.
-			s_framebufferManager.GetEFBColorTexture(efbPixelRc);
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetResolvedFramebuffer());
+			g_framebufferManager.GetEFBColorTexture(efbPixelRc);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
 		}
 
 		// Sample from the center of the target region.
@@ -624,19 +623,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	return 0;
 }
-
-// Apply AA if enabled
-GLuint Renderer::ResolveAndGetRenderTarget(const EFBRectangle &source_rect)
-{
-	return s_framebufferManager.GetEFBColorTexture(source_rect);
-}
-
-GLuint Renderer::ResolveAndGetDepthTarget(const EFBRectangle &source_rect)
-{
-	return s_framebufferManager.GetEFBDepthTexture(source_rect);
-}
-
-
 
 // Function: This function handles the OpenGL glScissor() function
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -794,7 +780,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	s_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
@@ -813,7 +799,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if(s_skipSwap)
 		return;
 
-	const XFBSource* xfbSource = s_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
+	const XFBSource* xfbSource = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
 	if (!xfbSource)
 	{
 		WARN_LOG(VIDEO, "Failed to get video for this frame");
@@ -925,7 +911,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_criticalScreenshot.Leave();
 
 		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetEFBFramebuffer());
 	}
 
 	// Frame dumps are handled a little differently in Windows
@@ -971,7 +957,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_criticalScreenshot.Leave();
 
 		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_framebufferManager.GetEFBFramebuffer());
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetEFBFramebuffer());
 	} 
 	else 
 	{
@@ -1071,8 +1057,12 @@ void Renderer::SwapBuffers()
 
     GL_REPORT_ERRORD();
 
+	// Get the status of the Blend mode
+	GLboolean blend_enabled = glIsEnabled(GL_BLEND);
+	glDisable(GL_BLEND);
 	OSD::DrawMessages();
-
+	if (blend_enabled)
+		glEnable(GL_BLEND);
 	GL_REPORT_ERRORD();
 
 #if defined(DVPROFILE)
@@ -1110,7 +1100,7 @@ void Renderer::SwapBuffers()
     stats.ResetFrame();
 
 	// Render to the framebuffer.
-	SetFramebuffer(0);
+	g_framebufferManager.SetFramebuffer(0);
 
 	GL_REPORT_ERRORD();
 }

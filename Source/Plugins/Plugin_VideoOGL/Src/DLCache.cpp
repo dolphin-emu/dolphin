@@ -494,7 +494,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	u64 dl_id = DLCache::CreateMapId(address, size);
 	DLCache::DLMap::iterator iter = DLCache::dl_map.find(dl_id);
 
-	stats.numDListsAlive = DLCache::dl_map.size();
+	stats.numDListsAlive = (int)DLCache::dl_map.size();
 	if (iter != DLCache::dl_map.end())
 	{
 		DLCache::CachedDisplayList &dl = iter->second;

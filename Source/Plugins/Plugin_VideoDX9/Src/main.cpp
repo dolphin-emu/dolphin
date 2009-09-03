@@ -43,6 +43,7 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "PixelShaderCache.h"
+#include "OnScreenDisplay.h"
 #include "DlgSettings.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
@@ -271,8 +272,7 @@ void Initialize(void *init)
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	Renderer::AddMessage("Dolphin Direct3D9 Video Plugin.",5000);
-
+	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.",5000);
 }
 
 void DoState(unsigned char **ptr, int mode) {
@@ -300,7 +300,7 @@ void Video_SetRendering(bool bEnabled) {
 
 void Video_Prepare(void)
 {
-	Renderer::Init(g_VideoInitialize);
+	Renderer::Init();
 
 	TextureCache::Init();
 
@@ -368,7 +368,7 @@ void Video_EndField()
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
-	Renderer::AddMessage(pstr,milliseconds);
+	OSD::AddMessage(pstr,milliseconds);
 }
 
 HRESULT ScreenShot(const char *File)
@@ -409,7 +409,7 @@ void Video_Screenshot(const char *_szFilename)
 	else {
 		std::string message =  "Saved ";
 		message += _szFilename;
-		Renderer::AddMessage(message, 2000);
+		OSD::AddMessage(message.c_str(), 2000);
 	}
 }
 

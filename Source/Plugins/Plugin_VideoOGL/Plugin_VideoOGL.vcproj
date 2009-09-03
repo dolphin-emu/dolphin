@@ -753,14 +753,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\OnScreenDisplay.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\OnScreenDisplay.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\PixelShaderCache.cpp"
 				>
 			</File>
@@ -778,10 +770,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Render.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Render.h"
 				>
 			</File>
 			<File

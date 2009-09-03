@@ -18,7 +18,6 @@
 #include <list>
 
 #include "Common.h"
-#include "GLUtil.h"
 
 #include "OnScreenDisplay.h"
 #include "Render.h"
@@ -48,11 +47,6 @@ void AddMessage(const char* pstr, u32 ms)
 
 void DrawMessages()
 {
-	// Get the status of the Blend mode
-	GLboolean enabled = glIsEnabled(GL_BLEND);
-
-	glDisable(GL_BLEND);
-	
 	if (s_listMsgs.size() > 0)
 	{
 		int left = 25, top = 15;
@@ -80,14 +74,6 @@ void DrawMessages()
 				++it;
 		}
 	}
-
-	GL_REPORT_ERRORD();
-
-	if (enabled)
-		glEnable(GL_BLEND);
-
-	
-	GL_REPORT_ERRORD();
 }
 
 }  // namespace

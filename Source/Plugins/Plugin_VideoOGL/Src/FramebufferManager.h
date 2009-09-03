@@ -74,9 +74,7 @@ struct XFBSource
 
 class FramebufferManager
 {
-
 public:
-
 	FramebufferManager() :
 		m_efbFramebuffer(0),
 		m_efbColor(0),
@@ -105,6 +103,18 @@ public:
 	GLuint GetResolvedFramebuffer() const { return m_resolvedFramebuffer; }
 
 	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) const;
+
+    void SetFramebuffer(GLuint fb);
+
+	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
+	// Thus, this call may be expensive. Don't repeat it unnecessarily.
+	// If not in MSAA mode, will just return the render target texture ID.
+	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
+	GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
+
+	// Same as above but for the depth Target.
+	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
+    GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 private:
 
@@ -144,7 +154,8 @@ private:
 	GLuint m_xfbFramebuffer; // Only used in MSAA mode
 	XFBSource m_realXFBSource; // Only used in Real XFB mode
 	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
-
 };
+
+extern FramebufferManager g_framebufferManager;
 
 #endif
