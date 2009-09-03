@@ -82,9 +82,11 @@ class CCodeWindow
 		void Update();
 		void NotifyMapLoaded();
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar * pMenuBar);
+		void CreateMenuView(wxMenuBar * pMenuBar, wxMenu*);
+		void CreateMenuOptions(wxMenuBar * pMenuBar, wxMenu*);
+		void CreateMenuSymbols();
 		void RecreateToolbar(wxAuiToolBar*);
 		void PopulateToolbar(wxAuiToolBar* toolBar);
-		void CreateSymbolsMenu();
 		void UpdateButtonStates();
 		void OpenPages();
 		void UpdateManager();

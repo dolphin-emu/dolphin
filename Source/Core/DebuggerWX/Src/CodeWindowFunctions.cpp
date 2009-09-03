@@ -78,11 +78,104 @@ extern "C"  // Bitmaps
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Save and load settings
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void CCodeWindow::Load()
+{
+	IniFile ini;
+	ini.Load(DEBUGGER_CONFIG_FILE);
+
+	// The font to override DebuggerFont with
+	std::string fontDesc;
+	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
+	if (!fontDesc.empty())
+		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
+
+	// Decide what windows to use
+	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
+	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
+	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);
+	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
+	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
+	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
+	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);
+	// Get notebook affiliation
+	std::string _Section = StringFromFormat("P - %s",
+		(Parent->ActivePerspective < Parent->Perspectives.size())
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
+	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
+	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
+	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
+	ini.Get(_Section.c_str(), "Breakpoints", &iBreakpointWindow, 0);
+	ini.Get(_Section.c_str(), "Memory", &iMemoryWindow, 1);
+	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
+	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
+	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
+
+	// Boot to pause or not
+	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
+	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
+}
+void CCodeWindow::Save()
+{
+	IniFile ini;
+	ini.Load(DEBUGGER_CONFIG_FILE);
+
+	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+
+	// Boot to pause or not
+	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+
+	// Save windows settings	
+	//ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
+	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
+	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
+	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
+	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
+	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
+	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
+	std::string _Section = StringFromFormat("P - %s",
+		(Parent->ActivePerspective < Parent->Perspectives.size())
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Set(_Section.c_str(), "Log", iLogWindow);
+	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
+	ini.Set(_Section.c_str(), "Code", iCodeWindow);
+	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);
+	ini.Set(_Section.c_str(), "Breakpoints", iBreakpointWindow);
+	ini.Set(_Section.c_str(), "Memory", iMemoryWindow);
+	ini.Set(_Section.c_str(), "JIT", iJitWindow);
+	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
+	ini.Set(_Section.c_str(), "Video", iVideoWindow);
+
+	// Save window settings
+	/*
+	ini.Set("CodeWindow", "x", GetPosition().x);
+	ini.Set("CodeWindow", "y", GetPosition().y);
+	ini.Set("CodeWindow", "w", GetSize().GetWidth());
+	ini.Set("CodeWindow", "h", GetSize().GetHeight());
+	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
+	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
+	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
+	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
+
+	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
+	if (m_RegisterWindow) m_RegisterWindow->Save(file);
+	if (m_MemoryWindow) m_MemoryWindow->Save(file);
+	if (m_JitWindow) m_JitWindow->Save(file);
+	*/
+
+	ini.Save(DEBUGGER_CONFIG_FILE);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Symbols, JIT, Profiler
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void CCodeWindow::CreateSymbolsMenu()
+void CCodeWindow::CreateMenuSymbols()
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
 	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
@@ -107,12 +200,6 @@ void CCodeWindow::CreateSymbolsMenu()
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
     pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _T("&Rename symbols from file..."));
 	pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
-
-	wxMenu *pJitMenu = new wxMenu;
-	pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));
-	pJitMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
-	pJitMenu->Append(IDM_SEARCHINSTRUCTION, _T("&Search for an op"));
-	pMenuBar->Append(pJitMenu, _T("&JIT"));
 
 	wxMenu *pProfilerMenu = new wxMenu;
 	pProfilerMenu->Append(IDM_PROFILEBLOCKS, _T("&Profile blocks"), wxEmptyString, wxITEM_CHECK);

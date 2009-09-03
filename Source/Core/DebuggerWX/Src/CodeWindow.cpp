@@ -420,99 +420,6 @@ void CCodeWindow::UpdateCallstack()
 	}
 }
 
-
-
-// Load these settings before CreateGUIControls()
-
-void CCodeWindow::Load()
-{
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-
-	// The font to override DebuggerFont with
-	std::string fontDesc;
-	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
-	if (!fontDesc.empty())
-		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
-
-	// Decide what windows to use
-	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
-	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
-	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);
-	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
-	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
-	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
-	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);
-	// Get notebook affiliation
-	std::string _Section = StringFromFormat("P - %s",
-		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
-	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
-	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
-	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
-	ini.Get(_Section.c_str(), "Breakpoints", &iBreakpointWindow, 0);
-	ini.Get(_Section.c_str(), "Memory", &iMemoryWindow, 1);
-	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
-	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
-	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
-
-	// Boot to pause or not
-	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
-	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
-}
-void CCodeWindow::Save()
-{
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-
-	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
-
-	// Boot to pause or not
-	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
-
-	// Save windows settings	
-	//ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
-	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
-	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
-	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
-	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
-	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
-	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
-	std::string _Section = StringFromFormat("P - %s",
-		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Set(_Section.c_str(), "Log", iLogWindow);
-	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
-	ini.Set(_Section.c_str(), "Code", iCodeWindow);
-	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);
-	ini.Set(_Section.c_str(), "Breakpoints", iBreakpointWindow);
-	ini.Set(_Section.c_str(), "Memory", iMemoryWindow);
-	ini.Set(_Section.c_str(), "JIT", iJitWindow);
-	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
-	ini.Set(_Section.c_str(), "Video", iVideoWindow);
-
-	// Save window settings
-	/*
-	ini.Set("CodeWindow", "x", GetPosition().x);
-	ini.Set("CodeWindow", "y", GetPosition().y);
-	ini.Set("CodeWindow", "w", GetSize().GetWidth());
-	ini.Set("CodeWindow", "h", GetSize().GetHeight());
-	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
-	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
-	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
-	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
-
-	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
-	if (m_RegisterWindow) m_RegisterWindow->Save(file);
-	if (m_MemoryWindow) m_MemoryWindow->Save(file);
-	if (m_JitWindow) m_JitWindow->Save(file);
-	*/
-
-	ini.Save(DEBUGGER_CONFIG_FILE);
-}
-
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
 	//CreateMenu(_LocalCoreStartupParameter);
@@ -546,7 +453,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 // Menus
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Create CPU Mode and Views menus
+// Create CPU Mode menus
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar * _pMenuBar)
 {
 	// Create menu
@@ -566,22 +473,6 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 	pCoreMenu->AppendSeparator();
 
-	wxMenuItem* boottopause = pCoreMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
-		wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
-	boottopause->Check(bBootToPause);
-
-	wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
-		, wxString::FromAscii(
-		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
-		" if you have not given it an elf file with the --elf command line. [This can be"
-		" convenient if you are bugtesting with a certain game and want to rebuild"
-		" and retry it several times, either with changes to Dolphin or if you are"
-		" developing a homebrew game.]")
-		, wxITEM_CHECK);
-	automaticstart->Check(bAutomaticStart);	
-
-	pCoreMenu->AppendSeparator();
-
 	jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING + 123, _T("&JIT Block Linking off"),
 		_T("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
@@ -590,7 +481,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
 		_T(" [This option must be selected before a game is started.]"),
 		wxITEM_CHECK);
+	pCoreMenu->Append(IDM_CLEARCODECACHE, _T("&Clear JIT cache"));
 
+	pCoreMenu->AppendSeparator();
+	pCoreMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
+	pCoreMenu->Append(IDM_SEARCHINSTRUCTION, _T("&Search for an op"));
 
 	#ifdef JIT_OFF_OPTIONS
 		pCoreMenu->AppendSeparator();
@@ -612,31 +507,49 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
-	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
-	
-	// Views	
-	wxMenu* pDebugDialogs = new wxMenu;
+	pMenuBar->Append(pCoreMenu, _T("&JIT"));
 
-	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
+	CreateMenuSymbols();
+}
+// Create View menu
+void CCodeWindow::CreateMenuView(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
+{
+	//wxMenu* pDebugDialogs = new wxMenu;
+
+	wxMenuItem* pRegister = _pMenu->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
 	pRegister->Check(bRegisterWindow);
-	wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
+	wxMenuItem* pBreakPoints = _pMenu->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
 	pBreakPoints->Check(bBreakpointWindow);
-	wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
+	wxMenuItem* pMemory = _pMenu->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
 	pMemory->Check(bMemoryWindow);
-	wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
+	wxMenuItem* pJit = _pMenu->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
 	pJit->Check(bJitWindow);
-	wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
+	wxMenuItem* pSound = _pMenu->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
 	pSound->Check(bSoundWindow);
-	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
+	wxMenuItem* pVideo = _pMenu->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
 	pVideo->Check(bVideoWindow);
-	pDebugDialogs->AppendSeparator();
-	wxMenuItem* pFontPicker = pDebugDialogs->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 
-	pMenuBar->Append(pDebugDialogs, _T("&Views"));	
-
-	CreateSymbolsMenu();
+	//pMenuBar->Append(pDebugDialogs, _T("&Views"));	
 }
 
+void CCodeWindow::CreateMenuOptions(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
+{
+	wxMenuItem* boottopause = _pMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
+		wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
+	boottopause->Check(bBootToPause);
+
+	wxMenuItem* automaticstart = _pMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
+		, wxString::FromAscii(
+		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
+		" if you have not given it an elf file with the --elf command line. [This can be"
+		" convenient if you are bugtesting with a certain game and want to rebuild"
+		" and retry it several times, either with changes to Dolphin or if you are"
+		" developing a homebrew game.]")
+		, wxITEM_CHECK);
+	automaticstart->Check(bAutomaticStart);	
+
+	wxMenuItem* pFontPicker = _pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+}
 
 // CPU Mode and JIT Menu
 void CCodeWindow::OnCPUMode(wxCommandEvent& event)
@@ -727,7 +640,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toolbar
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CCodeWindow::InitBitmaps()
@@ -769,10 +682,10 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 	// the changes
 	toolBar->Realize();
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update GUI
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -792,11 +705,14 @@ void CCodeWindow::UpdateButtonStates()
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	//	bool Running = (Core::GetState() == Core::CORE_RUN);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
+	bool Stepping = CCPU::IsStepping();
 	wxAuiToolBar* ToolBar = GetToolBar();
 
+	// Toolbar
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	if (!ToolBar) return;
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Initialized)
 	{
 		ToolBar->EnableTool(IDM_DEBUG_GO, false);
 		ToolBar->EnableTool(IDM_STEP, false);
@@ -805,7 +721,7 @@ void CCodeWindow::UpdateButtonStates()
 	}
 	else
 	{
-		if (!CCPU::IsStepping())
+		if (!Stepping)
 		{
 			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
 			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Pause"));
@@ -826,8 +742,11 @@ void CCodeWindow::UpdateButtonStates()
 			ToolBar->EnableTool(IDM_SKIP, true);
 		}
 	}
+	
+	if (ToolBar) ToolBar->Realize();
 
-	// Enabled or disable menu items
+	// Menu bar
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	GetMenuBar()->Enable(IDM_INTERPRETER, Pause); // CPU Mode
 
 	GetMenuBar()->Enable(IDM_JITUNLIMITED, !Initialized);
@@ -844,14 +763,24 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_JITSROFF, Pause);
 
 	GetMenuBar()->Enable(IDM_CLEARCODECACHE, Pause); // JIT Menu
+	GetMenuBar()->Enable(IDM_SEARCHINSTRUCTION, Initialized);
+
+	GetMenuBar()->Enable(IDM_CLEARSYMBOLS, Initialized); // Symbols menu
+	GetMenuBar()->Enable(IDM_CLEANSYMBOLS, Initialized); // not used
+	GetMenuBar()->Enable(IDM_SCANFUNCTIONS, Initialized);
+	GetMenuBar()->Enable(IDM_LOADMAPFILE, Initialized);
+	GetMenuBar()->Enable(IDM_SAVEMAPFILE, Initialized);
+	GetMenuBar()->Enable(IDM_SAVEMAPFILEWITHCODES, Initialized);
+	GetMenuBar()->Enable(IDM_CREATESIGNATUREFILE, Initialized);
+    GetMenuBar()->Enable(IDM_RENAME_SYMBOLS, Initialized);
+	GetMenuBar()->Enable(IDM_USESIGNATUREFILE, Initialized);
+	GetMenuBar()->Enable(IDM_PATCHHLEFUNCTIONS, Initialized);
 
 	// Update Fonts
 	callstack->SetFont(DebuggerFont);
 	symbols->SetFont(DebuggerFont);
 	callers->SetFont(DebuggerFont);
 	calls->SetFont(DebuggerFont);
-
-	if (ToolBar) ToolBar->Realize();
 }
 
 void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
@@ -919,4 +848,4 @@ void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 		//if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
 	#endif
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

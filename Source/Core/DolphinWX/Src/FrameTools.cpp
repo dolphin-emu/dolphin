@@ -173,7 +173,12 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));	
+	if (UseDebugger)
+	{
+		pOptionsMenu->AppendSeparator();
+		g_pCodeWindow->CreateMenuOptions(NULL, pOptionsMenu);	
+	}
 	m_MenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// Tools menu
@@ -198,11 +203,18 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_TOOLBAR, SConfig::GetInstance().m_InterfaceToolbar);
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
+	viewMenu->AppendSeparator();
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
 	viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
 	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
+
+	if (UseDebugger)
+	{
+		g_pCodeWindow->CreateMenuView(NULL, viewMenu);
+		viewMenu->AppendSeparator();
+	}
 
 	viewMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
 	viewMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
@@ -222,6 +234,8 @@ void CFrame::CreateMenu()
 	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
 	m_MenuBar->Append(viewMenu, _T("&View"));	
 
+	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
+
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
 	/*helpMenu->Append(wxID_HELP, _T("&Help"));
@@ -231,8 +245,6 @@ void CFrame::CreateMenu()
 	helpMenu->AppendSeparator();
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
 	m_MenuBar->Append(helpMenu, _T("&Help"));
-
-	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
 
 	// Associate the menu bar with the frame
 	SetMenuBar(m_MenuBar);
