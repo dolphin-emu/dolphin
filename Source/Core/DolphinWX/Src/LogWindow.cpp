@@ -72,7 +72,7 @@ void CLogWindow::CreateGUIControls()
 	for (int i = 0; i < MAX_LOGLEVEL; ++i) wxLevelsUse.Add(wxString::Format(wxT("%s"), wxLevels.Item(i).c_str()));		
 	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"), wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS, wxDefaultValidator);
 	// Don't take up so much space
-	m_verbosity->SetButtonFont(wxFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+	m_verbosity->SetFont(wxFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
 	// Font
 	wxChoice * m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, * new wxArrayString(), 0, wxDefaultValidator);

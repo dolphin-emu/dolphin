@@ -296,8 +296,8 @@ bool ServerSide::SyncValues(unsigned char socketnb, sf::IPAddress Address)
 				m_client[i].socket.Send(m_client[socketnb].nick.c_str(), buffer_size + 1);
 			}
 		}
-		Event->AppendText(  wxString::Format(wxT("*Connection established to %s (%s:%d)\n"),
-			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port));
+		Event->AppendText(  wxString::FromAscii(StringFromFormat("*Connection established to %s (%s:%d)\n",
+			m_client[socketnb].nick.c_str(), Address.ToString().c_str(), m_client[m_numplayers].port).c_str()));
 
 		if (init_number != 0x1F) // Not Found
 			//for (int i = 0; i < 4; i++)

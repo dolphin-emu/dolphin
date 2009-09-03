@@ -546,8 +546,8 @@ void GameListPopup::OnButtons(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case wxID_OK:
-		if (m_GameList->GetSelection()-1 != wxNOT_FOUND)
-			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()-1].mb_str()));
+		if (m_GameList->GetSelection() != wxNOT_FOUND)
+			m_netParent->ChangeSelectedGame(std::string(m_GameList_str[m_GameList->GetSelection()].mb_str()));
 		Destroy();
 		break;
 	case wxID_CANCEL:
