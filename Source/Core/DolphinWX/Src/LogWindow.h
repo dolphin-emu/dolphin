@@ -71,24 +71,28 @@ public:
 
 private:
 	CFrame *Parent;
-	wxBoxSizer *sUber, *sLeft, *sRight, *sRightBottom;
-	wxTextCtrl *m_Log, *m_cmdline;
-	wxFont DefaultFont;
-	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
-	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
+	wxFont DefaultFont, MonoSpaceFont;
+	std::vector<wxFont> Font;	
 	wxTimer *m_LogTimer;
-	wxCheckListBox* m_checks;
-	wxRadioBox *m_verbosity;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;
 	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
+	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
+
+	// Controls
+	wxBoxSizer *sUber, *sLeft, *sRight, *sRightBottom;
+	wxTextCtrl *m_Log, *m_cmdline;
+	wxChoice * m_FontChoice;
+	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
+	wxCheckListBox* m_checks;
+	wxRadioBox *m_verbosity;
 
 	Common::CriticalSection m_LogSection;
 
 	DECLARE_EVENT_TABLE()
 
-	wxTextCtrl * CreateTextCtrl(wxDialog* parent, wxWindowID id, long Style);
+	wxTextCtrl * CreateTextCtrl(wxDialog* parent, wxWindowID id = wxID_ANY, long Style = NULL);
 	void CreateGUIControls();
 	void PopulateRight(); void UnPopulateRight();
 	void OnClose(wxCloseEvent& event);

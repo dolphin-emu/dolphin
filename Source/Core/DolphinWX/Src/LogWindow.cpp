@@ -46,7 +46,7 @@ END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
-    , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL)
+    , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogAccess(true)
 {
 	m_LogManager = LogManager::GetInstance();
@@ -75,10 +75,18 @@ void CLogWindow::CreateGUIControls()
 	m_verbosity->SetFont(wxFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
 	// Font
-	wxChoice * m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, * new wxArrayString(), 0, wxDefaultValidator);
+	m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, * new wxArrayString(), 0, wxDefaultValidator);
 	m_FontChoice->Append(wxT("Default font"));
-	m_FontChoice->Append(wxT("Modern font"));
+	m_FontChoice->Append(wxT("Monospaced font"));
+	m_FontChoice->Append(wxT("Selected font"));
 	m_FontChoice->SetSelection(0);
+	wxTextCtrl *Tmp = CreateTextCtrl(this);
+	DefaultFont = Tmp->GetFont();
+	Tmp->Destroy();
+	MonoSpaceFont.SetNativeFontInfoUserDesc(wxString::FromAscii("lucida console windows-1252"));
+	Font.push_back(DefaultFont);
+	Font.push_back(MonoSpaceFont);
+	Font.push_back(DebuggerFont);
 
 	// Options
 	wxCheckBox * m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, wxT("Word Wrap"));
@@ -90,7 +98,6 @@ void CLogWindow::CreateGUIControls()
 
 	// Log viewer and submit row
 	m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
-	DefaultFont = m_Log->GetFont();
 	m_cmdline = new wxTextCtrl(this, IDM_SUBMITCMD, wxEmptyString, wxDefaultPosition, wxDefaultSize,
 		wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB);
 	//m_cmdline->SetFont(DebuggerFont);
@@ -159,6 +166,7 @@ void CLogWindow::SaveSettings()
 	ini.Set("LogWindow", "w", GetSize().GetWidth());
 	ini.Set("LogWindow", "h", GetSize().GetHeight());
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
+	ini.Set("Options", "Font", m_FontChoice->GetSelection());
 	ini.Set("Options", "WriteToFile", m_writeFile);
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
 	ini.Set("Options", "WriteToWindow", m_writeWindow);
@@ -171,7 +179,7 @@ void CLogWindow::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(LOGGER_CONFIG_FILE);
-	int x,y,w,h,verbosity;
+	int x,y,w,h,verbosity,font;
 	ini.Get("LogWindow", "x", &x, GetPosition().x);
 	ini.Get("LogWindow", "y", &y, GetPosition().y);
 	ini.Get("LogWindow", "w", &w, GetSize().GetWidth());
@@ -181,6 +189,10 @@ void CLogWindow::LoadSettings()
 	if (verbosity < 1) verbosity = 1;
 	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;
 	m_verbosity->SetSelection(verbosity - 1);
+	ini.Get("Options", "Font", &font, 0);
+	m_FontChoice->SetSelection(font);
+	if (m_FontChoice->GetSelection() < Font.size())
+		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
@@ -294,7 +306,11 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxDialog* parent, wxWindowID id, long Sty
 {
 	wxTextCtrl* TC = new wxTextCtrl(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, Style);	
 	TC->SetBackgroundColour(*wxBLACK);
-	//TC->SetFont(DebuggerFont);
+	if (m_FontChoice)
+	{
+		if (m_FontChoice->GetSelection() < Font.size())
+			TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
+	}
 	return TC;
 }
 
@@ -315,8 +331,6 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 			}
 		}
 		break;
-
-
 
 	case IDM_WRAPLINE:		
 		// SetWindowStyleFlag doesn't fully work, we need to redraw the window
@@ -340,11 +354,10 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		break;
 
 	case IDM_FONT:
-		switch (event.GetSelection())
-		{
-			case 0: m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, DefaultFont)); break;
-			case 1: m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, DebuggerFont)); break;
-		}
+		// Update selected font
+		Font.at(Font.size()-1) = DebuggerFont;
+		m_Log->SetStyle(0, m_Log->GetLastPosition(), wxTextAttr(wxNullColour, wxNullColour, Font.at(event.GetSelection())));
+		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(event.GetSelection())));
 		break;
 
 	case IDM_WRITEFILE:
@@ -439,7 +452,7 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 	//m_Log->Freeze();
 	int MsgSz = msgQueue.size();
 	UpdateLog();
-	// Better auto scroll
+	// Better auto scroll than wxTE_AUTO_SCROLL
 	if (MsgSz > 0)
 	{
 		m_Log->ScrollLines(1);
