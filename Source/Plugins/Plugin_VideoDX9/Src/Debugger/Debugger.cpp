@@ -21,7 +21,7 @@
 
 #include "../Config.h"
 #include "../Globals.h"
-#include "../main.h"
+#include "../D3DBase.h"
 
 extern int g_Preset;
 
