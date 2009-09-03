@@ -70,34 +70,39 @@ bool VertexShaderCache::SetShader(u32 components)
 	{
 		iter->second.frameCount = frameCount;
 		const VSCacheEntry &entry = iter->second;
-		D3D::dev->SetVertexShader(entry.shader);
 		last_entry = &entry;
+
 		DEBUGGER_PAUSE_COUNT_N(NEXT_VERTEX_SHADER_CHANGE);
-		return true;
+		if (entry.shader)
+		{
+			D3D::dev->SetVertexShader(entry.shader);
+			return true;
+		}
+		else
+			return false;
 	}
 
 	const char *code = GenerateVertexShader(components, true);
 	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVertexShader(code, (int)strlen(code));
 
+	// Make an entry in the table
+	VSCacheEntry entry;
+	entry.shader = shader;
+	entry.frameCount = frameCount;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	entry.code = code;
+#endif
+	vshaders[uid] = entry;
+	last_entry = &vshaders[uid];
+	INCSTAT(stats.numVertexShadersCreated);
+	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 	if (shader)
 	{
-		// Make an entry in the table
-		VSCacheEntry entry;
-		entry.shader = shader;
-		entry.frameCount = frameCount;
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		entry.code = code;
-#endif
-		vshaders[uid] = entry;
-		last_entry = &vshaders[uid];
-
 		D3D::dev->SetVertexShader(shader);
-
-		INCSTAT(stats.numVertexShadersCreated);
-		SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 		return true;
 	}
-	else if (g_Config.bShowShaderErrors)
+	
+	if (g_Config.bShowShaderErrors)
 	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}
