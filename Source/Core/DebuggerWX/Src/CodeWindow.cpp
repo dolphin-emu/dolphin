@@ -581,29 +581,8 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 
 	// Clear the JIT cache to enable these changes
 	jit.ClearCache();
-}
-
-
-// Shortcuts
-bool CCodeWindow::UseInterpreter()
-{
-	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
-}
-bool CCodeWindow::BootToPause()
-{
-	return GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE);
-}
-bool CCodeWindow::AutomaticStart()
-{
-	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
-}
-bool CCodeWindow::UnlimitedJITCache()
-{
-	return GetMenuBar()->IsChecked(IDM_JITUNLIMITED);
-}
-bool CCodeWindow::JITBlockLinking()
-{
-	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
+	// Update
+	UpdateButtonStates();
 }
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {
@@ -629,6 +608,28 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 	}
 }
 
+
+// Shortcuts
+bool CCodeWindow::UseInterpreter()
+{
+	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
+}
+bool CCodeWindow::BootToPause()
+{
+	return GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE);
+}
+bool CCodeWindow::AutomaticStart()
+{
+	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
+}
+bool CCodeWindow::UnlimitedJITCache()
+{
+	return GetMenuBar()->IsChecked(IDM_JITUNLIMITED);
+}
+bool CCodeWindow::JITBlockLinking()
+{
+	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -704,7 +705,6 @@ void CCodeWindow::UpdateButtonStates()
 	if (!Initialized)
 	{
 		ToolBar->EnableTool(IDM_DEBUG_GO, false);
-		ToolBar->EnableTool(IDM_STEP, false);
 		ToolBar->EnableTool(IDM_STEPOVER, false);
 		ToolBar->EnableTool(IDM_SKIP, false);
 	}
@@ -716,7 +716,6 @@ void CCodeWindow::UpdateButtonStates()
 			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Pause"));
 			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugPause]);
 			ToolBar->EnableTool(IDM_DEBUG_GO, true);
-			ToolBar->EnableTool(IDM_STEP, false);
 			ToolBar->EnableTool(IDM_STEPOVER, false);
 			ToolBar->EnableTool(IDM_SKIP, false);
 		}
@@ -726,11 +725,12 @@ void CCodeWindow::UpdateButtonStates()
 			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Play"));
 			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
 			ToolBar->EnableTool(IDM_DEBUG_GO, true);
-			ToolBar->EnableTool(IDM_STEP, true);
 			ToolBar->EnableTool(IDM_STEPOVER, true);
 			ToolBar->EnableTool(IDM_SKIP, true);
 		}
 	}
+
+	ToolBar->EnableTool(IDM_STEP, Initialized && Stepping && UseInterpreter());	
 	
 	if (ToolBar) ToolBar->Realize();
 
