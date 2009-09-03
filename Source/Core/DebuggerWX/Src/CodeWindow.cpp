@@ -74,79 +74,84 @@ class CPluginInfo;
 class CPluginManager;
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Main
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
-    EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
-    EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
-    EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
-    EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
 
-    EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+// Menu bar
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
+EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
 
-	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
+EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
+		EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
 
-	// Menu bar
-	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
-	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) //views
+EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
+EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
+EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
+EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
+EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
+EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
-	EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
-		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
-			EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnCPUMode)
-		EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
 
-	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) //views
-	EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
+EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
+EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
+EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
 
-	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
+EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
+EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
 
-	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
-	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
-	EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
+// Menu tooltips
+//EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
+/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
+//EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
-	EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
-	EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
+// Toolbar
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
+EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
+EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
+EVT_MENU(IDM_SKIP,				CCodeWindow::OnCodeStep)
+EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
+EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
+EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
-	// Toolbar
-	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_SKIP,				CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
-	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
-	// Menu tooltips
-	//EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
-	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
-	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
-	//EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
+// Other
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
+EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
+EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
+EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
+
+EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+
+EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 
 END_EVENT_TABLE()
-
 
 
 // Class
@@ -187,10 +192,10 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 {
 	return Parent->m_ToolBarDebug;
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Events
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
@@ -536,7 +541,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	sync_event.Init();
 }
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // Menus

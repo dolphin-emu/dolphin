@@ -339,18 +339,18 @@ void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
 	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
 }
-void CCodeWindow::OnToggleCodeWindow(bool _show, int i)
+void CCodeWindow::OnToggleCodeWindow(bool _Show, int i)
 {
-	if (_show)
+	if (_Show)
 	{
 		Parent->DoAddPage(this, i, "Code");
 	}
 	else // hide
 		Parent->DoRemovePage (this);
 }
-void CCodeWindow::OnToggleRegisterWindow(bool _show, int i)
+void CCodeWindow::OnToggleRegisterWindow(bool _Show, int i)
 {
-	if (_show)
+	if (_Show)
 	{
 		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);
 		Parent->DoAddPage(m_RegisterWindow, i, "Registers");
@@ -359,9 +359,9 @@ void CCodeWindow::OnToggleRegisterWindow(bool _show, int i)
 		Parent->DoRemovePage (m_RegisterWindow);
 }
 
-void CCodeWindow::OnToggleBreakPointWindow(bool _show, int i)
+void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
 {
-	if (_show)
+	if (_Show)
 	{
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
 		#ifdef _WIN32
@@ -378,9 +378,9 @@ void CCodeWindow::OnToggleBreakPointWindow(bool _show, int i)
 		#endif
 }
 
-void CCodeWindow::OnToggleJitWindow(bool _show, int i)
+void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
 {
-	if (_show)
+	if (_Show)
 	{
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
 		#ifdef _WIN32
@@ -398,9 +398,9 @@ void CCodeWindow::OnToggleJitWindow(bool _show, int i)
 }
 
 
-void CCodeWindow::OnToggleMemoryWindow(bool _show, int i)
+void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
 {
-	if (_show)
+	if (_Show)
 	{
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
 		#ifdef _WIN32
@@ -432,11 +432,11 @@ Notice: This windows docking for plugin windows will produce several wx debuggin
 
 
 //Toggle Sound Debugging Window
-void CCodeWindow::OnToggleSoundWindow(bool _show, int i)
+void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
 {
 	//	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 
-	if (_show)
+	if (_Show)
 	{
 		if (Parent->GetNotebookCount() == 0) return;
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
@@ -496,11 +496,11 @@ void CCodeWindow::OnToggleSoundWindow(bool _show, int i)
 }
 
 // Toggle Video Debugging Window
-void CCodeWindow::OnToggleVideoWindow(bool _show, int i)
+void CCodeWindow::OnToggleVideoWindow(bool _Show, int i)
 {
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
 
-	if (_show)
+	if (_Show)
 	{
 		if (Parent->GetNotebookCount() == 0) return;
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;

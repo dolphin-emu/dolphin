@@ -68,6 +68,7 @@ class CFrame : public wxFrame
 
 		// These have to be public		
 		CCodeWindow* g_pCodeWindow;
+		wxMenuBar* m_MenuBar;
 		wxBitmap aNormalFile;
 		void InitBitmaps();
 		void DoStop();

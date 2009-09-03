@@ -98,10 +98,9 @@ wxInfoWindow* InfoWindow;
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::CreateMenu()
 {
-	if (GetMenuBar())
-		GetMenuBar()->Destroy();
+	if (GetMenuBar()) GetMenuBar()->Destroy();
 
-	wxMenuBar* menuBar = new wxMenuBar(wxMB_DOCKABLE);
+	m_MenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
@@ -123,7 +122,7 @@ void CFrame::CreateMenu()
 	fileMenu->Append(IDM_RESTART, UseDebugger ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
-	menuBar->Append(fileMenu, _T("&File"));
+	m_MenuBar->Append(fileMenu, _T("&File"));
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
@@ -163,7 +162,7 @@ void CFrame::CreateMenu()
 		loadMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i\tF%i"), i, i));
 		saveMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i\tShift+F%i"), i, i));
 	}
-	menuBar->Append(emulationMenu, _T("&Emulation"));
+	m_MenuBar->Append(emulationMenu, _T("&Emulation"));
 
 	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
@@ -175,7 +174,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
-	menuBar->Append(pOptionsMenu, _T("&Options"));
+	m_MenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
@@ -192,7 +191,7 @@ void CFrame::CreateMenu()
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
 
-	menuBar->Append(toolsMenu, _T("&Tools"));
+	m_MenuBar->Append(toolsMenu, _T("&Tools"));
 
 	wxMenu* viewMenu = new wxMenu;
 	viewMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("Show &Toolbar"));
@@ -221,7 +220,7 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 	viewMenu->AppendSeparator();
 	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
-	menuBar->Append(viewMenu, _T("&View"));	
+	m_MenuBar->Append(viewMenu, _T("&View"));	
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
@@ -231,12 +230,12 @@ void CFrame::CreateMenu()
 	helpMenu->Append(IDM_HELPGOOGLECODE, _T("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
-	menuBar->Append(helpMenu, _T("&Help"));
+	m_MenuBar->Append(helpMenu, _T("&Help"));
 
-	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menuBar);
+	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
 
 	// Associate the menu bar with the frame
-	SetMenuBar(menuBar);
+	SetMenuBar(m_MenuBar);
 }
 
 

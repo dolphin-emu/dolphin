@@ -210,7 +210,9 @@ int abc = 0;
 const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
 
 BEGIN_EVENT_TABLE(CFrame, wxFrame)
-EVT_CLOSE(CFrame::OnClose)
+
+// Menu bar
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
 EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
@@ -279,24 +281,27 @@ EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 
+// Other
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 #if wxUSE_TIMER
-	EVT_TIMER(wxID_ANY, CFrame::OnTimer)
+EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
-
-// Debugger Menu Entries
-EVT_MENU(wxID_ANY, CFrame::PostEvent)
-EVT_TEXT(wxID_ANY, CFrame::PostEvent)
-
-//EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
-//EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
 EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
 EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
+
+// Post events to child panels
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+EVT_MENU(wxID_ANY, CFrame::PostEvent)
+EVT_TEXT(wxID_ANY, CFrame::PostEvent)
+//EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
+//EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
 END_EVENT_TABLE()
 
@@ -312,7 +317,7 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)		
-	, m_LogWindow(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
+	, m_LogWindow(NULL), m_MenuBar(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false), bRenderToMain(true)
 	, HaveLeds(false), HaveSpeakers(false)
@@ -541,14 +546,16 @@ void CFrame::OnClose(wxCloseEvent& event)
 // Warning: This may cause an endless loop if the event is propagated back to its parent
 void CFrame::PostEvent(wxCommandEvent& event)
 {
-	event.Skip();
-	event.StopPropagation();
-
 	if (g_pCodeWindow
 		&& event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX
-		&& event.GetId() != IDM_JITUNLIMITED
+		//&& event.GetId() != IDM_JITUNLIMITED
 		)
+	{
+		event.StopPropagation();
 		wxPostEvent(g_pCodeWindow, event);
+	}
+	else
+		event.Skip();
 }
 void CFrame::PostMenuEvent(wxMenuEvent& event)
 {

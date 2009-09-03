@@ -89,6 +89,11 @@ class CCodeWindow
 		void OpenPages();
 		void UpdateManager();
 		
+		// Menu bar
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
+		void OnJITOff(wxCommandEvent& event);
+
 		void OnToggleWindow(wxCommandEvent& event);
 		void OnToggleCodeWindow(bool,int);
 		void OnToggleRegisterWindow(bool,int);
@@ -98,6 +103,12 @@ class CCodeWindow
 		void OnToggleSoundWindow(bool,int);
 		void OnToggleVideoWindow(bool,int);
 		void OnChangeFont(wxCommandEvent& event);
+
+		void OnCodeStep(wxCommandEvent& event);
+		void OnAddrBoxChange(wxCommandEvent& event);
+		void OnSymbolsMenu(wxCommandEvent& event);
+		void OnJitMenu(wxCommandEvent& event);
+		void OnProfilerMenu(wxCommandEvent& event);
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
@@ -135,18 +146,9 @@ class CCodeWindow
 		void OnCallstackListChange(wxCommandEvent& event);
 		void OnCallersListChange(wxCommandEvent& event);
 		void OnCallsListChange(wxCommandEvent& event);
-		void OnCodeStep(wxCommandEvent& event);
 		void OnCodeViewChange(wxCommandEvent &event);
-		void SingleCPUStep();
-
-		void OnAddrBoxChange(wxCommandEvent& event);			
+		void SingleCPUStep();		
 		void OnHostMessage(wxCommandEvent& event);
-		void OnSymbolsMenu(wxCommandEvent& event);
-		void OnJitMenu(wxCommandEvent& event);
-		void OnProfilerMenu(wxCommandEvent& event);
-
-		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
-		void OnJITOff(wxCommandEvent& event);
 
 		void UpdateLists();
 		void UpdateCallstack();
