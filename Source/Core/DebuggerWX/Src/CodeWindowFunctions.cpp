@@ -232,15 +232,13 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
 	Parent->ClearStatusBar();
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
-	{
-		// TODO: disable menu items instead :P
-		return;
-	}
+	if (Core::GetState() == Core::CORE_UNINITIALIZED) return;
+
 	std::string mapfile = CBoot::GenerateMapFilename();
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
+		if(!AskYesNo("Do you want to clear the list of symbol names?", "Confirm", wxYES_NO)) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -253,9 +251,16 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 		SignatureDB db;
 		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+		{
 			db.Apply(&g_symbolDB);
-
+			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);			
+		}
+		else
+		{
+			Parent->StatusBarMessage("'%s' not found, no symbol names generated", TOTALDB);
+		}
 		// HLE::PatchFunctions();
+		// Update GUI
 		NotifyMapLoaded();
 		break;
 		}

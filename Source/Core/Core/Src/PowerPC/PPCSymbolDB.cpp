@@ -23,6 +23,8 @@
 
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
+#include "../Host.h"
+#include "StringUtil.h"
 #include "PPCSymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
@@ -274,6 +276,16 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 	std::string mapFile = filename;
 	if (WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
 
+	// Check size
+	const int wxYES_NO = 0x00000002 | 0x00000008;
+	if (functions.size() == 0)
+	{
+		if(!AskYesNo(StringFromFormat(
+			"No symbol names are generated. Do you want to replace '%s' with a blank file?",
+			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
+	}
+	if (WithCodes) Host_UpdateStatusBar("Saving code, please stand by ...");
+
 	// Make a file
 	FILE *f = fopen(mapFile.c_str(), "w");
 	if (!f) return false;
@@ -330,11 +342,12 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 				debugger->disasm(Address, disasm, 256);
 				fprintf(f,"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
 			}
-			fprintf(f, "\n"); // Write a blank line after each block
+			// Write a blank line after each block
+			fprintf(f, "\n");
 		}		
     }
 	// ---------------
-    SuccessAlert("Saved %s", mapFile.c_str());
+    Host_UpdateStatusBar(StringFromFormat("Saved %s", mapFile.c_str()).c_str());
     fclose(f);
     return true;
 }

@@ -518,7 +518,10 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	event.SetInt(Field);
 	// Post message
 	// TODO : this has been said to cause hang (??) how is that even possible ? :d
+	event.StopPropagation();
 	wxPostEvent(main_frame, event);
+	// Process the event before continue
+	wxYieldIfNeeded();
 }
 
 void Host_SetWiiMoteConnectionState(int _State)

@@ -629,7 +629,7 @@ void CFrame::DoStop()
 	{
 		// Ask for confirmation in case the user accidently clicked Stop / Escape
 		if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
-			if(!AskYesNo("Are you sure you want to stop the current emulation?", "Confirm", wxYES_NO))
+			if(!AskYesNo("Do want to stop the current emulation?", "Confirm", wxYES_NO))
 				return;
 
 		// TODO: Show the author/description dialog here
