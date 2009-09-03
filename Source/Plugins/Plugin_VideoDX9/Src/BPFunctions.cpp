@@ -207,9 +207,7 @@ void SetColorMask(const BPCmd &bp)
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
 {
-	// TODO: Scale EFBRectangle correctly
-	RECT rec = { rc.left, rc.top, rc.right, rc.bottom };
-	TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest << 5, &rec);
+	TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)

@@ -548,7 +548,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         }
     }
 
-
     if (!bIsInit || !entry.isRenderTarget) 
 	{
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

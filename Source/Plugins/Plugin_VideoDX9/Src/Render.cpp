@@ -41,10 +41,8 @@
 
 #include "debugger/debugger.h"
 
-static float m_x;
-static float m_y;
-static float m_width;
-static float m_height;
+static float m_targetWidth;
+static float m_targetHeight;
 static float xScale;
 static float yScale;
 
@@ -63,15 +61,11 @@ bool Renderer::Init()
 
     D3D::Create(g_Config.iAdapter, EmuWindow::GetWnd(), g_Config.bFullscreen, g_Config.iFSResolution, g_Config.iMultisampleMode);
 
-	float width =  (float)D3D::GetDisplayWidth();
-	float height = (float)D3D::GetDisplayHeight();
+	m_targetWidth  = (float)D3D::GetDisplayWidth();
+	m_targetHeight = (float)D3D::GetDisplayHeight();
 
-	m_x = 0;
-	m_y = 0;
-	m_width  = width;
-	m_height = height;
-	xScale = m_width / (float)EFB_WIDTH;
-	yScale = m_height / (float)EFB_HEIGHT;
+	xScale = m_targetWidth / (float)EFB_WIDTH;
+	yScale = m_targetHeight / (float)EFB_HEIGHT;
 
 	m_LastFrameDumped = false;
 	m_AVIDumping = false;
@@ -129,11 +123,23 @@ void dumpMatrix(D3DXMATRIX &mtx)
 	}
 }
 
+TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
+{
+	TargetRectangle result;
+	result.left   = (rc.left   * m_targetWidth)  / EFB_WIDTH;
+	result.top    = (rc.top    * m_targetHeight) / EFB_HEIGHT;
+	result.right  = (rc.right  * m_targetWidth)  / EFB_WIDTH;
+	result.bottom = (rc.bottom * m_targetHeight) / EFB_HEIGHT;
+	return result;
+}
+
 void formatBufferDump(const char *in, char *out, int w, int h, int p)
 {
-	for (int y = 0; y < h; y++) {
+	for (int y = 0; y < h; y++)
+	{
 		const char *line = in + (h - y - 1) * p;
-		for (int x = 0; x < w; x++) {
+		for (int x = 0; x < w; x++)
+		{
 			memcpy(out, line, 3);
 			out += 3;
 			line += 4;
@@ -250,16 +256,16 @@ void Renderer::SwapBuffers()
 	D3DVIEWPORT9 vp;
 	vp.X = 0;
 	vp.Y = 0;
-	vp.Width  = (DWORD)m_width;
-	vp.Height = (DWORD)m_height;
+	vp.Width  = (DWORD)m_targetWidth;
+	vp.Height = (DWORD)m_targetHeight;
 	vp.MinZ = 0;
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
 	RECT rc;
 	rc.left   = 0; 
 	rc.top    = 0;
-	rc.right  = (LONG)m_width;
-	rc.bottom = (LONG)m_height;
+	rc.right  = (LONG)m_targetWidth;
+	rc.bottom = (LONG)m_targetHeight;
 	D3D::dev->SetScissorRect(&rc);
 	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
@@ -315,8 +321,8 @@ void Renderer::SetColorMask()
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
 
-//		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_width;  <-- fix d3d pixel center?
-//		mtx.m[1][3] = pMatrix[3]; // +0.5f/m_height; <-- fix d3d pixel center?
+//		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_targetWidth;  <-- fix d3d pixel center?
+//		mtx.m[1][3] = pMatrix[3]; // +0.5f/m_targetHeight; <-- fix d3d pixel center?
 
 // Called from VertexShaderManager
 void UpdateViewport()

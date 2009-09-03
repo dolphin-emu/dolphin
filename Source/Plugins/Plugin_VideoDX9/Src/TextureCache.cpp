@@ -248,9 +248,16 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	return &entry;
 }
  
-
-void TextureCache::CopyEFBToRenderTarget(u32 address, RECT *source)
+// EXTREMELY incomplete.
+void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
 {
+	int efb_w = source_rect.GetWidth();
+	int efb_h = source_rect.GetHeight();
+
+	int mult = bScaleByHalf ? 2 : 1;
+	int tex_w = (abs(source_rect.GetWidth()) / mult);
+    int tex_h = (abs(source_rect.GetHeight()) / mult);
+
 	TexCache::iterator iter;
 	LPDIRECT3DTEXTURE9 tex;
 	iter = textures.find(address);
@@ -259,27 +266,50 @@ void TextureCache::CopyEFBToRenderTarget(u32 address, RECT *source)
 		if (!iter->second.isRenderTarget)
 		{
 			ERROR_LOG(VIDEO, "Using non-rendertarget texture as render target!!! WTF?", FALSE);
-			//TODO: remove it and recreate it as a render target
+			// Remove it and recreate it as a render target
+			iter->second.texture->Release();
+			iter->second.texture = 0;
+			textures.erase(iter);
 		}
-		tex = iter->second.texture;
-		iter->second.frameCount = frameCount;
+		else
+		{
+			tex = iter->second.texture;
+			iter->second.frameCount = frameCount;
+			goto have_texture;
+		}
 	}
-	else
+
 	{
 		TCacheEntry entry;
 		entry.isRenderTarget = true;
 		entry.hash = 0;
 		entry.hashoffset = 0;
 		entry.frameCount = frameCount;
+		entry.w = tex_w;
+		entry.h = tex_h;
+
 		// TODO(ector): infer this size in some sensible way
-		D3D::dev->CreateTexture(512, 512, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
+		D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
 
-	LPDIRECT3DSURFACE9 srcSurface,destSurface;
-	tex->GetSurfaceLevel(0,&destSurface);
+have_texture:
+	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+	RECT source_rc;
+	source_rc.left = targetSource.left;
+	source_rc.top = targetSource.top;
+	source_rc.right = targetSource.right;
+	source_rc.bottom = targetSource.bottom;
+	RECT dest_rc;
+	dest_rc.left = 0;
+	dest_rc.top = 0;
+	dest_rc.right = tex_w;
+	dest_rc.bottom = tex_h;
+
+	LPDIRECT3DSURFACE9 srcSurface, destSurface;
+	tex->GetSurfaceLevel(0, &destSurface);
 	srcSurface = D3D::GetBackBufferSurface();
-	D3D::dev->StretchRect(srcSurface,source,destSurface,0,D3DTEXF_NONE);
+	D3D::dev->StretchRect(srcSurface, &source_rc, destSurface, &dest_rc, D3DTEXF_LINEAR);
 	destSurface->Release();
 }
