@@ -788,6 +788,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\FileMonitor.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\FileMonitor.h"
+			>
+		</File>
+		<File
 			RelativePath=".\src\JitWindow.cpp"
 			>
 		</File>

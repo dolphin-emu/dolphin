@@ -11,6 +11,7 @@ files = [
     "BreakpointWindow.cpp",
     "CodeWindow.cpp",
     "CodeWindowFunctions.cpp",
+    "FileMonitor.cpp",
     "MemoryCheckDlg.cpp",
     "MemoryWindow.cpp",
     "RegisterWindow.cpp",

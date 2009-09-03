@@ -50,8 +50,8 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
 std::string StripNewline(const std::string &s);
-std::string ThS(int a, bool b = true); // thousand separator
-
+// Thousand separator. Turns 12345678 into 12,345,678
+std::string ThS(int a, bool b = true, int Spaces = 0);
 
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);

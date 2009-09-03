@@ -437,10 +437,14 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 	if (!m_LogAccess) return;
 
 	//m_Log->Freeze();
+	int MsgSz = msgQueue.size();
 	UpdateLog();
 	// Better auto scroll
-	m_Log->ScrollLines(1);
-	m_Log->ShowPosition( m_Log->GetLastPosition() );
+	if (MsgSz > 0)
+	{
+		m_Log->ScrollLines(1);
+		m_Log->ShowPosition( m_Log->GetLastPosition() );
+	}
 	//m_Log->Thaw();
 }
 

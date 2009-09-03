@@ -464,7 +464,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 	pCoreMenu->AppendSeparator();
 
-	jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING + 123, _T("&JIT Block Linking off"),
+	jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking off"),
 		_T("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
 
@@ -755,7 +755,6 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_SEARCHINSTRUCTION, Initialized);
 
 	GetMenuBar()->Enable(IDM_CLEARSYMBOLS, Initialized); // Symbols menu
-	GetMenuBar()->Enable(IDM_CLEANSYMBOLS, Initialized); // not used
 	GetMenuBar()->Enable(IDM_SCANFUNCTIONS, Initialized);
 	GetMenuBar()->Enable(IDM_LOADMAPFILE, Initialized);
 	GetMenuBar()->Enable(IDM_SAVEMAPFILE, Initialized);

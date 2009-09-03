@@ -281,8 +281,8 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 }
 void CFrame::ClosePages()
 {
-	DoToggleWindow(IDM_LOGWINDOW, false);
-	DoToggleWindow(IDM_CONSOLEWINDOW, false);
+	//DoToggleWindow(IDM_LOGWINDOW, false);
+	//DoToggleWindow(IDM_CONSOLEWINDOW, false);
 	DoToggleWindow(IDM_CODEWINDOW, false);
 	DoToggleWindow(IDM_REGISTERWINDOW, false);
 	DoToggleWindow(IDM_BREAKPOINTWINDOW, false);

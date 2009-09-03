@@ -34,6 +34,7 @@ LogManager::LogManager() : logMutex(1) {
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");
 	m_Log[LogTypes::COMMON]				= new LogContainer("COMMON",		"Common");
 	m_Log[LogTypes::DISCIO]				= new LogContainer("DIO",	    	"Disc IO");
+	m_Log[LogTypes::FILEMON]			= new LogContainer("FileMon",		"File Monitor");
 	m_Log[LogTypes::PAD]		        = new LogContainer("PAD",			"Pad");
 	m_Log[LogTypes::PIXELENGINE]		= new LogContainer("PE",			"PixelEngine");
 	m_Log[LogTypes::COMMANDPROCESSOR]	= new LogContainer("CP",			"CommandProc");
@@ -148,7 +149,7 @@ void LogContainer::removeListener(LogListener *listener) {
 
 bool LogContainer::isListener(LogListener *listener) const {
 	std::vector<LogListener *>::const_iterator i;
-	for(i = listeners.begin(); i != listeners.end(); i++) {
+	for (i = listeners.begin(); i != listeners.end(); i++) {
 		if ((*i) == listener) {
 			return true;
 		}

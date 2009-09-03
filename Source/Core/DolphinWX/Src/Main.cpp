@@ -42,6 +42,9 @@
 #include "BootManager.h"
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Main window
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -345,8 +348,12 @@ void DolphinApp::OnEndSession()
 {
 	SConfig::GetInstance().SaveSettings();
 }
-///////////////////////////////////////  Main window created
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Talk to GUI
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // g_VideoInitialize.pSysMessage() goes here
 void Host_SysMessage(const char *fmt, ...) 
@@ -363,10 +370,6 @@ void Host_SysMessage(const char *fmt, ...)
 	PanicAlert("%s", msg);
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Talk to GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if defined HAVE_WX && HAVE_WX
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
@@ -521,7 +524,7 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	event.StopPropagation();
 	wxPostEvent(main_frame, event);
 	// Process the event before continue
-	wxYieldIfNeeded();
+	wxGetApp().ProcessPendingEvents();
 }
 
 void Host_SetWiiMoteConnectionState(int _State)

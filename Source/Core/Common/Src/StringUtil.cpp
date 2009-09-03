@@ -439,23 +439,27 @@ int ChooseStringFrom(const char* str, const char* * items)
 }
 
 
-// Thousand separator. Turns 12345678 into 12,345,678.
-std::string ThS(int Integer, bool Unsigned)
+// Thousand separator. Turns 12345678 into 12,345,678
+std::string ThS(int Integer, bool Unsigned, int Spaces)
 {
 	// Create storage space
 	char cbuf[20];
 	// Determine treatment of signed or unsigned
 	if(Unsigned) sprintf(cbuf, "%u", Integer); else sprintf(cbuf, "%i", Integer);
 
-	std::string sbuf = cbuf;
-	for (u32 i = 0; i < sbuf.length(); ++i)
+	std::string Sbuf = cbuf;
+	for (u32 i = 0; i < Sbuf.length(); ++i)
 	{
 		if((i & 3) == 3)
 		{
-			sbuf.insert(sbuf.length() - i, ",");
+			Sbuf.insert(Sbuf.length() - i, ",");
 		}
 	}
-	return sbuf;
+
+	// Spaces
+	std::string Spc = "";
+	for (int i = 0; i < (Spaces - Sbuf.length()); i++) Spc += " ";
+	return Spc + Sbuf;
 }
 
 void NormalizeDirSep(std::string* str)

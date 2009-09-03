@@ -23,11 +23,11 @@
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
 #include "../Core.h"
-
 #include "../VolumeHandler.h"
-
 #include "VolumeCreator.h"
 #include "Filesystem.h"
+
+#include "../../../Core/DebuggerWX/Src/FileMonitor.h"
 
 using namespace DVDInterface;
 
@@ -217,6 +217,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
+
+			FileMon::CheckFile(std::string(pFilename), m_pFileSystem->GetFileSize(pFilename));
 		}
 		break;
 
