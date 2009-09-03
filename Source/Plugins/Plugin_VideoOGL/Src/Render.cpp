@@ -1192,7 +1192,6 @@ void Renderer::DrawDebugText()
         p+=sprintf(p,"primitives:       %i\n",stats.thisFrame.numPrims);
 		p+=sprintf(p,"primitive joins:  %i\n",stats.thisFrame.numPrimitiveJoins);
 		p+=sprintf(p,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-		p+=sprintf(p,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
         p+=sprintf(p,"primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
         p+=sprintf(p,"XF loads:         %i\n",stats.thisFrame.numXFLoads);
         p+=sprintf(p,"XF loads (DL):    %i\n",stats.thisFrame.numXFLoadsInDL);
@@ -1202,10 +1201,6 @@ void Renderer::DrawDebugText()
         p+=sprintf(p,"BP loads (DL):    %i\n",stats.thisFrame.numBPLoadsInDL);
         p+=sprintf(p,"vertex loaders:   %i\n",stats.numVertexLoaders);
 
-		std::string text1;
-		VertexLoaderManager::AppendListToString(&text1);
-		// TODO: Check for buffer overflow
-		p+=sprintf(p,"%s",text1.c_str());
     }
 
 	if (g_Config.bOverlayProjStats)

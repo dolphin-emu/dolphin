@@ -139,8 +139,8 @@ void Renderer::ProcessMessages()
 
 			alpha <<= 24;
 
-            RenderText(it->message, left+1, top+1, 0x000000|alpha);
-            RenderText(it->message, left, top, 0xffff30|alpha);
+            RenderText(it->message.c_str(), left+1, top+1, 0x000000|alpha);
+            RenderText(it->message.c_str(), left, top, 0xffff30|alpha);
             top += 15;
 
             if (time_left <= 0)
@@ -150,9 +150,9 @@ void Renderer::ProcessMessages()
     }
 }
 
-void Renderer::RenderText(const std::string &text, int left, int top, u32 color)
+void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text.c_str(), false);
+	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text, false);
 }
 
 void dumpMatrix(D3DXMATRIX &mtx)
@@ -229,7 +229,9 @@ void Renderer::SwapBuffers()
 				surf->Release();
 			}
 		}
-	} else {
+	} 
+	else 
+	{
 		if(m_LastFrameDumped && m_AVIDumping) {
 			AVIDump::Stop();
 			m_AVIDumping = false;
@@ -238,59 +240,17 @@ void Renderer::SwapBuffers()
 		m_LastFrameDumped = false;
 	}
 
+	char st[8192];
 	// Finish up the current frame, print some stats
 	if (g_Config.bOverlayStats)
 	{
-		char st[2048];
-		char *p = st;
-		p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
-		p+=sprintf(p,"textures alive: %i\n",stats.numTexturesAlive);
-		p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
-		p+=sprintf(p,"pshaders alive: %i\n",stats.numPixelShadersAlive);
-		p+=sprintf(p,"vshaders created: %i\n",stats.numVertexShadersCreated);
-		p+=sprintf(p,"vshaders alive: %i\n",stats.numVertexShadersAlive);
-		p+=sprintf(p,"dlists called: %i\n",stats.numDListsCalled);
-		p+=sprintf(p,"dlists created: %i\n",stats.numDListsCreated);
-		p+=sprintf(p,"dlists alive: %i\n",stats.numDListsAlive);
-		p+=sprintf(p,"primitives: %i\n",stats.thisFrame.numPrims);
-		p+=sprintf(p,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-		p+=sprintf(p,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-		p+=sprintf(p,"XF loads: %i\n",stats.thisFrame.numXFLoads);
-		p+=sprintf(p,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-		p+=sprintf(p,"CP loads: %i\n",stats.thisFrame.numCPLoads);
-		p+=sprintf(p,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-		p+=sprintf(p,"BP loads: %i\n",stats.thisFrame.numBPLoads);
-		p+=sprintf(p,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
-		p+=sprintf(p,"Vertex Loaders: %i\n",stats.numVertexLoaders);
-
+		Statistics::ToString(st);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
-
-		//end frame
 	}
 
 	if (g_Config.bOverlayProjStats)
 	{
-		char st[2048];
-		char *p = st;
-
-		p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
-		p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);
-		p+=sprintf(p,"Projection 1: %f (%f)\n", stats.gproj_1, stats.g2proj_1);
-		p+=sprintf(p,"Projection 2: %f (%f) Raw 1: %f\n", stats.gproj_2, stats.g2proj_2, stats.proj_1);
-		p+=sprintf(p,"Projection 3: %f (%f)\n\n", stats.gproj_3, stats.g2proj_3);
-		p+=sprintf(p,"Projection 4: %f (%f)\n", stats.gproj_4, stats.g2proj_4);
-		p+=sprintf(p,"Projection 5: %f (%f) Raw 2: %f\n", stats.gproj_5, stats.g2proj_5, stats.proj_2);
-		p+=sprintf(p,"Projection 6: %f (%f) Raw 3: %f\n", stats.gproj_6, stats.g2proj_6, stats.proj_3);
-		p+=sprintf(p,"Projection 7: %f (%f)\n\n", stats.gproj_7, stats.g2proj_7);
-		p+=sprintf(p,"Projection 8: %f (%f)\n", stats.gproj_8, stats.g2proj_8);
-		p+=sprintf(p,"Projection 9: %f (%f)\n", stats.gproj_9, stats.g2proj_9);
-		p+=sprintf(p,"Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10, stats.g2proj_10, stats.proj_4);
-		p+=sprintf(p,"Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11, stats.g2proj_11, stats.proj_5);
-		p+=sprintf(p,"Projection 12: %f (%f)\n", stats.gproj_12, stats.g2proj_12);
-		p+=sprintf(p,"Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
-		p+=sprintf(p,"Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);
-		p+=sprintf(p,"Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
-
+		Statistics::ToStringProj(st);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
 
@@ -355,7 +315,7 @@ void Renderer::SwapBuffers()
 		D3D::font.SetRenderStates(); //compatibility with low end cards
 }
 
-void Renderer::SetScissorRect()
+bool Renderer::SetScissorRect()
 {
 	int xoff = bpmem.scissorOffset.x * 2 - 342;
 	int yoff = bpmem.scissorOffset.y * 2 - 342;
@@ -369,10 +329,26 @@ void Renderer::SetScissorRect()
 	rc.top    = (int)(rc.top    * yScale);
 	rc.right  = (int)(rc.right  * xScale);
 	rc.bottom = (int)(rc.bottom * yScale);
-	if (rc.right >= rc.left && rc.bottom >= rc.top)
+	if (rc.right >= rc.left && rc.bottom >= rc.top) {
 		D3D::dev->SetScissorRect(&rc);
+		return true;
+	}
 	else
-		g_VideoInitialize.pLog("SCISSOR ERROR", FALSE);
+	{
+		WARN_LOG(VIDEO, "SCISSOR ERROR");
+		return false;
+	}
+}
+
+void Renderer::SetColorMask() 
+{
+	DWORD write = 0;
+	if (bpmem.blendmode.alphaupdate) 
+		write = D3DCOLORWRITEENABLE_ALPHA;
+	if (bpmem.blendmode.colorupdate) 
+		write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+
+	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 }
 
 //		mtx.m[0][3] = pMatrix[1]; // -0.5f/m_width;  <-- fix d3d pixel center?
@@ -385,8 +361,8 @@ void UpdateViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 	// -------------------------------------
 
-	float MValueX = Renderer::GetXScale();
-	float MValueY = Renderer::GetYScale();
+	float MValueX = Renderer::GetTargetScaleX();
+	float MValueY = Renderer::GetTargetScaleY();
 
 	D3DVIEWPORT9 vp;
 

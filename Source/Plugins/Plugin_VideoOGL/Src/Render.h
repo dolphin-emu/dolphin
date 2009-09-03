@@ -42,7 +42,6 @@ extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 
 class Renderer
 {
-
 public:
     static bool Init();
     static void Shutdown();

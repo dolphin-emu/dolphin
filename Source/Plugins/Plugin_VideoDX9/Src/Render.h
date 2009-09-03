@@ -24,11 +24,6 @@
 #include "pluginspecs_video.h"
 #include "D3DBase.h"
 
-#include <Cg/cg.h>
-
-extern CGcontext g_cgcontext;
-extern CGprofile g_cgvProf, g_cgfProf;
-
 class Renderer
 {
 public:
@@ -42,19 +37,23 @@ public:
 
 	static void SwapBuffers();
 
-	static float GetXScale() { return xScale; }
-	static float GetYScale() { return yScale; }
+    static void SetColorMask();
+	static void SetBlendMode(bool forceUpdate);
+	static bool SetScissorRect();
+
+	static float GetTargetScaleX() { return xScale; }
+	static float GetTargetScaleY() { return yScale; }
 	static float GetTargetWidth() { return m_width; }
 	static float GetTargetHeight() { return m_height; }
 
-	static void SetScissorRect();
 //	static void SetProjection(float* _pProjection, int constantIndex = -1);
 	static u32 AccessEFB(EFBAccessType type, int x, int y);
 
 	// The little status display.
 	static void AddMessage(const std::string &message, unsigned int ms);
 	static void ProcessMessages();
-	static void RenderText(const std::string &text, int left, int top, unsigned int color);
+
+	static void RenderText(const char *pstr, int left, int top, unsigned int color);
 
 private:
 		// screen offset

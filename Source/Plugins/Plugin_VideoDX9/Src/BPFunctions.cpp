@@ -199,15 +199,10 @@ void SetLogicOpMode(const BPCmd &bp)
 {
 	// Logic op blending. D3D can't do this but can fake some modes.
 }
+
 void SetColorMask(const BPCmd &bp)
 {
-	DWORD write = 0;
-	if (bpmem.blendmode.alphaupdate) 
-		write = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate) 
-		write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-
-	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+	Renderer::SetColorMask();
 }
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const bool &scaleByHalf)
