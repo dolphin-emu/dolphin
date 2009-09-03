@@ -24,7 +24,6 @@
 
 // ----------
 // Includes
-// ----------
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -51,7 +50,6 @@
 
 // ----------
 // Resources
-// -----------
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
@@ -212,7 +210,6 @@ const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
 BEGIN_EVENT_TABLE(CFrame, wxFrame)
 
 // Menu bar
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
 EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
@@ -282,7 +279,6 @@ EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 
 // Other
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
@@ -297,7 +293,6 @@ EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 
 // Post events to child panels
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_MENU(wxID_ANY, CFrame::PostEvent)
 EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 //EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
@@ -305,7 +300,7 @@ EVT_TEXT(wxID_ANY, CFrame::PostEvent)
 
 END_EVENT_TABLE()
 
-//---------------
+// ---------------
 // Creation and close, quit functions
 
 CFrame::CFrame(wxFrame* parent,
@@ -450,7 +445,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	// -------------------------
 	// Connect event handlers
-	// ----------
+
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(CFrame::OnKeyDown),
 		(wxObject*)0, this);
@@ -520,9 +515,8 @@ void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
 	Close(true);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// --------
 // Events
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
@@ -820,12 +814,10 @@ void CFrame::Update()
 	}
 }
 #endif
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// --------
 // Functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 wxPanel* CFrame::CreateEmptyPanel()
 {	
    wxPanel* Panel = new wxPanel(this, wxID_ANY);
@@ -853,4 +845,3 @@ void CFrame::DoFullscreen(bool _F)
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////

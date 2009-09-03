@@ -74,13 +74,12 @@ class CPluginInfo;
 class CPluginManager;
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// -------
 // Main
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
 
 // Menu bar
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
 EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
@@ -130,7 +129,6 @@ EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
 //EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
 // Toolbar
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
 EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
@@ -141,7 +139,6 @@ EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
 
 // Other
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
 EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
 EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
@@ -192,12 +189,10 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 {
 	return Parent->m_ToolBarDebug;
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ----------
 // Events
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
 	if ((event.GetKeyCode() == WXK_SPACE) && Parent->IsActive())
@@ -448,11 +443,11 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	sync_event.Init();
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+// -------
 // Menus
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 // Create CPU Mode menus
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar * _pMenuBar)
 {
@@ -642,7 +637,6 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toolbar
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
@@ -687,7 +681,6 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 void CCodeWindow::Update()
 {
