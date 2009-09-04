@@ -20,6 +20,7 @@
 #include <d3dx9.h>
 
 #include "Common.h"
+#include "Atomic.h"
 #include "Thread.h"
 #include "LogManager.h"
 
@@ -59,10 +60,9 @@ SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 int initCount = 0;
 
-static volatile u32 s_AccessEFBResult = 0, s_EFBx, s_EFBy;
+static u32 s_efbAccessRequested = FALSE;
+
 static volatile EFBAccessType s_AccessEFBType;
-static Common::Event s_AccessEFBDone;
-static Common::CriticalSection s_criticalEFB;
 
 bool HandleDisplayList(u32 address, u32 size)
 {
@@ -413,65 +413,40 @@ void Video_Screenshot(const char *_szFilename)
 	}
 }
 
+static struct
+{
+	EFBAccessType type;
+	u32 x;
+	u32 y;
+} s_accessEFBArgs;
+
+static u32 s_AccessEFBResult = 0;
+
 void VideoFifo_CheckEFBAccess()
 {
-	s_criticalEFB.Enter();
-	s_AccessEFBResult = 0;
-
-	/*
-	switch (s_AccessEFBType)
+	if (Common::AtomicLoadAcquire(s_efbAccessRequested))
 	{
-	case PEEK_Z:
-		break;
+		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y);
 
-	case POKE_Z:
-		break;
-
-	case PEEK_COLOR:
-		break;
-
-	case POKE_COLOR:
-		break;
-
-	default:
-		break;
+		Common::AtomicStoreRelease(s_efbAccessRequested, FALSE);
 	}
-	*/
-
-	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Set();
-
-	s_criticalEFB.Leave();
 }
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
-	u32 result;
+	s_accessEFBArgs.type = type;
+	s_accessEFBArgs.x = x;
+	s_accessEFBArgs.y = y;
 
-s_criticalEFB.Enter();
-
-	s_AccessEFBType = type;
-	s_EFBx = x;
-	s_EFBy = y;
+	Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
 	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Init();
-
-s_criticalEFB.Leave();
-
-	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Wait();
+	{
+		while (Common::AtomicLoadAcquire(s_efbAccessRequested))
+			Common::YieldCPU();
+	}
 	else
 		VideoFifo_CheckEFBAccess();
 
-s_criticalEFB.Enter();
-
-	if (g_VideoInitialize.bUseDualCore)
-		s_AccessEFBDone.Shutdown();
-
-	result = s_AccessEFBResult;
-
-s_criticalEFB.Leave();
-
-	return result;
+	return s_AccessEFBResult;
 }
