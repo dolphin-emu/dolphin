@@ -135,7 +135,18 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
 	int expandedWidth = (width+bs) & (~bs);
-	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+	u32 hash_value;
+	u32 tex_hash;
+	
+	if(g_Config.bDumpTextures)
+	{
+		tex_hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
+		{
+			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
+			tex_hash ^= tlutHash;
+		}
+	}
 
 	if (iter != textures.end())
 	{
@@ -220,10 +231,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	
 	if (g_Config.bDumpTextures)
 	{ // dump texture to file
+
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
+
 		bool bCheckedDumpDir = false;
 		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+
 		if(!bCheckedDumpDir)
 		{
 			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -231,10 +245,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 			bCheckedDumpDir = true;
 		}
-		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), hash_value, format);
+
+		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), tex_hash, format);
 		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
 		if (!File::Exists(szTemp))
 			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
+
+
 	}
 
 	INCSTAT(stats.numTexturesCreated);
