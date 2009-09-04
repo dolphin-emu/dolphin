@@ -135,12 +135,12 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
 	int expandedWidth = (width+bs) & (~bs);
-	u32 hash_value;
-	u32 tex_hash;
+	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+	u32 tex_hash = 0;
 	
-	if(g_Config.bDumpTextures)
+	if (g_Config.bDumpTextures)
 	{
-		tex_hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
+		tex_hash = hash_value;
 		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
 		{
 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
