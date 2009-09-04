@@ -495,3 +495,10 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 	}
 	return out;
 }
+
+std::string PathToFilename(std::string Path)
+{
+	std::string Name, Ending;
+	SplitPath(Path, 0, &Name, &Ending);
+	return Name + Ending;
+}
