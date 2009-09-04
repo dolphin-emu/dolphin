@@ -266,14 +266,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 }
  
 // EXTREMELY incomplete.
-void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
+void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
 	int efb_w = source_rect.GetWidth();
 	int efb_h = source_rect.GetHeight();
 
-	int mult = bScaleByHalf ? 2 : 1;
-	int tex_w = (abs(source_rect.GetWidth()) / mult);
-    int tex_h = (abs(source_rect.GetHeight()) / mult);
+	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
+	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 
 	TexCache::iterator iter;
 	LPDIRECT3DTEXTURE9 tex;
@@ -282,7 +281,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	{
 		if (!iter->second.isRenderTarget)
 		{
-			ERROR_LOG(VIDEO, "Using non-rendertarget texture as render target!!! WTF?", FALSE);
 			// Remove it and recreate it as a render target
 			iter->second.texture->Release();
 			iter->second.texture = 0;
@@ -305,7 +303,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.w = tex_w;
 		entry.h = tex_h;
 
-		// TODO(ector): infer this size in some sensible way
 		D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;

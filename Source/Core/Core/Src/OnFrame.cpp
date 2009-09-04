@@ -77,6 +77,11 @@ void SetFrameSkipping(unsigned int framesToSkip) {
 	g_framesToSkip = (int)framesToSkip;
 	g_frameSkipCounter = 0;
 
+	// Don't forget to re-enable rendering in case it wasn't...
+	// as this won't be changed anymore when frameskip is turned off
+	if (framesToSkip == 0)
+		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(true);
+
 	cs_frameSkip.Leave();
 }
 

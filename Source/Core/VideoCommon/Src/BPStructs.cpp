@@ -204,7 +204,7 @@ void BPWritten(const BPCmd& bp)
 							bpmem.zcontrol.pixel_format == PIXELFMT_Z24, 
 							PE_copy.intensity_fmt > 0, 
 							((PE_copy.target_pixel_format / 2) + ((PE_copy.target_pixel_format & 1) * 8)), 
-							PE_copy.half_scale > 0);
+							PE_copy.half_scale);
 			}
 			else
 			{

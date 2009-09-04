@@ -38,6 +38,7 @@
 #include "EmuWindow.h"
 #include "AVIDump.h"
 #include "OnScreenDisplay.h"
+#include "Fifo.h"
 
 #include "debugger/debugger.h"
 
@@ -149,6 +150,9 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 
 void Renderer::SwapBuffers()
 {
+	if (g_bSkipCurrentFrame)
+		return;
+
 	// Center window again.
 	if (EmuWindow::GetParentWnd())
 	{

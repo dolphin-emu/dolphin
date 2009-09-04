@@ -63,7 +63,7 @@ public:
 	static void Shutdown();
 	static void Invalidate(bool shutdown);
 	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
-	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect);
+	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect);
 };
 
 #endif

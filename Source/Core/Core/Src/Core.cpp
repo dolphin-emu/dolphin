@@ -231,7 +231,7 @@ void Stop()  // - Hammertime!
 	}
 
 	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
-	// of the commands in this function. We no longer rely on Postmessage. */
+	// of the commands in this function. We no longer rely on Postmessage. 
 
 	// Close the trace file
 	Core::StopTrace();
@@ -698,7 +698,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 		int TargetVPS = (int)(VideoInterface::TargetRefreshRate + 0.5);
 
-		float Speed = (VPS / TargetVPS) * 100.0f;
+		float Speed = ((VPS > 0 ? VPS : VideoInterface::ActualRefreshRate) / TargetVPS) * 100.0f;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat(" | Core: %s %s",

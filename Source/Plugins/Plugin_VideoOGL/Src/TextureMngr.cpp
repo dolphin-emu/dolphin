@@ -492,85 +492,84 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 }
 
 
-void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
+void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
-    DVSTARTPROFILE();
-    GL_REPORT_ERRORD();
+	DVSTARTPROFILE();
+	GL_REPORT_ERRORD();
 
-    // for intensity values, use Y of YUV format!
-    // for all purposes, treat 4bit equivalents as 8bit (probably just used for compression)
-    // RGBA8 - RGBA8
-    // RGB565 - RGB565
-    // RGB5A3 - RGB5A3
-    // I4,R4,Z4 - I4
-    // IA4,RA4 - IA4
-    // Z8M,G8,I8,A8,Z8,R8,B8,Z8L - I8
-    // Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
-    bool bIsInit = textures.find(address) != textures.end();
+	// for intensity values, use Y of YUV format!
+	// for all purposes, treat 4bit equivalents as 8bit (probably just used for compression)
+	// RGBA8 - RGBA8
+	// RGB565 - RGB565
+	// RGB5A3 - RGB5A3
+	// I4,R4,Z4 - I4
+	// IA4,RA4 - IA4
+	// Z8M,G8,I8,A8,Z8,R8,B8,Z8L - I8
+	// Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
+	bool bIsInit = textures.find(address) != textures.end();
 
-    PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
-	
-    TCacheEntry& entry = textures[address];
-    entry.hash = 0;
-    entry.hashoffset = 0;
-    entry.frameCount = frameCount;
-    
-    int mult = bScaleByHalf ? 2 : 1;
-	int w = (abs(source_rect.GetWidth()) / mult);
-    int h = (abs(source_rect.GetHeight()) / mult);
+	PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
 
-    GL_REPORT_ERRORD();
+	TCacheEntry& entry = textures[address];
+	entry.hash = 0;
+	entry.hashoffset = 0;
+	entry.frameCount = frameCount;
 
-    if (!bIsInit) 
+	int w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
+	int h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
+
+	GL_REPORT_ERRORD();
+
+	if (!bIsInit) 
 	{
-        glGenTextures(1, (GLuint *)&entry.texture);
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        GL_REPORT_ERRORD();
-    }
-    else 
+		glGenTextures(1, (GLuint *)&entry.texture);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		GL_REPORT_ERRORD();
+	}
+	else 
 	{
-        _assert_(entry.texture);
+		_assert_(entry.texture);
 		GL_REPORT_ERROR();
 		if (entry.w == w && entry.h == h && entry.isRectangle) 
 		{
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-            // for some reason mario sunshine errors here...
+			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+			// for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
-            GL_REPORT_ERROR();
+			GL_REPORT_ERROR();
 		} else {
-            // Delete existing texture.
-            glDeleteTextures(1,(GLuint *)&entry.texture);
-            glGenTextures(1, (GLuint *)&entry.texture);
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-            glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-            GL_REPORT_ERRORD();
-        }
-    }
+			// Delete existing texture.
+			glDeleteTextures(1,(GLuint *)&entry.texture);
+			glGenTextures(1, (GLuint *)&entry.texture);
+			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			GL_REPORT_ERRORD();
+		}
+	}
 
-    if (!bIsInit || !entry.isRenderTarget) 
+	if (!bIsInit || !entry.isRenderTarget) 
 	{
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if (glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            GL_REPORT_ERRORD();
-        }
-    }
-    
-    entry.w = w;
-    entry.h = h;
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		if (glGetError() != GL_NO_ERROR) {
+			glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			GL_REPORT_ERRORD();
+		}
+	}
+
+	entry.w = w;
+	entry.h = h;
 	entry.isRectangle = true;
-    entry.isRenderTarget = true;
-    entry.fmt = copyfmt;
+	entry.isRenderTarget = true;
+	entry.fmt = copyfmt;
 
-    float colmat[16];
-    float fConstAdd[4] = {0};
-    memset(colmat, 0, sizeof(colmat));
+	float colmat[16];
+	float fConstAdd[4] = {0};
+	memset(colmat, 0, sizeof(colmat));
 
     if (bFromZBuffer) 
 	{

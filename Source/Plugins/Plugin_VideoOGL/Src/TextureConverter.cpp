@@ -199,6 +199,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
+
 	GL_REPORT_ERRORD();
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
@@ -231,7 +232,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
     GL_REPORT_ERRORD();
 }
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle& source)
+void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -254,24 +255,15 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	u8 *dest_ptr = Memory_GetPtr(address);
 
 	GLuint source_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source) : g_framebufferManager.ResolveAndGetRenderTarget(source);
-	int width = source.right - source.left;
-	int height = source.bottom - source.top;
+
+	int width = (source.right - source.left) >> bScaleByHalf;
+	int height = (source.bottom - source.top) >> bScaleByHalf;
 
 	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 
 	// Invalidate any existing texture covering this memory range.
 	// TODO - don't delete the texture if it already exists, just replace the contents.
 	TextureMngr::InvalidateRange(address, size_in_bytes);
-
-	if (bScaleByHalf)
-	{
-		// Hm. Shouldn't this only scale destination, not source?
-		// The bloom in Beyond Good & Evil is a good test case - due to this problem,
-		// it goes very wrong. Compare by switching back and forth between Copy textures to RAM and GL Texture.
-		// This also affects the shadows in Burnout 2 badly.
-		width /= 2;
-		height /= 2;
-	}
 	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
@@ -297,7 +289,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
 
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf > 0);
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
