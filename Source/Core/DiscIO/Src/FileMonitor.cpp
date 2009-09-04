@@ -82,6 +82,7 @@ bool ShowSound(std::string FileName)
 void ReadGC(std::string FileName)
 {
 	OpenISO = DiscIO::CreateVolumeFromFilename(FileName);
+	if (!OpenISO) return;
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
