@@ -133,13 +133,13 @@ private:
 class LogManager 
 {
 private:
+	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
 	Common::CriticalSection logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.
 
 public:
-	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
@@ -151,6 +151,10 @@ public:
 
 	void setEnable(LogTypes::LOG_TYPE type, bool enable) {
 		m_Log[type]->setEnable(enable);
+	}
+
+	bool isEnable(LogTypes::LOG_TYPE type) {
+		return m_Log[type]->isEnable();
 	}
 
 	const char *getShortName(LogTypes::LOG_TYPE type) const {

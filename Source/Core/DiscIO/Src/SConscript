@@ -20,6 +20,7 @@ files = [
 	'VolumeGC.cpp',
 	'VolumeWad.cpp',
 	'VolumeWiiCrypted.cpp',
+        'FileMonitor.cpp',
 	'NANDContentLoader.cpp',
 	'WiiWad.cpp',
 	'AES/aes_cbc.c',

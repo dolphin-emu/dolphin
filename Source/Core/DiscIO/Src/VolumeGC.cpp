@@ -19,7 +19,7 @@
 
 #include "VolumeGC.h"
 #include "StringUtil.h"
-#include "../../../Core/DebuggerWX/Src/FileMonitor.h"
+#include "FileMonitor.h"
 
 namespace DiscIO
 {

@@ -27,7 +27,7 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 
-#include "../../../Core/DebuggerWX/Src/FileMonitor.h"
+#include "../../DiscIO/Src/FileMonitor.h"
 
 using namespace DVDInterface;
 

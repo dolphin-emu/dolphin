@@ -372,12 +372,6 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 }
 #endif
 
-std::string PathToFilename(std::string Path)
-{
-	std::string Name, Ending;
-	SplitPath(Path, 0, &Name, &Ending);
-	return Name + Ending;
-}
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename)
 {

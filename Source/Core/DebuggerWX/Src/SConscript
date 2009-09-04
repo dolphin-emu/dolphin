@@ -11,7 +11,6 @@ files = [
     "BreakpointWindow.cpp",
     "CodeWindow.cpp",
     "CodeWindowFunctions.cpp",
-    "FileMonitor.cpp",
     "MemoryCheckDlg.cpp",
     "MemoryWindow.cpp",
     "RegisterWindow.cpp",
@@ -30,7 +29,7 @@ wxenv.Append(
 	)
 libs = [
     'common',
-	'debugger_ui_util'
+    'debugger_ui_util'
 ]
 
 wxenv.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)

@@ -28,7 +28,6 @@
 #include "IniFile.h"
 #include "LogManager.h"
 
-#include "PowerPC/PowerPc.h" // Core
 #include "ConfigManager.h"
 #include "../../DiscIO/Src/FileSystemGCWii.h"
 #include "../../DiscIO/Src/VolumeCreator.h"
@@ -97,7 +96,7 @@ void ReadGC(std::string FileName)
 void CheckFile(std::string File, int Size)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->m_Log[LogTypes::FILEMON]->isEnable()) return;
+	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;
 	// Do nothing if we found the same file again
 	if (CurrentFile == File) return;
 
@@ -124,8 +123,7 @@ void CheckFile(std::string File, int Size)
 void FindFilename(u64 offset)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->m_Log[LogTypes::FILEMON]->isEnable()) return;
-	if (PowerPC::GetState() != PowerPC::CPUState::CPU_RUNNING) return;
+	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;
 	if (!FileAccess) return;
 
 	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)
