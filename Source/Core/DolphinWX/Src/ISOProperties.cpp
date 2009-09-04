@@ -87,6 +87,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		// TODO : Should we add a way to browse the wad file ?
 		if (!DiscIO::IsVolumeWadFile(OpenISO))
 		{
+			GCFiles.clear();
 			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 			pFileSystem->GetFileList(GCFiles);
 		}
