@@ -19,18 +19,20 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#include "stdafx.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
 
+
 #include "Common.h"	// Common
 #include "IniFile.h"
 #include "LogManager.h"
 
-#include "ConfigManager.h"
-#include "../../DiscIO/Src/FileSystemGCWii.h"
-#include "../../DiscIO/Src/VolumeCreator.h"
+#include "..\..\core\src\ConfigManager.h"
+#include "FileSystemGCWii.h"
+#include "VolumeCreator.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 

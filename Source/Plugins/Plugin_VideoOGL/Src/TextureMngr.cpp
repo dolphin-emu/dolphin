@@ -467,9 +467,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
         char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
+		const char* uniqueId = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str();
 		bool bCheckedDumpDir = false;
 
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);
 
 		if(!bCheckedDumpDir)
 		{
@@ -479,7 +480,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			bCheckedDumpDir = true;
 		}
 
-		sprintf(szTemp, "%s/%s_%08x_%i.tga",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		sprintf(szTemp, "%s/%s_%08x_%i.tga",szDir, uniqueId, texHash, tex_format);
 		if (!File::Exists(szTemp))
 		{
 			SaveTexture(szTemp, target, entry.texture, expandedWidth, expandedHeight);

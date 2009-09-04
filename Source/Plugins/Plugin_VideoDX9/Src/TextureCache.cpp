@@ -234,9 +234,10 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
-
+		const char* uniqueId = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str();
 		bool bCheckedDumpDir = false;
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+
+		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);
 
 		if(!bCheckedDumpDir)
 		{
@@ -246,7 +247,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			bCheckedDumpDir = true;
 		}
 
-		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), tex_hash, format);
+		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, uniqueId, tex_hash, format);
 		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
 		if (!File::Exists(szTemp))
 			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
