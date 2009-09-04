@@ -30,7 +30,7 @@
 #include "IniFile.h"
 #include "LogManager.h"
 
-#include "..\..\core\src\ConfigManager.h"
+#include "../../Core/Src/ConfigManager.h"
 #include "FileSystemGCWii.h"
 #include "VolumeCreator.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////
