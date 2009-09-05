@@ -56,9 +56,9 @@
 #include <wx/datetime.h> // wxWidgets
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Aui events
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
 
 void CFrame::OnManagerResize(wxAuiManagerEvent& event)
 {
@@ -111,9 +111,9 @@ void CFrame::ToggleLogWindow(bool _show, int i)
 {	
 	if (_show)
 	{
-		if (!m_LogWindow) m_LogWindow = new CLogWindow(this);
+		if (!m_LogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 		#ifdef _WIN32
-		DoAddPage(m_LogWindow, i, "Log");
+		DoAddPage(m_LogWindow, i, wxT("Log"));
 		#else
 		m_LogWindow->Show();
 		#endif
@@ -152,7 +152,7 @@ void CFrame::ToggleConsole(bool _show, int i)
 
 		#ifdef _WIN32
 		wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
-		if (Win && GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 		{
 			#else
 			Console->Open();
@@ -166,11 +166,11 @@ void CFrame::ToggleConsole(bool _show, int i)
 		//Win->SetWindowStyleFlag(wxNO_BORDER);
 		//SetWindowLong(GetConsoleWindow(), GWL_STYLE, WS_VISIBLE);
 		// Create parent window
-		wxPanel * ConsoleParent = CreateEmptyPanel();
+		wxPanel * ConsoleParent = CreateEmptyPanel(IDM_CONSOLEWINDOW);
 		::SetParent(GetConsoleWindow(), (HWND)ConsoleParent->GetHWND());
 		//Win->SetParent(ConsoleParent);
 		//if (Win) m_Mgr->GetAllPanes().Item(i)->AddPage(Win, wxT("Console"), true, aNormalFile );
-		if (Win) GetNotebook(i)->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile );
+		if (Win) GetNotebookFromId(i)->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile );
 		#endif
 	}
 	else // hide
@@ -196,93 +196,16 @@ void CFrame::ToggleConsole(bool _show, int i)
 	// Make sure the check is updated (if wxw isn't calling this func)
 	//GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(Show);
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
-wxWindow * CFrame::GetWxWindowHwnd(HWND hWnd)
-{
-	wxWindow * Win = new wxWindow();
-	Win->SetHWND((WXHWND)hWnd);
-	Win->AdoptAttributesFromHWND();
-	return Win;
-}
-#endif
-wxWindow * CFrame::GetWxWindow(wxString Name)
-{
-	#ifdef _WIN32
-	HWND hWnd = ::FindWindow(NULL, Name.c_str());
-	if (hWnd)
-	{
-		wxWindow * Win = new wxWindow();
-		Win->SetHWND((WXHWND)hWnd);
-		Win->AdoptAttributesFromHWND();
-		return Win;
-	}
-	else
-	#endif
-	if (FindWindowByName(Name))
-	{
-		return FindWindowByName(Name);
-	}
-	else if (FindWindowByLabel(Name))
-	{
-		return FindWindowByLabel(Name);
-	}
-	else if (GetNootebookPage(Name))
-	{
-		return GetNootebookPage(Name);
-	}
-	else
-		return NULL;
-}
-wxWindow * CFrame::GetNootebookPage(wxString Name)
-{
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;	
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		for(u32 j = 0; j < NB->GetPageCount(); j++)
-		{
-			if (NB->GetPageText(j).IsSameAs(Name)) return NB->GetPage(j);
-		}	
-	}
-	return NULL;
-}
-void CFrame::AddRemoveBlankPage()
-{
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		for(u32 j = 0; j < NB->GetPageCount(); j++)
-		{
-			if (NB->GetPageText(j).IsSameAs(wxT("<>")) && NB->GetPageCount() > 1) NB->DeletePage(j);
-		}	
-		if (NB->GetPageCount() == 0) NB->AddPage(CreateEmptyPanel(), wxT("<>"), true);
-	}
-}
-int CFrame::GetNootebookAffiliation(wxString Name)
-{
-	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		for(u32 k = 0; k < NB->GetPageCount(); k++)
-		{
-			if (NB->GetPageText(k).IsSameAs(Name)) return j;
-		}
-		j++;
-	}
-	return -1;
-}
 void CFrame::ClosePages()
 {
-	//DoToggleWindow(IDM_LOGWINDOW, false);
-	//DoToggleWindow(IDM_CONSOLEWINDOW, false);
+	DoToggleWindow(IDM_LOGWINDOW, false);
+	DoToggleWindow(IDM_CONSOLEWINDOW, false);
 	DoToggleWindow(IDM_CODEWINDOW, false);
 	DoToggleWindow(IDM_REGISTERWINDOW, false);
 	DoToggleWindow(IDM_BREAKPOINTWINDOW, false);
@@ -347,6 +270,84 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Sound"))) { GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false); DoToggleWindow(IDM_SOUNDWINDOW, false); }
 	if (Ctrl->GetPageText(event.GetSelection()).IsSameAs(wxT("Video"))) { GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(false); DoToggleWindow(IDM_VIDEOWINDOW, false); }
 }
+void CFrame::OnFloatWindow(wxCommandEvent& event)
+{
+	switch(event.GetId())
+	{
+		case IDM_FLOAT_LOGWINDOW: if (GetNootebookPageFromId(IDM_LOGWINDOW)) { DoFloatPage(m_LogWindow); return; } break;
+		case IDM_FLOAT_CONSOLEWINDOW: if (GetNootebookPageFromId(IDM_CONSOLEWINDOW)) { DoFloatPage(m_LogWindow); return; } break;
+	}
+	switch(event.GetId())
+	{
+		case IDM_FLOAT_LOGWINDOW: if (FindWindowById(IDM_LOGWINDOW)) DoUnfloatPage(IDM_LOGWINDOW); break;
+		case IDM_FLOAT_CONSOLEWINDOW: if (FindWindowById(IDM_CONSOLEWINDOW)) DoUnfloatPage(IDM_CONSOLEWINDOW); break;
+	}
+
+	if (!UseDebugger) return;
+
+	switch(event.GetId())
+	{
+		case IDM_FLOAT_CODEWINDOW: if (GetNootebookPageFromId(IDM_CODEWINDOW)) { DoFloatPage(g_pCodeWindow); return; } break;
+		case IDM_FLOAT_REGISTERWINDOW: if (GetNootebookPageFromId(IDM_REGISTERWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_RegisterWindow); return; } break;
+		case IDM_FLOAT_BREAKPOINTWINDOW: if (GetNootebookPageFromId(IDM_BREAKPOINTWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_BreakpointWindow); return; } break;
+		case IDM_FLOAT_MEMORYWINDOW: if (GetNootebookPageFromId(IDM_MEMORYWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_MemoryWindow); return; } break;
+		case IDM_FLOAT_JITWINDOW: if (GetNootebookPageFromId(IDM_JITWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_JitWindow); return; } break;
+	}
+	switch(event.GetId())
+	{
+		case IDM_FLOAT_CODEWINDOW: if (FindWindowById(IDM_CODEWINDOW)) DoUnfloatPage(IDM_LOGWINDOW); break;
+		case IDM_FLOAT_REGISTERWINDOW: if (FindWindowById(IDM_REGISTERWINDOW)) DoUnfloatPage(IDM_REGISTERWINDOW); break;
+		case IDM_FLOAT_BREAKPOINTWINDOW: if (FindWindowById(IDM_BREAKPOINTWINDOW)) DoUnfloatPage(IDM_BREAKPOINTWINDOW); break;
+		case IDM_FLOAT_MEMORYWINDOW: if (FindWindowById(IDM_MEMORYWINDOW)) DoUnfloatPage(IDM_MEMORYWINDOW); break;
+		case IDM_FLOAT_JITWINDOW: if (FindWindowById(IDM_JITWINDOW)) DoUnfloatPage(IDM_JITWINDOW); break;
+	}
+}
+void CFrame::OnTab(wxAuiNotebookEvent& event)
+{
+	event.Skip();
+
+	// Create the popup menu
+	wxMenu MenuPopup;
+
+	wxMenuItem* Item =  new wxMenuItem(&MenuPopup, wxID_ANY, wxT("Select floating windows"));
+	MenuPopup.Append(Item);
+	Item->Enable(false);
+	MenuPopup.Append(new wxMenuItem(&MenuPopup));
+	Item =  new wxMenuItem(&MenuPopup, IDM_FLOAT_LOGWINDOW, WindowNameFromId(IDM_LOGWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_LOGWINDOW) && !GetNootebookPageFromId(IDM_LOGWINDOW));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_CONSOLEWINDOW, WindowNameFromId(IDM_CONSOLEWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_CONSOLEWINDOW) && !GetNootebookPageFromId(IDM_CONSOLEWINDOW));
+	Item->Enable(false);
+	MenuPopup.Append(new wxMenuItem(&MenuPopup));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_REGISTERWINDOW, WindowNameFromId(IDM_REGISTERWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_REGISTERWINDOW) && !GetNootebookPageFromId(IDM_REGISTERWINDOW));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_BREAKPOINTWINDOW, WindowNameFromId(IDM_BREAKPOINTWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_BREAKPOINTWINDOW) && !GetNootebookPageFromId(IDM_BREAKPOINTWINDOW));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_MEMORYWINDOW, WindowNameFromId(IDM_MEMORYWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_MEMORYWINDOW) && !GetNootebookPageFromId(IDM_MEMORYWINDOW));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_JITWINDOW, WindowNameFromId(IDM_JITWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_JITWINDOW) && !GetNootebookPageFromId(IDM_JITWINDOW));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_SOUNDWINDOW, WindowNameFromId(IDM_SOUNDWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_SOUNDWINDOW) && !GetNootebookPageFromId(IDM_SOUNDWINDOW));
+	Item->Enable(false);
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_VIDEOWINDOW, WindowNameFromId(IDM_VIDEOWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_VIDEOWINDOW) && !GetNootebookPageFromId(IDM_VIDEOWINDOW));
+	Item->Enable(false);
+
+	// Line up our menu with the cursor
+	wxPoint Pt = ::wxGetMousePosition();
+	Pt = ScreenToClient(Pt);
+	// Show
+	PopupMenu(&MenuPopup, Pt);
+}
 void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
 	event.Skip();
@@ -402,91 +403,59 @@ void CFrame::DoRemovePageString(wxString Str, bool /*_hide*/, bool _destroy)
 	}
 
 }
-wxAuiNotebook * CFrame::GetNotebook(u32 NBId)
-{
-	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		if (j == NBId) return (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		j++;
-	}
-	return NULL;	
-}
-void CFrame::ShowAllNotebooks(bool Window)
-{
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
-		{
-			if (Window)
-				m_Mgr->GetAllPanes().Item(i).Show();
-			else
-				m_Mgr->GetAllPanes().Item(i).window->Hide();
-		}
-	}
-	m_Mgr->Update();
-}
-void CFrame::HideAllNotebooks(bool Window)
-{	
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
-		{
-			if (Window)
-				m_Mgr->GetAllPanes().Item(i).Hide();
-			else
-				m_Mgr->GetAllPanes().Item(i).window->Hide();
-		}
-	}
-	m_Mgr->Update();
-}
-// Close all panes with notebooks
-void CFrame::CloseAllNotebooks()
-{		
-	int i = 0;
-	while(GetNotebookCount() > 0)
-	{
-		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
-		{
-			m_Mgr->GetAllPanes().Item(i).DestroyOnClose(true);
-			m_Mgr->ClosePane(m_Mgr->GetAllPanes().Item(i));
-			//m_Mgr->GetAllPanes().Item(i).window->Hide();
-			//m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
-			
-			i = 0;
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i Pane\n", i).c_str());
-		}
-		else
-		{
-			i++;
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i No pane\n", i).c_str());
-		}
-		
-	}
-}
-int CFrame::GetNotebookCount()
-{
-	int Ret = 0;
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) Ret++;
-	}
-	return Ret;
-}
-void CFrame::DoAddPage(wxWindow * Win, int i, std::string Name)
+void CFrame::DoAddPage(wxWindow * Win, int i, wxString Name)
 {
 	if (!Win) return;
 	if (GetNotebookCount() == 0) return;
 	if (i < 0 || i > GetNotebookCount()-1) i = 0;
-	if (Win && GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
-	GetNotebook(i)->AddPage(Win, wxString::FromAscii(Name.c_str()), true, aNormalFile );
+	if (Win && GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
+	GetNotebookFromId(i)->AddPage(Win, Name, true, aNormalFile );
+
+	//NOTICE_LOG(CONSOLE, "DoAddPage: %i", Win->GetId());
 
 	/*
 	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 	Console->Log(LogTypes::LNOTICE, StringFromFormat("Add: %s\n", Name.c_str()).c_str());
 	*/
 }
-void CFrame::DoRemovePage(wxWindow * Win, bool _hide)
+
+void CFrame::DoUnfloatPage(int Id)
+{
+	//NOTICE_LOG(CONSOLE, "DoUnfloatPage: %i", Id);
+
+	wxFrame * Win = (wxFrame*)this->FindWindowById(Id);
+	wxWindow * Child = Win->GetWindowChildren().Item(0)->GetData();
+	Child->Reparent(this);
+	// Return the window id
+	Child->SetId(Win->GetId());
+	DoAddPage(Child, 0, Win->GetTitle());
+	Win->Destroy();
+}
+void CFrame::OnFloatingPageClosed(wxCloseEvent& event)
+{
+	//NOTICE_LOG(CONSOLE, "OnFloatingPageClosed: %i", event.GetId());
+	DoUnfloatPage(event.GetId());
+}
+
+void CFrame::DoFloatPage(wxWindow * Win)
+{
+	//NOTICE_LOG(CONSOLE, "DoFloatPage: %i %s", Win->GetId(), WindowNameFromId(Win->GetId()).mb_str());
+
+	if (Win)
+	{
+		for (int i = 0; i < GetNotebookCount(); i++)
+		{
+			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
+			{
+				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
+				// Reparent to avoid destruction if the notebook is closed and destroyed
+				CreateParentFrame(Win->GetId(), WindowNameFromId(Win->GetId()), Win);
+			}
+		}
+	}
+}
+
+void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
 {
 	// If m_dialog is NULL, then possibly the system didn't report the checked menu item status correctly.
 	// It should be true just after the menu item was selected, if there was no modeless dialog yet.
@@ -496,13 +465,40 @@ void CFrame::DoRemovePage(wxWindow * Win, bool _hide)
 	{
 		for (int i = 0; i < GetNotebookCount(); i++)
 		{
-			if (GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) GetNotebook(i)->RemovePage(GetNotebook(i)->GetPageIndex(Win));
+			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
+			{
+				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
+				// Reparent to avoid destruction if the notebook is closed and destroyed
+				Win->Reparent(this);
+				if (_Hide) Win->Hide();
+			}
 		}
-		// Reparent to avoid destruction if the notebook is closed and destroyed
-		Win->Reparent(this);
-
-		if (_hide) Win->Hide();
 	}
+}
+wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
+{
+	//NOTICE_LOG(CONSOLE, "CreateParentFrame: %i %s %i", Id, Title.mb_str(), Child->GetId())
+
+	wxFrame * Frame = new wxFrame(this, Id, Title);
+	
+	Child->Reparent(Frame);
+	Child->SetId(wxID_ANY);
+	Child->Show();
+
+	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
+
+	m_MainSizer->Add(Child, 1, wxEXPAND);
+
+	Frame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
+		wxCloseEventHandler(CFrame::OnFloatingPageClosed),
+		(wxObject*)0, this);
+
+	// Main sizer
+	Frame->SetSizer( m_MainSizer );
+	// Minimum frame size
+	Frame->SetMinSize(wxSize(200, -1));
+	Frame->Show();
+	return Frame;
 }
 
 // Toolbar
@@ -652,11 +648,12 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 			break;
 	}
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
@@ -792,14 +789,6 @@ void CFrame::ResizeConsole()
 	}
 }
 
-
-int CFrame::Limit(int i, int Low, int High)
-{	
-	if (i < Low) return Low;
-	if (i > High) return High;
-	return i;
-}
-
 void CFrame::SetSimplePaneSize()
 {
 	wxArrayInt Pane, Size;
@@ -855,74 +844,6 @@ void CFrame::SetPaneSize()
 			m_Mgr->GetAllPanes().Item(i).MinSize(-1,-1).MaxSize(-1,-1);
 		}
 	}
-}
-
-// Debugging, show loose windows
-void CFrame::ListChildren()
-{	
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	wxAuiNotebook * NB = NULL;
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
-
-	for (u32 i = 0; i < this->GetChildren().size(); i++)
-	{
-		wxWindow * Win = this->GetChildren().Item(i)->GetData();
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			"%i: %s (%s) :: %s", i,
-			(const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
-		//if (Win->GetName().IsSameAs(wxT("control")))
-		if (Win->IsKindOf(CLASSINFO(wxAuiNotebook)))
-		{
-			NB = (wxAuiNotebook*)Win;
-			Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: NB", (const char*)NB->GetName().mb_str()).c_str());
-		}
-		else
-		{
-			NB = NULL;
-		}
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
-
-		Win = this->GetChildren().Item(i)->GetData();
-		for (u32 j = 0; j < Win->GetChildren().size(); j++)
-		{
-			Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			 "     %i.%i: %s (%s) :: %s", i, j,
-			 (const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
-			if (NB)
-			{
-				if (j < NB->GetPageCount())
-					Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: %s", (const char*)NB->GetPage(j)->GetName().mb_str()).c_str());
-			}
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
-
-			/*
-			Win = this->GetChildren().Item(j)->GetData();
-			for (int k = 0; k < Win->GetChildren().size(); k++)
-			{
-				Console->Log(LogTypes::LNOTICE, StringFromFormat(
-					"          %i.%i.%i: %s (%s) :: %s\n", i, j, k,
-					Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
-			}
-			*/
-		}
-	}	
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
-
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		wxAuiNotebook * _NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("%i: %s\n", i, (const char *)m_Mgr->GetAllPanes().Item(i).name.mb_str()).c_str());
-
-		for (u32 j = 0; j < _NB->GetPageCount(); j++)
-		{
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("%i.%i: %s\n", i, j, (const char *)_NB->GetPageText(j).mb_str()).c_str());
-		}
-	}
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
 }
 
 void CFrame::ReloadPanes()
@@ -1112,17 +1033,6 @@ void CFrame::Save()
 	TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES); 
 }
 
-int CFrame::PercentageToPixels(int Percentage, int Total)
-{
-	int Pixels = (int)((float)Total * ((float)Percentage / 100.0));
-	return Pixels;
-}
-int CFrame::PixelsToPercentage(int Pixels, int Total)
-{
-	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
-	return Percentage;
-}
-
 void CFrame::NamePanes()
 {
 	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
@@ -1144,6 +1054,217 @@ void CFrame::AddPane()
 	AddRemoveBlankPage();
 	m_Mgr->Update();
 }	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+int CFrame::Limit(int i, int Low, int High)
+{	
+	if (i < Low) return Low;
+	if (i > High) return High;
+	return i;
+}
+int CFrame::PercentageToPixels(int Percentage, int Total)
+{
+	int Pixels = (int)((float)Total * ((float)Percentage / 100.0));
+	return Pixels;
+}
+int CFrame::PixelsToPercentage(int Pixels, int Total)
+{
+	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
+	return Percentage;
+}
+
+#ifdef _WIN32
+wxWindow * CFrame::GetWxWindowHwnd(HWND hWnd)
+{
+	wxWindow * Win = new wxWindow();
+	Win->SetHWND((WXHWND)hWnd);
+	Win->AdoptAttributesFromHWND();
+	return Win;
+}
+#endif
+wxWindow * CFrame::GetWxWindow(wxString Name)
+{
+	#ifdef _WIN32
+	HWND hWnd = ::FindWindow(NULL, Name.c_str());
+	if (hWnd)
+	{
+		wxWindow * Win = new wxWindow();
+		Win->SetHWND((WXHWND)hWnd);
+		Win->AdoptAttributesFromHWND();
+		return Win;
+	}
+	else
+	#endif
+	if (FindWindowByName(Name))
+	{
+		return FindWindowByName(Name);
+	}
+	else if (FindWindowByLabel(Name))
+	{
+		return FindWindowByLabel(Name);
+	}
+	else if (GetNootebookPage(Name))
+	{
+		return GetNootebookPage(Name);
+	}
+	else
+		return NULL;
+}
+wxWindow * CFrame::GetFloatingPage(int Id)
+{
+	if (this->FindWindowById(Id))
+		return this->FindWindowById(Id);
+	else
+		return NULL;
+}
+wxWindow * CFrame::GetNootebookPage(wxString Name)
+{
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;	
+		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		for(u32 j = 0; j < NB->GetPageCount(); j++)
+		{
+
+			if (NB->GetPageText(j).IsSameAs(Name)) return NB->GetPage(j);
+		}	
+	}
+	return NULL;
+}
+wxWindow * CFrame::GetNootebookPageFromId(wxWindowID Id)
+{
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;	
+		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		for(u32 j = 0; j < NB->GetPageCount(); j++)
+		{
+			if (NB->GetPage(j)->GetId() == Id) return NB->GetPage(j);
+		}	
+	}
+	return NULL;
+}
+void CFrame::AddRemoveBlankPage()
+{
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		for(u32 j = 0; j < NB->GetPageCount(); j++)
+		{
+			if (NB->GetPageText(j).IsSameAs(wxT("<>")) && NB->GetPageCount() > 1) NB->DeletePage(j);
+		}	
+		if (NB->GetPageCount() == 0) NB->AddPage(CreateEmptyPanel(), wxT("<>"), true);
+	}
+}
+int CFrame::GetNootebookAffiliation(wxString Name)
+{
+	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		for(u32 k = 0; k < NB->GetPageCount(); k++)
+		{
+			if (NB->GetPageText(k).IsSameAs(Name)) return j;
+		}
+		j++;
+	}
+	return -1;
+}
+wxString CFrame::WindowNameFromId(int Id)
+{
+	switch(Id)
+	{
+		case IDM_LOGWINDOW: return wxT("Log");
+		case IDM_CONSOLEWINDOW: return wxT("Console");
+		case IDM_CODEWINDOW: return wxT("Code");
+		case IDM_REGISTERWINDOW: return wxT("Registers");
+		case IDM_BREAKPOINTWINDOW: return wxT("Breakpoints");
+		case IDM_MEMORYWINDOW: return wxT("Memory");
+		case IDM_JITWINDOW: return wxT("JIT");
+		case IDM_SOUNDWINDOW: return wxT("Sound");
+		case IDM_VIDEOWINDOW: return wxT("Video");
+	}
+	return wxT("");
+}
+
+// Close all panes with notebooks
+void CFrame::CloseAllNotebooks()
+{		
+	int i = 0;
+	while(GetNotebookCount() > 0)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			m_Mgr->GetAllPanes().Item(i).DestroyOnClose(true);
+			m_Mgr->ClosePane(m_Mgr->GetAllPanes().Item(i));
+			//m_Mgr->GetAllPanes().Item(i).window->Hide();
+			//m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
+			
+			i = 0;
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i Pane\n", i).c_str());
+		}
+		else
+		{
+			i++;
+			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i No pane\n", i).c_str());
+		}
+		
+	}
+}
+int CFrame::GetNotebookCount()
+{
+	int Ret = 0;
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) Ret++;
+	}
+	return Ret;
+}
+
+wxAuiNotebook * CFrame::GetNotebookFromId(u32 NBId)
+{
+	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+		if (j == NBId) return (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		j++;
+	}
+	return NULL;	
+}
+void CFrame::ShowAllNotebooks(bool Window)
+{
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			if (Window)
+				m_Mgr->GetAllPanes().Item(i).Show();
+			else
+				m_Mgr->GetAllPanes().Item(i).window->Hide();
+		}
+	}
+	m_Mgr->Update();
+}
+void CFrame::HideAllNotebooks(bool Window)
+{	
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			if (Window)
+				m_Mgr->GetAllPanes().Item(i).Hide();
+			else
+				m_Mgr->GetAllPanes().Item(i).window->Hide();
+		}
+	}
+	m_Mgr->Update();
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////

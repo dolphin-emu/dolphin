@@ -80,10 +80,11 @@ class CPluginManager;
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
 
 // Menu bar
-EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
-EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode) // Options
 EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
+EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // Jit
 EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
@@ -96,14 +97,16 @@ EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
+EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
+EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
+EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
 
-EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) //views
+EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) // View
 EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
 EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
 EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
 EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
 EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
-EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
 EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
@@ -114,10 +117,6 @@ EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
 EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
 EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
 EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
-
-EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
-EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
-EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
 
 EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
 EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)

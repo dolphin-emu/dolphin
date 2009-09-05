@@ -441,7 +441,7 @@ void CCodeWindow::OnToggleCodeWindow(bool _Show, int i)
 {
 	if (_Show)
 	{
-		Parent->DoAddPage(this, i, "Code");
+		Parent->DoAddPage(this, i, wxT("Code"));
 	}
 	else // hide
 		Parent->DoRemovePage (this);
@@ -450,8 +450,8 @@ void CCodeWindow::OnToggleRegisterWindow(bool _Show, int i)
 {
 	if (_Show)
 	{
-		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent);
-		Parent->DoAddPage(m_RegisterWindow, i, "Registers");
+		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
+		Parent->DoAddPage(m_RegisterWindow, i, wxT("Registers"));
 	}
 	else // hide
 		Parent->DoRemovePage (m_RegisterWindow);
@@ -461,9 +461,9 @@ void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
 {
 	if (_Show)
 	{
-		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent);
+		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
 		#ifdef _WIN32
-		Parent->DoAddPage(m_BreakpointWindow, i, "Breakpoints");
+		Parent->DoAddPage(m_BreakpointWindow, i, wxT("Breakpoints"));
 		#else
 		m_BreakpointWindow->Show();
 		#endif
@@ -476,33 +476,14 @@ void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
 		#endif
 }
 
-void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
-{
-	if (_Show)
-	{
-		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent);
-		#ifdef _WIN32
-		Parent->DoAddPage(m_JitWindow, i, "JIT");
-		#else
-		m_JitWindow->Show();
-		#endif
-	}
-	else // hide
-		#ifdef _WIN32
-		Parent->DoRemovePage(m_JitWindow);
-			#else
-		if (m_JitWindow) m_JitWindow->Hide();
-		#endif
-}
-
 
 void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
 {
 	if (_Show)
 	{
-		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent);
+		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
 		#ifdef _WIN32
-		Parent->DoAddPage(m_MemoryWindow, i, "Memory");
+		Parent->DoAddPage(m_MemoryWindow, i, wxT("Memory"));
 		#else
 		m_MemoryWindow->Show();
 		#endif
@@ -515,6 +496,25 @@ void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
 		#endif
 }
 
+
+void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
+{
+	if (_Show)
+	{
+		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
+		#ifdef _WIN32
+		Parent->DoAddPage(m_JitWindow, i, wxT("JIT"));
+		#else
+		m_JitWindow->Show();
+		#endif
+	}
+	else // hide
+		#ifdef _WIN32
+		Parent->DoRemovePage(m_JitWindow);
+			#else
+		if (m_JitWindow) m_JitWindow->Hide();
+		#endif
+}
 
 
 /*
@@ -540,7 +540,7 @@ void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
-		if (Win && Parent->GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif				
@@ -559,7 +559,7 @@ void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
 		{		
 			Win->SetName(wxT("Sound"));
 			Win->Reparent(Parent);
-			Parent->GetNotebook(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
+			Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
 			//Parent->ListChildren();			
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win %i\n", FindWindowByName(wxT("Sound"))).c_str());
@@ -604,7 +604,7 @@ void CCodeWindow::OnToggleVideoWindow(bool _Show, int i)
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
 		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win && Parent->GetNotebook(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
+		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
 		{
 		#endif	
@@ -618,7 +618,7 @@ void CCodeWindow::OnToggleVideoWindow(bool _Show, int i)
 		}
 
 		Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win) Parent->GetNotebook(i)->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
+		if (Win) Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
 		#endif
 	}
 	else // hide

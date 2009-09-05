@@ -104,17 +104,29 @@ class CFrame : public wxFrame
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 		long NOTEBOOK_STYLE, TOOLBAR_STYLE;
 		int iLeftWidth[2], iMidWidth[2];
-		// Perspectives
+
+		// Utility
 		wxWindow * GetWxWindow(wxString);
 		#ifdef _WIN32
 			wxWindow * GetWxWindowHwnd(HWND);
 		#endif
+		wxWindow * GetFloatingPage(int Id);
 		wxWindow * GetNootebookPage(wxString);
-		wxAuiNotebook * GetNotebook(u32);
+		wxWindow * GetNootebookPageFromId(wxWindowID Id);
+		wxAuiNotebook * GetNotebookFromId(u32);
+		wxString WindowNameFromId(int Id);
+		int GetNotebookCount();
+		int Limit(int,int,int);
+		int PercentageToPixels(int,int);
+		int PixelsToPercentage(int,int);
+
+		// Perspectives
 		void AddRemoveBlankPage();
 		void OnNotebookPageClose(wxAuiNotebookEvent& event);
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+		void OnFloatWindow(wxCommandEvent& event);
+		void OnTab(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
 		void ListChildren();
 		void ClosePages();
@@ -122,10 +134,13 @@ class CFrame : public wxFrame
 		void ShowAllNotebooks(bool Window = false);
 		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
-		int GetNotebookCount();
-		void DoAddPage(wxWindow *, int, std::string);
+		void DoAddPage(wxWindow *, int, wxString);
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoRemovePageString(wxString, bool Hide = true, bool Destroy = false);
+		void DoUnfloatPage(int Id);
+		void OnFloatingPageClosed(wxCloseEvent& event);
+		void DoFloatPage(wxWindow * Win);
+		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = wxT(""), wxWindow * = NULL);
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();
@@ -144,11 +159,8 @@ class CFrame : public wxFrame
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
 		u32 ActivePerspective;	
-		int PercentageToPixels(int,int);
-		int PixelsToPercentage(int,int);
 		void NamePanes();
 		void AddPane();
-		int Limit(int,int,int);
 		void Save();
 		void SaveLocal();
 		void OnPaneClose(wxAuiManagerEvent& evt);
@@ -218,7 +230,7 @@ class CFrame : public wxFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
-		wxPanel *CreateEmptyPanel();
+		wxPanel *CreateEmptyPanel(wxWindowID Id = wxID_ANY);
 		wxAuiNotebook *CreateEmptyNotebook();
 
 #ifdef _WIN32

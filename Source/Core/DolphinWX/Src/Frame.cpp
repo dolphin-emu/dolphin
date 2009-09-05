@@ -238,6 +238,17 @@ EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspec
 EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_NO_DOCKING, CFrame::OnDropDownToolbarSelect)
+// Drop down float
+EVT_MENU(IDM_FLOAT_LOGWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_CONSOLEWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_CODEWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_REGISTERWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_BREAKPOINTWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_MEMORYWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_JITWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_SOUNDWINDOW, CFrame::OnFloatWindow)
+EVT_MENU(IDM_FLOAT_VIDEOWINDOW, CFrame::OnFloatWindow)
+
 
 #if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
@@ -291,6 +302,7 @@ EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
 EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
+EVT_AUINOTEBOOK_TAB_RIGHT_UP(wxID_ANY, CFrame::OnTab)
 
 // Post events to child panels
 EVT_MENU(wxID_ANY, CFrame::PostEvent)
@@ -327,14 +339,14 @@ CFrame::CFrame(wxFrame* parent,
 	// Give it a console early to show potential messages from this onward
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
-	if (SConfig::GetInstance().m_InterfaceLogWindow) m_LogWindow = new CLogWindow(this);
+	if (SConfig::GetInstance().m_InterfaceLogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 	{
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this, IDM_CODEWINDOW);
 		g_pCodeWindow->Hide();
 		g_pCodeWindow->Load();
 	}
@@ -457,12 +469,12 @@ CFrame::CFrame(wxFrame* parent,
 		wxAuiManagerEventHandler(CFrame::OnManagerResize),
 		(wxObject*)0, this);	
 
-		wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
-			wxMouseEventHandler(CFrame::OnDoubleClick),
-			(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
-			wxMouseEventHandler(CFrame::OnMotion),
-			(wxObject*)0, this);
+	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
+		wxMouseEventHandler(CFrame::OnDoubleClick),
+		(wxObject*)0, this);
+	wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
+		wxMouseEventHandler(CFrame::OnMotion),
+		(wxObject*)0, this);
 	// ----------
 
 	// Update controls
@@ -818,9 +830,9 @@ void CFrame::Update()
 // --------
 // Functions
 
-wxPanel* CFrame::CreateEmptyPanel()
+wxPanel* CFrame::CreateEmptyPanel(wxWindowID Id)
 {	
-   wxPanel* Panel = new wxPanel(this, wxID_ANY);
+   wxPanel* Panel = new wxPanel(this, Id);
    return Panel;
 }
 wxAuiNotebook* CFrame::CreateEmptyNotebook()
@@ -844,4 +856,72 @@ void CFrame::DoFullscreen(bool _F)
 		// Restore saved perspective
 		m_Mgr->LoadPerspective(AuiCurrent, true);
 	}
+}
+
+// Debugging, show loose windows
+void CFrame::ListChildren()
+{	
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	wxAuiNotebook * NB = NULL;
+
+	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
+
+	for (u32 i = 0; i < this->GetChildren().size(); i++)
+	{
+		wxWindow * Win = this->GetChildren().Item(i)->GetData();
+		Console->Log(LogTypes::LNOTICE, StringFromFormat(
+			"%i: %s (%s) :: %s", i,
+			(const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
+		//if (Win->GetName().IsSameAs(wxT("control")))
+		if (Win->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			NB = (wxAuiNotebook*)Win;
+			Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: NB", (const char*)NB->GetName().mb_str()).c_str());
+		}
+		else
+		{
+			NB = NULL;
+		}
+		Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
+
+		Win = this->GetChildren().Item(i)->GetData();
+		for (u32 j = 0; j < Win->GetChildren().size(); j++)
+		{
+			Console->Log(LogTypes::LNOTICE, StringFromFormat(
+			 "     %i.%i: %s (%s) :: %s", i, j,
+			 (const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
+			if (NB)
+			{
+				if (j < NB->GetPageCount())
+					Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: %s", (const char*)NB->GetPage(j)->GetName().mb_str()).c_str());
+			}
+			Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
+
+			/*
+			Win = this->GetChildren().Item(j)->GetData();
+			for (int k = 0; k < Win->GetChildren().size(); k++)
+			{
+				Console->Log(LogTypes::LNOTICE, StringFromFormat(
+					"          %i.%i.%i: %s (%s) :: %s\n", i, j, k,
+					Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
+			}
+			*/
+		}
+	}	
+
+	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
+
+	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	{
+		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+		wxAuiNotebook * _NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+		Console->Log(LogTypes::LNOTICE, StringFromFormat("%i: %s\n", i, (const char *)m_Mgr->GetAllPanes().Item(i).name.mb_str()).c_str());
+
+		for (u32 j = 0; j < _NB->GetPageCount(); j++)
+		{
+			Console->Log(LogTypes::LNOTICE, StringFromFormat("%i.%i: %s\n", i, j, (const char *)_NB->GetPageText(j).mb_str()).c_str());
+		}
+	}
+
+	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
 }
