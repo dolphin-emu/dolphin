@@ -288,10 +288,18 @@ bool Renderer::Init()
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported. This extension is not yet used, though.");
 	}
 
+	// Decide frambuffer size
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
 	if (g_Config.bNativeResolution)
 	{
 		s_targetwidth = EFB_WIDTH;
 		s_targetheight = EFB_HEIGHT;
+	}
+	else if (g_Config.b2xResolution)
+	{
+		s_targetwidth = 2 * EFB_WIDTH;
+		s_targetheight = 2 * EFB_HEIGHT;
 	}
 	else
 	{
@@ -299,20 +307,21 @@ bool Renderer::Init()
 		// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
 		// So the below is wrong.
 		// This should really be grabbed from config rather than from OpenGL.
-		int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
-		s_targetwidth = (W < 640) ? 640 : W;
-		s_targetheight = (H < 480) ? 480 : H;
+		s_targetwidth = (640 >= W) ? 640 : W;
+		s_targetheight = (480 >= H) ? 480 : H;
 
 		// Compensate height of render target for scaling, so that we get something close to the correct number of
 		// vertical pixels.
 		s_targetheight *= 528.0 / 480.0;
+
+		// Ensure a minimum target size so that the native res target always fits.
+		if (s_targetwidth < EFB_WIDTH) s_targetwidth = EFB_WIDTH;
+		if (s_targetheight < EFB_HEIGHT) s_targetheight = EFB_HEIGHT;
 	}
 
-	// Ensure a minimum target size so that the native res target always fits.
-	if (s_targetwidth < EFB_WIDTH)
-		s_targetwidth = EFB_WIDTH;
-	if (s_targetheight < EFB_HEIGHT)
-		s_targetheight = EFB_HEIGHT;
+	// Disable the 2x option
+	if (!g_Config.b2xResolution && (W < 1280 || H < 960)) g_Config.bAllow2xResolution = false;
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -400,6 +409,7 @@ bool Renderer::Init()
 
 void Renderer::Shutdown(void)
 {    
+	g_Config.bAllow2xResolution = true;
     delete s_pfont;
 	s_pfont = 0;
 
@@ -1231,8 +1241,10 @@ void Renderer::DrawDebugText()
 		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
 
 		std::string OSDM1 =
-			g_Config.bNativeResolution ? 
+			g_Config.bNativeResolution || g_Config.b2xResolution ?
+			(g_Config.bNativeResolution ? 
 			StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
+			: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
 			: StringFromFormat("%i x %i (custom)", W, H);
 		std::string OSDM21 =
 			!(g_Config.bKeepAR43 || g_Config.bKeepAR169) ? "-": (g_Config.bKeepAR43 ? "4:3" : "16:9");
