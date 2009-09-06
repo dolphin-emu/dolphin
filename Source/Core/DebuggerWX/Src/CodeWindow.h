@@ -123,13 +123,13 @@ class CCodeWindow
 		bool bAutomaticStart; bool bBootToPause;
 		bool bLogWindow; int iLogWindow;
 		bool bConsoleWindow; int iConsoleWindow;
-		bool bCodeWindow; int iCodeWindow;
-		bool bRegisterWindow; int iRegisterWindow;
-		bool bBreakpointWindow; int iBreakpointWindow;
-		bool bMemoryWindow; int iMemoryWindow;
-		bool bJitWindow; int iJitWindow;
-		bool bSoundWindow; int iSoundWindow;
-		bool bVideoWindow; int iVideoWindow;
+		bool bCodeWindow; int iCodeWindow; bool bFloatCodeWindow;
+		bool bRegisterWindow; int iRegisterWindow; bool bFloatRegisterWindow;
+		bool bBreakpointWindow; int iBreakpointWindow; bool bFloatBreakpointWindow;
+		bool bMemoryWindow; int iMemoryWindow; bool bFloatMemoryWindow;
+		bool bJitWindow; int iJitWindow; bool bFloatJitWindow;
+		bool bSoundWindow; int iSoundWindow; bool bFloatSoundWindow;
+		bool bVideoWindow; int iVideoWindow; bool bFloatVideoWindow;
 
 	private:
 

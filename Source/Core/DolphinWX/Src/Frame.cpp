@@ -328,7 +328,8 @@ CFrame::CFrame(wxFrame* parent,
 	: wxFrame(parent, id, title, pos, size, style), g_pCodeWindow(NULL)		
 	, m_LogWindow(NULL), m_MenuBar(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
-	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false), bRenderToMain(true)
+	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
+	, bRenderToMain(true), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
@@ -344,7 +345,7 @@ CFrame::CFrame(wxFrame* parent,
 	if (SConfig::GetInstance().m_InterfaceLogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 
 	// Start debugging mazimized
-	if (UseDebugger) this->Maximize(true);
+	//if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
 	{
@@ -782,9 +783,42 @@ void CFrame::Update()
 }
 #endif
 
+
 // --------
 // Functions
 
+
+wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
+{
+	//NOTICE_LOG(CONSOLE, "CreateParentFrame: %i %s %i", Id, Title.mb_str(), Child->GetId())
+
+	wxFrame * Frame = new wxFrame(this, Id, Title);
+	
+	Child->Reparent(Frame);
+	Child->Show();
+
+	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
+
+	m_MainSizer->Add(Child, 1, wxEXPAND);
+
+	Frame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
+		wxCloseEventHandler(CFrame::OnFloatingPageClosed),
+		(wxObject*)0, this);
+
+	if (Id == IDM_CONSOLEWINDOW_PARENT)
+	{
+		Frame->Connect(wxID_ANY, wxEVT_SIZE,
+			wxSizeEventHandler(CFrame::OnFloatingPageSize),
+			(wxObject*)0, this);
+	}
+
+	// Main sizer
+	Frame->SetSizer( m_MainSizer );
+	// Minimum frame size
+	Frame->SetMinSize(wxSize(200, -1));
+	Frame->Show();
+	return Frame;
+}
 wxPanel* CFrame::CreateEmptyPanel(wxWindowID Id)
 {	
    wxPanel* Panel = new wxPanel(this, Id);

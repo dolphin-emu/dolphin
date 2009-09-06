@@ -104,6 +104,8 @@ class CFrame : public wxFrame
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 		long NOTEBOOK_STYLE, TOOLBAR_STYLE;
 		int iLeftWidth[2], iMidWidth[2];
+		bool bFloatLogWindow;
+		bool bFloatConsoleWindow;
 
 		// Utility
 		wxWindow * GetWxWindow(wxString);
@@ -114,6 +116,7 @@ class CFrame : public wxFrame
 		wxWindow * GetNootebookPage(wxString);
 		wxWindow * GetNootebookPageFromId(wxWindowID Id);
 		wxAuiNotebook * GetNotebookFromId(u32);
+		wxWindowID WindowParentIdFromChildId(int Id);
 		wxString WindowNameFromId(int Id);
 		int GetNotebookCount();
 		int Limit(int,int,int);
@@ -134,13 +137,10 @@ class CFrame : public wxFrame
 		void ShowAllNotebooks(bool Window = false);
 		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
-		void DoAddPage(wxWindow *, int, wxString);
+		void DoAddPage(wxWindow *, int, wxString, bool);
 		void DoRemovePage(wxWindow *, bool Hide = true);
+		void DoRemovePageId(wxWindowID Id, bool Hide = true, bool Destroy = false);
 		void DoRemovePageString(wxString, bool Hide = true, bool Destroy = false);
-		void DoUnfloatPage(int Id);
-		void OnFloatingPageClosed(wxCloseEvent& event);
-		void DoFloatPage(wxWindow * Win);
-		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = wxT(""), wxWindow * = NULL);
 		void HidePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();
@@ -148,6 +148,12 @@ class CFrame : public wxFrame
 		void TogglePaneStyle(bool,int);
 		void ToggleNotebookStyle(long);
 		void ResizeConsole();
+		// Float window
+		void DoUnfloatPage(int Id);
+		void OnFloatingPageClosed(wxCloseEvent& event);
+		void OnFloatingPageSize(wxSizeEvent& event);
+		void DoFloatNotebookPage(wxWindowID Id);
+		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = wxT(""), wxWindow * = NULL);
 		// User perspectives
 		struct SPerspectives
 		{

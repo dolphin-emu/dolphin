@@ -106,13 +106,13 @@ void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 	SConfig::GetInstance().m_InterfaceLogWindow = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
-void CFrame::ToggleLogWindow(bool _show, int i)
+void CFrame::ToggleLogWindow(bool bShow, int i)
 {	
-	if (_show)
+	if (bShow)
 	{
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 		#ifdef _WIN32
-		DoAddPage(m_LogWindow, i, wxT("Log"));
+		DoAddPage(m_LogWindow, i, wxT("Log"), bFloatLogWindow);
 		#else
 		m_LogWindow->Show();
 		#endif
@@ -138,55 +138,46 @@ void CFrame::OnToggleConsole(wxCommandEvent& event)
 	SConfig::GetInstance().m_InterfaceConsole = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
-void CFrame::ToggleConsole(bool _show, int i)
+void CFrame::ToggleConsole(bool bShow, int i)
 {
+#ifdef _WIN32
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();	
 
-	if (_show)
+	if (bShow)
 	{
 		//Console->Log(LogTypes::LNOTICE, StringFromFormat(" >>> Show\n").c_str());
 
 		if (GetNotebookCount() == 0) return;
 		if (i < 0 || i > GetNotebookCount()-1) i = 0;
 
-		#ifdef _WIN32
 		wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
 		if (Win && GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 		{
-			#else
-			Console->Open();
-			#endif
-
-			#ifdef _WIN32
 			if(!GetConsoleWindow()) Console->Open(); else ShowWindow(GetConsoleWindow(),SW_SHOW);
 		}
 		Win = GetWxWindowHwnd(GetConsoleWindow());
-		// Can we remove the border?
-		//Win->SetWindowStyleFlag(wxNO_BORDER);
-		//SetWindowLong(GetConsoleWindow(), GWL_STYLE, WS_VISIBLE);
+		if (!Win) return;
 		// Create parent window
 		wxPanel * ConsoleParent = CreateEmptyPanel(IDM_CONSOLEWINDOW);
-		::SetParent(GetConsoleWindow(), (HWND)ConsoleParent->GetHWND());
-		//Win->SetParent(ConsoleParent);
-		//if (Win) m_Mgr->GetAllPanes().Item(i)->AddPage(Win, wxT("Console"), true, aNormalFile );
-		if (Win) GetNotebookFromId(i)->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile );
-		#endif
+		Win->Reparent(ConsoleParent);
+		if (!bFloatConsoleWindow)
+			GetNotebookFromId(i)->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile);
+		else
+			CreateParentFrame(WindowParentIdFromChildId(ConsoleParent->GetId()), WindowNameFromId(ConsoleParent->GetId()), ConsoleParent);
 	}
 	else // hide
 	{
 		//Console->Log(LogTypes::LNOTICE, StringFromFormat(" >>> Show\n").c_str());
 
-		#ifdef _WIN32
 		// Hide
 		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
 		// Release the console to Windows
 		::SetParent(GetConsoleWindow(), NULL);
 		// Destroy the empty parent of the console
-		DoRemovePageString(wxT("Console"), true, true);
-
-		#else
-		Console->Close();
-		#endif
+		if (FindWindowById(WindowParentIdFromChildId(IDM_CONSOLEWINDOW)))
+			FindWindowById(WindowParentIdFromChildId(IDM_CONSOLEWINDOW))->Destroy();
+		else
+			DoRemovePageId(IDM_CONSOLEWINDOW, true, true);
 	}
 
 	// Hide pane
@@ -194,11 +185,14 @@ void CFrame::ToggleConsole(bool _show, int i)
 
 	// Make sure the check is updated (if wxw isn't calling this func)
 	//GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(Show);
+#endif
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ------------
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
-
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::ClosePages()
 {
 	DoToggleWindow(IDM_LOGWINDOW, false);
@@ -211,25 +205,25 @@ void CFrame::ClosePages()
 	DoToggleWindow(IDM_SOUNDWINDOW, false);
 	DoToggleWindow(IDM_VIDEOWINDOW, false);
 }
-void CFrame::DoToggleWindow(int Id, bool _show)
+void CFrame::DoToggleWindow(int Id, bool bShow)
 {		
 	switch (Id)
 	{
-		case IDM_LOGWINDOW: ToggleLogWindow(_show, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
-		case IDM_CONSOLEWINDOW: ToggleConsole(_show, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
+		case IDM_LOGWINDOW: ToggleLogWindow(bShow, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
+		case IDM_CONSOLEWINDOW: ToggleConsole(bShow, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
 	}
 
 	if (!UseDebugger) return;
 
 	switch (Id)
 	{
-		case IDM_CODEWINDOW: g_pCodeWindow->OnToggleCodeWindow(_show, g_pCodeWindow->iCodeWindow); break;
-		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(_show, g_pCodeWindow->iRegisterWindow); break;
-		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(_show, g_pCodeWindow->iBreakpointWindow); break;
-		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(_show, g_pCodeWindow->iMemoryWindow); break;
-		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(_show, g_pCodeWindow->iJitWindow); break;
-		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(_show, g_pCodeWindow->iSoundWindow); break;
-		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(_show, g_pCodeWindow->iVideoWindow); break;
+		case IDM_CODEWINDOW: g_pCodeWindow->OnToggleCodeWindow(bShow, g_pCodeWindow->iCodeWindow); break;
+		case IDM_REGISTERWINDOW: g_pCodeWindow->OnToggleRegisterWindow(bShow, g_pCodeWindow->iRegisterWindow); break;
+		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(bShow, g_pCodeWindow->iBreakpointWindow); break;
+		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(bShow, g_pCodeWindow->iMemoryWindow); break;
+		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(bShow, g_pCodeWindow->iJitWindow); break;
+		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(bShow, g_pCodeWindow->iSoundWindow); break;
+		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(bShow, g_pCodeWindow->iVideoWindow); break;
 	}
 }
 void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
@@ -271,8 +265,8 @@ void CFrame::OnFloatWindow(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
-		case IDM_FLOAT_LOGWINDOW: if (GetNootebookPageFromId(IDM_LOGWINDOW)) { DoFloatPage(m_LogWindow); return; } break;
-		case IDM_FLOAT_CONSOLEWINDOW: if (GetNootebookPageFromId(IDM_CONSOLEWINDOW)) { DoFloatPage(m_LogWindow); return; } break;
+		case IDM_FLOAT_LOGWINDOW: if (GetNootebookPageFromId(IDM_LOGWINDOW)) { DoFloatNotebookPage(IDM_LOGWINDOW); return; } break;
+		case IDM_FLOAT_CONSOLEWINDOW: if (GetNootebookPageFromId(IDM_CONSOLEWINDOW)) { DoFloatNotebookPage(IDM_CONSOLEWINDOW); return; } break;
 	}
 	switch(event.GetId())
 	{
@@ -284,11 +278,11 @@ void CFrame::OnFloatWindow(wxCommandEvent& event)
 
 	switch(event.GetId())
 	{
-		case IDM_FLOAT_CODEWINDOW: if (GetNootebookPageFromId(IDM_CODEWINDOW)) { DoFloatPage(g_pCodeWindow); return; } break;
-		case IDM_FLOAT_REGISTERWINDOW: if (GetNootebookPageFromId(IDM_REGISTERWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_RegisterWindow); return; } break;
-		case IDM_FLOAT_BREAKPOINTWINDOW: if (GetNootebookPageFromId(IDM_BREAKPOINTWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_BreakpointWindow); return; } break;
-		case IDM_FLOAT_MEMORYWINDOW: if (GetNootebookPageFromId(IDM_MEMORYWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_MemoryWindow); return; } break;
-		case IDM_FLOAT_JITWINDOW: if (GetNootebookPageFromId(IDM_JITWINDOW)) { DoFloatPage((wxWindow*)g_pCodeWindow->m_JitWindow); return; } break;
+		case IDM_FLOAT_CODEWINDOW: if (GetNootebookPageFromId(IDM_CODEWINDOW)) { DoFloatNotebookPage(IDM_CODEWINDOW); return; } break;
+		case IDM_FLOAT_REGISTERWINDOW: if (GetNootebookPageFromId(IDM_REGISTERWINDOW)) { DoFloatNotebookPage(IDM_REGISTERWINDOW); return; } break;
+		case IDM_FLOAT_BREAKPOINTWINDOW: if (GetNootebookPageFromId(IDM_BREAKPOINTWINDOW)) { DoFloatNotebookPage(IDM_BREAKPOINTWINDOW); return; } break;
+		case IDM_FLOAT_MEMORYWINDOW: if (GetNootebookPageFromId(IDM_MEMORYWINDOW)) { DoFloatNotebookPage(IDM_MEMORYWINDOW); return; } break;
+		case IDM_FLOAT_JITWINDOW: if (GetNootebookPageFromId(IDM_JITWINDOW)) { DoFloatNotebookPage(IDM_JITWINDOW); return; } break;
 	}
 	switch(event.GetId())
 	{
@@ -302,6 +296,7 @@ void CFrame::OnFloatWindow(wxCommandEvent& event)
 void CFrame::OnTab(wxAuiNotebookEvent& event)
 {
 	event.Skip();
+	if (!UseDebugger) return;
 
 	// Create the popup menu
 	wxMenu MenuPopup;
@@ -312,31 +307,33 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	MenuPopup.Append(new wxMenuItem(&MenuPopup));
 	Item =  new wxMenuItem(&MenuPopup, IDM_FLOAT_LOGWINDOW, WindowNameFromId(IDM_LOGWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_LOGWINDOW) && !GetNootebookPageFromId(IDM_LOGWINDOW));
+	Item->Check(FindWindowById(IDM_LOGWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_CONSOLEWINDOW, WindowNameFromId(IDM_CONSOLEWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_CONSOLEWINDOW) && !GetNootebookPageFromId(IDM_CONSOLEWINDOW));
-	Item->Enable(false);
+	Item->Check(FindWindowById(IDM_CONSOLEWINDOW_PARENT));
 	MenuPopup.Append(new wxMenuItem(&MenuPopup));
+	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_CODEWINDOW, WindowNameFromId(IDM_CODEWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup.Append(Item);
+	Item->Check(FindWindowById(IDM_CODEWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_REGISTERWINDOW, WindowNameFromId(IDM_REGISTERWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_REGISTERWINDOW) && !GetNootebookPageFromId(IDM_REGISTERWINDOW));
+	Item->Check(FindWindowById(IDM_REGISTERWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_BREAKPOINTWINDOW, WindowNameFromId(IDM_BREAKPOINTWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_BREAKPOINTWINDOW) && !GetNootebookPageFromId(IDM_BREAKPOINTWINDOW));
+	Item->Check(FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_MEMORYWINDOW, WindowNameFromId(IDM_MEMORYWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_MEMORYWINDOW) && !GetNootebookPageFromId(IDM_MEMORYWINDOW));
+	Item->Check(FindWindowById(IDM_MEMORYWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_JITWINDOW, WindowNameFromId(IDM_JITWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_JITWINDOW) && !GetNootebookPageFromId(IDM_JITWINDOW));
+	Item->Check(FindWindowById(IDM_JITWINDOW_PARENT));
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_SOUNDWINDOW, WindowNameFromId(IDM_SOUNDWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_SOUNDWINDOW) && !GetNootebookPageFromId(IDM_SOUNDWINDOW));
+	Item->Check(FindWindowById(IDM_SOUNDWINDOW_PARENT));
 	Item->Enable(false);
 	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_VIDEOWINDOW, WindowNameFromId(IDM_VIDEOWINDOW), wxT(""), wxITEM_CHECK);
 	MenuPopup.Append(Item);
-	Item->Check(FindWindowById(IDM_VIDEOWINDOW) && !GetNootebookPageFromId(IDM_VIDEOWINDOW));
+	Item->Check(FindWindowById(IDM_VIDEOWINDOW_PARENT));
 	Item->Enable(false);
 
 	// Line up our menu with the cursor
@@ -349,6 +346,8 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
 	event.Skip();
 	event.Allow();
+	ResizeConsole();
+
 	//	wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
 	// If we drag away the last one the tab bar goes away and we can't add any panes to it
 	//if (Ctrl->GetPageCount() == 1) Ctrl->AddPage(CreateEmptyPanel(), wxT("<>"), true);
@@ -372,41 +371,109 @@ void CFrame::HidePane()
 	SetSimplePaneSize();
 }
 
-void CFrame::DoRemovePageString(wxString Str, bool /*_hide*/, bool _destroy)
+void CFrame::DoRemovePageString(wxString Str, bool /*_Hide*/, bool _Destroy)
 {
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+	wxWindow * Win = FindWindowByName(Str);
+
+	if (Win)
 	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		for (u32 j = 0; j < NB->GetPageCount(); j++)
+		Win->Reparent(this);
+		Win->Hide();
+		FindWindowById(WindowParentIdFromChildId(Win->GetId()))->Destroy();
+	}
+	else
+	{
+		for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 		{
-			if (NB->GetPageText(j).IsSameAs(Str))
+			if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
+			wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
+			for (u32 j = 0; j < NB->GetPageCount(); j++)
 			{
-				if (!_destroy)
+				if (NB->GetPageText(j).IsSameAs(Str))
 				{
-					// Reparent to avoid destruction if the notebook is closed and destroyed
-					wxWindow * Win = NB->GetPage(j);
-					NB->RemovePage(j);
-					Win->Reparent(this);
-				}
-				else
-				{
-					NB->DeletePage(j);
-				}
-				//if (_hide) Win->Hide();
-				break;
-			}	
+					if (!_Destroy)
+					{
+						// Reparent to avoid destruction if the notebook is closed and destroyed
+						wxWindow * Win = NB->GetPage(j);
+						NB->RemovePage(j);
+						Win->Reparent(this);
+					}
+					else
+					{
+						NB->DeletePage(j);
+					}
+					//if (_Hide) Win->Hide();
+					break;
+				}	
+			}
 		}
 	}
-
 }
-void CFrame::DoAddPage(wxWindow * Win, int i, wxString Name)
+void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
+{
+	// If m_dialog is NULL, then possibly the system didn't report the checked menu item status correctly.
+	// It should be true just after the menu item was selected, if there was no modeless dialog yet.
+	//wxASSERT(Win != NULL);
+	if (!Win) return;
+
+	if (FindWindowById(WindowParentIdFromChildId(Win->GetId())))
+	{
+		Win->Reparent(this);
+		Win->Hide();
+		FindWindowById(WindowParentIdFromChildId(Win->GetId()))->Destroy();
+	}
+	else
+	{
+		for (int i = 0; i < GetNotebookCount(); i++)
+		{
+			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
+			{
+				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
+				// Reparent to avoid destruction if the notebook is closed and destroyed
+				Win->Reparent(this);
+				if (_Hide) Win->Hide();
+			}
+		}
+	}
+}
+void CFrame::DoRemovePageId(wxWindowID Id, bool bHide, bool bDestroy)
+{
+	if (!FindWindowById(Id)) return;
+	wxWindow * Win = FindWindowById(Id);
+
+	if (FindWindowById(WindowParentIdFromChildId(Id)))
+	{
+		Win->Reparent(this);
+		if (bDestroy)
+			Win->Destroy();
+		else
+			Win->Hide();
+		FindWindowById(WindowParentIdFromChildId(Id))->Destroy();
+	}
+	else
+	{
+		for (int i = 0; i < GetNotebookCount(); i++)
+		{
+			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
+			{
+				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
+				// Reparent to avoid destruction if the notebook is closed and destroyed
+				Win->Reparent(this);
+				if (bHide) Win->Hide();
+			}
+		}
+	}
+}
+void CFrame::DoAddPage(wxWindow * Win, int i, wxString Name, bool Float)
 {
 	if (!Win) return;
 	if (GetNotebookCount() == 0) return;
 	if (i < 0 || i > GetNotebookCount()-1) i = 0;
 	if (Win && GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
-	GetNotebookFromId(i)->AddPage(Win, Name, true, aNormalFile );
+	if (!Float)
+		GetNotebookFromId(i)->AddPage(Win, Name, true, aNormalFile );
+	else
+		CreateParentFrame(WindowParentIdFromChildId(Win->GetId()), WindowNameFromId(Win->GetId()), Win);
 
 	//NOTICE_LOG(CONSOLE, "DoAddPage: %i", Win->GetId());
 
@@ -421,11 +488,11 @@ void CFrame::DoUnfloatPage(int Id)
 	//NOTICE_LOG(CONSOLE, "DoUnfloatPage: %i", Id);
 
 	wxFrame * Win = (wxFrame*)this->FindWindowById(Id);
+	if (!Win) return;
+
 	wxWindow * Child = Win->GetWindowChildren().Item(0)->GetData();
 	Child->Reparent(this);
-	// Return the window id
-	Child->SetId(Win->GetId());
-	DoAddPage(Child, 0, Win->GetTitle());
+	DoAddPage(Child, 0, Win->GetTitle(), false);
 	Win->Destroy();
 }
 void CFrame::OnFloatingPageClosed(wxCloseEvent& event)
@@ -433,69 +500,29 @@ void CFrame::OnFloatingPageClosed(wxCloseEvent& event)
 	//NOTICE_LOG(CONSOLE, "OnFloatingPageClosed: %i", event.GetId());
 	DoUnfloatPage(event.GetId());
 }
-
-void CFrame::DoFloatPage(wxWindow * Win)
+void CFrame::OnFloatingPageSize(wxSizeEvent& event)
 {
-	//NOTICE_LOG(CONSOLE, "DoFloatPage: %i %s", Win->GetId(), WindowNameFromId(Win->GetId()).mb_str());
-
-	if (Win)
-	{
-		for (int i = 0; i < GetNotebookCount(); i++)
-		{
-			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
-			{
-				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
-				// Reparent to avoid destruction if the notebook is closed and destroyed
-				CreateParentFrame(Win->GetId(), WindowNameFromId(Win->GetId()), Win);
-			}
-		}
-	}
+	event.Skip();
+	//NOTICE_LOG(CONSOLE, "OnFloatingPageClosed: %i", event.GetId());
+	ResizeConsole();
 }
 
-void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
-{
-	// If m_dialog is NULL, then possibly the system didn't report the checked menu item status correctly.
-	// It should be true just after the menu item was selected, if there was no modeless dialog yet.
-	//wxASSERT(Win != NULL);
 
-	if (Win)
+void CFrame::DoFloatNotebookPage(wxWindowID Id)
+{
+	//NOTICE_LOG(CONSOLE, "DoFloatNotebookPage: %i %s", Win->GetId(), WindowNameFromId(Win->GetId()).mb_str());
+	wxFrame * Win = (wxFrame*)this->FindWindowById(Id);
+	if (!Win) return;
+
+	for (int i = 0; i < GetNotebookCount(); i++)
 	{
-		for (int i = 0; i < GetNotebookCount(); i++)
+		if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
 		{
-			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
-			{
-				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
-				// Reparent to avoid destruction if the notebook is closed and destroyed
-				Win->Reparent(this);
-				if (_Hide) Win->Hide();
-			}
+			GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
+			// Reparent to avoid destruction if the notebook is closed and destroyed
+			CreateParentFrame(WindowParentIdFromChildId(Win->GetId()), WindowNameFromId(Win->GetId()), Win);
 		}
 	}
-}
-wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
-{
-	//NOTICE_LOG(CONSOLE, "CreateParentFrame: %i %s %i", Id, Title.mb_str(), Child->GetId())
-
-	wxFrame * Frame = new wxFrame(this, Id, Title);
-	
-	Child->Reparent(Frame);
-	Child->SetId(wxID_ANY);
-	Child->Show();
-
-	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
-
-	m_MainSizer->Add(Child, 1, wxEXPAND);
-
-	Frame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
-		wxCloseEventHandler(CFrame::OnFloatingPageClosed),
-		(wxObject*)0, this);
-
-	// Main sizer
-	Frame->SetSizer( m_MainSizer );
-	// Minimum frame size
-	Frame->SetMinSize(wxSize(200, -1));
-	Frame->Show();
-	return Frame;
 }
 
 // Toolbar
@@ -645,11 +672,14 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 			break;
 	}
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// ------------
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
-
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::ResetToolbarStyle()
 {
     wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
@@ -727,59 +757,54 @@ void CFrame::OnSelectPerspective(wxCommandEvent& event)
 
 void CFrame::ResizeConsole()
 {
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
+#ifdef _WIN32
+	// Get the console parent window
+	wxWindow * Win = FindWindowById(IDM_CONSOLEWINDOW);
+	if (!Win) return;
+
+	// ----------------------------------------------------------
+	// Get OS version
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	int wxBorder, Border, LowerBorder, MenuBar, ScrollBar, WidthReduction;
+	OSVERSIONINFO osvi;
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	GetVersionEx(&osvi);
+	if (osvi.dwMajorVersion == 6) // Vista (same as 7?)
 	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		for(u32 j = 0; j <= wxDynamicCast(m_Mgr->GetAllPanes().Item(i).window, wxAuiNotebook)->GetPageCount(); j++)
-		{
-			if (wxDynamicCast(m_Mgr->GetAllPanes().Item(i).window, wxAuiNotebook)->GetPageText(j).IsSameAs(wxT("Console")))
-			{
-				#ifdef _WIN32
-				// ----------------------------------------------------------
-				// Get OS version
-				// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-				int wxBorder, Border, LowerBorder, MenuBar, ScrollBar, WidthReduction;
-				OSVERSIONINFO osvi;
-				ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-				osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-				GetVersionEx(&osvi);
-				if (osvi.dwMajorVersion == 6) // Vista (same as 7?)
-				{
-					wxBorder = 2;
-					Border = 4;
-					LowerBorder = 6;
-					MenuBar = 30; // Including upper border				
-					ScrollBar = 19;
-				}
-				else // XP
-				{
-					wxBorder = 2;
-					Border = 4;
-					LowerBorder = 6;
-					MenuBar = 30;					
-					ScrollBar = 19;
-				}
-				WidthReduction = 30 - Border;
-				// --------------------------------
-				// Get the client size
-				int X = m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetX();
-				int Y = m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetY();
-				int InternalWidth = X - wxBorder*2 - ScrollBar;
-				int InternalHeight = Y - wxBorder*2;
-				int WindowWidth = InternalWidth + Border*2;
-				int WindowHeight = InternalHeight;
-				// Resize buffer
-				ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-				//Console->Log(LogTypes::LNOTICE, StringFromFormat("Window WxH:%i %i\n", X, Y).c_str());
-				Console->PixelSpace(0,0, InternalWidth,InternalHeight, false);
-				// Move the window to hide the border
-				MoveWindow(GetConsoleWindow(), -Border-wxBorder,-MenuBar-wxBorder, WindowWidth + 100,WindowHeight, true);
-				// Move it to the bottom of the view order so that it doesn't hide the notebook tabs
-				// ...
-				#endif
-			}
-		}	
+		wxBorder = 2;
+		Border = 4;
+		LowerBorder = 6;
+		MenuBar = 30; // Including upper border				
+		ScrollBar = 19;
 	}
+	else // XP
+	{
+		wxBorder = 2;
+		Border = 4;
+		LowerBorder = 6;
+		MenuBar = 30;					
+		ScrollBar = 19;
+	}
+	WidthReduction = 30 - Border;
+	// --------------------------------
+	// Get the client size
+	int X = Win->GetClientSize().GetX();
+	int Y = Win->GetClientSize().GetY();
+	int InternalWidth = X - wxBorder*2 - ScrollBar;
+	int InternalHeight = Y - wxBorder*2;
+	int WindowWidth = InternalWidth + Border*2 + /*max out the width in the word wrap mode*/ 100;
+	int WindowHeight = InternalHeight + MenuBar;
+	// Resize buffer
+	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	Console->PixelSpace(0,0, InternalWidth,InternalHeight, false);
+	// Move the window to hide the border
+	MoveWindow(GetConsoleWindow(), -Border-wxBorder,-MenuBar-wxBorder, WindowWidth + 100,WindowHeight, true);
+	// Move it to the bottom of the view order so that it doesn't hide the notebook tabs
+	// ...
+	// Log
+	//NOTICE_LOG(CONSOLE, "Size: %ix%i", X, Y);
+#endif
 }
 
 void CFrame::SetSimplePaneSize()
@@ -1047,10 +1072,15 @@ void CFrame::AddPane()
 	AddRemoveBlankPage();
 	m_Mgr->Update();
 }	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// ------------
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 int CFrame::Limit(int i, int Low, int High)
 {	
@@ -1167,6 +1197,22 @@ int CFrame::GetNootebookAffiliation(wxString Name)
 	}
 	return -1;
 }
+wxWindowID CFrame::WindowParentIdFromChildId(int Id)
+{
+	switch(Id)
+	{
+		case IDM_LOGWINDOW: return IDM_LOGWINDOW_PARENT;
+		case IDM_CONSOLEWINDOW: return IDM_CONSOLEWINDOW_PARENT;
+		case IDM_CODEWINDOW: return IDM_CODEWINDOW_PARENT;
+		case IDM_REGISTERWINDOW: return IDM_REGISTERWINDOW_PARENT;
+		case IDM_BREAKPOINTWINDOW: return IDM_BREAKPOINTWINDOW_PARENT;
+		case IDM_MEMORYWINDOW: return IDM_MEMORYWINDOW_PARENT;
+		case IDM_JITWINDOW: return IDM_JITWINDOW_PARENT;
+		case IDM_SOUNDWINDOW: return IDM_SOUNDWINDOW_PARENT;
+		case IDM_VIDEOWINDOW: return IDM_VIDEOWINDOW_PARENT;
+	}
+	return NULL;
+}
 wxString CFrame::WindowNameFromId(int Id)
 {
 	switch(Id)
@@ -1256,3 +1302,4 @@ void CFrame::HideAllNotebooks(bool Window)
 	}
 	m_Mgr->Update();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

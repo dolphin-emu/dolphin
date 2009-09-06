@@ -113,6 +113,16 @@ void CCodeWindow::Load()
 	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
 	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
 	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
+	// Get floating setting
+	ini.Get("Float", "Log", &Parent->bFloatLogWindow, false);
+	ini.Get("Float", "Console", &Parent->bFloatConsoleWindow, false);
+	ini.Get("Float", "Code", &bFloatCodeWindow, false);
+	ini.Get("Float", "Registers", &bFloatRegisterWindow, false);
+	ini.Get("Float", "Breakpoints", &bFloatBreakpointWindow, false);
+	ini.Get("Float", "Memory", &bFloatMemoryWindow, false);
+	ini.Get("Float", "JIT", &bFloatJitWindow, false);
+	ini.Get("Float", "Sound", &bFloatSoundWindow, false);
+	ini.Get("Float", "Video", &bFloatVideoWindow, false);
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
@@ -149,6 +159,16 @@ void CCodeWindow::Save()
 	ini.Set(_Section.c_str(), "JIT", iJitWindow);
 	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
 	ini.Set(_Section.c_str(), "Video", iVideoWindow);
+	// Save floating setting
+	ini.Set("Float", "Log", (bool)FindWindowById(IDM_LOGWINDOW_PARENT));
+	ini.Set("Float", "Console", (bool)FindWindowById(IDM_CONSOLEWINDOW_PARENT));
+	ini.Set("Float", "Code", (bool)FindWindowById(IDM_CODEWINDOW_PARENT));
+	ini.Set("Float", "Registers", (bool)FindWindowById(IDM_REGISTERWINDOW_PARENT));
+	ini.Set("Float", "Breakpoints", (bool)FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
+	ini.Set("Float", "Memory", (bool)FindWindowById(IDM_MEMORYWINDOW_PARENT));
+	ini.Set("Float", "JIT", (bool)FindWindowById(IDM_JITWINDOW_PARENT));
+	ini.Set("Float", "Sound", (bool)FindWindowById(IDM_SOUNDWINDOW_PARENT));
+	ini.Set("Float", "Video", (bool)FindWindowById(IDM_VIDEOWINDOW_PARENT));	
 
 	// Save window settings
 	/*
@@ -441,7 +461,7 @@ void CCodeWindow::OnToggleCodeWindow(bool _Show, int i)
 {
 	if (_Show)
 	{
-		Parent->DoAddPage(this, i, wxT("Code"));
+		Parent->DoAddPage(this, i, wxT("Code"), bFloatCodeWindow);
 	}
 	else // hide
 		Parent->DoRemovePage (this);
@@ -451,7 +471,7 @@ void CCodeWindow::OnToggleRegisterWindow(bool _Show, int i)
 	if (_Show)
 	{
 		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
-		Parent->DoAddPage(m_RegisterWindow, i, wxT("Registers"));
+		Parent->DoAddPage(m_RegisterWindow, i, wxT("Registers"), bFloatRegisterWindow);
 	}
 	else // hide
 		Parent->DoRemovePage (m_RegisterWindow);
@@ -463,7 +483,7 @@ void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
 	{
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
 		#ifdef _WIN32
-		Parent->DoAddPage(m_BreakpointWindow, i, wxT("Breakpoints"));
+		Parent->DoAddPage(m_BreakpointWindow, i, wxT("Breakpoints"), bFloatBreakpointWindow);
 		#else
 		m_BreakpointWindow->Show();
 		#endif
@@ -483,7 +503,7 @@ void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
 	{
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
 		#ifdef _WIN32
-		Parent->DoAddPage(m_MemoryWindow, i, wxT("Memory"));
+		Parent->DoAddPage(m_MemoryWindow, i, wxT("Memory"), bFloatMemoryWindow);
 		#else
 		m_MemoryWindow->Show();
 		#endif
@@ -503,7 +523,7 @@ void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
 	{
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
 		#ifdef _WIN32
-		Parent->DoAddPage(m_JitWindow, i, wxT("JIT"));
+		Parent->DoAddPage(m_JitWindow, i, wxT("JIT"), bFloatJitWindow);
 		#else
 		m_JitWindow->Show();
 		#endif
