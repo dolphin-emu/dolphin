@@ -24,6 +24,7 @@
 BEGIN_EVENT_TABLE(NetPlay, wxFrame)
 	EVT_BUTTON(ID_BUTTON_JOIN,     NetPlay::OnJoin)
 	EVT_BUTTON(ID_BUTTON_HOST,     NetPlay::OnHost)
+	EVT_BUTTON(ID_BUTTON_EXIT,	   NetPlay::OnDisconnect)
 
 	EVT_HOST_COMMAND(wxID_ANY,     NetPlay::OnNetEvent)
 
@@ -39,7 +40,7 @@ BEGIN_EVENT_TABLE(NetPlay, wxFrame)
 END_EVENT_TABLE()
 
 NetPlay::NetPlay(wxWindow* parent, std::string GamePaths, std::string GameNames) :
-	wxFrame(parent, wxID_ANY, _T("Net Play"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~ wxMAXIMIZE_BOX)
+	wxFrame(parent, wxID_ANY, _T("Net Play"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~ wxMAXIMIZE_BOX & ~ wxCLOSE_BOX)
 {
 	m_selectedGame = 'a'; m_hostaddr = 'a';
 	m_games = GameNames;  m_paths = GamePaths;
@@ -195,6 +196,7 @@ void NetPlay::DrawGUI()
 	m_ConAddr = new wxTextCtrl(m_Tab_Connect, ID_CONNADDR, wxT("127.0.0.1:12345"), wxDefaultPosition, wxSize(250,20), 0);
 	m_UseRandomPort = new wxCheckBox(m_Tab_Connect, ID_USE_RANDOMPORT, wxT("Use random client port for connection"));
 	m_JoinGame = new wxButton(m_Tab_Connect, ID_BUTTON_JOIN, wxT("Connect"), wxDefaultPosition, wxDefaultSize);
+	m_ExitWindowC = new wxButton(m_Tab_Connect, ID_BUTTON_EXIT, wxT("Quit"), wxDefaultPosition, wxDefaultSize);
 
 	// Sizers CONNECT
 	wxBoxSizer* sConnectTop = new wxBoxSizer(wxHORIZONTAL);
@@ -205,6 +207,7 @@ void NetPlay::DrawGUI()
 	sConnectTop->Add(m_JoinGame, 0, wxALL|wxALIGN_RIGHT, 5);
 	sConnectSizer->Add(sConnectTop, 0, wxALL|wxEXPAND, 5);
 	sConnectSizer->Add(m_UseRandomPort, 0, wxALL|wxALIGN_CENTER, 5);
+	sConnectSizer->Add(m_ExitWindowC, 0, wxALL|wxALIGN_CENTER, 5);
 
 	m_Tab_Connect->SetSizer(sConnectSizer);
 
@@ -214,8 +217,10 @@ void NetPlay::DrawGUI()
 	m_GameList = new wxListBox(m_Tab_Host, ID_GAMELIST, wxDefaultPosition, wxDefaultSize,
 		m_GameList_str, wxLB_SINGLE | wxLB_NEEDED_SB);
 	m_HostGame = new wxButton(m_Tab_Host, ID_BUTTON_HOST, wxT("Host"), wxDefaultPosition, wxDefaultSize);
+	m_ExitWindowH = new wxButton(m_Tab_Host, ID_BUTTON_EXIT, wxT("Quit"), wxDefaultPosition, wxDefaultSize);
 	m_NetMode = new wxChoice(m_Tab_Host, ID_NETMODE, wxDefaultPosition, wxDefaultSize, netmodes_str, 0, wxDefaultValidator);
 	m_NetMode->SetSelection(0);
+
 
 	// Sizers HOST
 	wxBoxSizer *sHostBox = new wxBoxSizer(wxVERTICAL);
@@ -224,10 +229,12 @@ void NetPlay::DrawGUI()
 	sHostBottom->Add(m_NetMode, 0, wxALL|wxALIGN_CENTER, 5);
 	sHostBottom->AddStretchSpacer();
 	sHostBottom->Add(m_HostGame, 0, wxALL, 10);
+	sHostBottom->Add(m_ExitWindowH, 0, wxALL|wxALIGN_CENTER, 5);
 
 	sHostBox->Add(m_GameList_text, 0, wxALL|wxALIGN_CENTER, 5);
 	sHostBox->Add(m_GameList, 1, wxALL|wxEXPAND, 6);
 	sHostBox->Add(sHostBottom, 0, wxALL|wxEXPAND, 1);
+
 
 	m_Tab_Host->SetSizer(sHostBox);
 

@@ -131,11 +131,13 @@ class NetPlay : public wxFrame
 		wxStaticText    *m_SetPort_text;
 		wxTextCtrl      *m_SetPort;
 		wxButton        *m_HostGame;
+		wxButton		*m_ExitWindowH;
 
 		// Connect tab :
 		wxTextCtrl      *m_ConAddr;
 		wxStaticText    *m_ConAddr_text;
 		wxButton        *m_JoinGame;
+		wxButton		*m_ExitWindowC;
 		wxCheckBox      *m_UseRandomPort;
 
 		// Connection window
@@ -179,6 +181,7 @@ enum
 	ID_TAB_CONN,
 	ID_BUTTON_HOST,
 	ID_BUTTON_JOIN,
+	ID_BUTTON_EXIT,
 	ID_NETMODE,
 	ID_GAMELIST,
 	ID_LOGGING_TXT,
