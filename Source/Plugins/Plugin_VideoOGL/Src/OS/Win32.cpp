@@ -86,6 +86,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 extern bool gShowDebugger;
 int OSDChoice = 0, OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
+
 // ---------------------------------------------------------------------
 // OSD Menu
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -100,8 +101,8 @@ void OSDMenu(WPARAM wParam)
 		// Toggle native resolution
 		if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
 			g_Config.bNativeResolution = true;
-		else if (g_Config.bNativeResolution && g_Config.bAllow2xResolution)
-			{ g_Config.bNativeResolution = false; g_Config.b2xResolution = true; }
+		else if (g_Config.bNativeResolution)
+			{ g_Config.bNativeResolution = false; if (g_Config.bAllow2xResolution) {g_Config.b2xResolution = true;} }
 		else
 			g_Config.b2xResolution = false;
 		break;
@@ -139,7 +140,7 @@ namespace EmuWindow
 {
 
 HWND m_hWnd = NULL; // The new window that is created here
-HWND m_hParent = NULL;
+HWND m_hParent = NULL; // The main wxFrame
 HWND m_hMain = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
@@ -165,12 +166,10 @@ HWND GetWnd()
 {
 	return m_hWnd;
 }
-
 HWND GetParentWnd()
 {
     return m_hParent;
 }
-
 HWND GetChildParentWnd()
 {
     return m_hMain;
@@ -235,7 +234,38 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
     }
 }
 
-LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
+// ---------------------------------------------------------------------
+// KeyDown events
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void OnKeyDown(WPARAM wParam)
+{
+	switch (LOWORD( wParam ))
+	{
+	case VK_ESCAPE:
+		if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
+		{
+			// Pressing Esc switch to Windowed in Fullscreen mode
+			ToggleFullscreen(m_hWnd);
+			return;
+		}
+		else if (!g_Config.RenderToMainframe)
+		{
+			// And stops the emulation when already in Windowed mode
+			PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
+		}
+		break;
+	case '3': // OSD keys
+	case '4':
+	case '5':
+	case '6':
+		OSDMenu(wParam);
+		break;
+	}
+	g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
+}
+// ---------------------------------------------------------------------
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {		
 	HDC         hdc;
 	PAINTSTRUCT ps;
@@ -255,7 +285,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		{
 		case VK_RETURN:
 			// Pressing Alt+Enter switch FullScreen/Windowed
-			if (m_hParent == NULL && !g_Config.renderToMainframe)
+			if (m_hParent == NULL && !g_Config.RenderToMainframe)
 			{
 				ToggleFullscreen(hWnd);
 				return 0;
@@ -265,30 +295,17 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_KEYDOWN:
-		switch( LOWORD( wParam ))
-		{
-		case VK_ESCAPE:
-			if (g_Config.bFullscreen)
-			{
-				// Pressing Esc switch to Windowed in Fullscreen mode
-				ToggleFullscreen(hWnd);
-				return 0;
-			}
-			else if (!g_Config.renderToMainframe)
-			{
-				// And stops the emulation when already in Windowed mode
-				PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
-			}
-			break;
-		case '3': // OSD keys
-		case '4':
-		case '5':
-		case '6':
-			OSDMenu(wParam);
-			break;
-		}
-		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
+		// Don't process this as a child window to avoid double events
+		if (!g_Config.RenderToMainframe) OnKeyDown(wParam);
 		break;
+
+	/* Post thes mouse events to the main window, it's nessesary becase in difference to the
+	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_LBUTTONDBLCLK:
+		PostMessage(GetChildParentWnd(), iMsg, wParam, lParam);
+	break;
 
 	/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
 	   during gameplay. The alternative is to load one of the cursors when the plugin
@@ -309,24 +326,15 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
 		and coordinate it with the other settings if nessesary */
 	case WM_USER:
-		/* I set wParam to 10 just in case there are other WM_USER events. If we want more
-		   WM_USER cases we would start making wParam or lParam cases */
-		if (wParam == 10)
+		if (wParam == OPENGL_WM_USER_STOP)
 		{
 			if (lParam)
 				SetCursor(hCursor);
 			else
 				SetCursor(hCursorBlank);
 		}
+		if (wParam == OPENGL_WM_USER_KEYDOWN) OnKeyDown(lParam);
 		break;
-
-	/* Post thes mouse events to the main window, it's nessesary becase in difference to the
-	   keyboard inputs these events only appear here, not in the main WndProc() */
-	case WM_LBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_LBUTTONDBLCLK:
-		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
-	break;
 
 	// This is called when we close the window when we render to a separate window
 	case WM_CLOSE:	
@@ -364,7 +372,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 {
 	wndClass.cbSize = sizeof( wndClass );
-	wndClass.style  = CS_HREDRAW | CS_VREDRAW;
+	wndClass.style  = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	wndClass.lpfnWndProc = WndProc;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;

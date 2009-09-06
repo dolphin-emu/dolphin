@@ -16,11 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
-//the rendering window (when we render to the main window). In Windows the rendering window is
-//created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
-//child window to m_Panel. The new child window handle that is returned by CreateWindow() can
-//be accessed from Core::GetWindowHandle().
+// CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
+// the rendering window (when we render to the main window). In Windows the rendering window is
+// created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
+// child window to m_Panel. The new child window handle that is returned by CreateWindow() can
+// be accessed from Core::GetWindowHandle().
 
 // ----------
 // Includes
@@ -72,7 +72,7 @@ extern "C" {
 };
 
 
-//---------------
+// ---------------
 // Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
 // Probably because it's somehow reset from the WndProc() in the child window 
 #ifdef _WIN32
@@ -103,8 +103,8 @@ HWND MSWGetParent_(HWND Parent)
 }
 #endif
 
-//---------------
-//The CPanel class to receive MSWWindowProc messages from the video plugin.
+// ---------------
+// The CPanel class to receive MSWWindowProc messages from the video plugin.
 
 extern CFrame* main_frame;
 
@@ -141,15 +141,17 @@ int abc = 0;
 	{
 		switch (nMsg)
 		{
-		//case WM_LBUTTONDOWN:
-		//case WM_LBUTTONUP:
-		//case WM_MOUSEMOVE:
-		//	break;		
+			/*
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_MOUSEMOVE:
+			break;
+		case WM_LBUTTONDBLCLK:
+			break;
+			*/
 
-		// This doesn't work, strange
-		//case WM_LBUTTONDBLCLK:
-			//PanicAlert("Double click");
-			//break;
+		//case WM_KEYDOWN:
+		//	break;
 
 		case WM_USER:
 			switch(wParam)
@@ -469,7 +471,7 @@ CFrame::CFrame(wxFrame* parent,
 		wxAuiManagerEventHandler(CFrame::OnManagerResize),
 		(wxObject*)0, this);	
 
-	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DOWN,
+	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DCLICK,
 		wxMouseEventHandler(CFrame::OnDoubleClick),
 		(wxObject*)0, this);
 	wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
@@ -646,38 +648,19 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	// Don't block other events
-	event.Skip();
+	// In this case event.Skip() cause a double posting to this function
+	if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
+		event.Skip();
 
-	// Escape key turn off fullscreen then Stop emulation in windowed mode
-	if (event.GetKeyCode() == WXK_ESCAPE)
+	// Toggle fullscreen
+	if (event.GetKeyCode() == WXK_ESCAPE || (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT))
 	{
-		// Temporary solution to double esc keydown. When the OpenGL plugin is running all esc keydowns are duplicated
-		// I'm guessing it's coming from the OpenGL plugin but I couldn't find the source of it so I added this until
-		// the source of the problem surfaces.
-		static double Time = 0;
-		if (Common::Timer::GetDoubleTime()-1 < Time) return;
-		Time = Common::Timer::GetDoubleTime();
-
-		DoFullscreen(!IsFullScreen());
-		if (IsFullScreen())
-		{
-			#ifdef _WIN32
-			MSWSetCursor(true);
-			#endif
-		}	
-		//UpdateGUI();
-	}
-	if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
-	{
-		// For some reasons, wxWidget doesn't proccess the Alt+Enter event there on windows.
-		// But still, pressing Alt+Enter make it Fullscreen, So this is for other OS... :P
 		DoFullscreen(!IsFullScreen());
 	}
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'M', '3', '4', '5', '6') // Send this to the video plugin WndProc
 	{
-		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, OPENGL_WM_USER_KEYDOWN, event.GetKeyCode());
 	}
 #endif
 
@@ -696,13 +679,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
+	event.Skip();
+
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
-	event.Skip();
 }
 
 // ---------------
-// Detect double click. Kind of, for some reason we have to manually create the double click for now.
+// Detect double click
 
 void CFrame::OnDoubleClick(wxMouseEvent& event)
 {
@@ -713,38 +697,9 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) return;
 
 	// Only detect double clicks in the rendering window, and only use this when a game is running
-	if(Core::GetState() == Core::CORE_UNINITIALIZED || event.GetId() != IDM_MPANEL) return;
+	if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == m_Panel)) return;
 
-	// For first click just save the time
-	if(m_fLastClickTime == 0) { m_fLastClickTime = Common::Timer::GetDoubleTime(); return; }
-
-	// -------------------------------------------
-	/* Manually detect double clicks since both wxEVT_LEFT_DCLICK and WM_LBUTTONDBLCLK stops
-	   working after the child window is created by the plugin */
-	// ----------------------
-	double TmpTime = Common::Timer::GetDoubleTime();
-	int Elapsed = (TmpTime - m_fLastClickTime) * 1000;
-
-	// Get the double click time, if avaliable
-	int DoubleClickTime;
-	#ifdef _WIN32
-		DoubleClickTime = GetDoubleClickTime();
-	#else
-		DoubleClickTime = 500; // The default in Windows
-	#endif
-
-	m_fLastClickTime = TmpTime; // Save the click time
-
-	if (Elapsed < DoubleClickTime)
-	{
-		DoFullscreen(!IsFullScreen());
-		#ifdef _WIN32
-			MSWSetCursor(true); // Show the cursor again, in case it was hidden
-		#endif
-		m_fLastClickTime -= 10; // Don't treat repeated clicks as double clicks
-	}
-
-	UpdateGUI();
+	DoFullscreen(!IsFullScreen());
 }
 
 
@@ -842,10 +797,10 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
 }
 
 
-void CFrame::DoFullscreen(bool _F)
+void CFrame::DoFullscreen(bool bF)
 {
-	ShowFullScreen(_F);
-	if (_F)
+	ShowFullScreen(bF);
+	if (bF)
 	{
 		// Save the current mode before going to fullscreen
 		AuiCurrent = m_Mgr->SavePerspective();
@@ -855,6 +810,14 @@ void CFrame::DoFullscreen(bool _F)
 	{
 		// Restore saved perspective
 		m_Mgr->LoadPerspective(AuiCurrent, true);
+	}
+
+	// Show the cursor again, in case it was hidden
+	if (IsFullScreen())
+	{
+		#ifdef _WIN32
+		MSWSetCursor(true);
+		#endif
 	}
 }
 

@@ -199,7 +199,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
     wxSize size(_iwidth, _iheight);
-    if (!g_Config.renderToMainframe ||
+    if (!g_Config.RenderToMainframe ||
         g_VideoInitialize.pWindowHandle == NULL) {
         GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
                                   -1, _("Dolphin"), wxPoint(50,50), size);
@@ -233,7 +233,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	// ----------------------
 
     // Create a separate window
-    if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
+    if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Please wait..."));
 	// Create a child window
     else
@@ -282,7 +282,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         ChangeDisplaySettings(NULL, 0);
     }
 
-    if (g_Config.bFullscreen && !g_Config.renderToMainframe)
+    if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
 	{
 		// Hide the cursor
         ShowCursor(FALSE);

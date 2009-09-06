@@ -42,7 +42,7 @@ void Config::Load()
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
+    iniFile.Get("Hardware", "RenderToMainframe", &RenderToMainframe, false);
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
@@ -136,7 +136,7 @@ void Config::Save()
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "VSync", bVSync);
-    iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+    iniFile.Set("Hardware", "RenderToMainframe", RenderToMainframe);
     iniFile.Set("Settings", "StretchToFit", bNativeResolution);
 	iniFile.Set("Settings", "2xResolution", b2xResolution);
     iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);

@@ -177,7 +177,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	// General Display Settings
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
+	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN_HACK, wxT("Wide Screen Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -582,7 +582,7 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bFullscreen = m_Fullscreen->IsChecked();
 		break;
 	case ID_RENDERTOMAINWINDOW:
-		g_Config.renderToMainframe = m_RenderToMainWindow->IsChecked();
+		g_Config.RenderToMainframe = m_RenderToMainWindow->IsChecked();
 		g_Config.bFullscreen = false;
 		break;
 	case ID_NATIVERESOLUTION:
@@ -772,8 +772,8 @@ void GFXConfigDialogOGL::UpdateGUI()
 	m_AutoScale->Enable(!g_Config.bUseXFB);
 
 	// These options are for the separate rendering window
-	m_Fullscreen->Enable(!g_Config.renderToMainframe);
-	if (g_Config.renderToMainframe) m_Fullscreen->SetValue(false);
+	m_Fullscreen->Enable(!g_Config.RenderToMainframe);
+	if (g_Config.RenderToMainframe) m_Fullscreen->SetValue(false);
 
 	// Disable the internal resolution option if it's set to native
 	m_WindowResolutionCB->Enable(!(g_Config.bNativeResolution || g_Config.b2xResolution));

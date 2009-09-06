@@ -52,7 +52,7 @@ struct Config
     // General
     bool bFullscreen;
     bool bHideCursor;
-    bool renderToMainframe;
+    bool RenderToMainframe;
 	bool bVSync;
 
 	// Resolution control

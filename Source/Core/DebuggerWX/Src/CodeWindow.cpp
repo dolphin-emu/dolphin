@@ -194,10 +194,9 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
-	if ((event.GetKeyCode() == WXK_SPACE) && Parent->IsActive())
-		SingleCPUStep();
-	else
-		event.Skip();
+	event.Skip();
+
+	if ((event.GetKeyCode() == WXK_SPACE) && Parent->IsActive()) SingleCPUStep();		
 }
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)

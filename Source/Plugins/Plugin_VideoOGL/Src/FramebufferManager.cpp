@@ -20,6 +20,7 @@
 
 #include "TextureConverter.h"
 #include "XFB.h"
+#include "Render.h"
 
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp
 
@@ -264,10 +265,10 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) cons
 TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) const
 {
 	TargetRectangle result;
-	result.left = rc.left * m_targetWidth / EFB_WIDTH;
-	result.top = m_targetHeight - (rc.top * m_targetHeight / EFB_HEIGHT);
-	result.right = rc.right * m_targetWidth / EFB_WIDTH;
-	result.bottom = m_targetHeight - (rc.bottom * m_targetHeight / EFB_HEIGHT);
+	result.left = rc.left * Renderer::GetTargetWidth() / EFB_WIDTH;
+	result.top = Renderer::GetTargetHeight() - (rc.top * Renderer::GetTargetHeight() / EFB_HEIGHT);
+	result.right = rc.right * Renderer::GetTargetWidth() / EFB_WIDTH;
+	result.bottom = Renderer::GetTargetHeight() - (rc.bottom * Renderer::GetTargetHeight() / EFB_HEIGHT);
 	return result;
 }
 
@@ -317,8 +318,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		it->xfbWidth = fbWidth;
 		it->xfbHeight = fbHeight;
 
-		it->xfbSource.texWidth = m_targetWidth;
-		it->xfbSource.texHeight = m_targetHeight;
+		it->xfbSource.texWidth = Renderer::GetTargetWidth();
+		it->xfbSource.texHeight = Renderer::GetTargetHeight();
 		it->xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
 
 		xfbTexture = it->xfbSource.texture;

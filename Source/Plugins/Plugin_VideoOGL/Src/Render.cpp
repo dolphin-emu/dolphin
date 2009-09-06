@@ -99,7 +99,6 @@ static int s_MSAACoverageSamples = 0;
 bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
-static bool s_bNativeResolution = false;
 
 static volatile bool s_bScreenshot = false;
 static Common::Thread *scrshotThread = 0;
@@ -183,7 +182,6 @@ bool Renderer::Init()
     bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
-	s_bNativeResolution = g_Config.bNativeResolution;
 	switch (g_Config.iMultisampleMode)
 	{
 	case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
@@ -304,16 +302,14 @@ bool Renderer::Init()
 	{
 		// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
 		// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
-		// So the below is wrong.
-		// This should really be grabbed from config rather than from OpenGL.
-		s_targetwidth = (640 >= W) ? 640 : W;
+		s_targetwidth = (EFB_WIDTH >= W) ? EFB_WIDTH : W;
 		s_targetheight = (480 >= H) ? 480 : H;
 
-		// Compensate height of render target for scaling, so that we get something close to the correct number of
-		// vertical pixels.
+		// Adjust all heights with this ratio, the resulting height will be the same as H or EFB_HEIGHT. I.e.
+		// 768 (-1) for 1024x768 etc.
 		s_targetheight *= 528.0 / 480.0;
 
-		// Ensure a minimum target size so that the native res target always fits.
+		// Ensure a minimum target size so that the native res target always fits
 		if (s_targetwidth < EFB_WIDTH) s_targetwidth = EFB_WIDTH;
 		if (s_targetheight < EFB_HEIGHT) s_targetheight = EFB_HEIGHT;
 	}
@@ -326,6 +322,10 @@ bool Renderer::Init()
 
 	// Initialize the FramebufferManager
 	g_framebufferManager.Init(s_targetwidth, s_targetheight, s_MSAASamples, s_MSAACoverageSamples);
+
+	// Save the custom resolution
+	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
+	s_targetheight = (int)OpenGL_GetBackbufferHeight();
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
@@ -435,12 +435,14 @@ void Renderer::Shutdown(void)
 // Return the rendering window width and height
 int Renderer::GetTargetWidth()
 {
-	return s_targetwidth;
+	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
+		(g_Config.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : s_targetwidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-	return s_targetheight;
+	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
+		(g_Config.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : s_targetheight;
 }
 
 float Renderer::GetTargetScaleX()
@@ -1017,9 +1019,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// Place messages on the picture, then copy it to the screen
     SwapBuffers();
-
-	// Why save this as s_bNativeResolution if we updated it every frame?
-	s_bNativeResolution = g_Config.bNativeResolution;
 
     RestoreAPIState();
 

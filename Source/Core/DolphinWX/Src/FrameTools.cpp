@@ -599,16 +599,13 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 // Refresh the file list and browse for a favorites directory
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
-	if (m_GameListCtrl)
-	{
-		m_GameListCtrl->Update();
-	}
+	if (m_GameListCtrl) m_GameListCtrl->Update();
 }
 
 
 void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
-	m_GameListCtrl->BrowseForDirectory();
+	if (m_GameListCtrl) m_GameListCtrl->BrowseForDirectory();
 }
 
 // Create screenshot
@@ -764,8 +761,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
-	DoFullscreen(true);
-	UpdateGUI();
+	DoFullscreen(!IsFullScreen());
 }
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
@@ -995,10 +991,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	}
 	
-	if (m_GameListCtrl)
-	{
-		m_GameListCtrl->Update();
-	}
+	if (m_GameListCtrl) m_GameListCtrl->Update();
 }
 
 // Enable and disable the toolbar

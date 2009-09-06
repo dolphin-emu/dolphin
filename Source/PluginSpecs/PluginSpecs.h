@@ -26,6 +26,7 @@ enum PLUGIN_COMM
 	// Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
 	OPENGL_WM_USER_STOP = 10,
 	OPENGL_WM_USER_CREATE,
+	OPENGL_WM_USER_KEYDOWN,
 	NJOY_RELOAD, // Reload nJoy if DirectInput has failed
 	WIIMOTE_RECONNECT, // Reconnect the Wiimote if it has disconnected
 	INPUT_FRAME_COUNTER, // Wind back the frame counter for rerecording
